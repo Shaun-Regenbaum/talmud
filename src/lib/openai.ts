@@ -1,15 +1,25 @@
 import { Configuration, OpenAIApi } from 'openai';
 import { env } from '$env/dynamic/public';
+import { redis } from './db';
 
 const configuration = new Configuration({
 	apiKey: env.PUBLIC_OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
 
-const completion = await openai.createCompletion({
-	model: 'text-davinci-002',
-	prompt: 'Hello world',
-});
-console.log(completion.data.choices[0].text);
+export async function createEmbedding(text: string): Promise<any> {
+	const embedding = await openai.createEmbedding({
+		model: 'text-embedding-ada-002',
+		input: text,
+	});
+	console.log(embedding.data.data[0]);
+	return embedding.data.data[0].embedding;
+}
 
-export async function createEmbeddings(text: string) {}
+export async function storeEmbedding(key: string, embedding: Array<any>) {
+	await redis.json.set(key, '$.embedding', embedding, { NX: true });
+}
+
+export async function searchIndex(embedding: Array<any>): Promise<any> {}
+
+export async function createSearchIndex() {}
