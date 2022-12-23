@@ -33,3 +33,19 @@ export interface GroupedText {
 	source: string[];
 	index: number;
 }
+/**
+ * @param {id} id - uuid of the text
+ * @param {contains} contains - array of the ids of the sentences that make up this text
+ * @param {text} text - The group of N sentences
+ * @param {source} source - The named source of the sentence
+ * @param {index} index - to keep track of order
+ */
+export interface OriginalText {
+	id: string;
+	name?: string;
+	en: string[];
+	he: string[];
+	index: number;
+	source: string;
+	heSource: string;
+}
