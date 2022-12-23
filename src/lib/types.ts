@@ -15,7 +15,6 @@ export interface SingleText {
 	en: string[];
 	he: string[];
 	source: string;
-	heSource: string;
 	index: number;
 }
 
@@ -47,5 +46,4 @@ export interface OriginalText {
 	he: string[];
 	index: number;
 	source: string;
-	heSource: string;
 }
