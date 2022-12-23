@@ -20,11 +20,11 @@ export interface SingleText {
 }
 
 /**
- * @param {id} id - uuid of the text
- * @param {contains} contains - array of the ids of the sentences that make up this text
- * @param {text} text - The group of N sentences
- * @param {source} source - The named source of the sentence
- * @param {index} index - to keep track of order
+ * @param {string} id - uuid of the text
+ * @param {string[]} contains - array of the ids of the sentences that make up this text
+ * @param {string} text - The group of N sentences
+ * @param {string[]} source - The named source of the sentence
+ * @param {number} index - to keep track of order
  */
 export interface GroupedText {
 	id: string;
@@ -34,11 +34,11 @@ export interface GroupedText {
 	index: number;
 }
 /**
- * @param {id} id - uuid of the text
+ * @param {string} id - uuid of the text
  * @param {contains} contains - array of the ids of the sentences that make up this text
- * @param {text} text - The group of N sentences
- * @param {source} source - The named source of the sentence
- * @param {index} index - to keep track of order
+ * @param {string} text - The group of N sentences
+ * @param {string} source - The named source of the sentence
+ * @param {number} index - to keep track of order
  */
 export interface OriginalText {
 	id: string;
