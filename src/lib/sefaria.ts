@@ -3,7 +3,7 @@ import type { OriginalText, SingleText } from './types';
 import { v4 as uuid } from 'uuid';
 import { redis } from './db';
 
-export async function getText(ref: string, num: string): Promise<OriginalText> {
+export async function getText(ref: string, num: string): Promise<SingleText[]> {
 	ref = ref.replace(' ', '_');
 	ref = ref.replace(',', '%2C');
 	const url = `https://www.sefaria.org/api/texts/${ref}.${num}?context=0`;
@@ -23,20 +23,30 @@ export async function getText(ref: string, num: string): Promise<OriginalText> {
 		source: heRef,
 		heSource: heRef,
 	};
+	redis.set('originalIndex', index + 1);
 
-	return original;
+	let splits = await splitTexts(
+		original.id,
+		original.en[0],
+		original.he[0],
+		original.source,
+		original.heSource
+	);
+
+	return splits;
 }
 
-function splitTexts(
+async function splitTexts(
 	id: string,
 	text: string,
 	he: string,
 	source: string,
 	heRef: string
-): SingleText[] {
+): Promise<SingleText[]> {
 	let texts: SingleText[] = [];
 	let en = text.split(/(?<=\.)\s/);
 	let hebrew = he.split(/(?<=\.)\s/);
+	let index = Number(await redis.get('splitIndex'));
 
 	for (let i = 0; i < en.length; i++) {
 		texts.push({
@@ -47,9 +57,10 @@ function splitTexts(
 			he: [hebrew[i]],
 			source: source,
 			heSource: heRef,
-			index: i,
+			index: index + i,
 		});
 	}
+	redis.set('splitIndex', index + en.length);
 
 	return texts;
 }
