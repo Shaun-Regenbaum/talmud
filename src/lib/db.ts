@@ -82,7 +82,7 @@ export async function searchIndex(embed: any) {
 			`*=>[KNN 10 @id $BLOB]`,
 			{ PARAMS: { BLOB: queryBlob }, DIALECT: 2 }
 		);
-		return JSON.stringify(results);
+		return results;
 	} catch (e) {
 		let message = 'Unknown Error Type';
 		let status = null;

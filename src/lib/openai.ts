@@ -8,14 +8,25 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 export async function createEmbedding(text: string): Promise<any> {
-	const embedding = await openai.createEmbedding({
+	const response = await openai.createEmbedding({
 		model: 'text-embedding-ada-002',
 		input: text,
 	});
-	console.log(embedding.data.data[0]);
-	return embedding.data.data[0].embedding;
+	console.log(response.data.data[0]);
+	return response.data.data[0].embedding;
 }
 
 export async function storeEmbedding(key: string, embedding: Array<any>) {
 	await redis.json.set(key, '$.embedding', embedding, { NX: true });
+}
+
+export async function createCompletion(text: string): Promise<any> {
+	const response = await openai.createCompletion({
+		model: 'text-davinci-003',
+		prompt: 'Say this is a test',
+		max_tokens: 7,
+		temperature: 0,
+	});
+	console.log(response.data.choices[0].text);
+	return response.data.choices[0].text;
 }
