@@ -25,27 +25,29 @@ export async function storeEmbedding(key: string, embedding: Array<any>) {
 
 export async function createSearchIndex() {
 	const indexName = 'searchIndex';
-
-	const schema: RediSearchSchema = {
-		'$.id': {
-			type: SchemaFieldTypes.TEXT,
-			SORTABLE: 'UNF',
-		},
-		'$.embedding': {
-			//@ts-ignore
-			type: SchemaFieldTypes.VECTOR,
-			//@ts-ignore
-			ALGORITHM: VectorAlgorithms.FLAT,
-			//@ts-ignore
-			VECTOR_DIMENSION: 1024,
-		},
-	};
-	await redis.ft.create(indexName, schema, {
-		ON: 'JSON',
-		PREFIX: 'group:',
-	});
+	try {
+		const schema: RediSearchSchema = {
+			'$.id': {
+				type: SchemaFieldTypes.TEXT,
+				SORTABLE: 'UNF',
+			},
+		};
+		const response = await redis.ft.create(indexName, schema, {
+			ON: 'JSON',
+			PREFIX: 'group:',
+		});
+		return JSON.stringify(response);
+	} catch (e) {
+		return 'Something failed: ' + JSON.stringify(e);
+	}
 }
 
 export async function searchIndex(embed: any) {
-	await redis.ft.search('idx:embeds', `@embedding:{${embed}}`);
+	try {
+		await redis.ft.search('idx:embeds', `@embedding:{${embed}}`);
+		return 'Embeds Index Created';
+	} catch (e) {
+		console.log(e);
+		return 'Embeds Index Already Exists';
+	}
 }

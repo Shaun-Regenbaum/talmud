@@ -13,9 +13,9 @@ export const redis = createRedis({
 
 export const resetIndices = async () => {
 	try {
-		await redis.set('originalIndex', 0);
-		await redis.set('splitIndex', 0);
-		await redis.set('groupIndex', 0);
+		await redis.set('count:originalIndex', 0);
+		await redis.set('count:splitIndex', 0);
+		await redis.set('count:groupIndex', 0);
 	} catch (e) {
 		throw new Error(JSON.stringify(e));
 	}

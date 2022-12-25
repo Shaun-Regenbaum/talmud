@@ -33,10 +33,10 @@ export async function getText(ref: string, num: string): Promise<SingleText[]> {
 	const he: string[] = data.he;
 	let index: number = 0;
 	try {
-		index = Number(await redis.get('originalIndex'));
+		index = Number(await redis.get('count:originalIndex'));
 	} catch {
 		try {
-			redis.set('originalIndex', 0);
+			redis.set('count:originalIndex', 0);
 		} catch (e) {
 			throw new Error(JSON.stringify(e));
 		}

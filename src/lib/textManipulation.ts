@@ -25,9 +25,9 @@ export async function groupTexts(
 	let index = 0;
 	// Get the latest index from redis, and create it if it doesn't exist
 	try {
-		index = Number(await redis.get('groupIndex'));
+		index = Number(await redis.get('count:groupIndex'));
 	} catch {
-		redis.set('groupIndex', 0);
+		redis.set('count:groupIndex', 0);
 	}
 
 	// If we have enough sentences to make at least two groups of N sentences
@@ -74,7 +74,7 @@ export async function groupTexts(
 		console.log('Size', group.contains.length);
 	}
 	// Set the index to the index + the number of groups we made
-	redis.set('groupIndex', index + groups.length);
+	redis.set('count:groupIndex', index + groups.length);
 	return groups;
 }
 
@@ -112,9 +112,9 @@ export async function splitTexts(
 
 	// Get the latest index from redis, and create it if it doesn't exist
 	try {
-		index = Number(await redis.get('splitIndex'));
+		index = Number(await redis.get('count:splitIndex'));
 	} catch {
-		redis.set('splitIndex', 0);
+		redis.set('count:splitIndex', 0);
 	}
 
 	// Create a SingleText Object for each sentence
@@ -133,7 +133,7 @@ export async function splitTexts(
 			console.log(JSON.stringify(e));
 		}
 	}
-	redis.set('splitIndex', index + texts.length);
+	redis.set('count:splitIndex', index + texts.length);
 
 	return texts;
 }
