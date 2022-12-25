@@ -23,6 +23,7 @@
 	"type": "module",
 	"dependencies": {
 		"@esbuild/darwin-x64": "^0.16.10",
+		"@redis/json": "^1.0.4",
 		"@redis/search": "^1.1.0",
 		"@supabase/auth-helpers-sveltekit": "^0.8.6",
 		"@supabase/supabase-js": "^2.2.2",
