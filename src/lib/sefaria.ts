@@ -11,10 +11,14 @@ import { splitTexts } from './textManipulation';
  * @returns {Promise<SingleText[]>} - an array of SingleTexts
  * @example getText('Genesis 1', '1')
  */
-export async function getText(ref: string, num: string): Promise<SingleText[]> {
+export async function getText(
+	ref: string,
+	num: string,
+	debug: boolean = false
+): Promise<SingleText[]> {
 	ref = ref.replace(' ', '_');
 	ref = ref.replace(',', '%2C');
-	console.log(ref);
+	if (debug) console.log(`Ref: ${ref}`);
 	if (ref.includes('undefined')) {
 		throw new Error(
 			'ref was undefined, something went wrong in previous function'
@@ -29,6 +33,8 @@ export async function getText(ref: string, num: string): Promise<SingleText[]> {
 		throw new Error(response.statusText);
 	}
 	const data = await response.json();
+	if (debug) console.log('Fetch Recieved.');
+
 	const text: string[] = data.text;
 	const he: string[] = data.he;
 	let index: number = 0;
@@ -41,6 +47,7 @@ export async function getText(ref: string, num: string): Promise<SingleText[]> {
 			throw new Error(JSON.stringify(e));
 		}
 	}
+	if (debug) console.log('Indices Set.');
 
 	const original: OriginalText = {
 		id: uuid(),
@@ -50,18 +57,19 @@ export async function getText(ref: string, num: string): Promise<SingleText[]> {
 		index: Number(index),
 		source: data.ref,
 	};
+
 	if (original.source === undefined) {
 		throw new Error(`Invalid url: ${url}`);
 	}
 
+	if (debug) console.log('Splitting Texts...');
 	let splits = await splitTexts(
 		original.id,
 		original.en[0],
-		original.he[0],
-		original.source
+		original.source,
+		debug
 	);
-	console.log('splits', splits);
-
+	if (debug) console.log('Splits Done.');
 	return splits;
 }
 
@@ -71,20 +79,26 @@ export async function getText(ref: string, num: string): Promise<SingleText[]> {
  * @returns {Promise<any>} - the TOC of the text
  * @example getTOC('Genesis')
  */
-export async function getIndex(ref: string) {
+export async function getIndex(ref: string, debug: boolean = false) {
 	ref = ref.replace(' ', '_');
 	ref = ref.replace(',', '%2C');
+	if (debug) console.log(`Ref: ${ref}`);
 	try {
 		const url = `https://www.sefaria.org/api/index`;
 		const response = await fetch(url);
 		const data = await response.json();
+		if (debug) console.log('Fetch Recieved.');
 		return data;
 	} catch (e) {
 		console.log(e);
 	}
 }
 
-export async function storeText(groupedText: GroupedText) {
+export async function storeText(
+	groupedText: GroupedText,
+	debug: boolean = false
+) {
+	if (debug) console.log('Storing Text...');
 	await redis.json.set(`group:${groupedText.id}`, '$', {
 		id: groupedText.id,
 		contains: groupedText.contains,
@@ -92,4 +106,5 @@ export async function storeText(groupedText: GroupedText) {
 		source: groupedText.source,
 		index: groupedText.index,
 	});
+	if (debug) console.log('Text Stored.');
 }

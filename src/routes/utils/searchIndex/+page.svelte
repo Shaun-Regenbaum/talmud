@@ -1,24 +1,17 @@
 <script lang="ts">
-    let data: any;
-	async function getIndex() {
-		fetch('/utils/searchIndex').then(
-            (response) => {
-                console.log(response);
-                data = response.json();
-            }
-        )
+  import EndPointContainer from "$lib/components/EndPointContainer.svelte";
 
-	}
+    export let info: any;
+    let loading:boolean = false;
+	async function searchIndex() {
+        loading = true;
+		const data = await fetch('/utils/searchIndex')
+        info = await data.json();
+        console.log(info);
+        loading = false;
+    }
 </script>
 
-<button on:click={getIndex}>Search the Index</button>
-
-{#await data}
-    <p>loading...</p>
-{:then data} 
-{#if data !== undefined}
-	<pre>{JSON.stringify(data, undefined, 2)}</pre>
-{:else}
-    <p>Nothing here. </p>
-{/if}
-{/await}
+<h1 class="text-2xl font-bold">Search an Index from Redis</h1>
+<p class="text-gray-500">Searching an Index from Redis with some default embedding to test that HNSW search is working correctly.</p>
+<EndPointContainer bind:info={info} bind:loading={loading} fn={searchIndex} purpose={"Search an Index"}/>

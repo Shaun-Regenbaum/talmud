@@ -41,7 +41,12 @@ export async function GET() {
 			}
 		}
 	} catch (e) {
-		console.log(e);
+		let message = 'Unknown error';
+		if (e instanceof Error) message = e.message;
+		if (e instanceof Response) {
+			message = e.statusText;
+		}
+		status.push(message);
 	}
 	await redis.quit();
 	return json(status);

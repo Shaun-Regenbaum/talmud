@@ -1,22 +1,20 @@
 <script lang="ts">
-    let data: any;
+  import EndPointContainer from "$lib/components/EndPointContainer.svelte";
+
+
+    let info: any;
+    let loading: boolean = false;
 	async function getIndex() {
+        loading= true;
         let ref = 'Mishneh_Torah,_Transmission_of_the_Oral_Law';
         ref =   ref.replace(' ', '_');
         ref = ref.replace(',', '%2C');
 		const response = await fetch('/utils/getIndex?ref=Mishneh_Torah,_Transmission_of_the_Oral_Law');
-		data = await response.json();
+		info = await response.json();
+        loading = false;
 	}
 </script>
 
-<button on:click={getIndex}>Get the Index</button>
-
-{#await data}
-    <p>loading...</p>
-{:then data} 
-{#if data !== undefined}
-	<pre>{JSON.stringify(data, undefined, 2)}</pre>
-{:else}
-    <p>Nothing here. </p>
-{/if}
-{/await}
+<h1 class="text-2xl font-bold">Getting an Index from Sefaria</h1>
+<p class="text-gray-500">Using the sefaria API to get an index of a specific book and what sections it contains.</p>
+<EndPointContainer bind:info={info} bind:loading={loading} fn={getIndex} purpose={"Get the Index"}/>

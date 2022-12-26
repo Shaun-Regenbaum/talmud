@@ -1,3 +1,5 @@
+//Types for Backend Code:
+
 /**
  * @param {id} id - uuid of the text
  * @param {name} name - optional name of the sentence
@@ -46,4 +48,17 @@ export interface OriginalText {
 	he: string[];
 	index: number;
 	source: string;
+}
+
+//Types for components:
+
+/** Data for the NavBar Component
+ * @param {number} index - to keep track of order
+ * @param {string} name - name of the page
+ * @param {string} link - link to the page
+ */
+export interface NavBarData {
+	index: number;
+	name: string;
+	link: string;
 }

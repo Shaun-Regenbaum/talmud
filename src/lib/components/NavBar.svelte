@@ -1,11 +1,7 @@
-<script lang="ts">
-    interface NavBarData {
-        index: number
-        name: string;
-        link: string;
-    }
 
-export let data:NavBarData[] = [{index: 1, name: 'Chat', link:'/chat'}, {index: 2, name: "Utilities", link:'/utils'},{index: 3, name:"Home", link:'/'}, {index: 4, name:"Components", link:'/components'}]
+<script lang="ts">
+import type {NavBarData} from '$lib/types'
+export let items:NavBarData[] = [{index: 1, name: 'Chat', link:'/chat'}, {index: 2, name: "Utilities", link:'/utils'},{index: 3, name:"Home", link:'/'}, {index: 4, name:"Components", link:'/components'}]
 $: selected = 1
 $: menuShow = false;
 const selectedStyle = "text-white bg-gray-900"
@@ -26,12 +22,12 @@ const unselectedStyle = "text-gray-300 hover:bg-gray-700 hover:text-white px-3 p
             </svg>
 
           </button>
-          <h1 class="text-white">{" " + data[selected-1].name}</h1>
+          <h1 class="text-white">{" " + items[selected-1].name}</h1>
         </div>
         <div class="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
           <div class="hidden sm:ml-6 sm:block">
             <div class="flex space-x-4">
-                {#each data as item}
+                {#each items as item}
                 <a href={item.link} on:click={() => {selected = item.index}} class={(item.index == selected ? selectedStyle : unselectedStyle) + " " + "px-3 py-2 rounded-md text-sm font-medium" } aria-current={item.index == selected ? "true" :"false"}>{item.name}</a>
                 {/each}
             
@@ -47,7 +43,7 @@ const unselectedStyle = "text-gray-300 hover:bg-gray-700 hover:text-white px-3 p
     <!-- svelte-ignore a11y-click-events-have-key-events -->
     <div class="sm:hidden" id="mobile-menu" hidden={menuShow}>
       <div class="space-y-1 px-2 pt-2 pb-3">
-        {#each data as item}
+        {#each items as item}
         <a href={item.link} on:click={() => {selected = item.index}} class={(item.index == selected ? selectedStyle : unselectedStyle) + " " + "block px-3 py-2 rounded-md text-base font-medium" } aria-current={item.index == selected ? "true" :"false"}>{item.name}</a>
         {/each}
        

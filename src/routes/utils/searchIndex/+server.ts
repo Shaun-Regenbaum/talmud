@@ -11,34 +11,49 @@ export async function GET() {
 		status.push('Redis connected');
 	} catch (e) {
 		if (!redis.isOpen) {
-			console.log("Redis didn't connect");
-			throw Error("Redis didn't connect");
+			status.push('Redis failed to connect');
+			let message = 'Unknown error';
+			if (e instanceof Error) message = e.message;
+			if (e instanceof Response) {
+				message = e.statusText;
+			}
+			status.push(message);
+			return json(status);
 		}
 		status.push('Redis already connected');
 	}
 
 	try {
 		status.push('Creating Embedding');
-		let embedding = await createEmbedding(query);
+		let embedding = await createEmbedding(query, true);
 		status.push('Embedding created');
 		try {
 			status.push('Searching index');
-			let results = await searchIndex(embedding);
+			let results = await searchIndex(embedding, true);
 			status.push(results);
-			await redis.quit();
+			redis.quit();
 			status.push('Redis disconnected');
 			return json(status);
 		} catch (e) {
-			console.log(e);
 			status.push('Failed to search index');
-			status.push(e.message);
+			let message = 'Unknown error';
+			if (e instanceof Error) message = e.message;
+			if (e instanceof Response) {
+				message = e.statusText;
+			}
+			status.push(message);
 			await redis.quit();
 			status.push('Redis disconnected');
 			return json(status);
 		}
 	} catch (e) {
-		status.push('Failed to create index');
-		status.push(JSON.stringify(e));
+		status.push('Failed to search index');
+		let message = 'Unknown error';
+		if (e instanceof Error) message = e.message;
+		if (e instanceof Response) {
+			message = e.statusText;
+		}
+		status.push(message);
 		await redis.quit();
 		status.push('Redis disconnected');
 		return json(status);

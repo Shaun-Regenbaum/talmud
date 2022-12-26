@@ -67,24 +67,28 @@ export async function createSearchIndex() {
 	}
 }
 
-export async function searchIndex(embed: any) {
+export async function searchIndex(embed: any, debug: boolean = false) {
 	// convert array of emebds of float64 to bytes:
+	if (debug) console.log('Converting to bytes...');
 	let floatArray = new Float64Array(embed);
 	console.log(floatArray.length);
 	// Convert the Float32Array to a bytes object
 	let bytes = new Uint8Array(floatArray.buffer).slice();
 	const queryBlob = Buffer.from(bytes);
-
+	if (debug) console.log('Converted.');
 	// get rid of commas
 	try {
 		// It took me so long to get this working...
+		if (debug) console.log('Searching...');
 		const results = await redis.ft.search(
 			'searchIndex',
 			`*=>[KNN 10 @id $BLOB]`,
 			{ PARAMS: { BLOB: queryBlob }, DIALECT: 2 }
 		);
+		if (debug) console.log('Finished.');
 		return results;
 	} catch (e) {
+		if (debug) console.log('Error.');
 		let message = 'Unknown Error Type';
 		let status = null;
 		if (e instanceof Error) message = e.message;

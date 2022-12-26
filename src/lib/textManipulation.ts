@@ -11,7 +11,8 @@ import { redis } from './db';
  */
 export async function groupTexts(
 	n: number = 5,
-	texts: SingleText[]
+	texts: SingleText[],
+	debug: boolean = false
 ): Promise<GroupedText[]> {
 	let groups: GroupedText[] = [];
 	let group: GroupedText = {
@@ -29,11 +30,15 @@ export async function groupTexts(
 	} catch {
 		redis.set('count:groupIndex', 0);
 	}
+	if (debug) console.log('Indices Set.');
 
 	// If we have enough sentences to make at least two groups of N sentences
+	if (debug) console.log(`Texts: ${texts.length}`);
 	if (n < texts.length) {
+		if (debug) console.log('Normal Case');
 		//Making as many groups as we can of N sentences from the texts
 		for (let i = 0; i < texts.length - n; i++) {
+			if (debug) console.log(`i: ${i}`);
 			// Reset the group to an empty group
 			group = {
 				id: '',
@@ -44,6 +49,7 @@ export async function groupTexts(
 			};
 			// Making one group of N sentences
 			for (let j = 0; j < n; j++) {
+				if (debug) console.log(`j: ${j}`);
 				group.id = uuid();
 				group.contains.push(texts[i + j].id);
 				group.text += texts[i + j].en[0];
@@ -59,6 +65,7 @@ export async function groupTexts(
 	}
 	// When we can only make one group of N sentences or less...
 	else {
+		if (debug) console.log('Alternative Case');
 		for (let i = 0; i < texts.length; i++) {
 			group.id = uuid();
 			group.contains.push(texts[i].id);
@@ -71,7 +78,7 @@ export async function groupTexts(
 		// Once we've made a group we want to set its index and push it to the groups array
 		group.index = index;
 		groups.push(group);
-		console.log('Size', group.contains.length);
+		if (debug) console.log('Size:' + groups.length);
 	}
 	// Set the index to the index + the number of groups we made
 	redis.set('count:groupIndex', index + groups.length);
@@ -89,8 +96,8 @@ export async function groupTexts(
 export async function splitTexts(
 	id: string,
 	text: string,
-	he: string,
-	source: string
+	source: string,
+	debug: boolean = false
 ): Promise<SingleText[]> {
 	let texts: SingleText[] = [];
 	let index: number = 0;
@@ -98,8 +105,10 @@ export async function splitTexts(
 	let hebrew: string[] = [];
 	// Not sure if this is enough to split everything up into sentences.
 	try {
+		if (debug) console.log('Splitting Texts');
 		en = text.split(/(?<=\.)\s/);
 		hebrew = en;
+		if (debug) console.log('Texts Split');
 	} catch {
 		console.log(text);
 		throw new Error(
@@ -119,6 +128,7 @@ export async function splitTexts(
 
 	// Create a SingleText Object for each sentence
 	for (let i = 0; i < en.length; i++) {
+		if (debug) console.log(`i: ${i}`);
 		try {
 			texts.push({
 				id: uuid(),
@@ -141,12 +151,17 @@ export async function splitTexts(
 /** Used to get the length of a given ref
  * @param {string} ref - the ref of the text to get the length of
  */
-export async function getLength(ref: string): Promise<number> {
+export async function getLength(
+	ref: string,
+	debug: boolean = false
+): Promise<number> {
 	ref = ref.replace(' ', '_');
 	ref = ref.replace(',', '%2C');
+	if (debug) console.log(`Ref: ${ref}`);
 	const url = `https://www.sefaria.org/api/texts/${ref}?commentary=0`;
 	const response = await fetch(url);
 	const data = await response.json();
 	const length = data.length;
+	if (debug) console.log(`Length: ${length}`);
 	return Number(length);
 }

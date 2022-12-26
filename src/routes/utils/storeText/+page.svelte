@@ -1,5 +1,6 @@
 <script lang="ts">
-    let data: any;
+    import EndPointContainer from "$lib/components/EndPointContainer.svelte";
+    let data: any = null;
 	async function getIndex() {
 		fetch('/utils/storeText').then(
             (response) => {
@@ -9,16 +10,10 @@
         )
 
 	}
+    
 </script>
 
-<button on:click={getIndex}>Get the Index</button>
 
-{#await data}
-    <p>loading...</p>
-{:then data} 
-{#if data !== undefined}
-	<pre>{JSON.stringify(data, undefined, 2)}</pre>
-{:else}
-    <p>Nothing here. </p>
-{/if}
-{/await}
+<h1 class="text-2xl font-bold">Store Texts from Sefaria</h1>
+<p class="text-gray-500">Store texts from Sefaria in a redis db after formatting and cleaning them up.</p>
+<EndPointContainer info={data} fn={getIndex} purpose={"Store the Text"}/>

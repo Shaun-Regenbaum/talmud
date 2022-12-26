@@ -7,12 +7,15 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
-export async function createEmbedding(text: string): Promise<any> {
+export async function createEmbedding(
+	text: string,
+	debug: boolean = false
+): Promise<any> {
 	const response = await openai.createEmbedding({
 		model: 'text-embedding-ada-002',
 		input: text,
 	});
-	console.log(response.data.data[0]);
+	if (debug) console.log('Embedding Created');
 	return response.data.data[0].embedding;
 }
 
@@ -20,13 +23,17 @@ export async function storeEmbedding(key: string, embedding: Array<any>) {
 	await redis.json.set(key, '$.embedding', embedding, { NX: true });
 }
 
-export async function createCompletion(text: string): Promise<any> {
+export async function createCompletion(
+	text: string,
+	debug: boolean = false
+): Promise<any> {
 	const response = await openai.createCompletion({
 		model: 'text-davinci-003',
-		prompt: 'Say this is a test',
+		prompt: text,
 		max_tokens: 7,
 		temperature: 0,
 	});
-	console.log(response.data.choices[0].text);
+	if (debug) console.log('Completion Created');
+	if (debug) console.log(response.data.choices[0].text);
 	return response.data.choices[0].text;
 }
