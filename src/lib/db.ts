@@ -7,6 +7,8 @@ import {
 import { env } from '$env/dynamic/public';
 
 import { Blob } from 'buffer';
+import type { SearchResults } from './types';
+import type { RedisCommandReply } from '@redis/client/dist/lib/commands';
 
 // export const supabase = createSupa(
 // 	env.PUBLIC_SUPABASE_URL,
@@ -85,9 +87,16 @@ export async function searchIndex(embed: any, debug: boolean = false) {
 			`*=>[KNN 10 @id $BLOB]`,
 			{ PARAMS: { BLOB: queryBlob }, DIALECT: 2 }
 		);
+		let groupedTextArray = [];
+		for (let i = 0; i < results.total; i++) {
+			let groupedText = JSON.parse(String(results.documents[i].value['$']));
+			let score = results.documents[i].value['__id_score'];
+			groupedTextArray.push({ score: score, groupedText: groupedText });
+		}
 		if (debug) console.log('Finished.');
-		return results;
+		return groupedTextArray;
 	} catch (e) {
+		console.log(e);
 		if (debug) console.log('Error.');
 		let message = 'Unknown Error Type';
 		let status = null;

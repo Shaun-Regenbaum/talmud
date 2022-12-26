@@ -50,6 +50,24 @@ export interface OriginalText {
 	source: string;
 }
 
+export interface SearchResults {
+	total: number;
+	documents: {
+		id: string;
+		value: { [x: string]: string | number | Buffer | null | undefined | null };
+	}[];
+}
+
+export interface SearchResultDocument {
+	id: string;
+	value: SearchResultValue;
+}
+
+export interface SearchResultValue {
+	_id_: string;
+	$: string;
+}
+
 //Types for components:
 
 /** Data for the NavBar Component
@@ -61,4 +79,24 @@ export interface NavBarData {
 	index: number;
 	name: string;
 	link: string;
+}
+
+//Types for API:
+
+/** Body for the Search API
+ * @param {string} text - the text to search for
+ */
+export interface BodyForSearch {
+	text: string;
+}
+
+/** Body for the Completion API
+ * @param {string} question - the original question
+ * @param {string} context - the context we searched for
+ * @param {string[]} sources - the sources of the context
+ */
+export interface BodyForCompletion {
+	question: string;
+	context: string;
+	sources: string[];
 }

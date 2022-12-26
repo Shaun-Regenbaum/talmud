@@ -8,6 +8,7 @@ export function load() {
 		{ index: 4, name: 'Get Available Index', link: '/utils/getIndex' },
 		{ index: 5, name: 'Store Sefaria Texts', link: '/utils/storeText' },
 		{ index: 6, name: 'Get Sources from Question', link: '/utils/getSources' },
+		{ index: 7, name: 'Get Completion', link: '/utils/createCompletion' },
 	];
 	return {
 		navBar: navBarData,

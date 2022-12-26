@@ -9,7 +9,7 @@ const unselectedStyle = "text-gray-300 hover:bg-gray-700 hover:text-white px-3 p
 
 </script>
 
-<nav class="bg-gray-800">
+<nav class="bg-gray-800 pb-2">
     <div class="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
       <div class="relative flex h-16 items-center justify-between">
         <div class="absolute inset-y-0 left-0 flex items-center sm:hidden">
@@ -26,7 +26,7 @@ const unselectedStyle = "text-gray-300 hover:bg-gray-700 hover:text-white px-3 p
         </div>
         <div class="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
           <div class="hidden sm:ml-6 sm:block">
-            <div class="flex space-x-4">
+            <div class="flex flex-wrap space-x-4">
                 {#each items as item}
                 <a href={item.link} on:click={() => {selected = item.index}} class={(item.index == selected ? selectedStyle : unselectedStyle) + " " + "px-3 py-2 rounded-md text-sm font-medium" } aria-current={item.index == selected ? "true" :"false"}>{item.name}</a>
                 {/each}

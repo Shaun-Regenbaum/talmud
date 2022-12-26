@@ -30,7 +30,7 @@ export async function createCompletion(
 	const response = await openai.createCompletion({
 		model: 'text-davinci-003',
 		prompt: text,
-		max_tokens: 7,
+		max_tokens: 1500,
 		temperature: 0,
 	});
 	if (debug) console.log('Completion Created');

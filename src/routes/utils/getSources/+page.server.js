@@ -1,13 +1,6 @@
 import { searchIndex } from '$lib/db';
 import { createEmbedding } from '$lib/openai';
 import { redis } from '$lib/db';
-import { json } from '@sveltejs/kit';
-
-export function load({}) {
-	return {
-		thing: 'hello',
-	};
-}
 
 export const actions = {
 	//@ts-ignore
