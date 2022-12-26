@@ -1,12 +1,6 @@
-import type { BodyForCompletion, GroupedText } from '$lib/types';
-import { searchIndex } from '$lib/db';
+import type { BodyForCompletion } from '$lib/types';
 import { createCompletion } from '$lib/openai';
 import { json } from '@sveltejs/kit';
-import { redis } from '$lib/db';
-interface SearchResults {
-	score: number;
-	groupedText: GroupedText;
-}
 
 export async function POST({ request }: any) {
 	const body: BodyForCompletion = await request.json();
