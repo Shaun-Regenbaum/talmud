@@ -5,7 +5,7 @@
         link: string;
     }
 
-export let data:NavBarData[] = [{index: 1, name: 'Chat', link:'/chat'}, {index: 2, name: "Utilities", link:'/utils'},{index: 3, name:"Home", link:'/'}]
+export let data:NavBarData[] = [{index: 1, name: 'Chat', link:'/chat'}, {index: 2, name: "Utilities", link:'/utils'},{index: 3, name:"Home", link:'/'}, {index: 4, name:"Components", link:'/components'}]
 $: selected = 1
 $: menuShow = false;
 const selectedStyle = "text-white bg-gray-900"
