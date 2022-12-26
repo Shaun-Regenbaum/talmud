@@ -2,6 +2,7 @@
 
     let query:string = "Why does Rashi like Rambam?";
     export let data: any;	
+    export let form: any;
 </script>
 
 <form method="POST">
@@ -9,7 +10,7 @@
         Put a question:
         <input name="question" type="text" bind:value={query} placeholder="...">
     </label>
-<button>Search the Index</button>
+<button type="submit">Search the Index</button>
 </form>
 
 
@@ -22,3 +23,15 @@
     <p>Nothing here. </p>
 {/if}
 {/await}
+
+
+{#await form}
+    <p>loading...</p>
+{:then form} 
+{#if form !== null}
+	<pre>{JSON.stringify(form, undefined, 2)}</pre>
+{:else}
+    <p>Nothing here. </p>
+{/if}
+{/await}
+

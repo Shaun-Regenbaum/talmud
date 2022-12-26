@@ -24,9 +24,10 @@ export async function GET() {
 		try {
 			status.push('Searching index');
 			let results = await searchIndex(embedding);
+			status.push(results);
 			await redis.quit();
 			status.push('Redis disconnected');
-			return new Response(results);
+			return json(status);
 		} catch (e) {
 			console.log(e);
 			status.push('Failed to search index');

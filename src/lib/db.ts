@@ -77,6 +77,7 @@ export async function searchIndex(embed: any) {
 
 	// get rid of commas
 	try {
+		// It took me so long to get this working...
 		const results = await redis.ft.search(
 			'searchIndex',
 			`*=>[KNN 10 @id $BLOB]`,
