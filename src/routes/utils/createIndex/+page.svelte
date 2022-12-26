@@ -1,24 +1,19 @@
 <script lang="ts">
-    let data: any;
-	async function getIndex() {
-		fetch('/utils/createIndex').then(
-            (response) => {
-                console.log(response);
-                data = response.json();
-            }
-        )
+  import EndPointContainer from "$lib/components/EndPointContainer.svelte";
 
+
+    let info: any;
+    let loading:boolean = false;
+	async function createIndex() {
+        loading=true;
+		const response = await fetch('/utils/createIndex')
+        info = await response.json();
+        loading = false;
 	}
 </script>
 
-<button on:click={getIndex}>Get the Index</button>
 
-{#await data}
-    <p>loading...</p>
-{:then data} 
-{#if data !== undefined}
-	<pre>{JSON.stringify(data, undefined, 2)}</pre>
-{:else}
-    <p>Nothing here. </p>
-{/if}
-{/await}
+<h1 class="text-2xl font-bold">Create An Index</h1>
+<p class="text-gray-500">Create an index in Redis DB based on the embeddings.</p>
+<EndPointContainer bind:info={info} bind:loading={loading} fn={createIndex} purpose={"Create an Index"}/>
+

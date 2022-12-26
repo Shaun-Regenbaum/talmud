@@ -1,19 +1,18 @@
 <script lang="ts">
-    let data: any;
-	async function getIndex() {
+  import EndPointContainer from "$lib/components/EndPointContainer.svelte";
+
+
+    let info: any;
+	let loading:boolean = false;
+	async function createEmbeds() {
+		loading=true;
 		const response = await fetch('/utils/createEmbeds');
-		data = await response.json();
+		info = await response.json();
+		loading = false;
 	}
 </script>
 
-<button on:click={getIndex}>Create Embeds</button>
 
-{#await data}
-    <p>loading...</p>
-{:then data} 
-{#if data !== undefined}
-	<pre>{JSON.stringify(data, undefined, 2)}</pre>
-{:else}
-    <p>Nothing here. </p>
-{/if}
-{/await}
+<h1 class="text-2xl font-bold">Getting an Index from Sefaria</h1>
+<p class="text-gray-500">Using the sefaria API to get an index of a specific book and what sections it contains.</p>
+<EndPointContainer bind:info={info} bind:loading={loading} fn={createEmbeds} purpose={"Get the Index"}/>
