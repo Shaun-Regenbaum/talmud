@@ -1,4 +1,4 @@
-// import { createClient as createSupa } from '@supabase/auth-helpers-sveltekit';
+import { createClient as createSupa } from '@supabase/auth-helpers-sveltekit';
 import {
 	SchemaFieldTypes,
 	VectorAlgorithms,
@@ -6,14 +6,10 @@ import {
 } from 'redis';
 import { env } from '$env/dynamic/public';
 
-import { Blob } from 'buffer';
-import type { SearchResults } from './types';
-import type { RedisCommandReply } from '@redis/client/dist/lib/commands';
-
-// export const supabase = createSupa(
-// 	env.PUBLIC_SUPABASE_URL,
-// 	env.PUBLIC_SUPABASE_ANON_KEY
-// );
+export const supabase = createSupa(
+	env.PUBLIC_SUPABASE_URL,
+	env.PUBLIC_SUPABASE_ANON_KEY
+);
 
 export const redis = createRedis({
 	url: env.PUBLIC_REDIS_URL,

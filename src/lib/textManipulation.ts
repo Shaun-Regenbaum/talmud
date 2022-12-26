@@ -4,9 +4,9 @@ import { redis } from './db';
 
 /** Used to group an array of texts into a single text
  * @async This is an async function for redis calls
- * @param {string} id - the id of the parent text
  * @param {number} n - the number of the sentences to group
  * @param {SingleText[]} texts - the texts to group
+ * @param {boolean} debug - whether or not to log debug messages
  * @returns {Promise<GroupedText>} - the grouped text
  */
 export async function groupTexts(
@@ -37,7 +37,7 @@ export async function groupTexts(
 	if (n < texts.length) {
 		if (debug) console.log('Normal Case');
 		//Making as many groups as we can of N sentences from the texts
-		for (let i = 0; i < texts.length - n; i++) {
+		for (let i = 0; i <= texts.length - n; i++) {
 			if (debug) console.log(`i: ${i}`);
 			// Reset the group to an empty group
 			group = {
@@ -50,9 +50,10 @@ export async function groupTexts(
 			// Making one group of N sentences
 			for (let j = 0; j < n; j++) {
 				if (debug) console.log(`j: ${j}`);
+				const newString = group.text + texts[i + j].en[0];
 				group.id = uuid();
 				group.contains.push(texts[i + j].id);
-				group.text += texts[i + j].en[0];
+				group.text = newString;
 				group.source.push(texts[i + j].source);
 				group.source = group.source.filter(
 					(item, index) => group.source.indexOf(item) === index
@@ -89,8 +90,8 @@ export async function groupTexts(
  * @async This is an async function for redis calls
  * @param {string} id - the id of the parent text
  * @param {string} text - the english text to split
- * @param {string} he - the hebrew text to split
  * @param {string} source - the source of the text
+ * @param {boolean} debug - whether or not to log debug messages
  * @returns {Promise<SingleText[]>} - an array of SingleTexts
  */
 export async function splitTexts(
@@ -150,6 +151,7 @@ export async function splitTexts(
 
 /** Used to get the length of a given ref
  * @param {string} ref - the ref of the text to get the length of
+ * @param {boolean} debug - whether or not to log debug messages
  */
 export async function getLength(
 	ref: string,

@@ -12,3 +12,4 @@ export async function POST({ request }: any) {
 	const completion = await createCompletion(revisedText, true);
 	return json(completion);
 }
+								
