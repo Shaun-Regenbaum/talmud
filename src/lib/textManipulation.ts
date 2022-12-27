@@ -1,6 +1,6 @@
 import type { GroupedText, SingleText } from './types';
 import { v4 as uuid } from 'uuid';
-import { redis } from './db';
+import { redis, supabase } from './db';
 
 /** Used to group an array of texts into a single text
  * @async This is an async function for redis calls
@@ -14,6 +14,7 @@ export async function groupTexts(
 	texts: SingleText[],
 	debug: boolean = false
 ): Promise<GroupedText[]> {
+	debug = false;
 	let groups: GroupedText[] = [];
 	let group: GroupedText = {
 		id: '',
@@ -38,7 +39,7 @@ export async function groupTexts(
 		if (debug) console.log('Normal Case');
 		//Making as many groups as we can of N sentences from the texts
 		for (let i = 0; i <= texts.length - n; i++) {
-			if (debug) console.log(`i: ${i}`);
+			if (debug) console.log(`group:i: ${i}`);
 			// Reset the group to an empty group
 			group = {
 				id: '',
@@ -49,7 +50,7 @@ export async function groupTexts(
 			};
 			// Making one group of N sentences
 			for (let j = 0; j < n; j++) {
-				if (debug) console.log(`j: ${j}`);
+				if (debug) console.log(`group:j: ${j}`);
 				const newString = group.text + texts[i + j].en[0];
 				group.id = uuid();
 				group.contains.push(texts[i + j].id);
@@ -62,6 +63,16 @@ export async function groupTexts(
 			// Once we've made a group we want to set its index and push it to the groups array
 			group.index = index + i;
 			groups.push(group);
+			const supabaseResponse = await supabase.from('groupTexts').upsert([
+				{
+					id: group.id,
+					contains: group.contains,
+					text: group.text,
+					source: group.source,
+					index: group.index,
+				},
+			]);
+			if (debug) console.log('Stored in supabase', supabaseResponse);
 		}
 	}
 	// When we can only make one group of N sentences or less...
@@ -111,6 +122,9 @@ export async function splitTexts(
 		hebrew = en;
 		if (debug) console.log('Texts Split');
 	} catch {
+		console.log(
+			"Error splitting text, the provided text probably doesn't have a english translation."
+		);
 		console.log(text);
 		throw new Error(
 			'Error splitting text, the provided text probably does not have a english translation.'
@@ -129,17 +143,39 @@ export async function splitTexts(
 
 	// Create a SingleText Object for each sentence
 	for (let i = 0; i < en.length; i++) {
-		if (debug) console.log(`i: ${i}`);
+		if (debug) console.log(`Single:i: ${i}`);
+		const newId = uuid();
+		const newEn = en[i];
+		const newHe = hebrew[i];
+		const newSource = source;
+		const newIndex = index + i;
 		try {
 			texts.push({
-				id: uuid(),
+				id: newId,
 				name: '',
 				parent: id,
-				en: [en[i]],
-				he: [hebrew[i]],
+				en: [newEn],
+				he: [newHe],
 				source: source,
-				index: index + i,
+				index: newIndex,
 			});
+
+			try {
+				const supabaseResponse = await supabase.from('splitTexts').upsert([
+					{
+						id: newId,
+						name: '',
+						parent: id,
+						en: newEn,
+						he: newHe,
+						source: newSource,
+						index: newIndex,
+					},
+				]);
+				if (debug) console.log('Stored in supabase', supabaseResponse);
+			} catch (e) {
+				console.log('SupabaseFailed: ', JSON.stringify(e));
+			}
 		} catch (e) {
 			console.log(JSON.stringify(e));
 		}

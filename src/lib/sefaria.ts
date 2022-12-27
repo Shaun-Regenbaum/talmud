@@ -1,7 +1,7 @@
 // function to fetch the text of a given ref
 import type { GroupedText, OriginalText, SingleText } from './types';
 import { v4 as uuid } from 'uuid';
-import { redis } from './db';
+import { redis, supabase } from './db';
 import { splitTexts } from './textManipulation';
 
 /** Used to get the text of a given ref
@@ -57,6 +57,11 @@ export async function getText(
 		index: Number(index),
 		source: data.ref,
 	};
+
+	const supabaseResponse = await supabase
+		.from('originalTexts')
+		.upsert([{ id: original.id, originalText: original }]);
+	if (debug) console.log('Stored in supabase', supabaseResponse);
 
 	if (original.source === undefined) {
 		throw new Error(`Invalid url: ${url}`);
