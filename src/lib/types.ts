@@ -1,5 +1,30 @@
 //Types for Backend Code:
 
+/** The response from the backend
+ * @param {SingleText | GroupedText | OriginalText | any | null} data - The data returned from the backend
+ * @param {ErrorResponse | null} error - The error returned from the backend
+ */
+export interface StandardResponse {
+	data: PossibleData | null;
+	error: ErrorResponse | null;
+}
+
+export type PossibleData = SingleText | GroupedText | OriginalText | any;
+
+/** The Error Response in Standard Response
+ * @param {code} code - The error code
+ * @param {message} message - The error message
+ * @param {details} details - The error details
+ * @param {timestamp} timestamp - The timestamp of the error
+ * @param {uuid} uuid - The uuid of the error
+ */
+export interface ErrorResponse {
+	code?: number;
+	message: string;
+	details?: string;
+	timestamp?: string;
+	uuid?: string;
+}
 /**
  * @param {id} id - uuid of the text
  * @param {name} name - optional name of the sentence
@@ -48,24 +73,6 @@ export interface OriginalText {
 	he: string[];
 	index: number;
 	source: string;
-}
-
-export interface SearchResults {
-	total: number;
-	documents: {
-		id: string;
-		value: { [x: string]: string | number | Buffer | null | undefined | null };
-	}[];
-}
-
-export interface SearchResultDocument {
-	id: string;
-	value: SearchResultValue;
-}
-
-export interface SearchResultValue {
-	_id_: string;
-	$: string;
 }
 
 //Types for components:

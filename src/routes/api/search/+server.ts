@@ -19,14 +19,14 @@ export async function POST({ request }: any) {
 		true
 	);
 	redis.quit();
+	return json({ embedding: '', search: searchResults });
 	// sort search results by score
-	if (typeof searchResults === 'string') return json(searchResults);
-	// @ts-ignore
-	const data = searchResults.sort((a, b) => b.score - a.score);
-	const topText = data[0].groupedText.text;
-	const secondText = data[1].groupedText.text;
-	const averageScore = data[0].score + data[1].score / 2;
-	// add two arrays together:
-	const sources = data[0].groupedText.source.concat(data[1].groupedText.source);
-	return json({ topText: topText, secondText: secondText, sources: sources });
+	// if (typeof searchResults === 'string') return json(searchResults);
+	// const data = searchResults.sort((a, b) => b.score - a.score);
+	// const topText = data[0].groupedText.text;
+	// const secondText = data[1].groupedText.text;
+	// const averageScore = data[0].score + data[1].score / 2;
+	// // add two arrays together:
+	// const sources = data[0].groupedText.source.concat(data[1].groupedText.source);
+	// return json(data);
 }

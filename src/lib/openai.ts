@@ -19,10 +19,6 @@ export async function createEmbedding(
 	return response.data.data[0].embedding;
 }
 
-export async function storeEmbedding(key: string, embedding: Array<any>) {
-	await redis.json.set(key, '$.embedding', embedding, { NX: true });
-}
-
 export async function createCompletion(
 	text: string,
 	debug: boolean = false

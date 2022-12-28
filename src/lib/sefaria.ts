@@ -84,7 +84,7 @@ export async function getText(
  * @returns {Promise<any>} - the TOC of the text
  * @example getTOC('Genesis')
  */
-export async function getIndex(ref: string, debug: boolean = false) {
+export async function getIndex(ref: string, debug: boolean = false): Promise<any> {
 	ref = ref.replace(' ', '_');
 	ref = ref.replace(',', '%2C');
 	if (debug) console.log(`Ref: ${ref}`);

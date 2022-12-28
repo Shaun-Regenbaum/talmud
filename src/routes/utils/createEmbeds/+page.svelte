@@ -13,6 +13,6 @@
 </script>
 
 
-<h1 class="text-2xl font-bold">Getting an Index from Sefaria</h1>
-<p class="text-gray-500">Using the sefaria API to get an index of a specific book and what sections it contains.</p>
-<EndPointContainer bind:info={info} bind:loading={loading} fn={createEmbeds} purpose={"Get the Index"}/>
+<h1 class="text-2xl font-bold">Creating Embeddings</h1>
+<p class="text-gray-500">Creating Textual Embeddings for GroupedTexts</p>
+<EndPointContainer bind:info={info} bind:loading={loading} fn={createEmbeds} purpose={"Create Embeddings"}/>

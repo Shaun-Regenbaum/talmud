@@ -1,4 +1,4 @@
-import type { GroupedText, SingleText } from './types';
+import type { GroupedText, SingleText, StandardResponse } from './types';
 import { v4 as uuid } from 'uuid';
 import { redis, supabase } from './db';
 
@@ -7,10 +7,10 @@ import { redis, supabase } from './db';
  * @param {number} n - the number of the sentences to group
  * @param {SingleText[]} texts - the texts to group
  * @param {boolean} debug - whether or not to log debug messages
- * @returns {Promise<GroupedText>} - the grouped text
+ * @returns {Promise<StandardResponse>} - the grouped text
  */
 export async function groupTexts(
-	n: number = 5,
+	n: number = 3,
 	texts: SingleText[],
 	debug: boolean = false
 ): Promise<GroupedText[]> {
@@ -26,6 +26,7 @@ export async function groupTexts(
 
 	let index = 0;
 	// Get the latest index from redis, and create it if it doesn't exist
+	if (debug) console.log('Setting Group Index.');
 	try {
 		index = Number(await redis.get('count:groupIndex'));
 	} catch {

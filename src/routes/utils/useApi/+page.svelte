@@ -10,7 +10,7 @@
     let body: BodyForSearch | BodyForCompletion;
     let text:string = "";
 
-    let info: any;
+    let info: any = null;
     
     async function callApi(){
         if (endpoint == "search"){
@@ -78,9 +78,13 @@
     <button on:click={callApi} class="items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" type="submit">Submit</button>
 </div>
 
-<div class="overflow-hidden rounded-lg bg-white shadow m-4">
+<div class="overflow-x-scroll rounded-lg bg-white shadow m-4">
     <div class="m-4 px-4 py-5 sm:p-6">
-      {info}
+        {#if info !== undefined || info !== null}
+            <pre>{JSON.stringify(JSON.parse(info), null, 2)};</pre>
+        {:else}
+            <p>Nothing Here Yet... </p>
+        {/if}
     </div>
     </div>
 
