@@ -1,35 +1,47 @@
-import type { BodyForSearch, GroupedText } from '$lib/types';
-import { searchIndex } from '$lib/db';
+import type { BodyForSearch } from '$lib/types';
+import { searchIndex, redisConnect } from '$lib/db';
 import { searchManualIndex } from '$lib/hnsw';
 import { createEmbedding } from '$lib/openai';
 import { json } from '@sveltejs/kit';
 import { redis } from '$lib/db';
-interface SearchResults {
-	score: number;
-	groupedText: GroupedText;
-}
 
 export async function POST({ request }: any) {
+	// Can be HNSW MODE or HASH
+	let mode: string;
+	mode = 'FLAT';
+	const debug: boolean = false;
+	let searchResults: any = [];
+
 	const body: BodyForSearch = await request.json();
 	const text = body.text;
-	const embedding = await createEmbedding(text);
-	try {
-		await redis.connect();
-	} catch {
-		if (!redis.isOpen) {
-			throw Error("Redis didn't connect");
-		}
+	const embedding = await createEmbedding(text, debug).catch((e) => {
+		console.log(e);
+		throw new Error('Error creating embedding');
+	});
+
+	await redisConnect(redis, []);
+
+	switch (mode) {
+		case 'FLAT':
+			if (debug) console.log('Searching flat index');
+			searchResults = await searchIndex(embedding, true, mode);
+			break;
+		case 'HNSW':
+			if (debug) console.log('Searching HNSW index');
+			searchResults = await searchIndex(embedding, true, mode);
+			break;
+		case 'HASH':
+			if (debug) console.log('Searching HASH index');
+			searchResults = await searchIndex(embedding, true, mode);
+			break;
+		case 'MANUAL':
+			if (debug) console.log('Searching manual index');
+			searchResults = await searchManualIndex(embedding, true);
+			break;
+		default:
+			if (debug) console.log('Invalid mode');
+			break;
 	}
-	const searchResults = await searchManualIndex(embedding, true);
-	// await redis.quit();
+	redis.quit();
 	return json(searchResults);
-	// sort search results by score
-	// if (typeof searchResults === 'string') return json(searchResults);
-	// const data = searchResults.sort((a, b) => b.score - a.score);
-	// const topText = data[0].groupedText.text;
-	// const secondText = data[1].groupedText.text;
-	// const averageScore = data[0].score + data[1].score / 2;
-	// // add two arrays together:
-	// const sources = data[0].groupedText.source.concat(data[1].groupedText.source);
-	// return json(data);
 }

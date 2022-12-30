@@ -37,32 +37,32 @@ export async function createManualIndex(
 	}
 }
 
-export async function searchManualIndex(embed: any, debug: boolean = false) {
+export async function searchManualIndex(
+	embed: any,
+	debug: boolean = false
+): Promise<any> {
 	debug = true;
-	try {
-		const index = new hnsw('l2', numDimensions);
-		index.readIndexSync('foo.dat');
 
-		// preparing query data points.
-		const query = JSON.parse(JSON.stringify(embed));
-		console.log('Query: ', query);
+	const index = new hnsw('l2', numDimensions);
+	index.readIndexSync('foo.dat');
 
-		// searching k-nearest neighbor data points.
-		const numNeighbors = 100;
-		const result = index.searchKnn(query, numNeighbors);
-		fs.readFile('test.json', 'utf8', async (err, data) => {
-			const arr = JSON.parse(data);
-			const items = [];
-			console.log('distances: ', result.distances);
-			for (const index in result.neighbors) {
-				console.log('item: ', arr[index]);
-				const item = await redis.json.get(arr[index]);
-				console.log(item);
-				items.push(item);
-			}
-			return items;
-		});
-	} catch (e) {
-		if (debug) console.log(e);
-	}
+	// preparing query data points.
+	const query = JSON.parse(JSON.stringify(embed));
+	console.log('Query: ', query);
+
+	// searching k-nearest neighbor data points.
+	const numNeighbors = 100;
+	const result = index.searchKnn(query, numNeighbors);
+	fs.readFile('test.json', 'utf8', async (err, data) => {
+		const arr = JSON.parse(data);
+		const items = [];
+		console.log('distances: ', result.distances);
+		for (const index in result.neighbors) {
+			console.log('item: ', arr[index]);
+			const item = await redis.json.get(arr[index]);
+			console.log(item);
+			items.push(item);
+		}
+		return items;
+	});
 }
