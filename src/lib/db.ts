@@ -26,15 +26,52 @@ export const resetIndices = async () => {
 	}
 };
 
+export async function redisReconnect(redis: any, status: string[]) {
+	if (!redis.isOpen) {
+		console.log('Redis was disconnected');
+		status.push('Redis was disconnected');
+		try {
+			await redis.connect().then(() => {
+				console.log('Redis reconnected');
+				status.push('Redis reconnected');
+			});
+		} catch {
+			console.log('Failure to reconnect');
+			status.push('Failure to reconnect');
+			throw Error('Failure to reconnect');
+		}
+	}
+	return status;
+}
+
+export async function redisConnect(redis: any, status: string[]) {
+	await redis
+		.connect()
+		.then(() => {
+			status.push('Redis connected');
+			console.log('Redis connected');
+		})
+		.catch(() => {
+			if (!redis.isOpen) {
+				console.log("Redis didn't connect");
+				throw Error("Redis didn't connect");
+			}
+			console.log('Redis already connected');
+			status.push('Redis already connected');
+		});
+	return status;
+}
+
 export async function getKeys(command: string = 'group:'): Promise<any> {
 	const keys = redis.keys(command);
 	return keys;
 }
 
-export async function createSearchIndex() {
+export async function createSearchIndex(debug: boolean = false) {
 	const indexName = 'searchIndex';
-	try {
-		const response = await redis.ft.create(
+
+	const response = await redis.ft
+		.create(
 			indexName,
 			{
 				'$.embedding': {
@@ -51,25 +88,19 @@ export async function createSearchIndex() {
 				ON: 'JSON',
 				PREFIX: 'group:',
 			}
-		);
-		return JSON.stringify(response);
-	} catch (e) {
-		let message = 'Unknown Error';
-		let status = null;
-		if (e instanceof Error) message = e.message;
-		if (e instanceof Response) {
-			status = e.status;
-			message = e.statusText;
-		}
-		// we'll proceed, but let's report it
-		return `Something failed with status ${status}: ${message}`;
-	}
+		)
+		.catch((e) => {
+			if (debug) console.log(e);
+			throw new Error('Failure to Create Index');
+		});
+	return JSON.stringify(response);
 }
 
-export async function createFlatSearchIndex() {
+export async function createFlatSearchIndex(debug: boolean = false) {
 	const indexName = 'flatSearchIndex';
-	try {
-		const response = await redis.ft.create(
+
+	const response = await redis.ft
+		.create(
 			indexName,
 			{
 				'$.embedding': {
@@ -87,25 +118,18 @@ export async function createFlatSearchIndex() {
 				ON: 'JSON',
 				PREFIX: 'group:',
 			}
-		);
-		return JSON.stringify(response);
-	} catch (e) {
-		let message = 'Unknown Error';
-		let status = null;
-		if (e instanceof Error) message = e.message;
-		if (e instanceof Response) {
-			status = e.status;
-			message = e.statusText;
-		}
-		// we'll proceed, but let's report it
-		return `Something failed with status ${status}: ${message}`;
-	}
+		)
+		.catch((e) => {
+			if (debug) console.log(e);
+			throw new Error('Failure to Create Index');
+		});
+	return JSON.stringify(response);
 }
 
-export async function createHashSearchIndex() {
+export async function createHashSearchIndex(debug: boolean = false) {
 	const indexName = 'hashSearchIndex';
-	try {
-		const response = await redis.ft.create(
+	const response = await redis.ft
+		.create(
 			indexName,
 			{
 				embedding: {
@@ -123,19 +147,12 @@ export async function createHashSearchIndex() {
 				ON: 'HASH',
 				PREFIX: 'hash:',
 			}
-		);
-		return JSON.stringify(response);
-	} catch (e) {
-		let message = 'Unknown Error';
-		let status = null;
-		if (e instanceof Error) message = e.message;
-		if (e instanceof Response) {
-			status = e.status;
-			message = e.statusText;
-		}
-		// we'll proceed, but let's report it
-		return `Something failed with status ${status}: ${message}`;
-	}
+		)
+		.catch((e) => {
+			if (debug) console.log(e);
+			throw new Error('Failure to Create Index');
+		});
+	return JSON.stringify(response);
 }
 
 export async function searchIndex(

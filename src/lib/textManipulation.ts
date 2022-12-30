@@ -10,7 +10,7 @@ import { redis, supabase } from './db';
  * @returns {Promise<StandardResponse>} - the grouped text
  */
 export async function groupTexts(
-	n: number = 3,
+	n: number = 2,
 	texts: SingleText[],
 	debug: boolean = false
 ): Promise<GroupedText[]> {

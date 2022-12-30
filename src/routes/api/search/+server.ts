@@ -1,5 +1,6 @@
 import type { BodyForSearch, GroupedText } from '$lib/types';
 import { searchIndex } from '$lib/db';
+import { searchManualIndex } from '$lib/hnsw';
 import { createEmbedding } from '$lib/openai';
 import { json } from '@sveltejs/kit';
 import { redis } from '$lib/db';
@@ -12,14 +13,16 @@ export async function POST({ request }: any) {
 	const body: BodyForSearch = await request.json();
 	const text = body.text;
 	const embedding = await createEmbedding(text);
-	await redis.connect();
-	// @ts-ignore
-	const searchResults: SearchResults | string = await searchIndex(
-		embedding,
-		true
-	);
-	redis.quit();
-	return json({ embedding: '', search: searchResults });
+	try {
+		await redis.connect();
+	} catch {
+		if (!redis.isOpen) {
+			throw Error("Redis didn't connect");
+		}
+	}
+	const searchResults = await searchManualIndex(embedding, true);
+	// await redis.quit();
+	return json(searchResults);
 	// sort search results by score
 	// if (typeof searchResults === 'string') return json(searchResults);
 	// const data = searchResults.sort((a, b) => b.score - a.score);
