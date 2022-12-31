@@ -170,47 +170,48 @@ export async function searchIndex(
 	if (debug) console.log('Embed:', embed);
 	if (debug) console.log('Converting...');
 	const queryBlob = convertEmbedding(embed, debug);
-	if (debug) console.log('Converted:', queryBlob);
+	const float64Array = new Float32Array(embed);
+
+	if (debug) console.log('Converted.');
 	try {
 		// It took me so long to get this working...
 		if (debug) console.log('Searching...');
-		const results = await redis.ft.search(indexName, `*=>[KNN 10 @id $BLOB]`, {
-			PARAMS: { BLOB: queryBlob },
-			DIALECT: 2,
-		});
+		const results = await redis.ft
+			.search(indexName, `*=>[KNN 10 @id $BLOB]`, {
+				PARAMS: { BLOB: queryBlob },
+				DIALECT: 2,
+			})
+			.catch((e) => {
+				if (debug) console.log(e);
+				throw new Error(`Failure to Search ${indexName}`);
+			});
 		if (debug) console.log('Results:', results);
-		let groupedTextArray = [];
+
 		return results;
-		// for (let i = 0; i < results.total; i++) {
-		// 	let groupedText = JSON.parse(String(results.documents[i].value['$']));
-		// 	let score = results.documents[i].value['__id_score'];
-		// 	console.log('score:', score);
-		// 	groupedTextArray.push({ score: score, groupedText: groupedText });
-		// }
-		// if (debug) console.log('Finished.');
-		// return groupedTextArray;
-	} catch (e) {
-		console.log(e);
-		if (debug) console.log('Error.');
-		let message = 'Unknown Error Type';
-		let status = null;
-		if (e instanceof Error) message = e.message;
-		if (e instanceof Response) {
-			status = e.status;
-			message = e.statusText;
-		}
-		// we'll proceed, but let's report it
-		return `Something failed with status ${status}: ${message}`;
+	} catch (e: any) {
+		return `Something failed ${e.message}`;
 	}
 }
-export async function replaceEmbed(key: string): Promise<StandardResponse> {
+
+/** This function converts the embedding to an that can be properly indexed
+ * @param key - The key of the embedding
+ */
+export async function replaceEmbed(
+	key: string,
+	debug: boolean = false
+): Promise<StandardResponse> {
 	const embedding = await redis.json.get(key, { path: '$.embedding' });
 	try {
 		// @ts-ignore
 		const arr = JSON.parse(embedding);
-		const floatArr = arr.map((x: any) => parseFloat(x));
-		console.log(floatArr);
-		await redis.json.set(key, '$.embedding', floatArr, { XX: true });
+		let floatArr;
+		if (arr.length !== 1536) {
+			floatArr = arr[0].map((x: any) => parseFloat(x));
+		} else {
+			floatArr = arr.map((x: any) => parseFloat(x));
+		}
+		if (debug) console.log(floatArr);
+		await redis.json.set(key, '$.embedding', floatArr);
 		return { data: embedding, error: null };
 	} catch (e) {
 		//@ts-ignore
@@ -225,10 +226,12 @@ export async function replaceEmbed(key: string): Promise<StandardResponse> {
 export async function storeEmbedding(
 	key: string,
 	embedding: Array<any>,
-	debug: boolean = false
+	debug: boolean = true
 ): Promise<StandardResponse> {
-	await redis.json.set(key, '$.embedding', `[[${embedding}]]`, { NX: true });
-	console.log(embedding);
+	// const noReplace = { NX: true };
+	// const onlyReplace = { XX: true };
+	await redis.json.set(key, '$.embedding', embedding);
+	if (debug) console.log(embedding);
 	return { data: embedding, error: null };
 }
 

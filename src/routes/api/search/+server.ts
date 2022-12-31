@@ -43,5 +43,6 @@ export async function POST({ request }: any) {
 			break;
 	}
 	redis.quit();
-	return json(searchResults);
+
+	return json(searchResults.documents[0]);
 }
