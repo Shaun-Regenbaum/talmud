@@ -5,6 +5,7 @@ import {
 	createClient as createRedis,
 } from 'redis';
 import { env } from '$env/dynamic/public';
+import type { SearchResult } from './types';
 
 export const supabase = createSupa(
 	env.PUBLIC_SUPABASE_URL,
@@ -169,14 +170,13 @@ export async function searchIndex(
 	if (debug) console.log('Embed:', embed);
 	if (debug) console.log('Converting...');
 	const queryBlob = convertEmbedding(embed, debug);
-	const float64Array = new Float32Array(embed);
 
 	if (debug) console.log('Converted.');
 	try {
 		// It took me so long to get this working...
 		if (debug) console.log('Searching...');
 		const results = await redis.ft
-			.search(indexName, `*=>[KNN 10 @id $BLOB]`, {
+			.search(indexName, `*=>[KNN 100 @id $BLOB]`, {
 				PARAMS: { BLOB: queryBlob },
 				DIALECT: 2,
 			})
@@ -184,23 +184,45 @@ export async function searchIndex(
 				if (debug) console.log(e);
 				throw new Error(`Failure to Search ${indexName}`);
 			});
+		const formattedResults = [];
 		for (const result of results.documents) {
-			const score = result.value['__id_score'];
-			if (debug) console.log('Score:', score);
-			//@ts-ignore
+			//check type valididty:
+			if (typeof result.value['$'] !== 'string') {
+				throw new Error('Invalid Type');
+			}
 			const body = JSON.parse(result.value['$']);
-			const text = body.text;
-			const contains = body.contains;
-			const source = body.source;
-			// if (debug) console.log('Text:', text);
-			if (debug) console.log('Contains:', contains);
-			if (debug) console.log('Source:', source);
-		}
-		// if (debug) console.log('Results:', JSON.stringify(results.documents[0]));
+			const shortenedText = body.text.substring(0, 200);
+			//convert score to number
 
-		return results;
+			const singleResult: SearchResult = {
+				id: body.id,
+				score: Number(result.value['__id_score']),
+				text: shortenedText,
+				contains: body.contains,
+				source: body.source,
+			};
+			// if (debug) console.log('ID:', body.id);
+			// if (debug) console.log('Score:', result.value['__id_score']);
+			// if (debug) console.log('Shortened Text:', shortenedText);
+			// if (debug) console.log('Contains:', body.contains);
+			// if (debug) console.log('Source:', body.source);
+			formattedResults.push(singleResult);
+		}
+		// for (let i = 0; i < formattedResults.length; i++) {
+		// 	const text = formattedResults[i].text;
+		// 	for (let j = 0; j < formattedResults.length; j++) {
+		// 		if (i === j) continue;
+		// 		console.log(text === formattedResults[j].text);
+		// 		if (text == formattedResults[j].text) {
+		// 			formattedResults.splice(j, 1);
+		// 		}
+		// 	}
+		// }
+		if (debug) console.log('Unique Results:', formattedResults);
+
+		return formattedResults;
 	} catch (e: any) {
-		return `Something failed ${e.message}`;
+		throw new Error(`Something failed ${e.message}`);
 	}
 }
 

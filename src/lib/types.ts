@@ -1,5 +1,11 @@
 //Types for Backend Code:
-
+export interface SearchResult {
+	id: string;
+	score: number;
+	contains: string[];
+	text: string;
+	source: string[];
+}
 
 export type PossibleData = SingleText | GroupedText | OriginalText | any;
 

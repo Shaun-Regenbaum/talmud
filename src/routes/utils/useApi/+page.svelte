@@ -5,7 +5,7 @@
     const options = [
         { value: "search", label: "Search" },
         { value: "formResponse", label: "FormResponse" },
-        { value: "search2", label: "Search2" },
+        { value: "deDuplicate", label: "deDuplicate" },
     ]
     let body: BodyForSearch | BodyForCompletion;
     let text:string = "";
@@ -21,10 +21,10 @@
                     'Content-Type': 'application/json'
                 }
             })
-            info = JSON.stringify(await result.json());
+            info = await result.json();
             console.log(info);
         }
-        if (endpoint == "formResponse"){
+        else if (endpoint == "formResponse"){
             const result1 = await fetch('/api/search' , {
                 method: 'POST',
                 body: JSON.stringify({text: text}),     
@@ -46,6 +46,16 @@
             })
             info = JSON.stringify(await result2.json());
             info = info + sources
+        }
+        else if (endpoint == "deDuplicate"){
+            const result = await fetch('/api/deDuplicate', {
+                method: 'GET',   
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            info = JSON.stringify(await result.json());
+            console.log(info);
         }
       
         
@@ -72,6 +82,8 @@
         <p class="hidden">Put a question:</p>
         <input name="question" type="text" bind:value={text} placeholder="..." class="block w-[300px] ml-4 p-2 rounded-md border-gray-300 border-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
     </label>
+    {:else if endpoint == "deDuplicate"}
+    <p>No Options</p>
     {/if}
 
     <div class=p-4></div>
@@ -82,6 +94,8 @@
     <div class="m-4 px-4 py-5 sm:p-6">
         {#if info !== undefined || info !== null}
             <pre>{JSON.stringify(JSON.parse(info), null, 2)};</pre>
+        {:else if info ===  null}
+            <p> This is null</p>
         {:else}
             <p>Nothing Here Yet... </p>
         {/if}
