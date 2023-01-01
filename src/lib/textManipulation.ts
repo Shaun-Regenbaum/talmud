@@ -1,4 +1,4 @@
-import type { GroupedText, SingleText, StandardResponse } from './types';
+import type { GroupedText, SingleText } from './types';
 import { v4 as uuid } from 'uuid';
 import { redis, supabase } from './db';
 
@@ -7,7 +7,7 @@ import { redis, supabase } from './db';
  * @param {number} n - the number of the sentences to group
  * @param {SingleText[]} texts - the texts to group
  * @param {boolean} debug - whether or not to log debug messages
- * @returns {Promise<StandardResponse>} - the grouped text
+ * @returns {Promise<GroupedText[]>} - the grouped text
  */
 export async function groupTexts(
 	n: number = 2,

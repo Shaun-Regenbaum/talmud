@@ -23,7 +23,7 @@ export async function POST({ request }: any) {
 
 	switch (mode) {
 		case 'FLAT':
-			if (debug) console.log('Searching flat index');
+			if (debug) console.log('Searching FLAT index');
 			searchResults = await searchIndex(embedding, true, mode);
 			break;
 		case 'HNSW':
@@ -44,5 +44,5 @@ export async function POST({ request }: any) {
 	}
 	redis.quit();
 
-	return json(searchResults.documents[0]);
+	return json(JSON.stringify(searchResults.documents[0]));
 }

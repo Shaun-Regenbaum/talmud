@@ -1,13 +1,5 @@
 //Types for Backend Code:
 
-/** The response from the backend
- * @param {SingleText | GroupedText | OriginalText | any | null} data - The data returned from the backend
- * @param {ErrorResponse | null} error - The error returned from the backend
- */
-export interface StandardResponse {
-	data: PossibleData | null;
-	error: ErrorResponse | null;
-}
 
 export type PossibleData = SingleText | GroupedText | OriginalText | any;
 

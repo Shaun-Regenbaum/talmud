@@ -5,7 +5,6 @@ import {
 	createClient as createRedis,
 } from 'redis';
 import { env } from '$env/dynamic/public';
-import type { StandardResponse } from './types';
 
 export const supabase = createSupa(
 	env.PUBLIC_SUPABASE_URL,
@@ -185,7 +184,19 @@ export async function searchIndex(
 				if (debug) console.log(e);
 				throw new Error(`Failure to Search ${indexName}`);
 			});
-		if (debug) console.log('Results:', results);
+		for (const result of results.documents) {
+			const score = result.value['__id_score'];
+			if (debug) console.log('Score:', score);
+			//@ts-ignore
+			const body = JSON.parse(result.value['$']);
+			const text = body.text;
+			const contains = body.contains;
+			const source = body.source;
+			// if (debug) console.log('Text:', text);
+			if (debug) console.log('Contains:', contains);
+			if (debug) console.log('Source:', source);
+		}
+		// if (debug) console.log('Results:', JSON.stringify(results.documents[0]));
 
 		return results;
 	} catch (e: any) {
@@ -199,7 +210,7 @@ export async function searchIndex(
 export async function replaceEmbed(
 	key: string,
 	debug: boolean = false
-): Promise<StandardResponse> {
+): Promise<string> {
 	const embedding = await redis.json.get(key, { path: '$.embedding' });
 	try {
 		// @ts-ignore
@@ -212,36 +223,32 @@ export async function replaceEmbed(
 		}
 		if (debug) console.log(floatArr);
 		await redis.json.set(key, '$.embedding', floatArr);
-		return { data: embedding, error: null };
+		return 'Success';
 	} catch (e) {
-		//@ts-ignore
-		console.log(e.message);
-		//@ts-ignore
-		return { data: null, error: { message: e.message } };
+		console.log(e);
+		throw new Error('Embed Failure');
 	}
-
-	return { data: null, error: null };
 }
 
 export async function storeEmbedding(
 	key: string,
 	embedding: Array<any>,
 	debug: boolean = true
-): Promise<StandardResponse> {
+): Promise<string> {
 	// const noReplace = { NX: true };
 	// const onlyReplace = { XX: true };
 	await redis.json.set(key, '$.embedding', embedding);
 	if (debug) console.log(embedding);
-	return { data: embedding, error: null };
+	return 'Embedding Stored';
 }
 
 export async function getEmbedding(
 	key: string,
 	debug: boolean = false
-): Promise<StandardResponse> {
+): Promise<any> {
 	const embedding = await redis.json.get(key, { path: '$.embedding' });
 	if (debug) console.log(embedding);
-	return { data: embedding, error: null };
+	return embedding;
 }
 
 export async function storeHash(
@@ -264,20 +271,12 @@ export async function deleteHash(key: string) {
 	return { data: 'Success with Deleting', error: null };
 }
 
-function convertEmbedding(array: number[], debug: boolean = false): string {
-	const float64Array = new Float32Array(array);
-	if (debug) console.log(float64Array);
+function convertEmbedding(array: number[], debug: boolean = false): Buffer {
+	let floatArray = new Float64Array(array);
+	if (debug) console.log(floatArray.length);
+	// Convert the Float32Array to a bytes object
+	let bytes = new Uint8Array(floatArray.buffer).slice();
+	const queryBlob = Buffer.from(bytes);
 
-	// Convert the Float32Array to a Buffer object
-	const buffer = Buffer.from(float64Array.buffer);
-	if (debug) console.log(buffer);
-
-	// Convert the Buffer object to a hexadecimal string
-	let hexString = buffer.toString('hex');
-
-	// Insert \x characters into the hexadecimal string
-	// hexString = hexString.replace(/(..)/g, '\\x$1');
-	if (debug) console.log(hexString);
-
-	return hexString;
+	return queryBlob;
 }
