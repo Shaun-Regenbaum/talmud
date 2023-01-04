@@ -1,10 +1,28 @@
 <script lang="ts">
 	import Answer from '$lib/components/Answer.svelte';
-	/** @type {import('./$types').PageData} */
-	export let data = 'Ask a Question!';
 	let text: string = '';
-	/** @type {import('./$types').ActionData} */
-	export let form;
+	let answer: Promise<string> | undefined = undefined;
+
+	async function getCompletion() {
+		console.log('asking...');
+		const response = await fetch('/question', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				question: text,
+			}),
+		});
+
+		const result = await response.text();
+
+		if (response.ok) {
+			return result.slice(5, -1);
+		} else {
+			throw new Error(text);
+		}
+	}
 </script>
 
 <div
@@ -27,29 +45,37 @@
 		</div>
 	</div>
 	<div class="px-4 py-5 sm:px-6">
-		<form method="POST">
-			<label
-				for="question"
-				class="block ml-4 text-sm font-medium text-gray-700"
-				>Put your Halachic Question Here:</label
+		<label
+			for="question"
+			class="block ml-4 text-sm font-medium text-gray-700"
+			>Put your Halachic Question Here:</label
+		>
+		<input
+			name="question"
+			bind:value={text}
+			placeholder="What does the Rambam say to do if the seventeenth of Marcheshvan has arrived and no rains have yet descended?"
+			class="block whitespace-pre-wrap min-w-[300px] w-full ml-4 p-3 rounded-md border-gray-300 border-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+		/>
+		<div class="m-4">
+			<button
+				class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+				on:click={() => {
+					answer = getCompletion();
+				}}>Ask</button
 			>
-			<input
-				name="question"
-				bind:value={text}
-				placeholder="What does the Rambam say to do if the seventeenth of Marcheshvan has arrived and no rains have yet descended?"
-				class="block whitespace-pre-wrap min-w-[300px] w-full ml-4 p-3 rounded-md border-gray-300 border-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-			/>
-			<div class="m-4">
-				<button
-					class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-					on:click={() => {}}>Ask</button
-				>
-			</div>
-		</form>
+		</div>
 	</div>
-	{#if form}
+	{#if answer}
 		<div class="px-4 py-5 sm:p-6">
-			<Answer answer={form.completion} />
+			{#await answer}
+				<div class="flex justify-center">
+					<div
+						class="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"
+					/>
+				</div>
+			{:then answer}
+				<Answer {answer} />
+			{/await}
 		</div>
 	{:else}
 		<div class="px-4 py-5 sm:p-6">
