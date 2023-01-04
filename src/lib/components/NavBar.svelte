@@ -8,12 +8,10 @@
 	export let selected = 1;
 	onMount(() => {
 		const path = window.location.pathname;
-		console.log(path);
 		//split path into array
 		const pathArray = path.split('/');
-		console.log(pathArray);
-		console.log('/' + pathArray[1]);
 
+		// This is to handle nested navBar up to 1 level deep, will not work more than that...
 		if (items.findIndex((item) => item.link === '/' + pathArray[1]) !== -1) {
 			selected =
 				items.findIndex((item) => item.link === '/' + pathArray[1]) + 1;
