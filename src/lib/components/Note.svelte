@@ -15,17 +15,11 @@
 			hidden={!hideExpanded}
 			class="text-xs text-gray-600 align-super">{'(?)'}</span
 		>
-		<span
-			hidden={hideExpanded}
-			class={'text-blue-400 '}>{' (' + expanded + ') '}</span
-		>
-	</button>{#if link}
-		<a
-			hidden={hideExpanded}
-			href={link}
-			class="text-xs text-blue-500 align-super"
-		>
-			{' ' + '|#|'}
-		</a>
-	{/if}
+	</button>
 </span>
+<p
+	hidden={hideExpanded}
+	class={'p-3 my-2 text-sm text-gray-600 bg-gray-50 rounded-lg shadow outline '}
+>
+	{expanded}
+</p>

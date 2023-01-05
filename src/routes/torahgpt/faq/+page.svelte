@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Abbr from '$lib/components/Abbr.svelte';
+	import Note from '$lib/components/Note.svelte';
 </script>
 
 <div class="font-light overflow-hidden bg-white divide-y divide-gray-300 ">
@@ -82,11 +83,12 @@
 		<h1 class="text-lg underline underline-offset-2">Do you want to help?</h1>
 		<p>You can contribute in a number of ways:</p>
 		<ul class="spacing-y-2 ml-3">
+			<br />
 			<li>
 				1. We need <span class="italic">lots</span> of data about what questions
 				people ask.
-				<p class="ml-4">
-					By simlpy asking question to TorahGPT you are helping it get better!
+				<p>
+					By simply asking question to TorahGPT you are helping it get better!
 				</p>
 			</li>
 			<br />
@@ -123,39 +125,58 @@
 			</li>
 			<br />
 			<li>
-				4. If you are an experienced web developer you can help make the next
+				4. If you are an experienced web developer: you can help make the next
 				generation of learning experiences. A couple years ago I started working
 				on a <a
 					class="text-blue-500 underline"
 					href="demo.talmud.app">Talmud Learning App</a
-				>. I don't have time to finish it, but I would love for others to help
-				make better experiences for learning. I have a bunch of ideas, so reach
-				out and we can talk.
+				>, but there is a lot more to be done.
+				<Note
+					abbr="Learn more..."
+					expanded="I don't have time to finish it, but I would love for others to help
+						make better experiences for learning. I have a bunch of ideas, so reach
+						out and we can talk."
+				/>
 			</li>
 			<br />
 			<li>
 				5. If you are an engineer:
 
 				<p class="ml-4">
-					- You can help with the statistical work being done to find the right
-					sources based on the context given.
-					<Abbr
+					- You can help with statistical work.
+					<Note
 						abbr="Learn more..."
-						expanded="It involved knowledge of mapping text to high
-					dimensional vector spaces, and the using those embeddings to match the
+						expanded="It is a hard problem to find the correct sources based on the context given. It is partly a statistical problem. You would need to understand the principles of mapping text to high
+					dimensional vector spaces, and the using those embeddings to match
 					correct group of sources to a given input. It is a very hard problem to
-					solve, but if you are good enough I would be happy for you help."
-						inLine={true}
+					solve, but if you are an expert I would be happy for your help."
 					/>
 				</p>
 				<p class="ml-4">
 					- You can help with prompt engineering.
-					<Abbr
+					<Note
 						abbr={'Learn more...'}
-						expanded={'Models like GPT-3 are extremely sensitive to the instructions/prompts you give it. There are a lot of ways to improve performance simply by providing it the right set of examples and instructions. Finding the best prompts involves a lot of experimentation.'}
-						inLine={true}
+						expanded={"Models like GPT-3 are extremely sensitive to the instructions/prompts you provide. There are a lot of ways to improve performance simply by providing better examples and instructions. Finding better prompts involves a lot of experimentation. You don't need to be an expert or anything, you simply need to be methodical."}
 					/>
 				</p>
+				<p class="ml-4">
+					- You can help with data clean-up
+					<Note
+						abbr={'Learn more...'}
+						expanded={'Involves a lot of scraping and html parsing, perhaps even a little bit of OCR.'}
+					/>
+				</p>
+				<p class="ml-4">
+					- You can help with sourcing
+					<Note
+						abbr={'Learn more...'}
+						expanded={'Involves a lot of scraping and html parsing, perhaps even a little bit of OCR.'}
+					/>
+				</p>
+			</li>
+			<br />
+			<li>
+				6. There is always more, just reach out and well find something for you!
 			</li>
 		</ul>
 	</div>
