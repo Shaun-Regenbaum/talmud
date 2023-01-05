@@ -54,13 +54,13 @@
 			</p>
 			<p class="ml-4 text-sm max-w-sm font-medium text-gray-700">
 				If you don't know what this is, click <a
-					href="/"
+					href="/torahgpt/faq?what_is_this"
 					class="underline underline-offset-2 text-blue-500">here</a
 				> to find out more.
 			</p>
 			<p class="ml-4 text-sm max-w-sm font-medium text-gray-700">
 				If you want to contribute, click <a
-					href="/"
+					href="/torahgpt/faq?contribute"
 					class="underline underline-offset-2 text-blue-500">here</a
 				> to learn how.
 			</p>

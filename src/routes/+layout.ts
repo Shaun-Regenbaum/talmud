@@ -2,11 +2,9 @@ import type { NavBarData } from '$lib/types';
 
 export function load() {
 	const items: NavBarData[] = [
-		{ index: 1, name: 'Chat', link: '/chat' },
-		{ index: 2, name: 'Utilities', link: '/utils' },
-		{ index: 3, name: 'Home', link: '/' },
-		{ index: 4, name: 'Components', link: '/components' },
-		{ index: 5, name: 'Q&A', link: '/question' },
+		{ index: 1, name: 'Utilities', link: '/utils' },
+		{ index: 2, name: 'Home', link: '/' },
+		{ index: 3, name: 'Q&A', link: '/torahgpt' },
 	];
 	return {
 		items: items,
