@@ -1,6 +1,9 @@
 <script lang="ts">
 	export let answer: Promise<string> | undefined;
+	export let awaitedAnswer: string | undefined;
 	export let question: string;
+
+	$: console.log(answer);
 </script>
 
 <div class="overflow-hidden rounded-lg bg-white shadow">
@@ -12,7 +15,7 @@
 			{:then}
 				<p>
 					<span class="bg-slate-200 p-1 shadow rounded-lg">A:</span>
-					{answer}
+					{awaitedAnswer}
 				</p>
 			{/await}
 		{:else}

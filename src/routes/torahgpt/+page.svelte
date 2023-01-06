@@ -2,11 +2,12 @@
 	import Answer from '$lib/components/Answer.svelte';
 	let text: string = '';
 	let answer: Promise<string> | undefined = undefined;
+	let awaitedAnswer: string | undefined = undefined;
 	let hideExamples = true;
 
 	async function getCompletion() {
 		console.log('asking...');
-		const response = await fetch('/question', {
+		return fetch('/torahgpt', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -14,15 +15,15 @@
 			body: JSON.stringify({
 				question: text,
 			}),
-		});
-
-		const result = await response.text();
-
-		if (response.ok) {
-			return result.slice(5, -1);
-		} else {
-			throw new Error(text);
-		}
+		})
+			.then(async (response) => {
+				const result = response.text();
+				console.log(result);
+				awaitedAnswer = (await result).slice(5, -1);
+			})
+			.catch(() => {
+				throw new Error(text);
+			});
 	}
 </script>
 
@@ -110,6 +111,7 @@
 	<div class="px-4 py-5 sm:p-6">
 		<Answer
 			{answer}
+			{awaitedAnswer}
 			bind:question={text}
 		/>
 	</div>
