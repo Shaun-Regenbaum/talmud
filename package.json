@@ -30,10 +30,13 @@
 		"@redis/search": "^1.1.0",
 		"@supabase/auth-helpers-sveltekit": "^0.8.6",
 		"@supabase/supabase-js": "^2.2.2",
+		"daf-renderer": "^1.1.4",
 		"esbuild": "^0.16.10",
 		"hnswlib-node": "^1.2.0",
+		"node-html-parser": "^6.1.4",
 		"openai": "^3.1.0",
 		"redis": "^4.5.1",
+		"sanitize-html": "^2.8.1",
 		"uuid": "^9.0.0"
 	}
 }

@@ -6,6 +6,18 @@ export interface SearchResult {
 	text: string;
 	source: string[];
 }
+export interface DafData {
+	main: string;
+	rashi: string;
+	tosafot: string;
+	amud?: 'a' | 'b';
+}
+
+export type DafSelect = {
+	tractate: string;
+	daf: number;
+	side: number;
+};
 
 export type PossibleData = SingleText | GroupedText | OriginalText | any;
 
