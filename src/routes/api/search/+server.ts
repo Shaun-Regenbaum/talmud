@@ -1,6 +1,6 @@
 import type { BodyForSearch } from '$lib/types';
 import { searchIndex, redisConnect } from '$lib/db';
-import { searchManualIndex } from '$lib/hnsw';
+// import { searchManualIndex } from '$lib/hnsw';
 import { createEmbedding } from '$lib/openai';
 import { json } from '@sveltejs/kit';
 import { redis } from '$lib/db';
@@ -34,10 +34,10 @@ export async function POST({ request }: any) {
 			if (debug) console.log('Searching HASH index');
 			searchResults = await searchIndex(embedding, true, mode);
 			break;
-		case 'MANUAL':
-			if (debug) console.log('Searching manual index');
-			searchResults = await searchManualIndex(embedding, true);
-			break;
+		// case 'MANUAL':
+		// 	if (debug) console.log('Searching manual index');
+		// 	searchResults = await searchManualIndex(embedding, true);
+		// 	break;
 		default:
 			if (debug) console.log('Invalid mode');
 			break;
