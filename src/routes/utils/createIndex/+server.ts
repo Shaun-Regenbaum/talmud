@@ -4,7 +4,7 @@ import {
 	createSearchIndex,
 	redisConnect,
 } from '$lib/db';
-import { createManualIndex } from '$lib/hnsw';
+// import { createManualIndex } from '$lib/hnsw';
 import { json } from '@sveltejs/kit';
 import { redis } from '$lib/db';
 
@@ -35,16 +35,16 @@ export async function GET() {
 				status.push('Creating HASH index');
 				message = await createHashSearchIndex(debug);
 				break;
-			case 'MANUAL':
-				if (debug) console.log('Getting keys');
-				status.push('Getting keys');
-				const keys = await redis.keys('group:*');
-				status.push('Get keys');
-				if (debug) console.log('Got Keys');
-				if (debug) console.log('Creating manual index');
-				status.push('Creating manual index');
-				message = await createManualIndex(keys, debug);
-				break;
+			// case 'MANUAL':
+			// 	if (debug) console.log('Getting keys');
+			// 	status.push('Getting keys');
+			// 	const keys = await redis.keys('group:*');
+			// 	status.push('Get keys');
+			// 	if (debug) console.log('Got Keys');
+			// 	if (debug) console.log('Creating manual index');
+			// 	status.push('Creating manual index');
+			// 	message = await createManualIndex(keys, debug);
+			// 	break;
 			default:
 				if (debug) console.log('Invalid mode');
 				message = 'Invalid mode';
