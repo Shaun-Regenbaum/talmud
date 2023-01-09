@@ -20,6 +20,7 @@
 				const result = response.text();
 				console.log(result);
 				awaitedAnswer = (await result).slice(5, -1);
+				return awaitedAnswer;
 			})
 			.catch(() => {
 				throw new Error(text);

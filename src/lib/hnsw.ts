@@ -1,4 +1,5 @@
-import { HierarchicalNSW as hnsw } from 'hnswlib-node';
+import { HierarchicalNSW } from 'hnswlib-node';
+const hnsw = HierarchicalNSW;
 import { redis } from './db';
 import fs from 'fs';
 const numDimensions = 1536; // the length of data point vector that will be indexed.

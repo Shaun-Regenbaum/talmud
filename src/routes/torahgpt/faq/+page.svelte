@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Abbr from '$lib/components/Abbr.svelte';
+	import Correction from '$lib/components/Correction.svelte';
 	import Note from '$lib/components/Note.svelte';
 </script>
 
@@ -19,6 +20,9 @@
 			/> look-up indexed on sentence embeddings to provide initial context and sources
 			to any query.
 		</p>
+		<Correction
+			message={'For the time being, this is vanilla GPT3.5 using context provided by a HNSW Search Index'}
+		/>
 		<br />
 		<h1 class="text-lg underline underline-offset-2">What does that mean?</h1>
 
@@ -129,7 +133,7 @@
 				generation of learning experiences. A couple years ago I started working
 				on a <a
 					class="text-blue-500 underline"
-					href="demo.talmud.app">Talmud Learning App</a
+					href="https://demo.talmud.app">Talmud Learning App</a
 				>, but there is a lot more to be done.
 				<Note
 					abbr="Learn more..."
@@ -147,7 +151,7 @@
 					<Note
 						abbr="Learn more..."
 						expanded="It is a hard problem to find the correct sources based on the context given. It is partly a statistical problem. You would need to understand the principles of mapping text to high
-					dimensional vector spaces, and the using those embeddings to match
+					dimensional vector spaces, and the using those embeddings to match a
 					correct group of sources to a given input. It is a very hard problem to
 					solve, but if you are an expert I would be happy for your help."
 					/>
