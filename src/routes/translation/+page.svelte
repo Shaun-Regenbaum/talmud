@@ -35,6 +35,14 @@
 </script>
 
 <form method="POST">
+	<label>Masechet:</label>
+	<input
+		id="ref"
+		name="ref"
+		type="text"
+		class="m-4 p-1 bg-red-200 border-black border-2"
+	/>
+
 	<button class="m-4 p-1 bg-red-200">Get Text</button>
 </form>
 
