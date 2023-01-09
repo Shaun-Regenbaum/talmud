@@ -1,12 +1,11 @@
 import { HierarchicalNSW } from 'hnswlib-node';
-const hnsw = HierarchicalNSW;
 import { redis } from './db';
 import fs from 'fs';
 const numDimensions = 1536; // the length of data point vector that will be indexed.
 const maxElements = 6000; // the maximum number of data points.
 
 // declaring and intializing index.
-const index = new hnsw('l2', numDimensions);
+const index = new HierarchicalNSW('l2', numDimensions);
 index.initIndex(maxElements);
 
 export async function createManualIndex(
@@ -44,7 +43,7 @@ export async function searchManualIndex(
 ): Promise<any> {
 	debug = true;
 
-	const index = new hnsw('l2', numDimensions);
+	const index = new HierarchicalNSW('l2', numDimensions);
 	index.readIndexSync('foo.dat');
 
 	// preparing query data points.
