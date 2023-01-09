@@ -22,7 +22,9 @@
 			><span>{' '}</span>
 		{/each}
 	</div>
-	<p>{word}</p>
+	<div class="w-fit my-4 ml-12 p-4 bg-gray-200 rounded border-black border-2">
+		<p>Selected Word: {word}</p>
+	</div>
 {:else}
 	<p>Nothing Yet</p>
 {/if}
