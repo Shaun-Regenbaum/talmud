@@ -50,3 +50,30 @@ export async function createCompletion(
 		throw new Error("Couldn't create completion");
 	}
 }
+
+export async function createTranslation(
+	aramaic: string,
+	english: string,
+	word: string,
+	debug: boolean = false
+): Promise<string> {
+	const prompt = `Aramaic: ${aramaic}
+	English: ${english}
+
+	What is the translation of ${word}?
+	A:
+	`;
+	const response = await openai.createCompletion({
+		model: 'text-davinci-003',
+		prompt: prompt,
+		max_tokens: 200,
+		temperature: 0,
+	});
+	if (debug) console.log('Completion Created');
+	if (debug) console.log(response.data.choices[0].text);
+	if (response.data.choices[0].text) {
+		return response.data.choices[0].text;
+	} else {
+		throw new Error("Couldn't create completion");
+	}
+}
