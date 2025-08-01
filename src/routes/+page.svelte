@@ -3,11 +3,13 @@
 	import { goto } from '$app/navigation';
 	import { talmudStore, currentPage, isLoading, pageError, pageInfo } from '$lib/stores/talmud';
 	import { rendererStore } from '$lib/stores/renderer';
+	import { SpacerAwareSelector } from '$lib/spacer-aware-selector';
 	
 	// Get data from load function
 	let { data } = $props();
 	
 	let dafContainer = $state<HTMLDivElement>();
+	let layerSelector: SpacerAwareSelector | null = null;
 	
 	// Form state - initialized from URL
 	let selectedTractate = $state(data.tractate);
@@ -99,6 +101,8 @@
 		return html.trim() || `<span class='sentence' id='sentence-${prefix}-0'></span>`;
 	}
 	
+
+
 	// Handle rendering when page data changes
 	$effect(() => {
 		const pageData = $currentPage;
@@ -132,6 +136,22 @@
 			// Small delay to ensure renderer is ready
 			setTimeout(() => {
 				rendererStore.render(mainFormatted, rashiFormatted, tosafotFormatted, pageLabel);
+				
+				// Apply dynamic layer selection after rendering
+				setTimeout(() => {
+					if (!dafContainer) return;
+					
+					// Clean up previous selector
+					if (layerSelector) {
+						layerSelector.disable();
+						layerSelector = null;
+					}
+					
+					// Enable spacer-aware selector
+					console.log('Enabling spacer-aware selector');
+					layerSelector = new SpacerAwareSelector(dafContainer);
+					layerSelector.enable();
+				}, 300);
 			}, 50);
 		}, 100);
 	});
@@ -155,6 +175,13 @@
 	onMount(async () => {
 		// Initial load is handled by the effect above
 		console.log('Component mounted with data:', data);
+		
+		// Cleanup on unmount
+		return () => {
+			if (layerSelector) {
+				layerSelector.disable();
+			}
+		};
 	});
 	
 	// Function to handle form submission
@@ -259,6 +286,7 @@
 					>
 						{$isLoading ? 'טוען...' : 'עבור'}
 					</button>
+					
 				</div>
 			</div>
 			
