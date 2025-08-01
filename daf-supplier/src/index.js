@@ -128,29 +128,9 @@ export default {
               rawHTML = rawHTML.replace(pattern, '');
             }
             
-            // If we can find where actual content starts, use that but preserve word boundaries
-            const contentMarkers = ['גמרא', 'מתני׳', 'משנה', 'תנו רבנן', 'תניא', 'אמר'];
-            let earliestStart = -1;
-            for (const marker of contentMarkers) {
-              const pos = rawHTML.indexOf(marker);
-              if (pos !== -1 && (earliestStart === -1 || pos < earliestStart)) {
-                earliestStart = pos;
-              }
-            }
-            
-            // Only cut if we found a content marker in the first 500 chars, and ensure we cut at word boundaries
-            if (earliestStart !== -1 && earliestStart < 500) {
-              // Look for word boundary before the marker to avoid cutting mid-word
-              let cutPosition = earliestStart;
-              
-              // Find the start of the word containing the marker
-              while (cutPosition > 0 && !/\s/.test(rawHTML[cutPosition - 1])) {
-                cutPosition--;
-              }
-              
-              rawHTML = rawHTML.substring(cutPosition);
-              console.log(`Cut Gemara content at word boundary position ${cutPosition} (marker at ${earliestStart})`);
-            }
+            // Don't cut content based on markers - preserve all text from shastext elements
+            // The navigation patterns above should be sufficient to remove headers
+            console.log('Preserving all shastext content without marker-based cutting');
             
             data.mainText = rawHTML;
             console.log('First shastext HTML length after cleaning:', data.mainText.length);
@@ -396,29 +376,9 @@ export default {
             rawHTML = rawHTML.replace(pattern, '');
           }
           
-          // Look for content markers but avoid cutting mid-word
-          const contentMarkers = ['גמרא', 'מתני׳', 'משנה', 'תנו רבנן', 'תניא', 'אמר'];
-          let earliestStart = -1;
-          for (const marker of contentMarkers) {
-            const pos = rawHTML.indexOf(marker);
-            if (pos !== -1 && (earliestStart === -1 || pos < earliestStart)) {
-              earliestStart = pos;
-            }
-          }
-          
-          // Only cut if we found a content marker in the first 500 chars, and ensure we cut at word boundaries
-          if (earliestStart !== -1 && earliestStart < 500) {
-            // Look for word boundary before the marker to avoid cutting mid-word
-            let cutPosition = earliestStart;
-            
-            // Find the start of the word containing the marker
-            while (cutPosition > 0 && !/\s/.test(rawHTML[cutPosition - 1])) {
-              cutPosition--;
-            }
-            
-            rawHTML = rawHTML.substring(cutPosition);
-            console.log(`Cut Gemara content at word boundary position ${cutPosition} (marker at ${earliestStart})`);
-          }
+          // Don't cut content based on markers - preserve all text from shastext elements
+          // The navigation patterns above should be sufficient to remove headers
+          console.log('Preserving all shastext content without marker-based cutting');
           
           // Decode HTML entities but preserve tags and newlines
           pageData.mainText = rawHTML
