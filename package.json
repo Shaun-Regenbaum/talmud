@@ -1,42 +1,30 @@
 {
-	"name": "talmud",
-	"version": "0.0.1",
-	"private": true,
-	"scripts": {
-		"dev": "vite dev",
-		"build": "vite build",
-		"preview": "vite preview",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
-	},
-	"devDependencies": {
-		"@sveltejs/adapter-auto": "^1.0.0",
-		"@sveltejs/kit": "^1.0.0",
-		"@types/uuid": "^9.0.0",
-		"autoprefixer": "^10.4.13",
-		"postcss": "^8.4.20",
-		"prettier": "2.8.1",
-		"svelte": "^3.54.0",
-		"svelte-check": "^2.9.2",
-		"tailwindcss": "^3.2.4",
-		"tslib": "^2.4.1",
-		"typescript": "^4.9.3",
-		"vite": "^4.0.0"
-	},
-	"type": "module",
-	"dependencies": {
-		"@redis/client": "^1.4.2",
-		"@redis/json": "^1.0.4",
-		"@redis/search": "^1.1.0",
-		"@supabase/auth-helpers-sveltekit": "^0.8.6",
-		"@supabase/supabase-js": "^2.2.2",
-		"daf-renderer": "^1.1.4",
-		"esbuild": "^0.16.10",
-		"hnswlib-node": "^1.2.0",
-		"node-html-parser": "^6.1.4",
-		"openai": "^3.1.0",
-		"redis": "^4.5.1",
-		"sanitize-html": "^2.8.1",
-		"uuid": "^9.0.0"
-	}
+  "name": "talmud",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "deploy": "wrangler deploy --compatibility-date 2025-01-01"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-cloudflare": "^4.8.0",
+    "@sveltejs/kit": "^2.15.0",
+    "@sveltejs/vite-plugin-svelte": "^5.0.4",
+    "@tailwindcss/vite": "^4.1.11",
+    "@types/node": "^22.12.2",
+    "svelte": "^5.14.1",
+    "svelte-check": "^4.1.2",
+    "tailwindcss": "^4.1.11",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7",
+    "wrangler": "^3.99.0"
+  },
+  "dependencies": {
+    "daf-renderer": "^1.1.4"
+  }
 }
