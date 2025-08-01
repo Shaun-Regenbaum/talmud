@@ -128,7 +128,7 @@ export default {
               rawHTML = rawHTML.replace(pattern, '');
             }
             
-            // If we can find where actual content starts, use that
+            // If we can find where actual content starts, use that but preserve word boundaries
             const contentMarkers = ['גמרא', 'מתני׳', 'משנה', 'תנו רבנן', 'תניא', 'אמר'];
             let earliestStart = -1;
             for (const marker of contentMarkers) {
@@ -138,10 +138,18 @@ export default {
               }
             }
             
-            // Only cut if we found a content marker in the first 500 chars
+            // Only cut if we found a content marker in the first 500 chars, and ensure we cut at word boundaries
             if (earliestStart !== -1 && earliestStart < 500) {
-              rawHTML = rawHTML.substring(earliestStart);
-              console.log(`Cut Gemara content at position ${earliestStart}`);
+              // Look for word boundary before the marker to avoid cutting mid-word
+              let cutPosition = earliestStart;
+              
+              // Find the start of the word containing the marker
+              while (cutPosition > 0 && !/\s/.test(rawHTML[cutPosition - 1])) {
+                cutPosition--;
+              }
+              
+              rawHTML = rawHTML.substring(cutPosition);
+              console.log(`Cut Gemara content at word boundary position ${cutPosition} (marker at ${earliestStart})`);
             }
             
             data.mainText = rawHTML;
@@ -277,7 +285,6 @@ export default {
           while ((match = pattern.exec(cleanHtml)) !== null) {
             // Validate that this shastext is within a fieldset
             const beforeContent = cleanHtml.substring(Math.max(0, match.index - 1000), match.index);
-            const afterContent = cleanHtml.substring(match.index, Math.min(cleanHtml.length, match.index + 100));
             
             // Check if there's an opening fieldset before and it's recent
             const lastFieldsetOpen = beforeContent.lastIndexOf('<fieldset');
@@ -306,47 +313,56 @@ export default {
           const current = allShastextPositions[i];
           let endPos;
           
-          // The end is either the start of the next shastext or a pattern that indicates end of content
-          if (i < allShastextPositions.length - 1) {
-            endPos = allShastextPositions[i + 1].start;
-          } else {
-            // For the last shastext, look for the closing fieldset first
-            const remainingHtml = cleanHtml.substring(current.startContent);
-            const fieldsetClosePos = remainingHtml.indexOf('</fieldset>');
+          // Find the proper closing </div> for this shastext element by tracking div depth
+          const remainingHtml = cleanHtml.substring(current.startContent);
+          let divDepth = 1; // We're inside the opening shastext div
+          let pos = 0;
+          
+          while (pos < remainingHtml.length && divDepth > 0) {
+            const nextOpenDiv = remainingHtml.indexOf('<div', pos);
+            const nextCloseDiv = remainingHtml.indexOf('</div>', pos);
             
-            if (fieldsetClosePos !== -1) {
-              endPos = current.startContent + fieldsetClosePos;
-              console.log(`Using fieldset close as boundary for shastext${current.num} at position ${endPos}`);
-            } else {
-              // Fallback to other ending patterns
-              const endPatterns = [
-                /<div[^>]*class="shastext\d+"[^>]*>/i, // Another shastext
-                /<div[^>]*id="footer"/i, // Footer
-                /<script/i, // Scripts often come after content
-                /<!--\s*end\s*content\s*-->/i // End content comment
-              ];
-              
+            if (nextCloseDiv === -1) {
+              // No more closing divs, take everything
               endPos = cleanHtml.length;
-              for (const pattern of endPatterns) {
-                const match = remainingHtml.search(pattern);
-                if (match !== -1) {
-                  endPos = Math.min(endPos, current.startContent + match);
-                }
+              break;
+            }
+            
+            if (nextOpenDiv === -1 || nextCloseDiv < nextOpenDiv) {
+              // Next tag is a closing div
+              divDepth--;
+              pos = nextCloseDiv + 6; // Move past </div>
+              if (divDepth === 0) {
+                endPos = current.startContent + nextCloseDiv;
+                break;
               }
+            } else {
+              // Next tag is an opening div
+              divDepth++;
+              pos = nextOpenDiv + 4; // Move past <div
             }
           }
           
-          // Extract the content and find the last proper closing div
+          // If we couldn't find proper div boundaries, fall back to safer methods
+          if (endPos === undefined) {
+            if (i < allShastextPositions.length - 1) {
+              // Look for the previous character before next shastext to avoid cutting mid-word
+              const nextStart = allShastextPositions[i + 1].start;
+              const contentBefore = cleanHtml.substring(current.startContent, nextStart);
+              const lastSpacePos = contentBefore.lastIndexOf(' ');
+              const lastNewlinePos = contentBefore.lastIndexOf('\n');
+              const safeEndPos = Math.max(lastSpacePos, lastNewlinePos);
+              endPos = safeEndPos > 0 ? current.startContent + safeEndPos : nextStart;
+            } else {
+              const fieldsetClosePos = remainingHtml.indexOf('</fieldset>');
+              endPos = fieldsetClosePos !== -1 ? 
+                current.startContent + fieldsetClosePos : 
+                cleanHtml.length;
+            }
+          }
+          
+          // Extract the content - preserve all text within proper boundaries
           let content = cleanHtml.substring(current.startContent, endPos);
-          
-          // Find the last </div> that properly closes our content
-          const divMatches = content.match(/<\/div>/gi);
-          if (divMatches) {
-            const lastDivPos = content.lastIndexOf('</div>');
-            if (lastDivPos !== -1) {
-              content = content.substring(0, lastDivPos);
-            }
-          }
           
           shastextMatches.push([current.startTag + content + '</div>', content]);
           console.log(`shastext${current.num} found with ${content.length} chars`);
@@ -380,7 +396,7 @@ export default {
             rawHTML = rawHTML.replace(pattern, '');
           }
           
-          // Look for content markers
+          // Look for content markers but avoid cutting mid-word
           const contentMarkers = ['גמרא', 'מתני׳', 'משנה', 'תנו רבנן', 'תניא', 'אמר'];
           let earliestStart = -1;
           for (const marker of contentMarkers) {
@@ -390,10 +406,18 @@ export default {
             }
           }
           
-          // Only cut if we found a content marker in the first 500 chars
+          // Only cut if we found a content marker in the first 500 chars, and ensure we cut at word boundaries
           if (earliestStart !== -1 && earliestStart < 500) {
-            rawHTML = rawHTML.substring(earliestStart);
-            console.log(`Cut Gemara content at position ${earliestStart}`);
+            // Look for word boundary before the marker to avoid cutting mid-word
+            let cutPosition = earliestStart;
+            
+            // Find the start of the word containing the marker
+            while (cutPosition > 0 && !/\s/.test(rawHTML[cutPosition - 1])) {
+              cutPosition--;
+            }
+            
+            rawHTML = rawHTML.substring(cutPosition);
+            console.log(`Cut Gemara content at word boundary position ${cutPosition} (marker at ${earliestStart})`);
           }
           
           // Decode HTML entities but preserve tags and newlines

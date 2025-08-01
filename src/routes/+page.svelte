@@ -315,7 +315,7 @@
 				<!-- Always show the container, even if no data yet -->
 				<div>
 					<!-- Container for the daf renderer -->
-					<div bind:this={dafContainer} class="daf-container w-full min-h-[900px] h-[900px] max-w-[1200px] mx-auto border border-gray-300 rounded-lg overflow-auto bg-[#f5f5dc]" style="position: relative;">
+					<div bind:this={dafContainer} class="daf-container w-full min-h-[900px] h-[900px] max-w-[1200px] mx-auto border border-gray-300 rounded-lg overflow-auto bg-white" style="position: relative;">
 						<!-- The daf-renderer will populate this container -->
 						{#if !$currentPage}
 							<div class="flex items-center justify-center h-full text-gray-400">
