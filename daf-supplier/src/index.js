@@ -34,17 +34,14 @@ export default {
     if (env.HEBREWBOOKS_KV && !bypassCache) {
       const cached = await env.HEBREWBOOKS_KV.get(cacheKey);
       if (cached) {
-        const data = JSON.parse(cached);
-        // Check if cache is still fresh (7 days)
-        if (Date.now() - data.timestamp < 7 * 24 * 60 * 60 * 1000) {
-          return new Response(cached, {
-            headers: { 
-              ...corsHeaders,
-              'Content-Type': 'application/json',
-              'X-Cache': 'HIT'
-            }
-          });
-        }
+        // Return cached data immediately - no expiration check
+        return new Response(cached, {
+          headers: { 
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+            'X-Cache': 'HIT'
+          }
+        });
       }
     }
 
@@ -65,9 +62,9 @@ export default {
         console.log('Navigating to:', targetUrl);
         await page.goto(targetUrl, { waitUntil: 'networkidle0' });
 
-        // Wait for the shastext content to load - try shastext2, shastext3, or shastext4
+        // Wait for the shastext content to load - try shastext2 through shastext10
         try {
-          await page.waitForSelector('.shastext2, .shastext3, .shastext4', { timeout: 30000 });
+          await page.waitForSelector('.shastext2, .shastext3, .shastext4, .shastext5, .shastext6, .shastext7, .shastext8, .shastext9, .shastext10', { timeout: 30000 });
           console.log('Page loaded, extracting content from shastext divs...');
         } catch (waitError) {
           console.log('Shastext elements not found, will try body extraction fallback');
@@ -89,55 +86,87 @@ export default {
             otherCommentaries: {}
           };
 
-          // Look for shastext2, shastext3, and shastext4 elements
+          // Look for shastext2 through shastext10 elements
           const shastext2 = document.querySelector('.shastext2');
           const shastext3 = document.querySelector('.shastext3'); 
           const shastext4 = document.querySelector('.shastext4');
+          const shastext5 = document.querySelector('.shastext5');
+          const shastext6 = document.querySelector('.shastext6');
+          const shastext7 = document.querySelector('.shastext7');
+          const shastext8 = document.querySelector('.shastext8');
+          const shastext9 = document.querySelector('.shastext9');
+          const shastext10 = document.querySelector('.shastext10');
 
           console.log('Found shastext2:', !!shastext2);
           console.log('Found shastext3:', !!shastext3);
           console.log('Found shastext4:', !!shastext4);
+          console.log('Found shastext5:', !!shastext5);
+          console.log('Found shastext6:', !!shastext6);
+          console.log('Found shastext7:', !!shastext7);
+          console.log('Found shastext8:', !!shastext8);
+          console.log('Found shastext9:', !!shastext9);
+          console.log('Found shastext10:', !!shastext10);
 
-          // Extract from shastext2 (typically Gemara) - preserve HTML but clean navigation
-          if (shastext2) {
-            let rawHTML = preserveFormatting(shastext2);
+          // Find which shastext elements are available (they might be numbered differently in different tractates)
+          const shastextElements = [shastext2, shastext3, shastext4, shastext5, shastext6, shastext7, shastext8, shastext9, shastext10].filter(el => el !== null);
+          console.log('Total shastext elements found:', shastextElements.length);
+
+          // Extract from first available shastext (typically Gemara) - preserve HTML but clean navigation
+          if (shastextElements[0]) {
+            let rawHTML = preserveFormatting(shastextElements[0]);
+            console.log('Raw Gemara HTML length before cleaning:', rawHTML.length);
             
-            // Remove the Hebrew navigation and headers that appear at the start
-            // Look for where the actual Gemara text begins
-            const gemaraStart = rawHTML.indexOf('גמרא');
-            if (gemaraStart !== -1) {
-              // Take HTML starting from "גמרא"
-              rawHTML = rawHTML.substring(gemaraStart);
-            } else {
-              // Fallback: remove common navigation patterns while preserving HTML
-              rawHTML = rawHTML
-                .replace(/^[\s\S]*?(?=אשר עשיתם|מתני׳|גמרא)/m, '') // Remove everything before Gemara text
-                .replace(/<[^>]*>בבלי מסכת.*?דף.*?עמוד.*?<\/[^>]*>/g, '') // Remove headers in tags
-                .replace(/<[^>]*>היברו בוקס.*?<\/[^>]*>/g, '') // Remove HebrewBooks branding in tags
-                .replace(/<[^>]*>ברכות שבת עירובין.*?נידה<\/[^>]*>/g, ''); // Remove tractate navigation in tags
+            // Only remove navigation headers, not actual content
+            // Look for common navigation patterns at the very start
+            const navPatterns = [
+              /^.*?בבלי מסכת.*?דף.*?עמוד.*?[\n\r]+/m, // Page header
+              /^.*?היברו בוקס.*?[\n\r]+/m, // HebrewBooks branding
+              /^.*?ברכות שבת עירובין.*?נידה.*?[\n\r]+/m // Tractate navigation
+            ];
+            
+            for (const pattern of navPatterns) {
+              rawHTML = rawHTML.replace(pattern, '');
+            }
+            
+            // If we can find where actual content starts, use that
+            const contentMarkers = ['גמרא', 'מתני׳', 'משנה', 'תנו רבנן', 'תניא', 'אמר'];
+            let earliestStart = -1;
+            for (const marker of contentMarkers) {
+              const pos = rawHTML.indexOf(marker);
+              if (pos !== -1 && (earliestStart === -1 || pos < earliestStart)) {
+                earliestStart = pos;
+              }
+            }
+            
+            // Only cut if we found a content marker in the first 500 chars
+            if (earliestStart !== -1 && earliestStart < 500) {
+              rawHTML = rawHTML.substring(earliestStart);
+              console.log(`Cut Gemara content at position ${earliestStart}`);
             }
             
             data.mainText = rawHTML;
-            console.log('shastext2 HTML length:', data.mainText.length);
-            console.log('shastext2 first 200 chars:', data.mainText.substring(0, 200));
+            console.log('First shastext HTML length after cleaning:', data.mainText.length);
+            console.log('First shastext first 500 chars:', data.mainText.substring(0, 500));
           }
 
-          // Extract from shastext3 (typically Rashi) - preserve HTML
-          if (shastext3) {
-            data.rashi = preserveFormatting(shastext3);
-            console.log('shastext3 HTML length:', data.rashi.length);
-            console.log('shastext3 first 200 chars:', data.rashi.substring(0, 200));
+          // Extract from second available shastext (typically Rashi) - preserve ALL HTML
+          if (shastextElements[1]) {
+            data.rashi = preserveFormatting(shastextElements[1]);
+            console.log('Second shastext (Rashi) HTML length:', data.rashi.length);
+            console.log('Second shastext first 500 chars:', data.rashi.substring(0, 500));
+            console.log('Second shastext last 200 chars:', data.rashi.substring(data.rashi.length - 200));
           }
 
-          // Extract from shastext4 (typically Tosafot) - preserve HTML
-          if (shastext4) {
-            data.tosafot = preserveFormatting(shastext4);
-            console.log('shastext4 HTML length:', data.tosafot.length);
-            console.log('shastext4 first 200 chars:', data.tosafot.substring(0, 200));
+          // Extract from third available shastext (typically Tosafot) - preserve ALL HTML
+          if (shastextElements[2]) {
+            data.tosafot = preserveFormatting(shastextElements[2]);
+            console.log('Third shastext (Tosafot) HTML length:', data.tosafot.length);
+            console.log('Third shastext first 500 chars:', data.tosafot.substring(0, 500));
+            console.log('Third shastext last 200 chars:', data.tosafot.substring(data.tosafot.length - 200));
           }
 
           // If no specific shastext elements found, fallback to body extraction
-          if (!shastext2 && !shastext3 && !shastext4) {
+          if (shastextElements.length === 0) {
             console.log('No shastext elements found, using fallback extraction');
             
             // Get all the text content from the page
@@ -238,28 +267,133 @@ export default {
         console.log('HTTP fallback - looking for shastext elements in HTML...');
         
         // First try to extract from shastext elements in the HTML - preserve HTML structure
-        const shastext2Match = cleanHtml.match(/<div[^>]*class="shastext2"[^>]*>([\s\S]*?)<\/div>/i);
-        const shastext3Match = cleanHtml.match(/<div[^>]*class="shastext3"[^>]*>([\s\S]*?)<\/div>/i);
-        const shastext4Match = cleanHtml.match(/<div[^>]*class="shastext4"[^>]*>([\s\S]*?)<\/div>/i);
+        const shastextMatches = [];
         
-        console.log('shastext2 found:', !!shastext2Match);
-        console.log('shastext3 found:', !!shastext3Match);
-        console.log('shastext4 found:', !!shastext4Match);
+        // Find all shastext divs first
+        const allShastextPositions = [];
+        for (let i = 2; i <= 10; i++) {
+          const pattern = new RegExp(`<div[^>]*class="shastext${i}"[^>]*>`, 'gi');
+          let match;
+          while ((match = pattern.exec(cleanHtml)) !== null) {
+            // Validate that this shastext is within a fieldset
+            const beforeContent = cleanHtml.substring(Math.max(0, match.index - 1000), match.index);
+            const afterContent = cleanHtml.substring(match.index, Math.min(cleanHtml.length, match.index + 100));
+            
+            // Check if there's an opening fieldset before and it's recent
+            const lastFieldsetOpen = beforeContent.lastIndexOf('<fieldset');
+            const lastFieldsetClose = beforeContent.lastIndexOf('</fieldset>');
+            
+            // Make sure we're inside a fieldset (open is more recent than close)
+            if (lastFieldsetOpen === -1 || (lastFieldsetClose !== -1 && lastFieldsetClose > lastFieldsetOpen)) {
+              console.log(`Skipping shastext${i} at position ${match.index} - not within fieldset`);
+              continue;
+            }
+            
+            allShastextPositions.push({
+              num: i,
+              start: match.index,
+              startTag: match[0],
+              startContent: match.index + match[0].length
+            });
+          }
+        }
         
-        if (shastext2Match) {
-          let rawHTML = shastext2Match[1];
+        // Sort by position
+        allShastextPositions.sort((a, b) => a.start - b.start);
+        
+        // Extract content for each shastext
+        for (let i = 0; i < allShastextPositions.length; i++) {
+          const current = allShastextPositions[i];
+          let endPos;
           
-          // Clean up navigation text while preserving HTML - look for where actual Gemara begins
-          const gemaraStart = rawHTML.indexOf('גמרא');
-          if (gemaraStart !== -1) {
-            rawHTML = rawHTML.substring(gemaraStart);
+          // The end is either the start of the next shastext or a pattern that indicates end of content
+          if (i < allShastextPositions.length - 1) {
+            endPos = allShastextPositions[i + 1].start;
           } else {
-            // Remove navigation patterns while preserving HTML structure
-            rawHTML = rawHTML
-              .replace(/^[\s\S]*?(?=אשר עשיתם|מתני׳|גמרא)/m, '')
-              .replace(/<[^>]*>בבלי מסכת.*?דף.*?עמוד.*?<\/[^>]*>/g, '')
-              .replace(/<[^>]*>היברו בוקס.*?<\/[^>]*>/g, '')
-              .replace(/<[^>]*>ברכות שבת עירובין.*?נידה<\/[^>]*>/g, '');
+            // For the last shastext, look for the closing fieldset first
+            const remainingHtml = cleanHtml.substring(current.startContent);
+            const fieldsetClosePos = remainingHtml.indexOf('</fieldset>');
+            
+            if (fieldsetClosePos !== -1) {
+              endPos = current.startContent + fieldsetClosePos;
+              console.log(`Using fieldset close as boundary for shastext${current.num} at position ${endPos}`);
+            } else {
+              // Fallback to other ending patterns
+              const endPatterns = [
+                /<div[^>]*class="shastext\d+"[^>]*>/i, // Another shastext
+                /<div[^>]*id="footer"/i, // Footer
+                /<script/i, // Scripts often come after content
+                /<!--\s*end\s*content\s*-->/i // End content comment
+              ];
+              
+              endPos = cleanHtml.length;
+              for (const pattern of endPatterns) {
+                const match = remainingHtml.search(pattern);
+                if (match !== -1) {
+                  endPos = Math.min(endPos, current.startContent + match);
+                }
+              }
+            }
+          }
+          
+          // Extract the content and find the last proper closing div
+          let content = cleanHtml.substring(current.startContent, endPos);
+          
+          // Find the last </div> that properly closes our content
+          const divMatches = content.match(/<\/div>/gi);
+          if (divMatches) {
+            const lastDivPos = content.lastIndexOf('</div>');
+            if (lastDivPos !== -1) {
+              content = content.substring(0, lastDivPos);
+            }
+          }
+          
+          shastextMatches.push([current.startTag + content + '</div>', content]);
+          console.log(`shastext${current.num} found with ${content.length} chars`);
+          
+          // Extra logging for Tosafot (typically shastext4)
+          if (current.num === 4) {
+            console.log('Tosafot extraction details:');
+            console.log('- Start position:', current.start);
+            console.log('- End position:', endPos);
+            console.log('- Content length:', content.length);
+            console.log('- First 200 chars:', content.substring(0, 200));
+            console.log('- Last 200 chars:', content.substring(Math.max(0, content.length - 200)));
+          }
+        }
+        
+        console.log('Total shastext elements found in HTML:', shastextMatches.length);
+        
+        // Process the first available shastext as Gemara
+        if (shastextMatches[0]) {
+          let rawHTML = shastextMatches[0][1];
+          console.log('Raw Gemara HTML length before cleaning:', rawHTML.length);
+          
+          // Only remove navigation headers, not actual content
+          const navPatterns = [
+            /^.*?בבלי מסכת.*?דף.*?עמוד.*?[\n\r]+/m,
+            /^.*?היברו בוקס.*?[\n\r]+/m,
+            /^.*?ברכות שבת עירובין.*?נידה.*?[\n\r]+/m
+          ];
+          
+          for (const pattern of navPatterns) {
+            rawHTML = rawHTML.replace(pattern, '');
+          }
+          
+          // Look for content markers
+          const contentMarkers = ['גמרא', 'מתני׳', 'משנה', 'תנו רבנן', 'תניא', 'אמר'];
+          let earliestStart = -1;
+          for (const marker of contentMarkers) {
+            const pos = rawHTML.indexOf(marker);
+            if (pos !== -1 && (earliestStart === -1 || pos < earliestStart)) {
+              earliestStart = pos;
+            }
+          }
+          
+          // Only cut if we found a content marker in the first 500 chars
+          if (earliestStart !== -1 && earliestStart < 500) {
+            rawHTML = rawHTML.substring(earliestStart);
+            console.log(`Cut Gemara content at position ${earliestStart}`);
           }
           
           // Decode HTML entities but preserve tags and newlines
@@ -272,12 +406,14 @@ export default {
             .replace(/&#039;/g, "'")
             .trim();
           
-          console.log('shastext2 HTML extracted length:', pageData.mainText.length);
+          console.log('First shastext HTML extracted length:', pageData.mainText.length);
+          console.log('First shastext first 500 chars:', pageData.mainText.substring(0, 500));
         }
         
-        if (shastext3Match) {
-          // Preserve HTML and decode entities
-          pageData.rashi = shastext3Match[1]
+        // Process the second available shastext as Rashi - DO NOT CUT ANY CONTENT
+        if (shastextMatches[1]) {
+          // Preserve ALL HTML and decode entities
+          pageData.rashi = shastextMatches[1][1]
             .replace(/&nbsp;/g, ' ')
             .replace(/&amp;/g, '&')
             .replace(/&lt;/g, '<')
@@ -285,12 +421,15 @@ export default {
             .replace(/&quot;/g, '"')
             .replace(/&#039;/g, "'")
             .trim();
-          console.log('shastext3 HTML extracted length:', pageData.rashi.length);
+          console.log('Second shastext (Rashi) HTML extracted length:', pageData.rashi.length);
+          console.log('Rashi first 500 chars:', pageData.rashi.substring(0, 500));
+          console.log('Rashi last 500 chars:', pageData.rashi.substring(Math.max(0, pageData.rashi.length - 500)));
         }
         
-        if (shastext4Match) {
-          // Preserve HTML and decode entities
-          pageData.tosafot = shastext4Match[1]
+        // Process the third available shastext as Tosafot - DO NOT CUT ANY CONTENT
+        if (shastextMatches[2]) {
+          // Preserve ALL HTML and decode entities
+          pageData.tosafot = shastextMatches[2][1]
             .replace(/&nbsp;/g, ' ')
             .replace(/&amp;/g, '&')
             .replace(/&lt;/g, '<')
@@ -298,11 +437,18 @@ export default {
             .replace(/&quot;/g, '"')
             .replace(/&#039;/g, "'")
             .trim();
-          console.log('shastext4 HTML extracted length:', pageData.tosafot.length);
+          console.log('Third shastext (Tosafot) HTML extracted length:', pageData.tosafot.length);
+          console.log('Tosafot first 500 chars:', pageData.tosafot.substring(0, 500));
+          console.log('Tosafot last 500 chars:', pageData.tosafot.substring(Math.max(0, pageData.tosafot.length - 500)));
+          
+          // Log if Tosafot seems suspiciously short
+          if (pageData.tosafot.length < 1000) {
+            console.log('WARNING: Tosafot seems very short! Full content:', pageData.tosafot);
+          }
         }
         
         // Fallback if no shastext elements found
-        if (!shastext2Match && !shastext3Match && !shastext4Match) {
+        if (shastextMatches.length === 0) {
           console.log('No shastext elements found, using old extraction method...');
           
           // Look for actual Talmud text content after "PDF Text"
