@@ -194,19 +194,25 @@ class HebrewBooksService {
 class HebrewBooksAPI {
   async fetchPage(tractate: string, daf: string): Promise<HebrewBooksPage | null> {
     try {
+      console.log('HebrewBooksAPI.fetchPage called with:', { tractate, daf });
+      
       // First try the browser rendering endpoint
       const mesechtaId = TRACTATE_IDS[tractate];
       if (!mesechtaId) {
         throw new Error(`Unknown tractate: ${tractate}`);
       }
 
-      // Convert daf format (e.g., "2a" -> 3, "2b" -> 4)
+      // HebrewBooks expects daf in format: "2", "2b", "3", "3b" etc.
+      // So for "2a" we send "2", for "2b" we send "2b"
       const dafNum = parseInt(daf.replace(/[ab]/, ''));
       const amud = daf.includes('b') ? 'b' : 'a';
-      const dafParam = (dafNum - 1) * 2 + (amud === 'b' ? 2 : 1);
+      const dafParam = amud === 'a' ? dafNum.toString() : `${dafNum}b`;
+      
+      console.log('Conversion:', { input: daf, dafNum, amud, dafParam });
 
       // Use the deployed daf-supplier worker
       const endpoint = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafParam}`;
+      console.log('Fetching from endpoint:', endpoint);
       
       const response = await fetch(endpoint);
       
@@ -214,7 +220,24 @@ class HebrewBooksAPI {
         throw new Error('Failed to fetch HebrewBooks data');
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log('Response from daf-supplier:', data);
+      
+      // The daf-supplier returns a different structure than our HebrewBooksPage interface expects
+      // Let's map it properly
+      const mappedData: HebrewBooksPage = {
+        tractate: data.tractate,
+        daf: data.dafDisplay || data.daf,
+        amud: data.amud,
+        mainText: data.mainText || '',
+        rashi: data.rashi || '',
+        tosafot: data.tosafot || '',
+        otherCommentaries: data.otherCommentaries,
+        timestamp: data.timestamp || Date.now()
+      };
+      
+      console.log('Mapped data for component:', mappedData);
+      return mappedData;
     } catch (error) {
       console.error('Error fetching HebrewBooks page:', error);
       return null;
