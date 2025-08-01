@@ -1,154 +1,226 @@
-import sanitizeHtml from 'sanitize-html';
-import { parse } from 'node-html-parser';
-import fs from 'fs';
+// HebrewBooks scraping service
+// Uses Cloudflare Browser Rendering to extract structured data from HebrewBooks.org
 
-const options = {
-	lowerCaseTagName: false, // convert tag name to lower case (hurts performance heavily)
-	comment: false, // retrieve comments (hurts performance slightly)
-	voidTag: {
-		tags: [
-			'area',
-			'base',
-			'br',
-			'col',
-			'embed',
-			'hr',
-			'img',
-			'input',
-			'link',
-			'meta',
-			'param',
-			'source',
-			'track',
-			'wbr',
-		], // optional and case insensitive, default value is ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']
-		addClosingSlash: true, // optional, default false. void tag serialisation, add a final slash <br/>
-	},
-	blockTextElements: {
-		script: false, // keep text content when parsing
-		noscript: false, // keep text content when parsing
-		style: false, // keep text content when parsing
-		pre: false, // keep text content when parsing
-	},
+export interface HebrewBooksPage {
+  tractate: string;
+  daf: string;
+  amud: string;
+  mainText: string;
+  rashi?: string;
+  tosafot?: string;
+  otherCommentaries?: Record<string, string>;
+  timestamp: number;
+}
+
+export interface HebrewBooksParams {
+  mesechta: number; // Tractate ID (e.g., 27 for Berakhot)
+  daf: number; // Page number
+  format?: 'text' | 'pdf';
+}
+
+// Tractate ID mapping
+export const TRACTATE_IDS: Record<string, number> = {
+  'Berakhot': 1,
+  'Shabbat': 2,
+  'Eruvin': 3,
+  'Pesachim': 4,
+  'Shekalim': 5,
+  'Yoma': 6,
+  'Sukkah': 7,
+  'Beitzah': 8,
+  'Rosh Hashanah': 9,
+  'Taanit': 10,
+  'Megillah': 11,
+  'Moed Katan': 12,
+  'Chagigah': 13,
+  'Yevamot': 14,
+  'Ketubot': 15,
+  'Nedarim': 16,
+  'Nazir': 17,
+  'Sotah': 18,
+  'Gittin': 19,
+  'Kiddushin': 20,
+  'Bava Kamma': 21,
+  'Bava Metzia': 22,
+  'Bava Batra': 23,
+  'Sanhedrin': 24,
+  'Makkot': 25,
+  'Shevuot': 26,
+  'Avodah Zarah': 27,
+  'Horayot': 28,
+  'Zevachim': 29,
+  'Menachot': 30,
+  'Chullin': 31,
+  'Bekhorot': 32,
+  'Arakhin': 33,
+  'Temurah': 34,
+  'Keritot': 35,
+  'Meilah': 36,
+  'Niddah': 37
 };
 
-/** We are using this to scrape the html from hebrewbooks.org
- * @param {string} masechet The masechet we are scraping
- * @param {number} daf The daf we are scraping
- * @param {number} page The page we are scraping, a=1 b=2
- * @returns {string, string, string} The html of the page
- */
-export async function getHtml(
-	masechet: string,
-	daf: number,
-	page: number
-): Promise<any> {
-	const secondPage = page === 2 ? 'b' : '';
-	const constructedUrl = `https://hebrewbooks.org/shas.aspx?mesechta=${convertMasechetToNumber(
-		masechet
-	)}&daf=${daf}${secondPage}&format=text`;
-	// fetch the html from the url
-	const response = await fetch(constructedUrl);
-	console.log(await response.clone().text());
-	let body = parse(await response.clone().text(), options);
-	const shastext2 = body.querySelector('.shastext2')?.toString();
-	const shastext3 = body.querySelector('.shastext3')?.toString();
-	const shastext4 = body.querySelector('.shastext4')?.toString();
-	// console.log(shastext3);
+class HebrewBooksService {
+  private kvNamespace: KVNamespace | null = null;
+  private browserInstance: any = null;
 
-	const clean = sanitizeHtml(await response.text(), {
-		allowedTags: ['div', 'span', 'strong', 'fieldset'],
-		disallowedTagsMode: 'discard',
-		allowedAttributes: false,
-		allowedClasses: {
-			div: ['shastext1', 'shastext2', 'shastext3', 'shastext4'],
-		}, // Lots of these won't come up by default because we don't allow them
-		selfClosing: [
-			'img',
-			'br',
-			'hr',
-			'area',
-			'base',
-			'basefont',
-			'input',
-			'link',
-			'meta',
-		],
-		// URL schemes we permit
-		allowedSchemes: ['http', 'https', 'ftp', 'mailto', 'tel'],
-		allowedSchemesByTag: {},
-		allowedSchemesAppliedToAttributes: ['href', 'src', 'cite'],
-		allowProtocolRelative: true,
-		enforceHtmlBoundary: true,
-	});
-	// create new  file with the html
-	fs.writeFileSync('src/lib/test.html', clean);
-	const regex1 = new RegExp(
-		/<div class="shastext2">((?!<\/div>)[\s\S])*<\/div>/g
-	);
-	const regex2 = new RegExp(
-		/<div class="shastext3">((?!<\/div>)[\s\S])*<\/div>/g
-	);
-	const regex3 = new RegExp(
-		/<div class="shastext4">((?!<\/fieldset>)[\s\S])*<\/fieldset>/g
-	);
-	const main = clean.match(regex1);
-	const rashi = clean.match(regex2);
-	const tosafot = clean.match(regex3);
+  constructor(kvNamespace?: KVNamespace, browserInstance?: any) {
+    this.kvNamespace = kvNamespace || null;
+    this.browserInstance = browserInstance || null;
+  }
 
-	// return the html
-	return {
-		main: shastext2,
-		rashi: shastext3,
-		tosafot: shastext4,
-	};
+  private getCacheKey(mesechta: number, daf: number): string {
+    return `hebrewbooks:${mesechta}:${daf}`;
+  }
+
+  async getPage(mesechta: number, daf: number): Promise<HebrewBooksPage | null> {
+    const cacheKey = this.getCacheKey(mesechta, daf);
+    
+    // Check cache first
+    if (this.kvNamespace) {
+      const cached = await this.kvNamespace.get(cacheKey, 'json');
+      if (cached) {
+        const data = cached as HebrewBooksPage;
+        // Cache for 7 days
+        if (Date.now() - data.timestamp < 7 * 24 * 60 * 60 * 1000) {
+          return data;
+        }
+      }
+    }
+
+    // Fetch fresh data
+    const freshData = await this.scrapePage(mesechta, daf);
+    
+    // Cache the result
+    if (freshData && this.kvNamespace) {
+      await this.kvNamespace.put(cacheKey, JSON.stringify(freshData), {
+        expirationTtl: 7 * 24 * 60 * 60, // 7 days in seconds
+      });
+    }
+
+    return freshData;
+  }
+
+  private async scrapePage(mesechta: number, daf: number): Promise<HebrewBooksPage | null> {
+    if (!this.browserInstance) {
+      throw new Error('Browser instance not available');
+    }
+
+    const url = `https://www.hebrewbooks.org/shas.aspx?mesechta=${mesechta}&daf=${daf}&format=text`;
+    
+    try {
+      const page = await this.browserInstance.newPage();
+      await page.goto(url, { waitUntil: 'networkidle0' });
+
+      // Wait for content to load
+      await page.waitForSelector('.shastext', { timeout: 10000 });
+
+      // Extract the data
+      const data = await page.evaluate(() => {
+        const getTextContent = (selector: string): string => {
+          const element = document.querySelector(selector);
+          return element ? element.textContent?.trim() || '' : '';
+        };
+
+        // Main gemara text is usually in the center column
+        const mainTextElement = document.querySelector('.shastext .maintext, .shastext center');
+        const mainText = mainTextElement ? mainTextElement.textContent?.trim() || '' : '';
+
+        // Rashi is typically in the inner margin
+        const rashiElement = document.querySelector('.shastext .rashi, .shastext .commentary.inner');
+        const rashi = rashiElement ? rashiElement.textContent?.trim() || '' : '';
+
+        // Tosafot is typically in the outer margin
+        const tosafotElement = document.querySelector('.shastext .tosafot, .shastext .commentary.outer');
+        const tosafot = tosafotElement ? tosafotElement.textContent?.trim() || '' : '';
+
+        // Try to extract other commentaries
+        const otherCommentaries: Record<string, string> = {};
+        document.querySelectorAll('.shastext .commentary').forEach((el) => {
+          const title = el.querySelector('.commentary-title')?.textContent?.trim();
+          const text = el.querySelector('.commentary-text')?.textContent?.trim();
+          if (title && text && title !== 'רש"י' && title !== 'תוספות') {
+            otherCommentaries[title] = text;
+          }
+        });
+
+        return {
+          mainText,
+          rashi,
+          tosafot,
+          otherCommentaries: Object.keys(otherCommentaries).length > 0 ? otherCommentaries : undefined,
+        };
+      });
+
+      await page.close();
+
+      // Get tractate name from ID
+      const tractateName = Object.entries(TRACTATE_IDS).find(([_, id]) => id === mesechta)?.[0] || `Tractate-${mesechta}`;
+      
+      // Determine amud (a or b)
+      const amud = daf % 2 === 0 ? 'b' : 'a';
+      const actualDaf = Math.ceil(daf / 2).toString();
+
+      return {
+        tractate: tractateName,
+        daf: actualDaf,
+        amud,
+        ...data,
+        timestamp: Date.now(),
+      };
+    } catch (error) {
+      console.error('Error scraping HebrewBooks:', error);
+      return null;
+    }
+  }
+
+  // Fallback method using regular fetch (won't work due to CORS, but included for completeness)
+  private async fetchPageHTML(mesechta: number, daf: number): Promise<string | null> {
+    const url = `https://www.hebrewbooks.org/shas.aspx?mesechta=${mesechta}&daf=${daf}&format=text`;
+    
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.text();
+    } catch (error) {
+      console.error('Error fetching HebrewBooks page:', error);
+      return null;
+    }
+  }
 }
 
-function convertMasechetToNumber(masechet: string): number {
-	const masechtot = {
-		Brachot: 1,
-		Shabbat: 2,
-		Eruvin: 3,
-		Pesachim: 4,
-		Shekalim: 5,
-		Yoma: 6,
-		Sukkah: 7,
-		Beitzah: 8,
-		RoshHashana: 9,
-		Taanit: 10,
-		Megillah: 11,
-		MoedKatan: 12,
-		Chagigah: 13,
-		Yevamos: 14,
-		Kesuvos: 15,
-		Nedarim: 16,
-		Nazir: 17,
-		Gittin: 18,
-		Kiddushin: 19,
-		BavaKamma: 20,
-		BavaMetzia: 21,
-		BavaBasra: 22,
-		Sanhedrin: 23,
-		Makot: 24,
-		Shevuot: 25,
-		AvodahZarah: 26,
-		Horayot: 27,
-		Zevachim: 28,
-		Menachot: 29,
-		Chullin: 30,
-		Bechorot: 31,
-		Arachin: 32,
-		Temurah: 33,
-		Kerisot: 34,
-		Meilah: 35,
-		Tamid: 36,
-		Middot: 37,
-		Niddah: 38,
-	};
-	try {
-		//@ts-ignore because we deal with the error of not finding the masechet
-		return masechtot[masechet];
-	} catch {
-		return 1;
-	}
+// Client-side API wrapper
+class HebrewBooksAPI {
+  async fetchPage(tractate: string, daf: string): Promise<HebrewBooksPage | null> {
+    try {
+      // First try the browser rendering endpoint
+      const mesechtaId = TRACTATE_IDS[tractate];
+      if (!mesechtaId) {
+        throw new Error(`Unknown tractate: ${tractate}`);
+      }
+
+      // Convert daf format (e.g., "2a" -> 3, "2b" -> 4)
+      const dafNum = parseInt(daf.replace(/[ab]/, ''));
+      const amud = daf.includes('b') ? 'b' : 'a';
+      const dafParam = (dafNum - 1) * 2 + (amud === 'b' ? 2 : 1);
+
+      // Use the deployed daf-supplier worker
+      const endpoint = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafParam}`;
+      
+      const response = await fetch(endpoint);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch HebrewBooks data');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching HebrewBooks page:', error);
+      return null;
+    }
+  }
 }
+
+export const hebrewBooksService = HebrewBooksService;
+export const hebrewBooksAPI = new HebrewBooksAPI();

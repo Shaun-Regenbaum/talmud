@@ -1,0 +1,17 @@
+name = "talmud"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat_v2"]
+main = ".svelte-kit/cloudflare/index.js"
+
+[site]
+bucket = ".svelte-kit/cloudflare"
+
+# KV Namespace for caching HebrewBooks data
+[[kv_namespaces]]
+binding = "HEBREWBOOKS_KV"
+id = "903f8090ffa94d3e80192e4e393caa7e"
+preview_id = "538aa5efbd464665a7c1f375a75f289e"
+
+# Browser rendering for HebrewBooks scraper
+[browser]
+binding = "BROWSER"

@@ -1,118 +1,203 @@
-// function to fetch the text of a given ref
-import type { GroupedText, OriginalText, SingleText } from './types';
-import { v4 as uuid } from 'uuid';
-import { redis, supabase } from './db';
-import { splitTexts } from './textManipulation';
+// Sefaria API service for fetching Jewish texts
 
-/** Used to get the text of a given ref
- * @async This is an async function for fetch calls
- * @param {string} ref - the ref of the text
- * @param {string} num - the number of the text
- * @returns {Promise<SingleText[]>} - an array of SingleTexts
- * @example getText('Genesis 1', '1')
- */
-export async function getText(
-	ref: string,
-	num: string,
-	debug: boolean = false
-): Promise<SingleText[]> {
-	ref = ref.replace(' ', '_');
-	ref = ref.replace(',', '%2C');
-	if (debug) console.log(`Ref: ${ref}`);
-	if (ref.includes('undefined')) {
-		throw new Error(
-			'ref was undefined, something went wrong in previous function'
-		);
-	}
-	if (num === '0') {
-		throw new Error('Invalid number, needs to be greater than 0');
-	}
-	const url = `https://www.sefaria.org/api/texts/${ref}.${num}?context=0`;
-	const response = await fetch(url);
-	if (!response.ok) {
-		throw new Error(response.statusText);
-	}
-	const data = await response.json();
-	if (debug) console.log('Fetch Recieved.');
+const SEFARIA_API_BASE = 'https://www.sefaria.org/api';
 
-	const text: string[] = data.text;
-	const he: string[] = data.he;
-	let index: number = 0;
-	try {
-		index = Number(await redis.get('count:originalIndex'));
-	} catch {
-		try {
-			redis.set('count:originalIndex', 0);
-		} catch (e) {
-			throw new Error(JSON.stringify(e));
-		}
-	}
-	if (debug) console.log('Indices Set.');
-
-	const original: OriginalText = {
-		id: uuid(),
-		name: '',
-		en: text,
-		he: he,
-		index: Number(index),
-		source: data.ref,
-	};
-
-	const supabaseResponse = await supabase
-		.from('originalTexts')
-		.upsert([{ id: original.id, originalText: original }]);
-	if (debug) console.log('Stored in supabase', supabaseResponse);
-
-	if (original.source === undefined) {
-		throw new Error(`Invalid url: ${url}`);
-	}
-
-	if (debug) console.log('Splitting Texts...');
-	let splits = await splitTexts(
-		original.id,
-		original.en[0],
-		original.source,
-		debug
-	);
-	if (debug) console.log('Splits Done.');
-	return splits;
+export interface SefariaTextResponse {
+  ref: string;
+  heRef: string;
+  text: string | string[];
+  he: string | string[];
+  type?: string;
+  book?: string;
+  sections?: number[];
+  toSections?: number[];
+  sectionRef?: string;
+  heSectionRef?: string;
+  isComplex?: boolean;
+  versions?: Array<{
+    title: string;
+    language: string;
+    versionTitle: string;
+    versionSource?: string;
+  }>;
+  commentary?: any[];
+  sheets?: any[];
+  notes?: any[];
+  links?: any[];
 }
 
-/** Used to get the TOC of a given ref
- * @async This is an async function for fetch calls
- * @param {string} ref - the ref of the text
- * @returns {Promise<any>} - the TOC of the text
- * @example getTOC('Genesis')
- */
-export async function getIndex(
-	ref: string,
-	debug: boolean = false
-): Promise<any> {
-	ref = ref.replace(' ', '_');
-	ref = ref.replace(',', '%2C');
-	if (debug) console.log(`Ref: ${ref}`);
-	try {
-		const url = `https://www.sefaria.org/api/index`;
-		const response = await fetch(url);
-		const data = await response.json();
-		if (debug) console.log('Fetch Recieved.');
-		return data;
-	} catch (e) {
-		console.log(e);
-	}
+export interface SefariaRelatedResponse {
+  links: Array<{
+    _id: string;
+    index_title: string;
+    category: string;
+    type: string;
+    ref: string;
+    anchorRef: string;
+    sourceRef: string;
+    sourceHeRef: string;
+    anchorRefExpanded?: string[];
+    sourceHasEn: boolean;
+    commentaryNum?: number;
+  }>;
+  sheets: any[];
+  notes: any[];
 }
 
-export async function storeText(
-	groupedText: GroupedText,
-	debug: boolean = false
-) {
-	if (debug) console.log('Storing Text...');
-	await redis.json.set(`group:${groupedText.id}`, '$', {
-		id: groupedText.id,
-		contains: groupedText.contains,
-		text: groupedText.text,
-		source: groupedText.source,
-		index: groupedText.index,
-	});
-	if (debug) console.log('Text Stored.');
+export interface TalmudPageData {
+  mainText: {
+    hebrew: string;
+    hebrewFormatted: string;
+    english: string;
+  };
+  rashi?: {
+    hebrew: string;
+    hebrewFormatted: string;
+    english: string;
+  };
+  tosafot?: {
+    hebrew: string;
+    hebrewFormatted: string;
+    english: string;
+  };
 }
+
+class SefariaAPI {
+  async getText(ref: string, options?: {
+    lang?: string;
+    version?: string;
+    commentary?: boolean;
+    context?: number;
+  }): Promise<SefariaTextResponse> {
+    const params = new URLSearchParams();
+    
+    if (options?.lang) params.append('lang', options.lang);
+    if (options?.version) params.append('version', options.version);
+    if (options?.commentary !== undefined) params.append('commentary', options.commentary ? '1' : '0');
+    if (options?.context !== undefined) params.append('context', options.context.toString());
+    
+    const queryString = params.toString();
+    const url = `${SEFARIA_API_BASE}/texts/${ref}${queryString ? '?' + queryString : ''}`;
+    
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch text: ${response.statusText}`);
+    }
+    
+    return response.json();
+  }
+
+  async getRelated(ref: string): Promise<SefariaRelatedResponse> {
+    const url = `${SEFARIA_API_BASE}/related/${ref}`;
+    
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch related texts: ${response.statusText}`);
+    }
+    
+    return response.json();
+  }
+
+  async getTalmudPageWithCommentaries(tractate: string, page: string): Promise<TalmudPageData> {
+    try {
+      // Fetch main text
+      const mainRef = `${tractate}.${page}`;
+      const mainTextResponse = await this.getText(mainRef);
+      
+      // Fetch related texts to get commentary references
+      const relatedResponse = await this.getRelated(mainRef);
+      
+      // Find Rashi and Tosafot references
+      const rashiLink = relatedResponse.links.find(link => 
+        link.index_title === `Rashi on ${tractate}` && 
+        link.type === 'commentary'
+      );
+      
+      const tosafotLink = relatedResponse.links.find(link => 
+        link.index_title === `Tosafot on ${tractate}` && 
+        link.type === 'commentary'
+      );
+      
+      // Fetch commentaries
+      let rashiData = null;
+      let tosafotData = null;
+      
+      if (rashiLink) {
+        try {
+          rashiData = await this.getText(rashiLink.ref);
+        } catch (e) {
+          console.warn('Failed to fetch Rashi:', e);
+        }
+      }
+      
+      if (tosafotLink) {
+        try {
+          tosafotData = await this.getText(tosafotLink.ref);
+        } catch (e) {
+          console.warn('Failed to fetch Tosafot:', e);
+        }
+      }
+      
+      // Process and format the data
+      const formatText = (text: string | string[]): string => {
+        return Array.isArray(text) ? text.join(' ') : text;
+      };
+      
+      // Convert plain text to HTML format expected by daf-renderer
+      const formatForDafRenderer = (text: string, prefix: string): string => {
+        // Split text into words
+        const words = text.split(/\s+/);
+        let html = '';
+        let wordId = 0;
+        
+        // Group words into sentences (rough approximation)
+        const sentences = text.split(/[.!?:]/).filter(s => s.trim());
+        let sentenceId = 0;
+        
+        sentences.forEach(sentence => {
+          const sentenceWords = sentence.trim().split(/\s+/);
+          if (sentenceWords.length > 0 && sentenceWords[0]) {
+            html += `<span class='sentence' id='sentence-${prefix}-${sentenceId}'>`;
+            sentenceWords.forEach(word => {
+              if (word) {
+                html += `<span class='word' id='word-${prefix}-${wordId}'>${word}</span> `;
+                wordId++;
+              }
+            });
+            html += '</span> ';
+            sentenceId++;
+          }
+        });
+        
+        return html.trim();
+      };
+      
+      const mainHebrew = formatText(mainTextResponse.he);
+      const rashiHebrew = rashiData ? formatText(rashiData.he) : '';
+      const tosafotHebrew = tosafotData ? formatText(tosafotData.he) : '';
+      
+      return {
+        mainText: {
+          hebrew: mainHebrew,
+          hebrewFormatted: formatForDafRenderer(mainHebrew, 'main'),
+          english: formatText(mainTextResponse.text)
+        },
+        rashi: rashiData ? {
+          hebrew: rashiHebrew,
+          hebrewFormatted: formatForDafRenderer(rashiHebrew, 'rashi'),
+          english: formatText(rashiData.text)
+        } : undefined,
+        tosafot: tosafotData ? {
+          hebrew: tosafotHebrew,
+          hebrewFormatted: formatForDafRenderer(tosafotHebrew, 'tosafot'),
+          english: formatText(tosafotData.text)
+        } : undefined
+      };
+    } catch (error) {
+      console.error('Error fetching Talmud page:', error);
+      throw error;
+    }
+  }
+}
+
+export const sefariaAPI = new SefariaAPI();

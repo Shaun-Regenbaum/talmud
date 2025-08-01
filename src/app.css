@@ -1,3 +1,16 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "../tailwind.css";
+
+/* Hebrew fonts for Talmud rendering */
+@font-face {
+    font-family: 'Vilna';
+    src: url('/fonts/Mekorot-Vilna.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Rashi';
+    src: url('/fonts/Mekorot-Rashi.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}

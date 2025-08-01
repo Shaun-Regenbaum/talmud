@@ -1,0 +1,17 @@
+name = "daf-supplier"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+# Browser rendering binding
+[browser]
+binding = "BROWSER"
+
+# KV Namespace for caching
+[[kv_namespaces]]
+binding = "HEBREWBOOKS_KV"
+id = "903f8090ffa94d3e80192e4e393caa7e"
+preview_id = "538aa5efbd464665a7c1f375a75f289e"
+
+# Allow CORS for development
+[env.production]
+vars = { CORS_ORIGIN = "*" }
