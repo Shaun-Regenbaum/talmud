@@ -224,11 +224,12 @@ class HebrewBooksAPI {
       console.log('Response from daf-supplier:', data);
       
       // The daf-supplier returns a different structure than our HebrewBooksPage interface expects
-      // Let's map it properly
+      // IMPORTANT: daf-supplier returns the actual daf number (e.g., for input "17b", it returns dafDisplay: "9", amud: "a")
+      // We need to use our original input values, not the returned values
       const mappedData: HebrewBooksPage = {
-        tractate: data.tractate,
-        daf: data.dafDisplay || data.daf,
-        amud: data.amud,
+        tractate: data.tractate || tractate,
+        daf: daf.replace(/[ab]$/, ''), // Use our input, not data.dafDisplay
+        amud: daf.includes('b') ? 'b' : 'a', // Use our input, not data.amud
         mainText: data.mainText || '',
         rashi: data.rashi || '',
         tosafot: data.tosafot || '',
