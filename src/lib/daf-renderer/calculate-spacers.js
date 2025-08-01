@@ -3,25 +3,9 @@ function getAreaOfText(text, font, fs, width, lh, dummy) {
   testDiv.style.font = String(fs) + "px " + String(font);
   testDiv.style.width = String(width) + "px"; //You can remove this, but it may introduce unforseen problems
   testDiv.style.lineHeight = String(lh) + "px";
-  testDiv.style.position = "absolute";
-  testDiv.style.visibility = "hidden";
-  testDiv.innerHTML = text || " "; // Ensure there's at least some content
+  testDiv.innerHTML = text;
   dummy.append(testDiv);
-  
-  // Force layout calculation
-  dummy.style.display = "block";
-  dummy.style.position = "absolute";
-  dummy.style.visibility = "hidden";
-  
-  let test_area = Number(testDiv.offsetHeight * testDiv.offsetWidth);
-  
-  // Ensure we have a minimum area
-  if (!test_area || test_area < 100) {
-    // Estimate based on text length if measurement fails
-    const charCount = (text || "").length;
-    test_area = charCount * fs * width * 0.5; // Rough estimate
-  }
-  
+  let test_area = Number(testDiv.clientHeight * testDiv.clientWidth);
   testDiv.remove();
   return test_area;
 }
@@ -198,29 +182,15 @@ function calculateSpacers(mainText, innerText, outerText, options, dummy) {
 
   //First we need to check we have enough commentary to fill the first four lines
   if (inner.height <= 0 && outer.height <= 0){
-    console.log("No Commentary - using minimal layout");
-    // Return minimal spacer heights for main text only
-    return {
-      start: parsedOptions.lineHeight.main * 2,
-      inner: 0,
-      outer: 0,
-      end: 0,
-      exception: 0
-    };
+    console.error("No Commentary");
+    return Error("No Commentary");
   };
 
  
   // This is a case that we have to decice what to do with, when there is not enough commentary on both sides to fill the lines. 
   if (inner.height <= spacerHeights.start && outer.height <= spacerHeights.start) {
-    console.log("Not Enough Commentary to Fill Four Lines - using minimal layout");
-    // Use minimal heights when there's very little commentary
-    return {
-      start: parsedOptions.lineHeight.side * 2,
-      inner: inner.height || parsedOptions.lineHeight.side,
-      outer: outer.height || parsedOptions.lineHeight.side,
-      end: 0,
-      exception: 0
-    };
+    console.error("Not Enough Commentary to Fill Four Lines");
+    return Error("Not Enough Commentary");
   };
 
   // We are going to deal with our first edge case when there is either only one commentary
