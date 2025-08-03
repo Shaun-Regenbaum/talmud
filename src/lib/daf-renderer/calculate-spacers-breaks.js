@@ -95,65 +95,69 @@ export function onlyOneCommentary(lines, options, dummy) {
   }
 }
 
-// Overlap detection functions
+// Overlap detection functions for line break mode
 function detectOverlaps(spacerHeights, lineHeights, sizes) {
   const overlaps = [];
   
-  // Track cumulative positions for each column
-  let positions = {
-    main: { start: spacerHeights.start, current: spacerHeights.start },
-    inner: { start: spacerHeights.start + spacerHeights.inner, current: spacerHeights.start + spacerHeights.inner },
-    outer: { start: spacerHeights.start + spacerHeights.outer, current: spacerHeights.start + spacerHeights.outer }
-  };
+  // In line break mode, we need to check if the total height of each section
+  // fits within the allocated space without overlapping
   
-  // Check line by line for overlaps
-  const maxLines = Math.max(sizes.main.length, sizes.rashi.length, sizes.tosafot.length);
+  // Calculate total heights for each section
+  const totalMainHeight = sizes.main.reduce((sum, line) => sum + (line?.height || 0), 0);
+  const totalInnerHeight = sizes.rashi.reduce((sum, line) => sum + (line?.height || 0), 0);
+  const totalOuterHeight = sizes.tosafot.reduce((sum, line) => sum + (line?.height || 0), 0);
   
-  for (let i = 0; i < maxLines; i++) {
-    const mainHeight = sizes.main[i]?.height || 0;
-    const innerHeight = sizes.rashi[i]?.height || 0;
-    const outerHeight = sizes.tosafot[i]?.height || 0;
-    
-    const mainBottom = positions.main.current + mainHeight;
-    const innerBottom = positions.inner.current + innerHeight;
-    const outerBottom = positions.outer.current + outerHeight;
-    
-    // Check main-inner overlap
-    if (innerHeight > 0 && mainHeight > 0) {
-      if (positions.inner.current < mainBottom && innerBottom > positions.main.current) {
-        const overlapAmount = Math.min(mainBottom, innerBottom) - Math.max(positions.main.current, positions.inner.current);
-        if (overlapAmount > 0) {
-          overlaps.push({
-            type: 'main-inner',
-            line: i,
-            overlap: overlapAmount,
-            mainPos: positions.main.current,
-            innerPos: positions.inner.current
-          });
-        }
-      }
+  // Starting positions
+  const mainStart = spacerHeights.start;
+  const innerStart = spacerHeights.start + spacerHeights.inner;
+  const outerStart = spacerHeights.start + spacerHeights.outer;
+  
+  // Ending positions
+  const mainEnd = mainStart + totalMainHeight;
+  const innerEnd = innerStart + totalInnerHeight;
+  const outerEnd = outerStart + totalOuterHeight;
+  
+  // Check for overlaps between main and inner (Rashi)
+  if (spacerHeights.inner > 0 && totalInnerHeight > 0) {
+    // Inner starts before main ends
+    if (innerStart < mainEnd) {
+      const overlapAmount = mainEnd - innerStart;
+      overlaps.push({
+        type: 'main-inner',
+        line: -1, // Not line-specific in this mode
+        overlap: overlapAmount,
+        mainPos: mainStart,
+        innerPos: innerStart,
+        mainEnd: mainEnd,
+        innerEnd: innerEnd
+      });
     }
-    
-    // Check main-outer overlap
-    if (outerHeight > 0 && mainHeight > 0) {
-      if (positions.outer.current < mainBottom && outerBottom > positions.main.current) {
-        const overlapAmount = Math.min(mainBottom, outerBottom) - Math.max(positions.main.current, positions.outer.current);
-        if (overlapAmount > 0) {
-          overlaps.push({
-            type: 'main-outer',
-            line: i,
-            overlap: overlapAmount,
-            mainPos: positions.main.current,
-            outerPos: positions.outer.current
-          });
-        }
-      }
+  }
+  
+  // Check for overlaps between main and outer (Tosafot)
+  if (spacerHeights.outer > 0 && totalOuterHeight > 0) {
+    // Outer starts before main ends
+    if (outerStart < mainEnd) {
+      const overlapAmount = mainEnd - outerStart;
+      overlaps.push({
+        type: 'main-outer',
+        line: -1, // Not line-specific in this mode
+        overlap: overlapAmount,
+        mainPos: mainStart,
+        outerPos: outerStart,
+        mainEnd: mainEnd,
+        outerEnd: outerEnd
+      });
     }
-    
-    // Update positions
-    positions.main.current = mainBottom;
-    positions.inner.current = innerBottom;
-    positions.outer.current = outerBottom;
+  }
+  
+  // Also check if inner and outer overlap with each other in complex layouts
+  if (totalInnerHeight > 0 && totalOuterHeight > 0) {
+    // Check if they're in the same vertical space
+    if (Math.abs(innerStart - outerStart) < 50) { // If they start close together
+      // This might be a double-wrap or similar pattern, check horizontal overlap
+      // This would need more sophisticated checking based on the actual layout
+    }
   }
   
   return overlaps;

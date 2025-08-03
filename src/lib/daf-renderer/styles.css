@@ -147,11 +147,14 @@
 .text {
   direction: var(--direction);
   text-align: justify;
-  text-align-last: center;
+  text-align-last: justify;
+  width: 100%;
+  display: block;
 }
 
 .text span {
   pointer-events: auto;
+  display: inline;
 }
 
 .main .text {

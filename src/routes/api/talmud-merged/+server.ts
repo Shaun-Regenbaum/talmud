@@ -20,56 +20,170 @@ interface MergeResult {
   };
 }
 
-function diffChars(text1: string, text2: string): DiffResult[] {
-  // Simple character-level diff implementation
+// Normalize separators - treat \n, \r\n, <br>, and | as equivalent
+function normalizeSeparators(text: string): { normalized: string; separatorMap: Map<number, string> } {
+  const separatorMap = new Map<number, string>();
+  let position = 0;
+  
+  // Replace all separator types with a unified marker, but remember what they were
+  const normalized = text
+    .replace(/\r\n|[\r\n]|<br\s*\/?>|\|/gi, (match, offset) => {
+      separatorMap.set(position, match);
+      position++;
+      return '\u0000'; // Use null character as unified separator
+    });
+    
+  return { normalized, separatorMap };
+}
+
+// Split text into words and separators
+function tokenizeText(text: string): Array<{ value: string; type: 'word' | 'separator' | 'space' }> {
+  const tokens: Array<{ value: string; type: 'word' | 'separator' | 'space' }> = [];
+  const { normalized, separatorMap } = normalizeSeparators(text);
+  
+  let sepIndex = 0;
+  let currentWord = '';
+  
+  for (let i = 0; i < normalized.length; i++) {
+    const char = normalized[i];
+    
+    if (char === '\u0000') {
+      // Found a separator
+      if (currentWord) {
+        tokens.push({ value: currentWord, type: 'word' });
+        currentWord = '';
+      }
+      tokens.push({ value: separatorMap.get(sepIndex) || '|', type: 'separator' });
+      sepIndex++;
+    } else if (/\s/.test(char)) {
+      // Space character
+      if (currentWord) {
+        tokens.push({ value: currentWord, type: 'word' });
+        currentWord = '';
+      }
+      tokens.push({ value: char, type: 'space' });
+    } else {
+      // Part of a word
+      currentWord += char;
+    }
+  }
+  
+  if (currentWord) {
+    tokens.push({ value: currentWord, type: 'word' });
+  }
+  
+  return tokens;
+}
+
+// Sophisticated diff that handles words and formatting
+function diffTexts(text1: string, text2: string): DiffResult[] {
+  const tokens1 = tokenizeText(text1);
+  const tokens2 = tokenizeText(text2);
   const diffs: DiffResult[] = [];
+  
   let i = 0, j = 0;
   
-  while (i < text1.length || j < text2.length) {
-    if (i >= text1.length) {
-      // Remaining characters in text2 are additions
-      diffs.push({ value: text2.slice(j), added: true });
-      break;
-    } else if (j >= text2.length) {
-      // Remaining characters in text1 are removals
-      diffs.push({ value: text1.slice(i), removed: true });
-      break;
-    } else if (text1[i] === text2[j]) {
-      // Characters match
-      let start = i;
-      while (i < text1.length && j < text2.length && text1[i] === text2[j]) {
-        i++;
+  while (i < tokens1.length || j < tokens2.length) {
+    if (i >= tokens1.length) {
+      // Remaining tokens in text2
+      while (j < tokens2.length) {
+        diffs.push({ value: tokens2[j].value, added: true });
         j++;
       }
-      diffs.push({ value: text1.slice(start, i) });
-    } else {
-      // Find next matching character
+      break;
+    } else if (j >= tokens2.length) {
+      // Remaining tokens in text1
+      while (i < tokens1.length) {
+        diffs.push({ value: tokens1[i].value, removed: true });
+        i++;
+      }
+      break;
+    }
+    
+    const token1 = tokens1[i];
+    const token2 = tokens2[j];
+    
+    // If both are separators, treat them as equivalent
+    if (token1.type === 'separator' && token2.type === 'separator') {
+      // Use the HebrewBooks separator in the output
+      diffs.push({ value: token2.value });
+      i++;
+      j++;
+    }
+    // If both are spaces or both are the same word
+    else if ((token1.type === 'space' && token2.type === 'space') || 
+             (token1.type === 'word' && token2.type === 'word' && token1.value === token2.value)) {
+      diffs.push({ value: token1.value });
+      i++;
+      j++;
+    }
+    // Look ahead for matching words
+    else {
       let found = false;
-      for (let k = 1; k <= Math.min(50, Math.min(text1.length - i, text2.length - j)); k++) {
-        if (text1[i + k] === text2[j]) {
-          diffs.push({ value: text1.slice(i, i + k), removed: true });
-          i += k;
-          found = true;
-          break;
-        } else if (text1[i] === text2[j + k]) {
-          diffs.push({ value: text2.slice(j, j + k), added: true });
-          j += k;
+      
+      // Try to find a matching word within the next few tokens
+      const lookAhead = 10;
+      
+      // Check if token1 appears soon in tokens2
+      for (let k = 1; k < Math.min(lookAhead, tokens2.length - j); k++) {
+        const futureToken2 = tokens2[j + k];
+        if (futureToken2 && token1.type === 'word' && futureToken2.type === 'word' && token1.value === futureToken2.value) {
+          // Add intervening tokens as additions
+          for (let m = 0; m < k; m++) {
+            diffs.push({ value: tokens2[j + m].value, added: true });
+          }
+          diffs.push({ value: token1.value });
+          i++;
+          j += k + 1;
           found = true;
           break;
         }
       }
       
       if (!found) {
-        // No match found, treat as substitution
-        diffs.push({ value: text1[i], removed: true });
-        diffs.push({ value: text2[j], added: true });
+        // Check if token2 appears soon in tokens1
+        for (let k = 1; k < Math.min(lookAhead, tokens1.length - i); k++) {
+          const futureToken1 = tokens1[i + k];
+          if (futureToken1 && token2.type === 'word' && futureToken1.type === 'word' && token2.value === futureToken1.value) {
+            // Add intervening tokens as removals
+            for (let m = 0; m < k; m++) {
+              diffs.push({ value: tokens1[i + m].value, removed: true });
+            }
+            diffs.push({ value: token2.value });
+            i += k + 1;
+            j++;
+            found = true;
+            break;
+          }
+        }
+      }
+      
+      if (!found) {
+        // No match found, treat as different
+        diffs.push({ value: token1.value, removed: true });
+        diffs.push({ value: token2.value, added: true });
         i++;
         j++;
       }
     }
   }
   
-  return diffs;
+  // Merge adjacent diffs of the same type
+  const mergedDiffs: DiffResult[] = [];
+  let current: DiffResult | null = null;
+  
+  for (const diff of diffs) {
+    if (current && current.added === diff.added && current.removed === diff.removed) {
+      current.value += diff.value;
+    } else {
+      if (current) mergedDiffs.push(current);
+      current = { ...diff };
+    }
+  }
+  
+  if (current) mergedDiffs.push(current);
+  
+  return mergedDiffs;
 }
 
 function processHebrew(text: string): string {
@@ -82,22 +196,13 @@ function processHebrew(text: string): string {
 
 function diffsToString(diffs: DiffResult[]): string {
   let merged = "";
-  const lineSep = '<br>';
-  const sentenceSep = '|';
   
   diffs.forEach((part) => {
     if (part.removed) {
-      if (part.value.includes(sentenceSep)) {
-        merged += sentenceSep;
-      }
-      // Skip other removed content (prefer HebrewBooks formatting)
-    } else if (part.added) {
-      let add = "";
-      if (part.value.includes("}")) add += "} ";
-      if (part.value.includes(lineSep)) add += lineSep;
-      if (part.value.includes("{")) add += "{";
-      merged += add || part.value;
-    } else {
+      // Skip removed content (we prefer HebrewBooks formatting)
+      // But we might want to keep some structural elements
+    } else if (part.added || !part.removed) {
+      // Keep added content and agreements
       merged += part.value;
     }
   });
@@ -271,19 +376,14 @@ async function fetchSefaria(tractate: string, daf: string, type: 'main' | 'rashi
 function mergeTexts(sefariaLines: string[], hebrewBooksText: string): MergeResult {
   const sentenceSep = '|';
   
-  // Process Sefaria text
+  // Process Sefaria text - join with pipe separator
   const sefariaString = processHebrew(sefariaLines.join(sentenceSep));
   
-  // Process HebrewBooks text  
-  const hbLines = hebrewBooksText
-    .split(/\r?\n/)
-    .map(line => line.trim())
-    .filter(line => line.length > 0);
+  // Process HebrewBooks text - keep original formatting
+  const hbString = processHebrew(hebrewBooksText);
   
-  const hbString = hbLines.join('<br>');
-  
-  // Perform diff and merge
-  const diffs = diffChars(sefariaString, hbString);
+  // Perform sophisticated diff
+  const diffs = diffTexts(sefariaString, hbString);
   const merged = diffsToString(diffs);
   
   // Calculate statistics
@@ -308,7 +408,7 @@ function mergeTexts(sefariaLines: string[], hebrewBooksText: string): MergeResul
   });
   
   return {
-    merged: merged.replaceAll(`${sentenceSep}.`, `.${sentenceSep}`),
+    merged: merged,
     diffs,
     issues: { sefaria: [], hb: [] }, // Simplified for now
     stats

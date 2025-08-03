@@ -34,6 +34,7 @@
   let autoResolveOverlaps = true;
   let showDebugInfo = true;
   let showOverlapIndicators = true;
+  let showSpacerIndicators = true;
   let useLineBreakMode = true; // Tell daf-renderer about <br> tags
   
   // Sample texts with line breaks - using Lorem Ipsum
@@ -68,6 +69,11 @@
       main: `Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.<br>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.<br>Duis aute irure dolor in reprehenderit in voluptate velit esse.<br>Cillum dolore eu fugiat nulla pariatur excepteur sint occaecat.<br>Cupidatat non proident sunt in culpa qui officia deserunt mollit.<br>Anim id est laborum curabitur pretium tincidunt lacus nulla.<br>Gravida orci a odio sit amet est ultricies integer quis auctor.<br>Elit sed vulputate mi sit amet mauris commodo quis imperdiet.<br>Massa sed elementum tempus egestas sed sed risus pretium quam.`,
       rashi: `Consectetur adipiscing elit, sed do eiusmod tempor incididunt.<br>Ut labore et dolore magna aliqua ut enim ad minim veniam.<br>Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea.`,
       tosafot: ''
+    },
+    potentialOverlap: {
+      main: `Short main text.<br>Very short.`,
+      rashi: `Very long Rashi commentary that should extend much further down the page. At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.<br>Similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga.<br>Et harum quidem rerum facilis est et expedita distinctio nam libero tempore cum soluta nobis.<br>Est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus.<br>Omnis voluptas assumenda est, omnis dolor repellendus temporibus autem quibusdam et aut officiis.<br>Debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae.<br>Non recusandae itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis.<br>Voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.`,
+      tosafot: `Very long Tosafot commentary that extends beyond the main. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est.<br>Omnis dolor repellendus temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus.<br>Saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae.<br>Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores.<br>Alias consequatur aut perferendis doloribus asperiores repellat sed ut perspiciatis unde omnis.<br>Iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam eaque.<br>Ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.<br>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit sed quia.`
     }
   };
   
@@ -202,6 +208,11 @@
             visualizeOverlaps(renderer.spacerHeights.overlaps);
           }
           
+          // Show spacer indicators
+          if (showSpacerIndicators) {
+            setTimeout(() => visualizeSpacers(), 100); // Small delay to ensure rendering is complete
+          }
+          
           loading = false;
         },
         () => {} // onResized callback
@@ -220,9 +231,13 @@
     // Remove existing overlap indicators
     container.querySelectorAll('.overlap-indicator').forEach(el => el.remove());
     
-    overlaps.forEach(({ type, line, overlap, mainPos, innerPos, outerPos }) => {
+    overlaps.forEach(({ type, line, overlap, mainPos, innerPos, outerPos, mainEnd, innerEnd, outerEnd }) => {
       const indicator = document.createElement('div');
       indicator.className = 'overlap-indicator';
+      
+      // Position the overlap indicator at the point where overlap begins
+      const overlapStart = type.includes('inner') ? innerPos : outerPos;
+      
       indicator.style.cssText = `
         position: absolute;
         background: rgba(255, 0, 0, 0.3);
@@ -231,7 +246,7 @@
         width: 100%;
         z-index: 9999;
         pointer-events: none;
-        top: ${type.includes('inner') ? innerPos : outerPos}px;
+        top: ${overlapStart}px;
       `;
       
       const label = document.createElement('div');
@@ -244,7 +259,50 @@
         top: 0;
         left: 0;
       `;
-      label.textContent = `${type} overlap: ${overlap.toFixed(1)}px (line ${line})`;
+      label.textContent = `${type} overlap: ${overlap.toFixed(1)}px`;
+      indicator.appendChild(label);
+      
+      container.appendChild(indicator);
+    });
+  }
+  
+  function visualizeSpacers() {
+    // Remove existing spacer indicators
+    container.querySelectorAll('.spacer-indicator').forEach(el => el.remove());
+    
+    // Find all spacers in the rendered content
+    const spacers = container.querySelectorAll('.spacer');
+    
+    spacers.forEach((spacer, index) => {
+      const rect = spacer.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      
+      const indicator = document.createElement('div');
+      indicator.className = 'spacer-indicator';
+      indicator.style.cssText = `
+        position: absolute;
+        background: rgba(0, 255, 0, 0.2);
+        border: 1px dashed green;
+        height: ${rect.height}px;
+        width: ${rect.width}px;
+        top: ${rect.top - containerRect.top}px;
+        left: ${rect.left - containerRect.left}px;
+        z-index: 9998;
+        pointer-events: none;
+      `;
+      
+      const label = document.createElement('div');
+      label.style.cssText = `
+        position: absolute;
+        background: green;
+        color: white;
+        padding: 1px 3px;
+        font-size: 9px;
+        top: 0;
+        left: 0;
+      `;
+      const spacerClass = spacer.className.replace('spacer', '').trim();
+      label.textContent = `${spacerClass} ${rect.height.toFixed(1)}px`;
       indicator.appendChild(label);
       
       container.appendChild(indicator);
@@ -441,6 +499,15 @@
     box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
   }
   
+  :global(.spacer-indicator) {
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+  }
+  
+  /* Ensure text uses full width */
+  .render-container :global(.text) {
+    width: 100% !important;
+  }
+  
   h1 {
     margin-bottom: 10px;
   }
@@ -546,6 +613,10 @@
           <input type="checkbox" bind:checked={showOverlapIndicators}>
           Show Overlap Indicators
         </label>
+        <label>
+          <input type="checkbox" bind:checked={showSpacerIndicators}>
+          Show Spacer Indicators
+        </label>
       </div>
     </div>
     
@@ -576,6 +647,7 @@
       <div class="edge-cases">
         <button on:click={() => loadEdgeCase('noRashi')}>No Rashi</button>
         <button on:click={() => loadEdgeCase('noTosafot')}>No Tosafot</button>
+        <button on:click={() => loadEdgeCase('potentialOverlap')}>Potential Overlap</button>
       </div>
     </div>
     
