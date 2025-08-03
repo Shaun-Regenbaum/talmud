@@ -1,0 +1,18 @@
+@font-face {
+	font-family: Vilna;
+	src: url('./Mekorot-Vilna.ttf');
+	font-display: swap;
+}
+
+@font-face {
+	font-family: Vilna;
+	src: url('./Mekorot-Vilna-Bold.ttf');
+	font-weight: bold;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: Rashi;
+	src: url('./Mekorot-Rashi.ttf');
+	font-display: swap;
+}

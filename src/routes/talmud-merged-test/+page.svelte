@@ -464,6 +464,7 @@
             {results.tosafot ? results.tosafot.substring(0, 300) + '...' : 'No content'}
           </div>
         </div>
+        </div>
       </div>
       
       <!-- Source Comparison View -->
