@@ -173,65 +173,16 @@ export default function (el, options = defaultOptions) {
         window.addEventListener('resize', resizeEvent)
       }
       
-      // Clear previous content first
-      textSpans.main.innerHTML = '';
-      textSpans.inner.innerHTML = '';
-      textSpans.outer.innerHTML = '';
-      
-      // Update ALL CSS variables BEFORE adding content
-      // This ensures the options vars are reapplied on each render
-      styleManager.updateOptionsVars(clonedOptions);
       styleManager.updateSpacersVars(this.spacerHeights);
       styleManager.manageExceptions(this.spacerHeights);
-      
-      // Log current state for debugging
-      console.log('Rendering with spacer heights:', this.spacerHeights);
-      console.log('Root element classes:', containers.el.className);
-      
-      // Ensure root has minimum height
-      if (!containers.el.style.minHeight) {
-        containers.el.style.minHeight = '600px';
-      }
-      
-      // Now add the new content
       textSpans.main.innerHTML = main;
       textSpans.inner.innerHTML = inner;
       textSpans.outer.innerHTML = outer;
 
-      // Calculate height after a delay to allow browser layout
-      setTimeout(() => {
-        // Ensure all containers are visible
-        ['main', 'inner', 'outer'].forEach(type => {
-          const el = containers[type].el;
-          if (el && el.style.display === 'none') {
-            el.style.display = '';
-          }
-        });
-        
-        const containerHeight = Math.max(...["main", "inner", "outer"].map(t => {
-          const el = containers[t].el;
-          // Force layout calculation
-          const height = Math.max(
-            el.scrollHeight || 0,
-            el.offsetHeight || 0,
-            el.getBoundingClientRect().height || 0
-          );
-          console.log(`${t} container height:`, height);
-          return height;
-        }));
-        
-        if (containerHeight > 0) {
-          containers.el.style.height = `${containerHeight}px`;
-          console.log('Set container height to:', containerHeight);
-        } else {
-          // Fallback height if calculation fails
-          containers.el.style.height = '800px';
-          console.warn('Using fallback height');
-        }
-        
-        if (renderCallback)
-          renderCallback();
-      }, 200);
+      const containerHeight = Math.max(...["main", "inner", "outer"].map(t => containers[t].el.offsetHeight));
+      containers.el.style.height = `${containerHeight}px`;
+      if (renderCallback)
+        renderCallback();
     },
   }
 }

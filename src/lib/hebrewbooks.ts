@@ -210,8 +210,8 @@ class HebrewBooksAPI {
       
       console.log('Conversion:', { input: daf, dafNum, amud, dafParam });
 
-      // Use the deployed daf-supplier worker
-      const endpoint = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafParam}`;
+      // Use the deployed daf-supplier worker with <br> conversion enabled
+      const endpoint = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafParam}&br=true`;
       console.log('Fetching from endpoint:', endpoint);
       
       const response = await fetch(endpoint);
@@ -222,6 +222,7 @@ class HebrewBooksAPI {
 
       const data = await response.json();
       console.log('Response from daf-supplier:', data);
+      console.log('daf-supplier mainText contains <br>:', data.mainText?.includes('<br>'));
       
       // The daf-supplier returns a different structure than our HebrewBooksPage interface expects
       // IMPORTANT: daf-supplier returns the actual daf number (e.g., for input "17b", it returns dafDisplay: "9", amud: "a")
@@ -236,6 +237,8 @@ class HebrewBooksAPI {
         otherCommentaries: data.otherCommentaries,
         timestamp: data.timestamp || Date.now()
       };
+      
+      console.log('mappedData mainText contains <br>:', mappedData.mainText?.includes('<br>'));
       
       console.log('Mapped data for component:', mappedData);
       return mappedData;

@@ -4,12 +4,20 @@
 	import { talmudStore, currentPage, isLoading, pageError, pageInfo } from '$lib/stores/talmud';
 	import { rendererStore } from '$lib/stores/renderer';
 	import { SpacerAwareSelector } from '$lib/spacer-aware-selector';
+	import { processTextsForRenderer, setupInteractivity } from '$lib/text-processor';
+	import { selectSentence, selectCommentary, selectedSentence, selectedCommentaries } from '$lib/stores/selection';
 	
 	// Get data from load function
 	let { data } = $props();
 	
 	let dafContainer = $state<HTMLDivElement>();
 	let layerSelector: SpacerAwareSelector | null = null;
+	
+	// Responsive scaling variables
+	let windowWidth = $state(typeof window !== 'undefined' ? window.innerWidth : 1200);
+	let rendered = $state(false);
+	const dafWidth = 650; // Our content width
+	const dafOfWindow = 4.4 / 12; // Proportion of window width to use
 	
 	// Form state - initialized from URL
 	let selectedTractate = $state(data.tractate);
@@ -114,6 +122,10 @@
 		
 		console.log('Effect: Rendering data for', pageData.tractate, pageData.daf + pageData.amud);
 		
+		// Debug: Check if pageData contains <br> tags before processing
+		console.log('Raw pageData mainText contains <br>:', pageData.mainText?.includes('<br>'));
+		console.log('Raw pageData mainText first 200 chars:', pageData.mainText?.substring(0, 200));
+		
 		// Add a small delay to ensure DOM is stable after loading state changes
 		setTimeout(() => {
 			// Initialize renderer only once
@@ -121,21 +133,23 @@
 				rendererStore.initialize(dafContainer);
 			}
 			
-			// Format and render
-			const mainFormatted = formatText(pageData.mainText || ' ', 'main');
-			const rashiFormatted = formatText(pageData.rashi || ' ', 'rashi');
-			const tosafotFormatted = formatText(pageData.tosafot || ' ', 'tosafot');
+			// Process texts using advanced text processor
+			const { mainHTML, rashiHTML, tosafotHTML } = processTextsForRenderer(
+				pageData.mainText || ' ',
+				pageData.rashi || ' ',
+				pageData.tosafot || ' '
+			);
 			const pageLabel = (pageData.daf + pageData.amud).replace('a', 'א').replace('b', 'ב');
 			
-			console.log('Formatted text lengths:', {
-				main: mainFormatted.length,
-				rashi: rashiFormatted.length,
-				tosafot: tosafotFormatted.length
+			console.log('Processed text lengths:', {
+				main: mainHTML.length,
+				rashi: rashiHTML.length,
+				tosafot: tosafotHTML.length
 			});
 			
 			// Small delay to ensure renderer is ready
 			setTimeout(() => {
-				rendererStore.render(mainFormatted, rashiFormatted, tosafotFormatted, pageLabel);
+				rendererStore.render(mainHTML, rashiHTML, tosafotHTML, pageLabel);
 				
 				// Apply dynamic layer selection after rendering
 				setTimeout(() => {
@@ -151,6 +165,32 @@
 					console.log('Enabling spacer-aware selector');
 					layerSelector = new SpacerAwareSelector(dafContainer);
 					layerSelector.enable();
+					
+					// Fix CSS variables after SpacerAwareSelector potentially breaks them
+					setTimeout(() => {
+						const rootDiv = dafContainer.querySelector('.dafRoot') as HTMLElement;
+						if (rootDiv) {
+							console.log('Re-applying CSS variables after SpacerAwareSelector');
+							rootDiv.style.setProperty('--fontSize-main', '16px', 'important');
+							rootDiv.style.setProperty('--fontSize-side', '10.5px', 'important');
+							rootDiv.style.setProperty('--contentWidth', '650px', 'important');
+							rootDiv.style.setProperty('--mainWidth', '42%', 'important');
+						}
+					}, 150); // Run after SpacerAwareSelector's 100ms timeout
+					
+					// Setup interactivity (click handlers and highlighting)
+					const currentDaf = { 
+						tractate: pageData.tractate, 
+						daf: pageData.daf + pageData.amud 
+					};
+					setupInteractivity(
+						dafContainer,
+						(index) => selectSentence(currentDaf, index),
+						(index, type) => selectCommentary(currentDaf, index, type)
+					);
+					
+					// Mark as rendered for scaling
+					rendered = true;
 				}, 300);
 			}, 50);
 		}, 100);
@@ -176,11 +216,22 @@
 		// Initial load is handled by the effect above
 		console.log('Component mounted with data:', data);
 		
+		// Setup window resize handler
+		const handleResize = () => {
+			windowWidth = window.innerWidth;
+			rendered = false;
+			// Re-enable rendered after a short delay
+			setTimeout(() => rendered = true, 100);
+		};
+		
+		window.addEventListener('resize', handleResize);
+		
 		// Cleanup on unmount
 		return () => {
 			if (layerSelector) {
 				layerSelector.disable();
 			}
+			window.removeEventListener('resize', handleResize);
 		};
 	});
 	
@@ -197,6 +248,16 @@
 		
 		// Force a full page reload to ensure clean rendering
 		window.location.href = `?${params.toString()}`;
+	}
+	
+	// Generate transform style for responsive scaling
+	function getTransformStyle(): string {
+		// TEMPORARILY DISABLED FOR DEBUGGING
+		return '';
+		
+		// if (!rendered) return '';
+		// const scale = Math.min(1, (windowWidth * dafOfWindow) / dafWidth); // Cap at 1x scale
+		// return scale < 1 ? `transform: scale(${scale}); transform-origin: top left;` : '';
 	}
 	
 	// Generate Hebrew page numbers
@@ -315,7 +376,7 @@
 				<!-- Always show the container, even if no data yet -->
 				<div>
 					<!-- Container for the daf renderer -->
-					<div bind:this={dafContainer} class="daf-container w-full min-h-[900px] h-[900px] max-w-[1200px] mx-auto border border-gray-300 rounded-lg overflow-auto bg-white" style="position: relative;">
+					<div bind:this={dafContainer} class="daf" style="position: relative; {getTransformStyle()}">
 						<!-- The daf-renderer will populate this container -->
 						{#if !$currentPage}
 							<div class="flex items-center justify-center h-full text-gray-400">
@@ -323,6 +384,7 @@
 							</div>
 						{/if}
 					</div>
+					<span class="preload">preload</span>
 					
 					<!-- Page info below the daf -->
 					{#if $currentPage}
@@ -349,27 +411,120 @@
 	/* Import daf-renderer styles */
 	@import '$lib/daf-renderer/styles.css';
 	
+	/* Import Hebrew fonts */
+	@import '$lib/assets/fonts/fonts.css';
+	
 	/* Ensure daf-renderer content is visible */
 	:global(.dafRoot) {
-		position: relative !important;
-		width: 900px !important;
+		position: relative;
+		width: 650px;
 		margin: 0 auto;
 	}
 	
-	:global(.daf-container .text) {
-		opacity: 1 !important;
-		visibility: visible !important;
-		display: block !important;
+	:global(.daf .text) {
+		opacity: 1;
+		visibility: visible;
+		display: block;
 	}
 	
-	:global(.daf-container .spacer) {
-		display: block !important;
+	:global(.daf .spacer) {
+		display: block;
 	}
 	
 	/* Ensure text spans are visible */
-	:global(.daf-container span) {
+	:global(.daf span) {
 		display: inline !important;
 		opacity: 1 !important;
 		visibility: visible !important;
+	}
+	
+	/* Force font sizes to prevent 0px issue */
+	:global(.dafRoot .main .text span) {
+		font-size: 16px !important;
+		font-family: "Times New Roman", serif !important;
+	}
+	
+	:global(.dafRoot .inner .text span) {
+		font-size: 10.5px !important;
+		font-family: "Times New Roman", serif !important;
+	}
+	
+	:global(.dafRoot .outer .text span) {
+		font-size: 10.5px !important;
+		font-family: "Times New Roman", serif !important;
+	}
+	
+	/* Force layout dimensions */
+	:global(.dafRoot) {
+		width: 650px !important;
+		--contentWidth: 650px !important;
+		--mainWidth: 42% !important;
+		--fontSize-main: 16px !important;
+		--fontSize-side: 10.5px !important;
+		--lineHeight-main: 16px !important;
+		--lineHeight-side: 12px !important;
+	}
+	
+	:global(.dafRoot .main),
+	:global(.dafRoot .inner),  
+	:global(.dafRoot .outer) {
+		width: 650px !important;
+	}
+	
+	:global(.dafRoot .text) {
+		width: 100% !important;
+	}
+	
+	/* Talmud-vue styling improvements */
+	:global(.daf div) {
+		text-align-last: justify !important;
+	}
+	
+	/* Hadran styling */
+	:global(div.hadran) {
+		display: flex;
+		justify-content: center;
+		font-size: 135%;
+		font-family: Vilna;
+		transform: translateY(50%);
+	}
+	
+	:global(.hadran span) {
+		display: inline-block;
+	}
+	
+	/* Sentence highlighting */
+	:global(.sentence-main.highlighted) {
+		background-color: #BFDBFE;
+	}
+	
+	:global(.sentence-rashi.highlighted) {
+		background-color: #FECACA;
+	}
+	
+	:global(.sentence-tosafot.highlighted) {
+		background-color: #FECACA;
+	}
+	
+	/* Preload font */
+	:global(.preload) {
+		font-family: Vilna;
+		opacity: 0;
+	}
+	
+	/* Header styling */
+	:global(.tosafot-header) {
+		font-family: Vilna;
+		font-size: 135%;
+		vertical-align: bottom;
+	}
+	
+	:global(.tosafot-header:nth-of-type(odd)) {
+		font-size: 180%;
+		vertical-align: bottom;
+	}
+	
+	:global(.main-header, .rashi-header) {
+		font-weight: bold;
 	}
 </style>
