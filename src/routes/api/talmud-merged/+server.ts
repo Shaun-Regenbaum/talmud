@@ -1,12 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-
-// Diff algorithm implementation (simplified version of what talmud-data uses)
-interface DiffResult {
-  value: string;
-  added?: boolean;
-  removed?: boolean;
-}
+import { diffHebrewTexts, calculateDiffStats, type DiffResult } from '$lib/utils/hebrew-diff-v2';
 
 interface MergeResult {
   merged: string;
@@ -20,171 +14,6 @@ interface MergeResult {
   };
 }
 
-// Normalize separators - treat \n, \r\n, <br>, and | as equivalent
-function normalizeSeparators(text: string): { normalized: string; separatorMap: Map<number, string> } {
-  const separatorMap = new Map<number, string>();
-  let position = 0;
-  
-  // Replace all separator types with a unified marker, but remember what they were
-  const normalized = text
-    .replace(/\r\n|[\r\n]|<br\s*\/?>|\|/gi, (match, offset) => {
-      separatorMap.set(position, match);
-      position++;
-      return '\u0000'; // Use null character as unified separator
-    });
-    
-  return { normalized, separatorMap };
-}
-
-// Split text into words and separators
-function tokenizeText(text: string): Array<{ value: string; type: 'word' | 'separator' | 'space' }> {
-  const tokens: Array<{ value: string; type: 'word' | 'separator' | 'space' }> = [];
-  const { normalized, separatorMap } = normalizeSeparators(text);
-  
-  let sepIndex = 0;
-  let currentWord = '';
-  
-  for (let i = 0; i < normalized.length; i++) {
-    const char = normalized[i];
-    
-    if (char === '\u0000') {
-      // Found a separator
-      if (currentWord) {
-        tokens.push({ value: currentWord, type: 'word' });
-        currentWord = '';
-      }
-      tokens.push({ value: separatorMap.get(sepIndex) || '|', type: 'separator' });
-      sepIndex++;
-    } else if (/\s/.test(char)) {
-      // Space character
-      if (currentWord) {
-        tokens.push({ value: currentWord, type: 'word' });
-        currentWord = '';
-      }
-      tokens.push({ value: char, type: 'space' });
-    } else {
-      // Part of a word
-      currentWord += char;
-    }
-  }
-  
-  if (currentWord) {
-    tokens.push({ value: currentWord, type: 'word' });
-  }
-  
-  return tokens;
-}
-
-// Sophisticated diff that handles words and formatting
-function diffTexts(text1: string, text2: string): DiffResult[] {
-  const tokens1 = tokenizeText(text1);
-  const tokens2 = tokenizeText(text2);
-  const diffs: DiffResult[] = [];
-  
-  let i = 0, j = 0;
-  
-  while (i < tokens1.length || j < tokens2.length) {
-    if (i >= tokens1.length) {
-      // Remaining tokens in text2
-      while (j < tokens2.length) {
-        diffs.push({ value: tokens2[j].value, added: true });
-        j++;
-      }
-      break;
-    } else if (j >= tokens2.length) {
-      // Remaining tokens in text1
-      while (i < tokens1.length) {
-        diffs.push({ value: tokens1[i].value, removed: true });
-        i++;
-      }
-      break;
-    }
-    
-    const token1 = tokens1[i];
-    const token2 = tokens2[j];
-    
-    // If both are separators, treat them as equivalent
-    if (token1.type === 'separator' && token2.type === 'separator') {
-      // Use the HebrewBooks separator in the output
-      diffs.push({ value: token2.value });
-      i++;
-      j++;
-    }
-    // If both are spaces or both are the same word
-    else if ((token1.type === 'space' && token2.type === 'space') || 
-             (token1.type === 'word' && token2.type === 'word' && token1.value === token2.value)) {
-      diffs.push({ value: token1.value });
-      i++;
-      j++;
-    }
-    // Look ahead for matching words
-    else {
-      let found = false;
-      
-      // Try to find a matching word within the next few tokens
-      const lookAhead = 10;
-      
-      // Check if token1 appears soon in tokens2
-      for (let k = 1; k < Math.min(lookAhead, tokens2.length - j); k++) {
-        const futureToken2 = tokens2[j + k];
-        if (futureToken2 && token1.type === 'word' && futureToken2.type === 'word' && token1.value === futureToken2.value) {
-          // Add intervening tokens as additions
-          for (let m = 0; m < k; m++) {
-            diffs.push({ value: tokens2[j + m].value, added: true });
-          }
-          diffs.push({ value: token1.value });
-          i++;
-          j += k + 1;
-          found = true;
-          break;
-        }
-      }
-      
-      if (!found) {
-        // Check if token2 appears soon in tokens1
-        for (let k = 1; k < Math.min(lookAhead, tokens1.length - i); k++) {
-          const futureToken1 = tokens1[i + k];
-          if (futureToken1 && token2.type === 'word' && futureToken1.type === 'word' && token2.value === futureToken1.value) {
-            // Add intervening tokens as removals
-            for (let m = 0; m < k; m++) {
-              diffs.push({ value: tokens1[i + m].value, removed: true });
-            }
-            diffs.push({ value: token2.value });
-            i += k + 1;
-            j++;
-            found = true;
-            break;
-          }
-        }
-      }
-      
-      if (!found) {
-        // No match found, treat as different
-        diffs.push({ value: token1.value, removed: true });
-        diffs.push({ value: token2.value, added: true });
-        i++;
-        j++;
-      }
-    }
-  }
-  
-  // Merge adjacent diffs of the same type
-  const mergedDiffs: DiffResult[] = [];
-  let current: DiffResult | null = null;
-  
-  for (const diff of diffs) {
-    if (current && current.added === diff.added && current.removed === diff.removed) {
-      current.value += diff.value;
-    } else {
-      if (current) mergedDiffs.push(current);
-      current = { ...diff };
-    }
-  }
-  
-  if (current) mergedDiffs.push(current);
-  
-  return mergedDiffs;
-}
 
 function processHebrew(text: string): string {
   return text
@@ -195,32 +24,39 @@ function processHebrew(text: string): string {
 }
 
 function diffsToString(diffs: DiffResult[]): string {
+  // Since we're using HebrewBooks as source of truth, 
+  // just return the agreements and HebrewBooks-only content
   let merged = "";
   
   diffs.forEach((part) => {
-    if (part.removed) {
-      // Skip removed content (we prefer HebrewBooks formatting)
-      // But we might want to keep some structural elements
-    } else if (part.added || !part.removed) {
-      // Keep added content and agreements
+    if (!part.removed && !part.added) {
+      // Agreement between sources
+      merged += part.value;
+    } else if (part.added) {
+      // HebrewBooks-only content (since HebrewBooks is first parameter in diff)
       merged += part.value;
     }
+    // Skip removed content (Sefaria-only content)
   });
   
   return merged;
 }
 
 async function fetchSefariaCommentary(tractate: string, daf: string, commentaryType: 'rashi' | 'tosafot') {
-  // Convert daf format - HebrewBooks appears to use page numbers directly
-  const dafNum = parseInt(daf);
-  const pageNum = dafNum;
-  const amud = 'a'; // Default to 'a' for now
-  const sefariaRef = `${pageNum}${amud}`;
+  // HebrewBooks format: "2" means 2a, "2b" means 2b, "3" means 3a, "3b" means 3b
+  let sefariaRef: string;
+  if (daf.includes('b')) {
+    // Already has amud designation
+    sefariaRef = daf;
+  } else {
+    // Plain number means 'a' side
+    sefariaRef = `${daf}a`;
+  }
   
   const commentaryName = commentaryType === 'rashi' ? 'Rashi' : 'Tosafot';
   
   try {
-    // First, get the main text to understand the structure
+    // Use the related API to find all commentary segments for this daf
     const mainRef = `${tractate}.${sefariaRef}`;
     const relatedUrl = `https://www.sefaria.org/api/related/${mainRef}`;
     
@@ -247,9 +83,12 @@ async function fetchSefariaCommentary(tractate: string, daf: string, commentaryT
     
     console.log(`Found ${commentaryLinks.length} ${commentaryName} links for ${mainRef}`);
     
-    // Fetch all commentary segments
+    // Also collect linking information
+    const linkingInfo: Record<string, string[]> = {};
+    
+    // Fetch all commentary segments and collect linking info
     const allSegments = await Promise.all(
-      commentaryLinks.map(async (link: any) => {
+      commentaryLinks.map(async (link: any, index: number) => {
         try {
           const url = `https://www.sefaria.org/api/texts/${link.ref}`;
           const resp = await fetch(url, {
@@ -258,7 +97,7 @@ async function fetchSefariaCommentary(tractate: string, daf: string, commentaryT
             }
           });
           
-          if (!resp.ok) return { hebrew: [], english: [] };
+          if (!resp.ok) return { hebrew: [], english: [], linkInfo: null };
           
           const data = await resp.json();
           
@@ -268,7 +107,7 @@ async function fetchSefariaCommentary(tractate: string, daf: string, commentaryT
             if (typeof data.he === 'string') {
               hebrew = [data.he];
             } else if (Array.isArray(data.he)) {
-              hebrew = data.he.flat(2).filter((s: any) => s && typeof s === 'string');
+              hebrew = data.he.flat().filter((s: any) => s && typeof s === 'string' && s.trim().length > 5);
             }
           }
           
@@ -278,14 +117,39 @@ async function fetchSefariaCommentary(tractate: string, daf: string, commentaryT
             if (typeof data.text === 'string') {
               english = [data.text];
             } else if (Array.isArray(data.text)) {
-              english = data.text.flat(2).filter((s: any) => s && typeof s === 'string');
+              english = data.text.flat().filter((s: any) => s && typeof s === 'string');
             }
           }
           
-          return { hebrew, english };
+          // Store linking information
+          const linkInfo = {
+            commentaryRef: link.ref,
+            mainTextRef: link.anchorRef,
+            segmentIndex: index
+          };
+          
+          // Build linking map: mainTextRef -> commentarySegmentIndexes
+          if (link.anchorRef) {
+            // Parse the sentence index from anchorRef (e.g., "Berakhot 3a:5" -> 5)
+            const parts = link.anchorRef.split(':');
+            if (parts.length >= 2) {
+              const sentenceIndex = parseInt(parts[1]) - 1; // Convert to 0-based
+              const baseRef = parts[0]; // e.g., "Berakhot 3a"
+              
+              if (!linkingInfo[baseRef]) {
+                linkingInfo[baseRef] = {};
+              }
+              if (!linkingInfo[baseRef][sentenceIndex]) {
+                linkingInfo[baseRef][sentenceIndex] = [];
+              }
+              linkingInfo[baseRef][sentenceIndex].push(index);
+            }
+          }
+          
+          return { hebrew, english, linkInfo };
         } catch (error) {
           console.error(`Failed to fetch ${link.ref}:`, error);
-          return { hebrew: [], english: [] };
+          return { hebrew: [], english: [], linkInfo: null };
         }
       })
     );
@@ -298,12 +162,13 @@ async function fetchSefariaCommentary(tractate: string, daf: string, commentaryT
     
     return {
       hebrew: allHebrew,
-      english: allEnglish
+      english: allEnglish,
+      linking: linkingInfo
     };
     
   } catch (error) {
     console.error(`Failed to fetch ${commentaryName} commentary:`, error);
-    return { hebrew: [], english: [] };
+    return { hebrew: [], english: [], linking: {} };
   }
 }
 
@@ -312,11 +177,15 @@ async function fetchSefaria(tractate: string, daf: string, type: 'main' | 'rashi
     return fetchSefariaCommentary(tractate, daf, type);
   }
   
-  // Main text fetching remains the same
-  const dafNum = parseInt(daf);
-  const pageNum = dafNum;
-  const amud = 'a'; // Default to 'a' for now
-  const sefariaRef = `${pageNum}${amud}`;
+  // HebrewBooks format: "2" means 2a, "2b" means 2b, "3" means 3a, "3b" means 3b
+  let sefariaRef: string;
+  if (daf.includes('b')) {
+    // Already has amud designation
+    sefariaRef = daf;
+  } else {
+    // Plain number means 'a' side
+    sefariaRef = `${daf}a`;
+  }
   
   console.log(`Fetching Sefaria main text for ${tractate} ${sefariaRef}`);
   
@@ -374,43 +243,50 @@ async function fetchSefaria(tractate: string, daf: string, type: 'main' | 'rashi
 }
 
 function mergeTexts(sefariaLines: string[], hebrewBooksText: string): MergeResult {
-  const sentenceSep = '|';
+  // Use HebrewBooks as source of truth, Sefaria as supplemental
+  if (!hebrewBooksText || hebrewBooksText.trim().length === 0) {
+    // If no HebrewBooks data, fall back to Sefaria
+    const sefariaString = processHebrew(sefariaLines.join('|'));
+    return {
+      merged: sefariaString,
+      diffs: [{ value: sefariaString, added: true }],
+      issues: { sefaria: [], hb: ['No HebrewBooks data available'] },
+      stats: {
+        agreements: 0,
+        additions: 0,
+        removals: sefariaString.length,
+        totalChars: sefariaString.length
+      }
+    };
+  }
   
-  // Process Sefaria text - join with pipe separator
-  const sefariaString = processHebrew(sefariaLines.join(sentenceSep));
-  
-  // Process HebrewBooks text - keep original formatting
+  // HebrewBooks is primary source
   const hbString = processHebrew(hebrewBooksText);
   
-  // Perform sophisticated diff
-  const diffs = diffTexts(sefariaString, hbString);
-  const merged = diffsToString(diffs);
+  if (!sefariaLines || sefariaLines.length === 0) {
+    // Only HebrewBooks data available
+    return {
+      merged: hbString,
+      diffs: [{ value: hbString }],
+      issues: { sefaria: ['No Sefaria data available'], hb: [] },
+      stats: {
+        agreements: hbString.length,
+        additions: 0,
+        removals: 0,
+        totalChars: hbString.length
+      }
+    };
+  }
   
-  // Calculate statistics
-  const stats = {
-    agreements: 0,
-    additions: 0,
-    removals: 0,
-    totalChars: 0
-  };
-  
-  diffs.forEach(diff => {
-    const charCount = diff.value.length;
-    stats.totalChars += charCount;
-    
-    if (diff.added) {
-      stats.additions += charCount;
-    } else if (diff.removed) {
-      stats.removals += charCount;
-    } else {
-      stats.agreements += charCount;
-    }
-  });
+  // Both sources available - perform comparison for analysis
+  const sefariaString = processHebrew(sefariaLines.join('|'));
+  const diffs = diffHebrewTexts(hbString, sefariaString); // HebrewBooks first (primary)
+  const stats = calculateDiffStats(diffs);
   
   return {
-    merged: merged,
+    merged: hbString, // Always use HebrewBooks as the merged result
     diffs,
-    issues: { sefaria: [], hb: [] }, // Simplified for now
+    issues: { sefaria: [], hb: [] },
     stats
   };
 }
@@ -538,42 +414,27 @@ export const GET: RequestHandler = async ({ url }) => {
     
     console.log('Data fetched, merging texts...');
     
-    // Merge the texts using diff algorithm
-    const mainMerged = sefariaMain.hebrew.length > 0 
-      ? mergeTexts(sefariaMain.hebrew, hebrewBooksData.mainText || '') 
-      : { 
-          merged: hebrewBooksData.mainText || '', 
-          diffs: [], 
-          issues: { sefaria: [], hb: [] },
-          stats: { agreements: 0, additions: 0, removals: 0, totalChars: 0 }
-        };
+    // Merge the texts using HebrewBooks as source of truth, Sefaria as supplemental
+    const mainMerged = mergeTexts(sefariaMain.hebrew, hebrewBooksData.mainText || '');
       
-    const rashiMerged = sefariaRashi.hebrew.length > 0 
-      ? mergeTexts(sefariaRashi.hebrew, hebrewBooksData.rashi || '') 
-      : { 
-          merged: hebrewBooksData.rashi || '', 
-          diffs: [], 
-          issues: { sefaria: [], hb: [] },
-          stats: { agreements: 0, additions: 0, removals: 0, totalChars: 0 }
-        };
-      
-    const tosafotMerged = sefariaTosafot.hebrew.length > 0 
-      ? mergeTexts(sefariaTosafot.hebrew, hebrewBooksData.tosafot || '') 
-      : { 
-          merged: hebrewBooksData.tosafot || '', 
-          diffs: [], 
-          issues: { sefaria: [], hb: [] },
-          stats: { agreements: 0, additions: 0, removals: 0, totalChars: 0 }
-        };
+    const rashiMerged = mergeTexts(sefariaRashi.hebrew, hebrewBooksData.rashi || '');
+    const tosafotMerged = mergeTexts(sefariaTosafot.hebrew, hebrewBooksData.tosafot || '');
     
-    const dafNum = parseInt(daf);
-    const pageNum = dafNum;
-    const amud = 'a'; // Default to 'a' for now
+    // Parse daf format
+    let dafDisplay: string;
+    let amud: string;
+    if (daf.includes('b')) {
+      dafDisplay = daf.replace('b', '');
+      amud = 'b';
+    } else {
+      dafDisplay = daf;
+      amud = 'a';
+    }
     
     const response = {
       mesechta: parseInt(mesechta),
-      daf: dafNum,
-      dafDisplay: pageNum.toString(),
+      daf: parseInt(dafDisplay),
+      dafDisplay,
       amud,
       tractate,
       
@@ -597,6 +458,10 @@ export const GET: RequestHandler = async ({ url }) => {
             mainText: sefariaMain.english,
             rashi: sefariaRashi.english,
             tosafot: sefariaTosafot.english
+          },
+          linking: {
+            rashi: sefariaRashi.linking || {},
+            tosafot: sefariaTosafot.linking || {}
           }
         }
       },

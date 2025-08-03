@@ -75,7 +75,7 @@ export default function (el, options = defaultOptions) {
   styleManager.updateOptionsVars(clonedOptions);
 
   let resizeEvent;
-  return {
+  const rendererObject = {
     containers,
     spacerHeights: {
       start: 0,
@@ -94,8 +94,10 @@ export default function (el, options = defaultOptions) {
       }
       if (!linebreak) {
         this.spacerHeights = calculateSpacers(main, inner, outer, clonedOptions, containers.dummy);
+        Object.assign(rendererObject.spacerHeights, this.spacerHeights);
         resizeEvent = () => {
           this.spacerHeights = calculateSpacers(main, inner, outer, clonedOptions, containers.dummy);
+          Object.assign(rendererObject.spacerHeights, this.spacerHeights);
           styleManager.updateSpacersVars(this.spacerHeights);
           console.log("resizing");
           if (resizeCallback)
@@ -163,8 +165,10 @@ export default function (el, options = defaultOptions) {
         }
 
         this.spacerHeights = calculateSpacersBreaks(mainSplit, innerSplit, outerSplit, clonedOptions, containers.dummy);
+        Object.assign(rendererObject.spacerHeights, this.spacerHeights);
         resizeEvent = () => {
           this.spacerHeights = calculateSpacersBreaks(mainSplit, innerSplit, outerSplit, clonedOptions, containers.dummy);
+          Object.assign(rendererObject.spacerHeights, this.spacerHeights);
           styleManager.updateSpacersVars(this.spacerHeights);
           if (resizeCallback)
             resizeCallback();
@@ -175,15 +179,96 @@ export default function (el, options = defaultOptions) {
       
       styleManager.updateSpacersVars(this.spacerHeights);
       styleManager.manageExceptions(this.spacerHeights);
+      Object.assign(rendererObject.spacerHeights, this.spacerHeights);
+      
+      // Strip <br> tags when not in line break mode
+      if (!linebreak) {
+        main = main.replace(/<br\s*\/?>/gi, ' ');
+        inner = inner.replace(/<br\s*\/?>/gi, ' ');
+        outer = outer.replace(/<br\s*\/?>/gi, ' ');
+      }
+      
       textSpans.main.innerHTML = main;
       textSpans.inner.innerHTML = inner;
       textSpans.outer.innerHTML = outer;
 
       const containerHeight = Math.max(...["main", "inner", "outer"].map(t => containers[t].el.offsetHeight));
       containers.el.style.height = `${containerHeight}px`;
+      
+      // Check for excessive spacing after render
+      this.checkExcessiveSpacing();
+      
       if (renderCallback)
         renderCallback();
     },
-  }
+    
+    checkExcessiveSpacing() {
+      // Get actual content heights
+      const mainTextHeight = textSpans.main.offsetHeight;
+      const innerTextHeight = textSpans.inner.offsetHeight;
+      const outerTextHeight = textSpans.outer.offsetHeight;
+      
+      // Get container heights (including spacers)
+      const mainContainerHeight = containers.main.el.offsetHeight;
+      const innerContainerHeight = containers.inner.el.offsetHeight;
+      const outerContainerHeight = containers.outer.el.offsetHeight;
+      
+      // Calculate spacing ratios
+      const mainSpacingRatio = mainContainerHeight > 0 ? mainTextHeight / mainContainerHeight : 0;
+      const innerSpacingRatio = innerContainerHeight > 0 ? innerTextHeight / innerContainerHeight : 0;
+      const outerSpacingRatio = outerContainerHeight > 0 ? outerTextHeight / outerContainerHeight : 0;
+      
+      // Check for excessive spacing (less than 30% content)
+      const excessiveThreshold = 0.3;
+      const spacingIssues = [];
+      
+      if (mainSpacingRatio > 0 && mainSpacingRatio < excessiveThreshold) {
+        spacingIssues.push({
+          section: 'main',
+          textHeight: mainTextHeight,
+          containerHeight: mainContainerHeight,
+          ratio: mainSpacingRatio,
+          excessSpace: mainContainerHeight - mainTextHeight
+        });
+      }
+      
+      if (innerSpacingRatio > 0 && innerSpacingRatio < excessiveThreshold) {
+        spacingIssues.push({
+          section: 'inner',
+          textHeight: innerTextHeight,
+          containerHeight: innerContainerHeight,
+          ratio: innerSpacingRatio,
+          excessSpace: innerContainerHeight - innerTextHeight
+        });
+      }
+      
+      if (outerSpacingRatio > 0 && outerSpacingRatio < excessiveThreshold) {
+        spacingIssues.push({
+          section: 'outer',
+          textHeight: outerTextHeight,
+          containerHeight: outerContainerHeight,
+          ratio: outerSpacingRatio,
+          excessSpace: outerContainerHeight - outerTextHeight
+        });
+      }
+      
+      if (spacingIssues.length > 0) {
+        console.warn('🚨 Excessive spacing detected:', spacingIssues);
+        
+        // Store spacing issues for debugging
+        this.spacingIssues = spacingIssues;
+        
+        // Emit details for debugging
+        spacingIssues.forEach(issue => {
+          console.log(`📏 ${issue.section.toUpperCase()}: ${Math.round(issue.ratio * 100)}% content, ${Math.round(issue.excessSpace)}px excess space`);
+        });
+      } else {
+        console.log('✅ Spacing looks reasonable');
+        this.spacingIssues = [];
+      }
+    }
+  };
+  
+  return rendererObject;
 }
 

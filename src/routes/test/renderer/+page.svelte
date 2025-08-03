@@ -60,20 +60,35 @@
   
   // Edge case examples
   const edgeCases = {
-    noRashi: {
-      main: `Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Maecenas ut metus magna quisque non ligula at purus hendrerit.<br>Venenatis non in justo sed vel nunc elit proin sed sodales.<br>Purus id fringilla justo quisque sed dignissim ante morbi.<br>Dictum quam ut magna tincidunt eu sollicitudin urna fermentum.<br>Nulla interdum augue id nunc pellentesque ac tincidunt felis.<br>Volutpat etiam in libero id nisi pretium imperdiet sit amet.<br>Donec rutrum lacinia mi at volutpat mauris blandit porta nulla.<br>Facilisi pellentesque habitant morbi tristique senectus et netus.<br>Malesuada fames ac turpis egestas vestibulum ante ipsum primis.`,
-      rashi: '',
-      tosafot: `Sed ut perspiciatis unde omnis iste natus error sit voluptatem.<br>Accusantium doloremque laudantium, totam rem aperiam eaque ipsa.<br>Quae ab illo inventore veritatis et quasi architecto beatae vitae.`
-    },
-    noTosafot: {
-      main: `Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.<br>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.<br>Duis aute irure dolor in reprehenderit in voluptate velit esse.<br>Cillum dolore eu fugiat nulla pariatur excepteur sint occaecat.<br>Cupidatat non proident sunt in culpa qui officia deserunt mollit.<br>Anim id est laborum curabitur pretium tincidunt lacus nulla.<br>Gravida orci a odio sit amet est ultricies integer quis auctor.<br>Elit sed vulputate mi sit amet mauris commodo quis imperdiet.<br>Massa sed elementum tempus egestas sed sed risus pretium quam.`,
-      rashi: `Consectetur adipiscing elit, sed do eiusmod tempor incididunt.<br>Ut labore et dolore magna aliqua ut enim ad minim veniam.<br>Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea.`,
-      tosafot: ''
-    },
     potentialOverlap: {
       main: `Short main text.<br>Very short.`,
       rashi: `Very long Rashi commentary that should extend much further down the page. At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.<br>Similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga.<br>Et harum quidem rerum facilis est et expedita distinctio nam libero tempore cum soluta nobis.<br>Est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus.<br>Omnis voluptas assumenda est, omnis dolor repellendus temporibus autem quibusdam et aut officiis.<br>Debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae.<br>Non recusandae itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis.<br>Voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.`,
       tosafot: `Very long Tosafot commentary that extends beyond the main. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est.<br>Omnis dolor repellendus temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus.<br>Saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae.<br>Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores.<br>Alias consequatur aut perferendis doloribus asperiores repellat sed ut perspiciatis unde omnis.<br>Iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam eaque.<br>Ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.<br>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit sed quia.`
+    },
+    textOverflow: {
+      main: `Short main text that ends quickly.<br>Just two lines.`,
+      rashi: `Extremely long Rashi commentary that will definitely overflow beyond any reasonable spacer height. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.<br>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.<br>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.<br>Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.<br>Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur.<br>Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur.<br>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.<br>Similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio.<br>Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus.`,
+      tosafot: `Short Tosafot.<br>Just enough to test.`
+    },
+    noCommentary: {
+      main: `Main text with no commentary at all.<br>This should trigger the "No Commentary" error case.<br>Used to test edge case handling.`,
+      rashi: '',
+      tosafot: ''
+    },
+    shortCommentary: {
+      main: `Main text with very short commentaries.<br>The commentaries are too short to fill four lines.<br>This should trigger the "Not Enough Commentary" case.`,
+      rashi: `Short.<br>Very short.`,
+      tosafot: `Also short.`
+    },
+    onlyRashi: {
+      main: `Main text with only Rashi commentary.<br>Tosafot is completely missing.<br>Should use exception handling.`,
+      rashi: `Detailed Rashi commentary that has enough content to work with. Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.<br>Ut enim ad minim veniam, quis nostrud exercitation.<br>Duis aute irure dolor in reprehenderit in voluptate velit esse.<br>More text to ensure we have sufficient content for testing.`,
+      tosafot: ''
+    },
+    onlyTosafot: {
+      main: `Main text with only Tosafot commentary.<br>Rashi is completely missing.<br>Should use exception handling.`,
+      rashi: '',
+      tosafot: `Detailed Tosafot commentary that has enough content to work with. Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.<br>Ut enim ad minim veniam, quis nostrud exercitation.<br>Duis aute irure dolor in reprehenderit in voluptate velit esse.<br>More text to ensure we have sufficient content for testing.`
     }
   };
   
@@ -192,6 +207,8 @@
           
           // Get the dafRoot element
           const dafRoot = container.querySelector('.dafRoot');
+          console.log('dafRoot found:', !!dafRoot);
+          
           if (dafRoot) {
             const computedStyle = window.getComputedStyle(dafRoot);
             spacerInfo = {
@@ -200,12 +217,42 @@
               outer: computedStyle.getPropertyValue('--spacerHeights-outer'),
               end: computedStyle.getPropertyValue('--spacerHeights-end')
             };
+            console.log('spacerInfo from CSS vars:', spacerInfo);
+          } else {
+            console.log('dafRoot not found, using renderer spacerHeights');
+            // Fallback to renderer spacerHeights if CSS vars aren't available
+            if (renderer.spacerHeights) {
+              spacerInfo = {
+                start: renderer.spacerHeights.start + 'px',
+                inner: renderer.spacerHeights.inner + 'px', 
+                outer: renderer.spacerHeights.outer + 'px',
+                end: renderer.spacerHeights.end + 'px'
+              };
+            }
           }
+          
+          // Access the spacerHeights directly from renderer instance
+          console.log('Renderer spacerHeights:', renderer.spacerHeights);
           
           // Check for overlap indicators
           if (showOverlapIndicators && renderer.spacerHeights?.overlaps) {
             overlapInfo = renderer.spacerHeights.overlaps;
+            console.log('Overlaps detected:', overlapInfo);
             visualizeOverlaps(renderer.spacerHeights.overlaps);
+          }
+          
+          // Always run DOM-based overflow detection as a fallback
+          if (showOverlapIndicators) {
+            setTimeout(() => {
+              const domOverlaps = detectDOMOverflows();
+              if (domOverlaps.length > 0) {
+                console.log('🔥 DOM-based overflows detected:', domOverlaps);
+                if (!overlapInfo || overlapInfo.length === 0) {
+                  overlapInfo = domOverlaps;
+                  visualizeOverlaps(domOverlaps);
+                }
+              }
+            }, 150);
           }
           
           // Show spacer indicators
@@ -231,35 +278,69 @@
     // Remove existing overlap indicators
     container.querySelectorAll('.overlap-indicator').forEach(el => el.remove());
     
-    overlaps.forEach(({ type, line, overlap, mainPos, innerPos, outerPos, mainEnd, innerEnd, outerEnd }) => {
+    overlaps.forEach(({ type, line, overlap, mainPos, innerPos, outerPos, mainEnd, innerEnd, outerEnd, spacerEnd, textEnd }) => {
       const indicator = document.createElement('div');
       indicator.className = 'overlap-indicator';
       
-      // Position the overlap indicator at the point where overlap begins
-      const overlapStart = type.includes('inner') ? innerPos : outerPos;
+      // Different visualization for different types of issues
+      let overlapStart, overlapEnd, backgroundColor, borderColor, labelColor;
+      
+      if (type.includes('overflow')) {
+        // Text overflow beyond spacer boundaries - use orange/yellow
+        backgroundColor = 'rgba(255, 165, 0, 0.3)';
+        borderColor = 'orange';
+        labelColor = 'orange';
+        
+        if (type === 'inner-overflow') {
+          overlapStart = spacerEnd;
+          overlapEnd = textEnd || innerEnd;
+        } else if (type === 'outer-overflow') {
+          overlapStart = spacerEnd;
+          overlapEnd = textEnd || outerEnd;
+        }
+      } else {
+        // Regular overlaps between sections - use red
+        backgroundColor = 'rgba(255, 0, 0, 0.3)';
+        borderColor = 'red';
+        labelColor = 'red';
+        
+        if (type.includes('inner')) {
+          overlapStart = innerPos || (innerPos === 0 ? 0 : mainEnd - overlap);
+          overlapEnd = mainEnd;
+        } else if (type.includes('outer')) {
+          overlapStart = outerPos || (outerPos === 0 ? 0 : mainEnd - overlap);
+          overlapEnd = mainEnd;
+        } else {
+          overlapStart = mainPos;
+          overlapEnd = mainPos + overlap;
+        }
+      }
       
       indicator.style.cssText = `
         position: absolute;
-        background: rgba(255, 0, 0, 0.3);
-        border: 2px solid red;
-        height: ${overlap}px;
+        background: ${backgroundColor};
+        border: 2px solid ${borderColor};
+        height: ${Math.abs(overlap)}px;
         width: 100%;
         z-index: 9999;
         pointer-events: none;
-        top: ${overlapStart}px;
+        top: ${Math.min(overlapStart, overlapEnd)}px;
       `;
       
       const label = document.createElement('div');
       label.style.cssText = `
         position: absolute;
-        background: red;
+        background: ${labelColor};
         color: white;
         padding: 2px 5px;
         font-size: 10px;
         top: 0;
         left: 0;
+        white-space: nowrap;
       `;
-      label.textContent = `${type} overlap: ${overlap.toFixed(1)}px`;
+      
+      const issueType = type.includes('overflow') ? 'overflow' : 'overlap';
+      label.textContent = `${type} ${issueType}: ${Math.abs(overlap).toFixed(1)}px`;
       indicator.appendChild(label);
       
       container.appendChild(indicator);
@@ -307,6 +388,88 @@
       
       container.appendChild(indicator);
     });
+  }
+  
+  function detectDOMOverflows() {
+    console.log('🕵️ Starting DOM-based overflow detection...');
+    
+    // Find actual spacer elements and text elements
+    const spacers = container.querySelectorAll('.spacer');
+    const innerText = container.querySelector('.inner .text');
+    const outerText = container.querySelector('.outer .text');
+    
+    if (!spacers.length || (!innerText && !outerText)) {
+      console.log('❌ Could not find spacers or text elements');
+      return [];
+    }
+    
+    const containerRect = container.getBoundingClientRect();
+    const overlaps = [];
+    
+    // Get spacer boundaries
+    const spacerInfo = {};
+    spacers.forEach(spacer => {
+      const className = spacer.className;
+      const rect = spacer.getBoundingClientRect();
+      const relativeTop = rect.top - containerRect.top;
+      const relativeBottom = rect.bottom - containerRect.top;
+      
+      if (className.includes('inner')) {
+        spacerInfo.inner = { top: relativeTop, bottom: relativeBottom, height: rect.height };
+      } else if (className.includes('outer')) {
+        spacerInfo.outer = { top: relativeTop, bottom: relativeBottom, height: rect.height };
+      }
+    });
+    
+    console.log('🎯 Spacer boundaries:', spacerInfo);
+    
+    // Check inner text overflow
+    if (innerText && spacerInfo.inner) {
+      const textRect = innerText.getBoundingClientRect();
+      const textTop = textRect.top - containerRect.top;
+      const textBottom = textRect.bottom - containerRect.top;
+      
+      console.log('📏 Inner text:', { top: textTop, bottom: textBottom, height: textRect.height });
+      console.log('📦 Inner spacer:', spacerInfo.inner);
+      
+      if (textBottom > spacerInfo.inner.bottom) {
+        const overflowAmount = textBottom - spacerInfo.inner.bottom;
+        console.log('🔥 Inner overflow detected:', overflowAmount);
+        overlaps.push({
+          type: 'inner-overflow',
+          overlap: overflowAmount,
+          textEnd: textBottom,
+          spacerEnd: spacerInfo.inner.bottom,
+          innerPos: textTop,
+          innerEnd: textBottom
+        });
+      }
+    }
+    
+    // Check outer text overflow
+    if (outerText && spacerInfo.outer) {
+      const textRect = outerText.getBoundingClientRect();
+      const textTop = textRect.top - containerRect.top;
+      const textBottom = textRect.bottom - containerRect.top;
+      
+      console.log('📏 Outer text:', { top: textTop, bottom: textBottom, height: textRect.height });
+      console.log('📦 Outer spacer:', spacerInfo.outer);
+      
+      if (textBottom > spacerInfo.outer.bottom) {
+        const overflowAmount = textBottom - spacerInfo.outer.bottom;
+        console.log('🔥 Outer overflow detected:', overflowAmount);
+        overlaps.push({
+          type: 'outer-overflow',
+          overlap: overflowAmount,
+          textEnd: textBottom,
+          spacerEnd: spacerInfo.outer.bottom,
+          outerPos: textTop,
+          outerEnd: textBottom
+        });
+      }
+    }
+    
+    return overlaps;
   }
   
   onMount(() => {
@@ -645,9 +808,12 @@
     <div class="control-group">
       <label>Edge Cases</label>
       <div class="edge-cases">
-        <button on:click={() => loadEdgeCase('noRashi')}>No Rashi</button>
-        <button on:click={() => loadEdgeCase('noTosafot')}>No Tosafot</button>
         <button on:click={() => loadEdgeCase('potentialOverlap')}>Potential Overlap</button>
+        <button on:click={() => loadEdgeCase('textOverflow')}>Text Overflow</button>
+        <button on:click={() => loadEdgeCase('noCommentary')}>No Commentary</button>
+        <button on:click={() => loadEdgeCase('shortCommentary')}>Short Commentary</button>
+        <button on:click={() => loadEdgeCase('onlyRashi')}>Only Rashi</button>
+        <button on:click={() => loadEdgeCase('onlyTosafot')}>Only Tosafot</button>
       </div>
     </div>
     
@@ -680,15 +846,19 @@
     {/if}
   </div>
   
-  {#if showDebugInfo && spacerInfo}
+  {#if showDebugInfo}
     <div class="debug-info">
       <h3>Debug Information</h3>
       <div class="debug-row">Render time: {renderTime.toFixed(2)}ms</div>
-      <div class="debug-row">Spacer heights:</div>
-      <div class="debug-row">  - Start: {spacerInfo.start}</div>
-      <div class="debug-row">  - Inner: {spacerInfo.inner}</div>
-      <div class="debug-row">  - Outer: {spacerInfo.outer}</div>
-      <div class="debug-row">  - End: {spacerInfo.end}</div>
+      {#if spacerInfo}
+        <div class="debug-row">Spacer heights:</div>
+        <div class="debug-row">  - Start: {spacerInfo.start}</div>
+        <div class="debug-row">  - Inner: {spacerInfo.inner}</div>
+        <div class="debug-row">  - Outer: {spacerInfo.outer}</div>
+        <div class="debug-row">  - End: {spacerInfo.end}</div>
+      {:else}
+        <div class="debug-row">Spacer heights: Not available</div>
+      {/if}
       
       {#if overlapInfo && overlapInfo.length > 0}
         <div class="debug-row" style="margin-top: 10px; color: red;">
@@ -699,7 +869,7 @@
             </div>
           {/each}
         </div>
-      {:else if detectOverlaps}
+      {:else}
         <div class="debug-row" style="margin-top: 10px; color: green;">
           No overlaps detected
         </div>

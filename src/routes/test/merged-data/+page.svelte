@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import DiffViewer from '$lib/components/DiffViewer.svelte';
+  import LinkedTextViewer from '$lib/components/LinkedTextViewer.svelte';
   
   let loading = false;
   let results = null;
@@ -21,6 +22,7 @@
   // View options
   let showDiffView = true;
   let showRawMerged = false;
+  let showLinkedView = false;
   
   // Collapsible sections
   let showDafSupplierSettings = false;
@@ -379,16 +381,22 @@
       <!-- View Toggle -->
       <div class="flex gap-2 mb-6">
         <button 
-          on:click={() => { showDiffView = true; showRawMerged = false; }}
+          on:click={() => { showDiffView = true; showRawMerged = false; showLinkedView = false; }}
           class="px-4 py-2 rounded-md transition-colors {showDiffView ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}"
         >
           Diff View
         </button>
         <button 
-          on:click={() => { showDiffView = false; showRawMerged = true; }}
+          on:click={() => { showDiffView = false; showRawMerged = true; showLinkedView = false; }}
           class="px-4 py-2 rounded-md transition-colors {showRawMerged ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}"
         >
           Merged Text
+        </button>
+        <button 
+          on:click={() => { showDiffView = false; showRawMerged = false; showLinkedView = true; }}
+          class="px-4 py-2 rounded-md transition-colors {showLinkedView ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}"
+        >
+          Interactive Links
         </button>
       </div>
       
@@ -439,6 +447,19 @@
             </div>
           </div>
         </div>
+      {/if}
+      
+      <!-- Interactive Links View -->
+      {#if showLinkedView}
+        <LinkedTextViewer 
+          mainText={results.sources.sefaria.mainText || []}
+          rashi={results.sources.sefaria.rashi || []}
+          tosafot={results.sources.sefaria.tosafot || []}
+          rashiLinking={results.sources.sefaria.linking?.rashi || {}}
+          tosafotLinking={results.sources.sefaria.linking?.tosafot || {}}
+          tractate={results.tractate}
+          dafRef={`${results.dafDisplay}${results.amud}`}
+        />
       {/if}
     </div>
   {/if}

@@ -23,7 +23,14 @@ function getLineInfo(text, font, fontSize, lineHeight, dummy) {
 
 function heightAccumulator(font, fontSize, lineHeight, dummy) {
   return (lines) => {
-    return getLineInfo(lines.join("<br>"), font, fontSize, lineHeight, dummy).height;
+    // Calculate total height by summing individual line heights
+    // This is more accurate when lines already represent breaks
+    let totalHeight = 0;
+    lines.forEach(line => {
+      const info = getLineInfo(line, font, fontSize, lineHeight, dummy);
+      totalHeight += info.height;
+    });
+    return totalHeight;
   }
 }
 
@@ -97,6 +104,10 @@ export function onlyOneCommentary(lines, options, dummy) {
 
 // Overlap detection functions for line break mode
 function detectOverlaps(spacerHeights, lineHeights, sizes) {
+  console.log('🔍 OVERLAP DETECTION STARTED');
+  console.log('spacerHeights:', spacerHeights);
+  console.log('sizes:', sizes);
+  
   const overlaps = [];
   
   // In line break mode, we need to check if the total height of each section
@@ -106,6 +117,12 @@ function detectOverlaps(spacerHeights, lineHeights, sizes) {
   const totalMainHeight = sizes.main.reduce((sum, line) => sum + (line?.height || 0), 0);
   const totalInnerHeight = sizes.rashi.reduce((sum, line) => sum + (line?.height || 0), 0);
   const totalOuterHeight = sizes.tosafot.reduce((sum, line) => sum + (line?.height || 0), 0);
+  
+  console.log('📏 Text Heights:', {
+    main: totalMainHeight,
+    inner: totalInnerHeight, 
+    outer: totalOuterHeight
+  });
   
   // Starting positions
   const mainStart = spacerHeights.start;
@@ -117,11 +134,24 @@ function detectOverlaps(spacerHeights, lineHeights, sizes) {
   const innerEnd = innerStart + totalInnerHeight;
   const outerEnd = outerStart + totalOuterHeight;
   
+  console.log('📍 Positions:', {
+    mainStart, mainEnd,
+    innerStart, innerEnd,
+    outerStart, outerEnd,
+    spacers: {
+      inner: spacerHeights.inner,
+      outer: spacerHeights.outer
+    }
+  });
+  
+  // Tolerance for rounding errors in calculations
+  const overflowTolerance = 5;
+  
   // Check for overlaps between main and inner (Rashi)
-  if (spacerHeights.inner > 0 && totalInnerHeight > 0) {
-    // Inner starts before main ends
-    if (innerStart < mainEnd) {
-      const overlapAmount = mainEnd - innerStart;
+  if (spacerHeights.inner > 0 && totalInnerHeight > 0 && totalInnerHeight > spacerHeights.start) {
+    // Inner starts before main ends - only check if meaningful content
+    const overlapAmount = mainEnd - innerStart;
+    if (overlapAmount > overflowTolerance && innerStart < mainEnd) {
       overlaps.push({
         type: 'main-inner',
         line: -1, // Not line-specific in this mode
@@ -135,10 +165,10 @@ function detectOverlaps(spacerHeights, lineHeights, sizes) {
   }
   
   // Check for overlaps between main and outer (Tosafot)
-  if (spacerHeights.outer > 0 && totalOuterHeight > 0) {
-    // Outer starts before main ends
-    if (outerStart < mainEnd) {
-      const overlapAmount = mainEnd - outerStart;
+  if (spacerHeights.outer > 0 && totalOuterHeight > 0 && totalOuterHeight > spacerHeights.start) {
+    // Outer starts before main ends - only check if meaningful content
+    const overlapAmount = mainEnd - outerStart;
+    if (overlapAmount > overflowTolerance && outerStart < mainEnd) {
       overlaps.push({
         type: 'main-outer',
         line: -1, // Not line-specific in this mode
@@ -146,6 +176,63 @@ function detectOverlaps(spacerHeights, lineHeights, sizes) {
         mainPos: mainStart,
         outerPos: outerStart,
         mainEnd: mainEnd,
+        outerEnd: outerEnd
+      });
+    }
+  }
+  
+  // Check if text extends beyond spacer boundaries (text overflow)
+  // Only check for overflow if there's meaningful content and spacer allocation
+  
+  // Inner text extending beyond its allocated spacer
+  if (totalInnerHeight > 0 && spacerHeights.inner > 0) {
+    const innerSpacerEnd = innerStart + spacerHeights.inner;
+    const overflowAmount = innerEnd - innerSpacerEnd;
+    
+    console.log('🔍 Inner overflow check:', {
+      innerEnd,
+      innerSpacerEnd,
+      overflow: overflowAmount > overflowTolerance,
+      amount: overflowAmount
+    });
+    
+    // Only report as overflow if it exceeds tolerance and is meaningful
+    if (overflowAmount > overflowTolerance && totalInnerHeight > spacerHeights.start) {
+      console.log('⚠️ Inner overflow detected:', overflowAmount);
+      overlaps.push({
+        type: 'inner-overflow',
+        line: -1,
+        overlap: overflowAmount,
+        innerPos: innerStart,
+        spacerEnd: innerSpacerEnd,
+        textEnd: innerEnd,
+        innerEnd: innerEnd
+      });
+    }
+  }
+  
+  // Outer text extending beyond its allocated spacer
+  if (totalOuterHeight > 0 && spacerHeights.outer > 0) {
+    const outerSpacerEnd = outerStart + spacerHeights.outer;
+    const overflowAmount = outerEnd - outerSpacerEnd;
+    
+    console.log('🔍 Outer overflow check:', {
+      outerEnd,
+      outerSpacerEnd,
+      overflow: overflowAmount > overflowTolerance,
+      amount: overflowAmount
+    });
+    
+    // Only report as overflow if it exceeds tolerance and is meaningful
+    if (overflowAmount > overflowTolerance && totalOuterHeight > spacerHeights.start) {
+      console.log('⚠️ Outer overflow detected:', overflowAmount);
+      overlaps.push({
+        type: 'outer-overflow',
+        line: -1,
+        overlap: overflowAmount,
+        outerPos: outerStart,
+        spacerEnd: outerSpacerEnd,
+        textEnd: outerEnd,
         outerEnd: outerEnd
       });
     }
@@ -160,6 +247,7 @@ function detectOverlaps(spacerHeights, lineHeights, sizes) {
     }
   }
   
+  console.log('📋 Final overlaps found:', overlaps);
   return overlaps;
 }
 
@@ -184,6 +272,16 @@ function resolveOverlaps(spacerHeights, overlaps, sizes, options) {
     } else if (type === 'main-outer') {
       const adjustment = Math.max(overlap + safetyMargin, minSpacerOuter);
       resolved.outer += adjustment;
+    } else if (type === 'inner-overflow') {
+      // Text extends beyond spacer - need to extend the spacer
+      const adjustment = overlap + safetyMargin;
+      resolved.inner += adjustment;
+      console.log(`Inner text overflow: extending spacer by ${adjustment}px`);
+    } else if (type === 'outer-overflow') {
+      // Text extends beyond spacer - need to extend the spacer
+      const adjustment = overlap + safetyMargin;
+      resolved.outer += adjustment;
+      console.log(`Outer text overflow: extending spacer by ${adjustment}px`);
     }
   });
   
@@ -191,10 +289,31 @@ function resolveOverlaps(spacerHeights, overlaps, sizes, options) {
 }
 
 export function calculateSpacersBreaks(mainArray, rashiArray, tosafotArray, options, dummy) {
+  // Handle edge cases where arrays might be empty or contain only empty strings
   const lines = {
-    main: mainArray,
-    rashi: rashiArray,
-    tosafot: tosafotArray
+    main: (mainArray || []).filter(line => line && line.trim() !== ''),
+    rashi: (rashiArray || []).filter(line => line && line.trim() !== ''),
+    tosafot: (tosafotArray || []).filter(line => line && line.trim() !== '')
+  }
+  
+  // Check for fundamental edge cases first
+  console.log('📋 Text analysis:', {
+    mainLines: lines.main.length,
+    rashiLines: lines.rashi.length, 
+    tosafotLines: lines.tosafot.length
+  });
+  
+  // No commentary at all - this should be an error case
+  if (lines.rashi.length === 0 && lines.tosafot.length === 0) {
+    console.error("No Commentary");
+    return {
+      start: 4.4 * parseFloat(options.lineHeight.side),
+      inner: 0,
+      outer: 0,
+      end: 0,
+      exception: 0,
+      error: "No Commentary"
+    };
   }
 
   const parsedOptions = {
@@ -240,7 +359,7 @@ export function calculateSpacersBreaks(mainArray, rashiArray, tosafotArray, opti
   })
   
 
-  const spacerHeights = {
+  let spacerHeights = {
     start: 4.4 * parsedOptions.lineHeight.side,
     inner: null,
     outer: null,
@@ -250,9 +369,74 @@ export function calculateSpacersBreaks(mainArray, rashiArray, tosafotArray, opti
 
   const mainHeight = accumulateMain(lines.main);
   const mainHeightOld = (sizes.main.length) * parsedOptions.lineHeight.main;
+  
+  // Calculate total heights for each commentary section
+  const totalInnerHeight = accumulateCommentary(lines.rashi);
+  const totalOuterHeight = accumulateCommentary(lines.tosafot);
+  
+  console.log('📊 Commentary heights:', {
+    inner: totalInnerHeight,
+    outer: totalOuterHeight,
+    startThreshold: spacerHeights.start
+  });
+  
+  // Check if commentaries are too short to fill the initial space
+  if (totalInnerHeight <= spacerHeights.start && totalOuterHeight <= spacerHeights.start) {
+    console.error("Not Enough Commentary to Fill Four Lines");
+    return {
+      start: spacerHeights.start,
+      inner: Math.max(totalInnerHeight, 0),
+      outer: Math.max(totalOuterHeight, 0), 
+      end: 0,
+      exception: 0,
+      error: "Not Enough Commentary"
+    };
+  }
+  
+  // Handle cases where only one commentary has sufficient content
+  if (totalInnerHeight <= spacerHeights.start || totalOuterHeight <= spacerHeights.start) {
+    console.log('🚨 One-sided commentary detected');
+    
+    if (totalInnerHeight <= spacerHeights.start) {
+      // Inner (Rashi) is too short, outer (Tosafot) takes over
+      spacerHeights.inner = Math.max(totalInnerHeight, 0);
+      spacerHeights.outer = mainHeight; // Outer extends to match main text
+      spacerHeights.exception = 1; // No Rashi exception
+      console.log("Exception 1: Insufficient Rashi content");
+      return spacerHeights;
+    }
+    
+    if (totalOuterHeight <= spacerHeights.start) {
+      // Outer (Tosafot) is too short, inner (Rashi) takes over  
+      spacerHeights.outer = Math.max(totalOuterHeight, 0);
+      spacerHeights.inner = mainHeight; // Inner extends to match main text
+      spacerHeights.exception = 2; // No Tosafot exception
+      console.log("Exception 2: Insufficient Tosafot content");
+      return spacerHeights;
+    }
+  }
+  
+  // Calculate heights after the first break (if any)
   let afterBreak = {
-    inner: accumulateCommentary(lines.rashi.slice(4)),
-    outer: accumulateCommentary(lines.tosafot.slice(4))
+    inner: 0,
+    outer: 0
+  };
+  
+  // Only calculate afterBreak if there are actual breaks
+  if (breaks.rashi.length > 0) {
+    const firstBreak = breaks.rashi[0];
+    afterBreak.inner = accumulateCommentary(lines.rashi.slice(firstBreak));
+  } else {
+    // No breaks, use all lines
+    afterBreak.inner = accumulateCommentary(lines.rashi);
+  }
+  
+  if (breaks.tosafot.length > 0) {
+    const firstBreak = breaks.tosafot[0];
+    afterBreak.outer = accumulateCommentary(lines.tosafot.slice(firstBreak));
+  } else {
+    // No breaks, use all lines
+    afterBreak.outer = accumulateCommentary(lines.tosafot);
   }
 
   let afterBreakOld = {
@@ -260,40 +444,34 @@ export function calculateSpacersBreaks(mainArray, rashiArray, tosafotArray, opti
     outer: parsedOptions.lineHeight.side * (sizes.tosafot.length - 4)
   }
 
-  if (breaks.rashi.length < 1 || breaks.tosafot.length < 1) {
-    console.log("Dealing with Exceptions")
-    if (breaks.rashi.length < 1) {
-      afterBreak.inner = parsedOptions.lineHeight.side * (sizes.rashi.length + 1)
-      spacerHeights.exception = 2
-    }
-    if (breaks.tosafot.length < 1) {
-      afterBreak.outer = parsedOptions.lineHeight.side * (sizes.tosafot.length + 1)
-      spacerHeights.exception = 2
-    }
-}
-  switch (breaks.main.length) {
-    case 0:
-      spacerHeights.inner = mainHeight;
-      spacerHeights.outer = mainHeight;
-      if (breaks.rashi.length == 2) {
-        spacerHeights.end = accumulateCommentary(lines.rashi.slice(breaks.rashi[1]))
-      } else {
-        spacerHeights.end = accumulateCommentary(lines.tosafot.slice(breaks.tosafot[1]))
-      }
-      console.log("Double wrap")
-      break;
-    case 1:
-      if (breaks.rashi.length != breaks.tosafot.length) {
-        if (breaks.tosafot.length == 0) {
-          spacerHeights.outer = 0;
-          spacerHeights.inner = afterBreak.inner;
-          break;
+  // Note: Exception handling is now done earlier in the function
+  // This ensures proper spacer allocation based on available content
+  
+  // Only process layout patterns if there's no exception
+  if (spacerHeights.exception === 0) {
+    switch (breaks.main.length) {
+      case 0:
+        spacerHeights.inner = mainHeight;
+        spacerHeights.outer = mainHeight;
+        if (breaks.rashi.length >= 2) {
+          spacerHeights.end = accumulateCommentary(lines.rashi.slice(breaks.rashi[1]))
+        } else if (breaks.tosafot.length >= 2) {
+          spacerHeights.end = accumulateCommentary(lines.tosafot.slice(breaks.tosafot[1]))
         }
-        if (breaks.rashi.length == 0) {
-          spacerHeights.inner = 0;
-          spacerHeights.outer = afterBreak.outer;
-          break;
-        }
+        console.log("Double wrap")
+        break;
+      case 1:
+        if (breaks.rashi.length != breaks.tosafot.length) {
+          if (breaks.tosafot.length == 0) {
+            spacerHeights.outer = 0;
+            spacerHeights.inner = afterBreak.inner;
+            break;
+          }
+          if (breaks.rashi.length == 0) {
+            spacerHeights.inner = 0;
+            spacerHeights.outer = afterBreak.outer;
+            break;
+          }
         let stair;
         let nonstair;
         if (breaks.rashi.length == 1) {
@@ -307,18 +485,20 @@ export function calculateSpacersBreaks(mainArray, rashiArray, tosafotArray, opti
         spacerHeights[stair] = mainHeight;
         console.log("Stairs")
         break;
-      }
-    case 2:
-      spacerHeights.inner = afterBreak.inner;
-      spacerHeights.outer = afterBreak.outer;
-      console.log("Double Extend")
-      break;
-    default:
-      spacerHeights.inner = afterBreak.inner;
-      spacerHeights.outer = afterBreak.outer;
-      console.log("No Case Exception")
-      break;
-  }
+        }
+      case 2:
+        spacerHeights.inner = afterBreak.inner;
+        spacerHeights.outer = afterBreak.outer;
+        console.log("Double Extend")
+        break;
+      default:
+        spacerHeights.inner = afterBreak.inner;
+        spacerHeights.outer = afterBreak.outer;
+        console.log("No Case Exception")
+        break;
+    }
+  } 
+  // Exception cases are now handled earlier and return immediately
   
   // Apply font-size aware minimum spacer heights
   const minSpacerMain = sizes.main[0]?.minSpacerHeight || parsedOptions.lineHeight.main;
@@ -329,7 +509,13 @@ export function calculateSpacersBreaks(mainArray, rashiArray, tosafotArray, opti
   spacerHeights.outer = Math.max(spacerHeights.outer, minSpacerSide);
   
   // Detect and resolve overlaps if enabled
+  console.log('🎯 Checking for overlap detection...', {
+    detectOverlaps: options.detectOverlaps,
+    autoResolveOverlaps: options.autoResolveOverlaps
+  });
+  
   if (options.detectOverlaps) {
+    console.log('✅ Starting overlap detection...');
     const overlaps = detectOverlaps(spacerHeights, null, sizes);
     
     if (overlaps.length > 0) {
@@ -342,7 +528,11 @@ export function calculateSpacersBreaks(mainArray, rashiArray, tosafotArray, opti
       
       // Store overlap data for visualization
       spacerHeights.overlaps = overlaps;
+    } else {
+      console.log('✅ No overlaps detected');
     }
+  } else {
+    console.log('❌ Overlap detection disabled');
   }
   
   return spacerHeights;
