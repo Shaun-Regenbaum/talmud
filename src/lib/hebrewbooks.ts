@@ -192,9 +192,9 @@ class HebrewBooksService {
 
 // Client-side API wrapper
 class HebrewBooksAPI {
-  async fetchPage(tractate: string, daf: string): Promise<HebrewBooksPage | null> {
+  async fetchPage(tractate: string, daf: string, options: { br?: string } = {}): Promise<HebrewBooksPage | null> {
     try {
-      console.log('HebrewBooksAPI.fetchPage called with:', { tractate, daf });
+      console.log('HebrewBooksAPI.fetchPage called with:', { tractate, daf, options });
       
       // First try the browser rendering endpoint
       const mesechtaId = TRACTATE_IDS[tractate];
@@ -210,8 +210,13 @@ class HebrewBooksAPI {
       
       console.log('Conversion:', { input: daf, dafNum, amud, dafParam });
 
-      // Use the deployed daf-supplier worker with <br> conversion enabled
-      const endpoint = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafParam}&br=true`;
+      // Use the deployed daf-supplier worker
+      const params = new URLSearchParams({
+        mesechta: mesechtaId,
+        daf: dafParam,
+        ...options // Include any additional options like br=true
+      });
+      const endpoint = `https://daf-supplier.402.workers.dev?${params.toString()}`;
       console.log('Fetching from endpoint:', endpoint);
       
       const response = await fetch(endpoint);

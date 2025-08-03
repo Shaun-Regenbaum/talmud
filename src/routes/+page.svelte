@@ -1,28 +1,42 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { talmudStore, currentPage, isLoading, pageError, pageInfo } from '$lib/stores/talmud';
+	import { talmudStore, currentPage, isLoading, pageError, pageInfo, sefariaData } from '$lib/stores/talmud';
 	import { rendererStore } from '$lib/stores/renderer';
-	import { SpacerAwareSelector } from '$lib/spacer-aware-selector';
-	import { processTextsForRenderer, setupInteractivity } from '$lib/text-processor';
-	import { selectSentence, selectCommentary, selectedSentence, selectedCommentaries } from '$lib/stores/selection';
+	import { processTextsForRenderer } from '$lib/text-processor-simple';
+	import TranslationPopup from '$lib/components/TranslationPopup.svelte';
+	import { openRouterTranslator } from '$lib/openrouter-translator';
+	
+	// Declare window property for cleanup function
+	declare global {
+		interface Window {
+			__translationCleanup?: () => void;
+		}
+	}
 	
 	// Get data from load function
 	let { data } = $props();
 	
 	let dafContainer = $state<HTMLDivElement>();
-	let layerSelector: SpacerAwareSelector | null = null;
 	
 	// Responsive scaling variables
 	let windowWidth = $state(typeof window !== 'undefined' ? window.innerWidth : 1200);
 	let rendered = $state(false);
-	const dafWidth = 650; // Our content width
+	const dafWidth = 600; // Our content width (from default options)
 	const dafOfWindow = 4.4 / 12; // Proportion of window width to use
 	
 	// Form state - initialized from URL
 	let selectedTractate = $state(data.tractate);
 	let selectedPage = $state(data.page);
 	let selectedAmud = $state(data.amud);
+	
+	// Translation popup state
+	let showTranslationPopup = $state(false);
+	let translationPopupX = $state(0);
+	let translationPopupY = $state(0);
+	let selectedHebrewText = $state('');
+	let selectedTranslation = $state('');
+	
 	
 	// Subscribe to store updates
 	$effect(() => {
@@ -133,11 +147,34 @@
 				rendererStore.initialize(dafContainer);
 			}
 			
-			// Process texts using advanced text processor
+			// Get Sefaria data if available for clean sentence divisions
+			const sefariaPageData = $sefariaData;
+			
+			console.log('Sefaria data available:', {
+				hasSefariaData: !!sefariaPageData,
+				mainSegments: sefariaPageData?.mainText?.length || 0,
+				rashiSegments: sefariaPageData?.rashi?.length || 0,
+				tosafotSegments: sefariaPageData?.tosafot?.length || 0
+			});
+			
+			// Process texts using enhanced text processor with smart fallback
 			const { mainHTML, rashiHTML, tosafotHTML } = processTextsForRenderer(
-				pageData.mainText || ' ',
-				pageData.rashi || ' ',
-				pageData.tosafot || ' '
+				// Use Sefaria segments if available and non-empty, otherwise fall back to HebrewBooks strings
+				(sefariaPageData?.mainText?.length > 0) ? sefariaPageData.mainText : pageData.mainText || ' ',
+				(sefariaPageData?.rashi?.length > 0) ? sefariaPageData.rashi : pageData.rashi || ' ',
+				(sefariaPageData?.tosafot?.length > 0) ? sefariaPageData.tosafot : pageData.tosafot || ' ',
+				{
+					enableSentenceDivisions: true,
+					fallbackToHebrewBooks: true,
+					// Pass Sefaria segments for applying to HebrewBooks text when needed
+					sefariaSegments: {
+						main: sefariaPageData?.mainText || [],
+						rashi: sefariaPageData?.rashi || [],
+						tosafot: sefariaPageData?.tosafot || []
+					},
+					// Pass linking data for filtering commentary segments
+					linking: sefariaPageData?.linking || {}
+				}
 			);
 			const pageLabel = (pageData.daf + pageData.amud).replace('a', 'א').replace('b', 'ב');
 			
@@ -151,43 +188,36 @@
 			setTimeout(() => {
 				rendererStore.render(mainHTML, rashiHTML, tosafotHTML, pageLabel);
 				
+				// Check for spacing issues after render
+				setTimeout(() => {
+					const renderer = rendererStore.getRenderer();
+					if (renderer && renderer.checkExcessiveSpacing) {
+						renderer.checkExcessiveSpacing();
+					}
+				}, 100);
+				
 				// Apply dynamic layer selection after rendering
 				setTimeout(() => {
-					if (!dafContainer) return;
+					console.log('✅ Traditional daf-renderer layout ready');
 					
-					// Clean up previous selector
-					if (layerSelector) {
-						layerSelector.disable();
-						layerSelector = null;
+					// Set up bidirectional linking if Sefaria data is available
+					// TEMPORARILY DISABLED - not working correctly
+					// if (sefariaPageData?.linking) {
+					// 	setupBidirectionalLinking(sefariaPageData.linking, {
+					// 		tractate: pageData.tractate,
+					// 		daf: pageData.daf,
+					// 		amud: pageData.amud
+					// 	});
+					// }
+					
+					// Set up text selection handling for translations
+					// Always set up if we have Hebrew text and either Sefaria translations or OpenRouter
+					if (sefariaPageData?.mainText || pageData.mainText) {
+						setupTextSelectionHandling(
+							sefariaPageData?.mainText || [pageData.mainText],
+							sefariaPageData?.mainTextEnglish || []
+						);
 					}
-					
-					// Enable spacer-aware selector
-					console.log('Enabling spacer-aware selector');
-					layerSelector = new SpacerAwareSelector(dafContainer);
-					layerSelector.enable();
-					
-					// Fix CSS variables after SpacerAwareSelector potentially breaks them
-					setTimeout(() => {
-						const rootDiv = dafContainer.querySelector('.dafRoot') as HTMLElement;
-						if (rootDiv) {
-							console.log('Re-applying CSS variables after SpacerAwareSelector');
-							rootDiv.style.setProperty('--fontSize-main', '16px', 'important');
-							rootDiv.style.setProperty('--fontSize-side', '10.5px', 'important');
-							rootDiv.style.setProperty('--contentWidth', '650px', 'important');
-							rootDiv.style.setProperty('--mainWidth', '42%', 'important');
-						}
-					}, 150); // Run after SpacerAwareSelector's 100ms timeout
-					
-					// Setup interactivity (click handlers and highlighting)
-					const currentDaf = { 
-						tractate: pageData.tractate, 
-						daf: pageData.daf + pageData.amud 
-					};
-					setupInteractivity(
-						dafContainer,
-						(index) => selectSentence(currentDaf, index),
-						(index, type) => selectCommentary(currentDaf, index, type)
-					);
 					
 					// Mark as rendered for scaling
 					rendered = true;
@@ -228,10 +258,12 @@
 		
 		// Cleanup on unmount
 		return () => {
-			if (layerSelector) {
-				layerSelector.disable();
-			}
 			window.removeEventListener('resize', handleResize);
+			// Clean up translation event listeners if they exist
+			if (window.__translationCleanup) {
+				window.__translationCleanup();
+				delete window.__translationCleanup;
+			}
 		};
 	});
 	
@@ -273,6 +305,475 @@
 			71: 'עא', 72: 'עב', 73: 'עג', 74: 'עד', 75: 'עה', 76: 'עו'
 		};
 		return hebrewNumbers[num] || num.toString();
+	}
+
+	// Text selection handling for translations
+	function setupTextSelectionHandling(hebrewSegments: string[], englishSegments: string[]) {
+		console.log('📖 Setting up text selection handling for translations');
+		console.log(`📊 Hebrew segments: ${hebrewSegments.length}, English segments: ${englishSegments.length}`);
+		
+		// Always set up if OpenRouter is configured, even without Sefaria translations
+		if (!openRouterTranslator.isConfigured() && (!englishSegments || englishSegments.length === 0)) {
+			console.log('⚠️ No translation method available (no OpenRouter API key and no Sefaria translations)');
+			return;
+		}
+		
+		// Handle text selection on the daf container
+		const handleMouseUp = (event: MouseEvent) => {
+			const selection = window.getSelection();
+			if (!selection || selection.isCollapsed) {
+				showTranslationPopup = false;
+				return;
+			}
+			
+			const selectedText = selection.toString().trim();
+			if (!selectedText) {
+				showTranslationPopup = false;
+				return;
+			}
+			
+			console.log('🔍 Text selected:', selectedText);
+			
+			// Find which sentence span contains the selection
+			const range = selection.getRangeAt(0);
+			const container = range.commonAncestorContainer;
+			
+			// Find the parent sentence span
+			let sentenceSpan = container.nodeType === Node.TEXT_NODE 
+				? container.parentElement 
+				: container as Element;
+				
+			// Also check if we're inside the daf container
+			let insideDaf = false;
+			let checkElement = sentenceSpan;
+			while (checkElement) {
+				if (checkElement.id === 'dafRoot' || 
+					checkElement.classList?.contains('dafContainer') ||
+					checkElement.classList?.contains('content_area') ||
+					checkElement.classList?.contains('maintext')) {
+					insideDaf = true;
+					break;
+				}
+				checkElement = checkElement.parentElement;
+			}
+			
+			// Debug: log what containers we found
+			console.log('🔍 Container check:', {
+				insideDaf,
+				containerClasses: sentenceSpan?.parentElement?.className,
+				parentId: sentenceSpan?.parentElement?.id
+			});
+			
+			// For now, skip this check to see if the rest works
+			// if (!insideDaf) {
+			// 	console.log('⚠️ Selection not inside daf container');
+			// 	return;
+			// }
+				
+			while (sentenceSpan && !sentenceSpan.classList.contains('sentence-main')) {
+				sentenceSpan = sentenceSpan.parentElement;
+				// Stop if we've gone too far up
+				if (sentenceSpan?.id === 'dafRoot') {
+					sentenceSpan = null;
+					break;
+				}
+			}
+			
+			if (sentenceSpan && sentenceSpan.classList.contains('sentence-main')) {
+				const sentenceIndex = parseInt(sentenceSpan.getAttribute('data-sentence-index') || '0');
+				console.log(`📍 Selection in sentence ${sentenceIndex}`);
+				
+				// Always use OpenRouter if configured, with Sefaria as context
+				if (openRouterTranslator.isConfigured()) {
+					console.log(`🤖 Using OpenRouter for sentence ${sentenceIndex}`);
+					selectedHebrewText = selectedText;
+					selectedTranslation = 'Translating...';
+					
+					// Position the popup near the selection with viewport boundary checks
+					const rect = range.getBoundingClientRect();
+					const popupWidth = 400; // Max width from TranslationPopup.svelte
+					const popupHeight = 250; // Conservative estimate for height with translation
+					const padding = 20; // More padding for safety
+					
+					// Calculate X position - prevent bleeding off right edge
+					translationPopupX = rect.left;
+					if (translationPopupX + popupWidth > window.innerWidth - padding) {
+						translationPopupX = window.innerWidth - popupWidth - padding;
+					}
+					// Prevent bleeding off left edge
+					if (translationPopupX < padding) {
+						translationPopupX = padding;
+					}
+					
+					// Calculate Y position - prefer below selection, but flip above if needed
+					translationPopupY = rect.bottom + 10;
+					if (translationPopupY + popupHeight > window.innerHeight - padding) {
+						// Show above selection instead
+						translationPopupY = rect.top - popupHeight - 10;
+						// If still off screen, just position at bottom of viewport
+						if (translationPopupY < padding) {
+							translationPopupY = window.innerHeight - popupHeight - padding;
+						}
+					}
+					
+					showTranslationPopup = true;
+					
+					// Build context including Sefaria translation if available
+					let contextInfo = `Talmud ${$pageInfo.tractate} ${$pageInfo.page}${$pageInfo.amud}`;
+					if (englishSegments && englishSegments[sentenceIndex]) {
+						contextInfo += `\n\nSefaria translation: "${englishSegments[sentenceIndex]}"`;
+					}
+					
+					// Optionally include surrounding Sefaria translations for better context
+					const contextWindow = 2; // Include 2 sentences before and after
+					for (let i = Math.max(0, sentenceIndex - contextWindow); i <= Math.min(sentenceIndex + contextWindow, (englishSegments?.length || 0) - 1); i++) {
+						if (i !== sentenceIndex && englishSegments && englishSegments[i]) {
+							contextInfo += `\n\n[Sentence ${i}] Hebrew: "${hebrewSegments[i]?.replace(/<[^>]*>/g, '').trim() || ''}"`;
+							contextInfo += `\n[Sentence ${i}] Sefaria: "${englishSegments[i]}"`;
+						}
+					}
+					
+					// Fetch translation from OpenRouter
+					openRouterTranslator.translateText({
+						text: hebrewSegments[sentenceIndex] || selectedText,
+						context: contextInfo
+					}).then(response => {
+						selectedTranslation = response.translation;
+						console.log('✅ OpenRouter translation received');
+					}).catch(error => {
+						console.error('❌ OpenRouter translation error:', error);
+						selectedTranslation = 'Translation failed';
+					});
+				} else if (englishSegments && englishSegments[sentenceIndex]) {
+					// Fall back to Sefaria if no OpenRouter
+					selectedHebrewText = selectedText;
+					selectedTranslation = englishSegments[sentenceIndex];
+					
+					// Position the popup near the selection with viewport boundary checks
+					const rect = range.getBoundingClientRect();
+					const popupWidth = 400; // Max width from TranslationPopup.svelte
+					const popupHeight = 250; // Conservative estimate for height with translation
+					const padding = 20; // More padding for safety
+					
+					// Calculate X position - prevent bleeding off right edge
+					translationPopupX = rect.left;
+					if (translationPopupX + popupWidth > window.innerWidth - padding) {
+						translationPopupX = window.innerWidth - popupWidth - padding;
+					}
+					// Prevent bleeding off left edge
+					if (translationPopupX < padding) {
+						translationPopupX = padding;
+					}
+					
+					// Calculate Y position - prefer below selection, but flip above if needed
+					translationPopupY = rect.bottom + 10;
+					if (translationPopupY + popupHeight > window.innerHeight - padding) {
+						// Show above selection instead
+						translationPopupY = rect.top - popupHeight - 10;
+						// If still off screen, just position at bottom of viewport
+						if (translationPopupY < padding) {
+							translationPopupY = window.innerHeight - popupHeight - padding;
+						}
+					}
+					
+					showTranslationPopup = true;
+					console.log('✅ Showing translation popup from Sefaria');
+				} else {
+					console.log(`⚠️ No translation available for sentence ${sentenceIndex}`);
+				}
+			} else {
+				console.log('⚠️ Selection not in a sentence span, trying fallback approach');
+				
+				// Fallback: Find which Hebrew segment contains the selected text
+				let foundIndex = -1;
+				for (let i = 0; i < hebrewSegments.length; i++) {
+					// Clean both texts for comparison
+					const cleanSegment = hebrewSegments[i].replace(/<[^>]*>/g, '').trim();
+					if (cleanSegment.includes(selectedText) || selectedText.includes(cleanSegment)) {
+						foundIndex = i;
+						break;
+					}
+				}
+				
+				if (foundIndex >= 0) {
+					console.log(`📍 Found text in segment ${foundIndex} via fallback`);
+					
+					if (openRouterTranslator.isConfigured()) {
+						// Always use OpenRouter with Sefaria context
+						console.log(`🤖 Using OpenRouter for fallback translation`);
+						selectedHebrewText = selectedText;
+						selectedTranslation = 'Translating...';
+						
+						// Position the popup near the selection
+						const rect = range.getBoundingClientRect();
+						translationPopupX = rect.left;
+						translationPopupY = rect.bottom + 10;
+						
+						showTranslationPopup = true;
+						
+						// Build context including Sefaria translation if available
+						let contextInfo = `Talmud ${$pageInfo.tractate} ${$pageInfo.page}${$pageInfo.amud}`;
+						if (englishSegments && englishSegments[foundIndex]) {
+							contextInfo += `\n\nSefaria translation: "${englishSegments[foundIndex]}"`;
+						}
+						
+						// Include surrounding context
+						const contextWindow = 2;
+						for (let i = Math.max(0, foundIndex - contextWindow); i <= Math.min(foundIndex + contextWindow, (englishSegments?.length || 0) - 1); i++) {
+							if (i !== foundIndex && englishSegments && englishSegments[i]) {
+								contextInfo += `\n\n[Sentence ${i}] Hebrew: "${hebrewSegments[i]?.replace(/<[^>]*>/g, '').trim() || ''}"`;
+								contextInfo += `\n[Sentence ${i}] Sefaria: "${englishSegments[i]}"`;
+							}
+						}
+						
+						// Fetch translation from OpenRouter
+						openRouterTranslator.translateText({
+							text: selectedText,
+							context: contextInfo
+						}).then(response => {
+							selectedTranslation = response.translation;
+							console.log('✅ OpenRouter translation received');
+						}).catch(error => {
+							console.error('❌ OpenRouter translation error:', error);
+							selectedTranslation = 'Translation failed';
+						});
+					} else if (englishSegments && englishSegments[foundIndex]) {
+						// Fall back to Sefaria if no OpenRouter
+						selectedHebrewText = selectedText;
+						selectedTranslation = englishSegments[foundIndex];
+						
+						// Position the popup near the selection
+						const rect = range.getBoundingClientRect();
+						translationPopupX = rect.left;
+						translationPopupY = rect.bottom + 10;
+						
+						showTranslationPopup = true;
+						console.log('✅ Showing translation popup from Sefaria');
+					}
+				} else if (openRouterTranslator.isConfigured() && selectedText.length > 5) {
+					// Direct translation of selected text if we can't find the segment
+					console.log('🤖 Using OpenRouter for direct text translation');
+					selectedHebrewText = selectedText;
+					selectedTranslation = 'Translating...';
+					
+					// Position the popup near the selection with viewport boundary checks
+					const rect = range.getBoundingClientRect();
+					const popupWidth = 400; // Max width from TranslationPopup.svelte
+					const popupHeight = 250; // Conservative estimate for height with translation
+					const padding = 20; // More padding for safety
+					
+					// Calculate X position - prevent bleeding off right edge
+					translationPopupX = rect.left;
+					if (translationPopupX + popupWidth > window.innerWidth - padding) {
+						translationPopupX = window.innerWidth - popupWidth - padding;
+					}
+					// Prevent bleeding off left edge
+					if (translationPopupX < padding) {
+						translationPopupX = padding;
+					}
+					
+					// Calculate Y position - prefer below selection, but flip above if needed
+					translationPopupY = rect.bottom + 10;
+					if (translationPopupY + popupHeight > window.innerHeight - padding) {
+						// Show above selection instead
+						translationPopupY = rect.top - popupHeight - 10;
+						// If still off screen, just position at bottom of viewport
+						if (translationPopupY < padding) {
+							translationPopupY = window.innerHeight - popupHeight - padding;
+						}
+					}
+					
+					showTranslationPopup = true;
+					
+					// Build context from all available Sefaria translations
+					let contextInfo = `Talmud ${$pageInfo.tractate} ${$pageInfo.page}${$pageInfo.amud}`;
+					if (englishSegments && englishSegments.length > 0) {
+						contextInfo += '\n\nAvailable Sefaria translations from this page:';
+						// Include first few translations for context
+						const maxContext = 5;
+						for (let i = 0; i < Math.min(maxContext, englishSegments.length); i++) {
+							if (englishSegments[i]) {
+								contextInfo += `\n\n[Sentence ${i}] Hebrew: "${hebrewSegments[i]?.replace(/<[^>]*>/g, '').trim() || ''}"`;
+								contextInfo += `\n[Sentence ${i}] Sefaria: "${englishSegments[i]}"`;
+							}
+						}
+					}
+					
+					// Fetch translation from OpenRouter
+					openRouterTranslator.translateText({
+						text: selectedText,
+						context: contextInfo
+					}).then(response => {
+						selectedTranslation = response.translation;
+						console.log('✅ OpenRouter translation received');
+					}).catch(error => {
+						console.error('❌ OpenRouter translation error:', error);
+						selectedTranslation = 'Translation failed';
+					});
+				} else {
+					console.log('⚠️ Could not find translation for selected text');
+				}
+			}
+		};
+		
+		// Hide popup when clicking elsewhere
+		const handleMouseDown = (event: MouseEvent) => {
+			const target = event.target as Element;
+			if (!target.closest('.translation-popup')) {
+				showTranslationPopup = false;
+			}
+		};
+		
+		// Add event listeners
+		document.addEventListener('mouseup', handleMouseUp);
+		document.addEventListener('mousedown', handleMouseDown);
+		
+		// Store cleanup function to be called later
+		window.__translationCleanup = () => {
+			document.removeEventListener('mouseup', handleMouseUp);
+			document.removeEventListener('mousedown', handleMouseDown);
+		};
+	}
+	
+	// Bidirectional linking functionality
+	function setupBidirectionalLinking(linking: any, pageInfo: { tractate: string, daf: string, amud: string }) {
+		console.log('🔗 Setting up bidirectional linking for', `${pageInfo.tractate} ${pageInfo.daf}${pageInfo.amud}`);
+		
+		const baseRef = `${pageInfo.tractate} ${pageInfo.daf}${pageInfo.amud}`;
+		const rashiLinking = linking?.rashi || {};
+		const tosafotLinking = linking?.tosafot || {};
+		
+		console.log('📊 Linking data:', { rashiLinking, tosafotLinking });
+		
+		// Set up event listeners for main text sentence spans
+		setupMainTextHovering(baseRef, rashiLinking, tosafotLinking);
+		
+		// Set up event listeners for commentary spans (when they exist)
+		setupCommentaryHovering(baseRef, rashiLinking, tosafotLinking);
+	}
+	
+	function setupMainTextHovering(baseRef: string, rashiLinking: any, tosafotLinking: any) {
+		// Find all main text sentence spans created by our text processor
+		const mainSentenceSpans = document.querySelectorAll('.sentence-main');
+		console.log(`🎯 Found ${mainSentenceSpans.length} main text sentence spans`);
+		
+		mainSentenceSpans.forEach((span) => {
+			const sentenceIndex = parseInt(span.getAttribute('data-sentence-index') || '0');
+			
+			span.addEventListener('mouseenter', () => {
+				highlightLinkedCommentary(sentenceIndex, baseRef, rashiLinking, tosafotLinking);
+			});
+			
+			span.addEventListener('mouseleave', () => {
+				clearCommentaryHighlight();
+			});
+		});
+	}
+	
+	function setupCommentaryHovering(baseRef: string, rashiLinking: any, tosafotLinking: any) {
+		// Set up hovering for Rashi spans
+		const rashiSpans = document.querySelectorAll('.sentence-rashi');
+		console.log(`🎯 Found ${rashiSpans.length} Rashi sentence spans`);
+		
+		rashiSpans.forEach((span) => {
+			const sentenceIndex = parseInt(span.getAttribute('data-sentence-index') || '0');
+			
+			span.addEventListener('mouseenter', () => {
+				highlightLinkedMainText(sentenceIndex, 'rashi', baseRef, rashiLinking);
+			});
+			
+			span.addEventListener('mouseleave', () => {
+				clearMainTextHighlight();
+			});
+		});
+		
+		// Set up hovering for Tosafot spans
+		const tosafotSpans = document.querySelectorAll('.sentence-tosafot');
+		console.log(`🎯 Found ${tosafotSpans.length} Tosafot sentence spans`);
+		
+		tosafotSpans.forEach((span) => {
+			const sentenceIndex = parseInt(span.getAttribute('data-sentence-index') || '0');
+			
+			span.addEventListener('mouseenter', () => {
+				highlightLinkedMainText(sentenceIndex, 'tosafot', baseRef, tosafotLinking);
+			});
+			
+			span.addEventListener('mouseleave', () => {
+				clearMainTextHighlight();
+			});
+		});
+	}
+	
+	function highlightLinkedCommentary(mainSegmentIndex: number, baseRef: string, rashiLinking: any, tosafotLinking: any) {
+		console.log(`🔍 Highlighting commentary linked to main segment ${mainSegmentIndex}`);
+		
+		// Clear previous highlights
+		clearCommentaryHighlight();
+		
+		// Highlight linked Rashi segments
+		const linkedRashiIndexes = rashiLinking[baseRef]?.[mainSegmentIndex] || [];
+		linkedRashiIndexes.forEach((index: number) => {
+			const element = document.querySelector(`.sentence-rashi[data-sentence-index="${index}"]`);
+			if (element) {
+				element.classList.add('highlighted-commentary');
+				console.log(`✅ Highlighted Rashi segment ${index}`);
+			}
+		});
+		
+		// Highlight linked Tosafot segments
+		const linkedTosafotIndexes = tosafotLinking[baseRef]?.[mainSegmentIndex] || [];
+		linkedTosafotIndexes.forEach((index: number) => {
+			const element = document.querySelector(`.sentence-tosafot[data-sentence-index="${index}"]`);
+			if (element) {
+				element.classList.add('highlighted-commentary');
+				console.log(`✅ Highlighted Tosafot segment ${index}`);
+			}
+		});
+	}
+	
+	function highlightLinkedMainText(commentaryIndex: number, type: 'rashi' | 'tosafot', baseRef: string, linking: any) {
+		console.log(`🔍 Highlighting main text linked to ${type} segment ${commentaryIndex}`);
+		
+		// Clear previous highlights
+		clearMainTextHighlight();
+		
+		// Find main text segments linked to this commentary
+		const linkedMainSegments: number[] = [];
+		Object.entries(linking[baseRef] || {}).forEach(([mainSegmentIndex, commentaryIndexes]: [string, any]) => {
+			if (Array.isArray(commentaryIndexes) && commentaryIndexes.includes(commentaryIndex)) {
+				linkedMainSegments.push(parseInt(mainSegmentIndex));
+			}
+		});
+		
+		// Highlight linked main text segments
+		linkedMainSegments.forEach(segmentIndex => {
+			const element = document.querySelector(`.sentence-main[data-sentence-index="${segmentIndex}"]`);
+			if (element) {
+				element.classList.add('highlighted-main');
+				console.log(`✅ Highlighted main text segment ${segmentIndex}`);
+				
+				// Auto-scroll to first segment if out of view
+				if (segmentIndex === linkedMainSegments[0]) {
+					const rect = element.getBoundingClientRect();
+					const viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight);
+					if (rect.top < 0 || rect.bottom - viewHeight >= 0) {
+						element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+					}
+				}
+			}
+		});
+	}
+	
+	function clearCommentaryHighlight() {
+		document.querySelectorAll('.highlighted-commentary').forEach(el => {
+			el.classList.remove('highlighted-commentary');
+		});
+	}
+	
+	function clearMainTextHighlight() {
+		document.querySelectorAll('.highlighted-main').forEach(el => {
+			el.classList.remove('highlighted-main');
+		});
 	}
 </script>
 
@@ -384,6 +885,9 @@
 							</div>
 						{/if}
 					</div>
+					
+					<!-- Traditional daf-renderer layout only -->
+					
 					<span class="preload">preload</span>
 					
 					<!-- Page info below the daf -->
@@ -405,19 +909,28 @@
 			<p>Powered by daf-renderer, Sefaria API, and OpenRouter</p>
 		</div>
 	</div>
+	
+	<!-- Translation Popup -->
+	<TranslationPopup 
+		x={translationPopupX}
+		y={translationPopupY}
+		selectedText={selectedHebrewText}
+		translation={selectedTranslation}
+		visible={showTranslationPopup}
+	/>
+	
 </main>
 
 <style>
 	/* Import daf-renderer styles */
 	@import '$lib/daf-renderer/styles.css';
 	
-	/* Import Hebrew fonts */
-	@import '$lib/assets/fonts/fonts.css';
+	/* Hebrew fonts are loaded via app.css */
 	
 	/* Ensure daf-renderer content is visible */
 	:global(.dafRoot) {
 		position: relative;
-		width: 650px;
+		width: 600px;
 		margin: 0 auto;
 	}
 	
@@ -438,37 +951,37 @@
 		visibility: visible !important;
 	}
 	
-	/* Force font sizes to prevent 0px issue */
+	/* Force font sizes to prevent 0px issue - using default options */
 	:global(.dafRoot .main .text span) {
-		font-size: 16px !important;
-		font-family: "Times New Roman", serif !important;
+		font-size: 15px !important;
+		font-family: "Vilna", serif !important;
 	}
 	
 	:global(.dafRoot .inner .text span) {
 		font-size: 10.5px !important;
-		font-family: "Times New Roman", serif !important;
+		font-family: "Rashi", serif !important;
 	}
 	
 	:global(.dafRoot .outer .text span) {
 		font-size: 10.5px !important;
-		font-family: "Times New Roman", serif !important;
+		font-family: "Rashi", serif !important;
 	}
 	
-	/* Force layout dimensions */
+	/* Force layout dimensions - using default options */
 	:global(.dafRoot) {
-		width: 650px !important;
-		--contentWidth: 650px !important;
-		--mainWidth: 42% !important;
-		--fontSize-main: 16px !important;
+		width: 600px !important;
+		--contentWidth: 600px !important;
+		--mainWidth: 50% !important;
+		--fontSize-main: 15px !important;
 		--fontSize-side: 10.5px !important;
-		--lineHeight-main: 16px !important;
-		--lineHeight-side: 12px !important;
+		--lineHeight-main: 17px !important;
+		--lineHeight-side: 14px !important;
 	}
 	
 	:global(.dafRoot .main),
 	:global(.dafRoot .inner),  
 	:global(.dafRoot .outer) {
-		width: 650px !important;
+		width: 600px !important;
 	}
 	
 	:global(.dafRoot .text) {
@@ -477,7 +990,7 @@
 	
 	/* Talmud-vue styling improvements */
 	:global(.daf div) {
-		text-align-last: justify !important;
+		text-align-last: initial !important;
 	}
 	
 	/* Hadran styling */
@@ -505,6 +1018,28 @@
 	:global(.sentence-tosafot.highlighted) {
 		background-color: #FECACA;
 	}
+
+	/* Enhanced bidirectional highlighting - TEMPORARILY DISABLED */
+	/* :global(.sentence-main.highlighted-main) {
+		background-color: #FEF3C7 !important;
+		border: 2px solid #F59E0B;
+		border-radius: 3px;
+		transition: all 0.2s ease;
+	}
+
+	:global(.sentence-rashi.highlighted-commentary) {
+		background-color: #DBEAFE !important;
+		border: 2px solid #3B82F6;
+		border-radius: 3px;
+		transition: all 0.2s ease;
+	}
+
+	:global(.sentence-tosafot.highlighted-commentary) {
+		background-color: #D1FAE5 !important;
+		border: 2px solid #10B981;
+		border-radius: 3px;
+		transition: all 0.2s ease;
+	} */
 	
 	/* Preload font */
 	:global(.preload) {
@@ -527,4 +1062,5 @@
 	:global(.main-header, .rashi-header) {
 		font-weight: bold;
 	}
+	
 </style>

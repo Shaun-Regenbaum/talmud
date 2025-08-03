@@ -16,10 +16,48 @@ interface MergeResult {
 
 
 function processHebrew(text: string): string {
+  if (!text) return '';
+  
   return text
+    // Remove <script> and <style> blocks entirely (including content)
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+    // Remove HTML comments
+    .replace(/<!--[\s\S]*?-->/g, '')
+    // Remove all HTML tags
     .replace(/<[^>]*>/g, "")
+    // Remove JavaScript-like content (functions, variables, etc.)
+    .replace(/function\s+\w+\s*\([^)]*\)\s*\{[\s\S]*?\}/g, '')
+    .replace(/var\s+\w+\s*[=;][\s\S]*?;/g, '')
+    .replace(/if\s*\([^)]*\)\s*\{[\s\S]*?\}/g, '')
+    .replace(/window\.\w+[\s\S]*?;/g, '')
+    .replace(/document\.\w+[\s\S]*?;/g, '')
+    // Remove CSS-like content
+    .replace(/\{[\s\S]*?\}/g, '')
+    .replace(/#[\w-]+\s*\{[\s\S]*?\}/g, '')
+    .replace(/\.[\w-]+\s*\{[\s\S]*?\}/g, '')
+    // Remove URLs
+    .replace(/https?:\/\/[^\s]+/g, '')
+    .replace(/www\.[^\s]+/g, '')
+    // Remove email addresses
+    .replace(/[\w.-]+@[\w.-]+\.\w+/g, '')
+    // Remove phone numbers
+    .replace(/\(\d{2,3}\)\s*\d{3}-\d{4}/g, '')
+    .replace(/\d{3}-\d{3}-\d{4}/g, '')
+    // Remove copyright and metadata
+    .replace(/©\d{4}.*$/gm, '')
+    .replace(/Copyright.*$/gm, '')
+    // Remove HTML entities and Unicode issues
+    .replace(/&[a-zA-Z]+;/g, '')
+    .replace(/&#\d+;/g, '')
+    // Clean up Hebrew-specific issues
     .replaceAll("–", "")
     .replaceAll("׳", "'")
+    // Remove excessive whitespace and newlines
+    .replace(/\s+/g, ' ')
+    .replace(/\n+/g, ' ')
+    // Remove English text blocks (basic heuristic)
+    .replace(/\b[a-zA-Z]{10,}\b/g, '')
     .trim();
 }
 
@@ -43,120 +81,95 @@ function diffsToString(diffs: DiffResult[]): string {
 }
 
 async function fetchSefariaCommentary(tractate: string, daf: string, commentaryType: 'rashi' | 'tosafot') {
-  // HebrewBooks format: "2" means 2a, "2b" means 2b, "3" means 3a, "3b" means 3b
-  let sefariaRef: string;
-  if (daf.includes('b')) {
-    // Already has amud designation
-    sefariaRef = daf;
-  } else {
-    // Plain number means 'a' side
-    sefariaRef = `${daf}a`;
-  }
+  // The daf parameter already includes the amud (e.g., "2a" or "2b")
+  const sefariaRef = daf;
   
   const commentaryName = commentaryType === 'rashi' ? 'Rashi' : 'Tosafot';
   
   try {
-    // Use the related API to find all commentary segments for this daf
+    // Use the links API to get detailed commentary connections
     const mainRef = `${tractate}.${sefariaRef}`;
-    const relatedUrl = `https://www.sefaria.org/api/related/${mainRef}`;
+    const linksUrl = `https://www.sefaria.org/api/links/${mainRef}`;
     
-    console.log(`Fetching related texts for ${mainRef} to find all ${commentaryName} segments`);
+    console.log(`Fetching links for ${mainRef} to find all ${commentaryName} segments`);
     
-    const relatedResponse = await fetch(relatedUrl, {
+    const linksResponse = await fetch(linksUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; TalmudMerged/1.0)',
       }
     });
     
-    if (!relatedResponse.ok) {
-      console.log(`Related API error:`, relatedResponse.status);
-      return { hebrew: [], english: [] };
+    if (!linksResponse.ok) {
+      console.log(`Links API error:`, linksResponse.status);
+      return { hebrew: [], english: [], linking: {} };
     }
     
-    const relatedData = await relatedResponse.json();
+    const allLinks = await linksResponse.json();
     
-    // Find all commentary links for this type
-    const commentaryLinks = relatedData.links?.filter((link: any) => 
+    // Filter for the specific commentary type
+    const commentaryLinks = allLinks.filter((link: any) => 
       link.index_title === `${commentaryName} on ${tractate}` && 
       link.type === 'commentary'
-    ) || [];
+    );
     
     console.log(`Found ${commentaryLinks.length} ${commentaryName} links for ${mainRef}`);
     
-    // Also collect linking information
-    const linkingInfo: Record<string, string[]> = {};
+    // Build linking information and collect segments
+    const linkingInfo: Record<string, any> = {};
+    const allHebrew: string[] = [];
+    const allEnglish: string[] = [];
     
-    // Fetch all commentary segments and collect linking info
-    const allSegments = await Promise.all(
-      commentaryLinks.map(async (link: any, index: number) => {
-        try {
-          const url = `https://www.sefaria.org/api/texts/${link.ref}`;
-          const resp = await fetch(url, {
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (compatible; TalmudMerged/1.0)',
-            }
-          });
+    // Group links by their base reference (without sub-parts)
+    const groupedLinks = new Map<string, any[]>();
+    
+    commentaryLinks.forEach((link: any) => {
+      // For refs like "Rashi on Berakhot 2a:1:1", extract "Rashi on Berakhot 2a:1"
+      const refParts = link.ref.split(':');
+      const baseCommentRef = refParts.slice(0, -1).join(':');
+      
+      if (!groupedLinks.has(baseCommentRef)) {
+        groupedLinks.set(baseCommentRef, []);
+      }
+      groupedLinks.get(baseCommentRef)!.push(link);
+    });
+    
+    // Process each group as a single commentary segment
+    let segmentIndex = 0;
+    groupedLinks.forEach((links, baseCommentRef) => {
+      // Combine Hebrew and English text from all sub-parts
+      const hebrewTexts = links.map(l => l.he).filter(Boolean);
+      const englishTexts = links.map(l => l.text).filter(Boolean);
+      
+      if (hebrewTexts.length > 0) {
+        allHebrew.push(hebrewTexts.join(' '));
+      }
+      if (englishTexts.length > 0) {
+        allEnglish.push(englishTexts.join(' '));
+      }
+      
+      // Use the anchorRef from the first link for mapping
+      const anchorRef = links[0].anchorRef;
+      if (anchorRef) {
+        // Parse the sentence index from anchorRef (e.g., "Berakhot 2a:1" -> 1)
+        const parts = anchorRef.split(':');
+        if (parts.length >= 2) {
+          const sentenceIndex = parseInt(parts[1]) - 1; // Convert to 0-based
+          const baseRef = parts[0]; // e.g., "Berakhot 2a"
           
-          if (!resp.ok) return { hebrew: [], english: [], linkInfo: null };
-          
-          const data = await resp.json();
-          
-          // Extract Hebrew text
-          let hebrew = [];
-          if (data.he) {
-            if (typeof data.he === 'string') {
-              hebrew = [data.he];
-            } else if (Array.isArray(data.he)) {
-              hebrew = data.he.flat().filter((s: any) => s && typeof s === 'string' && s.trim().length > 5);
-            }
+          if (!linkingInfo[baseRef]) {
+            linkingInfo[baseRef] = {};
           }
-          
-          // Extract English text
-          let english = [];
-          if (data.text) {
-            if (typeof data.text === 'string') {
-              english = [data.text];
-            } else if (Array.isArray(data.text)) {
-              english = data.text.flat().filter((s: any) => s && typeof s === 'string');
-            }
+          if (!linkingInfo[baseRef][sentenceIndex]) {
+            linkingInfo[baseRef][sentenceIndex] = [];
           }
+          linkingInfo[baseRef][sentenceIndex].push(segmentIndex);
           
-          // Store linking information
-          const linkInfo = {
-            commentaryRef: link.ref,
-            mainTextRef: link.anchorRef,
-            segmentIndex: index
-          };
-          
-          // Build linking map: mainTextRef -> commentarySegmentIndexes
-          if (link.anchorRef) {
-            // Parse the sentence index from anchorRef (e.g., "Berakhot 3a:5" -> 5)
-            const parts = link.anchorRef.split(':');
-            if (parts.length >= 2) {
-              const sentenceIndex = parseInt(parts[1]) - 1; // Convert to 0-based
-              const baseRef = parts[0]; // e.g., "Berakhot 3a"
-              
-              if (!linkingInfo[baseRef]) {
-                linkingInfo[baseRef] = {};
-              }
-              if (!linkingInfo[baseRef][sentenceIndex]) {
-                linkingInfo[baseRef][sentenceIndex] = [];
-              }
-              linkingInfo[baseRef][sentenceIndex].push(index);
-            }
-          }
-          
-          return { hebrew, english, linkInfo };
-        } catch (error) {
-          console.error(`Failed to fetch ${link.ref}:`, error);
-          return { hebrew: [], english: [], linkInfo: null };
+          console.log(`🔗 ${commentaryName} segment ${segmentIndex} (${links.length} parts) links to ${baseRef} sentence ${sentenceIndex}`);
         }
-      })
-    );
-    
-    // Combine all segments
-    const allHebrew = allSegments.flatMap(s => s.hebrew);
-    const allEnglish = allSegments.flatMap(s => s.english);
+      }
+      
+      segmentIndex++;
+    });
     
     console.log(`Total ${commentaryName} segments: ${allHebrew.length} Hebrew, ${allEnglish.length} English`);
     
@@ -177,15 +190,8 @@ async function fetchSefaria(tractate: string, daf: string, type: 'main' | 'rashi
     return fetchSefariaCommentary(tractate, daf, type);
   }
   
-  // HebrewBooks format: "2" means 2a, "2b" means 2b, "3" means 3a, "3b" means 3b
-  let sefariaRef: string;
-  if (daf.includes('b')) {
-    // Already has amud designation
-    sefariaRef = daf;
-  } else {
-    // Plain number means 'a' side
-    sefariaRef = `${daf}a`;
-  }
+  // The daf parameter already includes the amud (e.g., "2a" or "2b")
+  const sefariaRef = daf;
   
   console.log(`Fetching Sefaria main text for ${tractate} ${sefariaRef}`);
   
@@ -242,6 +248,206 @@ async function fetchSefaria(tractate: string, daf: string, type: 'main' | 'rashi
   }
 }
 
+function filterLinkedCommentarySegments(
+  commentarySegments: string[], 
+  linking: Record<string, any>
+): string[] {
+  if (!commentarySegments || commentarySegments.length === 0) {
+    return [];
+  }
+  
+  // Build a map: commentaryIndex -> mainTextSegmentIndex (for ordering)
+  const commentaryToMainTextOrder: Record<number, number> = {};
+  Object.values(linking).forEach((sentenceLinks: any) => {
+    if (typeof sentenceLinks === 'object') {
+      Object.entries(sentenceLinks).forEach(([mainSegmentIndex, commentaryIndexes]: [string, any]) => {
+        if (Array.isArray(commentaryIndexes)) {
+          commentaryIndexes.forEach(commentaryIndex => {
+            // Use the first (earliest) main text reference for ordering
+            if (!(commentaryIndex in commentaryToMainTextOrder)) {
+              commentaryToMainTextOrder[commentaryIndex] = parseInt(mainSegmentIndex);
+            }
+          });
+        }
+      });
+    }
+  });
+  
+  const linkedIndexes = Object.keys(commentaryToMainTextOrder).map(k => parseInt(k));
+  console.log(`🔗 Filtering commentary: ${commentarySegments.length} total → ${linkedIndexes.length} linked`);
+  
+  // Create ordered array of linked segments
+  const linkedSegmentsWithOrder = linkedIndexes
+    .map(commentaryIndex => {
+      const segment = commentarySegments[commentaryIndex];
+      if (segment && segment.trim().length > 5) {
+        return {
+          segment,
+          mainTextOrder: commentaryToMainTextOrder[commentaryIndex]
+        };
+      }
+      return null;
+    })
+    .filter(item => item !== null);
+  
+  // Sort by main text order
+  linkedSegmentsWithOrder.sort((a, b) => a.mainTextOrder - b.mainTextOrder);
+  
+  return linkedSegmentsWithOrder.map(item => item.segment);
+}
+
+function createLinkedCommentary(
+  commentarySegments: string[], 
+  linking: Record<string, any>, 
+  type: 'rashi' | 'tosafot'
+): string {
+  console.log(`🔗 Creating linked ${type} commentary`);
+  
+  if (!commentarySegments || commentarySegments.length === 0) {
+    console.log(`⚠️ No ${type} segments available`);
+    return '';
+  }
+  
+  // Build a map: commentaryIndex -> mainTextSegmentIndex (for ordering)
+  const commentaryToMainTextOrder: Record<number, number> = {};
+  Object.entries(linking).forEach(([baseRef, sentenceLinks]: [string, any]) => {
+    if (typeof sentenceLinks === 'object') {
+      Object.entries(sentenceLinks).forEach(([mainSegmentIndex, commentaryIndexes]: [string, any]) => {
+        if (Array.isArray(commentaryIndexes)) {
+          commentaryIndexes.forEach(commentaryIndex => {
+            // Use the first (earliest) main text reference for ordering
+            if (!(commentaryIndex in commentaryToMainTextOrder)) {
+              commentaryToMainTextOrder[commentaryIndex] = parseInt(mainSegmentIndex);
+            }
+          });
+        }
+      });
+    }
+  });
+  
+  const linkedIndexes = Object.keys(commentaryToMainTextOrder).map(k => parseInt(k));
+  console.log(`📊 ${type}: ${commentarySegments.length} total segments, ${linkedIndexes.length} linked to main text`);
+  
+  // Create array of linked segments with their order information
+  const linkedSegmentsWithOrder = linkedIndexes
+    .map(commentaryIndex => {
+      const segment = commentarySegments[commentaryIndex];
+      if (segment && segment.trim().length > 5) {
+        return {
+          commentaryIndex,
+          mainTextOrder: commentaryToMainTextOrder[commentaryIndex],
+          html: `<span class="sentence-${type}" data-commentary-index="${commentaryIndex}">${segment}</span>`
+        };
+      }
+      return null;
+    })
+    .filter(item => item !== null);
+  
+  // Sort by main text order
+  linkedSegmentsWithOrder.sort((a, b) => a.mainTextOrder - b.mainTextOrder);
+  
+  console.log(`✅ ${type}: ${linkedSegmentsWithOrder.length} linked segments ordered by main text sequence`);
+  
+  return linkedSegmentsWithOrder.map(item => item.html).join(' ');
+}
+
+function extractTalmudContent(text: string): string {
+  if (!text) return '';
+  
+  // More aggressive cleaning specifically for Talmud text
+  let cleaned = text
+    // Remove everything before the actual Talmud content (look for common patterns)
+    .replace(/^[\s\S]*?(?=גמרא|משנה|א\]|ב\]|ג\]|ד\])/i, '')
+    // Remove everything after the Talmud content ends (look for common end patterns)
+    .replace(/(?:במקומן|©\d{4}|window\.|function|var |document\.)[\s\S]*$/i, '')
+    // Apply the general Hebrew processing
+  
+  return processHebrew(cleaned);
+}
+
+function createSegmentedMainText(hebrewBooksText: string, sefariaSegments: string[]): string {
+  console.log('🔗 Creating segmented main text with sentence divisions');
+  
+  if (!hebrewBooksText || !sefariaSegments || sefariaSegments.length === 0) {
+    console.log('⚠️ No segmentation possible - missing data');
+    return hebrewBooksText || '';
+  }
+  
+  console.log(`📊 Input: HebrewBooks text ${hebrewBooksText.length} chars, ${sefariaSegments.length} Sefaria segments`);
+  
+  // Clean HebrewBooks text with more aggressive cleaning and Sefaria segments
+  const cleanHBText = extractTalmudContent(hebrewBooksText);
+  const cleanSefariaSegments = sefariaSegments
+    .filter(segment => segment && segment.trim().length > 5) // Filter out very short segments
+    .map(segment => processHebrew(segment));
+  
+  console.log(`📊 After filtering: ${cleanSefariaSegments.length} usable Sefaria segments`);
+  
+  let workingText = cleanHBText;
+  let segmentIndex = 0;
+  
+  // Try to find and wrap each Sefaria segment in the HebrewBooks text
+  cleanSefariaSegments.forEach((segment, index) => {
+    if (segment.length > 5) { // Lower threshold for meaningful segments
+      // Try exact match first
+      if (workingText.includes(segment)) {
+        const wrappedSegment = `<span class="sentence-main" data-sentence-index="${segmentIndex}" data-sefaria-index="${index}">${segment}</span>`;
+        workingText = workingText.replace(segment, wrappedSegment);
+        segmentIndex++;
+        console.log(`✅ Wrapped segment ${index}: "${segment.substring(0, 50)}..."`);
+      } else {
+        // Try finding key phrases from the segment (at least 50% match or 15 chars)
+        const minMatchLength = Math.max(Math.floor(segment.length * 0.5), 15);
+        let bestMatch = '';
+        let bestMatchIndex = -1;
+        
+        // Split segment into words and try to find the longest common substring
+        const segmentWords = segment.split(/\s+/).filter(w => w.length > 2);
+        
+        // Try different word combinations
+        for (let wordCount = Math.min(segmentWords.length, 5); wordCount >= 2; wordCount--) {
+          for (let start = 0; start <= segmentWords.length - wordCount; start++) {
+            const phrase = segmentWords.slice(start, start + wordCount).join(' ');
+            if (phrase.length >= 10 && workingText.includes(phrase)) {
+              if (phrase.length > bestMatch.length) {
+                bestMatch = phrase;
+                bestMatchIndex = workingText.indexOf(phrase);
+              }
+            }
+          }
+        }
+        
+        // If no word-based match, try sliding window approach
+        if (!bestMatch && segment.length >= 20) {
+          for (let i = 0; i <= workingText.length - minMatchLength; i++) {
+            for (let len = minMatchLength; len <= Math.min(segment.length, workingText.length - i); len++) {
+              const substring = workingText.substring(i, i + len);
+              if (segment.includes(substring) && substring.length > bestMatch.length) {
+                bestMatch = substring;
+                bestMatchIndex = i;
+              }
+            }
+          }
+        }
+        
+        if (bestMatch && bestMatch.length >= minMatchLength) {
+          const wrappedSegment = `<span class="sentence-main" data-sentence-index="${segmentIndex}" data-sefaria-index="${index}">${bestMatch}</span>`;
+          workingText = workingText.substring(0, bestMatchIndex) + wrappedSegment + workingText.substring(bestMatchIndex + bestMatch.length);
+          segmentIndex++;
+          console.log(`🔍 Wrapped partial match ${index}: "${bestMatch.substring(0, 50)}..." (${bestMatch.length}/${segment.length} chars)`);
+        } else {
+          console.log(`❌ No match found for segment ${index}: "${segment.substring(0, 50)}..." (${segment.length} chars)`);
+        }
+      }
+    } else {
+      console.log(`⚠️ Skipping short segment ${index}: "${segment}" (${segment.length} chars)`);
+    }
+  });
+  
+  console.log(`✅ Segmentation complete: wrapped ${segmentIndex} segments`);
+  return workingText;
+}
+
 function mergeTexts(sefariaLines: string[], hebrewBooksText: string): MergeResult {
   // Use HebrewBooks as source of truth, Sefaria as supplemental
   if (!hebrewBooksText || hebrewBooksText.trim().length === 0) {
@@ -261,7 +467,7 @@ function mergeTexts(sefariaLines: string[], hebrewBooksText: string): MergeResul
   }
   
   // HebrewBooks is primary source
-  const hbString = processHebrew(hebrewBooksText);
+  const hbString = extractTalmudContent(hebrewBooksText);
   
   if (!sefariaLines || sefariaLines.length === 0) {
     // Only HebrewBooks data available
@@ -291,7 +497,7 @@ function mergeTexts(sefariaLines: string[], hebrewBooksText: string): MergeResul
   };
 }
 
-async function fetchHebrewBooks(mesechta: string, daf: string, options: any = {}) {
+async function fetchHebrewBooks(mesechta: string, daf: string, options: any = {}, fetchFn = fetch) {
   const searchParams = new URLSearchParams({
     mesechta,
     daf,
@@ -303,7 +509,7 @@ async function fetchHebrewBooks(mesechta: string, daf: string, options: any = {}
     const localUrl = `/api/hebrewbooks?${searchParams.toString()}`;
     console.log('Trying local HebrewBooks API:', localUrl);
     
-    const response = await fetch(localUrl);
+    const response = await fetchFn(localUrl);
     if (response.ok) {
       const data = await response.json();
       console.log('Local HebrewBooks API success:', data.source || 'success');
@@ -372,7 +578,7 @@ const TRACTATE_MAPPING: Record<string, string> = {
   '37': 'Niddah'
 };
 
-export const GET: RequestHandler = async ({ url }) => {
+export const GET: RequestHandler = async ({ url, fetch }) => {
   const mesechta = url.searchParams.get('mesechta');
   const daf = url.searchParams.get('daf');
   
@@ -406,19 +612,23 @@ export const GET: RequestHandler = async ({ url }) => {
   try {
     // Fetch from both sources in parallel
     const [hebrewBooksData, sefariaMain, sefariaRashi, sefariaTosafot] = await Promise.all([
-      fetchHebrewBooks(mesechta, daf, dafSupplierOptions),
+      fetchHebrewBooks(mesechta, daf, dafSupplierOptions, fetch),
       fetchSefaria(tractate, daf, 'main'),
       fetchSefaria(tractate, daf, 'rashi'), 
       fetchSefaria(tractate, daf, 'tosafot')
     ]);
     
+    // Filter Sefaria commentary to only include linked segments
+    const filteredSefariaRashi = filterLinkedCommentarySegments(sefariaRashi.hebrew, sefariaRashi.linking || {});
+    const filteredSefariaTosafot = filterLinkedCommentarySegments(sefariaTosafot.hebrew, sefariaTosafot.linking || {});
+    
     console.log('Data fetched, merging texts...');
     
-    // Merge the texts using HebrewBooks as source of truth, Sefaria as supplemental
+    // Merge the texts using HebrewBooks as source of truth, filtered Sefaria as supplemental
     const mainMerged = mergeTexts(sefariaMain.hebrew, hebrewBooksData.mainText || '');
       
-    const rashiMerged = mergeTexts(sefariaRashi.hebrew, hebrewBooksData.rashi || '');
-    const tosafotMerged = mergeTexts(sefariaTosafot.hebrew, hebrewBooksData.tosafot || '');
+    const rashiMerged = mergeTexts(filteredSefariaRashi, hebrewBooksData.rashi || '');
+    const tosafotMerged = mergeTexts(filteredSefariaTosafot, hebrewBooksData.tosafot || '');
     
     // Parse daf format
     let dafDisplay: string;
@@ -443,6 +653,13 @@ export const GET: RequestHandler = async ({ url }) => {
       rashi: rashiMerged.merged,
       tosafot: tosafotMerged.merged,
       
+      // Segmented HTML versions using Sefaria sentence divisions
+      segmented: {
+        mainText: createSegmentedMainText(hebrewBooksData.mainText || '', sefariaMain.hebrew),
+        rashi: createLinkedCommentary(sefariaRashi.hebrew, sefariaRashi.linking || {}, 'rashi'),
+        tosafot: createLinkedCommentary(sefariaTosafot.hebrew, sefariaTosafot.linking || {}, 'tosafot')
+      },
+      
       // Original sources for comparison
       sources: {
         hebrewBooks: {
@@ -452,8 +669,10 @@ export const GET: RequestHandler = async ({ url }) => {
         },
         sefaria: {
           mainText: sefariaMain.hebrew,
-          rashi: sefariaRashi.hebrew,
-          tosafot: sefariaTosafot.hebrew,
+          rashi: filteredSefariaRashi,
+          tosafot: filteredSefariaTosafot,
+          rashiOriginal: sefariaRashi.hebrew, // Keep original for comparison
+          tosafotOriginal: sefariaTosafot.hebrew, // Keep original for comparison
           english: {
             mainText: sefariaMain.english,
             rashi: sefariaRashi.english,
