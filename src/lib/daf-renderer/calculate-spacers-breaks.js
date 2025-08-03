@@ -10,8 +10,15 @@ function getLineInfo(text, font, fontSize, lineHeight, dummy) {
   const height = rect.height;
   const width = rect.width;
   const widthProportional = width / dummy.getBoundingClientRect().width;
+  
+  // Font-size aware metrics
+  const fontSizeNum = parseFloat(fontSize);
+  const lineHeightRatio = lineHeight / fontSizeNum;
+  const effectiveLineHeight = fontSizeNum * lineHeightRatio;
+  const minSpacerHeight = effectiveLineHeight; // Minimum spacer based on font metrics
+  
   testDiv.remove();
-  return {height, width, widthProportional};
+  return {height, width, widthProportional, fontSizeNum, lineHeightRatio, effectiveLineHeight, minSpacerHeight};
 }
 
 function heightAccumulator(font, fontSize, lineHeight, dummy) {
@@ -86,6 +93,97 @@ export function onlyOneCommentary(lines, options, dummy) {
     const second = lines.slice(breaks[1]);
     return [first, second];
   }
+}
+
+// Overlap detection functions
+function detectOverlaps(spacerHeights, lineHeights, sizes) {
+  const overlaps = [];
+  
+  // Track cumulative positions for each column
+  let positions = {
+    main: { start: spacerHeights.start, current: spacerHeights.start },
+    inner: { start: spacerHeights.start + spacerHeights.inner, current: spacerHeights.start + spacerHeights.inner },
+    outer: { start: spacerHeights.start + spacerHeights.outer, current: spacerHeights.start + spacerHeights.outer }
+  };
+  
+  // Check line by line for overlaps
+  const maxLines = Math.max(sizes.main.length, sizes.rashi.length, sizes.tosafot.length);
+  
+  for (let i = 0; i < maxLines; i++) {
+    const mainHeight = sizes.main[i]?.height || 0;
+    const innerHeight = sizes.rashi[i]?.height || 0;
+    const outerHeight = sizes.tosafot[i]?.height || 0;
+    
+    const mainBottom = positions.main.current + mainHeight;
+    const innerBottom = positions.inner.current + innerHeight;
+    const outerBottom = positions.outer.current + outerHeight;
+    
+    // Check main-inner overlap
+    if (innerHeight > 0 && mainHeight > 0) {
+      if (positions.inner.current < mainBottom && innerBottom > positions.main.current) {
+        const overlapAmount = Math.min(mainBottom, innerBottom) - Math.max(positions.main.current, positions.inner.current);
+        if (overlapAmount > 0) {
+          overlaps.push({
+            type: 'main-inner',
+            line: i,
+            overlap: overlapAmount,
+            mainPos: positions.main.current,
+            innerPos: positions.inner.current
+          });
+        }
+      }
+    }
+    
+    // Check main-outer overlap
+    if (outerHeight > 0 && mainHeight > 0) {
+      if (positions.outer.current < mainBottom && outerBottom > positions.main.current) {
+        const overlapAmount = Math.min(mainBottom, outerBottom) - Math.max(positions.main.current, positions.outer.current);
+        if (overlapAmount > 0) {
+          overlaps.push({
+            type: 'main-outer',
+            line: i,
+            overlap: overlapAmount,
+            mainPos: positions.main.current,
+            outerPos: positions.outer.current
+          });
+        }
+      }
+    }
+    
+    // Update positions
+    positions.main.current = mainBottom;
+    positions.inner.current = innerBottom;
+    positions.outer.current = outerBottom;
+  }
+  
+  return overlaps;
+}
+
+function resolveOverlaps(spacerHeights, overlaps, sizes, options) {
+  if (overlaps.length === 0) return spacerHeights;
+  
+  const resolved = { ...spacerHeights };
+  const safetyMargin = 5; // pixels
+  
+  // Get font metrics for minimum spacer heights
+  const minSpacerInner = sizes.rashi[0]?.minSpacerHeight || options.lineHeight.side;
+  const minSpacerOuter = sizes.tosafot[0]?.minSpacerHeight || options.lineHeight.side;
+  
+  // Sort overlaps by severity
+  overlaps.sort((a, b) => b.overlap - a.overlap);
+  
+  overlaps.forEach(({ type, overlap }) => {
+    if (type === 'main-inner') {
+      // Ensure spacer is at least the font size to prevent text cramping
+      const adjustment = Math.max(overlap + safetyMargin, minSpacerInner);
+      resolved.inner += adjustment;
+    } else if (type === 'main-outer') {
+      const adjustment = Math.max(overlap + safetyMargin, minSpacerOuter);
+      resolved.outer += adjustment;
+    }
+  });
+  
+  return resolved;
 }
 
 export function calculateSpacersBreaks(mainArray, rashiArray, tosafotArray, options, dummy) {
@@ -217,5 +315,31 @@ export function calculateSpacersBreaks(mainArray, rashiArray, tosafotArray, opti
       console.log("No Case Exception")
       break;
   }
+  
+  // Apply font-size aware minimum spacer heights
+  const minSpacerMain = sizes.main[0]?.minSpacerHeight || parsedOptions.lineHeight.main;
+  const minSpacerSide = sizes.rashi[0]?.minSpacerHeight || parsedOptions.lineHeight.side;
+  
+  // Ensure spacers are never smaller than one line height
+  spacerHeights.inner = Math.max(spacerHeights.inner, minSpacerSide);
+  spacerHeights.outer = Math.max(spacerHeights.outer, minSpacerSide);
+  
+  // Detect and resolve overlaps if enabled
+  if (options.detectOverlaps) {
+    const overlaps = detectOverlaps(spacerHeights, null, sizes);
+    
+    if (overlaps.length > 0) {
+      console.warn('Text overlaps detected:', overlaps);
+      
+      if (options.autoResolveOverlaps !== false) {
+        spacerHeights = resolveOverlaps(spacerHeights, overlaps, sizes, parsedOptions);
+        console.log('Overlaps resolved, new spacer heights:', spacerHeights);
+      }
+      
+      // Store overlap data for visualization
+      spacerHeights.overlaps = overlaps;
+    }
+  }
+  
   return spacerHeights;
 }

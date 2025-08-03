@@ -8,6 +8,18 @@ interface DiffResult {
   removed?: boolean;
 }
 
+interface MergeResult {
+  merged: string;
+  diffs: DiffResult[];
+  issues: any;
+  stats: {
+    agreements: number;
+    additions: number;
+    removals: number;
+    totalChars: number;
+  };
+}
+
 function diffChars(text1: string, text2: string): DiffResult[] {
   // Simple character-level diff implementation
   const diffs: DiffResult[] = [];
@@ -93,31 +105,120 @@ function diffsToString(diffs: DiffResult[]): string {
   return merged;
 }
 
-async function fetchSefaria(tractate: string, daf: string, type: 'main' | 'rashi' | 'tosafot') {
-  let sefariaUrl: string;
-  
-  // Convert daf format (HebrewBooks uses sequential numbers, Sefaria uses "2a", "2b" format)
-  // HebrewBooks: 2 = 2a, 3 = 2b, 4 = 3a, 5 = 3b, etc.
+async function fetchSefariaCommentary(tractate: string, daf: string, commentaryType: 'rashi' | 'tosafot') {
+  // Convert daf format - HebrewBooks appears to use page numbers directly
   const dafNum = parseInt(daf);
-  const pageNum = Math.floor((dafNum + 1) / 2);
-  const amud = dafNum % 2 === 0 ? 'a' : 'b';
+  const pageNum = dafNum;
+  const amud = 'a'; // Default to 'a' for now
   const sefariaRef = `${pageNum}${amud}`;
   
-  console.log(`Fetching Sefaria ${type} for ${tractate} ${sefariaRef}`);
-  
-  switch (type) {
-    case 'main':
-      sefariaUrl = `https://www.sefaria.org/api/texts/${tractate}.${sefariaRef}?vhe=William_Davidson_Edition_-_Aramaic`;
-      break;
-    case 'rashi':
-      sefariaUrl = `https://www.sefaria.org/api/texts/Rashi_on_${tractate}.${sefariaRef}?vhe=primary`;
-      break;
-    case 'tosafot':
-      sefariaUrl = `https://www.sefaria.org/api/texts/Tosafot_on_${tractate}.${sefariaRef}?vhe=primary`;
-      break;
-  }
+  const commentaryName = commentaryType === 'rashi' ? 'Rashi' : 'Tosafot';
   
   try {
+    // First, get the main text to understand the structure
+    const mainRef = `${tractate}.${sefariaRef}`;
+    const relatedUrl = `https://www.sefaria.org/api/related/${mainRef}`;
+    
+    console.log(`Fetching related texts for ${mainRef} to find all ${commentaryName} segments`);
+    
+    const relatedResponse = await fetch(relatedUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; TalmudMerged/1.0)',
+      }
+    });
+    
+    if (!relatedResponse.ok) {
+      console.log(`Related API error:`, relatedResponse.status);
+      return { hebrew: [], english: [] };
+    }
+    
+    const relatedData = await relatedResponse.json();
+    
+    // Find all commentary links for this type
+    const commentaryLinks = relatedData.links?.filter((link: any) => 
+      link.index_title === `${commentaryName} on ${tractate}` && 
+      link.type === 'commentary'
+    ) || [];
+    
+    console.log(`Found ${commentaryLinks.length} ${commentaryName} links for ${mainRef}`);
+    
+    // Fetch all commentary segments
+    const allSegments = await Promise.all(
+      commentaryLinks.map(async (link: any) => {
+        try {
+          const url = `https://www.sefaria.org/api/texts/${link.ref}`;
+          const resp = await fetch(url, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (compatible; TalmudMerged/1.0)',
+            }
+          });
+          
+          if (!resp.ok) return { hebrew: [], english: [] };
+          
+          const data = await resp.json();
+          
+          // Extract Hebrew text
+          let hebrew = [];
+          if (data.he) {
+            if (typeof data.he === 'string') {
+              hebrew = [data.he];
+            } else if (Array.isArray(data.he)) {
+              hebrew = data.he.flat(2).filter((s: any) => s && typeof s === 'string');
+            }
+          }
+          
+          // Extract English text
+          let english = [];
+          if (data.text) {
+            if (typeof data.text === 'string') {
+              english = [data.text];
+            } else if (Array.isArray(data.text)) {
+              english = data.text.flat(2).filter((s: any) => s && typeof s === 'string');
+            }
+          }
+          
+          return { hebrew, english };
+        } catch (error) {
+          console.error(`Failed to fetch ${link.ref}:`, error);
+          return { hebrew: [], english: [] };
+        }
+      })
+    );
+    
+    // Combine all segments
+    const allHebrew = allSegments.flatMap(s => s.hebrew);
+    const allEnglish = allSegments.flatMap(s => s.english);
+    
+    console.log(`Total ${commentaryName} segments: ${allHebrew.length} Hebrew, ${allEnglish.length} English`);
+    
+    return {
+      hebrew: allHebrew,
+      english: allEnglish
+    };
+    
+  } catch (error) {
+    console.error(`Failed to fetch ${commentaryName} commentary:`, error);
+    return { hebrew: [], english: [] };
+  }
+}
+
+async function fetchSefaria(tractate: string, daf: string, type: 'main' | 'rashi' | 'tosafot') {
+  if (type === 'rashi' || type === 'tosafot') {
+    return fetchSefariaCommentary(tractate, daf, type);
+  }
+  
+  // Main text fetching remains the same
+  const dafNum = parseInt(daf);
+  const pageNum = dafNum;
+  const amud = 'a'; // Default to 'a' for now
+  const sefariaRef = `${pageNum}${amud}`;
+  
+  console.log(`Fetching Sefaria main text for ${tractate} ${sefariaRef}`);
+  
+  const sefariaUrl = `https://www.sefaria.org/api/texts/${tractate}.${sefariaRef}?vhe=William_Davidson_Edition_-_Aramaic`;
+  
+  try {
+    console.log(`Fetching from Sefaria: ${sefariaUrl}`);
     const response = await fetch(sefariaUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; TalmudMerged/1.0)',
@@ -125,22 +226,49 @@ async function fetchSefaria(tractate: string, daf: string, type: 'main' | 'rashi
     });
     
     if (!response.ok) {
-      console.log(`Sefaria API error for ${type}:`, response.status);
+      console.log(`Sefaria API error for main text:`, response.status);
       return { hebrew: [], english: [] };
     }
     
     const data = await response.json();
+    console.log(`Sefaria main text response:`, {
+      ref: data.ref,
+      heLength: data.he?.length,
+      textLength: data.text?.length,
+      heTitle: data.heTitle
+    });
+    
+    // Handle both array and nested array structures
+    let hebrewText = [];
+    if (data.he) {
+      if (Array.isArray(data.he) && data.he.length > 0) {
+        // Check if it's a simple array (like main text)
+        if (typeof data.he[0] === 'string') {
+          hebrewText = data.he.filter((str: any) => str && typeof str === 'string' && str.length > 0);
+        } 
+        // Check if it's an array of arrays (like commentary with daf structure)
+        else if (Array.isArray(data.he[0])) {
+          // For commentary, flatten all levels and filter out empty values
+          hebrewText = data.he
+            .flat(2) // Flatten twice to handle [daf][line][subsection] structure
+            .filter((str: any) => str && typeof str === 'string' && str.length > 0);
+        }
+      }
+    }
+    
+    console.log(`Processed main text: ${hebrewText.length} segments`);
+    
     return {
-      hebrew: (data.he || []).filter((arr: any) => arr && arr.length).flat().filter((str: string) => str && str.length),
+      hebrew: hebrewText,
       english: data.text || []
     };
   } catch (error) {
-    console.error(`Failed to fetch Sefaria ${type}:`, error);
+    console.error(`Failed to fetch Sefaria main text:`, error);
     return { hebrew: [], english: [] };
   }
 }
 
-function mergeTexts(sefariaLines: string[], hebrewBooksText: string): { merged: string; issues: any } {
+function mergeTexts(sefariaLines: string[], hebrewBooksText: string): MergeResult {
   const sentenceSep = '|';
   
   // Process Sefaria text
@@ -158,9 +286,32 @@ function mergeTexts(sefariaLines: string[], hebrewBooksText: string): { merged: 
   const diffs = diffChars(sefariaString, hbString);
   const merged = diffsToString(diffs);
   
+  // Calculate statistics
+  const stats = {
+    agreements: 0,
+    additions: 0,
+    removals: 0,
+    totalChars: 0
+  };
+  
+  diffs.forEach(diff => {
+    const charCount = diff.value.length;
+    stats.totalChars += charCount;
+    
+    if (diff.added) {
+      stats.additions += charCount;
+    } else if (diff.removed) {
+      stats.removals += charCount;
+    } else {
+      stats.agreements += charCount;
+    }
+  });
+  
   return {
     merged: merged.replaceAll(`${sentenceSep}.`, `.${sentenceSep}`),
-    issues: { sefaria: [], hb: [] } // Simplified for now
+    diffs,
+    issues: { sefaria: [], hb: [] }, // Simplified for now
+    stats
   };
 }
 
@@ -290,19 +441,34 @@ export const GET: RequestHandler = async ({ url }) => {
     // Merge the texts using diff algorithm
     const mainMerged = sefariaMain.hebrew.length > 0 
       ? mergeTexts(sefariaMain.hebrew, hebrewBooksData.mainText || '') 
-      : { merged: hebrewBooksData.mainText || '', issues: { sefaria: [], hb: [] } };
+      : { 
+          merged: hebrewBooksData.mainText || '', 
+          diffs: [], 
+          issues: { sefaria: [], hb: [] },
+          stats: { agreements: 0, additions: 0, removals: 0, totalChars: 0 }
+        };
       
     const rashiMerged = sefariaRashi.hebrew.length > 0 
       ? mergeTexts(sefariaRashi.hebrew, hebrewBooksData.rashi || '') 
-      : { merged: hebrewBooksData.rashi || '', issues: { sefaria: [], hb: [] } };
+      : { 
+          merged: hebrewBooksData.rashi || '', 
+          diffs: [], 
+          issues: { sefaria: [], hb: [] },
+          stats: { agreements: 0, additions: 0, removals: 0, totalChars: 0 }
+        };
       
     const tosafotMerged = sefariaTosafot.hebrew.length > 0 
       ? mergeTexts(sefariaTosafot.hebrew, hebrewBooksData.tosafot || '') 
-      : { merged: hebrewBooksData.tosafot || '', issues: { sefaria: [], hb: [] } };
+      : { 
+          merged: hebrewBooksData.tosafot || '', 
+          diffs: [], 
+          issues: { sefaria: [], hb: [] },
+          stats: { agreements: 0, additions: 0, removals: 0, totalChars: 0 }
+        };
     
     const dafNum = parseInt(daf);
-    const pageNum = Math.floor((dafNum + 1) / 2);
-    const amud = dafNum % 2 === 0 ? 'a' : 'b';
+    const pageNum = dafNum;
+    const amud = 'a'; // Default to 'a' for now
     
     const response = {
       mesechta: parseInt(mesechta),
@@ -340,6 +506,20 @@ export const GET: RequestHandler = async ({ url }) => {
         main: mainMerged.issues,
         rashi: rashiMerged.issues,
         tosafot: tosafotMerged.issues
+      },
+      
+      // Diff data for visualization
+      diffs: {
+        main: mainMerged.diffs,
+        rashi: rashiMerged.diffs,
+        tosafot: tosafotMerged.diffs
+      },
+      
+      // Merge statistics
+      mergeStats: {
+        main: mainMerged.stats,
+        rashi: rashiMerged.stats,
+        tosafot: tosafotMerged.stats
       },
       
       timestamp: Date.now(),
