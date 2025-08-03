@@ -35,10 +35,10 @@
   let showDebugInfo = true;
   let showOverlapIndicators = true;
   
-  // Sample texts with line breaks
-  let mainText = `גמרא line 1<br>גמרא line 2 עם טקסט ארוך יותר<br>גמרא line 3<br>גמרא line 4 קצר<br>גמרא line 5 עם עוד טקסט`;
-  let rashiText = `רש״י commentary 1<br>רש״י commentary 2 עם הסבר מפורט<br>רש״י commentary 3`;
-  let tosafotText = `תוספות commentary line 1<br>תוספות line 2<br>תוספות line 3 עם הרחבה<br>תוספות line 4`;
+  // Sample texts with line breaks - using Lorem Ipsum
+  let mainText = `Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.<br>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.<br>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.<br>Fugiat nulla pariatur excepteur sint occaecat cupidatat non proident.<br>Sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Curabitur pretium tincidunt lacus nulla gravida orci a odio sit amet.`;
+  let rashiText = `Consectetur adipiscing elit, sed do eiusmod tempor incididunt.<br>Ut labore et dolore magna aliqua ut enim ad minim veniam.<br>Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea.<br>Commodo consequat duis aute irure dolor in reprehenderit.<br>In voluptate velit esse cillum dolore eu fugiat nulla pariatur.`;
+  let tosafotText = `Sed ut perspiciatis unde omnis iste natus error sit voluptatem.<br>Accusantium doloremque laudantium, totam rem aperiam eaque ipsa.<br>Quae ab illo inventore veritatis et quasi architecto beatae vitae.<br>Dicta sunt explicabo nemo enim ipsam voluptatem quia voluptas.<br>Sit aspernatur aut odit aut fugit, sed quia consequuntur magni.`;
   
   let spacerInfo = null;
   let overlapInfo = null;
@@ -54,6 +54,20 @@
     stairs: { mesechta: '27', daf: '46', name: 'Nedarim 46 (Stairs)' },
     doubleWrap: { mesechta: '27', daf: '76', name: 'Nedarim 76 (Double Wrap)' },
     doubleExtend: { mesechta: '27', daf: '8', name: 'Nedarim 8b (Double Extend)' }
+  };
+  
+  // Edge case examples
+  const edgeCases = {
+    noRashi: {
+      main: `Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Maecenas ut metus magna quisque non ligula at purus hendrerit.<br>Venenatis non in justo sed vel nunc elit proin sed sodales.<br>Purus id fringilla justo quisque sed dignissim ante morbi.<br>Dictum quam ut magna tincidunt eu sollicitudin urna fermentum.<br>Nulla interdum augue id nunc pellentesque ac tincidunt felis.<br>Volutpat etiam in libero id nisi pretium imperdiet sit amet.<br>Donec rutrum lacinia mi at volutpat mauris blandit porta nulla.<br>Facilisi pellentesque habitant morbi tristique senectus et netus.<br>Malesuada fames ac turpis egestas vestibulum ante ipsum primis.`,
+      rashi: '',
+      tosafot: `Sed ut perspiciatis unde omnis iste natus error sit voluptatem.<br>Accusantium doloremque laudantium, totam rem aperiam eaque ipsa.<br>Quae ab illo inventore veritatis et quasi architecto beatae vitae.`
+    },
+    noTosafot: {
+      main: `Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.<br>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.<br>Duis aute irure dolor in reprehenderit in voluptate velit esse.<br>Cillum dolore eu fugiat nulla pariatur excepteur sint occaecat.<br>Cupidatat non proident sunt in culpa qui officia deserunt mollit.<br>Anim id est laborum curabitur pretium tincidunt lacus nulla.<br>Gravida orci a odio sit amet est ultricies integer quis auctor.<br>Elit sed vulputate mi sit amet mauris commodo quis imperdiet.<br>Massa sed elementum tempus egestas sed sed risus pretium quam.`,
+      rashi: `Consectetur adipiscing elit, sed do eiusmod tempor incididunt.<br>Ut labore et dolore magna aliqua ut enim ad minim veniam.<br>Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea.`,
+      tosafot: ''
+    }
   };
   
   async function fetchFromDafSupplier() {
@@ -104,6 +118,16 @@
     mesechta = example.mesechta;
     daf = example.daf;
     fetchFromDafSupplier();
+  }
+  
+  function loadEdgeCase(caseName) {
+    const edgeCase = edgeCases[caseName];
+    if (edgeCase) {
+      mainText = edgeCase.main;
+      rashiText = edgeCase.rashi;
+      tosafotText = edgeCase.tosafot;
+      renderDaf();
+    }
   }
   
   
@@ -286,6 +310,12 @@
   }
   
   .real-examples {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  
+  .edge-cases {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
@@ -533,6 +563,14 @@
         <button on:click={fetchFromDafSupplier} disabled={fetchingText}>
           {fetchingText ? 'Fetching...' : 'Fetch from HebrewBooks'}
         </button>
+      </div>
+    </div>
+    
+    <div class="control-group">
+      <label>Edge Cases</label>
+      <div class="edge-cases">
+        <button on:click={() => loadEdgeCase('noRashi')}>No Rashi</button>
+        <button on:click={() => loadEdgeCase('noTosafot')}>No Tosafot</button>
       </div>
     </div>
     
