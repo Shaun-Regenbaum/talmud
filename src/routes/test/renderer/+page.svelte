@@ -34,11 +34,12 @@
   let autoResolveOverlaps = true;
   let showDebugInfo = true;
   let showOverlapIndicators = true;
+  let useLineBreakMode = true; // Tell daf-renderer about <br> tags
   
   // Sample texts with line breaks - using Lorem Ipsum
-  let mainText = `Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.<br>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.<br>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.<br>Fugiat nulla pariatur excepteur sint occaecat cupidatat non proident.<br>Sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Curabitur pretium tincidunt lacus nulla gravida orci a odio sit amet.`;
-  let rashiText = `Consectetur adipiscing elit, sed do eiusmod tempor incididunt.<br>Ut labore et dolore magna aliqua ut enim ad minim veniam.<br>Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea.<br>Commodo consequat duis aute irure dolor in reprehenderit.<br>In voluptate velit esse cillum dolore eu fugiat nulla pariatur.`;
-  let tosafotText = `Sed ut perspiciatis unde omnis iste natus error sit voluptatem.<br>Accusantium doloremque laudantium, totam rem aperiam eaque ipsa.<br>Quae ab illo inventore veritatis et quasi architecto beatae vitae.<br>Dicta sunt explicabo nemo enim ipsam voluptatem quia voluptas.<br>Sit aspernatur aut odit aut fugit, sed quia consequuntur magni.`;
+  let mainText = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.<br>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.<br>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.<br>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.<br>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.<br>Totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.<br>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores.<br>Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit.<br>Sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.<br>Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam.<br>Nisi ut aliquid ex ea commodi consequatur quis autem vel eum iure reprehenderit qui in ea voluptate.<br>Velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur.`;
+  let rashiText = `At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti.<br>Atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.<br>Similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga.<br>Et harum quidem rerum facilis est et expedita distinctio nam libero tempore cum soluta nobis.<br>Est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus.<br>Omnis voluptas assumenda est, omnis dolor repellendus temporibus autem quibusdam et aut officiis.<br>Debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae.<br>Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias.<br>Consequatur aut perferendis doloribus asperiores repellat nam libero tempore cum soluta nobis est.`;
+  let tosafotText = `Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime.<br>Placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus temporibus autem.<br>Quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae.<br>Sint et molestiae non recusandae itaque earum rerum hic tenetur a sapiente delectus ut aut reiciendis.<br>Voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat sed ut perspiciatis.<br>Unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem aperiam.<br>Eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.<br>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit sed quia consequuntur.<br>Magni dolores eos qui ratione voluptatem sequi nesciunt neque porro quisquam est qui dolorem ipsum.`;
   
   let spacerInfo = null;
   let overlapInfo = null;
@@ -178,7 +179,7 @@
         rashiText,
         tosafotText,
         "a",
-        "br", // Use line break mode
+        useLineBreakMode ? "br" : "", // Pass "br" only if line break mode is enabled
         () => {
           renderTime = performance.now() - startTime;
           console.log('Render complete in', renderTime, 'ms');
@@ -525,6 +526,10 @@
     <div class="control-group">
       <label>Debug Options</label>
       <div class="checkbox-group">
+        <label>
+          <input type="checkbox" bind:checked={useLineBreakMode}>
+          Line Break Mode (notify renderer of &lt;br&gt; tags)
+        </label>
         <label>
           <input type="checkbox" bind:checked={detectOverlaps}>
           Detect Overlaps
