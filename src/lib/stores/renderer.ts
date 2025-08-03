@@ -1,5 +1,6 @@
 import { writable, get } from 'svelte/store';
 import dafRenderer from '$lib/daf-renderer/index.js';
+import { defaultOptions } from '$lib/daf-renderer/options.js';
 
 interface RendererState {
 	renderer: any | null;
@@ -28,43 +29,20 @@ function createRendererStore() {
 			}
 
 			try {
-				console.log('Initializing daf-renderer');
+				console.log('Initializing daf-renderer with default options');
 				
-				const renderer = dafRenderer(container, {
-					contentWidth: "650px",
-					fontSize: {
-						main: "16px",
-						side: "10.5px"
-					},
-					lineHeight: {
-						main: "16px",
-						side: "12px" 
-					},
-					padding: {
-						horizontal: "8px",
-						vertical: "10px"
-					},
-					mainWidth: "42%",
-					fontFamily: {
-						main: "Times New Roman, serif",
-						inner: "Times New Roman, serif", 
-						outer: "Times New Roman, serif"
-					},
-					direction: "rtl",
-					halfway: "50%"
-					// Removed lineBreaks: "br" since we're not using <br> tags
-				});
+				const renderer = dafRenderer(container, defaultOptions);
 
 				// Immediately check if we can set CSS variables
 				const rootDiv = container.querySelector('.dafRoot') as HTMLElement;
 				if (rootDiv) {
 					console.log('Found dafRoot immediately after init');
-					// Set critical CSS variables (only the ones we explicitly configured)
-					rootDiv.style.setProperty('--contentWidth', '650px');
-					rootDiv.style.setProperty('--fontSize-side', '10.5px');
-					rootDiv.style.setProperty('--lineHeight-main', '16px');
-					rootDiv.style.setProperty('--mainWidth', '42%');
-					rootDiv.style.setProperty('--padding-vertical', '10px');
+					// Set critical CSS variables using default options
+					rootDiv.style.setProperty('--contentWidth', defaultOptions.contentWidth);
+					rootDiv.style.setProperty('--fontSize-side', defaultOptions.fontSize.side);
+					rootDiv.style.setProperty('--lineHeight-main', defaultOptions.lineHeight.main);
+					rootDiv.style.setProperty('--mainWidth', defaultOptions.mainWidth);
+					rootDiv.style.setProperty('--padding-vertical', defaultOptions.padding.vertical);
 				} else {
 					console.warn('dafRoot not found immediately after init');
 				}
@@ -84,7 +62,7 @@ function createRendererStore() {
 		},
 
 		// Render content
-		render(mainText: string, rashiText: string, tosafotText: string, pageLabel: string) {
+		render(mainText: string, rashiText: string, tosafotText: string, pageLabel: string, lineBreakMode: boolean = false) {
 			const state = get(this);
 			
 			if (!state.renderer || !state.isInitialized) {
@@ -93,7 +71,7 @@ function createRendererStore() {
 			}
 
 			try {
-				console.log('Rendering content, page label:', pageLabel);
+				console.log('Rendering content, page label:', pageLabel, 'lineBreakMode:', lineBreakMode);
 				console.log('Text lengths:', {
 					main: mainText.length,
 					rashi: rashiText.length,
@@ -112,13 +90,13 @@ function createRendererStore() {
 				// Determine amud from pageLabel (e.g. "31a" -> "a", "31b" -> "b")
 				const amud = pageLabel.slice(-1) === 'b' ? 'b' : 'a';
 				
-				// Use linebreak splitting for main text since we have <br> tags
+				// Pass lineBreakMode to renderer
 				state.renderer.render(
 					mainText, 
 					rashiText, 
 					tosafotText, 
 					amud, 
-					"br", // Use <br> linebreak splitting
+					lineBreakMode ? '<br>' : undefined, // Pass '<br>' for line break mode, undefined for traditional
 					() => console.log('Renderer: rendered callback'), // rendered callback
 					() => console.log('Renderer: resized callback')   // resized callback
 				);
@@ -152,26 +130,23 @@ function createRendererStore() {
 							rootDiv.style.setProperty(name, value, 'important');
 						};
 						
-						setVarForce('--fontSize-main', '16px');
-						setVarForce('--fontSize-side', '10.5px');
-						setVarForce('--lineHeight-main', '18px');
-						setVarForce('--lineHeight-side', '12px');
-						setVarForce('--contentWidth', '650px');
-						setVarForce('--mainWidth', '42%');
-						setVarForce('--mainMargin-start', '42%');
-						setVarForce('--sidePercent', '29%');
-						setVarForce('--remainderPercent', '71%');
-						setVarForce('--halfway', '50%');
-						setVarForce('--padding-horizontal', '8px');
-						setVarForce('--padding-vertical', '8px');
-						setVarForce('--direction', 'rtl');
+						setVarForce('--fontSize-main', defaultOptions.fontSize.main);
+						setVarForce('--fontSize-side', defaultOptions.fontSize.side);
+						setVarForce('--lineHeight-main', defaultOptions.lineHeight.main);
+						setVarForce('--lineHeight-side', defaultOptions.lineHeight.side);
+						setVarForce('--contentWidth', defaultOptions.contentWidth);
+						setVarForce('--mainWidth', defaultOptions.mainWidth);
+						setVarForce('--halfway', defaultOptions.halfway);
+						setVarForce('--padding-horizontal', defaultOptions.padding.horizontal);
+						setVarForce('--padding-vertical', defaultOptions.padding.vertical);
+						setVarForce('--direction', defaultOptions.direction);
 						
-						// Force font families
-						setVarForce('--fontFamily-main', 'Vilna, serif');
-						setVarForce('--fontFamily-inner', 'Rashi, serif');
-						setVarForce('--fontFamily-outer', 'Tosafot, serif');
+						// Force font families using default options
+						setVarForce('--fontFamily-main', defaultOptions.fontFamily.main);
+						setVarForce('--fontFamily-inner', defaultOptions.fontFamily.inner);
+						setVarForce('--fontFamily-outer', defaultOptions.fontFamily.outer);
 						
-						console.log('Applied forced CSS variables');
+						console.log('Applied forced CSS variables using default options');
 					}
 				};
 				
@@ -203,12 +178,12 @@ function createRendererStore() {
 							rootDiv.style.setProperty('--spacerHeights-end', spacerHeights.end + 'px');
 						}
 						
-						// Ensure base variables are still set
-						rootDiv.style.setProperty('--contentWidth', '650px');
-						rootDiv.style.setProperty('--fontSize-side', '10.5px');
-						rootDiv.style.setProperty('--lineHeight-main', '16px');
-						rootDiv.style.setProperty('--mainWidth', '42%');
-						rootDiv.style.setProperty('--padding-vertical', '10px');
+						// Ensure base variables are still set using default options
+						rootDiv.style.setProperty('--contentWidth', defaultOptions.contentWidth);
+						rootDiv.style.setProperty('--fontSize-side', defaultOptions.fontSize.side);
+						rootDiv.style.setProperty('--lineHeight-main', defaultOptions.lineHeight.main);
+						rootDiv.style.setProperty('--mainWidth', defaultOptions.mainWidth);
+						rootDiv.style.setProperty('--padding-vertical', defaultOptions.padding.vertical);
 					}
 				}, 50);
 				

@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import DiffViewer from '$lib/components/DiffViewer.svelte';
   import LinkedTextViewer from '$lib/components/LinkedTextViewer.svelte';
+  import SegmentedTextViewer from '$lib/components/SegmentedTextViewer.svelte';
   
   let loading = false;
   let results = null;
@@ -23,6 +24,7 @@
   let showDiffView = true;
   let showRawMerged = false;
   let showLinkedView = false;
+  let showSegmentedView = false;
   
   // Collapsible sections
   let showDafSupplierSettings = false;
@@ -319,8 +321,16 @@
               <h4 class="font-medium text-gray-700 mb-2">Data Summary</h4>
               <ul class="space-y-1 text-sm text-gray-600">
                 <li>Main Text: {results.sources.sefaria.mainText?.length || 0} segments ({results.sources.sefaria.mainText ? results.sources.sefaria.mainText.join(' ').length : 0} chars)</li>
-                <li>Rashi: {results.sources.sefaria.rashi?.length || 0} segments ({results.sources.sefaria.rashi ? results.sources.sefaria.rashi.join(' ').length : 0} chars)</li>
-                <li>Tosafot: {results.sources.sefaria.tosafot?.length || 0} segments ({results.sources.sefaria.tosafot ? results.sources.sefaria.tosafot.join(' ').length : 0} chars)</li>
+                <li>Rashi: {results.sources.sefaria.rashi?.length || 0} linked segments 
+                  {#if results.sources.sefaria.rashiOriginal}
+                    <span class="text-blue-600">(filtered from {results.sources.sefaria.rashiOriginal.length} total)</span>
+                  {/if}
+                </li>
+                <li>Tosafot: {results.sources.sefaria.tosafot?.length || 0} linked segments 
+                  {#if results.sources.sefaria.tosafotOriginal}
+                    <span class="text-blue-600">(filtered from {results.sources.sefaria.tosafotOriginal.length} total)</span>
+                  {/if}
+                </li>
               </ul>
             </div>
             
@@ -381,22 +391,28 @@
       <!-- View Toggle -->
       <div class="flex gap-2 mb-6">
         <button 
-          on:click={() => { showDiffView = true; showRawMerged = false; showLinkedView = false; }}
+          on:click={() => { showDiffView = true; showRawMerged = false; showLinkedView = false; showSegmentedView = false; }}
           class="px-4 py-2 rounded-md transition-colors {showDiffView ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}"
         >
           Diff View
         </button>
         <button 
-          on:click={() => { showDiffView = false; showRawMerged = true; showLinkedView = false; }}
+          on:click={() => { showDiffView = false; showRawMerged = true; showLinkedView = false; showSegmentedView = false; }}
           class="px-4 py-2 rounded-md transition-colors {showRawMerged ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}"
         >
           Merged Text
         </button>
         <button 
-          on:click={() => { showDiffView = false; showRawMerged = false; showLinkedView = true; }}
+          on:click={() => { showDiffView = false; showRawMerged = false; showLinkedView = true; showSegmentedView = false; }}
           class="px-4 py-2 rounded-md transition-colors {showLinkedView ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}"
         >
           Interactive Links
+        </button>
+        <button 
+          on:click={() => { showDiffView = false; showRawMerged = false; showLinkedView = false; showSegmentedView = true; }}
+          class="px-4 py-2 rounded-md transition-colors {showSegmentedView ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}"
+        >
+          Segmented HTML
         </button>
       </div>
       
@@ -461,6 +477,19 @@
           dafRef={`${results.dafDisplay}${results.amud}`}
         />
       {/if}
+      
+      <!-- Segmented HTML View -->
+      {#if showSegmentedView}
+        <SegmentedTextViewer 
+          segmentedMainText={results.sources.sefaria.mainText || []}
+          segmentedRashi={results.segmented?.rashi || ''}
+          segmentedTosafot={results.segmented?.tosafot || ''}
+          rashiLinking={results.sources.sefaria.linking?.rashi || {}}
+          tosafotLinking={results.sources.sefaria.linking?.tosafot || {}}
+          tractate={results.tractate}
+          dafRef={`${results.dafDisplay}${results.amud}`}
+        />
+      {/if}
     </div>
   {/if}
   
@@ -496,3 +525,54 @@
     </details>
   {/if}
 </div>
+
+<style>
+  /* Styling for segmented spans */
+  :global(.sentence-main) {
+    background-color: #DBEAFE;
+    border: 1px solid #BFDBFE;
+    border-radius: 4px;
+    padding: 2px 4px;
+    margin: 1px;
+    display: inline-block;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  :global(.sentence-main:hover) {
+    background-color: #BFDBFE;
+    border-color: #93C5FD;
+  }
+  
+  :global(.sentence-rashi) {
+    background-color: #FEE2E2;
+    border: 1px solid #FECACA;
+    border-radius: 4px;
+    padding: 2px 4px;
+    margin: 1px;
+    display: inline-block;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  :global(.sentence-rashi:hover) {
+    background-color: #FECACA;
+    border-color: #FCA5A5;
+  }
+  
+  :global(.sentence-tosafot) {
+    background-color: #D1FAE5;
+    border: 1px solid #A7F3D0;
+    border-radius: 4px;
+    padding: 2px 4px;
+    margin: 1px;
+    display: inline-block;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  :global(.sentence-tosafot:hover) {
+    background-color: #A7F3D0;
+    border-color: #6EE7B7;
+  }
+</style>

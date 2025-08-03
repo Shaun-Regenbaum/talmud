@@ -21,9 +21,7 @@ const defaultOptions = {
   lineHeight: {
     main: "17px",
     side: "14px",
-  },
-  detectOverlaps: false,
-  autoResolveOverlaps: false
+  }
 }
 
 function mergeAndClone (modified, definitional = defaultOptions) {
