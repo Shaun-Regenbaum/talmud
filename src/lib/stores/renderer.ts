@@ -1,5 +1,6 @@
 import { writable, get } from 'svelte/store';
 import dafRenderer from '$lib/daf-renderer/index.js';
+import { defaultOptions } from '$lib/daf-renderer/options.js';
 
 interface RendererState {
 	renderer: any | null;
@@ -30,52 +31,17 @@ function createRendererStore() {
 			try {
 				console.log('Initializing daf-renderer');
 				
-				const renderer = dafRenderer(container, {
-					padding: { 
-						vertical: "25px",
-						horizontal: "25px"
-					},
-					fontFamily: {
-						inner: "Rashi", 
-						outer: "Rashi", 
-						main: "Vilna"
-					},
-					fontSize: {
-						main: "20px",
-						side: "14px"
-					},
-					lineHeight: {
-						main: "26px",
-						side: "20px"
-					},
-					mainWidth: "52%",
-					contentWidth: "900px",
-					innerPadding: "8px",
-					outerPadding: "8px",
-					direction: "rtl",
-					halfway: "50%"
-				});
+				const renderer = dafRenderer(container, defaultOptions);
 
 				// Immediately check if we can set CSS variables
 				const rootDiv = container.querySelector('.dafRoot') as HTMLElement;
 				if (rootDiv) {
-					console.log('Found dafRoot immediately after init');
-					// Set all critical CSS variables
-					rootDiv.style.setProperty('--contentWidth', '900px');
-					rootDiv.style.setProperty('--fontSize-main', '20px');
-					rootDiv.style.setProperty('--fontSize-side', '14px');
-					rootDiv.style.setProperty('--lineHeight-main', '26px');
-					rootDiv.style.setProperty('--lineHeight-side', '20px');
-					rootDiv.style.setProperty('--mainWidth', '52%');
-					rootDiv.style.setProperty('--padding-horizontal', '25px');
-					rootDiv.style.setProperty('--padding-vertical', '25px');
-					rootDiv.style.setProperty('--direction', 'rtl');
-					rootDiv.style.setProperty('--halfway', '50%');
-					rootDiv.style.setProperty('--sidePercent', '24%');
-					rootDiv.style.setProperty('--remainderPercent', '76%');
-					rootDiv.style.setProperty('--mainMargin-start', '52%');
-				} else {
-					console.warn('dafRoot not found immediately after init');
+					// Set critical CSS variables using default options
+					rootDiv.style.setProperty('--contentWidth', defaultOptions.contentWidth);
+					rootDiv.style.setProperty('--fontSize-side', defaultOptions.fontSize.side);
+					rootDiv.style.setProperty('--lineHeight-main', defaultOptions.lineHeight.main);
+					rootDiv.style.setProperty('--mainWidth', defaultOptions.mainWidth);
+					rootDiv.style.setProperty('--padding-vertical', defaultOptions.padding.vertical);
 				}
 
 				set({
@@ -84,7 +50,6 @@ function createRendererStore() {
 					isInitialized: true
 				});
 
-				console.log('Renderer initialized successfully');
 				return renderer;
 			} catch (error) {
 				console.error('Failed to initialize renderer:', error);
@@ -93,7 +58,7 @@ function createRendererStore() {
 		},
 
 		// Render content
-		render(mainText: string, rashiText: string, tosafotText: string, pageLabel: string) {
+		render(mainText: string, rashiText: string, tosafotText: string, pageLabel: string, lineBreakMode: boolean = false) {
 			const state = get(this);
 			
 			if (!state.renderer || !state.isInitialized) {
@@ -102,14 +67,82 @@ function createRendererStore() {
 			}
 
 			try {
-				console.log('Rendering content, page label:', pageLabel);
-				console.log('Text lengths:', {
-					main: mainText.length,
-					rashi: rashiText.length,
-					tosafot: tosafotText.length
-				});
 				
-				state.renderer.render(mainText, rashiText, tosafotText, pageLabel);
+				// Determine amud from pageLabel (e.g. "31a" -> "a", "31b" -> "b")
+				const amud = pageLabel.slice(-1) === 'b' ? 'b' : 'a';
+				
+				// Pass lineBreakMode to renderer
+				state.renderer.render(
+					mainText, 
+					rashiText, 
+					tosafotText, 
+					amud, 
+					lineBreakMode ? '<br>' : undefined, // Pass '<br>' for line break mode, undefined for traditional
+					() => {}, // rendered callback
+					() => {}  // resized callback
+				);
+				
+				// Monitor for layout breakage
+				const checkText = () => {
+					const mainSpan = state.container?.querySelector('.main .text span');
+					const mainDiv = state.container?.querySelector('.main');
+					
+					if (mainSpan) {
+						const spanStyles = window.getComputedStyle(mainSpan);
+						const divStyles = window.getComputedStyle(mainDiv);
+						
+						if (spanStyles.fontSize === '0px' || divStyles.width === '0px') {
+							console.error('LAYOUT BROKEN DETECTED!', {
+								fontSize: spanStyles.fontSize,
+								divWidth: divStyles.width,
+								timestamp: new Date().toISOString()
+							});
+							fixFontSize();
+						}
+					}
+				};
+				
+				// Monitor and fix font size issues
+				const fixFontSize = () => {
+					const rootDiv = state.container?.querySelector('.dafRoot') as HTMLElement;
+					if (rootDiv) {
+						// Force ALL CSS variables to be set correctly with !important-like behavior
+						const setVarForce = (name: string, value: string) => {
+							rootDiv.style.setProperty(name, value, 'important');
+						};
+						
+						setVarForce('--fontSize-main', defaultOptions.fontSize.main);
+						setVarForce('--fontSize-side', defaultOptions.fontSize.side);
+						setVarForce('--lineHeight-main', defaultOptions.lineHeight.main);
+						setVarForce('--lineHeight-side', defaultOptions.lineHeight.side);
+						setVarForce('--contentWidth', defaultOptions.contentWidth);
+						setVarForce('--mainWidth', defaultOptions.mainWidth);
+						setVarForce('--halfway', defaultOptions.halfway);
+						setVarForce('--padding-horizontal', defaultOptions.padding.horizontal);
+						setVarForce('--padding-vertical', defaultOptions.padding.vertical);
+						setVarForce('--direction', defaultOptions.direction);
+						
+						// Force font families using default options
+						setVarForce('--fontFamily-main', defaultOptions.fontFamily.main);
+						setVarForce('--fontFamily-inner', defaultOptions.fontFamily.inner);
+						setVarForce('--fontFamily-outer', defaultOptions.fontFamily.outer);
+					}
+				};
+				
+				// Apply fixes at key intervals and monitor for breakage
+				setTimeout(() => { checkText(); fixFontSize(); }, 10);
+				setTimeout(() => { checkText(); fixFontSize(); }, 100);
+				setTimeout(() => { checkText(); fixFontSize(); }, 300);
+				setTimeout(() => { checkText(); fixFontSize(); }, 500);
+				setTimeout(() => { checkText(); fixFontSize(); }, 1000);
+				
+				// Set up continuous monitoring every 2 seconds for debugging
+				const monitorInterval = setInterval(() => {
+					checkText();
+				}, 2000);
+				
+				// Clean up interval after 30 seconds
+				setTimeout(() => clearInterval(monitorInterval), 30000);
 				
 				// After render, ensure CSS variables are still set
 				setTimeout(() => {
@@ -124,12 +157,12 @@ function createRendererStore() {
 							rootDiv.style.setProperty('--spacerHeights-end', spacerHeights.end + 'px');
 						}
 						
-						// Ensure base variables are still set
-						rootDiv.style.setProperty('--contentWidth', '900px');
-						rootDiv.style.setProperty('--fontSize-main', '20px');
-						rootDiv.style.setProperty('--fontSize-side', '14px');
-						rootDiv.style.setProperty('--lineHeight-main', '26px');
-						rootDiv.style.setProperty('--lineHeight-side', '20px');
+						// Ensure base variables are still set using default options
+						rootDiv.style.setProperty('--contentWidth', defaultOptions.contentWidth);
+						rootDiv.style.setProperty('--fontSize-side', defaultOptions.fontSize.side);
+						rootDiv.style.setProperty('--lineHeight-main', defaultOptions.lineHeight.main);
+						rootDiv.style.setProperty('--mainWidth', defaultOptions.mainWidth);
+						rootDiv.style.setProperty('--padding-vertical', defaultOptions.padding.vertical);
 					}
 				}, 50);
 				
@@ -143,6 +176,11 @@ function createRendererStore() {
 		// Clear the renderer
 		clear() {
 			update(state => {
+				// Call destroy method if renderer exists
+				if (state.renderer && typeof state.renderer.destroy === 'function') {
+					state.renderer.destroy();
+				}
+				
 				if (state.container) {
 					state.container.innerHTML = '';
 				}

@@ -40,7 +40,61 @@ import { hebrewBooksAPI } from '$lib/hebrewbooks';
 const data = await hebrewBooksAPI.fetchPage('Berakhot', '2a');
 ```
 
-## Development
+## API Architecture
+
+### Merged API Strategy
+The application uses a sophisticated merging strategy to combine data from multiple sources:
+
+1. **Sefaria API** (`/api/texts/`) - Provides structured, segmented text with translations
+2. **HebrewBooks.org** (via daf-supplier) - Provides formatted text with traditional layout markers
+3. **Merged API** (`/api/talmud-merged/`) - Intelligently combines both sources using a diff algorithm
+
+### Key API Endpoints
+
+#### Internal APIs
+- `/api/talmud-merged` - Returns merged content from both Sefaria and HebrewBooks
+- `/api/hebrewbooks` - Local proxy for HebrewBooks data with caching
+- `/api/hebrewbooks-scraper` - Direct browser rendering endpoint
+
+#### External APIs
+- Sefaria: `https://www.sefaria.org/api/texts/{tractate}.{daf}`
+- Daf-Supplier Worker: `https://daf-supplier.402.workers.dev/`
+
+### Daf Number Conversion
+**Important**: HebrewBooks and Sefaria use different daf numbering:
+- HebrewBooks: Sequential numbers (2, 3, 4, 5...)
+- Sefaria: Traditional format (2a, 2b, 3a, 3b...)
+
+Conversion formula:
+```javascript
+const pageNum = Math.floor((dafNum + 1) / 2);
+const amud = dafNum % 2 === 0 ? 'a' : 'b';
+const sefariaRef = `${pageNum}${amud}`;
+```
+
+## Testing & Debugging
+
+### Test Pages
+- `/talmud-merged-test` - Comprehensive API testing interface with:
+  - Direct Sefaria API testing
+  - Source comparison views
+  - Debug information display
+  - API endpoint documentation
+
+### Key Debug Features
+- Response time tracking for all API calls
+- Side-by-side source comparison
+- Raw data inspection
+- API call logging with timestamps
+
+## Documentation
+- `/docs/Sefaria.md` - Comprehensive Sefaria API documentation
+- Includes endpoint details, response formats, and usage examples
+- Performance optimization strategies and caching patterns
+
+## Development Guidelines
 - Always use `pnpm` for package management
 - Focus on clean, minimal code - avoid unnecessary files
 - Prefer editing existing files over creating new ones
+- Test API changes using the talmud-merged-test page
+- Document any new API integrations or data sources

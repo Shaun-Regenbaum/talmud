@@ -1,0 +1,31 @@
+/* Talmud Fonts - Using fallbacks for now */
+
+@font-face {
+  font-family: 'Vilna';
+  src: local('Georgia'), local('Times New Roman');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Vilna';
+  src: local('Georgia Bold'), local('Times New Roman Bold');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Rashi';
+  src: local('Lucida Sans'), local('Arial');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Hebrew-friendly fallback fonts */
+.hebrew-text {
+  font-family: 'Vilna', 'David', 'Arial Hebrew', 'Tahoma', serif;
+}
+
+.rashi-text {
+  font-family: 'Rashi', 'David', 'Arial Hebrew', 'Tahoma', sans-serif;
+}

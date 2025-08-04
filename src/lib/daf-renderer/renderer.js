@@ -5,26 +5,14 @@ import {
   calculateSpacersBreaks,
   onlyOneCommentary
 } from "./calculate-spacers-breaks";
-
-function el(tag, parent) {
-  const newEl = document.createElement(tag);
-  if (parent) parent.append(newEl);
-  return newEl;
-}
-
-function div(parent) {
-  return el("div", parent);
-}
-
-function span(parent) {
-  return el("span", parent);
-}
+import { LAYOUT_CONSTANTS, RESIZE_DEBOUNCE_DELAY } from "./constants";
+import { debounce, createDiv as div, createSpan as span } from "./utils";
 
 
 export default function (el, options = defaultOptions) {
   const root = (typeof el === "string") ? document.querySelector(el) : el;
   if (!(root && root instanceof Element && root.tagName.toUpperCase() === "DIV")) {
-    throw "Argument must be a div element or its selector"
+    throw new Error("Argument must be a div element or its selector");
   }
   const outerContainer = div(root);
   const innerContainer = div(root);
@@ -75,7 +63,7 @@ export default function (el, options = defaultOptions) {
   styleManager.updateOptionsVars(clonedOptions);
 
   let resizeEvent;
-  return {
+  const rendererObject = {
     containers,
     spacerHeights: {
       start: 0,
@@ -83,24 +71,32 @@ export default function (el, options = defaultOptions) {
       outer: 0,
       end: 0
     },
-    amud: "a",
+    amud: LAYOUT_CONSTANTS.DEFAULT_AMUD,
     render(main, inner, outer, amud = "a", linebreak, renderCallback, resizeCallback) {
-      if (resizeEvent) {
-        window.removeEventListener("resize", resizeEvent);
-      }
-      if (this.amud != amud) {
-        this.amud = amud;
-        styleManager.updateIsAmudB(amud == "b");
-      }
-      if (!linebreak) {
-        this.spacerHeights = calculateSpacers(main, inner, outer, clonedOptions, containers.dummy);
-        resizeEvent = () => {
+      try {
+        if (resizeEvent) {
+          window.removeEventListener("resize", resizeEvent);
+        }
+        if (this.amud != amud) {
+          this.amud = amud;
+          styleManager.updateIsAmudB(amud == "b");
+        }
+        if (!linebreak) {
           this.spacerHeights = calculateSpacers(main, inner, outer, clonedOptions, containers.dummy);
-          styleManager.updateSpacersVars(this.spacerHeights);
-          console.log("resizing");
+          if (this.spacerHeights instanceof Error) {
+            throw this.spacerHeights;
+          }
+        Object.assign(rendererObject.spacerHeights, this.spacerHeights);
+        const resizeHandler = () => {
+          this.spacerHeights = calculateSpacers(main, inner, outer, clonedOptions, containers.dummy);
+          if (!(this.spacerHeights instanceof Error)) {
+            Object.assign(rendererObject.spacerHeights, this.spacerHeights);
+            styleManager.updateSpacersVars(this.spacerHeights);
+          }
           if (resizeCallback)
             resizeCallback();
-        }
+        };
+        resizeEvent = debounce(resizeHandler, RESIZE_DEBOUNCE_DELAY);
         window.addEventListener("resize", resizeEvent);
       }
       else {
@@ -163,76 +159,153 @@ export default function (el, options = defaultOptions) {
         }
 
         this.spacerHeights = calculateSpacersBreaks(mainSplit, innerSplit, outerSplit, clonedOptions, containers.dummy);
-        resizeEvent = () => {
+        if (this.spacerHeights instanceof Error) {
+          throw this.spacerHeights;
+        }
+        Object.assign(rendererObject.spacerHeights, this.spacerHeights);
+        const resizeHandler = () => {
           this.spacerHeights = calculateSpacersBreaks(mainSplit, innerSplit, outerSplit, clonedOptions, containers.dummy);
-          styleManager.updateSpacersVars(this.spacerHeights);
+          if (!(this.spacerHeights instanceof Error)) {
+            Object.assign(rendererObject.spacerHeights, this.spacerHeights);
+            styleManager.updateSpacersVars(this.spacerHeights);
+          }
           if (resizeCallback)
             resizeCallback();
-          console.log("resizing")
-        }
+        };
+        resizeEvent = debounce(resizeHandler, RESIZE_DEBOUNCE_DELAY);
         window.addEventListener('resize', resizeEvent)
       }
       
-      // Clear previous content first
+      styleManager.updateSpacersVars(this.spacerHeights);
+      styleManager.manageExceptions(this.spacerHeights);
+      Object.assign(rendererObject.spacerHeights, this.spacerHeights);
+      
+      // Strip <br> tags when not in line break mode
+      if (!linebreak) {
+        main = main.replace(/<br\s*\/?>/gi, ' ');
+        inner = inner.replace(/<br\s*\/?>/gi, ' ');
+        outer = outer.replace(/<br\s*\/?>/gi, ' ');
+      }
+      
+      // Helper function to convert block divs to inline elements in commentary
+      function processCommentaryHTML(html) {
+        // Convert divs with width:100% or margin styles to spans
+        return html
+          // Replace div tags with spans, preserving the content
+          .replace(/<div\s+style="[^"]*(?:width:\s*100%|margin-bottom)[^"]*"[^>]*>/gi, '<span>')
+          .replace(/<div\s+class="[^"]*"[^>]*>/gi, '<span>')
+          .replace(/<div[^>]*>/gi, '<span>')
+          .replace(/<\/div>/gi, '</span> '); // Add space after closing to maintain word separation
+      }
+      
+      textSpans.main.innerHTML = main;
+      textSpans.inner.innerHTML = processCommentaryHTML(inner);
+      textSpans.outer.innerHTML = processCommentaryHTML(outer);
+
+      const containerHeight = Math.max(...["main", "inner", "outer"].map(t => containers[t].el.offsetHeight));
+      containers.el.style.height = `${containerHeight}px`;
+      
+      // Check for excessive spacing after render
+      this.checkExcessiveSpacing();
+      
+      if (renderCallback)
+        renderCallback();
+      } catch (error) {
+        console.error('Render error:', error);
+        throw error;
+      }
+    },
+    
+    checkExcessiveSpacing() {
+      // Get actual content heights
+      const mainTextHeight = textSpans.main.offsetHeight;
+      const innerTextHeight = textSpans.inner.offsetHeight;
+      const outerTextHeight = textSpans.outer.offsetHeight;
+      
+      // Get container heights (including spacers)
+      const mainContainerHeight = containers.main.el.offsetHeight;
+      const innerContainerHeight = containers.inner.el.offsetHeight;
+      const outerContainerHeight = containers.outer.el.offsetHeight;
+      
+      // Calculate spacing ratios
+      const mainSpacingRatio = mainContainerHeight > 0 ? mainTextHeight / mainContainerHeight : 0;
+      const innerSpacingRatio = innerContainerHeight > 0 ? innerTextHeight / innerContainerHeight : 0;
+      const outerSpacingRatio = outerContainerHeight > 0 ? outerTextHeight / outerContainerHeight : 0;
+      
+      // Check for excessive spacing
+      const excessiveThreshold = LAYOUT_CONSTANTS.EXCESSIVE_SPACING_THRESHOLD;
+      const spacingIssues = [];
+      
+      if (mainSpacingRatio > 0 && mainSpacingRatio < excessiveThreshold) {
+        spacingIssues.push({
+          section: 'main',
+          textHeight: mainTextHeight,
+          containerHeight: mainContainerHeight,
+          ratio: mainSpacingRatio,
+          excessSpace: mainContainerHeight - mainTextHeight
+        });
+      }
+      
+      if (innerSpacingRatio > 0 && innerSpacingRatio < excessiveThreshold) {
+        spacingIssues.push({
+          section: 'inner',
+          textHeight: innerTextHeight,
+          containerHeight: innerContainerHeight,
+          ratio: innerSpacingRatio,
+          excessSpace: innerContainerHeight - innerTextHeight
+        });
+      }
+      
+      if (outerSpacingRatio > 0 && outerSpacingRatio < excessiveThreshold) {
+        spacingIssues.push({
+          section: 'outer',
+          textHeight: outerTextHeight,
+          containerHeight: outerContainerHeight,
+          ratio: outerSpacingRatio,
+          excessSpace: outerContainerHeight - outerTextHeight
+        });
+      }
+      
+      if (spacingIssues.length > 0) {
+        // Store spacing issues for debugging
+        this.spacingIssues = spacingIssues;
+      } else {
+        this.spacingIssues = [];
+      }
+    },
+    
+    // Cleanup method to remove event listeners and clear DOM
+    destroy() {
+      // Remove resize event listener
+      if (resizeEvent) {
+        window.removeEventListener("resize", resizeEvent);
+        resizeEvent = null;
+      }
+      
+      // Clear text content
       textSpans.main.innerHTML = '';
       textSpans.inner.innerHTML = '';
       textSpans.outer.innerHTML = '';
       
-      // Update ALL CSS variables BEFORE adding content
-      // This ensures the options vars are reapplied on each render
-      styleManager.updateOptionsVars(clonedOptions);
+      // Clear spacer heights
+      this.spacerHeights = {
+        start: 0,
+        inner: 0,
+        outer: 0,
+        end: 0
+      };
+      
+      // Reset CSS variables
       styleManager.updateSpacersVars(this.spacerHeights);
-      styleManager.manageExceptions(this.spacerHeights);
       
-      // Log current state for debugging
-      console.log('Rendering with spacer heights:', this.spacerHeights);
-      console.log('Root element classes:', containers.el.className);
-      
-      // Ensure root has minimum height
-      if (!containers.el.style.minHeight) {
-        containers.el.style.minHeight = '600px';
+      // Clear root container
+      if (containers.el) {
+        containers.el.innerHTML = '';
+        containers.el.style.height = '';
       }
-      
-      // Now add the new content
-      textSpans.main.innerHTML = main;
-      textSpans.inner.innerHTML = inner;
-      textSpans.outer.innerHTML = outer;
-
-      // Calculate height after a delay to allow browser layout
-      setTimeout(() => {
-        // Ensure all containers are visible
-        ['main', 'inner', 'outer'].forEach(type => {
-          const el = containers[type].el;
-          if (el && el.style.display === 'none') {
-            el.style.display = '';
-          }
-        });
-        
-        const containerHeight = Math.max(...["main", "inner", "outer"].map(t => {
-          const el = containers[t].el;
-          // Force layout calculation
-          const height = Math.max(
-            el.scrollHeight || 0,
-            el.offsetHeight || 0,
-            el.getBoundingClientRect().height || 0
-          );
-          console.log(`${t} container height:`, height);
-          return height;
-        }));
-        
-        if (containerHeight > 0) {
-          containers.el.style.height = `${containerHeight}px`;
-          console.log('Set container height to:', containerHeight);
-        } else {
-          // Fallback height if calculation fails
-          containers.el.style.height = '800px';
-          console.warn('Using fallback height');
-        }
-        
-        if (renderCallback)
-          renderCallback();
-      }, 200);
-    },
-  }
+    }
+  };
+  
+  return rendererObject;
 }
 

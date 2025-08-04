@@ -192,10 +192,8 @@ class HebrewBooksService {
 
 // Client-side API wrapper
 class HebrewBooksAPI {
-  async fetchPage(tractate: string, daf: string): Promise<HebrewBooksPage | null> {
+  async fetchPage(tractate: string, daf: string, options: { br?: string } = {}): Promise<HebrewBooksPage | null> {
     try {
-      console.log('HebrewBooksAPI.fetchPage called with:', { tractate, daf });
-      
       // First try the browser rendering endpoint
       const mesechtaId = TRACTATE_IDS[tractate];
       if (!mesechtaId) {
@@ -207,12 +205,15 @@ class HebrewBooksAPI {
       const dafNum = parseInt(daf.replace(/[ab]/, ''));
       const amud = daf.includes('b') ? 'b' : 'a';
       const dafParam = amud === 'a' ? dafNum.toString() : `${dafNum}b`;
-      
-      console.log('Conversion:', { input: daf, dafNum, amud, dafParam });
 
       // Use the deployed daf-supplier worker
-      const endpoint = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafParam}`;
-      console.log('Fetching from endpoint:', endpoint);
+      const params = new URLSearchParams({
+        mesechta: mesechtaId,
+        daf: dafParam,
+        ...options // Include any additional options like br=true
+      });
+      const endpoint = `https://daf-supplier.402.workers.dev?${params.toString()}`;
+      console.log('Fetching from daf-supplier:', endpoint);
       
       const response = await fetch(endpoint);
       
@@ -237,7 +238,6 @@ class HebrewBooksAPI {
         timestamp: data.timestamp || Date.now()
       };
       
-      console.log('Mapped data for component:', mappedData);
       return mappedData;
     } catch (error) {
       console.error('Error fetching HebrewBooks page:', error);

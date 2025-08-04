@@ -17,6 +17,7 @@ export default {
     // Get parameters
     const mesechta = url.searchParams.get('mesechta');
     const daf = url.searchParams.get('daf');
+    const br = url.searchParams.get('br') === 'true'; // Enable <br> tag conversion
     
     if (!mesechta || !daf) {
       return new Response(JSON.stringify({ error: 'Missing required parameters: mesechta and daf' }), {
@@ -550,6 +551,12 @@ export default {
         '37': 'Niddah'
       };
 
+      // Helper function to convert newlines to <br> tags if requested
+      const formatText = (text) => {
+        if (!text) return text;
+        return br ? text.replace(/\r\n/g, '<br>').replace(/\n/g, '<br>') : text;
+      };
+
       // Prepare response data
       const responseData = {
         mesechta: parseInt(mesechta),
@@ -557,7 +564,10 @@ export default {
         dafDisplay: Math.ceil(parseInt(daf) / 2).toString(),
         amud: parseInt(daf) % 2 === 0 ? 'b' : 'a',
         tractate: TRACTATE_NAMES[mesechta] || `Tractate-${mesechta}`,
-        ...pageData,
+        mainText: formatText(pageData.mainText),
+        rashi: formatText(pageData.rashi),
+        tosafot: formatText(pageData.tosafot),
+        otherCommentaries: pageData.otherCommentaries || {},
         timestamp: Date.now(),
         source: 'hebrewbooks.org',
         debug: {
