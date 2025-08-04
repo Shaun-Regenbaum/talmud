@@ -69,6 +69,7 @@ export function convertDafToHebrewBooksFormat(daf: string): string {
   // daf=2 returns page 2a and 2b content
   // Just return the numeric part of the daf
   const dafNum = parseInt(daf.replace(/[ab]/, ''));
+  console.log(`[convertDafToHebrewBooksFormat v2] Converting ${daf} to ${dafNum}`);
   return dafNum.toString();
 }
 

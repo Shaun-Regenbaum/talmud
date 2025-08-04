@@ -115,7 +115,13 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 		console.log(`Fetching from daf-supplier v3: mesechta=${mesechtaId}, daf=${dafForAPI} (converted from ${page}${amud})`);
 		const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
 		console.log(`Calling daf-supplier URL: ${dafSupplierUrl}`);
-		const talmudResponse = await fetch(dafSupplierUrl);
+		const talmudResponse = await fetch(dafSupplierUrl, {
+			headers: {
+				'User-Agent': 'Talmud-Study-App/1.0',
+				'Accept': 'application/json',
+				'Origin': 'https://talmud.402.workers.dev'
+			}
+		});
 		
 		if (!talmudResponse.ok) {
 			const errorText = await talmudResponse.text();
