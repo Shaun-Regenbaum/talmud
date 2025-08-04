@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "deploy": "wrangler pages deploy .svelte-kit/cloudflare --project-name=talmud --commit-dirty=true"
+    "deploy": "wrangler deploy --compatibility-date 2025-01-01"
   },
   "devDependencies": {
     "@sveltejs/adapter-cloudflare": "^4.8.0",

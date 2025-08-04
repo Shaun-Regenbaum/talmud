@@ -214,6 +214,7 @@ export default function (el, options = defaultOptions) {
       textSpans.inner.innerHTML = processCommentaryHTML(inner);
       textSpans.outer.innerHTML = processCommentaryHTML(outer);
 
+
       const containerHeight = Math.max(...["main", "inner", "outer"].map(t => containers[t].el.offsetHeight));
       containers.el.style.height = `${containerHeight}px`;
       
