@@ -61,7 +61,9 @@ function createRendererStore() {
 				console.log('🔍 Rendering texts:', {
 					main: mainText.substring(0, 200) + '...',
 					rashi: rashiText.substring(0, 200) + '...',
-					tosafot: tosafotText.substring(0, 200) + '...'
+					tosafot: tosafotText.substring(0, 200) + '...',
+					lineBreakMode,
+					pageLabel
 				});
 				
 				// Determine amud from pageLabel (e.g. "31a" -> "a", "31b" -> "b")
@@ -73,7 +75,7 @@ function createRendererStore() {
 					rashiText, 
 					tosafotText, 
 					amud, 
-					lineBreakMode ? '<br>' : undefined, // Pass '<br>' for line break mode, undefined for traditional
+					lineBreakMode, // Pass boolean for line break mode
 					() => {
 						console.log('🎯 Daf-renderer completed - trusting renderer to handle CSS');
 					}, // rendered callback
