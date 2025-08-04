@@ -137,17 +137,10 @@
 		
 		// Add a small delay to ensure DOM is stable after loading state changes
 		setTimeout(() => {
-			// Initialize renderer only once and only if container exists
-			if (!rendererStore.getRenderer() && dafContainer) {
-				console.log('🚀 Initializing renderer for first time');
+			// Initialize renderer container only once
+			if (dafContainer) {
+				console.log('🚀 Setting up renderer container');
 				rendererStore.initialize(dafContainer);
-			}
-			
-			// Ensure renderer exists before proceeding
-			const renderer = rendererStore.getRenderer();
-			if (!renderer) {
-				console.error('❌ No renderer available after initialization attempt');
-				return;
 			}
 			
 			// Use advanced text processor for proper styling

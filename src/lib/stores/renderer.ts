@@ -1,7 +1,6 @@
 import { writable, get } from 'svelte/store';
-import dafRenderer from '$lib/daf-renderer/index.js';
+import createDafRenderer from '$lib/daf-renderer/renderer.js';
 import { defaultOptions } from '$lib/daf-renderer/options.js';
-import { customOptions, mobileOptions } from '$lib/daf-renderer-custom-options';
 
 interface RendererState {
 	renderer: any | null;
@@ -19,35 +18,31 @@ function createRendererStore() {
 	return {
 		subscribe,
 
-		// Initialize the renderer
+		// Initialize the renderer (just set up container, actual renderer created in render())
 		initialize(container: HTMLDivElement) {
 			const state = get(this);
 			
-			// Don't reinitialize if already done
-			if (state.isInitialized && state.renderer && state.container === container) {
-				console.log('Renderer already initialized');
-				return state.renderer;
+			// Don't reinitialize if already done with same container
+			if (state.isInitialized && state.container === container) {
+				console.log('Renderer container already set');
+				return null;
 			}
 
 			try {
-				console.log('Initializing daf-renderer');
+				console.log('Setting up renderer container');
 				
-				// Choose options based on screen size
-				const isMobile = window.innerWidth < 768;
-				const options = isMobile ? mobileOptions : customOptions;
-				
-				const renderer = dafRenderer(container, options);
-
+				// Clear container like spacer-analysis does
+				container.innerHTML = '';
 
 				set({
-					renderer,
+					renderer: null, // Will be created in render()
 					container,
 					isInitialized: true
 				});
 
-				return renderer;
+				return null; // Renderer will be created in render()
 			} catch (error) {
-				console.error('Failed to initialize renderer:', error);
+				console.error('Failed to initialize renderer container:', error);
 				throw error;
 			}
 		},
@@ -56,12 +51,34 @@ function createRendererStore() {
 		render(mainText: string, rashiText: string, tosafotText: string, pageLabel: string, lineBreakMode: boolean = false) {
 			const state = get(this);
 			
-			if (!state.renderer || !state.isInitialized) {
-				console.error('Renderer not initialized');
+			if (!state.isInitialized || !state.container) {
+				console.error('Renderer container not initialized');
 				return false;
 			}
 
 			try {
+				// Clear container before each render like spacer-analysis does
+				state.container.innerHTML = '';
+				
+				// Re-create renderer instance with improved padding for better readability
+				const improvedOptions = {
+					...defaultOptions,
+					padding: {
+						vertical: "16px",   // More vertical space for overflowing lines
+						horizontal: "24px", // More horizontal space between columns
+					},
+					innerPadding: "12px",  // More space between main and rashi
+					outerPadding: "12px",  // More space between rashi and tosafot
+					lineHeight: {
+						main: "19px",      // Slightly more line height for main text
+						side: "15px",      // Slightly more line height for commentary
+					}
+				};
+				const renderer = createDafRenderer(state.container, improvedOptions);
+				
+				// Update the store with new renderer instance
+				update(currentState => ({ ...currentState, renderer }));
+				
 				// Debug: Log first 200 chars of each text to see what we're rendering
 				console.log('🔍 Rendering texts:', {
 					main: mainText.substring(0, 200) + '...',
@@ -78,7 +95,7 @@ function createRendererStore() {
 				const amud = pageLabel.slice(-1) === 'b' ? 'b' : 'a';
 				
 				// Pass lineBreakMode to renderer - let it handle everything
-				state.renderer.render(
+				renderer.render(
 					mainText, 
 					rashiText, 
 					tosafotText, 
