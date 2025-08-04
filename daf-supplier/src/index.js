@@ -59,10 +59,10 @@ export default {
         console.log('New page created');
         
         // Convert daf-supplier format back to HebrewBooks format
-        // daf-supplier: 3->2a, 4->2b, 5->3a, 6->3b
+        // daf-supplier: 2->2a, 3->2b, 4->3a, 5->3b
         // HebrewBooks expects: "2", "2b", "3", "3b"
         const pageNum = Math.ceil(parseInt(daf) / 2);
-        const amud = parseInt(daf) % 2 === 0 ? 'b' : 'a';
+        const amud = parseInt(daf) % 2 === 0 ? 'a' : 'b';
         const hebrewBooksDaf = amud === 'a' ? pageNum.toString() : `${pageNum}b`;
         
         const targetUrl = `https://www.hebrewbooks.org/shas.aspx?mesechta=${mesechta}&daf=${hebrewBooksDaf}&format=text`;
@@ -228,8 +228,12 @@ export default {
     // Fallback to regular HTTP fetch if browser rendering fails or is unavailable
     if (!pageData) {
       try {
-        // HebrewBooks uses a mix of numbers and b for 2nd page - so "2", "2b", "3", "3b"
-        const targetUrl = `https://www.hebrewbooks.org/shas.aspx?mesechta=${mesechta}&daf=${daf}&format=text`;
+        // Convert daf-supplier format back to HebrewBooks format for HTTP fallback too
+        const pageNum = Math.ceil(parseInt(daf) / 2);
+        const amud = parseInt(daf) % 2 === 0 ? 'a' : 'b';
+        const hebrewBooksDaf = amud === 'a' ? pageNum.toString() : `${pageNum}b`;
+        
+        const targetUrl = `https://www.hebrewbooks.org/shas.aspx?mesechta=${mesechta}&daf=${hebrewBooksDaf}&format=text`;
         console.log('HTTP fetch fallback, URL:', targetUrl);
         const response = await fetch(targetUrl, {
           headers: {

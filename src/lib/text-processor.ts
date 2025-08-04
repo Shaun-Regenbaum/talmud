@@ -100,7 +100,6 @@ export function processTextsForRenderer(
 	} else {
 		// Fallback: Use traditional format with line breaks
 		console.log('⚠️ Fallback: Using traditional format for sentence segmentation');
-		console.log('⚠️ No Sefaria data available for linking commentary to main text');
 		
 		// For traditional format, use natural paragraph/line breaks
 		const lines = processedMainText.split(/\r?\n/).filter(line => line.trim());
