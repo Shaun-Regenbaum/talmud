@@ -187,9 +187,20 @@ export default function (el, options = defaultOptions) {
         outer = outer.replace(/<br\s*\/?>/gi, ' ');
       }
       
+      // Helper function to convert block divs to inline elements in commentary
+      function processCommentaryHTML(html) {
+        // Convert divs with width:100% or margin styles to spans
+        return html
+          // Replace div tags with spans, preserving the content
+          .replace(/<div\s+style="[^"]*(?:width:\s*100%|margin-bottom)[^"]*"[^>]*>/gi, '<span>')
+          .replace(/<div\s+class="[^"]*"[^>]*>/gi, '<span>')
+          .replace(/<div[^>]*>/gi, '<span>')
+          .replace(/<\/div>/gi, '</span> '); // Add space after closing to maintain word separation
+      }
+      
       textSpans.main.innerHTML = main;
-      textSpans.inner.innerHTML = inner;
-      textSpans.outer.innerHTML = outer;
+      textSpans.inner.innerHTML = processCommentaryHTML(inner);
+      textSpans.outer.innerHTML = processCommentaryHTML(outer);
 
       const containerHeight = Math.max(...["main", "inner", "outer"].map(t => containers[t].el.offsetHeight));
       containers.el.style.height = `${containerHeight}px`;

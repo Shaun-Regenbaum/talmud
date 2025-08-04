@@ -17,9 +17,116 @@ function getAreaOfText(text, font, fs, width, lh, dummy) {
   testDiv.style.lineHeight = `${lh}px`;
   testDiv.innerHTML = text;
   dummy.append(testDiv);
-  const test_area = testDiv.clientHeight * testDiv.clientWidth;
+  const height = testDiv.clientHeight;
+  const actualWidth = testDiv.clientWidth;
+  const test_area = height * actualWidth;
   testDiv.remove();
   return test_area;
+}
+
+/**
+ * Helper function to ensure single-line content fits on one line
+ * @param {string} text - HTML text content
+ * @param {string} font - Font family
+ * @param {number} baseFontSize - Starting font size in pixels
+ * @param {number} baseWidth - Starting container width in pixels
+ * @param {number} lineHeight - Line height in pixels
+ * @param {HTMLElement} dummy - Dummy container for measurement
+ * @param {Object} options - Adjustment options
+ * @returns {Object} Adjusted parameters {fontSize, width, actualHeight}
+ */
+function fitSingleLine(text, font, baseFontSize, baseWidth, lineHeight, dummy, options = {}) {
+  const {
+    preferFontAdjustment = true, // Prefer adjusting font over width
+    minFontSize = baseFontSize * 0.7, // Don't go below 70% of original
+    maxFontSize = baseFontSize, // Don't exceed original size
+    minWidth = baseWidth,
+    maxWidth = baseWidth * 1.2, // Allow up to 20% width increase
+    tolerance = 2 // Pixel tolerance for "single line"
+  } = options;
+  
+  // First check if it already fits
+  const testDiv = document.createElement("div");
+  testDiv.style.font = `${baseFontSize}px ${font}`;
+  testDiv.style.width = `${baseWidth}px`;
+  testDiv.style.lineHeight = `${lineHeight}px`;
+  testDiv.style.position = "absolute";
+  testDiv.style.whiteSpace = "nowrap"; // Force single line to measure
+  testDiv.innerHTML = text;
+  dummy.append(testDiv);
+  
+  const singleLineHeight = testDiv.offsetHeight;
+  const textWidth = testDiv.scrollWidth; // Actual width needed
+  
+  // Now check with normal wrapping
+  testDiv.style.whiteSpace = "normal";
+  const wrappedHeight = testDiv.offsetHeight;
+  
+  testDiv.remove();
+  
+  // If it already fits on one line, return original values
+  if (Math.abs(wrappedHeight - singleLineHeight) <= tolerance) {
+    return {
+      fontSize: baseFontSize,
+      width: baseWidth,
+      actualHeight: wrappedHeight,
+      adjusted: false
+    };
+  }
+  
+  let adjustedFontSize = baseFontSize;
+  let adjustedWidth = baseWidth;
+  
+  // Calculate how much we need to adjust
+  const widthRatio = textWidth / baseWidth;
+  
+  if (preferFontAdjustment) {
+    // Try font size adjustment first
+    adjustedFontSize = baseFontSize / widthRatio;
+    
+    // Clamp to limits
+    if (adjustedFontSize < minFontSize) {
+      // Font would be too small, try width adjustment
+      adjustedFontSize = minFontSize;
+      adjustedWidth = textWidth * (minFontSize / baseFontSize);
+      adjustedWidth = Math.min(adjustedWidth, maxWidth);
+    } else if (adjustedFontSize > maxFontSize) {
+      adjustedFontSize = maxFontSize;
+    }
+  } else {
+    // Try width adjustment first
+    adjustedWidth = Math.min(textWidth, maxWidth);
+    
+    // If still doesn't fit, adjust font size
+    if (adjustedWidth < textWidth) {
+      const remainingRatio = textWidth / adjustedWidth;
+      adjustedFontSize = baseFontSize / remainingRatio;
+      adjustedFontSize = Math.max(adjustedFontSize, minFontSize);
+    }
+  }
+  
+  // Verify the adjustment worked
+  const verifyDiv = document.createElement("div");
+  verifyDiv.style.font = `${adjustedFontSize}px ${font}`;
+  verifyDiv.style.width = `${adjustedWidth}px`;
+  verifyDiv.style.lineHeight = `${lineHeight * (adjustedFontSize / baseFontSize)}px`;
+  verifyDiv.innerHTML = text;
+  dummy.append(verifyDiv);
+  const finalHeight = verifyDiv.offsetHeight;
+  verifyDiv.remove();
+  
+  console.log('📏 Single line adjustment:', {
+    original: { fontSize: baseFontSize, width: baseWidth },
+    adjusted: { fontSize: adjustedFontSize.toFixed(1), width: adjustedWidth.toFixed(1) },
+    textSample: text.substring(0, 50)
+  });
+  
+  return {
+    fontSize: adjustedFontSize,
+    width: adjustedWidth,
+    actualHeight: finalHeight,
+    adjusted: true
+  };
 }
 
 /**
@@ -152,15 +259,6 @@ function calculateSpacers(mainText, innerText, outerText, options, dummy) {
     text.height = text.area / text.width;
     text.unadjustedArea = text.area + topArea(parsedOptions.lineHeight.side);
     text.unadjustedHeight = text.unadjustedArea / text.width;
-    
-    // Debug logging
-    console.log(`📐 ${text.name} calculation:`, {
-      area: text.area,
-      width: text.width,
-      height: text.height,
-      unadjustedHeight: text.unadjustedHeight,
-      textLength: text.text.length
-    });
   });
 
   const perHeight = Array.from(texts).sort((a, b) => a.height - b.height);
@@ -172,15 +270,25 @@ function calculateSpacers(mainText, innerText, outerText, options, dummy) {
 
   /**
    * Validate that we have sufficient commentary text
-   * @returns {Error|null} Error if validation fails, null otherwise
+   * @returns {Object|null} Default spacer heights if no commentary, null otherwise
    */
   function validateCommentaryText() {
     if (inner.height <= 0 && outer.height <= 0) {
-      return new Error("No commentary text provided. Both Rashi and Tosafot are empty.");
+      // No commentary - return default spacer heights for main text only
+      console.warn("No commentary text provided. Rendering main text only.");
+      spacerHeights.inner = 0;
+      spacerHeights.outer = 0;
+      spacerHeights.end = main.height;
+      return spacerHeights;
     }
     
     if (inner.height <= spacerHeights.start && outer.height <= spacerHeights.start) {
-      return new Error("Insufficient commentary text. Not enough content to fill the required four lines on both sides.");
+      // Very little commentary - use minimal heights
+      console.warn("Insufficient commentary text. Using minimal spacer heights.");
+      spacerHeights.inner = inner.height || 0;
+      spacerHeights.outer = outer.height || 0;
+      spacerHeights.end = 0;
+      return spacerHeights;
     }
     
     return null;
@@ -211,8 +319,8 @@ function calculateSpacers(mainText, innerText, outerText, options, dummy) {
   }
 
   // Validate commentary text
-  const validationError = validateCommentaryText();
-  if (validationError) return validationError;
+  const validationResult = validateCommentaryText();
+  if (validationResult) return validationResult;
 
   // Handle edge cases
   if (inner.unadjustedHeight <= spacerHeights.start || outer.unadjustedHeight <= spacerHeights.start) {
@@ -274,40 +382,82 @@ function calculateSpacers(mainText, innerText, outerText, options, dummy) {
     return spacerHeights;
   }
 
-  // Helper function to apply safety limits
-  function applySafetyLimits(spacerHeights) {
-    const maxSpacerHeight = parsedOptions.width * 0.8; // 80% of page width as max
-    const reasonableMax = 400; // Reasonable maximum in pixels
-    const actualMax = Math.min(maxSpacerHeight, reasonableMax);
+  // Analyze text patterns to determine layout
+  function analyzeTextPattern(text, width) {
+    // Strip HTML and analyze line lengths
+    const temp = document.createElement('div');
+    temp.innerHTML = text;
+    const plainText = temp.textContent || temp.innerText || '';
     
-    if (spacerHeights.inner > actualMax || spacerHeights.outer > actualMax) {
-      console.warn('⚠️ Spacer heights exceed reasonable limits, capping values:', {
-        original: { inner: spacerHeights.inner, outer: spacerHeights.outer },
-        maxAllowed: actualMax,
-        pageWidth: parsedOptions.width
-      });
-      spacerHeights.inner = Math.min(spacerHeights.inner, actualMax);
-      spacerHeights.outer = Math.min(spacerHeights.outer, actualMax);
-    }
+    // Split into sentences/phrases
+    const segments = plainText.split(/[.!?]\s+/).filter(s => s.trim().length > 20);
     
-    return spacerHeights;
+    // Estimate average line length
+    const avgSegmentLength = segments.length > 0 
+      ? segments.reduce((sum, seg) => sum + seg.length, 0) / segments.length 
+      : 0;
+    
+    // Calculate approximate lines needed
+    const charsPerLine = width / 8; // Rough estimate
+    const hasLongSegments = segments.some(seg => seg.length > charsPerLine * 1.5);
+    const hasManyShortSegments = segments.filter(seg => seg.length < charsPerLine * 0.5).length > segments.length * 0.5;
+    
+    return {
+      avgSegmentLength,
+      hasLongSegments,
+      hasManyShortSegments,
+      segmentCount: segments.length
+    };
   }
   
-  // Determine layout type and calculate accordingly
-  if (perHeight[0].name === "main") {
-    // Double-Wrap: main text is smallest
-    return applySafetyLimits(calculateDoubleWrap());
+  // Analyze patterns for layout decision
+  const mainPattern = analyzeTextPattern(mainText, midWidth);
+  const innerPattern = analyzeTextPattern(innerText, sideWidth);
+  const outerPattern = analyzeTextPattern(outerText, sideWidth);
+  
+  console.log('📊 Text pattern analysis:', {
+    main: mainPattern,
+    inner: innerPattern,
+    outer: outerPattern
+  });
+  
+  // Determine layout based on text patterns AND heights
+  let layoutType = 'double-extend'; // default
+  
+  // If main has many short segments and commentaries have long segments, prefer double-wrap
+  if (mainPattern.hasManyShortSegments && (innerPattern.hasLongSegments || outerPattern.hasLongSegments)) {
+    layoutType = 'double-wrap';
   }
-
-  // Try Stairs layout
-  const stairsResult = calculateStairs();
-  if (stairsResult) {
-    return applySafetyLimits(stairsResult);
+  // If one commentary is significantly longer in segments, consider stairs
+  else if (innerPattern.segmentCount > outerPattern.segmentCount * 2 || 
+           outerPattern.segmentCount > innerPattern.segmentCount * 2) {
+    layoutType = 'stairs';
   }
-
-  // Default to Double-Extend
-  return applySafetyLimits(calculateDoubleExtend());
+  // Also consider height-based logic
+  else if (perHeight[0].name === "main" && main.height < Math.min(inner.height, outer.height) * 0.7) {
+    layoutType = 'double-wrap';
+  }
+  
+  console.log('🎯 Selected layout type:', layoutType);
+  
+  // Apply the selected layout
+  switch (layoutType) {
+    case 'double-wrap':
+      return calculateDoubleWrap();
+    
+    case 'stairs':
+      const stairsResult = calculateStairs();
+      if (stairsResult) {
+        return stairsResult;
+      }
+      // Fall through to double-extend if stairs doesn't work
+    
+    case 'double-extend':
+    default:
+      return calculateDoubleExtend();
+  }
 }
 
 
-export default (calculateSpacers);
+export default calculateSpacers;
+export { fitSingleLine };
