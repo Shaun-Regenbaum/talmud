@@ -121,8 +121,8 @@ class OpenRouterTranslator {
 	private async translateWithFallback(request: TranslationRequest): Promise<TranslationResponse> {
 		const { text, context, targetLanguage = 'English' } = request;
 		
-		const systemPrompt = `Translate Talmudic Hebrew/Aramaic to ${targetLanguage}. Be accurate and preserve meaning.`;
-		const userPrompt = `Translate: ${text}`;
+		const systemPrompt = `Translate to ${targetLanguage}. Output ONLY the translation.`;
+		const userPrompt = text;
 		
 		try {
 			const response = await fetch(this.baseUrl, {
@@ -164,14 +164,10 @@ class OpenRouterTranslator {
 			throw new Error('OpenRouter API key not configured');
 		}
 		
-		const systemPrompt = `You are an expert translator specializing in Talmudic Hebrew and Aramaic.
-Translate each numbered text segment accurately, preserving meaning and technical terms.
-Return translations in the same numbered format.`;
+		const systemPrompt = `Translate Hebrew/Aramaic to English. Output ONLY numbered translations. No explanations.`;
 		
 		const numberedTexts = texts.map((text, i) => `${i + 1}. ${text}`).join('\n');
-		const userPrompt = context 
-			? `Translate these Talmudic texts to English. Context: ${context}\n\n${numberedTexts}`
-			: `Translate these Talmudic texts to English:\n\n${numberedTexts}`;
+		const userPrompt = numberedTexts;
 		
 		try {
 			const response = await fetch(this.baseUrl, {

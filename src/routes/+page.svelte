@@ -31,6 +31,11 @@
 	let translationPopupY = $state(0);
 	let selectedHebrewText = $state('');
 	let selectedTranslation = $state('');
+
+	// Summary state
+	let summary = $state<any>(null);
+	let summaryLoading = $state(false);
+	let summaryError = $state<string | null>(null);
 	
 	
 	// Subscribe to store updates
@@ -152,6 +157,9 @@
 		
 		// Load the new page
 		talmudStore.loadPage(tractate, pageNum, amud);
+		
+		// Load summary for the new page
+		loadSummary();
 	});
 	
 	onMount(async () => {
@@ -201,6 +209,32 @@
 		// return scale < 1 ? `transform: scale(${scale}); transform-origin: top left;` : '';
 	}
 	
+	// Load page summary
+	async function loadSummary() {
+		if (!openRouterTranslator.isConfigured()) {
+			summaryError = null; // Don't show error if API key not configured
+			return;
+		}
+
+		summaryLoading = true;
+		summaryError = null;
+
+		try {
+			const response = await fetch(`/api/summary?tractate=${selectedTractate}&page=${selectedPage}&amud=${selectedAmud}`);
+			if (!response.ok) {
+				throw new Error(`Failed to load summary: ${response.status}`);
+			}
+
+			const summaryData = await response.json();
+			summary = summaryData;
+		} catch (error) {
+			console.error('Summary loading error:', error);
+			summaryError = error instanceof Error ? error.message : 'Failed to load summary';
+		} finally {
+			summaryLoading = false;
+		}
+	}
+
 	// Generate Hebrew page numbers
 	function getHebrewPageNumber(num: number): string {
 		const hebrewNumbers: Record<number, string> = {
@@ -318,6 +352,53 @@
 			</p>
 		</div>
 
+		<!-- Page Summary -->
+		{#if summaryLoading}
+			<div class="bg-blue-50 rounded-lg shadow-md p-6">
+				<div class="flex items-center gap-3">
+					<div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+					<h3 class="text-lg font-semibold text-blue-800">Loading page summary...</h3>
+				</div>
+			</div>
+		{:else if summary}
+			<div class="bg-blue-50 rounded-lg shadow-md p-6">
+				<div class="flex items-center justify-between mb-4">
+					<h3 class="text-lg font-semibold text-blue-800">Page Summary</h3>
+					<div class="flex items-center gap-2 text-sm text-blue-600">
+						{#if summary.cached}
+							<span class="px-2 py-1 bg-blue-100 rounded">Cached</span>
+						{:else}
+							<span class="px-2 py-1 bg-green-100 text-green-700 rounded">Fresh</span>
+						{/if}
+						<span>{summary.wordCount} words</span>
+					</div>
+				</div>
+				<div class="prose max-w-none text-gray-700 leading-relaxed">
+					{@html summary.summary.replace(/\n/g, '<br>')}
+				</div>
+				{#if !summary.cached}
+					<div class="mt-4 text-xs text-blue-500">
+						Generated with {summary.model} • {new Date(summary.generated).toLocaleString()}
+					</div>
+				{/if}
+			</div>
+		{:else if summaryError}
+			<div class="bg-red-50 rounded-lg shadow-md p-6">
+				<div class="flex items-center justify-between">
+					<div>
+						<h3 class="text-lg font-semibold text-red-800">Summary Error</h3>
+						<p class="text-red-600 mt-1">{summaryError}</p>
+					</div>
+					<button 
+						onclick={loadSummary}
+						class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition text-sm"
+					>
+						Retry
+					</button>
+				</div>
+			</div>
+		{/if}
+
 		<!-- Daf Renderer -->
 		<div class="bg-white rounded-lg shadow-md p-8">
 			<div class="flex items-center justify-between mb-6">
@@ -379,6 +460,14 @@
 					>
 						{$isLoading ? 'טוען...' : 'עבור'}
 					</button>
+					
+					<!-- Story Link -->
+					<a 
+						href="/story?tractate={selectedTractate}&page={selectedPage}&amud={selectedAmud}"
+						class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition text-sm font-medium"
+					>
+						📖 Stories
+					</a>
 					
 				</div>
 			</div>
