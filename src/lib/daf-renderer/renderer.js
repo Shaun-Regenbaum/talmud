@@ -143,13 +143,13 @@ export default function (el, options = defaultOptions) {
       
       // Convert <br> tags to soft break opportunities that allow natural text flow
       function convertBrToSoftBreaks(text) {
-        // Replace <br> with a word break opportunity + zero-width space
-        // This allows the browser to break at these points if needed, but doesn't force breaks
-        // Convert <br> to <wbr> + zero-width space
-        let converted = text.replace(/<br\s*\/?>/gi, '<wbr>&#8203;');
+        // Replace <br> with a space + word break opportunity
+        // This provides both spacing and break opportunity
+        let converted = text.replace(/<br\s*\/?>/gi, ' <wbr>');
         
-        // Ensure existing <wbr> tags also have zero-width space for consistency
-        converted = converted.replace(/<wbr\s*>/gi, '<wbr>&#8203;');
+        // For existing <wbr> tags, check if they need a space before them
+        // If there's no space before the <wbr>, add one to prevent words from joining
+        converted = converted.replace(/([^\s>])<wbr>/gi, '$1 <wbr>');
         
         return converted;
       }

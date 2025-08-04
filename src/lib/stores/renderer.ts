@@ -57,6 +57,12 @@ function createRendererStore() {
 			}
 
 			try {
+				// Debug: Log first 200 chars of each text to see what we're rendering
+				console.log('🔍 Rendering texts:', {
+					main: mainText.substring(0, 200) + '...',
+					rashi: rashiText.substring(0, 200) + '...',
+					tosafot: tosafotText.substring(0, 200) + '...'
+				});
 				
 				// Determine amud from pageLabel (e.g. "31a" -> "a", "31b" -> "b")
 				const amud = pageLabel.slice(-1) === 'b' ? 'b' : 'a';

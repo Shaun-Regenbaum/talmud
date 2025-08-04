@@ -1,0 +1,41 @@
+/* Talmud Text Styling Rules */
+
+/* הדרן עלך styling - 1.5x size */
+.hadran {
+  font-size: 1.5em;
+  text-align: center;
+  margin: 1em 0;
+}
+
+/* First word of Gemara - 3-4 lines tall */
+.gemara-first-word {
+  font-size: 3em;
+  line-height: 1;
+  display: inline-block;
+  float: right;
+  margin-left: 0.2em;
+}
+
+/* Rashi headers - bold and increased size */
+.rashi-header,
+.five.rashi-header {
+  font-weight: 600;
+  font-size: 1.1em;
+}
+
+/* Tosafot headers - bold and increased size */
+.tosafot-header,
+.shastitle7.tosafot-header {
+  font-weight: 600;
+  font-size: 1.1em;
+}
+
+/* Optional: Highlight on hover for interactive elements */
+.sentence-main:hover {
+  background-color: rgba(0, 102, 204, 0.1);
+}
+
+.sentence-rashi:hover,
+.sentence-tosafot:hover {
+  background-color: rgba(0, 102, 0, 0.1);
+}
