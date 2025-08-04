@@ -169,7 +169,7 @@
         <div class="space-y-3 mt-4">
           <label class="flex items-center gap-3">
             <input type="checkbox" bind:checked={useBrTags} class="rounded border-gray-300" />
-            <span class="text-sm text-gray-700">Use &lt;br&gt; tags (convert newlines to HTML breaks)</span>
+            <span class="text-sm text-gray-700">Use &lt;wbr&gt; tags (convert newlines to word break opportunities)</span>
           </label>
           
           <label class="flex items-center gap-3">

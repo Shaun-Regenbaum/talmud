@@ -1,10 +1,6 @@
 import {defaultOptions, mergeAndClone} from "./options";
 import calculateSpacers from "./calculate-spacers";
 import styleManager from "./style-manager";
-import {
-  calculateSpacersBreaks,
-  onlyOneCommentary
-} from "./calculate-spacers-breaks";
 import { LAYOUT_CONSTANTS, RESIZE_DEBOUNCE_DELAY } from "./constants";
 import { debounce, createDiv as div, createSpan as span } from "./utils";
 
@@ -81,14 +77,19 @@ export default function (el, options = defaultOptions) {
           this.amud = amud;
           styleManager.updateIsAmudB(amud == "b");
         }
-        if (!linebreak) {
-          this.spacerHeights = calculateSpacers(main, inner, outer, clonedOptions, containers.dummy);
-          if (this.spacerHeights instanceof Error) {
-            throw this.spacerHeights;
-          }
+        // Store original text with <br> tags for spacer calculation
+        const originalMain = main;
+        const originalInner = inner;
+        const originalOuter = outer;
+        
+        this.spacerHeights = calculateSpacers(originalMain, originalInner, originalOuter, clonedOptions, containers.dummy);
+        if (this.spacerHeights instanceof Error) {
+          throw this.spacerHeights;
+        }
         Object.assign(rendererObject.spacerHeights, this.spacerHeights);
+        
         const resizeHandler = () => {
-          this.spacerHeights = calculateSpacers(main, inner, outer, clonedOptions, containers.dummy);
+          this.spacerHeights = calculateSpacers(originalMain, originalInner, originalOuter, clonedOptions, containers.dummy);
           if (!(this.spacerHeights instanceof Error)) {
             Object.assign(rendererObject.spacerHeights, this.spacerHeights);
             styleManager.updateSpacersVars(this.spacerHeights);
@@ -99,82 +100,6 @@ export default function (el, options = defaultOptions) {
         resizeEvent = debounce(resizeHandler, RESIZE_DEBOUNCE_DELAY);
         window.addEventListener("resize", resizeEvent);
       }
-      else {
-        let [mainSplit, innerSplit, outerSplit] = [main, inner, outer].map( text => {
-          containers.dummy.innerHTML = text;
-          const divRanges = Array.from(containers.dummy.querySelectorAll("div")).map(div => {
-            const range = document.createRange();
-            range.selectNode(div);
-            return range;
-          })
-
-          const brs = containers.dummy.querySelectorAll(linebreak);
-          const splitFragments = []
-          brs.forEach((node, index) => {
-            const range = document.createRange();
-            range.setEndBefore(node);
-            if (index == 0) {
-              range.setStart(containers.dummy, 0);
-            } else {
-              const prev = brs[index - 1];
-              range.setStartAfter(prev);
-            }
-            divRanges.forEach( (divRange, i) => {
-              const inBetween = range.compareBoundaryPoints(Range.START_TO_START, divRange) < 0 && range.compareBoundaryPoints(Range.END_TO_END, divRange) > 0;
-              if (inBetween) {
-                splitFragments.push(divRange.extractContents());
-                divRanges.splice(i, 1);
-              }
-            });
-
-            splitFragments.push(range.extractContents());
-          })
-
-          return splitFragments.map(fragment => {
-            const el = document.createElement("div");
-            el.append(fragment);
-            return el.innerHTML;
-          })
-        });
-
-        containers.dummy.innerHTML = "";
-
-        const hasInner = innerSplit.length != 0;
-        const hasOuter = outerSplit.length != 0;
-
-        if (hasInner != hasOuter) {
-          const withText = hasInner ? innerSplit : outerSplit;
-          const fixed = onlyOneCommentary(withText, clonedOptions, dummy);
-          if (fixed) {
-            if (amud == "a") {
-              innerSplit = fixed[0];
-              outerSplit = fixed[1];
-            } else {
-              innerSplit = fixed[1];
-              outerSplit = fixed[0];
-            }
-            inner = innerSplit.join('<br>');
-            outer = outerSplit.join('<br>');
-          }
-        }
-
-        this.spacerHeights = calculateSpacersBreaks(mainSplit, innerSplit, outerSplit, clonedOptions, containers.dummy);
-        if (this.spacerHeights instanceof Error) {
-          throw this.spacerHeights;
-        }
-        Object.assign(rendererObject.spacerHeights, this.spacerHeights);
-        const resizeHandler = () => {
-          this.spacerHeights = calculateSpacersBreaks(mainSplit, innerSplit, outerSplit, clonedOptions, containers.dummy);
-          if (!(this.spacerHeights instanceof Error)) {
-            Object.assign(rendererObject.spacerHeights, this.spacerHeights);
-            styleManager.updateSpacersVars(this.spacerHeights);
-          }
-          if (resizeCallback)
-            resizeCallback();
-        };
-        resizeEvent = debounce(resizeHandler, RESIZE_DEBOUNCE_DELAY);
-        window.addEventListener('resize', resizeEvent)
-      }
       
       styleManager.updateSpacersVars(this.spacerHeights);
       styleManager.manageExceptions(this.spacerHeights);
@@ -183,16 +108,57 @@ export default function (el, options = defaultOptions) {
       // Add/remove linebreak-mode class based on whether we're using line breaks
       if (linebreak) {
         containers.el.classList.add('linebreak-mode');
+        console.log('🎨 LINEBREAK MODE ACTIVE - CSS class added, break tags present:', {
+          mainHasBr: main.includes('<br>'),
+          mainHasWbr: main.includes('<wbr>'),
+          innerHasBr: inner.includes('<br>'),
+          innerHasWbr: inner.includes('<wbr>'),
+          outerHasBr: outer.includes('<br>'),
+          outerHasWbr: outer.includes('<wbr>'),
+          linebreakParam: linebreak
+        });
       } else {
         containers.el.classList.remove('linebreak-mode');
+        console.log('🎨 Normal mode - linebreak-mode class removed');
       }
       
-      // Strip <br> tags when not in line break mode
-      // Only strip if we're NOT using line breaks AND not using the breaks-based spacer calculation
+      // Handle <br> and <wbr> tags based on mode
       if (!linebreak) {
-        main = main.replace(/<br\s*\/?>/gi, ' ');
-        inner = inner.replace(/<br\s*\/?>/gi, ' ');
-        outer = outer.replace(/<br\s*\/?>/gi, ' ');
+        // Strip <br> and <wbr> tags when not in line break mode
+        main = main.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, '');
+        inner = inner.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, '');
+        outer = outer.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, '');
+      } else {
+        // Convert <br> and <wbr> to soft break opportunities (zero-width space + word break opportunity)
+        main = convertBrToSoftBreaks(main);
+        inner = convertBrToSoftBreaks(inner);
+        outer = convertBrToSoftBreaks(outer);
+      }
+      
+      // Convert <br> tags to soft break opportunities that allow natural text flow
+      function convertBrToSoftBreaks(text) {
+        // Replace <br> with a word break opportunity + zero-width space
+        // This allows the browser to break at these points if needed, but doesn't force breaks
+        const originalBrCount = (text.match(/<br\s*\/?>/gi) || []).length;
+        const originalWbrCount = (text.match(/<wbr\s*\/?>/gi) || []).length;
+        
+        // Convert <br> to <wbr> + zero-width space
+        let converted = text.replace(/<br\s*\/?>/gi, '<wbr>&#8203;');
+        
+        // Ensure existing <wbr> tags also have zero-width space for consistency
+        converted = converted.replace(/<wbr\s*>/gi, '<wbr>&#8203;');
+        
+        const finalWbrCount = (converted.match(/<wbr>/gi) || []).length;
+        
+        console.log('🔄 Converting BR/WBR to soft breaks:', {
+          originalBrCount,
+          originalWbrCount,
+          finalWbrCount,
+          textSample: text.substring(0, 100),
+          convertedSample: converted.substring(0, 100)
+        });
+        
+        return converted;
       }
       
       // Helper function to convert block divs to inline elements in commentary
@@ -210,25 +176,39 @@ export default function (el, options = defaultOptions) {
       }
       
       
+      // Debug final text before setting innerHTML
+      if (linebreak) {
+        console.log('📝 Final text before innerHTML:', {
+          mainContainsWbr: main.includes('<wbr>'),
+          innerContainsWbr: inner.includes('<wbr>'),
+          outerContainsWbr: outer.includes('<wbr>'),
+          mainSample: main.substring(0, 150),
+          innerProcessed: processCommentaryHTML(inner).substring(0, 150)
+        });
+      }
+      
       textSpans.main.innerHTML = main;
       textSpans.inner.innerHTML = processCommentaryHTML(inner);
       textSpans.outer.innerHTML = processCommentaryHTML(outer);
 
-      // Debug CSS in linebreak mode
+      // DEBUG: Check final DOM state in linebreak mode
       if (linebreak) {
         setTimeout(() => {
-          const hasClass = containers.el.classList.contains('linebreak-mode');
-          const mainSpanDisplay = getComputedStyle(textSpans.main).display;
-          const innerSpanDisplay = getComputedStyle(textSpans.inner).display;
-          console.log('🔍 CSS Check:', {
-            rootHasClass: hasClass,
-            mainSpanDisplay,
-            innerSpanDisplay,
-            mainHtmlStart: textSpans.main.innerHTML.substring(0, 100),
-            innerHtmlStart: textSpans.inner.innerHTML.substring(0, 100)
+          const rootHasClass = containers.el.classList.contains('linebreak-mode');
+          const mainDisplay = getComputedStyle(textSpans.main).display;
+          const innerDisplay = getComputedStyle(textSpans.inner).display;
+          console.log('🔍 FINAL DOM STATE CHECK:', {
+            rootHasLinebreakClass: rootHasClass,
+            mainSpanDisplay: mainDisplay,
+            innerSpanDisplay: innerDisplay,
+            mainHtmlSample: textSpans.main.innerHTML.substring(0, 120),
+            innerHtmlSample: textSpans.inner.innerHTML.substring(0, 120),
+            mainContainsBr: textSpans.main.innerHTML.includes('<br>'),
+            innerContainsBr: textSpans.inner.innerHTML.includes('<br>')
           });
-        }, 50);
+        }, 100);
       }
+
 
 
       const containerHeight = Math.max(...["main", "inner", "outer"].map(t => containers[t].el.offsetHeight));
