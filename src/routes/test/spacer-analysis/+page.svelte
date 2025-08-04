@@ -5,6 +5,9 @@
 	import SliderInput from './components/SliderInput.svelte';
 	import SelectInput from './components/SelectInput.svelte';
 	import TextInput from './components/TextInput.svelte';
+	import { processTextsForRenderer } from '$lib/text-processor';
+	import '$lib/styles/talmud-text.css';
+	import '$lib/styles/daf-renderer-enhancements.css';
 	
 	let tractate = 'Berakhot';
 	let daf = '2';
@@ -215,10 +218,24 @@
 				rashiHasBr: rashiText.includes('<br>')
 			});
 			
-			rendererInstance.render(
+			// Process texts for proper styling (הדרן עלך, gdropcap, headers)
+			const { mainHTML, rashiHTML, tosafotHTML } = processTextsForRenderer(
 				mainText,
 				rashiText,
-				tosafotText,
+				tosafotText
+			);
+			
+			console.log('📝 Post-processing texts for spacer-analysis:', {
+				mainSample: mainHTML.substring(0, 200),
+				hasGdropcap: mainHTML.includes('gdropcap'),
+				hasFiveClass: rashiHTML.includes('class="five"'),
+				hasShastitle7: tosafotHTML.includes('class="shastitle7"')
+			});
+			
+			rendererInstance.render(
+				mainHTML,
+				rashiHTML,
+				tosafotHTML,
 				data.amud || 'a',
 				forceLineBreaks ? 'br' : false
 			);
