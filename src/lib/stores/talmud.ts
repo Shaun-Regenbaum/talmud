@@ -30,15 +30,15 @@ function createTalmudStore() {
 		async loadPage(tractate: string, pageNum: string, amud: string, options: { lineBreakMode?: boolean } = {}) {
 			const fullPage = `${pageNum}${amud}`;
 			
-			// Set loading state
+			// Set loading state - keep old data during navigation to prevent renderer clearing
 			update(state => ({
 				...state,
 				tractate,
 				page: pageNum,
 				amud,
 				loading: true,
-				error: null,
-				data: null // Clear old data while loading
+				error: null
+				// Don't clear data during navigation to prevent renderer from disappearing
 			}));
 
 			try {

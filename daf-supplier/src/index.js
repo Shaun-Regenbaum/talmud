@@ -58,8 +58,14 @@ export default {
         const page = await browser.newPage();
         console.log('New page created');
         
-        // HebrewBooks uses simple daf numbers "2", "2b", "3", "3b" format
-        const targetUrl = `https://www.hebrewbooks.org/shas.aspx?mesechta=${mesechta}&daf=${daf}&format=text`;
+        // Convert daf-supplier format back to HebrewBooks format
+        // daf-supplier: 3->2a, 4->2b, 5->3a, 6->3b
+        // HebrewBooks expects: "2", "2b", "3", "3b"
+        const pageNum = Math.ceil(parseInt(daf) / 2);
+        const amud = parseInt(daf) % 2 === 0 ? 'b' : 'a';
+        const hebrewBooksDaf = amud === 'a' ? pageNum.toString() : `${pageNum}b`;
+        
+        const targetUrl = `https://www.hebrewbooks.org/shas.aspx?mesechta=${mesechta}&daf=${hebrewBooksDaf}&format=text`;
         console.log('Navigating to:', targetUrl);
         await page.goto(targetUrl, { waitUntil: 'networkidle0' });
 
