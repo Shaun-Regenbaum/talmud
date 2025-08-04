@@ -176,6 +176,11 @@ function createRendererStore() {
 		// Clear the renderer
 		clear() {
 			update(state => {
+				// Call destroy method if renderer exists
+				if (state.renderer && typeof state.renderer.destroy === 'function') {
+					state.renderer.destroy();
+				}
+				
 				if (state.container) {
 					state.container.innerHTML = '';
 				}

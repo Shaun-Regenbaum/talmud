@@ -67,7 +67,6 @@ function setVars(object, prefix = "") {
   // Update our reference if it changed
   if (currentRoot !== rootElement) {
     rootElement = currentRoot;
-    console.log('Updated root element reference');
   }
 
   Object.entries(object).forEach(([key, value]) => {
@@ -129,7 +128,6 @@ export default {
       return;
     }
     if (spacerHeights.exception === 1) {
-      console.log("In Style Exception, Case 1")
       setVars({
         hasInnerStartGap: "1",
         innerStartWidth: "100%",
@@ -138,7 +136,6 @@ export default {
         outerPadding: "0px",
       })
     } else if (spacerHeights.exception === 2) {
-      console.log("In Style Exception, Case 2")
       setVars({
         hasOuterStartGap: "1",
         outerStartWidth: "100%",

@@ -87,6 +87,8 @@ Provide clear, readable ${targetLanguage} that maintains the scholarly tone of t
 				});
 				
 				if (!response.ok) {
+					const errorData = await response.json().catch(() => ({}));
+					console.log('Primary model failed:', this.models.primary, errorData);
 					throw new Error(`OpenRouter API error: ${response.status} ${response.statusText}`);
 				}
 				
@@ -107,16 +109,10 @@ Provide clear, readable ${targetLanguage} that maintains the scholarly tone of t
 				
 				return result;
 			} catch (error) {
-				console.error('Translation error:', error);
-				
 				// Clean up pending request on error
 				this.pendingRequests.delete(cacheKey);
 				
-				// Try fallback model if primary fails
-				if (error instanceof Error && error.message.includes('API error')) {
-					return this.translateWithFallback(request);
-				}
-				
+				console.error('Translation error:', error);
 				throw error;
 			}
 		})();

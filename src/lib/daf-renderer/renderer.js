@@ -5,26 +5,14 @@ import {
   calculateSpacersBreaks,
   onlyOneCommentary
 } from "./calculate-spacers-breaks";
-
-function el(tag, parent) {
-  const newEl = document.createElement(tag);
-  if (parent) parent.append(newEl);
-  return newEl;
-}
-
-function div(parent) {
-  return el("div", parent);
-}
-
-function span(parent) {
-  return el("span", parent);
-}
+import { LAYOUT_CONSTANTS, RESIZE_DEBOUNCE_DELAY } from "./constants";
+import { debounce, createDiv as div, createSpan as span } from "./utils";
 
 
 export default function (el, options = defaultOptions) {
   const root = (typeof el === "string") ? document.querySelector(el) : el;
   if (!(root && root instanceof Element && root.tagName.toUpperCase() === "DIV")) {
-    throw "Argument must be a div element or its selector"
+    throw new Error("Argument must be a div element or its selector");
   }
   const outerContainer = div(root);
   const innerContainer = div(root);
@@ -83,25 +71,32 @@ export default function (el, options = defaultOptions) {
       outer: 0,
       end: 0
     },
-    amud: "a",
+    amud: LAYOUT_CONSTANTS.DEFAULT_AMUD,
     render(main, inner, outer, amud = "a", linebreak, renderCallback, resizeCallback) {
-      if (resizeEvent) {
-        window.removeEventListener("resize", resizeEvent);
-      }
-      if (this.amud != amud) {
-        this.amud = amud;
-        styleManager.updateIsAmudB(amud == "b");
-      }
-      if (!linebreak) {
-        this.spacerHeights = calculateSpacers(main, inner, outer, clonedOptions, containers.dummy);
-        Object.assign(rendererObject.spacerHeights, this.spacerHeights);
-        resizeEvent = () => {
+      try {
+        if (resizeEvent) {
+          window.removeEventListener("resize", resizeEvent);
+        }
+        if (this.amud != amud) {
+          this.amud = amud;
+          styleManager.updateIsAmudB(amud == "b");
+        }
+        if (!linebreak) {
           this.spacerHeights = calculateSpacers(main, inner, outer, clonedOptions, containers.dummy);
-          Object.assign(rendererObject.spacerHeights, this.spacerHeights);
-          styleManager.updateSpacersVars(this.spacerHeights);
+          if (this.spacerHeights instanceof Error) {
+            throw this.spacerHeights;
+          }
+        Object.assign(rendererObject.spacerHeights, this.spacerHeights);
+        const resizeHandler = () => {
+          this.spacerHeights = calculateSpacers(main, inner, outer, clonedOptions, containers.dummy);
+          if (!(this.spacerHeights instanceof Error)) {
+            Object.assign(rendererObject.spacerHeights, this.spacerHeights);
+            styleManager.updateSpacersVars(this.spacerHeights);
+          }
           if (resizeCallback)
             resizeCallback();
-        }
+        };
+        resizeEvent = debounce(resizeHandler, RESIZE_DEBOUNCE_DELAY);
         window.addEventListener("resize", resizeEvent);
       }
       else {
@@ -164,14 +159,20 @@ export default function (el, options = defaultOptions) {
         }
 
         this.spacerHeights = calculateSpacersBreaks(mainSplit, innerSplit, outerSplit, clonedOptions, containers.dummy);
+        if (this.spacerHeights instanceof Error) {
+          throw this.spacerHeights;
+        }
         Object.assign(rendererObject.spacerHeights, this.spacerHeights);
-        resizeEvent = () => {
+        const resizeHandler = () => {
           this.spacerHeights = calculateSpacersBreaks(mainSplit, innerSplit, outerSplit, clonedOptions, containers.dummy);
-          Object.assign(rendererObject.spacerHeights, this.spacerHeights);
-          styleManager.updateSpacersVars(this.spacerHeights);
+          if (!(this.spacerHeights instanceof Error)) {
+            Object.assign(rendererObject.spacerHeights, this.spacerHeights);
+            styleManager.updateSpacersVars(this.spacerHeights);
+          }
           if (resizeCallback)
             resizeCallback();
-        }
+        };
+        resizeEvent = debounce(resizeHandler, RESIZE_DEBOUNCE_DELAY);
         window.addEventListener('resize', resizeEvent)
       }
       
@@ -198,6 +199,10 @@ export default function (el, options = defaultOptions) {
       
       if (renderCallback)
         renderCallback();
+      } catch (error) {
+        console.error('Render error:', error);
+        throw error;
+      }
     },
     
     checkExcessiveSpacing() {
@@ -216,8 +221,8 @@ export default function (el, options = defaultOptions) {
       const innerSpacingRatio = innerContainerHeight > 0 ? innerTextHeight / innerContainerHeight : 0;
       const outerSpacingRatio = outerContainerHeight > 0 ? outerTextHeight / outerContainerHeight : 0;
       
-      // Check for excessive spacing (less than 30% content)
-      const excessiveThreshold = 0.3;
+      // Check for excessive spacing
+      const excessiveThreshold = LAYOUT_CONSTANTS.EXCESSIVE_SPACING_THRESHOLD;
       const spacingIssues = [];
       
       if (mainSpacingRatio > 0 && mainSpacingRatio < excessiveThreshold) {
@@ -255,6 +260,37 @@ export default function (el, options = defaultOptions) {
         this.spacingIssues = spacingIssues;
       } else {
         this.spacingIssues = [];
+      }
+    },
+    
+    // Cleanup method to remove event listeners and clear DOM
+    destroy() {
+      // Remove resize event listener
+      if (resizeEvent) {
+        window.removeEventListener("resize", resizeEvent);
+        resizeEvent = null;
+      }
+      
+      // Clear text content
+      textSpans.main.innerHTML = '';
+      textSpans.inner.innerHTML = '';
+      textSpans.outer.innerHTML = '';
+      
+      // Clear spacer heights
+      this.spacerHeights = {
+        start: 0,
+        inner: 0,
+        outer: 0,
+        end: 0
+      };
+      
+      // Reset CSS variables
+      styleManager.updateSpacersVars(this.spacerHeights);
+      
+      // Clear root container
+      if (containers.el) {
+        containers.el.innerHTML = '';
+        containers.el.style.height = '';
       }
     }
   };

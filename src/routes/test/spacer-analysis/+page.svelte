@@ -13,7 +13,7 @@
 	// Test options
 	let useLineAnalysis = true;
 	let useAreaCalculation = false;
-	let forceLineBreaks = true;
+	let forceLineBreaks = false; // Start with false since text doesn't have <br> tags
 	
 	// Tractate options
 	const tractates = [
@@ -58,6 +58,8 @@
 			
 			const data = await response.json();
 			console.log('Raw data:', data);
+			console.log('Main text sample:', data.mainText?.substring(0, 200));
+			console.log('Has <br> tags:', data.mainText?.includes('<br>'));
 			
 			// Clean up existing renderer
 			if (rendererInstance) {
@@ -127,6 +129,27 @@
 			};
 			
 			console.log('Spacer calculation results:', spacerResults);
+			
+			// Debug: Check if CSS variables are set
+			setTimeout(() => {
+				const rootEl = document.querySelector('.dafRoot');
+				if (rootEl) {
+					const computedStyle = getComputedStyle(rootEl);
+					console.log('CSS Variables applied:');
+					console.log('--spacerHeights-start:', computedStyle.getPropertyValue('--spacerHeights-start'));
+					console.log('--spacerHeights-inner:', computedStyle.getPropertyValue('--spacerHeights-inner'));
+					console.log('--spacerHeights-outer:', computedStyle.getPropertyValue('--spacerHeights-outer'));
+					console.log('--spacerHeights-end:', computedStyle.getPropertyValue('--spacerHeights-end'));
+					
+					// Check actual spacer elements
+					const spacers = rootEl.querySelectorAll('.spacer');
+					spacers.forEach(spacer => {
+						const height = getComputedStyle(spacer).height;
+						const classes = Array.from(spacer.classList).join(' ');
+						console.log(`Spacer (${classes}): ${height}`);
+					});
+				}
+			}, 100);
 			
 		} catch (err) {
 			console.error('Error:', err);
@@ -337,5 +360,32 @@
 	
 	:global(.daf-container .commentary-text) {
 		font-family: 'Noto Rashi Hebrew', serif;
+	}
+	
+	/* Debug styles to visualize spacers */
+	:global(.dafRoot .spacer) {
+		background-color: rgba(255, 0, 0, 0.1);
+		border: 1px dashed red;
+		box-sizing: border-box;
+	}
+	
+	:global(.dafRoot .spacer.start) {
+		background-color: rgba(0, 255, 0, 0.1);
+		border-color: green;
+	}
+	
+	:global(.dafRoot .spacer.innerMid) {
+		background-color: rgba(0, 0, 255, 0.1);
+		border-color: blue;
+	}
+	
+	:global(.dafRoot .spacer.outerMid) {
+		background-color: rgba(255, 255, 0, 0.1);
+		border-color: orange;
+	}
+	
+	:global(.dafRoot .spacer.end) {
+		background-color: rgba(255, 0, 255, 0.1);
+		border-color: purple;
 	}
 </style>

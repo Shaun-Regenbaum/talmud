@@ -1,3 +1,5 @@
+import { LAYOUT_CONSTANTS } from './constants.js';
+
 function getAreaOfText(text, font, fs, width, lh, dummy) {
   let testDiv = document.createElement("div");
   testDiv.style.font = String(fs) + "px " + String(font);
@@ -36,7 +38,7 @@ function calculateSpacers(mainText, innerText, outerText, options, dummy) {
   const sideWidth = Number(parsedOptions.width * (1 - parsedOptions.mainWidth)/2) //each commentary widths, dont include padding, sokeep it constant
 
    const spacerHeights = {
-    start: 4.3 * parsedOptions.lineHeight.side,
+    start: LAYOUT_CONSTANTS.START_SPACER_MULTIPLIER * parsedOptions.lineHeight.side,
     inner: null,
     outer: null,
     end: 0,
@@ -130,7 +132,7 @@ function calculateSpacers(mainText, innerText, outerText, options, dummy) {
   }
 
 
-  const topArea = (lineHeight) => ((4 * lineHeight * topWidth)); //remove area of the top 4 lines
+  const topArea = (lineHeight) => ((LAYOUT_CONSTANTS.HEADER_LINES * lineHeight * topWidth)); //remove area of the top 4 lines
   
 
   const main = {
@@ -182,15 +184,13 @@ function calculateSpacers(mainText, innerText, outerText, options, dummy) {
 
   //First we need to check we have enough commentary to fill the first four lines
   if (inner.height <= 0 && outer.height <= 0){
-    console.error("No Commentary");
-    return Error("No Commentary");
+    return new Error("No commentary text provided. Both Rashi and Tosafot are empty.");
   };
 
  
   // This is a case that we have to decice what to do with, when there is not enough commentary on both sides to fill the lines. 
   if (inner.height <= spacerHeights.start && outer.height <= spacerHeights.start) {
-    console.error("Not Enough Commentary to Fill Four Lines");
-    return Error("Not Enough Commentary");
+    return new Error("Insufficient commentary text. Not enough content to fill the required four lines on both sides.");
   };
 
   // We are going to deal with our first edge case when there is either only one commentary
@@ -198,25 +198,24 @@ function calculateSpacers(mainText, innerText, outerText, options, dummy) {
   if (inner.unadjustedHeight  <= spacerHeights.start || outer.unadjustedHeight  <= spacerHeights.start) {
     if (inner.unadjustedHeight  <= spacerHeights.start) {
       spacerHeights.inner = inner.unadjustedHeight;
-      spacerHeights.outer = (outer.unadjustedArea - parsedOptions.width * 4 * parsedOptions.lineHeight.side) / sideWidth;
+      spacerHeights.outer = (outer.unadjustedArea - parsedOptions.width * LAYOUT_CONSTANTS.HEADER_LINES * parsedOptions.lineHeight.side) / sideWidth;
       spacerHeights.exception = 1;
       return spacerHeights;
     }
     if (outer.unadjustedHeight <= spacerHeights.start) {
       spacerHeights.outer = outer.unadjustedHeight;
 
-      spacerHeights.inner = (inner.unadjustedArea - parsedOptions.width * 4 * parsedOptions.lineHeight.side) / sideWidth;
+      spacerHeights.inner = (inner.unadjustedArea - parsedOptions.width * LAYOUT_CONSTANTS.HEADER_LINES * parsedOptions.lineHeight.side) / sideWidth;
       spacerHeights.exception = 2;
       return spacerHeights;
     }
     else {
-      return Error("Inner Spacer Error");
+      return new Error("Unexpected error calculating inner spacer heights");
     }
   };
 
   //If Double=Wrap
   if (perHeight[0].name === "main"){
-    console.log("Double-Wrap"); 
     spacerHeights.inner = main.area/midWidth;
     spacerHeights.outer = spacerHeights.inner;
     
@@ -236,7 +235,6 @@ function calculateSpacers(mainText, innerText, outerText, options, dummy) {
   const stairHeight = stair.area / stair.width;
 
   if (blockHeight < stairHeight) {
-    console.log(`Stairs, ${stair.name} is the stair`);
     // This function accounts for extra space that is introduced by padding
     const lilArea = (height1, height2, horizPadding) => (horizPadding) * (height1 - height2);
     const smallest = perHeight[0];
@@ -245,7 +243,6 @@ function calculateSpacers(mainText, innerText, outerText, options, dummy) {
     return spacerHeights
   }
   //If Double Extend
-  console.log("Double-Extend")
   spacerHeights.inner = inner.height;
   spacerHeights.outer = outer.height;
 
