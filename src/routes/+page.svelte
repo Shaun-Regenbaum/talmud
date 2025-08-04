@@ -9,6 +9,7 @@
 	import { renderMarkdown } from '$lib/markdown';
 	import { processTextsForRenderer } from '$lib/text-processor';
 	import '$lib/styles/talmud-text.css';
+	import '$lib/styles/daf-renderer-enhancements.css';
 	
 	// Store cleanup function
 	let translationCleanup: (() => void) | undefined;
@@ -124,7 +125,8 @@
 		}
 		
 		// Create unique key for this page data including display mode
-		const currentPageKey = `${pageData.tractate}-${pageData.daf}-${pageData.amud}-${pageData.mainText?.length || 0}-${vilnaMode}`;
+		// Include timestamp to force re-render even if content is the same
+		const currentPageKey = `${pageData.tractate}-${pageData.daf}-${pageData.amud}-${vilnaMode}-${pageData.timestamp || Date.now()}`;
 		
 		// Skip if we already rendered this exact data with same mode
 		if (lastRenderedKey === currentPageKey) {

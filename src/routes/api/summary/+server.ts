@@ -5,7 +5,7 @@ import { TRACTATE_IDS, convertDafToHebrewBooksFormat } from '$lib/hebrewbooks';
 import { PUBLIC_OPENROUTER_API_KEY } from '$env/static/public';
 
 // Check if we're in Cloudflare Workers environment
-const isCloudflareWorkers = typeof caches !== 'undefined';
+// This will be checked at runtime in the request handler
 
 // Cache configuration
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
@@ -14,8 +14,8 @@ const CACHE_PREFIX = 'talmud-summary:';
 // In-memory cache fallback for development
 const memoryCache = new Map<string, { data: any; timestamp: number }>();
 
-async function getCachedSummary(cacheKey: string): Promise<any | null> {
-	if (isCloudflareWorkers) {
+async function getCachedSummary(cacheKey: string, platform?: any): Promise<any | null> {
+	if (platform?.env) {
 		try {
 			// Try Cloudflare KV if available
 			if (typeof SUMMARIES_KV !== 'undefined') {
@@ -45,13 +45,13 @@ async function getCachedSummary(cacheKey: string): Promise<any | null> {
 	return null;
 }
 
-async function setCachedSummary(cacheKey: string, data: any): Promise<void> {
+async function setCachedSummary(cacheKey: string, data: any, platform?: any): Promise<void> {
 	const cacheData = {
 		data,
 		timestamp: Date.now()
 	};
 
-	if (isCloudflareWorkers) {
+	if (platform?.env) {
 		try {
 			// Try Cloudflare KV if available
 			if (typeof SUMMARIES_KV !== 'undefined') {
@@ -85,7 +85,7 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 	try {
 		// Check cache first (unless refresh is requested)
 		if (!refresh) {
-			const cachedSummary = await getCachedSummary(cacheKey);
+			const cachedSummary = await getCachedSummary(cacheKey, platform);
 			if (cachedSummary) {
 				return json({
 					...cachedSummary,
@@ -116,7 +116,7 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 		
 		// In Cloudflare Workers, we can't make inter-worker requests
 		// Return info for client to fetch and then resubmit
-		if (isCloudflareWorkers) {
+		if (platform?.env) {
 			const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
 			return json({
 				requiresClientFetch: true,
@@ -208,7 +208,7 @@ Talmud text: ${mainText.slice(0, 3000)}`;
 		};
 
 		// Cache the result
-		await setCachedSummary(cacheKey, summaryData);
+		await setCachedSummary(cacheKey, summaryData, platform);
 
 		return json({
 			...summaryData,
@@ -238,7 +238,7 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 		const cacheKey = `${CACHE_PREFIX}${tractate}:${page}${amud}`;
 		
 		// Check cache first
-		const cachedSummary = await getCachedSummary(cacheKey);
+		const cachedSummary = await getCachedSummary(cacheKey, platform);
 		if (cachedSummary) {
 			return json({
 				...cachedSummary,
@@ -319,7 +319,7 @@ Talmud text: ${mainText.slice(0, 3000)}`;
 		};
 
 		// Cache the result
-		await setCachedSummary(cacheKey, summaryData);
+		await setCachedSummary(cacheKey, summaryData, platform);
 
 		return json({
 			...summaryData,
