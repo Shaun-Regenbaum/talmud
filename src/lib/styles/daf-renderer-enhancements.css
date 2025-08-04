@@ -80,12 +80,31 @@
   border-radius: 2px;
 }
 
-/* Improve drop cap appearance */
+/* Improve drop cap appearance - decorative frame style */
 .gdropcap {
+  position: relative;
   float: right;
   margin-right: -0.1em;
   margin-bottom: -0.2em;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Add decorative background on hover */
+.gdropcap:hover {
+  background-color: rgba(255, 245, 230, 0.8);
+  transform: scale(1.05);
+}
+
+/* Alternative style with background image (if you have the SVG) */
+.gdropcap.with-frame {
+  background-image: url('/images/talmud-perek-frame.svg');
+  background-size: cover;
+  padding-top: 1.5em;
+  padding-right: 0.1em;
+  min-width: 120px;
+  min-height: 100px;
 }
 
 /* Add visual hierarchy to headers */

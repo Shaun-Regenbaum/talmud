@@ -108,9 +108,12 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 			return json({ error: `Unknown tractate: ${tractate}` }, { status: 400 });
 		}
 		
-		// In Cloudflare Workers, we can't make inter-worker requests
-		// Return info for client to fetch and then resubmit
-		if (platform?.env) {
+		// Check if we're in Cloudflare Workers environment
+		const isCloudflareEnv = platform?.env !== undefined;
+		
+		if (isCloudflareEnv) {
+			// In Cloudflare Workers, we can't make inter-worker requests
+			// Return info for client to fetch and then resubmit
 			const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
 			return json({
 				requiresClientFetch: true,
@@ -120,20 +123,19 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 				amud,
 				message: 'Client should fetch from dafSupplierUrl and POST the data back'
 			});
-		}
-		
-		// In development, fetch directly
-		const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
-		const talmudResponse = await fetch(dafSupplierUrl);
-		
-		if (!talmudResponse.ok) {
-			throw new Error(`Failed to fetch Talmud data: ${talmudResponse.status}`);
-		}
+		} else {
+			// In development, fetch directly
+			const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
+			const talmudResponse = await fetch(dafSupplierUrl);
+			
+			if (!talmudResponse.ok) {
+				throw new Error(`Failed to fetch Talmud data: ${talmudResponse.status}`);
+			}
 
-		const talmudData = await talmudResponse.json();
-		const mainText = talmudData.mainText || '';
-		const rashiText = talmudData.rashi || '';
-		const tosafotText = talmudData.tosafot || '';
+			const talmudData = await talmudResponse.json();
+			const mainText = talmudData.mainText || '';
+			const rashiText = talmudData.rashi || '';
+			const tosafotText = talmudData.tosafot || '';
 		
 		if (!mainText || mainText.length < 100) {
 			return json({ error: 'Insufficient content for story generation' }, { status: 400 });

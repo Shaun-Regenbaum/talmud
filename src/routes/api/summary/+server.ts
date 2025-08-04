@@ -115,10 +115,15 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 		console.log(`Fetching from daf-supplier v3: mesechta=${mesechtaId}, daf=${dafForAPI} (converted from ${page}${amud})`);
 		console.log('Platform check:', { hasPlatform: !!platform, hasPlatformEnv: !!platform?.env });
 		
-		// In Cloudflare Workers, we can't make inter-worker requests
-		// Return info for client to fetch and then resubmit
-		if (platform?.env) {
+		// Check if we're in Cloudflare Workers environment
+		const isCloudflareEnv = platform?.env !== undefined;
+		console.log('Environment check:', { isCloudflareEnv, hasPlatform: !!platform, hasPlatformEnv: !!platform?.env });
+		
+		if (isCloudflareEnv) {
+			// In Cloudflare Workers, we can't make inter-worker requests
+			// Return info for client to fetch and then resubmit
 			const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
+			console.log('Returning client-fetch response for:', dafSupplierUrl);
 			return json({
 				requiresClientFetch: true,
 				dafSupplierUrl,
@@ -127,29 +132,29 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 				amud,
 				message: 'Client should fetch from dafSupplierUrl and POST the mainText back'
 			});
-		}
-		
-		// In development, fetch directly
-		const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
-		const talmudResponse = await fetch(dafSupplierUrl);
-		
-		if (!talmudResponse.ok) {
-			const errorText = await talmudResponse.text();
-			console.error(`daf-supplier error: status=${talmudResponse.status}, text=${errorText.substring(0, 200)}`);
-			throw new Error(`Failed to fetch Talmud data: ${talmudResponse.status}`);
-		}
+		} else {
+			// In development, fetch directly
+			console.log('Development mode - fetching directly');
+			const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
+			const talmudResponse = await fetch(dafSupplierUrl);
+			
+			if (!talmudResponse.ok) {
+				const errorText = await talmudResponse.text();
+				console.error(`daf-supplier error: status=${talmudResponse.status}, text=${errorText.substring(0, 200)}`);
+				throw new Error(`Failed to fetch Talmud data: ${talmudResponse.status}`);
+			}
 
-		const talmudData = await talmudResponse.json();
-		const mainText = talmudData.mainText || '';
-		
-		if (!mainText || mainText.length < 50) {
-			console.error('Insufficient content:', { mainText: mainText?.substring(0, 100), length: mainText?.length });
-			return json({ error: 'Insufficient content for summary generation', length: mainText?.length }, { status: 400 });
-		}
+			const talmudData = await talmudResponse.json();
+			const mainText = talmudData.mainText || '';
+			
+			if (!mainText || mainText.length < 50) {
+				console.error('Insufficient content:', { mainText: mainText?.substring(0, 100), length: mainText?.length });
+				return json({ error: 'Insufficient content for summary generation', length: mainText?.length }, { status: 400 });
+			}
 
-		// Generate summary using OpenRouter with Claude Sonnet 4 directly
-		const contextInfo = `${tractate} ${page}${amud}`;
-		const summaryPrompt = `You are analyzing a page from the Talmud (${contextInfo}). Create an engaging, accessible summary that brings this ancient discussion to life for modern readers.
+			// Generate summary using OpenRouter with Claude Sonnet 4 directly
+			const contextInfo = `${tractate} ${page}${amud}`;
+			const summaryPrompt = `You are analyzing a page from the Talmud (${contextInfo}). Create an engaging, accessible summary that brings this ancient discussion to life for modern readers.
 
 Focus on making the content compelling by highlighting:
 • The central question or dilemma being explored
@@ -216,6 +221,7 @@ Talmud text: ${mainText.slice(0, 3000)}`;
 			cached: false,
 			cacheKey
 		});
+		}
 	} catch (error) {
 		console.error('Summary API error:', error);
 		return json({
