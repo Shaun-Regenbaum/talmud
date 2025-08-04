@@ -105,7 +105,41 @@
 			}
 
 			const storiesData = await response.json();
-			stories = storiesData;
+			
+			// Check if we need to fetch from daf-supplier first
+			if (storiesData.requiresClientFetch) {
+				// Fetch from daf-supplier directly
+				const dafResponse = await fetch(storiesData.dafSupplierUrl);
+				if (!dafResponse.ok) {
+					throw new Error(`Failed to fetch Talmud data: ${dafResponse.status}`);
+				}
+				
+				const dafData = await dafResponse.json();
+				
+				// Now POST the data back to generate stories
+				const storiesResponse = await fetch('/api/stories', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({
+						tractate: storiesData.tractate,
+						page: storiesData.page,
+						amud: storiesData.amud,
+						mainText: dafData.mainText,
+						rashi: dafData.rashi,
+						tosafot: dafData.tosafot
+					})
+				});
+				
+				if (!storiesResponse.ok) {
+					throw new Error(`Failed to generate stories: ${storiesResponse.status}`);
+				}
+				
+				stories = await storiesResponse.json();
+			} else {
+				stories = storiesData;
+			}
 
 		} catch (err) {
 			console.error('Failed to load stories:', err);

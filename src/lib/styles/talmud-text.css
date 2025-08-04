@@ -7,9 +7,9 @@
   margin: 1em 0;
 }
 
-/* First word of Gemara - 3-4 lines tall */
-.gemara-first-word,
-.main .text span .gemara-first-word {
+/* First word of Gemara - 3-4 lines tall (gdropcap from API) */
+.gdropcap,
+.main .text span .gdropcap {
   font-size: 3em !important;
   line-height: 1 !important;
   display: inline-block;

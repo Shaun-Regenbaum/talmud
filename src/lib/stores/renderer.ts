@@ -75,7 +75,7 @@ function createRendererStore() {
 					rashiText, 
 					tosafotText, 
 					amud, 
-					lineBreakMode, // Pass boolean for line break mode
+					lineBreakMode ? 'br' : false, // Pass 'br' for line break mode like test page does
 					() => {
 						console.log('🎯 Daf-renderer completed - trusting renderer to handle CSS');
 					}, // rendered callback

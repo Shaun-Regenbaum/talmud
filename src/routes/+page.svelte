@@ -150,11 +150,25 @@
 			}
 			
 			// Use advanced text processor for proper styling
+			console.log('📝 Pre-processing texts:', {
+				mainHasBr: (pageData.mainText || '').includes('<br>'),
+				rashiHasBr: (pageData.rashi || '').includes('<br>'),
+				tosafotHasBr: (pageData.tosafot || '').includes('<br>'),
+				mainSample: (pageData.mainText || '').substring(0, 200)
+			});
+			
 			const { mainHTML, rashiHTML, tosafotHTML } = processTextsForRenderer(
 				pageData.mainText || ' ',
 				pageData.rashi || ' ',
 				pageData.tosafot || ' '
 			);
+			
+			console.log('📝 Post-processing texts:', {
+				mainHasBr: mainHTML.includes('<br>'),
+				rashiHasBr: rashiHTML.includes('<br>'),
+				tosafotHasBr: tosafotHTML.includes('<br>'),
+				mainSample: mainHTML.substring(0, 200)
+			});
 			const pageLabel = (pageData.daf + pageData.amud).replace('a', 'א').replace('b', 'ב');
 			
 			
@@ -279,7 +293,39 @@
 			}
 
 			const summaryData = await response.json();
-			summary = summaryData;
+			
+			// Check if we need to fetch from daf-supplier first
+			if (summaryData.requiresClientFetch) {
+				// Fetch from daf-supplier directly
+				const dafResponse = await fetch(summaryData.dafSupplierUrl);
+				if (!dafResponse.ok) {
+					throw new Error(`Failed to fetch Talmud data: ${dafResponse.status}`);
+				}
+				
+				const dafData = await dafResponse.json();
+				
+				// Now POST the mainText back to generate summary
+				const summaryResponse = await fetch('/api/summary', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({
+						tractate: summaryData.tractate,
+						page: summaryData.page,
+						amud: summaryData.amud,
+						mainText: dafData.mainText
+					})
+				});
+				
+				if (!summaryResponse.ok) {
+					throw new Error(`Failed to generate summary: ${summaryResponse.status}`);
+				}
+				
+				summary = await summaryResponse.json();
+			} else {
+				summary = summaryData;
+			}
 		} catch (error) {
 			summaryError = error instanceof Error ? error.message : 'Failed to load summary';
 		} finally {
