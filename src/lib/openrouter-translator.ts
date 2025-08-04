@@ -55,14 +55,9 @@ class OpenRouterTranslator {
 		}
 		
 		// Build the prompt
-		const systemPrompt = `You are an expert translator specializing in Talmudic Hebrew and Aramaic. 
-Your task is to provide accurate, contextual translations that preserve the meaning and nuance of the original text.
-When translating Talmudic terms, preserve transliterated terms when they have specific technical meanings.
-Provide clear, readable ${targetLanguage} that maintains the scholarly tone of the original.`;
+		const systemPrompt = `Translate Talmudic Hebrew/Aramaic to ${targetLanguage}. Output ONLY the translation. No explanations, no commentary.`;
 		
-		const userPrompt = context 
-			? `Translate the following Talmudic text to ${targetLanguage}. Context: ${context}\n\nText: ${text}`
-			: `Translate the following Talmudic text to ${targetLanguage}: ${text}`;
+		const userPrompt = text;
 		
 		// Create the promise for this translation
 		const translationPromise = (async () => {

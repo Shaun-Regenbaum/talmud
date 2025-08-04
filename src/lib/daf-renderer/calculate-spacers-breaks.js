@@ -723,6 +723,12 @@ export function calculateSpacersBreaks(mainArray, rashiArray, tosafotArray, opti
   // Use area-based calculation when no line breaks detected or as fallback
   if (options.useAreaCalculation || (!breaks.main.length && !breaks.rashi.length && !breaks.tosafot.length)) {
     console.log("🔄 Using area-based calculation (similar to calculate-spacers.js)");
+    console.log("Debug widths:", { midWidth, topWidth, sideWidth });
+    console.log("Debug options:", { 
+      contentWidth: options.contentWidth,
+      mainWidth: options.mainWidth,
+      halfway: options.halfway
+    });
     
     // Calculate areas for each text section
     const topArea = (lineHeight) => ((4 * lineHeight * topWidth)); // Remove area of top 4 lines
@@ -759,6 +765,13 @@ export function calculateSpacersBreaks(mainArray, rashiArray, tosafotArray, opti
       data.height = data.area / data.width;
       data.unadjustedArea = data.area + topArea(parsedOptions.lineHeight.side);
       data.unadjustedHeight = data.unadjustedArea / data.width;
+      console.log(`📏 ${data.name} measurements:`, {
+        area: data.area,
+        width: data.width,
+        height: data.height,
+        unadjustedHeight: data.unadjustedHeight,
+        lineHeight: data.lineHeight
+      });
     });
     
     const sortedByHeight = [mainData, innerData, outerData].sort((a, b) => a.height - b.height);

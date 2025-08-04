@@ -14,6 +14,7 @@
 	let useLineAnalysis = true;
 	let useAreaCalculation = false;
 	let forceLineBreaks = false; // Start with false since text doesn't have <br> tags
+	let showDebugOverlay = true;
 	
 	// Tractate options
 	const tractates = [
@@ -80,9 +81,6 @@
 			// Initialize renderer with test options (expects strings for numbers)
 			const options = {
 				contentWidth: '600',
-				lineBreaks: forceLineBreaks,
-				useLineAnalysis: useLineAnalysis,
-				useAreaCalculation: useAreaCalculation,
 				fontSize: {
 					main: '16',
 					side: '12'
@@ -101,7 +99,13 @@
 					horizontal: '10'
 				},
 				halfway: '50',
-				mainWidth: '50'
+				mainWidth: '50',
+				// Custom options for testing enhanced spacer calculation
+				...(forceLineBreaks ? {
+					lineBreaks: true,
+					useLineAnalysis: useLineAnalysis,
+					useAreaCalculation: useAreaCalculation
+				} : {})
 			};
 			
 			// Create a wrapper div for the renderer
@@ -147,6 +151,25 @@
 						const height = getComputedStyle(spacer).height;
 						const classes = Array.from(spacer.classList).join(' ');
 						console.log(`Spacer (${classes}): ${height}`);
+					});
+					
+					// Check DOM structure
+					console.log('DOM Structure:');
+					const containers = {
+						main: rootEl.querySelector('.main'),
+						inner: rootEl.querySelector('.inner'),
+						outer: rootEl.querySelector('.outer')
+					};
+					
+					Object.entries(containers).forEach(([name, container]) => {
+						if (container) {
+							const children = Array.from(container.children);
+							console.log(`${name} container children:`, children.map(child => ({
+								tag: child.tagName,
+								classes: child.className,
+								height: getComputedStyle(child).height
+							})));
+						}
 					});
 				}
 			}, 100);
@@ -215,6 +238,10 @@
 					<input type="checkbox" bind:checked={forceLineBreaks} class="mr-2" />
 					<span class="text-sm">Force Line Breaks</span>
 				</label>
+				<label class="flex items-center">
+					<input type="checkbox" bind:checked={showDebugOverlay} class="mr-2" />
+					<span class="text-sm">Show Debug Overlay</span>
+				</label>
 			</div>
 			
 			<div class="flex items-end">
@@ -240,7 +267,7 @@
 		<!-- Renderer Container -->
 		<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
 			<h2 class="text-lg font-semibold mb-3">Rendered Page</h2>
-			<div bind:this={container} class="daf-container" style="width: 600px; margin: 0 auto;"></div>
+			<div bind:this={container} class="daf-container {showDebugOverlay ? 'debug-overlay' : ''}" style="width: 600px; margin: 0 auto;"></div>
 		</div>
 		
 		<!-- Spacer Analysis -->
@@ -363,28 +390,28 @@
 	}
 	
 	/* Debug styles to visualize spacers */
-	:global(.dafRoot .spacer) {
+	:global(.debug-overlay .spacer) {
 		background-color: rgba(255, 0, 0, 0.1);
 		border: 1px dashed red;
 		box-sizing: border-box;
 	}
 	
-	:global(.dafRoot .spacer.start) {
+	:global(.debug-overlay .spacer.start) {
 		background-color: rgba(0, 255, 0, 0.1);
 		border-color: green;
 	}
 	
-	:global(.dafRoot .spacer.innerMid) {
+	:global(.debug-overlay .spacer.innerMid) {
 		background-color: rgba(0, 0, 255, 0.1);
 		border-color: blue;
 	}
 	
-	:global(.dafRoot .spacer.outerMid) {
+	:global(.debug-overlay .spacer.outerMid) {
 		background-color: rgba(255, 255, 0, 0.1);
 		border-color: orange;
 	}
 	
-	:global(.dafRoot .spacer.end) {
+	:global(.debug-overlay .spacer.end) {
 		background-color: rgba(255, 0, 255, 0.1);
 		border-color: purple;
 	}
