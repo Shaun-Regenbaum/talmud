@@ -12,7 +12,7 @@
 .main .text span .gdropcap {
   font-size: 200% !important;  /* Matches the example */
   line-height: 1.2 !important;
-  display: inline-block;
+  display: flex !important;
   float: right;
   margin-left: 0.3em;
   margin-bottom: 0.2em;
@@ -29,7 +29,6 @@
     0 2px 4px rgba(0, 0, 0, 0.1);
   /* Ensure it takes up space for 3-4 lines */
   min-height: 3.5em;
-  display: flex;
   align-items: center;
   justify-content: center;
 }
