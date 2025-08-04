@@ -39,7 +39,7 @@ export function processTextsForRenderer(
 	const hadranRegex = new RegExp(`<br>[\\w\\s]*${hadran}[\\w\\s]*<br>`, 'g');
 
 	const hadranDiv = (text: "rashi" | "tosafot" | "main", html: string): string =>
-		`<div class="hadran"><span class="sentence-${text}">${html.replace("<br>", "")}</span></div>`;
+		`<div class="hadran" style="font-size: 1.5em;"><span class="sentence-${text}">${html.replace("<br>", "")}</span></div>`;
 
 	// Process main text - handle both string and array formats
 	let processedMainText: string;
@@ -69,6 +69,13 @@ export function processTextsForRenderer(
 				if (trimmed.includes(hadran) && trimmed.split(' ').length < 7) {
 					return hadranDiv("main", trimmed);
 				}
+				// Apply first word styling to Gemara sentences
+				const words = trimmed.split(/\s+/);
+				if (words.length > 0) {
+					const firstWord = `<span class="gemara-first-word" style="font-size: 3em; line-height: 1; display: inline-block; float: right; margin-left: 0.2em;">${words[0]}</span>`;
+					const restOfText = words.slice(1).join(' ');
+					return `<span class="sentence-main" data-sentence-index="${index}">${firstWord} ${restOfText}</span>`;
+				}
 				return `<span class="sentence-main" data-sentence-index="${index}">${trimmed}</span>`;
 			})
 			.filter(html => html) // Remove empty strings
@@ -88,8 +95,16 @@ export function processTextsForRenderer(
 				// Find the segment text in the working text (handling Hebrew and special chars)
 				const cleanSegment = segment.replace(/<[^>]*>/g, '').trim();
 				if (cleanSegment.length > 5 && workingText.includes(cleanSegment)) {
-					// Wrap this segment with span
-					const wrappedSegment = `<span class="sentence-main" data-sentence-index="${sefariaIndex}">${cleanSegment}</span>`;
+					// Wrap this segment with span and apply first word styling
+					const words = cleanSegment.split(/\s+/);
+					let wrappedSegment;
+					if (words.length > 0 && sefariaIndex === 0) { // Only for first segment
+						const firstWord = `<span class="gemara-first-word" style="font-size: 3em; line-height: 1; display: inline-block; float: right; margin-left: 0.2em;">${words[0]}</span>`;
+						const restOfText = words.slice(1).join(' ');
+						wrappedSegment = `<span class="sentence-main" data-sentence-index="${sefariaIndex}">${firstWord} ${restOfText}</span>`;
+					} else {
+						wrappedSegment = `<span class="sentence-main" data-sentence-index="${sefariaIndex}">${cleanSegment}</span>`;
+					}
 					workingText = workingText.replace(cleanSegment, wrappedSegment);
 					sefariaIndex++;
 				}
@@ -111,6 +126,13 @@ export function processTextsForRenderer(
 				if (trimmed.includes(hadran) && trimmed.split(' ').length < 7) {
 					return hadranDiv("main", trimmed);
 				}
+				// Apply first word styling to Gemara sentences
+				const words = trimmed.split(/\s+/);
+				if (words.length > 0) {
+					const firstWord = `<span class="gemara-first-word" style="font-size: 3em; line-height: 1; display: inline-block; float: right; margin-left: 0.2em;">${words[0]}</span>`;
+					const restOfText = words.slice(1).join(' ');
+					return `<span class="sentence-main" data-sentence-index="${index}">${firstWord} ${restOfText}</span>`;
+				}
 				return `<span class="sentence-main" data-sentence-index="${index}">${trimmed}</span>`;
 			})
 			.filter(html => html)
@@ -123,8 +145,8 @@ export function processTextsForRenderer(
 	
 	// Process Rashi text - add rashi-header class to existing span.five elements
 	rashiHTML = rashiText
-		.replaceAll(headerRegex, "<b class='rashi-header'>$1</b>")
-		.replaceAll(/<span class="five">/g, "<span class='five rashi-header'>")
+		.replaceAll(headerRegex, "<b class='rashi-header' style='font-weight: 600; font-size: 1.1em;'>$1</b>")
+		.replaceAll(/<span class="five">/g, "<span class='five rashi-header' style='font-weight: 600; font-size: 1.1em;'>")
 		.split('<br>')
 		.map(line => {
 			if (line.slice(0, hadran.length) == hadran) {
@@ -140,8 +162,8 @@ export function processTextsForRenderer(
 	// Process Tosafot text - add tosafot-header class to existing shastitle7 elements
 	tosafotHTML = tosafotText
 		.replaceAll("} {", "}{")
-		.replaceAll(headerRegex, "<b class='tosafot-header'>$1</b>")
-		.replaceAll(/<span class="shastitle7">/g, "<span class='shastitle7 tosafot-header'>")
+		.replaceAll(headerRegex, "<b class='tosafot-header' style='font-weight: 600; font-size: 1.1em;'>$1</b>")
+		.replaceAll(/<span class="shastitle7">/g, "<span class='shastitle7 tosafot-header' style='font-weight: 600; font-size: 1.1em;'>")
 		.split('<br>')
 		.map(line => {
 			if (line.slice(0, hadran.length) == hadran) {

@@ -4,7 +4,10 @@
 	import { talmudStore, currentPage, isLoading, pageError, pageInfo } from '$lib/stores/talmud';
 	import { rendererStore } from '$lib/stores/renderer';
 	import TranslationPopup from '$lib/components/TranslationPopup.svelte';
+	import Toggle from '$lib/components/Toggle.svelte';
 	import { openRouterTranslator } from '$lib/openrouter-translator';
+	import { renderMarkdown } from '$lib/markdown';
+	import { processTextsForRenderer } from '$lib/text-processor';
 	
 	// Store cleanup function
 	let translationCleanup: (() => void) | undefined;
@@ -37,6 +40,9 @@
 	let summaryLoading = $state(false);
 	let summaryError = $state<string | null>(null);
 	let summaryExpanded = $state(false);
+	
+	// Display mode - true for Vilna (traditional), false for Custom (with line breaks)
+	let vilnaMode = $state(false);
 	
 	
 	// Tractate options for the dropdown
@@ -90,14 +96,21 @@
 		const pageData = $currentPage;
 		const loading = $isLoading;
 		
+		console.log('📊 Render effect triggered:', { 
+			hasPageData: !!pageData, 
+			loading, 
+			hasContainer: !!dafContainer,
+			pageInfo: pageData ? `${pageData.tractate} ${pageData.daf}${pageData.amud}` : 'none'
+		});
+		
 		if (loading || !pageData || !dafContainer) {
 			return;
 		}
 		
-		// Create unique key for this page data
-		const currentPageKey = `${pageData.tractate}-${pageData.daf}-${pageData.amud}-${pageData.mainText?.length || 0}`;
+		// Create unique key for this page data including display mode
+		const currentPageKey = `${pageData.tractate}-${pageData.daf}-${pageData.amud}-${pageData.mainText?.length || 0}-${vilnaMode}`;
 		
-		// Skip if we already rendered this exact data
+		// Skip if we already rendered this exact data with same mode
 		if (lastRenderedKey === currentPageKey) {
 			return;
 		}
@@ -109,31 +122,31 @@
 		setTimeout(() => {
 			// Initialize renderer only once and only if container exists
 			if (!rendererStore.getRenderer() && dafContainer) {
+				console.log('🚀 Initializing renderer for first time');
 				rendererStore.initialize(dafContainer);
 			}
 			
 			// Ensure renderer exists before proceeding
 			const renderer = rendererStore.getRenderer();
 			if (!renderer) {
+				console.error('❌ No renderer available after initialization attempt');
 				return;
 			}
 			
-			// Process header markers in the text
-			const processHeaders = (text: string, prefix: string) => {
-				if (!text) return '';
-				return text.replace(/\{([^\{\}]+)\}/g, `<b class='${prefix}-header'>$1</b>`);
-			};
-			
-			const mainHTML = processHeaders(pageData.mainText || ' ', 'main');
-			const rashiHTML = processHeaders(pageData.rashi || ' ', 'rashi');
-			const tosafotHTML = processHeaders(pageData.tosafot || ' ', 'tosafot');
+			// Use advanced text processor for proper styling
+			const { mainHTML, rashiHTML, tosafotHTML } = processTextsForRenderer(
+				pageData.mainText || ' ',
+				pageData.rashi || ' ',
+				pageData.tosafot || ' '
+			);
 			const pageLabel = (pageData.daf + pageData.amud).replace('a', 'א').replace('b', 'ב');
 			
 			
 			// Small delay to ensure renderer is ready
 			setTimeout(() => {
 				try {
-					rendererStore.render(mainHTML, rashiHTML, tosafotHTML, pageLabel);
+					// Pass !vilnaMode because true means custom mode (with line breaks)
+					rendererStore.render(mainHTML, rashiHTML, tosafotHTML, pageLabel, !vilnaMode);
 					
 					// Check for spacing issues after render
 					setTimeout(() => {
@@ -181,10 +194,10 @@
 		selectedPage = pageNum;
 		selectedAmud = amud;
 		
-		// Load the new page data
-		talmudStore.loadPage(tractate, pageNum, amud);
+		// Load the new page data with line break mode enabled
+		talmudStore.loadPage(tractate, pageNum, amud, { lineBreakMode: true });
 		
-		// Load summary for the new page
+		// Load summary for the page
 		loadSummary();
 	});
 	
@@ -194,9 +207,7 @@
 		// Setup window resize handler
 		const handleResize = () => {
 			windowWidth = window.innerWidth;
-			rendered = false;
-			// Re-enable rendered after a short delay
-			setTimeout(() => rendered = true, 100);
+			// No need to toggle rendered state - let transform update smoothly
 		};
 		
 		window.addEventListener('resize', handleResize);
@@ -227,13 +238,13 @@
 	
 	// Generate transform style for responsive scaling
 	function getTransformStyle(): string {
-		if (!rendered) return '';
+		// Always calculate scale, don't depend on rendered state
 		const scale = Math.min(1, (windowWidth * dafOfWindow) / dafWidth); // Cap at 1x scale
 		return scale < 1 ? `transform: scale(${scale}); transform-origin: top left;` : '';
 	}
 	
 	// Load page summary
-	async function loadSummary() {
+	async function loadSummary(refresh = false) {
 		if (!openRouterTranslator.isConfigured()) {
 			summaryError = null; // Don't show error if API key not configured
 			return;
@@ -243,7 +254,8 @@
 		summaryError = null;
 
 		try {
-			const response = await fetch(`/api/summary?tractate=${selectedTractate}&page=${selectedPage}&amud=${selectedAmud}`);
+			const refreshParam = refresh ? '&refresh=true' : '';
+			const response = await fetch(`/api/summary?tractate=${selectedTractate}&page=${selectedPage}&amud=${selectedAmud}${refreshParam}`);
 			if (!response.ok) {
 				throw new Error(`Failed to load summary: ${response.status}`);
 			}
@@ -400,6 +412,16 @@
 						<div class="flex items-center gap-2 text-xs text-gray-500">
 							{#if summary.cached}
 								<span class="px-2 py-1 bg-gray-100 rounded">Cached</span>
+								<button 
+									onclick={(e) => {
+										e.stopPropagation();
+										loadSummary(true);
+									}}
+									class="px-2 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 transition text-xs"
+									disabled={summaryLoading}
+								>
+									🔄 Refresh
+								</button>
 							{:else}
 								<span class="px-2 py-1 bg-green-100 text-green-600 rounded">Fresh</span>
 							{/if}
@@ -413,7 +435,7 @@
 				{#if summaryExpanded}
 					<div class="px-4 pb-4 border-t border-gray-100">
 						<div class="prose max-w-none text-gray-700 leading-relaxed text-sm mt-3">
-							{@html summary.summary.replace(/\n/g, '<br>')}
+							{@html renderMarkdown(summary.summary)}
 						</div>
 						{#if !summary.cached}
 							<div class="mt-3 text-xs text-gray-400">
@@ -555,9 +577,16 @@
 					{#if $currentPage}
 						<div class="mt-8 space-y-4">
 							<div class="border-t pt-4">
-								<p class="text-sm text-gray-500">
-									Source: HebrewBooks.org | {$currentPage.tractate} {$currentPage.daf}{$currentPage.amud}
-								</p>
+								<div class="flex items-center justify-between">
+									<p class="text-sm text-gray-500">
+										Source: HebrewBooks.org | {$currentPage.tractate} {$currentPage.daf}{$currentPage.amud}
+									</p>
+									<div class="flex items-center gap-2">
+										<span class="text-sm text-gray-500">Custom</span>
+										<Toggle bind:checked={vilnaMode} showIcons={false} />
+										<span class="text-sm text-gray-500">Vilna</span>
+									</div>
+								</div>
 							</div>
 						</div>
 					{/if}

@@ -2,7 +2,9 @@
 	import { onMount } from 'svelte';
 	import createDafRenderer from '$lib/daf-renderer/renderer.js';
 	import { defaultOptions } from '$lib/daf-renderer/options.js';
-	import { calculateSpacersFromMeasurements } from '$lib/daf-renderer/measure-and-fit.js';
+	import SliderInput from './components/SliderInput.svelte';
+	import SelectInput from './components/SelectInput.svelte';
+	import TextInput from './components/TextInput.svelte';
 	
 	let tractate = 'Berakhot';
 	let daf = '2';
@@ -13,16 +15,54 @@
 	let container;
 	
 	// Test options
-	let useLineAnalysis = true;
-	let useAreaCalculation = false;
 	let forceLineBreaks = false; // Start with false since text doesn't have <br> tags
 	let showDebugOverlay = true;
-	let useMeasurementBasedCalculation = false; // New option for measurement-based approach
 	
-	// Layout configuration options
-	let contentWidth = 600; // px
-	let mainWidthPercent = 50; // %
-	let sideWidthAdjustment = 0; // px adjustment to side column widths
+	// Editable options that correspond to defaultOptions
+	let editableOptions = {
+		contentWidth: "600px",
+		mainWidth: "50%",
+		padding: {
+			vertical: "10px",
+			horizontal: "16px",
+		},
+		innerPadding: "4px",
+		outerPadding: "4px",
+		halfway: "50%",
+		fontFamily: {
+			inner: "Rashi",
+			outer: "Rashi",
+			main: "Vilna"
+		},
+		direction: "rtl",
+		fontSize: {
+			main: "15px",
+			side: "10.5px"
+		},
+		lineHeight: {
+			main: "17px",
+			side: "14px",
+		}
+	};
+	
+	// Debounce timer for option changes
+	let updateTimeout;
+	
+	// Function to handle option changes with debouncing
+	function handleOptionChange() {
+		// Only trigger if we have initial data
+		if (!spacerResults) return;
+		
+		// Clear existing timeout
+		if (updateTimeout) {
+			clearTimeout(updateTimeout);
+		}
+		
+		// Debounce the re-render
+		updateTimeout = setTimeout(() => {
+			fetchAndAnalyze();
+		}, 300);
+	}
 	
 	// Tractate options
 	const tractates = [
@@ -84,18 +124,10 @@
 				throw new Error('Container element not found');
 			}
 			
-			// Use default options as base, with configurable layout parameters
+			// Use editable options instead of defaults
 			const options = {
 				...defaultOptions,
-				// Configurable layout options
-				contentWidth: `${contentWidth}px`,
-				mainWidth: `${mainWidthPercent}%`,
-				// Custom options for testing enhanced spacer calculation
-				...(forceLineBreaks ? {
-					lineBreaks: true,
-					useLineAnalysis: useLineAnalysis,
-					useAreaCalculation: useAreaCalculation
-				} : {})
+				...editableOptions
 			};
 			
 			// Create a wrapper div for the renderer
@@ -170,39 +202,8 @@
 				});
 			}
 			
-			// If using measurement-based calculation, do it before rendering
+			// Measurement-based calculation is disabled for now
 			let measurementResults = null;
-			if (forceLineBreaks && useMeasurementBasedCalculation) {
-				console.log('📏 Using measurement-based calculation...');
-				
-				// Create a temporary dummy element for measurements
-				const measureDummy = document.createElement('div');
-				measureDummy.style.position = 'absolute';
-				measureDummy.style.visibility = 'hidden';
-				document.body.appendChild(measureDummy);
-				
-				// Calculate spacers based on measurements
-				measurementResults = calculateSpacersFromMeasurements(
-					mainText,
-					rashiText,
-					tosafotText,
-					options,
-					measureDummy
-				);
-				
-				// Clean up
-				measureDummy.remove();
-				
-				console.log('📊 Measurement results:', measurementResults);
-				
-				// Use the fixed text if lines were modified
-				if (measurementResults.texts.inner !== rashiText || 
-				    measurementResults.texts.outer !== tosafotText) {
-					console.log('📝 Text was modified to fit properly');
-					rashiText = measurementResults.texts.inner;
-					tosafotText = measurementResults.texts.outer;
-				}
-			}
 			
 			// The render method doesn't return a value, it updates the renderer instance
 			console.log('🔧 Rendering with parameters:', {
@@ -299,9 +300,9 @@
 <div class="container mx-auto p-4 max-w-9xl">
 	<h1 class="text-2xl font-bold mb-4">Spacer Calculation Analysis</h1>
 	
-	<!-- Controls -->
+	<!-- Basic Controls -->
 	<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+		<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 			<div>
 				<label class="block text-sm font-medium text-gray-700 mb-1">Tractate</label>
 				<select 
@@ -326,27 +327,14 @@
 			
 			<div class="space-y-2">
 				<label class="flex items-center">
-					<input type="checkbox" bind:checked={useLineAnalysis} class="mr-2" />
-					<span class="text-sm">Use Line Analysis</span>
-				</label>
-				<label class="flex items-center">
-					<input type="checkbox" bind:checked={useAreaCalculation} class="mr-2" />
-					<span class="text-sm">Use Area Calculation</span>
-				</label>
-				<label class="flex items-center">
 					<input type="checkbox" bind:checked={forceLineBreaks} class="mr-2" />
 					<span class="text-sm">Force Line Breaks</span>
-				</label>
-				<label class="flex items-center">
-					<input type="checkbox" bind:checked={useMeasurementBasedCalculation} class="mr-2" disabled={!forceLineBreaks} />
-					<span class="text-sm {!forceLineBreaks ? 'text-gray-400' : ''}">Use Measurement-Based Calculation</span>
 				</label>
 				<label class="flex items-center">
 					<input type="checkbox" bind:checked={showDebugOverlay} class="mr-2" />
 					<span class="text-sm">Show Debug Overlay</span>
 				</label>
 			</div>
-			
 			
 			<div class="flex items-end">
 				<button 
@@ -356,6 +344,164 @@
 				>
 					{loading ? 'Loading...' : 'Analyze'}
 				</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Editable Options -->
+	<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+		<h2 class="text-lg font-semibold mb-3">Renderer Options (defaultOptions)</h2>
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+			<!-- Layout Options -->
+			<div class="space-y-4">
+				<h3 class="font-medium text-gray-700 border-b pb-1">Layout</h3>
+				<SliderInput 
+					label="Content Width" 
+					bind:value={editableOptions.contentWidth}
+					min={400} 
+					max={1200} 
+					step={10}
+					unit="px"
+					on:input={handleOptionChange}
+				/>
+				<SliderInput 
+					label="Main Width" 
+					bind:value={editableOptions.mainWidth}
+					min={30} 
+					max={70} 
+					step={1}
+					unit="%"
+					on:input={handleOptionChange}
+				/>
+				<SliderInput 
+					label="Halfway Point" 
+					bind:value={editableOptions.halfway}
+					min={30} 
+					max={70} 
+					step={1}
+					unit="%"
+					on:input={handleOptionChange}
+				/>
+				<SelectInput 
+					label="Direction" 
+					bind:value={editableOptions.direction}
+					options={[
+						{value: 'rtl', label: 'Right to Left'},
+						{value: 'ltr', label: 'Left to Right'}
+					]}
+					on:change={handleOptionChange}
+				/>
+			</div>
+
+			<!-- Padding Options -->
+			<div class="space-y-4">
+				<h3 class="font-medium text-gray-700 border-b pb-1">Padding</h3>
+				<SliderInput 
+					label="Vertical Padding" 
+					bind:value={editableOptions.padding.vertical}
+					min={0} 
+					max={30} 
+					step={1}
+					unit="px"
+					on:input={handleOptionChange}
+				/>
+				<SliderInput 
+					label="Horizontal Padding" 
+					bind:value={editableOptions.padding.horizontal}
+					min={0} 
+					max={40} 
+					step={1}
+					unit="px"
+					on:input={handleOptionChange}
+				/>
+				<SliderInput 
+					label="Inner Padding" 
+					bind:value={editableOptions.innerPadding}
+					min={0} 
+					max={20} 
+					step={1}
+					unit="px"
+					on:input={handleOptionChange}
+				/>
+				<SliderInput 
+					label="Outer Padding" 
+					bind:value={editableOptions.outerPadding}
+					min={0} 
+					max={20} 
+					step={1}
+					unit="px"
+					on:input={handleOptionChange}
+				/>
+			</div>
+
+			<!-- Typography Options -->
+			<div class="space-y-4">
+				<h3 class="font-medium text-gray-700 border-b pb-1">Typography</h3>
+				<SelectInput 
+					label="Main Font" 
+					bind:value={editableOptions.fontFamily.main}
+					options={[
+						{value: 'Vilna', label: 'Vilna'},
+						{value: 'serif', label: 'Serif'},
+						{value: 'sans-serif', label: 'Sans-serif'},
+						{value: 'Frank Ruhl Libre', label: 'Frank Ruhl Libre'}
+					]}
+					on:change={handleOptionChange}
+				/>
+				<SelectInput 
+					label="Commentary Font" 
+					bind:value={editableOptions.fontFamily.inner}
+					options={[
+						{value: 'Rashi', label: 'Rashi'},
+						{value: 'serif', label: 'Serif'},
+						{value: 'sans-serif', label: 'Sans-serif'},
+						{value: 'Noto Rashi Hebrew', label: 'Noto Rashi Hebrew'}
+					]}
+					on:change={(e) => {
+						editableOptions.fontFamily.outer = editableOptions.fontFamily.inner;
+						handleOptionChange();
+					}}
+				/>
+				<div class="grid grid-cols-2 gap-3">
+					<SliderInput 
+						label="Main Font Size" 
+						bind:value={editableOptions.fontSize.main}
+						min={8} 
+						max={24} 
+						step={0.5}
+						unit="px"
+						on:input={handleOptionChange}
+					/>
+					<SliderInput 
+						label="Side Font Size" 
+						bind:value={editableOptions.fontSize.side}
+						min={6} 
+						max={20} 
+						step={0.5}
+						unit="px"
+						on:input={handleOptionChange}
+					/>
+				</div>
+				<div class="grid grid-cols-2 gap-3">
+					<SliderInput 
+						label="Main Line Height" 
+						bind:value={editableOptions.lineHeight.main}
+						min={10} 
+						max={30} 
+						step={0.5}
+						unit="px"
+						on:input={handleOptionChange}
+					/>
+					<SliderInput 
+						label="Side Line Height" 
+						bind:value={editableOptions.lineHeight.side}
+						min={8} 
+						max={24} 
+						step={0.5}
+						unit="px"
+						on:input={handleOptionChange}
+					/>
+				</div>
 			</div>
 		</div>
 	</div>
