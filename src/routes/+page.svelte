@@ -587,9 +587,12 @@
 					<!-- Go Button -->
 					<button 
 						onclick={handlePageChange}
-						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition text-sm font-medium"
+						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition text-sm font-medium flex items-center gap-2"
 						disabled={$isLoading}
 					>
+						{#if $isLoading}
+							<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+						{/if}
 						{$isLoading ? 'טוען...' : 'עבור'}
 					</button>
 					
@@ -627,11 +630,21 @@
 				</div>
 			{:else}
 				<!-- Always show the container, even if no data yet -->
-				<div>
+				<div class="relative">
+					<!-- Loading overlay -->
+					{#if $isLoading}
+						<div class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
+							<div class="text-center">
+								<div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+								<p class="mt-2 text-gray-600 text-sm">Loading page...</p>
+							</div>
+						</div>
+					{/if}
+					
 					<!-- Container for the daf renderer -->
 					<div bind:this={dafContainer} class="daf" style="position: relative; {getTransformStyle()}">
 						<!-- The daf-renderer will populate this container -->
-						{#if !$currentPage}
+						{#if !$currentPage && !$isLoading}
 							<div class="flex items-center justify-center h-full text-gray-400">
 								<p>Select a page to view</p>
 							</div>
