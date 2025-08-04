@@ -113,9 +113,13 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 		}
 		
 		console.log(`Fetching from daf-supplier v3: mesechta=${mesechtaId}, daf=${dafForAPI} (converted from ${page}${amud})`);
-		const talmudResponse = await fetch(`https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`);
+		const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
+		console.log(`Calling daf-supplier URL: ${dafSupplierUrl}`);
+		const talmudResponse = await fetch(dafSupplierUrl);
 		
 		if (!talmudResponse.ok) {
+			const errorText = await talmudResponse.text();
+			console.error(`daf-supplier error: status=${talmudResponse.status}, text=${errorText.substring(0, 200)}`);
 			throw new Error(`Failed to fetch Talmud data: ${talmudResponse.status}`);
 		}
 
