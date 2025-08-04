@@ -8,6 +8,7 @@
 	import { openRouterTranslator } from '$lib/openrouter-translator';
 	import { renderMarkdown } from '$lib/markdown';
 	import { processTextsForRenderer } from '$lib/text-processor';
+	import '$lib/styles/talmud-text.css';
 	
 	// Store cleanup function
 	let translationCleanup: (() => void) | undefined;
@@ -145,8 +146,8 @@
 			// Small delay to ensure renderer is ready
 			setTimeout(() => {
 				try {
-					// Pass !vilnaMode because true means custom mode (with line breaks)
-					rendererStore.render(mainHTML, rashiHTML, tosafotHTML, pageLabel, !vilnaMode);
+					// Pass vilnaMode as lineBreakMode (Vilna uses line breaks, custom doesn't)
+					rendererStore.render(mainHTML, rashiHTML, tosafotHTML, pageLabel, vilnaMode);
 					
 					// Check for spacing issues after render
 					setTimeout(() => {

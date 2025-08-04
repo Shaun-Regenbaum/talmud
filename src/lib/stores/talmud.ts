@@ -51,9 +51,9 @@ function createTalmudStore() {
 				// Convert daf format to HebrewBooks format (2a -> 2, 2b -> 2b)
 				const dafForAPI = convertDafToHebrewBooksFormat(fullPage);
 				
-				// Fetch directly from daf-supplier (same as test page)
-				const brParam = options.lineBreakMode ? '&br=true' : '';
-				const url = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}${brParam}`;
+				// Fetch directly from daf-supplier with br=true by default
+				// The renderer will handle stripping breaks if needed based on the mode
+				const url = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
 				console.log('Fetching from daf-supplier:', url);
 				
 				const response = await fetch(url);
@@ -63,12 +63,9 @@ function createTalmudStore() {
 				
 				const data = await response.json();
 				
-				// Convert \r\n line breaks to <br> tags when lineBreakMode is enabled
+				// Convert \r\n line breaks to <br> tags (API now always returns with br=true)
 				const convertLineBreaks = (text: string) => {
-					if (options.lineBreakMode) {
-						return text.replace(/\r\n/g, '<br>').replace(/\n/g, '<br>').replace(/\r/g, '<br>');
-					}
-					return text;
+					return text.replace(/\r\n/g, '<br>').replace(/\n/g, '<br>').replace(/\r/g, '<br>');
 				};
 				
 				// Convert to HebrewBooksPage format for compatibility

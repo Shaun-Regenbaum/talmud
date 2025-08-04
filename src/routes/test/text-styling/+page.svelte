@@ -1,6 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import { processTextsForRenderer } from '$lib/text-processor';
+	import '$lib/styles/talmud-text.css';
 	
 	let container;
 	
@@ -61,28 +62,6 @@
 		color: #333;
 	}
 	
-	:global(.gemara-first-word) {
-		color: #0066cc;
-		margin-bottom: 0.5em;
-	}
-	
-	:global(.hadran) {
-		text-align: center;
-		margin: 1em 0;
-		color: #cc0000;
-	}
-	
-	:global(.rashi-header, .tosafot-header) {
-		color: #006600;
-	}
-	
-	:global(.sentence-main) {
-		cursor: pointer;
-	}
-	
-	:global(.sentence-main:hover) {
-		background-color: rgba(0, 102, 204, 0.1);
-	}
 </style>
 
 <div class="max-w-4xl mx-auto p-6">
