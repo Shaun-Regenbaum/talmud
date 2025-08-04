@@ -1,4 +1,4 @@
-import { PUBLIC_OPENROUTER_API_KEY } from '$env/static/public';
+import { PUBLIC_OPENROUTER_API_KEY, PUBLIC_OPENROUTER_MODEL } from '$env/static/public';
 
 export interface TranslationRequest {
 	text: string;
@@ -14,15 +14,15 @@ export interface TranslationResponse {
 
 class OpenRouterTranslator {
 	private apiKey: string;
-	private baseUrl = 'https://openrouter.ai/api/v1/completions';
+	private baseUrl = 'https://openrouter.ai/api/v1/chat/completions';
 	private cache: Map<string, TranslationResponse> = new Map();
 	private pendingRequests: Map<string, Promise<TranslationResponse>> = new Map();
 	
 	// Model preferences for translation - using models good at Hebrew
 	private models = {
-		primary: 'anthropic/claude-3-sonnet',
-		fallback: 'openai/gpt-4-turbo',
-		fast: 'anthropic/claude-3-haiku'
+		primary: PUBLIC_OPENROUTER_MODEL || 'google/gemini-2.0-flash-exp:free',
+		fallback: 'openai/gpt-4o-mini',
+		fast: 'google/gemini-2.0-flash-exp:free'
 	};
 	
 	constructor(apiKey?: string) {
@@ -266,7 +266,6 @@ Return translations in the same numbered format.`;
 			if (cacheData) {
 				const entries = JSON.parse(cacheData);
 				this.cache = new Map(entries);
-				console.log(`📥 Loaded ${entries.length} translations from cache`);
 			}
 		} catch (error) {
 			console.error('Failed to load cache:', error);

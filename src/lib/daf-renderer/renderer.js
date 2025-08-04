@@ -99,7 +99,6 @@ export default function (el, options = defaultOptions) {
           this.spacerHeights = calculateSpacers(main, inner, outer, clonedOptions, containers.dummy);
           Object.assign(rendererObject.spacerHeights, this.spacerHeights);
           styleManager.updateSpacersVars(this.spacerHeights);
-          console.log("resizing");
           if (resizeCallback)
             resizeCallback();
         }
@@ -172,7 +171,6 @@ export default function (el, options = defaultOptions) {
           styleManager.updateSpacersVars(this.spacerHeights);
           if (resizeCallback)
             resizeCallback();
-          console.log("resizing")
         }
         window.addEventListener('resize', resizeEvent)
       }
@@ -253,17 +251,9 @@ export default function (el, options = defaultOptions) {
       }
       
       if (spacingIssues.length > 0) {
-        console.warn('🚨 Excessive spacing detected:', spacingIssues);
-        
         // Store spacing issues for debugging
         this.spacingIssues = spacingIssues;
-        
-        // Emit details for debugging
-        spacingIssues.forEach(issue => {
-          console.log(`📏 ${issue.section.toUpperCase()}: ${Math.round(issue.ratio * 100)}% content, ${Math.round(issue.excessSpace)}px excess space`);
-        });
       } else {
-        console.log('✅ Spacing looks reasonable');
         this.spacingIssues = [];
       }
     }

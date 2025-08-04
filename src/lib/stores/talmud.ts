@@ -3,25 +3,11 @@ import { hebrewBooksAPI } from '$lib/hebrewbooks';
 import type { HebrewBooksPage } from '$lib/hebrewbooks';
 
 // Types
-export interface SefariaData {
-	mainText: string[];
-	mainTextEnglish?: string[];
-	rashi: string[];
-	rashiEnglish?: string[];
-	tosafot: string[];
-	tosafotEnglish?: string[];
-	linking: {
-		rashi: Record<string, Record<number, number[]>>;
-		tosafot: Record<string, Record<number, number[]>>;
-	};
-}
-
 export interface TalmudPageState {
 	tractate: string;
 	page: string;
 	amud: string;
 	data: HebrewBooksPage | null;
-	sefariaData: SefariaData | null;
 	loading: boolean;
 	error: string | null;
 }
@@ -33,7 +19,6 @@ function createTalmudStore() {
 		page: '2',
 		amud: 'a',
 		data: null,
-		sefariaData: null,
 		loading: false,
 		error: null
 	});
@@ -44,7 +29,6 @@ function createTalmudStore() {
 		// Load a page
 		async loadPage(tractate: string, pageNum: string, amud: string, options: { lineBreakMode?: boolean } = {}) {
 			const fullPage = `${pageNum}${amud}`;
-			console.log('Store: Loading page', { tractate, fullPage, options });
 			
 			// Set loading state
 			update(state => ({
@@ -54,51 +38,26 @@ function createTalmudStore() {
 				amud,
 				loading: true,
 				error: null,
-				data: null, // Clear old data while loading
-				sefariaData: null
+				data: null // Clear old data while loading
 			}));
 
 			try {
-				// Build API URLs with options
+				// Build options with lineBreakMode if requested
 				const hebrewBooksOptions = options.lineBreakMode ? { br: 'true' } : {};
-				const apiParams = new URLSearchParams({
-					mesechta: this.getTractateId(tractate),
-					daf: `${pageNum}${amud}`,
-					...(options.lineBreakMode ? { br: 'true' } : {})
-				});
 				
-				// Fetch both HebrewBooks and Sefaria data in parallel
-				const [hebrewBooksData, sefariaResponse] = await Promise.all([
-					hebrewBooksAPI.fetchPage(tractate, fullPage, hebrewBooksOptions),
-					fetch(`/api/talmud-merged?${apiParams.toString()}`)
-				]);
-				
-				let sefariaData: SefariaData | null = null;
-				if (sefariaResponse.ok) {
-					const mergedData = await sefariaResponse.json();
-					sefariaData = {
-						mainText: mergedData.sources.sefaria.mainText || [],
-						mainTextEnglish: mergedData.sources.sefaria.english?.mainText || [],
-						rashi: mergedData.sources.sefaria.rashi || [],
-						rashiEnglish: mergedData.sources.sefaria.english?.rashi || [],
-						tosafot: mergedData.sources.sefaria.tosafot || [],
-						tosafotEnglish: mergedData.sources.sefaria.english?.tosafot || [],
-						linking: mergedData.sources.sefaria.linking || { rashi: {}, tosafot: {} }
-					};
-				}
+				// Fetch HebrewBooks data only
+				const hebrewBooksData = await hebrewBooksAPI.fetchPage(tractate, fullPage, hebrewBooksOptions);
 				
 				if (hebrewBooksData) {
 					update(state => ({
 						...state,
 						data: hebrewBooksData,
-						sefariaData,
 						loading: false
 					}));
 				} else {
 					throw new Error('No data received from HebrewBooks API');
 				}
 			} catch (error) {
-				console.error('Store: Error loading page:', error);
 				update(state => ({
 					...state,
 					loading: false,
@@ -193,7 +152,3 @@ export const pageInfo = derived(
 	})
 );
 
-export const sefariaData = derived(
-	talmudStore,
-	$talmudStore => $talmudStore.sefariaData
-);

@@ -194,8 +194,6 @@ class HebrewBooksService {
 class HebrewBooksAPI {
   async fetchPage(tractate: string, daf: string, options: { br?: string } = {}): Promise<HebrewBooksPage | null> {
     try {
-      console.log('HebrewBooksAPI.fetchPage called with:', { tractate, daf, options });
-      
       // First try the browser rendering endpoint
       const mesechtaId = TRACTATE_IDS[tractate];
       if (!mesechtaId) {
@@ -207,8 +205,6 @@ class HebrewBooksAPI {
       const dafNum = parseInt(daf.replace(/[ab]/, ''));
       const amud = daf.includes('b') ? 'b' : 'a';
       const dafParam = amud === 'a' ? dafNum.toString() : `${dafNum}b`;
-      
-      console.log('Conversion:', { input: daf, dafNum, amud, dafParam });
 
       // Use the deployed daf-supplier worker
       const params = new URLSearchParams({
@@ -217,7 +213,7 @@ class HebrewBooksAPI {
         ...options // Include any additional options like br=true
       });
       const endpoint = `https://daf-supplier.402.workers.dev?${params.toString()}`;
-      console.log('Fetching from endpoint:', endpoint);
+      console.log('Fetching from daf-supplier:', endpoint);
       
       const response = await fetch(endpoint);
       
@@ -227,7 +223,6 @@ class HebrewBooksAPI {
 
       const data = await response.json();
       console.log('Response from daf-supplier:', data);
-      console.log('daf-supplier mainText contains <br>:', data.mainText?.includes('<br>'));
       
       // The daf-supplier returns a different structure than our HebrewBooksPage interface expects
       // IMPORTANT: daf-supplier returns the actual daf number (e.g., for input "17b", it returns dafDisplay: "9", amud: "a")
@@ -243,9 +238,6 @@ class HebrewBooksAPI {
         timestamp: data.timestamp || Date.now()
       };
       
-      console.log('mappedData mainText contains <br>:', mappedData.mainText?.includes('<br>'));
-      
-      console.log('Mapped data for component:', mappedData);
       return mappedData;
     } catch (error) {
       console.error('Error fetching HebrewBooks page:', error);

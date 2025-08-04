@@ -29,22 +29,19 @@ function createRendererStore() {
 			}
 
 			try {
-				console.log('Initializing daf-renderer with default options');
+				console.log('Initializing daf-renderer');
 				
 				const renderer = dafRenderer(container, defaultOptions);
 
 				// Immediately check if we can set CSS variables
 				const rootDiv = container.querySelector('.dafRoot') as HTMLElement;
 				if (rootDiv) {
-					console.log('Found dafRoot immediately after init');
 					// Set critical CSS variables using default options
 					rootDiv.style.setProperty('--contentWidth', defaultOptions.contentWidth);
 					rootDiv.style.setProperty('--fontSize-side', defaultOptions.fontSize.side);
 					rootDiv.style.setProperty('--lineHeight-main', defaultOptions.lineHeight.main);
 					rootDiv.style.setProperty('--mainWidth', defaultOptions.mainWidth);
 					rootDiv.style.setProperty('--padding-vertical', defaultOptions.padding.vertical);
-				} else {
-					console.warn('dafRoot not found immediately after init');
 				}
 
 				set({
@@ -53,7 +50,6 @@ function createRendererStore() {
 					isInitialized: true
 				});
 
-				console.log('Renderer initialized successfully');
 				return renderer;
 			} catch (error) {
 				console.error('Failed to initialize renderer:', error);
@@ -71,21 +67,6 @@ function createRendererStore() {
 			}
 
 			try {
-				console.log('Rendering content, page label:', pageLabel, 'lineBreakMode:', lineBreakMode);
-				console.log('Text lengths:', {
-					main: mainText.length,
-					rashi: rashiText.length,
-					tosafot: tosafotText.length
-				});
-				
-				// Debug: Check if <br> tags are present in the text
-				console.log('Main text first 500 chars:', mainText.substring(0, 500));
-				console.log('Main text contains <br>:', mainText.includes('<br>'));
-				console.log('Main text contains newlines:', mainText.includes('\n'));
-				console.log('Rashi text contains <br>:', rashiText.includes('<br>'));
-				console.log('Rashi text contains newlines:', rashiText.includes('\n'));
-				console.log('Tosafot text contains <br>:', tosafotText.includes('<br>'));
-				console.log('Tosafot text contains newlines:', tosafotText.includes('\n'));
 				
 				// Determine amud from pageLabel (e.g. "31a" -> "a", "31b" -> "b")
 				const amud = pageLabel.slice(-1) === 'b' ? 'b' : 'a';
@@ -97,8 +78,8 @@ function createRendererStore() {
 					tosafotText, 
 					amud, 
 					lineBreakMode ? '<br>' : undefined, // Pass '<br>' for line break mode, undefined for traditional
-					() => console.log('Renderer: rendered callback'), // rendered callback
-					() => console.log('Renderer: resized callback')   // resized callback
+					() => {}, // rendered callback
+					() => {}  // resized callback
 				);
 				
 				// Monitor for layout breakage
@@ -145,8 +126,6 @@ function createRendererStore() {
 						setVarForce('--fontFamily-main', defaultOptions.fontFamily.main);
 						setVarForce('--fontFamily-inner', defaultOptions.fontFamily.inner);
 						setVarForce('--fontFamily-outer', defaultOptions.fontFamily.outer);
-						
-						console.log('Applied forced CSS variables using default options');
 					}
 				};
 				

@@ -21,6 +21,207 @@ function getLineInfo(text, font, fontSize, lineHeight, dummy) {
   return {height, width, widthProportional, fontSizeNum, lineHeightRatio, effectiveLineHeight, minSpacerHeight};
 }
 
+// Strip HTML tags and decode entities
+function stripHtml(html) {
+  let text = html.replace(/<[^>]*>/g, '');
+  // Decode common HTML entities
+  text = text.replace(/&nbsp;/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'");
+  return text;
+}
+
+// Analyze text lines and categorize them (inspired by test/lines)
+function analyzeTextLines(lines, label, fontOptions, dummy, isCommentary = false) {
+  if (!lines || lines.length === 0) {
+    return { label, lines: [], stats: {}, lengthCategories: {}, blocks: [] };
+  }
+  
+  const [font, fontSize, lineHeight] = fontOptions;
+  
+  // Analyze each line
+  const lineAnalysis = lines.map((line, index) => {
+    const strippedLine = stripHtml(line);
+    const trimmed = strippedLine.trim();
+    const lineInfo = getLineInfo(line, font, fontSize, lineHeight, dummy);
+    
+    // Categorize by length ranges
+    let lengthCategory = '';
+    let displayCategory = '';
+    const len = strippedLine.length;
+    
+    // Check if this is a "start" line (for Rashi/Tosafot)
+    const isStart = isCommentary && index < 4;
+    
+    if (len === 0 || trimmed.length === 0) {
+      lengthCategory = 'empty';
+      displayCategory = 'empty';
+    } else if (isStart) {
+      lengthCategory = 'start';
+      displayCategory = 'start';
+    } else if (len <= 20) {
+      lengthCategory = 'single';
+      displayCategory = 'single';
+    } else if (len <= 40) {
+      lengthCategory = 'short';
+      displayCategory = 'short';
+    } else if (len <= 60) {
+      lengthCategory = 'medium';
+      displayCategory = 'medium';
+    } else {
+      lengthCategory = 'long';
+      displayCategory = 'long';
+    }
+    
+    return {
+      index,
+      content: line,
+      strippedContent: strippedLine,
+      length: strippedLine.length,
+      trimmedLength: trimmed.length,
+      isEmpty: trimmed.length === 0,
+      startsWithSpace: strippedLine.length > 0 && strippedLine[0] === ' ',
+      endsWithSpace: strippedLine.length > 0 && strippedLine[strippedLine.length - 1] === ' ',
+      hasHebrewChars: /[\u0590-\u05FF]/.test(strippedLine),
+      hasNumbers: /\d/.test(strippedLine),
+      hasSpecialChars: /[<>{}()]/.test(strippedLine),
+      lengthCategory,
+      displayCategory,
+      isRashiStart: /^[א-ת]"[א-ת]/.test(trimmed) || /^[א-ת][א-ת]"[א-ת]/.test(trimmed),
+      lineHeight: lineInfo.height,
+      lineWidth: lineInfo.width,
+      widthProportional: lineInfo.widthProportional
+    };
+  });
+  
+  // Group lines by length category
+  const lengthCategories = {};
+  lineAnalysis.forEach(line => {
+    if (!lengthCategories[line.lengthCategory]) {
+      lengthCategories[line.lengthCategory] = {
+        count: 0,
+        lines: [],
+        totalHeight: 0
+      };
+    }
+    lengthCategories[line.lengthCategory].count++;
+    lengthCategories[line.lengthCategory].lines.push(line.index);
+    lengthCategories[line.lengthCategory].totalHeight += line.lineHeight;
+  });
+  
+  // Calculate statistics
+  const nonEmptyLines = lineAnalysis.filter(l => !l.isEmpty);
+  const stats = {
+    totalLines: lines.length,
+    nonEmptyLines: nonEmptyLines.length,
+    averageLength: lines.length > 0 ? lineAnalysis.reduce((sum, l) => sum + l.length, 0) / lines.length : 0,
+    maxLength: lineAnalysis.length > 0 ? Math.max(...lineAnalysis.map(l => l.length)) : 0,
+    minLength: nonEmptyLines.length > 0 ? Math.min(...nonEmptyLines.map(l => l.length)) : 0,
+    linesWithSpaces: lineAnalysis.filter(l => l.startsWithSpace || l.endsWithSpace).length,
+    rashiStartLines: lineAnalysis.filter(l => l.isRashiStart).length,
+    totalHeight: lineAnalysis.reduce((sum, l) => sum + l.lineHeight, 0)
+  };
+  
+  // Group into blocks
+  const blocks = groupIntoBlocks(lineAnalysis);
+  
+  return {
+    label,
+    lines: lineAnalysis,
+    stats,
+    lengthCategories,
+    blocks
+  };
+}
+
+// Group consecutive lines by category to identify layout blocks
+function groupIntoBlocks(lines) {
+  const blocks = [];
+  let currentBlock = null;
+  
+  lines.forEach((line, index) => {
+    if (!currentBlock || currentBlock.category !== line.displayCategory) {
+      // Start new block
+      currentBlock = {
+        category: line.displayCategory,
+        startIndex: index,
+        endIndex: index,
+        lines: [line],
+        totalLength: line.length,
+        totalHeight: line.lineHeight
+      };
+      blocks.push(currentBlock);
+    } else {
+      // Continue current block
+      currentBlock.endIndex = index;
+      currentBlock.lines.push(line);
+      currentBlock.totalLength += line.length;
+      currentBlock.totalHeight += line.lineHeight;
+    }
+  });
+  
+  return blocks;
+}
+
+// Detect layout pattern from block analysis
+function detectLayoutPattern(mainBlocks, rashiBlocks, tosafotBlocks) {
+  const pattern = {
+    type: 'unknown',
+    confidence: 0,
+    details: {}
+  };
+  
+  // Analyze main text pattern
+  const mainHasLongBlocks = mainBlocks.some(b => b.category === 'long' && b.lines.length > 2);
+  const mainHasMostlyShort = mainBlocks.filter(b => b.category === 'short' || b.category === 'single').length > mainBlocks.length * 0.6;
+  
+  // Analyze commentary patterns
+  const rashiStartBlocks = rashiBlocks.filter(b => b.category === 'start').length;
+  const tosafotStartBlocks = tosafotBlocks.filter(b => b.category === 'start').length;
+  
+  const rashiLongBlocks = rashiBlocks.filter(b => b.category === 'long').length;
+  const tosafotLongBlocks = tosafotBlocks.filter(b => b.category === 'long').length;
+  
+  // Determine pattern
+  if (mainHasMostlyShort && (rashiLongBlocks > 2 || tosafotLongBlocks > 2)) {
+    pattern.type = 'double-wrap';
+    pattern.confidence = 0.8;
+    pattern.details = {
+      reason: 'Main text has mostly short lines while commentaries have long blocks'
+    };
+  } else if (rashiLongBlocks > tosafotLongBlocks * 2 || tosafotLongBlocks > rashiLongBlocks * 2) {
+    pattern.type = 'stairs';
+    pattern.confidence = 0.7;
+    pattern.details = {
+      dominantCommentary: rashiLongBlocks > tosafotLongBlocks ? 'rashi' : 'tosafot'
+    };
+  } else if (mainHasLongBlocks && rashiBlocks.length > 0 && tosafotBlocks.length > 0) {
+    pattern.type = 'double-extend';
+    pattern.confidence = 0.6;
+    pattern.details = {
+      reason: 'Main text has long blocks and both commentaries present'
+    };
+  }
+  
+  return pattern;
+}
+
+// Calculate area of text (from calculate-spacers.js approach)
+function getAreaOfText(text, font, fs, width, lh, dummy) {
+  let testDiv = document.createElement("div");
+  testDiv.style.font = String(fs) + "px " + String(font);
+  testDiv.style.width = String(width) + "px";
+  testDiv.style.lineHeight = String(lh) + "px";
+  testDiv.innerHTML = text;
+  dummy.append(testDiv);
+  let test_area = Number(testDiv.clientHeight * testDiv.clientWidth);
+  testDiv.remove();
+  return test_area;
+}
+
 function heightAccumulator(font, fontSize, lineHeight, dummy) {
   return (lines) => {
     return getLineInfo(lines.join("<br>"), font, fontSize, lineHeight, dummy).height;
@@ -293,7 +494,9 @@ export function calculateSpacersBreaks(mainArray, rashiArray, tosafotArray, opti
   console.log('📋 Text analysis:', {
     mainLines: lines.main.length,
     rashiLines: lines.rashi.length, 
-    tosafotLines: lines.tosafot.length
+    tosafotLines: lines.tosafot.length,
+    useLineAnalysis: options.useLineAnalysis,
+    useAreaCalculation: options.useAreaCalculation
   });
   
   // No commentary at all - this should be an error case
@@ -324,11 +527,71 @@ export function calculateSpacersBreaks(mainArray, rashiArray, tosafotArray, opti
       main: parseFloat(options.lineHeight.main),
       side: parseFloat(options.lineHeight.side),
     },
+    // Width calculations from calculate-spacers.js
+    width: parseFloat(options.contentWidth),
+    mainWidth: 0.01 * parseFloat(options.mainWidth)
   }
 
+  // Calculate widths like in calculate-spacers.js
+  const midWidth = Number(parsedOptions.width * parsedOptions.mainWidth) - 2*parsedOptions.padding.horizontal;
+  const topWidth = Number(parsedOptions.width * parsedOptions.halfway) - parsedOptions.padding.horizontal;
+  const sideWidth = Number(parsedOptions.width * (1 - parsedOptions.mainWidth)/2);
 
   const mainOptions = [parsedOptions.fontFamily.main, parsedOptions.fontSize.main, parsedOptions.lineHeight.main];
   const commentaryOptions = [parsedOptions.fontFamily.inner, parsedOptions.fontSize.side, parsedOptions.lineHeight.side];
+  
+  // Initialize spacer heights early
+  let spacerHeights = {
+    start: 4.4 * parsedOptions.lineHeight.side,
+    inner: null,
+    outer: null,
+    end: 0,
+    exception: 0
+  };
+  
+  // NEW: Use line analysis approach if we have line arrays
+  if (options.useLineAnalysis !== false && mainArray && rashiArray && tosafotArray) {
+    console.log('🔍 Using enhanced line analysis for spacer calculation');
+    
+    // Analyze lines with categorization
+    const lineAnalysis = {
+      main: analyzeTextLines(mainArray, 'Main Text', mainOptions, dummy, false),
+      rashi: analyzeTextLines(rashiArray, 'Rashi', commentaryOptions, dummy, true),
+      tosafot: analyzeTextLines(tosafotArray, 'Tosafot', commentaryOptions, dummy, true)
+    };
+    
+    // Log analysis results
+    console.log('📊 Line analysis results:', {
+      main: {
+        blocks: lineAnalysis.main.blocks.length,
+        categories: lineAnalysis.main.lengthCategories,
+        totalHeight: lineAnalysis.main.stats.totalHeight
+      },
+      rashi: {
+        blocks: lineAnalysis.rashi.blocks.length,
+        categories: lineAnalysis.rashi.lengthCategories,
+        totalHeight: lineAnalysis.rashi.stats.totalHeight
+      },
+      tosafot: {
+        blocks: lineAnalysis.tosafot.blocks.length,
+        categories: lineAnalysis.tosafot.lengthCategories,
+        totalHeight: lineAnalysis.tosafot.stats.totalHeight
+      }
+    });
+    
+    // Detect layout pattern
+    const layoutPattern = detectLayoutPattern(
+      lineAnalysis.main.blocks,
+      lineAnalysis.rashi.blocks,
+      lineAnalysis.tosafot.blocks
+    );
+    
+    console.log('🎯 Detected layout pattern:', layoutPattern);
+    
+    // Store analysis data for debugging
+    spacerHeights.lineAnalysis = lineAnalysis;
+    spacerHeights.layoutPattern = layoutPattern;
+  }
   
   const sizes = {};
   sizes.main = lines.main.map(text => getLineInfo(text, ...mainOptions, dummy));
@@ -351,15 +614,6 @@ export function calculateSpacersBreaks(mainArray, rashiArray, tosafotArray, opti
     )
   })
   
-
-  let spacerHeights = {
-    start: 4.4 * parsedOptions.lineHeight.side,
-    inner: null,
-    outer: null,
-    end: 0,
-    exception: 0
-  };
-
   const mainHeight = accumulateMain(lines.main);
   const mainHeightOld = (sizes.main.length) * parsedOptions.lineHeight.main;
   
@@ -464,63 +718,147 @@ export function calculateSpacersBreaks(mainArray, rashiArray, tosafotArray, opti
     return calculateProportionalSpacing(lines, totalInnerHeight, totalOuterHeight, mainHeight, spacerHeights);
   }
   
-  // NEW APPROACH: Calculate spacers directly from actual text heights
-  // This fixes the "stairs case" spacer calculation issue
+  // NEW APPROACH: Enhanced spacer calculation using line analysis or area-based fallback
   
-  console.log("🔄 NEW: Calculating spacers from actual text heights...");
-  
-  // The key insight: in line break mode with accurate line distribution,
-  // we can calculate spacers directly from measured text heights
-  const mainTextHeight = mainHeight;
-  
-  console.log("📏 Measured heights:", {
-    mainText: mainTextHeight,
-    totalInner: totalInnerHeight,
-    totalOuter: totalOuterHeight,
-    startSpacer: spacerHeights.start
-  });
-  
-  // Determine layout pattern from commentary content relative to start spacer
-  const hasSubstantialInner = totalInnerHeight > spacerHeights.start * 1.5;
-  const hasSubstantialOuter = totalOuterHeight > spacerHeights.start * 1.5;
-  
-  console.log("🎯 Layout pattern analysis:", {
-    hasSubstantialInner,
-    hasSubstantialOuter,
-    innerRatio: totalInnerHeight / spacerHeights.start,
-    outerRatio: totalOuterHeight / spacerHeights.start
-  });
-  
-  if (!hasSubstantialInner && !hasSubstantialOuter) {
-    // Both commentaries are minimal - use their actual heights
-    spacerHeights.inner = Math.max(totalInnerHeight, 0);
-    spacerHeights.outer = Math.max(totalOuterHeight, 0);
-    console.log("📐 Pattern: Minimal commentaries");
-  } else if (!hasSubstantialInner) {
-    // Outer commentary dominates - classic "stairs" pattern
-    // Inner gets minimal space, outer extends to accommodate main text
-    spacerHeights.inner = Math.max(totalInnerHeight, 0);
-    spacerHeights.outer = Math.max(mainTextHeight, totalOuterHeight);
-    console.log("📐 Pattern: Outer dominant (stairs) - main height:", mainTextHeight);
-  } else if (!hasSubstantialOuter) {
-    // Inner commentary dominates - reverse stairs
-    spacerHeights.outer = Math.max(totalOuterHeight, 0);
-    spacerHeights.inner = Math.max(mainTextHeight, totalInnerHeight);
-    console.log("📐 Pattern: Inner dominant (stairs) - main height:", mainTextHeight);
-  } else {
-    // Both commentaries are substantial - distribute space proportionally
-    // Each commentary gets at least its content height or proportional main height
-    const proportionalHeight = mainTextHeight * 0.6; // 60% of main height minimum
+  // Use area-based calculation when no line breaks detected or as fallback
+  if (options.useAreaCalculation || (!breaks.main.length && !breaks.rashi.length && !breaks.tosafot.length)) {
+    console.log("🔄 Using area-based calculation (similar to calculate-spacers.js)");
     
-    // Add safety margin to account for DOM vs calculated height differences
-    const safetyMargin = parsedOptions.lineHeight.side * 2; // 2 line heights buffer
-    spacerHeights.inner = Math.max(totalInnerHeight + safetyMargin, proportionalHeight);
-    spacerHeights.outer = Math.max(totalOuterHeight + safetyMargin, proportionalHeight);
-    console.log("📐 Pattern: Double commentary - proportional allocation with safety margin");
+    // Calculate areas for each text section
+    const topArea = (lineHeight) => ((4 * lineHeight * topWidth)); // Remove area of top 4 lines
+    
+    const mainData = {
+      name: "main",
+      width: midWidth,
+      text: lines.main.join("<br>"),
+      lineHeight: parsedOptions.lineHeight.main,
+      area: getAreaOfText(lines.main.join("<br>"), parsedOptions.fontFamily.main, parsedOptions.fontSize.main, midWidth, parsedOptions.lineHeight.main, dummy),
+      height: null
+    };
+    
+    const innerData = {
+      name: "inner",
+      width: sideWidth,
+      text: lines.rashi.join("<br>"),
+      lineHeight: parsedOptions.lineHeight.side,
+      area: getAreaOfText(lines.rashi.join("<br>"), parsedOptions.fontFamily.inner, parsedOptions.fontSize.side, sideWidth, parsedOptions.lineHeight.side, dummy) - topArea(parsedOptions.lineHeight.side),
+      height: null
+    };
+    
+    const outerData = {
+      name: "outer",
+      width: sideWidth,
+      text: lines.tosafot.join("<br>"),
+      lineHeight: parsedOptions.lineHeight.side,
+      area: getAreaOfText(lines.tosafot.join("<br>"), parsedOptions.fontFamily.outer || parsedOptions.fontFamily.inner, parsedOptions.fontSize.side, sideWidth, parsedOptions.lineHeight.side, dummy) - topArea(parsedOptions.lineHeight.side),
+      height: null
+    };
+    
+    // Calculate heights from areas
+    [mainData, innerData, outerData].forEach(data => {
+      data.height = data.area / data.width;
+      data.unadjustedArea = data.area + topArea(parsedOptions.lineHeight.side);
+      data.unadjustedHeight = data.unadjustedArea / data.width;
+    });
+    
+    const sortedByHeight = [mainData, innerData, outerData].sort((a, b) => a.height - b.height);
+    
+    console.log("📊 Area-based calculation results:", {
+      main: { area: mainData.area, height: mainData.height },
+      inner: { area: innerData.area, height: innerData.height },
+      outer: { area: outerData.area, height: outerData.height },
+      pattern: sortedByHeight[0].name === "main" ? "double-wrap" : 
+               sortedByHeight[1].name === "main" ? "stairs" : "double-extend"
+    });
+    
+    // Apply pattern-based spacer calculation
+    if (sortedByHeight[0].name === "main") {
+      // Double-wrap: main text is smallest
+      spacerHeights.inner = mainData.height;
+      spacerHeights.outer = mainData.height;
+      
+      // Calculate end spacer for remaining commentary
+      const sideArea = spacerHeights.inner * sideWidth;
+      const bottomChunk = Math.max(innerData.area - sideArea, outerData.area - sideArea, 0);
+      spacerHeights.end = bottomChunk / topWidth;
+    } else if (sortedByHeight[1].name === "main") {
+      // Stairs pattern
+      const smallestData = sortedByHeight[0];
+      const largestData = sortedByHeight[2];
+      
+      spacerHeights[smallestData.name] = smallestData.height;
+      
+      // Calculate block area for main + smallest commentary
+      const blockArea = mainData.area + smallestData.area;
+      const blockWidth = midWidth + sideWidth;
+      spacerHeights[largestData.name] = blockArea / blockWidth;
+    } else {
+      // Double-extend: main text is largest
+      spacerHeights.inner = innerData.height;
+      spacerHeights.outer = outerData.height;
+    }
+    
+    // Store calculation method
+    spacerHeights.calculationMethod = "area-based";
+  } else {
+    // Original height-based calculation
+    console.log("🔄 Using height-based calculation with line breaks");
+    
+    // The key insight: in line break mode with accurate line distribution,
+    // we can calculate spacers directly from measured text heights
+    const mainTextHeight = mainHeight;
+    
+    console.log("📏 Measured heights:", {
+      mainText: mainTextHeight,
+      totalInner: totalInnerHeight,
+      totalOuter: totalOuterHeight,
+      startSpacer: spacerHeights.start
+    });
+    
+    // Determine layout pattern from commentary content relative to start spacer
+    const hasSubstantialInner = totalInnerHeight > spacerHeights.start * 1.5;
+    const hasSubstantialOuter = totalOuterHeight > spacerHeights.start * 1.5;
+    
+    console.log("🎯 Layout pattern analysis:", {
+      hasSubstantialInner,
+      hasSubstantialOuter,
+      innerRatio: totalInnerHeight / spacerHeights.start,
+      outerRatio: totalOuterHeight / spacerHeights.start
+    });
+    
+    if (!hasSubstantialInner && !hasSubstantialOuter) {
+      // Both commentaries are minimal - use their actual heights
+      spacerHeights.inner = Math.max(totalInnerHeight, 0);
+      spacerHeights.outer = Math.max(totalOuterHeight, 0);
+      console.log("📐 Pattern: Minimal commentaries");
+    } else if (!hasSubstantialInner) {
+      // Outer commentary dominates - classic "stairs" pattern
+      // Inner gets minimal space, outer extends to accommodate main text
+      spacerHeights.inner = Math.max(totalInnerHeight, 0);
+      spacerHeights.outer = Math.max(mainTextHeight, totalOuterHeight);
+      console.log("📐 Pattern: Outer dominant (stairs) - main height:", mainTextHeight);
+    } else if (!hasSubstantialOuter) {
+      // Inner commentary dominates - reverse stairs
+      spacerHeights.outer = Math.max(totalOuterHeight, 0);
+      spacerHeights.inner = Math.max(mainTextHeight, totalInnerHeight);
+      console.log("📐 Pattern: Inner dominant (stairs) - main height:", mainTextHeight);
+    } else {
+      // Both commentaries are substantial - distribute space proportionally
+      // Each commentary gets at least its content height or proportional main height
+      const proportionalHeight = mainTextHeight * 0.6; // 60% of main height minimum
+      
+      // Add safety margin to account for DOM vs calculated height differences
+      const safetyMargin = parsedOptions.lineHeight.side * 2; // 2 line heights buffer
+      spacerHeights.inner = Math.max(totalInnerHeight + safetyMargin, proportionalHeight);
+      spacerHeights.outer = Math.max(totalOuterHeight + safetyMargin, proportionalHeight);
+      console.log("📐 Pattern: Double commentary - proportional allocation with safety margin");
+    }
+    
+    spacerHeights.calculationMethod = "height-based";
   }
   
   console.log("📊 New spacer calculation results:", {
-    mainTextHeight,
+    mainHeight,
     totalInnerHeight,
     totalOuterHeight,
     calculatedSpacers: {
