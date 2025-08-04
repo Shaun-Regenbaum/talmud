@@ -77,19 +77,55 @@ export default function (el, options = defaultOptions) {
           this.amud = amud;
           styleManager.updateIsAmudB(amud == "b");
         }
-        // Store original text with <br> tags for spacer calculation
+        // Store original text for resize handler
         const originalMain = main;
         const originalInner = inner;
         const originalOuter = outer;
         
-        this.spacerHeights = calculateSpacers(originalMain, originalInner, originalOuter, clonedOptions, containers.dummy);
+        // Add/remove linebreak-mode class based on whether we're using line breaks
+        if (linebreak) {
+          containers.el.classList.add('linebreak-mode');
+        } else {
+          containers.el.classList.remove('linebreak-mode');
+        }
+        
+        // Handle <br> and <wbr> tags based on mode
+        if (!linebreak) {
+          // Strip <br> and <wbr> tags when not in line break mode
+          main = main.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, '');
+          inner = inner.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, '');
+          outer = outer.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, '');
+        } else {
+          // Convert <br> and <wbr> to soft break opportunities (zero-width space + word break opportunity)
+          main = convertBrToSoftBreaks(main);
+          inner = convertBrToSoftBreaks(inner);
+          outer = convertBrToSoftBreaks(outer);
+        }
+        
+        // Calculate spacers with processed text (after <wbr> handling)
+        this.spacerHeights = calculateSpacers(main, inner, outer, clonedOptions, containers.dummy);
         if (this.spacerHeights instanceof Error) {
           throw this.spacerHeights;
         }
         Object.assign(rendererObject.spacerHeights, this.spacerHeights);
         
         const resizeHandler = () => {
-          this.spacerHeights = calculateSpacers(originalMain, originalInner, originalOuter, clonedOptions, containers.dummy);
+          // Process text the same way for resize calculations
+          let resizeMain = originalMain;
+          let resizeInner = originalInner;
+          let resizeOuter = originalOuter;
+          
+          if (!linebreak) {
+            resizeMain = resizeMain.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, '');
+            resizeInner = resizeInner.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, '');
+            resizeOuter = resizeOuter.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, '');
+          } else {
+            resizeMain = convertBrToSoftBreaks(resizeMain);
+            resizeInner = convertBrToSoftBreaks(resizeInner);
+            resizeOuter = convertBrToSoftBreaks(resizeOuter);
+          }
+          
+          this.spacerHeights = calculateSpacers(resizeMain, resizeInner, resizeOuter, clonedOptions, containers.dummy);
           if (!(this.spacerHeights instanceof Error)) {
             Object.assign(rendererObject.spacerHeights, this.spacerHeights);
             styleManager.updateSpacersVars(this.spacerHeights);
@@ -99,64 +135,20 @@ export default function (el, options = defaultOptions) {
         };
         resizeEvent = debounce(resizeHandler, RESIZE_DEBOUNCE_DELAY);
         window.addEventListener("resize", resizeEvent);
-      }
-      
-      styleManager.updateSpacersVars(this.spacerHeights);
-      styleManager.manageExceptions(this.spacerHeights);
-      Object.assign(rendererObject.spacerHeights, this.spacerHeights);
-      
-      // Add/remove linebreak-mode class based on whether we're using line breaks
-      if (linebreak) {
-        containers.el.classList.add('linebreak-mode');
-        console.log('🎨 LINEBREAK MODE ACTIVE - CSS class added, break tags present:', {
-          mainHasBr: main.includes('<br>'),
-          mainHasWbr: main.includes('<wbr>'),
-          innerHasBr: inner.includes('<br>'),
-          innerHasWbr: inner.includes('<wbr>'),
-          outerHasBr: outer.includes('<br>'),
-          outerHasWbr: outer.includes('<wbr>'),
-          linebreakParam: linebreak
-        });
-      } else {
-        containers.el.classList.remove('linebreak-mode');
-        console.log('🎨 Normal mode - linebreak-mode class removed');
-      }
-      
-      // Handle <br> and <wbr> tags based on mode
-      if (!linebreak) {
-        // Strip <br> and <wbr> tags when not in line break mode
-        main = main.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, '');
-        inner = inner.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, '');
-        outer = outer.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, '');
-      } else {
-        // Convert <br> and <wbr> to soft break opportunities (zero-width space + word break opportunity)
-        main = convertBrToSoftBreaks(main);
-        inner = convertBrToSoftBreaks(inner);
-        outer = convertBrToSoftBreaks(outer);
-      }
+        
+        styleManager.updateSpacersVars(this.spacerHeights);
+        styleManager.manageExceptions(this.spacerHeights);
+        Object.assign(rendererObject.spacerHeights, this.spacerHeights);
       
       // Convert <br> tags to soft break opportunities that allow natural text flow
       function convertBrToSoftBreaks(text) {
         // Replace <br> with a word break opportunity + zero-width space
         // This allows the browser to break at these points if needed, but doesn't force breaks
-        const originalBrCount = (text.match(/<br\s*\/?>/gi) || []).length;
-        const originalWbrCount = (text.match(/<wbr\s*\/?>/gi) || []).length;
-        
         // Convert <br> to <wbr> + zero-width space
         let converted = text.replace(/<br\s*\/?>/gi, '<wbr>&#8203;');
         
         // Ensure existing <wbr> tags also have zero-width space for consistency
         converted = converted.replace(/<wbr\s*>/gi, '<wbr>&#8203;');
-        
-        const finalWbrCount = (converted.match(/<wbr>/gi) || []).length;
-        
-        console.log('🔄 Converting BR/WBR to soft breaks:', {
-          originalBrCount,
-          originalWbrCount,
-          finalWbrCount,
-          textSample: text.substring(0, 100),
-          convertedSample: converted.substring(0, 100)
-        });
         
         return converted;
       }
@@ -175,39 +167,9 @@ export default function (el, options = defaultOptions) {
         return processed;
       }
       
-      
-      // Debug final text before setting innerHTML
-      if (linebreak) {
-        console.log('📝 Final text before innerHTML:', {
-          mainContainsWbr: main.includes('<wbr>'),
-          innerContainsWbr: inner.includes('<wbr>'),
-          outerContainsWbr: outer.includes('<wbr>'),
-          mainSample: main.substring(0, 150),
-          innerProcessed: processCommentaryHTML(inner).substring(0, 150)
-        });
-      }
-      
       textSpans.main.innerHTML = main;
       textSpans.inner.innerHTML = processCommentaryHTML(inner);
       textSpans.outer.innerHTML = processCommentaryHTML(outer);
-
-      // DEBUG: Check final DOM state in linebreak mode
-      if (linebreak) {
-        setTimeout(() => {
-          const rootHasClass = containers.el.classList.contains('linebreak-mode');
-          const mainDisplay = getComputedStyle(textSpans.main).display;
-          const innerDisplay = getComputedStyle(textSpans.inner).display;
-          console.log('🔍 FINAL DOM STATE CHECK:', {
-            rootHasLinebreakClass: rootHasClass,
-            mainSpanDisplay: mainDisplay,
-            innerSpanDisplay: innerDisplay,
-            mainHtmlSample: textSpans.main.innerHTML.substring(0, 120),
-            innerHtmlSample: textSpans.inner.innerHTML.substring(0, 120),
-            mainContainsBr: textSpans.main.innerHTML.includes('<br>'),
-            innerContainsBr: textSpans.inner.innerHTML.includes('<br>')
-          });
-        }, 100);
-      }
 
 
 
