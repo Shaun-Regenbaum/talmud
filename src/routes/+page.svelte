@@ -125,8 +125,7 @@
 		}
 		
 		// Create unique key for this page data including display mode
-		// Include timestamp to force re-render even if content is the same
-		const currentPageKey = `${pageData.tractate}-${pageData.daf}-${pageData.amud}-${vilnaMode}-${pageData.timestamp || Date.now()}`;
+		const currentPageKey = `${pageData.tractate}-${pageData.daf}-${pageData.amud}-${vilnaMode}`;
 		
 		// Skip if we already rendered this exact data with same mode
 		if (lastRenderedKey === currentPageKey) {
@@ -160,16 +159,20 @@
 			});
 			
 			const { mainHTML, rashiHTML, tosafotHTML } = processTextsForRenderer(
-				pageData.mainText || ' ',
-				pageData.rashi || ' ',
-				pageData.tosafot || ' '
+				pageData.mainText || '',
+				pageData.rashi || '',
+				pageData.tosafot || ''
 			);
 			
 			console.log('📝 Post-processing texts:', {
 				mainHasBr: mainHTML.includes('<br>'),
 				rashiHasBr: rashiHTML.includes('<br>'),
 				tosafotHasBr: tosafotHTML.includes('<br>'),
-				mainSample: mainHTML.substring(0, 200)
+				mainSample: mainHTML.substring(0, 200),
+				rashiLength: rashiHTML.length,
+				tosafotLength: tosafotHTML.length,
+				rashiSample: rashiHTML.substring(0, 200),
+				tosafotSample: tosafotHTML.substring(0, 200)
 			});
 			const pageLabel = (pageData.daf + pageData.amud).replace('a', 'א').replace('b', 'ב');
 			

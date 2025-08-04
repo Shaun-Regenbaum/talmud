@@ -65,14 +65,14 @@ export const TRACTATE_IDS: Record<string, number> = {
 
 // Utility function to convert Sefaria format (2a, 2b) to daf-supplier format
 export function convertDafToHebrewBooksFormat(daf: string): string {
-  // daf-supplier uses sequential numbering where:
-  // daf=2 returns 1b, daf=3 returns 2a, daf=4 returns 2b, etc.
-  // Formula: Xa -> (X*2-1), Xb -> (X*2)
+  // HebrewBooks/daf-supplier numbering:
+  // daf=2 returns page 2a, daf=3 returns page 2b, daf=4 returns page 3a, etc.
+  // Formula: Xa -> (X*2), Xb -> (X*2+1)
   const pageNum = parseInt(daf.replace(/[ab]/, ''));
   const amud = daf.includes('b') ? 'b' : 'a';
   
-  const dafSupplierNum = amud === 'a' ? (pageNum * 2 - 1) : (pageNum * 2);
-  console.log(`[convertDafToHebrewBooksFormat v3] Converting ${daf} to ${dafSupplierNum} (page ${pageNum}${amud})`);
+  const dafSupplierNum = amud === 'a' ? (pageNum * 2) : (pageNum * 2 + 1);
+  console.log(`[convertDafToHebrewBooksFormat v4] Converting ${daf} to ${dafSupplierNum} (page ${pageNum}${amud})`);
   return dafSupplierNum.toString();
 }
 
