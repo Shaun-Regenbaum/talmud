@@ -68,7 +68,10 @@ function createRendererStore() {
 					rashi: rashiText.substring(0, 200) + '...',
 					tosafot: tosafotText.substring(0, 200) + '...',
 					lineBreakMode,
-					pageLabel
+					pageLabel,
+					hasGdropcap: mainText.includes('gdropcap'),
+					hasFiveClass: rashiText.includes('class="five"'),
+					hasShastitle7: tosafotText.includes('class="shastitle7"')
 				});
 				
 				// Determine amud from pageLabel (e.g. "31a" -> "a", "31b" -> "b")

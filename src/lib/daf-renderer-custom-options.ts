@@ -9,14 +9,17 @@ export const customOptions = {
     side: "11px"
   },
   lineHeight: {
-    main: "20px",
-    side: "15px",
+    main: "18px",    // Reduced from 20px to be more proportional
+    side: "14px",    // Reduced from 15px
   },
-  // More padding for better spacing
+  // Balanced padding - reduced vertical to prevent excessive spacing
   padding: {
-    vertical: "12px",
-    horizontal: "20px",
+    vertical: "8px",   // Reduced from 12px
+    horizontal: "18px", // Slightly reduced from 20px
   },
+  // Tighter spacing between sections
+  innerPadding: "3px",  // Reduced from default 4px
+  outerPadding: "3px",  // Reduced from default 4px
   // Use actual Hebrew fonts if available
   fontFamily: {
     inner: "Rashi, 'Mekorot Rashi', serif",
@@ -33,13 +36,16 @@ export const mobileOptions = {
     side: "10px"
   },
   lineHeight: {
-    main: "18px",
+    main: "17px",    // Reduced from 18px for tighter mobile layout
     side: "13px",
   },
   padding: {
-    vertical: "8px",
-    horizontal: "12px",
-  }
+    vertical: "6px",   // Reduced from 8px for mobile
+    horizontal: "10px", // Reduced from 12px
+  },
+  // Even tighter spacing for mobile
+  innerPadding: "2px",
+  outerPadding: "2px",
 };
 
 // Options for print
