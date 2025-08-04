@@ -180,7 +180,15 @@ export default function (el, options = defaultOptions) {
       styleManager.manageExceptions(this.spacerHeights);
       Object.assign(rendererObject.spacerHeights, this.spacerHeights);
       
+      // Add/remove linebreak-mode class based on whether we're using line breaks
+      if (linebreak) {
+        containers.el.classList.add('linebreak-mode');
+      } else {
+        containers.el.classList.remove('linebreak-mode');
+      }
+      
       // Strip <br> tags when not in line break mode
+      // Only strip if we're NOT using line breaks AND not using the breaks-based spacer calculation
       if (!linebreak) {
         main = main.replace(/<br\s*\/?>/gi, ' ');
         inner = inner.replace(/<br\s*\/?>/gi, ' ');
@@ -190,13 +198,17 @@ export default function (el, options = defaultOptions) {
       // Helper function to convert block divs to inline elements in commentary
       function processCommentaryHTML(html) {
         // Convert divs with width:100% or margin styles to spans
-        return html
+        const processed = html
           // Replace div tags with spans, preserving the content
           .replace(/<div\s+style="[^"]*(?:width:\s*100%|margin-bottom)[^"]*"[^>]*>/gi, '<span>')
           .replace(/<div\s+class="[^"]*"[^>]*>/gi, '<span>')
           .replace(/<div[^>]*>/gi, '<span>')
           .replace(/<\/div>/gi, '</span> '); // Add space after closing to maintain word separation
+        
+        
+        return processed;
       }
+      
       
       textSpans.main.innerHTML = main;
       textSpans.inner.innerHTML = processCommentaryHTML(inner);
@@ -204,6 +216,7 @@ export default function (el, options = defaultOptions) {
 
       const containerHeight = Math.max(...["main", "inner", "outer"].map(t => containers[t].el.offsetHeight));
       containers.el.style.height = `${containerHeight}px`;
+      
       
       // Check for excessive spacing after render
       this.checkExcessiveSpacing();

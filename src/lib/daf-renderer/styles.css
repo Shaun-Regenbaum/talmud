@@ -157,6 +157,12 @@
   display: inline;
 }
 
+/* Enable line breaks when in line break mode */
+.dafRoot.linebreak-mode .text span {
+  display: inline-block;
+  width: 100%;
+}
+
 .main .text {
   font-family: var(--fontFamily-main);
   font-size: var(--fontSize-main);
