@@ -103,24 +103,7 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 			return json({ error: 'OpenRouter API not configured' }, { status: 503 });
 		}
 
-		// Convert tractate name to mesechta ID for API call
-		const tractateMap: Record<string, string> = {
-			'Berakhot': '1', 'Shabbat': '2', 'Eruvin': '3', 'Pesachim': '4', 'Shekalim': '5',
-			'Yoma': '6', 'Sukkah': '7', 'Beitzah': '8', 'Rosh Hashanah': '9', 'Taanit': '10',
-			'Megillah': '11', 'Moed Katan': '12', 'Chagigah': '13', 'Yevamot': '14', 'Ketubot': '15',
-			'Nedarim': '16', 'Nazir': '17', 'Sotah': '18', 'Gittin': '19', 'Kiddushin': '20',
-			'Bava Kamma': '21', 'Bava Metzia': '22', 'Bava Batra': '23', 'Sanhedrin': '24', 'Makkot': '25',
-			'Shevuot': '26', 'Avodah Zarah': '27', 'Horayot': '28', 'Zevachim': '29', 'Menachot': '30',
-			'Chullin': '31', 'Bekhorot': '32', 'Arakhin': '33', 'Temurah': '34', 'Keritot': '35',
-			'Meilah': '36', 'Niddah': '37'
-		};
-		
-		const mesechta = tractateMap[tractate];
-		if (!mesechta) {
-			return json({ error: `Unknown tractate: ${tractate}` }, { status: 400 });
-		}
-
-		// Convert from Sefaria format (2a, 2b) to HebrewBooks format (2, 2b)
+		// Convert from Sefaria format (2a, 2b) to daf-supplier format
 		const dafForAPI = convertDafToHebrewBooksFormat(`${page}${amud}`);
 		
 		// Use daf-supplier directly to get structured data
@@ -129,7 +112,7 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 			return json({ error: `Unknown tractate: ${tractate}` }, { status: 400 });
 		}
 		
-		console.log(`Fetching from daf-supplier: mesechta=${mesechtaId}, daf=${dafForAPI} (converted from ${page}${amud})`);
+		console.log(`Fetching from daf-supplier v3: mesechta=${mesechtaId}, daf=${dafForAPI} (converted from ${page}${amud})`);
 		const talmudResponse = await fetch(`https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`);
 		
 		if (!talmudResponse.ok) {
