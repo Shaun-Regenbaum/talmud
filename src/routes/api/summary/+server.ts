@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { openRouterTranslator } from '$lib/openrouter-translator';
+import { PUBLIC_OPENROUTER_API_KEY } from '$env/static/public';
 
 // Check if we're in Cloudflare Workers environment
 const isCloudflareWorkers = typeof caches !== 'undefined';
@@ -22,7 +23,6 @@ async function getCachedSummary(cacheKey: string): Promise<any | null> {
 					const parsedCache = JSON.parse(cached);
 					// Check if cache is still valid (24 hours)
 					if (Date.now() - parsedCache.timestamp < CACHE_DURATION) {
-						console.log('📦 Cache hit (KV):', cacheKey);
 						return parsedCache.data;
 					} else {
 						// Remove expired cache
@@ -31,18 +31,16 @@ async function getCachedSummary(cacheKey: string): Promise<any | null> {
 				}
 			}
 		} catch (error) {
-			console.warn('KV cache read failed:', error);
+			// Silently handle KV cache read errors
 		}
 	}
 	
 	// Fallback to memory cache
 	const cached = memoryCache.get(cacheKey);
 	if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
-		console.log('📦 Cache hit (memory):', cacheKey);
 		return cached.data;
 	}
 	
-	console.log('🔍 Cache miss:', cacheKey);
 	return null;
 }
 
@@ -59,17 +57,15 @@ async function setCachedSummary(cacheKey: string, data: any): Promise<void> {
 				await SUMMARIES_KV.put(cacheKey, JSON.stringify(cacheData), {
 					expirationTtl: Math.floor(CACHE_DURATION / 1000) // KV expects seconds
 				});
-				console.log('💾 Cached to KV:', cacheKey);
 				return;
 			}
 		} catch (error) {
-			console.warn('KV cache write failed:', error);
+			// Silently handle KV cache write errors
 		}
 	}
 	
 	// Fallback to memory cache
 	memoryCache.set(cacheKey, cacheData);
-	console.log('💾 Cached to memory:', cacheKey);
 }
 
 export const GET: RequestHandler = async ({ url, fetch }) => {
@@ -132,24 +128,50 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 			return json({ error: 'Insufficient content for summary generation' }, { status: 400 });
 		}
 
-		// Generate summary using OpenRouter
+		// Generate summary using OpenRouter with Claude Sonnet 4 directly
 		const contextInfo = `${tractate} ${page}${amud}`;
-		const summaryPrompt = `Provide a concise, informative summary of this Talmudic passage from ${contextInfo}. Focus on:
-1. The main topic or question being discussed
-2. Key arguments and positions presented
-3. The primary rabbis involved and their views
-4. Any practical conclusions or rulings
-5. Why this discussion is significant
+		const summaryPrompt = `You are analyzing a page from the Talmud (${contextInfo}). Create an engaging, accessible summary that brings this ancient discussion to life for modern readers.
 
-Keep the summary to 2-3 paragraphs, accessible to someone studying this page for the first time.
+Focus on making the content compelling by highlighting:
+• The central question or dilemma being explored
+• The brilliant reasoning and arguments from different rabbis
+• How their debate reflects timeless human concerns
+• Any surprising insights or unexpected connections
+• The practical impact on Jewish life and law
+• Why this conversation matters today
+
+Write 2-3 engaging paragraphs that would make someone excited to study this page deeper. Make the rabbis feel like real people having a fascinating intellectual conversation.
 
 Talmud text: ${mainText.slice(0, 3000)}`;
 
-		const summaryResult = await openRouterTranslator.translateText({
-			text: summaryPrompt,
-			context: `Summary generation for ${contextInfo}`,
-			targetLanguage: 'English'
+		// Call OpenRouter API directly with Claude Sonnet 4
+		const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+			method: 'POST',
+			headers: {
+				'Authorization': `Bearer ${PUBLIC_OPENROUTER_API_KEY}`,
+				'Content-Type': 'application/json',
+				'HTTP-Referer': 'https://talmud.app',
+				'X-Title': 'Talmud Study App'
+			},
+			body: JSON.stringify({
+				model: 'anthropic/claude-sonnet-4',
+				messages: [
+					{ role: 'user', content: summaryPrompt }
+				],
+				temperature: 0.7, // Higher temperature for more engaging content
+				max_tokens: 800
+			})
 		});
+
+		if (!response.ok) {
+			throw new Error(`OpenRouter API error: ${response.status} ${response.statusText}`);
+		}
+
+		const data = await response.json();
+		const summaryResult = {
+			translation: data.choices[0]?.message?.content?.trim() || '',
+			model: data.model || 'anthropic/claude-sonnet-4'
+		};
 
 		const summaryData = {
 			tractate,
@@ -171,7 +193,6 @@ Talmud text: ${mainText.slice(0, 3000)}`;
 		});
 
 	} catch (error) {
-		console.error('Summary generation error:', error);
 		return json({
 			error: 'Failed to generate summary',
 			details: error instanceof Error ? error.message : String(error)

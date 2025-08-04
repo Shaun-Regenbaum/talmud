@@ -98,7 +98,7 @@ Max Overflow: ${maxOverflowRatio.toFixed(2)}x`);
   let suggestions = [];
   
   // Hard caps
-  const MAX_CONTENT_WIDTH = 900; // Don't go above 900px
+  const MAX_CONTENT_WIDTH = 700; // Don't go above 700px
   const MIN_MAIN_WIDTH_PERCENT = 30; // Don't go below 30% for main content
   const MAX_MAIN_WIDTH_PERCENT = 70; // Don't go above 70% for main content
   
@@ -150,6 +150,46 @@ Max Overflow: ${maxOverflowRatio.toFixed(2)}x`);
 }
 
 /**
+ * Categorize lines by length 
+ */
+function categorizeLines(text, isCommentary = false) {
+  const lines = text.split(/<br>/gi);
+  const categories = { empty: [], single: [], short: [], medium: [], long: [], start: [] };
+  
+  lines.forEach((line, index) => {
+    const stripped = line.replace(/<[^>]*>/g, '').trim();
+    const length = stripped.length;
+    
+    if (length === 0) {
+      categories.empty.push(index);
+    } else if (isCommentary && index < 4) {
+      categories.start.push(index);
+    } else if (length <= 20) {
+      categories.single.push(index);
+    } else if (length <= 40) {
+      categories.short.push(index);
+    } else if (length <= 60) {
+      categories.medium.push(index);
+    } else {
+      categories.long.push(index);
+    }
+  });
+  
+  return {
+    totalLines: lines.length,
+    categories: categories,
+    summary: {
+      empty: categories.empty.length,
+      single: categories.single.length,
+      short: categories.short.length,
+      medium: categories.medium.length,
+      long: categories.long.length,
+      start: categories.start.length
+    }
+  };
+}
+
+/**
  * Calculate spacers using the original line counts (what should be used)
  */
 export function calculateSpacersFromMeasurements(mainText, innerText, outerText, options, dummy) {
@@ -170,6 +210,13 @@ export function calculateSpacersFromMeasurements(mainText, innerText, outerText,
     start: Math.max(Math.min(4, renderedCounts.inner), Math.min(4, renderedCounts.outer)),
     inner: Math.max(0, renderedCounts.inner - 4),
     outer: Math.max(0, renderedCounts.outer - 4)
+  };
+  
+  // Analyze line categories for original text
+  const originalLineBreakdown = {
+    main: categorizeLines(mainText, false),
+    inner: categorizeLines(innerText, true),
+    outer: categorizeLines(outerText, true)
   };
   
   const parsedOptions = {
@@ -200,6 +247,7 @@ export function calculateSpacersFromMeasurements(mainText, innerText, outerText,
       renderedLogic: renderedLogic,
       shouldUseOriginal: true
     },
+    lineBreakdown: originalLineBreakdown,
     startLineInfo: {
       preservedLines: originalLogic.start,
       calculationMethod: 'original-line-count-with-layout-fix-suggestions'

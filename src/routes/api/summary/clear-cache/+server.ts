@@ -20,7 +20,7 @@ export const DELETE: RequestHandler = async () => {
 					cleared++;
 				}
 				
-				console.log(`🗑️ Cleared ${cleared} cached summaries from KV`);
+				// Successfully cleared KV cache
 			}
 		}
 		
@@ -31,7 +31,6 @@ export const DELETE: RequestHandler = async () => {
 		});
 		
 	} catch (error) {
-		console.error('Cache clear error:', error);
 		return json({
 			success: false,
 			error: 'Failed to clear cache',

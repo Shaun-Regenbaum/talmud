@@ -17,7 +17,7 @@ export default {
     // Get parameters
     const mesechta = url.searchParams.get('mesechta');
     const daf = url.searchParams.get('daf');
-    const br = url.searchParams.get('br') === 'true'; // Enable <br> tag conversion
+    const br = url.searchParams.get('br') === 'true'; // Enable <wbr> tag conversion
     
     if (!mesechta || !daf) {
       return new Response(JSON.stringify({ error: 'Missing required parameters: mesechta and daf' }), {
@@ -551,10 +551,18 @@ export default {
         '37': 'Niddah'
       };
 
-      // Helper function to convert newlines to <br> tags if requested
+      // Helper function to convert newlines to <wbr> tags with spaces if requested
       const formatText = (text) => {
         if (!text) return text;
-        return br ? text.replace(/\r\n/g, '<br>').replace(/\n/g, '<br>') : text;
+        if (!br) return text;
+        
+        return text
+          // Replace Windows-style line endings (\r\n) with space + word break opportunity
+          .replace(/\r\n/g, ' <wbr>')
+          // Replace Unix-style line endings (\n) with space + word break opportunity  
+          .replace(/\n/g, ' <wbr>')
+          // Handle any remaining standalone \r (old Mac style)
+          .replace(/\r/g, ' <wbr>');
       };
 
       // Prepare response data
