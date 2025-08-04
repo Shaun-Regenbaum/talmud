@@ -113,15 +113,10 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 		}
 		
 		console.log(`Fetching from daf-supplier v3: mesechta=${mesechtaId}, daf=${dafForAPI} (converted from ${page}${amud})`);
-		const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
-		console.log(`Calling daf-supplier URL: ${dafSupplierUrl}`);
-		const talmudResponse = await fetch(dafSupplierUrl, {
-			headers: {
-				'User-Agent': 'Talmud-Study-App/1.0',
-				'Accept': 'application/json',
-				'Origin': 'https://talmud.402.workers.dev'
-			}
-		});
+		// Use local hebrewbooks API endpoint to avoid inter-worker request issues
+		const hebrewBooksUrl = `/api/hebrewbooks?tractate=${encodeURIComponent(tractate)}&daf=${encodeURIComponent(`${page}${amud}`)}`;
+		console.log(`Calling hebrewbooks API: ${hebrewBooksUrl}`);
+		const talmudResponse = await fetch(new URL(hebrewBooksUrl, url.origin).toString());
 		
 		if (!talmudResponse.ok) {
 			const errorText = await talmudResponse.text();

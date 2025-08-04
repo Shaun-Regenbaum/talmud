@@ -108,8 +108,10 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 			return json({ error: `Unknown tractate: ${tractate}` }, { status: 400 });
 		}
 		
-		console.log(`Fetching from daf-supplier: mesechta=${mesechtaId}, daf=${dafForAPI} (converted from ${page}${amud})`);
-		const talmudResponse = await fetch(`https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`);
+		// Use local hebrewbooks API endpoint to avoid inter-worker request issues
+		const hebrewBooksUrl = `/api/hebrewbooks?tractate=${encodeURIComponent(tractate)}&daf=${encodeURIComponent(`${page}${amud}`)}`;
+		console.log(`Fetching from hebrewbooks API: ${hebrewBooksUrl}`);
+		const talmudResponse = await fetch(new URL(hebrewBooksUrl, url.origin).toString());
 		
 		if (!talmudResponse.ok) {
 			throw new Error(`Failed to fetch Talmud data: ${talmudResponse.status}`);

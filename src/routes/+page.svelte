@@ -161,6 +161,7 @@
 			// Small delay to ensure renderer is ready
 			setTimeout(() => {
 				try {
+					console.log('🎨 Rendering with mode:', { vilnaMode, pageLabel, hasBrTags: mainHTML.includes('<br>') });
 					// Pass vilnaMode as lineBreakMode (Vilna uses line breaks, custom doesn't)
 					rendererStore.render(mainHTML, rashiHTML, tosafotHTML, pageLabel, vilnaMode);
 					
