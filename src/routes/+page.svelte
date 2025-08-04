@@ -36,15 +36,8 @@
 	let summary = $state<any>(null);
 	let summaryLoading = $state(false);
 	let summaryError = $state<string | null>(null);
+	let summaryExpanded = $state(false);
 	
-	
-	// Subscribe to store updates
-	$effect(() => {
-		const info = $pageInfo;
-		selectedTractate = info.tractate;
-		selectedPage = info.page;
-		selectedAmud = info.amud;
-	});
 	
 	// Tractate options for the dropdown
 	const tractateOptions = [
@@ -89,6 +82,9 @@
 	
 
 
+	// Track last rendered page to prevent excessive re-renders
+	let lastRenderedKey = $state('');
+	
 	// Handle rendering when page data changes
 	$effect(() => {
 		const pageData = $currentPage;
@@ -98,12 +94,28 @@
 			return;
 		}
 		
+		// Create unique key for this page data
+		const currentPageKey = `${pageData.tractate}-${pageData.daf}-${pageData.amud}-${pageData.mainText?.length || 0}`;
+		
+		// Skip if we already rendered this exact data
+		if (lastRenderedKey === currentPageKey) {
+			return;
+		}
+		
+		// Update tracking key
+		lastRenderedKey = currentPageKey;
 		
 		// Add a small delay to ensure DOM is stable after loading state changes
 		setTimeout(() => {
-			// Initialize renderer only once
-			if (!rendererStore.getRenderer()) {
+			// Initialize renderer only once and only if container exists
+			if (!rendererStore.getRenderer() && dafContainer) {
 				rendererStore.initialize(dafContainer);
+			}
+			
+			// Ensure renderer exists before proceeding
+			const renderer = rendererStore.getRenderer();
+			if (!renderer) {
+				return;
 			}
 			
 			// Process header markers in the text
@@ -120,47 +132,56 @@
 			
 			// Small delay to ensure renderer is ready
 			setTimeout(() => {
-				rendererStore.render(mainHTML, rashiHTML, tosafotHTML, pageLabel);
-				
-				// Check for spacing issues after render
-				setTimeout(() => {
-					const renderer = rendererStore.getRenderer();
-					if (renderer && renderer.checkExcessiveSpacing) {
-						renderer.checkExcessiveSpacing();
-					}
-				}, 100);
-				
-				// Apply dynamic layer selection after rendering
-				setTimeout(() => {
-					// Set up text selection handling for translations with OpenRouter only
-					if (pageData.mainText) {
-						setupTextSelectionHandling();
-					}
+				try {
+					rendererStore.render(mainHTML, rashiHTML, tosafotHTML, pageLabel);
 					
-					// Mark as rendered for scaling
-					rendered = true;
-				}, 300);
+					// Check for spacing issues after render
+					setTimeout(() => {
+						const renderer = rendererStore.getRenderer();
+						if (renderer && renderer.checkExcessiveSpacing) {
+							renderer.checkExcessiveSpacing();
+						}
+					}, 100);
+					
+					// Apply dynamic layer selection after rendering
+					setTimeout(() => {
+						// Set up text selection handling for translations with OpenRouter only
+						if (pageData.mainText) {
+							setupTextSelectionHandling();
+						}
+						
+						// Mark as rendered for scaling
+						rendered = true;
+					}, 300);
+				} catch (error) {
+					// Silently handle render errors
+				}
 			}, 50);
 		}, 100);
 	});
 	
-	// Watch for data changes from navigation
-	// In Svelte 5, we need to be explicit about what triggers the effect
+	// Track data changes and load page accordingly
+	let lastDataKey = $state('');
+	
 	$effect(() => {
-		// Access data properties to make them reactive dependencies
+		// Create a unique key from the data to detect changes
 		const { tractate, page: pageNum, amud } = data;
+		const currentDataKey = `${tractate}-${pageNum}-${amud}`;
 		
-		// Only trigger if the data actually changed
-		if (selectedTractate === tractate && selectedPage === pageNum && selectedAmud === amud) {
+		// Skip if this is the same data we already processed
+		if (lastDataKey === currentDataKey) {
 			return;
 		}
 		
-		// Update form state when data changes
+		// Update tracking key
+		lastDataKey = currentDataKey;
+		
+		// Update form state
 		selectedTractate = tractate;
 		selectedPage = pageNum;
 		selectedAmud = amud;
 		
-		// Load the new page
+		// Load the new page data
 		talmudStore.loadPage(tractate, pageNum, amud);
 		
 		// Load summary for the new page
@@ -200,18 +221,15 @@
 			amud: selectedAmud
 		});
 		
-		// Force a full page reload to ensure clean rendering
-		window.location.href = `?${params.toString()}`;
+		// Use SvelteKit navigation instead of full page reload
+		await goto(`?${params.toString()}`);
 	}
 	
 	// Generate transform style for responsive scaling
 	function getTransformStyle(): string {
-		// TEMPORARILY DISABLED FOR DEBUGGING
-		return '';
-		
-		// if (!rendered) return '';
-		// const scale = Math.min(1, (windowWidth * dafOfWindow) / dafWidth); // Cap at 1x scale
-		// return scale < 1 ? `transform: scale(${scale}); transform-origin: top left;` : '';
+		if (!rendered) return '';
+		const scale = Math.min(1, (windowWidth * dafOfWindow) / dafWidth); // Cap at 1x scale
+		return scale < 1 ? `transform: scale(${scale}); transform-origin: top left;` : '';
 	}
 	
 	// Load page summary
@@ -233,7 +251,6 @@
 			const summaryData = await response.json();
 			summary = summaryData;
 		} catch (error) {
-			console.error('Summary loading error:', error);
 			summaryError = error instanceof Error ? error.message : 'Failed to load summary';
 		} finally {
 			summaryLoading = false;
@@ -366,44 +383,56 @@
 
 		<!-- Page Summary -->
 		{#if summaryLoading}
-			<div class="bg-blue-50 rounded-lg shadow-md p-6">
-				<div class="flex items-center gap-3">
-					<div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
-					<h3 class="text-lg font-semibold text-blue-800">Loading page summary...</h3>
+			<div class="border border-gray-200 rounded-lg p-4 bg-white">
+				<div class="flex items-center gap-2">
+					<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+					<span class="text-sm text-gray-600">Loading page summary...</span>
 				</div>
 			</div>
 		{:else if summary}
-			<div class="bg-blue-50 rounded-lg shadow-md p-6">
-				<div class="flex items-center justify-between mb-4">
-					<h3 class="text-lg font-semibold text-blue-800">Page Summary</h3>
-					<div class="flex items-center gap-2 text-sm text-blue-600">
-						{#if summary.cached}
-							<span class="px-2 py-1 bg-blue-100 rounded">Cached</span>
-						{:else}
-							<span class="px-2 py-1 bg-green-100 text-green-700 rounded">Fresh</span>
-						{/if}
-						<span>{summary.wordCount} words</span>
+			<div class="border border-gray-200 rounded-lg bg-white">
+				<button 
+					onclick={() => summaryExpanded = !summaryExpanded}
+					class="w-full p-4 text-left hover:bg-gray-50 transition-colors flex items-center justify-between"
+				>
+					<div class="flex items-center gap-2">
+						<span class="text-sm font-medium text-gray-700">📖 Page Summary</span>
+						<div class="flex items-center gap-2 text-xs text-gray-500">
+							{#if summary.cached}
+								<span class="px-2 py-1 bg-gray-100 rounded">Cached</span>
+							{:else}
+								<span class="px-2 py-1 bg-green-100 text-green-600 rounded">Fresh</span>
+							{/if}
+							<span>{summary.wordCount} words</span>
+						</div>
 					</div>
-				</div>
-				<div class="prose max-w-none text-gray-700 leading-relaxed">
-					{@html summary.summary.replace(/\n/g, '<br>')}
-				</div>
-				{#if !summary.cached}
-					<div class="mt-4 text-xs text-blue-500">
-						Generated with {summary.model} • {new Date(summary.generated).toLocaleString()}
+					<div class="text-gray-400 transition-transform {summaryExpanded ? 'rotate-180' : ''}">
+						▼
+					</div>
+				</button>
+				{#if summaryExpanded}
+					<div class="px-4 pb-4 border-t border-gray-100">
+						<div class="prose max-w-none text-gray-700 leading-relaxed text-sm mt-3">
+							{@html summary.summary.replace(/\n/g, '<br>')}
+						</div>
+						{#if !summary.cached}
+							<div class="mt-3 text-xs text-gray-400">
+								Generated with {summary.model} • {new Date(summary.generated).toLocaleString()}
+							</div>
+						{/if}
 					</div>
 				{/if}
 			</div>
 		{:else if summaryError}
-			<div class="bg-red-50 rounded-lg shadow-md p-6">
+			<div class="border border-red-200 rounded-lg p-4 bg-red-50">
 				<div class="flex items-center justify-between">
 					<div>
-						<h3 class="text-lg font-semibold text-red-800">Summary Error</h3>
-						<p class="text-red-600 mt-1">{summaryError}</p>
+						<span class="text-sm font-medium text-red-800">Summary Error</span>
+						<p class="text-red-600 mt-1 text-sm">{summaryError}</p>
 					</div>
 					<button 
 						onclick={loadSummary}
-						class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition text-sm"
+						class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition text-xs"
 					>
 						Retry
 					</button>

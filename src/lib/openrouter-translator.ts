@@ -27,9 +27,6 @@ class OpenRouterTranslator {
 	
 	constructor(apiKey?: string) {
 		this.apiKey = apiKey || PUBLIC_OPENROUTER_API_KEY || '';
-		if (!this.apiKey) {
-			console.warn('OpenRouter API key not configured');
-		}
 	}
 	
 	async translateText(request: TranslationRequest): Promise<TranslationResponse> {
@@ -44,13 +41,11 @@ class OpenRouterTranslator {
 		
 		// Check cache first
 		if (this.cache.has(cacheKey)) {
-			console.log('📦 Returning cached translation');
 			return this.cache.get(cacheKey)!;
 		}
 		
 		// Check if there's already a pending request for this text
 		if (this.pendingRequests.has(cacheKey)) {
-			console.log('⏳ Waiting for pending translation');
 			return this.pendingRequests.get(cacheKey)!;
 		}
 		
@@ -82,8 +77,6 @@ class OpenRouterTranslator {
 				});
 				
 				if (!response.ok) {
-					const errorData = await response.json().catch(() => ({}));
-					console.log('Primary model failed:', this.models.primary, errorData);
 					throw new Error(`OpenRouter API error: ${response.status} ${response.statusText}`);
 				}
 				
@@ -106,8 +99,6 @@ class OpenRouterTranslator {
 			} catch (error) {
 				// Clean up pending request on error
 				this.pendingRequests.delete(cacheKey);
-				
-				console.error('Translation error:', error);
 				throw error;
 			}
 		})();
@@ -116,46 +107,6 @@ class OpenRouterTranslator {
 		this.pendingRequests.set(cacheKey, translationPromise);
 		
 		return translationPromise;
-	}
-	
-	private async translateWithFallback(request: TranslationRequest): Promise<TranslationResponse> {
-		const { text, context, targetLanguage = 'English' } = request;
-		
-		const systemPrompt = `Translate to ${targetLanguage}. Output ONLY the translation.`;
-		const userPrompt = text;
-		
-		try {
-			const response = await fetch(this.baseUrl, {
-				method: 'POST',
-				headers: {
-					'Authorization': `Bearer ${this.apiKey}`,
-					'Content-Type': 'application/json',
-					'HTTP-Referer': 'https://talmud.app',
-					'X-Title': 'Talmud Study App'
-				},
-				body: JSON.stringify({
-					model: this.models.fallback,
-					messages: [
-						{ role: 'system', content: systemPrompt },
-						{ role: 'user', content: userPrompt }
-					],
-					temperature: 0.3,
-					max_tokens: 300
-				})
-			});
-			
-			const data = await response.json();
-			const translation = data.choices[0]?.message?.content?.trim() || '';
-			
-			return {
-				translation,
-				model: data.model || this.models.fallback,
-				confidence: 0.8
-			};
-		} catch (error) {
-			console.error('Fallback translation error:', error);
-			throw error;
-		}
 	}
 	
 	// Batch translation for efficiency
@@ -209,7 +160,6 @@ class OpenRouterTranslator {
 				confidence: 0.85
 			}));
 		} catch (error) {
-			console.error('Batch translation error:', error);
 			// Return empty translations as fallback
 			return texts.map(() => ({
 				translation: '[Translation error]',
@@ -227,7 +177,6 @@ class OpenRouterTranslator {
 	// Clear translation cache
 	clearCache(): void {
 		this.cache.clear();
-		console.log('🗑️ Translation cache cleared');
 	}
 	
 	// Get cache size
@@ -240,9 +189,8 @@ class OpenRouterTranslator {
 		try {
 			const cacheData = Array.from(this.cache.entries());
 			localStorage.setItem('talmud-translation-cache', JSON.stringify(cacheData));
-			console.log(`💾 Saved ${cacheData.length} translations to cache`);
 		} catch (error) {
-			console.error('Failed to save cache:', error);
+			// Silently handle cache save errors
 		}
 	}
 	
@@ -255,7 +203,7 @@ class OpenRouterTranslator {
 				this.cache = new Map(entries);
 			}
 		} catch (error) {
-			console.error('Failed to load cache:', error);
+			// Silently handle cache load errors
 		}
 	}
 }

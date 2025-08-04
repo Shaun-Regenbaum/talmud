@@ -205,6 +205,15 @@
 			}
 			
 			// The render method doesn't return a value, it updates the renderer instance
+			console.log('🔧 Rendering with parameters:', {
+				forceLineBreaks,
+				linebreakParam: forceLineBreaks ? 'br' : false,
+				mainTextSample: mainText.substring(0, 100),
+				rashiTextSample: rashiText.substring(0, 100),
+				mainHasBr: mainText.includes('<br>'),
+				rashiHasBr: rashiText.includes('<br>')
+			});
+			
 			rendererInstance.render(
 				mainText,
 				rashiText,
@@ -493,251 +502,113 @@
 					<pre class="mt-4 p-4 bg-gray-900 text-gray-100 text-xs overflow-x-auto rounded-lg">{JSON.stringify(spacerResults.spacerHeights, null, 2)}</pre>
 				</details>
 				
-				<!-- Layout Fix Suggestions -->
-				{#if spacerResults.measurementResults?.layoutAnalysis}
-					<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-						<h2 class="text-lg font-semibold mb-3">🔧 Layout Fix Suggestions</h2>
-						
-						<!-- Problem Summary -->
-						<div class="mb-4 p-3 {spacerResults.measurementResults.layoutAnalysis.needsFix ? 'bg-red-50 border border-red-200' : 'bg-green-50 border border-green-200'} rounded">
-							<div class="flex items-center mb-2">
-								<span class="text-lg {spacerResults.measurementResults.layoutAnalysis.needsFix ? 'text-red-600' : 'text-green-600'}">
-									{spacerResults.measurementResults.layoutAnalysis.needsFix ? '⚠️' : '✅'}
-								</span>
-								<h3 class="ml-2 font-medium {spacerResults.measurementResults.layoutAnalysis.needsFix ? 'text-red-800' : 'text-green-800'}">
-									{spacerResults.measurementResults.layoutAnalysis.message}
-								</h3>
-							</div>
-							
-							<!-- Line Count Summary -->
-							<div class="grid grid-cols-3 gap-4 text-xs">
-								<div class="text-center">
-									<div class="font-medium">Main Text</div>
-									<div class="text-gray-600">{spacerResults.measurementResults.layoutAnalysis.originalCounts.main} → {spacerResults.measurementResults.layoutAnalysis.renderedCounts.main}</div>
-									<div class="text-red-600 font-medium">{spacerResults.measurementResults.layoutAnalysis.overflowRatios.main.toFixed(1)}x</div>
-								</div>
-								<div class="text-center">
-									<div class="font-medium">Inner (Rashi)</div>
-									<div class="text-gray-600">{spacerResults.measurementResults.layoutAnalysis.originalCounts.inner} → {spacerResults.measurementResults.layoutAnalysis.renderedCounts.inner}</div>
-									<div class="text-red-600 font-medium">{spacerResults.measurementResults.layoutAnalysis.overflowRatios.inner.toFixed(1)}x</div>
-								</div>
-								<div class="text-center">
-									<div class="font-medium">Outer (Tosafot)</div>
-									<div class="text-gray-600">{spacerResults.measurementResults.layoutAnalysis.originalCounts.outer} → {spacerResults.measurementResults.layoutAnalysis.renderedCounts.outer}</div>
-									<div class="text-red-600 font-medium">{spacerResults.measurementResults.layoutAnalysis.overflowRatios.outer.toFixed(1)}x</div>
-								</div>
-							</div>
-						</div>
-						
-						<!-- Fix Suggestions -->
-						{#if spacerResults.measurementResults.layoutAnalysis.needsFix && spacerResults.measurementResults.layoutAnalysis.suggestions}
-							<div class="mb-4">
-								<h3 class="font-medium mb-3">Recommended Fixes (Click to Apply)</h3>
-								<div class="space-y-3">
-									{#each spacerResults.measurementResults.layoutAnalysis.suggestions as suggestion, i}
-										<div class="p-3 border rounded {suggestion.effectiveness === 'high' ? 'border-green-300 bg-green-50' : 'border-yellow-300 bg-yellow-50'}">
-											<div class="flex items-center justify-between mb-2">
-												<h4 class="font-medium text-sm">{suggestion.name}</h4>
-												<span class="text-xs px-2 py-1 rounded {suggestion.effectiveness === 'high' ? 'bg-green-200 text-green-800' : 'bg-yellow-200 text-yellow-800'}">
-													{suggestion.effectiveness} effectiveness
-												</span>
-											</div>
-											<p class="text-xs text-gray-600 mb-2">{suggestion.description}</p>
-											<button 
-												on:click={() => {
-													contentWidth = suggestion.contentWidth;
-													mainWidthPercent = suggestion.mainWidthPercent;
-													fetchAndAnalyze();
-												}}
-												class="text-xs px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-											>
-												Apply This Fix
-											</button>
-										</div>
-									{/each}
-								</div>
-							</div>
-						{/if}
-						
-						<!-- Current Settings vs Suggested -->
-						<div class="grid grid-cols-2 gap-4 text-xs">
-							<div class="bg-gray-50 p-3 rounded">
-								<h4 class="font-medium text-gray-800">Current Settings</h4>
-								<div class="mt-1 space-y-1">
-									<div>Content Width: {contentWidth}px</div>
-									<div>Main Text Width: {mainWidthPercent}%</div>
-									<div>Commentary Width: {((100 - mainWidthPercent) / 2).toFixed(1)}% each</div>
-								</div>
-							</div>
-							{#if spacerResults.measurementResults.layoutAnalysis.suggestions?.[0]}
-								<div class="bg-blue-50 p-3 rounded">
-									<h4 class="font-medium text-blue-800">Best Suggestion</h4>
-									<div class="mt-1 space-y-1">
-										<div>Content Width: {spacerResults.measurementResults.layoutAnalysis.suggestions[0].contentWidth}px</div>
-										<div>Main Text Width: {spacerResults.measurementResults.layoutAnalysis.suggestions[0].mainWidthPercent}%</div>
-										<div>Commentary Width: {((100 - spacerResults.measurementResults.layoutAnalysis.suggestions[0].mainWidthPercent) / 2).toFixed(1)}% each</div>
-									</div>
-								</div>
-							{/if}
-						</div>
-					</div>
-				{/if}
 
 				<!-- Measurement Results -->
 				{#if spacerResults.measurementResults}
 					<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
 						<h2 class="text-lg font-semibold mb-3">Line Count Analysis</h2>
 						
-						<!-- Line Count Comparison Table -->
-						{#if spacerResults.measurementResults.lineCounts}
-							<div class="mb-4">
-								<h3 class="font-medium mb-2">Original vs Rendered Line Counts</h3>
-								<div class="overflow-x-auto">
-									<table class="w-full text-xs border-collapse border border-gray-300">
-										<thead>
-											<tr class="bg-gray-100">
-												<th class="border border-gray-300 p-2 text-left">Section</th>
-												<th class="border border-gray-300 p-2 text-center">Original<br>(from &lt;br&gt; tags)</th>
-												<th class="border border-gray-300 p-2 text-center">Rendered<br>(actual DOM)</th>
-												<th class="border border-gray-300 p-2 text-center">Difference</th>
-											</tr>
-										</thead>
-										<tbody>
-											<tr>
-												<td class="border border-gray-300 p-2 font-medium">Main</td>
-												<td class="border border-gray-300 p-2 text-center">{spacerResults.measurementResults.lineCounts?.original?.main || 0}</td>
-												<td class="border border-gray-300 p-2 text-center">{spacerResults.measurementResults.lineCounts?.rendered?.main || 0}</td>
-												<td class="border border-gray-300 p-2 text-center {(spacerResults.measurementResults.lineCounts?.rendered?.main || 0) - (spacerResults.measurementResults.lineCounts?.original?.main || 0) !== 0 ? 'text-red-600 font-medium' : 'text-gray-500'}">
-													{(spacerResults.measurementResults.lineCounts?.rendered?.main || 0) - (spacerResults.measurementResults.lineCounts?.original?.main || 0) > 0 ? '+' : ''}{(spacerResults.measurementResults.lineCounts?.rendered?.main || 0) - (spacerResults.measurementResults.lineCounts?.original?.main || 0)}
-												</td>
-											</tr>
-											<tr>
-												<td class="border border-gray-300 p-2 font-medium">Inner (Rashi)</td>
-												<td class="border border-gray-300 p-2 text-center">{spacerResults.measurementResults.lineCounts?.original?.inner || 0}</td>
-												<td class="border border-gray-300 p-2 text-center">{spacerResults.measurementResults.lineCounts?.rendered?.inner || 0}</td>
-												<td class="border border-gray-300 p-2 text-center {(spacerResults.measurementResults.lineCounts?.rendered?.inner || 0) - (spacerResults.measurementResults.lineCounts?.original?.inner || 0) !== 0 ? 'text-red-600 font-medium' : 'text-gray-500'}">
-													{(spacerResults.measurementResults.lineCounts?.rendered?.inner || 0) - (spacerResults.measurementResults.lineCounts?.original?.inner || 0) > 0 ? '+' : ''}{(spacerResults.measurementResults.lineCounts?.rendered?.inner || 0) - (spacerResults.measurementResults.lineCounts?.original?.inner || 0)}
-												</td>
-											</tr>
-											<tr>
-												<td class="border border-gray-300 p-2 font-medium">Outer (Tosafot)</td>
-												<td class="border border-gray-300 p-2 text-center">{spacerResults.measurementResults.lineCounts?.original?.outer || 0}</td>
-												<td class="border border-gray-300 p-2 text-center">{spacerResults.measurementResults.lineCounts?.rendered?.outer || 0}</td>
-												<td class="border border-gray-300 p-2 text-center {(spacerResults.measurementResults.lineCounts?.rendered?.outer || 0) - (spacerResults.measurementResults.lineCounts?.original?.outer || 0) !== 0 ? 'text-red-600 font-medium' : 'text-gray-500'}">
-													{(spacerResults.measurementResults.lineCounts?.rendered?.outer || 0) - (spacerResults.measurementResults.lineCounts?.original?.outer || 0) > 0 ? '+' : ''}{(spacerResults.measurementResults.lineCounts?.rendered?.outer || 0) - (spacerResults.measurementResults.lineCounts?.original?.outer || 0)}
-												</td>
-											</tr>
-										</tbody>
-									</table>
-								</div>
-							</div>
-							
-							<!-- Spacer Logic Comparison -->
-							{#if spacerResults.measurementResults.lineCounts?.originalLogic}
-								<div class="mb-4">
-									<h3 class="font-medium mb-2">Spacer Logic Comparison</h3>
-									<div class="grid grid-cols-2 gap-4 text-xs">
-										<div class="bg-blue-50 p-3 rounded">
-											<h4 class="font-medium text-blue-800">Original Logic</h4>
-											<div class="mt-1 space-y-1">
-												<div>Start: {spacerResults.measurementResults.lineCounts.originalLogic?.start || 0} lines</div>
-												<div>Inner: {spacerResults.measurementResults.lineCounts.originalLogic?.inner || 0} lines</div>
-												<div>Outer: {spacerResults.measurementResults.lineCounts.originalLogic?.outer || 0} lines</div>
-											</div>
-										</div>
-										<div class="bg-green-50 p-3 rounded">
-											<h4 class="font-medium text-green-800">Rendered Logic (Used)</h4>
-											<div class="mt-1 space-y-1">
-												<div>Start: {spacerResults.measurementResults.lineCounts.renderedLogic?.start || 0} lines</div>
-												<div>Inner: {spacerResults.measurementResults.lineCounts.renderedLogic?.inner || 0} lines</div>
-												<div>Outer: {spacerResults.measurementResults.lineCounts.renderedLogic?.outer || 0} lines</div>
-											</div>
-										</div>
-									</div>
-								</div>
-							{/if}
-						{/if}
-
 						<!-- Summary Stats -->
-						<div class="grid grid-cols-2 gap-4 text-sm mb-4">
+						<div class="grid grid-cols-3 gap-4 text-sm mb-4">
 							<div class="text-center">
-								<div class="text-lg font-semibold text-red-600">
-									{(spacerResults.measurementResults.measurements?.inner?.problematicLines?.length || 0) + (spacerResults.measurementResults.measurements?.outer?.problematicLines?.length || 0)}
+								<div class="text-lg font-semibold text-blue-600">
+									{spacerResults.measurementResults.lineCounts?.original?.main || 0}
 								</div>
-								<div class="text-xs text-gray-600">Overflow Lines</div>
+								<div class="text-xs text-gray-600">Main Lines</div>
 								<div class="text-xs text-gray-500 mt-1">
-									Inner: {spacerResults.measurementResults.measurements?.inner?.problematicLines?.length || 0} | 
-									Outer: {spacerResults.measurementResults.measurements?.outer?.problematicLines?.length || 0}
+									Original: {spacerResults.measurementResults.lineCounts?.original?.main || 0}
 								</div>
 							</div>
 							<div class="text-center">
-								<div class="text-lg font-semibold text-purple-600">
-									{(spacerResults.measurementResults.spacerHeights?.start || 0).toFixed(0)}px
+								<div class="text-lg font-semibold text-green-600">
+									{spacerResults.measurementResults.lineCounts?.original?.inner || 0}
 								</div>
-								<div class="text-xs text-gray-600">Start Height</div>
+								<div class="text-xs text-gray-600">Inner Lines</div>
 								<div class="text-xs text-gray-500 mt-1">
-									Inner: {(spacerResults.measurementResults.spacerHeights?.inner || 0).toFixed(0)}px | 
-									Outer: {(spacerResults.measurementResults.spacerHeights?.outer || 0).toFixed(0)}px
+									Original: {spacerResults.measurementResults.lineCounts?.original?.inner || 0}
+								</div>
+							</div>
+							<div class="text-center">
+								<div class="text-lg font-semibold text-orange-600">
+									{spacerResults.measurementResults.lineCounts?.original?.outer || 0}
+								</div>
+								<div class="text-xs text-gray-600">Outer Lines</div>
+								<div class="text-xs text-gray-500 mt-1">
+									Original: {spacerResults.measurementResults.lineCounts?.original?.outer || 0}
 								</div>
 							</div>
 						</div>
 
-						<!-- Line Categories -->
-						{#if spacerResults.measurementResults.lineAnalysis}
-							<div class="grid grid-cols-3 gap-4 text-xs">
-								<div>
-									<h4 class="font-medium mb-1">Main ({spacerResults.measurementResults.lineAnalysis.main?.totalLines || 0})</h4>
-									{#each Object.entries(spacerResults.measurementResults.lineAnalysis.main?.categories || {}) as [category, lineIndices]}
-										{#if lineIndices.length > 0}
-											<div class="text-gray-600">{category}: {lineIndices.length}</div>
+						<!-- Detailed Line Breakdown -->
+						{#if spacerResults.measurementResults.lineBreakdown}
+							<div class="mb-4">
+								<h3 class="font-medium mb-3">📊 Line Breakdown by Category</h3>
+								<div class="grid grid-cols-3 gap-4 text-xs">
+									<!-- Main Text -->
+									<div class="bg-blue-50 p-3 rounded">
+										<h4 class="font-medium text-blue-800 mb-2">Main Text ({spacerResults.measurementResults.lineBreakdown.main?.totalLines || 0} lines)</h4>
+										{#if spacerResults.measurementResults.lineBreakdown.main?.summary}
+											<div class="space-y-1">
+												{#each Object.entries(spacerResults.measurementResults.lineBreakdown.main.summary) as [category, count]}
+													{#if count > 0}
+														<div class="flex justify-between">
+															<span class="capitalize text-gray-700">{category}:</span>
+															<span class="font-medium">{count}</span>
+														</div>
+													{/if}
+												{/each}
+											</div>
 										{/if}
-									{/each}
+									</div>
+
+									<!-- Inner Commentary (Rashi) -->
+									<div class="bg-green-50 p-3 rounded">
+										<h4 class="font-medium text-green-800 mb-2">Inner/Rashi ({spacerResults.measurementResults.lineBreakdown.inner?.totalLines || 0} lines)</h4>
+										{#if spacerResults.measurementResults.lineBreakdown.inner?.summary}
+											<div class="space-y-1">
+												{#each Object.entries(spacerResults.measurementResults.lineBreakdown.inner.summary) as [category, count]}
+													{#if count > 0}
+														<div class="flex justify-between">
+															<span class="capitalize text-gray-700 {category === 'start' ? 'font-bold' : ''}">{category}:</span>
+															<span class="font-medium {category === 'start' ? 'text-green-900' : ''}">{count}</span>
+														</div>
+													{/if}
+												{/each}
+											</div>
+										{/if}
+									</div>
+
+									<!-- Outer Commentary (Tosafot) -->
+									<div class="bg-orange-50 p-3 rounded">
+										<h4 class="font-medium text-orange-800 mb-2">Outer/Tosafot ({spacerResults.measurementResults.lineBreakdown.outer?.totalLines || 0} lines)</h4>
+										{#if spacerResults.measurementResults.lineBreakdown.outer?.summary}
+											<div class="space-y-1">
+												{#each Object.entries(spacerResults.measurementResults.lineBreakdown.outer.summary) as [category, count]}
+													{#if count > 0}
+														<div class="flex justify-between">
+															<span class="capitalize text-gray-700 {category === 'start' ? 'font-bold' : ''}">{category}:</span>
+															<span class="font-medium {category === 'start' ? 'text-orange-900' : ''}">{count}</span>
+														</div>
+													{/if}
+												{/each}
+											</div>
+										{/if}
+									</div>
 								</div>
-								<div>
-									<h4 class="font-medium mb-1">Inner ({spacerResults.measurementResults.lineAnalysis.inner?.totalLines || 0})</h4>
-									{#each Object.entries(spacerResults.measurementResults.lineAnalysis.inner?.categories || {}) as [category, lineIndices]}
-										{#if lineIndices.length > 0}
-											<div class="text-gray-600">{category}: {lineIndices.length}</div>
-										{/if}
-									{/each}
-								</div>
-								<div>
-									<h4 class="font-medium mb-1">Outer ({spacerResults.measurementResults.lineAnalysis.outer?.totalLines || 0})</h4>
-									{#each Object.entries(spacerResults.measurementResults.lineAnalysis.outer?.categories || {}) as [category, lineIndices]}
-										{#if lineIndices.length > 0}
-											<div class="text-gray-600">{category}: {lineIndices.length}</div>
-										{/if}
-									{/each}
+								
+								<!-- Category Legend -->
+								<div class="mt-3 p-3 bg-gray-50 rounded text-xs">
+									<h5 class="font-medium mb-2">Category Definitions:</h5>
+									<div class="grid grid-cols-2 gap-x-4 gap-y-1">
+										<div><span class="font-medium">Start:</span> First 4 lines of commentary</div>
+										<div><span class="font-medium">Empty:</span> 0 characters</div>
+										<div><span class="font-medium">Single:</span> ≤20 characters</div>
+										<div><span class="font-medium">Short:</span> 21-40 characters</div>
+										<div><span class="font-medium">Medium:</span> 41-60 characters</div>
+										<div><span class="font-medium">Long:</span> >60 characters</div>
+									</div>
 								</div>
 							</div>
-						{/if}
-						
-						{#if spacerResults.measurementResults.measurements?.inner?.problematicLines?.length > 0}
-							<details class="mt-4">
-								<summary class="cursor-pointer text-sm font-medium text-red-600">Inner Overflow Lines</summary>
-								<div class="mt-2 space-y-1 text-xs">
-									{#each spacerResults.measurementResults.measurements.inner.problematicLines as line}
-										<div class="bg-red-50 p-2 rounded">
-											Line {line.index + 1}: {line.text.substring(0, 80)}... 
-											(Natural: {line.naturalWidth}px, Fits: {line.fitsInWidth ? 'Yes' : 'No'})
-										</div>
-									{/each}
-								</div>
-							</details>
-						{/if}
-						
-						{#if spacerResults.measurementResults.measurements?.outer?.problematicLines?.length > 0}
-							<details class="mt-4">
-								<summary class="cursor-pointer text-sm font-medium text-red-600">Outer Overflow Lines</summary>
-								<div class="mt-2 space-y-1 text-xs">
-									{#each spacerResults.measurementResults.measurements.outer.problematicLines as line}
-										<div class="bg-red-50 p-2 rounded">
-											Line {line.index + 1}: {line.text.substring(0, 80)}... 
-											(Natural: {line.naturalWidth}px, Fits: {line.fitsInWidth ? 'Yes' : 'No'})
-										</div>
-									{/each}
-								</div>
-							</details>
 						{/if}
 					</div>
 				{/if}

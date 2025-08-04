@@ -578,11 +578,16 @@ const TRACTATE_MAPPING: Record<string, string> = {
   '37': 'Niddah'
 };
 
-export const GET: RequestHandler = async ({ url, fetch }) => {
+export const GET: RequestHandler = async ({ url, fetch, platform }) => {
+  console.log('🚀 Talmud-merged API GET request received:', url.pathname, url.searchParams.toString());
+  
   const mesechta = url.searchParams.get('mesechta');
   const daf = url.searchParams.get('daf');
   
+  console.log('📝 Talmud-merged request params:', { mesechta, daf });
+  
   if (!mesechta || !daf) {
+    console.error('❌ Missing required parameters:', { mesechta, daf });
     return json({ error: 'Missing required parameters: mesechta and daf' }, { status: 400 });
   }
   
@@ -594,7 +599,7 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
   // Extract daf-supplier options from query parameters
   const dafSupplierOptions: Record<string, string> = {};
   const optionKeys = [
-    'br',        // Enable <br> tag conversion
+    'br',        // Enable <wbr> tag conversion
     'nocache',   // Bypass cache
     'format',    // Response format
     'debug'      // Debug mode
@@ -713,7 +718,15 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
     return json(response);
     
   } catch (error) {
-    console.error('Talmud merge error:', error);
+    console.error('❌ Talmud merge error:', error);
+    console.error('📊 Error details:', {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      mesechta,
+      daf,
+      tractate: TRACTATE_MAPPING[mesechta]
+    });
+    
     return json({ 
       error: 'Failed to merge Talmud sources', 
       details: error instanceof Error ? error.message : String(error)
