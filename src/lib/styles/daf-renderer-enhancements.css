@@ -3,8 +3,7 @@
 /* Add font faces for Hebrew fonts */
 @font-face {
   font-family: 'Vilna';
-  src: url('/fonts/FrankRuehl-Regular.woff2') format('woff2'),
-       url('/fonts/FrankRuehl-Regular.woff') format('woff');
+  src: url('/fonts/Mekorot-Vilna.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -12,8 +11,7 @@
 
 @font-face {
   font-family: 'Rashi';
-  src: url('/fonts/Mekorot-Rashi.woff2') format('woff2'),
-       url('/fonts/Mekorot-Rashi.woff') format('woff');
+  src: url('/fonts/Mekorot-Rashi.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
