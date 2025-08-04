@@ -91,11 +91,10 @@ export default function (el, options = defaultOptions) {
         
         // Handle <br> and <wbr> tags based on mode
         if (!linebreak) {
-          // Strip tags when not in line break mode
-          // <br> gets replaced with space, <wbr> just gets removed
-          main = main.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, '');
-          inner = inner.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, '');
-          outer = outer.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, '');
+          // Strip <br> and <wbr> tags when not in line break mode - both replaced with space
+          main = main.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, ' ');
+          inner = inner.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, ' ');
+          outer = outer.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, ' ');
         } else {
           // Convert <br> and <wbr> to soft break opportunities (zero-width space + word break opportunity)
           main = convertBrToSoftBreaks(main);
@@ -117,10 +116,10 @@ export default function (el, options = defaultOptions) {
           let resizeOuter = originalOuter;
           
           if (!linebreak) {
-            // <br> gets replaced with space, <wbr> just gets removed
-            resizeMain = resizeMain.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, '');
-            resizeInner = resizeInner.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, '');
-            resizeOuter = resizeOuter.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, '');
+            // Both <br> and <wbr> get replaced with space
+            resizeMain = resizeMain.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, ' ');
+            resizeInner = resizeInner.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, ' ');
+            resizeOuter = resizeOuter.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, ' ');
           } else {
             resizeMain = convertBrToSoftBreaks(resizeMain);
             resizeInner = convertBrToSoftBreaks(resizeInner);
