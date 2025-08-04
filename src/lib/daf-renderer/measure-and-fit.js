@@ -13,10 +13,13 @@ function getActualRenderedLines(text, font, fontSize, width, lineHeight, dummy) 
     position: absolute;
     visibility: hidden;
     width: ${width}px;
-    font: ${fontSize}px ${font};
+    font-family: ${font};
+    font-size: ${fontSize}px;
     line-height: ${lineHeight}px;
     direction: rtl;
     text-align: justify;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   `;
   
   container.innerHTML = text;
@@ -25,8 +28,10 @@ function getActualRenderedLines(text, font, fontSize, width, lineHeight, dummy) 
   const totalHeight = container.offsetHeight;
   const actualLines = Math.round(totalHeight / lineHeight);
   
+  console.log(`📏 Measuring ${font} text: width=${width}px, height=${totalHeight}px, lines=${actualLines}, expected=${text.split(/<br>/gi).length}`);
+  
   container.remove();
-  return actualLines;
+  return Math.max(actualLines, 1); // Ensure at least 1 line
 }
 
 /**
@@ -89,23 +94,29 @@ Max Overflow: ${maxOverflowRatio.toFixed(2)}x`);
     };
   }
   
-  // Calculate suggested fixes
+  // Calculate suggested fixes with hard caps
   let suggestions = [];
+  
+  // Hard caps
+  const MAX_CONTENT_WIDTH = 900; // Don't go above 900px
+  const MIN_MAIN_WIDTH_PERCENT = 30; // Don't go below 30% for main content
+  const MAX_MAIN_WIDTH_PERCENT = 70; // Don't go above 70% for main content
   
   // Option 1: Increase content width to accommodate overflow
   const suggestedContentWidth = Math.ceil(parsedOptions.width * maxOverflowRatio);
+  const cappedContentWidth = Math.min(suggestedContentWidth, MAX_CONTENT_WIDTH);
   suggestions.push({
     name: "Increase Content Width",
-    contentWidth: Math.min(suggestedContentWidth, 1200), // Cap at 1200px
+    contentWidth: cappedContentWidth,
     mainWidthPercent: parseFloat(currentOptions.mainWidth),
-    description: `Expand from ${parsedOptions.width}px to ${Math.min(suggestedContentWidth, 1200)}px`,
+    description: `Expand from ${parsedOptions.width}px to ${cappedContentWidth}px`,
     effectiveness: maxOverflowRatio < 1.5 ? "high" : "medium"
   });
   
   // Option 2: Reduce main text width to give more space to commentary
   if (overflowRatios.inner > 1.2 || overflowRatios.outer > 1.2) {
     const currentMainPercent = parseFloat(currentOptions.mainWidth);
-    const suggestedMainPercent = Math.max(30, currentMainPercent - 10); // Reduce by 10%, minimum 30%
+    const suggestedMainPercent = Math.max(MIN_MAIN_WIDTH_PERCENT, currentMainPercent - 10); // Reduce by 10%, minimum 30%
     suggestions.push({
       name: "Reduce Main Text Width",
       contentWidth: parseFloat(currentOptions.contentWidth),
@@ -116,8 +127,8 @@ Max Overflow: ${maxOverflowRatio.toFixed(2)}x`);
   }
   
   // Option 3: Combined approach - moderate increases to both
-  const combinedContentWidth = Math.ceil(parsedOptions.width * Math.min(maxOverflowRatio * 0.7, 1.3));
-  const combinedMainPercent = Math.max(35, parseFloat(currentOptions.mainWidth) - 5);
+  const combinedContentWidth = Math.min(Math.ceil(parsedOptions.width * Math.min(maxOverflowRatio * 0.7, 1.3)), MAX_CONTENT_WIDTH);
+  const combinedMainPercent = Math.max(MIN_MAIN_WIDTH_PERCENT, Math.min(MAX_MAIN_WIDTH_PERCENT, parseFloat(currentOptions.mainWidth) - 5));
   suggestions.push({
     name: "Balanced Approach",
     contentWidth: combinedContentWidth,
@@ -146,11 +157,19 @@ export function calculateSpacersFromMeasurements(mainText, innerText, outerText,
   
   // Use ORIGINAL counts for spacer calculation (this is what the layout expects)
   const originalCounts = analysis.originalCounts;
+  const renderedCounts = analysis.renderedCounts;
   
   const originalLogic = {
     start: Math.max(Math.min(4, originalCounts.inner), Math.min(4, originalCounts.outer)),
     inner: Math.max(0, originalCounts.inner - 4),
     outer: Math.max(0, originalCounts.outer - 4)
+  };
+  
+  // Also calculate what the rendered logic would be (for comparison)
+  const renderedLogic = {
+    start: Math.max(Math.min(4, renderedCounts.inner), Math.min(4, renderedCounts.outer)),
+    inner: Math.max(0, renderedCounts.inner - 4),
+    outer: Math.max(0, renderedCounts.outer - 4)
   };
   
   const parsedOptions = {
@@ -176,8 +195,9 @@ export function calculateSpacersFromMeasurements(mainText, innerText, outerText,
     layoutAnalysis: analysis,
     lineCounts: {
       original: originalCounts,
-      rendered: analysis.renderedCounts,
+      rendered: renderedCounts,
       originalLogic: originalLogic,
+      renderedLogic: renderedLogic,
       shouldUseOriginal: true
     },
     startLineInfo: {
