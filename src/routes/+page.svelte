@@ -3,18 +3,40 @@
 	import { goto } from '$app/navigation';
 	import { talmudStore, currentPage, isLoading, pageError, pageInfo } from '$lib/stores/talmud';
 	import { rendererStore } from '$lib/stores/renderer';
-	import { SpacerAwareSelector } from '$lib/spacer-aware-selector';
+	import TranslationPopup from '$lib/components/TranslationPopup.svelte';
+	import { openRouterTranslator } from '$lib/openrouter-translator';
+	
+	// Store cleanup function
+	let translationCleanup: (() => void) | undefined;
 	
 	// Get data from load function
 	let { data } = $props();
 	
 	let dafContainer = $state<HTMLDivElement>();
-	let layerSelector: SpacerAwareSelector | null = null;
+	
+	// Responsive scaling variables
+	let windowWidth = $state(typeof window !== 'undefined' ? window.innerWidth : 1200);
+	let rendered = $state(false);
+	const dafWidth = 600; // Our content width (from default options)
+	const dafOfWindow = 4.4 / 12; // Proportion of window width to use
 	
 	// Form state - initialized from URL
 	let selectedTractate = $state(data.tractate);
 	let selectedPage = $state(data.page);
 	let selectedAmud = $state(data.amud);
+	
+	// Translation popup state
+	let showTranslationPopup = $state(false);
+	let translationPopupX = $state(0);
+	let translationPopupY = $state(0);
+	let selectedHebrewText = $state('');
+	let selectedTranslation = $state('');
+
+	// Summary state
+	let summary = $state<any>(null);
+	let summaryLoading = $state(false);
+	let summaryError = $state<string | null>(null);
+	
 	
 	// Subscribe to store updates
 	$effect(() => {
@@ -65,42 +87,6 @@
 		{ value: 'Niddah', label: 'נידה', id: 37 }
 	];
 	
-	// Format text for daf-renderer with HTML spans
-	function formatText(text: string, prefix: string): string {
-		if (!text || text.trim() === '') {
-			return `<span class='sentence' id='sentence-${prefix}-0'></span>`;
-		}
-		
-		// Check if text already contains HTML
-		const hasHTML = /<[^>]+>/.test(text);
-		
-		if (hasHTML) {
-			// If it already has HTML, just wrap it in a container
-			return `<div class='${prefix}-content'>${text}</div>`;
-		}
-		
-		let html = '';
-		let wordId = 0;
-		
-		// Split by newlines first, then into words
-		const lines = text.split(/\n+/);
-		lines.forEach((line, lineIndex) => {
-			if (line.trim()) {
-				html += `<span class='sentence' id='sentence-${prefix}-${lineIndex}'>`;
-				const words = line.trim().split(/\s+/);
-				words.forEach(word => {
-					if (word) {
-						html += `<span class='word' id='word-${prefix}-${wordId}'>${word}</span> `;
-						wordId++;
-					}
-				});
-				html += '</span> ';
-			}
-		});
-		
-		return html.trim() || `<span class='sentence' id='sentence-${prefix}-0'></span>`;
-	}
-	
 
 
 	// Handle rendering when page data changes
@@ -112,7 +98,6 @@
 			return;
 		}
 		
-		console.log('Effect: Rendering data for', pageData.tractate, pageData.daf + pageData.amud);
 		
 		// Add a small delay to ensure DOM is stable after loading state changes
 		setTimeout(() => {
@@ -121,36 +106,39 @@
 				rendererStore.initialize(dafContainer);
 			}
 			
-			// Format and render
-			const mainFormatted = formatText(pageData.mainText || ' ', 'main');
-			const rashiFormatted = formatText(pageData.rashi || ' ', 'rashi');
-			const tosafotFormatted = formatText(pageData.tosafot || ' ', 'tosafot');
+			// Process header markers in the text
+			const processHeaders = (text: string, prefix: string) => {
+				if (!text) return '';
+				return text.replace(/\{([^\{\}]+)\}/g, `<b class='${prefix}-header'>$1</b>`);
+			};
+			
+			const mainHTML = processHeaders(pageData.mainText || ' ', 'main');
+			const rashiHTML = processHeaders(pageData.rashi || ' ', 'rashi');
+			const tosafotHTML = processHeaders(pageData.tosafot || ' ', 'tosafot');
 			const pageLabel = (pageData.daf + pageData.amud).replace('a', 'א').replace('b', 'ב');
 			
-			console.log('Formatted text lengths:', {
-				main: mainFormatted.length,
-				rashi: rashiFormatted.length,
-				tosafot: tosafotFormatted.length
-			});
 			
 			// Small delay to ensure renderer is ready
 			setTimeout(() => {
-				rendererStore.render(mainFormatted, rashiFormatted, tosafotFormatted, pageLabel);
+				rendererStore.render(mainHTML, rashiHTML, tosafotHTML, pageLabel);
+				
+				// Check for spacing issues after render
+				setTimeout(() => {
+					const renderer = rendererStore.getRenderer();
+					if (renderer && renderer.checkExcessiveSpacing) {
+						renderer.checkExcessiveSpacing();
+					}
+				}, 100);
 				
 				// Apply dynamic layer selection after rendering
 				setTimeout(() => {
-					if (!dafContainer) return;
-					
-					// Clean up previous selector
-					if (layerSelector) {
-						layerSelector.disable();
-						layerSelector = null;
+					// Set up text selection handling for translations with OpenRouter only
+					if (pageData.mainText) {
+						setupTextSelectionHandling();
 					}
 					
-					// Enable spacer-aware selector
-					console.log('Enabling spacer-aware selector');
-					layerSelector = new SpacerAwareSelector(dafContainer);
-					layerSelector.enable();
+					// Mark as rendered for scaling
+					rendered = true;
 				}, 300);
 			}, 50);
 		}, 100);
@@ -162,32 +150,49 @@
 		// Access data properties to make them reactive dependencies
 		const { tractate, page: pageNum, amud } = data;
 		
+		// Only trigger if the data actually changed
+		if (selectedTractate === tractate && selectedPage === pageNum && selectedAmud === amud) {
+			return;
+		}
+		
 		// Update form state when data changes
 		selectedTractate = tractate;
 		selectedPage = pageNum;
 		selectedAmud = amud;
 		
 		// Load the new page
-		console.log('Loading page from data:', { tractate, pageNum, amud });
 		talmudStore.loadPage(tractate, pageNum, amud);
+		
+		// Load summary for the new page
+		loadSummary();
 	});
 	
 	onMount(async () => {
 		// Initial load is handled by the effect above
-		console.log('Component mounted with data:', data);
+		
+		// Setup window resize handler
+		const handleResize = () => {
+			windowWidth = window.innerWidth;
+			rendered = false;
+			// Re-enable rendered after a short delay
+			setTimeout(() => rendered = true, 100);
+		};
+		
+		window.addEventListener('resize', handleResize);
 		
 		// Cleanup on unmount
 		return () => {
-			if (layerSelector) {
-				layerSelector.disable();
+			window.removeEventListener('resize', handleResize);
+			// Clean up translation event listeners if they exist
+			if (translationCleanup) {
+				translationCleanup();
+				translationCleanup = undefined;
 			}
 		};
 	});
 	
 	// Function to handle form submission
 	async function handlePageChange() {
-		console.log('handlePageChange called with:', { selectedTractate, selectedPage, selectedAmud });
-		
 		// Update the URL using SvelteKit navigation
 		const params = new URLSearchParams({
 			tractate: selectedTractate,
@@ -199,6 +204,42 @@
 		window.location.href = `?${params.toString()}`;
 	}
 	
+	// Generate transform style for responsive scaling
+	function getTransformStyle(): string {
+		// TEMPORARILY DISABLED FOR DEBUGGING
+		return '';
+		
+		// if (!rendered) return '';
+		// const scale = Math.min(1, (windowWidth * dafOfWindow) / dafWidth); // Cap at 1x scale
+		// return scale < 1 ? `transform: scale(${scale}); transform-origin: top left;` : '';
+	}
+	
+	// Load page summary
+	async function loadSummary() {
+		if (!openRouterTranslator.isConfigured()) {
+			summaryError = null; // Don't show error if API key not configured
+			return;
+		}
+
+		summaryLoading = true;
+		summaryError = null;
+
+		try {
+			const response = await fetch(`/api/summary?tractate=${selectedTractate}&page=${selectedPage}&amud=${selectedAmud}`);
+			if (!response.ok) {
+				throw new Error(`Failed to load summary: ${response.status}`);
+			}
+
+			const summaryData = await response.json();
+			summary = summaryData;
+		} catch (error) {
+			console.error('Summary loading error:', error);
+			summaryError = error instanceof Error ? error.message : 'Failed to load summary';
+		} finally {
+			summaryLoading = false;
+		}
+	}
+
 	// Generate Hebrew page numbers
 	function getHebrewPageNumber(num: number): string {
 		const hebrewNumbers: Record<number, string> = {
@@ -213,6 +254,104 @@
 		};
 		return hebrewNumbers[num] || num.toString();
 	}
+
+	// Text selection handling for translations
+	function setupTextSelectionHandling() {
+		// Only set up if OpenRouter is configured
+		if (!openRouterTranslator.isConfigured()) {
+			return;
+		}
+		
+		// Handle text selection on the daf container
+		const handleMouseUp = (event: MouseEvent) => {
+			const selection = window.getSelection();
+			if (!selection || selection.isCollapsed) {
+				showTranslationPopup = false;
+				return;
+			}
+			
+			// Check if the selection is within the daf container
+			const target = event.target as Element;
+			if (!target.closest('.daf')) {
+				showTranslationPopup = false;
+				return;
+			}
+			
+			const selectedText = selection.toString().trim();
+			if (!selectedText || selectedText.length < 2) {
+				showTranslationPopup = false;
+				return;
+			}
+			
+			
+			// Get selection range for popup positioning
+			const range = selection.getRangeAt(0);
+			const rect = range.getBoundingClientRect();
+			
+			// Translate using OpenRouter
+			selectedHebrewText = selectedText;
+			selectedTranslation = 'Translating...';
+			
+			// Position the popup near the selection with viewport boundary checks
+			const popupWidth = 400; // Max width from TranslationPopup.svelte
+			const popupHeight = 250; // Conservative estimate for height with translation
+			const padding = 20;
+			
+			// Calculate X position - prevent bleeding off right edge
+			translationPopupX = rect.left;
+			if (translationPopupX + popupWidth > window.innerWidth - padding) {
+				translationPopupX = window.innerWidth - popupWidth - padding;
+			}
+			// Prevent bleeding off left edge
+			if (translationPopupX < padding) {
+				translationPopupX = padding;
+			}
+			
+			// Calculate Y position - prefer below selection, but flip above if needed
+			translationPopupY = rect.bottom + 10;
+			if (translationPopupY + popupHeight > window.innerHeight - padding) {
+				// Show above selection instead
+				translationPopupY = rect.top - popupHeight - 10;
+				// If still off screen, just position at bottom of viewport
+				if (translationPopupY < padding) {
+					translationPopupY = window.innerHeight - popupHeight - padding;
+				}
+			}
+			
+			showTranslationPopup = true;
+			
+			// Build context
+			const contextInfo = `Talmud ${$pageInfo.tractate} ${$pageInfo.page}${$pageInfo.amud}`;
+			
+			// Fetch translation from OpenRouter
+			openRouterTranslator.translateText({
+				text: selectedText,
+				context: contextInfo
+			}).then(response => {
+				selectedTranslation = response.translation;
+			}).catch(error => {
+				selectedTranslation = 'Translation failed';
+			});
+		};
+		
+		// Hide popup when clicking elsewhere
+		const handleMouseDown = (event: MouseEvent) => {
+			const target = event.target as Element;
+			if (!target.closest('.translation-popup')) {
+				showTranslationPopup = false;
+			}
+		};
+		
+		// Add event listeners
+		document.addEventListener('mouseup', handleMouseUp);
+		document.addEventListener('mousedown', handleMouseDown);
+		
+		// Store cleanup function to be called later
+		translationCleanup = () => {
+			document.removeEventListener('mouseup', handleMouseUp);
+			document.removeEventListener('mousedown', handleMouseDown);
+		};
+	}
 </script>
 
 <main class="min-h-screen bg-gray-100 p-8">
@@ -224,6 +363,53 @@
 				Interactive Talmud study with AI-powered translations and analysis
 			</p>
 		</div>
+
+		<!-- Page Summary -->
+		{#if summaryLoading}
+			<div class="bg-blue-50 rounded-lg shadow-md p-6">
+				<div class="flex items-center gap-3">
+					<div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+					<h3 class="text-lg font-semibold text-blue-800">Loading page summary...</h3>
+				</div>
+			</div>
+		{:else if summary}
+			<div class="bg-blue-50 rounded-lg shadow-md p-6">
+				<div class="flex items-center justify-between mb-4">
+					<h3 class="text-lg font-semibold text-blue-800">Page Summary</h3>
+					<div class="flex items-center gap-2 text-sm text-blue-600">
+						{#if summary.cached}
+							<span class="px-2 py-1 bg-blue-100 rounded">Cached</span>
+						{:else}
+							<span class="px-2 py-1 bg-green-100 text-green-700 rounded">Fresh</span>
+						{/if}
+						<span>{summary.wordCount} words</span>
+					</div>
+				</div>
+				<div class="prose max-w-none text-gray-700 leading-relaxed">
+					{@html summary.summary.replace(/\n/g, '<br>')}
+				</div>
+				{#if !summary.cached}
+					<div class="mt-4 text-xs text-blue-500">
+						Generated with {summary.model} • {new Date(summary.generated).toLocaleString()}
+					</div>
+				{/if}
+			</div>
+		{:else if summaryError}
+			<div class="bg-red-50 rounded-lg shadow-md p-6">
+				<div class="flex items-center justify-between">
+					<div>
+						<h3 class="text-lg font-semibold text-red-800">Summary Error</h3>
+						<p class="text-red-600 mt-1">{summaryError}</p>
+					</div>
+					<button 
+						onclick={loadSummary}
+						class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition text-sm"
+					>
+						Retry
+					</button>
+				</div>
+			</div>
+		{/if}
 
 		<!-- Daf Renderer -->
 		<div class="bg-white rounded-lg shadow-md p-8">
@@ -287,6 +473,14 @@
 						{$isLoading ? 'טוען...' : 'עבור'}
 					</button>
 					
+					<!-- Story Link -->
+					<a 
+						href="/story?tractate={selectedTractate}&page={selectedPage}&amud={selectedAmud}"
+						class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition text-sm font-medium"
+					>
+						📖 Stories
+					</a>
+					
 				</div>
 			</div>
 			
@@ -315,7 +509,7 @@
 				<!-- Always show the container, even if no data yet -->
 				<div>
 					<!-- Container for the daf renderer -->
-					<div bind:this={dafContainer} class="daf-container w-full min-h-[900px] h-[900px] max-w-[1200px] mx-auto border border-gray-300 rounded-lg overflow-auto bg-white" style="position: relative;">
+					<div bind:this={dafContainer} class="daf" style="position: relative; {getTransformStyle()}">
 						<!-- The daf-renderer will populate this container -->
 						{#if !$currentPage}
 							<div class="flex items-center justify-center h-full text-gray-400">
@@ -323,6 +517,10 @@
 							</div>
 						{/if}
 					</div>
+					
+					<!-- Traditional daf-renderer layout only -->
+					
+					<span class="preload">preload</span>
 					
 					<!-- Page info below the daf -->
 					{#if $currentPage}
@@ -340,36 +538,127 @@
 
 		<!-- Footer -->
 		<div class="text-center text-sm text-gray-500">
-			<p>Powered by daf-renderer, Sefaria API, and OpenRouter</p>
+			<p>Powered by daf-renderer, HebrewBooks.org, and OpenRouter</p>
 		</div>
 	</div>
+	
+	<!-- Translation Popup -->
+	<TranslationPopup 
+		x={translationPopupX}
+		y={translationPopupY}
+		selectedText={selectedHebrewText}
+		translation={selectedTranslation}
+		visible={showTranslationPopup}
+	/>
+	
 </main>
 
 <style>
 	/* Import daf-renderer styles */
 	@import '$lib/daf-renderer/styles.css';
 	
+	/* Hebrew fonts are loaded via app.css */
+	
 	/* Ensure daf-renderer content is visible */
 	:global(.dafRoot) {
-		position: relative !important;
-		width: 900px !important;
+		position: relative;
+		width: 600px;
 		margin: 0 auto;
 	}
 	
-	:global(.daf-container .text) {
-		opacity: 1 !important;
-		visibility: visible !important;
-		display: block !important;
+	:global(.daf .text) {
+		opacity: 1;
+		visibility: visible;
+		display: block;
 	}
 	
-	:global(.daf-container .spacer) {
-		display: block !important;
+	:global(.daf .spacer) {
+		display: block;
 	}
 	
 	/* Ensure text spans are visible */
-	:global(.daf-container span) {
+	:global(.daf span) {
 		display: inline !important;
 		opacity: 1 !important;
 		visibility: visible !important;
 	}
+	
+	/* Force font sizes to prevent 0px issue - using default options */
+	:global(.dafRoot .main .text span) {
+		font-size: 15px !important;
+		font-family: "Vilna", serif !important;
+	}
+	
+	:global(.dafRoot .inner .text span) {
+		font-size: 10.5px !important;
+		font-family: "Rashi", serif !important;
+	}
+	
+	:global(.dafRoot .outer .text span) {
+		font-size: 10.5px !important;
+		font-family: "Rashi", serif !important;
+	}
+	
+	/* Force layout dimensions - using default options */
+	:global(.dafRoot) {
+		width: 600px !important;
+		--contentWidth: 600px !important;
+		--mainWidth: 50% !important;
+		--fontSize-main: 15px !important;
+		--fontSize-side: 10.5px !important;
+		--lineHeight-main: 17px !important;
+		--lineHeight-side: 14px !important;
+	}
+	
+	:global(.dafRoot .main),
+	:global(.dafRoot .inner),  
+	:global(.dafRoot .outer) {
+		width: 600px !important;
+	}
+	
+	:global(.dafRoot .text) {
+		width: 100% !important;
+	}
+	
+	/* Talmud-vue styling improvements */
+	:global(.daf div) {
+		text-align-last: initial !important;
+	}
+	
+	/* Hadran styling */
+	:global(div.hadran) {
+		display: flex;
+		justify-content: center;
+		font-size: 135%;
+		font-family: Vilna;
+		transform: translateY(50%);
+	}
+	
+	:global(.hadran span) {
+		display: inline-block;
+	}
+	
+	
+	/* Preload font */
+	:global(.preload) {
+		font-family: Vilna;
+		opacity: 0;
+	}
+	
+	/* Header styling */
+	:global(.tosafot-header) {
+		font-family: Vilna;
+		font-size: 135%;
+		vertical-align: bottom;
+	}
+	
+	:global(.tosafot-header:nth-of-type(odd)) {
+		font-size: 180%;
+		vertical-align: bottom;
+	}
+	
+	:global(.main-header, .rashi-header) {
+		font-weight: bold;
+	}
+	
 </style>

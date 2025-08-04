@@ -27,9 +27,8 @@ function createTalmudStore() {
 		subscribe,
 		
 		// Load a page
-		async loadPage(tractate: string, pageNum: string, amud: string) {
+		async loadPage(tractate: string, pageNum: string, amud: string, options: { lineBreakMode?: boolean } = {}) {
 			const fullPage = `${pageNum}${amud}`;
-			console.log('Store: Loading page', { tractate, fullPage });
 			
 			// Set loading state
 			update(state => ({
@@ -43,25 +42,72 @@ function createTalmudStore() {
 			}));
 
 			try {
-				const data = await hebrewBooksAPI.fetchPage(tractate, fullPage);
+				// Build options with lineBreakMode if requested
+				const hebrewBooksOptions = options.lineBreakMode ? { br: 'true' } : {};
 				
-				if (data) {
+				// Fetch HebrewBooks data only
+				const hebrewBooksData = await hebrewBooksAPI.fetchPage(tractate, fullPage, hebrewBooksOptions);
+				
+				if (hebrewBooksData) {
 					update(state => ({
 						...state,
-						data,
+						data: hebrewBooksData,
 						loading: false
 					}));
 				} else {
-					throw new Error('No data received from API');
+					throw new Error('No data received from HebrewBooks API');
 				}
 			} catch (error) {
-				console.error('Store: Error loading page:', error);
 				update(state => ({
 					...state,
 					loading: false,
 					error: error instanceof Error ? error.message : 'Failed to load page'
 				}));
 			}
+		},
+
+		// Helper function to get tractate ID for API calls
+		getTractateId(tractate: string): string {
+			const tractateMapping: Record<string, string> = {
+				'Berakhot': '1',
+				'Shabbat': '2',
+				'Eruvin': '3',
+				'Pesachim': '4',
+				'Shekalim': '5',
+				'Yoma': '6',
+				'Sukkah': '7',
+				'Beitzah': '8',
+				'Rosh Hashanah': '9',
+				'Taanit': '10',
+				'Megillah': '11',
+				'Moed Katan': '12',
+				'Chagigah': '13',
+				'Yevamot': '14',
+				'Ketubot': '15',
+				'Nedarim': '16',
+				'Nazir': '17',
+				'Sotah': '18',
+				'Gittin': '19',
+				'Kiddushin': '20',
+				'Bava Kamma': '21',
+				'Bava Metzia': '22',
+				'Bava Batra': '23',
+				'Sanhedrin': '24',
+				'Makkot': '25',
+				'Shevuot': '26',
+				'Avodah Zarah': '27',
+				'Horayot': '28',
+				'Zevachim': '29',
+				'Menachot': '30',
+				'Chullin': '31',
+				'Bekhorot': '32',
+				'Arakhin': '33',
+				'Temurah': '34',
+				'Keritot': '35',
+				'Meilah': '36',
+				'Niddah': '37'
+			};
+			return tractateMapping[tractate] || '1';
 		},
 
 		// Clear error
@@ -105,3 +151,4 @@ export const pageInfo = derived(
 		fullPage: `${$talmudStore.page}${$talmudStore.amud}`
 	})
 );
+
