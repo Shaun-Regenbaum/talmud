@@ -1,5 +1,5 @@
 import { writable, derived, get } from 'svelte/store';
-import { hebrewBooksAPI } from '$lib/hebrewbooks';
+import { TRACTATE_IDS, convertDafToHebrewBooksFormat } from '$lib/hebrewbooks';
 import type { HebrewBooksPage } from '$lib/hebrewbooks';
 
 // Types
@@ -42,11 +42,46 @@ function createTalmudStore() {
 			}));
 
 			try {
-				// Build options with lineBreakMode if requested
-				const hebrewBooksOptions = options.lineBreakMode ? { br: 'true' } : {};
+				// Get tractate ID
+				const mesechtaId = TRACTATE_IDS[tractate];
+				if (!mesechtaId) {
+					throw new Error(`Unknown tractate: ${tractate}`);
+				}
 				
-				// Fetch HebrewBooks data only
-				const hebrewBooksData = await hebrewBooksAPI.fetchPage(tractate, fullPage, hebrewBooksOptions);
+				// Convert daf format to HebrewBooks format (2a -> 2, 2b -> 2b)
+				const dafForAPI = convertDafToHebrewBooksFormat(fullPage);
+				
+				// Fetch directly from daf-supplier (same as test page)
+				const brParam = options.lineBreakMode ? '&br=true' : '';
+				const url = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}${brParam}`;
+				console.log('Fetching from daf-supplier:', url);
+				
+				const response = await fetch(url);
+				if (!response.ok) {
+					throw new Error(`Failed to fetch data: ${response.status}`);
+				}
+				
+				const data = await response.json();
+				
+				// Convert \r\n line breaks to <br> tags when lineBreakMode is enabled
+				const convertLineBreaks = (text: string) => {
+					if (options.lineBreakMode) {
+						return text.replace(/\r\n/g, '<br>').replace(/\n/g, '<br>').replace(/\r/g, '<br>');
+					}
+					return text;
+				};
+				
+				// Convert to HebrewBooksPage format for compatibility
+				const hebrewBooksData: HebrewBooksPage = {
+					tractate: data.tractate || tractate,
+					daf: pageNum,
+					amud: amud,
+					mainText: convertLineBreaks(data.mainText || ''),
+					rashi: convertLineBreaks(data.rashi || ''),
+					tosafot: convertLineBreaks(data.tosafot || ''),
+					otherCommentaries: data.otherCommentaries || {},
+					timestamp: data.timestamp || Date.now()
+				};
 				
 				if (hebrewBooksData) {
 					update(state => ({

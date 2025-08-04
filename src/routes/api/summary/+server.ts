@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { openRouterTranslator } from '$lib/openrouter-translator';
+import { TRACTATE_IDS, convertDafToHebrewBooksFormat } from '$lib/hebrewbooks';
 import { PUBLIC_OPENROUTER_API_KEY } from '$env/static/public';
 
 // Check if we're in Cloudflare Workers environment
@@ -68,10 +69,11 @@ async function setCachedSummary(cacheKey: string, data: any): Promise<void> {
 	memoryCache.set(cacheKey, cacheData);
 }
 
-export const GET: RequestHandler = async ({ url, fetch }) => {
+export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 	const tractate = url.searchParams.get('tractate');
 	const page = url.searchParams.get('page');
 	const amud = url.searchParams.get('amud');
+	const refresh = url.searchParams.get('refresh') === 'true';
 	
 	if (!tractate || !page || !amud) {
 		return json({ error: 'Missing required parameters: tractate, page, amud' }, { status: 400 });
@@ -81,18 +83,23 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 	const cacheKey = `${CACHE_PREFIX}${tractate}:${page}${amud}`;
 	
 	try {
-		// Check cache first
-		const cachedSummary = await getCachedSummary(cacheKey);
-		if (cachedSummary) {
-			return json({
-				...cachedSummary,
-				cached: true,
-				cacheKey
-			});
+		// Check cache first (unless refresh is requested)
+		if (!refresh) {
+			const cachedSummary = await getCachedSummary(cacheKey);
+			if (cachedSummary) {
+				return json({
+					...cachedSummary,
+					cached: true,
+					cacheKey
+				});
+			}
 		}
 
 		// Generate new summary if not cached
-		if (!openRouterTranslator.isConfigured()) {
+		// Get API key from platform.env (Cloudflare Workers) or import (local dev)
+		const openRouterApiKey = platform?.env?.PUBLIC_OPENROUTER_API_KEY || PUBLIC_OPENROUTER_API_KEY;
+		console.log('API Key available:', !!openRouterApiKey, 'Length:', openRouterApiKey?.length);
+		if (!openRouterApiKey) {
 			return json({ error: 'OpenRouter API not configured' }, { status: 503 });
 		}
 
@@ -113,9 +120,17 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 			return json({ error: `Unknown tractate: ${tractate}` }, { status: 400 });
 		}
 
-		// Fetch the Talmud content
-		const dafForAPI = `${page}${amud}`;
-		const talmudResponse = await fetch(`/api/talmud-merged?mesechta=${mesechta}&daf=${dafForAPI}`);
+		// Convert from Sefaria format (2a, 2b) to HebrewBooks format (2, 2b)
+		const dafForAPI = convertDafToHebrewBooksFormat(`${page}${amud}`);
+		
+		// Use daf-supplier directly to get structured data
+		const mesechtaId = TRACTATE_IDS[tractate];
+		if (!mesechtaId) {
+			return json({ error: `Unknown tractate: ${tractate}` }, { status: 400 });
+		}
+		
+		console.log(`Fetching from daf-supplier: mesechta=${mesechtaId}, daf=${dafForAPI} (converted from ${page}${amud})`);
+		const talmudResponse = await fetch(`https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`);
 		
 		if (!talmudResponse.ok) {
 			throw new Error(`Failed to fetch Talmud data: ${talmudResponse.status}`);
@@ -125,7 +140,8 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 		const mainText = talmudData.mainText || '';
 		
 		if (!mainText || mainText.length < 50) {
-			return json({ error: 'Insufficient content for summary generation' }, { status: 400 });
+			console.error('Insufficient content:', { mainText: mainText?.substring(0, 100), length: mainText?.length });
+			return json({ error: 'Insufficient content for summary generation', length: mainText?.length }, { status: 400 });
 		}
 
 		// Generate summary using OpenRouter with Claude Sonnet 4 directly
@@ -142,13 +158,19 @@ Focus on making the content compelling by highlighting:
 
 Write 2-3 engaging paragraphs that would make someone excited to study this page deeper. Make the rabbis feel like real people having a fascinating intellectual conversation.
 
+**Format your response in Markdown** with:
+- Use **bold** for key concepts and rabbi names when first introduced
+- Use *italics* for Hebrew/Aramaic terms
+- Use bullet points or numbered lists when appropriate
+- Keep paragraphs engaging and narrative-driven
+
 Talmud text: ${mainText.slice(0, 3000)}`;
 
 		// Call OpenRouter API directly with Claude Sonnet 4
 		const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
 			method: 'POST',
 			headers: {
-				'Authorization': `Bearer ${PUBLIC_OPENROUTER_API_KEY}`,
+				'Authorization': `Bearer ${openRouterApiKey}`,
 				'Content-Type': 'application/json',
 				'HTTP-Referer': 'https://talmud.app',
 				'X-Title': 'Talmud Study App'
@@ -191,11 +213,12 @@ Talmud text: ${mainText.slice(0, 3000)}`;
 			cached: false,
 			cacheKey
 		});
-
 	} catch (error) {
+		console.error('Summary API error:', error);
 		return json({
 			error: 'Failed to generate summary',
-			details: error instanceof Error ? error.message : String(error)
+			details: error instanceof Error ? error.message : String(error),
+			stack: error instanceof Error ? error.stack : undefined
 		}, { status: 500 });
 	}
 };

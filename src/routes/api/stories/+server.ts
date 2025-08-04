@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { openRouterTranslator } from '$lib/openrouter-translator';
 import { PUBLIC_OPENROUTER_API_KEY } from '$env/static/public';
+import { TRACTATE_IDS, convertDafToHebrewBooksFormat } from '$lib/hebrewbooks';
 
 // Check if we're in Cloudflare Workers environment
 const isCloudflareWorkers = typeof caches !== 'undefined';
@@ -69,7 +70,7 @@ async function setCachedStories(cacheKey: string, data: any): Promise<void> {
 	console.log('💾 Stories cached to memory (permanent):', cacheKey);
 }
 
-export const GET: RequestHandler = async ({ url, fetch }) => {
+export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 	const tractate = url.searchParams.get('tractate');
 	const page = url.searchParams.get('page');
 	const amud = url.searchParams.get('amud');
@@ -115,9 +116,17 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 			return json({ error: `Unknown tractate: ${tractate}` }, { status: 400 });
 		}
 
-		// Fetch the Talmud content
-		const dafForAPI = `${page}${amud}`;
-		const talmudResponse = await fetch(`/api/talmud-merged?mesechta=${mesechta}&daf=${dafForAPI}`);
+		// Convert from Sefaria format (2a, 2b) to HebrewBooks format (2, 2b)
+		const dafForAPI = convertDafToHebrewBooksFormat(`${page}${amud}`);
+		
+		// Use daf-supplier directly to get structured data
+		const mesechtaId = TRACTATE_IDS[tractate];
+		if (!mesechtaId) {
+			return json({ error: `Unknown tractate: ${tractate}` }, { status: 400 });
+		}
+		
+		console.log(`Fetching from daf-supplier: mesechta=${mesechtaId}, daf=${dafForAPI} (converted from ${page}${amud})`);
+		const talmudResponse = await fetch(`https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`);
 		
 		if (!talmudResponse.ok) {
 			throw new Error(`Failed to fetch Talmud data: ${talmudResponse.status}`);
@@ -151,6 +160,13 @@ Your story should teach:
 
 Write 800-1200 words making the rabbis come alive as real people. Help readers understand not just WHAT they argued, but WHY they argued it and what it reveals about their thinking.
 
+**Format your response in Markdown** with:
+- Use **bold** for key concepts and rabbi names when first introduced
+- Use *italics* for Hebrew/Aramaic terms
+- Use ### for section headings if appropriate
+- Use bullet points or numbered lists when listing multiple related items
+- Use > blockquotes for actual quotes from the text
+
 Choose the most significant discussion from this text:
 
 Main Text: ${mainText.slice(0, 4000)}
@@ -176,6 +192,13 @@ Your story should educate about:
 
 Write 800-1200 words painting a vivid picture of the ancient world while explaining the legal reasoning. Make readers feel they're witnessing these great minds in their historical context.
 
+**Format your response in Markdown** with:
+- Use **bold** for key concepts and rabbi names when first introduced
+- Use *italics* for Hebrew/Aramaic terms
+- Use ### for section headings if appropriate
+- Use bullet points or numbered lists when listing multiple related items
+- Use > blockquotes for actual quotes or reconstructed dialogue
+
 Main Text: ${mainText.slice(0, 4000)}
 
 Begin immediately with the historical narrative.`
@@ -195,6 +218,13 @@ Your narrative should reveal:
 
 Write 800-1200 words making these ancient sages come alive as distinct thinkers. Help students recognize their "voices" and understand how different minds approach problems.
 
+**Format your response in Markdown** with:
+- Use **bold** for key concepts and rabbi names when first introduced
+- Use *italics* for Hebrew/Aramaic terms
+- Use ### for section headings for each rabbi profile
+- Use bullet points or numbered lists when listing multiple related items
+- Use > blockquotes for actual quotes or characteristic statements
+
 Main Text: ${mainText.slice(0, 4000)}
 
 Start directly with the character profiles.`
@@ -213,7 +243,7 @@ Start directly with the character profiles.`
 					const result = await fetch('https://openrouter.ai/api/v1/chat/completions', {
 						method: 'POST',
 						headers: {
-							'Authorization': `Bearer ${PUBLIC_OPENROUTER_API_KEY || ''}`,
+							'Authorization': `Bearer ${platform?.env?.PUBLIC_OPENROUTER_API_KEY || PUBLIC_OPENROUTER_API_KEY || ''}`,
 							'Content-Type': 'application/json',
 							'HTTP-Referer': 'https://talmud.app',
 							'X-Title': 'Talmud Study App - Stories'

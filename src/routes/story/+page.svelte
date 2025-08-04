@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { openRouterTranslator } from '$lib/openrouter-translator';
+	import { renderMarkdown } from '$lib/markdown';
 
 	// Get data from load function
 	let { data } = $props();
@@ -276,7 +277,7 @@
 						
 						{#if story.content && story.content.length > 50}
 							<div class="prose prose-lg max-w-none text-gray-700 leading-relaxed">
-								{@html story.content.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}
+								{@html renderMarkdown(story.content)}
 							</div>
 						{:else}
 							<div class="text-center py-8 text-red-500">
