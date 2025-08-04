@@ -1,6 +1,7 @@
 import { writable, get } from 'svelte/store';
 import dafRenderer from '$lib/daf-renderer/index.js';
 import { defaultOptions } from '$lib/daf-renderer/options.js';
+import { customOptions, mobileOptions } from '$lib/daf-renderer-custom-options';
 
 interface RendererState {
 	renderer: any | null;
@@ -31,7 +32,11 @@ function createRendererStore() {
 			try {
 				console.log('Initializing daf-renderer');
 				
-				const renderer = dafRenderer(container, defaultOptions);
+				// Choose options based on screen size
+				const isMobile = window.innerWidth < 768;
+				const options = isMobile ? mobileOptions : customOptions;
+				
+				const renderer = dafRenderer(container, options);
 
 
 				set({

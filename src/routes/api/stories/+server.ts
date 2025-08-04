@@ -5,7 +5,7 @@ import { PUBLIC_OPENROUTER_API_KEY } from '$env/static/public';
 import { TRACTATE_IDS, convertDafToHebrewBooksFormat } from '$lib/hebrewbooks';
 
 // Check if we're in Cloudflare Workers environment
-const isCloudflareWorkers = typeof caches !== 'undefined';
+// This will be checked at runtime in the request handler
 
 // Cache configuration - permanent cache unless explicitly refreshed
 const CACHE_PREFIX = 'talmud-stories:';
@@ -13,13 +13,13 @@ const CACHE_PREFIX = 'talmud-stories:';
 // In-memory cache fallback for development
 const memoryCache = new Map<string, { data: any; timestamp: number }>();
 
-async function getCachedStories(cacheKey: string, forceRefresh: boolean = false): Promise<any | null> {
+async function getCachedStories(cacheKey: string, forceRefresh: boolean = false, platform?: any): Promise<any | null> {
 	if (forceRefresh) {
 		console.log('🔄 Force refresh requested, skipping cache:', cacheKey);
 		return null;
 	}
 
-	if (isCloudflareWorkers) {
+	if (platform?.env) {
 		try {
 			// Try Cloudflare KV if available - permanent cache
 			if (typeof STORIES_KV !== 'undefined') {
@@ -46,13 +46,13 @@ async function getCachedStories(cacheKey: string, forceRefresh: boolean = false)
 	return null;
 }
 
-async function setCachedStories(cacheKey: string, data: any): Promise<void> {
+async function setCachedStories(cacheKey: string, data: any, platform?: any): Promise<void> {
 	const cacheData = {
 		data,
 		timestamp: Date.now()
 	};
 
-	if (isCloudflareWorkers) {
+	if (platform?.env) {
 		try {
 			// Try Cloudflare KV if available - permanent cache
 			if (typeof STORIES_KV !== 'undefined') {
@@ -85,7 +85,7 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 	
 	try {
 		// Check cache first (unless refresh is requested)
-		const cachedStories = await getCachedStories(cacheKey, refresh);
+		const cachedStories = await getCachedStories(cacheKey, refresh, platform);
 		if (cachedStories) {
 			return json({
 				...cachedStories,
@@ -110,7 +110,7 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 		
 		// In Cloudflare Workers, we can't make inter-worker requests
 		// Return info for client to fetch and then resubmit
-		if (isCloudflareWorkers) {
+		if (platform?.env) {
 			const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
 			return json({
 				requiresClientFetch: true,
@@ -299,7 +299,7 @@ Start directly with the character profiles.`
 		};
 
 		// Cache the result
-		await setCachedStories(cacheKey, storiesData);
+		await setCachedStories(cacheKey, storiesData, platform);
 
 		return json({
 			...storiesData,
@@ -329,7 +329,7 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 		const cacheKey = `${CACHE_PREFIX}${tractate}:${page}${amud}`;
 		
 		// Check cache first
-		const cachedStories = await getCachedStories(cacheKey, false);
+		const cachedStories = await getCachedStories(cacheKey, false, platform);
 		if (cachedStories) {
 			return json({
 				...cachedStories,
@@ -502,7 +502,7 @@ Begin with the character profiles immediately.`
 		};
 
 		// Cache the result
-		await setCachedStories(cacheKey, storiesData);
+		await setCachedStories(cacheKey, storiesData, platform);
 
 		return json({
 			...storiesData,

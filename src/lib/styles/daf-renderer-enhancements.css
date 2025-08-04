@@ -1,0 +1,161 @@
+/* Enhanced styles for daf-renderer elements */
+
+/* Add font faces for Hebrew fonts */
+@font-face {
+  font-family: 'Vilna';
+  src: url('/fonts/FrankRuehl-Regular.woff2') format('woff2'),
+       url('/fonts/FrankRuehl-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Rashi';
+  src: url('/fonts/Mekorot-Rashi.woff2') format('woff2'),
+       url('/fonts/Mekorot-Rashi.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Enhanced text rendering for Hebrew */
+.dafRoot {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Better spacing for Vilna mode (with line breaks) */
+.dafRoot.linebreak-mode .text {
+  word-spacing: 0.1em;
+  letter-spacing: 0.02em;
+}
+
+/* Improve readability with subtle shadows */
+.main .text {
+  text-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Commentary text improvements */
+.inner .text,
+.outer .text {
+  text-shadow: 0 0.3px 0 rgba(0, 0, 0, 0.08);
+}
+
+/* Special styling for references in commentary */
+.mareimakom {
+  font-size: 0.9em;
+  color: #666;
+  font-style: italic;
+}
+
+/* Style for section headers in main text */
+.shastitle4 {
+  font-weight: bold;
+  font-size: 1.1em;
+  margin-top: 0.5em;
+  display: inline-block;
+}
+
+/* Improve hadran visibility */
+.hadran {
+  background: linear-gradient(to bottom, transparent, rgba(255, 215, 0, 0.1), transparent);
+  padding: 0.5em 0;
+  border-radius: 4px;
+}
+
+/* Add subtle animation for interactive elements */
+.sentence-main,
+.sentence-rashi,
+.sentence-tosafot {
+  transition: background-color 0.2s ease;
+}
+
+/* Highlight clicked sentences */
+.sentence-main.highlighted,
+.sentence-rashi.highlighted,
+.sentence-tosafot.highlighted {
+  background-color: rgba(255, 215, 0, 0.3);
+  border-radius: 2px;
+}
+
+/* Improve drop cap appearance */
+.gdropcap {
+  float: right;
+  margin-right: -0.1em;
+  margin-bottom: -0.2em;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Add visual hierarchy to headers */
+.five.rashi-header,
+.shastitle7.tosafot-header {
+  display: inline-block;
+  padding-bottom: 0.1em;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  margin-bottom: 0.2em;
+}
+
+/* Improve spacing between commentary sections */
+.inner .text span.sentence-rashi + span.sentence-rashi,
+.outer .text span.sentence-tosafot + span.sentence-tosafot {
+  margin-top: 0.5em;
+  display: inline-block;
+}
+
+/* Visual feedback for hoverable elements */
+.sentence-main,
+.sentence-rashi,
+.sentence-tosafot {
+  cursor: pointer;
+  position: relative;
+}
+
+/* Add subtle underline on hover */
+.sentence-main:hover::after,
+.sentence-rashi:hover::after,
+.sentence-tosafot:hover::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: rgba(0, 102, 204, 0.3);
+}
+
+/* Responsive font sizing */
+@media (max-width: 768px) {
+  .dafRoot {
+    --fontSize-main: 14px !important;
+    --fontSize-side: 10px !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  .dafRoot {
+    --fontSize-main: 16px !important;
+    --fontSize-side: 11px !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .dafRoot {
+    --fontSize-main: 12px !important;
+    --fontSize-side: 9px !important;
+  }
+  
+  .sentence-main:hover,
+  .sentence-rashi:hover,
+  .sentence-tosafot:hover {
+    background-color: transparent !important;
+  }
+  
+  .hadran {
+    background: none;
+    border-top: 1px solid #000;
+    border-bottom: 1px solid #000;
+  }
+}
