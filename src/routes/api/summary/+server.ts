@@ -113,6 +113,7 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 		}
 		
 		console.log(`Fetching from daf-supplier v3: mesechta=${mesechtaId}, daf=${dafForAPI} (converted from ${page}${amud})`);
+		console.log('Platform check:', { hasPlatform: !!platform, hasPlatformEnv: !!platform?.env });
 		
 		// In Cloudflare Workers, we can't make inter-worker requests
 		// Return info for client to fetch and then resubmit
