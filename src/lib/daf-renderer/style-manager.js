@@ -57,21 +57,23 @@ function addClasses(element, classNames) {
 let rootElement = null;
 
 function setVars(object, prefix = "") {
-  // Always try to find the root element fresh
-  const currentRoot = document.querySelector('.dafRoot');
-  if (!currentRoot) {
-    console.error('Could not find .dafRoot element for setting CSS variables');
-    return;
-  }
+  // Try to use stored root element first, then fall back to querySelector
+  let targetElement = rootElement;
   
-  // Update our reference if it changed
-  if (currentRoot !== rootElement) {
-    rootElement = currentRoot;
+  if (!targetElement) {
+    // Fall back to finding it in DOM if not yet stored
+    targetElement = document.querySelector('.dafRoot');
+    if (!targetElement) {
+      console.error('Could not find .dafRoot element for setting CSS variables');
+      return;
+    }
+    // Update our reference
+    rootElement = targetElement;
   }
 
   Object.entries(object).forEach(([key, value]) => {
     if (typeof value == "string") {
-      rootElement.style.setProperty(`--${prefix}${key}`, value);
+      targetElement.style.setProperty(`--${prefix}${key}`, value);
     } else if (typeof value == "object") {
       setVars(value, `${key}-`);
     }

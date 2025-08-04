@@ -69,13 +69,6 @@ export function processTextsForRenderer(
 				if (trimmed.includes(hadran) && trimmed.split(' ').length < 7) {
 					return hadranDiv("main", trimmed);
 				}
-				// Apply first word styling to Gemara sentences
-				const words = trimmed.split(/\s+/);
-				if (words.length > 0) {
-					const firstWord = `<span class="gemara-first-word">${words[0]}</span>`;
-					const restOfText = words.slice(1).join(' ');
-					return `<span class="sentence-main" data-sentence-index="${index}">${firstWord} ${restOfText}</span>`;
-				}
 				return `<span class="sentence-main" data-sentence-index="${index}">${trimmed}</span>`;
 			})
 			.filter(html => html) // Remove empty strings
@@ -95,16 +88,8 @@ export function processTextsForRenderer(
 				// Find the segment text in the working text (handling Hebrew and special chars)
 				const cleanSegment = segment.replace(/<[^>]*>/g, '').trim();
 				if (cleanSegment.length > 5 && workingText.includes(cleanSegment)) {
-					// Wrap this segment with span and apply first word styling
-					const words = cleanSegment.split(/\s+/);
-					let wrappedSegment;
-					if (words.length > 0 && sefariaIndex === 0) { // Only for first segment
-						const firstWord = `<span class="gemara-first-word">${words[0]}</span>`;
-						const restOfText = words.slice(1).join(' ');
-						wrappedSegment = `<span class="sentence-main" data-sentence-index="${sefariaIndex}">${firstWord} ${restOfText}</span>`;
-					} else {
-						wrappedSegment = `<span class="sentence-main" data-sentence-index="${sefariaIndex}">${cleanSegment}</span>`;
-					}
+					// Wrap this segment with span
+					const wrappedSegment = `<span class="sentence-main" data-sentence-index="${sefariaIndex}">${cleanSegment}</span>`;
 					workingText = workingText.replace(cleanSegment, wrappedSegment);
 					sefariaIndex++;
 				}
@@ -125,13 +110,6 @@ export function processTextsForRenderer(
 				if (!trimmed) return '';
 				if (trimmed.includes(hadran) && trimmed.split(' ').length < 7) {
 					return hadranDiv("main", trimmed);
-				}
-				// Apply first word styling to Gemara sentences
-				const words = trimmed.split(/\s+/);
-				if (words.length > 0) {
-					const firstWord = `<span class="gemara-first-word">${words[0]}</span>`;
-					const restOfText = words.slice(1).join(' ');
-					return `<span class="sentence-main" data-sentence-index="${index}">${firstWord} ${restOfText}</span>`;
 				}
 				return `<span class="sentence-main" data-sentence-index="${index}">${trimmed}</span>`;
 			})

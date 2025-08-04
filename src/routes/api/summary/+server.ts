@@ -113,10 +113,24 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 		}
 		
 		console.log(`Fetching from daf-supplier v3: mesechta=${mesechtaId}, daf=${dafForAPI} (converted from ${page}${amud})`);
-		// Use local hebrewbooks API endpoint to avoid inter-worker request issues
-		const hebrewBooksUrl = `/api/hebrewbooks?tractate=${encodeURIComponent(tractate)}&daf=${encodeURIComponent(`${page}${amud}`)}`;
-		console.log(`Calling hebrewbooks API: ${hebrewBooksUrl}`);
-		const talmudResponse = await fetch(new URL(hebrewBooksUrl, url.origin).toString());
+		
+		// In Cloudflare Workers, we can't make inter-worker requests
+		// Return info for client to fetch and then resubmit
+		if (isCloudflareWorkers) {
+			const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
+			return json({
+				requiresClientFetch: true,
+				dafSupplierUrl,
+				tractate,
+				page,
+				amud,
+				message: 'Client should fetch from dafSupplierUrl and POST the mainText back'
+			});
+		}
+		
+		// In development, fetch directly
+		const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
+		const talmudResponse = await fetch(dafSupplierUrl);
 		
 		if (!talmudResponse.ok) {
 			const errorText = await talmudResponse.text();
@@ -207,6 +221,116 @@ Talmud text: ${mainText.slice(0, 3000)}`;
 			error: 'Failed to generate summary',
 			details: error instanceof Error ? error.message : String(error),
 			stack: error instanceof Error ? error.stack : undefined
+		}, { status: 500 });
+	}
+};
+
+export const POST: RequestHandler = async ({ request, platform }) => {
+	try {
+		const body = await request.json();
+		const { tractate, page, amud, mainText } = body;
+		
+		if (!tractate || !page || !amud || !mainText) {
+			return json({ error: 'Missing required fields: tractate, page, amud, mainText' }, { status: 400 });
+		}
+		
+		// Create cache key
+		const cacheKey = `${CACHE_PREFIX}${tractate}:${page}${amud}`;
+		
+		// Check cache first
+		const cachedSummary = await getCachedSummary(cacheKey);
+		if (cachedSummary) {
+			return json({
+				...cachedSummary,
+				cached: true,
+				cacheKey
+			});
+		}
+		
+		// Get API key
+		const openRouterApiKey = platform?.env?.PUBLIC_OPENROUTER_API_KEY || PUBLIC_OPENROUTER_API_KEY;
+		if (!openRouterApiKey) {
+			return json({ error: 'OpenRouter API not configured' }, { status: 503 });
+		}
+		
+		if (!mainText || mainText.length < 50) {
+			return json({ error: 'Insufficient content for summary generation', length: mainText?.length }, { status: 400 });
+		}
+
+		// Generate summary using OpenRouter
+		const contextInfo = `${tractate} ${page}${amud}`;
+		const summaryPrompt = `You are analyzing a page from the Talmud (${contextInfo}). Create an engaging, accessible summary that brings this ancient discussion to life for modern readers.
+
+Focus on making the content compelling by highlighting:
+• The central question or dilemma being explored
+• The brilliant reasoning and arguments from different rabbis
+• How their debate reflects timeless human concerns
+• Any surprising insights or unexpected connections
+• The practical impact on Jewish life and law
+• Why this conversation matters today
+
+Write 2-3 engaging paragraphs that would make someone excited to study this page deeper. Make the rabbis feel like real people having a fascinating intellectual conversation.
+
+**Format your response in Markdown** with:
+- Use **bold** for key concepts and rabbi names when first introduced
+- Use *italics* for Hebrew/Aramaic terms
+- Use bullet points or numbered lists when appropriate
+- Keep paragraphs engaging and narrative-driven
+
+Talmud text: ${mainText.slice(0, 3000)}`;
+
+		// Call OpenRouter API
+		const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+			method: 'POST',
+			headers: {
+				'Authorization': `Bearer ${openRouterApiKey}`,
+				'Content-Type': 'application/json',
+				'HTTP-Referer': 'https://talmud.app',
+				'X-Title': 'Talmud Study App'
+			},
+			body: JSON.stringify({
+				model: 'anthropic/claude-sonnet-4',
+				messages: [
+					{ role: 'user', content: summaryPrompt }
+				],
+				temperature: 0.7,
+				max_tokens: 800
+			})
+		});
+
+		if (!response.ok) {
+			throw new Error(`OpenRouter API error: ${response.status} ${response.statusText}`);
+		}
+
+		const data = await response.json();
+		const summaryResult = {
+			translation: data.choices[0]?.message?.content?.trim() || '',
+			model: data.model || 'anthropic/claude-sonnet-4'
+		};
+
+		const summaryData = {
+			tractate,
+			page,
+			amud,
+			summary: summaryResult.translation,
+			model: summaryResult.model,
+			generated: new Date().toISOString(),
+			wordCount: summaryResult.translation.split(/\s+/).length
+		};
+
+		// Cache the result
+		await setCachedSummary(cacheKey, summaryData);
+
+		return json({
+			...summaryData,
+			cached: false,
+			cacheKey
+		});
+	} catch (error) {
+		console.error('Summary POST API error:', error);
+		return json({
+			error: 'Failed to generate summary',
+			details: error instanceof Error ? error.message : String(error)
 		}, { status: 500 });
 	}
 };
