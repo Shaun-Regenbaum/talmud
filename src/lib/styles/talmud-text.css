@@ -12,12 +12,9 @@
 .main .text span .gdropcap {
   font-size: 200% !important;  /* Matches the example */
   line-height: 1.2 !important;
-  display: flex !important;
-  float: right;
-  width: 120px !important;  /* Fixed width to ensure full span */
-  margin-left: 0.5em;
-  margin-bottom: 0.3em;
-  margin-top: -0.2em;
+  display: block !important;
+  width: 100% !important;  /* Full width of container */
+  margin: 0.3em 0;
   padding: 0.4em 0.6em;
   text-align: center;
   font-weight: normal;
@@ -30,6 +27,8 @@
     0 3px 6px rgba(0, 0, 0, 0.15);
   /* Ensure it takes up space for 3-4 lines */
   min-height: 4em;
+  /* Center the text vertically and horizontally */
+  display: flex !important;
   align-items: center;
   justify-content: center;
 }
