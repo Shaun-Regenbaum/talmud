@@ -63,13 +63,17 @@ export const TRACTATE_IDS: Record<string, number> = {
 
 // Note: HebrewBooksAPI class removed - we now fetch directly from daf-supplier
 
-// Utility function to convert Sefaria format (2a, 2b) to HebrewBooks format (2, 2b)
+// Utility function to convert Sefaria format (2a, 2b) to daf-supplier format
 export function convertDafToHebrewBooksFormat(daf: string): string {
-  // HebrewBooks expects daf in format: "2", "2b", "3", "3b" etc.
-  // So for "2a" we send "2", for "2b" we send "2b"
+  // daf-supplier uses sequential numbering where:
+  // 2 = 1b, 3 = 2a, 4 = 2b, 5 = 3a, etc.
+  // So for Sefaria "2a" we need to send "3", for "2b" we send "4"
   const dafNum = parseInt(daf.replace(/[ab]/, ''));
   const amud = daf.includes('b') ? 'b' : 'a';
-  return amud === 'a' ? dafNum.toString() : `${dafNum}b`;
+  
+  // Formula: Xa -> (X*2-1), Xb -> (X*2)
+  const dafSupplierNum = amud === 'a' ? (dafNum * 2 - 1) : (dafNum * 2);
+  return dafSupplierNum.toString();
 }
 
 // Note: All exports removed - we now fetch directly from daf-supplier
