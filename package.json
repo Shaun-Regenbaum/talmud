@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "deploy": "wrangler deploy --compatibility-date 2025-01-01"
+    "deploy": "wrangler pages deploy .svelte-kit/cloudflare --project-name=talmud --commit-dirty=true"
   },
   "devDependencies": {
     "@sveltejs/adapter-cloudflare": "^4.8.0",
@@ -22,7 +22,7 @@
     "tailwindcss": "^4.1.11",
     "typescript": "^5.7.3",
     "vite": "^6.0.7",
-    "wrangler": "^3.99.0"
+    "wrangler": "^3.114.12"
   },
   "dependencies": {
     "daf-renderer": "^1.1.4"

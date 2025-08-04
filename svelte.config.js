@@ -6,6 +6,7 @@ const config = {
 	preprocess: vitePreprocess(),
 	kit: {
 		adapter: adapter({
+			// Use Cloudflare Pages mode instead of Workers
 			routes: {
 				include: ['/*'],
 				exclude: ['<all>']
