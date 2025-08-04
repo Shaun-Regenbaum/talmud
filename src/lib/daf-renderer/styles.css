@@ -159,8 +159,7 @@
 
 /* Enable line breaks when in line break mode */
 .dafRoot.linebreak-mode .text span {
-  display: inline-block;
-  width: 100%;
+  white-space: pre-line;
 }
 
 .main .text {

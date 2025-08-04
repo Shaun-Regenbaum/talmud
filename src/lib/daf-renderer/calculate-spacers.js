@@ -8,14 +8,33 @@ import { LAYOUT_CONSTANTS } from './constants.js';
  * @param {number} width - Container width in pixels
  * @param {number} lh - Line height in pixels
  * @param {HTMLElement} dummy - Dummy container for measurement
+ * @param {Object} options - Additional options for text rendering
  * @returns {number} Area of rendered text in square pixels
  */
-function getAreaOfText(text, font, fs, width, lh, dummy) {
+function getAreaOfText(text, font, fs, width, lh, dummy, options = {}) {
   const testDiv = document.createElement("div");
   testDiv.style.font = `${fs}px ${font}`;
   testDiv.style.width = `${width}px`;
   testDiv.style.lineHeight = `${lh}px`;
-  testDiv.innerHTML = text;
+  
+  // Apply text alignment styles to match final render
+  testDiv.style.textAlign = "justify";
+  testDiv.style.textAlignLast = "justify";
+  testDiv.style.direction = options.direction || "rtl";
+  
+  // Create the same structure as the final render: div > span
+  const textSpan = document.createElement("span");
+  
+  // Check if we're in linebreak mode by looking for <wbr> tags
+  const hasLineBreaks = text.includes('<wbr>');
+  if (hasLineBreaks) {
+    // Apply white-space style to the span to match .linebreak-mode .text span
+    textSpan.style.whiteSpace = "pre-line";
+  }
+  
+  textSpan.innerHTML = text;
+  testDiv.appendChild(textSpan);
+  
   dummy.append(testDiv);
   const height = testDiv.clientHeight;
   const actualWidth = testDiv.clientWidth;
@@ -24,110 +43,6 @@ function getAreaOfText(text, font, fs, width, lh, dummy) {
   return test_area;
 }
 
-/**
- * Helper function to ensure single-line content fits on one line
- * @param {string} text - HTML text content
- * @param {string} font - Font family
- * @param {number} baseFontSize - Starting font size in pixels
- * @param {number} baseWidth - Starting container width in pixels
- * @param {number} lineHeight - Line height in pixels
- * @param {HTMLElement} dummy - Dummy container for measurement
- * @param {Object} options - Adjustment options
- * @returns {Object} Adjusted parameters {fontSize, width, actualHeight}
- */
-function fitSingleLine(text, font, baseFontSize, baseWidth, lineHeight, dummy, options = {}) {
-  const {
-    preferFontAdjustment = true, // Prefer adjusting font over width
-    minFontSize = baseFontSize * 0.7, // Don't go below 70% of original
-    maxFontSize = baseFontSize, // Don't exceed original size
-    minWidth = baseWidth,
-    maxWidth = baseWidth * 1.2, // Allow up to 20% width increase
-    tolerance = 2 // Pixel tolerance for "single line"
-  } = options;
-  
-  // First check if it already fits
-  const testDiv = document.createElement("div");
-  testDiv.style.font = `${baseFontSize}px ${font}`;
-  testDiv.style.width = `${baseWidth}px`;
-  testDiv.style.lineHeight = `${lineHeight}px`;
-  testDiv.style.position = "absolute";
-  testDiv.style.whiteSpace = "nowrap"; // Force single line to measure
-  testDiv.innerHTML = text;
-  dummy.append(testDiv);
-  
-  const singleLineHeight = testDiv.offsetHeight;
-  const textWidth = testDiv.scrollWidth; // Actual width needed
-  
-  // Now check with normal wrapping
-  testDiv.style.whiteSpace = "normal";
-  const wrappedHeight = testDiv.offsetHeight;
-  
-  testDiv.remove();
-  
-  // If it already fits on one line, return original values
-  if (Math.abs(wrappedHeight - singleLineHeight) <= tolerance) {
-    return {
-      fontSize: baseFontSize,
-      width: baseWidth,
-      actualHeight: wrappedHeight,
-      adjusted: false
-    };
-  }
-  
-  let adjustedFontSize = baseFontSize;
-  let adjustedWidth = baseWidth;
-  
-  // Calculate how much we need to adjust
-  const widthRatio = textWidth / baseWidth;
-  
-  if (preferFontAdjustment) {
-    // Try font size adjustment first
-    adjustedFontSize = baseFontSize / widthRatio;
-    
-    // Clamp to limits
-    if (adjustedFontSize < minFontSize) {
-      // Font would be too small, try width adjustment
-      adjustedFontSize = minFontSize;
-      adjustedWidth = textWidth * (minFontSize / baseFontSize);
-      adjustedWidth = Math.min(adjustedWidth, maxWidth);
-    } else if (adjustedFontSize > maxFontSize) {
-      adjustedFontSize = maxFontSize;
-    }
-  } else {
-    // Try width adjustment first
-    adjustedWidth = Math.min(textWidth, maxWidth);
-    
-    // If still doesn't fit, adjust font size
-    if (adjustedWidth < textWidth) {
-      const remainingRatio = textWidth / adjustedWidth;
-      adjustedFontSize = baseFontSize / remainingRatio;
-      adjustedFontSize = Math.max(adjustedFontSize, minFontSize);
-    }
-  }
-  
-  // Verify the adjustment worked
-  const verifyDiv = document.createElement("div");
-  verifyDiv.style.font = `${adjustedFontSize}px ${font}`;
-  verifyDiv.style.width = `${adjustedWidth}px`;
-  verifyDiv.style.lineHeight = `${lineHeight * (adjustedFontSize / baseFontSize)}px`;
-  verifyDiv.innerHTML = text;
-  dummy.append(verifyDiv);
-  const finalHeight = verifyDiv.offsetHeight;
-  verifyDiv.remove();
-  
-  console.log('📏 Single line adjustment:', {
-    original: { fontSize: baseFontSize, width: baseWidth },
-    adjusted: { fontSize: adjustedFontSize.toFixed(1), width: adjustedWidth.toFixed(1) },
-    textSample: text.substring(0, 50)
-  });
-  
-  return {
-    fontSize: adjustedFontSize,
-    width: adjustedWidth,
-    actualHeight: finalHeight,
-    adjusted: true
-  };
-}
 
 /**
  * Parse and normalize options from string values to numbers
@@ -169,6 +84,7 @@ function calculateLayoutDimensions(parsedOptions) {
 }
 
 function calculateSpacers(mainText, innerText, outerText, options, dummy) {
+  
   const parsedOptions = parseOptions(options);
   const { midWidth, topWidth, sideWidth } = calculateLayoutDimensions(parsedOptions);
 
@@ -203,7 +119,9 @@ function calculateSpacers(mainText, innerText, outerText, options, dummy) {
    * @returns {Object} Text measurement object
    */
   function createTextMeasurement(name, text, width, style, adjustForHeader = false) {
-    const rawArea = getAreaOfText(text, style.font, style.fontSize, width, style.lineHeight, dummy);
+    const rawArea = getAreaOfText(text, style.font, style.fontSize, width, style.lineHeight, dummy, {
+      direction: parsedOptions.direction
+    });
     const area = adjustForHeader ? rawArea - topArea(style.lineHeight) : rawArea;
     
     return {
@@ -400,4 +318,3 @@ function calculateSpacers(mainText, innerText, outerText, options, dummy) {
 
 
 export default calculateSpacers;
-export { fitSingleLine };
