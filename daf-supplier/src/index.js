@@ -551,10 +551,18 @@ export default {
         '37': 'Niddah'
       };
 
-      // Helper function to convert newlines to <wbr> tags if requested
+      // Helper function to convert newlines to <wbr> tags with spaces if requested
       const formatText = (text) => {
         if (!text) return text;
-        return br ? text.replace(/\r\n/g, '<wbr>').replace(/\n/g, '<wbr>') : text;
+        if (!br) return text;
+        
+        return text
+          // Replace Windows-style line endings (\r\n) with space + word break opportunity
+          .replace(/\r\n/g, ' <wbr>')
+          // Replace Unix-style line endings (\n) with space + word break opportunity  
+          .replace(/\n/g, ' <wbr>')
+          // Handle any remaining standalone \r (old Mac style)
+          .replace(/\r/g, ' <wbr>');
       };
 
       // Prepare response data
