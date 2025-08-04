@@ -483,6 +483,15 @@ function resolveOverlaps(spacerHeights, overlaps, sizes, options) {
 }
 
 export function calculateSpacersBreaks(mainArray, rashiArray, tosafotArray, options, dummy) {
+  console.log('📋 calculateSpacersBreaks input:', {
+    mainArray: mainArray?.length || 0,
+    rashiArray: rashiArray?.length || 0,
+    tosafotArray: tosafotArray?.length || 0,
+    mainSample: mainArray?.[0]?.substring(0, 50),
+    rashiSample: rashiArray?.[0]?.substring(0, 50),
+    tosafotSample: tosafotArray?.[0]?.substring(0, 50)
+  });
+  
   // Handle edge cases where arrays might be empty or contain only empty strings
   const lines = {
     main: (mainArray || []).filter(line => line && line.trim() !== ''),
@@ -490,8 +499,69 @@ export function calculateSpacersBreaks(mainArray, rashiArray, tosafotArray, opti
     tosafot: (tosafotArray || []).filter(line => line && line.trim() !== '')
   }
   
+  // If we have single-element arrays (no line breaks), create pseudo-lines for better analysis
+  let analysisLines = { ...lines };
+  const hasSingleElements = lines.main.length <= 1 && lines.rashi.length <= 1 && lines.tosafot.length <= 1;
+  
+  if (hasSingleElements && options.useLineAnalysis !== false) {
+    console.log('📝 Single element arrays detected, creating pseudo-lines for analysis');
+    
+    // Helper to split text into logical segments for analysis
+    const createPseudoLines = (text) => {
+      if (!text) return [''];
+      
+      // Strip HTML first
+      const stripped = stripHtml(text);
+      
+      // Split by sentence-ending punctuation to simulate natural line breaks
+      let segments = stripped.split(/(?<=[.!?])\s+/)
+        .filter(s => s.trim().length > 0);
+      
+      // If no sentence breaks, try other natural break points
+      if (segments.length <= 1) {
+        // Try splitting by parentheses, colons, or long spaces
+        segments = stripped.split(/[():]|\s{3,}/)
+          .filter(s => s.trim().length > 0);
+      }
+      
+      // If still no good breaks, create artificial segments every ~80 chars
+      if (segments.length <= 1 && stripped.length > 160) {
+        segments = [];
+        const words = stripped.split(/\s+/);
+        let currentSegment = '';
+        
+        for (const word of words) {
+          if (currentSegment.length + word.length > 80 && currentSegment.length > 0) {
+            segments.push(currentSegment.trim());
+            currentSegment = word;
+          } else {
+            currentSegment += (currentSegment ? ' ' : '') + word;
+          }
+        }
+        if (currentSegment) segments.push(currentSegment.trim());
+      }
+      
+      return segments.length > 0 ? segments : [stripped];
+    };
+    
+    // Create pseudo-lines for analysis
+    analysisLines = {
+      main: lines.main.length > 0 ? createPseudoLines(lines.main[0]) : [''],
+      rashi: lines.rashi.length > 0 ? createPseudoLines(lines.rashi[0]) : [''],
+      tosafot: lines.tosafot.length > 0 ? createPseudoLines(lines.tosafot[0]) : ['']
+    };
+    
+    console.log('📊 Pseudo-line analysis:', {
+      main: analysisLines.main.length,
+      rashi: analysisLines.rashi.length,
+      tosafot: analysisLines.tosafot.length,
+      mainFirst: analysisLines.main[0]?.substring(0, 50),
+      rashiFirst: analysisLines.rashi[0]?.substring(0, 50)
+    });
+  }
+  
   // Check for fundamental edge cases first
-  console.log('📋 Text analysis:', {
+  console.log('📋 Text analysis after filtering:', {
     mainLines: lines.main.length,
     rashiLines: lines.rashi.length, 
     tosafotLines: lines.tosafot.length,
@@ -549,15 +619,46 @@ export function calculateSpacersBreaks(mainArray, rashiArray, tosafotArray, opti
     exception: 0
   };
   
-  // NEW: Use line analysis approach if we have line arrays
+  // SIMPLE LINE-BASED CALCULATION - just count lines and multiply by line height
+  if (lines.main.length > 0 || lines.rashi.length > 0 || lines.tosafot.length > 0) {
+    console.log('📏 Using simple line-based spacer calculation');
+    
+    // Count lines in each section
+    const rashiStartLines = Math.min(4, lines.rashi.length);
+    const tosafotStartLines = Math.min(4, lines.tosafot.length);
+    const startLines = Math.max(rashiStartLines, tosafotStartLines);
+    
+    const rashiContentLines = Math.max(0, lines.rashi.length - rashiStartLines);
+    const tosafotContentLines = Math.max(0, lines.tosafot.length - tosafotStartLines);
+    
+    // Simple multiplication
+    spacerHeights.start = startLines * parsedOptions.lineHeight.side;
+    spacerHeights.inner = rashiContentLines * parsedOptions.lineHeight.side;
+    spacerHeights.outer = tosafotContentLines * parsedOptions.lineHeight.side;
+    spacerHeights.end = 0;
+    
+    console.log('📊 Line counts:', {
+      startLines,
+      rashiContent: rashiContentLines,
+      tosafotContent: tosafotContentLines,
+      spacers: spacerHeights
+    });
+    
+    return spacerHeights;
+  }
+  
+  // OLD COMPLEX LOGIC (kept for backwards compatibility)
   if (options.useLineAnalysis !== false && mainArray && rashiArray && tosafotArray) {
     console.log('🔍 Using enhanced line analysis for spacer calculation');
     
+    // Use analysisLines (which may be pseudo-lines) for better pattern detection
+    const linesToAnalyze = hasSingleElements ? analysisLines : lines;
+    
     // Analyze lines with categorization
     const lineAnalysis = {
-      main: analyzeTextLines(mainArray, 'Main Text', mainOptions, dummy, false),
-      rashi: analyzeTextLines(rashiArray, 'Rashi', commentaryOptions, dummy, true),
-      tosafot: analyzeTextLines(tosafotArray, 'Tosafot', commentaryOptions, dummy, true)
+      main: analyzeTextLines(linesToAnalyze.main, 'Main Text', mainOptions, dummy, false),
+      rashi: analyzeTextLines(linesToAnalyze.rashi, 'Rashi', commentaryOptions, dummy, true),
+      tosafot: analyzeTextLines(linesToAnalyze.tosafot, 'Tosafot', commentaryOptions, dummy, true)
     };
     
     // Log analysis results
@@ -856,15 +957,31 @@ export function calculateSpacersBreaks(mainArray, rashiArray, tosafotArray, opti
       spacerHeights.inner = Math.max(mainTextHeight, totalInnerHeight);
       console.log("📐 Pattern: Inner dominant (stairs) - main height:", mainTextHeight);
     } else {
-      // Both commentaries are substantial - distribute space proportionally
-      // Each commentary gets at least its content height or proportional main height
-      const proportionalHeight = mainTextHeight * 0.6; // 60% of main height minimum
+      // Both commentaries are substantial
+      // In line break mode, spacers should position text, not contain all of it
+      // The spacer height determines where the commentary STARTS relative to main text
       
-      // Add safety margin to account for DOM vs calculated height differences
-      const safetyMargin = parsedOptions.lineHeight.side * 2; // 2 line heights buffer
-      spacerHeights.inner = Math.max(totalInnerHeight + safetyMargin, proportionalHeight);
-      spacerHeights.outer = Math.max(totalOuterHeight + safetyMargin, proportionalHeight);
-      console.log("📐 Pattern: Double commentary - proportional allocation with safety margin");
+      if (mainTextHeight < Math.min(totalInnerHeight, totalOuterHeight)) {
+        // Double-wrap pattern: main is smaller than both commentaries
+        spacerHeights.inner = mainTextHeight;
+        spacerHeights.outer = mainTextHeight;
+        console.log("📐 Pattern: Double-wrap (main wraps around commentaries)");
+      } else if (mainTextHeight > Math.max(totalInnerHeight, totalOuterHeight)) {
+        // Double-extend: main is larger than both commentaries
+        spacerHeights.inner = totalInnerHeight;
+        spacerHeights.outer = totalOuterHeight;
+        console.log("📐 Pattern: Double-extend (main extends past commentaries)");
+      } else {
+        // Stairs pattern: main is between the two commentary sizes
+        if (totalInnerHeight < totalOuterHeight) {
+          spacerHeights.inner = totalInnerHeight;
+          spacerHeights.outer = mainTextHeight;
+        } else {
+          spacerHeights.inner = mainTextHeight;
+          spacerHeights.outer = totalOuterHeight;
+        }
+        console.log("📐 Pattern: Stairs (main wraps around smaller commentary)");
+      }
     }
     
     spacerHeights.calculationMethod = "height-based";

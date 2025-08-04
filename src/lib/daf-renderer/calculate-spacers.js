@@ -382,80 +382,20 @@ function calculateSpacers(mainText, innerText, outerText, options, dummy) {
     return spacerHeights;
   }
 
-  // Analyze text patterns to determine layout
-  function analyzeTextPattern(text, width) {
-    // Strip HTML and analyze line lengths
-    const temp = document.createElement('div');
-    temp.innerHTML = text;
-    const plainText = temp.textContent || temp.innerText || '';
-    
-    // Split into sentences/phrases
-    const segments = plainText.split(/[.!?]\s+/).filter(s => s.trim().length > 20);
-    
-    // Estimate average line length
-    const avgSegmentLength = segments.length > 0 
-      ? segments.reduce((sum, seg) => sum + seg.length, 0) / segments.length 
-      : 0;
-    
-    // Calculate approximate lines needed
-    const charsPerLine = width / 8; // Rough estimate
-    const hasLongSegments = segments.some(seg => seg.length > charsPerLine * 1.5);
-    const hasManyShortSegments = segments.filter(seg => seg.length < charsPerLine * 0.5).length > segments.length * 0.5;
-    
-    return {
-      avgSegmentLength,
-      hasLongSegments,
-      hasManyShortSegments,
-      segmentCount: segments.length
-    };
+  // Determine layout type and calculate accordingly
+  if (perHeight[0].name === "main") {
+    // Double-Wrap: main text is smallest
+    return calculateDoubleWrap();
   }
-  
-  // Analyze patterns for layout decision
-  const mainPattern = analyzeTextPattern(mainText, midWidth);
-  const innerPattern = analyzeTextPattern(innerText, sideWidth);
-  const outerPattern = analyzeTextPattern(outerText, sideWidth);
-  
-  console.log('📊 Text pattern analysis:', {
-    main: mainPattern,
-    inner: innerPattern,
-    outer: outerPattern
-  });
-  
-  // Determine layout based on text patterns AND heights
-  let layoutType = 'double-extend'; // default
-  
-  // If main has many short segments and commentaries have long segments, prefer double-wrap
-  if (mainPattern.hasManyShortSegments && (innerPattern.hasLongSegments || outerPattern.hasLongSegments)) {
-    layoutType = 'double-wrap';
+
+  // Try Stairs layout
+  const stairsResult = calculateStairs();
+  if (stairsResult) {
+    return stairsResult;
   }
-  // If one commentary is significantly longer in segments, consider stairs
-  else if (innerPattern.segmentCount > outerPattern.segmentCount * 2 || 
-           outerPattern.segmentCount > innerPattern.segmentCount * 2) {
-    layoutType = 'stairs';
-  }
-  // Also consider height-based logic
-  else if (perHeight[0].name === "main" && main.height < Math.min(inner.height, outer.height) * 0.7) {
-    layoutType = 'double-wrap';
-  }
-  
-  console.log('🎯 Selected layout type:', layoutType);
-  
-  // Apply the selected layout
-  switch (layoutType) {
-    case 'double-wrap':
-      return calculateDoubleWrap();
-    
-    case 'stairs':
-      const stairsResult = calculateStairs();
-      if (stairsResult) {
-        return stairsResult;
-      }
-      // Fall through to double-extend if stairs doesn't work
-    
-    case 'double-extend':
-    default:
-      return calculateDoubleExtend();
-  }
+
+  // Default to Double-Extend
+  return calculateDoubleExtend();
 }
 
 

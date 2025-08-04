@@ -16,8 +16,8 @@ async function getCachedSummary(cacheKey: string): Promise<any | null> {
 	if (isCloudflareWorkers) {
 		try {
 			// Try Cloudflare KV if available
-			if (typeof KV !== 'undefined') {
-				const cached = await KV.get(cacheKey);
+			if (typeof SUMMARIES_KV !== 'undefined') {
+				const cached = await SUMMARIES_KV.get(cacheKey);
 				if (cached) {
 					const parsedCache = JSON.parse(cached);
 					// Check if cache is still valid (24 hours)
@@ -26,7 +26,7 @@ async function getCachedSummary(cacheKey: string): Promise<any | null> {
 						return parsedCache.data;
 					} else {
 						// Remove expired cache
-						await KV.delete(cacheKey);
+						await SUMMARIES_KV.delete(cacheKey);
 					}
 				}
 			}
@@ -55,8 +55,8 @@ async function setCachedSummary(cacheKey: string, data: any): Promise<void> {
 	if (isCloudflareWorkers) {
 		try {
 			// Try Cloudflare KV if available
-			if (typeof KV !== 'undefined') {
-				await KV.put(cacheKey, JSON.stringify(cacheData), {
+			if (typeof SUMMARIES_KV !== 'undefined') {
+				await SUMMARIES_KV.put(cacheKey, JSON.stringify(cacheData), {
 					expirationTtl: Math.floor(CACHE_DURATION / 1000) // KV expects seconds
 				});
 				console.log('💾 Cached to KV:', cacheKey);

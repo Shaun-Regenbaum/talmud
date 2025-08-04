@@ -20,7 +20,7 @@ class OpenRouterTranslator {
 	
 	// Model preferences for translation - using models good at Hebrew
 	private models = {
-		primary: PUBLIC_OPENROUTER_MODEL || 'google/gemini-2.0-flash-exp:free',
+		primary: PUBLIC_OPENROUTER_MODEL || 'anthropic/claude-sonnet-4',
 		fallback: 'openai/gpt-4o-mini',
 		fast: 'google/gemini-2.0-flash-exp:free'
 	};

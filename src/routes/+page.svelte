@@ -150,6 +150,11 @@
 		// Access data properties to make them reactive dependencies
 		const { tractate, page: pageNum, amud } = data;
 		
+		// Only trigger if the data actually changed
+		if (selectedTractate === tractate && selectedPage === pageNum && selectedAmud === amud) {
+			return;
+		}
+		
 		// Update form state when data changes
 		selectedTractate = tractate;
 		selectedPage = pageNum;
@@ -261,6 +266,13 @@
 		const handleMouseUp = (event: MouseEvent) => {
 			const selection = window.getSelection();
 			if (!selection || selection.isCollapsed) {
+				showTranslationPopup = false;
+				return;
+			}
+			
+			// Check if the selection is within the daf container
+			const target = event.target as Element;
+			if (!target.closest('.daf')) {
 				showTranslationPopup = false;
 				return;
 			}

@@ -21,8 +21,8 @@ async function getCachedStories(cacheKey: string, forceRefresh: boolean = false)
 	if (isCloudflareWorkers) {
 		try {
 			// Try Cloudflare KV if available - permanent cache
-			if (typeof KV !== 'undefined') {
-				const cached = await KV.get(cacheKey);
+			if (typeof STORIES_KV !== 'undefined') {
+				const cached = await STORIES_KV.get(cacheKey);
 				if (cached) {
 					const parsedCache = JSON.parse(cached);
 					console.log('📚 Stories cache hit (KV):', cacheKey);
@@ -54,8 +54,8 @@ async function setCachedStories(cacheKey: string, data: any): Promise<void> {
 	if (isCloudflareWorkers) {
 		try {
 			// Try Cloudflare KV if available - permanent cache
-			if (typeof KV !== 'undefined') {
-				await KV.put(cacheKey, JSON.stringify(cacheData)); // No expiration = permanent
+			if (typeof STORIES_KV !== 'undefined') {
+				await STORIES_KV.put(cacheKey, JSON.stringify(cacheData)); // No expiration = permanent
 				console.log('💾 Stories cached to KV (permanent):', cacheKey);
 				return;
 			}
