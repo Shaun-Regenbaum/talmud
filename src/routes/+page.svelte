@@ -42,8 +42,8 @@
 	let summaryError = $state<string | null>(null);
 	let summaryExpanded = $state(false);
 	
-	// Display mode - true for Vilna (traditional), false for Custom (with line breaks)
-	let vilnaMode = $state(false);
+	// Display mode - true for Vilna (with line breaks), false for Custom (traditional)
+	let vilnaMode = $state(data.mode === 'vilna');
 	
 	
 	// Tractate options for the dropdown
