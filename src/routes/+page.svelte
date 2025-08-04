@@ -45,6 +45,21 @@
 	// Display mode - true for Vilna (with line breaks), false for Custom (traditional)
 	let vilnaMode = $state(data.mode === 'vilna');
 	
+	// Update URL when mode changes
+	function updateMode() {
+		const mode = vilnaMode ? 'vilna' : 'custom';
+		const url = new URL(window.location.href);
+		url.searchParams.set('mode', mode);
+		goto(url.toString(), { replaceState: true, noScroll: true });
+	}
+	
+	// Watch for mode changes and update URL
+	$effect(() => {
+		// Skip on initial load
+		if (lastDataKey) {
+			updateMode();
+		}
+	});
 	
 	// Tractate options for the dropdown
 	const tractateOptions = [
@@ -230,7 +245,8 @@
 		const params = new URLSearchParams({
 			tractate: selectedTractate,
 			page: selectedPage,
-			amud: selectedAmud
+			amud: selectedAmud,
+			mode: vilnaMode ? 'vilna' : 'custom'
 		});
 		
 		// Use SvelteKit navigation instead of full page reload
@@ -527,7 +543,7 @@
 					
 					<!-- Story Link -->
 					<a 
-						href="/story?tractate={selectedTractate}&page={selectedPage}&amud={selectedAmud}"
+						href="/story?tractate={selectedTractate}&page={selectedPage}&amud={selectedAmud}&mode={vilnaMode ? 'vilna' : 'custom'}"
 						class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition text-sm font-medium"
 					>
 						📖 Stories
