@@ -8,9 +8,10 @@
 }
 
 /* First word of Gemara - 3-4 lines tall */
-.gemara-first-word {
-  font-size: 3em;
-  line-height: 1;
+.gemara-first-word,
+.main .text span .gemara-first-word {
+  font-size: 3em !important;
+  line-height: 1 !important;
   display: inline-block;
   float: right;
   margin-left: 0.2em;
@@ -18,16 +19,22 @@
 
 /* Rashi headers - bold and increased size */
 .rashi-header,
-.five.rashi-header {
-  font-weight: 600;
-  font-size: 1.1em;
+.five.rashi-header,
+.inner .text span .rashi-header,
+.inner .text span .five.rashi-header,
+.inner .text span.five.rashi-header {
+  font-weight: 600 !important;
+  font-size: 1.1em !important;
 }
 
 /* Tosafot headers - bold and increased size */
 .tosafot-header,
-.shastitle7.tosafot-header {
-  font-weight: 600;
-  font-size: 1.1em;
+.shastitle7.tosafot-header,
+.outer .text span .tosafot-header,
+.outer .text span .shastitle7.tosafot-header,
+.outer .text span.shastitle7.tosafot-header {
+  font-weight: 600 !important;
+  font-size: 1.1em !important;
 }
 
 /* Optional: Highlight on hover for interactive elements */
