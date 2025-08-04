@@ -214,6 +214,22 @@ export default function (el, options = defaultOptions) {
       textSpans.inner.innerHTML = processCommentaryHTML(inner);
       textSpans.outer.innerHTML = processCommentaryHTML(outer);
 
+      // Debug CSS in linebreak mode
+      if (linebreak) {
+        setTimeout(() => {
+          const hasClass = containers.el.classList.contains('linebreak-mode');
+          const mainSpanDisplay = getComputedStyle(textSpans.main).display;
+          const innerSpanDisplay = getComputedStyle(textSpans.inner).display;
+          console.log('🔍 CSS Check:', {
+            rootHasClass: hasClass,
+            mainSpanDisplay,
+            innerSpanDisplay,
+            mainHtmlStart: textSpans.main.innerHTML.substring(0, 100),
+            innerHtmlStart: textSpans.inner.innerHTML.substring(0, 100)
+          });
+        }, 50);
+      }
+
 
       const containerHeight = Math.max(...["main", "inner", "outer"].map(t => containers[t].el.offsetHeight));
       containers.el.style.height = `${containerHeight}px`;
