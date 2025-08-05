@@ -26,7 +26,7 @@ A modern, interactive Talmud study application that enhances traditional text st
 The app includes a HebrewBooks.org scraping service that:
 - Uses Cloudflare Browser Rendering to extract structured text
 - Caches results in KV storage for 7 days
-- Provides API endpoints at `/api/hebrewbooks` and `/api/hebrewbooks-scraper`
+- Provides API endpoint at `/api/daf-supplier` with browser rendering
 - Supports all major Talmud tractates
 
 ### Setup
@@ -53,12 +53,10 @@ The application uses a sophisticated merging strategy to combine data from multi
 
 #### Internal APIs
 - `/api/talmud-merged` - Returns merged content from both Sefaria and HebrewBooks
-- `/api/hebrewbooks` - Local proxy for HebrewBooks data with caching
-- `/api/hebrewbooks-scraper` - Direct browser rendering endpoint
+- `/api/daf-supplier` - Internal HebrewBooks scraping with browser rendering
 
 #### External APIs
 - Sefaria: `https://www.sefaria.org/api/texts/{tractate}.{daf}`
-- Daf-Supplier Worker: `https://daf-supplier.402.workers.dev/`
 
 ### Daf Number Conversion
 **Important**: HebrewBooks and Sefaria use different daf numbering:
