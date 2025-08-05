@@ -133,11 +133,14 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 			console.log('New page created');
 			
 			// Convert daf-supplier format back to HebrewBooks format
-			// daf-supplier: 3->2a, 4->2b, 5->3a, 6->3b
-			// HebrewBooks expects: "2", "2b", "3", "3b"
-			const pageNum = Math.ceil(parseInt(daf) / 2);
-			const amud = parseInt(daf) % 2 === 0 ? 'b' : 'a';
+			// Fix: daf-supplier uses X*2 for Xa and X*2+1 for Xb
+			// So daf=46 should be 23a (not 23b)
+			const dafNum = parseInt(daf);
+			const pageNum = Math.floor(dafNum / 2);
+			const amud = dafNum % 2 === 0 ? 'a' : 'b';
 			const hebrewBooksDaf = amud === 'a' ? pageNum.toString() : `${pageNum}b`;
+			
+			console.log(`Converting daf-supplier ${daf} -> HebrewBooks page ${pageNum}${amud} -> URL param ${hebrewBooksDaf}`);
 			
 			const targetUrl = `https://www.hebrewbooks.org/shas.aspx?mesechta=${mesechta}&daf=${hebrewBooksDaf}&format=text`;
 			console.log('Navigating to:', targetUrl);
@@ -152,6 +155,15 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 				console.log('Page loaded, extracting content from shastext divs...');
 			} catch (waitError) {
 				console.log('Shastext elements not found, will try body extraction fallback');
+				
+				// Debug: Check what's actually on the page
+				const pageContent = await page.content();
+				console.log('Page title:', await page.title());
+				console.log('Page URL:', page.url());
+				console.log('Page contains shastext:', pageContent.includes('shastext'));
+				console.log('Page contains fieldset:', pageContent.includes('fieldset'));
+				console.log('Page length:', pageContent.length);
+				console.log('First 1000 chars of page:', pageContent.substring(0, 1000));
 			}
 
 			// Extract text content from the HebrewBooks structure
@@ -219,6 +231,20 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 					data.mainText = rawHTML;
 					console.log('First shastext HTML length after cleaning:', data.mainText.length);
 					console.log('First shastext first 500 chars:', data.mainText.substring(0, 500));
+				} else {
+					// If no shastext elements found, try to extract any text content from the page body
+					console.log('No shastext elements found, trying to extract from page body...');
+					const bodyText = document.body ? document.body.innerText : '';
+					console.log('Body text length:', bodyText.length);
+					console.log('Body text first 500 chars:', bodyText.substring(0, 500));
+					
+					// Only use body text if it contains Hebrew characters and has substantial content
+					if (bodyText.length > 100 && /[\u0590-\u05FF]/.test(bodyText)) {
+						data.mainText = bodyText;
+						console.log('Using body text as main text');
+					} else {
+						console.log('Body text insufficient, no Hebrew content found');
+					}
 				}
 
 				// Extract from second available shastext (typically Rashi) - preserve ALL HTML
@@ -255,8 +281,14 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 	// Fallback to regular HTTP fetch if browser rendering fails or is unavailable
 	if (!pageData) {
 		try {
-			// HebrewBooks uses a mix of numbers and b for 2nd page - so "2", "2b", "3", "3b"
-			const targetUrl = `https://www.hebrewbooks.org/shas.aspx?mesechta=${mesechta}&daf=${daf}&format=text`;
+			// Convert daf-supplier format to HebrewBooks format (same logic as browser version)
+			const dafNum = parseInt(daf);
+			const pageNum = Math.floor(dafNum / 2);
+			const amud = dafNum % 2 === 0 ? 'a' : 'b';
+			const hebrewBooksDaf = amud === 'a' ? pageNum.toString() : `${pageNum}b`;
+			
+			console.log(`HTTP fallback: Converting daf-supplier ${daf} -> HebrewBooks page ${pageNum}${amud} -> URL param ${hebrewBooksDaf}`);
+			const targetUrl = `https://www.hebrewbooks.org/shas.aspx?mesechta=${mesechta}&daf=${hebrewBooksDaf}&format=text`;
 			console.log('HTTP fetch fallback, URL:', targetUrl);
 			const response = await fetch(targetUrl, {
 				headers: {
