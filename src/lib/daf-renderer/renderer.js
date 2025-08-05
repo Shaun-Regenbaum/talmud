@@ -1,10 +1,29 @@
+/**
+ * @fileoverview Daf Renderer - Core rendering engine for Talmud pages
+ * 
+ * This module creates and manages the layout of a traditional Talmud page (daf) with:
+ * - Main text (Gemara) in the center
+ * - Inner commentary (Rashi) on one side
+ * - Outer commentary (Tosafot) on the other side
+ * - Dynamic spacer calculations to align text properly
+ * 
+ * The renderer handles responsive sizing, RTL text flow, and maintains the
+ * traditional visual hierarchy of Talmudic texts.
+ */
+
 import {defaultOptions, mergeAndClone} from "./options";
 import calculateSpacers from "./calculate-spacers";
 import styleManager from "./style-manager";
 import { LAYOUT_CONSTANTS, RESIZE_DEBOUNCE_DELAY } from "./constants";
 import { debounce, createDiv as div, createSpan as span } from "./utils";
 
-
+/**
+ * Creates a new daf renderer instance
+ * @param {HTMLElement|string} el - The container element or its CSS selector
+ * @param {Object} options - Configuration options (see options.js for defaults)
+ * @returns {Object} Renderer object with render and destroy methods
+ * @throws {Error} If element is not a valid DIV element
+ */
 export default function (el, options = defaultOptions) {
   const root = (typeof el === "string") ? document.querySelector(el) : el;
   if (!(root && root instanceof Element && root.tagName.toUpperCase() === "DIV")) {
@@ -68,6 +87,16 @@ export default function (el, options = defaultOptions) {
       end: 0
     },
     amud: LAYOUT_CONSTANTS.DEFAULT_AMUD,
+    /**
+     * Renders Talmud text with proper layout
+     * @param {string} main - HTML content for main Gemara text
+     * @param {string} inner - HTML content for inner commentary (Rashi)
+     * @param {string} outer - HTML content for outer commentary (Tosafot)
+     * @param {string} amud - Side of the page ('a' or 'b')
+     * @param {boolean} linebreak - Whether to preserve line breaks from source
+     * @param {Function} renderCallback - Called after rendering completes
+     * @param {Function} resizeCallback - Called after resize recalculation
+     */
     render(main, inner, outer, amud = "a", linebreak, renderCallback, resizeCallback) {
       try {
         if (resizeEvent) {
