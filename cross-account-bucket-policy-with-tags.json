@@ -1,0 +1,44 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "CrossAccountListBucket",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::692618690598:user/sst-user"
+            },
+            "Action": [
+                "s3:ListBucket",
+                "s3:GetBucketLocation"
+            ],
+            "Resource": "arn:aws:s3:::illumina-basespace-td",
+            "Condition": {
+                "StringLike": {
+                    "s3:prefix": [
+                        "TD_L3_2_462861449/*",
+                        "TD_L3_3_462861450/*",
+                        "TD_L3_462861448/*"
+                    ]
+                }
+            }
+        },
+        {
+            "Sid": "CrossAccountGetObject",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::692618690598:user/sst-user"
+            },
+            "Action": [
+                "s3:GetObject",
+                "s3:GetObjectVersion",
+                "s3:GetObjectAcl",
+                "s3:GetObjectTagging"
+            ],
+            "Resource": [
+                "arn:aws:s3:::illumina-basespace-td/TD_L3_2_462861449/*",
+                "arn:aws:s3:::illumina-basespace-td/TD_L3_3_462861450/*",
+                "arn:aws:s3:::illumina-basespace-td/TD_L3_462861448/*"
+            ]
+        }
+    ]
+}

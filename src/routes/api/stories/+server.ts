@@ -1,7 +1,8 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { openRouterTranslator } from '$lib/openrouter-translator';
-import { PUBLIC_OPENROUTER_API_KEY } from '$env/static/public';
+// In Cloudflare Workers, env vars are only available at runtime through platform.env
+// import { PUBLIC_OPENROUTER_API_KEY } from '$env/static/public';
 import { TRACTATE_IDS, convertDafToHebrewBooksFormat } from '$lib/hebrewbooks';
 
 // Check if we're in Cloudflare Workers environment
@@ -243,7 +244,7 @@ Start directly with the character profiles.`
 					const result = await fetch('https://openrouter.ai/api/v1/chat/completions', {
 						method: 'POST',
 						headers: {
-							'Authorization': `Bearer ${platform?.env?.PUBLIC_OPENROUTER_API_KEY || PUBLIC_OPENROUTER_API_KEY || ''}`,
+							'Authorization': `Bearer ${platform?.env?.PUBLIC_OPENROUTER_API_KEY || ''}`,
 							'Content-Type': 'application/json',
 							'HTTP-Referer': 'https://talmud.app',
 							'X-Title': 'Talmud Study App - Stories'
@@ -450,7 +451,7 @@ Begin with the character profiles immediately.`
 					const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
 						method: 'POST',
 						headers: {
-							'Authorization': `Bearer ${platform?.env?.PUBLIC_OPENROUTER_API_KEY || PUBLIC_OPENROUTER_API_KEY}`,
+							'Authorization': `Bearer ${platform?.env?.PUBLIC_OPENROUTER_API_KEY || ''}`,
 							'Content-Type': 'application/json',
 							'HTTP-Referer': 'https://talmud.app',
 							'X-Title': 'Talmud Study App - Stories'

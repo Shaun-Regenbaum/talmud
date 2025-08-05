@@ -2,7 +2,8 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { openRouterTranslator } from '$lib/openrouter-translator';
 import { TRACTATE_IDS, convertDafToHebrewBooksFormat } from '$lib/hebrewbooks';
-import { PUBLIC_OPENROUTER_API_KEY } from '$env/static/public';
+// In Cloudflare Workers, env vars are only available at runtime through platform.env
+// import { PUBLIC_OPENROUTER_API_KEY } from '$env/static/public';
 
 // Check if we're in Cloudflare Workers environment
 // This will be checked at runtime in the request handler
@@ -97,7 +98,7 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 
 		// Generate new summary if not cached
 		// Get API key from platform.env (Cloudflare Workers) or import (local dev)
-		const openRouterApiKey = platform?.env?.PUBLIC_OPENROUTER_API_KEY || PUBLIC_OPENROUTER_API_KEY;
+		const openRouterApiKey = platform?.env?.PUBLIC_OPENROUTER_API_KEY;
 		console.log('API Key available:', !!openRouterApiKey, 'Length:', openRouterApiKey?.length);
 		if (!openRouterApiKey) {
 			return json({ error: 'OpenRouter API not configured' }, { status: 503 });
@@ -254,7 +255,7 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 		}
 		
 		// Get API key
-		const openRouterApiKey = platform?.env?.PUBLIC_OPENROUTER_API_KEY || PUBLIC_OPENROUTER_API_KEY;
+		const openRouterApiKey = platform?.env?.PUBLIC_OPENROUTER_API_KEY;
 		if (!openRouterApiKey) {
 			return json({ error: 'OpenRouter API not configured' }, { status: 503 });
 		}
