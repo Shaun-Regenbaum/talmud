@@ -16,7 +16,7 @@
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { TRACTATE_IDS } from '$lib/hebrewbooks';
+import { TRACTATE_IDS } from '$lib/api/hebrewbooks';
 
 /** Map mesechta ID numbers to tractate names */
 const MESECHTA_MAP: Record<string, string> = {

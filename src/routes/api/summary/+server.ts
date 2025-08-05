@@ -14,7 +14,7 @@
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { TRACTATE_IDS, convertDafToHebrewBooksFormat } from '$lib/hebrewbooks';
+import { TRACTATE_IDS, convertDafToHebrewBooksFormat } from '$lib/api/hebrewbooks';
 
 /** Cache duration for summaries */
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds

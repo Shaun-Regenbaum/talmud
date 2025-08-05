@@ -1,6 +1,6 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
-  import { getCommentaryLinks } from '$lib/sefaria-links';
+  import { getCommentaryLinks } from '$lib/utils/sefaria-links';
   
   export let dafContainer = null;
   export let sefariaData = null;
