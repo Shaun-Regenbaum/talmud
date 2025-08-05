@@ -148,14 +148,14 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 			console.log('New page created');
 			
 			// Convert daf-supplier format back to HebrewBooks format
-			// Fix: daf-supplier uses X*2 for Xa and X*2+1 for Xb
-			// So daf=46 should be 23a (not 23b)
+			// daf-supplier: 2a=2, 2b=3, 3a=4, 3b=5, etc.
+			// HebrewBooks: 2a=2, 2b=2b, 3a=3, 3b=3b, etc.
 			const dafNum = parseInt(daf);
 			const pageNum = Math.floor(dafNum / 2);
 			const amud = dafNum % 2 === 0 ? 'a' : 'b';
 			const hebrewBooksDaf = amud === 'a' ? pageNum.toString() : `${pageNum}b`;
 			
-			console.log(`Converting daf-supplier ${daf} -> HebrewBooks page ${pageNum}${amud} -> URL param ${hebrewBooksDaf}`);
+			console.log(`Converting daf-supplier ${daf} -> HebrewBooks daf ${hebrewBooksDaf}`);
 			
 			const targetUrl = `https://www.hebrewbooks.org/shas.aspx?mesechta=${mesechta}&daf=${hebrewBooksDaf}&format=text`;
 			console.log('Navigating to:', targetUrl);
@@ -340,7 +340,7 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 				const amud = dafNum % 2 === 0 ? 'a' : 'b';
 				const hebrewBooksDaf = amud === 'a' ? pageNum.toString() : `${pageNum}b`;
 				
-				console.log(`Original method: Converting daf-supplier ${daf} -> HebrewBooks page ${pageNum}${amud} -> URL param ${hebrewBooksDaf}`);
+				console.log(`Original method: Converting daf-supplier ${daf} -> HebrewBooks daf ${hebrewBooksDaf}`);
 				
 				const targetUrl = `https://www.hebrewbooks.org/shas.aspx?mesechta=${mesechta}&daf=${hebrewBooksDaf}&format=text`;
 				console.log('Original method navigating to:', targetUrl);
@@ -455,168 +455,18 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 		console.log('Browser binding not available');
 	}
 	
-	// Fallback to regular HTTP fetch if browser rendering fails or is unavailable
+	// If browser rendering failed or is unavailable, return error
 	if (!pageData) {
-		try {
-			// Convert daf-supplier format to HebrewBooks format (same logic as browser version)
-			const dafNum = parseInt(daf);
-			const pageNum = Math.floor(dafNum / 2);
-			const amud = dafNum % 2 === 0 ? 'a' : 'b';
-			const hebrewBooksDaf = amud === 'a' ? pageNum.toString() : `${pageNum}b`;
-			
-			console.log(`HTTP fallback: Converting daf-supplier ${daf} -> HebrewBooks page ${pageNum}${amud} -> URL param ${hebrewBooksDaf}`);
-			const targetUrl = `https://www.hebrewbooks.org/shas.aspx?mesechta=${mesechta}&daf=${hebrewBooksDaf}&format=text`;
-			console.log('HTTP fetch fallback, URL:', targetUrl);
-			const response = await fetch(targetUrl, {
-				headers: {
-					'User-Agent': 'Mozilla/5.0 (compatible; DafSupplier/1.0)',
-					'Accept': 'text/html,application/xhtml+xml',
-				}
-			});
-
-			if (!response.ok) {
-				throw new Error(`HTTP ${response.status}`);
+		console.error('Browser rendering failed and HTTP fallback removed');
+		return json({ 
+			error: 'Browser rendering failed', 
+			message: 'HebrewBooks scraping requires browser rendering which is currently unavailable',
+			details: {
+				browserAvailable: !!platform?.env?.BROWSER,
+				tractate: MESECHTA_MAP[mesechta] || `Tractate-${mesechta}`,
+				requestedDaf: daf
 			}
-
-			const html = await response.text();
-			
-			// Simple text extraction without DOM
-			const cleanText = (text) => text ? text.trim() : '';
-			
-			pageData = {
-				mainText: '',
-				rashi: '',
-				tosafot: '',
-				otherCommentaries: {}
-			};
-
-			// Remove scripts and styles first
-			const cleanHtml = html
-				.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-				.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
-			
-			console.log('HTTP fallback - looking for shastext elements in HTML...');
-			
-			// First try to extract from shastext elements in the HTML - preserve HTML structure
-			const shastextMatches = [];
-			
-			// Find all shastext divs first
-			const allShastextPositions = [];
-			for (let i = 2; i <= 10; i++) {
-				const pattern = new RegExp(`<div[^>]*class="shastext${i}"[^>]*>`, 'gi');
-				let match;
-				while ((match = pattern.exec(cleanHtml)) !== null) {
-					allShastextPositions.push({
-						num: i,
-						start: match.index,
-						startTag: match[0],
-						startContent: match.index + match[0].length
-					});
-				}
-			}
-			
-			// Sort by position
-			allShastextPositions.sort((a, b) => a.start - b.start);
-			
-			// Extract content for each shastext
-			for (let i = 0; i < allShastextPositions.length; i++) {
-				const current = allShastextPositions[i];
-				let endPos;
-				
-				if (i < allShastextPositions.length - 1) {
-					endPos = allShastextPositions[i + 1].start;
-				} else {
-					const fieldsetClosePos = cleanHtml.indexOf('</fieldset>', current.startContent);
-					endPos = fieldsetClosePos !== -1 ? fieldsetClosePos : cleanHtml.length;
-				}
-				
-				// Extract the content - preserve all text within proper boundaries
-				let content = cleanHtml.substring(current.startContent, endPos);
-				
-				// Find the proper closing </div> for this shastext element
-				let divDepth = 1;
-				let pos = 0;
-				while (pos < content.length && divDepth > 0) {
-					const nextOpenDiv = content.indexOf('<div', pos);
-					const nextCloseDiv = content.indexOf('</div>', pos);
-					
-					if (nextCloseDiv === -1) break;
-					
-					if (nextOpenDiv === -1 || nextCloseDiv < nextOpenDiv) {
-						divDepth--;
-						pos = nextCloseDiv + 6;
-						if (divDepth === 0) {
-							content = content.substring(0, nextCloseDiv);
-							break;
-						}
-					} else {
-						divDepth++;
-						pos = nextOpenDiv + 4;
-					}
-				}
-				
-				shastextMatches.push([current.startTag + content + '</div>', content]);
-				console.log(`shastext${current.num} found with ${content.length} chars`);
-			}
-			
-			console.log('Total shastext elements found in HTML:', shastextMatches.length);
-			
-			// Process the first available shastext as Gemara
-			if (shastextMatches[0]) {
-				let rawHTML = shastextMatches[0][1];
-				console.log('Raw Gemara HTML length before cleaning:', rawHTML.length);
-				
-				// Decode HTML entities but preserve tags and newlines
-				pageData.mainText = rawHTML
-					.replace(/&nbsp;/g, ' ')
-					.replace(/&amp;/g, '&')
-					.replace(/&lt;/g, '<')
-					.replace(/&gt;/g, '>')
-					.replace(/&quot;/g, '"')
-					.replace(/&#039;/g, "'")
-					.trim();
-				
-				console.log('First shastext HTML extracted length:', pageData.mainText.length);
-				console.log('First shastext first 500 chars:', pageData.mainText.substring(0, 500));
-			}
-			
-			// Process the second available shastext as Rashi - DO NOT CUT ANY CONTENT
-			if (shastextMatches[1]) {
-				// Preserve ALL HTML and decode entities
-				pageData.rashi = shastextMatches[1][1]
-					.replace(/&nbsp;/g, ' ')
-					.replace(/&amp;/g, '&')
-					.replace(/&lt;/g, '<')
-					.replace(/&gt;/g, '>')
-					.replace(/&quot;/g, '"')
-					.replace(/&#039;/g, "'")
-					.trim();
-				console.log('Second shastext (Rashi) HTML extracted length:', pageData.rashi.length);
-			}
-			
-			// Process the third available shastext as Tosafot - DO NOT CUT ANY CONTENT
-			if (shastextMatches[2]) {
-				// Preserve ALL HTML and decode entities
-				pageData.tosafot = shastextMatches[2][1]
-					.replace(/&nbsp;/g, ' ')
-					.replace(/&amp;/g, '&')
-					.replace(/&lt;/g, '<')
-					.replace(/&gt;/g, '>')
-					.replace(/&quot;/g, '"')
-					.replace(/&#039;/g, "'")
-					.trim();
-				console.log('Third shastext (Tosafot) HTML extracted length:', pageData.tosafot.length);
-			}
-			
-		} catch (fetchError) {
-			console.error('HTTP fetch failed:', fetchError);
-			
-			// Return error if both methods fail
-			return json({ 
-				error: 'Failed to fetch from HebrewBooks', 
-				details: fetchError.message 
-			}, { status: 500 });
-		}
+		}, { status: 503 });
 	}
 
 	try {
@@ -688,7 +538,7 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 				],
 				details: {
 					tractate: TRACTATE_NAMES[mesechta] || `Tractate-${mesechta}`,
-					requestedPage: `${Math.ceil(parseInt(daf) / 2)}${parseInt(daf) % 2 === 0 ? 'b' : 'a'}`,
+					requestedPage: `${Math.floor(parseInt(daf) / 2)}${parseInt(daf) % 2 === 0 ? 'a' : 'b'}`,
 					cacheChecked: true,
 					browserMethodsTried: ['puppeteer.launch', 'platform.env.BROWSER.launch'],
 					timestamp: Date.now()
@@ -697,11 +547,15 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 		}
 
 		// Prepare response data
+		const dafNum = parseInt(daf);
+		const pageNum = Math.floor(dafNum / 2);
+		const amud = dafNum % 2 === 0 ? 'a' : 'b';
+		
 		const responseData = {
 			mesechta: parseInt(mesechta),
-			daf: parseInt(daf),
-			dafDisplay: Math.ceil(parseInt(daf) / 2).toString(),
-			amud: parseInt(daf) % 2 === 0 ? 'b' : 'a',
+			daf: dafNum,
+			dafDisplay: pageNum.toString(),
+			amud: amud,
 			tractate: TRACTATE_NAMES[mesechta] || `Tractate-${mesechta}`,
 			mainText: formatText(pageData.mainText),
 			rashi: formatText(pageData.rashi),

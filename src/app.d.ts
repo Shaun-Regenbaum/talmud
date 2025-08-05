@@ -6,7 +6,7 @@ declare global {
 	const HEBREWBOOKS_KV: KVNamespace;
 	const STORIES_KV: KVNamespace;
 	const SUMMARIES_KV: KVNamespace;
-	const BROWSER: Browser;
+	const BROWSER: Fetcher;
 	namespace App {
 		// interface Error {}
 		// interface Locals {}
@@ -16,7 +16,7 @@ declare global {
 				HEBREWBOOKS_KV: KVNamespace;
 				STORIES_KV: KVNamespace;
 				SUMMARIES_KV: KVNamespace;
-				BROWSER: Browser;
+				BROWSER: Fetcher;
 			};
 			context: {
 				waitUntil(promise: Promise<any>): void;
