@@ -113,12 +113,6 @@
 		const pageData = $currentPage;
 		const loading = $isLoading;
 		
-		console.log('📊 Render effect triggered:', { 
-			hasPageData: !!pageData, 
-			loading, 
-			hasContainer: !!dafContainer,
-			pageInfo: pageData ? `${pageData.tractate} ${pageData.daf}${pageData.amud}` : 'none'
-		});
 		
 		if (loading || !pageData || !dafContainer) {
 			return;
@@ -139,41 +133,22 @@
 		setTimeout(() => {
 			// Initialize renderer container only once
 			if (dafContainer) {
-				console.log('🚀 Setting up renderer container');
 				rendererStore.initialize(dafContainer);
 			}
 			
 			// Use advanced text processor for proper styling
-			console.log('📝 Pre-processing texts:', {
-				mainHasBr: (pageData.mainText || '').includes('<br>'),
-				rashiHasBr: (pageData.rashi || '').includes('<br>'),
-				tosafotHasBr: (pageData.tosafot || '').includes('<br>'),
-				mainSample: (pageData.mainText || '').substring(0, 200)
-			});
 			
 			const { mainHTML, rashiHTML, tosafotHTML } = processTextsForRenderer(
 				pageData.mainText || '',
 				pageData.rashi || '',
 				pageData.tosafot || ''
 			);
-			
-			console.log('📝 Post-processing texts:', {
-				mainHasBr: mainHTML.includes('<br>'),
-				rashiHasBr: rashiHTML.includes('<br>'),
-				tosafotHasBr: tosafotHTML.includes('<br>'),
-				mainSample: mainHTML.substring(0, 200),
-				rashiLength: rashiHTML.length,
-				tosafotLength: tosafotHTML.length,
-				rashiSample: rashiHTML.substring(0, 200),
-				tosafotSample: tosafotHTML.substring(0, 200)
-			});
 			const pageLabel = (pageData.daf + pageData.amud).replace('a', 'א').replace('b', 'ב');
 			
 			
 			// Small delay to ensure renderer is ready
 			setTimeout(() => {
 				try {
-					console.log('🎨 Rendering with mode:', { vilnaMode, pageLabel, hasBrTags: mainHTML.includes('<br>') });
 					// Pass vilnaMode as lineBreakMode (Vilna uses line breaks, custom doesn't)
 					rendererStore.render(mainHTML, rashiHTML, tosafotHTML, pageLabel, vilnaMode);
 					

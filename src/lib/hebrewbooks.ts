@@ -72,7 +72,6 @@ export function convertDafToHebrewBooksFormat(daf: string): string {
   const amud = daf.includes('b') ? 'b' : 'a';
   
   const dafSupplierNum = amud === 'a' ? (pageNum * 2) : (pageNum * 2 + 1);
-  console.log(`[convertDafToHebrewBooksFormat v4] Converting ${daf} to ${dafSupplierNum} (page ${pageNum}${amud})`);
   return dafSupplierNum.toString();
 }
 

@@ -1,10 +1,21 @@
-// Utility functions for daf-renderer
+/**
+ * @fileoverview Utility Functions for Daf Renderer
+ * 
+ * This module provides common utility functions used throughout the daf renderer,
+ * including DOM manipulation helpers and performance optimization utilities.
+ */
 
 /**
  * Debounce function to limit how often a function can be called
+ * Used primarily for resize event handlers to improve performance
+ * 
  * @param {Function} func - The function to debounce
  * @param {number} wait - The debounce delay in milliseconds
  * @returns {Function} The debounced function
+ * 
+ * @example
+ * const debouncedResize = debounce(handleResize, 100);
+ * window.addEventListener('resize', debouncedResize);
  */
 export function debounce(func, wait) {
   let timeout;

@@ -22,7 +22,7 @@
     "tailwindcss": "^4.1.11",
     "typescript": "^5.7.3",
     "vite": "^6.0.7",
-    "wrangler": "^3.114.12"
+    "wrangler": "^4.28.0"
   },
   "dependencies": {
     "@types/marked": "^6.0.0",
