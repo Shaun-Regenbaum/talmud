@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { openRouterTranslator } from '$lib/openrouter-translator';
-	import { renderMarkdown } from '$lib/markdown';
+	import { openRouterTranslator } from '$lib/api/openrouter-translator';
+	import { renderMarkdown } from '$lib/utils/markdown';
 
 	// Get data from load function
 	let { data } = $props();

@@ -5,9 +5,9 @@
 	import { rendererStore } from '$lib/stores/renderer';
 	import TranslationPopup from '$lib/components/TranslationPopup.svelte';
 	import Toggle from '$lib/components/Toggle.svelte';
-	import { openRouterTranslator } from '$lib/openrouter-translator';
-	import { renderMarkdown } from '$lib/markdown';
-	import { processTextsForRenderer } from '$lib/text-processor';
+	import { openRouterTranslator } from '$lib/api/openrouter-translator';
+	import { renderMarkdown } from '$lib/utils/markdown';
+	import { processTextsForRenderer } from '$lib/utils/text-processor';
 	import '$lib/styles/talmud-text.css';
 	import '$lib/styles/daf-renderer-enhancements.css';
 	

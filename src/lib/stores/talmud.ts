@@ -16,8 +16,8 @@
  */
 
 import { writable, derived, get } from 'svelte/store';
-import { TRACTATE_IDS, convertDafToHebrewBooksFormat } from '$lib/hebrewbooks';
-import type { HebrewBooksPage } from '$lib/hebrewbooks';
+import { TRACTATE_IDS, convertDafToHebrewBooksFormat } from '$lib/api/hebrewbooks';
+import type { HebrewBooksPage } from '$lib/api/hebrewbooks';
 
 /**
  * State shape for the Talmud page store

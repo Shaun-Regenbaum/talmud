@@ -18,8 +18,8 @@
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { openRouterTranslator } from '$lib/openrouter-translator';
-import { TRACTATE_IDS, convertDafToHebrewBooksFormat } from '$lib/hebrewbooks';
+import { openRouterTranslator } from '$lib/api/openrouter-translator';
+import { TRACTATE_IDS, convertDafToHebrewBooksFormat } from '$lib/api/hebrewbooks';
 
 /** Cache key prefix for KV storage */
 const CACHE_PREFIX = 'talmud-stories:';
