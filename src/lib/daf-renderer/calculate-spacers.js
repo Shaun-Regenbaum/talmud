@@ -1,3 +1,17 @@
+/**
+ * @fileoverview Spacer Calculation Engine for Daf Renderer
+ * 
+ * This module calculates the precise vertical spacing (spacers) needed to properly
+ * align Talmud text in the traditional layout. It handles three main layout types:
+ * 
+ * 1. Double-Wrap: Main text is smallest, commentaries wrap around it
+ * 2. Stairs: Main text is middle-sized, creating a stair-step effect
+ * 3. Double-Extend: Main text is largest, extends past both commentaries
+ * 
+ * The algorithm measures text areas and calculates optimal spacer heights to
+ * maintain visual balance and readability.
+ */
+
 import { LAYOUT_CONSTANTS } from './constants.js';
 
 /**
@@ -83,6 +97,27 @@ function calculateLayoutDimensions(parsedOptions) {
   };
 }
 
+/**
+ * Calculates optimal spacer heights for Talmud page layout
+ * 
+ * @param {string} mainText - HTML content for main Gemara text
+ * @param {string} innerText - HTML content for inner commentary (Rashi)
+ * @param {string} outerText - HTML content for outer commentary (Tosafot)
+ * @param {Object} options - Layout options from daf-renderer
+ * @param {HTMLElement} dummy - Hidden element for text measurement
+ * @returns {Object} Spacer heights object with start, inner, outer, end values
+ * @returns {Error} Error object if calculation fails
+ * 
+ * @example
+ * const spacers = calculateSpacers(
+ *   "<span>גמרא טקסט</span>",
+ *   "<span>רש״י</span>",
+ *   "<span>תוספות</span>",
+ *   options,
+ *   dummyElement
+ * );
+ * // Returns: { start: 20, inner: 150, outer: 200, end: 50 }
+ */
 function calculateSpacers(mainText, innerText, outerText, options, dummy) {
   
   const parsedOptions = parseOptions(options);

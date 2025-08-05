@@ -218,6 +218,10 @@ export default function (el, options = defaultOptions) {
       }
     },
     
+    /**
+     * Checks for excessive spacing issues after rendering
+     * Stores spacing analysis in this.spacingIssues for debugging
+     */
     checkExcessiveSpacing() {
       // Get actual content heights
       const mainTextHeight = textSpans.main.offsetHeight;
@@ -276,7 +280,10 @@ export default function (el, options = defaultOptions) {
       }
     },
     
-    // Cleanup method to remove event listeners and clear DOM
+    /**
+     * Cleanup method to remove event listeners and clear DOM
+     * Should be called when renderer is no longer needed
+     */
     destroy() {
       // Remove resize event listener
       if (resizeEvent) {

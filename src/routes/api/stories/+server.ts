@@ -16,7 +16,6 @@ const memoryCache = new Map<string, { data: any; timestamp: number }>();
 
 async function getCachedStories(cacheKey: string, forceRefresh: boolean = false, platform?: any): Promise<any | null> {
 	if (forceRefresh) {
-		console.log('🔄 Force refresh requested, skipping cache:', cacheKey);
 		return null;
 	}
 
@@ -27,23 +26,20 @@ async function getCachedStories(cacheKey: string, forceRefresh: boolean = false,
 				const cached = await STORIES_KV.get(cacheKey);
 				if (cached) {
 					const parsedCache = JSON.parse(cached);
-					console.log('📚 Stories cache hit (KV):', cacheKey);
 					return parsedCache.data;
 				}
 			}
 		} catch (error) {
-			console.warn('KV stories cache read failed:', error);
+			// Silently fail and try memory cache
 		}
 	}
 	
 	// Fallback to memory cache - permanent cache
 	const cached = memoryCache.get(cacheKey);
 	if (cached) {
-		console.log('📚 Stories cache hit (memory):', cacheKey);
 		return cached.data;
 	}
 	
-	console.log('🔍 Stories cache miss:', cacheKey);
 	return null;
 }
 
@@ -58,17 +54,15 @@ async function setCachedStories(cacheKey: string, data: any, platform?: any): Pr
 			// Try Cloudflare KV if available - permanent cache
 			if (typeof STORIES_KV !== 'undefined') {
 				await STORIES_KV.put(cacheKey, JSON.stringify(cacheData)); // No expiration = permanent
-				console.log('💾 Stories cached to KV (permanent):', cacheKey);
 				return;
 			}
 		} catch (error) {
-			console.warn('KV stories cache write failed:', error);
+			// Silently handle KV cache write errors
 		}
 	}
 	
 	// Fallback to memory cache
 	memoryCache.set(cacheKey, cacheData);
-	console.log('💾 Stories cached to memory (permanent):', cacheKey);
 }
 
 export const GET: RequestHandler = async ({ url, fetch, platform }) => {
@@ -109,35 +103,60 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 			return json({ error: `Unknown tractate: ${tractate}` }, { status: 400 });
 		}
 		
-		// Always return requiresClientFetch to avoid inter-worker request issues
-		// The client will fetch from daf-supplier and POST back with content
-		const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
-		return json({
-			requiresClientFetch: true,
-			dafSupplierUrl,
-			tractate,
-			page,
-			amud,
-			message: 'Client should fetch from dafSupplierUrl and POST the data back'
-		});
+		let mainText = '';
+		let rashiText = '';
+		let tosafotText = '';
 		
-		/* Development code - disabled for now
-		// Check if we're in development environment
-		const isDevEnv = platform?.env === undefined;
-		if (isDevEnv) {
-			// In development, fetch directly
-			const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
-			const talmudResponse = await fetch(dafSupplierUrl);
-			
-			if (!talmudResponse.ok) {
-				throw new Error(`Failed to fetch Talmud data: ${talmudResponse.status}`);
+		// In production, we can now use our internal daf-supplier
+		// Check if we're in Cloudflare Workers environment
+		const isCloudflareWorkers = platform?.env !== undefined;
+		
+		if (isCloudflareWorkers) {
+			// Use internal daf-supplier endpoint
+			try {
+				const internalUrl = new URL('/api/daf-supplier', url.origin);
+				internalUrl.searchParams.set('mesechta', mesechtaId);
+				internalUrl.searchParams.set('daf', dafForAPI.toString());
+				internalUrl.searchParams.set('br', 'true');
+				
+				const dafResponse = await fetch(internalUrl.toString());
+				if (!dafResponse.ok) {
+					throw new Error(`Failed to fetch from internal daf-supplier: ${dafResponse.status}`);
+				}
+				
+				const dafData = await dafResponse.json();
+				mainText = dafData.mainText;
+				rashiText = dafData.rashi;
+				tosafotText = dafData.tosafot;
+				
+				// Continue with story generation below
+			} catch (error) {
+				console.error('Error fetching from internal daf-supplier:', error);
+				// Fall back to external URL for client fetch
+				const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
+				return json({
+					requiresClientFetch: true,
+					dafSupplierUrl,
+					tractate,
+					page,
+					amud,
+					message: 'Client should fetch from dafSupplierUrl and POST the data back'
+				});
 			}
-
-			const talmudData = await talmudResponse.json();
-			const mainText = talmudData.mainText || '';
-			const rashiText = talmudData.rashi || '';
-			const tosafotText = talmudData.tosafot || '';
+		} else {
+			// In development, return URL for client to fetch
+			const dafSupplierUrl = `/api/daf-supplier?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
+			return json({
+				requiresClientFetch: true,
+				dafSupplierUrl,
+				tractate,
+				page,
+				amud,
+				message: 'Client should fetch from dafSupplierUrl and POST the data back'
+			});
+		}
 		
+		// Check if we have enough content to generate stories
 		if (!mainText || mainText.length < 100) {
 			return json({ error: 'Insufficient content for story generation' }, { status: 400 });
 		}
@@ -240,11 +259,17 @@ Start directly with the character profiles.`
 				try {
 					console.log(`📝 Generating ${type} story...`);
 					
+					// Get API key from platform.env (Cloudflare Workers runtime)
+					const openRouterApiKey = platform?.env?.PUBLIC_OPENROUTER_API_KEY;
+					if (!openRouterApiKey) {
+						throw new Error('OpenRouter API key not configured');
+					}
+					
 					// Use Claude Sonnet 4 for highest quality stories
 					const result = await fetch('https://openrouter.ai/api/v1/chat/completions', {
 						method: 'POST',
 						headers: {
-							'Authorization': `Bearer ${platform?.env?.PUBLIC_OPENROUTER_API_KEY || ''}`,
+							'Authorization': `Bearer ${openRouterApiKey}`,
 							'Content-Type': 'application/json',
 							'HTTP-Referer': 'https://talmud.app',
 							'X-Title': 'Talmud Study App - Stories'
@@ -309,7 +334,6 @@ Start directly with the character profiles.`
 			cached: false,
 			cacheKey
 		});
-		*/
 	} catch (error) {
 		console.error('Story generation error:', error);
 		return json({

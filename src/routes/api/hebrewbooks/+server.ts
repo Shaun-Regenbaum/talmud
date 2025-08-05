@@ -22,7 +22,6 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 		
 		// Fetch from daf-supplier with proper headers
 		const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
-		console.log(`HebrewBooks API: Fetching ${dafSupplierUrl}`);
 		
 		const response = await fetch(dafSupplierUrl, {
 			headers: {
@@ -33,7 +32,6 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 		
 		if (!response.ok) {
 			const errorText = await response.text();
-			console.error(`daf-supplier error: status=${response.status}, text=${errorText}`);
 			return json({ 
 				error: 'Failed to fetch from daf-supplier', 
 				status: response.status,
@@ -51,7 +49,6 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 		});
 		
 	} catch (error) {
-		console.error('HebrewBooks API error:', error);
 		return json({
 			error: 'Failed to fetch Hebrew Books data',
 			details: error instanceof Error ? error.message : String(error)

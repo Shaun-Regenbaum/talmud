@@ -1,3 +1,17 @@
+/**
+ * @fileoverview Style Manager for Daf Renderer
+ * 
+ * This module manages CSS classes and dynamic CSS variables for the daf renderer.
+ * It handles:
+ * - Applying CSS classes to container elements
+ * - Setting CSS custom properties (variables) for dynamic values
+ * - Managing layout exceptions and special cases
+ * - Updating styles based on amud (page side) changes
+ * 
+ * The style manager works in conjunction with styles.css to create the
+ * visual layout of the Talmud page.
+ */
+
 // Import styles directly
 import './styles.css';
 
@@ -82,7 +96,16 @@ function setVars(object, prefix = "") {
 
 
 let appliedOptions;
+
+/**
+ * Style manager singleton with methods for managing daf renderer styles
+ */
 export default {
+  /**
+   * Applies CSS classes to container elements recursively
+   * @param {Object} containers - Container elements from renderer
+   * @param {Object} classesMap - Mapping of container keys to CSS classes
+   */
   applyClasses(containers, classesMap = containerClasses) {
     // Reset root element reference (in case DOM changed)
     rootElement = containers.el;
@@ -98,10 +121,19 @@ export default {
       }
     }
   },
+  /**
+   * Updates CSS variables with option values
+   * @param {Object} options - Options object with layout values
+   */
   updateOptionsVars(options) {
     appliedOptions = options;
     setVars(options)
   },
+  
+  /**
+   * Updates CSS variables for spacer heights
+   * @param {Object} spacerHeights - Object with start, inner, outer, end values
+   */
   updateSpacersVars(spacerHeights) {
     setVars(
       Object.fromEntries(
@@ -111,12 +143,22 @@ export default {
       "spacerHeights-"
     );
   },
+  
+  /**
+   * Updates float direction based on amud (page side)
+   * @param {boolean} amudB - True if rendering amud bet (right side)
+   */
   updateIsAmudB(amudB) {
     setVars({
       innerFloat: amudB ? "right" : "left",
       outerFloat: amudB ? "left" : "right"
     })
   },
+  
+  /**
+   * Manages special layout exceptions when commentary is minimal
+   * @param {Object} spacerHeights - Spacer heights object with exception flag
+   */
   manageExceptions(spacerHeights) {
     if (!spacerHeights.exception) {
       setVars({

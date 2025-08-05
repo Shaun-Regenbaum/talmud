@@ -1,12 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { openRouterTranslator } from '$lib/openrouter-translator';
 import { TRACTATE_IDS, convertDafToHebrewBooksFormat } from '$lib/hebrewbooks';
-// In Cloudflare Workers, env vars are only available at runtime through platform.env
-// import { PUBLIC_OPENROUTER_API_KEY } from '$env/static/public';
-
-// Check if we're in Cloudflare Workers environment
-// This will be checked at runtime in the request handler
 
 // Cache configuration
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
@@ -16,24 +10,21 @@ const CACHE_PREFIX = 'talmud-summary:';
 const memoryCache = new Map<string, { data: any; timestamp: number }>();
 
 async function getCachedSummary(cacheKey: string, platform?: any): Promise<any | null> {
-	if (platform?.env) {
+	if (platform?.env?.SUMMARIES_KV) {
 		try {
-			// Try Cloudflare KV if available
-			if (typeof SUMMARIES_KV !== 'undefined') {
-				const cached = await SUMMARIES_KV.get(cacheKey);
-				if (cached) {
-					const parsedCache = JSON.parse(cached);
-					// Check if cache is still valid (24 hours)
-					if (Date.now() - parsedCache.timestamp < CACHE_DURATION) {
-						return parsedCache.data;
-					} else {
-						// Remove expired cache
-						await SUMMARIES_KV.delete(cacheKey);
-					}
+			const cached = await platform.env.SUMMARIES_KV.get(cacheKey);
+			if (cached) {
+				const parsedCache = JSON.parse(cached);
+				// Check if cache is still valid (24 hours)
+				if (Date.now() - parsedCache.timestamp < CACHE_DURATION) {
+					return parsedCache.data;
+				} else {
+					// Remove expired cache
+					await platform.env.SUMMARIES_KV.delete(cacheKey);
 				}
 			}
 		} catch (error) {
-			// Silently handle KV cache read errors
+			console.error('KV cache read error:', error);
 		}
 	}
 	
@@ -52,17 +43,14 @@ async function setCachedSummary(cacheKey: string, data: any, platform?: any): Pr
 		timestamp: Date.now()
 	};
 
-	if (platform?.env) {
+	if (platform?.env?.SUMMARIES_KV) {
 		try {
-			// Try Cloudflare KV if available
-			if (typeof SUMMARIES_KV !== 'undefined') {
-				await SUMMARIES_KV.put(cacheKey, JSON.stringify(cacheData), {
-					expirationTtl: Math.floor(CACHE_DURATION / 1000) // KV expects seconds
-				});
-				return;
-			}
+			await platform.env.SUMMARIES_KV.put(cacheKey, JSON.stringify(cacheData), {
+				expirationTtl: Math.floor(CACHE_DURATION / 1000) // KV expects seconds
+			});
+			return;
 		} catch (error) {
-			// Silently handle KV cache write errors
+			console.error('KV cache write error:', error);
 		}
 	}
 	
@@ -96,10 +84,8 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 			}
 		}
 
-		// Generate new summary if not cached
-		// Get API key from platform.env (Cloudflare Workers) or import (local dev)
+		// Get API key from platform.env (Cloudflare Workers runtime)
 		const openRouterApiKey = platform?.env?.PUBLIC_OPENROUTER_API_KEY;
-		console.log('API Key available:', !!openRouterApiKey, 'Length:', openRouterApiKey?.length);
 		if (!openRouterApiKey) {
 			return json({ error: 'OpenRouter API not configured' }, { status: 503 });
 		}
@@ -113,48 +99,63 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 			return json({ error: `Unknown tractate: ${tractate}` }, { status: 400 });
 		}
 		
-		console.log(`Fetching from daf-supplier v3: mesechta=${mesechtaId}, daf=${dafForAPI} (converted from ${page}${amud})`);
-		console.log('Platform check:', { hasPlatform: !!platform, hasPlatformEnv: !!platform?.env });
+		let mainText = '';
 		
-		// Always return requiresClientFetch in production to avoid inter-worker request issues
-		// The client will fetch from daf-supplier and POST back with mainText
-		const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
-		console.log('Returning client-fetch response for:', dafSupplierUrl);
-		return json({
-			requiresClientFetch: true,
-			dafSupplierUrl,
-			tractate,
-			page,
-			amud,
-			message: 'Client should fetch from dafSupplierUrl and POST the mainText back'
-		});
+		// In production, we can now use our internal daf-supplier
+		// Check if we're in Cloudflare Workers environment
+		const isCloudflareWorkers = platform?.env !== undefined;
 		
-		/* Development code path - disabled for now
-		// Check if we're in development environment 
-		const isDevEnv = platform?.env === undefined;
-		if (isDevEnv) {
-			// In development, fetch directly
-			console.log('Development mode - fetching directly');
-			const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
-			const talmudResponse = await fetch(dafSupplierUrl);
-			
-			if (!talmudResponse.ok) {
-				const errorText = await talmudResponse.text();
-				console.error(`daf-supplier error: status=${talmudResponse.status}, text=${errorText.substring(0, 200)}`);
-				throw new Error(`Failed to fetch Talmud data: ${talmudResponse.status}`);
+		if (isCloudflareWorkers) {
+			// Use internal daf-supplier endpoint
+			try {
+				const internalUrl = new URL('/api/daf-supplier', url.origin);
+				internalUrl.searchParams.set('mesechta', mesechtaId);
+				internalUrl.searchParams.set('daf', dafForAPI.toString());
+				internalUrl.searchParams.set('br', 'true');
+				
+				const dafResponse = await fetch(internalUrl.toString());
+				if (!dafResponse.ok) {
+					throw new Error(`Failed to fetch from internal daf-supplier: ${dafResponse.status}`);
+				}
+				
+				const dafData = await dafResponse.json();
+				mainText = dafData.mainText || '';
+				
+				// Continue with summary generation below
+			} catch (error) {
+				console.error('Error fetching from internal daf-supplier:', error);
+				// Fall back to external URL for client fetch
+				const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
+				return json({
+					requiresClientFetch: true,
+					dafSupplierUrl,
+					tractate,
+					page,
+					amud,
+					message: 'Client should fetch from dafSupplierUrl and POST the mainText back'
+				});
 			}
-
-			const talmudData = await talmudResponse.json();
-			const mainText = talmudData.mainText || '';
-			
-			if (!mainText || mainText.length < 50) {
-				console.error('Insufficient content:', { mainText: mainText?.substring(0, 100), length: mainText?.length });
-				return json({ error: 'Insufficient content for summary generation', length: mainText?.length }, { status: 400 });
-			}
-
-			// Generate summary using OpenRouter with Claude Sonnet 4 directly
-			const contextInfo = `${tractate} ${page}${amud}`;
-			const summaryPrompt = `You are analyzing a page from the Talmud (${contextInfo}). Create an engaging, accessible summary that brings this ancient discussion to life for modern readers.
+		} else {
+			// In development, return URL for client to fetch
+			const dafSupplierUrl = `/api/daf-supplier?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
+			return json({
+				requiresClientFetch: true,
+				dafSupplierUrl,
+				tractate,
+				page,
+				amud,
+				message: 'Client should fetch from dafSupplierUrl and POST the mainText back'
+			});
+		}
+		
+		// Check if we have mainText to generate summary
+		if (!mainText || mainText.length < 50) {
+			return json({ error: 'Insufficient content for summary generation', length: mainText?.length }, { status: 400 });
+		}
+		
+		// Generate summary using OpenRouter
+		const contextInfo = `${tractate} ${page}${amud}`;
+		const summaryPrompt = `You are analyzing a page from the Talmud (${contextInfo}). Create an engaging, accessible summary that brings this ancient discussion to life for modern readers.
 
 Focus on making the content compelling by highlighting:
 • The central question or dilemma being explored
@@ -174,7 +175,7 @@ Write 2-3 engaging paragraphs that would make someone excited to study this page
 
 Talmud text: ${mainText.slice(0, 3000)}`;
 
-		// Call OpenRouter API directly with Claude Sonnet 4
+		// Call OpenRouter API
 		const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
 			method: 'POST',
 			headers: {
@@ -188,12 +189,18 @@ Talmud text: ${mainText.slice(0, 3000)}`;
 				messages: [
 					{ role: 'user', content: summaryPrompt }
 				],
-				temperature: 0.7, // Higher temperature for more engaging content
+				temperature: 0.7,
 				max_tokens: 800
 			})
 		});
 
 		if (!response.ok) {
+			const errorBody = await response.text();
+			console.error('OpenRouter API error:', {
+				status: response.status,
+				statusText: response.statusText,
+				body: errorBody
+			});
 			throw new Error(`OpenRouter API error: ${response.status} ${response.statusText}`);
 		}
 
@@ -221,13 +228,12 @@ Talmud text: ${mainText.slice(0, 3000)}`;
 			cached: false,
 			cacheKey
 		});
-		*/
+		
 	} catch (error) {
-		console.error('Summary API error:', error);
+		console.error('Summary GET API error:', error);
 		return json({
 			error: 'Failed to generate summary',
-			details: error instanceof Error ? error.message : String(error),
-			stack: error instanceof Error ? error.stack : undefined
+			details: error instanceof Error ? error.message : String(error)
 		}, { status: 500 });
 	}
 };
