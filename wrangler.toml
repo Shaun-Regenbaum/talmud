@@ -28,3 +28,11 @@ preview_id = "cebde15cb6bc4347b45520e857d88db6"
 # Browser rendering for HebrewBooks scraper
 [browser]
 binding = "BROWSER"
+
+# Environment variables
+[vars]
+PUBLIC_OPENROUTER_API_KEY = "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"
+
+# wrangler.toml (wrangler v3.88.0^)
+[observability.logs]
+enabled = true
