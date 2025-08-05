@@ -1,14 +1,35 @@
+/**
+ * @fileoverview Summary API Endpoint - Generates AI-powered page summaries
+ * 
+ * This endpoint generates engaging summaries of Talmud pages using OpenRouter AI.
+ * Features:
+ * - Caches summaries for 24 hours to reduce API costs
+ * - Falls back to in-memory cache in development
+ * - Supports forced refresh to regenerate summaries
+ * - Uses Claude Sonnet 4 for high-quality summaries
+ * 
+ * GET /api/summary?tractate=Berakhot&page=2&amud=a
+ * POST /api/summary with { tractate, page, amud, mainText }
+ */
+
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { TRACTATE_IDS, convertDafToHebrewBooksFormat } from '$lib/hebrewbooks';
 
-// Cache configuration
+/** Cache duration for summaries */
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+/** Cache key prefix for KV storage */
 const CACHE_PREFIX = 'talmud-summary:';
 
-// In-memory cache fallback for development
+/** In-memory cache fallback for development */
 const memoryCache = new Map<string, { data: any; timestamp: number }>();
 
+/**
+ * Get cached summary from KV storage or memory
+ * @param {string} cacheKey - Cache key for the summary
+ * @param {any} platform - Platform object with KV bindings
+ * @returns {Promise<any|null>} Cached summary data or null if not found/expired
+ */
 async function getCachedSummary(cacheKey: string, platform?: any): Promise<any | null> {
 	if (platform?.env?.SUMMARIES_KV) {
 		try {
@@ -37,6 +58,12 @@ async function getCachedSummary(cacheKey: string, platform?: any): Promise<any |
 	return null;
 }
 
+/**
+ * Store summary in cache (KV storage or memory)
+ * @param {string} cacheKey - Cache key for the summary
+ * @param {any} data - Summary data to cache
+ * @param {any} platform - Platform object with KV bindings
+ */
 async function setCachedSummary(cacheKey: string, data: any, platform?: any): Promise<void> {
 	const cacheData = {
 		data,
@@ -58,6 +85,21 @@ async function setCachedSummary(cacheKey: string, data: any, platform?: any): Pr
 	memoryCache.set(cacheKey, cacheData);
 }
 
+/**
+ * GET /api/summary - Generate or retrieve cached summary for a Talmud page
+ * 
+ * Query parameters:
+ * - tractate: Tractate name (required)
+ * - page: Page number (required)
+ * - amud: Side of page 'a' or 'b' (required)
+ * - refresh: Force regenerate summary if 'true' (optional)
+ * 
+ * Returns:
+ * - 200: Summary data with model info and word count
+ * - 400: Missing required parameters or insufficient content
+ * - 503: OpenRouter API not configured
+ * - 500: Generation error
+ */
 export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 	const tractate = url.searchParams.get('tractate');
 	const page = url.searchParams.get('page');
@@ -238,6 +280,22 @@ Talmud text: ${mainText.slice(0, 3000)}`;
 	}
 };
 
+/**
+ * POST /api/summary - Generate summary from provided text
+ * Used when client fetches text directly from daf-supplier
+ * 
+ * Request body:
+ * - tractate: Tractate name (required)
+ * - page: Page number (required)
+ * - amud: Side of page 'a' or 'b' (required)
+ * - mainText: Talmud text content (required)
+ * 
+ * Returns:
+ * - 200: Summary data with model info and word count
+ * - 400: Missing required fields or insufficient content
+ * - 503: OpenRouter API not configured
+ * - 500: Generation error
+ */
 export const POST: RequestHandler = async ({ request, platform }) => {
 	try {
 		const body = await request.json();

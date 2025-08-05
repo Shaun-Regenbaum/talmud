@@ -1,10 +1,32 @@
+<!--
+	@component Toggle
+	
+	A styled toggle switch component with optional icons.
+	Dispatches a 'change' event when toggled.
+	
+	@example
+	```svelte
+	<Toggle
+		name="darkMode"
+		checked={true}
+		on:change={(e) => console.log(e.detail.checked)}
+	>
+		Dark Mode
+	</Toggle>
+	```
+-->
 <script>
   import { createEventDispatcher } from 'svelte';
   
+  /** HTML name attribute for the checkbox input */
   export let name = '';
+  /** Whether the toggle is checked */
   export let checked = false;
+  /** Whether the toggle is disabled */
   export let disabled = false;
+  /** Accessibility label for the toggle */
   export let label = 'Use setting';
+  /** Whether to show checkmark and X icons */
   export let showIcons = true;
   
   const dispatch = createEventDispatcher();

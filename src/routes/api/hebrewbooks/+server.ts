@@ -1,7 +1,33 @@
+/**
+ * @fileoverview HebrewBooks API Endpoint - Proxy for daf-supplier API
+ * 
+ * This endpoint serves as a proxy to the daf-supplier Cloudflare Worker,
+ * which provides structured Talmud text data from HebrewBooks.org.
+ * 
+ * Features:
+ * - Converts Sefaria-style references (2a, 2b) to HebrewBooks format
+ * - Adds proper headers for API compatibility
+ * - Returns structured text with HTML formatting
+ * 
+ * GET /api/hebrewbooks?tractate=Berakhot&daf=2a
+ */
+
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { TRACTATE_IDS, convertDafToHebrewBooksFormat } from '$lib/hebrewbooks';
 
+/**
+ * GET /api/hebrewbooks - Fetch Talmud text from daf-supplier
+ * 
+ * Query parameters:
+ * - tractate: Tractate name (required)
+ * - daf: Page reference in format '2a' or '2b' (required)
+ * 
+ * Returns:
+ * - 200: Text data with mainText, rashi, tosafot fields
+ * - 400: Missing parameters or unknown tractate
+ * - 500: Fetch error or API failure
+ */
 export const GET: RequestHandler = async ({ url, fetch }) => {
 	const tractate = url.searchParams.get('tractate');
 	const daf = url.searchParams.get('daf');
