@@ -231,7 +231,7 @@
 			console.log(`Fetching HebrewBooks data for ${tractate} ${page}`);
 			
 			// Use the same API call as the main page - it handles all conversions
-			const { hebrewBooksAPI, TRACTATE_IDS } = await import('$lib/hebrewbooks');
+			const { hebrewBooksAPI, TRACTATE_IDS } = await import('$lib/api/hebrewbooks');
 			const mesechtaId = TRACTATE_IDS[tractate];
 			console.log(`Converted to: mesechta=${mesechtaId}, daf=${page} (for HebrewBooks)`);
 			

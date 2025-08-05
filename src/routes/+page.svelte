@@ -274,14 +274,6 @@
 
 <main class="min-h-screen bg-gray-100 p-8">
 	<div class="max-w-7xl mx-auto space-y-8">
-		<!-- Header -->
-		<div class="bg-white rounded-lg shadow-md p-8">
-			<h1 class="text-4xl font-bold text-gray-800 mb-4">Talmud Study Application</h1>
-			<p class="text-gray-600 mb-6">
-				Interactive Talmud study with AI-powered translations and analysis
-			</p>
-		</div>
-
 		<!-- Page Summary -->
 		<PageSummary 
 			summary={summary}
@@ -321,7 +313,7 @@
 
 		<!-- Footer -->
 		<div class="text-center text-sm text-gray-500">
-			<p>Powered by daf-renderer, HebrewBooks.org, and OpenRouter</p>
+			<p>Made by Shaun Regenbaum</p>
 		</div>
 	</div>
 	

@@ -75,10 +75,10 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 		// Convert daf format
 		const dafForAPI = convertDafToHebrewBooksFormat(daf);
 		
-		// Fetch from daf-supplier with proper headers
-		const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
+		// Fetch directly from HebrewBooks API
+		const hebrewBooksUrl = `https://www.hebrewbooks.org/api/shas.aspx?mesechta=${mesechtaId}&daf=${dafForAPI}&format=json`;
 		
-		const response = await fetch(dafSupplierUrl, {
+		const response = await fetch(hebrewBooksUrl, {
 			headers: {
 				'User-Agent': 'Mozilla/5.0 (compatible; Talmud-Study-App/1.0)',
 				'Accept': 'application/json'

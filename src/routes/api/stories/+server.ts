@@ -181,7 +181,7 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 			} catch (error) {
 				console.error('Error fetching from internal daf-supplier:', error);
 				// Fall back to external URL for client fetch
-				const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
+				const dafSupplierUrl = `/api/daf-supplier?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
 				return json({
 					requiresClientFetch: true,
 					dafSupplierUrl,
