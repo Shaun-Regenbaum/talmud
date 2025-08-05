@@ -119,11 +119,12 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 
 	// First try browser rendering if available
 	let pageData = null;
+	let botProtectionDetected = false;
 	
 	if (platform?.env?.BROWSER) {
+		// Try Method 1: Modern puppeteer approach with anti-detection
 		try {
-			console.log('Browser binding available, attempting to launch...');
-			// Launch browser using puppeteer.launch() with the binding
+			console.log('Browser binding available, trying puppeteer.launch() method...');
 			const browser = await puppeteer.launch(platform.env.BROWSER, {
 				// Keep browser alive for 2 minutes to allow for reuse
 				keep_alive: 120000
@@ -174,7 +175,8 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 			console.log('Initial page title:', title);
 			
 			if (title.includes('Just a moment') || title.includes('Checking your browser')) {
-				console.log('Detected Cloudflare challenge, waiting for resolution...');
+				console.log('Detected Cloudflare challenge with puppeteer method, waiting for resolution...');
+				botProtectionDetected = true;
 				
 				// Wait up to 30 seconds for the challenge to complete
 				try {
@@ -183,9 +185,11 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 						{ timeout: 30000 }
 					);
 					console.log('Cloudflare challenge resolved, page title now:', await page.title());
+					botProtectionDetected = false; // Challenge was resolved
 				} catch (challengeError) {
 					console.log('Cloudflare challenge did not resolve within 30 seconds');
-					// Continue anyway, might still work
+					await page.close();
+					throw new Error('Bot protection detected with puppeteer method');
 				}
 			}
 
@@ -319,9 +323,133 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 			await page.close();
 			console.log('Page closed successfully, browser kept alive for reuse');
 		} catch (browserError) {
-			console.error('Browser rendering failed:', browserError.message);
-			console.error('Browser error stack:', browserError.stack);
-			// Continue to HTTP fetch fallback
+			console.error('Puppeteer method failed:', browserError.message);
+			console.log('Trying fallback to original platform.env.BROWSER.launch() method...');
+			
+			// Try Method 2: Original platform.env.BROWSER.launch() approach
+			try {
+				console.log('Attempting original browser launch method...');
+				const browser = await platform.env.BROWSER.launch();
+				console.log('Original browser launched successfully');
+				const page = await browser.newPage();
+				console.log('New page created with original method');
+				
+				// Convert daf-supplier format back to HebrewBooks format (same logic)
+				const dafNum = parseInt(daf);
+				const pageNum = Math.floor(dafNum / 2);
+				const amud = dafNum % 2 === 0 ? 'a' : 'b';
+				const hebrewBooksDaf = amud === 'a' ? pageNum.toString() : `${pageNum}b`;
+				
+				console.log(`Original method: Converting daf-supplier ${daf} -> HebrewBooks page ${pageNum}${amud} -> URL param ${hebrewBooksDaf}`);
+				
+				const targetUrl = `https://www.hebrewbooks.org/shas.aspx?mesechta=${mesechta}&daf=${hebrewBooksDaf}&format=text`;
+				console.log('Original method navigating to:', targetUrl);
+				
+				await page.goto(targetUrl, { waitUntil: 'networkidle0' });
+				
+				// Check for bot protection with original method too
+				const title = await page.title();
+				console.log('Original method page title:', title);
+				
+				if (title.includes('Just a moment') || title.includes('Checking your browser')) {
+					console.log('Bot protection detected with original method too');
+					botProtectionDetected = true;
+					await page.close();
+					await browser.close();
+					throw new Error('Bot protection detected with both methods');
+				}
+				
+				// Wait for shastext content (same logic)
+				try {
+					await page.waitForSelector('.shastext2, .shastext3, .shastext4, .shastext5, .shastext6, .shastext7, .shastext8, .shastext9, .shastext10', { timeout: 30000 });
+					console.log('Original method: Page loaded, extracting content...');
+				} catch (waitError) {
+					console.log('Original method: Shastext elements not found, will try body extraction fallback');
+				}
+				
+				// Extract content (reuse the same page.evaluate logic)
+				console.log('Original method: Starting page.evaluate() extraction...');
+				try {
+					pageData = await page.evaluate(() => {
+						// Same extraction logic as before
+						const preserveFormatting = (element) => {
+							if (!element) return '';
+							return element.innerHTML || '';
+						};
+
+						const data = {
+							mainText: '',
+							rashi: '',
+							tosafot: '',
+							otherCommentaries: {}
+						};
+
+						// Look for shastext2 through shastext10 elements
+						const shastext2 = document.querySelector('.shastext2');
+						const shastext3 = document.querySelector('.shastext3'); 
+						const shastext4 = document.querySelector('.shastext4');
+						const shastext5 = document.querySelector('.shastext5');
+						const shastext6 = document.querySelector('.shastext6');
+						const shastext7 = document.querySelector('.shastext7');
+						const shastext8 = document.querySelector('.shastext8');
+						const shastext9 = document.querySelector('.shastext9');
+						const shastext10 = document.querySelector('.shastext10');
+
+						console.log('Original method found shastext elements:', [shastext2, shastext3, shastext4, shastext5, shastext6, shastext7, shastext8, shastext9, shastext10].filter(el => el !== null).length);
+
+						// Find which shastext elements are available
+						const shastextElements = [shastext2, shastext3, shastext4, shastext5, shastext6, shastext7, shastext8, shastext9, shastext10].filter(el => el !== null);
+						console.log('Original method: Total shastext elements found:', shastextElements.length);
+
+						// Extract from first available shastext (typically Gemara)
+						if (shastextElements[0]) {
+							let rawHTML = preserveFormatting(shastextElements[0]);
+							console.log('Original method: Raw Gemara HTML length:', rawHTML.length);
+							data.mainText = rawHTML;
+							console.log('Original method: First shastext first 500 chars:', data.mainText.substring(0, 500));
+						} else {
+							// If no shastext elements found, try to extract from page body
+							console.log('Original method: No shastext elements found, trying body extraction...');
+							const bodyText = document.body ? document.body.innerText : '';
+							console.log('Original method: Body text length:', bodyText.length);
+							
+							if (bodyText.length > 100 && /[\u0590-\u05FF]/.test(bodyText)) {
+								data.mainText = bodyText;
+								console.log('Original method: Using body text as main text');
+							} else {
+								console.log('Original method: Body text insufficient, no Hebrew content found');
+							}
+						}
+
+						// Extract from second available shastext (typically Rashi)
+						if (shastextElements[1]) {
+							data.rashi = preserveFormatting(shastextElements[1]);
+							console.log('Original method: Second shastext (Rashi) HTML length:', data.rashi.length);
+						}
+
+						// Extract from third available shastext (typically Tosafot)
+						if (shastextElements[2]) {
+							data.tosafot = preserveFormatting(shastextElements[2]);
+							console.log('Original method: Third shastext (Tosafot) HTML length:', data.tosafot.length);
+						}
+
+						return data;
+					});
+					console.log('Original method: page.evaluate() completed successfully');
+					
+				} catch (evaluateError) {
+					console.error('Original method: page.evaluate() failed:', evaluateError.message);
+					pageData = null;
+				}
+				
+				await page.close();
+				await browser.close();
+				console.log('Original method: Browser closed successfully');
+				
+			} catch (originalMethodError) {
+				console.error('Original browser method also failed:', originalMethodError.message);
+				// Will continue to HTTP fetch fallback
+			}
 		}
 	} else {
 		console.log('Browser binding not available');
@@ -546,6 +674,27 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 				// Handle any remaining standalone \r (old Mac style)
 				.replace(/\r/g, ' <br>');
 		};
+
+		// Check if bot protection was detected and no content was retrieved
+		if (botProtectionDetected && (!pageData || (!pageData.mainText && !pageData.rashi && !pageData.tosafot))) {
+			// Return user-friendly bot protection error
+			return json({ 
+				error: 'HebrewBooks Bot Protection Active',
+				message: 'HebrewBooks.org is currently blocking automated access with a "Just a moment..." challenge page. This prevents us from extracting the Talmud text.',
+				suggestions: [
+					'Try again in a few minutes - the protection may be temporary',
+					'Check if cached data is available for other pages',
+					'The protection typically resolves automatically after some time'
+				],
+				details: {
+					tractate: TRACTATE_NAMES[mesechta] || `Tractate-${mesechta}`,
+					requestedPage: `${Math.ceil(parseInt(daf) / 2)}${parseInt(daf) % 2 === 0 ? 'b' : 'a'}`,
+					cacheChecked: true,
+					browserMethodsTried: ['puppeteer.launch', 'platform.env.BROWSER.launch'],
+					timestamp: Date.now()
+				}
+			}, { status: 503 }); // Service Temporarily Unavailable
+		}
 
 		// Prepare response data
 		const responseData = {
