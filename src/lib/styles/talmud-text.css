@@ -7,26 +7,15 @@
   margin: 1em 0;
 }
 
-/* First word of Gemara - dramatic styling (gdropcap from API) */
+/* First word of Gemara - simple styling (gdropcap from API) */
 .gdropcap,
 .main .text span .gdropcap {
-  font-size: calc(var(--fontSize-main) * 2.5) !important;  /* 2.5x the main font size */
-  line-height: calc(var(--lineHeight-main) * 1.5) !important;
+  font-size: calc(var(--fontSize-main) * 1.2) !important;  /* Slightly larger */
   font-weight: bold !important;
-  display: inline-block !important;
-  float: right;
-  margin: 0 0 0.2em 0.5em;
-  padding: 0.3em 0.5em;
-  text-align: center;
-  /* Create a frame effect similar to the example */
-  background-color: rgba(255, 250, 240, 0.7);
-  border: 2px solid rgba(139, 69, 19, 0.3);
-  border-radius: 4px;
-  box-shadow: 
-    inset 0 0 8px rgba(139, 69, 19, 0.1),
-    0 2px 4px rgba(0, 0, 0, 0.1);
-  /* Allow natural text wrapping */
-  vertical-align: top;
+  display: block !important;
+  text-align: center !important;
+  margin: 0.5em 0 !important;
+  padding: 0 !important;
 }
 
 /* Rashi headers - bold and increased size */

@@ -55,8 +55,6 @@ export function processTextsForRenderer(
 	let mainHTML: string;
 	
 	// Main text processing - check for | delimiters first, fallback to Sefaria segmentation
-	console.log('🔍 processedMainText contains | delimiters:', processedMainText.includes('|'));
-	console.log('🔍 First 200 chars of processedMainText:', processedMainText.substring(0, 200));
 	
 	if (processedMainText.includes('|')) {
 		// Use | delimiter for actual sentences (like talmud-vue-reference)
@@ -99,7 +97,6 @@ export function processTextsForRenderer(
 		mainHTML = workingText.replaceAll(headerRegex, "<b class='main-header'>$1</b>");
 	} else {
 		// Fallback: Use traditional format with line breaks
-		console.log('⚠️ Fallback: Using traditional format for sentence segmentation');
 		
 		// For traditional format, use natural paragraph/line breaks
 		const lines = processedMainText.split(/\r?\n/).filter(line => line.trim());

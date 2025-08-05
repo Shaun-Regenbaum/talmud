@@ -41,7 +41,7 @@
 		pageData = null,
 		loading = false,
 		error = null,
-		vilnaMode = $bindable(false),
+		vilnaMode = $bindable(true),
 		onRetry
 	}: Props = $props();
 	
@@ -55,6 +55,8 @@
 	
 	// Track last rendered page to prevent excessive re-renders
 	let lastRenderedKey = $state('');
+	let renderCount = $state(0);
+	let reRenderTrigger = $state(0);
 	
 	// Handle rendering when page data changes
 	$effect(() => {
@@ -65,16 +67,25 @@
 		// Create unique key for this page data including display mode
 		const currentPageKey = `${pageData.tractate}-${pageData.daf}-${pageData.amud}-${vilnaMode}`;
 		
-		// Skip if we already rendered this exact data with same mode
-		if (lastRenderedKey === currentPageKey) {
+		// Reset render count for new pages
+		if (lastRenderedKey !== currentPageKey) {
+			renderCount = 0;
+			reRenderTrigger = 0;
+		}
+		
+		// Skip if we already rendered this exact data with same mode 3 times
+		if (lastRenderedKey === currentPageKey && renderCount >= 3) {
 			return;
 		}
 		
 		// Update tracking key
 		lastRenderedKey = currentPageKey;
+		renderCount++;
 		
-		// Add a small delay to ensure DOM is stable after loading state changes
-		setTimeout(() => {
+		console.log(`🔄 Rendering daf (attempt ${renderCount}/3):`, currentPageKey);
+		
+		// Function to perform the actual render
+		const performRender = () => {
 			// Initialize renderer container only once
 			if (dafContainer) {
 				rendererStore.initialize(dafContainer);
@@ -102,15 +113,31 @@
 						}
 					}, 100);
 					
-					// Mark as rendered for scaling
-					setTimeout(() => {
-						rendered = true;
-					}, 300);
+					// Mark as rendered for scaling after first render
+					if (renderCount === 1) {
+						setTimeout(() => {
+							rendered = true;
+						}, 300);
+					}
+					
+					// Schedule next render if we haven't done 3 yet
+					if (renderCount < 3) {
+						setTimeout(() => {
+							// Trigger re-render by updating the trigger
+							reRenderTrigger++;
+						}, 200);
+					}
 				} catch (error) {
-					// Silently handle render errors
+					console.error('Render error:', error);
 				}
 			}, 50);
-		}, 100);
+		};
+		
+		// Add a small delay to ensure DOM is stable after loading state changes
+		setTimeout(performRender, 100);
+		
+		// This line ensures the effect re-runs when reRenderTrigger changes
+		reRenderTrigger;
 	});
 	
 	onMount(() => {
