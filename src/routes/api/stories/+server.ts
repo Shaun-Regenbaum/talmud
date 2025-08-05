@@ -108,22 +108,22 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 			return json({ error: `Unknown tractate: ${tractate}` }, { status: 400 });
 		}
 		
-		// Check if we're in Cloudflare Workers environment
-		const isCloudflareEnv = platform?.env !== undefined;
+		// Always return requiresClientFetch to avoid inter-worker request issues
+		// The client will fetch from daf-supplier and POST back with content
+		const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
+		return json({
+			requiresClientFetch: true,
+			dafSupplierUrl,
+			tractate,
+			page,
+			amud,
+			message: 'Client should fetch from dafSupplierUrl and POST the data back'
+		});
 		
-		if (isCloudflareEnv) {
-			// In Cloudflare Workers, we can't make inter-worker requests
-			// Return info for client to fetch and then resubmit
-			const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
-			return json({
-				requiresClientFetch: true,
-				dafSupplierUrl,
-				tractate,
-				page,
-				amud,
-				message: 'Client should fetch from dafSupplierUrl and POST the data back'
-			});
-		} else {
+		/* Development code - disabled for now
+		// Check if we're in development environment
+		const isDevEnv = platform?.env === undefined;
+		if (isDevEnv) {
 			// In development, fetch directly
 			const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
 			const talmudResponse = await fetch(dafSupplierUrl);
@@ -308,7 +308,7 @@ Start directly with the character profiles.`
 			cached: false,
 			cacheKey
 		});
-
+		*/
 	} catch (error) {
 		console.error('Story generation error:', error);
 		return json({

@@ -115,24 +115,23 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 		console.log(`Fetching from daf-supplier v3: mesechta=${mesechtaId}, daf=${dafForAPI} (converted from ${page}${amud})`);
 		console.log('Platform check:', { hasPlatform: !!platform, hasPlatformEnv: !!platform?.env });
 		
-		// Check if we're in Cloudflare Workers environment
-		const isCloudflareEnv = platform?.env !== undefined;
-		console.log('Environment check:', { isCloudflareEnv, hasPlatform: !!platform, hasPlatformEnv: !!platform?.env });
+		// Always return requiresClientFetch in production to avoid inter-worker request issues
+		// The client will fetch from daf-supplier and POST back with mainText
+		const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
+		console.log('Returning client-fetch response for:', dafSupplierUrl);
+		return json({
+			requiresClientFetch: true,
+			dafSupplierUrl,
+			tractate,
+			page,
+			amud,
+			message: 'Client should fetch from dafSupplierUrl and POST the mainText back'
+		});
 		
-		if (isCloudflareEnv) {
-			// In Cloudflare Workers, we can't make inter-worker requests
-			// Return info for client to fetch and then resubmit
-			const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
-			console.log('Returning client-fetch response for:', dafSupplierUrl);
-			return json({
-				requiresClientFetch: true,
-				dafSupplierUrl,
-				tractate,
-				page,
-				amud,
-				message: 'Client should fetch from dafSupplierUrl and POST the mainText back'
-			});
-		} else {
+		/* Development code path - disabled for now
+		// Check if we're in development environment 
+		const isDevEnv = platform?.env === undefined;
+		if (isDevEnv) {
 			// In development, fetch directly
 			console.log('Development mode - fetching directly');
 			const dafSupplierUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
@@ -221,7 +220,7 @@ Talmud text: ${mainText.slice(0, 3000)}`;
 			cached: false,
 			cacheKey
 		});
-		}
+		*/
 	} catch (error) {
 		console.error('Summary API error:', error);
 		return json({
