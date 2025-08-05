@@ -226,7 +226,19 @@ Return ONLY valid JSON matching this structure:
 			}
 			
 			const data = await response.json();
-			const analysisText = data.choices[0]?.message?.content || '{}';
+			let analysisText = data.choices[0]?.message?.content || '{}';
+			
+			// Clean up the response - remove markdown code blocks if present
+			analysisText = analysisText.trim();
+			if (analysisText.startsWith('```json')) {
+				analysisText = analysisText.slice(7); // Remove ```json
+			} else if (analysisText.startsWith('```')) {
+				analysisText = analysisText.slice(3); // Remove ```
+			}
+			if (analysisText.endsWith('```')) {
+				analysisText = analysisText.slice(0, -3); // Remove trailing ```
+			}
+			analysisText = analysisText.trim();
 			
 			let analysis: any;
 			try {
