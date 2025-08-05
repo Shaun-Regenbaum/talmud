@@ -130,6 +130,20 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 			});
 			console.log('Browser launched successfully');
 			const page = await browser.newPage();
+			
+			// Set realistic browser headers to avoid Cloudflare detection
+			await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
+			await page.setViewport({ width: 1920, height: 1080 });
+			
+			// Set additional headers to appear more human-like
+			await page.setExtraHTTPHeaders({
+				'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+				'Accept-Language': 'en-US,en;q=0.9',
+				'Accept-Encoding': 'gzip, deflate, br',
+				'DNT': '1',
+				'Connection': 'keep-alive',
+				'Upgrade-Insecure-Requests': '1',
+			});
 			console.log('New page created');
 			
 			// Convert daf-supplier format back to HebrewBooks format
@@ -144,10 +158,36 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 			
 			const targetUrl = `https://www.hebrewbooks.org/shas.aspx?mesechta=${mesechta}&daf=${hebrewBooksDaf}&format=text`;
 			console.log('Navigating to:', targetUrl);
+			
+			// Add small random delay to appear more human-like
+			const delay = 1000 + Math.random() * 2000; // 1-3 second delay
+			console.log(`Adding human-like delay: ${Math.round(delay)}ms`);
+			await new Promise(resolve => setTimeout(resolve, delay));
+			
 			await page.goto(targetUrl, { 
 				waitUntil: 'networkidle0',
-				timeout: 30000
+				timeout: 60000  // Increased timeout for Cloudflare challenge
 			});
+			
+			// Check if we got a Cloudflare challenge page and wait for it to resolve
+			const title = await page.title();
+			console.log('Initial page title:', title);
+			
+			if (title.includes('Just a moment') || title.includes('Checking your browser')) {
+				console.log('Detected Cloudflare challenge, waiting for resolution...');
+				
+				// Wait up to 30 seconds for the challenge to complete
+				try {
+					await page.waitForFunction(
+						() => !document.title.includes('Just a moment') && !document.title.includes('Checking your browser'),
+						{ timeout: 30000 }
+					);
+					console.log('Cloudflare challenge resolved, page title now:', await page.title());
+				} catch (challengeError) {
+					console.log('Cloudflare challenge did not resolve within 30 seconds');
+					// Continue anyway, might still work
+				}
+			}
 
 			// Wait for the shastext content to load - try shastext2 through shastext10
 			try {
@@ -167,7 +207,9 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 			}
 
 			// Extract text content from the HebrewBooks structure
-			pageData = await page.evaluate(() => {
+			console.log('Starting page.evaluate() extraction...');
+			try {
+				pageData = await page.evaluate(() => {
 				// Don't clean/trim - preserve formatting
 				const preserveFormatting = (element) => {
 					if (!element) return '';
@@ -265,6 +307,13 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 
 				return data;
 			});
+			console.log('page.evaluate() completed successfully');
+			
+			} catch (evaluateError) {
+				console.error('page.evaluate() failed:', evaluateError.message);
+				// Set empty pageData so we fall back to HTTP
+				pageData = null;
+			}
 
 			// Close the page (but keep browser alive for reuse via keep_alive)
 			await page.close();
