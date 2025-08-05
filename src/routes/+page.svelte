@@ -188,7 +188,7 @@
 				return;
 			}
 			
-			// Check if the selection is within the daf container
+			// Check if the selection is within the daf container (now inside DafRenderer)
 			const target = event.target as Element;
 			if (!target.closest('.daf')) {
 				showTranslationPopup = false;
@@ -299,141 +299,24 @@
 				</h2>
 				
 				<!-- Page Navigation Form -->
-				<div class="flex items-center gap-4 flex-wrap">
-					<!-- Tractate Selector -->
-					<div class="flex items-center gap-2">
-						<label for="tractate-select" class="text-sm font-medium text-gray-700">מסכת:</label>
-						<select 
-							id="tractate-select"
-							bind:value={selectedTractate}
-							class="border border-gray-300 rounded px-3 py-2 text-sm bg-white"
-							disabled={$isLoading}
-						>
-							{#each tractateOptions as option}
-								<option value={option.value}>{option.label}</option>
-							{/each}
-						</select>
-					</div>
-					
-					<!-- Page Number Input -->
-					<div class="flex items-center gap-2">
-						<label for="page-select" class="text-sm font-medium text-gray-700">דף:</label>
-						<select 
-							id="page-select"
-							bind:value={selectedPage}
-							class="border border-gray-300 rounded px-3 py-2 text-sm bg-white w-20"
-							disabled={$isLoading}
-						>
-							{#each Array.from({length: 76}, (_, i) => i + 2) as pageNum}
-								<option value={pageNum.toString()}>{getHebrewPageNumber(pageNum)}</option>
-							{/each}
-						</select>
-					</div>
-					
-					<!-- Amud Selector -->
-					<div class="flex items-center gap-2">
-						<label for="amud-select" class="text-sm font-medium text-gray-700">עמוד:</label>
-						<select 
-							id="amud-select"
-							bind:value={selectedAmud}
-							class="border border-gray-300 rounded px-3 py-2 text-sm bg-white"
-							disabled={$isLoading}
-						>
-							<option value="a">א</option>
-							<option value="b">ב</option>
-						</select>
-					</div>
-					
-					<!-- Go Button -->
-					<button 
-						onclick={handlePageChange}
-						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition text-sm font-medium flex items-center gap-2"
-						disabled={$isLoading}
-					>
-						{#if $isLoading}
-							<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-						{/if}
-						{$isLoading ? 'טוען...' : 'עבור'}
-					</button>
-					
-					<!-- Story Link -->
-					<a 
-						href="/story?tractate={selectedTractate}&page={selectedPage}&amud={selectedAmud}&mode={vilnaMode ? 'vilna' : 'custom'}"
-						class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition text-sm font-medium"
-					>
-						📖 Stories
-					</a>
-					
-				</div>
+				<PageNavigator 
+					bind:tractate={selectedTractate}
+					bind:page={selectedPage}
+					bind:amud={selectedAmud}
+					loading={$isLoading}
+					vilnaMode={vilnaMode}
+					on:change={handlePageChange}
+				/>
 			</div>
 			
-			<!-- Loading State -->
-			{#if $isLoading}
-				<div class="w-full h-[800px] border border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center">
-					<div class="text-center">
-						<div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-						<p class="mt-4 text-gray-600">Loading Talmud page...</p>
-					</div>
-				</div>
-			{:else if $pageError}
-				<div class="w-full h-[800px] border border-red-300 rounded-lg bg-red-50 flex items-center justify-center">
-					<div class="text-center">
-						<p class="text-red-600 font-semibold">Error loading page</p>
-						<p class="text-red-500 mt-2">{$pageError}</p>
-						<button 
-							onclick={() => talmudStore.loadPage($pageInfo.tractate, $pageInfo.page, $pageInfo.amud)}
-							class="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
-						>
-							Retry
-						</button>
-					</div>
-				</div>
-			{:else}
-				<!-- Always show the container, even if no data yet -->
-				<div class="relative">
-					<!-- Loading overlay -->
-					{#if $isLoading}
-						<div class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
-							<div class="text-center">
-								<div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-								<p class="mt-2 text-gray-600 text-sm">Loading page...</p>
-							</div>
-						</div>
-					{/if}
-					
-					<!-- Container for the daf renderer -->
-					<div bind:this={dafContainer} class="daf" style="position: relative; {getTransformStyle()}">
-						<!-- The daf-renderer will populate this container -->
-						{#if !$currentPage && !$isLoading}
-							<div class="flex items-center justify-center h-full text-gray-400">
-								<p>Select a page to view</p>
-							</div>
-						{/if}
-					</div>
-					
-					<!-- Traditional daf-renderer layout only -->
-					
-					<span class="preload">preload</span>
-					
-					<!-- Page info below the daf -->
-					{#if $currentPage}
-						<div class="mt-8 space-y-4">
-							<div class="border-t pt-4">
-								<div class="flex items-center justify-between">
-									<p class="text-sm text-gray-500">
-										Source: HebrewBooks.org | {$currentPage.tractate} {$currentPage.daf}{$currentPage.amud}
-									</p>
-									<div class="flex items-center gap-2">
-										<span class="text-sm text-gray-500">Custom</span>
-										<Toggle bind:checked={vilnaMode} showIcons={false} />
-										<span class="text-sm text-gray-500">Vilna</span>
-									</div>
-								</div>
-							</div>
-						</div>
-					{/if}
-				</div>
-			{/if}
+			<!-- Daf Renderer Component -->
+			<DafRenderer 
+				pageData={$currentPage}
+				loading={$isLoading}
+				error={$pageError}
+				bind:vilnaMode={vilnaMode}
+				onRetry={() => talmudStore.loadPage($pageInfo.tractate, $pageInfo.page, $pageInfo.amud)}
+			/>
 		</div>
 
 		<!-- Footer -->
@@ -452,113 +335,3 @@
 	/>
 	
 </main>
-
-<style>
-	/* Import daf-renderer styles */
-	@import '$lib/daf-renderer/styles.css';
-	
-	/* Hebrew fonts are loaded via app.css */
-	
-	/* Ensure daf-renderer content is visible */
-	:global(.dafRoot) {
-		position: relative;
-		width: 600px;
-		margin: 0 auto;
-	}
-	
-	:global(.daf .text) {
-		opacity: 1;
-		visibility: visible;
-		display: block;
-	}
-	
-	:global(.daf .spacer) {
-		display: block;
-	}
-	
-	/* Ensure text spans are visible */
-	:global(.daf span) {
-		display: inline !important;
-		opacity: 1 !important;
-		visibility: visible !important;
-	}
-	
-	/* Force font sizes to prevent 0px issue - using default options */
-	:global(.dafRoot .main .text span) {
-		font-size: 15px !important;
-		font-family: "Vilna", serif !important;
-	}
-	
-	:global(.dafRoot .inner .text span) {
-		font-size: 10.5px !important;
-		font-family: "Rashi", serif !important;
-	}
-	
-	:global(.dafRoot .outer .text span) {
-		font-size: 10.5px !important;
-		font-family: "Rashi", serif !important;
-	}
-	
-	/* Force layout dimensions - using default options */
-	:global(.dafRoot) {
-		width: 600px !important;
-		--contentWidth: 600px !important;
-		--mainWidth: 50% !important;
-		--fontSize-main: 15px !important;
-		--fontSize-side: 10.5px !important;
-		--lineHeight-main: 17px !important;
-		--lineHeight-side: 14px !important;
-	}
-	
-	:global(.dafRoot .main),
-	:global(.dafRoot .inner),  
-	:global(.dafRoot .outer) {
-		width: 600px !important;
-	}
-	
-	:global(.dafRoot .text) {
-		width: 100% !important;
-	}
-	
-	/* Talmud-vue styling improvements */
-	:global(.daf div) {
-		text-align-last: initial !important;
-	}
-	
-	/* Hadran styling */
-	:global(div.hadran) {
-		display: flex;
-		justify-content: center;
-		font-size: 135%;
-		font-family: Vilna;
-		transform: translateY(50%);
-	}
-	
-	:global(.hadran span) {
-		display: inline-block;
-	}
-	
-	
-	/* Preload font */
-	:global(.preload) {
-		font-family: Vilna;
-		opacity: 0;
-	}
-	
-	/* Header styling */
-	:global(.tosafot-header) {
-		font-family: Vilna;
-		font-size: 135%;
-		vertical-align: bottom;
-	}
-	
-	:global(.tosafot-header:nth-of-type(odd)) {
-		font-size: 180%;
-		vertical-align: bottom;
-	}
-	
-	:global(.main-header, .rashi-header) {
-		font-weight: bold;
-	}
-	
-</style>
