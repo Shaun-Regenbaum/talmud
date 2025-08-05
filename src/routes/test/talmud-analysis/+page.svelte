@@ -29,14 +29,14 @@
 		'Sanhedrin', 'Makkot', 'Avodah Zarah'
 	];
 	
-	// Color coding for time periods
+	// Color coding for time periods with refined colors
 	const periodColors: Record<string, string> = {
-		'Tannaim': '#3b82f6',
-		'Amoraim': '#10b981', 
-		'Savoraim': '#f59e0b',
-		'Geonim': '#ef4444',
-		'Rishonim': '#8b5cf6',
-		'Acharonim': '#ec4899'
+		'Tannaim': '#5E72E4',    // Soft indigo
+		'Amoraim': '#00B8D4',    // Refined teal
+		'Savoraim': '#FFB400',   // Warm amber
+		'Geonim': '#F5365C',     // Sophisticated coral
+		'Rishonim': '#825EE4',   // Elegant purple
+		'Acharonim': '#ec4899'   // Pink
 	};
 	
 	// Helper function to format years
