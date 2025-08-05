@@ -254,7 +254,7 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 			});
 		}
 		
-		// Get API key
+		// Get API key from platform.env (Cloudflare Workers runtime)
 		const openRouterApiKey = platform?.env?.PUBLIC_OPENROUTER_API_KEY;
 		if (!openRouterApiKey) {
 			return json({ error: 'OpenRouter API not configured' }, { status: 503 });
@@ -306,6 +306,13 @@ Talmud text: ${mainText.slice(0, 3000)}`;
 		});
 
 		if (!response.ok) {
+			const errorBody = await response.text();
+			console.error('OpenRouter API error:', {
+				status: response.status,
+				statusText: response.statusText,
+				body: errorBody,
+				headers: Object.fromEntries(response.headers.entries())
+			});
 			throw new Error(`OpenRouter API error: ${response.status} ${response.statusText}`);
 		}
 
