@@ -1,13 +1,35 @@
+/**
+ * @fileoverview Renderer Store - Manages the daf-renderer instance lifecycle
+ * 
+ * This store provides a centralized way to manage the daf-renderer instance,
+ * handling initialization, rendering, and cleanup. It ensures only one renderer
+ * instance exists at a time and properly manages DOM container references.
+ * 
+ * The store follows a two-phase initialization:
+ * 1. Initialize: Sets up the container reference
+ * 2. Render: Creates the actual renderer instance and renders content
+ */
+
 import { writable, get } from 'svelte/store';
 import createDafRenderer from '$lib/daf-renderer/renderer.js';
 import { defaultOptions } from '$lib/daf-renderer/options.js';
 
+/**
+ * State shape for the renderer store
+ */
 interface RendererState {
+	/** The daf-renderer instance */
 	renderer: any | null;
+	/** DOM container element for the renderer */
 	container: HTMLDivElement | null;
+	/** Whether the store has been initialized with a container */
 	isInitialized: boolean;
 }
 
+/**
+ * Creates a store for managing the daf-renderer instance
+ * @returns {Object} Renderer store with methods for initialization and rendering
+ */
 function createRendererStore() {
 	const { subscribe, set, update } = writable<RendererState>({
 		renderer: null,
@@ -18,7 +40,14 @@ function createRendererStore() {
 	return {
 		subscribe,
 
-		// Initialize the renderer (just set up container, actual renderer created in render())
+		/**
+		 * Initialize the renderer store with a DOM container
+		 * Note: This only sets up the container reference. The actual renderer
+		 * instance is created during the render() call.
+		 * 
+		 * @param {HTMLDivElement} container - DOM element to render into
+		 * @returns {null} Always returns null (renderer created in render())
+		 */
 		initialize(container: HTMLDivElement) {
 			const state = get(this);
 			
@@ -44,7 +73,17 @@ function createRendererStore() {
 			}
 		},
 
-		// Render content
+		/**
+		 * Render Talmud content using daf-renderer
+		 * Creates a new renderer instance and renders the provided texts
+		 * 
+		 * @param {string} mainText - HTML content for main Gemara text
+		 * @param {string} rashiText - HTML content for Rashi commentary
+		 * @param {string} tosafotText - HTML content for Tosafot commentary
+		 * @param {string} pageLabel - Page label (e.g., "31א" or "31ב")
+		 * @param {boolean} lineBreakMode - Whether to use line break mode (vilna style)
+		 * @returns {boolean} True if render succeeded, false otherwise
+		 */
 		render(mainText: string, rashiText: string, tosafotText: string, pageLabel: string, lineBreakMode: boolean = false) {
 			const state = get(this);
 			
@@ -102,7 +141,10 @@ function createRendererStore() {
 			}
 		},
 
-		// Clear the renderer
+		/**
+		 * Clear the renderer and reset the store
+		 * Properly destroys the renderer instance and clears the container
+		 */
 		clear() {
 			update(state => {
 				// Call destroy method if renderer exists
@@ -121,7 +163,10 @@ function createRendererStore() {
 			});
 		},
 
-		// Get renderer instance
+		/**
+		 * Get the current renderer instance
+		 * @returns {any|null} The daf-renderer instance or null if not created
+		 */
 		getRenderer() {
 			const state = get(this);
 			return state.renderer;

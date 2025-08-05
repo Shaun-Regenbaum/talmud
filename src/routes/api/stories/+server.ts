@@ -1,19 +1,41 @@
+/**
+ * @fileoverview Stories API Endpoint - Generates educational narratives
+ * 
+ * This endpoint generates three types of educational stories for each Talmud page:
+ * 1. Core Discussion - Main arguments and rabbis involved
+ * 2. Historical Context - Period background and circumstances
+ * 3. Rabbi Profiles - Character studies of the personalities
+ * 
+ * Features:
+ * - Permanent caching (no expiration) to reduce API costs
+ * - Parallel story generation for better performance
+ * - Uses Claude Sonnet 4 for highest quality narratives
+ * - Supports forced refresh to regenerate stories
+ * 
+ * GET /api/stories?tractate=Berakhot&page=2&amud=a
+ * POST /api/stories with { tractate, page, amud, mainText, rashi, tosafot }
+ */
+
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { openRouterTranslator } from '$lib/openrouter-translator';
-// In Cloudflare Workers, env vars are only available at runtime through platform.env
-// import { PUBLIC_OPENROUTER_API_KEY } from '$env/static/public';
 import { TRACTATE_IDS, convertDafToHebrewBooksFormat } from '$lib/hebrewbooks';
 
-// Check if we're in Cloudflare Workers environment
-// This will be checked at runtime in the request handler
-
-// Cache configuration - permanent cache unless explicitly refreshed
+/** Cache key prefix for KV storage */
 const CACHE_PREFIX = 'talmud-stories:';
 
-// In-memory cache fallback for development
+/** In-memory cache fallback for development */
 const memoryCache = new Map<string, { data: any; timestamp: number }>();
 
+/**
+ * Get cached stories from KV storage or memory
+ * Stories are cached permanently unless explicitly refreshed
+ * 
+ * @param {string} cacheKey - Cache key for the stories
+ * @param {boolean} forceRefresh - Whether to bypass cache
+ * @param {any} platform - Platform object with KV bindings
+ * @returns {Promise<any|null>} Cached stories data or null if not found
+ */
 async function getCachedStories(cacheKey: string, forceRefresh: boolean = false, platform?: any): Promise<any | null> {
 	if (forceRefresh) {
 		return null;
@@ -43,6 +65,12 @@ async function getCachedStories(cacheKey: string, forceRefresh: boolean = false,
 	return null;
 }
 
+/**
+ * Store stories in permanent cache (KV storage or memory)
+ * @param {string} cacheKey - Cache key for the stories
+ * @param {any} data - Stories data to cache
+ * @param {any} platform - Platform object with KV bindings
+ */
 async function setCachedStories(cacheKey: string, data: any, platform?: any): Promise<void> {
 	const cacheData = {
 		data,
@@ -65,6 +93,26 @@ async function setCachedStories(cacheKey: string, data: any, platform?: any): Pr
 	memoryCache.set(cacheKey, cacheData);
 }
 
+/**
+ * GET /api/stories - Generate or retrieve cached educational stories
+ * 
+ * Query parameters:
+ * - tractate: Tractate name (required)
+ * - page: Page number (required)
+ * - amud: Side of page 'a' or 'b' (required)
+ * - refresh: Force regenerate stories if 'true' (optional)
+ * 
+ * Returns:
+ * - 200: Stories data with 3 narratives, word counts, and model info
+ * - 400: Missing required parameters or insufficient content
+ * - 503: OpenRouter API not configured
+ * - 500: Generation error
+ * 
+ * Special response for client-side fetching:
+ * If in development or internal fetch fails, returns:
+ * - requiresClientFetch: true
+ * - dafSupplierUrl: URL for client to fetch text
+ */
 export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 	const tractate = url.searchParams.get('tractate');
 	const page = url.searchParams.get('page');
@@ -343,6 +391,24 @@ Start directly with the character profiles.`
 	}
 };
 
+/**
+ * POST /api/stories - Generate stories from provided texts
+ * Used when client fetches text directly from daf-supplier
+ * 
+ * Request body:
+ * - tractate: Tractate name (required)
+ * - page: Page number (required)  
+ * - amud: Side of page 'a' or 'b' (required)
+ * - mainText: Talmud text content (required)
+ * - rashi: Rashi commentary (optional)
+ * - tosafot: Tosafot commentary (optional)
+ * 
+ * Returns:
+ * - 200: Stories data with 3 narratives, word counts, and model info
+ * - 400: Missing required fields or insufficient content
+ * - 503: OpenRouter API not configured
+ * - 500: Generation error
+ */
 export const POST: RequestHandler = async ({ request, platform }) => {
 	try {
 		const body = await request.json();

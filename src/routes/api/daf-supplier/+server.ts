@@ -1,8 +1,24 @@
+/**
+ * @fileoverview Daf Supplier API Endpoint - Internal API for Talmud text
+ * 
+ * This endpoint provides a compatibility layer for the daf-supplier API format,
+ * used internally by the application. It fetches data from the HebrewBooks API
+ * and transforms it to match the expected daf-supplier response format.
+ * 
+ * Features:
+ * - Converts mesechta numbers to tractate names
+ * - Transforms sequential daf numbers to page/amud format
+ * - Optionally converts newlines to <br> tags
+ * - Provides debug information about extraction methods
+ * 
+ * GET /api/daf-supplier?mesechta=1&daf=3&br=true
+ */
+
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { TRACTATE_IDS } from '$lib/hebrewbooks';
 
-// Map mesechta numbers to tractate names
+/** Map mesechta ID numbers to tractate names */
 const MESECHTA_MAP: Record<string, string> = {
 	'1': 'Berakhot',
 	'2': 'Shabbat',
@@ -43,6 +59,35 @@ const MESECHTA_MAP: Record<string, string> = {
 	'37': 'Niddah'
 };
 
+/**
+ * GET /api/daf-supplier - Fetch Talmud text in daf-supplier format
+ * 
+ * Query parameters:
+ * - mesechta: Numeric ID of the tractate (1-37) (required)
+ * - daf: Sequential daf number (3=2a, 4=2b, etc.) (required)
+ * - br: Convert newlines to <br> tags if 'true' (optional)
+ * 
+ * Returns:
+ * - 200: Text data in daf-supplier format with mainText, rashi, tosafot
+ * - 400: Missing parameters or invalid mesechta number
+ * - 500: Internal server error or fetch failure
+ * 
+ * Response format:
+ * {
+ *   mesechta: number,
+ *   daf: number,
+ *   dafDisplay: string,
+ *   amud: 'a' | 'b',
+ *   tractate: string,
+ *   mainText: string,
+ *   rashi: string,
+ *   tosafot: string,
+ *   otherCommentaries: object,
+ *   timestamp: number,
+ *   source: string,
+ *   debug: object
+ * }
+ */
 export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 	const mesechta = url.searchParams.get('mesechta');
 	const daf = url.searchParams.get('daf');
@@ -66,10 +111,10 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 	
 	try {
 		// Fetch from HebrewBooks API (internal endpoint)
+		// The hebrewbooks API expects 'daf' parameter in format like "2a"
 		const hebrewBooksUrl = new URL('/api/hebrewbooks', url.origin);
 		hebrewBooksUrl.searchParams.set('tractate', tractate);
-		hebrewBooksUrl.searchParams.set('page', pageNum.toString());
-		hebrewBooksUrl.searchParams.set('amud', amud);
+		hebrewBooksUrl.searchParams.set('daf', `${pageNum}${amud}`);
 		
 		const response = await fetch(hebrewBooksUrl.toString());
 		

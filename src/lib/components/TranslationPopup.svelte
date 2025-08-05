@@ -1,11 +1,36 @@
+<!--
+	@component TranslationPopup
+	
+	Displays a popup with Hebrew text and its translation.
+	Automatically adjusts position to stay within viewport boundaries.
+	
+	@example
+	```svelte
+	<TranslationPopup
+		x={100}
+		y={200}
+		selectedText="שלום עולם"
+		translation="Hello World"
+		visible={true}
+	/>
+	```
+-->
 <script lang="ts">
 	import { onMount } from 'svelte';
 	
+	/**
+	 * Component props interface
+	 */
 	interface Props {
+		/** X coordinate for popup position */
 		x: number;
+		/** Y coordinate for popup position */
 		y: number;
+		/** Hebrew text that was selected */
 		selectedText: string;
+		/** Translation of the selected text */
 		translation: string;
+		/** Whether the popup should be visible */
 		visible: boolean;
 	}
 

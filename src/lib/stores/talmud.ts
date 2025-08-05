@@ -1,18 +1,46 @@
+/**
+ * @fileoverview Talmud Store - Central state management for Talmud pages
+ * 
+ * This store manages the loading and caching of Talmud pages from the daf-supplier API.
+ * It handles:
+ * - Page navigation and loading states
+ * - Error handling and recovery
+ * - Data transformation from API format to internal format
+ * - Line break conversion for proper rendering
+ * 
+ * The store provides derived stores for convenient access to specific parts of the state:
+ * - currentPage: The current page data
+ * - isLoading: Loading state
+ * - pageError: Error state
+ * - pageInfo: Current page metadata
+ */
+
 import { writable, derived, get } from 'svelte/store';
 import { TRACTATE_IDS, convertDafToHebrewBooksFormat } from '$lib/hebrewbooks';
 import type { HebrewBooksPage } from '$lib/hebrewbooks';
 
-// Types
+/**
+ * State shape for the Talmud page store
+ */
 export interface TalmudPageState {
+	/** Current tractate name (e.g., "Berakhot") */
 	tractate: string;
+	/** Page number (e.g., "2") */
 	page: string;
+	/** Side of page - 'a' (recto) or 'b' (verso) */
 	amud: string;
+	/** Loaded page data */
 	data: HebrewBooksPage | null;
+	/** Whether page is currently loading */
 	loading: boolean;
+	/** Error message if load failed */
 	error: string | null;
 }
 
-// Create the main store
+/**
+ * Creates the main Talmud store for managing page state
+ * @returns {Object} Store object with methods for page management
+ */
 function createTalmudStore() {
 	const { subscribe, set, update } = writable<TalmudPageState>({
 		tractate: 'Berakhot',
@@ -26,7 +54,15 @@ function createTalmudStore() {
 	return {
 		subscribe,
 		
-		// Load a page
+		/**
+		 * Load a Talmud page from the daf-supplier API
+		 * 
+		 * @param {string} tractate - Tractate name (e.g., "Berakhot")
+		 * @param {string} pageNum - Page number (e.g., "2")
+		 * @param {string} amud - Side of page ('a' or 'b')
+		 * @param {Object} options - Loading options
+		 * @param {boolean} options.lineBreakMode - Whether to preserve line breaks (always true from API)
+		 */
 		async loadPage(tractate: string, pageNum: string, amud: string, options: { lineBreakMode?: boolean } = {}) {
 			const fullPage = `${pageNum}${amud}`;
 			
@@ -98,7 +134,13 @@ function createTalmudStore() {
 			}
 		},
 
-		// Helper function to get tractate ID for API calls
+		/**
+		 * Get the numeric ID for a tractate name
+		 * Used for API calls to daf-supplier
+		 * 
+		 * @param {string} tractate - Tractate name
+		 * @returns {string} Numeric tractate ID
+		 */
 		getTractateId(tractate: string): string {
 			const tractateMapping: Record<string, string> = {
 				'Berakhot': '1',
@@ -142,12 +184,17 @@ function createTalmudStore() {
 			return tractateMapping[tractate] || '1';
 		},
 
-		// Clear error
+		/**
+		 * Clear any error state
+		 */
 		clearError() {
 			update(state => ({ ...state, error: null }));
 		},
 
-		// Get current page reference
+		/**
+		 * Get the current page reference in format "2a"
+		 * @returns {string} Page reference
+		 */
 		getCurrentPage() {
 			const state = get(this);
 			return `${state.page}${state.amud}`;
@@ -155,25 +202,40 @@ function createTalmudStore() {
 	};
 }
 
-// Create the store instance
+/** Singleton instance of the Talmud store */
 export const talmudStore = createTalmudStore();
 
-// Derived stores for convenience
+/**
+ * Derived store containing just the current page data
+ * @type {Readable<HebrewBooksPage | null>}
+ */
 export const currentPage = derived(
 	talmudStore,
 	$talmudStore => $talmudStore.data
 );
 
+/**
+ * Derived store for loading state
+ * @type {Readable<boolean>}
+ */
 export const isLoading = derived(
 	talmudStore,
 	$talmudStore => $talmudStore.loading
 );
 
+/**
+ * Derived store for error state
+ * @type {Readable<string | null>}
+ */
 export const pageError = derived(
 	talmudStore,
 	$talmudStore => $talmudStore.error
 );
 
+/**
+ * Derived store for current page metadata
+ * @type {Readable<{tractate: string, page: string, amud: string, fullPage: string}>}
+ */
 export const pageInfo = derived(
 	talmudStore,
 	$talmudStore => ({

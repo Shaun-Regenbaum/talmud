@@ -1,9 +1,32 @@
+/**
+ * @fileoverview Clear Cache API Endpoint - Clears summary cache
+ * 
+ * This endpoint clears all cached summaries from Cloudflare KV storage.
+ * Used for administrative purposes to force regeneration of all summaries.
+ * 
+ * DELETE /api/summary/clear-cache
+ */
+
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-// Check if we're in Cloudflare Workers environment
+/** Check if we're in Cloudflare Workers environment */
 const isCloudflareWorkers = typeof caches !== 'undefined';
 
+/**
+ * DELETE /api/summary/clear-cache - Clear all cached summaries
+ * 
+ * Returns:
+ * - 200: Success with count of cleared summaries
+ * - 500: Error clearing cache
+ * 
+ * Response format:
+ * {
+ *   success: boolean,
+ *   message: string,
+ *   cleared: number
+ * }
+ */
 export const DELETE: RequestHandler = async () => {
 	let cleared = 0;
 	
