@@ -155,44 +155,30 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 		let rashiText = '';
 		let tosafotText = '';
 		
-		// In production, we can now use our internal daf-supplier
-		// Check if we're in Cloudflare Workers environment
-		const isCloudflareWorkers = platform?.env !== undefined;
-		
-		if (isCloudflareWorkers) {
-			// Use internal daf-supplier endpoint
-			try {
-				const internalUrl = new URL('/api/daf-supplier', url.origin);
-				internalUrl.searchParams.set('mesechta', mesechtaId);
-				internalUrl.searchParams.set('daf', dafForAPI.toString());
-				internalUrl.searchParams.set('br', 'true');
-				
-				const dafResponse = await fetch(internalUrl.toString());
-				if (!dafResponse.ok) {
-					throw new Error(`Failed to fetch from internal daf-supplier: ${dafResponse.status}`);
-				}
-				
-				const dafData = await dafResponse.json();
-				mainText = dafData.mainText;
-				rashiText = dafData.rashi;
-				tosafotText = dafData.tosafot;
-				
-				// Continue with story generation below
-			} catch (error) {
-				console.error('Error fetching from internal daf-supplier:', error);
-				// Fall back to external URL for client fetch
-				const dafSupplierUrl = `/api/daf-supplier?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
-				return json({
-					requiresClientFetch: true,
-					dafSupplierUrl,
-					tractate,
-					page,
-					amud,
-					message: 'Client should fetch from dafSupplierUrl and POST the data back'
-				});
+		// Try to use our internal daf-supplier endpoint directly
+		try {
+			const internalUrl = new URL('/api/daf-supplier', url.origin);
+			internalUrl.searchParams.set('mesechta', mesechtaId);
+			internalUrl.searchParams.set('daf', dafForAPI.toString());
+			internalUrl.searchParams.set('br', 'true');
+			
+			console.log(`Fetching from internal daf-supplier: ${internalUrl.toString()}`);
+			const dafResponse = await fetch(internalUrl.toString());
+			if (!dafResponse.ok) {
+				throw new Error(`Failed to fetch from internal daf-supplier: ${dafResponse.status}`);
 			}
-		} else {
-			// In development, return URL for client to fetch
+			
+			const dafData = await dafResponse.json();
+			mainText = dafData.mainText;
+			rashiText = dafData.rashi;
+			tosafotText = dafData.tosafot;
+			
+			console.log(`Got text from daf-supplier - Main: ${mainText.length}, Rashi: ${rashiText.length}, Tosafot: ${tosafotText.length}`);
+			
+			// Continue with story generation below
+		} catch (error) {
+			console.error('Error fetching from internal daf-supplier:', error);
+			// Fall back to client fetch mode
 			const dafSupplierUrl = `/api/daf-supplier?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
 			return json({
 				requiresClientFetch: true,
