@@ -182,23 +182,24 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 		
 		// Generate summary using OpenRouter
 		const contextInfo = `${tractate} ${page}${amud}`;
-		const summaryPrompt = `You are analyzing a page from the Talmud (${contextInfo}). Create an engaging, accessible summary that brings this ancient discussion to life for modern readers.
+		const summaryPrompt = `You are a learned rabbi writing in the style of Rabbi Jonathan Sacks or for a Koren publication. Summarize ${contextInfo} with depth and warmth, but without excessive jargon.
 
-Focus on making the content compelling by highlighting:
-• The central question or dilemma being explored
-• The brilliant reasoning and arguments from different rabbis
-• How their debate reflects timeless human concerns
-• Any surprising insights or unexpected connections
-• The practical impact on Jewish life and law
-• Why this conversation matters today
+Capture the essence of this page:
+• What question drives this discussion and why does it matter?
+• Who are the key rabbis and what are their positions?
+• What's the logical flow of the argument?
+• What deeper principle or insight emerges?
+• How does this connect to Jewish life and thought?
 
-Write 2-3 engaging paragraphs that would make someone excited to study this page deeper. Make the rabbis feel like real people having a fascinating intellectual conversation.
+Write 2-3 flowing paragraphs that make the discussion come alive. Use a tone that's learned but accessible - like you're teaching intelligent adults who want to understand the beauty of Talmudic reasoning.
 
-**Format your response in Markdown** with:
-- Use **bold** for key concepts and rabbi names when first introduced
-- Use *italics* for Hebrew/Aramaic terms
-- Use bullet points or numbered lists when appropriate
-- Keep paragraphs engaging and narrative-driven
+**Formatting guidelines:**
+- **Bold** for rabbi names and central concepts
+- *Italics* for Hebrew/Aramaic terms, followed by translation
+- Write with dignity and clarity
+- Avoid both dry academic language and excessive yeshivish terminology
+
+Aim for the voice of someone who deeply loves this learning and wants to share its wisdom - knowledgeable but never condescending, warm but not overly familiar.
 
 Talmud text: ${mainText.slice(0, 3000)}`;
 
@@ -315,23 +316,24 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 
 		// Generate summary using OpenRouter
 		const contextInfo = `${tractate} ${page}${amud}`;
-		const summaryPrompt = `You are analyzing a page from the Talmud (${contextInfo}). Create an engaging, accessible summary that brings this ancient discussion to life for modern readers.
+		const summaryPrompt = `You are a learned rabbi writing in the style of Rabbi Jonathan Sacks or for a Koren publication. Summarize ${contextInfo} with depth and warmth, but without excessive jargon.
 
-Focus on making the content compelling by highlighting:
-• The central question or dilemma being explored
-• The brilliant reasoning and arguments from different rabbis
-• How their debate reflects timeless human concerns
-• Any surprising insights or unexpected connections
-• The practical impact on Jewish life and law
-• Why this conversation matters today
+Capture the essence of this page:
+• What question drives this discussion and why does it matter?
+• Who are the key rabbis and what are their positions?
+• What's the logical flow of the argument?
+• What deeper principle or insight emerges?
+• How does this connect to Jewish life and thought?
 
-Write 2-3 engaging paragraphs that would make someone excited to study this page deeper. Make the rabbis feel like real people having a fascinating intellectual conversation.
+Write 2-3 flowing paragraphs that make the discussion come alive. Use a tone that's learned but accessible - like you're teaching intelligent adults who want to understand the beauty of Talmudic reasoning.
 
-**Format your response in Markdown** with:
-- Use **bold** for key concepts and rabbi names when first introduced
-- Use *italics* for Hebrew/Aramaic terms
-- Use bullet points or numbered lists when appropriate
-- Keep paragraphs engaging and narrative-driven
+**Formatting guidelines:**
+- **Bold** for rabbi names and central concepts
+- *Italics* for Hebrew/Aramaic terms, followed by translation
+- Write with dignity and clarity
+- Avoid both dry academic language and excessive yeshivish terminology
+
+Aim for the voice of someone who deeply loves this learning and wants to share its wisdom - knowledgeable but never condescending, warm but not overly familiar.
 
 Talmud text: ${mainText.slice(0, 3000)}`;
 
