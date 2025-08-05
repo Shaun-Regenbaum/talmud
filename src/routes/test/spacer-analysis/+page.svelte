@@ -2,9 +2,7 @@
 	import { onMount } from 'svelte';
 	import createDafRenderer from '$lib/daf-renderer/renderer.js';
 	import { defaultOptions } from '$lib/daf-renderer/options.js';
-	import SliderInput from './components/SliderInput.svelte';
-	import SelectInput from './components/SelectInput.svelte';
-	import TextInput from './components/TextInput.svelte';
+	import { SliderInput, SelectInput, TextInput } from '$lib/components';
 	
 	let tractate = 'Berakhot';
 	let daf = '2';
@@ -97,7 +95,7 @@
 			const dafNumber = daf.replace(/[ab]$/, '');
 			
 			// Fetch from daf-supplier
-			const url = `https://daf-supplier.402.workers.dev/?mesechta=${selectedTractate.mesechta}&daf=${dafNumber}`;
+			const url = `/api/daf-supplier?mesechta=${selectedTractate.mesechta}&daf=${dafNumber}`;
 			console.log('Fetching:', url);
 			
 			const response = await fetch(url);

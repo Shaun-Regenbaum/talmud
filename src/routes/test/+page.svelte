@@ -16,7 +16,7 @@
     
     try {
       // First get the JSON response
-      const jsonUrl = `https://daf-supplier.402.workers.dev?mesechta=${mesechta}&daf=${daf}&nocache=true`;
+      const jsonUrl = `/api/daf-supplier?mesechta=${mesechta}&daf=${daf}&nocache=true`;
       console.log('Fetching JSON from:', jsonUrl);
       
       const jsonResponse = await fetch(jsonUrl);

@@ -18,7 +18,7 @@
 		
 		for (const test of testCases) {
 			try {
-				const response = await fetch(`https://daf-supplier.402.workers.dev?mesechta=${test.mesechta}&daf=${test.daf}&br=true`);
+				const response = await fetch(`/api/daf-supplier?mesechta=${test.mesechta}&daf=${test.daf}&br=true`);
 				const data = await response.json();
 				
 				// Extract HTML elements

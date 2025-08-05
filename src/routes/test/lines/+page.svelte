@@ -40,7 +40,7 @@
 			const dafNumber = daf.replace(/[ab]$/, '');
 			
 			// Fetch from daf-supplier
-			const url = `https://daf-supplier.402.workers.dev/?mesechta=${selectedTractate.mesechta}&daf=${dafNumber}`;
+			const url = `/api/daf-supplier?mesechta=${selectedTractate.mesechta}&daf=${dafNumber}`;
 			console.log('Fetching:', url);
 			
 			const response = await fetch(url);

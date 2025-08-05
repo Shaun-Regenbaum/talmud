@@ -89,7 +89,7 @@ function createTalmudStore() {
 				
 				// Fetch directly from daf-supplier with br=true by default
 				// The renderer will handle stripping breaks if needed based on the mode
-				const url = `https://daf-supplier.402.workers.dev?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
+				const url = `/api/daf-supplier?mesechta=${mesechtaId}&daf=${dafForAPI}&br=true`;
 				console.log('Fetching from daf-supplier:', url);
 				
 				const response = await fetch(url);
