@@ -106,161 +106,31 @@ class TalmudAnalyzer {
 		const { text, tractate, page, amud } = request;
 		const contextInfo = tractate && page && amud ? `${tractate} ${page}${amud}` : 'Talmud text';
 		
-		const systemPrompt = `You are an expert Talmud scholar analyzing Jewish legal texts. 
-Your task is to identify rabbis, classify text sections, and determine time periods.
-Be precise and provide confidence scores for your identifications.`;
-		
-		const userPrompt = `Analyze this Talmud text from ${contextInfo} and provide a JSON response with:
-
-1. RABBIS: Identify all rabbis/sages mentioned with their:
-   - Hebrew name as it appears in text
-   - English transliteration
-   - Title (Rabbi, Rav, Mar, etc.)
-   - Time period (Tannaim/Amoraim/etc.)
-   - Generation number if known
-   - Confidence score (0-1)
-
-2. TEXT SECTIONS: Classify portions as:
-   - "aggadah" (narrative, stories, parables - look for מעשה, משל, etc.)
-   - "halacha" (legal discussion, rulings)
-   - "mixed" (contains both)
-   Include indicators that helped classify each section
-
-3. TIME PERIODS: Based on the rabbis identified, determine:
-   - All time periods represented
-   - The primary/dominant period
-   - Earliest and latest years spanned
-
-Common indicators:
-- Aggadah: מעשה (story), משל (parable), אמר ליה (narrative dialogue), פעם אחת (once upon a time)
-- Halacha: תנן (we learned), תניא (it was taught), הלכה (law), מותר/אסור (permitted/forbidden)
-- Rabbi titles: רבי (Rabbi - usually Tannaim), רב (Rav - usually Amoraim), מר (Mar)
-
-Text to analyze:
-${text.slice(0, 6000)}
-
-Return ONLY valid JSON matching this structure:
-{
-  "rabbis": [
-    {
-      "name": "English name",
-      "hebrewName": "Hebrew as in text",
-      "title": "Rabbi/Rav/etc",
-      "period": {
-        "name": "Tannaim/Amoraim/etc",
-        "hebrewName": "תנאים/אמוראים",
-        "startYear": number,
-        "endYear": number
-      },
-      "generation": number or null,
-      "location": "Babylon/Israel/etc" or null,
-      "confidence": 0-1
-    }
-  ],
-  "sections": [
-    {
-      "startIndex": number,
-      "endIndex": number,
-      "text": "excerpt",
-      "type": "aggadah/halacha/mixed",
-      "confidence": 0-1,
-      "indicators": ["list of Hebrew terms that indicated this classification"]
-    }
-  ],
-  "timePeriods": [
-    {
-      "name": "Period name",
-      "hebrewName": "Hebrew name",
-      "startYear": number,
-      "endYear": number
-    }
-  ],
-  "primaryPeriod": {
-    "name": "Most represented period",
-    "hebrewName": "Hebrew",
-    "startYear": number,
-    "endYear": number
-  },
-  "summary": {
-    "totalRabbis": number,
-    "aggadahPercentage": number,
-    "halachaPercentage": number,
-    "timeSpan": {
-      "earliest": year,
-      "latest": year
-    }
-  },
-  "confidence": overall confidence 0-1
-}`;
-		
 		try {
-			console.log('Sending request to OpenRouter with model:', this.models.accurate);
-			console.log('API Key configured:', !!this.apiKey);
+			// Run all three analyses in parallel for better performance
+			const [textSections, rabbis, timePeriods] = await Promise.all([
+				this.classifyTextSections(text, contextInfo),
+				this.identifyRabbis(text, contextInfo),
+				this.analyzeTimePeriods(text, contextInfo)
+			]);
 			
-			const requestBody = {
-				model: this.models.accurate,
-				messages: [
-					{ role: 'system', content: systemPrompt },
-					{ role: 'user', content: userPrompt }
-				],
-				temperature: 0.3,
-				max_tokens: 2000
-				// Note: removing response_format as it may not be supported by all models
-			};
-			
-			const response = await fetch(this.baseUrl, {
-				method: 'POST',
-				headers: {
-					'Authorization': `Bearer ${this.apiKey}`,
-					'Content-Type': 'application/json',
-					'HTTP-Referer': 'https://talmud.app',
-					'X-Title': 'Talmud Analyzer'
-				},
-				body: JSON.stringify(requestBody)
-			});
-			
-			if (!response.ok) {
-				const errorBody = await response.text();
-				console.error('OpenRouter API error:', response.status, errorBody);
-				throw new Error(`OpenRouter API error: ${response.status} - ${errorBody}`);
-			}
-			
-			const data = await response.json();
-			let analysisText = data.choices[0]?.message?.content || '{}';
-			
-			// Clean up the response - remove markdown code blocks if present
-			analysisText = analysisText.trim();
-			if (analysisText.startsWith('```json')) {
-				analysisText = analysisText.slice(7); // Remove ```json
-			} else if (analysisText.startsWith('```')) {
-				analysisText = analysisText.slice(3); // Remove ```
-			}
-			if (analysisText.endsWith('```')) {
-				analysisText = analysisText.slice(0, -3); // Remove trailing ```
-			}
-			analysisText = analysisText.trim();
-			
-			let analysis: any;
-			try {
-				analysis = JSON.parse(analysisText);
-			} catch (parseError) {
-				console.error('Failed to parse AI response as JSON:', analysisText);
-				analysis = this.getFallbackAnalysis();
-			}
-			
+			// Combine results
 			const result: AnalysisResponse = {
-				rabbis: analysis.rabbis || [],
-				sections: analysis.sections || [],
-				timePeriods: analysis.timePeriods || [],
-				primaryPeriod: analysis.primaryPeriod || null,
-				summary: analysis.summary || {
-					totalRabbis: 0,
-					aggadahPercentage: 0,
-					halachaPercentage: 100,
-					timeSpan: { earliest: 0, latest: 500 }
+				rabbis,
+				sections: textSections,
+				timePeriods,
+				primaryPeriod: timePeriods[0] || null,
+				summary: {
+					totalRabbis: rabbis.length,
+					aggadahPercentage: this.calculatePercentage(textSections, 'aggadah'),
+					halachaPercentage: this.calculatePercentage(textSections, 'halacha'),
+					timeSpan: {
+						earliest: Math.min(...timePeriods.map(p => p.startYear), 0),
+						latest: Math.max(...timePeriods.map(p => p.endYear), 500)
+					}
 				},
-				model: data.model || this.models.accurate,
-				confidence: analysis.confidence || 0.5
+				model: this.models.accurate,
+				confidence: 0.8
 			};
 			
 			this.enrichWithDatabase(result);
@@ -269,8 +139,192 @@ Return ONLY valid JSON matching this structure:
 			return result;
 		} catch (error) {
 			console.error('Analysis error:', error);
-			console.error('Full error details:', error instanceof Error ? error.message : error);
 			return this.getFallbackAnalysis();
+		}
+	}
+	
+	private async classifyTextSections(text: string, contextInfo: string): Promise<TextSection[]> {
+		const systemPrompt = `You are an expert in Talmudic literature specializing in identifying different types of content.
+Your task is to classify sections of text as either halacha (legal discussion) or aggadah (narrative/stories).`;
+		
+		const userPrompt = `Analyze this Talmud text from ${contextInfo} and divide it into sections.
+
+IMPORTANT: You must classify the ENTIRE text. Divide it into meaningful sections of 50-200 characters each.
+Every part of the text should be classified as either:
+- "halacha": Legal discussions, debates about law, rulings, permitted/forbidden matters
+- "aggadah": Stories, narratives, parables, ethical teachings, historical accounts
+- "mixed": Contains both types of content
+
+Look for these indicators:
+- Halacha: תנן, תניא, הלכה, מותר, אסור, חייב, פטור, טמא, טהור
+- Aggadah: מעשה, משל, אמר ליה (in narrative context), פעם אחת, מכאן
+
+Text to analyze (${text.length} characters):
+${text.slice(0, 8000)}
+
+Return a JSON array of sections:
+[
+  {
+    "startIndex": 0,
+    "endIndex": 150,
+    "text": "the actual text excerpt",
+    "type": "halacha",
+    "confidence": 0.9,
+    "indicators": ["תנן", "מותר"]
+  }
+]`;
+
+		try {
+			const response = await this.makeAPICall(systemPrompt, userPrompt, 8000);
+			console.log('Text classification raw response:', response);
+			// The response should be a direct array, not an object with sections property
+			if (Array.isArray(response)) {
+				console.log('Returning array with', response.length, 'sections');
+				return response;
+			}
+			console.log('Not an array, checking for sections property');
+			return response.sections || [];
+		} catch (error) {
+			console.error('Text classification error:', error);
+			return [];
+		}
+	}
+	
+	private async identifyRabbis(text: string, contextInfo: string): Promise<RabbiInfo[]> {
+		const systemPrompt = `You are an expert in Talmudic history specializing in identifying rabbis and sages.
+Your task is to identify all rabbis mentioned in the text with their historical details.`;
+		
+		const userPrompt = `Identify ALL rabbis and sages mentioned in this Talmud text from ${contextInfo}.
+
+For each rabbi, provide:
+- name: English transliteration
+- hebrewName: As it appears in the text
+- title: Rabbi/Rav/Mar/etc.
+- period: Tannaim/Amoraim/Savoraim/Geonim/Rishonim/Acharonim
+- generation: If known (1-7 for Tannaim/Amoraim)
+- location: Babylon/Israel/etc. if mentioned
+- confidence: 0-1
+
+Common rabbi titles to look for:
+- רבי (Rabbi - usually Tannaim)
+- רב (Rav - usually Amoraim)
+- מר (Mar)
+- רבן (Rabban)
+
+Text to analyze (${text.length} characters):
+${text.slice(0, 8000)}
+
+Return ONLY a JSON array of rabbi objects.`;
+		
+		try {
+			const response = await this.makeAPICall(systemPrompt, userPrompt, 6000);
+			// The response should be a direct array, not an object with rabbis property
+			if (Array.isArray(response)) {
+				return response;
+			}
+			return response.rabbis || [];
+		} catch (error) {
+			console.error('Rabbi identification error:', error);
+			return [];
+		}
+	}
+	
+	private async analyzeTimePeriods(text: string, contextInfo: string): Promise<TimePeriod[]> {
+		const systemPrompt = `You are an expert in Jewish history specializing in Talmudic time periods.
+Your task is to determine which historical periods are represented in the text.`;
+		
+		const userPrompt = `Analyze this Talmud text from ${contextInfo} and identify the time periods.
+
+Based on the rabbis, language style, and content, determine:
+1. Which time periods are represented
+2. The primary/dominant period
+
+Time periods to consider:
+- Tannaim (תנאים): 10-220 CE
+- Amoraim (אמוראים): 220-500 CE  
+- Savoraim (סבוראים): 500-650 CE
+- Geonim (גאונים): 650-1050 CE
+- Rishonim (ראשונים): 1050-1500 CE
+- Acharonim (אחרונים): 1500-present
+
+Text to analyze (${text.length} characters):
+${text.slice(0, 5000)}
+
+Return a JSON array of time periods, ordered by prominence.`;
+		
+		try {
+			const response = await this.makeAPICall(systemPrompt, userPrompt, 4000);
+			// The response should be a direct array, not an object with timePeriods property
+			if (Array.isArray(response)) {
+				return response;
+			}
+			return response.timePeriods || TIME_PERIODS.slice(0, 2);
+		} catch (error) {
+			console.error('Time period analysis error:', error);
+			return TIME_PERIODS.slice(0, 2);
+		}
+	}
+	
+	private calculatePercentage(sections: TextSection[], type: string): number {
+		if (!sections || sections.length === 0) return 0;
+		
+		const totalLength = sections.reduce((sum, s) => sum + (s.endIndex - s.startIndex), 0);
+		const typeLength = sections
+			.filter(s => s.type === type)
+			.reduce((sum, s) => sum + (s.endIndex - s.startIndex), 0);
+		
+		return totalLength > 0 ? Math.round((typeLength / totalLength) * 100) : 0;
+	}
+	
+	private async makeAPICall(systemPrompt: string, userPrompt: string, maxTokens: number = 8000): Promise<any> {
+		console.log('Making API call with model:', this.models.accurate);
+		
+		const requestBody = {
+			model: this.models.accurate,
+			messages: [
+				{ role: 'system', content: systemPrompt },
+				{ role: 'user', content: userPrompt }
+			],
+			temperature: 0.3,
+			max_tokens: maxTokens
+		};
+		
+		const response = await fetch(this.baseUrl, {
+			method: 'POST',
+			headers: {
+				'Authorization': `Bearer ${this.apiKey}`,
+				'Content-Type': 'application/json',
+				'HTTP-Referer': 'https://talmud.app',
+				'X-Title': 'Talmud Analyzer'
+			},
+			body: JSON.stringify(requestBody)
+		});
+		
+		if (!response.ok) {
+			const errorBody = await response.text();
+			console.error('OpenRouter API error:', response.status, errorBody);
+			throw new Error(`OpenRouter API error: ${response.status} - ${errorBody}`);
+		}
+		
+		const data = await response.json();
+		let content = data.choices[0]?.message?.content || '{}';
+		
+		// Clean up the response - remove markdown code blocks if present
+		content = content.trim();
+		if (content.startsWith('```json')) {
+			content = content.slice(7);
+		} else if (content.startsWith('```')) {
+			content = content.slice(3);
+		}
+		if (content.endsWith('```')) {
+			content = content.slice(0, -3);
+		}
+		
+		try {
+			return JSON.parse(content.trim());
+		} catch (parseError) {
+			console.error('Failed to parse API response:', content);
+			return {};
 		}
 	}
 	
