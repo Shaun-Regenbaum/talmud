@@ -250,18 +250,42 @@ Time periods to consider:
 Text to analyze (${text.length} characters):
 ${text.slice(0, 5000)}
 
-Return a JSON array of time periods, ordered by prominence.`;
+Return a JSON array of time periods with this EXACT structure for each period:
+{
+  "name": "Period name in English (e.g., 'Amoraim')",
+  "hebrewName": "Hebrew name (e.g., 'אמוראים')",
+  "startYear": number (e.g., 220),
+  "endYear": number (e.g., 500)
+}
+
+Order by prominence (most dominant period first).`;
 		
 		try {
 			const response = await this.makeAPICall(systemPrompt, userPrompt, 4000);
-			// The response should be a direct array, not an object with timePeriods property
+			// Validate and fix the response
+			let periods: TimePeriod[] = [];
+			
 			if (Array.isArray(response)) {
-				return response;
+				periods = response;
+			} else if (response.timePeriods && Array.isArray(response.timePeriods)) {
+				periods = response.timePeriods;
 			}
-			return response.timePeriods || TIME_PERIODS.slice(0, 2);
+			
+			// Validate each period and provide defaults if missing
+			return periods.map(period => ({
+				name: period.name || 'Unknown',
+				hebrewName: period.hebrewName || '',
+				startYear: period.startYear || 0,
+				endYear: period.endYear || new Date().getFullYear()
+			})).filter(period => period.name !== 'Unknown');
+			
 		} catch (error) {
 			console.error('Time period analysis error:', error);
-			return TIME_PERIODS.slice(0, 2);
+			// Return default Talmudic periods
+			return [
+				{ name: 'Amoraim', hebrewName: 'אמוראים', startYear: 220, endYear: 500 },
+				{ name: 'Tannaim', hebrewName: 'תנאים', startYear: 10, endYear: 220 }
+			];
 		}
 	}
 	

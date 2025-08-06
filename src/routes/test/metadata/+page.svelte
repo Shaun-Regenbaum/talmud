@@ -581,7 +581,7 @@
 				<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
 					<h2 class="text-lg font-semibold mb-3">Time Period Analysis</h2>
 					
-					{#if analysisData.primaryPeriod}
+					{#if analysisData.primaryPeriod && analysisData.primaryPeriod.name}
 						<div class="p-3 bg-gray-50 rounded mb-3">
 							<div class="font-medium">Primary Period</div>
 							<div class="flex items-center gap-2 mt-1">
@@ -592,27 +592,37 @@
 								<span class="font-medium" style="color: {periodColors[analysisData.primaryPeriod.name] || '#000'}">
 									{analysisData.primaryPeriod.name}
 								</span>
-								<span class="text-gray-600">({analysisData.primaryPeriod.hebrewName})</span>
+								{#if analysisData.primaryPeriod.hebrewName}
+									<span class="text-gray-600">({analysisData.primaryPeriod.hebrewName})</span>
+								{/if}
 							</div>
-							<div class="text-sm text-gray-600 mt-1">
-								{formatYear(analysisData.primaryPeriod.startYear)} - {formatYear(analysisData.primaryPeriod.endYear)}
-							</div>
+							{#if analysisData.primaryPeriod.startYear && analysisData.primaryPeriod.endYear}
+								<div class="text-sm text-gray-600 mt-1">
+									{formatYear(analysisData.primaryPeriod.startYear)} - {formatYear(analysisData.primaryPeriod.endYear)}
+								</div>
+							{/if}
 						</div>
+					{:else}
+						<div class="text-sm text-gray-500">No primary period identified</div>
 					{/if}
 					
-					{#if analysisData.timePeriods && analysisData.timePeriods.length > 1}
+					{#if analysisData.timePeriods && analysisData.timePeriods.length > 0}
 						<div class="text-sm text-gray-600 mb-2">All periods represented:</div>
 						<div class="space-y-1">
 							{#each analysisData.timePeriods as period}
-								<div class="flex items-center gap-2 text-sm">
-									<span 
-										class="w-2 h-2 rounded-full" 
-										style="background-color: {periodColors[period.name] || '#666'}"
-									></span>
-									<span>{period.name} ({period.hebrewName})</span>
-								</div>
+								{#if period.name}
+									<div class="flex items-center gap-2 text-sm">
+										<span 
+											class="w-2 h-2 rounded-full" 
+											style="background-color: {periodColors[period.name] || '#666'}"
+										></span>
+										<span>{period.name} {period.hebrewName ? `(${period.hebrewName})` : ''}</span>
+									</div>
+								{/if}
 							{/each}
 						</div>
+					{:else}
+						<div class="text-sm text-gray-500 mt-2">No time periods identified</div>
 					{/if}
 				</div>
 				
