@@ -40,6 +40,14 @@
 	let dafSupplierData: any = null;
 	let loadingDafSupplier = false;
 	
+	// Click-to-context functionality
+	let selectedContext: SelectionContext | null = null;
+	let correspondingContext: SelectionContext | null = null;
+	let matchedSegments: SegmentMapping[] = [];
+	let showContextModal = false;
+	let lastAlignment: any = null;
+	let segmentMappings: SegmentMapping[] = [];
+	
 	// Initialize state from URL parameters
 	function initializeFromUrl() {
 		if (!browser) return;
@@ -117,121 +125,140 @@
 		
 		// Update URL without navigation
 		const newUrl = `${$page.url.pathname}?${params.toString()}`;
-		goto(newUrl, { replaceState: true, keepFocus: true, noScroll: true });
+		goto(newUrl, { replaceState: true, noScroll: true });
 	}
 	
-	// Using extractTalmudContent from alignment service
-	
-	const endpoints = {
+	// Define endpoints
+	const endpoints: Record<string, any> = {
 		texts: {
 			name: 'Texts API',
-			description: 'Get text content and metadata',
-			url: (params: any) => `https://www.sefaria.org/api/texts/${params.ref}`,
-			params: ['ref']
+			url: (params: any) => `https://www.sefaria.org/api/texts/${params.ref}?commentary=0`,
+			description: 'Retrieve text content with Hebrew and English translations',
+			params: { ref: 'textRef' }
 		},
 		search: {
-			name: 'Search API',
+			name: 'Search',
+			url: (params: any) => `https://www.sefaria.org/api/search?q=${encodeURIComponent(params.query)}&size=10&field=exact`,
 			description: 'Search across all texts',
-			url: (params: any) => `https://www.sefaria.org/api/search-wrapper/_search?q=${encodeURIComponent(params.query)}`,
-			params: ['query']
+			params: { query: 'searchQuery' }
 		},
 		index: {
-			name: 'Index API',
-			description: 'Get index/table of contents for a text',
+			name: 'Index',
 			url: (params: any) => `https://www.sefaria.org/api/index/${params.title}`,
-			params: ['title']
+			description: 'Get structural information about a text',
+			params: { title: 'indexTitle' }
 		},
 		topics: {
-			name: 'Topics API',
-			description: 'Get topic information',
+			name: 'Topics',
 			url: (params: any) => `https://www.sefaria.org/api/topics/${params.slug}`,
-			params: ['slug']
+			description: 'Get information about a specific topic',
+			params: { slug: 'topicSlug' }
 		},
 		links: {
-			name: 'Links API',
-			description: 'Get links/connections between texts',
+			name: 'Links',
 			url: (params: any) => {
 				let url = `https://www.sefaria.org/api/links/${params.ref}`;
 				const queryParams = [];
 				if (params.type) queryParams.push(`type=${params.type}`);
 				if (params.direction) queryParams.push(`direction=${params.direction}`);
-				if (queryParams.length) url += '?' + queryParams.join('&');
+				if (queryParams.length) url += `?${queryParams.join('&')}`;
 				return url;
 			},
-			params: ['ref', 'type', 'direction']
+			description: 'Get connections between texts',
+			params: { ref: 'linkRef', type: 'linkType', direction: 'linkDirection' }
 		},
 		calendars: {
-			name: 'Calendars API',
-			description: 'Get calendar/parasha information',
+			name: 'Calendars',
 			url: (params: any) => `https://www.sefaria.org/api/calendars/${params.date}`,
-			params: ['date']
+			description: 'Get Jewish calendar information for a specific date',
+			params: { date: 'calendars' }
 		},
 		name: {
-			name: 'Name API',
-			description: 'Get information about a person/author',
+			name: 'Name Lookup',
 			url: (params: any) => `https://www.sefaria.org/api/name/${encodeURIComponent(params.query)}`,
-			params: ['query']
+			description: 'Look up information about a person or term',
+			params: { query: 'nameQuery' }
 		},
 		person: {
-			name: 'Person API',
-			description: 'Get detailed person information',
+			name: 'Person',
 			url: (params: any) => `https://www.sefaria.org/api/person/${params.key}`,
-			params: ['key']
+			description: 'Get detailed information about a specific person',
+			params: { key: 'personKey' }
 		},
 		collections: {
-			name: 'Collections API',
-			description: 'Get collection information',
+			name: 'Collections',
 			url: (params: any) => `https://www.sefaria.org/api/collections/${params.slug}`,
-			params: ['slug']
+			description: 'Get information about text collections',
+			params: { slug: 'collectionSlug' }
 		},
 		groups: {
-			name: 'Groups API',
-			description: 'Get text group information',
+			name: 'Groups',
 			url: (params: any) => `https://www.sefaria.org/api/groups/${params.name}`,
-			params: ['name']
+			description: 'Get information about user groups',
+			params: { name: 'groupName' }
 		},
 		terms: {
-			name: 'Terms API',
-			description: 'Get term/concept information',
+			name: 'Terms',
 			url: (params: any) => `https://www.sefaria.org/api/terms/${params.name}`,
-			params: ['name']
+			description: 'Get information about specific terms',
+			params: { name: 'termName' }
 		}
 	};
 	
-	function getParams() {
-		switch (selectedEndpoint) {
-			case 'texts': return { ref: textRef };
-			case 'search': return { query: searchQuery };
-			case 'index': return { title: indexTitle };
-			case 'topics': return { slug: topicSlug };
-			case 'links': return { ref: linkRef, type: linkType, direction: linkDirection };
-			case 'calendars': return { date: calendars };
-			case 'name': return { query: nameQuery };
-			case 'person': return { key: personKey };
-			case 'collections': return { slug: collectionSlug };
-			case 'groups': return { name: groupName };
-			case 'terms': return { name: termName };
-			default: return {};
-		}
-	}
-	
+	// Test the selected endpoint
 	async function testEndpoint() {
-		// Update URL before making the request
-		updateUrl();
-		
 		loading = true;
 		error = '';
 		response = null;
-		dafSupplierData = null;
-		
-		const startTime = performance.now();
 		
 		try {
+			// Build parameters based on endpoint
 			const endpoint = endpoints[selectedEndpoint];
-			const params = getParams();
-			const url = endpoint.url(params);
+			const params: any = {};
 			
-			console.log('Fetching from Sefaria:', url);
+			// Map parameter names to values
+			switch (selectedEndpoint) {
+				case 'texts':
+					params.ref = textRef;
+					break;
+				case 'search':
+					params.query = searchQuery;
+					break;
+				case 'index':
+					params.title = indexTitle;
+					break;
+				case 'topics':
+					params.slug = topicSlug;
+					break;
+				case 'links':
+					params.ref = linkRef;
+					params.type = linkType;
+					params.direction = linkDirection;
+					break;
+				case 'calendars':
+					params.date = calendars;
+					break;
+				case 'name':
+					params.query = nameQuery;
+					break;
+				case 'person':
+					params.key = personKey;
+					break;
+				case 'collections':
+					params.slug = collectionSlug;
+					break;
+				case 'groups':
+					params.name = groupName;
+					break;
+				case 'terms':
+					params.name = termName;
+					break;
+			}
+			
+			const url = endpoint.url(params);
+			console.log('Fetching:', url);
+			
+			const startTime = performance.now();
 			const res = await fetch(url);
 			responseTime = performance.now() - startTime;
 			
@@ -240,61 +267,70 @@
 			}
 			
 			response = await res.json();
-			console.log('Sefaria response structure:', {
-				hasHe: !!response.he,
-				heLength: response.he?.length,
-				hasText: !!response.text,
-				textLength: response.text?.length,
-				error: response.error,
-				ref: response.ref,
-				heFirstItem: response.he?.[0],
-				heType: typeof response.he?.[0]
-			});
+			console.log('Response:', response);
 			
-			// If it's a text endpoint, also fetch daf-supplier data
-			if (selectedEndpoint === 'texts' && params.ref) {
-				await fetchDafSupplierData(params.ref);
+			// For texts endpoint, also fetch from daf-supplier
+			if (selectedEndpoint === 'texts' && response.he) {
+				await fetchDafSupplierData();
 			}
-		} catch (e) {
-			console.error('Error in testEndpoint:', e);
-			error = e instanceof Error ? e.message : 'Unknown error';
+			
+		} catch (e: any) {
+			error = e.message || 'An error occurred';
+			console.error('Error:', e);
 		} finally {
 			loading = false;
 		}
 	}
 	
-	async function fetchDafSupplierData(ref: string) {
+	// Fetch from daf-supplier API
+	async function fetchDafSupplierData() {
 		loadingDafSupplier = true;
 		dafSupplierData = null;
+		
 		try {
-			// Parse reference to get tractate and page
-			const match = ref.match(/^(.+?)\.(\d+[ab]?)$/);
-			if (!match) {
-				console.error('Invalid reference format:', ref);
+			// Extract tractate and daf from textRef
+			const parts = textRef.split('.');
+			if (parts.length !== 2) return;
+			
+			const tractate = parts[0];
+			const daf = parts[1];
+			
+			// Convert daf format for daf-supplier
+			// The pattern is: 2a=2, 2b=3, 3a=4, 3b=5, etc.
+			// So: page N amud a = (N*2), page N amud b = (N*2) + 1
+			const dafNum = parseInt(daf);
+			const isAmudB = daf.includes('b');
+			const sequentialDaf = isAmudB ? (dafNum * 2) + 1 : (dafNum * 2);
+			
+			console.log('Converting daf:', { daf, dafNum, isAmudB, sequentialDaf });
+			
+			// Map tractate to numeric ID (simplified mapping)
+			const tractateMap: Record<string, string> = {
+				'Berakhot': '1',
+				'Shabbat': '2',
+				'Eruvin': '3',
+				'Pesachim': '4',
+				'Shekalim': '5',
+				'Yoma': '6',
+				'Sukkah': '7',
+				'Beitzah': '8',
+				'Rosh_Hashanah': '9',
+				'Taanit': '10',
+				'Megillah': '11',
+				'Moed_Katan': '12',
+				'Chagigah': '13'
+			};
+			
+			const mesechtaId = tractateMap[tractate];
+			if (!mesechtaId) {
+				console.log('Unknown tractate:', tractate);
 				return;
 			}
 			
-			const [, tractate, page] = match;
+			const url = `/api/daf-supplier?mesechta=${mesechtaId}&daf=${sequentialDaf}`;
+			console.log('Fetching daf-supplier:', url);
 			
-			// Use the same conversion logic as matching-debug
-			const dafNum = parseInt(page.replace(/[ab]/, ''));
-			const isAmudB = page.includes('b');
-			const sequentialDaf = isAmudB ? (dafNum * 2) + 1 : (dafNum * 2);
-			
-			console.log('Converting daf:', { page, dafNum, isAmudB, sequentialDaf });
-			
-			// Import the tractate IDs
-			const { TRACTATE_IDS } = await import('$lib/api/hebrewbooks');
-			const mesechtaId = TRACTATE_IDS[tractate];
-			
-			console.log('Fetching:', {
-				sefaria: ref,
-				dafSupplier: `mesechta=${mesechtaId}&daf=${sequentialDaf}`
-			});
-			
-			// Fetch directly from the daf-supplier API
-			const response = await fetch(`/api/daf-supplier?mesechta=${mesechtaId}&daf=${sequentialDaf}`);
-			
+			const response = await fetch(url);
 			if (response.ok) {
 				const data = await response.json();
 				dafSupplierData = {
@@ -334,8 +370,6 @@
 			ref: response.ref ? `${response.ref}:${i + 1}` : `Segment ${i + 1}`
 		}));
 	}
-	
-	// Using normalizeHebrew from alignment service
 	
 	// Simple but effective similarity calculation
 	function calculateSimilarity(str1: string, str2: string): number {
@@ -422,7 +456,7 @@
 		};
 	}
 	
-	// Advanced matching using the refined alignment service (DEPRECATED - keeping for compatibility)
+	// Get matched segments with proper word-to-segment mapping
 	function getMatchedSegments() {
 		// Validate inputs
 		if (!response?.he || !Array.isArray(response.he) || !dafSupplierData?.mainText) {
@@ -430,26 +464,21 @@
 			return [];
 		}
 		
-		// Check for invalid daf reference (like "54" instead of "54a")
 		if (response.error || !response.he.length) {
 			console.log('API returned error or empty segments');
 			return [];
 		}
 		
-		// If currently matching, return current segments
-		if (isMatching) return sefariaSegments;
+		if (isMatching) return [];
 		
-		matchingProgress = []; // Reset progress
+		matchingProgress = [];
 		isMatching = true;
 		
-		console.clear(); // Clear console for fresh debug output
-		
+		// Create segments with metadata
 		const sefariaSegments = response.he
-			.filter((hebrew: any) => hebrew != null) // Filter out null/undefined segments
+			.filter((hebrew: any) => hebrew != null)
 			.map((hebrew: string, i: number) => {
-				// Ensure hebrew is a string
 				const hebrewText = typeof hebrew === 'string' ? hebrew : String(hebrew || '');
-				
 				return {
 					index: i,
 					hebrew: hebrewText,
@@ -459,62 +488,43 @@
 					dafSupplierMatch: null as string | null,
 					similarity: 0,
 					matchedIndices: [] as number[],
-					exactMatchIndices: [] as number[] // Track only exact matches for underlining
+					exactMatchIndices: [] as number[]
 				};
 			});
 		
 		if (sefariaSegments.length === 0) {
-			console.log('No valid segments found after filtering');
 			isMatching = false;
 			return [];
 		}
 		
-		matchingProgress.push({ type: 'info', message: `Processing ${sefariaSegments.length} segments using full-text alignment` });
+		// Build word-to-segment mapping BEFORE joining
+		const wordToSegmentMap: number[] = [];
+		const allSefariaWords: string[] = [];
 		
-		console.log('=== USING FULL-TEXT ALIGNMENT SERVICE for', response.ref, '===');
-		
-		// Step 1: Combine all Sefaria segments into one text
-		const combinedSefariaText = sefariaSegments
-			.map(seg => seg.hebrew || '')
-			.filter(text => text.trim().length > 0)
-			.join(' ');
-		
-		// Extract and clean the HebrewBooks text
-		const hebrewBooksExtracted = extractTalmudContent(dafSupplierData.mainText);
-		
-		console.log('=== TEXT COMPARISON ===');
-		console.log(`Sefaria text (first 200 chars): ${combinedSefariaText.substring(0, 200)}...`);
-		console.log(`HebrewBooks text (first 200 chars): ${hebrewBooksExtracted.substring(0, 200)}...`);
-		console.log(`Sefaria word count: ${combinedSefariaText.split(' ').filter(w => w).length}`);
-		console.log(`HebrewBooks word count: ${hebrewBooksExtracted.split(' ').filter(w => w).length}`);
-		
-		// Check if texts are completely different
-		const sefariaStart = normalizeHebrew(combinedSefariaText.substring(0, 50));
-		const hebrewBooksStart = normalizeHebrew(hebrewBooksExtracted.substring(0, 50));
-		
-		if (sefariaStart !== hebrewBooksStart) {
-			console.warn('⚠️ WARNING: Texts appear to start differently!');
-			console.log('Sefaria normalized start:', sefariaStart);
-			console.log('HebrewBooks normalized start:', hebrewBooksStart);
-			
-			// Check if this might be a daf boundary issue
-			const sefariaFirstWords = combinedSefariaText.split(' ').slice(0, 10).join(' ');
-			const hebrewBooksFirstWords = hebrewBooksExtracted.split(' ').slice(0, 10).join(' ');
-			console.log('First 10 words comparison:');
-			console.log('  Sefaria:', sefariaFirstWords);
-			console.log('  HebrewBooks:', hebrewBooksFirstWords);
+		for (let segIdx = 0; segIdx < sefariaSegments.length; segIdx++) {
+			const words = sefariaSegments[segIdx].hebrew.split(' ').filter(w => w.trim());
+			for (const word of words) {
+				allSefariaWords.push(word);
+				wordToSegmentMap.push(segIdx);
+			}
 		}
 		
+		const combinedSefariaText = allSefariaWords.join(' ');
+		const hebrewBooksExtracted = extractTalmudContent(dafSupplierData.mainText);
+		
+		console.log('=== ALIGNMENT START ===');
+		console.log(`Total segments: ${sefariaSegments.length}`);
+		console.log(`Total Sefaria words: ${allSefariaWords.length}`);
+		console.log(`Word-to-segment map length: ${wordToSegmentMap.length}`);
+		
 		if (!combinedSefariaText.trim() || !hebrewBooksExtracted.trim()) {
-			console.log('Empty texts provided to alignment');
 			isMatching = false;
 			return sefariaSegments;
 		}
 		
-		// Step 2: Use alignment service on full texts (no word limit)
-		console.log('Aligning full texts...');
+		// Perform alignment
 		try {
-			var fullAlignment = alignTexts(combinedSefariaText, hebrewBooksExtracted, Math.max(1000, combinedSefariaText.split(' ').length + 200));
+			var fullAlignment = alignTexts(combinedSefariaText, hebrewBooksExtracted, allSefariaWords.length + 500);
 		} catch (error) {
 			console.error('Error in alignTexts:', error);
 			isMatching = false;
@@ -522,953 +532,121 @@
 		}
 		
 		if (!fullAlignment.alignment.pairs.length) {
-			console.log('No alignment found for full texts');
 			isMatching = false;
 			return sefariaSegments;
 		}
 		
-		console.log(`Full alignment completed: ${fullAlignment.statistics.totalMatches}/${fullAlignment.statistics.total} matches`);
+		// Map alignment back to segments using the word-to-segment map
+		const segmentHebrewBooksWords: string[][] = Array(sefariaSegments.length).fill(null).map(() => []);
+		const segmentMatches: number[] = Array(sefariaSegments.length).fill(0);
+		const segmentExactMatches: number[] = Array(sefariaSegments.length).fill(0);
 		
-		// Step 3: Map segments to their positions in the aligned text
-		let currentSefariaIndex = 0;
-		let totalMatched = 0;
-		let totalExact = 0;
+		let sefariaWordIndex = 0;
 		
-		for (let segIdx = 0; segIdx < sefariaSegments.length; segIdx++) {
-			const segment = sefariaSegments[segIdx];
-			const segmentWords = segment.normalized.split(' ').filter(w => w.length > 0);
-			
-			if (segmentWords.length === 0) continue;
-			
-			console.log(`\n--- Mapping Segment ${segIdx + 1} (${segmentWords.length} words) ---`);
-			
-			// Find this segment's range in the word comparison
-			const segmentStartIndex = currentSefariaIndex;
-			const segmentEndIndex = currentSefariaIndex + segmentWords.length;
-			
-			if (segmentEndIndex > fullAlignment.wordComparison.length) {
-				console.log(`  ✗ Segment extends beyond alignment bounds`);
-				currentSefariaIndex = segmentEndIndex;
-				continue;
+		for (const pair of fullAlignment.alignment.pairs) {
+			if (pair.sefaria) {
+				// This pair has a Sefaria word
+				if (sefariaWordIndex < wordToSegmentMap.length) {
+					const segIdx = wordToSegmentMap[sefariaWordIndex];
+					
+					// Add the HebrewBooks word to this segment
+					if (pair.hebrewBooks) {
+						segmentHebrewBooksWords[segIdx].push(pair.hebrewBooks);
+						
+						// Check if it's a match
+						if (pair.matched) {
+							segmentMatches[segIdx]++;
+							
+							// Check for exact match
+							if (pair.sefaria === pair.hebrewBooks) {
+								segmentExactMatches[segIdx]++;
+							}
+						}
+					}
+					
+					sefariaWordIndex++;
+				}
+			} else if (pair.hebrewBooks && sefariaWordIndex > 0) {
+				// This is an insertion - add it to the previous segment's text
+				const segIdx = wordToSegmentMap[Math.min(sefariaWordIndex - 1, wordToSegmentMap.length - 1)];
+				if (segIdx !== undefined) {
+					segmentHebrewBooksWords[segIdx].push(pair.hebrewBooks);
+				}
 			}
-			
-			// Extract the corresponding HebrewBooks words and statistics
-			const segmentComparison = fullAlignment.wordComparison.slice(segmentStartIndex, segmentEndIndex);
-			const hebrewBooksWords = [];
-			const matchedIndices = [];
-			const exactIndices = [];
-			let segmentMatches = 0;
-			let segmentExactMatches = 0;
-			
-			segmentComparison.forEach((comp, relativeIdx) => {
-				if (comp.hebrewBooksWord) {
-					hebrewBooksWords.push(comp.hebrewBooksWord);
-				}
-				if (comp.fuzzyMatch || comp.normalizedMatch) {
-					matchedIndices.push(relativeIdx);
-					segmentMatches++;
-				}
-				if (comp.exactMatch) {
-					exactIndices.push(relativeIdx);
-					segmentExactMatches++;
-				}
-			});
-			
-			if (hebrewBooksWords.length > 0) {
-				segment.dafSupplierMatch = hebrewBooksWords.join(' ');
-				segment.similarity = segmentMatches / segmentWords.length;
-				segment.matchedIndices = matchedIndices;
-				segment.exactMatchIndices = exactIndices;
-				
-				totalMatched++;
-				if (segmentExactMatches > 0) totalExact++;
-				
-				console.log(`  ✓ Mapped with ${segmentMatches}/${segmentWords.length} matches (${segmentExactMatches} exact)`);
-				console.log(`    HebrewBooks: ${hebrewBooksWords.slice(0, 8).join(' ')}${hebrewBooksWords.length > 8 ? '...' : ''}`);
-			} else {
-				console.log(`  ✗ No HebrewBooks words found for this segment`);
-			}
-			
-			currentSefariaIndex = segmentEndIndex;
 		}
 		
-		console.log(`\nFULL-TEXT ALIGNMENT SUMMARY:`);
-		console.log(`  Total segments: ${sefariaSegments.length}`);
-		console.log(`  Segments with matches: ${totalMatched}`);
-		console.log(`  Segments with exact matches: ${totalExact}`);
-		console.log(`  Overall alignment score: ${fullAlignment.alignment.score.toFixed(3)}`);
+		// Apply results to segments
+		for (let i = 0; i < sefariaSegments.length; i++) {
+			const segment = sefariaSegments[i];
+			const segmentWordCount = segment.hebrew.split(' ').filter(w => w.trim()).length;
+			
+			if (segmentHebrewBooksWords[i].length > 0) {
+				segment.dafSupplierMatch = segmentHebrewBooksWords[i].join(' ');
+				segment.similarity = segmentWordCount > 0 ? segmentMatches[i] / segmentWordCount : 0;
+				
+				console.log(`Segment ${i + 1}: ${segmentMatches[i]}/${segmentWordCount} matches`);
+			}
+		}
+		
+		console.log(`Alignment complete: ${fullAlignment.alignment.score * 100}% overall score`);
 		
 		matchingProgress.push({ 
 			type: 'result', 
-			message: `Mapped ${totalMatched}/${sefariaSegments.length} segments from full-text alignment (${totalExact} with exact matches)` 
+			message: `Aligned ${sefariaSegments.filter(s => s.dafSupplierMatch).length}/${sefariaSegments.length} segments` 
 		});
+		
+		// Store alignment result for click-to-context
+		lastAlignment = fullAlignment;
+		
+		// Create segment mappings for click-to-context
+		if (response?.he && Array.isArray(response.he)) {
+			const sefariaSegs = response.he
+				.filter((hebrew: any) => hebrew != null)
+				.map((hebrew: string, i: number) => ({
+					ref: response.ref ? `${response.ref}:${i + 1}` : `Segment ${i + 1}`,
+					he: typeof hebrew === 'string' ? hebrew : String(hebrew || ''),
+					en: response.text?.[i] || ''
+				}));
+			segmentMappings = createSegmentMappings(sefariaSegs);
+		}
 		
 		isMatching = false;
 		return sefariaSegments;
 	}
 	
-	// Fill gaps between matched segments
-	function fillGapsBetweenMatches(matches: any[], dafWords: string[]) {
-		for (let i = 0; i < matches.length; i++) {
-			// If this segment has no match but is surrounded by matches, fill the gap
-			if (!matches[i] && i > 0 && i < matches.length - 1) {
-				const prevMatch = matches[i - 1];
-				const nextMatch = matches[i + 1];
-				
-				if (prevMatch && nextMatch) {
-					// Use the text between the two matched segments
-					const gapStart = prevMatch.endIndex;
-					const gapEnd = nextMatch.startIndex;
-					
-					if (gapEnd > gapStart && gapEnd - gapStart < 50) { // Reasonable gap size
-						matches[i] = {
-							text: dafWords.slice(gapStart, gapEnd).join(' '),
-							similarity: 0.5, // Mark as gap-filled
-							matchedIndices: [],
-							startIndex: gapStart,
-							endIndex: gapEnd,
-							gapFilled: true
-						};
-						
-						matchingProgress.push({ 
-							type: 'gap', 
-							message: `Filled gap at segment ${i + 1} with ${gapEnd - gapStart} words` 
-						});
-					}
-				}
-			}
-		}
-	}
-	
-	// Try a complete matching strategy
-	function tryMatchingStrategy(segments: any[], dafWords: string[], strategy: any) {
-		// Use anchor-based matching for better accuracy
-		if (strategy.useAnchors) {
-			return tryAnchorBasedMatching(segments, dafWords, strategy);
-		}
+	// Handle text selection for click-to-context
+	function handleTextClick(event: MouseEvent) {
+		if (!lastAlignment || !segmentMappings.length) return;
 		
-		const matches = [];
-		let currentWordIndex = 0;
+		const selection = window.getSelection();
+		if (!selection || selection.isCollapsed) return;
 		
-		for (let i = 0; i < segments.length; i++) {
-			const segmentWords = segments[i].normalized.split(' ').filter(w => w.length > 0);
-			
-			// Try to find match with current strategy
-			const match = findSegmentMatchWithStrategy(
-				dafWords, 
-				segmentWords, 
-				currentWordIndex, 
-				strategy
-			);
-			
-			if (match.found) {
-				// Determine segment end more conservatively
-				const endIndex = determineSegmentEndConservative(
-					dafWords,
-					match.startIndex,
-					segmentWords,
-					match.matchedIndices,
-					i < segments.length - 1 ? segments[i + 1] : null
-				);
-				
-				matches[i] = {
-					text: dafWords.slice(match.startIndex, endIndex).join(' '),
-					similarity: match.matchLength / segmentWords.length,
-					matchedIndices: match.matchedIndices,
-					startIndex: match.startIndex,
-					endIndex
-				};
-				
-				currentWordIndex = endIndex;
-			} else {
-				matches[i] = null;
-				// Don't advance too far when no match found
-				currentWordIndex = Math.min(currentWordIndex + 3, dafWords.length);
-			}
-		}
+		const selectedText = selection.toString().trim();
+		if (!selectedText) return;
 		
-		return matches;
-	}
-	
-	// Anchor-based matching: find unique words first, then expand
-	function tryAnchorBasedMatching(segments: any[], dafWords: string[], strategy: any) {
-		const matches = [];
-		matchingProgress.push({ type: 'info', message: 'Using anchor-based matching strategy' });
+		// Find the selection in the alignment
+		selectedContext = findSelectionInAlignment(selectedText, lastAlignment.alignment, 'hebrewBooks');
 		
-		// First pass: find strong anchors (unique or rare words)
-		const anchors = [];
-		let searchStartIndex = 0; // Track where we should start searching
-		
-		for (let i = 0; i < segments.length; i++) {
-			const segmentWords = segments[i].normalized.split(' ').filter(w => w.length > 0);
-			if (segmentWords.length === 0) continue;
+		if (selectedContext) {
+			// Find corresponding text in Sefaria
+			correspondingContext = findCorrespondingText(selectedContext, lastAlignment.alignment, 'hebrewBooks');
 			
-			// Priority 1: Look for 2+ consecutive word matches (lowered from 3)
-			let bestAnchor = null;
-			
-			// Expand search window based on strategy
-			const searchWindow = strategy.searchWindow || 50;
-			
-			// Try to find a sequence of words that match
-			for (let startPos = searchStartIndex; startPos < Math.min(dafWords.length, searchStartIndex + searchWindow); startPos++) {
-				let consecutiveMatches = 0;
-				let matchedIndices = [];
-				let skipsUsed = 0;
-				
-				// Check how many consecutive words match from the beginning
-				for (let j = 0; j < Math.min(segmentWords.length, 7); j++) {
-					let found = false;
-					
-					// Allow some skips based on strategy
-					for (let skip = 0; skip <= strategy.maxInitialSkip && !found; skip++) {
-						const dafIdx = startPos + j + skip;
-						if (dafIdx < dafWords.length && wordsMatch(segmentWords[j], dafWords[dafIdx])) {
-							consecutiveMatches++;
-							matchedIndices.push(j);
-							skipsUsed += skip;
-							found = true;
-						}
-					}
-					
-					// If we didn't find a match and we're past the first few words, stop
-					if (!found && j > 2 && consecutiveMatches < 2) {
-						break;
-					}
-				}
-				
-				// Accept if we have 2+ consecutive matches or 50% of segment (lowered thresholds)
-				if (consecutiveMatches >= 2 || consecutiveMatches >= segmentWords.length * 0.5) {
-					const endIndex = Math.min(startPos + segmentWords.length + 5, dafWords.length);
-					const score = (consecutiveMatches / segmentWords.length) * (1 - skipsUsed * 0.1); // Penalize skips
-					
-					if (!bestAnchor || score > bestAnchor.score) {
-						bestAnchor = {
-							segmentIndex: i,
-							dafIndex: startPos,
-							word: segmentWords[0],
-							score: score,
-							startIndex: startPos,
-							endIndex: endIndex,
-							consecutiveMatches,
-							matchedIndices
-						};
-					}
-					
-					// If we got a really good match, stop searching
-					if (consecutiveMatches >= 4 && skipsUsed <= 1) {
-						break;
-					}
-				}
+			// Find which Sefaria segments this corresponds to
+			if (correspondingContext) {
+				matchedSegments = getSegmentsFromSelection(correspondingContext, segmentMappings);
 			}
 			
-			// Priority 2: If no consecutive match, look for unique words
-			if (!bestAnchor) {
-				const uniqueWords = segmentWords.filter(w => w.length > 4 || isAbbreviation(w));
-				if (uniqueWords.length === 0) {
-					uniqueWords.push(...segmentWords.filter(w => w.length > 2));
-				}
-				
-				for (const word of uniqueWords) {
-					for (let j = searchStartIndex; j < Math.min(dafWords.length, searchStartIndex + 50); j++) {
-						if (wordsMatch(word, dafWords[j])) {
-							const contextMatch = verifyAnchorContext(segmentWords, dafWords, j, word);
-							if (contextMatch.score > 0.25) {
-								if (!bestAnchor || contextMatch.score > bestAnchor.score) {
-									bestAnchor = {
-										segmentIndex: i,
-										dafIndex: j,
-										word,
-										score: contextMatch.score,
-										startIndex: contextMatch.startIndex,
-										endIndex: contextMatch.endIndex
-									};
-								}
-							}
-						}
-					}
-				}
+			// Get context around selection
+			if (selectedContext) {
+				const context = getSelectionContext(selectedContext, lastAlignment.alignment, 15, 'hebrewBooks');
+				console.log('Selection context:', context);
 			}
 			
-			if (bestAnchor) {
-				anchors.push(bestAnchor);
-				searchStartIndex = bestAnchor.endIndex; // Update search position
-				matchingProgress.push({ 
-					type: 'success', 
-					message: `Found anchor for segment ${i + 1}: ${bestAnchor.consecutiveMatches || 'unique'} matches at position ${bestAnchor.startIndex}` 
-				});
-			} else {
-				matchingProgress.push({ 
-					type: 'gap', 
-					message: `No anchor found for segment ${i + 1}` 
-				});
-			}
+			showContextModal = true;
 		}
 		
-		// Sort anchors by daf position
-		anchors.sort((a, b) => a.dafIndex - b.dafIndex);
-		
-		// Second pass: use anchors to match segments
-		let lastEndIndex = 0;
-		for (let i = 0; i < segments.length; i++) {
-			const segmentWords = segments[i].normalized.split(' ').filter(w => w.length > 0);
-			const anchor = anchors.find(a => a.segmentIndex === i);
-			
-			if (anchor) {
-				// We have an anchor for this segment
-				matches[i] = {
-					text: dafWords.slice(anchor.startIndex, anchor.endIndex).join(' '),
-					similarity: anchor.score,
-					matchedIndices: [],
-					startIndex: anchor.startIndex,
-					endIndex: anchor.endIndex
-				};
-				lastEndIndex = anchor.endIndex;
-			} else {
-				// No anchor - try to match based on position
-				const match = findSegmentMatchWithStrategy(
-					dafWords,
-					segmentWords,
-					lastEndIndex,
-					strategy
-				);
-				
-				if (match.found) {
-					const endIndex = Math.min(
-						match.startIndex + segmentWords.length + 5,
-						dafWords.length
-					);
-					
-					matches[i] = {
-						text: dafWords.slice(match.startIndex, endIndex).join(' '),
-						similarity: match.matchLength / segmentWords.length,
-						matchedIndices: match.matchedIndices,
-						startIndex: match.startIndex,
-						endIndex
-					};
-					lastEndIndex = endIndex;
-				} else {
-					matches[i] = null;
-				}
-			}
-		}
-		
-		return matches;
-	}
-	
-	// Verify context around an anchor word
-	function verifyAnchorContext(segmentWords: string[], dafWords: string[], anchorIndex: number, anchorWord: string) {
-		const segmentAnchorIndex = segmentWords.indexOf(anchorWord);
-		if (segmentAnchorIndex === -1) return { score: 0, startIndex: anchorIndex, endIndex: anchorIndex + 1 };
-		
-		let matchCount = 1; // We already matched the anchor
-		let startIndex = anchorIndex;
-		let endIndex = anchorIndex + 1;
-		
-		// Check words before the anchor
-		for (let i = 1; i <= segmentAnchorIndex && i <= 3; i++) {
-			const segWord = segmentWords[segmentAnchorIndex - i];
-			const dafWord = dafWords[anchorIndex - i];
-			if (segWord && dafWord && wordsMatch(segWord, dafWord)) {
-				matchCount++;
-				startIndex = anchorIndex - i;
-			}
-		}
-		
-		// Check words after the anchor
-		for (let i = 1; i < segmentWords.length - segmentAnchorIndex && i <= 5; i++) {
-			const segWord = segmentWords[segmentAnchorIndex + i];
-			const dafWord = dafWords[anchorIndex + i];
-			if (segWord && dafWord && wordsMatch(segWord, dafWord)) {
-				matchCount++;
-				endIndex = anchorIndex + i + 1;
-			}
-		}
-		
-		const score = matchCount / segmentWords.length;
-		return { score, startIndex, endIndex };
-	}
-	
-	// Calculate overall matching score
-	function calculateOverallScore(matches: any[]) {
-		if (!matches || matches.length === 0) return 0;
-		
-		let totalScore = 0;
-		let matchedCount = 0;
-		
-		for (const match of matches) {
-			if (match) {
-				totalScore += match.similarity;
-				matchedCount++;
-			}
-		}
-		
-		// Penalize if too many segments didn't match
-		const matchRate = matchedCount / matches.length;
-		return matchRate * (totalScore / matches.length);
-	}
-	
-	// Common Talmudic abbreviations mapping
-	const abbreviationMap: Record<string, string> = {
-		'אכ': 'אם כן',
-		'אר': 'אמר רבי',
-		'דר': 'דאמר רבי',
-		'וכו': 'וכולי',
-		'תר': 'תנא רבנן',
-		'בד': 'בית דין',
-		'לר': 'לרבי',
-		'דכ': 'דכתיב',
-		'אע': 'אף על',
-		'אעפ': 'אף על פי',
-		'אעג': 'אף על גב',
-		'מש': 'משום',
-		'בש': 'בית שמאי',
-		'בה': 'בית הלל'
-	};
-	
-	// Check if a word looks like an abbreviation
-	function isAbbreviation(word: string) {
-		return word.includes('״');
-	}
-	
-	// Check if two words are equivalent (handles abbreviations)
-	function wordsMatch(word1: string, word2: string, debug: boolean = false) {
-		// Direct match
-		if (word1 === word2) {
-			if (debug) console.log(`✓ Direct match: ${word1} === ${word2}`);
-			return true;
-		}
-		
-		// Remove ״ for comparison if present
-		const clean1 = word1.replace(/״/g, '');
-		const clean2 = word2.replace(/״/g, '');
-		
-		// Check if one is an abbreviation of the other
-		if (abbreviationMap[clean1] === clean2 || abbreviationMap[clean2] === clean1) {
-			if (debug) console.log(`✓ Abbreviation match: ${word1} <-> ${word2}`);
-			return true;
-		}
-		if (abbreviationMap[word1] === word2 || abbreviationMap[word2] === word1) {
-			if (debug) console.log(`✓ Abbreviation match (with ״): ${word1} <-> ${word2}`);
-			return true;
-		}
-		
-		// If one has ״ (abbreviation marker), be more flexible
-		if (isAbbreviation(word1) || isAbbreviation(word2)) {
-			// Allow abbreviations to match their expansions more loosely
-			if (clean1.startsWith(clean2) || clean2.startsWith(clean1)) {
-				if (debug) console.log(`✓ Partial abbreviation match: ${word1} ~ ${word2}`);
-				return true;
-			}
-		}
-		
-		// Check if they're very similar (edit distance <= 1 for short words)
-		if (Math.abs(clean1.length - clean2.length) <= 1 && clean1.length <= 4) {
-			const similarity = calculateLevenshteinDistance(clean1, clean2);
-			if (similarity <= 1) {
-				if (debug) console.log(`✓ Fuzzy match (distance ${similarity}): ${word1} ~ ${word2}`);
-				return true;
-			}
-		}
-		
-		if (debug && word1 && word2) {
-			console.log(`✗ No match: ${word1} ≠ ${word2}`);
-		}
-		
-		return false;
-	}
-	
-	// Calculate Levenshtein distance for fuzzy matching
-	function calculateLevenshteinDistance(str1: string, str2: string) {
-		const matrix = [];
-		for (let i = 0; i <= str2.length; i++) {
-			matrix[i] = [i];
-		}
-		for (let j = 0; j <= str1.length; j++) {
-			matrix[0][j] = j;
-		}
-		for (let i = 1; i <= str2.length; i++) {
-			for (let j = 1; j <= str1.length; j++) {
-				if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
-					matrix[i][j] = matrix[i - 1][j - 1];
-				} else {
-					matrix[i][j] = Math.min(
-						matrix[i - 1][j - 1] + 1,
-						matrix[i][j - 1] + 1,
-						matrix[i - 1][j] + 1
-					);
-				}
-			}
-		}
-		return matrix[str2.length][str1.length];
-	}
-	
-	// Find segment match with specific strategy
-	function findSegmentMatchWithStrategy(dafWords: string[], segmentWords: string[], startFrom: number, strategy: any) {
-		let bestMatch = {
-			found: false,
-			startIndex: -1,
-			matchedIndices: [] as number[],
-			matchLength: 0
-		};
-		
-		for (let startIndex = startFrom; startIndex < Math.min(dafWords.length - 2, startFrom + strategy.searchWindow); startIndex++) {
-			const matchResult = tryMatchWithStrategy(dafWords, segmentWords, startIndex, strategy);
-			
-			// Require good start or high match rate
-			const hasGoodStart = matchResult.consecutiveFromStart >= 3;
-			const hasHighMatchRate = matchResult.totalMatches >= segmentWords.length * 0.6;
-			
-			if (hasGoodStart || hasHighMatchRate) {
-				if (matchResult.totalMatches > bestMatch.matchLength) {
-					bestMatch = {
-						found: true,
-						startIndex,
-						matchedIndices: matchResult.matchedIndices,
-						matchLength: matchResult.totalMatches
-					};
-				}
-				
-				// Early exit on excellent match
-				if (matchResult.consecutiveFromStart >= 5) {
-					break;
-				}
-			}
-		}
-		
-		return bestMatch;
-	}
-	
-	// Try matching with specific strategy parameters
-	function tryMatchWithStrategy(dafWords: string[], segmentWords: string[], startIndex: number, strategy: any) {
-		const matchedIndices: number[] = [];
-		let totalMatches = 0;
-		let consecutiveFromStart = 0;
-		let dafOffset = 0;
-		let inInitialRun = true;
-		
-		for (let segIndex = 0; segIndex < segmentWords.length; segIndex++) {
-			let matched = false;
-			const maxSkip = (segIndex < 3 || inInitialRun) ? strategy.maxInitialSkip : strategy.maxLaterSkip;
-			
-			for (let skip = 0; skip <= maxSkip && !matched; skip++) {
-				const dafIndex = startIndex + segIndex + dafOffset + skip;
-				if (dafIndex < dafWords.length) {
-					if (wordsMatch(segmentWords[segIndex], dafWords[dafIndex])) {
-						matchedIndices.push(segIndex);
-						totalMatches++;
-						if (inInitialRun) consecutiveFromStart++;
-						dafOffset += skip;
-						matched = true;
-					}
-				}
-			}
-			
-			if (!matched && inInitialRun) {
-				inInitialRun = false;
-			}
-		}
-		
-		return { totalMatches, matchedIndices, consecutiveFromStart };
-	}
-	
-	// Determine segment end conservatively
-	function determineSegmentEndConservative(dafWords: string[], startIndex: number, segmentWords: string[], matchedIndices: number[], nextSegment: any) {
-		// Start with a conservative estimate based on matched words
-		let endIndex = startIndex + segmentWords.length;
-		
-		// If we have a next segment, check where it starts
-		if (nextSegment) {
-			const nextWords = nextSegment.normalized.split(' ').filter(w => w.length > 0);
-			if (nextWords.length >= 3) {
-				// Look for the start of the next segment
-				for (let i = startIndex + segmentWords.length; i < Math.min(dafWords.length, startIndex + segmentWords.length + 10); i++) {
-					let matchCount = 0;
-					for (let j = 0; j < Math.min(3, nextWords.length); j++) {
-						if (i + j < dafWords.length && wordsMatch(nextWords[j], dafWords[i + j])) {
-							matchCount++;
-						}
-					}
-					// If we found the start of the next segment, stop here
-					if (matchCount >= 2) {
-						return i;
-					}
-				}
-			}
-		}
-		
-		// Adjust based on match quality
-		if (matchedIndices.length > 0) {
-			const lastMatchedIndex = Math.max(...matchedIndices);
-			// Don't include too many unmatched words at the end
-			endIndex = Math.min(endIndex, startIndex + lastMatchedIndex + 3);
-		}
-		
-		return endIndex;
-	}
-	
-	// Improved matching algorithm with better constraints
-	function findSegmentMatch(dafWords: string[], segmentWords: string[], startFrom: number) {
-		let bestMatch = {
-			found: false,
-			startIndex: -1,
-			matchedIndices: [] as number[],
-			totalMatches: 0,
-			matchQuality: 0,
-			consecutiveMatches: 0
-		};
-		
-		// Only search within a reasonable window
-		const searchWindow = Math.min(15, segmentWords.length * 2);
-		
-		for (let startIndex = startFrom; startIndex < Math.min(dafWords.length - 2, startFrom + searchWindow); startIndex++) {
-			const matchResult = tryMatchAtPosition(dafWords, segmentWords, startIndex);
-			
-			// Require at least 3 consecutive matches at the beginning OR 60% total matches
-			const hasGoodStart = matchResult.consecutiveFromStart >= 3;
-			const hasHighMatchRate = matchResult.totalMatches >= segmentWords.length * 0.6;
-			
-			if (hasGoodStart || hasHighMatchRate) {
-				const quality = (matchResult.totalMatches / segmentWords.length) * 
-				               (matchResult.consecutiveFromStart / Math.min(5, segmentWords.length));
-				
-				if (quality > bestMatch.matchQuality) {
-					bestMatch = {
-						...matchResult,
-						found: true,
-						startIndex,
-						matchQuality: quality
-					};
-				}
-				
-				// If we found an excellent match, stop searching
-				if (matchResult.consecutiveFromStart >= 5 && matchResult.totalMatches >= segmentWords.length * 0.75) {
-					break;
-				}
-			}
-		}
-		
-		return {
-			found: bestMatch.found,
-			startIndex: bestMatch.startIndex,
-			matchLength: bestMatch.totalMatches,
-			matchedIndices: bestMatch.matchedIndices
-		};
-	}
-	
-	// Try to match at a specific position with controlled flexibility
-	function tryMatchAtPosition(dafWords: string[], segmentWords: string[], startIndex: number) {
-		const matchedIndices: number[] = [];
-		let totalMatches = 0;
-		let consecutiveFromStart = 0;
-		let dafOffset = 0;
-		let maxSkipsUsed = 0;
-		let inInitialRun = true;
-		
-		for (let segIndex = 0; segIndex < segmentWords.length; segIndex++) {
-			let matched = false;
-			
-			// For the first few words, be stricter (allow max 1 skip)
-			// For later words, allow up to 2 skips
-			const maxSkip = (segIndex < 3 || inInitialRun) ? 1 : 2;
-			
-			for (let skip = 0; skip <= maxSkip && !matched; skip++) {
-				const dafIndex = startIndex + segIndex + dafOffset + skip;
-				if (dafIndex < dafWords.length) {
-					if (wordsMatch(segmentWords[segIndex], dafWords[dafIndex])) {
-						matchedIndices.push(segIndex);
-						totalMatches++;
-						
-						// Track consecutive matches from the start
-						if (inInitialRun) {
-							consecutiveFromStart++;
-						}
-						
-						dafOffset += skip;
-						maxSkipsUsed = Math.max(maxSkipsUsed, skip);
-						matched = true;
-					}
-				}
-			}
-			
-			// If we didn't match and we're still in the initial run, end it
-			if (!matched && inInitialRun) {
-				inInitialRun = false;
-			}
-			
-			// If we've used too many skips total, this is probably not a good match
-			if (maxSkipsUsed > 3) {
-				break;
-			}
-		}
-		
-		return { 
-			totalMatches, 
-			matchedIndices,
-			consecutiveFromStart
-		};
-	}
-	
-	function determineSegmentEnd(dafWords: string[], startIndex: number, segmentWords: string[], nextSegment: any) {
-		let endIndex = startIndex + segmentWords.length;
-		
-		if (nextSegment) {
-			const nextSegmentWords = normalizeHebrew(nextSegment.hebrew).split(' ').filter(w => w.length > 0);
-			const nextBoundary = findNextSegmentStart(dafWords, nextSegmentWords, startIndex + Math.floor(segmentWords.length * 0.8));
-			
-			if (nextBoundary !== -1) {
-				endIndex = nextBoundary;
-			} else {
-				endIndex = findNaturalBoundary(dafWords, startIndex, segmentWords);
-			}
-		}
-		
-		return validateSegmentLength(dafWords, startIndex, endIndex, segmentWords);
-	}
-	
-	function findNaturalBoundary(dafWords: string[], startIndex: number, segmentWords: string[]) {
-		const searchStart = startIndex + Math.floor(segmentWords.length * 0.75);
-		const searchEnd = Math.min(startIndex + segmentWords.length + 20, dafWords.length);
-		
-		let bestEndpoint = startIndex + segmentWords.length;
-		let bestQuality = 0;
-		
-		for (let pos = searchStart; pos < searchEnd; pos++) {
-			const candidateText = dafWords.slice(startIndex, pos + 1).join(' ');
-			const segmentText = segmentWords.join(' ');
-			const candidateQuality = calculateSimilarity(segmentText, candidateText);
-			
-			const boundaryBonus = calculateBoundaryBonus(dafWords[pos], dafWords[pos + 1] || '');
-			const lengthPenalty = Math.abs(pos - (startIndex + segmentWords.length)) / segmentWords.length * 0.2;
-			const totalQuality = candidateQuality + boundaryBonus - lengthPenalty;
-			
-			if (totalQuality > bestQuality) {
-				bestQuality = totalQuality;
-				bestEndpoint = pos + 1;
-			}
-		}
-		
-		return bestQuality < 0.3 ? startIndex + segmentWords.length : bestEndpoint;
-	}
-	
-	function calculateBoundaryBonus(word: string, nextWord: string): number {
-		let bonus = 0;
-		
-		if (word.endsWith(':') || word.endsWith('.') || word.endsWith('!') || word.endsWith('?')) {
-			bonus += 0.3;
-		}
-		
-		if ((word.startsWith('ב') || word.startsWith('ל') || word.startsWith('מ') || 
-			 word.startsWith('כ') || word.startsWith('ו') || word === 'עד' || word === 'אל') &&
-			nextWord.startsWith('ה') && nextWord.length > 2) {
-			bonus += 0.15;
-		}
-		
-		if (word.length >= 3 && (word.endsWith('ה') || word.endsWith('ם') || word.endsWith('ן') ||
-								word.endsWith('ות') || word.endsWith('ים') || word.endsWith('רה'))) {
-			bonus += 0.1;
-		}
-		
-		if (word.length <= 2 || word === 'את' || word === 'של' || word === 'על' || word === 'אל' || word === 'מן') {
-			bonus -= 0.2;
-		}
-		
-		return bonus;
-	}
-	
-	function findNextSegmentStart(dafWords: string[], nextSegmentWords: string[], searchFrom: number): number {
-		const maxSearch = Math.min(searchFrom + 30, dafWords.length);
-		
-		for (let wordCount = Math.min(4, nextSegmentWords.length); wordCount >= 2; wordCount--) {
-			for (let searchIndex = searchFrom; searchIndex <= maxSearch - wordCount; searchIndex++) {
-				let matches = 0;
-				for (let j = 0; j < wordCount && searchIndex + j < dafWords.length; j++) {
-					if (dafWords[searchIndex + j] === nextSegmentWords[j]) {
-						matches++;
-					} else {
-						break;
-					}
-				}
-				
-				if (matches === wordCount) {
-					return searchIndex;
-				}
-			}
-		}
-		
-		return -1;
-	}
-	
-	function validateSegmentLength(dafWords: string[], startIndex: number, endIndex: number, segmentWords: string[]): number {
-		const extractedLength = endIndex - startIndex;
-		const expectedLength = segmentWords.length;
-		const extractedText = dafWords.slice(startIndex, endIndex).join(' ');
-		const segmentText = segmentWords.join(' ');
-		const contentQuality = calculateSimilarity(segmentText, extractedText);
-		
-		const endWord = dafWords[endIndex - 1] || '';
-		const hasGoodEnding = endWord.endsWith(':') || endWord.endsWith('.') || 
-							  endWord.endsWith('ה') || endWord.endsWith('ם') || endWord.endsWith('ן');
-		
-		if (extractedLength > expectedLength + 20 && contentQuality < 0.6) {
-			return startIndex + expectedLength + 8;
-		}
-		
-		if (extractedLength > expectedLength + 10 && contentQuality < 0.4 && !hasGoodEnding) {
-			return startIndex + expectedLength + 5;
-		}
-		
-		if (extractedLength < expectedLength * 0.6) {
-			return extendShortSegment(dafWords, startIndex, endIndex, segmentWords);
-		}
-		
-		return endIndex;
-	}
-	
-	function extendShortSegment(dafWords: string[], startIndex: number, endIndex: number, segmentWords: string[]): number {
-		const segmentText = segmentWords.join(' ');
-		let bestEnd = endIndex;
-		let bestQuality = calculateSimilarity(segmentText, dafWords.slice(startIndex, endIndex).join(' '));
-		
-		const maxExtension = Math.min(startIndex + segmentWords.length + 10, dafWords.length);
-		for (let pos = endIndex; pos < maxExtension; pos++) {
-			const candidateText = dafWords.slice(startIndex, pos + 1).join(' ');
-			const candidateQuality = calculateSimilarity(segmentText, candidateText);
-			
-			if (candidateQuality > bestQuality + 0.05) {
-				bestEnd = pos + 1;
-				bestQuality = candidateQuality;
-			}
-			
-			if (candidateQuality < bestQuality - 0.1) {
-				break;
-			}
-		}
-		
-		return bestEnd;
-	}
-	
-	function attemptBacktrack(prevSegment: any, currentSegment: any, currentWordIndex: number) {
-		const prevWords = prevSegment.dafSupplierMatch.split(' ');
-		const currentSegmentWords = currentSegment.normalized.split(' ').filter(w => w.length > 0);
-		
-		for (let startPos = Math.max(0, prevWords.length - currentSegmentWords.length - 5); startPos < prevWords.length - 2; startPos++) {
-			let matchLength = 0;
-			for (let j = 0; j < currentSegmentWords.length && startPos + j < prevWords.length; j++) {
-				if (prevWords[startPos + j] === currentSegmentWords[j]) {
-					matchLength++;
-				} else {
-					break;
-				}
-			}
-			
-			if (matchLength >= 3) {
-				const correctedPrevText = prevWords.slice(0, startPos).join(' ');
-				const currentEndPos = Math.min(startPos + currentSegmentWords.length + 3, prevWords.length);
-				const currentText = prevWords.slice(startPos, currentEndPos).join(' ');
-				
-				prevSegment.dafSupplierMatch = correctedPrevText;
-				prevSegment.matchedIndices = []; // Clear since we're correcting the boundary
-				currentSegment.dafSupplierMatch = currentText;
-				currentSegment.similarity = matchLength / currentSegmentWords.length;
-				// Mark which words were matched in the current segment
-				const currentMatchedIndices = [];
-				for (let i = 0; i < currentSegmentWords.length; i++) {
-					for (let j = 0; j < matchLength; j++) {
-						if (i + j < currentSegmentWords.length && 
-							wordsMatch(currentSegmentWords[i], prevWords[startPos + i + j])) {
-							currentMatchedIndices.push(i);
-							break;
-						}
-					}
-				}
-				currentSegment.matchedIndices = currentMatchedIndices;
-				
-				return {
-					success: true,
-					newPosition: currentWordIndex - (prevWords.length - currentEndPos)
-				};
-			}
-		}
-		
-		return { success: false, newPosition: currentWordIndex };
-	}
-	
-	function fillUnmatchedGaps(sefariaSegments: any[], dafWords: string[]) {
-		for (let i = 0; i < sefariaSegments.length; i++) {
-			const segment = sefariaSegments[i];
-			if (segment.dafSupplierMatch) continue;
-			
-			const prevMatchIndex = findPreviousMatch(sefariaSegments, i);
-			const nextMatchIndex = findNextMatch(sefariaSegments, i);
-			
-			if (prevMatchIndex !== -1 && nextMatchIndex !== -1) {
-				const prevEndPosition = findTextPosition(dafWords, sefariaSegments[prevMatchIndex].dafSupplierMatch, 'end');
-				const nextStartPosition = findTextPosition(dafWords, sefariaSegments[nextMatchIndex].dafSupplierMatch, 'start');
-				
-				if (prevEndPosition !== -1 && nextStartPosition !== -1 && prevEndPosition < nextStartPosition) {
-					const gapText = dafWords.slice(prevEndPosition, nextStartPosition).join(' ');
-					if (gapText.trim().length > 0) {
-						segment.dafSupplierMatch = gapText;
-						segment.similarity = calculateSimilarity(segment.normalized, normalizeHebrew(gapText));
-						// For gap-filled segments, try to identify which words match
-						const gapWords = normalizeHebrew(gapText).split(' ').filter(w => w.length > 0);
-						const segWords = segment.normalized.split(' ').filter(w => w.length > 0);
-						const gapMatchedIndices = [];
-						for (let i = 0; i < segWords.length; i++) {
-							for (let j = 0; j < gapWords.length; j++) {
-								if (wordsMatch(segWords[i], gapWords[j])) {
-									gapMatchedIndices.push(i);
-									break;
-								}
-							}
-						}
-						segment.matchedIndices = gapMatchedIndices;
-					}
-				}
-			}
-		}
-	}
-	
-	function findPreviousMatch(segments: any[], index: number): number {
-		for (let j = index - 1; j >= 0; j--) {
-			if (segments[j].dafSupplierMatch) return j;
-		}
-		return -1;
-	}
-	
-	function findNextMatch(segments: any[], index: number): number {
-		for (let j = index + 1; j < segments.length; j++) {
-			if (segments[j].dafSupplierMatch) return j;
-		}
-		return -1;
-	}
-	
-	function findTextPosition(wordArray: string[], text: string, type: 'start' | 'end'): number {
-		if (!text) return -1;
-		
-		const textWords = text.split(' ').filter(w => w.length > 0);
-		if (textWords.length === 0) return -1;
-		
-		for (let i = 0; i <= wordArray.length - textWords.length; i++) {
-			let matches = 0;
-			for (let j = 0; j < textWords.length; j++) {
-				if (wordArray[i + j] === textWords[j]) {
-					matches++;
-				} else {
-					break;
-				}
-			}
-			
-			if (matches >= Math.max(3, Math.floor(textWords.length * 0.8))) {
-				if (type === 'start') {
-					return i;
-				} else {
-					return i + matches;
-				}
-			}
-		}
-		
-		return -1;
+		// Clear selection
+		selection.removeAllRanges();
 	}
 	
 	function getResponseSummary() {
@@ -1666,7 +844,7 @@
 									<div class="ref-label">{segment.ref}</div>
 									<div class="hebrew sefaria">{segment.hebrew}</div>
 									{#if dafSupplierData}
-										<div class="hebrew daf-supplier">
+										<div class="hebrew daf-supplier" on:mouseup={handleTextClick}>
 											{#if segment.dafSupplierMatch}
 												<div class="match-content">
 													{@html formatMatchedText(segment.dafSupplierMatch, segment.normalized, segment.exactMatchIndices || [])}
@@ -1697,51 +875,100 @@
 						<h4>Search Results</h4>
 						<p class="hint">Click on any result to explore its links</p>
 						{#each response.hits.hits.slice(0, 5) as hit}
-							<div class="search-hit clickable" on:click={() => handleTextSelection(hit._source?.ref)}>
-								<strong>{hit._source?.ref || 'Unknown'}</strong>
-								<div class="highlight">
-									{@html hit.highlight?.naive_lemmatizer?.[0] || hit._source?.exact || 'No preview'}
+							<div class="search-result" on:click={() => handleTextSelection(hit._id)}>
+								<h5>{hit._source.ref}</h5>
+								<p class="hebrew">{hit._source.hebrew}</p>
+								<p class="english">{hit._source.english || hit._source.text}</p>
+								<div class="metadata">
+									<span>Category: {hit._source.category}</span>
+									<span>Type: {hit._source.type}</span>
 								</div>
 							</div>
 						{/each}
 					</div>
 				{/if}
 				
-				{#if selectedEndpoint === 'links' && showTextSelection}
-					<div class="selection-notice">
-						<p>Showing links for: <strong>{selectedTextRef}</strong></p>
-						<button on:click={() => { showTextSelection = false; selectedTextRef = ''; }}>Clear Selection</button>
+				{#if selectedEndpoint === 'links' && response}
+					<div class="links-display">
+						<h4>Text Links</h4>
+						<div class="link-summary">
+							<p>Total links: {Array.isArray(response) ? response.length : 0}</p>
+						</div>
+						{#if Array.isArray(response)}
+							<div class="links-grid">
+								{#each response.slice(0, 20) as link}
+									<div class="link-item">
+										<div class="link-header">
+											<span class="link-ref">{link.ref}</span>
+											<span class="link-type">{link.type}</span>
+										</div>
+										<div class="link-text">
+											{#if link.he}
+												<p class="hebrew">{link.he}</p>
+											{/if}
+											{#if link.text}
+												<p class="english">{link.text}</p>
+											{/if}
+										</div>
+									</div>
+								{/each}
+							</div>
+						{/if}
 					</div>
 				{/if}
 				
-				{#if selectedEndpoint === 'links' && response?.length > 0}
-					<div class="links-preview">
-						<h4>Links Found ({response.length})</h4>
-						<div class="links-grid">
-							{#each response.slice(0, 20) as link}
-								<div class="link-item">
-									<div class="link-type">{link.type || 'Unknown'}</div>
-									<div class="link-ref">{link.ref}</div>
-									<div class="link-text">
-										{#if link.he}
-											<div class="hebrew">{link.he}</div>
-										{/if}
-										{#if link.text}
-											<div class="english">{link.text}</div>
-										{/if}
-									</div>
+				<details class="raw-response">
+					<summary>Raw Response Data</summary>
+					<pre>{formatJSON(response)}</pre>
+				</details>
+		</div>
+	{/if}
+	
+	{#if showTextSelection}
+		<div class="text-selection-notice">
+			<p>Selected text: <strong>{selectedTextRef}</strong></p>
+			<p>Now showing links for this text.</p>
+		</div>
+	{/if}
+	
+	<!-- Context Modal -->
+	{#if showContextModal && selectedContext}
+		<div class="context-modal-overlay" on:click={() => showContextModal = false}>
+			<div class="context-modal" on:click|stopPropagation>
+				<div class="modal-header">
+					<h3>Selected Text Context</h3>
+					<button class="close-btn" on:click={() => showContextModal = false}>×</button>
+				</div>
+				<div class="modal-body">
+					<div class="context-section">
+						<h4>Selected Text (HebrewBooks)</h4>
+						<p class="hebrew selected-text">{selectedContext.text}</p>
+						<p class="word-indices">Words {selectedContext.startWordIndex + 1} - {selectedContext.endWordIndex + 1}</p>
+					</div>
+					
+					{#if correspondingContext}
+						<div class="context-section">
+							<h4>Corresponding Text (Sefaria)</h4>
+							<p class="hebrew corresponding-text">{correspondingContext.text}</p>
+							<p class="word-indices">Words {correspondingContext.startWordIndex + 1} - {correspondingContext.endWordIndex + 1}</p>
+						</div>
+					{/if}
+					
+					{#if matchedSegments.length > 0}
+						<div class="context-section">
+							<h4>Sefaria Segments</h4>
+							{#each matchedSegments as segment}
+								<div class="segment-info">
+									<div class="segment-ref">{segment.segmentRef}</div>
+									<p class="hebrew segment-text">{segment.hebrewText}</p>
+									{#if segment.englishText}
+										<p class="english segment-translation">{segment.englishText}</p>
+									{/if}
 								</div>
 							{/each}
-							{#if response.length > 20}
-								<p class="more">...and {response.length - 20} more links</p>
-							{/if}
 						</div>
-					</div>
-				{/if}
-			
-			<div class="raw-response">
-				<h4>Raw JSON Response</h4>
-				<pre>{formatJSON(response)}</pre>
+					{/if}
+				</div>
 			</div>
 		</div>
 	{/if}
@@ -1749,14 +976,14 @@
 
 <style>
 	.container {
-		max-width: 1200px;
+		max-width: 1400px;
 		margin: 0 auto;
 		padding: 2rem;
 	}
 	
 	h1 {
-		margin-bottom: 2rem;
 		color: #333;
+		margin-bottom: 2rem;
 	}
 	
 	.controls {
@@ -1776,32 +1003,30 @@
 		font-size: 1rem;
 		border: 1px solid #ddd;
 		border-radius: 4px;
-		margin-top: 0.5rem;
+		background: white;
 	}
 	
 	.description {
 		margin-top: 0.5rem;
 		color: #666;
-		font-style: italic;
+		font-size: 0.9rem;
 	}
 	
 	.params {
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
-		margin-bottom: 1.5rem;
+		margin-bottom: 1rem;
 	}
 	
-	label {
+	.params label {
 		display: flex;
 		flex-direction: column;
 		gap: 0.25rem;
-		font-weight: 500;
 	}
 	
-	input[type="text"],
-	input[type="date"],
-	select {
+	.params input,
+	.params select {
 		padding: 0.5rem;
 		border: 1px solid #ddd;
 		border-radius: 4px;
@@ -1812,9 +1037,9 @@
 		background: #007bff;
 		color: white;
 		border: none;
-		padding: 0.75rem 1.5rem;
-		border-radius: 4px;
+		padding: 0.75rem 2rem;
 		font-size: 1rem;
+		border-radius: 4px;
 		cursor: pointer;
 		transition: background 0.2s;
 	}
@@ -1824,28 +1049,15 @@
 	}
 	
 	button:disabled {
-		background: #ccc;
+		opacity: 0.6;
 		cursor: not-allowed;
-	}
-	
-	.options {
-		margin-top: 1rem;
-		display: flex;
-		gap: 1.5rem;
-	}
-	
-	.options label {
-		flex-direction: row;
-		align-items: center;
-		gap: 0.5rem;
-		font-weight: normal;
 	}
 	
 	.error {
 		background: #fee;
 		border: 1px solid #fcc;
-		padding: 1rem;
 		border-radius: 4px;
+		padding: 1rem;
 		margin-bottom: 2rem;
 	}
 	
@@ -1854,16 +1066,23 @@
 		margin: 0 0 0.5rem 0;
 	}
 	
+	.error pre {
+		margin: 0;
+		color: #800;
+		font-size: 0.9rem;
+	}
+	
 	.response {
-		background: #f9f9f9;
+		background: white;
 		border: 1px solid #ddd;
-		border-radius: 4px;
+		border-radius: 8px;
 		padding: 1.5rem;
+		margin-bottom: 2rem;
 	}
 	
 	.response-header {
 		display: flex;
-		align-items: baseline;
+		align-items: center;
 		gap: 1rem;
 		margin-bottom: 1rem;
 	}
@@ -1878,7 +1097,7 @@
 	}
 	
 	.summary {
-		background: white;
+		background: #f9f9f9;
 		padding: 1rem;
 		border-radius: 4px;
 		margin-bottom: 1.5rem;
@@ -1889,109 +1108,215 @@
 		color: #555;
 	}
 	
-	.text-preview {
-		background: white;
-		padding: 1rem;
+	.summary pre {
+		margin: 0;
+		font-size: 0.9rem;
+		color: #444;
+	}
+	
+	.raw-response {
+		margin-top: 1.5rem;
+	}
+	
+	.raw-response summary {
+		cursor: pointer;
+		padding: 0.5rem;
+		background: #f0f0f0;
 		border-radius: 4px;
-		margin-bottom: 1.5rem;
+		user-select: none;
+	}
+	
+	.raw-response summary:hover {
+		background: #e8e8e8;
+	}
+	
+	.raw-response pre {
+		margin-top: 1rem;
+		padding: 1rem;
+		background: #f9f9f9;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		overflow-x: auto;
+		font-size: 0.85rem;
+		max-height: 500px;
+		overflow-y: auto;
+	}
+	
+	/* Text preview styles */
+	.text-preview {
+		margin-top: 1.5rem;
 	}
 	
 	.text-preview h4 {
-		margin: 0 0 1rem 0;
+		margin-bottom: 1rem;
 		color: #555;
 	}
 	
-	.source-indicator {
+	.matching-debug {
+		background: #f0f8ff;
+		border: 1px solid #b0d4ff;
+		border-radius: 4px;
+		padding: 0.5rem;
 		margin-bottom: 1rem;
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-	}
-	
-	.source-badge {
-		display: inline-block;
-		padding: 0.25rem 0.75rem;
-		border-radius: 3px;
 		font-size: 0.85rem;
-		font-weight: 500;
 	}
 	
-	.source-badge.sefaria {
-		background: #e3f2fd;
-		color: #1976d2;
-	}
-	
-	.source-badge.daf-supplier {
-		background: #f3e5f5;
-		color: #7b1fa2;
+	.matching-debug summary {
+		cursor: pointer;
+		font-weight: 600;
+		color: #0066cc;
 	}
 	
 	.loading-indicator {
-		font-size: 0.85rem;
-		color: #666;
-		font-style: italic;
+		color: #ff9900;
+		font-weight: normal;
+		animation: pulse 1.5s ease-in-out infinite;
+	}
+	
+	@keyframes pulse {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0.5; }
+	}
+	
+	.progress-log {
+		margin-top: 0.5rem;
+		max-height: 150px;
+		overflow-y: auto;
+		font-family: monospace;
+		font-size: 0.8rem;
+	}
+	
+	.progress-item {
+		padding: 0.25rem 0.5rem;
+		margin: 0.25rem 0;
+		border-radius: 3px;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+	
+	.progress-item.info {
+		background: #e3f2fd;
+		color: #0d47a1;
+	}
+	
+	.progress-item.success {
+		background: #e8f5e9;
+		color: #1b5e20;
+	}
+	
+	.progress-item.warning {
+		background: #fff3e0;
+		color: #e65100;
+	}
+	
+	.progress-item.error {
+		background: #ffebee;
+		color: #b71c1c;
+	}
+	
+	.progress-item.gap {
+		background: #fce4ec;
+		color: #880e4f;
+	}
+	
+	.progress-item.result {
+		background: #f3e5f5;
+		color: #4a148c;
+		font-weight: 600;
+	}
+	
+	.type-badge {
+		background: rgba(0,0,0,0.1);
+		padding: 0.1rem 0.3rem;
+		border-radius: 3px;
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		font-weight: 600;
+	}
+	
+	.text-content {
+		border: 1px solid #e0e0e0;
+		border-radius: 4px;
+		overflow: hidden;
+		background: white;
 	}
 	
 	.text-content.three-column {
-		overflow-x: auto;
-		display: grid;
-		gap: 0;
+		display: table;
+		width: 100%;
 	}
 	
 	.column-headers {
-		display: grid;
-		grid-template-columns: 100px 1fr 1fr;
-		gap: 1rem;
-		padding: 0.75rem;
+		display: table-row;
 		background: #f5f5f5;
-		border-bottom: 2px solid #ddd;
 		font-weight: 600;
-		position: sticky;
-		top: 0;
-		z-index: 10;
+		border-bottom: 2px solid #ddd;
 	}
 	
 	.column-headers.with-daf {
-		grid-template-columns: 100px 1fr 1fr;
+		display: table-row;
 	}
 	
 	.column-headers .header {
-		color: #333;
-		font-size: 0.9rem;
+		display: table-cell;
+		padding: 0.75rem;
+		text-align: center;
+		vertical-align: middle;
+		border-right: 1px solid #ddd;
+	}
+	
+	.column-headers .header:last-child {
+		border-right: none;
 	}
 	
 	.segment-row {
-		display: grid;
-		grid-template-columns: 100px 1fr 1fr;
-		gap: 1rem;
-		padding: 0.75rem;
+		display: table-row;
 		border-bottom: 1px solid #eee;
-		min-height: 3rem;
-		align-items: start;
+	}
+	
+	.segment-row:hover {
+		background: #fafafa;
 	}
 	
 	.segment-row.with-daf {
-		grid-template-columns: 100px 1fr 1fr;
+		display: table-row;
 	}
 	
-	.segment-row:last-child {
-		border-bottom: none;
+	.segment-row > div {
+		display: table-cell;
+		padding: 0.75rem;
+		vertical-align: top;
+		border-right: 1px solid #eee;
 	}
 	
-	.segment-row.clickable {
-		cursor: pointer;
-		transition: background 0.2s;
+	.segment-row > div:last-child {
+		border-right: none;
 	}
 	
-	.segment-row.clickable:hover {
-		background: #f0f0f0;
+	.ref-label {
+		font-weight: 600;
+		color: #666;
+		font-size: 0.85rem;
+		white-space: nowrap;
+		width: 120px;
+		background: #fafafa;
+	}
+	
+	.hebrew {
+		font-family: 'David Libre', 'Noto Serif Hebrew', serif;
+		font-size: 1.1rem;
+		line-height: 1.6;
+		direction: rtl;
+		text-align: right;
+	}
+	
+	.hebrew.sefaria {
+		background: #fff;
 	}
 	
 	.hebrew.daf-supplier {
-		background: #fafafa;
-		padding: 0.5rem;
-		border-radius: 3px;
-		border: 1px solid #e0e0e0;
+		background: #fffef5;
 		position: relative;
 	}
 	
@@ -1999,323 +1324,345 @@
 		position: relative;
 	}
 	
-	.match-content u {
+	.match-content :global(u) {
 		text-decoration: underline;
-		text-decoration-color: #4ade80;
+		text-decoration-color: #4caf50;
 		text-decoration-thickness: 2px;
-		text-underline-offset: 2px;
-		background-color: rgba(74, 222, 128, 0.1);
+		background: rgba(76, 175, 80, 0.1);
 	}
-	
-	.matching-debug {
-		margin-bottom: 1rem;
-		padding: 0.5rem;
-		background: #f8f9fa;
-		border: 1px solid #dee2e6;
-		border-radius: 0.25rem;
-	}
-	
-	.matching-debug summary {
-		cursor: pointer;
-		font-weight: 600;
-		color: #495057;
-	}
-	
-	.progress-log {
-		margin-top: 0.5rem;
-		max-height: 200px;
-		overflow-y: auto;
-		font-size: 0.875rem;
-	}
-	
-	.progress-item {
-		display: flex;
-		gap: 0.5rem;
-		padding: 0.25rem 0;
-		border-bottom: 1px solid #e9ecef;
-	}
-	
-	.type-badge {
-		padding: 0.125rem 0.375rem;
-		border-radius: 0.25rem;
-		font-size: 0.75rem;
-		font-weight: 600;
-		min-width: 60px;
-		text-align: center;
-	}
-	
-	.progress-item.info .type-badge { background: #cfe2ff; color: #004085; }
-	.progress-item.strategy .type-badge { background: #fff3cd; color: #856404; }
-	.progress-item.score .type-badge { background: #d1ecf1; color: #0c5460; }
-	.progress-item.success .type-badge { background: #d4edda; color: #155724; }
-	.progress-item.result .type-badge { background: #d6d8db; color: #383d41; }
-	.progress-item.gap .type-badge { background: #f8d7da; color: #721c24; }
 	
 	.similarity-score {
 		position: absolute;
-		top: -0.5rem;
-		right: -0.5rem;
-		color: white;
-		font-size: 0.7rem;
-		padding: 0.125rem 0.375rem;
-		border-radius: 10px;
-		font-weight: 500;
+		top: 0;
+		left: 0;
+		background: white;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 2px 6px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		font-family: system-ui, -apple-system, sans-serif;
 		direction: ltr;
 	}
 	
 	.similarity-score[data-quality="excellent"] {
 		background: #4caf50;
+		color: white;
+		border-color: #388e3c;
 	}
 	
 	.similarity-score[data-quality="good"] {
-		background: #2196f3;
+		background: #8bc34a;
+		color: white;
+		border-color: #689f38;
 	}
 	
 	.similarity-score[data-quality="fair"] {
-		background: #ff9800;
+		background: #ffeb3b;
+		color: #333;
+		border-color: #f9a825;
 	}
 	
 	.similarity-score[data-quality="poor"] {
-		background: #f44336;
+		background: #ff9800;
+		color: white;
+		border-color: #ef6c00;
 	}
 	
 	.no-match {
 		color: #999;
 		font-style: italic;
-		font-size: 0.9rem;
+		font-family: system-ui, -apple-system, sans-serif;
 	}
 	
-	.more-wrapper {
-		grid-column: 1 / -1;
-		padding: 1rem;
+	.english {
+		font-size: 0.95rem;
+		line-height: 1.5;
+		color: #444;
 	}
 	
-	.more-wrapper .more {
-		margin: 0;
-	}
-	
-	.segment {
-		display: grid;
-		grid-template-columns: auto 1fr 1fr;
-		gap: 1rem;
-		padding: 0.75rem;
-		border-bottom: 1px solid #eee;
-		position: relative;
-	}
-	
-	.segment:last-child {
-		border-bottom: none;
-	}
-	
-	.segment.clickable {
-		cursor: pointer;
-		transition: background 0.2s;
-	}
-	
-	.segment.clickable:hover {
-		background: #f0f0f0;
-	}
-	
-	.ref-label {
-		font-size: 0.85rem;
-		color: #666;
-		font-weight: 500;
-		white-space: nowrap;
-	}
-	
-	.hebrew {
-		text-align: right;
-		font-size: 1.1rem;
-		direction: rtl;
-		font-family: 'Frank Ruhl Libre', serif;
-	}
-	
-	.hebrew.sefaria {
-		/* Remove width constraint to let grid handle sizing */
-	}
-	
-	.segment-row.with-daf .hebrew.sefaria {
-		padding-right: 1rem;
-	}
-	
-	.segment-row.with-daf .hebrew.daf-supplier {
-		background: #f0f9ff;
-		border-left: 2px solid #60a5fa;
-		padding-left: 1rem !important;
-		padding-right: 1rem;
-	}
-	
-	.hint {
-		font-size: 0.85rem;
-		color: #666;
-		font-style: italic;
-		margin: -0.5rem 0 1rem 0;
-	}
-	
-	.more {
-		text-align: center;
-		color: #666;
-		font-style: italic;
-		margin-top: 1rem;
-	}
-	
+	/* Search results styles */
 	.search-results {
-		background: white;
-		padding: 1rem;
-		border-radius: 4px;
-		margin-bottom: 1.5rem;
+		margin-top: 1.5rem;
 	}
 	
 	.search-results h4 {
-		margin: 0 0 1rem 0;
-		color: #555;
-	}
-	
-	.search-hit {
-		padding: 0.75rem;
-		border-bottom: 1px solid #eee;
-	}
-	
-	.search-hit:last-child {
-		border-bottom: none;
-	}
-	
-	.search-hit.clickable {
-		cursor: pointer;
-		transition: background 0.2s;
-	}
-	
-	.search-hit.clickable:hover {
-		background: #f0f0f0;
-	}
-	
-	.search-hit strong {
-		display: block;
 		margin-bottom: 0.5rem;
-		color: #333;
+		color: #555;
 	}
 	
-	.highlight {
+	.hint {
 		color: #666;
-		font-size: 0.95rem;
-		line-height: 1.5;
+		font-size: 0.9rem;
+		margin-bottom: 1rem;
+		font-style: italic;
 	}
 	
-	.highlight :global(b) {
-		background: #ffeb3b;
-		color: #333;
-		font-weight: normal;
-		padding: 0 2px;
-	}
-	
-	.raw-response {
-		background: white;
-		padding: 1rem;
+	.search-result {
+		border: 1px solid #ddd;
 		border-radius: 4px;
+		padding: 1rem;
+		margin-bottom: 1rem;
+		cursor: pointer;
+		transition: all 0.2s;
 	}
 	
-	.raw-response h4 {
+	.search-result:hover {
+		background: #f9f9f9;
+		border-color: #007bff;
+		box-shadow: 0 2px 4px rgba(0,123,255,0.1);
+	}
+	
+	.search-result h5 {
 		margin: 0 0 0.5rem 0;
+		color: #007bff;
+	}
+	
+	.search-result .hebrew {
+		margin: 0.5rem 0;
+		padding: 0.5rem;
+		background: #f9f9f9;
+		border-radius: 4px;
+	}
+	
+	.search-result .english {
+		margin: 0.5rem 0;
 		color: #555;
 	}
 	
-	pre {
-		margin: 0;
-		white-space: pre-wrap;
-		word-wrap: break-word;
-		font-family: 'Consolas', 'Monaco', monospace;
-		font-size: 0.9rem;
-		line-height: 1.5;
-		max-height: 500px;
-		overflow-y: auto;
-	}
-	
-	.selection-notice {
-		background: #e3f2fd;
-		border: 1px solid #2196f3;
-		padding: 1rem;
-		border-radius: 4px;
-		margin-bottom: 1.5rem;
+	.search-result .metadata {
 		display: flex;
-		align-items: center;
-		justify-content: space-between;
+		gap: 1rem;
+		margin-top: 0.5rem;
+		font-size: 0.85rem;
+		color: #666;
 	}
 	
-	.selection-notice p {
-		margin: 0;
-		color: #1976d2;
+	.search-result .metadata span {
+		background: #f0f0f0;
+		padding: 0.2rem 0.5rem;
+		border-radius: 3px;
 	}
 	
-	.selection-notice button {
-		padding: 0.5rem 1rem;
-		font-size: 0.9rem;
-		background: #fff;
-		color: #1976d2;
-		border: 1px solid #1976d2;
+	/* Links display styles */
+	.links-display {
+		margin-top: 1.5rem;
 	}
 	
-	.selection-notice button:hover {
-		background: #e3f2fd;
-	}
-	
-	.links-preview {
-		background: white;
-		padding: 1rem;
-		border-radius: 4px;
-		margin-bottom: 1.5rem;
-	}
-	
-	.links-preview h4 {
-		margin: 0 0 1rem 0;
+	.links-display h4 {
+		margin-bottom: 1rem;
 		color: #555;
+	}
+	
+	.link-summary {
+		background: #f9f9f9;
+		padding: 0.75rem;
+		border-radius: 4px;
+		margin-bottom: 1rem;
+	}
+	
+	.link-summary p {
+		margin: 0;
+		color: #666;
 	}
 	
 	.links-grid {
 		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 		gap: 1rem;
+		margin-top: 1rem;
 	}
 	
 	.link-item {
-		padding: 1rem;
-		border: 1px solid #e0e0e0;
+		border: 1px solid #ddd;
 		border-radius: 4px;
-		background: #fafafa;
+		padding: 0.75rem;
+		background: white;
+		transition: border-color 0.2s;
 	}
 	
-	.link-type {
-		display: inline-block;
-		background: #2196f3;
-		color: white;
-		padding: 0.25rem 0.5rem;
-		border-radius: 3px;
-		font-size: 0.8rem;
-		font-weight: 500;
+	.link-item:hover {
+		border-color: #007bff;
+	}
+	
+	.link-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
 		margin-bottom: 0.5rem;
-		text-transform: capitalize;
+		padding-bottom: 0.5rem;
+		border-bottom: 1px solid #eee;
 	}
 	
 	.link-ref {
-		font-weight: 500;
-		color: #333;
-		margin-bottom: 0.5rem;
+		color: #007bff;
+		font-weight: 600;
+		font-size: 0.9rem;
 	}
 	
-	.link-text {
-		display: grid;
-		gap: 0.5rem;
+	.link-type {
+		background: #e3f2fd;
+		color: #1976d2;
+		padding: 0.2rem 0.5rem;
+		border-radius: 3px;
+		font-size: 0.75rem;
+		text-transform: uppercase;
 	}
 	
 	.link-text .hebrew {
-		font-size: 1rem;
+		margin: 0.5rem 0;
 		padding: 0.5rem;
-		background: white;
-		border-radius: 3px;
+		background: #f9f9f9;
+		border-radius: 4px;
+		font-size: 1rem;
 	}
 	
 	.link-text .english {
-		font-size: 0.95rem;
-		padding: 0.5rem;
+		margin: 0.5rem 0;
+		font-size: 0.9rem;
+		color: #555;
+		line-height: 1.4;
+	}
+	
+	/* Text selection notice */
+	.text-selection-notice {
+		background: #e3f2fd;
+		border: 1px solid #90caf9;
+		border-radius: 4px;
+		padding: 1rem;
+		margin: 1rem 0;
+	}
+	
+	.text-selection-notice p {
+		margin: 0.25rem 0;
+		color: #1565c0;
+	}
+	
+	.text-selection-notice strong {
+		color: #0d47a1;
+	}
+	
+	/* Click-to-context styles */
+	.hebrew.daf-supplier {
+		cursor: text;
+		user-select: text;
+	}
+	
+	.hebrew.daf-supplier::selection {
+		background-color: #b3d9ff;
+	}
+	
+	/* Context Modal */
+	.context-modal-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.5);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 1000;
+	}
+	
+	.context-modal {
 		background: white;
-		border-radius: 3px;
+		border-radius: 8px;
+		max-width: 800px;
+		max-height: 80vh;
+		overflow: auto;
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+	}
+	
+	.modal-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 20px;
+		border-bottom: 1px solid #e0e0e0;
+	}
+	
+	.modal-header h3 {
+		margin: 0;
+		font-size: 1.4em;
+	}
+	
+	.close-btn {
+		background: none;
+		border: none;
+		font-size: 28px;
+		cursor: pointer;
+		color: #666;
+		padding: 0;
+		width: 30px;
+		height: 30px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	
+	.close-btn:hover {
+		color: #000;
+	}
+	
+	.modal-body {
+		padding: 20px;
+	}
+	
+	.context-section {
+		margin-bottom: 25px;
+	}
+	
+	.context-section h4 {
+		margin: 0 0 10px 0;
+		color: #333;
+		font-size: 1.1em;
+	}
+	
+	.selected-text,
+	.corresponding-text {
+		padding: 15px;
+		background: #f8f9fa;
+		border-radius: 4px;
+		margin: 10px 0;
+	}
+	
+	.selected-text {
+		background: #e3f2fd;
+	}
+	
+	.corresponding-text {
+		background: #f3e5f5;
+	}
+	
+	.word-indices {
+		font-size: 0.9em;
+		color: #666;
+		margin: 5px 0;
+	}
+	
+	.segment-info {
+		margin-bottom: 20px;
+		padding: 15px;
+		background: #fafafa;
+		border-radius: 4px;
+		border-left: 3px solid #4CAF50;
+	}
+	
+	.segment-ref {
+		font-weight: bold;
+		color: #2c5282;
+		margin-bottom: 8px;
+	}
+	
+	.segment-text {
+		margin: 10px 0;
+	}
+	
+	.segment-translation {
+		margin: 10px 0;
+		color: #555;
+		font-style: italic;
 	}
 </style>
