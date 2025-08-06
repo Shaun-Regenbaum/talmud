@@ -42,7 +42,7 @@
 		error = null
 	}: Props = $props();
 	
-	let expanded = $state(false);
+	let expanded = $state(false); // Default to collapsed
 	const dispatch = createEventDispatcher();
 	
 	function handleRefresh(e: MouseEvent) {
@@ -66,36 +66,58 @@
 		>
 			<div class="flex items-center gap-2">
 				<span class="text-sm font-medium text-gray-700">📖 Page Summary</span>
-				<div class="flex items-center gap-2 text-xs text-gray-500">
-					{#if summary.cached}
-						<span class="px-2 py-1 bg-gray-100 rounded">Cached</span>
-						<button 
-							onclick={handleRefresh}
-							class="px-2 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 transition text-xs"
-							disabled={loading}
-						>
-							🔄 Refresh
-						</button>
-					{:else}
-						<span class="px-2 py-1 bg-green-100 text-green-600 rounded">Fresh</span>
-					{/if}
-					<span>{summary.wordCount} words</span>
-				</div>
 			</div>
 			<div class="text-gray-400 transition-transform {expanded ? 'rotate-180' : ''}">
-				▼
+				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+				</svg>
 			</div>
 		</button>
 		{#if expanded}
-			<div class="px-4 pb-4 border-t border-gray-100">
-				<div class="prose max-w-none text-gray-700 leading-relaxed text-sm mt-3">
+			<div class="px-4 pb-3 border-t border-gray-100">
+				<div class="prose prose-sm max-w-none text-gray-700 leading-relaxed mt-4 
+					prose-headings:text-gray-800 prose-headings:font-semibold prose-headings:mb-2 prose-headings:mt-4
+					prose-p:mb-3 prose-ul:mb-3 prose-li:mb-1
+					prose-strong:text-gray-800 prose-em:text-gray-600">
 					{@html renderMarkdown(summary.summary)}
 				</div>
-				{#if !summary.cached && summary.generated}
-					<div class="mt-3 text-xs text-gray-400">
-						Generated with {summary.model || 'AI'} • {new Date(summary.generated).toLocaleString()}
+				
+				<div class="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+					<div class="flex items-center gap-3 text-xs text-gray-500">
+						{#if summary.cached}
+							<span class="inline-flex items-center gap-1">
+								<span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+								Cached
+							</span>
+						{:else}
+							<span class="inline-flex items-center gap-1">
+								<span class="w-2 h-2 bg-green-500 rounded-full"></span>
+								Fresh
+							</span>
+						{/if}
+						<span class="text-gray-400">•</span>
+						<span>{summary.model?.replace('anthropic/', '').replace('-', ' ') || 'AI'}</span>
+						{#if summary.generated}
+							<span class="text-gray-400">•</span>
+							<span>{new Date(summary.generated).toLocaleTimeString()}</span>
+						{/if}
 					</div>
-				{/if}
+					
+					{#if summary.cached}
+						<button 
+							onclick={handleRefresh}
+							class="inline-flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition"
+							disabled={loading}
+							title="Refresh summary"
+						>
+							<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+									d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+							</svg>
+							Refresh
+						</button>
+					{/if}
+				</div>
 			</div>
 		{/if}
 	</div>

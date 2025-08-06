@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { openRouterTranslator } from '$lib/api/openrouter-translator';
-	import { renderMarkdown } from '$lib/utils/markdown';
+	import Stories from '$lib/components/Stories.svelte';
 
 	// Get data from load function
 	let { data } = $props();
@@ -225,7 +225,7 @@
 					<!-- Go Button -->
 					<button 
 						onclick={handlePageChange}
-						class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition text-sm font-medium"
+						class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition text-sm font-medium"
 						disabled={isLoading}
 					>
 						{isLoading ? 'טוען...' : 'עבור'}
@@ -234,107 +234,22 @@
 					<!-- View Daf Link -->
 					<a 
 						href="/?tractate={selectedTractate}&page={selectedPage}&amud={selectedAmud}"
-						class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition text-sm font-medium"
+						class="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition text-sm font-medium"
 					>
-						📜 View Daf
+						Return to Daf
 					</a>
 				</div>
 			</div>
 		</div>
 
-		<!-- Content -->
-		{#if isLoading}
-			<div class="bg-white rounded-lg shadow-md p-8">
-				<div class="flex items-center justify-center py-16">
-					<div class="text-center">
-						<div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-						<p class="mt-4 text-gray-600">Generating educational stories...</p>
-						<p class="mt-2 text-sm text-gray-500">This may take 30-60 seconds for high-quality narratives</p>
-					</div>
-				</div>
-			</div>
-		{:else if error}
-			<div class="bg-white rounded-lg shadow-md p-8">
-				<div class="text-center py-16">
-					<p class="text-red-600 font-semibold">Error</p>
-					<p class="text-red-500 mt-2">{error}</p>
-					<button 
-						onclick={loadStories}
-						class="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
-					>
-						Retry
-					</button>
-				</div>
-			</div>
-		{:else if stories && stories.stories}
-			<!-- Educational Stories -->
-			<div class="space-y-8">
-				<!-- Stories Header -->
-				<div class="bg-blue-50 rounded-lg p-6">
-					<div class="flex items-center justify-between mb-2">
-						<h3 class="text-lg font-semibold text-blue-800">Educational Stories for {selectedTractate} {selectedPage}{selectedAmud}</h3>
-						<div class="flex items-center gap-3 text-sm">
-							{#if stories.cached}
-								<span class="px-2 py-1 bg-blue-100 text-blue-700 rounded">📚 Cached</span>
-								<button 
-									onclick={() => loadStories(true)}
-									class="px-3 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 transition text-sm"
-									disabled={isLoading}
-								>
-									🔄 Refresh
-								</button>
-							{:else}
-								<span class="px-2 py-1 bg-green-100 text-green-700 rounded">✨ Fresh</span>
-							{/if}
-							<span class="text-blue-600">{stories.totalWords} words total</span>
-						</div>
-					</div>
-					<p class="text-blue-700 text-sm">
-						These stories focus on the main discussion, the rabbis involved, and historical context to help you learn and remember this daf.
-						{#if stories.cached}
-							<span class="text-blue-600">• Stories are permanently cached - click Refresh to generate new versions.</span>
-						{/if}
-					</p>
-				</div>
-
-				{#each stories.stories as story}
-					<div class="bg-white rounded-lg shadow-md p-8">
-						<div class="flex items-center justify-between mb-6">
-							<h3 class="text-2xl font-bold text-gray-800">{story.title}</h3>
-							<div class="text-sm text-gray-500">
-								{story.wordCount} words
-								{#if story.model !== 'error'}
-									• {story.model}
-								{/if}
-							</div>
-						</div>
-						
-						{#if story.content && story.content.length > 50}
-							<div class="prose prose-lg max-w-none text-gray-700 leading-relaxed">
-								{@html renderMarkdown(story.content)}
-							</div>
-						{:else}
-							<div class="text-center py-8 text-red-500">
-								<p>This story failed to generate properly. Please try refreshing the page.</p>
-							</div>
-						{/if}
-					</div>
-				{/each}
-			</div>
-
-		{:else}
-			<div class="bg-white rounded-lg shadow-md p-8">
-				<div class="text-center py-16">
-					<p class="text-gray-500">No stories available. Please try generating them.</p>
-					<button 
-						onclick={loadStories}
-						class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-					>
-						Generate Educational Stories
-					</button>
-				</div>
-			</div>
-		{/if}
+		<!-- Stories Component -->
+		<Stories 
+			{stories}
+			loading={isLoading}
+			{error}
+			on:refresh={() => loadStories(true)}
+			on:retry={() => loadStories()}
+		/>
 
 	</div>
 </main>

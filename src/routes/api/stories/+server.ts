@@ -198,90 +198,78 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 		// Generate educational narratives using OpenRouter with improved prompts
 		const contextInfo = `${tractate} ${page}${amud}`;
 		
-		// Enhanced story prompts focused on educational goals
+		// Two focused story types for better engagement
 		const storyPrompts = [
 			{
 				type: 'main-discussion',
-				title: 'The Core Discussion',
-				prompt: `Write in the style of Rabbi Jonathan Sacks or a Koren Talmud essay about the main discussion on ${contextInfo}. Present the material with scholarly depth but accessible warmth.
+				title: 'The Main Discussion',
+				prompt: `Transform the Talmudic discussion from ${contextInfo} into an engaging narrative story. Write it like a compelling short story that captures both the intellectual drama and human dimension of the debate.
 
-Explore this discussion thoroughly:
-1. What fundamental question or principle is at stake?
-2. Who are the rabbis involved and what do we know about them?
-3. How does each rabbi's argument unfold logically?
-4. What philosophical or theological issues underlie their debate?
-5. How does this discussion illuminate broader themes in Jewish law?
+## The Opening
+Start with the question or situation that sparked this discussion. Set the scene - what prompted this debate? Why did it matter?
 
-Write 800-1200 words that bring out both the intellectual brilliance and human dimension of this debate. Help readers appreciate the sophistication of Talmudic reasoning while feeling the passion these sages brought to their learning.
+## The Debate Unfolds
+Tell the story of how the argument develops:
+- Introduce each rabbi as they enter the discussion
+- Show their different perspectives through their words
+- Capture the back-and-forth, the challenges and responses
+- Include any proofs, stories, or examples they bring
 
-**Professional formatting:**
+## The Turning Point
+What moment shifts the discussion? Is there a brilliant insight, a decisive proof, or an unexpected perspective?
+
+## The Resolution
+How does the discussion conclude? What wisdom emerges? What do we learn about how to think and argue?
+
+Write 600-800 words that read like a story, not a summary. Use:
 - **Bold** for rabbi names and key concepts
-- *Italics* for Hebrew/Aramaic terms with clear translations
-- ### for section headings where appropriate
-- > for quotations from the text
+- *Italics* for Hebrew/Aramaic terms (with translations)
+- Short paragraphs for readability
+- Natural, flowing narrative voice
 
-Write with the dignity and clarity of someone who has studied these texts deeply and wants to share their profound wisdom with modern readers.
+Make readers feel like they're witnessing a great intellectual drama unfold.
 
 Main Text: ${mainText.slice(0, 4000)}
 
-${rashiText ? `Rashi Commentary: ${rashiText.slice(0, 1500)}` : ''}
-
-${tosafotText ? `Tosafot Commentary: ${tosafotText.slice(0, 1500)}` : ''}
-
-Begin directly with the discussion.`
+${rashiText ? `Rashi Commentary: ${rashiText.slice(0, 1000)}` : ''}`
 			},
 			{
-				type: 'historical-context',
-				title: 'Historical Deep Dive',
-				prompt: `Write in the style of a thoughtful Jewish historian like Rabbi Berel Wein or a Koren historical essay about the context of ${contextInfo}. Bring the ancient world to life with scholarly accuracy and narrative warmth.
+				type: 'historical-fiction',
+				title: 'Historical Fiction',
+				prompt: `Create a vivid historical fiction scene featuring the rabbis from ${contextInfo}. Bring them to life as real people in their historical setting, weaving the halachic discussion into a narrative scene.
 
-Illuminate the historical setting:
-1. What was the political and social reality when this discussion took place?
-2. Why would this particular question have mattered in their world?
-3. Who were these rabbis - their backgrounds, teachers, and influences?
-4. How did the conditions of exile or Roman rule shape their concerns?
-5. What aspects of daily life made this law practically relevant?
-6. How does this discussion fit into the broader development of the Oral Torah?
+## The Scene
+Set the scene vividly - are they in the study hall of Sura? The marketplace of Pumbedita? Under Roman occupation? During a festival? Make us see, hear, and feel the ancient world.
 
-Write 800-1200 words that transport readers to the world of the Talmud. Help them understand not just what was said, but why it was said then, by those particular people, in those circumstances.
+## The Characters
+Bring the rabbis to life as real people:
+- Show their personalities through actions and dialogue
+- Include details about their appearance, mannerisms, backgrounds
+- Let their different temperaments and approaches shine through
+- Show the respect (or tension) between them
 
-**Clear, engaging formatting:**
-- **Bold** for names and significant events
-- *Italics* for Hebrew/Aramaic terms with translations
-- ### for different time periods or locations
-- > for reconstructed dialogue based on the sources
+## The Discussion in Context
+Weave the halachic debate naturally into the story:
+- Why does this question arise now, in this place?
+- How do their life experiences shape their views?
+- Show how abstract law connects to real life
+- Include reactions from students or bystanders
 
-Write as a knowledgeable guide who helps modern readers enter the world of our sages with understanding and respect.
+## The Human Dimension
+What emotions are at play? Pride, humility, frustration, joy of discovery? Show the humanity behind the scholarship.
 
-Main Text: ${mainText.slice(0, 4000)}
+Write 600-800 words of engaging historical fiction. Use:
+- **Bold** for character names when introduced
+- *Italics* for Hebrew/Aramaic terms and internal thoughts
+- Vivid sensory details
+- Natural dialogue that brings the debate to life
+- > for actual Talmudic quotes woven into the narrative
 
-Begin with the historical setting.`
-			},
-			{
-				type: 'rabbi-profiles',
-				title: 'The Personalities Behind the Debate',
-				prompt: `Write a character study of the rabbis in the main discussion from ${contextInfo}. Jump directly into the character profiles without preamble.
-
-Your narrative should reveal:
-1. Who the main rabbis are and their personalities
-2. Their different approaches to legal reasoning
-3. Other famous opinions showing their consistent approaches
-4. How their backgrounds influenced their thinking
-5. What their arguments reveal about their judicial philosophies
-6. How their different approaches create productive tension
-
-Write 800-1200 words making these ancient sages come alive as distinct thinkers. Help students recognize their "voices" and understand how different minds approach problems.
-
-**Format your response in Markdown** with:
-- Use **bold** for key concepts and rabbi names when first introduced
-- Use *italics* for Hebrew/Aramaic terms
-- Use ### for section headings for each rabbi profile
-- Use bullet points or numbered lists when listing multiple related items
-- Use > blockquotes for actual quotes or characteristic statements
+Transport readers to the world of the Talmud through storytelling.
 
 Main Text: ${mainText.slice(0, 4000)}
 
-Start directly with the character profiles.`
+${rashiText ? `Rashi Commentary: ${rashiText.slice(0, 1000)}` : ''}`
 			}
 		];
 
@@ -317,8 +305,8 @@ Start directly with the character profiles.`
 								},
 								{ role: 'user', content: prompt }
 							],
-							temperature: 0.7, // Higher creativity for stories
-							max_tokens: 2000 // Allow for longer stories
+							temperature: 0.8, // Higher creativity for narrative stories
+							max_tokens: 1200 // Appropriate for 600-800 word stories
 						})
 					});
 
@@ -431,94 +419,78 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 		// Generate educational narratives using OpenRouter with improved prompts
 		const contextInfo = `${tractate} ${page}${amud}`;
 		
-		// Enhanced story prompts focused on educational goals
+		// Two focused story types for better engagement
 		const storyPrompts = [
 			{
 				type: 'main-discussion',
-				title: 'The Core Discussion',
-				prompt: `Write in the style of Rabbi Jonathan Sacks or a Koren Talmud essay about the main discussion on ${contextInfo}. Present the material with scholarly depth but accessible warmth.
+				title: 'The Main Discussion',
+				prompt: `Transform the Talmudic discussion from ${contextInfo} into an engaging narrative story. Write it like a compelling short story that captures both the intellectual drama and human dimension of the debate.
 
-Explore this discussion thoroughly:
-1. What fundamental question or principle is at stake?
-2. Who are the rabbis involved and what do we know about them?
-3. How does each rabbi's argument unfold logically?
-4. What philosophical or theological issues underlie their debate?
-5. How does this discussion illuminate broader themes in Jewish law?
+## The Opening
+Start with the question or situation that sparked this discussion. Set the scene - what prompted this debate? Why did it matter?
 
-Write 800-1200 words that bring out both the intellectual brilliance and human dimension of this debate. Help readers appreciate the sophistication of Talmudic reasoning while feeling the passion these sages brought to their learning.
+## The Debate Unfolds
+Tell the story of how the argument develops:
+- Introduce each rabbi as they enter the discussion
+- Show their different perspectives through their words
+- Capture the back-and-forth, the challenges and responses
+- Include any proofs, stories, or examples they bring
 
-**Professional formatting:**
+## The Turning Point
+What moment shifts the discussion? Is there a brilliant insight, a decisive proof, or an unexpected perspective?
+
+## The Resolution
+How does the discussion conclude? What wisdom emerges? What do we learn about how to think and argue?
+
+Write 600-800 words that read like a story, not a summary. Use:
 - **Bold** for rabbi names and key concepts
-- *Italics* for Hebrew/Aramaic terms with clear translations
-- ### for section headings where appropriate
-- > for quotations from the text
+- *Italics* for Hebrew/Aramaic terms (with translations)
+- Short paragraphs for readability
+- Natural, flowing narrative voice
 
-Write with the dignity and clarity of someone who has studied these texts deeply and wants to share their profound wisdom with modern readers.
+Make readers feel like they're witnessing a great intellectual drama unfold.
 
 Main Text: ${mainText.slice(0, 4000)}
 
-${rashiText ? `Rashi Commentary: ${rashiText.slice(0, 1500)}` : ''}
-
-${tosafotText ? `Tosafot Commentary: ${tosafotText.slice(0, 1500)}` : ''}
-
-Begin directly with the discussion.`
+${rashiText ? `Rashi Commentary: ${rashiText.slice(0, 1000)}` : ''}`
 			},
 			{
-				type: 'historical-context',
-				title: 'Historical Deep Dive',
-				prompt: `Write in the style of a thoughtful Jewish historian like Rabbi Berel Wein or a Koren historical essay about the context of ${contextInfo}. Bring the ancient world to life with scholarly accuracy and narrative warmth.
+				type: 'historical-fiction',
+				title: 'Historical Fiction',
+				prompt: `Create a vivid historical fiction scene featuring the rabbis from ${contextInfo}. Bring them to life as real people in their historical setting, weaving the halachic discussion into a narrative scene.
 
-Illuminate the historical setting:
-1. What was the political and social reality when this discussion took place?
-2. Why would this particular question have mattered in their world?
-3. Who were these rabbis - their backgrounds, teachers, and influences?
-4. How did the conditions of exile or Roman rule shape their concerns?
-5. What aspects of daily life made this law practically relevant?
-6. How does this discussion fit into the broader development of the Oral Torah?
+## The Scene
+Set the scene vividly - are they in the study hall of Sura? The marketplace of Pumbedita? Under Roman occupation? During a festival? Make us see, hear, and feel the ancient world.
 
-Write 800-1200 words that transport readers to the world of the Talmud. Help them understand not just what was said, but why it was said then, by those particular people, in those circumstances.
+## The Characters
+Bring the rabbis to life as real people:
+- Show their personalities through actions and dialogue
+- Include details about their appearance, mannerisms, backgrounds
+- Let their different temperaments and approaches shine through
+- Show the respect (or tension) between them
 
-**Clear, engaging formatting:**
-- **Bold** for names and significant events
-- *Italics* for Hebrew/Aramaic terms with translations
-- ### for different time periods or locations
-- > for reconstructed dialogue based on the sources
+## The Discussion in Context
+Weave the halachic debate naturally into the story:
+- Why does this question arise now, in this place?
+- How do their life experiences shape their views?
+- Show how abstract law connects to real life
+- Include reactions from students or bystanders
 
-Write as a knowledgeable guide who helps modern readers enter the world of our sages with understanding and respect.
+## The Human Dimension
+What emotions are at play? Pride, humility, frustration, joy of discovery? Show the humanity behind the scholarship.
 
-Main Text: ${mainText.slice(0, 4000)}
+Write 600-800 words of engaging historical fiction. Use:
+- **Bold** for character names when introduced
+- *Italics* for Hebrew/Aramaic terms and internal thoughts
+- Vivid sensory details
+- Natural dialogue that brings the debate to life
+- > for actual Talmudic quotes woven into the narrative
 
-Begin with the historical setting.`
-			},
-			{
-				type: 'rabbi-profiles',
-				title: 'The Personalities Behind the Debate',
-				prompt: `Write character studies in the style of Rabbi Adin Steinsaltz or a Koren biographical essay about the rabbis in ${contextInfo}. Present them as the complex, brilliant individuals they were.
-
-Reveal their intellectual and personal dimensions:
-1. What was each rabbi's distinctive approach to legal reasoning?
-2. Who were their teachers and how did they influence their thinking?
-3. What patterns emerge in their rulings across different areas of law?
-4. What do we know about their personalities and life circumstances?
-5. How did their different methodologies contribute to this debate?
-6. What made each of them such an influential voice in the Talmud?
-
-Write 800-1200 words that help readers recognize these sages as distinct thinkers with their own philosophical approaches. Show how understanding their personalities enriches our understanding of their arguments.
-
-**Respectful, clear formatting:**
-- **Bold** for rabbi names and defining characteristics
-- *Italics* for Hebrew/Aramaic terms with translations
-- ### for each rabbi's profile
-- Lists for their notable positions or characteristics
-- > for memorable statements that capture their approach
-
-Write as someone who has studied these figures extensively and wants to introduce them as the remarkable individuals they were.
+Transport readers to the world of the Talmud through storytelling.
 
 Main Text: ${mainText.slice(0, 4000)}
 
-${rashiText ? `Rashi Commentary: ${rashiText.slice(0, 1500)}` : ''}
-
-Begin with their intellectual portraits.`
+${rashiText ? `Rashi Commentary: ${rashiText.slice(0, 1000)}` : ''}`
 			}
 		];
 
@@ -541,7 +513,7 @@ Begin with their intellectual portraits.`
 								{ role: 'user', content: prompt }
 							],
 							temperature: 0.8, // Higher creativity for narratives
-							max_tokens: 1500  // Longer stories
+							max_tokens: 1200  // Appropriate for 600-800 word stories
 						})
 					});
 

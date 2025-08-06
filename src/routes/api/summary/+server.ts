@@ -182,24 +182,33 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 		
 		// Generate summary using OpenRouter
 		const contextInfo = `${tractate} ${page}${amud}`;
-		const summaryPrompt = `You are a learned rabbi writing in the style of Rabbi Jonathan Sacks or for a Koren publication. Summarize ${contextInfo} with depth and warmth, but without excessive jargon.
+		const summaryPrompt = `You are a learned rabbi writing in the style of Rabbi Jonathan Sacks or for a Koren publication. Create a well-structured summary of ${contextInfo} that guides readers through the Talmudic discussion with clarity and warmth.
 
-Capture the essence of this page:
-• What question drives this discussion and why does it matter?
-• Who are the key rabbis and what are their positions?
-• What's the logical flow of the argument?
-• What deeper principle or insight emerges?
-• How does this connect to Jewish life and thought?
+Structure your response with these clear sections:
 
-Write 2-3 flowing paragraphs that make the discussion come alive. Use a tone that's learned but accessible - like you're teaching intelligent adults who want to understand the beauty of Talmudic reasoning.
+## The Central Question
+Start with the core question or issue being debated. Why does this matter? What's at stake in this discussion?
 
-**Formatting guidelines:**
-- **Bold** for rabbi names and central concepts
-- *Italics* for Hebrew/Aramaic terms, followed by translation
-- Write with dignity and clarity
-- Avoid both dry academic language and excessive yeshivish terminology
+## The Debate
+Present the main positions:
+- **Rabbi/School Name**: Their view and reasoning
+- **Opposing Rabbi/School**: Their counter-argument
+- Include any additional voices or refinements
 
-Aim for the voice of someone who deeply loves this learning and wants to share its wisdom - knowledgeable but never condescending, warm but not overly familiar.
+## The Journey of Logic
+Trace how the argument develops - objections raised, proofs brought, distinctions made. Help readers follow the Talmudic reasoning.
+
+## The Deeper Insight
+What principle or wisdom emerges? How does this connect to broader Jewish thought or practice?
+
+**Formatting:**
+- Use ## for section headers
+- **Bold** for rabbi names and key concepts
+- *Italics* for Hebrew/Aramaic terms (with translations)
+- Keep paragraphs concise and readable
+- Write accessibly but with scholarly precision
+
+Aim for 300-400 words total. Make the ancient wisdom come alive for modern readers.
 
 Talmud text: ${mainText.slice(0, 3000)}`;
 
@@ -316,24 +325,33 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 
 		// Generate summary using OpenRouter
 		const contextInfo = `${tractate} ${page}${amud}`;
-		const summaryPrompt = `You are a learned rabbi writing in the style of Rabbi Jonathan Sacks or for a Koren publication. Summarize ${contextInfo} with depth and warmth, but without excessive jargon.
+		const summaryPrompt = `You are a learned rabbi writing in the style of Rabbi Jonathan Sacks or for a Koren publication. Create a well-structured summary of ${contextInfo} that guides readers through the Talmudic discussion with clarity and warmth.
 
-Capture the essence of this page:
-• What question drives this discussion and why does it matter?
-• Who are the key rabbis and what are their positions?
-• What's the logical flow of the argument?
-• What deeper principle or insight emerges?
-• How does this connect to Jewish life and thought?
+Structure your response with these clear sections:
 
-Write 2-3 flowing paragraphs that make the discussion come alive. Use a tone that's learned but accessible - like you're teaching intelligent adults who want to understand the beauty of Talmudic reasoning.
+## The Central Question
+Start with the core question or issue being debated. Why does this matter? What's at stake in this discussion?
 
-**Formatting guidelines:**
-- **Bold** for rabbi names and central concepts
-- *Italics* for Hebrew/Aramaic terms, followed by translation
-- Write with dignity and clarity
-- Avoid both dry academic language and excessive yeshivish terminology
+## The Debate
+Present the main positions:
+- **Rabbi/School Name**: Their view and reasoning
+- **Opposing Rabbi/School**: Their counter-argument
+- Include any additional voices or refinements
 
-Aim for the voice of someone who deeply loves this learning and wants to share its wisdom - knowledgeable but never condescending, warm but not overly familiar.
+## The Journey of Logic
+Trace how the argument develops - objections raised, proofs brought, distinctions made. Help readers follow the Talmudic reasoning.
+
+## The Deeper Insight
+What principle or wisdom emerges? How does this connect to broader Jewish thought or practice?
+
+**Formatting:**
+- Use ## for section headers
+- **Bold** for rabbi names and key concepts
+- *Italics* for Hebrew/Aramaic terms (with translations)
+- Keep paragraphs concise and readable
+- Write accessibly but with scholarly precision
+
+Aim for 300-400 words total. Make the ancient wisdom come alive for modern readers.
 
 Talmud text: ${mainText.slice(0, 3000)}`;
 

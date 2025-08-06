@@ -99,7 +99,7 @@
 	<!-- Go Button -->
 	<button 
 		onclick={handleChange}
-		class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition text-sm font-medium flex items-center gap-2"
+		class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition text-sm font-medium flex items-center gap-2"
 		disabled={loading}
 	>
 		{#if loading}
@@ -111,8 +111,8 @@
 	<!-- Story Link -->
 	<a 
 		href="/story?tractate={tractate}&page={page}&amud={amud}&mode={vilnaMode ? 'vilna' : 'custom'}"
-		class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition text-sm font-medium"
+		class="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition text-sm font-medium"
 	>
-		📖 Stories
+		Go to Stories
 	</a>
 </div>
