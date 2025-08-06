@@ -11,6 +11,7 @@
 	let spacerResults = null;
 	let rendererInstance = null;
 	let container;
+	let forceRefresh = false; // Add state for cache bypass
 	
 	// Test options
 	let forceLineBreaks = false; // Start with false since text doesn't have <br> tags
@@ -79,7 +80,20 @@
 		{ value: 'Chagigah', mesechta: '13' }
 	];
 	
-	async function fetchAndAnalyze() {
+	// Helper function to convert daf format to daf-supplier format
+	function convertDafToSupplierFormat(dafStr) {
+		// Parse the daf string (e.g., "2a" or "2b" or just "2")
+		const pageNum = parseInt(dafStr.replace(/[ab]/, ''));
+		const amud = dafStr.includes('b') ? 'b' : 'a';
+		
+		// daf-supplier numbering: 2a=2, 2b=3, 3a=4, 3b=5, etc.
+		// Formula: for page N amud a: (N-1)*2 + 2
+		//          for page N amud b: (N-1)*2 + 3
+		const dafSupplierNum = (pageNum - 1) * 2 + (amud === 'a' ? 2 : 3);
+		return dafSupplierNum.toString();
+	}
+	
+	async function fetchAndAnalyze(bypassCache = false) {
 		loading = true;
 		error = null;
 		spacerResults = null;
@@ -91,12 +105,13 @@
 				throw new Error('Invalid tractate selected');
 			}
 			
-			// Convert daf format for daf-supplier (remove 'a' or 'b')
-			const dafNumber = daf.replace(/[ab]$/, '');
+			// Convert daf format for daf-supplier
+			const convertedDaf = convertDafToSupplierFormat(daf);
 			
-			// Fetch from daf-supplier
-			const url = `/api/daf-supplier?mesechta=${selectedTractate.mesechta}&daf=${dafNumber}`;
+			// Fetch from daf-supplier with br parameter based on forceLineBreaks setting, add nocache if bypassing
+			const url = `/api/daf-supplier?mesechta=${selectedTractate.mesechta}&daf=${convertedDaf}${forceLineBreaks ? '&br=true' : ''}${bypassCache ? '&nocache=true' : ''}`;
 			console.log('Fetching:', url);
+			console.log(`Converted ${daf} to daf-supplier format: ${convertedDaf}, forceLineBreaks: ${forceLineBreaks}, bypassCache: ${bypassCache}`);
 			
 			const response = await fetch(url);
 			if (!response.ok) {
@@ -334,13 +349,22 @@
 				</label>
 			</div>
 			
-			<div class="flex items-end">
+			<div class="flex items-end gap-2">
 				<button 
-					on:click={fetchAndAnalyze}
+					on:click={() => fetchAndAnalyze()}
 					disabled={loading}
-					class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+					class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
 				>
 					{loading ? 'Loading...' : 'Analyze'}
+				</button>
+				
+				<button 
+					on:click={() => fetchAndAnalyze(true)}
+					disabled={loading}
+					class="flex-1 px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+					title="Bypass cache and force fresh fetch from HebrewBooks"
+				>
+					{loading ? 'Refreshing...' : 'Force Refresh'}
 				</button>
 			</div>
 		</div>

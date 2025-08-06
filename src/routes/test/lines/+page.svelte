@@ -6,6 +6,7 @@
 	let loading = false;
 	let error = null;
 	let results = null;
+	let forceRefresh = false; // Add state for cache bypass
 	
 	// Tractate options
 	const tractates = [
@@ -24,7 +25,20 @@
 		{ value: 'Chagigah', mesechta: '13' }
 	];
 	
-	async function fetchAndAnalyze() {
+	// Helper function to convert daf format to daf-supplier format
+	function convertDafToSupplierFormat(dafStr) {
+		// Parse the daf string (e.g., "2a" or "2b" or just "2")
+		const pageNum = parseInt(dafStr.replace(/[ab]/, ''));
+		const amud = dafStr.includes('b') ? 'b' : 'a';
+		
+		// daf-supplier numbering: 2a=2, 2b=3, 3a=4, 3b=5, etc.
+		// Formula: for page N amud a: (N-1)*2 + 2
+		//          for page N amud b: (N-1)*2 + 3
+		const dafSupplierNum = (pageNum - 1) * 2 + (amud === 'a' ? 2 : 3);
+		return dafSupplierNum.toString();
+	}
+	
+	async function fetchAndAnalyze(bypassCache = false) {
 		loading = true;
 		error = null;
 		results = null;
@@ -36,12 +50,13 @@
 				throw new Error('Invalid tractate selected');
 			}
 			
-			// Convert daf format for daf-supplier (remove 'a' or 'b')
-			const dafNumber = daf.replace(/[ab]$/, '');
+			// Convert daf format for daf-supplier
+			const convertedDaf = convertDafToSupplierFormat(daf);
 			
-			// Fetch from daf-supplier
-			const url = `/api/daf-supplier?mesechta=${selectedTractate.mesechta}&daf=${dafNumber}`;
+			// Fetch from daf-supplier with br=true for line breaks, add nocache if bypassing
+			const url = `/api/daf-supplier?mesechta=${selectedTractate.mesechta}&daf=${convertedDaf}&br=true${bypassCache ? '&nocache=true' : ''}`;
 			console.log('Fetching:', url);
+			console.log(`Converted ${daf} to daf-supplier format: ${convertedDaf}, bypassCache: ${bypassCache}`);
 			
 			const response = await fetch(url);
 			if (!response.ok) {
@@ -77,8 +92,11 @@
 	}
 	
 	function stripHtml(html) {
-		// Remove HTML tags and decode entities
-		let text = html.replace(/<[^>]*>/g, '');
+		// First convert line break tags to newlines for analysis
+		let text = html.replace(/<br\s*\/?>/gi, '\n');  // Convert <br> and <br/> to newlines
+		text = text.replace(/<wbr>/g, '\n');  // Convert <wbr> to newlines as well
+		// Then remove other HTML tags and decode entities
+		text = text.replace(/<[^>]*>/g, '');
 		// Decode common HTML entities
 		text = text.replace(/&nbsp;/g, ' ')
 			.replace(/&lt;/g, '<')
@@ -98,36 +116,58 @@
 		// Split by line breaks
 		const lines = text.split(/\r?\n/);
 		
+		// Count non-empty lines seen so far (for determining "start" lines)
+		let nonEmptyLineCount = 0;
+		
 		// Analyze each line
 		const lineAnalysis = lines.map((line, index) => {
 			const trimmed = line.trim();
+			const len = line.length;
+			
+			// Track non-empty lines for Rashi/Tosafot start detection
+			const isNonEmpty = trimmed.length > 0;
+			if (isNonEmpty) {
+				nonEmptyLineCount++;
+			}
 			
 			// Categorize by length ranges
 			let lengthCategory = '';
 			let displayCategory = '';
-			const len = line.length;
 			
-			// Check if this is a "start" line (for Rashi/Tosafot)
-			const isStart = (label !== 'Main Text') && index < 4;
+			// Check if this is a "start" line (first 4 non-empty lines for Rashi/Tosafot)
+			const isStart = (label !== 'Main Text') && isNonEmpty && nonEmptyLineCount <= 4;
 			
-			if (len === 0) {
+			// Use trimmed length for categorization to properly identify empty lines
+			if (trimmed.length === 0) {
 				lengthCategory = 'empty';
 				displayCategory = 'empty';
-			} else if (isStart) {
-				lengthCategory = 'start';
-				displayCategory = 'start';
 			} else if (len <= 20) {
 				lengthCategory = 'single';
 				displayCategory = 'single';
-			} else if (len <= 40) {
-				lengthCategory = 'short';
-				displayCategory = 'short';
-			} else if (len <= 60) {
-				lengthCategory = 'medium';
-				displayCategory = 'medium';
+			} else if (label !== 'Main Text') {
+				// Rashi/Tosafot categorization
+				if (len <= 38) {
+					lengthCategory = 'short';
+					displayCategory = 'short';
+				} else if (len <= 80) {
+					lengthCategory = 'half';
+					displayCategory = 'half';
+				} else {
+					lengthCategory = 'long';
+					displayCategory = 'long';
+				}
 			} else {
-				lengthCategory = 'long';
-				displayCategory = 'long';
+				// Main Text categorization
+				if (len <= 58) {
+					lengthCategory = 'short';
+					displayCategory = 'short';
+				} else if (len <= 85) {
+					lengthCategory = 'medium';
+					displayCategory = 'medium';
+				} else {
+					lengthCategory = 'long';
+					displayCategory = 'long';
+				}
 			}
 			
 			return {
@@ -143,6 +183,7 @@
 				hasSpecialChars: /[<>{}()]/.test(line),
 				lengthCategory,
 				displayCategory,
+				isStart,  // Add as a boolean flag
 				isRashiStart: /^[א-ת]"[א-ת]/.test(trimmed) || /^[א-ת][א-ת]"[א-ת]/.test(trimmed)
 			};
 		});
@@ -346,11 +387,20 @@
 			</div>
 			
 			<button 
-				on:click={fetchAndAnalyze}
+				on:click={() => fetchAndAnalyze()}
 				disabled={loading}
 				class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
 			>
 				{loading ? 'Loading...' : 'Analyze'}
+			</button>
+			
+			<button 
+				on:click={() => fetchAndAnalyze(true)}
+				disabled={loading}
+				class="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+				title="Bypass cache and force fresh fetch from HebrewBooks"
+			>
+				{loading ? 'Refreshing...' : 'Force Refresh'}
 			</button>
 		</div>
 	</div>
@@ -414,7 +464,7 @@
 							<h4 class="font-medium mb-2">Length Categories</h4>
 							<div class="space-y-1 text-sm">
 								{#each Object.entries(analysis.lengthCategories).sort((a, b) => {
-									const order = ['empty', 'start', 'single', 'short', 'medium', 'long'];
+									const order = ['empty', 'half', 'single', 'short', 'medium', 'long'];
 									return order.indexOf(a[0]) - order.indexOf(b[0]);
 								}) as [category, data]}
 									<div class="flex justify-between">
@@ -464,6 +514,9 @@
 												{#if line.isRashiStart}
 													<span class="text-xs bg-green-200 px-1 rounded">rashi</span>
 												{/if}
+												{#if line.isStart}
+													<span class="text-xs bg-purple-200 px-1 rounded">start</span>
+												{/if}
 											</td>
 											<td class="px-2 py-1 text-right font-mono text-xs" dir="rtl">
 												{#if line.isEmpty}
@@ -479,55 +532,29 @@
 						</div>
 					</div>
 					
-					<!-- Spacer Analysis -->
+					<!-- Text Flow Pattern -->
 					{#if analysis.spacerCalculations}
 						<div class="bg-purple-50 p-3 rounded mt-4">
-							<h4 class="font-medium mb-2">Spacer Analysis (Experimental)</h4>
-							
-							<!-- Block Summary -->
-							<div class="text-sm mb-3">
-								<div>Total blocks: {analysis.spacerCalculations.totalBlocks}</div>
-								<div>Transitions: {analysis.spacerCalculations.transitions}</div>
-							</div>
-							
-							<!-- Layout Metrics -->
-							<div class="text-sm mb-3">
-								<h5 class="font-medium">Transition Patterns:</h5>
-								<div class="grid grid-cols-2 gap-2 mt-1">
-									<div>Short → Medium: {analysis.spacerCalculations.layoutMetrics.shortToMedium}</div>
-									<div>Medium → Long: {analysis.spacerCalculations.layoutMetrics.mediumToLong}</div>
-									<div>Single → Long: {analysis.spacerCalculations.layoutMetrics.singleToLong}</div>
-									<div>Empty breaks: {analysis.spacerCalculations.layoutMetrics.emptyBetweenContent}</div>
-								</div>
-							</div>
-							
-							<!-- Blocks by Category -->
-							<div class="text-sm mb-3">
-								<h5 class="font-medium">Block Distribution:</h5>
-								<div class="space-y-1 mt-1">
-									{#each Object.entries(analysis.spacerCalculations.blocksByCategory) as [category, data]}
-										<div class="flex justify-between">
-											<span>{category}:</span>
-											<span>{data.count} blocks (avg {data.averageLinesPerBlock.toFixed(1)} lines/block)</span>
-										</div>
-									{/each}
-								</div>
-							</div>
-							
-							<!-- Estimated Spacers -->
-							{#if analysis.spacerCalculations.estimatedSpacers.length > 0}
-								<div class="text-sm">
-									<h5 class="font-medium">Estimated Spacers:</h5>
-									<div class="space-y-1 mt-1 max-h-32 overflow-y-auto">
-										{#each analysis.spacerCalculations.estimatedSpacers as spacer}
-											<div class="text-xs">
-												After line {spacer.afterIndex}: {spacer.type} ({spacer.size}px) 
-												[{spacer.fromCategory} → {spacer.toCategory}]
-											</div>
-										{/each}
+							<h4 class="font-medium mb-2">Text Flow Pattern</h4>
+							<div class="flex flex-wrap gap-1">
+								{#each analysis.spacerCalculations.blocks as block}
+									{@const colors = {
+										empty: 'bg-gray-200',
+										single: 'bg-yellow-200',
+										short: 'bg-blue-200',
+										half: 'bg-purple-200',
+										medium: 'bg-green-200',
+										long: 'bg-red-200'
+									}}
+									<div 
+										class="px-2 py-1 text-xs rounded {colors[block.category] || 'bg-gray-100'}"
+										title="{block.category}: lines {block.startIndex}-{block.endIndex} ({block.lines.length} lines)"
+									>
+										{block.category}
+										<span class="text-gray-600">({block.lines.length})</span>
 									</div>
-								</div>
-							{/if}
+								{/each}
+							</div>
 						</div>
 					{/if}
 				</div>
