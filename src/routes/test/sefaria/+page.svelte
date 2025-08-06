@@ -3,6 +3,12 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
+	import { 
+		alignTexts, 
+		normalizeHebrew, 
+		extractTalmudContent,
+		wordsMatchFuzzy 
+	} from '$lib/services/textAlignment';
 	
 	let loading = false;
 	let error = '';
@@ -114,65 +120,7 @@
 		goto(newUrl, { replaceState: true, keepFocus: true, noScroll: true });
 	}
 	
-	// Extract text from daf-supplier HTML (same logic as talmud-merged API)
-	function extractTalmudContent(html: string): string {
-		if (!html) return '';
-		
-		// First, check if this is already extracted text (not HTML)
-		if (!html.includes('<') && !html.includes('DOCTYPE')) {
-			return html.trim();
-		}
-		
-		// Apply the same processing as the talmud-merged API
-		let text = html
-			.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-			.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
-			.replace(/<!--[\s\S]*?-->/g, '')
-			.replace(/<[^>]*>/g, "")
-			.replace(/function\s+\w+\s*\([^)]*\)\s*\{[\s\S]*?\}/g, '')
-			.replace(/var\s+\w+\s*[=;][\s\S]*?;/g, '')
-			.replace(/if\s*\([^)]*\)\s*\{[\s\S]*?\}/g, '')
-			.replace(/window\.\w+[\s\S]*?;/g, '')
-			.replace(/document\.\w+[\s\S]*?;/g, '')
-			.replace(/\{[\s\S]*?\}/g, '')
-			.replace(/#[\w-]+\s*\{[\s\S]*?\}/g, '')
-			.replace(/\.[\w-]+\s*\{[\s\S]*?\}/g, '')
-			.replace(/https?:\/\/[^\s]+/g, '')
-			.replace(/www\.[^\s]+/g, '')
-			.replace(/[\w.-]+@[\w.-]+\.\w+/g, '')
-			.replace(/\(\d{2,3}\)\s*\d{3}-\d{4}/g, '')
-			.replace(/\d{3}-\d{3}-\d{4}/g, '')
-			.replace(/©\d{4}.*$/gm, '')
-			.replace(/Copyright.*$/gm, '')
-			.replace(/&[a-zA-Z]+;/g, '')
-			.replace(/&#\d+;/g, '')
-			.replaceAll("–", "")
-			.replaceAll("׳", "'")
-			.replace(/\s+/g, ' ')
-			.replace(/\n+/g, ' ')
-			.replace(/\b[a-zA-Z]{10,}\b/g, '')
-			.trim();
-			
-		// More aggressive cleaning specifically for Talmud text
-		// Look for common Talmud page markers
-		text = text.replace(/^[\s\S]*?(?=תנן|מתני|גמ|גמרא|משנה|א\]|ב\]|ג\]|ד\])/i, '');
-		text = text.replace(/(?:במקומן|©\d{4}|window\.|function|var |document\.)[\s\S]*$/i, '');
-		
-		// Remove Rashi and Tosafot if present (we only want main text)
-		if (text.includes('רש״י') || text.includes('רשי') || text.includes('rashi')) {
-			const parts = text.split(/(?:רש״י|רשי|rashi)[;:]/i);
-			if (parts.length > 0) {
-				text = parts[0].trim();
-			}
-		}
-		
-		// Additional cleanup for any remaining artifacts
-		text = text.replace(/\b(?:undefined|null|false|true)\b/g, '');
-		
-		console.log('Extracted text preview (first 200 chars):', text.substring(0, 200));
-		
-		return text;
-	}
+	// Using extractTalmudContent from alignment service
 	
 	const endpoints = {
 		texts: {
@@ -283,7 +231,7 @@
 			const params = getParams();
 			const url = endpoint.url(params);
 			
-			
+			console.log('Fetching from Sefaria:', url);
 			const res = await fetch(url);
 			responseTime = performance.now() - startTime;
 			
@@ -292,12 +240,23 @@
 			}
 			
 			response = await res.json();
+			console.log('Sefaria response structure:', {
+				hasHe: !!response.he,
+				heLength: response.he?.length,
+				hasText: !!response.text,
+				textLength: response.text?.length,
+				error: response.error,
+				ref: response.ref,
+				heFirstItem: response.he?.[0],
+				heType: typeof response.he?.[0]
+			});
 			
 			// If it's a text endpoint, also fetch daf-supplier data
 			if (selectedEndpoint === 'texts' && params.ref) {
 				await fetchDafSupplierData(params.ref);
 			}
 		} catch (e) {
+			console.error('Error in testEndpoint:', e);
 			error = e instanceof Error ? e.message : 'Unknown error';
 		} finally {
 			loading = false;
@@ -317,13 +276,24 @@
 			
 			const [, tractate, page] = match;
 			
-			// Import the conversion utilities
-			const { TRACTATE_IDS, convertDafToHebrewBooksFormat } = await import('$lib/api/hebrewbooks');
+			// Use the same conversion logic as matching-debug
+			const dafNum = parseInt(page.replace(/[ab]/, ''));
+			const isAmudB = page.includes('b');
+			const sequentialDaf = isAmudB ? (dafNum * 2) + 1 : (dafNum * 2);
+			
+			console.log('Converting daf:', { page, dafNum, isAmudB, sequentialDaf });
+			
+			// Import the tractate IDs
+			const { TRACTATE_IDS } = await import('$lib/api/hebrewbooks');
 			const mesechtaId = TRACTATE_IDS[tractate];
-			const dafNum = convertDafToHebrewBooksFormat(page);
+			
+			console.log('Fetching:', {
+				sefaria: ref,
+				dafSupplier: `mesechta=${mesechtaId}&daf=${sequentialDaf}`
+			});
 			
 			// Fetch directly from the daf-supplier API
-			const response = await fetch(`/api/daf-supplier?mesechta=${mesechtaId}&daf=${dafNum}`);
+			const response = await fetch(`/api/daf-supplier?mesechta=${mesechtaId}&daf=${sequentialDaf}`);
 			
 			if (response.ok) {
 				const data = await response.json();
@@ -365,25 +335,7 @@
 		}));
 	}
 	
-	// Normalize Hebrew text for comparison
-	function normalizeHebrew(text: string): string {
-		const temp = document.createElement('div');
-		temp.innerHTML = text;
-		const stripped = temp.textContent || temp.innerText || '';
-		
-		return stripped
-			.replace(/[\u0591-\u05C7]/g, '') // Remove Hebrew diacritics
-			// Keep ״ for abbreviation detection, but remove ׳
-			.replace(/[׳]/g, '') // Remove geresh but keep gershayim
-			.replace(/[-—–]/g, ' ') // Remove dashes (regular, em-dash, en-dash)
-			.replace(/[.,;:!?()\[\]]/g, ' ') // Replace punctuation with spaces
-			.replace(/\s+/g, ' ') // Normalize whitespace
-			.replace(/\r\n/g, ' ')
-			.replace(/\n/g, ' ')
-			.replace(/\t/g, ' ')
-			.replace(/[<>]/g, '')
-			.trim();
-	}
+	// Using normalizeHebrew from alignment service
 	
 	// Simple but effective similarity calculation
 	function calculateSimilarity(str1: string, str2: string): number {
@@ -446,9 +398,19 @@
 	let matchingProgress = [];
 	let isMatching = false;
 	
-	// Advanced matching with multi-pass optimization
+	// Advanced matching using the refined alignment service
 	function getMatchedSegments() {
-		if (!response?.he || !dafSupplierData?.mainText) return [];
+		// Validate inputs
+		if (!response?.he || !Array.isArray(response.he) || !dafSupplierData?.mainText) {
+			console.log('Invalid response data for matching');
+			return [];
+		}
+		
+		// Check for invalid daf reference (like "54" instead of "54a")
+		if (response.error || !response.he.length) {
+			console.log('API returned error or empty segments');
+			return [];
+		}
 		
 		// If currently matching, return current segments
 		if (isMatching) return sefariaSegments;
@@ -458,164 +420,163 @@
 		
 		console.clear(); // Clear console for fresh debug output
 		
-		const sefariaSegments = response.he.map((hebrew: string, i: number) => ({
-			index: i,
-			hebrew,
-			english: response.text?.[i] || '',
-			normalized: normalizeHebrew(hebrew),
-			ref: response.ref ? `${response.ref}:${i + 1}` : `Segment ${i + 1}`,
-			dafSupplierMatch: null as string | null,
-			similarity: 0,
-			matchedIndices: [] as number[],
-			exactMatchIndices: [] as number[] // Track only exact matches for underlining
-		}));
+		const sefariaSegments = response.he
+			.filter((hebrew: any) => hebrew != null) // Filter out null/undefined segments
+			.map((hebrew: string, i: number) => {
+				// Ensure hebrew is a string
+				const hebrewText = typeof hebrew === 'string' ? hebrew : String(hebrew || '');
+				
+				return {
+					index: i,
+					hebrew: hebrewText,
+					english: response.text?.[i] || '',
+					normalized: hebrewText ? normalizeHebrew(hebrewText) : '',
+					ref: response.ref ? `${response.ref}:${i + 1}` : `Segment ${i + 1}`,
+					dafSupplierMatch: null as string | null,
+					similarity: 0,
+					matchedIndices: [] as number[],
+					exactMatchIndices: [] as number[] // Track only exact matches for underlining
+				};
+			});
 		
-		const dafTextExtracted = extractTalmudContent(dafSupplierData.mainText);
-		const dafNormalized = normalizeHebrew(dafTextExtracted);
-		const dafWords = dafNormalized.split(' ').filter(w => w.length > 0);
-		
-		matchingProgress.push({ type: 'info', message: `Processing ${sefariaSegments.length} segments against ${dafWords.length} words` });
-		
-		// CRITICAL DEBUG: Let's see what we're actually working with
-		console.log('=== CRITICAL MATCHING DEBUG for', response.ref, '===');
-		console.log('Total daf words:', dafWords.length);
-		console.log('Total segments:', sefariaSegments.length);
-		
-		// Show first 3 segments in detail
-		sefariaSegments.slice(0, 3).forEach((seg, i) => {
-			const words = seg.normalized.split(' ').filter(w => w.length > 0);
-			console.log(`\nSegment ${i + 1} (${words.length} words):`);
-			console.log('  First 10 words:', words.slice(0, 10).join(' | '));
-		});
-		
-		console.log('\nFirst 100 daf words (grouped by 10):');
-		for (let i = 0; i < Math.min(100, dafWords.length); i += 10) {
-			console.log(`  [${i}-${i+9}]:`, dafWords.slice(i, i + 10).join(' | '));
+		if (sefariaSegments.length === 0) {
+			console.log('No valid segments found after filtering');
+			isMatching = false;
+			return [];
 		}
-		console.log('===================================');
 		
-		// NEW SIMPLIFIED APPROACH: Sequential matching with clear boundaries
-		let currentDafPosition = 0;
-		const matches = [];
+		matchingProgress.push({ type: 'info', message: `Processing ${sefariaSegments.length} segments using full-text alignment` });
 		
-		console.log('\n=== SIMPLIFIED MATCHING APPROACH ===');
+		console.log('=== USING FULL-TEXT ALIGNMENT SERVICE for', response.ref, '===');
+		
+		// Step 1: Combine all Sefaria segments into one text
+		const combinedSefariaText = sefariaSegments
+			.map(seg => seg.hebrew || '')
+			.filter(text => text.trim().length > 0)
+			.join(' ');
+		
+		// Extract and clean the HebrewBooks text
+		const hebrewBooksExtracted = extractTalmudContent(dafSupplierData.mainText);
+		
+		console.log('=== TEXT COMPARISON ===');
+		console.log(`Sefaria text (first 200 chars): ${combinedSefariaText.substring(0, 200)}...`);
+		console.log(`HebrewBooks text (first 200 chars): ${hebrewBooksExtracted.substring(0, 200)}...`);
+		console.log(`Sefaria word count: ${combinedSefariaText.split(' ').filter(w => w).length}`);
+		console.log(`HebrewBooks word count: ${hebrewBooksExtracted.split(' ').filter(w => w).length}`);
+		
+		// Check if texts are completely different
+		const sefariaStart = normalizeHebrew(combinedSefariaText.substring(0, 50));
+		const hebrewBooksStart = normalizeHebrew(hebrewBooksExtracted.substring(0, 50));
+		
+		if (sefariaStart !== hebrewBooksStart) {
+			console.warn('⚠️ WARNING: Texts appear to start differently!');
+			console.log('Sefaria normalized start:', sefariaStart);
+			console.log('HebrewBooks normalized start:', hebrewBooksStart);
+			
+			// Check if this might be a daf boundary issue
+			const sefariaFirstWords = combinedSefariaText.split(' ').slice(0, 10).join(' ');
+			const hebrewBooksFirstWords = hebrewBooksExtracted.split(' ').slice(0, 10).join(' ');
+			console.log('First 10 words comparison:');
+			console.log('  Sefaria:', sefariaFirstWords);
+			console.log('  HebrewBooks:', hebrewBooksFirstWords);
+		}
+		
+		if (!combinedSefariaText.trim() || !hebrewBooksExtracted.trim()) {
+			console.log('Empty texts provided to alignment');
+			isMatching = false;
+			return sefariaSegments;
+		}
+		
+		// Step 2: Use alignment service on full texts (no word limit)
+		console.log('Aligning full texts...');
+		try {
+			var fullAlignment = alignTexts(combinedSefariaText, hebrewBooksExtracted, Math.max(1000, combinedSefariaText.split(' ').length + 200));
+		} catch (error) {
+			console.error('Error in alignTexts:', error);
+			isMatching = false;
+			return sefariaSegments;
+		}
+		
+		if (!fullAlignment.alignment.pairs.length) {
+			console.log('No alignment found for full texts');
+			isMatching = false;
+			return sefariaSegments;
+		}
+		
+		console.log(`Full alignment completed: ${fullAlignment.statistics.totalMatches}/${fullAlignment.statistics.total} matches`);
+		
+		// Step 3: Map segments to their positions in the aligned text
+		let currentSefariaIndex = 0;
+		let totalMatched = 0;
+		let totalExact = 0;
 		
 		for (let segIdx = 0; segIdx < sefariaSegments.length; segIdx++) {
 			const segment = sefariaSegments[segIdx];
 			const segmentWords = segment.normalized.split(' ').filter(w => w.length > 0);
 			
-			if (segmentWords.length === 0) {
-				matches.push(null);
+			if (segmentWords.length === 0) continue;
+			
+			console.log(`\n--- Mapping Segment ${segIdx + 1} (${segmentWords.length} words) ---`);
+			
+			// Find this segment's range in the word comparison
+			const segmentStartIndex = currentSefariaIndex;
+			const segmentEndIndex = currentSefariaIndex + segmentWords.length;
+			
+			if (segmentEndIndex > fullAlignment.wordComparison.length) {
+				console.log(`  ✗ Segment extends beyond alignment bounds`);
+				currentSefariaIndex = segmentEndIndex;
 				continue;
 			}
 			
-			console.log(`\n--- Matching Segment ${segIdx + 1} (${segmentWords.length} words) ---`);
-			console.log('Looking for:', segmentWords.slice(0, 5).join(' '), '...');
+			// Extract the corresponding HebrewBooks words and statistics
+			const segmentComparison = fullAlignment.wordComparison.slice(segmentStartIndex, segmentEndIndex);
+			const hebrewBooksWords = [];
+			const matchedIndices = [];
+			const exactIndices = [];
+			let segmentMatches = 0;
+			let segmentExactMatches = 0;
 			
-			// Find the best match starting from current position
-			let bestMatch = null;
-			let bestScore = 0;
-			
-			// Search in a reasonable window
-			const searchRange = Math.min(100, dafWords.length - currentDafPosition);
-			
-			for (let startPos = currentDafPosition; startPos < currentDafPosition + searchRange; startPos++) {
-				// Count how many words match at this position
-				let matchCount = 0;
-				let exactMatchCount = 0;
-				const matchedIndices = [];
-				const exactIndices = [];
-				
-				for (let i = 0; i < Math.min(segmentWords.length, 10); i++) {
-					if (startPos + i < dafWords.length) {
-						const segWord = segmentWords[i];
-						const dafWord = dafWords[startPos + i];
-						
-						// Check for exact match first
-						if (segWord === dafWord) {
-							matchCount++;
-							exactMatchCount++;
-							matchedIndices.push(i);
-							exactIndices.push(i);
-						} else if (wordsMatch(segWord, dafWord)) {
-							matchCount++;
-							matchedIndices.push(i);
-						}
-					}
+			segmentComparison.forEach((comp, relativeIdx) => {
+				if (comp.hebrewBooksWord) {
+					hebrewBooksWords.push(comp.hebrewBooksWord);
 				}
-				
-				// Calculate score based on match quality
-				const score = (matchCount / Math.min(segmentWords.length, 10)) * 
-							  (exactMatchCount > 0 ? 1.5 : 1); // Bonus for exact matches
-				
-				if (score > bestScore && matchCount >= 2) { // Require at least 2 matches
-					bestScore = score;
-					bestMatch = {
-						startIndex: startPos,
-						endIndex: Math.min(startPos + segmentWords.length + 3, dafWords.length),
-						matchedIndices,
-						exactIndices,
-						score,
-						matchCount,
-						exactMatchCount
-					};
-					
-					// If we found a really good match, stop searching
-					if (exactMatchCount >= 3 || matchCount >= segmentWords.length * 0.6) {
-						console.log(`  Found good match at position ${startPos} (${matchCount} matches, ${exactMatchCount} exact)`);
-						break;
-					}
+				if (comp.fuzzyMatch || comp.normalizedMatch) {
+					matchedIndices.push(relativeIdx);
+					segmentMatches++;
 				}
-			}
+				if (comp.exactMatch) {
+					exactIndices.push(relativeIdx);
+					segmentExactMatches++;
+				}
+			});
 			
-			if (bestMatch) {
-				matches.push(bestMatch);
-				currentDafPosition = bestMatch.endIndex - 2; // Overlap slightly for next search
-				console.log(`  ✓ Matched at position ${bestMatch.startIndex}-${bestMatch.endIndex}`);
-				console.log(`    ${bestMatch.matchCount} words matched (${bestMatch.exactMatchCount} exact)`);
+			if (hebrewBooksWords.length > 0) {
+				segment.dafSupplierMatch = hebrewBooksWords.join(' ');
+				segment.similarity = segmentMatches / segmentWords.length;
+				segment.matchedIndices = matchedIndices;
+				segment.exactMatchIndices = exactIndices;
+				
+				totalMatched++;
+				if (segmentExactMatches > 0) totalExact++;
+				
+				console.log(`  ✓ Mapped with ${segmentMatches}/${segmentWords.length} matches (${segmentExactMatches} exact)`);
+				console.log(`    HebrewBooks: ${hebrewBooksWords.slice(0, 8).join(' ')}${hebrewBooksWords.length > 8 ? '...' : ''}`);
 			} else {
-				// No match found - use estimated position
-				const estimatedEnd = Math.min(currentDafPosition + segmentWords.length + 5, dafWords.length);
-				matches.push({
-					startIndex: currentDafPosition,
-					endIndex: estimatedEnd,
-					matchedIndices: [],
-					exactIndices: [],
-					score: 0,
-					matchCount: 0,
-					exactMatchCount: 0
-				});
-				currentDafPosition = estimatedEnd;
-				console.log(`  ✗ No match found, using position ${currentDafPosition}-${estimatedEnd}`);
+				console.log(`  ✗ No HebrewBooks words found for this segment`);
 			}
+			
+			currentSefariaIndex = segmentEndIndex;
 		}
 		
-		// Apply the simplified matches
-		console.log('\n=== APPLYING MATCHES ===');
-		let totalMatched = 0;
-		let totalExact = 0;
-		
-		for (let i = 0; i < sefariaSegments.length; i++) {
-			const match = matches[i];
-			if (match) {
-				sefariaSegments[i].dafSupplierMatch = dafWords.slice(match.startIndex, match.endIndex).join(' ');
-				sefariaSegments[i].similarity = match.score;
-				sefariaSegments[i].matchedIndices = match.matchedIndices;
-				sefariaSegments[i].exactMatchIndices = match.exactIndices; // Only exact matches for underlining
-				
-				if (match.matchCount > 0) totalMatched++;
-				if (match.exactMatchCount > 0) totalExact++;
-			}
-		}
-		
-		console.log(`\nMATCHING SUMMARY:`);
+		console.log(`\nFULL-TEXT ALIGNMENT SUMMARY:`);
 		console.log(`  Total segments: ${sefariaSegments.length}`);
 		console.log(`  Segments with matches: ${totalMatched}`);
 		console.log(`  Segments with exact matches: ${totalExact}`);
+		console.log(`  Overall alignment score: ${fullAlignment.alignment.score.toFixed(3)}`);
 		
 		matchingProgress.push({ 
 			type: 'result', 
-			message: `Matched ${totalMatched}/${sefariaSegments.length} segments (${totalExact} with exact matches)` 
+			message: `Mapped ${totalMatched}/${sefariaSegments.length} segments from full-text alignment (${totalExact} with exact matches)` 
 		});
 		
 		isMatching = false;
