@@ -118,6 +118,28 @@ export default function (el, options = defaultOptions) {
           containers.el.classList.remove('linebreak-mode');
         }
         
+        // Convert <br> tags to soft break opportunities that allow natural text flow
+        function convertBrToSoftBreaks(text, addMarkers = false) {
+          // Replace <br> with a space + word break opportunity
+          // This provides both spacing and break opportunity
+          let converted = text.replace(/<br\s*\/?>/gi, ' <wbr>');
+          
+          // For existing <wbr> tags, check if they need a space before them
+          // If there's no space before the <wbr>, add one to prevent words from joining
+          converted = converted.replace(/([^\s>])<wbr>/gi, '$1 <wbr>');
+          
+          // If markers are requested, add a visual indicator before each <wbr>
+          if (addMarkers) {
+            // Insert a zero-width span with a visible border before each <wbr>
+            converted = converted.replace(/<wbr>/gi, '<span class="wbr-marker"></span><wbr>');
+          }
+          
+          return converted;
+        }
+        
+        // Check if we should show wbr markers (look for parent container classes)
+        const showWbrMarkers = linebreak && containers.el.closest('.show-wbr-markers');
+        
         // Handle <br> and <wbr> tags based on mode
         if (!linebreak) {
           // Strip <br> and <wbr> tags when not in line break mode - both replaced with space
@@ -126,9 +148,9 @@ export default function (el, options = defaultOptions) {
           outer = outer.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, ' ');
         } else {
           // Convert <br> and <wbr> to soft break opportunities (zero-width space + word break opportunity)
-          main = convertBrToSoftBreaks(main);
-          inner = convertBrToSoftBreaks(inner);
-          outer = convertBrToSoftBreaks(outer);
+          main = convertBrToSoftBreaks(main, showWbrMarkers);
+          inner = convertBrToSoftBreaks(inner, showWbrMarkers);
+          outer = convertBrToSoftBreaks(outer, showWbrMarkers);
         }
         
         // Calculate spacers with processed text (after <wbr> handling)
@@ -144,15 +166,18 @@ export default function (el, options = defaultOptions) {
           let resizeInner = originalInner;
           let resizeOuter = originalOuter;
           
+          // Re-check marker status on resize
+          const currentShowWbrMarkers = linebreak && containers.el.closest('.show-wbr-markers');
+          
           if (!linebreak) {
             // Both <br> and <wbr> get replaced with space
             resizeMain = resizeMain.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, ' ');
             resizeInner = resizeInner.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, ' ');
             resizeOuter = resizeOuter.replace(/<br\s*\/?>/gi, ' ').replace(/<wbr\s*\/?>/gi, ' ');
           } else {
-            resizeMain = convertBrToSoftBreaks(resizeMain);
-            resizeInner = convertBrToSoftBreaks(resizeInner);
-            resizeOuter = convertBrToSoftBreaks(resizeOuter);
+            resizeMain = convertBrToSoftBreaks(resizeMain, currentShowWbrMarkers);
+            resizeInner = convertBrToSoftBreaks(resizeInner, currentShowWbrMarkers);
+            resizeOuter = convertBrToSoftBreaks(resizeOuter, currentShowWbrMarkers);
           }
           
           this.spacerHeights = calculateSpacers(resizeMain, resizeInner, resizeOuter, clonedOptions, containers.dummy);
@@ -170,19 +195,6 @@ export default function (el, options = defaultOptions) {
         styleManager.manageExceptions(this.spacerHeights);
         Object.assign(rendererObject.spacerHeights, this.spacerHeights);
       
-      // Convert <br> tags to soft break opportunities that allow natural text flow
-      function convertBrToSoftBreaks(text) {
-        // Replace <br> with a space + word break opportunity
-        // This provides both spacing and break opportunity
-        let converted = text.replace(/<br\s*\/?>/gi, ' <wbr>');
-        
-        // For existing <wbr> tags, check if they need a space before them
-        // If there's no space before the <wbr>, add one to prevent words from joining
-        converted = converted.replace(/([^\s>])<wbr>/gi, '$1 <wbr>');
-        
-        return converted;
-      }
-      
       // Helper function to convert block divs to inline elements in commentary
       function processCommentaryHTML(html) {
         // Convert divs with width:100% or margin styles to spans
@@ -197,6 +209,7 @@ export default function (el, options = defaultOptions) {
         return processed;
       }
       
+      // Apply the processed text (with <wbr> tags if in linebreak mode)
       textSpans.main.innerHTML = main;
       textSpans.inner.innerHTML = processCommentaryHTML(inner);
       textSpans.outer.innerHTML = processCommentaryHTML(outer);

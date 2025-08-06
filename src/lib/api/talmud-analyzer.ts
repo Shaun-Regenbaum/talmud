@@ -194,11 +194,11 @@ Return ONLY valid JSON matching this structure:
 }`;
 		
 		try {
-			console.log('Sending request to OpenRouter with model:', this.models.balanced);
+			console.log('Sending request to OpenRouter with model:', this.models.accurate);
 			console.log('API Key configured:', !!this.apiKey);
 			
 			const requestBody = {
-				model: this.models.balanced,
+				model: this.models.accurate,
 				messages: [
 					{ role: 'system', content: systemPrompt },
 					{ role: 'user', content: userPrompt }
@@ -259,7 +259,7 @@ Return ONLY valid JSON matching this structure:
 					halachaPercentage: 100,
 					timeSpan: { earliest: 0, latest: 500 }
 				},
-				model: data.model || this.models.balanced,
+				model: data.model || this.models.accurate,
 				confidence: analysis.confidence || 0.5
 			};
 			
