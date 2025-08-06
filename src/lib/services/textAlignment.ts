@@ -15,12 +15,16 @@ export interface WordPair {
 	sefaria: string | null;
 	hebrewBooks: string | null;
 	matched: boolean;
+	sefariaIndex?: number; // Index in original Sefaria text
+	hebrewBooksIndex?: number; // Index in original HebrewBooks text
 }
 
 export interface AlignmentResult {
 	offset: number;
 	pairs: WordPair[];
 	score: number;
+	sefariaWords?: string[]; // Original Sefaria words array
+	hebrewBooksWords?: string[]; // Original HebrewBooks words array
 }
 
 export interface WordComparison {
@@ -50,6 +54,18 @@ export interface MatchStatistics {
 	deletions: number;
 	matchPercentage: number;
 	alignmentScore: number;
+}
+
+/**
+ * Segment mapping for tracking which words belong to which Sefaria segment
+ */
+export interface SegmentMapping {
+	segmentIndex: number;
+	segmentRef: string;
+	startWordIndex: number;
+	endWordIndex: number;
+	hebrewText: string;
+	englishText?: string;
 }
 
 /**
@@ -213,7 +229,9 @@ export function findOptimalAlignment(sefariaWords: string[], hebrewBooksWords: s
 			pairs.push({
 				sefaria: sWord,
 				hebrewBooks: hWord,
-				matched: true
+				matched: true,
+				sefariaIndex: sefariaIdx,
+				hebrewBooksIndex: hebrewBooksIdx
 			});
 			sefariaIdx++;
 			hebrewBooksIdx++;
@@ -231,13 +249,16 @@ export function findOptimalAlignment(sefariaWords: string[], hebrewBooksWords: s
 							pairs.push({
 								sefaria: null,
 								hebrewBooks: hebrewBooksWords[hebrewBooksIdx + k],
-								matched: false
+								matched: false,
+								hebrewBooksIndex: hebrewBooksIdx + k
 							});
 						}
 						pairs.push({
 							sefaria: sWord,
 							hebrewBooks: hebrewBooksWords[hebrewBooksIdx + lookAhead],
-							matched: true
+							matched: true,
+							sefariaIndex: sefariaIdx,
+							hebrewBooksIndex: hebrewBooksIdx + lookAhead
 						});
 						sefariaIdx++;
 						hebrewBooksIdx += lookAhead + 1;
@@ -254,13 +275,16 @@ export function findOptimalAlignment(sefariaWords: string[], hebrewBooksWords: s
 							pairs.push({
 								sefaria: sefariaWords[sefariaIdx + k],
 								hebrewBooks: null,
-								matched: false
+								matched: false,
+								sefariaIndex: sefariaIdx + k
 							});
 						}
 						pairs.push({
 							sefaria: sefariaWords[sefariaIdx + lookAhead],
 							hebrewBooks: hWord,
-							matched: true
+							matched: true,
+							sefariaIndex: sefariaIdx + lookAhead,
+							hebrewBooksIndex: hebrewBooksIdx
 						});
 						sefariaIdx += lookAhead + 1;
 						hebrewBooksIdx++;
@@ -275,7 +299,9 @@ export function findOptimalAlignment(sefariaWords: string[], hebrewBooksWords: s
 				pairs.push({
 					sefaria: sWord,
 					hebrewBooks: hWord,
-					matched: false
+					matched: false,
+					sefariaIndex: sefariaIdx,
+					hebrewBooksIndex: hebrewBooksIdx
 				});
 				sefariaIdx++;
 				hebrewBooksIdx++;
@@ -396,6 +422,10 @@ export function alignTexts(sefariaText: string, hebrewBooksText: string, maxLeng
 	// Find optimal alignment
 	const alignment = findOptimalAlignment(sefariaWords, hebrewBooksWords, maxLength);
 	
+	// Store original words in alignment result
+	alignment.sefariaWords = sefariaWords;
+	alignment.hebrewBooksWords = hebrewBooksWords;
+	
 	// Create word comparison
 	const wordComparison = createWordComparison(alignment);
 	
@@ -413,5 +443,179 @@ export function alignTexts(sefariaText: string, hebrewBooksText: string, maxLeng
 		alignment,
 		wordComparison,
 		statistics
+	};
+}
+
+/**
+ * Selection context for click-to-context functionality
+ */
+export interface SelectionContext {
+	text: string;
+	startWordIndex: number;
+	endWordIndex: number;
+	segmentMappings?: SegmentMapping[];
+	matchedSegments?: number[];
+}
+
+/**
+ * Find a text selection within the alignment
+ * Returns the word indices and context for the selected text
+ */
+export function findSelectionInAlignment(
+	selectedText: string,
+	alignment: AlignmentResult,
+	source: 'sefaria' | 'hebrewBooks' = 'hebrewBooks'
+): SelectionContext | null {
+	if (!selectedText || !alignment) return null;
+	
+	// Get the source words array
+	const sourceWords = source === 'sefaria' ? alignment.sefariaWords : alignment.hebrewBooksWords;
+	if (!sourceWords) return null;
+	
+	// Normalize and split the selected text
+	const selectedWords = selectedText.split(/\s+/).filter(w => w.length > 0);
+	if (selectedWords.length === 0) return null;
+	
+	// Find the selected words in the source text
+	let startIndex = -1;
+	for (let i = 0; i <= sourceWords.length - selectedWords.length; i++) {
+		let match = true;
+		for (let j = 0; j < selectedWords.length; j++) {
+			if (!wordsMatchFuzzy(sourceWords[i + j], selectedWords[j])) {
+				match = false;
+				break;
+			}
+		}
+		if (match) {
+			startIndex = i;
+			break;
+		}
+	}
+	
+	if (startIndex === -1) return null;
+	
+	return {
+		text: selectedText,
+		startWordIndex: startIndex,
+		endWordIndex: startIndex + selectedWords.length - 1
+	};
+}
+
+/**
+ * Get the Sefaria segment(s) that contain the selected text
+ */
+export function getSegmentsFromSelection(
+	selection: SelectionContext,
+	segmentMappings: SegmentMapping[]
+): SegmentMapping[] {
+	if (!selection || !segmentMappings || segmentMappings.length === 0) return [];
+	
+	const matchedSegments: SegmentMapping[] = [];
+	
+	for (const segment of segmentMappings) {
+		// Check if the selection overlaps with this segment's word range
+		if (
+			(selection.startWordIndex >= segment.startWordIndex && selection.startWordIndex <= segment.endWordIndex) ||
+			(selection.endWordIndex >= segment.startWordIndex && selection.endWordIndex <= segment.endWordIndex) ||
+			(selection.startWordIndex <= segment.startWordIndex && selection.endWordIndex >= segment.endWordIndex)
+		) {
+			matchedSegments.push(segment);
+		}
+	}
+	
+	return matchedSegments;
+}
+
+/**
+ * Create segment mappings from Sefaria segments
+ */
+export function createSegmentMappings(
+	sefariaSegments: Array<{ ref: string; he: string; en?: string }>
+): SegmentMapping[] {
+	const mappings: SegmentMapping[] = [];
+	let currentWordIndex = 0;
+	
+	for (let i = 0; i < sefariaSegments.length; i++) {
+		const segment = sefariaSegments[i];
+		const words = segment.he.split(/\s+/).filter(w => w.length > 0);
+		
+		mappings.push({
+			segmentIndex: i,
+			segmentRef: segment.ref,
+			startWordIndex: currentWordIndex,
+			endWordIndex: currentWordIndex + words.length - 1,
+			hebrewText: segment.he,
+			englishText: segment.en
+		});
+		
+		currentWordIndex += words.length;
+	}
+	
+	return mappings;
+}
+
+/**
+ * Get context around a selection (words before and after)
+ */
+export function getSelectionContext(
+	selection: SelectionContext,
+	alignment: AlignmentResult,
+	contextWords: number = 10,
+	source: 'sefaria' | 'hebrewBooks' = 'hebrewBooks'
+): string {
+	const sourceWords = source === 'sefaria' ? alignment.sefariaWords : alignment.hebrewBooksWords;
+	if (!sourceWords || !selection) return '';
+	
+	const startContext = Math.max(0, selection.startWordIndex - contextWords);
+	const endContext = Math.min(sourceWords.length - 1, selection.endWordIndex + contextWords);
+	
+	return sourceWords.slice(startContext, endContext + 1).join(' ');
+}
+
+/**
+ * Find corresponding text in the other source through alignment
+ */
+export function findCorrespondingText(
+	selection: SelectionContext,
+	alignment: AlignmentResult,
+	sourceType: 'sefaria' | 'hebrewBooks'
+): SelectionContext | null {
+	if (!selection || !alignment.pairs) return null;
+	
+	// Find the alignment pairs that correspond to the selection
+	const targetType = sourceType === 'sefaria' ? 'hebrewBooks' : 'sefaria';
+	const indexField = sourceType === 'sefaria' ? 'sefariaIndex' : 'hebrewBooksIndex';
+	const targetIndexField = sourceType === 'sefaria' ? 'hebrewBooksIndex' : 'sefariaIndex';
+	
+	// Find pairs that match the selection range
+	const matchedPairs = alignment.pairs.filter(pair => {
+		const sourceIndex = pair[indexField];
+		return sourceIndex !== undefined && 
+		       sourceIndex >= selection.startWordIndex && 
+		       sourceIndex <= selection.endWordIndex;
+	});
+	
+	if (matchedPairs.length === 0) return null;
+	
+	// Get the corresponding indices in the target
+	const targetIndices = matchedPairs
+		.map(pair => pair[targetIndexField])
+		.filter(idx => idx !== undefined) as number[];
+	
+	if (targetIndices.length === 0) return null;
+	
+	const minIndex = Math.min(...targetIndices);
+	const maxIndex = Math.max(...targetIndices);
+	
+	// Get the corresponding words
+	const targetWords = targetType === 'sefaria' ? alignment.sefariaWords : alignment.hebrewBooksWords;
+	if (!targetWords) return null;
+	
+	const correspondingText = targetWords.slice(minIndex, maxIndex + 1).join(' ');
+	
+	return {
+		text: correspondingText,
+		startWordIndex: minIndex,
+		endWordIndex: maxIndex
 	};
 }
