@@ -21,6 +21,7 @@ A modern, interactive Talmud study application that enhances traditional text st
 - Contextual analysis and explanations
 - Interactive study tools and annotations
 - Multi-LLM support for different types of assistance
+- **Click-to-context**: Select any text to see corresponding Sefaria segments with translations
 
 ## HebrewBooks Integration
 The app includes a HebrewBooks.org scraping service that:
@@ -78,12 +79,51 @@ const sefariaRef = `${pageNum}${amud}`;
   - Source comparison views
   - Debug information display
   - API endpoint documentation
+- `/test/sefaria` - Advanced text alignment testing with:
+  - HebrewBooks to Sefaria text alignment
+  - Click-to-context functionality demo
+  - Segment-by-segment comparison
+  - Alignment quality metrics
 
 ### Key Debug Features
 - Response time tracking for all API calls
 - Side-by-side source comparison
 - Raw data inspection
 - API call logging with timestamps
+
+## Text Alignment Service
+The application includes an advanced text alignment service (`/src/lib/services/textAlignment.ts`) that:
+- Performs fuzzy matching between Hebrew texts from different sources
+- Handles nikud (vowel marks), punctuation, and formatting differences
+- Uses multiple matching strategies (exact, normalized, substring, root, Levenshtein)
+- Supports click-to-context functionality for text selection
+- Maps words between sources to maintain segment boundaries
+
+### Click-to-Context Feature
+Users can select any text in the HebrewBooks display to:
+1. See the corresponding Sefaria text
+2. View the full Sefaria segment(s) containing that text
+3. Access English translations and commentary
+4. Navigate to the source for deeper study
+
+### Alignment API
+```typescript
+import { 
+  alignTexts, 
+  findSelectionInAlignment,
+  getSegmentsFromSelection,
+  createSegmentMappings 
+} from '$lib/services/textAlignment';
+
+// Align two Hebrew texts
+const result = alignTexts(sefariaText, hebrewBooksText);
+
+// Find selected text in alignment
+const selection = findSelectionInAlignment(selectedText, result.alignment);
+
+// Get Sefaria segments for selection
+const segments = getSegmentsFromSelection(selection, segmentMappings);
+```
 
 ## Documentation
 - `/docs/Sefaria.md` - Comprehensive Sefaria API documentation
@@ -95,4 +135,5 @@ const sefariaRef = `${pageNum}${amud}`;
 - Focus on clean, minimal code - avoid unnecessary files
 - Prefer editing existing files over creating new ones
 - Test API changes using the talmud-merged-test page
+- Test alignment features using the /test/sefaria page
 - Document any new API integrations or data sources
