@@ -244,163 +244,9 @@
 		
 		console.log('Text lengths - Main:', mainText.length, 'Inner:', innerText.length, 'Outer:', outerText.length);
 		
-		// Now we can implement highlighting since both use the same source!
-		if (analysisData.sections && analysisData.sections.length > 0) {
-			console.log('=== HIGHLIGHTING DEBUG ===');
-			console.log('Total sections from LLM:', analysisData.sections.length);
-			console.log('Sample sections:', analysisData.sections.slice(0, 3).map(s => ({
-				type: s.type,
-				confidence: s.confidence,
-				textLength: s.text?.length,
-				textSample: s.text?.substring(0, 50) + '...'
-			})));
-			console.log('Section types breakdown:', {
-				halacha: analysisData.sections.filter(s => s.type === 'halacha').length,
-				aggadah: analysisData.sections.filter(s => s.type === 'aggadah').length,
-				mixed: analysisData.sections.filter(s => s.type === 'mixed').length
-			});
-			
-			// Clean version of main text for alignment
-			const cleanMainText = mainText
-				.replace(/<br\s*\/?>/gi, '\n')
-				.replace(/<[^>]*>/g, '')
-				.replace(/&[a-zA-Z]+;/g, '')
-				.replace(/&#\d+;/g, '');
-			
-			// Use the text alignment service to map sections to HTML text
-			const alignment = alignTexts(analysisData.analysisText, cleanMainText);
-			
-			console.log('Text alignment results:', {
-				score: (alignment.alignment.score * 100).toFixed(1) + '%',
-				matchPercentage: alignment.statistics.matchPercentage.toFixed(1) + '%',
-				alignedLength: alignment.alignment.pairs.length
-			});
-			
-			// Create highlighting based on aligned text
-			// For now, let's add a simple highlight style without specific section mapping
-			// This demonstrates that we can now work with the same text source
-			const styleId = 'section-highlights';
-			let existingStyle = document.getElementById(styleId);
-			if (existingStyle) {
-				existingStyle.remove();
-			}
-			
-			const styleElement = document.createElement('style');
-			styleElement.id = styleId;
-			styleElement.textContent = `
-				.text-classification-highlight {
-					background-color: rgba(34, 197, 94, 0.3) !important;
-					border-left: 4px solid rgba(34, 197, 94, 0.8) !important;
-					padding-left: 6px !important;
-					margin-left: -6px !important;
-					border-radius: 2px !important;
-				}
-				.halacha-highlight {
-					background-color: rgba(59, 130, 246, 0.3) !important;
-					border-left: 4px solid rgba(59, 130, 246, 0.8) !important;
-					padding-left: 6px !important;
-					margin-left: -6px !important;
-					border-radius: 2px !important;
-				}
-				.aggadah-highlight {
-					background-color: rgba(34, 197, 94, 0.3) !important;
-					border-left: 4px solid rgba(34, 197, 94, 0.8) !important;
-					padding-left: 6px !important;
-					margin-left: -6px !important;
-					border-radius: 2px !important;
-				}
-			`;
-			document.head.appendChild(styleElement);
-			
-			// Debug: Check what the main text looks like
-			console.log('Main text sample (first 500 chars):', mainText.substring(0, 500));
-			console.log('Main text contains <span> tags:', mainText.includes('<span>'));
-			console.log('Main text contains HTML tags:', /<[^>]+>/.test(mainText));
-			
-			// Try highlighting based on actual analysis sections
-			let highlightCount = 0;
-			
-			// Strategy 1: Use actual section data for precise highlighting
-			console.log('=== TEXT MATCHING DEBUG ===');
-			for (let i = 0; i < Math.min(8, analysisData.sections.length); i++) {
-				const section = analysisData.sections[i];
-				console.log(`\n--- Section ${i + 1} ---`);
-				console.log('Type:', section.type, 'Confidence:', section.confidence);
-				console.log('Section text length:', section.text?.length);
-				console.log('Section text sample:', section.text?.substring(0, 100));
-				
-				if (section.text && section.text.length > 10) {
-					// Try different search strategies
-					const searchStrategies = [
-						section.text.substring(0, 20).trim(), // First 20 chars
-						section.text.substring(0, 30).trim(), // First 30 chars  
-						section.text.substring(0, 15).trim(), // First 15 chars
-						section.text.split(/\s+/).slice(0, 3).join('\\s+'), // First 3 words
-					];
-					
-					let matched = false;
-					for (const searchText of searchStrategies) {
-						if (searchText.length > 5) {
-							const escapedText = searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-							const regex = new RegExp(escapedText.replace(/\s+/g, '\\s+'), 'gi');
-							
-							console.log('Trying search text:', searchText);
-							console.log('Regex pattern:', regex);
-							console.log('Found in cleanMainText:', regex.test(cleanMainText));
-							console.log('Found in mainText:', regex.test(mainText));
-							
-							if (regex.test(mainText)) {
-								const highlightClass = section.type === 'halacha' ? 'halacha-highlight' : 
-													 section.type === 'aggadah' ? 'aggadah-highlight' : 
-													 'text-classification-highlight';
-								
-								const beforeLength = mainText.length;
-								mainText = mainText.replace(regex, (match) => {
-									highlightCount++;
-									console.log('✅ Successfully highlighted:', match.substring(0, 50));
-									return `<span class="${highlightClass}" title="${section.type} (${Math.round(section.confidence * 100)}% confidence)">${match}</span>`;
-								});
-								const afterLength = mainText.length;
-								
-								if (afterLength > beforeLength) {
-									console.log('✅ Text was modified - highlighting applied!');
-									matched = true;
-									break;
-								}
-							}
-						}
-					}
-					
-					if (!matched) {
-						console.log('❌ No match found for this section');
-					}
-				}
-			}
-			
-			// Strategy 2: If section-based highlighting didn't work, highlight HTML elements  
-			if (highlightCount < 3) {
-				mainText = mainText.replace(/(<[^>]+>[^<]*<\/[^>]+>)/gi, (match) => {
-					if (Math.random() < 0.4) { // Higher probability
-						highlightCount++;
-						return `<span class="text-classification-highlight">${match}</span>`;
-					}
-					return match;
-				});
-			}
-			
-			// Strategy 3: Fallback to Hebrew text highlighting  
-			if (highlightCount < 3) {
-				mainText = mainText.replace(/([\u0590-\u05FF]+(?:\s+[\u0590-\u05FF]+){2,5})/g, (match) => {
-					if (Math.random() < 0.3) { // Higher probability
-						highlightCount++;
-						return `<span class="text-classification-highlight">${match}</span>`;
-					}
-					return match;
-				});
-			}
-			
-			console.log('Applied highlighting to', highlightCount, 'elements');
-		}
+		// Skip all the complex highlighting strategies - they don't work
+		// The daf renderer strips our modifications anyway
+		console.log('Skipping pre-render highlighting - will use overlay approach instead');
 		
 		// Render the daf with all commentaries (using br mode like spacer-analysis)
 		rendererInstance.render(
@@ -411,53 +257,84 @@
 			'br'  // Force line break mode like spacer-analysis
 		);
 		
-		// Apply highlighting AFTER daf renderer finishes processing
+		// Create a separate classification display instead of trying to highlight the daf
 		setTimeout(() => {
-			console.log('=== POST-RENDER HIGHLIGHTING ===');
-			
-			// The daf renderer has stripped our highlights, so we need to re-apply them
-			// by finding text in the rendered DOM and wrapping it
 			if (analysisData.sections && analysisData.sections.length > 0) {
-				const dafContainer = container.querySelector('.dafRoot') || container;
-				const textElements = dafContainer.querySelectorAll('*');
+				console.log('Creating section classification display');
 				
-				console.log('Found', textElements.length, 'elements in rendered daf');
-				
-				let postHighlightCount = 0;
-				
-				// Try to find and highlight text in the rendered DOM
-				for (let i = 0; i < Math.min(8, analysisData.sections.length); i++) {
-					const section = analysisData.sections[i];
-					if (section.text && section.text.length > 10) {
-						const searchText = section.text.substring(0, 20).trim();
-						
-						if (searchText.length > 5) {
-							// Search through all text nodes
-							textElements.forEach(element => {
-								if (element.textContent && element.textContent.includes(searchText)) {
-									const highlightClass = section.type === 'halacha' ? 'halacha-highlight' : 
-														 section.type === 'aggadah' ? 'aggadah-highlight' : 
-														 'text-classification-highlight';
-									
-									element.innerHTML = element.innerHTML.replace(
-										new RegExp(searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'),
-										`<span class="${highlightClass}" title="${section.type} (${Math.round(section.confidence * 100)}% confidence)">$&</span>`
-									);
-									postHighlightCount++;
-									console.log('✅ Post-render highlighted:', searchText);
-								}
-							});
-						}
-					}
+				// Add styles for section display
+				const styleId = 'section-display-styles';
+				let existingStyle = document.getElementById(styleId);
+				if (existingStyle) {
+					existingStyle.remove();
 				}
 				
-				console.log('Applied', postHighlightCount, 'post-render highlights');
+				const styleElement = document.createElement('style');
+				styleElement.id = styleId;
+				styleElement.textContent = `
+					.section-markers {
+						position: absolute;
+						top: 0;
+						left: -30px;
+						width: 25px;
+						height: 100%;
+						pointer-events: none;
+					}
+					.section-marker {
+						position: absolute;
+						width: 20px;
+						height: 4px;
+						border-radius: 2px;
+						pointer-events: auto;
+						cursor: pointer;
+						transition: width 0.2s;
+					}
+					.section-marker:hover {
+						width: 24px;
+					}
+					.section-marker.halacha {
+						background-color: #3b82f6;
+					}
+					.section-marker.aggadah {
+						background-color: #22c55e;
+					}
+					.section-marker.mixed {
+						background-color: #a855f7;
+					}
+				`;
+				document.head.appendChild(styleElement);
+				
+				// Create markers container
+				const dafContainer = container.querySelector('.dafRoot') || container;
+				const existingMarkers = dafContainer.querySelector('.section-markers');
+				if (existingMarkers) {
+					existingMarkers.remove();
+				}
+				
+				const markersContainer = document.createElement('div');
+				markersContainer.className = 'section-markers';
+				dafContainer.style.position = 'relative';
+				dafContainer.appendChild(markersContainer);
+				
+				// Add markers for each section
+				const containerHeight = dafContainer.offsetHeight;
+				const sectionCount = analysisData.sections.length;
+				
+				analysisData.sections.forEach((section, index) => {
+					const marker = document.createElement('div');
+					marker.className = `section-marker ${section.type}`;
+					marker.title = `${section.type} (${Math.round(section.confidence * 100)}%): ${section.text?.substring(0, 50)}...`;
+					
+					// Position marker proportionally along the height
+					const topPercent = (index / sectionCount) * 100;
+					marker.style.top = `${topPercent}%`;
+					
+					markersContainer.appendChild(marker);
+				});
+				
+				console.log('Added', analysisData.sections.length, 'section markers');
 			}
-			
-			// Check final result
-			const highlightElements = document.querySelectorAll('.text-classification-highlight, .halacha-highlight, .aggadah-highlight');
-			console.log('Final highlight elements in DOM:', highlightElements.length);
-		}, 1000); // Give daf renderer more time to finish
+		}, 1000); // Give daf renderer time to finish
 		} finally {
 			// Allow rendering again after a delay
 			setTimeout(() => {
@@ -612,7 +489,7 @@
 				
 				<!-- Daf Renderer Container -->
 				<div class="overflow-x-auto overflow-y-hidden">
-					<div bind:this={container} class="daf-container" style="width: 800px; margin: 0 auto; max-width: 100%; position: relative;"></div>
+					<div bind:this={container} class="daf-container" style="width: 800px; margin: 0 auto; max-width: 100%; position: relative; padding-left: 35px;"></div>
 				</div>
 			</div>
 			
