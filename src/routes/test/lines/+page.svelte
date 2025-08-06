@@ -184,9 +184,28 @@
 				lengthCategory,
 				displayCategory,
 				isStart,  // Add as a boolean flag
-				isRashiStart: /^[א-ת]"[א-ת]/.test(trimmed) || /^[א-ת][א-ת]"[א-ת]/.test(trimmed)
+				isRashiStart: /^[א-ת]"[א-ת]/.test(trimmed) || /^[א-ת][א-ת]"[א-ת]/.test(trimmed),
+				// Talmudic structure markers
+				isHadran: trimmed.includes('הדרן עלך') || trimmed.includes('הדרן עליך'),
+				isMishnaStart: /^(מתני'|מתניתין|משנה)/.test(trimmed),
+				isGemaraStart: /^(גמ'|גמרא|גמ׳)/.test(trimmed),
+				hasDropCap: /<span class="gdropcap">/.test(line)  // Large first letter indicating new chapter
 			};
 		});
+		
+		// Add NextPage flag for Main Text - check if last non-empty line is single
+		if (label === 'Main Text' && lineAnalysis.length > 0) {
+			// Find last non-empty line
+			for (let i = lineAnalysis.length - 1; i >= 0; i--) {
+				if (!lineAnalysis[i].isEmpty) {
+					// Check if it's a single word/phrase line at the end
+					if (lineAnalysis[i].lengthCategory === 'single') {
+						lineAnalysis[i].isNextPage = true;
+					}
+					break;
+				}
+			}
+		}
 		
 		// Group lines by length category
 		const lengthCategories = {};
@@ -516,6 +535,22 @@
 												{/if}
 												{#if line.isStart}
 													<span class="text-xs bg-purple-200 px-1 rounded">start</span>
+												{/if}
+												<!-- Talmudic structure markers -->
+												{#if line.isHadran}
+													<span class="text-xs bg-red-600 text-white px-1 rounded font-bold">הדרן עלך</span>
+												{/if}
+												{#if line.isMishnaStart}
+													<span class="text-xs bg-blue-600 text-white px-1 rounded">משנה</span>
+												{/if}
+												{#if line.isGemaraStart}
+													<span class="text-xs bg-indigo-600 text-white px-1 rounded">גמרא</span>
+												{/if}
+												{#if line.hasDropCap}
+													<span class="text-xs bg-pink-500 text-white px-1 rounded">פרק חדש</span>
+												{/if}
+												{#if line.isNextPage}
+													<span class="text-xs bg-amber-500 text-white px-1 rounded">→דף</span>
 												{/if}
 											</td>
 											<td class="px-2 py-1 text-right font-mono text-xs" dir="rtl">
