@@ -98,7 +98,8 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 		return json({ error: 'Missing required parameters: mesechta and daf' }, { status: 400 });
 	}
 
-	const cacheKey = `hebrewbooks:${mesechta}:${daf}`;
+	// Include br parameter in cache key to cache both versions separately
+	const cacheKey = `hebrewbooks:${mesechta}:${daf}:br=${br}`;
 	
 	// Check if we should bypass cache
 	const bypassCache = url.searchParams.get('nocache') === 'true';
