@@ -398,7 +398,31 @@
 	let matchingProgress = [];
 	let isMatching = false;
 	
-	// Advanced matching using the refined alignment service
+	// Get aligned word pairs for display
+	function getAlignedWordPairs() {
+		if (!response?.he || !dafSupplierData?.mainText) return null;
+		
+		// Combine all Sefaria segments
+		const combinedSefariaText = response.he
+			.filter((h: any) => h != null)
+			.join(' ');
+			
+		if (!combinedSefariaText.trim()) return null;
+		
+		// Extract and clean HebrewBooks text
+		const hebrewBooksExtracted = extractTalmudContent(dafSupplierData.mainText);
+		
+		// Use alignment service
+		const alignmentResult = alignTexts(combinedSefariaText, hebrewBooksExtracted, Math.max(1000, combinedSefariaText.split(' ').length + 200));
+		
+		return {
+			alignment: alignmentResult.alignment,
+			wordComparison: alignmentResult.wordComparison,
+			statistics: alignmentResult.statistics
+		};
+	}
+	
+	// Advanced matching using the refined alignment service (DEPRECATED - keeping for compatibility)
 	function getMatchedSegments() {
 		// Validate inputs
 		if (!response?.he || !Array.isArray(response.he) || !dafSupplierData?.mainText) {
