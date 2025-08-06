@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import ElegantTimeline from '$lib/components/ElegantTimeline.svelte';
-	import type { TimelinePeriod } from '$lib/components/ElegantTimeline.svelte';
+	import Timeline from '$lib/components/Timeline.svelte';
 	
 	// Form inputs
 	let tractate = 'Berakhot';
@@ -48,21 +47,10 @@
 	}
 	
 	// Prepare timeline data
-	$: timelinePeriods = analysisData?.timePeriods?.map((period: any): TimelinePeriod => ({
-		id: period.name,
-		name: period.name,
-		hebrewName: period.hebrewName,
-		startYear: period.startYear,
-		endYear: period.endYear,
-		color: periodColors[period.name] || '#666',
-		description: `Historical period in Jewish scholarship`,
-		figures: analysisData.rabbis
-			?.filter((rabbi: any) => rabbi.period?.name === period.name)
-			?.map((rabbi: any) => ({
-				name: rabbi.name,
-				hebrewName: rabbi.hebrewName,
-				year: rabbi.year
-			}))
+	$: highlightedPeriods = analysisData?.timePeriods?.map((p: any) => p.name) || [];
+	$: highlightedDates = analysisData?.rabbis
+		?.filter((r: any) => r.year)
+		?.map((r: any) => r.year) || [];
 	})) || [];
 	
 	// Section type colors
@@ -364,12 +352,11 @@
 		</div>
 		
 		<!-- Timeline Visualization -->
-		{#if timelinePeriods.length > 0}
+		{#if highlightedPeriods.length > 0}
 			<div class="mb-6">
-				<ElegantTimeline 
-					periods={timelinePeriods}
-					minYear={-500}
-					maxYear={1500}
+				<Timeline 
+					{highlightedPeriods}
+					{highlightedDates}
 				/>
 			</div>
 		{/if}
