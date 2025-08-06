@@ -278,19 +278,23 @@
 						left: -30px;
 						width: 25px;
 						height: 100%;
+						display: flex;
+						flex-direction: column;
 						pointer-events: none;
 					}
 					.section-marker {
-						position: absolute;
-						width: 20px;
-						height: 4px;
-						border-radius: 2px;
+						position: relative;
+						width: 4px;
+						flex: 1;
+						min-height: 10px;
 						pointer-events: auto;
 						cursor: pointer;
-						transition: width 0.2s;
+						transition: width 0.2s, opacity 0.2s;
+						opacity: 0.8;
 					}
 					.section-marker:hover {
-						width: 24px;
+						width: 6px;
+						opacity: 1;
 					}
 					.section-marker.halacha {
 						background-color: #3b82f6;
@@ -316,19 +320,13 @@
 				dafContainer.style.position = 'relative';
 				dafContainer.appendChild(markersContainer);
 				
-				// Add markers for each section
-				const containerHeight = dafContainer.offsetHeight;
-				const sectionCount = analysisData.sections.length;
-				
+				// Add markers for each section - they'll stack vertically as a continuous line
 				analysisData.sections.forEach((section, index) => {
 					const marker = document.createElement('div');
 					marker.className = `section-marker ${section.type}`;
 					marker.title = `${section.type} (${Math.round(section.confidence * 100)}%): ${section.text?.substring(0, 50)}...`;
 					
-					// Position marker proportionally along the height
-					const topPercent = (index / sectionCount) * 100;
-					marker.style.top = `${topPercent}%`;
-					
+					// The flex: 1 in CSS will make each section take proportional height
 					markersContainer.appendChild(marker);
 				});
 				
