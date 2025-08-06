@@ -14,8 +14,9 @@
 	let forceRefresh = false; // Add state for cache bypass
 	
 	// Test options
-	let forceLineBreaks = false; // Start with false since text doesn't have <br> tags
+	let forceLineBreaks = true; // Default to true to show line break mode
 	let showDebugOverlay = true;
+	let showWbrMarkers = true; // Show <wbr> visual indicators
 	
 	// Editable options that correspond to defaultOptions
 	let editableOptions = {
@@ -315,45 +316,56 @@
 	
 	<!-- Basic Controls -->
 	<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-		<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">Tractate</label>
-				<select 
-					bind:value={tractate}
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-				>
-					{#each tractates as t}
-						<option value={t.value}>{t.value}</option>
-					{/each}
-				</select>
+		<div class="flex flex-wrap items-end gap-4">
+			<!-- Input Controls -->
+			<div class="flex gap-3 flex-1">
+				<div class="min-w-[180px]">
+					<label class="block text-xs font-medium text-gray-600 mb-1">Tractate</label>
+					<select 
+						bind:value={tractate}
+						class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+					>
+						{#each tractates as t}
+							<option value={t.value}>{t.value}</option>
+						{/each}
+					</select>
+				</div>
+				
+				<div class="w-24">
+					<label class="block text-xs font-medium text-gray-600 mb-1">Daf</label>
+					<input 
+						type="text"
+						bind:value={daf}
+						placeholder="2a"
+						class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+					/>
+				</div>
 			</div>
 			
-			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">Daf</label>
-				<input 
-					type="text"
-					bind:value={daf}
-					placeholder="e.g., 2a, 3b"
-					class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-				/>
-			</div>
-			
-			<div class="space-y-2">
-				<label class="flex items-center">
-					<input type="checkbox" bind:checked={forceLineBreaks} class="mr-2" />
-					<span class="text-sm">Force Line Breaks</span>
+			<!-- Checkboxes -->
+			<div class="flex gap-4 items-center">
+				<label class="flex items-center cursor-pointer">
+					<input type="checkbox" bind:checked={forceLineBreaks} class="mr-1.5 text-blue-600 rounded focus:ring-1 focus:ring-blue-500" />
+					<span class="text-sm text-gray-700">Force Line Breaks</span>
 				</label>
-				<label class="flex items-center">
-					<input type="checkbox" bind:checked={showDebugOverlay} class="mr-2" />
-					<span class="text-sm">Show Debug Overlay</span>
+				<label class="flex items-center cursor-pointer">
+					<input type="checkbox" bind:checked={showDebugOverlay} class="mr-1.5 text-blue-600 rounded focus:ring-1 focus:ring-blue-500" />
+					<span class="text-sm text-gray-700">Show Debug Overlay</span>
 				</label>
+				{#if forceLineBreaks}
+					<label class="flex items-center cursor-pointer">
+						<input type="checkbox" bind:checked={showWbrMarkers} on:change={handleOptionChange} class="mr-1.5 text-blue-600 rounded focus:ring-1 focus:ring-blue-500" />
+						<span class="text-sm text-gray-700">Show &lt;wbr&gt; Markers (red lines)</span>
+					</label>
+				{/if}
 			</div>
 			
-			<div class="flex items-end gap-2">
+			<!-- Buttons -->
+			<div class="flex gap-2 ml-auto">
 				<button 
 					on:click={() => fetchAndAnalyze()}
 					disabled={loading}
-					class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+					class="px-3 py-1.5 text-sm border border-gray-300 text-gray-700 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 				>
 					{loading ? 'Loading...' : 'Analyze'}
 				</button>
@@ -361,7 +373,7 @@
 				<button 
 					on:click={() => fetchAndAnalyze(true)}
 					disabled={loading}
-					class="flex-1 px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+					class="px-3 py-1.5 text-sm border border-orange-300 text-orange-600 rounded hover:bg-orange-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 					title="Bypass cache and force fresh fetch from HebrewBooks"
 				>
 					{loading ? 'Refreshing...' : 'Force Refresh'}
@@ -540,7 +552,7 @@
 		<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 overflow-hidden">
 			<h2 class="text-lg font-semibold mb-3">Rendered Page</h2>
 			<div class="overflow-x-auto overflow-y-hidden">
-				<div bind:this={container} class="daf-container {showDebugOverlay ? 'debug-overlay' : ''}" style="width: 800px; margin: 0 auto; max-width: 100%;"></div>
+				<div bind:this={container} class="daf-container {showDebugOverlay ? 'debug-overlay' : ''} {forceLineBreaks ? 'force-line-breaks' : ''} {forceLineBreaks && showWbrMarkers ? 'show-wbr-markers' : ''}" style="width: 800px; margin: 0 auto; max-width: 100%;"></div>
 			</div>
 		</div>
 		
@@ -783,15 +795,251 @@
 				
 				<!-- Raw Text Preview (Line Break Mode) -->
 				{#if spacerResults.forceLineBreaks}
-					<details class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+					<details class="bg-white rounded-lg shadow-sm border border-gray-200 p-4" open>
 						<summary class="cursor-pointer font-semibold">Line Break Text Preview</summary>
 						<div class="mt-4 space-y-4 text-xs">
+							<!-- Main Text Analysis -->
 							<div>
-								<h4 class="font-medium mb-1">Main Text Lines:</h4>
-								<div class="bg-gray-50 p-2 rounded space-y-1">
-									{#each (spacerResults.data.mainText || '').split('<br>').slice(0, 5) as line, i}
-										<div class="border-b border-gray-200 pb-1">Line {i + 1}: {line.substring(0, 100)}{line.length > 100 ? '...' : ''}</div>
-									{/each}
+								<h4 class="font-medium mb-2 text-base">Main Text Lines</h4>
+								<div class="max-h-96 overflow-y-auto border border-gray-200 rounded">
+									<table class="w-full text-xs">
+										<thead class="bg-gray-50 sticky top-0">
+											<tr>
+												<th class="px-2 py-1 text-left">#</th>
+												<th class="px-2 py-1 text-left">Length</th>
+												<th class="px-2 py-1 text-left">Category</th>
+												<th class="px-2 py-1 text-right">Content</th>
+											</tr>
+										</thead>
+										<tbody>
+											{#each (spacerResults.data.mainText || '').split('<br>') as line, i}
+												{@const trimmed = line.replace(/<[^>]*>/g, '').trim()}
+												{@const len = trimmed.length}
+												{@const category = len === 0 ? 'empty' : len <= 20 ? 'single' : len <= 58 ? 'short' : len <= 85 ? 'medium' : 'long'}
+												<tr class="border-b hover:bg-gray-50">
+													<td class="px-2 py-1">{i + 1}</td>
+													<td class="px-2 py-1">{len}</td>
+													<td class="px-2 py-1">
+														<span class="text-xs font-mono {category === 'empty' ? 'text-gray-400' : category === 'single' ? 'text-yellow-600' : category === 'short' ? 'text-blue-600' : category === 'medium' ? 'text-green-600' : 'text-red-600'}">{category}</span>
+													</td>
+													<td class="px-2 py-1 text-right font-mono" dir="rtl">
+														{#if len === 0}
+															<span class="text-gray-400">[empty]</span>
+														{:else}
+															{trimmed.substring(0, 60)}{trimmed.length > 60 ? '...' : ''}
+														{/if}
+													</td>
+												</tr>
+											{/each}
+										</tbody>
+									</table>
+								</div>
+								
+								<!-- Main Text Flow Pattern -->
+								<div class="bg-blue-50 p-2 rounded mt-2">
+									<h5 class="font-medium text-xs mb-1">Text Flow Pattern:</h5>
+									<div class="flex flex-wrap gap-1">
+										{#each (() => {
+											const mainLines = (spacerResults.data.mainText || '').split('<br>');
+											const blocks = [];
+											let currentBlock = null;
+											mainLines.forEach((line, i) => {
+												const trimmed = line.replace(/<[^>]*>/g, '').trim();
+												const len = trimmed.length;
+												const category = len === 0 ? 'empty' : len <= 20 ? 'single' : len <= 58 ? 'short' : len <= 85 ? 'medium' : 'long';
+												
+												if (!currentBlock || currentBlock.category !== category) {
+													currentBlock = { category, startIndex: i, endIndex: i, count: 1 };
+													blocks.push(currentBlock);
+												} else {
+													currentBlock.endIndex = i;
+													currentBlock.count++;
+												}
+											});
+											return blocks;
+										})() as block}
+											{@const colors = {
+												empty: 'bg-gray-200',
+												single: 'bg-yellow-200',
+												short: 'bg-blue-200',
+												medium: 'bg-green-200',
+												long: 'bg-red-200'
+											}}
+											<div 
+												class="px-2 py-1 text-xs rounded {colors[block.category] || 'bg-gray-100'}"
+												title="{block.category}: lines {block.startIndex + 1}-{block.endIndex + 1} ({block.count} lines)"
+											>
+												{block.category}
+												<span class="text-gray-600">({block.count})</span>
+											</div>
+										{/each}
+									</div>
+								</div>
+							</div>
+							
+							<!-- Rashi Text Analysis -->
+							<div>
+								<h4 class="font-medium mb-2 text-base">Rashi Lines</h4>
+								<div class="max-h-96 overflow-y-auto border border-gray-200 rounded">
+									<table class="w-full text-xs">
+										<thead class="bg-gray-50 sticky top-0">
+											<tr>
+												<th class="px-2 py-1 text-left">#</th>
+												<th class="px-2 py-1 text-left">Length</th>
+												<th class="px-2 py-1 text-left">Category</th>
+												<th class="px-2 py-1 text-right">Content</th>
+											</tr>
+										</thead>
+										<tbody>
+											{#each (spacerResults.data.rashi || '').split('<br>') as line, i}
+												{@const trimmed = line.replace(/<[^>]*>/g, '').trim()}
+												{@const len = trimmed.length}
+												{@const category = len === 0 ? 'empty' : len <= 20 ? 'single' : len <= 38 ? 'short' : len <= 80 ? 'half' : 'long'}
+												{@const isStart = i < 4 && len > 0}
+												<tr class="border-b hover:bg-gray-50">
+													<td class="px-2 py-1">{i + 1}</td>
+													<td class="px-2 py-1">{len}</td>
+													<td class="px-2 py-1">
+														<span class="text-xs font-mono {category === 'empty' ? 'text-gray-400' : category === 'single' ? 'text-yellow-600' : category === 'short' ? 'text-blue-600' : category === 'half' ? 'text-purple-600' : 'text-red-600'}">{category}</span>
+														{#if isStart}
+															<span class="text-xs bg-purple-200 px-1 rounded ml-1">start</span>
+														{/if}
+													</td>
+													<td class="px-2 py-1 text-right font-mono" dir="rtl">
+														{#if len === 0}
+															<span class="text-gray-400">[empty]</span>
+														{:else}
+															{trimmed.substring(0, 50)}{trimmed.length > 50 ? '...' : ''}
+														{/if}
+													</td>
+												</tr>
+											{/each}
+										</tbody>
+									</table>
+								</div>
+								
+								<!-- Rashi Text Flow Pattern -->
+								<div class="bg-green-50 p-2 rounded mt-2">
+									<h5 class="font-medium text-xs mb-1">Text Flow Pattern:</h5>
+									<div class="flex flex-wrap gap-1">
+										{#each (() => {
+											const rashiLines = (spacerResults.data.rashi || '').split('<br>');
+											const blocks = [];
+											let currentBlock = null;
+											rashiLines.forEach((line, i) => {
+												const trimmed = line.replace(/<[^>]*>/g, '').trim();
+												const len = trimmed.length;
+												const category = len === 0 ? 'empty' : len <= 20 ? 'single' : len <= 38 ? 'short' : len <= 80 ? 'half' : 'long';
+												
+												if (!currentBlock || currentBlock.category !== category) {
+													currentBlock = { category, startIndex: i, endIndex: i, count: 1 };
+													blocks.push(currentBlock);
+												} else {
+													currentBlock.endIndex = i;
+													currentBlock.count++;
+												}
+											});
+											return blocks;
+										})() as block}
+											{@const colors = {
+												empty: 'bg-gray-200',
+												single: 'bg-yellow-200',
+												short: 'bg-blue-200',
+												half: 'bg-purple-200',
+												long: 'bg-red-200'
+											}}
+											<div 
+												class="px-2 py-1 text-xs rounded {colors[block.category] || 'bg-gray-100'}"
+												title="{block.category}: lines {block.startIndex + 1}-{block.endIndex + 1} ({block.count} lines)"
+											>
+												{block.category}
+												<span class="text-gray-600">({block.count})</span>
+											</div>
+										{/each}
+									</div>
+								</div>
+							</div>
+							
+							<!-- Tosafot Text Analysis -->
+							<div>
+								<h4 class="font-medium mb-2 text-base">Tosafot Lines</h4>
+								<div class="max-h-96 overflow-y-auto border border-gray-200 rounded">
+									<table class="w-full text-xs">
+										<thead class="bg-gray-50 sticky top-0">
+											<tr>
+												<th class="px-2 py-1 text-left">#</th>
+												<th class="px-2 py-1 text-left">Length</th>
+												<th class="px-2 py-1 text-left">Category</th>
+												<th class="px-2 py-1 text-right">Content</th>
+											</tr>
+										</thead>
+										<tbody>
+											{#each (spacerResults.data.tosafot || '').split('<br>') as line, i}
+												{@const trimmed = line.replace(/<[^>]*>/g, '').trim()}
+												{@const len = trimmed.length}
+												{@const category = len === 0 ? 'empty' : len <= 20 ? 'single' : len <= 38 ? 'short' : len <= 80 ? 'half' : 'long'}
+												{@const isStart = i < 4 && len > 0}
+												<tr class="border-b hover:bg-gray-50">
+													<td class="px-2 py-1">{i + 1}</td>
+													<td class="px-2 py-1">{len}</td>
+													<td class="px-2 py-1">
+														<span class="text-xs font-mono {category === 'empty' ? 'text-gray-400' : category === 'single' ? 'text-yellow-600' : category === 'short' ? 'text-blue-600' : category === 'half' ? 'text-purple-600' : 'text-red-600'}">{category}</span>
+														{#if isStart}
+															<span class="text-xs bg-purple-200 px-1 rounded ml-1">start</span>
+														{/if}
+													</td>
+													<td class="px-2 py-1 text-right font-mono" dir="rtl">
+														{#if len === 0}
+															<span class="text-gray-400">[empty]</span>
+														{:else}
+															{trimmed.substring(0, 50)}{trimmed.length > 50 ? '...' : ''}
+														{/if}
+													</td>
+												</tr>
+											{/each}
+										</tbody>
+									</table>
+								</div>
+								
+								<!-- Tosafot Text Flow Pattern -->
+								<div class="bg-orange-50 p-2 rounded mt-2">
+									<h5 class="font-medium text-xs mb-1">Text Flow Pattern:</h5>
+									<div class="flex flex-wrap gap-1">
+										{#each (() => {
+											const tosafotLines = (spacerResults.data.tosafot || '').split('<br>');
+											const blocks = [];
+											let currentBlock = null;
+											tosafotLines.forEach((line, i) => {
+												const trimmed = line.replace(/<[^>]*>/g, '').trim();
+												const len = trimmed.length;
+												const category = len === 0 ? 'empty' : len <= 20 ? 'single' : len <= 38 ? 'short' : len <= 80 ? 'half' : 'long';
+												
+												if (!currentBlock || currentBlock.category !== category) {
+													currentBlock = { category, startIndex: i, endIndex: i, count: 1 };
+													blocks.push(currentBlock);
+												} else {
+													currentBlock.endIndex = i;
+													currentBlock.count++;
+												}
+											});
+											return blocks;
+										})() as block}
+											{@const colors = {
+												empty: 'bg-gray-200',
+												single: 'bg-yellow-200',
+												short: 'bg-blue-200',
+												half: 'bg-purple-200',
+												long: 'bg-red-200'
+											}}
+											<div 
+												class="px-2 py-1 text-xs rounded {colors[block.category] || 'bg-gray-100'}"
+												title="{block.category}: lines {block.startIndex + 1}-{block.endIndex + 1} ({block.count} lines)"
+											>
+												{block.category}
+												<span class="text-gray-600">({block.count})</span>
+											</div>
+										{/each}
+									</div>
 								</div>
 							</div>
 						</div>
@@ -843,5 +1091,31 @@
 	:global(.debug-overlay .spacer.end) {
 		background-color: rgba(255, 0, 255, 0.1);
 		border-color: purple;
+	}
+	
+	/* Visual indicators for <wbr> tags - actual span elements */
+	:global(.wbr-marker) {
+		display: inline-block;
+		width: 0;
+		height: 1.2em;
+		border-left: 2px solid black;
+		vertical-align: text-top;
+		opacity: 0.5;
+		position: relative;
+		margin: 0 -1px; /* Negative margin to not add space */
+		pointer-events: none; /* Don't interfere with text selection */
+	}
+	
+	/* Make the indicators more visible/colorful if needed */
+	:global(.show-wbr-markers .wbr-marker) {
+		border-left-color: #ff0000;
+		opacity: 0.7;
+		border-left-width: 2px;
+		box-shadow: 0 0 2px rgba(255, 0, 0, 0.5);
+	}
+	
+	/* Hide the markers when checkbox is unchecked */
+	:global(.force-line-breaks:not(.show-wbr-markers) .wbr-marker) {
+		display: none;
 	}
 </style>

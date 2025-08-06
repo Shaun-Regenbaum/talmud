@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import Timeline from '$lib/components/Timeline.svelte';
+	import createDafRenderer from '$lib/daf-renderer/renderer.js';
+	import { defaultOptions } from '$lib/daf-renderer/options.js';
 	
 	// Form inputs
 	let tractate = 'Berakhot';
-	let page = '2';
-	let amud: 'a' | 'b' = 'a';
+	let daf = '2a';
 	let includeRashi = false;
 	let includeTosafot = false;
 	
@@ -14,7 +15,11 @@
 	let error = '';
 	let analysisData: any = null;
 	let responseTime = 0;
-	let showRawResponse = false;
+	let forceRefresh = false;
+	
+	// Daf renderer
+	let rendererInstance: any = null;
+	let container: HTMLElement;
 	
 	// Visualization
 	let selectedRabbi: any = null;
@@ -49,9 +54,14 @@
 	// Prepare timeline data
 	$: highlightedPeriods = analysisData?.timePeriods?.map((p: any) => p.name) || [];
 	$: highlightedDates = analysisData?.rabbis
-		?.filter((r: any) => r.year)
-		?.map((r: any) => r.year) || [];
-	})) || [];
+		?.filter((r: any) => r.period)
+		?.flatMap((r: any) => {
+			// Create date ranges for each rabbi's period
+			const startYear = r.period.startYear;
+			const endYear = r.period.endYear;
+			// Return key years within the rabbi's period
+			return [startYear, endYear];
+		}) || [];
 	
 	// Section type colors
 	const sectionColors = {
@@ -60,7 +70,7 @@
 		'mixed': '#a855f7'
 	};
 	
-	async function analyzeText() {
+	async function analyzeText(bypassCache = false) {
 		loading = true;
 		error = '';
 		analysisData = null;
@@ -68,13 +78,21 @@
 		const startTime = Date.now();
 		
 		try {
+			// Parse daf format (e.g., "2a" or "2b" or just "2")
+			const pageNum = parseInt(daf.replace(/[ab]/, ''));
+			const amud = daf.includes('b') ? 'b' : 'a';
+			
 			const params = new URLSearchParams({
 				tractate,
-				page,
+				page: pageNum.toString(),
 				amud,
 				includeRashi: includeRashi.toString(),
 				includeTosafot: includeTosafot.toString()
 			});
+			
+			if (bypassCache) {
+				params.append('refresh', 'true');
+			}
 			
 			const response = await fetch(`/api/talmud-analysis?${params}`);
 			responseTime = Date.now() - startTime;
@@ -102,6 +120,72 @@
 		return `${percent}%`;
 	}
 	
+	async function renderDafWithHighlights() {
+		if (!analysisData || !container) return;
+		
+		// Clean up existing renderer
+		if (rendererInstance) {
+			rendererInstance = null;
+		}
+		
+		// Clear container
+		container.innerHTML = '';
+		
+		// Create wrapper for renderer
+		const wrapperDiv = document.createElement('div');
+		wrapperDiv.id = 'daf-wrapper';
+		container.appendChild(wrapperDiv);
+		
+		// Create renderer
+		rendererInstance = createDafRenderer(wrapperDiv, defaultOptions);
+		
+		// Fetch the daf text
+		const mesechtaId = {
+			'Berakhot': '1', 'Shabbat': '2', 'Eruvin': '3', 'Pesachim': '4',
+			'Yoma': '6', 'Sukkah': '7', 'Rosh Hashanah': '9', 'Taanit': '10',
+			'Megillah': '11', 'Bava Kamma': '15', 'Bava Metzia': '16', 
+			'Bava Batra': '17', 'Sanhedrin': '23', 'Makkot': '24', 'Avodah Zarah': '26'
+		}[tractate];
+		
+		if (!mesechtaId) return;
+		
+		// Convert daf format for daf-supplier
+		const pageNum = parseInt(daf.replace(/[ab]/, ''));
+		const amud = daf.includes('b') ? 'b' : 'a';
+		const dafSupplierNum = (pageNum - 1) * 2 + (amud === 'a' ? 2 : 3);
+		
+		const response = await fetch(`/api/daf-supplier?mesechta=${mesechtaId}&daf=${dafSupplierNum}`);
+		const data = await response.json();
+		
+		// Process text with highlights for classified sections
+		let mainText = data.mainText || '';
+		
+		// Add highlighting based on section classifications
+		if (analysisData.sections && analysisData.sections.length > 0) {
+			analysisData.sections.forEach((section: any) => {
+				const color = sectionColors[section.type] || '#666';
+				// This is simplified - in production you'd need proper text matching
+				const highlightStyle = `background-color: ${color}20; border-left: 3px solid ${color};`;
+				// Add highlight spans around classified sections
+				// Note: This would need more sophisticated text matching logic
+			});
+		}
+		
+		// Render the daf with all commentaries (always show them visually)
+		// daf-supplier returns inner and outer, not rashi and tosafot
+		rendererInstance.render(
+			mainText,
+			data.inner || '',  // Inner commentary (usually Rashi)
+			data.outer || '', // Outer commentary (usually Tosafot)
+			amud,
+			false
+		);
+	}
+	
+	// Re-render when analysis data changes
+	$: if (analysisData && container) {
+		renderDafWithHighlights();
+	}
 	
 	onMount(() => {
 		// Auto-analyze on load with default values
@@ -116,7 +200,7 @@
 	<div class="bg-white rounded-lg shadow-md p-6 mb-6">
 		<h2 class="text-xl font-semibold mb-4">Select Page to Analyze</h2>
 		
-		<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
 			<div>
 				<label class="block text-sm font-medium mb-1">Tractate</label>
 				<select 
@@ -130,38 +214,13 @@
 			</div>
 			
 			<div>
-				<label class="block text-sm font-medium mb-1">Page</label>
+				<label class="block text-sm font-medium mb-1">Daf</label>
 				<input 
-					type="number"
-					bind:value={page}
-					min="2"
-					max="200"
+					type="text"
+					bind:value={daf}
+					placeholder="e.g., 2a, 3b, 10a"
 					class="w-full px-3 py-2 border rounded-md"
 				/>
-			</div>
-			
-			<div>
-				<label class="block text-sm font-medium mb-1">Side</label>
-				<div class="flex gap-4">
-					<label class="flex items-center">
-						<input 
-							type="radio" 
-							value="a" 
-							bind:group={amud}
-							class="mr-2"
-						/>
-						<span>a (עמוד א)</span>
-					</label>
-					<label class="flex items-center">
-						<input 
-							type="radio" 
-							value="b" 
-							bind:group={amud}
-							class="mr-2"
-						/>
-						<span>b (עמוד ב)</span>
-					</label>
-				</div>
 			</div>
 		</div>
 		
@@ -184,22 +243,35 @@
 			</label>
 		</div>
 		
-		<button 
-			on:click={analyzeText}
-			disabled={loading}
-			class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-		>
-			{loading ? 'Analyzing...' : 'Analyze Page'}
-		</button>
-		
-		{#if responseTime > 0}
-			<span class="ml-4 text-sm text-gray-600">
-				Response time: {responseTime}ms
-				{#if analysisData?.cached}
-					<span class="text-green-600">(cached)</span>
-				{/if}
-			</span>
-		{/if}
+		<div class="flex items-center gap-2">
+			<button 
+				on:click={() => analyzeText()}
+				disabled={loading}
+				class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+			>
+				{loading ? 'Analyzing...' : 'Analyze Page'}
+			</button>
+			
+			<button
+				on:click={() => analyzeText(true)}
+				disabled={loading}
+				title="Bypass cache and force fresh analysis"
+				class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+				</svg>
+			</button>
+			
+			{#if responseTime > 0}
+				<span class="ml-2 text-sm text-gray-600">
+					{responseTime}ms
+					{#if analysisData?.cached}
+						<span class="text-green-600">(cached)</span>
+					{/if}
+				</span>
+			{/if}
+		</div>
 	</div>
 	
 	<!-- Error Display -->
@@ -212,200 +284,129 @@
 	
 	<!-- Analysis Results -->
 	{#if analysisData}
-		<!-- Summary Stats -->
-		<div class="bg-white rounded-lg shadow-md p-6 mb-6">
-			<h2 class="text-xl font-semibold mb-4">Analysis Summary</h2>
-			
-			<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-				<div class="text-center">
-					<div class="text-3xl font-bold text-blue-600">
-						{analysisData.summary?.totalRabbis || 0}
-					</div>
-					<div class="text-sm text-gray-600">Rabbis Identified</div>
-				</div>
-				
-				<div class="text-center">
-					<div class="text-3xl font-bold text-green-600">
-						{Math.round(analysisData.summary?.aggadahPercentage || 0)}%
-					</div>
-					<div class="text-sm text-gray-600">Aggadah Content</div>
-				</div>
-				
-				<div class="text-center">
-					<div class="text-3xl font-bold text-blue-600">
-						{Math.round(analysisData.summary?.halachaPercentage || 0)}%
-					</div>
-					<div class="text-sm text-gray-600">Halacha Content</div>
-				</div>
-				
-				<div class="text-center">
-					<div class="text-3xl font-bold text-purple-600">
-						{analysisData.timePeriods?.length || 0}
-					</div>
-					<div class="text-sm text-gray-600">Time Periods</div>
-				</div>
-			</div>
-			
-			{#if analysisData.primaryPeriod}
-				<div class="mt-4 p-3 bg-gray-50 rounded">
-					<span class="font-semibold">Primary Period:</span>
-					<span class="ml-2" style="color: {periodColors[analysisData.primaryPeriod.name] || '#000'}">
-						{analysisData.primaryPeriod.name} ({analysisData.primaryPeriod.hebrewName})
-					</span>
-					<span class="ml-2 text-sm text-gray-600">
-						{formatYear(analysisData.primaryPeriod.startYear)} - {formatYear(analysisData.primaryPeriod.endYear)}
-					</span>
-				</div>
-			{/if}
-		</div>
-		
-		<!-- Rabbis List -->
-		<div class="bg-white rounded-lg shadow-md p-6 mb-6">
-			<h2 class="text-xl font-semibold mb-4">
-				Identified Rabbis ({analysisData.rabbis?.length || 0})
-			</h2>
-			
-			{#if analysisData.rabbis && analysisData.rabbis.length > 0}
-				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-					{#each analysisData.rabbis as rabbi}
-						<button
-							on:click={() => selectedRabbi = selectedRabbi === rabbi ? null : rabbi}
-							class="text-left p-3 border rounded-lg hover:bg-gray-50 transition-colors"
-							class:bg-blue-50={selectedRabbi === rabbi}
-							class:border-blue-400={selectedRabbi === rabbi}
-						>
-							<div class="font-semibold">
-								{rabbi.name || rabbi.hebrewName}
-							</div>
-							<div class="text-sm text-gray-600">
-								{rabbi.hebrewName} • {rabbi.title}
-							</div>
-							{#if rabbi.period}
-								<div class="text-xs mt-1" style="color: {periodColors[rabbi.period.name] || '#666'}">
-									{rabbi.period.name}
-									{#if rabbi.generation}
-										(Gen {rabbi.generation})
-									{/if}
-								</div>
-							{/if}
-							<div class="text-xs text-gray-500 mt-1">
-								Confidence: {formatConfidence(rabbi.confidence)}
-							</div>
-						</button>
-					{/each}
-				</div>
-			{:else}
-				<p class="text-gray-500">No rabbis identified in this text.</p>
-			{/if}
-		</div>
-		
-		<!-- Text Sections -->
-		<div class="bg-white rounded-lg shadow-md p-6 mb-6">
-			<h2 class="text-xl font-semibold mb-4">
-				Text Classification
-			</h2>
-			
-			{#if analysisData.sections && analysisData.sections.length > 0}
-				<div class="space-y-3">
-					{#each analysisData.sections as section}
-						<div 
-							class="p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer"
-							style="border-left: 4px solid {sectionColors[section.type]}"
-							on:click={() => highlightedSection = highlightedSection === section ? null : section}
-							class:bg-gray-50={highlightedSection === section}
-						>
-							<div class="flex justify-between items-start mb-2">
-								<span 
-									class="px-2 py-1 rounded text-white text-sm font-semibold"
-									style="background-color: {sectionColors[section.type]}"
-								>
-									{section.type === 'aggadah' ? 'Aggadah (Narrative)' : 
-									 section.type === 'halacha' ? 'Halacha (Law)' : 'Mixed'}
-								</span>
-								<span class="text-sm text-gray-500">
-									Confidence: {formatConfidence(section.confidence)}
-								</span>
-							</div>
-							
-							{#if section.text}
-								<div class="text-sm text-gray-700 mb-2 line-clamp-3">
-									{section.text}
-								</div>
-							{/if}
-							
-							{#if section.indicators && section.indicators.length > 0}
-								<div class="text-xs text-gray-600">
-									<span class="font-semibold">Indicators:</span>
-									{#each section.indicators as indicator, i}
-										<span class="ml-1">
-											{indicator}{i < section.indicators.length - 1 ? ',' : ''}
-										</span>
-									{/each}
-								</div>
-							{/if}
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+			<!-- Left Column: Rendered Daf with Classifications -->
+			<div>
+				<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+					<h2 class="text-xl font-semibold mb-4">Daf with Text Classification</h2>
+					
+					<!-- Legend -->
+					<div class="flex gap-4 mb-4 text-sm">
+						<div class="flex items-center gap-2">
+							<span class="w-4 h-4 rounded" style="background-color: {sectionColors.aggadah}"></span>
+							<span>Aggadah (Narrative)</span>
 						</div>
-					{/each}
-				</div>
-			{:else}
-				<p class="text-gray-500">No text sections classified.</p>
-			{/if}
-		</div>
-		
-		<!-- Timeline Visualization -->
-		{#if highlightedPeriods.length > 0}
-			<div class="mb-6">
-				<Timeline 
-					{highlightedPeriods}
-					{highlightedDates}
-				/>
-			</div>
-		{/if}
-		
-		<!-- Debug/Raw Response -->
-		<div class="bg-white rounded-lg shadow-md p-6">
-			<div class="flex justify-between items-center mb-4">
-				<h2 class="text-xl font-semibold">Debug Information</h2>
-				<button 
-					on:click={() => showRawResponse = !showRawResponse}
-					class="px-3 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300"
-				>
-					{showRawResponse ? 'Hide' : 'Show'} Raw Response
-				</button>
-			</div>
-			
-			<div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-				<div>
-					<span class="font-semibold">Model:</span>
-					<span class="ml-1">{analysisData.model}</span>
-				</div>
-				<div>
-					<span class="font-semibold">Confidence:</span>
-					<span class="ml-1">{formatConfidence(analysisData.confidence)}</span>
-				</div>
-				<div>
-					<span class="font-semibold">Text Length:</span>
-					<span class="ml-1">{analysisData.textLength} chars</span>
-				</div>
-				<div>
-					<span class="font-semibold">Cached:</span>
-					<span class="ml-1">{analysisData.cached ? 'Yes' : 'No'}</span>
+						<div class="flex items-center gap-2">
+							<span class="w-4 h-4 rounded" style="background-color: {sectionColors.halacha}"></span>
+							<span>Halacha (Law)</span>
+						</div>
+						<div class="flex items-center gap-2">
+							<span class="w-4 h-4 rounded" style="background-color: {sectionColors.mixed}"></span>
+							<span>Mixed</span>
+						</div>
+					</div>
+					
+					<!-- Daf Renderer Container -->
+					<div bind:this={container} class="daf-container overflow-hidden" style="min-height: 400px; max-width: 100%;"></div>
 				</div>
 			</div>
 			
-			{#if showRawResponse}
-				<pre class="mt-4 p-4 bg-gray-50 rounded overflow-x-auto text-xs">
-{JSON.stringify(analysisData, null, 2)}
-				</pre>
-			{/if}
+			<!-- Right Column: Analysis Results -->
+			<div>
+				<!-- Summary Stats -->
+				<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+					<h2 class="text-xl font-semibold mb-4">Analysis Summary</h2>
+					
+					<div class="grid grid-cols-2 gap-4">
+						<div class="text-center">
+							<div class="text-3xl font-bold text-green-600">
+								{Math.round(analysisData.summary?.aggadahPercentage || 0)}%
+							</div>
+							<div class="text-sm text-gray-600">Aggadah Content</div>
+						</div>
+						
+						<div class="text-center">
+							<div class="text-3xl font-bold text-blue-600">
+								{Math.round(analysisData.summary?.halachaPercentage || 0)}%
+							</div>
+							<div class="text-sm text-gray-600">Halacha Content</div>
+						</div>
+					</div>
+					
+					{#if analysisData.primaryPeriod}
+						<div class="mt-4 p-3 bg-gray-50 rounded">
+							<span class="font-semibold">Primary Period:</span>
+							<span class="ml-2" style="color: {periodColors[analysisData.primaryPeriod.name] || '#000'}">
+								{analysisData.primaryPeriod.name} ({analysisData.primaryPeriod.hebrewName})
+							</span>
+							<span class="ml-2 text-sm text-gray-600">
+								{formatYear(analysisData.primaryPeriod.startYear)} - {formatYear(analysisData.primaryPeriod.endYear)}
+							</span>
+						</div>
+					{/if}
+				</div>
+				
+				<!-- Timeline Visualization -->
+				{#if highlightedPeriods.length > 0}
+					<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+						<Timeline 
+							{highlightedPeriods}
+							{highlightedDates}
+						/>
+					</div>
+				{/if}
+				
+				<!-- Rabbi Timeline Details -->
+				{#if analysisData?.rabbis?.length > 0}
+					<div class="bg-white rounded-lg shadow-md p-6">
+						<h2 class="text-xl font-semibold mb-4">Rabbis Identified ({analysisData.rabbis.length})</h2>
+						<div class="space-y-2">
+							{#each analysisData.rabbis as rabbi}
+								{#if rabbi.period}
+									<div class="flex items-center gap-4 p-2 hover:bg-gray-50 rounded">
+										<div class="flex-shrink-0">
+											<span 
+												class="inline-block w-3 h-3 rounded-full"
+												style="background-color: {periodColors[rabbi.period.name] || '#666'}"
+											></span>
+										</div>
+										<div class="flex-1">
+											<span class="font-semibold">{rabbi.name}</span>
+											<span class="text-gray-600 ml-2">({rabbi.hebrewName})</span>
+										</div>
+										<div class="text-sm text-gray-600">
+											{rabbi.period.name} • {formatYear(rabbi.period.startYear)} - {formatYear(rabbi.period.endYear)}
+										</div>
+									</div>
+								{/if}
+							{/each}
+						</div>
+					</div>
+				{/if}
+			</div>
 		</div>
 	{/if}
 </div>
 
 <style>
-	.line-clamp-3 {
-		display: -webkit-box;
-		-webkit-line-clamp: 3;
-		-webkit-box-orient: vertical;
+	@import url('https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;700&display=swap');
+	@import url('https://fonts.googleapis.com/css2?family=Noto+Rashi+Hebrew&display=swap');
+	
+	:global(.daf-container) {
+		min-height: 400px;
+		overflow: hidden !important;
+	}
+	
+	:global(.daf-container #daf-wrapper) {
+		max-width: 100%;
 		overflow: hidden;
+	}
+	
+	:global(.daf-container .main-text) {
+		font-family: 'Frank Ruhl Libre', serif;
+	}
+	
+	:global(.daf-container .commentary-text) {
+		font-family: 'Noto Rashi Hebrew', serif;
 	}
 </style>
