@@ -7,7 +7,14 @@
 		alignTexts, 
 		normalizeHebrew, 
 		extractTalmudContent,
-		wordsMatchFuzzy 
+		wordsMatchFuzzy,
+		createSegmentMappings,
+		findSelectionInAlignment,
+		findCorrespondingText,
+		getSegmentsFromSelection,
+		getSelectionContext,
+		type SegmentMapping,
+		type SelectionContext
 	} from '$lib/services/textAlignment';
 	
 	let loading = false;
