@@ -1,4 +1,4 @@
-import { PUBLIC_OPENROUTER_API_KEY, PUBLIC_OPENROUTER_MODEL } from '$env/static/public';
+// Note: API keys are now private and passed via constructor parameter
 
 export interface RabbiInfo {
 	name: string;
@@ -86,11 +86,14 @@ class TalmudAnalyzer {
 	private models = {
 		fast: 'google/gemini-2.0-flash-exp:free',
 		balanced: 'moonshotai/kimi-k2:free',
-		accurate: PUBLIC_OPENROUTER_MODEL || 'moonshotai/kimi-k2:free'
+		accurate: 'google/gemini-2.5-flash'
 	};
 	
 	constructor(apiKey?: string) {
-		this.apiKey = apiKey || PUBLIC_OPENROUTER_API_KEY || '';
+		this.apiKey = apiKey || '';
+		if (!this.apiKey) {
+			throw new Error('OpenRouter API key is required');
+		}
 	}
 	
 	async analyzeTalmudPage(request: AnalysisRequest): Promise<AnalysisResponse> {
@@ -442,5 +445,5 @@ Return ONLY a JSON array.`;
 	}
 }
 
-export const talmudAnalyzer = new TalmudAnalyzer();
+// Export class only - no singleton to avoid requiring API key at build time
 export { TalmudAnalyzer };

@@ -96,22 +96,75 @@ export function processTextsForRenderer(
 		
 		mainHTML = workingText.replaceAll(headerRegex, "<b class='main-header'>$1</b>");
 	} else {
-		// Fallback: Use traditional format with line breaks
+		// Fallback: Use traditional format with intelligent parsing
+		console.log('✅ Using fallback processing with special marker detection');
 		
-		// For traditional format, use natural paragraph/line breaks
-		const lines = processedMainText.split(/\r?\n/).filter(line => line.trim());
-		mainHTML = lines
-			.map((line, index) => {
-				const trimmed = line.trim();
-				if (!trimmed) return '';
-				if (trimmed.includes(hadran) && trimmed.split(' ').length < 7) {
-					return hadranDiv("main", trimmed);
-				}
-				return `<span class="sentence-main" data-sentence-index="${index}">${trimmed}</span>`;
-			})
-			.filter(html => html)
-			.join('\n')
-			.replaceAll(headerRegex, "<b class='main-header'>$1</b>");
+		// First, let's identify special patterns in the text
+		let workingText = processedMainText;
+		
+		// Look for the pattern where גמ' ends a section and מאימתי starts the actual Gemara
+		// More specific pattern: find גמ' followed by space/text, then מאימתי
+		const gemaraMarkerIndex = workingText.indexOf("גמ'");
+		const maimataiIndex = workingText.indexOf('מאימתי');
+		
+		console.log('🔍 Pattern search:', {
+			foundGemara: gemaraMarkerIndex !== -1,
+			foundMaimati: maimataiIndex !== -1,
+			gemaraIndex: gemaraMarkerIndex,
+			maimataiIndex: maimataiIndex,
+			distance: maimataiIndex - gemaraMarkerIndex
+		});
+		
+		if (gemaraMarkerIndex !== -1 && maimataiIndex !== -1 && maimataiIndex > gemaraMarkerIndex) {
+			// Extract the three parts: before גמ', the גמ' section, and from מאימתי onwards
+			const beforeGemara = workingText.substring(0, gemaraMarkerIndex).trim();
+			
+			// Find where the גמ' section ends (look for colon or similar)
+			const gemaraSection = workingText.substring(gemaraMarkerIndex, maimataiIndex);
+			const gemaraSectionTrimmed = gemaraSection.replace(/\s+$/, ''); // Remove trailing spaces
+			
+			// Everything from מאימתי onwards
+			const gemaraText = workingText.substring(maimataiIndex);
+			
+			console.log('🎯 Found structured gemara pattern:', {
+				beforeGemara: beforeGemara.substring(-50), // last 50 chars
+				gemaraSection: gemaraSectionTrimmed,
+				gemaraText: gemaraText.substring(0, 100) // first 100 chars
+			});
+			
+			// Create properly structured HTML with line breaks
+			const gemaraMarkerSpan = `<span class="shastitle4">${gemaraSectionTrimmed}</span>`;
+			const gemaraTextSpan = `<span class="gdropcap">${gemaraText}</span>`;
+			
+			// Structure with proper line breaks to separate sections
+			const parts = [
+				beforeGemara,
+				'<br><br>',  // Add double line break before גמ'
+				gemaraMarkerSpan,
+				'<br><br>',  // Add double line break after גמ' and before מאימתי
+				gemaraTextSpan
+			];
+			
+			mainHTML = parts
+				.filter(part => part && part.trim())
+				.join('')
+				.replaceAll(headerRegex, "<b class='main-header'>$1</b>");
+		} else {
+			// For traditional format, use natural paragraph/line breaks
+			const lines = processedMainText.split(/\r?\n/).filter(line => line.trim());
+			mainHTML = lines
+				.map((line, index) => {
+					const trimmed = line.trim();
+					if (!trimmed) return '';
+					if (trimmed.includes(hadran) && trimmed.split(' ').length < 7) {
+						return hadranDiv("main", trimmed);
+					}
+					return `<span class="sentence-main" data-sentence-index="${index}">${trimmed}</span>`;
+				})
+				.filter(html => html)
+				.join('\n')
+				.replaceAll(headerRegex, "<b class='main-header'>$1</b>");
+		}
 	}
 
 	// Process Rashi text

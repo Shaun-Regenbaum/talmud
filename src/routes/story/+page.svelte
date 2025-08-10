@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { openRouterTranslator } from '$lib/api/openrouter-translator';
+	// Note: Story generation handled via API endpoints
 	import Stories from '$lib/components/Stories.svelte';
 
 	// Get data from load function
@@ -86,10 +86,7 @@
 
 	// Load educational stories
 	async function loadStories(forceRefresh: boolean = false) {
-		if (!openRouterTranslator.isConfigured()) {
-			error = 'OpenRouter API not configured. Please set up API key.';
-			return;
-		}
+		// API endpoint will handle key configuration internally
 
 		isLoading = true;
 		error = null;
