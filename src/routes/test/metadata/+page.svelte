@@ -5,7 +5,7 @@
 	import Timeline from '$lib/components/Timeline.svelte';
 	import createDafRenderer from '$lib/daf-renderer/renderer.js';
 	import { defaultOptions } from '$lib/daf-renderer/options.js';
-	import { TalmudAnalyzer } from '$lib/api/talmud-analyzer.ts';
+	// TalmudAnalyzer now accessed via API endpoint
 	import { alignTexts, normalizeHebrew } from '$lib/services/textAlignment.ts';
 	
 	// Form inputs - initialize from URL params
@@ -159,20 +159,16 @@
 				analysisText += '\n\nתוספות:\n' + cleanTosafot;
 			}
 			
-			// Create analyzer and perform analysis on the same text
-			const analyzer = new TalmudAnalyzer();
-			if (!analyzer.isConfigured()) {
-				throw new Error('TalmudAnalyzer not configured');
+			// Use the analysis API endpoint instead of direct client access
+			const analysisResponse = await fetch(`/api/talmud-analysis?tractate=${tractate}&page=${pageNum}&amud=${amud}${bypassCache ? '&refresh=true' : ''}`, {
+				method: 'GET'
+			});
+			
+			if (!analysisResponse.ok) {
+				throw new Error(`Analysis API error: ${analysisResponse.status}`);
 			}
 			
-			const analysis = await analyzer.analyzeTalmudPage({
-				text: analysisText,
-				tractate,
-				page: pageNum.toString(),
-				amud,
-				includeRashi,
-				includeTosafot
-			});
+			const analysis = await analysisResponse.json();
 			
 			// Store both the analysis and the raw text data for rendering
 			analysisData = {
