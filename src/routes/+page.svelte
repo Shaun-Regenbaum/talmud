@@ -242,7 +242,7 @@
 		// Translation popup will handle API availability internally
 		
 		// Handle text selection on the daf container
-		const handleMouseUp = (event: MouseEvent) => {
+		const handleMouseUp = async (event: MouseEvent) => {
 			const selection = window.getSelection();
 			if (!selection || selection.isCollapsed) {
 				showTranslationPopup = false;
