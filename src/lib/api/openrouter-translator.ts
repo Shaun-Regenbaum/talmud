@@ -1,4 +1,4 @@
-import { PUBLIC_OPENROUTER_API_KEY, PUBLIC_OPENROUTER_MODEL } from '$env/static/public';
+// Note: API keys are now private and passed via constructor parameter
 
 export interface TranslationRequest {
 	text: string;
@@ -20,13 +20,16 @@ class OpenRouterTranslator {
 	
 	// Model preferences for translation - using models good at Hebrew
 	private models = {
-		primary: PUBLIC_OPENROUTER_MODEL || 'anthropic/claude-sonnet-4',
+		primary: 'anthropic/claude-sonnet-4',
 		fallback: 'openai/gpt-4o-mini',
 		fast: 'google/gemini-2.0-flash-exp:free'
 	};
 	
 	constructor(apiKey?: string) {
-		this.apiKey = apiKey || PUBLIC_OPENROUTER_API_KEY || '';
+		this.apiKey = apiKey || '';
+		if (!this.apiKey) {
+			throw new Error('OpenRouter API key is required');
+		}
 	}
 	
 	async translateText(request: TranslationRequest): Promise<TranslationResponse> {
@@ -208,22 +211,26 @@ class OpenRouterTranslator {
 	}
 }
 
-// Export singleton instance
-export const openRouterTranslator = new OpenRouterTranslator();
-
-// Load cache on initialization
-if (typeof window !== 'undefined') {
-	openRouterTranslator.loadCache();
+// Factory function to create instances with API key
+export function createOpenRouterTranslator(apiKey: string): OpenRouterTranslator {
+	const instance = new OpenRouterTranslator(apiKey);
 	
-	// Save cache periodically
-	setInterval(() => {
-		openRouterTranslator.saveCache();
-	}, 60000); // Save every minute
+	// Load cache on initialization (client-side only)
+	if (typeof window !== 'undefined') {
+		instance.loadCache();
+		
+		// Save cache periodically
+		setInterval(() => {
+			instance.saveCache();
+		}, 60000); // Save every minute
+		
+		// Save cache before page unload
+		window.addEventListener('beforeunload', () => {
+			instance.saveCache();
+		});
+	}
 	
-	// Save cache before page unload
-	window.addEventListener('beforeunload', () => {
-		openRouterTranslator.saveCache();
-	});
+	return instance;
 }
 
 // Export class for custom instances

@@ -48,6 +48,7 @@
 	let dafContainer = $state<HTMLDivElement>();
 	let windowWidth = $state(typeof window !== 'undefined' ? window.innerWidth : 1200);
 	let rendered = $state(false);
+	let isProcessing = $state(false);
 	
 	// Constants for responsive scaling
 	const dafWidth = 600; // Our content width (from default options)
@@ -58,7 +59,7 @@
 	let renderCount = $state(0);
 	let reRenderTrigger = $state(0);
 	
-	// Handle rendering when page data changes
+	// Handle rendering when page data changes - render directly in visible container
 	$effect(() => {
 		if (loading || !pageData || !dafContainer) {
 			return;
@@ -67,29 +68,31 @@
 		// Create unique key for this page data including display mode
 		const currentPageKey = `${pageData.tractate}-${pageData.daf}-${pageData.amud}-${vilnaMode}`;
 		
-		// Reset render count for new pages
-		if (lastRenderedKey !== currentPageKey) {
-			renderCount = 0;
-			reRenderTrigger = 0;
-		}
-		
-		// Skip if we already rendered this exact data with same mode 3 times
-		if (lastRenderedKey === currentPageKey && renderCount >= 3) {
+		// Skip if we already rendered this exact data
+		if (lastRenderedKey === currentPageKey && rendered) {
 			return;
 		}
 		
+		// Start processing
+		isProcessing = true;
+		rendered = false;
+		renderCount = 0;
+		
 		// Update tracking key
 		lastRenderedKey = currentPageKey;
-		renderCount++;
 		
-		console.log(`🔄 Rendering daf (attempt ${renderCount}/3):`, currentPageKey);
+		console.log(`🔄 Rendering daf:`, currentPageKey);
 		
-		// Function to perform the actual render
-		const performRender = () => {
-			// Initialize renderer container only once
-			if (dafContainer) {
-				rendererStore.initialize(dafContainer);
-			}
+		// Function to perform the complete render cycle
+		const performCompleteRender = async () => {
+			// Initialize renderer with the actual container
+			rendererStore.initialize(dafContainer);
+			
+			// Debug the raw text before processing
+			console.log('🔍 Raw text analysis:');
+			console.log('Main text preview:', pageData.mainText?.substring(0, 200));
+			console.log('Contains גמ\':', pageData.mainText?.includes("גמ'"));
+			console.log('Contains מאימתי:', pageData.mainText?.includes('מאימתי'));
 			
 			// Use advanced text processor for proper styling
 			const { mainHTML, rashiHTML, tosafotHTML } = processTextsForRenderer(
@@ -97,47 +100,61 @@
 				pageData.rashi || '',
 				pageData.tosafot || ''
 			);
+			
+			console.log('📝 Processed HTML preview:', mainHTML.substring(0, 300));
 			const pageLabel = (pageData.daf + pageData.amud).replace('a', 'א').replace('b', 'ב');
 			
-			// Small delay to ensure renderer is ready
-			setTimeout(() => {
-				try {
-					// Pass vilnaMode as lineBreakMode (Vilna uses line breaks, custom doesn't)
-					rendererStore.render(mainHTML, rashiHTML, tosafotHTML, pageLabel, vilnaMode);
-					
-					// Check for spacing issues after render
+			// Perform all 3 renders
+			for (let i = 1; i <= 3; i++) {
+				await new Promise(resolve => {
 					setTimeout(() => {
+						renderCount = i;
+						console.log(`  Render ${i}/3...`);
+						rendererStore.render(mainHTML, rashiHTML, tosafotHTML, pageLabel, vilnaMode);
+						
+						// Check for spacing issues after each render
 						const renderer = rendererStore.getRenderer();
 						if (renderer && renderer.checkExcessiveSpacing) {
 							renderer.checkExcessiveSpacing();
 						}
-					}, 100);
-					
-					// Mark as rendered for scaling after first render
-					if (renderCount === 1) {
-						setTimeout(() => {
-							rendered = true;
-						}, 300);
-					}
-					
-					// Schedule next render if we haven't done 3 yet
-					if (renderCount < 3) {
-						setTimeout(() => {
-							// Trigger re-render by updating the trigger
-							reRenderTrigger++;
-						}, 200);
-					}
-				} catch (error) {
-					console.error('Render error:', error);
-				}
-			}, 50);
+						resolve(true);
+					}, i === 1 ? 50 : 200); // First render quick, others with delay
+				});
+			}
+			
+			console.log('✅ Rendering complete');
+			
+			// Apply any post-processing (like Sefaria alignment) after a short delay
+			setTimeout(() => {
+				// Debug: Check DOM state before dispatching event
+				console.log('🔍 Pre-dispatch DOM check:');
+				const mainTextSpans = dafContainer.querySelectorAll('.main .text span');
+				console.log(`  - Main text spans: ${mainTextSpans.length}`);
+				console.log(`  - First span classes: ${mainTextSpans[0]?.className}`);
+				console.log(`  - First span content: "${mainTextSpans[0]?.textContent?.substring(0, 30)}..."`);
+				
+				// Dispatch custom event to signal rendering is complete
+				const event = new CustomEvent('daf-render-complete', {
+					detail: { tractate: pageData.tractate, daf: pageData.daf, amud: pageData.amud },
+					bubbles: true
+				});
+				dafContainer.dispatchEvent(event);
+				
+				// Also dispatch on document to ensure it's caught
+				document.dispatchEvent(new CustomEvent('daf-render-complete', {
+					detail: { tractate: pageData.tractate, daf: pageData.daf, amud: pageData.amud }
+				}));
+				
+				rendered = true;
+				isProcessing = false;
+			}, 100);
 		};
 		
-		// Add a small delay to ensure DOM is stable after loading state changes
-		setTimeout(performRender, 100);
-		
-		// This line ensures the effect re-runs when reRenderTrigger changes
-		reRenderTrigger;
+		// Start the render process
+		performCompleteRender().catch(error => {
+			console.error('Render error:', error);
+			isProcessing = false;
+		});
 	});
 	
 	onMount(() => {
@@ -188,21 +205,21 @@
 {:else}
 	<!-- Always show the container, even if no data yet -->
 	<div class="relative">
-		<!-- Loading overlay -->
-		{#if loading}
-			<div class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
+		<!-- Processing overlay - show during first render only -->
+		{#if isProcessing && renderCount === 0}
+			<div class="absolute inset-0 bg-white bg-opacity-95 flex items-center justify-center z-20 rounded-lg min-h-[800px]">
 				<div class="text-center">
-					<div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-					<p class="mt-2 text-gray-600 text-sm">Loading page...</p>
+					<div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+					<p class="mt-4 text-gray-600">Loading Talmud page...</p>
 				</div>
 			</div>
 		{/if}
 		
 		<!-- Container for the daf renderer -->
-		<div bind:this={dafContainer} class="daf" style="position: relative; {getTransformStyle()}">
+		<div bind:this={dafContainer} class="daf" style="position: relative; {getTransformStyle()}; min-height: {isProcessing && renderCount === 0 ? '800px' : 'auto'};">
 			<!-- The daf-renderer will populate this container -->
-			{#if !pageData && !loading}
-				<div class="flex items-center justify-center h-full text-gray-400">
+			{#if !pageData && !loading && !isProcessing}
+				<div class="flex items-center justify-center h-full text-gray-400 min-h-[400px]">
 					<p>Select a page to view</p>
 				</div>
 			{/if}
@@ -240,6 +257,19 @@
 		position: relative;
 		width: 600px;
 		margin: 0 auto;
+	}
+	
+	/* Add text justification to all text */
+	:global(.dafRoot .main .text) {
+		text-align: justify !important;
+	}
+	
+	:global(.dafRoot .inner .text) {
+		text-align: justify !important;
+	}
+	
+	:global(.dafRoot .outer .text) {
+		text-align: justify !important;
 	}
 	
 	:global(.daf .text) {

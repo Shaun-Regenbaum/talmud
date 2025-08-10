@@ -18,7 +18,7 @@
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { openRouterTranslator } from '$lib/api/openrouter-translator';
+import { createOpenRouterTranslator } from '$lib/api/openrouter-translator';
 import { TRACTATE_IDS, convertDafToHebrewBooksFormat } from '$lib/api/hebrewbooks';
 
 /** Cache key prefix for KV storage */
@@ -137,10 +137,13 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 			});
 		}
 
-		// Generate new stories if not cached
-		if (!openRouterTranslator.isConfigured()) {
-			return json({ error: 'OpenRouter API not configured' }, { status: 503 });
+		// Get API key and create translator instance
+		const openRouterApiKey = platform?.env?.OPENROUTER_API_KEY;
+		if (!openRouterApiKey) {
+			return json({ error: 'OpenRouter API key not configured' }, { status: 503 });
 		}
+		
+		const openRouterTranslator = createOpenRouterTranslator(openRouterApiKey);
 
 		// Convert from Sefaria format (2a, 2b) to daf-supplier format
 		const dafForAPI = convertDafToHebrewBooksFormat(`${page}${amud}`);
@@ -282,7 +285,7 @@ ${rashiText ? `Rashi Commentary: ${rashiText.slice(0, 1000)}` : ''}`
 					console.log(`📝 Generating ${type} story...`);
 					
 					// Get API key from platform.env (Cloudflare Workers runtime)
-					const openRouterApiKey = platform?.env?.PUBLIC_OPENROUTER_API_KEY;
+					const openRouterApiKey = platform?.env?.OPENROUTER_API_KEY;
 					if (!openRouterApiKey) {
 						throw new Error('OpenRouter API key not configured');
 					}
@@ -405,9 +408,13 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 			});
 		}
 		
-		if (!openRouterTranslator.isConfigured()) {
-			return json({ error: 'OpenRouter API not configured' }, { status: 503 });
+		// Get API key and create translator instance
+		const openRouterApiKey = platform?.env?.OPENROUTER_API_KEY;
+		if (!openRouterApiKey) {
+			return json({ error: 'OpenRouter API key not configured' }, { status: 503 });
 		}
+		
+		const openRouterTranslator = createOpenRouterTranslator(openRouterApiKey);
 		
 		const rashiText = rashi || '';
 		const tosafotText = tosafot || '';
@@ -502,7 +509,7 @@ ${rashiText ? `Rashi Commentary: ${rashiText.slice(0, 1000)}` : ''}`
 					const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
 						method: 'POST',
 						headers: {
-							'Authorization': `Bearer ${platform?.env?.PUBLIC_OPENROUTER_API_KEY || ''}`,
+							'Authorization': `Bearer ${platform?.env?.OPENROUTER_API_KEY || ''}`,
 							'Content-Type': 'application/json',
 							'HTTP-Referer': 'https://talmud.app',
 							'X-Title': 'Talmud Study App - Stories'

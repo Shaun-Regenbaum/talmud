@@ -86,7 +86,7 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 	}
 	
 	// Create analyzer instance with API key from environment
-	const apiKey = platform?.env?.PUBLIC_OPENROUTER_API_KEY || process.env.PUBLIC_OPENROUTER_API_KEY;
+	const apiKey = platform?.env?.OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
 	const analyzer = new TalmudAnalyzer(apiKey);
 	
 	// Check if analyzer is configured
@@ -237,7 +237,7 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 		}
 		
 		// Create analyzer instance with API key from environment
-		const apiKey = platform?.env?.PUBLIC_OPENROUTER_API_KEY || process.env.PUBLIC_OPENROUTER_API_KEY;
+		const apiKey = platform?.env?.OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
 		const analyzer = new TalmudAnalyzer(apiKey);
 		
 		if (!analyzer.isConfigured()) {

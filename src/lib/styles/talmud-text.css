@@ -7,15 +7,28 @@
   margin: 1em 0;
 }
 
-/* First word of Gemara - simple styling (gdropcap from API) */
-.gdropcap,
-.main .text span .gdropcap {
-  font-size: calc(var(--fontSize-main) * 1.2) !important;  /* Slightly larger */
+/* First word of Gemara - make it stand out */
+.gdropcap span:first-child,
+.main .text span.gdropcap span:first-child {
+  font-size: calc(var(--fontSize-main) * 1.4) !important;  /* Make first word larger */
   font-weight: bold !important;
-  display: block !important;
-  text-align: center !important;
-  margin: 0.5em 0 !important;
-  padding: 0 !important;
+  display: inline !important;
+}
+
+/* Also style the gdropcap container's first word if no inner spans */
+.gdropcap:first-letter,
+.main .text span.gdropcap:first-letter {
+  font-size: calc(var(--fontSize-main) * 1.4) !important;
+  font-weight: bold !important;
+}
+
+/* The entire gdropcap container should be block-level to start new paragraph */
+.gdropcap,
+.main .text span.gdropcap {
+  display: block !important;  /* Block level for new paragraph */
+  margin-top: 0.5em !important;  /* Add space above */
+  font-weight: normal !important;  /* Don't bold the entire span */
+  text-indent: 0 !important;  /* No indentation */
 }
 
 /* Rashi headers - bold and increased size */
@@ -36,6 +49,15 @@
 .outer .text span.shastitle7.tosafot-header {
   font-weight: 600 !important;
   font-size: 1.1em !important;
+}
+
+/* Gemara marker (גמ') styling */
+.shastitle4,
+.main .text span.shastitle4,
+.main .text span.shastitle4 span {
+  font-weight: bold !important;
+  font-size: calc(var(--fontSize-main) * 1.1) !important;
+  display: inline !important;
 }
 
 /* Optional: Highlight on hover for interactive elements */

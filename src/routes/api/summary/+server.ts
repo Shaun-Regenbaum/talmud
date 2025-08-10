@@ -127,7 +127,7 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 		}
 
 		// Get API key from platform.env (Cloudflare Workers runtime)
-		const openRouterApiKey = platform?.env?.PUBLIC_OPENROUTER_API_KEY;
+		const openRouterApiKey = platform?.env?.OPENROUTER_API_KEY;
 		if (!openRouterApiKey) {
 			return json({ error: 'OpenRouter API not configured' }, { status: 503 });
 		}
@@ -157,7 +157,16 @@ export const GET: RequestHandler = async ({ url, fetch, platform }) => {
 			}
 			
 			const dafData = await dafResponse.json();
-			mainText = dafData.mainText || '';
+			
+			// Check if daf-supplier returned an error
+			if (dafData.error) {
+				console.error('daf-supplier returned error:', dafData.error);
+				console.log('Error details:', dafData.metadata || dafData.details);
+				// Still try to use any mainText that might be provided
+				mainText = dafData.mainText || '';
+			} else {
+				mainText = dafData.mainText || '';
+			}
 			console.log(`Got mainText from daf-supplier, length: ${mainText.length}`);
 			
 			// Continue with summary generation below
@@ -314,7 +323,7 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 		}
 		
 		// Get API key from platform.env (Cloudflare Workers runtime)
-		const openRouterApiKey = platform?.env?.PUBLIC_OPENROUTER_API_KEY;
+		const openRouterApiKey = platform?.env?.OPENROUTER_API_KEY;
 		if (!openRouterApiKey) {
 			return json({ error: 'OpenRouter API not configured' }, { status: 503 });
 		}

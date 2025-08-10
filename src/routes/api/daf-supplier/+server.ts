@@ -17,6 +17,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { TRACTATE_IDS } from '$lib/api/hebrewbooks';
+// @ts-ignore - Cloudflare Puppeteer types might not be perfect
 import puppeteer from '@cloudflare/puppeteer';
 
 /** Map mesechta ID numbers to tractate names */
@@ -126,26 +127,60 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 		// Try Method 1: Modern puppeteer approach with anti-detection
 		try {
 			console.log('Browser binding available, trying puppeteer.launch() method...');
-			const browser = await puppeteer.launch(platform.env.BROWSER, {
-				// Keep browser alive for 2 minutes to allow for reuse
-				keep_alive: 120000
-			});
+			console.log('Browser binding type:', typeof platform.env.BROWSER);
+			console.log('Browser binding keys:', platform.env.BROWSER ? Object.keys(platform.env.BROWSER) : 'null');
+			
+			// Launch browser with proper error handling
+			let browser;
+			try {
+				// Don't pass options - they may not be supported in production
+				browser = await puppeteer.launch(platform.env.BROWSER);
+			} catch (launchError: any) {
+				console.error('Failed to launch browser:', launchError.message);
+				console.error('Launch error details:', launchError);
+				throw new Error(`Browser launch failed: ${launchError.message}`);
+			}
 			console.log('Browser launched successfully');
 			const page = await browser.newPage();
 			
-			// Set realistic browser headers to avoid Cloudflare detection
-			await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
-			await page.setViewport({ width: 1920, height: 1080 });
+			// Set more realistic browser headers with randomization
+			const userAgents = [
+				'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+				'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+				'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0'
+			];
+			const randomUA = userAgents[Math.floor(Math.random() * userAgents.length)];
+			await page.setUserAgent(randomUA);
+			
+			// Random viewport sizes
+			const viewports = [
+				{ width: 1920, height: 1080 },
+				{ width: 1366, height: 768 },
+				{ width: 1440, height: 900 }
+			];
+			const randomViewport = viewports[Math.floor(Math.random() * viewports.length)];
+			await page.setViewport(randomViewport);
 			
 			// Set additional headers to appear more human-like
 			await page.setExtraHTTPHeaders({
 				'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-				'Accept-Language': 'en-US,en;q=0.9',
+				'Accept-Language': 'en-US,en;q=0.9,he;q=0.8',
 				'Accept-Encoding': 'gzip, deflate, br',
-				'DNT': '1',
-				'Connection': 'keep-alive',
-				'Upgrade-Insecure-Requests': '1',
+				'Cache-Control': 'no-cache',
+				'Pragma': 'no-cache',
+				'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+				'Sec-Ch-Ua-Mobile': '?0',
+				'Sec-Ch-Ua-Platform': '"Windows"',
+				'Sec-Fetch-Dest': 'document',
+				'Sec-Fetch-Mode': 'navigate',
+				'Sec-Fetch-Site': 'none',
+				'Sec-Fetch-User': '?1',
+				'Upgrade-Insecure-Requests': '1'
 			});
+			
+			// Enable JavaScript and cookies
+			await page.setJavaScriptEnabled(true);
+			await page.setCacheEnabled(false);
 			console.log('New page created');
 			
 			// Convert daf-supplier format back to HebrewBooks format
@@ -161,11 +196,18 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 			const targetUrl = `https://www.hebrewbooks.org/shas.aspx?mesechta=${mesechta}&daf=${hebrewBooksDaf}&format=text`;
 			console.log('Navigating to:', targetUrl);
 			
-			// Add small random delay to appear more human-like
-			const delay = 1000 + Math.random() * 2000; // 1-3 second delay
-			console.log(`Adding human-like delay: ${Math.round(delay)}ms`);
-			await new Promise(resolve => setTimeout(resolve, delay));
+			// First navigate to the homepage to establish cookies
+			console.log('First visiting homepage to establish session...');
+			await page.goto('https://www.hebrewbooks.org', { 
+				waitUntil: 'domcontentloaded',
+				timeout: 30000
+			});
 			
+			// Wait a bit to let any initial scripts run
+			await new Promise(resolve => setTimeout(resolve, 2000));
+			
+			// Now navigate to the actual page
+			console.log('Now navigating to target page...');
 			await page.goto(targetUrl, { 
 				waitUntil: 'networkidle0',
 				timeout: 60000  // Increased timeout for Cloudflare challenge
@@ -320,11 +362,14 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 				pageData = null;
 			}
 
-			// Close the page (but keep browser alive for reuse via keep_alive)
+			// Close the page and browser
 			await page.close();
-			console.log('Page closed successfully, browser kept alive for reuse');
+			await browser.close();
+			console.log('Page and browser closed successfully');
 		} catch (browserError) {
 			console.error('Browser rendering failed:', browserError.message);
+			console.error('Browser error stack:', browserError.stack);
+			console.error('Browser error full details:', JSON.stringify(browserError, null, 2));
 			// Set pageData to null so we return error below
 			pageData = null;
 		}
@@ -332,18 +377,69 @@ export const GET: RequestHandler = async ({ url, platform, fetch }) => {
 		console.log('Browser binding not available');
 	}
 	
-	// If browser rendering failed or is unavailable, return error
+	// If browser rendering failed or is unavailable, try ScrapingBee as fallback
 	if (!pageData) {
-		console.error('Browser rendering failed and HTTP fallback removed');
-		return json({ 
-			error: 'Browser rendering failed', 
-			message: 'HebrewBooks scraping requires browser rendering which is currently unavailable',
-			details: {
-				browserAvailable: !!platform?.env?.BROWSER,
-				tractate: MESECHTA_MAP[mesechta] || `Tractate-${mesechta}`,
-				requestedDaf: daf
+		console.error('Browser rendering failed, trying ScrapingBee fallback...');
+		
+		// Check if ScrapingBee is available
+		const SCRAPINGBEE_API_KEY = platform?.env?.SCRAPINGBEE_API_KEY;
+		if (SCRAPINGBEE_API_KEY) {
+			try {
+				// Forward the request to the ScrapingBee endpoint
+				const scrapingBeeUrl = new URL('/api/daf-supplier-scrapingbee', url.origin);
+				scrapingBeeUrl.search = url.search; // Copy all query params
+				
+				console.log('Forwarding to ScrapingBee endpoint:', scrapingBeeUrl.toString());
+				const scrapingBeeResponse = await fetch(scrapingBeeUrl.toString());
+				
+				if (scrapingBeeResponse.ok) {
+					const scrapingBeeData = await scrapingBeeResponse.json();
+					console.log('ScrapingBee fallback successful');
+					return json(scrapingBeeData, {
+						headers: {
+							'X-Cache': 'MISS',
+							'X-Fallback': 'ScrapingBee'
+						}
+					});
+				}
+			} catch (error) {
+				console.error('ScrapingBee fallback failed:', error);
 			}
-		}, { status: 503 });
+		}
+		
+		// Check if we have any cached data for this page (even if expired)
+		if (platform?.env?.HEBREWBOOKS_KV) {
+			const anyCached = await platform.env.HEBREWBOOKS_KV.get(cacheKey);
+			if (anyCached) {
+				console.log('Returning expired cache due to all methods failing');
+				return new Response(anyCached, {
+					headers: { 
+						'Content-Type': 'application/json',
+						'X-Cache': 'EXPIRED-FALLBACK',
+						'X-Error': 'All scraping methods failed, returning cached data'
+					}
+				});
+			}
+		}
+		
+		// Return a placeholder response with error info
+		const errorResponse = { 
+			error: 'Content temporarily unavailable', 
+			message: 'Unable to fetch content at this time. Please try again later.',
+			mainText: '', // Empty text so the app can still function
+			rashi: '',
+			tosafot: '',
+			metadata: {
+				browserAvailable: !!platform?.env?.BROWSER,
+				scrapingBeeAvailable: !!SCRAPINGBEE_API_KEY,
+				tractate: MESECHTA_MAP[mesechta] || `Tractate-${mesechta}`,
+				requestedDaf: daf,
+				timestamp: new Date().toISOString(),
+				suggestion: 'The service should recover shortly. Please try again in a few minutes.'
+			}
+		};
+		console.error('Returning error response with empty data:', JSON.stringify(errorResponse, null, 2));
+		return json(errorResponse, { status: 206 }); // 206 Partial Content
 	}
 
 	try {
