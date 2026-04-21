@@ -104,8 +104,8 @@ export async function getSefariaLinks(tractate: string, daf: string): Promise<Se
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     
-    const data = await response.json();
-    
+    const data = await response.json() as { links?: unknown };
+
     if (!data.links || !Array.isArray(data.links)) {
       console.warn('No links data found in Sefaria response');
       return [];

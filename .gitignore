@@ -1,43 +1,27 @@
-.DS_Store
 node_modules
-/build
-/.svelte-kit
-/package
+dist
+.wrangler
+
 .env
 .env.*
 !.env.example
 .dev.vars
-wrangler.toml
-.wrangler/
-vite.config.js.timestamp-*
-vite.config.ts.timestamp-*
 
 # Logs
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
 
-# Temporary files
-*.tmp
-*.temp
-*~
-*.bak
-*.old
-*.unused
+# Build artifacts
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
 
-# OS generated files
+# OS
+.DS_Store
 Thumbs.db
-*.swp
-*.swo
 
-# IDE
+# Editors
 .vscode/
 .idea/
-*.sublime-*
-
-# Testing
-coverage/
-.nyc_output
+*.swp
+*.swo

@@ -1,0 +1,13 @@
+name = "talmud"
+main = "src/worker/index.ts"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./dist/client"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+# [[kv_namespaces]]
+# binding = "CACHE"
+# id = "tbd-create-with-wrangler-kv-namespace-create"
