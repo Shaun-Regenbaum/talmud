@@ -1308,7 +1308,12 @@ export default function DafViewer(): JSX.Element {
     if (!work) return;
     const comments = commentaryBySegIdx().get(segIdx);
     if (!comments || comments.length === 0) return;
-    setActiveRabbi(null);
+    // Close anything in the argument sidebar + per-word highlights so the
+    // commentary card is the sole "open" dynamic surface.
+    clearArgumentSidebar();
+    setActivePlace(null);
+    setActiveLocation(null);
+    setActiveLocationRabbis([]);
     setActiveCommentarySegIdx(segIdx);
     setLastInteractedCard('commentary');
   };
@@ -1318,7 +1323,13 @@ export default function DafViewer(): JSX.Element {
   const selectCommentaryWork = (title: string | null) => {
     setActiveCommentarySegIdx(null);
     setActiveCommentaryWork(title);
-    if (title) setLastInteractedCard('commentary');
+    if (title) {
+      clearArgumentSidebar();
+      setActivePlace(null);
+      setActiveLocation(null);
+      setActiveLocationRabbis([]);
+      setLastInteractedCard('commentary');
+    }
   };
 
   // On mouseup: prefer a text selection snapped to word boundaries over a plain
