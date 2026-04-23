@@ -63,7 +63,8 @@ export function GutterIcons(props: GutterIconsProps): JSX.Element {
       : 26;
     const sideWidth = (sidePct / 100) * rootRect.width;
     const dafMain = root.querySelector<HTMLElement>('.daf-main .daf-text');
-    const side: 'left' | 'right' = props.kind === 'halacha' ? 'right' : 'left';
+    const side: 'left' | 'right' =
+      props.kind === 'halacha' || props.kind === 'aggadata' ? 'right' : 'left';
     // The icon's normal x in viewport coordinates. Matches ARG_X / HALACHA_X
     // in DafViewer.tsx (calc(sidePct% +/- 8px)).
     const iconViewportX = side === 'left'

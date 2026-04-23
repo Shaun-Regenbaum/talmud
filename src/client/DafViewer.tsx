@@ -1169,11 +1169,9 @@ export default function DafViewer(): JSX.Element {
   const HALACHA_X = `calc(${100 - SIDE_PCT}% - 8px)`;
   const ARG_EDGE_X = '-10px';
   const HALACHA_EDGE_X = 'calc(100% + 10px)';
-  // Aggadata icons live in the outer left margin — past the commentary
-  // column — so the book glyph never overlaps text. Always-at-edge: there
-  // is no free in-gutter slot (argument already claims the left boundary).
-  const AGG_X = '-22px';
-  const AGG_EDGE_X = '-22px';
+  // Aggadata icons share the right-hand gutter column with halacha gavels.
+  const AGG_X = HALACHA_X;
+  const AGG_EDGE_X = HALACHA_EDGE_X;
 
   const syncUrl = () => {
     const u = new URL(window.location.href);
