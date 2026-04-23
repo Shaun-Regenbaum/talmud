@@ -28,3 +28,9 @@ id = "957172c219734565a172371f98c22056"
 [observability]
 enabled = true
 head_sampling_rate = 1  # capture 100% of invocations
+
+# Background cache-warmer. Walks the full shas at ~1 amud/sec, 20 per run,
+# filling KV with no TTL. Latches to done when complete; bump warm-cursor:v1
+# key to force a re-walk. See src/worker/warm-cron.ts.
+[triggers]
+crons = ["*/5 * * * *"]

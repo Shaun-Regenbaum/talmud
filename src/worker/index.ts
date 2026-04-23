@@ -12,6 +12,7 @@ import {
   getRishonimCached,
   getHalachaRefsCached,
 } from './source-cache';
+import { runWarmCron, readWarmCursor, warmProgressProcessed, getWarmTotal } from './warm-cron';
 import { GENERATION_IDS, GENERATIONS_PROMPT_REFERENCE, type GenerationId } from '../client/generations';
 import rabbiPlacesData from '../lib/data/rabbi-places.json';
 
@@ -51,6 +52,22 @@ function stripHtmlServer(html: string): string {
 const app = new Hono<{ Bindings: Bindings }>();
 
 app.get('/api/health', (c) => c.json({ ok: true }));
+
+app.get('/api/admin/warm-status', async (c) => {
+  const cache = c.env.CACHE;
+  if (!cache) return c.json({ error: 'no cache binding' }, 503);
+  const cursor = await readWarmCursor(cache);
+  const total = getWarmTotal();
+  const processed = warmProgressProcessed(cursor);
+  return c.json({
+    done: cursor.done === true,
+    tractateIdx: cursor.tractateIdx,
+    amudIdx: cursor.amudIdx,
+    processed,
+    total,
+    percent: total === 0 ? 0 : Math.round((processed / total) * 1000) / 10,
+  });
+});
 
 /**
  * Client-side error / miss logger. The browser POSTs a small JSON payload
@@ -371,6 +388,107 @@ app.get('/api/commentaries/:tractate/:page', async (c) => {
   } catch (err) {
     return c.json({ error: String(err) }, 502);
   }
+});
+
+// --- Commentary translation ----------------------------------------------
+// On-demand English translation of a single commentary comment (used when
+// Sefaria has no `text` for it, which is common for Rishonim). Kimi K2.5 is
+// the primary translator (no thinking, fast); Gemma-4 26B is the fallback.
+// Results are cached forever per Sefaria sourceRef.
+
+interface CommentaryTranslateBody {
+  sourceRef: string;
+  textHe: string;
+  tractate?: string;
+  page?: string;
+  anchorSegIdx?: number;
+}
+
+const COMMENTARY_TX_SYSTEM =
+  'You are a scholarly translator of rabbinic commentary on the Talmud. Translate the given Hebrew/Aramaic commentary text into clear, accurate English. ' +
+  'Output ONLY the translation — no preamble, no explanation, no quotation marks around the whole thing. ' +
+  'Match the register of standard academic Talmud editions (Soncino / Koren-Steinsaltz). Preserve technical terminology where standard ("Mishnah", "Gemara", "Tanna"). ' +
+  'The commentary glosses a specific passage of the daf — use the provided source segment to anchor pronouns and references, but translate the commentary (not the source).';
+
+app.post('/api/commentary-translate', async (c) => {
+  let body: CommentaryTranslateBody;
+  try { body = await c.req.json<CommentaryTranslateBody>(); }
+  catch { return c.json({ error: 'Invalid JSON body' }, 400); }
+
+  const sourceRef = (body.sourceRef ?? '').trim();
+  const textHe = (body.textHe ?? '').trim();
+  if (!sourceRef || !textHe) return c.json({ error: 'Missing sourceRef or textHe' }, 400);
+
+  const cache = c.env.CACHE;
+  const cacheKey = `commentary-tx:v1:${sourceRef}`;
+  const t0 = Date.now();
+  if (cache) {
+    const cached = await cache.get(cacheKey);
+    if (cached !== null) {
+      return c.json({ translation: cached, cached: true });
+    }
+  }
+  if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
+
+  // Pull the matching daf segment as bilingual anchor context.
+  let segHe = '';
+  let segEn = '';
+  if (body.tractate && body.page && typeof body.anchorSegIdx === 'number') {
+    const segments = await getSefariaSegmentsCached(cache, body.tractate, body.page);
+    if (segments && body.anchorSegIdx >= 0 && body.anchorSegIdx < segments.he.length) {
+      segHe = segments.he[body.anchorSegIdx] ?? '';
+      segEn = segments.en[body.anchorSegIdx] ?? '';
+    }
+  }
+
+  // Strip HTML from the commentary text (Sefaria sometimes embeds <b>/<i>).
+  const cleanHe = textHe.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+
+  const userParts: string[] = [];
+  if (segHe) {
+    userParts.push(
+      `Daf segment this commentary anchors to:\nHebrew/Aramaic: ${segHe}` +
+      (segEn ? `\nEnglish: ${segEn}` : ''),
+    );
+  }
+  userParts.push(`Commentary source: ${sourceRef}`);
+  userParts.push(`Commentary text (translate this):\n${cleanHe}`);
+
+  const models: Array<{ id: string; label: string; gemma?: boolean; kimi?: boolean }> = [
+    { id: '@cf/moonshotai/kimi-k2.5',        label: 'kimi-k2.5',   kimi: true },
+    { id: '@cf/google/gemma-4-26b-a4b-it',   label: 'gemma-4-26b', gemma: true },
+  ];
+
+  const attempts: string[] = [];
+  for (const m of models) {
+    try {
+      const params: Record<string, unknown> = {
+        messages: [
+          { role: 'system', content: COMMENTARY_TX_SYSTEM },
+          { role: 'user', content: userParts.join('\n\n') },
+        ],
+        max_tokens: 800,
+        temperature: 0.2,
+      };
+      if (m.gemma) params.chat_template_kwargs = { enable_thinking: false };
+      if (m.kimi) params.chat_template_kwargs = { enable_thinking: false };
+      const resp = await c.env.AI.run(m.id as never, params as never);
+      const r = resp as { response?: string; output?: string; result?: { response?: string }; choices?: Array<{ message?: { content?: string } }> };
+      const translation = (
+        r.response ?? r.output ?? r.result?.response ?? r.choices?.[0]?.message?.content ?? ''
+      ).trim().replace(/^["\']|["\']$/g, '');
+      if (!translation) { attempts.push(`${m.label}: empty`); continue; }
+      if (cache) {
+        await cache.put(cacheKey, translation, { expirationTtl: 60 * 60 * 24 * 365 });
+      }
+      recordTelemetry(c, { endpoint: 'translate', tractate: body.tractate, page: body.page, cache_hit: false, model: m.label, ms: Date.now() - t0, ok: true });
+      return c.json({ translation, cached: false, _model: m.label });
+    } catch (err) {
+      attempts.push(`${m.label}: ${String(err).slice(0, 200)}`);
+    }
+  }
+  recordTelemetry(c, { endpoint: 'translate', tractate: body.tractate, page: body.page, cache_hit: false, ms: Date.now() - t0, ok: false, error_kind: classifyError(attempts.join(' ')) });
+  return c.json({ error: 'All translation models failed', attempts }, 502);
 });
 
 /**
@@ -2327,6 +2445,81 @@ async function runGenerationsModel(
   }
 }
 
+// Streaming variant for Kimi K2.6 thinking — Workers AI Gateway hard-times-out
+// non-streaming thinking calls (AiError 3046), so Stage 2 of /api/daf-context
+// goes through SSE like /api/analyze does. Returns the same shape as
+// runGenerationsModel plus diagnostic fields so silent timeouts surface in logs.
+interface GenerationsStreamDiag {
+  prompt_chars: number;
+  content_chars: number;
+  reasoning_chars: number;
+  elapsed_ms: number;
+  finish_reason: string | null;
+  usage: StreamedResult['usage'];
+}
+async function runGenerationsModelStreaming(
+  ai: Ai,
+  modelId: string,
+  hebrewText: string,
+  englishContext: string,
+  tractate: string,
+  page: string,
+  opts: { maxTokens: number; enableThinking: boolean },
+): Promise<(GenerationsResult & { _diag: GenerationsStreamDiag }) | { error: string; _diag: GenerationsStreamDiag | null }> {
+  const userContent = [
+    `Tractate: ${tractate}`,
+    `Page: ${page}`,
+    '',
+    'Hebrew/Aramaic source (copy nameHe VERBATIM from here):',
+    hebrewText.slice(0, 40000),
+    '',
+    'English translation (for rabbi identification):',
+    englishContext.slice(0, 12000) || '(unavailable)',
+  ].join('\n');
+  let streamed: StreamedResult;
+  try {
+    streamed = await runKimiStreaming(
+      ai, modelId,
+      [
+        { role: 'system', content: GENERATIONS_SYSTEM_PROMPT },
+        { role: 'user', content: userContent },
+      ],
+      opts.maxTokens,
+      { chatTemplateKwargs: { enable_thinking: opts.enableThinking } },
+    );
+  } catch (err) {
+    return { error: `${modelId}: ${String(err).slice(0, 200)}`, _diag: null };
+  }
+  const diag: GenerationsStreamDiag = {
+    prompt_chars: streamed.prompt_chars,
+    content_chars: streamed.content.length,
+    reasoning_chars: streamed.reasoning_content.length,
+    elapsed_ms: streamed.elapsed_ms,
+    finish_reason: streamed.finish_reason,
+    usage: streamed.usage,
+  };
+  let payload = streamed.content.trim();
+  if (!payload && streamed.reasoning_content) {
+    const m = streamed.reasoning_content.match(/\{[\s\S]*"rabbis"[\s\S]*\}/);
+    if (m) payload = m[0];
+  }
+  const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenced) payload = fenced[1].trim();
+  if (!payload) return { error: `${modelId}: empty payload`, _diag: diag };
+  let parsed: unknown;
+  try { parsed = JSON.parse(payload); }
+  catch {
+    const repaired = payload
+      .replace(/,(\s*[}\]])/g, '$1')
+      .replace(/\r/g, '')
+      .replace(/"((?:[^"\\]|\\.)*?)"/g, (_m, inner: string) => `"${inner.replace(/\n/g, ' ')}"`);
+    try { parsed = JSON.parse(repaired); }
+    catch (err) { return { error: `${modelId}: non-JSON (${String(err).slice(0, 100)})`, _diag: diag }; }
+  }
+  if (!validateGenerations(parsed)) return { error: `${modelId}: schema mismatch`, _diag: diag };
+  return { ...(parsed as GenerationsResult), _diag: diag };
+}
+
 // --- Shared enrichment --------------------------------------------------
 // An IdentifiedRabbi is the unit of state shared across the three features
 // that care about rabbis in a daf: underlines, timeline, geography map, and
@@ -2477,21 +2670,21 @@ app.get('/api/daf-context/:tractate/:page', async (c) => {
     c.executionCtx.waitUntil((async () => {
       const s2t0 = Date.now();
       try {
-        const r = await runGenerationsModel(
+        const r = await runGenerationsModelStreaming(
           ai, '@cf/moonshotai/kimi-k2.6', hebSnap, engSnap, tractate, page,
           { maxTokens: 16000, enableThinking: true },
         );
         if ('error' in r) {
-          console.warn('[daf-context stage2] failed:', r.error);
+          console.warn(`[daf-context:stage2] ${tractate}/${page} failed:`, r.error, r._diag ? JSON.stringify(r._diag) : '');
           recordTelemetry({ env, executionCtx: ctx }, { endpoint: 'daf-context-stage2', tractate, page, cache_hit: false, model: 'kimi-k2.6', ms: Date.now() - s2t0, ok: false, error_kind: classifyError(r.error) });
           return;
         }
+        console.log(`[daf-context:stage2] ${tractate}/${page} ok rabbis=${r.rabbis.length}`, JSON.stringify(r._diag));
         const upgraded: DafContext = { rabbis: enrichAll(augmentWithKnownRabbis(r.rabbis, hebSnap)) };
         await cache.put(stage2Key, JSON.stringify(upgraded), { expirationTtl: 60 * 60 * 24 * 365 });
         recordTelemetry({ env, executionCtx: ctx }, { endpoint: 'daf-context-stage2', tractate, page, cache_hit: false, model: 'kimi-k2.6', ms: Date.now() - s2t0, ok: true });
       } catch (err) {
-        // eslint-disable-next-line no-console
-        console.warn('[daf-context stage2] threw:', err);
+        console.warn(`[daf-context:stage2] ${tractate}/${page} threw:`, err);
         recordTelemetry({ env, executionCtx: ctx }, { endpoint: 'daf-context-stage2', tractate, page, cache_hit: false, model: 'kimi-k2.6', ms: Date.now() - s2t0, ok: false, error_kind: 'other' });
       }
     })());
@@ -2726,4 +2919,9 @@ app.post('/api/admin/translate-bio', async (c) => {
   }
 });
 
-export default app;
+export default {
+  fetch: (req: Request, env: Bindings, ctx: ExecutionContext) => app.fetch(req, env, ctx),
+  scheduled: (_controller: ScheduledController, env: Bindings, ctx: ExecutionContext) => {
+    ctx.waitUntil(runWarmCron(env));
+  },
+} satisfies ExportedHandler<Bindings>;
