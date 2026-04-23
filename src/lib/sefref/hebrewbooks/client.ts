@@ -86,6 +86,35 @@ export interface HebrewBooksDaf {
  * which makes it a better source for faithful visual rendering. Sefaria
  * remains the source for translations and structured refs.
  */
+async function fetchHebrewBooksDafOnce(
+  url: string,
+  tractate: string,
+  page: string,
+  fetchImpl: typeof fetch,
+): Promise<HebrewBooksDaf> {
+  const res = await fetchImpl(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml',
+      'Accept-Language': 'he,en;q=0.8',
+    },
+    signal: AbortSignal.timeout(5000),
+  });
+  if (!res.ok) throw new Error(`HebrewBooks HTTP ${res.status} for ${tractate} ${page}`);
+  const html = await res.text();
+  return {
+    main: extractShastext(html, 2),
+    rashi: extractShastext(html, 3),
+    tosafot: extractShastext(html, 4),
+  };
+}
+
+/**
+ * hebrewbooks.org's ASP.NET origin occasionally stalls for 1–3 consecutive
+ * requests (confirmed via probe: ~5x latency for a brief window, then
+ * normal). One retry after a short sleep usually lands on a recovered
+ * request.
+ */
 export async function fetchHebrewBooksDaf(
   tractate: string,
   page: string,
@@ -97,21 +126,16 @@ export async function fetchHebrewBooksDaf(
   const daf = sefariaPageToHebrewBooksDaf(page);
   const url = `https://hebrewbooks.org/shas.aspx?mesechta=${mesechta}&daf=${daf}&format=text`;
 
-  const res = await fetchImpl(url, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Accept': 'text/html,application/xhtml+xml',
-      'Accept-Language': 'he,en;q=0.8',
-    },
-  });
-  if (!res.ok) throw new Error(`HebrewBooks HTTP ${res.status} for ${tractate} ${page}`);
-  const html = await res.text();
-
-  return {
-    main: extractShastext(html, 2),
-    rashi: extractShastext(html, 3),
-    tosafot: extractShastext(html, 4),
-  };
+  try {
+    return await fetchHebrewBooksDafOnce(url, tractate, page, fetchImpl);
+  } catch (err) {
+    await new Promise((r) => setTimeout(r, 150));
+    try {
+      return await fetchHebrewBooksDafOnce(url, tractate, page, fetchImpl);
+    } catch {
+      throw err;
+    }
+  }
 }
 
 /**

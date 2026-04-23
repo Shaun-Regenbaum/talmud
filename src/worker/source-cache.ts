@@ -28,6 +28,9 @@ import {
 } from '../lib/sefref';
 
 const TTL_30_DAYS = 60 * 60 * 24 * 30;
+const TTL_NEGATIVE = 60 * 60;
+
+type FailedMarker = { __failed: true };
 
 async function readCache<T>(
   cache: KVNamespace | undefined,
@@ -47,10 +50,12 @@ async function writeCache(
   cache: KVNamespace | undefined,
   key: string,
   value: unknown,
+  ttl: number | null = TTL_30_DAYS,
 ): Promise<void> {
   if (!cache) return;
   try {
-    await cache.put(key, JSON.stringify(value), { expirationTtl: TTL_30_DAYS });
+    const opts = ttl === null ? undefined : { expirationTtl: ttl };
+    await cache.put(key, JSON.stringify(value), opts);
   } catch (err) {
     // eslint-disable-next-line no-console
     console.warn(`[source-cache] KV put failed for ${key}:`, err);
@@ -63,13 +68,19 @@ export async function getHebrewBooksDafCached(
   page: string,
 ): Promise<HebrewBooksDaf | null> {
   const key = `hb:v1:${tractate}:${page}`;
-  const hit = await readCache<HebrewBooksDaf>(cache, key);
-  if (hit) return hit;
+  const hit = await readCache<HebrewBooksDaf | FailedMarker>(cache, key);
+  if (hit) {
+    if ('__failed' in hit) return null;
+    return hit;
+  }
   try {
     const data = await fetchHebrewBooksDaf(tractate, page);
-    await writeCache(cache, key, data);
+    await writeCache(cache, key, data, null);
     return data;
-  } catch {
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn(`[source-cache] hebrewbooks fetch failed for ${tractate} ${page}:`, err);
+    await writeCache(cache, key, { __failed: true } satisfies FailedMarker, TTL_NEGATIVE);
     return null;
   }
 }
