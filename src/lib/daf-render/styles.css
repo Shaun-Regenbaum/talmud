@@ -198,13 +198,37 @@
   border-radius: 2px;
 }
 
-/* Range highlights use the CSS Custom Highlight API (CSS.highlights +
-   ::highlight()) — purely visual, no DOM mutation. The client effect
-   registers named highlights with document Ranges; this CSS paints them. */
-::highlight(daf-section-highlight) {
+/* Range highlights are painted as absolute-positioned overlay divs inside
+   .daf-root, one per line of the highlighted range, sized from merged
+   Range.getClientRects(). This bridges the .daf-word padding gaps and the
+   justification whitespace that the CSS Custom Highlight API leaves unpainted.
+   Client logic lives in src/client/DafViewer.tsx (paintRangeOverlay). */
+.daf-root .daf-range-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* Sits on top of text, but with semi-transparent backgrounds so the text
+     reads through like a physical highlighter. */
+}
+.daf-root .daf-range-highlight {
+  position: absolute;
+  pointer-events: none;
+}
+/* Round only the outer corners of a multi-line stack so adjacent bands
+   (which share an edge) don't show notches at the seams. A single-band
+   highlight gets all four corners rounded via both classes. */
+.daf-root .daf-range-highlight-first {
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+}
+.daf-root .daf-range-highlight-last {
+  border-bottom-left-radius: 2px;
+  border-bottom-right-radius: 2px;
+}
+.daf-root .daf-range-highlight-section {
   background-color: rgba(138, 42, 43, 0.18);
 }
-::highlight(daf-halacha-highlight) {
+.daf-root .daf-range-highlight-halacha {
   background-color: rgba(30, 64, 175, 0.25);
 }
 

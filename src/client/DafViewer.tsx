@@ -58,6 +58,65 @@ interface ActiveWord {
   hebrewAfter: string;
 }
 
+// Merges a Range's per-word client rects into one band per line and paints
+// them as absolute-positioned divs into `overlay`. Coordinates are resolved
+// against `origin` (which must be a positioned ancestor of `overlay`).
+function paintRangeOverlay(
+  overlay: HTMLElement,
+  origin: HTMLElement,
+  ranges: Range[],
+  kind: 'section' | 'halacha',
+): void {
+  if (ranges.length === 0) return;
+  const originRect = origin.getBoundingClientRect();
+  // Rects on the same visual line share a `top` within a few px (hebrew
+  // diacritics, anchors, etc. can nudge it). Half a line-height is a safe
+  // bucketing tolerance.
+  const TOL = 6;
+  for (const range of ranges) {
+    const rects = Array.from(range.getClientRects()).filter((r) => r.width > 0 && r.height > 0);
+    if (rects.length === 0) continue;
+    const lines: DOMRect[][] = [];
+    for (const r of rects) {
+      const line = lines.find((l) => Math.abs(l[0].top - r.top) <= TOL);
+      if (line) line.push(r);
+      else lines.push([r]);
+    }
+    const bands = lines.map((line) => {
+      let left = Infinity;
+      let right = -Infinity;
+      let top = Infinity;
+      let bottom = -Infinity;
+      for (const r of line) {
+        if (r.left < left) left = r.left;
+        if (r.right > right) right = r.right;
+        if (r.top < top) top = r.top;
+        if (r.bottom > bottom) bottom = r.bottom;
+      }
+      return { left, right, top, bottom };
+    });
+    // Extend each band's bottom to the next band's top so multi-line ranges
+    // read as one continuous block (fills the inter-line line-height gap).
+    // Leaves a small diagonal notch when first/last line is partial-width.
+    bands.sort((a, b) => a.top - b.top);
+    for (let i = 0; i < bands.length - 1; i++) {
+      bands[i].bottom = bands[i + 1].top;
+    }
+    for (let i = 0; i < bands.length; i++) {
+      const b = bands[i];
+      const el = document.createElement('div');
+      el.className = `daf-range-highlight daf-range-highlight-${kind}`;
+      if (i === 0) el.classList.add('daf-range-highlight-first');
+      if (i === bands.length - 1) el.classList.add('daf-range-highlight-last');
+      el.style.left = `${b.left - originRect.left}px`;
+      el.style.top = `${b.top - originRect.top}px`;
+      el.style.width = `${b.right - b.left}px`;
+      el.style.height = `${b.bottom - b.top}px`;
+      overlay.appendChild(el);
+    }
+  }
+}
+
 const MAX_PHRASE_WORDS = 20;
 const CONTEXT_WINDOW_WORDS = 30;
 
@@ -427,7 +486,8 @@ export default function DafViewer(): JSX.Element {
   // Apply all highlights (section / halacha range + per-rabbi accent) based
   // on the current sidebar + activeRabbi state. Range tints are drawn as
   // absolute-positioned overlay divs computed from Range.getClientRects() so
-  // multi-word spans read as one continuous band (no per-word gaps).
+  // multi-word spans read as one continuous band — no per-word gaps from
+  // .daf-word padding, no unpainted justification whitespace.
   const applyHighlights = () => {
     const s = sidebar();
     const name = activeRabbi();
@@ -442,16 +502,8 @@ export default function DafViewer(): JSX.Element {
       el.classList.remove('rabbi-highlighted'),
     );
 
-    // Range highlights use the CSS Custom Highlight API — purely visual,
-    // no DOM mutation. Fully supported in Chrome 105+, Safari 17.2+,
-    // Firefox 140+. Ranges collected here; registered after the main
-    // aggregation loop below.
     const sectionRanges: Range[] = [];
     const halachaRanges: Range[] = [];
-
-    // If the API isn't available (very old browser) we silently skip range
-    // highlights; rabbi-name highlights still apply.
-    const cssHighlights = (CSS as unknown as { highlights?: Map<string, unknown> }).highlights;
 
     const collectRange = (range: Range, bucket: 'section' | 'halacha') => {
       if (range.collapsed) return;
@@ -529,29 +581,19 @@ export default function DafViewer(): JSX.Element {
       }
     }
 
-    // Register collected ranges with the CSS Custom Highlight API. Clears
-    // previous named highlights first so stale ones don't linger.
-    if (cssHighlights) {
-      cssHighlights.delete('daf-section-highlight');
-      cssHighlights.delete('daf-halacha-highlight');
-      const HL = (window as unknown as { Highlight?: new (...ranges: Range[]) => unknown }).Highlight;
-      if (HL) {
-        if (sectionRanges.length > 0) {
-          cssHighlights.set('daf-section-highlight', new HL(...sectionRanges));
-        }
-        if (halachaRanges.length > 0) {
-          cssHighlights.set('daf-halacha-highlight', new HL(...halachaRanges));
-        }
-      }
-    } else if (sectionRanges.length > 0 || halachaRanges.length > 0) {
-      // Log once per session so we can see if any users land on a
-      // browser lacking the Custom Highlight API.
-      if (!(window as unknown as { __highlightApiWarned?: boolean }).__highlightApiWarned) {
-        // eslint-disable-next-line no-console
-        console.warn('[daf-highlight] CSS Custom Highlight API unavailable — range tints disabled.');
-        (window as unknown as { __highlightApiWarned?: boolean }).__highlightApiWarned = true;
-      }
+    // Paint the collected ranges as absolute-positioned overlay divs, one
+    // per line of text, merging all the per-word client rects on each line
+    // into a single band. This fills the padding dead-zones between .daf-word
+    // spans and the justification whitespace that ::highlight() leaves bare.
+    let overlay = dafRootDiv.querySelector<HTMLElement>(':scope > .daf-range-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.className = 'daf-range-overlay';
+      dafRootDiv.appendChild(overlay);
     }
+    overlay.replaceChildren();
+    paintRangeOverlay(overlay, dafRootDiv, sectionRanges, 'section');
+    paintRangeOverlay(overlay, dafRootDiv, halachaRanges, 'halacha');
 
     // Per-rabbi name accent (yellow) — always applied on top of any tint.
     if (name) {
@@ -575,6 +617,33 @@ export default function DafViewer(): JSX.Element {
     void tokenized(); void sidebar(); void activeRabbi(); void activeLocationRabbis();
     // Defer one frame so layout is settled before we measure client rects.
     queueMicrotask(() => queueMicrotask(applyHighlights));
+  });
+
+  // Overlay rects are pixel-absolute, so we need to repaint whenever the
+  // daf reflows: window resize, column-width changes, or late font loading
+  // (Mekorot Vilna loads async and shifts line breaks when it lands).
+  createEffect(() => {
+    const root = dafRootEl();
+    if (!root) return;
+    const dafRootDiv = root.querySelector<HTMLElement>('.daf-root') ?? root;
+    let rafId = 0;
+    const schedule = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = 0;
+        applyHighlights();
+      });
+    };
+    const ro = new ResizeObserver(schedule);
+    ro.observe(dafRootDiv);
+    const fonts = (document as Document & { fonts?: { ready?: Promise<unknown> } }).fonts;
+    let cancelled = false;
+    fonts?.ready?.then(() => { if (!cancelled) schedule(); });
+    onCleanup(() => {
+      cancelled = true;
+      ro.disconnect();
+      if (rafId) cancelAnimationFrame(rafId);
+    });
   });
 
 
