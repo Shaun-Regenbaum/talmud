@@ -106,7 +106,8 @@ type TelemetryEndpoint =
   | 'daf-context-stage2'
   | 'translate'
   | 'analyze'
-  | 'halacha';
+  | 'halacha'
+  | 'aggadata';
 
 // String-typed so composed labels like `stage-a-<classifyError>` work without
 // requiring a combinatorial explosion of literal types. Classifier values are
@@ -232,7 +233,7 @@ app.get('/api/usage', async (c) => {
     errorsByKind: Record<string, number>;
   }
   const perEndpoint: Record<string, Rollup> = {};
-  const endpoints: TelemetryEndpoint[] = ['daf-context', 'daf-context-stage2', 'translate', 'analyze', 'halacha'];
+  const endpoints: TelemetryEndpoint[] = ['daf-context', 'daf-context-stage2', 'translate', 'analyze', 'halacha', 'aggadata'];
   for (const ep of endpoints) {
     const rows = telemetry.filter((r) => r.endpoint === ep);
     const sorted = rows.map((r) => r.ms).sort((a, b) => a - b);
@@ -266,6 +267,112 @@ app.get('/api/usage', async (c) => {
   });
 });
 
+// --- Commentaries list --------------------------------------------------
+// Per-daf list of Rishonim / Acharonim commentaries (beyond the Rashi and
+// Tosafot rendered inline on the daf). Each comment carries its anchor
+// Sefaria segment index so the client can highlight the exact span the
+// commentary is anchored to, using the data-seg alignment we injected.
+
+interface CommentaryComment {
+  anchorRef: string;                // e.g. "Berakhot 5a:3" or "Berakhot 5a:3:1-4"
+  anchorSegIdx: number;             // zero-based index into Sefaria segments
+  sourceRef: string;                // commentary's own ref, e.g. "Ramban on Berakhot 5a:3:1"
+  textHe: string;
+  textEn: string;
+}
+
+interface CommentaryWork {
+  title: string;
+  titleHe: string;
+  count: number;
+  comments: CommentaryComment[];
+}
+
+/** Parse the first segment number out of a Sefaria ref like "Berakhot 5a:3"
+ *  or "Berakhot 5a:3:1-4". Returns zero-based index, or -1 if unparseable. */
+function parseAnchorSegment(anchorRef: string): number {
+  const m = anchorRef.match(/:(\d+)/);
+  if (!m) return -1;
+  const n = parseInt(m[1], 10);
+  return Number.isFinite(n) && n > 0 ? n - 1 : -1;
+}
+
+// (Rashi / Tosafot are rendered inline on the daf, but we STILL surface them
+// in the picker — selecting them highlights the main-text segments they
+// anchor to, and clicking a segment also highlights the gloss in the inner
+// or outer column. So no work titles are filtered here.)
+
+app.get('/api/commentaries/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const cache = c.env.CACHE;
+  const cacheKey = `commentaries:v1:${tractate}:${page}`;
+
+  if (cache && c.req.query('refresh') !== '1') {
+    const hit = await cache.get(cacheKey);
+    if (hit !== null) return c.json({ ...(JSON.parse(hit) as object), _cached: true });
+  }
+
+  const ref = `${tractate} ${page}`;
+  const url = `https://www.sefaria.org/api/links/${encodeURIComponent(ref)}?with_text=1`;
+  try {
+    const res = await fetch(url, { headers: { accept: 'application/json' } });
+    if (!res.ok) return c.json({ error: `Sefaria ${res.status}` }, 502);
+    const raw = (await res.json()) as Array<{
+      ref?: string;
+      sourceRef?: string;
+      anchorRef?: string;
+      category?: string;
+      collectiveTitle?: { en?: string; he?: string };
+      index_title?: string;
+      he?: string | string[];
+      text?: string | string[];
+    }>;
+
+    const joinText = (x: string | string[] | undefined): string => {
+      if (!x) return '';
+      if (Array.isArray(x)) return x.map((t) => String(t ?? '')).join(' ').trim();
+      return String(x).trim();
+    };
+
+    const byWork = new Map<string, CommentaryWork>();
+    for (const l of raw) {
+      if (l.category !== 'Commentary') continue;
+      const title = l.collectiveTitle?.en ?? l.index_title ?? 'Unknown';
+      const titleHe = l.collectiveTitle?.he ?? '';
+      const anchorRef = l.anchorRef ?? '';
+      const anchorSegIdx = parseAnchorSegment(anchorRef);
+      if (anchorSegIdx < 0) continue;
+      const comment: CommentaryComment = {
+        anchorRef,
+        anchorSegIdx,
+        sourceRef: l.sourceRef ?? l.ref ?? '',
+        textHe: joinText(l.he),
+        textEn: joinText(l.text),
+      };
+      let work = byWork.get(title);
+      if (!work) {
+        work = { title, titleHe, count: 0, comments: [] };
+        byWork.set(title, work);
+      }
+      work.comments.push(comment);
+      work.count++;
+    }
+
+    // Sort works by count desc so popular ones (Meiri, Ramban, Rashba...)
+    // land first in the UI picker.
+    const works = Array.from(byWork.values()).sort((a, b) => b.count - a.count);
+
+    const payload = { works, tractate, page, fetchedAt: new Date().toISOString() };
+    if (cache) {
+      await cache.put(cacheKey, JSON.stringify(payload), { expirationTtl: 60 * 60 * 24 * 30 });
+    }
+    return c.json({ ...payload, _cached: false });
+  } catch (err) {
+    return c.json({ error: String(err) }, 502);
+  }
+});
+
 /**
  * Reverse references — every source in the Sefaria corpus that links to a
  * given daf. Thin wrapper over Sefaria's /api/links/<ref> with KV caching
@@ -286,27 +393,32 @@ interface RabbiResolution { slug: string; entry: RabbiPlacesEntry }
 // Precomputed: normalized canonicalHe → slug. Used to resolve from the
 // Hebrew form in the daf text, which is more reliable than the model's
 // English rendering (Gemma occasionally emits "Rabbah" for Hebrew רבא = Rava).
+// Normalize a Hebrew name for resolver indexing/lookup: strip nikkud +
+// cantillation, drop parenthetical disambiguators (`רב (שם אמורא)` →
+// `רב`), strip punctuation, collapse whitespace.
+function normalizeHeForResolve(s: string): string {
+  return s
+    .replace(/[֑-ׇ]/g, '')
+    .replace(/\([^)]*\)/g, ' ')     // remove parenthetical groups entirely
+    .replace(/\[[^\]]*\]/g, ' ')    // same for square-bracket groups
+    .replace(/[.,:;?!"'״׳()[\]{}]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 const BY_CANONICAL_HE: Record<string, string> = (() => {
   const out: Record<string, string> = {};
   for (const [slug, r] of Object.entries(RABBI_PLACES.rabbis)) {
     if (!r.canonicalHe) continue;
-    const key = r.canonicalHe
-      .replace(/[֑-ׇ]/g, '')
-      .replace(/[.,:;?!"'״׳()[\]{}]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
+    const key = normalizeHeForResolve(r.canonicalHe);
     if (key && !out[key]) out[key] = slug;
   }
   return out;
 })();
 
-function resolveRabbiByHe(rawHe: string): RabbiResolution | null {
+export function resolveRabbiByHe(rawHe: string): RabbiResolution | null {
   if (!rawHe) return null;
-  const key = rawHe
-    .replace(/[֑-ׇ]/g, '')
-    .replace(/[.,:;?!"'״׳()[\]{}]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  const key = normalizeHeForResolve(rawHe);
   if (!key) return null;
   const slug = BY_CANONICAL_HE[key];
   if (slug) {
@@ -316,7 +428,7 @@ function resolveRabbiByHe(rawHe: string): RabbiResolution | null {
   return null;
 }
 
-function resolveRabbiByName(raw: string): RabbiResolution | null {
+export function resolveRabbiByName(raw: string): RabbiResolution | null {
   const key = raw.toLowerCase().trim();
   if (!key) return null;
   const direct = RABBI_PLACES.aliasIndex[key];
@@ -354,7 +466,7 @@ function resolveRabbiByName(raw: string): RabbiResolution | null {
  * authoritative — it comes verbatim from the daf text. English is consulted
  * only when Hebrew gives no match.
  */
-function resolveRabbi(name: string, nameHe?: string | null): RabbiResolution | null {
+export function resolveRabbi(name: string, nameHe?: string | null): RabbiResolution | null {
   if (nameHe) {
     const he = resolveRabbiByHe(nameHe);
     if (he) return he;
@@ -509,6 +621,10 @@ interface TranslateBody {
   hebrewBefore?: string;
   /** ~30 words of Hebrew/Aramaic immediately after the click, from the rendered daf. */
   hebrewAfter?: string;
+  /** Client-resolved Sefaria segment index (from `data-seg` on the clicked
+   *  .daf-word span). When supplied, the server skips its own fuzzy alignment
+   *  and fetches the aligned Hebrew+English pair directly. */
+  segIdx?: number;
 }
 
 /**
@@ -697,14 +813,19 @@ app.post('/api/translate', async (c) => {
     return c.json({ error: 'AI binding not available' }, 503);
   }
 
-  // Resolve the Sefaria-aligned segment. We try to find the Sefaria block that
-  // contains the user's on-daf snippet (hebrewBefore + word + hebrewAfter).
-  // If we find one, we feed the model that exact segment's Hebrew AND English
-  // as the primary context — much tighter than the old "whole daf" dump.
+  // Resolve the Sefaria-aligned segment. Prefer the `segIdx` the client
+  // resolved from `data-seg` on the clicked .daf-word — that uses the same
+  // alignment pass the /align page shows, with abbreviation expansion etc.
+  // Fall back to server-side substring matching on (hebrewBefore+word+hebrewAfter)
+  // if the client didn't provide an index.
   const segments = await getSefariaSegmentsCached(cache, tractate, page);
   let alignedSegIdx = -1;
-  if (segments && (hebrewBefore || hebrewAfter)) {
-    alignedSegIdx = findAlignedSegment(`${hebrewBefore} ${word} ${hebrewAfter}`, segments);
+  if (segments) {
+    if (typeof body.segIdx === 'number' && body.segIdx >= 0 && body.segIdx < segments.he.length) {
+      alignedSegIdx = body.segIdx;
+    } else if (hebrewBefore || hebrewAfter) {
+      alignedSegIdx = findAlignedSegment(`${hebrewBefore} ${word} ${hebrewAfter}`, segments);
+    }
   }
   const alignedHe = alignedSegIdx >= 0 ? segments!.he[alignedSegIdx] : '';
   const alignedEn = alignedSegIdx >= 0 ? segments!.en[alignedSegIdx] : '';
@@ -962,13 +1083,13 @@ const ANALYZE_CAPS = {
   focalEnglish: 10000,
   focalRashi: 8000,
   focalTosafot: 8000,
-  neighborHebrew: 8000,
-  neighborEnglish: 6000,
-  neighborRashi: 0,        // dropped — focal's Rashi covers cross-amud refs
-  neighborTosafot: 0,      // dropped
-  rishonimPerCommentator: 4000,
-  halachaPerRef: 2000,
-  halachaRefsPerBook: 3,
+  neighborHebrew: 6000,     // trimmed from 8000 — only need reference anchors
+  neighborEnglish: 0,       // dropped — Hebrew is enough for cross-amud refs
+  neighborRashi: 0,         // dropped — focal's Rashi covers cross-amud
+  neighborTosafot: 0,       // dropped
+  rishonimPerCommentator: 2500,  // halved from 4000 per commentator
+  halachaPerRef: 1500,      // trimmed from 2000
+  halachaRefsPerBook: 2,    // trimmed from 3 — keep only most-relevant refs
 } as const;
 
 function slice(s: string | undefined | null, cap: number): string {
@@ -1175,17 +1296,24 @@ async function runKimiStreaming(
   modelId: string,
   messages: Array<{ role: string; content: string }>,
   maxTokens: number,
+  opts: {
+    chatTemplateKwargs?: Record<string, unknown>;
+    reasoningEffort?: 'low' | 'medium' | 'high';
+  } = {},
 ): Promise<StreamedResult> {
   const promptChars = messages.reduce((s, m) => s + m.content.length, 0);
   const t0 = Date.now();
-  const stream = (await ai.run(modelId as never, {
+  const body: Record<string, unknown> = {
     messages,
     max_tokens: maxTokens,
     stream_options: { include_usage: true },
     temperature: 0.2,
     response_format: { type: 'json_object' },
     stream: true,
-  } as never)) as unknown as ReadableStream<Uint8Array>;
+  };
+  if (opts.chatTemplateKwargs) body.chat_template_kwargs = opts.chatTemplateKwargs;
+  if (opts.reasoningEffort) body.reasoning_effort = opts.reasoningEffort;
+  const stream = (await ai.run(modelId as never, body as never)) as unknown as ReadableStream<Uint8Array>;
 
   const reader = stream.getReader();
   const decoder = new TextDecoder();
@@ -1437,13 +1565,27 @@ app.get('/api/analyze/:tractate/:page', async (c) => {
   ].join('\n\n');
 
   try {
+    // Stage B: Kimi K2.5 with thinking OFF.
+    // K2.6 reliably exceeds the Cloudflare Worker 5-min wall-clock on
+    // enrichment prompts even with reasoning_effort:"low" + trimmed prompt
+    // (confirmed 2026-04-23: Stage B hit exactly 300s with content
+    // truncated by the wall clock). K2.5 with enable_thinking:false is a
+    // deterministic field-filler benchmarked at <60s. Structural reasoning
+    // already happened in Stage A — Stage B is just filling nameHe/period/
+    // location/role/opinionStart, reasoning not required.
+    const stageBModel = {
+      id: '@cf/moonshotai/kimi-k2.5',
+      maxTokens: 16000,
+      label: 'kimi-k2.5-no-thinking',
+    };
     const stageB = await runKimiStreaming(
-      c.env.AI, model.id,
+      c.env.AI, stageBModel.id,
       [
         { role: 'system', content: ENRICHMENT_SYSTEM_PROMPT },
         { role: 'user', content: enrichmentUser },
       ],
-      model.maxTokens,
+      stageBModel.maxTokens,
+      { chatTemplateKwargs: { enable_thinking: false } },
     );
     stageBDiag = {
       prompt_chars: stageB.prompt_chars,
@@ -1499,14 +1641,15 @@ app.get('/api/analyze/:tractate/:page', async (c) => {
 
     const envelope = {
       ...analysis,
-      _model: model.label,
+      _stageAModel: model.label,
+      _stageBModel: stageBModel.label,
       _cached: false,
       _prevDaf: prevDaf,
       _nextDaf: nextDaf,
       _rishonim: Object.keys(rishonim),
       _halacha: Object.keys(halacha),
       _validationWarnings: validation.warnings,
-      _pipeline: 'skeleton+enrichment',
+      _pipeline: 'skeleton(k2.6)+enrichment(k2.5-no-thinking)',
       _stageA: stageADiag,
       _stageB: stageBDiag,
     };
@@ -1722,6 +1865,168 @@ app.get('/api/halacha/:tractate/:page', async (c) => {
   return c.json({ error: 'Halacha classification failed', attempts }, 502);
 });
 
+const AGGADATA_SYSTEM_PROMPT = `You are a Talmud scholar. Given a daf of Talmud and its English translation, identify every AGGADIC unit on the page — narrative stories, biographical anecdotes about named sages, parables (mashalim), dream reports, miracle reports, ethical maxims embedded in narrative, and homiletical expansions on a biblical verse. Ignore purely halachic/legal sugyot and pure legal exegesis.
+
+Output STRICT JSON only (no markdown, no prose):
+
+{
+  "stories": [
+    {
+      "title": "Short, evocative English title (4-7 words). E.g. 'The Oven of Akhnai', 'Rabban Gamliel and the Heavenly Voice'",
+      "titleHe": "Hebrew title using the traditional name if one exists (e.g. 'תנור של עכנאי'), otherwise a concise Hebrew summary phrase",
+      "summary": "1-2 sentence English summary of what happens / what the story is about",
+      "excerpt": "3-6 consecutive Hebrew/Aramaic words copied VERBATIM from the opening of the story in the daf — used to anchor the highlight. Pick the phrase where the narrative first begins, not a rabbi name or a generic opener.",
+      "theme": "One-word English tag: miracle | dispute | parable | biography | dream | ethics | exegesis | folklore | prayer"
+    }
+  ]
+}
+
+Rules:
+- "excerpt" MUST be Hebrew/Aramaic words copied verbatim from the daf text supplied below. Do not translate. Do not paraphrase. Do not include vowel points if the source lacks them.
+- If the daf contains no aggada (purely halachic page), return {"stories": []}.
+- Do not split one story into multiple entries. A sustained narrative with dialogue and multiple events is ONE story.
+- Do not include dry legal statements attributed to a named sage — that's halacha, not aggada. Include only when there is a narrative, parable, or non-legal teaching.
+- Titles should be memorable, not generic ("Story 1"). Use the traditional Hebrew name where one exists.
+- Order stories in the order they appear on the daf.`;
+
+interface AggadataStory {
+  title: string;
+  titleHe?: string;
+  summary: string;
+  excerpt: string;
+  theme?: string;
+}
+interface AggadataResult {
+  stories: AggadataStory[];
+}
+
+function validateAggadata(x: unknown): x is AggadataResult {
+  if (!x || typeof x !== 'object') return false;
+  const a = x as AggadataResult;
+  if (!Array.isArray(a.stories)) return false;
+  for (const s of a.stories) {
+    if (typeof s.title !== 'string') return false;
+    if (s.titleHe !== undefined && typeof s.titleHe !== 'string') return false;
+    if (typeof s.summary !== 'string') return false;
+    if (typeof s.excerpt !== 'string') return false;
+    if (s.theme !== undefined && typeof s.theme !== 'string') return false;
+  }
+  return true;
+}
+
+app.get('/api/aggadata/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const cache = c.env.CACHE;
+  const cacheKey = `aggadata:v1:${tractate}:${page}`;
+  const t0 = Date.now();
+
+  const bypass = c.req.query('refresh') === '1';
+  const cachedOnly = c.req.query('cached_only') === '1';
+
+  if (cache && !bypass) {
+    const cached = await cache.get(cacheKey);
+    if (cached) {
+      recordTelemetry(c, { endpoint: 'aggadata', tractate, page, cache_hit: true, ms: Date.now() - t0, ok: true });
+      return c.json({ ...JSON.parse(cached) as AggadataResult, _cached: true });
+    }
+  }
+  if (cachedOnly) {
+    return c.json({ cached: false }, 404);
+  }
+  if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
+
+  let hebrewText = '';
+  let englishContext = '';
+  try {
+    const [hb, english] = await Promise.all([
+      getHebrewBooksDafCached(cache, tractate, page),
+      getSefariaEnglishContext(tractate, page, cache).catch(() => ''),
+    ]);
+    if (hb) hebrewText = stripHtmlServer(hb.main);
+    englishContext = english;
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn('[aggadata] source fetch partial failure:', err);
+  }
+  if (!hebrewText && !englishContext) {
+    return c.json({ error: 'No source text available for this daf' }, 502);
+  }
+
+  const userContent = [
+    `Tractate: ${tractate}`,
+    `Page: ${page}`,
+    '',
+    'Hebrew/Aramaic source:',
+    hebrewText.slice(0, 5000) || '(unavailable)',
+    '',
+    'English translation:',
+    englishContext.slice(0, 4000) || '(unavailable)',
+    '',
+    'Output valid JSON only matching the schema.',
+  ].join('\n');
+
+  const models: Array<{ id: string; label: string; maxTokens: number }> = [
+    { id: '@cf/moonshotai/kimi-k2.6', label: 'kimi-k2.6-thinking', maxTokens: 32000 },
+  ];
+
+  const attempts: string[] = [];
+  for (const m of models) {
+    try {
+      const streamed = await runKimiStreaming(
+        c.env.AI,
+        m.id,
+        [
+          { role: 'system', content: AGGADATA_SYSTEM_PROMPT },
+          { role: 'user', content: userContent },
+        ],
+        m.maxTokens,
+      );
+      let payload = streamed.content.trim();
+      if (!payload && streamed.reasoning_content) {
+        const mm = streamed.reasoning_content.match(/\{[\s\S]*"stories"[\s\S]*\}/);
+        if (mm) payload = mm[0];
+      }
+      const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (fenced) payload = fenced[1].trim();
+      if (!payload) {
+        attempts.push(`${m.label}: empty payload`);
+        continue;
+      }
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(payload);
+      } catch {
+        const repaired = payload
+          .replace(/,(\s*[}\]])/g, '$1')
+          .replace(/\r/g, '')
+          .replace(/"((?:[^"\\]|\\.)*?)"/g, (_m, inner: string) => `"${inner.replace(/\n/g, ' ')}"`);
+        try {
+          parsed = JSON.parse(repaired);
+        } catch (parseErr) {
+          attempts.push(`${m.label}: non-JSON (${String(parseErr).slice(0, 100)})`);
+          continue;
+        }
+      }
+      if (!validateAggadata(parsed)) {
+        attempts.push(`${m.label}: schema mismatch`);
+        continue;
+      }
+      const result = parsed as AggadataResult;
+      if (cache) {
+        await cache.put(cacheKey, JSON.stringify(result), { expirationTtl: 60 * 60 * 24 * 365 });
+      }
+      recordTelemetry(c, { endpoint: 'aggadata', tractate, page, cache_hit: false, model: m.label, ms: Date.now() - t0, ok: true });
+      return c.json({ ...result, _cached: false, _model: m.label });
+    } catch (err) {
+      attempts.push(`${m.label}: ${String(err).slice(0, 200)}`);
+    }
+  }
+
+  recordTelemetry(c, { endpoint: 'aggadata', tractate, page, cache_hit: false, ms: Date.now() - t0, ok: false, error_kind: classifyError(attempts.join(' ')) });
+  return c.json({ error: 'Aggadata detection failed', attempts }, 502);
+});
+
 /**
  * Per-rabbi generation classification for a daf. Used by the client to
  * underline each rabbi name in the Hebrew text with a color indicating
@@ -1761,7 +2066,7 @@ interface GenerationsResult {
 
 const GENERATION_ID_SET = new Set<string>(GENERATION_IDS);
 
-function validateGenerations(x: unknown): x is GenerationsResult {
+export function validateGenerations(x: unknown): x is GenerationsResult {
   if (!x || typeof x !== 'object') return false;
   const g = x as GenerationsResult;
   if (!Array.isArray(g.rabbis)) return false;
@@ -1800,7 +2105,7 @@ function normalizeHe(s: string): string {
 //
 // Ambiguous forms (ר"י / ר"א / ר"ש) are NOT expanded anywhere — too many
 // rabbis map to them.
-function expandAbbreviations(s: string): string {
+export function expandAbbreviations(s: string): string {
   // Use explicit whitespace/edge lookarounds — JS `\b` does not treat Hebrew
   // letters as word characters, so it misbehaves around Hebrew text.
   const edge = (lhs: RegExp) =>
@@ -1870,15 +2175,47 @@ function hasHebrewWordBoundaryMatch(haystack: string, needle: string): boolean {
   }
 }
 
+// Aramaic/Hebrew tokens that sometimes trail a rabbi's name when the model
+// over-copies context (e.g. "ר' אלכסנדרי בתר צלותיה" = "Rabbi Alexandri
+// AFTER HIS PRAYER"). None of these words are ever part of a rabbi name, so
+// truncating at the first occurrence leaves only the name itself.
+const NAMEHE_STOP_TOKENS: ReadonlySet<string> = new Set([
+  // Attribution verbs
+  'אמר', 'אמרה', 'אמרו', 'אומר', 'אומרת', 'אומרים', 'מתני', 'דרש', 'דריש',
+  // Stative / motion / perception
+  'קאי', 'קם', 'יתיב', 'הוה', 'הווה',
+  'פתח', 'חזא', 'אזל', 'אתא', 'שמע', 'אשכח', 'אקלע', 'מטא',
+  'בעי', 'בעא', 'סבר',
+  // Pronouns / prepositions that never belong in a name
+  'בתר', 'קמיה', 'עליה', 'עלה', 'להו',
+]);
+
+// Truncate nameHe at the first clear stop-token so downstream matching (and
+// the client's per-word underline) doesn't paint extra trailing words.
+export function sanitizeNameHe(nameHe: string): string {
+  if (!nameHe) return nameHe;
+  const tokens = nameHe.split(/\s+/).filter(Boolean);
+  const keep: string[] = [];
+  for (const tok of tokens) {
+    const norm = tok.replace(/[֑-ׇ]/g, '').replace(/[.,:;?!"'״׳()[\]{}]/g, '');
+    if (NAMEHE_STOP_TOKENS.has(norm)) break;
+    keep.push(tok);
+  }
+  return keep.join(' ').trim();
+}
+
 // Scan the daf's Hebrew text for canonical rabbi forms and return any that
 // don't already appear in the model's output. Generation is left 'unknown'
 // for now — they still get a grey underline and show up in the timeline.
-function augmentWithKnownRabbis(
+export function augmentWithKnownRabbis(
   modelRabbis: GenerationsResult['rabbis'],
   hebrewText: string,
 ): GenerationsResult['rabbis'] {
+  const sanitized = modelRabbis
+    .map((r) => ({ ...r, nameHe: sanitizeNameHe(r.nameHe) }))
+    .filter((r) => r.nameHe.length > 0);
   const textNorm = normalizeHe(expandAbbreviations(hebrewText));
-  const seenHe = new Set(modelRabbis.map((r) => normalizeHe(r.nameHe)));
+  const seenHe = new Set(sanitized.map((r) => normalizeHe(r.nameHe)));
   const added: GenerationsResult['rabbis'] = [];
   for (const k of KNOWN_RABBIS_HE) {
     if (seenHe.has(k.nameHeNorm)) continue;
@@ -1886,7 +2223,7 @@ function augmentWithKnownRabbis(
     added.push({ name: k.name, nameHe: k.nameHe, generation: 'unknown' });
     seenHe.add(k.nameHeNorm);
   }
-  return [...modelRabbis, ...added];
+  return [...sanitized, ...added];
 }
 
 // JSON schema used to constrain the generations model output. Forces the
@@ -1987,13 +2324,13 @@ interface IdentifiedRabbi {
   wiki: string | null;
 }
 
-function deriveRegionFromGeneration(g: GenerationId): 'israel' | 'bavel' | null {
+export function deriveRegionFromGeneration(g: GenerationId): 'israel' | 'bavel' | null {
   if (g.startsWith('amora-ey') || g.startsWith('tanna') || g === 'zugim') return 'israel';
   if (g.startsWith('amora-bavel') || g === 'savora') return 'bavel';
   return null;
 }
 
-function enrichRabbi(name: string, nameHe: string, generation: GenerationId): IdentifiedRabbi {
+export function enrichRabbi(name: string, nameHe: string, generation: GenerationId): IdentifiedRabbi {
   const hit = resolveRabbi(name, nameHe);
   const entry = hit?.entry ?? null;
   return {
@@ -2022,7 +2359,7 @@ function mergeDuplicate(a: IdentifiedRabbi, b: IdentifiedRabbi): IdentifiedRabbi
   return { ...a, generation: pickGen, nameHe: pickNameHe };
 }
 
-function enrichAll(rabbis: GenerationsResult['rabbis']): IdentifiedRabbi[] {
+export function enrichAll(rabbis: GenerationsResult['rabbis']): IdentifiedRabbi[] {
   const enriched = rabbis.map((r) => enrichRabbi(r.name, r.nameHe, r.generation));
   const bySlug = new Map<string, IdentifiedRabbi>();
   const unslugged: IdentifiedRabbi[] = [];

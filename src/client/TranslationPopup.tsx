@@ -11,6 +11,9 @@ export interface TranslationPopupProps {
   hebrewBefore?: string;
   /** ~30 words of daf text immediately after the click. */
   hebrewAfter?: string;
+  /** Sefaria segment index resolved client-side from `data-seg` on the
+   *  clicked .daf-word. The server uses it directly when provided. */
+  segIdx?: number;
 }
 
 // Module-level cache so reopening the popup for a word we already translated
@@ -55,6 +58,7 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
         page: props.page,
         hebrewBefore: props.hebrewBefore,
         hebrewAfter: props.hebrewAfter,
+        segIdx: props.segIdx,
       }),
     })
       .then((r) => r.json() as Promise<{ translation: string; cached?: boolean; error?: string }>)

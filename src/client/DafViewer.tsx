@@ -13,9 +13,12 @@ import { injectHadran } from './injectHadran';
 import { injectAnchorMarkers, injectOpinionMarkers } from './anchorMarkers';
 import { GutterIcons } from './GutterIcons';
 import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
+import { AggadataDetector, type AggadataResult } from './AggadataDetector';
 import { GeographyMap } from './GeographyMap';
+import { injectCityMarkers } from './injectCityMarkers';
 import { GenerationTimeline } from './GenerationTimeline';
 import { BugReport } from './BugReport';
+import { CommentaryPicker, type CommentaryWork, type CommentaryComment } from './CommentaryPicker';
 import type { GenerationId } from './generations';
 
 interface Ref {
@@ -56,6 +59,8 @@ interface ActiveWord {
   els: HTMLElement[];
   hebrewBefore: string;
   hebrewAfter: string;
+  /** Sefaria segment index (from data-seg on the first clicked .daf-word). */
+  segIdx?: number;
 }
 
 // Merges a Range's per-word client rects into one band per line and paints
@@ -65,7 +70,7 @@ function paintRangeOverlay(
   overlay: HTMLElement,
   origin: HTMLElement,
   ranges: Range[],
-  kind: 'section' | 'halacha',
+  kind: 'section' | 'halacha' | 'aggadata' | 'commentary' | 'commentary-active',
 ): void {
   if (ranges.length === 0) return;
   const originRect = origin.getBoundingClientRect();
@@ -120,6 +125,55 @@ function paintRangeOverlay(
 const MAX_PHRASE_WORDS = 20;
 const CONTEXT_WINDOW_WORDS = 30;
 
+/** Side-column normalization for matching a Sefaria commentary's textHe
+ *  against the rendered HebrewBooks Rashi/Tosafot column. Strips nikkud,
+ *  Hebrew gereshim, final-letter variants, and all punctuation — same
+ *  shape as the alignment module's `normalizeHebrew`. */
+const SIDE_FINAL_MAP: Record<string, string> = { 'ך': 'כ', 'ם': 'מ', 'ן': 'נ', 'ף': 'פ', 'ץ': 'צ' };
+function sideColumnNormalize(s: string): string {
+  return s
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/[֑-ׇװ-״]/g, '')
+    .replace(/[ךםןףץ]/g, (m) => SIDE_FINAL_MAP[m] ?? m)
+    .replace(/[^א-ת\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Locate a single commentary comment inside a side-column span stream by
+ *  matching its first few normalized words. Extends the match as far as
+ *  consecutive words agree. Returns the Range + the end index (for the
+ *  caller to advance its search pointer). */
+function findCommentRangeInColumn(
+  spans: HTMLElement[],
+  colNorm: string[],
+  commentTextHe: string,
+  searchFrom: number,
+): { range: Range; endIdx: number } | null {
+  const commentWords = sideColumnNormalize(commentTextHe).split(' ').filter(Boolean);
+  if (commentWords.length < 2) return null;
+  const probeLen = Math.min(4, commentWords.length);
+  for (let i = Math.max(0, searchFrom); i <= colNorm.length - probeLen; i++) {
+    let ok = true;
+    for (let k = 0; k < probeLen; k++) {
+      if (colNorm[i + k] !== commentWords[k]) { ok = false; break; }
+    }
+    if (!ok) continue;
+    // Greedily extend the match; stop at first word that drifts.
+    let end = i + probeLen;
+    let cj = probeLen;
+    while (end < colNorm.length && cj < commentWords.length) {
+      if (colNorm[end] !== commentWords[cj]) break;
+      end++; cj++;
+    }
+    const range = document.createRange();
+    range.setStartBefore(spans[i]);
+    range.setEndAfter(spans[end - 1]);
+    return { range, endIdx: end };
+  }
+  return null;
+}
+
 /** Walk the daf text and collect up to N .daf-word text contents immediately
  *  before the first selected element, and N immediately after the last selected
  *  element. Scoped to the main column (ignores Rashi / Tosafot neighbors). */
@@ -144,6 +198,7 @@ import type { DafContext, IdentifiedRabbi } from './dafContext';
 const dafContextSessionCache = new Map<string, DafContext>();
 const analysisSessionCache = new Map<string, DafAnalysis>();
 const halachaSessionCache = new Map<string, HalachaResult>();
+const aggadataSessionCache = new Map<string, AggadataResult>();
 
 const GEN_KEY = 'daf.showGenMarkers';
 function loadToggle(key: string, def: boolean): boolean {
@@ -213,6 +268,18 @@ export default function DafViewer(): JSX.Element {
   const [halachaLoading, setHalachaLoading] = createSignal(false);
   const [halachaError, setHalachaError] = createSignal<string | null>(null);
 
+  // Aggadata state (for the Aggadot detector card + sidebar + highlight)
+  const [aggadata, setAggadata] = createSignal<AggadataResult | null>(null);
+  const [aggadataLoading, setAggadataLoading] = createSignal(false);
+  const [aggadataError, setAggadataError] = createSignal<string | null>(null);
+  const [activeStoryIndex, setActiveStoryIndex] = createSignal<number | null>(null);
+
+  // Other-commentary state (Sefaria links, non-Rashi/Tosafot). Driven by the
+  // picker at the bottom of the daf and the data-seg alignment in the text.
+  const [commentaryWorks, setCommentaryWorks] = createSignal<CommentaryWork[] | null>(null);
+  const [commentariesLoading, setCommentariesLoading] = createSignal(false);
+  const [activeCommentaryWork, setActiveCommentaryWork] = createSignal<string | null>(null);
+
   // Sidebar state
   const [sidebar, setSidebar] = createSignal<SidebarContent | null>(null);
   const [activeRabbi, setActiveRabbi] = createSignal<string | null>(null);
@@ -222,6 +289,16 @@ export default function DafViewer(): JSX.Element {
   // not scoped to a single argument section.
   const [activeLocation, setActiveLocation] = createSignal<string | null>(null);
   const [activeLocationRabbis, setActiveLocationRabbis] = createSignal<string[]>([]);
+
+  // Transient hover highlight — driven by hovering a row in the Migration
+  // list. Additive on top of click-driven highlights so hovering doesn't
+  // stomp the sidebar / active-location state the user already committed to.
+  const [hoveredRabbi, setHoveredRabbi] = createSignal<string | null>(null);
+
+  // Place-dot highlight: clicking a city dot (not a rabbi dot) lights up
+  // every `.city-marker[data-city="<name>"]` in the daf body. Mutually
+  // exclusive with the rabbi/location highlights above.
+  const [activePlace, setActivePlace] = createSignal<string | null>(null);
 
   // Ref to the DafRenderer's .daf-root — resolved imperatively because
   // DafRenderer renders it internally.
@@ -420,6 +497,53 @@ export default function DafViewer(): JSX.Element {
     onCleanup(() => controller.abort());
   });
 
+  // Aggadata — probe cache first; auto-run on miss so story titles appear
+  // above the Geography card without user interaction.
+  createEffect(() => {
+    const t = tractate();
+    const p = page();
+    const key = `${t}:${p}`;
+    const cached = aggadataSessionCache.get(key);
+    if (cached) { setAggadata(cached); return; }
+    setAggadata(null);
+    const controller = new AbortController();
+    fetch(`/api/aggadata/${encodeURIComponent(t)}/${p}?cached_only=1`, { signal: controller.signal })
+      .then(async (res) => res.status === 200 ? (await res.json()) as AggadataResult : null)
+      .then((d) => {
+        if (t !== tractate() || p !== page()) return;
+        if (d && !d.error) {
+          aggadataSessionCache.set(key, d);
+          setAggadata(d);
+          return;
+        }
+        if (!aggadataLoading()) void runAggadata();
+      })
+      .catch(() => {});
+    onCleanup(() => controller.abort());
+  });
+
+  // Fetch the list of commentaries for this daf (Sefaria links, non-Rashi/
+  // Tosafot). Clears any previously-active selection on daf change.
+  createEffect(() => {
+    const t = tractate();
+    const p = page();
+    setActiveCommentaryWork(null);
+    setCommentaryWorks(null);
+    setCommentariesLoading(true);
+    const controller = new AbortController();
+    fetch(`/api/commentaries/${encodeURIComponent(t)}/${p}`, { signal: controller.signal })
+      .then(async (res) => (res.ok ? (await res.json()) as { works?: CommentaryWork[] } : null))
+      .then((d) => {
+        if (t !== tractate() || p !== page()) return;
+        setCommentaryWorks(d?.works ?? []);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (t === tractate() && p === page()) setCommentariesLoading(false);
+      });
+    onCleanup(() => controller.abort());
+  });
+
   // Manual trigger for the slow Kimi argument analysis (first-time per daf).
   const runAnalysis = async () => {
     const t = tractate();
@@ -463,6 +587,28 @@ export default function DafViewer(): JSX.Element {
     }
   };
 
+  const runAggadata = async (refresh = false) => {
+    const t = tractate();
+    const p = page();
+    const key = `${t}:${p}`;
+    setAggadataLoading(true);
+    setAggadataError(null);
+    try {
+      const url = `/api/aggadata/${encodeURIComponent(t)}/${p}${refresh ? '?refresh=1' : ''}`;
+      const res = await fetch(url);
+      const d = (await res.json()) as AggadataResult & { attempts?: string[] };
+      if (t !== tractate() || p !== page()) return;
+      if (!res.ok || d.error) throw new Error(d.error ?? `HTTP ${res.status}`);
+      aggadataSessionCache.set(key, d);
+      setAggadata(d);
+    } catch (err) {
+      if (t !== tractate() || p !== page()) return;
+      setAggadataError(String((err as Error).message ?? err));
+    } finally {
+      if (t === tractate() && p === page()) setAggadataLoading(false);
+    }
+  };
+
   // Build a Map<name, GenerationId> so the sidebar can color-code each rabbi.
   const generationByName = createMemo<Map<string, GenerationId>>(() => {
     const m = new Map<string, GenerationId>();
@@ -477,10 +623,14 @@ export default function DafViewer(): JSX.Element {
     setActiveRabbi(null);
     setActiveLocation(null);
     setActiveLocationRabbis([]);
+    setActivePlace(null);
     setAnalysisError(null);
     setHalachaError(null);
+    setAggadataError(null);
     setAnalysisLoading(false);
     setHalachaLoading(false);
+    setAggadataLoading(false);
+    setActiveStoryIndex(null);
   });
 
   // Apply all highlights (section / halacha range + per-rabbi accent) based
@@ -501,14 +651,34 @@ export default function DafViewer(): JSX.Element {
     dafRootDiv.querySelectorAll('.rabbi-underline.rabbi-highlighted').forEach((el) =>
       el.classList.remove('rabbi-highlighted'),
     );
+    // Clear prior city-name highlights.
+    dafRootDiv.querySelectorAll('.city-marker.city-highlighted').forEach((el) =>
+      el.classList.remove('city-highlighted'),
+    );
 
     const sectionRanges: Range[] = [];
     const halachaRanges: Range[] = [];
+    const aggadataRanges: Range[] = [];
+    const commentaryRanges: Range[] = [];
+    const commentaryActiveRanges: Range[] = [];
 
-    const collectRange = (range: Range, bucket: 'section' | 'halacha') => {
+    const collectRange = (range: Range, bucket: 'section' | 'halacha' | 'aggadata') => {
       if (range.collapsed) return;
       if (bucket === 'section') sectionRanges.push(range);
-      else halachaRanges.push(range);
+      else if (bucket === 'halacha') halachaRanges.push(range);
+      else aggadataRanges.push(range);
+    };
+
+    // Build a Range covering all `.daf-word[data-seg=N]` spans (first→last) in
+    // the given column. Returns null if the segment has no tagged words.
+    const rangeForSegment = (columnRoot: HTMLElement | null, segIdx: number): Range | null => {
+      if (!columnRoot) return null;
+      const spans = columnRoot.querySelectorAll<HTMLElement>(`.daf-word[data-seg="${segIdx}"]`);
+      if (spans.length === 0) return null;
+      const range = document.createRange();
+      range.setStartBefore(spans[0]);
+      range.setEndAfter(spans[spans.length - 1]);
+      return range;
     };
 
     // Argument: whole section (no rabbi) or a single rabbi's opinion range(s).
@@ -581,6 +751,68 @@ export default function DafViewer(): JSX.Element {
       }
     }
 
+    if (s?.kind === 'aggadata') {
+      const anchor = dafRootDiv.querySelector<HTMLElement>(
+        `.daf-aggadata-anchor[data-idx="${s.index}"]`,
+      );
+      const mainText = dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
+      if (anchor && mainText) {
+        const allStoryAnchors = Array.from(
+          dafRootDiv.querySelectorAll<HTMLElement>('.daf-aggadata-anchor'),
+        ).sort((a, b) => Number(a.getAttribute('data-idx') ?? 0) - Number(b.getAttribute('data-idx') ?? 0));
+        const pos = allStoryAnchors.findIndex((el) => el === anchor);
+        const next = pos >= 0 && pos + 1 < allStoryAnchors.length ? allStoryAnchors[pos + 1] : null;
+        const range = document.createRange();
+        range.setStartAfter(anchor);
+        if (next) range.setEndBefore(next);
+        else range.setEndAfter(mainText);
+        collectRange(range, 'aggadata');
+      }
+    }
+
+    // Commentary: whenever a work is active, tint every main-text segment
+    // the work anchors to (ambient). If a specific segment is currently
+    // open in the sidebar, paint it with the darker "active" color.
+    //
+    // Additionally: when the active work is Rashi or Tosafot, try to paint
+    // the actual gloss text in the inner / outer column for each open
+    // comment, by finding the comment's textHe as a normalized-word run
+    // inside the column's .daf-word spans.
+    const activeWork = activeCommentaryWorkObj();
+    if (activeWork) {
+      const mainColumn = dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
+      const coveredSegs = Array.from(commentaryBySegIdx().keys());
+      const openSegIdx = s?.kind === 'commentary' ? s.segIdx : -1;
+      for (const segIdx of coveredSegs) {
+        const r = rangeForSegment(mainColumn, segIdx);
+        if (!r) continue;
+        if (segIdx === openSegIdx) commentaryActiveRanges.push(r);
+        else commentaryRanges.push(r);
+      }
+
+      // Side-column painting for Rashi/Tosafot: the open segment's comments
+      // are located by substring-matching each comment's Hebrew text against
+      // the normalized .daf-word stream of the right column.
+      const colSel = activeWork.title === 'Rashi'   ? '.daf-inner .daf-text'
+                   : activeWork.title === 'Tosafot' ? '.daf-outer .daf-text'
+                   : null;
+      if (colSel && s?.kind === 'commentary' && s.comments.length > 0) {
+        const colRoot = dafRootDiv.querySelector<HTMLElement>(colSel);
+        if (colRoot) {
+          const spans = Array.from(colRoot.querySelectorAll<HTMLElement>('.daf-word'));
+          const colNorm = spans.map((el) => sideColumnNormalize(el.textContent ?? ''));
+          let searchFrom = 0;
+          for (const comment of s.comments) {
+            const rr = findCommentRangeInColumn(spans, colNorm, comment.textHe, searchFrom);
+            if (rr) {
+              commentaryActiveRanges.push(rr.range);
+              searchFrom = rr.endIdx;
+            }
+          }
+        }
+      }
+    }
+
     // Paint the collected ranges as absolute-positioned overlay divs, one
     // per line of text, merging all the per-word client rects on each line
     // into a single band. This fills the padding dead-zones between .daf-word
@@ -592,8 +824,11 @@ export default function DafViewer(): JSX.Element {
       dafRootDiv.appendChild(overlay);
     }
     overlay.replaceChildren();
+    paintRangeOverlay(overlay, dafRootDiv, commentaryRanges, 'commentary');
+    paintRangeOverlay(overlay, dafRootDiv, commentaryActiveRanges, 'commentary-active');
     paintRangeOverlay(overlay, dafRootDiv, sectionRanges, 'section');
     paintRangeOverlay(overlay, dafRootDiv, halachaRanges, 'halacha');
+    paintRangeOverlay(overlay, dafRootDiv, aggadataRanges, 'aggadata');
 
     // Per-rabbi name accent (yellow) — always applied on top of any tint.
     if (name) {
@@ -610,11 +845,30 @@ export default function DafViewer(): JSX.Element {
         dafRootDiv.querySelectorAll(sel).forEach((el) => el.classList.add('rabbi-highlighted'));
       }
     }
+
+    // Transient hover highlight (Migration rows). Additive — applied last so
+    // hover always wins visually, and clears when the mouse leaves without
+    // touching the click-driven state.
+    const hover = hoveredRabbi();
+    if (hover) {
+      const sel = `.rabbi-underline[data-rabbi="${hover.replace(/"/g, '\\"')}"]`;
+      dafRootDiv.querySelectorAll(sel).forEach((el) => el.classList.add('rabbi-highlighted'));
+    }
+
+    // Place-dot highlight — light up every mention of the selected city.
+    const place = activePlace();
+    if (place) {
+      const sel = `.city-marker[data-city="${place.replace(/"/g, '\\"')}"]`;
+      dafRootDiv.querySelectorAll(sel).forEach((el) => el.classList.add('city-highlighted'));
+    }
   };
 
   createEffect(() => {
     // Re-run when any of these change.
     void tokenized(); void sidebar(); void activeRabbi(); void activeLocationRabbis();
+    void hoveredRabbi();
+    void activeCommentaryWork();
+    void activePlace();
     // Defer one frame so layout is settled before we measure client rects.
     queueMicrotask(() => queueMicrotask(applyHighlights));
   });
@@ -683,6 +937,27 @@ export default function DafViewer(): JSX.Element {
       if (outer) outer = injectRabbiUnderlines(outer, rabbis);
     }
 
+    // City markers for KNOWN_CITIES mentioned in the Hebrew. Wraps each
+    // occurrence in `.city-marker[data-city="X"]` so GeographyMap place-dot
+    // clicks can light them up. Union of matched sets across columns is
+    // returned so the map knows which gray place-dots to draw.
+    const placeMatches = new Set<string>();
+    if (showGenMarkers()) {
+      const m1 = injectCityMarkers(main);
+      main = m1.html;
+      m1.matched.forEach((c) => placeMatches.add(c));
+      if (inner) {
+        const m2 = injectCityMarkers(inner);
+        inner = m2.html;
+        m2.matched.forEach((c) => placeMatches.add(c));
+      }
+      if (outer) {
+        const m3 = injectCityMarkers(outer);
+        outer = m3.html;
+        m3.matched.forEach((c) => placeMatches.add(c));
+      }
+    }
+
     // Tannaitic quotation markers (דתנן/דתניא/דתני) use the same underline
     // family as rabbi generations (dashed variant, Tanna-era blue). Gate on
     // the same toggle so it's one conceptual feature.
@@ -716,14 +991,32 @@ export default function DafViewer(): JSX.Element {
       if (anchors.length > 0) main = injectAnchorMarkers(main, anchors, 'daf-halacha-anchor', ctx);
     }
 
-    return { main, inner, outer };
+    // Aggadata anchors: one per story, placed at the opening excerpt so the
+    // highlight can span from anchor to next story (or end of amud).
+    const ag = aggadata();
+    if (ag) {
+      const anchors = ag.stories
+        .map((s, i) => ({ excerpt: s.excerpt ?? '', index: i }))
+        .filter((x) => x.excerpt.length > 0);
+      if (anchors.length > 0) main = injectAnchorMarkers(main, anchors, 'daf-aggadata-anchor', ctx);
+    }
+
+    return { main, inner, outer, placeMatches };
+  });
+
+  // Cities found in the daf's Hebrew text — passed to GeographyMap so each
+  // explicit mention gets a gray place-dot even when no rabbi in the list
+  // is placed there.
+  const citiesInText = createMemo<Set<string> | null>(() => {
+    const t = tokenized();
+    return t ? t.placeMatches : null;
   });
 
   // Changes to this key force GutterIcons to re-measure anchor positions.
   const gutterKey = createMemo(() => {
     const t = tokenized();
     if (!t) return '';
-    return `${tractate()}:${page()}:${t.main.length}:${analysis()?.sections.length ?? 0}:${halacha()?.topics.length ?? 0}`;
+    return `${tractate()}:${page()}:${t.main.length}:${analysis()?.sections.length ?? 0}:${halacha()?.topics.length ?? 0}:${aggadata()?.stories.length ?? 0}`;
   });
 
   const openArgument = (index: number) => {
@@ -740,29 +1033,47 @@ export default function DafViewer(): JSX.Element {
     setSidebar({ kind: 'halacha', topic: h.topics[index], index });
   };
 
-  const onGutterClick = (kind: 'argument' | 'halacha', index: number) => {
+  const openStory = (index: number) => {
+    const ag = aggadata();
+    if (!ag || !ag.stories[index]) return;
+    const current = sidebar();
+    if (current?.kind === 'aggadata' && current.index === index) {
+      setSidebar(null);
+      setActiveStoryIndex(null);
+      return;
+    }
+    setActiveRabbi(null);
+    setActiveStoryIndex(index);
+    setSidebar({ kind: 'aggadata', story: ag.stories[index], index });
+  };
+
+  const onGutterClick = (kind: 'argument' | 'halacha' | 'aggadata', index: number) => {
     // Toggle: clicking the already-active gutter icon closes the sidebar and
     // clears the span highlight.
     const current = sidebar();
     if (current && current.kind === kind && 'index' in current && current.index === index) {
       setSidebar(null);
       setActiveRabbi(null);
+      if (kind === 'aggadata') setActiveStoryIndex(null);
       return;
     }
     if (kind === 'argument') openArgument(index);
-    else openHalacha(index);
+    else if (kind === 'halacha') openHalacha(index);
+    else openStory(index);
   };
 
   const sidebarActiveKey = createMemo(() => {
     const s = sidebar();
     if (!s) return null;
     if (s.kind === 'rabbi') return `rabbi:${s.rabbi.name}`;
+    if (s.kind === 'commentary') return `commentary:${s.workTitle}:${s.segIdx}`;
     return `${s.kind}:${s.index}`;
   });
 
   const onHighlightLocation = (cityName: string | null, rabbiNames: string[]) => {
     setActiveRabbi(null);
     setSidebar(null);
+    setActivePlace(null);
     setActiveLocation(cityName);
     setActiveLocationRabbis(cityName ? rabbiNames : []);
   };
@@ -778,6 +1089,7 @@ export default function DafViewer(): JSX.Element {
     }
     setActiveRabbi(null);
     setSidebar(null);
+    setActivePlace(null);
     setActiveLocation(gen ? `gen:${gen}` : null);
     setActiveLocationRabbis(gen ? rabbiNames : []);
   };
@@ -802,6 +1114,10 @@ export default function DafViewer(): JSX.Element {
   const HALACHA_X = `calc(${100 - SIDE_PCT}% - 8px)`;
   const ARG_EDGE_X = '-10px';
   const HALACHA_EDGE_X = 'calc(100% + 10px)';
+  // Aggadata sits on the left gutter just outside the argument column so the
+  // book icon reads as a third marker type alongside argument + halacha.
+  const AGG_X = `calc(${SIDE_PCT}% - 10px)`;
+  const AGG_EDGE_X = '-24px';
 
   const syncUrl = () => {
     const u = new URL(window.location.href);
@@ -856,12 +1172,15 @@ export default function DafViewer(): JSX.Element {
       const r = range.getBoundingClientRect();
       const word = els.map((el) => (el.textContent ?? '').trim()).filter(Boolean).join(' ');
       const { before, after } = collectSurroundingHebrew(els);
+      const segAttr = els[0].getAttribute('data-seg');
+      const segIdx = segAttr !== null ? Number(segAttr) : undefined;
       setActive({
         word,
         anchor: { top: r.top, left: r.left, bottom: r.bottom, right: r.right },
         els,
         hebrewBefore: before,
         hebrewAfter: after,
+        segIdx: Number.isFinite(segIdx) ? segIdx : undefined,
       });
     }
     if (e) e.stopPropagation();
@@ -872,12 +1191,46 @@ export default function DafViewer(): JSX.Element {
   const openRabbi = (name: string) => {
     const ctx = dafContext();
     const r = ctx?.rabbis.find((x) => x.name === name) ?? null;
+    setActivePlace(null);
     if (!r) {
       setActiveRabbi(name);
       return;
     }
     setActiveRabbi(r.name);
     setSidebar({ kind: 'rabbi', rabbi: r });
+  };
+
+  // Active commentary → Map<segIdx, Comment[]> for fast click lookup
+  // and a flat Set of segment indices for CSS highlighting.
+  const activeCommentaryWorkObj = createMemo<CommentaryWork | null>(() => {
+    const title = activeCommentaryWork();
+    if (!title) return null;
+    return (commentaryWorks() ?? []).find((w) => w.title === title) ?? null;
+  });
+  const commentaryBySegIdx = createMemo<Map<number, CommentaryComment[]>>(() => {
+    const m = new Map<number, CommentaryComment[]>();
+    const work = activeCommentaryWorkObj();
+    if (!work) return m;
+    for (const c of work.comments) {
+      const arr = m.get(c.anchorSegIdx) ?? [];
+      arr.push(c);
+      m.set(c.anchorSegIdx, arr);
+    }
+    return m;
+  });
+  const openCommentaryAtSeg = (segIdx: number) => {
+    const work = activeCommentaryWorkObj();
+    if (!work) return;
+    const comments = commentaryBySegIdx().get(segIdx);
+    if (!comments || comments.length === 0) return;
+    setActiveRabbi(null);
+    setSidebar({
+      kind: 'commentary',
+      workTitle: work.title,
+      workTitleHe: work.titleHe,
+      segIdx,
+      comments,
+    });
   };
 
   // On mouseup: prefer a text selection snapped to word boundaries over a plain
@@ -909,6 +1262,19 @@ export default function DafViewer(): JSX.Element {
     }
     const wordEl = target.closest('.daf-word') as HTMLElement | null;
     if (!wordEl) return;
+    // When a commentary work is active, clicking a word inside one of its
+    // anchored segments opens that work's comments for the segment instead of
+    // triggering a translation.
+    if (activeCommentaryWork()) {
+      const segAttr = wordEl.getAttribute('data-seg');
+      if (segAttr !== null) {
+        const s = Number(segAttr);
+        if (Number.isFinite(s) && commentaryBySegIdx().has(s)) {
+          openCommentaryAtSeg(s);
+          return;
+        }
+      }
+    }
     setActiveFromWordEls([wordEl], e);
   };
 
@@ -1033,6 +1399,15 @@ export default function DafViewer(): JSX.Element {
                 edgeX={HALACHA_EDGE_X}
                 activeKey={sidebarActiveKey()}
               />
+              <GutterIcons
+                containerRef={dafRootEl}
+                triggerKey={gutterKey()}
+                onClick={onGutterClick}
+                kind="aggadata"
+                x={AGG_X}
+                edgeX={AGG_EDGE_X}
+                activeKey={sidebarActiveKey()}
+              />
             </div>
           )}
         </Show>
@@ -1095,6 +1470,7 @@ export default function DafViewer(): JSX.Element {
             anchor={a().anchor}
             hebrewBefore={a().hebrewBefore}
             hebrewAfter={a().hebrewAfter}
+            segIdx={a().segIdx}
             onClose={clearActive}
           />
         )}
@@ -1146,23 +1522,47 @@ export default function DafViewer(): JSX.Element {
           overflow: 'auto',
         }}
       >
+        <AggadataDetector
+          tractate={tractate()}
+          page={page()}
+          result={aggadata()}
+          loading={aggadataLoading()}
+          error={aggadataError()}
+          activeIndex={activeStoryIndex()}
+          onRefresh={() => void runAggadata(true)}
+          onSelectStory={openStory}
+        />
         <GeographyMap
-          analysis={analysis()}
           onHighlightLocation={onHighlightLocation}
           activeLocation={activeLocation()}
           tractate={tractate()}
           page={page()}
           rabbiPlaces={rabbiPlaces()}
-          analysisLoading={analysisLoading()}
+          loading={genLoading()}
           generationByName={generationByName()}
           onHighlightSingleRabbi={openRabbi}
+          onHoverRabbi={setHoveredRabbi}
+          placesInText={citiesInText()}
+          onHighlightPlace={(name) => {
+            setActiveRabbi(null);
+            setActiveLocation(null);
+            setActiveLocationRabbis([]);
+            setActivePlace(name);
+          }}
+          activePlace={activePlace()}
+        />
+        <CommentaryPicker
+          works={commentaryWorks()}
+          loading={commentariesLoading()}
+          activeTitle={activeCommentaryWork()}
+          onSelect={setActiveCommentaryWork}
         />
         <ArgumentSidebar
           content={sidebar()}
           tractate={tractate()}
           page={page()}
           activeRabbi={activeRabbi()}
-          onClose={() => { setSidebar(null); setActiveRabbi(null); }}
+          onClose={() => { setSidebar(null); setActiveRabbi(null); setActiveStoryIndex(null); }}
           onHighlightRabbi={(name) => (name ? openRabbi(name) : setActiveRabbi(null))}
           generationByName={generationByName()}
         />

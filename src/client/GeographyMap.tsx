@@ -1,12 +1,10 @@
-import { createMemo, For, Show, type JSX } from 'solid-js';
-import type { DafAnalysis } from './AnalysisPanel';
+import { createMemo, createSignal, For, Show, type JSX } from 'solid-js';
 import { ISRAEL_SHAPE, BAVEL_SHAPE } from './geoShapes';
-import { logMiss } from './missLog';
 import { GENERATION_BY_ID, type GenerationId } from './generations';
 
-type Region = 'israel' | 'bavel' | 'other';
+export type Region = 'israel' | 'bavel' | 'other';
 
-interface KnownCity {
+export interface KnownCity {
   name: string;
   nameHe: string;
   aliases: string[];
@@ -23,7 +21,7 @@ const ISRAEL_Y_OFFSET = 0;
 const BAVEL_X_OFFSET = 0;
 const BAVEL_Y_OFFSET = 0;
 
-const KNOWN_CITIES: KnownCity[] = [
+export const KNOWN_CITIES: KnownCity[] = [
   // Eretz Yisrael — real Israel outline (Vecteezy flat-simple, simplified)
   // at 67 wide × 180 tall. Cities positioned to roughly match real
   // geography: Galilee cluster top (~y=15-35), coastal plain west
@@ -63,23 +61,6 @@ const KNOWN_CITIES: KnownCity[] = [
   { name: 'Shekanziv',    nameHe: 'שקנציב',    aliases: ['shekanziv', 'shikanzib'],                                                             region: 'bavel', x: BAVEL_X_OFFSET + 105, y: BAVEL_Y_OFFSET + 140 },
 ];
 
-function classifyLocation(loc: string): { city: KnownCity | null; region: Region } {
-  const normalized = loc.toLowerCase();
-  for (const c of KNOWN_CITIES) {
-    for (const a of c.aliases) {
-      if (normalized.includes(a)) return { city: c, region: c.region };
-    }
-  }
-  // Region-only fallback when Kimi returns e.g. "Babylonia" with no city.
-  if (/\b(bavel|babylon|babylonia|babylonian|mesopotamia|parthia|persia|persian|tigris|euphrates)\b/i.test(loc)) {
-    return { city: null, region: 'bavel' };
-  }
-  if (/\b(eretz[- ]?yisrael|eretz[- ]?israel|israel|judea|judean|galilee|galilean|galil|samaria|samarian|palestine|palestinian|golan|canaan|levant)\b/i.test(loc)) {
-    return { city: null, region: 'israel' };
-  }
-  return { city: null, region: 'other' };
-}
-
 export interface RabbiPlaceEnrichment {
   places: string[];                       // city names (matching KNOWN_CITIES)
   region: 'israel' | 'bavel' | null;
@@ -92,23 +73,36 @@ export interface RabbiPlaceEnrichment {
 }
 
 export interface GeographyMapProps {
-  analysis: DafAnalysis | null;
   onHighlightLocation: (cityName: string | null, rabbiNames: string[]) => void;
   activeLocation: string | null;
-  /** Daf context (tractate/page) — only used to tag miss-log entries. */
   tractate?: string;
   page?: string;
   /** Authoritative places per rabbi, derived from Sefaria PersonTopic bios.
-   *  Preferred over the Kimi location string when present. */
+   *  Drives every rabbi dot on the map — the same list that feeds the
+   *  generation timeline, rabbi underlines, and bio sidebar. */
   rabbiPlaces?: Map<string, RabbiPlaceEnrichment> | null;
-  /** True while the background analyze fetch is in flight. */
-  analysisLoading?: boolean;
+  /** True while the daf-context fetch that populates `rabbiPlaces` is in
+   *  flight. Drives the loading spinner shown in place of the maps. */
+  loading?: boolean;
   /** Rabbi → generation mapping (from /api/generations). Used to pick the
    *  color for each rabbi's dot so the map matches the timeline palette. */
   generationByName?: Map<string, GenerationId> | null;
   /** When set, clicking a single rabbi dot highlights that single rabbi
    *  (instead of everyone at that city). */
   onHighlightSingleRabbi?: (rabbiName: string) => void;
+  /** Transient hover highlight — pass the rabbi name on mouseenter, null on
+   *  mouseleave. Additive to click-driven highlights; lets the Migration
+   *  rows light up a rabbi in the daf without stomping sidebar state. */
+  onHoverRabbi?: (rabbiName: string | null) => void;
+  /** Set of city names (matching KNOWN_CITIES.name) that are mentioned by
+   *  name in the daf's Hebrew text. Each one gets a gray place-dot even if
+   *  no rabbi in the list is placed there. */
+  placesInText?: Set<string> | null;
+  /** Clicking a place-dot highlights that city's name in the daf body. */
+  onHighlightPlace?: (cityName: string | null) => void;
+  /** Currently highlighted place, so the dot knows to render its active
+   *  ring. Mutually exclusive with `activeLocation`. */
+  activePlace?: string | null;
 }
 
 interface CityDot {
@@ -137,25 +131,9 @@ function clusterOffsets(n: number, cx: number, cy: number): Array<{ x: number; y
   return out;
 }
 
-// Anonymous/editorial voices introduced by the granular analyze prompt
-// (Gemara's question, First answer, Objection, etc.) don't belong on the
-// physical map — they're the Stam's editorial moves rather than historical
-// people. Filter them out of the aggregation so the map stays "map of
-// rabbis", not "map of argument moves".
-const EDITORIAL_PATTERNS = [
-  /\bgemara\b/i,
-  /\bstam\b/i,
-  /^(first|second|third|fourth|fifth|alternative|another|final)\s+(answer|question|objection|rejoinder|resolution|proof)/i,
-  /^(question|answer|objection|rejoinder|resolution|proof)\b/i,
-  /\b(baraita|baraitha)\b/i,
-];
-function isEditorialVoice(name: string): boolean {
-  return EDITORIAL_PATTERNS.some((rx) => rx.test(name));
-}
-
-// Pseudo-city entries used when Kimi only gives us a region ("Babylonia",
-// "Eretz Yisrael") without a specific city. Positioned near the centroid
-// of each region shape so the dot always has somewhere to land.
+// Pseudo-city entries used when a rabbi's bio only carries a region ("Israel"
+// or "Bavel") without a specific city. Positioned near the centroid of each
+// region shape so the dot always has somewhere to land.
 const UNSPECIFIED_ISRAEL: KnownCity = {
   name: 'Eretz Yisrael (city unspecified)',
   nameHe: 'ארץ ישראל',
@@ -174,53 +152,38 @@ const UNSPECIFIED_BAVEL: KnownCity = {
 };
 
 export function GeographyMap(props: GeographyMapProps): JSX.Element {
-  // Aggregate rabbis by city. Same rabbi mentioned in multiple sections only
-  // counts once per city. Rabbis with unmatched city fall into an
-  // "unspecified" bucket that still gets a dot at the region centroid.
+  // Local hover state for the Migration rows. Only controls the row's own
+  // background tint; the daf-side highlight is driven by props.onHoverRabbi.
+  const [hoveredMoverRow, setHoveredMoverRow] = createSignal<string | null>(null);
+
+  // Each dot is one rabbi from `rabbiPlaces` — the same dafContext.rabbis
+  // list that drives the generation timeline, rabbi underlines, and bio
+  // sidebar. Cities pulled from each rabbi's Sefaria-bio `places[0]`; when
+  // the bio only carries a region, the rabbi lands in an "unspecified"
+  // bucket rendered at the region centroid.
   const data = createMemo(() => {
     const byCity = new Map<string, { city: KnownCity; rabbis: Set<string> }>();
     const unknownIsrael = new Set<string>();
     const unknownBavel = new Set<string>();
-    const unknownOther = new Set<string>();
 
-    const ctx = { tractate: props.tractate, page: props.page };
-    const enrich = props.rabbiPlaces;
     const cityByName = new Map<string, KnownCity>(KNOWN_CITIES.map((c) => [c.name, c]));
+    const enrich = props.rabbiPlaces;
 
-    for (const s of props.analysis?.sections ?? []) {
-      for (const r of s.rabbis) {
-        if (isEditorialVoice(r.name)) continue;
-
-        // 1) Prefer authoritative Sefaria-bio data if available. Assign
-        //    each rabbi to only the FIRST matching place in their bio so
-        //    the map doesn't double-count rabbis across multiple dots.
-        const bioInfo = enrich?.get(r.name);
-        if (bioInfo && bioInfo.places.length > 0) {
-          const placeName = bioInfo.places[0];
+    if (enrich) {
+      for (const [name, info] of enrich.entries()) {
+        if (info.places.length > 0) {
+          const placeName = info.places[0];
           const city = cityByName.get(placeName);
           if (city) {
             if (!byCity.has(city.name)) byCity.set(city.name, { city, rabbis: new Set() });
-            byCity.get(city.name)!.rabbis.add(r.name);
+            byCity.get(city.name)!.rabbis.add(name);
             continue;
           }
         }
-        if (bioInfo && bioInfo.region) {
-          if (bioInfo.region === 'israel') unknownIsrael.add(r.name);
-          else unknownBavel.add(r.name);
-          continue;
-        }
-
-        // 2) Fall back to parsing Kimi's free-text `location` string.
-        const { city, region } = classifyLocation(r.location ?? '');
-        if (city) {
-          if (!byCity.has(city.name)) byCity.set(city.name, { city, rabbis: new Set() });
-          byCity.get(city.name)!.rabbis.add(r.name);
-        } else {
-          logMiss('geography', { rabbi: r.name, location: r.location, fallbackRegion: region }, ctx);
-          if (region === 'israel') unknownIsrael.add(r.name);
-          else if (region === 'bavel') unknownBavel.add(r.name);
-          else unknownOther.add(r.name);
-        }
+        if (info.region === 'israel') unknownIsrael.add(name);
+        else if (info.region === 'bavel') unknownBavel.add(name);
+        // Rabbis with neither a known place nor a region are skipped — we
+        // have nowhere to put them on a two-region map.
       }
     }
 
@@ -236,6 +199,19 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
       dots.push({ city: UNSPECIFIED_BAVEL, rabbis: Array.from(unknownBavel), count: unknownBavel.size });
     }
 
+    // Place-only dots: a city mentioned by name in the daf text but not
+    // occupied by any rabbi dot. Rendered as a single gray circle with no
+    // cluster.
+    const occupied = new Set(dots.map((d) => d.city.name));
+    const placeDots: KnownCity[] = [];
+    if (props.placesInText) {
+      for (const name of props.placesInText) {
+        if (occupied.has(name)) continue;
+        const city = cityByName.get(name);
+        if (city) placeDots.push(city);
+      }
+    }
+
     let israelCount = 0;
     let bavelCount = 0;
     for (const d of dots) {
@@ -243,37 +219,37 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
       else if (d.city.region === 'bavel') bavelCount += d.count;
     }
 
-    // Movers: rabbis on this daf whose rabbi-places enrichment has `moved`
-    // set. Group by direction so the arrow strip shows each vector once.
+    // Movers: rabbis on this daf whose bio has `moved` set. One row per
+    // rabbi so the Migration list can show them individually and wire each
+    // row to its own hover/click target. Ordered by direction first so the
+    // list visually groups Bavel→EY, EY→Bavel, and bidirectional together.
     type Direction = 'bavel->israel' | 'israel->bavel' | 'both';
-    const movers: Record<Direction, string[]> = {
+    const DIR_ORDER: Direction[] = ['bavel->israel', 'israel->bavel', 'both'];
+    const buckets: Record<Direction, string[]> = {
       'bavel->israel': [],
       'israel->bavel': [],
       'both':          [],
     };
-    const seen = new Set<string>();
-    for (const s of props.analysis?.sections ?? []) {
-      for (const r of s.rabbis) {
-        if (isEditorialVoice(r.name)) continue;
-        if (seen.has(r.name)) continue;
-        seen.add(r.name);
-        const mv = enrich?.get(r.name)?.moved;
+    if (enrich) {
+      for (const [name, info] of enrich.entries()) {
+        const mv = info.moved;
         if (mv === 'bavel->israel' || mv === 'israel->bavel' || mv === 'both') {
-          movers[mv].push(r.name);
+          buckets[mv].push(name);
         }
       }
     }
-    const hasMovers = movers['bavel->israel'].length
-      + movers['israel->bavel'].length
-      + movers['both'].length > 0;
+    for (const dir of DIR_ORDER) buckets[dir].sort((a, b) => a.localeCompare(b));
+    const moverRows: Array<{ name: string; direction: Direction }> = [];
+    for (const dir of DIR_ORDER) {
+      for (const name of buckets[dir]) moverRows.push({ name, direction: dir });
+    }
 
     return {
       dots,
+      placeDots,
       israelCount,
       bavelCount,
-      otherCount: unknownOther.size,
-      movers,
-      hasMovers,
+      moverRows,
     };
   });
 
@@ -329,6 +305,28 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
     props.onHighlightLocation(isActive ? null : key, list);
   };
 
+  const renderPlaceDot = (city: KnownCity): JSX.Element => {
+    const active = () => props.activePlace === city.name;
+    return (
+      <circle
+        cx={city.x}
+        cy={city.y}
+        r={2.6}
+        fill={GEN_FALLBACK_COLOR}
+        stroke={active() ? '#000' : 'rgba(0,0,0,0.25)'}
+        stroke-width={active() ? 0.6 : 0.3}
+        style={{ cursor: 'pointer' }}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (!props.onHighlightPlace) return;
+          props.onHighlightPlace(active() ? null : city.name);
+        }}
+      >
+        <title>{`${city.name} (${city.nameHe}) · mentioned in daf`}</title>
+      </circle>
+    );
+  };
+
   return (
     <section
       style={{
@@ -347,7 +345,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
       </div>
 
       <Show
-        when={props.analysis}
+        when={props.rabbiPlaces}
         fallback={
           <p style={{ color: '#888', margin: 0, 'font-size': '0.75rem', display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
             <span style={{
@@ -356,7 +354,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
               border: '2px solid #d6d3d1', 'border-top-color': '#92400e',
               animation: 'daf-spin 0.8s linear infinite',
             }} />
-            {props.analysisLoading ? 'Mapping rabbi geography…' : 'Loading…'}
+            {props.loading ? 'Mapping rabbi geography…' : 'Loading…'}
           </p>
         }
       >
@@ -394,6 +392,9 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
                 style={{ cursor: 'pointer' }}
                 onClick={() => onRegionClick('israel')}
               />
+              <For each={data().placeDots.filter((c) => c.region === 'israel')}>
+                {(c) => renderPlaceDot(c)}
+              </For>
               <For each={data().dots.filter((d) => d.city.region === 'israel')}>
                 {(d) => renderDot(d)}
               </For>
@@ -457,6 +458,9 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
                 Tigris
               </text>
               <circle cx="96" cy="174" r="1.5" fill="#2563eb" opacity="0.8" />
+              <For each={data().placeDots.filter((c) => c.region === 'bavel')}>
+                {(c) => renderPlaceDot(c)}
+              </For>
               <For each={data().dots.filter((d) => d.city.region === 'bavel')}>
                 {(d) => renderDot(d)}
               </For>
@@ -477,15 +481,15 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
           <span>
             Eretz Yisrael: <strong style={{ color: '#1f2937' }}>{data().israelCount}</strong>
           </span>
-          <Show when={data().otherCount > 0}>
-            <span style={{ color: '#888' }}>Other: {data().otherCount}</span>
+          <Show when={data().placeDots.length > 0}>
+            <span style={{ color: '#888' }}>Places mentioned: {data().placeDots.length}</span>
           </Show>
           <span>
             Bavel: <strong style={{ color: '#92400e' }}>{data().bavelCount}</strong>
           </span>
         </div>
 
-        <Show when={data().hasMovers}>
+        <Show when={data().moverRows.length > 0}>
           <div
             style={{
               'margin-top': '0.45rem',
@@ -495,36 +499,60 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
               color: '#555',
               display: 'flex',
               'flex-direction': 'column',
-              gap: '0.25rem',
+              gap: '0.1rem',
             }}
           >
-            <div style={{ color: '#6b7280', 'font-size': '0.64rem', 'text-transform': 'uppercase', 'letter-spacing': '0.06em' }}>
+            <div style={{ color: '#6b7280', 'font-size': '0.64rem', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>
               Migration
             </div>
-            <Show when={data().movers['bavel->israel'].length > 0}>
-              <div style={{ display: 'flex', 'align-items': 'center', gap: '0.5rem' }}>
-                <span style={{ 'font-family': 'ui-monospace, SFMono-Regular, monospace', 'font-weight': 600, color: '#92400e' }}>Bavel</span>
-                <span style={{ 'font-size': '0.95rem', color: '#111' }}>&rarr;</span>
-                <span style={{ 'font-family': 'ui-monospace, SFMono-Regular, monospace', 'font-weight': 600, color: '#1f2937' }}>Eretz Yisrael</span>
-                <span style={{ color: '#555' }}>&middot; {data().movers['bavel->israel'].join(', ')}</span>
-              </div>
-            </Show>
-            <Show when={data().movers['israel->bavel'].length > 0}>
-              <div style={{ display: 'flex', 'align-items': 'center', gap: '0.5rem' }}>
-                <span style={{ 'font-family': 'ui-monospace, SFMono-Regular, monospace', 'font-weight': 600, color: '#1f2937' }}>Eretz Yisrael</span>
-                <span style={{ 'font-size': '0.95rem', color: '#111' }}>&rarr;</span>
-                <span style={{ 'font-family': 'ui-monospace, SFMono-Regular, monospace', 'font-weight': 600, color: '#92400e' }}>Bavel</span>
-                <span style={{ color: '#555' }}>&middot; {data().movers['israel->bavel'].join(', ')}</span>
-              </div>
-            </Show>
-            <Show when={data().movers['both'].length > 0}>
-              <div style={{ display: 'flex', 'align-items': 'center', gap: '0.5rem' }}>
-                <span style={{ 'font-family': 'ui-monospace, SFMono-Regular, monospace', 'font-weight': 600, color: '#1f2937' }}>Eretz Yisrael</span>
-                <span style={{ 'font-size': '0.95rem', color: '#111' }}>&harr;</span>
-                <span style={{ 'font-family': 'ui-monospace, SFMono-Regular, monospace', 'font-weight': 600, color: '#92400e' }}>Bavel</span>
-                <span style={{ color: '#555' }}>&middot; {data().movers['both'].join(', ')}</span>
-              </div>
-            </Show>
+            <For each={data().moverRows}>
+              {(row) => {
+                const hovered = () => hoveredMoverRow() === row.name;
+                // Hover → transient daf highlight via onHoverRabbi (additive,
+                // non-destructive). Click → open bio card via
+                // onHighlightSingleRabbi (same path as clicking the map dot).
+                const onEnter = () => { setHoveredMoverRow(row.name); props.onHoverRabbi?.(row.name); };
+                const onLeave = () => { setHoveredMoverRow(null); props.onHoverRabbi?.(null); };
+                const Bavel = <span style={{ 'font-family': 'ui-monospace, SFMono-Regular, monospace', 'font-weight': 600, color: '#92400e' }}>Bavel</span>;
+                const EY    = <span style={{ 'font-family': 'ui-monospace, SFMono-Regular, monospace', 'font-weight': 600, color: '#1f2937' }}>Eretz Yisrael</span>;
+                const arrow = row.direction === 'both'
+                  ? <span style={{ 'font-size': '0.95rem', color: '#111' }}>&harr;</span>
+                  : <span style={{ 'font-size': '0.95rem', color: '#111' }}>&rarr;</span>;
+                const from = row.direction === 'bavel->israel' ? Bavel : EY;
+                const to   = row.direction === 'bavel->israel' ? EY : Bavel;
+                return (
+                  <div
+                    onMouseEnter={onEnter}
+                    onMouseLeave={onLeave}
+                    onFocus={onEnter}
+                    onBlur={onLeave}
+                    onClick={() => props.onHighlightSingleRabbi?.(row.name)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        props.onHighlightSingleRabbi?.(row.name);
+                      }
+                    }}
+                    tabIndex={0}
+                    style={{
+                      display: 'flex',
+                      'align-items': 'center',
+                      gap: '0.4rem',
+                      padding: '0.15rem 0.35rem',
+                      'border-radius': '4px',
+                      cursor: props.onHighlightSingleRabbi ? 'pointer' : 'default',
+                      'background-color': hovered() ? 'rgba(234, 179, 8, 0.18)' : 'transparent',
+                      transition: 'background-color 120ms',
+                    }}
+                  >
+                    {from}
+                    {arrow}
+                    {to}
+                    <span style={{ color: '#555' }}>&middot; {row.name}</span>
+                  </div>
+                );
+              }}
+            </For>
           </div>
         </Show>
       </Show>

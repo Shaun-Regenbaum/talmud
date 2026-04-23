@@ -184,6 +184,7 @@
    in the right-side gutter alongside the daf. Zero-size, no visual. */
 .daf-root .daf-text .daf-argument-anchor,
 .daf-root .daf-text .daf-halacha-anchor,
+.daf-root .daf-text .daf-aggadata-anchor,
 .daf-root .daf-text .daf-opinion-anchor {
   display: inline-block;
   width: 0;
@@ -195,6 +196,24 @@
    data-rabbi matches the currently-selected rabbi in the sidebar. */
 .daf-root .daf-text .rabbi-underline.rabbi-highlighted {
   background-color: rgba(234, 179, 8, 0.35);
+  border-radius: 2px;
+}
+
+/* City-name marker — injected by src/client/injectCityMarkers.ts around
+   occurrences of KNOWN_CITIES in the Hebrew text. Faint dotted underline so
+   readers know the span is clickable but it doesn't compete visually with
+   rabbi-generation underlines. `.city-highlighted` turns on when a
+   GeographyMap place-dot for that city is the active selection. */
+.daf-root .daf-text .city-marker {
+  border-bottom: 1px dotted #6b7280;
+  padding-bottom: 0;
+  cursor: pointer;
+}
+.daf-root .daf-text .city-marker > .daf-word {
+  color: inherit;
+}
+.daf-root .daf-text .city-marker.city-highlighted {
+  background-color: rgba(59, 130, 246, 0.28);
   border-radius: 2px;
 }
 
@@ -230,6 +249,16 @@
 }
 .daf-root .daf-range-highlight-halacha {
   background-color: rgba(30, 64, 175, 0.25);
+}
+.daf-root .daf-range-highlight-aggadata {
+  background-color: rgba(124, 58, 237, 0.22);
+}
+.daf-root .daf-range-highlight-commentary {
+  background-color: rgba(30, 64, 175, 0.16);
+  cursor: pointer;
+}
+.daf-root .daf-range-highlight-commentary-active {
+  background-color: rgba(30, 64, 175, 0.32);
 }
 
 /* Anonymous-tannaitic variant: dashed underline in the Tanna-5 blue (Rebbi's

@@ -1,7 +1,9 @@
 import { createSignal, createEffect, For, onMount, onCleanup, type JSX } from 'solid-js';
 
+export type GutterKind = 'argument' | 'halacha' | 'aggadata';
+
 export interface GutterItem {
-  kind: 'argument' | 'halacha';
+  kind: GutterKind;
   index: number;
   top: number;
   /** Set when the anchor sits in a full-width text zone (top start spacer
@@ -15,9 +17,9 @@ export interface GutterIconsProps {
   containerRef: () => HTMLElement | null;
   /** Reactive string that changes whenever the tokenized HTML changes (so we re-measure). */
   triggerKey: string;
-  onClick: (kind: 'argument' | 'halacha', index: number) => void;
+  onClick: (kind: GutterKind, index: number) => void;
   /** Which icon type to render. One type per overlay. */
-  kind: 'argument' | 'halacha';
+  kind: GutterKind;
   /** X position in the narrow middle-column gutter (CSS value). */
   x: string;
   /** X position at the outer edge of the daf, for anchors that fall inside
@@ -36,47 +38,87 @@ export function GutterIcons(props: GutterIconsProps): JSX.Element {
     const rootRect = root.getBoundingClientRect();
     const rootTop = rootRect.top;
 
-    // The argument column sits at the left gutter and halacha at the right
-    // gutter. Only the icon's own side matters for deciding whether to jump
-    // out to the edge: if main text has widened into the icon's normal x
-    // at this y (stairs / double-extend regions where a side commentary
-    // ended and main widened over the gutter), the icon overlaps text and
-    // must move out.
+    // Determining atEdge: on the anchor's visual line, does main text extend
+    // past where the icon would normally sit? If yes (stairs / double-extend
+    // regions where a side commentary ended and main widened into the
+    // gutter), we must shove the icon all the way out to the daf margin so
+    // it doesn't land on top of the text.
     //
-    // Probe at the icon's normal x (side-percent in from the edge). In the
-    // narrow main region this lands on the `.daf-main .daf-inner-mid` /
-    // `.daf-outer-mid` float spacer — a sibling of `.daf-text`, so the
-    // "contains" check stays false. Once that spacer's height is consumed
-    // and main text widens into that column, the same probe lands inside
-    // `.daf-text`, flipping atEdge on.
+    // The old implementation tried to probe this with elementsFromPoint at
+    // the icon's x, but .daf-root / .daf-text inherit pointer-events:none
+    // (only .daf-word spans re-enable hit testing), and the probe x sits
+    // right at the narrow text's inner edge — so whether the probe "hit
+    // main" depended on whether that exact x landed on a word or a
+    // justification gap. Flaky per-line, and biased false in widened rows
+    // (big inter-word gaps near the far edge).
+    //
+    // Replaced with a direct measurement: snapshot every .daf-word rect
+    // in the main column, and for each anchor find rects on the same
+    // visual line. If the line's text extent crosses the icon's normal x,
+    // atEdge flips on. This is robust to inter-word whitespace and works
+    // identically in stairs vs double-extend.
     const dafRoot = root.querySelector<HTMLElement>('.daf-root');
     const sidePct = dafRoot
       ? parseFloat(getComputedStyle(dafRoot).getPropertyValue('--daf-side-percent')) || 26
       : 26;
     const sideWidth = (sidePct / 100) * rootRect.width;
     const dafMain = root.querySelector<HTMLElement>('.daf-main .daf-text');
-    const side: 'left' | 'right' = props.kind === 'argument' ? 'left' : 'right';
-    const probeX = side === 'left'
+    const side: 'left' | 'right' = props.kind === 'halacha' ? 'right' : 'left';
+    // The icon's normal x in viewport coordinates. Matches ARG_X / HALACHA_X
+    // in DafViewer.tsx (calc(sidePct% +/- 8px)).
+    const iconViewportX = side === 'left'
       ? rootRect.left + sideWidth + 8
       : rootRect.right - sideWidth - 8;
-    const isMainAt = (viewportY: number): boolean => {
-      if (!dafMain) return false;
-      const stack: Element[] = typeof document.elementsFromPoint === 'function'
-        ? document.elementsFromPoint(probeX, viewportY)
-        : [document.elementFromPoint(probeX, viewportY)].filter(Boolean) as Element[];
-      return stack.some((el) => dafMain.contains(el));
+
+    const wordRects: DOMRect[] = [];
+    if (dafMain) {
+      for (const w of dafMain.querySelectorAll<HTMLElement>('.daf-word')) {
+        const r = w.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0) wordRects.push(r);
+      }
+    }
+
+    // A word is "on this line" when the anchor's y lies vertically inside
+    // its rect (plus a small tolerance for inline-block anchors whose
+    // baseline alignment nudges their rect slightly). Half a line-height
+    // is plenty; 4px keeps us from slurping in adjacent lines when a line
+    // wraps tightly against another.
+    const TOL = 4;
+    const lineExtentAtY = (y: number): { left: number; right: number } | null => {
+      let left = Infinity;
+      let right = -Infinity;
+      for (const r of wordRects) {
+        if (y >= r.top - TOL && y <= r.bottom + TOL) {
+          if (r.left < left) left = r.left;
+          if (r.right > right) right = r.right;
+        }
+      }
+      if (left === Infinity) return null;
+      return { left, right };
     };
 
-    const klass = props.kind === 'argument' ? '.daf-argument-anchor' : '.daf-halacha-anchor';
+    const klass = props.kind === 'argument' ? '.daf-argument-anchor'
+      : props.kind === 'halacha' ? '.daf-halacha-anchor'
+      : '.daf-aggadata-anchor';
+    // 2px inward slack so the line's outermost word just grazing the icon
+    // position doesn't flip the state.
+    const SLACK = 2;
     const out: GutterItem[] = [];
     for (const el of Array.from(root.querySelectorAll<HTMLElement>(klass))) {
       const rect = el.getBoundingClientRect();
       const centerViewportY = rect.top + rect.height / 2;
+      const extent = lineExtentAtY(centerViewportY);
+      let atEdge = false;
+      if (extent) {
+        atEdge = side === 'left'
+          ? extent.left < iconViewportX - SLACK
+          : extent.right > iconViewportX + SLACK;
+      }
       out.push({
         kind: props.kind,
         index: Number(el.getAttribute('data-idx') ?? -1),
         top: rect.top - rootTop,
-        atEdge: isMainAt(centerViewportY),
+        atEdge,
       });
     }
     setItems(out);
@@ -90,24 +132,53 @@ export function GutterIcons(props: GutterIconsProps): JSX.Element {
   });
 
   onMount(() => {
-    const onResize = () => measure();
-    window.addEventListener('resize', onResize);
-    if (typeof document !== 'undefined' && 'fonts' in document) {
-      document.fonts.ready.then(() => queueMicrotask(measure)).catch(() => {});
+    // Re-measure on any layout shift that can move anchor positions:
+    //   • window resize (responsive width changes)
+    //   • daf reflow (late font load, analysis/halacha injection adding
+    //     anchors, narrow→wide transitions when layout-case reclassifies)
+    //   • document.fonts.ready (first-paint, before Mekorot fonts landed)
+    //
+    // Without a ResizeObserver, icons measured while the daf was still
+    // collapsing to its final height would stick with stale `atEdge`
+    // decisions — and the widened bottom is exactly where `atEdge` needs
+    // to flip on. rAF-coalesce so a cascade of mutations only triggers
+    // one re-measure per frame.
+    let rafId = 0;
+    const schedule = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => { rafId = 0; measure(); });
+    };
+    window.addEventListener('resize', schedule);
+    const root = props.containerRef();
+    let ro: ResizeObserver | null = null;
+    if (root && typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(schedule);
+      ro.observe(root);
     }
-    onCleanup(() => window.removeEventListener('resize', onResize));
+    if (typeof document !== 'undefined' && 'fonts' in document) {
+      document.fonts.ready.then(schedule).catch(() => {});
+    }
+    onCleanup(() => {
+      window.removeEventListener('resize', schedule);
+      ro?.disconnect();
+      if (rafId) cancelAnimationFrame(rafId);
+    });
   });
 
-  const isArg = () => props.kind === 'argument';
-  const borderColor = () => isArg() ? '#8a2a2b' : '#1e40af';
-  const title = () => isArg() ? 'Argument structure & rabbis' : 'Practical halacha';
+  const borderColor = () =>
+    props.kind === 'argument' ? '#8a2a2b'
+      : props.kind === 'halacha' ? '#1e40af'
+      : '#7c3aed';
+  const title = () =>
+    props.kind === 'argument' ? 'Argument structure & rabbis'
+      : props.kind === 'halacha' ? 'Practical halacha'
+      : 'Aggada — narrative on this line';
 
-  // Lucide icons: messages-square (two overlapping speech bubbles — dialog /
-  // argument) and gavel (judicial ruling — halacha). Stroke-based for the
-  // Lucide house style; stroke-width bumped to 3 so they read clearly at
-  // the 9×9 px rendered size.
+  // Lucide icons: messages-square (argument dialog), gavel (halacha ruling),
+  // book-open (aggada narrative). Stroke-based Lucide house style; stroke-
+  // width 3 so they read at the 9×9 px rendered size.
   const Icon = () =>
-    isArg() ? (
+    props.kind === 'argument' ? (
       <svg
         viewBox="0 0 24 24"
         width="9"
@@ -122,7 +193,7 @@ export function GutterIcons(props: GutterIconsProps): JSX.Element {
         <path d="M16 10a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 14.286V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
         <path d="M20 9a2 2 0 0 1 2 2v10.286a.71.71 0 0 1-1.212.502l-2.202-2.202A2 2 0 0 0 17.172 19H10a2 2 0 0 1-2-2v-1" />
       </svg>
-    ) : (
+    ) : props.kind === 'halacha' ? (
       <svg
         viewBox="0 0 24 24"
         width="9"
@@ -139,6 +210,21 @@ export function GutterIcons(props: GutterIconsProps): JSX.Element {
         <path d="m21.5 10.5-8-8" />
         <path d="m8 8 6-6" />
         <path d="m8.5 7.5 8 8" />
+      </svg>
+    ) : (
+      <svg
+        viewBox="0 0 24 24"
+        width="9"
+        height="9"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="3"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M12 7v14" />
+        <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />
       </svg>
     );
 

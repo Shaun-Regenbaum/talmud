@@ -180,7 +180,54 @@ function abbreviationMatches(hbRaw: string, sefWords: string[], sj: number): num
     return 0;
   }
 
-  return 0;
+  // --- Generic fallback: first-letter acronym matcher --------------------
+  // Most rabbinic abbreviations are letter-acronyms where each Sefaria word
+  // contributes 1 or 2 consecutive letters to the abbreviation (2 when the
+  // word has a prefix like הקדוש, ואיבעית, וכי that consumes the article
+  // letter and the first root letter). Backtrack to find any valid split.
+  return genericAcronymMatch(hbRaw, sefWords, sj);
+}
+
+const FINAL_MAP: Record<string, string> = { 'ך': 'כ', 'ם': 'מ', 'ן': 'נ', 'ף': 'פ', 'ץ': 'צ' };
+
+function genericAcronymMatch(hbRaw: string, sefWords: string[], sj: number): number {
+  // Must contain a gershayim-style separator — that's the marker that this
+  // Hebrew token is an abbreviation. Single-apostrophe single-word
+  // abbreviations (`שנא'` → `שנאמר`) are caught by `wordsMatchFuzzy`'s
+  // substring rule, not here.
+  if (!/[״"]/.test(hbRaw)) return 0;
+
+  let letters = hbRaw
+    .replace(/[֑-ׇ]/g, '')
+    .replace(/[^א-ת]/g, '');
+  letters = letters.replace(/[ךםןףץ]/g, (m) => FINAL_MAP[m] ?? m);
+  if (letters.length < 2 || letters.length > 6) return 0;
+
+  const MAX_WORDS = 4;
+  const words: string[] = [];
+  for (let k = 0; k < MAX_WORDS && sj + k < sefWords.length; k++) {
+    words.push(normalizeHebrew(sefWords[sj + k]));
+  }
+
+  const consume = (rem: string, wIdx: number): number => {
+    if (rem === '') return wIdx;
+    if (wIdx >= words.length) return 0;
+    const w = words[wIdx];
+    if (!w) return 0;
+    // 1-letter consumption (common case)
+    if (w[0] === rem[0]) {
+      const r = consume(rem.slice(1), wIdx + 1);
+      if (r > 0) return r;
+    }
+    // 2-letter consumption (article/prefix case)
+    if (rem.length >= 2 && w.startsWith(rem.slice(0, 2))) {
+      const r = consume(rem.slice(2), wIdx + 1);
+      if (r > 0) return r;
+    }
+    return 0;
+  };
+
+  return consume(letters, 0);
 }
 
 /**
@@ -253,7 +300,10 @@ export function injectSegmentMarkers(html: string, segmentsHe: string[]): { html
 
     if (segStart < 0) continue;
 
-    // Consume the full segment from segStart. Break on first unmatched word.
+    // Consume the full segment from segStart. A small lookahead on both
+    // sides tolerates single-word insertions/deletions without aborting the
+    // whole segment (e.g. a stray punctuation-word in HB, or a Sefaria-only
+    // editorial gloss). Up to 2 consecutive unmatchable words are skipped.
     let sj = 0;
     let i = segStart;
     while (sj < segWords.length && i < words.length) {
@@ -262,18 +312,32 @@ export function injectSegmentMarkers(html: string, segmentsHe: string[]): { html
       const abbrev = abbreviationMatches(raw, segWords, sj);
       if (abbrev > 0) {
         words[i].setAttribute('data-seg', String(segIdx));
-        i++;
-        sj += abbrev;
-        alignedWords++;
+        i++; sj += abbrev; alignedWords++;
         continue;
       }
       if (singleWordMatch(raw, segWords[sj])) {
         words[i].setAttribute('data-seg', String(segIdx));
-        i++;
-        sj++;
-        alignedWords++;
+        i++; sj++; alignedWords++;
         continue;
       }
+      // No direct match. Try a 1-word lookahead on either side.
+      let recovered = false;
+      for (let look = 1; look <= 2 && !recovered; look++) {
+        // Skip one HB word (insertion in HB).
+        if (i + look < words.length) {
+          const ahead = wordRaw[i + look];
+          if (normalizeHebrew(ahead) && (abbreviationMatches(ahead, segWords, sj) > 0 || singleWordMatch(ahead, segWords[sj]))) {
+            i += look; recovered = true; break;
+          }
+        }
+        // Skip one Sefaria word (deletion in HB).
+        if (sj + look < segWords.length) {
+          if (abbreviationMatches(raw, segWords, sj + look) > 0 || singleWordMatch(raw, segWords[sj + look])) {
+            sj += look; recovered = true; break;
+          }
+        }
+      }
+      if (recovered) continue;
       break;
     }
 

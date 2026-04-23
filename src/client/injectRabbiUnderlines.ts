@@ -10,7 +10,7 @@ export interface GenerationRabbi {
  * Normalize Hebrew for fuzzy matching: drop nikkud/cantillation and common
  * punctuation, collapse whitespace. Keeps letters + geresh variants.
  */
-function normalizeHebrew(s: string): string {
+export function normalizeHebrew(s: string): string {
   return s
     .replace(/[֑-ׇ]/g, '')      // nikkud + cantillation
     .replace(/[.,:;?!"'״׳]/g, '')
