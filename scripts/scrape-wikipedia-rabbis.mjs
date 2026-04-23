@@ -71,11 +71,12 @@ const getArg  = (name, def) => {
   return i >= 0 && args[i + 1] ? args[i + 1] : def;
 };
 
-const URL_BASE   = getArg('--url', 'http://localhost:5173');
-const ONLY_CAT   = getArg('--category', null);
-const LIMIT      = parseInt(getArg('--limit', '0'), 10) || 0;
-const DRY_RUN    = getFlag('--dry-run');
-const FORCE      = getFlag('--force');
+const URL_BASE    = getArg('--url', 'http://localhost:5173');
+const ONLY_CAT    = getArg('--category', null);
+const LIMIT       = parseInt(getArg('--limit', '0'), 10) || 0;
+const CONCURRENCY = parseInt(getArg('--concurrency', '6'), 10);
+const DRY_RUN     = getFlag('--dry-run');
+const FORCE       = getFlag('--force');
 
 // --- helpers ------------------------------------------------------------
 
@@ -244,42 +245,43 @@ async function main() {
 
   let queue = Array.from(pageToGen.entries()).map(([title, meta]) => ({ title, ...meta }));
   if (LIMIT > 0) queue = queue.slice(0, LIMIT);
-  console.log(`[wiki] ${queue.length} unique pages to process\n`);
+  const total = queue.length;
+  console.log(`[wiki] ${total} unique pages to process (concurrency=${CONCURRENCY})\n`);
 
-  let added = 0, updated = 0, skipped = 0, failed = 0;
+  let added = 0, updated = 0, skipped = 0, failed = 0, done = 0;
   const newEntries = [];
   const updates = [];
   const t0 = Date.now();
 
-  for (let i = 0; i < queue.length; i++) {
-    const { title, generation } = queue[i];
-    const progress = `[${i + 1}/${queue.length}]`;
+  async function processOne({ title, generation }) {
+    done++;
+    const progress = `[${done}/${total}]`;
 
     const page = await fetchExtract(title);
     if (!page || !page.extract || page.extract.length < 40) {
       skipped++;
       console.log(`${progress} SKIP ${title} (no extract)`);
-      continue;
+      return;
     }
 
     const he = page.title;
     const heNorm = normalizeHeForResolve(he);
     const matchedSlug = byHe.get(heNorm) ?? null;
 
-    // Translate via Kimi.
     const t = await translateBio({ hebrewBio: page.extract, nameHe: he, nameEn: matchedSlug ? data.rabbis[matchedSlug].canonical : undefined });
     if (!t.ok) {
       failed++;
       console.log(`${progress} FAIL ${title}: ${t.error}`);
-      continue;
+      return;
     }
     const { canonicalEn, bioEn, aliases } = t.data;
     if (!canonicalEn || !bioEn) {
       skipped++;
       console.log(`${progress} SKIP ${title} (not a rabbi per Kimi)`);
-      continue;
+      return;
     }
 
+    // --- critical section (no awaits below) --------------------------------
     if (matchedSlug) {
       const entry = data.rabbis[matchedSlug];
       const patch = {};
@@ -299,7 +301,7 @@ async function main() {
       if (!baseSlug) {
         skipped++;
         console.log(`${progress} SKIP ${title} (empty slug from "${canonicalEn}")`);
-        continue;
+        return;
       }
       const slug = pickUniqueSlug(baseSlug, existingSlugs);
       existingSlugs.add(slug);
@@ -319,7 +321,6 @@ async function main() {
       };
       data.rabbis[slug] = newEntry;
       byHe.set(heNorm, slug);
-      // Update aliasIndex too so the Sefaria-style English-name resolver picks it up.
       const allAliases = [canonicalEn, ...newEntry.aliases];
       for (const a of allAliases) {
         const key = a.toLowerCase();
@@ -329,11 +330,37 @@ async function main() {
       newEntries.push({ slug, canonical: canonicalEn, he });
       console.log(`${progress} ADD  ${slug.padEnd(40)} ${canonicalEn}  (${generation})`);
     }
-
-    // Be polite to the Wikipedia API. The translate-bio call itself takes
-    // several seconds, so this rarely kicks in.
-    await sleep(50);
   }
+
+  // Save-on-interrupt: write what we have so far and exit. Lets the user
+  // Ctrl-C a long run without losing hours of Kimi work.
+  let interrupted = false;
+  process.on('SIGINT', async () => {
+    if (interrupted) process.exit(130);
+    interrupted = true;
+    console.log('\n[wiki] SIGINT — flushing partial progress…');
+    if (!DRY_RUN && (added > 0 || updated > 0)) {
+      data.generatedAt = new Date().toISOString();
+      try {
+        await writeFile(DATA_PATH, JSON.stringify(data, null, 2) + '\n', 'utf-8');
+        console.log(`[wiki] wrote partial: ${added} added, ${updated} updated`);
+      } catch (err) { console.error('[wiki] partial write failed:', err); }
+    }
+    process.exit(130);
+  });
+
+  const workers = Array.from({ length: CONCURRENCY }, () => (async () => {
+    while (queue.length > 0 && !interrupted) {
+      const item = queue.shift();
+      if (!item) return;
+      try { await processOne(item); }
+      catch (err) {
+        failed++;
+        console.error(`[err] ${item.title}: ${err.message}`);
+      }
+    }
+  })());
+  await Promise.all(workers);
 
   const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
   console.log(`\n[wiki] done in ${elapsed}s — ${added} added, ${updated} updated, ${skipped} skipped, ${failed} failed`);
