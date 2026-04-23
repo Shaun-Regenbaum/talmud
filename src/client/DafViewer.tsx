@@ -10,6 +10,7 @@ import { injectRabbiUnderlines, type GenerationRabbi } from './injectRabbiUnderl
 import { injectSegmentMarkers } from './injectSegmentMarkers';
 import { injectTannaiticMarkers } from './injectTannaiticMarkers';
 import { injectHadran } from './injectHadran';
+import { ensureMasechetIncipit } from './ensureMasechetIncipit';
 import { injectAnchorMarkers, injectOpinionMarkers } from './anchorMarkers';
 import { GutterIcons } from './GutterIcons';
 import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
@@ -911,6 +912,14 @@ export default function DafViewer(): JSX.Element {
     let main = tokenizeHebrewHtml(d.mainText.hebrew);
     let inner = d.rashi ? tokenizeHebrewHtml(d.rashi.hebrew) : '';
     let outer = d.tosafot ? tokenizeHebrewHtml(d.tosafot.hebrew) : '';
+
+    // First word of the masechet (always daf 2a) renders as a centered block
+    // incipit. Source HTML from HebrewBooks inconsistently marks this word
+    // with `.gdropcap` — the helper adds it when missing.
+    const { num: pageNumNow, amud: pageAmudNow } = parsePage(page());
+    if (pageNumNow === 2 && pageAmudNow === 'a') {
+      main = ensureMasechetIncipit(main);
+    }
 
     // Sefaria segment alignment — tag each .daf-word in the main column with
     // `data-seg="<idx>"` so commentary anchors (Rashi/Tosafot/others) can be

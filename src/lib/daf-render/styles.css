@@ -159,11 +159,19 @@
   font-family: var(--daf-font-outer);
 }
 
-/* HebrewBooks decorative markup classes preserved in the scraped text */
-.daf-root .daf-text .gdropcap {
-  font-size: 1.8em;
+/* HebrewBooks decorative markup classes preserved in the scraped text.
+   `.gdropcap` wraps the first word of a masechet (daf 2a). Rendered as its
+   own centered block line at ~3x size so the opening word reads as an
+   incipit, matching the tradition of the printed Talmud. Scoped to
+   `.daf-main` so any same-class occurrence in commentary columns is
+   unaffected. Ensured present on 2a by src/client/DafViewer.tsx. */
+.daf-root .daf-main .daf-text .gdropcap {
+  display: block;
+  text-align: center;
+  font-size: 3em;
   font-weight: bold;
-  line-height: 1;
+  line-height: 1.1;
+  margin: 0.1em 0 0.3em;
 }
 .daf-root .daf-text .shastitle7 {
   font-weight: bold;
