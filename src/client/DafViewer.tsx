@@ -275,15 +275,30 @@ export default function DafViewer(): JSX.Element {
   const [aggadataError, setAggadataError] = createSignal<string | null>(null);
   const [activeStoryIndex, setActiveStoryIndex] = createSignal<number | null>(null);
 
-  // Other-commentary state (Sefaria links, non-Rashi/Tosafot). Driven by the
-  // picker at the bottom of the daf and the data-seg alignment in the text.
+  // Other-commentary state (Sefaria links). Driven by the picker in the
+  // right sidebar and the data-seg alignment in the daf text.
   const [commentaryWorks, setCommentaryWorks] = createSignal<CommentaryWork[] | null>(null);
   const [commentariesLoading, setCommentariesLoading] = createSignal(false);
   const [activeCommentaryWork, setActiveCommentaryWork] = createSignal<string | null>(null);
+  // Segment currently expanded inside the CommentaryPicker card (not in the
+  // argument/halacha/rabbi sidebar). `null` means dropdown-only; a number
+  // means the picker card expands to show that segment's comments inline.
+  const [activeCommentarySegIdx, setActiveCommentarySegIdx] = createSignal<number | null>(null);
 
   // Sidebar state
   const [sidebar, setSidebar] = createSignal<SidebarContent | null>(null);
   const [activeRabbi, setActiveRabbi] = createSignal<string | null>(null);
+
+  // Which dynamic card was most recently driven by the user. Used to float
+  // that card to the top of the aside (flex `order`). Reset when the user
+  // closes everything dynamic.
+  const [lastInteractedCard, setLastInteractedCard] = createSignal<'argument' | 'commentary' | null>(null);
+
+  // Default render positions in the right aside; the most-recently-interacted
+  // dynamic card gets `order: 0` so it floats above everything.
+  const ASIDE_DEFAULT_ORDER = { aggadata: 10, geography: 20, commentary: 30, argument: 40 } as const;
+  const topCardOrder = (id: keyof typeof ASIDE_DEFAULT_ORDER): number =>
+    id === lastInteractedCard() ? 0 : ASIDE_DEFAULT_ORDER[id];
 
   // Geography-driven highlight: when the user clicks a city/region on the
   // GeographyMap, we highlight every rabbi in the set across the whole daf,
@@ -529,6 +544,7 @@ export default function DafViewer(): JSX.Element {
     const t = tractate();
     const p = page();
     setActiveCommentaryWork(null);
+    setActiveCommentarySegIdx(null);
     setCommentaryWorks(null);
     setCommentariesLoading(true);
     const controller = new AbortController();
@@ -780,10 +796,12 @@ export default function DafViewer(): JSX.Element {
     // comment, by finding the comment's textHe as a normalized-word run
     // inside the column's .daf-word spans.
     const activeWork = activeCommentaryWorkObj();
+    const openCommentSegIdx = activeCommentarySegIdx();
+    const openComments = activeCommentaryComments();
     if (activeWork) {
       const mainColumn = dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
       const coveredSegs = Array.from(commentaryBySegIdx().keys());
-      const openSegIdx = s?.kind === 'commentary' ? s.segIdx : -1;
+      const openSegIdx = openCommentSegIdx ?? -1;
       for (const segIdx of coveredSegs) {
         const r = rangeForSegment(mainColumn, segIdx);
         if (!r) continue;
@@ -797,13 +815,13 @@ export default function DafViewer(): JSX.Element {
       const colSel = activeWork.title === 'Rashi'   ? '.daf-inner .daf-text'
                    : activeWork.title === 'Tosafot' ? '.daf-outer .daf-text'
                    : null;
-      if (colSel && s?.kind === 'commentary' && s.comments.length > 0) {
+      if (colSel && openCommentSegIdx !== null && openComments.length > 0) {
         const colRoot = dafRootDiv.querySelector<HTMLElement>(colSel);
         if (colRoot) {
           const spans = Array.from(colRoot.querySelectorAll<HTMLElement>('.daf-word'));
           const colNorm = spans.map((el) => sideColumnNormalize(el.textContent ?? ''));
           let searchFrom = 0;
-          for (const comment of s.comments) {
+          for (const comment of openComments) {
             const rr = findCommentRangeInColumn(spans, colNorm, comment.textHe, searchFrom);
             if (rr) {
               commentaryActiveRanges.push(rr.range);
@@ -869,6 +887,7 @@ export default function DafViewer(): JSX.Element {
     void tokenized(); void sidebar(); void activeRabbi(); void activeLocationRabbis();
     void hoveredRabbi();
     void activeCommentaryWork();
+    void activeCommentarySegIdx();
     void activePlace();
     // Defer one frame so layout is settled before we measure client rects.
     queueMicrotask(() => queueMicrotask(applyHighlights));
@@ -1037,6 +1056,7 @@ export default function DafViewer(): JSX.Element {
     if (!a || !a.sections[index]) return;
     setActiveRabbi(null);
     setSidebar({ kind: 'argument', section: a.sections[index], index });
+    setLastInteractedCard('argument');
   };
 
   const openHalacha = (index: number) => {
@@ -1044,6 +1064,7 @@ export default function DafViewer(): JSX.Element {
     if (!h || !h.topics[index]) return;
     setActiveRabbi(null);
     setSidebar({ kind: 'halacha', topic: h.topics[index], index });
+    setLastInteractedCard('argument');
   };
 
   const openStory = (index: number) => {
@@ -1053,11 +1074,13 @@ export default function DafViewer(): JSX.Element {
     if (current?.kind === 'aggadata' && current.index === index) {
       setSidebar(null);
       setActiveStoryIndex(null);
+      if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
       return;
     }
     setActiveRabbi(null);
     setActiveStoryIndex(index);
     setSidebar({ kind: 'aggadata', story: ag.stories[index], index });
+    setLastInteractedCard('argument');
   };
 
   const onGutterClick = (kind: 'argument' | 'halacha' | 'aggadata', index: number) => {
@@ -1068,6 +1091,7 @@ export default function DafViewer(): JSX.Element {
       setSidebar(null);
       setActiveRabbi(null);
       if (kind === 'aggadata') setActiveStoryIndex(null);
+      if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
       return;
     }
     if (kind === 'argument') openArgument(index);
@@ -1079,7 +1103,6 @@ export default function DafViewer(): JSX.Element {
     const s = sidebar();
     if (!s) return null;
     if (s.kind === 'rabbi') return `rabbi:${s.rabbi.name}`;
-    if (s.kind === 'commentary') return `commentary:${s.workTitle}:${s.segIdx}`;
     return `${s.kind}:${s.index}`;
   });
 
@@ -1208,10 +1231,12 @@ export default function DafViewer(): JSX.Element {
     setActivePlace(null);
     if (!r) {
       setActiveRabbi(name);
+      setLastInteractedCard('argument');
       return;
     }
     setActiveRabbi(r.name);
     setSidebar({ kind: 'rabbi', rabbi: r });
+    setLastInteractedCard('argument');
   };
 
   // Active commentary → Map<segIdx, Comment[]> for fast click lookup
@@ -1232,19 +1257,30 @@ export default function DafViewer(): JSX.Element {
     }
     return m;
   });
+  // Comments to show in the picker card's expanded slot. Empty when no
+  // segment is active or the active work changes underneath.
+  const activeCommentaryComments = createMemo<CommentaryComment[]>(() => {
+    const idx = activeCommentarySegIdx();
+    if (idx === null) return [];
+    return commentaryBySegIdx().get(idx) ?? [];
+  });
+
   const openCommentaryAtSeg = (segIdx: number) => {
     const work = activeCommentaryWorkObj();
     if (!work) return;
     const comments = commentaryBySegIdx().get(segIdx);
     if (!comments || comments.length === 0) return;
     setActiveRabbi(null);
-    setSidebar({
-      kind: 'commentary',
-      workTitle: work.title,
-      workTitleHe: work.titleHe,
-      segIdx,
-      comments,
-    });
+    setActiveCommentarySegIdx(segIdx);
+    setLastInteractedCard('commentary');
+  };
+
+  // Wrapped picker-select: collapses any open segment so a new work doesn't
+  // inherit a stale segment, and floats the picker card to the top.
+  const selectCommentaryWork = (title: string | null) => {
+    setActiveCommentarySegIdx(null);
+    setActiveCommentaryWork(title);
+    if (title) setLastInteractedCard('commentary');
   };
 
   // On mouseup: prefer a text selection snapped to word boundaries over a plain
@@ -1536,50 +1572,69 @@ export default function DafViewer(): JSX.Element {
           overflow: 'auto',
         }}
       >
-        <AggadataDetector
-          tractate={tractate()}
-          page={page()}
-          result={aggadata()}
-          loading={aggadataLoading()}
-          error={aggadataError()}
-          activeIndex={activeStoryIndex()}
-          onRefresh={() => void runAggadata(true)}
-          onSelectStory={openStory}
-        />
-        <GeographyMap
-          onHighlightLocation={onHighlightLocation}
-          activeLocation={activeLocation()}
-          tractate={tractate()}
-          page={page()}
-          rabbiPlaces={rabbiPlaces()}
-          loading={genLoading()}
-          generationByName={generationByName()}
-          onHighlightSingleRabbi={openRabbi}
-          onHoverRabbi={setHoveredRabbi}
-          placesInText={citiesInText()}
-          onHighlightPlace={(name) => {
-            setActiveRabbi(null);
-            setActiveLocation(null);
-            setActiveLocationRabbis([]);
-            setActivePlace(name);
-          }}
-          activePlace={activePlace()}
-        />
-        <CommentaryPicker
-          works={commentaryWorks()}
-          loading={commentariesLoading()}
-          activeTitle={activeCommentaryWork()}
-          onSelect={setActiveCommentaryWork}
-        />
+        <div style={{ order: topCardOrder('aggadata'), }}>
+          <AggadataDetector
+            tractate={tractate()}
+            page={page()}
+            result={aggadata()}
+            loading={aggadataLoading()}
+            error={aggadataError()}
+            activeIndex={activeStoryIndex()}
+            onRefresh={() => void runAggadata(true)}
+            onSelectStory={openStory}
+          />
+        </div>
+        <div style={{ order: topCardOrder('geography'), }}>
+          <GeographyMap
+            onHighlightLocation={onHighlightLocation}
+            activeLocation={activeLocation()}
+            tractate={tractate()}
+            page={page()}
+            rabbiPlaces={rabbiPlaces()}
+            loading={genLoading()}
+            generationByName={generationByName()}
+            onHighlightSingleRabbi={openRabbi}
+            onHoverRabbi={setHoveredRabbi}
+            placesInText={citiesInText()}
+            onHighlightPlace={(name) => {
+              setActiveRabbi(null);
+              setActiveLocation(null);
+              setActiveLocationRabbis([]);
+              setActivePlace(name);
+            }}
+            activePlace={activePlace()}
+          />
+        </div>
+        <div style={{ order: topCardOrder('commentary'), }}>
+          <CommentaryPicker
+            works={commentaryWorks()}
+            loading={commentariesLoading()}
+            activeTitle={activeCommentaryWork()}
+            onSelect={selectCommentaryWork}
+            activeSegIdx={activeCommentarySegIdx()}
+            activeComments={activeCommentaryComments()}
+            onCloseSegment={() => {
+              setActiveCommentarySegIdx(null);
+              if (sidebar() === null) setLastInteractedCard(null);
+            }}
+          />
+        </div>
+        <div style={{ order: topCardOrder('argument'), }}>
         <ArgumentSidebar
           content={sidebar()}
           tractate={tractate()}
           page={page()}
           activeRabbi={activeRabbi()}
-          onClose={() => { setSidebar(null); setActiveRabbi(null); setActiveStoryIndex(null); }}
+          onClose={() => {
+            setSidebar(null);
+            setActiveRabbi(null);
+            setActiveStoryIndex(null);
+            if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
+          }}
           onHighlightRabbi={(name) => (name ? openRabbi(name) : setActiveRabbi(null))}
           generationByName={generationByName()}
         />
+        </div>
       </aside>
     </main>
   );

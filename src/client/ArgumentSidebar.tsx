@@ -4,14 +4,12 @@ import type { HalachaTopic } from './HalachaPanel';
 import type { AggadataStory } from './AggadataDetector';
 import { GENERATION_BY_ID, type GenerationId } from './generations';
 import type { IdentifiedRabbi } from './dafContext';
-import type { CommentaryComment } from './CommentaryPicker';
 
 export type SidebarContent =
   | { kind: 'argument'; section: Section; index: number }
   | { kind: 'halacha'; topic: HalachaTopic; index: number }
   | { kind: 'aggadata'; story: AggadataStory; index: number }
-  | { kind: 'rabbi'; rabbi: IdentifiedRabbi }
-  | { kind: 'commentary'; workTitle: string; workTitleHe: string; segIdx: number; comments: CommentaryComment[] };
+  | { kind: 'rabbi'; rabbi: IdentifiedRabbi };
 
 export interface ArgumentSidebarProps {
   content: SidebarContent | null;
@@ -177,8 +175,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                 {c().kind === 'argument' ? 'Argument'
                   : c().kind === 'halacha' ? 'Practical Halacha'
                   : c().kind === 'aggadata' ? 'Aggada'
-                  : c().kind === 'rabbi' ? 'Rabbi'
-                  : 'Commentary'}
+                  : 'Rabbi'}
                 {' · '}
                 {props.tractate} {props.page}
               </span>
@@ -397,73 +394,6 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
               })()}
             </Show>
 
-            <Show when={c().kind === 'commentary'}>
-              {(() => {
-                const cc = c() as Extract<SidebarContent, { kind: 'commentary' }>;
-                return (
-                  <div>
-                    <h3 style={{ margin: '0 0 0.15rem', 'font-size': '1.05rem', color: '#1e40af' }}>
-                      {cc.workTitle}
-                    </h3>
-                    <Show when={cc.workTitleHe}>
-                      <p dir="rtl" lang="he" style={{
-                        margin: '0 0 0.4rem', 'font-family': '"Mekorot Vilna", serif',
-                        'font-size': '1rem', color: '#666',
-                      }}>{cc.workTitleHe}</p>
-                    </Show>
-                    <div style={{ 'font-size': '0.72rem', color: '#999', 'margin-bottom': '0.6rem' }}>
-                      {cc.comments.length} comment{cc.comments.length === 1 ? '' : 's'} on segment #{cc.segIdx + 1}
-                    </div>
-                    <For each={cc.comments}>
-                      {(comment, i) => (
-                        <div
-                          style={{
-                            padding: '0.6rem 0.8rem',
-                            margin: '0 0 0.5rem',
-                            background: '#fcfcfa',
-                            border: '1px solid #eee',
-                            'border-radius': '4px',
-                          }}
-                        >
-                          <div style={{ 'font-size': '0.7rem', color: '#999', 'margin-bottom': '0.35rem' }}>
-                            #{i() + 1} · {comment.sourceRef}
-                          </div>
-                          <Show when={comment.textHe}>
-                            <div
-                              dir="rtl"
-                              lang="he"
-                              style={{
-                                'font-family': '"Mekorot Vilna", serif',
-                                'font-size': '0.95rem',
-                                'line-height': 1.55,
-                                color: '#333',
-                                'margin-bottom': comment.textEn ? '0.5rem' : 0,
-                              }}
-                              innerHTML={comment.textHe}
-                            />
-                          </Show>
-                          <Show when={comment.textEn}>
-                            <div
-                              style={{
-                                'font-size': '0.82rem',
-                                color: '#555',
-                                'line-height': 1.5,
-                              }}
-                              innerHTML={comment.textEn}
-                            />
-                          </Show>
-                          <Show when={!comment.textHe && !comment.textEn}>
-                            <div style={{ color: '#999', 'font-style': 'italic', 'font-size': '0.8rem' }}>
-                              (No text available)
-                            </div>
-                          </Show>
-                        </div>
-                      )}
-                    </For>
-                  </div>
-                );
-              })()}
-            </Show>
         </aside>
       )}
     </Show>
