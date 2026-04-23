@@ -1,4 +1,4 @@
-import { For, Show, type JSX } from 'solid-js';
+import { For, Show, createEffect, createSignal, type JSX } from 'solid-js';
 
 export interface AggadataStory {
   title: string;
@@ -40,6 +40,15 @@ const THEME_COLORS: Record<string, string> = {
 
 export function AggadataDetector(props: AggadataDetectorProps): JSX.Element {
   const count = () => props.result?.stories.length ?? 0;
+  const [collapsed, setCollapsed] = createSignal(true);
+
+  // Auto-expand when a story is selected elsewhere (e.g. via gutter icon) so
+  // the active highlight in the list is actually visible.
+  createEffect(() => {
+    if (props.activeIndex !== null) setCollapsed(false);
+  });
+
+  const toggle = () => setCollapsed((c) => !c);
 
   return (
     <section
@@ -54,11 +63,22 @@ export function AggadataDetector(props: AggadataDetectorProps): JSX.Element {
       }}
     >
       <div
+        onClick={toggle}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggle();
+          }
+        }}
         style={{
           display: 'flex',
           'justify-content': 'space-between',
           'align-items': 'center',
-          'margin-bottom': '0.5rem',
+          'margin-bottom': collapsed() && props.result && count() > 0 ? 0 : '0.5rem',
+          cursor: 'pointer',
+          'user-select': 'none',
         }}
       >
         <div
@@ -67,18 +87,41 @@ export function AggadataDetector(props: AggadataDetectorProps): JSX.Element {
             'font-size': '0.72rem',
             'text-transform': 'uppercase',
             'letter-spacing': '0.06em',
+            display: 'flex',
+            'align-items': 'center',
+            gap: '0.35rem',
           }}
         >
-          Aggadot
           <Show when={props.result && count() > 0}>
-            <span style={{ 'margin-left': '0.4rem', color: '#7c3aed', 'font-weight': 600 }}>
-              {count()} {count() === 1 ? 'story' : 'stories'}
+            <span
+              style={{
+                display: 'inline-block',
+                width: '0.6rem',
+                'text-align': 'center',
+                color: '#bbb',
+                'font-size': '0.65rem',
+                transform: collapsed() ? 'rotate(0deg)' : 'rotate(90deg)',
+                transition: 'transform 0.12s',
+              }}
+            >
+              ▶
             </span>
           </Show>
+          <span>
+            Aggadot
+            <Show when={props.result && count() > 0}>
+              <span style={{ 'margin-left': '0.4rem', color: '#7c3aed', 'font-weight': 600 }}>
+                {count()} {count() === 1 ? 'story' : 'stories'}
+              </span>
+            </Show>
+          </span>
         </div>
         <Show when={props.result && !props.loading}>
           <button
-            onClick={() => props.onRefresh()}
+            onClick={(e) => {
+              e.stopPropagation();
+              props.onRefresh();
+            }}
             title="Re-run aggadata detection"
             style={{
               background: 'transparent',
@@ -143,7 +186,7 @@ export function AggadataDetector(props: AggadataDetectorProps): JSX.Element {
         </p>
       </Show>
 
-      <Show when={props.result && count() > 0}>
+      <Show when={props.result && count() > 0 && !collapsed()}>
         <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.35rem' }}>
           <For each={props.result!.stories}>
             {(story, i) => {
