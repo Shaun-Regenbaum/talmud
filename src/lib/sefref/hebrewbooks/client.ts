@@ -1,6 +1,3 @@
-// HebrewBooks scraping service
-// Uses Cloudflare Browser Rendering to extract structured data from HebrewBooks.org
-
 export interface HebrewBooksPage {
   tractate: string;
   daf: string;
@@ -13,12 +10,11 @@ export interface HebrewBooksPage {
 }
 
 export interface HebrewBooksParams {
-  mesechta: number; // Tractate ID (e.g., 27 for Berakhot)
-  daf: number; // Page number
+  mesechta: number;
+  daf: number;
   format?: 'text' | 'pdf';
 }
 
-// Tractate ID mapping
 export const TRACTATE_IDS: Record<string, number> = {
   'Berakhot': 1,
   'Shabbat': 2,
@@ -56,23 +52,97 @@ export const TRACTATE_IDS: Record<string, number> = {
   'Temurah': 34,
   'Keritot': 35,
   'Meilah': 36,
-  'Niddah': 37
+  'Niddah': 37,
 };
 
-// Note: HebrewBooksService class removed - we now fetch directly from daf-supplier
-
-// Note: HebrewBooksAPI class removed - we now fetch directly from daf-supplier
-
-// Utility function to convert Sefaria format (2a, 2b) to daf-supplier format
 export function convertDafToHebrewBooksFormat(daf: string): string {
-  // HebrewBooks/daf-supplier numbering:
-  // daf=2 returns page 2a, daf=3 returns page 2b, daf=4 returns page 3a, etc.
-  // Formula: Xa -> (X*2), Xb -> (X*2+1)
   const pageNum = parseInt(daf.replace(/[ab]/, ''));
   const amud = daf.includes('b') ? 'b' : 'a';
-  
   const dafSupplierNum = amud === 'a' ? (pageNum * 2) : (pageNum * 2 + 1);
   return dafSupplierNum.toString();
 }
 
-// Note: All exports removed - we now fetch directly from daf-supplier
+/**
+ * Translate a Sefaria page identifier like "2a" / "12b" to the daf query-string
+ * value used by hebrewbooks.org/shas.aspx. The site accepts integers for A-pages
+ * and "{n}b" for B-pages (e.g. daf=2 → 2a, daf=2b → 2b, daf=3 → 3a).
+ */
+export function sefariaPageToHebrewBooksDaf(page: string): string {
+  return page.replace(/a$/i, '');
+}
+
+export interface HebrewBooksDaf {
+  main: string;
+  rashi: string;
+  tosafot: string;
+}
+
+/**
+ * Fetch a daf's main Gemara + Rashi + Tosafot from hebrewbooks.org as HTML
+ * fragments preserving the site's decorative markup (e.g. <span class="gdropcap">
+ * for the big opening word, <span class="shastitle7"> for commentary lemmas).
+ *
+ * Unlike Sefaria, HebrewBooks mirrors the Vilna print layout's emphasis cues
+ * which makes it a better source for faithful visual rendering. Sefaria
+ * remains the source for translations and structured refs.
+ */
+export async function fetchHebrewBooksDaf(
+  tractate: string,
+  page: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<HebrewBooksDaf> {
+  const mesechta = TRACTATE_IDS[tractate];
+  if (!mesechta) throw new Error(`Unknown tractate: ${tractate}`);
+
+  const daf = sefariaPageToHebrewBooksDaf(page);
+  const url = `https://hebrewbooks.org/shas.aspx?mesechta=${mesechta}&daf=${daf}&format=text`;
+
+  const res = await fetchImpl(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml',
+      'Accept-Language': 'he,en;q=0.8',
+    },
+  });
+  if (!res.ok) throw new Error(`HebrewBooks HTTP ${res.status} for ${tractate} ${page}`);
+  const html = await res.text();
+
+  return {
+    main: extractShastext(html, 2),
+    rashi: extractShastext(html, 3),
+    tosafot: extractShastext(html, 4),
+  };
+}
+
+/**
+ * Extract the inner HTML of a <div class="shastextN"> block, handling nested
+ * <div> elements via depth counting. Returns an empty string if the block
+ * isn't found.
+ */
+function extractShastext(html: string, n: 2 | 3 | 4): string {
+  const className = `shastext${n}`;
+  const startRe = new RegExp(`<div\\s+class="${className}"[^>]*>`, 'i');
+  const startMatch = startRe.exec(html);
+  if (!startMatch) return '';
+
+  const contentStart = startMatch.index + startMatch[0].length;
+  let depth = 1;
+  let pos = contentStart;
+
+  while (depth > 0 && pos < html.length) {
+    const openIdx = html.indexOf('<div', pos);
+    const closeIdx = html.indexOf('</div>', pos);
+    if (closeIdx < 0) break;
+    if (openIdx >= 0 && openIdx < closeIdx) {
+      depth++;
+      pos = openIdx + 4;
+    } else {
+      depth--;
+      if (depth === 0) {
+        return html.slice(contentStart, closeIdx).trim();
+      }
+      pos = closeIdx + 6;
+    }
+  }
+  return '';
+}

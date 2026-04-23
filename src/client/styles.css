@@ -42,9 +42,7 @@ html, body {
 }
 
 main {
-  max-width: 900px;
   margin: 0 auto;
-  padding: 2rem 1.5rem;
 }
 
 header {
@@ -98,3 +96,5 @@ section h2 {
   color: var(--muted);
   font-style: italic;
 }
+
+@keyframes daf-spin { to { transform: rotate(360deg); } }

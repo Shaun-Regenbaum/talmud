@@ -57,6 +57,38 @@ export interface TalmudPageData {
   };
 }
 
+export interface CommentatorSnippet {
+  hebrew: string;
+  english: string;
+  ref: string;
+}
+
+export type RishonimBundle = Record<string, CommentatorSnippet>;
+
+export interface HalachicSnippet {
+  ref: string;
+  hebrew: string;
+  english: string;
+}
+
+export type HalachicRefBundle = Record<string, HalachicSnippet[]>;
+
+/**
+ * Classical Rishonim / Acharonim on the Talmud. Keys are the short labels we
+ * expose to the LLM; values are how the book appears in Sefaria's index_title
+ * or getText ref. Not every tractate has every commentator — missing ones are
+ * simply omitted from the bundle.
+ */
+const RISHONIM_BOOKS: ReadonlyArray<{ label: string; book: string }> = [
+  { label: 'Rashba',              book: 'Rashba' },
+  { label: 'Ritva',               book: 'Ritva' },
+  { label: 'Ramban',              book: 'Ramban' },
+  { label: 'Meiri',               book: 'Beit HaBechira' },
+  { label: 'Rosh',                book: 'Rosh' },
+  { label: 'Maharsha',            book: 'Maharsha' },
+  { label: 'Chidushei Aggadot',   book: 'Chidushei Aggadot of the Maharsha' },
+];
+
 class SefariaAPI {
   async getText(ref: string, options?: {
     lang?: string;
@@ -145,6 +177,73 @@ class SefariaAPI {
         english: formatText(tosafotData.text)
       } : undefined
     };
+  }
+
+  /**
+   * Fetch classical Rishonim commentary on a given amud (Rashba, Ritva,
+   * Ramban, Meiri/Beit HaBechira, Rosh, Maharsha, Chidushei Aggadot).
+   * Returns only the commentators Sefaria has for this tractate+page.
+   */
+  async fetchRishonim(tractate: string, page: string): Promise<RishonimBundle> {
+    const ref = `${tractate}.${page}`;
+    const out: RishonimBundle = {};
+    await Promise.all(
+      RISHONIM_BOOKS.map(async ({ label, book }) => {
+        try {
+          const text = await this.getText(`${book} on ${ref}`);
+          const hebrew = Array.isArray(text.he) ? text.he.join(' ') : (text.he ?? '');
+          const english = Array.isArray(text.text) ? text.text.join(' ') : (text.text ?? '');
+          if (hebrew || english) {
+            out[label] = { hebrew, english, ref: text.ref };
+          }
+        } catch {
+          // commentator not available for this daf — skip silently
+        }
+      })
+    );
+    return out;
+  }
+
+  /**
+   * Fetch halachic codifications (Mishneh Torah / Rambam, Shulchan Aruch,
+   * Tur) that Sefaria links to a given amud. Returns up to N snippets per
+   * codification book, grouped by book title.
+   */
+  async fetchHalachicRefs(
+    tractate: string,
+    page: string,
+    opts: { maxPerBook?: number } = {}
+  ): Promise<HalachicRefBundle> {
+    const maxPerBook = opts.maxPerBook ?? 6;
+    const ref = `${tractate}.${page}`;
+    const related = await this.getRelated(ref).catch(() => null);
+    if (!related) return {};
+    const halakhahLinks = related.links.filter(l => l.category === 'Halakhah');
+    const grouped = new Map<string, string[]>();
+    for (const link of halakhahLinks) {
+      const book = link.index_title;
+      const refs = grouped.get(book) ?? [];
+      if (!refs.includes(link.ref)) refs.push(link.ref);
+      grouped.set(book, refs);
+    }
+    const out: HalachicRefBundle = {};
+    await Promise.all(
+      Array.from(grouped.entries()).map(async ([book, refs]) => {
+        const capped = refs.slice(0, maxPerBook);
+        const texts = await Promise.all(
+          capped.map(r => this.getText(r).catch(() => null))
+        );
+        const snippets: HalachicSnippet[] = [];
+        for (const t of texts) {
+          if (!t) continue;
+          const hebrew = Array.isArray(t.he) ? t.he.join(' ') : (t.he ?? '');
+          const english = Array.isArray(t.text) ? t.text.join(' ') : (t.text ?? '');
+          if (hebrew || english) snippets.push({ ref: t.ref, hebrew, english });
+        }
+        if (snippets.length) out[book] = snippets;
+      })
+    );
+    return out;
   }
 }
 

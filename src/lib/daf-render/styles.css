@@ -1,0 +1,279 @@
+/* Scoped daf-render styles. All state flows through instance-level CSS vars
+   on the .daf-root element (no global stylesheet mutation). */
+
+.daf-root {
+  position: relative;
+  width: var(--daf-content-width);
+  pointer-events: none;
+  box-sizing: content-box;
+}
+
+.daf-root .daf-outer,
+.daf-root .daf-inner,
+.daf-root .daf-main {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--daf-content-width);
+  pointer-events: none;
+  box-sizing: content-box;
+}
+
+/* Spacer defaults */
+.daf-root .daf-spacer {
+  pointer-events: none;
+}
+
+/* Side columns: spacers default to halfway width, mid takes remainder */
+.daf-root .daf-inner .daf-spacer,
+.daf-root .daf-outer .daf-spacer {
+  width: var(--daf-halfway-percent);
+}
+
+.daf-root .daf-inner .daf-mid,
+.daf-root .daf-outer .daf-mid {
+  width: var(--daf-remainder-percent);
+  clear: both;
+}
+
+/* Inner column floats */
+.daf-root .daf-inner .daf-spacer {
+  float: var(--daf-inner-float);
+}
+.daf-root .daf-main .daf-outer-mid {
+  float: var(--daf-inner-float);
+}
+
+/* Outer column floats */
+.daf-root .daf-outer .daf-spacer {
+  float: var(--daf-outer-float);
+}
+.daf-root .daf-main .daf-inner-mid {
+  float: var(--daf-outer-float);
+}
+
+/* Main column: full-width start spacer, side-width mid spacers */
+.daf-root .daf-main .daf-start {
+  width: var(--daf-content-width);
+}
+.daf-root .daf-main .daf-inner-mid,
+.daf-root .daf-main .daf-outer-mid {
+  width: var(--daf-side-percent);
+}
+
+/* Spacer heights driven by the layout engine */
+.daf-root .daf-start {
+  height: var(--daf-start);
+}
+.daf-root .daf-inner .daf-end {
+  height: var(--daf-inner-end);
+}
+.daf-root .daf-outer .daf-end {
+  height: var(--daf-outer-end);
+}
+.daf-root .daf-inner .daf-mid,
+.daf-root .daf-main .daf-inner-mid {
+  height: var(--daf-inner);
+}
+.daf-root .daf-outer .daf-mid,
+.daf-root .daf-main .daf-outer-mid {
+  height: var(--daf-outer);
+}
+
+/* Horizontal padding between spacers and text */
+.daf-root .daf-main .daf-inner-mid,
+.daf-root .daf-main .daf-outer-mid {
+  margin-left: calc(0.5 * var(--daf-padding-horizontal));
+  margin-right: calc(0.5 * var(--daf-padding-horizontal));
+}
+
+.daf-root .daf-end {
+  margin-left: calc(0.5 * var(--daf-padding-horizontal));
+  margin-right: calc(0.5 * var(--daf-padding-horizontal));
+}
+
+/* Main column start spacer: always full-width block with normal horizontal padding */
+.daf-root .daf-main .daf-start {
+  margin-left: calc(0.5 * var(--daf-padding-horizontal));
+  margin-right: calc(0.5 * var(--daf-padding-horizontal));
+}
+
+/* Side column start spacers: per-column overrides to support exception cases
+   (commentary too short to fill top region). Defaults give the standard
+   halfway-wide floating start. Exception overrides can set width to 0% or
+   100% and toggle the bottom gap via --daf-*-start-gap. */
+.daf-root .daf-inner .daf-start {
+  width: var(--daf-inner-start-width, var(--daf-halfway-percent));
+  margin-left: var(--daf-inner-start-pad, calc(0.5 * var(--daf-padding-horizontal)));
+  margin-right: var(--daf-inner-start-pad, calc(0.5 * var(--daf-padding-horizontal)));
+  margin-bottom: var(--daf-inner-start-gap, 0px);
+}
+
+.daf-root .daf-outer .daf-start {
+  width: var(--daf-outer-start-width, var(--daf-halfway-percent));
+  margin-left: var(--daf-outer-start-pad, calc(0.5 * var(--daf-padding-horizontal)));
+  margin-right: var(--daf-outer-start-pad, calc(0.5 * var(--daf-padding-horizontal)));
+  margin-bottom: var(--daf-outer-start-gap, 0px);
+}
+
+/* Vertical padding */
+.daf-root .daf-mid,
+.daf-root .daf-main .daf-text {
+  margin-top: var(--daf-padding-vertical);
+}
+
+.daf-root .daf-mid,
+.daf-root .daf-main .daf-inner-mid,
+.daf-root .daf-main .daf-outer-mid {
+  margin-bottom: var(--daf-padding-vertical);
+}
+
+/* Text */
+.daf-root .daf-text {
+  direction: var(--daf-direction);
+  text-align: justify;
+  text-align-last: center;
+}
+
+.daf-root .daf-text span {
+  pointer-events: auto;
+}
+
+.daf-root .daf-main .daf-text {
+  font-family: var(--daf-font-main);
+  font-size: var(--daf-font-size-main);
+  line-height: var(--daf-line-height-main);
+}
+
+.daf-root .daf-inner .daf-text,
+.daf-root .daf-outer .daf-text {
+  font-size: var(--daf-font-size-side);
+  line-height: var(--daf-line-height-side);
+}
+
+.daf-root .daf-inner .daf-text {
+  font-family: var(--daf-font-inner);
+}
+
+.daf-root .daf-outer .daf-text {
+  font-family: var(--daf-font-outer);
+}
+
+/* HebrewBooks decorative markup classes preserved in the scraped text */
+.daf-root .daf-text .gdropcap {
+  font-size: 1.8em;
+  font-weight: bold;
+  line-height: 1;
+}
+.daf-root .daf-text .shastitle7 {
+  font-weight: bold;
+}
+.daf-root .daf-text .five {
+  font-weight: bold;
+}
+
+/* HebrewBooks wraps each Tosafot/commentary section in a block-level div with
+   margin-bottom:3px. We want sections to flow inline (short sections continue
+   on the same line as the next section) rather than each taking its own line,
+   which looks unnatural at wider column widths. */
+.daf-root .daf-text div {
+  display: inline;
+}
+
+/* Invisible anchor markers — measured by GutterIcons to place clickable icons
+   in the right-side gutter alongside the daf. Zero-size, no visual. */
+.daf-root .daf-text .daf-argument-anchor,
+.daf-root .daf-text .daf-halacha-anchor,
+.daf-root .daf-text .daf-opinion-anchor {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* Persistent rabbi highlight — applied to `.rabbi-underline` wraps whose
+   data-rabbi matches the currently-selected rabbi in the sidebar. */
+.daf-root .daf-text .rabbi-underline.rabbi-highlighted {
+  background-color: rgba(234, 179, 8, 0.35);
+  border-radius: 2px;
+}
+
+/* Range highlights use the CSS Custom Highlight API (CSS.highlights +
+   ::highlight()) — purely visual, no DOM mutation. The client effect
+   registers named highlights with document Ranges; this CSS paints them. */
+::highlight(daf-section-highlight) {
+  background-color: rgba(138, 42, 43, 0.18);
+}
+::highlight(daf-halacha-highlight) {
+  background-color: rgba(30, 64, 175, 0.25);
+}
+
+/* Anonymous-tannaitic variant: dashed underline in the Tanna-5 blue (Rebbi's
+   era, when the Mishnah was redacted). Signals "Tannaitic but specific
+   generation unknown". Uses the same .rabbi-underline base rules below. */
+.daf-root .daf-text .rabbi-underline-anonymous {
+  border-bottom-style: dashed !important;
+}
+.daf-root .daf-text .rabbi-gen-tanna-anonymous {
+  border-bottom-color: #3b82f6;
+}
+
+/* Rabbi-name underline (generation marker). Injected by
+   src/client/injectRabbiUnderlines.ts. Thin colored underline spanning the
+   rabbi's name; shade indicates generation. */
+.daf-root .daf-text .rabbi-underline {
+  border-bottom: 2px solid currentColor;
+  padding-bottom: 0;
+  color: inherit;
+}
+.daf-root .daf-text .rabbi-underline > .daf-word {
+  color: inherit;
+}
+.daf-root .daf-text .rabbi-gen-zugim         { border-bottom-color: #4338ca; }
+.daf-root .daf-text .rabbi-gen-tanna-1       { border-bottom-color: #1e3a8a; }
+.daf-root .daf-text .rabbi-gen-tanna-2       { border-bottom-color: #1e40af; }
+.daf-root .daf-text .rabbi-gen-tanna-3       { border-bottom-color: #2563eb; }
+.daf-root .daf-text .rabbi-gen-tanna-4       { border-bottom-color: #3b82f6; }
+.daf-root .daf-text .rabbi-gen-tanna-5       { border-bottom-color: #60a5fa; }
+.daf-root .daf-text .rabbi-gen-tanna-6       { border-bottom-color: #93c5fd; }
+.daf-root .daf-text .rabbi-gen-amora-ey-1    { border-bottom-color: #14532d; }
+.daf-root .daf-text .rabbi-gen-amora-ey-2    { border-bottom-color: #166534; }
+.daf-root .daf-text .rabbi-gen-amora-ey-3    { border-bottom-color: #16a34a; }
+.daf-root .daf-text .rabbi-gen-amora-ey-4    { border-bottom-color: #4ade80; }
+.daf-root .daf-text .rabbi-gen-amora-ey-5    { border-bottom-color: #86efac; }
+.daf-root .daf-text .rabbi-gen-amora-bavel-1 { border-bottom-color: #7c2d12; }
+.daf-root .daf-text .rabbi-gen-amora-bavel-2 { border-bottom-color: #9a3412; }
+.daf-root .daf-text .rabbi-gen-amora-bavel-3 { border-bottom-color: #c2410c; }
+.daf-root .daf-text .rabbi-gen-amora-bavel-4 { border-bottom-color: #ea580c; }
+.daf-root .daf-text .rabbi-gen-amora-bavel-5 { border-bottom-color: #f97316; }
+.daf-root .daf-text .rabbi-gen-amora-bavel-6 { border-bottom-color: #fb923c; }
+.daf-root .daf-text .rabbi-gen-amora-bavel-7 { border-bottom-color: #fdba74; }
+.daf-root .daf-text .rabbi-gen-amora-bavel-8 { border-bottom-color: #fed7aa; }
+.daf-root .daf-text .rabbi-gen-savora        { border-bottom-color: #475569; }
+.daf-root .daf-text .rabbi-gen-unknown       { border-bottom-color: #d1d5db; }
+
+/* Chapter-closing formula "הדרן עלך <chapter-name>". Displayed as its own
+   block line at a slightly larger size, centered, with a touch of vertical
+   breathing room so the chapter break reads as visually distinct. */
+.daf-root .daf-text .daf-hadran {
+  display: block;
+  font-size: 1.2em;
+  text-align: center;
+  text-align-last: center;
+  margin: 0.6em 0;
+  font-weight: 600;
+}
+
+/* Per-word click target. Tokenized by src/client/tokenize.ts. */
+.daf-root .daf-text .daf-word {
+  cursor: pointer;
+  padding: 0 1px;
+  border-radius: 2px;
+  transition: background-color 120ms;
+}
+.daf-root .daf-text .daf-word:hover {
+  background-color: rgba(138, 42, 43, 0.12);
+}
+.daf-root .daf-text .daf-word.daf-word-active {
+  background-color: rgba(138, 42, 43, 0.22);
+}

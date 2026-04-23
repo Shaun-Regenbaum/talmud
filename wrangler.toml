@@ -3,11 +3,28 @@ main = "src/worker/index.ts"
 compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
 
+# Custom production domain. Requires shaunregenbaum.com to be an active zone
+# on the same Cloudflare account (PropheX) that `wrangler whoami` reports.
+routes = [
+  { pattern = "talmud.shaunregenbaum.com", custom_domain = true }
+]
+
 [assets]
 directory = "./dist/client"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
 
-# [[kv_namespaces]]
-# binding = "CACHE"
-# id = "tbd-create-with-wrangler-kv-namespace-create"
+[ai]
+binding = "AI"
+remote = true
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "957172c219734565a172371f98c22056"
+
+# Workers Observability — captures logs, errors, metrics visible in the CF
+# dashboard under Workers > talmud > Logs. Lets us see prod errors like
+# "JSON.parse: unexpected character" without needing an external logger.
+[observability]
+enabled = true
+head_sampling_rate = 1  # capture 100% of invocations

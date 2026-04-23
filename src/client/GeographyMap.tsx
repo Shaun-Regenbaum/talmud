@@ -88,6 +88,7 @@ export interface RabbiPlaceEnrichment {
   wiki?: string | null;
   image?: string | null;
   generation?: string | null;
+  moved?: 'bavel->israel' | 'israel->bavel' | 'both' | null;
 }
 
 export interface GeographyMapProps {
@@ -242,11 +243,37 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
       else if (d.city.region === 'bavel') bavelCount += d.count;
     }
 
+    // Movers: rabbis on this daf whose rabbi-places enrichment has `moved`
+    // set. Group by direction so the arrow strip shows each vector once.
+    type Direction = 'bavel->israel' | 'israel->bavel' | 'both';
+    const movers: Record<Direction, string[]> = {
+      'bavel->israel': [],
+      'israel->bavel': [],
+      'both':          [],
+    };
+    const seen = new Set<string>();
+    for (const s of props.analysis?.sections ?? []) {
+      for (const r of s.rabbis) {
+        if (isEditorialVoice(r.name)) continue;
+        if (seen.has(r.name)) continue;
+        seen.add(r.name);
+        const mv = enrich?.get(r.name)?.moved;
+        if (mv === 'bavel->israel' || mv === 'israel->bavel' || mv === 'both') {
+          movers[mv].push(r.name);
+        }
+      }
+    }
+    const hasMovers = movers['bavel->israel'].length
+      + movers['israel->bavel'].length
+      + movers['both'].length > 0;
+
     return {
       dots,
       israelCount,
       bavelCount,
       otherCount: unknownOther.size,
+      movers,
+      hasMovers,
     };
   });
 
@@ -322,10 +349,14 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
       <Show
         when={props.analysis}
         fallback={
-          <p style={{ color: '#999', 'font-style': 'italic', margin: 0, 'font-size': '0.8rem' }}>
-            {props.analysisLoading
-              ? 'Analyzing daf and populating rabbi geography…'
-              : 'Loading…'}
+          <p style={{ color: '#888', margin: 0, 'font-size': '0.75rem', display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
+            <span style={{
+              display: 'inline-block', width: '0.75rem', height: '0.75rem',
+              'border-radius': '50%',
+              border: '2px solid #d6d3d1', 'border-top-color': '#92400e',
+              animation: 'daf-spin 0.8s linear infinite',
+            }} />
+            {props.analysisLoading ? 'Mapping rabbi geography…' : 'Loading…'}
           </p>
         }
       >
@@ -453,6 +484,49 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
             Bavel: <strong style={{ color: '#92400e' }}>{data().bavelCount}</strong>
           </span>
         </div>
+
+        <Show when={data().hasMovers}>
+          <div
+            style={{
+              'margin-top': '0.45rem',
+              'padding-top': '0.4rem',
+              'border-top': '1px dashed #e5e7eb',
+              'font-size': '0.72rem',
+              color: '#555',
+              display: 'flex',
+              'flex-direction': 'column',
+              gap: '0.25rem',
+            }}
+          >
+            <div style={{ color: '#6b7280', 'font-size': '0.64rem', 'text-transform': 'uppercase', 'letter-spacing': '0.06em' }}>
+              Migration
+            </div>
+            <Show when={data().movers['bavel->israel'].length > 0}>
+              <div style={{ display: 'flex', 'align-items': 'center', gap: '0.5rem' }}>
+                <span style={{ 'font-family': 'ui-monospace, SFMono-Regular, monospace', 'font-weight': 600, color: '#92400e' }}>Bavel</span>
+                <span style={{ 'font-size': '0.95rem', color: '#111' }}>&rarr;</span>
+                <span style={{ 'font-family': 'ui-monospace, SFMono-Regular, monospace', 'font-weight': 600, color: '#1f2937' }}>Eretz Yisrael</span>
+                <span style={{ color: '#555' }}>&middot; {data().movers['bavel->israel'].join(', ')}</span>
+              </div>
+            </Show>
+            <Show when={data().movers['israel->bavel'].length > 0}>
+              <div style={{ display: 'flex', 'align-items': 'center', gap: '0.5rem' }}>
+                <span style={{ 'font-family': 'ui-monospace, SFMono-Regular, monospace', 'font-weight': 600, color: '#1f2937' }}>Eretz Yisrael</span>
+                <span style={{ 'font-size': '0.95rem', color: '#111' }}>&rarr;</span>
+                <span style={{ 'font-family': 'ui-monospace, SFMono-Regular, monospace', 'font-weight': 600, color: '#92400e' }}>Bavel</span>
+                <span style={{ color: '#555' }}>&middot; {data().movers['israel->bavel'].join(', ')}</span>
+              </div>
+            </Show>
+            <Show when={data().movers['both'].length > 0}>
+              <div style={{ display: 'flex', 'align-items': 'center', gap: '0.5rem' }}>
+                <span style={{ 'font-family': 'ui-monospace, SFMono-Regular, monospace', 'font-weight': 600, color: '#1f2937' }}>Eretz Yisrael</span>
+                <span style={{ 'font-size': '0.95rem', color: '#111' }}>&harr;</span>
+                <span style={{ 'font-family': 'ui-monospace, SFMono-Regular, monospace', 'font-weight': 600, color: '#92400e' }}>Bavel</span>
+                <span style={{ color: '#555' }}>&middot; {data().movers['both'].join(', ')}</span>
+              </div>
+            </Show>
+          </div>
+        </Show>
       </Show>
     </section>
   );
