@@ -330,7 +330,6 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
   return (
     <section
       style={{
-        'margin-top': '1rem',
         padding: '0.75rem 0.75rem 0.5rem',
         border: '1px solid #eee',
         'border-radius': '6px',

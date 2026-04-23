@@ -253,12 +253,14 @@
 .daf-root .daf-range-highlight-aggadata {
   background-color: rgba(124, 58, 237, 0.22);
 }
+/* Commentary highlight uses violet so it reads distinct from the red-brown
+   section/argument tint and the blue halacha tint already in play. */
 .daf-root .daf-range-highlight-commentary {
-  background-color: rgba(30, 64, 175, 0.16);
+  background-color: rgba(124, 58, 237, 0.16);
   cursor: pointer;
 }
 .daf-root .daf-range-highlight-commentary-active {
-  background-color: rgba(30, 64, 175, 0.32);
+  background-color: rgba(124, 58, 237, 0.32);
 }
 
 /* Anonymous-tannaitic variant: dashed underline in the Tanna-5 blue (Rebbi's

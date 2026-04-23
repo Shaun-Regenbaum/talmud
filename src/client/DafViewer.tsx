@@ -902,6 +902,10 @@ export default function DafViewer(): JSX.Element {
 
 
   const tokenized = createMemo(() => {
+    // createResource keeps the previous resolved value during a refetch (default
+    // behavior). Without gating on loading, switching pages shows stale tokens
+    // until the new HTTP request returns — visible as "old daf sticks around".
+    if (daf.loading) return null;
     const d = daf();
     if (!d) return null;
     let main = tokenizeHebrewHtml(d.mainText.hebrew);
@@ -1114,10 +1118,11 @@ export default function DafViewer(): JSX.Element {
   const HALACHA_X = `calc(${100 - SIDE_PCT}% - 8px)`;
   const ARG_EDGE_X = '-10px';
   const HALACHA_EDGE_X = 'calc(100% + 10px)';
-  // Aggadata sits on the left gutter just outside the argument column so the
-  // book icon reads as a third marker type alongside argument + halacha.
-  const AGG_X = `calc(${SIDE_PCT}% - 10px)`;
-  const AGG_EDGE_X = '-24px';
+  // Aggadata icons live in the outer left margin — past the commentary
+  // column — so the book glyph never overlaps text. Always-at-edge: there
+  // is no free in-gutter slot (argument already claims the left boundary).
+  const AGG_X = '-22px';
+  const AGG_EDGE_X = '-22px';
 
   const syncUrl = () => {
     const u = new URL(window.location.href);
@@ -1518,7 +1523,7 @@ export default function DafViewer(): JSX.Element {
           'flex-shrink': 0,
           display: 'flex',
           'flex-direction': 'column',
-          gap: '0.75rem',
+          gap: '0.4rem',
           overflow: 'auto',
         }}
       >
