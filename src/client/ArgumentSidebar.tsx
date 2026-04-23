@@ -18,7 +18,52 @@ export interface ArgumentSidebarProps {
   activeRabbi: string | null;
   onClose: () => void;
   onHighlightRabbi: (name: string | null) => void;
+  onOpenRabbiSlug?: (slug: string) => void;
   generationByName: Map<string, GenerationId>;
+}
+
+// Parse markdown-style links out of a bio string. Sefaria `/topics/<slug>`
+// links become internal buttons that swap the sidebar to that rabbi's bio
+// (via `onOpenSlug`); every other link stays as an external anchor. Links
+// whose URL doesn't parse fall back to the raw bracketed text.
+const BIO_LINK_RE = /\[([^\]]+)\]\(([^)]+)\)/g;
+const SEFARIA_TOPIC_RE = /^https?:\/\/(?:www\.)?sefaria\.org\/topics\/([^/?#]+)/i;
+
+function renderBioWithLinks(
+  bio: string,
+  onOpenSlug?: (slug: string) => void,
+): JSX.Element[] {
+  const out: JSX.Element[] = [];
+  let last = 0;
+  BIO_LINK_RE.lastIndex = 0;
+  for (let m = BIO_LINK_RE.exec(bio); m !== null; m = BIO_LINK_RE.exec(bio)) {
+    if (m.index > last) out.push(bio.slice(last, m.index));
+    const [, text, rawUrl] = m;
+    const url = rawUrl.replace(/&amp;/g, '&');
+    const topic = url.match(SEFARIA_TOPIC_RE);
+    if (topic && onOpenSlug) {
+      const slug = topic[1];
+      out.push(
+        <button
+          type="button"
+          onClick={(e) => { e.preventDefault(); onOpenSlug(slug); }}
+          style={{
+            background: 'none', border: 'none', padding: 0, margin: 0,
+            color: '#1e40af', cursor: 'pointer', 'text-decoration': 'underline',
+            font: 'inherit',
+          }}
+        >{text}</button>
+      );
+    } else {
+      out.push(
+        <a href={url} target="_blank" rel="noopener noreferrer"
+           style={{ color: '#1e40af' }}>{text}</a>
+      );
+    }
+    last = m.index + m[0].length;
+  }
+  if (last < bio.length) out.push(bio.slice(last));
+  return out;
 }
 
 function RabbiRow(props: {
@@ -274,7 +319,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                     </Show>
                     <Show when={r.bio}>
                       <p style={{ margin: '0 0 0.8rem', color: '#333', 'line-height': 1.55, 'font-size': '0.88rem' }}>
-                        {r.bio}
+                        {renderBioWithLinks(r.bio!, props.onOpenRabbiSlug)}
                       </p>
                     </Show>
                     <Show when={r.wiki}>

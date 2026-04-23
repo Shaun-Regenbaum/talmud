@@ -1239,6 +1239,24 @@ export default function DafViewer(): JSX.Element {
     setLastInteractedCard('argument');
   };
 
+  // Bio-text link → open that rabbi's bio. Prefer the in-context entry (so
+  // we also light up daf highlights); otherwise pull the standalone entry
+  // from the dataset via /api/rabbi/:slug.
+  const openRabbiSlug = async (slug: string) => {
+    const inCtx = dafContext()?.rabbis.find((x) => x.slug === slug);
+    if (inCtx) { openRabbi(inCtx.name); return; }
+    try {
+      const res = await fetch(`/api/rabbi/${encodeURIComponent(slug)}`);
+      if (!res.ok) return;
+      const body = await res.json() as { rabbi?: IdentifiedRabbi };
+      if (!body.rabbi) return;
+      setActiveRabbi(null);
+      setActivePlace(null);
+      setSidebar({ kind: 'rabbi', rabbi: body.rabbi });
+      setLastInteractedCard('argument');
+    } catch { /* silent — link falls back to no-op */ }
+  };
+
   // Active commentary → Map<segIdx, Comment[]> for fast click lookup
   // and a flat Set of segment indices for CSS highlighting.
   const activeCommentaryWorkObj = createMemo<CommentaryWork | null>(() => {
@@ -1613,6 +1631,8 @@ export default function DafViewer(): JSX.Element {
             onSelect={selectCommentaryWork}
             activeSegIdx={activeCommentarySegIdx()}
             activeComments={activeCommentaryComments()}
+            tractate={tractate()}
+            page={page()}
             onCloseSegment={() => {
               setActiveCommentarySegIdx(null);
               if (sidebar() === null) setLastInteractedCard(null);
@@ -1632,6 +1652,7 @@ export default function DafViewer(): JSX.Element {
             if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
           }}
           onHighlightRabbi={(name) => (name ? openRabbi(name) : setActiveRabbi(null))}
+          onOpenRabbiSlug={openRabbiSlug}
           generationByName={generationByName()}
         />
         </div>

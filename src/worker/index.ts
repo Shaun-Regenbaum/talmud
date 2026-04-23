@@ -597,6 +597,32 @@ function resolveRabbiName(raw: string): RabbiPlacesEntry | null {
   return resolveRabbiByName(raw)?.entry ?? null;
 }
 
+// Bio-sidebar nav: given a Sefaria topic slug (as linked from the bio text),
+// return the same IdentifiedRabbi shape the dafContext uses, so the sidebar
+// can swap to the target rabbi's bio without a second enrichment hop. 404 if
+// the slug isn't in our rabbi dataset (biblical figures, holidays, etc.).
+app.get('/api/rabbi/:slug', (c) => {
+  const slug = c.req.param('slug');
+  const entry = RABBI_PLACES.rabbis[slug];
+  if (!entry) return c.json({ error: `unknown slug: ${slug}` }, 404);
+  const rawGen = entry.generation ?? 'unknown';
+  const generation: GenerationId =
+    (GENERATION_IDS as string[]).includes(rawGen) ? (rawGen as GenerationId) : 'unknown';
+  const rabbi: IdentifiedRabbi = {
+    slug,
+    name: entry.canonical,
+    nameHe: entry.canonicalHe ?? '',
+    generation,
+    region: entry.region ?? deriveRegionFromGeneration(generation),
+    places: entry.places ?? [],
+    moved: entry.moved ?? null,
+    bio: entry.bio ?? null,
+    image: entry.image ?? null,
+    wiki: entry.wiki ?? null,
+  };
+  return c.json({ rabbi });
+});
+
 app.get('/api/references/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
