@@ -18,6 +18,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawn } from 'node:child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -51,6 +52,41 @@ function iterAmudim() {
   return out;
 }
 
+// Use curl instead of Node fetch: Node's built-in undici HTTP client has a
+// 5-min body timeout that's not configurable without adding the `undici`
+// package as a dependency. Kimi K2.6 + K2.5 two-stage pipeline routinely
+// runs 4-5 min, which means Node fetch dies with "TypeError: fetch failed"
+// at exactly 300s even when the Worker is still happily processing.
+// curl accepts --max-time reliably and streams to stdout.
+function curlGet(url, maxSeconds) {
+  return new Promise((resolve) => {
+    const t0 = Date.now();
+    const proc = spawn('curl', [
+      '-sS',
+      '-w', '\n__STATUS__:%{http_code}',
+      '--max-time', String(maxSeconds),
+      url,
+    ]);
+    let out = '';
+    let errBuf = '';
+    proc.stdout.on('data', (d) => { out += d.toString(); });
+    proc.stderr.on('data', (d) => { errBuf += d.toString(); });
+    proc.on('close', (code) => {
+      const ms = Date.now() - t0;
+      if (code !== 0) {
+        resolve({ status: 0, body: null, error: errBuf.trim() || `curl exit ${code}`, ms });
+        return;
+      }
+      const m = out.match(/__STATUS__:(\d+)\s*$/);
+      const status = m ? parseInt(m[1], 10) : 0;
+      const bodyStr = m ? out.slice(0, m.index) : out;
+      let body = null;
+      try { body = JSON.parse(bodyStr); } catch { /* non-JSON */ }
+      resolve({ status, body, error: null, ms });
+    });
+  });
+}
+
 async function warmOne(daf) {
   const base = `${WORKER_URL.replace(/\/$/, '')}/api/analyze/${TRACTATE}/${daf}`;
   const params = [];
@@ -58,18 +94,10 @@ async function warmOne(daf) {
   if (REFRESH) params.push('refresh=1');
   const url = params.length ? `${base}?${params.join('&')}` : base;
 
-  const t0 = Date.now();
-  let status = 0;
-  let body = null;
-  let err = null;
-  try {
-    const res = await fetch(url);
-    status = res.status;
-    try { body = await res.json(); } catch { /* body not JSON */ }
-  } catch (e) {
-    err = String(e);
-  }
-  const ms = Date.now() - t0;
+  // 15 min max per daf — covers Stage A (~170s) + Stage B (~100s) + network
+  // jitter + retries. Well beyond our observed p99 (~300s end-to-end).
+  const { status, body, error, ms } = await curlGet(url, 900);
+  const err = error;
 
   return {
     daf,
