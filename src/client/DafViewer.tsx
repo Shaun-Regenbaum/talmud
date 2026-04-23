@@ -1051,9 +1051,24 @@ export default function DafViewer(): JSX.Element {
     return `${tractate()}:${page()}:${t.main.length}:${analysis()?.sections.length ?? 0}:${halacha()?.topics.length ?? 0}:${aggadata()?.stories.length ?? 0}`;
   });
 
+  // Mutual exclusion: opening anything in the argument/rabbi/aggadata sidebar
+  // should close the commentary card, and picking a commentary should close
+  // the argument sidebar. These helpers make the clearing explicit so
+  // intent is visible at every entry point.
+  const clearCommentarySelection = () => {
+    setActiveCommentaryWork(null);
+    setActiveCommentarySegIdx(null);
+  };
+  const clearArgumentSidebar = () => {
+    setSidebar(null);
+    setActiveRabbi(null);
+    setActiveStoryIndex(null);
+  };
+
   const openArgument = (index: number) => {
     const a = analysis();
     if (!a || !a.sections[index]) return;
+    clearCommentarySelection();
     setActiveRabbi(null);
     setSidebar({ kind: 'argument', section: a.sections[index], index });
     setLastInteractedCard('argument');
@@ -1062,6 +1077,7 @@ export default function DafViewer(): JSX.Element {
   const openHalacha = (index: number) => {
     const h = halacha();
     if (!h || !h.topics[index]) return;
+    clearCommentarySelection();
     setActiveRabbi(null);
     setSidebar({ kind: 'halacha', topic: h.topics[index], index });
     setLastInteractedCard('argument');
@@ -1077,6 +1093,7 @@ export default function DafViewer(): JSX.Element {
       if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
       return;
     }
+    clearCommentarySelection();
     setActiveRabbi(null);
     setActiveStoryIndex(index);
     setSidebar({ kind: 'aggadata', story: ag.stories[index], index });
@@ -1110,6 +1127,7 @@ export default function DafViewer(): JSX.Element {
     setActiveRabbi(null);
     setSidebar(null);
     setActivePlace(null);
+    clearCommentarySelection();
     setActiveLocation(cityName);
     setActiveLocationRabbis(cityName ? rabbiNames : []);
   };
@@ -1126,6 +1144,7 @@ export default function DafViewer(): JSX.Element {
     setActiveRabbi(null);
     setSidebar(null);
     setActivePlace(null);
+    clearCommentarySelection();
     setActiveLocation(gen ? `gen:${gen}` : null);
     setActiveLocationRabbis(gen ? rabbiNames : []);
   };
@@ -1229,6 +1248,7 @@ export default function DafViewer(): JSX.Element {
     const ctx = dafContext();
     const r = ctx?.rabbis.find((x) => x.name === name) ?? null;
     setActivePlace(null);
+    clearCommentarySelection();
     if (!r) {
       setActiveRabbi(name);
       setLastInteractedCard('argument');

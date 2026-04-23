@@ -231,11 +231,14 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
       'both':          [],
     };
     if (enrich) {
+      const seenMover = new Set<string>();
       for (const [name, info] of enrich.entries()) {
         const mv = info.moved;
-        if (mv === 'bavel->israel' || mv === 'israel->bavel' || mv === 'both') {
-          buckets[mv].push(name);
-        }
+        if (mv !== 'bavel->israel' && mv !== 'israel->bavel' && mv !== 'both') continue;
+        const display = info.canonical ?? name;
+        if (seenMover.has(display)) continue;
+        seenMover.add(display);
+        buckets[mv].push(display);
       }
     }
     for (const dir of DIR_ORDER) buckets[dir].sort((a, b) => a.localeCompare(b));
