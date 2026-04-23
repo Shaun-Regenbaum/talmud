@@ -1340,7 +1340,12 @@ function validateAnalysis(analysis: DafAnalysis, focalHebrewRaw: string): Valida
       if (!HEBREW_CHAR_RE.test(sec.excerpt)) {
         errors.push(`${loc}: excerpt has no Hebrew chars`);
       } else if (!focalNorm.includes(normalizeHebrew(sec.excerpt))) {
-        errors.push(`${loc}: excerpt "${sec.excerpt.slice(0, 30)}" not found in focal amud`);
+        // Downgraded to warning: Stage A's skeleton excerpt override covers
+        // most cases, but when Stage B adds sections beyond the skeleton
+        // (or section alignment shifts) the excerpt may be Stage B's own
+        // paraphrase. UI can fall back to title-only anchoring when excerpt
+        // doesn't resolve — not worth hard-failing the whole daf.
+        warnings.push(`${loc}: excerpt "${sec.excerpt.slice(0, 30)}" not found in focal amud`);
       }
     }
     const seenNames = new Set<string>();
