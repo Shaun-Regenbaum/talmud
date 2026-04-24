@@ -1510,7 +1510,7 @@ export default function DafViewer(): JSX.Element {
         genLoading={genLoading()}
         genError={genError()}
       />
-      <div class="daf-surface" onMouseUp={onMouseUpRoot}>
+      <div class="daf-surface" onMouseUp={onMouseUpRoot} style={{ display: 'flex', 'justify-content': 'center' }}>
         <Show
           when={!daf.loading && tokenized()}
           fallback={

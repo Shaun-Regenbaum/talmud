@@ -382,7 +382,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
             </div>
             <svg
               viewBox={`-6 -4 ${ISRAEL_SHAPE.width + 12} ${ISRAEL_SHAPE.height + 8}`}
-              style={{ width: '100%', height: 'auto', display: 'block' }}
+              style={{ width: '100%', height: 'auto', display: 'block', 'max-height': '280px' }}
               preserveAspectRatio="xMidYMid meet"
               role="img"
               aria-label="Eretz Yisrael — rabbi geographic origins"
@@ -424,7 +424,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
             </div>
             <svg
               viewBox="30 -10 95 195"
-              style={{ width: '100%', height: 'auto', display: 'block' }}
+              style={{ width: '100%', height: 'auto', display: 'block', 'max-height': '280px' }}
               preserveAspectRatio="xMidYMid meet"
               role="img"
               aria-label="Bavel — rabbi geographic origins"

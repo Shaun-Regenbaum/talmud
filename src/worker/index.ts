@@ -3987,15 +3987,17 @@ app.get('/api/admin/rabbi-relationships/:slug', async (c) => {
   const t0 = Date.now();
   let streamed: StreamedResult;
   try {
+    // Kimi K2.5 without thinking — matches the reliable /api/enrich path.
+    // Relationship extraction is a bounded structured task, no reasoning
+    // required; thinking mode was hanging the remote AI gateway.
     streamed = await runKimiStreaming(
       c.env.AI,
-      '@cf/moonshotai/kimi-k2.6',
+      '@cf/moonshotai/kimi-k2.5',
       [
         { role: 'system', content: RELATIONSHIPS_SYSTEM_PROMPT },
         { role: 'user', content: userContent },
       ],
-      65536,
-      { chatTemplateKwargs: { enable_thinking: true } },
+      8192,
     );
   } catch (err) {
     return c.json({ error: String(err).slice(0, 300), slug }, 502);

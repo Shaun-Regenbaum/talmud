@@ -111,7 +111,10 @@ section h2 {
      strips + aside hugging it — prevents the aside from clipping off-
      screen right on wide monitors while letting narrow viewports scroll. */
   justify-content: center;
-  gap: 0;
+  /* Small gap to isolate the strips from the tzurat hadaf — prevents CSS
+     effects from bleeding, keeps strips visually distinct, but stays
+     tight so the strips read as companions to the daf. */
+  gap: 0.35rem;
 }
 
 .daf-main {
@@ -119,45 +122,25 @@ section h2 {
      rendered columns, we don't need an extra flex-1 wrapper. */
   flex: 0 0 auto;
   min-width: 0;
-  padding: 0 0.35rem;
 }
 
 .daf-strip {
   position: sticky;
   top: 1rem;
   align-self: flex-start;
-  /* Strip height tracks the viewport, not the daf body — long commentaries
-     scroll inside the strip rather than dragging the page. */
-  height: calc(100vh - 2rem);
+  max-height: calc(100vh - 2rem);
   width: 220px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
   overflow: auto;
-  /* Vilna-style frame: thin dark rule, square corners, parchment bg. */
-  background: #fbfaf3;
-  border: 1px solid #2a2a2a;
-  border-radius: 0;
 }
 
 .daf-strip-left {
   /* Commentaries: slightly wider since commentary text wraps Hebrew. */
   width: 240px;
 }
-
-/* Inside a strip, inner components should NOT render their own card — the
-   strip itself is the frame. Strip cards out any root border/shadow/radius
-   the child components paint on their own. */
-.daf-strip > div > section,
-.daf-strip > section {
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  background: transparent !important;
-}
-
-/* Daf-aside's remaining cards can stay rounded — they only render on-demand
-   and sit outside the Vilna-frame strips. */
 
 /* Between ~1100–1300px the strips get too cramped. Fall back to collapsing
    the strips into the aside (matches pre-strip behavior). */
