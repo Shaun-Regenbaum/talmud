@@ -363,7 +363,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
           </p>
         }
       >
-        <div style={{ display: 'flex', 'flex-direction': props.layout === 'column' ? 'column' : 'row', gap: '0.5rem', 'align-items': 'stretch' }}>
+        <div style={{ display: 'flex', 'flex-direction': props.layout === 'column' ? 'column' : 'row', gap: '0.5rem', 'align-items': 'flex-start' }}>
           {/* ========== Eretz Yisrael card ========== */}
           <div
             style={{
@@ -459,7 +459,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
               <text x="50" y="-3" text-anchor="middle" font-family="Georgia,serif" font-size="7" font-style="italic" fill="#1e40af" opacity="0.85">
                 Euphrates
               </text>
-              <text x="108" y="-3" text-anchor="middle" font-family="Georgia,serif" font-size="7" font-style="italic" fill="#1e40af" opacity="0.85">
+              <text x="108" y="7" text-anchor="middle" font-family="Georgia,serif" font-size="7" font-style="italic" fill="#1e40af" opacity="0.85">
                 Tigris
               </text>
               <circle cx="96" cy="174" r="1.5" fill="#2563eb" opacity="0.8" />
