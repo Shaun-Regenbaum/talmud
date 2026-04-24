@@ -52,12 +52,12 @@ export const KNOWN_CITIES: KnownCity[] = [
   { name: 'Nehardea',     nameHe: 'נהרדעא',    aliases: ['nehardea', 'nehardeah', "neharde'a"],                                                region: 'bavel', x: BAVEL_X_OFFSET + 58,  y: BAVEL_Y_OFFSET + 70 },
   { name: 'Hini',         nameHe: 'היני',      aliases: ['hini', 'hene'],                                                                       region: 'bavel', x: BAVEL_X_OFFSET + 76,  y: BAVEL_Y_OFFSET + 85 },
   { name: 'Sichra',       nameHe: 'שיכרא',     aliases: ['sichra', 'sikra', 'shikra'],                                                          region: 'bavel', x: BAVEL_X_OFFSET + 90,  y: BAVEL_Y_OFFSET + 92 },
-  { name: 'Ctesiphon',    nameHe: 'קטספון',    aliases: ['ctesiphon', 'qtesiphon'],                                                             region: 'bavel', x: BAVEL_X_OFFSET + 140, y: BAVEL_Y_OFFSET + 100 },
-  { name: 'Mehoza',       nameHe: 'מחוזא',     aliases: ['mehoza', 'mahoza', 'machuza', 'maḥoza'],                                              region: 'bavel', x: BAVEL_X_OFFSET + 128, y: BAVEL_Y_OFFSET + 110 },
+  { name: 'Ctesiphon',    nameHe: 'קטספון',    aliases: ['ctesiphon', 'qtesiphon'],                                                             region: 'bavel', x: BAVEL_X_OFFSET + 105, y: BAVEL_Y_OFFSET + 100 },
+  { name: 'Mehoza',       nameHe: 'מחוזא',     aliases: ['mehoza', 'mahoza', 'machuza', 'maḥoza'],                                              region: 'bavel', x: BAVEL_X_OFFSET + 108, y: BAVEL_Y_OFFSET + 110 },
   { name: 'Sura',         nameHe: 'סורא',      aliases: ['sura'],                                                                              region: 'bavel', x: BAVEL_X_OFFSET + 72,  y: BAVEL_Y_OFFSET + 135 },
   { name: 'Mata Mehasya', nameHe: 'מתא מחסיא', aliases: ['mata mehasya', 'mata mahasya', 'mata meḥasya'],                                       region: 'bavel', x: BAVEL_X_OFFSET + 72,  y: BAVEL_Y_OFFSET + 148 },
   { name: 'Naresh',       nameHe: 'נרש',       aliases: ['naresh', 'narash'],                                                                  region: 'bavel', x: BAVEL_X_OFFSET + 95,  y: BAVEL_Y_OFFSET + 158 },
-  { name: 'Kafri',        nameHe: 'כפרי',      aliases: ['kafri', 'kufri'],                                                                     region: 'bavel', x: BAVEL_X_OFFSET + 115, y: BAVEL_Y_OFFSET + 160 },
+  { name: 'Kafri',        nameHe: 'כפרי',      aliases: ['kafri', 'kufri'],                                                                     region: 'bavel', x: BAVEL_X_OFFSET + 104, y: BAVEL_Y_OFFSET + 160 },
   { name: 'Shekanziv',    nameHe: 'שקנציב',    aliases: ['shekanziv', 'shikanzib'],                                                             region: 'bavel', x: BAVEL_X_OFFSET + 105, y: BAVEL_Y_OFFSET + 140 },
 ];
 
@@ -363,7 +363,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
           </p>
         }
       >
-        <div style={{ display: 'flex', 'flex-direction': props.layout === 'column' ? 'column' : 'row', gap: '0.5rem', 'align-items': 'flex-start' }}>
+        <div style={{ display: 'flex', 'flex-direction': props.layout === 'column' ? 'column' : 'row', gap: '0.5rem', 'align-items': 'stretch' }}>
           {/* ========== Eretz Yisrael card ========== */}
           <div
             style={{
@@ -423,7 +423,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
               Bavel
             </div>
             <svg
-              viewBox="30 -10 95 195"
+              viewBox="30 -10 82 195"
               style={{ width: '100%', flex: 1, display: 'block', 'min-height': 0 }}
               preserveAspectRatio="xMidYMid meet"
               role="img"
@@ -431,7 +431,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
             >
               {/* Invisible hit-box so clicks anywhere inside the region fire onRegionClick */}
               <rect
-                x="30" y="-10" width="95" height="195"
+                x="30" y="-10" width="82" height="195"
                 fill="transparent"
                 style={{ cursor: 'pointer' }}
                 onClick={() => onRegionClick('bavel')}
@@ -446,9 +446,11 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
                 stroke-linejoin="round"
                 opacity="0.8"
               />
-              {/* Tigris — Nisibis → Ctesiphon/Mehoza → confluence */}
+              {/* Tigris — Nisibis → Ctesiphon/Mehoza → confluence. Narrowed
+                  east-bends so the whole path stays inside the aspect-matched
+                  viewBox (max x ≈ 110). */}
               <path
-                d="M 105,14 C 108,26 100,34 106,44 C 114,54 105,64 110,74 C 118,84 108,96 114,106 C 122,116 110,126 108,136 C 104,146 100,156 96,166 C 94,172 94,174 96,174"
+                d="M 100,14 C 102,26 96,34 100,44 C 106,54 98,64 102,74 C 108,84 100,96 104,106 C 110,116 102,126 100,136 C 98,146 96,156 94,166 C 93,172 93,174 96,174"
                 fill="none"
                 stroke="#2563eb"
                 stroke-width="1.6"
@@ -459,7 +461,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
               <text x="50" y="-3" text-anchor="middle" font-family="Georgia,serif" font-size="7" font-style="italic" fill="#1e40af" opacity="0.85">
                 Euphrates
               </text>
-              <text x="108" y="7" text-anchor="middle" font-family="Georgia,serif" font-size="7" font-style="italic" fill="#1e40af" opacity="0.85">
+              <text x="100" y="7" text-anchor="middle" font-family="Georgia,serif" font-size="7" font-style="italic" fill="#1e40af" opacity="0.85">
                 Tigris
               </text>
               <circle cx="96" cy="174" r="1.5" fill="#2563eb" opacity="0.8" />
