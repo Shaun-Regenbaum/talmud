@@ -228,11 +228,17 @@ function mergeStrategies(by: Partial<Record<StrategyName, StrategyResult>>): Ana
 }
 
 // ---- argument-flow sidebar render -----------------------------------------
-// Minimal 340px-wide layout. Daf summary at the top, then a stack of cards —
-// one per argument section. Each card shows only title / names / summary by
-// default; a "…" toggle reveals the detail (support-vs-dispute relationships,
-// quoted pesukim, parallel sugyot, difficulty rating with rationale).
-// Neutral palette — no colored borders, type chips, or icons.
+// Minimal 340px-wide layout.
+//   - Daf summary (prose)
+//   - For each argument section:
+//     - Section header (title)
+//     - Section summary (prose)
+//     - Stack of rabbi cards (one per voice): name / era / role
+//     - Single "…" toggle at bottom of section that reveals:
+//         • +/− support-dispute edges between the rabbis in this section
+//         • pesukim quoted in this section
+//         • parallel sugyot for this section
+//         • difficulty of this section
 
 function ArgumentFlowSidebar(props: {
   tractate: string;
@@ -252,56 +258,56 @@ function ArgumentFlowSidebar(props: {
       </header>
 
       <Show when={a().summary}>
-        <p class="flow-summary">{a().summary}</p>
+        <p class="flow-daf-summary">{a().summary}</p>
       </Show>
 
-      <For each={a().sections}>{(sec, idx) => <SectionCard sec={sec} idx={idx()} />}</For>
+      <For each={a().sections}>{(sec, idx) => <ArgumentSection sec={sec} idx={idx()} />}</For>
     </aside>
   );
 }
 
-function SectionCard(props: { sec: AnalysisSection; idx: number }): JSX.Element {
+function ArgumentSection(props: { sec: AnalysisSection; idx: number }): JSX.Element {
   const [open, setOpen] = createSignal(false);
   const sec = () => props.sec;
+  const supportEdges = () => (sec().rabbis || [])
+    .flatMap(r => (r.agreesWith ?? []).map(target => ({ from: r.name, to: target })));
+  const disputeEdges = () => (sec().rabbis || [])
+    .flatMap(r => (r.disagreesWith ?? []).map(target => ({ from: r.name, to: target })));
   const hasDetail = () => !!(
-    (sec().rabbis && sec().rabbis.some(r => (r.agreesWith?.length ?? 0) + (r.disagreesWith?.length ?? 0) > 0 || r.role || r.opinionStart))
+    supportEdges().length > 0
+    || disputeEdges().length > 0
     || (sec().references && sec().references!.length > 0)
     || (sec().parallels && sec().parallels!.length > 0)
     || sec().difficulty
   );
 
-  // Build comma-separated name list for the "who" line (named rabbis +
-  // anonymous move labels all flattened, in the order Stage A identified).
-  const names = () => (sec().rabbis || []).map(r => r.name).filter(Boolean).join(', ');
-
-  // Compute support/dispute groups for the expanded detail.
-  const supportEdges = () => (sec().rabbis || [])
-    .flatMap(r => (r.agreesWith ?? []).map(target => ({ from: r.name, to: target })));
-  const disputeEdges = () => (sec().rabbis || [])
-    .flatMap(r => (r.disagreesWith ?? []).map(target => ({ from: r.name, to: target })));
-
   return (
-    <article class="flow-card">
-      <div class="flow-card-head">
-        <span class="flow-card-num">§{props.idx + 1}</span>
-        <span class="flow-card-title">{sec().title}</span>
-      </div>
-      <Show when={names()}>
-        <div class="flow-card-who">{names()}</div>
-      </Show>
+    <section class="flow-section">
+      <h3 class="flow-section-head">
+        <span class="flow-section-num">§{props.idx + 1}</span>
+        <span class="flow-section-title">{sec().title}</span>
+      </h3>
       <Show when={sec().summary}>
-        <p class="flow-card-summary">{sec().summary}</p>
+        <p class="flow-section-summary">{sec().summary}</p>
+      </Show>
+
+      <Show when={sec().rabbis && sec().rabbis.length > 0}>
+        <div class="flow-rabbis">
+          <For each={sec().rabbis}>{(r) => <RabbiCard rabbi={r} />}</For>
+        </div>
       </Show>
 
       <Show when={hasDetail()}>
-        <button
-          class="flow-card-toggle"
-          onClick={() => setOpen(!open())}
-          aria-expanded={open()}
-        >{open() ? '−' : '…'}</button>
+        <div class="flow-section-more">
+          <button
+            class="flow-more-btn"
+            onClick={() => setOpen(!open())}
+            aria-expanded={open()}
+          >{open() ? '−' : '…'}</button>
+        </div>
 
         <Show when={open()}>
-          <div class="flow-card-detail">
+          <div class="flow-detail">
             <Show when={supportEdges().length > 0 || disputeEdges().length > 0}>
               <div class="flow-d-row">
                 <span class="flow-d-label">Positions</span>
@@ -323,7 +329,7 @@ function SectionCard(props: { sec: AnalysisSection; idx: number }): JSX.Element 
             <Show when={sec().references && sec().references!.length > 0}>
               <div class="flow-d-row">
                 <span class="flow-d-label">Pesukim</span>
-                <div class="flow-d-body">
+                <div class="flow-d-body flow-d-wrap">
                   <For each={sec().references!}>{(ref) => (
                     <span class="flow-d-ref" title={ref.hebrewQuote || ref.ref}>
                       {ref.hebrewRef || ref.ref}
@@ -336,7 +342,7 @@ function SectionCard(props: { sec: AnalysisSection; idx: number }): JSX.Element 
             <Show when={sec().parallels && sec().parallels!.length > 0}>
               <div class="flow-d-row">
                 <span class="flow-d-label">See also</span>
-                <div class="flow-d-body flow-d-parallels">
+                <div class="flow-d-body flow-d-wrap">
                   <For each={sec().parallels!}>{(p) => <span class="flow-d-parallel">{p}</span>}</For>
                 </div>
               </div>
@@ -354,7 +360,25 @@ function SectionCard(props: { sec: AnalysisSection; idx: number }): JSX.Element 
           </div>
         </Show>
       </Show>
-    </article>
+    </section>
+  );
+}
+
+function RabbiCard(props: { rabbi: Rabbi }): JSX.Element {
+  const r = () => props.rabbi;
+  return (
+    <div class="flow-rabbi">
+      <div class="flow-rabbi-name">
+        {r().name}
+        <Show when={r().nameHe}><span class="flow-rabbi-he"> · {r().nameHe}</span></Show>
+        <Show when={r().period}>
+          <span class="flow-rabbi-era">{r().period.replace(/,.*$/, '')}</span>
+        </Show>
+      </div>
+      <Show when={r().role}>
+        <div class="flow-rabbi-role">{r().role}</div>
+      </Show>
+    </div>
   );
 }
 
@@ -593,51 +617,50 @@ export function EnrichmentPage(): JSX.Element {
           box-sizing: border-box;
           display: flex;
           flex-direction: column;
-          gap: 0.5rem;
+          gap: 0.9rem;
         }
         .flow-header { display: flex; align-items: baseline; gap: 0.35rem; color: #64748b; font-size: 12px; }
         .flow-tractate { font-weight: 600; color: #1e293b; }
-        .flow-page {}
         .flow-partial { margin-left: auto; font-size: 10px; color: #94a3b8; }
-        .flow-summary { font-size: 12.5px; color: #475569; margin: 0 0 0.3rem; line-height: 1.5; }
+        .flow-daf-summary { font-size: 12.5px; color: #475569; margin: 0 0 0.25rem; line-height: 1.55; }
 
-        .flow-card {
-          background: #fff;
-          border: 1px solid #e5e7eb;
-          border-radius: 4px;
-          padding: 0.55rem 0.7rem;
-          position: relative;
-        }
-        .flow-card-head { display: flex; align-items: baseline; gap: 0.35rem; margin-bottom: 0.2rem; }
-        .flow-card-num { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: #94a3b8; }
-        .flow-card-title { font-weight: 600; color: #1e293b; font-size: 13.5px; flex: 1; line-height: 1.3; }
-        .flow-card-who { font-size: 11.5px; color: #64748b; margin-bottom: 0.35rem; line-height: 1.4; }
-        .flow-card-summary { font-size: 12.5px; color: #334155; margin: 0; line-height: 1.5; }
+        /* Argument section = a logical group: header + summary + stack of rabbi cards + "…" */
+        .flow-section { display: flex; flex-direction: column; gap: 0.35rem; }
+        .flow-section-head { display: flex; align-items: baseline; gap: 0.35rem; margin: 0; font-weight: 600; }
+        .flow-section-num { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: #94a3b8; font-weight: 600; }
+        .flow-section-title { color: #1e293b; font-size: 13.5px; line-height: 1.3; font-weight: 600; }
+        .flow-section-summary { font-size: 12.5px; color: #475569; margin: 0 0 0.2rem; line-height: 1.5; }
 
-        .flow-card-toggle {
-          position: absolute;
-          bottom: 0.3rem;
-          right: 0.5rem;
-          border: none;
+        .flow-rabbis { display: flex; flex-direction: column; gap: 0.3rem; }
+        .flow-rabbi { background: #fff; border: 1px solid #e5e7eb; border-radius: 4px; padding: 0.4rem 0.6rem; }
+        .flow-rabbi-name { font-size: 12.5px; color: #1e293b; font-weight: 600; display: flex; align-items: baseline; gap: 0.25rem; flex-wrap: wrap; }
+        .flow-rabbi-he { font-family: Arial Hebrew, David, serif; color: #64748b; font-weight: 500; }
+        .flow-rabbi-era { margin-left: auto; font-size: 10px; color: #94a3b8; font-weight: 400; white-space: nowrap; }
+        .flow-rabbi-role { font-size: 12px; color: #475569; margin-top: 0.2rem; line-height: 1.45; }
+
+        .flow-section-more { display: flex; justify-content: center; margin-top: 0.1rem; }
+        .flow-more-btn {
+          border: 1px dashed #e5e7eb;
           background: transparent;
           color: #94a3b8;
-          font-size: 14px;
+          font-size: 12px;
           cursor: pointer;
-          padding: 0 0.4rem;
-          line-height: 1;
+          padding: 0 0.7rem;
+          line-height: 1.3;
+          border-radius: 3px;
         }
-        .flow-card-toggle:hover { color: #475569; }
+        .flow-more-btn:hover { color: #475569; border-color: #cbd5e1; }
 
-        .flow-card-detail { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 0.4rem; }
+        .flow-detail { padding: 0.5rem 0.25rem 0; display: flex; flex-direction: column; gap: 0.4rem; }
         .flow-d-row { display: flex; gap: 0.5rem; align-items: baseline; }
-        .flow-d-label { font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; width: 60px; flex-shrink: 0; }
+        .flow-d-label { font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; width: 64px; flex-shrink: 0; }
         .flow-d-body { flex: 1; font-size: 11.5px; color: #334155; display: flex; flex-direction: column; gap: 0.2rem; }
-        .flow-d-parallels { flex-direction: row; flex-wrap: wrap; gap: 0.4rem; }
+        .flow-d-wrap { flex-direction: row; flex-wrap: wrap; gap: 0.35rem; }
         .flow-d-edge { line-height: 1.4; }
         .flow-d-plus  { color: #16a34a; font-weight: 700; margin-right: 4px; }
         .flow-d-minus { color: #b91c1c; font-weight: 700; margin-right: 4px; }
         .flow-d-prep  { color: #94a3b8; font-style: italic; }
-        .flow-d-ref   { font-family: Arial Hebrew, David, serif; color: #64748b; margin-right: 0.4rem; cursor: help; }
+        .flow-d-ref   { font-family: Arial Hebrew, David, serif; color: #64748b; cursor: help; }
         .flow-d-parallel { font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; color: #64748b; }
         .flow-d-stars { color: #64748b; margin-right: 0.35rem; letter-spacing: 0.5px; }
         .flow-d-diff-reason { color: #475569; font-style: italic; }

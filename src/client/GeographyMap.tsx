@@ -363,7 +363,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
           </p>
         }
       >
-        <div style={{ display: 'flex', 'flex-direction': props.layout === 'column' ? 'column' : 'row', gap: '0.5rem', 'align-items': 'stretch' }}>
+        <div style={{ display: 'flex', 'flex-direction': props.layout === 'column' ? 'column' : 'row', gap: '0.5rem', 'align-items': 'flex-start' }}>
           {/* ========== Eretz Yisrael card ========== */}
           <div
             style={{
