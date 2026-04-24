@@ -1500,7 +1500,7 @@ export default function DafViewer(): JSX.Element {
           }}
         />
       </aside>
-      <section class="daf-main">
+      <section class="daf-body-col">
       <GenerationTimeline
         rabbis={generations()}
         activeGeneration={activeGenerationId()}
@@ -1683,7 +1683,7 @@ export default function DafViewer(): JSX.Element {
         <RabbiTreeStrip
           rabbis={dafContext()?.rabbis ?? []}
           onOpenRabbiSlug={openRabbiSlug}
-          onHighlightRabbi={(name) => (name ? openRabbi(name) : setActiveRabbi(null))}
+          onHoverRabbi={setHoveredRabbi}
           hoveredRabbi={hoveredRabbi()}
           activeRabbi={activeRabbi()}
         />
@@ -1706,16 +1706,21 @@ export default function DafViewer(): JSX.Element {
             overflow: 'auto',
           }}
         >
-          <AggadataDetector
-            tractate={tractate()}
-            page={page()}
-            result={aggadata()}
-            loading={aggadataLoading()}
-            error={aggadataError()}
-            activeIndex={activeStoryIndex()}
-            onRefresh={() => void runAggadata(true)}
-            onSelectStory={openStory}
-          />
+          {/* AggadataDetector only renders when an aggadata story has
+              been opened via its gutter icon. The icons already surface
+              stories inline on the daf; the sidebar card was redundant. */}
+          <Show when={activeStoryIndex() !== null}>
+            <AggadataDetector
+              tractate={tractate()}
+              page={page()}
+              result={aggadata()}
+              loading={aggadataLoading()}
+              error={aggadataError()}
+              activeIndex={activeStoryIndex()}
+              onRefresh={() => void runAggadata(true)}
+              onSelectStory={openStory}
+            />
+          </Show>
           <ArgumentSidebar
             content={sidebar()}
             tractate={tractate()}

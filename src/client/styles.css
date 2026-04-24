@@ -129,24 +129,22 @@ section h2 {
   margin-left: auto;
 }
 
-.daf-main {
-  /* Hug the daf's natural content width; the daf body centers its own
-     rendered columns, we don't need an extra flex-1 wrapper. */
+/* Daf body column wrapper. Named .daf-body-col so it doesn't collide
+   with daf-renderer's own .daf-main class on the center Gemara column. */
+.daf-body-col {
   flex: 0 0 auto;
   min-width: 0;
 }
 
+/* Strips are NOT sticky — they flow with the page like the timeline and
+   daf body. Only the right-side on-demand sidebar (.daf-aside) sticks. */
 .daf-strip {
-  position: sticky;
-  top: 1rem;
   align-self: flex-start;
-  max-height: calc(100vh - 2rem);
   width: 220px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  overflow: auto;
 }
 
 .daf-strip-left {

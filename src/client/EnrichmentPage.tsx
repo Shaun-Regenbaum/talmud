@@ -8,6 +8,7 @@
  */
 import { createResource, createSignal, For, Show, type JSX } from 'solid-js';
 import { TRACTATE_OPTIONS } from '../lib/sefref';
+import { ArgumentFlowSidebar, ARGUMENT_FLOW_CSS } from './ArgumentFlowSidebar';
 
 // ---- types ----------------------------------------------------------------
 
@@ -227,160 +228,6 @@ function mergeStrategies(by: Partial<Record<StrategyName, StrategyResult>>): Ana
   };
 }
 
-// ---- argument-flow sidebar render -----------------------------------------
-// Minimal 340px-wide layout.
-//   - Daf summary (prose)
-//   - For each argument section:
-//     - Section header (title)
-//     - Section summary (prose)
-//     - Stack of rabbi cards (one per voice): name / era / role
-//     - Single "…" toggle at bottom of section that reveals:
-//         • +/− support-dispute edges between the rabbis in this section
-//         • pesukim quoted in this section
-//         • parallel sugyot for this section
-//         • difficulty of this section
-
-function ArgumentFlowSidebar(props: {
-  tractate: string;
-  page: string;
-  analysis: Analysis;
-  partialNote: string | null;
-}): JSX.Element {
-  const a = () => props.analysis;
-  return (
-    <aside class="flow-sidebar">
-      <header class="flow-header">
-        <span class="flow-tractate">{props.tractate}</span>
-        <span class="flow-page">{props.page}</span>
-        <Show when={props.partialNote}>
-          <span class="flow-partial">{props.partialNote}</span>
-        </Show>
-      </header>
-
-      <Show when={a().summary}>
-        <p class="flow-daf-summary">{a().summary}</p>
-      </Show>
-
-      <For each={a().sections}>{(sec, idx) => <ArgumentSection sec={sec} idx={idx()} />}</For>
-    </aside>
-  );
-}
-
-function ArgumentSection(props: { sec: AnalysisSection; idx: number }): JSX.Element {
-  const [open, setOpen] = createSignal(false);
-  const sec = () => props.sec;
-  const supportEdges = () => (sec().rabbis || [])
-    .flatMap(r => (r.agreesWith ?? []).map(target => ({ from: r.name, to: target })));
-  const disputeEdges = () => (sec().rabbis || [])
-    .flatMap(r => (r.disagreesWith ?? []).map(target => ({ from: r.name, to: target })));
-  const hasDetail = () => !!(
-    supportEdges().length > 0
-    || disputeEdges().length > 0
-    || (sec().references && sec().references!.length > 0)
-    || (sec().parallels && sec().parallels!.length > 0)
-    || sec().difficulty
-  );
-
-  return (
-    <section class="flow-section">
-      <h3 class="flow-section-head">
-        <span class="flow-section-num">§{props.idx + 1}</span>
-        <span class="flow-section-title">{sec().title}</span>
-      </h3>
-      <Show when={sec().summary}>
-        <p class="flow-section-summary">{sec().summary}</p>
-      </Show>
-
-      <Show when={sec().rabbis && sec().rabbis.length > 0}>
-        <div class="flow-rabbis">
-          <For each={sec().rabbis}>{(r) => <RabbiCard rabbi={r} />}</For>
-        </div>
-      </Show>
-
-      <Show when={hasDetail()}>
-        <div class="flow-section-more">
-          <button
-            class="flow-more-btn"
-            onClick={() => setOpen(!open())}
-            aria-expanded={open()}
-          >{open() ? '−' : '…'}</button>
-        </div>
-
-        <Show when={open()}>
-          <div class="flow-detail">
-            <Show when={supportEdges().length > 0 || disputeEdges().length > 0}>
-              <div class="flow-d-row">
-                <span class="flow-d-label">Positions</span>
-                <div class="flow-d-body">
-                  <For each={supportEdges()}>{(e) => (
-                    <div class="flow-d-edge">
-                      <span class="flow-d-plus">+</span> {e.from} <span class="flow-d-prep">with</span> {e.to}
-                    </div>
-                  )}</For>
-                  <For each={disputeEdges()}>{(e) => (
-                    <div class="flow-d-edge">
-                      <span class="flow-d-minus">−</span> {e.from} <span class="flow-d-prep">vs</span> {e.to}
-                    </div>
-                  )}</For>
-                </div>
-              </div>
-            </Show>
-
-            <Show when={sec().references && sec().references!.length > 0}>
-              <div class="flow-d-row">
-                <span class="flow-d-label">Pesukim</span>
-                <div class="flow-d-body flow-d-wrap">
-                  <For each={sec().references!}>{(ref) => (
-                    <span class="flow-d-ref" title={ref.hebrewQuote || ref.ref}>
-                      {ref.hebrewRef || ref.ref}
-                    </span>
-                  )}</For>
-                </div>
-              </div>
-            </Show>
-
-            <Show when={sec().parallels && sec().parallels!.length > 0}>
-              <div class="flow-d-row">
-                <span class="flow-d-label">See also</span>
-                <div class="flow-d-body flow-d-wrap">
-                  <For each={sec().parallels!}>{(p) => <span class="flow-d-parallel">{p}</span>}</For>
-                </div>
-              </div>
-            </Show>
-
-            <Show when={sec().difficulty}>
-              <div class="flow-d-row">
-                <span class="flow-d-label">Difficulty</span>
-                <div class="flow-d-body">
-                  <span class="flow-d-stars">{'★'.repeat(sec().difficulty!.score)}{'☆'.repeat(5 - sec().difficulty!.score)}</span>
-                  <span class="flow-d-diff-reason"> {sec().difficulty!.reason}</span>
-                </div>
-              </div>
-            </Show>
-          </div>
-        </Show>
-      </Show>
-    </section>
-  );
-}
-
-function RabbiCard(props: { rabbi: Rabbi }): JSX.Element {
-  const r = () => props.rabbi;
-  return (
-    <div class="flow-rabbi">
-      <div class="flow-rabbi-name">
-        {r().name}
-        <Show when={r().nameHe}><span class="flow-rabbi-he"> · {r().nameHe}</span></Show>
-        <Show when={r().period}>
-          <span class="flow-rabbi-era">{r().period.replace(/,.*$/, '')}</span>
-        </Show>
-      </div>
-      <Show when={r().role}>
-        <div class="flow-rabbi-role">{r().role}</div>
-      </Show>
-    </div>
-  );
-}
 
 // ---- preview sub-component ------------------------------------------------
 
@@ -632,11 +479,32 @@ export function EnrichmentPage(): JSX.Element {
         .flow-section-summary { font-size: 12.5px; color: #475569; margin: 0 0 0.2rem; line-height: 1.5; }
 
         .flow-rabbis { display: flex; flex-direction: column; gap: 0.3rem; }
-        .flow-rabbi { background: #fff; border: 1px solid #e5e7eb; border-radius: 4px; padding: 0.4rem 0.6rem; }
-        .flow-rabbi-name { font-size: 12.5px; color: #1e293b; font-weight: 600; display: flex; align-items: baseline; gap: 0.25rem; flex-wrap: wrap; }
+        .flow-rabbi { position: relative; background: #fff; border: 1px solid #e5e7eb; border-radius: 4px; padding: 0.4rem 0.6rem 0.4rem 0.6rem; }
+        .flow-rabbi-name { font-size: 12.5px; color: #1e293b; font-weight: 600; display: flex; align-items: baseline; gap: 0.25rem; flex-wrap: wrap; padding-right: 1.5rem; }
+        .flow-rabbi-name-en { font-weight: 600; }
         .flow-rabbi-he { font-family: Arial Hebrew, David, serif; color: #64748b; font-weight: 500; }
         .flow-rabbi-era { margin-left: auto; font-size: 10px; color: #94a3b8; font-weight: 400; white-space: nowrap; }
-        .flow-rabbi-role { font-size: 12px; color: #475569; margin-top: 0.2rem; line-height: 1.45; }
+        .flow-rabbi-role { font-size: 12px; color: #475569; margin-top: 0.2rem; line-height: 1.45; padding-right: 1.5rem; }
+
+        .flow-rabbi-toggle {
+          position: absolute;
+          bottom: 0.2rem;
+          right: 0.4rem;
+          border: none;
+          background: transparent;
+          color: #cbd5e1;
+          font-size: 14px;
+          cursor: pointer;
+          padding: 0.1rem 0.35rem;
+          line-height: 1;
+          border-radius: 2px;
+        }
+        .flow-rabbi-toggle:hover { color: #475569; background: #f1f5f9; }
+        .flow-rabbi-detail { margin-top: 0.45rem; padding-top: 0.35rem; border-top: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 0.3rem; }
+        .flow-rabbi-span { font-family: Arial Hebrew, David, serif; direction: rtl; text-align: right; font-size: 13px; color: #475569; padding: 0.2rem 0.4rem; background: #f8fafc; border-radius: 2px; }
+        .flow-rabbi-span-gap { color: #94a3b8; font-family: system-ui; }
+        .flow-rabbi-rel { font-size: 11.5px; color: #334155; line-height: 1.4; }
+        .flow-rabbi-loc { font-size: 11px; color: #94a3b8; font-style: italic; }
 
         .flow-section-more { display: flex; justify-content: center; margin-top: 0.1rem; }
         .flow-more-btn {

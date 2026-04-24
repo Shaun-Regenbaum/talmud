@@ -33,7 +33,7 @@ const HIERARCHY = rabbiHierarchyData as unknown as HierarchyFile;
 // Four broad eras. The sketch shows these as the vertical skeleton of the
 // tree — rabbis anchor to their era, connector lines cross eras to
 // represent teacher→student lineage.
-type EraId = 'zugim' | 'tannaim' | 'amoraim' | 'savoraim';
+type EraId = 'zugim' | 'tannaim' | 'amoraim-ey' | 'amoraim-bavel' | 'savoraim';
 interface Era {
   id: EraId;
   label: string;
@@ -41,17 +41,21 @@ interface Era {
   generationIds: GenerationId[];
 }
 
+// Amoraim split by region so the reader can see Eretz-Yisrael vs.
+// Babylonian lineages separately. Generation colors from the existing
+// palette ensure each era bar matches its underline color scheme.
 const ERAS: Era[] = [
-  { id: 'zugim',    label: 'Zugim',    color: GENERATION_BY_ID['zugim'].color, generationIds: ['zugim'] },
-  { id: 'tannaim',  label: 'Tannaim',  color: GENERATION_BY_ID['tanna-4'].color,
+  { id: 'zugim',         label: 'Zugim',           color: GENERATION_BY_ID['zugim'].color, generationIds: ['zugim'] },
+  { id: 'tannaim',       label: 'Tannaim',         color: GENERATION_BY_ID['tanna-4'].color,
     generationIds: ['tanna-1','tanna-2','tanna-3','tanna-4','tanna-5','tanna-6'] },
-  { id: 'amoraim',  label: 'Amoraim',  color: GENERATION_BY_ID['amora-bavel-4'].color,
+  { id: 'amoraim-ey',    label: 'Amoraim · E.Y.',  color: GENERATION_BY_ID['amora-ey-3'].color,
+    generationIds: ['amora-ey-1','amora-ey-2','amora-ey-3','amora-ey-4','amora-ey-5'] },
+  { id: 'amoraim-bavel', label: 'Amoraim · Bavel', color: GENERATION_BY_ID['amora-bavel-4'].color,
     generationIds: [
-      'amora-ey-1','amora-ey-2','amora-ey-3','amora-ey-4','amora-ey-5',
       'amora-bavel-1','amora-bavel-2','amora-bavel-3','amora-bavel-4',
       'amora-bavel-5','amora-bavel-6','amora-bavel-7','amora-bavel-8',
     ] },
-  { id: 'savoraim', label: 'Savoraim', color: GENERATION_BY_ID['savora'].color, generationIds: ['savora'] },
+  { id: 'savoraim',      label: 'Savoraim',        color: GENERATION_BY_ID['savora'].color, generationIds: ['savora'] },
 ];
 
 function eraForGeneration(gen: string): EraId | null {
@@ -64,7 +68,8 @@ function eraForGeneration(gen: string): EraId | null {
 interface RabbiTreeStripProps {
   rabbis: RabbiLite[];
   onOpenRabbiSlug: (slug: string) => void;
-  onHighlightRabbi: (name: string | null) => void;
+  /** Transient hover highlight on the daf — does NOT open the sidebar. */
+  onHoverRabbi: (name: string | null) => void;
   hoveredRabbi: string | null;
   activeRabbi: string | null;
 }
@@ -98,7 +103,7 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
   // any 1-hop teachers/students/colleagues from the hierarchy who aren't
   // already on the daf. Sorted so on-daf rabbis appear first.
   const entriesByEra = createMemo<Record<EraId, ColumnEntry[]>>(() => {
-    const out: Record<EraId, ColumnEntry[]> = { zugim: [], tannaim: [], amoraim: [], savoraim: [] };
+    const out: Record<EraId, ColumnEntry[]> = { zugim: [], tannaim: [], 'amoraim-ey': [], 'amoraim-bavel': [], savoraim: [] };
     const seenBySlug = new Set<string>();
 
     for (const r of props.rabbis) {
@@ -291,8 +296,8 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
                       <button
                         type="button"
                         ref={(el) => registerPill(e.slug, el)}
-                        onMouseEnter={() => props.onHighlightRabbi(e.canonical)}
-                        onMouseLeave={() => props.onHighlightRabbi(null)}
+                        onMouseEnter={() => props.onHoverRabbi(e.canonical)}
+                        onMouseLeave={() => props.onHoverRabbi(null)}
                         onClick={() => { if (e.slug) props.onOpenRabbiSlug(e.slug); }}
                         disabled={!e.slug}
                         style={{

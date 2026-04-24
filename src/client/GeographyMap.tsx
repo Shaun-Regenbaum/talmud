@@ -363,7 +363,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
           </p>
         }
       >
-        <div style={{ display: 'flex', 'flex-direction': props.layout === 'column' ? 'column' : 'row', gap: '0.5rem', 'align-items': 'flex-start' }}>
+        <div style={{ display: 'flex', 'flex-direction': props.layout === 'column' ? 'column' : 'row', gap: '0.5rem', 'align-items': 'stretch' }}>
           {/* ========== Eretz Yisrael card ========== */}
           <div
             style={{
@@ -382,7 +382,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
             </div>
             <svg
               viewBox={`-6 -4 ${ISRAEL_SHAPE.width + 12} ${ISRAEL_SHAPE.height + 8}`}
-              style={{ width: '100%', height: 'auto', display: 'block', 'max-height': '280px' }}
+              style={{ width: '100%', flex: 1, display: 'block', 'min-height': 0 }}
               preserveAspectRatio="xMidYMid meet"
               role="img"
               aria-label="Eretz Yisrael — rabbi geographic origins"
@@ -424,7 +424,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
             </div>
             <svg
               viewBox="30 -10 95 195"
-              style={{ width: '100%', height: 'auto', display: 'block', 'max-height': '280px' }}
+              style={{ width: '100%', flex: 1, display: 'block', 'min-height': 0 }}
               preserveAspectRatio="xMidYMid meet"
               role="img"
               aria-label="Bavel — rabbi geographic origins"
@@ -504,7 +504,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
               color: '#555',
               display: 'flex',
               'flex-direction': 'column',
-              gap: '0.1rem',
+              gap: '0.15rem',
             }}
           >
             <div style={{ color: '#6b7280', 'font-size': '0.64rem', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>
@@ -513,18 +513,19 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
             <For each={data().moverRows}>
               {(row) => {
                 const hovered = () => hoveredMoverRow() === row.name;
-                // Hover → transient daf highlight via onHoverRabbi (additive,
-                // non-destructive). Click → open bio card via
-                // onHighlightSingleRabbi (same path as clicking the map dot).
                 const onEnter = () => { setHoveredMoverRow(row.name); props.onHoverRabbi?.(row.name); };
                 const onLeave = () => { setHoveredMoverRow(null); props.onHoverRabbi?.(null); };
-                const Bavel = <span style={{ 'font-family': 'ui-monospace, SFMono-Regular, monospace', 'font-weight': 600, color: '#92400e' }}>Bavel</span>;
-                const EY    = <span style={{ 'font-family': 'ui-monospace, SFMono-Regular, monospace', 'font-weight': 600, color: '#1f2937' }}>Eretz Yisrael</span>;
-                const arrow = row.direction === 'both'
-                  ? <span style={{ 'font-size': '0.95rem', color: '#111' }}>&harr;</span>
-                  : <span style={{ 'font-size': '0.95rem', color: '#111' }}>&rarr;</span>;
-                const from = row.direction === 'bavel->israel' ? Bavel : EY;
-                const to   = row.direction === 'bavel->israel' ? EY : Bavel;
+                // Single-letter region tags so the whole row fits on one
+                // line in a ~220px strip. "B" = Bavel (amber), "E" = Eretz
+                // Yisrael (gray). Full name stays in title attribute.
+                const fromB = row.direction === 'bavel->israel';
+                const fromLabel = fromB ? 'B' : 'E';
+                const toLabel   = fromB ? 'E' : 'B';
+                const fromColor = fromB ? '#92400e' : '#1f2937';
+                const toColor   = fromB ? '#1f2937' : '#92400e';
+                const fromFull  = fromB ? 'Bavel' : 'Eretz Yisrael';
+                const toFull    = fromB ? 'Eretz Yisrael' : 'Bavel';
+                const arrow = row.direction === 'both' ? '↔' : '→';
                 return (
                   <div
                     onMouseEnter={onEnter}
@@ -539,21 +540,26 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
                       }
                     }}
                     tabIndex={0}
+                    title={`${fromFull} ${arrow} ${toFull} — ${row.name}`}
                     style={{
                       display: 'flex',
                       'align-items': 'center',
-                      gap: '0.4rem',
-                      padding: '0.15rem 0.35rem',
+                      gap: '0.3rem',
+                      padding: '0.15rem 0.3rem',
                       'border-radius': '4px',
                       cursor: props.onHighlightSingleRabbi ? 'pointer' : 'default',
                       'background-color': hovered() ? 'rgba(234, 179, 8, 0.18)' : 'transparent',
                       transition: 'background-color 120ms',
+                      'white-space': 'nowrap',
+                      overflow: 'hidden',
                     }}
                   >
-                    {from}
-                    {arrow}
-                    {to}
-                    <span style={{ color: '#555' }}>&middot; {row.name}</span>
+                    <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.15rem', 'font-family': 'ui-monospace, SFMono-Regular, monospace', 'font-size': '0.7rem', 'flex-shrink': 0 }}>
+                      <span style={{ color: fromColor, 'font-weight': 700 }}>{fromLabel}</span>
+                      <span style={{ color: '#111' }}>{arrow}</span>
+                      <span style={{ color: toColor, 'font-weight': 700 }}>{toLabel}</span>
+                    </span>
+                    <span style={{ color: '#333', overflow: 'hidden', 'text-overflow': 'ellipsis' }}>{row.name}</span>
                   </div>
                 );
               }}
