@@ -641,51 +641,48 @@ function HalachaCard(props: { topic: HalachaTopic; idx: number }): JSX.Element {
           )}</For>
         </ul>
       </Show>
-      <Show when={hasMore()}>
+
+      {/* Enrichment outputs — always visible when populated (no collapse) */}
+      <Show when={t().rishonimNotes && t().rishonimNotes!.length > 0}>
+        <div class="enrich-section"><span class="enrich-section-label">Rishonim</span>
+          <For each={t().rishonimNotes!}>{(n) => (
+            <div class="enrich-row">
+              <span class="enrich-src">{n.rishon}</span>
+              <span class="enrich-txt"> — {n.note}</span>
+            </div>
+          )}</For>
+        </div>
+      </Show>
+      <Show when={t().saCommentaryNotes && t().saCommentaryNotes!.length > 0}>
+        <div class="enrich-section"><span class="enrich-section-label">SA commentary</span>
+          <For each={t().saCommentaryNotes!}>{(n) => (
+            <div class="enrich-row">
+              <span class="enrich-src">{n.commentator}</span>
+              <span class="enrich-txt"> — {n.note}</span>
+              <Show when={n.ref}><span class="enrich-ref"> [{n.ref}]</span></Show>
+            </div>
+          )}</For>
+        </div>
+      </Show>
+      <Show when={t().modernAuthorities && t().modernAuthorities!.length > 0}>
+        <div class="enrich-section"><span class="enrich-section-label">Modern authorities</span>
+          <For each={t().modernAuthorities!}>{(a) => (
+            <div class="enrich-row">
+              <span class="enrich-src">{a.source}</span>
+              <span class="enrich-txt"> — {a.summary}</span>
+            </div>
+          )}</For>
+        </div>
+      </Show>
+
+      {/* Source excerpt collapsed behind "…" */}
+      <Show when={t().excerpt}>
         <div class="section-more">
-          <button class="more-btn" onClick={() => setOpen(!open())}>{open() ? '−' : '…'}</button>
+          <button class="more-btn" onClick={() => setOpen(!open())}>{open() ? '−' : '… source'}</button>
         </div>
         <Show when={open()}>
           <div class="detail">
-            <Show when={t().excerpt}>
-              <div class="d-row"><span class="d-label">Source</span><div class="d-body"><span class="d-excerpt">{t().excerpt}</span></div></div>
-            </Show>
-            <Show when={t().rishonimNotes && t().rishonimNotes!.length > 0}>
-              <div class="d-row"><span class="d-label">Rishonim</span>
-                <div class="d-body">
-                  <For each={t().rishonimNotes!}>{(n) => (
-                    <div class="modern-row">
-                      <span class="modern-src">{n.rishon}</span>
-                      <span class="modern-text"> — {n.note}</span>
-                    </div>
-                  )}</For>
-                </div>
-              </div>
-            </Show>
-            <Show when={t().saCommentaryNotes && t().saCommentaryNotes!.length > 0}>
-              <div class="d-row"><span class="d-label">SA comm.</span>
-                <div class="d-body">
-                  <For each={t().saCommentaryNotes!}>{(n) => (
-                    <div class="modern-row">
-                      <span class="modern-src">{n.commentator}</span>
-                      <span class="modern-text"> — {n.note}</span>
-                    </div>
-                  )}</For>
-                </div>
-              </div>
-            </Show>
-            <Show when={t().modernAuthorities && t().modernAuthorities!.length > 0}>
-              <div class="d-row"><span class="d-label">Modern</span>
-                <div class="d-body">
-                  <For each={t().modernAuthorities!}>{(a) => (
-                    <div class="modern-row">
-                      <span class="modern-src">{a.source}</span>
-                      <span class="modern-text"> — {a.summary}</span>
-                    </div>
-                  )}</For>
-                </div>
-              </div>
-            </Show>
+            <div class="d-row"><span class="d-label">Source</span><div class="d-body"><span class="d-excerpt">{t().excerpt}</span></div></div>
           </div>
         </Show>
       </Show>
@@ -931,6 +928,14 @@ const PAGE_CSS = `
 .topic-ref:hover { background: #c7d2fe; }
 .topic-more { font-size: 10px; color: #64748b; padding: 0 0.5rem; border: none; background: transparent; cursor: pointer; }
 .topic-more:hover { color: #1e293b; }
+
+.enrich-section { margin-top: 0.5rem; padding: 0.4rem 0.55rem; background: #f8fafc; border-left: 3px solid #7c3aed; border-radius: 2px; }
+.enrich-section-label { display: block; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #7c3aed; margin-bottom: 0.25rem; }
+.enrich-row { font-size: 12px; line-height: 1.45; margin-bottom: 0.2rem; color: #334155; }
+.enrich-row:last-child { margin-bottom: 0; }
+.enrich-src { font-weight: 600; color: #1e293b; }
+.enrich-txt { color: #475569; }
+.enrich-ref { font-family: ui-monospace, Menlo, monospace; font-size: 10px; color: #94a3b8; margin-left: 0.25rem; }
 
 .loading, .err-msg { font-size: 13px; padding: 0.5rem 1rem; }
 .err-msg { color: #b91c1c; background: #fee2e2; border-radius: 4px; }

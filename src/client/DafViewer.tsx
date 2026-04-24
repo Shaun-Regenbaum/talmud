@@ -17,6 +17,7 @@ import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
 import type { AggadataResult, AggadataStory } from './AggadataDetector';
 import { injectCityMarkers } from './injectCityMarkers';
 import { GenerationTimeline } from './GenerationTimeline';
+import { classifyDaf } from '../lib/era/heuristic';
 import { BugReport } from './BugReport';
 import { type CommentaryWork, type CommentaryComment } from './CommentaryPicker';
 import { CommentaryStrip } from './CommentaryStrip';
@@ -212,6 +213,7 @@ const CHAIN_KEY = 'daf.toggle.chain';
 const ARGUMENTS_KEY = 'daf.toggle.arguments';
 const HALACHOT_KEY = 'daf.toggle.halachot';
 const AGGADATOT_KEY = 'daf.toggle.aggadatot';
+const ERA_KEY = 'daf.toggle.era';
 function loadToggle(key: string, def: boolean): boolean {
   if (typeof localStorage === 'undefined') return def;
   const v = localStorage.getItem(key);
@@ -279,6 +281,7 @@ export default function DafViewer(): JSX.Element {
   const [showArguments, setShowArguments] = createSignal(loadToggle(ARGUMENTS_KEY, true));
   const [showHalachot, setShowHalachot] = createSignal(loadToggle(HALACHOT_KEY, true));
   const [showAggadatot, setShowAggadatot] = createSignal(loadToggle(AGGADATOT_KEY, true));
+  const [showEra, setShowEra] = createSignal(loadToggle(ERA_KEY, false));
 
   // Back-compat: underline injection + timeline take a GenerationRabbi[]; derive it.
   const generations = createMemo<GenerationRabbi[] | null>(() => {
@@ -1790,7 +1793,7 @@ export default function DafViewer(): JSX.Element {
         </Show>
       </div>
 
-      <Show when={analysisLoading() || halachaLoading() || analysisError() || halachaError()}>
+      <Show when={analysisLoading() || halachaLoading() || aggadataLoading() || analysisError() || halachaError() || aggadataError()}>
         <section
           style={{
             'margin-top': '1rem',

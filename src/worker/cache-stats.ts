@@ -9,12 +9,14 @@
  */
 import rabbiPlacesData from '../lib/data/rabbi-places.json';
 import rabbiHierarchyData from '../lib/data/rabbi-hierarchy.json';
+import rabbiFamilyData from '../lib/data/rabbi-family.json';
+import rabbiOrientationData from '../lib/data/rabbi-orientation.json';
 import { getWarmTotal } from './warm-cron';
 
-// v2 expanded the `rabbis` block with withImage / withGeneration /
-// withRegion / withPlaces / withHierarchyEdges. Old v1 cached payloads
-// would leave those fields undefined in the UI.
-export const CACHE_STATS_KEY = 'cache-stats:v2';
+// v3: rabbis block dropped withImage, gained withSefariaBio / withFamily
+// / withOrientation. Old v2 cached payloads would leave the new fields
+// undefined and still surface the deprecated withImage.
+export const CACHE_STATS_KEY = 'cache-stats:v3';
 const FRESH_MS = 60_000;
 
 export interface CacheStats {
@@ -29,13 +31,15 @@ export interface CacheStats {
   };
   rabbis: {
     totalRabbis: number;
-    withBio: number;
-    withWiki: number;
-    withImage: number;
-    withGeneration: number;   // generation set and not 'unknown'
-    withRegion: number;       // region is 'israel' | 'bavel'
-    withPlaces: number;       // non-empty places array
-    withHierarchyEdges: number; // at least one teacher/student/colleague edge
+    withBio: number;                      // any bio text
+    withSefariaBio: number | null;        // bio sourced from Sefaria; null when provenance isn't tracked yet
+    withWiki: number;                     // Hebrew Wikipedia link
+    withGeneration: number;               // generation set and not 'unknown'
+    withRegion: number;                   // region is 'israel' | 'bavel'
+    withPlaces: number;                   // non-empty places array
+    withHierarchyEdges: number;           // at least one teacher/student/contemporary edge
+    withFamily: number;                   // at least one familial relation in rabbi-family.json
+    withOrientation: number;              // orientation (mystical / practical) classified in rabbi-orientation.json
     unknownRabbis: null;
   };
   hierarchy: {
@@ -56,13 +60,24 @@ interface RabbisFile {
   rabbis: Record<string, {
     bio?: string | null;
     wiki?: string | null;
-    image?: string | null;
+    bioSource?: 'sefaria' | 'wikipedia' | 'both' | null;  // future provenance flag
+    numSources?: number | null;
     generation?: string | null;
     region?: 'israel' | 'bavel' | null;
     places?: string[];
   }>;
 }
 const RABBIS = rabbiPlacesData as unknown as RabbisFile;
+
+interface FamilyFile {
+  nodes: Record<string, { family?: Array<{ name: string; relation: string }> }>;
+}
+const FAMILY = rabbiFamilyData as unknown as FamilyFile;
+
+interface OrientationFile {
+  nodes: Record<string, { orientation?: 'mystical' | 'practical' | 'mixed' | 'unknown' | null }>;
+}
+const ORIENTATION = rabbiOrientationData as unknown as OrientationFile;
 
 interface HierarchyFile {
   generatedAt: string | null;
@@ -120,21 +135,36 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
   let totalRabbis = 0;
   let withBio = 0;
   let withWiki = 0;
-  let withImage = 0;
   let withGeneration = 0;
   let withRegion = 0;
   let withPlaces = 0;
+  let bioSourceTracked = 0;     // how many entries HAVE a bioSource field set
+  let withSefariaBioCount = 0;  // entries where bioSource === 'sefaria' or 'both'
   for (const [slug, r] of Object.entries(RABBIS.rabbis)) {
     totalRabbis++;
     if (r.bio) withBio++;
     if (r.wiki) withWiki++;
-    if (r.image) withImage++;
     if (r.generation && r.generation !== 'unknown') withGeneration++;
     if (r.region === 'israel' || r.region === 'bavel') withRegion++;
     if (Array.isArray(r.places) && r.places.length > 0) withPlaces++;
-    // withHierarchyEdges is counted in the hierarchy pass below so we
-    // don't re-walk the rabbi dataset twice.
+    if (r.bioSource) {
+      bioSourceTracked++;
+      if (r.bioSource === 'sefaria' || r.bioSource === 'both') withSefariaBioCount++;
+    }
     void slug;
+  }
+  // withSefariaBio is only meaningful once we actually track provenance
+  // on each bio. Until then report null so the UI can render
+  // "— not tracked yet" rather than a misleading count.
+  const withSefariaBio: number | null = bioSourceTracked > 0 ? withSefariaBioCount : null;
+
+  let withFamily = 0;
+  for (const n of Object.values(FAMILY.nodes ?? {})) {
+    if (Array.isArray(n.family) && n.family.length > 0) withFamily++;
+  }
+  let withOrientation = 0;
+  for (const n of Object.values(ORIENTATION.nodes ?? {})) {
+    if (n.orientation && n.orientation !== 'unknown') withOrientation++;
   }
 
   let totalEdges = 0;
@@ -157,9 +187,9 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
       dafContext: { count: dcTotal, percent: pct(dcTotal, total), stage2Count: dcStage2 },
     },
     rabbis: {
-      totalRabbis, withBio, withWiki, withImage,
+      totalRabbis, withBio, withSefariaBio, withWiki,
       withGeneration, withRegion, withPlaces,
-      withHierarchyEdges,
+      withHierarchyEdges, withFamily, withOrientation,
       unknownRabbis: null,
     },
     hierarchy: {

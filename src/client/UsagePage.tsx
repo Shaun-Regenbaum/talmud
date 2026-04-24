@@ -54,12 +54,14 @@ interface CacheStats {
   rabbis: {
     totalRabbis: number;
     withBio: number;
+    withSefariaBio: number | null;
     withWiki: number;
-    withImage: number;
     withGeneration: number;
     withRegion: number;
     withPlaces: number;
     withHierarchyEdges: number;
+    withFamily: number;
+    withOrientation: number;
     unknownRabbis: number | null;
   };
   hierarchy: {
@@ -208,17 +210,39 @@ function CacheStatusSection(props: { stats: CacheStats }): JSX.Element {
         </div>
         <table style={{ width: '100%', 'border-collapse': 'collapse', 'font-size': '0.85rem' }}>
           <tbody>
-            <RabbiCoverageRow label="Bio" filled={r().withBio} total={r().totalRabbis} />
-            <RabbiCoverageRow label="Wikipedia link" filled={r().withWiki} total={r().totalRabbis} />
-            <RabbiCoverageRow label="Image" filled={r().withImage} total={r().totalRabbis} />
+            <RabbiCoverageRow label="Bio (any source)" filled={r().withBio} total={r().totalRabbis} />
+            <RabbiCoverageRow
+              label="Sefaria bio"
+              filled={r().withSefariaBio}
+              total={r().totalRabbis}
+              hint="bio sourced from Sefaria's PersonTopic API"
+            />
+            <RabbiCoverageRow
+              label="Hebrew Wikipedia"
+              filled={r().withWiki}
+              total={r().totalRabbis}
+              hint="has a Hebrew Wikipedia page linked"
+            />
             <RabbiCoverageRow label="Generation identified" filled={r().withGeneration} total={r().totalRabbis} />
             <RabbiCoverageRow label="Region (E.Y. / Bavel)" filled={r().withRegion} total={r().totalRabbis} />
             <RabbiCoverageRow label="Places (cities)" filled={r().withPlaces} total={r().totalRabbis} />
             <RabbiCoverageRow
-              label="Hierarchy edges"
+              label="Chain of tradition"
               filled={r().withHierarchyEdges}
               total={r().totalRabbis}
               hint="at least one teacher / student / contemporary"
+            />
+            <RabbiCoverageRow
+              label="Familial relations"
+              filled={r().withFamily}
+              total={r().totalRabbis}
+              hint="father / mother / spouse / child / sibling / in-law"
+            />
+            <RabbiCoverageRow
+              label="Orientation"
+              filled={r().withOrientation}
+              total={r().totalRabbis}
+              hint="mystical / practical / mixed"
             />
           </tbody>
         </table>
@@ -229,15 +253,17 @@ function CacheStatusSection(props: { stats: CacheStats }): JSX.Element {
 
 interface RabbiCoverageRowProps {
   label: string;
-  filled: number;
+  filled: number | null;           // null = coverage isn't tracked yet
   total: number;
   hint?: string;
 }
 
 function RabbiCoverageRow(props: RabbiCoverageRowProps): JSX.Element {
-  const missing = () => Math.max(0, props.total - props.filled);
-  const percent = () => props.total > 0 ? (props.filled / props.total) * 100 : 0;
-  const complete = () => percent() >= 100;
+  const tracked = () => props.filled !== null;
+  const filled = () => props.filled ?? 0;
+  const missing = () => Math.max(0, props.total - filled());
+  const percent = () => props.total > 0 ? (filled() / props.total) * 100 : 0;
+  const complete = () => tracked() && percent() >= 100;
   return (
     <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
       <td style={{ padding: '0.35rem 0.5rem' }}>
@@ -249,26 +275,34 @@ function RabbiCoverageRow(props: RabbiCoverageRowProps): JSX.Element {
         </Show>
       </td>
       <td style={{ padding: '0.35rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>
-        <span style={{ color: '#333' }}>{fmtInt(props.filled)}</span>
-        <span style={{ color: '#999' }}> / {fmtInt(props.total)}</span>
+        <Show when={tracked()} fallback={<span style={{ color: '#999' }}>—</span>}>
+          <span style={{ color: '#333' }}>{fmtInt(filled())}</span>
+          <span style={{ color: '#999' }}> / {fmtInt(props.total)}</span>
+        </Show>
       </td>
       <td style={{ padding: '0.35rem 0.5rem', width: '32%' }}>
-        <div style={{ height: '6px', background: '#f0f0f0', 'border-radius': '3px', overflow: 'hidden' }}>
-          <div
-            style={{
-              width: `${Math.min(100, percent())}%`,
-              height: '100%',
-              background: complete() ? '#2a8a42' : '#4b7bec',
-              transition: 'width 0.3s ease',
-            }}
-          />
-        </div>
+        <Show when={tracked()}>
+          <div style={{ height: '6px', background: '#f0f0f0', 'border-radius': '3px', overflow: 'hidden' }}>
+            <div
+              style={{
+                width: `${Math.min(100, percent())}%`,
+                height: '100%',
+                background: complete() ? '#2a8a42' : '#4b7bec',
+                transition: 'width 0.3s ease',
+              }}
+            />
+          </div>
+        </Show>
       </td>
       <td style={{ padding: '0.35rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', color: complete() ? '#2a8a42' : '#333', 'white-space': 'nowrap' }}>
-        {percent().toFixed(1)}%
+        <Show when={tracked()} fallback={<span style={{ color: '#999', 'font-size': '0.78rem' }}>not tracked</span>}>
+          {percent().toFixed(1)}%
+        </Show>
       </td>
       <td style={{ padding: '0.35rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', color: missing() === 0 ? '#999' : '#c33', 'font-size': '0.78rem', 'white-space': 'nowrap' }}>
-        {missing() === 0 ? '—' : `${fmtInt(missing())} missing`}
+        <Show when={tracked()} fallback={<span>—</span>}>
+          {missing() === 0 ? '—' : `${fmtInt(missing())} missing`}
+        </Show>
       </td>
     </tr>
   );
