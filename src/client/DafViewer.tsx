@@ -412,6 +412,26 @@ export default function DafViewer(): JSX.Element {
   });
   createEffect(() => {
     if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(ERA_KEY, String(showEra()));
+  });
+
+  // Era stratification — when the toggle is on, classify each segment of the
+  // daf with the heuristic and feed the per-generation segment counts to the
+  // timeline. The classifier is pure TS (no LLM), so it's cheap to run inline.
+  // The timeline's eraSegmentCounts prop is additive: cells light up if they
+  // have rabbis OR if any segments map to that generation.
+  const eraSegmentCounts = createMemo<Map<GenerationId, number> | null>(() => {
+    if (!showEra()) return null;
+    const d = daf();
+    const segs = (d as unknown as { mainSegmentsHe?: string[] } | undefined)?.mainSegmentsHe ?? [];
+    if (segs.length === 0) return null;
+    const ctx = classifyDaf(segs);
+    const m = new Map<GenerationId, number>();
+    for (const s of ctx.segments) m.set(s.era, (m.get(s.era) ?? 0) + 1);
+    return m;
+  });
+  createEffect(() => {
+    if (typeof localStorage === 'undefined') return;
     localStorage.setItem(HALACHOT_KEY, String(showHalachot()));
   });
   createEffect(() => {
@@ -1697,6 +1717,7 @@ export default function DafViewer(): JSX.Element {
           <ToggleSwitch label="Arguments" value={showArguments()} onChange={setShowArguments} />
           <ToggleSwitch label="Halachot" value={showHalachot()} onChange={setShowHalachot} />
           <ToggleSwitch label="Aggadatot" value={showAggadatot()} onChange={setShowAggadatot} />
+          <ToggleSwitch label="Era" value={showEra()} onChange={setShowEra} />
         </div>
       </header>
 
@@ -1724,6 +1745,7 @@ export default function DafViewer(): JSX.Element {
       <Show when={showTimeline()}>
         <GenerationTimeline
           rabbis={generations()}
+          eraSegmentCounts={eraSegmentCounts()}
           activeGeneration={activeGenerationId()}
           onHighlightGeneration={onHighlightGeneration}
           width={dafWidth()}
@@ -1831,11 +1853,25 @@ export default function DafViewer(): JSX.Element {
               Identifying halacha…
             </span>
           </Show>
+          <Show when={aggadataLoading()}>
+            <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
+              <span style={{
+                display: 'inline-block', width: '0.75rem', height: '0.75rem',
+                'border-radius': '50%',
+                border: '2px solid #d6d3d1', 'border-top-color': '#6d28d9',
+                animation: 'daf-spin 0.8s linear infinite',
+              }} />
+              Finding aggadot…
+            </span>
+          </Show>
           <Show when={analysisError()}>
             <span style={{ color: '#c33' }}>Arguments: {analysisError()}</span>
           </Show>
           <Show when={halachaError()}>
             <span style={{ color: '#c33' }}>Halacha: {halachaError()}</span>
+          </Show>
+          <Show when={aggadataError()}>
+            <span style={{ color: '#c33' }}>Aggadot: {aggadataError()}</span>
           </Show>
           <style>{`@keyframes daf-spin { to { transform: rotate(360deg); } }`}</style>
         </section>
