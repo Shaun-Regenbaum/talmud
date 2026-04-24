@@ -18,6 +18,12 @@ export interface GenerationTimelineProps {
    * and the count badge prefers segment count over rabbi count.
    */
   eraSegmentCounts?: Map<GenerationId, number> | null;
+  /**
+   * Optional: fires on cell mouseenter with the primary GenerationId, and on
+   * mouseleave with null. Used by the main daf view to paint era-hover
+   * highlights across the text.
+   */
+  onHoverGeneration?: (generation: GenerationId | null) => void;
 }
 
 // Single chronological amora track. EY (gens 1–5) and Bavel (gens 1–8)
@@ -102,6 +108,8 @@ export function GenerationTimeline(props: GenerationTimelineProps): JSX.Element 
     return (
       <button
         onClick={() => onCellClick(cprops.primaryId, cprops.ids)}
+        onMouseEnter={() => { if (present()) props.onHoverGeneration?.(cprops.primaryId); }}
+        onMouseLeave={() => props.onHoverGeneration?.(null)}
         disabled={!present()}
         title={present()
           ? `${cprops.label} · ${cprops.era}${

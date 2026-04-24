@@ -209,6 +209,7 @@ function collectSurroundingHebrew(els: HTMLElement[], windowSize = CONTEXT_WINDO
 import type { DafContext, IdentifiedRabbi } from './dafContext';
 
 const dafContextSessionCache = new Map<string, DafContext>();
+const eraContextSessionCache = new Map<string, { ctx: DafEraContext; stage: 1 | 2 }>();
 const analysisSessionCache = new Map<string, DafAnalysis>();
 const halachaSessionCache = new Map<string, HalachaResult>();
 const aggadataSessionCache = new Map<string, AggadataResult>();
@@ -430,18 +431,79 @@ export default function DafViewer(): JSX.Element {
     if (typeof localStorage === 'undefined') return;
     localStorage.setItem(ERA_KEY, String(showEra()));
   });
+  createEffect(() => {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(ERA_HIGHLIGHT_KEY, String(showEraHighlight()));
+  });
 
-  // Era stratification — when the toggle is on, classify each segment of the
-  // daf with the heuristic and feed the per-generation segment counts to the
-  // timeline. The classifier is pure TS (no LLM), so it's cheap to run inline.
-  // The timeline's eraSegmentCounts prop is additive: cells light up if they
-  // have rabbis OR if any segments map to that generation.
+  // Era stratification — two-stage fetch from /api/era-context.
+  // Stage 1 (heuristic) paints immediately, then we poll for stage 2 (LLM
+  // refinement) and silently upgrade. Falls back to the local heuristic if
+  // the endpoint is unreachable so the toggle never feels broken.
+  createEffect(() => {
+    if (!showEra()) { setEraContext(null); return; }
+    const t = tractate();
+    const p = page();
+    const key = `${t}:${p}`;
+    const cached = eraContextSessionCache.get(key);
+    if (cached) setEraContext(cached.ctx);
+    const controller = new AbortController();
+    const url = (stage2 = false) =>
+      `/api/era-context/${encodeURIComponent(t)}/${p}` + (stage2 ? '?stage=2' : '');
+
+    const fallbackToLocal = () => {
+      const d = daf();
+      const segs = (d as unknown as { mainSegmentsHe?: string[] } | undefined)?.mainSegmentsHe ?? [];
+      if (segs.length === 0) return;
+      const ctx = classifyDaf(segs);
+      eraContextSessionCache.set(key, { ctx, stage: 1 });
+      if (t === tractate() && p === page()) setEraContext(ctx);
+    };
+
+    const pollStage2 = async () => {
+      const delays = [3000, 5000, 8000, 12000, 20000, 30000];
+      for (const d of delays) {
+        await new Promise((r) => setTimeout(r, d));
+        if (controller.signal.aborted) return;
+        if (t !== tractate() || p !== page()) return;
+        try {
+          const res = await fetch(url(true), { signal: controller.signal });
+          if (res.status === 204) continue;
+          if (!res.ok) continue;
+          const json = (await res.json()) as DafEraContext & { _stage?: number };
+          if (json._stage === 2) {
+            eraContextSessionCache.set(key, { ctx: json, stage: 2 });
+            setEraContext(json);
+            return;
+          }
+        } catch (err) {
+          if ((err as Error).name === 'AbortError') return;
+        }
+      }
+    };
+
+    (async () => {
+      try {
+        const res = await fetch(url(false), { signal: controller.signal });
+        if (!res.ok) { fallbackToLocal(); return; }
+        const json = (await res.json()) as DafEraContext & { _stage?: number };
+        eraContextSessionCache.set(key, { ctx: json, stage: (json._stage as 1 | 2) ?? 1 });
+        if (t !== tractate() || p !== page()) return;
+        setEraContext(json);
+        if ((json._stage ?? 1) === 1) void pollStage2();
+      } catch (err) {
+        if ((err as Error).name === 'AbortError') return;
+        fallbackToLocal();
+      }
+    })();
+
+    onCleanup(() => controller.abort());
+  });
+
   const eraSegmentCounts = createMemo<Map<GenerationId, number> | null>(() => {
     if (!showEra()) return null;
-    const d = daf();
-    const segs = (d as unknown as { mainSegmentsHe?: string[] } | undefined)?.mainSegmentsHe ?? [];
-    if (segs.length === 0) return null;
-    const ctx = classifyDaf(segs);
+    const ctx = eraContext();
+    if (!ctx) return null;
     const m = new Map<GenerationId, number>();
     for (const s of ctx.segments) m.set(s.era, (m.get(s.era) ?? 0) + 1);
     return m;
@@ -1014,6 +1076,45 @@ export default function DafViewer(): JSX.Element {
     paintRangeOverlay(overlay, dafRootDiv, halachaRanges, 'halacha');
     paintRangeOverlay(overlay, dafRootDiv, aggadataRanges, 'aggadata');
 
+    // Era stratification overlays — only meaningful when Era toggle is on.
+    if (showEra()) {
+      const ctx = eraContext();
+      const mainCol = dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
+      if (ctx && mainCol) {
+        // Always-on tint (per-segment background colored by era) when the
+        // Highlight Eras toggle is on.
+        if (showEraHighlight()) {
+          const tintRanges: Range[] = [];
+          const tintColors: string[] = [];
+          for (const s of ctx.segments) {
+            const r = rangeForSegment(mainCol, s.segIdx);
+            if (!r) continue;
+            const color = GENERATION_BY_ID[s.era]?.color ?? '#d1d5db';
+            tintRanges.push(r);
+            // Soft tint — leave ~80% transparency so text stays readable.
+            tintColors.push(color + '22');
+          }
+          paintRangeOverlay(overlay, dafRootDiv, tintRanges, 'era-tint', (i) => tintColors[i]);
+        }
+        // Hover-driven highlight: brighten matching segments via a stronger
+        // tint (overrides the soft tint when both are on).
+        const hov = hoveredEra();
+        if (hov !== null) {
+          const hoverRanges: Range[] = [];
+          const hoverColors: string[] = [];
+          for (const s of ctx.segments) {
+            if (s.era !== hov) continue;
+            const r = rangeForSegment(mainCol, s.segIdx);
+            if (!r) continue;
+            const color = GENERATION_BY_ID[s.era]?.color ?? '#fbbf24';
+            hoverRanges.push(r);
+            hoverColors.push(color + '55');
+          }
+          paintRangeOverlay(overlay, dafRootDiv, hoverRanges, 'era-hover', (i) => hoverColors[i]);
+        }
+      }
+    }
+
     // Per-rabbi name accent (yellow) — always applied on top of any tint.
     if (name) {
       const selector = `.rabbi-underline[data-rabbi="${name.replace(/"/g, '\\"')}"]`;
@@ -1054,6 +1155,8 @@ export default function DafViewer(): JSX.Element {
     void activeCommentaryWork();
     void activeCommentarySegIdx();
     void activePlace();
+    // Era overlays need the same repaint path.
+    void showEra(); void showEraHighlight(); void eraContext(); void hoveredEra();
     // Defer one frame so layout is settled before we measure client rects.
     queueMicrotask(() => queueMicrotask(applyHighlights));
   });
@@ -1679,6 +1782,9 @@ export default function DafViewer(): JSX.Element {
           <ToggleSwitch label="Halachot" value={showHalachot()} onChange={setShowHalachot} />
           <ToggleSwitch label="Aggadatot" value={showAggadatot()} onChange={setShowAggadatot} />
           <ToggleSwitch label="Era" value={showEra()} onChange={setShowEra} />
+          <Show when={showEra()}>
+            <ToggleSwitch label="Highlight Eras" value={showEraHighlight()} onChange={setShowEraHighlight} />
+          </Show>
         </div>
       </header>
 
@@ -1703,12 +1809,13 @@ export default function DafViewer(): JSX.Element {
         </aside>
       </Show>
       <section class="daf-body-col">
-      <Show when={showTimeline()}>
+      <Show when={showEra() && showTimeline()}>
         <GenerationTimeline
           rabbis={generations()}
           eraSegmentCounts={eraSegmentCounts()}
           activeGeneration={activeGenerationId()}
           onHighlightGeneration={onHighlightGeneration}
+          onHoverGeneration={setHoveredEra}
           width={dafWidth()}
           showGenMarkers={showGenMarkers()}
           onToggleGenMarkers={setShowGenMarkers}

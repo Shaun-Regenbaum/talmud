@@ -270,6 +270,17 @@
 .daf-root .daf-range-highlight-commentary-active {
   background-color: rgba(124, 58, 237, 0.32);
 }
+/* Era stratification tints — background color is set inline per-segment
+   (paintRangeOverlay's bgFor callback) so the static rule only owns layout
+   behaviour. Pointer-events stay off so clicks fall through to the daf word. */
+.daf-root .daf-range-highlight-era-tint {
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+.daf-root .daf-range-highlight-era-hover {
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
 
 /* Anonymous-tannaitic variant: dashed underline in the Tanna-5 blue (Rebbi's
    era, when the Mishnah was redacted). Signals "Tannaitic but specific
