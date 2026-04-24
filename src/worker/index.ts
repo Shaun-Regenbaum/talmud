@@ -1540,7 +1540,12 @@ app.get('/api/analyze/:tractate/:page', async (c) => {
 
   const bypass = c.req.query('refresh') === '1';
   const cachedOnly = c.req.query('cached_only') === '1';
-  if (cache && !bypass) {
+  // skeleton_only=1: run Stage A, cache the skeleton, return it and skip
+  // Stage B entirely. Used by the full-Shas first-pass batch script — lets
+  // us generate skeletons across all tractates cheaply before iterating on
+  // enrichment strategies.
+  const skeletonOnly = c.req.query('skeleton_only') === '1';
+  if (cache && !bypass && !skeletonOnly) {
     const cached = await cache.get(cacheKey);
     if (cached) {
       recordTelemetry(c, { endpoint: 'analyze', tractate, page, cache_hit: true, ms: Date.now() - t0, ok: true });
@@ -1681,6 +1686,20 @@ app.get('/api/analyze/:tractate/:page', async (c) => {
       recordTelemetry(c, { endpoint: 'analyze', tractate, page, cache_hit: false, model: model.label, ms: Date.now() - t0, ok: false, error_kind: 'stage-a-' + classifyError(msg) });
       return c.json({ error: 'Stage A (skeleton) call failed', stage: 'skeleton', detail: msg.slice(0, 500), _stageA: stageADiag }, 502);
     }
+  }
+
+  // Early-return for skeleton-only mode (used by the full-Shas first-pass
+  // script). Stage A is always cheap and reliable; Stage B is the expensive,
+  // flaky step we want to iterate on separately.
+  if (skeletonOnly) {
+    recordTelemetry(c, { endpoint: 'analyze', tractate, page, cache_hit: stageADiag === 'cached', model: model.label, ms: Date.now() - t0, ok: true });
+    return c.json({
+      ...skeleton,
+      _stageAModel: model.label,
+      _cached: stageADiag === 'cached',
+      _stageA: stageADiag,
+      _skeletonOnly: true,
+    });
   }
 
   // ---------- STAGE B: ENRICHMENT (skeleton + full context) ----------

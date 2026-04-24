@@ -16,7 +16,8 @@
     "rebuild-geo-shapes": "python3 scripts/gen-geo-shapes.py --israel ~/Downloads/israel.svg --bavel ~/Downloads/mYxtJ7j01.svg --israel-mode union",
     "scrape-wikipedia-rabbis": "node scripts/scrape-wikipedia-rabbis.mjs",
     "warm:brachot": "node scripts/warm-brachot-analyze.mjs",
-    "warm:brachot:dry": "node scripts/warm-brachot-analyze.mjs --dry-run"
+    "warm:brachot:dry": "node scripts/warm-brachot-analyze.mjs --dry-run",
+    "warm:skeleton:shas": "node scripts/warm-skeleton-shas.mjs"
   },
   "dependencies": {
     "@chenglou/pretext": "^0.0.5",
