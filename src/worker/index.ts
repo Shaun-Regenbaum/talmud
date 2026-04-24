@@ -25,6 +25,9 @@ import {
 import { runYomiWarmCron } from './yomi-cron';
 import { GENERATION_IDS, GENERATION_BY_ID, GENERATIONS_PROMPT_REFERENCE, type GenerationId } from '../client/generations';
 import rabbiPlacesData from '../lib/data/rabbi-places.json';
+import { classifyDaf } from '../lib/era/heuristic';
+import { extractTalmudContent } from '../lib/sefref/alignment';
+import type { SegmentEra, DafEraContext, EraSignalSource } from '../lib/era/types';
 
 type Movement = 'bavel->israel' | 'israel->bavel' | 'both' | null;
 interface RabbiPlacesEntry {
@@ -54,6 +57,7 @@ interface Bindings {
   AI?: Ai;
   CACHE?: KVNamespace;
   EMAIL?: EmailBinding;
+  HALACHA_ENRICH?: Workflow;
 }
 
 function stripHtmlServer(html: string): string {
@@ -3029,6 +3033,19 @@ app.post('/api/enrich-halacha/:tractate/:page', async (c) => {
   }
   if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
   const cache = c.env.CACHE;
+  const enrichCacheKey = `enrich-halacha:v1:${strategy}:${tractate}:${page}`;
+  const bypassCache = c.req.query('refresh') === '1';
+
+  // Read-through cache: return prior result if we have one.
+  if (cache && !bypassCache) {
+    const cached = await cache.get(enrichCacheKey);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        return c.json({ ...parsed, _cached: true });
+      } catch { /* corrupted, fall through to regen */ }
+    }
+  }
 
   const halRaw = cache ? await cache.get(`halacha:v5:${tractate}:${page}`) : null;
   if (!halRaw) return c.json({ error: 'No cached /api/halacha output; run /api/halacha first.' }, 404);
@@ -3148,7 +3165,7 @@ app.post('/api/enrich-halacha/:tractate/:page', async (c) => {
       }));
       const totalAuth = Object.values(authoritiesByTopic).reduce((sum, arr) => sum + arr.length, 0);
 
-      return c.json({
+      const _out_1 = {
         topics: enrichedTopics,
         _strategy: strategy,
         _elapsed_ms: Date.now() - t0,
@@ -3158,7 +3175,9 @@ app.post('/api/enrich-halacha/:tractate/:page', async (c) => {
           topics_with_authorities: Object.values(authoritiesByTopic).filter(arr => arr.length > 0).length,
           total_authorities: totalAuth,
         },
-      });
+      };
+      if (cache) c.executionCtx.waitUntil(cache.put(enrichCacheKey, JSON.stringify(_out_1), { expirationTtl: 60 * 60 * 24 * 365 }));
+      return c.json(_out_1);
     }
 
     if (strategy === 'rishonim-condensed') {
@@ -3180,7 +3199,7 @@ app.post('/api/enrich-halacha/:tractate/:page', async (c) => {
         rishonimNotes: notesByTopic[t.topic.toLowerCase()] ?? [],
       }));
       const totalNotes = Object.values(notesByTopic).reduce((sum, arr) => sum + arr.length, 0);
-      return c.json({
+      const _out_2 = {
         topics: enrichedTopics,
         _strategy: strategy,
         _elapsed_ms: Date.now() - t0,
@@ -3191,7 +3210,9 @@ app.post('/api/enrich-halacha/:tractate/:page', async (c) => {
           total_notes: totalNotes,
           rishonim_available: Object.keys(rishonim),
         },
-      });
+      };
+      if (cache) c.executionCtx.waitUntil(cache.put(enrichCacheKey, JSON.stringify(_out_2), { expirationTtl: 60 * 60 * 24 * 365 }));
+      return c.json(_out_2);
     }
 
     // strategy === 'sa-commentary-walk'
@@ -3213,7 +3234,7 @@ app.post('/api/enrich-halacha/:tractate/:page', async (c) => {
       saCommentaryNotes: saNotesByTopic[t.topic.toLowerCase()] ?? [],
     }));
     const totalSaNotes = Object.values(saNotesByTopic).reduce((sum, arr) => sum + arr.length, 0);
-    return c.json({
+    const _out_3 = {
       topics: enrichedTopicsSa,
       _strategy: strategy,
       _elapsed_ms: Date.now() - t0,
@@ -3225,7 +3246,9 @@ app.post('/api/enrich-halacha/:tractate/:page', async (c) => {
         topics_with_sa_commentary: saCommentary.totalBundles,
         commentators_seen: Array.from(saCommentary.commentators),
       },
-    });
+    };
+    if (cache) c.executionCtx.waitUntil(cache.put(enrichCacheKey, JSON.stringify(_out_3), { expirationTtl: 60 * 60 * 24 * 365 }));
+    return c.json(_out_3);
   } catch (err) {
     return c.json({ error: 'Halacha enrichment call failed', detail: String(err).slice(0, 500) }, 502);
   }
@@ -4766,6 +4789,130 @@ app.get('/api/admin/rabbi-family/:slug', async (c) => {
   });
 });
 
+// --- Admin: orientation + domain + academy classification --------------
+// One call per rabbi. Three axes:
+//   orientation: mystical / practical / mixed / unknown
+//   domain:      halakhist / aggadist / both / unknown
+//   academies:   from a fixed vocabulary (Sura, Pumbedita, Nehardea,
+//                Mehoza, Tiberias, Tzippori, Caesarea, Yavneh, Usha,
+//                Bnei Brak, Lod, Jerusalem, other), cap 4.
+
+const ACADEMY_VOCAB = [
+  'Sura','Pumbedita','Nehardea','Mehoza','Tiberias','Tzippori','Caesarea',
+  'Yavneh','Usha','Bnei Brak','Lod','Jerusalem','other',
+] as const;
+
+const ORIENTATION_SYSTEM_PROMPT = `You are a scholar of Talmudic history. Given a rabbi's canonical name, Hebrew name, generation, region, and English bio, classify THREE things about them.
+
+Output STRICT JSON (no prose, no markdown):
+
+{
+  "orientation": "mystical | practical | mixed | unknown",
+  "domain":      "halakhist | aggadist | both | unknown",
+  "academies":   ["Sura", "Pumbedita", ...]
+}
+
+Definitions:
+- orientation:
+  - 'mystical':  known for merkavah mysticism, sod / esoteric teachings, aggadic visions, heavy engagement with hidden dimensions (e.g. R' Akiva's pardes, Shimon bar Yochai, R' Yehoshua b. Levi).
+  - 'practical': known primarily for halakhic rulings, legal reasoning, communal leadership (e.g. R' Yehuda haNasi, Rava, R' Yose).
+  - 'mixed':     genuinely strong on BOTH axes (e.g. R' Yochanan b. Nappacha).
+  - 'unknown':   can't determine from bio + knowledge.
+
+- domain:
+  - 'halakhist': preserved teachings are predominantly halakhic (legal / ritual).
+  - 'aggadist':  preserved teachings are predominantly aggadic (narrative, homiletic, ethical).
+  - 'both':      equally known for both.
+  - 'unknown'.
+
+- academies: the Babylonian or Eretz-Yisrael academies / cities of teaching the rabbi is attested at, using EXACTLY these strings:
+  Sura, Pumbedita, Nehardea, Mehoza, Tiberias, Tzippori, Caesarea, Yavneh, Usha, Bnei Brak, Lod, Jerusalem, other
+  Cap at 4. Empty array if no academy / teaching-city is attested. Use 'other' only for a named academy not in this list (rare).
+
+Rules:
+- Base classifications on the bio AND well-established tradition. Don't guess.
+- A rabbi 'mystical' in orientation can still be 'halakhist' in domain — the axes are distinct.
+- Keep academies to places where the rabbi TAUGHT or HEADED an academy, not every city they visited.`;
+
+interface OrientationResult {
+  orientation: 'mystical' | 'practical' | 'mixed' | 'unknown';
+  domain: 'halakhist' | 'aggadist' | 'both' | 'unknown';
+  academies: string[];
+}
+
+const ORIENTATION_ENUM = new Set(['mystical', 'practical', 'mixed', 'unknown']);
+const DOMAIN_ENUM = new Set(['halakhist', 'aggadist', 'both', 'unknown']);
+const ACADEMY_ENUM = new Set<string>(ACADEMY_VOCAB);
+
+function validateOrientation(x: unknown): x is OrientationResult {
+  if (!x || typeof x !== 'object') return false;
+  const o = x as OrientationResult;
+  if (!ORIENTATION_ENUM.has(o.orientation)) return false;
+  if (!DOMAIN_ENUM.has(o.domain)) return false;
+  if (!Array.isArray(o.academies)) return false;
+  if (o.academies.some((a) => typeof a !== 'string' || !ACADEMY_ENUM.has(a))) return false;
+  return true;
+}
+
+app.get('/api/admin/rabbi-orientation/:slug', async (c) => {
+  if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
+  const slug = c.req.param('slug');
+  const entry = RABBI_PLACES.rabbis[slug];
+  if (!entry) return c.json({ error: `unknown slug: ${slug}` }, 404);
+  if (!entry.bio) return c.json({ error: `no bio available for ${slug}` }, 422);
+
+  const userContent = [
+    `Canonical name: ${entry.canonical}`,
+    `Hebrew name:   ${entry.canonicalHe ?? '(none)'}`,
+    `Generation:    ${entry.generation ?? 'unknown'}`,
+    `Region:        ${entry.region ?? 'unknown'}`,
+    `Places:        ${(entry.places ?? []).join(', ')}`,
+    '',
+    `Bio:`,
+    entry.bio,
+  ].join('\n');
+
+  const t0 = Date.now();
+  let streamed: StreamedResult;
+  try {
+    streamed = await runKimiStreaming(
+      c.env.AI,
+      '@cf/moonshotai/kimi-k2.5',
+      [
+        { role: 'system', content: ORIENTATION_SYSTEM_PROMPT },
+        { role: 'user', content: userContent },
+      ],
+      4096,
+    );
+  } catch (err) {
+    return c.json({ error: String(err).slice(0, 300), slug }, 502);
+  }
+  let payload = streamed.content.trim();
+  if (!payload && streamed.reasoning_content) {
+    const m = streamed.reasoning_content.match(/\{[\s\S]*"orientation"[\s\S]*\}/);
+    if (m) payload = m[0];
+  }
+  const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenced) payload = fenced[1].trim();
+  if (!payload) return c.json({ error: 'empty payload', slug, _ms: streamed.elapsed_ms }, 502);
+  let parsed: unknown;
+  try { parsed = JSON.parse(payload); }
+  catch (err) {
+    const repaired = payload.replace(/,(\s*[}\]])/g, '$1').replace(/\r/g, '');
+    try { parsed = JSON.parse(repaired); }
+    catch { return c.json({ error: `non-JSON: ${String(err).slice(0, 200)}`, slug, raw: payload.slice(0, 500) }, 502); }
+  }
+  if (!validateOrientation(parsed)) {
+    return c.json({ error: 'schema mismatch', slug, got: parsed }, 502);
+  }
+  return c.json({
+    slug,
+    canonical: entry.canonical,
+    ...parsed,
+    _ms: Date.now() - t0,
+  });
+});
+
 // --- Admin: Hebrew-Wikipedia bio → English summary ----------------------
 // Companion to scripts/scrape-wikipedia-rabbis.mjs. Given a Hebrew lead-
 // paragraph extract from he.wikipedia and a Hebrew name, produces:
@@ -5047,6 +5194,194 @@ app.post('/api/era-llm/:tractate/:page', async (c) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Era stratification — unified two-stage endpoint for the main daf view.
+// Stage 1: heuristic classifier over Sefaria segments, returned + cached.
+// Stage 2: LLM refinement of low-confidence segments, runs in waitUntil and
+// silently upgrades the cache. Mirrors /api/daf-context's polling pattern.
+// ---------------------------------------------------------------------------
+
+interface EraContextPayload extends DafEraContext {
+  _stage?: 1 | 2;
+  _cached?: boolean;
+}
+
+/** Run the LLM stage in-process; returns era picks for the candidate segments. */
+async function runEraLlmModel(
+  ai: Ai,
+  tractate: string,
+  page: string,
+  segments: EraLlmSegmentInput[],
+): Promise<EraLlmPick[]> {
+  if (segments.length === 0) return [];
+  const lines: string[] = [
+    `Tractate: ${tractate}, page ${page}.`,
+    `Classify each of the following ${segments.length} segments by historical period.`,
+    '',
+  ];
+  for (const s of segments) {
+    lines.push(`--- segment #${s.idx} ---`);
+    if (s.before) lines.push(`(prev) ${s.before}`);
+    lines.push(`TARGET: ${s.text}`);
+    if (s.after) lines.push(`(next) ${s.after}`);
+    if (s.heuristicGuess) lines.push(`(heuristic guess: ${s.heuristicGuess})`);
+    lines.push('');
+  }
+  const userContent = lines.join('\n').slice(0, 40000);
+  const resp = await ai.run('@cf/google/gemma-4-26b-a4b-it' as never, {
+    messages: [
+      { role: 'system', content: ERA_LLM_SYSTEM_PROMPT },
+      { role: 'user', content: userContent },
+    ],
+    max_completion_tokens: 4000,
+    temperature: 0.1,
+    chat_template_kwargs: { enable_thinking: false },
+    response_format: { type: 'json_schema', json_schema: ERA_LLM_JSON_SCHEMA },
+  } as never);
+  const payload = extractJsonPayload(resp);
+  if (!payload) return [];
+  let parsed: unknown;
+  try { parsed = JSON.parse(payload); }
+  catch { return []; }
+  if (!isEraLlmResponse(parsed)) return [];
+  const validIds = new Set<string>(GENERATION_IDS);
+  const sentIdxs = new Set(segments.map((s) => s.idx));
+  return parsed.picks
+    .filter((p) => validIds.has(p.era) && sentIdxs.has(p.idx))
+    .map((p) => ({ idx: p.idx, era: p.era, why: p.why.slice(0, 200) }));
+}
+
+/** Decide which heuristic-source segments are worth sending to the LLM. */
+const ERA_LLM_RABBI_HINT = /(?:^|\s)(רבי |רב |רבן |רבה |רבא |רבינא |מר |שמואל|הלל|שמאי|אביי|עולא|זעירי)/;
+function pickEraLlmCandidates(
+  segments: SegmentEra[],
+  plain: string[],
+): SegmentEra[] {
+  const out: SegmentEra[] = [];
+  for (const s of segments) {
+    const src: EraSignalSource = s.source;
+    if (src === 'register' || src === 'stam-default') { out.push(s); continue; }
+    if (src === 'marker' && ERA_LLM_RABBI_HINT.test(plain[s.segIdx] ?? '')) { out.push(s); continue; }
+  }
+  // Cap at 60 to match runEraLlmModel's prompt budget.
+  return out.slice(0, 60);
+}
+
+function mergeLlmIntoHeuristic(heuristic: SegmentEra[], picks: EraLlmPick[]): SegmentEra[] {
+  if (picks.length === 0) return heuristic;
+  const byIdx = new Map<number, EraLlmPick>();
+  for (const p of picks) byIdx.set(p.idx, p);
+  return heuristic.map((s) => {
+    const pick = byIdx.get(s.segIdx);
+    if (!pick) return s;
+    return {
+      ...s,
+      era: pick.era as GenerationId,
+      source: 'llm' as const,
+      why: `LLM: ${pick.why}`,
+    };
+  });
+}
+
+function buildContextFromSegments(segs: SegmentEra[]): DafEraContext {
+  const generationsPresent = Array.from(new Set(segs.map((s) => s.era)));
+  return { segments: segs, generationsPresent, computedAt: Date.now() };
+}
+
+app.get('/api/era-context/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const cache = c.env.CACHE;
+  const baseKey = `era-context:v1:${tractate}:${page}`;
+  const stage2Key = `${baseKey}:stage2`;
+  const bypass = c.req.query('refresh') === '1';
+  const cachedOnly = c.req.query('cached_only') === '1';
+  const wantStage2 = c.req.query('stage') === '2';
+
+  if (cache && !bypass) {
+    if (wantStage2) {
+      const cached = await cache.get(stage2Key);
+      if (cached) return c.json({ ...JSON.parse(cached) as DafEraContext, _stage: 2, _cached: true } satisfies EraContextPayload);
+      return c.body(null, 204);
+    }
+    const upgraded = await cache.get(stage2Key);
+    if (upgraded) return c.json({ ...JSON.parse(upgraded) as DafEraContext, _stage: 2, _cached: true } satisfies EraContextPayload);
+    const s1 = await cache.get(baseKey);
+    if (s1) return c.json({ ...JSON.parse(s1) as DafEraContext, _stage: 1, _cached: true } satisfies EraContextPayload);
+  }
+  if (cachedOnly) return c.json({ cached: false }, 404);
+  if (wantStage2) return c.body(null, 204);
+
+  // Stage 1: heuristic over Sefaria segments. No LLM needed for this leg.
+  const segments = await getSefariaSegmentsCached(cache, tractate, page);
+  const segsHe = segments?.he ?? [];
+  if (segsHe.length === 0) return c.json({ error: 'no Sefaria segments available' }, 502);
+
+  const stage1Ctx = classifyDaf(segsHe);
+  if (cache) await cache.put(baseKey, JSON.stringify(stage1Ctx), { expirationTtl: 60 * 60 * 24 * 365 });
+
+  // Stage 2 in background: LLM refinement of low-confidence + marker-with-rabbi.
+  const ai = c.env.AI;
+  if (cache && ai) {
+    const plainSnap = segsHe.map((html) => extractTalmudContent(html));
+    const candidates = pickEraLlmCandidates(stage1Ctx.segments, plainSnap);
+    if (candidates.length > 0) {
+      c.executionCtx.waitUntil((async () => {
+        try {
+          const llmInput: EraLlmSegmentInput[] = candidates.map((s) => ({
+            idx: s.segIdx,
+            text: plainSnap[s.segIdx] ?? '',
+            before: s.segIdx > 0 ? plainSnap[s.segIdx - 1]?.slice(0, 200) : undefined,
+            after: s.segIdx + 1 < plainSnap.length ? plainSnap[s.segIdx + 1]?.slice(0, 200) : undefined,
+            heuristicGuess: s.era,
+          }));
+          const picks = await runEraLlmModel(ai, tractate, page, llmInput);
+          const mergedSegs = mergeLlmIntoHeuristic(stage1Ctx.segments, picks);
+          const stage2Ctx = buildContextFromSegments(mergedSegs);
+          await cache.put(stage2Key, JSON.stringify(stage2Ctx), { expirationTtl: 60 * 60 * 24 * 365 });
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn('[era-context] stage-2 failed:', String(err).slice(0, 200));
+        }
+      })());
+    }
+  }
+
+  return c.json({ ...stage1Ctx, _stage: 1 } satisfies EraContextPayload);
+});
+
+// ============================================================================
+// Admin endpoints for the halacha enrichment Workflow.
+// ============================================================================
+
+app.post('/api/admin/enrich-halacha-batch/:tractate', async (c) => {
+  const tractate = c.req.param('tractate');
+  if (!c.env.HALACHA_ENRICH) return c.json({ error: 'HALACHA_ENRICH workflow binding unavailable' }, 503);
+  const body = await c.req.json().catch(() => ({})) as {
+    dafim?: string[];
+    strategies?: Array<'modern-authorities' | 'rishonim-condensed' | 'sa-commentary-walk'>;
+    refresh?: boolean;
+  };
+  const instance = await c.env.HALACHA_ENRICH.create({
+    params: {
+      tractate,
+      dafim: body.dafim,
+      strategies: body.strategies,
+      refresh: body.refresh ?? false,
+      baseUrl: new URL(c.req.url).origin,
+    },
+  });
+  return c.json({ instanceId: instance.id, status: 'started', tractate });
+});
+
+app.get('/api/admin/enrich-halacha-batch/status/:instanceId', async (c) => {
+  const instanceId = c.req.param('instanceId');
+  if (!c.env.HALACHA_ENRICH) return c.json({ error: 'HALACHA_ENRICH workflow binding unavailable' }, 503);
+  const instance = await c.env.HALACHA_ENRICH.get(instanceId);
+  const status = await instance.status();
+  return c.json({ instanceId, ...status });
+});
+
 const YOMI_WARM_CRON = '0 3 * * *';
 
 export default {
@@ -5059,3 +5394,7 @@ export default {
     }
   },
 } satisfies ExportedHandler<Bindings>;
+
+// Export the Workflow class so the Workers runtime can instantiate it for
+// the [[workflows]] binding declared in wrangler.toml.
+export { HalachaEnrichWorkflow } from './halacha-enrich-workflow';

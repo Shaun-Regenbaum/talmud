@@ -39,6 +39,15 @@ head_sampling_rate = 1  # capture 100% of invocations
 [triggers]
 crons = ["*/5 * * * *", "0 3 * * *"]
 
+# Durable Workflows — background halacha enrichment across all dafim.
+# One instance per tractate; each step runs one daf through all 3 strategies,
+# writing to KV. Retryable/pausable/resumable. Invoke via POST to
+# /api/admin/enrich-halacha-batch/{tractate}.
+[[workflows]]
+name = "halacha-enrich"
+binding = "HALACHA_ENRICH"
+class_name = "HalachaEnrichWorkflow"
+
 # Cloudflare Email Service binding. Requires shaunregenbaum.com onboarded
 # at https://dash.cloudflare.com/?to=/:account/email-service/sending
 # (auto-adds MX/SPF/DKIM/DMARC records on cf-bounce.shaunregenbaum.com).

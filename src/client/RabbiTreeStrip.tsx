@@ -87,6 +87,42 @@ function generationChronoRank(gen: string): number {
   return m ? Number(m[1]) : 0;
 }
 
+// Generation IDs whose color swatch is too pale for white text — for
+// these we render the B/E letter in dark ink instead so it stays
+// legible inside the compact collapsed block.
+const PALE_GEN_IDS: ReadonlySet<string> = new Set([
+  'tanna-6',
+  'amora-bavel-7',
+  'amora-bavel-8',
+  'unknown',
+]);
+
+function blockTextColor(gen: string): string {
+  return PALE_GEN_IDS.has(gen) ? '#1f2937' : '#fff';
+}
+
+type ColumnRow =
+  | { kind: 'divider'; rank: number }
+  | { kind: 'entry'; e: ColumnEntry };
+
+// Interleave generation dividers between adjacent entries of different
+// chronological rank, but only inside multi-generation eras (Tannaim,
+// Amoraim). Zugim and Savoraim are single-generation, so no dividers.
+function rowsFor(eraId: EraId, items: ColumnEntry[]): ColumnRow[] {
+  const showDividers = eraId === 'tannaim' || eraId === 'amoraim';
+  const out: ColumnRow[] = [];
+  let lastRank: number | null = null;
+  for (const e of items) {
+    const rank = generationChronoRank(e.generation);
+    if (showDividers && lastRank !== null && rank !== lastRank) {
+      out.push({ kind: 'divider', rank });
+    }
+    out.push({ kind: 'entry', e });
+    lastRank = rank;
+  }
+  return out;
+}
+
 interface RabbiTreeStripProps {
   rabbis: RabbiLite[];
   onOpenRabbiSlug: (slug: string) => void;
@@ -251,22 +287,24 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
   const [endpoints, setEndpoints] = createSignal<Array<{
     x1: number; y1: number; x2: number; y2: number;
     direction: 'teacher' | 'colleague';
+    laneX: number;
   }>>([]);
   let rootEl: HTMLElement | undefined;
 
   const recalc = () => {
     if (!rootEl) { setEndpoints([]); return; }
     const rootRect = rootEl.getBoundingClientRect();
-    const next = [] as ReturnType<typeof endpoints>;
+    type Raw = { x1: number; y1: number; x2: number; y2: number; direction: 'teacher' | 'colleague' };
+    const raw: Raw[] = [];
     for (const c of connectors()) {
       const a = pillRefs.get(c.fromSlug);
       const b = pillRefs.get(c.toSlug);
       if (!a || !b) continue;
       const ar = a.getBoundingClientRect();
       const br = b.getBoundingClientRect();
-      next.push({
-        // Exit the RIGHT edge of each pill; lines route through a
-        // dedicated connection lane reserved on the right of the
+      raw.push({
+        // Exit the RIGHT edge of each pill; lines route through the
+        // multi-track connection lane reserved on the right of the
         // section so they never cross other pills.
         x1: ar.right - rootRect.left,
         y1: ar.top - rootRect.top + ar.height / 2,
@@ -275,7 +313,26 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
         direction: c.direction,
       });
     }
-    setEndpoints(next);
+
+    // Greedy track assignment so overlapping vertical segments don't
+    // stack on the same x. Track 0 hugs the right edge (single
+    // connector looks identical to the old single-lane routing);
+    // overlapping segments step inward by TRACK_STEP_X each.
+    const TRACK_GAP_Y = 4;
+    const TRACK_STEP_X = 8;
+    const baseLaneX = rootRect.width - 14;
+    const order = raw
+      .map((ep, i) => ({ i, lo: Math.min(ep.y1, ep.y2), hi: Math.max(ep.y1, ep.y2) }))
+      .sort((a, b) => a.lo - b.lo);
+    const trackFreeAt: number[] = [];
+    const trackByIdx: number[] = new Array(raw.length);
+    for (const item of order) {
+      let t = trackFreeAt.findIndex((free) => free + TRACK_GAP_Y < item.lo);
+      if (t === -1) { t = trackFreeAt.length; trackFreeAt.push(0); }
+      trackFreeAt[t] = item.hi;
+      trackByIdx[item.i] = t;
+    }
+    setEndpoints(raw.map((ep, i) => ({ ...ep, laneX: baseLaneX - trackByIdx[i] * TRACK_STEP_X })));
   };
 
   createEffect(() => {
@@ -303,9 +360,11 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
         border: '1px solid #e7e5de',
         'border-radius': '6px',
         // Right padding reserves the "connection lane" — a vertical
-        // strip on the right side of the section where all connector
-        // lines route so they never overlap pills or era bars.
-        padding: '0.6rem 2.25rem 0.6rem 0.7rem',
+        // strip on the right side of the section where connector
+        // lines route. With multi-track routing each overlapping
+        // line steps inward by 8px, so we widen the lane to fit ~6
+        // tracks before pills get crowded.
+        padding: '0.6rem 4rem 0.6rem 0.7rem',
       }}
     >
       <header style={{ display: 'flex', 'align-items': 'baseline', 'justify-content': 'space-between', 'margin-bottom': '0.35rem' }}>
@@ -388,65 +447,132 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
                   </span>
                 </div>
 
-                {/* Rabbi column for this era. On-daf rabbis get solid
-                    pills; 1-hop linked rabbis (teachers/students/cols)
-                    get dashed pills with a role indicator. */}
-                <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.25rem', 'justify-content': 'center' }}>
-                  <For each={entries()}>
-                    {(e) => (
-                      <button
-                        type="button"
-                        ref={(el) => registerPill(e.slug, el)}
-                        onMouseEnter={() => props.onHoverRabbi(e.canonical)}
-                        onMouseLeave={() => props.onHoverRabbi(null)}
-                        onClick={() => { if (e.slug) props.onOpenRabbiSlug(e.slug); }}
-                        disabled={!e.slug}
-                        style={{
-                          padding: '0.15rem 0.35rem',
-                          'font-size': '0.72rem',
-                          'line-height': 1.2,
-                          border: e.onDaf ? '1px solid #2a2a2a' : '1px dashed #b0b0b0',
-                          'border-radius': '3px',
-                          background: props.activeRabbi === e.canonical
-                            ? (GENERATION_BY_ID[e.generation as GenerationId]?.color ?? '#2a2a2a')
-                            : (focusedNames().has(e.canonical) ? '#fff7e6' : (e.onDaf ? '#fff' : '#fafaf7')),
-                          color: props.activeRabbi === e.canonical ? '#fff' : (e.onDaf ? '#222' : '#888'),
-                          'font-weight': e.onDaf ? 500 : 400,
-                          // Dim non-focused on-daf rabbis when any cross-
-                          // highlight is active, so the focused rabbis pop.
-                          opacity: (focusedNames().size > 0 && e.onDaf && !focusedNames().has(e.canonical)) ? 0.4 : 1,
-                          cursor: e.slug ? 'pointer' : 'default',
-                          'text-align': 'start',
-                          'font-family': 'inherit',
-                          transition: 'opacity 120ms, background 120ms',
-                        }}
-                        title={e.onDaf ? 'On this daf' : `${e.role ?? 'related'} of a rabbi on this daf`}
-                      >
-                        <Show when={!e.onDaf}>
-                          <span style={{ 'font-size': '0.58rem', 'margin-right': '0.2rem', color: '#999' }}>
-                            {e.role === 'teacher' ? '▲' : e.role === 'student' ? '▼' : '○'}
-                          </span>
-                        </Show>
-                        <Show when={e.region === 'bavel' || e.region === 'israel'}>
-                          <span
-                            title={e.region === 'bavel' ? 'Bavel' : 'Eretz Yisrael'}
+                {/* Rabbi column for this era. On-daf rabbis collapse to
+                    a small color block (showing only the generation
+                    color + B/E badge) by default, and expand to the
+                    full named pill when active or focused. 1-hop
+                    linked rabbis (teachers/students/cols) always
+                    render as dashed named pills since they only appear
+                    in expanded/focus mode in the first place. Dividers
+                    with a "GEN N" label slot in between adjacent
+                    generations within Tannaim/Amoraim. */}
+                <div style={{ display: 'flex', 'flex-direction': 'column', 'align-items': 'flex-start', gap: '0.25rem', 'justify-content': 'center' }}>
+                  <For each={rowsFor(era.id, entries())}>
+                    {(row) => {
+                      if (row.kind === 'divider') {
+                        return (
+                          <div style={{ display: 'flex', 'align-items': 'center', gap: '0.3rem', 'align-self': 'stretch', padding: '0.05rem 0' }}>
+                            <span style={{
+                              'font-size': '0.55rem',
+                              color: '#999',
+                              'letter-spacing': '0.05em',
+                              'text-transform': 'uppercase',
+                              'flex-shrink': 0,
+                            }}>
+                              Gen {row.rank}
+                            </span>
+                            <hr style={{ flex: 1, border: 0, 'border-top': '1px dashed #e0e0e0', margin: 0 }} />
+                          </div>
+                        );
+                      }
+                      const e = row.e;
+                      const isExpanded = !e.onDaf
+                        || props.activeRabbi === e.canonical
+                        || focusedNames().has(e.canonical);
+                      const dim = focusedNames().size > 0 && e.onDaf && !focusedNames().has(e.canonical);
+                      if (!isExpanded) {
+                        // Collapsed compact block: just generation
+                        // color + B/E letter (or empty if region is
+                        // unknown). Hover reveals the canonical name
+                        // via the native title tooltip.
+                        const genColor = GENERATION_BY_ID[e.generation as GenerationId]?.color ?? '#888';
+                        const txt = blockTextColor(e.generation);
+                        return (
+                          <button
+                            type="button"
+                            ref={(el) => registerPill(e.slug, el)}
+                            onMouseEnter={() => props.onHoverRabbi(e.canonical)}
+                            onMouseLeave={() => props.onHoverRabbi(null)}
+                            onClick={() => { if (e.slug) props.onOpenRabbiSlug(e.slug); }}
+                            disabled={!e.slug}
                             style={{
-                              display: 'inline-block',
-                              'font-size': '0.58rem',
+                              width: '20px',
+                              height: '18px',
+                              padding: 0,
+                              border: '1px solid #2a2a2a',
+                              'border-radius': '3px',
+                              background: genColor,
+                              color: txt,
+                              'font-size': '0.6rem',
                               'font-weight': 700,
                               'font-family': 'ui-monospace, SFMono-Regular, monospace',
-                              color: e.region === 'bavel' ? '#92400e' : '#1f2937',
-                              'margin-right': '0.25rem',
-                              'min-width': '0.7rem',
-                              'text-align': 'center',
+                              'line-height': 1,
+                              display: 'inline-flex',
+                              'align-items': 'center',
+                              'justify-content': 'center',
+                              opacity: dim ? 0.4 : 1,
+                              cursor: e.slug ? 'pointer' : 'default',
+                              transition: 'opacity 120ms',
                             }}
+                            title={e.canonical}
                           >
-                            {e.region === 'bavel' ? 'B' : 'E'}
-                          </span>
-                        </Show>
-                        {e.canonical}
-                      </button>
-                    )}
+                            {e.region === 'bavel' ? 'B' : e.region === 'israel' ? 'E' : ''}
+                          </button>
+                        );
+                      }
+                      return (
+                        <button
+                          type="button"
+                          ref={(el) => registerPill(e.slug, el)}
+                          onMouseEnter={() => props.onHoverRabbi(e.canonical)}
+                          onMouseLeave={() => props.onHoverRabbi(null)}
+                          onClick={() => { if (e.slug) props.onOpenRabbiSlug(e.slug); }}
+                          disabled={!e.slug}
+                          style={{
+                            padding: '0.15rem 0.35rem',
+                            'font-size': '0.72rem',
+                            'line-height': 1.2,
+                            border: e.onDaf ? '1px solid #2a2a2a' : '1px dashed #b0b0b0',
+                            'border-radius': '3px',
+                            background: props.activeRabbi === e.canonical
+                              ? (GENERATION_BY_ID[e.generation as GenerationId]?.color ?? '#2a2a2a')
+                              : (focusedNames().has(e.canonical) ? '#fff7e6' : (e.onDaf ? '#fff' : '#fafaf7')),
+                            color: props.activeRabbi === e.canonical ? '#fff' : (e.onDaf ? '#222' : '#888'),
+                            'font-weight': e.onDaf ? 500 : 400,
+                            opacity: dim ? 0.4 : 1,
+                            cursor: e.slug ? 'pointer' : 'default',
+                            'text-align': 'start',
+                            'font-family': 'inherit',
+                            transition: 'opacity 120ms, background 120ms',
+                          }}
+                          title={e.onDaf ? 'On this daf' : `${e.role ?? 'related'} of a rabbi on this daf`}
+                        >
+                          <Show when={!e.onDaf}>
+                            <span style={{ 'font-size': '0.58rem', 'margin-right': '0.2rem', color: '#999' }}>
+                              {e.role === 'teacher' ? '▲' : e.role === 'student' ? '▼' : '○'}
+                            </span>
+                          </Show>
+                          <Show when={e.region === 'bavel' || e.region === 'israel'}>
+                            <span
+                              title={e.region === 'bavel' ? 'Bavel' : 'Eretz Yisrael'}
+                              style={{
+                                display: 'inline-block',
+                                'font-size': '0.58rem',
+                                'font-weight': 700,
+                                'font-family': 'ui-monospace, SFMono-Regular, monospace',
+                                color: e.region === 'bavel' ? '#92400e' : '#1f2937',
+                                'margin-right': '0.25rem',
+                                'min-width': '0.7rem',
+                                'text-align': 'center',
+                              }}
+                            >
+                              {e.region === 'bavel' ? 'B' : 'E'}
+                            </span>
+                          </Show>
+                          {e.canonical}
+                        </button>
+                      );
+                    }}
                   </For>
                 </div>
               </div>
@@ -474,15 +600,12 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
           {(ep) => {
             // Rectilinear tree routing through the right-hand lane.
             // Each connector exits its source pill's right edge, runs
-            // into the lane, traverses vertically to the target's y,
-            // then steps back left to the target pill. Rounded
-            // corners (radius r) keep it legible without turning into
-            // sharp L shapes. Multiple edges naturally stack in the
-            // lane since they share the same x coordinates.
-            const rootW = rootEl?.getBoundingClientRect().width ?? 220;
-            // Lane x: 14px inside the section's right edge, inside the
-            // 2.25rem padding we reserved.
-            const laneX = rootW - 14;
+            // into its assigned track (laneX, computed in recalc), traverses
+            // vertically to the target's y, then steps back left to the
+            // target pill. Rounded corners (radius r) keep it legible.
+            // Overlapping segments are pre-assigned distinct tracks so
+            // they don't collapse on top of each other.
+            const laneX = ep.laneX;
             const r = 4;
             const dir = ep.y2 >= ep.y1 ? 1 : -1; // down vs up
             const midEnterY = ep.y1 + dir * r;
