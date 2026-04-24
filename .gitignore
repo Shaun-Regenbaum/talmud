@@ -15,6 +15,9 @@ pnpm-debug.log*
 # Script run artifacts (audit JSON, live logs from warm:* scripts)
 scripts/out/
 
+# Claude Code local state
+.claude/
+
 # Build artifacts
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
