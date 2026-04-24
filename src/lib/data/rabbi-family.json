@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-04-24T09:17:48.186Z",
+  "generatedAt": "2026-04-24T09:25:45.932Z",
   "source": "https://talmud.shaunregenbaum.com/api/admin/rabbi-family",
   "totalNodes": 1301,
-  "processedNodes": 200,
-  "nodesWithFamily": 105,
+  "processedNodes": 300,
+  "nodesWithFamily": 154,
   "nodes": {
     "rabbi-yochanan-b-napacha": {
       "canonical": "Rabbi Yochanan b. Napacha",
@@ -9221,8 +9221,34 @@
       "canonicalHe": "רבי ישמעאל ברבי יוסי",
       "generation": "tanna-5",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rabbi Yosei",
+          "relation": "father",
+          "slug": "rabbi-yose-b-chalafta"
+        },
+        {
+          "name": "Rabbi Eliezer b. Rabbi Yosei",
+          "relation": "brother",
+          "slug": "rabbi-eliezer-b-hyrcanus"
+        },
+        {
+          "name": "Rabbi Halafta b. Rabbi Yosei",
+          "relation": "brother",
+          "slug": "rabbi-chelafta"
+        },
+        {
+          "name": "Rabbi Avtilus b. Rabbi Yosei",
+          "relation": "brother",
+          "slug": null
+        },
+        {
+          "name": "Rabbi Menachem b. Rabbi Yosei",
+          "relation": "brother",
+          "slug": "rabbi-menachem-b-yosei"
+        }
+      ],
+      "processed": true
     },
     "rabbi-efes": {
       "canonical": "Rabbi Efes",
@@ -9314,23 +9340,35 @@
       "generation": "amora-ey-1",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-abba-bar-avina": {
       "canonical": "Rabbi Abba bar Avina",
       "canonicalHe": "רבי אבא בר אבינא",
       "generation": "amora-ey-2",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Avina",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rabbi-abba-bar-acha": {
       "canonical": "Rabbi Abba bar Acha",
       "canonicalHe": "רבי אבא בר אחא",
       "generation": "amora-ey-2",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Acha",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rabbi-abba-bar-zavda": {
       "canonical": "Rabbi Abba bar Zavda",
@@ -9338,15 +9376,26 @@
       "generation": "amora-ey-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-pinchas-b-hama": {
       "canonical": "Rabbi Pinchas b. Hama",
       "canonicalHe": "רבי פנחס בר חמא",
       "generation": "amora-ey-1",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rabbi Chama b. Abba",
+          "relation": "father",
+          "slug": null
+        },
+        {
+          "name": "Rabbi Hanina b. Chama",
+          "relation": "brother",
+          "slug": "rabbi-chanina-b-chama"
+        }
+      ],
+      "processed": true
     },
     "rabbi-nehunia-of-havran": {
       "canonical": "Rabbi Nehunia of Havran",
@@ -9354,7 +9403,7 @@
       "generation": "amora-ey-1",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-abba-d-min-yaffo": {
       "canonical": "Rabbi Abba d'min Yaffo",
@@ -9370,7 +9419,7 @@
       "generation": "amora-ey-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-avdimi-of-haifa": {
       "canonical": "Rabbi Avdimi of Haifa",
@@ -9378,7 +9427,7 @@
       "generation": "amora-ey-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-ilfa": {
       "canonical": "Rabbi Ilfa",
@@ -9393,8 +9442,14 @@
       "canonicalHe": "רב אושעיא",
       "generation": "amora-ey-2",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rav Chanina",
+          "relation": "brother",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rabbi-hanina-turtaya": {
       "canonical": "Rabbi Hanina Turtaya",
@@ -9402,15 +9457,31 @@
       "generation": "amora-ey-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabban-gamliel-iv": {
       "canonical": "Rabban Gamliel IV",
       "canonicalHe": "רבן גמליאל הרביעי",
       "generation": "amora-ey-2",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rabbi Yehuda Nesia",
+          "relation": "father",
+          "slug": "rabbi-yehudah-nesia-(ii)"
+        },
+        {
+          "name": "Rabbi Yehuda HaNasi",
+          "relation": "other",
+          "slug": "rabi"
+        },
+        {
+          "name": "Rabbi Yehuda Nesia II",
+          "relation": "son",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rabbi-zeiri": {
       "canonical": "Rabbi Zeiri",
@@ -9418,7 +9489,7 @@
       "generation": "amora-ey-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-alexandri": {
       "canonical": "Rabbi Alexandri",
@@ -9426,23 +9497,40 @@
       "generation": "amora-ey-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-hanina": {
       "canonical": "Rabbi Hanina",
       "canonicalHe": "רב חנינא",
       "generation": "amora-ey-2",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rabbi Hama",
+          "relation": "father",
+          "slug": null
+        },
+        {
+          "name": "Rav Oshaya",
+          "relation": "brother",
+          "slug": "rabbi-oshaya"
+        }
+      ],
+      "processed": true
     },
     "rabbi-yehuda-nesiah-ii": {
       "canonical": "Rabbi Yehuda Nesiah II",
       "canonicalHe": "רבי יהודה נשיאה השני",
       "generation": "amora-ey-2",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rabban Gamliel IV",
+          "relation": "father",
+          "slug": "rabban-gamliel-iv"
+        }
+      ],
+      "processed": true
     },
     "rabbi-yehudah-bar-peda": {
       "canonical": "Rabbi Yehudah bar Peda",
@@ -9458,7 +9546,7 @@
       "generation": "amora-ey-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-yochanan-dekatzion": {
       "canonical": "Rabbi Yochanan deKatzion",
@@ -9474,15 +9562,26 @@
       "generation": "amora-ey-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-yosef-b-rabbi-yehoshua-b-levi": {
       "canonical": "Rabbi Yosef b. Rabbi Yehoshua b. Levi",
       "canonicalHe": "רב יוסף בריה דרבי יהושע בן לוי",
       "generation": "amora-ey-2",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rabbi Yehoshua b. Levi",
+          "relation": "father",
+          "slug": "rabbi-yehoshua-b-hananyah"
+        },
+        {
+          "name": "Rabbi Yosei b. Petras",
+          "relation": "grandfather",
+          "slug": "rabbi-yose-b-chalafta"
+        }
+      ],
+      "processed": true
     },
     "rabbi-yissachar-of-kfar-mandi": {
       "canonical": "Rabbi Yissachar of Kfar Mandi",
@@ -9498,15 +9597,21 @@
       "generation": "amora-ey-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-shimon-b-pazzi-2": {
       "canonical": "Rabbi Shimon b. Pazzi",
       "canonicalHe": "רבי סימון",
       "generation": "amora-ey-2",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rabbi Yehuda b. Shimon",
+          "relation": "son",
+          "slug": "rabbi-yehudah-b-ilai"
+        }
+      ],
+      "processed": true
     },
     "rabbi-shimon-bar-abba": {
       "canonical": "Rabbi Shimon bar Abba",
@@ -9514,7 +9619,7 @@
       "generation": "amora-ey-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-mani-bar-patish": {
       "canonical": "Rabbi Mani bar Patish",
@@ -9522,15 +9627,21 @@
       "generation": "amora-ey-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-tanhum": {
       "canonical": "Rabbi Tanhum",
       "canonicalHe": "רבי תנחום",
       "generation": "amora-ey-2",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Hanilai",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rabbi-shimon-chasida": {
       "canonical": "Rabbi Shimon Chasida",
@@ -9538,7 +9649,7 @@
       "generation": "amora-ey-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-shimon-b-lakish-2": {
       "canonical": "Rabbi Shimon b. Lakish",
@@ -9553,16 +9664,33 @@
       "canonicalHe": "רבי שמואל בר נחמני",
       "generation": "amora-ey-2",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rabbi Hillel b. Rabbi Shmuel b. Nachmani",
+          "relation": "son",
+          "slug": null
+        },
+        {
+          "name": "Nachman",
+          "relation": "son",
+          "slug": "nachman-of-breslov"
+        }
+      ],
+      "processed": true
     },
     "rabbi-shimon-b-elikim": {
       "canonical": "Rabbi Shimon b. Elikim",
       "canonicalHe": "רבי שמעון בן אליקים",
       "generation": "amora-ey-2",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Elikim",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rabbi-abba-b-pappa": {
       "canonical": "Rabbi Abba b. Pappa",
@@ -9570,7 +9698,7 @@
       "generation": "amora-ey-3",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-abba-of-akko": {
       "canonical": "Rabbi Abba of Akko",
@@ -9578,15 +9706,21 @@
       "generation": "amora-ey-3",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-tanchum-bar-chanilai": {
       "canonical": "Rabbi Tanchum bar Chanilai",
       "canonicalHe": "רבי תנחום בר חנילאי",
       "generation": "amora-ey-2",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Chanilai",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rabbi-abba-bar-kuryah": {
       "canonical": "Rabbi Abba bar Kuryah",
@@ -9602,7 +9736,7 @@
       "generation": "amora-ey-3",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-aha-b-hanina": {
       "canonical": "Rabbi Aha b. Hanina",
@@ -9610,7 +9744,7 @@
       "generation": "amora-ey-3",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-aibu": {
       "canonical": "Rabbi Aibu",
@@ -9618,15 +9752,21 @@
       "generation": "amora-ey-3",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-ami": {
       "canonical": "Rabbi Ami",
       "canonicalHe": "רבי אמי",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Nathan",
+          "relation": "father",
+          "slug": "natan"
+        }
+      ],
+      "processed": true
     },
     "rabbi-assi-2": {
       "canonical": "Rabbi Assi",
@@ -9634,7 +9774,7 @@
       "generation": "amora-ey-3",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-ila": {
       "canonical": "Rabbi Ila",
@@ -9642,7 +9782,7 @@
       "generation": "amora-ey-3",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-binyamin-b-yefet": {
       "canonical": "Rabbi Binyamin b. Yefet",
@@ -9650,7 +9790,7 @@
       "generation": "amora-ey-3",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-ami-of-vardina": {
       "canonical": "Rabbi Ami of Vardina",
@@ -9665,16 +9805,28 @@
       "canonicalHe": "רבי חמא בר עוקבא",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Ukva",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rabbi-hanina-b-agil": {
       "canonical": "Rabbi Hanina b. Agil",
       "canonicalHe": "רבי חנינא בן עגיל",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Agil",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rabbi-hanina-bar-papi": {
       "canonical": "Rabbi Hanina bar Papi",
@@ -9682,7 +9834,7 @@
       "generation": "amora-ey-3",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rav-chaga": {
       "canonical": "Rav Chaga",
@@ -9690,7 +9842,7 @@
       "generation": "amora-ey-3",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-yudan-b-yishmael": {
       "canonical": "Rabbi Yudan b. Yishmael",
@@ -9705,16 +9857,28 @@
       "canonicalHe": "רבי חנינא בן פזי",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Pazi",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rabbi-yitzchak-bar-abba": {
       "canonical": "Rabbi Yitzchak bar Abba",
       "canonicalHe": "רבי יצחק בר אבא",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Abba",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rabbi-yosei-ha-glila": {
       "canonical": "Rabbi Yosei ha-Glila",
@@ -9722,7 +9886,7 @@
       "generation": "amora-ey-3",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-avira": {
       "canonical": "Rabbi Avira",
@@ -9730,23 +9894,35 @@
       "generation": "amora-ey-3",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-pedat": {
       "canonical": "Rabbi Pedat",
       "canonicalHe": "רבי פדת",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rabbi Elazar b. Pedat",
+          "relation": "father",
+          "slug": "rabbi-elazar-b-pedat"
+        }
+      ],
+      "processed": true
     },
     "rabbi-yitzchak-atushia": {
       "canonical": "Rabbi Yitzchak Atushia",
       "canonicalHe": "רבי יצחק עטושיא",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rabbi Chiyya",
+          "relation": "son",
+          "slug": "rabbi-chiyya"
+        }
+      ],
+      "processed": true
     },
     "rabbi-perida": {
       "canonical": "Rabbi Perida",
@@ -9754,15 +9930,21 @@
       "generation": "amora-ey-3",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-anani-b-sasson": {
       "canonical": "Rabbi Anani b. Sasson",
       "canonicalHe": "רבי ענני בר ששון",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Sasson",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rabbi-avina": {
       "canonical": "Rabbi Avina",
@@ -9770,15 +9952,21 @@
       "generation": "amora-ey-3",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-shila-of-kfar-tamarta": {
       "canonical": "Rabbi Shila of Kfar Tamarta",
       "canonicalHe": "רבי שילא איש כפר תמרתא",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rabbi Aha",
+          "relation": "son",
+          "slug": "rav-aha"
+        }
+      ],
+      "processed": true
     },
     "rav-shmuel-b-yehuda": {
       "canonical": "Rav Shmuel b. Yehuda",
@@ -9786,7 +9974,7 @@
       "generation": "amora-ey-3",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-yosei-of-yokrat": {
       "canonical": "Rabbi Yosei of Yokrat",
@@ -9794,23 +9982,35 @@
       "generation": "amora-ey-3",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-shmuel-bar-rav-yitzchak": {
       "canonical": "Rabbi Shmuel bar Rav Yitzchak",
       "canonicalHe": "רב שמואל בר רב יצחק",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rav Yitzchak",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rabbi-abba-b-kahana": {
       "canonical": "Rabbi Abba b. Kahana",
       "canonicalHe": "רבי אבא בר כהנא",
       "generation": "amora-ey-4",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rav Kahana",
+          "relation": "father",
+          "slug": "rav-kahana-(ii)"
+        }
+      ],
+      "processed": true
     },
     "rabbi-tachlifa-bar-ma-arava": {
       "canonical": "Rabbi Tachlifa bar Ma'arava",
@@ -9818,7 +10018,7 @@
       "generation": "amora-ey-3",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-pharnakh": {
       "canonical": "Rabbi Pharnakh",
@@ -9826,15 +10026,21 @@
       "generation": "amora-ey-3",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-abba-b-zavina": {
       "canonical": "Rabbi Abba b. Zavina",
       "canonicalHe": "רבי אבא בר זבינא",
       "generation": "amora-ey-4",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Zavina",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rabbi-avimi-b-tuvi": {
       "canonical": "Rabbi Avimi b. Tuvi",
@@ -9849,8 +10055,14 @@
       "canonicalHe": "רבי אבא בר פפי",
       "generation": "amora-ey-4",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Pappai",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rabbi-abba-oshaya-ish-turya": {
       "canonical": "Rabbi Abba Oshaya ish Turya",
@@ -9874,15 +10086,51 @@
       "generation": "amora-ey-4",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rav-avya": {
       "canonical": "Rav Avya",
       "canonicalHe": "רב אויא",
       "generation": "amora-ey-4",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rami b. Papa",
+          "relation": "brother-in-law",
+          "slug": null
+        },
+        {
+          "name": "Rav Chiya",
+          "relation": "son",
+          "slug": null
+        },
+        {
+          "name": "Rav Ada",
+          "relation": "son",
+          "slug": null
+        },
+        {
+          "name": "Rava",
+          "relation": "son",
+          "slug": "rava"
+        },
+        {
+          "name": "Rav Chelkiya",
+          "relation": "son",
+          "slug": null
+        },
+        {
+          "name": "Rav Huna",
+          "relation": "son",
+          "slug": "rav-huna"
+        },
+        {
+          "name": "Rav Acha b. Rav Avya",
+          "relation": "son",
+          "slug": "rav-acha-son-of-rav-avya"
+        }
+      ],
+      "processed": true
     },
     "rabbi-hesa-of-eshtemoa": {
       "canonical": "Rabbi Hesa of Eshtemoa",
@@ -9906,7 +10154,7 @@
       "generation": "amora-ey-4",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-yosei-tzidonia": {
       "canonical": "Rabbi Yosei Tzidonia",
@@ -9914,23 +10162,50 @@
       "generation": "amora-ey-4",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-yehuda-b-shila": {
       "canonical": "Rabbi Yehuda b. Shila",
       "canonicalHe": "רב יהודה בר שילא",
       "generation": "amora-ey-4",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Shila",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rav-huna-son-of-rav-ika": {
       "canonical": "Rav Huna son of Rav Ika",
       "canonicalHe": "רב הונא בריה דרב איקא",
       "generation": "amora-ey-4",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rav Ika",
+          "relation": "father",
+          "slug": null
+        },
+        {
+          "name": "Rav Acha son of Rav Ika",
+          "relation": "brother",
+          "slug": null
+        },
+        {
+          "name": "Rav Idi",
+          "relation": "brother",
+          "slug": "rav-idi-b-avin-(i)"
+        },
+        {
+          "name": "Rav Nahman son of Rav Ika",
+          "relation": "brother",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rabbi-yosna": {
       "canonical": "Rabbi Yosna",
@@ -9938,15 +10213,21 @@
       "generation": "amora-ey-4",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-yaakov-bar-zavdi": {
       "canonical": "Rabbi Yaakov bar Zavdi",
       "canonicalHe": "רבי יעקב בר זבדי",
       "generation": "amora-ey-4",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Zavdi",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rabbi-yaakov-of-kfar-nevurya": {
       "canonical": "Rabbi Yaakov of Kfar Nevurya",
@@ -9969,16 +10250,33 @@
       "canonicalHe": "רבי חלקיה",
       "generation": "amora-ey-4",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rabbi Yitzchak b. Hilkiah",
+          "relation": "son",
+          "slug": "rabbi-yitzhak"
+        }
+      ],
+      "processed": true
     },
     "rabban-gamliel-v": {
       "canonical": "Rabban Gamliel V",
       "canonicalHe": "רבן גמליאל החמישי",
       "generation": "amora-ey-5",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Hillel II",
+          "relation": "father",
+          "slug": "rabbi-hillel-ii"
+        },
+        {
+          "name": "Judah Nesiah III",
+          "relation": "son",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rabbi-yusta-bar-shunem": {
       "canonical": "Rabbi Yusta bar Shunem",
@@ -9986,7 +10284,7 @@
       "generation": "amora-ey-5",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-hillel-ii": {
       "canonical": "Rabbi Hillel II",
@@ -10001,8 +10299,14 @@
       "canonicalHe": "רבי יהודה בר שלום",
       "generation": "amora-ey-5",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Shalom",
+          "relation": "father",
+          "slug": "peace"
+        }
+      ],
+      "processed": true
     },
     "rabbi-yona-of-bostra": {
       "canonical": "Rabbi Yona of Bostra",
@@ -10010,7 +10314,7 @@
       "generation": "amora-ey-5",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-ravin": {
       "canonical": "Rabbi Ravin",
@@ -10025,8 +10329,14 @@
       "canonicalHe": "רבי מתניא",
       "generation": "amora-ey-5",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rabbi Yudan",
+          "relation": "father",
+          "slug": "rabbi-yudan"
+        }
+      ],
+      "processed": true
     },
     "rav-eliezer-zeira": {
       "canonical": "Rav Eliezer Zeira",
@@ -10042,23 +10352,35 @@
       "generation": "amora-ey-5",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-yosei-berabbi-bun": {
       "canonical": "Rabbi Yosei beRabbi Bun",
       "canonicalHe": "רבי יוסי ברבי בון",
       "generation": "amora-ey-5",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rabbi Avin",
+          "relation": "father",
+          "slug": "rabbi-avin-(ravin)"
+        }
+      ],
+      "processed": true
     },
     "rabbi-yosei-bar-zevida": {
       "canonical": "Rabbi Yosei bar Zevida",
       "canonicalHe": "רבי יוסי בר זבידא",
       "generation": "amora-ey-5",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rabbi Elazar b. Rabbi Yosei",
+          "relation": "son",
+          "slug": "rabbi-elazar-b-yose"
+        }
+      ],
+      "processed": true
     },
     "rabbi-hananiah": {
       "canonical": "Rabbi Hananiah",
@@ -10066,7 +10388,7 @@
       "generation": "amora-ey-5",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rav-karna": {
       "canonical": "Rav Karna",
@@ -10081,16 +10403,33 @@
       "canonicalHe": "רב יצחק בר אבדימי",
       "generation": "amora-bavel-1",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Avdimi",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rav-yechezkel": {
       "canonical": "Rav Yechezkel",
       "canonicalHe": "רב יחזקאל",
       "generation": "amora-bavel-1",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rav Yehuda",
+          "relation": "son",
+          "slug": "rav-yehudah-b-yechezkel"
+        },
+        {
+          "name": "Rami b. Yechezkel",
+          "relation": "son",
+          "slug": "rav-rami-b-yechezkel"
+        }
+      ],
+      "processed": true
     },
     "rav-shila": {
       "canonical": "Rav Shila",
@@ -10098,7 +10437,7 @@
       "generation": "amora-bavel-1",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rav-avimi": {
       "canonical": "Rav Avimi",
@@ -10113,24 +10452,47 @@
       "canonicalHe": "רב שמואל בר שילת",
       "generation": "amora-bavel-1",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rav Yehuda b. Rav Shmuel bar Sheilat",
+          "relation": "son",
+          "slug": "rav-yehuda-b-rav-shmuel-bar-sheilat"
+        }
+      ],
+      "processed": true
     },
     "rav-avin-naggara": {
       "canonical": "Rav Avin Naggara",
       "canonicalHe": "רבי אבין נגרא",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rav Idi b. Avin",
+          "relation": "son",
+          "slug": "rav-idi-b-avin-(i)"
+        },
+        {
+          "name": "Rav Chiyya b. Avin",
+          "relation": "son",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rav-ada-b-ahavah": {
       "canonical": "Rav Ada b. Ahavah",
       "canonicalHe": "רב אדא בר אהבה",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Ahavah",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rav-ashian-b-nadvach": {
       "canonical": "Rav Ashian b. Nadvach",
@@ -10146,7 +10508,7 @@
       "generation": "amora-bavel-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rav-bruna": {
       "canonical": "Rav Bruna",
@@ -10154,7 +10516,7 @@
       "generation": "amora-bavel-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rav-hamnuna-saba": {
       "canonical": "Rav Hamnuna Saba",
@@ -10162,7 +10524,7 @@
       "generation": "amora-bavel-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rav-hamnuna": {
       "canonical": "Rav Hamnuna",
@@ -10170,23 +10532,35 @@
       "generation": "amora-bavel-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rav-hana-b-bizna": {
       "canonical": "Rav Hana b. Bizna",
       "canonicalHe": "רב חנא בר ביזנא",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Bizna",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rav-hilkiah-b-tovi": {
       "canonical": "Rav Hilkiah b. Tovi",
       "canonicalHe": "רב חלקיה בר טובי",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Tovi",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rav-hiyya-bar-gamda": {
       "canonical": "Rav Hiyya bar Gamda",
@@ -10194,7 +10568,7 @@
       "generation": "amora-bavel-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rav-hinena-bar-shalmya": {
       "canonical": "Rav Hinena bar Shalmya",
@@ -10202,31 +10576,54 @@
       "generation": "amora-bavel-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rav-hanan-bar-ami": {
       "canonical": "Rav Hanan bar Ami",
       "canonicalHe": "רב חנן בר אמי",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Ami",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rav-chama-b-guria": {
       "canonical": "Rav Chama b. Guria",
       "canonicalHe": "רב חמא בר גוריא",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Rav Nahman b. Guria",
+          "relation": "brother",
+          "slug": "rav-nachman-b-yaakov"
+        },
+        {
+          "name": "Guria b. Chama",
+          "relation": "son",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rav-hana-bar-hanilai": {
       "canonical": "Rav Hana bar Hanilai",
       "canonicalHe": "רב חנא בר חנילאי",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Hanilai",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rav-tavla": {
       "canonical": "Rav Tavla",
@@ -10234,7 +10631,7 @@
       "generation": "amora-bavel-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rav-yehuda-b-chaviva": {
       "canonical": "Rav Yehuda b. Chaviva",
@@ -10249,8 +10646,14 @@
       "canonicalHe": "רב יוסף בר אבא",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Abba",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rav-hananel": {
       "canonical": "Rav Hananel",
@@ -10258,7 +10661,7 @@
       "generation": "amora-bavel-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rav-yechiel": {
       "canonical": "Rav Yechiel",
@@ -10266,7 +10669,7 @@
       "generation": "amora-bavel-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rav-yitzchak-b-shmuel-b-marta": {
       "canonical": "Rav Yitzchak b. Shmuel b. Marta",
@@ -10289,8 +10692,14 @@
       "canonicalHe": "רב ירמיה בר אבא",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "family": [],
-      "processed": false
+      "family": [
+        {
+          "name": "Abba",
+          "relation": "father",
+          "slug": null
+        }
+      ],
+      "processed": true
     },
     "rav-eina": {
       "canonical": "Rav Eina",
@@ -10298,7 +10707,7 @@
       "generation": "amora-bavel-2",
       "hasBio": true,
       "family": [],
-      "processed": false
+      "processed": true
     },
     "rav-amram": {
       "canonical": "Rav Amram",
