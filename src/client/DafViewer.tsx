@@ -14,7 +14,7 @@ import { ensureMasechetIncipit } from './ensureMasechetIncipit';
 import { injectAnchorMarkers, injectOpinionMarkers } from './anchorMarkers';
 import { GutterIcons } from './GutterIcons';
 import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
-import { AggadataDetector, type AggadataResult } from './AggadataDetector';
+import type { AggadataResult } from './AggadataDetector';
 import { injectCityMarkers } from './injectCityMarkers';
 import { GenerationTimeline } from './GenerationTimeline';
 import { BugReport } from './BugReport';
@@ -315,11 +315,10 @@ export default function DafViewer(): JSX.Element {
   const [halachaLoading, setHalachaLoading] = createSignal(false);
   const [halachaError, setHalachaError] = createSignal<string | null>(null);
 
-  // Aggadata state (for the Aggadot detector card + sidebar + highlight)
+  // Aggadata state (drives gutter icons + sidebar card + in-text highlight).
   const [aggadata, setAggadata] = createSignal<AggadataResult | null>(null);
   const [aggadataLoading, setAggadataLoading] = createSignal(false);
   const [aggadataError, setAggadataError] = createSignal<string | null>(null);
-  const [activeStoryIndex, setActiveStoryIndex] = createSignal<number | null>(null);
 
   // Other-commentary state (Sefaria links). Driven by the picker in the
   // right sidebar and the data-seg alignment in the daf text.
@@ -434,7 +433,6 @@ export default function DafViewer(): JSX.Element {
   createEffect(() => {
     if (!showAggadatot() && sidebar()?.kind === 'aggadata') {
       setSidebar(null);
-      setActiveStoryIndex(null);
     }
   });
   createEffect(() => {
@@ -765,7 +763,6 @@ export default function DafViewer(): JSX.Element {
     setAnalysisLoading(false);
     setHalachaLoading(false);
     setAggadataLoading(false);
-    setActiveStoryIndex(null);
   });
 
   // Apply all highlights (section / halacha range + per-rabbi accent) based
@@ -1183,7 +1180,6 @@ export default function DafViewer(): JSX.Element {
   const clearArgumentSidebar = () => {
     setSidebar(null);
     setActiveRabbi(null);
-    setActiveStoryIndex(null);
   };
 
   const openArgument = (index: number) => {
@@ -1210,13 +1206,11 @@ export default function DafViewer(): JSX.Element {
     const current = sidebar();
     if (current?.kind === 'aggadata' && current.index === index) {
       setSidebar(null);
-      setActiveStoryIndex(null);
       if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
       return;
     }
     clearCommentarySelection();
     setActiveRabbi(null);
-    setActiveStoryIndex(index);
     setSidebar({ kind: 'aggadata', story: ag.stories[index], index });
     setLastInteractedCard('argument');
   };
@@ -1228,7 +1222,6 @@ export default function DafViewer(): JSX.Element {
     if (current && current.kind === kind && 'index' in current && current.index === index) {
       setSidebar(null);
       setActiveRabbi(null);
-      if (kind === 'aggadata') setActiveStoryIndex(null);
       if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
       return;
     }
@@ -1888,21 +1881,6 @@ export default function DafViewer(): JSX.Element {
             overflow: 'auto',
           }}
         >
-          {/* AggadataDetector only renders when an aggadata story has
-              been opened via its gutter icon. The icons already surface
-              stories inline on the daf; the sidebar card was redundant. */}
-          <Show when={activeStoryIndex() !== null}>
-            <AggadataDetector
-              tractate={tractate()}
-              page={page()}
-              result={aggadata()}
-              loading={aggadataLoading()}
-              error={aggadataError()}
-              activeIndex={activeStoryIndex()}
-              onRefresh={() => void runAggadata(true)}
-              onSelectStory={openStory}
-            />
-          </Show>
           <ArgumentSidebar
             content={sidebar()}
             tractate={tractate()}
@@ -1911,7 +1889,6 @@ export default function DafViewer(): JSX.Element {
             onClose={() => {
               setSidebar(null);
               setActiveRabbi(null);
-              setActiveStoryIndex(null);
               if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
             }}
             onHighlightRabbi={(name) => (name ? openRabbi(name) : setActiveRabbi(null))}
@@ -1927,11 +1904,9 @@ export default function DafViewer(): JSX.Element {
           mode={mobileMode()}
           onModeChange={setMobileMode}
           sidebar={sidebar()}
-          activeStoryIndex={activeStoryIndex()}
           onCloseExpansion={() => {
             setSidebar(null);
             setActiveRabbi(null);
-            setActiveStoryIndex(null);
             if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
           }}
           tractate={tractate()}
@@ -1940,11 +1915,6 @@ export default function DafViewer(): JSX.Element {
           onHighlightRabbi={(name) => (name ? openRabbi(name) : setActiveRabbi(null))}
           onOpenRabbiSlug={openRabbiSlug}
           generationByName={generationByName()}
-          aggadata={aggadata()}
-          aggadataLoading={aggadataLoading()}
-          aggadataError={aggadataError()}
-          onRefreshAggadata={() => void runAggadata(true)}
-          onSelectStory={openStory as never}
         />
       </Show>
     </main>

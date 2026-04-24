@@ -1,6 +1,5 @@
 import { Show, type JSX } from 'solid-js';
 import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
-import { AggadataDetector, type AggadataResult } from './AggadataDetector';
 import type { GenerationId } from './generations';
 
 export type MobileInteractionMode = 'pointer' | 'select' | 'translate';
@@ -10,10 +9,9 @@ interface MobileShelfProps {
   mode: MobileInteractionMode;
   onModeChange: (m: MobileInteractionMode) => void;
 
-  // Expansion content — when `sidebar` is non-null OR an aggadata story is
-  // active, the shelf replaces its toolbar with the sidebar content.
+  // Expansion content — when `sidebar` is non-null the shelf replaces its
+  // toolbar with the sidebar content.
   sidebar: SidebarContent | null;
-  activeStoryIndex: number | null;
   onCloseExpansion: () => void;
 
   // ArgumentSidebar props
@@ -23,23 +21,16 @@ interface MobileShelfProps {
   onHighlightRabbi: (name: string | null) => void;
   onOpenRabbiSlug: (slug: string) => void;
   generationByName: Map<string, GenerationId>;
-
-  // Aggadata story props (for aggadata expansion state)
-  aggadata: AggadataResult | null;
-  aggadataLoading: boolean;
-  aggadataError: string | null;
-  onRefreshAggadata: () => void;
-  onSelectStory: (index: number | null) => void;
 }
 
 // Fixed-bottom sheet on mobile. Default state shows 3 interaction mode
 // buttons (pointer / select / translate). When a gutter icon fires
 // (argument / halacha / aggadata) the sidebar signal becomes non-null and
-// the shelf swaps its toolbar for the matching ArgumentSidebar / aggadata
-// story view. Closing the expansion reverts to the toolbar with the
-// previously-selected mode still active.
+// the shelf swaps its toolbar for the matching ArgumentSidebar content.
+// Closing the expansion reverts to the toolbar with the previously-selected
+// mode still active.
 export function MobileShelf(props: MobileShelfProps): JSX.Element {
-  const inExpansion = () => props.sidebar !== null || props.activeStoryIndex !== null;
+  const inExpansion = () => props.sidebar !== null;
 
   return (
     <div
@@ -115,7 +106,7 @@ function ExpansionView(props: MobileShelfProps): JSX.Element {
         'border-bottom': '1px solid #eee',
       }}>
         <span style={{ 'font-size': '0.8rem', color: '#666', 'text-transform': 'uppercase', 'letter-spacing': '0.05em' }}>
-          {labelForSidebar(props.sidebar, props.activeStoryIndex)}
+          {labelForSidebar(props.sidebar)}
         </span>
         <button
           type="button"
@@ -134,18 +125,6 @@ function ExpansionView(props: MobileShelfProps): JSX.Element {
         </button>
       </div>
       <div style={{ flex: 1, 'min-height': 0, overflow: 'auto', padding: '0.5rem 0.75rem' }}>
-        <Show when={props.activeStoryIndex !== null}>
-          <AggadataDetector
-            tractate={props.tractate}
-            page={props.page}
-            result={props.aggadata}
-            loading={props.aggadataLoading}
-            error={props.aggadataError}
-            activeIndex={props.activeStoryIndex}
-            onRefresh={props.onRefreshAggadata}
-            onSelectStory={props.onSelectStory}
-          />
-        </Show>
         <Show when={props.sidebar !== null}>
           <ArgumentSidebar
             content={props.sidebar}
@@ -163,8 +142,7 @@ function ExpansionView(props: MobileShelfProps): JSX.Element {
   );
 }
 
-function labelForSidebar(s: SidebarContent | null, storyIdx: number | null): string {
-  if (storyIdx !== null) return 'Aggadata';
+function labelForSidebar(s: SidebarContent | null): string {
   if (!s) return '';
   switch (s.kind) {
     case 'argument': return 'Argument';
