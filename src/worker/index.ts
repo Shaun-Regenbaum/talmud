@@ -4379,6 +4379,172 @@ app.post('/api/admin/translate-bio', async (c) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Era stratification (experiment): per-segment era classification via Kimi K2.6.
+// Counterpart to the heuristic in src/lib/era/heuristic.ts. Used by the
+// #experiment client page to compare LLM picks against heuristic picks before
+// the feature graduates to the main daf view. Cache key is bumped (era-llm:v1)
+// independently from daf-context so the experiment endpoint can iterate freely.
+// ---------------------------------------------------------------------------
+
+const ERA_LLM_JSON_SCHEMA = {
+  name: 'era_picks',
+  strict: true,
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['picks'],
+    properties: {
+      picks: {
+        type: 'array',
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['idx', 'era', 'why'],
+          properties: {
+            idx: { type: 'integer' },
+            era: { type: 'string', enum: GENERATION_IDS },
+            why: { type: 'string' },
+          },
+        },
+      },
+    },
+  },
+};
+
+const ERA_LLM_SYSTEM_PROMPT = `You are a Talmud philologist. For each numbered segment, output the most-likely historical period (a generation ID) when that segment's content was authored or transmitted.
+
+Use these signals (in order):
+1. Named speaker/attribution — if a known sage is the speaker, the era is that sage's generation.
+2. Structural markers — מתני׳/מתניתין → tanna-5; דתניא/תנו רבנן/תניא → tanna-4 (anonymous baraita); דתנן → tanna-5 (cited mishna).
+3. Language register — Mishnaic Hebrew → tannaitic; Babylonian Aramaic dialectical voice (איתמר, מאי טעמא, איבעיא להו, מתקיף, פשיטא, קמ"ל) → late amora-bavel/Stam (amora-bavel-8); Galilean Aramaic → amora-ey-*.
+4. Anonymous redactional voice (Stam) → amora-bavel-8.
+5. Quoted scripture is not the segment's own voice — judge by the surrounding voice.
+
+When in doubt, COMMIT to a single best guess. Do not output 'unknown' unless the segment is purely a verse citation with no framing.
+
+${GENERATIONS_PROMPT_REFERENCE}
+
+Return JSON: { "picks": [ { "idx": <int>, "era": <generation_id>, "why": "<short reason>" }, ... ] }
+- Output one pick per input segment. Do not add or omit indices.
+- "why" is one short clause (≤ 12 words), e.g. "speaker: Rav Huna" or "stammaitic dialectical voice".`;
+
+interface EraLlmSegmentInput {
+  idx: number;
+  text: string;            // plain Hebrew (no HTML), the segment itself
+  before?: string;         // ±1 segment of context for the model, optional
+  after?: string;
+  heuristicGuess?: string; // GenerationId from the client's heuristic, advisory only
+}
+
+interface EraLlmPick {
+  idx: number;
+  era: string;
+  why: string;
+}
+
+interface EraLlmResponse {
+  picks: EraLlmPick[];
+  _model?: string;
+  _cached?: boolean;
+  _ms?: number;
+}
+
+function isEraLlmResponse(x: unknown): x is { picks: EraLlmPick[] } {
+  if (!x || typeof x !== 'object' || !('picks' in x)) return false;
+  const picks = (x as { picks: unknown }).picks;
+  if (!Array.isArray(picks)) return false;
+  for (const p of picks) {
+    if (!p || typeof p !== 'object') return false;
+    const pp = p as Record<string, unknown>;
+    if (typeof pp.idx !== 'number' || typeof pp.era !== 'string' || typeof pp.why !== 'string') return false;
+  }
+  return true;
+}
+
+app.post('/api/era-llm/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const cache = c.env.CACHE;
+  const t0 = Date.now();
+
+  let body: { segments?: EraLlmSegmentInput[] };
+  try { body = await c.req.json(); } catch { return c.json({ error: 'bad JSON body' }, 400); }
+  const segments = Array.isArray(body.segments) ? body.segments : [];
+  if (segments.length === 0) return c.json({ picks: [] });
+  if (segments.length > 60) return c.json({ error: 'too many segments (max 60)' }, 400);
+
+  // Cache key: tractate+page+stable hash of input idx list. Same low-confidence
+  // subset across visits → one Kimi call per daf.
+  const idxSig = segments.map((s) => s.idx).join(',');
+  const cacheKey = `era-llm:v1:${tractate}:${page}:${idxSig}`;
+  const bypass = c.req.query('refresh') === '1';
+
+  if (cache && !bypass) {
+    const cached = await cache.get(cacheKey);
+    if (cached) {
+      const parsed = JSON.parse(cached) as { picks: EraLlmPick[] };
+      return c.json({ picks: parsed.picks, _cached: true, _ms: Date.now() - t0 } satisfies EraLlmResponse);
+    }
+  }
+  if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
+
+  // Build the user prompt: numbered segments with optional before/after context
+  // and the client's heuristic guess as advisory information.
+  const lines: string[] = [
+    `Tractate: ${tractate}, page ${page}.`,
+    `Classify each of the following ${segments.length} segments by historical period.`,
+    '',
+  ];
+  for (const s of segments) {
+    lines.push(`--- segment #${s.idx} ---`);
+    if (s.before) lines.push(`(prev) ${s.before}`);
+    lines.push(`TARGET: ${s.text}`);
+    if (s.after) lines.push(`(next) ${s.after}`);
+    if (s.heuristicGuess) lines.push(`(heuristic guess: ${s.heuristicGuess})`);
+    lines.push('');
+  }
+  const userContent = lines.join('\n').slice(0, 40000);
+
+  // Gemma-4-26b is the same model the existing /api/daf-context uses for its
+  // stage-1 classification — fast, no thinking mode, plays well with json_schema
+  // response_format. Kimi K2.6 non-streaming hits the Workers AI Gateway timeout
+  // on this prompt shape; switching to streaming would work but is overkill for
+  // a per-segment classifier.
+  const modelId = '@cf/google/gemma-4-26b-a4b-it';
+  try {
+    const resp = await c.env.AI.run(modelId as never, {
+      messages: [
+        { role: 'system', content: ERA_LLM_SYSTEM_PROMPT },
+        { role: 'user', content: userContent },
+      ],
+      max_completion_tokens: 4000,
+      temperature: 0.1,
+      chat_template_kwargs: { enable_thinking: false },
+      response_format: { type: 'json_schema', json_schema: ERA_LLM_JSON_SCHEMA },
+    } as never);
+    const payload = extractJsonPayload(resp);
+    if (!payload) return c.json({ error: 'empty payload' }, 502);
+    let parsed: unknown;
+    try { parsed = JSON.parse(payload); }
+    catch (err) { return c.json({ error: `non-JSON: ${String(err).slice(0, 200)}`, raw: payload.slice(0, 500) }, 502); }
+    if (!isEraLlmResponse(parsed)) return c.json({ error: 'schema mismatch', got: parsed }, 502);
+
+    // Filter to known generation IDs only (model occasionally improvises).
+    const validIds = new Set<string>(GENERATION_IDS);
+    const cleaned: EraLlmPick[] = parsed.picks
+      .filter((p) => validIds.has(p.era))
+      .map((p) => ({ idx: p.idx, era: p.era, why: p.why.slice(0, 200) }));
+
+    if (cache) {
+      await cache.put(cacheKey, JSON.stringify({ picks: cleaned }), { expirationTtl: 60 * 60 * 24 * 365 });
+    }
+    return c.json({ picks: cleaned, _model: modelId, _ms: Date.now() - t0 } satisfies EraLlmResponse);
+  } catch (err) {
+    return c.json({ error: String(err).slice(0, 300) }, 502);
+  }
+});
+
 const YOMI_WARM_CRON = '0 3 * * *';
 
 export default {

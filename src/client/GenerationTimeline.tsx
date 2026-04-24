@@ -12,6 +12,12 @@ export interface GenerationTimelineProps {
   onToggleGenMarkers: (next: boolean) => void;
   genLoading?: boolean;
   genError?: string | null;
+  /**
+   * Optional per-generation segment counts from the era stratification
+   * heuristic. When present a cell is also "present" if any segments map to it,
+   * and the count badge prefers segment count over rabbi count.
+   */
+  eraSegmentCounts?: Map<GenerationId, number> | null;
 }
 
 // Single chronological amora track. EY (gens 1–5) and Bavel (gens 1–8)
@@ -62,9 +68,18 @@ export function GenerationTimeline(props: GenerationTimelineProps): JSX.Element 
     return out;
   };
 
+  const segCountFor = (ids: GenerationId[]): number => {
+    const counts = props.eraSegmentCounts;
+    if (!counts) return 0;
+    let n = 0;
+    for (const id of ids) n += counts.get(id) ?? 0;
+    return n;
+  };
+
   const onCellClick = (primaryId: GenerationId, ids: GenerationId[]) => {
     const names = collectNames(ids);
-    if (names.length === 0) return;
+    const segs = segCountFor(ids);
+    if (names.length === 0 && segs === 0) return;
     const isActive = ids.includes(props.activeGeneration as GenerationId);
     props.onHighlightGeneration(isActive ? null : primaryId, isActive ? [] : names);
   };
@@ -77,14 +92,22 @@ export function GenerationTimeline(props: GenerationTimelineProps): JSX.Element 
     era: string;
   }) => {
     const names = () => collectNames(cprops.ids);
-    const present = () => names().length > 0;
+    const segs = () => segCountFor(cprops.ids);
+    const present = () => names().length > 0 || segs() > 0;
     const active = () => cprops.ids.includes(props.activeGeneration as GenerationId);
-    const count = () => names().length;
+    // Prefer the segment count when era stratification is in play; it's the
+    // signal users care about on /experiment. Falls back to rabbi count for
+    // the main daf view (where eraSegmentCounts is absent).
+    const count = () => (props.eraSegmentCounts ? segs() : names().length);
     return (
       <button
         onClick={() => onCellClick(cprops.primaryId, cprops.ids)}
         disabled={!present()}
-        title={present() ? `${cprops.label} · ${cprops.era}\n${names().join(', ')}` : `${cprops.label} · ${cprops.era} (none in this daf)`}
+        title={present()
+          ? `${cprops.label} · ${cprops.era}${
+              segs() > 0 ? `\n${segs()} segment${segs() === 1 ? '' : 's'}` : ''
+            }${names().length > 0 ? `\n${names().join(', ')}` : ''}`
+          : `${cprops.label} · ${cprops.era} (none in this daf)`}
         style={{
           position: 'relative',
           flex: 1,

@@ -1,8 +1,31 @@
 import { createResource, createSignal, For, Show, createMemo, type JSX } from 'solid-js';
 import { TRACTATE_OPTIONS, type TalmudPageData } from '../lib/sefref';
 import { classifyDaf } from '../lib/era/heuristic';
+import { extractTalmudContent } from '../lib/sefref/alignment';
 import { GENERATION_BY_ID, GENERATIONS, type GenerationId } from './generations';
+import { GenerationTimeline } from './GenerationTimeline';
 import type { SegmentEra, EraSignalSource } from '../lib/era/types';
+
+interface LlmPick { idx: number; era: GenerationId; why: string }
+interface LlmResponse { picks: LlmPick[]; _cached?: boolean; _ms?: number; error?: string }
+
+async function fetchEraLlm(
+  tractate: string,
+  page: string,
+  segments: { idx: number; text: string; before?: string; after?: string; heuristicGuess?: string }[],
+): Promise<LlmResponse> {
+  const res = await fetch(
+    `/api/era-llm/${encodeURIComponent(tractate)}/${encodeURIComponent(page)}`,
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ segments }),
+    },
+  );
+  const json = await res.json() as LlmResponse;
+  if (!res.ok) throw new Error(json.error ?? `HTTP ${res.status}`);
+  return json;
+}
 
 interface ExperimentDaf extends TalmudPageData {
   mainSegmentsHe?: string[];
@@ -44,6 +67,11 @@ export default function ExperimentPage(): JSX.Element {
   const [tractate, setTractate] = createSignal(initialParams.get('tractate') ?? 'Berakhot');
   const [page, setPage] = createSignal(initialParams.get('page') ?? '2a');
   const [activeEra, setActiveEra] = createSignal<GenerationId | null>(null);
+  const [llmPicks, setLlmPicks] = createSignal<Map<number, LlmPick> | null>(null);
+  const [llmLoading, setLlmLoading] = createSignal(false);
+  const [llmError, setLlmError] = createSignal<string | null>(null);
+  const [llmCached, setLlmCached] = createSignal(false);
+  const [llmMs, setLlmMs] = createSignal<number | null>(null);
 
   const ref = createMemo(() => ({ tractate: tractate(), page: page() }));
   const [daf] = createResource(ref, fetchDaf);
@@ -51,25 +79,76 @@ export default function ExperimentPage(): JSX.Element {
   const eraContext = createMemo(() => {
     const d = daf();
     if (!d?.mainSegmentsHe?.length) return null;
+    // Reset LLM picks whenever the daf changes — they no longer apply.
+    setLlmPicks(null); setLlmError(null); setLlmCached(false); setLlmMs(null);
     return classifyDaf(d.mainSegmentsHe);
   });
 
-  const sourceCounts = createMemo(() => {
+  // Effective era per segment: LLM pick wins when present, otherwise heuristic.
+  const effectiveSegments = createMemo<SegmentEra[]>(() => {
     const ctx = eraContext();
-    if (!ctx) return null;
+    if (!ctx) return [];
+    const llm = llmPicks();
+    if (!llm || llm.size === 0) return ctx.segments;
+    return ctx.segments.map((s) => {
+      const pick = llm.get(s.segIdx);
+      if (!pick) return s;
+      return { ...s, era: pick.era, source: 'llm' as const, why: `LLM: ${pick.why}` };
+    });
+  });
+
+  const runLlm = async () => {
+    const d = daf();
+    const ctx = eraContext();
+    if (!d?.mainSegmentsHe || !ctx) return;
+    const lowConf = ctx.segments.filter((s) => s.source === 'register' || s.source === 'stam-default');
+    if (lowConf.length === 0) {
+      setLlmError('No low-confidence segments to send.');
+      return;
+    }
+    const plain = d.mainSegmentsHe.map((html) => extractTalmudContent(html));
+    const payload = lowConf.map((s) => ({
+      idx: s.segIdx,
+      text: plain[s.segIdx] ?? '',
+      before: s.segIdx > 0 ? plain[s.segIdx - 1]?.slice(0, 200) : undefined,
+      after: s.segIdx + 1 < plain.length ? plain[s.segIdx + 1]?.slice(0, 200) : undefined,
+      heuristicGuess: s.era,
+    }));
+    setLlmLoading(true); setLlmError(null);
+    try {
+      const r = await fetchEraLlm(tractate(), page(), payload);
+      const m = new Map<number, LlmPick>();
+      for (const p of r.picks) m.set(p.idx, p);
+      setLlmPicks(m);
+      setLlmCached(!!r._cached);
+      setLlmMs(r._ms ?? null);
+    } catch (e) {
+      setLlmError(String(e));
+    } finally {
+      setLlmLoading(false);
+    }
+  };
+
+  const sourceCounts = createMemo(() => {
+    const segs = effectiveSegments();
+    if (segs.length === 0) return null;
     const c: Record<EraSignalSource, number> = {
       'speaker': 0, 'marker': 0, 'register': 0, 'stam-default': 0, 'llm': 0,
     };
-    for (const s of ctx.segments) c[s.source]++;
+    for (const s of segs) c[s.source]++;
     return c;
   });
 
   const eraCounts = createMemo(() => {
-    const ctx = eraContext();
-    if (!ctx) return new Map<GenerationId, number>();
     const m = new Map<GenerationId, number>();
-    for (const s of ctx.segments) m.set(s.era, (m.get(s.era) ?? 0) + 1);
+    for (const s of effectiveSegments()) m.set(s.era, (m.get(s.era) ?? 0) + 1);
     return m;
+  });
+
+  const lowConfCount = createMemo(() => {
+    const ctx = eraContext();
+    if (!ctx) return 0;
+    return ctx.segments.filter((s) => s.source === 'register' || s.source === 'stam-default').length;
   });
 
   const presentInOrder = createMemo<GenerationId[]>(() => {
@@ -99,9 +178,35 @@ export default function ExperimentPage(): JSX.Element {
           onInput={(e) => { setPage(e.currentTarget.value); setActiveEra(null); }}
           style={{ width: '5rem', padding: '0.3rem 0.5rem', 'font-size': '0.9rem' }}
         />
-        <span style={{ color: '#888', 'font-size': '0.78rem', 'margin-left': '0.5rem' }}>
-          heuristic-only · no LLM yet
-        </span>
+        <div style={{ 'margin-left': 'auto', display: 'flex', 'align-items': 'center', gap: '0.5rem' }}>
+          <Show when={llmError()}>
+            <span style={{ color: '#c33', 'font-size': '0.75rem' }}>{llmError()}</span>
+          </Show>
+          <Show when={llmPicks() && !llmLoading()}>
+            <span style={{ color: '#666', 'font-size': '0.72rem' }}>
+              LLM applied to {llmPicks()!.size} seg{llmPicks()!.size === 1 ? '' : 's'}
+              {llmCached() ? ' (cached)' : llmMs() != null ? ` (${llmMs()}ms)` : ''}
+            </span>
+          </Show>
+          <button
+            type="button"
+            onClick={runLlm}
+            disabled={llmLoading() || lowConfCount() === 0}
+            style={{
+              padding: '0.35rem 0.75rem',
+              border: '1px solid #6d28d9',
+              'border-radius': '4px',
+              background: llmLoading() ? '#ede9fe' : '#7c3aed',
+              color: llmLoading() ? '#6d28d9' : '#fff',
+              cursor: (llmLoading() || lowConfCount() === 0) ? 'default' : 'pointer',
+              'font-size': '0.78rem',
+              'font-family': 'inherit',
+              opacity: lowConfCount() === 0 ? 0.5 : 1,
+            }}
+          >
+            {llmLoading() ? 'Running Kimi K2.6…' : `Run LLM on ${lowConfCount()} low-conf seg${lowConfCount() === 1 ? '' : 's'}`}
+          </button>
+        </div>
       </header>
 
       <Show when={daf.loading}><p style={{ color: '#888' }}>Loading…</p></Show>
@@ -109,6 +214,18 @@ export default function ExperimentPage(): JSX.Element {
 
       <Show when={daf() && eraContext()}>
         <>
+            {/* GenerationTimeline driven by era stratification (no rabbis here yet —
+                the experiment scope is segment-era only). Click a cell to filter. */}
+            <GenerationTimeline
+              rabbis={null}
+              eraSegmentCounts={eraCounts()}
+              activeGeneration={activeEra()}
+              onHighlightGeneration={(gen) => setActiveEra(gen)}
+              showGenMarkers={false}
+              onToggleGenMarkers={() => { /* no-op on /experiment */ }}
+              width={900}
+            />
+
             {/* Summary band: which generations are present, source breakdown */}
             <section style={{
               display: 'grid',
@@ -212,7 +329,7 @@ export default function ExperimentPage(): JSX.Element {
                 Daf stratification (segments left → right)
               </div>
               <div style={{ display: 'flex', height: '24px', border: '1px solid #ddd', 'border-radius': '3px', overflow: 'hidden' }}>
-                <For each={eraContext()!.segments}>
+                <For each={effectiveSegments()}>
                   {(s) => {
                     const isMatch = () => activeEra() === null || s.era === activeEra();
                     return (
@@ -234,10 +351,11 @@ export default function ExperimentPage(): JSX.Element {
               </div>
             </section>
 
-            {/* Per-segment list */}
+            {/* Per-segment list — heuristic and (when LLM ran) the override */}
             <SegmentList
               daf={daf()!}
-              segments={eraContext()!.segments}
+              segments={effectiveSegments()}
+              heuristic={eraContext()!.segments}
               activeEra={activeEra()}
             />
         </>
@@ -249,6 +367,7 @@ export default function ExperimentPage(): JSX.Element {
 interface SegmentListProps {
   daf: ExperimentDaf;
   segments: SegmentEra[];
+  heuristic: SegmentEra[];
   activeEra: GenerationId | null;
 }
 
@@ -259,6 +378,9 @@ function SegmentList(props: SegmentListProps): JSX.Element {
         {(s) => {
           const heHtml = props.daf.mainSegmentsHe?.[s.segIdx] ?? '';
           const enText = props.daf.mainSegmentsEn?.[s.segIdx] ?? '';
+          const heur = props.heuristic[s.segIdx];
+          const llmOverride = s.source === 'llm';
+          const disagrees = llmOverride && heur && heur.era !== s.era;
           const isMatch = () => props.activeEra === null || s.era === props.activeEra;
           return (
             <li style={{
@@ -275,7 +397,7 @@ function SegmentList(props: SegmentListProps): JSX.Element {
               opacity: isMatch() ? 1 : 0.32,
               transition: 'opacity .15s',
             }}>
-              {/* Index + era label */}
+              {/* Index + era label (+ heuristic-was when LLM overrode) */}
               <div style={{ 'font-family': 'monospace', 'font-size': '0.75rem', color: '#666' }}>
                 <div>#{s.segIdx}</div>
                 <div style={{
@@ -287,6 +409,11 @@ function SegmentList(props: SegmentListProps): JSX.Element {
                   'border-radius': '2px',
                   'font-size': '0.65rem',
                 }}>{eraLabel(s.era)}</div>
+                <Show when={disagrees && heur}>
+                  <div style={{ 'margin-top': '0.2rem', 'font-size': '0.6rem', color: '#888' }}>
+                    heur was: <span style={{ color: eraColor(heur!.era) }}>{eraLabel(heur!.era)}</span>
+                  </div>
+                </Show>
               </div>
               {/* Hebrew + English */}
               <div>
