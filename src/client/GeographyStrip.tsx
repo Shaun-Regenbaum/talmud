@@ -8,5 +8,5 @@ import { GeographyMap, type GeographyMapProps } from './GeographyMap';
 // via a new `orientation` prop. For now the narrower aspect is the trade-
 // off for putting the map right next to the daf.
 export function GeographyStrip(props: GeographyMapProps): JSX.Element {
-  return <GeographyMap {...props} />;
+  return <GeographyMap {...props} layout="column" />;
 }

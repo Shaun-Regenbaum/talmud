@@ -1482,21 +1482,6 @@ export default function DafViewer(): JSX.Element {
         </span>
       </header>
 
-      {/* Generation timeline sits above the daf, centered so it lines up
-          with the daf body regardless of strip widths on either side. */}
-      <div class="daf-top-rail">
-        <GenerationTimeline
-          rabbis={generations()}
-          activeGeneration={activeGenerationId()}
-          onHighlightGeneration={onHighlightGeneration}
-          width={dafWidth()}
-          showGenMarkers={showGenMarkers()}
-          onToggleGenMarkers={setShowGenMarkers}
-          genLoading={genLoading()}
-          genError={genError()}
-        />
-      </div>
-
       <div class="daf-layout">
       <aside class="daf-strip daf-strip-left">
         <CommentaryStrip
@@ -1514,8 +1499,18 @@ export default function DafViewer(): JSX.Element {
           }}
         />
       </aside>
-      <section style={{ flex: 1, 'min-width': 0 }}>
-      <div class="daf-surface" onMouseUp={onMouseUpRoot} style={{ display: 'flex', 'justify-content': 'center' }}>
+      <section class="daf-main">
+      <GenerationTimeline
+        rabbis={generations()}
+        activeGeneration={activeGenerationId()}
+        onHighlightGeneration={onHighlightGeneration}
+        width={dafWidth()}
+        showGenMarkers={showGenMarkers()}
+        onToggleGenMarkers={setShowGenMarkers}
+        genLoading={genLoading()}
+        genError={genError()}
+      />
+      <div class="daf-surface" onMouseUp={onMouseUpRoot}>
         <Show
           when={!daf.loading && tokenized()}
           fallback={
@@ -1701,7 +1696,7 @@ export default function DafViewer(): JSX.Element {
             top: '1rem',
             'align-self': 'flex-start',
             'max-height': 'calc(100vh - 2rem)',
-            width: '340px',
+            width: '300px',
             'flex-shrink': 0,
             display: 'flex',
             'flex-direction': 'column',

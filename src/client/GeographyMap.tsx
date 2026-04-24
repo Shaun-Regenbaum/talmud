@@ -103,6 +103,9 @@ export interface GeographyMapProps {
   /** Currently highlighted place, so the dot knows to render its active
    *  ring. Mutually exclusive with `activeLocation`. */
   activePlace?: string | null;
+  /** 'row' (default) stacks Israel + Bavel side-by-side; 'column' stacks
+   *  vertically for narrow-strip contexts. */
+  layout?: 'row' | 'column';
 }
 
 interface CityDot {
@@ -360,14 +363,14 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
           </p>
         }
       >
-        <div style={{ display: 'flex', gap: '0.5rem', 'align-items': 'stretch' }}>
+        <div style={{ display: 'flex', 'flex-direction': props.layout === 'column' ? 'column' : 'row', gap: '0.5rem', 'align-items': 'stretch' }}>
           {/* ========== Eretz Yisrael card ========== */}
           <div
             style={{
               flex: 1,
-              border: '1px solid #e5e7eb',
-              'border-radius': '8px',
-              background: '#fff',
+              border: props.layout === 'column' ? 'none' : '1px solid #e5e7eb',
+              'border-radius': props.layout === 'column' ? '0' : '8px',
+              background: props.layout === 'column' ? 'transparent' : '#fff',
               padding: '0.5rem 0.5rem 0.4rem',
               display: 'flex',
               'flex-direction': 'column',
@@ -379,7 +382,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
             </div>
             <svg
               viewBox={`-6 -4 ${ISRAEL_SHAPE.width + 12} ${ISRAEL_SHAPE.height + 8}`}
-              style={{ width: '100%', height: 'auto', display: 'block', 'max-height': '280px' }}
+              style={{ width: '100%', height: 'auto', display: 'block' }}
               preserveAspectRatio="xMidYMid meet"
               role="img"
               aria-label="Eretz Yisrael — rabbi geographic origins"
@@ -407,9 +410,9 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
           <div
             style={{
               flex: 1,
-              border: '1px solid #e5e7eb',
-              'border-radius': '8px',
-              background: '#fff',
+              border: props.layout === 'column' ? 'none' : '1px solid #e5e7eb',
+              'border-radius': props.layout === 'column' ? '0' : '8px',
+              background: props.layout === 'column' ? 'transparent' : '#fff',
               padding: '0.5rem 0.5rem 0.4rem',
               display: 'flex',
               'flex-direction': 'column',
@@ -421,7 +424,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
             </div>
             <svg
               viewBox="30 -10 95 195"
-              style={{ width: '100%', height: 'auto', display: 'block', 'max-height': '280px' }}
+              style={{ width: '100%', height: 'auto', display: 'block' }}
               preserveAspectRatio="xMidYMid meet"
               role="img"
               aria-label="Bavel — rabbi geographic origins"
