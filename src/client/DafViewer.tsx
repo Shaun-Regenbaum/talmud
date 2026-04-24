@@ -1,4 +1,4 @@
-import { createResource, createSignal, createEffect, createMemo, onCleanup, For, Show, type JSX } from 'solid-js';
+import { createResource, createSignal, createEffect, createMemo, onMount, onCleanup, For, Show, type JSX } from 'solid-js';
 import type { TalmudPageData } from '../lib/sefref';
 import { TRACTATE_OPTIONS } from '../lib/sefref';
 import { DafRenderer } from '../lib/daf-render';
@@ -223,6 +223,17 @@ export default function DafViewer(): JSX.Element {
   const [tractate, setTractate] = createSignal(params.get('tractate') ?? 'Berakhot');
   const [page, setPage] = createSignal(params.get('page') ?? '2a');
   const [active, setActive] = createSignal<ActiveWord | null>(null);
+
+  // Responsive daf sizing. 16px main padding × 2 + 12px edge-icon slack × 2 = 56px
+  // clearance so edge-positioned gutter icons (`-10px` / `calc(100% + 10px)`)
+  // stay on-screen when the viewport is narrower than the desktop 520px daf.
+  const [viewportW, setViewportW] = createSignal(window.innerWidth);
+  onMount(() => {
+    const onResize = () => setViewportW(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    onCleanup(() => window.removeEventListener('resize', onResize));
+  });
+  const dafWidth = () => Math.min(520, Math.max(280, viewportW() - 56));
 
   const ref = createMemo<Ref>(() => ({ tractate: tractate(), page: page() }));
   const [daf] = createResource(ref, fetchDaf);
@@ -1388,15 +1399,7 @@ export default function DafViewer(): JSX.Element {
   });
 
   return (
-    <main
-      style={{
-        padding: '1rem',
-        'font-family': 'system-ui, sans-serif',
-        display: 'flex',
-        'align-items': 'flex-start',
-        gap: '1rem',
-      }}
-    >
+    <main class="daf-layout">
       <section style={{ flex: 1, 'min-width': 0 }}>
       <header style={{ display: 'flex', 'align-items': 'center', gap: '0.75rem', 'flex-wrap': 'wrap', 'margin-bottom': '1rem' }}>
         <h1 style={{ margin: 0, 'font-size': '1.25rem' }}>Talmud</h1>
@@ -1449,7 +1452,7 @@ export default function DafViewer(): JSX.Element {
         rabbis={generations()}
         activeGeneration={activeGenerationId()}
         onHighlightGeneration={onHighlightGeneration}
-        width={520}
+        width={dafWidth()}
         showGenMarkers={showGenMarkers()}
         onToggleGenMarkers={setShowGenMarkers}
         genLoading={genLoading()}
@@ -1476,7 +1479,7 @@ export default function DafViewer(): JSX.Element {
                 inner={t.inner}
                 outer={t.outer}
                 amud={pageAmud()}
-                options={{ contentWidth: 520, mainWidth: 0.48 }}
+                options={{ contentWidth: dafWidth(), mainWidth: 0.48 }}
               />
               <GutterIcons
                 containerRef={dafRootEl}
@@ -1606,6 +1609,7 @@ export default function DafViewer(): JSX.Element {
       </section>
 
       <aside
+        class="daf-aside"
         style={{
           position: 'sticky',
           top: '1rem',
