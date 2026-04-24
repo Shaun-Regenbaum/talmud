@@ -18,6 +18,7 @@ import type { AggadataResult } from './AggadataDetector';
 import { injectCityMarkers } from './injectCityMarkers';
 import { GenerationTimeline } from './GenerationTimeline';
 import { classifyDaf } from '../lib/era/heuristic';
+import type { DafEraContext } from '../lib/era/types';
 import { BugReport } from './BugReport';
 import { type CommentaryWork, type CommentaryComment } from './CommentaryPicker';
 import { CommentaryStrip } from './CommentaryStrip';
@@ -25,6 +26,7 @@ import { GeographyStrip } from './GeographyStrip';
 import { RabbiTreeStrip } from './RabbiTreeStrip';
 import { MobileShelf, type MobileInteractionMode } from './MobileShelf';
 import type { GenerationId } from './generations';
+import { GENERATION_BY_ID } from './generations';
 
 interface Ref {
   tractate: string;
@@ -75,7 +77,10 @@ function paintRangeOverlay(
   overlay: HTMLElement,
   origin: HTMLElement,
   ranges: Range[],
-  kind: 'section' | 'halacha' | 'aggadata' | 'commentary' | 'commentary-active',
+  kind: 'section' | 'halacha' | 'aggadata' | 'commentary' | 'commentary-active' | 'era-tint' | 'era-hover',
+  /** Optional per-range inline background color (used by era-tint where every
+   *  segment carries its own generation color). */
+  bgFor?: (rangeIdx: number) => string | undefined,
 ): void {
   if (ranges.length === 0) return;
   const originRect = origin.getBoundingClientRect();
@@ -83,7 +88,8 @@ function paintRangeOverlay(
   // diacritics, anchors, etc. can nudge it). Half a line-height is a safe
   // bucketing tolerance.
   const TOL = 6;
-  for (const range of ranges) {
+  for (let ri = 0; ri < ranges.length; ri++) {
+    const range = ranges[ri];
     const rects = Array.from(range.getClientRects()).filter((r) => r.width > 0 && r.height > 0);
     if (rects.length === 0) continue;
     const lines: DOMRect[][] = [];
@@ -112,6 +118,7 @@ function paintRangeOverlay(
     for (let i = 0; i < bands.length - 1; i++) {
       bands[i].bottom = bands[i + 1].top;
     }
+    const bg = bgFor?.(ri);
     for (let i = 0; i < bands.length; i++) {
       const b = bands[i];
       const el = document.createElement('div');
@@ -122,6 +129,7 @@ function paintRangeOverlay(
       el.style.top = `${b.top - originRect.top}px`;
       el.style.width = `${b.right - b.left}px`;
       el.style.height = `${b.bottom - b.top}px`;
+      if (bg) el.style.backgroundColor = bg;
       overlay.appendChild(el);
     }
   }
@@ -214,6 +222,7 @@ const ARGUMENTS_KEY = 'daf.toggle.arguments';
 const HALACHOT_KEY = 'daf.toggle.halachot';
 const AGGADATOT_KEY = 'daf.toggle.aggadatot';
 const ERA_KEY = 'daf.toggle.era';
+const ERA_HIGHLIGHT_KEY = 'daf.toggle.eraHighlight';
 function loadToggle(key: string, def: boolean): boolean {
   if (typeof localStorage === 'undefined') return def;
   const v = localStorage.getItem(key);
@@ -282,6 +291,13 @@ export default function DafViewer(): JSX.Element {
   const [showHalachot, setShowHalachot] = createSignal(loadToggle(HALACHOT_KEY, true));
   const [showAggadatot, setShowAggadatot] = createSignal(loadToggle(AGGADATOT_KEY, true));
   const [showEra, setShowEra] = createSignal(loadToggle(ERA_KEY, false));
+  const [showEraHighlight, setShowEraHighlight] = createSignal(loadToggle(ERA_HIGHLIGHT_KEY, false));
+  // Era-context state: stage 1 (heuristic) lands instantly, stage 2 (LLM)
+  // upgrades silently via polling. Mirrors the dafContext pattern.
+  const [eraContext, setEraContext] = createSignal<DafEraContext | null>(null);
+  // Active era for hover-highlight: when the user mouses over a generation
+  // cell in the timeline, paint matching segments and dim the rest.
+  const [hoveredEra, setHoveredEra] = createSignal<GenerationId | null>(null);
 
   // Back-compat: underline injection + timeline take a GenerationRabbi[]; derive it.
   const generations = createMemo<GenerationRabbi[] | null>(() => {
@@ -1910,6 +1926,7 @@ export default function DafViewer(): JSX.Element {
             <RabbiTreeStrip
               rabbis={dafContext()?.rabbis ?? []}
               onOpenRabbiSlug={openRabbiSlug}
+              onCloseRabbi={() => { setActiveRabbi(null); setSidebar(null); }}
               onHoverRabbi={setHoveredRabbi}
               hoveredRabbi={hoveredRabbi()}
               activeRabbi={activeRabbi()}

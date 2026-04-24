@@ -126,6 +126,9 @@ function rowsFor(eraId: EraId, items: ColumnEntry[]): ColumnRow[] {
 interface RabbiTreeStripProps {
   rabbis: RabbiLite[];
   onOpenRabbiSlug: (slug: string) => void;
+  /** Click on the currently-active pill toggles focus off, returning the
+   *  strip to its default minimised state. */
+  onCloseRabbi?: () => void;
   /** Transient hover highlight on the daf — does NOT open the sidebar. */
   onHoverRabbi: (name: string | null) => void;
   hoveredRabbi: string | null;
@@ -244,8 +247,10 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
 
   // All teacher-student + colleague edges that connect rabbis currently
   // rendered in any column. These get drawn as SVG lines. In the default
-  // view (no focus) we only draw edges between on-daf rabbis; when a
-  // rabbi is focused we also draw lines to their expanded connections.
+  // view (no focus) we draw the full graph between on-daf rabbis. When
+  // a rabbi is focused we ONLY draw edges that touch a focused rabbi —
+  // otherwise the focused rabbi's network gets buried under every other
+  // on-daf rabbi's pre-existing edges and the strip turns to spaghetti.
   const connectors = createMemo<Connector[]>(() => {
     if (!hasEdges) return [];
     const rendered = new Set<string>();
@@ -260,7 +265,16 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
       seen.add(k);
       out.push({ fromSlug: a, toSlug: b, direction });
     };
-    for (const r of props.rabbis) {
+    const focusSet = focusedSlugs();
+    const focusActive = focusSet.size > 0;
+    // In focus mode, iterate ONLY focused on-daf rabbis. Edges naturally
+    // pivot around the focused set: focused→linked, focused→other-on-daf,
+    // and focused→focused all get pushed; edges between two non-focused
+    // rabbis are silently dropped.
+    const sources = focusActive
+      ? props.rabbis.filter((r) => r.slug && focusSet.has(r.slug))
+      : props.rabbis;
+    for (const r of sources) {
       if (!r.slug) continue;
       const node = HIERARCHY.nodes[r.slug];
       if (!node) continue;
@@ -493,7 +507,14 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
                             ref={(el) => registerPill(e.slug, el)}
                             onMouseEnter={() => props.onHoverRabbi(e.canonical)}
                             onMouseLeave={() => props.onHoverRabbi(null)}
-                            onClick={() => { if (e.slug) props.onOpenRabbiSlug(e.slug); }}
+                            onClick={() => {
+                              if (!e.slug) return;
+                              if (props.activeRabbi === e.canonical && props.onCloseRabbi) {
+                                props.onCloseRabbi();
+                              } else {
+                                props.onOpenRabbiSlug(e.slug);
+                              }
+                            }}
                             disabled={!e.slug}
                             style={{
                               width: '20px',
