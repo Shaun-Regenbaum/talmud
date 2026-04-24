@@ -240,11 +240,12 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
       const ar = a.getBoundingClientRect();
       const br = b.getBoundingClientRect();
       next.push({
-        // Line exits the left edge of each pill since pills sit in a
-        // right-hand column flanking vertical era bars on the left.
-        x1: ar.left - rootRect.left,
+        // Exit the RIGHT edge of each pill; lines route through a
+        // dedicated connection lane reserved on the right of the
+        // section so they never cross other pills.
+        x1: ar.right - rootRect.left,
         y1: ar.top - rootRect.top + ar.height / 2,
-        x2: br.left - rootRect.left,
+        x2: br.right - rootRect.left,
         y2: br.top - rootRect.top + br.height / 2,
         direction: c.direction,
       });
@@ -271,7 +272,16 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
   return (
     <section
       ref={(el) => { rootEl = el; }}
-      style={{ position: 'relative', background: '#fcfcf9', border: '1px solid #e7e5de', 'border-radius': '6px', padding: '0.6rem 0.7rem' }}
+      style={{
+        position: 'relative',
+        background: '#fcfcf9',
+        border: '1px solid #e7e5de',
+        'border-radius': '6px',
+        // Right padding reserves the "connection lane" — a vertical
+        // strip on the right side of the section where all connector
+        // lines route so they never overlap pills or era bars.
+        padding: '0.6rem 2.25rem 0.6rem 0.7rem',
+      }}
     >
       <header style={{ display: 'flex', 'align-items': 'baseline', 'justify-content': 'space-between', 'margin-bottom': '0.55rem' }}>
         <h3 style={{ margin: 0, 'font-size': '0.8rem', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', color: '#666' }}>
@@ -414,12 +424,29 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
         </defs>
         <For each={endpoints()}>
           {(ep) => {
-            // Bow the line out to the left so connectors that cross
-            // multiple eras don't overlap each other's pills. The larger
-            // the vertical distance, the further left we bow.
-            const midY = (ep.y1 + ep.y2) / 2;
-            const bowX = Math.min(ep.x1, ep.x2) - Math.max(24, Math.abs(ep.y2 - ep.y1) * 0.15);
-            const d = `M ${ep.x1} ${ep.y1} Q ${bowX} ${midY} ${ep.x2} ${ep.y2}`;
+            // Rectilinear tree routing through the right-hand lane.
+            // Each connector exits its source pill's right edge, runs
+            // into the lane, traverses vertically to the target's y,
+            // then steps back left to the target pill. Rounded
+            // corners (radius r) keep it legible without turning into
+            // sharp L shapes. Multiple edges naturally stack in the
+            // lane since they share the same x coordinates.
+            const rootW = rootEl?.getBoundingClientRect().width ?? 220;
+            // Lane x: 14px inside the section's right edge, inside the
+            // 2.25rem padding we reserved.
+            const laneX = rootW - 14;
+            const r = 4;
+            const dir = ep.y2 >= ep.y1 ? 1 : -1; // down vs up
+            const midEnterY = ep.y1 + dir * r;
+            const midExitY = ep.y2 - dir * r;
+            const d = [
+              `M ${ep.x1} ${ep.y1}`,
+              `L ${laneX - r} ${ep.y1}`,
+              `Q ${laneX} ${ep.y1} ${laneX} ${midEnterY}`,
+              `L ${laneX} ${midExitY}`,
+              `Q ${laneX} ${ep.y2} ${laneX - r} ${ep.y2}`,
+              `L ${ep.x2} ${ep.y2}`,
+            ].join(' ');
             const dashed = ep.direction === 'colleague';
             return (
               <path
