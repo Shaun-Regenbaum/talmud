@@ -116,12 +116,14 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
   });
 
   // Which on-daf rabbis are currently "focused"? Their connections get
-  // expanded in the tree. Focus sources: hover, click-locked active,
-  // and the rabbi names in an open argument / halacha / aggadata
-  // section or a clicked city/region on the map.
+  // expanded in the tree. Focus sources: click-locked active rabbi,
+  // or rabbi names surfaced from an open argument section or a clicked
+  // city/region on the map. Hover is deliberately NOT a focus source —
+  // expanding on hover caused the tree to restructure while the user
+  // was moving their cursor, yanking the hovered pill out from under
+  // them. Hover still lights up the rabbi on the daf.
   const focusedNames = createMemo<Set<string>>(() => {
     const s = new Set<string>();
-    if (props.hoveredRabbi) s.add(props.hoveredRabbi);
     if (props.activeRabbi) s.add(props.activeRabbi);
     for (const n of props.focusedRabbiNames ?? []) s.add(n);
     return s;
@@ -172,9 +174,12 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
           const region = (n.region === 'israel' || n.region === 'bavel') ? n.region : regionForGeneration(n.generation);
           out[era].push({ slug: linkedSlug, canonical: n.canonical, generation: n.generation, region, onDaf: false, role });
         };
-        for (const t of node.teachers) addLinked(t, 'teacher');
-        for (const s of node.students) addLinked(s, 'student');
-        for (const c of node.colleagues) addLinked(c, 'colleague');
+        // Cap at 2 each direction — a rabbi with 12 students floods the
+        // tree and obscures the shape of the connections. Users can
+        // still reach the full list via the rabbi's bio card.
+        for (const t of node.teachers.slice(0, 2)) addLinked(t, 'teacher');
+        for (const s of node.students.slice(0, 2)) addLinked(s, 'student');
+        for (const c of node.colleagues.slice(0, 2)) addLinked(c, 'colleague');
       }
     }
 
@@ -283,7 +288,7 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
         padding: '0.6rem 2.25rem 0.6rem 0.7rem',
       }}
     >
-      <header style={{ display: 'flex', 'align-items': 'baseline', 'justify-content': 'space-between', 'margin-bottom': '0.55rem' }}>
+      <header style={{ display: 'flex', 'align-items': 'baseline', 'justify-content': 'space-between', 'margin-bottom': '0.35rem' }}>
         <h3 style={{ margin: 0, 'font-size': '0.8rem', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', color: '#666' }}>
           Chain of tradition
         </h3>
@@ -293,6 +298,29 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
           </span>
         </Show>
       </header>
+      {/* Legend. Our hierarchy only distinguishes two relationship
+          kinds: teacher↔student (a directed chain of transmission) and
+          contemporary (anyone attested to debate / work alongside the
+          rabbi, but not their teacher or student). Familial ties are
+          not separately tracked — a father who taught his son shows up
+          as a teacher relationship if the bio says so. */}
+      <Show when={hasEdges}>
+        <div style={{ display: 'flex', gap: '0.55rem', 'font-size': '0.6rem', color: '#777', 'margin-bottom': '0.45rem', 'flex-wrap': 'wrap' }}>
+          <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.2rem' }}>
+            <svg width="18" height="6" aria-hidden="true">
+              <line x1="1" y1="3" x2="14" y2="3" stroke="#555" stroke-width="1" />
+              <path d="M12,1 L16,3 L12,5 z" fill="#555" />
+            </svg>
+            teacher → student
+          </span>
+          <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.2rem' }}>
+            <svg width="18" height="6" aria-hidden="true">
+              <line x1="1" y1="3" x2="17" y2="3" stroke="#999" stroke-width="1" stroke-dasharray="3 3" />
+            </svg>
+            contemporary
+          </span>
+        </div>
+      </Show>
 
       {/* Era skeleton: a vertical strip of four era bars with rabbi
           columns flanking the right. Matches the sketch's spine. */}
