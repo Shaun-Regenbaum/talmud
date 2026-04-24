@@ -1483,6 +1483,7 @@ export default function DafViewer(): JSX.Element {
       </header>
 
       <div class="daf-layout">
+      <div class="daf-cluster">
       <aside class="daf-strip daf-strip-left">
         <CommentaryStrip
           works={commentaryWorks()}
@@ -1687,6 +1688,7 @@ export default function DafViewer(): JSX.Element {
           activeRabbi={activeRabbi()}
         />
       </aside>
+      </div>
 
       <Show when={!isMobile()}>
         <aside

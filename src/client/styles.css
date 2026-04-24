@@ -107,14 +107,26 @@ section h2 {
 .daf-layout {
   display: flex;
   align-items: flex-start;
-  /* Center the row so the daf sits in the middle of the viewport with the
-     strips + aside hugging it — prevents the aside from clipping off-
-     screen right on wide monitors while letting narrow viewports scroll. */
-  justify-content: center;
-  /* Small gap to isolate the strips from the tzurat hadaf — prevents CSS
-     effects from bleeding, keeps strips visually distinct, but stays
-     tight so the strips read as companions to the daf. */
+  /* Small gap between strips and the daf so they hug but stay visually
+     distinct — the daf cluster (commentary + daf + geo/tree) reads as a
+     single reading unit, while the on-demand sidebar floats far right. */
   gap: 0.35rem;
+}
+
+/* Wraps [commentary strip | daf section | geo-tree strip]. Centers itself
+   in the available space so the reading cluster sits visually middle;
+   the sidebar is a separate flex sibling that auto-margins to the right. */
+.daf-cluster {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  margin: 0 auto;
+}
+
+/* Aside floats to the right edge, detached from the reading cluster by
+   whatever slack remains in the flex row. */
+.daf-aside {
+  margin-left: auto;
 }
 
 .daf-main {
