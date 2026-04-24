@@ -4,6 +4,7 @@ import Compare from './Compare';
 import DafViewer from './DafViewer';
 import { UsagePage } from './UsagePage';
 import { AlignPage } from './AlignPage';
+import EnrichmentPage from './EnrichmentPage';
 
 function currentRoute() {
   return window.location.hash.replace(/^#/, '') || 'daf';
@@ -17,7 +18,11 @@ export default function App() {
     <Show when={route() === 'align'} fallback={
       <Show when={route() === 'usage'} fallback={
         <Show when={route() === 'compare'} fallback={
-          <Show when={route() === 'spike'} fallback={<DafViewer />}>
+          <Show when={route() === 'spike'} fallback={
+            <Show when={route() === 'enrichment'} fallback={<DafViewer />}>
+              <EnrichmentPage />
+            </Show>
+          }>
             <PretextSpike />
           </Show>
         }>

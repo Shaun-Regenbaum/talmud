@@ -8,6 +8,7 @@
  * short-circuits on `generatedAt < 60s ago`.
  */
 import rabbiPlacesData from '../lib/data/rabbi-places.json';
+import rabbiHierarchyData from '../lib/data/rabbi-hierarchy.json';
 import { getWarmTotal } from './warm-cron';
 
 export const CACHE_STATS_KEY = 'cache-stats:v1';
@@ -29,6 +30,13 @@ export interface CacheStats {
     withWiki: number;
     unknownRabbis: null;
   };
+  hierarchy: {
+    totalNodes: number;
+    processedNodes: number;
+    nodesWithEdges: number;
+    totalEdges: number;
+    generatedAt: string | null;
+  };
 }
 
 interface CacheBucket {
@@ -40,6 +48,19 @@ interface RabbisFile {
   rabbis: Record<string, { bio?: string | null; wiki?: string | null }>;
 }
 const RABBIS = rabbiPlacesData as unknown as RabbisFile;
+
+interface HierarchyFile {
+  generatedAt: string | null;
+  totalNodes: number;
+  processedNodes: number;
+  nodesWithEdges: number;
+  nodes: Record<string, {
+    teachers: string[];
+    students: string[];
+    colleagues: string[];
+  }>;
+}
+const HIERARCHY = rabbiHierarchyData as unknown as HierarchyFile;
 
 async function countPrefix(
   cache: KVNamespace,
@@ -90,6 +111,13 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     if (r.wiki) withWiki++;
   }
 
+  // Hierarchy denominator is rabbis with a bio (others cannot be processed).
+  let totalEdges = 0;
+  for (const n of Object.values(HIERARCHY.nodes ?? {})) {
+    totalEdges += (n.teachers?.length ?? 0) + (n.students?.length ?? 0) + (n.colleagues?.length ?? 0);
+  }
+  const hierarchyDenom = withBio || HIERARCHY.totalNodes || 0;
+
   return {
     generatedAt: new Date().toISOString(),
     total,
@@ -101,6 +129,13 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
       dafContext: { count: dcTotal, percent: pct(dcTotal, total), stage2Count: dcStage2 },
     },
     rabbis: { totalRabbis, withBio, withWiki, unknownRabbis: null },
+    hierarchy: {
+      totalNodes: hierarchyDenom,
+      processedNodes: HIERARCHY.processedNodes ?? 0,
+      nodesWithEdges: HIERARCHY.nodesWithEdges ?? 0,
+      totalEdges,
+      generatedAt: HIERARCHY.generatedAt ?? null,
+    },
   };
 }
 

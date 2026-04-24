@@ -15,11 +15,14 @@ import { injectAnchorMarkers, injectOpinionMarkers } from './anchorMarkers';
 import { GutterIcons } from './GutterIcons';
 import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
 import { AggadataDetector, type AggadataResult } from './AggadataDetector';
-import { GeographyMap } from './GeographyMap';
 import { injectCityMarkers } from './injectCityMarkers';
 import { GenerationTimeline } from './GenerationTimeline';
 import { BugReport } from './BugReport';
-import { CommentaryPicker, type CommentaryWork, type CommentaryComment } from './CommentaryPicker';
+import { type CommentaryWork, type CommentaryComment } from './CommentaryPicker';
+import { CommentaryStrip } from './CommentaryStrip';
+import { GeographyStrip } from './GeographyStrip';
+import { RabbiTreeStrip } from './RabbiTreeStrip';
+import { MobileShelf, type MobileInteractionMode } from './MobileShelf';
 import type { GenerationId } from './generations';
 
 interface Ref {
@@ -300,16 +303,34 @@ export default function DafViewer(): JSX.Element {
   const [sidebar, setSidebar] = createSignal<SidebarContent | null>(null);
   const [activeRabbi, setActiveRabbi] = createSignal<string | null>(null);
 
-  // Which dynamic card was most recently driven by the user. Used to float
-  // that card to the top of the aside (flex `order`). Reset when the user
-  // closes everything dynamic.
-  const [lastInteractedCard, setLastInteractedCard] = createSignal<'argument' | 'commentary' | null>(null);
+  // Commentary and argument previously shared an aside-reorder signal; now
+  // they live in separate regions (commentary = left strip, argument =
+  // right aside) so no reordering is needed. Kept as a no-op to minimize
+  // churn in the setters that still reference it.
+  const setLastInteractedCard = (_v: 'argument' | 'commentary' | null): void => { /* no-op after layout split */ };
 
-  // Default render positions in the right aside; the most-recently-interacted
-  // dynamic card gets `order: 0` so it floats above everything.
-  const ASIDE_DEFAULT_ORDER = { aggadata: 10, geography: 20, commentary: 30, argument: 40 } as const;
-  const topCardOrder = (id: keyof typeof ASIDE_DEFAULT_ORDER): number =>
-    id === lastInteractedCard() ? 0 : ASIDE_DEFAULT_ORDER[id];
+  // Mobile-only viewport detection + interaction mode. Default `select` lets
+  // users tap-and-hold for copy/paste out of the box (see the mobile plan).
+  // `pointer` disables text interaction entirely (pan/zoom only), `translate`
+  // re-enables the desktop word-click translation popup.
+  const [isMobile, setIsMobile] = createSignal(
+    typeof window !== 'undefined' && window.matchMedia?.('(max-width: 767px)').matches,
+  );
+  const [mobileMode, setMobileMode] = createSignal<MobileInteractionMode>('select');
+  createEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(max-width: 767px)');
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    onCleanup(() => mq.removeEventListener('change', update));
+  });
+  // Mirror the mobile mode onto <body> so stylesheet rules can gate
+  // user-select per mode on mobile.
+  createEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.body.dataset.mobileMode = isMobile() ? mobileMode() : '';
+  });
 
   // Geography-driven highlight: when the user clicks a city/region on the
   // GeographyMap, we highlight every rabbi in the set across the whole daf,
@@ -1345,6 +1366,21 @@ export default function DafViewer(): JSX.Element {
   // word click. Any .daf-word element intersecting the selection range counts
   // as "selected", so starting a drag mid-word includes the whole word.
   const onMouseUpRoot = (e: MouseEvent) => {
+    // Mobile interaction modes override the desktop click-to-translate flow.
+    // pointer: no text interaction at all. select: native selection only,
+    // no translation popup. translate: same as desktop, plus toggle-off
+    // when retapping the currently-active word.
+    if (isMobile()) {
+      if (mobileMode() === 'pointer' || mobileMode() === 'select') return;
+      // translate mode — fall through with the reclick-toggle check below.
+      const target = e.target as HTMLElement | null;
+      const reclickedEl = target?.closest?.('.daf-word') as HTMLElement | null;
+      if (reclickedEl && active()?.els.includes(reclickedEl)) {
+        clearActive();
+        return;
+      }
+    }
+
     const sel = window.getSelection();
 
     if (sel && !sel.isCollapsed && sel.rangeCount > 0) {
@@ -1399,8 +1435,7 @@ export default function DafViewer(): JSX.Element {
   });
 
   return (
-    <main class="daf-layout">
-      <section style={{ flex: 1, 'min-width': 0 }}>
+    <main class="daf-page">
       <header style={{ display: 'flex', 'align-items': 'center', gap: '0.75rem', 'flex-wrap': 'wrap', 'margin-bottom': '1rem' }}>
         <h1 style={{ margin: 0, 'font-size': '1.25rem' }}>Talmud</h1>
 
@@ -1447,19 +1482,40 @@ export default function DafViewer(): JSX.Element {
         </span>
       </header>
 
-      {/* Generation timeline — spans the daf's content width, above the daf. */}
-      <GenerationTimeline
-        rabbis={generations()}
-        activeGeneration={activeGenerationId()}
-        onHighlightGeneration={onHighlightGeneration}
-        width={dafWidth()}
-        showGenMarkers={showGenMarkers()}
-        onToggleGenMarkers={setShowGenMarkers}
-        genLoading={genLoading()}
-        genError={genError()}
-      />
+      {/* Generation timeline sits above the daf, centered so it lines up
+          with the daf body regardless of strip widths on either side. */}
+      <div class="daf-top-rail">
+        <GenerationTimeline
+          rabbis={generations()}
+          activeGeneration={activeGenerationId()}
+          onHighlightGeneration={onHighlightGeneration}
+          width={dafWidth()}
+          showGenMarkers={showGenMarkers()}
+          onToggleGenMarkers={setShowGenMarkers}
+          genLoading={genLoading()}
+          genError={genError()}
+        />
+      </div>
 
-      <div onMouseUp={onMouseUpRoot} style={{ display: 'flex', 'justify-content': 'center' }}>
+      <div class="daf-layout">
+      <aside class="daf-strip daf-strip-left">
+        <CommentaryStrip
+          works={commentaryWorks()}
+          loading={commentariesLoading()}
+          activeTitle={activeCommentaryWork()}
+          onSelect={selectCommentaryWork}
+          activeSegIdx={activeCommentarySegIdx()}
+          activeComments={activeCommentaryComments()}
+          tractate={tractate()}
+          page={page()}
+          onCloseSegment={() => {
+            setActiveCommentarySegIdx(null);
+            if (sidebar() === null) setLastInteractedCard(null);
+          }}
+        />
+      </aside>
+      <section style={{ flex: 1, 'min-width': 0 }}>
+      <div class="daf-surface" onMouseUp={onMouseUpRoot} style={{ display: 'flex', 'justify-content': 'center' }}>
         <Show
           when={!daf.loading && tokenized()}
           fallback={
@@ -1608,22 +1664,51 @@ export default function DafViewer(): JSX.Element {
       </footer>
       </section>
 
-      <aside
-        class="daf-aside"
-        style={{
-          position: 'sticky',
-          top: '1rem',
-          'align-self': 'flex-start',
-          'max-height': 'calc(100vh - 2rem)',
-          width: '380px',
-          'flex-shrink': 0,
-          display: 'flex',
-          'flex-direction': 'column',
-          gap: '0.4rem',
-          overflow: 'auto',
-        }}
-      >
-        <div style={{ order: topCardOrder('aggadata'), }}>
+      <aside class="daf-strip daf-strip-right">
+        <GeographyStrip
+          onHighlightLocation={onHighlightLocation}
+          activeLocation={activeLocation()}
+          tractate={tractate()}
+          page={page()}
+          rabbiPlaces={rabbiPlaces()}
+          loading={genLoading()}
+          generationByName={generationByName()}
+          onHighlightSingleRabbi={openRabbi}
+          onHoverRabbi={setHoveredRabbi}
+          placesInText={citiesInText()}
+          onHighlightPlace={(name) => {
+            setActiveRabbi(null);
+            setActiveLocation(null);
+            setActiveLocationRabbis([]);
+            setActivePlace(name);
+          }}
+          activePlace={activePlace()}
+        />
+        <RabbiTreeStrip
+          rabbis={dafContext()?.rabbis ?? []}
+          onOpenRabbiSlug={openRabbiSlug}
+          onHighlightRabbi={(name) => (name ? openRabbi(name) : setActiveRabbi(null))}
+          hoveredRabbi={hoveredRabbi()}
+          activeRabbi={activeRabbi()}
+        />
+      </aside>
+
+      <Show when={!isMobile()}>
+        <aside
+          class="daf-aside"
+          style={{
+            position: 'sticky',
+            top: '1rem',
+            'align-self': 'flex-start',
+            'max-height': 'calc(100vh - 2rem)',
+            width: '340px',
+            'flex-shrink': 0,
+            display: 'flex',
+            'flex-direction': 'column',
+            gap: '0.4rem',
+            overflow: 'auto',
+          }}
+        >
           <AggadataDetector
             tractate={tractate()}
             page={page()}
@@ -1634,62 +1719,50 @@ export default function DafViewer(): JSX.Element {
             onRefresh={() => void runAggadata(true)}
             onSelectStory={openStory}
           />
-        </div>
-        <div style={{ order: topCardOrder('geography'), }}>
-          <GeographyMap
-            onHighlightLocation={onHighlightLocation}
-            activeLocation={activeLocation()}
+          <ArgumentSidebar
+            content={sidebar()}
             tractate={tractate()}
             page={page()}
-            rabbiPlaces={rabbiPlaces()}
-            loading={genLoading()}
-            generationByName={generationByName()}
-            onHighlightSingleRabbi={openRabbi}
-            onHoverRabbi={setHoveredRabbi}
-            placesInText={citiesInText()}
-            onHighlightPlace={(name) => {
+            activeRabbi={activeRabbi()}
+            onClose={() => {
+              setSidebar(null);
               setActiveRabbi(null);
-              setActiveLocation(null);
-              setActiveLocationRabbis([]);
-              setActivePlace(name);
+              setActiveStoryIndex(null);
+              if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
             }}
-            activePlace={activePlace()}
+            onHighlightRabbi={(name) => (name ? openRabbi(name) : setActiveRabbi(null))}
+            onOpenRabbiSlug={openRabbiSlug}
+            generationByName={generationByName()}
           />
-        </div>
-        <div style={{ order: topCardOrder('commentary'), }}>
-          <CommentaryPicker
-            works={commentaryWorks()}
-            loading={commentariesLoading()}
-            activeTitle={activeCommentaryWork()}
-            onSelect={selectCommentaryWork}
-            activeSegIdx={activeCommentarySegIdx()}
-            activeComments={activeCommentaryComments()}
-            tractate={tractate()}
-            page={page()}
-            onCloseSegment={() => {
-              setActiveCommentarySegIdx(null);
-              if (sidebar() === null) setLastInteractedCard(null);
-            }}
-          />
-        </div>
-        <div style={{ order: topCardOrder('argument'), }}>
-        <ArgumentSidebar
-          content={sidebar()}
-          tractate={tractate()}
-          page={page()}
-          activeRabbi={activeRabbi()}
-          onClose={() => {
+        </aside>
+      </Show>
+      </div>
+
+      <Show when={isMobile()}>
+        <MobileShelf
+          mode={mobileMode()}
+          onModeChange={setMobileMode}
+          sidebar={sidebar()}
+          activeStoryIndex={activeStoryIndex()}
+          onCloseExpansion={() => {
             setSidebar(null);
             setActiveRabbi(null);
             setActiveStoryIndex(null);
             if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
           }}
+          tractate={tractate()}
+          page={page()}
+          activeRabbi={activeRabbi()}
           onHighlightRabbi={(name) => (name ? openRabbi(name) : setActiveRabbi(null))}
           onOpenRabbiSlug={openRabbiSlug}
           generationByName={generationByName()}
+          aggadata={aggadata()}
+          aggadataLoading={aggadataLoading()}
+          aggadataError={aggadataError()}
+          onRefreshAggadata={() => void runAggadata(true)}
+          onSelectStory={openStory as never}
         />
-        </div>
-      </aside>
+      </Show>
     </main>
   );
 }

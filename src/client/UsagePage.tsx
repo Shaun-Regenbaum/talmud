@@ -57,6 +57,13 @@ interface CacheStats {
     withWiki: number;
     unknownRabbis: number | null;
   };
+  hierarchy: {
+    totalNodes: number;
+    processedNodes: number;
+    nodesWithEdges: number;
+    totalEdges: number;
+    generatedAt: string | null;
+  };
 }
 
 async function fetchUsage(): Promise<UsagePayload> {
@@ -174,6 +181,15 @@ function CacheStatusSection(props: { stats: CacheStats }): JSX.Element {
             total={total()}
             percent={c().dafContext.percent}
             extra={`stage2: ${fmtInt(c().dafContext.stage2Count)}`}
+          />
+          <CacheRow
+            label="Rabbi relationship tree"
+            count={props.stats.hierarchy.processedNodes}
+            total={Math.max(1, props.stats.hierarchy.totalNodes)}
+            percent={props.stats.hierarchy.totalNodes
+              ? Math.round((props.stats.hierarchy.processedNodes / props.stats.hierarchy.totalNodes) * 1000) / 10
+              : 0}
+            extra={`${fmtInt(props.stats.hierarchy.totalEdges)} edges · ${fmtInt(props.stats.hierarchy.nodesWithEdges)} w/ edges`}
           />
         </tbody>
       </table>

@@ -5,6 +5,7 @@ import {
   type TalmudPageData,
   type RishonimBundle,
   type HalachicRefBundle,
+  type HebrewBooksDaf,
 } from '../lib/sefref';
 import {
   getHebrewBooksDafCached,
@@ -20,7 +21,7 @@ import {
   isFresh,
 } from './cache-stats';
 import { runYomiWarmCron } from './yomi-cron';
-import { GENERATION_IDS, GENERATIONS_PROMPT_REFERENCE, type GenerationId } from '../client/generations';
+import { GENERATION_IDS, GENERATION_BY_ID, GENERATIONS_PROMPT_REFERENCE, type GenerationId } from '../client/generations';
 import rabbiPlacesData from '../lib/data/rabbi-places.json';
 
 type Movement = 'bavel->israel' | 'israel->bavel' | 'both' | null;
@@ -1216,12 +1217,33 @@ GRANULARITY (critical — previous outputs have been too coarse):
   * Alternative answer beginning "ואיבעית אימא" → "ואיבעית אימא"
 - Every rabbi/voice you list MUST have an opinionStart unless the text does not distinctly anchor their position.`;
 
+/** Biblical reference found in a section's Hebrew text. */
+interface BiblicalRef {
+  ref: string;          // English Sefaria-style, e.g. "Proverbs 2:2"
+  hebrewRef?: string;   // Hebrew citation, e.g. "משלי ב:ב"
+  hebrewQuote?: string; // The actual Hebrew quote as it appears in the daf
+}
+
+/** Difficulty rating (educational complexity). */
+interface DifficultyRating {
+  score: 1 | 2 | 3 | 4 | 5;
+  reason: string;
+}
+
 interface DafAnalysis {
   summary: string;
+  /** Overall daf difficulty (1-5). Populated by the `difficulty` strategy. */
+  difficulty?: DifficultyRating;
   sections: Array<{
     title: string;
     summary: string;
     excerpt?: string;
+    /** Biblical verses/references quoted in this section. Populated by the `references` strategy. */
+    references?: BiblicalRef[];
+    /** Parallel sugyot in other tractates. Populated by the `parallels` strategy. */
+    parallels?: string[];
+    /** Per-section difficulty (1-5). Populated by the `difficulty` strategy. */
+    difficulty?: DifficultyRating;
     rabbis: Array<{
       name: string;
       nameHe: string;
@@ -1229,6 +1251,16 @@ interface DafAnalysis {
       location: string;
       role: string;
       opinionStart?: string;
+      /** Last 2-4 Hebrew words of this voice's statement in the focal amud. Enables full-span highlighting. */
+      opinionEnd?: string;
+      /** Other names / variants for this rabbi (from rabbi-places.json). */
+      aliases?: string[];
+      /** Generation ID (e.g. 'tanna-4'). From rabbi-places.json. */
+      generation?: string;
+      /** Names of other rabbis in THIS section whose position this rabbi agrees with. */
+      agreesWith?: string[];
+      /** Names of other rabbis in THIS section whose position this rabbi disagrees with. */
+      disagreesWith?: string[];
     }>;
   }>;
 }
@@ -1876,6 +1908,985 @@ app.get('/api/analyze/:tractate/:page', async (c) => {
     console.warn(`[analyze:enrichment] ${model.label} failed:`, msg);
     recordTelemetry(c, { endpoint: 'analyze', tractate, page, cache_hit: false, model: model.label, ms: Date.now() - t0, ok: false, error_kind: 'stage-b-' + classifyError(msg) });
     return c.json({ error: 'Stage B (enrichment) call failed', stage: 'enrichment', detail: msg.slice(0, 500), _stageA: stageADiag, _stageB: stageBDiag }, 502);
+  }
+});
+
+// ============================================================================
+// ENRICHMENT STRATEGIES — experimental /api/enrich endpoint
+// ============================================================================
+// Pluggable Stage-B variants for the `#enrichment` comparison UI. Each
+// strategy takes the cached skeleton + cached sources and produces a full
+// DafAnalysis — they differ in how they shape the LLM calls (monolithic vs
+// per-section vs rule-LLM-hybrid). Results are NOT written to the
+// analyze:v5:* cache; they're transient and rendered side-by-side so we can
+// pick a winner before committing to one for the full Shas enrichment pass.
+
+interface EnrichmentSources {
+  hbFocal: HebrewBooksDaf | null;
+  sefFocal: TalmudPageData | null;
+  hbPrev: HebrewBooksDaf | null;
+  sefPrev: TalmudPageData | null;
+  hbNext: HebrewBooksDaf | null;
+  sefNext: TalmudPageData | null;
+  rishonim: RishonimBundle;
+  halacha: HalachicRefBundle;
+  prevDaf: string | null;
+  nextDaf: string | null;
+}
+
+interface StrategyCallDiag {
+  prompt_chars: number;
+  content_chars: number;
+  reasoning_chars: number;
+  elapsed_ms: number;
+  finish_reason: string | null;
+  usage: StreamedResult['usage'];
+}
+
+interface EnrichmentResult {
+  analysis: DafAnalysis;
+  warnings: string[];
+  elapsed_ms: number;
+  calls: StrategyCallDiag[];
+  strategy_metadata: Record<string, unknown>;
+}
+
+/**
+ * Look up a rabbi by name against rabbi-places.json (alias-indexed).
+ * Returns any deterministic fields we can fill without an LLM:
+ * nameHe (from canonicalHe), period (from generation + era), location
+ * (from places[0] + region). Returns null if no match.
+ */
+interface RabbiLookupHit {
+  nameHe?: string;
+  period?: string;
+  location?: string;
+  aliases?: string[];
+  generation?: string;
+}
+function lookupRabbi(name: string): RabbiLookupHit | null {
+  if (!name) return null;
+  const key = name.trim().toLowerCase();
+  const rabbiId = (RABBI_PLACES.aliasIndex as Record<string, string>)[key];
+  if (!rabbiId) return null;
+  const r = RABBI_PLACES.rabbis[rabbiId];
+  if (!r) return null;
+
+  const out: RabbiLookupHit = {};
+  if (r.canonicalHe) out.nameHe = r.canonicalHe;
+
+  const genInfo = r.generation ? GENERATION_BY_ID[r.generation as GenerationId] : null;
+  if (genInfo) {
+    out.period = genInfo.era ? `${genInfo.label}, ${genInfo.era}` : genInfo.label;
+  }
+  if (r.generation) out.generation = r.generation;
+
+  const firstPlace = Array.isArray(r.places) && r.places.length > 0 ? r.places[0] : null;
+  const regionName = r.region === 'israel' ? 'Eretz Yisrael' : r.region === 'bavel' ? 'Bavel' : null;
+  if (firstPlace && regionName) out.location = `${firstPlace}, ${regionName}`;
+  else if (firstPlace) out.location = firstPlace;
+  else if (regionName) out.location = regionName;
+
+  // Strip the canonical name itself from aliases — keep only variants.
+  if (Array.isArray(r.aliases) && r.aliases.length > 0) {
+    const canonical = (r.canonical || '').trim().toLowerCase();
+    const variants = r.aliases.filter(a => a && a.trim().toLowerCase() !== canonical);
+    if (variants.length > 0) out.aliases = variants.slice(0, 8);
+  }
+
+  return Object.keys(out).length > 0 ? out : null;
+}
+
+// --- baseline strategy -------------------------------------------------------
+// Monolithic K2.5 no-thinking call with full context. Verbatim match to the
+// current /api/analyze Stage B logic so we have a reference point for diffs.
+
+async function runBaselineEnrichment(
+  ai: Ai, tractate: string, page: string,
+  skeleton: DafSkeleton, sources: EnrichmentSources,
+): Promise<EnrichmentResult> {
+  const t0 = Date.now();
+  const focalHebrewRaw = sources.hbFocal?.main ?? sources.sefFocal?.mainText.hebrew ?? '';
+  const focalEnglishRaw = sources.sefFocal?.mainText.english ?? '';
+
+  const blocks: string[] = [];
+  blocks.push(`<skeleton>\n${JSON.stringify(skeleton, null, 2)}\n</skeleton>`);
+  blocks.push(amudBlock(
+    'focal_amud', page,
+    focalHebrewRaw, focalEnglishRaw,
+    sources.sefFocal?.rashi?.hebrew ?? '',
+    sources.sefFocal?.tosafot?.hebrew ?? '',
+    { heCap: ANALYZE_CAPS.focalHebrew, enCap: ANALYZE_CAPS.focalEnglish,
+      rashiCap: ANALYZE_CAPS.focalRashi, tosafotCap: ANALYZE_CAPS.focalTosafot },
+  ));
+  if (sources.prevDaf && (sources.hbPrev || sources.sefPrev)) {
+    blocks.push(amudBlock(
+      'previous_amud', sources.prevDaf,
+      sources.hbPrev?.main ?? sources.sefPrev?.mainText.hebrew ?? '',
+      sources.sefPrev?.mainText.english ?? '',
+      '', '',
+      { heCap: ANALYZE_CAPS.neighborHebrew, enCap: ANALYZE_CAPS.neighborEnglish, rashiCap: 0, tosafotCap: 0 },
+    ));
+  }
+  if (sources.nextDaf && (sources.hbNext || sources.sefNext)) {
+    blocks.push(amudBlock(
+      'next_amud', sources.nextDaf,
+      sources.hbNext?.main ?? sources.sefNext?.mainText.hebrew ?? '',
+      sources.sefNext?.mainText.english ?? '',
+      '', '',
+      { heCap: ANALYZE_CAPS.neighborHebrew, enCap: ANALYZE_CAPS.neighborEnglish, rashiCap: 0, tosafotCap: 0 },
+    ));
+  }
+  const rXml = rishonimBlock(sources.rishonim);
+  if (rXml) blocks.push(rXml);
+  const hXml = halachaBlock(sources.halacha);
+  if (hXml) blocks.push(hXml);
+
+  const userContent = [
+    `Tractate: ${tractate}`,
+    `Focal page: ${page}`,
+    '',
+    ...blocks,
+    '',
+    'Fill in the details for each rabbi/voice in the skeleton. Return the full enriched JSON.',
+  ].join('\n\n');
+
+  const streamed = await runKimiStreaming(
+    ai, '@cf/moonshotai/kimi-k2.5',
+    [
+      { role: 'system', content: ENRICHMENT_SYSTEM_PROMPT },
+      { role: 'user', content: userContent },
+    ],
+    16000,
+    { chatTemplateKwargs: { enable_thinking: false } },
+  );
+
+  const analysis = parseEnrichedAnalysis(streamed, skeleton);
+  const focalNorm = normalizeHebrew(slice(focalHebrewRaw, ANALYZE_CAPS.focalHebrew));
+  const validation = validateAnalysis(analysis, focalNorm);
+
+  return {
+    analysis,
+    warnings: [...validation.warnings, ...validation.errors.map(e => `(was error) ${e}`)],
+    elapsed_ms: Date.now() - t0,
+    calls: [callDiag(streamed)],
+    strategy_metadata: { model: 'kimi-k2.5-no-thinking', shape: 'monolithic' },
+  };
+}
+
+// --- per-section strategy ---------------------------------------------------
+// One K2.5 call per section (concurrent, capped at 3). Each call gets only
+// that section's skeleton subset + focal Hebrew/Rashi/Tosafot. Smaller prompt
+// per call => smaller reasoning surface, faster, fewer validation issues.
+
+const PER_SECTION_SYSTEM_PROMPT = `You are a scholar of Talmud. You will receive a SINGLE argument section's skeleton (title, summary, excerpt, list of rabbi names) plus the focal amud's Hebrew/Aramaic text, Rashi, and Tosafot.
+
+For each rabbi/voice in this section, fill in:
+- nameHe: Hebrew name or label as it appears in the text
+- period: Era + dates (e.g. 'Tanna, c. 90-120 CE', 'Stam Gemara, redacted c. 500 CE')
+- location: City + region (e.g. 'Lod, Eretz Yisrael', 'Sura, Bavel')
+- role: What this voice argues in this section (one sentence)
+- opinionStart: First 2-4 Hebrew/Aramaic words of this voice's statement in the focal amud, copied verbatim
+
+Use Rashi/Tosafot to disambiguate abbreviations (ר"מ, ר"י etc.) — never guess blindly.
+
+opinionStart MUST be copied verbatim from the focal amud's Hebrew.
+
+Output STRICT JSON only (no markdown):
+{"rabbis": [{"name": string, "nameHe": string, "period": string, "location": string, "role": string, "opinionStart": string}]}`;
+
+async function runPerSectionEnrichment(
+  ai: Ai, tractate: string, page: string,
+  skeleton: DafSkeleton, sources: EnrichmentSources,
+): Promise<EnrichmentResult> {
+  const t0 = Date.now();
+  const focalHebrewRaw = sources.hbFocal?.main ?? sources.sefFocal?.mainText.hebrew ?? '';
+  const focalEnglishRaw = sources.sefFocal?.mainText.english ?? '';
+  const focalBlock = amudBlock(
+    'focal_amud', page,
+    focalHebrewRaw, focalEnglishRaw,
+    sources.sefFocal?.rashi?.hebrew ?? '',
+    sources.sefFocal?.tosafot?.hebrew ?? '',
+    { heCap: ANALYZE_CAPS.focalHebrew, enCap: ANALYZE_CAPS.focalEnglish,
+      rashiCap: ANALYZE_CAPS.focalRashi, tosafotCap: ANALYZE_CAPS.focalTosafot },
+  );
+
+  const allCalls: StrategyCallDiag[] = [];
+
+  async function enrichSection(sec: DafSkeleton['sections'][number]): Promise<DafAnalysis['sections'][number]> {
+    const skelSubset = { title: sec.title, summary: sec.summary, excerpt: sec.excerpt, rabbiNames: sec.rabbiNames };
+    const user = [
+      `Tractate: ${tractate}`,
+      `Focal page: ${page}`,
+      '',
+      `<section_skeleton>\n${JSON.stringify(skelSubset, null, 2)}\n</section_skeleton>`,
+      '',
+      focalBlock,
+      '',
+      'Fill in details for each rabbi listed. Return JSON per schema.',
+    ].join('\n\n');
+
+    const s = await runKimiStreaming(
+      ai, '@cf/moonshotai/kimi-k2.5',
+      [
+        { role: 'system', content: PER_SECTION_SYSTEM_PROMPT },
+        { role: 'user', content: user },
+      ],
+      8000,
+      { chatTemplateKwargs: { enable_thinking: false } },
+    );
+    allCalls.push(callDiag(s));
+
+    // Parse {rabbis: [...]} output
+    let payload = s.content.trim();
+    const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (fenced) payload = fenced[1].trim();
+    let rabbis: DafAnalysis['sections'][number]['rabbis'] = [];
+    try {
+      const parsed = JSON.parse(payload);
+      if (Array.isArray(parsed?.rabbis)) rabbis = parsed.rabbis;
+    } catch { /* leave empty on parse fail */ }
+
+    return { title: sec.title, summary: sec.summary, excerpt: sec.excerpt, rabbis };
+  }
+
+  // Concurrency 3: fire in windows
+  const enrichedSections: DafAnalysis['sections'] = [];
+  const LIMIT = 3;
+  for (let i = 0; i < skeleton.sections.length; i += LIMIT) {
+    const window = skeleton.sections.slice(i, i + LIMIT);
+    const results = await Promise.all(window.map(enrichSection));
+    enrichedSections.push(...results);
+  }
+
+  const analysis: DafAnalysis = { summary: skeleton.summary, sections: enrichedSections };
+  const focalNorm = normalizeHebrew(slice(focalHebrewRaw, ANALYZE_CAPS.focalHebrew));
+  const validation = validateAnalysis(analysis, focalNorm);
+
+  return {
+    analysis,
+    warnings: [...validation.warnings, ...validation.errors.map(e => `(was error) ${e}`)],
+    elapsed_ms: Date.now() - t0,
+    calls: allCalls,
+    strategy_metadata: { model: 'kimi-k2.5-no-thinking', shape: 'per-section', sections: skeleton.sections.length, concurrency: LIMIT },
+  };
+}
+
+// --- hybrid strategy --------------------------------------------------------
+// For each rabbi, try rabbi-places.json lookup (period, location, nameHe
+// deterministic). Then one K2.5 call to fill just role + opinionStart for
+// every rabbi — the only fields that are genuinely focal-specific.
+
+const HYBRID_SYSTEM_PROMPT = `You are a scholar of Talmud. You will receive a skeleton with rabbis already partially enriched from a reference database (nameHe/period/location pre-filled when known). Your job is to fill in ONLY two fields per rabbi:
+- role: what this rabbi/voice argues or does in this specific section (one clear sentence)
+- opinionStart: the first 2-4 Hebrew/Aramaic words of this rabbi's statement, copied verbatim from the focal amud's Hebrew
+
+Do NOT change nameHe/period/location values that are already filled. Leave them verbatim.
+For rabbis with missing nameHe/period/location, do your best to fill those too using Rashi/Tosafot context.
+
+opinionStart MUST be copied verbatim from the focal amud's Hebrew. Use Rashi/Tosafot for disambiguation (ר"מ vs ר"י etc.).
+
+Output STRICT JSON matching the full DafAnalysis schema (summary + sections + rabbis with all fields).`;
+
+async function runHybridEnrichment(
+  ai: Ai, tractate: string, page: string,
+  skeleton: DafSkeleton, sources: EnrichmentSources,
+): Promise<EnrichmentResult> {
+  const t0 = Date.now();
+  const focalHebrewRaw = sources.hbFocal?.main ?? sources.sefFocal?.mainText.hebrew ?? '';
+  const focalEnglishRaw = sources.sefFocal?.mainText.english ?? '';
+
+  // Build partial enrichment by looking up each rabbi in rabbi-places.json.
+  // Deterministic fields (generation, aliases) go on the output directly —
+  // LLM never sees or modifies them. Period/location/nameHe are seeded for
+  // the LLM prompt but it may refine them for rabbis with no lookup hit.
+  let lookupHits = 0;
+  const partialSections = skeleton.sections.map((sec) => ({
+    title: sec.title,
+    summary: sec.summary,
+    excerpt: sec.excerpt,
+    rabbis: sec.rabbiNames.map((name) => {
+      const hit = lookupRabbi(name);
+      if (hit) lookupHits++;
+      return {
+        name,
+        nameHe: hit?.nameHe ?? '',
+        period: hit?.period ?? '',
+        location: hit?.location ?? '',
+        role: '',
+        opinionStart: '',
+        ...(hit?.generation ? { generation: hit.generation } : {}),
+        ...(hit?.aliases ? { aliases: hit.aliases } : {}),
+      };
+    }),
+  }));
+  const partial = { summary: skeleton.summary, sections: partialSections };
+
+  const focalBlock = amudBlock(
+    'focal_amud', page,
+    focalHebrewRaw, focalEnglishRaw,
+    sources.sefFocal?.rashi?.hebrew ?? '',
+    sources.sefFocal?.tosafot?.hebrew ?? '',
+    { heCap: ANALYZE_CAPS.focalHebrew, enCap: ANALYZE_CAPS.focalEnglish,
+      rashiCap: ANALYZE_CAPS.focalRashi, tosafotCap: ANALYZE_CAPS.focalTosafot },
+  );
+
+  const user = [
+    `Tractate: ${tractate}`,
+    `Focal page: ${page}`,
+    '',
+    `<partial_analysis>\n${JSON.stringify(partial, null, 2)}\n</partial_analysis>`,
+    '',
+    focalBlock,
+    '',
+    'Fill in role + opinionStart for every rabbi. Leave pre-filled nameHe/period/location as-is.',
+  ].join('\n\n');
+
+  const s = await runKimiStreaming(
+    ai, '@cf/moonshotai/kimi-k2.5',
+    [
+      { role: 'system', content: HYBRID_SYSTEM_PROMPT },
+      { role: 'user', content: user },
+    ],
+    12000,
+    { chatTemplateKwargs: { enable_thinking: false } },
+  );
+
+  const analysis = parseEnrichedAnalysis(s, skeleton);
+
+  // Merge deterministic lookup fields (generation, aliases) back onto each
+  // rabbi — LLM may have dropped them since its prompt didn't mention them.
+  // Matched by (name, nameHe) key; unmatched rabbis keep whatever the LLM
+  // produced. Also re-assert period/location/nameHe from the lookup for
+  // rabbis where we had a hit (in case LLM paraphrased them).
+  if (Array.isArray(analysis.sections)) {
+    for (const sec of analysis.sections) {
+      if (!Array.isArray(sec.rabbis)) continue;
+      for (const r of sec.rabbis) {
+        const hit = lookupRabbi(r.name);
+        if (!hit) continue;
+        if (hit.nameHe) r.nameHe = hit.nameHe;
+        if (hit.period) r.period = hit.period;
+        if (hit.location) r.location = hit.location;
+        if (hit.generation) r.generation = hit.generation;
+        if (hit.aliases && hit.aliases.length > 0) r.aliases = hit.aliases;
+      }
+    }
+  }
+
+  const focalNorm = normalizeHebrew(slice(focalHebrewRaw, ANALYZE_CAPS.focalHebrew));
+  const validation = validateAnalysis(analysis, focalNorm);
+
+  const totalRabbis = partialSections.reduce((sum, s) => sum + s.rabbis.length, 0);
+
+  return {
+    analysis,
+    warnings: [...validation.warnings, ...validation.errors.map(e => `(was error) ${e}`)],
+    elapsed_ms: Date.now() - t0,
+    calls: [callDiag(s)],
+    strategy_metadata: {
+      model: 'kimi-k2.5-no-thinking',
+      shape: 'rule+llm',
+      total_rabbis: totalRabbis,
+      lookup_hits: lookupHits,
+      lookup_rate: totalRabbis > 0 ? Math.round((lookupHits / totalRabbis) * 100) / 100 : 0,
+    },
+  };
+}
+
+// --- helpers shared by strategies -------------------------------------------
+
+function callDiag(s: StreamedResult): StrategyCallDiag {
+  return {
+    prompt_chars: s.prompt_chars,
+    content_chars: s.content.length,
+    reasoning_chars: s.reasoning_content.length,
+    elapsed_ms: s.elapsed_ms,
+    finish_reason: s.finish_reason,
+    usage: s.usage,
+  };
+}
+
+function parseEnrichedAnalysis(s: StreamedResult, skeleton: DafSkeleton): DafAnalysis {
+  let payload = s.content.trim();
+  if (!payload && s.reasoning_content) {
+    const m = s.reasoning_content.match(/\{[\s\S]*"rabbis"[\s\S]*\}/);
+    if (m) payload = m[0];
+  }
+  const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenced) payload = fenced[1].trim();
+
+  let analysis: DafAnalysis;
+  try {
+    analysis = JSON.parse(payload) as DafAnalysis;
+  } catch {
+    // Synthesize an empty-shell if parse fails — validator will flag it.
+    analysis = { summary: skeleton.summary, sections: [] };
+  }
+
+  // Force skeleton excerpts (K2.5 sometimes paraphrases).
+  if (Array.isArray(analysis.sections) && Array.isArray(skeleton.sections)) {
+    for (let i = 0; i < analysis.sections.length && i < skeleton.sections.length; i++) {
+      const skelExcerpt = skeleton.sections[i]?.excerpt;
+      if (skelExcerpt) analysis.sections[i].excerpt = skelExcerpt;
+    }
+  }
+
+  return analysis;
+}
+
+// --- rich-rabbi strategy ----------------------------------------------------
+// Hybrid lookup + one LLM call that produces the *full* rabbi object:
+//   role, opinionStart, opinionEnd, agreesWith, disagreesWith
+// Everything else (nameHe, period, location, generation, aliases) comes from
+// the rabbi-places.json lookup deterministically. Builds the cross-rabbi
+// dispute graph in a single shot per daf.
+
+const RICH_RABBI_SYSTEM_PROMPT = `You are a scholar of Talmud. You will receive a partial analysis where each rabbi's nameHe/period/location/generation/aliases are already filled from a reference database. Fill in the remaining fields for EVERY rabbi:
+
+- role: one sentence describing what this rabbi argues or does in THIS section
+- opinionStart: first 2-4 Hebrew/Aramaic words of this rabbi's statement in the focal amud, copied verbatim
+- opinionEnd: last 2-4 Hebrew/Aramaic words of this rabbi's statement in the focal amud, copied verbatim (the words where their opinion ends — paired with opinionStart to enable span highlighting)
+- agreesWith: array of other rabbi names in the SAME section whose position this rabbi agrees with. Use the exact "name" values as they appear in the input. Empty array if none.
+- disagreesWith: array of other rabbi names in the SAME section whose position this rabbi disagrees with. Empty array if none.
+
+Rules:
+- opinionStart and opinionEnd MUST be copied verbatim from the focal amud's Hebrew text — do not translate or paraphrase.
+- Use Rashi/Tosafot to disambiguate abbreviations (ר"מ / ר"י / ר"א / ר"ש).
+- For anonymous voices (Gemara's question, First answer, Objection), opinionStart/opinionEnd should be the Hebrew markers that open and close that move (e.g. "מאי טעמא ... דאמר קרא").
+- Preserve nameHe/period/location/generation/aliases as provided — do not modify.
+
+Output STRICT JSON matching the full DafAnalysis schema (summary + sections + rabbis with all fields including agreesWith and disagreesWith arrays).`;
+
+async function runRichRabbiEnrichment(
+  ai: Ai, tractate: string, page: string,
+  skeleton: DafSkeleton, sources: EnrichmentSources,
+): Promise<EnrichmentResult> {
+  const t0 = Date.now();
+  const focalHebrewRaw = sources.hbFocal?.main ?? sources.sefFocal?.mainText.hebrew ?? '';
+  const focalEnglishRaw = sources.sefFocal?.mainText.english ?? '';
+
+  // Prefill everything deterministic from rabbi-places.json so the LLM only
+  // has to produce role/opinionStart/opinionEnd/agreesWith/disagreesWith.
+  let lookupHits = 0;
+  const partial = {
+    summary: skeleton.summary,
+    sections: skeleton.sections.map((sec) => ({
+      title: sec.title,
+      summary: sec.summary,
+      excerpt: sec.excerpt,
+      rabbis: sec.rabbiNames.map((name) => {
+        const hit = lookupRabbi(name);
+        if (hit) lookupHits++;
+        const r: Record<string, unknown> = {
+          name,
+          nameHe: hit?.nameHe ?? '',
+          period: hit?.period ?? '',
+          location: hit?.location ?? '',
+          role: '',
+          opinionStart: '',
+          opinionEnd: '',
+          agreesWith: [],
+          disagreesWith: [],
+        };
+        if (hit?.generation) r.generation = hit.generation;
+        if (hit?.aliases) r.aliases = hit.aliases;
+        return r;
+      }),
+    })),
+  };
+
+  const focalBlock = amudBlock(
+    'focal_amud', page,
+    focalHebrewRaw, focalEnglishRaw,
+    sources.sefFocal?.rashi?.hebrew ?? '',
+    sources.sefFocal?.tosafot?.hebrew ?? '',
+    { heCap: ANALYZE_CAPS.focalHebrew, enCap: ANALYZE_CAPS.focalEnglish,
+      rashiCap: ANALYZE_CAPS.focalRashi, tosafotCap: ANALYZE_CAPS.focalTosafot },
+  );
+
+  const user = [
+    `Tractate: ${tractate}`,
+    `Focal page: ${page}`,
+    '',
+    `<partial_analysis>\n${JSON.stringify(partial, null, 2)}\n</partial_analysis>`,
+    '',
+    focalBlock,
+    '',
+    'Fill in role + opinionStart + opinionEnd + agreesWith + disagreesWith for every rabbi. Leave pre-filled fields as-is. Return the complete enriched JSON.',
+  ].join('\n\n');
+
+  const s = await runKimiStreaming(
+    ai, '@cf/moonshotai/kimi-k2.5',
+    [
+      { role: 'system', content: RICH_RABBI_SYSTEM_PROMPT },
+      { role: 'user', content: user },
+    ],
+    16000,
+    { chatTemplateKwargs: { enable_thinking: false } },
+  );
+
+  const analysis = parseEnrichedAnalysis(s, skeleton);
+
+  // Re-assert deterministic fields in case the LLM dropped them.
+  if (Array.isArray(analysis.sections)) {
+    for (const sec of analysis.sections) {
+      if (!Array.isArray(sec.rabbis)) continue;
+      for (const r of sec.rabbis) {
+        const hit = lookupRabbi(r.name);
+        if (!hit) continue;
+        if (hit.nameHe) r.nameHe = hit.nameHe;
+        if (hit.period) r.period = hit.period;
+        if (hit.location) r.location = hit.location;
+        if (hit.generation) r.generation = hit.generation;
+        if (hit.aliases && hit.aliases.length > 0) r.aliases = hit.aliases;
+      }
+    }
+  }
+
+  const focalNorm = normalizeHebrew(slice(focalHebrewRaw, ANALYZE_CAPS.focalHebrew));
+  const validation = validateAnalysis(analysis, focalNorm);
+  const totalRabbis = partial.sections.reduce((sum, s) => sum + s.rabbis.length, 0);
+
+  return {
+    analysis,
+    warnings: [...validation.warnings, ...validation.errors.map(e => `(was error) ${e}`)],
+    elapsed_ms: Date.now() - t0,
+    calls: [callDiag(s)],
+    strategy_metadata: {
+      model: 'kimi-k2.5-no-thinking',
+      shape: 'rule+llm',
+      total_rabbis: totalRabbis,
+      lookup_hits: lookupHits,
+      lookup_rate: totalRabbis > 0 ? Math.round((lookupHits / totalRabbis) * 100) / 100 : 0,
+      new_fields: ['opinionEnd', 'agreesWith', 'disagreesWith', 'generation', 'aliases'],
+    },
+  };
+}
+
+// --- references strategy ----------------------------------------------------
+// Identifies biblical verses (Tanakh) quoted or referenced in each section of
+// the focal amud. Returns a list per section with both English (Sefaria-style)
+// and Hebrew citation formats plus the actual Hebrew quote as it appears in
+// the daf.
+
+const REFERENCES_SYSTEM_PROMPT = `You are a Talmud scholar identifying biblical references. You will receive a skeleton analysis with section titles/excerpts plus the focal amud's Hebrew and English text.
+
+For each section, identify every biblical verse (Tanakh — Torah, Neviim, Ketuvim) that is QUOTED or CLEARLY REFERENCED in that section's Hebrew text. Do NOT include allusions or thematic parallels — only explicit citations.
+
+For each reference output:
+- ref: English Sefaria-style citation (e.g. "Proverbs 2:2", "Deuteronomy 6:4", "Genesis 1:1")
+- hebrewRef: Hebrew citation in standard form (e.g. "משלי ב:ב", "דברים ו:ד")
+- hebrewQuote: The actual Hebrew words of the verse as they appear in the daf (truncated to 8 words max if the full verse is longer). Copy verbatim.
+
+Output STRICT JSON:
+{"sections": [{"title": "...", "references": [{"ref": "...", "hebrewRef": "...", "hebrewQuote": "..."}]}]}
+
+Use the section titles from the skeleton to key your output. Sections with no biblical citations should have an empty references array.`;
+
+async function runReferencesEnrichment(
+  ai: Ai, tractate: string, page: string,
+  skeleton: DafSkeleton, sources: EnrichmentSources,
+): Promise<EnrichmentResult> {
+  const t0 = Date.now();
+  const focalHebrewRaw = sources.hbFocal?.main ?? sources.sefFocal?.mainText.hebrew ?? '';
+  const focalEnglishRaw = sources.sefFocal?.mainText.english ?? '';
+  const focalBlock = amudBlock(
+    'focal_amud', page,
+    focalHebrewRaw, focalEnglishRaw,
+    sources.sefFocal?.rashi?.hebrew ?? '',
+    sources.sefFocal?.tosafot?.hebrew ?? '',
+    { heCap: ANALYZE_CAPS.focalHebrew, enCap: ANALYZE_CAPS.focalEnglish,
+      rashiCap: ANALYZE_CAPS.focalRashi, tosafotCap: ANALYZE_CAPS.focalTosafot },
+  );
+
+  const skelSummary = {
+    summary: skeleton.summary,
+    sections: skeleton.sections.map((sec) => ({ title: sec.title, excerpt: sec.excerpt })),
+  };
+
+  const user = [
+    `Tractate: ${tractate}`,
+    `Focal page: ${page}`,
+    '',
+    `<skeleton>\n${JSON.stringify(skelSummary, null, 2)}\n</skeleton>`,
+    '',
+    focalBlock,
+    '',
+    'Identify biblical references quoted in each section. Return JSON per schema.',
+  ].join('\n\n');
+
+  const s = await runKimiStreaming(
+    ai, '@cf/moonshotai/kimi-k2.5',
+    [
+      { role: 'system', content: REFERENCES_SYSTEM_PROMPT },
+      { role: 'user', content: user },
+    ],
+    8000,
+    { chatTemplateKwargs: { enable_thinking: false } },
+  );
+
+  // Parse and merge into a DafAnalysis shape keyed by section title.
+  let payload = s.content.trim();
+  const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenced) payload = fenced[1].trim();
+  let refsByTitle: Record<string, BiblicalRef[]> = {};
+  try {
+    const parsed = JSON.parse(payload) as { sections?: Array<{ title: string; references?: BiblicalRef[] }> };
+    if (Array.isArray(parsed.sections)) {
+      for (const sec of parsed.sections) {
+        if (sec.title && Array.isArray(sec.references)) {
+          refsByTitle[sec.title.toLowerCase()] = sec.references;
+        }
+      }
+    }
+  } catch { /* leave empty */ }
+
+  const analysis: DafAnalysis = {
+    summary: skeleton.summary,
+    sections: skeleton.sections.map((sec) => ({
+      title: sec.title,
+      summary: sec.summary,
+      excerpt: sec.excerpt,
+      rabbis: [],
+      references: refsByTitle[sec.title.toLowerCase()] ?? [],
+    })),
+  };
+
+  const totalRefs = Object.values(refsByTitle).reduce((sum, arr) => sum + arr.length, 0);
+
+  return {
+    analysis,
+    warnings: [],
+    elapsed_ms: Date.now() - t0,
+    calls: [callDiag(s)],
+    strategy_metadata: {
+      model: 'kimi-k2.5-no-thinking',
+      shape: 'section-refs',
+      total_references: totalRefs,
+      sections_with_refs: Object.values(refsByTitle).filter(arr => arr.length > 0).length,
+    },
+  };
+}
+
+// --- parallels strategy -----------------------------------------------------
+// For each section, identify parallel sugyot (discussions of the same dispute
+// or topic) in other masechtot. Uses Rishonim commentary as primary signal
+// since they cross-reference extensively.
+
+const PARALLELS_SYSTEM_PROMPT = `You are a Talmud scholar identifying parallel sugyot. You will receive a skeleton analysis plus the focal amud's Hebrew/English/Rashi/Tosafot AND the bundled Rishonim commentary (Rashba, Ritva, Ramban, Meiri, Rosh, etc.). Rishonim frequently cite parallel discussions ("ועיין בפרק..." / "אמרינן במסכת..." etc.).
+
+For each section in the skeleton, identify any parallel sugyot — other places in Shas where the same dispute, topic, or legal question is discussed substantively. Do NOT include mere mentions; only include if there's a real parallel discussion.
+
+Output parallel sugya references in standard tractate+daf format (e.g. "Shabbat 31a", "Sanhedrin 74b", "Zevachim 2a"). Use Sefaria-style tractate names.
+
+Output STRICT JSON:
+{"sections": [{"title": "...", "parallels": ["Shabbat 31a", ...]}]}
+
+Sections with no parallels should have an empty parallels array. Prefer to cite 1-4 strong parallels per section over 10 weak ones.`;
+
+async function runParallelsEnrichment(
+  ai: Ai, tractate: string, page: string,
+  skeleton: DafSkeleton, sources: EnrichmentSources,
+): Promise<EnrichmentResult> {
+  const t0 = Date.now();
+  const focalHebrewRaw = sources.hbFocal?.main ?? sources.sefFocal?.mainText.hebrew ?? '';
+  const focalEnglishRaw = sources.sefFocal?.mainText.english ?? '';
+  const focalBlock = amudBlock(
+    'focal_amud', page,
+    focalHebrewRaw, focalEnglishRaw,
+    sources.sefFocal?.rashi?.hebrew ?? '',
+    sources.sefFocal?.tosafot?.hebrew ?? '',
+    { heCap: ANALYZE_CAPS.focalHebrew, enCap: ANALYZE_CAPS.focalEnglish,
+      rashiCap: ANALYZE_CAPS.focalRashi, tosafotCap: ANALYZE_CAPS.focalTosafot },
+  );
+  const rishonimXml = rishonimBlock(sources.rishonim);
+
+  const skelSummary = {
+    summary: skeleton.summary,
+    sections: skeleton.sections.map((sec) => ({ title: sec.title, summary: sec.summary })),
+  };
+
+  const blocks: string[] = [
+    `<skeleton>\n${JSON.stringify(skelSummary, null, 2)}\n</skeleton>`,
+    focalBlock,
+  ];
+  if (rishonimXml) blocks.push(rishonimXml);
+
+  const user = [
+    `Tractate: ${tractate}`,
+    `Focal page: ${page}`,
+    '',
+    ...blocks,
+    '',
+    'Identify parallel sugyot per section. Use Rishonim commentary as primary signal.',
+  ].join('\n\n');
+
+  const s = await runKimiStreaming(
+    ai, '@cf/moonshotai/kimi-k2.5',
+    [
+      { role: 'system', content: PARALLELS_SYSTEM_PROMPT },
+      { role: 'user', content: user },
+    ],
+    8000,
+    { chatTemplateKwargs: { enable_thinking: false } },
+  );
+
+  let payload = s.content.trim();
+  const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenced) payload = fenced[1].trim();
+  let parallelsByTitle: Record<string, string[]> = {};
+  try {
+    const parsed = JSON.parse(payload) as { sections?: Array<{ title: string; parallels?: string[] }> };
+    if (Array.isArray(parsed.sections)) {
+      for (const sec of parsed.sections) {
+        if (sec.title && Array.isArray(sec.parallels)) {
+          parallelsByTitle[sec.title.toLowerCase()] = sec.parallels;
+        }
+      }
+    }
+  } catch { /* leave empty */ }
+
+  const analysis: DafAnalysis = {
+    summary: skeleton.summary,
+    sections: skeleton.sections.map((sec) => ({
+      title: sec.title,
+      summary: sec.summary,
+      excerpt: sec.excerpt,
+      rabbis: [],
+      parallels: parallelsByTitle[sec.title.toLowerCase()] ?? [],
+    })),
+  };
+
+  const totalParallels = Object.values(parallelsByTitle).reduce((sum, arr) => sum + arr.length, 0);
+
+  return {
+    analysis,
+    warnings: [],
+    elapsed_ms: Date.now() - t0,
+    calls: [callDiag(s)],
+    strategy_metadata: {
+      model: 'kimi-k2.5-no-thinking',
+      shape: 'section-parallels',
+      total_parallels: totalParallels,
+      sections_with_parallels: Object.values(parallelsByTitle).filter(arr => arr.length > 0).length,
+      rishonim_used: Object.keys(sources.rishonim),
+    },
+  };
+}
+
+// --- difficulty strategy ---------------------------------------------------
+// Rates each section 1-5 and the daf overall, with a one-sentence rationale
+// per rating. 1 = accessible to a beginner (clear Mishnah, no outside refs);
+// 5 = expert-level (dense Aramaic, cross-tractate prerequisite knowledge).
+
+const DIFFICULTY_SYSTEM_PROMPT = `You are a Talmud teacher rating educational difficulty. You will receive a skeleton analysis + focal amud.
+
+Rate each section and the overall daf on a 1-5 scale:
+- 1: Accessible to a beginner. Clear Mishnah or simple narrative, no outside prerequisites, Aramaic minimal.
+- 2: Suitable for a student with basic familiarity. Short sugya, one clear dispute, minimal cross-references.
+- 3: Intermediate. Multi-party dispute, some Aramaic technical terms, 1-2 outside references.
+- 4: Advanced. Dense argument structure, heavy reliance on unstated assumptions, multiple cross-tractate citations.
+- 5: Expert. Highly technical, requires deep prior knowledge of multiple masechtot or Rishonim to parse.
+
+For each section and the overall daf, provide:
+- score: 1-5
+- reason: ONE sentence explaining the rating (what makes it hard or easy for a learner)
+
+Output STRICT JSON:
+{"difficulty": {"score": N, "reason": "..."}, "sections": [{"title": "...", "difficulty": {"score": N, "reason": "..."}}]}`;
+
+async function runDifficultyEnrichment(
+  ai: Ai, tractate: string, page: string,
+  skeleton: DafSkeleton, sources: EnrichmentSources,
+): Promise<EnrichmentResult> {
+  const t0 = Date.now();
+  const focalHebrewRaw = sources.hbFocal?.main ?? sources.sefFocal?.mainText.hebrew ?? '';
+  const focalEnglishRaw = sources.sefFocal?.mainText.english ?? '';
+  const focalBlock = amudBlock(
+    'focal_amud', page,
+    focalHebrewRaw, focalEnglishRaw,
+    sources.sefFocal?.rashi?.hebrew ?? '',
+    sources.sefFocal?.tosafot?.hebrew ?? '',
+    { heCap: ANALYZE_CAPS.focalHebrew, enCap: ANALYZE_CAPS.focalEnglish,
+      rashiCap: ANALYZE_CAPS.focalRashi, tosafotCap: ANALYZE_CAPS.focalTosafot },
+  );
+
+  const skelSummary = {
+    summary: skeleton.summary,
+    sections: skeleton.sections.map((sec) => ({ title: sec.title, summary: sec.summary })),
+  };
+
+  const user = [
+    `Tractate: ${tractate}`,
+    `Focal page: ${page}`,
+    '',
+    `<skeleton>\n${JSON.stringify(skelSummary, null, 2)}\n</skeleton>`,
+    '',
+    focalBlock,
+    '',
+    'Rate difficulty per section and overall daf. Return JSON per schema.',
+  ].join('\n\n');
+
+  const s = await runKimiStreaming(
+    ai, '@cf/moonshotai/kimi-k2.5',
+    [
+      { role: 'system', content: DIFFICULTY_SYSTEM_PROMPT },
+      { role: 'user', content: user },
+    ],
+    6000,
+    { chatTemplateKwargs: { enable_thinking: false } },
+  );
+
+  let payload = s.content.trim();
+  const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenced) payload = fenced[1].trim();
+  let overallDifficulty: DifficultyRating | undefined;
+  let difficultyByTitle: Record<string, DifficultyRating> = {};
+  try {
+    const parsed = JSON.parse(payload) as {
+      difficulty?: DifficultyRating;
+      sections?: Array<{ title: string; difficulty?: DifficultyRating }>;
+    };
+    if (parsed.difficulty && typeof parsed.difficulty.score === 'number') {
+      overallDifficulty = parsed.difficulty;
+    }
+    if (Array.isArray(parsed.sections)) {
+      for (const sec of parsed.sections) {
+        if (sec.title && sec.difficulty) {
+          difficultyByTitle[sec.title.toLowerCase()] = sec.difficulty;
+        }
+      }
+    }
+  } catch { /* leave empty */ }
+
+  const analysis: DafAnalysis = {
+    summary: skeleton.summary,
+    difficulty: overallDifficulty,
+    sections: skeleton.sections.map((sec) => ({
+      title: sec.title,
+      summary: sec.summary,
+      excerpt: sec.excerpt,
+      rabbis: [],
+      difficulty: difficultyByTitle[sec.title.toLowerCase()],
+    })),
+  };
+
+  return {
+    analysis,
+    warnings: [],
+    elapsed_ms: Date.now() - t0,
+    calls: [callDiag(s)],
+    strategy_metadata: {
+      model: 'kimi-k2.5-no-thinking',
+      shape: 'section-difficulty',
+      overall_score: overallDifficulty?.score ?? null,
+      avg_section_score: (() => {
+        const scores = Object.values(difficultyByTitle).map(d => d.score);
+        return scores.length > 0 ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10 : null;
+      })(),
+    },
+  };
+}
+
+// --- strategy dispatcher + endpoint -----------------------------------------
+
+type EnrichmentStrategyName =
+  | 'baseline'
+  | 'per-section'
+  | 'hybrid'
+  | 'rich-rabbi'
+  | 'references'
+  | 'parallels'
+  | 'difficulty';
+
+const STRATEGY_NAMES: EnrichmentStrategyName[] = [
+  'baseline', 'per-section', 'hybrid', 'rich-rabbi', 'references', 'parallels', 'difficulty',
+];
+
+async function runEnrichmentStrategy(
+  strategy: EnrichmentStrategyName,
+  ai: Ai, tractate: string, page: string,
+  skeleton: DafSkeleton, sources: EnrichmentSources,
+): Promise<EnrichmentResult> {
+  switch (strategy) {
+    case 'baseline':    return runBaselineEnrichment(ai, tractate, page, skeleton, sources);
+    case 'per-section': return runPerSectionEnrichment(ai, tractate, page, skeleton, sources);
+    case 'hybrid':      return runHybridEnrichment(ai, tractate, page, skeleton, sources);
+    case 'rich-rabbi':  return runRichRabbiEnrichment(ai, tractate, page, skeleton, sources);
+    case 'references':  return runReferencesEnrichment(ai, tractate, page, skeleton, sources);
+    case 'parallels':   return runParallelsEnrichment(ai, tractate, page, skeleton, sources);
+    case 'difficulty':  return runDifficultyEnrichment(ai, tractate, page, skeleton, sources);
+    default:            throw new Error(`unknown strategy: ${strategy}`);
+  }
+}
+
+app.post('/api/enrich/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const strategy = (c.req.query('strategy') || 'baseline') as EnrichmentStrategyName;
+  if (!STRATEGY_NAMES.includes(strategy)) {
+    return c.json({ error: `unknown strategy '${strategy}'; valid: ${STRATEGY_NAMES.join('|')}` }, 400);
+  }
+  const cache = c.env.CACHE;
+  if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
+
+  // Require cached skeleton — user must skeleton_only=1 first via /api/analyze.
+  const skelRaw = cache ? await cache.get(`analyze-skel:v1:${tractate}:${page}`) : null;
+  if (!skelRaw) return c.json({ error: 'No cached skeleton; run /api/analyze/.../?skeleton_only=1 first' }, 404);
+  let skeleton: DafSkeleton;
+  try { skeleton = JSON.parse(skelRaw) as DafSkeleton; }
+  catch { return c.json({ error: 'Cached skeleton is not valid JSON' }, 502); }
+
+  const prevDaf = adjacentAmud(tractate, page, -1);
+  const nextDaf = adjacentAmud(tractate, page, 1);
+  const [hbFocal, sefFocal, hbPrev, sefPrev, hbNext, sefNext, rishonim, halacha] = await Promise.all([
+    getHebrewBooksDafCached(cache, tractate, page),
+    getSefariaPageCached(cache, tractate, page),
+    prevDaf ? getHebrewBooksDafCached(cache, tractate, prevDaf) : Promise.resolve(null),
+    prevDaf ? getSefariaPageCached(cache, tractate, prevDaf) : Promise.resolve(null),
+    nextDaf ? getHebrewBooksDafCached(cache, tractate, nextDaf) : Promise.resolve(null),
+    nextDaf ? getSefariaPageCached(cache, tractate, nextDaf) : Promise.resolve(null),
+    getRishonimCached(cache, tractate, page),
+    getHalachaRefsCached(cache, tractate, page),
+  ]);
+
+  const sources: EnrichmentSources = {
+    hbFocal, sefFocal, hbPrev, sefPrev, hbNext, sefNext,
+    rishonim, halacha, prevDaf, nextDaf,
+  };
+
+  try {
+    const result = await runEnrichmentStrategy(strategy, c.env.AI, tractate, page, skeleton, sources);
+    return c.json({
+      ...result.analysis,
+      _strategy: strategy,
+      _elapsed_ms: result.elapsed_ms,
+      _calls: result.calls,
+      _warnings: result.warnings,
+      _metadata: result.strategy_metadata,
+      _skeletonSummary: skeleton.summary,
+    });
+  } catch (err) {
+    const msg = String(err);
+    // eslint-disable-next-line no-console
+    console.warn(`[enrich:${strategy}] ${tractate}/${page} failed:`, msg);
+    return c.json({ error: `Strategy '${strategy}' call failed`, detail: msg.slice(0, 500) }, 502);
+  }
+});
+
+app.get('/api/enrich/ground-truth/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const cache = c.env.CACHE;
+  if (!cache) return c.json({ error: 'cache unavailable' }, 503);
+  const cached = await cache.get(`analyze:v5:${tractate}:${page}`);
+  if (!cached) return c.json({ error: 'no ground truth cached for this daf' }, 404);
+  try {
+    const parsed = JSON.parse(cached) as DafAnalysis;
+    return c.json(parsed);
+  } catch {
+    return c.json({ error: 'cached ground truth is not valid JSON' }, 502);
   }
 });
 
@@ -2887,6 +3898,139 @@ app.get('/api/admin/enrich-rabbi/:slug', async (c) => {
   } catch (err) {
     return c.json({ error: String(err).slice(0, 300), slug }, 502);
   }
+});
+
+// --- Admin: per-rabbi relationship extraction ---------------------------
+// Extracts teachers / students / colleagues from each rabbi's bio via
+// Kimi K2.6 thinking. Names returned by the model are resolved server-side
+// through the shared alias index so downstream consumers get validated
+// slugs (or null for unresolvable mentions). Output drives
+// scripts/build-rabbi-hierarchy.mjs → src/lib/data/rabbi-hierarchy.json,
+// which the client renders as the rabbi-tree strip.
+
+const RELATIONSHIPS_SYSTEM_PROMPT = `You are a scholar of Talmudic history. You will receive ONE rabbi's canonical name, Hebrew name, generation, and an English bio. Identify the rabbi's direct relationships with OTHER named rabbis:
+
+- teachers:   rabbis the subject studied under / received tradition from.
+- students:   rabbis who studied under the subject.
+- colleagues: contemporaries the subject is attested to have debated, worked alongside, or issued rulings with (not passing mentions).
+
+Output STRICT JSON (no prose, no markdown):
+
+{
+  "teachers":   ["Array of the subject's teachers, using the conventional English name form (e.g. 'Rabbi Yehudah haNasi', 'Rav Huna'). Omit if unknown."],
+  "students":   ["Array of the subject's students."],
+  "colleagues": ["Array of the subject's contemporaries / debate partners."]
+}
+
+Rules:
+- Include a rabbi only when the relationship is stated or strongly implied by the bio, OR is well-established common knowledge consistent with the bio. Do NOT invent relationships.
+- Use ASCII-only canonical English names; prefer Sefaria-style spellings ('b.' not 'ben', 'Rav' for Babylonian Amoraim, 'Rabbi' for Eretz-Yisrael Amoraim / Tannaim).
+- A single rabbi should appear in at most ONE array (most important relationship). If genuinely both teacher and colleague, pick teacher.
+- Do NOT include the subject themselves.
+- Do NOT include anonymous groups ('the Sages', 'the rabbis of Pumbedita').
+- If a category is empty, return an empty array. Do not omit the field.
+- Cap each array at 12 entries — pick the most important.`;
+
+interface RelationshipsResult {
+  teachers: string[];
+  students: string[];
+  colleagues: string[];
+}
+
+function validateRelationships(x: unknown): x is RelationshipsResult {
+  if (!x || typeof x !== 'object') return false;
+  const r = x as RelationshipsResult;
+  for (const k of ['teachers', 'students', 'colleagues'] as const) {
+    if (!Array.isArray(r[k])) return false;
+    if (r[k].some((s) => typeof s !== 'string')) return false;
+  }
+  return true;
+}
+
+interface ResolvedRef { name: string; slug: string | null }
+
+function resolveRefs(names: string[], selfSlug: string): ResolvedRef[] {
+  const out: ResolvedRef[] = [];
+  const seen = new Set<string>();
+  for (const raw of names) {
+    const name = (raw ?? '').trim();
+    if (!name) continue;
+    const hit = resolveRabbiByName(name);
+    const slug = hit?.slug ?? null;
+    if (slug === selfSlug) continue; // guard against self-reference
+    const key = slug ?? `raw:${name.toLowerCase()}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ name, slug });
+  }
+  return out;
+}
+
+app.get('/api/admin/rabbi-relationships/:slug', async (c) => {
+  if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
+  const slug = c.req.param('slug');
+  const entry = RABBI_PLACES.rabbis[slug];
+  if (!entry) return c.json({ error: `unknown slug: ${slug}` }, 404);
+  if (!entry.bio) return c.json({ error: `no bio available for ${slug}` }, 422);
+
+  const userContent = [
+    `Canonical name: ${entry.canonical}`,
+    `Hebrew name:   ${entry.canonicalHe ?? '(none)'}`,
+    `Generation:    ${entry.generation ?? 'unknown'}`,
+    `Region:        ${entry.region ?? 'unknown'}`,
+    `Aliases:       ${(entry.aliases ?? []).slice(0, 8).join(', ')}`,
+    '',
+    `Bio:`,
+    entry.bio,
+  ].join('\n');
+
+  const t0 = Date.now();
+  let streamed: StreamedResult;
+  try {
+    streamed = await runKimiStreaming(
+      c.env.AI,
+      '@cf/moonshotai/kimi-k2.6',
+      [
+        { role: 'system', content: RELATIONSHIPS_SYSTEM_PROMPT },
+        { role: 'user', content: userContent },
+      ],
+      65536,
+      { chatTemplateKwargs: { enable_thinking: true } },
+    );
+  } catch (err) {
+    return c.json({ error: String(err).slice(0, 300), slug }, 502);
+  }
+  // Salvage JSON out of reasoning block if the model forgot to emit it as
+  // content (Kimi occasionally wraps the final answer in reasoning mid-burst).
+  let payload = streamed.content.trim();
+  if (!payload && streamed.reasoning_content) {
+    const m = streamed.reasoning_content.match(/\{[\s\S]*"teachers"[\s\S]*\}/);
+    if (m) payload = m[0];
+  }
+  const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenced) payload = fenced[1].trim();
+  if (!payload) return c.json({ error: 'empty payload', slug, _ms: streamed.elapsed_ms }, 502);
+  let parsed: unknown;
+  try { parsed = JSON.parse(payload); }
+  catch (err) {
+    const repaired = payload.replace(/,(\s*[}\]])/g, '$1').replace(/\r/g, '');
+    try { parsed = JSON.parse(repaired); }
+    catch { return c.json({ error: `non-JSON: ${String(err).slice(0, 200)}`, slug, raw: payload.slice(0, 500) }, 502); }
+  }
+  if (!validateRelationships(parsed)) {
+    return c.json({ error: 'schema mismatch', slug, got: parsed }, 502);
+  }
+  const teachers = resolveRefs(parsed.teachers, slug);
+  const students = resolveRefs(parsed.students, slug);
+  const colleagues = resolveRefs(parsed.colleagues, slug);
+  return c.json({
+    slug,
+    canonical: entry.canonical,
+    teachers,
+    students,
+    colleagues,
+    _ms: Date.now() - t0,
+  });
 });
 
 // --- Admin: Hebrew-Wikipedia bio → English summary ----------------------
