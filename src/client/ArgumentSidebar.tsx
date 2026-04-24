@@ -403,37 +403,9 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                         </span>
                       </div>
                     </Show>
-                    <p style={{ margin: '0 0 0.8rem', color: '#333', 'line-height': 1.55 }}>
+                    <p style={{ margin: 0, color: '#333', 'line-height': 1.55 }}>
                       {story.summary}
                     </p>
-                    <Show when={story.excerpt}>
-                      <div style={{
-                        padding: '0.55rem 0.7rem',
-                        background: '#fafaf7',
-                        border: '1px solid #eae8e0',
-                        'border-radius': '4px',
-                      }}>
-                        <div style={{
-                          'font-size': '0.68rem',
-                          'text-transform': 'uppercase',
-                          'letter-spacing': '0.06em',
-                          'font-weight': 600,
-                          color: '#888',
-                          'margin-bottom': '0.3rem',
-                        }}>
-                          Opens with
-                        </div>
-                        <p dir="rtl" lang="he" style={{
-                          margin: 0,
-                          'font-family': '"Mekorot Vilna", serif',
-                          'font-size': '1rem',
-                          color: '#444',
-                          'line-height': 1.6,
-                        }}>
-                          {story.excerpt}
-                        </p>
-                      </div>
-                    </Show>
                   </div>
                 );
               })()}

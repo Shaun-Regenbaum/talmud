@@ -74,6 +74,81 @@ export function injectAnchorMarkers(
   return doc.body.innerHTML;
 }
 
+export interface AggadataAnchor {
+  excerpt: string;
+  endExcerpt?: string;
+  index: number;
+}
+
+/**
+ * Aggadata stories need both a start anchor (opening phrase) and an end
+ * anchor (closing phrase) so the highlight can terminate at the actual end
+ * of the narrative rather than bleeding into the next topic. The two anchors
+ * for a given story are inserted as `.daf-aggadata-anchor` and
+ * `.daf-aggadata-end-anchor` respectively, and a single cursor advances
+ * through the token stream so story N's end always sits before story N+1's
+ * start.
+ */
+export function injectAggadataAnchors(
+  html: string,
+  stories: AggadataAnchor[],
+  ctx?: { tractate?: string; page?: string },
+): string {
+  if (!html || typeof document === 'undefined' || stories.length === 0) return html;
+  const doc = new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html');
+  const words = Array.from(doc.body.querySelectorAll<HTMLSpanElement>('.daf-word'));
+  if (words.length === 0) return html;
+
+  const normed = words.map((el) => normalizeHebrew(el.textContent ?? ''));
+  let cursor = 0;
+  for (const story of stories) {
+    const startTokens = normalizeHebrew(story.excerpt).split(' ').filter(Boolean);
+    if (startTokens.length === 0) continue;
+    const startIdx = findSequence(normed, startTokens, cursor);
+    if (startIdx < 0) {
+      logMiss('anchor', { markerClass: 'daf-aggadata-anchor', index: story.index, excerpt: story.excerpt }, ctx);
+      continue;
+    }
+
+    const startMarker = doc.createElement('span');
+    startMarker.className = 'daf-aggadata-anchor';
+    startMarker.setAttribute('data-idx', String(story.index));
+    startMarker.setAttribute('data-excerpt-len', String(startTokens.length));
+    startMarker.setAttribute('aria-hidden', 'true');
+    words[startIdx].parentNode?.insertBefore(startMarker, words[startIdx]);
+
+    let advancedTo = startIdx + startTokens.length;
+
+    if (story.endExcerpt) {
+      const endTokens = normalizeHebrew(story.endExcerpt).split(' ').filter(Boolean);
+      if (endTokens.length > 0) {
+        // Search for the end phrase from (at minimum) the start of this
+        // story. Allow overlap with the start excerpt for single-sentence
+        // stories by beginning the search at startIdx rather than startIdx +
+        // startTokens.length.
+        const endIdx = findSequence(normed, endTokens, startIdx);
+        if (endIdx < 0) {
+          logMiss('anchor', { markerClass: 'daf-aggadata-end-anchor', index: story.index, excerpt: story.endExcerpt }, ctx);
+        } else {
+          const endMarker = doc.createElement('span');
+          endMarker.className = 'daf-aggadata-end-anchor';
+          endMarker.setAttribute('data-idx', String(story.index));
+          endMarker.setAttribute('data-excerpt-len', String(endTokens.length));
+          endMarker.setAttribute('aria-hidden', 'true');
+          // Insert AFTER the last word of the end phrase so the range ends
+          // past the phrase, not before it.
+          const lastWord = words[endIdx + endTokens.length - 1];
+          lastWord.parentNode?.insertBefore(endMarker, lastWord.nextSibling);
+          advancedTo = Math.max(advancedTo, endIdx + endTokens.length);
+        }
+      }
+    }
+
+    cursor = advancedTo;
+  }
+  return doc.body.innerHTML;
+}
+
 export interface OpinionSection {
   excerpt?: string;
   rabbis: Array<{ name: string; nameHe: string; opinionStart?: string }>;

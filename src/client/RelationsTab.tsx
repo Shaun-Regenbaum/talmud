@@ -44,6 +44,29 @@ async function fetchDafContext(tractate: string, page: string): Promise<DafConte
   return res.json();
 }
 
+type FamilyRelation =
+  | 'father' | 'mother' | 'spouse' | 'son' | 'daughter' | 'brother' | 'sister'
+  | 'uncle' | 'aunt' | 'nephew' | 'niece'
+  | 'grandfather' | 'grandmother' | 'grandson' | 'granddaughter'
+  | 'father-in-law' | 'mother-in-law' | 'son-in-law' | 'daughter-in-law'
+  | 'brother-in-law' | 'sister-in-law' | 'cousin' | 'other';
+
+interface FamilyEntry { name: string; relation: FamilyRelation; slug: string | null }
+interface FamilyResult {
+  slug: string;
+  canonical: string;
+  family: FamilyEntry[];
+  _ms?: number;
+  error?: string;
+}
+
+async function fetchFamily(slug: string): Promise<FamilyResult> {
+  const res = await fetch(`/api/admin/rabbi-family/${encodeURIComponent(slug)}`);
+  const body = await res.json().catch(() => null) as FamilyResult | null;
+  if (!res.ok || !body) throw new Error(body?.error ?? `HTTP ${res.status}`);
+  return body;
+}
+
 interface RelationsTabProps {
   tractate: string;
   page: string;
@@ -56,6 +79,23 @@ export function RelationsTab(props: RelationsTabProps): JSX.Element {
     () => fetchDafContext(props.tractate, props.page),
   );
   const [selectedSlug, setSelectedSlug] = createSignal<string | null>(null);
+  const [familyBySlug, setFamilyBySlug] = createSignal<Partial<Record<string, FamilyResult>>>({});
+  const [familyLoading, setFamilyLoading] = createSignal<Partial<Record<string, boolean>>>({});
+  const [familyError, setFamilyError] = createSignal<Partial<Record<string, string>>>({});
+
+  const runFamily = async (slug: string) => {
+    if (familyLoading()[slug]) return;
+    setFamilyLoading((s) => ({ ...s, [slug]: true }));
+    setFamilyError((s) => ({ ...s, [slug]: undefined }));
+    try {
+      const body = await fetchFamily(slug);
+      setFamilyBySlug((s) => ({ ...s, [slug]: body }));
+    } catch (err) {
+      setFamilyError((s) => ({ ...s, [slug]: String(err) }));
+    } finally {
+      setFamilyLoading((s) => ({ ...s, [slug]: false }));
+    }
+  };
 
   const selectedRabbi = (): IdentifiedRabbi | null => {
     const slug = selectedSlug();
@@ -178,6 +218,14 @@ export function RelationsTab(props: RelationsTabProps): JSX.Element {
                 unresolved={selectedNode()?.unresolved?.colleagues ?? []}
                 dafRabbis={ctx()?.rabbis ?? []}
               />
+              <FamilySection
+                slug={r().slug ?? ''}
+                family={r().slug ? familyBySlug()[r().slug!] : undefined}
+                loading={r().slug ? Boolean(familyLoading()[r().slug!]) : false}
+                error={r().slug ? familyError()[r().slug!] : undefined}
+                onRun={runFamily}
+                dafRabbis={ctx()?.rabbis ?? []}
+              />
               <Show when={!selectedNode()}>
                 <p style={{ color: '#c33', 'font-size': '0.8rem' }}>
                   No hierarchy node yet for this rabbi — run{' '}
@@ -235,6 +283,126 @@ function RabbiHeader(props: { rabbi: IdentifiedRabbi; node: HierarchyNode | null
         </div>
       </Show>
     </header>
+  );
+}
+
+interface FamilySectionProps {
+  slug: string;
+  family: FamilyResult | undefined;
+  loading: boolean;
+  error: string | undefined;
+  onRun: (slug: string) => void;
+  dafRabbis: IdentifiedRabbi[];
+}
+
+// Familial relations are extracted lazily per-rabbi via /api/admin/rabbi-
+// family/:slug — no precompute yet. Users click "Load family" to trigger
+// one Kimi K2.5 call for the selected rabbi (~20-30s), results are
+// cached in component state for the session.
+function FamilySection(props: FamilySectionProps): JSX.Element {
+  const grouped = () => {
+    const fam = props.family?.family ?? [];
+    // Rough order: blood ancestors → collaterals → descendants → marriage.
+    const order: FamilyRelation[] = [
+      'father','mother','grandfather','grandmother',
+      'uncle','aunt','brother','sister','cousin',
+      'son','daughter','grandson','granddaughter','nephew','niece',
+      'spouse',
+      'father-in-law','mother-in-law','brother-in-law','sister-in-law',
+      'son-in-law','daughter-in-law',
+      'other',
+    ];
+    const bucket = new Map<FamilyRelation, FamilyEntry[]>();
+    for (const e of fam) {
+      const list = bucket.get(e.relation) ?? [];
+      list.push(e);
+      bucket.set(e.relation, list);
+    }
+    return order
+      .filter((r) => bucket.has(r))
+      .map((r) => ({ relation: r, entries: bucket.get(r)! }));
+  };
+
+  return (
+    <section style={{ display: 'flex', 'flex-direction': 'column', gap: '0.3rem' }}>
+      <header style={{ display: 'flex', 'align-items': 'baseline', 'justify-content': 'space-between', 'flex-wrap': 'wrap', gap: '0.5rem' }}>
+        <h4 style={{ margin: 0, 'font-size': '0.78rem', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', color: '#666' }}>
+          Family
+          <Show when={props.family}>
+            <span style={{ color: '#999', 'margin-left': '0.3rem', 'font-size': '0.7rem' }}>
+              ({props.family!.family.length})
+            </span>
+          </Show>
+        </h4>
+        <button
+          type="button"
+          onClick={() => props.onRun(props.slug)}
+          disabled={!props.slug || props.loading}
+          style={{
+            padding: '0.25rem 0.55rem',
+            border: '1px solid #8a2a2b',
+            'border-radius': '3px',
+            background: props.loading ? '#f2e4e4' : '#fff',
+            color: '#8a2a2b',
+            'font-size': '0.72rem',
+            cursor: props.slug && !props.loading ? 'pointer' : 'not-allowed',
+            'font-family': 'inherit',
+          }}
+        >
+          {props.loading ? 'Running…' : (props.family ? 'Re-run' : 'Load family')}
+        </button>
+      </header>
+      <p style={{ margin: 0, 'font-size': '0.7rem', color: '#888' }}>
+        Blood ties, marriage, and in-laws. Runs one Kimi call against the
+        bio (~20–30s). Not precomputed.
+      </p>
+      <Show when={props.error}>
+        <p style={{ color: '#c33', 'font-size': '0.75rem' }}>{props.error}</p>
+      </Show>
+      <Show when={props.family && grouped().length === 0}>
+        <p style={{ color: '#888', 'font-style': 'italic', margin: 0, 'font-size': '0.78rem' }}>
+          No family attested in the bio.
+        </p>
+      </Show>
+      <Show when={grouped().length > 0}>
+        <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.2rem' }}>
+          <For each={grouped()}>
+            {(group) => (
+              <div style={{ display: 'grid', 'grid-template-columns': '120px 1fr', gap: '0.5rem', 'align-items': 'baseline' }}>
+                <span style={{ 'font-size': '0.7rem', color: '#666', 'text-transform': 'uppercase', 'letter-spacing': '0.04em' }}>
+                  {group.relation}
+                </span>
+                <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.25rem' }}>
+                  <For each={group.entries}>
+                    {(e) => {
+                      const onDaf = props.dafRabbis.some((r) => r.slug && r.slug === e.slug);
+                      return (
+                        <span
+                          style={{
+                            padding: '0.15rem 0.35rem',
+                            border: onDaf ? '1px solid #8a2a2b' : (e.slug ? '1px solid #d6d3d1' : '1px dashed #d6d3d1'),
+                            'border-radius': '3px',
+                            background: onDaf ? '#fff7e6' : '#fff',
+                            'font-size': '0.75rem',
+                            color: e.slug ? '#222' : '#888',
+                          }}
+                          title={e.slug ? `slug: ${e.slug}` : 'Not resolved to a rabbi in the dataset (e.g. biblical figure or unnamed kin)'}
+                        >
+                          {e.name}
+                          <Show when={onDaf}>
+                            <span style={{ color: '#8a2a2b', 'margin-left': '0.3rem', 'font-size': '0.6rem', 'font-weight': 600, 'text-transform': 'uppercase' }}>on daf</span>
+                          </Show>
+                        </span>
+                      );
+                    }}
+                  </For>
+                </div>
+              </div>
+            )}
+          </For>
+        </div>
+      </Show>
+    </section>
   );
 }
 

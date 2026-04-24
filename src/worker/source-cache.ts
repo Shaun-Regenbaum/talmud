@@ -25,6 +25,8 @@ import {
   type TalmudPageData,
   type RishonimBundle,
   type HalachicRefBundle,
+  type SaCommentaryBundle,
+  type SefariaTopicBundle,
 } from '../lib/sefref';
 
 const TTL_30_DAYS = 60 * 60 * 24 * 30;
@@ -129,6 +131,51 @@ export async function getHalachaRefsCached(
   if (hit) return hit;
   try {
     const data = await sefariaAPI.fetchHalachicRefs(tractate, page);
+    await writeCache(cache, key, data);
+    return data;
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Cache the SA-commentary walk keyed by the SA ref itself (not by daf).
+ * A single Shulchan Aruch siman:seif is referenced by many dafim, so
+ * caching at the SA-ref level is drastically more reuse-friendly than at
+ * the Gemara-daf level.
+ */
+/**
+ * Cache Sefaria topic links + cross-Shas sources per daf. Topic links rarely
+ * change (they're editorial tags), so a 30-day TTL is fine.
+ */
+export async function getDafTopicsCached(
+  cache: KVNamespace | undefined,
+  tractate: string,
+  page: string,
+): Promise<SefariaTopicBundle> {
+  const key = `daf-topics:v1:${tractate}:${page}`;
+  const hit = await readCache<SefariaTopicBundle>(cache, key);
+  if (hit) return hit;
+  try {
+    const data = await sefariaAPI.fetchDafTopics(`${tractate}.${page}`);
+    await writeCache(cache, key, data);
+    return data;
+  } catch {
+    return [];
+  }
+}
+
+export async function getSaCommentaryCached(
+  cache: KVNamespace | undefined,
+  saRef: string,
+): Promise<SaCommentaryBundle> {
+  // Cache key: replace slashes/spaces with canonical underscores so it's KV-safe.
+  const safeKey = saRef.replace(/[^A-Za-z0-9._:,-]+/g, '_');
+  const key = `sa-commentary:v1:${safeKey}`;
+  const hit = await readCache<SaCommentaryBundle>(cache, key);
+  if (hit) return hit;
+  try {
+    const data = await sefariaAPI.fetchSaCommentary(saRef);
     await writeCache(cache, key, data);
     return data;
   } catch {

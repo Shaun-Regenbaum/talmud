@@ -47,18 +47,21 @@ interface EnrichedArgumentAnalysis {
 interface HalachaRuling { ref: string; summary: string; }
 interface ModernAuthority { source: string; ref?: string; summary: string; }
 interface RishonNote { rishon: string; note: string; ref?: string; }
+interface SaCommentaryNote { commentator: string; note: string; ref?: string; }
 interface HalachaTopic {
   topic: string; topicHe?: string; excerpt?: string;
   rulings: { mishnehTorah?: HalachaRuling; shulchanAruch?: HalachaRuling; rema?: HalachaRuling };
   modernAuthorities?: ModernAuthority[];
   rishonimNotes?: RishonNote[];
+  saCommentaryNotes?: SaCommentaryNote[];
 }
 interface HalachaResult { topics: HalachaTopic[]; _cached?: boolean; }
 
 interface HistoricalContext { era: string; context: string; }
+interface ExegesisContext { verseRef: string; verseHe?: string; move: string; explanation: string; }
 interface AggadataStory {
-  title: string; titleHe?: string; summary: string; excerpt: string; theme?: string;
-  parallels?: string[]; historicalContext?: HistoricalContext;
+  title: string; titleHe?: string; summary: string; excerpt: string; endExcerpt?: string; theme?: string;
+  parallels?: string[]; historicalContext?: HistoricalContext; exegesis?: ExegesisContext;
 }
 interface AggadataResult { stories: AggadataStory[]; _cached?: boolean; }
 
@@ -95,7 +98,7 @@ async function enrichArgument(tractate: string, page: string, strategy: string):
   return body;
 }
 
-type HalachaEnrichStrategy = 'modern-authorities' | 'rishonim-condensed';
+type HalachaEnrichStrategy = 'modern-authorities' | 'rishonim-condensed' | 'sa-commentary-walk';
 async function enrichHalacha(tractate: string, page: string, strategy: HalachaEnrichStrategy): Promise<HalachaResult> {
   const res = await fetch(
     `/api/enrich-halacha/${encodeURIComponent(tractate)}/${page}?strategy=${strategy}`,
@@ -107,7 +110,8 @@ async function enrichHalacha(tractate: string, page: string, strategy: HalachaEn
   return body;
 }
 
-async function enrichAggadata(tractate: string, page: string, strategy: 'parallels' | 'historical-context'): Promise<AggadataResult> {
+type AggadataEnrichStrategy = 'parallels' | 'historical-context' | 'exegesis';
+async function enrichAggadata(tractate: string, page: string, strategy: AggadataEnrichStrategy): Promise<AggadataResult> {
   const res = await fetch(
     `/api/enrich-aggadata/${encodeURIComponent(tractate)}/${page}?strategy=${strategy}`,
     { method: 'POST' },
@@ -187,6 +191,7 @@ export function EnrichmentPage(): JSX.Element {
               ...t,
               ...(hit.modernAuthorities !== undefined ? { modernAuthorities: hit.modernAuthorities } : {}),
               ...(hit.rishonimNotes !== undefined ? { rishonimNotes: hit.rishonimNotes } : {}),
+              ...(hit.saCommentaryNotes !== undefined ? { saCommentaryNotes: hit.saCommentaryNotes } : {}),
             };
           }),
         });
@@ -200,7 +205,7 @@ export function EnrichmentPage(): JSX.Element {
     }
   };
 
-  const runAggEnrich = async (strategy: 'parallels' | 'historical-context') => {
+  const runAggEnrich = async (strategy: AggadataEnrichStrategy) => {
     const key = `aggadata:${strategy}`;
     setRunning(r => ({ ...r, [key]: true }));
     setErrors(e => ({ ...e, [key]: undefined }));
@@ -219,6 +224,7 @@ export function EnrichmentPage(): JSX.Element {
               ...st,
               ...(hit.parallels ? { parallels: hit.parallels } : {}),
               ...(hit.historicalContext ? { historicalContext: hit.historicalContext } : {}),
+              ...(hit.exegesis ? { exegesis: hit.exegesis } : {}),
             };
           }),
         });
@@ -520,6 +526,13 @@ function HalachaTab(props: {
           {props.running['halacha:rishonim-condensed'] ? 'Rishonim condensed…' : '+ Rishonim condensed'}
           <Show when={props.errors['halacha:rishonim-condensed']}><span class="enrich-btn-err">err</span></Show>
         </button>
+        <button class="enrich-btn"
+          disabled={!!props.running['halacha:sa-commentary-walk'] || !props.halacha()}
+          onClick={() => props.onEnrich('sa-commentary-walk')}
+          title="Walks the Shulchan Aruch commentary chain per topic (Mishnah Berurah, Biur Halakhah, Magen Avraham, Taz, Shach, Arukh HaShulchan, Kaf HaChaim, etc.). Uses real Sefaria text.">
+          {props.running['halacha:sa-commentary-walk'] ? 'SA commentary…' : '+ SA commentary'}
+          <Show when={props.errors['halacha:sa-commentary-walk']}><span class="enrich-btn-err">err</span></Show>
+        </button>
       </section>
       <Show when={props.halacha.loading}><p class="loading">Loading halacha…</p></Show>
       <Show when={props.halacha.error}><p class="err-msg">{String(props.halacha.error)}</p></Show>
@@ -547,6 +560,7 @@ function HalachaCard(props: { topic: HalachaTopic; idx: number }): JSX.Element {
   };
   const hasMore = () => !!(t().modernAuthorities && t().modernAuthorities!.length > 0)
     || !!(t().rishonimNotes && t().rishonimNotes!.length > 0)
+    || !!(t().saCommentaryNotes && t().saCommentaryNotes!.length > 0)
     || !!t().excerpt;
   return (
     <div class="card">
@@ -589,6 +603,18 @@ function HalachaCard(props: { topic: HalachaTopic; idx: number }): JSX.Element {
                 </div>
               </div>
             </Show>
+            <Show when={t().saCommentaryNotes && t().saCommentaryNotes!.length > 0}>
+              <div class="d-row"><span class="d-label">SA comm.</span>
+                <div class="d-body">
+                  <For each={t().saCommentaryNotes!}>{(n) => (
+                    <div class="modern-row">
+                      <span class="modern-src">{n.commentator}</span>
+                      <span class="modern-text"> — {n.note}</span>
+                    </div>
+                  )}</For>
+                </div>
+              </div>
+            </Show>
             <Show when={t().modernAuthorities && t().modernAuthorities!.length > 0}>
               <div class="d-row"><span class="d-label">Modern</span>
                 <div class="d-body">
@@ -612,7 +638,7 @@ function AggadataTab(props: {
   aggadata: Resource<AggadataResult | null>;
   running: Partial<Record<string, boolean>>;
   errors: Partial<Record<string, string>>;
-  onEnrich: (strategy: 'parallels' | 'historical-context') => void;
+  onEnrich: (strategy: AggadataEnrichStrategy) => void;
 }): JSX.Element {
   return (
     <>
@@ -625,6 +651,10 @@ function AggadataTab(props: {
         <button class="enrich-btn" disabled={!!props.running['aggadata:historical-context'] || !props.aggadata()} onClick={() => props.onEnrich('historical-context')}>
           {props.running['aggadata:historical-context'] ? 'Historical context…' : '+ Historical context'}
           <Show when={props.errors['aggadata:historical-context']}><span class="enrich-btn-err">err</span></Show>
+        </button>
+        <button class="enrich-btn" disabled={!!props.running['aggadata:exegesis'] || !props.aggadata()} onClick={() => props.onEnrich('exegesis')}>
+          {props.running['aggadata:exegesis'] ? 'Exegesis…' : '+ Exegesis'}
+          <Show when={props.errors['aggadata:exegesis']}><span class="enrich-btn-err">err</span></Show>
         </button>
       </section>
       <Show when={props.aggadata.loading}><p class="loading">Loading aggadata…</p></Show>
@@ -644,7 +674,7 @@ function AggadataTab(props: {
 function AggadataCard(props: { story: AggadataStory; idx: number }): JSX.Element {
   const [open, setOpen] = createSignal(false);
   const s = () => props.story;
-  const hasMore = () => !!(s().excerpt || (s().parallels && s().parallels!.length > 0) || s().historicalContext);
+  const hasMore = () => !!(s().excerpt || (s().parallels && s().parallels!.length > 0) || s().historicalContext || s().exegesis);
   return (
     <div class="card">
       <div class="card-head">
@@ -677,6 +707,20 @@ function AggadataCard(props: { story: AggadataStory; idx: number }): JSX.Element
                 <div class="d-body">
                   <div class="hist-era">{s().historicalContext!.era}</div>
                   <div class="hist-ctx">{s().historicalContext!.context}</div>
+                </div>
+              </div>
+            </Show>
+            <Show when={s().exegesis}>
+              <div class="d-row"><span class="d-label">Exegesis</span>
+                <div class="d-body">
+                  <div class="exeg-head">
+                    <span class="exeg-ref">{s().exegesis!.verseRef}</span>
+                    <span class="exeg-move">{s().exegesis!.move}</span>
+                  </div>
+                  <Show when={s().exegesis!.verseHe}>
+                    <div class="exeg-verse" dir="rtl" lang="he">{s().exegesis!.verseHe}</div>
+                  </Show>
+                  <div class="exeg-body">{s().exegesis!.explanation}</div>
                 </div>
               </div>
             </Show>
@@ -771,6 +815,12 @@ const PAGE_CSS = `
 
 .hist-era { font-size: 10.5px; font-weight: 600; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.15rem; }
 .hist-ctx { font-size: 11.5px; color: #334155; line-height: 1.45; }
+
+.exeg-head { display: flex; gap: 0.5rem; align-items: baseline; margin-bottom: 0.2rem; }
+.exeg-ref { font-size: 11.5px; font-weight: 600; color: #1e293b; }
+.exeg-move { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; background: #ede9fe; color: #6d28d9; padding: 1px 6px; border-radius: 10px; }
+.exeg-verse { font-family: "Mekorot Vilna", "Arial Hebrew", David, serif; font-size: 13.5px; color: #334155; padding: 0.25rem 0.45rem; background: #f8fafc; border-radius: 2px; margin-bottom: 0.25rem; line-height: 1.55; }
+.exeg-body { font-size: 11.5px; color: #334155; line-height: 1.5; }
 
 .plus { color: #16a34a; font-weight: 700; }
 .minus { color: #b91c1c; font-weight: 700; }

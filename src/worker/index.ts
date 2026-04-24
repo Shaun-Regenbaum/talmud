@@ -12,6 +12,8 @@ import {
   getSefariaPageCached,
   getRishonimCached,
   getHalachaRefsCached,
+  getSaCommentaryCached,
+  getDafTopicsCached,
 } from './source-cache';
 import { runWarmCron, readWarmCursor, warmProgressProcessed, getWarmTotal, type EmailBinding } from './warm-cron';
 import {
@@ -2905,35 +2907,125 @@ interface HistoricalContext {
   context: string;
 }
 
-const HALACHA_MODERN_AUTHORITIES_PROMPT = `You are a scholar of Jewish law (halacha) adding POST-MEDIEVAL authorities to each halachic topic. You will receive:
-- Existing halachic topics for this daf (with Mishneh Torah / Shulchan Aruch / Rema refs already filled in)
+interface ExegesisContext {
+  verseRef: string;      // Canonical Sefaria verse ref, e.g. "Psalms 1:1"
+  verseHe?: string;      // Hebrew text of the verse being darshened
+  move: string;          // derash | gezera-shava | al-tikri | notarikon | peshat-vs-derash | gematria | asmakhta | other
+  explanation: string;   // 2-3 sentence English explanation of the hermeneutic move
+}
+
+const HALACHA_MODERN_AUTHORITIES_PROMPT = `You are a scholar of Jewish law (halacha). You will receive:
+- Existing halachic topics for this daf (with Mishneh Torah / Shulchan Aruch / Rema refs already filled in by a previous pass)
 - The focal daf's Hebrew + English
+- A halachic_codification bundle from Sefaria, in XML tags. This contains ACTUAL TEXT of halachic works that Sefaria has linked to this daf — typically includes Peninei Halakhah, Tur, Sefer HaChinukh, Halakhot Gedolot, Ohr Zarua, Sefer Yereim, Sefer Mitzvot Gadol, etc. Each <ref id="..."> is the canonical Sefaria reference.
 
-For each topic, add references to 2-5 modern/contemporary authorities who rule on this issue. Prioritize in order:
-1. **Mishna Berurah** (Chafetz Chaim, on Shulchan Aruch Orach Chaim). Cite as "Mishnah Berurah {simanSeifNum}:{seq}" (e.g. "Mishnah Berurah 235:1"). Sefaria slug: "Mishnah_Berurah,_{simanSeifNum}".
-2. **Peninei Halakhah** (Rav Eliezer Melamed, modern 21st-c). Available on Sefaria under "Peninei Halakhah, Prayer", "Peninei Halakhah, Shabbat", "Peninei Halakhah, Laws of Family" etc. Cite as "Peninei Halakhah, {Volume} {chapter}:{halacha}".
-3. **Aruch HaShulchan** (R. Yechiel Epstein). Cite as "Arukh HaShulchan, {Section} {siman}:{seif}".
-4. **Igrot Moshe** (R. Moshe Feinstein, 20th-c responsa). Cite as "Igrot Moshe, {Section} {siman}:{seif}".
-5. **Yabia Omer / Yechaveh Daat** (R. Ovadia Yosef). Cite the volume and siman.
+**HARD RULE — use ONLY sources whose text appears in the halachic_codification bundle.** Do not cite Mishnah Berurah, Aruch HaShulchan, Igrot Moshe, Yabia Omer, or any other authority unless its text is actually in the bundle below. If the bundle doesn't include it, omit it. Made-up refs are worse than no refs.
 
-For each authority:
-- source: display label the reader sees (include the ref in the label)
-- ref: Sefaria ref in canonical form (underscores for spaces, commas between book segments) — optional but preferred
-- summary: ONE sentence explaining what this authority rules on this topic. Do NOT paraphrase Shulchan Aruch — add what's NEW or DIFFERENT in the later source.
+For each topic:
+- Match it to relevant passages in the halachic_codification bundle
+- For each matching source, distill what that authority says about THIS topic into ONE sentence IN ENGLISH (don't echo Hebrew back — summarize)
+- Skip topics that have no matches in the bundle
 
-If a topic has no natural post-medieval commentary (pure Gemara-era halacha with no codification trail), return an empty array for that topic.
+For each authority entry output:
+- source: display label using the book's name + its ref (e.g. "Peninei Halakhah, Prayer 2:11", "Tur, Orach Chayim 58")
+- ref: the exact Sefaria ref as it appears in the <ref id="..."> attribute in the bundle
+- summary: ONE sentence explaining what the authority rules on this topic, in your own English words. Focus on what's NEW or DIFFERENT from the Shulchan Aruch already listed.
 
 Output STRICT JSON only:
 {"topics": [{"topic": "topic name from input", "modernAuthorities": [{"source": "...", "ref": "...", "summary": "..."}]}]}
 
-Match topics by the "topic" field from input (case-insensitive).`;
+Match topics by the "topic" field (case-insensitive). Topics with no matches in the bundle should have an empty modernAuthorities array.`;
+
+interface RishonNote {
+  rishon: string;   // Display name: Rashba / Ritva / Ramban / Meiri / Rosh / Maharsha / Chidushei Aggadot
+  note: string;     // One sentence distilling this Rishon's position on THIS topic
+  ref?: string;     // Optional Sefaria ref to the Rishon's commentary
+}
+
+const HALACHA_RISHONIM_CONDENSED_PROMPT = `You are a scholar of Talmud and halacha. You will receive:
+- A list of halachic topics identified on this daf (topic, excerpt, existing Rambam / Shulchan Aruch / Rema rulings)
+- The bundled Rishonim commentary on this daf (Rashba, Ritva, Ramban, Meiri, Rosh, Maharsha, Chidushei Aggadot) — provided verbatim in the input
+
+For each topic, identify which of the available Rishonim addressed that specific halachic issue substantively, and distill each to a ONE-sentence summary of their position. Be specific: capture what each Rishon actually argues (a hiddush, a distinction, a chiluk, a different reading of the Gemara). Do NOT write generic "so-and-so discusses this topic" — write the actual claim.
+
+Skip Rishonim who didn't discuss a given topic. Don't invent commentary that isn't in the bundled text. If a Rishon mentions the topic only in passing without a distinct position, also skip.
+
+NOTE: this prompt continues below with the output schema and has a sibling SA-COMMENTARY prompt declared separately.
+
+Output STRICT JSON only:
+{"topics": [{"topic": "topic name from input", "rishonimNotes": [{"rishon": "Rashba", "note": "One-sentence summary.", "ref": "Chiddushei HaRashba on Berakhot 5a"}]}]}
+
+Use the exact Rishon display names: Rashba, Ritva, Ramban, Meiri, Rosh, Maharsha, Chidushei Aggadot. Topics with no Rishonim commentary should have an empty rishonimNotes array. Match topics by the "topic" field from input (case-insensitive).`;
+
+// ---- SA-commentary walk strategy -------------------------------------------
+// For each halacha topic that has a Shulchan Aruch ref, walk the commentary
+// chain on that SA ref (Mishnah Berurah, Biur Halakhah, Magen Avraham, Taz,
+// Shach, Arukh HaShulchan, Kaf HaChaim, etc.) and pass the actual Sefaria
+// text to Kimi K2.5 to distill per-topic per-commentator.
+
+interface SaCommentaryNote {
+  commentator: string;  // e.g. "Mishnah Berurah", "Magen Avraham", "Kaf HaChaim"
+  note: string;         // One-sentence English distillation of this commentator's position on THIS topic
+  ref?: string;         // Sefaria ref
+}
+
+const HALACHA_SA_COMMENTARY_PROMPT = `You are a scholar of Jewish law (halacha). You will receive:
+- Halachic topics for this daf (with Mishneh Torah / Shulchan Aruch / Rema refs already filled in)
+- The focal daf's Hebrew + English
+- For EACH topic that had a Shulchan Aruch ref, a <sa_commentary_for_topic topic="..." sa_ref="..."> block containing ACTUAL TEXT from Sefaria of the post-medieval commentators on that SA ref: Mishnah Berurah, Biur Halakhah, Sha'ar HaTziyun, Beit Yosef, Magen Avraham, Turei Zahav (Taz), Siftei Kohen (Shach), Ba'er Heitev, Arukh HaShulchan, Kaf HaChaim, Chayei Adam, Chochmat Adam, Kitzur Shulchan Arukh, Pri Megadim, etc.
+
+**HARD RULE — only cite commentators whose text appears in the corresponding <sa_commentary_for_topic> block for that topic.** Do not cross-assign between topics. Do not invent refs.
+
+For each topic, for each commentator whose text is provided:
+- Distill their position on THIS topic into ONE sentence IN ENGLISH
+- Focus on what the commentator ADDS beyond the plain Shulchan Aruch — a chiddush, chiluk, practical nuance, or ruling on an ambiguity
+- If a commentator's text just echoes the SA with no new insight, skip them
+
+Output STRICT JSON only:
+{"topics": [{"topic": "topic name from input", "saCommentaryNotes": [{"commentator": "Mishnah Berurah", "note": "...", "ref": "Mishnah Berurah 235:1"}]}]}
+
+Use the exact commentator display name. Topics with no SA commentary should have an empty array. Match topics case-insensitively.`;
+
+/** Assemble the per-topic SA-commentary XML blocks by walking each topic's
+ *  Shulchan Aruch ref via Sefaria. Cached per SA ref (not per daf) so
+ *  commentary fetched for one daf is reused on every daf that references
+ *  the same siman. */
+async function buildSaCommentaryBlocks(
+  cache: KVNamespace | undefined,
+  topics: HalachaTopic[],
+): Promise<{ xmlBlocks: string[]; totalBundles: number; commentators: Set<string> }> {
+  const xmlBlocks: string[] = [];
+  const commentators = new Set<string>();
+  let totalBundles = 0;
+  for (const t of topics) {
+    const saRef = t.rulings.shulchanAruch?.ref;
+    if (!saRef) continue;
+    const bundle = await getSaCommentaryCached(cache, saRef);
+    if (Object.keys(bundle).length === 0) continue;
+    totalBundles++;
+    const parts: string[] = [];
+    for (const [book, snip] of Object.entries(bundle)) {
+      commentators.add(book);
+      const en = slice(snip.english, 5000);
+      const he = slice(snip.hebrew, 5000);
+      const body = [
+        en && `<english>${en}</english>`,
+        he && `<hebrew>${he}</hebrew>`,
+      ].filter(Boolean).join('\n');
+      parts.push(`<commentator name="${book}" ref="${snip.ref}">\n${body}\n</commentator>`);
+    }
+    const safeTopic = t.topic.replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    xmlBlocks.push(`<sa_commentary_for_topic topic="${safeTopic}" sa_ref="${saRef}">\n${parts.join('\n')}\n</sa_commentary_for_topic>`);
+  }
+  return { xmlBlocks, totalBundles, commentators };
+}
 
 app.post('/api/enrich-halacha/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
   const strategy = c.req.query('strategy') || 'modern-authorities';
-  if (strategy !== 'modern-authorities') {
-    return c.json({ error: `unknown strategy '${strategy}'; valid: modern-authorities` }, 400);
+  if (strategy !== 'modern-authorities' && strategy !== 'rishonim-condensed' && strategy !== 'sa-commentary-walk') {
+    return c.json({ error: `unknown strategy '${strategy}'; valid: modern-authorities|rishonim-condensed|sa-commentary-walk` }, 400);
   }
   if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
   const cache = c.env.CACHE;
@@ -2944,23 +3036,80 @@ app.post('/api/enrich-halacha/:tractate/:page', async (c) => {
   try { halacha = JSON.parse(halRaw) as HalachaResult; }
   catch { return c.json({ error: 'Cached halacha is not valid JSON' }, 502); }
 
-  const [hbFocal, sefFocal] = await Promise.all([
+  // Both strategies benefit from real Sefaria sources:
+  //   - modern-authorities: needs halacha refs bundle (Peninei Halakhah, Tur,
+  //     Sefer HaChinukh, Ohr Zarua, etc. — the actual text Sefaria has linked
+  //     to this daf).
+  //   - rishonim-condensed: needs the Rishonim bundle (Rashba, Ritva, Ramban,
+  //     Meiri, Rosh, Maharsha, Chidushei Aggadot).
+  const needsRishonim = strategy === 'rishonim-condensed';
+  const needsHalachaRefs = strategy === 'modern-authorities';
+  const needsSaCommentary = strategy === 'sa-commentary-walk';
+  const [hbFocal, sefFocal, rishonim, halachaRefs, saCommentary] = await Promise.all([
     getHebrewBooksDafCached(cache, tractate, page),
     getSefariaPageCached(cache, tractate, page),
+    needsRishonim ? getRishonimCached(cache, tractate, page) : Promise.resolve({} as RishonimBundle),
+    needsHalachaRefs ? getHalachaRefsCached(cache, tractate, page) : Promise.resolve({} as HalachicRefBundle),
+    needsSaCommentary ? buildSaCommentaryBlocks(cache, halacha.topics) : Promise.resolve({ xmlBlocks: [] as string[], totalBundles: 0, commentators: new Set<string>() }),
   ]);
   const focalHebrew = slice(hbFocal?.main ?? sefFocal?.mainText.hebrew ?? '', ANALYZE_CAPS.focalHebrew);
   const focalEnglish = slice(sefFocal?.mainText.english ?? '', ANALYZE_CAPS.focalEnglish);
+
+  const rishonimXml = needsRishonim ? rishonimBlock(rishonim) : '';
+  const halachaXml = needsHalachaRefs ? halachaBlock(halachaRefs) : '';
+
+  if (needsRishonim && !rishonimXml) {
+    return c.json({
+      topics: halacha.topics.map(t => ({ ...t, rishonimNotes: [] })),
+      _strategy: strategy,
+      _elapsed_ms: 0,
+      _metadata: { note: 'no Rishonim available for this daf on Sefaria' },
+    });
+  }
+  if (needsHalachaRefs && !halachaXml) {
+    return c.json({
+      topics: halacha.topics.map(t => ({ ...t, modernAuthorities: [] })),
+      _strategy: strategy,
+      _elapsed_ms: 0,
+      _metadata: { note: 'no post-medieval halachic sources linked to this daf on Sefaria' },
+    });
+  }
+  if (needsSaCommentary && saCommentary.xmlBlocks.length === 0) {
+    return c.json({
+      topics: halacha.topics.map(t => ({ ...t, saCommentaryNotes: [] })),
+      _strategy: strategy,
+      _elapsed_ms: 0,
+      _metadata: { note: 'no SA-commentary found for any topic on this daf' },
+    });
+  }
+
+  const systemPrompt = strategy === 'modern-authorities'
+    ? HALACHA_MODERN_AUTHORITIES_PROMPT
+    : strategy === 'rishonim-condensed'
+      ? HALACHA_RISHONIM_CONDENSED_PROMPT
+      : HALACHA_SA_COMMENTARY_PROMPT;
+
+  const blocks: string[] = [
+    `<existing_halacha>\n${JSON.stringify(halacha, null, 2)}\n</existing_halacha>`,
+    `<focal_hebrew>${focalHebrew}</focal_hebrew>`,
+    `<focal_english>${focalEnglish}</focal_english>`,
+  ];
+  if (rishonimXml) blocks.push(rishonimXml);
+  if (halachaXml) blocks.push(halachaXml);
+  if (needsSaCommentary) blocks.push(...saCommentary.xmlBlocks);
+
+  const closer =
+    strategy === 'modern-authorities' ? 'Add 2-5 post-medieval authorities per topic. Return JSON per schema.'
+      : strategy === 'rishonim-condensed' ? 'Distill each Rishon to one sentence per topic. Return JSON per schema.'
+      : 'Distill each Acharon (SA-commentator) to one sentence per topic. Return JSON per schema.';
 
   const userContent = [
     `Tractate: ${tractate}`,
     `Focal page: ${page}`,
     '',
-    `<existing_halacha>\n${JSON.stringify(halacha, null, 2)}\n</existing_halacha>`,
+    ...blocks,
     '',
-    `<focal_hebrew>${focalHebrew}</focal_hebrew>`,
-    `<focal_english>${focalEnglish}</focal_english>`,
-    '',
-    'Add 2-5 post-medieval authorities per topic. Return JSON per schema.',
+    closer,
   ].join('\n\n');
 
   const t0 = Date.now();
@@ -2968,49 +3117,143 @@ app.post('/api/enrich-halacha/:tractate/:page', async (c) => {
     const s = await runKimiStreaming(
       c.env.AI, '@cf/moonshotai/kimi-k2.5',
       [
-        { role: 'system', content: HALACHA_MODERN_AUTHORITIES_PROMPT },
+        { role: 'system', content: systemPrompt },
         { role: 'user', content: userContent },
       ],
-      12000,
+      16000,
       { chatTemplateKwargs: { enable_thinking: false } },
     );
     let payload = s.content.trim();
     const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (fenced) payload = fenced[1].trim();
-    let authoritiesByTopic: Record<string, ModernAuthority[]> = {};
+
+    if (strategy === 'modern-authorities') {
+      let authoritiesByTopic: Record<string, ModernAuthority[]> = {};
+      try {
+        const parsed = JSON.parse(payload) as { topics?: Array<{ topic: string; modernAuthorities?: ModernAuthority[] }> };
+        if (Array.isArray(parsed.topics)) {
+          for (const t of parsed.topics) {
+            if (t.topic && Array.isArray(t.modernAuthorities)) {
+              authoritiesByTopic[t.topic.toLowerCase()] = t.modernAuthorities;
+            }
+          }
+        }
+      } catch {
+        return c.json({ error: 'Halacha enrichment returned non-JSON', detail: payload.slice(0, 300) }, 502);
+      }
+
+      const enrichedTopics = halacha.topics.map(t => ({
+        ...t,
+        modernAuthorities: authoritiesByTopic[t.topic.toLowerCase()] ?? [],
+      }));
+      const totalAuth = Object.values(authoritiesByTopic).reduce((sum, arr) => sum + arr.length, 0);
+
+      return c.json({
+        topics: enrichedTopics,
+        _strategy: strategy,
+        _elapsed_ms: Date.now() - t0,
+        _metadata: {
+          model: 'kimi-k2.5-no-thinking',
+          total_topics: halacha.topics.length,
+          topics_with_authorities: Object.values(authoritiesByTopic).filter(arr => arr.length > 0).length,
+          total_authorities: totalAuth,
+        },
+      });
+    }
+
+    if (strategy === 'rishonim-condensed') {
+      let notesByTopic: Record<string, RishonNote[]> = {};
+      try {
+        const parsed = JSON.parse(payload) as { topics?: Array<{ topic: string; rishonimNotes?: RishonNote[] }> };
+        if (Array.isArray(parsed.topics)) {
+          for (const t of parsed.topics) {
+            if (t.topic && Array.isArray(t.rishonimNotes)) {
+              notesByTopic[t.topic.toLowerCase()] = t.rishonimNotes;
+            }
+          }
+        }
+      } catch {
+        return c.json({ error: 'Halacha enrichment returned non-JSON', detail: payload.slice(0, 300) }, 502);
+      }
+      const enrichedTopics = halacha.topics.map(t => ({
+        ...t,
+        rishonimNotes: notesByTopic[t.topic.toLowerCase()] ?? [],
+      }));
+      const totalNotes = Object.values(notesByTopic).reduce((sum, arr) => sum + arr.length, 0);
+      return c.json({
+        topics: enrichedTopics,
+        _strategy: strategy,
+        _elapsed_ms: Date.now() - t0,
+        _metadata: {
+          model: 'kimi-k2.5-no-thinking',
+          total_topics: halacha.topics.length,
+          topics_with_notes: Object.values(notesByTopic).filter(arr => arr.length > 0).length,
+          total_notes: totalNotes,
+          rishonim_available: Object.keys(rishonim),
+        },
+      });
+    }
+
+    // strategy === 'sa-commentary-walk'
+    let saNotesByTopic: Record<string, SaCommentaryNote[]> = {};
     try {
-      const parsed = JSON.parse(payload) as { topics?: Array<{ topic: string; modernAuthorities?: ModernAuthority[] }> };
+      const parsed = JSON.parse(payload) as { topics?: Array<{ topic: string; saCommentaryNotes?: SaCommentaryNote[] }> };
       if (Array.isArray(parsed.topics)) {
         for (const t of parsed.topics) {
-          if (t.topic && Array.isArray(t.modernAuthorities)) {
-            authoritiesByTopic[t.topic.toLowerCase()] = t.modernAuthorities;
+          if (t.topic && Array.isArray(t.saCommentaryNotes)) {
+            saNotesByTopic[t.topic.toLowerCase()] = t.saCommentaryNotes;
           }
         }
       }
     } catch {
       return c.json({ error: 'Halacha enrichment returned non-JSON', detail: payload.slice(0, 300) }, 502);
     }
-
-    // Attach modernAuthorities to each matching topic
-    const enrichedTopics = halacha.topics.map(t => ({
+    const enrichedTopicsSa = halacha.topics.map(t => ({
       ...t,
-      modernAuthorities: authoritiesByTopic[t.topic.toLowerCase()] ?? [],
+      saCommentaryNotes: saNotesByTopic[t.topic.toLowerCase()] ?? [],
     }));
-    const totalAuth = Object.values(authoritiesByTopic).reduce((sum, arr) => sum + arr.length, 0);
-
+    const totalSaNotes = Object.values(saNotesByTopic).reduce((sum, arr) => sum + arr.length, 0);
     return c.json({
-      topics: enrichedTopics,
+      topics: enrichedTopicsSa,
       _strategy: strategy,
       _elapsed_ms: Date.now() - t0,
       _metadata: {
         model: 'kimi-k2.5-no-thinking',
         total_topics: halacha.topics.length,
-        topics_with_authorities: Object.values(authoritiesByTopic).filter(arr => arr.length > 0).length,
-        total_authorities: totalAuth,
+        topics_with_notes: Object.values(saNotesByTopic).filter(arr => arr.length > 0).length,
+        total_notes: totalSaNotes,
+        topics_with_sa_commentary: saCommentary.totalBundles,
+        commentators_seen: Array.from(saCommentary.commentators),
       },
     });
   } catch (err) {
     return c.json({ error: 'Halacha enrichment call failed', detail: String(err).slice(0, 500) }, 502);
+  }
+});
+
+/**
+ * Sefaria topics API — cross-Shas sources per topic tagged on this daf.
+ *
+ * No LLM involved here, pure retrieval: /api/ref-topic-links/{ref} gives
+ * us Sefaria's editorial topic tags for the daf, ranked by tfidf. For each
+ * topic we pull its top N cross-Shas sources. Returned flat so the frontend
+ * can map them to halacha topics at display time.
+ */
+app.get('/api/topics/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const cache = c.env.CACHE;
+  try {
+    const topics = await getDafTopicsCached(cache, tractate, page);
+    return c.json({
+      topics,
+      _metadata: {
+        total_topics: topics.length,
+        total_sources: topics.reduce((s, t) => s + t.sources.length, 0),
+      },
+    });
+  } catch (err) {
+    return c.json({ error: 'topics fetch failed', detail: String(err).slice(0, 400) }, 502);
   }
 });
 
@@ -3042,17 +3285,43 @@ Output STRICT JSON:
 
 Only include historicalContext when it would materially help a modern reader. Return an empty object (no historicalContext key) for stories where history doesn't apply. Match by title (case-insensitive).`;
 
+const AGGADATA_EXEGESIS_PROMPT = `You are a scholar of midrash and rabbinic hermeneutics. You will receive:
+- Existing aggadic stories for this daf (title, summary, excerpt, theme)
+- The focal daf's Hebrew + English
+
+For each story that is a darshan's reading of a biblical verse (typically theme="exegesis", but also any story that hinges on a verse — e.g. ethical maxims derived from scripture, homiletical expansions), identify:
+1. The specific biblical verse the darshan is expounding
+2. The interpretive / hermeneutic move used
+3. A concise explanation of how the midrash reads the verse — what linguistic or structural feature the darshan latches onto, and what new meaning emerges
+
+Cite verses in canonical Sefaria format: "Genesis 1:1", "Psalms 1:1", "Isaiah 6:3", "Proverbs 3:18". Include the verse's Hebrew text when it is short enough (<= 20 words); omit for long verses.
+
+Classify the hermeneutic move with one of these tags:
+- "derash"          — general homiletical reading
+- "gezera-shava"    — verbal analogy between two verses sharing a word
+- "al-tikri"        — "do not read X but rather Y" — revocalization of a word
+- "notarikon"       — breaking a word into acronym or shorter components
+- "peshat-vs-derash" — contrasting plain sense with homiletical reading
+- "gematria"        — numerical value of letters
+- "asmakhta"        — verse cited as mnemonic/support, not real proof
+- "other"           — any other hermeneutic move; mention the name if standard (e.g. "kal va-chomer", "heqesh")
+
+Output STRICT JSON:
+{"stories": [{"title": "title from input", "exegesis": {"verseRef": "Psalms 1:1", "verseHe": "אשרי האיש...", "move": "derash", "explanation": "The darshan reads..."}}]}
+
+For stories that are NOT driven by a biblical verse (pure narrative, legal anecdote, miracle story without scriptural anchor), omit the exegesis field entirely for that story (or return {"title": "…", "exegesis": null}). Match by title (case-insensitive).`;
+
 app.post('/api/enrich-aggadata/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
   const strategy = c.req.query('strategy') || 'parallels';
-  if (strategy !== 'parallels' && strategy !== 'historical-context') {
-    return c.json({ error: `unknown strategy '${strategy}'; valid: parallels|historical-context` }, 400);
+  if (strategy !== 'parallels' && strategy !== 'historical-context' && strategy !== 'exegesis') {
+    return c.json({ error: `unknown strategy '${strategy}'; valid: parallels|historical-context|exegesis` }, 400);
   }
   if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
   const cache = c.env.CACHE;
 
-  const aggRaw = cache ? await cache.get(`aggadata:v1:${tractate}:${page}`) : null;
+  const aggRaw = cache ? await cache.get(`aggadata:v3:${tractate}:${page}`) : null;
   if (!aggRaw) return c.json({ error: 'No cached /api/aggadata output; run /api/aggadata first.' }, 404);
   let aggadata: AggadataResult;
   try { aggadata = JSON.parse(aggRaw) as AggadataResult; }
@@ -3069,7 +3338,10 @@ app.post('/api/enrich-aggadata/:tractate/:page', async (c) => {
   const focalHebrew = slice(hbFocal?.main ?? sefFocal?.mainText.hebrew ?? '', ANALYZE_CAPS.focalHebrew);
   const focalEnglish = slice(sefFocal?.mainText.english ?? '', ANALYZE_CAPS.focalEnglish);
 
-  const systemPrompt = strategy === 'parallels' ? AGGADATA_PARALLELS_PROMPT : AGGADATA_HISTORICAL_PROMPT;
+  const systemPrompt =
+    strategy === 'parallels' ? AGGADATA_PARALLELS_PROMPT
+    : strategy === 'historical-context' ? AGGADATA_HISTORICAL_PROMPT
+    : AGGADATA_EXEGESIS_PROMPT;
   const userContent = [
     `Tractate: ${tractate}`,
     `Focal page: ${page}`,
@@ -3097,13 +3369,15 @@ app.post('/api/enrich-aggadata/:tractate/:page', async (c) => {
 
     let parallelsByTitle: Record<string, string[]> = {};
     let historicalByTitle: Record<string, HistoricalContext> = {};
+    let exegesisByTitle: Record<string, ExegesisContext> = {};
     try {
-      const parsed = JSON.parse(payload) as { stories?: Array<{ title: string; parallels?: string[]; historicalContext?: HistoricalContext }> };
+      const parsed = JSON.parse(payload) as { stories?: Array<{ title: string; parallels?: string[]; historicalContext?: HistoricalContext; exegesis?: ExegesisContext | null }> };
       if (Array.isArray(parsed.stories)) {
         for (const st of parsed.stories) {
           const key = (st.title || '').toLowerCase();
           if (Array.isArray(st.parallels)) parallelsByTitle[key] = st.parallels;
           if (st.historicalContext && st.historicalContext.context) historicalByTitle[key] = st.historicalContext;
+          if (st.exegesis && st.exegesis.verseRef && st.exegesis.explanation) exegesisByTitle[key] = st.exegesis;
         }
       }
     } catch {
@@ -3112,9 +3386,10 @@ app.post('/api/enrich-aggadata/:tractate/:page', async (c) => {
 
     const enrichedStories = aggadata.stories.map(st => {
       const key = st.title.toLowerCase();
-      const out: AggadataStory & { parallels?: string[]; historicalContext?: HistoricalContext } = { ...st };
+      const out: AggadataStory & { parallels?: string[]; historicalContext?: HistoricalContext; exegesis?: ExegesisContext } = { ...st };
       if (strategy === 'parallels' && parallelsByTitle[key]) out.parallels = parallelsByTitle[key];
       if (strategy === 'historical-context' && historicalByTitle[key]) out.historicalContext = historicalByTitle[key];
+      if (strategy === 'exegesis' && exegesisByTitle[key]) out.exegesis = exegesisByTitle[key];
       return out;
     });
 
@@ -3128,7 +3403,9 @@ app.post('/api/enrich-aggadata/:tractate/:page', async (c) => {
         total_stories: aggadata.stories.length,
         ...(strategy === 'parallels'
           ? { total_parallels: totalP, stories_with_parallels: Object.values(parallelsByTitle).filter(a => a.length > 0).length }
-          : { stories_with_history: Object.keys(historicalByTitle).length }),
+          : strategy === 'historical-context'
+          ? { stories_with_history: Object.keys(historicalByTitle).length }
+          : { stories_with_exegesis: Object.keys(exegesisByTitle).length }),
       },
     });
   } catch (err) {
@@ -3339,14 +3616,26 @@ Output STRICT JSON only (no markdown, no prose):
       "title": "Short, evocative English title (4-7 words). E.g. 'The Oven of Akhnai', 'Rabban Gamliel and the Heavenly Voice'",
       "titleHe": "Hebrew title using the traditional name if one exists (e.g. 'תנור של עכנאי'), otherwise a concise Hebrew summary phrase",
       "summary": "1-2 sentence English summary of what happens / what the story is about",
-      "excerpt": "3-6 consecutive Hebrew/Aramaic words copied VERBATIM from the opening of the story in the daf — used to anchor the highlight. Pick the phrase where the narrative first begins, not a rabbi name or a generic opener.",
-      "theme": "One-word English tag: miracle | dispute | parable | biography | dream | ethics | exegesis | folklore | prayer"
+      "excerpt": "3-6 consecutive Hebrew/Aramaic words copied VERBATIM from the OPENING of the story in the daf. Anchors the start of the highlight. Pick the phrase where the narrative first begins, not a rabbi name or a generic opener.",
+      "endExcerpt": "3-6 consecutive Hebrew/Aramaic words copied VERBATIM from the CLOSING of the story — the last line of this aggadic unit, immediately before the daf moves to the next topic. Anchors the end of the highlight. MUST appear AFTER excerpt in the daf. If the story is one short sentence, endExcerpt may be its final 3-6 words (which may overlap the tail of excerpt).",
+      "theme": "One transliterated Hebrew tag (see Theme tags below) — exactly one of: mashal | derash | ma'aseh | chazon | tefillah | ma'amar"
     }
   ]
 }
 
+Theme tags (classify by the English gloss, emit the transliterated token exactly — lowercase, with apostrophe where shown):
+- "mashal"    — a parable / explicit analogy, typically framed "to what is this similar? to a king who…". The point of the unit is the metaphor itself.
+- "derash"    — a homiletical reading of a specific biblical verse. The unit hinges on re-interpreting scripture (derash, gezera shava, al tikri, etc.). If a verse is quoted but only as a proof-text for a narrative or teaching whose point is elsewhere, do NOT use derash.
+- "ma'aseh"   — a narrative anecdote. Covers biographical stories about named sages, historical reports, halakhic anecdotes, and miracles-that-happen-inside-a-story (e.g. "R' X went to Y and the river split"). Default choice for any sustained narrative with setting, characters, and events.
+- "chazon"    — a vision or revelatory encounter. Dreams, bat kol, apparitions of Elijah or angels, heikhalot / merkavah descriptions, gan eden / gehinnom, messianic / eschatological teachings, ma'aseh bereshit. Use when the CONTENT of the unit is the mystical/visionary experience, even if framed as "R' X was walking and…".
+- "tefillah"  — a prayer or liturgical text embedded as aggadah. E.g. "R' Elazar would say when he finished praying…". The unit is itself a script to recite, not a narrative about prayer.
+- "ma'amar"   — an aphoristic teaching or wisdom saying with no narrative frame and no verse-exegesis as its point. Pirkei-Avot-style statements. "Who is wise? He who learns from every person."
+
+Pick exactly one theme — the one that best describes what the unit IS, not what it passingly contains. A ma'aseh about Elijah teaching halakhot to a rabbi who heard a bat kol in a ruin is a chazon (the content is the vision/revelation), not a ma'aseh, because removing the mystical encounter would gut the unit.
+
 Rules:
-- "excerpt" MUST be Hebrew/Aramaic words copied verbatim from the daf text supplied below. Do not translate. Do not paraphrase. Do not include vowel points if the source lacks them.
+- "excerpt" and "endExcerpt" MUST be Hebrew/Aramaic words copied verbatim from the daf text supplied below. Do not translate. Do not paraphrase. Do not include vowel points if the source lacks them.
+- "endExcerpt" must occur AFTER "excerpt" in the linear daf text, so the pair bounds the entire story.
 - If the daf contains no aggada (purely halachic page), return {"stories": []}.
 - Do not split one story into multiple entries. A sustained narrative with dialogue and multiple events is ONE story.
 - Do not include dry legal statements attributed to a named sage — that's halacha, not aggada. Include only when there is a narrative, parable, or non-legal teaching.
@@ -3358,6 +3647,7 @@ interface AggadataStory {
   titleHe?: string;
   summary: string;
   excerpt: string;
+  endExcerpt: string;
   theme?: string;
 }
 interface AggadataResult {
@@ -3373,6 +3663,7 @@ function validateAggadata(x: unknown): x is AggadataResult {
     if (s.titleHe !== undefined && typeof s.titleHe !== 'string') return false;
     if (typeof s.summary !== 'string') return false;
     if (typeof s.excerpt !== 'string') return false;
+    if (typeof s.endExcerpt !== 'string') return false;
     if (s.theme !== undefined && typeof s.theme !== 'string') return false;
   }
   return true;
@@ -3382,7 +3673,7 @@ app.get('/api/aggadata/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
   const cache = c.env.CACHE;
-  const cacheKey = `aggadata:v1:${tractate}:${page}`;
+  const cacheKey = `aggadata:v3:${tractate}:${page}`;
   const t0 = Date.now();
 
   const bypass = c.req.query('refresh') === '1';
@@ -4277,6 +4568,131 @@ app.get('/api/admin/rabbi-relationships/:slug', async (c) => {
     teachers,
     students,
     colleagues,
+    _ms: Date.now() - t0,
+  });
+});
+
+// --- Admin: per-rabbi familial relation extraction ----------------------
+// Companion to rabbi-relationships but for kinship (father / mother /
+// spouse / children / siblings / uncles / nephews / cousins /
+// grandparents / grandchildren / in-laws). Kept separate because the
+// prompt and dataset shape are distinct: blood ties don't belong in
+// the teacher/student/contemporary graph, and we often have a father
+// who was *also* a teacher — they should surface in both places.
+
+const FAMILY_RELATION_TYPES = [
+  'father','mother','spouse','son','daughter','brother','sister',
+  'uncle','aunt','nephew','niece',
+  'grandfather','grandmother','grandson','granddaughter',
+  'father-in-law','mother-in-law','son-in-law','daughter-in-law','brother-in-law','sister-in-law',
+  'cousin','other',
+] as const;
+type FamilyRelation = typeof FAMILY_RELATION_TYPES[number];
+const FAMILY_RELATION_SET = new Set<string>(FAMILY_RELATION_TYPES);
+
+const FAMILY_SYSTEM_PROMPT = `You are a scholar of Talmudic history. You will receive ONE rabbi's canonical name, Hebrew name, generation, and an English bio. Extract the rabbi's FAMILIAL relationships — blood ties, marriage, and in-laws — with OTHER named people (rabbis, biblical figures, or otherwise).
+
+Output STRICT JSON (no prose, no markdown):
+
+{
+  "family": [
+    { "name": "<conventional English name of the relative>", "relation": "<one of the relation types listed below>" }
+  ]
+}
+
+Relation types (use these exact strings):
+father, mother, spouse, son, daughter, brother, sister,
+uncle, aunt, nephew, niece,
+grandfather, grandmother, grandson, granddaughter,
+father-in-law, mother-in-law, son-in-law, daughter-in-law, brother-in-law, sister-in-law,
+cousin, other
+
+Rules:
+- Include a relative ONLY when the bio or well-established tradition clearly supports it. Do NOT invent relations.
+- 'spouse' applies to any wife (the rabbinic literature is pre-modern; there's no distinction field). If the rabbi had multiple wives, list each separately.
+- 'son' / 'daughter' must be named. Unnamed children are not listed.
+- If the rabbi's father was ALSO his teacher, still list him here as 'father' — the teacher/student graph is separate and both can be true.
+- If the rabbi is a nephew / uncle of someone, emit the relation FROM the subject's perspective (e.g. 'Rabbah' listed as 'uncle' means Rabbah is the subject's uncle).
+- Use 'other' only when the relation is familial but doesn't fit the enumerated types (step-relatives, adoptive, etc.).
+- Names in English, ASCII, Sefaria-style spellings ('b.' for 'ben'). The subject must NOT appear in its own family list.
+- Cap at 20 entries total. Empty array is fine if no family is attested.`;
+
+interface FamilyEntry { name: string; relation: FamilyRelation }
+interface FamilyResult { family: FamilyEntry[] }
+
+function validateFamily(x: unknown): x is FamilyResult {
+  if (!x || typeof x !== 'object') return false;
+  const f = x as FamilyResult;
+  if (!Array.isArray(f.family)) return false;
+  for (const e of f.family) {
+    if (!e || typeof e !== 'object') return false;
+    if (typeof e.name !== 'string') return false;
+    if (typeof e.relation !== 'string' || !FAMILY_RELATION_SET.has(e.relation)) return false;
+  }
+  return true;
+}
+
+app.get('/api/admin/rabbi-family/:slug', async (c) => {
+  if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
+  const slug = c.req.param('slug');
+  const entry = RABBI_PLACES.rabbis[slug];
+  if (!entry) return c.json({ error: `unknown slug: ${slug}` }, 404);
+  if (!entry.bio) return c.json({ error: `no bio available for ${slug}` }, 422);
+
+  const userContent = [
+    `Canonical name: ${entry.canonical}`,
+    `Hebrew name:   ${entry.canonicalHe ?? '(none)'}`,
+    `Generation:    ${entry.generation ?? 'unknown'}`,
+    `Region:        ${entry.region ?? 'unknown'}`,
+    `Aliases:       ${(entry.aliases ?? []).slice(0, 8).join(', ')}`,
+    '',
+    `Bio:`,
+    entry.bio,
+  ].join('\n');
+
+  const t0 = Date.now();
+  let streamed: StreamedResult;
+  try {
+    streamed = await runKimiStreaming(
+      c.env.AI,
+      '@cf/moonshotai/kimi-k2.5',
+      [
+        { role: 'system', content: FAMILY_SYSTEM_PROMPT },
+        { role: 'user', content: userContent },
+      ],
+      8192,
+    );
+  } catch (err) {
+    return c.json({ error: String(err).slice(0, 300), slug }, 502);
+  }
+  let payload = streamed.content.trim();
+  if (!payload && streamed.reasoning_content) {
+    const m = streamed.reasoning_content.match(/\{[\s\S]*"family"[\s\S]*\}/);
+    if (m) payload = m[0];
+  }
+  const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenced) payload = fenced[1].trim();
+  if (!payload) return c.json({ error: 'empty payload', slug, _ms: streamed.elapsed_ms }, 502);
+  let parsed: unknown;
+  try { parsed = JSON.parse(payload); }
+  catch (err) {
+    const repaired = payload.replace(/,(\s*[}\]])/g, '$1').replace(/\r/g, '');
+    try { parsed = JSON.parse(repaired); }
+    catch { return c.json({ error: `non-JSON: ${String(err).slice(0, 200)}`, slug, raw: payload.slice(0, 500) }, 502); }
+  }
+  if (!validateFamily(parsed)) {
+    return c.json({ error: 'schema mismatch', slug, got: parsed }, 502);
+  }
+  // Resolve each name against the alias index. Non-rabbis (biblical
+  // figures, unnamed historical people) won't resolve and return slug:null.
+  const resolved: Array<FamilyEntry & { slug: string | null }> = parsed.family.map((e) => {
+    const hit = resolveRabbiByName(e.name);
+    return { name: e.name, relation: e.relation, slug: hit?.slug ?? null };
+  });
+  return c.json({
+    slug,
+    canonical: entry.canonical,
+    family: resolved,
     _ms: Date.now() - t0,
   });
 });

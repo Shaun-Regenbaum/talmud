@@ -75,6 +75,18 @@ function eraForGeneration(gen: string): EraId | null {
   return null;
 }
 
+// Chronological rank within an era band. Generation IDs carry a trailing
+// number (tanna-1..6, amora-ey-1..5, amora-bavel-1..8) that is the sort
+// key — amora-ey-N and amora-bavel-N share the same rank because they
+// are contemporaries, so EY and Bavel rabbis of the same generation
+// interleave rather than clumping by region.
+function generationChronoRank(gen: string): number {
+  if (gen === 'zugim' || gen === 'savora') return 0;
+  if (gen === 'unknown') return Number.MAX_SAFE_INTEGER;
+  const m = gen.match(/-(\d+)$/);
+  return m ? Number(m[1]) : 0;
+}
+
 interface RabbiTreeStripProps {
   rabbis: RabbiLite[];
   onOpenRabbiSlug: (slug: string) => void;
@@ -181,6 +193,14 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
         for (const s of node.students.slice(0, 2)) addLinked(s, 'student');
         for (const c of node.colleagues.slice(0, 2)) addLinked(c, 'colleague');
       }
+    }
+
+    for (const era of ERAS) {
+      out[era.id].sort((a, b) => {
+        const r = generationChronoRank(a.generation) - generationChronoRank(b.generation);
+        if (r !== 0) return r;
+        return a.canonical.localeCompare(b.canonical);
+      });
     }
 
     return out;

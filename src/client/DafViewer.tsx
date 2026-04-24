@@ -11,7 +11,7 @@ import { injectSegmentMarkers } from './injectSegmentMarkers';
 import { injectTannaiticMarkers } from './injectTannaiticMarkers';
 import { injectHadran } from './injectHadran';
 import { ensureMasechetIncipit } from './ensureMasechetIncipit';
-import { injectAnchorMarkers, injectOpinionMarkers } from './anchorMarkers';
+import { injectAnchorMarkers, injectOpinionMarkers, injectAggadataAnchors } from './anchorMarkers';
 import { GutterIcons } from './GutterIcons';
 import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
 import type { AggadataResult } from './AggadataDetector';
@@ -889,15 +889,26 @@ export default function DafViewer(): JSX.Element {
       );
       const mainText = dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
       if (anchor && mainText) {
-        const allStoryAnchors = Array.from(
-          dafRootDiv.querySelectorAll<HTMLElement>('.daf-aggadata-anchor'),
-        ).sort((a, b) => Number(a.getAttribute('data-idx') ?? 0) - Number(b.getAttribute('data-idx') ?? 0));
-        const pos = allStoryAnchors.findIndex((el) => el === anchor);
-        const next = pos >= 0 && pos + 1 < allStoryAnchors.length ? allStoryAnchors[pos + 1] : null;
+        // Prefer the story's explicit closing anchor so the highlight ends
+        // where the narrative actually ends. Fall back to the next story's
+        // start anchor, then to the end of the amud, when the end anchor is
+        // missing (LLM paraphrased or the match normalization dropped it).
+        const endAnchor = dafRootDiv.querySelector<HTMLElement>(
+          `.daf-aggadata-end-anchor[data-idx="${s.index}"]`,
+        );
         const range = document.createRange();
         range.setStartAfter(anchor);
-        if (next) range.setEndBefore(next);
-        else range.setEndAfter(mainText);
+        if (endAnchor) {
+          range.setEndAfter(endAnchor);
+        } else {
+          const allStoryAnchors = Array.from(
+            dafRootDiv.querySelectorAll<HTMLElement>('.daf-aggadata-anchor'),
+          ).sort((a, b) => Number(a.getAttribute('data-idx') ?? 0) - Number(b.getAttribute('data-idx') ?? 0));
+          const pos = allStoryAnchors.findIndex((el) => el === anchor);
+          const next = pos >= 0 && pos + 1 < allStoryAnchors.length ? allStoryAnchors[pos + 1] : null;
+          if (next) range.setEndBefore(next);
+          else range.setEndAfter(mainText);
+        }
         collectRange(range, 'aggadata');
       }
     }
@@ -1141,14 +1152,15 @@ export default function DafViewer(): JSX.Element {
       if (anchors.length > 0) main = injectAnchorMarkers(main, anchors, 'daf-halacha-anchor', ctx);
     }
 
-    // Aggadata anchors: one per story, placed at the opening excerpt so the
-    // highlight can span from anchor to next story (or end of amud).
+    // Aggadata anchors: one start + one end per story so the highlight spans
+    // from the opening phrase to the closing phrase, rather than bleeding
+    // into the next topic.
     const ag = aggadata();
     if (ag && showAggadatot()) {
       const anchors = ag.stories
-        .map((s, i) => ({ excerpt: s.excerpt ?? '', index: i }))
+        .map((s, i) => ({ excerpt: s.excerpt ?? '', endExcerpt: s.endExcerpt, index: i }))
         .filter((x) => x.excerpt.length > 0);
-      if (anchors.length > 0) main = injectAnchorMarkers(main, anchors, 'daf-aggadata-anchor', ctx);
+      if (anchors.length > 0) main = injectAggadataAnchors(main, anchors, ctx);
     }
 
     return { main, inner, outer, placeMatches };
