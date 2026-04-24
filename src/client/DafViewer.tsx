@@ -436,20 +436,27 @@ export default function DafViewer(): JSX.Element {
     localStorage.setItem(ERA_HIGHLIGHT_KEY, String(showEraHighlight()));
   });
 
-  // Era stratification — two-stage fetch from /api/era-context.
-  // Stage 1 (heuristic) paints immediately, then we poll for stage 2 (LLM
-  // refinement) and silently upgrade. Falls back to the local heuristic if
-  // the endpoint is unreachable so the toggle never feels broken.
+  // Era stratification — mirrors the /api/daf-context flow:
+  //   1. Try ?cached_only=1 first — instant cache lookup, no side effects.
+  //      Returns stage 2 if available, else stage 1 if available, else 404.
+  //   2. On 404, full fetch — runs heuristic, kicks off stage 2 in waitUntil.
+  //   3. If we ended up at stage 1, poll ?stage=2 every 3-30s until upgraded.
+  // Falls back to the local heuristic if the endpoint is unreachable.
   createEffect(() => {
     if (!showEra()) { setEraContext(null); return; }
     const t = tractate();
     const p = page();
     const key = `${t}:${p}`;
     const cached = eraContextSessionCache.get(key);
-    if (cached) setEraContext(cached.ctx);
+    if (cached) {
+      setEraContext(cached.ctx);
+      // If session-cached at stage 2, nothing more to do.
+      if (cached.stage === 2) return;
+    }
     const controller = new AbortController();
-    const url = (stage2 = false) =>
-      `/api/era-context/${encodeURIComponent(t)}/${p}` + (stage2 ? '?stage=2' : '');
+    const url = (cachedOnly: boolean, stage2 = false) =>
+      `/api/era-context/${encodeURIComponent(t)}/${p}`
+      + (stage2 ? '?stage=2' : cachedOnly ? '?cached_only=1' : '');
 
     const fallbackToLocal = () => {
       const d = daf();
@@ -467,7 +474,7 @@ export default function DafViewer(): JSX.Element {
         if (controller.signal.aborted) return;
         if (t !== tractate() || p !== page()) return;
         try {
-          const res = await fetch(url(true), { signal: controller.signal });
+          const res = await fetch(url(false, true), { signal: controller.signal });
           if (res.status === 204) continue;
           if (!res.ok) continue;
           const json = (await res.json()) as DafEraContext & { _stage?: number };
@@ -482,15 +489,33 @@ export default function DafViewer(): JSX.Element {
       }
     };
 
+    const fetchOne = async (cachedOnly: boolean): Promise<{ ctx: DafEraContext; stage: 1 | 2 } | null> => {
+      const res = await fetch(url(cachedOnly), { signal: controller.signal });
+      if (res.status === 404) return null;
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = (await res.json()) as DafEraContext & { _stage?: number };
+      return { ctx: json, stage: (json._stage as 1 | 2) ?? 1 };
+    };
+
     (async () => {
       try {
-        const res = await fetch(url(false), { signal: controller.signal });
-        if (!res.ok) { fallbackToLocal(); return; }
-        const json = (await res.json()) as DafEraContext & { _stage?: number };
-        eraContextSessionCache.set(key, { ctx: json, stage: (json._stage as 1 | 2) ?? 1 });
+        // Cache-first: returns stage 2 instantly if it's already been computed.
+        const fromCache = await fetchOne(true);
         if (t !== tractate() || p !== page()) return;
-        setEraContext(json);
-        if ((json._stage ?? 1) === 1) void pollStage2();
+        if (fromCache) {
+          eraContextSessionCache.set(key, fromCache);
+          setEraContext(fromCache.ctx);
+          if (fromCache.stage === 1) void pollStage2();
+          return;
+        }
+        // No cache yet — full fetch (runs heuristic, kicks off stage 2 in waitUntil).
+        const fresh = await fetchOne(false);
+        if (t !== tractate() || p !== page()) return;
+        if (fresh) {
+          eraContextSessionCache.set(key, fresh);
+          setEraContext(fresh.ctx);
+          if (fresh.stage === 1) void pollStage2();
+        }
       } catch (err) {
         if ((err as Error).name === 'AbortError') return;
         fallbackToLocal();
