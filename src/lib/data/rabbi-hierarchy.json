@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-04-24T07:24:17.694Z",
+  "generatedAt": "2026-04-24T07:27:48.123Z",
   "source": "https://talmud.shaunregenbaum.com/api/admin/rabbi-relationships",
   "totalNodes": 1301,
-  "processedNodes": 75,
-  "nodesWithEdges": 111,
+  "processedNodes": 100,
+  "nodesWithEdges": 129,
   "nodes": {
     "rabbi-yochanan-b-napacha": {
       "canonical": "Rabbi Yochanan b. Napacha",
@@ -38,13 +38,18 @@
         "rabbi-levi",
         "rav-giddel",
         "rabbi-yaakov-b-idi",
-        "rebbi-abun-b-rebbi-hiyya"
+        "rebbi-abun-b-rebbi-hiyya",
+        "rabbi-yitzhak-nappaha",
+        "rabbi-hama-b-r-hanina",
+        "rabbi-chanina-b-dosa"
       ],
       "colleagues": [
         "rabbi-shimon-b-lakish",
         "rabbi-yannai",
         "rabbi-yehoshua-b-levi",
-        "rav"
+        "rav",
+        "rav-hiyya-b-yosef",
+        "rabbi-mana-(i)"
       ],
       "unresolved": {
         "teachers": [
@@ -70,7 +75,8 @@
         "rabbi-tarfon",
         "rabbi-akiva",
         "rabbi-eliezer-b-hyrcanus",
-        "rabbi-chiyya"
+        "rabbi-chiyya",
+        "rabbi-yehudah-b-bava"
       ],
       "students": [
         "rabbi-yohanan-hasandlar",
@@ -142,7 +148,10 @@
         "rav-huna",
         "rav-chisda",
         "rav-chiya-b-ashi",
-        "rav-giddel"
+        "rav-giddel",
+        "rav-hiyya-b-yosef",
+        "rav-hanan-b-rabbah",
+        "rav-ketina"
       ],
       "colleagues": [
         "rabbi-yochanan-b-napacha",
@@ -168,7 +177,8 @@
       "teachers": [
         "rabbi-yochanan-b-napacha",
         "rabbi-akiva",
-        "rabbi-tarfon"
+        "rabbi-tarfon",
+        "rabbi-yehudah-b-bava"
       ],
       "students": [
         "rabi"
@@ -179,7 +189,8 @@
         "rabbi-meir",
         "rabbi-nehemiyah",
         "rabbi-eliezer-b-hyrcanus",
-        "rabbi-yonah"
+        "rabbi-yonah",
+        "rabbi-elazar-b-yose"
       ],
       "unresolved": {
         "teachers": [
@@ -199,7 +210,8 @@
       "teachers": [
         "elisha-ben-abuya",
         "rabbi-yishmael-b-elisha",
-        "rabbi-akiva"
+        "rabbi-akiva",
+        "rabbi-yehudah-b-bava"
       ],
       "students": [
         "rabi",
@@ -225,13 +237,15 @@
       "region": "israel",
       "hasBio": true,
       "teachers": [
-        "rabbi-akiva"
+        "rabbi-akiva",
+        "rabbi-yehudah-b-bava"
       ],
       "students": [
         "rabbi-elazar-b-shamua",
         "rabi",
         "rabbi-elazar-b-shimon",
-        "rabbi-shimon-b-yehudah"
+        "rabbi-shimon-b-yehudah",
+        "rabbi-pinchas-b-yair"
       ],
       "colleagues": [
         "rabbi-yehudah-b-ilai",
@@ -239,7 +253,8 @@
         "rabbi-yose-b-chalafta",
         "rabbi-elazar-b-shamua",
         "rabbi-nehemiyah",
-        "rabbi-natan-habavli"
+        "rabbi-natan-habavli",
+        "rabbi-yishmael-b-yohanan-b-berokah"
       ],
       "unresolved": {
         "teachers": [],
@@ -257,7 +272,10 @@
       "teachers": [],
       "students": [
         "rav-yehudah-b-yechezkel",
-        "mar-ukva"
+        "mar-ukva",
+        "rav-hiyya-b-yosef",
+        "rabbi-assi",
+        "rabbi-yitzhak-b-nahman"
       ],
       "colleagues": [],
       "unresolved": {
@@ -380,13 +398,15 @@
         "rabbi-yannai",
         "rabbi-yehoshua-b-hananyah",
         "rabbi-yehoshua-b-levi",
-        "rabbi-chanina-b-chama"
+        "rabbi-chanina-b-chama",
+        "rabbi-shimon-b-rabbi"
       ],
       "colleagues": [
         "rabbi-natan-habavli",
         "rabbi-yitzhak",
         "rabbi-shimon-b-elazar",
-        "rabbi-yose-b-yehudah"
+        "rabbi-yose-b-yehudah",
+        "rabbi-pinchas-b-yair"
       ],
       "unresolved": {
         "teachers": [],
@@ -546,12 +566,15 @@
       ],
       "students": [
         "rabbi-haggai",
-        "rebbi-abun-b-rebbi-hiyya"
+        "rebbi-abun-b-rebbi-hiyya",
+        "rebbi-samuel",
+        "rabbi-zerika"
       ],
       "colleagues": [
         "rabbi-yirmeyah",
         "rabbi-avin-(ravin)",
-        "rebbi-abba-b-rebbi-mamal"
+        "rebbi-abba-b-rebbi-mamal",
+        "rabbi-yitzhak-nappaha"
       ],
       "unresolved": {
         "teachers": [],
@@ -645,7 +668,8 @@
       "hasBio": true,
       "teachers": [
         "rav-huna",
-        "rav"
+        "rav",
+        "rav-ketina"
       ],
       "students": [
         "rava",
@@ -696,7 +720,8 @@
       "students": [
         "rabbi-shimon-b-pazzi",
         "rabbi-yaakov-b-idi",
-        "rabbi-hananyah"
+        "rabbi-hananyah",
+        "rabbi-yitzhak-b-nahman"
       ],
       "colleagues": [
         "rabbi-tarfon"
@@ -889,7 +914,9 @@
       "students": [
         "rav-zera",
         "rabbi-yirmeyah",
-        "rabbi-hizkiyah"
+        "rabbi-hizkiyah",
+        "rebbi-samuel",
+        "rabbi-zerika"
       ],
       "colleagues": [
         "rabbi-chiyya-b-abba",
@@ -989,7 +1016,8 @@
       "hasBio": true,
       "teachers": [
         "shimon-bar-yochai",
-        "rabbi-akiva"
+        "rabbi-akiva",
+        "rabbi-yehudah-b-bava"
       ],
       "students": [
         "rabi"
@@ -1248,7 +1276,9 @@
         "rabi",
         "rabbi-chiyya"
       ],
-      "students": [],
+      "students": [
+        "rabbi-mana-(i)"
+      ],
       "colleagues": [
         "rabbi-yochanan-b-napacha",
         "rabbi-chanina-b-chama"
@@ -2060,7 +2090,9 @@
         "rabbi-yehoshua-b-hananiah",
         "rabbi-shimon-b-netanel"
       ],
-      "colleagues": [],
+      "colleagues": [
+        "rabbi-nehunya-b-hakanah"
+      ],
       "unresolved": {
         "teachers": [],
         "students": [
@@ -3474,7 +3506,9 @@
         "rabbi-abahu"
       ],
       "students": [],
-      "colleagues": [],
+      "colleagues": [
+        "rabbi-pinchas"
+      ],
       "unresolved": {
         "teachers": [
           "Rabbi Yirmiyah"
@@ -4118,7 +4152,9 @@
       "generation": "amora-ey-1",
       "region": "israel",
       "hasBio": true,
-      "teachers": [],
+      "teachers": [
+        "rabbi-yochanan-b-napacha"
+      ],
       "students": [],
       "colleagues": [],
       "unresolved": {
@@ -4126,7 +4162,7 @@
         "students": [],
         "colleagues": []
       },
-      "processed": false
+      "processed": true
     },
     "tisha-bav": {
       "canonical": "Tisha B'Av",
@@ -4230,15 +4266,23 @@
       "generation": "amora-ey-2",
       "region": "israel",
       "hasBio": true,
-      "teachers": [],
+      "teachers": [
+        "rabbi-yochanan-b-napacha"
+      ],
       "students": [],
-      "colleagues": [],
+      "colleagues": [
+        "rabbi-ami",
+        "rabbi-assi",
+        "rav-zera"
+      ],
       "unresolved": {
         "teachers": [],
         "students": [],
-        "colleagues": []
+        "colleagues": [
+          "Rabbi Chiya b. Abba"
+        ]
       },
-      "processed": false
+      "processed": true
     },
     "kindness": {
       "canonical": "Kindness",
@@ -4314,7 +4358,9 @@
         "rav-huna",
         "rebbi-samuel"
       ],
-      "students": [],
+      "students": [
+        "rabbi-berekhyah"
+      ],
       "colleagues": [],
       "unresolved": {
         "teachers": [],
@@ -4737,11 +4783,16 @@
         "shammai"
       ],
       "unresolved": {
-        "teachers": [],
-        "students": [],
+        "teachers": [
+          "Shemaya",
+          "Avtalyon"
+        ],
+        "students": [
+          "Rabban Shimon ben Hillel"
+        ],
         "colleagues": []
       },
-      "processed": false
+      "processed": true
     },
     "haftarah": {
       "canonical": "Haftarah",
@@ -4847,15 +4898,20 @@
       "generation": "amora-bavel-1",
       "region": "israel",
       "hasBio": true,
-      "teachers": [],
+      "teachers": [
+        "rav",
+        "shmuel-(amora)"
+      ],
       "students": [],
-      "colleagues": [],
+      "colleagues": [
+        "rabbi-yochanan-b-napacha"
+      ],
       "unresolved": {
         "teachers": [],
         "students": [],
         "colleagues": []
       },
-      "processed": false
+      "processed": true
     },
     "poverty": {
       "canonical": "Poverty",
@@ -4913,13 +4969,19 @@
       "hasBio": true,
       "teachers": [],
       "students": [],
-      "colleagues": [],
+      "colleagues": [
+        "rabbi-hizkiyah"
+      ],
       "unresolved": {
-        "teachers": [],
+        "teachers": [
+          "Rabbi Yosi of Tiberias"
+        ],
         "students": [],
-        "colleagues": []
+        "colleagues": [
+          "Rabbi Huna"
+        ]
       },
-      "processed": false
+      "processed": true
     },
     "parashat-bereshit": {
       "canonical": "Parashat Bereshit",
@@ -5025,13 +5087,15 @@
       "hasBio": true,
       "teachers": [],
       "students": [],
-      "colleagues": [],
+      "colleagues": [
+        "shimon-bar-yochai"
+      ],
       "unresolved": {
         "teachers": [],
         "students": [],
         "colleagues": []
       },
-      "processed": false
+      "processed": true
     },
     "parashat-shemini": {
       "canonical": "Parashat Shemini",
@@ -5215,15 +5279,19 @@
       "generation": "tanna-6",
       "region": "israel",
       "hasBio": true,
-      "teachers": [],
+      "teachers": [
+        "rabi"
+      ],
       "students": [],
-      "colleagues": [],
+      "colleagues": [
+        "rabban-gamliel-b-rabbi-(iii)"
+      ],
       "unresolved": {
         "teachers": [],
         "students": [],
         "colleagues": []
       },
-      "processed": false
+      "processed": true
     },
     "rebbi-samuel": {
       "canonical": "Rebbi Samuel",
@@ -5231,9 +5299,13 @@
       "generation": "amora-ey-4",
       "region": "israel",
       "hasBio": true,
-      "teachers": [],
+      "teachers": [
+        "rabbi-abahu",
+        "rav-zera"
+      ],
       "students": [
-        "rabbi-helbo"
+        "rabbi-helbo",
+        "rabbi-hanina-b-pappa"
       ],
       "colleagues": [],
       "unresolved": {
@@ -5241,7 +5313,7 @@
         "students": [],
         "colleagues": []
       },
-      "processed": false
+      "processed": true
     },
     "the-patriarchs": {
       "canonical": "The Patriarchs",
@@ -5313,15 +5385,20 @@
       "generation": "amora-ey-3",
       "region": "bavel",
       "hasBio": true,
-      "teachers": [],
+      "teachers": [
+        "rav-zera",
+        "rabbi-abahu"
+      ],
       "students": [],
       "colleagues": [],
       "unresolved": {
         "teachers": [],
         "students": [],
-        "colleagues": []
+        "colleagues": [
+          "Rabbi Yirmiyah"
+        ]
       },
-      "processed": false
+      "processed": true
     },
     "parashat-lech-lecha": {
       "canonical": "Parashat Lech Lecha",
@@ -5972,7 +6049,13 @@
       "region": "israel",
       "hasBio": true,
       "teachers": [],
-      "students": [],
+      "students": [
+        "rabbi-meir",
+        "rabbi-yehudah-b-ilai",
+        "shimon-bar-yochai",
+        "rabbi-yose-b-chalafta",
+        "rabbi-elazar-b-shamua"
+      ],
       "colleagues": [
         "rabbi-akiva"
       ],
@@ -5981,7 +6064,7 @@
         "students": [],
         "colleagues": []
       },
-      "processed": false
+      "processed": true
     },
     "rabbi-hanina-b-pappa": {
       "canonical": "Rabbi Hanina b. Pappa",
@@ -5989,15 +6072,19 @@
       "generation": "amora-ey-2",
       "region": "israel",
       "hasBio": true,
-      "teachers": [],
+      "teachers": [
+        "rebbi-samuel"
+      ],
       "students": [],
-      "colleagues": [],
+      "colleagues": [
+        "rabbi-ami"
+      ],
       "unresolved": {
         "teachers": [],
         "students": [],
         "colleagues": []
       },
-      "processed": false
+      "processed": true
     },
     "parashat-shelach": {
       "canonical": "Parashat Shelach",
@@ -6261,7 +6348,9 @@
       "generation": "amora-bavel-2",
       "region": "bavel",
       "hasBio": true,
-      "teachers": [],
+      "teachers": [
+        "rav"
+      ],
       "students": [],
       "colleagues": [],
       "unresolved": {
@@ -6269,7 +6358,7 @@
         "students": [],
         "colleagues": []
       },
-      "processed": false
+      "processed": true
     },
     "hesed": {
       "canonical": "Ḥesed (Kabbalah)",
@@ -6311,19 +6400,22 @@
       "hasBio": true,
       "teachers": [
         "rabbi-yochanan-b-napacha",
-        "rabbi-yehoshua-b-levi"
+        "rabbi-yehoshua-b-levi",
+        "shmuel-(amora)"
       ],
       "students": [],
       "colleagues": [
         "rabbi-chiyya-b-abba",
-        "rabbi-shmuel-b-nahmani"
+        "rabbi-shmuel-b-nahmani",
+        "rabbi-yitzhak-nappaha",
+        "rabbi-ami"
       ],
       "unresolved": {
         "teachers": [],
         "students": [],
         "colleagues": []
       },
-      "processed": false
+      "processed": true
     },
     "honoring-parents": {
       "canonical": "Honoring Parents",
@@ -6477,13 +6569,15 @@
       "hasBio": true,
       "teachers": [],
       "students": [],
-      "colleagues": [],
+      "colleagues": [
+        "rabban-gamliel-hazaken-(i)"
+      ],
       "unresolved": {
         "teachers": [],
         "students": [],
         "colleagues": []
       },
-      "processed": false
+      "processed": true
     },
     "taharah": {
       "canonical": "Purity (Taharah)",
@@ -6811,15 +6905,19 @@
       "generation": "tanna-1",
       "region": "israel",
       "hasBio": true,
-      "teachers": [],
+      "teachers": [
+        "rabbi-yochanan-b-napacha"
+      ],
       "students": [],
-      "colleagues": [],
+      "colleagues": [
+        "rabban-gamliel-hazaken-(i)"
+      ],
       "unresolved": {
         "teachers": [],
         "students": [],
         "colleagues": []
       },
-      "processed": false
+      "processed": true
     },
     "parashat-vayakhel": {
       "canonical": "Parashat Vayakhel",
@@ -7131,7 +7229,10 @@
       "generation": "amora-ey-2",
       "region": "bavel",
       "hasBio": true,
-      "teachers": [],
+      "teachers": [
+        "shmuel-(amora)",
+        "rabbi-yehoshua-b-hananyah"
+      ],
       "students": [],
       "colleagues": [],
       "unresolved": {
@@ -7139,7 +7240,7 @@
         "students": [],
         "colleagues": []
       },
-      "processed": false
+      "processed": true
     },
     "trust": {
       "canonical": "Trust",
@@ -7211,7 +7312,9 @@
       "generation": "amora-ey-3",
       "region": "israel",
       "hasBio": true,
-      "teachers": [],
+      "teachers": [
+        "rabbi-helbo"
+      ],
       "students": [],
       "colleagues": [],
       "unresolved": {
@@ -7219,7 +7322,7 @@
         "students": [],
         "colleagues": []
       },
-      "processed": false
+      "processed": true
     },
     "kelippot1": {
       "canonical": "Kelippot (Kabbalah)",
@@ -7339,15 +7442,19 @@
       "generation": "amora-bavel-2",
       "region": "bavel",
       "hasBio": true,
-      "teachers": [],
-      "students": [],
+      "teachers": [
+        "rav"
+      ],
+      "students": [
+        "rav-chisda"
+      ],
       "colleagues": [],
       "unresolved": {
         "teachers": [],
         "students": [],
         "colleagues": []
       },
-      "processed": false
+      "processed": true
     },
     "sotah": {
       "canonical": "Sotah",
@@ -7443,7 +7550,7 @@
         "students": [],
         "colleagues": []
       },
-      "processed": false
+      "processed": true
     },
     "priestly-blessing": {
       "canonical": "Priestly Blessing (Birkat Kohanim)",
@@ -7471,13 +7578,15 @@
       "students": [
         "rabbi-yishmael-b-elisha"
       ],
-      "colleagues": [],
+      "colleagues": [
+        "rabban-yochanan-b-zakkai"
+      ],
       "unresolved": {
         "teachers": [],
         "students": [],
         "colleagues": []
       },
-      "processed": false
+      "processed": true
     },
     "og": {
       "canonical": "Og",
@@ -7535,13 +7644,15 @@
       "hasBio": true,
       "teachers": [],
       "students": [],
-      "colleagues": [],
+      "colleagues": [
+        "rabbi-yose-b-chalafta"
+      ],
       "unresolved": {
         "teachers": [],
         "students": [],
         "colleagues": []
       },
-      "processed": false
+      "processed": true
     },
     "parashat-vayikra": {
       "canonical": "Parashat Vayikra",
@@ -7791,13 +7902,17 @@
       "hasBio": true,
       "teachers": [],
       "students": [],
-      "colleagues": [],
+      "colleagues": [
+        "rabban-shimon-b-gamliel-(ii)"
+      ],
       "unresolved": {
         "teachers": [],
         "students": [],
-        "colleagues": []
+        "colleagues": [
+          "Rabban Yochanan b. Zakkai"
+        ]
       },
-      "processed": false
+      "processed": true
     },
     "dogs": {
       "canonical": "Dogs",
@@ -8055,7 +8170,7 @@
         "students": [],
         "colleagues": []
       },
-      "processed": false
+      "processed": true
     },
     "yerovam-(son-of-nebat)": {
       "canonical": "Jeroboam (Son of Nebat)",
@@ -8111,15 +8226,19 @@
       "generation": "tanna-5",
       "region": "israel",
       "hasBio": true,
-      "teachers": [],
+      "teachers": [
+        "shimon-bar-yochai"
+      ],
       "students": [],
-      "colleagues": [],
+      "colleagues": [
+        "rabi"
+      ],
       "unresolved": {
         "teachers": [],
         "students": [],
         "colleagues": []
       },
-      "processed": false
+      "processed": true
     },
     "noah-and-the-ark": {
       "canonical": "Noah and the Ark",
@@ -8326,7 +8445,9 @@
       "colleagues": [
         "rabbi-eliezer-b-hyrcanus",
         "rabbi-akiva",
-        "rabbi-elazar-b-azaryah"
+        "rabbi-elazar-b-azaryah",
+        "rabbi-yehudah-b-betera-(i)",
+        "rabbi-chanina-b-dosa"
       ],
       "unresolved": {
         "teachers": [],
@@ -8357,17 +8478,20 @@
       "generation": "amora-ey-1",
       "region": "israel",
       "hasBio": true,
-      "teachers": [],
+      "teachers": [
+        "rabbi-yannai"
+      ],
       "students": [],
       "colleagues": [
-        "rebbi-yose-b-rebbu-abun"
+        "rebbi-yose-b-rebbu-abun",
+        "rabbi-yochanan-b-napacha"
       ],
       "unresolved": {
         "teachers": [],
         "students": [],
         "colleagues": []
       },
-      "processed": false
+      "processed": true
     },
     "music": {
       "canonical": "Music",
@@ -12740,7 +12864,9 @@
       "hasBio": true,
       "teachers": [],
       "students": [],
-      "colleagues": [],
+      "colleagues": [
+        "rabbi-shimon-b-rabbi"
+      ],
       "unresolved": {
         "teachers": [],
         "students": [],
@@ -15929,7 +16055,8 @@
         "rabi"
       ],
       "colleagues": [
-        "rabbi-meir"
+        "rabbi-meir",
+        "rabbi-hanina-segan-hakohanim"
       ],
       "unresolved": {
         "teachers": [],
@@ -18352,7 +18479,10 @@
         "rabbi-abba"
       ],
       "colleagues": [
-        "rabbi-shmuel-b-nahmani"
+        "rabbi-shmuel-b-nahmani",
+        "rabbi-yitzhak-nappaha",
+        "rabbi-hanina-b-pappa",
+        "rabbi-assi"
       ],
       "unresolved": {
         "teachers": [],
