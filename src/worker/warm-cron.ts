@@ -11,6 +11,7 @@
 import { TRACTATE_IDS } from '../lib/sefref/hebrewbooks/client';
 import { iterAmudim } from '../lib/sefref/amudim';
 import { getHebrewBooksDafCached } from './source-cache';
+import { computeCacheStats, writeCachedCacheStats } from './cache-stats';
 
 const CURSOR_KEY = 'warm-cursor:v1';
 const BATCH_SIZE = 20;
@@ -26,8 +27,19 @@ interface WarmCursor {
   done?: boolean;
 }
 
+export interface EmailBinding {
+  send(message: {
+    to: string;
+    from: string;
+    subject: string;
+    html?: string;
+    text?: string;
+  }): Promise<{ messageId: string }>;
+}
+
 export interface WarmEnv {
   CACHE?: KVNamespace;
+  EMAIL?: EmailBinding;
 }
 
 export function getWarmTotal(): number {
@@ -51,6 +63,35 @@ export function warmProgressProcessed(cursor: WarmCursor): number {
   }
   n += cursor.amudIdx;
   return Math.min(n, TOTAL_AMUDIM);
+}
+
+async function sendCompletionEmail(env: WarmEnv): Promise<void> {
+  const email = env.EMAIL;
+  if (!email) return;
+  try {
+    await email.send({
+      from: 'warm-cron@shaunregenbaum.com',
+      to: 'shaunregenbaum@gmail.com',
+      subject: 'HebrewBooks cache warm complete',
+      text:
+        `The full shas (${TOTAL_AMUDIM} amudim) is now cached in KV.\n\n` +
+        `Status: https://talmud.shaunregenbaum.com/api/admin/warm-status\n` +
+        `Dashboard: https://talmud.shaunregenbaum.com/usage\n`,
+    });
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('[warm-cron] send email failed:', err);
+  }
+}
+
+async function refreshStats(cache: KVNamespace): Promise<void> {
+  try {
+    const stats = await computeCacheStats(cache);
+    await writeCachedCacheStats(cache, stats);
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn('[warm-cron] refreshStats failed:', err);
+  }
 }
 
 export async function runWarmCron(env: WarmEnv): Promise<void> {
@@ -80,6 +121,8 @@ export async function runWarmCron(env: WarmEnv): Promise<void> {
       );
       // eslint-disable-next-line no-console
       console.log(`[warm-cron] complete. total=${TOTAL_AMUDIM}`);
+      await refreshStats(cache);
+      await sendCompletionEmail(env);
       return;
     }
 
@@ -104,4 +147,5 @@ export async function runWarmCron(env: WarmEnv): Promise<void> {
   console.log(
     `[warm-cron] processed=${processed} fetched=${fetched} elapsed=${elapsed}ms cursor=${tractateIdx}:${amudIdx}`,
   );
+  await refreshStats(cache);
 }

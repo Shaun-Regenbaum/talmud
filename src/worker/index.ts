@@ -12,7 +12,13 @@ import {
   getRishonimCached,
   getHalachaRefsCached,
 } from './source-cache';
-import { runWarmCron, readWarmCursor, warmProgressProcessed, getWarmTotal } from './warm-cron';
+import { runWarmCron, readWarmCursor, warmProgressProcessed, getWarmTotal, type EmailBinding } from './warm-cron';
+import {
+  computeCacheStats,
+  readCachedCacheStats,
+  writeCachedCacheStats,
+  isFresh,
+} from './cache-stats';
 import { runYomiWarmCron } from './yomi-cron';
 import { GENERATION_IDS, GENERATIONS_PROMPT_REFERENCE, type GenerationId } from '../client/generations';
 import rabbiPlacesData from '../lib/data/rabbi-places.json';
@@ -44,6 +50,7 @@ interface Bindings {
   ASSETS: Fetcher;
   AI?: Ai;
   CACHE?: KVNamespace;
+  EMAIL?: EmailBinding;
 }
 
 function stripHtmlServer(html: string): string {
@@ -68,6 +75,16 @@ app.get('/api/admin/warm-status', async (c) => {
     total,
     percent: total === 0 ? 0 : Math.round((processed / total) * 1000) / 10,
   });
+});
+
+app.get('/api/admin/cache-stats', async (c) => {
+  const cache = c.env.CACHE;
+  if (!cache) return c.json({ error: 'no cache binding' }, 503);
+  const cached = await readCachedCacheStats(cache);
+  if (cached && isFresh(cached)) return c.json(cached);
+  const stats = await computeCacheStats(cache);
+  await writeCachedCacheStats(cache, stats);
+  return c.json(stats);
 });
 
 /**

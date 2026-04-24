@@ -38,3 +38,12 @@ head_sampling_rate = 1  # capture 100% of invocations
 # amudim. See src/worker/yomi-cron.ts. index.ts dispatches on controller.cron.
 [triggers]
 crons = ["*/5 * * * *", "0 3 * * *"]
+
+# Cloudflare Email Service binding. Requires shaunregenbaum.com onboarded
+# at https://dash.cloudflare.com/?to=/:account/email-service/sending
+# (auto-adds MX/SPF/DKIM/DMARC records on cf-bounce.shaunregenbaum.com).
+# Sender uses warm-cron@shaunregenbaum.com; recipient is anywhere.
+# Used by warm-cron.ts to notify on full-shas backfill completion.
+[[send_email]]
+name = "EMAIL"
+remote = true

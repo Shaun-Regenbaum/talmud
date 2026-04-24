@@ -37,8 +37,36 @@ interface UsagePayload {
   reports: BugReport[];
 }
 
+interface CacheBucket {
+  count: number;
+  percent: number;
+}
+interface CacheStats {
+  generatedAt: string;
+  total: number;
+  caches: {
+    hebrewbooks: CacheBucket;
+    arguments: CacheBucket;
+    halacha: CacheBucket;
+    aggadata: CacheBucket;
+    dafContext: CacheBucket & { stage2Count: number };
+  };
+  rabbis: {
+    totalRabbis: number;
+    withBio: number;
+    withWiki: number;
+    unknownRabbis: number | null;
+  };
+}
+
 async function fetchUsage(): Promise<UsagePayload> {
   const res = await fetch('/api/usage');
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+async function fetchCacheStats(): Promise<CacheStats> {
+  const res = await fetch('/api/admin/cache-stats');
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
@@ -53,10 +81,129 @@ function fmtTime(ts: number): string {
   return d.toLocaleString();
 }
 
+function fmtInt(n: number): string {
+  return n.toLocaleString();
+}
+
+interface CacheRowProps {
+  label: string;
+  count: number;
+  total: number;
+  percent: number;
+  extra?: string;
+}
+
+function CacheRow(props: CacheRowProps): JSX.Element {
+  const complete = () => props.percent >= 100;
+  return (
+    <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+      <td style={{ padding: '0.4rem 0.5rem' }}>
+        {props.label}
+        <Show when={props.extra}>
+          <span style={{ color: '#888', 'font-size': '0.75rem', 'margin-left': '0.4rem' }}>
+            ({props.extra})
+          </span>
+        </Show>
+      </td>
+      <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>
+        {fmtInt(props.count)} / {fmtInt(props.total)}
+      </td>
+      <td style={{ padding: '0.4rem 0.5rem', width: '40%' }}>
+        <div
+          style={{
+            height: '8px',
+            background: '#f0f0f0',
+            'border-radius': '3px',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              width: `${Math.min(100, props.percent)}%`,
+              height: '100%',
+              background: complete() ? '#2a8a42' : '#4b7bec',
+              transition: 'width 0.3s ease',
+            }}
+          />
+        </div>
+      </td>
+      <td
+        style={{
+          padding: '0.4rem 0.5rem',
+          'text-align': 'right',
+          'font-variant-numeric': 'tabular-nums',
+          color: complete() ? '#2a8a42' : '#333',
+          'white-space': 'nowrap',
+        }}
+      >
+        {props.percent.toFixed(1)}%
+        <Show when={complete()}>
+          <span style={{ 'margin-left': '0.3rem' }}>✓</span>
+        </Show>
+      </td>
+    </tr>
+  );
+}
+
+function CacheStatusSection(props: { stats: CacheStats }): JSX.Element {
+  const c = () => props.stats.caches;
+  const r = () => props.stats.rabbis;
+  const total = () => props.stats.total;
+  return (
+    <section style={{ 'margin-bottom': '1.6rem' }}>
+      <h2 style={{ 'font-size': '0.95rem', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', color: '#999', 'margin-bottom': '0.5rem' }}>
+        Cache status
+      </h2>
+      <table style={{ width: '100%', 'border-collapse': 'collapse', 'font-size': '0.85rem' }}>
+        <thead>
+          <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
+            <th style={{ padding: '0.4rem 0.5rem' }}>Cache</th>
+            <th style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>Cached</th>
+            <th style={{ padding: '0.4rem 0.5rem' }} />
+            <th style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>%</th>
+          </tr>
+        </thead>
+        <tbody>
+          <CacheRow label="HebrewBooks text" count={c().hebrewbooks.count} total={total()} percent={c().hebrewbooks.percent} />
+          <CacheRow label="Arguments (AI)" count={c().arguments.count} total={total()} percent={c().arguments.percent} />
+          <CacheRow label="Halacha (AI)" count={c().halacha.count} total={total()} percent={c().halacha.percent} />
+          <CacheRow label="Aggadata (AI)" count={c().aggadata.count} total={total()} percent={c().aggadata.percent} />
+          <CacheRow
+            label="Rabbi timeline + geography"
+            count={c().dafContext.count}
+            total={total()}
+            percent={c().dafContext.percent}
+            extra={`stage2: ${fmtInt(c().dafContext.stage2Count)}`}
+          />
+        </tbody>
+      </table>
+
+      <div style={{ 'margin-top': '0.9rem', 'font-size': '0.85rem', color: '#333' }}>
+        <div style={{ color: '#999', 'font-size': '0.75rem', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', 'margin-bottom': '0.3rem' }}>
+          Rabbi bios
+        </div>
+        <div>Rabbis known: <b>{fmtInt(r().totalRabbis)}</b></div>
+        <div>
+          With bio: <b>{fmtInt(r().withBio)}</b>
+          <span style={{ color: '#888' }}> ({((r().withBio / Math.max(1, r().totalRabbis)) * 100).toFixed(1)}%)</span>
+        </div>
+        <div>
+          With Wikipedia: <b>{fmtInt(r().withWiki)}</b>
+          <span style={{ color: '#888' }}> ({((r().withWiki / Math.max(1, r().totalRabbis)) * 100).toFixed(1)}%)</span>
+        </div>
+        <div style={{ color: '#888' }}>
+          Unknown rabbis detected: {r().unknownRabbis === null ? '— (not yet tracked)' : fmtInt(r().unknownRabbis ?? 0)}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function UsagePage(): JSX.Element {
   const [data, { refetch }] = createResource(fetchUsage);
+  const [cacheStats, { refetch: refetchCache }] = createResource(fetchCacheStats);
   // Auto-refresh every 30s.
-  const interval = setInterval(() => { void refetch(); }, 30000);
+  const interval = setInterval(() => { void refetch(); void refetchCache(); }, 30000);
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   if (typeof window !== 'undefined') window.addEventListener('beforeunload', () => clearInterval(interval));
 
@@ -74,7 +221,7 @@ export function UsagePage(): JSX.Element {
         <h1 style={{ margin: 0, 'font-size': '1.4rem' }}>Usage</h1>
         <a href="#daf" style={{ color: '#666', 'font-size': '0.85rem', 'text-decoration': 'none' }}>← back to daf</a>
         <button
-          onClick={() => void refetch()}
+          onClick={() => { void refetch(); void refetchCache(); }}
           style={{
             'margin-left': 'auto',
             padding: '0.3rem 0.7rem',
@@ -88,6 +235,10 @@ export function UsagePage(): JSX.Element {
           Refresh
         </button>
       </header>
+
+      <Show when={cacheStats()}>
+        {(cs) => <CacheStatusSection stats={cs()} />}
+      </Show>
 
       <Show when={data.error}>
         <p style={{ color: '#c33' }}>Failed to load: {String(data.error)}</p>
