@@ -171,13 +171,22 @@ section h2 {
     flex-direction: column;
     gap: 0.75rem;
   }
+  /* The cluster is a horizontal flex row on desktop — stack it on mobile so
+     the commentary strip, daf body, and geo/tree strip don't fight for the
+     same narrow row. */
+  .daf-cluster {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    width: 100%;
+  }
   .daf-aside {
     position: static !important;
     width: 100% !important;
     max-height: none !important;
     overflow: visible !important;
   }
-  .daf-layout > section {
+  .daf-cluster > section {
     padding: 0 12px;
   }
   /* Strips stack full-width below the daf on mobile; desktop stickiness is
