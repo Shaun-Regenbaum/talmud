@@ -289,6 +289,12 @@
   padding-bottom: 0;
   color: inherit;
 }
+/* When the header "Underline Rabbis" toggle is off, hide the underline
+   styling while keeping the rabbi spans in the DOM so timeline/map clicks
+   can still paint the yellow .rabbi-highlighted background. */
+.daf-no-rabbi-underlines .daf-root .daf-text .rabbi-underline {
+  border-bottom: none;
+}
 .daf-root .daf-text .rabbi-underline > .daf-word {
   color: inherit;
 }

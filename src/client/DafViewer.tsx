@@ -1080,9 +1080,12 @@ export default function DafViewer(): JSX.Element {
     // shown in the GeographyMap component in the right-side legend instead.
 
     const rabbis = generations();
-    if (rabbis && showGenMarkers()) {
+    if (rabbis) {
+      // Rabbi spans are always injected so click-driven highlights from the
+      // timeline and geography map can find them via data-rabbi attributes,
+      // even when the visual underline is toggled off. The underline itself
+      // is gated via the .daf-no-rabbi-underlines class on .daf-page (CSS).
       main = injectRabbiUnderlines(main, rabbis);
-      // Rabbi names also appear in commentaries; underline there too.
       if (inner) inner = injectRabbiUnderlines(inner, rabbis);
       if (outer) outer = injectRabbiUnderlines(outer, rabbis);
     }
@@ -1312,6 +1315,42 @@ export default function DafViewer(): JSX.Element {
     syncUrl();
   };
 
+  // "Today's Daf" — fetches the daily Daf Yomi from Sefaria's public
+  // calendar API (same source the yomi-cron pre-warm uses) and jumps to
+  // the "a" amud of that daf.
+  const [yomiLoading, setYomiLoading] = createSignal(false);
+  const [yomiError, setYomiError] = createSignal<string | null>(null);
+  const goToYomi = async () => {
+    if (yomiLoading()) return;
+    setYomiError(null);
+    setYomiLoading(true);
+    try {
+      const now = new Date();
+      const url = `https://www.sefaria.org/api/calendars?year=${now.getFullYear()}&month=${now.getMonth() + 1}&day=${now.getDate()}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Sefaria ${res.status}`);
+      const data = await res.json() as {
+        calendar_items?: Array<{ title?: { en?: string }; displayValue?: { en?: string }; category?: string }>;
+      };
+      const item = data.calendar_items?.find(
+        (ci) => ci.title?.en === 'Daf Yomi' && ci.category === 'Talmud',
+      );
+      const display = item?.displayValue?.en;
+      const m = display?.match(/^(.+?)\s+(\d+)$/);
+      if (!m) throw new Error('No Daf Yomi entry for today');
+      const t = m[1].trim();
+      const p = `${parseInt(m[2], 10)}a`;
+      clearActive();
+      setTractate(t);
+      setPage(p);
+      syncUrl();
+    } catch (err) {
+      setYomiError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setYomiLoading(false);
+    }
+  };
+
   const pageNum = () => parsePage(page()).num;
   const pageAmud = () => parsePage(page()).amud;
 
@@ -1521,7 +1560,7 @@ export default function DafViewer(): JSX.Element {
   });
 
   return (
-    <main class="daf-page">
+    <main class="daf-page" classList={{ 'daf-no-rabbi-underlines': !showGenMarkers() }}>
       <header style={{ display: 'flex', 'align-items': 'center', gap: '0.75rem', 'flex-wrap': 'wrap', 'margin-bottom': '1rem' }}>
         <h1 style={{ margin: 0, 'font-size': '1.25rem' }}>Talmud</h1>
 
@@ -1562,6 +1601,25 @@ export default function DafViewer(): JSX.Element {
           </button>
           <button onClick={() => go(nextPage(page()))} style={{ padding: '0.35rem 0.6rem', cursor: 'pointer' }}>→</button>
         </div>
+
+        <button
+          onClick={goToYomi}
+          disabled={yomiLoading()}
+          title={yomiError() ?? "Jump to today's Daf Yomi"}
+          style={{
+            padding: '0.35rem 0.7rem',
+            cursor: yomiLoading() ? 'wait' : 'pointer',
+            'font-weight': 600,
+            background: yomiError() ? '#c33' : '#0f766e',
+            color: 'white',
+            border: 'none',
+            'border-radius': '4px',
+            'font-size': '0.85rem',
+            opacity: yomiLoading() ? 0.7 : 1,
+          }}
+        >
+          {yomiLoading() ? 'Loading…' : "Today's Daf"}
+        </button>
 
         <span style={{ color: '#888', 'font-size': '0.85rem' }}>
           {tractate()} {page()} · ← / → to navigate · click any word to translate
