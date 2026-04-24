@@ -205,10 +205,35 @@ const halachaSessionCache = new Map<string, HalachaResult>();
 const aggadataSessionCache = new Map<string, AggadataResult>();
 
 const GEN_KEY = 'daf.showGenMarkers';
+const COMMENTARIES_KEY = 'daf.toggle.commentaries';
+const TIMELINE_KEY = 'daf.toggle.timeline';
+const GEOGRAPHY_KEY = 'daf.toggle.geography';
+const CHAIN_KEY = 'daf.toggle.chain';
+const ARGUMENTS_KEY = 'daf.toggle.arguments';
+const HALACHOT_KEY = 'daf.toggle.halachot';
+const AGGADATOT_KEY = 'daf.toggle.aggadatot';
 function loadToggle(key: string, def: boolean): boolean {
   if (typeof localStorage === 'undefined') return def;
   const v = localStorage.getItem(key);
   return v === null ? def : v === 'true';
+}
+
+/** Pill-shaped toggle switch for the daf picker. Persistence is handled by
+ *  the caller via createEffect + localStorage. */
+function ToggleSwitch(props: { label: string; value: boolean; onChange: (next: boolean) => void }): JSX.Element {
+  return (
+    <label class="daf-toggle" data-on={props.value ? 'true' : 'false'} title={props.label}>
+      <input
+        type="checkbox"
+        checked={props.value}
+        onChange={(e) => props.onChange(e.currentTarget.checked)}
+      />
+      <span class="daf-toggle-track" aria-hidden="true">
+        <span class="daf-toggle-thumb" />
+      </span>
+      <span class="daf-toggle-label">{props.label}</span>
+    </label>
+  );
 }
 
 /** Find all .daf-word elements that intersect the given Range. */
@@ -247,6 +272,13 @@ export default function DafViewer(): JSX.Element {
   const [genLoading, setGenLoading] = createSignal(false);
   const [genError, setGenError] = createSignal<string | null>(null);
   const [showGenMarkers, setShowGenMarkers] = createSignal(loadToggle(GEN_KEY, true));
+  const [showCommentaries, setShowCommentaries] = createSignal(loadToggle(COMMENTARIES_KEY, true));
+  const [showTimeline, setShowTimeline] = createSignal(loadToggle(TIMELINE_KEY, true));
+  const [showGeography, setShowGeography] = createSignal(loadToggle(GEOGRAPHY_KEY, true));
+  const [showChain, setShowChain] = createSignal(loadToggle(CHAIN_KEY, true));
+  const [showArguments, setShowArguments] = createSignal(loadToggle(ARGUMENTS_KEY, true));
+  const [showHalachot, setShowHalachot] = createSignal(loadToggle(HALACHOT_KEY, true));
+  const [showAggadatot, setShowAggadatot] = createSignal(loadToggle(AGGADATOT_KEY, true));
 
   // Back-compat: underline injection + timeline take a GenerationRabbi[]; derive it.
   const generations = createMemo<GenerationRabbi[] | null>(() => {
@@ -353,8 +385,62 @@ export default function DafViewer(): JSX.Element {
   const [dafRootEl, setDafRootEl] = createSignal<HTMLElement | null>(null);
 
   createEffect(() => {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(GEN_KEY, String(showGenMarkers()));
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(GEN_KEY, String(showGenMarkers()));
+  });
+  createEffect(() => {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(COMMENTARIES_KEY, String(showCommentaries()));
+  });
+  createEffect(() => {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(TIMELINE_KEY, String(showTimeline()));
+  });
+  createEffect(() => {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(GEOGRAPHY_KEY, String(showGeography()));
+  });
+  createEffect(() => {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(CHAIN_KEY, String(showChain()));
+  });
+  createEffect(() => {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(ARGUMENTS_KEY, String(showArguments()));
+  });
+  createEffect(() => {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(HALACHOT_KEY, String(showHalachot()));
+  });
+  createEffect(() => {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(AGGADATOT_KEY, String(showAggadatot()));
+  });
+
+  // Turning off arguments/halachot/aggadatot should also dismiss any open
+  // sidebar content for that category so the view doesn't strand state.
+  createEffect(() => {
+    if (!showArguments() && sidebar()?.kind === 'argument') {
+      setSidebar(null);
+      setActiveRabbi(null);
+    }
+  });
+  createEffect(() => {
+    if (!showHalachot() && sidebar()?.kind === 'halacha') {
+      setSidebar(null);
+      setActiveRabbi(null);
+    }
+  });
+  createEffect(() => {
+    if (!showAggadatot() && sidebar()?.kind === 'aggadata') {
+      setSidebar(null);
+      setActiveStoryIndex(null);
+    }
+  });
+  createEffect(() => {
+    if (!showCommentaries()) {
+      setActiveCommentaryWork(null);
+      setActiveCommentarySegIdx(null);
     }
   });
 
@@ -1006,7 +1092,7 @@ export default function DafViewer(): JSX.Element {
     // clicks can light them up. Union of matched sets across columns is
     // returned so the map knows which gray place-dots to draw.
     const placeMatches = new Set<string>();
-    if (showGenMarkers()) {
+    if (showGeography()) {
       const m1 = injectCityMarkers(main);
       main = m1.html;
       m1.matched.forEach((c) => placeMatches.add(c));
@@ -1035,7 +1121,7 @@ export default function DafViewer(): JSX.Element {
 
     // Argument-section anchors: one per section that has a Hebrew excerpt.
     const a = analysis();
-    if (a) {
+    if (a && showArguments()) {
       const anchors = a.sections
         .map((s, i) => ({ excerpt: s.excerpt ?? '', index: i }))
         .filter((x) => x.excerpt.length > 0);
@@ -1048,7 +1134,7 @@ export default function DafViewer(): JSX.Element {
 
     // Halacha anchors: one per topic with an excerpt.
     const h = halacha();
-    if (h) {
+    if (h && showHalachot()) {
       const anchors = h.topics
         .map((t, i) => ({ excerpt: t.excerpt ?? '', index: i }))
         .filter((x) => x.excerpt.length > 0);
@@ -1058,7 +1144,7 @@ export default function DafViewer(): JSX.Element {
     // Aggadata anchors: one per story, placed at the opening excerpt so the
     // highlight can span from anchor to next story (or end of amud).
     const ag = aggadata();
-    if (ag) {
+    if (ag && showAggadatot()) {
       const anchors = ag.stories
         .map((s, i) => ({ excerpt: s.excerpt ?? '', index: i }))
         .filter((x) => x.excerpt.length > 0);
@@ -1480,37 +1566,52 @@ export default function DafViewer(): JSX.Element {
         <span style={{ color: '#888', 'font-size': '0.85rem' }}>
           {tractate()} {page()} · ← / → to navigate · click any word to translate
         </span>
+
+        <div class="daf-toggles">
+          <ToggleSwitch label="Commentaries" value={showCommentaries()} onChange={setShowCommentaries} />
+          <ToggleSwitch label="Timeline" value={showTimeline()} onChange={setShowTimeline} />
+          <ToggleSwitch label="Underline Rabbis" value={showGenMarkers()} onChange={setShowGenMarkers} />
+          <ToggleSwitch label="Geography" value={showGeography()} onChange={setShowGeography} />
+          <ToggleSwitch label="Chain" value={showChain()} onChange={setShowChain} />
+          <ToggleSwitch label="Arguments" value={showArguments()} onChange={setShowArguments} />
+          <ToggleSwitch label="Halachot" value={showHalachot()} onChange={setShowHalachot} />
+          <ToggleSwitch label="Aggadatot" value={showAggadatot()} onChange={setShowAggadatot} />
+        </div>
       </header>
 
       <div class="daf-layout">
       <div class="daf-cluster">
-      <aside class="daf-strip daf-strip-left">
-        <CommentaryStrip
-          works={commentaryWorks()}
-          loading={commentariesLoading()}
-          activeTitle={activeCommentaryWork()}
-          onSelect={selectCommentaryWork}
-          activeSegIdx={activeCommentarySegIdx()}
-          activeComments={activeCommentaryComments()}
-          tractate={tractate()}
-          page={page()}
-          onCloseSegment={() => {
-            setActiveCommentarySegIdx(null);
-            if (sidebar() === null) setLastInteractedCard(null);
-          }}
-        />
-      </aside>
+      <Show when={showCommentaries()}>
+        <aside class="daf-strip daf-strip-left">
+          <CommentaryStrip
+            works={commentaryWorks()}
+            loading={commentariesLoading()}
+            activeTitle={activeCommentaryWork()}
+            onSelect={selectCommentaryWork}
+            activeSegIdx={activeCommentarySegIdx()}
+            activeComments={activeCommentaryComments()}
+            tractate={tractate()}
+            page={page()}
+            onCloseSegment={() => {
+              setActiveCommentarySegIdx(null);
+              if (sidebar() === null) setLastInteractedCard(null);
+            }}
+          />
+        </aside>
+      </Show>
       <section class="daf-body-col">
-      <GenerationTimeline
-        rabbis={generations()}
-        activeGeneration={activeGenerationId()}
-        onHighlightGeneration={onHighlightGeneration}
-        width={dafWidth()}
-        showGenMarkers={showGenMarkers()}
-        onToggleGenMarkers={setShowGenMarkers}
-        genLoading={genLoading()}
-        genError={genError()}
-      />
+      <Show when={showTimeline()}>
+        <GenerationTimeline
+          rabbis={generations()}
+          activeGeneration={activeGenerationId()}
+          onHighlightGeneration={onHighlightGeneration}
+          width={dafWidth()}
+          showGenMarkers={showGenMarkers()}
+          onToggleGenMarkers={setShowGenMarkers}
+          genLoading={genLoading()}
+          genError={genError()}
+        />
+      </Show>
       <div class="daf-surface" onMouseUp={onMouseUpRoot} style={{ display: 'flex', 'justify-content': 'center' }}>
         <Show
           when={!daf.loading && tokenized()}
@@ -1533,33 +1634,39 @@ export default function DafViewer(): JSX.Element {
                 amud={pageAmud()}
                 options={{ contentWidth: dafWidth(), mainWidth: 0.48 }}
               />
-              <GutterIcons
-                containerRef={dafRootEl}
-                triggerKey={gutterKey()}
-                onClick={onGutterClick}
-                kind="argument"
-                x={ARG_X}
-                edgeX={ARG_EDGE_X}
-                activeKey={sidebarActiveKey()}
-              />
-              <GutterIcons
-                containerRef={dafRootEl}
-                triggerKey={gutterKey()}
-                onClick={onGutterClick}
-                kind="halacha"
-                x={HALACHA_X}
-                edgeX={HALACHA_EDGE_X}
-                activeKey={sidebarActiveKey()}
-              />
-              <GutterIcons
-                containerRef={dafRootEl}
-                triggerKey={gutterKey()}
-                onClick={onGutterClick}
-                kind="aggadata"
-                x={AGG_X}
-                edgeX={AGG_EDGE_X}
-                activeKey={sidebarActiveKey()}
-              />
+              <Show when={showArguments()}>
+                <GutterIcons
+                  containerRef={dafRootEl}
+                  triggerKey={gutterKey()}
+                  onClick={onGutterClick}
+                  kind="argument"
+                  x={ARG_X}
+                  edgeX={ARG_EDGE_X}
+                  activeKey={sidebarActiveKey()}
+                />
+              </Show>
+              <Show when={showHalachot()}>
+                <GutterIcons
+                  containerRef={dafRootEl}
+                  triggerKey={gutterKey()}
+                  onClick={onGutterClick}
+                  kind="halacha"
+                  x={HALACHA_X}
+                  edgeX={HALACHA_EDGE_X}
+                  activeKey={sidebarActiveKey()}
+                />
+              </Show>
+              <Show when={showAggadatot()}>
+                <GutterIcons
+                  containerRef={dafRootEl}
+                  triggerKey={gutterKey()}
+                  onClick={onGutterClick}
+                  kind="aggadata"
+                  x={AGG_X}
+                  edgeX={AGG_EDGE_X}
+                  activeKey={sidebarActiveKey()}
+                />
+              </Show>
             </div>
           )}
         </Show>
@@ -1660,34 +1767,40 @@ export default function DafViewer(): JSX.Element {
       </footer>
       </section>
 
-      <aside class="daf-strip daf-strip-right">
-        <GeographyStrip
-          onHighlightLocation={onHighlightLocation}
-          activeLocation={activeLocation()}
-          tractate={tractate()}
-          page={page()}
-          rabbiPlaces={rabbiPlaces()}
-          loading={genLoading()}
-          generationByName={generationByName()}
-          onHighlightSingleRabbi={openRabbi}
-          onHoverRabbi={setHoveredRabbi}
-          placesInText={citiesInText()}
-          onHighlightPlace={(name) => {
-            setActiveRabbi(null);
-            setActiveLocation(null);
-            setActiveLocationRabbis([]);
-            setActivePlace(name);
-          }}
-          activePlace={activePlace()}
-        />
-        <RabbiTreeStrip
-          rabbis={dafContext()?.rabbis ?? []}
-          onOpenRabbiSlug={openRabbiSlug}
-          onHoverRabbi={setHoveredRabbi}
-          hoveredRabbi={hoveredRabbi()}
-          activeRabbi={activeRabbi()}
-        />
-      </aside>
+      <Show when={showGeography() || showChain()}>
+        <aside class="daf-strip daf-strip-right">
+          <Show when={showGeography()}>
+            <GeographyStrip
+              onHighlightLocation={onHighlightLocation}
+              activeLocation={activeLocation()}
+              tractate={tractate()}
+              page={page()}
+              rabbiPlaces={rabbiPlaces()}
+              loading={genLoading()}
+              generationByName={generationByName()}
+              onHighlightSingleRabbi={openRabbi}
+              onHoverRabbi={setHoveredRabbi}
+              placesInText={citiesInText()}
+              onHighlightPlace={(name) => {
+                setActiveRabbi(null);
+                setActiveLocation(null);
+                setActiveLocationRabbis([]);
+                setActivePlace(name);
+              }}
+              activePlace={activePlace()}
+            />
+          </Show>
+          <Show when={showChain()}>
+            <RabbiTreeStrip
+              rabbis={dafContext()?.rabbis ?? []}
+              onOpenRabbiSlug={openRabbiSlug}
+              onHoverRabbi={setHoveredRabbi}
+              hoveredRabbi={hoveredRabbi()}
+              activeRabbi={activeRabbi()}
+            />
+          </Show>
+        </aside>
+      </Show>
       </div>
 
       <Show when={!isMobile()}>

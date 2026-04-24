@@ -7,6 +7,7 @@ interface RabbiLite {
   name: string;
   nameHe: string;
   generation: GenerationId;
+  region?: 'israel' | 'bavel' | null;
 }
 
 interface HierarchyNode {
@@ -33,7 +34,7 @@ const HIERARCHY = rabbiHierarchyData as unknown as HierarchyFile;
 // Four broad eras. The sketch shows these as the vertical skeleton of the
 // tree — rabbis anchor to their era, connector lines cross eras to
 // represent teacher→student lineage.
-type EraId = 'zugim' | 'tannaim' | 'amoraim-ey' | 'amoraim-bavel' | 'savoraim';
+type EraId = 'zugim' | 'tannaim' | 'amoraim' | 'savoraim';
 interface Era {
   id: EraId;
   label: string;
@@ -41,22 +42,31 @@ interface Era {
   generationIds: GenerationId[];
 }
 
-// Amoraim split by region so the reader can see Eretz-Yisrael vs.
-// Babylonian lineages separately. Generation colors from the existing
-// palette ensure each era bar matches its underline color scheme.
+// Same four eras the generation timeline uses. Region (E.Y. vs Bavel)
+// is surfaced per-pill via a small B/E badge rather than by splitting
+// the era — the timeline already collapses regions together per row,
+// and splitting felt heavy in such a narrow strip.
 const ERAS: Era[] = [
-  { id: 'zugim',         label: 'Zugim',           color: GENERATION_BY_ID['zugim'].color, generationIds: ['zugim'] },
-  { id: 'tannaim',       label: 'Tannaim',         color: GENERATION_BY_ID['tanna-4'].color,
+  { id: 'zugim',    label: 'Zugim',    color: GENERATION_BY_ID['zugim'].color, generationIds: ['zugim'] },
+  { id: 'tannaim',  label: 'Tannaim',  color: GENERATION_BY_ID['tanna-4'].color,
     generationIds: ['tanna-1','tanna-2','tanna-3','tanna-4','tanna-5','tanna-6'] },
-  { id: 'amoraim-ey',    label: 'Amoraim · E.Y.',  color: GENERATION_BY_ID['amora-ey-3'].color,
-    generationIds: ['amora-ey-1','amora-ey-2','amora-ey-3','amora-ey-4','amora-ey-5'] },
-  { id: 'amoraim-bavel', label: 'Amoraim · Bavel', color: GENERATION_BY_ID['amora-bavel-4'].color,
+  { id: 'amoraim',  label: 'Amoraim',  color: GENERATION_BY_ID['amora-bavel-4'].color,
     generationIds: [
+      'amora-ey-1','amora-ey-2','amora-ey-3','amora-ey-4','amora-ey-5',
       'amora-bavel-1','amora-bavel-2','amora-bavel-3','amora-bavel-4',
       'amora-bavel-5','amora-bavel-6','amora-bavel-7','amora-bavel-8',
     ] },
-  { id: 'savoraim',      label: 'Savoraim',        color: GENERATION_BY_ID['savora'].color, generationIds: ['savora'] },
+  { id: 'savoraim', label: 'Savoraim', color: GENERATION_BY_ID['savora'].color, generationIds: ['savora'] },
 ];
+
+// Derive region from the generation ID when we don't have an explicit
+// region field (fallback for linked rabbis that come from the hierarchy
+// JSON but where region is null).
+function regionForGeneration(gen: string): 'israel' | 'bavel' | null {
+  if (gen.startsWith('amora-ey')) return 'israel';
+  if (gen.startsWith('amora-bavel')) return 'bavel';
+  return null;
+}
 
 function eraForGeneration(gen: string): EraId | null {
   for (const e of ERAS) {
@@ -85,6 +95,7 @@ interface ColumnEntry {
   slug: string | null;
   canonical: string;
   generation: string;
+  region: 'israel' | 'bavel' | null;
   onDaf: boolean;
   role?: 'teacher' | 'student' | 'colleague';  // only set when !onDaf
 }
@@ -103,7 +114,7 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
   // any 1-hop teachers/students/colleagues from the hierarchy who aren't
   // already on the daf. Sorted so on-daf rabbis appear first.
   const entriesByEra = createMemo<Record<EraId, ColumnEntry[]>>(() => {
-    const out: Record<EraId, ColumnEntry[]> = { zugim: [], tannaim: [], 'amoraim-ey': [], 'amoraim-bavel': [], savoraim: [] };
+    const out: Record<EraId, ColumnEntry[]> = { zugim: [], tannaim: [], amoraim: [], savoraim: [] };
     const seenBySlug = new Set<string>();
 
     for (const r of props.rabbis) {
@@ -112,7 +123,8 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
       const key = r.slug ?? `name:${r.name}`;
       if (seenBySlug.has(key)) continue;
       seenBySlug.add(key);
-      out[era].push({ slug: r.slug ?? null, canonical: r.name, generation: r.generation, onDaf: true });
+      const region = r.region ?? regionForGeneration(r.generation);
+      out[era].push({ slug: r.slug ?? null, canonical: r.name, generation: r.generation, region, onDaf: true });
     }
 
     if (hasEdges) {
@@ -127,7 +139,8 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
           const era = eraForGeneration(n.generation);
           if (!era) return;
           seenBySlug.add(linkedSlug);
-          out[era].push({ slug: linkedSlug, canonical: n.canonical, generation: n.generation, onDaf: false, role });
+          const region = (n.region === 'israel' || n.region === 'bavel') ? n.region : regionForGeneration(n.generation);
+          out[era].push({ slug: linkedSlug, canonical: n.canonical, generation: n.generation, region, onDaf: false, role });
         };
         for (const t of node.teachers) addLinked(t, 'teacher');
         for (const s of node.students) addLinked(s, 'student');
@@ -320,6 +333,23 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
                         <Show when={!e.onDaf}>
                           <span style={{ 'font-size': '0.58rem', 'margin-right': '0.2rem', color: '#999' }}>
                             {e.role === 'teacher' ? '▲' : e.role === 'student' ? '▼' : '○'}
+                          </span>
+                        </Show>
+                        <Show when={e.region === 'bavel' || e.region === 'israel'}>
+                          <span
+                            title={e.region === 'bavel' ? 'Bavel' : 'Eretz Yisrael'}
+                            style={{
+                              display: 'inline-block',
+                              'font-size': '0.58rem',
+                              'font-weight': 700,
+                              'font-family': 'ui-monospace, SFMono-Regular, monospace',
+                              color: e.region === 'bavel' ? '#92400e' : '#1f2937',
+                              'margin-right': '0.25rem',
+                              'min-width': '0.7rem',
+                              'text-align': 'center',
+                            }}
+                          >
+                            {e.region === 'bavel' ? 'B' : 'E'}
                           </span>
                         </Show>
                         {e.canonical}

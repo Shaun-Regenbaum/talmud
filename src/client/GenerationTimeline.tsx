@@ -153,48 +153,35 @@ export function GenerationTimeline(props: GenerationTimelineProps): JSX.Element 
         color: '#555',
       }}
     >
-      {/* Header row: underline toggle sits next to the timeline. */}
-      <div
-        style={{
-          display: 'flex',
-          'justify-content': 'flex-end',
-          'align-items': 'center',
-          'margin-bottom': '0.3rem',
-        }}
-      >
-        <label
+      <Show when={props.genLoading || props.genError}>
+        {/* The underline-rabbis toggle now lives in the daf picker header; the
+            timeline keeps only a thin loading/error indicator so users can still
+            see when the generation data is being fetched or failed. */}
+        <div
           style={{
-            display: 'inline-flex',
+            display: 'flex',
+            'justify-content': 'flex-end',
             'align-items': 'center',
             gap: '0.35rem',
-            cursor: 'pointer',
-            'font-size': '0.7rem',
-            color: '#666',
+            'margin-bottom': '0.3rem',
+            'font-size': '0.65rem',
+            color: '#888',
           }}
         >
-          <input
-            type="checkbox"
-            checked={props.showGenMarkers}
-            onChange={(e) => props.onToggleGenMarkers(e.currentTarget.checked)}
-            style={{ cursor: 'pointer' }}
-          />
-          <span>Rabbi-era underlines</span>
           <Show when={props.genLoading}>
-            <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.35rem', color: '#888', 'font-size': '0.65rem' }}>
-              <span style={{
-                display: 'inline-block', width: '0.65rem', height: '0.65rem',
-                'border-radius': '50%',
-                border: '2px solid #d6d3d1', 'border-top-color': '#7c2d12',
-                animation: 'daf-spin 0.8s linear infinite',
-              }} />
-              Organizing the timeline…
-            </span>
+            <span style={{
+              display: 'inline-block', width: '0.65rem', height: '0.65rem',
+              'border-radius': '50%',
+              border: '2px solid #d6d3d1', 'border-top-color': '#7c2d12',
+              animation: 'daf-spin 0.8s linear infinite',
+            }} />
+            <span>Organizing the timeline…</span>
           </Show>
           <Show when={props.genError}>
-            <span style={{ color: '#c33', 'font-size': '0.65rem' }}>failed</span>
+            <span style={{ color: '#c33' }}>failed</span>
           </Show>
-        </label>
-      </div>
+        </div>
+      </Show>
 
       {/* Four equal-width sections. */}
       <div style={{ display: 'flex', gap: '6px', 'align-items': 'stretch' }}>

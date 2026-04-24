@@ -171,6 +171,26 @@ async function main() {
       const sCount = (json.students ?? []).length;
       const cCount = (json.colleagues ?? []).length;
       console.log(`[${done}/${total}] ${elapsed}s  ${slug.padEnd(40)} T=${tCount} S=${sCount} C=${cCount}`);
+
+      // Checkpoint write every 25 completed slugs so long runs survive
+      // interruption (crash / Ctrl-C) and --resume can pick up where we
+      // left off rather than re-processing everything from scratch.
+      if (!DRY_RUN && done % 25 === 0) {
+        const processedSoFar = Object.values(nodes).filter((n) => n.processed).length;
+        const withEdgesSoFar = Object.values(nodes).filter((n) =>
+          n.teachers.length || n.students.length || n.colleagues.length
+        ).length;
+        const checkpoint = {
+          generatedAt: new Date().toISOString(),
+          source: `${URL}/api/admin/rabbi-relationships`,
+          totalNodes: Object.keys(nodes).length,
+          processedNodes: processedSoFar,
+          nodesWithEdges: withEdgesSoFar,
+          nodes,
+        };
+        await writeFile(OUT_PATH, JSON.stringify(checkpoint, null, 2) + '\n', 'utf-8');
+        console.log(`[hierarchy] checkpoint: ${processedSoFar} processed, ${withEdgesSoFar} with edges`);
+      }
     }
   })());
 
