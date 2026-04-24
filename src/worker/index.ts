@@ -13,6 +13,7 @@ import {
   getHalachaRefsCached,
 } from './source-cache';
 import { runWarmCron, readWarmCursor, warmProgressProcessed, getWarmTotal } from './warm-cron';
+import { runYomiWarmCron } from './yomi-cron';
 import { GENERATION_IDS, GENERATIONS_PROMPT_REFERENCE, type GenerationId } from '../client/generations';
 import rabbiPlacesData from '../lib/data/rabbi-places.json';
 
@@ -2950,9 +2951,15 @@ app.post('/api/admin/translate-bio', async (c) => {
   }
 });
 
+const YOMI_WARM_CRON = '0 3 * * *';
+
 export default {
   fetch: (req: Request, env: Bindings, ctx: ExecutionContext) => app.fetch(req, env, ctx),
-  scheduled: (_controller: ScheduledController, env: Bindings, ctx: ExecutionContext) => {
-    ctx.waitUntil(runWarmCron(env));
+  scheduled: (controller: ScheduledController, env: Bindings, ctx: ExecutionContext) => {
+    if (controller.cron === YOMI_WARM_CRON) {
+      ctx.waitUntil(runYomiWarmCron());
+    } else {
+      ctx.waitUntil(runWarmCron(env));
+    }
   },
 } satisfies ExportedHandler<Bindings>;

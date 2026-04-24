@@ -32,5 +32,9 @@ head_sampling_rate = 1  # capture 100% of invocations
 # Background cache-warmer. Walks the full shas at ~1 amud/sec, 20 per run,
 # filling KV with no TTL. Latches to done when complete; bump warm-cursor:v1
 # key to force a re-walk. See src/worker/warm-cron.ts.
+#
+# Second cron (03:00 UTC daily) pre-warms tomorrow's Daf Yomi — analyze,
+# halacha, aggadata, and daf-context (rabbi timeline + geography) for both
+# amudim. See src/worker/yomi-cron.ts. index.ts dispatches on controller.cron.
 [triggers]
-crons = ["*/5 * * * *"]
+crons = ["*/5 * * * *", "0 3 * * *"]
