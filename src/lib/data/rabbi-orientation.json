@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-04-24T09:36:44.468Z",
+  "generatedAt": "2026-04-24T10:02:53.654Z",
   "source": "https://talmud.shaunregenbaum.com/api/admin/rabbi-orientation",
   "totalNodes": 1301,
-  "processedNodes": 218,
+  "processedNodes": 381,
   "nodes": {
     "rabbi-yochanan-b-napacha": {
       "canonical": "Rabbi Yochanan b. Napacha",
@@ -10126,37 +10126,41 @@
       "canonical": "Rabbi Shimon b. Elikim",
       "generation": "amora-ey-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Tiberias"
+      ],
+      "processed": true
     },
     "rabbi-abba-b-pappa": {
       "canonical": "Rabbi Abba b. Pappa",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "unknown",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-abba-of-akko": {
       "canonical": "Rabbi Abba of Akko",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "unknown",
+      "domain": "aggadist",
+      "academies": [
+        "Caesarea"
+      ],
+      "processed": true
     },
     "rabbi-tanchum-bar-chanilai": {
       "canonical": "Rabbi Tanchum bar Chanilai",
       "generation": "amora-ey-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "mystical",
+      "domain": "aggadist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-abba-bar-kuryah": {
       "canonical": "Rabbi Abba bar Kuryah",
@@ -10171,64 +10175,76 @@
       "canonical": "Rabbi Abba of Kartigna",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "aggadist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-aha-b-hanina": {
       "canonical": "Rabbi Aha b. Hanina",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "unknown",
+      "domain": "aggadist",
+      "academies": [
+        "Tiberias"
+      ],
+      "processed": true
     },
     "rabbi-aibu": {
       "canonical": "Rabbi Aibu",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "unknown",
+      "domain": "aggadist",
+      "academies": [
+        "Tiberias"
+      ],
+      "processed": true
     },
     "rabbi-ami": {
       "canonical": "Rabbi Ami",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Tiberias"
+      ],
+      "processed": true
     },
     "rabbi-assi-2": {
       "canonical": "Rabbi Assi",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Tiberias"
+      ],
+      "processed": true
     },
     "rabbi-ila": {
       "canonical": "Rabbi Ila",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "unknown",
+      "domain": "both",
+      "academies": [
+        "Tiberias"
+      ],
+      "processed": true
     },
     "rabbi-binyamin-b-yefet": {
       "canonical": "Rabbi Binyamin b. Yefet",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "unknown",
+      "domain": "aggadist",
+      "academies": [
+        "Tiberias"
+      ],
+      "processed": true
     },
     "rabbi-ami-of-vardina": {
       "canonical": "Rabbi Ami of Vardina",
@@ -10243,37 +10259,41 @@
       "canonical": "Rabbi Hama b. Ukva",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "unknown",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-hanina-b-agil": {
       "canonical": "Rabbi Hanina b. Agil",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "unknown",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-hanina-bar-papi": {
       "canonical": "Rabbi Hanina bar Papi",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "mystical",
+      "domain": "aggadist",
+      "academies": [
+        "Tiberias"
+      ],
+      "processed": true
     },
     "rav-chaga": {
       "canonical": "Rav Chaga",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Tiberias"
+      ],
+      "processed": true
     },
     "rabbi-yudan-b-yishmael": {
       "canonical": "Rabbi Yudan b. Yishmael",
@@ -10288,145 +10308,159 @@
       "canonical": "Rabbi Hanina b. Pazi",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "aggadist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-yitzchak-bar-abba": {
       "canonical": "Rabbi Yitzchak bar Abba",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "rabbi-yosei-ha-glila": {
       "canonical": "Rabbi Yosei ha-Glila",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "unknown",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-avira": {
       "canonical": "Rabbi Avira",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "both",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-pedat": {
       "canonical": "Rabbi Pedat",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Tiberias"
+      ],
+      "processed": true
     },
     "rabbi-yitzchak-atushia": {
       "canonical": "Rabbi Yitzchak Atushia",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Tiberias"
+      ],
+      "processed": true
     },
     "rabbi-perida": {
       "canonical": "Rabbi Perida",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "unknown",
+      "domain": "aggadist",
+      "academies": [
+        "Tiberias"
+      ],
+      "processed": true
     },
     "rabbi-anani-b-sasson": {
       "canonical": "Rabbi Anani b. Sasson",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "aggadist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-avina": {
       "canonical": "Rabbi Avina",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "unknown",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-shila-of-kfar-tamarta": {
       "canonical": "Rabbi Shila of Kfar Tamarta",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-shmuel-b-yehuda": {
       "canonical": "Rav Shmuel b. Yehuda",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "unknown",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-yosei-of-yokrat": {
       "canonical": "Rabbi Yosei of Yokrat",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "aggadist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-shmuel-bar-rav-yitzchak": {
       "canonical": "Rabbi Shmuel bar Rav Yitzchak",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "unknown",
+      "domain": "aggadist",
+      "academies": [
+        "Tiberias"
+      ],
+      "processed": true
     },
     "rabbi-abba-b-kahana": {
       "canonical": "Rabbi Abba b. Kahana",
       "generation": "amora-ey-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "aggadist",
+      "academies": [
+        "Tiberias"
+      ],
+      "processed": true
     },
     "rabbi-tachlifa-bar-ma-arava": {
       "canonical": "Rabbi Tachlifa bar Ma'arava",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Tiberias"
+      ],
+      "processed": true
     },
     "rabbi-pharnakh": {
       "canonical": "Rabbi Pharnakh",
       "generation": "amora-ey-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "unknown",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-abba-b-zavina": {
       "canonical": "Rabbi Abba b. Zavina",
@@ -10450,10 +10484,12 @@
       "canonical": "Rabbi Abba bar Pappai",
       "generation": "amora-ey-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "unknown",
+      "domain": "aggadist",
+      "academies": [
+        "Tiberias"
+      ],
+      "processed": true
     },
     "rabbi-abba-oshaya-ish-turya": {
       "canonical": "Rabbi Abba Oshaya ish Turya",
@@ -10477,10 +10513,10 @@
       "canonical": "Rabbi Yehuda bar Titas",
       "generation": "amora-ey-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "unknown",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-avya": {
       "canonical": "Rav Avya",
@@ -10513,55 +10549,57 @@
       "canonical": "Rabbi Yehoshua of Sakhnin",
       "generation": "amora-ey-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "aggadist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-yosei-tzidonia": {
       "canonical": "Rabbi Yosei Tzidonia",
       "generation": "amora-ey-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-yehuda-b-shila": {
       "canonical": "Rabbi Yehuda b. Shila",
       "generation": "amora-ey-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "both",
+      "academies": [
+        "Tiberias"
+      ],
+      "processed": true
     },
     "rav-huna-son-of-rav-ika": {
       "canonical": "Rav Huna son of Rav Ika",
       "generation": "amora-ey-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-yosna": {
       "canonical": "Rabbi Yosna",
       "generation": "amora-ey-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-yaakov-bar-zavdi": {
       "canonical": "Rabbi Yaakov bar Zavdi",
       "generation": "amora-ey-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "unknown",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-yaakov-of-kfar-nevurya": {
       "canonical": "Rabbi Yaakov of Kfar Nevurya",
@@ -10585,28 +10623,30 @@
       "canonical": "Rabbi Hilkiah",
       "generation": "amora-ey-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "aggadist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabban-gamliel-v": {
       "canonical": "Rabban Gamliel V",
       "generation": "amora-ey-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "unknown",
+      "academies": [
+        "Tiberias"
+      ],
+      "processed": true
     },
     "rabbi-yusta-bar-shunem": {
       "canonical": "Rabbi Yusta bar Shunem",
       "generation": "amora-ey-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-hillel-ii": {
       "canonical": "Rabbi Hillel II",
@@ -10621,19 +10661,19 @@
       "canonical": "Rabbi Yehuda b. Shalom",
       "generation": "amora-ey-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "aggadist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-yona-of-bostra": {
       "canonical": "Rabbi Yona of Bostra",
       "generation": "amora-ey-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-ravin": {
       "canonical": "Rabbi Ravin",
@@ -10648,10 +10688,10 @@
       "canonical": "Rabbi Matanya",
       "generation": "amora-ey-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "aggadist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-eliezer-zeira": {
       "canonical": "Rav Eliezer Zeira",
@@ -10666,37 +10706,43 @@
       "canonical": "Rabbi Shimon b. Karsana",
       "generation": "amora-ey-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "unknown",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbi-yosei-berabbi-bun": {
       "canonical": "Rabbi Yosei beRabbi Bun",
       "generation": "amora-ey-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Tiberias"
+      ],
+      "processed": true
     },
     "rabbi-yosei-bar-zevida": {
       "canonical": "Rabbi Yosei bar Zevida",
       "generation": "amora-ey-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Tiberias"
+      ],
+      "processed": true
     },
     "rabbi-hananiah": {
       "canonical": "Rabbi Hananiah",
       "generation": "amora-ey-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "both",
+      "academies": [
+        "Tzippori"
+      ],
+      "processed": true
     },
     "rav-karna": {
       "canonical": "Rav Karna",
@@ -10711,28 +10757,32 @@
       "canonical": "Rabbi Yitzchak b. Avdimi",
       "generation": "amora-bavel-1",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Tzippori"
+      ],
+      "processed": true
     },
     "rav-yechezkel": {
       "canonical": "Rav Yechezkel",
       "generation": "amora-bavel-1",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-shila": {
       "canonical": "Rav Shila",
       "generation": "amora-bavel-1",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Nehardea"
+      ],
+      "processed": true
     },
     "rav-avimi": {
       "canonical": "Rav Avimi",
@@ -10747,28 +10797,33 @@
       "canonical": "Rav Shmuel bar Sheilat",
       "generation": "amora-bavel-1",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Sura",
+        "Bnei Brak"
+      ],
+      "processed": true
     },
     "rav-avin-naggara": {
       "canonical": "Rav Avin Naggara",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "aggadist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-ada-b-ahavah": {
       "canonical": "Rav Ada b. Ahavah",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Sura"
+      ],
+      "processed": true
     },
     "rav-ashian-b-nadvach": {
       "canonical": "Rav Ashian b. Nadvach",
@@ -10783,154 +10838,168 @@
       "canonical": "Rav Aha b. Dala",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-bruna": {
       "canonical": "Rav Bruna",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-hamnuna-saba": {
       "canonical": "Rav Hamnuna Saba",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "mystical",
+      "domain": "aggadist",
+      "academies": [
+        "Sura"
+      ],
+      "processed": true
     },
     "rav-hamnuna": {
       "canonical": "Rav Hamnuna",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Sura"
+      ],
+      "processed": true
     },
     "rav-hana-b-bizna": {
       "canonical": "Rav Hana b. Bizna",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "aggadist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "rav-hilkiah-b-tovi": {
       "canonical": "Rav Hilkiah b. Tovi",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-hiyya-bar-gamda": {
       "canonical": "Rav Hiyya bar Gamda",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "unknown",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-hinena-bar-shalmya": {
       "canonical": "Rav Hinena bar Shalmya",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Sura"
+      ],
+      "processed": true
     },
     "rav-hanan-bar-ami": {
       "canonical": "Rav Hanan bar Ami",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-chama-b-guria": {
       "canonical": "Rav Chama b. Guria",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "both",
+      "academies": [
+        "Sura"
+      ],
+      "processed": true
     },
     "rav-hana-bar-hanilai": {
       "canonical": "Rav Hana bar Hanilai",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "unknown",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-tavla": {
       "canonical": "Rav Tavla",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-yehuda-b-chaviva": {
       "canonical": "Rav Yehuda b. Chaviva",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-yosef-b-abba": {
       "canonical": "Rav Yosef b. Abba",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-hananel": {
       "canonical": "Rav Hananel",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Sura"
+      ],
+      "processed": true
     },
     "rav-yechiel": {
       "canonical": "Rav Yechiel",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-yitzchak-b-shmuel-b-marta": {
       "canonical": "Rav Yitzchak b. Shmuel b. Marta",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "rav-yeva-the-father-in-law-of-ashian-b-nadvach": {
       "canonical": "Rav Yeva the father-in-law of Ashian b. Nadvach",
@@ -10945,82 +11014,89 @@
       "canonical": "Rav Yirmeyah bar Abba",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Sura"
+      ],
+      "processed": true
     },
     "rav-eina": {
       "canonical": "Rav Eina",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "rav-amram": {
       "canonical": "Rav Amram",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-amram-chasida": {
       "canonical": "Rav Amram Chasida",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "unknown",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-anan-b-tachlifa": {
       "canonical": "Rav Anan b. Tachlifa",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-yehuda-b-rav-shmuel-bar-sheilat": {
       "canonical": "Rav Yehuda b. Rav Shmuel bar Sheilat",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-tachlifa-b-avdimi": {
       "canonical": "Rav Tachlifa b. Avdimi",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-hana-of-baghdad": {
       "canonical": "Rav Hana of Baghdad",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-rabbah-b-avuha": {
       "canonical": "Rav Rabbah b. Avuha",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Nehardea",
+        "Mehoza"
+      ],
+      "processed": true
     },
     "rav-rami-b-yechezkel": {
       "canonical": "Rav Rami b. Yechezkel",
@@ -11053,64 +11129,72 @@
       "canonical": "Rav Rabbah b. Yirmeyah",
       "generation": "amora-bavel-2",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Sura"
+      ],
+      "processed": true
     },
     "rav-dimi-b-yosef": {
       "canonical": "Rav Dimi b. Yosef",
       "generation": "amora-bavel-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-dimi": {
       "canonical": "Rav Dimi",
       "generation": "amora-bavel-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "both",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "rav-acha-b-ada": {
       "canonical": "Rav Acha b. Ada",
       "generation": "amora-bavel-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-huna-bar-hiyya": {
       "canonical": "Rav Huna bar Hiyya",
       "generation": "amora-bavel-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "rav-hiyya-b-ami": {
       "canonical": "Rav Hiyya b. Ami",
       "generation": "amora-bavel-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "both",
+      "academies": [
+        "Nehardea"
+      ],
+      "processed": true
     },
     "rav-yitzchak-b-ashian": {
       "canonical": "Rav Yitzchak b. Ashian",
       "generation": "amora-bavel-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-hiyya-bar-rav": {
       "canonical": "Rav Hiyya bar Rav",
@@ -11125,82 +11209,92 @@
       "canonical": "Rav Yaakov of Nehar Pakod",
       "generation": "amora-bavel-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-yosef-b-hama": {
       "canonical": "Rav Yosef b. Hama",
       "generation": "amora-bavel-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Mehoza"
+      ],
+      "processed": true
     },
     "rav-mari-b-rachel": {
       "canonical": "Rav Mari b. Rachel",
       "generation": "amora-bavel-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Mehoza"
+      ],
+      "processed": true
     },
     "rav-sechora": {
       "canonical": "Rav Sechora",
       "generation": "amora-bavel-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-acha-bar-ovya": {
       "canonical": "Rav Acha bar Ovya",
       "generation": "amora-bavel-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-ika-b-avin": {
       "canonical": "Rav Ika b. Avin",
       "generation": "amora-bavel-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "rav-kahana-of-pum-nahara": {
       "canonical": "Rav Kahana of Pum Nahara",
       "generation": "amora-bavel-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "other"
+      ],
+      "processed": true
     },
     "rava-b-machsiya": {
       "canonical": "Rava b. Machsiya",
       "generation": "amora-bavel-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "aggadist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rabbah-bar-nahmani": {
       "canonical": "Rabbah bar Nahmani",
       "generation": "amora-bavel-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "ravin-b-rav-ada": {
       "canonical": "Ravin b. Rav Ada",
@@ -11260,10 +11354,12 @@
       "canonical": "Rav Sheizbi",
       "generation": "amora-bavel-3",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Sura"
+      ],
+      "processed": true
     },
     "rav-abba-b-marta": {
       "canonical": "Rav Abba b. Marta",
@@ -11278,136 +11374,150 @@
       "canonical": "Rav Achdevoi b. Ami",
       "generation": "amora-bavel-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-aha-b-yosef": {
       "canonical": "Rav Aha b. Yosef",
       "generation": "amora-bavel-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Sura"
+      ],
+      "processed": true
     },
     "rav-bibi": {
       "canonical": "Rav Bibi",
       "generation": "amora-bavel-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "both",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-huna-b-hinena": {
       "canonical": "Rav Huna b. Hinena",
       "generation": "amora-bavel-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "both",
+      "academies": [
+        "Mehoza"
+      ],
+      "processed": true
     },
     "rav-acha-bar-huna": {
       "canonical": "Rav Acha bar Huna",
       "generation": "amora-bavel-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Mehoza"
+      ],
+      "processed": true
     },
     "rav-zevid": {
       "canonical": "Rav Zevid",
       "generation": "amora-bavel-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "rav-zevid-of-nehardea": {
       "canonical": "Rav Zevid of Nehardea",
       "generation": "amora-bavel-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Nehardea"
+      ],
+      "processed": true
     },
     "rav-yehuda-brother-of-rav-sela-the-hasid": {
       "canonical": "Rav Yehuda, Brother of Rav Sela the Hasid",
       "generation": "amora-bavel-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "mystical",
+      "domain": "aggadist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-yeiva-saba": {
       "canonical": "Rav Yeiva Saba",
       "generation": "amora-bavel-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-hiyya-bar-avin": {
       "canonical": "Rav Hiyya bar Avin",
       "generation": "amora-bavel-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "rav-huna-b-yehuda": {
       "canonical": "Rav Huna b. Yehuda",
       "generation": "amora-bavel-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-safra": {
       "canonical": "Rav Safra",
       "generation": "amora-bavel-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "mar-bereih-deravna": {
       "canonical": "Mar Bereih deRavna",
       "generation": "amora-bavel-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-yitzchak-b-yehuda": {
       "canonical": "Rav Yitzchak b. Yehuda",
       "generation": "amora-bavel-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-rabba-b-ulla": {
       "canonical": "Rav Rabba b. Ulla",
       "generation": "amora-bavel-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-eifa": {
       "canonical": "Rav Eifa",
@@ -11422,10 +11532,10 @@
       "canonical": "Rav Ukva bar Hama",
       "generation": "amora-bavel-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-rechava": {
       "canonical": "Rav Rechava",
@@ -11440,28 +11550,30 @@
       "canonical": "Rabbah bar Rav Hanan",
       "generation": "amora-bavel-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "unknown",
+      "domain": "aggadist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "rav-sa-uram": {
       "canonical": "Rav Sa'uram",
       "generation": "amora-bavel-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "unknown",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-rechumi": {
       "canonical": "Rav Rechumi",
       "generation": "amora-bavel-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-rafram-bar-papa": {
       "canonical": "Rav Rafram bar Papa",
@@ -11476,10 +11588,12 @@
       "canonical": "Rav Shimi of Mechoza",
       "generation": "amora-bavel-4",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Mehoza"
+      ],
+      "processed": true
     },
     "rav-rami-bar-hama": {
       "canonical": "Rav Rami bar Hama",
@@ -11503,37 +11617,43 @@
       "canonical": "Rav Ada b. Abba",
       "generation": "amora-bavel-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Mehoza"
+      ],
+      "processed": true
     },
     "rav-acha-b-rav-ika": {
       "canonical": "Rav Acha b. Rav Ika",
       "generation": "amora-bavel-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-dimi-of-neharde-a": {
       "canonical": "Rav Dimi of Neharde'a",
       "generation": "amora-bavel-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "both",
+      "academies": [
+        "Nehardea"
+      ],
+      "processed": true
     },
     "rav-hama": {
       "canonical": "Rav Hama",
       "generation": "amora-bavel-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Nehardea"
+      ],
+      "processed": true
     },
     "rav-amemar": {
       "canonical": "Rav Amemar",
@@ -11548,28 +11668,33 @@
       "canonical": "Rav Beivai bar Abaye",
       "generation": "amora-bavel-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "mixed",
+      "domain": "both",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "rav-huna-b-rav-yehoshua": {
       "canonical": "Rav Huna b. Rav Yehoshua",
       "generation": "amora-bavel-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita",
+        "other"
+      ],
+      "processed": true
     },
     "rav-yosef-b-ami": {
       "canonical": "Rav Yosef b. Ami",
       "generation": "amora-bavel-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "unknown",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-yehuda-b-merimar": {
       "canonical": "Rav Yehuda b. Merimar",
@@ -11584,64 +11709,66 @@
       "canonical": "Rav Huna b. Natan",
       "generation": "amora-bavel-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-pinchas": {
       "canonical": "Rav Pinchas",
       "generation": "amora-bavel-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "mar-yanuka-and-mar-kashisha-sons-of-rav-chisda": {
       "canonical": "Mar Yanuka and Mar Kashisha, sons of Rav Chisda",
       "generation": "amora-bavel-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "unknown",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-mesharshiya": {
       "canonical": "Rav Mesharshiya",
       "generation": "amora-bavel-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Mehoza"
+      ],
+      "processed": true
     },
     "rav-papi": {
       "canonical": "Rav Papi",
       "generation": "amora-bavel-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-bar-sheva": {
       "canonical": "Rav bar Sheva",
       "generation": "amora-bavel-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-aharon": {
       "canonical": "Rav Aharon",
       "generation": "amora-bavel-6",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-shimi-bar-ashi": {
       "canonical": "Rav Shimi bar Ashi",
@@ -11656,109 +11783,123 @@
       "canonical": "Mar Shmuel Mar",
       "generation": "amora-bavel-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-shemaya-b-ze-ira": {
       "canonical": "Rav Shemaya b. Ze'ira",
       "generation": "amora-bavel-5",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-acha-of-difti": {
       "canonical": "Rav Acha of Difti",
       "generation": "amora-bavel-6",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Sura"
+      ],
+      "processed": true
     },
     "rav-acha-b-abaye": {
       "canonical": "Rav Acha b. Abaye",
       "generation": "amora-bavel-6",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-gameda": {
       "canonical": "Rav Gameda",
       "generation": "amora-bavel-6",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "unknown",
+      "domain": "unknown",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-acha-son-of-rav-avya": {
       "canonical": "Rav Acha son of Rav Avya",
       "generation": "amora-bavel-6",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Sura"
+      ],
+      "processed": true
     },
     "rav-chavivi-of-mechoza": {
       "canonical": "Rav Chavivi of Mechoza",
       "generation": "amora-bavel-6",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "unknown",
+      "domain": "unknown",
+      "academies": [
+        "Mehoza"
+      ],
+      "processed": true
     },
     "mar-zutra": {
       "canonical": "Mar Zutra",
       "generation": "amora-bavel-6",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "rav-yeimar": {
       "canonical": "Rav Yeimar",
       "generation": "amora-bavel-6",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Sura"
+      ],
+      "processed": true
     },
     "rav-huna-b-manoach": {
       "canonical": "Rav Huna b. Manoach",
       "generation": "amora-bavel-6",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rava-b-rabbah": {
       "canonical": "Rava b. Rabbah",
       "generation": "amora-bavel-6",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "rav-nehemiah-b-rav-yosef": {
       "canonical": "Rav Nehemiah b. Rav Yosef",
       "generation": "amora-bavel-6",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "rav-rafram": {
       "canonical": "Rav Rafram",
@@ -11782,37 +11923,45 @@
       "canonical": "Rav Nachman b. Rav Huna",
       "generation": "amora-bavel-6",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Sura"
+      ],
+      "processed": true
     },
     "rav-avahu": {
       "canonical": "Rav Avahu",
       "generation": "amora-bavel-7",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "rav-hanina-of-sura": {
       "canonical": "Rav Hanina of Sura",
       "generation": "amora-bavel-7",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "unknown",
+      "domain": "unknown",
+      "academies": [
+        "Sura"
+      ],
+      "processed": true
     },
     "rav-aha-b-rava": {
       "canonical": "Rav Aha b. Rava",
       "generation": "amora-bavel-7",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "rav-amemar-b-mar-yanuka": {
       "canonical": "Rav Amemar b. Mar Yanuka",
@@ -11827,55 +11976,65 @@
       "canonical": "Rav Yosef b. Rava",
       "generation": "amora-bavel-7",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "rav-rechumi-ii": {
       "canonical": "Rav Rechumi II",
       "generation": "amora-bavel-7",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "mar-b-rav-ashi": {
       "canonical": "Mar b. Rav Ashi",
       "generation": "amora-bavel-7",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Sura"
+      ],
+      "processed": true
     },
     "rav-sama-b-rava": {
       "canonical": "Rav Sama b. Rava",
       "generation": "amora-bavel-7",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "rav-achai": {
       "canonical": "Rav Achai",
       "generation": "savora",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-avina-bar-rav-huna": {
       "canonical": "Rav Avina bar Rav Huna",
       "generation": "amora-bavel-8",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "other"
+      ],
+      "processed": true
     },
     "rav-huna-gaon": {
       "canonical": "Rav Huna Gaon",
@@ -11890,10 +12049,12 @@
       "canonical": "Mar Zutra b. Mar Zutra",
       "generation": "savora",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Tiberias"
+      ],
+      "processed": true
     },
     "rav-hanina-gaon": {
       "canonical": "Rav Hanina Gaon",
@@ -11908,19 +12069,23 @@
       "canonical": "Rav Rabbah Tosfaah",
       "generation": "amora-bavel-8",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Sura"
+      ],
+      "processed": true
     },
     "rav-yitzchak-of-peroz-shapur": {
       "canonical": "Rav Yitzchak of Peroz Shapur",
       "generation": "savora",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "other"
+      ],
+      "processed": true
     },
     "rav-hanan-of-ishkiya": {
       "canonical": "Rav Hanan of Ishkiya",
@@ -11935,28 +12100,34 @@
       "canonical": "Mar b. Rav Huna",
       "generation": "savora",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Sura"
+      ],
+      "processed": true
     },
     "rabbah-yosei": {
       "canonical": "Rabbah Yosei",
       "generation": "savora",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "rav-simuna": {
       "canonical": "Rav Simuna",
       "generation": "savora",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "rav-ravai-of-rov": {
       "canonical": "Rav Ravai of Rov",
@@ -11971,19 +12142,21 @@
       "canonical": "Ravina b. Amotzia",
       "generation": "savora",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     },
     "rav-shmuel-b-rav-avahu": {
       "canonical": "Rav Shmuel b. Rav Avahu",
       "generation": "savora",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
+      "orientation": "practical",
+      "domain": "halakhist",
       "academies": [],
-      "processed": false
+      "processed": true
     },
     "rav-sheshena-gaon": {
       "canonical": "Rav Sheshena Gaon",
@@ -11998,10 +12171,12 @@
       "canonical": "Rav Rechumi III",
       "generation": "savora",
       "hasBio": true,
-      "orientation": null,
-      "domain": null,
-      "academies": [],
-      "processed": false
+      "orientation": "practical",
+      "domain": "halakhist",
+      "academies": [
+        "Pumbedita"
+      ],
+      "processed": true
     }
   }
 }
