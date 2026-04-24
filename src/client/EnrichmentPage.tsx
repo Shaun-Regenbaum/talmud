@@ -11,6 +11,7 @@
 import { createResource, createSignal, For, Show, type JSX, type Resource } from 'solid-js';
 import { TRACTATE_OPTIONS } from '../lib/sefref';
 import { ARGUMENT_FLOW_CSS } from './ArgumentFlowSidebar';
+import { RelationsTab } from './RelationsTab';
 
 // ---- types ---------------------------------------------------------------
 
@@ -45,10 +46,12 @@ interface EnrichedArgumentAnalysis {
 
 interface HalachaRuling { ref: string; summary: string; }
 interface ModernAuthority { source: string; ref?: string; summary: string; }
+interface RishonNote { rishon: string; note: string; ref?: string; }
 interface HalachaTopic {
   topic: string; topicHe?: string; excerpt?: string;
   rulings: { mishnehTorah?: HalachaRuling; shulchanAruch?: HalachaRuling; rema?: HalachaRuling };
   modernAuthorities?: ModernAuthority[];
+  rishonimNotes?: RishonNote[];
 }
 interface HalachaResult { topics: HalachaTopic[]; _cached?: boolean; }
 
@@ -59,7 +62,7 @@ interface AggadataStory {
 }
 interface AggadataResult { stories: AggadataStory[]; _cached?: boolean; }
 
-type Tab = 'argument' | 'halacha' | 'aggadata';
+type Tab = 'argument' | 'halacha' | 'aggadata' | 'relations';
 
 // ---- fetchers -------------------------------------------------------------
 
@@ -92,9 +95,10 @@ async function enrichArgument(tractate: string, page: string, strategy: string):
   return body;
 }
 
-async function enrichHalacha(tractate: string, page: string): Promise<HalachaResult> {
+type HalachaEnrichStrategy = 'modern-authorities' | 'rishonim-condensed';
+async function enrichHalacha(tractate: string, page: string, strategy: HalachaEnrichStrategy): Promise<HalachaResult> {
   const res = await fetch(
-    `/api/enrich-halacha/${encodeURIComponent(tractate)}/${page}?strategy=modern-authorities`,
+    `/api/enrich-halacha/${encodeURIComponent(tractate)}/${page}?strategy=${strategy}`,
     { method: 'POST' },
   );
   const body = await res.json().catch(() => null) as (HalachaResult & { error?: string }) | null;
@@ -161,12 +165,34 @@ export function EnrichmentPage(): JSX.Element {
     }
   };
 
-  const runHalachaEnrich = async () => {
-    const key = 'halacha:modern';
+  const runHalachaEnrich = async (strategy: HalachaEnrichStrategy) => {
+    const key = `halacha:${strategy}`;
     setRunning(r => ({ ...r, [key]: true }));
     setErrors(e => ({ ...e, [key]: undefined }));
     try {
-      mutateHalacha(await enrichHalacha(tractate(), page()));
+      const result = await enrichHalacha(tractate(), page(), strategy);
+      // Merge the enriched fields (modernAuthorities OR rishonimNotes) back onto the
+      // current halacha topics by topic name, preserving any fields from the
+      // other strategy that may already be there.
+      const prev = halacha();
+      if (prev) {
+        const byTopic = new Map<string, HalachaTopic>();
+        for (const t of result.topics) byTopic.set(t.topic.toLowerCase(), t);
+        mutateHalacha({
+          ...prev,
+          topics: prev.topics.map(t => {
+            const hit = byTopic.get(t.topic.toLowerCase());
+            if (!hit) return t;
+            return {
+              ...t,
+              ...(hit.modernAuthorities !== undefined ? { modernAuthorities: hit.modernAuthorities } : {}),
+              ...(hit.rishonimNotes !== undefined ? { rishonimNotes: hit.rishonimNotes } : {}),
+            };
+          }),
+        });
+      } else {
+        mutateHalacha(result);
+      }
     } catch (err) {
       setErrors(e => ({ ...e, [key]: String(err) }));
     } finally {
@@ -272,6 +298,9 @@ export function EnrichmentPage(): JSX.Element {
             Aggadata
             <Show when={aggadata()}><span class="tab-count">{aggadata()!.stories.length}</span></Show>
           </button>
+          <button class="tab" classList={{ 'tab-active': tab() === 'relations' }} onClick={() => setTab('relations')}>
+            Relations
+          </button>
         </div>
 
         <Show when={tab() === 'argument'}>
@@ -288,6 +317,9 @@ export function EnrichmentPage(): JSX.Element {
         </Show>
         <Show when={tab() === 'aggadata'}>
           <AggadataTab aggadata={aggadata} running={running()} errors={errors()} onEnrich={runAggEnrich} />
+        </Show>
+        <Show when={tab() === 'relations'}>
+          <RelationsTab tractate={tractate()} page={page()} loadKey={loadKey()} />
         </Show>
       </Show>
 
@@ -468,16 +500,25 @@ function HalachaTab(props: {
   halacha: Resource<HalachaResult | null>;
   running: Partial<Record<string, boolean>>;
   errors: Partial<Record<string, string>>;
-  onEnrich: () => void;
+  onEnrich: (strategy: HalachaEnrichStrategy) => void;
 }): JSX.Element {
   return (
     <>
       <section class="panel enrich-bar">
         <span class="enrich-label">Enrichments</span>
-        <button class="enrich-btn" disabled={!!props.running['halacha:modern'] || !props.halacha()} onClick={props.onEnrich}
+        <button class="enrich-btn"
+          disabled={!!props.running['halacha:modern-authorities'] || !props.halacha()}
+          onClick={() => props.onEnrich('modern-authorities')}
           title="Mishna Berurah, Peninei Halakhah, Aruch HaShulchan, Igrot Moshe, etc. per topic.">
-          {props.running['halacha:modern'] ? 'Modern authorities…' : '+ Modern authorities'}
-          <Show when={props.errors['halacha:modern']}><span class="enrich-btn-err">err</span></Show>
+          {props.running['halacha:modern-authorities'] ? 'Modern authorities…' : '+ Modern authorities'}
+          <Show when={props.errors['halacha:modern-authorities']}><span class="enrich-btn-err">err</span></Show>
+        </button>
+        <button class="enrich-btn"
+          disabled={!!props.running['halacha:rishonim-condensed'] || !props.halacha()}
+          onClick={() => props.onEnrich('rishonim-condensed')}
+          title="For each topic, distill each Rishon's position (Rashba, Ritva, Ramban, Meiri, Rosh, Maharsha) to one sentence.">
+          {props.running['halacha:rishonim-condensed'] ? 'Rishonim condensed…' : '+ Rishonim condensed'}
+          <Show when={props.errors['halacha:rishonim-condensed']}><span class="enrich-btn-err">err</span></Show>
         </button>
       </section>
       <Show when={props.halacha.loading}><p class="loading">Loading halacha…</p></Show>
@@ -504,7 +545,9 @@ function HalachaCard(props: { topic: HalachaTopic; idx: number }): JSX.Element {
     if (t().rulings.rema) out.push({ code: 'Rema', ref: t().rulings.rema!.ref, summary: t().rulings.rema!.summary });
     return out;
   };
-  const hasMore = () => !!(t().modernAuthorities && t().modernAuthorities!.length > 0) || !!t().excerpt;
+  const hasMore = () => !!(t().modernAuthorities && t().modernAuthorities!.length > 0)
+    || !!(t().rishonimNotes && t().rishonimNotes!.length > 0)
+    || !!t().excerpt;
   return (
     <div class="card">
       <div class="card-head">
@@ -533,6 +576,18 @@ function HalachaCard(props: { topic: HalachaTopic; idx: number }): JSX.Element {
           <div class="detail">
             <Show when={t().excerpt}>
               <div class="d-row"><span class="d-label">Source</span><div class="d-body"><span class="d-excerpt">{t().excerpt}</span></div></div>
+            </Show>
+            <Show when={t().rishonimNotes && t().rishonimNotes!.length > 0}>
+              <div class="d-row"><span class="d-label">Rishonim</span>
+                <div class="d-body">
+                  <For each={t().rishonimNotes!}>{(n) => (
+                    <div class="modern-row">
+                      <span class="modern-src">{n.rishon}</span>
+                      <span class="modern-text"> — {n.note}</span>
+                    </div>
+                  )}</For>
+                </div>
+              </div>
             </Show>
             <Show when={t().modernAuthorities && t().modernAuthorities!.length > 0}>
               <div class="d-row"><span class="d-label">Modern</span>
@@ -694,8 +749,10 @@ const PAGE_CSS = `
 .sub-loc { font-size: 10.5px; color: #94a3b8; font-style: italic; }
 
 .section-more { display: flex; justify-content: center; margin-top: 0.1rem; }
-.more-btn { border: none; background: transparent; color: #cbd5e1; font-size: 16px; padding: 0.15rem 0.6rem; line-height: 1; letter-spacing: 2px; }
-.more-btn:hover { color: #64748b; background: transparent; }
+.enrichment-page .more-btn { border: none; background: transparent; color: #cbd5e1; font-size: 16px; padding: 0.15rem 0.6rem; line-height: 1; letter-spacing: 2px; border-radius: 0; }
+.enrichment-page .more-btn:hover { color: #64748b; background: transparent; }
+.enrichment-page .sub-toggle { border: none; background: transparent; border-radius: 0; }
+.enrichment-page .sub-toggle:hover { background: transparent; }
 
 .detail { padding: 0.5rem 0.25rem 0; display: flex; flex-direction: column; gap: 0.4rem; }
 .d-row { display: flex; gap: 0.5rem; align-items: baseline; }
