@@ -2890,6 +2890,252 @@ app.get('/api/enrich/ground-truth/:tractate/:page', async (c) => {
   }
 });
 
+// ============================================================================
+// HALACHA + AGGADATA ENRICHMENTS — used by /#enrichment page
+// ============================================================================
+
+interface ModernAuthority {
+  source: string;   // Display label, e.g. "Mishna Berurah 235:1" or "Peninei Halakhah, Prayer 16:10"
+  ref?: string;     // Optional Sefaria ref
+  summary: string;  // 1-2 sentence summary of this authority's position
+}
+
+interface HistoricalContext {
+  era: string;
+  context: string;
+}
+
+const HALACHA_MODERN_AUTHORITIES_PROMPT = `You are a scholar of Jewish law (halacha) adding POST-MEDIEVAL authorities to each halachic topic. You will receive:
+- Existing halachic topics for this daf (with Mishneh Torah / Shulchan Aruch / Rema refs already filled in)
+- The focal daf's Hebrew + English
+
+For each topic, add references to 2-5 modern/contemporary authorities who rule on this issue. Prioritize in order:
+1. **Mishna Berurah** (Chafetz Chaim, on Shulchan Aruch Orach Chaim). Cite as "Mishnah Berurah {simanSeifNum}:{seq}" (e.g. "Mishnah Berurah 235:1"). Sefaria slug: "Mishnah_Berurah,_{simanSeifNum}".
+2. **Peninei Halakhah** (Rav Eliezer Melamed, modern 21st-c). Available on Sefaria under "Peninei Halakhah, Prayer", "Peninei Halakhah, Shabbat", "Peninei Halakhah, Laws of Family" etc. Cite as "Peninei Halakhah, {Volume} {chapter}:{halacha}".
+3. **Aruch HaShulchan** (R. Yechiel Epstein). Cite as "Arukh HaShulchan, {Section} {siman}:{seif}".
+4. **Igrot Moshe** (R. Moshe Feinstein, 20th-c responsa). Cite as "Igrot Moshe, {Section} {siman}:{seif}".
+5. **Yabia Omer / Yechaveh Daat** (R. Ovadia Yosef). Cite the volume and siman.
+
+For each authority:
+- source: display label the reader sees (include the ref in the label)
+- ref: Sefaria ref in canonical form (underscores for spaces, commas between book segments) — optional but preferred
+- summary: ONE sentence explaining what this authority rules on this topic. Do NOT paraphrase Shulchan Aruch — add what's NEW or DIFFERENT in the later source.
+
+If a topic has no natural post-medieval commentary (pure Gemara-era halacha with no codification trail), return an empty array for that topic.
+
+Output STRICT JSON only:
+{"topics": [{"topic": "topic name from input", "modernAuthorities": [{"source": "...", "ref": "...", "summary": "..."}]}]}
+
+Match topics by the "topic" field from input (case-insensitive).`;
+
+app.post('/api/enrich-halacha/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const strategy = c.req.query('strategy') || 'modern-authorities';
+  if (strategy !== 'modern-authorities') {
+    return c.json({ error: `unknown strategy '${strategy}'; valid: modern-authorities` }, 400);
+  }
+  if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
+  const cache = c.env.CACHE;
+
+  const halRaw = cache ? await cache.get(`halacha:v5:${tractate}:${page}`) : null;
+  if (!halRaw) return c.json({ error: 'No cached /api/halacha output; run /api/halacha first.' }, 404);
+  let halacha: HalachaResult;
+  try { halacha = JSON.parse(halRaw) as HalachaResult; }
+  catch { return c.json({ error: 'Cached halacha is not valid JSON' }, 502); }
+
+  const [hbFocal, sefFocal] = await Promise.all([
+    getHebrewBooksDafCached(cache, tractate, page),
+    getSefariaPageCached(cache, tractate, page),
+  ]);
+  const focalHebrew = slice(hbFocal?.main ?? sefFocal?.mainText.hebrew ?? '', ANALYZE_CAPS.focalHebrew);
+  const focalEnglish = slice(sefFocal?.mainText.english ?? '', ANALYZE_CAPS.focalEnglish);
+
+  const userContent = [
+    `Tractate: ${tractate}`,
+    `Focal page: ${page}`,
+    '',
+    `<existing_halacha>\n${JSON.stringify(halacha, null, 2)}\n</existing_halacha>`,
+    '',
+    `<focal_hebrew>${focalHebrew}</focal_hebrew>`,
+    `<focal_english>${focalEnglish}</focal_english>`,
+    '',
+    'Add 2-5 post-medieval authorities per topic. Return JSON per schema.',
+  ].join('\n\n');
+
+  const t0 = Date.now();
+  try {
+    const s = await runKimiStreaming(
+      c.env.AI, '@cf/moonshotai/kimi-k2.5',
+      [
+        { role: 'system', content: HALACHA_MODERN_AUTHORITIES_PROMPT },
+        { role: 'user', content: userContent },
+      ],
+      12000,
+      { chatTemplateKwargs: { enable_thinking: false } },
+    );
+    let payload = s.content.trim();
+    const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (fenced) payload = fenced[1].trim();
+    let authoritiesByTopic: Record<string, ModernAuthority[]> = {};
+    try {
+      const parsed = JSON.parse(payload) as { topics?: Array<{ topic: string; modernAuthorities?: ModernAuthority[] }> };
+      if (Array.isArray(parsed.topics)) {
+        for (const t of parsed.topics) {
+          if (t.topic && Array.isArray(t.modernAuthorities)) {
+            authoritiesByTopic[t.topic.toLowerCase()] = t.modernAuthorities;
+          }
+        }
+      }
+    } catch {
+      return c.json({ error: 'Halacha enrichment returned non-JSON', detail: payload.slice(0, 300) }, 502);
+    }
+
+    // Attach modernAuthorities to each matching topic
+    const enrichedTopics = halacha.topics.map(t => ({
+      ...t,
+      modernAuthorities: authoritiesByTopic[t.topic.toLowerCase()] ?? [],
+    }));
+    const totalAuth = Object.values(authoritiesByTopic).reduce((sum, arr) => sum + arr.length, 0);
+
+    return c.json({
+      topics: enrichedTopics,
+      _strategy: strategy,
+      _elapsed_ms: Date.now() - t0,
+      _metadata: {
+        model: 'kimi-k2.5-no-thinking',
+        total_topics: halacha.topics.length,
+        topics_with_authorities: Object.values(authoritiesByTopic).filter(arr => arr.length > 0).length,
+        total_authorities: totalAuth,
+      },
+    });
+  } catch (err) {
+    return c.json({ error: 'Halacha enrichment call failed', detail: String(err).slice(0, 500) }, 502);
+  }
+});
+
+const AGGADATA_PARALLELS_PROMPT = `You are a scholar identifying parallel aggadic narratives. You will receive:
+- Existing aggadic stories for this daf (title, summary, excerpt, theme)
+- The focal daf's Hebrew + English
+
+For each story, identify 1-4 parallel aggadic discussions in other masechtot of Shas, Midrash Rabbah, Tanchuma, or Yalkut Shimoni. A "parallel" must tell a substantively related narrative — do not include mere thematic similarity.
+
+Cite parallels in canonical Sefaria-compatible format:
+- Shas: "Yoma 35b", "Gittin 56a"
+- Midrash: "Bereishit Rabbah 1:1", "Vayikra Rabbah 22:8"
+- Tanchuma: "Midrash Tanchuma, Lech Lecha 1"
+- Yalkut: "Yalkut Shimoni on Torah 24"
+
+Output STRICT JSON:
+{"stories": [{"title": "title from input", "parallels": ["Yoma 35b", ...]}]}
+
+Stories with no genuine parallels should have an empty array. Match by title (case-insensitive).`;
+
+const AGGADATA_HISTORICAL_PROMPT = `You are a historian providing context for aggadic narratives. You will receive:
+- Existing aggadic stories for this daf
+- The focal daf's Hebrew + English
+
+For each story, if there is genuine historical context that illuminates the narrative (era, political situation, cultural background), provide a brief framing. Skip (empty object) for stories that are purely parable/moral/mystical with no historical anchor.
+
+Output STRICT JSON:
+{"stories": [{"title": "title from input", "historicalContext": {"era": "Roman-occupied Judea, 1st c. CE", "context": "Short 1-2 sentence historical framing"} }]}
+
+Only include historicalContext when it would materially help a modern reader. Return an empty object (no historicalContext key) for stories where history doesn't apply. Match by title (case-insensitive).`;
+
+app.post('/api/enrich-aggadata/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const strategy = c.req.query('strategy') || 'parallels';
+  if (strategy !== 'parallels' && strategy !== 'historical-context') {
+    return c.json({ error: `unknown strategy '${strategy}'; valid: parallels|historical-context` }, 400);
+  }
+  if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
+  const cache = c.env.CACHE;
+
+  const aggRaw = cache ? await cache.get(`aggadata:v1:${tractate}:${page}`) : null;
+  if (!aggRaw) return c.json({ error: 'No cached /api/aggadata output; run /api/aggadata first.' }, 404);
+  let aggadata: AggadataResult;
+  try { aggadata = JSON.parse(aggRaw) as AggadataResult; }
+  catch { return c.json({ error: 'Cached aggadata is not valid JSON' }, 502); }
+
+  if (aggadata.stories.length === 0) {
+    return c.json({ stories: [], _strategy: strategy, _metadata: { note: 'no stories on this daf' } });
+  }
+
+  const [hbFocal, sefFocal] = await Promise.all([
+    getHebrewBooksDafCached(cache, tractate, page),
+    getSefariaPageCached(cache, tractate, page),
+  ]);
+  const focalHebrew = slice(hbFocal?.main ?? sefFocal?.mainText.hebrew ?? '', ANALYZE_CAPS.focalHebrew);
+  const focalEnglish = slice(sefFocal?.mainText.english ?? '', ANALYZE_CAPS.focalEnglish);
+
+  const systemPrompt = strategy === 'parallels' ? AGGADATA_PARALLELS_PROMPT : AGGADATA_HISTORICAL_PROMPT;
+  const userContent = [
+    `Tractate: ${tractate}`,
+    `Focal page: ${page}`,
+    '',
+    `<existing_aggadata>\n${JSON.stringify(aggadata, null, 2)}\n</existing_aggadata>`,
+    '',
+    `<focal_hebrew>${focalHebrew}</focal_hebrew>`,
+    `<focal_english>${focalEnglish}</focal_english>`,
+  ].join('\n\n');
+
+  const t0 = Date.now();
+  try {
+    const s = await runKimiStreaming(
+      c.env.AI, '@cf/moonshotai/kimi-k2.5',
+      [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userContent },
+      ],
+      8000,
+      { chatTemplateKwargs: { enable_thinking: false } },
+    );
+    let payload = s.content.trim();
+    const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (fenced) payload = fenced[1].trim();
+
+    let parallelsByTitle: Record<string, string[]> = {};
+    let historicalByTitle: Record<string, HistoricalContext> = {};
+    try {
+      const parsed = JSON.parse(payload) as { stories?: Array<{ title: string; parallels?: string[]; historicalContext?: HistoricalContext }> };
+      if (Array.isArray(parsed.stories)) {
+        for (const st of parsed.stories) {
+          const key = (st.title || '').toLowerCase();
+          if (Array.isArray(st.parallels)) parallelsByTitle[key] = st.parallels;
+          if (st.historicalContext && st.historicalContext.context) historicalByTitle[key] = st.historicalContext;
+        }
+      }
+    } catch {
+      return c.json({ error: 'Aggadata enrichment returned non-JSON', detail: payload.slice(0, 300) }, 502);
+    }
+
+    const enrichedStories = aggadata.stories.map(st => {
+      const key = st.title.toLowerCase();
+      const out: AggadataStory & { parallels?: string[]; historicalContext?: HistoricalContext } = { ...st };
+      if (strategy === 'parallels' && parallelsByTitle[key]) out.parallels = parallelsByTitle[key];
+      if (strategy === 'historical-context' && historicalByTitle[key]) out.historicalContext = historicalByTitle[key];
+      return out;
+    });
+
+    const totalP = Object.values(parallelsByTitle).reduce((sum, arr) => sum + arr.length, 0);
+    return c.json({
+      stories: enrichedStories,
+      _strategy: strategy,
+      _elapsed_ms: Date.now() - t0,
+      _metadata: {
+        model: 'kimi-k2.5-no-thinking',
+        total_stories: aggadata.stories.length,
+        ...(strategy === 'parallels'
+          ? { total_parallels: totalP, stories_with_parallels: Object.values(parallelsByTitle).filter(a => a.length > 0).length }
+          : { stories_with_history: Object.keys(historicalByTitle).length }),
+      },
+    });
+  } catch (err) {
+    return c.json({ error: 'Aggadata enrichment call failed', detail: String(err).slice(0, 500) }, 502);
+  }
+});
+
 /**
  * Practical halacha analysis: given a daf, identify the main halachic
  * issues and cite the relevant rulings in Mishneh Torah, Shulchan Aruch,

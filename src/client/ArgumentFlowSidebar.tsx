@@ -287,8 +287,8 @@ export const ARGUMENT_FLOW_CSS = `
 .flow-rabbi-loc { font-size: 11px; color: #94a3b8; font-style: italic; }
 
 .flow-section-more { display: flex; justify-content: center; margin-top: 0.1rem; }
-.flow-more-btn { border: 1px dashed #e5e7eb; background: transparent; color: #94a3b8; font-size: 12px; cursor: pointer; padding: 0 0.7rem; line-height: 1.3; border-radius: 3px; }
-.flow-more-btn:hover { color: #475569; border-color: #cbd5e1; }
+.flow-more-btn { border: none; background: transparent; color: #cbd5e1; font-size: 16px; cursor: pointer; padding: 0.15rem 0.6rem; line-height: 1; letter-spacing: 2px; }
+.flow-more-btn:hover { color: #64748b; background: transparent; }
 
 .flow-detail { padding: 0.5rem 0.25rem 0; display: flex; flex-direction: column; gap: 0.4rem; }
 .flow-d-row { display: flex; gap: 0.5rem; align-items: baseline; }

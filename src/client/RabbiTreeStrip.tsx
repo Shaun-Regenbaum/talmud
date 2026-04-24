@@ -82,6 +82,11 @@ interface RabbiTreeStripProps {
   onHoverRabbi: (name: string | null) => void;
   hoveredRabbi: string | null;
   activeRabbi: string | null;
+  /** Cross-highlight: when the user opens a section/halacha/aggadata in the
+   *  sidebar or clicks a city/region on the map, these rabbi names light
+   *  up in the tree and their connections expand. Empty → default view
+   *  (only on-daf rabbis and their inter-connections). */
+  focusedRabbiNames?: string[];
 }
 
 // Connector we want to draw between two rabbi pills. Direction=teacher
@@ -110,9 +115,34 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
     return s;
   });
 
-  // Build column entries per era: start with on-daf rabbis, then append
-  // any 1-hop teachers/students/colleagues from the hierarchy who aren't
-  // already on the daf. Sorted so on-daf rabbis appear first.
+  // Which on-daf rabbis are currently "focused"? Their connections get
+  // expanded in the tree. Focus sources: hover, click-locked active,
+  // and the rabbi names in an open argument / halacha / aggadata
+  // section or a clicked city/region on the map.
+  const focusedNames = createMemo<Set<string>>(() => {
+    const s = new Set<string>();
+    if (props.hoveredRabbi) s.add(props.hoveredRabbi);
+    if (props.activeRabbi) s.add(props.activeRabbi);
+    for (const n of props.focusedRabbiNames ?? []) s.add(n);
+    return s;
+  });
+
+  // Set of on-daf rabbi slugs whose 1-hop edges should be expanded.
+  const focusedSlugs = createMemo<Set<string>>(() => {
+    const focus = focusedNames();
+    if (focus.size === 0) return new Set();
+    const out = new Set<string>();
+    for (const r of props.rabbis) {
+      if (r.slug && focus.has(r.name)) out.add(r.slug);
+    }
+    return out;
+  });
+
+  // Build column entries per era. On-daf rabbis always render. Linked
+  // rabbis (teachers/students/colleagues from hierarchy.json) render
+  // only when the on-daf rabbi they link to is currently focused — this
+  // keeps the default view compact and lets the user drill in by
+  // hovering, clicking a rabbi, or opening a section in the sidebar.
   const entriesByEra = createMemo<Record<EraId, ColumnEntry[]>>(() => {
     const out: Record<EraId, ColumnEntry[]> = { zugim: [], tannaim: [], amoraim: [], savoraim: [] };
     const seenBySlug = new Set<string>();
@@ -127,9 +157,9 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
       out[era].push({ slug: r.slug ?? null, canonical: r.name, generation: r.generation, region, onDaf: true });
     }
 
-    if (hasEdges) {
+    if (hasEdges && focusedSlugs().size > 0) {
       for (const r of props.rabbis) {
-        if (!r.slug) continue;
+        if (!r.slug || !focusedSlugs().has(r.slug)) continue;
         const node = HIERARCHY.nodes[r.slug];
         if (!node) continue;
         const addLinked = (linkedSlug: string, role: 'teacher' | 'student' | 'colleague') => {
@@ -152,7 +182,9 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
   });
 
   // All teacher-student + colleague edges that connect rabbis currently
-  // rendered in any column. These get drawn as SVG lines.
+  // rendered in any column. These get drawn as SVG lines. In the default
+  // view (no focus) we only draw edges between on-daf rabbis; when a
+  // rabbi is focused we also draw lines to their expanded connections.
   const connectors = createMemo<Connector[]>(() => {
     if (!hasEdges) return [];
     const rendered = new Set<string>();
@@ -167,14 +199,12 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
       seen.add(k);
       out.push({ fromSlug: a, toSlug: b, direction });
     };
-    // For every on-daf rabbi, look at their known teachers / students /
-    // colleagues and add a connector if the counterpart is also rendered.
     for (const r of props.rabbis) {
       if (!r.slug) continue;
       const node = HIERARCHY.nodes[r.slug];
       if (!node) continue;
-      for (const t of node.teachers) pushIfRendered(t, r.slug, 'teacher');       // teacher → r
-      for (const s of node.students) pushIfRendered(r.slug, s, 'teacher');       // r → student
+      for (const t of node.teachers) pushIfRendered(t, r.slug, 'teacher');
+      for (const s of node.students) pushIfRendered(r.slug, s, 'teacher');
       for (const c of node.colleagues) pushIfRendered(r.slug, c, 'colleague');
     }
     return out;
@@ -321,12 +351,16 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
                           'border-radius': '3px',
                           background: props.activeRabbi === e.canonical
                             ? (GENERATION_BY_ID[e.generation as GenerationId]?.color ?? '#2a2a2a')
-                            : (e.onDaf ? '#fff' : '#fafaf7'),
+                            : (focusedNames().has(e.canonical) ? '#fff7e6' : (e.onDaf ? '#fff' : '#fafaf7')),
                           color: props.activeRabbi === e.canonical ? '#fff' : (e.onDaf ? '#222' : '#888'),
                           'font-weight': e.onDaf ? 500 : 400,
+                          // Dim non-focused on-daf rabbis when any cross-
+                          // highlight is active, so the focused rabbis pop.
+                          opacity: (focusedNames().size > 0 && e.onDaf && !focusedNames().has(e.canonical)) ? 0.4 : 1,
                           cursor: e.slug ? 'pointer' : 'default',
                           'text-align': 'start',
                           'font-family': 'inherit',
+                          transition: 'opacity 120ms, background 120ms',
                         }}
                         title={e.onDaf ? 'On this daf' : `${e.role ?? 'related'} of a rabbi on this daf`}
                       >

@@ -1855,6 +1855,17 @@ export default function DafViewer(): JSX.Element {
               onHoverRabbi={setHoveredRabbi}
               hoveredRabbi={hoveredRabbi()}
               activeRabbi={activeRabbi()}
+              focusedRabbiNames={(() => {
+                // Cross-highlight: when an argument section is open in
+                // the sidebar or a city/region is active on the map,
+                // surface the relevant rabbi names so the tree can
+                // emphasize them and expand their connections.
+                const s = sidebar();
+                if (s?.kind === 'argument') return s.section.rabbis.map((r) => r.name);
+                const loc = activeLocationRabbis();
+                if (loc.length > 0) return loc;
+                return [];
+              })()}
             />
           </Show>
         </aside>

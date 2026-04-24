@@ -1,324 +1,117 @@
 /**
- * Enrichment strategy comparison page.
+ * Enrichment lab — tabs for the three content types the daf produces:
+ *   Argument  — sections + rabbis + dispute structure
+ *   Halacha   — practical topics with rulings (MT / SA / Rema + modern)
+ *   Aggadata  — narrative stories (+ parallels + historical context)
  *
- * Interactive UI for picking a tractate+daf, loading its cached skeleton,
- * running several Stage-B enrichment strategies side-by-side, and diffing
- * the outputs against the cached ground-truth (analyze:v5:*) when one
- * exists. Used to pick a winner before the full Shas enrichment pass.
+ * Each tab loads its own stage-1 endpoint, then lets the user click
+ * "enrich" buttons attached to each section/topic/story. Enrichment
+ * results attach inline under the item they enriched.
  */
-import { createResource, createSignal, For, Show, type JSX } from 'solid-js';
+import { createResource, createSignal, For, Show, type JSX, type Resource } from 'solid-js';
 import { TRACTATE_OPTIONS } from '../lib/sefref';
-import { ArgumentFlowSidebar, ARGUMENT_FLOW_CSS } from './ArgumentFlowSidebar';
+import { ARGUMENT_FLOW_CSS } from './ArgumentFlowSidebar';
 
-// ---- types ----------------------------------------------------------------
+// ---- types ---------------------------------------------------------------
 
-interface SkeletonSection {
-  title: string;
+interface ArgumentSkeleton {
   summary: string;
-  excerpt: string;
-  rabbiNames: string[];
-}
-interface Skeleton {
-  summary: string;
-  sections: SkeletonSection[];
-  _cached?: boolean;
+  sections: Array<{
+    title: string;
+    summary: string;
+    excerpt: string;
+    rabbiNames: string[];
+  }>;
 }
 
-interface BiblicalRef {
-  ref: string;
-  hebrewRef?: string;
-  hebrewQuote?: string;
-}
+interface BiblicalRef { ref: string; hebrewRef?: string; hebrewQuote?: string; }
 interface DifficultyRating { score: 1 | 2 | 3 | 4 | 5; reason: string; }
-interface Rabbi {
-  name: string;
-  nameHe: string;
-  period: string;
-  location: string;
-  role: string;
-  opinionStart?: string;
-  opinionEnd?: string;
-  aliases?: string[];
+interface EnrichedRabbi {
+  name: string; nameHe?: string; period?: string; location?: string;
+  role?: string; opinionStart?: string; opinionEnd?: string;
   generation?: string;
-  agreesWith?: string[];
-  disagreesWith?: string[];
+  agreesWith?: string[]; disagreesWith?: string[];
 }
-interface AnalysisSection {
-  title: string;
-  summary: string;
-  excerpt?: string;
-  references?: BiblicalRef[];
-  parallels?: string[];
-  difficulty?: DifficultyRating;
-  rabbis: Rabbi[];
+interface EnrichedArgumentSection {
+  title: string; summary: string; excerpt?: string;
+  references?: BiblicalRef[]; parallels?: string[]; difficulty?: DifficultyRating;
+  rabbis: EnrichedRabbi[];
 }
-interface Analysis {
-  summary: string;
-  difficulty?: DifficultyRating;
-  sections: AnalysisSection[];
+interface EnrichedArgumentAnalysis {
+  summary: string; difficulty?: DifficultyRating;
+  sections: EnrichedArgumentSection[];
+  _strategy?: string; _elapsed_ms?: number;
 }
 
-interface StrategyCallDiag {
-  prompt_chars: number;
-  content_chars: number;
-  reasoning_chars: number;
-  elapsed_ms: number;
-  finish_reason: string | null;
-  usage?: { prompt_tokens?: number; completion_tokens?: number } | null;
+interface HalachaRuling { ref: string; summary: string; }
+interface ModernAuthority { source: string; ref?: string; summary: string; }
+interface HalachaTopic {
+  topic: string; topicHe?: string; excerpt?: string;
+  rulings: { mishnehTorah?: HalachaRuling; shulchanAruch?: HalachaRuling; rema?: HalachaRuling };
+  modernAuthorities?: ModernAuthority[];
 }
-interface StrategyResult extends Analysis {
-  _strategy: string;
-  _elapsed_ms: number;
-  _calls: StrategyCallDiag[];
-  _warnings: string[];
-  _metadata: Record<string, unknown>;
-  _skeletonSummary?: string;
-}
+interface HalachaResult { topics: HalachaTopic[]; _cached?: boolean; }
 
-type StrategyName = 'baseline' | 'per-section' | 'hybrid' | 'rich-rabbi' | 'references' | 'parallels' | 'difficulty';
-const STRATEGIES: ReadonlyArray<{ id: StrategyName; label: string; group: 'base' | 'overlay'; desc: string }> = [
-  { id: 'baseline',    label: 'Baseline',    group: 'base',    desc: 'Monolithic Kimi K2.5 call with full context. Reference — matches analyze:v5 cache.' },
-  { id: 'per-section', label: 'Per-section', group: 'base',    desc: 'One K2.5 call per section with just that section\'s skeleton + focal. Concurrency 3.' },
-  { id: 'hybrid',      label: 'Hybrid',      group: 'base',    desc: 'Rabbi-places.json lookup (nameHe/period/location/generation/aliases) + single K2.5 for role + opinionStart.' },
-  { id: 'rich-rabbi',  label: 'Rich rabbi',  group: 'base',    desc: 'Hybrid + agreesWith/disagreesWith + opinionEnd (full statement span). One LLM call.' },
-  { id: 'references',  label: 'References',  group: 'overlay', desc: 'Biblical verses (pesukim) quoted per section. Shown as badges under each section.' },
-  { id: 'parallels',   label: 'Parallels',   group: 'overlay', desc: 'Parallel sugyot in other masechtot per section. Uses Rishonim commentary heavily.' },
-  { id: 'difficulty',  label: 'Difficulty',  group: 'overlay', desc: '1-5 educational difficulty per section + overall daf, with one-sentence rationale.' },
-];
+interface HistoricalContext { era: string; context: string; }
+interface AggadataStory {
+  title: string; titleHe?: string; summary: string; excerpt: string; theme?: string;
+  parallels?: string[]; historicalContext?: HistoricalContext;
+}
+interface AggadataResult { stories: AggadataStory[]; _cached?: boolean; }
+
+type Tab = 'argument' | 'halacha' | 'aggadata';
 
 // ---- fetchers -------------------------------------------------------------
 
-async function fetchSkeleton(tractate: string, page: string): Promise<Skeleton> {
+async function fetchSkeleton(tractate: string, page: string): Promise<ArgumentSkeleton> {
   const res = await fetch(`/api/analyze/${encodeURIComponent(tractate)}/${page}?skeleton_only=1`);
-  if (!res.ok) throw new Error(`skeleton fetch: HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`skeleton: HTTP ${res.status}`);
   return res.json();
 }
 
-async function fetchGroundTruth(tractate: string, page: string): Promise<Analysis | null> {
-  const res = await fetch(`/api/enrich/ground-truth/${encodeURIComponent(tractate)}/${page}`);
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`ground-truth: HTTP ${res.status}`);
+async function fetchHalacha(tractate: string, page: string): Promise<HalachaResult> {
+  const res = await fetch(`/api/halacha/${encodeURIComponent(tractate)}/${page}`);
+  if (!res.ok) throw new Error(`halacha: HTTP ${res.status}`);
   return res.json();
 }
 
-async function runStrategy(tractate: string, page: string, strategy: StrategyName): Promise<StrategyResult> {
+async function fetchAggadata(tractate: string, page: string): Promise<AggadataResult> {
+  const res = await fetch(`/api/aggadata/${encodeURIComponent(tractate)}/${page}`);
+  if (!res.ok) throw new Error(`aggadata: HTTP ${res.status}`);
+  return res.json();
+}
+
+async function enrichArgument(tractate: string, page: string, strategy: string): Promise<EnrichedArgumentAnalysis> {
   const res = await fetch(
     `/api/enrich/${encodeURIComponent(tractate)}/${page}?strategy=${strategy}`,
     { method: 'POST' },
   );
-  const body = await res.json().catch(() => null) as (StrategyResult & { error?: string }) | null;
+  const body = await res.json().catch(() => null) as (EnrichedArgumentAnalysis & { error?: string }) | null;
   if (!res.ok) throw new Error(body?.error ?? `HTTP ${res.status}`);
-  if (!body) throw new Error('empty response');
+  if (!body) throw new Error('empty');
   return body;
 }
 
-// ---- diff -----------------------------------------------------------------
-
-type DiffStatus = 'unchanged' | 'added' | 'removed' | 'changed';
-interface FieldDiff { field: keyof Rabbi; status: DiffStatus; a?: string; b?: string; }
-interface RabbiDiff { key: string; status: DiffStatus; fields: FieldDiff[]; left?: Rabbi; right?: Rabbi; }
-interface SectionDiff { title: string; status: DiffStatus; rabbis: RabbiDiff[]; }
-
-function rabbiKey(r: Rabbi): string {
-  return `${(r.name || '').trim().toLowerCase()}|${(r.nameHe || '').trim()}`;
-}
-
-function diffAnalyses(ground: Analysis, strat: StrategyResult): SectionDiff[] {
-  const secsByTitle = new Map<string, AnalysisSection>();
-  for (const s of ground.sections) secsByTitle.set(s.title.toLowerCase(), s);
-
-  const sectionDiffs: SectionDiff[] = [];
-  const seenSecs = new Set<string>();
-
-  for (const stratSec of strat.sections) {
-    const key = stratSec.title.toLowerCase();
-    const groundSec = secsByTitle.get(key);
-    seenSecs.add(key);
-    if (!groundSec) {
-      sectionDiffs.push({ title: stratSec.title, status: 'added', rabbis: stratSec.rabbis.map(r => ({ key: rabbiKey(r), status: 'added', fields: [], right: r })) });
-      continue;
-    }
-    const rabbiDiffs = diffRabbis(groundSec.rabbis, stratSec.rabbis);
-    const anyChange = rabbiDiffs.some(r => r.status !== 'unchanged');
-    sectionDiffs.push({ title: stratSec.title, status: anyChange ? 'changed' : 'unchanged', rabbis: rabbiDiffs });
-  }
-  for (const [key, groundSec] of secsByTitle.entries()) {
-    if (!seenSecs.has(key)) {
-      sectionDiffs.push({ title: groundSec.title, status: 'removed', rabbis: groundSec.rabbis.map(r => ({ key: rabbiKey(r), status: 'removed', fields: [], left: r })) });
-    }
-  }
-  return sectionDiffs;
-}
-
-function diffRabbis(leftList: Rabbi[], rightList: Rabbi[]): RabbiDiff[] {
-  const leftByKey = new Map<string, Rabbi>();
-  for (const r of leftList) leftByKey.set(rabbiKey(r), r);
-  const diffs: RabbiDiff[] = [];
-  const seen = new Set<string>();
-
-  for (const r of rightList) {
-    const k = rabbiKey(r);
-    seen.add(k);
-    const match = leftByKey.get(k);
-    if (!match) { diffs.push({ key: k, status: 'added', fields: [], right: r }); continue; }
-    const fields: FieldDiff[] = [];
-    for (const field of ['nameHe', 'period', 'location', 'role', 'opinionStart'] as (keyof Rabbi)[]) {
-      const a = (match[field] ?? '') as string;
-      const b = (r[field] ?? '') as string;
-      if (a !== b) fields.push({ field, status: 'changed', a, b });
-    }
-    diffs.push({ key: k, status: fields.length > 0 ? 'changed' : 'unchanged', fields, left: match, right: r });
-  }
-  for (const [k, r] of leftByKey.entries()) {
-    if (!seen.has(k)) diffs.push({ key: k, status: 'removed', fields: [], left: r });
-  }
-  return diffs;
-}
-
-// ---- merge multiple strategy results into one enriched analysis -----------
-// Each strategy produces a DafAnalysis shape but populates different fields:
-//   rich-rabbi  → rabbis with nameHe/period/location/role/opinionStart/
-//                  opinionEnd/agreesWith/disagreesWith/generation
-//   per-section → alternative rabbi shaping (for comparison)
-//   references  → section.references[]
-//   parallels   → section.parallels[]
-//   difficulty  → section.difficulty + analysis.difficulty
-// Merge policy: prefer rich-rabbi's rabbi data (it's the most complete);
-// overlay references/parallels/difficulty by matching section titles.
-function mergeStrategies(by: Partial<Record<StrategyName, StrategyResult>>): Analysis | null {
-  const base = by['rich-rabbi'] ?? by['per-section'] ?? by['hybrid'] ?? by['baseline'];
-  if (!base) return null;
-
-  const sectionByTitle = new Map<string, AnalysisSection>();
-  for (const sec of base.sections) {
-    sectionByTitle.set(sec.title.toLowerCase(), { ...sec });
-  }
-
-  const refs = by['references'];
-  if (refs) {
-    for (const sec of refs.sections) {
-      const key = sec.title.toLowerCase();
-      const existing = sectionByTitle.get(key);
-      if (existing && sec.references) existing.references = sec.references;
-    }
-  }
-  const par = by['parallels'];
-  if (par) {
-    for (const sec of par.sections) {
-      const key = sec.title.toLowerCase();
-      const existing = sectionByTitle.get(key);
-      if (existing && sec.parallels) existing.parallels = sec.parallels;
-    }
-  }
-  const diff = by['difficulty'];
-  if (diff) {
-    for (const sec of diff.sections) {
-      const key = sec.title.toLowerCase();
-      const existing = sectionByTitle.get(key);
-      if (existing && sec.difficulty) existing.difficulty = sec.difficulty;
-    }
-  }
-
-  const orderedSections = base.sections.map(s => sectionByTitle.get(s.title.toLowerCase())!).filter(Boolean);
-
-  return {
-    summary: base.summary,
-    difficulty: diff?.difficulty,
-    sections: orderedSections,
-  };
-}
-
-
-// ---- preview sub-component ------------------------------------------------
-
-function difficultyColor(score: number): string {
-  // Green → yellow → red gradient
-  if (score <= 1) return '#10b981';
-  if (score === 2) return '#84cc16';
-  if (score === 3) return '#eab308';
-  if (score === 4) return '#f97316';
-  return '#ef4444';
-}
-
-function SectionPreview(props: { sec: AnalysisSection }): JSX.Element {
-  const sec = () => props.sec;
-  return (
-    <div class="preview-section">
-      <div class="preview-section-header">
-        <span class="preview-title">§ {sec().title}</span>
-        <Show when={sec().difficulty}>
-          <span
-            class="preview-diff-dot"
-            title={sec().difficulty?.reason}
-            style={{ background: difficultyColor(sec().difficulty!.score) }}
-          >
-            ★{sec().difficulty!.score}
-          </span>
-        </Show>
-      </div>
-      <Show when={sec().excerpt}>
-        <div class="preview-excerpt">{sec().excerpt}</div>
-      </Show>
-      <Show when={sec().rabbis && sec().rabbis.length > 0}>
-        <div class="preview-rabbis">
-          <For each={sec().rabbis}>{(r) => (
-            <div class="preview-rabbi">
-              <span class="preview-rabbi-name">
-                {r.name}{r.nameHe ? ` (${r.nameHe})` : ''}
-                <Show when={r.generation}>
-                  <span class="preview-generation">[{r.generation}]</span>
-                </Show>
-              </span>
-              <Show when={r.role}>
-                <div class="preview-role">{r.role}</div>
-              </Show>
-              <Show when={r.opinionStart || r.opinionEnd}>
-                <div class="preview-opinion">
-                  <Show when={r.opinionStart}>
-                    <span class="preview-opinion-start">{r.opinionStart}</span>
-                  </Show>
-                  <Show when={r.opinionStart && r.opinionEnd}>
-                    <span class="preview-opinion-ellipsis"> … </span>
-                  </Show>
-                  <Show when={r.opinionEnd}>
-                    <span class="preview-opinion-end">{r.opinionEnd}</span>
-                  </Show>
-                </div>
-              </Show>
-              <Show when={r.agreesWith && r.agreesWith.length > 0}>
-                <div class="preview-rel-row">
-                  <span class="preview-rel-label preview-rel-agrees">Agrees with</span>
-                  <span class="preview-rel-names">{r.agreesWith!.join(', ')}</span>
-                </div>
-              </Show>
-              <Show when={r.disagreesWith && r.disagreesWith.length > 0}>
-                <div class="preview-rel-row">
-                  <span class="preview-rel-label preview-rel-disagrees">Disputes</span>
-                  <span class="preview-rel-names">{r.disagreesWith!.join(', ')}</span>
-                </div>
-              </Show>
-            </div>
-          )}</For>
-        </div>
-      </Show>
-      <Show when={sec().references && sec().references!.length > 0}>
-        <div class="preview-refs">
-          <span class="preview-label">Refs:</span>
-          <For each={sec().references!}>{(ref) => (
-            <span class="preview-ref-badge" title={ref.hebrewQuote}>
-              {ref.hebrewRef || ref.ref}
-            </span>
-          )}</For>
-        </div>
-      </Show>
-      <Show when={sec().parallels && sec().parallels!.length > 0}>
-        <div class="preview-parallels">
-          <span class="preview-label">↗</span>
-          <For each={sec().parallels!}>{(p) => <span class="preview-parallel-chip">{p}</span>}</For>
-        </div>
-      </Show>
-    </div>
+async function enrichHalacha(tractate: string, page: string): Promise<HalachaResult> {
+  const res = await fetch(
+    `/api/enrich-halacha/${encodeURIComponent(tractate)}/${page}?strategy=modern-authorities`,
+    { method: 'POST' },
   );
+  const body = await res.json().catch(() => null) as (HalachaResult & { error?: string }) | null;
+  if (!res.ok) throw new Error(body?.error ?? `HTTP ${res.status}`);
+  if (!body) throw new Error('empty');
+  return body;
+}
+
+async function enrichAggadata(tractate: string, page: string, strategy: 'parallels' | 'historical-context'): Promise<AggadataResult> {
+  const res = await fetch(
+    `/api/enrich-aggadata/${encodeURIComponent(tractate)}/${page}?strategy=${strategy}`,
+    { method: 'POST' },
+  );
+  const body = await res.json().catch(() => null) as (AggadataResult & { error?: string }) | null;
+  if (!res.ok) throw new Error(body?.error ?? `HTTP ${res.status}`);
+  if (!body) throw new Error('empty');
+  return body;
 }
 
 // ---- component ------------------------------------------------------------
@@ -326,434 +119,608 @@ function SectionPreview(props: { sec: AnalysisSection }): JSX.Element {
 export function EnrichmentPage(): JSX.Element {
   const [tractate, setTractate] = createSignal('Berakhot');
   const [page, setPage] = createSignal('5a');
-  // Trigger for skeleton load — bump to force refetch
+  const [tab, setTab] = createSignal<Tab>('argument');
   const [loadKey, setLoadKey] = createSignal(0);
-
-  // Strategy state (per strategy)
-  const [results, setResults] = createSignal<Partial<Record<StrategyName, StrategyResult>>>({});
-  const [running, setRunning] = createSignal<Partial<Record<StrategyName, boolean>>>({});
-  const [errors, setErrors] = createSignal<Partial<Record<StrategyName, string>>>({});
-  const [diffAgainst, setDiffAgainst] = createSignal<StrategyName | null>(null);
-
   const dafKey = () => `${tractate()}|${page()}|${loadKey()}`;
 
-  const [skeleton] = createResource(dafKey, async () => {
+  const [skeleton] = createResource(dafKey, async (): Promise<ArgumentSkeleton | null> => {
     if (loadKey() === 0) return null;
-    return fetchSkeleton(tractate(), page());
+    return fetchSkeleton(tractate(), page()).catch(() => null);
   });
-  const [groundTruth] = createResource(dafKey, async () => {
+  const [halacha, { mutate: mutateHalacha }] = createResource(dafKey, async (): Promise<HalachaResult | null> => {
     if (loadKey() === 0) return null;
-    return fetchGroundTruth(tractate(), page()).catch(() => null);
+    return fetchHalacha(tractate(), page()).catch(() => null);
+  });
+  const [aggadata, { mutate: mutateAggadata }] = createResource(dafKey, async (): Promise<AggadataResult | null> => {
+    if (loadKey() === 0) return null;
+    return fetchAggadata(tractate(), page()).catch(() => null);
   });
 
+  const [argumentEnrichments, setArgumentEnrichments] = createSignal<Partial<Record<string, EnrichedArgumentAnalysis>>>({});
+  const [running, setRunning] = createSignal<Partial<Record<string, boolean>>>({});
+  const [errors, setErrors] = createSignal<Partial<Record<string, string>>>({});
+
   const handleLoad = () => {
-    setResults({});
+    setArgumentEnrichments({});
     setRunning({});
     setErrors({});
-    setDiffAgainst(null);
     setLoadKey(loadKey() + 1);
   };
 
-  const handleRun = async (strategy: StrategyName) => {
-    setRunning((r) => ({ ...r, [strategy]: true }));
-    setErrors((e) => ({ ...e, [strategy]: undefined }));
+  const runArg = async (strategy: string) => {
+    const key = `arg:${strategy}`;
+    setRunning(r => ({ ...r, [key]: true }));
+    setErrors(e => ({ ...e, [key]: undefined }));
     try {
-      const result = await runStrategy(tractate(), page(), strategy);
-      setResults((r) => ({ ...r, [strategy]: result }));
-      if (!diffAgainst() && groundTruth()) setDiffAgainst(strategy);
+      const result = await enrichArgument(tractate(), page(), strategy);
+      setArgumentEnrichments(prev => ({ ...prev, [strategy]: result }));
     } catch (err) {
-      setErrors((e) => ({ ...e, [strategy]: String(err) }));
+      setErrors(e => ({ ...e, [key]: String(err) }));
     } finally {
-      setRunning((r) => ({ ...r, [strategy]: false }));
+      setRunning(r => ({ ...r, [key]: false }));
     }
   };
 
-  const handleRunAll = async () => {
-    await Promise.all(STRATEGIES.map(s => handleRun(s.id)));
+  const runHalachaEnrich = async () => {
+    const key = 'halacha:modern';
+    setRunning(r => ({ ...r, [key]: true }));
+    setErrors(e => ({ ...e, [key]: undefined }));
+    try {
+      mutateHalacha(await enrichHalacha(tractate(), page()));
+    } catch (err) {
+      setErrors(e => ({ ...e, [key]: String(err) }));
+    } finally {
+      setRunning(r => ({ ...r, [key]: false }));
+    }
   };
 
-  // The "Render merged view" flow: runs the 5 strategies the user cares about
-  // (per-section + rich-rabbi + references + parallels + difficulty) in
-  // parallel and renders the merged output. Re-uses any strategy already
-  // executed (results() is a cache). Baseline/hybrid skipped — rich-rabbi
-  // covers them with more fields.
-  const MERGE_SET: StrategyName[] = ['per-section', 'rich-rabbi', 'references', 'parallels', 'difficulty'];
-  const handleRenderMerged = async () => {
-    await Promise.all(MERGE_SET.map(async (s) => {
-      if (results()[s] || running()[s]) return;
-      await handleRun(s);
-    }));
+  const runAggEnrich = async (strategy: 'parallels' | 'historical-context') => {
+    const key = `aggadata:${strategy}`;
+    setRunning(r => ({ ...r, [key]: true }));
+    setErrors(e => ({ ...e, [key]: undefined }));
+    try {
+      const result = await enrichAggadata(tractate(), page(), strategy);
+      const prev = aggadata();
+      if (prev) {
+        const byTitle = new Map<string, AggadataStory>();
+        for (const st of result.stories) byTitle.set(st.title.toLowerCase(), st);
+        mutateAggadata({
+          ...prev,
+          stories: prev.stories.map(st => {
+            const hit = byTitle.get(st.title.toLowerCase());
+            if (!hit) return st;
+            return {
+              ...st,
+              ...(hit.parallels ? { parallels: hit.parallels } : {}),
+              ...(hit.historicalContext ? { historicalContext: hit.historicalContext } : {}),
+            };
+          }),
+        });
+      } else {
+        mutateAggadata(result);
+      }
+    } catch (err) {
+      setErrors(e => ({ ...e, [key]: String(err) }));
+    } finally {
+      setRunning(r => ({ ...r, [key]: false }));
+    }
   };
-  const mergedView = () => mergeStrategies(results());
-  const mergedReady = () => MERGE_SET.every(s => results()[s]);
+
+  // Merge all argument strategy outputs so each section card can show
+  // whatever fields any strategy has populated.
+  const mergedArgument = () => {
+    const e = argumentEnrichments();
+    const order = ['rich-rabbi', 'per-section', 'hybrid', 'baseline', 'references', 'parallels', 'difficulty'];
+    const base = order.map(k => e[k]).find(Boolean);
+    if (!base) return null;
+    const bySec = new Map<string, EnrichedArgumentSection>();
+    for (const sec of base.sections) bySec.set(sec.title.toLowerCase(), { ...sec });
+    for (const strat of order) {
+      const result = e[strat];
+      if (!result) continue;
+      for (const sec of result.sections) {
+        const existing = bySec.get(sec.title.toLowerCase());
+        if (!existing) continue;
+        if (sec.rabbis && sec.rabbis.length > 0 && (existing.rabbis.length === 0 || strat === 'rich-rabbi')) {
+          existing.rabbis = sec.rabbis;
+        }
+        if (sec.references) existing.references = sec.references;
+        if (sec.parallels) existing.parallels = sec.parallels;
+        if (sec.difficulty) existing.difficulty = sec.difficulty;
+      }
+    }
+    const overallDifficulty = order.map(k => e[k]?.difficulty).find(Boolean);
+    return {
+      summary: base.summary,
+      difficulty: overallDifficulty,
+      sections: base.sections.map(s => bySec.get(s.title.toLowerCase())!).filter(Boolean),
+    };
+  };
 
   return (
     <div class="enrichment-page">
-      <style>{`
-        .enrichment-page { font-family: system-ui, -apple-system, sans-serif; max-width: 1400px; margin: 0 auto; padding: 1rem; }
-        .enrichment-page h1 { margin: 0 0 0.5rem; }
-        .enrichment-page .controls { display: flex; gap: 0.75rem; align-items: center; padding: 0.75rem; background: #f6f6f6; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 1rem; flex-wrap: wrap; }
-        .enrichment-page .controls label { font-weight: 500; margin-right: 0.25rem; }
-        .enrichment-page select, .enrichment-page input[type="text"] { padding: 0.35rem 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
-        .enrichment-page button { padding: 0.35rem 0.75rem; border: 1px solid #333; background: white; border-radius: 4px; cursor: pointer; font-size: 14px; }
-        .enrichment-page button:hover:not(:disabled) { background: #eee; }
-        .enrichment-page button:disabled { opacity: 0.4; cursor: not-allowed; }
-        .enrichment-page button.primary { background: #2563eb; color: white; border-color: #1d4ed8; }
-        .enrichment-page button.primary:hover:not(:disabled) { background: #1d4ed8; }
-        .enrichment-page section.panel { margin-bottom: 1.5rem; padding: 0.75rem 1rem; background: white; border: 1px solid #ddd; border-radius: 6px; }
-        .enrichment-page .skeleton-sections { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.5rem; margin-top: 0.5rem; }
-        .enrichment-page .skel-section { padding: 0.5rem; background: #fafafa; border: 1px solid #eee; border-radius: 4px; }
-        .enrichment-page .skel-section h4 { margin: 0 0 0.25rem; font-size: 13px; }
-        .enrichment-page .skel-section .excerpt { font-family: Arial Hebrew, David, serif; direction: rtl; text-align: right; color: #555; font-size: 13px; }
-        .enrichment-page .skel-section .rabbi-list { font-size: 12px; color: #666; margin-top: 0.25rem; }
-        .enrichment-page .strategy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 0.75rem; }
-        .enrichment-page .strategy-card { border: 1px solid #ddd; border-radius: 6px; padding: 0.75rem; background: white; display: flex; flex-direction: column; gap: 0.5rem; }
-        .enrichment-page .strategy-card h3 { margin: 0; font-size: 15px; }
-        .enrichment-page .strategy-card .desc { font-size: 12px; color: #666; }
-        .enrichment-page .strategy-card .metrics { font-family: ui-monospace, Menlo, monospace; font-size: 12px; background: #f6f6f6; padding: 0.4rem 0.5rem; border-radius: 4px; }
-        .enrichment-page .strategy-card .metrics .bad { color: #b91c1c; }
-        .enrichment-page .strategy-card .err { color: #b91c1c; font-size: 12px; padding: 0.4rem; background: #fee2e2; border-radius: 4px; }
-        .enrichment-page details summary { cursor: pointer; user-select: none; font-size: 12px; color: #444; }
-        .enrichment-page pre { max-height: 400px; overflow: auto; background: #f3f3f3; padding: 0.5rem; border-radius: 4px; font-size: 11px; margin: 0.25rem 0 0; }
-        .enrichment-page .diff-added { background: #d1fae5; color: #065f46; padding: 1px 3px; border-radius: 2px; }
-        .enrichment-page .diff-removed { background: #fee2e2; color: #991b1b; padding: 1px 3px; border-radius: 2px; text-decoration: line-through; }
-        .enrichment-page .diff-changed { background: #fef3c7; color: #92400e; padding: 1px 3px; border-radius: 2px; }
-        .enrichment-page .diff-unchanged { color: #999; }
-        .enrichment-page .diff-section { padding: 0.5rem; border: 1px solid #eee; border-radius: 4px; margin-bottom: 0.5rem; }
-        .enrichment-page .diff-section.changed { border-color: #f59e0b; }
-        .enrichment-page .diff-section.added { border-color: #10b981; }
-        .enrichment-page .diff-section.removed { border-color: #ef4444; }
-        .enrichment-page .diff-rabbi { padding: 0.35rem 0.5rem; margin: 0.25rem 0; background: #fafafa; border-radius: 3px; font-size: 13px; }
-        .enrichment-page .diff-field-change { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: #555; margin-left: 1rem; }
+      <style>{PAGE_CSS}</style>
+      <style>{ARGUMENT_FLOW_CSS}</style>
 
-        /* Preview block inside strategy cards */
-        .preview { margin-top: 0.25rem; padding: 0.3rem 0; display: flex; flex-direction: column; gap: 0.5rem; }
-        .preview-section { padding: 0.4rem 0.5rem; background: #fafafa; border-left: 3px solid #ddd; border-radius: 2px; font-size: 12px; }
-        .preview-section-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.2rem; }
-        .preview-title { font-weight: 600; color: #222; }
-        .preview-diff-dot { font-size: 10px; font-weight: 700; color: white; padding: 1px 6px; border-radius: 8px; cursor: help; }
-        .preview-excerpt { font-family: Arial Hebrew, David, serif; direction: rtl; text-align: right; color: #666; font-size: 12px; margin-bottom: 0.3rem; }
-        .preview-rabbis { display: flex; flex-direction: column; gap: 0.3rem; }
-        .preview-rabbi { padding: 0.25rem 0.35rem; background: white; border: 1px solid #e5e5e5; border-radius: 3px; }
-        .preview-rabbi-name { font-weight: 600; color: #1e293b; font-size: 12px; }
-        .preview-generation { color: #7c3aed; font-weight: 400; margin-left: 0.3rem; font-size: 10px; font-family: ui-monospace, Menlo, monospace; }
-        .preview-role { color: #555; font-size: 11px; margin-top: 0.15rem; line-height: 1.3; }
-        .preview-opinion { font-family: Arial Hebrew, David, serif; direction: rtl; text-align: right; font-size: 12px; color: #0369a1; margin-top: 0.15rem; }
-        .preview-opinion-ellipsis { color: #94a3b8; }
-        .preview-rel-row { display: flex; align-items: baseline; gap: 0.4rem; font-size: 11px; margin-top: 0.15rem; }
-        .preview-rel-label { font-weight: 600; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.05em; padding: 1px 6px; border-radius: 2px; }
-        .preview-rel-agrees { background: #cffafe; color: #0e7490; }
-        .preview-rel-disagrees { background: #fee2e2; color: #991b1b; }
-        .preview-rel-names { color: #1e293b; }
-        .preview-refs, .preview-parallels { margin-top: 0.3rem; display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; }
-        .preview-label { font-size: 10px; color: #666; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-        .preview-ref-badge { background: #fef3c7; color: #713f12; font-size: 11px; padding: 1px 6px; border-radius: 3px; font-family: Arial Hebrew, David, serif; cursor: help; }
-        .preview-parallel-chip { background: #dbeafe; color: #1e3a8a; font-size: 11px; padding: 1px 6px; border-radius: 3px; font-family: ui-monospace, Menlo, monospace; }
-
-        /* ARGUMENT-FLOW SIDEBAR — minimal neutral render */
-        .sidebar-preview-wrap { margin: 1rem 0 1.5rem; }
-        .sidebar-preview-hint { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 0.35rem; font-weight: 600; }
-        .flow-sidebar {
-          width: 340px;
-          max-width: 340px;
-          font-family: system-ui, -apple-system, sans-serif;
-          font-size: 13px;
-          line-height: 1.5;
-          color: #334155;
-          background: transparent;
-          box-sizing: border-box;
-          display: flex;
-          flex-direction: column;
-          gap: 0.9rem;
-        }
-        .flow-header { display: flex; align-items: baseline; gap: 0.35rem; color: #64748b; font-size: 12px; }
-        .flow-tractate { font-weight: 600; color: #1e293b; }
-        .flow-partial { margin-left: auto; font-size: 10px; color: #94a3b8; }
-        .flow-daf-summary { font-size: 12.5px; color: #475569; margin: 0 0 0.25rem; line-height: 1.55; }
-
-        /* Argument section = a logical group: header + summary + stack of rabbi cards + "…" */
-        .flow-section { display: flex; flex-direction: column; gap: 0.35rem; }
-        .flow-section-head { display: flex; align-items: baseline; gap: 0.35rem; margin: 0; font-weight: 600; }
-        .flow-section-num { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: #94a3b8; font-weight: 600; }
-        .flow-section-title { color: #1e293b; font-size: 13.5px; line-height: 1.3; font-weight: 600; }
-        .flow-section-summary { font-size: 12.5px; color: #475569; margin: 0 0 0.2rem; line-height: 1.5; }
-
-        .flow-rabbis { display: flex; flex-direction: column; gap: 0.3rem; }
-        .flow-rabbi { position: relative; background: #fff; border: 1px solid #e5e7eb; border-radius: 4px; padding: 0.4rem 0.6rem 0.4rem 0.6rem; }
-        .flow-rabbi-name { font-size: 12.5px; color: #1e293b; font-weight: 600; display: flex; align-items: baseline; gap: 0.25rem; flex-wrap: wrap; padding-right: 1.5rem; }
-        .flow-rabbi-name-en { font-weight: 600; }
-        .flow-rabbi-he { font-family: Arial Hebrew, David, serif; color: #64748b; font-weight: 500; }
-        .flow-rabbi-era { margin-left: auto; font-size: 10px; color: #94a3b8; font-weight: 400; white-space: nowrap; }
-        .flow-rabbi-role { font-size: 12px; color: #475569; margin-top: 0.2rem; line-height: 1.45; padding-right: 1.5rem; }
-
-        .flow-rabbi-toggle {
-          position: absolute;
-          bottom: 0.2rem;
-          right: 0.4rem;
-          border: none;
-          background: transparent;
-          color: #cbd5e1;
-          font-size: 14px;
-          cursor: pointer;
-          padding: 0.1rem 0.35rem;
-          line-height: 1;
-          border-radius: 2px;
-        }
-        .flow-rabbi-toggle:hover { color: #475569; background: #f1f5f9; }
-        .flow-rabbi-detail { margin-top: 0.45rem; padding-top: 0.35rem; border-top: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 0.3rem; }
-        .flow-rabbi-span { font-family: Arial Hebrew, David, serif; direction: rtl; text-align: right; font-size: 13px; color: #475569; padding: 0.2rem 0.4rem; background: #f8fafc; border-radius: 2px; }
-        .flow-rabbi-span-gap { color: #94a3b8; font-family: system-ui; }
-        .flow-rabbi-rel { font-size: 11.5px; color: #334155; line-height: 1.4; }
-        .flow-rabbi-loc { font-size: 11px; color: #94a3b8; font-style: italic; }
-
-        .flow-section-more { display: flex; justify-content: center; margin-top: 0.1rem; }
-        .flow-more-btn {
-          border: 1px dashed #e5e7eb;
-          background: transparent;
-          color: #94a3b8;
-          font-size: 12px;
-          cursor: pointer;
-          padding: 0 0.7rem;
-          line-height: 1.3;
-          border-radius: 3px;
-        }
-        .flow-more-btn:hover { color: #475569; border-color: #cbd5e1; }
-
-        .flow-detail { padding: 0.5rem 0.25rem 0; display: flex; flex-direction: column; gap: 0.4rem; }
-        .flow-d-row { display: flex; gap: 0.5rem; align-items: baseline; }
-        .flow-d-label { font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; width: 64px; flex-shrink: 0; }
-        .flow-d-body { flex: 1; font-size: 11.5px; color: #334155; display: flex; flex-direction: column; gap: 0.2rem; }
-        .flow-d-wrap { flex-direction: row; flex-wrap: wrap; gap: 0.35rem; }
-        .flow-d-edge { line-height: 1.4; }
-        .flow-d-plus  { color: #16a34a; font-weight: 700; margin-right: 4px; }
-        .flow-d-minus { color: #b91c1c; font-weight: 700; margin-right: 4px; }
-        .flow-d-prep  { color: #94a3b8; font-style: italic; }
-        .flow-d-ref   { font-family: Arial Hebrew, David, serif; color: #64748b; cursor: help; }
-        .flow-d-parallel { font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; color: #64748b; }
-        .flow-d-stars { color: #64748b; margin-right: 0.35rem; letter-spacing: 0.5px; }
-        .flow-d-diff-reason { color: #475569; font-style: italic; }
-      `}</style>
-
-      <h1>Enrichment Strategy Lab</h1>
-      <p style="color: #555; margin-top: 0;">
-        Load a daf's cached skeleton, run each Stage-B enrichment strategy, and diff against the
-        ground-truth <code>analyze:v5</code> if one exists. Pick a winner before the full Shas enrichment pass.
+      <h1>Enrichment Lab</h1>
+      <p class="lead">
+        Each tab shows the daf's stage-1 output for one content type. Click enrich buttons
+        to layer extra fields onto each section/topic/story.
       </p>
 
       <section class="panel controls">
         <label>Tractate</label>
-        <select
-          value={tractate()}
-          onChange={(e) => setTractate(e.currentTarget.value)}
-        >
+        <select value={tractate()} onChange={(e) => setTractate(e.currentTarget.value)}>
           <For each={TRACTATE_OPTIONS}>{(t) => <option value={t.value}>{t.value} · {t.label}</option>}</For>
         </select>
         <label>Daf</label>
-        <input
-          type="text"
-          value={page()}
-          onInput={(e) => setPage(e.currentTarget.value)}
-          style="width: 5rem;"
-          placeholder="5a"
-        />
-        <button class="primary" onClick={handleLoad}>
-          Load skeleton
-        </button>
-        <button onClick={handleRunAll} disabled={!skeleton() || Object.values(running()).some(Boolean)}>
-          Run all strategies
-        </button>
-        <button
-          class="primary"
-          onClick={handleRenderMerged}
-          disabled={!skeleton() || MERGE_SET.some(s => running()[s])}
-          style="background: #7c3aed; border-color: #6d28d9;"
-        >
-          Render merged view
-        </button>
+        <input type="text" value={page()} onInput={(e) => setPage(e.currentTarget.value)} style="width: 5rem;" placeholder="5a" />
+        <button class="primary" onClick={handleLoad}>Load</button>
       </section>
 
       <Show when={loadKey() > 0}>
-        {/* Skeleton panel */}
-        <section class="panel">
-          <h2 style="margin: 0 0 0.25rem; font-size: 17px;">
-            Skeleton — {tractate()} {page()}
-            <Show when={groundTruth()}>
-              <span style="font-size: 12px; color: #2563eb; margin-left: 0.5rem;">✓ ground-truth available</span>
-            </Show>
-            <Show when={groundTruth.state === 'ready' && !groundTruth()}>
-              <span style="font-size: 12px; color: #999; margin-left: 0.5rem;">(no ground-truth cached)</span>
-            </Show>
-          </h2>
-          <Show when={skeleton.loading}>
-            <p style="color: #666;">Loading skeleton (may take ~150s if not cached)…</p>
-          </Show>
-          <Show when={skeleton.error}>
-            <p style="color: #b91c1c;">Error: {String(skeleton.error)}</p>
-          </Show>
-          <Show when={skeleton()}>
-            {(s) => (
-              <>
-                <p style="margin: 0 0 0.5rem; color: #333;">{s().summary}</p>
-                <div class="skeleton-sections">
-                  <For each={s().sections}>
-                    {(sec) => (
-                      <div class="skel-section">
-                        <h4>{sec.title}</h4>
-                        <div class="excerpt">{sec.excerpt}</div>
-                        <div class="rabbi-list">
-                          <b>{sec.rabbiNames.length} voices:</b> {sec.rabbiNames.join(', ')}
-                        </div>
-                      </div>
-                    )}
-                  </For>
-                </div>
-              </>
-            )}
-          </Show>
-        </section>
+        <div class="tabs">
+          <button class="tab" classList={{ 'tab-active': tab() === 'argument' }} onClick={() => setTab('argument')}>
+            Argument
+            <Show when={skeleton()}><span class="tab-count">{skeleton()!.sections.length}</span></Show>
+          </button>
+          <button class="tab" classList={{ 'tab-active': tab() === 'halacha' }} onClick={() => setTab('halacha')}>
+            Halacha
+            <Show when={halacha()}><span class="tab-count">{halacha()!.topics.length}</span></Show>
+          </button>
+          <button class="tab" classList={{ 'tab-active': tab() === 'aggadata' }} onClick={() => setTab('aggadata')}>
+            Aggadata
+            <Show when={aggadata()}><span class="tab-count">{aggadata()!.stories.length}</span></Show>
+          </button>
+        </div>
 
-        {/* Merged rendered view — sidebar-width argument-flow presentation. */}
-        <Show when={mergedView()}>
-          {(m) => (
-            <div class="sidebar-preview-wrap">
-              <div class="sidebar-preview-hint">Sidebar preview (340px)</div>
-              <ArgumentFlowSidebar
-                tractate={tractate()}
-                page={page()}
-                analysis={m()}
-                partialNote={mergedReady() ? null : `partial ${MERGE_SET.filter(s => results()[s]).length}/${MERGE_SET.length}`}
-              />
-            </div>
-          )}
+        <Show when={tab() === 'argument'}>
+          <ArgumentTab
+            skeleton={skeleton}
+            merged={mergedArgument()}
+            running={running()}
+            errors={errors()}
+            onRun={runArg}
+          />
         </Show>
-
-        {/* Strategy grid */}
-        <section class="panel">
-          <h2 style="margin: 0 0 0.5rem; font-size: 17px;">Strategies</h2>
-          <div class="strategy-grid">
-            <For each={STRATEGIES}>{(s) => (
-              <div class="strategy-card">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <h3>{s.label}</h3>
-                  <div style="display: flex; gap: 0.3rem;">
-                    <button
-                      onClick={() => handleRun(s.id)}
-                      disabled={!skeleton() || !!running()[s.id]}
-                    >
-                      {running()[s.id] ? 'Running…' : 'Run'}
-                    </button>
-                    <Show when={results()[s.id] && groundTruth()}>
-                      <button
-                        onClick={() => setDiffAgainst(diffAgainst() === s.id ? null : s.id)}
-                        style={diffAgainst() === s.id ? 'background: #fef3c7;' : ''}
-                      >
-                        Diff
-                      </button>
-                    </Show>
-                  </div>
-                </div>
-                <p class="desc">{s.desc}</p>
-                <Show when={errors()[s.id]}>
-                  <div class="err">{errors()[s.id]}</div>
-                </Show>
-                <Show when={results()[s.id]}>
-                  {(r) => {
-                    const totalRabbis = r().sections.reduce((sum, sec) => sum + (sec.rabbis?.length ?? 0), 0);
-                    const totalRefs = r().sections.reduce((sum, sec) => sum + (sec.references?.length ?? 0), 0);
-                    const totalParallels = r().sections.reduce((sum, sec) => sum + (sec.parallels?.length ?? 0), 0);
-                    return (
-                      <>
-                        <div class="metrics">
-                          <div>elapsed: <b>{(r()._elapsed_ms / 1000).toFixed(1)}s</b> · calls: {r()._calls.length}</div>
-                          <div>
-                            sections: {r().sections.length} · rabbis: {totalRabbis}
-                            <Show when={totalRefs > 0}>{' · refs: ' + totalRefs}</Show>
-                            <Show when={totalParallels > 0}>{' · parallels: ' + totalParallels}</Show>
-                            <Show when={r().difficulty}>{` · overall: ★${r().difficulty!.score}/5`}</Show>
-                          </div>
-                          <div>
-                            warnings: <span class={(r()._warnings.length > 0 ? 'bad' : '')}>{r()._warnings.length}</span>
-                            {' · '}
-                            completion tokens:{' '}
-                            {r()._calls.reduce((sum, c) => sum + (c.usage?.completion_tokens ?? 0), 0)}
-                          </div>
-                          <Show when={Object.keys(r()._metadata).length > 0}>
-                            <div style="color: #888;">{JSON.stringify(r()._metadata)}</div>
-                          </Show>
-                        </div>
-                        <details open>
-                          <summary>Preview</summary>
-                          <div class="preview">
-                            <For each={r().sections}>{(sec) => <SectionPreview sec={sec} />}</For>
-                          </div>
-                        </details>
-                        <Show when={r()._warnings.length > 0}>
-                          <details>
-                            <summary>{r()._warnings.length} warnings</summary>
-                            <ul style="margin: 0.25rem 0; padding-left: 1rem; font-size: 11px;">
-                              <For each={r()._warnings.slice(0, 15)}>{(w) => <li>{w}</li>}</For>
-                            </ul>
-                          </details>
-                        </Show>
-                        <details>
-                          <summary>Full JSON</summary>
-                          <pre>{JSON.stringify(r(), null, 2)}</pre>
-                        </details>
-                      </>
-                    );
-                  }}
-                </Show>
-              </div>
-            )}</For>
-          </div>
-        </section>
-
-        {/* Diff panel */}
-        <Show when={groundTruth() && diffAgainst() && results()[diffAgainst()!]}>
-          <section class="panel">
-            <h2 style="margin: 0 0 0.25rem; font-size: 17px;">
-              Diff: <code>{diffAgainst()}</code> vs ground-truth (<code>analyze:v5</code>)
-            </h2>
-            <p style="color: #666; font-size: 12px; margin: 0 0 0.5rem;">
-              <span class="diff-added">added</span> · <span class="diff-removed">removed</span> · <span class="diff-changed">changed</span> · <span class="diff-unchanged">unchanged</span>
-            </p>
-            <For each={diffAnalyses(groundTruth()!, results()[diffAgainst()!]!)}>
-              {(secDiff) => (
-                <div class={`diff-section ${secDiff.status}`}>
-                  <strong class={`diff-${secDiff.status}`}>
-                    {secDiff.status === 'added' ? '+' : secDiff.status === 'removed' ? '−' : secDiff.status === 'changed' ? '~' : '='} {secDiff.title}
-                  </strong>
-                  <For each={secDiff.rabbis}>
-                    {(rd) => (
-                      <div class="diff-rabbi">
-                        <span class={`diff-${rd.status}`}>
-                          {rd.status === 'added' ? '+ ' : rd.status === 'removed' ? '− ' : rd.status === 'changed' ? '~ ' : '= '}
-                          {rd.right?.name ?? rd.left?.name} ({rd.right?.nameHe ?? rd.left?.nameHe ?? ''})
-                        </span>
-                        <For each={rd.fields}>
-                          {(f) => (
-                            <div class="diff-field-change">
-                              <span style="color: #92400e;">{f.field}:</span> <span class="diff-removed">{f.a || '(empty)'}</span> → <span class="diff-added">{f.b || '(empty)'}</span>
-                            </div>
-                          )}
-                        </For>
-                      </div>
-                    )}
-                  </For>
-                </div>
-              )}
-            </For>
-          </section>
+        <Show when={tab() === 'halacha'}>
+          <HalachaTab halacha={halacha} running={running()} errors={errors()} onEnrich={runHalachaEnrich} />
+        </Show>
+        <Show when={tab() === 'aggadata'}>
+          <AggadataTab aggadata={aggadata} running={running()} errors={errors()} onEnrich={runAggEnrich} />
         </Show>
       </Show>
 
       <Show when={loadKey() === 0}>
-        <section class="panel" style="text-align: center; color: #666;">
-          Pick a tractate + daf and click <b>Load skeleton</b> to begin.
-        </section>
+        <section class="panel empty">Pick a tractate + daf and click <b>Load</b>.</section>
       </Show>
     </div>
   );
 }
+
+// ---- tabs -----------------------------------------------------------------
+
+function ArgumentTab(props: {
+  skeleton: Resource<ArgumentSkeleton | null>;
+  merged: { summary: string; difficulty?: DifficultyRating; sections: EnrichedArgumentSection[] } | null;
+  running: Partial<Record<string, boolean>>;
+  errors: Partial<Record<string, string>>;
+  onRun: (strategy: string) => void;
+}): JSX.Element {
+  const STRATEGIES = [
+    { id: 'rich-rabbi', label: 'Rich rabbi',  desc: 'Rabbi identity + role + opinionStart/End + agreesWith/disagreesWith.' },
+    { id: 'references', label: 'References',  desc: 'Biblical verses per section.' },
+    { id: 'parallels',  label: 'Parallels',   desc: 'Parallel sugyot in other masechtot.' },
+    { id: 'difficulty', label: 'Difficulty',  desc: '1-5 per section + overall.' },
+  ] as const;
+
+  return (
+    <>
+      <section class="panel enrich-bar">
+        <span class="enrich-label">Enrichments</span>
+        <For each={STRATEGIES}>{(s) => {
+          const runKey = `arg:${s.id}`;
+          return (
+            <button class="enrich-btn" disabled={!!props.running[runKey]} onClick={() => props.onRun(s.id)} title={s.desc}>
+              {props.running[runKey] ? `${s.label}…` : `+ ${s.label}`}
+              <Show when={props.errors[runKey]}><span class="enrich-btn-err">err</span></Show>
+            </button>
+          );
+        }}</For>
+      </section>
+
+      <Show when={props.skeleton.loading}><p class="loading">Loading skeleton…</p></Show>
+      <Show when={!props.merged && props.skeleton()}>
+        {(s) => (
+          <section class="panel">
+            <p class="daf-summary">{s().summary}</p>
+            <For each={s().sections}>{(sec, i) => (
+              <div class="card">
+                <div class="card-head">
+                  <span class="card-num">§{i() + 1}</span>
+                  <span class="card-title">{sec.title}</span>
+                </div>
+                <Show when={sec.rabbiNames.length > 0}>
+                  <div class="card-who">{sec.rabbiNames.join(', ')}</div>
+                </Show>
+                <p class="card-summary">{sec.summary}</p>
+              </div>
+            )}</For>
+          </section>
+        )}
+      </Show>
+
+      <Show when={props.merged}>
+        {(m) => (
+          <section class="panel">
+            <p class="daf-summary">{m().summary}</p>
+            <For each={m().sections}>{(sec, i) => <ArgumentSectionCard sec={sec} idx={i()} />}</For>
+          </section>
+        )}
+      </Show>
+    </>
+  );
+}
+
+function ArgumentSectionCard(props: { sec: EnrichedArgumentSection; idx: number }): JSX.Element {
+  const [open, setOpen] = createSignal(false);
+  const sec = () => props.sec;
+  const hasSectionDetail = () => !!(
+    (sec().references && sec().references!.length > 0)
+    || (sec().parallels && sec().parallels!.length > 0)
+    || sec().difficulty
+  );
+  return (
+    <div class="card">
+      <div class="card-head">
+        <span class="card-num">§{props.idx + 1}</span>
+        <span class="card-title">{sec().title}</span>
+      </div>
+      <Show when={sec().rabbis && sec().rabbis.length > 0}>
+        <div class="card-who">{sec().rabbis.map(r => r.name).join(', ')}</div>
+      </Show>
+      <p class="card-summary">{sec().summary}</p>
+
+      <Show when={sec().rabbis && sec().rabbis.length > 0 && sec().rabbis.some(r => r.role || r.opinionStart)}>
+        <div class="sub-cards">
+          <For each={sec().rabbis}>{(r) => <RabbiSubcard rabbi={r} />}</For>
+        </div>
+      </Show>
+
+      <Show when={hasSectionDetail()}>
+        <div class="section-more">
+          <button class="more-btn" onClick={() => setOpen(!open())}>{open() ? '−' : '…'}</button>
+        </div>
+        <Show when={open()}>
+          <div class="detail">
+            <Show when={sec().references && sec().references!.length > 0}>
+              <div class="d-row"><span class="d-label">Pesukim</span>
+                <div class="d-body d-wrap">
+                  <For each={sec().references!}>{(ref) => <span class="d-ref" title={ref.hebrewQuote || ref.ref}>{ref.hebrewRef || ref.ref}</span>}</For>
+                </div>
+              </div>
+            </Show>
+            <Show when={sec().parallels && sec().parallels!.length > 0}>
+              <div class="d-row"><span class="d-label">See also</span>
+                <div class="d-body d-wrap">
+                  <For each={sec().parallels!}>{(p) => <span class="d-parallel">{p}</span>}</For>
+                </div>
+              </div>
+            </Show>
+            <Show when={sec().difficulty}>
+              <div class="d-row"><span class="d-label">Difficulty</span>
+                <div class="d-body">
+                  <span class="d-stars">{'★'.repeat(sec().difficulty!.score)}{'☆'.repeat(5 - sec().difficulty!.score)}</span>
+                  <span class="d-diff-reason"> {sec().difficulty!.reason}</span>
+                </div>
+              </div>
+            </Show>
+          </div>
+        </Show>
+      </Show>
+    </div>
+  );
+}
+
+function RabbiSubcard(props: { rabbi: EnrichedRabbi }): JSX.Element {
+  const [open, setOpen] = createSignal(false);
+  const r = () => props.rabbi;
+  const hasDetail = () => !!(
+    r().opinionStart || r().opinionEnd
+    || (r().agreesWith && r().agreesWith!.length > 0)
+    || (r().disagreesWith && r().disagreesWith!.length > 0)
+    || r().location
+  );
+  return (
+    <div class="sub-card">
+      <div class="sub-head">
+        <span class="sub-name">{r().name}</span>
+        <Show when={r().nameHe}><span class="sub-he"> · {r().nameHe}</span></Show>
+        <Show when={r().period}><span class="sub-era">{r().period!.replace(/,.*$/, '')}</span></Show>
+      </div>
+      <Show when={r().role}><div class="sub-role">{r().role}</div></Show>
+      <Show when={hasDetail()}>
+        <button class="sub-toggle" onClick={() => setOpen(!open())}>{open() ? '−' : '…'}</button>
+        <Show when={open()}>
+          <div class="sub-detail">
+            <Show when={r().opinionStart || r().opinionEnd}>
+              <div class="sub-span">
+                <Show when={r().opinionStart}><span>{r().opinionStart}</span></Show>
+                <Show when={r().opinionStart && r().opinionEnd}><span class="sub-span-gap">&nbsp;…&nbsp;</span></Show>
+                <Show when={r().opinionEnd}><span>{r().opinionEnd}</span></Show>
+              </div>
+            </Show>
+            <Show when={r().agreesWith && r().agreesWith!.length > 0}>
+              <div class="sub-rel"><span class="plus">+</span><span class="prep"> with </span>{r().agreesWith!.join(', ')}</div>
+            </Show>
+            <Show when={r().disagreesWith && r().disagreesWith!.length > 0}>
+              <div class="sub-rel"><span class="minus">−</span><span class="prep"> vs </span>{r().disagreesWith!.join(', ')}</div>
+            </Show>
+            <Show when={r().location}><div class="sub-loc">{r().location}</div></Show>
+          </div>
+        </Show>
+      </Show>
+    </div>
+  );
+}
+
+function HalachaTab(props: {
+  halacha: Resource<HalachaResult | null>;
+  running: Partial<Record<string, boolean>>;
+  errors: Partial<Record<string, string>>;
+  onEnrich: () => void;
+}): JSX.Element {
+  return (
+    <>
+      <section class="panel enrich-bar">
+        <span class="enrich-label">Enrichments</span>
+        <button class="enrich-btn" disabled={!!props.running['halacha:modern'] || !props.halacha()} onClick={props.onEnrich}
+          title="Mishna Berurah, Peninei Halakhah, Aruch HaShulchan, Igrot Moshe, etc. per topic.">
+          {props.running['halacha:modern'] ? 'Modern authorities…' : '+ Modern authorities'}
+          <Show when={props.errors['halacha:modern']}><span class="enrich-btn-err">err</span></Show>
+        </button>
+      </section>
+      <Show when={props.halacha.loading}><p class="loading">Loading halacha…</p></Show>
+      <Show when={props.halacha.error}><p class="err-msg">{String(props.halacha.error)}</p></Show>
+      <Show when={props.halacha() && props.halacha()!.topics.length === 0}>
+        <section class="panel empty">No halacha topics on this daf.</section>
+      </Show>
+      <Show when={props.halacha() && props.halacha()!.topics.length > 0}>
+        <section class="panel">
+          <For each={props.halacha()!.topics}>{(t, i) => <HalachaCard topic={t} idx={i()} />}</For>
+        </section>
+      </Show>
+    </>
+  );
+}
+
+function HalachaCard(props: { topic: HalachaTopic; idx: number }): JSX.Element {
+  const [open, setOpen] = createSignal(false);
+  const t = () => props.topic;
+  const rulings = () => {
+    const out: Array<{ code: string; ref: string; summary: string }> = [];
+    if (t().rulings.mishnehTorah) out.push({ code: 'Rambam MT', ref: t().rulings.mishnehTorah!.ref, summary: t().rulings.mishnehTorah!.summary });
+    if (t().rulings.shulchanAruch) out.push({ code: 'Shulchan Aruch', ref: t().rulings.shulchanAruch!.ref, summary: t().rulings.shulchanAruch!.summary });
+    if (t().rulings.rema) out.push({ code: 'Rema', ref: t().rulings.rema!.ref, summary: t().rulings.rema!.summary });
+    return out;
+  };
+  const hasMore = () => !!(t().modernAuthorities && t().modernAuthorities!.length > 0) || !!t().excerpt;
+  return (
+    <div class="card">
+      <div class="card-head">
+        <span class="card-num">§{props.idx + 1}</span>
+        <span class="card-title">
+          {t().topic}
+          <Show when={t().topicHe}><span class="card-title-he"> · {t().topicHe}</span></Show>
+        </span>
+      </div>
+      <Show when={rulings().length > 0}>
+        <ul class="ruling-list">
+          <For each={rulings()}>{(rul) => (
+            <li class="ruling">
+              <span class="ruling-code">{rul.code}</span>
+              <span class="ruling-ref">{rul.ref}</span>
+              <div class="ruling-summary">{rul.summary}</div>
+            </li>
+          )}</For>
+        </ul>
+      </Show>
+      <Show when={hasMore()}>
+        <div class="section-more">
+          <button class="more-btn" onClick={() => setOpen(!open())}>{open() ? '−' : '…'}</button>
+        </div>
+        <Show when={open()}>
+          <div class="detail">
+            <Show when={t().excerpt}>
+              <div class="d-row"><span class="d-label">Source</span><div class="d-body"><span class="d-excerpt">{t().excerpt}</span></div></div>
+            </Show>
+            <Show when={t().modernAuthorities && t().modernAuthorities!.length > 0}>
+              <div class="d-row"><span class="d-label">Modern</span>
+                <div class="d-body">
+                  <For each={t().modernAuthorities!}>{(a) => (
+                    <div class="modern-row">
+                      <span class="modern-src">{a.source}</span>
+                      <span class="modern-text"> — {a.summary}</span>
+                    </div>
+                  )}</For>
+                </div>
+              </div>
+            </Show>
+          </div>
+        </Show>
+      </Show>
+    </div>
+  );
+}
+
+function AggadataTab(props: {
+  aggadata: Resource<AggadataResult | null>;
+  running: Partial<Record<string, boolean>>;
+  errors: Partial<Record<string, string>>;
+  onEnrich: (strategy: 'parallels' | 'historical-context') => void;
+}): JSX.Element {
+  return (
+    <>
+      <section class="panel enrich-bar">
+        <span class="enrich-label">Enrichments</span>
+        <button class="enrich-btn" disabled={!!props.running['aggadata:parallels'] || !props.aggadata()} onClick={() => props.onEnrich('parallels')}>
+          {props.running['aggadata:parallels'] ? 'Parallels…' : '+ Parallels'}
+          <Show when={props.errors['aggadata:parallels']}><span class="enrich-btn-err">err</span></Show>
+        </button>
+        <button class="enrich-btn" disabled={!!props.running['aggadata:historical-context'] || !props.aggadata()} onClick={() => props.onEnrich('historical-context')}>
+          {props.running['aggadata:historical-context'] ? 'Historical context…' : '+ Historical context'}
+          <Show when={props.errors['aggadata:historical-context']}><span class="enrich-btn-err">err</span></Show>
+        </button>
+      </section>
+      <Show when={props.aggadata.loading}><p class="loading">Loading aggadata…</p></Show>
+      <Show when={props.aggadata.error}><p class="err-msg">{String(props.aggadata.error)}</p></Show>
+      <Show when={props.aggadata() && props.aggadata()!.stories.length === 0}>
+        <section class="panel empty">No aggadic stories on this daf.</section>
+      </Show>
+      <Show when={props.aggadata() && props.aggadata()!.stories.length > 0}>
+        <section class="panel">
+          <For each={props.aggadata()!.stories}>{(s, i) => <AggadataCard story={s} idx={i()} />}</For>
+        </section>
+      </Show>
+    </>
+  );
+}
+
+function AggadataCard(props: { story: AggadataStory; idx: number }): JSX.Element {
+  const [open, setOpen] = createSignal(false);
+  const s = () => props.story;
+  const hasMore = () => !!(s().excerpt || (s().parallels && s().parallels!.length > 0) || s().historicalContext);
+  return (
+    <div class="card">
+      <div class="card-head">
+        <span class="card-num">§{props.idx + 1}</span>
+        <span class="card-title">
+          {s().title}
+          <Show when={s().titleHe}><span class="card-title-he"> · {s().titleHe}</span></Show>
+        </span>
+        <Show when={s().theme}><span class="theme-tag">{s().theme}</span></Show>
+      </div>
+      <p class="card-summary">{s().summary}</p>
+      <Show when={hasMore()}>
+        <div class="section-more">
+          <button class="more-btn" onClick={() => setOpen(!open())}>{open() ? '−' : '…'}</button>
+        </div>
+        <Show when={open()}>
+          <div class="detail">
+            <Show when={s().excerpt}>
+              <div class="d-row"><span class="d-label">Source</span><div class="d-body"><span class="d-excerpt">{s().excerpt}</span></div></div>
+            </Show>
+            <Show when={s().parallels && s().parallels!.length > 0}>
+              <div class="d-row"><span class="d-label">Parallels</span>
+                <div class="d-body d-wrap">
+                  <For each={s().parallels!}>{(p) => <span class="d-parallel">{p}</span>}</For>
+                </div>
+              </div>
+            </Show>
+            <Show when={s().historicalContext}>
+              <div class="d-row"><span class="d-label">Historical</span>
+                <div class="d-body">
+                  <div class="hist-era">{s().historicalContext!.era}</div>
+                  <div class="hist-ctx">{s().historicalContext!.context}</div>
+                </div>
+              </div>
+            </Show>
+          </div>
+        </Show>
+      </Show>
+    </div>
+  );
+}
+
+// ---- styles ---------------------------------------------------------------
+
+const PAGE_CSS = `
+.enrichment-page { font-family: system-ui, -apple-system, sans-serif; max-width: 900px; margin: 0 auto; padding: 1rem; color: #1e293b; }
+.enrichment-page h1 { margin: 0 0 0.3rem; font-size: 22px; }
+.enrichment-page .lead { color: #475569; margin: 0 0 1rem; font-size: 13px; }
+.enrichment-page .panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
+.enrichment-page .empty { text-align: center; color: #94a3b8; padding: 2rem; }
+.enrichment-page .controls { display: flex; gap: 0.5rem; align-items: center; padding: 0.6rem 0.8rem; flex-wrap: wrap; }
+.enrichment-page .controls label { font-weight: 500; font-size: 12px; color: #475569; margin-right: 0.2rem; }
+.enrichment-page select, .enrichment-page input[type="text"] { padding: 0.3rem 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+.enrichment-page button { padding: 0.3rem 0.7rem; border: 1px solid #cbd5e1; background: white; border-radius: 4px; cursor: pointer; font-size: 13px; color: #1e293b; }
+.enrichment-page button:hover:not(:disabled) { background: #f1f5f9; }
+.enrichment-page button:disabled { opacity: 0.5; cursor: not-allowed; }
+.enrichment-page button.primary { background: #1e293b; color: white; border-color: #0f172a; }
+.enrichment-page button.primary:hover:not(:disabled) { background: #0f172a; }
+
+.tabs { display: flex; gap: 0.25rem; margin-bottom: 0.5rem; border-bottom: 1px solid #e5e7eb; }
+.tab { border: none; background: transparent; padding: 0.5rem 1rem; font-size: 13.5px; color: #64748b; border-bottom: 2px solid transparent; border-radius: 0; margin-bottom: -1px; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; }
+.tab:hover { color: #1e293b; background: transparent; }
+.tab-active { color: #1e293b; font-weight: 600; border-bottom-color: #1e293b; }
+.tab-count { background: #e2e8f0; color: #475569; font-size: 10.5px; padding: 1px 6px; border-radius: 10px; font-weight: 500; }
+
+.enrich-bar { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; padding: 0.5rem 0.8rem; background: #f8fafc; }
+.enrich-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-right: 0.3rem; }
+.enrich-btn { background: white; border: 1px solid #cbd5e1; font-size: 12px; padding: 0.25rem 0.6rem; }
+.enrich-btn-err { color: #b91c1c; margin-left: 0.35rem; font-size: 10px; }
+
+.daf-summary { font-size: 13.5px; color: #475569; margin: 0 0 0.75rem; line-height: 1.5; font-style: italic; }
+
+.card { background: #fff; border: 1px solid #e5e7eb; border-radius: 4px; padding: 0.6rem 0.75rem; margin-bottom: 0.5rem; position: relative; }
+.card-head { display: flex; align-items: baseline; gap: 0.4rem; margin-bottom: 0.25rem; flex-wrap: wrap; }
+.card-num { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: #94a3b8; }
+.card-title { font-weight: 600; font-size: 14px; color: #1e293b; flex: 1; }
+.card-title-he { font-family: Arial Hebrew, David, serif; color: #64748b; font-weight: 500; }
+.card-who { font-size: 12px; color: #64748b; margin-bottom: 0.35rem; }
+.card-summary { font-size: 13px; color: #334155; margin: 0 0 0.25rem; line-height: 1.5; }
+
+.theme-tag { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; background: #e2e8f0; color: #475569; padding: 1px 7px; border-radius: 10px; font-weight: 500; }
+
+.ruling-list { list-style: none; padding: 0; margin: 0.35rem 0 0; display: flex; flex-direction: column; gap: 0.3rem; }
+.ruling { padding: 0.3rem 0.4rem; background: #fafafa; border-radius: 3px; font-size: 12px; }
+.ruling-code { font-weight: 600; color: #1e293b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; margin-right: 0.4rem; }
+.ruling-ref { font-family: ui-monospace, Menlo, monospace; color: #475569; font-size: 11.5px; }
+.ruling-summary { color: #475569; font-size: 12px; margin-top: 0.15rem; line-height: 1.45; }
+
+.sub-cards { display: flex; flex-direction: column; gap: 0.3rem; margin-top: 0.5rem; }
+.sub-card { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 3px; padding: 0.35rem 0.55rem; position: relative; }
+.sub-head { display: flex; align-items: baseline; gap: 0.3rem; flex-wrap: wrap; padding-right: 1.5rem; }
+.sub-name { font-weight: 600; color: #1e293b; font-size: 12.5px; }
+.sub-he { font-family: Arial Hebrew, David, serif; color: #64748b; font-weight: 500; }
+.sub-era { margin-left: auto; font-size: 10px; color: #94a3b8; }
+.sub-role { font-size: 11.5px; color: #475569; margin-top: 0.15rem; line-height: 1.4; padding-right: 1.5rem; }
+.sub-toggle { position: absolute; bottom: 0.15rem; right: 0.35rem; border: none; background: transparent; color: #cbd5e1; font-size: 13px; cursor: pointer; padding: 0.05rem 0.3rem; line-height: 1; }
+.sub-toggle:hover { color: #475569; }
+.sub-detail { margin-top: 0.35rem; padding-top: 0.3rem; border-top: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 0.25rem; }
+.sub-span { font-family: Arial Hebrew, David, serif; direction: rtl; text-align: right; font-size: 12.5px; color: #475569; padding: 0.15rem 0.35rem; background: #fff; border-radius: 2px; }
+.sub-span-gap { color: #94a3b8; font-family: system-ui; }
+.sub-rel { font-size: 11px; color: #334155; }
+.sub-loc { font-size: 10.5px; color: #94a3b8; font-style: italic; }
+
+.section-more { display: flex; justify-content: center; margin-top: 0.1rem; }
+.more-btn { border: none; background: transparent; color: #cbd5e1; font-size: 16px; padding: 0.15rem 0.6rem; line-height: 1; letter-spacing: 2px; }
+.more-btn:hover { color: #64748b; background: transparent; }
+
+.detail { padding: 0.5rem 0.25rem 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.d-row { display: flex; gap: 0.5rem; align-items: baseline; }
+.d-label { font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; width: 68px; flex-shrink: 0; }
+.d-body { flex: 1; font-size: 11.5px; color: #334155; display: flex; flex-direction: column; gap: 0.2rem; }
+.d-wrap { flex-direction: row; flex-wrap: wrap; gap: 0.35rem; }
+.d-ref { font-family: Arial Hebrew, David, serif; color: #64748b; cursor: help; }
+.d-parallel { font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; color: #64748b; background: #f1f5f9; padding: 1px 5px; border-radius: 2px; }
+.d-stars { color: #64748b; margin-right: 0.35rem; letter-spacing: 0.5px; }
+.d-diff-reason { color: #475569; font-style: italic; }
+.d-excerpt { font-family: Arial Hebrew, David, serif; direction: rtl; text-align: right; font-size: 13px; color: #475569; padding: 0.2rem 0.4rem; background: #f8fafc; border-radius: 2px; }
+
+.modern-row { font-size: 11.5px; line-height: 1.4; }
+.modern-src { font-weight: 600; color: #1e293b; }
+.modern-text { color: #475569; }
+
+.hist-era { font-size: 10.5px; font-weight: 600; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.15rem; }
+.hist-ctx { font-size: 11.5px; color: #334155; line-height: 1.45; }
+
+.plus { color: #16a34a; font-weight: 700; }
+.minus { color: #b91c1c; font-weight: 700; }
+.prep { color: #94a3b8; font-style: italic; }
+
+.loading, .err-msg { font-size: 13px; padding: 0.5rem 1rem; }
+.err-msg { color: #b91c1c; background: #fee2e2; border-radius: 4px; }
+`;
 
 export default EnrichmentPage;
