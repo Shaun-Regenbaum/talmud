@@ -3289,7 +3289,7 @@ const AGGADATA_EXEGESIS_PROMPT = `You are a scholar of midrash and rabbinic herm
 - Existing aggadic stories for this daf (title, summary, excerpt, theme)
 - The focal daf's Hebrew + English
 
-For each story that is a darshan's reading of a biblical verse (typically theme="exegesis", but also any story that hinges on a verse — e.g. ethical maxims derived from scripture, homiletical expansions), identify:
+For each story that is a darshan's reading of a biblical verse (typically theme="derash", but also any ma'amar or ma'aseh whose pivotal move is re-reading a verse), identify:
 1. The specific biblical verse the darshan is expounding
 2. The interpretive / hermeneutic move used
 3. A concise explanation of how the midrash reads the verse — what linguistic or structural feature the darshan latches onto, and what new meaning emerges
@@ -3320,8 +3320,21 @@ app.post('/api/enrich-aggadata/:tractate/:page', async (c) => {
   }
   if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
   const cache = c.env.CACHE;
+  const bypass = c.req.query('refresh') === '1';
+  const cachedOnly = c.req.query('cached_only') === '1';
+  const enrichCacheKey = `aggadata-enrich:v1:${strategy}:${tractate}:${page}`;
 
-  const aggRaw = cache ? await cache.get(`aggadata:v3:${tractate}:${page}`) : null;
+  if (cache && !bypass) {
+    const cachedEnrich = await cache.get(enrichCacheKey);
+    if (cachedEnrich) {
+      return c.json({ ...JSON.parse(cachedEnrich) as { stories: AggadataStory[] }, _strategy: strategy, _cached: true });
+    }
+  }
+  if (cachedOnly) {
+    return c.json({ cached: false }, 404);
+  }
+
+  const aggRaw = cache ? await cache.get(`aggadata:v4:${tractate}:${page}`) : null;
   if (!aggRaw) return c.json({ error: 'No cached /api/aggadata output; run /api/aggadata first.' }, 404);
   let aggadata: AggadataResult;
   try { aggadata = JSON.parse(aggRaw) as AggadataResult; }
@@ -3394,9 +3407,15 @@ app.post('/api/enrich-aggadata/:tractate/:page', async (c) => {
     });
 
     const totalP = Object.values(parallelsByTitle).reduce((sum, arr) => sum + arr.length, 0);
+
+    if (cache) {
+      await cache.put(enrichCacheKey, JSON.stringify({ stories: enrichedStories }), { expirationTtl: 60 * 60 * 24 * 365 });
+    }
+
     return c.json({
       stories: enrichedStories,
       _strategy: strategy,
+      _cached: false,
       _elapsed_ms: Date.now() - t0,
       _metadata: {
         model: 'kimi-k2.5-no-thinking',
@@ -3649,6 +3668,7 @@ interface AggadataStory {
   excerpt: string;
   endExcerpt: string;
   theme?: string;
+  exegesis?: ExegesisContext;
 }
 interface AggadataResult {
   stories: AggadataStory[];
@@ -3673,7 +3693,7 @@ app.get('/api/aggadata/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
   const cache = c.env.CACHE;
-  const cacheKey = `aggadata:v3:${tractate}:${page}`;
+  const cacheKey = `aggadata:v4:${tractate}:${page}`;
   const t0 = Date.now();
 
   const bypass = c.req.query('refresh') === '1';
@@ -3768,6 +3788,55 @@ app.get('/api/aggadata/:tractate/:page', async (c) => {
         continue;
       }
       const result = parsed as AggadataResult;
+
+      // Inline exegesis enrichment: any story classified as derash gets a
+      // verse ref + hermeneutic explanation attached before we cache or
+      // return, so the main daf page always has exegesis ready on first
+      // load. Failures are swallowed — stage-A alone is still a valid
+      // response.
+      const derashStories = result.stories.filter(s => s.theme === 'derash');
+      if (derashStories.length > 0 && c.env.AI) {
+        try {
+          const exegContent = [
+            `Tractate: ${tractate}`,
+            `Focal page: ${page}`,
+            '',
+            `<existing_aggadata>\n${JSON.stringify(result, null, 2)}\n</existing_aggadata>`,
+            '',
+            `<focal_hebrew>${hebrewText.slice(0, 5000)}</focal_hebrew>`,
+            `<focal_english>${englishContext.slice(0, 4000)}</focal_english>`,
+          ].join('\n\n');
+          const ex = await runKimiStreaming(
+            c.env.AI, '@cf/moonshotai/kimi-k2.5',
+            [
+              { role: 'system', content: AGGADATA_EXEGESIS_PROMPT },
+              { role: 'user', content: exegContent },
+            ],
+            8000,
+            { chatTemplateKwargs: { enable_thinking: false } },
+          );
+          let exPayload = ex.content.trim();
+          const exFenced = exPayload.match(/```(?:json)?\s*([\s\S]*?)```/);
+          if (exFenced) exPayload = exFenced[1].trim();
+          const exParsed = JSON.parse(exPayload) as { stories?: Array<{ title: string; exegesis?: ExegesisContext | null }> };
+          if (Array.isArray(exParsed.stories)) {
+            const byTitle = new Map<string, ExegesisContext>();
+            for (const st of exParsed.stories) {
+              if (st.exegesis && st.exegesis.verseRef && st.exegesis.explanation) {
+                byTitle.set((st.title || '').toLowerCase(), st.exegesis);
+              }
+            }
+            result.stories = result.stories.map(st => {
+              const hit = byTitle.get(st.title.toLowerCase());
+              return hit ? { ...st, exegesis: hit } : st;
+            });
+          }
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn('[aggadata] exegesis enrichment failed:', err);
+        }
+      }
+
       if (cache) {
         await cache.put(cacheKey, JSON.stringify(result), { expirationTtl: 60 * 60 * 24 * 365 });
       }
@@ -4831,11 +4900,19 @@ const ERA_LLM_JSON_SCHEMA = {
 const ERA_LLM_SYSTEM_PROMPT = `You are a Talmud philologist. For each numbered segment, output the most-likely historical period (a generation ID) when that segment's content was authored or transmitted.
 
 Use these signals (in order):
-1. Named speaker/attribution — if a known sage is the speaker, the era is that sage's generation.
-2. Structural markers — מתני׳/מתניתין → tanna-5; דתניא/תנו רבנן/תניא → tanna-4 (anonymous baraita); דתנן → tanna-5 (cited mishna).
+1. Named speaker/attribution — if a known sage is the speaker, the era is that sage's generation. This includes: stories ABOUT a named sage (the events depicted are that sage's era, even when narrated in stam Aramaic).
+2. Structural markers — מתני׳/מתניתין → tanna-5; דתניא/תנו רבנן/תניא → tanna-4 (anonymous baraita); דתנן → tanna-5 (cited mishna). BEWARE: bare תנא or דתני followed by interrogatives (היכא, קאי, פתח, אקרא, דקתני) is STAM REFERRING TO THE MISHNA'S TANNA, not a baraita citation — classify as amora-bavel-8.
 3. Language register — Mishnaic Hebrew → tannaitic; Babylonian Aramaic dialectical voice (איתמר, מאי טעמא, איבעיא להו, מתקיף, פשיטא, קמ"ל) → late amora-bavel/Stam (amora-bavel-8); Galilean Aramaic → amora-ey-*.
 4. Anonymous redactional voice (Stam) → amora-bavel-8.
 5. Quoted scripture is not the segment's own voice — judge by the surrounding voice.
+
+ZUGIM: stories or sayings about Hillel, Shammai, Beit Hillel/Shammai, the five pairs (Yose ben Yoezer/Yose ben Yochanan, Yehoshua ben Perachya/Nittai of Arbel, etc.) → 'zugim', NOT tanna-1. The Zugim era ended c. 10 CE, before Tanna-1.
+
+CRITICAL — anti-confabulation rule: your "why" string MUST quote the literal Hebrew/Aramaic token from the segment that justified your pick. Do NOT invent markers. If the segment does not contain מתני, תניא, דתניא, etc., DO NOT claim it does. If the only signal is register/style, say so honestly: "stam dialectical voice" or "Mishnaic Hebrew register". A wrong-but-honest "why" is more useful than a confident-but-fabricated one.
+
+CRITICAL — DON'T over-classify as Stam. Mishnaic Hebrew is unmistakable: dense participles (אומר/אומרים), particles like שֶׁ-, no Aramaic dialectical markers (no איתמר, מאי, פשיטא, קמ"ל), and named tannaim using the formula "X אומר" or "דברי X". Such segments are tanna-* (the speaker's tanna era if named, otherwise tanna-5 for the Mishna's stratum). They are NEVER amora-bavel-8.
+
+Respect the heuristic guess provided in parentheses unless you have a CONCRETE reason to disagree (a named speaker the heuristic missed, a clear marker, an unmistakable register signal). When the heuristic says "tanna-5" because the segment looks like Mishna, and the segment contains no Aramaic dialectical tokens, defer to the heuristic.
 
 When in doubt, COMMIT to a single best guess. Do not output 'unknown' unless the segment is purely a verse citation with no framing.
 
@@ -4843,7 +4920,11 @@ ${GENERATIONS_PROMPT_REFERENCE}
 
 Return JSON: { "picks": [ { "idx": <int>, "era": <generation_id>, "why": "<short reason>" }, ... ] }
 - Output one pick per input segment. Do not add or omit indices.
-- "why" is one short clause (≤ 12 words), e.g. "speaker: Rav Huna" or "stammaitic dialectical voice".`;
+- "why" is one short clause (≤ 12 words), and must reference an actual token from the segment OR an honest register description. Examples:
+  - "speaker: רב הונא" (quoted name appears in the segment)
+  - "marker: 'תנו רבנן' (baraita)"
+  - "stam: 'מאי טעמא' formula"
+  - "Mishnaic Hebrew register"`;
 
 interface EraLlmSegmentInput {
   idx: number;
@@ -4946,10 +5027,15 @@ app.post('/api/era-llm/:tractate/:page', async (c) => {
     catch (err) { return c.json({ error: `non-JSON: ${String(err).slice(0, 200)}`, raw: payload.slice(0, 500) }, 502); }
     if (!isEraLlmResponse(parsed)) return c.json({ error: 'schema mismatch', got: parsed }, 502);
 
-    // Filter to known generation IDs only (model occasionally improvises).
+    // Filter to known generation IDs AND only indices that were actually
+    // sent — gemma-4-26b sometimes hallucinates picks for adjacent
+    // segment indices that the client didn't ask about. Accepting those
+    // would overwrite high-confidence heuristic picks (e.g. a heuristic
+    // speaker attribution) with garbage.
     const validIds = new Set<string>(GENERATION_IDS);
+    const sentIdxs = new Set(segments.map((s) => s.idx));
     const cleaned: EraLlmPick[] = parsed.picks
-      .filter((p) => validIds.has(p.era))
+      .filter((p) => validIds.has(p.era) && sentIdxs.has(p.idx))
       .map((p) => ({ idx: p.idx, era: p.era, why: p.why.slice(0, 200) }));
 
     if (cache) {

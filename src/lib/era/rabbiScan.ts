@@ -114,6 +114,17 @@ const ATTRIBUTION_VERBS_BEFORE: ReadonlySet<string> = new Set([
   'אמר', 'דאמר', 'ואמר', 'איתמר', 'תני', 'דתני', 'אומר', 'מתני',
 ]);
 
+// Tokens that follow a rabbi name to mark them as the speaker.
+//   "רבי אליעזר הגדול אומר", "רבי X אמר", "רבי X תני".
+// Without this, the post-name attribution pattern was missed entirely
+// (heuristic only checked the prev-token side).
+const ATTRIBUTION_VERBS_AFTER: ReadonlySet<string> = new Set([
+  'אומר', 'אומרת', 'אומרים',
+  'אמר', 'אמרה', 'אמרו',
+  'תני', 'תנא', 'מתני',
+  'דורש', 'דריש',
+]);
+
 const TANNAITIC_QUOT_INTRO: ReadonlySet<string> = new Set([
   'דתנן', 'דתניא', 'דתני', 'תניא',
 ]);
@@ -150,10 +161,17 @@ export function findRabbisInSegment(normalizedExpanded: string): RabbiHit[] {
 
     let isSpeaker = false;
     let inTannaiticCitation = false;
-    if (startIdx > 0) {
-      const prev1 = tokens[startIdx - 1];
+    if (startIdx >= 0) {
+      const endIdx = startIdx + nameTokens.length; // first token AFTER the name
+      const prev1 = startIdx > 0 ? tokens[startIdx - 1] : '';
       const prev2 = startIdx >= 2 ? tokens[startIdx - 2] : '';
-      isSpeaker = ATTRIBUTION_VERBS_BEFORE.has(prev1) || ATTRIBUTION_VERBS_BEFORE.has(prev2);
+      const next1 = endIdx < tokens.length ? tokens[endIdx] : '';
+      const next2 = endIdx + 1 < tokens.length ? tokens[endIdx + 1] : '';
+      isSpeaker =
+        ATTRIBUTION_VERBS_BEFORE.has(prev1)
+        || ATTRIBUTION_VERBS_BEFORE.has(prev2)
+        || ATTRIBUTION_VERBS_AFTER.has(next1)
+        || ATTRIBUTION_VERBS_AFTER.has(next2);
       const lookbackStart = Math.max(0, startIdx - 6);
       for (let i = lookbackStart; i < startIdx; i++) {
         if (TANNAITIC_QUOT_INTRO.has(tokens[i])) { inTannaiticCitation = true; break; }

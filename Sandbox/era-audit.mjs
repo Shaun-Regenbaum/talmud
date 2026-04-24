@@ -23,8 +23,14 @@ for (const [tractate, page] of TARGETS) {
   if (!segs.length) { console.log('! no segments'); continue; }
 
   const ctx = classifyDaf(segs);
-  const lowConf = ctx.segments.filter((s) => s.source === 'register' || s.source === 'stam-default');
   const plain = segs.map((s) => extractTalmudContent(s));
+  // Mirror the client filter: low-confidence + marker-with-rabbi.
+  const RABBI_HINT = /(?:^|\s)(רבי |רב |רבן |רבה |רבא |רבינא |מר |שמואל|הלל|שמאי|אביי|עולא|זעירי)/;
+  const lowConf = ctx.segments.filter((s) => {
+    if (s.source === 'register' || s.source === 'stam-default') return true;
+    if (s.source === 'marker' && RABBI_HINT.test(plain[s.segIdx] ?? '')) return true;
+    return false;
+  });
   const enPlain = (d.mainSegmentsEn ?? []).map((s) => extractTalmudContent(s));
 
   // Call LLM on low-confidence segments (cached on second visit).
@@ -38,7 +44,7 @@ for (const [tractate, page] of TARGETS) {
       heuristicGuess: s.era,
     }));
     const t0 = Date.now();
-    const r = await fetch(`${BASE}/api/era-llm/${encodeURIComponent(tractate)}/${page}`, {
+    const r = await fetch(`${BASE}/api/era-llm/${encodeURIComponent(tractate)}/${page}?refresh=${process.env.REFRESH ? '1' : '0'}`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ segments: payload }),

@@ -14,7 +14,7 @@ import { ensureMasechetIncipit } from './ensureMasechetIncipit';
 import { injectAnchorMarkers, injectOpinionMarkers, injectAggadataAnchors } from './anchorMarkers';
 import { GutterIcons } from './GutterIcons';
 import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
-import type { AggadataResult } from './AggadataDetector';
+import type { AggadataResult, AggadataStory } from './AggadataDetector';
 import { injectCityMarkers } from './injectCityMarkers';
 import { GenerationTimeline } from './GenerationTimeline';
 import { BugReport } from './BugReport';
@@ -649,6 +649,61 @@ export default function DafViewer(): JSX.Element {
           return;
         }
         if (!aggadataLoading()) void runAggadata();
+      })
+      .catch(() => {});
+    onCleanup(() => controller.abort());
+  });
+
+  // Exegesis enrichment — once stage-A aggadata arrives, pull the cached
+  // exegesis enrichment (if any) and merge it so derash stories show verse
+  // refs + hermeneutic explanation in the sidebar on the main page. On a
+  // cache miss, fire the full POST in the background to populate the cache
+  // for next time. Runs at most once per daf per session (tracked via the
+  // aggadataSessionCache storing stories with exegesis attached).
+  createEffect(() => {
+    const t = tractate();
+    const p = page();
+    const key = `${t}:${p}`;
+    const ag = aggadata();
+    if (!ag || ag.stories.length === 0) return;
+    const hasDerash = ag.stories.some((s) => s.theme === 'derash');
+    if (!hasDerash) return;
+    const alreadyEnriched = ag.stories.some((s) => s.exegesis);
+    if (alreadyEnriched) return;
+
+    const controller = new AbortController();
+    const mergeExegesis = (stories: AggadataStory[]) => {
+      if (t !== tractate() || p !== page()) return;
+      const byTitle = new Map<string, AggadataStory>();
+      for (const st of stories) byTitle.set(st.title.toLowerCase(), st);
+      const current = aggadata();
+      if (!current) return;
+      const merged: AggadataResult = {
+        ...current,
+        stories: current.stories.map((st) => {
+          const hit = byTitle.get(st.title.toLowerCase());
+          return hit?.exegesis ? { ...st, exegesis: hit.exegesis } : st;
+        }),
+      };
+      aggadataSessionCache.set(key, merged);
+      setAggadata(merged);
+    };
+
+    fetch(`/api/enrich-aggadata/${encodeURIComponent(t)}/${p}?strategy=exegesis&cached_only=1`, {
+      method: 'POST',
+      signal: controller.signal,
+    })
+      .then(async (res) => (res.status === 200 ? (await res.json()) as { stories: AggadataStory[] } : null))
+      .then((d) => {
+        if (d && d.stories) { mergeExegesis(d.stories); return; }
+        // Cache miss — fire the real enrichment in the background.
+        fetch(`/api/enrich-aggadata/${encodeURIComponent(t)}/${p}?strategy=exegesis`, {
+          method: 'POST',
+          signal: controller.signal,
+        })
+          .then(async (res) => (res.ok ? (await res.json()) as { stories: AggadataStory[] } : null))
+          .then((d2) => { if (d2?.stories) mergeExegesis(d2.stories); })
+          .catch(() => {});
       })
       .catch(() => {});
     onCleanup(() => controller.abort());

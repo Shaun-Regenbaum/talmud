@@ -55,6 +55,11 @@ interface CacheStats {
     totalRabbis: number;
     withBio: number;
     withWiki: number;
+    withImage: number;
+    withGeneration: number;
+    withRegion: number;
+    withPlaces: number;
+    withHierarchyEdges: number;
     unknownRabbis: number | null;
   };
   hierarchy: {
@@ -195,23 +200,77 @@ function CacheStatusSection(props: { stats: CacheStats }): JSX.Element {
       </table>
 
       <div style={{ 'margin-top': '0.9rem', 'font-size': '0.85rem', color: '#333' }}>
-        <div style={{ color: '#999', 'font-size': '0.75rem', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', 'margin-bottom': '0.3rem' }}>
-          Rabbi bios
+        <div style={{ color: '#999', 'font-size': '0.75rem', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', 'margin-bottom': '0.4rem' }}>
+          Rabbi dataset coverage
+          <span style={{ color: '#888', 'margin-left': '0.3rem', 'text-transform': 'none', 'letter-spacing': 'normal' }}>
+            ({fmtInt(r().totalRabbis)} total)
+          </span>
         </div>
-        <div>Rabbis known: <b>{fmtInt(r().totalRabbis)}</b></div>
-        <div>
-          With bio: <b>{fmtInt(r().withBio)}</b>
-          <span style={{ color: '#888' }}> ({((r().withBio / Math.max(1, r().totalRabbis)) * 100).toFixed(1)}%)</span>
-        </div>
-        <div>
-          With Wikipedia: <b>{fmtInt(r().withWiki)}</b>
-          <span style={{ color: '#888' }}> ({((r().withWiki / Math.max(1, r().totalRabbis)) * 100).toFixed(1)}%)</span>
-        </div>
-        <div style={{ color: '#888' }}>
-          Unknown rabbis detected: {r().unknownRabbis === null ? '— (not yet tracked)' : fmtInt(r().unknownRabbis ?? 0)}
-        </div>
+        <table style={{ width: '100%', 'border-collapse': 'collapse', 'font-size': '0.85rem' }}>
+          <tbody>
+            <RabbiCoverageRow label="Bio" filled={r().withBio} total={r().totalRabbis} />
+            <RabbiCoverageRow label="Wikipedia link" filled={r().withWiki} total={r().totalRabbis} />
+            <RabbiCoverageRow label="Image" filled={r().withImage} total={r().totalRabbis} />
+            <RabbiCoverageRow label="Generation identified" filled={r().withGeneration} total={r().totalRabbis} />
+            <RabbiCoverageRow label="Region (E.Y. / Bavel)" filled={r().withRegion} total={r().totalRabbis} />
+            <RabbiCoverageRow label="Places (cities)" filled={r().withPlaces} total={r().totalRabbis} />
+            <RabbiCoverageRow
+              label="Hierarchy edges"
+              filled={r().withHierarchyEdges}
+              total={r().totalRabbis}
+              hint="at least one teacher / student / contemporary"
+            />
+          </tbody>
+        </table>
       </div>
     </section>
+  );
+}
+
+interface RabbiCoverageRowProps {
+  label: string;
+  filled: number;
+  total: number;
+  hint?: string;
+}
+
+function RabbiCoverageRow(props: RabbiCoverageRowProps): JSX.Element {
+  const missing = () => Math.max(0, props.total - props.filled);
+  const percent = () => props.total > 0 ? (props.filled / props.total) * 100 : 0;
+  const complete = () => percent() >= 100;
+  return (
+    <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+      <td style={{ padding: '0.35rem 0.5rem' }}>
+        {props.label}
+        <Show when={props.hint}>
+          <span style={{ color: '#999', 'font-size': '0.72rem', 'margin-left': '0.4rem' }}>
+            ({props.hint})
+          </span>
+        </Show>
+      </td>
+      <td style={{ padding: '0.35rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>
+        <span style={{ color: '#333' }}>{fmtInt(props.filled)}</span>
+        <span style={{ color: '#999' }}> / {fmtInt(props.total)}</span>
+      </td>
+      <td style={{ padding: '0.35rem 0.5rem', width: '32%' }}>
+        <div style={{ height: '6px', background: '#f0f0f0', 'border-radius': '3px', overflow: 'hidden' }}>
+          <div
+            style={{
+              width: `${Math.min(100, percent())}%`,
+              height: '100%',
+              background: complete() ? '#2a8a42' : '#4b7bec',
+              transition: 'width 0.3s ease',
+            }}
+          />
+        </div>
+      </td>
+      <td style={{ padding: '0.35rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', color: complete() ? '#2a8a42' : '#333', 'white-space': 'nowrap' }}>
+        {percent().toFixed(1)}%
+      </td>
+      <td style={{ padding: '0.35rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', color: missing() === 0 ? '#999' : '#c33', 'font-size': '0.78rem', 'white-space': 'nowrap' }}>
+        {missing() === 0 ? '—' : `${fmtInt(missing())} missing`}
+      </td>
+    </tr>
   );
 }
 

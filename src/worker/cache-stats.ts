@@ -11,7 +11,10 @@ import rabbiPlacesData from '../lib/data/rabbi-places.json';
 import rabbiHierarchyData from '../lib/data/rabbi-hierarchy.json';
 import { getWarmTotal } from './warm-cron';
 
-export const CACHE_STATS_KEY = 'cache-stats:v1';
+// v2 expanded the `rabbis` block with withImage / withGeneration /
+// withRegion / withPlaces / withHierarchyEdges. Old v1 cached payloads
+// would leave those fields undefined in the UI.
+export const CACHE_STATS_KEY = 'cache-stats:v2';
 const FRESH_MS = 60_000;
 
 export interface CacheStats {
@@ -28,6 +31,11 @@ export interface CacheStats {
     totalRabbis: number;
     withBio: number;
     withWiki: number;
+    withImage: number;
+    withGeneration: number;   // generation set and not 'unknown'
+    withRegion: number;       // region is 'israel' | 'bavel'
+    withPlaces: number;       // non-empty places array
+    withHierarchyEdges: number; // at least one teacher/student/colleague edge
     unknownRabbis: null;
   };
   hierarchy: {
@@ -45,7 +53,14 @@ interface CacheBucket {
 }
 
 interface RabbisFile {
-  rabbis: Record<string, { bio?: string | null; wiki?: string | null }>;
+  rabbis: Record<string, {
+    bio?: string | null;
+    wiki?: string | null;
+    image?: string | null;
+    generation?: string | null;
+    region?: 'israel' | 'bavel' | null;
+    places?: string[];
+  }>;
 }
 const RABBIS = rabbiPlacesData as unknown as RabbisFile;
 
@@ -105,16 +120,29 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
   let totalRabbis = 0;
   let withBio = 0;
   let withWiki = 0;
-  for (const r of Object.values(RABBIS.rabbis)) {
+  let withImage = 0;
+  let withGeneration = 0;
+  let withRegion = 0;
+  let withPlaces = 0;
+  for (const [slug, r] of Object.entries(RABBIS.rabbis)) {
     totalRabbis++;
     if (r.bio) withBio++;
     if (r.wiki) withWiki++;
+    if (r.image) withImage++;
+    if (r.generation && r.generation !== 'unknown') withGeneration++;
+    if (r.region === 'israel' || r.region === 'bavel') withRegion++;
+    if (Array.isArray(r.places) && r.places.length > 0) withPlaces++;
+    // withHierarchyEdges is counted in the hierarchy pass below so we
+    // don't re-walk the rabbi dataset twice.
+    void slug;
   }
 
-  // Hierarchy denominator is rabbis with a bio (others cannot be processed).
   let totalEdges = 0;
+  let withHierarchyEdges = 0;
   for (const n of Object.values(HIERARCHY.nodes ?? {})) {
-    totalEdges += (n.teachers?.length ?? 0) + (n.students?.length ?? 0) + (n.colleagues?.length ?? 0);
+    const edgeCount = (n.teachers?.length ?? 0) + (n.students?.length ?? 0) + (n.colleagues?.length ?? 0);
+    totalEdges += edgeCount;
+    if (edgeCount > 0) withHierarchyEdges++;
   }
   const hierarchyDenom = withBio || HIERARCHY.totalNodes || 0;
 
@@ -128,7 +156,12 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
       aggadata: { count: aggCount, percent: pct(aggCount, total) },
       dafContext: { count: dcTotal, percent: pct(dcTotal, total), stage2Count: dcStage2 },
     },
-    rabbis: { totalRabbis, withBio, withWiki, unknownRabbis: null },
+    rabbis: {
+      totalRabbis, withBio, withWiki, withImage,
+      withGeneration, withRegion, withPlaces,
+      withHierarchyEdges,
+      unknownRabbis: null,
+    },
     hierarchy: {
       totalNodes: hierarchyDenom,
       processedNodes: HIERARCHY.processedNodes ?? 0,

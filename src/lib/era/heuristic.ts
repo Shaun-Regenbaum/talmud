@@ -58,11 +58,30 @@ function isLater(a: GenerationId, b: GenerationId): boolean {
 
 // Structural marker detection. Operates on normalized, abbreviation-expanded
 // tokens of the segment.
+//
+// Confidence ranking (only fire when CONFIDENT):
+//   - מתני׳ / מתניתין / משנה  → tanna-5 (mishna voice itself)
+//   - דתנן                      → tanna-5 (mishna citation: "as we learned")
+//   - תנו רבנן                   → tanna-4 (Sages-taught baraita, two-token)
+//   - דתניא                     → tanna-4 (baraita citation)
+//   - תניא                      → tanna-4 (baraita citation, unless followed by stam-pointer)
+//   - תנא דבי X                 → tanna-4 (school baraita)
+//
+// Deliberately DROPPED from the broad-marker set (too ambiguous):
+//   - bare תנא            ("תנא היכא קאי" = stam asking about the Mishna's tanna)
+//   - bare דתני           ("דתני בערבית בריישא" = stam discussing the Mishna's wording)
+// These slip through to the register/speaker stages, which is the right call —
+// the tradeoff is a few false-Stam-default picks vs many wrong-tanna-4 picks
+// that drown the timeline.
 const MARKER_MISHNA: ReadonlySet<string> = new Set([
   'מתני', 'מתניתין', 'משנה',
 ]);
-const MARKER_BARAITA: ReadonlySet<string> = new Set([
-  'דתניא', 'דתני', 'דתנן', 'תנו', 'תנא',
+
+// Tokens that indicate a stam reference to the Mishna's tanna rather than a
+// baraita citation. If "תניא" is followed by one of these, it's almost
+// certainly stam framing (e.g. "תניא היכא קאי").
+const STAM_TANNA_LOOKAHEAD: ReadonlySet<string> = new Set([
+  'היכא', 'קאי', 'קתני', 'דקתני', 'פתח', 'אקרא',
 ]);
 
 interface MarkerDetect {
@@ -73,10 +92,27 @@ interface MarkerDetect {
 function detectStructuralMarker(tokens: string[]): MarkerDetect {
   for (let i = 0; i < tokens.length; i++) {
     const t = tokens[i];
+    const next = tokens[i + 1] ?? '';
+
     if (MARKER_MISHNA.has(t)) return { era: 'tanna-5', why: `marker: ${t} (mishna voice)` };
-    if (t === 'תנו' && tokens[i + 1] === 'רבנן') return { era: 'tanna-4', why: 'marker: תנו רבנן' };
-    if (t === 'תניא') return { era: 'tanna-4', why: 'marker: תניא (anonymous baraita)' };
-    if (MARKER_BARAITA.has(t)) return { era: 'tanna-4', why: `marker: ${t} (baraita citation)` };
+
+    // Mishna citation — "as we learned in the Mishna"
+    if (t === 'דתנן') return { era: 'tanna-5', why: 'marker: דתנן (mishna citation)' };
+
+    // Strong baraita signals
+    if (t === 'תנו' && next === 'רבנן') return { era: 'tanna-4', why: 'marker: תנו רבנן' };
+    if (t === 'דתניא') return { era: 'tanna-4', why: 'marker: דתניא (baraita citation)' };
+    if (t === 'תניא') {
+      if (STAM_TANNA_LOOKAHEAD.has(next)) continue; // stam reference, not a baraita
+      return { era: 'tanna-4', why: 'marker: תניא (anonymous baraita)' };
+    }
+
+    // School-attribution baraita ("תנא דבי רבי ישמעאל / דבי רב")
+    if (t === 'תנא' && next === 'דבי') {
+      return { era: 'tanna-4', why: 'marker: תנא דבי (school baraita)' };
+    }
+
+    // Bare תנא and bare דתני are intentionally NOT matched (see header).
   }
   return { era: null, why: '' };
 }

@@ -403,9 +403,65 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                         </span>
                       </div>
                     </Show>
-                    <p style={{ margin: 0, color: '#333', 'line-height': 1.55 }}>
+                    <p style={{ margin: '0 0 0.8rem', color: '#333', 'line-height': 1.55 }}>
                       {story.summary}
                     </p>
+                    <Show when={story.exegesis}>
+                      <div style={{
+                        padding: '0.55rem 0.7rem',
+                        background: '#fafaf7',
+                        border: '1px solid #eae8e0',
+                        'border-radius': '4px',
+                      }}>
+                        <div style={{
+                          display: 'flex',
+                          'align-items': 'baseline',
+                          gap: '0.5rem',
+                          'margin-bottom': '0.3rem',
+                        }}>
+                          <span style={{
+                            'font-size': '0.68rem',
+                            'text-transform': 'uppercase',
+                            'letter-spacing': '0.06em',
+                            'font-weight': 600,
+                            color: '#475569',
+                          }}>
+                            {story.exegesis!.verseRef}
+                          </span>
+                          <span style={{
+                            display: 'inline-block',
+                            padding: '0.05rem 0.4rem',
+                            'font-size': '0.62rem',
+                            'text-transform': 'uppercase',
+                            'letter-spacing': '0.05em',
+                            color: '#6d28d9',
+                            background: '#ede9fe',
+                            'border-radius': '10px',
+                          }}>
+                            {story.exegesis!.move}
+                          </span>
+                        </div>
+                        <Show when={story.exegesis!.verseHe}>
+                          <p dir="rtl" lang="he" style={{
+                            margin: '0 0 0.35rem',
+                            'font-family': '"Mekorot Vilna", serif',
+                            'font-size': '0.95rem',
+                            color: '#334155',
+                            'line-height': 1.55,
+                          }}>
+                            {story.exegesis!.verseHe}
+                          </p>
+                        </Show>
+                        <p style={{
+                          margin: 0,
+                          color: '#334155',
+                          'font-size': '0.85rem',
+                          'line-height': 1.55,
+                        }}>
+                          {story.exegesis!.explanation}
+                        </p>
+                      </div>
+                    </Show>
                   </div>
                 );
               })()}

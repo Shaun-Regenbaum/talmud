@@ -57,6 +57,15 @@ interface HalachaTopic {
 }
 interface HalachaResult { topics: HalachaTopic[]; _cached?: boolean; }
 
+interface SefariaTopic {
+  slug: string;
+  titleEn?: string;
+  titleHe?: string;
+  description?: string;
+  sources: Array<{ ref: string; category?: string; order?: number }>;
+}
+interface SefariaTopicsResult { topics: SefariaTopic[]; _metadata?: Record<string, unknown>; }
+
 interface HistoricalContext { era: string; context: string; }
 interface ExegesisContext { verseRef: string; verseHe?: string; move: string; explanation: string; }
 interface AggadataStory {
@@ -84,6 +93,12 @@ async function fetchHalacha(tractate: string, page: string): Promise<HalachaResu
 async function fetchAggadata(tractate: string, page: string): Promise<AggadataResult> {
   const res = await fetch(`/api/aggadata/${encodeURIComponent(tractate)}/${page}`);
   if (!res.ok) throw new Error(`aggadata: HTTP ${res.status}`);
+  return res.json();
+}
+
+async function fetchSefariaTopics(tractate: string, page: string): Promise<SefariaTopicsResult> {
+  const res = await fetch(`/api/topics/${encodeURIComponent(tractate)}/${page}`);
+  if (!res.ok) throw new Error(`topics: HTTP ${res.status}`);
   return res.json();
 }
 
@@ -144,6 +159,8 @@ export function EnrichmentPage(): JSX.Element {
     return fetchAggadata(tractate(), page()).catch(() => null);
   });
 
+  const [sefariaTopics, setSefariaTopics] = createSignal<SefariaTopicsResult | null>(null);
+
   const [argumentEnrichments, setArgumentEnrichments] = createSignal<Partial<Record<string, EnrichedArgumentAnalysis>>>({});
   const [running, setRunning] = createSignal<Partial<Record<string, boolean>>>({});
   const [errors, setErrors] = createSignal<Partial<Record<string, string>>>({});
@@ -152,6 +169,7 @@ export function EnrichmentPage(): JSX.Element {
     setArgumentEnrichments({});
     setRunning({});
     setErrors({});
+    setSefariaTopics(null);
     setLoadKey(loadKey() + 1);
   };
 
@@ -198,6 +216,20 @@ export function EnrichmentPage(): JSX.Element {
       } else {
         mutateHalacha(result);
       }
+    } catch (err) {
+      setErrors(e => ({ ...e, [key]: String(err) }));
+    } finally {
+      setRunning(r => ({ ...r, [key]: false }));
+    }
+  };
+
+  const runSefariaTopics = async () => {
+    const key = 'topics:sefaria';
+    setRunning(r => ({ ...r, [key]: true }));
+    setErrors(e => ({ ...e, [key]: undefined }));
+    try {
+      const result = await fetchSefariaTopics(tractate(), page());
+      setSefariaTopics(result);
     } catch (err) {
       setErrors(e => ({ ...e, [key]: String(err) }));
     } finally {
@@ -319,7 +351,14 @@ export function EnrichmentPage(): JSX.Element {
           />
         </Show>
         <Show when={tab() === 'halacha'}>
-          <HalachaTab halacha={halacha} running={running()} errors={errors()} onEnrich={runHalachaEnrich} />
+          <HalachaTab
+            halacha={halacha}
+            running={running()}
+            errors={errors()}
+            onEnrich={runHalachaEnrich}
+            onLoadTopics={runSefariaTopics}
+            topics={sefariaTopics()}
+          />
         </Show>
         <Show when={tab() === 'aggadata'}>
           <AggadataTab aggadata={aggadata} running={running()} errors={errors()} onEnrich={runAggEnrich} />
@@ -507,6 +546,8 @@ function HalachaTab(props: {
   running: Partial<Record<string, boolean>>;
   errors: Partial<Record<string, string>>;
   onEnrich: (strategy: HalachaEnrichStrategy) => void;
+  onLoadTopics: () => void;
+  topics: SefariaTopicsResult | null;
 }): JSX.Element {
   return (
     <>
@@ -533,7 +574,25 @@ function HalachaTab(props: {
           {props.running['halacha:sa-commentary-walk'] ? 'SA commentary…' : '+ SA commentary'}
           <Show when={props.errors['halacha:sa-commentary-walk']}><span class="enrich-btn-err">err</span></Show>
         </button>
+        <button class="enrich-btn"
+          disabled={!!props.running['topics:sefaria']}
+          onClick={props.onLoadTopics}
+          title="Sefaria's editorial topic tags for this daf + top cross-Shas sources per topic (Shas, Midrash, Rishonim, etc.).">
+          {props.running['topics:sefaria'] ? 'Topics…' : '+ Sefaria topics'}
+          <Show when={props.errors['topics:sefaria']}><span class="enrich-btn-err">err</span></Show>
+        </button>
       </section>
+      <Show when={props.topics && props.topics.topics.length > 0}>
+        <section class="panel topics-panel">
+          <div class="topics-head">
+            <span class="enrich-label">Sefaria topics on this daf</span>
+            <span class="topics-count">{props.topics!.topics.length} topics · {props.topics!.topics.reduce((s, t) => s + t.sources.length, 0)} cross-Shas sources</span>
+          </div>
+          <div class="topics-grid">
+            <For each={props.topics!.topics}>{(t) => <TopicCard topic={t} />}</For>
+          </div>
+        </section>
+      </Show>
       <Show when={props.halacha.loading}><p class="loading">Loading halacha…</p></Show>
       <Show when={props.halacha.error}><p class="err-msg">{String(props.halacha.error)}</p></Show>
       <Show when={props.halacha() && props.halacha()!.topics.length === 0}>
@@ -629,6 +688,37 @@ function HalachaCard(props: { topic: HalachaTopic; idx: number }): JSX.Element {
             </Show>
           </div>
         </Show>
+      </Show>
+    </div>
+  );
+}
+
+function TopicCard(props: { topic: SefariaTopic }): JSX.Element {
+  const [open, setOpen] = createSignal(false);
+  const t = () => props.topic;
+  return (
+    <div class="topic-card">
+      <div class="topic-head">
+        <span class="topic-title">{t().titleEn ?? t().slug}</span>
+        <Show when={t().titleHe}><span class="topic-title-he"> · {t().titleHe}</span></Show>
+        <span class="topic-count">{t().sources.length} refs</span>
+      </div>
+      <Show when={t().description}>
+        <div class="topic-desc">{t().description}</div>
+      </Show>
+      <Show when={t().sources.length > 0}>
+        <div class="topic-sources">
+          <For each={t().sources.slice(0, open() ? 20 : 5)}>{(src) => (
+            <a class="topic-ref"
+               href={`https://www.sefaria.org/${encodeURIComponent(src.ref.replace(/ /g, '_'))}`}
+               target="_blank" rel="noopener noreferrer">{src.ref}</a>
+          )}</For>
+          <Show when={t().sources.length > 5}>
+            <button class="more-btn topic-more" onClick={() => setOpen(!open())}>
+              {open() ? '−' : `+${Math.max(0, t().sources.length - 5)} more`}
+            </button>
+          </Show>
+        </div>
       </Show>
     </div>
   );
@@ -825,6 +915,22 @@ const PAGE_CSS = `
 .plus { color: #16a34a; font-weight: 700; }
 .minus { color: #b91c1c; font-weight: 700; }
 .prep { color: #94a3b8; font-style: italic; }
+
+.topics-panel { background: #f8fafc; }
+.topics-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem; }
+.topics-count { font-size: 11px; color: #94a3b8; }
+.topics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.5rem; }
+.topic-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 4px; padding: 0.5rem 0.7rem; }
+.topic-head { display: flex; align-items: baseline; gap: 0.3rem; flex-wrap: wrap; margin-bottom: 0.25rem; }
+.topic-title { font-weight: 600; font-size: 13px; color: #1e293b; flex: 1; }
+.topic-title-he { font-family: Arial Hebrew, David, serif; color: #64748b; font-weight: 500; }
+.topic-count { font-size: 10px; color: #94a3b8; font-weight: 500; }
+.topic-desc { font-size: 11.5px; color: #475569; line-height: 1.45; margin-bottom: 0.35rem; }
+.topic-sources { display: flex; flex-wrap: wrap; gap: 0.25rem; align-items: center; }
+.topic-ref { font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; color: #3730a3; background: #e0e7ff; padding: 1px 6px; border-radius: 2px; text-decoration: none; }
+.topic-ref:hover { background: #c7d2fe; }
+.topic-more { font-size: 10px; color: #64748b; padding: 0 0.5rem; border: none; background: transparent; cursor: pointer; }
+.topic-more:hover { color: #1e293b; }
 
 .loading, .err-msg { font-size: 13px; padding: 0.5rem 1rem; }
 .err-msg { color: #b91c1c; background: #fee2e2; border-radius: 4px; }

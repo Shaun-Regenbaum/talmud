@@ -101,13 +101,24 @@ export default function ExperimentPage(): JSX.Element {
     const d = daf();
     const ctx = eraContext();
     if (!d?.mainSegmentsHe || !ctx) return;
-    const lowConf = ctx.segments.filter((s) => s.source === 'register' || s.source === 'stam-default');
-    if (lowConf.length === 0) {
-      setLlmError('No low-confidence segments to send.');
+    const plain = d.mainSegmentsHe.map((html) => extractTalmudContent(html));
+    // Send to LLM:
+    //   - register / stam-default segments (heuristic admits low confidence)
+    //   - marker segments that contain a potential rabbi-name token — these
+    //     get a coarse tanna-4 / tanna-5 from the marker but the LLM can pin
+    //     a more specific era when a named tanna is the actual speaker
+    //     (e.g. "תניא, רבי אליעזר הגדול אומר" → tanna-2, not tanna-4).
+    const RABBI_HINT = /(?:^|\s)(רבי |רב |רבן |רבה |רבא |רבינא |מר |שמואל|הלל|שמאי|אביי|עולא|זעירי)/;
+    const candidates = ctx.segments.filter((s) => {
+      if (s.source === 'register' || s.source === 'stam-default') return true;
+      if (s.source === 'marker' && RABBI_HINT.test(plain[s.segIdx] ?? '')) return true;
+      return false;
+    });
+    if (candidates.length === 0) {
+      setLlmError('No segments to send.');
       return;
     }
-    const plain = d.mainSegmentsHe.map((html) => extractTalmudContent(html));
-    const payload = lowConf.map((s) => ({
+    const payload = candidates.map((s) => ({
       idx: s.segIdx,
       text: plain[s.segIdx] ?? '',
       before: s.segIdx > 0 ? plain[s.segIdx - 1]?.slice(0, 200) : undefined,
@@ -145,10 +156,20 @@ export default function ExperimentPage(): JSX.Element {
     return m;
   });
 
-  const lowConfCount = createMemo(() => {
+  // Mirror the runLlm() filter so the button label matches what we'd send.
+  const RABBI_HINT_RE = /(?:^|\s)(רבי |רב |רבן |רבה |רבא |רבינא |מר |שמואל|הלל|שמאי|אביי|עולא|זעירי)/;
+  const llmCandidateCount = createMemo(() => {
     const ctx = eraContext();
-    if (!ctx) return 0;
-    return ctx.segments.filter((s) => s.source === 'register' || s.source === 'stam-default').length;
+    const d = daf();
+    if (!ctx || !d?.mainSegmentsHe) return 0;
+    return ctx.segments.filter((s) => {
+      if (s.source === 'register' || s.source === 'stam-default') return true;
+      if (s.source === 'marker') {
+        const plain = extractTalmudContent(d.mainSegmentsHe![s.segIdx] ?? '');
+        return RABBI_HINT_RE.test(plain);
+      }
+      return false;
+    }).length;
   });
 
   const presentInOrder = createMemo<GenerationId[]>(() => {
@@ -191,20 +212,20 @@ export default function ExperimentPage(): JSX.Element {
           <button
             type="button"
             onClick={runLlm}
-            disabled={llmLoading() || lowConfCount() === 0}
+            disabled={llmLoading() || llmCandidateCount() === 0}
             style={{
               padding: '0.35rem 0.75rem',
               border: '1px solid #6d28d9',
               'border-radius': '4px',
               background: llmLoading() ? '#ede9fe' : '#7c3aed',
               color: llmLoading() ? '#6d28d9' : '#fff',
-              cursor: (llmLoading() || lowConfCount() === 0) ? 'default' : 'pointer',
+              cursor: (llmLoading() || llmCandidateCount() === 0) ? 'default' : 'pointer',
               'font-size': '0.78rem',
               'font-family': 'inherit',
-              opacity: lowConfCount() === 0 ? 0.5 : 1,
+              opacity: llmCandidateCount() === 0 ? 0.5 : 1,
             }}
           >
-            {llmLoading() ? 'Running Kimi K2.6…' : `Run LLM on ${lowConfCount()} low-conf seg${lowConfCount() === 1 ? '' : 's'}`}
+            {llmLoading() ? 'Running gemma-4-26b…' : `Run LLM on ${llmCandidateCount()} candidate seg${llmCandidateCount() === 1 ? '' : 's'}`}
           </button>
         </div>
       </header>
