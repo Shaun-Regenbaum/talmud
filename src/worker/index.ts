@@ -4482,6 +4482,23 @@ app.get('/api/admin/rabbi-slugs', (c) => {
   return c.json({ slugs, count: slugs.length });
 });
 
+// Slim search index for the #sages browser. Returns one row per rabbinic
+// entry with the fields needed for client-side fuzzy search + filter chips.
+// Reads straight from the bundled rabbi-places.json — no cache lookup.
+app.get('/api/sages-index', (c) => {
+  const rows = Object.entries(RABBI_PLACES.rabbis)
+    .filter(([, r]) => isRabbinicEntry(r))
+    .map(([slug, r]) => ({
+      slug,
+      canonical: r.canonical,
+      canonicalHe: r.canonicalHe ?? null,
+      aliases: r.aliases ?? [],
+      generation: r.generation ?? null,
+      region: r.region ?? null,
+    }));
+  return c.json({ rows, count: rows.length });
+});
+
 app.get('/api/admin/enrich-rabbi/:slug', async (c) => {
   if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
   const slug = c.req.param('slug');
