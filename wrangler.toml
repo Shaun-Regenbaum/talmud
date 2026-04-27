@@ -18,6 +18,14 @@ not_found_handling = "single-page-application"
 binding = "AI"
 remote = true
 
+# Route every Workers AI call through Cloudflare AI Gateway "talmud" for
+# 7-day prompt caching, per-request observability, and wrapper-side retry on
+# 1031/3046 transient failures. Same account as the binding, so no token
+# needed — src/worker/ai-gateway.ts uses the binding's gateway option.
+# Set AI_GATEWAY_DISABLE = "1" as an emergency kill-switch.
+[vars]
+AI_GATEWAY_ID = "talmud"
+
 [[kv_namespaces]]
 binding = "CACHE"
 id = "957172c219734565a172371f98c22056"
@@ -47,6 +55,26 @@ crons = ["*/5 * * * *", "0 3 * * *"]
 name = "halacha-enrich"
 binding = "HALACHA_ENRICH"
 class_name = "HalachaEnrichWorkflow"
+
+# Per-entity-type enrichment workflows — each walks one tractate's dafim and
+# runs every strategy through the corresponding /api/enrich-* endpoint.
+# Argument workflow is the highest-leverage one (7 strategies, gates the
+# argument sidebar UX). All three discover daf list from KV prefixes and
+# route every AI call through the gateway.
+[[workflows]]
+name = "argument-enrich"
+binding = "ARGUMENT_ENRICH"
+class_name = "ArgumentEnrichWorkflow"
+
+[[workflows]]
+name = "aggadata-enrich"
+binding = "AGGADATA_ENRICH"
+class_name = "AggadataEnrichWorkflow"
+
+[[workflows]]
+name = "pesukim-enrich"
+binding = "PESUKIM_ENRICH"
+class_name = "PesukimEnrichWorkflow"
 
 # Cloudflare Email Service binding. Requires shaunregenbaum.com onboarded
 # at https://dash.cloudflare.com/?to=/:account/email-service/sending
