@@ -1,0 +1,818 @@
+{
+  "rabbi-akiva": {
+    "local": {
+      "canonical": "Rabbi Akiva",
+      "canonicalHe": "רבי עקיבא",
+      "aliases": [
+        "Rabbi Akiva",
+        "Akiva",
+        "Rabbi Akiba",
+        "Rebbi Akiva",
+        "Rebbi Aqibah",
+        "Rebbi Aqiba",
+        "Aqiba",
+        "Aqiba b. Joseph",
+        "Rebbi Akiba",
+        "Rabbi Aqiba",
+        "Akiva b. Yosef"
+      ],
+      "places": [
+        "Bnei Brak",
+        "Caesarea",
+        "Lod"
+      ],
+      "region": "israel",
+      "numSources": null,
+      "generation": "tanna-2",
+      "bio": "R. Akiva was a student of R. Tarfon, R. Eliezer and R. Yehoshua, but quickly became their colleague. Coming from a simple family of converts, he began his study of Torah at age forty at the behest of his wife, Rachel. At the height of his glory, he is reputed to have had twenty-four thousand students. Yet these students died prematurely, and his prolific teachings were passed on by a small elite following. In the face of Roman persecution, he supported Bar Kochba's revolt and ultimately died as a martyr.",
+      "image": null,
+      "wiki": "https://he.wikipedia.org/wiki/%D7%A8%D7%91%D7%99_%D7%A2%D7%A7%D7%99%D7%91%D7%90",
+      "moved": null,
+      "bioSource": "sefaria"
+    },
+    "sefaria": {
+      "primaryTitle": {
+        "en": "Rabbi Akiva",
+        "he": "רבי עקיבא"
+      },
+      "en": "Rabbi Akiva",
+      "he": "רבי עקיבא",
+      "slug": "rabbi-akiva",
+      "titles": [
+        {
+          "text": "Rabbi Akiva",
+          "lang": "en",
+          "primary": true
+        },
+        {
+          "text": "רבי עקיבא",
+          "lang": "he",
+          "primary": true
+        },
+        {
+          "text": "Akiva",
+          "lang": "en"
+        },
+        {
+          "text": "Rabbi Akiba",
+          "lang": "en"
+        },
+        {
+          "text": "Rebbi Akiva",
+          "lang": "en"
+        },
+        {
+          "text": "Rebbi Aqibah",
+          "lang": "en"
+        },
+        {
+          "text": "Rebbi Aqiba",
+          "lang": "en"
+        },
+        {
+          "text": "Aqiba",
+          "lang": "en"
+        },
+        {
+          "text": "Aqiba b. Joseph",
+          "lang": "en"
+        },
+        {
+          "text": "Rebbi Akiba",
+          "lang": "en"
+        },
+        {
+          "text": "Rabbi Aqiba",
+          "lang": "en"
+        },
+        {
+          "text": "Akiva b. Yosef",
+          "lang": "en"
+        },
+        {
+          "text": "עקיבא",
+          "lang": "he"
+        },
+        {
+          "text": "רַ' עֲקִיבָא",
+          "lang": "he"
+        },
+        {
+          "text": "רבי עקבא",
+          "lang": "he"
+        },
+        {
+          "text": "רבי עקיבה",
+          "lang": "he"
+        },
+        {
+          "text": "רִבִּי עֲקִיבָה",
+          "lang": "he"
+        },
+        {
+          "text": "עֲקִיבָה",
+          "lang": "he"
+        },
+        {
+          "text": "עֲקִיבָא",
+          "lang": "he"
+        }
+      ],
+      "subclass": "person",
+      "alt_ids": {
+        "_temp_id": "רבי עקיבא",
+        "_old_slug": "ekev",
+        "old-person-key": "Rabbi Akiva"
+      },
+      "properties": {
+        "enWikiLink": {
+          "value": "http://en.wikipedia.org/wiki/Akiva",
+          "dataSource": "person-collection"
+        },
+        "jeLink": {
+          "value": "http://www.jewishencyclopedia.com/view.jsp?artid=1033&letter=A",
+          "dataSource": "person-collection"
+        },
+        "generation": {
+          "value": "T4",
+          "dataSource": "person-collection"
+        },
+        "sex": {
+          "value": "M",
+          "dataSource": "person-collection"
+        },
+        "heWikiLink": {
+          "data_source": "wikidata",
+          "value": "https://he.wikipedia.org/wiki/%D7%A8%D7%91%D7%99_%D7%A2%D7%A7%D7%99%D7%91%D7%90"
+        }
+      },
+      "description": {
+        "en": "R. Akiva was a student of R. Tarfon, R. Eliezer and R. Yehoshua, but quickly became their colleague. Coming from a simple family of converts, he began his study of Torah at age forty at the behest of his wife, Rachel. At the height of his glory, he is reputed to have had twenty-four thousand students. Yet these students died prematurely, and his prolific teachings were passed on by a small elite following. In the face of Roman persecution, he supported Bar Kochba's revolt and ultimately died as a martyr.",
+        "he": "רבי עקיבא היה תלמידם של רבי טרפון, רבי אליעזר, ורבי יהושע, אך עד מהרה היה לשווה בין רבותיו. הוא נולד למשפחה פשוטה של גרים והתחיל ללמוד בגיל ארבעים בעקבות הפצרותיה של אשתו רחל. בשיא תהילתו נמנו 24,000 איש על תלמידיו. תלמידים אלה מתו במגפה, ולכן תורתו העשירה הועברה על ידי מספר מצומצם של תלמידים שלימד מאוחר יותר. לנוכח רדיפות הרומאים תמך במרד בר כוכבא, ובסופו של דבר הוצא להורג והיה אחד מעשרת הרוגי המלכות."
+      },
+      "categoryDescription": {},
+      "numSources": 10477,
+      "good_to_promote": true,
+      "description_published": true,
+      "data_source": "sefaria",
+      "image": {
+        "image_uri": "https://storage.googleapis.com/img.sefaria.org/topics/166904-2a2ea390-34b7-11ef-a940-12e4593012d0.gif",
+        "image_caption": {
+          "en": "Rabbi Akiva, from the Mantua Haggadah, 1568.",
+          "he": "רבי עקיבא, מתוך הגדת מנטובה 1568."
+        }
+      },
+      "secondary_image_uri": "https://storage.googleapis.com/img.sefaria.org/topics/rabbi-akiva-secondary-952bd08a-f804-11ef-9f03-06054971cc8d.png",
+      "primaryTitleIsTransliteration": {
+        "en": false,
+        "he": false
+      },
+      "links": {
+        "learned-from": {
+          "links": [
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 4,
+                "tfidf": 57.98655076200414
+              },
+              "isInverse": true,
+              "topic": "rabbi-yehoshua-b-hananyah"
+            },
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 1,
+                "tfidf": 11.807354922057604
+              },
+              "isInverse": true,
+              "topic": "nahum-of-gamzo"
+            },
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 2,
+                "tfidf": 27.667177264009343
+              },
+              "isInverse": true,
+              "topic": "rabbi-eliezer-b-hyrcanus"
+            }
+          ],
+          "title": {
+            "en": "Teacher",
+            "he": "מורה"
+          },
+          "shouldDisplay": true,
+          "pluralTitle": {
+            "en": "Teachers",
+            "he": "מורים"
+          }
+        },
+        "has-sheets-related-to": {
+          "links": [
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 0
+              },
+              "isInverse": true,
+              "topic": "letters"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 8.16349873228288
+              },
+              "isInverse": true,
+              "topic": "folklore"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 0
+              },
+              "isInverse": true,
+              "topic": "halakha-lemoshe-mesinai"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 44.03677461028802
+              },
+              "isInverse": true,
+              "topic": "lag-baomer"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 0
+              },
+              "isInverse": true,
+              "topic": "kaddish"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 0
+              },
+              "isInverse": true,
+              "topic": "chachamim"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 0
+              },
+              "isInverse": true,
+              "topic": "saving-a-life"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 19.274859841230583
+              },
+              "isInverse": true,
+              "topic": "elisha-ben-abuya"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 0
+              },
+              "isInverse": true,
+              "topic": "song-of-songs"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 43.59946040403632
+              },
+              "isInverse": true,
+              "topic": "sefirat-haomer"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 36.88956968534579
+              },
+              "isInverse": true,
+              "topic": "omer"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 11.222392421336448
+              },
+              "isInverse": true,
+              "topic": "turnus-rufus"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 0
+              },
+              "isInverse": true,
+              "topic": "human-dignity"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 0
+              },
+              "isInverse": true,
+              "topic": "losses"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 35.601857305796344
+              },
+              "isInverse": true,
+              "topic": "bar-kokhba"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 0
+              },
+              "isInverse": true,
+              "topic": "simeon"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 36.88956968534579
+              },
+              "isInverse": true,
+              "topic": "omer-offering"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 30.667177264009343
+              },
+              "isInverse": true,
+              "topic": "shimon-b-azzai"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 57.98655076200414
+              },
+              "isInverse": true,
+              "topic": "rabbi-yehoshua-b-hananyah"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 0
+              },
+              "isInverse": true,
+              "topic": "yom-yerushalayim"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 8.807354922057604
+              },
+              "isInverse": true,
+              "topic": "baal-shem-tov-(book)"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 66.27034372800473
+              },
+              "isInverse": true,
+              "topic": "shimon-bar-yochai"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 27.667177264009343
+              },
+              "isInverse": true,
+              "topic": "rabbi-eliezer-b-hyrcanus"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 34.549719682461166
+              },
+              "isInverse": true,
+              "topic": "rabbi-yishmael-b-elisha"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 54
+              },
+              "isInverse": true,
+              "topic": "rabbi-tarfon"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 10.485426827170242
+              },
+              "isInverse": true,
+              "topic": "rabbi-elazar-b-azaryah"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 25.456280481510724
+              },
+              "isInverse": true,
+              "topic": "rabban-gamliel"
+            }
+          ],
+          "title": {
+            "en": "Has Related By Sheets",
+            "he": "Has Related By Sheets"
+          },
+          "shouldDisplay": false
+        },
+        "is-a": {
+          "links": [
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 21,
+                "tfidf": 119.55536698463125
+              },
+              "isInverse": false,
+              "topic": "mishnaic-people"
+            }
+          ],
+          "title": {
+            "en": "",
+            "he": ""
+          },
+          "shouldDisplay": false
+        },
+        "taught": {
+          "links": [
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 1,
+                "tfidf": 11.807354922057604
+              },
+              "isInverse": false,
+              "topic": "rabbi-nehemiyah"
+            },
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 3,
+                "tfidf": 66.27034372800473
+              },
+              "isInverse": false,
+              "topic": "shimon-bar-yochai"
+            },
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 1,
+                "tfidf": 11.807354922057604
+              },
+              "isInverse": false,
+              "topic": "rabbi-eliezer-b-r-yose-hagelili"
+            },
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 1,
+                "tfidf": 11.807354922057604
+              },
+              "isInverse": false,
+              "topic": "hananyah"
+            },
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 0,
+                "tfidf": 0
+              },
+              "isInverse": false,
+              "topic": "rabbi-hidqa"
+            },
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 1,
+                "tfidf": 28.04376991026092
+              },
+              "isInverse": false,
+              "topic": "rabbi-yehudah-b-ilai"
+            },
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 2,
+                "tfidf": 20.970853654340484
+              },
+              "isInverse": false,
+              "topic": "rabbi-elazar-b-shamua"
+            },
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 2,
+                "tfidf": 22.444784842672895
+              },
+              "isInverse": false,
+              "topic": "shimon-hatimni"
+            },
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 2,
+                "tfidf": 22.444784842672895
+              },
+              "isInverse": false,
+              "topic": "rabbi-yohanan-hasandlar"
+            },
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 2,
+                "tfidf": 30.667177264009343
+              },
+              "isInverse": false,
+              "topic": "shimon-b-azzai"
+            },
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 1,
+                "tfidf": 22.444784842672895
+              },
+              "isInverse": false,
+              "topic": "rabbi-hananyah-b-hakhinai"
+            },
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 1,
+                "tfidf": 41.418964830002956
+              },
+              "isInverse": false,
+              "topic": "rabbi-meir"
+            },
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 1,
+                "tfidf": 11.807354922057604
+              },
+              "isInverse": false,
+              "topic": "rabbi-eliezer-b-yaakov-(ii)"
+            },
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 1,
+                "tfidf": 11.807354922057604
+              },
+              "isInverse": false,
+              "topic": "rabbi-shimon-hashiqmoni"
+            },
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 1,
+                "tfidf": 20
+              },
+              "isInverse": false,
+              "topic": "rabbi-yose-b-chalafta"
+            },
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 0,
+                "tfidf": 0
+              },
+              "isInverse": false,
+              "topic": "rabbi-chanina-b-chama"
+            },
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 3,
+                "tfidf": 31.456280481510724
+              },
+              "isInverse": false,
+              "topic": "aquilas"
+            },
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 3,
+                "tfidf": 32.42206476617281
+              },
+              "isInverse": false,
+              "topic": "rabbi-yehudah-b-betera-(ii)"
+            }
+          ],
+          "title": {
+            "en": "Student",
+            "he": "תלמידים"
+          },
+          "shouldDisplay": true,
+          "pluralTitle": {
+            "en": "Students",
+            "he": "תלמידים"
+          }
+        },
+        "related-to": {
+          "links": [
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 2,
+                "tfidf": 35.601857305796344
+              },
+              "isInverse": false,
+              "topic": "bar-kokhba"
+            }
+          ],
+          "title": {
+            "en": "Related",
+            "he": "ראו גם"
+          },
+          "shouldDisplay": true
+        },
+        "child-in-law-of": {
+          "links": [
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 1,
+                "tfidf": 11.807354922057604
+              },
+              "isInverse": false,
+              "topic": "kalva-savua"
+            }
+          ],
+          "title": {
+            "en": "Parent-in-Law",
+            "he": "חותנים"
+          },
+          "shouldDisplay": true,
+          "pluralTitle": {
+            "en": "Parents-in-Law",
+            "he": "חותנים"
+          }
+        },
+        "member-of": {
+          "links": [
+            {
+              "dataSource": "aspaklaria-edited-by-sefaria",
+              "order": {
+                "linksInCommon": 0,
+                "tfidf": 0
+              },
+              "isInverse": false,
+              "topic": "ten-martyrs-of-the-empire"
+            }
+          ],
+          "title": {
+            "en": "Related",
+            "he": "ראו גם"
+          },
+          "shouldDisplay": true
+        },
+        "displays-under": {
+          "links": [
+            {
+              "dataSource": "sefaria",
+              "generatedBy": "import_people_to_topics",
+              "isInverse": false,
+              "topic": "talmudic-figures"
+            }
+          ],
+          "title": {
+            "en": "Displays Under",
+            "he": "Displays Under"
+          },
+          "shouldDisplay": false
+        },
+        "sheets-related-to": {
+          "links": [
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 44.03677461028802
+              },
+              "isInverse": false,
+              "topic": "lag-baomer"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 43.59946040403632
+              },
+              "isInverse": false,
+              "topic": "sefirat-haomer"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 36.88956968534579
+              },
+              "isInverse": false,
+              "topic": "omer"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 36.88956968534579
+              },
+              "isInverse": false,
+              "topic": "omer-offering"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 66.27034372800473
+              },
+              "isInverse": false,
+              "topic": "shimon-bar-yochai"
+            },
+            {
+              "dataSource": "sefaria-users",
+              "generatedBy": "sheet-topic-aggregator",
+              "order": {
+                "tfidf": 34.549719682461166
+              },
+              "isInverse": false,
+              "topic": "rabbi-yishmael-b-elisha"
+            }
+          ],
+          "title": {
+            "en": "Related By Sheets",
+            "he": "Related By Sheets"
+          },
+          "shouldDisplay": true
+        }
+      }
+    }
+  },
+  "rav-rechumi-iii": {
+    "local": {
+      "canonical": "Rav Rechumi III",
+      "canonicalHe": "רב רחומי השלישי",
+      "aliases": [
+        "Rav Richumi III",
+        "Rav Rechumai III",
+        "Rav Richumai III",
+        "R. Rechumi III",
+        "Rav Rechumi the Third"
+      ],
+      "places": [],
+      "region": "bavel",
+      "numSources": null,
+      "generation": "savora",
+      "moved": null,
+      "bio": "Rav Rechumi III was an early Savora who edited and completed the Babylonian Talmud after the Amoraic period. According to Rav Sherira Gaon, he died in Nisan 506. He was a student of Rabbah Tosfa'ah and engaged in halakhic discourse with Rabbah Yosei, head of the Pumbedita yeshiva; one of their disputes concerning the meaning of \"petchei shima'i\" is cited twice in the Talmud, in Eruvin and Menachot. He is called \"the Third\" because two earlier Amoraim also bore the name Rav Rechumi. Some scholars identify him with the Talmudic figure Rav Nechumi (or Rav Nechumai), who argues with Rabbah about courtyard eruv, or with Rabbi Nechunya, who inquires about treifot in Eretz Yisrael.",
+      "image": null,
+      "wiki": "https://he.wikipedia.org/wiki/%D7%A8%D7%91_%D7%A8%D7%97%D7%95%D7%9E%D7%99_%D7%94%D7%A9%D7%9C%D7%99%D7%A9%D7%99",
+      "bioSource": "wikipedia"
+    },
+    "sefaria": {}
+  }
+}

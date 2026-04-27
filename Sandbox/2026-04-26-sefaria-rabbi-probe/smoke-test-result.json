@@ -1,0 +1,244 @@
+[
+  {
+    "slug": "rabbi-akiva",
+    "status": 200,
+    "elapsed": 121369,
+    "body": {
+      "slug": "rabbi-akiva",
+      "record": {
+        "slug": "rabbi-akiva",
+        "canonical": {
+          "en": "Rabbi Akiva",
+          "he": "רבי עקיבא"
+        },
+        "aliases": [
+          "Rabbi Akiva",
+          "Akiva",
+          "Rabbi Akiba",
+          "Rebbi Akiva",
+          "Rebbi Aqibah",
+          "Rebbi Aqiba",
+          "Aqiba",
+          "Aqiba b. Joseph",
+          "Rebbi Akiba",
+          "Rabbi Aqiba"
+        ],
+        "generation": "T4",
+        "region": "israel",
+        "academy": null,
+        "birthYear": null,
+        "deathYear": null,
+        "places": [
+          "Bnei Brak",
+          "Caesarea",
+          "Lod"
+        ],
+        "bio": {
+          "en": "R. Akiva was a student of R. Tarfon, R. Eliezer and R. Yehoshua, but quickly became their colleague. Coming from a simple family of converts, he began his study of Torah at age forty at the behest of his wife, Rachel. At the height of his glory, he is reputed to have had twenty-four thousand students. Yet these students died prematurely, and his prolific teachings were passed on by a small elite following. In the face of Roman persecution, he supported Bar Kochba's revolt and ultimately died as a martyr.",
+          "he": "רבי עקיבא היה תלמידם של רבי טרפון, רבי אליעזר, ורבי יהושע, אך עד מהרה היה לשווה בין רבותיו. הוא נולד למשפחה פשוטה של גרים והתחיל ללמוד בגיל ארבעים בעקבות הפצרותיה של אשתו רחל. בשיא תהילתו נמנו 24,000 איש על תלמידיו. תלמידים אלה מתו במגפה, ולכן תורתו העשירה הועברה על ידי מספר מצומצם של תלמידים שלימד מאוחר יותר. לנוכח רדיפות הרומאים תמך במרד בר כוכבא, ובסופו של דבר הוצא להורג והיה אחד מעשרת הרוגי המלכות."
+        },
+        "prominence": 10477,
+        "orientation": "practical",
+        "characteristics": [
+          "halakhist",
+          "aggadist",
+          "exegete",
+          "communal-leader"
+        ],
+        "primaryTeacher": "rabbi-yehoshua-b-hananyah",
+        "primaryStudent": "shimon-bar-yochai",
+        "teachers": [
+          {
+            "slug": "rabbi-yehoshua-b-hananyah",
+            "name": "Rabbi Yehoshua b. Hananyah",
+            "weight": 57.99,
+            "source": "sefaria"
+          },
+          {
+            "slug": "rabbi-eliezer-b-hyrcanus",
+            "name": "Rabbi Eliezer b. Hyrcanus",
+            "weight": 27.67,
+            "source": "sefaria"
+          },
+          {
+            "slug": "nahum-of-gamzo",
+            "name": "Nahum of Gamzo",
+            "weight": 11.81,
+            "source": "sefaria"
+          },
+          {
+            "slug": "rabbi-tarfon",
+            "name": "Rabbi Tarfon",
+            "weight": 0.5,
+            "source": "llm"
+          }
+        ],
+        "students": [
+          {
+            "slug": "shimon-bar-yochai",
+            "name": "Shimon bar Yochai",
+            "weight": 66.27,
+            "source": "sefaria"
+          },
+          {
+            "slug": "rabbi-meir",
+            "name": "Rabbi Meir",
+            "weight": 41.42,
+            "source": "sefaria"
+          },
+          {
+            "slug": "rabbi-yehudah-b-betera-(ii)",
+            "name": "Rabbi Yehudah b. Betera (II)",
+            "weight": 32.42,
+            "source": "sefaria"
+          },
+          {
+            "slug": "aquila",
+            "name": "Aquila",
+            "weight": 31.46,
+            "source": "sefaria"
+          },
+          {
+            "slug": "shimon-b-azzai",
+            "name": "Shimon b. Azzai",
+            "weight": 30.67,
+            "source": "sefaria"
+          },
+          {
+            "slug": "rabbi-yehudah-b-ilai",
+            "name": "Rabbi Yehudah b. Ilai",
+            "weight": 28.04,
+            "source": "sefaria"
+          },
+          {
+            "slug": "shimon-hatimni",
+            "name": "Shimon ha-Timni",
+            "weight": 22.44,
+            "source": "sefaria"
+          },
+          {
+            "slug": "rabbi-yohanan-hasandlar",
+            "name": "Rabbi Yohanan ha-Sandlar",
+            "weight": 22.44,
+            "source": "sefaria"
+          },
+          {
+            "slug": "rabbi-hananyah-b-hakhinai",
+            "name": "Rabbi Hananyah b. Hakhinai",
+            "weight": 22.44,
+            "source": "sefaria"
+          },
+          {
+            "slug": "rabbi-elazar-b-shamua",
+            "name": "Rabbi Elazar b. Shamua",
+            "weight": 20.97,
+            "source": "sefaria"
+          },
+          {
+            "slug": "rabbi-yose-b-chalafta",
+            "name": "Rabbi Yose b. Chalafta",
+            "weight": 20,
+            "source": "sefaria"
+          },
+          {
+            "slug": "rabbi-nehemiyah",
+            "name": "Rabbi Nehemiyah",
+            "weight": 11.81,
+            "source": "sefaria"
+          },
+          {
+            "slug": "rabbi-eliezer-b-r-yose-hagelili",
+            "name": "Rabbi Eliezer b. R. Yose ha-Gelili",
+            "weight": 11.81,
+            "source": "sefaria"
+          },
+          {
+            "slug": "hananyah",
+            "name": "Hananyah",
+            "weight": 11.81,
+            "source": "sefaria"
+          },
+          {
+            "slug": "rabbi-eliezer-b-yaakov-(ii)",
+            "name": "Rabbi Eliezer b. Yaakov (II)",
+            "weight": 11.81,
+            "source": "sefaria"
+          },
+          {
+            "slug": "rabbi-shimon-hashiqmoni",
+            "name": "Rabbi Shimon ha-Shiqmoni",
+            "weight": 11.81,
+            "source": "sefaria"
+          },
+          {
+            "slug": "rabbi-hidqa",
+            "name": "Rabbi Hidqa",
+            "weight": 0,
+            "source": "sefaria"
+          },
+          {
+            "slug": "rabbi-chanina-b-chama",
+            "name": "Rabbi Chanina b. Chama",
+            "weight": 0,
+            "source": "sefaria"
+          }
+        ],
+        "contemporaries": [],
+        "family": [
+          {
+            "slug": "kalva-savua",
+            "name": "Kalva Savua",
+            "weight": 11.81,
+            "source": "sefaria",
+            "relation": "father-in-law"
+          },
+          {
+            "slug": null,
+            "name": "Rachel",
+            "weight": 0.5,
+            "source": "llm",
+            "relation": "spouse"
+          }
+        ],
+        "opposed": [],
+        "influences": [
+          {
+            "slug": "bar-kokhba",
+            "name": "Bar Kokhba",
+            "weight": 35.6,
+            "source": "sefaria"
+          }
+        ],
+        "events": [
+          "ten-martyrs-of-the-empire"
+        ],
+        "refs": {
+          "sefariaSlug": "rabbi-akiva",
+          "enWiki": "http://en.wikipedia.org/wiki/Akiva",
+          "heWiki": "https://he.wikipedia.org/wiki/%D7%A8%D7%91%D7%99_%D7%A2%D7%A7%D7%99%D7%91%D7%90",
+          "je": "http://www.jewishencyclopedia.com/view.jsp?artid=1033&letter=A"
+        },
+        "image": {
+          "url": "https://storage.googleapis.com/img.sefaria.org/topics/166904-2a2ea390-34b7-11ef-a940-12e4593012d0.gif",
+          "caption": ""
+        },
+        "schemaVersion": 1,
+        "enrichedAt": "2026-04-26T17:46:32.701Z",
+        "sources": [
+          "sefaria",
+          "llm"
+        ]
+      },
+      "_ms": 119984,
+      "_promptChars": 8436,
+      "_usage": {
+        "prompt_tokens": 2781,
+        "completion_tokens": 8481,
+        "total_tokens": 11262,
+        "prompt_tokens_details": {
+          "cached_tokens": 1316
+        }
+      }
+    }
+  }
+]
