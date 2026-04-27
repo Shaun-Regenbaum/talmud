@@ -8,10 +8,18 @@
  * "enrich" buttons attached to each section/topic/story. Enrichment
  * results attach inline under the item they enriched.
  */
-import { createResource, createSignal, For, Show, type JSX, type Resource } from 'solid-js';
+import { createEffect, createResource, createSignal, For, Show, type JSX, type Resource } from 'solid-js';
 import { TRACTATE_OPTIONS } from '../lib/sefref';
 import { ARGUMENT_FLOW_CSS } from './ArgumentFlowSidebar';
-import { RelationsTab } from './RelationsTab';
+import { RabbiTab } from './RabbiTab';
+import { PesukimTab } from './PesukimTab';
+import { EraTab } from './EraTab';
+import { MesorahTab } from './MesorahTab';
+import { DafTextPanel, anchorMatches } from './DafTextPanel';
+import { StrategyRow, STRATEGY_ROW_CSS } from './StrategyRow';
+import { ProvenanceBadge, PROVENANCE_CSS } from './ProvenanceBadge';
+import { EnrichmentToggle, ENRICHMENT_TOGGLE_CSS } from './EnrichmentToggle';
+import { Hebraized } from './Hebraized';
 
 // ---- types ---------------------------------------------------------------
 
@@ -22,6 +30,8 @@ interface ArgumentSkeleton {
     summary: string;
     excerpt: string;
     rabbiNames: string[];
+    startSegIdx?: number;
+    endSegIdx?: number;
   }>;
 }
 
@@ -33,109 +43,119 @@ interface EnrichedRabbi {
   generation?: string;
   agreesWith?: string[]; disagreesWith?: string[];
 }
+interface CommentaryNote { source: string; ref?: string; question: string }
+interface SynthesisOutput { explanation?: string; groundedIn?: string[] }
+interface BiggerPicture { explanation?: string; groundedIn?: string[] }
+interface BackgroundContext { explanation?: string; groundedIn?: string[] }
+
 interface EnrichedArgumentSection {
   title: string; summary: string; excerpt?: string;
   references?: BiblicalRef[]; parallels?: string[]; difficulty?: DifficultyRating;
   rabbis: EnrichedRabbi[];
+  commentaries?: CommentaryNote[];
+  biggerPicture?: BiggerPicture;
+  background?: BackgroundContext;
+  synthesize?: SynthesisOutput;
+  startSegIdx?: number;
+  endSegIdx?: number;
 }
 interface EnrichedArgumentAnalysis {
   summary: string; difficulty?: DifficultyRating;
   sections: EnrichedArgumentSection[];
-  _strategy?: string; _elapsed_ms?: number;
+  _strategy?: string; _elapsed_ms?: number; _warnings?: string[];
 }
 
 interface HalachaRuling { ref: string; summary: string; }
 interface ModernAuthority { source: string; ref?: string; summary: string; }
 interface RishonNote { rishon: string; note: string; ref?: string; }
 interface SaCommentaryNote { commentator: string; note: string; ref?: string; }
+interface HalachaSynthesis { explanation: string; groundedIn?: string[] }
 interface HalachaTopic {
   topic: string; topicHe?: string; excerpt?: string;
   rulings: { mishnehTorah?: HalachaRuling; shulchanAruch?: HalachaRuling; rema?: HalachaRuling };
   modernAuthorities?: ModernAuthority[];
   rishonimNotes?: RishonNote[];
   saCommentaryNotes?: SaCommentaryNote[];
+  synthesis?: HalachaSynthesis;
+  startSegIdx?: number;
+  endSegIdx?: number;
 }
 interface HalachaResult { topics: HalachaTopic[]; _cached?: boolean; }
 
-interface SefariaTopic {
-  slug: string;
-  titleEn?: string;
-  titleHe?: string;
-  description?: string;
-  sources: Array<{ ref: string; category?: string; order?: number }>;
-}
-interface SefariaTopicsResult { topics: SefariaTopic[]; _metadata?: Record<string, unknown>; }
-
 interface HistoricalContext { era: string; context: string; }
-interface ExegesisContext { verseRef: string; verseHe?: string; move: string; explanation: string; }
+interface AggadataSynthesis { explanation: string; groundedIn?: string[] }
 interface AggadataStory {
   title: string; titleHe?: string; summary: string; excerpt: string; endExcerpt?: string; theme?: string;
-  parallels?: string[]; historicalContext?: HistoricalContext; exegesis?: ExegesisContext;
+  parallels?: string[]; historicalContext?: HistoricalContext;
+  synthesis?: AggadataSynthesis;
+  startSegIdx?: number;
+  endSegIdx?: number;
 }
 interface AggadataResult { stories: AggadataStory[]; _cached?: boolean; }
 
-type Tab = 'argument' | 'halacha' | 'aggadata' | 'relations';
+type Tab = 'argument' | 'pesukim' | 'halacha' | 'aggadata' | 'people' | 'era' | 'tree';
+
+interface PreloadSnapshot {
+  tractate: string;
+  page: string;
+  argument: Record<string, unknown>;
+  halacha: { stage1: unknown; perStrategy: Record<string, unknown> };
+  aggadata: { stage1: unknown; perStrategy: Record<string, unknown> };
+  pesukim: { stage1: unknown; perStrategy: Record<string, unknown> };
+  region: Record<string, unknown>;
+  mesorah: Record<string, unknown>;
+}
 
 // ---- fetchers -------------------------------------------------------------
 
-async function fetchSkeleton(tractate: string, page: string): Promise<ArgumentSkeleton> {
-  const res = await fetch(`/api/analyze/${encodeURIComponent(tractate)}/${page}?skeleton_only=1`);
-  if (!res.ok) throw new Error(`skeleton: HTTP ${res.status}`);
-  return res.json();
-}
-
-async function fetchHalacha(tractate: string, page: string): Promise<HalachaResult> {
-  const res = await fetch(`/api/halacha/${encodeURIComponent(tractate)}/${page}`);
-  if (!res.ok) throw new Error(`halacha: HTTP ${res.status}`);
-  return res.json();
-}
-
-async function fetchAggadata(tractate: string, page: string): Promise<AggadataResult> {
-  const res = await fetch(`/api/aggadata/${encodeURIComponent(tractate)}/${page}`);
-  if (!res.ok) throw new Error(`aggadata: HTTP ${res.status}`);
-  return res.json();
-}
-
-async function fetchSefariaTopics(tractate: string, page: string): Promise<SefariaTopicsResult> {
-  const res = await fetch(`/api/topics/${encodeURIComponent(tractate)}/${page}`);
-  if (!res.ok) throw new Error(`topics: HTTP ${res.status}`);
-  return res.json();
-}
-
-async function enrichArgument(tractate: string, page: string, strategy: string): Promise<EnrichedArgumentAnalysis> {
-  const res = await fetch(
-    `/api/enrich/${encodeURIComponent(tractate)}/${page}?strategy=${strategy}`,
-    { method: 'POST' },
+/** Logs the worker's `attempts[]` + `detail` fields so per-model failure
+ *  reasons (empty payload / schema mismatch / 1031) actually reach the
+ *  console instead of just the generic top-level error. */
+function logFetchError(label: string, status: number, body: { error?: string; attempts?: string[]; detail?: string } | null): void {
+  // eslint-disable-next-line no-console
+  console.warn(
+    `[${label}] HTTP`, status,
+    body?.error ?? '',
+    body?.attempts ? `· attempts: ${body.attempts.join(' | ')}` : '',
+    body?.detail ?? '',
   );
-  const body = await res.json().catch(() => null) as (EnrichedArgumentAnalysis & { error?: string }) | null;
-  if (!res.ok) throw new Error(body?.error ?? `HTTP ${res.status}`);
-  if (!body) throw new Error('empty');
-  return body;
 }
 
-type HalachaEnrichStrategy = 'modern-authorities' | 'rishonim-condensed' | 'sa-commentary-walk';
-async function enrichHalacha(tractate: string, page: string, strategy: HalachaEnrichStrategy): Promise<HalachaResult> {
-  const res = await fetch(
-    `/api/enrich-halacha/${encodeURIComponent(tractate)}/${page}?strategy=${strategy}`,
-    { method: 'POST' },
-  );
-  const body = await res.json().catch(() => null) as (HalachaResult & { error?: string }) | null;
-  if (!res.ok) throw new Error(body?.error ?? `HTTP ${res.status}`);
-  if (!body) throw new Error('empty');
-  return body;
+async function fetchSkeleton(tractate: string, page: string, refresh = false): Promise<ArgumentSkeleton | null> {
+  const qs = refresh ? '&refresh=1' : '';
+  const res = await fetch(`/api/analyze/${encodeURIComponent(tractate)}/${page}?skeleton_only=1${qs}`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => null) as { error?: string; attempts?: string[]; detail?: string } | null;
+    logFetchError('skeleton', res.status, body);
+    return null;
+  }
+  return res.json();
 }
 
-type AggadataEnrichStrategy = 'parallels' | 'historical-context' | 'exegesis';
-async function enrichAggadata(tractate: string, page: string, strategy: AggadataEnrichStrategy): Promise<AggadataResult> {
-  const res = await fetch(
-    `/api/enrich-aggadata/${encodeURIComponent(tractate)}/${page}?strategy=${strategy}`,
-    { method: 'POST' },
-  );
-  const body = await res.json().catch(() => null) as (AggadataResult & { error?: string }) | null;
-  if (!res.ok) throw new Error(body?.error ?? `HTTP ${res.status}`);
-  if (!body) throw new Error('empty');
-  return body;
+async function fetchHalacha(tractate: string, page: string, refresh = false): Promise<HalachaResult | null> {
+  const qs = refresh ? '?refresh=1' : '';
+  const res = await fetch(`/api/halacha/${encodeURIComponent(tractate)}/${page}${qs}`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => null) as { error?: string; attempts?: string[]; detail?: string } | null;
+    logFetchError('halacha', res.status, body);
+    return null;
+  }
+  return res.json();
 }
+
+async function fetchAggadata(tractate: string, page: string, refresh = false): Promise<AggadataResult | null> {
+  const qs = refresh ? '?refresh=1' : '';
+  const res = await fetch(`/api/aggadata/${encodeURIComponent(tractate)}/${page}${qs}`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => null) as { error?: string; attempts?: string[]; detail?: string } | null;
+    logFetchError('aggadata', res.status, body);
+    return null;
+  }
+  return res.json();
+}
+
+type HalachaEnrichStrategy = 'modern-authorities' | 'rishonim-condensed' | 'sa-commentary-walk' | 'synthesize';
+type AggadataEnrichStrategy = 'parallels' | 'historical-context' | 'synthesize';
 
 // ---- component ------------------------------------------------------------
 
@@ -146,56 +166,213 @@ export function EnrichmentPage(): JSX.Element {
   const [loadKey, setLoadKey] = createSignal(0);
   const dafKey = () => `${tractate()}|${page()}|${loadKey()}`;
 
-  const [skeleton] = createResource(dafKey, async (): Promise<ArgumentSkeleton | null> => {
-    if (loadKey() === 0) return null;
-    return fetchSkeleton(tractate(), page()).catch(() => null);
+  // Per-tab refresh nonces. Bumped by the per-tab refresh button to bust
+  // the identify cache and re-run Stage-1. Reset on every Load.
+  const [refreshNonces, setRefreshNonces] = createSignal<Record<Tab, number>>({
+    argument: 0, pesukim: 0, halacha: 0, aggadata: 0, people: 0, era: 0, tree: 0,
   });
-  const [halacha, { mutate: mutateHalacha }] = createResource(dafKey, async (): Promise<HalachaResult | null> => {
-    if (loadKey() === 0) return null;
-    return fetchHalacha(tractate(), page()).catch(() => null);
-  });
-  const [aggadata, { mutate: mutateAggadata }] = createResource(dafKey, async (): Promise<AggadataResult | null> => {
-    if (loadKey() === 0) return null;
-    return fetchAggadata(tractate(), page()).catch(() => null);
-  });
+  const tabKey = (t: Tab) => () => `${dafKey()}|${refreshNonces()[t]}`;
+  const refreshTab = (t: Tab) => setRefreshNonces((s) => ({ ...s, [t]: s[t] + 1 }));
 
-  const [sefariaTopics, setSefariaTopics] = createSignal<SefariaTopicsResult | null>(null);
+  const [skeleton, { refetch: refetchSkeleton }] = createResource(tabKey('argument'), async (): Promise<ArgumentSkeleton | null> => {
+    if (loadKey() === 0) return null;
+    return fetchSkeleton(tractate(), page(), refreshNonces().argument > 0).catch(() => null);
+  });
+  const [halacha, { mutate: mutateHalacha, refetch: refetchHalacha }] = createResource(tabKey('halacha'), async (): Promise<HalachaResult | null> => {
+    if (loadKey() === 0) return null;
+    return fetchHalacha(tractate(), page(), refreshNonces().halacha > 0).catch(() => null);
+  });
+  const [aggadata, { mutate: mutateAggadata, refetch: refetchAggadata }] = createResource(tabKey('aggadata'), async (): Promise<AggadataResult | null> => {
+    if (loadKey() === 0) return null;
+    return fetchAggadata(tractate(), page(), refreshNonces().aggadata > 0).catch(() => null);
+  });
+  // Suppress unused-variable warnings for refetchers; consumers may call them.
+  void refetchSkeleton; void refetchHalacha; void refetchAggadata;
 
   const [argumentEnrichments, setArgumentEnrichments] = createSignal<Partial<Record<string, EnrichedArgumentAnalysis>>>({});
   const [running, setRunning] = createSignal<Partial<Record<string, boolean>>>({});
   const [errors, setErrors] = createSignal<Partial<Record<string, string>>>({});
 
+  // Phase C: side-by-side daf text panel + bidirectional segment highlighting.
+  const [showText, setShowText] = createSignal(false);
+  const [selectedSegment, setSelectedSegment] = createSignal<number | null>(null);
+
   const handleLoad = () => {
     setArgumentEnrichments({});
     setRunning({});
     setErrors({});
-    setSefariaTopics(null);
+    setRefreshNonces({
+      argument: 0, pesukim: 0, halacha: 0, aggadata: 0, people: 0, era: 0, tree: 0,
+    });
     setLoadKey(loadKey() + 1);
+    void preloadCachedDaf(tractate(), page());
   };
 
-  const runArg = async (strategy: string) => {
+  /** Pre-populate per-strategy state from KV-cached daf-level enrichments,
+   *  so cached strategies render immediately on Load and their buttons start
+   *  in `↻ re-enrich` state. Pure cache read; no AI calls. Silently skips
+   *  whatever isn't cached. */
+  async function preloadCachedDaf(t: string, p: string): Promise<void> {
+    let snap: PreloadSnapshot | null = null;
+    try {
+      const res = await fetch(`/api/enrich-cached-daf/${encodeURIComponent(t)}/${encodeURIComponent(p)}`);
+      if (!res.ok) return;
+      snap = await res.json() as PreloadSnapshot;
+    } catch { return; }
+    if (!snap) return;
+    if (t !== tractate() || p !== page()) return;
+
+    // Argument strategies: each is a full EnrichedArgumentAnalysis blob.
+    const argEntries: Partial<Record<string, EnrichedArgumentAnalysis>> = {};
+    for (const [strat, data] of Object.entries(snap.argument ?? {})) {
+      if (data) argEntries[strat] = data as EnrichedArgumentAnalysis;
+    }
+    if (Object.keys(argEntries).length > 0) {
+      setArgumentEnrichments((prev) => ({ ...argEntries, ...prev }));
+      // Default toggles to ON for every cached source strategy. Synthesize
+      // is the result, not a source — exclude it from the include set.
+      const defaultIncluded = new Set(
+        Object.keys(argEntries).filter((s) => s !== 'synthesize' && ARG_STRATEGIES.some((ss) => ss.id === s)),
+      );
+      if (defaultIncluded.size > 0) {
+        setArgIncluded(defaultIncluded);
+        // Fire synthesize with the default include set so the prose actually
+        // reflects the cached sources. Uses cache if previously synthesized
+        // with this exact set; otherwise generates fresh.
+        runArg('synthesize', { silent: true, refresh: false, include: [...defaultIncluded] }).catch(() => {});
+      }
+    }
+
+    // Halacha / aggadata preloads are signals so the merge effect rerruns
+    // whenever either the resource lands OR the preload arrives — whichever
+    // is later. With a plain let, a fast halacha resource that resolves
+    // before the preload fetch would skip the merge forever.
+    setPendingHalachaPreload(snap.halacha?.perStrategy ?? null);
+    setPendingAggadataPreload(snap.aggadata?.perStrategy ?? null);
+  }
+
+  const [pendingHalachaPreload, setPendingHalachaPreload] = createSignal<Record<string, unknown> | null>(null);
+  const [pendingAggadataPreload, setPendingAggadataPreload] = createSignal<Record<string, unknown> | null>(null);
+
+  // Once BOTH halacha resource and preload signal have data, fold the cached
+  // slices in and default-on the include set. Tracks both reactively so it
+  // fires regardless of arrival order.
+  createEffect(() => {
+    const h = halacha();
+    const cached = pendingHalachaPreload();
+    if (!h || !cached) return;
+    setPendingHalachaPreload(null);
+    const byTopic = new Map<string, HalachaTopic>();
+    for (const t of h.topics) byTopic.set(t.topic.toLowerCase(), { ...t });
+    const cachedStrategies = new Set<string>();
+    for (const [strat, data] of Object.entries(cached)) {
+      if (!data) continue;
+      cachedStrategies.add(strat);
+      const sliceResult = data as { topics?: HalachaTopic[] };
+      for (const t of sliceResult.topics ?? []) {
+        const existing = byTopic.get(t.topic.toLowerCase());
+        if (!existing) continue;
+        if (t.modernAuthorities !== undefined)  existing.modernAuthorities  = t.modernAuthorities;
+        if (t.rishonimNotes !== undefined)      existing.rishonimNotes      = t.rishonimNotes;
+        if (t.saCommentaryNotes !== undefined)  existing.saCommentaryNotes  = t.saCommentaryNotes;
+      }
+    }
+    mutateHalacha({ ...h, topics: [...byTopic.values()] });
+    const defaults = new Set([...cachedStrategies].filter((s) => s !== 'synthesize'));
+    if (defaults.size > 0) {
+      setHalachaIncluded(defaults);
+      runHalachaEnrich('synthesize', { silent: true, refresh: false, include: [...defaults] }).catch(() => {});
+    }
+  });
+
+  createEffect(() => {
+    const a = aggadata();
+    const cached = pendingAggadataPreload();
+    if (!a || !cached) return;
+    setPendingAggadataPreload(null);
+    const byTitle = new Map<string, AggadataStory>();
+    for (const s of a.stories) byTitle.set(s.title.toLowerCase(), { ...s });
+    const cachedStrategies = new Set<string>();
+    for (const [strat, data] of Object.entries(cached)) {
+      if (!data) continue;
+      cachedStrategies.add(strat);
+      const sliceResult = data as { stories?: AggadataStory[] };
+      for (const st of sliceResult.stories ?? []) {
+        const existing = byTitle.get(st.title.toLowerCase());
+        if (!existing) continue;
+        if (st.parallels !== undefined)         existing.parallels         = st.parallels;
+        if (st.historicalContext !== undefined) existing.historicalContext = st.historicalContext;
+      }
+    }
+    mutateAggadata({ ...a, stories: [...byTitle.values()] });
+    const defaults = new Set([...cachedStrategies].filter((s) => s !== 'synthesize'));
+    if (defaults.size > 0) {
+      setAggIncluded(defaults);
+      runAggEnrich('synthesize', { silent: true, refresh: false, include: [...defaults] }).catch(() => {});
+    }
+  });
+
+  // Argument toggles — the source strategies the synthesis is currently
+  // grounded in. Toggling a strategy on (a) fetches it if not cached, then
+  // (b) re-fires synthesize with the new include set.
+  const [argIncluded, setArgIncluded] = createSignal<Set<string>>(new Set());
+
+  const runArg = async (strategy: string, opts: { silent?: boolean; refresh?: boolean; include?: string[] } = {}) => {
     const key = `arg:${strategy}`;
-    setRunning(r => ({ ...r, [key]: true }));
+    if (!opts.silent) setRunning(r => ({ ...r, [key]: true }));
     setErrors(e => ({ ...e, [key]: undefined }));
     try {
-      const result = await enrichArgument(tractate(), page(), strategy);
-      setArgumentEnrichments(prev => ({ ...prev, [strategy]: result }));
+      const includeQs = strategy === 'synthesize' && opts.include
+        ? `&include=${encodeURIComponent(opts.include.slice().sort().join(','))}`
+        : '';
+      const url = `/api/enrich/${encodeURIComponent(tractate())}/${page()}?strategy=${strategy}${opts.refresh ? '&refresh=1' : ''}${includeQs}`;
+      const res = await fetch(url, { method: 'POST' });
+      const body = await res.json().catch(() => null) as (EnrichedArgumentAnalysis & { error?: string }) | null;
+      if (!res.ok || !body) throw new Error(body?.error ?? `HTTP ${res.status}`);
+      setArgumentEnrichments(prev => ({ ...prev, [strategy]: body }));
     } catch (err) {
       setErrors(e => ({ ...e, [key]: String(err) }));
     } finally {
-      setRunning(r => ({ ...r, [key]: false }));
+      if (!opts.silent) setRunning(r => ({ ...r, [key]: false }));
     }
   };
 
-  const runHalachaEnrich = async (strategy: HalachaEnrichStrategy) => {
+  /** Toggle an argument source strategy on/off. Off→on fetches the strategy
+   *  if not cached; on→off just updates the include set. Either way, a new
+   *  synthesize call fires with the updated include list. */
+  const toggleArg = async (strategy: string) => {
+    const cur = argIncluded();
+    const isOn = cur.has(strategy);
+    const next = new Set(cur);
+    const cached = argumentEnrichments()[strategy] !== undefined;
+    if (isOn) {
+      next.delete(strategy);
+    } else {
+      next.add(strategy);
+      if (!cached) {
+        await runArg(strategy);
+      }
+    }
+    setArgIncluded(next);
+    // Fire synthesize with the new include set (refresh=1 so the cached
+    // synthesize for the OLD include set is bypassed).
+    runArg('synthesize', { silent: true, refresh: true, include: [...next] }).catch(() => {});
+  };
+
+  const [halachaIncluded, setHalachaIncluded] = createSignal<Set<string>>(new Set());
+
+  const runHalachaEnrich = async (strategy: HalachaEnrichStrategy, opts: { silent?: boolean; refresh?: boolean; include?: string[] } = {}) => {
     const key = `halacha:${strategy}`;
-    setRunning(r => ({ ...r, [key]: true }));
+    if (!opts.silent) setRunning(r => ({ ...r, [key]: true }));
     setErrors(e => ({ ...e, [key]: undefined }));
     try {
-      const result = await enrichHalacha(tractate(), page(), strategy);
-      // Merge the enriched fields (modernAuthorities OR rishonimNotes) back onto the
-      // current halacha topics by topic name, preserving any fields from the
-      // other strategy that may already be there.
+      const includeQs = strategy === 'synthesize' && opts.include
+        ? `&include=${encodeURIComponent(opts.include.slice().sort().join(','))}`
+        : '';
+      const url = `/api/enrich-halacha/${encodeURIComponent(tractate())}/${page()}?strategy=${strategy}${opts.refresh ? '&refresh=1' : ''}${includeQs}`;
+      const res = await fetch(url, { method: 'POST' });
+      const result = await res.json() as HalachaResult & { error?: string };
+      if (!res.ok || result.error) throw new Error(result.error ?? `HTTP ${res.status}`);
       const prev = halacha();
       if (prev) {
         const byTopic = new Map<string, HalachaTopic>();
@@ -210,6 +387,7 @@ export function EnrichmentPage(): JSX.Element {
               ...(hit.modernAuthorities !== undefined ? { modernAuthorities: hit.modernAuthorities } : {}),
               ...(hit.rishonimNotes !== undefined ? { rishonimNotes: hit.rishonimNotes } : {}),
               ...(hit.saCommentaryNotes !== undefined ? { saCommentaryNotes: hit.saCommentaryNotes } : {}),
+              ...(hit.synthesis !== undefined ? { synthesis: hit.synthesis } : {}),
             };
           }),
         });
@@ -219,30 +397,40 @@ export function EnrichmentPage(): JSX.Element {
     } catch (err) {
       setErrors(e => ({ ...e, [key]: String(err) }));
     } finally {
-      setRunning(r => ({ ...r, [key]: false }));
+      if (!opts.silent) setRunning(r => ({ ...r, [key]: false }));
     }
   };
 
-  const runSefariaTopics = async () => {
-    const key = 'topics:sefaria';
-    setRunning(r => ({ ...r, [key]: true }));
-    setErrors(e => ({ ...e, [key]: undefined }));
-    try {
-      const result = await fetchSefariaTopics(tractate(), page());
-      setSefariaTopics(result);
-    } catch (err) {
-      setErrors(e => ({ ...e, [key]: String(err) }));
-    } finally {
-      setRunning(r => ({ ...r, [key]: false }));
+  const toggleHalacha = async (strategy: HalachaEnrichStrategy) => {
+    const cur = halachaIncluded();
+    const isOn = cur.has(strategy);
+    const next = new Set(cur);
+    const prev = halacha();
+    const cached = !!prev?.topics.some((t) => sliceHalachaForTopic(strategy, t) !== null);
+    if (isOn) {
+      next.delete(strategy);
+    } else {
+      next.add(strategy);
+      if (!cached) await runHalachaEnrich(strategy);
     }
+    setHalachaIncluded(next);
+    runHalachaEnrich('synthesize', { silent: true, refresh: true, include: [...next] }).catch(() => {});
   };
 
-  const runAggEnrich = async (strategy: AggadataEnrichStrategy) => {
+  const [aggIncluded, setAggIncluded] = createSignal<Set<string>>(new Set());
+
+  const runAggEnrich = async (strategy: AggadataEnrichStrategy, opts: { silent?: boolean; refresh?: boolean; include?: string[] } = {}) => {
     const key = `aggadata:${strategy}`;
-    setRunning(r => ({ ...r, [key]: true }));
+    if (!opts.silent) setRunning(r => ({ ...r, [key]: true }));
     setErrors(e => ({ ...e, [key]: undefined }));
     try {
-      const result = await enrichAggadata(tractate(), page(), strategy);
+      const includeQs = strategy === 'synthesize' && opts.include
+        ? `&include=${encodeURIComponent(opts.include.slice().sort().join(','))}`
+        : '';
+      const url = `/api/enrich-aggadata/${encodeURIComponent(tractate())}/${page()}?strategy=${strategy}${opts.refresh ? '&refresh=1' : ''}${includeQs}`;
+      const res = await fetch(url, { method: 'POST' });
+      const result = await res.json() as AggadataResult & { error?: string };
+      if (!res.ok || result.error) throw new Error(result.error ?? `HTTP ${res.status}`);
       const prev = aggadata();
       if (prev) {
         const byTitle = new Map<string, AggadataStory>();
@@ -256,7 +444,7 @@ export function EnrichmentPage(): JSX.Element {
               ...st,
               ...(hit.parallels ? { parallels: hit.parallels } : {}),
               ...(hit.historicalContext ? { historicalContext: hit.historicalContext } : {}),
-              ...(hit.exegesis ? { exegesis: hit.exegesis } : {}),
+              ...(hit.synthesis !== undefined ? { synthesis: hit.synthesis } : {}),
             };
           }),
         });
@@ -266,15 +454,36 @@ export function EnrichmentPage(): JSX.Element {
     } catch (err) {
       setErrors(e => ({ ...e, [key]: String(err) }));
     } finally {
-      setRunning(r => ({ ...r, [key]: false }));
+      if (!opts.silent) setRunning(r => ({ ...r, [key]: false }));
     }
+  };
+
+  const toggleAgg = async (strategy: AggadataEnrichStrategy) => {
+    const cur = aggIncluded();
+    const isOn = cur.has(strategy);
+    const next = new Set(cur);
+    const prev = aggadata();
+    const cached = !!prev?.stories.some((s) => sliceAggadataForStory(strategy, s) !== null);
+    if (isOn) {
+      next.delete(strategy);
+    } else {
+      next.add(strategy);
+      if (!cached) await runAggEnrich(strategy);
+    }
+    setAggIncluded(next);
+    runAggEnrich('synthesize', { silent: true, refresh: true, include: [...next] }).catch(() => {});
   };
 
   // Merge all argument strategy outputs so each section card can show
   // whatever fields any strategy has populated.
   const mergedArgument = () => {
     const e = argumentEnrichments();
-    const order = ['rich-rabbi', 'per-section', 'hybrid', 'baseline', 'references', 'parallels', 'difficulty'];
+    const order = [
+      'rich-rabbi', 'per-section', 'hybrid', 'baseline',
+      'references', 'parallels', 'difficulty',
+      'commentaries', 'bigger-picture', 'background',
+      'synthesize',
+    ];
     const base = order.map(k => e[k]).find(Boolean);
     if (!base) return null;
     const bySec = new Map<string, EnrichedArgumentSection>();
@@ -291,6 +500,10 @@ export function EnrichmentPage(): JSX.Element {
         if (sec.references) existing.references = sec.references;
         if (sec.parallels) existing.parallels = sec.parallels;
         if (sec.difficulty) existing.difficulty = sec.difficulty;
+        if (sec.commentaries) existing.commentaries = sec.commentaries;
+        if (sec.biggerPicture) existing.biggerPicture = sec.biggerPicture;
+        if (sec.background) existing.background = sec.background;
+        if (sec.synthesize) existing.synthesize = sec.synthesize;
       }
     }
     const overallDifficulty = order.map(k => e[k]?.difficulty).find(Boolean);
@@ -305,12 +518,19 @@ export function EnrichmentPage(): JSX.Element {
     <div class="enrichment-page">
       <style>{PAGE_CSS}</style>
       <style>{ARGUMENT_FLOW_CSS}</style>
+      <style>{STRATEGY_ROW_CSS}</style>
+      <style>{PROVENANCE_CSS}</style>
+      <style>{ENRICHMENT_TOGGLE_CSS}</style>
 
       <h1>Enrichment Lab</h1>
       <p class="lead">
         Each tab shows the daf's stage-1 output for one content type. Click enrich buttons
         to layer extra fields onto each section/topic/story.
       </p>
+
+      {/* Sticky status indicator — shows all synthesize/strategy runs in flight
+          across every tab so the user knows their toggle change is processing. */}
+      <SynthStatusBar running={running()} />
 
       <section class="panel controls">
         <label>Tractate</label>
@@ -320,52 +540,119 @@ export function EnrichmentPage(): JSX.Element {
         <label>Daf</label>
         <input type="text" value={page()} onInput={(e) => setPage(e.currentTarget.value)} style="width: 5rem;" placeholder="5a" />
         <button class="primary" onClick={handleLoad}>Load</button>
+        <Show when={loadKey() > 0}>
+          <button class="text-toggle" onClick={() => setShowText(!showText())} title="Toggle daf text panel">
+            {showText() ? '⟨ hide text' : 'show text ⟩'}
+          </button>
+        </Show>
       </section>
 
       <Show when={loadKey() > 0}>
+        <div class="enr-split" classList={{ 'enr-split-open': showText() }}>
+          <Show when={showText()}>
+            <aside class="enr-text-pane">
+              <DafTextPanel
+                tractate={tractate()}
+                page={page()}
+                loadKey={loadKey()}
+                selectedSegment={selectedSegment()}
+                setSelectedSegment={setSelectedSegment}
+              />
+            </aside>
+          </Show>
+          <div class="enr-tabs-pane">
         <div class="tabs">
-          <button class="tab" classList={{ 'tab-active': tab() === 'argument' }} onClick={() => setTab('argument')}>
+          <TabButton tab="argument" current={tab()} onSelect={setTab} onRefresh={() => refreshTab('argument')}>
             Argument
             <Show when={skeleton()}><span class="tab-count">{skeleton()!.sections.length}</span></Show>
-          </button>
-          <button class="tab" classList={{ 'tab-active': tab() === 'halacha' }} onClick={() => setTab('halacha')}>
+          </TabButton>
+          <TabButton tab="pesukim" current={tab()} onSelect={setTab} onRefresh={() => refreshTab('pesukim')}>
+            Pesukim
+          </TabButton>
+          <TabButton tab="halacha" current={tab()} onSelect={setTab} onRefresh={() => refreshTab('halacha')}>
             Halacha
             <Show when={halacha()}><span class="tab-count">{halacha()!.topics.length}</span></Show>
-          </button>
-          <button class="tab" classList={{ 'tab-active': tab() === 'aggadata' }} onClick={() => setTab('aggadata')}>
+          </TabButton>
+          <TabButton tab="aggadata" current={tab()} onSelect={setTab} onRefresh={() => refreshTab('aggadata')}>
             Aggadata
             <Show when={aggadata()}><span class="tab-count">{aggadata()!.stories.length}</span></Show>
-          </button>
-          <button class="tab" classList={{ 'tab-active': tab() === 'relations' }} onClick={() => setTab('relations')}>
-            Relations
-          </button>
+          </TabButton>
+          <TabButton tab="people" current={tab()} onSelect={setTab} onRefresh={() => refreshTab('people')}>
+            People
+          </TabButton>
+          <TabButton tab="era" current={tab()} onSelect={setTab} onRefresh={() => refreshTab('era')}>
+            Era
+          </TabButton>
+          <TabButton tab="tree" current={tab()} onSelect={setTab} onRefresh={() => refreshTab('tree')}>
+            Tree
+          </TabButton>
         </div>
 
         <Show when={tab() === 'argument'}>
           <ArgumentTab
+            tractate={tractate()}
+            page={page()}
             skeleton={skeleton}
             merged={mergedArgument()}
+            enrichments={argumentEnrichments()}
+            included={argIncluded()}
             running={running()}
             errors={errors()}
             onRun={runArg}
+            onToggle={toggleArg}
+            onReloadSkeleton={() => refreshTab('argument')}
+            selectedSegment={selectedSegment()}
+            setSelectedSegment={setSelectedSegment}
           />
         </Show>
         <Show when={tab() === 'halacha'}>
           <HalachaTab
             halacha={halacha}
+            included={halachaIncluded()}
             running={running()}
             errors={errors()}
             onEnrich={runHalachaEnrich}
-            onLoadTopics={runSefariaTopics}
-            topics={sefariaTopics()}
+            onToggle={toggleHalacha}
+            onReloadSkeleton={() => refreshTab('halacha')}
+            selectedSegment={selectedSegment()}
+            setSelectedSegment={setSelectedSegment}
           />
         </Show>
         <Show when={tab() === 'aggadata'}>
-          <AggadataTab aggadata={aggadata} running={running()} errors={errors()} onEnrich={runAggEnrich} />
+          <AggadataTab
+            aggadata={aggadata}
+            included={aggIncluded()}
+            running={running()}
+            errors={errors()}
+            onEnrich={runAggEnrich}
+            onToggle={toggleAgg}
+            onReloadSkeleton={() => refreshTab('aggadata')}
+            selectedSegment={selectedSegment()}
+            setSelectedSegment={setSelectedSegment}
+          />
         </Show>
-        <Show when={tab() === 'relations'}>
-          <RelationsTab tractate={tractate()} page={page()} loadKey={loadKey()} />
+        <Show when={tab() === 'pesukim'}>
+          <PesukimTab
+            tractate={tractate()}
+            page={page()}
+            loadKey={loadKey()}
+            refreshNonce={refreshNonces().pesukim}
+            onReloadSkeleton={() => refreshTab('pesukim')}
+            selectedSegment={selectedSegment()}
+            setSelectedSegment={setSelectedSegment}
+          />
         </Show>
+        <Show when={tab() === 'era'}>
+          <EraTab tractate={tractate()} page={page()} loadKey={loadKey()} refreshNonce={refreshNonces().era} onReloadSkeleton={() => refreshTab('era')} />
+        </Show>
+        <Show when={tab() === 'tree'}>
+          <MesorahTab tractate={tractate()} page={page()} loadKey={loadKey()} refreshNonce={refreshNonces().tree} onReloadSkeleton={() => refreshTab('tree')} />
+        </Show>
+        <Show when={tab() === 'people'}>
+          <RabbiTab tractate={tractate()} page={page()} loadKey={loadKey()} refreshNonce={refreshNonces().people} onReloadSkeleton={() => refreshTab('people')} />
+        </Show>
+          </div>
+        </div>
       </Show>
 
       <Show when={loadKey() === 0}>
@@ -377,52 +664,250 @@ export function EnrichmentPage(): JSX.Element {
 
 // ---- tabs -----------------------------------------------------------------
 
+const ARG_STRATEGIES = [
+  { id: 'rich-rabbi',     label: 'Rich rabbi',     desc: 'Rabbi identity + role + opinionStart/End + agreesWith/disagreesWith.' },
+  { id: 'references',     label: 'References',     desc: 'Biblical verses per section.' },
+  { id: 'parallels',      label: 'Parallels',      desc: 'Parallel sugyot in other masechtot.' },
+  { id: 'commentaries',   label: 'Commentaries',   desc: 'Questions/difficulties raised by Rashi, Tosafot, Rishonim on this section.' },
+  { id: 'bigger-picture', label: 'Bigger picture', desc: 'How this section fits the daf\'s structural arc + neighbor amudim.' },
+  { id: 'background',     label: 'Background',     desc: 'Why this subject matters and why the Talmud engages with it here.' },
+  { id: 'difficulty',     label: 'Difficulty',     desc: '1-5 per section + overall.' },
+  { id: 'synthesize',     label: 'Synthesize',     desc: 'One-paragraph synthesis combining all other strategies. Auto-refires on every other strategy run.' },
+] as const;
+
+/** For a given strategy, slice the daf-level result to just THIS section's data. */
+function sliceArgumentForSection(
+  strategy: string,
+  result: EnrichedArgumentAnalysis | undefined,
+  title: string,
+): unknown {
+  if (!result) return null;
+  const sec = result.sections.find((s) => s.title.toLowerCase() === title.toLowerCase());
+  if (!sec) return null;
+  switch (strategy) {
+    case 'rich-rabbi':     return sec.rabbis ?? null;
+    case 'references':     return sec.references ?? null;
+    case 'parallels':      return sec.parallels ?? null;
+    case 'difficulty':     return sec.difficulty ?? null;
+    case 'commentaries':   return sec.commentaries ?? null;
+    case 'bigger-picture': return sec.biggerPicture ?? null;
+    case 'background':     return sec.background ?? null;
+    case 'synthesize':     return sec.synthesize ?? null;
+    default: return sec;
+  }
+}
+
+function SynthStatusBar(props: { running: Partial<Record<string, boolean>> }): JSX.Element {
+  const active = (): string[] => {
+    const tags: Record<string, string> = {
+      'arg:synthesize':       'argument',
+      'halacha:synthesize':   'halacha',
+      'aggadata:synthesize':  'aggadata',
+      'pesukim:synthesize':   'pesukim',
+    };
+    const synth: string[] = [];
+    const other: string[] = [];
+    for (const [k, v] of Object.entries(props.running)) {
+      if (!v) continue;
+      if (k in tags) synth.push(tags[k]);
+      else if (k.endsWith(':synthesize')) synth.push(k.replace(':synthesize', ''));
+      else {
+        const m = k.match(/^([a-z]+):(.+)$/);
+        if (m) other.push(`${m[1]} · ${m[2]}`);
+      }
+    }
+    return [...synth.map((s) => `synthesizing ${s}`), ...other.map((s) => `running ${s}`)];
+  };
+  return (
+    <Show when={active().length > 0}>
+      <div class="synth-status-bar">
+        <span class="synth-status-spinner" />
+        <For each={active()}>{(label, i) => (
+          <>
+            <Show when={i() > 0}><span class="synth-status-sep">·</span></Show>
+            <span class="synth-status-tag">{label}</span>
+          </>
+        )}</For>
+      </div>
+    </Show>
+  );
+}
+
+function TabButton(props: {
+  tab: Tab;
+  current: Tab;
+  onSelect: (t: Tab) => void;
+  /** Kept for call-site compatibility but no longer renders. The "Reload
+   *  skeleton" button now lives inside each tab's enrichment toggle bar. */
+  onRefresh?: () => void;
+  children: JSX.Element;
+}): JSX.Element {
+  void props.onRefresh;
+  return (
+    <div class="tab-wrap" classList={{ 'tab-wrap-active': props.current === props.tab }}>
+      <button
+        class="tab"
+        classList={{ 'tab-active': props.current === props.tab }}
+        onClick={() => props.onSelect(props.tab)}
+      >
+        {props.children}
+      </button>
+    </div>
+  );
+}
+
+interface SectionAnchor {
+  startSegIdx?: number;
+  endSegIdx?: number;
+  excerpt?: string;
+}
+function rangeAnchor(s: SectionAnchor): { segmentIdx?: number; segmentRange?: [number, number]; quote?: string } {
+  const start = s.startSegIdx;
+  const end = s.endSegIdx;
+  if (typeof start === 'number' && typeof end === 'number') {
+    return { segmentIdx: start, segmentRange: [start, end] };
+  }
+  if (typeof start === 'number') return { segmentIdx: start };
+  return { quote: s.excerpt };
+}
+
+/** Strategies that actually rewrite the prose `summary` field. The merger
+ *  uses the first one that ran in priority order; if none ran the displayed
+ *  summary is still the skeleton text. rich-rabbi / references / parallels /
+ *  difficulty / commentaries / bigger-picture / background DON'T rewrite the
+ *  summary — they only fill OTHER fields. So they should not be credited as
+ *  provenance for the displayed prose. */
+const ARG_SUMMARY_REWRITERS = ['baseline', 'per-section', 'hybrid'] as const;
+
+function argDafSummaryProvenance(enrichments: Partial<Record<string, EnrichedArgumentAnalysis>>): string[] {
+  return ARG_SUMMARY_REWRITERS.filter((s) => enrichments[s] !== undefined);
+}
+
+function argSectionSummaryProvenance(
+  enrichments: Partial<Record<string, EnrichedArgumentAnalysis>>,
+  title: string,
+): string[] {
+  const out: string[] = [];
+  for (const s of ARG_SUMMARY_REWRITERS) {
+    const result = enrichments[s];
+    if (!result) continue;
+    if (result.sections.some((sec) => sec.title.toLowerCase() === title.toLowerCase())) out.push(s);
+  }
+  return out;
+}
+
 function ArgumentTab(props: {
+  tractate: string;
+  page: string;
   skeleton: Resource<ArgumentSkeleton | null>;
   merged: { summary: string; difficulty?: DifficultyRating; sections: EnrichedArgumentSection[] } | null;
+  enrichments: Partial<Record<string, EnrichedArgumentAnalysis>>;
+  included: Set<string>;
   running: Partial<Record<string, boolean>>;
   errors: Partial<Record<string, string>>;
   onRun: (strategy: string) => void;
+  onToggle: (strategy: string) => void;
+  onReloadSkeleton: () => void;
+  selectedSegment: number | null;
+  setSelectedSegment: (n: number | null) => void;
 }): JSX.Element {
-  const STRATEGIES = [
-    { id: 'rich-rabbi', label: 'Rich rabbi',  desc: 'Rabbi identity + role + opinionStart/End + agreesWith/disagreesWith.' },
-    { id: 'references', label: 'References',  desc: 'Biblical verses per section.' },
-    { id: 'parallels',  label: 'Parallels',   desc: 'Parallel sugyot in other masechtot.' },
-    { id: 'difficulty', label: 'Difficulty',  desc: '1-5 per section + overall.' },
-  ] as const;
-
   return (
     <>
       <section class="panel enrich-bar">
-        <span class="enrich-label">Enrichments</span>
-        <For each={STRATEGIES}>{(s) => {
+        <button class="toggle-pill toggle-off-empty reload-skel" onClick={props.onReloadSkeleton} title="Re-run the skeleton/first-pass detection from scratch.">
+          <span class="toggle-mark">↻</span>
+          <span class="toggle-label">Reload skeleton</span>
+        </button>
+        <span class="enrich-label">Synthesis sources</span>
+        <For each={ARG_STRATEGIES.filter((s) => s.id !== 'synthesize')}>{(s) => {
           const runKey = `arg:${s.id}`;
           return (
-            <button class="enrich-btn" disabled={!!props.running[runKey]} onClick={() => props.onRun(s.id)} title={s.desc}>
-              {props.running[runKey] ? `${s.label}…` : `+ ${s.label}`}
-              <Show when={props.errors[runKey]}><span class="enrich-btn-err">err</span></Show>
-            </button>
+            <EnrichmentToggle
+              id={s.id}
+              label={s.label}
+              desc={s.desc}
+              cached={props.enrichments[s.id] !== undefined}
+              included={props.included.has(s.id)}
+              running={!!props.running[runKey]}
+              error={props.errors[runKey]}
+              onClick={() => props.onToggle(s.id)}
+            />
           );
         }}</For>
+        <Show when={props.running['arg:synthesize']}>
+          <span class="enrich-status">synthesizing…</span>
+        </Show>
+        <Show when={props.errors['arg:synthesize']}>
+          <span class="enrich-btn-err">synth err: {props.errors['arg:synthesize']}</span>
+        </Show>
+        <Show when={(props.enrichments['synthesize']?._warnings?.length ?? 0) > 0}>
+          <details class="synth-warnings">
+            <summary>{props.enrichments['synthesize']!._warnings!.length} section(s) failed</summary>
+            <ul>
+              <For each={props.enrichments['synthesize']!._warnings}>{(w) => <li>{w}</li>}</For>
+            </ul>
+          </details>
+        </Show>
       </section>
 
       <Show when={props.skeleton.loading}><p class="loading">Loading skeleton…</p></Show>
+
+      {/* Title + Summary (daf-level) — always visible once any data exists. */}
+      <Show when={props.skeleton() || props.merged}>
+        <section class="panel arg-header">
+          <h2 class="arg-title">{props.tractate} {props.page}</h2>
+          <Show when={props.merged}>
+            {(m) => (
+              <>
+                <p class="daf-summary"><Hebraized text={m().summary} /></p>
+                <ProvenanceBadge strategies={argDafSummaryProvenance(props.enrichments)} firstPass="skeleton" />
+              </>
+            )}
+          </Show>
+          <Show when={!props.merged && props.skeleton()}>
+            {(s) => (
+              <>
+                <p class="daf-summary"><Hebraized text={s().summary} /></p>
+                <ProvenanceBadge strategies={[]} firstPass="skeleton" />
+              </>
+            )}
+          </Show>
+        </section>
+      </Show>
+
+      {/* Sections list. Falls back to skeleton-only rendering when no enrichment has run. */}
       <Show when={!props.merged && props.skeleton()}>
         {(s) => (
           <section class="panel">
-            <p class="daf-summary">{s().summary}</p>
-            <For each={s().sections}>{(sec, i) => (
-              <div class="card">
-                <div class="card-head">
-                  <span class="card-num">§{i() + 1}</span>
-                  <span class="card-title">{sec.title}</span>
+            <h3 class="arg-section-head">Sections</h3>
+            <For each={s().sections}>{(sec, i) => {
+              const anchor = rangeAnchor(sec);
+              const highlighted = () => props.selectedSegment != null && anchorMatches(anchor, props.selectedSegment);
+              return (
+                <div
+                  class="card"
+                  classList={{ 'card-highlighted': highlighted() }}
+                  onClick={() => anchor.segmentIdx !== undefined && props.setSelectedSegment(anchor.segmentIdx)}
+                >
+                  <div class="card-head">
+                    <span class="card-num">§{i() + 1}</span>
+                    <span class="card-title">{sec.title}</span>
+                  </div>
+                  <Show when={sec.rabbiNames.length > 0}>
+                    <div class="card-who">{sec.rabbiNames.join(', ')}</div>
+                  </Show>
+                  <p class="card-summary"><Hebraized text={sec.summary} /></p>
+                  <ProvenanceBadge strategies={[]} firstPass="skeleton" />
+                  <ArgumentRawEnrichments
+                    title={sec.title}
+                    enrichments={props.enrichments}
+                    running={props.running}
+                    errors={props.errors}
+                    onRun={props.onRun}
+                  />
                 </div>
-                <Show when={sec.rabbiNames.length > 0}>
-                  <div class="card-who">{sec.rabbiNames.join(', ')}</div>
-                </Show>
-                <p class="card-summary">{sec.summary}</p>
-              </div>
-            )}</For>
+              );
+            }}</For>
           </section>
         )}
       </Show>
@@ -430,8 +915,19 @@ function ArgumentTab(props: {
       <Show when={props.merged}>
         {(m) => (
           <section class="panel">
-            <p class="daf-summary">{m().summary}</p>
-            <For each={m().sections}>{(sec, i) => <ArgumentSectionCard sec={sec} idx={i()} />}</For>
+            <h3 class="arg-section-head">Sections</h3>
+            <For each={m().sections}>{(sec, i) => (
+              <ArgumentSectionCard
+                sec={sec}
+                idx={i()}
+                enrichments={props.enrichments}
+                running={props.running}
+                errors={props.errors}
+                onRun={props.onRun}
+                selectedSegment={props.selectedSegment}
+                setSelectedSegment={props.setSelectedSegment}
+              />
+            )}</For>
           </section>
         )}
       </Show>
@@ -439,7 +935,43 @@ function ArgumentTab(props: {
   );
 }
 
-function ArgumentSectionCard(props: { sec: EnrichedArgumentSection; idx: number }): JSX.Element {
+function ArgumentRawEnrichments(props: {
+  title: string;
+  enrichments: Partial<Record<string, EnrichedArgumentAnalysis>>;
+  running: Partial<Record<string, boolean>>;
+  errors: Partial<Record<string, string>>;
+  onRun: (strategy: string) => void;
+}): JSX.Element {
+  return (
+    <details class="strat-expand" onClick={(e) => e.stopPropagation()}>
+      <summary onClick={(e) => e.stopPropagation()}>raw enrichments</summary>
+      <div class="strat-expand-body">
+        <For each={ARG_STRATEGIES}>{(s) => (
+          <StrategyRow
+            id={s.id}
+            label={s.label}
+            desc={s.desc}
+            data={sliceArgumentForSection(s.id, props.enrichments[s.id], props.title)}
+            running={!!props.running[`arg:${s.id}`]}
+            error={props.errors[`arg:${s.id}`]}
+            onRun={() => props.onRun(s.id)}
+          />
+        )}</For>
+      </div>
+    </details>
+  );
+}
+
+function ArgumentSectionCard(props: {
+  sec: EnrichedArgumentSection;
+  idx: number;
+  enrichments: Partial<Record<string, EnrichedArgumentAnalysis>>;
+  running: Partial<Record<string, boolean>>;
+  errors: Partial<Record<string, string>>;
+  onRun: (strategy: string) => void;
+  selectedSegment: number | null;
+  setSelectedSegment: (n: number | null) => void;
+}): JSX.Element {
   const [open, setOpen] = createSignal(false);
   const sec = () => props.sec;
   const hasSectionDetail = () => !!(
@@ -447,8 +979,17 @@ function ArgumentSectionCard(props: { sec: EnrichedArgumentSection; idx: number 
     || (sec().parallels && sec().parallels!.length > 0)
     || sec().difficulty
   );
+  const anchor = () => rangeAnchor(sec());
+  const highlighted = () => props.selectedSegment != null && anchorMatches(anchor(), props.selectedSegment);
   return (
-    <div class="card">
+    <div
+      class="card"
+      classList={{ 'card-highlighted': highlighted() }}
+      onClick={() => {
+        const a = anchor();
+        if (a.segmentIdx !== undefined) props.setSelectedSegment(a.segmentIdx);
+      }}
+    >
       <div class="card-head">
         <span class="card-num">§{props.idx + 1}</span>
         <span class="card-title">{sec().title}</span>
@@ -456,17 +997,58 @@ function ArgumentSectionCard(props: { sec: EnrichedArgumentSection; idx: number 
       <Show when={sec().rabbis && sec().rabbis.length > 0}>
         <div class="card-who">{sec().rabbis.map(r => r.name).join(', ')}</div>
       </Show>
-      <p class="card-summary">{sec().summary}</p>
+      <Show
+        when={sec().synthesize?.explanation}
+        fallback={
+          <>
+            <p class="card-summary"><Hebraized text={sec().summary} /></p>
+            <ProvenanceBadge
+              strategies={argSectionSummaryProvenance(props.enrichments, sec().title)}
+              firstPass="skeleton"
+            />
+          </>
+        }
+      >
+        <p class="card-summary"><Hebraized text={sec().synthesize!.explanation!} /></p>
+        <ProvenanceBadge
+          strategies={sec().synthesize?.groundedIn ?? []}
+          firstPass={(sec().synthesize?.groundedIn ?? []).length === 0 ? 'synthesize (no sources)' : undefined}
+        />
+      </Show>
 
-      <Show when={sec().rabbis && sec().rabbis.length > 0 && sec().rabbis.some(r => r.role || r.opinionStart)}>
-        <div class="sub-cards">
-          <For each={sec().rabbis}>{(r) => <RabbiSubcard rabbi={r} />}</For>
+      <Show when={sec().biggerPicture?.explanation}>
+        <div class="enrich-section"><span class="enrich-section-label">Bigger picture</span>
+          <p class="enrich-row" style="line-height: 1.5;"><Hebraized text={sec().biggerPicture!.explanation!} /></p>
+          <ProvenanceBadge strategies={['bigger-picture']} />
         </div>
       </Show>
 
+      <Show when={sec().background?.explanation}>
+        <div class="enrich-section"><span class="enrich-section-label">Background</span>
+          <p class="enrich-row" style="line-height: 1.5;"><Hebraized text={sec().background!.explanation!} /></p>
+          <ProvenanceBadge strategies={['background']} />
+        </div>
+      </Show>
+
+      <Show when={sec().commentaries && sec().commentaries!.length > 0}>
+        <div class="enrich-section"><span class="enrich-section-label">Commentaries</span>
+          <For each={sec().commentaries!}>{(c) => (
+            <div class="enrich-row">
+              <span class="enrich-src">{c.source}</span>
+              <Show when={c.ref}><span class="enrich-ref"> [{c.ref}]</span></Show>
+              <span class="enrich-txt"> — {c.question}</span>
+            </div>
+          )}</For>
+          <ProvenanceBadge strategies={['commentaries']} />
+        </div>
+      </Show>
+
+      {/* Per-rabbi sub-cards intentionally omitted — sage detail lives in
+          the People tab. Argument cards focus on the flow of the section. */}
+
       <Show when={hasSectionDetail()}>
         <div class="section-more">
-          <button class="more-btn" onClick={() => setOpen(!open())}>{open() ? '−' : '…'}</button>
+          <button class="more-btn" onClick={(e) => { e.stopPropagation(); setOpen(!open()); }}>{open() ? '−' : '…'}</button>
         </div>
         <Show when={open()}>
           <div class="detail">
@@ -474,6 +1056,7 @@ function ArgumentSectionCard(props: { sec: EnrichedArgumentSection; idx: number 
               <div class="d-row"><span class="d-label">Pesukim</span>
                 <div class="d-body d-wrap">
                   <For each={sec().references!}>{(ref) => <span class="d-ref" title={ref.hebrewQuote || ref.ref}>{ref.hebrewRef || ref.ref}</span>}</For>
+                  <ProvenanceBadge strategies={['references']} />
                 </div>
               </div>
             </Show>
@@ -481,6 +1064,7 @@ function ArgumentSectionCard(props: { sec: EnrichedArgumentSection; idx: number 
               <div class="d-row"><span class="d-label">See also</span>
                 <div class="d-body d-wrap">
                   <For each={sec().parallels!}>{(p) => <span class="d-parallel">{p}</span>}</For>
+                  <ProvenanceBadge strategies={['parallels']} />
                 </div>
               </div>
             </Show>
@@ -489,12 +1073,21 @@ function ArgumentSectionCard(props: { sec: EnrichedArgumentSection; idx: number 
                 <div class="d-body">
                   <span class="d-stars">{'★'.repeat(sec().difficulty!.score)}{'☆'.repeat(5 - sec().difficulty!.score)}</span>
                   <span class="d-diff-reason"> {sec().difficulty!.reason}</span>
+                  <ProvenanceBadge strategies={['difficulty']} />
                 </div>
               </div>
             </Show>
           </div>
         </Show>
       </Show>
+
+      <ArgumentRawEnrichments
+        title={sec().title}
+        enrichments={props.enrichments}
+        running={props.running}
+        errors={props.errors}
+        onRun={props.onRun}
+      />
     </div>
   );
 }
@@ -517,7 +1110,7 @@ function RabbiSubcard(props: { rabbi: EnrichedRabbi }): JSX.Element {
       </div>
       <Show when={r().role}><div class="sub-role">{r().role}</div></Show>
       <Show when={hasDetail()}>
-        <button class="sub-toggle" onClick={() => setOpen(!open())}>{open() ? '−' : '…'}</button>
+        <button class="sub-toggle" onClick={(e) => { e.stopPropagation(); setOpen(!open()); }}>{open() ? '−' : '…'}</button>
         <Show when={open()}>
           <div class="sub-detail">
             <Show when={r().opinionStart || r().opinionEnd}>
@@ -541,74 +1134,103 @@ function RabbiSubcard(props: { rabbi: EnrichedRabbi }): JSX.Element {
   );
 }
 
+const HALACHA_STRATEGIES = [
+  { id: 'modern-authorities',  label: 'Modern authorities',  desc: 'Mishnah Berurah, Peninei Halakhah, Aruch HaShulchan, Igrot Moshe, etc.' },
+  { id: 'rishonim-condensed',  label: 'Rishonim condensed',  desc: "One sentence per Rishon's position (Rashba, Ritva, Ramban, Meiri, Rosh, Maharsha)." },
+  { id: 'sa-commentary-walk',  label: 'SA commentary',       desc: 'Shulchan Aruch commentary chain per topic.' },
+  { id: 'synthesize',          label: 'Synthesize',          desc: 'Per-topic gist combining rulings + rishonim + sa-commentary + modern-authorities. Auto-refires on every other strategy.' },
+] as const;
+
+function sliceHalachaForTopic(strategy: string, topic: HalachaTopic | undefined): unknown {
+  if (!topic) return null;
+  switch (strategy) {
+    case 'modern-authorities':  return topic.modernAuthorities ?? null;
+    case 'rishonim-condensed':  return topic.rishonimNotes ?? null;
+    case 'sa-commentary-walk':  return topic.saCommentaryNotes ?? null;
+    case 'synthesize':          return topic.synthesis ?? null;
+    default: return null;
+  }
+}
+
 function HalachaTab(props: {
   halacha: Resource<HalachaResult | null>;
+  included: Set<string>;
   running: Partial<Record<string, boolean>>;
   errors: Partial<Record<string, string>>;
   onEnrich: (strategy: HalachaEnrichStrategy) => void;
-  onLoadTopics: () => void;
-  topics: SefariaTopicsResult | null;
+  onToggle: (strategy: HalachaEnrichStrategy) => void;
+  onReloadSkeleton: () => void;
+  selectedSegment: number | null;
+  setSelectedSegment: (n: number | null) => void;
 }): JSX.Element {
+  const halachaCached = (strategy: HalachaEnrichStrategy): boolean => {
+    const h = props.halacha();
+    if (!h) return false;
+    return h.topics.some((t) => sliceHalachaForTopic(strategy, t) !== null);
+  };
   return (
     <>
       <section class="panel enrich-bar">
-        <span class="enrich-label">Enrichments</span>
-        <button class="enrich-btn"
-          disabled={!!props.running['halacha:modern-authorities'] || !props.halacha()}
-          onClick={() => props.onEnrich('modern-authorities')}
-          title="Mishna Berurah, Peninei Halakhah, Aruch HaShulchan, Igrot Moshe, etc. per topic.">
-          {props.running['halacha:modern-authorities'] ? 'Modern authorities…' : '+ Modern authorities'}
-          <Show when={props.errors['halacha:modern-authorities']}><span class="enrich-btn-err">err</span></Show>
+        <button class="toggle-pill toggle-off-empty reload-skel" onClick={props.onReloadSkeleton} title="Re-run halacha first-pass detection from scratch.">
+          <span class="toggle-mark">↻</span>
+          <span class="toggle-label">Reload skeleton</span>
         </button>
-        <button class="enrich-btn"
-          disabled={!!props.running['halacha:rishonim-condensed'] || !props.halacha()}
-          onClick={() => props.onEnrich('rishonim-condensed')}
-          title="For each topic, distill each Rishon's position (Rashba, Ritva, Ramban, Meiri, Rosh, Maharsha) to one sentence.">
-          {props.running['halacha:rishonim-condensed'] ? 'Rishonim condensed…' : '+ Rishonim condensed'}
-          <Show when={props.errors['halacha:rishonim-condensed']}><span class="enrich-btn-err">err</span></Show>
-        </button>
-        <button class="enrich-btn"
-          disabled={!!props.running['halacha:sa-commentary-walk'] || !props.halacha()}
-          onClick={() => props.onEnrich('sa-commentary-walk')}
-          title="Walks the Shulchan Aruch commentary chain per topic (Mishnah Berurah, Biur Halakhah, Magen Avraham, Taz, Shach, Arukh HaShulchan, Kaf HaChaim, etc.). Uses real Sefaria text.">
-          {props.running['halacha:sa-commentary-walk'] ? 'SA commentary…' : '+ SA commentary'}
-          <Show when={props.errors['halacha:sa-commentary-walk']}><span class="enrich-btn-err">err</span></Show>
-        </button>
-        <button class="enrich-btn"
-          disabled={!!props.running['topics:sefaria']}
-          onClick={props.onLoadTopics}
-          title="Sefaria's editorial topic tags for this daf + top cross-Shas sources per topic (Shas, Midrash, Rishonim, etc.).">
-          {props.running['topics:sefaria'] ? 'Topics…' : '+ Sefaria topics'}
-          <Show when={props.errors['topics:sefaria']}><span class="enrich-btn-err">err</span></Show>
-        </button>
+        <span class="enrich-label">Synthesis sources</span>
+        <For each={HALACHA_STRATEGIES.filter((s) => s.id !== 'synthesize')}>{(s) => {
+          const runKey = `halacha:${s.id}`;
+          return (
+            <EnrichmentToggle
+              id={s.id}
+              label={s.label}
+              desc={s.desc}
+              cached={halachaCached(s.id as HalachaEnrichStrategy)}
+              included={props.included.has(s.id)}
+              running={!!props.running[runKey]}
+              error={props.errors[runKey]}
+              onClick={() => props.onToggle(s.id as HalachaEnrichStrategy)}
+            />
+          );
+        }}</For>
+        <Show when={props.running['halacha:synthesize']}>
+          <span class="enrich-status">synthesizing…</span>
+        </Show>
+        <Show when={props.errors['halacha:synthesize']}>
+          <span class="enrich-btn-err">synth err: {props.errors['halacha:synthesize']}</span>
+        </Show>
       </section>
-      <Show when={props.topics && props.topics.topics.length > 0}>
-        <section class="panel topics-panel">
-          <div class="topics-head">
-            <span class="enrich-label">Sefaria topics on this daf</span>
-            <span class="topics-count">{props.topics!.topics.length} topics · {props.topics!.topics.reduce((s, t) => s + t.sources.length, 0)} cross-Shas sources</span>
-          </div>
-          <div class="topics-grid">
-            <For each={props.topics!.topics}>{(t) => <TopicCard topic={t} />}</For>
-          </div>
-        </section>
-      </Show>
       <Show when={props.halacha.loading}><p class="loading">Loading halacha…</p></Show>
-      <Show when={props.halacha.error}><p class="err-msg">{String(props.halacha.error)}</p></Show>
+      <Show when={!props.halacha.loading && props.halacha.error}><p class="err-msg">{String(props.halacha.error)}</p></Show>
       <Show when={props.halacha() && props.halacha()!.topics.length === 0}>
         <section class="panel empty">No halacha topics on this daf.</section>
       </Show>
       <Show when={props.halacha() && props.halacha()!.topics.length > 0}>
         <section class="panel">
-          <For each={props.halacha()!.topics}>{(t, i) => <HalachaCard topic={t} idx={i()} />}</For>
+          <For each={props.halacha()!.topics}>{(t, i) => (
+            <HalachaCard
+              topic={t}
+              idx={i()}
+              running={props.running}
+              errors={props.errors}
+              onEnrich={props.onEnrich}
+              selectedSegment={props.selectedSegment}
+              setSelectedSegment={props.setSelectedSegment}
+            />
+          )}</For>
         </section>
       </Show>
     </>
   );
 }
 
-function HalachaCard(props: { topic: HalachaTopic; idx: number }): JSX.Element {
-  const [open, setOpen] = createSignal(false);
+function HalachaCard(props: {
+  topic: HalachaTopic;
+  idx: number;
+  running: Partial<Record<string, boolean>>;
+  errors: Partial<Record<string, string>>;
+  onEnrich: (strategy: HalachaEnrichStrategy) => void;
+  selectedSegment: number | null;
+  setSelectedSegment: (n: number | null) => void;
+}): JSX.Element {
   const t = () => props.topic;
   const rulings = () => {
     const out: Array<{ code: string; ref: string; summary: string }> = [];
@@ -621,8 +1243,17 @@ function HalachaCard(props: { topic: HalachaTopic; idx: number }): JSX.Element {
     || !!(t().rishonimNotes && t().rishonimNotes!.length > 0)
     || !!(t().saCommentaryNotes && t().saCommentaryNotes!.length > 0)
     || !!t().excerpt;
+  const anchor = () => rangeAnchor(t());
+  const highlighted = () => props.selectedSegment != null && anchorMatches(anchor(), props.selectedSegment);
   return (
-    <div class="card">
+    <div
+      class="card"
+      classList={{ 'card-highlighted': highlighted() }}
+      onClick={() => {
+        const a = anchor();
+        if (a.segmentIdx !== undefined) props.setSelectedSegment(a.segmentIdx);
+      }}
+    >
       <div class="card-head">
         <span class="card-num">§{props.idx + 1}</span>
         <span class="card-title">
@@ -630,16 +1261,25 @@ function HalachaCard(props: { topic: HalachaTopic; idx: number }): JSX.Element {
           <Show when={t().topicHe}><span class="card-title-he"> · {t().topicHe}</span></Show>
         </span>
       </div>
+      <Show when={t().synthesis?.explanation}>
+        <p class="card-summary"><Hebraized text={t().synthesis!.explanation} /></p>
+        <ProvenanceBadge
+          strategies={t().synthesis?.groundedIn ?? []}
+          firstPass={(t().synthesis?.groundedIn ?? []).length === 0 ? 'synthesize (no sources)' : undefined}
+        />
+      </Show>
+
       <Show when={rulings().length > 0}>
         <ul class="ruling-list">
           <For each={rulings()}>{(rul) => (
             <li class="ruling">
               <span class="ruling-code">{rul.code}</span>
               <span class="ruling-ref">{rul.ref}</span>
-              <div class="ruling-summary">{rul.summary}</div>
+              <div class="ruling-summary"><Hebraized text={rul.summary} /></div>
             </li>
           )}</For>
         </ul>
+        <ProvenanceBadge strategies={[]} firstPass="halacha first-pass" />
       </Show>
 
       {/* Enrichment outputs — always visible when populated (no collapse) */}
@@ -651,6 +1291,7 @@ function HalachaCard(props: { topic: HalachaTopic; idx: number }): JSX.Element {
               <span class="enrich-txt"> — {n.note}</span>
             </div>
           )}</For>
+          <ProvenanceBadge strategies={['rishonim-condensed']} />
         </div>
       </Show>
       <Show when={t().saCommentaryNotes && t().saCommentaryNotes!.length > 0}>
@@ -662,6 +1303,7 @@ function HalachaCard(props: { topic: HalachaTopic; idx: number }): JSX.Element {
               <Show when={n.ref}><span class="enrich-ref"> [{n.ref}]</span></Show>
             </div>
           )}</For>
+          <ProvenanceBadge strategies={['sa-commentary-walk']} />
         </div>
       </Show>
       <Show when={t().modernAuthorities && t().modernAuthorities!.length > 0}>
@@ -672,98 +1314,139 @@ function HalachaCard(props: { topic: HalachaTopic; idx: number }): JSX.Element {
               <span class="enrich-txt"> — {a.summary}</span>
             </div>
           )}</For>
+          <ProvenanceBadge strategies={['modern-authorities']} />
         </div>
       </Show>
 
-      {/* Source excerpt collapsed behind "…" */}
-      <Show when={t().excerpt}>
-        <div class="section-more">
-          <button class="more-btn" onClick={() => setOpen(!open())}>{open() ? '−' : '… source'}</button>
+      <details class="strat-expand" onClick={(e) => e.stopPropagation()}>
+        <summary onClick={(e) => e.stopPropagation()}>raw enrichments</summary>
+        <div class="strat-expand-body">
+          <For each={HALACHA_STRATEGIES}>{(s) => (
+            <StrategyRow
+              id={s.id}
+              label={s.label}
+              desc={s.desc}
+              data={sliceHalachaForTopic(s.id, t())}
+              running={!!props.running[`halacha:${s.id}`]}
+              error={props.errors[`halacha:${s.id}`]}
+              onRun={() => props.onEnrich(s.id as HalachaEnrichStrategy)}
+            />
+          )}</For>
         </div>
-        <Show when={open()}>
-          <div class="detail">
-            <div class="d-row"><span class="d-label">Source</span><div class="d-body"><span class="d-excerpt">{t().excerpt}</span></div></div>
-          </div>
-        </Show>
-      </Show>
+      </details>
     </div>
   );
 }
 
-function TopicCard(props: { topic: SefariaTopic }): JSX.Element {
-  const [open, setOpen] = createSignal(false);
-  const t = () => props.topic;
-  return (
-    <div class="topic-card">
-      <div class="topic-head">
-        <span class="topic-title">{t().titleEn ?? t().slug}</span>
-        <Show when={t().titleHe}><span class="topic-title-he"> · {t().titleHe}</span></Show>
-        <span class="topic-count">{t().sources.length} refs</span>
-      </div>
-      <Show when={t().description}>
-        <div class="topic-desc">{t().description}</div>
-      </Show>
-      <Show when={t().sources.length > 0}>
-        <div class="topic-sources">
-          <For each={t().sources.slice(0, open() ? 20 : 5)}>{(src) => (
-            <a class="topic-ref"
-               href={`https://www.sefaria.org/${encodeURIComponent(src.ref.replace(/ /g, '_'))}`}
-               target="_blank" rel="noopener noreferrer">{src.ref}</a>
-          )}</For>
-          <Show when={t().sources.length > 5}>
-            <button class="more-btn topic-more" onClick={() => setOpen(!open())}>
-              {open() ? '−' : `+${Math.max(0, t().sources.length - 5)} more`}
-            </button>
-          </Show>
-        </div>
-      </Show>
-    </div>
-  );
+const AGGADATA_STRATEGIES = [
+  { id: 'parallels',          label: 'Parallels',          desc: 'Parallel narratives in Bavli/Yerushalmi/Midrash for this story.' },
+  { id: 'historical-context', label: 'Historical context', desc: 'Era and surrounding circumstances when relevant.' },
+  { id: 'synthesize',         label: 'Synthesize',         desc: 'Per-story gist combining parallels + historical-context. Auto-refires on every other strategy.' },
+] as const;
+
+function sliceAggadataForStory(strategy: string, story: AggadataStory | undefined): unknown {
+  if (!story) return null;
+  switch (strategy) {
+    case 'parallels':          return story.parallels ?? null;
+    case 'historical-context': return story.historicalContext ?? null;
+    case 'synthesize':         return story.synthesis ?? null;
+    default: return null;
+  }
 }
 
 function AggadataTab(props: {
   aggadata: Resource<AggadataResult | null>;
+  included: Set<string>;
   running: Partial<Record<string, boolean>>;
   errors: Partial<Record<string, string>>;
   onEnrich: (strategy: AggadataEnrichStrategy) => void;
+  onToggle: (strategy: AggadataEnrichStrategy) => void;
+  onReloadSkeleton: () => void;
+  selectedSegment: number | null;
+  setSelectedSegment: (n: number | null) => void;
 }): JSX.Element {
+  const aggadataCached = (strategy: AggadataEnrichStrategy): boolean => {
+    const a = props.aggadata();
+    if (!a) return false;
+    return a.stories.some((s) => sliceAggadataForStory(strategy, s) !== null);
+  };
   return (
     <>
       <section class="panel enrich-bar">
-        <span class="enrich-label">Enrichments</span>
-        <button class="enrich-btn" disabled={!!props.running['aggadata:parallels'] || !props.aggadata()} onClick={() => props.onEnrich('parallels')}>
-          {props.running['aggadata:parallels'] ? 'Parallels…' : '+ Parallels'}
-          <Show when={props.errors['aggadata:parallels']}><span class="enrich-btn-err">err</span></Show>
+        <button class="toggle-pill toggle-off-empty reload-skel" onClick={props.onReloadSkeleton} title="Re-run aggadata first-pass detection from scratch.">
+          <span class="toggle-mark">↻</span>
+          <span class="toggle-label">Reload skeleton</span>
         </button>
-        <button class="enrich-btn" disabled={!!props.running['aggadata:historical-context'] || !props.aggadata()} onClick={() => props.onEnrich('historical-context')}>
-          {props.running['aggadata:historical-context'] ? 'Historical context…' : '+ Historical context'}
-          <Show when={props.errors['aggadata:historical-context']}><span class="enrich-btn-err">err</span></Show>
-        </button>
-        <button class="enrich-btn" disabled={!!props.running['aggadata:exegesis'] || !props.aggadata()} onClick={() => props.onEnrich('exegesis')}>
-          {props.running['aggadata:exegesis'] ? 'Exegesis…' : '+ Exegesis'}
-          <Show when={props.errors['aggadata:exegesis']}><span class="enrich-btn-err">err</span></Show>
-        </button>
+        <span class="enrich-label">Synthesis sources</span>
+        <For each={AGGADATA_STRATEGIES.filter((s) => s.id !== 'synthesize')}>{(s) => {
+          const runKey = `aggadata:${s.id}`;
+          return (
+            <EnrichmentToggle
+              id={s.id}
+              label={s.label}
+              desc={s.desc}
+              cached={aggadataCached(s.id as AggadataEnrichStrategy)}
+              included={props.included.has(s.id)}
+              running={!!props.running[runKey]}
+              error={props.errors[runKey]}
+              onClick={() => props.onToggle(s.id as AggadataEnrichStrategy)}
+            />
+          );
+        }}</For>
+        <Show when={props.running['aggadata:synthesize']}>
+          <span class="enrich-status">synthesizing…</span>
+        </Show>
+        <Show when={props.errors['aggadata:synthesize']}>
+          <span class="enrich-btn-err">synth err: {props.errors['aggadata:synthesize']}</span>
+        </Show>
       </section>
       <Show when={props.aggadata.loading}><p class="loading">Loading aggadata…</p></Show>
-      <Show when={props.aggadata.error}><p class="err-msg">{String(props.aggadata.error)}</p></Show>
+      <Show when={!props.aggadata.loading && props.aggadata.error}><p class="err-msg">{String(props.aggadata.error)}</p></Show>
       <Show when={props.aggadata() && props.aggadata()!.stories.length === 0}>
         <section class="panel empty">No aggadic stories on this daf.</section>
       </Show>
       <Show when={props.aggadata() && props.aggadata()!.stories.length > 0}>
         <section class="panel">
-          <For each={props.aggadata()!.stories}>{(s, i) => <AggadataCard story={s} idx={i()} />}</For>
+          <For each={props.aggadata()!.stories}>{(s, i) => (
+            <AggadataCard
+              story={s}
+              idx={i()}
+              running={props.running}
+              errors={props.errors}
+              onEnrich={props.onEnrich}
+              selectedSegment={props.selectedSegment}
+              setSelectedSegment={props.setSelectedSegment}
+            />
+          )}</For>
         </section>
       </Show>
     </>
   );
 }
 
-function AggadataCard(props: { story: AggadataStory; idx: number }): JSX.Element {
+function AggadataCard(props: {
+  story: AggadataStory;
+  idx: number;
+  running: Partial<Record<string, boolean>>;
+  errors: Partial<Record<string, string>>;
+  onEnrich: (strategy: AggadataEnrichStrategy) => void;
+  selectedSegment: number | null;
+  setSelectedSegment: (n: number | null) => void;
+}): JSX.Element {
   const [open, setOpen] = createSignal(false);
   const s = () => props.story;
-  const hasMore = () => !!(s().excerpt || (s().parallels && s().parallels!.length > 0) || s().historicalContext || s().exegesis);
+  const hasMore = () => !!((s().parallels && s().parallels!.length > 0) || s().historicalContext);
+  const anchor = () => rangeAnchor(s());
+  const highlighted = () => props.selectedSegment != null && anchorMatches(anchor(), props.selectedSegment);
   return (
-    <div class="card">
+    <div
+      class="card"
+      classList={{ 'card-highlighted': highlighted() }}
+      onClick={() => {
+        const a = anchor();
+        if (a.segmentIdx !== undefined) props.setSelectedSegment(a.segmentIdx);
+      }}
+    >
       <div class="card-head">
         <span class="card-num">§{props.idx + 1}</span>
         <span class="card-title">
@@ -772,20 +1455,33 @@ function AggadataCard(props: { story: AggadataStory; idx: number }): JSX.Element
         </span>
         <Show when={s().theme}><span class="theme-tag">{s().theme}</span></Show>
       </div>
-      <p class="card-summary">{s().summary}</p>
+      <Show
+        when={s().synthesis?.explanation}
+        fallback={
+          <>
+            <p class="card-summary"><Hebraized text={s().summary} /></p>
+            <ProvenanceBadge strategies={[]} firstPass="aggadata first-pass" />
+          </>
+        }
+      >
+        <p class="card-summary"><Hebraized text={s().synthesis!.explanation} /></p>
+        <ProvenanceBadge
+          strategies={s().synthesis?.groundedIn ?? []}
+          firstPass={(s().synthesis?.groundedIn ?? []).length === 0 ? 'synthesize (no sources)' : undefined}
+        />
+      </Show>
+
       <Show when={hasMore()}>
         <div class="section-more">
-          <button class="more-btn" onClick={() => setOpen(!open())}>{open() ? '−' : '…'}</button>
+          <button class="more-btn" onClick={(e) => { e.stopPropagation(); setOpen(!open()); }}>{open() ? '−' : '…'}</button>
         </div>
         <Show when={open()}>
           <div class="detail">
-            <Show when={s().excerpt}>
-              <div class="d-row"><span class="d-label">Source</span><div class="d-body"><span class="d-excerpt">{s().excerpt}</span></div></div>
-            </Show>
             <Show when={s().parallels && s().parallels!.length > 0}>
               <div class="d-row"><span class="d-label">Parallels</span>
                 <div class="d-body d-wrap">
                   <For each={s().parallels!}>{(p) => <span class="d-parallel">{p}</span>}</For>
+                  <ProvenanceBadge strategies={['parallels']} />
                 </div>
               </div>
             </Show>
@@ -794,26 +1490,30 @@ function AggadataCard(props: { story: AggadataStory; idx: number }): JSX.Element
                 <div class="d-body">
                   <div class="hist-era">{s().historicalContext!.era}</div>
                   <div class="hist-ctx">{s().historicalContext!.context}</div>
-                </div>
-              </div>
-            </Show>
-            <Show when={s().exegesis}>
-              <div class="d-row"><span class="d-label">Exegesis</span>
-                <div class="d-body">
-                  <div class="exeg-head">
-                    <span class="exeg-ref">{s().exegesis!.verseRef}</span>
-                    <span class="exeg-move">{s().exegesis!.move}</span>
-                  </div>
-                  <Show when={s().exegesis!.verseHe}>
-                    <div class="exeg-verse" dir="rtl" lang="he">{s().exegesis!.verseHe}</div>
-                  </Show>
-                  <div class="exeg-body">{s().exegesis!.explanation}</div>
+                  <ProvenanceBadge strategies={['historical-context']} />
                 </div>
               </div>
             </Show>
           </div>
         </Show>
       </Show>
+
+      <details class="strat-expand" onClick={(e) => e.stopPropagation()}>
+        <summary onClick={(e) => e.stopPropagation()}>raw enrichments</summary>
+        <div class="strat-expand-body">
+          <For each={AGGADATA_STRATEGIES}>{(strat) => (
+            <StrategyRow
+              id={strat.id}
+              label={strat.label}
+              desc={strat.desc}
+              data={sliceAggadataForStory(strat.id, s())}
+              running={!!props.running[`aggadata:${strat.id}`]}
+              error={props.errors[`aggadata:${strat.id}`]}
+              onRun={() => props.onEnrich(strat.id as AggadataEnrichStrategy)}
+            />
+          )}</For>
+        </div>
+      </details>
     </div>
   );
 }
@@ -822,6 +1522,16 @@ function AggadataCard(props: { story: AggadataStory; idx: number }): JSX.Element
 
 const PAGE_CSS = `
 .enrichment-page { font-family: system-ui, -apple-system, sans-serif; max-width: 900px; margin: 0 auto; padding: 1rem; color: #1e293b; }
+.enrichment-page .text-toggle { margin-left: auto; font-size: 11.5px; color: #64748b; padding: 0.25rem 0.55rem; }
+.enrichment-page .text-toggle:hover { background: #f1f5f9; color: #1e293b; }
+
+.enr-split { display: block; }
+.enr-split-open { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 0.75rem; max-width: 1500px; margin: 0 auto 0 -200px; }
+@media (max-width: 1200px) { .enr-split-open { grid-template-columns: minmax(0, 1fr); margin: 0; } }
+.enr-text-pane { min-width: 0; position: sticky; top: 1rem; align-self: flex-start; max-height: calc(100vh - 100px); overflow-y: auto; }
+.enr-tabs-pane { min-width: 0; }
+.enr-tabs-pane .panel:last-child { margin-bottom: 0; }
+.card-highlighted { outline: 2px solid #fbbf24; outline-offset: 2px; }
 .enrichment-page h1 { margin: 0 0 0.3rem; font-size: 22px; }
 .enrichment-page .lead { color: #475569; margin: 0 0 1rem; font-size: 13px; }
 .enrichment-page .panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
@@ -835,18 +1545,44 @@ const PAGE_CSS = `
 .enrichment-page button.primary { background: #1e293b; color: white; border-color: #0f172a; }
 .enrichment-page button.primary:hover:not(:disabled) { background: #0f172a; }
 
-.tabs { display: flex; gap: 0.25rem; margin-bottom: 0.5rem; border-bottom: 1px solid #e5e7eb; }
-.tab { border: none; background: transparent; padding: 0.5rem 1rem; font-size: 13.5px; color: #64748b; border-bottom: 2px solid transparent; border-radius: 0; margin-bottom: -1px; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; }
-.tab:hover { color: #1e293b; background: transparent; }
-.tab-active { color: #1e293b; font-weight: 600; border-bottom-color: #1e293b; }
-.tab-count { background: #e2e8f0; color: #475569; font-size: 10.5px; padding: 1px 6px; border-radius: 10px; font-weight: 500; }
+.enrichment-page .tabs { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; border-bottom: 1px solid #e5e7eb; flex-wrap: wrap; padding: 0; }
+.enrichment-page .tab-wrap { display: inline-flex; align-items: center; margin-bottom: -1px; border-bottom: 2px solid transparent; gap: 0; }
+.enrichment-page .tab-wrap-active { border-bottom-color: #1e293b; }
+.enrichment-page .tab-wrap .tab { border: none; background: transparent; padding: 0.45rem 0.25rem 0.45rem 0; font-size: 13.5px; color: #64748b; border-radius: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; line-height: 1.2; }
+.enrichment-page .tab-wrap .tab:hover { color: #1e293b; background: transparent; }
+.enrichment-page .tab-active { color: #1e293b; font-weight: 600; }
+.enrichment-page .tab-count { background: #e2e8f0; color: #475569; font-size: 10.5px; padding: 1px 6px; border-radius: 10px; font-weight: 500; }
+.enrichment-page .tab-wrap .tab-refresh { border: none; background: transparent; padding: 0.45rem 0 0.45rem 0; color: #cbd5e1; font-size: 11px; cursor: pointer; line-height: 1; border-radius: 0; opacity: 0; transition: opacity 0.12s, color 0.12s; }
+.enrichment-page .tab-wrap:hover .tab-refresh,
+.enrichment-page .tab-wrap-active .tab-refresh { opacity: 1; }
+.enrichment-page .tab-wrap .tab-refresh:hover { color: #1e293b; background: transparent; }
 
 .enrich-bar { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; padding: 0.5rem 0.8rem; background: #f8fafc; }
 .enrich-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-right: 0.3rem; }
 .enrich-btn { background: white; border: 1px solid #cbd5e1; font-size: 12px; padding: 0.25rem 0.6rem; }
+.enrich-btn-cached { background: #f0fdf4; border-color: #86efac; color: #166534; }
+.enrich-btn-cached:hover:not(:disabled) { background: #dcfce7; }
 .enrich-btn-err { color: #b91c1c; margin-left: 0.35rem; font-size: 10px; }
 
-.daf-summary { font-size: 13.5px; color: #475569; margin: 0 0 0.75rem; line-height: 1.5; font-style: italic; }
+/* "Reload skeleton" pill — reuses .toggle-pill / .toggle-off-empty for
+ * visual parity with the EnrichmentToggle row next to it. */
+.reload-skel { margin-right: 0.3rem; }
+.enrich-status { font-size: 11px; color: #92400e; font-style: italic; margin-left: 0.4rem; }
+
+.synth-status-bar { position: sticky; top: 0; z-index: 10; display: flex; gap: 0.5rem; align-items: center; padding: 0.45rem 0.85rem; margin: 0 0 0.6rem; background: linear-gradient(90deg, #fef3c7, #fde68a); border: 1px solid #fcd34d; border-radius: 4px; font-size: 11.5px; color: #92400e; box-shadow: 0 2px 6px rgba(0,0,0,0.04); flex-wrap: wrap; }
+.synth-status-spinner { width: 12px; height: 12px; border: 2px solid #fcd34d; border-top-color: #92400e; border-radius: 50%; animation: synth-spin 0.8s linear infinite; flex-shrink: 0; }
+.synth-status-tag { font-family: ui-monospace, Menlo, monospace; font-size: 11px; padding: 1px 7px; background: rgba(255,255,255,0.6); border-radius: 10px; color: #78350f; }
+.synth-status-sep { color: #d97706; }
+@keyframes synth-spin { to { transform: rotate(360deg); } }
+.synth-warnings { font-size: 10.5px; margin-left: 0.4rem; }
+.synth-warnings > summary { color: #b91c1c; cursor: pointer; }
+.synth-warnings ul { margin: 0.3rem 0 0 0; padding-left: 1.2rem; color: #7f1d1d; }
+.synth-warnings li { font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; line-height: 1.4; }
+
+.daf-summary { font-size: 13.5px; color: #475569; margin: 0 0 0.4rem; line-height: 1.5; font-style: italic; }
+.arg-header { padding: 0.85rem 1rem 0.75rem; }
+.arg-title { margin: 0 0 0.4rem; font-size: 16px; font-weight: 600; color: #1e293b; letter-spacing: -0.01em; }
+.arg-section-head { margin: 0 0 0.6rem; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; }
 
 .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 4px; padding: 0.6rem 0.75rem; margin-bottom: 0.5rem; position: relative; }
 .card-head { display: flex; align-items: baseline; gap: 0.4rem; margin-bottom: 0.25rem; flex-wrap: wrap; }
@@ -913,21 +1649,6 @@ const PAGE_CSS = `
 .minus { color: #b91c1c; font-weight: 700; }
 .prep { color: #94a3b8; font-style: italic; }
 
-.topics-panel { background: #f8fafc; }
-.topics-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem; }
-.topics-count { font-size: 11px; color: #94a3b8; }
-.topics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.5rem; }
-.topic-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 4px; padding: 0.5rem 0.7rem; }
-.topic-head { display: flex; align-items: baseline; gap: 0.3rem; flex-wrap: wrap; margin-bottom: 0.25rem; }
-.topic-title { font-weight: 600; font-size: 13px; color: #1e293b; flex: 1; }
-.topic-title-he { font-family: Arial Hebrew, David, serif; color: #64748b; font-weight: 500; }
-.topic-count { font-size: 10px; color: #94a3b8; font-weight: 500; }
-.topic-desc { font-size: 11.5px; color: #475569; line-height: 1.45; margin-bottom: 0.35rem; }
-.topic-sources { display: flex; flex-wrap: wrap; gap: 0.25rem; align-items: center; }
-.topic-ref { font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; color: #3730a3; background: #e0e7ff; padding: 1px 6px; border-radius: 2px; text-decoration: none; }
-.topic-ref:hover { background: #c7d2fe; }
-.topic-more { font-size: 10px; color: #64748b; padding: 0 0.5rem; border: none; background: transparent; cursor: pointer; }
-.topic-more:hover { color: #1e293b; }
 
 .enrich-section { margin-top: 0.5rem; padding: 0.4rem 0.55rem; background: #f8fafc; border-left: 3px solid #7c3aed; border-radius: 2px; }
 .enrich-section-label { display: block; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #7c3aed; margin-bottom: 0.25rem; }

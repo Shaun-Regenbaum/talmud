@@ -149,6 +149,73 @@ export function injectAggadataAnchors(
   return doc.body.innerHTML;
 }
 
+export interface PesukimAnchor {
+  excerpt: string;
+  endExcerpt?: string;
+  index: number;
+}
+
+/**
+ * Pesukim citations carry an opening phrase (excerpt) and a closing phrase
+ * (endExcerpt), so the highlight span can cover the full quoted verse rather
+ * than just the citation marker. Mirrors injectAggadataAnchors but uses
+ * `.daf-pesuk-anchor` / `.daf-pesuk-end-anchor` so the gutter-icon and
+ * range-highlight code can target pesukim independently.
+ */
+export function injectPesukimAnchors(
+  html: string,
+  pesukim: PesukimAnchor[],
+  ctx?: { tractate?: string; page?: string },
+): string {
+  if (!html || typeof document === 'undefined' || pesukim.length === 0) return html;
+  const doc = new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html');
+  const words = Array.from(doc.body.querySelectorAll<HTMLSpanElement>('.daf-word'));
+  if (words.length === 0) return html;
+
+  const normed = words.map((el) => normalizeHebrew(el.textContent ?? ''));
+  let cursor = 0;
+  for (const pasuk of pesukim) {
+    const startTokens = normalizeHebrew(pasuk.excerpt).split(' ').filter(Boolean);
+    if (startTokens.length === 0) continue;
+    const startIdx = findSequence(normed, startTokens, cursor);
+    if (startIdx < 0) {
+      logMiss('anchor', { markerClass: 'daf-pesuk-anchor', index: pasuk.index, excerpt: pasuk.excerpt }, ctx);
+      continue;
+    }
+
+    const startMarker = doc.createElement('span');
+    startMarker.className = 'daf-pesuk-anchor';
+    startMarker.setAttribute('data-idx', String(pasuk.index));
+    startMarker.setAttribute('data-excerpt-len', String(startTokens.length));
+    startMarker.setAttribute('aria-hidden', 'true');
+    words[startIdx].parentNode?.insertBefore(startMarker, words[startIdx]);
+
+    let advancedTo = startIdx + startTokens.length;
+
+    if (pasuk.endExcerpt) {
+      const endTokens = normalizeHebrew(pasuk.endExcerpt).split(' ').filter(Boolean);
+      if (endTokens.length > 0) {
+        const endIdx = findSequence(normed, endTokens, startIdx);
+        if (endIdx < 0) {
+          logMiss('anchor', { markerClass: 'daf-pesuk-end-anchor', index: pasuk.index, excerpt: pasuk.endExcerpt }, ctx);
+        } else {
+          const endMarker = doc.createElement('span');
+          endMarker.className = 'daf-pesuk-end-anchor';
+          endMarker.setAttribute('data-idx', String(pasuk.index));
+          endMarker.setAttribute('data-excerpt-len', String(endTokens.length));
+          endMarker.setAttribute('aria-hidden', 'true');
+          const lastWord = words[endIdx + endTokens.length - 1];
+          lastWord.parentNode?.insertBefore(endMarker, lastWord.nextSibling);
+          advancedTo = Math.max(advancedTo, endIdx + endTokens.length);
+        }
+      }
+    }
+
+    cursor = advancedTo;
+  }
+  return doc.body.innerHTML;
+}
+
 export interface OpinionSection {
   excerpt?: string;
   rabbis: Array<{ name: string; nameHe: string; opinionStart?: string }>;

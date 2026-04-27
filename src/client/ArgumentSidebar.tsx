@@ -1,14 +1,17 @@
-import { For, Show, onCleanup, type JSX } from 'solid-js';
+import { For, Show, createResource, createSignal, onCleanup, type JSX } from 'solid-js';
 import type { Section, Rabbi } from './AnalysisPanel';
 import type { HalachaTopic } from './HalachaPanel';
 import type { AggadataStory } from './AggadataDetector';
 import { GENERATION_BY_ID, type GenerationId } from './generations';
 import type { IdentifiedRabbi } from './dafContext';
+import type { Pasuk } from './DafViewer';
+import { Hebraized } from './Hebraized';
 
 export type SidebarContent =
   | { kind: 'argument'; section: Section; index: number }
   | { kind: 'halacha'; topic: HalachaTopic; index: number }
   | { kind: 'aggadata'; story: AggadataStory; index: number }
+  | { kind: 'pesuk'; pasuk: Pasuk; index: number }
   | { kind: 'rabbi'; rabbi: IdentifiedRabbi };
 
 export interface ArgumentSidebarProps {
@@ -115,7 +118,7 @@ function RabbiRow(props: {
         {props.rabbi.period} · {props.rabbi.location}
       </div>
       <div style={{ color: '#444', 'margin-top': '0.35rem', 'line-height': 1.45 }}>
-        {props.rabbi.role}
+        <Hebraized text={props.rabbi.role} />
       </div>
     </button>
   );
@@ -177,12 +180,98 @@ function RulingRow(props: {
               </a>
             </div>
             <div style={{ color: '#555', 'line-height': 1.45, 'font-size': '0.85rem' }}>
-              {r().summary}
+              <Hebraized text={r().summary} />
             </div>
           </div>
         );
       }}
     </Show>
+  );
+}
+
+interface PasukDetail {
+  ref: string;
+  heRef: string | null;
+  he: string;
+  en: string;
+  prevRef: string | null;
+  nextRef: string | null;
+  error?: string;
+}
+
+async function fetchPasuk(ref: string): Promise<PasukDetail> {
+  const res = await fetch(`/api/pasuk?ref=${encodeURIComponent(ref)}`);
+  return res.json() as Promise<PasukDetail>;
+}
+
+/** Sidebar panel for a cited pasuk: shows the full Hebrew Tanakh verse and,
+ *  on expand, the surrounding verses inlined as one continuous Hebrew block
+ *  (prev + cited + next) with the cited verse rendered dark and the others
+ *  dimmed so the citation still stands out. */
+function PasukPanel(props: { pasuk: Pasuk }): JSX.Element {
+  const [expanded, setExpanded] = createSignal(false);
+  const [detail] = createResource(() => props.pasuk.verseRef, fetchPasuk);
+  const [prev] = createResource(
+    () => (expanded() ? detail()?.prevRef ?? null : null),
+    (r) => fetchPasuk(r),
+  );
+  const [next] = createResource(
+    () => (expanded() ? detail()?.nextRef ?? null : null),
+    (r) => fetchPasuk(r),
+  );
+  const synth = () => props.pasuk.synthesize?.explanation;
+
+  return (
+    <div>
+      <h3 dir="rtl" lang="he" style={{
+        margin: '0 0 0.5rem', 'font-family': '"Mekorot Vilna", serif',
+        'font-size': '1.05rem', color: '#9a3412',
+      }}>
+        {detail()?.heRef ?? props.pasuk.verseRef}
+      </h3>
+      <Show when={detail.loading && !detail()}>
+        <p style={{ color: '#999', 'font-style': 'italic', margin: '0 0 0.5rem' }}>Loading verse…</p>
+      </Show>
+      <p dir="rtl" lang="he" style={{
+        margin: '0 0 0.4rem', 'font-family': '"Mekorot Vilna", serif',
+        'font-size': '1.05rem', 'line-height': 1.6,
+      }}>
+        <Show when={expanded() && prev()?.he}>
+          <span style={{ color: '#a8a29e' }}>{prev()!.he} </span>
+        </Show>
+        <Show when={detail()?.he}>
+          <span style={{ color: '#451a03' }}>{detail()!.he}</span>
+        </Show>
+        <Show when={expanded() && next()?.he}>
+          <span style={{ color: '#a8a29e' }}> {next()!.he}</span>
+        </Show>
+      </p>
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded())}
+        style={{
+          background: 'none', border: 'none', padding: '0.15rem 0',
+          margin: '0.1rem 0 0.7rem', color: '#a8a29e', cursor: 'pointer',
+          font: 'inherit', 'font-size': '0.62rem',
+          'letter-spacing': '0.06em', 'text-transform': 'uppercase',
+        }}
+        title={expanded() ? 'Hide surrounding verses' : 'Show verse before + after'}
+      >{expanded() ? '› collapse ‹' : '‹ expand ›'}</button>
+      <Show when={synth()} fallback={
+        <p style={{
+          margin: 0, color: '#57534e', 'line-height': 1.55,
+          'font-style': props.pasuk.summary ? 'normal' : 'italic',
+        }}>
+          <Show when={props.pasuk.summary} fallback={'Loading explanation…'}>
+            <Hebraized text={props.pasuk.summary} />
+          </Show>
+        </p>
+      }>
+        <p style={{ margin: 0, color: '#1c1917', 'line-height': 1.55 }}>
+          <Hebraized text={synth()!} />
+        </p>
+      </Show>
+    </div>
   );
 }
 
@@ -220,6 +309,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                 {c().kind === 'argument' ? 'Argument'
                   : c().kind === 'halacha' ? 'Practical Halacha'
                   : c().kind === 'aggadata' ? 'Aggada'
+                  : c().kind === 'pesuk' ? 'Pasuk'
                   : 'Rabbi'}
                 {' · '}
                 {props.tractate} {props.page}
@@ -251,7 +341,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                       </p>
                     </Show>
                     <p style={{ margin: '0 0 0.9rem', color: '#333', 'line-height': 1.55 }}>
-                      {section.summary}
+                      <Hebraized text={section.summary} />
                     </p>
                     <Show when={section.rabbis.length > 0}>
                       <div style={{
@@ -370,6 +460,10 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
               })()}
             </Show>
 
+            <Show when={c().kind === 'pesuk'}>
+              <PasukPanel pasuk={(c() as Extract<SidebarContent, { kind: 'pesuk' }>).pasuk} />
+            </Show>
+
             <Show when={c().kind === 'aggadata'}>
               {(() => {
                 const story = (c() as Extract<SidebarContent, { kind: 'aggadata' }>).story;
@@ -404,64 +498,8 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                       </div>
                     </Show>
                     <p style={{ margin: '0 0 0.8rem', color: '#333', 'line-height': 1.55 }}>
-                      {story.summary}
+                      <Hebraized text={story.summary} />
                     </p>
-                    <Show when={story.exegesis}>
-                      <div style={{
-                        padding: '0.55rem 0.7rem',
-                        background: '#fafaf7',
-                        border: '1px solid #eae8e0',
-                        'border-radius': '4px',
-                      }}>
-                        <div style={{
-                          display: 'flex',
-                          'align-items': 'baseline',
-                          gap: '0.5rem',
-                          'margin-bottom': '0.3rem',
-                        }}>
-                          <span style={{
-                            'font-size': '0.68rem',
-                            'text-transform': 'uppercase',
-                            'letter-spacing': '0.06em',
-                            'font-weight': 600,
-                            color: '#475569',
-                          }}>
-                            {story.exegesis!.verseRef}
-                          </span>
-                          <span style={{
-                            display: 'inline-block',
-                            padding: '0.05rem 0.4rem',
-                            'font-size': '0.62rem',
-                            'text-transform': 'uppercase',
-                            'letter-spacing': '0.05em',
-                            color: '#6d28d9',
-                            background: '#ede9fe',
-                            'border-radius': '10px',
-                          }}>
-                            {story.exegesis!.move}
-                          </span>
-                        </div>
-                        <Show when={story.exegesis!.verseHe}>
-                          <p dir="rtl" lang="he" style={{
-                            margin: '0 0 0.35rem',
-                            'font-family': '"Mekorot Vilna", serif',
-                            'font-size': '0.95rem',
-                            color: '#334155',
-                            'line-height': 1.55,
-                          }}>
-                            {story.exegesis!.verseHe}
-                          </p>
-                        </Show>
-                        <p style={{
-                          margin: 0,
-                          color: '#334155',
-                          'font-size': '0.85rem',
-                          'line-height': 1.55,
-                        }}>
-                          {story.exegesis!.explanation}
-                        </p>
-                      </div>
-                    </Show>
                   </div>
                 );
               })()}

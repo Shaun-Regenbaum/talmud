@@ -1,12 +1,5 @@
 import { For, Show, createEffect, createSignal, type JSX } from 'solid-js';
 
-export interface ExegesisContext {
-  verseRef: string;
-  verseHe?: string;
-  move: string;
-  explanation: string;
-}
-
 export interface AggadataStory {
   title: string;
   titleHe?: string;
@@ -14,7 +7,6 @@ export interface AggadataStory {
   excerpt: string;
   endExcerpt?: string;
   theme?: string;
-  exegesis?: ExegesisContext;
 }
 
 export interface AggadataResult {
@@ -37,7 +29,6 @@ export interface AggadataDetectorProps {
 
 const THEME_COLORS: Record<string, string> = {
   mashal:    '#0369a1', // parable — blue
-  derash:    '#475569', // exegesis — slate
   "ma'aseh": '#15803d', // narrative — green
   chazon:    '#6d28d9', // vision — violet
   tefillah:  '#1d4ed8', // prayer — indigo

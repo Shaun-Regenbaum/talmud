@@ -1,6 +1,6 @@
 import { createSignal, createEffect, For, onMount, onCleanup, type JSX } from 'solid-js';
 
-export type GutterKind = 'argument' | 'halacha' | 'aggadata';
+export type GutterKind = 'argument' | 'halacha' | 'aggadata' | 'pesuk';
 
 export interface GutterItem {
   kind: GutterKind;
@@ -100,7 +100,8 @@ export function GutterIcons(props: GutterIconsProps): JSX.Element {
 
     const klass = props.kind === 'argument' ? '.daf-argument-anchor'
       : props.kind === 'halacha' ? '.daf-halacha-anchor'
-      : '.daf-aggadata-anchor';
+      : props.kind === 'aggadata' ? '.daf-aggadata-anchor'
+      : '.daf-pesuk-anchor';
     // 2px inward slack so the line's outermost word just grazing the icon
     // position doesn't flip the state.
     const SLACK = 2;
@@ -169,11 +170,13 @@ export function GutterIcons(props: GutterIconsProps): JSX.Element {
   const borderColor = () =>
     props.kind === 'argument' ? '#8a2a2b'
       : props.kind === 'halacha' ? '#1e40af'
-      : '#7c3aed';
+      : props.kind === 'aggadata' ? '#7c3aed'
+      : '#d97706';
   const title = () =>
     props.kind === 'argument' ? 'Argument structure & rabbis'
       : props.kind === 'halacha' ? 'Practical halacha'
-      : 'Aggada — narrative on this line';
+      : props.kind === 'aggadata' ? 'Aggada — narrative on this line'
+      : 'Pasuk — Tanach citation';
 
   // Lucide icons: messages-square (argument dialog), gavel (halacha ruling),
   // book-open (aggada narrative). Stroke-based Lucide house style; stroke-
@@ -212,7 +215,7 @@ export function GutterIcons(props: GutterIconsProps): JSX.Element {
         <path d="m8 8 6-6" />
         <path d="m8.5 7.5 8 8" />
       </svg>
-    ) : (
+    ) : props.kind === 'aggadata' ? (
       <svg
         viewBox="0 0 24 24"
         width="9"
@@ -227,6 +230,22 @@ export function GutterIcons(props: GutterIconsProps): JSX.Element {
         <path d="M12 7v14" />
         <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />
       </svg>
+    ) : (
+      // Hebrew letter פ (Pe — first letter of "pasuk") rendered as a glyph
+      // inside the orange circle. The Mekorot Vilna fallback chain matches
+      // the daf's Hebrew typography so the letter reads as a citation badge.
+      <span
+        aria-hidden="true"
+        style={{
+          'font-family': '"Mekorot Vilna", "SBL Hebrew", "Frank Ruehl", "Times New Roman", serif',
+          'font-size': '11px',
+          'font-weight': 700,
+          'line-height': 1,
+          color: '#fff',
+        }}
+      >
+        פ
+      </span>
     );
 
   return (

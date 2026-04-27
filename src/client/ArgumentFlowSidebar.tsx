@@ -18,6 +18,7 @@
  * Hebrew) which the daf renderer can use as a search anchor.
  */
 import { createSignal, For, Show, type JSX } from 'solid-js';
+import { Hebraized } from './Hebraized';
 
 export interface BiblicalRef {
   ref: string;
@@ -76,7 +77,7 @@ export function ArgumentFlowSidebar(props: ArgumentFlowSidebarProps): JSX.Elemen
       </header>
 
       <Show when={a().summary}>
-        <p class="flow-daf-summary">{a().summary}</p>
+        <p class="flow-daf-summary"><Hebraized text={a().summary} /></p>
       </Show>
 
       <For each={a().sections}>{(sec, idx) => (
@@ -119,7 +120,7 @@ function ArgumentSection(props: {
         <span class="flow-section-title">{sec().title}</span>
       </h3>
       <Show when={sec().summary}>
-        <p class="flow-section-summary">{sec().summary}</p>
+        <p class="flow-section-summary"><Hebraized text={sec().summary} /></p>
       </Show>
 
       <Show when={sec().rabbis && sec().rabbis.length > 0}>
@@ -194,7 +195,7 @@ function RabbiCard(props: { rabbi: Rabbi }): JSX.Element {
         </Show>
       </div>
       <Show when={r().role}>
-        <div class="flow-rabbi-role">{r().role}</div>
+        <div class="flow-rabbi-role"><Hebraized text={r().role} /></div>
       </Show>
 
       <Show when={hasDetail()}>

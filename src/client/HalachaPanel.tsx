@@ -1,4 +1,5 @@
 import { createSignal, createEffect, For, Show, type JSX } from 'solid-js';
+import { Hebraized } from './Hebraized';
 
 interface Ruling {
   ref: string;
@@ -119,7 +120,7 @@ function RulingCell(props: {
                   </a>
                 </Show>
               </div>
-              <div style={{ color: '#555', 'line-height': 1.5 }}>{r().summary}</div>
+              <div style={{ color: '#555', 'line-height': 1.5 }}><Hebraized text={r().summary} /></div>
             </div>
           );
         }}

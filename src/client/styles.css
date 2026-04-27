@@ -213,6 +213,39 @@ section h2 {
   }
 }
 
+/* Collapsible wrapper around the feature toggles — closed by default so the
+   header stays tight; summary acts as the disclosure button. */
+.daf-toggles-disclosure {
+  width: 100%;
+  margin-top: 0.1rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--line);
+}
+
+.daf-toggles-summary {
+  cursor: pointer;
+  user-select: none;
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.15rem 0;
+  list-style: none;
+  text-align: center;
+}
+
+.daf-toggles-summary::-webkit-details-marker { display: none; }
+
+.daf-toggles-summary::before {
+  content: '▸ ';
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.daf-toggles-disclosure[open] .daf-toggles-summary::before {
+  transform: rotate(90deg);
+}
+
 /* Toggle switches in the daf picker header. Preferences persist via
    localStorage; see DafViewer for keys. */
 .daf-toggles {
@@ -220,10 +253,9 @@ section h2 {
   flex-wrap: wrap;
   gap: 0.5rem 0.75rem;
   align-items: center;
+  justify-content: center;
   width: 100%;
-  margin-top: 0.1rem;
-  padding-top: 0.5rem;
-  border-top: 1px dashed var(--line);
+  margin-top: 0.4rem;
 }
 
 .daf-toggle {

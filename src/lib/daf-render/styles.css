@@ -193,6 +193,9 @@
 .daf-root .daf-text .daf-argument-anchor,
 .daf-root .daf-text .daf-halacha-anchor,
 .daf-root .daf-text .daf-aggadata-anchor,
+.daf-root .daf-text .daf-aggadata-end-anchor,
+.daf-root .daf-text .daf-pesuk-anchor,
+.daf-root .daf-text .daf-pesuk-end-anchor,
 .daf-root .daf-text .daf-opinion-anchor {
   display: inline-block;
   width: 0;
@@ -260,6 +263,12 @@
 }
 .daf-root .daf-range-highlight-aggadata {
   background-color: rgba(124, 58, 237, 0.22);
+}
+/* Pesuk highlight — warm amber/orange tint to match the gutter badge color
+   so a Tanach citation reads as visually distinct from sections (red-brown),
+   halacha (blue), aggadata (violet), and commentary (violet). */
+.daf-root .daf-range-highlight-pesuk {
+  background-color: rgba(217, 119, 6, 0.20);
 }
 /* Commentary highlight uses violet so it reads distinct from the red-brown
    section/argument tint and the blue halacha tint already in play. */
