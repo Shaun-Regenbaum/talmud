@@ -58,6 +58,16 @@ import {
   type LLMRabbiOutput,
 } from '../lib/rabbi/types';
 import { wrapEnv, gatewayStatus, gatewayActive } from './ai-gateway';
+import { runLLM, type LLMModelId } from './llm';
+import { readSettings, writeSettings, isLLMModelId, MODEL_PRESETS } from './settings';
+import {
+  readMark, listMarks, writeMark, deleteMark, validateMark,
+  readEnrichment, listEnrichments, writeEnrichment, deleteEnrichment, validateEnrichment,
+  type MarkDefinition as KvMarkDefinition,
+  type EnrichmentDefinition,
+} from './studio-registry';
+import { CODE_MARKS, CODE_ENRICHMENTS, findCodeMark, findCodeEnrichment } from './code-marks';
+import type { MarkDefinition as SchemaMarkDefinition } from './studio-schema';
 
 type Movement = 'bavel->israel' | 'israel->bavel' | 'both' | null;
 interface RabbiPlacesEntry {
@@ -95,6 +105,11 @@ interface Bindings {
   // AI Gateway routing (see src/worker/ai-gateway.ts).
   AI_GATEWAY_ID?: string;
   AI_GATEWAY_DISABLE?: string;
+  // OpenRouter via AI Gateway Universal Endpoint (see src/worker/llm.ts).
+  OPENROUTER_API_KEY?: string;
+  CLOUDFLARE_ACCOUNT_ID?: string;
+  OPENROUTER_GATEWAY_PROVIDER?: string;
+  DEFAULT_LLM_MODEL?: string;
 }
 
 function stripHtmlServer(html: string): string {
@@ -136,35 +151,600 @@ app.get('/api/health', (c) => c.json({ ok: true }));
 app.get('/api/admin/ai-gateway-test', async (c) => {
   const status = gatewayStatus(c.env);
   if (c.req.query('run') !== '1') return c.json({ status, hint: 'append ?run=1 to invoke' });
-  if (!c.env.AI) return c.json({ status, error: 'AI binding not available' }, 503);
-  const model = c.req.query('model') || '@cf/moonshotai/kimi-k2.5';
+  const explicitModel = c.req.query('model');
   const nonce = c.req.query('nonce') || '';
-  const t0 = Date.now();
   try {
-    const result = (await c.env.AI.run(model as never, {
+    const result = await runLLM(c.env, {
+      // omit model when no override → runLLM resolves from settings KV.
+      ...(explicitModel ? { model: explicitModel as LLMModelId } : {}),
       messages: [
         { role: 'system', content: 'Reply with the single word OK and nothing else.' },
         { role: 'user', content: `Ping${nonce ? ' ' + nonce : ''}.` },
       ],
       max_tokens: 16,
       temperature: 0,
-    } as never)) as { response?: string };
+    });
     return c.json({
       status,
       route: gatewayActive(c.env) ? 'gateway' : 'binding',
-      ms: Date.now() - t0,
-      reply: result?.response ?? result,
+      transport: result.transport,
+      model: result.model,
+      attempts: result.attempts,
+      ms: result.elapsed_ms,
+      usage: result.usage,
+      reply: result.content,
     });
   } catch (err) {
     return c.json(
       {
         status,
         route: gatewayActive(c.env) ? 'gateway' : 'binding',
-        ms: Date.now() - t0,
+        explicitModel: explicitModel ?? null,
         error: String((err as Error)?.message ?? err),
       },
       500,
     );
+  }
+});
+
+/**
+ * LLM settings — read/write the default model + fallback chain that runLLM
+ * resolves at call time. Backed by KV under `llm-settings:v1` (see
+ * src/worker/settings.ts). The model dropdown in the client is built from
+ * MODEL_PRESETS, exposed here so the page can render without bundling them.
+ */
+app.get('/api/admin/llm-settings', async (c) => {
+  const settings = await readSettings(c.env);
+  return c.json({ settings, presets: MODEL_PRESETS });
+});
+
+app.post('/api/admin/llm-settings', async (c) => {
+  let body: unknown;
+  try { body = await c.req.json(); }
+  catch { return c.json({ error: 'invalid JSON body' }, 400); }
+  const b = body as { defaultModel?: unknown; fallbackChain?: unknown; perStepOverrides?: unknown };
+  if (!isLLMModelId(b.defaultModel)) {
+    return c.json({ error: 'defaultModel must be "@cf/..." or "openrouter/..."' }, 400);
+  }
+  if (!Array.isArray(b.fallbackChain) || !b.fallbackChain.every(isLLMModelId)) {
+    return c.json({ error: 'fallbackChain must be an array of model ids' }, 400);
+  }
+  const overrides = b.perStepOverrides;
+  if (overrides !== undefined && (typeof overrides !== 'object' || overrides === null || Array.isArray(overrides))) {
+    return c.json({ error: 'perStepOverrides must be an object' }, 400);
+  }
+  if (overrides && !Object.values(overrides).every(isLLMModelId)) {
+    return c.json({ error: 'perStepOverrides values must be model ids' }, 400);
+  }
+  if (!c.env.CACHE) return c.json({ error: 'CACHE binding not available' }, 503);
+  const saved = await writeSettings(c.env, {
+    defaultModel: b.defaultModel as LLMModelId,
+    fallbackChain: b.fallbackChain as LLMModelId[],
+    perStepOverrides: overrides as Record<string, LLMModelId> | undefined,
+  });
+  return c.json({ settings: saved });
+});
+
+/**
+ * Studio: KV-backed mark + enrichment registries. Definitions live under
+ *   mark-defs:v1:{id}        — what to extract from a daf
+ *   enrichment-defs:v1:{id}  — what to derive from a mark
+ *
+ * Ad-hoc runs (no save) hit /api/studio/run with an inline definition. Saved
+ * runs reference an id and get cached. The same registry powers Home (all
+ * registered enrichments shown as toggles, off by default) and Studio
+ * (per-enrichment editor + preview).
+ */
+app.get('/api/studio/marks', async (c) => {
+  // Merge KV-stored marks with code-defined seeds. KV wins on id collision
+  // (a saved KV definition overrides a built-in with the same id).
+  const kv = await listMarks(c.env);
+  const kvIds = new Set(kv.map((m) => m.id));
+  const merged = [
+    ...CODE_MARKS.filter((m) => !kvIds.has(m.id)),
+    ...kv,
+  ];
+  return c.json({ marks: merged });
+});
+app.get('/api/studio/marks/:id', async (c) => {
+  const id = c.req.param('id');
+  const kv = await readMark(c.env, id);
+  if (kv) return c.json({ mark: kv });
+  const code = findCodeMark(id);
+  if (code) return c.json({ mark: code });
+  return c.json({ error: 'not found' }, 404);
+});
+app.put('/api/studio/marks/:id', async (c) => {
+  let body: unknown;
+  try { body = await c.req.json(); } catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const v = validateMark({ ...(body as object), id: c.req.param('id') });
+  if (!v.ok) return c.json({ error: v.error }, 400);
+  const saved = await writeMark(c.env, v.spec);
+  return c.json({ mark: saved });
+});
+app.delete('/api/studio/marks/:id', async (c) => {
+  await deleteMark(c.env, c.req.param('id'));
+  return c.json({ ok: true });
+});
+
+app.get('/api/studio/enrichments', async (c) => {
+  // Merge KV + code-defined. KV wins on collision. Code-defined entries are
+  // normalized to the KV-flat shape (extractor flattened, `mark` instead of
+  // `target_mark`) so the client gets one consistent shape.
+  const kv = await listEnrichments(c.env);
+  const kvIds = new Set(kv.map((e) => e.id));
+  const codeFlat: Array<EnrichmentDefinition & { mode?: string }> = CODE_ENRICHMENTS
+    .filter((e) => !kvIds.has(e.id))
+    .filter((e) => e.extractor.kind === 'llm')
+    .map((e) => ({
+      id: e.id,
+      label: e.label,
+      description: e.description,
+      mark: e.target_mark,
+      mode: e.mode,
+      depends: e.depends,
+      system_prompt: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).system_prompt,
+      user_prompt_template: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).user_prompt_template,
+      model: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).model,
+      output_schema: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).output_schema,
+      thinking_off: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).thinking_off,
+      cache_version: e.cache_version,
+      source: 'code',
+      updated_at: e.updated_at,
+    }));
+  return c.json({ enrichments: [...codeFlat, ...kv] });
+});
+app.get('/api/studio/enrichments/:id', async (c) => {
+  const id = c.req.param('id');
+  const kv = await readEnrichment(c.env, id);
+  if (kv) return c.json({ enrichment: kv });
+  const code = findCodeEnrichment(id);
+  if (code) return c.json({ enrichment: code });
+  return c.json({ error: 'not found' }, 404);
+});
+app.put('/api/studio/enrichments/:id', async (c) => {
+  let body: unknown;
+  try { body = await c.req.json(); } catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const v = validateEnrichment({ ...(body as object), id: c.req.param('id') });
+  if (!v.ok) return c.json({ error: v.error }, 400);
+  const saved = await writeEnrichment(c.env, v.spec);
+  return c.json({ enrichment: saved });
+});
+app.delete('/api/studio/enrichments/:id', async (c) => {
+  await deleteEnrichment(c.env, c.req.param('id'));
+  return c.json({ ok: true });
+});
+
+/**
+ * Resolve a daf into a context bundle the prompt template can interpolate.
+ * Currently surfaces the focal Hebrew/English; expand with rishonim, halacha,
+ * neighbor amudim as enrichment templates start asking for them.
+ */
+async function buildDafContext(c: { env: Bindings }, tractate: string, page: string): Promise<{
+  tractate: string;
+  page: string;
+  hebrew: string;
+  english: string;
+  segments_he: string[];
+  segments_en: string[];
+}> {
+  const cache = c.env.CACHE;
+  const [hb, sef, segs] = await Promise.all([
+    getHebrewBooksDafCached(cache, tractate, page),
+    getSefariaPageCached(cache, tractate, page),
+    getSefariaSegmentsCached(cache, tractate, page),
+  ]);
+  const hebrew = hb?.main ?? sef?.mainText.hebrew ?? '';
+  const english = sef?.mainText.english ?? '';
+  const segments_he = (segs?.he ?? []).map(stripHtmlServer);
+  const segments_en = (segs?.en ?? []).map(stripHtmlServer);
+  return { tractate, page, hebrew, english, segments_he, segments_en };
+}
+
+/**
+ * Substitute {{placeholders}} in a prompt template with values from `vars`.
+ * Missing placeholders render as empty strings (per shared template
+ * convention; loud failure is annoying when iterating). Supported:
+ *   {{tractate}} {{page}} {{hebrew}} {{english}}
+ *   {{segments_he}}   — segments numbered [0], [1], ...
+ *   {{segments_en}}   — same shape
+ *   {{mark_input}}    — JSON-stringified mark input (for enrichments)
+ *   {{depends.<id>}}  — JSON-stringified output of a dependency enrichment
+ */
+function renderTemplate(tpl: string, vars: Record<string, unknown>): string {
+  return tpl.replace(/\{\{\s*([\w.-]+)\s*\}\}/g, (_, key: string) => {
+    if (key === 'segments_he' && Array.isArray(vars.segments_he)) {
+      return (vars.segments_he as string[]).map((s, i) => `[${i}] ${s}`).join('\n');
+    }
+    if (key === 'segments_en' && Array.isArray(vars.segments_en)) {
+      return (vars.segments_en as string[]).map((s, i) => `[${i}] ${s}`).join('\n');
+    }
+    if (key.startsWith('depends.')) {
+      const id = key.slice('depends.'.length);
+      const deps = (vars.depends ?? {}) as Record<string, unknown>;
+      const v = deps[id];
+      return v === undefined ? '' : (typeof v === 'string' ? v : JSON.stringify(v, null, 2));
+    }
+    const v = vars[key];
+    if (v === undefined || v === null) return '';
+    return typeof v === 'string' ? v : JSON.stringify(v);
+  });
+}
+
+/**
+ * POST /api/studio/run — execute an enrichment, return raw output + telemetry.
+ *
+ * Body:
+ *   { enrichment_id?: string, ad_hoc?: EnrichmentDefinition,
+ *     tractate: string, page: string,
+ *     model_override?: LLMModelId,
+ *     mark_input?: unknown,        // for non-daf marks
+ *     depends?: Record<string, unknown> }  // pre-computed dependency outputs
+ *
+ * Exactly one of enrichment_id / ad_hoc must be set.
+ *
+ * Response:
+ *   { content, parsed?, model, transport, attempts, usage,
+ *     cost?, elapsed_ms, prompt_chars,
+ *     resolved: { system_prompt, user_prompt },  // the rendered prompts
+ *     definition: EnrichmentDefinition }
+ */
+/**
+ * Normalize a definition (KV-shaped enrichment, code-defined mark, or ad-hoc
+ * enrichment) into the flat run-spec the handler executes against. Code marks
+ * carry their LLM config under .extractor; KV enrichments have it at the top
+ * level. This lets one run path serve both.
+ */
+interface RunSpec {
+  id: string;
+  kind: 'mark' | 'enrichment';
+  system_prompt: string;
+  user_prompt_template: string;
+  model?: LLMModelId;
+  fallback?: LLMModelId[];
+  output_schema?: unknown;
+  thinking_off?: boolean;
+}
+
+function normalizeMarkToRunSpec(m: SchemaMarkDefinition): RunSpec | { error: string } {
+  if (m.extractor.kind === 'llm') {
+    return {
+      id: m.id,
+      kind: 'mark',
+      system_prompt: m.extractor.system_prompt,
+      user_prompt_template: m.extractor.user_prompt_template,
+      model: m.extractor.model,
+      fallback: m.extractor.fallback,
+      output_schema: m.extractor.output_schema,
+      thinking_off: m.extractor.thinking_off,
+    };
+  }
+  return { error: `mark ${m.id} extractor.kind=${m.extractor.kind} should be handled before normalize` };
+}
+function normalizeEnrichmentToRunSpec(e: EnrichmentDefinition): RunSpec {
+  return {
+    id: e.id,
+    kind: 'enrichment',
+    system_prompt: e.system_prompt,
+    user_prompt_template: e.user_prompt_template,
+    model: e.model,
+    output_schema: e.output_schema,
+    thinking_off: e.thinking_off,
+  };
+}
+
+/**
+ * Resolve the `depends` chain of an aggregate enrichment. For each dep id,
+ * look up the enrichment def (KV → code), recursively resolve ITS deps, run
+ * its LLM, and return a map of `{ depId: parsedOutput }`. Used by the run
+ * handler to populate `{{depends.<id>}}` in synthesis prompts.
+ *
+ * Each dep run is independent (no shared cache logic at this layer — relies
+ * on the AI Gateway prompt cache for cheap re-runs of the same prompt).
+ */
+async function resolveDeps(
+  c: { env: Bindings; req: { url: string }; executionCtx: ExecutionContext },
+  def: EnrichmentDefinition,
+  ctx: Awaited<ReturnType<typeof buildDafContext>>,
+  markInput: unknown,
+  bypassCache: boolean,
+): Promise<Record<string, unknown>> {
+  const depIds = def.depends ?? [];
+  if (depIds.length === 0) return {};
+  const out: Record<string, unknown> = {};
+  for (const depId of depIds) {
+    let depDef: EnrichmentDefinition | null = await readEnrichment(c.env, depId);
+    if (!depDef) {
+      const code = findCodeEnrichment(depId);
+      if (code && code.extractor.kind === 'llm') {
+        depDef = {
+          id: code.id,
+          label: code.label,
+          description: code.description,
+          mark: code.target_mark,
+          depends: code.depends,
+          system_prompt: code.extractor.system_prompt,
+          user_prompt_template: code.extractor.user_prompt_template,
+          model: code.extractor.model,
+          output_schema: code.extractor.output_schema,
+          thinking_off: code.extractor.thinking_off,
+          cache_version: code.cache_version,
+          source: 'code',
+          updated_at: code.updated_at,
+        };
+      }
+    }
+    if (!depDef) {
+      out[depId] = { error: `not found` };
+      continue;
+    }
+    // Recursively resolve THIS dep's deps first.
+    const subDeps = await resolveDeps(c, depDef, ctx, markInput, bypassCache);
+    const vars: Record<string, unknown> = {
+      ...ctx, mark_input: markInput, depends: subDeps,
+    };
+    const sysPrompt = renderTemplate(depDef.system_prompt, vars);
+    const userPrompt = renderTemplate(depDef.user_prompt_template, vars);
+    try {
+      const result = await runLLM(c.env, {
+        ...(depDef.model ? { model: depDef.model } : {}),
+        messages: [
+          { role: 'system', content: sysPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        max_tokens: 8000,
+        temperature: 0.2,
+        response_format: depDef.output_schema
+          ? { type: 'json_schema', json_schema: depDef.output_schema }
+          : undefined,
+        thinking: depDef.thinking_off ? false : undefined,
+        bypass_cache: bypassCache,
+      });
+      let parsed: unknown = null;
+      if (depDef.output_schema) {
+        try { parsed = JSON.parse(result.content); } catch { /* ignore */ }
+      }
+      out[depId] = parsed ?? result.content;
+    } catch (err) {
+      out[depId] = { error: String((err as Error)?.message ?? err) };
+    }
+  }
+  return out;
+}
+
+app.post('/api/studio/run', async (c) => {
+  let body: {
+    mark_id?: string;
+    enrichment_id?: string;
+    ad_hoc?: unknown;
+    tractate?: string;
+    page?: string;
+    model_override?: string;
+    mark_input?: unknown;
+    depends?: Record<string, unknown>;
+    bypass_cache?: boolean;
+  };
+  try { body = await c.req.json(); } catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const { tractate, page, model_override, mark_input, depends } = body;
+  if (!tractate || !page) return c.json({ error: 'tractate and page required' }, 400);
+
+  // 1. Resolve the definition. Priority: mark_id (KV → code) > enrichment_id (KV) > ad_hoc.
+  let spec: RunSpec | null = null;
+  let definition: SchemaMarkDefinition | EnrichmentDefinition | null = null;
+
+  if (body.mark_id) {
+    // Special case: code-defined mark with a 'legacy-endpoint' extractor.
+    // We proxy the existing endpoint (already running on this same worker)
+    // and wrap the result as { instances: [...] } so the run output shape
+    // is consistent across mark kinds. Bypasses the LLM path entirely.
+    const codeForLegacy = findCodeMark(body.mark_id);
+    if (codeForLegacy && codeForLegacy.extractor.kind === 'legacy-endpoint') {
+      const ext = codeForLegacy.extractor;
+      let url = ext.endpoint.replace(/\{\{tractate\}\}/g, encodeURIComponent(tractate)).replace(/\{\{page\}\}/g, encodeURIComponent(page));
+      // Propagate bypass_cache → ?refresh=1, which the legacy analyze /
+      // halacha / aggadata / pesukim endpoints all honor as a "skip my KV
+      // cache, re-run the LLM" signal. Without this, ↻ on a legacy-bridged
+      // mark just re-reads the same cached payload.
+      if (body.bypass_cache) {
+        url += url.includes('?') ? '&refresh=1' : '?refresh=1';
+      }
+      const t0 = Date.now();
+      try {
+        const proxyReq = new Request(new URL(url, c.req.url).toString(), { method: 'GET' });
+        const resp = await app.fetch(proxyReq, c.env, c.executionCtx);
+        if (!resp.ok) {
+          return c.json({ error: `legacy ${url} returned ${resp.status}`, definition: codeForLegacy, total_ms: Date.now() - t0 }, 502);
+        }
+        const payload = await resp.json() as Record<string, unknown>;
+        const arr = payload[ext.instances_path];
+        const items = Array.isArray(arr) ? arr : [];
+        const startField = ext.start_seg_field ?? 'startSegIdx';
+        const endField = ext.end_seg_field ?? 'endSegIdx';
+        const instances = items.map((item) => {
+          const fields = item as Record<string, unknown>;
+          return {
+            startSegIdx: fields[startField],
+            endSegIdx: fields[endField],
+            fields,
+          };
+        });
+        return c.json({
+          kind: 'mark',
+          content: JSON.stringify({ instances }),
+          parsed: { instances, _legacy: payload },
+          parse_error: null,
+          model: 'legacy',
+          transport: 'legacy-endpoint',
+          attempts: 1,
+          usage: null,
+          elapsed_ms: Date.now() - t0,
+          prompt_chars: 0,
+          resolved: { system_prompt: '', user_prompt: `GET ${url}` },
+          definition: codeForLegacy,
+          total_ms: Date.now() - t0,
+        });
+      } catch (err) {
+        return c.json({
+          error: String((err as Error)?.message ?? err),
+          definition: codeForLegacy,
+          total_ms: Date.now() - t0,
+        }, 502);
+      }
+    }
+    // Try KV first (allows overriding a built-in by saving same id).
+    const kvMark = await readMark(c.env, body.mark_id);
+    if (kvMark) {
+      // KV mark uses the legacy simpler shape — adapt by constructing a fake
+      // schema-shaped mark with the legacy fields slotted into extractor.
+      const adapted: SchemaMarkDefinition = {
+        id: kvMark.id,
+        label: kvMark.label,
+        description: kvMark.description,
+        anchor: 'phrase', // legacy default
+        render: { kind: 'inline', style: 'underline', color: '#0066CC' },
+        extractor: {
+          kind: 'llm',
+          system_prompt: kvMark.system_prompt ?? '',
+          user_prompt_template: kvMark.user_prompt_template ?? '',
+        },
+        status: 'draft',
+        def_hash: 'kv',
+        cache_version: kvMark.cache_version,
+        source: 'kv',
+        updated_at: kvMark.updated_at,
+      };
+      const n = normalizeMarkToRunSpec(adapted);
+      if ('error' in n) return c.json({ error: n.error }, 400);
+      spec = n; definition = adapted;
+    } else {
+      const codeMark = findCodeMark(body.mark_id);
+      if (!codeMark) return c.json({ error: `mark ${body.mark_id} not found` }, 404);
+      const n = normalizeMarkToRunSpec(codeMark);
+      if ('error' in n) return c.json({ error: n.error }, 400);
+      spec = n; definition = codeMark;
+    }
+  } else if (body.enrichment_id) {
+    const kv = await readEnrichment(c.env, body.enrichment_id);
+    let found: EnrichmentDefinition | null = kv;
+    if (!found) {
+      const code = findCodeEnrichment(body.enrichment_id);
+      if (code) {
+        // Adapt schema-shaped EnrichmentDefinition (extractor sub-object)
+        // into the KV-shaped one the run handler currently consumes.
+        if (code.extractor.kind !== 'llm') {
+          return c.json({ error: `enrichment ${code.id} extractor.kind=${code.extractor.kind} not yet supported` }, 400);
+        }
+        found = {
+          id: code.id,
+          label: code.label,
+          description: code.description,
+          mark: code.target_mark,
+          depends: code.depends,
+          system_prompt: code.extractor.system_prompt,
+          user_prompt_template: code.extractor.user_prompt_template,
+          model: code.extractor.model,
+          output_schema: code.extractor.output_schema,
+          thinking_off: code.extractor.thinking_off,
+          cache_version: code.cache_version,
+          source: 'code',
+          updated_at: code.updated_at,
+        };
+      }
+    }
+    if (!found) return c.json({ error: `enrichment ${body.enrichment_id} not found` }, 404);
+    spec = normalizeEnrichmentToRunSpec(found); definition = found;
+  } else if (body.ad_hoc) {
+    const v = validateEnrichment({ ...(body.ad_hoc as object), id: 'ad-hoc' });
+    if (!v.ok) return c.json({ error: `ad_hoc invalid: ${v.error}` }, 400);
+    const adHoc: EnrichmentDefinition = { ...v.spec, source: 'kv', updated_at: new Date().toISOString() };
+    spec = normalizeEnrichmentToRunSpec(adHoc); definition = adHoc;
+  } else {
+    return c.json({ error: 'mark_id, enrichment_id, or ad_hoc required' }, 400);
+  }
+
+  if (model_override && !isLLMModelId(model_override)) {
+    return c.json({ error: 'model_override must start with @cf/ or openrouter/' }, 400);
+  }
+
+  // 2. Build daf context.
+  const ctx = await buildDafContext(c, tractate, page);
+
+  // 2a. If the enrichment has `depends` and the body didn't pre-supply them,
+  // run each dep first and capture their parsed outputs. This is what
+  // enables aggregate/synthesis enrichments to weave multiple leaves.
+  let resolvedDepends: Record<string, unknown> = depends ?? {};
+  if (
+    body.enrichment_id &&
+    Object.keys(resolvedDepends).length === 0 &&
+    definition && 'depends' in definition && Array.isArray((definition as EnrichmentDefinition).depends) &&
+    (definition as EnrichmentDefinition).depends!.length > 0
+  ) {
+    resolvedDepends = await resolveDeps(c, definition as EnrichmentDefinition, ctx, mark_input, body.bypass_cache === true);
+  }
+
+  const vars: Record<string, unknown> = {
+    ...ctx,
+    mark_input,
+    depends: resolvedDepends,
+  };
+  const systemPrompt = renderTemplate(spec.system_prompt, vars);
+  const userPrompt = renderTemplate(spec.user_prompt_template, vars);
+
+  // 3. Execute via runLLM. Model resolution priority: per-call override >
+  // definition.model > settings KV default.
+  const t0 = Date.now();
+  const overrideModel = (model_override as LLMModelId | undefined) ?? spec.model;
+  try {
+    const result = await runLLM(c.env, {
+      ...(overrideModel ? { model: overrideModel } : {}),
+      ...(spec.fallback && spec.fallback.length > 0 ? { fallback: spec.fallback } : {}),
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      max_tokens: 16000,
+      temperature: 0.2,
+      response_format: spec.output_schema
+        ? { type: 'json_schema', json_schema: spec.output_schema }
+        : undefined,
+      thinking: spec.thinking_off ? false : undefined,
+      bypass_cache: body.bypass_cache,
+    });
+
+    let parsed: unknown = null;
+    let parse_error: string | null = null;
+    if (spec.output_schema) {
+      try { parsed = JSON.parse(result.content); }
+      catch (err) { parse_error = String(err).slice(0, 200); }
+    }
+
+    return c.json({
+      kind: spec.kind,
+      content: result.content,
+      reasoning: result.reasoning_content || undefined,
+      parsed,
+      parse_error,
+      model: result.model,
+      transport: result.transport,
+      attempts: result.attempts,
+      usage: result.usage,
+      elapsed_ms: result.elapsed_ms,
+      prompt_chars: result.prompt_chars,
+      resolved: { system_prompt: systemPrompt, user_prompt: userPrompt },
+      definition,
+      // For aggregate enrichments: each dep's parsed output, keyed by dep
+      // id. Lets the client populate per-leaf run state without a second
+      // round-trip, so the dev dropdown can switch to a leaf instantly.
+      deps_resolved: Object.keys(resolvedDepends).length > 0 ? resolvedDepends : undefined,
+      total_ms: Date.now() - t0,
+    });
+  } catch (err) {
+    return c.json({
+      error: String((err as Error)?.message ?? err),
+      definition,
+      resolved: { system_prompt: systemPrompt, user_prompt: userPrompt },
+      total_ms: Date.now() - t0,
+    }, 502);
   }
 });
 
@@ -580,29 +1160,25 @@ app.post('/api/commentary-translate', async (c) => {
   userParts.push(`Commentary source: ${sourceRef}`);
   userParts.push(`Commentary text (translate this):\n${cleanHe}`);
 
-  const models: Array<{ id: string; label: string; gemma?: boolean; kimi?: boolean }> = [
-    { id: '@cf/moonshotai/kimi-k2.5',        label: 'kimi-k2.5',   kimi: true },
-    { id: '@cf/google/gemma-4-26b-a4b-it',   label: 'gemma-4-26b', gemma: true },
+  const models: Array<{ id: LLMModelId; label: string }> = [
+    { id: '@cf/moonshotai/kimi-k2.5',        label: 'kimi-k2.5'   },
+    { id: '@cf/google/gemma-4-26b-a4b-it',   label: 'gemma-4-26b' },
   ];
 
   const attempts: string[] = [];
   for (const m of models) {
     try {
-      const params: Record<string, unknown> = {
+      const r = await runLLM(c.env, {
+        model: m.id,
         messages: [
           { role: 'system', content: COMMENTARY_TX_SYSTEM },
           { role: 'user', content: userParts.join('\n\n') },
         ],
         max_tokens: 800,
         temperature: 0.2,
-      };
-      if (m.gemma) params.chat_template_kwargs = { enable_thinking: false };
-      if (m.kimi) params.chat_template_kwargs = { enable_thinking: false };
-      const resp = await c.env.AI.run(m.id as never, params as never);
-      const r = resp as { response?: string; output?: string; result?: { response?: string }; choices?: Array<{ message?: { content?: string } }> };
-      const translation = (
-        r.response ?? r.output ?? r.result?.response ?? r.choices?.[0]?.message?.content ?? ''
-      ).trim().replace(/^["\']|["\']$/g, '');
+        thinking: false,
+      });
+      const translation = r.content.trim().replace(/^["\']|["\']$/g, '');
       if (!translation) { attempts.push(`${m.label}: empty`); continue; }
       if (cache) {
         await cache.put(cacheKey, translation, { expirationTtl: 60 * 60 * 24 * 365 });
@@ -1129,8 +1705,8 @@ app.post('/api/translate', async (c) => {
 
   // Gemma-4 no-thinking primary; Kimi K2.6 thinking as upgrade fallback when
   // Gemma returns empty or errors. No Llama anywhere in this repo.
-  const translateModels: Array<{ id: string; label: string; gemma?: boolean; kimi?: boolean }> = [
-    { id: '@cf/google/gemma-4-26b-a4b-it', label: 'gemma-4-26b',       gemma: true },
+  const translateModels: Array<{ id: LLMModelId; label: string; kimi?: boolean }> = [
+    { id: '@cf/google/gemma-4-26b-a4b-it', label: 'gemma-4-26b' },
     { id: '@cf/moonshotai/kimi-k2.5',      label: 'kimi-k2.5', kimi: true },
   ];
 
@@ -1164,26 +1740,17 @@ app.post('/api/translate', async (c) => {
       // 4. The target.
       userParts.push(`${isPhrase ? 'Phrase' : 'Word'} to translate: ${word}`);
 
-      const params: Record<string, unknown> = {
+      const r = await runLLM(c.env, {
+        model: m.id,
         messages: [
           { role: 'system', content: system },
           { role: 'user', content: userParts.join('\n\n') },
         ],
         max_tokens: m.kimi ? 400 : isPhrase ? 120 : 30,
         temperature: 0.1,
-      };
-      if (m.gemma) params.chat_template_kwargs = { enable_thinking: false };
-      if (m.kimi) params.chat_template_kwargs = { enable_thinking: false };
-      const resp = await c.env.AI.run(m.id as never, params as never);
-
-      const r = resp as { response?: string; output?: string; result?: { response?: string }; choices?: Array<{ message?: { content?: string } }> };
-      const translation = (
-        r.response ??
-        r.output ??
-        r.result?.response ??
-        r.choices?.[0]?.message?.content ??
-        ''
-      ).trim().replace(/^["']|["']$/g, '');
+        thinking: false,
+      });
+      const translation = r.content.trim().replace(/^["']|["']$/g, '');
       if (!translation) {
         attempts.push(`${m.label}: empty response`);
         continue;
@@ -1641,87 +2208,43 @@ interface StreamedResult {
   elapsed_ms: number;
 }
 
+/**
+ * Wrapper around runLLM() that preserves the legacy streaming-Kimi shape so
+ * existing call sites compile unchanged. The body is now provider-agnostic —
+ * pass any model id (`@cf/...` or `openrouter/...`) and runLLM picks the
+ * transport. Kept this function (vs replacing call sites with runLLM
+ * directly) so the Phase 0.5 diff stays mechanical.
+ */
 async function runKimiStreaming(
-  ai: Ai,
-  modelId: string,
+  env: Bindings,
+  modelId: LLMModelId | string,
   messages: Array<{ role: string; content: string }>,
   maxTokens: number,
   opts: {
     chatTemplateKwargs?: Record<string, unknown>;
     reasoningEffort?: 'low' | 'medium' | 'high';
+    fallback?: LLMModelId[];
   } = {},
 ): Promise<StreamedResult> {
-  const promptChars = messages.reduce((s, m) => s + m.content.length, 0);
-  const t0 = Date.now();
-  const body: Record<string, unknown> = {
-    messages,
+  const thinking = opts.chatTemplateKwargs?.enable_thinking;
+  const result = await runLLM(env, {
+    model: modelId as LLMModelId,
+    messages: messages as Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
     max_tokens: maxTokens,
-    stream_options: { include_usage: true },
     temperature: 0.2,
     response_format: { type: 'json_object' },
     stream: true,
-  };
-  if (opts.chatTemplateKwargs) body.chat_template_kwargs = opts.chatTemplateKwargs;
-  if (opts.reasoningEffort) body.reasoning_effort = opts.reasoningEffort;
-  const stream = (await ai.run(modelId as never, body as never)) as unknown as ReadableStream<Uint8Array>;
-
-  const reader = stream.getReader();
-  const decoder = new TextDecoder();
-  let buffer = '';
-  let content = '';
-  let reasoning = '';
-  let finish: string | null = null;
-  let usage: StreamedResult['usage'] = null;
-
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-
-      let sep: number;
-      while ((sep = buffer.indexOf('\n\n')) !== -1) {
-        const event = buffer.slice(0, sep);
-        buffer = buffer.slice(sep + 2);
-        for (const line of event.split('\n')) {
-          if (!line.startsWith('data:')) continue;
-          const data = line.slice(5).trim();
-          if (!data || data === '[DONE]') continue;
-          try {
-            const parsed = JSON.parse(data) as {
-              choices?: Array<{
-                delta?: { content?: string; reasoning_content?: string };
-                finish_reason?: string | null;
-              }>;
-              response?: string;
-              usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
-            };
-            const delta = parsed.choices?.[0]?.delta;
-            if (delta?.content) content += delta.content;
-            if (delta?.reasoning_content) reasoning += delta.reasoning_content;
-            const f = parsed.choices?.[0]?.finish_reason;
-            if (f) finish = f;
-            if (parsed.usage) usage = parsed.usage;
-            // Some CF AI models emit `response` at top level instead of
-            // choices[].delta — accumulate that too for robustness.
-            if (typeof parsed.response === 'string') content += parsed.response;
-          } catch {
-            // Not valid JSON — skip (keepalive / comments)
-          }
-        }
-      }
-    }
-  } finally {
-    try { await reader.cancel(); } catch { /* already closed */ }
-  }
-
+    reasoning_effort: opts.reasoningEffort,
+    thinking: typeof thinking === 'boolean' ? thinking : undefined,
+    fallback: opts.fallback,
+  });
   return {
-    content,
-    reasoning_content: reasoning,
-    finish_reason: finish,
-    usage,
-    prompt_chars: promptChars,
-    elapsed_ms: Date.now() - t0,
+    content: result.content,
+    reasoning_content: result.reasoning_content,
+    finish_reason: result.finish_reason,
+    usage: result.usage,
+    prompt_chars: result.prompt_chars,
+    elapsed_ms: result.elapsed_ms,
   };
 }
 
@@ -1848,7 +2371,7 @@ app.get('/api/analyze/:tractate/:page', async (c) => {
       // Low effort holds Stage A at ~90-140s reliably, keeping the full
       // two-stage pipeline under the Worker's 5-min wall clock.
       const stageA = await runKimiStreaming(
-        c.env.AI, model.id,
+        c.env, model.id,
         [
           { role: 'system', content: SKELETON_SYSTEM_PROMPT },
           { role: 'user', content: skeletonUser },
@@ -1969,7 +2492,7 @@ app.get('/api/analyze/:tractate/:page', async (c) => {
       label: 'kimi-k2.5-no-thinking',
     };
     const stageB = await runKimiStreaming(
-      c.env.AI, stageBModel.id,
+      c.env, stageBModel.id,
       [
         { role: 'system', content: ENRICHMENT_SYSTEM_PROMPT },
         { role: 'user', content: enrichmentUser },
@@ -2164,7 +2687,7 @@ function lookupRabbi(name: string): RabbiLookupHit | null {
 // current /api/analyze Stage B logic so we have a reference point for diffs.
 
 async function runBaselineEnrichment(
-  ai: Ai, tractate: string, page: string,
+  env: Bindings, tractate: string, page: string,
   skeleton: DafSkeleton, sources: EnrichmentSources,
 ): Promise<EnrichmentResult> {
   const t0 = Date.now();
@@ -2214,7 +2737,7 @@ async function runBaselineEnrichment(
   ].join('\n\n');
 
   const streamed = await runKimiStreaming(
-    ai, '@cf/moonshotai/kimi-k2.5',
+    env, '@cf/moonshotai/kimi-k2.5',
     [
       { role: 'system', content: ENRICHMENT_SYSTEM_PROMPT },
       { role: 'user', content: userContent },
@@ -2258,7 +2781,7 @@ Output STRICT JSON only (no markdown):
 {"rabbis": [{"name": string, "nameHe": string, "period": string, "location": string, "role": string, "opinionStart": string}]}`;
 
 async function runPerSectionEnrichment(
-  ai: Ai, tractate: string, page: string,
+  env: Bindings, tractate: string, page: string,
   skeleton: DafSkeleton, sources: EnrichmentSources,
 ): Promise<EnrichmentResult> {
   const t0 = Date.now();
@@ -2289,7 +2812,7 @@ async function runPerSectionEnrichment(
     ].join('\n\n');
 
     const s = await runKimiStreaming(
-      ai, '@cf/moonshotai/kimi-k2.5',
+      env, '@cf/moonshotai/kimi-k2.5',
       [
         { role: 'system', content: PER_SECTION_SYSTEM_PROMPT },
         { role: 'user', content: user },
@@ -2351,7 +2874,7 @@ opinionStart MUST be copied verbatim from the focal amud's Hebrew. Use Rashi/Tos
 Output STRICT JSON matching the full DafAnalysis schema (summary + sections + rabbis with all fields).`;
 
 async function runHybridEnrichment(
-  ai: Ai, tractate: string, page: string,
+  env: Bindings, tractate: string, page: string,
   skeleton: DafSkeleton, sources: EnrichmentSources,
 ): Promise<EnrichmentResult> {
   const t0 = Date.now();
@@ -2405,7 +2928,7 @@ async function runHybridEnrichment(
   ].join('\n\n');
 
   const s = await runKimiStreaming(
-    ai, '@cf/moonshotai/kimi-k2.5',
+    env, '@cf/moonshotai/kimi-k2.5',
     [
       { role: 'system', content: HYBRID_SYSTEM_PROMPT },
       { role: 'user', content: user },
@@ -2521,7 +3044,7 @@ Rules:
 Output STRICT JSON matching the full DafAnalysis schema (summary + sections + rabbis with all fields including agreesWith and disagreesWith arrays).`;
 
 async function runRichRabbiEnrichment(
-  ai: Ai, tractate: string, page: string,
+  env: Bindings, tractate: string, page: string,
   skeleton: DafSkeleton, sources: EnrichmentSources,
 ): Promise<EnrichmentResult> {
   const t0 = Date.now();
@@ -2579,7 +3102,7 @@ async function runRichRabbiEnrichment(
   ].join('\n\n');
 
   const s = await runKimiStreaming(
-    ai, '@cf/moonshotai/kimi-k2.5',
+    env, '@cf/moonshotai/kimi-k2.5',
     [
       { role: 'system', content: RICH_RABBI_SYSTEM_PROMPT },
       { role: 'user', content: user },
@@ -2647,7 +3170,7 @@ Output STRICT JSON:
 Use the section titles from the skeleton to key your output. Sections with no biblical citations should have an empty references array.`;
 
 async function runReferencesEnrichment(
-  ai: Ai, tractate: string, page: string,
+  env: Bindings, tractate: string, page: string,
   skeleton: DafSkeleton, sources: EnrichmentSources,
 ): Promise<EnrichmentResult> {
   const t0 = Date.now();
@@ -2679,7 +3202,7 @@ async function runReferencesEnrichment(
   ].join('\n\n');
 
   const s = await runKimiStreaming(
-    ai, '@cf/moonshotai/kimi-k2.5',
+    env, '@cf/moonshotai/kimi-k2.5',
     [
       { role: 'system', content: REFERENCES_SYSTEM_PROMPT },
       { role: 'user', content: user },
@@ -2748,7 +3271,7 @@ Output STRICT JSON:
 Sections with no parallels should have an empty parallels array. Prefer to cite 1-4 strong parallels per section over 10 weak ones.`;
 
 async function runParallelsEnrichment(
-  ai: Ai, tractate: string, page: string,
+  env: Bindings, tractate: string, page: string,
   skeleton: DafSkeleton, sources: EnrichmentSources,
 ): Promise<EnrichmentResult> {
   const t0 = Date.now();
@@ -2785,7 +3308,7 @@ async function runParallelsEnrichment(
   ].join('\n\n');
 
   const s = await runKimiStreaming(
-    ai, '@cf/moonshotai/kimi-k2.5',
+    env, '@cf/moonshotai/kimi-k2.5',
     [
       { role: 'system', content: PARALLELS_SYSTEM_PROMPT },
       { role: 'user', content: user },
@@ -2859,7 +3382,7 @@ Output STRICT JSON:
 {"difficulty": {"score": N, "reason": "..."}, "sections": [{"title": "...", "difficulty": {"score": N, "reason": "..."}}]}`;
 
 async function runDifficultyEnrichment(
-  ai: Ai, tractate: string, page: string,
+  env: Bindings, tractate: string, page: string,
   skeleton: DafSkeleton, sources: EnrichmentSources,
 ): Promise<EnrichmentResult> {
   const t0 = Date.now();
@@ -2891,7 +3414,7 @@ async function runDifficultyEnrichment(
   ].join('\n\n');
 
   const s = await runKimiStreaming(
-    ai, '@cf/moonshotai/kimi-k2.5',
+    env, '@cf/moonshotai/kimi-k2.5',
     [
       { role: 'system', content: DIFFICULTY_SYSTEM_PROMPT },
       { role: 'user', content: user },
@@ -2979,17 +3502,17 @@ const PER_SECTION_ARGUMENT_STRATEGIES: ReadonlySet<EnrichmentStrategyName> = new
 
 async function runEnrichmentStrategy(
   strategy: EnrichmentStrategyName,
-  ai: Ai, tractate: string, page: string,
+  env: Bindings, tractate: string, page: string,
   skeleton: DafSkeleton, sources: EnrichmentSources,
 ): Promise<EnrichmentResult> {
   switch (strategy) {
-    case 'baseline':    return runBaselineEnrichment(ai, tractate, page, skeleton, sources);
-    case 'per-section': return runPerSectionEnrichment(ai, tractate, page, skeleton, sources);
-    case 'hybrid':      return runHybridEnrichment(ai, tractate, page, skeleton, sources);
-    case 'rich-rabbi':  return runRichRabbiEnrichment(ai, tractate, page, skeleton, sources);
-    case 'references':  return runReferencesEnrichment(ai, tractate, page, skeleton, sources);
-    case 'parallels':   return runParallelsEnrichment(ai, tractate, page, skeleton, sources);
-    case 'difficulty':  return runDifficultyEnrichment(ai, tractate, page, skeleton, sources);
+    case 'baseline':    return runBaselineEnrichment(env, tractate, page, skeleton, sources);
+    case 'per-section': return runPerSectionEnrichment(env, tractate, page, skeleton, sources);
+    case 'hybrid':      return runHybridEnrichment(env, tractate, page, skeleton, sources);
+    case 'rich-rabbi':  return runRichRabbiEnrichment(env, tractate, page, skeleton, sources);
+    case 'references':  return runReferencesEnrichment(env, tractate, page, skeleton, sources);
+    case 'parallels':   return runParallelsEnrichment(env, tractate, page, skeleton, sources);
+    case 'difficulty':  return runDifficultyEnrichment(env, tractate, page, skeleton, sources);
     default:            throw new Error(`unknown strategy: ${strategy}`);
   }
 }
@@ -3056,12 +3579,56 @@ app.post('/api/enrich/:tractate/:page', async (c) => {
       return out;
     });
     const warnings = results.filter((r) => r.error).map((r) => `section ${r.idx}: ${r.error}`);
+
+    // After all section syntheses complete, run a single daf-level abstract
+    // call that takes their explanations as input. The abstract gives the
+    // reader a coherent daf-level overview that updates with the include set.
+    // Only runs for the synthesize strategy — other strategies (commentaries,
+    // bigger-picture, background) are inherently per-section.
+    let dafAbstract: { explanation: string; groundedIn?: string[] } | null = null;
+    if (strategy === 'synthesize') {
+      const sectionGists: Array<{ title: string; explanation: string }> = [];
+      for (let i = 0; i < sections.length; i++) {
+        const synth = (sections[i] as { synthesize?: { explanation?: string } | null }).synthesize;
+        if (synth?.explanation) {
+          sectionGists.push({
+            title: skeleton.sections[i].title,
+            explanation: synth.explanation,
+          });
+        }
+      }
+      if (sectionGists.length > 0 && c.env.AI) {
+        const userContent = [
+          `Tractate: ${tractate}`,
+          `Page: ${page}`,
+          `Skeleton summary: ${skeleton.summary}`,
+          '',
+          'Section-level synthesized gists (in order):',
+          ...sectionGists.map((g, i) => `${i + 1}. "${g.title}" — ${g.explanation}`),
+          '',
+          'Write the 3-4 sentence daf-level overview.',
+        ].join('\n');
+        try {
+          const parsed = await runArgumentStrategyKimi(c.env, ARG_DAF_ABSTRACT_PROMPT, userContent, 4000) as { explanation?: string; groundedIn?: string[] };
+          if (parsed.explanation) {
+            dafAbstract = {
+              explanation: parsed.explanation,
+              groundedIn: parsed.groundedIn,
+            };
+          }
+        } catch (err) {
+          warnings.push(`daf-abstract: ${String(err).slice(0, 200)}`);
+        }
+      }
+    }
+
     const out = {
       summary: skeleton.summary,
+      dafAbstract,
       sections,
       _strategy: strategy,
       _elapsed_ms: Date.now() - t0,
-      _calls: results.length,
+      _calls: results.length + (dafAbstract ? 1 : 0),
       _warnings: warnings,
       _skeletonSummary: skeleton.summary,
     };
@@ -3092,7 +3659,7 @@ app.post('/api/enrich/:tractate/:page', async (c) => {
   };
 
   try {
-    const result = await runEnrichmentStrategy(strategy, c.env.AI, tractate, page, skeleton, sources);
+    const result = await runEnrichmentStrategy(strategy, c.env, tractate, page, skeleton, sources);
     const out = {
       ...result.analysis,
       _strategy: strategy,
@@ -3341,7 +3908,7 @@ app.post('/api/enrich-halacha/:tractate/:page', async (c) => {
     let parsed: { topics?: Array<{ topic: string; synthesis?: { explanation: string; groundedIn?: string[] } }> } = {};
     try {
       const s = await runKimiStreaming(
-        c.env.AI, '@cf/moonshotai/kimi-k2.5',
+        c.env, '@cf/moonshotai/kimi-k2.5',
         [
           { role: 'system', content: HALACHA_SYNTHESIZE_PROMPT },
           { role: 'user', content: userContent },
@@ -3452,7 +4019,7 @@ app.post('/api/enrich-halacha/:tractate/:page', async (c) => {
   const t0 = Date.now();
   try {
     const s = await runKimiStreaming(
-      c.env.AI, '@cf/moonshotai/kimi-k2.5',
+      c.env, '@cf/moonshotai/kimi-k2.5',
       [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userContent },
@@ -3715,7 +4282,7 @@ app.post('/api/enrich-aggadata/:tractate/:page', async (c) => {
     let parsed: { stories?: Array<{ title: string; synthesis?: { explanation: string; groundedIn?: string[] } }> } = {};
     try {
       const s = await runKimiStreaming(
-        c.env.AI, '@cf/moonshotai/kimi-k2.5',
+        c.env, '@cf/moonshotai/kimi-k2.5',
         [
           { role: 'system', content: AGGADATA_SYNTHESIZE_PROMPT },
           { role: 'user', content: userContent },
@@ -3770,7 +4337,7 @@ app.post('/api/enrich-aggadata/:tractate/:page', async (c) => {
   const t0 = Date.now();
   try {
     const s = await runKimiStreaming(
-      c.env.AI, '@cf/moonshotai/kimi-k2.5',
+      c.env, '@cf/moonshotai/kimi-k2.5',
       [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userContent },
@@ -4006,7 +4573,7 @@ app.get('/api/halacha/:tractate/:page', async (c) => {
   for (const m of models) {
     try {
       const streamed = await runKimiStreaming(
-        c.env.AI,
+        c.env,
         m.id,
         [
           { role: 'system', content: HALACHA_SYSTEM_PROMPT },
@@ -4196,7 +4763,7 @@ app.get('/api/aggadata/:tractate/:page', async (c) => {
   for (const m of models) {
     try {
       const streamed = await runKimiStreaming(
-        c.env.AI,
+        c.env,
         m.id,
         [
           { role: 'system', content: AGGADATA_SYSTEM_PROMPT },
@@ -4407,7 +4974,7 @@ app.get('/api/pesukim/:tractate/:page', async (c) => {
   for (const m of models) {
     try {
       const streamed = await runKimiStreaming(
-        c.env.AI,
+        c.env,
         m.id,
         [
           { role: 'system', content: PESUKIM_SYSTEM_PROMPT },
@@ -4809,7 +5376,7 @@ app.post('/api/enrich-pesukim/:tractate/:page', async (c) => {
         ].join('\n');
         try {
           const s = await runKimiStreaming(
-            c.env.AI as Ai, '@cf/moonshotai/kimi-k2.5',
+            c.env, '@cf/moonshotai/kimi-k2.5',
             [
               { role: 'system', content: PESUKIM_SYNTHESIZE_PROMPT },
               { role: 'user', content: userContent },
@@ -4947,7 +5514,7 @@ app.post('/api/enrich-pesukim/:tractate/:page', async (c) => {
       try {
         const userContent = await userContentFor(p);
         const s = await runKimiStreaming(
-          c.env.AI as Ai, '@cf/moonshotai/kimi-k2.5',
+          c.env, '@cf/moonshotai/kimi-k2.5',
           [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userContent },
@@ -5242,7 +5809,7 @@ const GENERATIONS_JSON_SCHEMA = {
 };
 
 async function runGenerationsModel(
-  ai: Ai,
+  env: Bindings,
   modelId: string,
   hebrewText: string,
   englishContext: string,
@@ -5264,17 +5831,18 @@ async function runGenerationsModel(
     englishContext.slice(0, 12000) || '(unavailable)',
   ].join('\n');
   try {
-    const resp = await ai.run(modelId as never, {
+    const r = await runLLM(env, {
+      model: modelId as LLMModelId,
       messages: [
         { role: 'system', content: GENERATIONS_SYSTEM_PROMPT },
         { role: 'user', content: userContent },
       ],
-      max_completion_tokens: opts.maxTokens,
+      max_tokens: opts.maxTokens,
       temperature: 0.1,
-      chat_template_kwargs: { enable_thinking: opts.enableThinking },
+      thinking: opts.enableThinking,
       response_format: { type: 'json_schema', json_schema: GENERATIONS_JSON_SCHEMA },
-    } as never);
-    const payload = extractJsonPayload(resp);
+    });
+    const payload = r.content.trim() || extractJsonPayload({ response: r.content });
     if (!payload) return { error: `${modelId}: empty payload` };
     let parsed: unknown;
     try { parsed = JSON.parse(payload); }
@@ -5306,7 +5874,7 @@ interface GenerationsStreamDiag {
   usage: StreamedResult['usage'];
 }
 async function runGenerationsModelStreaming(
-  ai: Ai,
+  env: Bindings,
   modelId: string,
   hebrewText: string,
   englishContext: string,
@@ -5327,7 +5895,7 @@ async function runGenerationsModelStreaming(
   let streamed: StreamedResult;
   try {
     streamed = await runKimiStreaming(
-      ai, modelId,
+      env, modelId,
       [
         { role: 'system', content: GENERATIONS_SYSTEM_PROMPT },
         { role: 'user', content: userContent },
@@ -5496,7 +6064,7 @@ app.get('/api/daf-context/:tractate/:page', async (c) => {
 
   // Stage 1: Gemma-4, no thinking
   const s1 = await runGenerationsModel(
-    c.env.AI, '@cf/google/gemma-4-26b-a4b-it', hebrewText, englishContext, tractate, page,
+    c.env, '@cf/google/gemma-4-26b-a4b-it', hebrewText, englishContext, tractate, page,
     { maxTokens: 6000, enableThinking: false },
   );
   if ('error' in s1) {
@@ -5509,7 +6077,6 @@ app.get('/api/daf-context/:tractate/:page', async (c) => {
   recordTelemetry(c, { endpoint: 'daf-context', tractate, page, cache_hit: false, model: 'gemma-4-26b', ms: Date.now() - t0, ok: true });
 
   // Stage 2: Kimi K2.6, thinking enabled, in background.
-  const ai = c.env.AI;
   if (cache) {
     const hebSnap = hebrewText;
     const engSnap = englishContext;
@@ -5519,7 +6086,7 @@ app.get('/api/daf-context/:tractate/:page', async (c) => {
       const s2t0 = Date.now();
       try {
         const r = await runGenerationsModelStreaming(
-          ai, '@cf/moonshotai/kimi-k2.5', hebSnap, engSnap, tractate, page,
+          env, '@cf/moonshotai/kimi-k2.5', hebSnap, engSnap, tractate, page,
           { maxTokens: 16000, enableThinking: true },
         );
         if ('error' in r) {
@@ -5672,17 +6239,18 @@ app.get('/api/admin/enrich-rabbi/:slug', async (c) => {
 
   const t0 = Date.now();
   try {
-    const resp = await c.env.AI.run('@cf/moonshotai/kimi-k2.5' as never, {
+    const r = await runLLM(c.env, {
+      model: '@cf/moonshotai/kimi-k2.5',
       messages: [
         { role: 'system', content: ENRICH_SYSTEM_PROMPT },
         { role: 'user', content: userContent },
       ],
       max_tokens: 65536,
       temperature: 0.1,
-      chat_template_kwargs: { enable_thinking: false },
+      thinking: false,
       response_format: { type: 'json_schema', json_schema: ENRICH_JSON_SCHEMA },
-    } as never);
-    const payload = extractJsonPayload(resp);
+    });
+    const payload = r.content.trim() || extractJsonPayload({ response: r.content });
     if (!payload) return c.json({ error: 'empty payload', slug }, 502);
     let parsed: unknown;
     try { parsed = JSON.parse(payload); }
@@ -5796,7 +6364,7 @@ app.get('/api/admin/rabbi-relationships/:slug', async (c) => {
     // Relationship extraction is a bounded structured task, no reasoning
     // required; thinking mode was hanging the remote AI gateway.
     streamed = await runKimiStreaming(
-      c.env.AI,
+      c.env,
       '@cf/moonshotai/kimi-k2.5',
       [
         { role: 'system', content: RELATIONSHIPS_SYSTEM_PROMPT },
@@ -5922,7 +6490,7 @@ app.get('/api/admin/rabbi-family/:slug', async (c) => {
   let streamed: StreamedResult;
   try {
     streamed = await runKimiStreaming(
-      c.env.AI,
+      c.env,
       '@cf/moonshotai/kimi-k2.5',
       [
         { role: 'system', content: FAMILY_SYSTEM_PROMPT },
@@ -6052,7 +6620,7 @@ app.get('/api/admin/rabbi-orientation/:slug', async (c) => {
   let streamed: StreamedResult;
   try {
     streamed = await runKimiStreaming(
-      c.env.AI,
+      c.env,
       '@cf/moonshotai/kimi-k2.5',
       [
         { role: 'system', content: ORIENTATION_SYSTEM_PROMPT },
@@ -6305,7 +6873,7 @@ function normalizeEdgeWeights(out: LLMRabbiOutput): void {
 export async function enrichRabbiUnified(
   slug: string,
   entry: RabbiPlacesEntry,
-  ai: Ai,
+  env: Bindings,
   cache: KVNamespace | undefined,
 ): Promise<{ ok: true; record: EnrichedRabbiRecord; ms: number; promptChars: number; usage: StreamedResult['usage'] }
         | { ok: false; error: string; raw?: string; ms: number }> {
@@ -6323,7 +6891,7 @@ export async function enrichRabbiUnified(
   let streamed: StreamedResult;
   try {
     streamed = await runKimiStreaming(
-      ai,
+      env,
       '@cf/moonshotai/kimi-k2.5',
       [
         { role: 'system', content: RABBI_ENRICH_SYSTEM_PROMPT },
@@ -6430,7 +6998,7 @@ app.get('/api/admin/rabbi-enrich-unified/:slug', async (c) => {
     }
   }
 
-  const result = await enrichRabbiUnified(slug, entry, c.env.AI, cache);
+  const result = await enrichRabbiUnified(slug, entry, c.env, cache);
   if (!result.ok) {
     return c.json({ error: result.error, slug, raw: result.raw, _ms: result.ms }, 502);
   }
@@ -7322,17 +7890,18 @@ app.post('/api/admin/translate-bio', async (c) => {
 
   const t0 = Date.now();
   try {
-    const resp = await c.env.AI.run('@cf/moonshotai/kimi-k2.5' as never, {
+    const r = await runLLM(c.env, {
+      model: '@cf/moonshotai/kimi-k2.5',
       messages: [
         { role: 'system', content: TRANSLATE_BIO_SYSTEM_PROMPT },
         { role: 'user', content: userContent },
       ],
       max_tokens: 16000,
       temperature: 0.1,
-      chat_template_kwargs: { enable_thinking: false },
+      thinking: false,
       response_format: { type: 'json_schema', json_schema: TRANSLATE_BIO_JSON_SCHEMA },
-    } as never);
-    const payload = extractJsonPayload(resp);
+    });
+    const payload = r.content.trim() || extractJsonPayload({ response: r.content });
     if (!payload) return c.json({ error: 'empty payload' }, 502);
     let parsed: unknown;
     try { parsed = JSON.parse(payload); }
@@ -7488,19 +8057,20 @@ app.post('/api/era-llm/:tractate/:page', async (c) => {
   // response_format. Kimi K2.6 non-streaming hits the Workers AI Gateway timeout
   // on this prompt shape; switching to streaming would work but is overkill for
   // a per-segment classifier.
-  const modelId = '@cf/google/gemma-4-26b-a4b-it';
+  const modelId: LLMModelId = '@cf/google/gemma-4-26b-a4b-it';
   try {
-    const resp = await c.env.AI.run(modelId as never, {
+    const r = await runLLM(c.env, {
+      model: modelId,
       messages: [
         { role: 'system', content: ERA_LLM_SYSTEM_PROMPT },
         { role: 'user', content: userContent },
       ],
-      max_completion_tokens: 4000,
+      max_tokens: 4000,
       temperature: 0.1,
-      chat_template_kwargs: { enable_thinking: false },
+      thinking: false,
       response_format: { type: 'json_schema', json_schema: ERA_LLM_JSON_SCHEMA },
-    } as never);
-    const payload = extractJsonPayload(resp);
+    });
+    const payload = r.content.trim() || extractJsonPayload({ response: r.content });
     if (!payload) return c.json({ error: 'empty payload' }, 502);
     let parsed: unknown;
     try { parsed = JSON.parse(payload); }
@@ -7541,7 +8111,7 @@ interface EraContextPayload extends DafEraContext {
 
 /** Run the LLM stage in-process; returns era picks for the candidate segments. */
 async function runEraLlmModel(
-  ai: Ai,
+  env: Bindings,
   tractate: string,
   page: string,
   segments: EraLlmSegmentInput[],
@@ -7561,17 +8131,18 @@ async function runEraLlmModel(
     lines.push('');
   }
   const userContent = lines.join('\n').slice(0, 40000);
-  const resp = await ai.run('@cf/google/gemma-4-26b-a4b-it' as never, {
+  const r = await runLLM(env, {
+    model: '@cf/google/gemma-4-26b-a4b-it',
     messages: [
       { role: 'system', content: ERA_LLM_SYSTEM_PROMPT },
       { role: 'user', content: userContent },
     ],
-    max_completion_tokens: 4000,
+    max_tokens: 4000,
     temperature: 0.1,
-    chat_template_kwargs: { enable_thinking: false },
+    thinking: false,
     response_format: { type: 'json_schema', json_schema: ERA_LLM_JSON_SCHEMA },
-  } as never);
-  const payload = extractJsonPayload(resp);
+  });
+  const payload = r.content.trim() || extractJsonPayload({ response: r.content });
   if (!payload) return [];
   let parsed: unknown;
   try { parsed = JSON.parse(payload); }
@@ -7782,7 +8353,7 @@ app.post('/api/enrich-era-arguments/:tractate/:page', async (c) => {
   let streamed: StreamedResult;
   try {
     streamed = await runKimiStreaming(
-      c.env.AI,
+      c.env,
       '@cf/moonshotai/kimi-k2.5',
       [
         { role: 'system', content: ERA_ARG_NET_SYSTEM_PROMPT },
@@ -7883,6 +8454,27 @@ function rangeAnchor(start: number | undefined, end: number | undefined, quote: 
  * reader builds the conventional learning vocabulary alongside the gloss.
  */
 const HEBRAIZED_TERMS_RULE = `**Preserve Talmudic technical vocabulary.** When you introduce a halachic / aggadic / sugya-structural concept, give the conventional transliterated Hebrew/Aramaic term in parentheses on first mention, e.g. "designation (yiʿud)", "preparation for Shabbat (hakhanah)", "moveable (muktzeh)", "the dragged-bolt case (neger hanegrar)", "parable (mashal)", "argument move (kushya)", "answer (terutz)", "scriptural derivation (derashah)", "atonement (kaparah)". Use Sefaria-style transliteration (apostrophes for ayin/aleph where standard, doubled letters where the dagesh is doubled). Do NOT pure-English-translate technical terms — keep the Hebrew side-by-side.`;
+
+const ARG_DAF_ABSTRACT_PROMPT = `You write the DAF-LEVEL OVERVIEW — a 3-4 sentence orientation paragraph the reader sees at the top of the daf, BEFORE drilling into individual sections. The reader has just opened this daf and wants a single coherent paragraph that situates them in the argumentative arc.
+
+You will receive the existing skeleton summary (the structural baseline) plus each section's per-section synthesized gist. **REWRITE** the daf-level paragraph using the section gists as authoritative context: thread them into one continuous overview that names the arc, not just a section list.
+
+**HARD CAPS:**
+- 3-4 sentences. Maximum 600 characters total.
+- First sentence: what's the daf about — the argumentative or thematic spine.
+- Middle sentences: how the sections move (e.g. "the sugya then turns to…", "after establishing X, the Gemara raises…"). Use connective verbs, not enumeration.
+- Final sentence (optional): the resolution / open question / pivot the daf lands on.
+- Do NOT enumerate sections by number. Do NOT recap each section.
+- No commentator name-drops (Rashi/Tosafot/etc.) — that's section-level.
+- No "this daf discusses…" or "we will explore…" filler.
+
+${HEBRAIZED_TERMS_RULE}
+
+Output STRICT JSON only:
+
+{ "explanation": "3-4 sentence daf overview", "groundedIn": ["section-syntheses","skeleton"] }
+
+groundedIn lists ONLY inputs you actually drew on.`;
 
 const ARG_SYNTHESIZE_PROMPT = `You write the GIST of one argument section — the one-glance summary the reader sees at the top of a card. The deep work (per-rabbi breakdown, bigger-picture, background, commentaries) is rendered separately on the card; do NOT duplicate them.
 
@@ -8046,13 +8638,13 @@ async function getArgumentSectionContext(
 }
 
 async function runArgumentStrategyKimi(
-  ai: Ai,
+  env: Bindings,
   systemPrompt: string,
   userContent: string,
   maxTokens: number,
 ): Promise<unknown> {
   const streamed = await runKimiStreaming(
-    ai, '@cf/moonshotai/kimi-k2.5',
+    env, '@cf/moonshotai/kimi-k2.5',
     [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userContent },
@@ -8183,7 +8775,7 @@ async function enrichArgumentSection(
           ? '(No structured enrichments cached yet — write a basic paragraph from the section text + neighbor context + structural summary alone.)'
           : `Available structured enrichments:\n\n${enrichmentBlocks.join('\n\n')}`,
       ].join('\n');
-      return runArgumentStrategyKimi(c.env.AI, ARG_SYNTHESIZE_PROMPT, userContent, 6000);
+      return runArgumentStrategyKimi(c.env, ARG_SYNTHESIZE_PROMPT, userContent, 6000);
     }
     case 'rabbis': {
       // Pull whatever's cached so each voice's `role` can name the verse it
@@ -8204,14 +8796,14 @@ async function enrichArgumentSection(
           ? '(No cached cross-enrichments yet — fill role from section text alone.)'
           : `Cached cross-enrichments — use these to color each voice's "role" with the verse they cite, the parallel sugya they echo, or the commentator difficulty raised on them:\n\n${ctxBlocks.join('\n\n')}`,
       ].join('\n');
-      return runArgumentStrategyKimi(c.env.AI, ARG_RABBIS_PROMPT, userContent, 8000);
+      return runArgumentStrategyKimi(c.env, ARG_RABBIS_PROMPT, userContent, 8000);
     }
     case 'references': {
       const userContent = header + [
         'Hebrew/Aramaic text of this section:',
         ctx.sectionHe || '(unavailable)',
       ].join('\n');
-      return runArgumentStrategyKimi(c.env.AI, ARG_REFERENCES_PROMPT, userContent, 4000);
+      return runArgumentStrategyKimi(c.env, ARG_REFERENCES_PROMPT, userContent, 4000);
     }
     case 'parallels': {
       const rishonim = await getRishonimCached(c.env.CACHE, tractate, page).catch(() => null);
@@ -8223,7 +8815,7 @@ async function enrichArgumentSection(
         'Rishonim on this daf (focus on what they cross-reference):',
         rishonimXml || '(unavailable)',
       ].join('\n');
-      return runArgumentStrategyKimi(c.env.AI, ARG_PARALLELS_PROMPT, userContent, 6000);
+      return runArgumentStrategyKimi(c.env, ARG_PARALLELS_PROMPT, userContent, 6000);
     }
     case 'bigger-picture': {
       const skel = await selfFetchJson(c, `/api/analyze/${tractate}/${page}?skeleton_only=1`) as { sections?: ArgumentSectionShape[]; summary?: string };
@@ -8263,7 +8855,7 @@ async function enrichArgumentSection(
         '',
         'Write the bigger-picture paragraph for THIS section.',
       ].join('\n');
-      return runArgumentStrategyKimi(c.env.AI, ARG_BIGGER_PICTURE_PROMPT, userContent, 4000);
+      return runArgumentStrategyKimi(c.env, ARG_BIGGER_PICTURE_PROMPT, userContent, 4000);
     }
     case 'background': {
       // Background uses the same outline + focal text as bigger-picture but
@@ -8288,7 +8880,7 @@ async function enrichArgumentSection(
         '',
         'Write the background paragraph for THIS section: WHY does its subject matter, and WHY is the Talmud engaging with it HERE?',
       ].join('\n');
-      return runArgumentStrategyKimi(c.env.AI, ARG_BACKGROUND_PROMPT, userContent, 4000);
+      return runArgumentStrategyKimi(c.env, ARG_BACKGROUND_PROMPT, userContent, 4000);
     }
     case 'commentaries': {
       const [rishonim, sefPage] = await Promise.all([
@@ -8313,7 +8905,7 @@ async function enrichArgumentSection(
         '',
         'List only questions/difficulties raised in the commentary above that pertain to THIS section.',
       ].join('\n');
-      return runArgumentStrategyKimi(c.env.AI, ARG_COMMENTARIES_PROMPT, userContent, 8000);
+      return runArgumentStrategyKimi(c.env, ARG_COMMENTARIES_PROMPT, userContent, 8000);
     }
     default:
       throw new Error(`unknown argument strategy: ${strategy}`);
@@ -9051,21 +9643,18 @@ app.post('/api/hebraize', async (c) => {
   }
 
   try {
-    const resp = (await c.env.AI.run('@cf/google/gemma-4-26b-a4b-it' as never, {
+    const r = await runLLM(c.env, {
+      model: '@cf/google/gemma-4-26b-a4b-it',
       messages: [
         { role: 'system', content: HEBRAIZE_LLM_SYSTEM_PROMPT },
         { role: 'user', content: text },
       ],
       max_tokens: Math.min(4096, Math.ceil(text.length * 1.5) + 256),
       temperature: 0,
-      chat_template_kwargs: { enable_thinking: false },
-    } as never)) as {
-      response?: string;
-      choices?: Array<{ message?: { content?: string | null; reasoning?: string | null } }>;
-    };
-    const choice = resp.choices?.[0]?.message;
-    const out = (resp.response ?? choice?.content ?? choice?.reasoning ?? '').trim();
-    if (!out) return c.json({ error: 'empty response', text, raw: resp }, 502);
+      thinking: false,
+    });
+    const out = r.content.trim();
+    if (!out) return c.json({ error: 'empty response', text }, 502);
     if (cache) {
       c.executionCtx.waitUntil(cache.put(key, out, { expirationTtl: 60 * 60 * 24 * 365 }));
     }
@@ -9267,7 +9856,7 @@ app.post('/api/enrich-rabbi-bio/:tractate/:page/:slug', async (c) => {
   let parsed: { explanation?: string; groundedIn?: string[] } = {};
   try {
     const s = await runKimiStreaming(
-      c.env.AI, '@cf/moonshotai/kimi-k2.5',
+      c.env, '@cf/moonshotai/kimi-k2.5',
       [
         { role: 'system', content: RABBI_BIO_DAF_PROMPT },
         { role: 'user', content: userContent },

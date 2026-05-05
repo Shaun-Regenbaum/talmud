@@ -59,8 +59,14 @@ interface EnrichedArgumentSection {
   startSegIdx?: number;
   endSegIdx?: number;
 }
+interface DafAbstract { explanation: string; groundedIn?: string[] }
+
 interface EnrichedArgumentAnalysis {
   summary: string; difficulty?: DifficultyRating;
+  /** Daf-level synthesized overview, populated by the synthesize strategy
+   *  after all section synths complete. Null until synthesize has run with
+   *  at least one cached section gist. */
+  dafAbstract?: DafAbstract | null;
   sections: EnrichedArgumentSection[];
   _strategy?: string; _elapsed_ms?: number; _warnings?: string[];
 }
@@ -507,9 +513,13 @@ export function EnrichmentPage(): JSX.Element {
       }
     }
     const overallDifficulty = order.map(k => e[k]?.difficulty).find(Boolean);
+    // dafAbstract is produced by the synthesize strategy after all section
+    // syntheses complete. Read it from synthesize's analysis.
+    const dafAbstract = e['synthesize']?.dafAbstract ?? null;
     return {
       summary: base.summary,
       difficulty: overallDifficulty,
+      dafAbstract,
       sections: base.sections.map(s => bySec.get(s.title.toLowerCase())!).filter(Boolean),
     };
   };
@@ -800,7 +810,7 @@ function ArgumentTab(props: {
   tractate: string;
   page: string;
   skeleton: Resource<ArgumentSkeleton | null>;
-  merged: { summary: string; difficulty?: DifficultyRating; sections: EnrichedArgumentSection[] } | null;
+  merged: { summary: string; difficulty?: DifficultyRating; dafAbstract: DafAbstract | null; sections: EnrichedArgumentSection[] } | null;
   enrichments: Partial<Record<string, EnrichedArgumentAnalysis>>;
   included: Set<string>;
   running: Partial<Record<string, boolean>>;

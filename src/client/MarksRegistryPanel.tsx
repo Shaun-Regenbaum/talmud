@@ -1,0 +1,537 @@
+/**
+ * MarksRegistryPanel — toggle list of KV-defined marks/enrichments, mounted
+ * inside the DafViewer's existing "Options" disclosure. Each toggle:
+ *
+ *   - off (default for all): nothing fetches, no daf decoration
+ *   - on:  fetches /api/studio/run for the current tractate/page, stores
+ *          the result, exposes a status pill (loading / ok / error)
+ *   - inspect: opens a bottom-shelf drawer (InspectShelf) with the raw
+ *              output, telemetry, rendered prompts, and (TODO) inline edit.
+ *
+ * Toggle state persists in localStorage globally — flipping rabbi on
+ * carries across pages. Re-runs only fire when the daf changes or the def
+ * hash changes (server-side cache key includes the def hash), not on every
+ * state mutation.
+ *
+ * Renderers per (anchor, render) kind are NOT here yet; this slice just
+ * wires the loop end-to-end. Phase 2 of the daf integration adds proper
+ * renderers that decorate the daf in place.
+ *
+ * Dev mode (default true) shows draft-status definitions and reveals
+ * failure details in the drawer. Production mode (devMode=false) hides
+ * drafts and silently skips failed marks.
+ */
+
+import { createResource, createSignal, createEffect, onMount, onCleanup, untrack, For, Show } from 'solid-js';
+import InspectShelf from './InspectShelf';
+import type { SeedMark } from './seed-marks';
+import type { MarkDef as RendererMarkDef, MarkRunOutput as RendererMarkRunOutput } from './renderers/dispatch';
+
+type LLMModelId = `@cf/${string}` | `openrouter/${string}`;
+
+export interface EnrichmentDefinition {
+  id: string;
+  label: string;
+  description?: string;
+  mark: string;
+  system_prompt: string;
+  user_prompt_template: string;
+  model?: LLMModelId;
+  output_schema?: unknown;
+  thinking_off?: boolean;
+  cache_version: string;
+  source: 'kv' | 'code';
+  updated_at: string;
+  status?: 'draft' | 'promoted';
+}
+
+/** Worker-side mark definition (code or KV) returned by /api/studio/marks.
+ *  Carries the full anchor+render+extractor schema. */
+export interface WorkerMarkDefinition {
+  id: string;
+  label: string;
+  description?: string;
+  category?: string;
+  anchor: 'segment' | 'segment-range' | 'phrase' | 'multi-anchor' | 'cross-daf' | 'external' | 'whole-daf';
+  render: { kind: string; [k: string]: unknown };
+  extractor: {
+    kind: 'llm' | 'sefaria' | 'computed' | 'manual';
+    model?: LLMModelId;
+    system_prompt?: string;
+    user_prompt_template?: string;
+    output_schema?: unknown;
+    thinking_off?: boolean;
+  };
+  status: 'draft' | 'promoted';
+  def_hash: string;
+  cache_version: string;
+  source: 'kv' | 'code';
+  updated_at: string;
+}
+
+/** Internal row: a code-defined seed (legacy DafViewer signal), a KV/code
+ *  worker-defined mark, or a KV-defined enrichment. */
+type Row =
+  | { source: 'seed'; seed: SeedMark }
+  | { source: 'mark'; def: WorkerMarkDefinition }
+  | { source: 'enrichment'; def: EnrichmentDefinition };
+
+// ---------------------------------------------------------------------------
+// Shared signals — exported so DafViewer can read the current run state and
+// apply renderers in its tokenized() pipeline.
+// ---------------------------------------------------------------------------
+
+const [globalMarkRuns, setGlobalMarkRuns] = createSignal<Record<string, RendererMarkRunOutput | undefined>>({});
+const [globalEnabledMarks, setGlobalEnabledMarks] = createSignal<RendererMarkDef[]>([]);
+
+/** Accessor for DafViewer: which marks (with their anchor/render config) are
+ *  currently enabled. Renderer dispatcher uses this to know what to apply. */
+export function enabledMarkDefs() { return globalEnabledMarks(); }
+
+/** Accessor for DafViewer: the most recent run output per mark id. */
+export function markRunsByMarkId() { return globalMarkRuns(); }
+
+/** Lightweight per-mark status (idle/loading/ok/error + label) so the
+ *  daf-page can show inline loading/error indicators without needing the
+ *  full run output. */
+export interface MarkStatusEntry {
+  id: string;
+  label: string;
+  kind: 'idle' | 'loading' | 'ok' | 'error';
+  ms?: number;
+  error?: string;
+}
+
+const [globalMarkStatuses, setGlobalMarkStatuses] = createSignal<MarkStatusEntry[]>([]);
+export function markStatuses() { return globalMarkStatuses(); }
+
+export interface RunResult {
+  content: string;
+  reasoning?: string;
+  parsed: unknown;
+  parse_error: string | null;
+  model: LLMModelId;
+  transport: string;
+  attempts: number;
+  usage: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+    cost?: number;
+  } | null;
+  elapsed_ms: number;
+  resolved: { system_prompt: string; user_prompt: string };
+  total_ms: number;
+}
+
+export type RunState =
+  | { kind: 'idle' }
+  | { kind: 'loading'; stamp: string }
+  | { kind: 'ok'; stamp: string; at: number; result: RunResult }
+  | { kind: 'error'; stamp: string; at: number; error: string };
+
+const ENABLED_KEY = 'marks-registry:enabled:v1';
+const DEV_MODE_KEY = 'marks-registry:dev-mode:v1';
+
+function readEnabled(): Set<string> {
+  try {
+    const raw = localStorage.getItem(ENABLED_KEY);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw) as unknown;
+    if (Array.isArray(parsed)) return new Set(parsed.filter((s): s is string => typeof s === 'string'));
+  } catch { /* ignore */ }
+  return new Set();
+}
+
+function writeEnabled(s: Set<string>) {
+  try { localStorage.setItem(ENABLED_KEY, JSON.stringify([...s])); } catch { /* ignore */ }
+}
+
+function readDevMode(): boolean {
+  try {
+    const raw = localStorage.getItem(DEV_MODE_KEY);
+    if (raw === 'false') return false;
+  } catch { /* ignore */ }
+  return true; // default to on
+}
+
+function writeDevMode(v: boolean) {
+  try { localStorage.setItem(DEV_MODE_KEY, v ? 'true' : 'false'); } catch { /* ignore */ }
+}
+
+async function fetchAll(): Promise<{ marks: WorkerMarkDefinition[]; enrichments: EnrichmentDefinition[] }> {
+  const [m, e] = await Promise.all([
+    fetch('/api/studio/marks').then((r) => r.ok ? r.json() : { marks: [] }),
+    fetch('/api/studio/enrichments').then((r) => r.ok ? r.json() : { enrichments: [] }),
+  ]);
+  return {
+    marks: ((m as { marks?: WorkerMarkDefinition[] }).marks) ?? [],
+    enrichments: ((e as { enrichments?: EnrichmentDefinition[] }).enrichments) ?? [],
+  };
+}
+
+async function runMark(id: string, tractate: string, page: string, bypassCache = false): Promise<RunResult> {
+  const r = await fetch('/api/studio/run', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mark_id: id, tractate, page, bypass_cache: bypassCache }),
+  });
+  const j = await r.json();
+  if (!r.ok) throw new Error((j as { error?: string }).error ?? `HTTP ${r.status}`);
+  return j as RunResult;
+}
+
+async function runEnrichment(id: string, tractate: string, page: string, bypassCache = false): Promise<RunResult> {
+  const r = await fetch('/api/studio/run', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ enrichment_id: id, tractate, page, bypass_cache: bypassCache }),
+  });
+  const j = await r.json();
+  if (!r.ok) throw new Error((j as { error?: string }).error ?? `HTTP ${r.status}`);
+  return j as RunResult;
+}
+
+interface Props {
+  tractate: string;
+  page: string;
+  seedMarks: SeedMark[];
+}
+
+export default function MarksRegistryPanel(props: Props) {
+  const [registry, { refetch: refetchDefs }] = createResource(fetchAll);
+  const [enabled, setEnabled] = createSignal<Set<string>>(readEnabled());
+  const [devMode, setDevMode] = createSignal<boolean>(readDevMode());
+  const [runs, setRuns] = createSignal<Record<string, RunState>>({});
+  const [inspecting, setInspecting] = createSignal<string | null>(null);
+
+  const setRun = (id: string, state: RunState) =>
+    setRuns((prev) => ({ ...prev, [id]: state }));
+
+  // External invalidation: settings page (or anywhere else that mutates the
+  // model registry / settings KV) dispatches `marks-runs-invalidate` after
+  // a successful save. We clear all panel-side run state so enabled marks
+  // re-fire under the new model. Without this, switching default models
+  // leaves stale results visible until the user navigates pages.
+  onMount(() => {
+    const onInv = () => {
+      // eslint-disable-next-line no-console
+      console.debug('[panel] runs invalidated by settings change');
+      setRuns({});
+    };
+    window.addEventListener('marks-runs-invalidate', onInv);
+    onCleanup(() => window.removeEventListener('marks-runs-invalidate', onInv));
+  });
+
+  // Re-publish enabled marks (with their definitions) and the parsed run
+  // outputs to the global signals so DafViewer's renderer dispatcher can
+  // pick them up.
+  createEffect(() => {
+    const reg = registry();
+    if (!reg) return;
+    const on = enabled();
+    const defs: RendererMarkDef[] = [];
+    for (const m of reg.marks) {
+      if (!on.has(m.id)) continue;
+      defs.push({ id: m.id, anchor: m.anchor, render: m.render });
+    }
+    setGlobalEnabledMarks(defs);
+  });
+
+  createEffect(() => {
+    const next: Record<string, RendererMarkRunOutput | undefined> = {};
+    const r = runs();
+    for (const id of Object.keys(r)) {
+      const s = r[id];
+      if (s?.kind === 'ok') {
+        const parsed = s.result.parsed as { instances?: unknown } | null;
+        if (parsed && Array.isArray((parsed as { instances?: unknown }).instances)) {
+          // eslint-disable-next-line no-console
+          console.debug(`[panel] publish ${id}: ${(parsed as { instances: unknown[] }).instances.length} instances`);
+          next[id] = { parsed: parsed as { instances: never[] } };
+        } else {
+          // eslint-disable-next-line no-console
+          console.debug(`[panel] publish ${id}: parsed has no instances array`, parsed);
+        }
+      }
+    }
+    setGlobalMarkRuns(next);
+  });
+
+  // Publish a slim per-mark status feed for the daf header indicator. Only
+  // includes worker-defined marks (from the registry); legacy seeds drive
+  // their own loading via existing createResource calls.
+  createEffect(() => {
+    const reg = registry();
+    if (!reg) return;
+    const on = enabled();
+    const r = runs();
+    const out: MarkStatusEntry[] = [];
+    for (const m of reg.marks) {
+      if (!on.has(m.id)) continue;
+      const s = r[m.id];
+      if (!s || s.kind === 'idle') {
+        out.push({ id: m.id, label: m.label, kind: 'idle' });
+      } else if (s.kind === 'loading') {
+        out.push({ id: m.id, label: m.label, kind: 'loading' });
+      } else if (s.kind === 'ok') {
+        out.push({ id: m.id, label: m.label, kind: 'ok', ms: s.result.total_ms });
+      } else {
+        out.push({ id: m.id, label: m.label, kind: 'error', error: s.error });
+      }
+    }
+    setGlobalMarkStatuses(out);
+  });
+
+  const toggle = (id: string) => {
+    const next = new Set(enabled());
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setEnabled(next);
+    writeEnabled(next);
+  };
+
+  const onDevModeChange = (v: boolean) => {
+    setDevMode(v);
+    writeDevMode(v);
+  };
+
+  // Fire a run for any enabled mark or enrichment, on mount + on daf change.
+  // untrack() around the runs() read + setRun() write so the effect doesn't
+  // self-trigger on its own writes. The stamp (`tractate/page`) is stored on
+  // every non-idle state so we can cheaply detect "already done for this
+  // daf" and skip duplicate fires.
+  createEffect(() => {
+    const reg = registry();
+    if (!reg) return;
+    const on = enabled();
+    const stamp = `${props.tractate}/${props.page}`;
+    // eslint-disable-next-line no-console
+    console.debug(`[panel] fire-effect tract=${props.tractate} page=${props.page} on=[${[...on].join(',') || '(none)'}] marks=${reg.marks.length}`);
+
+    untrack(() => {
+      for (const m of reg.marks) {
+        if (!on.has(m.id)) continue;
+        const cur = runs()[m.id];
+        if (cur && cur.kind !== 'idle' && cur.stamp === stamp) continue;
+        // eslint-disable-next-line no-console
+        console.debug(`[panel] firing mark ${m.id}`);
+        setRun(m.id, { kind: 'loading', stamp });
+        void runMark(m.id, props.tractate, props.page).then(
+          (result) => {
+            // eslint-disable-next-line no-console
+            console.debug(`[panel] mark ${m.id} ok in ${result.total_ms}ms (parsed=${result.parsed ? 'yes' : 'null'})`);
+            setRun(m.id, { kind: 'ok', stamp, at: Date.now(), result });
+          },
+          (err) => {
+            const msg = String((err as Error)?.message ?? err);
+            // eslint-disable-next-line no-console
+            console.warn(`[panel] mark ${m.id} ERROR: ${msg}`);
+            setRun(m.id, { kind: 'error', stamp, at: Date.now(), error: msg });
+          },
+        );
+      }
+      for (const e of reg.enrichments) {
+        if (!on.has(e.id)) continue;
+        const cur = runs()[e.id];
+        if (cur && cur.kind !== 'idle' && cur.stamp === stamp) continue;
+        setRun(e.id, { kind: 'loading', stamp });
+        void runEnrichment(e.id, props.tractate, props.page).then(
+          (result) => setRun(e.id, { kind: 'ok', stamp, at: Date.now(), result }),
+          (err) => setRun(e.id, { kind: 'error', stamp, at: Date.now(), error: String((err as Error)?.message ?? err) }),
+        );
+      }
+    });
+  });
+
+  /** Merge legacy seeds + worker-side marks (code + KV) + KV enrichments.
+   *  Worker-side marks take priority over a same-id legacy seed (so a
+   *  proper port replaces the legacy wrapper). */
+  const rows = (): Row[] => {
+    const reg = registry();
+    const workerMarks = reg?.marks ?? [];
+    const enrichments = reg?.enrichments ?? [];
+    const portedIds = new Set(workerMarks.map((m) => m.id));
+    const visibleMarks = devMode() ? workerMarks : workerMarks.filter((m) => m.status !== 'draft');
+    const visibleEnrichments = devMode() ? enrichments : enrichments.filter((e) => e.status !== 'draft');
+    const seeds: Row[] = props.seedMarks
+      .filter((s) => !portedIds.has(s.id))
+      .map((s) => ({ source: 'seed' as const, seed: s }));
+    return [
+      ...visibleMarks.map((d): Row => ({ source: 'mark', def: d })),
+      ...seeds,
+      ...visibleEnrichments.map((d): Row => ({ source: 'enrichment', def: d })),
+    ];
+  };
+
+  const inspectingRow = (): Row | null => {
+    const id = inspecting();
+    if (!id) return null;
+    return rows().find((r) =>
+      r.source === 'seed' ? r.seed.id === id : r.def.id === id,
+    ) ?? null;
+  };
+
+  const inspectingState = (): RunState =>
+    runs()[inspecting() ?? ''] ?? { kind: 'idle' };
+
+  const enabledCount = () => {
+    let n = 0;
+    for (const s of props.seedMarks) if (s.getValue()) n++;
+    n += enabled().size;
+    return n;
+  };
+
+  return (
+    <>
+      <div class="marks-registry-panel" style={{ 'margin-top': '0.5rem', 'font-size': '0.85rem' }}>
+        <div style={{ display: 'flex', 'align-items': 'center', 'justify-content': 'space-between', 'margin-bottom': '0.5rem' }}>
+          <strong style={{ 'font-size': '0.9rem', color: '#222' }}>
+            Marks
+            <span style={{ color: '#888', 'margin-left': '0.5rem', 'font-size': '0.8rem', 'font-weight': 'normal' }}>
+              ({rows().length}, {enabledCount()} on)
+            </span>
+          </strong>
+          <label style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem', 'font-size': '0.75rem', color: '#666' }}>
+            <input type="checkbox" checked={devMode()} onChange={(e) => onDevModeChange(e.currentTarget.checked)} />
+            dev mode
+          </label>
+        </div>
+
+        <Show when={registry.error}>{(err) => (
+          <div style={{ color: '#c00', 'font-family': 'monospace', 'font-size': '12px' }}>
+            failed to load registry: {String(err())}
+          </div>
+        )}</Show>
+
+        <ul style={{ 'list-style': 'none', padding: 0, margin: 0, display: 'flex', 'flex-direction': 'column', gap: '0.25rem' }}>
+          <For each={rows()}>{(row) => {
+            const id = () => row.source === 'seed' ? row.seed.id : row.def.id;
+            const label = () => row.source === 'seed' ? row.seed.label : (row.def.label || row.def.id);
+            const anchor = () => {
+              if (row.source === 'seed') return row.seed.anchor;
+              if (row.source === 'mark') return row.def.anchor;
+              return row.def.mark ?? 'daf';
+            };
+            const render = () => {
+              if (row.source === 'seed') return row.seed.render;
+              if (row.source === 'mark') return row.def.render.kind;
+              return 'inline';
+            };
+            const isOn = () => {
+              if (row.source === 'seed') return row.seed.getValue();
+              return enabled().has(row.def.id);
+            };
+            const state = () => {
+              if (row.source === 'seed') return { kind: 'idle' } as RunState;
+              return runs()[row.def.id] ?? { kind: 'idle' as const };
+            };
+            const isFail = () => state().kind === 'error';
+            const isInspecting = () => inspecting() === id();
+            const setOn = (v: boolean) => {
+              if (row.source === 'seed') row.seed.setValue(v);
+              else toggle(row.def.id);
+            };
+            const isDraft = () =>
+              (row.source === 'mark' || row.source === 'enrichment') && row.def.status === 'draft';
+            return (
+              <li style={{ 'border-left': isFail() && devMode() ? '2px solid #c00' : isDraft() ? '2px solid #fa0' : '2px solid transparent', 'padding-left': '0.4rem' }}>
+                <div style={{ display: 'flex', 'align-items': 'center', gap: '0.4rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={isOn()}
+                    onChange={(e) => setOn(e.currentTarget.checked)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <span style={{ 'font-weight': 500, opacity: isFail() && !devMode() ? 0.4 : 1 }}>
+                    {label()}
+                  </span>
+                  <span title={`${anchor()} · ${render()}`} style={{ color: '#aaa', 'font-size': '0.7rem', 'font-family': 'monospace' }}>
+                    {anchor()[0]}/{String(render())[0]}
+                  </span>
+                  <Show when={row.source !== 'seed' && isOn()}>
+                    <span style={{ 'font-size': '0.7rem', color: state().kind === 'error' ? '#c00' : state().kind === 'loading' ? '#888' : state().kind === 'ok' ? '#080' : '#aaa' }}>
+                      {state().kind === 'loading' ? '⏳' :
+                       state().kind === 'ok' ? `✓ ${(state() as Extract<RunState, { kind: 'ok' }>).result.total_ms}ms` :
+                       state().kind === 'error' ? '✗' : ''}
+                    </span>
+                  </Show>
+                  <Show when={row.source !== 'seed' && isOn()}>
+                    <button
+                      onClick={() => {
+                        if (row.source === 'seed') return;
+                        const mid = row.def.id;
+                        const stamp = `${props.tractate}/${props.page}`;
+                        setRun(mid, { kind: 'loading', stamp });
+                        const fn = row.source === 'mark' ? runMark : runEnrichment;
+                        fn(mid, props.tractate, props.page, true).then(
+                          (result) => setRun(mid, { kind: 'ok', stamp, at: Date.now(), result }),
+                          (err) => setRun(mid, { kind: 'error', stamp, at: Date.now(), error: String((err as Error)?.message ?? err) }),
+                        );
+                      }}
+                      title="Re-run (skip Gateway cache)"
+                      disabled={state().kind === 'loading'}
+                      style={{ 'margin-left': 'auto', padding: '1px 6px', 'font-size': '0.7rem', cursor: state().kind === 'loading' ? 'wait' : 'pointer', background: 'transparent', color: '#888', border: '1px solid #ddd', 'border-radius': '3px' }}
+                    >
+                      ↻
+                    </button>
+                  </Show>
+                  <button
+                    onClick={() => setInspecting(isInspecting() ? null : id())}
+                    style={{ 'margin-left': row.source !== 'seed' && isOn() ? '0' : 'auto', padding: '1px 6px', 'font-size': '0.7rem', cursor: 'pointer', background: isInspecting() ? '#000' : 'transparent', color: isInspecting() ? '#fff' : '#888', border: '1px solid #ddd', 'border-radius': '3px' }}
+                  >
+                    i
+                  </button>
+                </div>
+              </li>
+            );
+          }}</For>
+        </ul>
+
+        <div style={{ display: 'flex', gap: '0.4rem', 'margin-top': '0.4rem', 'flex-wrap': 'wrap' }}>
+          <button
+            onClick={() => refetchDefs()}
+            style={{ padding: '2px 8px', 'font-size': '0.7rem', cursor: 'pointer', background: 'transparent', border: '1px solid #ddd', 'border-radius': '3px', color: '#888' }}
+          >
+            refresh registry
+          </button>
+          <button
+            onClick={() => {
+              setRuns({});
+              // eslint-disable-next-line no-console
+              console.debug('[panel] runs cleared by user');
+            }}
+            title="Clear cached run results so enabled marks re-fire (use after changing models / prompts)"
+            style={{ padding: '2px 8px', 'font-size': '0.7rem', cursor: 'pointer', background: 'transparent', border: '1px solid #ddd', 'border-radius': '3px', color: '#888' }}
+          >
+            re-run all
+          </button>
+        </div>
+      </div>
+
+      <Show when={inspectingRow()}>{(row) => (
+        <InspectShelf
+          row={row()}
+          state={inspectingState()}
+          devMode={devMode()}
+          onClose={() => setInspecting(null)}
+          onSaved={() => { void refetchDefs(); }}
+          onRerun={() => {
+            const r = row();
+            if (r.source === 'seed') return;
+            const id = r.def.id;
+            const stamp = `${props.tractate}/${props.page}`;
+            setRun(id, { kind: 'loading', stamp });
+            const fn = r.source === 'mark' ? runMark : runEnrichment;
+            fn(id, props.tractate, props.page).then(
+              (result) => setRun(id, { kind: 'ok', stamp, at: Date.now(), result }),
+              (err) => setRun(id, { kind: 'error', stamp, at: Date.now(), error: String((err as Error)?.message ?? err) }),
+            );
+          }}
+        />
+      )}</Show>
+    </>
+  );
+}
+
+export type { Row };

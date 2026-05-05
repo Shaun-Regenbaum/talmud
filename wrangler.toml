@@ -25,10 +25,24 @@ remote = true
 # Set AI_GATEWAY_DISABLE = "1" as an emergency kill-switch.
 [vars]
 AI_GATEWAY_ID = "talmud"
+# Default LLM for runLLM() when no explicit model is passed. Phase 1 layers a
+# settings-KV override on top; this is the bootstrap default. Either a
+# Workers AI binding model (`@cf/...`) or an OpenRouter slug
+# (`openrouter/<vendor>/<model>`).
+DEFAULT_LLM_MODEL = "@cf/moonshotai/kimi-k2.5"
+# Provider slug under the `talmud` AI Gateway when routing OpenRouter calls.
+# Must match the provider name added in dash.cloudflare.com → AI → AI Gateway
+# → talmud → Providers.
+OPENROUTER_GATEWAY_PROVIDER = "openrouter"
 
 [[kv_namespaces]]
 binding = "CACHE"
-id = "957172c219734565a172371f98c22056"
+# entity-contract branch namespace — fork from prod (id 957172c2...) on
+# 2026-05-04. Source-text caches (HebrewBooks, Sefaria pre-aligned bundles,
+# Rishonim, halacha refs, topics, SA commentaries) were migrated; everything
+# else (analyze:*, enrich:*, mark-defs:*, llm-settings:*) starts empty.
+# Migration script: Sandbox/2026-05-04-kv-fork/migrate.mjs
+id = "f373689f767c477e98cf3b644a4d05bd"
 
 # Workers Observability — captures logs, errors, metrics visible in the CF
 # dashboard under Workers > talmud > Logs. Lets us see prod errors like

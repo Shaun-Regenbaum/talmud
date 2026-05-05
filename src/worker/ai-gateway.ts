@@ -30,7 +30,7 @@ export interface AiGatewayEnv {
   AI_GATEWAY_DISABLE?: string;
 }
 
-const RETRYABLE = /1031|InferenceUpstreamError|3046|AiError 3046|HTTP 5\d\d|HTTP 429|fetch failed|network/i;
+export const RETRYABLE = /1031|InferenceUpstreamError|3046|AiError 3046|HTTP 5\d\d|HTTP 429|fetch failed|network/i;
 const MAX_ATTEMPTS = 3;
 
 export function gatewayActive(env: AiGatewayEnv): boolean {
@@ -56,7 +56,7 @@ function backoffMs(attempt: number): number {
   return 1000 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 500);
 }
 
-async function runWithRetry<T>(perform: () => Promise<T>): Promise<T> {
+export async function runWithRetry<T>(perform: () => Promise<T>): Promise<T> {
   let lastErr: unknown = null;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {

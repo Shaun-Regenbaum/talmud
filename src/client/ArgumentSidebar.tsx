@@ -7,6 +7,8 @@ import type { IdentifiedRabbi } from './dafContext';
 import type { Pasuk } from './DafViewer';
 import { Hebraized } from './Hebraized';
 
+import MarkEnrichmentCards from './MarkEnrichmentCards';
+
 export type SidebarContent =
   | { kind: 'argument'; section: Section; index: number }
   | { kind: 'halacha'; topic: HalachaTopic; index: number }
@@ -377,52 +379,55 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
               {(() => {
                 const r = (c() as Extract<SidebarContent, { kind: 'rabbi' }>).rabbi;
                 const gen = GENERATION_BY_ID[r.generation];
+                const regionLabel = r.region === 'israel' ? 'Eretz Yisrael'
+                  : r.region === 'bavel' ? 'Bavel'
+                  : r.region;
+                // Single flowing meta line: era · dates · region · places.
+                const metaParts: string[] = [];
+                if (gen) metaParts.push(gen.label);
+                if (gen) metaParts.push(gen.era);
+                if (regionLabel) metaParts.push(regionLabel);
+                if (r.places.length > 0) metaParts.push(r.places.join(', '));
                 return (
                   <div>
-                    <h3 style={{ margin: '0 0 0.2rem', 'font-size': '1.05rem', color: '#333' }}>
+                    <h3 style={{ margin: '0 0 0.15rem', 'font-size': '1.1rem', color: '#222', 'font-weight': 600 }}>
                       {r.name}
                     </h3>
                     <Show when={r.nameHe}>
                       <p dir="rtl" lang="he" style={{
-                        margin: '0 0 0.5rem', 'font-family': '"Mekorot Vilna", serif',
-                        'font-size': '1rem', color: '#666',
+                        margin: '0 0 0.6rem', 'font-family': '"Mekorot Vilna", serif',
+                        'font-size': '1.05rem', color: '#666',
                       }}>{r.nameHe}</p>
                     </Show>
-                    <Show when={gen}>
-                      <div style={{ display: 'flex', 'align-items': 'center', gap: '0.4rem', 'font-size': '0.75rem', color: '#666', 'margin-bottom': '0.6rem' }}>
-                        <span style={{
-                          display: 'inline-block', width: '1.4rem', height: '0.4rem',
-                          'background-color': gen.color, 'border-radius': '2px',
-                        }} />
-                        <span>{gen.label} · {gen.era}</span>
-                        <Show when={r.region}>
-                          <span style={{ color: '#999' }}>·</span>
-                          <span style={{ 'text-transform': 'capitalize' }}>{r.region === 'israel' ? 'Eretz Yisrael' : r.region}</span>
+                    <Show when={metaParts.length > 0}>
+                      <div style={{
+                        display: 'flex', 'align-items': 'center', gap: '0.45rem',
+                        'font-size': '0.78rem', color: '#666',
+                        'margin-bottom': '0.85rem', 'flex-wrap': 'wrap',
+                        'line-height': 1.5,
+                      }}>
+                        <Show when={gen}>
+                          <span style={{
+                            display: 'inline-block', width: '0.55rem', height: '0.55rem',
+                            'background-color': gen.color, 'border-radius': '50%',
+                            'flex-shrink': 0,
+                          }} />
                         </Show>
+                        <span>{metaParts.join(' · ')}</span>
                       </div>
                     </Show>
-                    <Show when={r.places.length > 0}>
-                      <div style={{ 'font-size': '0.78rem', color: '#666', 'margin-bottom': '0.7rem' }}>
-                        <span style={{ color: '#999', 'margin-right': '0.3rem' }}>Places:</span>
-                        {r.places.join(' · ')}
-                      </div>
-                    </Show>
-                    <Show when={r.bio}>
-                      <p style={{ margin: '0 0 0.8rem', color: '#333', 'line-height': 1.55, 'font-size': '0.88rem' }}>
-                        {renderBioWithLinks(r.bio!, props.onOpenRabbiSlug)}
-                      </p>
-                    </Show>
-                    <Show when={r.wiki}>
-                      <a href={r.wiki!} target="_blank" rel="noopener noreferrer"
-                         style={{ 'font-size': '0.78rem', color: '#1e40af' }}>
-                        Wikipedia →
-                      </a>
-                    </Show>
-                    <Show when={!r.bio && !r.places.length}>
-                      <p style={{ color: '#999', 'font-style': 'italic', 'font-size': '0.85rem' }}>
-                        No bio data in the local Sefaria-derived dataset for this rabbi.
-                      </p>
-                    </Show>
+                    {/* Bio is the registry-driven enrichment(s) — historical
+                        + role-on-this-daf. Replaces the static rabbi-places
+                        bio + Wikipedia link. Adding new rabbi enrichments
+                        means dropping a row in CODE_ENRICHMENTS, no UI
+                        changes here. */}
+                    <MarkEnrichmentCards
+                      markId="rabbi"
+                      instance={{ name: r.name, nameHe: r.nameHe, generation: r.generation, region: r.region, places: r.places }}
+                      instanceKey={r.name}
+                      tractate={props.tractate}
+                      page={props.page}
+                    />
                   </div>
                 );
               })()}

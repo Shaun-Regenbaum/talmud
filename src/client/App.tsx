@@ -6,6 +6,7 @@ import { UsagePage } from './UsagePage';
 import { AlignPage } from './AlignPage';
 import EnrichmentPage from './EnrichmentPage';
 import { SagesPage } from './SagesPage';
+import SettingsPage from './SettingsPage';
 
 function currentRoute() {
   // /experiment redirects to /enrichment (entity-contract playground retired
@@ -37,8 +38,12 @@ export default function App() {
         <Show when={route() === 'compare'} fallback={
           <Show when={route() === 'spike'} fallback={
             <Show when={route() === 'sages'} fallback={
-              <Show when={route() === 'enrichment'} fallback={<DafViewer />}>
-                <EnrichmentPage />
+              <Show when={route() === 'settings'} fallback={
+                <Show when={route() === 'enrichment'} fallback={<DafViewer />}>
+                  <EnrichmentPage />
+                </Show>
+              }>
+                <SettingsPage />
               </Show>
             }>
               <SagesPage />

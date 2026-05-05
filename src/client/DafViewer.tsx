@@ -41,7 +41,6 @@ export interface PesukimResult {
   error?: string;
 }
 import { injectCityMarkers } from './injectCityMarkers';
-import { GenerationTimeline } from './GenerationTimeline';
 import { classifyDaf } from '../lib/era/heuristic';
 import type { DafEraContext } from '../lib/era/types';
 import { BugReport } from './BugReport';
@@ -50,6 +49,10 @@ import { CommentaryStrip } from './CommentaryStrip';
 import { GeographyStrip } from './GeographyStrip';
 import { RabbiTreeStrip } from './RabbiTreeStrip';
 import { MobileShelf, type MobileInteractionMode, type MobileDrawerTab } from './MobileShelf';
+import MarksRegistryPanel, { enabledMarkDefs, markRunsByMarkId, markStatuses } from './MarksRegistryPanel';
+import { buildSeedMarks } from './seed-marks';
+import { applyMarkRenderers } from './renderers/dispatch';
+import DevModeShelf, { readDevMode, setDevModeActive } from './DevModeShelf';
 import type { GenerationId } from './generations';
 import { GENERATION_BY_ID } from './generations';
 
@@ -242,7 +245,6 @@ const pesukimSessionCache = new Map<string, PesukimResult>();
 
 const GEN_KEY = 'daf.showGenMarkers';
 const COMMENTARIES_KEY = 'daf.toggle.commentaries';
-const TIMELINE_KEY = 'daf.toggle.timeline';
 const GEOGRAPHY_KEY = 'daf.toggle.geography';
 const CHAIN_KEY = 'daf.toggle.chain';
 const ARGUMENTS_KEY = 'daf.toggle.arguments';
@@ -310,17 +312,80 @@ export default function DafViewer(): JSX.Element {
   const [dafContext, setDafContext] = createSignal<DafContext | null>(null);
   const [genLoading, setGenLoading] = createSignal(false);
   const [genError, setGenError] = createSignal<string | null>(null);
-  const [showGenMarkers, setShowGenMarkers] = createSignal(loadToggle(GEN_KEY, true));
-  const [showCommentaries, setShowCommentaries] = createSignal(loadToggle(COMMENTARIES_KEY, true));
-  const [showTimeline, setShowTimeline] = createSignal(loadToggle(TIMELINE_KEY, true));
-  const [showGeography, setShowGeography] = createSignal(loadToggle(GEOGRAPHY_KEY, true));
-  const [showChain, setShowChain] = createSignal(loadToggle(CHAIN_KEY, true));
-  const [showArguments, setShowArguments] = createSignal(loadToggle(ARGUMENTS_KEY, true));
-  const [showHalachot, setShowHalachot] = createSignal(loadToggle(HALACHOT_KEY, true));
-  const [showAggadatot, setShowAggadatot] = createSignal(loadToggle(AGGADATOT_KEY, true));
-  const [showPesukim, setShowPesukim] = createSignal(loadToggle(PESUKIM_KEY, true));
+  // Defaults flipped to false — fresh users see an unannotated daf, then
+  // opt into individual layers via the marks panel. Existing users keep
+  // their persisted state in localStorage.
+  const [showGenMarkers, setShowGenMarkers] = createSignal(loadToggle(GEN_KEY, false));
+  const [showCommentaries, setShowCommentaries] = createSignal(loadToggle(COMMENTARIES_KEY, false));
+  const [showGeography, setShowGeography] = createSignal(loadToggle(GEOGRAPHY_KEY, false));
+  const [showChain, setShowChain] = createSignal(loadToggle(CHAIN_KEY, false));
+  const [showArguments, setShowArguments] = createSignal(loadToggle(ARGUMENTS_KEY, false));
+  const [showHalachot, setShowHalachot] = createSignal(loadToggle(HALACHOT_KEY, false));
+  const [showAggadatot, setShowAggadatot] = createSignal(loadToggle(AGGADATOT_KEY, false));
+  const [showPesukim, setShowPesukim] = createSignal(loadToggle(PESUKIM_KEY, false));
   const [showEra, setShowEra] = createSignal(loadToggle(ERA_KEY, false));
   const [showEraHighlight, setShowEraHighlight] = createSignal(loadToggle(ERA_HIGHLIGHT_KEY, false));
+  // Dev shelf — bottom drawer with marks toggles + captured console log.
+  const [devOpen, setDevOpen] = createSignal(readDevMode());
+
+  // Adapter: derive analysis() from the new registry-driven `argument` mark
+  // run output. The new schema is { instances: [{startSegIdx, endSegIdx,
+  // fields: { title, summary, excerpt, rabbiNames }}] } — we map it to the
+  // legacy DafAnalysis shape so existing gutter+sidebar rendering continues
+  // to work. rabbiNames map to per-section rabbi entries with empty rich
+  // fields (period/location/role/opinionStart will come from a follow-up
+  // per-section enrichment).
+  createEffect(() => {
+    const runs = markRunsByMarkId();
+    const argRun = runs['argument'];
+    if (!argRun?.parsed) return;
+    const p = argRun.parsed as {
+      summary?: string;
+      instances?: Array<{
+        startSegIdx: number;
+        endSegIdx: number;
+        fields: { title: string; summary: string; excerpt: string; rabbiNames?: string[] };
+      }>;
+    };
+    if (!Array.isArray(p.instances)) return;
+    const sections: Section[] = p.instances.map((inst) => ({
+      title: inst.fields.title,
+      summary: inst.fields.summary,
+      excerpt: inst.fields.excerpt,
+      startSegIdx: inst.startSegIdx,
+      endSegIdx: inst.endSegIdx,
+      rabbis: (inst.fields.rabbiNames ?? []).map((name) => ({
+        name,
+        nameHe: '',
+        period: '',
+        location: '',
+        role: '',
+        opinionStart: '',
+      })),
+    }));
+    const adapted: DafAnalysis = { summary: p.summary ?? '', sections };
+    setAnalysis(adapted);
+    analysisSessionCache.set(`${tractate()}:${page()}`, adapted);
+  });
+
+  // Bridge: when a code-defined registry mark is enabled (rabbi already has
+  // its own renderer; argument/halacha/aggadata/pesukim still rely on the
+  // legacy createResource + sidebar code paths), flip the corresponding
+  // legacy signal so the existing rendering kicks in. When the registry
+  // mark is disabled, flip it off. This is the transitional glue while the
+  // four segment-range marks remain `legacy-endpoint` proxies.
+  createEffect(() => {
+    const ids = new Set(enabledMarkDefs().map((m) => m.id));
+    const want = (id: string) => ids.has(id);
+    // showGenMarkers gates a CSS class (`daf-no-rabbi-underlines`) that
+    // hides the rabbi-underline spans. Without this bridge the renderer
+    // dispatcher injects the markup correctly but CSS keeps it invisible.
+    if (showGenMarkers() !== want('rabbi')) setShowGenMarkers(want('rabbi'));
+    if (showArguments() !== want('argument')) setShowArguments(want('argument'));
+    if (showHalachot() !== want('halacha')) setShowHalachot(want('halacha'));
+    if (showAggadatot() !== want('aggadata')) setShowAggadatot(want('aggadata'));
+    if (showPesukim() !== want('pesukim')) setShowPesukim(want('pesukim'));
+  });
   // Era-context state: stage 1 (heuristic) lands instantly, stage 2 (LLM)
   // upgrades silently via polling. Mirrors the dafContext pattern.
   const [eraContext, setEraContext] = createSignal<DafEraContext | null>(null);
@@ -468,7 +533,6 @@ export default function DafViewer(): JSX.Element {
   });
   createEffect(() => {
     if (typeof localStorage === 'undefined') return;
-    localStorage.setItem(TIMELINE_KEY, String(showTimeline()));
   });
   createEffect(() => {
     if (typeof localStorage === 'undefined') return;
@@ -759,16 +823,23 @@ export default function DafViewer(): JSX.Element {
     return () => controller.abort();
   });
 
-  // Analyze (argument structure). Probe cache first; if nothing is cached,
-  // auto-kick off a fresh run so the Geography + sidebar aren't blocked
-  // on an explicit "Analyze" click. Kimi K2.6 with thinking runs in ~30-90s
-  // so auto-running is tolerable per daf.
+  // Analyze (argument structure). When the new registry-driven `argument`
+  // mark is enabled, derive analysis() from its run output (no legacy
+  // /api/analyze fetch). Otherwise fall through to the legacy probe + auto-
+  // kick path. Eventually the legacy path is removed entirely; for now it
+  // still runs when the user has the new mark off.
   createEffect(() => {
     const t = tractate();
     const p = page();
     const key = `${t}:${p}`;
     const cached = analysisSessionCache.get(key);
     if (cached) { setAnalysis(cached); return; }
+    if (enabledMarkDefs().some((m) => m.id === 'argument')) {
+      // New system owns this mark — clear any stale legacy data; the
+      // adapter effect below will populate analysis() once the run lands.
+      setAnalysis(null);
+      return;
+    }
     setAnalysis(null);
     const controller = new AbortController();
     fetch(`/api/analyze/${encodeURIComponent(t)}/${p}?cached_only=1`, { signal: controller.signal })
@@ -1436,15 +1507,33 @@ export default function DafViewer(): JSX.Element {
     // Geography no longer renders inline section-origin dots — the info is
     // shown in the GeographyMap component in the right-side legend instead.
 
-    const rabbis = generations();
-    if (rabbis) {
-      // Rabbi spans are always injected so click-driven highlights from the
-      // timeline and geography map can find them via data-rabbi attributes,
-      // even when the visual underline is toggled off. The underline itself
-      // is gated via the .daf-no-rabbi-underlines class on .daf-page (CSS).
-      main = injectRabbiUnderlines(main, rabbis);
-      if (inner) inner = injectRabbiUnderlines(inner, rabbis);
-      if (outer) outer = injectRabbiUnderlines(outer, rabbis);
+    // Rabbi underlining: legacy path (createResource → generations()) only
+    // when the new registry-driven 'rabbi' mark isn't enabled. When the
+    // user toggles the new rabbi mark on, the renderer dispatcher below
+    // owns the painting; otherwise fall through to the legacy injection so
+    // existing flows keep working.
+    const newSystemRabbi = enabledMarkDefs().some((m) => m.id === 'rabbi');
+    if (!newSystemRabbi) {
+      const rabbis = generations();
+      if (rabbis) {
+        main = injectRabbiUnderlines(main, rabbis);
+        if (inner) inner = injectRabbiUnderlines(inner, rabbis);
+        if (outer) outer = injectRabbiUnderlines(outer, rabbis);
+      }
+    }
+
+    // Apply registry-driven renderers (the new system). For each currently
+    // enabled mark with parsed run output, dispatch to the renderer keyed
+    // by (anchor, render.kind). Today only phrase+inline (rabbi) is
+    // implemented; more shapes land as we port more built-ins.
+    {
+      const defs = enabledMarkDefs();
+      const runs = markRunsByMarkId();
+      if (defs.length > 0) {
+        main = applyMarkRenderers(main, defs, runs);
+        if (inner) inner = applyMarkRenderers(inner, defs, runs);
+        if (outer) outer = applyMarkRenderers(outer, defs, runs);
+      }
     }
 
     // City markers for KNOWN_CITIES mentioned in the Hebrew. Wraps each
@@ -1778,9 +1867,31 @@ export default function DafViewer(): JSX.Element {
 
   // Click handler shared by text / map / timeline / sidebar — opens the rabbi
   // card AND highlights every mention of that rabbi across the daf.
+  // Source priority: legacy dafContext (richer — has places/bio/wiki/region
+  // joined from rabbi-places.json) → new registry-driven rabbi mark output
+  // (just name/nameHe/generation; the per-rabbi enrichment cards in the
+  // sidebar fill in the rest contextually).
   const openRabbi = (name: string) => {
-    const ctx = dafContext();
-    const r = ctx?.rabbis.find((x) => x.name === name) ?? null;
+    let r: IdentifiedRabbi | null = dafContext()?.rabbis.find((x) => x.name === name) ?? null;
+    if (!r) {
+      const argRun = markRunsByMarkId()['rabbi'];
+      const inst = (argRun?.parsed as { instances?: Array<{ excerpt?: string; fields: Record<string, unknown> }> } | undefined)
+        ?.instances?.find((i) => i.fields?.name === name);
+      if (inst) {
+        r = {
+          slug: null,
+          name,
+          nameHe: String(inst.fields.nameHe ?? inst.excerpt ?? ''),
+          generation: (inst.fields.generation ?? 'unknown') as GenerationId,
+          region: null,
+          places: [],
+          moved: null,
+          bio: null,
+          image: null,
+          wiki: null,
+        };
+      }
+    }
     setActivePlace(null);
     clearCommentarySelection();
     if (!r) {
@@ -2024,25 +2135,129 @@ export default function DafViewer(): JSX.Element {
           {tractate()} {page()} · ← / → to navigate · click any word to translate
         </span>
 
-        <details class="daf-toggles-disclosure">
-          <summary class="daf-toggles-summary">Options</summary>
-          <div class="daf-toggles">
-            <ToggleSwitch label="Commentaries" value={showCommentaries()} onChange={setShowCommentaries} />
-            <ToggleSwitch label="Timeline" value={showTimeline()} onChange={setShowTimeline} />
-            <ToggleSwitch label="Underline Rabbis" value={showGenMarkers()} onChange={setShowGenMarkers} />
-            <ToggleSwitch label="Geography" value={showGeography()} onChange={setShowGeography} />
-            <ToggleSwitch label="Chain" value={showChain()} onChange={setShowChain} />
-            <ToggleSwitch label="Arguments" value={showArguments()} onChange={setShowArguments} />
-            <ToggleSwitch label="Halachot" value={showHalachot()} onChange={setShowHalachot} />
-            <ToggleSwitch label="Aggadatot" value={showAggadatot()} onChange={setShowAggadatot} />
-            <ToggleSwitch label="Pesukim" value={showPesukim()} onChange={setShowPesukim} />
-            <ToggleSwitch label="Era" value={showEra()} onChange={setShowEra} />
-            <Show when={showEra()}>
-              <ToggleSwitch label="Highlight Eras" value={showEraHighlight()} onChange={setShowEraHighlight} />
-            </Show>
-          </div>
-        </details>
+        <button
+          onClick={() => { const v = !devOpen(); setDevOpen(v); setDevModeActive(v); }}
+          title="Toggle dev sidebar (marks + console log)"
+          style={{
+            'margin-left': 'auto',
+            padding: '0.35rem 0.6rem',
+            cursor: 'pointer',
+            'font-size': '0.8rem',
+            'font-family': 'ui-monospace, Menlo, monospace',
+            background: devOpen() ? '#000' : 'transparent',
+            color: devOpen() ? '#fff' : '#444',
+            border: '1px solid #ccc',
+            'border-radius': '4px',
+          }}
+        >
+          dev
+        </button>
       </header>
+
+      <Show when={analysisLoading() || halachaLoading() || aggadataLoading() || pesukimLoading() || genLoading() || analysisError() || halachaError() || aggadataError() || pesukimError() || genError() || markStatuses().some((s) => s.kind === 'loading' || s.kind === 'error')}>
+        <section
+          style={{
+            'margin-bottom': '1rem',
+            'max-width': '720px',
+            'margin-left': 'auto',
+            'margin-right': 'auto',
+            display: 'flex',
+            gap: '0.75rem',
+            'flex-wrap': 'wrap',
+            'align-items': 'center',
+            'justify-content': 'center',
+            'font-size': '0.75rem',
+            color: '#888',
+          }}
+        >
+          <Show when={analysisLoading()}>
+            <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
+              <span style={{
+                display: 'inline-block', width: '0.75rem', height: '0.75rem',
+                'border-radius': '50%',
+                border: '2px solid #d6d3d1', 'border-top-color': '#8a2a2b',
+                animation: 'daf-spin 0.8s linear infinite',
+              }} />
+              Analyzing arguments…
+            </span>
+          </Show>
+          <Show when={halachaLoading()}>
+            <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
+              <span style={{
+                display: 'inline-block', width: '0.75rem', height: '0.75rem',
+                'border-radius': '50%',
+                border: '2px solid #d6d3d1', 'border-top-color': '#1e40af',
+                animation: 'daf-spin 0.8s linear infinite',
+              }} />
+              Identifying halacha…
+            </span>
+          </Show>
+          <Show when={aggadataLoading()}>
+            <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
+              <span style={{
+                display: 'inline-block', width: '0.75rem', height: '0.75rem',
+                'border-radius': '50%',
+                border: '2px solid #d6d3d1', 'border-top-color': '#6d28d9',
+                animation: 'daf-spin 0.8s linear infinite',
+              }} />
+              Finding aggadot…
+            </span>
+          </Show>
+          <Show when={pesukimLoading()}>
+            <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
+              <span style={{
+                display: 'inline-block', width: '0.75rem', height: '0.75rem',
+                'border-radius': '50%',
+                border: '2px solid #d6d3d1', 'border-top-color': '#d97706',
+                animation: 'daf-spin 0.8s linear infinite',
+              }} />
+              Expounding pesukim…
+            </span>
+          </Show>
+          <Show when={genLoading()}>
+            <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
+              <span style={{
+                display: 'inline-block', width: '0.75rem', height: '0.75rem',
+                'border-radius': '50%',
+                border: '2px solid #d6d3d1', 'border-top-color': '#059669',
+                animation: 'daf-spin 0.8s linear infinite',
+              }} />
+              Building chain of tradition…
+            </span>
+          </Show>
+          {/* Registry-driven marks — show one badge per loading/error mark. */}
+          <For each={markStatuses().filter((s) => s.kind === 'loading')}>{(s) => (
+            <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
+              <span style={{
+                display: 'inline-block', width: '0.75rem', height: '0.75rem',
+                'border-radius': '50%',
+                border: '2px solid #d6d3d1', 'border-top-color': '#0f766e',
+                animation: 'daf-spin 0.8s linear infinite',
+              }} />
+              {s.label || s.id}…
+            </span>
+          )}</For>
+          <For each={markStatuses().filter((s) => s.kind === 'error')}>{(s) => (
+            <span style={{ color: '#c33' }}>{s.label || s.id}: {s.error}</span>
+          )}</For>
+          <Show when={analysisError()}>
+            <span style={{ color: '#c33' }}>Arguments: {analysisError()}</span>
+          </Show>
+          <Show when={halachaError()}>
+            <span style={{ color: '#c33' }}>Halacha: {halachaError()}</span>
+          </Show>
+          <Show when={aggadataError()}>
+            <span style={{ color: '#c33' }}>Aggadot: {aggadataError()}</span>
+          </Show>
+          <Show when={pesukimError()}>
+            <span style={{ color: '#c33' }}>Pesukim: {pesukimError()}</span>
+          </Show>
+          <Show when={genError()}>
+            <span style={{ color: '#c33' }}>Chain: {genError()}</span>
+          </Show>
+          <style>{`@keyframes daf-spin { to { transform: rotate(360deg); } }`}</style>
+        </section>
+      </Show>
 
       <div class="daf-layout">
       <div class="daf-cluster">
@@ -2065,20 +2280,6 @@ export default function DafViewer(): JSX.Element {
         </aside>
       </Show>
       <section class="daf-body-col">
-      <Show when={showEra() && showTimeline()}>
-        <GenerationTimeline
-          rabbis={generations()}
-          eraSegmentCounts={eraSegmentCounts()}
-          activeGeneration={activeGenerationId()}
-          onHighlightGeneration={onHighlightGeneration}
-          onHoverGeneration={setHoveredEra}
-          width={dafWidth()}
-          showGenMarkers={showGenMarkers()}
-          onToggleGenMarkers={setShowGenMarkers}
-          genLoading={genLoading()}
-          genError={genError()}
-        />
-      </Show>
       <div class="daf-surface" onMouseUp={onMouseUpRoot} style={{ display: 'flex', 'justify-content': 'center' }}>
         <Show
           when={!daf.loading && tokenized()}
@@ -2149,96 +2350,6 @@ export default function DafViewer(): JSX.Element {
           )}
         </Show>
       </div>
-
-      <Show when={analysisLoading() || halachaLoading() || aggadataLoading() || pesukimLoading() || genLoading() || analysisError() || halachaError() || aggadataError() || pesukimError() || genError()}>
-        <section
-          style={{
-            'margin-top': '1rem',
-            'max-width': '720px',
-            'margin-left': 'auto',
-            'margin-right': 'auto',
-            display: 'flex',
-            gap: '0.75rem',
-            'flex-wrap': 'wrap',
-            'align-items': 'center',
-            'justify-content': 'center',
-            'font-size': '0.75rem',
-            color: '#888',
-          }}
-        >
-          <Show when={analysisLoading()}>
-            <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
-              <span style={{
-                display: 'inline-block', width: '0.75rem', height: '0.75rem',
-                'border-radius': '50%',
-                border: '2px solid #d6d3d1', 'border-top-color': '#8a2a2b',
-                animation: 'daf-spin 0.8s linear infinite',
-              }} />
-              Analyzing arguments…
-            </span>
-          </Show>
-          <Show when={halachaLoading()}>
-            <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
-              <span style={{
-                display: 'inline-block', width: '0.75rem', height: '0.75rem',
-                'border-radius': '50%',
-                border: '2px solid #d6d3d1', 'border-top-color': '#1e40af',
-                animation: 'daf-spin 0.8s linear infinite',
-              }} />
-              Identifying halacha…
-            </span>
-          </Show>
-          <Show when={aggadataLoading()}>
-            <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
-              <span style={{
-                display: 'inline-block', width: '0.75rem', height: '0.75rem',
-                'border-radius': '50%',
-                border: '2px solid #d6d3d1', 'border-top-color': '#6d28d9',
-                animation: 'daf-spin 0.8s linear infinite',
-              }} />
-              Finding aggadot…
-            </span>
-          </Show>
-          <Show when={pesukimLoading()}>
-            <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
-              <span style={{
-                display: 'inline-block', width: '0.75rem', height: '0.75rem',
-                'border-radius': '50%',
-                border: '2px solid #d6d3d1', 'border-top-color': '#d97706',
-                animation: 'daf-spin 0.8s linear infinite',
-              }} />
-              Expounding pesukim…
-            </span>
-          </Show>
-          <Show when={genLoading()}>
-            <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
-              <span style={{
-                display: 'inline-block', width: '0.75rem', height: '0.75rem',
-                'border-radius': '50%',
-                border: '2px solid #d6d3d1', 'border-top-color': '#059669',
-                animation: 'daf-spin 0.8s linear infinite',
-              }} />
-              Building chain of tradition…
-            </span>
-          </Show>
-          <Show when={analysisError()}>
-            <span style={{ color: '#c33' }}>Arguments: {analysisError()}</span>
-          </Show>
-          <Show when={halachaError()}>
-            <span style={{ color: '#c33' }}>Halacha: {halachaError()}</span>
-          </Show>
-          <Show when={aggadataError()}>
-            <span style={{ color: '#c33' }}>Aggadot: {aggadataError()}</span>
-          </Show>
-          <Show when={pesukimError()}>
-            <span style={{ color: '#c33' }}>Pesukim: {pesukimError()}</span>
-          </Show>
-          <Show when={genError()}>
-            <span style={{ color: '#c33' }}>Chain: {genError()}</span>
-          </Show>
-          <style>{`@keyframes daf-spin { to { transform: rotate(360deg); } }`}</style>
-        </section>
-      </Show>
 
       <Show when={active()}>
         {(a) => (
@@ -2446,6 +2557,29 @@ export default function DafViewer(): JSX.Element {
           generationByName={generationByName()}
         />
       </Show>
+      <DevModeShelf open={devOpen()} onClose={() => { setDevOpen(false); setDevModeActive(false); }}>
+        <MarksRegistryPanel
+          tractate={tractate()}
+          page={page()}
+          seedMarks={buildSeedMarks({
+            showGenMarkers, setShowGenMarkers,
+            showCommentaries, setShowCommentaries,
+            showGeography, setShowGeography,
+            showChain, setShowChain,
+            showArguments, setShowArguments,
+            showHalachot, setShowHalachot,
+            showAggadatot, setShowAggadatot,
+            showPesukim, setShowPesukim,
+            showEra, setShowEra,
+          })}
+        />
+        <Show when={showEra()}>
+          <label style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem', 'margin-top': '0.5rem', 'font-size': '0.8rem', color: '#666' }}>
+            <input type="checkbox" checked={showEraHighlight()} onChange={(e) => setShowEraHighlight(e.currentTarget.checked)} />
+            highlight eras (era render-config)
+          </label>
+        </Show>
+      </DevModeShelf>
     </main>
   );
 }

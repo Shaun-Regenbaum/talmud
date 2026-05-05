@@ -104,6 +104,14 @@ section h2 {
   font-family: system-ui, sans-serif;
 }
 
+/* When the dev sidebar is open, push the daf body right by its width so
+   the daf renders centered in the remaining viewport (rather than being
+   covered by the sidebar). DevModeShelf sets --dev-shelf-width on body. */
+body.dev-shelf-open .daf-page {
+  padding-left: calc(1rem + var(--dev-shelf-width, 0px));
+  transition: padding-left 60ms linear;
+}
+
 .daf-layout {
   display: flex;
   align-items: flex-start;
