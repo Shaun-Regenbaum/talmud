@@ -29,23 +29,6 @@ import { classifyDaf } from '../lib/era/heuristic';
 import { extractTalmudContent } from '../lib/sefref/alignment';
 import type { SegmentEra, DafEraContext, EraSignalSource } from '../lib/era/types';
 import {
-  type EntityType,
-  type Entity,
-  type EnrichedEntity,
-  STRATEGIES,
-  DEFAULT_STRATEGY,
-  CACHE_TTL_S,
-  isEntityType,
-  isValidStrategy,
-  identifyCacheKey,
-  enrichCacheKey,
-  makeRabbiId,
-  makeIndexId,
-  makeEraId,
-  makeMesorahId,
-  parseEntityId,
-} from './entity-types';
-import {
   RABBI_ENRICH_SYSTEM_PROMPT,
   buildRabbiEnrichUserMessage,
   type LocalRabbiInput,
@@ -67,7 +50,19 @@ import {
   type EnrichmentDefinition,
 } from './studio-registry';
 import { CODE_MARKS, CODE_ENRICHMENTS, findCodeMark, findCodeEnrichment } from './code-marks';
-import type { MarkDefinition as SchemaMarkDefinition } from './studio-schema';
+import type {
+  MarkDefinition as SchemaMarkDefinition,
+  EnrichmentDefinition as SchemaEnrichmentDefinition,
+  EnrichmentDependency,
+  MarkDependency,
+} from './studio-schema';
+import {
+  keyForMark,
+  keyForEnrichment,
+  keyForGemara,
+  keyForCommentaries,
+  instanceIdOf,
+} from './cache-keys';
 
 type Movement = 'bavel->israel' | 'israel->bavel' | 'both' | null;
 interface RabbiPlacesEntry {
@@ -98,10 +93,6 @@ interface Bindings {
   AI?: Ai;
   CACHE?: KVNamespace;
   EMAIL?: EmailBinding;
-  HALACHA_ENRICH?: Workflow;
-  ARGUMENT_ENRICH?: Workflow;
-  AGGADATA_ENRICH?: Workflow;
-  PESUKIM_ENRICH?: Workflow;
   // AI Gateway routing (see src/worker/ai-gateway.ts).
   AI_GATEWAY_ID?: string;
   AI_GATEWAY_DISABLE?: string;
@@ -138,6 +129,116 @@ function cleanVerseText(s: string): string {
     .replace(/\s+/g, ' ')
     .trim();
 }
+
+// Minimal support utilities used by the kept routes (daf-context, region,
+// mesorah, era-* and the offline rabbi data-build pipeline). The legacy
+// enrichment routes that originally introduced these have been removed.
+// These are intentionally compact — they're support glue, not architecture.
+
+interface StreamedResult {
+  content: string;
+  reasoning_content: string;
+  usage: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number; cost?: number } | null;
+  finish_reason: string | null;
+  prompt_chars: number;
+  content_chars: number;
+  reasoning_chars: number;
+  elapsed_ms: number;
+}
+
+function extractJsonPayload(resp: unknown): string {
+  if (typeof resp === 'string') return resp;
+  if (!resp || typeof resp !== 'object') return '';
+  const r = resp as Record<string, unknown>;
+  if (typeof r.response === 'string') return r.response;
+  if (typeof r.content === 'string') return r.content;
+  if (typeof r.text === 'string') return r.text;
+  return '';
+}
+
+interface KimiMessage { role: 'system' | 'user' | 'assistant'; content: string }
+
+async function runKimiStreaming(
+  env: Bindings,
+  modelId: string,
+  messages: KimiMessage[],
+  maxTokens: number,
+  opts?: { temperature?: number; chatTemplateKwargs?: { enable_thinking?: boolean }; responseFormat?: unknown },
+): Promise<StreamedResult> {
+  const t0 = Date.now();
+  const promptChars = messages.reduce((s, m) => s + m.content.length, 0);
+  const enableThinking = opts?.chatTemplateKwargs?.enable_thinking;
+  const r = await runLLM(env, {
+    model: modelId as LLMModelId,
+    messages,
+    max_tokens: maxTokens,
+    temperature: opts?.temperature ?? 0.1,
+    thinking: typeof enableThinking === 'boolean' ? enableThinking : undefined,
+    response_format: opts?.responseFormat as { type: 'json_schema'; json_schema: unknown } | undefined,
+    stream: true,
+  });
+  return {
+    content: r.content,
+    reasoning_content: r.reasoning_content ?? '',
+    usage: r.usage as StreamedResult['usage'],
+    finish_reason: r.finish_reason ?? null,
+    prompt_chars: promptChars,
+    content_chars: r.content.length,
+    reasoning_chars: (r.reasoning_content ?? '').length,
+    elapsed_ms: Date.now() - t0,
+  };
+}
+
+interface DafSkeleton {
+  summary: string;
+  sections: Array<{
+    title: string;
+    summary: string;
+    excerpt: string;
+    startSegIdx?: number;
+    endSegIdx?: number;
+    rabbiNames: string[];
+  }>;
+}
+
+interface PesukimStoryShape {
+  verseRef?: string;
+  citationStyle?: string;
+  excerpt?: string;
+  summary?: string;
+  startSegIdx?: number;
+  endSegIdx?: number;
+  tanachContext?: unknown;
+  peshat?: unknown;
+  gemaraUsage?: unknown;
+  exegesis?: unknown;
+  synthesize?: unknown;
+}
+
+function rishonimBlock(bundle: RishonimBundle, perCommentatorCap = 2500): string {
+  const entries = Object.entries(bundle);
+  if (entries.length === 0) return '';
+  const sliceStr = (s: string | undefined | null, cap: number) => {
+    if (!s) return '';
+    const cleaned = stripHtmlServer(s);
+    return cleaned.length > cap ? cleaned.slice(0, cap) : cleaned;
+  };
+  const parts = entries.map(([label, snip]) => {
+    const he = sliceStr(snip.hebrew, perCommentatorCap);
+    const en = sliceStr(snip.english, perCommentatorCap);
+    const body = [
+      he && `<hebrew>${he}</hebrew>`,
+      en && `<english>${en}</english>`,
+    ].filter(Boolean).join('\n');
+    return `<commentator name="${label}" ref="${snip.ref}">\n${body}\n</commentator>`;
+  });
+  return `<rishonim_commentary>\n${parts.join('\n')}\n</rishonim_commentary>`;
+}
+
+const STRATEGY_NAMES = [
+  'rabbis', 'references', 'parallels', 'commentaries',
+  'bigger-picture', 'background', 'synthesize',
+] as const;
 
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -282,7 +383,8 @@ app.get('/api/studio/enrichments', async (c) => {
       description: e.description,
       mark: e.target_mark,
       mode: e.mode,
-      depends: e.depends,
+      scope: e.scope,
+      dependencies: e.dependencies,
       system_prompt: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).system_prompt,
       user_prompt_template: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).user_prompt_template,
       model: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).model,
@@ -315,41 +417,104 @@ app.delete('/api/studio/enrichments/:id', async (c) => {
   return c.json({ ok: true });
 });
 
-/**
- * Resolve a daf into a context bundle the prompt template can interpolate.
- * Currently surfaces the focal Hebrew/English; expand with rishonim, halacha,
- * neighbor amudim as enrichment templates start asking for them.
- */
-async function buildDafContext(c: { env: Bindings }, tractate: string, page: string): Promise<{
+// ===========================================================================
+// Source slices — each is a small, independently cached view of the daf.
+// Marks/enrichments declare which slices they need via `dependencies`; the
+// runner only fetches what's actually referenced. Slice cache keys live in
+// cache-keys.ts (no hand-built keys here).
+// ===========================================================================
+
+interface GemaraSlice {
   tractate: string;
   page: string;
   hebrew: string;
   english: string;
   segments_he: string[];
   segments_en: string[];
-}> {
-  const cache = c.env.CACHE;
+}
+
+const SLICE_TTL_S = 30 * 24 * 3600;
+
+async function getGemaraSlice(env: Bindings, tractate: string, page: string, bypass: boolean): Promise<GemaraSlice> {
+  const cache = env.CACHE;
+  const key = keyForGemara(tractate, page);
+  if (cache && !bypass) {
+    const cached = await cache.get(key);
+    if (cached) {
+      try { return JSON.parse(cached) as GemaraSlice; } catch { /* fall through */ }
+    }
+  }
   const [hb, sef, segs] = await Promise.all([
     getHebrewBooksDafCached(cache, tractate, page),
     getSefariaPageCached(cache, tractate, page),
     getSefariaSegmentsCached(cache, tractate, page),
   ]);
-  const hebrew = hb?.main ?? sef?.mainText.hebrew ?? '';
-  const english = sef?.mainText.english ?? '';
-  const segments_he = (segs?.he ?? []).map(stripHtmlServer);
-  const segments_en = (segs?.en ?? []).map(stripHtmlServer);
-  return { tractate, page, hebrew, english, segments_he, segments_en };
+  const slice: GemaraSlice = {
+    tractate, page,
+    hebrew: hb?.main ?? sef?.mainText.hebrew ?? '',
+    english: sef?.mainText.english ?? '',
+    segments_he: (segs?.he ?? []).map(stripHtmlServer),
+    segments_en: (segs?.en ?? []).map(stripHtmlServer),
+  };
+  if (cache) await cache.put(key, JSON.stringify(slice), { expirationTtl: SLICE_TTL_S });
+  return slice;
+}
+
+interface CommentariesSlice {
+  tractate: string;
+  page: string;
+  /** Map of commentator name → { hebrew, english, ref }. Empty {} if Sefaria
+   *  has nothing on this daf. */
+  by_commentator: Record<string, { hebrew: string; english: string; ref: string }>;
+}
+
+async function getCommentariesSlice(env: Bindings, tractate: string, page: string, bypass: boolean): Promise<CommentariesSlice> {
+  const cache = env.CACHE;
+  const key = keyForCommentaries(tractate, page);
+  if (cache && !bypass) {
+    const cached = await cache.get(key);
+    if (cached) {
+      try { return JSON.parse(cached) as CommentariesSlice; } catch { /* fall through */ }
+    }
+  }
+  const bundle = await getRishonimCached(cache, tractate, page);
+  const slice: CommentariesSlice = { tractate, page, by_commentator: bundle ?? {} };
+  if (cache) await cache.put(key, JSON.stringify(slice), { expirationTtl: SLICE_TTL_S });
+  return slice;
+}
+
+function gemaraSliceToVars(s: GemaraSlice): Record<string, unknown> {
+  return {
+    tractate: s.tractate,
+    page: s.page,
+    hebrew: s.hebrew,
+    english: s.english,
+    gemara_he: s.hebrew,
+    gemara_en: s.english,
+    segments_he: s.segments_he,
+    segments_en: s.segments_en,
+    gemara: `${s.hebrew}\n\n---\n\n${s.english}`,
+  };
+}
+
+function commentariesSliceToString(s: CommentariesSlice): string {
+  const names = Object.keys(s.by_commentator).sort();
+  return names.map((n) => {
+    const row = s.by_commentator[n];
+    return `[${n}]\n${row.hebrew}\n${row.english}`.trim();
+  }).join('\n\n---\n\n');
 }
 
 /**
  * Substitute {{placeholders}} in a prompt template with values from `vars`.
  * Missing placeholders render as empty strings (per shared template
  * convention; loud failure is annoying when iterating). Supported:
- *   {{tractate}} {{page}} {{hebrew}} {{english}}
- *   {{segments_he}}   — segments numbered [0], [1], ...
- *   {{segments_en}}   — same shape
- *   {{mark_input}}    — JSON-stringified mark input (for enrichments)
- *   {{depends.<id>}}  — JSON-stringified output of a dependency enrichment
+ *   {{tractate}} {{page}} {{hebrew}} {{english}} {{gemara}} {{commentaries}}
+ *   {{segments_he}}    — segments numbered [0], [1], ...
+ *   {{segments_en}}    — same shape
+ *   {{mark_input}}     — JSON-stringified mark input (for enrichments)
+ *   {{depends.<id>}}   — JSON-stringified output of a dependency enrichment
+ *   {{anchors.<id>}}   — JSON-stringified instance list of a dependency mark
  */
 function renderTemplate(tpl: string, vars: Record<string, unknown>): string {
   return tpl.replace(/\{\{\s*([\w.-]+)\s*\}\}/g, (_, key: string) => {
@@ -365,153 +530,484 @@ function renderTemplate(tpl: string, vars: Record<string, unknown>): string {
       const v = deps[id];
       return v === undefined ? '' : (typeof v === 'string' ? v : JSON.stringify(v, null, 2));
     }
+    if (key.startsWith('anchors.')) {
+      const id = key.slice('anchors.'.length);
+      const a = (vars.anchors ?? {}) as Record<string, unknown>;
+      const v = a[id];
+      return v === undefined ? '' : (typeof v === 'string' ? v : JSON.stringify(v, null, 2));
+    }
     const v = vars[key];
     if (v === undefined || v === null) return '';
     return typeof v === 'string' ? v : JSON.stringify(v);
   });
 }
 
-/**
- * POST /api/studio/run — execute an enrichment, return raw output + telemetry.
- *
- * Body:
- *   { enrichment_id?: string, ad_hoc?: EnrichmentDefinition,
- *     tractate: string, page: string,
- *     model_override?: LLMModelId,
- *     mark_input?: unknown,        // for non-daf marks
- *     depends?: Record<string, unknown> }  // pre-computed dependency outputs
- *
- * Exactly one of enrichment_id / ad_hoc must be set.
- *
- * Response:
- *   { content, parsed?, model, transport, attempts, usage,
- *     cost?, elapsed_ms, prompt_chars,
- *     resolved: { system_prompt, user_prompt },  // the rendered prompts
- *     definition: EnrichmentDefinition }
- */
-/**
- * Normalize a definition (KV-shaped enrichment, code-defined mark, or ad-hoc
- * enrichment) into the flat run-spec the handler executes against. Code marks
- * carry their LLM config under .extractor; KV enrichments have it at the top
- * level. This lets one run path serve both.
- */
-interface RunSpec {
-  id: string;
-  kind: 'mark' | 'enrichment';
-  system_prompt: string;
-  user_prompt_template: string;
-  model?: LLMModelId;
-  fallback?: LLMModelId[];
-  output_schema?: unknown;
-  thinking_off?: boolean;
-}
+// ===========================================================================
+// Definition lookup — KV first, then code-defined fallback. Both shapes are
+// adapted to the KV-flat shape the runner expects.
+// ===========================================================================
 
-function normalizeMarkToRunSpec(m: SchemaMarkDefinition): RunSpec | { error: string } {
-  if (m.extractor.kind === 'llm') {
-    return {
-      id: m.id,
-      kind: 'mark',
-      system_prompt: m.extractor.system_prompt,
-      user_prompt_template: m.extractor.user_prompt_template,
-      model: m.extractor.model,
-      fallback: m.extractor.fallback,
-      output_schema: m.extractor.output_schema,
-      thinking_off: m.extractor.thinking_off,
-    };
-  }
-  return { error: `mark ${m.id} extractor.kind=${m.extractor.kind} should be handled before normalize` };
-}
-function normalizeEnrichmentToRunSpec(e: EnrichmentDefinition): RunSpec {
+function adaptCodeEnrichment(code: SchemaEnrichmentDefinition): EnrichmentDefinition | null {
+  if (code.extractor.kind !== 'llm') return null;
   return {
-    id: e.id,
-    kind: 'enrichment',
-    system_prompt: e.system_prompt,
-    user_prompt_template: e.user_prompt_template,
-    model: e.model,
-    output_schema: e.output_schema,
-    thinking_off: e.thinking_off,
+    id: code.id,
+    label: code.label,
+    description: code.description,
+    mark: code.target_mark,
+    scope: code.scope,
+    dependencies: code.dependencies,
+    system_prompt: code.extractor.system_prompt,
+    user_prompt_template: code.extractor.user_prompt_template,
+    model: code.extractor.model,
+    output_schema: code.extractor.output_schema,
+    thinking_off: code.extractor.thinking_off,
+    cache_version: code.cache_version,
+    source: 'code',
+    updated_at: code.updated_at,
   };
 }
 
-/**
- * Resolve the `depends` chain of an aggregate enrichment. For each dep id,
- * look up the enrichment def (KV → code), recursively resolve ITS deps, run
- * its LLM, and return a map of `{ depId: parsedOutput }`. Used by the run
- * handler to populate `{{depends.<id>}}` in synthesis prompts.
- *
- * Each dep run is independent (no shared cache logic at this layer — relies
- * on the AI Gateway prompt cache for cheap re-runs of the same prompt).
- */
-async function resolveDeps(
-  c: { env: Bindings; req: { url: string }; executionCtx: ExecutionContext },
-  def: EnrichmentDefinition,
-  ctx: Awaited<ReturnType<typeof buildDafContext>>,
+async function loadEnrichmentDef(env: Bindings, id: string): Promise<EnrichmentDefinition | null> {
+  const kv = await readEnrichment(env, id);
+  if (kv) return kv;
+  const code = findCodeEnrichment(id);
+  return code ? adaptCodeEnrichment(code) : null;
+}
+
+async function loadMarkDef(env: Bindings, id: string): Promise<SchemaMarkDefinition | null> {
+  const kv = await readMark(env, id);
+  if (kv) {
+    return {
+      id: kv.id,
+      label: kv.label,
+      description: kv.description,
+      anchor: 'phrase',
+      render: { kind: 'inline', style: 'underline', color: '#0066CC' },
+      extractor: {
+        kind: 'llm',
+        system_prompt: kv.system_prompt ?? '',
+        user_prompt_template: kv.user_prompt_template ?? '',
+      },
+      dependencies: kv.dependencies,
+      status: 'draft',
+      def_hash: 'kv',
+      cache_version: kv.cache_version,
+      source: 'kv',
+      updated_at: kv.updated_at,
+    };
+  }
+  return findCodeMark(id);
+}
+
+// ===========================================================================
+// Dependency resolution — walks `dependencies` and feeds the prompt template.
+// Mark deps are run via runMarkOnce (cached by daf); enrichment deps via
+// runEnrichmentOnce (cached by instance + scope). Source slices come from the
+// helpers above.
+// ===========================================================================
+
+interface RunCtx {
+  env: Bindings;
+  url: string;
+  ctx: ExecutionContext;
+}
+
+interface ResolvedInputs {
+  /** Template vars to merge into the prompt context. */
+  vars: Record<string, unknown>;
+  /** Enrichment outputs keyed by dep id (returned to the client as deps_resolved). */
+  depends: Record<string, unknown>;
+  /** Mark instance lists keyed by dep id (returned as anchors_resolved). */
+  anchors: Record<string, unknown>;
+}
+
+async function resolveDependencies(
+  rc: RunCtx,
+  dependencies: ReadonlyArray<EnrichmentDependency> | ReadonlyArray<MarkDependency> | undefined,
+  tractate: string,
+  page: string,
   markInput: unknown,
   bypassCache: boolean,
-): Promise<Record<string, unknown>> {
-  const depIds = def.depends ?? [];
-  if (depIds.length === 0) return {};
-  const out: Record<string, unknown> = {};
-  for (const depId of depIds) {
-    let depDef: EnrichmentDefinition | null = await readEnrichment(c.env, depId);
-    if (!depDef) {
-      const code = findCodeEnrichment(depId);
-      if (code && code.extractor.kind === 'llm') {
-        depDef = {
-          id: code.id,
-          label: code.label,
-          description: code.description,
-          mark: code.target_mark,
-          depends: code.depends,
-          system_prompt: code.extractor.system_prompt,
-          user_prompt_template: code.extractor.user_prompt_template,
-          model: code.extractor.model,
-          output_schema: code.extractor.output_schema,
-          thinking_off: code.extractor.thinking_off,
-          cache_version: code.cache_version,
-          source: 'code',
-          updated_at: code.updated_at,
-        };
-      }
-    }
-    if (!depDef) {
-      out[depId] = { error: `not found` };
+  parentChain: ReadonlySet<string>,
+): Promise<ResolvedInputs> {
+  const out: ResolvedInputs = { vars: {}, depends: {}, anchors: {} };
+  if (!dependencies || dependencies.length === 0) {
+    // Default behavior: when no dependencies declared, hand the gemara slice
+    // through (matches pre-refactor buildDafContext behavior). Removes a
+    // foot-gun when porting old extractors that omitted the field.
+    const slice = await getGemaraSlice(rc.env, tractate, page, bypassCache);
+    Object.assign(out.vars, gemaraSliceToVars(slice));
+    return out;
+  }
+  for (const dep of dependencies) {
+    if (dep === 'gemara') {
+      const slice = await getGemaraSlice(rc.env, tractate, page, bypassCache);
+      Object.assign(out.vars, gemaraSliceToVars(slice));
       continue;
     }
-    // Recursively resolve THIS dep's deps first.
-    const subDeps = await resolveDeps(c, depDef, ctx, markInput, bypassCache);
-    const vars: Record<string, unknown> = {
-      ...ctx, mark_input: markInput, depends: subDeps,
-    };
-    const sysPrompt = renderTemplate(depDef.system_prompt, vars);
-    const userPrompt = renderTemplate(depDef.user_prompt_template, vars);
-    try {
-      const result = await runLLM(c.env, {
-        ...(depDef.model ? { model: depDef.model } : {}),
-        messages: [
-          { role: 'system', content: sysPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        max_tokens: 8000,
-        temperature: 0.2,
-        response_format: depDef.output_schema
-          ? { type: 'json_schema', json_schema: depDef.output_schema }
-          : undefined,
-        thinking: depDef.thinking_off ? false : undefined,
-        bypass_cache: bypassCache,
-      });
-      let parsed: unknown = null;
-      if (depDef.output_schema) {
-        try { parsed = JSON.parse(result.content); } catch { /* ignore */ }
+    if (dep === 'commentaries') {
+      const slice = await getCommentariesSlice(rc.env, tractate, page, bypassCache);
+      out.vars.commentaries = commentariesSliceToString(slice);
+      continue;
+    }
+    if (typeof dep === 'object' && dep !== null) {
+      if ('enrichment' in dep) {
+        const depId = dep.enrichment;
+        if (parentChain.has(depId)) {
+          out.depends[depId] = { error: `cycle detected (${[...parentChain].join(' → ')} → ${depId})` };
+          continue;
+        }
+        const depDef = await loadEnrichmentDef(rc.env, depId);
+        if (!depDef) {
+          out.depends[depId] = { error: 'not found' };
+          continue;
+        }
+        try {
+          const result = await runEnrichmentOnce(rc, depDef, tractate, page, markInput, bypassCache, undefined, parentChain);
+          out.depends[depId] = result.parsed ?? result.content;
+        } catch (err) {
+          out.depends[depId] = { error: String((err as Error)?.message ?? err) };
+        }
+        continue;
       }
-      out[depId] = parsed ?? result.content;
-    } catch (err) {
-      out[depId] = { error: String((err as Error)?.message ?? err) };
+      if ('mark' in dep) {
+        const markId = dep.mark;
+        const markDef = await loadMarkDef(rc.env, markId);
+        if (!markDef) {
+          out.anchors[markId] = { error: 'not found' };
+          continue;
+        }
+        try {
+          const result = await runMarkOnce(rc, markDef, tractate, page, bypassCache);
+          // Surface only the parsed instances list — extractors all emit
+          // `{ instances: [...] }`. If the parse failed, expose the raw text.
+          const parsed = result.parsed as { instances?: unknown } | null;
+          out.anchors[markId] = parsed?.instances ?? result.content;
+        } catch (err) {
+          out.anchors[markId] = { error: String((err as Error)?.message ?? err) };
+        }
+        continue;
+      }
     }
   }
   return out;
 }
 
+// ===========================================================================
+// Run helpers — one per kind, both KV-cached via cache-keys.ts.
+// ===========================================================================
+
+interface RunResult {
+  content: string;
+  reasoning?: string;
+  parsed: unknown;
+  parse_error: string | null;
+  model: string;
+  transport: string;
+  attempts: number;
+  usage: unknown;
+  elapsed_ms: number;
+  prompt_chars: number;
+  resolved: { system_prompt: string; user_prompt: string };
+  cache_hit: boolean;
+}
+
+interface RunResultEnrichment extends RunResult {
+  deps_resolved?: Record<string, unknown>;
+  anchors_resolved?: Record<string, unknown>;
+}
+
+async function readCachedResult(env: Bindings, key: string): Promise<RunResult | null> {
+  if (!env.CACHE) return null;
+  const raw = await env.CACHE.get(key);
+  if (!raw) return null;
+  try { return JSON.parse(raw) as RunResult; } catch { return null; }
+}
+
+async function writeCachedResult(env: Bindings, key: string, result: RunResult): Promise<void> {
+  if (!env.CACHE) return;
+  // 90 day TTL — outputs are deterministic per (def_hash, cache_version, daf
+  // or instance), so they're stable until the operator bumps cache_version.
+  await env.CACHE.put(key, JSON.stringify(result), { expirationTtl: 90 * 24 * 3600 });
+}
+
+async function runMarkOnce(
+  rc: RunCtx,
+  def: SchemaMarkDefinition,
+  tractate: string,
+  page: string,
+  bypassCache: boolean,
+): Promise<RunResult> {
+  if (def.extractor.kind !== 'llm') {
+    throw new Error(`mark ${def.id} extractor.kind=${def.extractor.kind} not supported`);
+  }
+  const ext = def.extractor;
+  const cacheKey = keyForMark(def, tractate, page);
+  if (!bypassCache) {
+    const hit = await readCachedResult(rc.env, cacheKey);
+    if (hit) return { ...hit, cache_hit: true };
+  }
+
+  const inputs = await resolveDependencies(rc, def.dependencies, tractate, page, undefined, bypassCache, new Set());
+  const vars: Record<string, unknown> = {
+    ...inputs.vars,
+    depends: inputs.depends,
+    anchors: inputs.anchors,
+  };
+  const systemPrompt = renderTemplate(ext.system_prompt, vars);
+  const userPrompt = renderTemplate(ext.user_prompt_template, vars);
+
+  const result = await runLLM(rc.env, {
+    ...(ext.model ? { model: ext.model } : {}),
+    ...(ext.fallback && ext.fallback.length > 0 ? { fallback: ext.fallback } : {}),
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+    max_tokens: 16000,
+    temperature: 0.2,
+    response_format: ext.output_schema
+      ? { type: 'json_schema', json_schema: ext.output_schema }
+      : undefined,
+    thinking: ext.thinking_off ? false : undefined,
+    bypass_cache: bypassCache,
+  });
+
+  let parsed: unknown = null;
+  let parse_error: string | null = null;
+  if (ext.output_schema) {
+    try { parsed = JSON.parse(result.content); }
+    catch (err) { parse_error = String(err).slice(0, 200); }
+  }
+  // Per-mark post-processing. Some extractors (notably argument-move) can't
+  // reliably emit segment indices for sub-ranges, so we re-derive them from
+  // the verbatim Hebrew excerpt the LLM IS good at copying.
+  if (parsed && def.id === 'argument-move') {
+    parsed = await postProcessArgumentMove(parsed, rc.env, tractate, page);
+  }
+  const out: RunResult = {
+    content: result.content,
+    reasoning: result.reasoning_content || undefined,
+    parsed,
+    parse_error,
+    model: result.model,
+    transport: result.transport,
+    attempts: result.attempts,
+    usage: result.usage,
+    elapsed_ms: result.elapsed_ms,
+    prompt_chars: result.prompt_chars,
+    // Resolved prompts are dev-only inspection; cap each at 2KB so multi-run
+    // responses don't balloon. The full prompt was already sent to the LLM —
+    // we don't need to ship it back through workerd just for the dev tray.
+    resolved: {
+      system_prompt: systemPrompt.length > 2000 ? systemPrompt.slice(0, 2000) + '… [+' + (systemPrompt.length - 2000) + ' chars]' : systemPrompt,
+      user_prompt: userPrompt.length > 2000 ? userPrompt.slice(0, 2000) + '… [+' + (userPrompt.length - 2000) + ' chars]' : userPrompt,
+    },
+    cache_hit: false,
+  };
+  if (!parse_error) await writeCachedResult(rc.env, cacheKey, out);
+  return out;
+}
+
+/**
+ * Post-process argument-move mark output: V4-Flash reliably copies the
+ * verbatim Hebrew excerpt for each move but its startSegIdx/endSegIdx are
+ * frequently the WHOLE section (every move = same range, "lazy partition"
+ * issue). Re-derive ranges by locating each excerpt in the gemara's
+ * numbered segments and computing the next-move boundary.
+ *
+ * Algorithm:
+ *   1. For each move, normalize the excerpt and search the segments_he
+ *      array for the segment whose normalized text contains it. That seg
+ *      becomes the move's startSegIdx.
+ *   2. The endSegIdx is the segment right before the next move's startSegIdx
+ *      (within the same parent section), or the section's endSegIdx for the
+ *      last move in a section.
+ *   3. If an excerpt can't be located, leave the LLM-emitted range alone
+ *      (don't make things worse).
+ *
+ * LIMITATION (TODO: sub-segment anchoring):
+ *   When Sefaria packages a section as a SINGLE segment — most commonly the
+ *   opening Mishnah of a tractate, where the whole Mishnah is one block at
+ *   segments_he[0] — every move inside that section resolves to the same
+ *   startSegIdx. Clicking different moves all highlight the same span on
+ *   the daf even though the LLM correctly identified them as distinct.
+ *
+ *   Fix path (separate piece of work; see legacy halacha highlight in
+ *   DafViewer.tsx for the existing word-token precedent):
+ *     1. Extend mark instance fields to optionally carry { tokenStart,
+ *        tokenEnd } — word indices within the segment.
+ *     2. Have this post-processor also walk the .daf-word stream of the
+ *        matched segment to compute the excerpt's word range, not just
+ *        its segment.
+ *     3. Update the move-highlight painter in DafViewer.applyHighlights
+ *        to paint over [seg.tokenStart .. seg.tokenEnd] when those fields
+ *        are present, falling back to whole-segment when absent.
+ *   Most non-Mishnah sections are split into multiple segments per move so
+ *   this only bites bundled-Mishnah-style blocks.
+ */
+async function postProcessArgumentMove(
+  parsed: unknown,
+  env: Bindings,
+  tractate: string,
+  page: string,
+): Promise<unknown> {
+  if (!parsed || typeof parsed !== 'object') return parsed;
+  const obj = parsed as { instances?: unknown };
+  if (!Array.isArray(obj.instances)) return parsed;
+
+  const slice = await getGemaraSlice(env, tractate, page, false);
+  const segs = slice.segments_he;
+  if (segs.length === 0) return parsed;
+
+  const normalize = (s: string) =>
+    s.replace(/[֑-ׇ]/g, '')   // strip nikud + cantillation
+      .replace(/[׳״"'.,:;!?\-–—()[\]{}]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  const segNorms = segs.map(normalize);
+
+  type Move = { startSegIdx: number; endSegIdx: number; fields: { sectionStartSegIdx: number; sectionEndSegIdx: number; moveOrder: number; excerpt: string; [k: string]: unknown } };
+  const instances = obj.instances as Move[];
+
+  // Pass 1: locate each move's startSegIdx by excerpt search. Search after
+  // the previous move's match within the same section so partition ordering
+  // is preserved when multiple moves share verbatim phrasing.
+  let lastSection = -1;
+  let searchFrom = 0;
+  for (const inst of instances) {
+    if (!inst || typeof inst !== 'object') continue;
+    const f = inst.fields ?? {};
+    const sStart = typeof f.sectionStartSegIdx === 'number' ? f.sectionStartSegIdx : 0;
+    if (sStart !== lastSection) { lastSection = sStart; searchFrom = sStart; }
+    const ex = typeof f.excerpt === 'string' ? normalize(f.excerpt) : '';
+    if (!ex) continue;
+    let found = -1;
+    for (let i = searchFrom; i < segNorms.length; i++) {
+      if (segNorms[i].includes(ex)) { found = i; break; }
+    }
+    if (found < 0) {
+      // Fallback: search from section start without the searchFrom cursor
+      // (prev move's match might have been at the wrong position).
+      for (let i = sStart; i <= (typeof f.sectionEndSegIdx === 'number' ? f.sectionEndSegIdx : segNorms.length - 1); i++) {
+        if (segNorms[i].includes(ex)) { found = i; break; }
+      }
+    }
+    if (found >= 0) {
+      inst.startSegIdx = found;
+      searchFrom = found + 1;
+    }
+  }
+
+  // Pass 2: derive endSegIdx from the next move's startSegIdx within the
+  // same section, or the section's endSegIdx for the last move.
+  for (let i = 0; i < instances.length; i++) {
+    const cur = instances[i];
+    if (!cur) continue;
+    const sEnd = typeof cur.fields?.sectionEndSegIdx === 'number' ? cur.fields.sectionEndSegIdx : cur.startSegIdx;
+    const next = instances[i + 1];
+    const nextInSameSection = next && next.fields?.sectionStartSegIdx === cur.fields?.sectionStartSegIdx;
+    cur.endSegIdx = nextInSameSection ? Math.max(cur.startSegIdx, next.startSegIdx - 1) : sEnd;
+    if (cur.endSegIdx < cur.startSegIdx) cur.endSegIdx = cur.startSegIdx;
+  }
+
+  return obj;
+}
+
+async function runEnrichmentOnce(
+  rc: RunCtx,
+  def: EnrichmentDefinition,
+  tractate: string,
+  page: string,
+  markInput: unknown,
+  bypassCache: boolean,
+  modelOverride?: LLMModelId,
+  parentChain: ReadonlySet<string> = new Set(),
+): Promise<RunResultEnrichment> {
+  const instance_id = await instanceIdOf(markInput);
+  const cacheKey = modelOverride
+    // Per-call model overrides skip the canonical cache to avoid polluting
+    // the default-traffic key. Re-running with the same override hits the
+    // gateway prompt cache but not KV — consistent with bypass behavior.
+    ? null
+    : keyForEnrichment(def, instance_id, def.scope === 'local' ? { tractate, page } : undefined);
+  if (cacheKey && !bypassCache) {
+    const hit = await readCachedResult(rc.env, cacheKey);
+    if (hit) return { ...hit, cache_hit: true };
+  }
+
+  const nextChain = new Set(parentChain);
+  nextChain.add(def.id);
+  const inputs = await resolveDependencies(rc, def.dependencies, tractate, page, markInput, bypassCache, nextChain);
+
+  const vars: Record<string, unknown> = {
+    ...inputs.vars,
+    mark_input: markInput,
+    depends: inputs.depends,
+    anchors: inputs.anchors,
+  };
+  const systemPrompt = renderTemplate(def.system_prompt, vars);
+  const userPrompt = renderTemplate(def.user_prompt_template, vars);
+
+  const model = modelOverride ?? def.model;
+  const result = await runLLM(rc.env, {
+    ...(model ? { model } : {}),
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+    max_tokens: 16000,
+    temperature: 0.2,
+    response_format: def.output_schema
+      ? { type: 'json_schema', json_schema: def.output_schema }
+      : undefined,
+    thinking: def.thinking_off ? false : undefined,
+    bypass_cache: bypassCache,
+  });
+
+  let parsed: unknown = null;
+  let parse_error: string | null = null;
+  if (def.output_schema) {
+    try { parsed = JSON.parse(result.content); }
+    catch (err) { parse_error = String(err).slice(0, 200); }
+  }
+  const out: RunResultEnrichment = {
+    content: result.content,
+    reasoning: result.reasoning_content || undefined,
+    parsed,
+    parse_error,
+    model: result.model,
+    transport: result.transport,
+    attempts: result.attempts,
+    usage: result.usage,
+    elapsed_ms: result.elapsed_ms,
+    prompt_chars: result.prompt_chars,
+    // Resolved prompts are dev-only inspection; cap each at 2KB so multi-run
+    // responses don't balloon. The full prompt was already sent to the LLM —
+    // we don't need to ship it back through workerd just for the dev tray.
+    resolved: {
+      system_prompt: systemPrompt.length > 2000 ? systemPrompt.slice(0, 2000) + '… [+' + (systemPrompt.length - 2000) + ' chars]' : systemPrompt,
+      user_prompt: userPrompt.length > 2000 ? userPrompt.slice(0, 2000) + '… [+' + (userPrompt.length - 2000) + ' chars]' : userPrompt,
+    },
+    cache_hit: false,
+    deps_resolved: Object.keys(inputs.depends).length > 0 ? inputs.depends : undefined,
+    anchors_resolved: Object.keys(inputs.anchors).length > 0 ? inputs.anchors : undefined,
+  };
+  if (cacheKey && !parse_error) await writeCachedResult(rc.env, cacheKey, out);
+  return out;
+}
+
+/**
+ * POST /api/studio/run — execute a mark or enrichment, return its raw output
+ * + telemetry. Cache-aware: results are read/written via cache-keys.ts.
+ *
+ * Body:
+ *   { mark_id?, enrichment_id?, ad_hoc?,
+ *     tractate, page,
+ *     model_override?, mark_input?, bypass_cache? }
+ *
+ * Exactly one of mark_id / enrichment_id / ad_hoc is required.
+ */
 app.post('/api/studio/run', async (c) => {
   let body: {
     mark_id?: string;
@@ -521,228 +1017,85 @@ app.post('/api/studio/run', async (c) => {
     page?: string;
     model_override?: string;
     mark_input?: unknown;
-    depends?: Record<string, unknown>;
     bypass_cache?: boolean;
   };
   try { body = await c.req.json(); } catch { return c.json({ error: 'invalid JSON' }, 400); }
-  const { tractate, page, model_override, mark_input, depends } = body;
+  const { tractate, page, model_override, mark_input } = body;
   if (!tractate || !page) return c.json({ error: 'tractate and page required' }, 400);
-
-  // 1. Resolve the definition. Priority: mark_id (KV → code) > enrichment_id (KV) > ad_hoc.
-  let spec: RunSpec | null = null;
-  let definition: SchemaMarkDefinition | EnrichmentDefinition | null = null;
+  if (model_override && !isLLMModelId(model_override)) {
+    return c.json({ error: 'model_override must start with @cf/ or openrouter/' }, 400);
+  }
+  const bypass = body.bypass_cache === true;
+  const rc: RunCtx = { env: c.env, url: c.req.url, ctx: c.executionCtx };
+  const t0 = Date.now();
 
   if (body.mark_id) {
-    // Special case: code-defined mark with a 'legacy-endpoint' extractor.
-    // We proxy the existing endpoint (already running on this same worker)
-    // and wrap the result as { instances: [...] } so the run output shape
-    // is consistent across mark kinds. Bypasses the LLM path entirely.
-    const codeForLegacy = findCodeMark(body.mark_id);
-    if (codeForLegacy && codeForLegacy.extractor.kind === 'legacy-endpoint') {
-      const ext = codeForLegacy.extractor;
-      let url = ext.endpoint.replace(/\{\{tractate\}\}/g, encodeURIComponent(tractate)).replace(/\{\{page\}\}/g, encodeURIComponent(page));
-      // Propagate bypass_cache → ?refresh=1, which the legacy analyze /
-      // halacha / aggadata / pesukim endpoints all honor as a "skip my KV
-      // cache, re-run the LLM" signal. Without this, ↻ on a legacy-bridged
-      // mark just re-reads the same cached payload.
-      if (body.bypass_cache) {
-        url += url.includes('?') ? '&refresh=1' : '?refresh=1';
-      }
-      const t0 = Date.now();
-      try {
-        const proxyReq = new Request(new URL(url, c.req.url).toString(), { method: 'GET' });
-        const resp = await app.fetch(proxyReq, c.env, c.executionCtx);
-        if (!resp.ok) {
-          return c.json({ error: `legacy ${url} returned ${resp.status}`, definition: codeForLegacy, total_ms: Date.now() - t0 }, 502);
-        }
-        const payload = await resp.json() as Record<string, unknown>;
-        const arr = payload[ext.instances_path];
-        const items = Array.isArray(arr) ? arr : [];
-        const startField = ext.start_seg_field ?? 'startSegIdx';
-        const endField = ext.end_seg_field ?? 'endSegIdx';
-        const instances = items.map((item) => {
-          const fields = item as Record<string, unknown>;
-          return {
-            startSegIdx: fields[startField],
-            endSegIdx: fields[endField],
-            fields,
-          };
-        });
-        return c.json({
-          kind: 'mark',
-          content: JSON.stringify({ instances }),
-          parsed: { instances, _legacy: payload },
-          parse_error: null,
-          model: 'legacy',
-          transport: 'legacy-endpoint',
-          attempts: 1,
-          usage: null,
-          elapsed_ms: Date.now() - t0,
-          prompt_chars: 0,
-          resolved: { system_prompt: '', user_prompt: `GET ${url}` },
-          definition: codeForLegacy,
-          total_ms: Date.now() - t0,
-        });
-      } catch (err) {
-        return c.json({
-          error: String((err as Error)?.message ?? err),
-          definition: codeForLegacy,
-          total_ms: Date.now() - t0,
-        }, 502);
-      }
+    const def = await loadMarkDef(c.env, body.mark_id);
+    if (!def) return c.json({ error: `mark ${body.mark_id} not found` }, 404);
+    try {
+      const result = await runMarkOnce(rc, def, tractate, page, bypass);
+      recordTelemetry(c, {
+        endpoint: 'studio-mark', tractate, page, mark_id: body.mark_id,
+        cache_hit: result.cache_hit, model: result.model,
+        ms: Date.now() - t0, ok: true,
+      });
+      return c.json({
+        kind: 'mark',
+        ...result,
+        definition: def,
+        total_ms: Date.now() - t0,
+      });
+    } catch (err) {
+      const msg = String((err as Error)?.message ?? err);
+      recordTelemetry(c, {
+        endpoint: 'studio-mark', tractate, page, mark_id: body.mark_id,
+        cache_hit: false, ms: Date.now() - t0, ok: false, error_kind: classifyError(msg),
+      });
+      return c.json({
+        error: msg,
+        definition: def,
+        total_ms: Date.now() - t0,
+      }, 502);
     }
-    // Try KV first (allows overriding a built-in by saving same id).
-    const kvMark = await readMark(c.env, body.mark_id);
-    if (kvMark) {
-      // KV mark uses the legacy simpler shape — adapt by constructing a fake
-      // schema-shaped mark with the legacy fields slotted into extractor.
-      const adapted: SchemaMarkDefinition = {
-        id: kvMark.id,
-        label: kvMark.label,
-        description: kvMark.description,
-        anchor: 'phrase', // legacy default
-        render: { kind: 'inline', style: 'underline', color: '#0066CC' },
-        extractor: {
-          kind: 'llm',
-          system_prompt: kvMark.system_prompt ?? '',
-          user_prompt_template: kvMark.user_prompt_template ?? '',
-        },
-        status: 'draft',
-        def_hash: 'kv',
-        cache_version: kvMark.cache_version,
-        source: 'kv',
-        updated_at: kvMark.updated_at,
-      };
-      const n = normalizeMarkToRunSpec(adapted);
-      if ('error' in n) return c.json({ error: n.error }, 400);
-      spec = n; definition = adapted;
-    } else {
-      const codeMark = findCodeMark(body.mark_id);
-      if (!codeMark) return c.json({ error: `mark ${body.mark_id} not found` }, 404);
-      const n = normalizeMarkToRunSpec(codeMark);
-      if ('error' in n) return c.json({ error: n.error }, 400);
-      spec = n; definition = codeMark;
-    }
-  } else if (body.enrichment_id) {
-    const kv = await readEnrichment(c.env, body.enrichment_id);
-    let found: EnrichmentDefinition | null = kv;
-    if (!found) {
-      const code = findCodeEnrichment(body.enrichment_id);
-      if (code) {
-        // Adapt schema-shaped EnrichmentDefinition (extractor sub-object)
-        // into the KV-shaped one the run handler currently consumes.
-        if (code.extractor.kind !== 'llm') {
-          return c.json({ error: `enrichment ${code.id} extractor.kind=${code.extractor.kind} not yet supported` }, 400);
-        }
-        found = {
-          id: code.id,
-          label: code.label,
-          description: code.description,
-          mark: code.target_mark,
-          depends: code.depends,
-          system_prompt: code.extractor.system_prompt,
-          user_prompt_template: code.extractor.user_prompt_template,
-          model: code.extractor.model,
-          output_schema: code.extractor.output_schema,
-          thinking_off: code.extractor.thinking_off,
-          cache_version: code.cache_version,
-          source: 'code',
-          updated_at: code.updated_at,
-        };
-      }
-    }
-    if (!found) return c.json({ error: `enrichment ${body.enrichment_id} not found` }, 404);
-    spec = normalizeEnrichmentToRunSpec(found); definition = found;
+  }
+
+  let def: EnrichmentDefinition | null = null;
+  if (body.enrichment_id) {
+    def = await loadEnrichmentDef(c.env, body.enrichment_id);
+    if (!def) return c.json({ error: `enrichment ${body.enrichment_id} not found` }, 404);
   } else if (body.ad_hoc) {
     const v = validateEnrichment({ ...(body.ad_hoc as object), id: 'ad-hoc' });
     if (!v.ok) return c.json({ error: `ad_hoc invalid: ${v.error}` }, 400);
-    const adHoc: EnrichmentDefinition = { ...v.spec, source: 'kv', updated_at: new Date().toISOString() };
-    spec = normalizeEnrichmentToRunSpec(adHoc); definition = adHoc;
+    def = { ...v.spec, source: 'kv', updated_at: new Date().toISOString() };
   } else {
     return c.json({ error: 'mark_id, enrichment_id, or ad_hoc required' }, 400);
   }
 
-  if (model_override && !isLLMModelId(model_override)) {
-    return c.json({ error: 'model_override must start with @cf/ or openrouter/' }, 400);
-  }
-
-  // 2. Build daf context.
-  const ctx = await buildDafContext(c, tractate, page);
-
-  // 2a. If the enrichment has `depends` and the body didn't pre-supply them,
-  // run each dep first and capture their parsed outputs. This is what
-  // enables aggregate/synthesis enrichments to weave multiple leaves.
-  let resolvedDepends: Record<string, unknown> = depends ?? {};
-  if (
-    body.enrichment_id &&
-    Object.keys(resolvedDepends).length === 0 &&
-    definition && 'depends' in definition && Array.isArray((definition as EnrichmentDefinition).depends) &&
-    (definition as EnrichmentDefinition).depends!.length > 0
-  ) {
-    resolvedDepends = await resolveDeps(c, definition as EnrichmentDefinition, ctx, mark_input, body.bypass_cache === true);
-  }
-
-  const vars: Record<string, unknown> = {
-    ...ctx,
-    mark_input,
-    depends: resolvedDepends,
-  };
-  const systemPrompt = renderTemplate(spec.system_prompt, vars);
-  const userPrompt = renderTemplate(spec.user_prompt_template, vars);
-
-  // 3. Execute via runLLM. Model resolution priority: per-call override >
-  // definition.model > settings KV default.
-  const t0 = Date.now();
-  const overrideModel = (model_override as LLMModelId | undefined) ?? spec.model;
   try {
-    const result = await runLLM(c.env, {
-      ...(overrideModel ? { model: overrideModel } : {}),
-      ...(spec.fallback && spec.fallback.length > 0 ? { fallback: spec.fallback } : {}),
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      max_tokens: 16000,
-      temperature: 0.2,
-      response_format: spec.output_schema
-        ? { type: 'json_schema', json_schema: spec.output_schema }
-        : undefined,
-      thinking: spec.thinking_off ? false : undefined,
-      bypass_cache: body.bypass_cache,
+    const result = await runEnrichmentOnce(
+      rc, def, tractate, page, mark_input, bypass,
+      model_override as LLMModelId | undefined,
+    );
+    recordTelemetry(c, {
+      endpoint: 'studio-enrichment', tractate, page, enrichment_id: def.id,
+      cache_hit: result.cache_hit, model: result.model,
+      ms: Date.now() - t0, ok: true,
     });
-
-    let parsed: unknown = null;
-    let parse_error: string | null = null;
-    if (spec.output_schema) {
-      try { parsed = JSON.parse(result.content); }
-      catch (err) { parse_error = String(err).slice(0, 200); }
-    }
-
     return c.json({
-      kind: spec.kind,
-      content: result.content,
-      reasoning: result.reasoning_content || undefined,
-      parsed,
-      parse_error,
-      model: result.model,
-      transport: result.transport,
-      attempts: result.attempts,
-      usage: result.usage,
-      elapsed_ms: result.elapsed_ms,
-      prompt_chars: result.prompt_chars,
-      resolved: { system_prompt: systemPrompt, user_prompt: userPrompt },
-      definition,
-      // For aggregate enrichments: each dep's parsed output, keyed by dep
-      // id. Lets the client populate per-leaf run state without a second
-      // round-trip, so the dev dropdown can switch to a leaf instantly.
-      deps_resolved: Object.keys(resolvedDepends).length > 0 ? resolvedDepends : undefined,
+      kind: 'enrichment',
+      ...result,
+      definition: def,
       total_ms: Date.now() - t0,
     });
   } catch (err) {
+    const msg = String((err as Error)?.message ?? err);
+    recordTelemetry(c, {
+      endpoint: 'studio-enrichment', tractate, page, enrichment_id: def.id,
+      cache_hit: false, ms: Date.now() - t0, ok: false, error_kind: classifyError(msg),
+    });
     return c.json({
-      error: String((err as Error)?.message ?? err),
-      definition,
-      resolved: { system_prompt: systemPrompt, user_prompt: userPrompt },
+      error: msg,
+      definition: def,
       total_ms: Date.now() - t0,
     }, 502);
   }
@@ -823,14 +1176,17 @@ app.get('/api/log/recent', async (c) => {
 });
 
 // --- Telemetry + /usage dashboard ---------------------------------------
-type TelemetryEndpoint =
-  | 'daf-context'
-  | 'daf-context-stage2'
-  | 'translate'
-  | 'analyze'
-  | 'halacha'
-  | 'aggadata'
-  | 'pesukim';
+//
+// Endpoint vocabulary (open enum — string-typed):
+//   'translate'           legacy /api/translate
+//   'daf-context'         legacy /api/daf-context skeleton stage
+//   'daf-context-stage2'  legacy /api/daf-context bio-enrichment stage
+//   'studio-mark'         /api/studio/run for a mark (see mark_id field)
+//   'studio-enrichment'   /api/studio/run for an enrichment (see enrichment_id)
+//
+// New entries don't need a code change — /api/usage rolls up dynamically over
+// whatever endpoint values it sees in the ring buffer.
+type TelemetryEndpoint = string;
 
 // String-typed so composed labels like `stage-a-<classifyError>` work without
 // requiring a combinatorial explosion of literal types. Classifier values are
@@ -848,6 +1204,10 @@ interface TelemetryRecord {
   ms: number;
   ok: boolean;
   error_kind?: TelemetryErrorKind;
+  /** Set when endpoint === 'studio-mark'. */
+  mark_id?: string;
+  /** Set when endpoint === 'studio-enrichment'. */
+  enrichment_id?: string;
 }
 
 function classifyError(detail: string): TelemetryErrorKind {
@@ -955,16 +1315,14 @@ app.get('/api/usage', async (c) => {
     errorCount: number;
     errorsByKind: Record<string, number>;
   }
-  const perEndpoint: Record<string, Rollup> = {};
-  const endpoints: TelemetryEndpoint[] = ['daf-context', 'daf-context-stage2', 'translate', 'analyze', 'halacha', 'aggadata', 'pesukim'];
-  for (const ep of endpoints) {
-    const rows = telemetry.filter((r) => r.endpoint === ep);
+
+  function rollup(rows: TelemetryRecord[]): Rollup {
     const sorted = rows.map((r) => r.ms).sort((a, b) => a - b);
     const hits = rows.filter((r) => r.cache_hit).length;
     const errors = rows.filter((r) => !r.ok);
     const errorsByKind: Record<string, number> = {};
     for (const e of errors) errorsByKind[e.error_kind ?? 'other'] = (errorsByKind[e.error_kind ?? 'other'] ?? 0) + 1;
-    perEndpoint[ep] = {
+    return {
       count: rows.length,
       cacheHits: hits,
       cacheHitRate: rows.length ? hits / rows.length : 0,
@@ -975,6 +1333,40 @@ app.get('/api/usage', async (c) => {
     };
   }
 
+  // Group dynamically over whatever endpoint values appear in the ring buffer
+  // — keeps the dashboard correct without code changes when new endpoints
+  // start recording.
+  const byEndpoint = new Map<string, TelemetryRecord[]>();
+  for (const r of telemetry) {
+    const arr = byEndpoint.get(r.endpoint) ?? [];
+    arr.push(r);
+    byEndpoint.set(r.endpoint, arr);
+  }
+  const perEndpoint: Record<string, Rollup> = {};
+  for (const [ep, rows] of byEndpoint) perEndpoint[ep] = rollup(rows);
+
+  // Per-mark / per-enrichment splits for the studio-run endpoint. The UI
+  // shows these in addition to the high-level studio-mark / studio-enrichment
+  // rollup so a slow mark doesn't hide behind the aggregate.
+  const byMark = new Map<string, TelemetryRecord[]>();
+  const byEnrichment = new Map<string, TelemetryRecord[]>();
+  for (const r of telemetry) {
+    if (r.mark_id) {
+      const arr = byMark.get(r.mark_id) ?? [];
+      arr.push(r);
+      byMark.set(r.mark_id, arr);
+    }
+    if (r.enrichment_id) {
+      const arr = byEnrichment.get(r.enrichment_id) ?? [];
+      arr.push(r);
+      byEnrichment.set(r.enrichment_id, arr);
+    }
+  }
+  const perMark: Record<string, Rollup> = {};
+  for (const [id, rows] of byMark) perMark[id] = rollup(rows);
+  const perEnrichment: Record<string, Rollup> = {};
+  for (const [id, rows] of byEnrichment) perEnrichment[id] = rollup(rows);
+
   const recentErrors = telemetry
     .filter((r) => !r.ok)
     .slice(-30)
@@ -982,10 +1374,11 @@ app.get('/api/usage', async (c) => {
     .map((r) => ({
       ts: r.ts, endpoint: r.endpoint, tractate: r.tractate,
       page: r.page, error_kind: r.error_kind, model: r.model,
+      mark_id: r.mark_id, enrichment_id: r.enrichment_id,
     }));
 
   return c.json({
-    telemetry: { perEndpoint, recentErrors, totalCount: telemetry.length },
+    telemetry: { perEndpoint, perMark, perEnrichment, recentErrors, totalCount: telemetry.length },
     reports: [...reports].reverse(),
   });
 });
@@ -1770,3815 +2163,6 @@ app.post('/api/translate', async (c) => {
 
   recordTelemetry(c, { endpoint: 'translate', tractate, page, cache_hit: false, ms: Date.now() - t0, ok: false, error_kind: classifyError(attempts.join(' ')) });
   return c.json({ error: 'All translation models failed', attempts }, 502);
-});
-
-/**
- * Structured Talmudic analysis of a daf — a two-stage Kimi K2.6 pipeline:
- *
- *   Stage A (SKELETON_SYSTEM_PROMPT): focal Hebrew + English only. Produces
- *     the argument skeleton — sections with titles, summaries, Hebrew
- *     excerpts, and the list of rabbi/voice names per section. Narrow
- *     scope keeps Kimi's reasoning bounded even at model-max tokens.
- *
- *   Stage B (ENRICHMENT_SYSTEM_PROMPT): Stage A output + neighbor amudim +
- *     Rashi/Tosafot + Rishonim + halachic codifications. Fills in the
- *     per-rabbi nameHe / period / location / role / opinionStart. Since
- *     the structure is already determined, Kimi's reasoning collapses to
- *     field-filling rather than rediscovering the argument.
- *
- * Both stages stream to bypass the Workers AI Gateway's ~3-4 min non-stream
- * timeout, and both use the model's maximum output budget.
- */
-
-interface DafSkeleton {
-  summary: string;
-  sections: Array<{
-    title: string;
-    summary: string;
-    excerpt: string;
-    startSegIdx?: number;
-    endSegIdx?: number;
-    rabbiNames: string[];
-  }>;
-}
-
-// Style rule appended to every English-summary-producing prompt. The client
-// runs hebraize() over rendered text — bare transliterations stay as ASCII,
-// but parenthesized transliterations get auto-swapped for Hebrew script. So
-// we want the LLM to use a uniform `english (transliteration)` pattern, not
-// bare transliterations or English-only without the Hebrew anchor.
-const HEBRAIZE_RULE = `
-
-STYLE — Hebrew/Aramaic technical terms:
-When you mention a Hebrew or Aramaic technical term in English text, ALWAYS write it as: english phrase (transliteration). The transliteration in parentheses is auto-converted to Hebrew script in the UI. Examples:
-  - "the rabbinic fence (geder)"
-  - "the dawn deadline (amud ha-shachar)"
-  - "the first watch (ha-ashmurah ha-rishonah)"
-  - "an act (ma'aseh)"
-  - "the dispute hinges on designation (yi'ud)"
-Use Sefaria-style transliteration: write "ch" not "ḥ", "h" not "ḥ", "kh" not "ḵ", "tz" not "ṣ", and a plain ASCII apostrophe (') instead of "ʿ" or "ʾ". Avoid combining diacritic marks entirely.
-Do NOT emit BARE transliterations (without parens, without an English gloss before them) — every transliterated term must be preceded by the English phrase that explains it. Quoted/citational Hebrew text taken verbatim from the daf MAY appear in Hebrew script directly.`;
-
-const SKELETON_SYSTEM_PROMPT = `You are a scholar of Talmud. Given a single focal amud's Hebrew/Aramaic source split into NUMBERED segments and its English translation (same numbering), identify the argument structure. Each section MUST report the segment range it spans. Output STRICT JSON only (no markdown, no prose):
-
-{
-  "summary": "1-2 sentence overview of what this daf argues",
-  "sections": [
-    {
-      "title": "Short descriptive title (e.g. 'Opening Mishnah', 'Gemara's first question')",
-      "summary": "2-3 sentence description of what this section argues",
-      "excerpt": "3-5 Hebrew/Aramaic words copied verbatim from the focal Hebrew — opens this section",
-      "startSegIdx": 0-based segment index where this section BEGINS (matches a [N] marker in the source),
-      "endSegIdx": 0-based segment index where this section ENDS (inclusive). For a one-segment section, startSegIdx === endSegIdx.,
-      "rabbiNames": ["list of every voice in this section, in order"]
-    }
-  ]
-}
-
-Break the focal amud into 3-8 sections by argument structure, not by paragraph. Sections should partition the daf — start of section i+1 should be endSegIdx of section i + 1, with no gaps and no overlaps.
-
-GRANULARITY: rabbiNames must enumerate EVERY distinct voice, not just named rabbi statements. Include:
-- Named rabbis: "Rabbi Eliezer", "Rav Huna", etc.
-- Collective voices: "Sages", "Tanna Kamma"
-- Every Stam/Gemara move: "Gemara's question", "First answer", "Second answer", "Alternative answer", "Objection", "Rejoinder", "Prooftext"
-- When the Gemara offers multiple answers to the same question, each answer is its own entry.
-
-"excerpt" MUST be Hebrew/Aramaic copied exactly from the source — never translate.
-"startSegIdx"/"endSegIdx" MUST be valid indices from the numbered source — the bracketed [N] markers ARE those indices.
-
-Rashi and Tosafot may be provided as context, wrapped in <rashi>/<tosafot> tags. Use them ONLY to disambiguate sugya boundaries, rabbinic abbreviations, and which voices are arguing with which. Sections, excerpts, and segment indices MUST come from the focal Hebrew text — never invent a section that exists only in commentary.${HEBRAIZE_RULE}`;
-
-const ENRICHMENT_SYSTEM_PROMPT = `You are a scholar of Talmud. You will receive:
-1. A skeleton analysis of a focal amud (sections + rabbi names, already identified).
-2. Enriching context: focal Rashi + focal Tosafot, neighboring amudim (Hebrew), Rishonim commentary (Rashba, Ritva, Ramban, Meiri, Rosh, Maharsha, Chidushei Aggadot), and halachic codifications (Rambam MT, Shulchan Aruch, Tur) — all clearly wrapped in XML tags.
-
-For each rabbi/voice in the skeleton, fill in:
-- nameHe: Hebrew name or label as it would appear in the daf
-- period: Era + approximate dates (e.g. 'Tanna, c. 90-120 CE', 'Amora, 3rd century CE', 'Stam Gemara, redacted c. 500 CE')
-- location: City and region (e.g. 'Lod, Judea', 'Sura, Babylonia', 'Bavel')
-- role: What this voice argues or does in THIS section (one sentence)
-- opinionStart: First 2-4 Hebrew/Aramaic words of this voice's statement, copied verbatim from the focal amud's Hebrew
-
-**Use the Rishonim commentary and Rashi/Tosafot to sharpen nameHe, role, and to disambiguate ambiguous abbreviations (ר"מ / ר"י / ר"א / ר"ש — see the neighboring words like דברי / אומר / וחכמים).** Use halachic codifications to understand which position was accepted.
-
-You may MINORLY revise the skeleton (add a missed voice in a section, adjust a section summary) but do NOT restructure sections or change excerpts. Keep the skeleton's title and excerpt as-is; keep its overall section count the same unless a Rishon reveals a missed dispute.
-
-opinionStart MUST come from the focal amud's Hebrew, NOT from Rishonim / Rashi / Tosafot / neighbors.
-
-Output STRICT JSON (no markdown, no prose wrapping) conforming to:
-
-{
-  "summary": "1-2 sentence overview of what this daf is about",
-  "sections": [
-    {
-      "title": "Short descriptive title like 'Opening Mishnah' or 'Gemara's first question'",
-      "summary": "2-3 sentence description of what this section argues",
-      "excerpt": "First 3-5 HEBREW/ARAMAIC words of this section — copy verbatim from the Hebrew source, never translate.",
-      "rabbis": [
-        {
-          "name": "Rabbi's name in conventional English",
-          "nameHe": "Hebrew name as written",
-          "period": "Era + approximate dates, e.g. 'Tanna, c. 90-120 CE' or 'Amora, 3rd century CE'",
-          "location": "City and region, e.g. 'Lod, Judea' or 'Sura, Babylonia'",
-          "role": "What this Rabbi argues in THIS section",
-          "opinionStart": "First 2-4 HEBREW/ARAMAIC words of THIS rabbi's specific statement in the daf, copied verbatim. Used to anchor the rabbi's opinion range in the text."
-        }
-      ]
-    }
-  ]
-}
-
-Rules:
-- Output valid JSON only — no markdown code fences, no commentary.
-- Break the daf into 3-8 sections by argument structure, not by paragraph.
-- "excerpt" and "opinionStart" MUST be Hebrew/Aramaic copied exactly from the Hebrew source — never translate, never paraphrase.
-
-GRANULARITY (critical — previous outputs have been too coarse):
-- Within each section, enumerate EVERY distinct stance/move, not just named rabbi statements. Target 3-8 entries per section on anything but the briefest sections.
-- Each of the following counts as its own entry in the rabbis array and deserves its own opinionStart:
-  * Every named rabbi statement (Rav Huna says..., אמר רב הונא...).
-  * Every collective/anonymous stance (Sages = חכמים, Tanna Kamma = תנא קמא, the Baraita, a cited Mishnah).
-  * Every move by the Stam/Gemara itself: the Gemara's QUESTION ("the Gemara asks"), each distinct ANSWER or resolution it proposes (first answer / second answer / final answer), each OBJECTION it raises, each PROOFTEXT it cites.
-  * When the Gemara offers two or more answers to the same question, EACH answer is its own entry — do NOT collapse them into one.
-- For unnamed Gemara voices, use labels like:
-  * name: "Gemara's question", nameHe: "שאלת הגמרא" (or the Hebrew interrogative phrase that opens the question, e.g. "מאי טעמא", "היכא קאי")
-  * name: "First answer" / "Second answer" / "Alternative answer", nameHe: the Hebrew introducer (e.g. "איבעית אימא", "אלא", "כדכתיב")
-  * name: "Objection" / "Rejoinder", nameHe: "ולא והא" / "מיתיבי" / etc.
-  For collective named voices, use the conventional label: "Sages", "Tanna Kamma", etc.
-- period/location/role fields for anonymous voices: period="Stam Gemara, redacted c. 500 CE", location="Bavel" or "Bavel/Eretz Yisrael" as appropriate, role=what this move does in the argument (one sentence).
-- opinionStart examples:
-  * "ר' אליעזר אומר..." → "ר' אליעזר אומר"
-  * "וחכמים אומרים..." → "וחכמים אומרים"
-  * "אמר רבא..." → "אמר רבא"
-  * The Gemara's opening question "תנא היכא קאי..." → "תנא היכא קאי" (that IS the question's opener)
-  * First answer beginning "יליף מברייתו של עולם" → "יליף מברייתו של עולם"
-  * Alternative answer beginning "ואיבעית אימא" → "ואיבעית אימא"
-- Every rabbi/voice you list MUST have an opinionStart unless the text does not distinctly anchor their position.${HEBRAIZE_RULE}`;
-
-/** Biblical reference found in a section's Hebrew text. */
-interface BiblicalRef {
-  ref: string;          // English Sefaria-style, e.g. "Proverbs 2:2"
-  hebrewRef?: string;   // Hebrew citation, e.g. "משלי ב:ב"
-  hebrewQuote?: string; // The actual Hebrew quote as it appears in the daf
-}
-
-/** Difficulty rating (educational complexity). */
-interface DifficultyRating {
-  score: 1 | 2 | 3 | 4 | 5;
-  reason: string;
-}
-
-interface DafAnalysis {
-  summary: string;
-  /** Overall daf difficulty (1-5). Populated by the `difficulty` strategy. */
-  difficulty?: DifficultyRating;
-  sections: Array<{
-    title: string;
-    summary: string;
-    excerpt?: string;
-    /** Biblical verses/references quoted in this section. Populated by the `references` strategy. */
-    references?: BiblicalRef[];
-    /** Parallel sugyot in other tractates. Populated by the `parallels` strategy. */
-    parallels?: string[];
-    /** Per-section difficulty (1-5). Populated by the `difficulty` strategy. */
-    difficulty?: DifficultyRating;
-    rabbis: Array<{
-      name: string;
-      nameHe: string;
-      period: string;
-      location: string;
-      role: string;
-      opinionStart?: string;
-      /** Last 2-4 Hebrew words of this voice's statement in the focal amud. Enables full-span highlighting. */
-      opinionEnd?: string;
-      /** Other names / variants for this rabbi (from rabbi-places.json). */
-      aliases?: string[];
-      /** Generation ID (e.g. 'tanna-4'). From rabbi-places.json. */
-      generation?: string;
-      /** Names of other rabbis in THIS section whose position this rabbi agrees with. */
-      agreesWith?: string[];
-      /** Names of other rabbis in THIS section whose position this rabbi disagrees with. */
-      disagreesWith?: string[];
-    }>;
-  }>;
-}
-
-/** Per-block character caps for the analyze prompt.
- *  Not bounded by Kimi K2.6's 262k ctx but by the Workers AI Gateway's ~3-4
- *  min response timeout — larger prompts make K2.6 think longer and the
- *  gateway kills the call (AiError 3046) if reasoning + JSON generation
- *  stretches past ~3 min wall clock. These caps target ~40-60k input tokens
- *  so we reliably finish under the timeout while still giving the model
- *  focal Rashi/Tosafot, neighbor Hebrew context, and core Rishonim. */
-const ANALYZE_CAPS = {
-  focalHebrew: 12000,
-  focalEnglish: 10000,
-  focalRashi: 8000,
-  focalTosafot: 8000,
-  neighborHebrew: 6000,     // trimmed from 8000 — only need reference anchors
-  neighborEnglish: 0,       // dropped — Hebrew is enough for cross-amud refs
-  neighborRashi: 0,         // dropped — focal's Rashi covers cross-amud
-  neighborTosafot: 0,       // dropped
-  rishonimPerCommentator: 2500,  // halved from 4000 per commentator
-  halachaPerRef: 1500,      // trimmed from 2000
-  halachaRefsPerBook: 2,    // trimmed from 3 — keep only most-relevant refs
-} as const;
-
-/** Tighter caps for first-pass detection (halacha + argument skeleton). Detection
- *  runs on shorter focal text and must stay fast; we give the model enough
- *  Rashi/Tosafot to disambiguate sugyot without ballooning latency. */
-const DETECT_CAPS = {
-  rashi: 4000,
-  tosafot: 4000,
-  halachaPerRef: 1000,
-  halachaRefsPerBook: 2,
-} as const;
-
-function slice(s: string | undefined | null, cap: number): string {
-  if (!s) return '';
-  const cleaned = stripHtmlServer(s);
-  return cleaned.length > cap ? cleaned.slice(0, cap) : cleaned;
-}
-
-function amudBlock(
-  label: 'previous_amud' | 'focal_amud' | 'next_amud',
-  daf: string,
-  hebrew: string,
-  english: string,
-  rashi: string,
-  tosafot: string,
-  caps: { heCap: number; enCap: number; rashiCap: number; tosafotCap: number }
-): string {
-  const sections: string[] = [];
-  sections.push(`<hebrew>${slice(hebrew, caps.heCap) || '(not available)'}</hebrew>`);
-  sections.push(`<english>${slice(english, caps.enCap) || '(not available)'}</english>`);
-  const rashiSliced = slice(rashi, caps.rashiCap);
-  if (rashiSliced) sections.push(`<rashi>${rashiSliced}</rashi>`);
-  const tosafotSliced = slice(tosafot, caps.tosafotCap);
-  if (tosafotSliced) sections.push(`<tosafot>${tosafotSliced}</tosafot>`);
-  return `<${label} daf="${daf}">\n${sections.join('\n')}\n</${label}>`;
-}
-
-function rishonimBlock(bundle: RishonimBundle): string {
-  const entries = Object.entries(bundle);
-  if (entries.length === 0) return '';
-  const parts = entries.map(([label, snip]) => {
-    const he = slice(snip.hebrew, ANALYZE_CAPS.rishonimPerCommentator);
-    const en = slice(snip.english, ANALYZE_CAPS.rishonimPerCommentator);
-    const body = [
-      he && `<hebrew>${he}</hebrew>`,
-      en && `<english>${en}</english>`,
-    ].filter(Boolean).join('\n');
-    return `<commentator name="${label}" ref="${snip.ref}">\n${body}\n</commentator>`;
-  });
-  return `<rishonim_commentary>\n${parts.join('\n')}\n</rishonim_commentary>`;
-}
-
-function halachaBlock(
-  bundle: HalachicRefBundle,
-  caps: { perRef: number; refsPerBook: number } = {
-    perRef: ANALYZE_CAPS.halachaPerRef,
-    refsPerBook: ANALYZE_CAPS.halachaRefsPerBook,
-  },
-): string {
-  const books = Object.entries(bundle);
-  if (books.length === 0) return '';
-  const parts = books.map(([book, snips]) => {
-    const refBlocks = snips.slice(0, caps.refsPerBook).map(s => {
-      const he = slice(s.hebrew, caps.perRef);
-      const en = slice(s.english, caps.perRef);
-      const body = [
-        he && `<hebrew>${he}</hebrew>`,
-        en && `<english>${en}</english>`,
-      ].filter(Boolean).join('\n');
-      return `<ref id="${s.ref}">\n${body}\n</ref>`;
-    });
-    return `<codification book="${book}">\n${refBlocks.join('\n')}\n</codification>`;
-  });
-  return `<halachic_codification>\n${parts.join('\n')}\n</halachic_codification>`;
-}
-
-/** Normalize Hebrew text for verbatim-presence comparison: strip niqqud
- *  (vowel points), cantillation, punctuation, and collapse whitespace. */
-function normalizeHebrew(s: string): string {
-  return s
-    .replace(/[֑-ׇ]/g, '')       // niqqud + cantillation
-    .replace(/[׳״"'.,:;!?\-–—()[\]{}]/g, '') // punctuation
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-const HEBREW_CHAR_RE = /[֐-׿]/;
-
-interface ValidationResult {
-  ok: boolean;
-  errors: string[];
-  warnings: string[];
-}
-
-function validateAnalysis(analysis: DafAnalysis, focalHebrewRaw: string): ValidationResult {
-  const errors: string[] = [];
-  const warnings: string[] = [];
-  const focalNorm = normalizeHebrew(focalHebrewRaw);
-
-  if (!analysis.summary || typeof analysis.summary !== 'string' || analysis.summary.length < 20) {
-    errors.push('summary missing or too short');
-  }
-  if (!Array.isArray(analysis.sections)) {
-    errors.push('sections is not an array');
-    return { ok: false, errors, warnings };
-  }
-  if (analysis.sections.length < 2 || analysis.sections.length > 15) {
-    errors.push(`section count out of range (${analysis.sections.length}, expected 2-15)`);
-  }
-
-  analysis.sections.forEach((sec, i) => {
-    const loc = `section[${i}]`;
-    if (!sec.title) errors.push(`${loc}: missing title`);
-    if (!sec.summary) errors.push(`${loc}: missing summary`);
-    if (!Array.isArray(sec.rabbis) || sec.rabbis.length === 0) {
-      errors.push(`${loc}: missing or empty rabbis array`);
-      return;
-    }
-    if (sec.excerpt) {
-      if (!HEBREW_CHAR_RE.test(sec.excerpt)) {
-        errors.push(`${loc}: excerpt has no Hebrew chars`);
-      } else if (!focalNorm.includes(normalizeHebrew(sec.excerpt))) {
-        // Downgraded to warning: Stage A's skeleton excerpt override covers
-        // most cases, but when Stage B adds sections beyond the skeleton
-        // (or section alignment shifts) the excerpt may be Stage B's own
-        // paraphrase. UI can fall back to title-only anchoring when excerpt
-        // doesn't resolve — not worth hard-failing the whole daf.
-        warnings.push(`${loc}: excerpt "${sec.excerpt.slice(0, 30)}" not found in focal amud`);
-      }
-    }
-    const seenNames = new Set<string>();
-    sec.rabbis.forEach((r, j) => {
-      const rloc = `${loc}.rabbis[${j}]`;
-      if (!r.name) errors.push(`${rloc}: missing name`);
-      if (!r.nameHe) errors.push(`${rloc}: missing nameHe`);
-      else if (!HEBREW_CHAR_RE.test(r.nameHe)) errors.push(`${rloc}: nameHe has no Hebrew chars`);
-      if (!r.period) errors.push(`${rloc}: missing period`);
-      if (!r.location) errors.push(`${rloc}: missing location`);
-      if (!r.role || r.role.length < 10) warnings.push(`${rloc}: role too short`);
-      if (r.opinionStart) {
-        if (!HEBREW_CHAR_RE.test(r.opinionStart)) {
-          errors.push(`${rloc}: opinionStart has no Hebrew chars`);
-        } else if (!focalNorm.includes(normalizeHebrew(r.opinionStart))) {
-          // Downgraded to warning: Kimi K2.5 sometimes paraphrases opinion
-          // openers (e.g. "ר\"ש" instead of expanded "רבי שמעון"). The UI
-          // falls back to section-level anchoring when opinionStart doesn't
-          // resolve, so this is graceful degradation — not a hard failure.
-          warnings.push(`${rloc}: opinionStart "${r.opinionStart.slice(0, 30)}" not found in focal amud`);
-        }
-      }
-      const key = `${r.name}|${r.nameHe}`;
-      if (seenNames.has(key)) warnings.push(`${rloc}: duplicate rabbi "${r.name}" in section`);
-      seenNames.add(key);
-    });
-  });
-
-  return { ok: errors.length === 0, errors, warnings };
-}
-
-function extractJsonPayload(resp: unknown): string {
-  const r = resp as {
-    response?: unknown;
-    output?: unknown;
-    result?: { response?: unknown };
-    choices?: Array<{ message?: { content?: unknown; reasoning_content?: unknown } }>;
-  };
-  // gpt-oss (harmony format) returns final answer in `content`, chain-of-
-  // thought in `reasoning_content`. When it hits its token budget mid-thought,
-  // `content` is null — fall back to the last JSON-looking block inside the
-  // reasoning so we still get a usable payload.
-  const msg = r.choices?.[0]?.message;
-  const primary =
-    r.response ??
-    r.output ??
-    r.result?.response ??
-    msg?.content ??
-    '';
-  let candidate: unknown = primary;
-  if ((primary === null || primary === undefined || primary === '') && msg?.reasoning_content) {
-    const rc = String(msg.reasoning_content);
-    const m = rc.match(/\{[\s\S]*"rabbis"[\s\S]*\}/);
-    if (m) candidate = m[0];
-  }
-  // With response_format: { type: "json_object" } some CF AI models return
-  // an already-parsed object here instead of a string — re-stringify in
-  // that case so downstream JSON.parse can handle it uniformly.
-  let raw: string;
-  if (typeof candidate === 'string') {
-    raw = candidate;
-  } else if (candidate && typeof candidate === 'object') {
-    try { raw = JSON.stringify(candidate); } catch { raw = ''; }
-  } else {
-    raw = '';
-  }
-  raw = raw.trim();
-  // Kimi sometimes wraps JSON in ```json ... ```
-  const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (fenced) return fenced[1].trim();
-  return raw;
-}
-
-/**
- * Run Kimi K2.6 (or any OpenAI-compatible Workers AI chat model) via SSE
- * streaming. The Workers AI Gateway enforces an aggressive ~3-4 min hard
- * timeout on non-streaming responses, which Kimi's thinking mode routinely
- * breaches for complex multi-amud prompts (AiError 3046). Streaming keeps
- * the connection alive per-chunk, so total wall-clock can extend to the
- * Worker's normal subrequest budget.
- *
- * Accumulates `delta.content` and `delta.reasoning_content` separately so
- * the caller can fall back to reasoning-embedded JSON if the model ran out
- * of token budget mid-thought and content came back empty.
- */
-interface StreamedResult {
-  content: string;
-  reasoning_content: string;
-  finish_reason: string | null;
-  usage: {
-    prompt_tokens?: number;
-    completion_tokens?: number;
-    total_tokens?: number;
-  } | null;
-  prompt_chars: number;
-  elapsed_ms: number;
-}
-
-/**
- * Wrapper around runLLM() that preserves the legacy streaming-Kimi shape so
- * existing call sites compile unchanged. The body is now provider-agnostic —
- * pass any model id (`@cf/...` or `openrouter/...`) and runLLM picks the
- * transport. Kept this function (vs replacing call sites with runLLM
- * directly) so the Phase 0.5 diff stays mechanical.
- */
-async function runKimiStreaming(
-  env: Bindings,
-  modelId: LLMModelId | string,
-  messages: Array<{ role: string; content: string }>,
-  maxTokens: number,
-  opts: {
-    chatTemplateKwargs?: Record<string, unknown>;
-    reasoningEffort?: 'low' | 'medium' | 'high';
-    fallback?: LLMModelId[];
-  } = {},
-): Promise<StreamedResult> {
-  const thinking = opts.chatTemplateKwargs?.enable_thinking;
-  const result = await runLLM(env, {
-    model: modelId as LLMModelId,
-    messages: messages as Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
-    max_tokens: maxTokens,
-    temperature: 0.2,
-    response_format: { type: 'json_object' },
-    stream: true,
-    reasoning_effort: opts.reasoningEffort,
-    thinking: typeof thinking === 'boolean' ? thinking : undefined,
-    fallback: opts.fallback,
-  });
-  return {
-    content: result.content,
-    reasoning_content: result.reasoning_content,
-    finish_reason: result.finish_reason,
-    usage: result.usage,
-    prompt_chars: result.prompt_chars,
-    elapsed_ms: result.elapsed_ms,
-  };
-}
-
-app.get('/api/analyze/:tractate/:page', async (c) => {
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  const cache = c.env.CACHE;
-  // v5: Kimi K2.6 with thinking, fed prev+focal+next amudim plus Rishonim
-  // and halachic codifications. Hard-fail if Kimi fails (no fallback chain).
-  const cacheKey = `analyze:v6:${tractate}:${page}`;
-  const t0 = Date.now();
-
-  const bypass = c.req.query('refresh') === '1';
-  const cachedOnly = c.req.query('cached_only') === '1';
-  // skeleton_only=1: run Stage A, cache the skeleton, return it and skip
-  // Stage B entirely. Used by the full-Shas first-pass batch script — lets
-  // us generate skeletons across all tractates cheaply before iterating on
-  // enrichment strategies.
-  const skeletonOnly = c.req.query('skeleton_only') === '1';
-  if (cache && !bypass && !skeletonOnly) {
-    const cached = await cache.get(cacheKey);
-    if (cached) {
-      recordTelemetry(c, { endpoint: 'analyze', tractate, page, cache_hit: true, ms: Date.now() - t0, ok: true });
-      return c.json({ ...JSON.parse(cached) as DafAnalysis, _cached: true });
-    }
-  }
-
-  if (cachedOnly) {
-    return c.json({ cached: false }, 404);
-  }
-
-  if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-
-  const prevDaf = adjacentAmud(tractate, page, -1);
-  const nextDaf = adjacentAmud(tractate, page, 1);
-
-  const [hbFocal, sefFocal, hbPrev, sefPrev, hbNext, sefNext, rishonim, halacha] =
-    await Promise.all([
-      getHebrewBooksDafCached(cache, tractate, page),
-      getSefariaPageCached(cache, tractate, page),
-      prevDaf ? getHebrewBooksDafCached(cache, tractate, prevDaf) : Promise.resolve(null),
-      prevDaf ? getSefariaPageCached(cache, tractate, prevDaf) : Promise.resolve(null),
-      nextDaf ? getHebrewBooksDafCached(cache, tractate, nextDaf) : Promise.resolve(null),
-      nextDaf ? getSefariaPageCached(cache, tractate, nextDaf) : Promise.resolve(null),
-      getRishonimCached(cache, tractate, page),
-      getHalachaRefsCached(cache, tractate, page),
-    ]);
-
-  const focalHebrewRaw = hbFocal?.main ?? sefFocal?.mainText.hebrew ?? '';
-  const focalEnglishRaw = sefFocal?.mainText.english ?? '';
-  if (!focalHebrewRaw && !focalEnglishRaw) {
-    return c.json({ error: 'No source text available for analysis' }, 502);
-  }
-  const focalHebrewNormalized = slice(focalHebrewRaw, ANALYZE_CAPS.focalHebrew);
-
-  const rishonimXml = rishonimBlock(rishonim);
-  const halachaXml = halachaBlock(halacha);
-
-  // Doubled from 65k so Kimi K2.6 has headroom for both reasoning AND JSON.
-  // Earlier empirical observation: K2.6 with thinking burns whatever budget
-  // it's given. If we still hit empty content at 131k, thinking is truly
-  // unbounded on rich prompts and we need a different model for Stage B.
-  const model = { id: '@cf/moonshotai/kimi-k2.5', maxTokens: 131072, label: 'kimi-k2.5' };
-  const skeletonCacheKey = `analyze-skel:v2:${tractate}:${page}`;
-
-  // Diagnostics returned in the response envelope so we can see exactly
-  // where Kimi's tokens are going without tail-following logs.
-  interface StageDiag {
-    prompt_chars: number;
-    content_chars: number;
-    reasoning_chars: number;
-    elapsed_ms: number;
-    finish_reason: string | null;
-    usage: StreamedResult['usage'];
-  }
-  let stageADiag: StageDiag | 'cached' | null = null;
-  let stageBDiag: StageDiag | null = null;
-
-  // ---------- STAGE A: SKELETON (focal only) ----------
-  // Cached separately so a later enrichment retry can skip the skeleton call.
-  let skeleton: DafSkeleton | null = null;
-  if (cache && !bypass) {
-    const hit = await cache.get(skeletonCacheKey);
-    if (hit) {
-      try { skeleton = JSON.parse(hit) as DafSkeleton; stageADiag = 'cached'; } catch { skeleton = null; }
-    }
-  }
-
-  if (!skeleton) {
-    // v2 skeleton: feed Sefaria-segmented [N]-numbered text so the model can
-    // emit explicit startSegIdx/endSegIdx per section. Stage B is unchanged
-    // and still receives the rich amudBlock context.
-    const sefSegs = await getSefariaSegmentsCached(cache, tractate, page);
-    const segsHe = (sefSegs?.he ?? []).map(stripHtmlServer);
-    const segsEn = (sefSegs?.en ?? []).map(stripHtmlServer);
-    const numberedHe = segsHe.map((s: string, i: number) => `[${i}] ${s}`).join('\n').slice(0, ANALYZE_CAPS.focalHebrew);
-    const numberedEn = segsEn.map((s: string, i: number) => `[${i}] ${s}`).join('\n').slice(0, ANALYZE_CAPS.focalEnglish);
-    const rashiSliced = slice(sefFocal?.rashi?.hebrew ?? '', DETECT_CAPS.rashi);
-    const tosafotSliced = slice(sefFocal?.tosafot?.hebrew ?? '', DETECT_CAPS.tosafot);
-    const skeletonUserParts: string[] = [
-      `Tractate: ${tractate}`,
-      `Focal page: ${page}`,
-      `Total segments: ${segsHe.length}`,
-      '',
-      'Hebrew/Aramaic source — each line begins with [N], the 0-based segment index. USE these indices for startSegIdx / endSegIdx:',
-      numberedHe || '(unavailable)',
-      '',
-      'English translation (same numbering):',
-      numberedEn || '(unavailable)',
-    ];
-    if (rashiSliced) {
-      skeletonUserParts.push('', 'Rashi on the focal amud (context only — sections must come from the focal Hebrew, not Rashi):', `<rashi>${rashiSliced}</rashi>`);
-    }
-    if (tosafotSliced) {
-      skeletonUserParts.push('', 'Tosafot on the focal amud (context only — sections must come from the focal Hebrew, not Tosafot):', `<tosafot>${tosafotSliced}</tosafot>`);
-    }
-    skeletonUserParts.push('', 'Identify the argument structure. Return ONLY the skeleton JSON. Every section MUST include startSegIdx and endSegIdx pointing at valid [N] indices above.');
-    const skeletonUser = skeletonUserParts.join('\n\n');
-
-    try {
-      // Stage A: K2.6 thinking with reasoning_effort:"low" — the skeleton
-      // task (structure + rabbi names) doesn't need deep reasoning, and
-      // without the knob K2.6 will sometimes reason 45k+ tokens (200s+).
-      // Low effort holds Stage A at ~90-140s reliably, keeping the full
-      // two-stage pipeline under the Worker's 5-min wall clock.
-      const stageA = await runKimiStreaming(
-        c.env, model.id,
-        [
-          { role: 'system', content: SKELETON_SYSTEM_PROMPT },
-          { role: 'user', content: skeletonUser },
-        ],
-        model.maxTokens,
-        { reasoningEffort: 'low' },
-      );
-      stageADiag = {
-        prompt_chars: stageA.prompt_chars,
-        content_chars: stageA.content.length,
-        reasoning_chars: stageA.reasoning_content.length,
-        elapsed_ms: stageA.elapsed_ms,
-        finish_reason: stageA.finish_reason,
-        usage: stageA.usage,
-      };
-      // eslint-disable-next-line no-console
-      console.log(`[analyze:stage-a] ${tractate}/${page}`, JSON.stringify(stageADiag));
-      let skelPayload = stageA.content.trim();
-      if (!skelPayload && stageA.reasoning_content) {
-        const m = stageA.reasoning_content.match(/\{[\s\S]*"rabbiNames"[\s\S]*\}/);
-        if (m) skelPayload = m[0];
-      }
-      const fenced = skelPayload.match(/```(?:json)?\s*([\s\S]*?)```/);
-      if (fenced) skelPayload = fenced[1].trim();
-      if (!skelPayload) {
-        recordTelemetry(c, { endpoint: 'analyze', tractate, page, cache_hit: false, model: model.label, ms: Date.now() - t0, ok: false, error_kind: 'stage-a-empty' });
-        return c.json({ error: 'Stage A (skeleton) returned empty payload', stage: 'skeleton', model: model.label, _stageA: stageADiag }, 502);
-      }
-      try {
-        skeleton = JSON.parse(skelPayload) as DafSkeleton;
-      } catch (parseErr) {
-        recordTelemetry(c, { endpoint: 'analyze', tractate, page, cache_hit: false, model: model.label, ms: Date.now() - t0, ok: false, error_kind: 'stage-a-non-json' });
-        return c.json({ error: 'Stage A (skeleton) returned non-JSON', stage: 'skeleton', detail: String(parseErr).slice(0, 200), _stageA: stageADiag }, 502);
-      }
-      if (!skeleton.summary || !Array.isArray(skeleton.sections) || skeleton.sections.length < 1) {
-        recordTelemetry(c, { endpoint: 'analyze', tractate, page, cache_hit: false, model: model.label, ms: Date.now() - t0, ok: false, error_kind: 'stage-a-shape' });
-        return c.json({ error: 'Stage A skeleton missing required fields', stage: 'skeleton', _stageA: stageADiag }, 502);
-      }
-      if (cache) {
-        await cache.put(skeletonCacheKey, JSON.stringify(skeleton), { expirationTtl: 60 * 60 * 24 * 30 });
-      }
-    } catch (err) {
-      const msg = String(err);
-      // eslint-disable-next-line no-console
-      console.warn(`[analyze:skeleton] ${model.label} failed:`, msg);
-      recordTelemetry(c, { endpoint: 'analyze', tractate, page, cache_hit: false, model: model.label, ms: Date.now() - t0, ok: false, error_kind: 'stage-a-' + classifyError(msg) });
-      return c.json({ error: 'Stage A (skeleton) call failed', stage: 'skeleton', detail: msg.slice(0, 500), _stageA: stageADiag }, 502);
-    }
-  }
-
-  // Early-return for skeleton-only mode (used by the full-Shas first-pass
-  // script). Stage A is always cheap and reliable; Stage B is the expensive,
-  // flaky step we want to iterate on separately.
-  if (skeletonOnly) {
-    recordTelemetry(c, { endpoint: 'analyze', tractate, page, cache_hit: stageADiag === 'cached', model: model.label, ms: Date.now() - t0, ok: true });
-    return c.json({
-      ...skeleton,
-      _stageAModel: model.label,
-      _cached: stageADiag === 'cached',
-      _stageA: stageADiag,
-      _skeletonOnly: true,
-    });
-  }
-
-  // ---------- STAGE B: ENRICHMENT (skeleton + full context) ----------
-  const enrichmentBlocks: string[] = [];
-  enrichmentBlocks.push(`<skeleton>\n${JSON.stringify(skeleton, null, 2)}\n</skeleton>`);
-  enrichmentBlocks.push(amudBlock(
-    'focal_amud', page,
-    focalHebrewRaw, focalEnglishRaw,
-    sefFocal?.rashi?.hebrew ?? '',
-    sefFocal?.tosafot?.hebrew ?? '',
-    { heCap: ANALYZE_CAPS.focalHebrew, enCap: ANALYZE_CAPS.focalEnglish,
-      rashiCap: ANALYZE_CAPS.focalRashi, tosafotCap: ANALYZE_CAPS.focalTosafot },
-  ));
-  if (prevDaf && (hbPrev || sefPrev)) {
-    enrichmentBlocks.push(amudBlock(
-      'previous_amud', prevDaf,
-      hbPrev?.main ?? sefPrev?.mainText.hebrew ?? '',
-      sefPrev?.mainText.english ?? '',
-      '', '',
-      { heCap: ANALYZE_CAPS.neighborHebrew, enCap: ANALYZE_CAPS.neighborEnglish, rashiCap: 0, tosafotCap: 0 },
-    ));
-  }
-  if (nextDaf && (hbNext || sefNext)) {
-    enrichmentBlocks.push(amudBlock(
-      'next_amud', nextDaf,
-      hbNext?.main ?? sefNext?.mainText.hebrew ?? '',
-      sefNext?.mainText.english ?? '',
-      '', '',
-      { heCap: ANALYZE_CAPS.neighborHebrew, enCap: ANALYZE_CAPS.neighborEnglish, rashiCap: 0, tosafotCap: 0 },
-    ));
-  }
-  if (rishonimXml) enrichmentBlocks.push(rishonimXml);
-  if (halachaXml) enrichmentBlocks.push(halachaXml);
-
-  const enrichmentUser = [
-    `Tractate: ${tractate}`,
-    `Focal page: ${page}`,
-    '',
-    ...enrichmentBlocks,
-    '',
-    'Fill in the details for each rabbi/voice in the skeleton. Return the full enriched JSON.',
-  ].join('\n\n');
-
-  try {
-    // Stage B: Kimi K2.5 with thinking OFF.
-    // K2.6 reliably exceeds the Cloudflare Worker 5-min wall-clock on
-    // enrichment prompts even with reasoning_effort:"low" + trimmed prompt
-    // (confirmed 2026-04-23: Stage B hit exactly 300s with content
-    // truncated by the wall clock). K2.5 with enable_thinking:false is a
-    // deterministic field-filler benchmarked at <60s. Structural reasoning
-    // already happened in Stage A — Stage B is just filling nameHe/period/
-    // location/role/opinionStart, reasoning not required.
-    const stageBModel = {
-      id: '@cf/moonshotai/kimi-k2.5',
-      maxTokens: 16000,
-      label: 'kimi-k2.5-no-thinking',
-    };
-    const stageB = await runKimiStreaming(
-      c.env, stageBModel.id,
-      [
-        { role: 'system', content: ENRICHMENT_SYSTEM_PROMPT },
-        { role: 'user', content: enrichmentUser },
-      ],
-      stageBModel.maxTokens,
-      { chatTemplateKwargs: { enable_thinking: false } },
-    );
-    stageBDiag = {
-      prompt_chars: stageB.prompt_chars,
-      content_chars: stageB.content.length,
-      reasoning_chars: stageB.reasoning_content.length,
-      elapsed_ms: stageB.elapsed_ms,
-      finish_reason: stageB.finish_reason,
-      usage: stageB.usage,
-    };
-    // eslint-disable-next-line no-console
-    console.log(`[analyze:stage-b] ${tractate}/${page}`, JSON.stringify(stageBDiag));
-    let payload = stageB.content.trim();
-    if (!payload && stageB.reasoning_content) {
-      const m = stageB.reasoning_content.match(/\{[\s\S]*"rabbis"[\s\S]*\}/);
-      if (m) payload = m[0];
-    }
-    const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (fenced) payload = fenced[1].trim();
-
-    if (!payload) {
-      recordTelemetry(c, { endpoint: 'analyze', tractate, page, cache_hit: false, model: model.label, ms: Date.now() - t0, ok: false, error_kind: 'stage-b-empty' });
-      return c.json({
-        error: 'Stage B (enrichment) returned empty payload',
-        stage: 'enrichment', model: model.label,
-        _stageA: stageADiag, _stageB: stageBDiag,
-      }, 502);
-    }
-
-    let analysis: DafAnalysis;
-    try {
-      analysis = JSON.parse(payload) as DafAnalysis;
-    } catch (parseErr) {
-      recordTelemetry(c, { endpoint: 'analyze', tractate, page, cache_hit: false, model: model.label, ms: Date.now() - t0, ok: false, error_kind: 'stage-b-non-json' });
-      return c.json({
-        error: 'Stage B (enrichment) returned non-JSON',
-        stage: 'enrichment',
-        detail: String(parseErr).slice(0, 200),
-        _stageA: stageADiag, _stageB: stageBDiag,
-      }, 502);
-    }
-
-    // Force Stage B's excerpts to match the skeleton's. Stage A (Kimi K2.6
-    // thinking) produces verbatim-verified Hebrew excerpts; Stage B (Kimi
-    // K2.5 no-thinking) has been observed to paraphrase them, which breaks
-    // the UI's text-anchor lookup. Overwrite to guarantee fidelity.
-    if (skeleton && Array.isArray(skeleton.sections) && Array.isArray(analysis.sections)) {
-      for (let i = 0; i < analysis.sections.length && i < skeleton.sections.length; i++) {
-        const skelExcerpt = skeleton.sections[i]?.excerpt;
-        if (skelExcerpt) analysis.sections[i].excerpt = skelExcerpt;
-      }
-    }
-
-    const validation = validateAnalysis(analysis, focalHebrewNormalized);
-    if (!validation.ok) {
-      recordTelemetry(c, { endpoint: 'analyze', tractate, page, cache_hit: false, model: model.label, ms: Date.now() - t0, ok: false, error_kind: 'stage-b-schema' });
-      return c.json({
-        error: 'Enrichment output failed validation',
-        stage: 'enrichment',
-        validationErrors: validation.errors,
-        validationWarnings: validation.warnings,
-        _stageA: stageADiag, _stageB: stageBDiag,
-      }, 502);
-    }
-
-    const envelope = {
-      ...analysis,
-      _stageAModel: model.label,
-      _stageBModel: stageBModel.label,
-      _cached: false,
-      _prevDaf: prevDaf,
-      _nextDaf: nextDaf,
-      _rishonim: Object.keys(rishonim),
-      _halacha: Object.keys(halacha),
-      _validationWarnings: validation.warnings,
-      _pipeline: 'skeleton(k2.5)+enrichment(k2.5-no-thinking)',
-      _stageA: stageADiag,
-      _stageB: stageBDiag,
-    };
-
-    if (cache) {
-      const { _cached: _ignored, ...toCache } = envelope;
-      await cache.put(cacheKey, JSON.stringify(toCache), {
-        expirationTtl: 60 * 60 * 24 * 365,
-      });
-    }
-
-    recordTelemetry(c, { endpoint: 'analyze', tractate, page, cache_hit: false, model: model.label, ms: Date.now() - t0, ok: true });
-    return c.json(envelope);
-  } catch (err) {
-    const msg = String(err);
-    // eslint-disable-next-line no-console
-    console.warn(`[analyze:enrichment] ${model.label} failed:`, msg);
-    recordTelemetry(c, { endpoint: 'analyze', tractate, page, cache_hit: false, model: model.label, ms: Date.now() - t0, ok: false, error_kind: 'stage-b-' + classifyError(msg) });
-    return c.json({ error: 'Stage B (enrichment) call failed', stage: 'enrichment', detail: msg.slice(0, 500), _stageA: stageADiag, _stageB: stageBDiag }, 502);
-  }
-});
-
-// ============================================================================
-// ENRICHMENT STRATEGIES — experimental /api/enrich endpoint
-// ============================================================================
-// Pluggable Stage-B variants for the `#enrichment` comparison UI. Each
-// strategy takes the cached skeleton + cached sources and produces a full
-// DafAnalysis — they differ in how they shape the LLM calls (monolithic vs
-// per-section vs rule-LLM-hybrid). Results are NOT written to the
-// analyze:v5:* cache; they're transient and rendered side-by-side so we can
-// pick a winner before committing to one for the full Shas enrichment pass.
-
-interface EnrichmentSources {
-  hbFocal: HebrewBooksDaf | null;
-  sefFocal: TalmudPageData | null;
-  hbPrev: HebrewBooksDaf | null;
-  sefPrev: TalmudPageData | null;
-  hbNext: HebrewBooksDaf | null;
-  sefNext: TalmudPageData | null;
-  rishonim: RishonimBundle;
-  halacha: HalachicRefBundle;
-  prevDaf: string | null;
-  nextDaf: string | null;
-}
-
-interface StrategyCallDiag {
-  prompt_chars: number;
-  content_chars: number;
-  reasoning_chars: number;
-  elapsed_ms: number;
-  finish_reason: string | null;
-  usage: StreamedResult['usage'];
-}
-
-interface EnrichmentResult {
-  analysis: DafAnalysis;
-  warnings: string[];
-  elapsed_ms: number;
-  calls: StrategyCallDiag[];
-  strategy_metadata: Record<string, unknown>;
-}
-
-/**
- * Look up a rabbi by name against rabbi-places.json (alias-indexed).
- * Returns any deterministic fields we can fill without an LLM:
- * nameHe (from canonicalHe), period (from generation + era), location
- * (from places[0] + region). Returns null if no match.
- */
-interface RabbiLookupHit {
-  nameHe?: string;
-  period?: string;
-  location?: string;
-  aliases?: string[];
-  generation?: string;
-}
-function lookupRabbi(name: string): RabbiLookupHit | null {
-  if (!name) return null;
-  const key = name.trim().toLowerCase();
-  const rabbiId = (RABBI_PLACES.aliasIndex as Record<string, string>)[key];
-  if (!rabbiId) return null;
-  const r = RABBI_PLACES.rabbis[rabbiId];
-  if (!r) return null;
-
-  const out: RabbiLookupHit = {};
-  if (r.canonicalHe) out.nameHe = r.canonicalHe;
-
-  const genInfo = r.generation ? GENERATION_BY_ID[r.generation as GenerationId] : null;
-  if (genInfo) {
-    out.period = genInfo.era ? `${genInfo.label}, ${genInfo.era}` : genInfo.label;
-  }
-  if (r.generation) out.generation = r.generation;
-
-  const firstPlace = Array.isArray(r.places) && r.places.length > 0 ? r.places[0] : null;
-  const regionName = r.region === 'israel' ? 'Eretz Yisrael' : r.region === 'bavel' ? 'Bavel' : null;
-  if (firstPlace && regionName) out.location = `${firstPlace}, ${regionName}`;
-  else if (firstPlace) out.location = firstPlace;
-  else if (regionName) out.location = regionName;
-
-  // Strip the canonical name itself from aliases — keep only variants.
-  if (Array.isArray(r.aliases) && r.aliases.length > 0) {
-    const canonical = (r.canonical || '').trim().toLowerCase();
-    const variants = r.aliases.filter(a => a && a.trim().toLowerCase() !== canonical);
-    if (variants.length > 0) out.aliases = variants.slice(0, 8);
-  }
-
-  return Object.keys(out).length > 0 ? out : null;
-}
-
-// --- baseline strategy -------------------------------------------------------
-// Monolithic K2.5 no-thinking call with full context. Verbatim match to the
-// current /api/analyze Stage B logic so we have a reference point for diffs.
-
-async function runBaselineEnrichment(
-  env: Bindings, tractate: string, page: string,
-  skeleton: DafSkeleton, sources: EnrichmentSources,
-): Promise<EnrichmentResult> {
-  const t0 = Date.now();
-  const focalHebrewRaw = sources.hbFocal?.main ?? sources.sefFocal?.mainText.hebrew ?? '';
-  const focalEnglishRaw = sources.sefFocal?.mainText.english ?? '';
-
-  const blocks: string[] = [];
-  blocks.push(`<skeleton>\n${JSON.stringify(skeleton, null, 2)}\n</skeleton>`);
-  blocks.push(amudBlock(
-    'focal_amud', page,
-    focalHebrewRaw, focalEnglishRaw,
-    sources.sefFocal?.rashi?.hebrew ?? '',
-    sources.sefFocal?.tosafot?.hebrew ?? '',
-    { heCap: ANALYZE_CAPS.focalHebrew, enCap: ANALYZE_CAPS.focalEnglish,
-      rashiCap: ANALYZE_CAPS.focalRashi, tosafotCap: ANALYZE_CAPS.focalTosafot },
-  ));
-  if (sources.prevDaf && (sources.hbPrev || sources.sefPrev)) {
-    blocks.push(amudBlock(
-      'previous_amud', sources.prevDaf,
-      sources.hbPrev?.main ?? sources.sefPrev?.mainText.hebrew ?? '',
-      sources.sefPrev?.mainText.english ?? '',
-      '', '',
-      { heCap: ANALYZE_CAPS.neighborHebrew, enCap: ANALYZE_CAPS.neighborEnglish, rashiCap: 0, tosafotCap: 0 },
-    ));
-  }
-  if (sources.nextDaf && (sources.hbNext || sources.sefNext)) {
-    blocks.push(amudBlock(
-      'next_amud', sources.nextDaf,
-      sources.hbNext?.main ?? sources.sefNext?.mainText.hebrew ?? '',
-      sources.sefNext?.mainText.english ?? '',
-      '', '',
-      { heCap: ANALYZE_CAPS.neighborHebrew, enCap: ANALYZE_CAPS.neighborEnglish, rashiCap: 0, tosafotCap: 0 },
-    ));
-  }
-  const rXml = rishonimBlock(sources.rishonim);
-  if (rXml) blocks.push(rXml);
-  const hXml = halachaBlock(sources.halacha);
-  if (hXml) blocks.push(hXml);
-
-  const userContent = [
-    `Tractate: ${tractate}`,
-    `Focal page: ${page}`,
-    '',
-    ...blocks,
-    '',
-    'Fill in the details for each rabbi/voice in the skeleton. Return the full enriched JSON.',
-  ].join('\n\n');
-
-  const streamed = await runKimiStreaming(
-    env, '@cf/moonshotai/kimi-k2.5',
-    [
-      { role: 'system', content: ENRICHMENT_SYSTEM_PROMPT },
-      { role: 'user', content: userContent },
-    ],
-    16000,
-    { chatTemplateKwargs: { enable_thinking: false } },
-  );
-
-  const analysis = parseEnrichedAnalysis(streamed, skeleton);
-  const focalNorm = normalizeHebrew(slice(focalHebrewRaw, ANALYZE_CAPS.focalHebrew));
-  const validation = validateAnalysis(analysis, focalNorm);
-
-  return {
-    analysis,
-    warnings: [...validation.warnings, ...validation.errors.map(e => `(was error) ${e}`)],
-    elapsed_ms: Date.now() - t0,
-    calls: [callDiag(streamed)],
-    strategy_metadata: { model: 'kimi-k2.5-no-thinking', shape: 'monolithic' },
-  };
-}
-
-// --- per-section strategy ---------------------------------------------------
-// One K2.5 call per section (concurrent, capped at 3). Each call gets only
-// that section's skeleton subset + focal Hebrew/Rashi/Tosafot. Smaller prompt
-// per call => smaller reasoning surface, faster, fewer validation issues.
-
-const PER_SECTION_SYSTEM_PROMPT = `You are a scholar of Talmud. You will receive a SINGLE argument section's skeleton (title, summary, excerpt, list of rabbi names) plus the focal amud's Hebrew/Aramaic text, Rashi, and Tosafot.
-
-For each rabbi/voice in this section, fill in:
-- nameHe: Hebrew name or label as it appears in the text
-- period: Era + dates (e.g. 'Tanna, c. 90-120 CE', 'Stam Gemara, redacted c. 500 CE')
-- location: City + region (e.g. 'Lod, Eretz Yisrael', 'Sura, Bavel')
-- role: What this voice argues in this section (one sentence)
-- opinionStart: First 2-4 Hebrew/Aramaic words of this voice's statement in the focal amud, copied verbatim
-
-Use Rashi/Tosafot to disambiguate abbreviations (ר"מ, ר"י etc.) — never guess blindly.
-
-opinionStart MUST be copied verbatim from the focal amud's Hebrew.
-
-Output STRICT JSON only (no markdown):
-{"rabbis": [{"name": string, "nameHe": string, "period": string, "location": string, "role": string, "opinionStart": string}]}`;
-
-async function runPerSectionEnrichment(
-  env: Bindings, tractate: string, page: string,
-  skeleton: DafSkeleton, sources: EnrichmentSources,
-): Promise<EnrichmentResult> {
-  const t0 = Date.now();
-  const focalHebrewRaw = sources.hbFocal?.main ?? sources.sefFocal?.mainText.hebrew ?? '';
-  const focalEnglishRaw = sources.sefFocal?.mainText.english ?? '';
-  const focalBlock = amudBlock(
-    'focal_amud', page,
-    focalHebrewRaw, focalEnglishRaw,
-    sources.sefFocal?.rashi?.hebrew ?? '',
-    sources.sefFocal?.tosafot?.hebrew ?? '',
-    { heCap: ANALYZE_CAPS.focalHebrew, enCap: ANALYZE_CAPS.focalEnglish,
-      rashiCap: ANALYZE_CAPS.focalRashi, tosafotCap: ANALYZE_CAPS.focalTosafot },
-  );
-
-  const allCalls: StrategyCallDiag[] = [];
-
-  async function enrichSection(sec: DafSkeleton['sections'][number]): Promise<DafAnalysis['sections'][number]> {
-    const skelSubset = { title: sec.title, summary: sec.summary, excerpt: sec.excerpt, rabbiNames: sec.rabbiNames };
-    const user = [
-      `Tractate: ${tractate}`,
-      `Focal page: ${page}`,
-      '',
-      `<section_skeleton>\n${JSON.stringify(skelSubset, null, 2)}\n</section_skeleton>`,
-      '',
-      focalBlock,
-      '',
-      'Fill in details for each rabbi listed. Return JSON per schema.',
-    ].join('\n\n');
-
-    const s = await runKimiStreaming(
-      env, '@cf/moonshotai/kimi-k2.5',
-      [
-        { role: 'system', content: PER_SECTION_SYSTEM_PROMPT },
-        { role: 'user', content: user },
-      ],
-      8000,
-      { chatTemplateKwargs: { enable_thinking: false } },
-    );
-    allCalls.push(callDiag(s));
-
-    // Parse {rabbis: [...]} output
-    let payload = s.content.trim();
-    const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (fenced) payload = fenced[1].trim();
-    let rabbis: DafAnalysis['sections'][number]['rabbis'] = [];
-    try {
-      const parsed = JSON.parse(payload);
-      if (Array.isArray(parsed?.rabbis)) rabbis = parsed.rabbis;
-    } catch { /* leave empty on parse fail */ }
-
-    return { title: sec.title, summary: sec.summary, excerpt: sec.excerpt, rabbis };
-  }
-
-  // Concurrency 3: fire in windows
-  const enrichedSections: DafAnalysis['sections'] = [];
-  const LIMIT = 3;
-  for (let i = 0; i < skeleton.sections.length; i += LIMIT) {
-    const window = skeleton.sections.slice(i, i + LIMIT);
-    const results = await Promise.all(window.map(enrichSection));
-    enrichedSections.push(...results);
-  }
-
-  const analysis: DafAnalysis = { summary: skeleton.summary, sections: enrichedSections };
-  const focalNorm = normalizeHebrew(slice(focalHebrewRaw, ANALYZE_CAPS.focalHebrew));
-  const validation = validateAnalysis(analysis, focalNorm);
-
-  return {
-    analysis,
-    warnings: [...validation.warnings, ...validation.errors.map(e => `(was error) ${e}`)],
-    elapsed_ms: Date.now() - t0,
-    calls: allCalls,
-    strategy_metadata: { model: 'kimi-k2.5-no-thinking', shape: 'per-section', sections: skeleton.sections.length, concurrency: LIMIT },
-  };
-}
-
-// --- hybrid strategy --------------------------------------------------------
-// For each rabbi, try rabbi-places.json lookup (period, location, nameHe
-// deterministic). Then one K2.5 call to fill just role + opinionStart for
-// every rabbi — the only fields that are genuinely focal-specific.
-
-const HYBRID_SYSTEM_PROMPT = `You are a scholar of Talmud. You will receive a skeleton with rabbis already partially enriched from a reference database (nameHe/period/location pre-filled when known). Your job is to fill in ONLY two fields per rabbi:
-- role: what this rabbi/voice argues or does in this specific section (one clear sentence)
-- opinionStart: the first 2-4 Hebrew/Aramaic words of this rabbi's statement, copied verbatim from the focal amud's Hebrew
-
-Do NOT change nameHe/period/location values that are already filled. Leave them verbatim.
-For rabbis with missing nameHe/period/location, do your best to fill those too using Rashi/Tosafot context.
-
-opinionStart MUST be copied verbatim from the focal amud's Hebrew. Use Rashi/Tosafot for disambiguation (ר"מ vs ר"י etc.).
-
-Output STRICT JSON matching the full DafAnalysis schema (summary + sections + rabbis with all fields).`;
-
-async function runHybridEnrichment(
-  env: Bindings, tractate: string, page: string,
-  skeleton: DafSkeleton, sources: EnrichmentSources,
-): Promise<EnrichmentResult> {
-  const t0 = Date.now();
-  const focalHebrewRaw = sources.hbFocal?.main ?? sources.sefFocal?.mainText.hebrew ?? '';
-  const focalEnglishRaw = sources.sefFocal?.mainText.english ?? '';
-
-  // Build partial enrichment by looking up each rabbi in rabbi-places.json.
-  // Deterministic fields (generation, aliases) go on the output directly —
-  // LLM never sees or modifies them. Period/location/nameHe are seeded for
-  // the LLM prompt but it may refine them for rabbis with no lookup hit.
-  let lookupHits = 0;
-  const partialSections = skeleton.sections.map((sec) => ({
-    title: sec.title,
-    summary: sec.summary,
-    excerpt: sec.excerpt,
-    rabbis: sec.rabbiNames.map((name) => {
-      const hit = lookupRabbi(name);
-      if (hit) lookupHits++;
-      return {
-        name,
-        nameHe: hit?.nameHe ?? '',
-        period: hit?.period ?? '',
-        location: hit?.location ?? '',
-        role: '',
-        opinionStart: '',
-        ...(hit?.generation ? { generation: hit.generation } : {}),
-        ...(hit?.aliases ? { aliases: hit.aliases } : {}),
-      };
-    }),
-  }));
-  const partial = { summary: skeleton.summary, sections: partialSections };
-
-  const focalBlock = amudBlock(
-    'focal_amud', page,
-    focalHebrewRaw, focalEnglishRaw,
-    sources.sefFocal?.rashi?.hebrew ?? '',
-    sources.sefFocal?.tosafot?.hebrew ?? '',
-    { heCap: ANALYZE_CAPS.focalHebrew, enCap: ANALYZE_CAPS.focalEnglish,
-      rashiCap: ANALYZE_CAPS.focalRashi, tosafotCap: ANALYZE_CAPS.focalTosafot },
-  );
-
-  const user = [
-    `Tractate: ${tractate}`,
-    `Focal page: ${page}`,
-    '',
-    `<partial_analysis>\n${JSON.stringify(partial, null, 2)}\n</partial_analysis>`,
-    '',
-    focalBlock,
-    '',
-    'Fill in role + opinionStart for every rabbi. Leave pre-filled nameHe/period/location as-is.',
-  ].join('\n\n');
-
-  const s = await runKimiStreaming(
-    env, '@cf/moonshotai/kimi-k2.5',
-    [
-      { role: 'system', content: HYBRID_SYSTEM_PROMPT },
-      { role: 'user', content: user },
-    ],
-    12000,
-    { chatTemplateKwargs: { enable_thinking: false } },
-  );
-
-  const analysis = parseEnrichedAnalysis(s, skeleton);
-
-  // Merge deterministic lookup fields (generation, aliases) back onto each
-  // rabbi — LLM may have dropped them since its prompt didn't mention them.
-  // Matched by (name, nameHe) key; unmatched rabbis keep whatever the LLM
-  // produced. Also re-assert period/location/nameHe from the lookup for
-  // rabbis where we had a hit (in case LLM paraphrased them).
-  if (Array.isArray(analysis.sections)) {
-    for (const sec of analysis.sections) {
-      if (!Array.isArray(sec.rabbis)) continue;
-      for (const r of sec.rabbis) {
-        const hit = lookupRabbi(r.name);
-        if (!hit) continue;
-        if (hit.nameHe) r.nameHe = hit.nameHe;
-        if (hit.period) r.period = hit.period;
-        if (hit.location) r.location = hit.location;
-        if (hit.generation) r.generation = hit.generation;
-        if (hit.aliases && hit.aliases.length > 0) r.aliases = hit.aliases;
-      }
-    }
-  }
-
-  const focalNorm = normalizeHebrew(slice(focalHebrewRaw, ANALYZE_CAPS.focalHebrew));
-  const validation = validateAnalysis(analysis, focalNorm);
-
-  const totalRabbis = partialSections.reduce((sum, s) => sum + s.rabbis.length, 0);
-
-  return {
-    analysis,
-    warnings: [...validation.warnings, ...validation.errors.map(e => `(was error) ${e}`)],
-    elapsed_ms: Date.now() - t0,
-    calls: [callDiag(s)],
-    strategy_metadata: {
-      model: 'kimi-k2.5-no-thinking',
-      shape: 'rule+llm',
-      total_rabbis: totalRabbis,
-      lookup_hits: lookupHits,
-      lookup_rate: totalRabbis > 0 ? Math.round((lookupHits / totalRabbis) * 100) / 100 : 0,
-    },
-  };
-}
-
-// --- helpers shared by strategies -------------------------------------------
-
-function callDiag(s: StreamedResult): StrategyCallDiag {
-  return {
-    prompt_chars: s.prompt_chars,
-    content_chars: s.content.length,
-    reasoning_chars: s.reasoning_content.length,
-    elapsed_ms: s.elapsed_ms,
-    finish_reason: s.finish_reason,
-    usage: s.usage,
-  };
-}
-
-function parseEnrichedAnalysis(s: StreamedResult, skeleton: DafSkeleton): DafAnalysis {
-  let payload = s.content.trim();
-  if (!payload && s.reasoning_content) {
-    const m = s.reasoning_content.match(/\{[\s\S]*"rabbis"[\s\S]*\}/);
-    if (m) payload = m[0];
-  }
-  const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (fenced) payload = fenced[1].trim();
-
-  let analysis: DafAnalysis;
-  try {
-    analysis = JSON.parse(payload) as DafAnalysis;
-  } catch {
-    // Synthesize an empty-shell if parse fails — validator will flag it.
-    analysis = { summary: skeleton.summary, sections: [] };
-  }
-
-  // Force skeleton excerpts (K2.5 sometimes paraphrases).
-  if (Array.isArray(analysis.sections) && Array.isArray(skeleton.sections)) {
-    for (let i = 0; i < analysis.sections.length && i < skeleton.sections.length; i++) {
-      const skelExcerpt = skeleton.sections[i]?.excerpt;
-      if (skelExcerpt) analysis.sections[i].excerpt = skelExcerpt;
-    }
-  }
-
-  return analysis;
-}
-
-// --- rich-rabbi strategy ----------------------------------------------------
-// Hybrid lookup + one LLM call that produces the *full* rabbi object:
-//   role, opinionStart, opinionEnd, agreesWith, disagreesWith
-// Everything else (nameHe, period, location, generation, aliases) comes from
-// the rabbi-places.json lookup deterministically. Builds the cross-rabbi
-// dispute graph in a single shot per daf.
-
-const RICH_RABBI_SYSTEM_PROMPT = `You are a scholar of Talmud. You will receive a partial analysis where each rabbi's nameHe/period/location/generation/aliases are already filled from a reference database. Fill in the remaining fields for EVERY rabbi:
-
-- role: one sentence describing what this rabbi argues or does in THIS section
-- opinionStart: first 2-4 Hebrew/Aramaic words of this rabbi's statement in the focal amud, copied verbatim
-- opinionEnd: last 2-4 Hebrew/Aramaic words of this rabbi's statement in the focal amud, copied verbatim (the words where their opinion ends — paired with opinionStart to enable span highlighting)
-- agreesWith: array of other rabbi names in the SAME section whose position this rabbi agrees with. Use the exact "name" values as they appear in the input. Empty array if none.
-- disagreesWith: array of other rabbi names in the SAME section whose position this rabbi disagrees with. Empty array if none.
-
-Rules:
-- opinionStart and opinionEnd MUST be copied verbatim from the focal amud's Hebrew text — do not translate or paraphrase.
-- Use Rashi/Tosafot to disambiguate abbreviations (ר"מ / ר"י / ר"א / ר"ש).
-- For anonymous voices (Gemara's question, First answer, Objection), opinionStart/opinionEnd should be the Hebrew markers that open and close that move (e.g. "מאי טעמא ... דאמר קרא").
-- Preserve nameHe/period/location/generation/aliases as provided — do not modify.
-
-Output STRICT JSON matching the full DafAnalysis schema (summary + sections + rabbis with all fields including agreesWith and disagreesWith arrays).`;
-
-async function runRichRabbiEnrichment(
-  env: Bindings, tractate: string, page: string,
-  skeleton: DafSkeleton, sources: EnrichmentSources,
-): Promise<EnrichmentResult> {
-  const t0 = Date.now();
-  const focalHebrewRaw = sources.hbFocal?.main ?? sources.sefFocal?.mainText.hebrew ?? '';
-  const focalEnglishRaw = sources.sefFocal?.mainText.english ?? '';
-
-  // Prefill everything deterministic from rabbi-places.json so the LLM only
-  // has to produce role/opinionStart/opinionEnd/agreesWith/disagreesWith.
-  let lookupHits = 0;
-  const partial = {
-    summary: skeleton.summary,
-    sections: skeleton.sections.map((sec) => ({
-      title: sec.title,
-      summary: sec.summary,
-      excerpt: sec.excerpt,
-      rabbis: sec.rabbiNames.map((name) => {
-        const hit = lookupRabbi(name);
-        if (hit) lookupHits++;
-        const r: Record<string, unknown> = {
-          name,
-          nameHe: hit?.nameHe ?? '',
-          period: hit?.period ?? '',
-          location: hit?.location ?? '',
-          role: '',
-          opinionStart: '',
-          opinionEnd: '',
-          agreesWith: [],
-          disagreesWith: [],
-        };
-        if (hit?.generation) r.generation = hit.generation;
-        if (hit?.aliases) r.aliases = hit.aliases;
-        return r;
-      }),
-    })),
-  };
-
-  const focalBlock = amudBlock(
-    'focal_amud', page,
-    focalHebrewRaw, focalEnglishRaw,
-    sources.sefFocal?.rashi?.hebrew ?? '',
-    sources.sefFocal?.tosafot?.hebrew ?? '',
-    { heCap: ANALYZE_CAPS.focalHebrew, enCap: ANALYZE_CAPS.focalEnglish,
-      rashiCap: ANALYZE_CAPS.focalRashi, tosafotCap: ANALYZE_CAPS.focalTosafot },
-  );
-
-  const user = [
-    `Tractate: ${tractate}`,
-    `Focal page: ${page}`,
-    '',
-    `<partial_analysis>\n${JSON.stringify(partial, null, 2)}\n</partial_analysis>`,
-    '',
-    focalBlock,
-    '',
-    'Fill in role + opinionStart + opinionEnd + agreesWith + disagreesWith for every rabbi. Leave pre-filled fields as-is. Return the complete enriched JSON.',
-  ].join('\n\n');
-
-  const s = await runKimiStreaming(
-    env, '@cf/moonshotai/kimi-k2.5',
-    [
-      { role: 'system', content: RICH_RABBI_SYSTEM_PROMPT },
-      { role: 'user', content: user },
-    ],
-    16000,
-    { chatTemplateKwargs: { enable_thinking: false } },
-  );
-
-  const analysis = parseEnrichedAnalysis(s, skeleton);
-
-  // Re-assert deterministic fields in case the LLM dropped them.
-  if (Array.isArray(analysis.sections)) {
-    for (const sec of analysis.sections) {
-      if (!Array.isArray(sec.rabbis)) continue;
-      for (const r of sec.rabbis) {
-        const hit = lookupRabbi(r.name);
-        if (!hit) continue;
-        if (hit.nameHe) r.nameHe = hit.nameHe;
-        if (hit.period) r.period = hit.period;
-        if (hit.location) r.location = hit.location;
-        if (hit.generation) r.generation = hit.generation;
-        if (hit.aliases && hit.aliases.length > 0) r.aliases = hit.aliases;
-      }
-    }
-  }
-
-  const focalNorm = normalizeHebrew(slice(focalHebrewRaw, ANALYZE_CAPS.focalHebrew));
-  const validation = validateAnalysis(analysis, focalNorm);
-  const totalRabbis = partial.sections.reduce((sum, s) => sum + s.rabbis.length, 0);
-
-  return {
-    analysis,
-    warnings: [...validation.warnings, ...validation.errors.map(e => `(was error) ${e}`)],
-    elapsed_ms: Date.now() - t0,
-    calls: [callDiag(s)],
-    strategy_metadata: {
-      model: 'kimi-k2.5-no-thinking',
-      shape: 'rule+llm',
-      total_rabbis: totalRabbis,
-      lookup_hits: lookupHits,
-      lookup_rate: totalRabbis > 0 ? Math.round((lookupHits / totalRabbis) * 100) / 100 : 0,
-      new_fields: ['opinionEnd', 'agreesWith', 'disagreesWith', 'generation', 'aliases'],
-    },
-  };
-}
-
-// --- references strategy ----------------------------------------------------
-// Identifies biblical verses (Tanakh) quoted or referenced in each section of
-// the focal amud. Returns a list per section with both English (Sefaria-style)
-// and Hebrew citation formats plus the actual Hebrew quote as it appears in
-// the daf.
-
-const REFERENCES_SYSTEM_PROMPT = `You are a Talmud scholar identifying biblical references. You will receive a skeleton analysis with section titles/excerpts plus the focal amud's Hebrew and English text.
-
-For each section, identify every biblical verse (Tanakh — Torah, Neviim, Ketuvim) that is QUOTED or CLEARLY REFERENCED in that section's Hebrew text. Do NOT include allusions or thematic parallels — only explicit citations.
-
-For each reference output:
-- ref: English Sefaria-style citation (e.g. "Proverbs 2:2", "Deuteronomy 6:4", "Genesis 1:1")
-- hebrewRef: Hebrew citation in standard form (e.g. "משלי ב:ב", "דברים ו:ד")
-- hebrewQuote: The actual Hebrew words of the verse as they appear in the daf (truncated to 8 words max if the full verse is longer). Copy verbatim.
-
-Output STRICT JSON:
-{"sections": [{"title": "...", "references": [{"ref": "...", "hebrewRef": "...", "hebrewQuote": "..."}]}]}
-
-Use the section titles from the skeleton to key your output. Sections with no biblical citations should have an empty references array.`;
-
-async function runReferencesEnrichment(
-  env: Bindings, tractate: string, page: string,
-  skeleton: DafSkeleton, sources: EnrichmentSources,
-): Promise<EnrichmentResult> {
-  const t0 = Date.now();
-  const focalHebrewRaw = sources.hbFocal?.main ?? sources.sefFocal?.mainText.hebrew ?? '';
-  const focalEnglishRaw = sources.sefFocal?.mainText.english ?? '';
-  const focalBlock = amudBlock(
-    'focal_amud', page,
-    focalHebrewRaw, focalEnglishRaw,
-    sources.sefFocal?.rashi?.hebrew ?? '',
-    sources.sefFocal?.tosafot?.hebrew ?? '',
-    { heCap: ANALYZE_CAPS.focalHebrew, enCap: ANALYZE_CAPS.focalEnglish,
-      rashiCap: ANALYZE_CAPS.focalRashi, tosafotCap: ANALYZE_CAPS.focalTosafot },
-  );
-
-  const skelSummary = {
-    summary: skeleton.summary,
-    sections: skeleton.sections.map((sec) => ({ title: sec.title, excerpt: sec.excerpt })),
-  };
-
-  const user = [
-    `Tractate: ${tractate}`,
-    `Focal page: ${page}`,
-    '',
-    `<skeleton>\n${JSON.stringify(skelSummary, null, 2)}\n</skeleton>`,
-    '',
-    focalBlock,
-    '',
-    'Identify biblical references quoted in each section. Return JSON per schema.',
-  ].join('\n\n');
-
-  const s = await runKimiStreaming(
-    env, '@cf/moonshotai/kimi-k2.5',
-    [
-      { role: 'system', content: REFERENCES_SYSTEM_PROMPT },
-      { role: 'user', content: user },
-    ],
-    8000,
-    { chatTemplateKwargs: { enable_thinking: false } },
-  );
-
-  // Parse and merge into a DafAnalysis shape keyed by section title.
-  let payload = s.content.trim();
-  const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (fenced) payload = fenced[1].trim();
-  let refsByTitle: Record<string, BiblicalRef[]> = {};
-  try {
-    const parsed = JSON.parse(payload) as { sections?: Array<{ title: string; references?: BiblicalRef[] }> };
-    if (Array.isArray(parsed.sections)) {
-      for (const sec of parsed.sections) {
-        if (sec.title && Array.isArray(sec.references)) {
-          refsByTitle[sec.title.toLowerCase()] = sec.references;
-        }
-      }
-    }
-  } catch { /* leave empty */ }
-
-  const analysis: DafAnalysis = {
-    summary: skeleton.summary,
-    sections: skeleton.sections.map((sec) => ({
-      title: sec.title,
-      summary: sec.summary,
-      excerpt: sec.excerpt,
-      rabbis: [],
-      references: refsByTitle[sec.title.toLowerCase()] ?? [],
-    })),
-  };
-
-  const totalRefs = Object.values(refsByTitle).reduce((sum, arr) => sum + arr.length, 0);
-
-  return {
-    analysis,
-    warnings: [],
-    elapsed_ms: Date.now() - t0,
-    calls: [callDiag(s)],
-    strategy_metadata: {
-      model: 'kimi-k2.5-no-thinking',
-      shape: 'section-refs',
-      total_references: totalRefs,
-      sections_with_refs: Object.values(refsByTitle).filter(arr => arr.length > 0).length,
-    },
-  };
-}
-
-// --- parallels strategy -----------------------------------------------------
-// For each section, identify parallel sugyot (discussions of the same dispute
-// or topic) in other masechtot. Uses Rishonim commentary as primary signal
-// since they cross-reference extensively.
-
-const PARALLELS_SYSTEM_PROMPT = `You are a Talmud scholar identifying parallel sugyot. You will receive a skeleton analysis plus the focal amud's Hebrew/English/Rashi/Tosafot AND the bundled Rishonim commentary (Rashba, Ritva, Ramban, Meiri, Rosh, etc.). Rishonim frequently cite parallel discussions ("ועיין בפרק..." / "אמרינן במסכת..." etc.).
-
-For each section in the skeleton, identify any parallel sugyot — other places in Shas where the same dispute, topic, or legal question is discussed substantively. Do NOT include mere mentions; only include if there's a real parallel discussion.
-
-Output parallel sugya references in standard tractate+daf format (e.g. "Shabbat 31a", "Sanhedrin 74b", "Zevachim 2a"). Use Sefaria-style tractate names.
-
-Output STRICT JSON:
-{"sections": [{"title": "...", "parallels": ["Shabbat 31a", ...]}]}
-
-Sections with no parallels should have an empty parallels array. Prefer to cite 1-4 strong parallels per section over 10 weak ones.`;
-
-async function runParallelsEnrichment(
-  env: Bindings, tractate: string, page: string,
-  skeleton: DafSkeleton, sources: EnrichmentSources,
-): Promise<EnrichmentResult> {
-  const t0 = Date.now();
-  const focalHebrewRaw = sources.hbFocal?.main ?? sources.sefFocal?.mainText.hebrew ?? '';
-  const focalEnglishRaw = sources.sefFocal?.mainText.english ?? '';
-  const focalBlock = amudBlock(
-    'focal_amud', page,
-    focalHebrewRaw, focalEnglishRaw,
-    sources.sefFocal?.rashi?.hebrew ?? '',
-    sources.sefFocal?.tosafot?.hebrew ?? '',
-    { heCap: ANALYZE_CAPS.focalHebrew, enCap: ANALYZE_CAPS.focalEnglish,
-      rashiCap: ANALYZE_CAPS.focalRashi, tosafotCap: ANALYZE_CAPS.focalTosafot },
-  );
-  const rishonimXml = rishonimBlock(sources.rishonim);
-
-  const skelSummary = {
-    summary: skeleton.summary,
-    sections: skeleton.sections.map((sec) => ({ title: sec.title, summary: sec.summary })),
-  };
-
-  const blocks: string[] = [
-    `<skeleton>\n${JSON.stringify(skelSummary, null, 2)}\n</skeleton>`,
-    focalBlock,
-  ];
-  if (rishonimXml) blocks.push(rishonimXml);
-
-  const user = [
-    `Tractate: ${tractate}`,
-    `Focal page: ${page}`,
-    '',
-    ...blocks,
-    '',
-    'Identify parallel sugyot per section. Use Rishonim commentary as primary signal.',
-  ].join('\n\n');
-
-  const s = await runKimiStreaming(
-    env, '@cf/moonshotai/kimi-k2.5',
-    [
-      { role: 'system', content: PARALLELS_SYSTEM_PROMPT },
-      { role: 'user', content: user },
-    ],
-    8000,
-    { chatTemplateKwargs: { enable_thinking: false } },
-  );
-
-  let payload = s.content.trim();
-  const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (fenced) payload = fenced[1].trim();
-  let parallelsByTitle: Record<string, string[]> = {};
-  try {
-    const parsed = JSON.parse(payload) as { sections?: Array<{ title: string; parallels?: string[] }> };
-    if (Array.isArray(parsed.sections)) {
-      for (const sec of parsed.sections) {
-        if (sec.title && Array.isArray(sec.parallels)) {
-          parallelsByTitle[sec.title.toLowerCase()] = sec.parallels;
-        }
-      }
-    }
-  } catch { /* leave empty */ }
-
-  const analysis: DafAnalysis = {
-    summary: skeleton.summary,
-    sections: skeleton.sections.map((sec) => ({
-      title: sec.title,
-      summary: sec.summary,
-      excerpt: sec.excerpt,
-      rabbis: [],
-      parallels: parallelsByTitle[sec.title.toLowerCase()] ?? [],
-    })),
-  };
-
-  const totalParallels = Object.values(parallelsByTitle).reduce((sum, arr) => sum + arr.length, 0);
-
-  return {
-    analysis,
-    warnings: [],
-    elapsed_ms: Date.now() - t0,
-    calls: [callDiag(s)],
-    strategy_metadata: {
-      model: 'kimi-k2.5-no-thinking',
-      shape: 'section-parallels',
-      total_parallels: totalParallels,
-      sections_with_parallels: Object.values(parallelsByTitle).filter(arr => arr.length > 0).length,
-      rishonim_used: Object.keys(sources.rishonim),
-    },
-  };
-}
-
-// --- difficulty strategy ---------------------------------------------------
-// Rates each section 1-5 and the daf overall, with a one-sentence rationale
-// per rating. 1 = accessible to a beginner (clear Mishnah, no outside refs);
-// 5 = expert-level (dense Aramaic, cross-tractate prerequisite knowledge).
-
-const DIFFICULTY_SYSTEM_PROMPT = `You are a Talmud teacher rating educational difficulty. You will receive a skeleton analysis + focal amud.
-
-Rate each section and the overall daf on a 1-5 scale:
-- 1: Accessible to a beginner. Clear Mishnah or simple narrative, no outside prerequisites, Aramaic minimal.
-- 2: Suitable for a student with basic familiarity. Short sugya, one clear dispute, minimal cross-references.
-- 3: Intermediate. Multi-party dispute, some Aramaic technical terms, 1-2 outside references.
-- 4: Advanced. Dense argument structure, heavy reliance on unstated assumptions, multiple cross-tractate citations.
-- 5: Expert. Highly technical, requires deep prior knowledge of multiple masechtot or Rishonim to parse.
-
-For each section and the overall daf, provide:
-- score: 1-5
-- reason: ONE sentence explaining the rating (what makes it hard or easy for a learner)
-
-Output STRICT JSON:
-{"difficulty": {"score": N, "reason": "..."}, "sections": [{"title": "...", "difficulty": {"score": N, "reason": "..."}}]}`;
-
-async function runDifficultyEnrichment(
-  env: Bindings, tractate: string, page: string,
-  skeleton: DafSkeleton, sources: EnrichmentSources,
-): Promise<EnrichmentResult> {
-  const t0 = Date.now();
-  const focalHebrewRaw = sources.hbFocal?.main ?? sources.sefFocal?.mainText.hebrew ?? '';
-  const focalEnglishRaw = sources.sefFocal?.mainText.english ?? '';
-  const focalBlock = amudBlock(
-    'focal_amud', page,
-    focalHebrewRaw, focalEnglishRaw,
-    sources.sefFocal?.rashi?.hebrew ?? '',
-    sources.sefFocal?.tosafot?.hebrew ?? '',
-    { heCap: ANALYZE_CAPS.focalHebrew, enCap: ANALYZE_CAPS.focalEnglish,
-      rashiCap: ANALYZE_CAPS.focalRashi, tosafotCap: ANALYZE_CAPS.focalTosafot },
-  );
-
-  const skelSummary = {
-    summary: skeleton.summary,
-    sections: skeleton.sections.map((sec) => ({ title: sec.title, summary: sec.summary })),
-  };
-
-  const user = [
-    `Tractate: ${tractate}`,
-    `Focal page: ${page}`,
-    '',
-    `<skeleton>\n${JSON.stringify(skelSummary, null, 2)}\n</skeleton>`,
-    '',
-    focalBlock,
-    '',
-    'Rate difficulty per section and overall daf. Return JSON per schema.',
-  ].join('\n\n');
-
-  const s = await runKimiStreaming(
-    env, '@cf/moonshotai/kimi-k2.5',
-    [
-      { role: 'system', content: DIFFICULTY_SYSTEM_PROMPT },
-      { role: 'user', content: user },
-    ],
-    6000,
-    { chatTemplateKwargs: { enable_thinking: false } },
-  );
-
-  let payload = s.content.trim();
-  const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (fenced) payload = fenced[1].trim();
-  let overallDifficulty: DifficultyRating | undefined;
-  let difficultyByTitle: Record<string, DifficultyRating> = {};
-  try {
-    const parsed = JSON.parse(payload) as {
-      difficulty?: DifficultyRating;
-      sections?: Array<{ title: string; difficulty?: DifficultyRating }>;
-    };
-    if (parsed.difficulty && typeof parsed.difficulty.score === 'number') {
-      overallDifficulty = parsed.difficulty;
-    }
-    if (Array.isArray(parsed.sections)) {
-      for (const sec of parsed.sections) {
-        if (sec.title && sec.difficulty) {
-          difficultyByTitle[sec.title.toLowerCase()] = sec.difficulty;
-        }
-      }
-    }
-  } catch { /* leave empty */ }
-
-  const analysis: DafAnalysis = {
-    summary: skeleton.summary,
-    difficulty: overallDifficulty,
-    sections: skeleton.sections.map((sec) => ({
-      title: sec.title,
-      summary: sec.summary,
-      excerpt: sec.excerpt,
-      rabbis: [],
-      difficulty: difficultyByTitle[sec.title.toLowerCase()],
-    })),
-  };
-
-  return {
-    analysis,
-    warnings: [],
-    elapsed_ms: Date.now() - t0,
-    calls: [callDiag(s)],
-    strategy_metadata: {
-      model: 'kimi-k2.5-no-thinking',
-      shape: 'section-difficulty',
-      overall_score: overallDifficulty?.score ?? null,
-      avg_section_score: (() => {
-        const scores = Object.values(difficultyByTitle).map(d => d.score);
-        return scores.length > 0 ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10 : null;
-      })(),
-    },
-  };
-}
-
-// --- strategy dispatcher + endpoint -----------------------------------------
-
-type EnrichmentStrategyName =
-  | 'baseline'
-  | 'per-section'
-  | 'hybrid'
-  | 'rich-rabbi'
-  | 'references'
-  | 'parallels'
-  | 'difficulty'
-  | 'commentaries'
-  | 'bigger-picture'
-  | 'background'
-  | 'synthesize';
-
-const STRATEGY_NAMES: EnrichmentStrategyName[] = [
-  'baseline', 'per-section', 'hybrid', 'rich-rabbi', 'references', 'parallels', 'difficulty',
-  'commentaries', 'bigger-picture', 'background', 'synthesize',
-];
-
-/** Strategies that don't have a daf-level analyzer; we fan out to
- *  enrichArgumentSection per skeleton section instead. */
-const PER_SECTION_ARGUMENT_STRATEGIES: ReadonlySet<EnrichmentStrategyName> = new Set([
-  'commentaries', 'bigger-picture', 'background', 'synthesize',
-]);
-
-async function runEnrichmentStrategy(
-  strategy: EnrichmentStrategyName,
-  env: Bindings, tractate: string, page: string,
-  skeleton: DafSkeleton, sources: EnrichmentSources,
-): Promise<EnrichmentResult> {
-  switch (strategy) {
-    case 'baseline':    return runBaselineEnrichment(env, tractate, page, skeleton, sources);
-    case 'per-section': return runPerSectionEnrichment(env, tractate, page, skeleton, sources);
-    case 'hybrid':      return runHybridEnrichment(env, tractate, page, skeleton, sources);
-    case 'rich-rabbi':  return runRichRabbiEnrichment(env, tractate, page, skeleton, sources);
-    case 'references':  return runReferencesEnrichment(env, tractate, page, skeleton, sources);
-    case 'parallels':   return runParallelsEnrichment(env, tractate, page, skeleton, sources);
-    case 'difficulty':  return runDifficultyEnrichment(env, tractate, page, skeleton, sources);
-    default:            throw new Error(`unknown strategy: ${strategy}`);
-  }
-}
-
-app.post('/api/enrich/:tractate/:page', async (c) => {
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  const strategy = (c.req.query('strategy') || 'baseline') as EnrichmentStrategyName;
-  if (!STRATEGY_NAMES.includes(strategy)) {
-    return c.json({ error: `unknown strategy '${strategy}'; valid: ${STRATEGY_NAMES.join('|')}` }, 400);
-  }
-  const cache = c.env.CACHE;
-  if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-
-  // Daf-level enrichment cache. Each strategy is a separate key so they
-  // can be invalidated independently. Used by EnrichmentPage's preload.
-  // Synthesize takes an additional `?include=` param (sorted, comma-joined
-  // strategy names) so different toggle combinations cache independently.
-  const includeRaw = c.req.query('include') ?? '';
-  const includeNorm = includeRaw
-    ? includeRaw.split(',').map((s) => s.trim()).filter(Boolean).sort().join(',')
-    : '';
-  const enrichCacheKey = strategy === 'synthesize' && includeNorm
-    ? `enrich-arg:v1:synthesize:i=${includeNorm}:${tractate}:${page}`
-    : `enrich-arg:v1:${strategy}:${tractate}:${page}`;
-  const refresh = c.req.query('refresh') === '1';
-  if (cache && !refresh) {
-    const hit = await cache.get(enrichCacheKey);
-    if (hit) return c.json({ ...JSON.parse(hit), _cached: true });
-  }
-
-  // Require cached skeleton — user must skeleton_only=1 first via /api/analyze.
-  const skelRaw = cache ? await cache.get(`analyze-skel:v2:${tractate}:${page}`) : null;
-  if (!skelRaw) return c.json({ error: 'No cached skeleton; run /api/analyze/.../?skeleton_only=1 first' }, 404);
-  let skeleton: DafSkeleton;
-  try { skeleton = JSON.parse(skelRaw) as DafSkeleton; }
-  catch { return c.json({ error: 'Cached skeleton is not valid JSON' }, 502); }
-
-  // Per-section strategies — fan out to enrichArgumentSection over every
-  // skeleton section, then return a section-keyed analysis matching the daf-
-  // level shape so the client merger can fold it into the unified view.
-  if (PER_SECTION_ARGUMENT_STRATEGIES.has(strategy)) {
-    const t0 = Date.now();
-    const includeOverride = strategy === 'synthesize' && includeNorm
-      ? includeNorm.split(',')
-      : undefined;
-    const results = await Promise.all(
-      skeleton.sections.map(async (_, idx) => {
-        try {
-          const data = await enrichArgumentSection(c, tractate, page, idx, strategy, includeOverride);
-          return { idx, data, error: null as string | null };
-        } catch (err) {
-          return { idx, data: null as unknown, error: String(err).slice(0, 200) };
-        }
-      }),
-    );
-    const sections = skeleton.sections.map((sec, idx) => {
-      const r = results[idx];
-      const out: Record<string, unknown> = { ...sec };
-      if (strategy === 'synthesize')      out.synthesize    = r.data;
-      else if (strategy === 'commentaries')   out.commentaries  = r.data;
-      else if (strategy === 'bigger-picture') out.biggerPicture = r.data;
-      else if (strategy === 'background')     out.background    = r.data;
-      return out;
-    });
-    const warnings = results.filter((r) => r.error).map((r) => `section ${r.idx}: ${r.error}`);
-
-    // After all section syntheses complete, run a single daf-level abstract
-    // call that takes their explanations as input. The abstract gives the
-    // reader a coherent daf-level overview that updates with the include set.
-    // Only runs for the synthesize strategy — other strategies (commentaries,
-    // bigger-picture, background) are inherently per-section.
-    let dafAbstract: { explanation: string; groundedIn?: string[] } | null = null;
-    if (strategy === 'synthesize') {
-      const sectionGists: Array<{ title: string; explanation: string }> = [];
-      for (let i = 0; i < sections.length; i++) {
-        const synth = (sections[i] as { synthesize?: { explanation?: string } | null }).synthesize;
-        if (synth?.explanation) {
-          sectionGists.push({
-            title: skeleton.sections[i].title,
-            explanation: synth.explanation,
-          });
-        }
-      }
-      if (sectionGists.length > 0 && c.env.AI) {
-        const userContent = [
-          `Tractate: ${tractate}`,
-          `Page: ${page}`,
-          `Skeleton summary: ${skeleton.summary}`,
-          '',
-          'Section-level synthesized gists (in order):',
-          ...sectionGists.map((g, i) => `${i + 1}. "${g.title}" — ${g.explanation}`),
-          '',
-          'Write the 3-4 sentence daf-level overview.',
-        ].join('\n');
-        try {
-          const parsed = await runArgumentStrategyKimi(c.env, ARG_DAF_ABSTRACT_PROMPT, userContent, 4000) as { explanation?: string; groundedIn?: string[] };
-          if (parsed.explanation) {
-            dafAbstract = {
-              explanation: parsed.explanation,
-              groundedIn: parsed.groundedIn,
-            };
-          }
-        } catch (err) {
-          warnings.push(`daf-abstract: ${String(err).slice(0, 200)}`);
-        }
-      }
-    }
-
-    const out = {
-      summary: skeleton.summary,
-      dafAbstract,
-      sections,
-      _strategy: strategy,
-      _elapsed_ms: Date.now() - t0,
-      _calls: results.length + (dafAbstract ? 1 : 0),
-      _warnings: warnings,
-      _skeletonSummary: skeleton.summary,
-    };
-    // Await cache write — synthesize calls fired immediately after this need
-    // to read the data, and waitUntil is fire-and-forget which races them.
-    if (cache) {
-      await cache.put(enrichCacheKey, JSON.stringify(out), { expirationTtl: 60 * 60 * 24 * 365 });
-    }
-    return c.json(out);
-  }
-
-  const prevDaf = adjacentAmud(tractate, page, -1);
-  const nextDaf = adjacentAmud(tractate, page, 1);
-  const [hbFocal, sefFocal, hbPrev, sefPrev, hbNext, sefNext, rishonim, halacha] = await Promise.all([
-    getHebrewBooksDafCached(cache, tractate, page),
-    getSefariaPageCached(cache, tractate, page),
-    prevDaf ? getHebrewBooksDafCached(cache, tractate, prevDaf) : Promise.resolve(null),
-    prevDaf ? getSefariaPageCached(cache, tractate, prevDaf) : Promise.resolve(null),
-    nextDaf ? getHebrewBooksDafCached(cache, tractate, nextDaf) : Promise.resolve(null),
-    nextDaf ? getSefariaPageCached(cache, tractate, nextDaf) : Promise.resolve(null),
-    getRishonimCached(cache, tractate, page),
-    getHalachaRefsCached(cache, tractate, page),
-  ]);
-
-  const sources: EnrichmentSources = {
-    hbFocal, sefFocal, hbPrev, sefPrev, hbNext, sefNext,
-    rishonim, halacha, prevDaf, nextDaf,
-  };
-
-  try {
-    const result = await runEnrichmentStrategy(strategy, c.env, tractate, page, skeleton, sources);
-    const out = {
-      ...result.analysis,
-      _strategy: strategy,
-      _elapsed_ms: result.elapsed_ms,
-      _calls: result.calls,
-      _warnings: result.warnings,
-      _metadata: result.strategy_metadata,
-      _skeletonSummary: skeleton.summary,
-    };
-    if (cache) {
-      // Await cache write — downstream synthesize calls depend on it.
-      await cache.put(enrichCacheKey, JSON.stringify(out), { expirationTtl: 60 * 60 * 24 * 365 });
-    }
-    return c.json(out);
-  } catch (err) {
-    const msg = String(err);
-    // eslint-disable-next-line no-console
-    console.warn(`[enrich:${strategy}] ${tractate}/${page} failed:`, msg);
-    return c.json({ error: `Strategy '${strategy}' call failed`, detail: msg.slice(0, 500) }, 502);
-  }
-});
-
-app.get('/api/enrich/ground-truth/:tractate/:page', async (c) => {
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  const cache = c.env.CACHE;
-  if (!cache) return c.json({ error: 'cache unavailable' }, 503);
-  const cached = await cache.get(`analyze:v6:${tractate}:${page}`);
-  if (!cached) return c.json({ error: 'no ground truth cached for this daf' }, 404);
-  try {
-    const parsed = JSON.parse(cached) as DafAnalysis;
-    return c.json(parsed);
-  } catch {
-    return c.json({ error: 'cached ground truth is not valid JSON' }, 502);
-  }
-});
-
-// ============================================================================
-// HALACHA + AGGADATA ENRICHMENTS — used by /#enrichment page
-// ============================================================================
-
-interface ModernAuthority {
-  source: string;   // Display label, e.g. "Mishna Berurah 235:1" or "Peninei Halakhah, Prayer 16:10"
-  ref?: string;     // Optional Sefaria ref
-  summary: string;  // 1-2 sentence summary of this authority's position
-}
-
-interface HistoricalContext {
-  era: string;
-  context: string;
-}
-
-const HALACHA_MODERN_AUTHORITIES_PROMPT = `You are a scholar of Jewish law (halacha). You will receive:
-- Existing halachic topics for this daf (with Mishneh Torah / Shulchan Aruch / Rema refs already filled in by a previous pass)
-- The focal daf's Hebrew + English
-- A halachic_codification bundle from Sefaria, in XML tags. This contains ACTUAL TEXT of halachic works that Sefaria has linked to this daf — typically includes Peninei Halakhah, Tur, Sefer HaChinukh, Halakhot Gedolot, Ohr Zarua, Sefer Yereim, Sefer Mitzvot Gadol, etc. Each <ref id="..."> is the canonical Sefaria reference.
-
-**HARD RULE — use ONLY sources whose text appears in the halachic_codification bundle.** Do not cite Mishnah Berurah, Aruch HaShulchan, Igrot Moshe, Yabia Omer, or any other authority unless its text is actually in the bundle below. If the bundle doesn't include it, omit it. Made-up refs are worse than no refs.
-
-For each topic:
-- Match it to relevant passages in the halachic_codification bundle
-- For each matching source, distill what that authority says about THIS topic into ONE sentence IN ENGLISH (don't echo Hebrew back — summarize)
-- Skip topics that have no matches in the bundle
-
-For each authority entry output:
-- source: display label using the book's name + its ref (e.g. "Peninei Halakhah, Prayer 2:11", "Tur, Orach Chayim 58")
-- ref: the exact Sefaria ref as it appears in the <ref id="..."> attribute in the bundle
-- summary: ONE sentence explaining what the authority rules on this topic, in your own English words. Focus on what's NEW or DIFFERENT from the Shulchan Aruch already listed.
-
-Output STRICT JSON only:
-{"topics": [{"topic": "topic name from input", "modernAuthorities": [{"source": "...", "ref": "...", "summary": "..."}]}]}
-
-Match topics by the "topic" field (case-insensitive). Topics with no matches in the bundle should have an empty modernAuthorities array.`;
-
-interface RishonNote {
-  rishon: string;   // Display name: Rashba / Ritva / Ramban / Meiri / Rosh / Maharsha / Chidushei Aggadot
-  note: string;     // One sentence distilling this Rishon's position on THIS topic
-  ref?: string;     // Optional Sefaria ref to the Rishon's commentary
-}
-
-const HALACHA_RISHONIM_CONDENSED_PROMPT = `You are a scholar of Talmud and halacha. You will receive:
-- A list of halachic topics identified on this daf (topic, excerpt, existing Rambam / Shulchan Aruch / Rema rulings)
-- The bundled Rishonim commentary on this daf (Rashba, Ritva, Ramban, Meiri, Rosh, Maharsha, Chidushei Aggadot) — provided verbatim in the input
-
-For each topic, identify which of the available Rishonim addressed that specific halachic issue substantively, and distill each to a ONE-sentence summary of their position. Be specific: capture what each Rishon actually argues (a hiddush, a distinction, a chiluk, a different reading of the Gemara). Do NOT write generic "so-and-so discusses this topic" — write the actual claim.
-
-Skip Rishonim who didn't discuss a given topic. Don't invent commentary that isn't in the bundled text. If a Rishon mentions the topic only in passing without a distinct position, also skip.
-
-NOTE: this prompt continues below with the output schema and has a sibling SA-COMMENTARY prompt declared separately.
-
-Output STRICT JSON only:
-{"topics": [{"topic": "topic name from input", "rishonimNotes": [{"rishon": "Rashba", "note": "One-sentence summary.", "ref": "Chiddushei HaRashba on Berakhot 5a"}]}]}
-
-Use the exact Rishon display names: Rashba, Ritva, Ramban, Meiri, Rosh, Maharsha, Chidushei Aggadot. Topics with no Rishonim commentary should have an empty rishonimNotes array. Match topics by the "topic" field from input (case-insensitive).`;
-
-// ---- SA-commentary walk strategy -------------------------------------------
-// For each halacha topic that has a Shulchan Aruch ref, walk the commentary
-// chain on that SA ref (Mishnah Berurah, Biur Halakhah, Magen Avraham, Taz,
-// Shach, Arukh HaShulchan, Kaf HaChaim, etc.) and pass the actual Sefaria
-// text to Kimi K2.5 to distill per-topic per-commentator.
-
-interface SaCommentaryNote {
-  commentator: string;  // e.g. "Mishnah Berurah", "Magen Avraham", "Kaf HaChaim"
-  note: string;         // One-sentence English distillation of this commentator's position on THIS topic
-  ref?: string;         // Sefaria ref
-}
-
-const HALACHA_SA_COMMENTARY_PROMPT = `You are a scholar of Jewish law (halacha). You will receive:
-- Halachic topics for this daf (with Mishneh Torah / Shulchan Aruch / Rema refs already filled in)
-- The focal daf's Hebrew + English
-- For EACH topic that had a Shulchan Aruch ref, a <sa_commentary_for_topic topic="..." sa_ref="..."> block containing ACTUAL TEXT from Sefaria of the post-medieval commentators on that SA ref: Mishnah Berurah, Biur Halakhah, Sha'ar HaTziyun, Beit Yosef, Magen Avraham, Turei Zahav (Taz), Siftei Kohen (Shach), Ba'er Heitev, Arukh HaShulchan, Kaf HaChaim, Chayei Adam, Chochmat Adam, Kitzur Shulchan Arukh, Pri Megadim, etc.
-
-**HARD RULE — only cite commentators whose text appears in the corresponding <sa_commentary_for_topic> block for that topic.** Do not cross-assign between topics. Do not invent refs.
-
-For each topic, for each commentator whose text is provided:
-- Distill their position on THIS topic into ONE sentence IN ENGLISH
-- Focus on what the commentator ADDS beyond the plain Shulchan Aruch — a chiddush, chiluk, practical nuance, or ruling on an ambiguity
-- If a commentator's text just echoes the SA with no new insight, skip them
-
-Output STRICT JSON only:
-{"topics": [{"topic": "topic name from input", "saCommentaryNotes": [{"commentator": "Mishnah Berurah", "note": "...", "ref": "Mishnah Berurah 235:1"}]}]}
-
-Use the exact commentator display name. Topics with no SA commentary should have an empty array. Match topics case-insensitively.`;
-
-/** Assemble the per-topic SA-commentary XML blocks by walking each topic's
- *  Shulchan Aruch ref via Sefaria. Cached per SA ref (not per daf) so
- *  commentary fetched for one daf is reused on every daf that references
- *  the same siman. */
-async function buildSaCommentaryBlocks(
-  cache: KVNamespace | undefined,
-  topics: HalachaTopic[],
-): Promise<{ xmlBlocks: string[]; totalBundles: number; commentators: Set<string> }> {
-  const xmlBlocks: string[] = [];
-  const commentators = new Set<string>();
-  let totalBundles = 0;
-  for (const t of topics) {
-    const saRef = t.rulings.shulchanAruch?.ref;
-    if (!saRef) continue;
-    const bundle = await getSaCommentaryCached(cache, saRef);
-    if (Object.keys(bundle).length === 0) continue;
-    totalBundles++;
-    const parts: string[] = [];
-    for (const [book, snip] of Object.entries(bundle)) {
-      commentators.add(book);
-      const en = slice(snip.english, 5000);
-      const he = slice(snip.hebrew, 5000);
-      const body = [
-        en && `<english>${en}</english>`,
-        he && `<hebrew>${he}</hebrew>`,
-      ].filter(Boolean).join('\n');
-      parts.push(`<commentator name="${book}" ref="${snip.ref}">\n${body}\n</commentator>`);
-    }
-    const safeTopic = t.topic.replace(/"/g, '&quot;').replace(/</g, '&lt;');
-    xmlBlocks.push(`<sa_commentary_for_topic topic="${safeTopic}" sa_ref="${saRef}">\n${parts.join('\n')}\n</sa_commentary_for_topic>`);
-  }
-  return { xmlBlocks, totalBundles, commentators };
-}
-
-const HALACHA_SYNTHESIZE_PROMPT = `You write the GIST of one halachic topic — the one-glance synthesis the reader sees on the topic card. Rewrite the topic gist using the rulings (Rambam MT, Shulchan Aruch, Rema), Rishonim, SA-commentary, and modern authorities as authoritative context: each one tightens the picture of how the halacha actually flows. Do NOT recap each enrichment — fold them into one tight paragraph.
-
-**HARD CAPS:**
-- 2-3 sentences. Maximum 480 characters total.
-- Lead with the practical halachic upshot in modern terms.
-- Then ONE sentence that captures the dispute axis (where Rishonim or commentators disagree, if applicable).
-- No commentator name-drops by themselves — name a commentator only when the dispute hinges on them.
-
-Output STRICT JSON only:
-
-{ "topics": [{ "topic": "<exact topic name>", "synthesis": { "explanation": "the gist", "groundedIn": ["rulings","rishonim","sa-commentary","modern-authorities"] } }] }
-
-groundedIn lists ONLY slices actually supplied. Match topics by name (case-insensitive).`;
-
-app.post('/api/enrich-halacha/:tractate/:page', async (c) => {
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  const strategy = c.req.query('strategy') || 'modern-authorities';
-  if (strategy !== 'modern-authorities' && strategy !== 'rishonim-condensed' && strategy !== 'sa-commentary-walk' && strategy !== 'synthesize') {
-    return c.json({ error: `unknown strategy '${strategy}'; valid: modern-authorities|rishonim-condensed|sa-commentary-walk|synthesize` }, 400);
-  }
-  if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-  const cache = c.env.CACHE;
-  // Synthesize takes `?include=` so different toggle combos cache separately.
-  const includeRaw = c.req.query('include') ?? '';
-  const includeNorm = includeRaw
-    ? includeRaw.split(',').map((s) => s.trim()).filter(Boolean).sort().join(',')
-    : '';
-  const enrichCacheKey = strategy === 'synthesize' && includeNorm
-    ? `enrich-halacha:v1:synthesize:i=${includeNorm}:${tractate}:${page}`
-    : `enrich-halacha:v1:${strategy}:${tractate}:${page}`;
-  const bypassCache = c.req.query('refresh') === '1';
-
-  // Read-through cache: return prior result if we have one.
-  if (cache && !bypassCache) {
-    const cached = await cache.get(enrichCacheKey);
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached);
-        return c.json({ ...parsed, _cached: true });
-      } catch { /* corrupted, fall through to regen */ }
-    }
-  }
-
-  const halRaw = cache ? await cache.get(`halacha:v6:${tractate}:${page}`) : null;
-  if (!halRaw) return c.json({ error: 'No cached /api/halacha output; run /api/halacha first.' }, 404);
-  let halacha: HalachaResult;
-  try { halacha = JSON.parse(halRaw) as HalachaResult; }
-  catch { return c.json({ error: 'Cached halacha is not valid JSON' }, 502); }
-
-  // Synthesize branch: fold the existing structured enrichments back into a
-  // per-topic synthesis paragraph. Reads other strategies' caches as input,
-  // filtered by `?include=` if supplied.
-  if (strategy === 'synthesize') {
-    const t0 = Date.now();
-    const includeSet = new Set(includeNorm ? includeNorm.split(',') : []);
-    const want = (s: string) => includeSet.size === 0 || includeSet.has(s);
-    const readEnrich = async (s: string): Promise<HalachaResult | null> => {
-      if (!cache) return null;
-      const hit = await cache.get(`enrich-halacha:v1:${s}:${tractate}:${page}`);
-      if (!hit) return null;
-      try { return JSON.parse(hit) as HalachaResult; } catch { return null; }
-    };
-    const [modernRes, rishonimRes, saRes] = await Promise.all([
-      want('modern-authorities')  ? readEnrich('modern-authorities')  : Promise.resolve(null),
-      want('rishonim-condensed')  ? readEnrich('rishonim-condensed')  : Promise.resolve(null),
-      want('sa-commentary-walk')  ? readEnrich('sa-commentary-walk')  : Promise.resolve(null),
-    ]);
-    // Build the input — for each topic, list whatever's been enriched.
-    const topicBlocks = halacha.topics.map((t) => {
-      const slices: Record<string, unknown> = { topic: t.topic, rulings: t.rulings };
-      const m = modernRes?.topics.find((x) => x.topic.toLowerCase() === t.topic.toLowerCase());
-      const r = rishonimRes?.topics.find((x) => x.topic.toLowerCase() === t.topic.toLowerCase());
-      const s = saRes?.topics.find((x) => x.topic.toLowerCase() === t.topic.toLowerCase());
-      if (m?.modernAuthorities)  slices.modernAuthorities  = m.modernAuthorities;
-      if (r?.rishonimNotes)      slices.rishonimNotes      = r.rishonimNotes;
-      if (s?.saCommentaryNotes)  slices.saCommentaryNotes  = s.saCommentaryNotes;
-      return slices;
-    });
-    const userContent = [
-      `Tractate: ${tractate}`,
-      `Focal page: ${page}`,
-      '',
-      `<topics_with_enrichments>\n${JSON.stringify(topicBlocks, null, 2)}\n</topics_with_enrichments>`,
-      '',
-      'Synthesize each topic.',
-    ].join('\n');
-    let parsed: { topics?: Array<{ topic: string; synthesis?: { explanation: string; groundedIn?: string[] } }> } = {};
-    try {
-      const s = await runKimiStreaming(
-        c.env, '@cf/moonshotai/kimi-k2.5',
-        [
-          { role: 'system', content: HALACHA_SYNTHESIZE_PROMPT },
-          { role: 'user', content: userContent },
-        ],
-        8000,
-        { chatTemplateKwargs: { enable_thinking: false } },
-      );
-      let payload = s.content.trim();
-      const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
-      if (fenced) payload = fenced[1].trim();
-      parsed = JSON.parse(payload);
-    } catch (err) {
-      return c.json({ error: `synthesize: ${String(err).slice(0, 200)}` }, 502);
-    }
-    const bySynth = new Map<string, { explanation: string; groundedIn?: string[] }>();
-    for (const t of parsed.topics ?? []) {
-      if (t.synthesis?.explanation) bySynth.set(t.topic.toLowerCase(), t.synthesis);
-    }
-    const enrichedTopics = halacha.topics.map((t) => ({
-      ...t,
-      synthesis: bySynth.get(t.topic.toLowerCase()),
-    }));
-    const out = {
-      topics: enrichedTopics,
-      _strategy: 'synthesize',
-      _elapsed_ms: Date.now() - t0,
-    };
-    if (cache) await cache.put(enrichCacheKey, JSON.stringify(out), { expirationTtl: 60 * 60 * 24 * 365 });
-    return c.json(out);
-  }
-
-  // Both strategies benefit from real Sefaria sources:
-  //   - modern-authorities: needs halacha refs bundle (Peninei Halakhah, Tur,
-  //     Sefer HaChinukh, Ohr Zarua, etc. — the actual text Sefaria has linked
-  //     to this daf).
-  //   - rishonim-condensed: needs the Rishonim bundle (Rashba, Ritva, Ramban,
-  //     Meiri, Rosh, Maharsha, Chidushei Aggadot).
-  const needsRishonim = strategy === 'rishonim-condensed';
-  const needsHalachaRefs = strategy === 'modern-authorities';
-  const needsSaCommentary = strategy === 'sa-commentary-walk';
-  const [hbFocal, sefFocal, rishonim, halachaRefs, saCommentary] = await Promise.all([
-    getHebrewBooksDafCached(cache, tractate, page),
-    getSefariaPageCached(cache, tractate, page),
-    needsRishonim ? getRishonimCached(cache, tractate, page) : Promise.resolve({} as RishonimBundle),
-    needsHalachaRefs ? getHalachaRefsCached(cache, tractate, page) : Promise.resolve({} as HalachicRefBundle),
-    needsSaCommentary ? buildSaCommentaryBlocks(cache, halacha.topics) : Promise.resolve({ xmlBlocks: [] as string[], totalBundles: 0, commentators: new Set<string>() }),
-  ]);
-  const focalHebrew = slice(hbFocal?.main ?? sefFocal?.mainText.hebrew ?? '', ANALYZE_CAPS.focalHebrew);
-  const focalEnglish = slice(sefFocal?.mainText.english ?? '', ANALYZE_CAPS.focalEnglish);
-
-  const rishonimXml = needsRishonim ? rishonimBlock(rishonim) : '';
-  const halachaXml = needsHalachaRefs ? halachaBlock(halachaRefs) : '';
-
-  if (needsRishonim && !rishonimXml) {
-    return c.json({
-      topics: halacha.topics.map(t => ({ ...t, rishonimNotes: [] })),
-      _strategy: strategy,
-      _elapsed_ms: 0,
-      _metadata: { note: 'no Rishonim available for this daf on Sefaria' },
-    });
-  }
-  if (needsHalachaRefs && !halachaXml) {
-    return c.json({
-      topics: halacha.topics.map(t => ({ ...t, modernAuthorities: [] })),
-      _strategy: strategy,
-      _elapsed_ms: 0,
-      _metadata: { note: 'no post-medieval halachic sources linked to this daf on Sefaria' },
-    });
-  }
-  if (needsSaCommentary && saCommentary.xmlBlocks.length === 0) {
-    return c.json({
-      topics: halacha.topics.map(t => ({ ...t, saCommentaryNotes: [] })),
-      _strategy: strategy,
-      _elapsed_ms: 0,
-      _metadata: { note: 'no SA-commentary found for any topic on this daf' },
-    });
-  }
-
-  const systemPrompt = strategy === 'modern-authorities'
-    ? HALACHA_MODERN_AUTHORITIES_PROMPT
-    : strategy === 'rishonim-condensed'
-      ? HALACHA_RISHONIM_CONDENSED_PROMPT
-      : HALACHA_SA_COMMENTARY_PROMPT;
-
-  const blocks: string[] = [
-    `<existing_halacha>\n${JSON.stringify(halacha, null, 2)}\n</existing_halacha>`,
-    `<focal_hebrew>${focalHebrew}</focal_hebrew>`,
-    `<focal_english>${focalEnglish}</focal_english>`,
-  ];
-  if (rishonimXml) blocks.push(rishonimXml);
-  if (halachaXml) blocks.push(halachaXml);
-  if (needsSaCommentary) blocks.push(...saCommentary.xmlBlocks);
-
-  const closer =
-    strategy === 'modern-authorities' ? 'Add 2-5 post-medieval authorities per topic. Return JSON per schema.'
-      : strategy === 'rishonim-condensed' ? 'Distill each Rishon to one sentence per topic. Return JSON per schema.'
-      : 'Distill each Acharon (SA-commentator) to one sentence per topic. Return JSON per schema.';
-
-  const userContent = [
-    `Tractate: ${tractate}`,
-    `Focal page: ${page}`,
-    '',
-    ...blocks,
-    '',
-    closer,
-  ].join('\n\n');
-
-  const t0 = Date.now();
-  try {
-    const s = await runKimiStreaming(
-      c.env, '@cf/moonshotai/kimi-k2.5',
-      [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userContent },
-      ],
-      16000,
-      { chatTemplateKwargs: { enable_thinking: false } },
-    );
-    let payload = s.content.trim();
-    const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (fenced) payload = fenced[1].trim();
-
-    if (strategy === 'modern-authorities') {
-      let authoritiesByTopic: Record<string, ModernAuthority[]> = {};
-      try {
-        const parsed = JSON.parse(payload) as { topics?: Array<{ topic: string; modernAuthorities?: ModernAuthority[] }> };
-        if (Array.isArray(parsed.topics)) {
-          for (const t of parsed.topics) {
-            if (t.topic && Array.isArray(t.modernAuthorities)) {
-              authoritiesByTopic[t.topic.toLowerCase()] = t.modernAuthorities;
-            }
-          }
-        }
-      } catch {
-        return c.json({ error: 'Halacha enrichment returned non-JSON', detail: payload.slice(0, 300) }, 502);
-      }
-
-      const enrichedTopics = halacha.topics.map(t => ({
-        ...t,
-        modernAuthorities: authoritiesByTopic[t.topic.toLowerCase()] ?? [],
-      }));
-      const totalAuth = Object.values(authoritiesByTopic).reduce((sum, arr) => sum + arr.length, 0);
-
-      const _out_1 = {
-        topics: enrichedTopics,
-        _strategy: strategy,
-        _elapsed_ms: Date.now() - t0,
-        _metadata: {
-          model: 'kimi-k2.5-no-thinking',
-          total_topics: halacha.topics.length,
-          topics_with_authorities: Object.values(authoritiesByTopic).filter(arr => arr.length > 0).length,
-          total_authorities: totalAuth,
-        },
-      };
-      if (cache) await cache.put(enrichCacheKey, JSON.stringify(_out_1), { expirationTtl: 60 * 60 * 24 * 365 });
-      return c.json(_out_1);
-    }
-
-    if (strategy === 'rishonim-condensed') {
-      let notesByTopic: Record<string, RishonNote[]> = {};
-      try {
-        const parsed = JSON.parse(payload) as { topics?: Array<{ topic: string; rishonimNotes?: RishonNote[] }> };
-        if (Array.isArray(parsed.topics)) {
-          for (const t of parsed.topics) {
-            if (t.topic && Array.isArray(t.rishonimNotes)) {
-              notesByTopic[t.topic.toLowerCase()] = t.rishonimNotes;
-            }
-          }
-        }
-      } catch {
-        return c.json({ error: 'Halacha enrichment returned non-JSON', detail: payload.slice(0, 300) }, 502);
-      }
-      const enrichedTopics = halacha.topics.map(t => ({
-        ...t,
-        rishonimNotes: notesByTopic[t.topic.toLowerCase()] ?? [],
-      }));
-      const totalNotes = Object.values(notesByTopic).reduce((sum, arr) => sum + arr.length, 0);
-      const _out_2 = {
-        topics: enrichedTopics,
-        _strategy: strategy,
-        _elapsed_ms: Date.now() - t0,
-        _metadata: {
-          model: 'kimi-k2.5-no-thinking',
-          total_topics: halacha.topics.length,
-          topics_with_notes: Object.values(notesByTopic).filter(arr => arr.length > 0).length,
-          total_notes: totalNotes,
-          rishonim_available: Object.keys(rishonim),
-        },
-      };
-      if (cache) await cache.put(enrichCacheKey, JSON.stringify(_out_2), { expirationTtl: 60 * 60 * 24 * 365 });
-      return c.json(_out_2);
-    }
-
-    // strategy === 'sa-commentary-walk'
-    let saNotesByTopic: Record<string, SaCommentaryNote[]> = {};
-    try {
-      const parsed = JSON.parse(payload) as { topics?: Array<{ topic: string; saCommentaryNotes?: SaCommentaryNote[] }> };
-      if (Array.isArray(parsed.topics)) {
-        for (const t of parsed.topics) {
-          if (t.topic && Array.isArray(t.saCommentaryNotes)) {
-            saNotesByTopic[t.topic.toLowerCase()] = t.saCommentaryNotes;
-          }
-        }
-      }
-    } catch {
-      return c.json({ error: 'Halacha enrichment returned non-JSON', detail: payload.slice(0, 300) }, 502);
-    }
-    const enrichedTopicsSa = halacha.topics.map(t => ({
-      ...t,
-      saCommentaryNotes: saNotesByTopic[t.topic.toLowerCase()] ?? [],
-    }));
-    const totalSaNotes = Object.values(saNotesByTopic).reduce((sum, arr) => sum + arr.length, 0);
-    const _out_3 = {
-      topics: enrichedTopicsSa,
-      _strategy: strategy,
-      _elapsed_ms: Date.now() - t0,
-      _metadata: {
-        model: 'kimi-k2.5-no-thinking',
-        total_topics: halacha.topics.length,
-        topics_with_notes: Object.values(saNotesByTopic).filter(arr => arr.length > 0).length,
-        total_notes: totalSaNotes,
-        topics_with_sa_commentary: saCommentary.totalBundles,
-        commentators_seen: Array.from(saCommentary.commentators),
-      },
-    };
-    if (cache) await cache.put(enrichCacheKey, JSON.stringify(_out_3), { expirationTtl: 60 * 60 * 24 * 365 });
-    return c.json(_out_3);
-  } catch (err) {
-    return c.json({ error: 'Halacha enrichment call failed', detail: String(err).slice(0, 500) }, 502);
-  }
-});
-
-/**
- * Sefaria topics API — cross-Shas sources per topic tagged on this daf.
- *
- * No LLM involved here, pure retrieval: /api/ref-topic-links/{ref} gives
- * us Sefaria's editorial topic tags for the daf, ranked by tfidf. For each
- * topic we pull its top N cross-Shas sources. Returned flat so the frontend
- * can map them to halacha topics at display time.
- */
-app.get('/api/topics/:tractate/:page', async (c) => {
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  const cache = c.env.CACHE;
-  try {
-    const topics = await getDafTopicsCached(cache, tractate, page);
-    return c.json({
-      topics,
-      _metadata: {
-        total_topics: topics.length,
-        total_sources: topics.reduce((s, t) => s + t.sources.length, 0),
-      },
-    });
-  } catch (err) {
-    return c.json({ error: 'topics fetch failed', detail: String(err).slice(0, 400) }, 502);
-  }
-});
-
-const AGGADATA_PARALLELS_PROMPT = `You are a scholar identifying parallel aggadic narratives. You will receive:
-- Existing aggadic stories for this daf (title, summary, excerpt, theme)
-- The focal daf's Hebrew + English
-
-For each story, identify 1-4 parallel aggadic discussions in other masechtot of Shas, Midrash Rabbah, Tanchuma, or Yalkut Shimoni. A "parallel" must tell a substantively related narrative — do not include mere thematic similarity.
-
-Cite parallels in canonical Sefaria-compatible format:
-- Shas: "Yoma 35b", "Gittin 56a"
-- Midrash: "Bereishit Rabbah 1:1", "Vayikra Rabbah 22:8"
-- Tanchuma: "Midrash Tanchuma, Lech Lecha 1"
-- Yalkut: "Yalkut Shimoni on Torah 24"
-
-Output STRICT JSON:
-{"stories": [{"title": "title from input", "parallels": ["Yoma 35b", ...]}]}
-
-Stories with no genuine parallels should have an empty array. Match by title (case-insensitive).`;
-
-const AGGADATA_HISTORICAL_PROMPT = `You are a historian providing context for aggadic narratives. You will receive:
-- Existing aggadic stories for this daf
-- The focal daf's Hebrew + English
-
-For each story, if there is genuine historical context that illuminates the narrative (era, political situation, cultural background), provide a brief framing. Skip (empty object) for stories that are purely parable/moral/mystical with no historical anchor.
-
-Output STRICT JSON:
-{"stories": [{"title": "title from input", "historicalContext": {"era": "Roman-occupied Judea, 1st c. CE", "context": "Short 1-2 sentence historical framing"} }]}
-
-Only include historicalContext when it would materially help a modern reader. Return an empty object (no historicalContext key) for stories where history doesn't apply. Match by title (case-insensitive).`;
-
-const AGGADATA_SYNTHESIZE_PROMPT = `You write the GIST of one aggadic story — the one-glance synthesis on the story card. Rewrite the story summary using the parallels and historical_context as authoritative context: each one tightens the picture of what's actually being told and why. Do NOT recap each enrichment — fold them into one tight paragraph.
-
-**HARD CAPS:**
-- 2-3 sentences. Maximum 480 characters total.
-- Lead with what the story IS (event, encounter, parable) and what its theological/character pivot is.
-- Then ONE sentence weaving in either the historical situation or the parallel that sharpens the reading.
-- No "this story teaches us…" framing — the lesson should be implicit.
-
-Output STRICT JSON only:
-
-{ "stories": [{ "title": "<exact title>", "synthesis": { "explanation": "the gist", "groundedIn": ["parallels","historical-context"] } }] }
-
-groundedIn lists ONLY slices actually supplied. Match stories by title (case-insensitive).`;
-
-app.post('/api/enrich-aggadata/:tractate/:page', async (c) => {
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  const strategy = c.req.query('strategy') || 'parallels';
-  if (strategy !== 'parallels' && strategy !== 'historical-context' && strategy !== 'synthesize') {
-    return c.json({ error: `unknown strategy '${strategy}'; valid: parallels|historical-context|synthesize` }, 400);
-  }
-  if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-  const cache = c.env.CACHE;
-  const bypass = c.req.query('refresh') === '1';
-  const cachedOnly = c.req.query('cached_only') === '1';
-  const includeRawAgg = c.req.query('include') ?? '';
-  const includeNormAgg = includeRawAgg
-    ? includeRawAgg.split(',').map((s) => s.trim()).filter(Boolean).sort().join(',')
-    : '';
-  const enrichCacheKey = strategy === 'synthesize' && includeNormAgg
-    ? `aggadata-enrich:v1:synthesize:i=${includeNormAgg}:${tractate}:${page}`
-    : `aggadata-enrich:v1:${strategy}:${tractate}:${page}`;
-
-  if (cache && !bypass) {
-    const cachedEnrich = await cache.get(enrichCacheKey);
-    if (cachedEnrich) {
-      return c.json({ ...JSON.parse(cachedEnrich) as { stories: AggadataStory[] }, _strategy: strategy, _cached: true });
-    }
-  }
-  if (cachedOnly) {
-    return c.json({ cached: false }, 404);
-  }
-
-  const aggRaw = cache ? await cache.get(`aggadata:v5:${tractate}:${page}`) : null;
-  if (!aggRaw) return c.json({ error: 'No cached /api/aggadata output; run /api/aggadata first.' }, 404);
-  let aggadata: AggadataResult;
-  try { aggadata = JSON.parse(aggRaw) as AggadataResult; }
-  catch { return c.json({ error: 'Cached aggadata is not valid JSON' }, 502); }
-
-  if (aggadata.stories.length === 0) {
-    return c.json({ stories: [], _strategy: strategy, _metadata: { note: 'no stories on this daf' } });
-  }
-
-  // Synthesize branch: rewrite each story's gist using parallels + historical-context.
-  if (strategy === 'synthesize') {
-    const t0 = Date.now();
-    const includeSet = new Set(includeNormAgg ? includeNormAgg.split(',') : []);
-    const want = (s: string) => includeSet.size === 0 || includeSet.has(s);
-    const readEnrich = async (s: string): Promise<{ stories?: AggadataStory[] } | null> => {
-      if (!cache) return null;
-      const hit = await cache.get(`aggadata-enrich:v1:${s}:${tractate}:${page}`);
-      if (!hit) return null;
-      try { return JSON.parse(hit); } catch { return null; }
-    };
-    const [parRes, histRes] = await Promise.all([
-      want('parallels')          ? readEnrich('parallels')          : Promise.resolve(null),
-      want('historical-context') ? readEnrich('historical-context') : Promise.resolve(null),
-    ]);
-    const storyBlocks = aggadata.stories.map((st) => {
-      const slices: Record<string, unknown> = { title: st.title, summary: st.summary, theme: st.theme };
-      const p = parRes?.stories?.find((x) => x.title.toLowerCase() === st.title.toLowerCase());
-      const h = histRes?.stories?.find((x) => x.title.toLowerCase() === st.title.toLowerCase());
-      if (p?.parallels)         slices.parallels         = p.parallels;
-      if (h?.historicalContext) slices.historicalContext = h.historicalContext;
-      return slices;
-    });
-    const userContent = [
-      `Tractate: ${tractate}`,
-      `Focal page: ${page}`,
-      '',
-      `<stories_with_enrichments>\n${JSON.stringify(storyBlocks, null, 2)}\n</stories_with_enrichments>`,
-      '',
-      'Synthesize each story.',
-    ].join('\n');
-    let parsed: { stories?: Array<{ title: string; synthesis?: { explanation: string; groundedIn?: string[] } }> } = {};
-    try {
-      const s = await runKimiStreaming(
-        c.env, '@cf/moonshotai/kimi-k2.5',
-        [
-          { role: 'system', content: AGGADATA_SYNTHESIZE_PROMPT },
-          { role: 'user', content: userContent },
-        ],
-        6000,
-        { chatTemplateKwargs: { enable_thinking: false } },
-      );
-      let payload = s.content.trim();
-      const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
-      if (fenced) payload = fenced[1].trim();
-      parsed = JSON.parse(payload);
-    } catch (err) {
-      return c.json({ error: `synthesize: ${String(err).slice(0, 200)}` }, 502);
-    }
-    const bySynth = new Map<string, { explanation: string; groundedIn?: string[] }>();
-    for (const s of parsed.stories ?? []) {
-      if (s.synthesis?.explanation) bySynth.set(s.title.toLowerCase(), s.synthesis);
-    }
-    const enrichedStories = aggadata.stories.map((s) => ({
-      ...s,
-      synthesis: bySynth.get(s.title.toLowerCase()),
-    }));
-    const out = {
-      stories: enrichedStories,
-      _strategy: 'synthesize',
-      _elapsed_ms: Date.now() - t0,
-    };
-    if (cache) await cache.put(enrichCacheKey, JSON.stringify(out), { expirationTtl: 60 * 60 * 24 * 365 });
-    return c.json(out);
-  }
-
-  const [hbFocal, sefFocal] = await Promise.all([
-    getHebrewBooksDafCached(cache, tractate, page),
-    getSefariaPageCached(cache, tractate, page),
-  ]);
-  const focalHebrew = slice(hbFocal?.main ?? sefFocal?.mainText.hebrew ?? '', ANALYZE_CAPS.focalHebrew);
-  const focalEnglish = slice(sefFocal?.mainText.english ?? '', ANALYZE_CAPS.focalEnglish);
-
-  const systemPrompt =
-    strategy === 'parallels' ? AGGADATA_PARALLELS_PROMPT
-    : AGGADATA_HISTORICAL_PROMPT;
-  const userContent = [
-    `Tractate: ${tractate}`,
-    `Focal page: ${page}`,
-    '',
-    `<existing_aggadata>\n${JSON.stringify(aggadata, null, 2)}\n</existing_aggadata>`,
-    '',
-    `<focal_hebrew>${focalHebrew}</focal_hebrew>`,
-    `<focal_english>${focalEnglish}</focal_english>`,
-  ].join('\n\n');
-
-  const t0 = Date.now();
-  try {
-    const s = await runKimiStreaming(
-      c.env, '@cf/moonshotai/kimi-k2.5',
-      [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userContent },
-      ],
-      8000,
-      { chatTemplateKwargs: { enable_thinking: false } },
-    );
-    let payload = s.content.trim();
-    const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (fenced) payload = fenced[1].trim();
-
-    let parallelsByTitle: Record<string, string[]> = {};
-    let historicalByTitle: Record<string, HistoricalContext> = {};
-    try {
-      const parsed = JSON.parse(payload) as { stories?: Array<{ title: string; parallels?: string[]; historicalContext?: HistoricalContext }> };
-      if (Array.isArray(parsed.stories)) {
-        for (const st of parsed.stories) {
-          const key = (st.title || '').toLowerCase();
-          if (Array.isArray(st.parallels)) parallelsByTitle[key] = st.parallels;
-          if (st.historicalContext && st.historicalContext.context) historicalByTitle[key] = st.historicalContext;
-        }
-      }
-    } catch {
-      return c.json({ error: 'Aggadata enrichment returned non-JSON', detail: payload.slice(0, 300) }, 502);
-    }
-
-    const enrichedStories = aggadata.stories.map(st => {
-      const key = st.title.toLowerCase();
-      const out: AggadataStory & { parallels?: string[]; historicalContext?: HistoricalContext } = { ...st };
-      if (strategy === 'parallels' && parallelsByTitle[key]) out.parallels = parallelsByTitle[key];
-      if (strategy === 'historical-context' && historicalByTitle[key]) out.historicalContext = historicalByTitle[key];
-      return out;
-    });
-
-    const totalP = Object.values(parallelsByTitle).reduce((sum, arr) => sum + arr.length, 0);
-
-    if (cache) {
-      await cache.put(enrichCacheKey, JSON.stringify({ stories: enrichedStories }), { expirationTtl: 60 * 60 * 24 * 365 });
-    }
-
-    return c.json({
-      stories: enrichedStories,
-      _strategy: strategy,
-      _cached: false,
-      _elapsed_ms: Date.now() - t0,
-      _metadata: {
-        model: 'kimi-k2.5-no-thinking',
-        total_stories: aggadata.stories.length,
-        ...(strategy === 'parallels'
-          ? { total_parallels: totalP, stories_with_parallels: Object.values(parallelsByTitle).filter(a => a.length > 0).length }
-          : { stories_with_history: Object.keys(historicalByTitle).length }),
-      },
-    });
-  } catch (err) {
-    return c.json({ error: 'Aggadata enrichment call failed', detail: String(err).slice(0, 500) }, 502);
-  }
-});
-
-/**
- * Practical halacha analysis: given a daf, identify the main halachic
- * issues and cite the relevant rulings in Mishneh Torah, Shulchan Aruch,
- * and Rema (only if Rema comments). Kimi K2.6 with thinking, hard-fail.
- */
-const HALACHA_SYSTEM_PROMPT = `You are a scholar of Jewish law (halacha). Given a daf of Talmud (with its source segments NUMBERED) and its English translation (same numbering), identify the main PRACTICAL halachic issues discussed. For each topic, you MUST report the segment range it spans plus the relevant rulings in three codifications:
-
-1. Mishneh Torah (Rambam, 12th c.) — organized by Hilchot {topic}, chapter:halacha (e.g. "Hilchot Kriat Shema 1:9")
-2. Shulchan Aruch (R' Yosef Karo, 16th c.) — organized into four sections: Orach Chaim, Yoreh Deah, Even HaEzer, Choshen Mishpat; cited as "{Section} {siman}:{seif}" (e.g. "Orach Chaim 235:1")
-3. Rema (R' Moshe Isserlis, 16th c.) — Ashkenazi glosses on Shulchan Aruch. Include ONLY if Rema disagrees with or adds to the base ruling. Otherwise omit.
-
-Output STRICT JSON only (no markdown, no prose):
-
-{
-  "topics": [
-    {
-      "topic": "Short English description of the halachic issue",
-      "topicHe": "Hebrew term for the topic, if standard (e.g. 'זמן קריאת שמע של ערבית')",
-      "excerpt": "2-4 Hebrew/Aramaic words from the DAF that introduce or anchor this halachic discussion. Copy verbatim — do NOT translate.",
-      "startSegIdx": 0-based segment index from the Hebrew source above where this halachic discussion BEGINS,
-      "endSegIdx": 0-based segment index where it ENDS (inclusive). For a single-segment discussion, startSegIdx === endSegIdx.,
-      "rulings": {
-        "mishnehTorah": { "ref": "Hilchot Kriat Shema 1:9", "summary": "1-2 sentence English summary of the ruling" },
-        "shulchanAruch": { "ref": "Orach Chaim 235:1", "summary": "1-2 sentence English summary" },
-        "rema": { "ref": "Orach Chaim 235:1", "summary": "How Rema's ruling differs or adds — only include if Rema comments here" }
-      }
-    }
-  ]
-}
-
-Rules:
-- "excerpt" MUST be Hebrew/Aramaic words copied verbatim from the daf — this is how we anchor the halacha to a specific position in the text. Pick the phrase where the underlying Gemara statement first appears.
-- "startSegIdx" and "endSegIdx" MUST be valid indices from the numbered Hebrew source above. The bracketed [N] markers ARE those indices. Pick the FIRST segment whose content opens this halachic discussion as startSegIdx; pick the LAST segment whose content still belongs to it as endSegIdx. Topics may overlap each other — pick honest boundaries, not disjoint partitions.
-- Cite specific chapter:seif references — never "in Mishneh Torah" without numbers.
-- Summaries in English, 1-2 sentences, plain language.
-
-EXHAUSTIVENESS (critical — previous outputs have been under-inclusive):
-- Identify EVERY practical halachic topic the daf touches on, not just the headline. A single daf commonly contains 4-10 distinct halachic topics; output them all. Do NOT cap yourself at "2-3 main ones".
-- Include a topic whenever the Gemara's discussion has ANY practical downstream ruling — even a subsidiary detail of a bigger topic. Example: a daf on Shema may have separate topics for "zman kriat Shema of evening", "zman kriat Shema of morning", "reclining vs. standing during Shema", "interrupting Shema", "the blessings before/after Shema", each with their own ref.
-- The only things to skip: pure aggada, pure exegesis of verses without practical application, a rabbi's biography, OR korbanot / Temple-service laws (avodah, sacrifices, priestly eating of holy things, korban-tumah/taharah). Korbanot are not practical halacha today — exclude them even when the daf goes deep into the topic. A timing rule "until midnight" mentioned in the context of eating sacrifices that one day belongs to korbanot, not practical halacha.
-- Any of mishnehTorah / shulchanAruch / rema may be omitted if that codifier does not address the topic. But a topic needs at least ONE ref (Mishneh Torah or Shulchan Aruch) to be included.
-- When multiple chapters/seifim are relevant to one topic, pick the single most on-point reference. Do NOT split one topic into multiple entries by codification — one topic = one entry with up to three rulings.
-- Include Rema wherever the Ashkenazi practice diverges from Shulchan Aruch on this issue, even if minor.
-
-CONTEXT (optional): Rashi, Tosafot, and halachic codifications (Tur, Shulchan Aruch, Peninei Halakhah, etc.) may be provided in <rashi>, <tosafot>, and <halachic_refs> blocks. Use them ONLY to (a) clarify which halachic question the focal Gemara is actually deciding, (b) sharpen ref citations, and (c) confirm the Rema diverges. The list of topics MUST come from the focal Hebrew text — every topic's startSegIdx/endSegIdx must point at segments in the numbered source above. Do not introduce a topic that exists only in commentary.${HEBRAIZE_RULE}`;
-
-interface HalachaRuling {
-  ref: string;
-  summary: string;
-}
-interface HalachaTopic {
-  topic: string;
-  topicHe?: string;
-  excerpt?: string;
-  startSegIdx?: number;
-  endSegIdx?: number;
-  rulings: {
-    mishnehTorah?: HalachaRuling;
-    shulchanAruch?: HalachaRuling;
-    rema?: HalachaRuling;
-  };
-  modernAuthorities?: ModernAuthority[];
-  rishonimNotes?: RishonNote[];
-  saCommentaryNotes?: SaCommentaryNote[];
-  synthesis?: { explanation: string; groundedIn?: string[] };
-}
-interface HalachaResult {
-  topics: HalachaTopic[];
-}
-
-function validateHalacha(x: unknown): x is HalachaResult {
-  if (!x || typeof x !== 'object') return false;
-  const h = x as HalachaResult;
-  if (!Array.isArray(h.topics)) return false;
-  for (const t of h.topics) {
-    if (typeof t.topic !== 'string') return false;
-    if (t.topicHe !== undefined && typeof t.topicHe !== 'string') return false;
-    if (t.excerpt !== undefined && typeof t.excerpt !== 'string') return false;
-    if (t.startSegIdx !== undefined && typeof t.startSegIdx !== 'number') return false;
-    if (t.endSegIdx !== undefined && typeof t.endSegIdx !== 'number') return false;
-    if (!t.rulings || typeof t.rulings !== 'object') return false;
-    const checks: Array<HalachaRuling | undefined> = [t.rulings.mishnehTorah, t.rulings.shulchanAruch, t.rulings.rema];
-    for (const r of checks) {
-      if (r === undefined) continue;
-      if (typeof r.ref !== 'string' || typeof r.summary !== 'string') return false;
-    }
-  }
-  return true;
-}
-
-app.get('/api/halacha/:tractate/:page', async (c) => {
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  const cache = c.env.CACHE;
-  // v6: prompt now feeds Sefaria-segmented [N]-numbered text and topics carry
-  // startSegIdx/endSegIdx anchors. Old v5 entries lack the segment indices.
-  const cacheKey = `halacha:v6:${tractate}:${page}`;
-  const t0 = Date.now();
-
-  const bypass = c.req.query('refresh') === '1';
-  const cachedOnly = c.req.query('cached_only') === '1';
-
-  if (cache && !bypass) {
-    const cached = await cache.get(cacheKey);
-    if (cached) {
-      recordTelemetry(c, { endpoint: 'halacha', tractate, page, cache_hit: true, ms: Date.now() - t0, ok: true });
-      return c.json({ ...JSON.parse(cached) as HalachaResult, _cached: true });
-    }
-  }
-  if (cachedOnly) {
-    return c.json({ cached: false }, 404);
-  }
-  if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-
-  let segsHe: string[] = [];
-  let segsEn: string[] = [];
-  try {
-    const sef = await getSefariaSegmentsCached(cache, tractate, page);
-    segsHe = (sef?.he ?? []).map(stripHtmlServer);
-    segsEn = (sef?.en ?? []).map(stripHtmlServer);
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.warn('[halacha] sefaria fetch failure:', err);
-  }
-  if (segsHe.length === 0 && segsEn.length === 0) {
-    return c.json({ error: 'No Sefaria-segmented source text available for this daf' }, 502);
-  }
-
-  // Detection context: Rashi + Tosafot disambiguate which halacha is being
-  // decided; halachic refs (Tur, SA, Peninei) sharpen the codification cites.
-  // All capped tighter than enrichment to keep first pass fast.
-  const [sefBundle, halachaRefs] = await Promise.all([
-    getSefariaPageCached(cache, tractate, page).catch(() => null),
-    getHalachaRefsCached(cache, tractate, page).catch(() => ({} as HalachicRefBundle)),
-  ]);
-  const rashiSliced = slice(sefBundle?.rashi?.hebrew ?? '', DETECT_CAPS.rashi);
-  const tosafotSliced = slice(sefBundle?.tosafot?.hebrew ?? '', DETECT_CAPS.tosafot);
-  const halachaXml = halachaBlock(halachaRefs, {
-    perRef: DETECT_CAPS.halachaPerRef,
-    refsPerBook: DETECT_CAPS.halachaRefsPerBook,
-  });
-
-  const numberedHe = segsHe.map((s, i) => `[${i}] ${s}`).join('\n').slice(0, 6500);
-  const numberedEn = segsEn.map((s, i) => `[${i}] ${s}`).join('\n').slice(0, 5500);
-
-  const userParts: string[] = [
-    `Tractate: ${tractate}`,
-    `Page: ${page}`,
-    `Total segments: ${segsHe.length}`,
-    '',
-    'Hebrew/Aramaic source — each line begins with [N], a 0-based segment index. USE these indices for startSegIdx / endSegIdx:',
-    numberedHe || '(unavailable)',
-    '',
-    'English translation (same numbering):',
-    numberedEn || '(unavailable)',
-  ];
-  if (rashiSliced) {
-    userParts.push('', 'Rashi on the focal amud (context — topics still must come from the focal Hebrew):', `<rashi>${rashiSliced}</rashi>`);
-  }
-  if (tosafotSliced) {
-    userParts.push('', 'Tosafot on the focal amud (context — topics still must come from the focal Hebrew):', `<tosafot>${tosafotSliced}</tosafot>`);
-  }
-  if (halachaXml) {
-    userParts.push('', 'Halachic codifications already linked to this daf (context for ref citations — do not invent topics from these):', halachaXml);
-  }
-  userParts.push('', 'Output valid JSON only matching the schema. Every topic MUST include startSegIdx and endSegIdx pointing at valid [N] indices above.');
-  const userContent = userParts.join('\n');
-
-  // Kimi K2.6 only, thinking on. Hard-fail rather than fall back.
-  const models: Array<{ id: string; label: string; maxTokens: number }> = [
-    { id: '@cf/moonshotai/kimi-k2.5', label: 'kimi-k2.5', maxTokens: 32000 },
-  ];
-
-  const attempts: string[] = [];
-  for (const m of models) {
-    try {
-      const streamed = await runKimiStreaming(
-        c.env,
-        m.id,
-        [
-          { role: 'system', content: HALACHA_SYSTEM_PROMPT },
-          { role: 'user', content: userContent },
-        ],
-        m.maxTokens,
-      );
-      let payload = streamed.content.trim();
-      if (!payload && streamed.reasoning_content) {
-        const mm = streamed.reasoning_content.match(/\{[\s\S]*"topics"[\s\S]*\}/);
-        if (mm) payload = mm[0];
-      }
-      const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
-      if (fenced) payload = fenced[1].trim();
-      if (!payload) {
-        attempts.push(`${m.label}: empty payload`);
-        continue;
-      }
-      let parsed: unknown;
-      try {
-        parsed = JSON.parse(payload);
-      } catch {
-        const repaired = payload
-          .replace(/,(\s*[}\]])/g, '$1')
-          .replace(/\r/g, '')
-          .replace(/"((?:[^"\\]|\\.)*?)"/g, (_m, inner: string) => `"${inner.replace(/\n/g, ' ')}"`);
-        try {
-          parsed = JSON.parse(repaired);
-        } catch (parseErr) {
-          attempts.push(`${m.label}: non-JSON (${String(parseErr).slice(0, 100)})`);
-          continue;
-        }
-      }
-      if (!validateHalacha(parsed)) {
-        attempts.push(`${m.label}: schema mismatch`);
-        continue;
-      }
-      const result = parsed as HalachaResult;
-      if (cache) {
-        await cache.put(cacheKey, JSON.stringify(result), { expirationTtl: 60 * 60 * 24 * 365 });
-      }
-      recordTelemetry(c, { endpoint: 'halacha', tractate, page, cache_hit: false, model: m.label, ms: Date.now() - t0, ok: true });
-      return c.json({ ...result, _cached: false, _model: m.label });
-    } catch (err) {
-      attempts.push(`${m.label}: ${String(err).slice(0, 200)}`);
-    }
-  }
-
-  recordTelemetry(c, { endpoint: 'halacha', tractate, page, cache_hit: false, ms: Date.now() - t0, ok: false, error_kind: classifyError(attempts.join(' ')) });
-  return c.json({ error: 'Halacha classification failed', attempts }, 502);
-});
-
-const AGGADATA_SYSTEM_PROMPT = `You are a Talmud scholar. Given a daf of Talmud and its English translation, identify every AGGADIC unit on the page — narrative stories, biographical anecdotes about named sages, parables (mashalim), dream reports, miracle reports, and ethical maxims embedded in narrative. Ignore purely halachic/legal sugyot and pure legal exegesis.
-
-Verse-driven units are handled by a separate /api/pesukim system: do NOT emit a story whose center of gravity is a homiletical reading of a biblical verse. If a unit's point is "this verse really means…" (derash, gezera shava, al tikri, gematria, notarikon, etc.), skip it — even if it is wrapped in narrative voice. Aggadata covers stories where the narrative, character, vision, or teaching is the unit itself, not the re-reading of a verse.
-
-Output STRICT JSON only (no markdown, no prose):
-
-{
-  "stories": [
-    {
-      "title": "Short, evocative English title (4-7 words). E.g. 'The Oven of Akhnai', 'Rabban Gamliel and the Heavenly Voice'",
-      "titleHe": "Hebrew title using the traditional name if one exists (e.g. 'תנור של עכנאי'), otherwise a concise Hebrew summary phrase",
-      "summary": "1-2 sentence English summary of what happens / what the story is about",
-      "excerpt": "3-6 consecutive Hebrew/Aramaic words copied VERBATIM from the OPENING of the story in the daf. Anchors the start of the highlight. Pick the phrase where the narrative first begins, not a rabbi name or a generic opener.",
-      "endExcerpt": "3-6 consecutive Hebrew/Aramaic words copied VERBATIM from the CLOSING of the story — the last line of this aggadic unit, immediately before the daf moves to the next topic. Anchors the end of the highlight. MUST appear AFTER excerpt in the daf. If the story is one short sentence, endExcerpt may be its final 3-6 words (which may overlap the tail of excerpt).",
-      "startSegIdx": 0-based segment index from the numbered Hebrew source where this story BEGINS (matches the [N] markers in the source),
-      "endSegIdx": 0-based segment index where the story ENDS (inclusive). For a one-segment story, startSegIdx === endSegIdx.,
-      "theme": "One transliterated Hebrew tag (see Theme tags below) — exactly one of: mashal | ma'aseh | chazon | tefillah | ma'amar"
-    }
-  ]
-}
-
-Theme tags (classify by the English gloss, emit the transliterated token exactly — lowercase, with apostrophe where shown):
-- "mashal"    — a parable / explicit analogy, typically framed "to what is this similar? to a king who…". The point of the unit is the metaphor itself.
-- "ma'aseh"   — a narrative anecdote. Covers biographical stories about named sages, historical reports, halakhic anecdotes, and miracles-that-happen-inside-a-story (e.g. "R' X went to Y and the river split"). Default choice for any sustained narrative with setting, characters, and events.
-- "chazon"    — a vision or revelatory encounter. Dreams, bat kol, apparitions of Elijah or angels, heikhalot / merkavah descriptions, gan eden / gehinnom, messianic / eschatological teachings, ma'aseh bereshit. Use when the CONTENT of the unit is the mystical/visionary experience, even if framed as "R' X was walking and…".
-- "tefillah"  — a prayer or liturgical text embedded as aggadah. E.g. "R' Elazar would say when he finished praying…". The unit is itself a script to recite, not a narrative about prayer.
-- "ma'amar"   — an aphoristic teaching or wisdom saying with no narrative frame and no verse-exegesis as its point. Pirkei-Avot-style statements. "Who is wise? He who learns from every person."
-
-Pick exactly one theme — the one that best describes what the unit IS, not what it passingly contains. A ma'aseh about Elijah teaching halakhot to a rabbi who heard a bat kol in a ruin is a chazon (the content is the vision/revelation), not a ma'aseh, because removing the mystical encounter would gut the unit.
-
-Rules:
-- "excerpt" and "endExcerpt" MUST be Hebrew/Aramaic words copied verbatim from the daf text supplied below. Do not translate. Do not paraphrase. Do not include vowel points if the source lacks them.
-- "endExcerpt" must occur AFTER "excerpt" in the linear daf text, so the pair bounds the entire story.
-- "startSegIdx" and "endSegIdx" MUST be valid indices from the numbered Hebrew source — the bracketed [N] markers ARE those indices. The pair MUST satisfy startSegIdx <= endSegIdx and bound the entire story.
-- If the daf contains no aggada (purely halachic page), return {"stories": []}.
-- Do not split one story into multiple entries. A sustained narrative with dialogue and multiple events is ONE story.
-- Do not include dry legal statements attributed to a named sage — that's halacha, not aggada. Include only when there is a narrative, parable, or non-legal teaching.
-- Titles should be memorable, not generic ("Story 1"). Use the traditional Hebrew name where one exists.
-- Order stories in the order they appear on the daf.${HEBRAIZE_RULE}`;
-
-interface AggadataStory {
-  title: string;
-  titleHe?: string;
-  summary: string;
-  excerpt: string;
-  endExcerpt: string;
-  startSegIdx?: number;
-  endSegIdx?: number;
-  theme?: string;
-  parallels?: string[];
-  historicalContext?: { era: string; context: string };
-  synthesis?: { explanation: string; groundedIn?: string[] };
-}
-interface AggadataResult {
-  stories: AggadataStory[];
-}
-
-function validateAggadata(x: unknown): x is AggadataResult {
-  if (!x || typeof x !== 'object') return false;
-  const a = x as AggadataResult;
-  if (!Array.isArray(a.stories)) return false;
-  for (const s of a.stories) {
-    if (typeof s.title !== 'string') return false;
-    if (s.titleHe !== undefined && typeof s.titleHe !== 'string') return false;
-    if (typeof s.summary !== 'string') return false;
-    if (typeof s.excerpt !== 'string') return false;
-    if (typeof s.endExcerpt !== 'string') return false;
-    if (s.startSegIdx !== undefined && typeof s.startSegIdx !== 'number') return false;
-    if (s.endSegIdx !== undefined && typeof s.endSegIdx !== 'number') return false;
-    if (s.theme !== undefined && typeof s.theme !== 'string') return false;
-  }
-  return true;
-}
-
-app.get('/api/aggadata/:tractate/:page', async (c) => {
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  const cache = c.env.CACHE;
-  // v5: prompt now feeds Sefaria-segmented [N]-numbered text and stories carry
-  // startSegIdx/endSegIdx anchors. Old v4 entries lack the segment indices.
-  const cacheKey = `aggadata:v5:${tractate}:${page}`;
-  const t0 = Date.now();
-
-  const bypass = c.req.query('refresh') === '1';
-  const cachedOnly = c.req.query('cached_only') === '1';
-
-  if (cache && !bypass) {
-    const cached = await cache.get(cacheKey);
-    if (cached) {
-      recordTelemetry(c, { endpoint: 'aggadata', tractate, page, cache_hit: true, ms: Date.now() - t0, ok: true });
-      return c.json({ ...JSON.parse(cached) as AggadataResult, _cached: true });
-    }
-  }
-  if (cachedOnly) {
-    return c.json({ cached: false }, 404);
-  }
-  if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-
-  let segsHe: string[] = [];
-  let segsEn: string[] = [];
-  try {
-    const sef = await getSefariaSegmentsCached(cache, tractate, page);
-    segsHe = (sef?.he ?? []).map(stripHtmlServer);
-    segsEn = (sef?.en ?? []).map(stripHtmlServer);
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.warn('[aggadata] sefaria fetch failure:', err);
-  }
-  if (segsHe.length === 0 && segsEn.length === 0) {
-    return c.json({ error: 'No Sefaria-segmented source text available for this daf' }, 502);
-  }
-
-  const numberedHe = segsHe.map((s, i) => `[${i}] ${s}`).join('\n').slice(0, 6500);
-  const numberedEn = segsEn.map((s, i) => `[${i}] ${s}`).join('\n').slice(0, 5500);
-
-  const userContent = [
-    `Tractate: ${tractate}`,
-    `Page: ${page}`,
-    `Total segments: ${segsHe.length}`,
-    '',
-    'Hebrew/Aramaic source — each line begins with [N], a 0-based segment index. USE these indices for startSegIdx / endSegIdx:',
-    numberedHe || '(unavailable)',
-    '',
-    'English translation (same numbering):',
-    numberedEn || '(unavailable)',
-    '',
-    'Output valid JSON only matching the schema. Every story MUST include startSegIdx and endSegIdx pointing at valid [N] indices above.',
-  ].join('\n');
-
-  const models: Array<{ id: string; label: string; maxTokens: number }> = [
-    { id: '@cf/moonshotai/kimi-k2.5', label: 'kimi-k2.5', maxTokens: 32000 },
-  ];
-
-  const attempts: string[] = [];
-  for (const m of models) {
-    try {
-      const streamed = await runKimiStreaming(
-        c.env,
-        m.id,
-        [
-          { role: 'system', content: AGGADATA_SYSTEM_PROMPT },
-          { role: 'user', content: userContent },
-        ],
-        m.maxTokens,
-      );
-      let payload = streamed.content.trim();
-      if (!payload && streamed.reasoning_content) {
-        const mm = streamed.reasoning_content.match(/\{[\s\S]*"stories"[\s\S]*\}/);
-        if (mm) payload = mm[0];
-      }
-      const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
-      if (fenced) payload = fenced[1].trim();
-      if (!payload) {
-        attempts.push(`${m.label}: empty payload`);
-        continue;
-      }
-      let parsed: unknown;
-      try {
-        parsed = JSON.parse(payload);
-      } catch {
-        const repaired = payload
-          .replace(/,(\s*[}\]])/g, '$1')
-          .replace(/\r/g, '')
-          .replace(/"((?:[^"\\]|\\.)*?)"/g, (_m, inner: string) => `"${inner.replace(/\n/g, ' ')}"`);
-        try {
-          parsed = JSON.parse(repaired);
-        } catch (parseErr) {
-          attempts.push(`${m.label}: non-JSON (${String(parseErr).slice(0, 100)})`);
-          continue;
-        }
-      }
-      if (!validateAggadata(parsed)) {
-        attempts.push(`${m.label}: schema mismatch`);
-        continue;
-      }
-      const result = parsed as AggadataResult;
-
-      if (cache) {
-        await cache.put(cacheKey, JSON.stringify(result), { expirationTtl: 60 * 60 * 24 * 365 });
-      }
-      recordTelemetry(c, { endpoint: 'aggadata', tractate, page, cache_hit: false, model: m.label, ms: Date.now() - t0, ok: true });
-      return c.json({ ...result, _cached: false, _model: m.label });
-    } catch (err) {
-      attempts.push(`${m.label}: ${String(err).slice(0, 200)}`);
-    }
-  }
-
-  recordTelemetry(c, { endpoint: 'aggadata', tractate, page, cache_hit: false, ms: Date.now() - t0, ok: false, error_kind: classifyError(attempts.join(' ')) });
-  return c.json({ error: 'Aggadata detection failed', attempts }, 502);
-});
-
-// ============================================================================
-// PESUKIM — Tanach citations & allusions on a daf, plus per-strategy
-// enrichments (tanach-context, peshat, gemara-usage, exegesis).
-// ============================================================================
-
-const PESUKIM_SYSTEM_PROMPT = `You are a scholar of Tanach and Talmud. Given a daf of Talmud (Hebrew/Aramaic source NUMBERED with [N] segment indices, plus English translation with the same numbering), identify every reference to a Tanach verse on the page — explicit citations, allusions, and paraphrases.
-
-Output STRICT JSON only (no markdown, no prose):
-
-{
-  "pesukim": [
-    {
-      "verseRef": "Canonical Sefaria-style reference: 'Genesis 1:1', 'Psalms 1:1', 'Isaiah 6:3', 'Proverbs 3:18'. Books in English. If only a chapter or partial ref is recoverable, use that (e.g. 'Psalms 23').",
-      "verseHe": "Hebrew text of the verse AS QUOTED on the daf — verbatim from the source, not the canonical Tanach version. Omit if the daf only alludes without quoting words.",
-      "citationMarker": "The Hebrew/Aramaic citation marker that introduces the verse, copied verbatim — e.g. 'שֶׁנֶּאֱמַר', 'דִּכְתִיב', 'אָמַר הַכָּתוּב', 'וְכֵן הוּא אוֹמֵר', 'דִּכְתִיב בֵּיהּ', 'יָכוֹל'. Omit if there is no marker (allusion / paraphrase).",
-      "citationStyle": "explicit | allusion | paraphrase",
-      "excerpt": "3-6 consecutive Hebrew/Aramaic words copied VERBATIM from the daf at the START of the citation (typically the citation marker plus the opening words of the verse). Anchors the highlight.",
-      "endExcerpt": "3-6 consecutive Hebrew/Aramaic words copied VERBATIM from the daf at the END of this citation (the closing words of the quoted verse, or the last words of the allusion). Must appear AT or AFTER excerpt in linear order.",
-      "startSegIdx": 0-based segment index from the numbered source where this citation begins,
-      "endSegIdx": 0-based segment index where it ends (inclusive). For a single-segment citation, startSegIdx === endSegIdx,
-      "summary": "One short sentence describing how the daf is invoking this verse in context (e.g. 'Cited as the source for the obligation to recite Shema twice daily', 'Adduced as proof that the Patriarchs kept the entire Torah', 'Alluded to in setting up the question about Sinai')."
-    }
-  ]
-}
-
-Citation styles:
-- "explicit"   — daf quotes the verse with a citation marker (שנאמר, דכתיב, אמר הכתוב, וכן הוא אומר, etc.). Default for any verse introduced by such a marker.
-- "allusion"   — daf reuses verse-distinctive language without a marker, evoking a verse the reader is expected to recognize (e.g. an unmarked echo of a famous phrase).
-- "paraphrase" — daf restates the content of a verse in its own words to make a point that depends on the underlying verse, without quoting it verbatim.
-
-Rules:
-- excerpt and endExcerpt MUST be Hebrew/Aramaic words copied verbatim from the supplied numbered source. Do not translate.
-- startSegIdx / endSegIdx MUST be valid indices from the [N] markers in the source.
-- The same verse cited in two different places on the daf is TWO entries — one per citation.
-- If the same verse is cited twice in immediate succession as part of one continuous discussion, treat it as ONE entry covering the full range.
-- For verses identified only by a partial phrase (e.g. "and it is written 'and you shall love'…"), give the best matching canonical ref you can determine; if the verse is genuinely ambiguous, set verseRef to the chapter (e.g. "Deuteronomy 6") and note the ambiguity in summary.
-- If the daf contains no Tanach citations or allusions, return {"pesukim": []}.
-- Order pesukim in the order they appear on the daf.
-
-Be inclusive: explicit proof-texts, asmakhta-style citations, derashot, allusions in stories ("for the LORD God planted a garden…"), and paraphrases that the daf's argument depends on are ALL pesukim.${HEBRAIZE_RULE}`;
-
-interface Pasuk {
-  verseRef: string;
-  verseHe?: string;
-  citationMarker?: string;
-  citationStyle?: 'explicit' | 'allusion' | 'paraphrase';
-  excerpt: string;
-  endExcerpt?: string;
-  startSegIdx?: number;
-  endSegIdx?: number;
-  summary: string;
-}
-
-interface PesukimResult {
-  pesukim: Pasuk[];
-}
-
-function validatePesukim(x: unknown): x is PesukimResult {
-  if (!x || typeof x !== 'object') return false;
-  const p = x as PesukimResult;
-  if (!Array.isArray(p.pesukim)) return false;
-  for (const v of p.pesukim) {
-    if (typeof v.verseRef !== 'string') return false;
-    if (typeof v.excerpt !== 'string') return false;
-    if (typeof v.summary !== 'string') return false;
-    if (v.verseHe !== undefined && typeof v.verseHe !== 'string') return false;
-    if (v.citationMarker !== undefined && typeof v.citationMarker !== 'string') return false;
-    if (v.citationStyle !== undefined && typeof v.citationStyle !== 'string') return false;
-    if (v.endExcerpt !== undefined && typeof v.endExcerpt !== 'string') return false;
-    if (v.startSegIdx !== undefined && typeof v.startSegIdx !== 'number') return false;
-    if (v.endSegIdx !== undefined && typeof v.endSegIdx !== 'number') return false;
-  }
-  return true;
-}
-
-interface PesukimStoryShape {
-  verseRef: string;
-  verseHe?: string;
-  citationMarker?: string;
-  citationStyle?: string;
-  excerpt?: string;
-  endExcerpt?: string;
-  startSegIdx?: number;
-  endSegIdx?: number;
-  summary?: string;
-  tanachContext?: unknown;
-  peshat?: unknown;
-  gemaraUsage?: unknown;
-  exegesis?: unknown;
-  synthesize?: unknown;
-}
-
-app.get('/api/pesukim/:tractate/:page', async (c) => {
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  const cache = c.env.CACHE;
-  const cacheKey = `pesukim:v1:${tractate}:${page}`;
-  const t0 = Date.now();
-
-  const bypass = c.req.query('refresh') === '1';
-  const cachedOnly = c.req.query('cached_only') === '1';
-
-  if (cache && !bypass) {
-    const cached = await cache.get(cacheKey);
-    if (cached) {
-      recordTelemetry(c, { endpoint: 'pesukim', tractate, page, cache_hit: true, ms: Date.now() - t0, ok: true });
-      return c.json({ ...JSON.parse(cached) as PesukimResult, _cached: true });
-    }
-  }
-  if (cachedOnly) {
-    return c.json({ cached: false }, 404);
-  }
-  if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-
-  let segsHe: string[] = [];
-  let segsEn: string[] = [];
-  try {
-    const sef = await getSefariaSegmentsCached(cache, tractate, page);
-    segsHe = (sef?.he ?? []).map(stripHtmlServer);
-    segsEn = (sef?.en ?? []).map(stripHtmlServer);
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.warn('[pesukim] sefaria fetch failure:', err);
-  }
-  if (segsHe.length === 0 && segsEn.length === 0) {
-    return c.json({ error: 'No Sefaria-segmented source text available for this daf' }, 502);
-  }
-
-  const numberedHe = segsHe.map((s, i) => `[${i}] ${s}`).join('\n').slice(0, 6500);
-  const numberedEn = segsEn.map((s, i) => `[${i}] ${s}`).join('\n').slice(0, 5500);
-
-  const userContent = [
-    `Tractate: ${tractate}`,
-    `Page: ${page}`,
-    `Total segments: ${segsHe.length}`,
-    '',
-    'Hebrew/Aramaic source — each line begins with [N], a 0-based segment index. USE these indices for startSegIdx / endSegIdx:',
-    numberedHe || '(unavailable)',
-    '',
-    'English translation (same numbering):',
-    numberedEn || '(unavailable)',
-    '',
-    'Output valid JSON only matching the schema. Every pasuk MUST include startSegIdx and endSegIdx pointing at valid [N] indices above.',
-  ].join('\n');
-
-  // Two attempts per model: first with default settings (lets the model
-  // think when it wants), second with `enable_thinking: false` so a token
-  // budget that ran out in reasoning falls back to direct content output.
-  const models: Array<{ id: string; label: string; maxTokens: number; thinking: boolean }> = [
-    { id: '@cf/moonshotai/kimi-k2.5', label: 'kimi-k2.5', maxTokens: 32000, thinking: true },
-    { id: '@cf/moonshotai/kimi-k2.5', label: 'kimi-k2.5/no-think', maxTokens: 32000, thinking: false },
-  ];
-
-  const attempts: string[] = [];
-  for (const m of models) {
-    try {
-      const streamed = await runKimiStreaming(
-        c.env,
-        m.id,
-        [
-          { role: 'system', content: PESUKIM_SYSTEM_PROMPT },
-          { role: 'user', content: userContent },
-        ],
-        m.maxTokens,
-        m.thinking ? undefined : { chatTemplateKwargs: { enable_thinking: false } },
-      );
-      let payload = streamed.content.trim();
-      // Fallback 1: explicit pesukim-keyed JSON in reasoning.
-      if (!payload && streamed.reasoning_content) {
-        const mm = streamed.reasoning_content.match(/\{[\s\S]*"pesukim"[\s\S]*\}/);
-        if (mm) payload = mm[0];
-      }
-      // Fallback 2: any well-balanced JSON object in reasoning that has a
-      // pesukim-like array. Catches cases where the model emits plain JSON
-      // without the wrapping `{ "pesukim": ... }` literal in reasoning.
-      if (!payload && streamed.reasoning_content) {
-        const mm = streamed.reasoning_content.match(/\{[\s\S]*"verseRef"[\s\S]*\}/);
-        if (mm) payload = mm[0];
-      }
-      const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
-      if (fenced) payload = fenced[1].trim();
-      if (!payload) {
-        attempts.push(`${m.label}: empty payload`);
-        continue;
-      }
-      let parsed: unknown;
-      try {
-        parsed = JSON.parse(payload);
-      } catch {
-        const repaired = payload
-          .replace(/,(\s*[}\]])/g, '$1')
-          .replace(/\r/g, '')
-          .replace(/"((?:[^"\\]|\\.)*?)"/g, (_m, inner: string) => `"${inner.replace(/\n/g, ' ')}"`);
-        try {
-          parsed = JSON.parse(repaired);
-        } catch (parseErr) {
-          attempts.push(`${m.label}: non-JSON (${String(parseErr).slice(0, 100)})`);
-          continue;
-        }
-      }
-      if (!validatePesukim(parsed)) {
-        attempts.push(`${m.label}: schema mismatch`);
-        continue;
-      }
-      const result = parsed as PesukimResult;
-      if (cache) {
-        await cache.put(cacheKey, JSON.stringify(result), { expirationTtl: 60 * 60 * 24 * 365 });
-      }
-      recordTelemetry(c, { endpoint: 'pesukim', tractate, page, cache_hit: false, model: m.label, ms: Date.now() - t0, ok: true });
-      return c.json({ ...result, _cached: false, _model: m.label });
-    } catch (err) {
-      attempts.push(`${m.label}: ${String(err).slice(0, 200)}`);
-    }
-  }
-
-  recordTelemetry(c, { endpoint: 'pesukim', tractate, page, cache_hit: false, ms: Date.now() - t0, ok: false, error_kind: classifyError(attempts.join(' ')) });
-  return c.json({ error: 'Pesukim detection failed', attempts }, 502);
-});
-
-/* ---- Pesukim enrichment strategies --------------------------------------
- * Per-page (one LLM call across all pesukim) so the strategy result can be
- * cached by `pesukim-enrich:v1:{strategy}:{tractate}:{page}` and the
- * canonical /api/enrich/pesukim/... wrapper slices out the per-pasuk piece.
- */
-
-interface TanachContext {
-  surroundingHe?: string;
-  surroundingEn?: string;
-  contextSummary?: string;
-  bookContext?: string;
-}
-
-interface PeshatReading {
-  peshat: string;
-  commentators?: Array<{ name: string; note: string }>;
-}
-
-interface GemaraUsage {
-  extractedClaim: string;
-  role: 'proof' | 'asmakhta' | 'objection' | 'support' | 'narrative' | 'other';
-  explanation: string;
-}
-
-interface ExegesisMove {
-  name: string;
-  locusOnVerse?: string;
-  explanation: string;
-}
-
-interface ExegesisReading {
-  moves: ExegesisMove[];
-}
-
-const PESUKIM_TANACH_CONTEXT_PROMPT = `You are a scholar of Tanach. You will receive ONE Tanach citation from a Talmud daf (verseRef, verseHe as quoted, summary of how the daf uses it) plus a <tanach_context> block containing that verse and 1-2 surrounding verses on each side (Hebrew + English) fetched from Sefaria.
-
-Write a concise tanach-context entry:
-- contextSummary: 1-2 sentences situating this verse in its immediate Tanach context — what is the section about, what are the surrounding verses doing, what is the narrative or topical flow.
-- bookContext: 1 sentence on what this verse contributes to its book / parsha / chapter at a higher level (e.g. "part of the Decalogue", "in the Joseph narrative", "amid the laws of vows in Numbers 30").
-
-Output STRICT JSON only:
-{"contextSummary": "...", "bookContext": "..."}
-
-If no surrounding context was provided (Sefaria fetch failed), return {"contextSummary": "", "bookContext": ""}.`;
-
-const PESUKIM_PESHAT_PROMPT = `You are a peshat-focused commentator on Tanach. You will receive ONE Tanach citation from a Talmud daf (verseRef, verseHe as quoted on the daf, summary of how the daf uses it) plus a <peshat_commentary> block bundling Sefaria's text of Rashi, Ibn Ezra, Ramban, and/or Radak on that verse (whichever are available).
-
-Write a peshat reading for THIS verse:
-- peshat: 1-2 sentences distilling the plain-sense meaning of the verse in its biblical context, drawing on the supplied commentators where they speak to the simple meaning. Never copy the daf's homiletical reading — peshat ONLY.
-- commentators: an array of {name, note} entries naming each peshat-relevant commentator and a one-sentence summary of their plain-sense reading. Skip commentators not in the input. Skip commentators who only offer derash-style readings.
-
-Output STRICT JSON only:
-{"peshat": "...", "commentators": [{"name": "Rashi", "note": "..."}, {"name": "Ibn Ezra", "note": "..."}]}
-
-If no peshat commentary was supplied, return {"peshat": "no peshat commentary available", "commentators": []}.`;
-
-const PESUKIM_GEMARA_USAGE_PROMPT = `You are a scholar of Talmud. You will receive ONE Tanach citation from a daf (verseRef, verseHe as quoted, citation marker, segment range, summary) plus a slice of the daf's Hebrew + English around the citation.
-
-Identify what the gemara is doing with this verse in its argumentative or narrative context. Output STRICT JSON only:
-
-{
-  "extractedClaim": "1-sentence statement of the halacha, principle, narrative point, or aggadic reading the gemara is deriving from or grounding in this verse",
-  "role": "proof | asmakhta | objection | support | narrative | other",
-  "explanation": "2-3 sentences explaining the move: which words of the verse are doing the work, what the gemara reads INTO them, and how this fits the local sugya"
-}
-
-Role guide:
-- "proof"      — verse is the primary scriptural ground for a halachic ruling or doctrine (drisha, gemara treats it as binding derivation).
-- "asmakhta"   — verse is cited as a mnemonic / supportive hook but the underlying claim is rabbinic, not really biblical.
-- "objection"  — verse is brought as a difficulty against another position (kushya).
-- "support"    — verse strengthens or illustrates a point already established otherwise.
-- "narrative"  — verse appears within a story, dream, or aggadic frame, not as a derivation.
-- "other"      — anything else; explain in the explanation field.
-
-If the gemara's use of this verse is unclear, give your best inference and acknowledge the uncertainty in explanation.`;
-
-const PESUKIM_EXEGESIS_PROMPT = `You are a scholar of midrash and rabbinic hermeneutics. You will receive ONE Tanach citation from a daf (verseRef, verseHe as quoted, citation marker, segment range, summary) plus a slice of the daf's Hebrew + English around the citation.
-
-Identify the hermeneutic method(s) the gemara is applying to extract meaning from this verse. The citation may use ONE move, MULTIPLE moves layered together, or NONE (when the verse is cited as a flat proof-text without any non-trivial reading).
-
-Output STRICT JSON only:
-
-{
-  "moves": [
-    {
-      "name": "derash | gezera-shava | al-tikri | notarikon | gematria | asmakhta | kal-vachomer | binyan-av | heqesh | kelal-uphrat | peshat-vs-derash | semukhin | yitur | meshalashim | other",
-      "locusOnVerse": "The specific Hebrew word, phrase, or feature in the verse that the move pivots on (e.g. the doubled word in gezera-shava, the redundant letter in yitur, the specific phrase being re-vocalized in al-tikri)",
-      "explanation": "2-3 sentences explaining how this hermeneutic move operates on this verse to yield the gemara's reading. Be specific: name the linguistic / structural feature and the new meaning it produces."
-    }
-  ]
-}
-
-Move names (use these exact tokens):
-- "derash"          — general homiletical / non-peshat reading not fitting a more specific category.
-- "gezera-shava"    — verbal analogy: two verses share a word/phrase, so a halacha from one transfers to the other.
-- "al-tikri"        — "do not read X but rather Y" — re-vocalization or re-pointing of consonants.
-- "notarikon"       — a word treated as an acronym or split into shorter components.
-- "gematria"        — the numerical value of letters yields a meaning.
-- "asmakhta"        — the verse is treated as a mnemonic anchor for a rabbinic ruling.
-- "kal-vachomer"    — a fortiori inference grounded in this verse.
-- "binyan-av"       — paradigm case generalized from this verse to a class.
-- "heqesh"          — analogy between two laws joined in the same verse / passage.
-- "kelal-uphrat"    — generalization-and-specification rule applied to the verse's structure.
-- "peshat-vs-derash"— the move explicitly contrasts the plain sense with the homiletical one.
-- "semukhin"        — semantic inference from juxtaposition of adjacent verses or passages.
-- "yitur"           — a redundant word or letter is treated as carrying additional meaning.
-- "meshalashim"     — a tripled phrase or threefold repetition is read as a marker.
-- "other"           — any other named move (e.g. "tartei mashma", "kri u'khtiv"); name it in the move's name field.
-
-If this citation is a flat proof-text with no non-trivial hermeneutic move, return {"moves": []}.`;
-
-const PESUKIM_SYNTHESIZE_PROMPT = `You write the GIST of one Tanach citation on a Talmud daf — the 2-3 sentence explanation a reader sees when they tap the pasuk's icon. The deep work (full Tanach context, peshat, gemara-usage role, hermeneutic move inventory) is done by other strategies; do NOT duplicate them.
-
-You will receive ONE pasuk's metadata (verseRef, verseHe as cited, citationMarker, citationStyle, summary, segment range) plus optional cached enrichments (tanachContext, peshat, gemaraUsage, exegesis) and a slice of the daf's Hebrew/English around the citation.
-
-**HARD CAPS:**
-- 2-3 sentences. No more.
-- Maximum 350 characters total.
-- No "as discussed below" or "see also" framing.
-- No section/citation index numbers.
-- Write in plain English the way a teacher would explain in passing.
-
-What the gist must convey, in this priority order:
-1. What the verse says, in one short clause (peshat-flavored, not derash).
-2. What the daf is doing with it — the claim/principle/narrative point this citation grounds.
-3. If a non-trivial hermeneutic move is at work (gezera-shava, al-tikri, gematria, asmakhta, etc.), name it briefly.
-
-Output STRICT JSON only:
-
-{ "explanation": "2-3 sentence gist here", "groundedIn": ["tanach-context","peshat","gemara-usage","exegesis","daf-text"] }
-
-groundedIn lists ONLY slices that were actually supplied below and that you drew on. Do not list a slice you didn't see in the input.`;
-
-interface PesukimSynthesizeReading {
-  explanation: string;
-  groundedIn?: string[];
-}
-
-/** Fetch a verse's surrounding text from Sefaria, with a small KV cache so
- *  the same verse cited on multiple dapim doesn't re-hit Sefaria. */
-async function getTanachVerseCached(
-  cache: KVNamespace | undefined,
-  ref: string,
-  contextRange: number,
-): Promise<{ surroundingHe: string; surroundingEn: string; ref: string } | null> {
-  const safeRef = ref.replace(/[^A-Za-z0-9 .:-]/g, '_');
-  const key = `tanach:v1:${safeRef}:c${contextRange}`;
-  if (cache) {
-    const hit = await cache.get(key);
-    if (hit) {
-      try { return JSON.parse(hit) as { surroundingHe: string; surroundingEn: string; ref: string }; }
-      catch { /* fall through */ }
-    }
-  }
-  try {
-    const res = await sefariaAPI.getText(ref, { context: contextRange });
-    const he = Array.isArray(res.he) ? res.he.join(' ') : (res.he ?? '');
-    const en = Array.isArray(res.text) ? res.text.join(' ') : (res.text ?? '');
-    const out = {
-      surroundingHe: stripHtmlServer(he).slice(0, 2000),
-      surroundingEn: stripHtmlServer(en).slice(0, 2000),
-      ref: res.ref ?? ref,
-    };
-    if (cache) {
-      await cache.put(key, JSON.stringify(out), { expirationTtl: 60 * 60 * 24 * 365 });
-    }
-    return out;
-  } catch {
-    return null;
-  }
-}
-
-/** Fetch peshat-oriented commentators (Rashi, Ibn Ezra, Ramban, Radak) on a
- *  Tanach verse. Cached per ref+commentator. Missing commentators are simply
- *  omitted. */
-async function getPeshatCommentariesCached(
-  cache: KVNamespace | undefined,
-  ref: string,
-): Promise<Array<{ name: string; he: string; en: string; ref: string }>> {
-  const COMMENTATORS = ['Rashi', 'Ibn Ezra', 'Ramban', 'Radak'];
-  const out: Array<{ name: string; he: string; en: string; ref: string }> = [];
-  for (const name of COMMENTATORS) {
-    const commentaryRef = `${name} on ${ref}`;
-    const safeRef = commentaryRef.replace(/[^A-Za-z0-9 .:-]/g, '_');
-    const key = `tanach-comm:v1:${safeRef}`;
-    let entry: { name: string; he: string; en: string; ref: string } | null = null;
-    if (cache) {
-      const hit = await cache.get(key);
-      if (hit) {
-        try { entry = JSON.parse(hit) as { name: string; he: string; en: string; ref: string }; }
-        catch { /* fall through */ }
-      }
-    }
-    if (!entry) {
-      try {
-        const res = await sefariaAPI.getText(commentaryRef);
-        const he = Array.isArray(res.he) ? res.he.join(' ') : (res.he ?? '');
-        const en = Array.isArray(res.text) ? res.text.join(' ') : (res.text ?? '');
-        if (he || en) {
-          entry = {
-            name,
-            he: stripHtmlServer(he).slice(0, 3000),
-            en: stripHtmlServer(en).slice(0, 3000),
-            ref: res.ref ?? commentaryRef,
-          };
-          if (cache) {
-            await cache.put(key, JSON.stringify(entry), { expirationTtl: 60 * 60 * 24 * 365 });
-          }
-        }
-      } catch { /* commentator unavailable for this ref */ }
-    }
-    if (entry && (entry.he || entry.en)) out.push(entry);
-  }
-  return out;
-}
-
-app.post('/api/enrich-pesukim/:tractate/:page', async (c) => {
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  const strategy = c.req.query('strategy') || 'synthesize';
-  if (
-    strategy !== 'tanach-context' &&
-    strategy !== 'peshat' &&
-    strategy !== 'gemara-usage' &&
-    strategy !== 'exegesis' &&
-    strategy !== 'synthesize'
-  ) {
-    return c.json({ error: `unknown strategy '${strategy}'; valid: tanach-context|peshat|gemara-usage|exegesis|synthesize` }, 400);
-  }
-  if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-  const cache = c.env.CACHE;
-  const bypass = c.req.query('refresh') === '1';
-  const cachedOnly = c.req.query('cached_only') === '1';
-  const includeRawPes = c.req.query('include') ?? '';
-  const includeNormPes = includeRawPes
-    ? includeRawPes.split(',').map((s) => s.trim()).filter(Boolean).sort().join(',')
-    : '';
-  const enrichCacheKey = strategy === 'synthesize' && includeNormPes
-    ? `pesukim-enrich:v1:synthesize:i=${includeNormPes}:${tractate}:${page}`
-    : `pesukim-enrich:v1:${strategy}:${tractate}:${page}`;
-
-  if (cache && !bypass) {
-    const cachedEnrich = await cache.get(enrichCacheKey);
-    if (cachedEnrich) {
-      return c.json({ ...JSON.parse(cachedEnrich) as { pesukim: PesukimStoryShape[] }, _strategy: strategy, _cached: true });
-    }
-  }
-  if (cachedOnly) {
-    return c.json({ cached: false }, 404);
-  }
-
-  const pesRaw = cache ? await cache.get(`pesukim:v1:${tractate}:${page}`) : null;
-  if (!pesRaw) return c.json({ error: 'No cached /api/pesukim output; run /api/pesukim first.' }, 404);
-  let pesukimData: PesukimResult;
-  try { pesukimData = JSON.parse(pesRaw) as PesukimResult; }
-  catch { return c.json({ error: 'Cached pesukim is not valid JSON' }, 502); }
-
-  if (pesukimData.pesukim.length === 0) {
-    return c.json({ pesukim: [], _strategy: strategy, _metadata: { note: 'no pesukim on this daf' } });
-  }
-
-  // Synthesize takes a different shape from the other four strategies: it runs
-  // one LLM call per pasuk in parallel, each focused on one citation, drawing
-  // on whichever deep strategies happen to be cached. The result is the
-  // 2-3 sentence headline shown next to the pesuk's gutter icon.
-  if (strategy === 'synthesize') {
-    let segsHe: string[] = [];
-    let segsEn: string[] = [];
-    try {
-      const sef = await getSefariaSegmentsCached(cache, tractate, page);
-      segsHe = (sef?.he ?? []).map(stripHtmlServer);
-      segsEn = (sef?.en ?? []).map(stripHtmlServer);
-    } catch { /* tolerated */ }
-
-    // Pull whatever deep strategies are already cached for this page so the
-    // synthesize prompt can fold them in. Missing strategies are fine —
-    // synthesize works with just the daf text and pasuk metadata. The
-    // `?include=` query filters which strategies actually feed the prompt.
-    const includeSetPes = new Set(includeNormPes ? includeNormPes.split(',') : []);
-    const wantPes = (s: string) => includeSetPes.size === 0 || includeSetPes.has(s);
-    const deepStrategies: Array<'tanach-context' | 'peshat' | 'gemara-usage' | 'exegesis'> = ['tanach-context', 'peshat', 'gemara-usage', 'exegesis'];
-    const deepCachedByStrategy: Record<string, Record<string, unknown>> = {};
-    for (const ds of deepStrategies) {
-      if (!wantPes(ds)) continue;
-      const key = `pesukim-enrich:v1:${ds}:${tractate}:${page}`;
-      const hit = cache ? await cache.get(key) : null;
-      if (!hit) continue;
-      try {
-        const parsed = JSON.parse(hit) as { pesukim?: PesukimStoryShape[] };
-        const byRef: Record<string, unknown> = {};
-        for (const p of parsed.pesukim ?? []) {
-          const lc = (p.verseRef || '').toLowerCase();
-          if (ds === 'tanach-context' && p.tanachContext !== undefined) byRef[lc] = p.tanachContext;
-          else if (ds === 'peshat' && p.peshat !== undefined) byRef[lc] = p.peshat;
-          else if (ds === 'gemara-usage' && p.gemaraUsage !== undefined) byRef[lc] = p.gemaraUsage;
-          else if (ds === 'exegesis' && p.exegesis !== undefined) byRef[lc] = p.exegesis;
-        }
-        deepCachedByStrategy[ds] = byRef;
-      } catch { /* corrupted slice, skip */ }
-    }
-
-    function dafSliceFor(p: Pasuk): { he: string; en: string } {
-      const start = Math.max(0, (p.startSegIdx ?? 0) - 1);
-      const end = Math.min(segsHe.length, (p.endSegIdx ?? p.startSegIdx ?? 0) + 2);
-      const heSlice = segsHe.slice(start, end).map((s, i) => `[${start + i}] ${s}`).join('\n').slice(0, 1800);
-      const enSlice = segsEn.slice(start, end).map((s, i) => `[${start + i}] ${s}`).join('\n').slice(0, 1500);
-      return { he: heSlice, en: enSlice };
-    }
-
-    const t0 = Date.now();
-    const concurrency = 4;
-    const synthesizeByRef: Record<string, PesukimSynthesizeReading> = {};
-    let cursor = 0;
-    async function worker() {
-      while (true) {
-        const idx = cursor++;
-        if (idx >= pesukimData.pesukim.length) return;
-        const p = pesukimData.pesukim[idx];
-        const lc = (p.verseRef || '').toLowerCase();
-        const slices: string[] = [];
-        for (const ds of deepStrategies) {
-          const data = deepCachedByStrategy[ds]?.[lc];
-          if (data !== undefined) slices.push(`<${ds}>\n${JSON.stringify(data, null, 2)}\n</${ds}>`);
-        }
-        const dafSlice = dafSliceFor(p);
-        const userContent = [
-          `Tractate: ${tractate}`,
-          `Page: ${page}`,
-          '',
-          `<pasuk>\n${JSON.stringify(p, null, 2)}\n</pasuk>`,
-          '',
-          slices.length === 0
-            ? '(No deep strategies cached for this pasuk yet — write the gist from the daf slice + pasuk metadata alone.)'
-            : `Cached deep strategies for this pasuk:\n\n${slices.join('\n\n')}`,
-          '',
-          dafSlice.he ? `<focal_hebrew>\n${dafSlice.he}\n</focal_hebrew>` : '',
-          dafSlice.en ? `<focal_english>\n${dafSlice.en}\n</focal_english>` : '',
-        ].join('\n');
-        try {
-          const s = await runKimiStreaming(
-            c.env, '@cf/moonshotai/kimi-k2.5',
-            [
-              { role: 'system', content: PESUKIM_SYNTHESIZE_PROMPT },
-              { role: 'user', content: userContent },
-            ],
-            2000,
-            { chatTemplateKwargs: { enable_thinking: false } },
-          );
-          let payload = s.content.trim();
-          const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
-          if (fenced) payload = fenced[1].trim();
-          const parsed = JSON.parse(payload) as PesukimSynthesizeReading;
-          if (parsed && typeof parsed.explanation === 'string' && parsed.explanation.length > 0) {
-            // Distinguish two pesukim sharing a verseRef on the same page by
-            // appending the segment range — same convention enrichEntity uses.
-            const refKey = p.startSegIdx != null ? `${lc}#${p.startSegIdx}` : lc;
-            synthesizeByRef[refKey] = parsed;
-          }
-        } catch {
-          // Tolerate per-pasuk failures — surface what we have.
-        }
-      }
-    }
-    await Promise.all(Array.from({ length: concurrency }, () => worker()));
-
-    const enrichedPesukim = pesukimData.pesukim.map(p => {
-      const lc = (p.verseRef || '').toLowerCase();
-      const refKey = p.startSegIdx != null ? `${lc}#${p.startSegIdx}` : lc;
-      const out: PesukimStoryShape = { ...p };
-      const hit = synthesizeByRef[refKey] ?? synthesizeByRef[lc];
-      if (hit) out.synthesize = hit;
-      return out;
-    });
-
-    if (cache) {
-      await cache.put(enrichCacheKey, JSON.stringify({ pesukim: enrichedPesukim }), { expirationTtl: 60 * 60 * 24 * 365 });
-    }
-
-    return c.json({
-      pesukim: enrichedPesukim,
-      _strategy: strategy,
-      _cached: false,
-      _elapsed_ms: Date.now() - t0,
-      _metadata: {
-        model: 'kimi-k2.5-no-thinking',
-        total_pesukim: pesukimData.pesukim.length,
-        synthesized: Object.keys(synthesizeByRef).length,
-        deep_strategies_present: Object.keys(deepCachedByStrategy),
-      },
-    });
-  }
-
-  // Per-pasuk parallel calls. Each LLM call is bounded to ONE citation's
-  // context — its verse text + that verse's specific commentary or daf
-  // slice. Avoids the upstream 1031 errors we hit when batching all pesukim
-  // on a verse-heavy daf into one giant prompt.
-  let segsHe: string[] = [];
-  let segsEn: string[] = [];
-  if (strategy === 'gemara-usage' || strategy === 'exegesis') {
-    try {
-      const sef = await getSefariaSegmentsCached(cache, tractate, page);
-      segsHe = (sef?.he ?? []).map(stripHtmlServer);
-      segsEn = (sef?.en ?? []).map(stripHtmlServer);
-    } catch { /* tolerated */ }
-  }
-
-  function dafSliceFor(p: Pasuk): { he: string; en: string } {
-    const start = Math.max(0, (p.startSegIdx ?? 0) - 1);
-    const end = Math.min(segsHe.length, (p.endSegIdx ?? p.startSegIdx ?? 0) + 2);
-    const heSlice = segsHe.slice(start, end).map((s, i) => `[${start + i}] ${s}`).join('\n').slice(0, 1800);
-    const enSlice = segsEn.slice(start, end).map((s, i) => `[${start + i}] ${s}`).join('\n').slice(0, 1500);
-    return { he: heSlice, en: enSlice };
-  }
-
-  const systemPrompt =
-    strategy === 'tanach-context' ? PESUKIM_TANACH_CONTEXT_PROMPT
-    : strategy === 'peshat' ? PESUKIM_PESHAT_PROMPT
-    : strategy === 'gemara-usage' ? PESUKIM_GEMARA_USAGE_PROMPT
-    : PESUKIM_EXEGESIS_PROMPT;
-
-  /** Build the per-pasuk user prompt for the current strategy. Each prompt
-   *  carries only this verse's context — small, focused, and well below any
-   *  upstream limits. */
-  async function userContentFor(p: Pasuk): Promise<string> {
-    const lines = [
-      `Tractate: ${tractate}`,
-      `Focal page: ${page}`,
-      '',
-      `<pasuk>\n${JSON.stringify(p, null, 2)}\n</pasuk>`,
-    ];
-    if (strategy === 'tanach-context') {
-      const ctx = await getTanachVerseCached(cache, p.verseRef, 2);
-      if (ctx) {
-        const safeRef = p.verseRef.replace(/"/g, '&quot;');
-        lines.push(
-          '',
-          `<tanach_context ref="${safeRef}">\n<hebrew>${ctx.surroundingHe}</hebrew>\n<english>${ctx.surroundingEn}</english>\n</tanach_context>`,
-        );
-      }
-    } else if (strategy === 'peshat') {
-      const comms = await getPeshatCommentariesCached(cache, p.verseRef);
-      if (comms.length > 0) {
-        const safeRef = p.verseRef.replace(/"/g, '&quot;');
-        // Cap each commentator at 1500/1500 chars per call so a verse with all
-        // four commentators stays well under any per-call limit.
-        const inner = comms.map(c =>
-          `<commentator name="${c.name}" ref="${c.ref}">\n<hebrew>${c.he.slice(0, 1500)}</hebrew>\n<english>${c.en.slice(0, 1500)}</english>\n</commentator>`
-        ).join('\n');
-        lines.push('', `<peshat_commentary ref="${safeRef}">\n${inner}\n</peshat_commentary>`);
-      }
-    } else {
-      const slice = dafSliceFor(p);
-      if (slice.he) lines.push('', `<focal_hebrew>\n${slice.he}\n</focal_hebrew>`);
-      if (slice.en) lines.push(`<focal_english>\n${slice.en}\n</focal_english>`);
-    }
-    return lines.join('\n');
-  }
-
-  const t0 = Date.now();
-  const concurrency = 4;
-  // Per-strategy result buckets keyed by `${lcRef}#${segIdx}` so two
-  // citations of the same verse on one page each get their own slice.
-  const tanachByKey: Record<string, TanachContext> = {};
-  const peshatByKey: Record<string, PeshatReading> = {};
-  const gemaraByKey: Record<string, GemaraUsage> = {};
-  const exegesisByKey: Record<string, ExegesisReading> = {};
-  const failures: string[] = [];
-  let cursor = 0;
-  async function worker(): Promise<void> {
-    while (true) {
-      const idx = cursor++;
-      if (idx >= pesukimData.pesukim.length) return;
-      const p = pesukimData.pesukim[idx];
-      const lc = (p.verseRef || '').toLowerCase();
-      const refKey = p.startSegIdx != null ? `${lc}#${p.startSegIdx}` : lc;
-      try {
-        const userContent = await userContentFor(p);
-        const s = await runKimiStreaming(
-          c.env, '@cf/moonshotai/kimi-k2.5',
-          [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userContent },
-          ],
-          2000,
-          { chatTemplateKwargs: { enable_thinking: false } },
-        );
-        let payload = s.content.trim();
-        const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
-        if (fenced) payload = fenced[1].trim();
-        const parsed = JSON.parse(payload);
-        if (strategy === 'tanach-context') {
-          const t = parsed as TanachContext;
-          if (t && (t.contextSummary || t.bookContext)) tanachByKey[refKey] = t;
-        } else if (strategy === 'peshat') {
-          const t = parsed as PeshatReading;
-          if (t && typeof t.peshat === 'string') peshatByKey[refKey] = t;
-        } else if (strategy === 'gemara-usage') {
-          const t = parsed as GemaraUsage;
-          if (t && t.extractedClaim) gemaraByKey[refKey] = t;
-        } else if (strategy === 'exegesis') {
-          const t = parsed as ExegesisReading;
-          if (t && Array.isArray(t.moves)) exegesisByKey[refKey] = t;
-        }
-      } catch (err) {
-        failures.push(`${p.verseRef}: ${String(err).slice(0, 100)}`);
-      }
-    }
-  }
-  await Promise.all(Array.from({ length: concurrency }, () => worker()));
-
-  const enrichedPesukim = pesukimData.pesukim.map(p => {
-    const lc = (p.verseRef || '').toLowerCase();
-    const refKey = p.startSegIdx != null ? `${lc}#${p.startSegIdx}` : lc;
-    const out: PesukimStoryShape = { ...p };
-    if (strategy === 'tanach-context' && tanachByKey[refKey]) out.tanachContext = tanachByKey[refKey];
-    if (strategy === 'peshat' && peshatByKey[refKey]) out.peshat = peshatByKey[refKey];
-    if (strategy === 'gemara-usage' && gemaraByKey[refKey]) out.gemaraUsage = gemaraByKey[refKey];
-    if (strategy === 'exegesis' && exegesisByKey[refKey]) out.exegesis = exegesisByKey[refKey];
-    return out;
-  });
-
-  if (cache) {
-    await cache.put(enrichCacheKey, JSON.stringify({ pesukim: enrichedPesukim }), { expirationTtl: 60 * 60 * 24 * 365 });
-  }
-
-  const populated =
-    strategy === 'tanach-context' ? Object.keys(tanachByKey).length
-    : strategy === 'peshat' ? Object.keys(peshatByKey).length
-    : strategy === 'gemara-usage' ? Object.keys(gemaraByKey).length
-    : Object.keys(exegesisByKey).length;
-
-  return c.json({
-    pesukim: enrichedPesukim,
-    _strategy: strategy,
-    _cached: false,
-    _elapsed_ms: Date.now() - t0,
-    _metadata: {
-      model: 'kimi-k2.5-no-thinking',
-      total_pesukim: pesukimData.pesukim.length,
-      populated_refs: populated,
-      failures: failures.length > 0 ? failures.slice(0, 5) : undefined,
-    },
-  });
 });
 
 /**
@@ -7460,68 +4044,6 @@ app.get('/api/admin/rabbi-academy-roster', async (c) => {
   return c.json(JSON.parse(hit));
 });
 
-// Read-only daf-level enrichment cache snapshot. Returns whichever
-// per-strategy daf-level results are already cached for every entity type
-// EnrichmentPage cares about. No AI; KV-only. Drives Phase B preload —
-// cached strategies render immediately on Load without forcing the user to
-// click each button.
-app.get('/api/enrich-cached-daf/:tractate/:page', async (c) => {
-  const cache = c.env.CACHE;
-  if (!cache) return c.json({ error: 'CACHE unavailable' }, 503);
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-
-  const readJson = async <T>(key: string): Promise<T | null> => {
-    const hit = await cache.get(key);
-    if (!hit) return null;
-    try { return JSON.parse(hit) as T; } catch { return null; }
-  };
-
-  const argumentStrategies = STRATEGY_NAMES;
-  const halachaStrategies = STRATEGIES.halacha;
-  const aggadataStrategies = STRATEGIES.aggadata;
-  const pesukimStrategies = STRATEGIES.pesukim;
-  const regionStrategies = STRATEGIES.region;
-  const mesorahStrategies = STRATEGIES.mesorah;
-
-  const [argumentEntries, halacha, aggadata, pesukim, regionEntries, mesorahEntries] = await Promise.all([
-    Promise.all(argumentStrategies.map(async (s) => [s, await readJson<unknown>(`enrich-arg:v1:${s}:${tractate}:${page}`)] as const)),
-    readJson<unknown>(`halacha:v1:${tractate}:${page}`),
-    readJson<unknown>(`aggadata:v5:${tractate}:${page}`),
-    readJson<unknown>(`pesukim:v1:${tractate}:${page}`),
-    Promise.all(regionStrategies.map(async (s) => [s, await readJson<unknown>(`enrich-region:v1:${s}:${tractate}:${page}`)] as const)),
-    Promise.all(mesorahStrategies.map(async (s) => [s, await readJson<unknown>(`enrich-mesorah:v1:${s}:${tractate}:${page}`)] as const)),
-  ]);
-
-  // For halacha/aggadata/pesukim, the daf-level enrichment cache (e.g.
-  // enrich-halacha:v1:{strategy}:{t}:{p}) holds the *enriched topics list*.
-  // We return both the stage-1 and the per-strategy enriched merges so the
-  // client can populate either path.
-  const halachaPerStrategy: Record<string, unknown> = {};
-  for (const s of halachaStrategies) {
-    halachaPerStrategy[s] = await readJson<unknown>(`enrich-halacha:v1:${s}:${tractate}:${page}`);
-  }
-  const aggadataPerStrategy: Record<string, unknown> = {};
-  for (const s of aggadataStrategies) {
-    aggadataPerStrategy[s] = await readJson<unknown>(`aggadata-enrich:v1:${s}:${tractate}:${page}`);
-  }
-  const pesukimPerStrategy: Record<string, unknown> = {};
-  for (const s of pesukimStrategies) {
-    pesukimPerStrategy[s] = await readJson<unknown>(`pesukim-enrich:v1:${s}:${tractate}:${page}`);
-  }
-
-  return c.json({
-    tractate,
-    page,
-    argument:  Object.fromEntries(argumentEntries),
-    halacha:   { stage1: halacha, perStrategy: halachaPerStrategy },
-    aggadata:  { stage1: aggadata, perStrategy: aggadataPerStrategy },
-    pesukim:   { stage1: pesukim, perStrategy: pesukimPerStrategy },
-    region:    Object.fromEntries(regionEntries),
-    mesorah:   Object.fromEntries(mesorahEntries),
-  });
-});
-
 // Coverage report — counts each rabbi-* prefix and surfaces compile timestamps.
 // Drives the Rabbis tab coverage strip in EnrichmentPage. Cheap KV listings.
 app.get('/api/admin/rabbi-cache-stats', async (c) => {
@@ -8323,7 +4845,10 @@ app.post('/api/enrich-era-arguments/:tractate/:page', async (c) => {
   // Pull resolved rabbi slugs from daf-context.
   let slugs: string[] = [];
   try {
-    const ctx = await selfFetchJson(c, `/api/daf-context/${encodeURIComponent(tractate)}/${encodeURIComponent(page)}`) as { rabbis?: Array<{ slug?: string | null }> };
+    const proxyReq = new Request(new URL(`/api/daf-context/${encodeURIComponent(tractate)}/${encodeURIComponent(page)}`, c.req.url).toString(), { method: 'GET' });
+    const resp = await app.fetch(proxyReq, c.env, c.executionCtx);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const ctx = await resp.json() as { rabbis?: Array<{ slug?: string | null }> };
     slugs = (ctx.rabbis ?? []).map((r) => r.slug).filter((s): s is string => !!s);
   } catch (err) {
     return c.json({ error: `daf-context: ${String(err).slice(0, 200)}` }, 502);
@@ -8408,1143 +4933,6 @@ app.get('/api/enrich-era-arguments/:tractate/:page', async (c) => {
   return c.json({ ...JSON.parse(hit) as EraArgNetResult, _cached: true });
 });
 
-// ============================================================================
-// Canonical entity contract — /api/identify/{type} and /api/enrich/{type}.
-//
-// Stage 1 (identify) extracts what's in a daf for a given entity type;
-// Stage 2 (enrich) attaches strategy-keyed metadata per entity. Both stages
-// are KV read-through cached at identify:v1:* and enrich:v1:*. The handlers
-// here are thin adapters: they self-fetch the existing legacy endpoints (no
-// behavior change to the underlying AI calls) and reshape the response into
-// the canonical Entity / EnrichedEntity form.
-//
-// Adding a new entity type requires: extend ENTITY_TYPES + STRATEGIES in
-// entity-types.ts, then add a case to identify_T and enrich_T below.
-// ============================================================================
-
-function rangeAnchor(start: number | undefined, end: number | undefined, quote: string | undefined): {
-  segmentIdx?: number;
-  segmentRange?: [number, number];
-  quote?: string;
-} {
-  const out: { segmentIdx?: number; segmentRange?: [number, number]; quote?: string } = {};
-  if (typeof start === 'number' && Number.isFinite(start)) {
-    out.segmentIdx = start;
-    const e = typeof end === 'number' && Number.isFinite(end) ? end : start;
-    out.segmentRange = [start, Math.max(start, e)];
-  }
-  if (quote) out.quote = quote;
-  return out;
-}
-
-/* ---- Argument enrichment strategies -------------------------------------
- * Five per-section strategies, each returning ONLY its slice (no
- * re-serialized section). Caching is handled by the outer enrichEntity
- * wrapper at enrich:v2:argument:{t}:{p}:argument:{idx}:{strategy}.
- *
- * Each helper uses Kimi K2.5 no-thinking (~30-90s, reliable JSON).
- * Section-relevant Hebrew is sliced from the cached Sefaria segments by
- * the section's startSegIdx/endSegIdx.
- */
-
-/**
- * Shared instruction injected into every argument-strategy prompt that emits
- * English prose. Encourages preserving Talmudic technical vocabulary as
- * transliterated Hebrew/Aramaic in parentheses on first mention so the
- * reader builds the conventional learning vocabulary alongside the gloss.
- */
-const HEBRAIZED_TERMS_RULE = `**Preserve Talmudic technical vocabulary.** When you introduce a halachic / aggadic / sugya-structural concept, give the conventional transliterated Hebrew/Aramaic term in parentheses on first mention, e.g. "designation (yiʿud)", "preparation for Shabbat (hakhanah)", "moveable (muktzeh)", "the dragged-bolt case (neger hanegrar)", "parable (mashal)", "argument move (kushya)", "answer (terutz)", "scriptural derivation (derashah)", "atonement (kaparah)". Use Sefaria-style transliteration (apostrophes for ayin/aleph where standard, doubled letters where the dagesh is doubled). Do NOT pure-English-translate technical terms — keep the Hebrew side-by-side.`;
-
-const ARG_DAF_ABSTRACT_PROMPT = `You write the DAF-LEVEL OVERVIEW — a 3-4 sentence orientation paragraph the reader sees at the top of the daf, BEFORE drilling into individual sections. The reader has just opened this daf and wants a single coherent paragraph that situates them in the argumentative arc.
-
-You will receive the existing skeleton summary (the structural baseline) plus each section's per-section synthesized gist. **REWRITE** the daf-level paragraph using the section gists as authoritative context: thread them into one continuous overview that names the arc, not just a section list.
-
-**HARD CAPS:**
-- 3-4 sentences. Maximum 600 characters total.
-- First sentence: what's the daf about — the argumentative or thematic spine.
-- Middle sentences: how the sections move (e.g. "the sugya then turns to…", "after establishing X, the Gemara raises…"). Use connective verbs, not enumeration.
-- Final sentence (optional): the resolution / open question / pivot the daf lands on.
-- Do NOT enumerate sections by number. Do NOT recap each section.
-- No commentator name-drops (Rashi/Tosafot/etc.) — that's section-level.
-- No "this daf discusses…" or "we will explore…" filler.
-
-${HEBRAIZED_TERMS_RULE}
-
-Output STRICT JSON only:
-
-{ "explanation": "3-4 sentence daf overview", "groundedIn": ["section-syntheses","skeleton"] }
-
-groundedIn lists ONLY inputs you actually drew on.`;
-
-const ARG_SYNTHESIZE_PROMPT = `You write the GIST of one argument section — the one-glance summary the reader sees at the top of a card. The deep work (per-rabbi breakdown, bigger-picture, background, commentaries) is rendered separately on the card; do NOT duplicate them.
-
-You will receive the section's Hebrew/Aramaic text plus optional cached enrichments — rabbis, references, parallels, commentaries, bigger_picture, background, difficulty — and tails of neighboring amudim. **REWRITE** the section gist using whatever enrichments are provided as authoritative context: each one tightens the picture of what's actually happening in the sugya. Do NOT recap each enrichment — fold them into one tight gist.
-
-**HARD CAPS:**
-- 1-2 sentences. No more.
-- Maximum 280 characters total.
-- No "Continuing from…" or "This sets up…" framing — that's the bigger-picture section's job.
-- No commentator name-drops (Rashi, Tosafot, Rosh, Rashba) — that's the commentaries section's job.
-- No per-rabbi biographical context — that's the opinions section's job.
-
-Just the gist: what is this section actually saying / arguing? You may cite ONE verse ref inline if it's the section's anchor.
-
-${HEBRAIZED_TERMS_RULE}
-
-Output STRICT JSON only:
-
-{ "explanation": "1-2 sentence gist here", "groundedIn": ["rabbis","references","parallels","commentaries","bigger-picture","background","difficulty","prev-daf","next-daf"] }
-
-groundedIn lists ONLY slices that were actually supplied below and that you drew on. Do not list a slice you didn't see in the input.`;
-
-const ARG_RABBIS_PROMPT = `You are a scholar of Talmud. You will receive ONE argument section of a daf — its Hebrew/Aramaic text and the list of voices (rabbiNames) the structural pass identified. For each voice, fill in the metadata. Output STRICT JSON only:
-
-{
-  "rabbis": [
-    {
-      "name": "Conventional English name (e.g. 'Rabbi Yochanan', 'Rav Huna') OR Stam-style label (e.g. 'Gemara's question', 'First answer')",
-      "nameHe": "Hebrew name as it appears in this section, OR the Hebrew interrogative/introducer phrase for an anonymous voice",
-      "period": "Era + approximate dates (e.g. 'Tanna, c. 90-120 CE', 'Amora, 4th century CE', 'Stam Gemara, redacted c. 500 CE')",
-      "location": "City and region (e.g. 'Pumbedita, Babylonia', 'Tzippori, Galilee', 'Bavel')",
-      "role": "What this voice argues or does in THIS section, in one sentence",
-      "opinionStart": "First 2-4 Hebrew/Aramaic words of THIS voice's specific statement, copied verbatim from the section's Hebrew. Used to anchor the rabbi to text."
-    }
-  ]
-}
-
-Cover EVERY voice in rabbiNames. opinionStart MUST be Hebrew copied verbatim from the section's Hebrew above — never translate.
-
-If cached cross-enrichments are supplied (a <references>, <parallels>, or <commentaries> block below), USE them to color each voice's "role": name the verse a voice cites, mention the parallel sugya their position echoes, note the difficulty a commentator (e.g. Tosafot, Rashba) raises on them. Do not invent facts — only draw on what's in the supplied blocks.
-
-${HEBRAIZED_TERMS_RULE} (applies to the "role" field.)`;
-
-const ARG_REFERENCES_PROMPT = `You are a scholar of Tanakh and Talmud. Find every BIBLICAL verse cited or alluded to in the supplied section of Hebrew/Aramaic text. Output STRICT JSON only:
-
-{
-  "references": [
-    {
-      "ref": "English citation in Sefaria style (e.g. 'Psalms 31:6', 'Deuteronomy 6:4')",
-      "hebrewRef": "Hebrew citation (e.g. 'תהילים לא:ו', 'דברים ו:ד')",
-      "hebrewQuote": "Verbatim Hebrew snippet from the section as it cites the verse (the words that appear in the daf, not the verse itself if it differs)"
-    }
-  ]
-}
-
-Include only ACTUAL biblical citations — verses quoted, paraphrased, or invoked as proofs. Do not include rabbinic statements that merely sound biblical. If no verses are cited, return {"references": []}.`;
-
-const ARG_PARALLELS_PROMPT = `You are a scholar of Talmud. You will receive ONE argument section plus selected Rishonim commentary (Rashba, Ritva, Ramban, Meiri, Rosh, Maharsha) on this daf. Identify cross-Shas PARALLEL SUGYOT — other places in the Talmud (Bavli or Yerushalmi) where the same dispute, Tannaitic source, or argumentative move appears. Output STRICT JSON only:
-
-{
-  "parallels": [
-    {
-      "ref": "Sefaria-style ref (e.g. 'Megillah 3a', 'Shabbat 31a', 'Jerusalem Talmud Berakhot 5b')",
-      "source": "How you know — 'Rashba cites it', 'Talmudic cross-reference in section', 'Meiri compares', or 'general scholarly knowledge'",
-      "note": "1 sentence on how the parallel relates"
-    }
-  ]
-}
-
-Prefer parallels grounded in the supplied Rishonim. Limit to the 5 most relevant. If none, return {"parallels": []}.
-
-${HEBRAIZED_TERMS_RULE} (applies to the "note" field.)`;
-
-const ARG_BIGGER_PICTURE_PROMPT = `You are a scholar of Talmud. You will receive ONE argument section plus the FULL OUTLINE of all sections on this amud (titles + summaries + segment ranges) AND the tail of the previous amud and head of the next. Write a paragraph (HARD CAP: 2-3 sentences, no more) that explains how THIS section fits into the BIGGER PICTURE — the larger sugya / argumentative arc the daf is developing. Connect it to neighboring sections by name where useful, name the larger question being grappled with, and indicate whether this section is the opening move, a digression, a counter-argument, a pivot, or a resolution. Pack dense — every sentence should add new information.
-
-${HEBRAIZED_TERMS_RULE}
-
-Output STRICT JSON only:
-
-{ "biggerPicture": "your paragraph here" }`;
-
-const ARG_BACKGROUND_PROMPT = `You are a Talmud teacher writing BACKGROUND CONTEXT for a learner who just opened this section. The gist of what the section says, the per-rabbi breakdown, and the structural arc within the daf are ALREADY covered by other sections of the card — DO NOT duplicate them.
-
-Your job is to answer two questions a curious non-specialist would ask:
-  1. WHY does this matter? — the religious, historical, or conceptual stakes of the practice / dispute / story this section deals with. Why does it matter in Jewish life and thought, beyond this page?
-  2. WHY is the Talmud talking about THIS HERE? — the genre conventions, redactor's craft, or canonical placement that explains why THIS sugya appears at THIS spot in the masechet. (E.g. "Berakhot opens with evening Shema because the Mishnah follows the order of the verse 'when you lie down' and the cosmic day starts at nightfall.")
-
-Aim for 3-5 sentences. Plain English first; technical terms parenthesized as needed. Speak to the learner as if explaining over a coffee, not lecturing — orient them, then trust them.
-
-Avoid:
-- Restating what the section says (other sections handle that)
-- Per-rabbi name-drops or commentator quotes (other sections)
-- Multi-clause chains of derivation (the bigger-picture section handles that)
-- Generic platitudes ("This is an important sugya in Jewish law.") — every sentence must carry concrete background information.
-
-${HEBRAIZED_TERMS_RULE}
-
-Output STRICT JSON only:
-
-{ "background": "your 3-5 sentence paragraph" }`;
-
-const ARG_COMMENTARIES_PROMPT = `You are a scholar of Talmud. You will receive ONE argument section plus Rashi, Tosafot, and other Rishonim commentary on this daf. List the QUESTIONS or DIFFICULTIES that the commentators raise on THIS section's text — what bothers them, what they ask, what apparent contradiction they grapple with. Output STRICT JSON only:
-
-{
-  "commentaries": [
-    {
-      "commentator": "Rashi | Tosafot | Rashba | Ritva | Ramban | Meiri | Rosh | Maharsha | Chidushei Aggadot | other",
-      "question": "The actual question or difficulty raised, in plain English (1-2 sentences)",
-      "ref": "Optional: page/dibbur ref if obvious (e.g. 'd.h. אם תלמיד חכם')"
-    }
-  ]
-}
-
-Include only questions actually raised in the supplied commentary, not your own observations. If a commentator makes a quiet gloss with no question, skip them. If no questions, return {"commentaries": []}.
-
-${HEBRAIZED_TERMS_RULE} (applies to the "question" field.)`;
-
-/** Read cached enrichment slices for an argument section. Each slice is null
- *  if not yet enriched. Used by both the rabbis and synthesize strategies so
- *  each voice's `role` (and the synthesized gist) can be grounded in the
- *  verses, parallels, and commentator questions already in cache. */
-async function getCachedArgumentSlices(
-  c: { env: Bindings },
-  tractate: string,
-  page: string,
-  sectionIdx: number,
-  slices: readonly string[],
-): Promise<Record<string, unknown>> {
-  const cache = c.env.CACHE;
-  if (!cache) return {};
-  const out: Record<string, unknown> = {};
-  await Promise.all(slices.map(async (s) => {
-    const key = enrichCacheKey('argument', tractate, page, makeIndexId('argument', sectionIdx), s);
-    const hit = await cache.get(key);
-    if (!hit) { out[s] = null; return; }
-    try {
-      const parsed = JSON.parse(hit) as { enrichments?: Record<string, unknown> };
-      out[s] = parsed.enrichments?.[s] ?? null;
-    } catch { out[s] = null; }
-  }));
-  return out;
-}
-
-async function getArgumentSectionContext(
-  c: { req: { url: string }; env: Bindings; executionCtx: ExecutionContext },
-  tractate: string,
-  page: string,
-  sectionIdx: number,
-): Promise<{ section: ArgumentSectionShape; sectionHe: string; sectionEn: string }> {
-  const skel = await selfFetchJson(c, `/api/analyze/${tractate}/${page}?skeleton_only=1`) as { sections?: ArgumentSectionShape[] };
-  const section = (skel.sections ?? [])[sectionIdx];
-  if (!section) throw new Error(`section ${sectionIdx} not found`);
-  const sefSegs = await getSefariaSegmentsCached(c.env.CACHE, tractate, page);
-  const segsHe = (sefSegs?.he ?? []).map(stripHtmlServer);
-  const segsEn = (sefSegs?.en ?? []).map(stripHtmlServer);
-  const start = section.startSegIdx ?? 0;
-  const end = section.endSegIdx ?? Math.max(start, segsHe.length - 1);
-  const sectionHe = segsHe.slice(start, end + 1).map((s, i) => `[${start + i}] ${s}`).join('\n');
-  const sectionEn = segsEn.slice(start, end + 1).map((s, i) => `[${start + i}] ${s}`).join('\n');
-  return { section, sectionHe, sectionEn };
-}
-
-async function runArgumentStrategyKimi(
-  env: Bindings,
-  systemPrompt: string,
-  userContent: string,
-  maxTokens: number,
-): Promise<unknown> {
-  const streamed = await runKimiStreaming(
-    env, '@cf/moonshotai/kimi-k2.5',
-    [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userContent },
-    ],
-    maxTokens,
-    { chatTemplateKwargs: { enable_thinking: false } },
-  );
-  let payload = streamed.content.trim();
-  const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (fenced) payload = fenced[1].trim();
-  if (!payload) throw new Error('empty payload');
-  return JSON.parse(payload);
-}
-
-async function enrichArgumentSection(
-  c: { req: { url: string }; env: Bindings; executionCtx: ExecutionContext },
-  tractate: string,
-  page: string,
-  sectionIdx: number,
-  strategy: string,
-  /** When `strategy === 'synthesize'`, restricts which source strategies feed
-   *  into the prompt. Empty array or undefined = all available. */
-  includeOverride?: ReadonlyArray<string>,
-): Promise<unknown> {
-  if (!c.env.AI) throw new Error('AI binding not available');
-  const ctx = await getArgumentSectionContext(c, tractate, page, sectionIdx);
-  const header = [
-    `Tractate: ${tractate}`,
-    `Page: ${page}`,
-    `Section title: ${ctx.section.title}`,
-    `Section summary: ${ctx.section.summary ?? '(none)'}`,
-    `Segment range: [${ctx.section.startSegIdx ?? '?'}-${ctx.section.endSegIdx ?? '?'}]`,
-    '',
-  ].join('\n');
-
-  switch (strategy) {
-    case 'synthesize': {
-      // Read all available enrichments for this section from KV plus a small
-      // tail of the previous amud and head of the next so the synthesized
-      // paragraph can situate the section in the larger argumentative arc.
-      // Falls back to the daf-level enrich-arg:v1 cache when the per-section
-      // v3 cache is empty (the path /enrichment writes to).
-      const cache = c.env.CACHE;
-      const fetchSlice = async (s: string): Promise<unknown> => {
-        if (!cache) return null;
-        // 1) per-section v3 cache (entity-contract path)
-        const v3Key = enrichCacheKey('argument', tractate, page, makeIndexId('argument', sectionIdx), s);
-        const v3Hit = await cache.get(v3Key);
-        if (v3Hit) {
-          try {
-            const parsed = JSON.parse(v3Hit) as { enrichments?: Record<string, unknown> };
-            const data = parsed.enrichments?.[s];
-            if (data != null) return data;
-          } catch { /* fall through */ }
-        }
-        // 2) daf-level enrich-arg:v1 cache (EnrichmentPage path) — slice to this
-        // section. Note 'rabbis' is the prompt tag but the daf-level cache key
-        // for the running strategy is 'rich-rabbi'.
-        const dafKeyName = s === 'rabbis' ? 'rich-rabbi' : s;
-        const dafHit = await cache.get(`enrich-arg:v1:${dafKeyName}:${tractate}:${page}`);
-        if (!dafHit) return null;
-        try {
-          const parsed = JSON.parse(dafHit) as { sections?: Array<Record<string, unknown>> };
-          const sec = parsed.sections?.[sectionIdx];
-          if (!sec) return null;
-          if (s === 'rabbis')         return sec.rabbis ?? null;
-          if (s === 'rich-rabbi')     return sec.rabbis ?? null;
-          if (s === 'references')     return sec.references ?? null;
-          if (s === 'parallels')      return sec.parallels ?? null;
-          if (s === 'commentaries')   return sec.commentaries ?? null;
-          if (s === 'bigger-picture') return sec.biggerPicture ?? null;
-          if (s === 'background')     return sec.background ?? null;
-          if (s === 'difficulty')     return sec.difficulty ?? null;
-          return sec[s] ?? null;
-        } catch { return null; }
-      };
-      const prevDaf = adjacentAmud(tractate, page, -1);
-      const nextDaf = adjacentAmud(tractate, page, +1);
-      const fetchTailHead = async (daf: string | null, mode: 'tail' | 'head'): Promise<string> => {
-        if (!daf) return '';
-        try {
-          const segs = await getSefariaSegmentsCached(cache, tractate, daf);
-          const he = (segs?.he ?? []).map(stripHtmlServer);
-          if (he.length === 0) return '';
-          const slice = mode === 'tail' ? he.slice(Math.max(0, he.length - 4)) : he.slice(0, 4);
-          return slice.map((s, i) => `[${(mode === 'tail' ? he.length - slice.length + i : i)}] ${s}`).join('\n');
-        } catch { return ''; }
-      };
-      // If includeOverride supplied, only fetch those slices. Map common
-      // aliases: rabbis ↔ rich-rabbi (the daf-level cache key is rich-rabbi
-      // but the prompt tag is `rabbis`).
-      const want = (k: string): boolean => {
-        if (!includeOverride || includeOverride.length === 0) return true;
-        if (k === 'rabbis') return includeOverride.includes('rabbis') || includeOverride.includes('rich-rabbi');
-        return includeOverride.includes(k);
-      };
-      const [rabbisData, refsData, parData, commData, bigData, bgData, diffData, prevTail, nextHead] = await Promise.all([
-        want('rabbis')         ? fetchSlice('rabbis')         : Promise.resolve(null),
-        want('references')     ? fetchSlice('references')     : Promise.resolve(null),
-        want('parallels')      ? fetchSlice('parallels')      : Promise.resolve(null),
-        want('commentaries')   ? fetchSlice('commentaries')   : Promise.resolve(null),
-        want('bigger-picture') ? fetchSlice('bigger-picture') : Promise.resolve(null),
-        want('background')     ? fetchSlice('background')     : Promise.resolve(null),
-        want('difficulty')     ? fetchSlice('difficulty')     : Promise.resolve(null),
-        fetchTailHead(prevDaf, 'tail'),
-        fetchTailHead(nextDaf, 'head'),
-      ]);
-      const enrichmentBlocks: string[] = [];
-      if (rabbisData) enrichmentBlocks.push(`<rabbis>\n${JSON.stringify(rabbisData, null, 2)}\n</rabbis>`);
-      if (refsData) enrichmentBlocks.push(`<references>\n${JSON.stringify(refsData, null, 2)}\n</references>`);
-      if (parData) enrichmentBlocks.push(`<parallels>\n${JSON.stringify(parData, null, 2)}\n</parallels>`);
-      if (commData) enrichmentBlocks.push(`<commentaries>\n${JSON.stringify(commData, null, 2)}\n</commentaries>`);
-      if (bigData) enrichmentBlocks.push(`<bigger_picture>\n${JSON.stringify(bigData, null, 2)}\n</bigger_picture>`);
-      if (bgData) enrichmentBlocks.push(`<background>\n${JSON.stringify(bgData, null, 2)}\n</background>`);
-      if (diffData) enrichmentBlocks.push(`<difficulty>\n${JSON.stringify(diffData, null, 2)}\n</difficulty>`);
-      const userContent = header + [
-        'Hebrew/Aramaic text of this section (segments numbered):',
-        ctx.sectionHe || '(unavailable)',
-        '',
-        'English translation:',
-        ctx.sectionEn || '(unavailable)',
-        '',
-        prevTail ? `<previous_daf_tail page="${prevDaf}">\n${prevTail}\n</previous_daf_tail>` : `(no previous-daf context for ${page})`,
-        '',
-        nextHead ? `<next_daf_head page="${nextDaf}">\n${nextHead}\n</next_daf_head>` : `(no next-daf context for ${page})`,
-        '',
-        enrichmentBlocks.length === 0
-          ? '(No structured enrichments cached yet — write a basic paragraph from the section text + neighbor context + structural summary alone.)'
-          : `Available structured enrichments:\n\n${enrichmentBlocks.join('\n\n')}`,
-      ].join('\n');
-      return runArgumentStrategyKimi(c.env, ARG_SYNTHESIZE_PROMPT, userContent, 6000);
-    }
-    case 'rabbis': {
-      // Pull whatever's cached so each voice's `role` can name the verse it
-      // cites, the parallel sugya it echoes, and the commentator difficulty
-      // it raises. Empty if user hasn't run those enrichments yet.
-      const slices = await getCachedArgumentSlices(c, tractate, page, sectionIdx, ['references', 'parallels', 'commentaries']);
-      const ctxBlocks: string[] = [];
-      if (slices.references) ctxBlocks.push(`<references>\n${JSON.stringify(slices.references, null, 2)}\n</references>`);
-      if (slices.parallels) ctxBlocks.push(`<parallels>\n${JSON.stringify(slices.parallels, null, 2)}\n</parallels>`);
-      if (slices.commentaries) ctxBlocks.push(`<commentaries>\n${JSON.stringify(slices.commentaries, null, 2)}\n</commentaries>`);
-      const userContent = header + [
-        `Voices identified (rabbiNames): ${(ctx.section.rabbiNames ?? []).join(', ') || '(none)'}`,
-        '',
-        'Hebrew/Aramaic text of this section:',
-        ctx.sectionHe || '(unavailable)',
-        '',
-        ctxBlocks.length === 0
-          ? '(No cached cross-enrichments yet — fill role from section text alone.)'
-          : `Cached cross-enrichments — use these to color each voice's "role" with the verse they cite, the parallel sugya they echo, or the commentator difficulty raised on them:\n\n${ctxBlocks.join('\n\n')}`,
-      ].join('\n');
-      return runArgumentStrategyKimi(c.env, ARG_RABBIS_PROMPT, userContent, 8000);
-    }
-    case 'references': {
-      const userContent = header + [
-        'Hebrew/Aramaic text of this section:',
-        ctx.sectionHe || '(unavailable)',
-      ].join('\n');
-      return runArgumentStrategyKimi(c.env, ARG_REFERENCES_PROMPT, userContent, 4000);
-    }
-    case 'parallels': {
-      const rishonim = await getRishonimCached(c.env.CACHE, tractate, page).catch(() => null);
-      const rishonimXml = rishonim ? rishonimBlock(rishonim).slice(0, 12000) : '';
-      const userContent = header + [
-        'Hebrew/Aramaic text of this section:',
-        ctx.sectionHe || '(unavailable)',
-        '',
-        'Rishonim on this daf (focus on what they cross-reference):',
-        rishonimXml || '(unavailable)',
-      ].join('\n');
-      return runArgumentStrategyKimi(c.env, ARG_PARALLELS_PROMPT, userContent, 6000);
-    }
-    case 'bigger-picture': {
-      const skel = await selfFetchJson(c, `/api/analyze/${tractate}/${page}?skeleton_only=1`) as { sections?: ArgumentSectionShape[]; summary?: string };
-      const sections = skel.sections ?? [];
-      const outlineLines = sections.map((s, i) => {
-        const range = (s.startSegIdx != null && s.endSegIdx != null) ? `[${s.startSegIdx}-${s.endSegIdx}]` : '';
-        const marker = i === sectionIdx ? ' ← THIS SECTION' : '';
-        return `  ${i}. "${s.title}" ${range} — ${s.summary ?? ''}${marker}`;
-      }).join('\n');
-      const prevDaf = adjacentAmud(tractate, page, -1);
-      const nextDaf = adjacentAmud(tractate, page, +1);
-      const fetchTailHead = async (daf: string | null, mode: 'tail' | 'head'): Promise<string> => {
-        if (!daf) return '';
-        try {
-          const segs = await getSefariaSegmentsCached(c.env.CACHE, tractate, daf);
-          const he = (segs?.he ?? []).map(stripHtmlServer);
-          if (he.length === 0) return '';
-          const slice = mode === 'tail' ? he.slice(Math.max(0, he.length - 4)) : he.slice(0, 4);
-          return slice.join(' ').slice(0, 800);
-        } catch { return ''; }
-      };
-      const [prevTail, nextHead] = await Promise.all([
-        fetchTailHead(prevDaf, 'tail'),
-        fetchTailHead(nextDaf, 'head'),
-      ]);
-      const userContent = header + [
-        `Daf overall summary: ${skel.summary ?? '(none)'}`,
-        '',
-        'Full outline of this amud:',
-        outlineLines || '(none)',
-        '',
-        'Hebrew/Aramaic text of THIS section (the focal one):',
-        ctx.sectionHe || '(unavailable)',
-        '',
-        prevTail ? `Tail of previous amud (${prevDaf}): ${prevTail}` : `(no previous amud)`,
-        nextHead ? `Head of next amud (${nextDaf}): ${nextHead}` : `(no next amud)`,
-        '',
-        'Write the bigger-picture paragraph for THIS section.',
-      ].join('\n');
-      return runArgumentStrategyKimi(c.env, ARG_BIGGER_PICTURE_PROMPT, userContent, 4000);
-    }
-    case 'background': {
-      // Background uses the same outline + focal text as bigger-picture but
-      // answers "why does this matter / why is the Talmud talking about this
-      // here?" for a curious learner instead of mapping the structural arc.
-      const skel = await selfFetchJson(c, `/api/analyze/${tractate}/${page}?skeleton_only=1`) as { sections?: ArgumentSectionShape[]; summary?: string };
-      const sections = skel.sections ?? [];
-      const outlineLines = sections.map((s, i) => {
-        const range = (s.startSegIdx != null && s.endSegIdx != null) ? `[${s.startSegIdx}-${s.endSegIdx}]` : '';
-        const marker = i === sectionIdx ? ' ← THIS SECTION' : '';
-        return `  ${i}. "${s.title}" ${range} — ${s.summary ?? ''}${marker}`;
-      }).join('\n');
-      const userContent = header + [
-        `Tractate: ${tractate}, daf ${page}`,
-        `Daf overall summary: ${skel.summary ?? '(none)'}`,
-        '',
-        'Outline of this amud (for orientation only — do NOT recap):',
-        outlineLines || '(none)',
-        '',
-        'Hebrew/Aramaic text of THIS section (the focal one):',
-        ctx.sectionHe || '(unavailable)',
-        '',
-        'Write the background paragraph for THIS section: WHY does its subject matter, and WHY is the Talmud engaging with it HERE?',
-      ].join('\n');
-      return runArgumentStrategyKimi(c.env, ARG_BACKGROUND_PROMPT, userContent, 4000);
-    }
-    case 'commentaries': {
-      const [rishonim, sefPage] = await Promise.all([
-        getRishonimCached(c.env.CACHE, tractate, page).catch(() => null),
-        getSefariaPageCached(c.env.CACHE, tractate, page).catch(() => null),
-      ]);
-      const rashi = sefPage?.rashi ? `<rashi>${(sefPage.rashi.hebrew ?? '').slice(0, 6000)}</rashi>` : '';
-      const tosafot = sefPage?.tosafot ? `<tosafot>${(sefPage.tosafot.hebrew ?? '').slice(0, 6000)}</tosafot>` : '';
-      const rishonimXml = rishonim ? rishonimBlock(rishonim).slice(0, 10000) : '';
-      const userContent = header + [
-        'Hebrew/Aramaic text of this section:',
-        ctx.sectionHe || '(unavailable)',
-        '',
-        'Rashi (whole-amud):',
-        rashi || '(unavailable)',
-        '',
-        'Tosafot (whole-amud):',
-        tosafot || '(unavailable)',
-        '',
-        'Rishonim (whole-amud):',
-        rishonimXml || '(unavailable)',
-        '',
-        'List only questions/difficulties raised in the commentary above that pertain to THIS section.',
-      ].join('\n');
-      return runArgumentStrategyKimi(c.env, ARG_COMMENTARIES_PROMPT, userContent, 8000);
-    }
-    default:
-      throw new Error(`unknown argument strategy: ${strategy}`);
-  }
-}
-
-async function selfFetchJson(
-  c: { req: { url: string }; env: Bindings; executionCtx: ExecutionContext },
-  path: string,
-  init?: RequestInit,
-): Promise<unknown> {
-  const url = new URL(path, c.req.url).toString();
-  const res = await app.fetch(new Request(url, init), c.env, c.executionCtx);
-  if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw new Error(`self-fetch ${init?.method ?? 'GET'} ${path} → ${res.status} ${body.slice(0, 200)}`);
-  }
-  return res.json();
-}
-
-interface HalachaTopicShape {
-  topic: string;
-  topicHe?: string;
-  excerpt?: string;
-  startSegIdx?: number;
-  endSegIdx?: number;
-  rulings?: unknown;
-  modernAuthorities?: unknown;
-  rishonimNotes?: unknown;
-  saCommentaryNotes?: unknown;
-}
-interface AggadataStoryShape {
-  title: string;
-  titleHe?: string;
-  summary?: string;
-  excerpt?: string;
-  endExcerpt?: string;
-  startSegIdx?: number;
-  endSegIdx?: number;
-  theme?: string;
-  parallels?: unknown;
-  historicalContext?: unknown;
-}
-interface ArgumentSectionShape {
-  title: string;
-  summary?: string;
-  excerpt?: string;
-  startSegIdx?: number;
-  endSegIdx?: number;
-  rabbiNames?: string[];
-  rabbis?: unknown[];
-  references?: unknown[];
-  parallels?: unknown[];
-  difficulty?: unknown;
-}
-interface DafContextRabbiShape {
-  slug: string | null;
-  name: string;
-  nameHe?: string;
-  generation?: unknown;
-  region?: unknown;
-  places?: unknown;
-  moved?: unknown;
-  bio?: string | null;
-  image?: string | null;
-  wiki?: string | null;
-}
-interface EraSegmentShape {
-  segIdx: number;
-  era: unknown;
-  source?: unknown;
-  why?: string;
-  speakers?: unknown;
-}
-
-async function identifyEntities(
-  c: Parameters<typeof selfFetchJson>[0] & { req: { query(k: string): string | undefined } },
-  type: EntityType,
-  tractate: string,
-  page: string,
-  refresh: boolean,
-): Promise<Entity[]> {
-  const cache = c.env.CACHE;
-  const cacheKey = identifyCacheKey(type, tractate, page);
-  if (cache && !refresh) {
-    const hit = await cache.get(cacheKey);
-    if (hit) {
-      try {
-        const parsed = JSON.parse(hit) as { items: Entity[] };
-        if (parsed && Array.isArray(parsed.items)) return parsed.items;
-      } catch { /* corrupted, fall through */ }
-    }
-  }
-
-  const refreshSuffix = refresh ? '?refresh=1' : '';
-  let items: Entity[] = [];
-
-  switch (type) {
-    case 'rabbi': {
-      const data = await selfFetchJson(c, `/api/daf-context/${tractate}/${page}${refreshSuffix}`) as { rabbis?: DafContextRabbiShape[] };
-      const rabbis = data.rabbis ?? [];
-      items = rabbis.map((r, i) => ({
-        id: makeRabbiId(r.slug, i),
-        type: 'rabbi',
-        anchor: { quote: r.nameHe ?? r.name },
-        label: r.name,
-        fields: {
-          slug: r.slug,
-          name: r.name,
-          nameHe: r.nameHe,
-          generation: r.generation,
-          region: r.region,
-          places: r.places,
-          moved: r.moved,
-          bio: r.bio,
-          image: r.image,
-          wiki: r.wiki,
-        },
-      }));
-      break;
-    }
-    case 'argument': {
-      const data = await selfFetchJson(c, `/api/analyze/${tractate}/${page}?skeleton_only=1${refresh ? '&refresh=1' : ''}`) as { sections?: ArgumentSectionShape[]; summary?: string };
-      const sections = data.sections ?? [];
-      items = sections.map((s, i) => ({
-        id: makeIndexId('argument', i),
-        type: 'argument',
-        anchor: rangeAnchor(s.startSegIdx, s.endSegIdx, s.excerpt),
-        label: s.title,
-        fields: {
-          title: s.title,
-          summary: s.summary,
-          excerpt: s.excerpt,
-          startSegIdx: s.startSegIdx,
-          endSegIdx: s.endSegIdx,
-          rabbiNames: s.rabbiNames ?? [],
-        },
-      }));
-      break;
-    }
-    case 'halacha': {
-      const data = await selfFetchJson(c, `/api/halacha/${tractate}/${page}${refreshSuffix}`) as { topics?: HalachaTopicShape[] };
-      const topics = data.topics ?? [];
-      items = topics.map((t, i) => ({
-        id: makeIndexId('halacha', i),
-        type: 'halacha',
-        anchor: rangeAnchor(t.startSegIdx, t.endSegIdx, t.excerpt),
-        label: t.topic,
-        fields: {
-          topic: t.topic,
-          topicHe: t.topicHe,
-          excerpt: t.excerpt,
-          startSegIdx: t.startSegIdx,
-          endSegIdx: t.endSegIdx,
-          rulings: t.rulings,
-        },
-      }));
-      break;
-    }
-    case 'aggadata': {
-      const data = await selfFetchJson(c, `/api/aggadata/${tractate}/${page}${refreshSuffix}`) as { stories?: AggadataStoryShape[] };
-      const stories = data.stories ?? [];
-      items = stories.map((s, i) => ({
-        id: makeIndexId('aggadata', i),
-        type: 'aggadata',
-        anchor: rangeAnchor(s.startSegIdx, s.endSegIdx, s.excerpt),
-        label: s.title,
-        fields: {
-          title: s.title,
-          titleHe: s.titleHe,
-          summary: s.summary,
-          excerpt: s.excerpt,
-          endExcerpt: s.endExcerpt,
-          startSegIdx: s.startSegIdx,
-          endSegIdx: s.endSegIdx,
-          theme: s.theme,
-        },
-      }));
-      break;
-    }
-    case 'pesukim': {
-      const data = await selfFetchJson(c, `/api/pesukim/${tractate}/${page}${refreshSuffix}`) as { pesukim?: PesukimStoryShape[] };
-      const pesukim = data.pesukim ?? [];
-      items = pesukim.map((p, i) => ({
-        id: makeIndexId('pesukim', i),
-        type: 'pesukim',
-        anchor: rangeAnchor(p.startSegIdx, p.endSegIdx, p.excerpt),
-        label: p.verseRef,
-        fields: {
-          verseRef: p.verseRef,
-          verseHe: p.verseHe,
-          citationMarker: p.citationMarker,
-          citationStyle: p.citationStyle,
-          excerpt: p.excerpt,
-          endExcerpt: p.endExcerpt,
-          startSegIdx: p.startSegIdx,
-          endSegIdx: p.endSegIdx,
-          summary: p.summary,
-        },
-      }));
-      break;
-    }
-    case 'era': {
-      const data = await selfFetchJson(c, `/api/era-context/${tractate}/${page}${refreshSuffix}`) as { segments?: EraSegmentShape[] };
-      const segments = data.segments ?? [];
-      // Group contiguous segments with the same era classification into a
-      // single entity, so the anchor reflects "from where to where this era
-      // applies" rather than one entity per Sefaria segment.
-      items = [];
-      let cursor = 0;
-      while (cursor < segments.length) {
-        const start = segments[cursor];
-        let end = cursor;
-        while (end + 1 < segments.length && segments[end + 1].era === start.era) end++;
-        const lastSeg = segments[end];
-        items.push({
-          id: makeEraId(start.segIdx),
-          type: 'era',
-          anchor: { segmentIdx: start.segIdx, segmentRange: [start.segIdx, lastSeg.segIdx] },
-          label: `segments ${start.segIdx}–${lastSeg.segIdx}`,
-          fields: {
-            startSegIdx: start.segIdx,
-            endSegIdx: lastSeg.segIdx,
-            era: start.era,
-            source: start.source,
-            why: start.why,
-            speakers: start.speakers,
-          },
-        });
-        cursor = end + 1;
-      }
-      break;
-    }
-    case 'region': {
-      // First-pass joins skeleton.rabbiNames per section against rabbi-enriched
-      // for region/places. One entity per section so each card can carry its
-      // own enrichments and anchor to its section's segment range.
-      const data = await selfFetchJson(c, `/api/region/${tractate}/${page}${refreshSuffix}`) as RegionFirstPass & { error?: string };
-      if (data.error) break;
-      // Need section-level segment ranges from the skeleton.
-      const skel = await selfFetchJson(c, `/api/analyze/${tractate}/${page}?skeleton_only=1`) as { sections?: ArgumentSectionShape[] };
-      const skelSections = skel.sections ?? [];
-      items = data.sections.map((sec, i) => {
-        const skelSec = skelSections[i];
-        // Per-section distribution count
-        const dist = { israel: 0, bavel: 0, mixed: 0, unknown: 0 };
-        const sageSlugs: string[] = [];
-        for (const s of sec.sages) {
-          if (s.slug) sageSlugs.push(s.slug);
-          if (s.region === 'israel') dist.israel++;
-          else if (s.region === 'bavel') dist.bavel++;
-          else if (s.region === 'mixed') dist.mixed++;
-          else dist.unknown++;
-        }
-        const migratedHere = sec.sages.filter((s) => s.migrated).map((s) => ({ slug: s.slug, name: s.name, places: s.places }));
-        return {
-          id: makeIndexId('region', i),
-          type: 'region',
-          anchor: skelSec ? rangeAnchor(skelSec.startSegIdx, skelSec.endSegIdx, skelSec.excerpt) : { quote: sec.title },
-          label: sec.title,
-          fields: {
-            title: sec.title,
-            distribution: dist,
-            sages: sec.sages,
-            migrated: migratedHere,
-            sageSlugs,
-          },
-        };
-      });
-      break;
-    }
-    case 'mesorah': {
-      // First-pass walks rabbi-graph primaryTeacher chains for sages on the
-      // daf. One entity per resolved sage so each chain can carry its own
-      // enrichments. Anchor is the first segment that mentions this sage.
-      const data = await selfFetchJson(c, `/api/mesorah/${tractate}/${page}${refreshSuffix}`) as MesorahFirstPass & { error?: string };
-      if (data.error) break;
-      // Need skeleton to find the first segment for each sage's anchor.
-      const skel = await selfFetchJson(c, `/api/analyze/${tractate}/${page}?skeleton_only=1`) as { sections?: ArgumentSectionShape[] };
-      const skelSections = skel.sections ?? [];
-      const firstSegBySlug: Record<string, { segmentIdx?: number; segmentRange?: [number, number]; quote?: string }> = {};
-      for (const sec of skelSections) {
-        for (const name of sec.rabbiNames ?? []) {
-          const res = resolveRabbiByName(name);
-          if (!res) continue;
-          if (firstSegBySlug[res.slug]) continue;
-          firstSegBySlug[res.slug] = rangeAnchor(sec.startSegIdx, sec.endSegIdx, sec.excerpt);
-        }
-      }
-      items = Object.entries(data.chains).map(([slug, chain]) => ({
-        id: makeMesorahId(slug),
-        type: 'mesorah',
-        anchor: firstSegBySlug[slug] ?? { quote: slug },
-        label: chain.length > 0 ? `${slug} ← ${chain[0].canonical}${chain.length > 1 ? '…' : ''}` : `${slug} (no chain)`,
-        fields: {
-          slug,
-          chain,
-          depth: data.depth,
-        },
-      }));
-      break;
-    }
-  }
-
-  if (cache) {
-    c.executionCtx.waitUntil(cache.put(cacheKey, JSON.stringify({ items }), { expirationTtl: CACHE_TTL_S }));
-  }
-  return items;
-}
-
-async function enrichEntity(
-  c: Parameters<typeof selfFetchJson>[0] & { req: { query(k: string): string | undefined } },
-  type: EntityType,
-  tractate: string,
-  page: string,
-  entityId: string,
-  strategy: string,
-  refresh: boolean,
-): Promise<EnrichedEntity> {
-  const cache = c.env.CACHE;
-  const cacheKey = enrichCacheKey(type, tractate, page, entityId, strategy);
-  if (cache && !refresh) {
-    const hit = await cache.get(cacheKey);
-    if (hit) {
-      try {
-        const parsed = JSON.parse(hit) as EnrichedEntity;
-        if (parsed && parsed.id) return parsed;
-      } catch { /* corrupted */ }
-    }
-  }
-
-  const baseItems = await identifyEntities(c, type, tractate, page, false);
-  const baseEntity = baseItems.find((e) => e.id === entityId);
-  if (!baseEntity) throw new Error(`entity not found: ${entityId} in ${type}/${tractate}/${page}`);
-  const parsed = parseEntityId(entityId);
-  if (!parsed) throw new Error(`malformed entity id: ${entityId}`);
-
-  const enriched: EnrichedEntity = {
-    ...baseEntity,
-    enrichments: { ...(baseEntity as Partial<EnrichedEntity>).enrichments },
-  };
-  const refreshSuffix = refresh ? '&refresh=1' : '';
-
-  switch (type) {
-    case 'rabbi': {
-      if (!parsed.slug) throw new Error('rabbi enrich requires a slug-based id');
-      const data = await selfFetchJson(c, `/api/admin/enrich-rabbi/${encodeURIComponent(parsed.slug)}${refresh ? '?refresh=1' : ''}`);
-      enriched.enrichments[strategy] = data;
-      break;
-    }
-    case 'argument': {
-      if (parsed.index == null) throw new Error('argument enrich requires a section index');
-      enriched.enrichments[strategy] = await enrichArgumentSection(c, tractate, page, parsed.index, strategy);
-      break;
-    }
-    case 'halacha': {
-      const data = await selfFetchJson(c, `/api/enrich-halacha/${tractate}/${page}?strategy=${encodeURIComponent(strategy)}${refreshSuffix}`, { method: 'POST' }) as { topics?: HalachaTopicShape[] };
-      const topics = data.topics ?? [];
-      const t = topics[parsed.index ?? -1];
-      if (t) {
-        const slice: Record<string, unknown> = {};
-        if (strategy === 'modern-authorities' && t.modernAuthorities !== undefined) slice.modernAuthorities = t.modernAuthorities;
-        if (strategy === 'rishonim-condensed' && t.rishonimNotes !== undefined) slice.rishonimNotes = t.rishonimNotes;
-        if (strategy === 'sa-commentary-walk' && t.saCommentaryNotes !== undefined) slice.saCommentaryNotes = t.saCommentaryNotes;
-        enriched.enrichments[strategy] = slice;
-      } else {
-        enriched.enrichments[strategy] = null;
-      }
-      break;
-    }
-    case 'aggadata': {
-      const data = await selfFetchJson(c, `/api/enrich-aggadata/${tractate}/${page}?strategy=${encodeURIComponent(strategy)}${refreshSuffix}`, { method: 'POST' }) as { stories?: AggadataStoryShape[] };
-      const stories = data.stories ?? [];
-      const s = stories[parsed.index ?? -1];
-      if (s) {
-        const slice: Record<string, unknown> = {};
-        if (strategy === 'parallels' && s.parallels !== undefined) slice.parallels = s.parallels;
-        if (strategy === 'historical-context' && s.historicalContext !== undefined) slice.historicalContext = s.historicalContext;
-        enriched.enrichments[strategy] = slice;
-      } else {
-        enriched.enrichments[strategy] = null;
-      }
-      break;
-    }
-    case 'pesukim': {
-      const data = await selfFetchJson(c, `/api/enrich-pesukim/${tractate}/${page}?strategy=${encodeURIComponent(strategy)}${refreshSuffix}`, { method: 'POST' }) as { pesukim?: PesukimStoryShape[] };
-      const pesukim = data.pesukim ?? [];
-      const p = pesukim[parsed.index ?? -1];
-      if (p) {
-        const slice: Record<string, unknown> = {};
-        if (strategy === 'tanach-context' && p.tanachContext !== undefined) slice.tanachContext = p.tanachContext;
-        if (strategy === 'peshat' && p.peshat !== undefined) slice.peshat = p.peshat;
-        if (strategy === 'gemara-usage' && p.gemaraUsage !== undefined) slice.gemaraUsage = p.gemaraUsage;
-        if (strategy === 'exegesis' && p.exegesis !== undefined) slice.exegesis = p.exegesis;
-        if (strategy === 'synthesize' && p.synthesize !== undefined) slice.synthesize = p.synthesize;
-        enriched.enrichments[strategy] = slice;
-      } else {
-        enriched.enrichments[strategy] = null;
-      }
-      break;
-    }
-    case 'era': {
-      // Era enrichment uses /api/era-context?stage=2, which batches the LLM
-      // refinement over all low-confidence segments and caches the result.
-      // First call kicks off background work and returns 204; we GET twice
-      // (kick + read) so a single click usually populates after one round-trip.
-      const url = `/api/era-context/${tractate}/${page}?stage=2${refresh ? '&refresh=1' : ''}`;
-      const kickRes = await app.fetch(new Request(new URL(url, c.req.url).toString()), c.env, c.executionCtx);
-      let segments: EraSegmentShape[] | undefined;
-      if (kickRes.ok && kickRes.status !== 204) {
-        const data = await kickRes.json() as { segments?: EraSegmentShape[] };
-        segments = data.segments;
-      }
-      const seg = (segments ?? []).find((s) => s.segIdx === parsed.segIdx);
-      if (seg) {
-        enriched.enrichments[strategy] = { era: seg.era, source: seg.source, why: seg.why, speakers: seg.speakers };
-      } else {
-        enriched.enrichments[strategy] = { status: 'pending', note: 'stage 2 LLM refinement queued; retry shortly' };
-      }
-      break;
-    }
-    case 'region':
-    case 'mesorah':
-      // No LLM strategies remain for these types — only first-pass data
-      // surfaces them. enrichEntity treats them as no-ops.
-      enriched.enrichments[strategy] = null;
-      break;
-  }
-
-  if (cache) {
-    c.executionCtx.waitUntil(cache.put(cacheKey, JSON.stringify(enriched), { expirationTtl: CACHE_TTL_S }));
-  }
-  return enriched;
-}
-
-app.get('/api/identify/:type/:tractate/:page', async (c) => {
-  const type = c.req.param('type');
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  if (!isEntityType(type)) return c.json({ error: `unknown entity type: ${type}` }, 400);
-  const refresh = c.req.query('refresh') === '1';
-  try {
-    const items = await identifyEntities(c, type, tractate, page, refresh);
-    const cached = !refresh && c.env.CACHE ? await c.env.CACHE.get(identifyCacheKey(type, tractate, page)) : null;
-    return c.json({ items, _type: type, _cached: !!cached });
-  } catch (err) {
-    return c.json({ error: String(err).slice(0, 500) }, 500);
-  }
-});
-
-// Bulk cache lookup for the experiment page: returns every (entityId, strategy)
-// pair that already has a cached enrichment for this daf+type, so the UI can
-// render cached results immediately on load without firing one probe per
-// (entity, strategy). Pure KV reads; no AI calls.
-//
-// Two sources are merged:
-//   1. Per-entity v3 cache (`enrich:v3:{type}:{t}:{p}:{entityId}:{strategy}`)
-//      — what enrichEntity writes. Covers argument + rabbi cleanly.
-//   2. Legacy per-tractate-page caches for halacha / aggadata / pesukim
-//      (`enrich-halacha:v1:`, `aggadata-enrich:v1:`, `pesukim-enrich:v1:`)
-//      — what the corresponding enrich workflows write. We split each topic /
-//      story / pasuk into a per-entity row matching the slicing logic in
-//      enrichEntity, so the UI sees the same per-strategy data shape.
-app.get('/api/enrich-cached/:type/:tractate/:page', async (c) => {
-  const type = c.req.param('type');
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  if (!isEntityType(type)) return c.json({ error: `unknown entity type: ${type}` }, 400);
-  const cache = c.env.CACHE;
-  if (!cache) return c.json({ items: [] });
-
-  const out: Array<{ entityId: string; strategy: string; data: unknown }> = [];
-
-  // Source 1: per-entity v3 cache. entityId may contain colons (e.g. rabbi:slug),
-  // so split on the LAST colon — strategy names never contain colons.
-  const v3Prefix = `enrich:v3:${type}:${tractate}:${page}:`;
-  let cursor: string | undefined;
-  do {
-    const list = await cache.list({ prefix: v3Prefix, cursor, limit: 1000 });
-    for (const k of list.keys) {
-      const tail = k.name.slice(v3Prefix.length);
-      const idx = tail.lastIndexOf(':');
-      if (idx < 0) continue;
-      const entityId = tail.slice(0, idx);
-      const strategy = tail.slice(idx + 1);
-      const raw = await cache.get(k.name);
-      if (!raw) continue;
-      try {
-        const parsed = JSON.parse(raw) as { enrichments?: Record<string, unknown> };
-        const data = parsed?.enrichments?.[strategy] ?? parsed;
-        out.push({ entityId, strategy, data });
-      } catch { /* skip corrupted */ }
-    }
-    cursor = list.list_complete ? undefined : list.cursor;
-  } while (cursor);
-
-  // Source 2: legacy per-tractate-page caches that the workflows write.
-  // For each strategy known for this type, fetch the page-level enrichment
-  // and split it into per-entity rows. Skips strategies already present in
-  // the v3 source (per-entity cache wins).
-  const haveV3 = new Set(out.map((it) => `${it.entityId}::${it.strategy}`));
-  const pushEntity = (entityId: string, strategy: string, data: unknown) => {
-    const key = `${entityId}::${strategy}`;
-    if (haveV3.has(key)) return;
-    out.push({ entityId, strategy, data });
-  };
-
-  if (type === 'halacha') {
-    for (const strategy of STRATEGIES.halacha) {
-      const raw = await cache.get(`enrich-halacha:v1:${strategy}:${tractate}:${page}`);
-      if (!raw) continue;
-      try {
-        const parsed = JSON.parse(raw) as { topics?: Array<Record<string, unknown>> };
-        (parsed.topics ?? []).forEach((t, i) => {
-          const slice: Record<string, unknown> = {};
-          if (strategy === 'modern-authorities' && t.modernAuthorities !== undefined) slice.modernAuthorities = t.modernAuthorities;
-          if (strategy === 'rishonim-condensed' && t.rishonimNotes !== undefined) slice.rishonimNotes = t.rishonimNotes;
-          if (strategy === 'sa-commentary-walk' && t.saCommentaryNotes !== undefined) slice.saCommentaryNotes = t.saCommentaryNotes;
-          pushEntity(`halacha:${i}`, strategy, slice);
-        });
-      } catch { /* skip */ }
-    }
-  } else if (type === 'aggadata') {
-    for (const strategy of STRATEGIES.aggadata) {
-      const raw = await cache.get(`aggadata-enrich:v1:${strategy}:${tractate}:${page}`);
-      if (!raw) continue;
-      try {
-        const parsed = JSON.parse(raw) as { stories?: Array<Record<string, unknown>> };
-        (parsed.stories ?? []).forEach((s, i) => {
-          const slice: Record<string, unknown> = {};
-          if (strategy === 'parallels' && s.parallels !== undefined) slice.parallels = s.parallels;
-          if (strategy === 'historical-context' && s.historicalContext !== undefined) slice.historicalContext = s.historicalContext;
-          pushEntity(`aggadata:${i}`, strategy, slice);
-        });
-      } catch { /* skip */ }
-    }
-  } else if (type === 'pesukim') {
-    for (const strategy of STRATEGIES.pesukim) {
-      const raw = await cache.get(`pesukim-enrich:v1:${strategy}:${tractate}:${page}`);
-      if (!raw) continue;
-      try {
-        const parsed = JSON.parse(raw) as { pesukim?: Array<Record<string, unknown>> };
-        (parsed.pesukim ?? []).forEach((p, i) => {
-          const slice: Record<string, unknown> = {};
-          if (strategy === 'tanach-context' && p.tanachContext !== undefined) slice.tanachContext = p.tanachContext;
-          if (strategy === 'peshat' && p.peshat !== undefined) slice.peshat = p.peshat;
-          if (strategy === 'gemara-usage' && p.gemaraUsage !== undefined) slice.gemaraUsage = p.gemaraUsage;
-          if (strategy === 'exegesis' && p.exegesis !== undefined) slice.exegesis = p.exegesis;
-          if (strategy === 'synthesize' && p.synthesize !== undefined) slice.synthesize = p.synthesize;
-          pushEntity(`pesukim:${i}`, strategy, slice);
-        });
-      } catch { /* skip */ }
-    }
-  }
-
-  return c.json({ items: out, count: out.length });
-});
-
-app.post('/api/enrich/:type/:tractate/:page/:entityId', async (c) => {
-  const type = c.req.param('type');
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  const entityId = c.req.param('entityId');
-  if (!isEntityType(type)) return c.json({ error: `unknown entity type: ${type}` }, 400);
-  const strategy = c.req.query('strategy') ?? DEFAULT_STRATEGY[type];
-  if (!isValidStrategy(type, strategy)) return c.json({ error: `unknown strategy '${strategy}' for ${type}; valid: ${STRATEGIES[type].join(', ')}` }, 400);
-  const refresh = c.req.query('refresh') === '1';
-  try {
-    const enriched = await enrichEntity(c, type, tractate, page, entityId, strategy, refresh);
-    return c.json(enriched);
-  } catch (err) {
-    return c.json({ error: String(err).slice(0, 500) }, 500);
-  }
-});
-
-app.post('/api/enrich/:type/:tractate/:page', async (c, next) => {
-  const type = c.req.param('type');
-  // If `:type` looks like a tractate name (legacy /api/enrich/:t/:p shape used
-  // by argument enrichment), let the request fall through to the next handler.
-  if (!isEntityType(type)) return next();
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  const strategy = c.req.query('strategy') ?? DEFAULT_STRATEGY[type as EntityType];
-  if (!isValidStrategy(type as EntityType, strategy)) return c.json({ error: `unknown strategy '${strategy}' for ${type}; valid: ${STRATEGIES[type as EntityType].join(', ')}` }, 400);
-  const refresh = c.req.query('refresh') === '1';
-  try {
-    const items = await identifyEntities(c, type as EntityType, tractate, page, false);
-    const concurrency = 3;
-    const out: EnrichedEntity[] = new Array(items.length);
-    let cursor = 0;
-    async function worker() {
-      while (true) {
-        const i = cursor++;
-        if (i >= items.length) return;
-        try {
-          out[i] = await enrichEntity(c, type as EntityType, tractate, page, items[i].id, strategy, refresh);
-        } catch (err) {
-          out[i] = { ...items[i], enrichments: { [strategy]: { error: String(err).slice(0, 200) } } };
-        }
-      }
-    }
-    await Promise.all(Array.from({ length: concurrency }, () => worker()));
-    return c.json({ items: out, _type: type, _strategy: strategy });
-  } catch (err) {
-    return c.json({ error: String(err).slice(0, 500) }, 500);
-  }
-});
-
-// ============================================================================
-// Admin endpoints for the halacha enrichment Workflow.
-// ============================================================================
-
-app.post('/api/admin/enrich-halacha-batch/:tractate', async (c) => {
-  const tractate = c.req.param('tractate');
-  if (!c.env.HALACHA_ENRICH) return c.json({ error: 'HALACHA_ENRICH workflow binding unavailable' }, 503);
-  const body = await c.req.json().catch(() => ({})) as {
-    dafim?: string[];
-    strategies?: Array<'modern-authorities' | 'rishonim-condensed' | 'sa-commentary-walk'>;
-    refresh?: boolean;
-  };
-  const instance = await c.env.HALACHA_ENRICH.create({
-    params: {
-      tractate,
-      dafim: body.dafim,
-      strategies: body.strategies,
-      refresh: body.refresh ?? false,
-      baseUrl: new URL(c.req.url).origin,
-    },
-  });
-  return c.json({ instanceId: instance.id, status: 'started', tractate });
-});
-
-app.get('/api/admin/enrich-halacha-batch/status/:instanceId', async (c) => {
-  const instanceId = c.req.param('instanceId');
-  if (!c.env.HALACHA_ENRICH) return c.json({ error: 'HALACHA_ENRICH workflow binding unavailable' }, 503);
-  const instance = await c.env.HALACHA_ENRICH.get(instanceId);
-  const status = await instance.status();
-  return c.json({ instanceId, ...status });
-});
 
 // Fetch a single Tanakh pasuk's full Hebrew + English text plus refs to
 // the immediately surrounding verses. Used by the sidebar Pasuk panel to
@@ -9897,78 +5285,6 @@ app.get('/api/enrich-rabbi-bio/:tractate/:page/:slug', async (c) => {
 // thing that varies is which binding gets invoked.
 // ============================================================================
 
-app.post('/api/admin/enrich-argument-batch/:tractate', async (c) => {
-  if (!c.env.ARGUMENT_ENRICH) return c.json({ error: 'ARGUMENT_ENRICH workflow binding unavailable' }, 503);
-  const tractate = c.req.param('tractate');
-  const body = await c.req.json().catch(() => ({})) as {
-    dafim?: string[]; strategies?: string[]; refresh?: boolean;
-  };
-  const instance = await c.env.ARGUMENT_ENRICH.create({
-    params: {
-      tractate,
-      dafim: body.dafim,
-      strategies: body.strategies,
-      refresh: body.refresh ?? false,
-      baseUrl: new URL(c.req.url).origin,
-    },
-  });
-  return c.json({ instanceId: instance.id, status: 'started', tractate });
-});
-
-app.get('/api/admin/enrich-argument-batch/status/:instanceId', async (c) => {
-  if (!c.env.ARGUMENT_ENRICH) return c.json({ error: 'ARGUMENT_ENRICH workflow binding unavailable' }, 503);
-  const instance = await c.env.ARGUMENT_ENRICH.get(c.req.param('instanceId'));
-  return c.json({ instanceId: c.req.param('instanceId'), ...(await instance.status()) });
-});
-
-app.post('/api/admin/enrich-aggadata-batch/:tractate', async (c) => {
-  if (!c.env.AGGADATA_ENRICH) return c.json({ error: 'AGGADATA_ENRICH workflow binding unavailable' }, 503);
-  const tractate = c.req.param('tractate');
-  const body = await c.req.json().catch(() => ({})) as {
-    dafim?: string[]; strategies?: string[]; refresh?: boolean;
-  };
-  const instance = await c.env.AGGADATA_ENRICH.create({
-    params: {
-      tractate,
-      dafim: body.dafim,
-      strategies: body.strategies,
-      refresh: body.refresh ?? false,
-      baseUrl: new URL(c.req.url).origin,
-    },
-  });
-  return c.json({ instanceId: instance.id, status: 'started', tractate });
-});
-
-app.get('/api/admin/enrich-aggadata-batch/status/:instanceId', async (c) => {
-  if (!c.env.AGGADATA_ENRICH) return c.json({ error: 'AGGADATA_ENRICH workflow binding unavailable' }, 503);
-  const instance = await c.env.AGGADATA_ENRICH.get(c.req.param('instanceId'));
-  return c.json({ instanceId: c.req.param('instanceId'), ...(await instance.status()) });
-});
-
-app.post('/api/admin/enrich-pesukim-batch/:tractate', async (c) => {
-  if (!c.env.PESUKIM_ENRICH) return c.json({ error: 'PESUKIM_ENRICH workflow binding unavailable' }, 503);
-  const tractate = c.req.param('tractate');
-  const body = await c.req.json().catch(() => ({})) as {
-    dafim?: string[]; strategies?: string[]; refresh?: boolean;
-  };
-  const instance = await c.env.PESUKIM_ENRICH.create({
-    params: {
-      tractate,
-      dafim: body.dafim,
-      strategies: body.strategies,
-      refresh: body.refresh ?? false,
-      baseUrl: new URL(c.req.url).origin,
-    },
-  });
-  return c.json({ instanceId: instance.id, status: 'started', tractate });
-});
-
-app.get('/api/admin/enrich-pesukim-batch/status/:instanceId', async (c) => {
-  if (!c.env.PESUKIM_ENRICH) return c.json({ error: 'PESUKIM_ENRICH workflow binding unavailable' }, 503);
-  const instance = await c.env.PESUKIM_ENRICH.get(c.req.param('instanceId'));
-  return c.json({ instanceId: c.req.param('instanceId'), ...(await instance.status()) });
-});
-
 const YOMI_WARM_CRON = '0 3 * * *';
 
 export default {
@@ -9976,16 +5292,9 @@ export default {
   scheduled: (controller: ScheduledController, env: Bindings, ctx: ExecutionContext) => {
     const wrapped = wrapEnv(env);
     if (controller.cron === YOMI_WARM_CRON) {
-      ctx.waitUntil(runYomiWarmCron());
+      ctx.waitUntil(runYomiWarmCron(wrapped));
     } else {
       ctx.waitUntil(runWarmCron(wrapped));
     }
   },
 } satisfies ExportedHandler<Bindings>;
-
-// Export the Workflow classes so the Workers runtime can instantiate them
-// for the [[workflows]] bindings declared in wrangler.toml.
-export { HalachaEnrichWorkflow } from './halacha-enrich-workflow';
-export { ArgumentEnrichWorkflow } from './argument-enrich-workflow';
-export { AggadataEnrichWorkflow } from './aggadata-enrich-workflow';
-export { PesukimEnrichWorkflow } from './pesukim-enrich-workflow';

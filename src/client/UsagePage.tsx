@@ -17,6 +17,8 @@ interface RecentError {
   page?: string;
   error_kind?: string;
   model?: string;
+  mark_id?: string;
+  enrichment_id?: string;
 }
 
 interface BugReport {
@@ -31,6 +33,8 @@ interface BugReport {
 interface UsagePayload {
   telemetry: {
     perEndpoint: Record<string, PerEndpoint>;
+    perMark: Record<string, PerEndpoint>;
+    perEnrichment: Record<string, PerEndpoint>;
     recentErrors: RecentError[];
     totalCount: number;
   };
@@ -41,16 +45,36 @@ interface CacheBucket {
   count: number;
   percent: number;
 }
+
+interface MarkRow {
+  id: string;
+  label: string;
+  source: 'code' | 'kv';
+  cache_version: string;
+  count: number;
+  percent: number;
+}
+
+interface EnrichmentRow {
+  id: string;
+  label: string;
+  target_mark: string;
+  scope: 'global' | 'local';
+  source: 'code' | 'kv';
+  cache_version: string;
+  count: number;
+}
+
 interface CacheStats {
   generatedAt: string;
   total: number;
-  caches: {
+  source: {
     hebrewbooks: CacheBucket;
-    arguments: CacheBucket;
-    halacha: CacheBucket;
-    aggadata: CacheBucket;
-    dafContext: CacheBucket & { stage2Count: number };
+    gemara: CacheBucket;
+    commentaries: CacheBucket;
   };
+  marks: MarkRow[];
+  enrichments: EnrichmentRow[];
   rabbis: {
     totalRabbis: number;
     withBio: number;
@@ -159,15 +183,30 @@ function CacheRow(props: CacheRowProps): JSX.Element {
   );
 }
 
+interface SectionHeadingProps {
+  title: string;
+  hint?: string;
+}
+function SectionHeading(props: SectionHeadingProps): JSX.Element {
+  return (
+    <h2 style={{ 'font-size': '0.95rem', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', color: '#999', 'margin-bottom': '0.5rem' }}>
+      {props.title}
+      <Show when={props.hint}>
+        <span style={{ 'font-size': '0.75rem', color: '#888', 'margin-left': '0.5rem', 'text-transform': 'none', 'letter-spacing': 'normal' }}>
+          {props.hint}
+        </span>
+      </Show>
+    </h2>
+  );
+}
+
 function CacheStatusSection(props: { stats: CacheStats }): JSX.Element {
-  const c = () => props.stats.caches;
+  const s = () => props.stats.source;
   const r = () => props.stats.rabbis;
   const total = () => props.stats.total;
   return (
     <section style={{ 'margin-bottom': '1.6rem' }}>
-      <h2 style={{ 'font-size': '0.95rem', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', color: '#999', 'margin-bottom': '0.5rem' }}>
-        Cache status
-      </h2>
+      <SectionHeading title="Source caches" hint={`per-daf — denominator ${fmtInt(total())} dafim`} />
       <table style={{ width: '100%', 'border-collapse': 'collapse', 'font-size': '0.85rem' }}>
         <thead>
           <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
@@ -178,36 +217,87 @@ function CacheStatusSection(props: { stats: CacheStats }): JSX.Element {
           </tr>
         </thead>
         <tbody>
-          <CacheRow label="HebrewBooks text" count={c().hebrewbooks.count} total={total()} percent={c().hebrewbooks.percent} />
-          <CacheRow label="Arguments (AI)" count={c().arguments.count} total={total()} percent={c().arguments.percent} />
-          <CacheRow label="Halacha (AI)" count={c().halacha.count} total={total()} percent={c().halacha.percent} />
-          <CacheRow label="Aggadata (AI)" count={c().aggadata.count} total={total()} percent={c().aggadata.percent} />
-          <CacheRow
-            label="Rabbi timeline + geography"
-            count={c().dafContext.count}
-            total={total()}
-            percent={c().dafContext.percent}
-            extra={`stage2: ${fmtInt(c().dafContext.stage2Count)}`}
-          />
-          <CacheRow
-            label="Rabbi relationship tree"
-            count={props.stats.hierarchy.processedNodes}
-            total={Math.max(1, props.stats.hierarchy.totalNodes)}
-            percent={props.stats.hierarchy.totalNodes
-              ? Math.round((props.stats.hierarchy.processedNodes / props.stats.hierarchy.totalNodes) * 1000) / 10
-              : 0}
-            extra={`${fmtInt(props.stats.hierarchy.totalEdges)} edges · ${fmtInt(props.stats.hierarchy.nodesWithEdges)} w/ edges`}
-          />
+          <CacheRow label="HebrewBooks (hb:v1)" count={s().hebrewbooks.count} total={total()} percent={s().hebrewbooks.percent} />
+          <CacheRow label="Sefaria gemara slice (ctx:gemara:v1)" count={s().gemara.count} total={total()} percent={s().gemara.percent} />
+          <CacheRow label="Sefaria commentaries (ctx:commentaries:v1)" count={s().commentaries.count} total={total()} percent={s().commentaries.percent} />
         </tbody>
       </table>
 
-      <div style={{ 'margin-top': '0.9rem', 'font-size': '0.85rem', color: '#333' }}>
-        <div style={{ color: '#999', 'font-size': '0.75rem', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', 'margin-bottom': '0.4rem' }}>
-          Rabbi dataset coverage
-          <span style={{ color: '#888', 'margin-left': '0.3rem', 'text-transform': 'none', 'letter-spacing': 'normal' }}>
-            ({fmtInt(r().totalRabbis)} total)
-          </span>
-        </div>
+      <div style={{ 'margin-top': '1.2rem' }}>
+        <SectionHeading title="Marks" hint="per-daf — one cache entry per (mark, daf)" />
+        <Show when={props.stats.marks.length > 0} fallback={<p style={{ color: '#888' }}>No marks registered.</p>}>
+          <table style={{ width: '100%', 'border-collapse': 'collapse', 'font-size': '0.85rem' }}>
+            <thead>
+              <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
+                <th style={{ padding: '0.4rem 0.5rem' }}>Mark</th>
+                <th style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>Cached</th>
+                <th style={{ padding: '0.4rem 0.5rem' }} />
+                <th style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>%</th>
+              </tr>
+            </thead>
+            <tbody>
+              <For each={props.stats.marks}>
+                {(m) => (
+                  <CacheRow
+                    label={`${m.label} (${m.id})`}
+                    extra={`v${m.cache_version} · ${m.source}`}
+                    count={m.count}
+                    total={total()}
+                    percent={m.percent}
+                  />
+                )}
+              </For>
+            </tbody>
+          </table>
+        </Show>
+      </div>
+
+      <div style={{ 'margin-top': '1.2rem' }}>
+        <SectionHeading title="Enrichments" hint="per-instance — denominator depends on mark instance count, so % is omitted" />
+        <Show when={props.stats.enrichments.length > 0} fallback={<p style={{ color: '#888' }}>No enrichments registered.</p>}>
+          <table style={{ width: '100%', 'border-collapse': 'collapse', 'font-size': '0.85rem' }}>
+            <thead>
+              <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
+                <th style={{ padding: '0.4rem 0.5rem' }}>Enrichment</th>
+                <th style={{ padding: '0.4rem 0.5rem' }}>Mark</th>
+                <th style={{ padding: '0.4rem 0.5rem' }}>Scope</th>
+                <th style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>Cached</th>
+              </tr>
+            </thead>
+            <tbody>
+              <For each={props.stats.enrichments}>
+                {(e) => (
+                  <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+                    <td style={{ padding: '0.4rem 0.5rem' }}>
+                      {e.label}
+                      <span style={{ color: '#888', 'font-size': '0.75rem', 'margin-left': '0.4rem' }}>
+                        ({e.id} · v{e.cache_version} · {e.source})
+                      </span>
+                    </td>
+                    <td style={{ padding: '0.4rem 0.5rem', 'font-family': 'monospace', color: '#555' }}>{e.target_mark}</td>
+                    <td style={{ padding: '0.4rem 0.5rem' }}>
+                      <span style={{
+                        'font-size': '0.7rem', 'text-transform': 'uppercase', 'letter-spacing': '0.05em',
+                        padding: '0.1rem 0.4rem', 'border-radius': '3px',
+                        background: e.scope === 'global' ? '#dbeafe' : '#fef3c7',
+                        color: e.scope === 'global' ? '#1e40af' : '#92400e',
+                      }}>
+                        {e.scope}
+                      </span>
+                    </td>
+                    <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>
+                      {fmtInt(e.count)}
+                    </td>
+                  </tr>
+                )}
+              </For>
+            </tbody>
+          </table>
+        </Show>
+      </div>
+
+      <div style={{ 'margin-top': '1.2rem', 'font-size': '0.85rem', color: '#333' }}>
+        <SectionHeading title="Rabbi dataset coverage" hint={`bundled JSON — ${fmtInt(r().totalRabbis)} total`} />
         <table style={{ width: '100%', 'border-collapse': 'collapse', 'font-size': '0.85rem' }}>
           <tbody>
             <RabbiCoverageRow label="Bio (any source)" filled={r().withBio} total={r().totalRabbis} />
@@ -308,6 +398,50 @@ function RabbiCoverageRow(props: RabbiCoverageRowProps): JSX.Element {
   );
 }
 
+function LatencyTable(props: { title: string; hint?: string; rows: Array<[string, PerEndpoint]> }): JSX.Element {
+  return (
+    <section style={{ 'margin-bottom': '1.6rem' }}>
+      <SectionHeading title={props.title} hint={props.hint} />
+      <Show when={props.rows.length > 0} fallback={<p style={{ color: '#888' }}>No data yet.</p>}>
+        <table style={{ width: '100%', 'border-collapse': 'collapse', 'font-size': '0.85rem' }}>
+          <thead>
+            <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
+              <th style={{ padding: '0.4rem 0.5rem' }}>Name</th>
+              <th style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>Calls</th>
+              <th style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>Cache hit%</th>
+              <th style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>p50</th>
+              <th style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>p95</th>
+              <th style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>Errors</th>
+              <th style={{ padding: '0.4rem 0.5rem' }}>Kinds</th>
+            </tr>
+          </thead>
+          <tbody>
+            <For each={props.rows}>
+              {([name, row]) => (
+                <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+                  <td style={{ padding: '0.4rem 0.5rem', 'font-family': 'monospace' }}>{name}</td>
+                  <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>{row.count}</td>
+                  <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>
+                    {row.count ? `${Math.round(row.cacheHitRate * 100)}%` : '—'}
+                  </td>
+                  <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>{row.count ? fmtMs(row.p50Ms) : '—'}</td>
+                  <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>{row.count ? fmtMs(row.p95Ms) : '—'}</td>
+                  <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', color: row.errorCount ? '#c33' : '#888' }}>
+                    {row.errorCount}
+                  </td>
+                  <td style={{ padding: '0.4rem 0.5rem', 'font-size': '0.75rem', color: '#888' }}>
+                    {Object.entries(row.errorsByKind).map(([k, n]) => `${k}:${n}`).join(', ')}
+                  </td>
+                </tr>
+              )}
+            </For>
+          </tbody>
+        </table>
+      </Show>
+    </section>
+  );
+}
+
 export function UsagePage(): JSX.Element {
   const [data, { refetch }] = createResource(fetchUsage);
   const [cacheStats, { refetch: refetchCache }] = createResource(fetchCacheStats);
@@ -356,57 +490,38 @@ export function UsagePage(): JSX.Element {
       <Show when={data()}>
         {(d) => (
           <>
-            <section style={{ 'margin-bottom': '1.6rem' }}>
-              <h2 style={{ 'font-size': '0.95rem', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', color: '#999', 'margin-bottom': '0.5rem' }}>
-                Latency per endpoint ({d().telemetry.totalCount} recent calls)
-              </h2>
-              <table style={{ width: '100%', 'border-collapse': 'collapse', 'font-size': '0.85rem' }}>
-                <thead>
-                  <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
-                    <th style={{ padding: '0.4rem 0.5rem' }}>Endpoint</th>
-                    <th style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>Calls</th>
-                    <th style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>Cache hit%</th>
-                    <th style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>p50</th>
-                    <th style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>p95</th>
-                    <th style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>Errors</th>
-                    <th style={{ padding: '0.4rem 0.5rem' }}>Kinds</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <For each={Object.entries(d().telemetry.perEndpoint)}>
-                    {([name, row]) => (
-                      <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
-                        <td style={{ padding: '0.4rem 0.5rem', 'font-family': 'monospace' }}>{name}</td>
-                        <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>{row.count}</td>
-                        <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>
-                          {row.count ? `${Math.round(row.cacheHitRate * 100)}%` : '—'}
-                        </td>
-                        <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>{row.count ? fmtMs(row.p50Ms) : '—'}</td>
-                        <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>{row.count ? fmtMs(row.p95Ms) : '—'}</td>
-                        <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', color: row.errorCount ? '#c33' : '#888' }}>
-                          {row.errorCount}
-                        </td>
-                        <td style={{ padding: '0.4rem 0.5rem', 'font-size': '0.75rem', color: '#888' }}>
-                          {Object.entries(row.errorsByKind).map(([k, n]) => `${k}:${n}`).join(', ')}
-                        </td>
-                      </tr>
-                    )}
-                  </For>
-                </tbody>
-              </table>
-            </section>
+            <LatencyTable
+              title={`Latency by endpoint (${d().telemetry.totalCount} recent calls)`}
+              rows={Object.entries(d().telemetry.perEndpoint).sort(([a], [b]) => a.localeCompare(b))}
+            />
+
+            <LatencyTable
+              title="Studio runs by mark"
+              hint="rolled up across /api/studio/run with mark_id"
+              rows={Object.entries(d().telemetry.perMark).sort(([a], [b]) => a.localeCompare(b))}
+            />
+
+            <LatencyTable
+              title="Studio runs by enrichment"
+              hint="rolled up across /api/studio/run with enrichment_id"
+              rows={Object.entries(d().telemetry.perEnrichment).sort(([a], [b]) => a.localeCompare(b))}
+            />
 
             <section style={{ 'margin-bottom': '1.6rem' }}>
-              <h2 style={{ 'font-size': '0.95rem', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', color: '#999', 'margin-bottom': '0.5rem' }}>
-                Recent errors
-              </h2>
+              <SectionHeading title="Recent errors" />
               <Show when={d().telemetry.recentErrors.length > 0} fallback={<p style={{ color: '#888' }}>None.</p>}>
                 <ul style={{ 'list-style': 'none', padding: 0, margin: 0, 'font-size': '0.8rem' }}>
                   <For each={d().telemetry.recentErrors}>
                     {(e) => (
-                      <li style={{ padding: '0.3rem 0', 'border-bottom': '1px solid #f4f4f4', display: 'flex', gap: '0.6rem' }}>
+                      <li style={{ padding: '0.3rem 0', 'border-bottom': '1px solid #f4f4f4', display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap' }}>
                         <span style={{ color: '#999', 'white-space': 'nowrap' }}>{fmtTime(e.ts)}</span>
                         <span style={{ 'font-family': 'monospace' }}>{e.endpoint}</span>
+                        <Show when={e.mark_id}>
+                          <span style={{ 'font-family': 'monospace', color: '#555' }}>mark={e.mark_id}</span>
+                        </Show>
+                        <Show when={e.enrichment_id}>
+                          <span style={{ 'font-family': 'monospace', color: '#555' }}>enrich={e.enrichment_id}</span>
+                        </Show>
                         <Show when={e.tractate || e.page}>
                           <span style={{ color: '#666' }}>{e.tractate} {e.page}</span>
                         </Show>
@@ -422,9 +537,7 @@ export function UsagePage(): JSX.Element {
             </section>
 
             <section>
-              <h2 style={{ 'font-size': '0.95rem', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', color: '#999', 'margin-bottom': '0.5rem' }}>
-                Bug reports ({d().reports.length})
-              </h2>
+              <SectionHeading title={`Bug reports (${d().reports.length})`} />
               <Show when={d().reports.length > 0} fallback={<p style={{ color: '#888' }}>Inbox empty.</p>}>
                 <ul style={{ 'list-style': 'none', padding: 0, margin: 0 }}>
                   <For each={d().reports}>

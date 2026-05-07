@@ -1,6 +1,17 @@
 /**
- * Aggregate cache-fullness numbers for each KV-prefix we care about, plus
+ * Aggregate cache-fullness numbers for the registry-driven pipeline plus
  * rabbi-bio coverage derived from the bundled rabbi-places.json.
+ *
+ * Three cache families are reported:
+ *   1. source — per-daf source slices (HebrewBooks, Sefaria gemara,
+ *      Sefaria commentaries). Denominator is the total daf count.
+ *   2. marks  — one row per registered mark (CODE_MARKS + KV-defined),
+ *      keyed `mark:<id>:<cache_version>:<daf>`. Denominator is the total
+ *      daf count, since marks are computed once per daf.
+ *   3. enrichments — one row per registered enrichment, keyed
+ *      `enrich:<id>:<cache_version>:<instance>[:<daf>]`. Denominator is
+ *      ill-defined (instance count varies per mark per daf), so we surface
+ *      raw count only.
  *
  * Reads are expensive (each prefix is paginated via kv.list at 1000 keys
  * per page), so callers should memoize the result. We stash the latest
@@ -12,23 +23,25 @@ import rabbiHierarchyData from '../lib/data/rabbi-hierarchy.json';
 import rabbiFamilyData from '../lib/data/rabbi-family.json';
 import rabbiOrientationData from '../lib/data/rabbi-orientation.json';
 import { getWarmTotal } from './warm-cron';
+import { CODE_MARKS, CODE_ENRICHMENTS } from './code-marks';
+import { listMarks, listEnrichments } from './studio-registry';
 
-// v3: rabbis block dropped withImage, gained withSefariaBio / withFamily
-// / withOrientation. Old v2 cached payloads would leave the new fields
-// undefined and still surface the deprecated withImage.
-export const CACHE_STATS_KEY = 'cache-stats:v3';
+// v4: dropped the legacy analyze/halacha/aggadata/dafContext buckets and
+// replaced them with registry-driven mark/enrichment rows. Old v3 payloads
+// reference cache prefixes that no part of the worker writes anymore.
+export const CACHE_STATS_KEY = 'cache-stats:v4';
 const FRESH_MS = 60_000;
 
 export interface CacheStats {
   generatedAt: string;
   total: number;
-  caches: {
+  source: {
     hebrewbooks: CacheBucket;
-    arguments: CacheBucket;
-    halacha: CacheBucket;
-    aggadata: CacheBucket;
-    dafContext: CacheBucket & { stage2Count: number };
+    gemara: CacheBucket;
+    commentaries: CacheBucket;
   };
+  marks: MarkCacheRow[];
+  enrichments: EnrichmentCacheRow[];
   rabbis: {
     totalRabbis: number;
     withBio: number;                      // any bio text
@@ -54,6 +67,25 @@ export interface CacheStats {
 interface CacheBucket {
   count: number;
   percent: number;
+}
+
+export interface MarkCacheRow {
+  id: string;
+  label: string;
+  source: 'code' | 'kv';
+  cache_version: string;
+  count: number;
+  percent: number;
+}
+
+export interface EnrichmentCacheRow {
+  id: string;
+  label: string;
+  target_mark: string;
+  scope: 'global' | 'local';
+  source: 'code' | 'kv';
+  cache_version: string;
+  count: number;
 }
 
 interface RabbisFile {
@@ -92,11 +124,7 @@ interface HierarchyFile {
 }
 const HIERARCHY = rabbiHierarchyData as unknown as HierarchyFile;
 
-async function countPrefix(
-  cache: KVNamespace,
-  prefix: string,
-  suffixFilter?: (name: string) => boolean,
-): Promise<number> {
+async function countPrefix(cache: KVNamespace, prefix: string): Promise<number> {
   let cursor: string | undefined = undefined;
   let count = 0;
   for (;;) {
@@ -105,9 +133,7 @@ async function countPrefix(
       list_complete: boolean;
       cursor?: string;
     };
-    for (const k of res.keys) {
-      if (!suffixFilter || suffixFilter(k.name)) count++;
-    }
+    count += res.keys.length;
     if (res.list_complete) break;
     cursor = res.cursor;
     if (!cursor) break;
@@ -120,17 +146,63 @@ function pct(count: number, total: number): number {
   return Math.round((count / total) * 1000) / 10;
 }
 
+/** Merge code-defined marks/enrichments with KV-defined ones. KV wins on id
+ *  collision. Mirrors the precedence used by /api/studio/run. */
+async function mergedMarks(cache: KVNamespace): Promise<Array<{ id: string; label: string; source: 'code' | 'kv'; cache_version: string }>> {
+  const kv = await listMarks({ CACHE: cache });
+  const byId = new Map<string, { id: string; label: string; source: 'code' | 'kv'; cache_version: string }>();
+  for (const m of CODE_MARKS) byId.set(m.id, { id: m.id, label: m.label, source: 'code', cache_version: m.cache_version });
+  for (const m of kv) byId.set(m.id, { id: m.id, label: m.label, source: 'kv', cache_version: m.cache_version });
+  return [...byId.values()].sort((a, b) => a.id.localeCompare(b.id));
+}
+
+async function mergedEnrichments(cache: KVNamespace): Promise<Array<{
+  id: string; label: string; target_mark: string; scope: 'global' | 'local';
+  source: 'code' | 'kv'; cache_version: string;
+}>> {
+  const kv = await listEnrichments({ CACHE: cache });
+  const byId = new Map<string, { id: string; label: string; target_mark: string; scope: 'global' | 'local'; source: 'code' | 'kv'; cache_version: string }>();
+  for (const e of CODE_ENRICHMENTS) byId.set(e.id, {
+    id: e.id, label: e.label, target_mark: e.target_mark, scope: e.scope,
+    source: 'code', cache_version: e.cache_version,
+  });
+  // KV registry stores `mark` (singular) where code uses `target_mark`; map
+  // both into the same shape so the row is consistent regardless of source.
+  for (const e of kv) byId.set(e.id, {
+    id: e.id, label: e.label, target_mark: e.mark, scope: e.scope,
+    source: 'kv', cache_version: e.cache_version,
+  });
+  return [...byId.values()].sort((a, b) => a.id.localeCompare(b.id));
+}
+
 export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats> {
   const total = getWarmTotal();
 
-  const [hbCount, argCount, halCount, aggCount, dcTotal, dcStage2] = await Promise.all([
+  const [hbCount, gemaraCount, commentariesCount] = await Promise.all([
     countPrefix(cache, 'hb:v1:'),
-    countPrefix(cache, 'analyze:v5:'),
-    countPrefix(cache, 'halacha:v5:'),
-    countPrefix(cache, 'aggadata:v1:'),
-    countPrefix(cache, 'daf-context:v5:', (n) => !n.endsWith(':stage2')),
-    countPrefix(cache, 'daf-context:v5:', (n) => n.endsWith(':stage2')),
+    countPrefix(cache, 'ctx:gemara:v1:'),
+    countPrefix(cache, 'ctx:commentaries:v1:'),
   ]);
+
+  const markDefs = await mergedMarks(cache);
+  const enrichDefs = await mergedEnrichments(cache);
+
+  const markCounts = await Promise.all(
+    markDefs.map((m) => countPrefix(cache, `mark:${m.id}:${m.cache_version}:`)),
+  );
+  const enrichCounts = await Promise.all(
+    enrichDefs.map((e) => countPrefix(cache, `enrich:${e.id}:${e.cache_version}:`)),
+  );
+
+  const marks: MarkCacheRow[] = markDefs.map((m, i) => ({
+    id: m.id, label: m.label, source: m.source, cache_version: m.cache_version,
+    count: markCounts[i], percent: pct(markCounts[i], total),
+  }));
+
+  const enrichments: EnrichmentCacheRow[] = enrichDefs.map((e, i) => ({
+    id: e.id, label: e.label, target_mark: e.target_mark, scope: e.scope,
+    source: e.source, cache_version: e.cache_version, count: enrichCounts[i],
+  }));
 
   let totalRabbis = 0;
   let withBio = 0;
@@ -179,13 +251,13 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
   return {
     generatedAt: new Date().toISOString(),
     total,
-    caches: {
+    source: {
       hebrewbooks: { count: hbCount, percent: pct(hbCount, total) },
-      arguments: { count: argCount, percent: pct(argCount, total) },
-      halacha: { count: halCount, percent: pct(halCount, total) },
-      aggadata: { count: aggCount, percent: pct(aggCount, total) },
-      dafContext: { count: dcTotal, percent: pct(dcTotal, total), stage2Count: dcStage2 },
+      gemara: { count: gemaraCount, percent: pct(gemaraCount, total) },
+      commentaries: { count: commentariesCount, percent: pct(commentariesCount, total) },
     },
+    marks,
+    enrichments,
     rabbis: {
       totalRabbis, withBio, withSefariaBio, withWiki,
       withGeneration, withRegion, withPlaces,
