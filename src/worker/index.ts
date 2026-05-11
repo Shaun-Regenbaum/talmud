@@ -14,6 +14,7 @@ import {
   getHalachaRefsCached,
   getSaCommentaryCached,
   getDafTopicsCached,
+  getMishnaBundleCached,
 } from './source-cache';
 import { runWarmCron, readWarmCursor, warmProgressProcessed, getWarmTotal, type EmailBinding } from './warm-cron';
 import {
@@ -516,6 +517,38 @@ function gemaraSliceToVars(s: GemaraSlice): Record<string, unknown> {
   };
 }
 
+/**
+ * Filter the daf's mishna bundle to those relevant for an enrichment with
+ * the given markInput. Rule: include any mishna whose anchor START segment
+ * is at-or-before the mark's END segment. This covers the "current" mishna
+ * being discussed and any earlier-on-daf mishnayot that the argument may
+ * still be elaborating on, while excluding mishnayot the gemara hasn't
+ * reached yet. If markInput has no endSegIdx (e.g. daf-level aggregate),
+ * include everything.
+ */
+function selectMishnaForMark(
+  bundle: Awaited<ReturnType<typeof getMishnaBundleCached>>,
+  markInput: unknown,
+): typeof bundle {
+  if (!bundle.length) return bundle;
+  const m = (markInput && typeof markInput === 'object') ? markInput as Record<string, unknown> : null;
+  const endSeg = m && typeof m.endSegIdx === 'number' ? m.endSegIdx
+    : m && typeof m.startSegIdx === 'number' ? m.startSegIdx
+    : null;
+  if (endSeg === null) return bundle;
+  return bundle.filter(x => x.anchorStartSeg <= endSeg);
+}
+
+function mishnaBundleToString(bundle: Awaited<ReturnType<typeof getMishnaBundleCached>>): string {
+  if (!bundle.length) return '(no mishnah anchored to this daf)';
+  return bundle.map(m => {
+    const range = m.anchorStartSeg === m.anchorEndSeg
+      ? `segment ${m.anchorStartSeg}`
+      : `segments ${m.anchorStartSeg}-${m.anchorEndSeg}`;
+    return `[${m.ref}] (anchors gemara ${range})\nHE: ${m.hebrew}\nEN: ${m.english}`.trim();
+  }).join('\n\n---\n\n');
+}
+
 function commentariesSliceToString(s: CommentariesSlice): string {
   const names = Object.keys(s.by_commentator).sort();
   return names.map((n) => {
@@ -669,6 +702,12 @@ async function resolveDependencies(
       out.vars.commentaries = commentariesSliceToString(slice);
       continue;
     }
+    if (dep === 'mishna') {
+      const bundle = await getMishnaBundleCached(rc.env.CACHE, tractate, page);
+      const filtered = selectMishnaForMark(bundle, markInput);
+      out.vars.mishna = mishnaBundleToString(filtered);
+      continue;
+    }
     if (typeof dep === 'object' && dep !== null) {
       if ('enrichment' in dep) {
         const depId = dep.enrichment;
@@ -803,7 +842,9 @@ async function runMarkOnce(
   // the verbatim Hebrew excerpt the LLM IS good at copying. Also computes
   // token (word) offsets within the matched segment so the highlight painter
   // can paint exactly the move/citation, not the whole containing segment.
-  if (parsed && def.id === 'argument-move') {
+  if (parsed && def.id === 'argument') {
+    parsed = await postProcessArgument(parsed, rc.env, tractate, page);
+  } else if (parsed && def.id === 'argument-move') {
     parsed = await postProcessArgumentMove(parsed, rc.env, tractate, page);
   } else if (parsed && def.id === 'pesukim') {
     parsed = await postProcessPesukim(parsed, rc.env, tractate, page);
@@ -830,6 +871,133 @@ async function runMarkOnce(
   };
   if (!parse_error) await writeCachedResult(rc.env, cacheKey, out);
   return out;
+}
+
+/**
+ * Post-process argument mark output: anchor section start + end to real
+ * Hebrew text by matching `excerpt` and `endExcerpt` against the segmented
+ * gemara. The LLM-provided startSegIdx/endSegIdx are treated as hints and
+ * overwritten when the excerpts match. Sections then partition the daf
+ * cleanly (each section's endSegIdx ≥ startSegIdx, and ≥ previous section's
+ * endSegIdx). Without this pass, the section's endSegIdx is whatever the
+ * LLM guessed and frequently overshoots into the next section's content —
+ * which then shows up as a too-large pink highlight and as misaligned
+ * moves (since argument-move uses these section ranges as its partition
+ * bounds).
+ */
+async function postProcessArgument(
+  parsed: unknown,
+  env: Bindings,
+  tractate: string,
+  page: string,
+): Promise<unknown> {
+  if (!parsed || typeof parsed !== 'object') return parsed;
+  const obj = parsed as { instances?: unknown };
+  if (!Array.isArray(obj.instances)) return parsed;
+
+  const slice = await getGemaraSlice(env, tractate, page, false);
+  const segs = slice.segments_he;
+  if (segs.length === 0) return parsed;
+
+  const normalize = (s: string) =>
+    s.replace(/[֑-ׇ]/g, '')
+      .replace(/[׳״"'.,:;!?\-–—()[\]{}]/g, '')
+      .replace(/[​-‏‪-‮﻿]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  const segNorms = segs.map(normalize);
+
+  const findExcerptSeg = (excerpt: string, fromIdx: number, toIdx: number): number => {
+    const ex = normalize(excerpt);
+    if (!ex) return -1;
+    const exWords = ex.split(' ').filter(Boolean);
+    const tries: string[][] = [exWords];
+    if (exWords.length > 4) tries.push(exWords.slice(0, 4));
+    if (exWords.length > 3) tries.push(exWords.slice(0, 3));
+    if (exWords.length > 2) tries.push(exWords.slice(0, 2));
+    for (const needle of tries) {
+      if (needle.length < 2) continue;
+      const needleStr = needle.join(' ');
+      for (let i = fromIdx; i <= toIdx && i < segNorms.length; i++) {
+        if (segNorms[i].includes(needleStr)) return i;
+      }
+    }
+    return -1;
+  };
+
+  type Section = {
+    startSegIdx: number;
+    endSegIdx: number;
+    fields: {
+      excerpt: string;
+      endExcerpt?: string;
+      [k: string]: unknown;
+    };
+  };
+  const instances = obj.instances as Section[];
+  const lastSeg = segs.length - 1;
+
+  // Pass 1: anchor each section's start to its excerpt. Search after the
+  // previous section's start to preserve ordering.
+  let prevStart = 0;
+  for (const inst of instances) {
+    if (!inst || typeof inst !== 'object') continue;
+    const f = inst.fields ?? ({} as Section['fields']);
+    const llmStart = typeof inst.startSegIdx === 'number' ? inst.startSegIdx : prevStart;
+    const llmEnd = typeof inst.endSegIdx === 'number' ? inst.endSegIdx : lastSeg;
+    const startEx = typeof f.excerpt === 'string' ? f.excerpt : '';
+    const m = findExcerptSeg(startEx, prevStart, lastSeg);
+    inst.startSegIdx = m >= 0 ? m : Math.max(prevStart, llmStart);
+    // Provisionally keep the LLM's end; Pass 2 will refine.
+    inst.endSegIdx = Math.max(inst.startSegIdx, llmEnd);
+    inst.fields = f;
+    prevStart = inst.startSegIdx + 1;
+  }
+
+  // Pass 2: anchor each section's end to its endExcerpt. Search range is
+  // [thisSection.startSegIdx, nextSection.startSegIdx - 1] (or lastSeg for
+  // the final section). When endExcerpt matches, that segment becomes the
+  // section's endSegIdx. When it doesn't, fall back to (nextStart - 1) or
+  // lastSeg, log a warning.
+  for (let i = 0; i < instances.length; i++) {
+    const cur = instances[i];
+    if (!cur) continue;
+    const next = instances[i + 1];
+    const upperBound = next ? Math.max(cur.startSegIdx, next.startSegIdx - 1) : lastSeg;
+    const endEx = typeof cur.fields?.endExcerpt === 'string' ? cur.fields.endExcerpt : '';
+    let endSeg = -1;
+    if (endEx) {
+      endSeg = findExcerptSeg(endEx, cur.startSegIdx, upperBound);
+    }
+    if (endSeg < 0) {
+      cur.endSegIdx = upperBound;
+      if (endEx) {
+        // eslint-disable-next-line no-console
+        console.warn(`[argument] endExcerpt "${endEx}" not found in section starting at seg ${cur.startSegIdx} (search [${cur.startSegIdx},${upperBound}])`);
+      }
+    } else {
+      cur.endSegIdx = endSeg;
+    }
+    // Sanity: ensure forward progress and no overshoot.
+    if (cur.endSegIdx < cur.startSegIdx) cur.endSegIdx = cur.startSegIdx;
+    if (cur.endSegIdx > lastSeg) cur.endSegIdx = lastSeg;
+  }
+
+  // Pass 3: ensure clean partition — next section's startSegIdx ===
+  // prev.endSegIdx + 1. The LLM is told to do this but doesn't always.
+  // If a gap exists, push the next section's start back. If overlap, push
+  // forward.
+  for (let i = 1; i < instances.length; i++) {
+    const prev = instances[i - 1];
+    const cur = instances[i];
+    if (!prev || !cur) continue;
+    if (cur.startSegIdx !== prev.endSegIdx + 1) {
+      cur.startSegIdx = prev.endSegIdx + 1;
+      if (cur.endSegIdx < cur.startSegIdx) cur.endSegIdx = cur.startSegIdx;
+    }
+  }
+
+  return obj;
 }
 
 /**
@@ -939,6 +1107,7 @@ async function postProcessArgumentMove(
       sectionEndSegIdx: number;
       moveOrder: number;
       excerpt: string;
+      endExcerpt?: string;
       tokenStart?: number;
       tokenEnd?: number;
       [k: string]: unknown;
@@ -995,13 +1164,12 @@ async function postProcessArgumentMove(
     inst.fields = f;
   }
 
-  // Pass 2: derive endSegIdx + tokenEnd from the next move's start. Within
-  // a section: if the next move is in the same segment, tokenEnd is the
-  // word right before the next move's tokenStart. If the next move is in
-  // a later segment, tokenEnd is the last word of THIS move's segment
-  // (the move spans to the end of its starting segment, not into the next
-  // — moves rarely span segment boundaries inside a section's prose, and
-  // this matches what the click-highlight should paint).
+  // Pass 2: derive endSegIdx + tokenEnd. Prefer the LLM's explicit
+  // `endExcerpt` anchor — search for it within [startSeg, sectionEnd] and
+  // use the match position + matchLen - 1 as tokenEnd. This is the only
+  // way the LAST move in a section gets a real end anchor; without it
+  // we'd bleed to the section end. Falls back to the next-move-start
+  // heuristic when endExcerpt is missing or unmatched.
   for (let i = 0; i < instances.length; i++) {
     const cur = instances[i];
     if (!cur) continue;
@@ -1011,22 +1179,57 @@ async function postProcessArgumentMove(
     if (cur.startSegIdx > sEnd) cur.startSegIdx = sEnd;
     const next = instances[i + 1];
     const nextInSameSection = next && next.fields?.sectionStartSegIdx === cur.fields?.sectionStartSegIdx;
-    if (nextInSameSection && next.startSegIdx === cur.startSegIdx) {
-      // Same-segment neighbor — bound by its tokenStart.
-      cur.endSegIdx = cur.startSegIdx;
-      const nextTok = typeof next.fields?.tokenStart === 'number' ? next.fields.tokenStart : segWords[cur.startSegIdx].length;
-      const tokStart = typeof cur.fields?.tokenStart === 'number' ? cur.fields.tokenStart : 0;
-      cur.fields.tokenEnd = Math.max(tokStart, nextTok - 1);
-    } else if (nextInSameSection) {
-      // Next move is in a later segment — span to the end of THIS segment.
-      cur.endSegIdx = Math.max(cur.startSegIdx, next.startSegIdx - 1);
-      const wordsInLast = segWords[cur.endSegIdx]?.length ?? 0;
-      cur.fields.tokenEnd = Math.max(0, wordsInLast - 1);
-    } else {
-      // Last move in section — span to section's end seg + last word.
-      cur.endSegIdx = sEnd;
-      const wordsInLast = segWords[cur.endSegIdx]?.length ?? 0;
-      cur.fields.tokenEnd = Math.max(0, wordsInLast - 1);
+    const curTokStart = typeof cur.fields?.tokenStart === 'number' ? cur.fields.tokenStart : 0;
+
+    // Try the explicit endExcerpt first.
+    const endEx = typeof cur.fields?.endExcerpt === 'string' ? cur.fields.endExcerpt : '';
+    let resolved = false;
+    if (endEx) {
+      // Search bound: don't run past the next move's start, and don't
+      // exceed the section's end. If endExcerpt matches earlier than that,
+      // even better — the LLM gave us a precise stopping point.
+      const upperSeg = nextInSameSection
+        ? Math.min(sEnd, next.startSegIdx)
+        : sEnd;
+      const m = findExcerpt(endEx, cur.startSegIdx, upperSeg);
+      if (m.seg >= 0) {
+        cur.endSegIdx = m.seg;
+        // tokenEnd = last word of the endExcerpt match.
+        const tokEnd = m.tokenStart + Math.max(1, m.matchLen) - 1;
+        const wordsInSeg = segWords[m.seg]?.length ?? 0;
+        cur.fields.tokenEnd = Math.max(0, Math.min(tokEnd, wordsInSeg - 1));
+        // Sanity: if endExcerpt resolved BEFORE startExcerpt in the same
+        // segment, the LLM gave us inverted anchors — fall through to
+        // the heuristic below.
+        if (m.seg === cur.startSegIdx && (cur.fields.tokenEnd ?? 0) < curTokStart) {
+          resolved = false;
+        } else {
+          resolved = true;
+        }
+      }
+    }
+
+    if (!resolved) {
+      // Fallback: bound by the next move's start, or the section end.
+      if (nextInSameSection && next.startSegIdx === cur.startSegIdx) {
+        cur.endSegIdx = cur.startSegIdx;
+        const nextTok = typeof next.fields?.tokenStart === 'number' ? next.fields.tokenStart : segWords[cur.startSegIdx].length;
+        cur.fields.tokenEnd = Math.max(curTokStart, nextTok - 1);
+      } else if (nextInSameSection) {
+        cur.endSegIdx = Math.max(cur.startSegIdx, next.startSegIdx - 1);
+        const wordsInLast = segWords[cur.endSegIdx]?.length ?? 0;
+        cur.fields.tokenEnd = Math.max(0, wordsInLast - 1);
+      } else {
+        // Last move in section, no endExcerpt match. Best we can do is the
+        // section end — but emit a server log so we can spot LLM failures.
+        cur.endSegIdx = sEnd;
+        const wordsInLast = segWords[cur.endSegIdx]?.length ?? 0;
+        cur.fields.tokenEnd = Math.max(0, wordsInLast - 1);
+        if (endEx) {
+          // eslint-disable-next-line no-console
+          console.warn(`[argument-move] endExcerpt "${endEx}" not found for last move in section ${sStart}-${sEnd}; defaulting to section end`);
+        }
+      }
     }
     if (cur.endSegIdx < cur.startSegIdx) cur.endSegIdx = cur.startSegIdx;
     if (cur.endSegIdx > sEnd) cur.endSegIdx = sEnd;

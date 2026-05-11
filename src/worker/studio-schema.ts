@@ -314,6 +314,7 @@ export type MarkDependency = 'gemara' | 'commentaries' | { mark: string };
 export type EnrichmentDependency =
   | 'gemara'
   | 'commentaries'
+  | 'mishna'
   | { enrichment: string }
   | { mark: string };
 

@@ -27,6 +27,7 @@ import {
   type HalachicRefBundle,
   type SaCommentaryBundle,
   type SefariaTopicBundle,
+  type MishnaBundle,
 } from '../lib/sefref';
 
 const TTL_30_DAYS = 60 * 60 * 24 * 30;
@@ -158,6 +159,28 @@ export async function getDafTopicsCached(
   if (hit) return hit;
   try {
     const data = await sefariaAPI.fetchDafTopics(`${tractate}.${page}`);
+    await writeCache(cache, key, data);
+    return data;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Cache the Mishnayot anchored to this gemara daf. One getRelated call plus
+ * one getText per mishna; daf-keyed since the mishna→gemara mapping doesn't
+ * vary by argument. 30-day TTL like other source bundles.
+ */
+export async function getMishnaBundleCached(
+  cache: KVNamespace | undefined,
+  tractate: string,
+  page: string,
+): Promise<MishnaBundle> {
+  const key = `mishna-bundle:v1:${tractate}:${page}`;
+  const hit = await readCache<MishnaBundle>(cache, key);
+  if (hit) return hit;
+  try {
+    const data = await sefariaAPI.fetchMishnaForDaf(tractate, page);
     await writeCache(cache, key, data);
     return data;
   } catch {

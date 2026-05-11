@@ -77,6 +77,20 @@ export type HalachicRefBundle = Record<string, HalachicSnippet[]>;
  *  canonical book names (Mishnah Berurah, Biur Halakhah, Magen Avraham, etc.). */
 export type SaCommentaryBundle = Record<string, CommentatorSnippet>;
 
+/** A single Mishnah anchored to a gemara daf. `anchorStartSeg` and
+ *  `anchorEndSeg` are 0-indexed against the gemara segment array (Sefaria's
+ *  ref segments are 1-indexed; we convert here so callers can compare
+ *  directly to mark `startSegIdx` / `endSegIdx`). */
+export interface MishnaSnippet {
+  ref: string;
+  anchorRef: string;
+  anchorStartSeg: number;
+  anchorEndSeg: number;
+  hebrew: string;
+  english: string;
+}
+export type MishnaBundle = MishnaSnippet[];
+
 /** Sefaria topic with cross-Shas sources. */
 export interface SefariaTopic {
   slug: string;
@@ -103,6 +117,19 @@ const RISHONIM_BOOKS: ReadonlyArray<{ label: string; book: string }> = [
   { label: 'Maharsha',            book: 'Maharsha' },
   { label: 'Chidushei Aggadot',   book: 'Chidushei Aggadot of the Maharsha' },
 ];
+
+/** Parse the trailing segment range from a Sefaria ref like
+ *  "Berakhot 2a:1-5" → { start: 1, end: 5 } or "Shabbat 20b:5" →
+ *  { start: 5, end: 5 }. Returns null if no trailing segment is present.
+ *  Numbers are kept in Sefaria's 1-indexed convention; callers convert. */
+function parseAnchorRefRange(anchorRef: string): { start: number; end: number } | null {
+  const m = anchorRef.match(/:(\d+)(?:-(\d+))?$/);
+  if (!m) return null;
+  const start = parseInt(m[1], 10);
+  const end = m[2] ? parseInt(m[2], 10) : start;
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return null;
+  return { start, end };
+}
 
 class SefariaAPI {
   async getText(ref: string, options?: {
@@ -258,6 +285,68 @@ class SefariaAPI {
         if (snippets.length) out[book] = snippets;
       })
     );
+    return out;
+  }
+
+  /**
+   * Fetch the Mishnayot that the gemara on this daf is discussing. Sefaria's
+   * /api/related surfaces these as `category: "Mishnah"` links — typically
+   * 1-2 per daf, with `type: "mishnah in talmud"` marking the canonical
+   * "this gemara discusses this mishna" anchor (other types like
+   * "mesorat hashas" are cross-references and excluded).
+   *
+   * `anchorRef` (e.g. "Berakhot 2a:1-5") is parsed into 0-indexed segment
+   * bounds against the gemara so callers can match against an argument's
+   * (startSegIdx, endSegIdx) range without re-parsing.
+   */
+  async fetchMishnaForDaf(tractate: string, page: string): Promise<MishnaBundle> {
+    const ref = `${tractate}.${page}`;
+    const related = await this.getRelated(ref).catch(() => null);
+    if (!related) return [];
+
+    const mishnaLinks = related.links.filter(
+      l => l.category === 'Mishnah' && l.type === 'mishnah in talmud'
+    );
+    if (mishnaLinks.length === 0) return [];
+
+    // Dedupe by mishna ref — same mishna can appear with multiple anchorRef
+    // entries (different anchor types or sub-segments). Keep the widest
+    // anchor range we see.
+    const byRef = new Map<string, { anchorStart: number; anchorEnd: number; anchorRef: string }>();
+    for (const l of mishnaLinks) {
+      const range = parseAnchorRefRange(l.anchorRef);
+      if (!range) continue;
+      const existing = byRef.get(l.ref);
+      if (!existing) {
+        byRef.set(l.ref, { anchorStart: range.start, anchorEnd: range.end, anchorRef: l.anchorRef });
+      } else {
+        if (range.start < existing.anchorStart) existing.anchorStart = range.start;
+        if (range.end > existing.anchorEnd) existing.anchorEnd = range.end;
+      }
+    }
+
+    const out: MishnaBundle = [];
+    await Promise.all(
+      Array.from(byRef.entries()).map(async ([mishnaRef, anchor]) => {
+        try {
+          const t = await this.getText(mishnaRef);
+          const hebrew = Array.isArray(t.he) ? t.he.join(' ') : (t.he ?? '');
+          const english = Array.isArray(t.text) ? t.text.join(' ') : (t.text ?? '');
+          if (!hebrew && !english) return;
+          out.push({
+            ref: mishnaRef,
+            anchorRef: anchor.anchorRef,
+            anchorStartSeg: anchor.anchorStart - 1, // Sefaria 1-indexed → mark 0-indexed
+            anchorEndSeg: anchor.anchorEnd - 1,
+            hebrew,
+            english,
+          });
+        } catch {
+          // skip on fetch failure
+        }
+      })
+    );
+    out.sort((a, b) => a.anchorStartSeg - b.anchorStartSeg);
     return out;
   }
 

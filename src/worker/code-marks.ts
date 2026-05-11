@@ -138,7 +138,8 @@ Output STRICT JSON only — no markdown, no prose:
       "fields": {
         "title": "Short descriptive title (e.g. 'Opening Mishnah', 'Gemara's first question').",
         "summary": "2-3 sentence description of what this section argues.",
-        "excerpt": "3-5 Hebrew/Aramaic words copied VERBATIM from the focal Hebrew, opening this section.",
+        "excerpt": "3-5 Hebrew/Aramaic words copied VERBATIM from the focal Hebrew where this section BEGINS.",
+        "endExcerpt": "3-5 Hebrew/Aramaic words copied VERBATIM from the focal Hebrew where this section ENDS (the LAST words of the section, immediately before the next section begins). MUST be distinct from excerpt unless the section is a single phrase.",
         "rabbiNames": ["Rabbi Yochanan", "Gemara's question", "First answer"]
       }
     }
@@ -149,7 +150,7 @@ Rules:
 - Break the focal amud into 3-8 sections by argument structure, not by paragraph.
 - Sections must partition the daf cleanly: section i+1's startSegIdx === section i's endSegIdx + 1, no gaps, no overlaps.
 - For a one-segment section, startSegIdx === endSegIdx.
-- "excerpt" MUST be Hebrew/Aramaic copied VERBATIM from the source — never translate.
+- "excerpt" and "endExcerpt" MUST be Hebrew/Aramaic copied VERBATIM from the source — never translate. excerpt anchors the section's first words, endExcerpt anchors its last words. These together MUST match the section's true range — do NOT extend endExcerpt into the next section's content.
 - "rabbiNames" enumerates EVERY distinct voice in the section in order: named rabbis ("Rabbi Eliezer"), collective voices ("Sages", "Tanna Kamma"), and every Stam/Gemara move ("Gemara's question", "First answer", "Objection"). When the Gemara offers multiple answers to the same question, each is its own entry.`;
 
 const ARGUMENT_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
@@ -397,11 +398,12 @@ const ARGUMENT_OUTPUT_SCHEMA = {
             fields: {
               type: 'object',
               additionalProperties: false,
-              required: ['title', 'summary', 'excerpt', 'rabbiNames'],
+              required: ['title', 'summary', 'excerpt', 'endExcerpt', 'rabbiNames'],
               properties: {
                 title: { type: 'string' },
                 summary: { type: 'string' },
                 excerpt: { type: 'string' },
+                endExcerpt: { type: 'string' },
                 rabbiNames: { type: 'array', items: { type: 'string' } },
               },
             },
@@ -475,8 +477,8 @@ export const CODE_MARKS: MarkDefinition[] = [
     },
     dependencies: ['gemara'],
     status: 'promoted',
-    def_hash: 'argument-llm-v1',
-    cache_version: '2',
+    def_hash: 'argument-llm-v2',
+    cache_version: '3',
     source: 'code',
     updated_at: NOW,
   },
@@ -1288,10 +1290,13 @@ Section:
 Hebrew source of the daf:
 {{gemara_he}}
 
+Mishnayot this gemara is discussing (anchored from Sefaria — the section above is gemara built on these):
+{{mishna}}
+
 Rashi + Tosafot + other rishonim:
 {{commentaries}}
 
-Write the background per the schema.`;
+Write the background per the schema. When the section directly elaborates one of the mishnayot above, name it explicitly (e.g. "Builds on Mishnah Berakhot 1:1").`;
 
 const ARGUMENT_BACKGROUND_OUTPUT_SCHEMA = {
   name: 'argument_background',
@@ -1327,6 +1332,9 @@ const ARGUMENT_SYNTHESIS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
 Section:
 {{mark_input}}
+
+Mishnayot this gemara is discussing (the section above is gemara built on these):
+{{mishna}}
 
 All moves on this daf (filter to this section's range):
 {{anchors.argument-move}}
@@ -1374,8 +1382,8 @@ CODE_ENRICHMENTS.push(
     ARGUMENT_BACKGROUND_SYSTEM_PROMPT, ARGUMENT_BACKGROUND_USER_TEMPLATE, ARGUMENT_BACKGROUND_OUTPUT_SCHEMA,
     {
       mode: 'augment-content', scope: 'local',
-      dependencies: ['gemara', 'commentaries'],
-      defHash: 'argument.background-v1', cacheVersion: '1',
+      dependencies: ['gemara', 'commentaries', 'mishna'],
+      defHash: 'argument.background-v2', cacheVersion: '2',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -1388,12 +1396,13 @@ CODE_ENRICHMENTS.push(
       dependencies: [
         'gemara',
         'commentaries',
+        'mishna',
         { enrichment: 'argument.voices' },
         { enrichment: 'argument.background' },
         { mark: 'rabbi' },
         { mark: 'argument-move' },
       ],
-      defHash: 'argument.synthesis-v5', cacheVersion: '5',
+      defHash: 'argument.synthesis-v6', cacheVersion: '6',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -1422,7 +1431,8 @@ Output STRICT JSON only:
         "role": "opening" | "question" | "answer" | "objection" | "rejection" | "supporting-evidence" | "resolution" | "digression" | "shift" | "other",
         "voice": "Short label of who is speaking (e.g. 'Gemara's question', 'Rabbi Yochanan', 'Stam', 'Supporting baraita', 'Rava's answer'). Match how the move actually reads.",
         "rabbiNames": ["Named rabbis ONLY (e.g. 'Rabbi Yochanan', 'Rava'). Empty array for anonymous moves like 'Gemara's question' or 'Stam'."],
-        "excerpt": "3-5 Hebrew/Aramaic words copied VERBATIM from the source where this move begins.",
+        "excerpt": "3-5 Hebrew/Aramaic words copied VERBATIM from the source where this move BEGINS (the first words of the move).",
+        "endExcerpt": "3-5 Hebrew/Aramaic words copied VERBATIM from the source where this move ENDS (the LAST words of the move, immediately before the next move or section boundary). MUST be distinct from excerpt unless the move is a single phrase.",
         "summary": "1 sentence in English: what this move does."
       }
     }
@@ -1437,7 +1447,7 @@ HARD RULES (output is rejected if violated):
 - A section spanning ≥4 segments almost always has 3+ moves. If you emit a single move covering ≥4 segments, you are almost certainly being lazy — re-examine the structure.
 - A Mishnah section listing positions of different sages MUST be broken into one move per sage's position, plus moves for any framing question, supporting story, or generalization.
 - "voice" is descriptive and may be anonymous ("Gemara's question"). "rabbiNames" is only for actual named rabbis.
-- "excerpt" is Hebrew/Aramaic verbatim from the source.
+- "excerpt" and "endExcerpt" are Hebrew/Aramaic verbatim from the source. excerpt anchors the START; endExcerpt anchors the END. These together define the move's actual span — DO NOT just copy the first/last words of the section; copy the first/last words of THIS move's content. The LAST move in a section MUST have an endExcerpt that genuinely matches its final words, not arbitrary section-trailing words.
 - Pick the SINGLE best role tag per move. Use "other" sparingly.
 - "id" MUST be deterministic: '{sectionStartSegIdx}-{sectionEndSegIdx}_{moveOrderInSection}'.`;
 
@@ -1471,7 +1481,7 @@ const ARGUMENT_MOVE_OUTPUT_SCHEMA = {
             fields: {
               type: 'object',
               additionalProperties: false,
-              required: ['id', 'sectionStartSegIdx', 'sectionEndSegIdx', 'moveOrder', 'role', 'voice', 'rabbiNames', 'excerpt', 'summary'],
+              required: ['id', 'sectionStartSegIdx', 'sectionEndSegIdx', 'moveOrder', 'role', 'voice', 'rabbiNames', 'excerpt', 'endExcerpt', 'summary'],
               properties: {
                 id: { type: 'string' },
                 sectionStartSegIdx: { type: 'integer', minimum: 0 },
@@ -1481,6 +1491,7 @@ const ARGUMENT_MOVE_OUTPUT_SCHEMA = {
                 voice: { type: 'string' },
                 rabbiNames: { type: 'array', items: { type: 'string' } },
                 excerpt: { type: 'string' },
+                endExcerpt: { type: 'string' },
                 summary: { type: 'string' },
               },
             },
@@ -1516,8 +1527,8 @@ CODE_MARKS.push({
   },
   dependencies: ['gemara', { mark: 'argument' }],
   status: 'promoted',
-  def_hash: 'argument-move-v5',
-  cache_version: '5',
+  def_hash: 'argument-move-v7',
+  cache_version: '7',
   source: 'code',
   updated_at: NOW,
 });
