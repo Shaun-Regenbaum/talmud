@@ -17,9 +17,10 @@
  * falls back to a generic key/value dump of the parsed JSON.
  */
 
-import { createResource, createSignal, createEffect, untrack, For, Show } from 'solid-js';
+import { createResource, createSignal, createEffect, untrack, For, Show, type JSX } from 'solid-js';
 import { Hebraized } from './Hebraized';
 import { devModeActive } from './DevModeShelf';
+import { trackAI } from './aiActivity';
 
 interface EnrichmentDef {
   id: string;
@@ -27,7 +28,9 @@ interface EnrichmentDef {
   description?: string;
   mark: string;
   mode?: 'augment-content' | 'refine-anchors' | 'aggregate';
-  depends?: string[];
+  scope?: 'global' | 'local';
+  /** Mixed dependency array: 'gemara' | 'commentaries' | { enrichment } | { mark }. */
+  dependencies?: Array<unknown>;
   status?: 'draft' | 'promoted';
   source: 'kv' | 'code';
 }
@@ -44,6 +47,10 @@ interface RunResult {
    *  Lets the client surface leaves in the dev dropdown without a second
    *  round-trip. */
   deps_resolved?: Record<string, unknown>;
+  /** Aggregate-only: parsed output of each dep MARK (e.g. `{ mark: 'rabbi' }`
+   *  → instances list under the 'rabbi' key). Same fetch as deps_resolved;
+   *  surfaced so a sidebar can render mark-specific UI without re-fetching. */
+  anchors_resolved?: Record<string, unknown>;
 }
 
 type RunState =
@@ -59,7 +66,19 @@ async function fetchEnrichments(): Promise<EnrichmentDef[]> {
   return j.enrichments;
 }
 
-async function runEnrichment(
+// Worker's run endpoint returns one of:
+//   { status: 'ok', result: RunResult, total_ms? }     ← cache hit, immediate
+//   { status: 'pending', runId: string }               ← enqueued, poll
+//   { status: 'error', error: string }
+type RunResponse =
+  | { status: 'ok'; result: RunResult; total_ms?: number }
+  | { status: 'pending'; runId: string }
+  | { status: 'error'; error: string };
+
+const POLL_INTERVAL_MS = 1500;
+const POLL_TIMEOUT_MS = 180_000;
+
+async function runEnrichmentImpl(
   enrichmentId: string,
   tractate: string,
   page: string,
@@ -70,10 +89,84 @@ async function runEnrichment(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ enrichment_id: enrichmentId, tractate, page, mark_input: markInput }),
   });
-  const j = await r.json();
-  if (!r.ok) throw new Error((j as { error?: string }).error ?? `HTTP ${r.status}`);
-  return j as RunResult;
+  const j = await r.json() as RunResponse | { error?: string };
+  if (!r.ok && r.status !== 202) {
+    throw new Error((j as { error?: string }).error ?? `HTTP ${r.status}`);
+  }
+  if ('status' in j) {
+    if (j.status === 'ok') return j.result;
+    if (j.status === 'error') throw new Error(j.error);
+    if (j.status === 'pending') return pollJob(j.runId);
+  }
+  // Legacy/synchronous shape — treat the whole body as RunResult for back-compat.
+  return j as unknown as RunResult;
 }
+
+// Wraps the actual run in `trackAI` so the AIActivityPanel sees the
+// loading→ok lifecycle and the dev-shelf log captures [ai] lines.
+async function runEnrichment(
+  enrichmentId: string,
+  tractate: string,
+  page: string,
+  markInput: unknown,
+): Promise<RunResult> {
+  const inst = markInput as { fields?: { id?: string; name?: string; verseRef?: string } } | null;
+  const instanceTag = inst?.fields?.id ?? inst?.fields?.name ?? inst?.fields?.verseRef ?? '';
+  const id = `${enrichmentId}:${tractate}:${page}:${instanceTag}`;
+  const label = instanceTag
+    ? `${enrichmentId} · ${instanceTag} · ${tractate} ${page}`
+    : `${enrichmentId} · ${tractate} ${page}`;
+  return trackAI(id, label, () => runEnrichmentImpl(enrichmentId, tractate, page, markInput));
+}
+
+async function pollJob(runId: string): Promise<RunResult> {
+  const start = Date.now();
+  while (Date.now() - start < POLL_TIMEOUT_MS) {
+    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+    const r = await fetch(`/api/studio/run-status/${encodeURIComponent(runId)}`);
+    const j = await r.json() as RunResponse | { status: 'pending' };
+    if ('status' in j) {
+      if (j.status === 'ok') return (j as { result: RunResult }).result;
+      if (j.status === 'error') throw new Error((j as { error: string }).error);
+      // pending — continue polling
+    }
+  }
+  throw new Error(`job ${runId} timed out after ${POLL_TIMEOUT_MS / 1000}s`);
+}
+
+// Shared FIFO queue with bounded concurrency so opening one section that
+// mounts many move cards doesn't barrage `/api/studio/run` in parallel
+// (workerd dies on the simultaneous fan-out + 30k-char prompts; see
+// 2026-05-07 incident). Aggregates fire first, then per-move syntheses
+// drain in order so cards fill in top-to-bottom as the user reads. KV cache
+// hits still go through the queue but resolve fast, so there's no penalty
+// once a section has been opened before.
+class RequestQueue {
+  private queue: Array<() => void> = [];
+  private active = 0;
+  constructor(private readonly concurrency: number) {}
+  enqueue<T>(task: () => Promise<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+      const run = () => {
+        this.active++;
+        task().then(
+          (v) => { this.active--; this.pump(); resolve(v); },
+          (e) => { this.active--; this.pump(); reject(e); },
+        );
+      };
+      this.queue.push(run);
+      this.pump();
+    });
+  }
+  private pump() {
+    while (this.active < this.concurrency && this.queue.length > 0) {
+      const next = this.queue.shift()!;
+      next();
+    }
+  }
+}
+
+const enrichmentQueue = new RequestQueue(2);
 
 interface Props {
   markId: string;
@@ -84,6 +177,16 @@ interface Props {
   instanceKey: string;
   tractate: string;
   page: string;
+  /** Fired with the aggregate's `deps_resolved` + `anchors_resolved` once
+   *  the synthesis run lands. Lets the parent sidebar render mark-specific
+   *  UI (e.g. argument subsection pills) from the same fetch that produced
+   *  the synthesis paragraph — no duplicate `/api/studio/run` call.
+   *  `deps_resolved` keys are enrichment ids; `anchors_resolved` keys are
+   *  mark ids. Either may be undefined. */
+  onResolved?: (resolved: {
+    deps_resolved?: Record<string, unknown>;
+    anchors_resolved?: Record<string, unknown>;
+  }) => void;
 }
 
 // Pluggable per-enrichment renderers can be registered here in the future.
@@ -93,7 +196,6 @@ interface Props {
 export default function MarkEnrichmentCards(props: Props) {
   const [defs] = createResource(fetchEnrichments);
   const [runs, setRuns] = createSignal<Record<string, RunState>>({});
-  const [open, setOpen] = createSignal<Set<string>>(new Set());
   const [selectedDevView, setSelectedDevView] = createSignal<string | null>(null);
 
   const setRun = (id: string, state: RunState) =>
@@ -126,6 +228,9 @@ export default function MarkEnrichmentCards(props: Props) {
   const stamp = () => `${props.tractate}/${props.page}/${props.instanceKey}`;
 
   // Auto-fire each enrichment on mount + when the daf or instance changes.
+  // Each call goes through the shared `enrichmentQueue` (concurrency 2) so
+  // mounting many move cards doesn't barrage the worker. Results that arrive
+  // after the user has navigated away (stale stamp) are dropped.
   createEffect(() => {
     const list = matching();
     if (list.length === 0) return;
@@ -135,16 +240,28 @@ export default function MarkEnrichmentCards(props: Props) {
         const cur = runs()[d.id];
         if (cur && cur.kind !== 'idle' && cur.stamp === s) continue;
         setRun(d.id, { kind: 'loading', stamp: s });
-        // Auto-open the first card so users see content right away.
-        if (open().size === 0) setOpen(new Set([d.id]));
-        void runEnrichment(d.id, props.tractate, props.page, props.instance).then(
+        void enrichmentQueue.enqueue(() =>
+          runEnrichment(d.id, props.tractate, props.page, props.instance),
+        ).then(
           (result) => {
+            // Drop the result if the user moved on (different daf or
+            // instance) — the new effect run already queued a fresh task
+            // for the current stamp.
+            if (stamp() !== s) return;
             setRun(d.id, { kind: 'ok', stamp: s, result });
             // For aggregate enrichments: server returns each dep's parsed
-            // output in `deps_resolved`. Populate per-leaf run state so the
-            // dev dropdown can render leaves instantly without a second
-            // /api/studio/run call.
+            // output in `deps_resolved` (enrichments) and `anchors_resolved`
+            // (marks). Populate per-leaf run state so the dev dropdown can
+            // render leaves instantly without a second /api/studio/run call.
+            // Forward both maps to onResolved so parent sidebars can render
+            // mark-specific UI from the same data.
             const resolved = result.deps_resolved;
+            if (resolved || result.anchors_resolved) {
+              props.onResolved?.({
+                deps_resolved: resolved,
+                anchors_resolved: result.anchors_resolved,
+              });
+            }
             if (resolved) {
               for (const [depId, depParsed] of Object.entries(resolved)) {
                 setRun(depId, {
@@ -162,153 +279,199 @@ export default function MarkEnrichmentCards(props: Props) {
               }
             }
           },
-          (err) => setRun(d.id, { kind: 'error', stamp: s, error: String((err as Error)?.message ?? err) }),
+          (err) => {
+            if (stamp() !== s) return;
+            setRun(d.id, { kind: 'error', stamp: s, error: String((err as Error)?.message ?? err) });
+          },
         );
       }
     });
   });
 
-  const toggle = (id: string) => {
-    const next = new Set(open());
-    if (next.has(id)) next.delete(id); else next.add(id);
-    setOpen(next);
-  };
-
-  // The aggregate (synthesis) run, if any. Used to surface which leaves were
-  // actually consumed by the synthesis as clickable badges below.
-  const aggregateRun = (): RunResult | null => {
-    const ag = aggregates()[0];
-    if (!ag) return null;
-    const r = runs()[ag.id];
-    return r?.kind === 'ok' ? r.result : null;
-  };
-  const usedDepIds = (): string[] => {
-    const r = aggregateRun();
-    if (!r?.deps_resolved) return [];
-    return Object.keys(r.deps_resolved);
-  };
   // Pretty-print "rabbi.bio" → "Bio", "rabbi.daf-role" → "Daf role".
   const prettyDepLabel = (depId: string, markId: string): string => {
     const tail = depId.startsWith(`${markId}.`) ? depId.slice(markId.length + 1) : depId;
     return tail.replace(/[-_]/g, ' ').replace(/\b\w/, (m) => m.toUpperCase());
   };
 
-  return (
-    <div>
-      <Show when={devModeActive() && allMatching().length > 1}>
-        <div style={{ 'margin-bottom': '0.5rem', display: 'flex', 'flex-direction': 'column', gap: '0.35rem' }}>
-          <div style={{ 'font-size': '0.7rem', color: '#888', display: 'flex', 'align-items': 'center', gap: '0.4rem' }}>
-            <span>view:</span>
-            <select
-              value={selectedDevView() ?? ''}
-              onChange={(e) => setSelectedDevView(e.currentTarget.value || null)}
-              style={{ 'font-size': '0.75rem', padding: '1px 4px', 'font-family': 'inherit' }}
-            >
-              <option value="">synthesis</option>
-              <For each={leaves()}>{(d) => (
-                <option value={d.id}>{d.id} (leaf)</option>
-              )}</For>
-            </select>
-          </div>
-          {/* Badge tray: which leaves the synthesis actually consumed.
-              Clicking switches the view; the dep is already cached from
-              the synthesis call so there's no extra LLM fetch. */}
-          <Show when={usedDepIds().length > 0}>
-            <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.25rem' }}>
-              <button
-                onClick={() => setSelectedDevView(null)}
-                title="Show synthesis"
-                style={{
-                  padding: '1px 8px', 'font-size': '0.7rem', cursor: 'pointer',
-                  background: selectedDevView() === null ? '#000' : '#f0f0f0',
-                  color: selectedDevView() === null ? '#fff' : '#444',
-                  border: '1px solid #ddd', 'border-radius': '10px',
-                }}
-              >
-                synthesis
-              </button>
-              <For each={usedDepIds()}>{(depId) => (
-                <button
-                  onClick={() => setSelectedDevView(depId)}
-                  title={`Show ${depId}`}
-                  style={{
-                    padding: '1px 8px', 'font-size': '0.7rem', cursor: 'pointer',
-                    background: selectedDevView() === depId ? '#000' : '#f0f0f0',
-                    color: selectedDevView() === depId ? '#fff' : '#444',
-                    border: '1px solid #ddd', 'border-radius': '10px',
-                  }}
-                >
-                  {prettyDepLabel(depId, props.markId)}
-                </button>
-              )}</For>
-            </div>
-          </Show>
+  // Which enrichment is currently the focal one? In dev mode this follows
+  // the dropdown / badge selection; otherwise it's the first aggregate
+  // (= synthesis) or, if none, the first leaf.
+  const currentView = (): EnrichmentDef | null => {
+    const sel = selectedDevView();
+    if (sel) return allMatching().find((d) => d.id === sel) ?? null;
+    const a = aggregates();
+    if (a.length > 0) return a[0];
+    const l = leaves();
+    return l.length > 0 ? l[0] : null;
+  };
+  const currentRun = (): RunState =>
+    runs()[currentView()?.id ?? ''] ?? { kind: 'idle' };
+
+  // Dependencies that fed the current view. For a synthesis-style aggregate
+  // the deps are the leaves it consumed (taken from deps_resolved on the
+  // run); for a leaf with no upstream deps we surface its own id so the
+  // tray always shows what produced the text.
+  const currentDepBadges = (): string[] => {
+    const v = currentView();
+    if (!v) return [];
+    const r = currentRun();
+    if (r.kind === 'ok' && r.result.deps_resolved) {
+      return Object.keys(r.result.deps_resolved);
+    }
+    // Pull enrichment-typed dep IDs out of the unified dependencies array
+    // (also covers source-tag deps and mark deps, but those don't render as
+    // leaf badges).
+    const enrichmentDeps = (v.dependencies ?? [])
+      .map((d) => (d && typeof d === 'object' && 'enrichment' in d) ? (d as { enrichment: string }).enrichment : null)
+      .filter((s): s is string => !!s);
+    if (enrichmentDeps.length > 0) return enrichmentDeps;
+    return [v.id];
+  };
+
+  // Loading copy: pick something evocative based on what's being worked on.
+  const loadingCopy = (): string => {
+    if (props.markId === 'rabbi') {
+      const inst = props.instance as { name?: string } | null;
+      return inst?.name ? `Interviewing ${inst.name}…` : 'Interviewing the Rabbi…';
+    }
+    if (props.markId === 'argument') {
+      const inst = props.instance as { fields?: { title?: string } } | null;
+      const title = inst?.fields?.title;
+      return title ? `Tracing the argument: ${title}…` : 'Tracing the argument…';
+    }
+    if (props.markId === 'pesukim') {
+      const inst = props.instance as { fields?: { verseRef?: string } } | null;
+      const ref = inst?.fields?.verseRef;
+      return ref ? `Reading ${ref} in context…` : 'Reading the verse in context…';
+    }
+    return 'Generating…';
+  };
+
+  // Body renderer shared across dev / non-dev: loading state, error, or
+  // the content paragraph (Hebraized + parsed JSON aware).
+  const renderBody = (): JSX.Element => {
+    const r = currentRun();
+    if (r.kind === 'loading' || r.kind === 'idle') {
+      return (
+        <div style={{
+          display: 'flex', 'align-items': 'center', gap: '0.6rem',
+          padding: '0.7rem 0.2rem', color: '#666', 'font-size': '0.88rem',
+          'font-style': 'italic',
+        }}>
+          <span style={{
+            display: 'inline-block', width: '0.85rem', height: '0.85rem',
+            'border-radius': '50%',
+            border: '2px solid #d6d3d1', 'border-top-color': '#8a2a2b',
+            animation: 'daf-spin 0.8s linear infinite',
+          }} />
+          {loadingCopy()}
         </div>
-      </Show>
+      );
+    }
+    if (r.kind === 'error') {
+      return (
+        <div style={{ color: '#c00', 'font-family': 'monospace', 'font-size': '0.78rem', padding: '0.4rem 0' }}>
+          {r.error}
+        </div>
+      );
+    }
+    const result = r.result;
+    if (result.parsed && typeof result.parsed === 'object') {
+      return <ParsedFieldView parsed={result.parsed as Record<string, unknown>} />;
+    }
+    return (
+      <p style={{ margin: 0, 'font-size': '0.92rem', 'line-height': 1.6, color: '#222' }}>
+        <Hebraized text={result.content} />
+      </p>
+    );
+  };
 
-      <For each={matching()}>{(d) => {
-        const state = (): RunState => runs()[d.id] ?? { kind: 'idle' };
-        const isOpen = () => open().has(d.id);
-        const result = (): RunResult | null =>
-          state().kind === 'ok' ? (state() as Extract<RunState, { kind: 'ok' }>).result : null;
-        const errMsg = (): string | null =>
-          state().kind === 'error' ? (state() as Extract<RunState, { kind: 'error' }>).error : null;
-
-        return (
-          <section style={{ 'margin-bottom': '1rem' }}>
-            <button
-              onClick={() => toggle(d.id)}
-              style={{
-                display: 'flex', 'align-items': 'center', gap: '0.4rem',
-                width: '100%', 'text-align': 'left',
-                background: 'transparent', border: 0,
-                padding: '0.3rem 0',
-                'border-bottom': '1px solid #eee',
-                cursor: 'pointer',
-                'font-family': 'inherit', 'font-size': '0.78rem',
-                color: '#555', 'letter-spacing': '0.02em',
-              }}
-            >
-              <span style={{ color: '#aaa' }}>{isOpen() ? '▾' : '▸'}</span>
-              <span style={{ 'text-transform': 'uppercase', 'font-size': '0.7rem', 'letter-spacing': '0.06em', 'font-weight': 600 }}>
-                {/* Drop the "<mark>." prefix for the section header — we
-                    already know the mark from the sidebar context. */}
-                {d.id.startsWith(`${props.markId}.`) ? d.id.slice(props.markId.length + 1) : (d.label || d.id)}
-              </span>
-              <span style={{ 'margin-left': 'auto', 'font-size': '0.7rem', color: state().kind === 'error' ? '#c00' : state().kind === 'loading' ? '#aaa' : '#bbb' }}>
-                {state().kind === 'loading' ? 'generating…' :
-                 state().kind === 'ok' ? `${(state() as Extract<RunState, { kind: 'ok' }>).result.total_ms}ms` :
-                 state().kind === 'error' ? 'error' : ''}
-              </span>
-            </button>
-
-            <Show when={isOpen()}>
-              <div style={{ padding: '0.6rem 0 0' }}>
-                <Show when={errMsg()}>{(msg) => (
-                  <div style={{ color: '#c00', 'font-family': 'monospace', 'font-size': '0.78rem' }}>
-                    {msg()}
-                  </div>
-                )}</Show>
-
-                {/* No body text during loading — the spinner + 'generating…'
-                    pill on the section header is the single source of
-                    feedback. Avoids duplicate "generating" + body text. */}
-
-                <Show when={result()}>{(r) => (
-                  <Show when={r().parsed && typeof r().parsed === 'object'} fallback={
-                    <pre style={{ 'white-space': 'pre-wrap', 'font-family': 'inherit', 'font-size': '0.85rem', 'line-height': 1.55, margin: 0, color: '#222' }}>
-                      <Hebraized text={r().content} />
-                    </pre>
-                  }>
-                    <ParsedFieldView parsed={r().parsed as Record<string, unknown>} />
-                  </Show>
-                )}</Show>
-              </div>
-            </Show>
-          </section>
-        );
-      }}</For>
+  // Badges container — one-line scrollable strip of pill-shaped chips
+  // showing what produced the current view.
+  const renderDepsTray = (): JSX.Element => (
+    <div style={{
+      display: 'flex', gap: '0.25rem',
+      'overflow-x': 'auto', 'overflow-y': 'hidden',
+      'white-space': 'nowrap',
+      'border-top': '1px solid #f0f0f0',
+      'margin-top': '0.6rem',
+      'padding-top': '0.5rem',
+    }}>
+      <span style={{ 'font-size': '0.65rem', color: '#aaa', 'flex-shrink': 0, 'padding-top': '2px' }}>built from</span>
+      <For each={currentDepBadges()}>{(depId) => (
+        <button
+          onClick={() => setSelectedDevView(depId === currentView()?.id ? null : depId)}
+          title={`View ${depId}`}
+          style={{
+            'flex-shrink': 0,
+            padding: '1px 8px', 'font-size': '0.7rem', cursor: 'pointer',
+            background: selectedDevView() === depId ? '#000' : '#f0f0f0',
+            color: selectedDevView() === depId ? '#fff' : '#444',
+            border: '1px solid #ddd', 'border-radius': '10px',
+            'font-family': 'inherit',
+          }}
+        >
+          {prettyDepLabel(depId, props.markId)}
+        </button>
+      )}</For>
     </div>
+  );
+
+  // ===== DEV MODE =====
+  // Dropdown + body + deps tray.
+  const renderDev = (): JSX.Element => (
+    <div>
+      <div style={{ 'font-size': '0.7rem', color: '#888', display: 'flex', 'align-items': 'center', gap: '0.4rem', 'margin-bottom': '0.5rem' }}>
+        <span>view:</span>
+        <select
+          value={selectedDevView() ?? ''}
+          onChange={(e) => setSelectedDevView(e.currentTarget.value || null)}
+          style={{ 'font-size': '0.75rem', padding: '1px 4px', 'font-family': 'inherit' }}
+        >
+          <Show when={aggregates().length > 0}>
+            <option value="">{`[${aggregates()[0]?.scope ?? 'local'}] synthesis`}</option>
+          </Show>
+          <For each={leaves()}>{(d) => (
+            <option value={d.id}>{`[${d.scope ?? 'global'}] ${prettyDepLabel(d.id, props.markId)}`}</option>
+          )}</For>
+        </select>
+        <Show when={currentRun().kind === 'ok'}>
+          <span style={{ color: '#bbb', 'font-size': '0.7rem', 'margin-left': 'auto' }}>
+            {(currentRun() as Extract<RunState, { kind: 'ok' }>).result.total_ms}ms
+          </span>
+        </Show>
+      </div>
+      <div style={{
+        background: '#fafafa',
+        border: '1px solid #eee',
+        'border-radius': '6px',
+        padding: '0.7rem 0.85rem',
+      }}>
+        {renderBody()}
+        {renderDepsTray()}
+      </div>
+    </div>
+  );
+
+  // ===== PRODUCTION =====
+  // Just the synthesis output (or loading) in a subtle container — no
+  // dropdown, no header, no deps tray.
+  const renderProd = (): JSX.Element => (
+    <div style={{
+      background: '#fafafa',
+      border: '1px solid #eee',
+      'border-radius': '6px',
+      padding: '0.85rem 1rem',
+    }}>
+      {renderBody()}
+    </div>
+  );
+
+  return (
+    <Show when={devModeActive()} fallback={renderProd()}>
+      {renderDev()}
+    </Show>
   );
 }
 

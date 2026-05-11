@@ -1,28 +1,21 @@
 /**
  * Daily pre-warm for tomorrow's Daf Yomi. Pulls tomorrow's daf from Sefaria's
- * calendar API, then fires self-fetches against every AI-backed daf endpoint
- * for both amudim (a and b):
- *   - /api/analyze      — argument skeleton + sugya structure
- *   - /api/halacha      — halachic codifications
- *   - /api/aggadata     — aggadata detection
- *   - /api/daf-context  — rabbi identification (feeds the generation timeline
- *                         AND the geography map on the client); a single hit
- *                         triggers Stage 1 (Gemma) synchronously and Stage 2
- *                         (Kimi+thinking) via the endpoint's own waitUntil, so
- *                         one self-fetch covers both stages.
+ * calendar API and POSTs to `/api/studio/run` once per canonical mark for
+ * both amudim (a + b). The studio endpoint reads through the cache-keys.ts
+ * helpers, so a successful run lands a KV entry that the next reader hits
+ * synchronously.
  *
  * Uses subrequests to the public hostname rather than in-process dispatch so
- * each AI call runs as its own Worker invocation with its own CPU/wall-time
- * budget — Kimi K2.6 analyze alone can take 4–5 min, and fitting eight of
- * those into one scheduled invocation would blow the time limit.
+ * each mark run executes as its own Worker invocation with its own CPU/wall
+ * budget — fitting all of them into one cron tick would blow the time limit.
  *
- * Idempotent: the downstream endpoints short-circuit on cache-hit, so
- * re-running the cron is effectively free once warm.
+ * Idempotent: the studio handler short-circuits on cache-hit, so re-running
+ * the cron is effectively free once warm.
  */
 
 const SEFARIA_CALENDAR_URL = 'https://www.sefaria.org/api/calendars';
 const PUBLIC_BASE_URL = 'https://talmud.shaunregenbaum.com';
-const WARM_ENDPOINTS = ['analyze', 'halacha', 'aggadata', 'daf-context'] as const;
+const WARM_MARKS = ['rabbi', 'argument', 'halacha', 'aggadata', 'pesukim'] as const;
 
 interface CalendarItem {
   title?: { en?: string };
@@ -65,7 +58,11 @@ async function fetchDafYomi(
   return { tractate: m[1].trim(), daf: parseInt(m[2], 10) };
 }
 
-export async function runYomiWarmCron(): Promise<void> {
+interface YomiCronEnv {
+  CACHE?: KVNamespace;
+}
+
+export async function runYomiWarmCron(_env: YomiCronEnv): Promise<void> {
   const { year, month, day } = tomorrowUtc();
   const yomi = await fetchDafYomi(year, month, day);
   if (!yomi) {
@@ -80,17 +77,21 @@ export async function runYomiWarmCron(): Promise<void> {
   const pages = [`${daf}a`, `${daf}b`];
   const jobs: Promise<void>[] = [];
   for (const page of pages) {
-    for (const ep of WARM_ENDPOINTS) {
-      const url = `${PUBLIC_BASE_URL}/api/${ep}/${encodeURIComponent(tractate)}/${page}`;
+    for (const markId of WARM_MARKS) {
+      const url = `${PUBLIC_BASE_URL}/api/studio/run`;
       jobs.push(
-        fetch(url)
+        fetch(url, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ mark_id: markId, tractate, page }),
+        })
           .then((r) => {
             // eslint-disable-next-line no-console
-            console.log(`[yomi-cron] ${ep} ${tractate}/${page} -> ${r.status}`);
+            console.log(`[yomi-cron] mark=${markId} ${tractate}/${page} -> ${r.status}`);
           })
           .catch((e) => {
             // eslint-disable-next-line no-console
-            console.error(`[yomi-cron] ${ep} ${tractate}/${page} failed:`, e);
+            console.error(`[yomi-cron] mark=${markId} ${tractate}/${page} failed:`, e);
           }),
       );
     }

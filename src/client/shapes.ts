@@ -1,0 +1,120 @@
+/**
+ * Runtime data shapes consumed by the daf-viewer renderers (ArgumentSidebar,
+ * GutterIcons, anchor markers, etc.). These were originally defined inside
+ * the legacy per-feature panel files (`AnalysisPanel`, `HalachaPanel`,
+ * `AggadataDetector`); the panels are gone but their data shapes live on —
+ * the registry adapters in `DafViewer.tsx` reshape `markRunsByMarkId()`
+ * output into these for the existing renderers to consume.
+ */
+
+// ===========================================================================
+// Argument structure (mark id: 'argument')
+// ===========================================================================
+
+export interface Rabbi {
+  name: string;
+  nameHe: string;
+  period: string;
+  location: string;
+  role: string;
+  opinionStart?: string;
+}
+
+export interface Section {
+  title: string;
+  summary: string;
+  excerpt?: string;
+  rabbis: Rabbi[];
+  startSegIdx?: number;
+  endSegIdx?: number;
+}
+
+export interface DafAnalysis {
+  summary: string;
+  sections: Section[];
+  _cached?: boolean;
+  _model?: string;
+  error?: string;
+}
+
+// ===========================================================================
+// Halacha topics (mark id: 'halacha')
+// ===========================================================================
+
+export interface Ruling {
+  ref: string;
+  summary: string;
+}
+
+export interface HalachaTopic {
+  topic: string;
+  topicHe?: string;
+  excerpt?: string;
+  rulings: {
+    mishnehTorah?: Ruling;
+    shulchanAruch?: Ruling;
+    rema?: Ruling;
+  };
+}
+
+export interface HalachaResult {
+  topics: HalachaTopic[];
+  _cached?: boolean;
+  _model?: string;
+  error?: string;
+}
+
+// ===========================================================================
+// Aggadata stories (mark id: 'aggadata')
+// ===========================================================================
+
+export interface AggadataStory {
+  title: string;
+  titleHe?: string;
+  summary: string;
+  excerpt: string;
+  endExcerpt?: string;
+  theme?: string;
+}
+
+export interface AggadataResult {
+  stories: AggadataStory[];
+  _cached?: boolean;
+  _model?: string;
+  error?: string;
+}
+
+// ===========================================================================
+// Pesukim citations (mark id: 'pesukim')
+// ===========================================================================
+
+export interface PasukSynthesize {
+  explanation: string;
+  groundedIn?: string[];
+}
+
+export interface Pasuk {
+  verseRef: string;
+  verseHe?: string;
+  citationMarker?: string;
+  citationStyle?: 'explicit' | 'allusion' | 'paraphrase';
+  excerpt: string;
+  endExcerpt?: string;
+  startSegIdx?: number;
+  endSegIdx?: number;
+  /** Word offsets within startSegIdx / endSegIdx for sub-segment-precise
+   *  highlighting. Set by the worker's postProcessPesukim when it locates
+   *  the verbatim excerpt in the gemara. Absent → highlight falls back to
+   *  whole-segment behaviour. */
+  tokenStart?: number;
+  tokenEnd?: number;
+  summary: string;
+  synthesize?: PasukSynthesize;
+}
+
+export interface PesukimResult {
+  pesukim: Pasuk[];
+  _cached?: boolean;
+  _model?: string;
+  error?: string;
+}

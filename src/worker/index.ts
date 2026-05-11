@@ -101,6 +101,25 @@ interface Bindings {
   CLOUDFLARE_ACCOUNT_ID?: string;
   OPENROUTER_GATEWAY_PROVIDER?: string;
   DEFAULT_LLM_MODEL?: string;
+  // Enrichment job queue — see wrangler.toml + queue handler at the bottom
+  // of this file. /api/studio/run enqueues a JobMessage; the queue consumer
+  // runs the LLM chain and writes the result to KV under `job:{runId}`.
+  ENRICHMENT_QUEUE?: Queue<JobMessage>;
+}
+
+// Message shape on the enrichment queue. Carries everything the consumer
+// needs to recreate the run-handler context: which mark/enrichment to run,
+// the daf, optional mark_input + model_override + bypass_cache.
+interface JobMessage {
+  runId: string;
+  mark_id?: string;
+  enrichment_id?: string;
+  ad_hoc?: unknown;
+  tractate: string;
+  page: string;
+  model_override?: string;
+  mark_input?: unknown;
+  bypass_cache?: boolean;
 }
 
 function stripHtmlServer(html: string): string {
@@ -781,9 +800,13 @@ async function runMarkOnce(
   }
   // Per-mark post-processing. Some extractors (notably argument-move) can't
   // reliably emit segment indices for sub-ranges, so we re-derive them from
-  // the verbatim Hebrew excerpt the LLM IS good at copying.
+  // the verbatim Hebrew excerpt the LLM IS good at copying. Also computes
+  // token (word) offsets within the matched segment so the highlight painter
+  // can paint exactly the move/citation, not the whole containing segment.
   if (parsed && def.id === 'argument-move') {
     parsed = await postProcessArgumentMove(parsed, rc.env, tractate, page);
+  } else if (parsed && def.id === 'pesukim') {
+    parsed = await postProcessPesukim(parsed, rc.env, tractate, page);
   }
   const out: RunResult = {
     content: result.content,
@@ -863,54 +886,339 @@ async function postProcessArgumentMove(
   const normalize = (s: string) =>
     s.replace(/[֑-ׇ]/g, '')   // strip nikud + cantillation
       .replace(/[׳״"'.,:;!?\-–—()[\]{}]/g, '')
+      .replace(/[​-‏‪-‮﻿]/g, '')  // bidi/zero-width
       .replace(/\s+/g, ' ')
       .trim();
   const segNorms = segs.map(normalize);
+  // Tokenize each segment by whitespace AFTER normalization. The .daf-word
+  // spans on the client are split the same way, so word-index N in segWords
+  // corresponds to the (N+1)th .daf-word[data-seg=segIdx] in DOM order.
+  const segWords = segNorms.map((s) => s.split(' ').filter(Boolean));
 
-  type Move = { startSegIdx: number; endSegIdx: number; fields: { sectionStartSegIdx: number; sectionEndSegIdx: number; moveOrder: number; excerpt: string; [k: string]: unknown } };
-  const instances = obj.instances as Move[];
-
-  // Pass 1: locate each move's startSegIdx by excerpt search. Search after
-  // the previous move's match within the same section so partition ordering
-  // is preserved when multiple moves share verbatim phrasing.
-  let lastSection = -1;
-  let searchFrom = 0;
-  for (const inst of instances) {
-    if (!inst || typeof inst !== 'object') continue;
-    const f = inst.fields ?? {};
-    const sStart = typeof f.sectionStartSegIdx === 'number' ? f.sectionStartSegIdx : 0;
-    if (sStart !== lastSection) { lastSection = sStart; searchFrom = sStart; }
-    const ex = typeof f.excerpt === 'string' ? normalize(f.excerpt) : '';
-    if (!ex) continue;
-    let found = -1;
-    for (let i = searchFrom; i < segNorms.length; i++) {
-      if (segNorms[i].includes(ex)) { found = i; break; }
-    }
-    if (found < 0) {
-      // Fallback: search from section start without the searchFrom cursor
-      // (prev move's match might have been at the wrong position).
-      for (let i = sStart; i <= (typeof f.sectionEndSegIdx === 'number' ? f.sectionEndSegIdx : segNorms.length - 1); i++) {
-        if (segNorms[i].includes(ex)) { found = i; break; }
+  // Try matching the full normalized excerpt, then progressively shorter
+  // prefixes. Returns segIdx + the word index within that segment where
+  // the match starts (-1, -1 if no match). The LLM sometimes paraphrases
+  // or trims the excerpt slightly, and a 2-3 word prefix is usually enough
+  // to disambiguate within a section's range.
+  const findExcerpt = (excerpt: string, fromIdx: number, toIdx: number): { seg: number; tokenStart: number; matchLen: number } => {
+    const ex = normalize(excerpt);
+    if (!ex) return { seg: -1, tokenStart: -1, matchLen: 0 };
+    const exWords = ex.split(' ').filter(Boolean);
+    const tries: string[][] = [exWords];
+    if (exWords.length > 4) tries.push(exWords.slice(0, 4));
+    if (exWords.length > 3) tries.push(exWords.slice(0, 3));
+    if (exWords.length > 2) tries.push(exWords.slice(0, 2));
+    for (const needle of tries) {
+      // Reject 1-word needles — too ambiguous to disambiguate moves.
+      if (needle.length < 2) continue;
+      const needleStr = needle.join(' ');
+      for (let i = fromIdx; i <= toIdx && i < segNorms.length; i++) {
+        if (!segNorms[i].includes(needleStr)) continue;
+        // Found in this seg — locate which word it starts at.
+        const words = segWords[i];
+        for (let w = 0; w + needle.length <= words.length; w++) {
+          let ok = true;
+          for (let k = 0; k < needle.length; k++) {
+            if (words[w + k] !== needle[k]) { ok = false; break; }
+          }
+          if (ok) return { seg: i, tokenStart: w, matchLen: exWords.length };
+        }
+        // String matched but word-aligned didn't (mid-word substring); use
+        // word 0 as a soft fallback.
+        return { seg: i, tokenStart: 0, matchLen: exWords.length };
       }
     }
-    if (found >= 0) {
-      inst.startSegIdx = found;
-      searchFrom = found + 1;
+    return { seg: -1, tokenStart: -1, matchLen: 0 };
+  };
+
+  type Move = {
+    startSegIdx: number;
+    endSegIdx: number;
+    fields: {
+      sectionStartSegIdx: number;
+      sectionEndSegIdx: number;
+      moveOrder: number;
+      excerpt: string;
+      tokenStart?: number;
+      tokenEnd?: number;
+      [k: string]: unknown;
+    };
+  };
+  const instances = obj.instances as Move[];
+
+  // Pass 1: locate each move's startSegIdx + tokenStart by excerpt search.
+  // Search after the previous move's match within the same section so
+  // partition ordering is preserved when multiple moves share verbatim
+  // phrasing. Tracks per section the last-matched (seg, token) as a
+  // per-move fallback when nothing is found at all (so moves don't overlap
+  // with their predecessors).
+  let lastSection = -1;
+  let searchFromSeg = 0;
+  let prevMatchSeg = -1;
+  let prevMatchTok = -1;
+  for (const inst of instances) {
+    if (!inst || typeof inst !== 'object') continue;
+    const f = inst.fields ?? ({} as Move['fields']);
+    const sStart = typeof f.sectionStartSegIdx === 'number' ? f.sectionStartSegIdx : 0;
+    const sEnd = typeof f.sectionEndSegIdx === 'number' ? f.sectionEndSegIdx : segNorms.length - 1;
+    if (sStart !== lastSection) {
+      lastSection = sStart;
+      searchFromSeg = sStart;
+      prevMatchSeg = -1;
+      prevMatchTok = -1;
     }
+    const excerpt = typeof f.excerpt === 'string' ? f.excerpt : '';
+    // Try after-cursor first (preserves partition order), then full section.
+    let m = findExcerpt(excerpt, searchFromSeg, sEnd);
+    if (m.seg < 0) m = findExcerpt(excerpt, sStart, sEnd);
+    if (m.seg < 0) {
+      // No match anywhere. Best-effort placement: bump one segment past the
+      // previous match in this section so moves don't all collapse onto
+      // the same start. Clamp to section bounds.
+      const fallbackSeg = prevMatchSeg >= 0
+        ? Math.min(prevMatchSeg + 1, sEnd)
+        : sStart;
+      inst.startSegIdx = fallbackSeg;
+      f.tokenStart = 0;
+      searchFromSeg = fallbackSeg + 1;
+      prevMatchSeg = fallbackSeg;
+      prevMatchTok = 0;
+    } else {
+      inst.startSegIdx = m.seg;
+      f.tokenStart = m.tokenStart;
+      searchFromSeg = m.seg + 1;
+      prevMatchSeg = m.seg;
+      prevMatchTok = m.tokenStart;
+    }
+    // Keep f attached (TS narrowing nuance — assignment via inst.fields = f
+    // matters when fields was undefined initially).
+    inst.fields = f;
   }
 
-  // Pass 2: derive endSegIdx from the next move's startSegIdx within the
-  // same section, or the section's endSegIdx for the last move.
+  // Pass 2: derive endSegIdx + tokenEnd from the next move's start. Within
+  // a section: if the next move is in the same segment, tokenEnd is the
+  // word right before the next move's tokenStart. If the next move is in
+  // a later segment, tokenEnd is the last word of THIS move's segment
+  // (the move spans to the end of its starting segment, not into the next
+  // — moves rarely span segment boundaries inside a section's prose, and
+  // this matches what the click-highlight should paint).
   for (let i = 0; i < instances.length; i++) {
     const cur = instances[i];
     if (!cur) continue;
+    const sStart = typeof cur.fields?.sectionStartSegIdx === 'number' ? cur.fields.sectionStartSegIdx : cur.startSegIdx;
     const sEnd = typeof cur.fields?.sectionEndSegIdx === 'number' ? cur.fields.sectionEndSegIdx : cur.startSegIdx;
+    if (cur.startSegIdx < sStart) cur.startSegIdx = sStart;
+    if (cur.startSegIdx > sEnd) cur.startSegIdx = sEnd;
     const next = instances[i + 1];
     const nextInSameSection = next && next.fields?.sectionStartSegIdx === cur.fields?.sectionStartSegIdx;
-    cur.endSegIdx = nextInSameSection ? Math.max(cur.startSegIdx, next.startSegIdx - 1) : sEnd;
+    if (nextInSameSection && next.startSegIdx === cur.startSegIdx) {
+      // Same-segment neighbor — bound by its tokenStart.
+      cur.endSegIdx = cur.startSegIdx;
+      const nextTok = typeof next.fields?.tokenStart === 'number' ? next.fields.tokenStart : segWords[cur.startSegIdx].length;
+      const tokStart = typeof cur.fields?.tokenStart === 'number' ? cur.fields.tokenStart : 0;
+      cur.fields.tokenEnd = Math.max(tokStart, nextTok - 1);
+    } else if (nextInSameSection) {
+      // Next move is in a later segment — span to the end of THIS segment.
+      cur.endSegIdx = Math.max(cur.startSegIdx, next.startSegIdx - 1);
+      const wordsInLast = segWords[cur.endSegIdx]?.length ?? 0;
+      cur.fields.tokenEnd = Math.max(0, wordsInLast - 1);
+    } else {
+      // Last move in section — span to section's end seg + last word.
+      cur.endSegIdx = sEnd;
+      const wordsInLast = segWords[cur.endSegIdx]?.length ?? 0;
+      cur.fields.tokenEnd = Math.max(0, wordsInLast - 1);
+    }
     if (cur.endSegIdx < cur.startSegIdx) cur.endSegIdx = cur.startSegIdx;
+    if (cur.endSegIdx > sEnd) cur.endSegIdx = sEnd;
   }
 
+  return obj;
+}
+
+/**
+ * Post-process pesukim mark output: assign tokenStart/tokenEnd to each
+ * citation so the click-highlight paints exactly the cited verse phrase
+ * inside its segment, not the whole segment. The pasuk excerpt IS the
+ * full citation text, so tokenEnd = tokenStart + wordCount - 1 cleanly.
+ *
+ * Same multi-prefix matcher as argument-move; same fallback if matching
+ * fails (leave whatever the LLM emitted alone — the seg-range will at
+ * least be inside the daf).
+ */
+async function postProcessPesukim(
+  parsed: unknown,
+  env: Bindings,
+  tractate: string,
+  page: string,
+): Promise<unknown> {
+  if (!parsed || typeof parsed !== 'object') return parsed;
+  const obj = parsed as { instances?: unknown };
+  if (!Array.isArray(obj.instances)) return parsed;
+
+  const slice = await getGemaraSlice(env, tractate, page, false);
+  const segs = slice.segments_he;
+  if (segs.length === 0) return parsed;
+
+  const normalize = (s: string) =>
+    s.replace(/[֑-ׇ]/g, '')
+      .replace(/[׳״"'.,:;!?\-–—()[\]{}]/g, '')
+      .replace(/[​-‏‪-‮﻿]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  const segNorms = segs.map(normalize);
+  const segWords = segNorms.map((s) => s.split(' ').filter(Boolean));
+
+  type Pasuk = {
+    startSegIdx: number;
+    endSegIdx: number;
+    fields: { excerpt?: string; tokenStart?: number; tokenEnd?: number; [k: string]: unknown };
+  };
+  const instances = obj.instances as Pasuk[];
+
+  for (const inst of instances) {
+    if (!inst || typeof inst !== 'object') continue;
+    const f = inst.fields ?? ({} as Pasuk['fields']);
+    const ex = normalize(typeof f.excerpt === 'string' ? f.excerpt : '');
+    if (!ex) { inst.fields = f; continue; }
+    const exWords = ex.split(' ').filter(Boolean);
+    if (exWords.length === 0) { inst.fields = f; continue; }
+
+    // Try the full excerpt first, then 4/3/2-word prefixes. Search the
+    // whole daf since the LLM-emitted seg range may be wrong.
+    const tries: string[][] = [exWords];
+    if (exWords.length > 4) tries.push(exWords.slice(0, 4));
+    if (exWords.length > 3) tries.push(exWords.slice(0, 3));
+    if (exWords.length > 2) tries.push(exWords.slice(0, 2));
+
+    let foundSeg = -1;
+    let foundTok = -1;
+    let foundLen = 0;
+    outer: for (const needle of tries) {
+      if (needle.length < 2) continue;
+      const needleStr = needle.join(' ');
+      for (let i = 0; i < segNorms.length; i++) {
+        if (!segNorms[i].includes(needleStr)) continue;
+        const words = segWords[i];
+        for (let w = 0; w + needle.length <= words.length; w++) {
+          let ok = true;
+          for (let k = 0; k < needle.length; k++) {
+            if (words[w + k] !== needle[k]) { ok = false; break; }
+          }
+          if (ok) {
+            foundSeg = i; foundTok = w; foundLen = needle.length;
+            break outer;
+          }
+        }
+        // Soft fallback: string matched but not word-aligned.
+        foundSeg = i; foundTok = 0; foundLen = needle.length;
+        break outer;
+      }
+    }
+
+    if (foundSeg >= 0) {
+      inst.startSegIdx = foundSeg;
+      // The pasuk is normally a phrase that fits inside one segment. End
+      // at the matched-prefix's last word — tokenEnd is inclusive.
+      f.tokenStart = foundTok;
+      f.tokenEnd = foundTok + foundLen - 1;
+      // Citations rarely cross seg boundaries; if the LLM said end > start,
+      // trust the LLM's endSegIdx but clamp tokenEnd to that segment's
+      // last word.
+      if (typeof inst.endSegIdx === 'number' && inst.endSegIdx > foundSeg) {
+        const lastSegWords = segWords[inst.endSegIdx]?.length ?? 0;
+        f.tokenEnd = Math.max(0, lastSegWords - 1);
+      } else {
+        inst.endSegIdx = foundSeg;
+      }
+    }
+    inst.fields = f;
+  }
+  return obj;
+}
+
+/**
+ * Post-process the two rabbi-evidence enrichments. Each `evidence` entry
+ * has a verbatim Hebrew `excerpt`; this resolves it to (startSegIdx,
+ * endSegIdx, tokenStart, tokenEnd) so the sidebar can call
+ * onHighlightRange with the right values when the user clicks an evidence
+ * row. Entries with no match are kept (so the user still sees the note +
+ * place name) but with seg/token fields absent.
+ */
+async function postProcessRabbiEvidence(
+  parsed: unknown,
+  env: Bindings,
+  tractate: string,
+  page: string,
+): Promise<unknown> {
+  if (!parsed || typeof parsed !== 'object') return parsed;
+  const obj = parsed as { evidence?: unknown };
+  if (!Array.isArray(obj.evidence)) return parsed;
+
+  const slice = await getGemaraSlice(env, tractate, page, false);
+  const segs = slice.segments_he;
+  if (segs.length === 0) return parsed;
+
+  const normalize = (s: string) =>
+    s.replace(/[֑-ׇ]/g, '')
+      .replace(/[׳״"'.,:;!?\-–—()[\]{}]/g, '')
+      .replace(/[​-‏‪-‮﻿]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  const segNorms = segs.map(normalize);
+  const segWords = segNorms.map((s) => s.split(' ').filter(Boolean));
+
+  type Evidence = {
+    excerpt?: string;
+    startSegIdx?: number;
+    endSegIdx?: number;
+    tokenStart?: number;
+    tokenEnd?: number;
+    [k: string]: unknown;
+  };
+  const entries = obj.evidence as Evidence[];
+  for (const e of entries) {
+    if (!e || typeof e !== 'object') continue;
+    const ex = normalize(typeof e.excerpt === 'string' ? e.excerpt : '');
+    if (!ex) continue;
+    const exWords = ex.split(' ').filter(Boolean);
+    if (exWords.length === 0) continue;
+
+    const tries: string[][] = [exWords];
+    if (exWords.length > 4) tries.push(exWords.slice(0, 4));
+    if (exWords.length > 3) tries.push(exWords.slice(0, 3));
+    if (exWords.length > 2) tries.push(exWords.slice(0, 2));
+
+    let foundSeg = -1;
+    let foundTok = -1;
+    let foundLen = 0;
+    outer: for (const needle of tries) {
+      if (needle.length < 2) continue;
+      const needleStr = needle.join(' ');
+      for (let i = 0; i < segNorms.length; i++) {
+        if (!segNorms[i].includes(needleStr)) continue;
+        const words = segWords[i];
+        for (let w = 0; w + needle.length <= words.length; w++) {
+          let ok = true;
+          for (let k = 0; k < needle.length; k++) {
+            if (words[w + k] !== needle[k]) { ok = false; break; }
+          }
+          if (ok) {
+            foundSeg = i; foundTok = w; foundLen = needle.length;
+            break outer;
+          }
+        }
+        foundSeg = i; foundTok = 0; foundLen = needle.length;
+        break outer;
+      }
+    }
+
+    if (foundSeg >= 0) {
+      e.startSegIdx = foundSeg;
+      e.endSegIdx = foundSeg;
+      e.tokenStart = foundTok;
+      e.tokenEnd = foundTok + foundLen - 1;
+    }
+  }
   return obj;
 }
 
@@ -971,6 +1279,13 @@ async function runEnrichmentOnce(
     try { parsed = JSON.parse(result.content); }
     catch (err) { parse_error = String(err).slice(0, 200); }
   }
+  // Per-enrichment post-processing. Evidence enrichments emit verbatim
+  // Hebrew excerpts that need to be resolved to (startSegIdx, endSegIdx,
+  // tokenStart, tokenEnd) on the server so the sidebar can paint click-
+  // to-highlight ranges without re-walking the daf on the client.
+  if (parsed && (def.id === 'rabbi.relationships.evidence' || def.id === 'rabbi.geography.evidence')) {
+    parsed = await postProcessRabbiEvidence(parsed, rc.env, tractate, page);
+  }
   const out: RunResultEnrichment = {
     content: result.content,
     reasoning: result.reasoning_content || undefined,
@@ -1008,96 +1323,128 @@ async function runEnrichmentOnce(
  *
  * Exactly one of mark_id / enrichment_id / ad_hoc is required.
  */
+/**
+ * Compute the canonical KV cache key for a run-handler body. Returns null
+ * when the body doesn't have enough info to compute one (e.g. ad-hoc with
+ * no id). Used both in the producer (cache check before enqueuing) and the
+ * consumer (write-through after running).
+ */
+async function cacheKeyForRunBody(env: Bindings, body: JobMessage): Promise<{
+  key: string | null;
+  defKind: 'mark' | 'enrichment' | null;
+}> {
+  if (body.mark_id) {
+    const def = await loadMarkDef(env, body.mark_id);
+    if (!def) return { key: null, defKind: null };
+    return { key: keyForMark(def, body.tractate, body.page), defKind: 'mark' };
+  }
+  if (body.enrichment_id) {
+    const def = await loadEnrichmentDef(env, body.enrichment_id);
+    if (!def) return { key: null, defKind: null };
+    const instance_id = await instanceIdOf(body.mark_input);
+    const dafForKey = def.scope === 'local' ? { tractate: body.tractate, page: body.page } : undefined;
+    return { key: keyForEnrichment(def, instance_id, dafForKey), defKind: 'enrichment' };
+  }
+  // ad_hoc has no canonical key
+  return { key: null, defKind: null };
+}
+
+/**
+ * Deterministic short id for a run request. Combines mark/enrichment id +
+ * tractate/page + instance hash + timestamp to make polling-friendly ids.
+ * Same params + same minute → same id (within reason), so retries don't
+ * stampede the queue.
+ */
+async function makeRunId(body: JobMessage): Promise<string> {
+  const parts = [
+    body.mark_id ?? body.enrichment_id ?? 'adhoc',
+    body.tractate, body.page,
+    await instanceIdOf(body.mark_input),
+    body.bypass_cache ? 'fresh' : 'cached',
+    String(Math.floor(Date.now() / 1000)),
+  ];
+  return parts.join(':').replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
+}
+
+/**
+ * POST /api/studio/run — async producer.
+ *
+ * 1. Validate body.
+ * 2. Compute the canonical cache key. If KV has a fresh result and the
+ *    request didn't ask for bypass_cache, return 200 with the cached result
+ *    immediately (this is the hot path).
+ * 3. Otherwise enqueue a JobMessage and return 202 with `{ status: 'pending',
+ *    runId, cacheKey }`. The client polls /api/studio/run-status/:runId.
+ *
+ * The producer invocation is short-lived: it never holds the request open
+ * while an LLM call runs. The queue consumer (queue() handler at the bottom
+ * of this file) does the heavy work in its own invocation and writes the
+ * result to KV under `job:{runId}` AND the canonical cache key.
+ */
 app.post('/api/studio/run', async (c) => {
-  let body: {
-    mark_id?: string;
-    enrichment_id?: string;
-    ad_hoc?: unknown;
-    tractate?: string;
-    page?: string;
-    model_override?: string;
-    mark_input?: unknown;
-    bypass_cache?: boolean;
-  };
-  try { body = await c.req.json(); } catch { return c.json({ error: 'invalid JSON' }, 400); }
-  const { tractate, page, model_override, mark_input } = body;
-  if (!tractate || !page) return c.json({ error: 'tractate and page required' }, 400);
-  if (model_override && !isLLMModelId(model_override)) {
+  let raw: unknown;
+  try { raw = await c.req.json(); }
+  catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const body = raw as Partial<JobMessage>;
+  if (!body.tractate || !body.page) return c.json({ error: 'tractate and page required' }, 400);
+  if (body.model_override && !isLLMModelId(body.model_override)) {
     return c.json({ error: 'model_override must start with @cf/ or openrouter/' }, 400);
   }
-  const bypass = body.bypass_cache === true;
-  const rc: RunCtx = { env: c.env, url: c.req.url, ctx: c.executionCtx };
-  const t0 = Date.now();
+  if (!body.mark_id && !body.enrichment_id && !body.ad_hoc) {
+    return c.json({ error: 'mark_id, enrichment_id, or ad_hoc required' }, 400);
+  }
+  const job: JobMessage = {
+    runId: '',  // assigned below
+    mark_id: body.mark_id,
+    enrichment_id: body.enrichment_id,
+    ad_hoc: body.ad_hoc,
+    tractate: body.tractate,
+    page: body.page,
+    model_override: body.model_override,
+    mark_input: body.mark_input,
+    bypass_cache: body.bypass_cache === true,
+  };
 
-  if (body.mark_id) {
-    const def = await loadMarkDef(c.env, body.mark_id);
-    if (!def) return c.json({ error: `mark ${body.mark_id} not found` }, 404);
-    try {
-      const result = await runMarkOnce(rc, def, tractate, page, bypass);
-      recordTelemetry(c, {
-        endpoint: 'studio-mark', tractate, page, mark_id: body.mark_id,
-        cache_hit: result.cache_hit, model: result.model,
-        ms: Date.now() - t0, ok: true,
-      });
-      return c.json({
-        kind: 'mark',
-        ...result,
-        definition: def,
-        total_ms: Date.now() - t0,
-      });
-    } catch (err) {
-      const msg = String((err as Error)?.message ?? err);
-      recordTelemetry(c, {
-        endpoint: 'studio-mark', tractate, page, mark_id: body.mark_id,
-        cache_hit: false, ms: Date.now() - t0, ok: false, error_kind: classifyError(msg),
-      });
-      return c.json({
-        error: msg,
-        definition: def,
-        total_ms: Date.now() - t0,
-      }, 502);
+  // Hot path: canonical cache hit short-circuits the queue entirely.
+  if (!job.bypass_cache) {
+    const { key } = await cacheKeyForRunBody(c.env, job);
+    if (key && c.env.CACHE) {
+      const cached = await c.env.CACHE.get(key);
+      if (cached) {
+        try {
+          const result = JSON.parse(cached) as RunResult;
+          // total_ms isn't stored in the cached payload (only added at run
+          // exit), so inject it on cache-hits — the panel renders it as the
+          // run badge and shows "undefinedms" otherwise.
+          return c.json({ status: 'ok', result: { ...result, cache_hit: true, total_ms: 0 } });
+        } catch { /* corrupt cache; fall through to enqueue */ }
+      }
     }
   }
 
-  let def: EnrichmentDefinition | null = null;
-  if (body.enrichment_id) {
-    def = await loadEnrichmentDef(c.env, body.enrichment_id);
-    if (!def) return c.json({ error: `enrichment ${body.enrichment_id} not found` }, 404);
-  } else if (body.ad_hoc) {
-    const v = validateEnrichment({ ...(body.ad_hoc as object), id: 'ad-hoc' });
-    if (!v.ok) return c.json({ error: `ad_hoc invalid: ${v.error}` }, 400);
-    def = { ...v.spec, source: 'kv', updated_at: new Date().toISOString() };
-  } else {
-    return c.json({ error: 'mark_id, enrichment_id, or ad_hoc required' }, 400);
+  if (!c.env.ENRICHMENT_QUEUE) {
+    return c.json({ error: 'ENRICHMENT_QUEUE binding not available' }, 503);
   }
+  job.runId = await makeRunId(job);
+  await c.env.ENRICHMENT_QUEUE.send(job);
+  return c.json({ status: 'pending', runId: job.runId }, 202);
+});
 
+/**
+ * GET /api/studio/run-status/:runId — polling endpoint for queued jobs.
+ * Reads `job:{runId}` from KV. While the job is still running, returns 202
+ * with `{ status: 'pending' }`. When done, returns 200 with the result.
+ */
+app.get('/api/studio/run-status/:runId', async (c) => {
+  const runId = c.req.param('runId');
+  const cache = c.env.CACHE;
+  if (!cache) return c.json({ error: 'CACHE binding not available' }, 503);
+  const raw = await cache.get(`job:${runId}`);
+  if (!raw) return c.json({ status: 'pending' }, 202);
   try {
-    const result = await runEnrichmentOnce(
-      rc, def, tractate, page, mark_input, bypass,
-      model_override as LLMModelId | undefined,
-    );
-    recordTelemetry(c, {
-      endpoint: 'studio-enrichment', tractate, page, enrichment_id: def.id,
-      cache_hit: result.cache_hit, model: result.model,
-      ms: Date.now() - t0, ok: true,
-    });
-    return c.json({
-      kind: 'enrichment',
-      ...result,
-      definition: def,
-      total_ms: Date.now() - t0,
-    });
-  } catch (err) {
-    const msg = String((err as Error)?.message ?? err);
-    recordTelemetry(c, {
-      endpoint: 'studio-enrichment', tractate, page, enrichment_id: def.id,
-      cache_hit: false, ms: Date.now() - t0, ok: false, error_kind: classifyError(msg),
-    });
-    return c.json({
-      error: msg,
-      definition: def,
-      total_ms: Date.now() - t0,
-    }, 502);
+    return c.json(JSON.parse(raw));
+  } catch {
+    return c.json({ status: 'error', error: 'corrupt job record' }, 500);
   }
 });
 
@@ -5287,6 +5634,84 @@ app.get('/api/enrich-rabbi-bio/:tractate/:page/:slug', async (c) => {
 
 const YOMI_WARM_CRON = '0 3 * * *';
 
+/**
+ * Run one queued enrichment job: replay the same logic the synchronous
+ * /api/studio/run handler used to do, but write the outcome under
+ * `job:{runId}` (for client polling) AND the canonical cache key (so a
+ * future direct request hits the cached result without round-tripping the
+ * queue).
+ *
+ * Errors are caught and recorded as `{ status: 'error', error }` rather
+ * than rethrown — we don't want the queue to retry indefinitely on a real
+ * failure (max_retries=1 in wrangler.toml is the safety net).
+ */
+async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: ExecutionContext): Promise<void> {
+  const wrapped = wrapEnv(env);
+  const cache = wrapped.CACHE;
+  if (!cache) return;
+  const jobKey = `job:${job.runId}`;
+  // Synthesize a RunCtx; the queue consumer doesn't have a real Request, so
+  // we use the worker's own origin for any internal self-fetches.
+  const rc: RunCtx = {
+    env: wrapped,
+    url: 'https://localhost/internal',
+    ctx,
+  };
+  const t0 = Date.now();
+
+  const writeResult = (payload: unknown) =>
+    cache.put(jobKey, JSON.stringify(payload), { expirationTtl: 3600 });
+
+  try {
+    if (job.mark_id) {
+      const def = await loadMarkDef(wrapped, job.mark_id);
+      if (!def) {
+        await writeResult({ status: 'error', error: `mark ${job.mark_id} not found` });
+        return;
+      }
+      const result = await runMarkOnce(rc, def, job.tractate, job.page, job.bypass_cache === true);
+      await writeResult({
+        status: 'ok',
+        result: { kind: 'mark', ...result, definition: def, total_ms: Date.now() - t0 },
+      });
+      return;
+    }
+    let def: EnrichmentDefinition | null = null;
+    if (job.enrichment_id) {
+      def = await loadEnrichmentDef(wrapped, job.enrichment_id);
+      if (!def) {
+        await writeResult({ status: 'error', error: `enrichment ${job.enrichment_id} not found` });
+        return;
+      }
+    } else if (job.ad_hoc) {
+      const v = validateEnrichment({ ...(job.ad_hoc as object), id: 'ad-hoc' });
+      if (!v.ok) {
+        await writeResult({ status: 'error', error: `ad_hoc invalid: ${v.error}` });
+        return;
+      }
+      def = { ...v.spec, source: 'kv', updated_at: new Date().toISOString() };
+    } else {
+      await writeResult({ status: 'error', error: 'mark_id, enrichment_id, or ad_hoc required' });
+      return;
+    }
+    const result = await runEnrichmentOnce(
+      rc, def, job.tractate, job.page, job.mark_input,
+      job.bypass_cache === true,
+      job.model_override as LLMModelId | undefined,
+    );
+    await writeResult({
+      status: 'ok',
+      result: { kind: 'enrichment', ...result, definition: def, total_ms: Date.now() - t0 },
+    });
+  } catch (err) {
+    await writeResult({
+      status: 'error',
+      error: String((err as Error)?.message ?? err),
+      total_ms: Date.now() - t0,
+    });
+  }
+}
+
 export default {
   fetch: (req: Request, env: Bindings, ctx: ExecutionContext) => app.fetch(req, wrapEnv(env), ctx),
   scheduled: (controller: ScheduledController, env: Bindings, ctx: ExecutionContext) => {
@@ -5297,4 +5722,21 @@ export default {
       ctx.waitUntil(runWarmCron(wrapped));
     }
   },
-} satisfies ExportedHandler<Bindings>;
+  // Queue consumer — wrangler.toml binds queue=enrichment-jobs to this
+  // export. Each message is one /api/studio/run job. max_concurrency=2 caps
+  // simultaneous LLM workloads; max_batch_size=1 means one job per
+  // invocation (no batching), which keeps memory bounded per worker.
+  queue: async (batch: MessageBatch<JobMessage>, env: Bindings, ctx: ExecutionContext): Promise<void> => {
+    for (const msg of batch.messages) {
+      try {
+        await processEnrichmentJob(env, msg.body, ctx);
+        msg.ack();
+      } catch (err) {
+        // Network / KV blip — let the runtime retry once (max_retries=1).
+        // eslint-disable-next-line no-console
+        console.error('[queue] processEnrichmentJob threw:', err);
+        msg.retry();
+      }
+    }
+  },
+} satisfies ExportedHandler<Bindings, JobMessage>;

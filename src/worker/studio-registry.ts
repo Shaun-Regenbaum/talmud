@@ -4,23 +4,31 @@
  * shape — each entry is a JSON document keyed by its `id` under a versioned
  * prefix:
  *
- *   mark-defs:v1:{id}        — MarkDefinition
- *   enrichment-defs:v1:{id}  — EnrichmentDefinition
+ *   mark-defs:v2:{id}        — MarkDefinition
+ *   enrichment-defs:v2:{id}  — EnrichmentDefinition
  *
  * KV-defined entries are runtime-mutable (UI writes them) and survive across
- * deploys. Phase 5 will add a code-defined layer (`src/lib/marks/*.ts`) and a
- * resolve() function that merges the two; for now we only have KV.
+ * deploys. Code-defined entries live in src/worker/code-marks.ts; the run
+ * handler reads from KV first, then falls back to code. KV wins on collision.
  *
  * Why a single shared module: marks and enrichments differ only in field
  * names; one parameterized reader/writer is half the code and avoids drift.
+ *
+ * v2 prefix bump: schema gained `scope` (enrichments) and `dependencies`
+ * (both). Old v1 entries are unreachable on purpose.
  */
 
 import type { LLMModelId } from './llm';
+import type {
+  EnrichmentScope,
+  MarkDependency,
+  EnrichmentDependency,
+} from './studio-schema';
 
-const MARK_PREFIX = 'mark-defs:v1:';
-const ENRICHMENT_PREFIX = 'enrichment-defs:v1:';
-const INDEX_KEY_MARKS = 'mark-defs:v1:_index';
-const INDEX_KEY_ENRICHMENTS = 'enrichment-defs:v1:_index';
+const MARK_PREFIX = 'mark-defs:v2:';
+const ENRICHMENT_PREFIX = 'enrichment-defs:v2:';
+const INDEX_KEY_MARKS = 'mark-defs:v2:_index';
+const INDEX_KEY_ENRICHMENTS = 'enrichment-defs:v2:_index';
 
 export type ExtractorKind = 'llm' | 'sefaria' | 'identity';
 
@@ -34,6 +42,8 @@ export interface MarkDefinition {
   user_prompt_template?: string;
   /** Optional JSON schema for the per-mark fields. */
   fields_schema?: unknown;
+  /** Declared inputs (gemara/commentaries/other marks). See studio-schema.ts. */
+  dependencies?: MarkDependency[];
   /** Bump to invalidate cached extractions for this mark. */
   cache_version: string;
   source: 'kv' | 'code';
@@ -47,8 +57,11 @@ export interface EnrichmentDefinition {
   /** Which mark this enrichment runs against. 'daf' = the entire daf as a
    *  single implicit mark; matches the 'identity' mark extractor. */
   mark: string;
-  /** Other enrichment IDs whose outputs this one consumes (synthesis pattern). */
-  depends?: string[];
+  /** Cacheability axis: 'global' (same regardless of daf) | 'local' (per-daf). */
+  scope: EnrichmentScope;
+  /** Declared inputs (gemara/commentaries/other enrichments/other marks).
+   *  The runner walks this array and exposes each entry as a template var. */
+  dependencies?: EnrichmentDependency[];
   system_prompt: string;
   user_prompt_template: string;
   /** Optional override; falls back to settings.defaultModel. */
@@ -163,6 +176,36 @@ export function validateId(id: unknown): id is string {
   return typeof id === 'string' && id.length > 0 && id.length <= 64 && ID_RE.test(id);
 }
 
+function validateMarkDependencies(input: unknown): { ok: true; deps: MarkDependency[] | undefined } | { ok: false; error: string } {
+  if (input === undefined) return { ok: true, deps: undefined };
+  if (!Array.isArray(input)) return { ok: false, error: 'dependencies must be an array' };
+  const out: MarkDependency[] = [];
+  for (const e of input) {
+    if (e === 'gemara' || e === 'commentaries') { out.push(e); continue; }
+    if (e && typeof e === 'object' && typeof (e as { mark?: unknown }).mark === 'string') {
+      out.push({ mark: (e as { mark: string }).mark }); continue;
+    }
+    return { ok: false, error: 'each dep must be "gemara" | "commentaries" | { mark: string }' };
+  }
+  return { ok: true, deps: out };
+}
+
+function validateEnrichmentDependencies(input: unknown): { ok: true; deps: EnrichmentDependency[] | undefined } | { ok: false; error: string } {
+  if (input === undefined) return { ok: true, deps: undefined };
+  if (!Array.isArray(input)) return { ok: false, error: 'dependencies must be an array' };
+  const out: EnrichmentDependency[] = [];
+  for (const e of input) {
+    if (e === 'gemara' || e === 'commentaries') { out.push(e); continue; }
+    if (e && typeof e === 'object') {
+      const o = e as { mark?: unknown; enrichment?: unknown };
+      if (typeof o.mark === 'string') { out.push({ mark: o.mark }); continue; }
+      if (typeof o.enrichment === 'string') { out.push({ enrichment: o.enrichment }); continue; }
+    }
+    return { ok: false, error: 'each dep must be "gemara" | "commentaries" | { mark: string } | { enrichment: string }' };
+  }
+  return { ok: true, deps: out };
+}
+
 export function validateMark(input: unknown): { ok: true; spec: Omit<MarkDefinition, 'source' | 'updated_at'> } | { ok: false; error: string } {
   if (typeof input !== 'object' || input === null) return { ok: false, error: 'expected object' };
   const m = input as Partial<MarkDefinition>;
@@ -175,6 +218,8 @@ export function validateMark(input: unknown): { ok: true; spec: Omit<MarkDefinit
     if (typeof m.system_prompt !== 'string' || !m.system_prompt) return { ok: false, error: 'llm extractor needs system_prompt' };
     if (typeof m.user_prompt_template !== 'string' || !m.user_prompt_template) return { ok: false, error: 'llm extractor needs user_prompt_template' };
   }
+  const dv = validateMarkDependencies(m.dependencies);
+  if (!dv.ok) return dv;
   return {
     ok: true,
     spec: {
@@ -185,6 +230,7 @@ export function validateMark(input: unknown): { ok: true; spec: Omit<MarkDefinit
       system_prompt: typeof m.system_prompt === 'string' ? m.system_prompt : undefined,
       user_prompt_template: typeof m.user_prompt_template === 'string' ? m.user_prompt_template : undefined,
       fields_schema: m.fields_schema,
+      dependencies: dv.deps,
       cache_version: typeof m.cache_version === 'string' ? m.cache_version : '1',
     },
   };
@@ -196,11 +242,11 @@ export function validateEnrichment(input: unknown): { ok: true; spec: Omit<Enric
   if (!validateId(e.id)) return { ok: false, error: 'id required (a-z, 0-9, ._-, max 64)' };
   if (typeof e.label !== 'string' || !e.label) return { ok: false, error: 'label required' };
   if (typeof e.mark !== 'string' || !e.mark) return { ok: false, error: 'mark required' };
+  if (e.scope !== 'global' && e.scope !== 'local') return { ok: false, error: 'scope required (global | local)' };
   if (typeof e.system_prompt !== 'string' || !e.system_prompt) return { ok: false, error: 'system_prompt required' };
   if (typeof e.user_prompt_template !== 'string' || !e.user_prompt_template) return { ok: false, error: 'user_prompt_template required' };
-  if (e.depends !== undefined && (!Array.isArray(e.depends) || !e.depends.every((x) => typeof x === 'string'))) {
-    return { ok: false, error: 'depends must be string[]' };
-  }
+  const dv = validateEnrichmentDependencies(e.dependencies);
+  if (!dv.ok) return dv;
   const model = e.model;
   if (model !== undefined && typeof model !== 'string') return { ok: false, error: 'model must be a string' };
   if (model && !(model.startsWith('@cf/') || model.startsWith('openrouter/'))) {
@@ -213,7 +259,8 @@ export function validateEnrichment(input: unknown): { ok: true; spec: Omit<Enric
       label: e.label,
       description: typeof e.description === 'string' ? e.description : undefined,
       mark: e.mark,
-      depends: e.depends as string[] | undefined,
+      scope: e.scope,
+      dependencies: dv.deps,
       system_prompt: e.system_prompt,
       user_prompt_template: e.user_prompt_template,
       model: model as LLMModelId | undefined,

@@ -14,26 +14,50 @@ directory = "./dist/client"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
 
+# Workers AI binding (env.AI.run('@cf/...')). NOT the same as the AI Gateway
+# URL — the Gateway is a fetch() target hit by src/worker/llm.ts using the
+# OPENROUTER_API_KEY Bearer header, and is what every active LLM call uses.
+# This [ai] binding is a separate runtime binding for direct Workers AI
+# calls. With `remote = true`, miniflare proxies dev calls to the real
+# service which needs a fresh `wrangler login`. The `npm run dev` script
+# pre-flights `wrangler whoami` and warns if login is expired (otherwise
+# any first request to the worker returns "fetch failed" at the
+# miniflare→workerd boundary with no useful cause string).
 [ai]
 binding = "AI"
 remote = true
 
-# Route every Workers AI call through Cloudflare AI Gateway "talmud" for
-# 7-day prompt caching, per-request observability, and wrapper-side retry on
-# 1031/3046 transient failures. Same account as the binding, so no token
-# needed — src/worker/ai-gateway.ts uses the binding's gateway option.
-# Set AI_GATEWAY_DISABLE = "1" as an emergency kill-switch.
+# AI Gateway routing — observability + 7-day prompt caching for every LLM
+# call (OpenRouter + Workers AI when re-enabled). Set AI_GATEWAY_DISABLE = "1"
+# as an emergency kill-switch.
 [vars]
 AI_GATEWAY_ID = "talmud"
-# Default LLM for runLLM() when no explicit model is passed. Phase 1 layers a
-# settings-KV override on top; this is the bootstrap default. Either a
-# Workers AI binding model (`@cf/...`) or an OpenRouter slug
-# (`openrouter/<vendor>/<model>`).
-DEFAULT_LLM_MODEL = "@cf/moonshotai/kimi-k2.5"
+# Default LLM for runLLM() when no explicit model is passed. The settings KV
+# layer can override at runtime; this is the bootstrap default. Either an
+# OpenRouter slug or a Workers AI binding model (`@cf/...`, requires the
+# [ai] block above).
+DEFAULT_LLM_MODEL = "openrouter/deepseek/deepseek-v4-pro"
 # Provider slug under the `talmud` AI Gateway when routing OpenRouter calls.
 # Must match the provider name added in dash.cloudflare.com → AI → AI Gateway
 # → talmud → Providers.
 OPENROUTER_GATEWAY_PROVIDER = "openrouter"
+
+# Cloudflare Queue — long-running enrichment jobs run in the consumer worker
+# instead of holding the producer's request invocation. Producer (POST
+# /api/studio/run) enqueues + returns 202 with a runId; consumer processes
+# the message and writes the result to KV under `job:{runId}`. Client polls
+# /api/studio/run-status/:runId. Decouples client requests from LLM latency
+# and stops workerd from dying on parallel long-fetches in dev.
+[[queues.producers]]
+queue = "enrichment-jobs"
+binding = "ENRICHMENT_QUEUE"
+
+[[queues.consumers]]
+queue = "enrichment-jobs"
+max_batch_size = 1
+max_batch_timeout = 1
+max_concurrency = 2
+max_retries = 1
 
 [[kv_namespaces]]
 binding = "CACHE"
@@ -55,46 +79,16 @@ head_sampling_rate = 1  # capture 100% of invocations
 # filling KV with no TTL. Latches to done when complete; bump warm-cursor:v1
 # key to force a re-walk. See src/worker/warm-cron.ts.
 #
-# Second cron (03:00 UTC daily) pre-warms tomorrow's Daf Yomi — analyze,
-# halacha, aggadata, and daf-context (rabbi timeline + geography) for both
-# amudim. See src/worker/yomi-cron.ts. index.ts dispatches on controller.cron.
+# Second cron (03:00 UTC daily) pre-warms tomorrow's Daf Yomi via
+# /api/studio/run for the canonical mark set. See src/worker/yomi-cron.ts.
 [triggers]
 crons = ["*/5 * * * *", "0 3 * * *"]
 
-# Durable Workflows — background halacha enrichment across all dafim.
-# One instance per tractate; each step runs one daf through all 3 strategies,
-# writing to KV. Retryable/pausable/resumable. Invoke via POST to
-# /api/admin/enrich-halacha-batch/{tractate}.
-[[workflows]]
-name = "halacha-enrich"
-binding = "HALACHA_ENRICH"
-class_name = "HalachaEnrichWorkflow"
-
-# Per-entity-type enrichment workflows — each walks one tractate's dafim and
-# runs every strategy through the corresponding /api/enrich-* endpoint.
-# Argument workflow is the highest-leverage one (7 strategies, gates the
-# argument sidebar UX). All three discover daf list from KV prefixes and
-# route every AI call through the gateway.
-[[workflows]]
-name = "argument-enrich"
-binding = "ARGUMENT_ENRICH"
-class_name = "ArgumentEnrichWorkflow"
-
-[[workflows]]
-name = "aggadata-enrich"
-binding = "AGGADATA_ENRICH"
-class_name = "AggadataEnrichWorkflow"
-
-[[workflows]]
-name = "pesukim-enrich"
-binding = "PESUKIM_ENRICH"
-class_name = "PesukimEnrichWorkflow"
-
-# Cloudflare Email Service binding. Requires shaunregenbaum.com onboarded
-# at https://dash.cloudflare.com/?to=/:account/email-service/sending
-# (auto-adds MX/SPF/DKIM/DMARC records on cf-bounce.shaunregenbaum.com).
-# Sender uses warm-cron@shaunregenbaum.com; recipient is anywhere.
-# Used by warm-cron.ts to notify on full-shas backfill completion.
+# Cloudflare Email Service binding (env.EMAIL.send(...)). Same `remote = true`
+# auth path as [ai] above — needs fresh `wrangler login`. Used by
+# warm-cron.ts to notify on full-shas backfill completion. Pre-flight check
+# in `npm run dev` warns when the login is expired so this doesn't silently
+# brick miniflare boot.
 [[send_email]]
 name = "EMAIL"
 remote = true

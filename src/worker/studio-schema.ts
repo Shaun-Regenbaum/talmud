@@ -2,28 +2,39 @@
  * Studio schema — the canonical shape of a Mark Definition, an Enrichment
  * Definition, and the run-time outputs they produce. This file is the
  * single source of truth; the registry and the daf-viewer renderers consume
- * these types. New mark or render kinds get added here first.
+ * these types.
  *
- * Conceptual model (see README at the bottom of this file):
+ * Conceptual model:
  *
- *   Mark        = annotation layer on a daf, defined by (anchor, render, extractor).
- *   Enrichment  = operation on a mark's instances; consumes them and produces
- *                 either content (cards), refined anchors, or daf-level synthesis.
+ *   Mark        = annotation layer on a daf, defined by (anchor, render,
+ *                 extractor, dependencies). The first pass — finds where to
+ *                 attach instances. dependencies declare what input the
+ *                 extractor needs (gemara, commentaries, other marks).
+ *   Enrichment  = operation on a mark's instances. Carries `scope` and
+ *                 `dependencies`:
+ *                   scope='global' → same regardless of daf (cached by
+ *                       mark instance only — bio, philosophy, classification).
+ *                   scope='local'  → per-daf (cached by instance + daf —
+ *                       synthesis, daf-specific commentary).
+ *                 dependencies tell the runner what to feed the prompt:
+ *                   'gemara' / 'commentaries'   — context slices
+ *                   { enrichment: id }          — output of another enrichment
+ *                   { mark: id }                — instances of another mark on the same daf
+ *                 Cache keys are auto-derived from (id, cache_version, scope,
+ *                 dependencies) — never hand-constructed at call sites.
  *
- * Architecture decisions captured here:
- *   - Marks are independent (flat list — no mark-on-mark dependencies for now).
+ * Architecture decisions:
  *   - Phrase-anchor output carries BOTH excerpt and segIdx+tokenStart+tokenEnd;
  *     the renderer prefers indices and falls back to excerpt match.
  *   - Cache key for run output includes def_hash (sha256 over the extractor
- *     spec); editing a prompt auto-invalidates cache.
+ *     spec); editing a prompt auto-invalidates cache. See src/worker/cache-keys.ts.
  *   - Toggles persist globally (localStorage); promoted marks default-listed,
  *     drafts visible only when devMode is on.
  *   - Promote = flip `status: 'draft' → 'promoted'`. No codegen.
  *   - Failure on Home (devMode=false) = silent hide.
  *     Failure in dev mode (devMode=true) = greyed toggle; click opens the
  *     inspect drawer with the error.
- *   - The inspect surface is a bottom drawer slide-up over the daf viewer,
- *     not a side panel.
+ *   - The inspect surface is a left-side drawer alongside the daf viewer.
  */
 
 import type { LLMModelId } from './llm';
@@ -282,6 +293,31 @@ export interface ManualExtractor {
 export type Extractor = LLMExtractor | SefariaExtractor | ComputedExtractor | ManualExtractor | LegacyEndpointExtractor;
 
 // ===========================================================================
+// Dependency types — declared inputs for marks (anchors) and enrichments.
+//
+// A dependency entry tells the runner what the extractor needs in its prompt
+// vars. The runner walks the array in order, fetches each, and exposes them
+// as template placeholders before invoking the LLM:
+//
+//   'gemara'             → {{gemara}} / {{gemara_he}} / {{gemara_en}} /
+//                          {{segments_he}} / {{segments_en}}
+//   'commentaries'       → {{commentaries}}
+//   { enrichment: id }   → {{depends.<id>}}    (recursively resolved)
+//   { mark: id }         → {{anchors.<id>}}    (mark extractor for same daf)
+//
+// Marks may depend on input slices and other marks (secondary anchors),
+// but not on enrichments. Enrichments may depend on anything.
+// ===========================================================================
+
+export type MarkDependency = 'gemara' | 'commentaries' | { mark: string };
+
+export type EnrichmentDependency =
+  | 'gemara'
+  | 'commentaries'
+  | { enrichment: string }
+  | { mark: string };
+
+// ===========================================================================
 // Mark Definition — the registry entry.
 // ===========================================================================
 
@@ -298,6 +334,10 @@ export interface MarkDefinition {
   anchor: AnchorKind;
   render: RenderConfig;
   extractor: Extractor;
+  /** Declared inputs to the extractor. Defaults to ['gemara'] when absent —
+   *  current behavior of buildDafContext. Future secondary anchors declare
+   *  other marks (e.g. an Israel/Bavel map = [{mark:'rabbi'},{mark:'place'}]). */
+  dependencies?: MarkDependency[];
 
   status: MarkStatus;
   /** Derived from sha256(extractor + render). Bumped automatically on save.
@@ -317,6 +357,14 @@ export type EnrichmentMode =
   | 'refine-anchors'    // produces a refined set of instances (e.g. better rabbi-detector)
   | 'aggregate';        // produces daf-level synthesis from all instances
 
+/** Cacheability axis. Drives auto cache-key derivation in cache-keys.ts:
+ *    global → enrich:{id}:{cache_version}:{instance_id}              (no daf)
+ *    local  → enrich:{id}:{cache_version}:{instance_id}:{tractate}:{page}
+ *  Pick 'global' when the output is the same regardless of which daf you ran
+ *  it from (a rabbi's biography). Pick 'local' when the output is computed
+ *  in light of this daf (synthesis). Aggregate enrichments are usually local. */
+export type EnrichmentScope = 'global' | 'local';
+
 export interface EnrichmentDefinition {
   id: string;
   label: string;
@@ -326,11 +374,12 @@ export interface EnrichmentDefinition {
   /** ID of the mark whose instances feed in. */
   target_mark: string;
   mode: EnrichmentMode;
-  /** Other enrichment IDs whose outputs this one consumes. The run handler
-   *  resolves these recursively (each dep runs first, its output is exposed
-   *  as `{{depends.<id>}}` in this enrichment's prompt). Used for `aggregate`
-   *  enrichments that synthesize multiple leaves into one output. */
-  depends?: string[];
+  scope: EnrichmentScope;
+  /** Declared inputs to the extractor. The runner walks this array; entries
+   *  expand into template vars per the type docs above. Other enrichments
+   *  here are run first (recursively); other marks are extracted on the same
+   *  daf. Empty array means the enrichment only sees `mark_input`. */
+  dependencies?: EnrichmentDependency[];
 
   extractor: Extractor;
 

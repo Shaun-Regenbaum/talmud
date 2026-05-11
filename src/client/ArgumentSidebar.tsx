@@ -1,13 +1,12 @@
-import { For, Show, createResource, createSignal, onCleanup, type JSX } from 'solid-js';
-import type { Section, Rabbi } from './AnalysisPanel';
-import type { HalachaTopic } from './HalachaPanel';
-import type { AggadataStory } from './AggadataDetector';
+import { For, Show, createEffect, createMemo, createResource, createSignal, onCleanup, type JSX } from 'solid-js';
+import type { Section, Rabbi, HalachaTopic, AggadataStory, Pasuk } from './shapes';
 import { GENERATION_BY_ID, type GenerationId } from './generations';
 import type { IdentifiedRabbi } from './dafContext';
-import type { Pasuk } from './DafViewer';
 import { Hebraized } from './Hebraized';
 
 import MarkEnrichmentCards from './MarkEnrichmentCards';
+import RabbiLineageTree, { type RelationshipsData, type RelationshipsEvidence } from './RabbiLineageTree';
+import RabbiGeographyCard, { type GeographyData, type GeographyEvidence } from './RabbiGeographyCard';
 
 export type SidebarContent =
   | { kind: 'argument'; section: Section; index: number }
@@ -23,6 +22,11 @@ export interface ArgumentSidebarProps {
   activeRabbi: string | null;
   onClose: () => void;
   onHighlightRabbi: (name: string | null) => void;
+  /** Highlights a contiguous segment range on the daf. Used when the user
+   *  clicks an argument-move card so the corresponding sub-range of the
+   *  section is painted. Pass null to clear. `key` is a stable id (e.g. the
+   *  move's fields.id) so DafViewer can dedupe overlapping highlight reqs. */
+  onHighlightRange?: (range: { start: number; end: number; key: string; tokenStart?: number; tokenEnd?: number } | null) => void;
   onOpenRabbiSlug?: (slug: string) => void;
   generationByName: Map<string, GenerationId>;
 }
@@ -126,6 +130,306 @@ function RabbiRow(props: {
   );
 }
 
+// ===========================================================================
+// Argument body
+// -------------
+// Top    : title + Hebrew excerpt + section synthesis (4-5 sentences from
+//          `argument.synthesis`).
+// Below  : per-move cards. Each move comes from the `argument-move` mark
+//          (one daf-wide LLM extraction; surfaced via the section synthesis
+//          run's `anchors_resolved.argument-move`). Each card mounts its
+//          OWN MarkEnrichmentCards markId="argument-move" so the per-move
+//          synthesis renders independently with its own "built from" tray.
+// Click  : clicking a move calls `onHighlightRange(start,end)` to paint the
+//          move's segment range on the daf.
+// ===========================================================================
+
+interface ArgumentMoveInstance {
+  startSegIdx: number;
+  endSegIdx: number;
+  fields: {
+    id: string;
+    sectionStartSegIdx: number;
+    sectionEndSegIdx: number;
+    moveOrder: number;
+    role: string;
+    voice: string;
+    rabbiNames: string[];
+    excerpt: string;
+    summary: string;
+    /** Word offsets within startSegIdx / endSegIdx, set by the worker's
+     *  postProcessArgumentMove for sub-segment-precise highlighting.
+     *  Critical for sections that pack multiple moves into one Sefaria
+     *  segment (e.g. the opening Mishnah of a tractate). */
+    tokenStart?: number;
+    tokenEnd?: number;
+  };
+}
+
+const ROLE_COLORS: Record<string, string> = {
+  opening: '#475569',
+  question: '#0369a1',
+  answer: '#15803d',
+  objection: '#b91c1c',
+  rejection: '#9f1239',
+  'supporting-evidence': '#0891b2',
+  resolution: '#15803d',
+  digression: '#a16207',
+  shift: '#7c3aed',
+  other: '#64748b',
+};
+
+function ArgumentMoveCard(props: {
+  move: ArgumentMoveInstance;
+  tractate: string;
+  page: string;
+  activeRabbi: string | null;
+  highlightedMoveId: string | null;
+  onHighlightRabbi: (name: string | null) => void;
+  onHighlightMove: (move: ArgumentMoveInstance | null) => void;
+  generationByName: Map<string, GenerationId>;
+}): JSX.Element {
+  const f = props.move.fields;
+  const roleColor = () => ROLE_COLORS[f.role] ?? '#64748b';
+  const isActive = () => props.highlightedMoveId === f.id;
+  const toggleHighlight = () => props.onHighlightMove(isActive() ? null : props.move);
+
+  return (
+    <div style={{
+      border: '1px solid ' + (isActive() ? '#eab308' : '#eae8e0'),
+      'border-left': `3px solid ${roleColor()}`,
+      'border-radius': '4px',
+      padding: '0.55rem 0.7rem',
+      'margin-bottom': '0.55rem',
+      background: isActive() ? '#fefce8' : '#fafaf7',
+    }}>
+      {/* Click target: the role/voice header + Hebrew excerpt act as a single
+          button that toggles the daf-side range highlight. The synthesis card
+          and rabbi chips below are NOT inside this button so dropdowns and
+          chip clicks work normally. */}
+      <button
+        type="button"
+        onClick={toggleHighlight}
+        title={isActive() ? 'Click to clear highlight' : 'Click to highlight this move on the daf'}
+        style={{
+          all: 'unset',
+          display: 'block',
+          cursor: 'pointer',
+          width: '100%',
+          'box-sizing': 'border-box',
+          'padding-bottom': '0.4rem',
+        }}
+      >
+        <div style={{
+          display: 'flex', 'align-items': 'center', gap: '0.5rem',
+          'margin-bottom': '0.3rem', 'font-size': '0.7rem',
+        }}>
+          <span style={{
+            'text-transform': 'uppercase', 'letter-spacing': '0.06em',
+            'font-weight': 600, color: roleColor(),
+          }}>{f.role}</span>
+          <span style={{ color: '#999' }}>·</span>
+          <span style={{ color: '#555' }}>{f.voice}</span>
+          <span style={{ color: '#bbb', 'font-size': '0.65rem', 'font-family': 'ui-monospace, Menlo, monospace' }}>
+            seg {props.move.startSegIdx === props.move.endSegIdx ? props.move.startSegIdx : `${props.move.startSegIdx}–${props.move.endSegIdx}`}
+          </span>
+          <Show when={isActive()}>
+            <span style={{ color: '#a16207', 'font-size': '0.65rem', 'margin-left': 'auto' }}>highlighted</span>
+          </Show>
+        </div>
+        <Show when={f.excerpt}>
+          <p dir="rtl" lang="he" style={{
+            margin: 0, 'font-family': '"Mekorot Vilna", serif',
+            'font-size': '0.9rem', color: '#555',
+          }}>{f.excerpt}…</p>
+        </Show>
+      </button>
+      {/* Per-move synthesis. Mounts its own MarkEnrichmentCards so each move
+          gets its own "built from" tray. */}
+      <MarkEnrichmentCards
+        markId="argument-move"
+        instance={props.move}
+        instanceKey={f.id}
+        tractate={props.tractate}
+        page={props.page}
+      />
+      <Show when={f.rabbiNames.length > 0}>
+        <div style={{
+          'margin-top': '0.5rem',
+          display: 'flex', 'flex-wrap': 'wrap', gap: '0.3rem',
+        }}>
+          <For each={f.rabbiNames}>{(name) => {
+            const active = () => props.activeRabbi === name;
+            const genId = props.generationByName.get(name);
+            const genInfo = genId ? GENERATION_BY_ID[genId] : null;
+            return (
+              <button
+                onClick={() => props.onHighlightRabbi(active() ? null : name)}
+                title={active() ? 'Click to un-highlight' : 'Click to highlight in daf'}
+                style={{
+                  border: '1px solid ' + (active() ? '#eab308' : '#d6d3d1'),
+                  background: active() ? '#fef3c7' : '#fff',
+                  color: '#333',
+                  'border-radius': '999px',
+                  padding: '0.15rem 0.55rem',
+                  'font-size': '0.72rem',
+                  cursor: 'pointer',
+                  'font-family': 'inherit',
+                  display: 'inline-flex',
+                  'align-items': 'center',
+                  gap: '0.3rem',
+                }}
+              >
+                <Show when={genInfo}>
+                  <span style={{
+                    display: 'inline-block', width: '0.5rem', height: '0.5rem',
+                    'border-radius': '50%', background: genInfo!.color,
+                  }} />
+                </Show>
+                {name}
+              </button>
+            );
+          }}</For>
+        </div>
+      </Show>
+    </div>
+  );
+}
+
+function ArgumentBody(props: {
+  section: Section;
+  tractate: string;
+  page: string;
+  activeRabbi: string | null;
+  onHighlightRabbi: (name: string | null) => void;
+  onHighlightRange: (range: { start: number; end: number; key: string; tokenStart?: number; tokenEnd?: number } | null) => void;
+  generationByName: Map<string, GenerationId>;
+}): JSX.Element {
+  // All moves on this daf, flat. Filtered to this section by sectionStartSegIdx.
+  const [allMoves, setAllMoves] = createSignal<ArgumentMoveInstance[] | null>(null);
+  const [highlightedMoveId, setHighlightedMoveId] = createSignal<string | null>(null);
+
+  // Clear stale move state when the user opens a different section. The
+  // section's synthesis run will repopulate via onResolved as soon as the
+  // section synthesis aggregate's `anchors_resolved.argument-move` arrives.
+  //
+  // Guard against `props.section` being momentarily undefined: Solid can
+  // re-evaluate this getter while the parent <Show> is mid-transition (e.g.
+  // sidebar closing or switching to a non-argument kind), and the cast in
+  // ArgumentSidebar.tsx isn't a runtime check.
+  const instanceKey = () => {
+    const s = props.section;
+    if (!s) return '';
+    return `${s.startSegIdx}-${s.endSegIdx}-${s.title}`;
+  };
+  createEffect(() => {
+    void instanceKey();
+    setAllMoves(null);
+    setHighlightedMoveId(null);
+    props.onHighlightRange(null);
+  });
+
+  const handleResolved = (r: { deps_resolved?: Record<string, unknown>; anchors_resolved?: Record<string, unknown> }) => {
+    const moves = r.anchors_resolved?.['argument-move'] as ArgumentMoveInstance[] | undefined;
+    if (Array.isArray(moves)) setAllMoves(moves);
+  };
+
+  const sectionMoves = createMemo(() => {
+    const all = allMoves();
+    if (!all) return null;
+    const sStart = props.section.startSegIdx;
+    const sEnd = props.section.endSegIdx;
+    return all
+      .filter((m) =>
+        // Match by parent-section reference if present, else fall back to
+        // segment-range containment (for older cached payloads).
+        (typeof m.fields.sectionStartSegIdx === 'number' && m.fields.sectionStartSegIdx === sStart)
+        || (typeof sStart === 'number' && typeof sEnd === 'number'
+            && m.startSegIdx >= sStart && m.endSegIdx <= sEnd),
+      )
+      .sort((a, b) => a.fields.moveOrder - b.fields.moveOrder);
+  });
+
+  const handleHighlightMove = (move: ArgumentMoveInstance | null) => {
+    if (!move) {
+      setHighlightedMoveId(null);
+      props.onHighlightRange(null);
+      return;
+    }
+    setHighlightedMoveId(move.fields.id);
+    props.onHighlightRange({
+      start: move.startSegIdx,
+      end: move.endSegIdx,
+      key: move.fields.id,
+      tokenStart: move.fields.tokenStart,
+      tokenEnd: move.fields.tokenEnd,
+    });
+  };
+
+  // If the parent transitioned the sidebar away from kind='argument' but the
+  // unmount hasn't flushed yet, props.section can be undefined for a tick.
+  // Bail rather than crash the whole tree.
+  return (
+    <Show when={props.section}>
+    <div>
+      <h3 style={{ margin: '0 0 0.3rem', 'font-size': '1.05rem', color: '#8a2a2b' }}>
+        {props.section.title}
+      </h3>
+      <Show when={props.section.excerpt}>
+        <p dir="rtl" lang="he" style={{
+          margin: '0 0 0.75rem', 'font-family': '"Mekorot Vilna", serif',
+          'font-size': '0.95rem', color: '#555',
+        }}>
+          {props.section.excerpt}…
+        </p>
+      </Show>
+      <MarkEnrichmentCards
+        markId="argument"
+        instance={{
+          startSegIdx: props.section.startSegIdx,
+          endSegIdx: props.section.endSegIdx,
+          fields: {
+            title: props.section.title,
+            summary: props.section.summary,
+            excerpt: props.section.excerpt,
+            rabbiNames: props.section.rabbis.map((r) => r.name),
+          },
+        }}
+        instanceKey={instanceKey()}
+        tractate={props.tractate}
+        page={props.page}
+        onResolved={handleResolved}
+      />
+      <Show when={sectionMoves()}>
+        {(moves) => (
+          <div style={{ 'margin-top': '1rem' }}>
+            <div style={{
+              'font-size': '0.7rem',
+              'text-transform': 'uppercase',
+              'letter-spacing': '0.08em',
+              color: '#999',
+              'margin-bottom': '0.5rem',
+            }}>Moves</div>
+            <For each={moves()}>{(move) => (
+              <ArgumentMoveCard
+                move={move}
+                tractate={props.tractate}
+                page={props.page}
+                activeRabbi={props.activeRabbi}
+                highlightedMoveId={highlightedMoveId()}
+                onHighlightRabbi={props.onHighlightRabbi}
+                onHighlightMove={handleHighlightMove}
+                generationByName={props.generationByName}
+              />
+            )}</For>
+          </div>
+        )}
+      </Show>
+    </div>
+    </Show>
+  );
+}
+
 function sefariaUrl(source: 'mishnehTorah' | 'shulchanAruch' | 'rema', ref: string): string | null {
   const trimmed = ref.trim();
   if (source === 'mishnehTorah') {
@@ -206,11 +510,137 @@ async function fetchPasuk(ref: string): Promise<PasukDetail> {
   return res.json() as Promise<PasukDetail>;
 }
 
+// ===========================================================================
+// Rabbi body
+// ---------
+// Top    : name + nameHe + era/region/places meta line
+// Middle : synthesis paragraph (existing MarkEnrichmentCards on `rabbi`).
+//          Synthesis aggregate's deps_resolved carries rabbi.relationships,
+//          rabbi.geography, and both .evidence enrichments.
+// Below  : RabbiLineageTree + RabbiGeographyCard read from those resolved
+//          deps. Items the daf actually mentions (via .evidence) get a
+//          soft-highlight and clicking them paints the daf range.
+// ===========================================================================
+function RabbiBody(props: {
+  rabbi: IdentifiedRabbi;
+  tractate: string;
+  page: string;
+  onHighlightRange: (range: { start: number; end: number; key: string; tokenStart?: number; tokenEnd?: number } | null) => void;
+}): JSX.Element {
+  const [relationships, setRelationships] = createSignal<RelationshipsData | null>(null);
+  const [relationshipsEvidence, setRelationshipsEvidence] = createSignal<RelationshipsEvidence[]>([]);
+  const [geography, setGeography] = createSignal<GeographyData | null>(null);
+  const [geographyEvidence, setGeographyEvidence] = createSignal<GeographyEvidence[]>([]);
+
+  const instanceKey = () => props.rabbi.name;
+
+  // Reset on rabbi change.
+  createEffect(() => {
+    void instanceKey();
+    setRelationships(null);
+    setRelationshipsEvidence([]);
+    setGeography(null);
+    setGeographyEvidence([]);
+    props.onHighlightRange(null);
+  });
+
+  const handleResolved = (r: { deps_resolved?: Record<string, unknown>; anchors_resolved?: Record<string, unknown> }) => {
+    const deps = r.deps_resolved ?? {};
+    const rel = deps['rabbi.relationships'] as RelationshipsData | undefined;
+    if (rel && Array.isArray(rel.teachers)) setRelationships(rel);
+    const relEv = deps['rabbi.relationships.evidence'] as { evidence?: RelationshipsEvidence[] } | undefined;
+    if (relEv?.evidence) setRelationshipsEvidence(relEv.evidence);
+    const geo = deps['rabbi.geography'] as GeographyData | undefined;
+    if (geo && (geo.birthplace || Array.isArray(geo.primaryStudyPlaces))) setGeography(geo);
+    const geoEv = deps['rabbi.geography.evidence'] as { evidence?: GeographyEvidence[] } | undefined;
+    if (geoEv?.evidence) setGeographyEvidence(geoEv.evidence);
+  };
+
+  const gen = () => GENERATION_BY_ID[props.rabbi.generation];
+  const regionLabel = () => props.rabbi.region === 'israel' ? 'Eretz Yisrael'
+    : props.rabbi.region === 'bavel' ? 'Bavel'
+    : props.rabbi.region;
+  const metaParts = (): string[] => {
+    const g = gen();
+    const parts: string[] = [];
+    if (g) parts.push(g.label);
+    if (g) parts.push(g.era);
+    const rl = regionLabel();
+    if (rl) parts.push(rl);
+    if (props.rabbi.places.length > 0) parts.push(props.rabbi.places.join(', '));
+    return parts;
+  };
+
+  return (
+    <div>
+      <h3 style={{ margin: '0 0 0.15rem', 'font-size': '1.1rem', color: '#222', 'font-weight': 600 }}>
+        {props.rabbi.name}
+      </h3>
+      <Show when={props.rabbi.nameHe}>
+        <p dir="rtl" lang="he" style={{
+          margin: '0 0 0.6rem', 'font-family': '"Mekorot Vilna", serif',
+          'font-size': '1.05rem', color: '#666',
+        }}>{props.rabbi.nameHe}</p>
+      </Show>
+      <Show when={metaParts().length > 0}>
+        <div style={{
+          display: 'flex', 'align-items': 'center', gap: '0.45rem',
+          'font-size': '0.78rem', color: '#666',
+          'margin-bottom': '0.85rem', 'flex-wrap': 'wrap',
+          'line-height': 1.5,
+        }}>
+          <Show when={gen()}>
+            <span style={{
+              display: 'inline-block', width: '0.55rem', height: '0.55rem',
+              'background-color': gen()!.color, 'border-radius': '50%',
+              'flex-shrink': 0,
+            }} />
+          </Show>
+          <span>{metaParts().join(' · ')}</span>
+        </div>
+      </Show>
+      <MarkEnrichmentCards
+        markId="rabbi"
+        instance={{
+          name: props.rabbi.name,
+          nameHe: props.rabbi.nameHe,
+          generation: props.rabbi.generation,
+          region: props.rabbi.region,
+          places: props.rabbi.places,
+        }}
+        instanceKey={instanceKey()}
+        tractate={props.tractate}
+        page={props.page}
+        onResolved={handleResolved}
+      />
+      <Show when={relationships()}>
+        {(rel) => (
+          <RabbiLineageTree
+            subjectName={props.rabbi.name}
+            data={rel()}
+            evidence={relationshipsEvidence()}
+            onHighlightRange={props.onHighlightRange}
+          />
+        )}
+      </Show>
+      <Show when={geography()}>
+        {(geo) => (
+          <RabbiGeographyCard
+            data={geo()}
+            evidence={geographyEvidence()}
+            onHighlightRange={props.onHighlightRange}
+          />
+        )}
+      </Show>
+    </div>
+  );
+}
+
 /** Sidebar panel for a cited pasuk: shows the full Hebrew Tanakh verse and,
  *  on expand, the surrounding verses inlined as one continuous Hebrew block
  *  (prev + cited + next) with the cited verse rendered dark and the others
  *  dimmed so the citation still stands out. */
-function PasukPanel(props: { pasuk: Pasuk }): JSX.Element {
+function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JSX.Element {
   const [expanded, setExpanded] = createSignal(false);
   const [detail] = createResource(() => props.pasuk.verseRef, fetchPasuk);
   const [prev] = createResource(
@@ -221,7 +651,6 @@ function PasukPanel(props: { pasuk: Pasuk }): JSX.Element {
     () => (expanded() ? detail()?.nextRef ?? null : null),
     (r) => fetchPasuk(r),
   );
-  const synth = () => props.pasuk.synthesize?.explanation;
 
   return (
     <div>
@@ -259,20 +688,25 @@ function PasukPanel(props: { pasuk: Pasuk }): JSX.Element {
         }}
         title={expanded() ? 'Hide surrounding verses' : 'Show verse before + after'}
       >{expanded() ? '› collapse ‹' : '‹ expand ›'}</button>
-      <Show when={synth()} fallback={
-        <p style={{
-          margin: 0, color: '#57534e', 'line-height': 1.55,
-          'font-style': props.pasuk.summary ? 'normal' : 'italic',
-        }}>
-          <Show when={props.pasuk.summary} fallback={'Loading explanation…'}>
-            <Hebraized text={props.pasuk.summary} />
-          </Show>
-        </p>
-      }>
-        <p style={{ margin: 0, color: '#1c1917', 'line-height': 1.55 }}>
-          <Hebraized text={synth()!} />
-        </p>
-      </Show>
+      {/* Per-pasuk synthesis card. Mounts MarkEnrichmentCards markId="pesukim";
+          production shows the synthesis paragraph, dev mode adds the dropdown
+          with [global] tanach-context + [local] exegesis leaves. */}
+      <MarkEnrichmentCards
+        markId="pesukim"
+        instance={{
+          startSegIdx: props.pasuk.startSegIdx,
+          endSegIdx: props.pasuk.endSegIdx,
+          fields: {
+            verseRef: props.pasuk.verseRef,
+            citationStyle: props.pasuk.citationStyle,
+            excerpt: props.pasuk.excerpt,
+            summary: props.pasuk.summary,
+          },
+        }}
+        instanceKey={props.pasuk.verseRef}
+        tractate={props.tractate}
+        page={props.page}
+      />
     </div>
   );
 }
@@ -327,110 +761,24 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
             </header>
 
             <Show when={c().kind === 'argument'}>
-              {(() => {
-                const section = (c() as Extract<SidebarContent, { kind: 'argument' }>).section;
-                return (
-                  <div>
-                    <h3 style={{ margin: '0 0 0.3rem', 'font-size': '1.05rem', color: '#8a2a2b' }}>
-                      {section.title}
-                    </h3>
-                    <Show when={section.excerpt}>
-                      <p dir="rtl" lang="he" style={{
-                        margin: '0 0 0.5rem', 'font-family': '"Mekorot Vilna", serif',
-                        'font-size': '0.95rem', color: '#555',
-                      }}>
-                        {section.excerpt}…
-                      </p>
-                    </Show>
-                    <p style={{ margin: '0 0 0.9rem', color: '#333', 'line-height': 1.55 }}>
-                      <Hebraized text={section.summary} />
-                    </p>
-                    <Show when={section.rabbis.length > 0}>
-                      <div style={{
-                        'font-size': '0.7rem',
-                        'text-transform': 'uppercase',
-                        'letter-spacing': '0.08em',
-                        color: '#999',
-                        'margin-bottom': '0.4rem',
-                      }}>
-                        Rabbis — click to highlight in daf
-                      </div>
-                      <For each={section.rabbis}>
-                        {(r) => {
-                          const gen = props.generationByName.get(r.name);
-                          const active = props.activeRabbi === r.name;
-                          return (
-                            <RabbiRow
-                              rabbi={r}
-                              active={active}
-                              generationId={gen}
-                              onToggle={() => props.onHighlightRabbi(active ? null : r.name)}
-                            />
-                          );
-                        }}
-                      </For>
-                    </Show>
-                  </div>
-                );
-              })()}
+              <ArgumentBody
+                section={(c() as Extract<SidebarContent, { kind: 'argument' }>).section}
+                tractate={props.tractate}
+                page={props.page}
+                activeRabbi={props.activeRabbi}
+                onHighlightRabbi={props.onHighlightRabbi}
+                onHighlightRange={(r) => props.onHighlightRange?.(r)}
+                generationByName={props.generationByName}
+              />
             </Show>
 
             <Show when={c().kind === 'rabbi'}>
-              {(() => {
-                const r = (c() as Extract<SidebarContent, { kind: 'rabbi' }>).rabbi;
-                const gen = GENERATION_BY_ID[r.generation];
-                const regionLabel = r.region === 'israel' ? 'Eretz Yisrael'
-                  : r.region === 'bavel' ? 'Bavel'
-                  : r.region;
-                // Single flowing meta line: era · dates · region · places.
-                const metaParts: string[] = [];
-                if (gen) metaParts.push(gen.label);
-                if (gen) metaParts.push(gen.era);
-                if (regionLabel) metaParts.push(regionLabel);
-                if (r.places.length > 0) metaParts.push(r.places.join(', '));
-                return (
-                  <div>
-                    <h3 style={{ margin: '0 0 0.15rem', 'font-size': '1.1rem', color: '#222', 'font-weight': 600 }}>
-                      {r.name}
-                    </h3>
-                    <Show when={r.nameHe}>
-                      <p dir="rtl" lang="he" style={{
-                        margin: '0 0 0.6rem', 'font-family': '"Mekorot Vilna", serif',
-                        'font-size': '1.05rem', color: '#666',
-                      }}>{r.nameHe}</p>
-                    </Show>
-                    <Show when={metaParts.length > 0}>
-                      <div style={{
-                        display: 'flex', 'align-items': 'center', gap: '0.45rem',
-                        'font-size': '0.78rem', color: '#666',
-                        'margin-bottom': '0.85rem', 'flex-wrap': 'wrap',
-                        'line-height': 1.5,
-                      }}>
-                        <Show when={gen}>
-                          <span style={{
-                            display: 'inline-block', width: '0.55rem', height: '0.55rem',
-                            'background-color': gen.color, 'border-radius': '50%',
-                            'flex-shrink': 0,
-                          }} />
-                        </Show>
-                        <span>{metaParts.join(' · ')}</span>
-                      </div>
-                    </Show>
-                    {/* Bio is the registry-driven enrichment(s) — historical
-                        + role-on-this-daf. Replaces the static rabbi-places
-                        bio + Wikipedia link. Adding new rabbi enrichments
-                        means dropping a row in CODE_ENRICHMENTS, no UI
-                        changes here. */}
-                    <MarkEnrichmentCards
-                      markId="rabbi"
-                      instance={{ name: r.name, nameHe: r.nameHe, generation: r.generation, region: r.region, places: r.places }}
-                      instanceKey={r.name}
-                      tractate={props.tractate}
-                      page={props.page}
-                    />
-                  </div>
-                );
-              })()}
+              <RabbiBody
+                rabbi={(c() as Extract<SidebarContent, { kind: 'rabbi' }>).rabbi}
+                tractate={props.tractate}
+                page={props.page}
+                onHighlightRange={(r) => props.onHighlightRange?.(r)}
+              />
             </Show>
 
             <Show when={c().kind === 'halacha'}>
@@ -466,7 +814,11 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
             </Show>
 
             <Show when={c().kind === 'pesuk'}>
-              <PasukPanel pasuk={(c() as Extract<SidebarContent, { kind: 'pesuk' }>).pasuk} />
+              <PasukPanel
+                pasuk={(c() as Extract<SidebarContent, { kind: 'pesuk' }>).pasuk}
+                tractate={props.tractate}
+                page={props.page}
+              />
             </Show>
 
             <Show when={c().kind === 'aggadata'}>

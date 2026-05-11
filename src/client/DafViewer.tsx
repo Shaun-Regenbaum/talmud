@@ -4,8 +4,12 @@ import { TRACTATE_OPTIONS } from '../lib/sefref';
 import { DafRenderer } from '../lib/daf-render';
 import { tokenizeHebrewHtml } from './tokenize';
 import { TranslationPopup } from './TranslationPopup';
-import type { DafAnalysis, Section } from './AnalysisPanel';
-import type { HalachaResult, HalachaTopic } from './HalachaPanel';
+import type {
+  DafAnalysis, Section,
+  HalachaResult, HalachaTopic,
+  AggadataResult,
+  PesukimResult,
+} from './shapes';
 import { injectRabbiUnderlines, type GenerationRabbi } from './injectRabbiUnderlines';
 import { injectSegmentMarkers } from './injectSegmentMarkers';
 import { injectTannaiticMarkers } from './injectTannaiticMarkers';
@@ -14,32 +18,6 @@ import { ensureMasechetIncipit } from './ensureMasechetIncipit';
 import { injectAnchorMarkers, injectOpinionMarkers, injectAggadataAnchors, injectPesukimAnchors } from './anchorMarkers';
 import { GutterIcons } from './GutterIcons';
 import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
-import type { AggadataResult } from './AggadataDetector';
-
-export interface PasukSynthesize {
-  explanation: string;
-  groundedIn?: string[];
-}
-
-export interface Pasuk {
-  verseRef: string;
-  verseHe?: string;
-  citationMarker?: string;
-  citationStyle?: 'explicit' | 'allusion' | 'paraphrase';
-  excerpt: string;
-  endExcerpt?: string;
-  startSegIdx?: number;
-  endSegIdx?: number;
-  summary: string;
-  synthesize?: PasukSynthesize;
-}
-
-export interface PesukimResult {
-  pesukim: Pasuk[];
-  _cached?: boolean;
-  _model?: string;
-  error?: string;
-}
 import { injectCityMarkers } from './injectCityMarkers';
 import { classifyDaf } from '../lib/era/heuristic';
 import type { DafEraContext } from '../lib/era/types';
@@ -98,6 +76,58 @@ interface ActiveWord {
   segIdx?: number;
 }
 
+/**
+ * Build a DOM Range over `.daf-word[data-seg=N]` spans inside `mainCol`,
+ * optionally bounded by tokenStart (offset within startSeg) and tokenEnd
+ * (offset within endSeg, inclusive). When tokens are absent, paints the
+ * whole startSeg → endSeg span (legacy whole-segment behaviour).
+ *
+ * Used by argument-move and pesukim highlights for sub-segment precision —
+ * critical when multiple moves/citations live inside the same Sefaria
+ * segment (e.g., the opening Mishnah of a tractate is one big segment that
+ * the LLM identifies as 4-5 distinct moves).
+ *
+ * Walks the .daf-word stream in DOM order: tokenStart counts forward from
+ * the first word of startSeg, tokenEnd counts forward from the first word
+ * of endSeg. Out-of-range token indices clamp to the segment's word count.
+ */
+function buildTokenRange(
+  mainCol: HTMLElement,
+  startSeg: number,
+  endSegRequested: number,
+  tokenStart?: number,
+  tokenEnd?: number,
+): Range | null {
+  const firstSpans = mainCol.querySelectorAll<HTMLElement>(`.daf-word[data-seg="${startSeg}"]`);
+  if (firstSpans.length === 0) return null;
+  // Walk down to find a tagged endSeg (LLM ranges occasionally over-shoot).
+  let endSeg = -1;
+  let endSpans: NodeListOf<HTMLElement> | null = null;
+  for (let s = endSegRequested; s >= startSeg; s--) {
+    const found = mainCol.querySelectorAll<HTMLElement>(`.daf-word[data-seg="${s}"]`);
+    if (found.length > 0) { endSeg = s; endSpans = found; break; }
+  }
+  if (!endSpans) return null;
+
+  const tokStart = typeof tokenStart === 'number' && tokenStart >= 0 && tokenStart < firstSpans.length
+    ? tokenStart : 0;
+  const tokEnd = typeof tokenEnd === 'number' && tokenEnd >= 0 && tokenEnd < endSpans.length
+    ? tokenEnd : endSpans.length - 1;
+
+  const range = document.createRange();
+  range.setStartBefore(firstSpans[tokStart]);
+  // Same-segment case: use endSpans (= firstSpans) sliced to tokEnd, but
+  // ensure tokEnd >= tokStart to avoid an inverted range.
+  if (startSeg === endSeg) {
+    const safeEnd = Math.max(tokStart, tokEnd);
+    const lastInSeg = firstSpans.length - 1;
+    range.setEndAfter(firstSpans[Math.min(safeEnd, lastInSeg)]);
+  } else {
+    range.setEndAfter(endSpans[tokEnd]);
+  }
+  return range;
+}
+
 // Merges a Range's per-word client rects into one band per line and paints
 // them as absolute-positioned divs into `overlay`. Coordinates are resolved
 // against `origin` (which must be a positioned ancestor of `overlay`).
@@ -105,7 +135,7 @@ function paintRangeOverlay(
   overlay: HTMLElement,
   origin: HTMLElement,
   ranges: Range[],
-  kind: 'section' | 'halacha' | 'aggadata' | 'pesuk' | 'commentary' | 'commentary-active' | 'era-tint' | 'era-hover',
+  kind: 'section' | 'halacha' | 'aggadata' | 'pesuk' | 'move' | 'commentary' | 'commentary-active' | 'era-tint' | 'era-hover',
   /** Optional per-range inline background color (used by era-tint where every
    *  segment carries its own generation color). */
   bgFor?: (rangeIdx: number) => string | undefined,
@@ -368,6 +398,93 @@ export default function DafViewer(): JSX.Element {
     analysisSessionCache.set(`${tractate()}:${page()}`, adapted);
   });
 
+  // Adapter: halacha mark instances → HalachaResult shape consumed by the
+  // gutter+sidebar renderer.
+  createEffect(() => {
+    const runs = markRunsByMarkId();
+    const r = runs['halacha'];
+    if (!r?.parsed) return;
+    const p = r.parsed as {
+      instances?: Array<{
+        startSegIdx: number;
+        endSegIdx: number;
+        fields: { topic: string; topicHe?: string; summary?: string; excerpt?: string };
+      }>;
+    };
+    if (!Array.isArray(p.instances)) return;
+    const adapted: HalachaResult = {
+      topics: p.instances.map((inst) => ({
+        topic: inst.fields.topic,
+        topicHe: inst.fields.topicHe,
+        excerpt: inst.fields.excerpt,
+        rulings: {},
+      })),
+    };
+    setHalacha(adapted);
+    halachaSessionCache.set(`${tractate()}:${page()}`, adapted);
+  });
+
+  // Adapter: aggadata mark instances → AggadataResult.
+  createEffect(() => {
+    const runs = markRunsByMarkId();
+    const r = runs['aggadata'];
+    if (!r?.parsed) return;
+    const p = r.parsed as {
+      instances?: Array<{
+        startSegIdx: number;
+        endSegIdx: number;
+        fields: { title: string; titleHe?: string; summary: string; excerpt: string; theme?: string };
+      }>;
+    };
+    if (!Array.isArray(p.instances)) return;
+    const adapted: AggadataResult = {
+      stories: p.instances.map((inst) => ({
+        title: inst.fields.title,
+        titleHe: inst.fields.titleHe,
+        summary: inst.fields.summary,
+        excerpt: inst.fields.excerpt,
+        theme: inst.fields.theme,
+      })),
+    };
+    setAggadata(adapted);
+    aggadataSessionCache.set(`${tractate()}:${page()}`, adapted);
+  });
+
+  // Adapter: pesukim mark instances → PesukimResult.
+  createEffect(() => {
+    const runs = markRunsByMarkId();
+    const r = runs['pesukim'];
+    if (!r?.parsed) return;
+    const p = r.parsed as {
+      instances?: Array<{
+        startSegIdx: number;
+        endSegIdx: number;
+        fields: {
+          verseRef?: string;
+          citationStyle?: string;
+          excerpt?: string;
+          summary?: string;
+          tokenStart?: number;
+          tokenEnd?: number;
+        };
+      }>;
+    };
+    if (!Array.isArray(p.instances)) return;
+    const pesukim = p.instances.map((inst) => ({
+      verseRef: inst.fields.verseRef ?? '',
+      citationStyle: inst.fields.citationStyle ?? 'explicit',
+      excerpt: inst.fields.excerpt ?? '',
+      summary: inst.fields.summary ?? '',
+      startSegIdx: inst.startSegIdx,
+      endSegIdx: inst.endSegIdx,
+      tokenStart: inst.fields.tokenStart,
+      tokenEnd: inst.fields.tokenEnd,
+    })) as unknown as PesukimResult['pesukim'];
+    const adapted: PesukimResult = { pesukim };
+    setPesukim(adapted);
+    pesukimSessionCache.set(`${tractate()}:${page()}`, adapted);
+  });
+
   // Bridge: when a code-defined registry mark is enabled (rabbi already has
   // its own renderer; argument/halacha/aggadata/pesukim still rely on the
   // legacy createResource + sidebar code paths), flip the corresponding
@@ -418,25 +535,13 @@ export default function DafViewer(): JSX.Element {
     return m;
   });
 
-  // Argument analysis state (for gutter icons + sidebar)
+  // Argument / halacha / aggadata / pesukim state — populated by the
+  // registry-mark adapter effects from `markRunsByMarkId()`. Loading and
+  // error states are surfaced via `markStatuses()` from the registry.
   const [analysis, setAnalysis] = createSignal<DafAnalysis | null>(null);
-  const [analysisLoading, setAnalysisLoading] = createSignal(false);
-  const [analysisError, setAnalysisError] = createSignal<string | null>(null);
-
-  // Halacha state (for gutter icons + sidebar)
   const [halacha, setHalacha] = createSignal<HalachaResult | null>(null);
-  const [halachaLoading, setHalachaLoading] = createSignal(false);
-  const [halachaError, setHalachaError] = createSignal<string | null>(null);
-
-  // Aggadata state (drives gutter icons + sidebar card + in-text highlight).
   const [aggadata, setAggadata] = createSignal<AggadataResult | null>(null);
-  const [aggadataLoading, setAggadataLoading] = createSignal(false);
-  const [aggadataError, setAggadataError] = createSignal<string | null>(null);
-
-  // Pesukim state (Tanach citations on the daf — gutter icons + sidebar card).
   const [pesukim, setPesukim] = createSignal<PesukimResult | null>(null);
-  const [pesukimLoading, setPesukimLoading] = createSignal(false);
-  const [pesukimError, setPesukimError] = createSignal<string | null>(null);
 
   // Other-commentary state (Sefaria links). Driven by the picker in the
   // right sidebar and the data-seg alignment in the daf text.
@@ -450,6 +555,16 @@ export default function DafViewer(): JSX.Element {
 
   // Sidebar state
   const [sidebar, setSidebar] = createSignal<SidebarContent | null>(null);
+  // Set by ArgumentSidebar when the user clicks an argument-move card. Paints
+  // a yellow band over the move's segment range in the main daf text. When
+  // tokenStart/tokenEnd are present, paints just those words within the
+  // segment(s) — sub-segment precision when the LLM emitted token offsets
+  // (see postProcessArgumentMove in the worker). Cleared on daf change
+  // and on sidebar close.
+  const [argumentMoveHighlight, setArgumentMoveHighlight] = createSignal<{
+    start: number; end: number; key: string;
+    tokenStart?: number; tokenEnd?: number;
+  } | null>(null);
   const [activeRabbi, setActiveRabbi] = createSignal<string | null>(null);
 
 
@@ -823,138 +938,19 @@ export default function DafViewer(): JSX.Element {
     return () => controller.abort();
   });
 
-  // Analyze (argument structure). When the new registry-driven `argument`
-  // mark is enabled, derive analysis() from its run output (no legacy
-  // /api/analyze fetch). Otherwise fall through to the legacy probe + auto-
-  // kick path. Eventually the legacy path is removed entirely; for now it
-  // still runs when the user has the new mark off.
+  // analysis()/halacha()/aggadata()/pesukim() are now hydrated entirely by
+  // the registry-mark adapter effects above (search "Adapter:"). On daf
+  // change we clear the stale data; the adapter effect re-fires once the
+  // corresponding mark run lands. Session caches stay in place for instant
+  // back-nav restoration.
   createEffect(() => {
     const t = tractate();
     const p = page();
     const key = `${t}:${p}`;
-    const cached = analysisSessionCache.get(key);
-    if (cached) { setAnalysis(cached); return; }
-    if (enabledMarkDefs().some((m) => m.id === 'argument')) {
-      // New system owns this mark — clear any stale legacy data; the
-      // adapter effect below will populate analysis() once the run lands.
-      setAnalysis(null);
-      return;
-    }
-    setAnalysis(null);
-    const controller = new AbortController();
-    fetch(`/api/analyze/${encodeURIComponent(t)}/${p}?cached_only=1`, { signal: controller.signal })
-      .then(async (res) => {
-        if (res.status === 200) return (await res.json()) as DafAnalysis;
-        return null;
-      })
-      .then((d) => {
-        if (t !== tractate() || p !== page()) return;
-        if (d && !d.error) {
-          analysisSessionCache.set(key, d);
-          setAnalysis(d);
-          return;
-        }
-        // Cache miss — auto-run a fresh analysis in the background so the
-        // Geography tab populates without user interaction.
-        if (!analysisLoading()) void runAnalysis();
-      })
-      .catch(() => {});
-    onCleanup(() => controller.abort());
-  });
-
-  // (rabbiPlaces is now derived from dafContext; no extra fetch needed.)
-
-  // Halacha — probe cache first; auto-kick off a fresh run on cache miss
-  // so the ⚖ icons populate without requiring an explicit click.
-  createEffect(() => {
-    const t = tractate();
-    const p = page();
-    const key = `${t}:${p}`;
-    const cached = halachaSessionCache.get(key);
-    if (cached) { setHalacha(cached); return; }
-    setHalacha(null);
-    const controller = new AbortController();
-    fetch(`/api/halacha/${encodeURIComponent(t)}/${p}?cached_only=1`, { signal: controller.signal })
-      .then(async (res) => res.status === 200 ? (await res.json()) as HalachaResult : null)
-      .then((d) => {
-        if (t !== tractate() || p !== page()) return;
-        if (d && !d.error) {
-          halachaSessionCache.set(key, d);
-          setHalacha(d);
-          return;
-        }
-        if (!halachaLoading()) void runHalacha();
-      })
-      .catch(() => {});
-    onCleanup(() => controller.abort());
-  });
-
-  // Aggadata — probe cache first; auto-run on miss so story titles appear
-  // above the Geography card without user interaction.
-  createEffect(() => {
-    const t = tractate();
-    const p = page();
-    const key = `${t}:${p}`;
-    const cached = aggadataSessionCache.get(key);
-    if (cached) { setAggadata(cached); return; }
-    setAggadata(null);
-    const controller = new AbortController();
-    fetch(`/api/aggadata/${encodeURIComponent(t)}/${p}?cached_only=1`, { signal: controller.signal })
-      .then(async (res) => res.status === 200 ? (await res.json()) as AggadataResult : null)
-      .then((d) => {
-        if (t !== tractate() || p !== page()) return;
-        if (d && !d.error) {
-          aggadataSessionCache.set(key, d);
-          setAggadata(d);
-          return;
-        }
-        if (!aggadataLoading()) void runAggadata();
-      })
-      .catch(() => {});
-    onCleanup(() => controller.abort());
-  });
-
-  // Pesukim — probe synthesize-enrich cache first (returns pesukim with
-  // explanation attached). Fall back to bare identify cache for the icon
-  // + sidebar minimum, then background-run identify and synthesize.
-  createEffect(() => {
-    const t = tractate();
-    const p = page();
-    const key = `${t}:${p}`;
-    const cached = pesukimSessionCache.get(key);
-    if (cached) { setPesukim(cached); return; }
-    setPesukim(null);
-    const controller = new AbortController();
-    // Probe enrich-synthesize first — pesukim with explanations.
-    fetch(`/api/enrich-pesukim/${encodeURIComponent(t)}/${p}?strategy=synthesize&cached_only=1`, {
-      method: 'POST',
-      signal: controller.signal,
-    })
-      .then(async (res) => res.status === 200 ? (await res.json()) as PesukimResult : null)
-      .then((d) => {
-        if (t !== tractate() || p !== page()) return;
-        if (d && !d.error && Array.isArray(d.pesukim)) {
-          pesukimSessionCache.set(key, d);
-          setPesukim(d);
-          return;
-        }
-        // Fallback: bare identify cache (no synthesize text yet).
-        return fetch(`/api/pesukim/${encodeURIComponent(t)}/${p}?cached_only=1`, { signal: controller.signal })
-          .then(async (res2) => res2.status === 200 ? (await res2.json()) as PesukimResult : null)
-          .then((d2) => {
-            if (t !== tractate() || p !== page()) return;
-            if (d2 && !d2.error && Array.isArray(d2.pesukim)) {
-              pesukimSessionCache.set(key, d2);
-              setPesukim(d2);
-              // Kick off synthesize in the background so the next render has it.
-              void runPesukimSynthesize();
-              return;
-            }
-            if (!pesukimLoading()) void runPesukim();
-          });
-      })
-      .catch(() => {});
-    onCleanup(() => controller.abort());
+    setAnalysis(analysisSessionCache.get(key) ?? null);
+    setHalacha(halachaSessionCache.get(key) ?? null);
+    setAggadata(aggadataSessionCache.get(key) ?? null);
+    setPesukim(pesukimSessionCache.get(key) ?? null);
   });
 
   // Fetch the list of commentaries for this daf (Sefaria links, non-Rashi/
@@ -980,113 +976,6 @@ export default function DafViewer(): JSX.Element {
     onCleanup(() => controller.abort());
   });
 
-  // Manual trigger for the slow Kimi argument analysis (first-time per daf).
-  const runAnalysis = async () => {
-    const t = tractate();
-    const p = page();
-    const key = `${t}:${p}`;
-    setAnalysisLoading(true);
-    setAnalysisError(null);
-    try {
-      const res = await fetch(`/api/analyze/${encodeURIComponent(t)}/${p}`);
-      const d = (await res.json()) as DafAnalysis & { attempts?: string[] };
-      if (t !== tractate() || p !== page()) return;
-      if (!res.ok || d.error) throw new Error(d.error ?? `HTTP ${res.status}`);
-      analysisSessionCache.set(key, d);
-      setAnalysis(d);
-    } catch (err) {
-      if (t !== tractate() || p !== page()) return;
-      setAnalysisError(String((err as Error).message ?? err));
-    } finally {
-      if (t === tractate() && p === page()) setAnalysisLoading(false);
-    }
-  };
-
-  const runHalacha = async () => {
-    const t = tractate();
-    const p = page();
-    const key = `${t}:${p}`;
-    setHalachaLoading(true);
-    setHalachaError(null);
-    try {
-      const res = await fetch(`/api/halacha/${encodeURIComponent(t)}/${p}`);
-      const d = (await res.json()) as HalachaResult & { attempts?: string[] };
-      if (t !== tractate() || p !== page()) return;
-      if (!res.ok || d.error) throw new Error(d.error ?? `HTTP ${res.status}`);
-      halachaSessionCache.set(key, d);
-      setHalacha(d);
-    } catch (err) {
-      if (t !== tractate() || p !== page()) return;
-      setHalachaError(String((err as Error).message ?? err));
-    } finally {
-      if (t === tractate() && p === page()) setHalachaLoading(false);
-    }
-  };
-
-  const runAggadata = async (refresh = false) => {
-    const t = tractate();
-    const p = page();
-    const key = `${t}:${p}`;
-    setAggadataLoading(true);
-    setAggadataError(null);
-    try {
-      const url = `/api/aggadata/${encodeURIComponent(t)}/${p}${refresh ? '?refresh=1' : ''}`;
-      const res = await fetch(url);
-      const d = (await res.json()) as AggadataResult & { attempts?: string[] };
-      if (t !== tractate() || p !== page()) return;
-      if (!res.ok || d.error) throw new Error(d.error ?? `HTTP ${res.status}`);
-      aggadataSessionCache.set(key, d);
-      setAggadata(d);
-    } catch (err) {
-      if (t !== tractate() || p !== page()) return;
-      setAggadataError(String((err as Error).message ?? err));
-    } finally {
-      if (t === tractate() && p === page()) setAggadataLoading(false);
-    }
-  };
-
-  const runPesukimSynthesize = async (): Promise<void> => {
-    const t = tractate();
-    const p = page();
-    const key = `${t}:${p}`;
-    try {
-      const res = await fetch(`/api/enrich-pesukim/${encodeURIComponent(t)}/${p}?strategy=synthesize`, { method: 'POST' });
-      if (!res.ok) return;
-      const d = (await res.json()) as PesukimResult;
-      if (t !== tractate() || p !== page()) return;
-      if (d && !d.error && Array.isArray(d.pesukim)) {
-        pesukimSessionCache.set(key, d);
-        setPesukim(d);
-      }
-    } catch {
-      /* tolerate — synthesize is enhancement, not required */
-    }
-  };
-
-  const runPesukim = async (refresh = false): Promise<void> => {
-    const t = tractate();
-    const p = page();
-    const key = `${t}:${p}`;
-    setPesukimLoading(true);
-    setPesukimError(null);
-    try {
-      const url = `/api/pesukim/${encodeURIComponent(t)}/${p}${refresh ? '?refresh=1' : ''}`;
-      const res = await fetch(url);
-      const d = (await res.json()) as PesukimResult & { attempts?: string[] };
-      if (t !== tractate() || p !== page()) return;
-      if (!res.ok || d.error) throw new Error(d.error ?? `HTTP ${res.status}`);
-      pesukimSessionCache.set(key, d);
-      setPesukim(d);
-      // Kick off synthesize in the background so the icons get explanation text.
-      void runPesukimSynthesize();
-    } catch (err) {
-      if (t !== tractate() || p !== page()) return;
-      setPesukimError(String((err as Error).message ?? err));
-    } finally {
-      if (t === tractate() && p === page()) setPesukimLoading(false);
-    }
-  };
-
   // Build a Map<name, GenerationId> so the sidebar can color-code each rabbi.
   const generationByName = createMemo<Map<string, GenerationId>>(() => {
     const m = new Map<string, GenerationId>();
@@ -1094,7 +983,7 @@ export default function DafViewer(): JSX.Element {
     return m;
   });
 
-  // Reset sidebar + trigger-error state on daf change.
+  // Reset sidebar state on daf change.
   createEffect(() => {
     void tractate(); void page();
     setSidebar(null);
@@ -1102,14 +991,7 @@ export default function DafViewer(): JSX.Element {
     setActiveLocation(null);
     setActiveLocationRabbis([]);
     setActivePlace(null);
-    setAnalysisError(null);
-    setHalachaError(null);
-    setAggadataError(null);
-    setPesukimError(null);
-    setAnalysisLoading(false);
-    setHalachaLoading(false);
-    setAggadataLoading(false);
-    setPesukimLoading(false);
+    setArgumentMoveHighlight(null);
   });
 
   // Apply all highlights (section / halacha range + per-rabbi accent) based
@@ -1139,6 +1021,7 @@ export default function DafViewer(): JSX.Element {
     const halachaRanges: Range[] = [];
     const aggadataRanges: Range[] = [];
     const pesukRanges: Range[] = [];
+    const moveRanges: Range[] = [];
     const commentaryRanges: Range[] = [];
     const commentaryActiveRanges: Range[] = [];
 
@@ -1163,7 +1046,10 @@ export default function DafViewer(): JSX.Element {
     };
 
     // Argument: whole section (no rabbi) or a single rabbi's opinion range(s).
-    if (s?.kind === 'argument') {
+    // Skip the section-wide tint when the user has clicked a specific
+    // sub-section card — the move-range highlight (painted below) is the
+    // more specific selection and stacking the two reads as one large blob.
+    if (s?.kind === 'argument' && !argumentMoveHighlight()) {
       const idx = s.index;
       const sectionAnchor = dafRootDiv.querySelector<HTMLElement>(
         `.daf-argument-anchor[data-idx="${idx}"]`,
@@ -1262,32 +1148,80 @@ export default function DafViewer(): JSX.Element {
       }
     }
 
-    // Pesuk: highlight the citation's start→end anchor span when the
-    // matching pasuk is open in the sidebar.
+    // Pesuk: highlight the citation's start→end span when the matching
+    // pasuk is open in the sidebar. Preference order:
+    //   1. tokenStart/tokenEnd on the pasuk instance (worker post-
+    //      processor wrote them) → exact word-range paint via
+    //      buildTokenRange, ignoring the injected anchor markers.
+    //   2. Explicit .daf-pesuk-end-anchor (legacy /api/pesukim).
+    //   3. Bound by endSegIdx alone (anchor → end of segment).
+    //   4. Fall through to the next pesuk anchor (wide upper bound).
     const sidebarPasuk = sidebar()?.kind === 'pesuk' ? sidebar() as Extract<SidebarContent, { kind: 'pesuk' }> : null;
     if (sidebarPasuk) {
-      const anchor = dafRootDiv.querySelector<HTMLElement>(
-        `.daf-pesuk-anchor[data-idx="${sidebarPasuk.index}"]`,
-      );
       const mainText = dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
-      if (anchor && mainText) {
-        const endAnchor = dafRootDiv.querySelector<HTMLElement>(
-          `.daf-pesuk-end-anchor[data-idx="${sidebarPasuk.index}"]`,
+      const pasuk = sidebarPasuk.pasuk;
+      const hasTokens = typeof pasuk.tokenStart === 'number' && typeof pasuk.tokenEnd === 'number'
+        && typeof pasuk.startSegIdx === 'number' && typeof pasuk.endSegIdx === 'number';
+      if (hasTokens && mainText) {
+        const r = buildTokenRange(mainText, pasuk.startSegIdx!, pasuk.endSegIdx!, pasuk.tokenStart, pasuk.tokenEnd);
+        if (r) collectRange(r, 'pesuk');
+      } else {
+        const anchor = dafRootDiv.querySelector<HTMLElement>(
+          `.daf-pesuk-anchor[data-idx="${sidebarPasuk.index}"]`,
         );
-        const range = document.createRange();
-        range.setStartAfter(anchor);
-        if (endAnchor) {
-          range.setEndAfter(endAnchor);
-        } else {
-          const allPesukAnchors = Array.from(
-            dafRootDiv.querySelectorAll<HTMLElement>('.daf-pesuk-anchor'),
-          ).sort((a, b) => Number(a.getAttribute('data-idx') ?? 0) - Number(b.getAttribute('data-idx') ?? 0));
-          const pos = allPesukAnchors.findIndex((el) => el === anchor);
-          const next = pos >= 0 && pos + 1 < allPesukAnchors.length ? allPesukAnchors[pos + 1] : null;
-          if (next) range.setEndBefore(next);
-          else range.setEndAfter(mainText);
+        if (anchor && mainText) {
+          const endAnchor = dafRootDiv.querySelector<HTMLElement>(
+            `.daf-pesuk-end-anchor[data-idx="${sidebarPasuk.index}"]`,
+          );
+          const range = document.createRange();
+          range.setStartAfter(anchor);
+          if (endAnchor) {
+            range.setEndAfter(endAnchor);
+          } else if (typeof pasuk.endSegIdx === 'number') {
+            let endSpans: NodeListOf<HTMLElement> | null = null;
+            for (let s = pasuk.endSegIdx; s >= (pasuk.startSegIdx ?? s) && !endSpans; s--) {
+              const found = mainText.querySelectorAll<HTMLElement>(`.daf-word[data-seg="${s}"]`);
+              if (found.length > 0) endSpans = found;
+            }
+            if (endSpans && endSpans.length > 0) {
+              range.setEndAfter(endSpans[endSpans.length - 1]);
+            } else {
+              const allPesukAnchors = Array.from(
+                dafRootDiv.querySelectorAll<HTMLElement>('.daf-pesuk-anchor'),
+              ).sort((a, b) => Number(a.getAttribute('data-idx') ?? 0) - Number(b.getAttribute('data-idx') ?? 0));
+              const pos = allPesukAnchors.findIndex((el) => el === anchor);
+              const next = pos >= 0 && pos + 1 < allPesukAnchors.length ? allPesukAnchors[pos + 1] : null;
+              if (next) range.setEndBefore(next);
+              else range.setEndAfter(mainText);
+            }
+          } else {
+            const allPesukAnchors = Array.from(
+              dafRootDiv.querySelectorAll<HTMLElement>('.daf-pesuk-anchor'),
+            ).sort((a, b) => Number(a.getAttribute('data-idx') ?? 0) - Number(b.getAttribute('data-idx') ?? 0));
+            const pos = allPesukAnchors.findIndex((el) => el === anchor);
+            const next = pos >= 0 && pos + 1 < allPesukAnchors.length ? allPesukAnchors[pos + 1] : null;
+            if (next) range.setEndBefore(next);
+            else range.setEndAfter(mainText);
+          }
+          collectRange(range, 'pesuk');
         }
-        collectRange(range, 'pesuk');
+      }
+    }
+
+    // Argument-move highlight — set by ArgumentSidebar when the user clicks
+    // a subsection card. Paints a yellow band over the move's segment range
+    // in the main column. When tokenStart/tokenEnd are present (worker's
+    // post-processor extracted them), paints exactly those words within
+    // the matching segments — sub-segment precision so multiple moves
+    // packaged into one Sefaria segment (Mishnah block) each highlight
+    // their own words. Independent of `sidebar` kind so the highlight stays
+    // visible while the user reads the per-move synthesis.
+    const moveHL = argumentMoveHighlight();
+    if (moveHL) {
+      const mainCol = dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
+      if (mainCol) {
+        const r = buildTokenRange(mainCol, moveHL.start, moveHL.end, moveHL.tokenStart, moveHL.tokenEnd);
+        if (r) moveRanges.push(r);
       }
     }
 
@@ -1353,6 +1287,7 @@ export default function DafViewer(): JSX.Element {
     paintRangeOverlay(overlay, dafRootDiv, halachaRanges, 'halacha');
     paintRangeOverlay(overlay, dafRootDiv, aggadataRanges, 'aggadata');
     paintRangeOverlay(overlay, dafRootDiv, pesukRanges, 'pesuk');
+    paintRangeOverlay(overlay, dafRootDiv, moveRanges, 'move');
 
     // Era stratification overlays — only meaningful when Era toggle is on.
     if (showEra()) {
@@ -1433,6 +1368,7 @@ export default function DafViewer(): JSX.Element {
     void activeCommentaryWork();
     void activeCommentarySegIdx();
     void activePlace();
+    void argumentMoveHighlight();
     // Era overlays need the same repaint path.
     void showEra(); void showEraHighlight(); void eraContext(); void hoveredEra();
     // Defer one frame so layout is settled before we measure client rects.
@@ -2154,7 +2090,7 @@ export default function DafViewer(): JSX.Element {
         </button>
       </header>
 
-      <Show when={analysisLoading() || halachaLoading() || aggadataLoading() || pesukimLoading() || genLoading() || analysisError() || halachaError() || aggadataError() || pesukimError() || genError() || markStatuses().some((s) => s.kind === 'loading' || s.kind === 'error')}>
+      <Show when={genLoading() || genError() || markStatuses().some((s) => s.kind === 'loading' || s.kind === 'error')}>
         <section
           style={{
             'margin-bottom': '1rem',
@@ -2170,50 +2106,6 @@ export default function DafViewer(): JSX.Element {
             color: '#888',
           }}
         >
-          <Show when={analysisLoading()}>
-            <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
-              <span style={{
-                display: 'inline-block', width: '0.75rem', height: '0.75rem',
-                'border-radius': '50%',
-                border: '2px solid #d6d3d1', 'border-top-color': '#8a2a2b',
-                animation: 'daf-spin 0.8s linear infinite',
-              }} />
-              Analyzing arguments…
-            </span>
-          </Show>
-          <Show when={halachaLoading()}>
-            <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
-              <span style={{
-                display: 'inline-block', width: '0.75rem', height: '0.75rem',
-                'border-radius': '50%',
-                border: '2px solid #d6d3d1', 'border-top-color': '#1e40af',
-                animation: 'daf-spin 0.8s linear infinite',
-              }} />
-              Identifying halacha…
-            </span>
-          </Show>
-          <Show when={aggadataLoading()}>
-            <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
-              <span style={{
-                display: 'inline-block', width: '0.75rem', height: '0.75rem',
-                'border-radius': '50%',
-                border: '2px solid #d6d3d1', 'border-top-color': '#6d28d9',
-                animation: 'daf-spin 0.8s linear infinite',
-              }} />
-              Finding aggadot…
-            </span>
-          </Show>
-          <Show when={pesukimLoading()}>
-            <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
-              <span style={{
-                display: 'inline-block', width: '0.75rem', height: '0.75rem',
-                'border-radius': '50%',
-                border: '2px solid #d6d3d1', 'border-top-color': '#d97706',
-                animation: 'daf-spin 0.8s linear infinite',
-              }} />
-              Expounding pesukim…
-            </span>
-          </Show>
           <Show when={genLoading()}>
             <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
               <span style={{
@@ -2225,7 +2117,7 @@ export default function DafViewer(): JSX.Element {
               Building chain of tradition…
             </span>
           </Show>
-          {/* Registry-driven marks — show one badge per loading/error mark. */}
+          {/* Registry-driven marks — one badge per loading/error mark. */}
           <For each={markStatuses().filter((s) => s.kind === 'loading')}>{(s) => (
             <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
               <span style={{
@@ -2240,18 +2132,6 @@ export default function DafViewer(): JSX.Element {
           <For each={markStatuses().filter((s) => s.kind === 'error')}>{(s) => (
             <span style={{ color: '#c33' }}>{s.label || s.id}: {s.error}</span>
           )}</For>
-          <Show when={analysisError()}>
-            <span style={{ color: '#c33' }}>Arguments: {analysisError()}</span>
-          </Show>
-          <Show when={halachaError()}>
-            <span style={{ color: '#c33' }}>Halacha: {halachaError()}</span>
-          </Show>
-          <Show when={aggadataError()}>
-            <span style={{ color: '#c33' }}>Aggadot: {aggadataError()}</span>
-          </Show>
-          <Show when={pesukimError()}>
-            <span style={{ color: '#c33' }}>Pesukim: {pesukimError()}</span>
-          </Show>
           <Show when={genError()}>
             <span style={{ color: '#c33' }}>Chain: {genError()}</span>
           </Show>
@@ -2446,7 +2326,11 @@ export default function DafViewer(): JSX.Element {
       </Show>
       </div>
 
-      <Show when={!isMobile()}>
+      {/* Only render the right-side aside when a sidebar card is actually
+          open. Reserving 420px unconditionally pushes the daf cluster
+          left of the page center (the cluster's `margin: 0 auto`
+          centers in `viewport − aside`, not the full viewport). */}
+      <Show when={!isMobile() && sidebar() !== null}>
         <aside
           class="daf-aside"
           style={{
@@ -2454,7 +2338,7 @@ export default function DafViewer(): JSX.Element {
             top: '1rem',
             'align-self': 'flex-start',
             'max-height': 'calc(100vh - 2rem)',
-            width: '300px',
+            width: '420px',
             'flex-shrink': 0,
             display: 'flex',
             'flex-direction': 'column',
@@ -2470,9 +2354,11 @@ export default function DafViewer(): JSX.Element {
             onClose={() => {
               setSidebar(null);
               setActiveRabbi(null);
+              setArgumentMoveHighlight(null);
               if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
             }}
             onHighlightRabbi={(name) => (name ? openRabbi(name) : setActiveRabbi(null))}
+            onHighlightRange={setArgumentMoveHighlight}
             onOpenRabbiSlug={openRabbiSlug}
             generationByName={generationByName()}
           />

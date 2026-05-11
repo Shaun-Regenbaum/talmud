@@ -15,6 +15,7 @@
  */
 
 import { createSignal, createEffect, onMount, onCleanup, For, Show, type JSX } from 'solid-js';
+import AIActivityPanel from './AIActivityPanel';
 
 const DEV_MODE_KEY = 'dev-mode:v1';
 const SHELF_WIDTH_KEY = 'dev-mode:shelf-width:v1';
@@ -57,9 +58,17 @@ function tagOf(args: unknown[]): string {
   return m ? m[1] : '';
 }
 
-function formatArgs(args: unknown[]): string {
-  return args.map((a) => {
-    if (typeof a === 'string') return a;
+function formatArgs(args: unknown[], stripTag?: string): string {
+  return args.map((a, i) => {
+    if (typeof a === 'string') {
+      // The tag is already rendered as a chip — strip the leading "[tag] "
+      // from the FIRST string arg so the body doesn't repeat what the chip
+      // already shows (was producing "[ai][ai] rabbi · Chullin 11a").
+      if (i === 0 && stripTag && a.startsWith(`[${stripTag}]`)) {
+        return a.slice(stripTag.length + 2).trimStart();
+      }
+      return a;
+    }
     // Error objects don't serialize via JSON.stringify (their props are
     // non-enumerable). Without this branch error logs show as `{}`.
     if (a instanceof Error) {
@@ -193,7 +202,7 @@ export default function DevModeShelf(props: Props) {
   const onCopyLogs = async () => {
     const lines = visibleLogs().map((l) => {
       const ts = new Date(l.at).toLocaleTimeString('en-US', { hour12: false });
-      return `${ts} [${l.level}]${l.tag ? ` [${l.tag}]` : ''} ${formatArgs(l.args)}`;
+      return `${ts} [${l.level}]${l.tag ? ` [${l.tag}]` : ''} ${formatArgs(l.args, l.tag)}`;
     }).join('\n');
     try {
       await navigator.clipboard.writeText(lines);
@@ -255,6 +264,14 @@ export default function DevModeShelf(props: Props) {
           >
             close
           </button>
+        </div>
+
+        {/* AI activity — live spinner per in-flight mark/enrichment +
+            green check + elapsed time for recent completions. Above the
+            marks slot so the eye lands on it. Self-hides when there's no
+            activity. */}
+        <div style={{ padding: '0.5rem 0.75rem 0', 'flex-shrink': 0 }}>
+          <AIActivityPanel />
         </div>
 
         {/* Marks slot — top section. flex:1 so it can grow; capped via
@@ -324,7 +341,7 @@ export default function DevModeShelf(props: Props) {
                 <Show when={l.tag}>
                   <span style={{ color: '#558', 'margin-right': '0.4rem' }}>[{l.tag}]</span>
                 </Show>
-                <span>{formatArgs(l.args)}</span>
+                <span>{formatArgs(l.args, l.tag)}</span>
               </div>
             )}</For>
           </div>

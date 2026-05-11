@@ -97,7 +97,7 @@ export async function getSefariaLinks(tractate: string, daf: string): Promise<Se
     const ref = `${tractate} ${daf}`; // e.g., "Berakhot 3a"
     const url = `https://www.sefaria.org/api/related/${ref.replace(' ', '_')}`;
     
-    console.log('🔗 Fetching Sefaria links for:', ref);
+    console.log('Fetching Sefaria links for:', ref);
     
     const response = await fetch(url);
     if (!response.ok) {
@@ -116,7 +116,7 @@ export async function getSefariaLinks(tractate: string, daf: string): Promise<Se
       .filter((link: SefariaLink | null): link is SefariaLink => link !== null)
       .filter(includeLink);
     
-    console.log(`✅ Found ${links.length} relevant links for ${ref}`);
+    console.log(`Found ${links.length} relevant links for ${ref}`);
     return links;
     
   } catch (error) {
@@ -185,7 +185,7 @@ export function linksToLinkingData(links: SefariaLink[], baseRef: string): Linki
     }
   });
   
-  console.log('🔗 Converted links to linking data:', {
+  console.log('Converted links to linking data:', {
     baseRef,
     rashiSegments: Object.keys(linking.rashi[baseRef]).length,
     tosafotSegments: Object.keys(linking.tosafot[baseRef]).length,
@@ -207,7 +207,7 @@ export async function getCommentaryLinks(tractate: string, daf: string): Promise
   const baseRef = `${tractate} ${daf}`;
   const linkingData = linksToLinkingData(links, baseRef);
   
-  console.log('📊 getCommentaryLinks returning:', {
+  console.log('getCommentaryLinks returning:', {
     rashiKeys: Object.keys(linkingData.rashi[baseRef] || {}),
     tosafotKeys: Object.keys(linkingData.tosafot[baseRef] || {}),
     totalLinks: links.length

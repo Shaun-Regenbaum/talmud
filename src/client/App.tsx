@@ -4,21 +4,19 @@ import Compare from './Compare';
 import DafViewer from './DafViewer';
 import { UsagePage } from './UsagePage';
 import { AlignPage } from './AlignPage';
-import EnrichmentPage from './EnrichmentPage';
 import { SagesPage } from './SagesPage';
 import SettingsPage from './SettingsPage';
 
 function currentRoute() {
-  // /experiment redirects to /enrichment (entity-contract playground retired
-  // 2026-04-27 in favor of the consolidated EnrichmentPage). Update the hash
-  // so the URL reflects the canonical route.
   // #sages/<slug> deep-links into SagesPage; treat the prefix as the route.
-  // #admin-rabbis is a legacy alias — SagesPage absorbed the operator UI on
-  // 2026-04-27, so old bookmarks redirect there.
+  // #admin-rabbis is a legacy alias — SagesPage absorbed the operator UI, so
+  // old bookmarks redirect there. #experiment / #enrichment fold into the
+  // daf view since the EnrichmentPage debug surface was removed alongside
+  // the legacy enrichment routes.
   const raw = window.location.hash.replace(/^#/, '') || 'daf';
-  if (raw === 'experiment') {
-    window.location.hash = 'enrichment';
-    return 'enrichment';
+  if (raw === 'experiment' || raw === 'enrichment') {
+    window.location.hash = 'daf';
+    return 'daf';
   }
   if (raw === 'admin-rabbis') {
     window.location.hash = 'sages';
@@ -38,11 +36,7 @@ export default function App() {
         <Show when={route() === 'compare'} fallback={
           <Show when={route() === 'spike'} fallback={
             <Show when={route() === 'sages'} fallback={
-              <Show when={route() === 'settings'} fallback={
-                <Show when={route() === 'enrichment'} fallback={<DafViewer />}>
-                  <EnrichmentPage />
-                </Show>
-              }>
+              <Show when={route() === 'settings'} fallback={<DafViewer />}>
                 <SettingsPage />
               </Show>
             }>

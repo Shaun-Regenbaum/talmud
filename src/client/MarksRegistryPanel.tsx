@@ -24,6 +24,7 @@
 
 import { createResource, createSignal, createEffect, onMount, onCleanup, untrack, For, Show } from 'solid-js';
 import InspectShelf from './InspectShelf';
+import { trackAI } from './aiActivity';
 import type { SeedMark } from './seed-marks';
 import type { MarkDef as RendererMarkDef, MarkRunOutput as RendererMarkRunOutput } from './renderers/dispatch';
 
@@ -170,26 +171,62 @@ async function fetchAll(): Promise<{ marks: WorkerMarkDefinition[]; enrichments:
   };
 }
 
-async function runMark(id: string, tractate: string, page: string, bypassCache = false): Promise<RunResult> {
+// /api/studio/run is now async (queue-backed). Three response shapes:
+//   { status: 'ok', result }                 ← cache hit, immediate
+//   { status: 'pending', runId } (HTTP 202)  ← enqueued, poll run-status
+//   { status: 'error', error }
+type RunResponse =
+  | { status: 'ok'; result: RunResult; total_ms?: number }
+  | { status: 'pending'; runId: string }
+  | { status: 'error'; error: string };
+
+const POLL_INTERVAL_MS = 1500;
+const POLL_TIMEOUT_MS = 180_000;
+
+async function postAndAwait(body: unknown): Promise<RunResult> {
   const r = await fetch('/api/studio/run', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ mark_id: id, tractate, page, bypass_cache: bypassCache }),
+    body: JSON.stringify(body),
   });
-  const j = await r.json();
-  if (!r.ok) throw new Error((j as { error?: string }).error ?? `HTTP ${r.status}`);
-  return j as RunResult;
+  const j = await r.json() as RunResponse | { error?: string };
+  if (!r.ok && r.status !== 202) {
+    throw new Error((j as { error?: string }).error ?? `HTTP ${r.status}`);
+  }
+  if ('status' in j) {
+    if (j.status === 'ok') return j.result;
+    if (j.status === 'error') throw new Error(j.error);
+    if (j.status === 'pending') return pollJob(j.runId);
+  }
+  // Back-compat: legacy synchronous shape — treat the whole body as RunResult.
+  return j as unknown as RunResult;
+}
+
+async function pollJob(runId: string): Promise<RunResult> {
+  const start = Date.now();
+  while (Date.now() - start < POLL_TIMEOUT_MS) {
+    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+    const r = await fetch(`/api/studio/run-status/${encodeURIComponent(runId)}`);
+    const j = await r.json() as RunResponse;
+    if ('status' in j) {
+      if (j.status === 'ok') return (j as { result: RunResult }).result;
+      if (j.status === 'error') throw new Error((j as { error: string }).error);
+      // pending — keep polling
+    }
+  }
+  throw new Error(`job ${runId} timed out after ${POLL_TIMEOUT_MS / 1000}s`);
+}
+
+async function runMark(id: string, tractate: string, page: string, bypassCache = false): Promise<RunResult> {
+  const activityId = `mark:${id}:${tractate}:${page}${bypassCache ? ':fresh' : ''}`;
+  const label = `${id} · ${tractate} ${page}`;
+  return trackAI(activityId, label, () => postAndAwait({ mark_id: id, tractate, page, bypass_cache: bypassCache }));
 }
 
 async function runEnrichment(id: string, tractate: string, page: string, bypassCache = false): Promise<RunResult> {
-  const r = await fetch('/api/studio/run', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ enrichment_id: id, tractate, page, bypass_cache: bypassCache }),
-  });
-  const j = await r.json();
-  if (!r.ok) throw new Error((j as { error?: string }).error ?? `HTTP ${r.status}`);
-  return j as RunResult;
+  const activityId = `enrichment:${id}:${tractate}:${page}${bypassCache ? ':fresh' : ''}`;
+  const label = `${id} · ${tractate} ${page}`;
+  return trackAI(activityId, label, () => postAndAwait({ enrichment_id: id, tractate, page, bypass_cache: bypassCache }));
 }
 
 interface Props {
@@ -450,10 +487,21 @@ export default function MarksRegistryPanel(props: Props) {
                     {anchor()[0]}/{String(render())[0]}
                   </span>
                   <Show when={row.source !== 'seed' && isOn()}>
-                    <span style={{ 'font-size': '0.7rem', color: state().kind === 'error' ? '#c00' : state().kind === 'loading' ? '#888' : state().kind === 'ok' ? '#080' : '#aaa' }}>
-                      {state().kind === 'loading' ? '⏳' :
-                       state().kind === 'ok' ? `✓ ${(state() as Extract<RunState, { kind: 'ok' }>).result.total_ms}ms` :
-                       state().kind === 'error' ? '✗' : ''}
+                    <span style={{ 'font-size': '0.7rem', display: 'inline-flex', 'align-items': 'center', gap: '0.3rem', color: state().kind === 'error' ? '#c00' : state().kind === 'loading' ? '#888' : state().kind === 'ok' ? '#15803d' : '#aaa' }}>
+                      <Show when={state().kind === 'loading'}>
+                        <span style={{
+                          display: 'inline-block', width: '0.65rem', height: '0.65rem',
+                          'border-radius': '50%',
+                          border: '2px solid #d6d3d1', 'border-top-color': '#8a2a2b',
+                          animation: 'daf-spin 0.8s linear infinite',
+                        }} />
+                      </Show>
+                      <Show when={state().kind === 'ok'}>
+                        <span>✓ {(state() as Extract<RunState, { kind: 'ok' }>).result.total_ms}ms</span>
+                      </Show>
+                      <Show when={state().kind === 'error'}>
+                        <span>✗</span>
+                      </Show>
                     </span>
                   </Show>
                   <Show when={row.source !== 'seed' && isOn()}>
