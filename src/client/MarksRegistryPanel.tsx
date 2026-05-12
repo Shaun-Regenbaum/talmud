@@ -132,6 +132,14 @@ export type RunState =
 
 const ENABLED_KEY = 'marks-registry:enabled:v1';
 
+/** First-visit detection. When the localStorage key is missing entirely,
+ *  we auto-enable every mark in the registry (default-on) once it loads.
+ *  After any user toggle writes the key, this flag flips off so the
+ *  user's explicit choice is respected (including "all off"). */
+function hasEverSavedEnabled(): boolean {
+  try { return localStorage.getItem(ENABLED_KEY) !== null; } catch { return true; }
+}
+
 function readEnabled(): Set<string> {
   try {
     const raw = localStorage.getItem(ENABLED_KEY);
@@ -250,6 +258,22 @@ export default function MarksRegistryPanel(props: Props) {
     const onInv = () => setRuns({});
     window.addEventListener('marks-runs-invalidate', onInv);
     onCleanup(() => window.removeEventListener('marks-runs-invalidate', onInv));
+  });
+
+  // Default-on for first-time visitors. When the user has never explicitly
+  // toggled anything (localStorage key absent), turn every promoted mark
+  // on automatically once the registry loads. Subsequent visits with a
+  // saved set — even "all off" — are respected. Effect runs once: it
+  // checks the sentinel before writing.
+  createEffect(() => {
+    const reg = registry();
+    if (!reg) return;
+    if (hasEverSavedEnabled()) return;
+    const promoted = reg.marks.filter((m) => m.status !== 'draft').map((m) => m.id);
+    if (promoted.length === 0) return;
+    const next = new Set([...enabled(), ...promoted]);
+    setEnabled(next);
+    writeEnabled(next);
   });
 
   // Re-publish enabled marks (with their definitions) and the parsed run
