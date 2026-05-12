@@ -5529,9 +5529,15 @@ const YOMI_WARM_CRON = '0 3 * * *';
  * failure (max_retries=1 in wrangler.toml is the safety net).
  */
 async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: ExecutionContext): Promise<void> {
+  // eslint-disable-next-line no-console
+  console.log('[queue] picked up job', job.runId, '·', job.mark_id ?? job.enrichment_id ?? 'adhoc', job.tractate, job.page);
   const wrapped = wrapEnv(env);
   const cache = wrapped.CACHE;
-  if (!cache) return;
+  if (!cache) {
+    // eslint-disable-next-line no-console
+    console.error('[queue] CACHE binding missing — cannot write job result');
+    return;
+  }
   const jobKey = `job:${job.runId}`;
   // Synthesize a RunCtx; the queue consumer doesn't have a real Request, so
   // we use the worker's own origin for any internal self-fetches.
@@ -5610,6 +5616,8 @@ export default {
   // simultaneous LLM workloads; max_batch_size=1 means one job per
   // invocation (no batching), which keeps memory bounded per worker.
   queue: async (batch: MessageBatch<JobMessage>, env: Bindings, ctx: ExecutionContext): Promise<void> => {
+    // eslint-disable-next-line no-console
+    console.log('[queue] batch arrived:', batch.messages.length, 'message(s)');
     for (const msg of batch.messages) {
       try {
         await processEnrichmentJob(env, msg.body, ctx);

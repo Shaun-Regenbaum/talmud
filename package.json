@@ -29,12 +29,12 @@
     "solid-js": "^1.9.0"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.0.0",
-    "@cloudflare/workers-types": "^4.20250101.0",
+    "@cloudflare/vite-plugin": "^1.36.4",
+    "@cloudflare/workers-types": "^4.20260511.1",
     "typescript": "^5.7.0",
     "vite": "^6.0.0",
     "vite-plugin-solid": "^2.11.0",
     "vitest": "^4.1.5",
-    "wrangler": "^4.0.0"
+    "wrangler": "^4.90.1"
   }
 }
