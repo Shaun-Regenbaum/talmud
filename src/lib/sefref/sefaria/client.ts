@@ -50,10 +50,17 @@ export interface TalmudPageData {
   rashi?: {
     hebrew: string;
     english: string;
+    /** Per-piece Hebrew text. Sefaria returns commentary as an array where
+     *  each entry is one Rashi piece — preserved here so the renderer can
+     *  wrap each piece with a data-piece-idx marker for the bidirectional
+     *  daf↔commentary anchor highlight. */
+    pieces?: string[];
   };
   tosafot?: {
     hebrew: string;
     english: string;
+    /** Same shape as rashi.pieces. */
+    pieces?: string[];
   };
 }
 
@@ -204,6 +211,13 @@ class SefariaAPI {
     const formatText = (text: string | string[]): string => {
       return Array.isArray(text) ? text.join(' ') : text;
     };
+    /** Preserve per-piece array shape when Sefaria gave us one. Returns
+     *  undefined when the source was a single string (no piece boundaries
+     *  to anchor against). */
+    const piecesOf = (text: string | string[]): string[] | undefined => {
+      if (!Array.isArray(text)) return undefined;
+      return text.map((p) => (typeof p === 'string' ? p : ''));
+    };
 
     return {
       mainText: {
@@ -212,11 +226,13 @@ class SefariaAPI {
       },
       rashi: rashiData ? {
         hebrew: formatText(rashiData.he),
-        english: formatText(rashiData.text)
+        english: formatText(rashiData.text),
+        pieces: piecesOf(rashiData.he),
       } : undefined,
       tosafot: tosafotData ? {
         hebrew: formatText(tosafotData.he),
-        english: formatText(tosafotData.text)
+        english: formatText(tosafotData.text),
+        pieces: piecesOf(tosafotData.he),
       } : undefined
     };
   }

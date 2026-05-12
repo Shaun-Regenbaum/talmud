@@ -320,6 +320,16 @@ export default function MarksRegistryPanel(props: Props) {
   // self-trigger on its own writes. The stamp (`tractate/page`) is stored on
   // every non-idle state so we can cheaply detect "already done for this
   // daf" and skip duplicate fires.
+  /** Resolve callbacks ignore stale results — if the user navigated to a
+   *  different daf while a job was in flight, the job's eventual success
+   *  or failure (often a 180s timeout) MUST NOT overwrite the new daf's
+   *  state. Without this guard, switching from Keritot 2a to Niddah 2a
+   *  while Keritot's rabbi run was pending would, 180s later, paint
+   *  Niddah's rabbi row as "failed" with the Keritot job's timeout
+   *  message. Compare against `props.tractate/${props.page}` at
+   *  resolve-time (reactive — reflects the current daf). */
+  const currentStamp = () => `${props.tractate}/${props.page}`;
+
   createEffect(() => {
     const reg = registry();
     if (!reg) return;
@@ -333,8 +343,8 @@ export default function MarksRegistryPanel(props: Props) {
         if (cur && cur.kind !== 'idle' && cur.stamp === stamp) continue;
         setRun(m.id, { kind: 'loading', stamp });
         void runMark(m.id, props.tractate, props.page).then(
-          (result) => setRun(m.id, { kind: 'ok', stamp, at: Date.now(), result }),
-          (err) => setRun(m.id, { kind: 'error', stamp, at: Date.now(), error: String((err as Error)?.message ?? err) }),
+          (result) => { if (currentStamp() === stamp) setRun(m.id, { kind: 'ok', stamp, at: Date.now(), result }); },
+          (err) => { if (currentStamp() === stamp) setRun(m.id, { kind: 'error', stamp, at: Date.now(), error: String((err as Error)?.message ?? err) }); },
         );
       }
       for (const e of reg.enrichments) {
@@ -343,8 +353,8 @@ export default function MarksRegistryPanel(props: Props) {
         if (cur && cur.kind !== 'idle' && cur.stamp === stamp) continue;
         setRun(e.id, { kind: 'loading', stamp });
         void runEnrichment(e.id, props.tractate, props.page).then(
-          (result) => setRun(e.id, { kind: 'ok', stamp, at: Date.now(), result }),
-          (err) => setRun(e.id, { kind: 'error', stamp, at: Date.now(), error: String((err as Error)?.message ?? err) }),
+          (result) => { if (currentStamp() === stamp) setRun(e.id, { kind: 'ok', stamp, at: Date.now(), result }); },
+          (err) => { if (currentStamp() === stamp) setRun(e.id, { kind: 'error', stamp, at: Date.now(), error: String((err as Error)?.message ?? err) }); },
         );
       }
     });
@@ -574,8 +584,8 @@ export default function MarksRegistryPanel(props: Props) {
                         setRun(mid, { kind: 'loading', stamp });
                         const fn = row.source === 'mark' ? runMark : runEnrichment;
                         fn(mid, props.tractate, props.page, true).then(
-                          (result) => setRun(mid, { kind: 'ok', stamp, at: Date.now(), result }),
-                          (err) => setRun(mid, { kind: 'error', stamp, at: Date.now(), error: String((err as Error)?.message ?? err) }),
+                          (result) => { if (currentStamp() === stamp) setRun(mid, { kind: 'ok', stamp, at: Date.now(), result }); },
+                          (err) => { if (currentStamp() === stamp) setRun(mid, { kind: 'error', stamp, at: Date.now(), error: String((err as Error)?.message ?? err) }); },
                         );
                       }}
                       title="Re-run (skip Gateway cache)"

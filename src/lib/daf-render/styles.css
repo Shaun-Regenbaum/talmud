@@ -285,6 +285,13 @@
 .daf-root .daf-range-highlight-commentary-active {
   background-color: rgba(124, 58, 237, 0.32);
 }
+/* Daf↔commentary anchor — clicking a Rashi/Tosafot piece paints a teal
+   band over the daf seg(s) it glosses. Hue picked to be distinct from
+   the rabbi (red), argument-move (yellow), and commentary (violet) tints
+   that might also be on screen. */
+.daf-root .daf-range-highlight-comm-anchor {
+  background-color: rgba(15, 118, 110, 0.22);
+}
 /* Era stratification tints — background color is set inline per-segment
    (paintRangeOverlay's bgFor callback) so the static rule only owns layout
    behaviour. Pointer-events stay off so clicks fall through to the daf word. */
@@ -371,4 +378,16 @@
 }
 .daf-root .daf-text .daf-word.daf-word-active {
   background-color: rgba(138, 42, 43, 0.22);
+}
+
+/* Daf↔commentary anchor highlight on the .daf-comm-piece block (the
+   Rashi/Tosafot piece in the inner/outer column). The MAIN-column daf
+   gets the continuous teal range-overlay band (see
+   .daf-range-highlight-comm-anchor above) instead of per-word pills,
+   so this rule covers only the commentary side. */
+.daf-root .daf-comm-piece.comm-anchor-active {
+  background-color: rgba(15, 118, 110, 0.10);
+  outline: 1.5px solid rgba(15, 118, 110, 0.45);
+  outline-offset: 1px;
+  border-radius: 2px;
 }

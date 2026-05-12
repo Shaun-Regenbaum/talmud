@@ -25,6 +25,7 @@ import { CommentaryStrip } from './CommentaryStrip';
 import { MobileShelf, type MobileInteractionMode } from './MobileShelf';
 import MarksRegistryPanel, { enabledMarkDefs, markRunsByMarkId, markStatuses } from './MarksRegistryPanel';
 import { buildSeedMarks } from './seed-marks';
+import { fetchCommentaryAnchorIndex, type CommentaryAnchorIndex } from './commentaryAnchorIndex';
 import { applyMarkRenderers } from './renderers/dispatch';
 import DevModeShelf, { readDevMode, setDevModeActive } from './DevModeShelf';
 import type { GenerationId } from './generations';
@@ -131,7 +132,7 @@ function paintRangeOverlay(
   overlay: HTMLElement,
   origin: HTMLElement,
   ranges: Range[],
-  kind: 'section' | 'halacha' | 'aggadata' | 'pesuk' | 'move' | 'commentary' | 'commentary-active',
+  kind: 'section' | 'halacha' | 'aggadata' | 'pesuk' | 'move' | 'commentary' | 'commentary-active' | 'comm-anchor',
   /** Optional per-range inline background color. */
   bgFor?: (rangeIdx: number) => string | undefined,
 ): void {
@@ -549,6 +550,25 @@ export default function DafViewer(): JSX.Element {
   } | null>(null);
   const [activeRabbi, setActiveRabbi] = createSignal<string | null>(null);
 
+  // Bidirectional commentary anchor: clicking a daf word lights up the
+  // Rashi/Tosafot pieces glossing that segment; clicking a Rashi/Tosafot
+  // piece lights up the matching daf segment(s). Sourced from Sefaria's
+  // link API via commentaryAnchorIndex.ts. Cleared on daf change.
+  const [commentaryAnchorIndex, setCommentaryAnchorIndex] = createSignal<CommentaryAnchorIndex | null>(null);
+  const [commAnchorActive, setCommAnchorActive] = createSignal<{
+    /** Which side initiated the click. Determines which surface gets the
+     *  highlight:
+     *    - 'from-main' → only the linked Rashi/Tosafot pieces light up.
+     *      The daf itself stays untouched (the user already knows what
+     *      they clicked).
+     *    - 'from-piece' → the matching daf segment(s) get the continuous
+     *      range overlay (same painter argument-move uses) AND the
+     *      clicked piece keeps its highlight as the source. */
+    direction: 'from-main' | 'from-piece';
+    segs: number[];
+    pieces: Array<{ comm: 'rashi' | 'tosafot'; idx: number }>;
+  } | null>(null);
+
 
   // Commentary and argument previously shared an aside-reorder signal; now
   // they live in separate regions (commentary = left strip, argument =
@@ -840,6 +860,30 @@ export default function DafViewer(): JSX.Element {
     setActiveLocationRabbis([]);
     setActivePlace(null);
     setArgumentMoveHighlight(null);
+    setCommAnchorActive(null);
+    setCommentaryAnchorIndex(null);
+  });
+
+  // Fetch the bidirectional commentary anchor index for the current daf
+  // (Sefaria links → segToPieces + pieceToSegs maps). Session-cached
+  // inside the helper, so re-mounts within a single page session are
+  // free. Silently noops on fetch failure — the bidirectional anchor is
+  // a best-effort affordance, not load-bearing.
+  createEffect(() => {
+    const t = tractate();
+    const p = page();
+    if (!t || !p) return;
+    void (async () => {
+      try {
+        const idx = await fetchCommentaryAnchorIndex(t, p);
+        // Discard the result if the user changed daf mid-fetch.
+        if (t !== tractate() || p !== page()) return;
+        setCommentaryAnchorIndex(idx);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.warn('[commentary-anchor] failed to fetch index:', err);
+      }
+    })();
   });
 
   // Apply all highlights (section / halacha range + per-rabbi accent) based
@@ -872,6 +916,10 @@ export default function DafViewer(): JSX.Element {
     const moveRanges: Range[] = [];
     const commentaryRanges: Range[] = [];
     const commentaryActiveRanges: Range[] = [];
+    /** Continuous band painted over the daf seg(s) that a clicked
+     *  Rashi/Tosafot piece anchors to. Populated only when
+     *  commAnchorActive.direction === 'from-piece'. */
+    const commAnchorRanges: Range[] = [];
 
     const collectRange = (range: Range, bucket: 'section' | 'halacha' | 'aggadata' | 'pesuk') => {
       if (range.collapsed) return;
@@ -1088,6 +1136,25 @@ export default function DafViewer(): JSX.Element {
       }
     }
 
+    // Daf↔commentary anchor — when the user clicks a Rashi/Tosafot piece,
+    // paint a continuous band over the daf seg(s) the piece anchors to.
+    // Only active for direction='from-piece' since clicking the daf
+    // itself shouldn't re-highlight the daf (that's noisy and redundant).
+    const commActive = commAnchorActive();
+    if (commActive && commActive.direction === 'from-piece' && commActive.segs.length > 0) {
+      const mainCol = dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
+      if (mainCol) {
+        // Build one range per contiguous seg run. The simplest correct
+        // thing: one range per seg. paintRangeOverlay handles per-line
+        // banding so multiple segs render as a single visual block when
+        // they sit on the same line.
+        for (const seg of commActive.segs) {
+          const r = buildTokenRange(mainCol, seg, seg);
+          if (r) commAnchorRanges.push(r);
+        }
+      }
+    }
+
     // Commentary: whenever a work is active, tint every main-text segment
     // the work anchors to (ambient). If a specific segment is currently
     // open in the sidebar, paint it with the darker "active" color.
@@ -1151,6 +1218,7 @@ export default function DafViewer(): JSX.Element {
     paintRangeOverlay(overlay, dafRootDiv, aggadataRanges, 'aggadata');
     paintRangeOverlay(overlay, dafRootDiv, pesukRanges, 'pesuk');
     paintRangeOverlay(overlay, dafRootDiv, moveRanges, 'move');
+    paintRangeOverlay(overlay, dafRootDiv, commAnchorRanges, 'comm-anchor');
 
     // Per-rabbi name accent (yellow) — always applied on top of any tint.
     if (name) {
@@ -1193,6 +1261,7 @@ export default function DafViewer(): JSX.Element {
     void activeCommentarySegIdx();
     void activePlace();
     void argumentMoveHighlight();
+    void commAnchorActive();
     // Defer one frame so layout is settled before we measure client rects.
     queueMicrotask(() => queueMicrotask(applyHighlights));
   });
@@ -1233,8 +1302,19 @@ export default function DafViewer(): JSX.Element {
     const d = daf();
     if (!d) return null;
     let main = tokenizeHebrewHtml(d.mainText.hebrew);
-    let inner = d.rashi ? tokenizeHebrewHtml(d.rashi.hebrew) : '';
-    let outer = d.tosafot ? tokenizeHebrewHtml(d.tosafot.hebrew) : '';
+    // When Sefaria provided per-piece arrays, wrap each piece with a
+    // .daf-comm-piece[data-piece-idx][data-comm="rashi|tosafot"] span so the
+    // commentary↔daf anchor click handler can highlight specific Rashi /
+    // Tosafot pieces (rather than the whole column). Falls back to the
+    // joined hebrew string when pieces aren't available.
+    const wrapPieces = (pieces: string[] | undefined, joined: string, comm: 'rashi' | 'tosafot'): string => {
+      if (!pieces || pieces.length === 0) return tokenizeHebrewHtml(joined);
+      return pieces
+        .map((p, i) => `<span class="daf-comm-piece" data-piece-idx="${i}" data-comm="${comm}">${tokenizeHebrewHtml(p)}</span>`)
+        .join(' ');
+    };
+    let inner = d.rashi ? wrapPieces(d.rashi.pieces, d.rashi.hebrew, 'rashi') : '';
+    let outer = d.tosafot ? wrapPieces(d.tosafot.pieces, d.tosafot.hebrew, 'tosafot') : '';
 
     // First word of the masechet (always daf 2a) renders as a centered block
     // incipit. Source HTML from HebrewBooks inconsistently marks this word
@@ -1739,10 +1819,109 @@ export default function DafViewer(): JSX.Element {
     }
   };
 
+  /** Bidirectional daf↔commentary anchor click. When the user clicks a
+   *  word, look up which side of the bridge they're on (main column = look
+   *  forward to which Rashi/Tosafot pieces gloss this seg; inner/outer
+   *  column = look back to which daf seg(s) the piece anchors to) and
+   *  set commAnchorActive accordingly. The paint effect below applies
+   *  the highlight class to the matching DOM nodes. Clicking the same
+   *  word twice clears the active state. Returns true when the click
+   *  produced an anchor highlight (so the caller can suppress fallback
+   *  click behaviour like the translate popup). */
+  const handleCommentaryAnchorClick = (e: MouseEvent): boolean => {
+    const idx = commentaryAnchorIndex();
+    if (!idx) return false;
+    const target = e.target as HTMLElement | null;
+    if (!target) return false;
+    const wordEl = target.closest?.('.daf-word') as HTMLElement | null;
+    if (!wordEl) return false;
+
+    // Walk up to determine which column we're in. main has no .daf-comm-piece
+    // ancestor; inner/outer DO.
+    const pieceEl = wordEl.closest('.daf-comm-piece') as HTMLElement | null;
+
+    if (pieceEl) {
+      // Reverse direction: piece → segs. Highlight is on the daf (range
+      // overlay) so the user sees what the piece is commenting on.
+      const pieceIdx = Number(pieceEl.getAttribute('data-piece-idx'));
+      const comm = pieceEl.getAttribute('data-comm') as 'rashi' | 'tosafot' | null;
+      if (!comm || !Number.isFinite(pieceIdx)) return false;
+      const segs = idx.pieceToSegs.get(`${comm}:${pieceIdx}`) ?? [];
+      if (segs.length === 0) return false;
+      const cur = commAnchorActive();
+      const sameClick = cur && cur.direction === 'from-piece'
+        && cur.pieces.length === 1
+        && cur.pieces[0].comm === comm
+        && cur.pieces[0].idx === pieceIdx;
+      setCommAnchorActive(sameClick ? null : {
+        direction: 'from-piece',
+        segs,
+        pieces: [{ comm, idx: pieceIdx }],
+      });
+      return true;
+    }
+
+    // Forward direction: seg → pieces. Highlight is on the Rashi/Tosafot
+    // pieces only — the daf word the user clicked stays untouched (it's
+    // already the reference; lighting it up just adds noise).
+    const segAttr = wordEl.getAttribute('data-seg');
+    if (segAttr === null) return false;
+    const seg = Number(segAttr);
+    if (!Number.isFinite(seg)) return false;
+    const bucket = idx.segToPieces.get(seg);
+    if (!bucket || (bucket.rashi.length === 0 && bucket.tosafot.length === 0)) return false;
+    const pieces: Array<{ comm: 'rashi' | 'tosafot'; idx: number }> = [
+      ...bucket.rashi.map((i) => ({ comm: 'rashi' as const, idx: i })),
+      ...bucket.tosafot.map((i) => ({ comm: 'tosafot' as const, idx: i })),
+    ];
+    const cur = commAnchorActive();
+    const sameClick = cur && cur.direction === 'from-main'
+      && cur.segs.length === 1 && cur.segs[0] === seg;
+    setCommAnchorActive(sameClick ? null : {
+      direction: 'from-main',
+      segs: [seg],
+      pieces,
+    });
+    return true;
+  };
+
+  // Paint effect: toggle .comm-anchor-active on .daf-comm-piece elements
+  // (the Rashi/Tosafot blocks). The main column's daf-words are NOT
+  // touched here — when the user clicks Rashi/Tosafot we draw a
+  // continuous range band over the matching daf segments using the
+  // existing applyHighlights range-overlay pipeline (see commAnchor
+  // bucket in applyHighlights below). Per-word pill backgrounds on the
+  // daf would look noisy alongside the rich Hebrew typesetting.
+  createEffect(() => {
+    if (typeof document === 'undefined') return;
+    const root = dafRootEl();
+    if (!root) return;
+    const dafRootDiv = root.querySelector<HTMLElement>('.daf-root') ?? root;
+
+    // Clear prior piece highlights.
+    dafRootDiv.querySelectorAll('.daf-comm-piece.comm-anchor-active').forEach((el) =>
+      el.classList.remove('comm-anchor-active'),
+    );
+
+    const active = commAnchorActive();
+    if (!active) return;
+    for (const p of active.pieces) {
+      dafRootDiv.querySelectorAll<HTMLElement>(
+        `.daf-comm-piece[data-piece-idx="${p.idx}"][data-comm="${p.comm}"]`,
+      ).forEach((el) => el.classList.add('comm-anchor-active'));
+    }
+  });
+
   // On mouseup: prefer a text selection snapped to word boundaries over a plain
   // word click. Any .daf-word element intersecting the selection range counts
   // as "selected", so starting a drag mid-word includes the whole word.
   const onMouseUpRoot = (e: MouseEvent) => {
+    // Commentary anchor highlight fires alongside any other click behaviour
+    // (translate popup, commentary-on-tap, etc). Runs first so it lights
+    // up the cross-references even when the click also triggers something
+    // else.
+    handleCommentaryAnchorClick(e);
+
     // Mobile interaction modes override the desktop click-to-translate flow.
     // select: native selection only, no translation popup. translate: same
     // as desktop, plus toggle-off when retapping the currently-active word.
