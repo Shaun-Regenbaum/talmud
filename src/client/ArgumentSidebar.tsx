@@ -6,7 +6,9 @@ import { Hebraized } from './Hebraized';
 
 import MarkEnrichmentCards from './MarkEnrichmentCards';
 import RabbiLineageTree, { type RelationshipsData, type RelationshipsEvidence } from './RabbiLineageTree';
-import RabbiGeographyCard, { type GeographyData, type GeographyEvidence } from './RabbiGeographyCard';
+import { type GeographyData, type GeographyEvidence } from './RabbiGeographyCard';
+import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeline';
+import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
 
 export type SidebarContent =
   | { kind: 'argument'; section: Section; index: number }
@@ -308,6 +310,9 @@ function ArgumentBody(props: {
   // All moves on this daf, flat. Filtered to this section by sectionStartSegIdx.
   const [allMoves, setAllMoves] = createSignal<ArgumentMoveInstance[] | null>(null);
   const [highlightedMoveId, setHighlightedMoveId] = createSignal<string | null>(null);
+  // argument.voices output (structured voices + edges) — resolved via the
+  // section synthesis aggregate's deps_resolved. Drives ArgumentVoiceMap.
+  const [voicesData, setVoicesData] = createSignal<ArgumentVoicesData | null>(null);
 
   // Clear stale move state when the user opens a different section. The
   // section's synthesis run will repopulate via onResolved as soon as the
@@ -326,12 +331,18 @@ function ArgumentBody(props: {
     void instanceKey();
     setAllMoves(null);
     setHighlightedMoveId(null);
+    setVoicesData(null);
     props.onHighlightRange(null);
   });
 
   const handleResolved = (r: { deps_resolved?: Record<string, unknown>; anchors_resolved?: Record<string, unknown> }) => {
     const moves = r.anchors_resolved?.['argument-move'] as ArgumentMoveInstance[] | undefined;
     if (Array.isArray(moves)) setAllMoves(moves);
+    const voices = r.deps_resolved?.['argument.voices'] as ArgumentVoicesData | undefined;
+    if (voices && Array.isArray(voices.voices)) {
+      // Edges may be absent on older cached entries — default to [].
+      setVoicesData({ voices: voices.voices, edges: Array.isArray(voices.edges) ? voices.edges : [] });
+    }
   };
 
   const sectionMoves = createMemo(() => {
@@ -400,6 +411,9 @@ function ArgumentBody(props: {
         page={props.page}
         onResolved={handleResolved}
       />
+      <Show when={voicesData()}>
+        {(data) => <ArgumentVoiceMap data={data()} />}
+      </Show>
       <Show when={sectionMoves()}>
         {(moves) => (
           <div style={{ 'margin-top': '1rem' }}>
@@ -525,12 +539,14 @@ function RabbiBody(props: {
   rabbi: IdentifiedRabbi;
   tractate: string;
   page: string;
+  generationByName: Map<string, GenerationId>;
   onHighlightRange: (range: { start: number; end: number; key: string; tokenStart?: number; tokenEnd?: number } | null) => void;
 }): JSX.Element {
   const [relationships, setRelationships] = createSignal<RelationshipsData | null>(null);
   const [relationshipsEvidence, setRelationshipsEvidence] = createSignal<RelationshipsEvidence[]>([]);
   const [geography, setGeography] = createSignal<GeographyData | null>(null);
   const [geographyEvidence, setGeographyEvidence] = createSignal<GeographyEvidence[]>([]);
+  const [location, setLocation] = createSignal<LocationInference | null>(null);
 
   const instanceKey = () => props.rabbi.name;
 
@@ -541,19 +557,32 @@ function RabbiBody(props: {
     setRelationshipsEvidence([]);
     setGeography(null);
     setGeographyEvidence([]);
+    setLocation(null);
     props.onHighlightRange(null);
   });
 
   const handleResolved = (r: { deps_resolved?: Record<string, unknown>; anchors_resolved?: Record<string, unknown> }) => {
     const deps = r.deps_resolved ?? {};
     const rel = deps['rabbi.relationships'] as RelationshipsData | undefined;
-    if (rel && Array.isArray(rel.teachers)) setRelationships(rel);
+    if (rel && Array.isArray(rel.teachers)) {
+      setRelationships(rel);
+    } else if (rel) {
+      // eslint-disable-next-line no-console
+      console.warn('[rabbi] relationships present but wrong shape — teachers not an array:', rel);
+    }
     const relEv = deps['rabbi.relationships.evidence'] as { evidence?: RelationshipsEvidence[] } | undefined;
     if (relEv?.evidence) setRelationshipsEvidence(relEv.evidence);
     const geo = deps['rabbi.geography'] as GeographyData | undefined;
-    if (geo && (geo.birthplace || Array.isArray(geo.primaryStudyPlaces))) setGeography(geo);
+    if (geo && (geo.birthplace || Array.isArray(geo.primaryStudyPlaces))) {
+      setGeography(geo);
+    } else if (geo) {
+      // eslint-disable-next-line no-console
+      console.warn('[rabbi] geography present but wrong shape:', geo);
+    }
     const geoEv = deps['rabbi.geography.evidence'] as { evidence?: GeographyEvidence[] } | undefined;
     if (geoEv?.evidence) setGeographyEvidence(geoEv.evidence);
+    const loc = deps['rabbi.location'] as LocationInference | undefined;
+    if (loc && typeof loc.place === 'string' && loc.place.length > 0) setLocation(loc);
   };
 
   const gen = () => GENERATION_BY_ID[props.rabbi.generation];
@@ -617,20 +646,263 @@ function RabbiBody(props: {
         {(rel) => (
           <RabbiLineageTree
             subjectName={props.rabbi.name}
+            subjectGeneration={props.rabbi.generation}
             data={rel()}
             evidence={relationshipsEvidence()}
+            generationByName={props.generationByName}
             onHighlightRange={props.onHighlightRange}
           />
         )}
       </Show>
       <Show when={geography()}>
         {(geo) => (
-          <RabbiGeographyCard
+          <RabbiPlacesTimeline
             data={geo()}
             evidence={geographyEvidence()}
+            location={location()}
             onHighlightRange={props.onHighlightRange}
           />
         )}
+      </Show>
+    </div>
+  );
+}
+
+// ===========================================================================
+// Halacha body
+// ------------
+// Top   : topic title + Hebrew label + anchor excerpt
+// Mid   : synthesis paragraph via MarkEnrichmentCards(markId="halacha"). Its
+//         deps_resolved carries halacha.codification, halacha.practical,
+//         halacha.disputes.
+// Below : structured RulingRows (Mishneh Torah / Tur / Shulchan Aruch / Rema),
+//         Practical card (lechatchila/bedieved/applies-when/exceptions),
+//         Disputes card (rendered only when non-empty).
+// ===========================================================================
+
+interface CodificationRuling { ref: string; ruling: string; }
+interface CodificationData {
+  mishnehTorah: CodificationRuling | null;
+  tur: CodificationRuling | null;
+  shulchanAruch: CodificationRuling | null;
+  rema: CodificationRuling | null;
+  prose: string;
+}
+interface PracticalData {
+  lechatchila: string;
+  bedieved: string;
+  appliesWhen: string[];
+  exceptions: string[];
+  prose: string;
+}
+interface DisputePosition { voice: string; position: string; }
+interface DisputeItem {
+  axis: 'ashkenaz-sefarad' | 'rishonim' | 'acharonim' | 'modern' | 'other';
+  label: string;
+  positions: DisputePosition[];
+  settled: string;
+}
+interface DisputesData { disputes: DisputeItem[]; }
+
+function HalachaBody(props: {
+  topic: HalachaTopic;
+  index: number;
+  tractate: string;
+  page: string;
+}): JSX.Element {
+  const [codification, setCodification] = createSignal<CodificationData | null>(null);
+  const [practical, setPractical] = createSignal<PracticalData | null>(null);
+  const [disputes, setDisputes] = createSignal<DisputeItem[]>([]);
+
+  const instanceKey = () => `${props.tractate}:${props.page}:${props.index}:${props.topic.topic}`;
+
+  createEffect(() => {
+    void instanceKey();
+    setCodification(null);
+    setPractical(null);
+    setDisputes([]);
+  });
+
+  const handleResolved = (r: { deps_resolved?: Record<string, unknown>; anchors_resolved?: Record<string, unknown> }) => {
+    const deps = r.deps_resolved ?? {};
+    const cod = deps['halacha.codification'] as CodificationData | undefined;
+    if (cod && typeof cod.prose === 'string') setCodification(cod);
+    const pr = deps['halacha.practical'] as PracticalData | undefined;
+    if (pr && typeof pr.prose === 'string') setPractical(pr);
+    const dp = deps['halacha.disputes'] as DisputesData | undefined;
+    if (dp && Array.isArray(dp.disputes)) setDisputes(dp.disputes);
+  };
+
+  // The mark instance shape the registry's halacha extractor emits — its
+  // `mark_input` becomes the topic JSON we pass to leaf prompts.
+  const markInstance = () => ({
+    startSegIdx: 0,
+    endSegIdx: 0,
+    fields: {
+      topic: props.topic.topic,
+      topicHe: props.topic.topicHe ?? '',
+      summary: '',
+      excerpt: props.topic.excerpt ?? '',
+    },
+  });
+
+  return (
+    <div>
+      <h3 style={{ margin: '0 0 0.3rem', 'font-size': '1.05rem', color: '#1e40af' }}>
+        {props.topic.topic}
+      </h3>
+      <Show when={props.topic.topicHe}>
+        <p dir="rtl" lang="he" style={{
+          margin: '0 0 0.85rem', 'font-family': '"Mekorot Vilna", serif',
+          'font-size': '0.95rem', color: '#666',
+        }}>
+          {props.topic.topicHe}
+        </p>
+      </Show>
+      <MarkEnrichmentCards
+        markId="halacha"
+        instance={markInstance()}
+        instanceKey={instanceKey()}
+        tractate={props.tractate}
+        page={props.page}
+        onResolved={handleResolved}
+      />
+      <Show when={codification()}>
+        {(cod) => (
+          <div style={{ 'margin-top': '0.9rem' }}>
+            <div style={{
+              'font-size': '0.7rem', 'text-transform': 'uppercase',
+              'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.5rem',
+            }}>Codification</div>
+            <RulingRow
+              source="mishnehTorah" label="Mishneh Torah" color="#8a2a2b"
+              ruling={cod().mishnehTorah ? { ref: cod().mishnehTorah!.ref, summary: cod().mishnehTorah!.ruling } : undefined}
+            />
+            <Show when={cod().tur}>
+              {(t) => (
+                <div style={{
+                  padding: '0.55rem 0.7rem', background: '#fafaf7',
+                  border: '1px solid #eae8e0', 'border-radius': '4px',
+                  'margin-bottom': '0.45rem',
+                }}>
+                  <div style={{
+                    'font-size': '0.68rem', 'text-transform': 'uppercase',
+                    'letter-spacing': '0.06em', 'font-weight': 600, color: '#a16207',
+                    'margin-bottom': '0.25rem',
+                  }}>Tur</div>
+                  <div style={{ 'font-weight': 500, color: '#333', 'margin-bottom': '0.2rem', 'font-size': '0.85rem' }}>
+                    {t().ref}
+                  </div>
+                  <div style={{ color: '#555', 'line-height': 1.45, 'font-size': '0.85rem' }}>
+                    <Hebraized text={t().ruling} />
+                  </div>
+                </div>
+              )}
+            </Show>
+            <RulingRow
+              source="shulchanAruch" label="Shulchan Aruch" color="#1e40af"
+              ruling={cod().shulchanAruch ? { ref: cod().shulchanAruch!.ref, summary: cod().shulchanAruch!.ruling } : undefined}
+            />
+            <RulingRow
+              source="rema" label="Rema" color="#7c3aed"
+              ruling={cod().rema ? { ref: cod().rema!.ref, summary: cod().rema!.ruling } : undefined}
+            />
+          </div>
+        )}
+      </Show>
+      <Show when={practical()}>
+        {(pr) => (
+          <div style={{
+            border: '1px solid #eae8e0', 'border-radius': '6px',
+            background: '#fafaf7', padding: '0.7rem 0.85rem', 'margin-top': '0.7rem',
+          }}>
+            <div style={{
+              'font-size': '0.7rem', 'text-transform': 'uppercase',
+              'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.5rem',
+            }}>Practical</div>
+            <Show when={pr().lechatchila}>
+              <div style={{ 'margin-bottom': '0.4rem' }}>
+                <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>
+                  <span lang="he" dir="ltr" style={{ 'font-family': '"Mekorot Vilna", serif', 'font-size': '0.85rem', 'text-transform': 'none', color: '#666' }}>לכתחילה</span>
+                  <span style={{ 'margin-left': '0.35rem' }}>Lechatchila</span>
+                </div>
+                <div style={{ 'font-size': '0.88rem', color: '#222', 'line-height': 1.5 }}>
+                  <Hebraized text={pr().lechatchila} />
+                </div>
+              </div>
+            </Show>
+            <Show when={pr().bedieved}>
+              <div style={{ 'margin-bottom': '0.4rem' }}>
+                <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>
+                  <span lang="he" dir="ltr" style={{ 'font-family': '"Mekorot Vilna", serif', 'font-size': '0.85rem', 'text-transform': 'none', color: '#666' }}>בדיעבד</span>
+                  <span style={{ 'margin-left': '0.35rem' }}>Bedieved</span>
+                </div>
+                <div style={{ 'font-size': '0.88rem', color: '#222', 'line-height': 1.5 }}>
+                  <Hebraized text={pr().bedieved} />
+                </div>
+              </div>
+            </Show>
+            <Show when={pr().appliesWhen.length > 0}>
+              <div style={{ 'margin-bottom': '0.4rem' }}>
+                <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>Applies when</div>
+                <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.3rem' }}>
+                  <For each={pr().appliesWhen}>{(item) => (
+                    <span style={{
+                      'font-size': '0.75rem', padding: '0.15rem 0.5rem',
+                      background: '#fff', border: '1px solid #e5e3dc',
+                      'border-radius': '999px', color: '#444',
+                    }}>{item}</span>
+                  )}</For>
+                </div>
+              </div>
+            </Show>
+            <Show when={pr().exceptions.length > 0}>
+              <div style={{ 'margin-bottom': '0.4rem' }}>
+                <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>Exceptions</div>
+                <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.3rem' }}>
+                  <For each={pr().exceptions}>{(item) => (
+                    <span style={{
+                      'font-size': '0.75rem', padding: '0.15rem 0.5rem',
+                      background: '#fef3c7', border: '1px solid #fde68a',
+                      'border-radius': '999px', color: '#92400e',
+                    }}>{item}</span>
+                  )}</For>
+                </div>
+              </div>
+            </Show>
+          </div>
+        )}
+      </Show>
+      <Show when={disputes().length > 0}>
+        <div style={{
+          border: '1px solid #eae8e0', 'border-radius': '6px',
+          background: '#fafaf7', padding: '0.7rem 0.85rem', 'margin-top': '0.7rem',
+        }}>
+          <div style={{
+            'font-size': '0.7rem', 'text-transform': 'uppercase',
+            'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.5rem',
+          }}>Disputes</div>
+          <For each={disputes()}>{(d) => (
+            <div style={{ 'margin-bottom': '0.6rem' }}>
+              <div style={{ 'font-weight': 500, color: '#333', 'font-size': '0.88rem', 'margin-bottom': '0.25rem' }}>
+                {d.label}
+                <span style={{ 'font-size': '0.65rem', color: '#999', 'margin-left': '0.4rem', 'text-transform': 'uppercase', 'letter-spacing': '0.06em' }}>
+                  {d.axis}
+                </span>
+              </div>
+              <For each={d.positions}>{(p) => (
+                <div style={{ 'font-size': '0.82rem', 'line-height': 1.5, color: '#444', 'margin-bottom': '0.2rem' }}>
+                  <span style={{ 'font-weight': 600, color: '#222' }}>{p.voice}:</span> <Hebraized text={p.position} />
+                </div>
+              )}</For>
+              <Show when={d.settled}>
+                <div style={{ 'font-size': '0.78rem', color: '#666', 'font-style': 'italic', 'margin-top': '0.2rem' }}>
+                  <Hebraized text={d.settled} />
+                </div>
+              </Show>
+            </div>
+          )}</For>
+        </div>
       </Show>
     </div>
   );
@@ -641,7 +913,7 @@ function RabbiBody(props: {
  *  (prev + cited + next) with the cited verse rendered dark and the others
  *  dimmed so the citation still stands out. */
 function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JSX.Element {
-  const [expanded, setExpanded] = createSignal(false);
+  const [expanded, setExpanded] = createSignal(true);
   const [detail] = createResource(() => props.pasuk.verseRef, fetchPasuk);
   const [prev] = createResource(
     () => (expanded() ? detail()?.prevRef ?? null : null),
@@ -663,9 +935,16 @@ function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JS
       <Show when={detail.loading && !detail()}>
         <p style={{ color: '#999', 'font-style': 'italic', margin: '0 0 0.5rem' }}>Loading verse…</p>
       </Show>
+      {/* Hybrid font stack — Mekorot Vilna preserved as the primary face for
+          letters + nikud (the Talmud aesthetic), with Tanakh-capable serifs
+          (Cardo, SBL Hebrew, Taamey/Frank Ruehl CLM, Times New Roman) added
+          as fallbacks so the browser can per-codepoint resolve cantillation
+          marks (te'amim) that Mekorot Vilna has no glyphs for. Without
+          those fallbacks the te'amim render as empty tofu rectangles. */}
       <p dir="rtl" lang="he" style={{
-        margin: '0 0 0.4rem', 'font-family': '"Mekorot Vilna", serif',
-        'font-size': '1.05rem', 'line-height': 1.6,
+        margin: '0 0 0.4rem',
+        'font-family': '"Mekorot Vilna", "Cardo", "SBL Hebrew", "Taamey Frank CLM", "Frank Ruehl CLM", "Times New Roman", "Times", serif',
+        'font-size': '1.05rem', 'line-height': 1.85,
       }}>
         <Show when={expanded() && prev()?.he}>
           <span style={{ color: '#a8a29e' }}>{prev()!.he} </span>
@@ -777,40 +1056,18 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                 rabbi={(c() as Extract<SidebarContent, { kind: 'rabbi' }>).rabbi}
                 tractate={props.tractate}
                 page={props.page}
+                generationByName={props.generationByName}
                 onHighlightRange={(r) => props.onHighlightRange?.(r)}
               />
             </Show>
 
             <Show when={c().kind === 'halacha'}>
-              {(() => {
-                const topic = (c() as Extract<SidebarContent, { kind: 'halacha' }>).topic;
-                return (
-                  <div>
-                    <h3 style={{ margin: '0 0 0.3rem', 'font-size': '1.05rem', color: '#1e40af' }}>
-                      {topic.topic}
-                    </h3>
-                    <Show when={topic.topicHe}>
-                      <p dir="rtl" lang="he" style={{
-                        margin: '0 0 0.3rem', 'font-family': '"Mekorot Vilna", serif',
-                        'font-size': '0.95rem', color: '#666',
-                      }}>
-                        {topic.topicHe}
-                      </p>
-                    </Show>
-                    <Show when={topic.excerpt}>
-                      <p dir="rtl" lang="he" style={{
-                        margin: '0 0 0.9rem', 'font-family': '"Mekorot Vilna", serif',
-                        'font-size': '0.9rem', color: '#888',
-                      }}>
-                        anchor: {topic.excerpt}
-                      </p>
-                    </Show>
-                    <RulingRow source="mishnehTorah" label="Mishneh Torah" color="#8a2a2b" ruling={topic.rulings.mishnehTorah} />
-                    <RulingRow source="shulchanAruch" label="Shulchan Aruch" color="#1e40af" ruling={topic.rulings.shulchanAruch} />
-                    <RulingRow source="rema" label="Rema" color="#7c3aed" ruling={topic.rulings.rema} />
-                  </div>
-                );
-              })()}
+              <HalachaBody
+                topic={(c() as Extract<SidebarContent, { kind: 'halacha' }>).topic}
+                index={(c() as Extract<SidebarContent, { kind: 'halacha' }>).index}
+                tractate={props.tractate}
+                page={props.page}
+              />
             </Show>
 
             <Show when={c().kind === 'pesuk'}>

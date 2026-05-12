@@ -5,8 +5,10 @@
  *   - off (default for all): nothing fetches, no daf decoration
  *   - on:  fetches /api/studio/run for the current tractate/page, stores
  *          the result, exposes a status pill (loading / ok / error)
- *   - inspect: opens a bottom-shelf drawer (InspectShelf) with the raw
- *              output, telemetry, rendered prompts, and (TODO) inline edit.
+ *
+ * Per-instance prompt/output inspection lives on the synthesis card (via
+ * the 'i' button → InstanceInspectorShelf), not here. This list is just
+ * the toggle surface.
  *
  * Toggle state persists in localStorage globally — flipping rabbi on
  * carries across pages. Re-runs only fire when the daf changes or the def
@@ -22,8 +24,7 @@
  * drafts and silently skips failed marks.
  */
 
-import { createResource, createSignal, createEffect, onMount, onCleanup, untrack, For, Show } from 'solid-js';
-import InspectShelf from './InspectShelf';
+import { createResource, createSignal, createEffect, onMount, onCleanup, untrack, For, Show, type JSX } from 'solid-js';
 import { trackAI } from './aiActivity';
 import type { SeedMark } from './seed-marks';
 import type { MarkDef as RendererMarkDef, MarkRunOutput as RendererMarkRunOutput } from './renderers/dispatch';
@@ -240,7 +241,18 @@ export default function MarksRegistryPanel(props: Props) {
   const [enabled, setEnabled] = createSignal<Set<string>>(readEnabled());
   const [devMode, setDevMode] = createSignal<boolean>(readDevMode());
   const [runs, setRuns] = createSignal<Record<string, RunState>>({});
-  const [inspecting, setInspecting] = createSignal<string | null>(null);
+  // Expand state per mark id — enrichments under each mark are hidden
+  // until the user clicks the mark row's chevron. Default collapsed so the
+  // top-level list reads as just the major anchors.
+  const [expandedMarks, setExpandedMarks] = createSignal<Set<string>>(new Set());
+  const toggleExpanded = (markId: string) => {
+    setExpandedMarks((prev) => {
+      const next = new Set(prev);
+      if (next.has(markId)) next.delete(markId);
+      else next.add(markId);
+      return next;
+    });
+  };
 
   const setRun = (id: string, state: RunState) =>
     setRuns((prev) => ({ ...prev, [id]: state }));
@@ -251,11 +263,7 @@ export default function MarksRegistryPanel(props: Props) {
   // re-fire under the new model. Without this, switching default models
   // leaves stale results visible until the user navigates pages.
   onMount(() => {
-    const onInv = () => {
-      // eslint-disable-next-line no-console
-      console.debug('[panel] runs invalidated by settings change');
-      setRuns({});
-    };
+    const onInv = () => setRuns({});
     window.addEventListener('marks-runs-invalidate', onInv);
     onCleanup(() => window.removeEventListener('marks-runs-invalidate', onInv));
   });
@@ -283,12 +291,7 @@ export default function MarksRegistryPanel(props: Props) {
       if (s?.kind === 'ok') {
         const parsed = s.result.parsed as { instances?: unknown } | null;
         if (parsed && Array.isArray((parsed as { instances?: unknown }).instances)) {
-          // eslint-disable-next-line no-console
-          console.debug(`[panel] publish ${id}: ${(parsed as { instances: unknown[] }).instances.length} instances`);
           next[id] = { parsed: parsed as { instances: never[] } };
-        } else {
-          // eslint-disable-next-line no-console
-          console.debug(`[panel] publish ${id}: parsed has no instances array`, parsed);
         }
       }
     }
@@ -343,29 +346,16 @@ export default function MarksRegistryPanel(props: Props) {
     if (!reg) return;
     const on = enabled();
     const stamp = `${props.tractate}/${props.page}`;
-    // eslint-disable-next-line no-console
-    console.debug(`[panel] fire-effect tract=${props.tractate} page=${props.page} on=[${[...on].join(',') || '(none)'}] marks=${reg.marks.length}`);
 
     untrack(() => {
       for (const m of reg.marks) {
         if (!on.has(m.id)) continue;
         const cur = runs()[m.id];
         if (cur && cur.kind !== 'idle' && cur.stamp === stamp) continue;
-        // eslint-disable-next-line no-console
-        console.debug(`[panel] firing mark ${m.id}`);
         setRun(m.id, { kind: 'loading', stamp });
         void runMark(m.id, props.tractate, props.page).then(
-          (result) => {
-            // eslint-disable-next-line no-console
-            console.debug(`[panel] mark ${m.id} ok in ${result.total_ms}ms (parsed=${result.parsed ? 'yes' : 'null'})`);
-            setRun(m.id, { kind: 'ok', stamp, at: Date.now(), result });
-          },
-          (err) => {
-            const msg = String((err as Error)?.message ?? err);
-            // eslint-disable-next-line no-console
-            console.warn(`[panel] mark ${m.id} ERROR: ${msg}`);
-            setRun(m.id, { kind: 'error', stamp, at: Date.now(), error: msg });
-          },
+          (result) => setRun(m.id, { kind: 'ok', stamp, at: Date.now(), result }),
+          (err) => setRun(m.id, { kind: 'error', stamp, at: Date.now(), error: String((err as Error)?.message ?? err) }),
         );
       }
       for (const e of reg.enrichments) {
@@ -401,16 +391,46 @@ export default function MarksRegistryPanel(props: Props) {
     ];
   };
 
-  const inspectingRow = (): Row | null => {
-    const id = inspecting();
-    if (!id) return null;
-    return rows().find((r) =>
-      r.source === 'seed' ? r.seed.id === id : r.def.id === id,
-    ) ?? null;
+  /** Top-level rows (marks + seeds) and the enrichments grouped by their
+   *  target_mark. Enrichments whose target_mark doesn't match any mark in
+   *  the registry are stashed under '__orphan__' and rendered at the
+   *  bottom — should be rare. */
+  type TopRow =
+    | { source: 'seed'; seed: SeedMark }
+    | { source: 'mark'; def: WorkerMarkDefinition };
+  const grouped = (): { top: TopRow[]; childrenByMark: Map<string, EnrichmentDefinition[]> } => {
+    const rs = rows();
+    const top: TopRow[] = [];
+    const childrenByMark = new Map<string, EnrichmentDefinition[]>();
+    for (const r of rs) {
+      if (r.source === 'enrichment') {
+        const targetId = r.def.mark ?? '__orphan__';
+        const list = childrenByMark.get(targetId) ?? [];
+        list.push(r.def);
+        childrenByMark.set(targetId, list);
+      } else if (r.source === 'mark') {
+        top.push({ source: 'mark', def: r.def });
+      } else {
+        top.push({ source: 'seed', seed: r.seed });
+      }
+    }
+    return { top, childrenByMark };
   };
 
-  const inspectingState = (): RunState =>
-    runs()[inspecting() ?? ''] ?? { kind: 'idle' };
+  /** Aggregate run-state for a mark's enrichment children — for the
+   *  "X done · Y pending" badge on the collapsed mark row. */
+  const childRunSummary = (markId: string): { loading: number; ok: number; error: number; total: number } => {
+    const kids = grouped().childrenByMark.get(markId) ?? [];
+    const summary = { loading: 0, ok: 0, error: 0, total: kids.length };
+    const r = runs();
+    for (const k of kids) {
+      const st = r[k.id];
+      if (st?.kind === 'loading') summary.loading++;
+      else if (st?.kind === 'ok') summary.ok++;
+      else if (st?.kind === 'error') summary.error++;
+    }
+    return summary;
+  };
 
   const enabledCount = () => {
     let n = 0;
@@ -441,8 +461,11 @@ export default function MarksRegistryPanel(props: Props) {
           </div>
         )}</Show>
 
-        <ul style={{ 'list-style': 'none', padding: 0, margin: 0, display: 'flex', 'flex-direction': 'column', gap: '0.25rem' }}>
-          <For each={rows()}>{(row) => {
+        {/* Render a single Row (mark / seed / enrichment) with the
+            checkbox, status, re-run, etc. Used for both top-level marks
+            and the nested enrichments. */}
+        {(() => {
+          const renderRow = (row: Row, nested: boolean): JSX.Element => {
             const id = () => row.source === 'seed' ? row.seed.id : row.def.id;
             const label = () => row.source === 'seed' ? row.seed.label : (row.def.label || row.def.id);
             const anchor = () => {
@@ -464,23 +487,46 @@ export default function MarksRegistryPanel(props: Props) {
               return runs()[row.def.id] ?? { kind: 'idle' as const };
             };
             const isFail = () => state().kind === 'error';
-            const isInspecting = () => inspecting() === id();
             const setOn = (v: boolean) => {
               if (row.source === 'seed') row.seed.setValue(v);
               else toggle(row.def.id);
             };
             const isDraft = () =>
               (row.source === 'mark' || row.source === 'enrichment') && row.def.status === 'draft';
+            const childCount = () => row.source === 'mark'
+              ? (grouped().childrenByMark.get(row.def.id)?.length ?? 0)
+              : 0;
+            const isExpandable = () => row.source === 'mark' && childCount() > 0;
+            const isExpanded = () => row.source === 'mark' && expandedMarks().has(row.def.id);
+            const summary = () => row.source === 'mark' ? childRunSummary(row.def.id) : null;
             return (
-              <li style={{ 'border-left': isFail() && devMode() ? '2px solid #c00' : isDraft() ? '2px solid #fa0' : '2px solid transparent', 'padding-left': '0.4rem' }}>
+              <li style={{
+                'border-left': isFail() && devMode() ? '2px solid #c00' : isDraft() ? '2px solid #fa0' : '2px solid transparent',
+                'padding-left': nested ? '1.5rem' : '0.4rem',
+              }}>
                 <div style={{ display: 'flex', 'align-items': 'center', gap: '0.4rem' }}>
+                  <Show when={isExpandable()} fallback={
+                    <span style={{ display: 'inline-block', width: '0.9rem' }} />
+                  }>
+                    <button
+                      type="button"
+                      onClick={() => row.source === 'mark' && toggleExpanded(row.def.id)}
+                      title={isExpanded() ? 'Collapse enrichments' : 'Expand enrichments'}
+                      style={{
+                        background: 'transparent', border: 'none', cursor: 'pointer',
+                        padding: 0, width: '0.9rem', height: '0.9rem',
+                        color: '#888', 'font-size': '0.7rem',
+                        display: 'inline-flex', 'align-items': 'center', 'justify-content': 'center',
+                      }}
+                    >{isExpanded() ? '▾' : '▸'}</button>
+                  </Show>
                   <input
                     type="checkbox"
                     checked={isOn()}
                     onChange={(e) => setOn(e.currentTarget.checked)}
                     style={{ cursor: 'pointer' }}
                   />
-                  <span style={{ 'font-weight': 500, opacity: isFail() && !devMode() ? 0.4 : 1 }}>
+                  <span style={{ 'font-weight': nested ? 400 : 500, opacity: isFail() && !devMode() ? 0.4 : 1, 'font-size': nested ? '0.8rem' : '0.85rem' }}>
                     {label()}
                   </span>
                   <span title={`${anchor()} · ${render()}`} style={{ color: '#aaa', 'font-size': '0.7rem', 'font-family': 'monospace' }}>
@@ -504,6 +550,15 @@ export default function MarksRegistryPanel(props: Props) {
                       </Show>
                     </span>
                   </Show>
+                  {/* Summary badge on collapsed mark rows showing enrichment progress */}
+                  <Show when={row.source === 'mark' && !isExpanded() && childCount() > 0}>
+                    <span style={{ 'font-size': '0.68rem', color: '#aaa', 'margin-left': '0.1rem' }}>
+                      {childCount()} enrich{childCount() === 1 ? '' : 'ments'}
+                      <Show when={summary()!.loading > 0}> · {summary()!.loading}…</Show>
+                      <Show when={summary()!.ok > 0}> · {summary()!.ok} done</Show>
+                      <Show when={summary()!.error > 0}> · {summary()!.error} err</Show>
+                    </span>
+                  </Show>
                   <Show when={row.source !== 'seed' && isOn()}>
                     <button
                       onClick={() => {
@@ -524,17 +579,41 @@ export default function MarksRegistryPanel(props: Props) {
                       ↻
                     </button>
                   </Show>
-                  <button
-                    onClick={() => setInspecting(isInspecting() ? null : id())}
-                    style={{ 'margin-left': row.source !== 'seed' && isOn() ? '0' : 'auto', padding: '1px 6px', 'font-size': '0.7rem', cursor: 'pointer', background: isInspecting() ? '#000' : 'transparent', color: isInspecting() ? '#fff' : '#888', border: '1px solid #ddd', 'border-radius': '3px' }}
-                  >
-                    i
-                  </button>
                 </div>
               </li>
             );
-          }}</For>
-        </ul>
+          };
+
+          return (
+            <ul style={{ 'list-style': 'none', padding: 0, margin: 0, display: 'flex', 'flex-direction': 'column', gap: '0.25rem' }}>
+              <For each={grouped().top}>{(top) => {
+                const topRow: Row = top.source === 'mark'
+                  ? { source: 'mark', def: top.def }
+                  : { source: 'seed', seed: top.seed };
+                const markId = top.source === 'mark' ? top.def.id : null;
+                const kids = markId ? (grouped().childrenByMark.get(markId) ?? []) : [];
+                const showKids = markId !== null && expandedMarks().has(markId);
+                return (
+                  <>
+                    {renderRow(topRow, false)}
+                    <Show when={showKids && kids.length > 0}>
+                      <For each={kids}>{(e) => renderRow({ source: 'enrichment', def: e }, true)}</For>
+                    </Show>
+                  </>
+                );
+              }}</For>
+              {/* Orphan enrichments (target_mark not in registry) — rare. */}
+              <Show when={(grouped().childrenByMark.get('__orphan__') ?? []).length > 0}>
+                <li style={{ 'font-size': '0.7rem', color: '#aaa', 'padding-left': '0.4rem', 'margin-top': '0.4rem' }}>
+                  Orphan enrichments (no matching mark in registry):
+                </li>
+                <For each={grouped().childrenByMark.get('__orphan__') ?? []}>{(e) =>
+                  renderRow({ source: 'enrichment', def: e }, true)
+                }</For>
+              </Show>
+            </ul>
+          );
+        })()}
 
         <div style={{ display: 'flex', gap: '0.4rem', 'margin-top': '0.4rem', 'flex-wrap': 'wrap' }}>
           <button
@@ -544,11 +623,7 @@ export default function MarksRegistryPanel(props: Props) {
             refresh registry
           </button>
           <button
-            onClick={() => {
-              setRuns({});
-              // eslint-disable-next-line no-console
-              console.debug('[panel] runs cleared by user');
-            }}
+            onClick={() => setRuns({})}
             title="Clear cached run results so enabled marks re-fire (use after changing models / prompts)"
             style={{ padding: '2px 8px', 'font-size': '0.7rem', cursor: 'pointer', background: 'transparent', border: '1px solid #ddd', 'border-radius': '3px', color: '#888' }}
           >
@@ -556,28 +631,6 @@ export default function MarksRegistryPanel(props: Props) {
           </button>
         </div>
       </div>
-
-      <Show when={inspectingRow()}>{(row) => (
-        <InspectShelf
-          row={row()}
-          state={inspectingState()}
-          devMode={devMode()}
-          onClose={() => setInspecting(null)}
-          onSaved={() => { void refetchDefs(); }}
-          onRerun={() => {
-            const r = row();
-            if (r.source === 'seed') return;
-            const id = r.def.id;
-            const stamp = `${props.tractate}/${props.page}`;
-            setRun(id, { kind: 'loading', stamp });
-            const fn = r.source === 'mark' ? runMark : runEnrichment;
-            fn(id, props.tractate, props.page).then(
-              (result) => setRun(id, { kind: 'ok', stamp, at: Date.now(), result }),
-              (err) => setRun(id, { kind: 'error', stamp, at: Date.now(), error: String((err as Error)?.message ?? err) }),
-            );
-          }}
-        />
-      )}</Show>
     </>
   );
 }

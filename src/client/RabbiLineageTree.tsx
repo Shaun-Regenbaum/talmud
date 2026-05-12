@@ -1,16 +1,22 @@
 /**
- * Lineage tree for a rabbi. Renders the subject at center with primary
- * teacher(s) above and primary student(s) below; "Show all" expands the
- * full list of teachers + students. Debate partners are rendered as a
- * side-row of chips.
+ * Lineage tree for a rabbi — generation-banded graph view.
  *
- * Items that this daf actually references (via `rabbi.relationships.evidence`)
- * get a soft highlight and a click handler that paints the relevant
- * Hebrew/Aramaic span on the daf — same `onHighlightRange` plumbing the
- * argument-move cards use.
+ * Renders a small SVG-based graph: subject node at the center, teachers
+ * above (placed in their generation rows), students below (placed in their
+ * generation rows), debate partners in the subject's row offset to the
+ * right, family on the subject's row (and revealed under "show all").
+ * Edges: solid lines for teacher↔student, dashed for debate partners.
+ * Each node is color-coded by the generation it belongs to (sharing the
+ * palette used by the daf-render gen underlines + the legend), with a
+ * vertical generation axis on the left labeling the bands.
+ *
+ * Items the daf actually references (via `rabbi.relationships.evidence`)
+ * get a soft yellow highlight + a click handler that paints the relevant
+ * Hebrew/Aramaic span on the daf via onHighlightRange.
  */
 
 import { For, Show, createSignal, type JSX } from 'solid-js';
+import { GENERATION_BY_ID, GENERATION_IDS, type GenerationId } from './generations';
 
 export interface RelationshipPerson {
   name: string;
@@ -49,23 +55,323 @@ export interface RelationshipsEvidence {
 
 interface Props {
   subjectName: string;
+  /** Subject's generation — used to anchor the timeline. Pull from the mark
+   *  instance's generation field, NOT from generationByName (which keys by
+   *  name and may be ambiguous for shared names). */
+  subjectGeneration: GenerationId;
   data: RelationshipsData;
   evidence: RelationshipsEvidence[];
-  /** Plumbed to DafViewer's argumentMoveHighlight signal — same range/token
-   *  shape, reusing the same painter. */
+  /** Name → GenerationId map, used to place each named person on its
+   *  generation row. When the name is unknown to the map, we fall back to
+   *  a sensible default based on relationship role (teacher = one earlier,
+   *  student = one later, partner = same, family = derived from relation). */
+  generationByName: Map<string, GenerationId>;
   onHighlightRange?: (range: { start: number; end: number; key: string; tokenStart?: number; tokenEnd?: number } | null) => void;
 }
 
-const PRIMARY_COLOR = '#8a2a2b';
+// Layout constants. The SVG width is fixed (~620px to fit a 640px sidebar
+// with small horizontal padding); height is computed from the number of
+// generation rows the visible set spans.
+const AXIS_WIDTH = 96;          // generation labels column
+const NODE_W = 152;
+const NODE_H = 40;
+const ROW_H = 82;
+const COL_GAP = 22;
+const NODE_GAP = 12;            // gap between adjacent nodes in the same row
+const TOP_PADDING = 20;
+const BOTTOM_PADDING = 22;
+/** Max character count we'll let render before truncating with ellipsis.
+ *  Calibrated against NODE_W=152 + font-size=11 + horizontal padding. */
+const NAME_MAX_CHARS = 22;
+
 const EVIDENCE_BG = '#fef3c7';
 const EVIDENCE_BORDER = '#eab308';
+const PRIMARY_COLOR = '#8a2a2b';
+
+type Role = 'subject' | 'teacher' | 'student' | 'partner' | 'family';
+
+interface LaidNode {
+  key: string;
+  name: string;
+  role: Role;
+  generationId: GenerationId;
+  primary: boolean;
+  familyRelation?: string;
+  /** x, y refer to the node's TOP-LEFT corner in SVG coords. */
+  x: number;
+  y: number;
+}
+
+interface LaidEdge {
+  from: LaidNode;
+  to: LaidNode;
+  kind: 'parent' | 'partner';
+}
+
+/** Generation index in GENERATIONS order. Smaller index = earlier era. */
+function genIndex(id: GenerationId): number {
+  const i = GENERATION_IDS.indexOf(id);
+  return i < 0 ? GENERATION_IDS.indexOf('unknown') : i;
+}
+
+/** Compact a rabbi's display name so it fits in a node card: shorten
+ *  "Rabbi" → "R.", "Rav" → "R.", "Rabban" → "Rb.", "Mar" stays, plus
+ *  "bar" / "ben" → "b.". Truncates with ellipsis if still over NAME_MAX_CHARS.
+ *  Subject node keeps the full name — only non-subject node labels are
+ *  passed through this. */
+function compactRabbiName(name: string): string {
+  const compact = name
+    .replace(/^Rabbi\s+/, 'R. ')
+    .replace(/^Rabban\s+/, 'Rb. ')
+    .replace(/^Rav\s+/, 'R. ')
+    .replace(/\s+bar\s+/g, ' b. ')
+    .replace(/\s+ben\s+/g, ' b. ');
+  if (compact.length <= NAME_MAX_CHARS) return compact;
+  return compact.slice(0, NAME_MAX_CHARS - 1) + '…';
+}
+
+/** Map a family relation string to a coarse generation offset relative to
+ *  the subject. Used only when generationByName misses. */
+function familyGenerationOffset(relation: string): number {
+  const r = relation.toLowerCase();
+  if (/father|mother|grandfather|grandmother|uncle|aunt/.test(r)) return -1;
+  if (/son|daughter|grandson|granddaughter|nephew|niece/.test(r)) return +1;
+  return 0; // brother / sister / cousin / spouse / brother-in-law → same row
+}
+
+/** Compute placement for every visible person + return canvas dimensions. */
+function buildLayout(
+  subjectName: string,
+  subjectGen: GenerationId,
+  data: RelationshipsData,
+  generationByName: Map<string, GenerationId>,
+  expanded: boolean,
+): { nodes: LaidNode[]; edges: LaidEdge[]; width: number; height: number } {
+  // Resolve each visible person's generation. Build rows[ genIdx ] = LaidNode[].
+  const visibleTeachers = expanded ? data.teachers : data.teachers.filter((t) => t.primary);
+  const visibleStudents = expanded ? data.students : data.students.filter((t) => t.primary);
+  // Debate partners: when collapsed, show only the first 2 (canonical
+  // pairings — e.g. for Abaye that's Rava). Graph data doesn't carry a
+  // primary flag on colleagues, so we use insertion order. Expanded view
+  // reveals the rest.
+  const visiblePartners = expanded ? data.debatePartners : data.debatePartners.slice(0, 2);
+  const visibleFamily = expanded ? data.family : [];
+
+  const subjectIdx = genIndex(subjectGen);
+
+  // Gather all (person, role, genIdx, ...) tuples — we'll bucket by genIdx
+  // and lay them out left-to-right.
+  interface PreNode {
+    key: string;
+    name: string;
+    role: Role;
+    genIdx: number;
+    generationId: GenerationId;
+    primary: boolean;
+    familyRelation?: string;
+  }
+  const pre: PreNode[] = [];
+
+  pre.push({
+    key: `subject:${subjectName}`,
+    name: subjectName,
+    role: 'subject',
+    genIdx: subjectIdx,
+    generationId: subjectGen,
+    primary: true,
+  });
+
+  for (const t of visibleTeachers) {
+    const id = generationByName.get(t.name);
+    const genIdx = id ? genIndex(id) : Math.max(0, subjectIdx - 1);
+    pre.push({
+      key: `teacher:${t.name}`,
+      name: t.name,
+      role: 'teacher',
+      genIdx,
+      generationId: GENERATION_IDS[genIdx] ?? 'unknown',
+      primary: !!t.primary,
+    });
+  }
+
+  for (const s of visibleStudents) {
+    const id = generationByName.get(s.name);
+    const genIdx = id ? genIndex(id) : Math.min(GENERATION_IDS.length - 1, subjectIdx + 1);
+    pre.push({
+      key: `student:${s.name}`,
+      name: s.name,
+      role: 'student',
+      genIdx,
+      generationId: GENERATION_IDS[genIdx] ?? 'unknown',
+      primary: !!s.primary,
+    });
+  }
+
+  for (const p of visiblePartners) {
+    const id = generationByName.get(p.name);
+    const genIdx = id ? genIndex(id) : subjectIdx;
+    pre.push({
+      key: `partner:${p.name}`,
+      name: p.name,
+      role: 'partner',
+      genIdx,
+      generationId: GENERATION_IDS[genIdx] ?? 'unknown',
+      primary: false,
+    });
+  }
+
+  for (const f of visibleFamily) {
+    const id = generationByName.get(f.name);
+    const fallbackOffset = familyGenerationOffset(f.relation);
+    const genIdx = id ? genIndex(id) : Math.max(0, Math.min(GENERATION_IDS.length - 1, subjectIdx + fallbackOffset));
+    pre.push({
+      key: `family:${f.name}`,
+      name: f.name,
+      role: 'family',
+      genIdx,
+      generationId: GENERATION_IDS[genIdx] ?? 'unknown',
+      primary: false,
+      familyRelation: f.relation,
+    });
+  }
+
+  // Bucket by genIdx for row layout. Sort rows by index ascending (earliest
+  // generation = top).
+  const byRow = new Map<number, PreNode[]>();
+  for (const n of pre) {
+    const list = byRow.get(n.genIdx) ?? [];
+    list.push(n);
+    byRow.set(n.genIdx, list);
+  }
+  const rowIndices = Array.from(byRow.keys()).sort((a, b) => a - b);
+
+  // Within each row, order is left-anchored:
+  //   - Subject ALWAYS goes in column 0 (the leftmost X position of the
+  //     drawing area) so the subject sits in a fixed vertical "spine" with
+  //     teachers above and students below in the same column.
+  //   - Within a row of teachers/students/family (no subject), primary
+  //     entries lead, then non-primary alphabetical.
+  //   - In the subject's row, partners trail to the right of subject in
+  //     graph-order (which the rabbi-graph helper preserves; primary=true
+  //     entries surface first).
+  for (const idx of rowIndices) {
+    const list = byRow.get(idx)!;
+    list.sort((a, b) => {
+      // Subject is always first.
+      if (a.role === 'subject' && b.role !== 'subject') return -1;
+      if (b.role === 'subject' && a.role !== 'subject') return 1;
+      // Primary first within same row.
+      if (a.primary !== b.primary) return a.primary ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
+  }
+
+  // Y per row (earliest generation = top).
+  const rowToY = new Map<number, number>();
+  rowIndices.forEach((idx, i) => {
+    rowToY.set(idx, TOP_PADDING + i * ROW_H);
+  });
+  const height = TOP_PADDING + rowIndices.length * ROW_H + BOTTOM_PADDING;
+
+  // X layout: every row starts at SUBJECT_X (immediately right of the axis
+  // column). Nodes extend rightward. The subject sits in column 0, and the
+  // FIRST teacher in the teachers row + FIRST student in the students row
+  // also sit in column 0 — giving the visual "spine" of primary-teacher →
+  // subject → primary-student that the mockup asks for. Partners trail the
+  // subject in subject's row.
+  const SUBJECT_X = AXIS_WIDTH + COL_GAP;
+  const COL_STEP = NODE_W + NODE_GAP;
+
+  let widestRow = 1;
+  const nodes: LaidNode[] = [];
+  for (const idx of rowIndices) {
+    const list = byRow.get(idx)!;
+    widestRow = Math.max(widestRow, list.length);
+    const y = rowToY.get(idx)!;
+    list.forEach((n, j) => {
+      const x = SUBJECT_X + j * COL_STEP;
+      nodes.push({
+        key: n.key,
+        name: n.name,
+        role: n.role,
+        generationId: n.generationId,
+        primary: n.primary,
+        familyRelation: n.familyRelation,
+        x,
+        y,
+      });
+    });
+  }
+  const drawWidth = widestRow * NODE_W + (widestRow - 1) * NODE_GAP;
+  const width = SUBJECT_X + drawWidth + 16;
+
+  // Edges: subject → each teacher (solid, up), subject → each student
+  // (solid, down), subject ↔ each partner (dashed). Family is rendered as
+  // a node but not edge-connected — relation label sits on the node.
+  const subject = nodes.find((n) => n.role === 'subject');
+  const edges: LaidEdge[] = [];
+  if (subject) {
+    for (const n of nodes) {
+      if (n.role === 'teacher' || n.role === 'student') {
+        edges.push({ from: subject, to: n, kind: 'parent' });
+      } else if (n.role === 'partner') {
+        edges.push({ from: subject, to: n, kind: 'partner' });
+      }
+    }
+  }
+
+  return { nodes, edges, width, height };
+}
+
+/** SVG line path for a parent edge — connects the bottom-center of the upper
+ *  node to the top-center of the lower node (a vertical drop). */
+function parentPath(from: LaidNode, to: LaidNode): string {
+  const fromMidX = from.x + NODE_W / 2;
+  const toMidX = to.x + NODE_W / 2;
+  const sameColumn = Math.abs(fromMidX - toMidX) < 1;
+
+  // Teacher above subject (`to` is the teacher in graph terms, but rendering-
+  // wise `to.y < from.y` since earlier generation = lower y).
+  if (to.y < from.y) {
+    if (sameColumn) {
+      // Clean vertical drop from teacher's bottom to subject's top.
+      return `M ${toMidX} ${to.y + NODE_H} L ${fromMidX} ${from.y}`;
+    }
+    // Off-column teacher: L-shape. Down from teacher's bottom to a midline
+    // Y, then horizontal to subject's column, then down to subject's top.
+    const midY = (to.y + NODE_H + from.y) / 2;
+    return `M ${toMidX} ${to.y + NODE_H} L ${toMidX} ${midY} L ${fromMidX} ${midY} L ${fromMidX} ${from.y}`;
+  }
+
+  // Student below subject.
+  if (to.y > from.y) {
+    if (sameColumn) {
+      return `M ${fromMidX} ${from.y + NODE_H} L ${toMidX} ${to.y}`;
+    }
+    const midY = (from.y + NODE_H + to.y) / 2;
+    return `M ${fromMidX} ${from.y + NODE_H} L ${fromMidX} ${midY} L ${toMidX} ${midY} L ${toMidX} ${to.y}`;
+  }
+
+  // Same-row fallback (teacher in subject's row — rare). Short horizontal
+  // line between the nearer edges.
+  const startX = from.x + (toMidX > fromMidX ? NODE_W : 0);
+  const endX = to.x + (toMidX > fromMidX ? 0 : NODE_W);
+  return `M ${startX} ${from.y + NODE_H / 2} L ${endX} ${to.y + NODE_H / 2}`;
+}
+
+/** Partner edge — horizontal dashed line between the two nodes. */
+function partnerPath(from: LaidNode, to: LaidNode): string {
+  const fromMidY = from.y + NODE_H / 2;
+  const toMidY = to.y + NODE_H / 2;
+  const startX = from.x + (to.x > from.x ? NODE_W : 0);
+  const endX = to.x + (to.x > from.x ? 0 : NODE_W);
+  return `M ${startX} ${fromMidY} L ${endX} ${toMidY}`;
+}
 
 export default function RabbiLineageTree(props: Props): JSX.Element {
   const [expanded, setExpanded] = createSignal(false);
   const [activeEvidenceKey, setActiveEvidenceKey] = createSignal<string | null>(null);
 
-  // Map each named person to the first evidence entry referencing them
-  // (if any). Used for the soft highlight + click handler. Key = kind:name.
   const evidenceByPerson = (): Map<string, RelationshipsEvidence> => {
     const m = new Map<string, RelationshipsEvidence>();
     for (const e of props.evidence) {
@@ -75,20 +381,40 @@ export default function RabbiLineageTree(props: Props): JSX.Element {
     return m;
   };
 
-  const visibleTeachers = () => expanded() ? props.data.teachers : props.data.teachers.filter((t) => t.primary);
-  const visibleStudents = () => expanded() ? props.data.students : props.data.students.filter((t) => t.primary);
+  const layout = () => buildLayout(
+    props.subjectName,
+    props.subjectGeneration,
+    props.data,
+    props.generationByName,
+    expanded(),
+  );
 
   const hasOverflow = () =>
     props.data.teachers.some((t) => !t.primary)
     || props.data.students.some((t) => !t.primary)
+    || props.data.debatePartners.length > 2
     || props.data.family.length > 0;
 
-  const clickPerson = (kind: 'teacher' | 'student' | 'partner' | 'family', name: string) => {
-    const ev = evidenceByPerson().get(`${kind}:${name}`);
+  // Map role → evidence kind for evidence lookup.
+  const roleToEvidenceKind: Record<Role, RelationshipsEvidence['kind'] | null> = {
+    subject: null,
+    teacher: 'teacher',
+    student: 'student',
+    partner: 'partner',
+    family: 'family',
+  };
+
+  const evidenceFor = (n: LaidNode): RelationshipsEvidence | undefined => {
+    const kind = roleToEvidenceKind[n.role];
+    if (!kind) return undefined;
+    return evidenceByPerson().get(`${kind}:${n.name}`);
+  };
+
+  const clickNode = (n: LaidNode) => {
+    const ev = evidenceFor(n);
     if (!ev || typeof ev.startSegIdx !== 'number' || typeof ev.endSegIdx !== 'number') return;
-    const key = `rabbi-evidence:${kind}:${name}:${ev.startSegIdx}:${ev.tokenStart ?? 0}`;
-    const alreadyActive = activeEvidenceKey() === key;
-    if (alreadyActive) {
+    const key = `rabbi-evidence:${n.role}:${n.name}:${ev.startSegIdx}:${ev.tokenStart ?? 0}`;
+    if (activeEvidenceKey() === key) {
       setActiveEvidenceKey(null);
       props.onHighlightRange?.(null);
     } else {
@@ -103,42 +429,24 @@ export default function RabbiLineageTree(props: Props): JSX.Element {
     }
   };
 
-  const PersonChip = (cp: { kind: 'teacher' | 'student' | 'partner' | 'family'; person: { name: string; primary?: boolean; note?: string; relation?: string } }) => {
-    const ev = () => evidenceByPerson().get(`${cp.kind}:${cp.person.name}`);
-    const hasEvidence = () => !!ev();
-    const key = () => ev() ? `rabbi-evidence:${cp.kind}:${cp.person.name}:${ev()!.startSegIdx}:${ev()!.tokenStart ?? 0}` : '';
-    const isActive = () => activeEvidenceKey() === key();
-    return (
-      <button
-        type="button"
-        onClick={() => hasEvidence() && clickPerson(cp.kind, cp.person.name)}
-        title={ev() ? `On this daf: ${ev()!.note || ev()!.excerpt}` : cp.person.note || ''}
-        disabled={!hasEvidence()}
-        style={{
-          display: 'inline-flex',
-          'align-items': 'center',
-          gap: '0.3rem',
-          padding: '0.2rem 0.55rem',
-          'border-radius': '999px',
-          border: '1px solid ' + (isActive() ? EVIDENCE_BORDER : hasEvidence() ? '#fde68a' : '#e5e3dc'),
-          background: isActive() ? EVIDENCE_BG : hasEvidence() ? '#fefce8' : '#fff',
-          color: cp.person.primary ? PRIMARY_COLOR : '#333',
-          'font-weight': cp.person.primary ? 600 : 400,
-          'font-size': '0.78rem',
-          cursor: hasEvidence() ? 'pointer' : 'default',
-          'font-family': 'inherit',
-          'box-shadow': hasEvidence() ? 'inset 0 -1px 0 ' + EVIDENCE_BORDER : 'none',
-        }}
-      >
-        <Show when={cp.kind === 'family' && (cp.person as { relation?: string }).relation}>
-          <span style={{ color: '#888', 'font-size': '0.7rem' }}>{(cp.person as { relation: string }).relation}:</span>
-        </Show>
-        {cp.person.name}
-        <Show when={hasEvidence()}>
-          <span style={{ color: '#a16207', 'font-size': '0.62rem' }}>● on daf</span>
-        </Show>
-      </button>
-    );
+  // Compute which generations to label on the axis: every generation row
+  // we placed a node in, plus the band markers next to it.
+  const axisRows = () => {
+    const rows = new Map<number, { y: number; label: string; color: string }>();
+    for (const n of layout().nodes) {
+      const gen = GENERATION_BY_ID[n.generationId];
+      const idx = GENERATION_IDS.indexOf(n.generationId);
+      if (!rows.has(idx)) {
+        rows.set(idx, {
+          y: n.y + NODE_H / 2,
+          label: gen?.label ?? n.generationId,
+          color: gen?.color ?? '#999',
+        });
+      }
+    }
+    return Array.from(rows.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([, v]) => v);
   };
 
   return (
@@ -165,56 +473,182 @@ export default function RabbiLineageTree(props: Props): JSX.Element {
             type="button"
             onClick={() => setExpanded(!expanded())}
             style={{
-              background: 'none',
-              border: 'none',
-              padding: 0,
-              color: '#666',
-              cursor: 'pointer',
+              background: 'none', border: 'none', padding: 0,
+              color: '#666', cursor: 'pointer',
               'font-size': '0.65rem',
               'font-family': 'inherit',
               'text-transform': 'uppercase',
               'letter-spacing': '0.06em',
             }}
-          >{expanded() ? '› collapse ‹' : '‹ show all ›'}</button>
+          >{expanded() ? 'collapse' : 'show all'}</button>
         </Show>
       </div>
 
-      <Show when={visibleTeachers().length > 0}>
-        <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.3rem' }}>Teachers ↑</div>
-        <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.35rem', 'margin-bottom': '0.6rem' }}>
-          <For each={visibleTeachers()}>{(t) => <PersonChip kind="teacher" person={t} />}</For>
-        </div>
-      </Show>
-
+      {/* Pannable canvas: when the tree is wider/taller than the sidebar
+          slot, scroll in both axes. SVG renders at natural size — no
+          max-width:100% which would scale-fit and crush the layout.
+          min-width:0 lets the wrapper shrink inside flex parents. */}
       <div style={{
-        padding: '0.4rem 0.7rem',
+        width: '100%',
+        'min-width': 0,
+        'max-height': '480px',
+        'overflow-x': 'auto',
+        'overflow-y': 'auto',
+        border: '1px solid #f0eee6',
         'border-radius': '4px',
         background: '#fff',
-        border: '1px solid #d6d3d1',
-        'text-align': 'center',
-        'font-weight': 600,
-        color: PRIMARY_COLOR,
-        'margin-bottom': '0.6rem',
-      }}>{props.subjectName}</div>
+      }}>
+        <svg
+          width={layout().width}
+          height={layout().height}
+          viewBox={`0 0 ${layout().width} ${layout().height}`}
+          style={{ display: 'block' }}
+        >
+          {/* Generation axis: vertical column on the left with horizontal
+              divider lines + small color swatch + generation label. */}
+          <For each={axisRows()}>{(row) => (
+            <>
+              <line
+                x1={AXIS_WIDTH - 2}
+                y1={row.y}
+                x2={AXIS_WIDTH + 6}
+                y2={row.y}
+                stroke="#999"
+                stroke-width={1.5}
+              />
+              <circle
+                cx={AXIS_WIDTH - 10}
+                cy={row.y}
+                r={4}
+                fill={row.color}
+                stroke="#fff"
+                stroke-width={1}
+              />
+              <text
+                x={AXIS_WIDTH - 18}
+                y={row.y + 4}
+                text-anchor="end"
+                font-size="10"
+                font-family="system-ui, -apple-system, sans-serif"
+                fill="#555"
+              >{row.label}</text>
+            </>
+          )}</For>
 
-      <Show when={visibleStudents().length > 0}>
-        <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.3rem' }}>Students ↓</div>
-        <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.35rem', 'margin-bottom': '0.6rem' }}>
-          <For each={visibleStudents()}>{(s) => <PersonChip kind="student" person={s} />}</For>
-        </div>
-      </Show>
+          {/* Vertical timeline spine */}
+          <line
+            x1={AXIS_WIDTH - 2}
+            y1={TOP_PADDING - 4}
+            x2={AXIS_WIDTH - 2}
+            y2={layout().height - BOTTOM_PADDING + 4}
+            stroke="#d4d4d4"
+            stroke-width={1}
+          />
+
+          {/* Edges: solid for parent (teacher→student), dashed for partner.
+              Drawn before nodes so nodes paint over the line ends. */}
+          <For each={layout().edges}>{(e) => (
+            <path
+              d={e.kind === 'parent' ? parentPath(e.from, e.to) : partnerPath(e.from, e.to)}
+              fill="none"
+              stroke={e.kind === 'parent' ? '#666' : '#999'}
+              stroke-width={1.5}
+              stroke-dasharray={e.kind === 'partner' ? '4 3' : undefined}
+            />
+          )}</For>
+
+          {/* Nodes */}
+          <For each={layout().nodes}>{(n) => {
+            const gen = GENERATION_BY_ID[n.generationId];
+            const ev = evidenceFor(n);
+            const hasEv = !!ev;
+            const isActive = activeEvidenceKey() === (ev ? `rabbi-evidence:${n.role}:${n.name}:${ev.startSegIdx}:${ev.tokenStart ?? 0}` : '');
+            const borderColor = isActive ? EVIDENCE_BORDER : (gen?.color ?? '#999');
+            const bgColor = isActive ? EVIDENCE_BG : (hasEv ? '#fefce8' : (n.role === 'subject' ? '#fff' : '#fff'));
+            const labelColor = n.role === 'subject' ? PRIMARY_COLOR : '#222';
+            const borderWidth = n.role === 'subject' ? 2 : (n.primary ? 1.75 : 1.25);
+
+            return (
+              <g
+                style={{ cursor: hasEv ? 'pointer' : 'default' }}
+                onClick={() => hasEv && clickNode(n)}
+              >
+                <title>{
+                  ev ? `${n.name}\nOn this daf: ${ev.note || ev.excerpt}`
+                    : `${n.name}${n.familyRelation ? ` — ${n.familyRelation}` : ''}${gen?.label ? ` · ${gen.label}` : ''}`
+                }</title>
+                <rect
+                  x={n.x}
+                  y={n.y}
+                  width={NODE_W}
+                  height={NODE_H}
+                  rx={6}
+                  ry={6}
+                  fill={bgColor}
+                  stroke={borderColor}
+                  stroke-width={borderWidth}
+                />
+                {/* Generation color stripe on the left edge of each node */}
+                <rect
+                  x={n.x}
+                  y={n.y}
+                  width={4}
+                  height={NODE_H}
+                  rx={2}
+                  ry={2}
+                  fill={gen?.color ?? '#999'}
+                />
+                {/* Family relation tag (small, above name) */}
+                <Show when={n.familyRelation}>
+                  <text
+                    x={n.x + NODE_W / 2}
+                    y={n.y + 11}
+                    text-anchor="middle"
+                    font-size="8"
+                    font-family="system-ui, -apple-system, sans-serif"
+                    fill="#888"
+                  >{n.familyRelation}</text>
+                </Show>
+                {/* Person name. Subject keeps full form; other nodes get
+                    "Rabbi" → "R." compaction + ellipsis truncation so long
+                    names like "Rabbi Shimon bar Yochai" don't overflow
+                    the card. Full name is in the <title> tooltip. */}
+                <text
+                  x={n.x + NODE_W / 2}
+                  y={n.familyRelation ? n.y + 26 : n.y + 23}
+                  text-anchor="middle"
+                  font-size={n.role === 'subject' ? '13' : '11'}
+                  font-weight={n.role === 'subject' || n.primary ? 600 : 500}
+                  font-family="system-ui, -apple-system, sans-serif"
+                  fill={labelColor}
+                >{n.role === 'subject' ? n.name : compactRabbiName(n.name)}</text>
+                {/* Evidence dot in the top-right corner */}
+                <Show when={hasEv}>
+                  <circle
+                    cx={n.x + NODE_W - 6}
+                    cy={n.y + 6}
+                    r={3.5}
+                    fill={EVIDENCE_BORDER}
+                  />
+                </Show>
+              </g>
+            );
+          }}</For>
+        </svg>
+      </div>
 
       <Show when={props.data.debatePartners.length > 0}>
-        <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.3rem' }}>Debate partners</div>
-        <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.35rem', 'margin-bottom': '0.4rem' }}>
-          <For each={props.data.debatePartners}>{(d) => <PersonChip kind="partner" person={d} />}</For>
-        </div>
-      </Show>
-
-      <Show when={expanded() && props.data.family.length > 0}>
-        <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.3rem' }}>Family</div>
-        <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.35rem' }}>
-          <For each={props.data.family}>{(f) => <PersonChip kind="family" person={f} />}</For>
+        <div style={{
+          'font-size': '0.65rem', color: '#999',
+          'text-transform': 'uppercase', 'letter-spacing': '0.06em',
+          'margin-top': '0.5rem',
+          display: 'flex', 'align-items': 'center', gap: '0.5rem',
+        }}>
+          <span style={{
+            display: 'inline-block', width: '12px', height: '1.5px',
+            'border-top': '1.5px dashed #999',
+          }} />
+          <span>Debate partners</span>
         </div>
       </Show>
     </div>

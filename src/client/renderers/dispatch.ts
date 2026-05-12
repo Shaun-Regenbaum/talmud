@@ -20,6 +20,7 @@
 
 import { injectRabbiUnderlines, type GenerationRabbi } from '../injectRabbiUnderlines';
 import type { GenerationId } from '../generations';
+import { recordRender } from '../rendererActivity';
 
 export interface MarkInstance {
   excerpt?: string;
@@ -84,35 +85,40 @@ export function applyMarkRenderers(
   for (const def of marks) {
     const run = runs[def.id];
     const key = `${def.anchor}:${def.render.kind}`;
+    const at = Date.now();
     if (!run?.parsed) {
-      // eslint-disable-next-line no-console
-      console.debug(`[renderer] skip ${def.id} (${key}): no parsed run`, { run });
+      recordRender(def.id, key, { kind: 'skip-no-run', at });
       continue;
     }
     const r = RENDERERS[key];
     if (!r) {
-      // No renderer registered for this (anchor, render) combo. This is the
-      // expected state for marks that render through a legacy bridge in
-      // DafViewer (argument / halacha / aggadata / pesukim — gutter+sidebar
-      // is handled by injectAnchorMarkers + GutterIcons + ArgumentSidebar
-      // via the existing showX signals). Silent skip; once we move
-      // gutter+sidebar into the dispatcher we'll register a real renderer.
+      // No renderer registered for this (anchor, render) combo — expected
+      // for marks that render through the legacy DafViewer bridge
+      // (argument / halacha / aggadata / pesukim via gutter+sidebar).
+      recordRender(def.id, key, { kind: 'skip-no-renderer', at });
       continue;
     }
     const instances = run.parsed.instances ?? [];
     if (instances.length === 0) {
-      // eslint-disable-next-line no-console
-      console.debug(`[renderer] skip ${def.id} (${key}): zero instances`);
+      recordRender(def.id, key, { kind: 'skip-zero-instances', at });
       continue;
     }
+    const t0 = performance.now();
     try {
       const before = out.length;
       out = r(out, instances, def);
-      // eslint-disable-next-line no-console
-      console.debug(`[renderer] applied ${def.id} (${key}): ${instances.length} instances, html ${before} -> ${out.length} chars`);
+      const ms = Math.round(performance.now() - t0);
+      recordRender(def.id, key, {
+        kind: 'applied',
+        instances: instances.length,
+        bytesBefore: before,
+        bytesAfter: out.length,
+        ms,
+        at,
+      });
     } catch (err) {
-      // eslint-disable-next-line no-console
-      console.warn(`[renderer] ${def.id} (${key}) threw:`, err);
+      const msg = String((err as Error)?.message ?? err);
+      recordRender(def.id, key, { kind: 'error', error: msg, at });
     }
   }
   return out;

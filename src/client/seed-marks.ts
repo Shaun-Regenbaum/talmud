@@ -34,7 +34,6 @@ export interface SeedMarkInputs {
   showGenMarkers:       () => boolean; setShowGenMarkers:       (v: boolean) => void; // dormant — rabbi is ported to the worker registry
   showCommentaries:     () => boolean; setShowCommentaries:     (v: boolean) => void;
   showGeography:        () => boolean; setShowGeography:        (v: boolean) => void;
-  showChain:            () => boolean; setShowChain:            (v: boolean) => void;
   showArguments:        () => boolean; setShowArguments:        (v: boolean) => void;
   showHalachot:         () => boolean; setShowHalachot:         (v: boolean) => void;
   showAggadatot:        () => boolean; setShowAggadatot:        (v: boolean) => void;
@@ -76,15 +75,6 @@ export function buildSeedMarks(io: SeedMarkInputs): SeedMark[] {
       render: 'row-tag',
       getValue: io.showEra,
       setValue: io.setShowEra,
-    },
-    {
-      id: 'rabbi-chain',
-      label: 'Rabbi Chain',
-      description: 'Top-of-page strip showing the teacher/student chain across rabbis cited on this daf, with generation anchoring.',
-      anchor: 'whole-daf',
-      render: 'visualization',
-      getValue: io.showChain,
-      setValue: io.setShowChain,
     },
     {
       id: 'commentaries',

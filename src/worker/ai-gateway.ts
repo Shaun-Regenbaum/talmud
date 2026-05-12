@@ -31,7 +31,11 @@ export interface AiGatewayEnv {
 }
 
 export const RETRYABLE = /1031|InferenceUpstreamError|3046|AiError 3046|HTTP 5\d\d|HTTP 429|fetch failed|network/i;
-const MAX_ATTEMPTS = 3;
+// Bumped 3 → 5 to ride out transient OpenRouter / gateway 5xx bursts. Backoff
+// is exponential (1s, 2s, 4s, 8s, 16s) + 0–500ms jitter; total worst-case
+// wait ≈31s before giving up — fits inside the queue consumer's 90s budget
+// and matches how upstream provider outages typically clear in 5–15s.
+const MAX_ATTEMPTS = 5;
 
 export function gatewayActive(env: AiGatewayEnv): boolean {
   if (env.AI_GATEWAY_DISABLE === '1') return false;

@@ -25,7 +25,6 @@ import { BugReport } from './BugReport';
 import { type CommentaryWork, type CommentaryComment } from './CommentaryPicker';
 import { CommentaryStrip } from './CommentaryStrip';
 import { GeographyStrip } from './GeographyStrip';
-import { RabbiTreeStrip } from './RabbiTreeStrip';
 import { MobileShelf, type MobileInteractionMode, type MobileDrawerTab } from './MobileShelf';
 import MarksRegistryPanel, { enabledMarkDefs, markRunsByMarkId, markStatuses } from './MarksRegistryPanel';
 import { buildSeedMarks } from './seed-marks';
@@ -276,7 +275,6 @@ const pesukimSessionCache = new Map<string, PesukimResult>();
 const GEN_KEY = 'daf.showGenMarkers';
 const COMMENTARIES_KEY = 'daf.toggle.commentaries';
 const GEOGRAPHY_KEY = 'daf.toggle.geography';
-const CHAIN_KEY = 'daf.toggle.chain';
 const ARGUMENTS_KEY = 'daf.toggle.arguments';
 const HALACHOT_KEY = 'daf.toggle.halachot';
 const AGGADATOT_KEY = 'daf.toggle.aggadatot';
@@ -348,7 +346,6 @@ export default function DafViewer(): JSX.Element {
   const [showGenMarkers, setShowGenMarkers] = createSignal(loadToggle(GEN_KEY, false));
   const [showCommentaries, setShowCommentaries] = createSignal(loadToggle(COMMENTARIES_KEY, false));
   const [showGeography, setShowGeography] = createSignal(loadToggle(GEOGRAPHY_KEY, false));
-  const [showChain, setShowChain] = createSignal(loadToggle(CHAIN_KEY, false));
   const [showArguments, setShowArguments] = createSignal(loadToggle(ARGUMENTS_KEY, false));
   const [showHalachot, setShowHalachot] = createSignal(loadToggle(HALACHOT_KEY, false));
   const [showAggadatot, setShowAggadatot] = createSignal(loadToggle(AGGADATOT_KEY, false));
@@ -463,6 +460,7 @@ export default function DafViewer(): JSX.Element {
           verseRef?: string;
           citationStyle?: string;
           excerpt?: string;
+          endExcerpt?: string;
           summary?: string;
           tokenStart?: number;
           tokenEnd?: number;
@@ -474,6 +472,7 @@ export default function DafViewer(): JSX.Element {
       verseRef: inst.fields.verseRef ?? '',
       citationStyle: inst.fields.citationStyle ?? 'explicit',
       excerpt: inst.fields.excerpt ?? '',
+      endExcerpt: inst.fields.endExcerpt,
       summary: inst.fields.summary ?? '',
       startSegIdx: inst.startSegIdx,
       endSegIdx: inst.endSegIdx,
@@ -652,10 +651,6 @@ export default function DafViewer(): JSX.Element {
   createEffect(() => {
     if (typeof localStorage === 'undefined') return;
     localStorage.setItem(GEOGRAPHY_KEY, String(showGeography()));
-  });
-  createEffect(() => {
-    if (typeof localStorage === 'undefined') return;
-    localStorage.setItem(CHAIN_KEY, String(showChain()));
   });
   createEffect(() => {
     if (typeof localStorage === 'undefined') return;
@@ -1049,49 +1044,64 @@ export default function DafViewer(): JSX.Element {
     // Skip the section-wide tint when the user has clicked a specific
     // sub-section card — the move-range highlight (painted below) is the
     // more specific selection and stacking the two reads as one large blob.
+    //
+    // The section's true span lives on the Section object as
+    // (startSegIdx, endSegIdx) — both anchored server-side to the LLM's
+    // verbatim Hebrew (excerpt + endExcerpt, resolved by
+    // postProcessArgument). Paint by walking the .daf-word spans for that
+    // seg range. The earlier implementation painted "from this section's
+    // start anchor to the NEXT section's start anchor" which (a) ignored
+    // endSegIdx entirely and (b) for the last section had no "next anchor"
+    // and ran to the end of mainText — i.e. highlighted the whole rest of
+    // the daf. The per-rabbi case still uses per-opinion anchors since
+    // those mark sub-section positions the seg range can't express.
     if (s?.kind === 'argument' && !argumentMoveHighlight()) {
-      const idx = s.index;
-      const sectionAnchor = dafRootDiv.querySelector<HTMLElement>(
-        `.daf-argument-anchor[data-idx="${idx}"]`,
-      );
-      const nextSectionAnchor = dafRootDiv.querySelector<HTMLElement>(
-        `.daf-argument-anchor[data-idx="${idx + 1}"]`,
-      );
-      const mainText = dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
+      const a = analysis();
+      const section = a?.sections?.[s.index];
+      const mainCol = dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
 
-      const rangeBetween = (start: Node, end: Node | null): Range | null => {
-        if (!mainText) return null;
-        const range = document.createRange();
-        range.setStartAfter(start);
-        if (end) range.setEndBefore(end);
-        else range.setEndAfter(mainText);
-        return range;
-      };
+      const startSeg = section?.startSegIdx;
+      const endSeg = section?.endSegIdx;
+      const hasRange = section && mainCol && typeof startSeg === 'number' && typeof endSeg === 'number';
 
-      if (name && sectionAnchor) {
+      if (hasRange && name) {
+        // Per-rabbi sub-section paint. Per-opinion anchors still drive this
+        // because opinionStart sits inside the section, not at seg boundaries.
         const sectionOpinions = Array.from(
           dafRootDiv.querySelectorAll<HTMLElement>(
-            `.daf-opinion-anchor[data-section-idx="${idx}"]`,
+            `.daf-opinion-anchor[data-section-idx="${s.index}"]`,
           ),
         );
         let painted = 0;
+        const rangeBetween = (start: Node, end: Node | null): Range | null => {
+          const range = document.createRange();
+          range.setStartAfter(start);
+          if (end) range.setEndBefore(end);
+          else {
+            // Bound by the section's last word, not the end of mainText.
+            const lastWords = mainCol.querySelectorAll<HTMLElement>(
+              `.daf-word[data-seg="${endSeg}"]`,
+            );
+            if (lastWords.length === 0) return null;
+            range.setEndAfter(lastWords[lastWords.length - 1]);
+          }
+          return range;
+        };
         for (let i = 0; i < sectionOpinions.length; i++) {
           const op = sectionOpinions[i];
           if (op.getAttribute('data-rabbi') !== name) continue;
-          const next = sectionOpinions[i + 1] ?? nextSectionAnchor ?? null;
+          const next = sectionOpinions[i + 1] ?? null;
           const range = rangeBetween(op, next);
           if (range) { collectRange(range, 'section'); painted++; }
         }
-        // If we couldn't locate any opinion anchor for this rabbi (the
-        // model didn't emit an opinionStart, or the injected marker
-        // missed), fall back to highlighting the whole section so the
-        // user still sees the relevant block.
+        // No opinion anchors hit — fall back to the whole section.
         if (painted === 0) {
-          const range = rangeBetween(sectionAnchor, nextSectionAnchor);
+          const range = buildTokenRange(mainCol, startSeg, endSeg);
           if (range) collectRange(range, 'section');
         }
-      } else if (sectionAnchor) {
-        const range = rangeBetween(sectionAnchor, nextSectionAnchor);
+      } else if (hasRange) {
+        // Whole-section paint: use the seg range directly.
+        const range = buildTokenRange(mainCol, startSeg, endSeg);
         if (range) collectRange(range, 'section');
       }
     }
@@ -2090,7 +2100,7 @@ export default function DafViewer(): JSX.Element {
         </button>
       </header>
 
-      <Show when={genLoading() || genError() || markStatuses().some((s) => s.kind === 'loading' || s.kind === 'error')}>
+      <Show when={markStatuses().some((s) => s.kind === 'loading' || s.kind === 'error')}>
         <section
           style={{
             'margin-bottom': '1rem',
@@ -2106,17 +2116,6 @@ export default function DafViewer(): JSX.Element {
             color: '#888',
           }}
         >
-          <Show when={genLoading()}>
-            <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
-              <span style={{
-                display: 'inline-block', width: '0.75rem', height: '0.75rem',
-                'border-radius': '50%',
-                border: '2px solid #d6d3d1', 'border-top-color': '#059669',
-                animation: 'daf-spin 0.8s linear infinite',
-              }} />
-              Building chain of tradition…
-            </span>
-          </Show>
           {/* Registry-driven marks — one badge per loading/error mark. */}
           <For each={markStatuses().filter((s) => s.kind === 'loading')}>{(s) => (
             <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
@@ -2132,9 +2131,6 @@ export default function DafViewer(): JSX.Element {
           <For each={markStatuses().filter((s) => s.kind === 'error')}>{(s) => (
             <span style={{ color: '#c33' }}>{s.label || s.id}: {s.error}</span>
           )}</For>
-          <Show when={genError()}>
-            <span style={{ color: '#c33' }}>Chain: {genError()}</span>
-          </Show>
           <style>{`@keyframes daf-spin { to { transform: rotate(360deg); } }`}</style>
         </section>
       </Show>
@@ -2278,50 +2274,27 @@ export default function DafViewer(): JSX.Element {
       </footer>
       </section>
 
-      <Show when={(showGeography() || showChain()) && !isMobile()}>
+      <Show when={showGeography() && !isMobile()}>
         <aside class="daf-strip daf-strip-right">
-          <Show when={showGeography()}>
-            <GeographyStrip
-              onHighlightLocation={onHighlightLocation}
-              activeLocation={activeLocation()}
-              tractate={tractate()}
-              page={page()}
-              rabbiPlaces={rabbiPlaces()}
-              loading={genLoading()}
-              generationByName={generationByName()}
-              onHighlightSingleRabbi={openRabbi}
-              onHoverRabbi={setHoveredRabbi}
-              placesInText={citiesInText()}
-              onHighlightPlace={(name) => {
-                setActiveRabbi(null);
-                setActiveLocation(null);
-                setActiveLocationRabbis([]);
-                setActivePlace(name);
-              }}
-              activePlace={activePlace()}
-            />
-          </Show>
-          <Show when={showChain()}>
-            <RabbiTreeStrip
-              rabbis={dafContext()?.rabbis ?? []}
-              onOpenRabbiSlug={openRabbiSlug}
-              onCloseRabbi={() => { setActiveRabbi(null); setSidebar(null); }}
-              onHoverRabbi={setHoveredRabbi}
-              hoveredRabbi={hoveredRabbi()}
-              activeRabbi={activeRabbi()}
-              focusedRabbiNames={(() => {
-                // Cross-highlight: when an argument section is open in
-                // the sidebar or a city/region is active on the map,
-                // surface the relevant rabbi names so the tree can
-                // emphasize them and expand their connections.
-                const s = sidebar();
-                if (s?.kind === 'argument') return s.section.rabbis.map((r) => r.name);
-                const loc = activeLocationRabbis();
-                if (loc.length > 0) return loc;
-                return [];
-              })()}
-            />
-          </Show>
+          <GeographyStrip
+            onHighlightLocation={onHighlightLocation}
+            activeLocation={activeLocation()}
+            tractate={tractate()}
+            page={page()}
+            rabbiPlaces={rabbiPlaces()}
+            loading={genLoading()}
+            generationByName={generationByName()}
+            onHighlightSingleRabbi={openRabbi}
+            onHoverRabbi={setHoveredRabbi}
+            placesInText={citiesInText()}
+            onHighlightPlace={(name) => {
+              setActiveRabbi(null);
+              setActiveLocation(null);
+              setActiveLocationRabbis([]);
+              setActivePlace(name);
+            }}
+            activePlace={activePlace()}
+          />
         </aside>
       </Show>
       </div>
@@ -2380,7 +2353,6 @@ export default function DafViewer(): JSX.Element {
           onToggleDrawerTab={toggleMobileDrawerTab}
           commentaryEnabled={showCommentaries()}
           geographyEnabled={showGeography()}
-          chainEnabled={showChain()}
           commentaryChildren={
             <CommentaryStrip
               works={commentaryWorks()}
@@ -2418,23 +2390,6 @@ export default function DafViewer(): JSX.Element {
               activePlace={activePlace()}
             />
           }
-          chainChildren={
-            <RabbiTreeStrip
-              rabbis={dafContext()?.rabbis ?? []}
-              onOpenRabbiSlug={openRabbiSlug}
-              onCloseRabbi={() => { setActiveRabbi(null); setSidebar(null); }}
-              onHoverRabbi={setHoveredRabbi}
-              hoveredRabbi={hoveredRabbi()}
-              activeRabbi={activeRabbi()}
-              focusedRabbiNames={(() => {
-                const s = sidebar();
-                if (s?.kind === 'argument') return s.section.rabbis.map((r) => r.name);
-                const loc = activeLocationRabbis();
-                if (loc.length > 0) return loc;
-                return [];
-              })()}
-            />
-          }
           tractate={tractate()}
           page={page()}
           activeRabbi={activeRabbi()}
@@ -2451,7 +2406,6 @@ export default function DafViewer(): JSX.Element {
             showGenMarkers, setShowGenMarkers,
             showCommentaries, setShowCommentaries,
             showGeography, setShowGeography,
-            showChain, setShowChain,
             showArguments, setShowArguments,
             showHalachot, setShowHalachot,
             showAggadatot, setShowAggadatot,

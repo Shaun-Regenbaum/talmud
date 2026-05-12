@@ -320,7 +320,8 @@ Output STRICT JSON only:
       "fields": {
         "verseRef": "Sefaria-style canonical reference, e.g. 'Psalms 4:5', 'Genesis 24:63', 'Isaiah 6:3'.",
         "citationStyle": "'explicit' | 'allusion' | 'paraphrase'",
-        "excerpt": "The Hebrew/Aramaic words from the daf that quote or allude to this verse — copied VERBATIM from the source.",
+        "excerpt": "The Hebrew/Aramaic words from the daf that quote or allude to this verse — copied VERBATIM from the source. This is the START of the citation phrase.",
+        "endExcerpt": "Last 3-5 Hebrew/Aramaic words of the citation phrase, copied VERBATIM. For a one-line / short citation this can equal the tail of \"excerpt\"; for a longer citation that spans multiple words or includes interpolation, this marks where the verse-quote ENDS on the daf. Empty string is NOT acceptable when the citation is more than 5 words long.",
         "summary": "1-2 sentences in English explaining how the verse is being used in this context (proof, prooftext, contrast, exegetical hook)."
       }
     }
@@ -332,7 +333,7 @@ Rules:
 - For explicit citations marked by שנאמר / שנא' / דכתיב / כדכתיב / אמר קרא — use citationStyle: "explicit".
 - For phrasing that echoes a verse but doesn't introduce it — use citationStyle: "allusion".
 - For loose paraphrase — use citationStyle: "paraphrase".
-- "excerpt" MUST be Hebrew/Aramaic verbatim from the source.
+- "excerpt" AND "endExcerpt" MUST be Hebrew/Aramaic verbatim from the source. excerpt anchors the citation's start; endExcerpt anchors its end. For a citation that's only 2-5 words long they may share words but should not be identical unless the citation IS a single short phrase.
 - startSegIdx / endSegIdx must be valid 0-based indices from the [N] markers.`;
 
 const PESUKIM_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
@@ -362,11 +363,12 @@ const PESUKIM_OUTPUT_SCHEMA = {
             fields: {
               type: 'object',
               additionalProperties: false,
-              required: ['verseRef', 'citationStyle', 'excerpt', 'summary'],
+              required: ['verseRef', 'citationStyle', 'excerpt', 'endExcerpt', 'summary'],
               properties: {
                 verseRef: { type: 'string' },
                 citationStyle: { type: 'string', enum: ['explicit', 'allusion', 'paraphrase'] },
                 excerpt: { type: 'string' },
+                endExcerpt: { type: 'string' },
                 summary: { type: 'string' },
               },
             },
@@ -555,8 +557,8 @@ export const CODE_MARKS: MarkDefinition[] = [
     },
     dependencies: ['gemara'],
     status: 'promoted',
-    def_hash: 'pesukim-llm-v2',
-    cache_version: '3',
+    def_hash: 'pesukim-llm-v3',
+    cache_version: '4',
     source: 'code',
     updated_at: NOW,
   },
@@ -574,7 +576,72 @@ export const CODE_MARKS: MarkDefinition[] = [
 
 // Shared style guide for all rabbi enrichments. Hebrew script in parens,
 // no transliteration, terse English.
-const RABBI_HEBRAIZE_STYLE = `STYLE: Write technical Hebrew/Aramaic terms with the Hebrew SCRIPT directly inside parentheses (NOT transliteration). e.g. "a leading Tanna (תנא)", "the academy at Yavneh (יבנה)", "in the name of (משם) Rabbi X". Do NOT emit transliterations like "(tanna)" or "(yavneh)". Use plain English with Hebrew-script parens only where genuinely technical. Verbatim daf quotes go in Hebrew script with quote marks.`;
+/**
+ * Shared Hebrew-gloss style guide. Every enrichment prompt that emits prose
+ * appends this so the worker-side output uses ONE consistent convention for
+ * mixing English + Hebrew script. The client-side <Hebraized> renderer
+ * displays this prose as-is — when the prompt obeys these rules, the user
+ * sees a clean bilingual reading experience. Violations (bare
+ * transliteration like "Lechatchila" with no Hebrew script) read as
+ * inconsistent and have to be patched per-mark, which is what we're
+ * normalizing here.
+ */
+const HEBREW_GLOSS_STYLE = `STYLE — Hebrew + English mixing (apply UNIFORMLY across all prose):
+
+FORM A — Hebrew script first, English gloss in parens. Use when the Hebrew word IS the subject of the clause OR when the Hebrew is the standard term in rabbinic discourse:
+  "performed לכתחילה (the ideal standard)"
+  "בדיעבד (after the fact) the meat is permitted"
+  "applies the rule of יצא (an excluded case)"
+  "the gemara invokes a גזירה שווה (verbal analogy from a shared word)"
+  "the principle of רוב (the majority)"
+  "from the כלל ופרט (general followed by specific)"
+  "the verse 'בשכבך ובקומך' (when you lie down and when you rise)"
+
+FORM B — English first, Hebrew script in parens. Use when the English term flows naturally as a parenthetical aid:
+  "a leading Tanna (תנא) at Yavneh (יבנה)"
+  "the evening Shema (קריאת שמע של ערבית)"
+  "atonement (כפרה) does not delay the priest's eating"
+  "the rabbi is classified as a halachist (הלכתי)"
+
+HARD RULES (output is rejected if violated):
+- NEVER write a transliteration alone in parens. "(terumah)", "(gezeira shava)", "(lechatchila)" — all forbidden. Always pair Hebrew script with English meaning, not transliteration with itself.
+- NEVER use bare transliteration as a standalone term either. "Lechatchila, one may eat…" is wrong — use "לכתחילה (the ideal standard), one may eat…" OR "Performed לכתחילה, one may eat…".
+- Common terms to ALWAYS hebraize (any time you use them, pair with Hebrew script):
+    lechatchila → לכתחילה          (the ideal standard / a-priori)
+    bedieved → בדיעבד               (after the fact)
+    mitzvah → מצוה                  (commandment)
+    halacha → הלכה                  (binding law)
+    sugya → סוגיא                   (Talmudic discussion)
+    psak → פסק                      (ruling)
+    rov → רוב                       (majority principle)
+    chazaka → חזקה                  (presumption)
+    safek → ספק                     (doubt)
+    tum'ah → טומאה                  (ritual impurity)
+    tahara → טהרה                   (ritual purity)
+    terumah → תרומה                 (priestly portion)
+    maaser → מעשר                   (tithe)
+    chametz → חמץ                   (leaven)
+    matzah → מצה                    (unleavened bread)
+    treif → טריפה                   (ritually unfit)
+    kosher → כשר                    (ritually fit)
+    pesach → פסח                    (Passover)
+    shabbat → שבת                   (Sabbath)
+    yom tov → יום טוב               (festival day)
+    bracha → ברכה                   (blessing)
+    tefillah → תפילה                (prayer)
+    tzitzit → ציצית                 (ritual fringes)
+    tefillin → תפילין               (phylacteries)
+    bet din → בית דין               (court)
+    eved → עבד                      (slave)
+    get → גט                        (bill of divorce)
+    kiddushin → קידושין             (betrothal)
+    chayav → חייב                   (liable / obligated)
+    patur → פטור                    (exempt)
+    asur → אסור                     (forbidden)
+    mutar → מותר                    (permitted)
+- Verbatim daf / pasuk excerpts go in Hebrew script with quote marks, optionally followed by an English gloss in parens.
+- Plain English is the BASE; Hebrew script is the technical anchor. Don't pile Hebrew script on every common word — only where the term is genuinely the technical concept.`;
+
 
 // rabbi.bio — DAF-AGNOSTIC general biography. Same regardless of which daf
 // triggered the click. The daf is NOT the subject; the rabbi is.
@@ -591,7 +658,7 @@ Rules:
 - Historical claims must match the generation supplied.
 - DO NOT mention what the rabbi is doing on this specific daf. That's a different enrichment.
 
-${RABBI_HEBRAIZE_STYLE}`;
+${HEBREW_GLOSS_STYLE}`;
 
 // rabbi.philosophy — CROSS-GEMARA stance + recurring exegetical method.
 // Daf-agnostic: the answer is the same regardless of which daf you click in
@@ -616,7 +683,7 @@ REQUIRED form: specific named positions across the corpus, concrete examples, na
 
 If you don't have specific factual content like this for the rabbi, return empty string.
 
-${RABBI_HEBRAIZE_STYLE}`;
+${HEBREW_GLOSS_STYLE}`;
 
 // rabbi.relationships — STRUCTURED teachers / students / debate partners /
 // family. The `prose` field is what synthesis consumes; the lists drive
@@ -633,13 +700,31 @@ Output STRICT JSON only:
   "prose": "1-2 sentences in plain English summarizing the above (synthesis consumes this; readers see the lists)."
 }
 
+DISAMBIGUATION:
+- The input rabbi may have a common name shared by multiple historical figures (e.g. "Rabbi Elazar" can refer to R. Elazar ben Pedat, R. Elazar ben Shamua, R. Elazar ben Azaria, R. Elazar ben Arach, etc.). USE the input's "generation" + "region" + "places" fields to pin down which figure this is. Example: "Rabbi Elazar" with generation=amora-ey-3 + region=israel = R. Elazar ben Pedat (primary student of R. Yochanan).
+- Once you've pinned the identity, fill the lists for THAT figure. Do NOT collapse to empty arrays just because the bare name is ambiguous — the generation/region/places fields disambiguate it.
+- If the name is so generic that even with generation + region you cannot identify a specific historical figure, only THEN return empty arrays.
+
+PATRONYMIC NAMES (HARD RULE):
+- If the input "name" contains a patronymic — "X bar Y", "X ben Y", "X b. Y", "X son of Y", "X brei d'rav Y", "X breih d'Y" — then Y is a parent and MUST appear in the "family" array with relation="father" (or "mother" for "X b. Imma Y"). This is NON-NEGOTIABLE: the patronymic is direct nominal evidence of the parent.
+  Examples:
+  - "Mar, son of Ravina" / "Mar bar Ravina" → family must include { name: "Ravina", relation: "father" }
+  - "Abba bar Abba" → family must include { name: "Abba", relation: "father" }
+  - "Rava bar Rav Yosef bar Chama" → family must include { name: "Rav Yosef bar Chama", relation: "father" }
+  - "Rabbah bar bar Chana" → family must include { name: "Bar Chana", relation: "father" } and { name: "Chana", relation: "grandfather" }
+- If a parent named in the patronymic was themselves a known sage, often (not always) the patronymic-parent is ALSO the rabbi's primary teacher. When that's the case (e.g. Rava bar Rav Yosef who studied under his father), add the parent to BOTH "family" (father) AND "teachers" (primary).
+
+EXPECTATIONS BY GENERATION:
+- For any rabbi well-attested in the Talmud or classical sources, expect AT LEAST one teacher and one student in the output. Most amoraim and tannaim have several known teachers and several students.
+- Late Bavli amoraim (amora-bavel-6/7/8) are the final redactors and almost always have a known primary teacher (typically Rav Ashi or Ravina) and often a small number of named colleagues. Don't return empty for them.
+- Returning teachers=[] and students=[] is ONLY acceptable when the rabbi is genuinely obscure (single-mention figure with no known relationships).
+
 Rules:
 - Mark AT MOST 1-2 entries in teachers and 1-2 in students as primary=true. Primary = the relationship is canonical to identifying the rabbi (e.g. for Abaye: primary teacher = Rabbah bar Nachmani; primary debate partner = Rava). Everyone else, primary=false.
 - Name actual rabbis where possible — skip vague generalities ('the Sages', 'his colleagues') unless they're specific enough to matter (e.g. 'the Tannaim of Yavneh').
-- Empty lists are fine; pad nothing.
 - "note" is optional — pass empty string if there's nothing concrete to add.
 
-${RABBI_HEBRAIZE_STYLE}`;
+${HEBREW_GLOSS_STYLE}`;
 
 // rabbi.classification — primary mode of activity in classical sources.
 // 'aggadist' = primarily known for narrative / ethical / theological teachings.
@@ -662,7 +747,7 @@ Rules:
 - Most rabbis are ALL three to some degree — pick the DOMINANT axis. If genuinely 50/50, default to halachist for Bavli rabbis.
 - Justification should be a single declarative sentence, no hedging.
 
-${RABBI_HEBRAIZE_STYLE}`;
+${HEBREW_GLOSS_STYLE}`;
 
 // rabbi.geography — birthplace, study places, notable places, movements.
 // Structured for the in-sidebar geography card; prose for synthesis.
@@ -678,13 +763,18 @@ Output STRICT JSON only:
   "prose": "1-2 sentence summary in plain English; synthesis consumes this."
 }
 
+DISAMBIGUATION:
+- The input rabbi may have a common name shared by multiple historical figures (e.g. "Rabbi Elazar" can mean R. Elazar ben Pedat, R. Elazar ben Shamua, R. Elazar ben Azaria, etc.). USE the input's "generation" + "region" + "places" fields to pin down which figure this is. Once pinned, fill the geography for THAT figure — do NOT collapse to empty arrays just because the bare name is ambiguous.
+- Most well-attested tannaim and amoraim have at least ONE known study place (an academy / yeshiva town). For amora-bavel-* think Sura/Pumbedita/Nehardea; for amora-ey-* think Tiberias/Caesarea/Sepphoris; for tanna-* think Yavneh/Usha/Bnei Brak/Sepphoris. Returning primaryStudyPlaces=[] is ONLY acceptable for genuinely obscure figures.
+
 Rules:
-- Empty arrays + empty strings when the data is genuinely unknown. Do NOT invent.
+- For any well-attested rabbi, expect at least ONE entry in primaryStudyPlaces. Empty arrays are only acceptable when the geography is genuinely unknown — NOT as an escape hatch when the bare name is ambiguous.
+- birthplace.place may legitimately be empty when no source records it. Set birthplace.region to the rabbi's primary region of activity (israel/bavel) even when the city is unknown.
 - Use traditional Hebrew place names where they are conventional in rabbinic literature (Tiberias / Tiberya, Sepphoris, Sura, Nehardea, Pumbedita, Yavneh, Caesarea, Lod). Use the spelling that's standard in academic rabbinics.
 - "movements" should ONLY include attested Bavel↔Eretz Yisrael migrations OR otherwise significant relocations. Don't list every shul a rabbi visited.
 - If the rabbi never moved between regions, leave "movements" as an empty array.
 
-${RABBI_HEBRAIZE_STYLE}`;
+${HEBREW_GLOSS_STYLE}`;
 
 const RABBI_GEOGRAPHY_OUTPUT_SCHEMA = {
   name: 'rabbi_geography',
@@ -771,7 +861,7 @@ Rules:
 - If the daf mentions the same relationship in multiple places, emit one entry per location.
 - Empty evidence array is fine — most rabbis' relationships aren't directly referenced on every daf.
 
-${RABBI_HEBRAIZE_STYLE}`;
+${HEBREW_GLOSS_STYLE}`;
 
 const RABBI_RELATIONSHIPS_EVIDENCE_OUTPUT_SCHEMA = {
   name: 'rabbi_relationships_evidence',
@@ -820,7 +910,7 @@ Rules:
 - "excerpt" MUST be Hebrew/Aramaic verbatim from the daf.
 - Empty evidence array is fine.
 
-${RABBI_HEBRAIZE_STYLE}`;
+${HEBREW_GLOSS_STYLE}`;
 
 const RABBI_GEOGRAPHY_EVIDENCE_OUTPUT_SCHEMA = {
   name: 'rabbi_geography_evidence',
@@ -874,6 +964,68 @@ Known geography (find evidence FOR these places/movements in the daf above):
 
 Return excerpts per the schema. Empty evidence array is fine when the daf does not reference any of the input facts.`;
 
+// rabbi.location — per-daf inference of WHERE the rabbi was when the
+// teaching on this daf took place. Drives the "you are here" marker on
+// the timeline. Scope='local' since the answer is daf-specific.
+// Outputs one of the rabbi's known places (from rabbi.geography input) +
+// a confidence level + a one-line justification grounded in the daf.
+const RABBI_LOCATION_SYSTEM_PROMPT = `You are a Talmud scholar. Given a rabbi's known geography (birthplace + study places + notable places + movements) plus the gemara text of the current daf, infer WHERE this rabbi was when the teaching on this daf took place — i.e. which of his known places best fits the daf's content.
+
+Output STRICT JSON only:
+
+{
+  "place": "ONE place name copied verbatim from the input geography (a primary study place, birthplace, notable place, or the destination of a movement). Empty string ONLY when the daf gives genuinely zero locational cues.",
+  "region": "israel" | "bavel" | "other" | "unknown",
+  "confidence": "high" | "medium" | "low",
+  "justification": "ONE sentence in plain English citing the daf's evidence — name a partner rabbi who's known to share a locale ('debating R. Yochanan → Tiberias'), an academy reference, a place name in the sugya, or the rabbi's typical teaching seat for this period."
+}
+
+DISAMBIGUATION:
+- READ the daf carefully. If the rabbi is debating / transmitting from another named rabbi, use that other rabbi's known locale as a hint.
+- For amora-bavel-* the default is the rabbi's primary academy (Sura/Pumbedita/Nehardea/Machoza); for amora-ey-* the default is the primary teaching seat (Tiberias/Caesarea/Sepphoris).
+- For tannaim, default to the academy of the relevant period (Yavneh c. 80-120; Usha c. 140-165; Bnei Brak for R. Akiva's circle; Sepphoris for R. Yehuda HaNasi).
+- If a movement is attested AND the daf references the post-movement context, use the destination place.
+- confidence='high' = the daf names a place / a known partner whose locale is unambiguous. 'medium' = the rabbi's default primary seat with no contradicting daf evidence. 'low' = best guess, daf gives little signal.
+
+Rules:
+- "place" MUST be copied verbatim from one of the places in the input geography. Do NOT invent new place names.
+- Empty "place" string is only acceptable when the rabbi's geography input itself is empty.
+- justification must cite SPECIFIC daf evidence (named rabbi, place phrase, sugya context) — not generic biographical statements.
+
+${HEBREW_GLOSS_STYLE}`;
+
+const RABBI_LOCATION_OUTPUT_SCHEMA = {
+  name: 'rabbi_location',
+  strict: true,
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['place', 'region', 'confidence', 'justification'],
+    properties: {
+      place: { type: 'string' },
+      region: { type: 'string', enum: ['israel', 'bavel', 'other', 'unknown'] },
+      confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
+      justification: { type: 'string' },
+    },
+  },
+};
+
+const RABBI_LOCATION_USER_TEMPLATE = `Rabbi:
+{{mark_input}}
+
+Tractate: {{tractate}}, page {{page}}.
+
+Hebrew/Aramaic source — segments numbered [N]:
+{{segments_he}}
+
+OTHER rabbis named on this daf (useful for inferring locale by their known seats):
+{{anchors.rabbi}}
+
+Known geography of the subject rabbi (your "place" output MUST come from this set):
+{{depends.rabbi.geography}}
+
+Infer the most likely place per the schema.`;
+
 // rabbi.synthesis — ONE tight paragraph about the rabbi, framed by THIS daf.
 // Hard ban on summarizing what the rabbi says on the daf. The reader should
 // learn who the person is and how this daf locates them — including
@@ -911,7 +1063,7 @@ Rules:
 - If an input paragraph is empty or vague, skip that strand; don't pad.
 - If the relationships strand contradicts {{anchors.rabbi}}, defer to {{anchors.rabbi}} for which OTHER rabbis are actually on this daf.
 
-${RABBI_HEBRAIZE_STYLE}`;
+${HEBREW_GLOSS_STYLE}`;
 
 // Shared user prompt template for the four leaf rabbi enrichments. The
 // synthesis has its own template that consumes depends.
@@ -1116,7 +1268,7 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
     'rabbi.relationships', 'Relationships',
     'Teachers, students, frequent debate partners, family — structured lists + prose summary. Daf-agnostic.',
     RABBI_RELATIONSHIPS_SYSTEM_PROMPT, RABBI_LEAF_USER_TEMPLATE, RABBI_RELATIONSHIPS_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.relationships-v2', cacheVersion: '2' },
+    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.relationships-v5', cacheVersion: '5' },
   ),
   makeRabbiEnrichment(
     'rabbi.classification', 'Classification',
@@ -1128,7 +1280,7 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
     'rabbi.geography', 'Geography',
     'Birthplace + primary study places + notable places + Bavel↔Israel movements. Daf-agnostic.',
     RABBI_GEOGRAPHY_SYSTEM_PROMPT, RABBI_LEAF_USER_TEMPLATE, RABBI_GEOGRAPHY_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.geography-v1', cacheVersion: '1' },
+    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.geography-v2', cacheVersion: '2' },
   ),
   // Synthesis — the user-facing card. Depends on the leaves plus the
   // gemara text and the full rabbi instance list (so the prompt can name
@@ -1149,10 +1301,11 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
         { enrichment: 'rabbi.geography' },
         { enrichment: 'rabbi.relationships.evidence' },
         { enrichment: 'rabbi.geography.evidence' },
+        { enrichment: 'rabbi.location' },
         { mark: 'rabbi' },
       ],
-      defHash: 'rabbi.synthesis-v5',
-      cacheVersion: '5',
+      defHash: 'rabbi.synthesis-v9',
+      cacheVersion: '9',
     },
   ),
   // Per-daf evidence enrichments. Each finds excerpts in THIS daf that
@@ -1177,6 +1330,16 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', { enrichment: 'rabbi.geography' }],
       defHash: 'rabbi.geography.evidence-v1', cacheVersion: '1',
+    },
+  ),
+  makeRabbiEnrichment(
+    'rabbi.location', 'Location (in this sugya)',
+    'Per-daf inference of WHERE the rabbi was when the teaching on this daf occurred. Drives the "you are here" marker on the places timeline.',
+    RABBI_LOCATION_SYSTEM_PROMPT, RABBI_LOCATION_USER_TEMPLATE, RABBI_LOCATION_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content', scope: 'local',
+      dependencies: ['gemara', { enrichment: 'rabbi.geography' }, { mark: 'rabbi' }],
+      defHash: 'rabbi.location-v1', cacheVersion: '1',
     },
   ),
 ];
@@ -1206,7 +1369,7 @@ const ARGUMENT_FLASH_MODEL = 'openrouter/deepseek/deepseek-v4-flash' as LLMModel
 
 // ---------------- argument.voices (kept) ----------------
 
-const ARGUMENT_VOICES_SYSTEM_PROMPT = `You are a Talmud scholar. For each NAMED rabbi appearing in this section, describe their argumentative role within the section. Daf-local — about what they're doing here, not their general biography.
+const ARGUMENT_VOICES_SYSTEM_PROMPT = `You are a Talmud scholar. For each NAMED rabbi appearing in this section, describe their argumentative role within the section, AND emit a graph showing how the voices relate (who argues with whom, who supports whom). Daf-local — about what they're doing here, not their general biography.
 
 Output STRICT JSON only:
 
@@ -1216,17 +1379,35 @@ Output STRICT JSON only:
       "name": "Conventional English name (matches the move-list rabbiNames).",
       "nameHe": "Hebrew name as written in the daf (e.g. 'רבי יוחנן', 'רבא'). Empty string if not present.",
       "role": "originator" | "transmitter" | "respondent" | "objector" | "supporter" | "cited-authority" | "questioner",
+      "side": "A short label for the camp this voice argues for in the section's dispute. Use 'A' for the first distinct position introduced, 'B' for the opposing position, 'C' for a third position if any. Use 'stam' for the Gemara's anonymous redactor when included. Use 'support-A' / 'support-B' for figures cited only to support a side (baraitot, supporting authorities). Use 'unaligned' when the voice raises a question or transmits but doesn't take a position.",
       "stance": "1-2 sentences in plain English: what position this rabbi is taking in this section's dispute, and what they're responding to (if anything).",
       "opinionStart": "First 3-5 Hebrew/Aramaic words of this rabbi's opening line in the section, verbatim. Empty string if their position isn't anchored to a single phrase."
+    }
+  ],
+  "edges": [
+    {
+      "from": "Conventional English name of the voice DOING the action (must match a 'name' in voices array).",
+      "to": "Conventional English name of the voice the action targets (must match a 'name' in voices array).",
+      "kind": "opposes" | "supports" | "responds-to" | "cites" | "resolves",
+      "note": "OPTIONAL 1-clause label that will sit on the edge label (e.g. 'on the bedieved case', 'cites baraita'). Empty string when no label is needed."
     }
   ]
 }
 
+EDGE KINDS:
+- "opposes" — the from-voice directly objects to / rejects / contradicts the to-voice's position. Most common between primary disputants.
+- "supports" — the from-voice cites or argues FOR the to-voice's position. Use for supporting baraitot, transmitters whose teaching reinforces a side, and explicit endorsements.
+- "responds-to" — the from-voice answers a question the to-voice raised. Use specifically for question→answer pairs, not for opposition.
+- "cites" — the from-voice quotes / brings the to-voice as authority without taking a clear support/oppose stance.
+- "resolves" — the from-voice's move concludes the dispute between two earlier voices. The "to" is the voice whose position is upheld; add a SECOND edge from the resolver to the OTHER side as kind="opposes" if applicable.
+
 Rules:
-- Skip anonymous voices ("Gemara's question", "Stam", "Supporting baraita") — they live on individual moves, not here.
-- Skip rabbis who only appear in passing.
-- "stance" must be concrete: name what they hold and against whom. NO puff.
-- One entry per distinct rabbi even if they speak multiple times.`;
+- Skip anonymous voices ("Gemara's question", "Stam", "Supporting baraita") UNLESS they meaningfully connect named voices, in which case emit them as voices with name="Stam" and use them as edge endpoints.
+- One voice entry per distinct rabbi even if they speak multiple times.
+- "side" letters are LOCAL to this section — Position A is whoever is introduced first as a distinct position, not a global label.
+- Every edge's "from" and "to" MUST match a name in the voices array. Validate before emitting.
+- For a section with one position only (no real dispute), emit voices but an EMPTY edges array.
+- NO puff in "stance" — concrete: name what they hold and against whom.`;
 
 const ARGUMENT_VOICES_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
@@ -1247,20 +1428,35 @@ const ARGUMENT_VOICES_OUTPUT_SCHEMA = {
   schema: {
     type: 'object',
     additionalProperties: false,
-    required: ['voices'],
+    required: ['voices', 'edges'],
     properties: {
       voices: {
         type: 'array',
         items: {
           type: 'object',
           additionalProperties: false,
-          required: ['name', 'nameHe', 'role', 'stance', 'opinionStart'],
+          required: ['name', 'nameHe', 'role', 'side', 'stance', 'opinionStart'],
           properties: {
             name: { type: 'string' },
             nameHe: { type: 'string' },
             role: { type: 'string', enum: ['originator', 'transmitter', 'respondent', 'objector', 'supporter', 'cited-authority', 'questioner'] },
+            side: { type: 'string' },
             stance: { type: 'string' },
             opinionStart: { type: 'string' },
+          },
+        },
+      },
+      edges: {
+        type: 'array',
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['from', 'to', 'kind', 'note'],
+          properties: {
+            from: { type: 'string' },
+            to: { type: 'string' },
+            kind: { type: 'string', enum: ['opposes', 'supports', 'responds-to', 'cites', 'resolves'] },
+            note: { type: 'string' },
           },
         },
       },
@@ -1372,7 +1568,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', { mark: 'argument-move' }, { mark: 'rabbi' }],
-      defHash: 'argument.voices-v2', cacheVersion: '2',
+      defHash: 'argument.voices-v3', cacheVersion: '3',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -1402,7 +1598,7 @@ CODE_ENRICHMENTS.push(
         { mark: 'rabbi' },
         { mark: 'argument-move' },
       ],
-      defHash: 'argument.synthesis-v6', cacheVersion: '6',
+      defHash: 'argument.synthesis-v7', cacheVersion: '7',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -1652,6 +1848,299 @@ CODE_ENRICHMENTS.push(
       ],
       defHash: 'argument-move.synthesis-v4', cacheVersion: '4',
       model: ARGUMENT_FLASH_MODEL,
+    },
+  ),
+);
+
+// ---------------------------------------------------------------------------
+// Halacha enrichments — operate on a single halacha topic instance from
+// the `halacha` mark. The anchor identifies WHICH topic the daf is settling;
+// the enrichments answer HOW it's codified (Mishneh Torah / Tur / Shulchan
+// Aruch / Rema), WHEN it applies in practice, and WHERE the major poskim
+// disagree. The synthesis weaves them together.
+//
+// All four are scope='local' because halacha topics are identified per-daf
+// (the LLM names them; titles drift between dafim). A future
+// `halacha.canonical-ref` enrichment could canonicalize topics to a
+// Shulchan Aruch siman:seif and promote codification to scope='global'.
+// ---------------------------------------------------------------------------
+
+const HALACHA_LEAF_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+Halacha topic identified on this daf:
+{{mark_input}}
+
+Hebrew/Aramaic source for the daf:
+{{gemara_he}}
+
+English translation:
+{{gemara_en}}
+
+Produce the requested output per the schema.`;
+
+const HALACHA_CODIFICATION_SYSTEM_PROMPT = `You are a scholar of halacha. Given ONE halachic topic surfaced on a daf, produce the canonical codification trail: what Mishneh Torah, Tur, Shulchan Aruch, and Rema rule on this exact topic.
+
+Output STRICT JSON only:
+
+{
+  "mishnehTorah": { "ref": "Sefer Zmanim, Hilchot Krias Shema 1:1", "ruling": "1-2 sentence English summary of Rambam's ruling on THIS topic." } | null,
+  "tur":          { "ref": "Orach Chayyim 235",                       "ruling": "Same shape — 1-2 sentence summary of the Tur's position." } | null,
+  "shulchanAruch":{ "ref": "Orach Chayyim 235:1",                     "ruling": "Same shape — Beit Yosef's ruling in the Mechaber's voice." } | null,
+  "rema":         { "ref": "Orach Chayyim 235:1",                     "ruling": "Same shape — Rema's gloss / Ashkenazi position. Empty when Rema does not differ." } | null,
+  "prose": "ONE short paragraph (2-3 sentences) tracing how the daf's conclusion gets codified — name which codifier first fixes the rule, where the later codifiers diverge if they do, and what the final practical position is. NO puff."
+}
+
+Rules:
+- ref MUST be a real, citable reference (sefer + hilchot + chapter:halacha for Mishneh Torah; siman[:seif] for Tur/Shulchan Aruch/Rema). If you cannot supply a real ref with confidence, return null for that codifier — DO NOT invent references.
+- For each non-null entry, the ruling MUST genuinely match what the codifier says on THIS topic, not a general gloss.
+- Rema is only non-null when he explicitly disagrees, qualifies, or adds Ashkenazi minhag to the Mechaber's ruling. If Rema agrees silently, leave it null.
+- prose is a tight narrative, not a list — focus on the trail (who first fixes the rule, where it forks).
+- NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "profoundly", "lens", "captures", "embodies".
+
+${HEBREW_GLOSS_STYLE}`;
+
+const HALACHA_CODIFICATION_OUTPUT_SCHEMA = {
+  name: 'halacha_codification',
+  strict: true,
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['mishnehTorah', 'tur', 'shulchanAruch', 'rema', 'prose'],
+    properties: {
+      mishnehTorah: {
+        anyOf: [
+          { type: 'null' },
+          {
+            type: 'object', additionalProperties: false,
+            required: ['ref', 'ruling'],
+            properties: { ref: { type: 'string' }, ruling: { type: 'string' } },
+          },
+        ],
+      },
+      tur: {
+        anyOf: [
+          { type: 'null' },
+          {
+            type: 'object', additionalProperties: false,
+            required: ['ref', 'ruling'],
+            properties: { ref: { type: 'string' }, ruling: { type: 'string' } },
+          },
+        ],
+      },
+      shulchanAruch: {
+        anyOf: [
+          { type: 'null' },
+          {
+            type: 'object', additionalProperties: false,
+            required: ['ref', 'ruling'],
+            properties: { ref: { type: 'string' }, ruling: { type: 'string' } },
+          },
+        ],
+      },
+      rema: {
+        anyOf: [
+          { type: 'null' },
+          {
+            type: 'object', additionalProperties: false,
+            required: ['ref', 'ruling'],
+            properties: { ref: { type: 'string' }, ruling: { type: 'string' } },
+          },
+        ],
+      },
+      prose: { type: 'string' },
+    },
+  },
+};
+
+const HALACHA_PRACTICAL_SYSTEM_PROMPT = `You are a scholar of halacha and practical psak. Given ONE halachic topic surfaced on a daf, describe the PRACTICAL application of the settled halacha — what someone has to actually do, when it applies, and what the common edge cases are.
+
+Output STRICT JSON only:
+
+{
+  "lechatchila": "1-2 sentences: how the halacha is performed lechatchila (ideal-case). What's the standard practice?",
+  "bedieved":    "1 sentence on the bedieved (after-the-fact) standard, when applicable. Empty string if no lechatchila/bedieved distinction.",
+  "appliesWhen": ["Short bullet phrases — 2-4 items — naming the situations when this halacha is triggered (e.g. 'eating bread', 'after dark', 'in a public domain')."],
+  "exceptions":  ["Short bullet phrases — 0-3 items — naming common exceptions or edge cases ('a sick person is exempt', 'on Shabbat the rule changes', etc.). Empty array if none."],
+  "prose": "ONE short paragraph (2-3 sentences) on how the rule plays out today — what the typical person does, what trips them up, any standard halachic threshold the gemara introduced that still governs practice."
+}
+
+Rules:
+- The "lechatchila" field must describe the standard live practice (the לכתחילה standard), not the gemara's hypothetical. If the practice still tracks the gemara's plain conclusion, say so concretely.
+- The "bedieved" field is for the after-the-fact (בדיעבד) standard: did the act count, what do you do retroactively, etc. Empty string when there is no such distinction.
+- appliesWhen / exceptions are SHORT phrases, not sentences. The user will scan them.
+- NO puff. NO jargon: "transmitter" not "tradent". Inside the prose, follow the HEBREW_GLOSS_STYLE rules below — every use of לכתחילה / בדיעבד / רוב / etc. MUST appear with the Hebrew script (Form A or Form B), never as bare transliteration.
+
+${HEBREW_GLOSS_STYLE}`;
+
+const HALACHA_PRACTICAL_OUTPUT_SCHEMA = {
+  name: 'halacha_practical',
+  strict: true,
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['lechatchila', 'bedieved', 'appliesWhen', 'exceptions', 'prose'],
+    properties: {
+      lechatchila: { type: 'string' },
+      bedieved: { type: 'string' },
+      appliesWhen: { type: 'array', items: { type: 'string' } },
+      exceptions: { type: 'array', items: { type: 'string' } },
+      prose: { type: 'string' },
+    },
+  },
+};
+
+const HALACHA_DISPUTES_SYSTEM_PROMPT = `You are a scholar of halacha. Given ONE halachic topic surfaced on a daf, list the MAJOR dissenting positions among the rishonim, the Mechaber/Rema split, and any Acharonim-era reframing — but ONLY when the dispute is well-attested and materially affects practice.
+
+Output STRICT JSON only:
+
+{
+  "disputes": [
+    {
+      "axis": "ashkenaz-sefarad" | "rishonim" | "acharonim" | "modern" | "other",
+      "label": "Short phrase naming the dispute (e.g. 'Rambam vs Tosafot on shiurim', 'Sefardi vs Ashkenazi on saying Yaaleh Veyavo').",
+      "positions": [
+        { "voice": "Rambam" | "Tosafot" | "Mechaber" | "Rema" | "Mishna Berura" | "...named figure or group...", "position": "1-sentence summary of what this voice holds on THIS topic." }
+      ],
+      "settled": "Short sentence: where the dispute lands today, OR 'unsettled — both customs followed' when neither side dominates. Empty string if no clean resolution."
+    }
+  ]
+}
+
+Rules:
+- ZERO disputes is the COMMON case — most halachic topics have one settled answer. Return an empty disputes array when the topic is uncontroversial. DO NOT fabricate disputes to fill the field.
+- A dispute MUST have at least 2 positions and a real-world consequence for practice.
+- "voice" names a specific source, not a vague category — "Rambam" not "Sephardic rishonim", "Mishna Berura" not "Ashkenazi Acharonim".
+- "settled" is the bottom-line practical state. Use 'unsettled — both customs followed' when honest-to-God neither side dominates.
+- NO puff.
+
+${HEBREW_GLOSS_STYLE}`;
+
+const HALACHA_DISPUTES_OUTPUT_SCHEMA = {
+  name: 'halacha_disputes',
+  strict: true,
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['disputes'],
+    properties: {
+      disputes: {
+        type: 'array',
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['axis', 'label', 'positions', 'settled'],
+          properties: {
+            axis: { type: 'string', enum: ['ashkenaz-sefarad', 'rishonim', 'acharonim', 'modern', 'other'] },
+            label: { type: 'string' },
+            positions: {
+              type: 'array',
+              items: {
+                type: 'object',
+                additionalProperties: false,
+                required: ['voice', 'position'],
+                properties: { voice: { type: 'string' }, position: { type: 'string' } },
+              },
+            },
+            settled: { type: 'string' },
+          },
+        },
+      },
+    },
+  },
+};
+
+const HALACHA_SYNTHESIS_SYSTEM_PROMPT = `You are a scholar of halacha. Given ONE halachic topic surfaced on a daf plus the codification trail, practical application, and any major disputes, compose a tight paragraph that pulls them together.
+
+Output STRICT JSON only:
+
+{
+  "synthesis": "ONE paragraph, 4-5 sentences. (a) State the daf's halachic conclusion in one sentence. (b) Trace how it gets codified — name the codifier(s) and the canonical ref(s) (e.g. 'fixed by Rambam in Hilchot X, then by Shulchan Aruch in Orach Chayyim Y:Z'). (c) State the practical rule today in one sentence (lechatchila). (d) If a major dispute materially affects practice, name it in one sentence — otherwise omit. Hard ceiling: 5 sentences."
+}
+
+HARD RULES:
+- 4-5 sentences. Hard ceiling — do NOT pad.
+- About THIS topic only. Don't summarize the whole daf.
+- Ground every claim in the codification / practical / disputes inputs. Don't invent rulings or refs.
+- NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "intricate", "profound", "lens", "captures", "embodies".
+- NO jargon: write "transmitter" not "tradent", "interpret" not "exegete".
+- The user will read this paragraph FIRST. It should stand on its own without the user needing to expand the codification cards.
+
+${HEBREW_GLOSS_STYLE}`;
+
+const HALACHA_SYNTHESIS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+Halacha topic:
+{{mark_input}}
+
+Codification trail (Mishneh Torah / Tur / Shulchan Aruch / Rema):
+{{depends.halacha.codification}}
+
+Practical application (lechatchila / bedieved / when / exceptions):
+{{depends.halacha.practical}}
+
+Major disputes (empty array when uncontroversial):
+{{depends.halacha.disputes}}
+
+Hebrew/Aramaic source for the daf (for grounding only):
+{{gemara_he}}
+
+Produce the synthesis per the schema.`;
+
+const HALACHA_SYNTHESIS_OUTPUT_SCHEMA = {
+  name: 'halacha_synthesis',
+  strict: true,
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['synthesis'],
+    properties: { synthesis: { type: 'string' } },
+  },
+};
+
+CODE_ENRICHMENTS.push(
+  makeEnrichment(
+    'halacha', 'halacha.codification', 'Codification',
+    'Mishneh Torah / Tur / Shulchan Aruch / Rema rulings on this topic, with refs and a prose trail.',
+    HALACHA_CODIFICATION_SYSTEM_PROMPT, HALACHA_LEAF_USER_TEMPLATE, HALACHA_CODIFICATION_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content', scope: 'local',
+      dependencies: ['gemara'],
+      defHash: 'halacha.codification-v2', cacheVersion: '2',
+    },
+  ),
+  makeEnrichment(
+    'halacha', 'halacha.practical', 'Practical',
+    'Lechatchila/bedieved, when the halacha applies, common exceptions, modern practice prose.',
+    HALACHA_PRACTICAL_SYSTEM_PROMPT, HALACHA_LEAF_USER_TEMPLATE, HALACHA_PRACTICAL_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content', scope: 'local',
+      dependencies: ['gemara'],
+      defHash: 'halacha.practical-v2', cacheVersion: '2',
+    },
+  ),
+  makeEnrichment(
+    'halacha', 'halacha.disputes', 'Disputes',
+    'Major dissenting positions (Ashkenaz/Sefarad, rishonim, Acharonim) when materially affecting practice. Often empty.',
+    HALACHA_DISPUTES_SYSTEM_PROMPT, HALACHA_LEAF_USER_TEMPLATE, HALACHA_DISPUTES_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content', scope: 'local',
+      dependencies: ['gemara'],
+      defHash: 'halacha.disputes-v2', cacheVersion: '2',
+    },
+  ),
+  makeEnrichment(
+    'halacha', 'halacha.synthesis', 'Synthesis',
+    'One tight paragraph: daf conclusion → codification → practical rule → key dispute (if any).',
+    HALACHA_SYNTHESIS_SYSTEM_PROMPT, HALACHA_SYNTHESIS_USER_TEMPLATE, HALACHA_SYNTHESIS_OUTPUT_SCHEMA,
+    {
+      mode: 'aggregate', scope: 'local',
+      dependencies: [
+        'gemara',
+        { enrichment: 'halacha.codification' },
+        { enrichment: 'halacha.practical' },
+        { enrichment: 'halacha.disputes' },
+      ],
+      defHash: 'halacha.synthesis-v2', cacheVersion: '2',
     },
   ),
 );

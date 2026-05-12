@@ -21,6 +21,11 @@ import { createResource, createSignal, createEffect, untrack, For, Show, type JS
 import { Hebraized } from './Hebraized';
 import { devModeActive } from './DevModeShelf';
 import { trackAI } from './aiActivity';
+import InstanceInspectorShelf from './InstanceInspectorShelf';
+
+// Single global "which card has the inspector open?" signal — keyed by the
+// card's instanceKey. Only one drawer at a time across the whole page.
+const [openInspectorKey, setOpenInspectorKey] = createSignal<string | null>(null);
 
 interface EnrichmentDef {
   id: string;
@@ -42,9 +47,13 @@ interface RunResult {
   parse_error: string | null;
   model: string;
   total_ms: number;
-  usage?: { total_tokens?: number; cost?: number } | null;
+  usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number; cost?: number } | null;
+  transport?: string;
+  attempts?: number;
+  elapsed_ms?: number;
+  resolved?: { system_prompt: string; user_prompt: string };
   /** Aggregate-only: parsed output of each dep enrichment, keyed by dep id.
-   *  Lets the client surface leaves in the dev dropdown without a second
+   *  Lets the client surface leaves in the inspector without a second
    *  round-trip. */
   deps_resolved?: Record<string, unknown>;
   /** Aggregate-only: parsed output of each dep MARK (e.g. `{ mark: 'rabbi' }`
@@ -104,15 +113,31 @@ async function runEnrichmentImpl(
 
 // Wraps the actual run in `trackAI` so the AIActivityPanel sees the
 // loading→ok lifecycle and the dev-shelf log captures [ai] lines.
+//
+// The activity store keys by `id`, so two concurrent runs with the same id
+// collapse into one entry — the second overwrites the first's start time
+// and the user only sees one spinner. Use `instanceKey` (always unique per
+// mark+instance, e.g. "Chullin:11a:0:Source for rov") in the id so clicking
+// rapidly between halacha topics, or between halacha and rabbi, surfaces
+// every in-flight job separately in the panel.
 async function runEnrichment(
   enrichmentId: string,
   tractate: string,
   page: string,
   markInput: unknown,
+  instanceKey: string,
 ): Promise<RunResult> {
-  const inst = markInput as { fields?: { id?: string; name?: string; verseRef?: string } } | null;
-  const instanceTag = inst?.fields?.id ?? inst?.fields?.name ?? inst?.fields?.verseRef ?? '';
-  const id = `${enrichmentId}:${tractate}:${page}:${instanceTag}`;
+  const inst = markInput as
+    | { name?: string; fields?: { id?: string; name?: string; verseRef?: string; topic?: string } }
+    | null;
+  const instanceTag =
+    inst?.fields?.id
+    ?? inst?.fields?.name
+    ?? inst?.fields?.verseRef
+    ?? inst?.fields?.topic
+    ?? inst?.name
+    ?? '';
+  const id = `${enrichmentId}:${tractate}:${page}:${instanceKey}`;
   const label = instanceTag
     ? `${enrichmentId} · ${instanceTag} · ${tractate} ${page}`
     : `${enrichmentId} · ${tractate} ${page}`;
@@ -241,7 +266,7 @@ export default function MarkEnrichmentCards(props: Props) {
         if (cur && cur.kind !== 'idle' && cur.stamp === s) continue;
         setRun(d.id, { kind: 'loading', stamp: s });
         void enrichmentQueue.enqueue(() =>
-          runEnrichment(d.id, props.tractate, props.page, props.instance),
+          runEnrichment(d.id, props.tractate, props.page, props.instance, props.instanceKey),
         ).then(
           (result) => {
             // Drop the result if the user moved on (different daf or
@@ -387,91 +412,80 @@ export default function MarkEnrichmentCards(props: Props) {
     );
   };
 
-  // Badges container — one-line scrollable strip of pill-shaped chips
-  // showing what produced the current view.
-  const renderDepsTray = (): JSX.Element => (
-    <div style={{
-      display: 'flex', gap: '0.25rem',
-      'overflow-x': 'auto', 'overflow-y': 'hidden',
-      'white-space': 'nowrap',
-      'border-top': '1px solid #f0f0f0',
-      'margin-top': '0.6rem',
-      'padding-top': '0.5rem',
-    }}>
-      <span style={{ 'font-size': '0.65rem', color: '#aaa', 'flex-shrink': 0, 'padding-top': '2px' }}>built from</span>
-      <For each={currentDepBadges()}>{(depId) => (
-        <button
-          onClick={() => setSelectedDevView(depId === currentView()?.id ? null : depId)}
-          title={`View ${depId}`}
-          style={{
-            'flex-shrink': 0,
-            padding: '1px 8px', 'font-size': '0.7rem', cursor: 'pointer',
-            background: selectedDevView() === depId ? '#000' : '#f0f0f0',
-            color: selectedDevView() === depId ? '#fff' : '#444',
-            border: '1px solid #ddd', 'border-radius': '10px',
-            'font-family': 'inherit',
-          }}
-        >
-          {prettyDepLabel(depId, props.markId)}
-        </button>
-      )}</For>
-    </div>
-  );
+  // Human-friendly label for the instance (used in the inspector header).
+  const instanceLabel = (): string => {
+    const inst = props.instance as { name?: string; fields?: { title?: string; verseRef?: string; topic?: string; name?: string; id?: string } } | null;
+    return (
+      inst?.fields?.title
+      ?? inst?.fields?.verseRef
+      ?? inst?.fields?.topic
+      ?? inst?.fields?.name
+      ?? inst?.name
+      ?? inst?.fields?.id
+      ?? props.instanceKey
+    );
+  };
 
-  // ===== DEV MODE =====
-  // Dropdown + body + deps tray.
-  const renderDev = (): JSX.Element => (
-    <div>
-      <div style={{ 'font-size': '0.7rem', color: '#888', display: 'flex', 'align-items': 'center', gap: '0.4rem', 'margin-bottom': '0.5rem' }}>
-        <span>view:</span>
-        <select
-          value={selectedDevView() ?? ''}
-          onChange={(e) => setSelectedDevView(e.currentTarget.value || null)}
-          style={{ 'font-size': '0.75rem', padding: '1px 4px', 'font-family': 'inherit' }}
-        >
-          <Show when={aggregates().length > 0}>
-            <option value="">{`[${aggregates()[0]?.scope ?? 'local'}] synthesis`}</option>
-          </Show>
-          <For each={leaves()}>{(d) => (
-            <option value={d.id}>{`[${d.scope ?? 'global'}] ${prettyDepLabel(d.id, props.markId)}`}</option>
-          )}</For>
-        </select>
-        <Show when={currentRun().kind === 'ok'}>
-          <span style={{ color: '#bbb', 'font-size': '0.7rem', 'margin-left': 'auto' }}>
-            {(currentRun() as Extract<RunState, { kind: 'ok' }>).result.total_ms}ms
-          </span>
-        </Show>
-      </div>
+  const isInspectorOpen = () => openInspectorKey() === props.instanceKey;
+  const closeInspector = () => setOpenInspectorKey(null);
+  const openInspector = () => setOpenInspectorKey(props.instanceKey);
+
+  // Sidebar card: production view in all modes — clean synthesis output in
+  // a subtle container. The dev-mode 'i' affordance overlays the top-right
+  // and opens the InstanceInspectorShelf bottom drawer with leaf-walk
+  // controls, prompts, and telemetry.
+  return (
+    <>
       <div style={{
+        position: 'relative',
         background: '#fafafa',
         border: '1px solid #eee',
         'border-radius': '6px',
-        padding: '0.7rem 0.85rem',
+        padding: '0.85rem 1rem',
       }}>
         {renderBody()}
-        {renderDepsTray()}
+        <Show when={devModeActive()}>
+          <button
+            onClick={openInspector}
+            title="Inspect this synthesis"
+            aria-label="Inspect this synthesis"
+            style={{
+              position: 'absolute',
+              top: '0.35rem', right: '0.35rem',
+              width: '1.4rem', height: '1.4rem',
+              padding: 0,
+              cursor: 'pointer',
+              background: isInspectorOpen() ? '#000' : 'transparent',
+              color: isInspectorOpen() ? '#fff' : '#888',
+              border: '1px solid #ddd',
+              'border-radius': '50%',
+              'font-size': '0.7rem',
+              'font-family': 'ui-serif, Georgia, serif',
+              'font-style': 'italic',
+              'line-height': 1,
+            }}
+          >
+            i
+          </button>
+        </Show>
       </div>
-    </div>
-  );
-
-  // ===== PRODUCTION =====
-  // Just the synthesis output (or loading) in a subtle container — no
-  // dropdown, no header, no deps tray.
-  const renderProd = (): JSX.Element => (
-    <div style={{
-      background: '#fafafa',
-      border: '1px solid #eee',
-      'border-radius': '6px',
-      padding: '0.85rem 1rem',
-    }}>
-      {renderBody()}
-    </div>
-  );
-
-  return (
-    <Show when={devModeActive()} fallback={renderProd()}>
-      {renderDev()}
-    </Show>
+      <Show when={devModeActive() && isInspectorOpen()}>
+        <InstanceInspectorShelf
+          instanceLabel={instanceLabel()}
+          markId={props.markId}
+          aggregates={aggregates()}
+          leaves={leaves()}
+          selected={selectedDevView()}
+          onSelect={(id) => setSelectedDevView(id)}
+          currentView={currentView()}
+          currentRun={currentRun()}
+          depBadges={currentDepBadges()}
+          prettyDepLabel={(depId) => prettyDepLabel(depId, props.markId)}
+          renderBody={renderBody}
+          onClose={closeInspector}
+        />
+      </Show>
+    </>
   );
 }
 

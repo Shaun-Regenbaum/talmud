@@ -43,6 +43,7 @@ import {
 } from '../lib/rabbi/types';
 import { wrapEnv, gatewayStatus, gatewayActive } from './ai-gateway';
 import { runLLM, type LLMModelId } from './llm';
+import { lookupRelationships } from './rabbi-graph';
 import { readSettings, writeSettings, isLLMModelId, MODEL_PRESETS } from './settings';
 import {
   readMark, listMarks, writeMark, deleteMark, validateMark,
@@ -1274,64 +1275,93 @@ async function postProcessPesukim(
   type Pasuk = {
     startSegIdx: number;
     endSegIdx: number;
-    fields: { excerpt?: string; tokenStart?: number; tokenEnd?: number; [k: string]: unknown };
+    fields: { excerpt?: string; endExcerpt?: string; tokenStart?: number; tokenEnd?: number; [k: string]: unknown };
   };
   const instances = obj.instances as Pasuk[];
 
-  for (const inst of instances) {
-    if (!inst || typeof inst !== 'object') continue;
-    const f = inst.fields ?? ({} as Pasuk['fields']);
-    const ex = normalize(typeof f.excerpt === 'string' ? f.excerpt : '');
-    if (!ex) { inst.fields = f; continue; }
-    const exWords = ex.split(' ').filter(Boolean);
-    if (exWords.length === 0) { inst.fields = f; continue; }
+  // Locate a normalized needle in the segment grid. Returns the first
+  // word-aligned match within [fromSeg, toSeg]; falls back to substring
+  // match if word-alignment fails. matchLen is the needle's word count.
+  const findInRange = (needle: string[], fromSeg: number, toSeg: number): { seg: number; tok: number; matchLen: number } | null => {
+    if (needle.length < 2) return null;
+    const needleStr = needle.join(' ');
+    for (let i = fromSeg; i <= toSeg && i < segNorms.length; i++) {
+      if (!segNorms[i].includes(needleStr)) continue;
+      const words = segWords[i];
+      for (let w = 0; w + needle.length <= words.length; w++) {
+        let ok = true;
+        for (let k = 0; k < needle.length; k++) {
+          if (words[w + k] !== needle[k]) { ok = false; break; }
+        }
+        if (ok) return { seg: i, tok: w, matchLen: needle.length };
+      }
+      // String matched but not word-aligned — soft fallback.
+      return { seg: i, tok: 0, matchLen: needle.length };
+    }
+    return null;
+  };
 
-    // Try the full excerpt first, then 4/3/2-word prefixes. Search the
-    // whole daf since the LLM-emitted seg range may be wrong.
+  /** Multi-prefix search: full needle, then progressively shorter prefixes
+   *  (4, 3, 2 words). Useful when the LLM lightly paraphrases the cited
+   *  phrase but the opening 2-3 words still match the daf verbatim. */
+  const findExcerpt = (excerpt: string, fromSeg: number, toSeg: number): { seg: number; tok: number; matchLen: number } | null => {
+    const ex = normalize(excerpt);
+    if (!ex) return null;
+    const exWords = ex.split(' ').filter(Boolean);
+    if (exWords.length === 0) return null;
     const tries: string[][] = [exWords];
     if (exWords.length > 4) tries.push(exWords.slice(0, 4));
     if (exWords.length > 3) tries.push(exWords.slice(0, 3));
     if (exWords.length > 2) tries.push(exWords.slice(0, 2));
+    for (const needle of tries) {
+      const hit = findInRange(needle, fromSeg, toSeg);
+      if (hit) return hit;
+    }
+    return null;
+  };
 
-    let foundSeg = -1;
-    let foundTok = -1;
-    let foundLen = 0;
-    outer: for (const needle of tries) {
-      if (needle.length < 2) continue;
-      const needleStr = needle.join(' ');
-      for (let i = 0; i < segNorms.length; i++) {
-        if (!segNorms[i].includes(needleStr)) continue;
-        const words = segWords[i];
-        for (let w = 0; w + needle.length <= words.length; w++) {
-          let ok = true;
-          for (let k = 0; k < needle.length; k++) {
-            if (words[w + k] !== needle[k]) { ok = false; break; }
-          }
-          if (ok) {
-            foundSeg = i; foundTok = w; foundLen = needle.length;
-            break outer;
-          }
-        }
-        // Soft fallback: string matched but not word-aligned.
-        foundSeg = i; foundTok = 0; foundLen = needle.length;
-        break outer;
-      }
+  for (const inst of instances) {
+    if (!inst || typeof inst !== 'object') continue;
+    const f = inst.fields ?? ({} as Pasuk['fields']);
+    const startExcerpt = typeof f.excerpt === 'string' ? f.excerpt : '';
+    const endExcerpt = typeof f.endExcerpt === 'string' ? f.endExcerpt : '';
+
+    // Pass 1: locate the START via excerpt across the whole daf.
+    const startHit = findExcerpt(startExcerpt, 0, segNorms.length - 1);
+    if (!startHit) { inst.fields = f; continue; }
+    inst.startSegIdx = startHit.seg;
+    f.tokenStart = startHit.tok;
+
+    // Pass 2: locate the END via endExcerpt within [startSeg, llmEndSeg].
+    // When endExcerpt resolves cleanly, that's the authoritative tokenEnd.
+    // When it doesn't (missing field or no match), fall back to the
+    // legacy heuristic: end at startTok + startMatchLen - 1.
+    const llmEndSeg = typeof inst.endSegIdx === 'number' && inst.endSegIdx >= startHit.seg
+      ? inst.endSegIdx
+      : startHit.seg;
+    // Allow a little slack past the LLM's endSegIdx in case the LLM
+    // under-counted (citations can span an unexpected segment).
+    const upperSeg = Math.min(segNorms.length - 1, llmEndSeg + 1);
+    let endHit = endExcerpt ? findExcerpt(endExcerpt, startHit.seg, upperSeg) : null;
+    // Sanity: if endExcerpt resolved to a position BEFORE the start (LLM
+    // emitted inverted anchors), discard and fall back to legacy.
+    if (endHit) {
+      const beforeStart = endHit.seg < startHit.seg
+        || (endHit.seg === startHit.seg && endHit.tok < startHit.tok);
+      if (beforeStart) endHit = null;
     }
 
-    if (foundSeg >= 0) {
-      inst.startSegIdx = foundSeg;
-      // The pasuk is normally a phrase that fits inside one segment. End
-      // at the matched-prefix's last word — tokenEnd is inclusive.
-      f.tokenStart = foundTok;
-      f.tokenEnd = foundTok + foundLen - 1;
-      // Citations rarely cross seg boundaries; if the LLM said end > start,
-      // trust the LLM's endSegIdx but clamp tokenEnd to that segment's
-      // last word.
-      if (typeof inst.endSegIdx === 'number' && inst.endSegIdx > foundSeg) {
-        const lastSegWords = segWords[inst.endSegIdx]?.length ?? 0;
-        f.tokenEnd = Math.max(0, lastSegWords - 1);
-      } else {
-        inst.endSegIdx = foundSeg;
+    if (endHit) {
+      inst.endSegIdx = endHit.seg;
+      const wordsInEndSeg = segWords[endHit.seg]?.length ?? 0;
+      f.tokenEnd = Math.max(0, Math.min(endHit.tok + endHit.matchLen - 1, wordsInEndSeg - 1));
+    } else {
+      // Legacy fallback: span just the start excerpt's matched words.
+      inst.endSegIdx = startHit.seg;
+      f.tokenEnd = startHit.tok + startHit.matchLen - 1;
+      if (endExcerpt) {
+        // eslint-disable-next-line no-console
+        console.warn(`[pesukim] endExcerpt "${endExcerpt}" not found in [${startHit.seg},${upperSeg}]`);
       }
     }
     inst.fields = f;
@@ -1445,6 +1475,39 @@ async function runEnrichmentOnce(
   if (cacheKey && !bypassCache) {
     const hit = await readCachedResult(rc.env, cacheKey);
     if (hit) return { ...hit, cache_hit: true };
+  }
+
+  // Graph short-circuit for rabbi.relationships. Sefaria's rabbi graph
+  // (src/lib/data/rabbi-hierarchy.json) is the source of truth for who
+  // a rabbi's teachers/students/colleagues were — much more reliable than
+  // an LLM call, deterministic, free, and instant. We only fall through to
+  // the LLM when the graph misses (rabbi not found OR node has no edges).
+  if (def.id === 'rabbi.relationships') {
+    const inst = markInput as { name?: string; nameHe?: string; generation?: string } | null;
+    if (inst?.name) {
+      const hit = lookupRelationships(inst.name, inst.nameHe, inst.generation);
+      if (hit) {
+        const out: RunResultEnrichment = {
+          content: JSON.stringify(hit.data),
+          parsed: hit.data,
+          parse_error: null,
+          model: `graph:${hit.slug}`,
+          transport: 'graph',
+          attempts: 0,
+          usage: { input_tokens: 0, output_tokens: 0, total_tokens: 0 },
+          elapsed_ms: 0,
+          prompt_chars: 0,
+          resolved: {
+            system_prompt: `(graph lookup: ${hit.slug})`,
+            user_prompt: `(graph lookup for rabbi: ${inst.name})`,
+          },
+          cache_hit: false,
+        };
+        if (cacheKey) await writeCachedResult(rc.env, cacheKey, out);
+        return out;
+      }
+      // Miss — fall through to the LLM path with the disambiguation prompt.
+    }
   }
 
   const nextChain = new Set(parentChain);

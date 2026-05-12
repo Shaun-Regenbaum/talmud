@@ -3,7 +3,7 @@ import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
 import type { GenerationId } from './generations';
 
 export type MobileInteractionMode = 'select' | 'translate';
-export type MobileDrawerTab = 'commentary' | 'geography' | 'chain';
+export type MobileDrawerTab = 'commentary' | 'geography';
 
 interface MobileShelfProps {
   // Interaction mode controls
@@ -22,11 +22,9 @@ interface MobileShelfProps {
   // Each tab's rendered content.
   commentaryChildren: JSX.Element;
   geographyChildren: JSX.Element;
-  chainChildren: JSX.Element;
   // Which tabs are enabled (reflects the header toggles).
   commentaryEnabled: boolean;
   geographyEnabled: boolean;
-  chainEnabled: boolean;
 
   // ArgumentSidebar props
   tractate: string;
@@ -39,7 +37,7 @@ interface MobileShelfProps {
 
 // Fixed-bottom sheet on mobile. Toolbar has interaction-mode pills (Select /
 // Translate) and a row of drawer-tab buttons (Commentaries / Geography /
-// Chain). An active drawer tab or a non-null sidebar turns the toolbar into
+// Geography). An active drawer tab or a non-null sidebar turns the toolbar into
 // an expansion view showing the chosen content.
 export function MobileShelf(props: MobileShelfProps): JSX.Element {
   const inExpansion = () => props.sidebar !== null || props.drawerTab !== null;
@@ -78,7 +76,6 @@ function ToolbarView(props: MobileShelfProps): JSX.Element {
   const tabButtons: Array<{ id: MobileDrawerTab; label: string; enabled: boolean }> = [
     { id: 'commentary', label: 'Commentaries', enabled: props.commentaryEnabled },
     { id: 'geography', label: 'Geography', enabled: props.geographyEnabled },
-    { id: 'chain', label: 'Chain', enabled: props.chainEnabled },
   ];
   return (
     <div style={{ padding: '0.7rem 0.8rem', display: 'flex', 'flex-direction': 'column', gap: '0.5rem' }}>
@@ -133,7 +130,6 @@ function ExpansionView(props: MobileShelfProps): JSX.Element {
   const title = () => {
     if (props.drawerTab === 'commentary') return 'Commentaries';
     if (props.drawerTab === 'geography') return 'Geography';
-    if (props.drawerTab === 'chain') return 'Chain';
     return labelForSidebar(props.sidebar);
   };
   const close = () => {
@@ -171,7 +167,6 @@ function ExpansionView(props: MobileShelfProps): JSX.Element {
       <div style={{ flex: 1, 'min-height': 0, overflow: 'auto', padding: '0.5rem 0.75rem' }}>
         <Show when={props.drawerTab === 'commentary'}>{props.commentaryChildren}</Show>
         <Show when={props.drawerTab === 'geography'}>{props.geographyChildren}</Show>
-        <Show when={props.drawerTab === 'chain'}>{props.chainChildren}</Show>
         <Show when={props.drawerTab === null && props.sidebar !== null}>
           <ArgumentSidebar
             content={props.sidebar}

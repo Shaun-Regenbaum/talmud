@@ -61,13 +61,11 @@ export function finishActivity(id: string, label: string, ok: boolean, error?: s
 }
 
 /**
- * Log + activity wrapper around a fetch+poll cycle. Caller provides a
- * stable id (used for both store key and console-log tag) and a label.
- * Returns whatever the work function resolves to; rethrows on error after
- * marking the entry failed.
+ * Activity-store wrapper around a fetch+poll cycle. Caller provides a
+ * stable id and a label. Returns whatever the work function resolves to;
+ * rethrows on error after marking the entry failed.
  *
- * The "[ai]" prefix is what DevModeShelf's log capture matches to file
- * these lines under the `ai` tag in the dev console.
+ * The lifecycle is surfaced live by `AIActivityPanel` in the dev shelf.
  */
 export async function trackAI<T>(
   id: string,
@@ -75,22 +73,13 @@ export async function trackAI<T>(
   work: () => Promise<T>,
 ): Promise<T> {
   startActivity(id, label);
-  // eslint-disable-next-line no-console
-  console.debug(`[ai] running · ${label}`);
-  const t0 = performance.now();
   try {
     const result = await work();
-    const ms = Math.round(performance.now() - t0);
     finishActivity(id, label, true);
-    // eslint-disable-next-line no-console
-    console.debug(`[ai] done · ${label} · ${ms}ms`);
     return result;
   } catch (err) {
-    const ms = Math.round(performance.now() - t0);
     const msg = String((err as Error)?.message ?? err);
     finishActivity(id, label, false, msg);
-    // eslint-disable-next-line no-console
-    console.warn(`[ai] failed · ${label} · ${ms}ms · ${msg}`);
     throw err;
   }
 }
