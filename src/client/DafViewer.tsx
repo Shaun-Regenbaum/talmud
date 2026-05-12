@@ -1929,36 +1929,55 @@ export default function DafViewer(): JSX.Element {
     return true;
   };
 
-  // Esc also clears the anchor highlight — same key already closes
-  // sidebars elsewhere, so the behaviour reads consistently.
+  // Esc clears the anchor highlight — same key already closes sidebars
+  // elsewhere, so the behaviour reads consistently. AND any click that
+  // lands outside the daf surface (sidebar, top nav, page background)
+  // clears as well: once the user's focus has left the daf, the stale
+  // anchor highlight is just noise. Inside-daf clicks are handled by
+  // handleCommentaryAnchorClick via onMouseUpRoot — this document-level
+  // listener only fires when the surface handler didn't apply.
   if (typeof window !== 'undefined') {
     const onEsc = (ev: KeyboardEvent) => {
       if (ev.key === 'Escape' && commAnchorActive()) setCommAnchorActive(null);
     };
+    const onDocMouseUp = (ev: MouseEvent) => {
+      if (!commAnchorActive()) return;
+      const target = ev.target as HTMLElement | null;
+      // Inside the daf surface: handleCommentaryAnchorClick owns the
+      // clear-vs-swap decision. Document-level clear only applies when
+      // the click is genuinely outside.
+      if (target?.closest?.('.daf-surface')) return;
+      setCommAnchorActive(null);
+    };
     window.addEventListener('keydown', onEsc);
-    onCleanup(() => window.removeEventListener('keydown', onEsc));
+    document.addEventListener('mouseup', onDocMouseUp);
+    onCleanup(() => {
+      window.removeEventListener('keydown', onEsc);
+      document.removeEventListener('mouseup', onDocMouseUp);
+    });
   }
 
   // Paint effect: toggle .comm-anchor-active on .daf-comm-piece elements
-  // (the Rashi/Tosafot blocks). The main column's daf-words are NOT
-  // touched here — when the user clicks Rashi/Tosafot we draw a
-  // continuous range band over the matching daf segments using the
-  // existing applyHighlights range-overlay pipeline (see commAnchor
-  // bucket in applyHighlights below). Per-word pill backgrounds on the
-  // daf would look noisy alongside the rich Hebrew typesetting.
+  // (the Rashi/Tosafot blocks). ONLY runs when direction === 'from-main'
+  // — i.e., the user clicked a daf word and we're showing them which
+  // Rashi/Tosafot discusses that segment. For direction === 'from-piece',
+  // the user already clicked the piece (so highlighting it is redundant);
+  // only the daf range overlay paints. This keeps the highlight strictly
+  // one-sided per click: click daf → only commentary lights up; click
+  // commentary → only daf lights up.
   createEffect(() => {
     if (typeof document === 'undefined') return;
     const root = dafRootEl();
     if (!root) return;
     const dafRootDiv = root.querySelector<HTMLElement>('.daf-root') ?? root;
 
-    // Clear prior piece highlights.
+    // Clear prior piece highlights unconditionally.
     dafRootDiv.querySelectorAll('.daf-comm-piece.comm-anchor-active').forEach((el) =>
       el.classList.remove('comm-anchor-active'),
     );
 
     const active = commAnchorActive();
-    if (!active) return;
+    if (!active || active.direction !== 'from-main') return;
     for (const p of active.pieces) {
       dafRootDiv.querySelectorAll<HTMLElement>(
         `.daf-comm-piece[data-piece-idx="${p.idx}"][data-comm="${p.comm}"]`,
