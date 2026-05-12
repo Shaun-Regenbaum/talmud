@@ -18,6 +18,7 @@
  */
 
 import { createResource, createSignal, createEffect, untrack, For, Show, type JSX } from 'solid-js';
+import { Portal } from 'solid-js/web';
 import { Hebraized } from './Hebraized';
 import { devModeActive } from './DevModeShelf';
 import { trackAI } from './aiActivity';
@@ -493,20 +494,27 @@ export default function MarkEnrichmentCards(props: Props) {
         </Show>
       </div>
       <Show when={devModeActive() && isInspectorOpen()}>
-        <InstanceInspectorShelf
-          instanceLabel={instanceLabel()}
-          markId={props.markId}
-          aggregates={aggregates()}
-          leaves={leaves()}
-          selected={selectedDevView()}
-          onSelect={(id) => setSelectedDevView(id)}
-          currentView={currentView()}
-          currentRun={currentRun()}
-          depBadges={currentDepBadges()}
-          prettyDepLabel={(depId) => prettyDepLabel(depId, props.markId)}
-          renderBody={renderBody}
-          onClose={closeInspector}
-        />
+        {/* Portal to document.body so the drawer escapes whatever stacking
+            context the host card lives in (e.g. .daf-aside is position:
+            sticky, which clamps a nested fixed-positioned element's
+            z-index to the sticky's context — and DevModeShelf at z 900
+            otherwise wins over an in-context z 1000). */}
+        <Portal>
+          <InstanceInspectorShelf
+            instanceLabel={instanceLabel()}
+            markId={props.markId}
+            aggregates={aggregates()}
+            leaves={leaves()}
+            selected={selectedDevView()}
+            onSelect={(id) => setSelectedDevView(id)}
+            currentView={currentView()}
+            currentRun={currentRun()}
+            depBadges={currentDepBadges()}
+            prettyDepLabel={(depId) => prettyDepLabel(depId, props.markId)}
+            renderBody={renderBody}
+            onClose={closeInspector}
+          />
+        </Portal>
       </Show>
     </>
   );
