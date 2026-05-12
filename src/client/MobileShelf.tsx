@@ -3,28 +3,21 @@ import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
 import type { GenerationId } from './generations';
 
 export type MobileInteractionMode = 'select' | 'translate';
-export type MobileDrawerTab = 'commentary' | 'geography';
+
+// Legacy: the drawer used to have its own tabs (commentaries / geography).
+// Both moved to other surfaces — commentary became per-segment via the
+// rishonim gutter icon, geography is desktop-only via the Map pill. The
+// drawer now exclusively hosts the active ArgumentSidebar content.
+export type MobileDrawerTab = never;
 
 interface MobileShelfProps {
-  // Interaction mode controls
   mode: MobileInteractionMode;
   onModeChange: (m: MobileInteractionMode) => void;
 
-  // Gutter-icon driven expansion (argument / halacha / aggadata / rabbi).
+  // Gutter-icon driven expansion (argument / halacha / aggadata / pesuk /
+  // rabbi / rishonim).
   sidebar: SidebarContent | null;
   onCloseExpansion: () => void;
-
-  // Drawer tabs — at most one is active at a time. `null` means only the
-  // toolbar is showing. Tapping a toolbar button toggles its tab.
-  drawerTab: MobileDrawerTab | null;
-  onToggleDrawerTab: (t: MobileDrawerTab) => void;
-
-  // Each tab's rendered content.
-  commentaryChildren: JSX.Element;
-  geographyChildren: JSX.Element;
-  // Which tabs are enabled (reflects the header toggles).
-  commentaryEnabled: boolean;
-  geographyEnabled: boolean;
 
   // ArgumentSidebar props
   tractate: string;
@@ -35,13 +28,10 @@ interface MobileShelfProps {
   generationByName: Map<string, GenerationId>;
 }
 
-// Fixed-bottom sheet on mobile. Toolbar has interaction-mode pills (Select /
-// Translate) and a row of drawer-tab buttons (Commentaries / Geography /
-// Geography). An active drawer tab or a non-null sidebar turns the toolbar into
-// an expansion view showing the chosen content.
+// Fixed-bottom sheet on mobile. Toolbar shows interaction-mode pills
+// (Select / Translate); when a sidebar content is active, the toolbar
+// flips to an expansion view that renders the ArgumentSidebar inline.
 export function MobileShelf(props: MobileShelfProps): JSX.Element {
-  const inExpansion = () => props.sidebar !== null || props.drawerTab !== null;
-
   return (
     <div
       style={{
@@ -49,7 +39,7 @@ export function MobileShelf(props: MobileShelfProps): JSX.Element {
         left: 0,
         right: 0,
         bottom: 0,
-        'background': '#fff',
+        background: '#fff',
         'border-top': '1px solid #d6d3d1',
         'box-shadow': '0 -4px 12px rgba(0, 0, 0, 0.06)',
         'z-index': 100,
@@ -59,7 +49,7 @@ export function MobileShelf(props: MobileShelfProps): JSX.Element {
       }}
     >
       <Show
-        when={inExpansion()}
+        when={props.sidebar !== null}
         fallback={<ToolbarView {...props} />}
       >
         <ExpansionView {...props} />
@@ -72,10 +62,6 @@ function ToolbarView(props: MobileShelfProps): JSX.Element {
   const modeButtons: Array<{ id: MobileInteractionMode; label: string }> = [
     { id: 'select', label: 'Select' },
     { id: 'translate', label: 'Translate' },
-  ];
-  const tabButtons: Array<{ id: MobileDrawerTab; label: string; enabled: boolean }> = [
-    { id: 'commentary', label: 'Commentaries', enabled: props.commentaryEnabled },
-    { id: 'geography', label: 'Geography', enabled: props.geographyEnabled },
   ];
   return (
     <div style={{ padding: '0.7rem 0.8rem', display: 'flex', 'flex-direction': 'column', gap: '0.5rem' }}>
@@ -100,42 +86,11 @@ function ToolbarView(props: MobileShelfProps): JSX.Element {
           </button>
         ))}
       </div>
-      <div style={{ display: 'flex', gap: '0.4rem' }}>
-        {tabButtons.map((b) => (
-          <button
-            type="button"
-            onClick={() => props.onToggleDrawerTab(b.id)}
-            disabled={!b.enabled}
-            style={{
-              flex: 1,
-              padding: '0.5rem 0.3rem',
-              border: '1px solid #d6d3d1',
-              background: '#fff',
-              'border-radius': '6px',
-              cursor: b.enabled ? 'pointer' : 'not-allowed',
-              'font-family': 'inherit',
-              'font-size': '0.78rem',
-              color: b.enabled ? '#1a1a1a' : '#bbb',
-            }}
-          >
-            {b.label}
-          </button>
-        ))}
-      </div>
     </div>
   );
 }
 
 function ExpansionView(props: MobileShelfProps): JSX.Element {
-  const title = () => {
-    if (props.drawerTab === 'commentary') return 'Commentaries';
-    if (props.drawerTab === 'geography') return 'Geography';
-    return labelForSidebar(props.sidebar);
-  };
-  const close = () => {
-    if (props.drawerTab !== null) props.onToggleDrawerTab(props.drawerTab);
-    else props.onCloseExpansion();
-  };
   return (
     <div style={{ display: 'flex', 'flex-direction': 'column', height: '100%', 'min-height': 0 }}>
       <div style={{
@@ -146,11 +101,11 @@ function ExpansionView(props: MobileShelfProps): JSX.Element {
         'border-bottom': '1px solid #eee',
       }}>
         <span style={{ 'font-size': '0.8rem', color: '#666', 'text-transform': 'uppercase', 'letter-spacing': '0.05em' }}>
-          {title()}
+          {labelForSidebar(props.sidebar)}
         </span>
         <button
           type="button"
-          onClick={close}
+          onClick={props.onCloseExpansion}
           style={{
             border: 'none',
             background: 'transparent',
@@ -165,20 +120,16 @@ function ExpansionView(props: MobileShelfProps): JSX.Element {
         </button>
       </div>
       <div style={{ flex: 1, 'min-height': 0, overflow: 'auto', padding: '0.5rem 0.75rem' }}>
-        <Show when={props.drawerTab === 'commentary'}>{props.commentaryChildren}</Show>
-        <Show when={props.drawerTab === 'geography'}>{props.geographyChildren}</Show>
-        <Show when={props.drawerTab === null && props.sidebar !== null}>
-          <ArgumentSidebar
-            content={props.sidebar}
-            tractate={props.tractate}
-            page={props.page}
-            activeRabbi={props.activeRabbi}
-            onClose={props.onCloseExpansion}
-            onHighlightRabbi={props.onHighlightRabbi}
-            onOpenRabbiSlug={props.onOpenRabbiSlug}
-            generationByName={props.generationByName}
-          />
-        </Show>
+        <ArgumentSidebar
+          content={props.sidebar}
+          tractate={props.tractate}
+          page={props.page}
+          activeRabbi={props.activeRabbi}
+          onClose={props.onCloseExpansion}
+          onHighlightRabbi={props.onHighlightRabbi}
+          onOpenRabbiSlug={props.onOpenRabbiSlug}
+          generationByName={props.generationByName}
+        />
       </div>
     </div>
   );
@@ -192,5 +143,6 @@ function labelForSidebar(s: SidebarContent | null): string {
     case 'aggadata': return 'Aggadata';
     case 'pesuk': return 'Pasuk';
     case 'rabbi': return 'Rabbi';
+    case 'rishonim': return 'Rishonim';
   }
 }

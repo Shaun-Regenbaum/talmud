@@ -365,12 +365,35 @@ export default function MarkEnrichmentCards(props: Props) {
       const title = inst?.fields?.title;
       return title ? `Tracing the argument: ${title}…` : 'Tracing the argument…';
     }
+    if (props.markId === 'argument-move') {
+      const inst = props.instance as { fields?: { voice?: string } } | null;
+      const voice = inst?.fields?.voice;
+      return voice ? `Listening to ${voice}…` : 'Tracing the flow…';
+    }
+    if (props.markId === 'halacha') {
+      const inst = props.instance as { fields?: { title?: string; topic?: string } } | null;
+      const title = inst?.fields?.title ?? inst?.fields?.topic;
+      return title ? `Asking a Rav about ${title}…` : 'Asking the Rav…';
+    }
+    if (props.markId === 'aggadata') {
+      const inst = props.instance as { fields?: { title?: string } } | null;
+      const title = inst?.fields?.title;
+      return title ? `Pondering ${title}…` : 'Wondering…';
+    }
     if (props.markId === 'pesukim') {
       const inst = props.instance as { fields?: { verseRef?: string } } | null;
       const ref = inst?.fields?.verseRef;
       return ref ? `Reading ${ref} in context…` : 'Reading the verse in context…';
     }
-    return 'Generating…';
+    if (props.markId === 'places') {
+      const inst = props.instance as { fields?: { name?: string } } | null;
+      const name = inst?.fields?.name;
+      return name ? `Visiting ${name}…` : 'Travelling…';
+    }
+    if (props.markId === 'rishonim') {
+      return 'Listening to Rashi and Tosafot…';
+    }
+    return 'Learning…';
   };
 
   // Body renderer shared across dev / non-dev: loading state, error, or

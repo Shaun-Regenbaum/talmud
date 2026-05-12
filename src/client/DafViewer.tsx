@@ -12,20 +12,17 @@ import type {
 } from './shapes';
 import { injectRabbiUnderlines, type GenerationRabbi } from './injectRabbiUnderlines';
 import { injectSegmentMarkers } from './injectSegmentMarkers';
-import { injectTannaiticMarkers } from './injectTannaiticMarkers';
 import { injectHadran } from './injectHadran';
 import { ensureMasechetIncipit } from './ensureMasechetIncipit';
 import { injectAnchorMarkers, injectOpinionMarkers, injectAggadataAnchors, injectPesukimAnchors } from './anchorMarkers';
-import { GutterIcons } from './GutterIcons';
+import { GutterIcons, type GutterKind } from './GutterIcons';
+import { GutterOverlay } from './GutterOverlay';
 import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
-import { injectCityMarkers } from './injectCityMarkers';
-import { classifyDaf } from '../lib/era/heuristic';
-import type { DafEraContext } from '../lib/era/types';
 import { BugReport } from './BugReport';
 import { type CommentaryWork, type CommentaryComment } from './CommentaryPicker';
 import { CommentaryStrip } from './CommentaryStrip';
-import { GeographyStrip } from './GeographyStrip';
-import { MobileShelf, type MobileInteractionMode, type MobileDrawerTab } from './MobileShelf';
+// GeographyStrip removed pending rederivation — see TODO(geography-rederive).
+import { MobileShelf, type MobileInteractionMode } from './MobileShelf';
 import MarksRegistryPanel, { enabledMarkDefs, markRunsByMarkId, markStatuses } from './MarksRegistryPanel';
 import { buildSeedMarks } from './seed-marks';
 import { applyMarkRenderers } from './renderers/dispatch';
@@ -134,9 +131,8 @@ function paintRangeOverlay(
   overlay: HTMLElement,
   origin: HTMLElement,
   ranges: Range[],
-  kind: 'section' | 'halacha' | 'aggadata' | 'pesuk' | 'move' | 'commentary' | 'commentary-active' | 'era-tint' | 'era-hover',
-  /** Optional per-range inline background color (used by era-tint where every
-   *  segment carries its own generation color). */
+  kind: 'section' | 'halacha' | 'aggadata' | 'pesuk' | 'move' | 'commentary' | 'commentary-active',
+  /** Optional per-range inline background color. */
   bgFor?: (rangeIdx: number) => string | undefined,
 ): void {
   if (ranges.length === 0) return;
@@ -266,7 +262,6 @@ function collectSurroundingHebrew(els: HTMLElement[], windowSize = CONTEXT_WINDO
 import type { DafContext, IdentifiedRabbi } from './dafContext';
 
 const dafContextSessionCache = new Map<string, DafContext>();
-const eraContextSessionCache = new Map<string, { ctx: DafEraContext; stage: 1 | 2 }>();
 const analysisSessionCache = new Map<string, DafAnalysis>();
 const halachaSessionCache = new Map<string, HalachaResult>();
 const aggadataSessionCache = new Map<string, AggadataResult>();
@@ -274,13 +269,10 @@ const pesukimSessionCache = new Map<string, PesukimResult>();
 
 const GEN_KEY = 'daf.showGenMarkers';
 const COMMENTARIES_KEY = 'daf.toggle.commentaries';
-const GEOGRAPHY_KEY = 'daf.toggle.geography';
 const ARGUMENTS_KEY = 'daf.toggle.arguments';
 const HALACHOT_KEY = 'daf.toggle.halachot';
 const AGGADATOT_KEY = 'daf.toggle.aggadatot';
 const PESUKIM_KEY = 'daf.toggle.pesukim';
-const ERA_KEY = 'daf.toggle.era';
-const ERA_HIGHLIGHT_KEY = 'daf.toggle.eraHighlight';
 function loadToggle(key: string, def: boolean): boolean {
   if (typeof localStorage === 'undefined') return def;
   const v = localStorage.getItem(key);
@@ -345,14 +337,11 @@ export default function DafViewer(): JSX.Element {
   // their persisted state in localStorage.
   const [showGenMarkers, setShowGenMarkers] = createSignal(loadToggle(GEN_KEY, false));
   const [showCommentaries, setShowCommentaries] = createSignal(loadToggle(COMMENTARIES_KEY, false));
-  const [showGeography, setShowGeography] = createSignal(loadToggle(GEOGRAPHY_KEY, false));
   const [showArguments, setShowArguments] = createSignal(loadToggle(ARGUMENTS_KEY, false));
   const [showHalachot, setShowHalachot] = createSignal(loadToggle(HALACHOT_KEY, false));
   const [showAggadatot, setShowAggadatot] = createSignal(loadToggle(AGGADATOT_KEY, false));
   const [showPesukim, setShowPesukim] = createSignal(loadToggle(PESUKIM_KEY, false));
-  const [showEra, setShowEra] = createSignal(loadToggle(ERA_KEY, false));
-  const [showEraHighlight, setShowEraHighlight] = createSignal(loadToggle(ERA_HIGHLIGHT_KEY, false));
-  // Dev shelf — bottom drawer with marks toggles + captured console log.
+  // Dev shelf — bottom drawer with marks toggles + activity panels.
   const [devOpen, setDevOpen] = createSignal(readDevMode());
 
   // Adapter: derive analysis() from the new registry-driven `argument` mark
@@ -502,12 +491,20 @@ export default function DafViewer(): JSX.Element {
     if (showAggadatot() !== want('aggadata')) setShowAggadatot(want('aggadata'));
     if (showPesukim() !== want('pesukim')) setShowPesukim(want('pesukim'));
   });
-  // Era-context state: stage 1 (heuristic) lands instantly, stage 2 (LLM)
-  // upgrades silently via polling. Mirrors the dafContext pattern.
-  const [eraContext, setEraContext] = createSignal<DafEraContext | null>(null);
-  // Active era for hover-highlight: when the user mouses over a generation
-  // cell in the timeline, paint matching segments and dim the rest.
-  const [hoveredEra, setHoveredEra] = createSignal<GenerationId | null>(null);
+
+  // Cities matched on this daf, derived from the `places` mark's run output.
+  // Replaces the heuristic injectCityMarkers placeMatches set. Returns null
+  // when the mark hasn't yielded yet (so GeographyMap can show a loading state).
+  const placesMatchedFromMark = (): Set<string> => {
+    const run = markRunsByMarkId()['places'];
+    const out = new Set<string>();
+    if (!run?.parsed?.instances) return out;
+    for (const inst of run.parsed.instances) {
+      const name = String(inst.fields?.name ?? '').trim();
+      if (name) out.add(name);
+    }
+    return out;
+  };
 
   // Back-compat: underline injection + timeline take a GenerationRabbi[]; derive it.
   const generations = createMemo<GenerationRabbi[] | null>(() => {
@@ -516,23 +513,9 @@ export default function DafViewer(): JSX.Element {
     return ctx.rabbis.map((r) => ({ name: r.name, nameHe: r.nameHe, generation: r.generation }));
   });
 
-  // Back-compat view for the GeographyMap — same shape as the old rabbiPlaces
-  // signal but derived from dafContext so there's only one fetch.
-  const rabbiPlaces = createMemo(() => {
-    const ctx = dafContext();
-    if (!ctx) return null;
-    const m = new Map<string, { places: string[]; region: 'israel' | 'bavel' | null; canonical: string; bio?: string | null; wiki?: string | null; image?: string | null; generation?: string | null; moved?: 'bavel->israel' | 'israel->bavel' | 'both' | null }>();
-    for (const r of ctx.rabbis) {
-      m.set(r.name, {
-        places: r.places,
-        region: r.region,
-        canonical: r.name,
-        bio: r.bio, wiki: r.wiki, image: r.image, generation: r.generation,
-        moved: r.moved,
-      });
-    }
-    return m;
-  });
+  // TODO(geography-rederive): the rabbiPlaces memo previously fed
+  // GeographyMap from the legacy dafContext fetch. Removed pending a
+  // proper rebuild from per-rabbi `rabbi.geography` enrichment data.
 
   // Argument / halacha / aggadata / pesukim state — populated by the
   // registry-mark adapter effects from `markRunsByMarkId()`. Loading and
@@ -580,28 +563,11 @@ export default function DafViewer(): JSX.Element {
     typeof window !== 'undefined' && window.matchMedia?.('(max-width: 767px)').matches,
   );
   const [mobileMode, setMobileMode] = createSignal<MobileInteractionMode>('select');
-  // Which drawer tab is active (commentary / geography / chain). At most one
-  // of {sidebar, drawerTab} is set at a time — toggling a tab clears any
-  // open argument/halacha/aggadata sidebar, and vice versa.
-  const [mobileDrawerTab, setMobileDrawerTab] = createSignal<MobileDrawerTab | null>(null);
-  const toggleMobileDrawerTab = (t: MobileDrawerTab) => {
-    const current = mobileDrawerTab();
-    if (current === t) {
-      setMobileDrawerTab(null);
-      return;
-    }
-    setSidebar(null);
-    setActiveRabbi(null);
-    setMobileDrawerTab(t);
-  };
-  // Sidebar (gutter-icon driven) and drawer tab are mutually exclusive: if
-  // something opens the sidebar (argument / halacha / aggadata / rabbi),
-  // close any currently open drawer tab so the shelf shows the new content.
-  createEffect(() => {
-    if (sidebar() !== null && mobileDrawerTab() !== null) {
-      setMobileDrawerTab(null);
-    }
-  });
+  // The mobile drawer's drawer-tab system was retired alongside the
+  // GeographyStrip — there are no remaining tabs. Commentary moved to the
+  // per-segment inspector and geography is awaiting rederivation. The
+  // shelf now shows either the toolbar (no sidebar) or the ArgumentSidebar
+  // (when a gutter icon opens content).
   createEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
     const mq = window.matchMedia('(max-width: 767px)');
@@ -647,120 +613,7 @@ export default function DafViewer(): JSX.Element {
   });
   createEffect(() => {
     if (typeof localStorage === 'undefined') return;
-  });
-  createEffect(() => {
-    if (typeof localStorage === 'undefined') return;
-    localStorage.setItem(GEOGRAPHY_KEY, String(showGeography()));
-  });
-  createEffect(() => {
-    if (typeof localStorage === 'undefined') return;
     localStorage.setItem(ARGUMENTS_KEY, String(showArguments()));
-  });
-  createEffect(() => {
-    if (typeof localStorage === 'undefined') return;
-    localStorage.setItem(ERA_KEY, String(showEra()));
-  });
-  createEffect(() => {
-    if (typeof localStorage === 'undefined') return;
-    localStorage.setItem(ERA_HIGHLIGHT_KEY, String(showEraHighlight()));
-  });
-
-  // Era stratification — mirrors the /api/daf-context flow:
-  //   1. Try ?cached_only=1 first — instant cache lookup, no side effects.
-  //      Returns stage 2 if available, else stage 1 if available, else 404.
-  //   2. On 404, full fetch — runs heuristic, kicks off stage 2 in waitUntil.
-  //   3. If we ended up at stage 1, poll ?stage=2 every 3-30s until upgraded.
-  // Falls back to the local heuristic if the endpoint is unreachable.
-  createEffect(() => {
-    if (!showEra()) { setEraContext(null); return; }
-    const t = tractate();
-    const p = page();
-    const key = `${t}:${p}`;
-    const cached = eraContextSessionCache.get(key);
-    if (cached) {
-      setEraContext(cached.ctx);
-      // If session-cached at stage 2, nothing more to do.
-      if (cached.stage === 2) return;
-    }
-    const controller = new AbortController();
-    const url = (cachedOnly: boolean, stage2 = false) =>
-      `/api/era-context/${encodeURIComponent(t)}/${p}`
-      + (stage2 ? '?stage=2' : cachedOnly ? '?cached_only=1' : '');
-
-    const fallbackToLocal = () => {
-      const d = daf();
-      const segs = (d as unknown as { mainSegmentsHe?: string[] } | undefined)?.mainSegmentsHe ?? [];
-      if (segs.length === 0) return;
-      const ctx = classifyDaf(segs);
-      eraContextSessionCache.set(key, { ctx, stage: 1 });
-      if (t === tractate() && p === page()) setEraContext(ctx);
-    };
-
-    const pollStage2 = async () => {
-      const delays = [3000, 5000, 8000, 12000, 20000, 30000];
-      for (const d of delays) {
-        await new Promise((r) => setTimeout(r, d));
-        if (controller.signal.aborted) return;
-        if (t !== tractate() || p !== page()) return;
-        try {
-          const res = await fetch(url(false, true), { signal: controller.signal });
-          if (res.status === 204) continue;
-          if (!res.ok) continue;
-          const json = (await res.json()) as DafEraContext & { _stage?: number };
-          if (json._stage === 2) {
-            eraContextSessionCache.set(key, { ctx: json, stage: 2 });
-            setEraContext(json);
-            return;
-          }
-        } catch (err) {
-          if ((err as Error).name === 'AbortError') return;
-        }
-      }
-    };
-
-    const fetchOne = async (cachedOnly: boolean): Promise<{ ctx: DafEraContext; stage: 1 | 2 } | null> => {
-      const res = await fetch(url(cachedOnly), { signal: controller.signal });
-      if (res.status === 404) return null;
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = (await res.json()) as DafEraContext & { _stage?: number };
-      return { ctx: json, stage: (json._stage as 1 | 2) ?? 1 };
-    };
-
-    (async () => {
-      try {
-        // Cache-first: returns stage 2 instantly if it's already been computed.
-        const fromCache = await fetchOne(true);
-        if (t !== tractate() || p !== page()) return;
-        if (fromCache) {
-          eraContextSessionCache.set(key, fromCache);
-          setEraContext(fromCache.ctx);
-          if (fromCache.stage === 1) void pollStage2();
-          return;
-        }
-        // No cache yet — full fetch (runs heuristic, kicks off stage 2 in waitUntil).
-        const fresh = await fetchOne(false);
-        if (t !== tractate() || p !== page()) return;
-        if (fresh) {
-          eraContextSessionCache.set(key, fresh);
-          setEraContext(fresh.ctx);
-          if (fresh.stage === 1) void pollStage2();
-        }
-      } catch (err) {
-        if ((err as Error).name === 'AbortError') return;
-        fallbackToLocal();
-      }
-    })();
-
-    onCleanup(() => controller.abort());
-  });
-
-  const eraSegmentCounts = createMemo<Map<GenerationId, number> | null>(() => {
-    if (!showEra()) return null;
-    const ctx = eraContext();
-    if (!ctx) return null;
-    const m = new Map<GenerationId, number>();
-    for (const s of ctx.segments) m.set(s.era, (m.get(s.era) ?? 0) + 1);
-    return m;
   });
   createEffect(() => {
     if (typeof localStorage === 'undefined') return;
@@ -1299,45 +1152,6 @@ export default function DafViewer(): JSX.Element {
     paintRangeOverlay(overlay, dafRootDiv, pesukRanges, 'pesuk');
     paintRangeOverlay(overlay, dafRootDiv, moveRanges, 'move');
 
-    // Era stratification overlays — only meaningful when Era toggle is on.
-    if (showEra()) {
-      const ctx = eraContext();
-      const mainCol = dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
-      if (ctx && mainCol) {
-        // Always-on tint (per-segment background colored by era) when the
-        // Highlight Eras toggle is on.
-        if (showEraHighlight()) {
-          const tintRanges: Range[] = [];
-          const tintColors: string[] = [];
-          for (const s of ctx.segments) {
-            const r = rangeForSegment(mainCol, s.segIdx);
-            if (!r) continue;
-            const color = GENERATION_BY_ID[s.era]?.color ?? '#d1d5db';
-            tintRanges.push(r);
-            // Soft tint — leave ~80% transparency so text stays readable.
-            tintColors.push(color + '22');
-          }
-          paintRangeOverlay(overlay, dafRootDiv, tintRanges, 'era-tint', (i) => tintColors[i]);
-        }
-        // Hover-driven highlight: brighten matching segments via a stronger
-        // tint (overrides the soft tint when both are on).
-        const hov = hoveredEra();
-        if (hov !== null) {
-          const hoverRanges: Range[] = [];
-          const hoverColors: string[] = [];
-          for (const s of ctx.segments) {
-            if (s.era !== hov) continue;
-            const r = rangeForSegment(mainCol, s.segIdx);
-            if (!r) continue;
-            const color = GENERATION_BY_ID[s.era]?.color ?? '#fbbf24';
-            hoverRanges.push(r);
-            hoverColors.push(color + '55');
-          }
-          paintRangeOverlay(overlay, dafRootDiv, hoverRanges, 'era-hover', (i) => hoverColors[i]);
-        }
-      }
-    }
-
     // Per-rabbi name accent (yellow) — always applied on top of any tint.
     if (name) {
       const selector = `.rabbi-underline[data-rabbi="${name.replace(/"/g, '\\"')}"]`;
@@ -1379,8 +1193,6 @@ export default function DafViewer(): JSX.Element {
     void activeCommentarySegIdx();
     void activePlace();
     void argumentMoveHighlight();
-    // Era overlays need the same repaint path.
-    void showEra(); void showEraHighlight(); void eraContext(); void hoveredEra();
     // Defer one frame so layout is settled before we measure client rects.
     queueMicrotask(() => queueMicrotask(applyHighlights));
   });
@@ -1482,35 +1294,11 @@ export default function DafViewer(): JSX.Element {
       }
     }
 
-    // City markers for KNOWN_CITIES mentioned in the Hebrew. Wraps each
-    // occurrence in `.city-marker[data-city="X"]` so GeographyMap place-dot
-    // clicks can light them up. Union of matched sets across columns is
-    // returned so the map knows which gray place-dots to draw.
-    const placeMatches = new Set<string>();
-    if (showGeography()) {
-      const m1 = injectCityMarkers(main);
-      main = m1.html;
-      m1.matched.forEach((c) => placeMatches.add(c));
-      if (inner) {
-        const m2 = injectCityMarkers(inner);
-        inner = m2.html;
-        m2.matched.forEach((c) => placeMatches.add(c));
-      }
-      if (outer) {
-        const m3 = injectCityMarkers(outer);
-        outer = m3.html;
-        m3.matched.forEach((c) => placeMatches.add(c));
-      }
-    }
-
-    // Tannaitic quotation markers (דתנן/דתניא/דתני) use the same underline
-    // family as rabbi generations (dashed variant, Tanna-era blue). Gate on
-    // the same toggle so it's one conceptual feature.
-    if (showGenMarkers()) {
-      main = injectTannaiticMarkers(main);
-      if (inner) inner = injectTannaiticMarkers(inner);
-      if (outer) outer = injectTannaiticMarkers(outer);
-    }
+    // City-marker wraps + the per-daf places list now come from the
+    // `places` worker mark via applyMarkRenderers above. citiesInText
+    // (derived below) reads from the mark's run output rather than a
+    // heuristic match set.
+    const placeMatches = placesMatchedFromMark();
 
     const ctx = { tractate: tractate(), page: page() };
 
@@ -1630,7 +1418,7 @@ export default function DafViewer(): JSX.Element {
     setLastInteractedCard('argument');
   };
 
-  const onGutterClick = (kind: 'argument' | 'halacha' | 'aggadata' | 'pesuk', index: number) => {
+  const onGutterClick = (kind: GutterKind, index: number) => {
     // Toggle: clicking the already-active gutter icon closes the sidebar and
     // clears the span highlight.
     const current = sidebar();
@@ -1643,7 +1431,27 @@ export default function DafViewer(): JSX.Element {
     if (kind === 'argument') openArgument(index);
     else if (kind === 'halacha') openHalacha(index);
     else if (kind === 'aggadata') openStory(index);
-    else openPasuk(index);
+    else if (kind === 'pesuk') openPasuk(index);
+    else if (kind === 'rishonim') openRishonim(index);
+  };
+
+  // Open the per-segment rishonim sidebar. `index` is the segIdx; we look up
+  // the matching instance in the rishonim mark's run output, then push a
+  // 'rishonim' SidebarContent so the existing right-aside renders it.
+  const openRishonim = (segIdx: number) => {
+    const run = markRunsByMarkId()['rishonim'];
+    const inst = (run?.parsed?.instances as Array<{ segIdx: number; fields: unknown }> | undefined)
+      ?.find((i) => i.segIdx === segIdx);
+    if (!inst) return;
+    clearArgumentSidebar();
+    setActiveRabbi(null);
+    setActivePlace(null);
+    setSidebar({
+      kind: 'rishonim',
+      instance: inst as Extract<SidebarContent, { kind: 'rishonim' }>['instance'],
+      index: segIdx,
+    });
+    setLastInteractedCard('argument');
   };
 
   const sidebarActiveKey = createMemo(() => {
@@ -1707,6 +1515,10 @@ export default function DafViewer(): JSX.Element {
   // same side as the argument-section icons.
   const PESUK_X = ARG_X;
   const PESUK_EDGE_X = ARG_EDGE_X;
+  // Rishonim icons go on the right gutter, but inset further than halacha
+  // so they don't collide with halacha gavels when both are enabled.
+  const RISHONIM_X = `calc(${100 - SIDE_PCT}% - 22px)`;
+  const RISHONIM_EDGE_X = 'calc(100% + 22px)';
 
   const syncUrl = () => {
     const u = new URL(window.location.href);
@@ -1907,9 +1719,10 @@ export default function DafViewer(): JSX.Element {
     setActiveLocationRabbis([]);
     setActiveCommentarySegIdx(segIdx);
     setLastInteractedCard('commentary');
-    // On mobile the commentary card lives inside the drawer; opening a
-    // segment from a text tap must also pop the drawer.
-    if (isMobile()) setMobileDrawerTab('commentary');
+    // Legacy mobile commentary drawer tab was removed when the per-segment
+    // commentary mark + CommentaryInspectorShelf became the primary surface.
+    // This codepath is dormant — kept to avoid a wide rewrite while the
+    // legacy picker state is still in place.
   };
 
   // Wrapped picker-select: collapses any open segment so a new work doesn't
@@ -1984,6 +1797,20 @@ export default function DafViewer(): JSX.Element {
     if (rabbiEl) {
       const rabbiName = rabbiEl.getAttribute('data-rabbi');
       if (rabbiName) { openRabbi(rabbiName); return; }
+    }
+    // Click on a city marker → highlight every mention of that city across
+    // the daf. (Geography side panel was removed; the place-highlight
+    // behaviour stays so per-city tinting still works.)
+    const cityEl = target.closest('.city-marker') as HTMLElement | null;
+    if (cityEl) {
+      const cityName = cityEl.getAttribute('data-city');
+      if (cityName) {
+        setActiveRabbi(null);
+        setActiveLocation(null);
+        setActiveLocationRabbis([]);
+        setActivePlace(cityName);
+        return;
+      }
     }
     const wordEl = target.closest('.daf-word') as HTMLElement | null;
     if (!wordEl) return;
@@ -2074,7 +1901,7 @@ export default function DafViewer(): JSX.Element {
             opacity: yomiLoading() ? 0.7 : 1,
           }}
         >
-          {yomiLoading() ? 'Loading…' : "Today's Daf"}
+          {yomiLoading() ? 'Finding today’s daf…' : "Today's Daf"}
         </button>
 
         <span style={{ color: '#888', 'font-size': '0.85rem' }}>
@@ -2137,31 +1964,21 @@ export default function DafViewer(): JSX.Element {
 
       <div class="daf-layout">
       <div class="daf-cluster">
-      <Show when={showCommentaries() && !isMobile()}>
-        <aside class="daf-strip daf-strip-left">
-          <CommentaryStrip
-            works={commentaryWorks()}
-            loading={commentariesLoading()}
-            activeTitle={activeCommentaryWork()}
-            onSelect={selectCommentaryWork}
-            activeSegIdx={activeCommentarySegIdx()}
-            activeComments={activeCommentaryComments()}
-            tractate={tractate()}
-            page={page()}
-            onCloseSegment={() => {
-              setActiveCommentarySegIdx(null);
-              if (sidebar() === null) setLastInteractedCard(null);
-            }}
-          />
-        </aside>
-      </Show>
       <section class="daf-body-col">
+      {/* TODO(geography-rederive): the right-side Geography panel + its
+          "Map" pill were removed because their data source (legacy
+          /api/daf-context fetch returning rabbiPlaces) hangs or 1031s.
+          Rederive the panel from registry data — per-rabbi places live in
+          the `rabbi.geography` enrichment now, and the rabbi sidebar's
+          RabbiPlacesTimeline already renders them well. A whole-daf map
+          would aggregate those per-rabbi enrichments. Until then, the
+          top-bar toggle nav is empty and hidden. */}
       <div class="daf-surface" onMouseUp={onMouseUpRoot} style={{ display: 'flex', 'justify-content': 'center' }}>
         <Show
           when={!daf.loading && tokenized()}
           fallback={
             <p style={{ color: '#888', 'font-style': 'italic' }}>
-              {daf.error ? `Error: ${String(daf.error)}` : 'Loading…'}
+              {daf.error ? `Error: ${String(daf.error)}` : 'Opening the daf…'}
             </p>
           }
           keyed
@@ -2178,14 +1995,16 @@ export default function DafViewer(): JSX.Element {
                 amud={pageAmud()}
                 options={{ contentWidth: dafWidth(), mainWidth: 0.48 }}
               />
+              {/* Per-kind measurement instances — each publishes its anchor
+                  positions to the shared gutterStack. The single
+                  GutterOverlay below renders all clusters with collision-
+                  aware stacking + hover-expand. */}
               <Show when={showArguments()}>
                 <GutterIcons
                   containerRef={dafRootEl}
                   triggerKey={gutterKey()}
                   onClick={onGutterClick}
                   kind="argument"
-                  x={ARG_X}
-                  edgeX={ARG_EDGE_X}
                   activeKey={sidebarActiveKey()}
                 />
               </Show>
@@ -2195,8 +2014,6 @@ export default function DafViewer(): JSX.Element {
                   triggerKey={gutterKey()}
                   onClick={onGutterClick}
                   kind="halacha"
-                  x={HALACHA_X}
-                  edgeX={HALACHA_EDGE_X}
                   activeKey={sidebarActiveKey()}
                 />
               </Show>
@@ -2206,8 +2023,6 @@ export default function DafViewer(): JSX.Element {
                   triggerKey={gutterKey()}
                   onClick={onGutterClick}
                   kind="aggadata"
-                  x={AGG_X}
-                  edgeX={AGG_EDGE_X}
                   activeKey={sidebarActiveKey()}
                 />
               </Show>
@@ -2217,11 +2032,19 @@ export default function DafViewer(): JSX.Element {
                   triggerKey={gutterKey()}
                   onClick={onGutterClick}
                   kind="pesuk"
-                  x={PESUK_X}
-                  edgeX={PESUK_EDGE_X}
                   activeKey={sidebarActiveKey()}
                 />
               </Show>
+              <Show when={enabledMarkDefs().some((m) => m.id === 'rishonim')}>
+                <GutterIcons
+                  containerRef={dafRootEl}
+                  triggerKey={gutterKey()}
+                  onClick={onGutterClick}
+                  kind="rishonim"
+                  activeKey={sidebarActiveKey()}
+                />
+              </Show>
+              <GutterOverlay />
             </div>
           )}
         </Show>
@@ -2273,36 +2096,11 @@ export default function DafViewer(): JSX.Element {
         </a>
       </footer>
       </section>
-
-      <Show when={showGeography() && !isMobile()}>
-        <aside class="daf-strip daf-strip-right">
-          <GeographyStrip
-            onHighlightLocation={onHighlightLocation}
-            activeLocation={activeLocation()}
-            tractate={tractate()}
-            page={page()}
-            rabbiPlaces={rabbiPlaces()}
-            loading={genLoading()}
-            generationByName={generationByName()}
-            onHighlightSingleRabbi={openRabbi}
-            onHoverRabbi={setHoveredRabbi}
-            placesInText={citiesInText()}
-            onHighlightPlace={(name) => {
-              setActiveRabbi(null);
-              setActiveLocation(null);
-              setActiveLocationRabbis([]);
-              setActivePlace(name);
-            }}
-            activePlace={activePlace()}
-          />
-        </aside>
-      </Show>
       </div>
 
-      {/* Only render the right-side aside when a sidebar card is actually
-          open. Reserving 420px unconditionally pushes the daf cluster
-          left of the page center (the cluster's `margin: 0 auto`
-          centers in `viewport − aside`, not the full viewport). */}
+      {/* Right-side aside — currently only ArgumentSidebar mounts here.
+          GeographyStrip was removed pending rederivation from registry
+          data; see the TODO(geography-rederive) note above. */}
       <Show when={!isMobile() && sidebar() !== null}>
         <aside
           class="daf-aside"
@@ -2319,22 +2117,24 @@ export default function DafViewer(): JSX.Element {
             overflow: 'auto',
           }}
         >
-          <ArgumentSidebar
-            content={sidebar()}
-            tractate={tractate()}
-            page={page()}
-            activeRabbi={activeRabbi()}
-            onClose={() => {
-              setSidebar(null);
-              setActiveRabbi(null);
-              setArgumentMoveHighlight(null);
-              if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
-            }}
-            onHighlightRabbi={(name) => (name ? openRabbi(name) : setActiveRabbi(null))}
-            onHighlightRange={setArgumentMoveHighlight}
-            onOpenRabbiSlug={openRabbiSlug}
-            generationByName={generationByName()}
-          />
+          <Show when={sidebar() !== null}>
+            <ArgumentSidebar
+              content={sidebar()}
+              tractate={tractate()}
+              page={page()}
+              activeRabbi={activeRabbi()}
+              onClose={() => {
+                setSidebar(null);
+                setActiveRabbi(null);
+                setArgumentMoveHighlight(null);
+                if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
+              }}
+              onHighlightRabbi={(name) => (name ? openRabbi(name) : setActiveRabbi(null))}
+              onHighlightRange={setArgumentMoveHighlight}
+              onOpenRabbiSlug={openRabbiSlug}
+              generationByName={generationByName()}
+            />
+          </Show>
         </aside>
       </Show>
       </div>
@@ -2349,47 +2149,6 @@ export default function DafViewer(): JSX.Element {
             setActiveRabbi(null);
             if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
           }}
-          drawerTab={mobileDrawerTab()}
-          onToggleDrawerTab={toggleMobileDrawerTab}
-          commentaryEnabled={showCommentaries()}
-          geographyEnabled={showGeography()}
-          commentaryChildren={
-            <CommentaryStrip
-              works={commentaryWorks()}
-              loading={commentariesLoading()}
-              activeTitle={activeCommentaryWork()}
-              onSelect={selectCommentaryWork}
-              activeSegIdx={activeCommentarySegIdx()}
-              activeComments={activeCommentaryComments()}
-              tractate={tractate()}
-              page={page()}
-              onCloseSegment={() => {
-                setActiveCommentarySegIdx(null);
-                if (sidebar() === null) setLastInteractedCard(null);
-              }}
-            />
-          }
-          geographyChildren={
-            <GeographyStrip
-              onHighlightLocation={onHighlightLocation}
-              activeLocation={activeLocation()}
-              tractate={tractate()}
-              page={page()}
-              rabbiPlaces={rabbiPlaces()}
-              loading={genLoading()}
-              generationByName={generationByName()}
-              onHighlightSingleRabbi={openRabbi}
-              onHoverRabbi={setHoveredRabbi}
-              placesInText={citiesInText()}
-              onHighlightPlace={(name) => {
-                setActiveRabbi(null);
-                setActiveLocation(null);
-                setActiveLocationRabbis([]);
-                setActivePlace(name);
-              }}
-              activePlace={activePlace()}
-            />
-          }
           tractate={tractate()}
           page={page()}
           activeRabbi={activeRabbi()}
@@ -2404,22 +2163,14 @@ export default function DafViewer(): JSX.Element {
           page={page()}
           seedMarks={buildSeedMarks({
             showGenMarkers, setShowGenMarkers,
-            showCommentaries, setShowCommentaries,
-            showGeography, setShowGeography,
             showArguments, setShowArguments,
             showHalachot, setShowHalachot,
             showAggadatot, setShowAggadatot,
             showPesukim, setShowPesukim,
-            showEra, setShowEra,
           })}
         />
-        <Show when={showEra()}>
-          <label style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem', 'margin-top': '0.5rem', 'font-size': '0.8rem', color: '#666' }}>
-            <input type="checkbox" checked={showEraHighlight()} onChange={(e) => setShowEraHighlight(e.currentTarget.checked)} />
-            highlight eras (era render-config)
-          </label>
-        </Show>
       </DevModeShelf>
+
     </main>
   );
 }

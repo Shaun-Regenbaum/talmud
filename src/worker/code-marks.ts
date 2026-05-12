@@ -1703,6 +1703,7 @@ CODE_MARKS.push({
   label: 'Argument moves',
   description: 'Sub-anchors within each argument section: one instance per question / answer / objection / etc. Drives the per-move sidebar pills.',
   category: 'canon',
+  parent_mark: 'argument',
   anchor: 'segment-range',
   // Inline render with no visible style by default — moves don't paint on
   // the daf unless the user toggles the mark on. ArgumentSidebar drives
@@ -1847,6 +1848,277 @@ CODE_ENRICHMENTS.push(
         { mark: 'rabbi' },
       ],
       defHash: 'argument-move.synthesis-v4', cacheVersion: '4',
+      model: ARGUMENT_FLASH_MODEL,
+    },
+  ),
+);
+
+// ---------------------------------------------------------------------------
+// places mark + its synthesis enrichment
+//
+// LLM extractor that identifies geographic references in the daf — cities,
+// academies, lands, regions — and emits one instance per verbatim Hebrew
+// mention. Replaces the legacy heuristic injectCityMarkers wrapping. The
+// renderer dispatcher (renderers/dispatch.ts) wraps each excerpt as a
+// `.city-marker[data-city=<name>]` span so GeographyMap's click-to-highlight
+// keeps working.
+//
+// Per-instance synthesis runs locally (per daf) — "what was this place
+// known for, who taught there, how does it show up on this daf."
+// ---------------------------------------------------------------------------
+
+const PLACES_KIND_ENUM = ['city', 'academy', 'land', 'region'] as const;
+const PLACES_REGION_ENUM = ['israel', 'bavel', 'other'] as const;
+
+const PLACES_SYSTEM_PROMPT = `You are a Talmud geographer. Given a daf of Talmud, identify every geographic reference — cities (Sura, Pumbedita, Tiberias, Sepphoris, Caesarea, Babylonia/Bavel, the Land of Israel/Eretz Yisrael, etc.), academies/yeshivot, broader lands, and regions.
+
+Output STRICT JSON only:
+
+{
+  "instances": [
+    {
+      "excerpt": "EXACT Hebrew word(s) as they appear in the source (e.g. 'סורא', 'בפומבדיתא', 'ארץ ישראל', 'בבל'). Preserve the Hebrew prefix if attached ('בסורא' = 'in Sura' — copy the whole token).",
+      "fields": {
+        "name": "Canonical English name (e.g. 'Sura', 'Pumbedita', 'Tiberias', 'Caesarea', 'Eretz Yisrael', 'Bavel'). Use the most common scholarly spelling.",
+        "nameHe": "Canonical Hebrew name (e.g. 'סורא', 'פומבדיתא', 'טבריה') — STRIPPED of grammatical prefixes (no ב/מ/ל/כ/ש/ו at the start, no nikkud).",
+        "kind": "city | academy | land | region",
+        "region": "israel | bavel | other — historical Talmudic geography. 'israel' = Eretz Yisrael (Tiberias, Sepphoris, Caesarea, Lod, etc.). 'bavel' = Babylonian centers (Sura, Pumbedita, Nehardea, Mata Mehasya). 'other' for everything else (Rome, Egypt, Yavneh-era diaspora, etc.).",
+        "knownAs": ["Optional alternate spellings or names (e.g. 'Tiberias' could include 'Tveria'). Empty array if none."]
+      }
+    }
+  ]
+}
+
+Rules:
+- excerpt MUST be copied VERBATIM from the Hebrew source. Preserve attached prefixes — "בסורא" stays as-is in excerpt; nameHe strips the prefix to "סורא".
+- If the same place appears multiple times in the daf under different forms (e.g. "סורא" and "בסורא"), emit ONE instance per distinct excerpt. The downstream renderer wraps each verbatim occurrence.
+- Do NOT include personal names that happen to look like place names. Only emit confirmed geographic references.
+- Do NOT include generic location words like "place" (מקום) or "city" (עיר) unless they're a proper noun reference.
+- "kind": pick the SINGLE best tag. A yeshiva-bearing city like Sura is 'city' (not 'academy'), unless the daf is specifically referencing the academy/court ('בי דינא דסורא' = academy). When in doubt, 'city'.
+- No duplicates with identical excerpt.`;
+
+const PLACES_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+Hebrew/Aramaic source (copy excerpts VERBATIM from here):
+{{hebrew}}
+
+English translation (for context only):
+{{english}}
+
+Identify every geographic reference. Return JSON per the schema.`;
+
+const PLACES_OUTPUT_SCHEMA = {
+  name: 'places_marks',
+  strict: true,
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['instances'],
+    properties: {
+      instances: {
+        type: 'array',
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['excerpt', 'fields'],
+          properties: {
+            excerpt: { type: 'string' },
+            fields: {
+              type: 'object',
+              additionalProperties: false,
+              required: ['name', 'nameHe', 'kind', 'region', 'knownAs'],
+              properties: {
+                name: { type: 'string' },
+                nameHe: { type: 'string' },
+                kind: { type: 'string', enum: PLACES_KIND_ENUM },
+                region: { type: 'string', enum: PLACES_REGION_ENUM },
+                knownAs: { type: 'array', items: { type: 'string' } },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+CODE_MARKS.push({
+  id: 'places',
+  label: 'Places',
+  description: 'Geographic references on the daf (cities, academies, lands). Drives inline city-marker wraps and the per-place synthesis card.',
+  category: 'canon',
+  anchor: 'phrase',
+  // The render dispatch keys off `def.id === 'places'` to wrap matched
+  // names as `.city-marker[data-city]` spans, so style/color here are only
+  // schema-required hints — the actual CSS comes from the city-marker class.
+  render: {
+    kind: 'inline',
+    style: 'highlight',
+    color: 'var(--city-color, #c2410c)',
+    hoverable: true,
+  },
+  extractor: {
+    kind: 'llm',
+    model: ARGUMENT_FLASH_MODEL,
+    system_prompt: PLACES_SYSTEM_PROMPT,
+    user_prompt_template: PLACES_USER_TEMPLATE,
+    output_schema: PLACES_OUTPUT_SCHEMA,
+    thinking_off: true,
+  },
+  dependencies: ['gemara'],
+  status: 'promoted',
+  def_hash: 'places-v1',
+  cache_version: '1',
+  source: 'code',
+  updated_at: NOW,
+});
+
+const PLACES_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud geographer. Given ONE geographic reference identified on a daf and the surrounding gemara, compose a tight paragraph about THIS specific place IN THE CONTEXT OF THIS DAF.
+
+Output STRICT JSON only:
+
+{
+  "synthesis": "ONE paragraph, 2-3 sentences. (a) State what this place is (a city in Bavel, a Tannaitic academy in Yavneh, the Land of Israel as a halachic category, etc.). (b) Name its significance at the time of the relevant generation (who taught there, what it produced, why the gemara invokes it). (c) Tie back to how the daf USES this place — is it a setting, a halachic distinction (Israel vs. Bavel), a story locale, an authority center? Keep it tight."
+}
+
+HARD RULES:
+- 2-3 sentences. Hard ceiling.
+- Ground every claim in actual history — no invented anecdotes. If uncertain, hedge ("traditionally associated with…", "by the time of the late amoraim…").
+- NO puff: avoid "this teaches us", "underscores", "highlights", "intricate", "profound".
+- Hebrew in parentheses for technical terms (ישיבה, מתיבתא) — never transliteration.
+- If the place is generic (e.g. "ארץ ישראל" used as a halachic category, not a setting), focus on its halachic/legal force on this daf rather than geographic detail.`;
+
+const PLACES_SYNTHESIS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+THIS place reference:
+{{mark_input}}
+
+Hebrew/Aramaic source for the daf:
+{{gemara_he}}
+
+English translation:
+{{gemara_en}}
+
+Rabbis identified on the daf (for context on who's teaching where):
+{{anchors.rabbi}}
+
+Compose ONE tight paragraph about THIS place per the schema.`;
+
+const PLACES_SYNTHESIS_OUTPUT_SCHEMA = {
+  name: 'places_synthesis',
+  strict: true,
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['synthesis'],
+    properties: { synthesis: { type: 'string' } },
+  },
+};
+
+CODE_ENRICHMENTS.push(
+  makeEnrichment(
+    'places', 'places.synthesis', 'Synthesis',
+    'Tight per-place paragraph: what it is, why it matters at the time of this daf, how the gemara uses it.',
+    PLACES_SYNTHESIS_SYSTEM_PROMPT, PLACES_SYNTHESIS_USER_TEMPLATE, PLACES_SYNTHESIS_OUTPUT_SCHEMA,
+    {
+      mode: 'aggregate', scope: 'local',
+      dependencies: ['gemara', { mark: 'places' }, { mark: 'rabbi' }],
+      defHash: 'places.synthesis-v1', cacheVersion: '1',
+      model: ARGUMENT_FLASH_MODEL,
+    },
+  ),
+);
+
+// ---------------------------------------------------------------------------
+// rishonim mark + its synthesis enrichment
+//
+// Computed extractor (no LLM): pulls per-segment commentary from the existing
+// Sefaria links fetch in the worker, filtered to a hardcoded rishonim
+// allowlist (Rashi / Tosafot family / Ramban / Rashba / Ritva / Ran / Rosh /
+// Meiri / R. Chananel / R. Yonah / Yad Ramah / Or Zarua). One mark instance
+// per segment that has at least one rishon, with the per-rishon text
+// payloads attached for downstream synthesis.
+//
+// Renders as a per-segment gutter icon (left margin) — NOT inline — so dense
+// commentary doesn't clutter the daf body. Click opens the
+// RishonimInspectorShelf which fires `rishonim.synthesis` for that segment.
+// ---------------------------------------------------------------------------
+
+CODE_MARKS.push({
+  id: 'rishonim',
+  label: 'Rishonim',
+  description: 'Per-segment rishonim indicator (Rashi, Tosafot, Ramban, …). Gutter icon next to each commented segment; click for the per-segment synthesis.',
+  category: 'canon',
+  anchor: 'segment',
+  render: {
+    kind: 'gutter+sidebar',
+    icon: 'R',
+    sidebar_title: 'Rishonim',
+  },
+  extractor: {
+    kind: 'computed',
+    fn: 'rishonim-from-sefaria',
+  },
+  dependencies: [],
+  status: 'promoted',
+  def_hash: 'rishonim-v1',
+  cache_version: '1',
+  source: 'code',
+  updated_at: NOW,
+});
+
+const RISHONIM_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud scholar. Given ONE segment of gemara and the rishonim who commented on THIS segment (Rashi, Tosafot, Ramban, Rashba, Meiri, Ritva, Ran, etc.), compose a tight English paragraph that weaves their voices into a single reading.
+
+Output STRICT JSON only:
+
+{
+  "synthesis": "ONE paragraph, 2-3 sentences. (a) State what the segment is saying in plain English (one short clause). (b) Weave in the most load-bearing rishonim — what does Rashi clarify? Where do Tosafot push back or open a question? If a notable rishon (Ramban, Meiri, Rashba) sharpens the point, mention them in one short clause. (c) When the rishonim disagree, name the disagreement concretely. Do NOT enumerate every commentary; pick the 1-3 that actually move the reading."
+}
+
+HARD RULES (output is rejected if violated):
+- 2-3 sentences. Hard ceiling — do NOT pad.
+- About THIS segment only. Don't drift into the section's broader argument.
+- Reference rishonim by name in English (Rashi, Tosafot, Ramban, Meiri, Rashba, Ritva, Ran, …).
+- Ground every claim in the supplied commentary text — do NOT invent positions a rishon didn't take.
+- NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "intricate", "profound", "lens", "captures", "embodies".
+- NO jargon: write "transmitter" not "tradent", "interpret" not "exegete".
+- Hebrew script (not transliteration) for technical terms in parentheses; verbatim short Aramaic phrases only when distinctive.
+- If a rishon is silent or trivially restates the segment, skip them.
+- If only ONE commentary exists, just summarize their reading in 1-2 sentences — don't pad.`;
+
+const RISHONIM_SYNTHESIS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+THIS segment (with its rishonim):
+{{mark_input}}
+
+Hebrew/Aramaic source for the surrounding daf:
+{{gemara_he}}
+
+English translation:
+{{gemara_en}}
+
+Compose ONE tight paragraph weaving the rishonim's reading of THIS segment per the schema.`;
+
+const RISHONIM_SYNTHESIS_OUTPUT_SCHEMA = {
+  name: 'rishonim_synthesis',
+  strict: true,
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['synthesis'],
+    properties: { synthesis: { type: 'string' } },
+  },
+};
+
+CODE_ENRICHMENTS.push(
+  makeEnrichment(
+    'rishonim', 'rishonim.synthesis', 'Synthesis',
+    'Tight per-segment paragraph weaving Rashi + Tosafot + named rishonim into a single reading.',
+    RISHONIM_SYNTHESIS_SYSTEM_PROMPT, RISHONIM_SYNTHESIS_USER_TEMPLATE, RISHONIM_SYNTHESIS_OUTPUT_SCHEMA,
+    {
+      mode: 'aggregate', scope: 'local',
+      dependencies: ['gemara', { mark: 'rishonim' }],
+      defHash: 'rishonim.synthesis-v2', cacheVersion: '2',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),

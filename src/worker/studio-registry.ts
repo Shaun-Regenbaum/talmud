@@ -44,6 +44,8 @@ export interface MarkDefinition {
   fields_schema?: unknown;
   /** Declared inputs (gemara/commentaries/other marks). See studio-schema.ts. */
   dependencies?: MarkDependency[];
+  /** UI-only nesting hint — see MarkDefinition.parent_mark in studio-schema.ts. */
+  parent_mark?: string;
   /** Bump to invalidate cached extractions for this mark. */
   cache_version: string;
   source: 'kv' | 'code';

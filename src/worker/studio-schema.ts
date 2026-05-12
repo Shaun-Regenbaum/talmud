@@ -339,6 +339,12 @@ export interface MarkDefinition {
    *  current behavior of buildDafContext. Future secondary anchors declare
    *  other marks (e.g. an Israel/Bavel map = [{mark:'rabbi'},{mark:'place'}]). */
   dependencies?: MarkDependency[];
+  /** UI-only nesting hint. When set, the dev panel groups this mark as a
+   *  child of `parent_mark` in the toggle list. Architecturally the mark is
+   *  still independent (own anchor, own cache, own extractor) — this just
+   *  collapses the visual hierarchy. Example: argument-move sets
+   *  parent_mark='argument'. */
+  parent_mark?: string;
 
   status: MarkStatus;
   /** Derived from sha256(extractor + render). Bumped automatically on save.

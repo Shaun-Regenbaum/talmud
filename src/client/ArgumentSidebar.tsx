@@ -10,12 +10,30 @@ import { type GeographyData, type GeographyEvidence } from './RabbiGeographyCard
 import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeline';
 import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
 
+export interface RishonComment {
+  work: string;
+  workHe: string;
+  textHe: string;
+  textEn: string;
+  sourceRef: string;
+}
+
+export interface RishonimInstance {
+  segIdx: number;
+  fields: {
+    works: string[];
+    commentCount: number;
+    comments: RishonComment[];
+  };
+}
+
 export type SidebarContent =
   | { kind: 'argument'; section: Section; index: number }
   | { kind: 'halacha'; topic: HalachaTopic; index: number }
   | { kind: 'aggadata'; story: AggadataStory; index: number }
   | { kind: 'pesuk'; pasuk: Pasuk; index: number }
-  | { kind: 'rabbi'; rabbi: IdentifiedRabbi };
+  | { kind: 'rabbi'; rabbi: IdentifiedRabbi }
+  | { kind: 'rishonim'; instance: RishonimInstance; index: number };
 
 export interface ArgumentSidebarProps {
   content: SidebarContent | null;
@@ -933,7 +951,7 @@ function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JS
         {detail()?.heRef ?? props.pasuk.verseRef}
       </h3>
       <Show when={detail.loading && !detail()}>
-        <p style={{ color: '#999', 'font-style': 'italic', margin: '0 0 0.5rem' }}>Loading verse…</p>
+        <p style={{ color: '#999', 'font-style': 'italic', margin: '0 0 0.5rem' }}>Leining the parsha…</p>
       </Show>
       {/* Hybrid font stack — Mekorot Vilna preserved as the primary face for
           letters + nikud (the Talmud aesthetic), with Tanakh-capable serifs
@@ -990,6 +1008,71 @@ function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JS
   );
 }
 
+// ---------------------------------------------------------------------------
+// Rishonim — per-segment commentary digest panel.
+// ---------------------------------------------------------------------------
+//
+// Mounted in the right sidebar when a rishonim gutter icon is clicked.
+// MarkEnrichmentCards handles the LLM synthesis (rishonim.synthesis) and
+// the leaf walk; below it we render the primary-source Hebrew + English
+// per rishon as collapsible details so the user can drop into Rashi /
+// Tosafot / Ramban / etc. directly.
+function RishonimBody(props: { instance: RishonimInstance; tractate: string; page: string }): JSX.Element {
+  const inst = () => props.instance;
+  return (
+    <div>
+      <h3 style={{ margin: '0 0 0.5rem', 'font-size': '1.05rem', color: '#475569' }}>
+        Rishonim on segment {inst().segIdx + 1}
+        <span style={{ 'margin-left': '0.5rem', color: '#94a3b8', 'font-size': '0.78rem', 'font-weight': 400 }}>
+          {inst().fields.commentCount} comment{inst().fields.commentCount === 1 ? '' : 's'} · {inst().fields.works.length} work{inst().fields.works.length === 1 ? '' : 's'}
+        </span>
+      </h3>
+
+      <MarkEnrichmentCards
+        markId="rishonim"
+        instance={inst()}
+        instanceKey={`rishonim:${props.tractate}:${props.page}:${inst().segIdx}`}
+        tractate={props.tractate}
+        page={props.page}
+      />
+
+      <div style={{ 'margin-top': '0.8rem' }}>
+        <div style={{
+          'font-size': '0.65rem', color: '#94a3b8',
+          'text-transform': 'uppercase', 'letter-spacing': '0.06em',
+          'margin-bottom': '0.3rem',
+        }}>
+          Primary sources
+        </div>
+        <For each={inst().fields.comments}>{(c) => (
+          <details style={{
+            'margin-bottom': '0.5rem',
+            'border-bottom': '1px solid #f1f5f9',
+            'padding-bottom': '0.45rem',
+          }}>
+            <summary style={{ cursor: 'pointer', 'font-weight': 500, color: '#1f2937' }}>
+              {c.work}
+              <Show when={c.workHe}>
+                <span style={{ 'margin-left': '0.4rem', color: '#94a3b8', 'font-size': '0.78rem', 'font-family': '"Mekorot Vilna", serif' }} dir="rtl" lang="he">{c.workHe}</span>
+              </Show>
+              <span style={{ 'margin-left': '0.4rem', color: '#cbd5e1', 'font-size': '0.7rem', 'font-family': 'ui-monospace, Menlo, monospace' }}>{c.sourceRef}</span>
+            </summary>
+            <Show when={c.textHe}>
+              <p dir="rtl" lang="he" style={{
+                margin: '0.4rem 0 0', 'font-family': '"Mekorot Vilna", serif',
+                'font-size': '1rem', 'line-height': 1.65, color: '#222',
+              }}>{c.textHe}</p>
+            </Show>
+            <Show when={c.textEn}>
+              <p style={{ margin: '0.4rem 0 0', 'font-size': '0.86rem', 'line-height': 1.55, color: '#475569' }}>{c.textEn}</p>
+            </Show>
+          </details>
+        )}</For>
+      </div>
+    </div>
+  );
+}
+
 export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
   const onKey = (e: KeyboardEvent) => {
     if (e.key === 'Escape') props.onClose();
@@ -1025,6 +1108,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                   : c().kind === 'halacha' ? 'Practical Halacha'
                   : c().kind === 'aggadata' ? 'Aggada'
                   : c().kind === 'pesuk' ? 'Pasuk'
+                  : c().kind === 'rishonim' ? 'Rishonim'
                   : 'Rabbi'}
                 {' · '}
                 {props.tractate} {props.page}
@@ -1073,6 +1157,14 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
             <Show when={c().kind === 'pesuk'}>
               <PasukPanel
                 pasuk={(c() as Extract<SidebarContent, { kind: 'pesuk' }>).pasuk}
+                tractate={props.tractate}
+                page={props.page}
+              />
+            </Show>
+
+            <Show when={c().kind === 'rishonim'}>
+              <RishonimBody
+                instance={(c() as Extract<SidebarContent, { kind: 'rishonim' }>).instance}
                 tractate={props.tractate}
                 page={props.page}
               />

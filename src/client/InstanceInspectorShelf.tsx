@@ -199,7 +199,7 @@ export default function InstanceInspectorShelf(props: Props) {
         <Show when={tab() === 'prompts'}>
           <Show when={result()?.resolved} fallback={
             <div style={{ color: '#999', 'font-style': 'italic' }}>
-              {props.currentRun.kind === 'loading' ? 'running…' : 'no run output yet (or this leaf is served from a cached parent — re-run via the marks panel to capture prompts)'}
+              {props.currentRun.kind === 'loading' ? 'Thinking…' : 'no run output yet (or this leaf is served from a cached parent — re-run via the marks panel to capture prompts)'}
             </div>
           }>{(resolved) => (
             <>

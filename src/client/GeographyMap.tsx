@@ -1,3 +1,29 @@
+/**
+ * TODO(geography-rederive) — UNMOUNTED COMPONENT, kept for reference.
+ *
+ * This component is not currently rendered anywhere in the app. Its data
+ * source (the legacy `/api/daf-context` fetch that produced `rabbiPlaces`)
+ * was a slow + frequently 1031-failing LLM call. While the fetch is still
+ * running silently in DafViewer to feed `generationByName` and the rabbi
+ * lookup, the GeographyStrip + GeographyMap surfaces were removed because
+ * they sat on the loading spinner indefinitely whenever the upstream LLM
+ * hiccuped.
+ *
+ * Plan for re-introducing a whole-daf geography view:
+ *   1. Aggregate per-rabbi places from the `rabbi.geography` enrichment
+ *      already produced by the registry (see RabbiPlacesTimeline for the
+ *      shape — birthplace + study places + notable places + movements).
+ *   2. Aggregate place mentions on the daf itself from the `places` mark
+ *      (drives the inline .city-marker wraps).
+ *   3. Merge into the `RabbiPlaceEnrichment` shape this file expects, OR
+ *      rewrite the consumer to take the new shape directly.
+ *   4. Reintroduce the 'geography' seed-mark in seed-marks.ts and the
+ *      GeographyStrip render in DafViewer.tsx's right aside +
+ *      MobileShelf.
+ *
+ * Until then: this file lives but is not imported anywhere.
+ */
+
 import { createMemo, createSignal, For, Show, type JSX } from 'solid-js';
 import { ISRAEL_SHAPE, BAVEL_SHAPE } from './geoShapes';
 import { GENERATION_BY_ID, type GenerationId } from './generations';
@@ -359,7 +385,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
               border: '2px solid #d6d3d1', 'border-top-color': '#92400e',
               animation: 'daf-spin 0.8s linear infinite',
             }} />
-            {props.loading ? 'Mapping rabbi geography…' : 'Loading…'}
+            Mapping rabbi geography…
           </p>
         }
       >

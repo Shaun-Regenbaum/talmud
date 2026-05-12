@@ -26,9 +26,7 @@ import {
 import { runYomiWarmCron } from './yomi-cron';
 import { GENERATION_IDS, GENERATION_BY_ID, GENERATIONS_PROMPT_REFERENCE, type GenerationId } from '../client/generations';
 import rabbiPlacesData from '../lib/data/rabbi-places.json';
-import { classifyDaf } from '../lib/era/heuristic';
 import { extractTalmudContent } from '../lib/sefref/alignment';
-import type { SegmentEra, DafEraContext, EraSignalSource } from '../lib/era/types';
 import {
   RABBI_ENRICH_SYSTEM_PROMPT,
   buildRabbiEnrichUserMessage,
@@ -152,7 +150,7 @@ function cleanVerseText(s: string): string {
 }
 
 // Minimal support utilities used by the kept routes (daf-context, region,
-// mesorah, era-* and the offline rabbi data-build pipeline). The legacy
+// mesorah, and the offline rabbi data-build pipeline). The legacy
 // enrichment routes that originally introduced these have been removed.
 // These are intentionally compact — they're support glue, not architecture.
 
@@ -790,6 +788,63 @@ async function writeCachedResult(env: Bindings, key: string, result: RunResult):
   await env.CACHE.put(key, JSON.stringify(result), { expirationTtl: 90 * 24 * 3600 });
 }
 
+/** Computed-mark function signature. Receives env + (tractate, page) and
+ *  returns the parsed mark output. Used for marks whose data comes from a
+ *  deterministic source (e.g. Sefaria) rather than an LLM. */
+type ComputedMarkFn = (env: Bindings, tractate: string, page: string) => Promise<{ instances: unknown[] }>;
+
+/** Hardcore rishonim allowlist for the `rishonim` mark. Sefaria's
+ *  `category: 'Commentary'` sweeps in acharonim + modern works too — we
+ *  filter down to the established Bavli rishonim. Match is on Sefaria's
+ *  `collectiveTitle.en`. Add titles here as gaps surface. */
+const RISHONIM_TITLES = new Set<string>([
+  'Rashi',
+  'Tosafot',
+  'Tosafot Yeshanim',
+  'Tosafot Rid',
+  'Tosafot HaRosh',
+  'Rabbeinu Chananel',
+  'Ramban',
+  'Rashba',
+  'Ritva',
+  'Ran',
+  'Rosh',
+  'Meiri',
+  'Rabbeinu Yonah',
+  'Yad Ramah',
+  'Or Zarua',
+]);
+
+const COMPUTED_FNS: Record<string, ComputedMarkFn> = {
+  'rishonim-from-sefaria': async (env, tractate, page) => {
+    const result = await fetchCommentaryWorks(env, tractate, page);
+    if ('error' in result) throw new Error(result.error);
+    // Regroup by segment, filtering to the rishonim allowlist. Each instance
+    // = one commented segment with the per-rishon comment payloads attached
+    // for downstream synthesis.
+    const bySeg = new Map<number, Array<{ work: string; workHe: string; textHe: string; textEn: string; sourceRef: string }>>();
+    for (const work of result.works) {
+      if (!RISHONIM_TITLES.has(work.title)) continue;
+      for (const c of work.comments) {
+        const list = bySeg.get(c.anchorSegIdx) ?? [];
+        list.push({ work: work.title, workHe: work.titleHe, textHe: c.textHe, textEn: c.textEn, sourceRef: c.sourceRef });
+        bySeg.set(c.anchorSegIdx, list);
+      }
+    }
+    const instances = [...bySeg.entries()]
+      .sort(([a], [b]) => a - b)
+      .map(([segIdx, comments]) => ({
+        segIdx,
+        fields: {
+          works: [...new Set(comments.map((c) => c.work))],
+          commentCount: comments.length,
+          comments,
+        },
+      }));
+    return { instances };
+  },
+};
+
 async function runMarkOnce(
   rc: RunCtx,
   def: SchemaMarkDefinition,
@@ -797,6 +852,41 @@ async function runMarkOnce(
   page: string,
   bypassCache: boolean,
 ): Promise<RunResult> {
+  // Computed extractors — deterministic, no LLM. Same cache shape as LLM
+  // results so the rest of the pipeline (caching, dependency resolution,
+  // dev panel run-state) is uniform.
+  if (def.extractor.kind === 'computed') {
+    const fn = COMPUTED_FNS[def.extractor.fn];
+    if (!fn) throw new Error(`mark ${def.id}: no computed fn '${def.extractor.fn}' registered`);
+    const cacheKey = keyForMark(def, tractate, page);
+    if (!bypassCache) {
+      const hit = await readCachedResult(rc.env, cacheKey);
+      if (hit) return { ...hit, cache_hit: true };
+    }
+    const t0 = Date.now();
+    const parsed = await fn(rc.env, tractate, page);
+    const elapsed_ms = Date.now() - t0;
+    const content = JSON.stringify(parsed);
+    const out: RunResult = {
+      content,
+      parsed,
+      parse_error: null,
+      model: `computed:${def.extractor.fn}`,
+      transport: 'computed',
+      attempts: 1,
+      usage: null,
+      elapsed_ms,
+      prompt_chars: 0,
+      resolved: {
+        system_prompt: `(computed fn: ${def.extractor.fn})`,
+        user_prompt: `(no LLM call — deterministic extraction from upstream data source)`,
+      },
+      cache_hit: false,
+    };
+    await writeCachedResult(rc.env, cacheKey, out);
+    return out;
+  }
+
   if (def.extractor.kind !== 'llm') {
     throw new Error(`mark ${def.id} extractor.kind=${def.extractor.kind} not supported`);
   }
@@ -2031,75 +2121,91 @@ function parseAnchorSegment(anchorRef: string): number {
 // anchor to, and clicking a segment also highlights the gloss in the inner
 // or outer column. So no work titles are filtered here.)
 
+/** Shared fetch — returns the grouped commentary works for a daf. Cached.
+ *  Used by both /api/commentaries (legacy endpoint) and the `commentary`
+ *  mark's computed extractor. */
+export async function fetchCommentaryWorks(
+  env: Bindings,
+  tractate: string,
+  page: string,
+  bypassCache = false,
+): Promise<{ works: CommentaryWork[]; tractate: string; page: string; fetchedAt: string } | { error: string }> {
+  const cache = env.CACHE;
+  const cacheKey = `commentaries:v1:${tractate}:${page}`;
+  if (cache && !bypassCache) {
+    const hit = await cache.get(cacheKey);
+    if (hit !== null) {
+      try { return JSON.parse(hit) as { works: CommentaryWork[]; tractate: string; page: string; fetchedAt: string }; }
+      catch { /* fall through to refetch */ }
+    }
+  }
+  const ref = `${tractate} ${page}`;
+  const url = `https://www.sefaria.org/api/links/${encodeURIComponent(ref)}?with_text=1`;
+  let res: Response;
+  try {
+    res = await fetch(url, { headers: { accept: 'application/json' } });
+  } catch (err) {
+    return { error: String(err) };
+  }
+  if (!res.ok) return { error: `Sefaria ${res.status}` };
+
+  const raw = (await res.json()) as Array<{
+    ref?: string;
+    sourceRef?: string;
+    anchorRef?: string;
+    category?: string;
+    collectiveTitle?: { en?: string; he?: string };
+    index_title?: string;
+    he?: string | string[];
+    text?: string | string[];
+  }>;
+
+  const joinText = (x: string | string[] | undefined): string => {
+    if (!x) return '';
+    if (Array.isArray(x)) return x.map((t) => String(t ?? '')).join(' ').trim();
+    return String(x).trim();
+  };
+
+  const byWork = new Map<string, CommentaryWork>();
+  for (const l of raw) {
+    if (l.category !== 'Commentary') continue;
+    const title = l.collectiveTitle?.en ?? l.index_title ?? 'Unknown';
+    const titleHe = l.collectiveTitle?.he ?? '';
+    const anchorRef = l.anchorRef ?? '';
+    const anchorSegIdx = parseAnchorSegment(anchorRef);
+    if (anchorSegIdx < 0) continue;
+    const comment: CommentaryComment = {
+      anchorRef,
+      anchorSegIdx,
+      sourceRef: l.sourceRef ?? l.ref ?? '',
+      textHe: joinText(l.he),
+      textEn: joinText(l.text),
+    };
+    let work = byWork.get(title);
+    if (!work) {
+      work = { title, titleHe, count: 0, comments: [] };
+      byWork.set(title, work);
+    }
+    work.comments.push(comment);
+    work.count++;
+  }
+  // Sort works by count desc so popular ones (Meiri, Ramban, Rashba…) lead.
+  const works = Array.from(byWork.values()).sort((a, b) => b.count - a.count);
+
+  const payload = { works, tractate, page, fetchedAt: new Date().toISOString() };
+  if (cache) {
+    await cache.put(cacheKey, JSON.stringify(payload), { expirationTtl: 60 * 60 * 24 * 30 });
+  }
+  return payload;
+}
+
 app.get('/api/commentaries/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
-  const cache = c.env.CACHE;
-  const cacheKey = `commentaries:v1:${tractate}:${page}`;
-
-  if (cache && c.req.query('refresh') !== '1') {
-    const hit = await cache.get(cacheKey);
-    if (hit !== null) return c.json({ ...(JSON.parse(hit) as object), _cached: true });
-  }
-
-  const ref = `${tractate} ${page}`;
-  const url = `https://www.sefaria.org/api/links/${encodeURIComponent(ref)}?with_text=1`;
-  try {
-    const res = await fetch(url, { headers: { accept: 'application/json' } });
-    if (!res.ok) return c.json({ error: `Sefaria ${res.status}` }, 502);
-    const raw = (await res.json()) as Array<{
-      ref?: string;
-      sourceRef?: string;
-      anchorRef?: string;
-      category?: string;
-      collectiveTitle?: { en?: string; he?: string };
-      index_title?: string;
-      he?: string | string[];
-      text?: string | string[];
-    }>;
-
-    const joinText = (x: string | string[] | undefined): string => {
-      if (!x) return '';
-      if (Array.isArray(x)) return x.map((t) => String(t ?? '')).join(' ').trim();
-      return String(x).trim();
-    };
-
-    const byWork = new Map<string, CommentaryWork>();
-    for (const l of raw) {
-      if (l.category !== 'Commentary') continue;
-      const title = l.collectiveTitle?.en ?? l.index_title ?? 'Unknown';
-      const titleHe = l.collectiveTitle?.he ?? '';
-      const anchorRef = l.anchorRef ?? '';
-      const anchorSegIdx = parseAnchorSegment(anchorRef);
-      if (anchorSegIdx < 0) continue;
-      const comment: CommentaryComment = {
-        anchorRef,
-        anchorSegIdx,
-        sourceRef: l.sourceRef ?? l.ref ?? '',
-        textHe: joinText(l.he),
-        textEn: joinText(l.text),
-      };
-      let work = byWork.get(title);
-      if (!work) {
-        work = { title, titleHe, count: 0, comments: [] };
-        byWork.set(title, work);
-      }
-      work.comments.push(comment);
-      work.count++;
-    }
-
-    // Sort works by count desc so popular ones (Meiri, Ramban, Rashba...)
-    // land first in the UI picker.
-    const works = Array.from(byWork.values()).sort((a, b) => b.count - a.count);
-
-    const payload = { works, tractate, page, fetchedAt: new Date().toISOString() };
-    if (cache) {
-      await cache.put(cacheKey, JSON.stringify(payload), { expirationTtl: 60 * 60 * 24 * 30 });
-    }
-    return c.json({ ...payload, _cached: false });
-  } catch (err) {
-    return c.json({ error: String(err) }, 502);
-  }
+  const bypassCache = c.req.query('refresh') === '1';
+  const result = await fetchCommentaryWorks(c.env, tractate, page, bypassCache);
+  if ('error' in result) return c.json(result, 502);
+  return c.json({ ...result, _cached: !bypassCache });
 });
 
 // --- Commentary translation ----------------------------------------------
@@ -5047,505 +5153,6 @@ app.post('/api/admin/translate-bio', async (c) => {
     return c.json({ error: String(err).slice(0, 300) }, 502);
   }
 });
-
-// ---------------------------------------------------------------------------
-// Era stratification (experiment): per-segment era classification via Kimi K2.6.
-// Counterpart to the heuristic in src/lib/era/heuristic.ts. Used by the
-// #experiment client page to compare LLM picks against heuristic picks before
-// the feature graduates to the main daf view. Cache key is bumped (era-llm:v1)
-// independently from daf-context so the experiment endpoint can iterate freely.
-// ---------------------------------------------------------------------------
-
-const ERA_LLM_JSON_SCHEMA = {
-  name: 'era_picks',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['picks'],
-    properties: {
-      picks: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['idx', 'era', 'why'],
-          properties: {
-            idx: { type: 'integer' },
-            era: { type: 'string', enum: GENERATION_IDS },
-            why: { type: 'string' },
-          },
-        },
-      },
-    },
-  },
-};
-
-const ERA_LLM_SYSTEM_PROMPT = `You are a Talmud philologist. For each numbered segment, output the most-likely historical period (a generation ID) when that segment's content was authored or transmitted.
-
-Use these signals (in order):
-1. Named speaker/attribution — if a known sage is the speaker, the era is that sage's generation. This includes: stories ABOUT a named sage (the events depicted are that sage's era, even when narrated in stam Aramaic).
-2. Structural markers — מתני׳/מתניתין → tanna-5; דתניא/תנו רבנן/תניא → tanna-4 (anonymous baraita); דתנן → tanna-5 (cited mishna). BEWARE: bare תנא or דתני followed by interrogatives (היכא, קאי, פתח, אקרא, דקתני) is STAM REFERRING TO THE MISHNA'S TANNA, not a baraita citation — classify as amora-bavel-8.
-3. Language register — Mishnaic Hebrew → tannaitic; Babylonian Aramaic dialectical voice (איתמר, מאי טעמא, איבעיא להו, מתקיף, פשיטא, קמ"ל) → late amora-bavel/Stam (amora-bavel-8); Galilean Aramaic → amora-ey-*.
-4. Anonymous redactional voice (Stam) → amora-bavel-8.
-5. Quoted scripture is not the segment's own voice — judge by the surrounding voice.
-
-ZUGIM: stories or sayings about Hillel, Shammai, Beit Hillel/Shammai, the five pairs (Yose ben Yoezer/Yose ben Yochanan, Yehoshua ben Perachya/Nittai of Arbel, etc.) → 'zugim', NOT tanna-1. The Zugim era ended c. 10 CE, before Tanna-1.
-
-CRITICAL — anti-confabulation rule: your "why" string MUST quote the literal Hebrew/Aramaic token from the segment that justified your pick. Do NOT invent markers. If the segment does not contain מתני, תניא, דתניא, etc., DO NOT claim it does. If the only signal is register/style, say so honestly: "stam dialectical voice" or "Mishnaic Hebrew register". A wrong-but-honest "why" is more useful than a confident-but-fabricated one.
-
-CRITICAL — DON'T over-classify as Stam. Mishnaic Hebrew is unmistakable: dense participles (אומר/אומרים), particles like שֶׁ-, no Aramaic dialectical markers (no איתמר, מאי, פשיטא, קמ"ל), and named tannaim using the formula "X אומר" or "דברי X". Such segments are tanna-* (the speaker's tanna era if named, otherwise tanna-5 for the Mishna's stratum). They are NEVER amora-bavel-8.
-
-Respect the heuristic guess provided in parentheses unless you have a CONCRETE reason to disagree (a named speaker the heuristic missed, a clear marker, an unmistakable register signal). When the heuristic says "tanna-5" because the segment looks like Mishna, and the segment contains no Aramaic dialectical tokens, defer to the heuristic.
-
-When in doubt, COMMIT to a single best guess. Do not output 'unknown' unless the segment is purely a verse citation with no framing.
-
-${GENERATIONS_PROMPT_REFERENCE}
-
-Return JSON: { "picks": [ { "idx": <int>, "era": <generation_id>, "why": "<short reason>" }, ... ] }
-- Output one pick per input segment. Do not add or omit indices.
-- "why" is one short clause (≤ 12 words), and must reference an actual token from the segment OR an honest register description. Examples:
-  - "speaker: רב הונא" (quoted name appears in the segment)
-  - "marker: 'תנו רבנן' (baraita)"
-  - "stam: 'מאי טעמא' formula"
-  - "Mishnaic Hebrew register"`;
-
-interface EraLlmSegmentInput {
-  idx: number;
-  text: string;            // plain Hebrew (no HTML), the segment itself
-  before?: string;         // ±1 segment of context for the model, optional
-  after?: string;
-  heuristicGuess?: string; // GenerationId from the client's heuristic, advisory only
-}
-
-interface EraLlmPick {
-  idx: number;
-  era: string;
-  why: string;
-}
-
-interface EraLlmResponse {
-  picks: EraLlmPick[];
-  _model?: string;
-  _cached?: boolean;
-  _ms?: number;
-}
-
-function isEraLlmResponse(x: unknown): x is { picks: EraLlmPick[] } {
-  if (!x || typeof x !== 'object' || !('picks' in x)) return false;
-  const picks = (x as { picks: unknown }).picks;
-  if (!Array.isArray(picks)) return false;
-  for (const p of picks) {
-    if (!p || typeof p !== 'object') return false;
-    const pp = p as Record<string, unknown>;
-    if (typeof pp.idx !== 'number' || typeof pp.era !== 'string' || typeof pp.why !== 'string') return false;
-  }
-  return true;
-}
-
-app.post('/api/era-llm/:tractate/:page', async (c) => {
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  const cache = c.env.CACHE;
-  const t0 = Date.now();
-
-  let body: { segments?: EraLlmSegmentInput[] };
-  try { body = await c.req.json(); } catch { return c.json({ error: 'bad JSON body' }, 400); }
-  const segments = Array.isArray(body.segments) ? body.segments : [];
-  if (segments.length === 0) return c.json({ picks: [] });
-  if (segments.length > 60) return c.json({ error: 'too many segments (max 60)' }, 400);
-
-  // Cache key: tractate+page+stable hash of input idx list. Same low-confidence
-  // subset across visits → one Kimi call per daf.
-  const idxSig = segments.map((s) => s.idx).join(',');
-  const cacheKey = `era-llm:v1:${tractate}:${page}:${idxSig}`;
-  const bypass = c.req.query('refresh') === '1';
-
-  if (cache && !bypass) {
-    const cached = await cache.get(cacheKey);
-    if (cached) {
-      const parsed = JSON.parse(cached) as { picks: EraLlmPick[] };
-      return c.json({ picks: parsed.picks, _cached: true, _ms: Date.now() - t0 } satisfies EraLlmResponse);
-    }
-  }
-  if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-
-  // Build the user prompt: numbered segments with optional before/after context
-  // and the client's heuristic guess as advisory information.
-  const lines: string[] = [
-    `Tractate: ${tractate}, page ${page}.`,
-    `Classify each of the following ${segments.length} segments by historical period.`,
-    '',
-  ];
-  for (const s of segments) {
-    lines.push(`--- segment #${s.idx} ---`);
-    if (s.before) lines.push(`(prev) ${s.before}`);
-    lines.push(`TARGET: ${s.text}`);
-    if (s.after) lines.push(`(next) ${s.after}`);
-    if (s.heuristicGuess) lines.push(`(heuristic guess: ${s.heuristicGuess})`);
-    lines.push('');
-  }
-  const userContent = lines.join('\n').slice(0, 40000);
-
-  // Gemma-4-26b is the same model the existing /api/daf-context uses for its
-  // stage-1 classification — fast, no thinking mode, plays well with json_schema
-  // response_format. Kimi K2.6 non-streaming hits the Workers AI Gateway timeout
-  // on this prompt shape; switching to streaming would work but is overkill for
-  // a per-segment classifier.
-  const modelId: LLMModelId = '@cf/google/gemma-4-26b-a4b-it';
-  try {
-    const r = await runLLM(c.env, {
-      model: modelId,
-      messages: [
-        { role: 'system', content: ERA_LLM_SYSTEM_PROMPT },
-        { role: 'user', content: userContent },
-      ],
-      max_tokens: 4000,
-      temperature: 0.1,
-      thinking: false,
-      response_format: { type: 'json_schema', json_schema: ERA_LLM_JSON_SCHEMA },
-    });
-    const payload = r.content.trim() || extractJsonPayload({ response: r.content });
-    if (!payload) return c.json({ error: 'empty payload' }, 502);
-    let parsed: unknown;
-    try { parsed = JSON.parse(payload); }
-    catch (err) { return c.json({ error: `non-JSON: ${String(err).slice(0, 200)}`, raw: payload.slice(0, 500) }, 502); }
-    if (!isEraLlmResponse(parsed)) return c.json({ error: 'schema mismatch', got: parsed }, 502);
-
-    // Filter to known generation IDs AND only indices that were actually
-    // sent — gemma-4-26b sometimes hallucinates picks for adjacent
-    // segment indices that the client didn't ask about. Accepting those
-    // would overwrite high-confidence heuristic picks (e.g. a heuristic
-    // speaker attribution) with garbage.
-    const validIds = new Set<string>(GENERATION_IDS);
-    const sentIdxs = new Set(segments.map((s) => s.idx));
-    const cleaned: EraLlmPick[] = parsed.picks
-      .filter((p) => validIds.has(p.era) && sentIdxs.has(p.idx))
-      .map((p) => ({ idx: p.idx, era: p.era, why: p.why.slice(0, 200) }));
-
-    if (cache) {
-      await cache.put(cacheKey, JSON.stringify({ picks: cleaned }), { expirationTtl: 60 * 60 * 24 * 365 });
-    }
-    return c.json({ picks: cleaned, _model: modelId, _ms: Date.now() - t0 } satisfies EraLlmResponse);
-  } catch (err) {
-    return c.json({ error: String(err).slice(0, 300) }, 502);
-  }
-});
-
-// ---------------------------------------------------------------------------
-// Era stratification — unified two-stage endpoint for the main daf view.
-// Stage 1: heuristic classifier over Sefaria segments, returned + cached.
-// Stage 2: LLM refinement of low-confidence segments, runs in waitUntil and
-// silently upgrades the cache. Mirrors /api/daf-context's polling pattern.
-// ---------------------------------------------------------------------------
-
-interface EraContextPayload extends DafEraContext {
-  _stage?: 1 | 2;
-  _cached?: boolean;
-}
-
-/** Run the LLM stage in-process; returns era picks for the candidate segments. */
-async function runEraLlmModel(
-  env: Bindings,
-  tractate: string,
-  page: string,
-  segments: EraLlmSegmentInput[],
-): Promise<EraLlmPick[]> {
-  if (segments.length === 0) return [];
-  const lines: string[] = [
-    `Tractate: ${tractate}, page ${page}.`,
-    `Classify each of the following ${segments.length} segments by historical period.`,
-    '',
-  ];
-  for (const s of segments) {
-    lines.push(`--- segment #${s.idx} ---`);
-    if (s.before) lines.push(`(prev) ${s.before}`);
-    lines.push(`TARGET: ${s.text}`);
-    if (s.after) lines.push(`(next) ${s.after}`);
-    if (s.heuristicGuess) lines.push(`(heuristic guess: ${s.heuristicGuess})`);
-    lines.push('');
-  }
-  const userContent = lines.join('\n').slice(0, 40000);
-  const r = await runLLM(env, {
-    model: '@cf/google/gemma-4-26b-a4b-it',
-    messages: [
-      { role: 'system', content: ERA_LLM_SYSTEM_PROMPT },
-      { role: 'user', content: userContent },
-    ],
-    max_tokens: 4000,
-    temperature: 0.1,
-    thinking: false,
-    response_format: { type: 'json_schema', json_schema: ERA_LLM_JSON_SCHEMA },
-  });
-  const payload = r.content.trim() || extractJsonPayload({ response: r.content });
-  if (!payload) return [];
-  let parsed: unknown;
-  try { parsed = JSON.parse(payload); }
-  catch { return []; }
-  if (!isEraLlmResponse(parsed)) return [];
-  const validIds = new Set<string>(GENERATION_IDS);
-  const sentIdxs = new Set(segments.map((s) => s.idx));
-  return parsed.picks
-    .filter((p) => validIds.has(p.era) && sentIdxs.has(p.idx))
-    .map((p) => ({ idx: p.idx, era: p.era, why: p.why.slice(0, 200) }));
-}
-
-/** Decide which heuristic-source segments are worth sending to the LLM. */
-const ERA_LLM_RABBI_HINT = /(?:^|\s)(רבי |רב |רבן |רבה |רבא |רבינא |מר |שמואל|הלל|שמאי|אביי|עולא|זעירי)/;
-function pickEraLlmCandidates(
-  segments: SegmentEra[],
-  plain: string[],
-): SegmentEra[] {
-  const out: SegmentEra[] = [];
-  for (const s of segments) {
-    const src: EraSignalSource = s.source;
-    if (src === 'register' || src === 'stam-default') { out.push(s); continue; }
-    if (src === 'marker' && ERA_LLM_RABBI_HINT.test(plain[s.segIdx] ?? '')) { out.push(s); continue; }
-  }
-  // Cap at 60 to match runEraLlmModel's prompt budget.
-  return out.slice(0, 60);
-}
-
-function mergeLlmIntoHeuristic(heuristic: SegmentEra[], picks: EraLlmPick[]): SegmentEra[] {
-  if (picks.length === 0) return heuristic;
-  const byIdx = new Map<number, EraLlmPick>();
-  for (const p of picks) byIdx.set(p.idx, p);
-  return heuristic.map((s) => {
-    const pick = byIdx.get(s.segIdx);
-    if (!pick) return s;
-    return {
-      ...s,
-      era: pick.era as GenerationId,
-      source: 'llm' as const,
-      why: `LLM: ${pick.why}`,
-    };
-  });
-}
-
-function buildContextFromSegments(segs: SegmentEra[]): DafEraContext {
-  const generationsPresent = Array.from(new Set(segs.map((s) => s.era)));
-  return { segments: segs, generationsPresent, computedAt: Date.now() };
-}
-
-app.get('/api/era-context/:tractate/:page', async (c) => {
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  const cache = c.env.CACHE;
-  const baseKey = `era-context:v1:${tractate}:${page}`;
-  const stage2Key = `${baseKey}:stage2`;
-  const bypass = c.req.query('refresh') === '1';
-  const cachedOnly = c.req.query('cached_only') === '1';
-  const wantStage2 = c.req.query('stage') === '2';
-
-  if (cache && !bypass) {
-    if (wantStage2) {
-      const cached = await cache.get(stage2Key);
-      if (cached) return c.json({ ...JSON.parse(cached) as DafEraContext, _stage: 2, _cached: true } satisfies EraContextPayload);
-      return c.body(null, 204);
-    }
-    const upgraded = await cache.get(stage2Key);
-    if (upgraded) return c.json({ ...JSON.parse(upgraded) as DafEraContext, _stage: 2, _cached: true } satisfies EraContextPayload);
-    const s1 = await cache.get(baseKey);
-    if (s1) return c.json({ ...JSON.parse(s1) as DafEraContext, _stage: 1, _cached: true } satisfies EraContextPayload);
-  }
-  if (cachedOnly) return c.json({ cached: false }, 404);
-  if (wantStage2) return c.body(null, 204);
-
-  // Stage 1: heuristic over Sefaria segments. No LLM needed for this leg.
-  const segments = await getSefariaSegmentsCached(cache, tractate, page);
-  const segsHe = segments?.he ?? [];
-  if (segsHe.length === 0) return c.json({ error: 'no Sefaria segments available' }, 502);
-
-  const stage1Ctx = classifyDaf(segsHe);
-  if (cache) await cache.put(baseKey, JSON.stringify(stage1Ctx), { expirationTtl: 60 * 60 * 24 * 365 });
-
-  // Stage-2 LLM refinement intentionally disabled — heuristic is enough for
-  // now. Previously-warmed Stage-2 cache (if any) is still served above.
-  return c.json({ ...stage1Ctx, _stage: 1 } satisfies EraContextPayload);
-});
-
-// ----------------------------------------------------------------------------
-// Era → "Argument network" enrichment.
-//
-// Given a daf, the cached argument skeleton (rabbis named per section), and
-// daf-context (resolved slugs), produce the daf-wide list of pairs
-// (rabbiA, rabbiB, kind: 'argues' | 'supports') with a focal segment range
-// and short evidence excerpt. The Era tab consumes this and a daf overlay
-// renders green/red lines between rabbi anchors.
-//
-// Hard requires the skeleton (412 if missing). Cached as
-// era-arg-net:v1:{tractate}:{page} for 30 days; refresh=1 bypasses.
-// ----------------------------------------------------------------------------
-
-const ERA_ARG_NET_SYSTEM_PROMPT = `You are a Talmud scholar. You will receive:
-1. A daf's argument skeleton (sections + named voices), already identified.
-2. A list of resolved rabbi slugs present on the daf — the canonical IDs you must use.
-
-Identify every PAIR of named rabbis on this daf where one explicitly:
-- ARGUES with the other (disputes, rejects, raises a kashya, offers a counter-position).
-- SUPPORTS the other (cites approvingly, brings a prooftext for, restates with assent).
-
-Output STRICT JSON only:
-
-{
-  "pairs": [
-    {
-      "a": "slug-of-first-rabbi",
-      "b": "slug-of-second-rabbi",
-      "kind": "argues" | "supports",
-      "section": "Title of the skeleton section where this happens",
-      "startSegIdx": 0-based segment index where the interaction begins,
-      "endSegIdx": 0-based segment index where it ends (inclusive),
-      "evidence": "1-sentence English explanation of HOW a argues with / supports b in that section"
-    }
-  ]
-}
-
-Rules:
-- Both "a" and "b" MUST be slugs from the provided slug list. Do not invent slugs. If a voice (Sages, Tanna Kamma, Stam) has no slug, skip it.
-- Only emit a pair when the daf text *explicitly* shows the relationship. Do not infer cross-daf disagreements.
-- When two rabbis appear in the same section but neither explicitly engages the other, do NOT emit a pair.
-- Skip self-pairs.
-- If nothing on the daf is a clean argues/supports interaction, emit "pairs": [].`;
-
-interface EraArgPair {
-  a: string;
-  b: string;
-  kind: 'argues' | 'supports';
-  section?: string;
-  startSegIdx?: number;
-  endSegIdx?: number;
-  evidence?: string;
-}
-interface EraArgNetResult { pairs: EraArgPair[]; generatedAt: string }
-
-function validateEraArgNet(x: unknown): x is { pairs: EraArgPair[] } {
-  if (!x || typeof x !== 'object') return false;
-  const p = (x as { pairs?: unknown }).pairs;
-  if (!Array.isArray(p)) return false;
-  for (const item of p) {
-    if (!item || typeof item !== 'object') return false;
-    const pair = item as EraArgPair;
-    if (typeof pair.a !== 'string' || typeof pair.b !== 'string') return false;
-    if (pair.kind !== 'argues' && pair.kind !== 'supports') return false;
-  }
-  return true;
-}
-
-app.post('/api/enrich-era-arguments/:tractate/:page', async (c) => {
-  if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-  const cache = c.env.CACHE;
-  if (!cache) return c.json({ error: 'CACHE unavailable' }, 503);
-
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  const refresh = c.req.query('refresh') === '1';
-  const cachedOnly = c.req.query('cached_only') === '1';
-  const cacheKey = `era-arg-net:v1:${tractate}:${page}`;
-
-  if (!refresh) {
-    const hit = await cache.get(cacheKey);
-    if (hit) return c.json({ ...JSON.parse(hit) as EraArgNetResult, _cached: true });
-  }
-  if (cachedOnly) return c.json({ cached: false }, 404);
-
-  const skelRaw = await cache.get(`analyze-skel:v2:${tractate}:${page}`);
-  if (!skelRaw) {
-    return c.json({ error: 'skeleton unavailable; run /api/analyze?skeleton_only=1 first' }, 412);
-  }
-  const skeleton = JSON.parse(skelRaw) as DafSkeleton;
-
-  // Pull resolved rabbi slugs from daf-context.
-  let slugs: string[] = [];
-  try {
-    const proxyReq = new Request(new URL(`/api/daf-context/${encodeURIComponent(tractate)}/${encodeURIComponent(page)}`, c.req.url).toString(), { method: 'GET' });
-    const resp = await app.fetch(proxyReq, c.env, c.executionCtx);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const ctx = await resp.json() as { rabbis?: Array<{ slug?: string | null }> };
-    slugs = (ctx.rabbis ?? []).map((r) => r.slug).filter((s): s is string => !!s);
-  } catch (err) {
-    return c.json({ error: `daf-context: ${String(err).slice(0, 200)}` }, 502);
-  }
-  if (slugs.length < 2) {
-    const empty: EraArgNetResult = { pairs: [], generatedAt: new Date().toISOString() };
-    await cache.put(cacheKey, JSON.stringify(empty), { expirationTtl: 60 * 60 * 24 * 30 });
-    return c.json({ ...empty, _cached: false, _note: 'fewer than 2 resolved slugs on this daf' });
-  }
-
-  const lines: string[] = [];
-  lines.push(`Tractate: ${tractate} ${page}`);
-  lines.push('');
-  lines.push('Resolved rabbi slugs on this daf (use these EXACT strings as "a" and "b"):');
-  for (const s of slugs) lines.push(`  - ${s}`);
-  lines.push('');
-  lines.push('Skeleton sections:');
-  for (const sec of skeleton.sections) {
-    lines.push(`§ ${sec.title}  [segs ${sec.startSegIdx}–${sec.endSegIdx}]`);
-    if (sec.summary) lines.push(`  summary: ${sec.summary}`);
-    if (sec.excerpt) lines.push(`  excerpt: ${sec.excerpt.slice(0, 600)}`);
-    lines.push(`  voices: ${sec.rabbiNames.join(', ') || '(none)'}`);
-    lines.push('');
-  }
-
-  const t0 = Date.now();
-  let streamed: StreamedResult;
-  try {
-    streamed = await runKimiStreaming(
-      c.env,
-      '@cf/moonshotai/kimi-k2.5',
-      [
-        { role: 'system', content: ERA_ARG_NET_SYSTEM_PROMPT },
-        { role: 'user', content: lines.join('\n') },
-      ],
-      4096,
-      { chatTemplateKwargs: { enable_thinking: false } },
-    );
-  } catch (err) {
-    return c.json({ error: `llm: ${String(err).slice(0, 200)}` }, 502);
-  }
-
-  let payload = streamed.content.trim();
-  const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (fenced) payload = fenced[1].trim();
-  if (!payload) return c.json({ error: 'empty payload' }, 502);
-
-  let parsed: unknown;
-  try { parsed = JSON.parse(payload); }
-  catch (err) {
-    const repaired = payload.replace(/,(\s*[}\]])/g, '$1');
-    try { parsed = JSON.parse(repaired); }
-    catch { return c.json({ error: `non-JSON: ${String(err).slice(0, 200)}`, raw: payload.slice(0, 500) }, 502); }
-  }
-  if (!validateEraArgNet(parsed)) {
-    return c.json({ error: 'shape mismatch', raw: payload.slice(0, 500) }, 502);
-  }
-
-  // Filter pairs to ones where both endpoints are in the resolved slug list,
-  // and drop self-pairs. The model is told this rule but we enforce it.
-  const slugSet = new Set(slugs);
-  const cleaned: EraArgPair[] = [];
-  for (const p of parsed.pairs) {
-    if (p.a === p.b) continue;
-    if (!slugSet.has(p.a) || !slugSet.has(p.b)) continue;
-    cleaned.push(p);
-  }
-
-  const out: EraArgNetResult = { pairs: cleaned, generatedAt: new Date().toISOString() };
-  await cache.put(cacheKey, JSON.stringify(out), { expirationTtl: 60 * 60 * 24 * 30 });
-  return c.json({ ...out, _cached: false, _ms: Date.now() - t0 });
-});
-
-app.get('/api/enrich-era-arguments/:tractate/:page', async (c) => {
-  const cache = c.env.CACHE;
-  if (!cache) return c.json({ error: 'CACHE unavailable' }, 503);
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  const cacheKey = `era-arg-net:v1:${tractate}:${page}`;
-  const hit = await cache.get(cacheKey);
-  if (!hit) return c.json({ cached: false }, 404);
-  return c.json({ ...JSON.parse(hit) as EraArgNetResult, _cached: true });
-});
-
 
 // Fetch a single Tanakh pasuk's full Hebrew + English text plus refs to
 // the immediately surrounding verses. Used by the sidebar Pasuk panel to

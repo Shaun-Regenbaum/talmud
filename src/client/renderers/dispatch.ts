@@ -18,7 +18,7 @@
  * register it in the RENDERERS table.
  */
 
-import { injectRabbiUnderlines, type GenerationRabbi } from '../injectRabbiUnderlines';
+import { injectRabbiUnderlines, type GenerationRabbi, normalizeHebrew } from '../injectRabbiUnderlines';
 import type { GenerationId } from '../generations';
 import { recordRender } from '../rendererActivity';
 
@@ -45,10 +45,10 @@ export interface MarkDef {
 type Renderer = (html: string, instances: MarkInstance[], def: MarkDef) => string;
 
 /**
- * phrase + inline → for the rabbi mark specifically, dispatch to the existing
- * injectRabbiUnderlines (which knows how to colour by generation). For other
- * future phrase+inline marks (plants, places, etc.) we'll handle them with a
- * generic inline-decorator below.
+ * phrase + inline → for the rabbi mark, dispatch to injectRabbiUnderlines.
+ * For places, wrap each matched Hebrew place name as a `.city-marker` span
+ * (legacy GeographyMap click-highlighting reads `.city-marker[data-city]`).
+ * Other phrase+inline marks pass through unchanged.
  */
 const phraseInline: Renderer = (html, instances, def) => {
   if (!html || instances.length === 0) return html;
@@ -62,13 +62,142 @@ const phraseInline: Renderer = (html, instances, def) => {
       .filter((r) => r.nameHe.length > 0);
     return injectRabbiUnderlines(html, rabbis);
   }
-  // TODO: generic inline-decorator using def.render.style + def.render.color.
-  // For now, unknown marks pass through unchanged.
+  if (def.id === 'places') {
+    const places = instances
+      .map((i) => ({
+        name: String(i.fields?.name ?? ''),
+        nameHe: String(i.fields?.nameHe ?? i.excerpt ?? ''),
+      }))
+      .filter((p) => p.name && p.nameHe);
+    return injectPlaceMarkers(html, places);
+  }
   return html;
 };
 
+/**
+ * Wrap every occurrence of each place's canonical Hebrew name (with attached
+ * Hebrew particle prefixes ב/מ/ל/כ/ש/ו) as a `.city-marker[data-city=NAME]`
+ * span. Mirrors the legacy heuristic-driven injectCityMarkers but driven by
+ * LLM-extracted instances.
+ */
+function injectPlaceMarkers(html: string, places: Array<{ name: string; nameHe: string }>): string {
+  if (typeof document === 'undefined' || places.length === 0) return html;
+  const doc = new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html');
+  const words = Array.from(doc.body.querySelectorAll<HTMLSpanElement>('.daf-word'));
+  if (words.length === 0) return html;
+
+  const normed = words.map((el) => normalizeHebrew(el.textContent ?? ''));
+  const HEBREW_PARTICLES = ['ב', 'מ', 'ל', 'כ', 'ש', 'ו'];
+
+  interface Candidate { tokens: string[]; name: string }
+  const candidates: Candidate[] = [];
+  const seen = new Set<string>();
+  for (const p of places) {
+    const base = normalizeHebrew(p.nameHe).split(' ').filter(Boolean);
+    if (base.length === 0) continue;
+    const key = `${p.name}${base.join(' ')}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    candidates.push({ tokens: base, name: p.name });
+    for (const particle of HEBREW_PARTICLES) {
+      candidates.push({ tokens: [particle + base[0], ...base.slice(1)], name: p.name });
+    }
+  }
+  candidates.sort((a, b) => b.tokens.length - a.tokens.length);
+
+  const wrapped = new Uint8Array(words.length);
+  interface Wrap { start: number; end: number; name: string }
+  const wraps: Wrap[] = [];
+  for (const c of candidates) {
+    const n = c.tokens.length;
+    for (let i = 0; i <= words.length - n; i++) {
+      let clear = true;
+      for (let j = 0; j < n; j++) { if (wrapped[i + j]) { clear = false; break; } }
+      if (!clear) continue;
+      let ok = true;
+      for (let j = 0; j < n; j++) { if (normed[i + j] !== c.tokens[j]) { ok = false; break; } }
+      if (!ok) continue;
+      wraps.push({ start: i, end: i + n - 1, name: c.name });
+      for (let j = 0; j < n; j++) wrapped[i + j] = 1;
+    }
+  }
+  if (wraps.length === 0) return html;
+
+  for (const w of wraps) {
+    const first = words[w.start];
+    const last = words[w.end];
+    const parent = first.parentNode;
+    if (!parent) continue;
+    const wrapper = doc.createElement('span');
+    wrapper.className = 'city-marker';
+    wrapper.setAttribute('data-city', w.name);
+    parent.insertBefore(wrapper, first);
+    const nodes: Node[] = [];
+    let cur: Node | null = first;
+    while (cur) { nodes.push(cur); if (cur === last) break; cur = cur.nextSibling; }
+    for (const node of nodes) wrapper.appendChild(node);
+  }
+  return doc.body.innerHTML;
+}
+
+/**
+ * segment + gutter+sidebar → for the rishonim mark, inject an invisible
+ * `.daf-rishonim-anchor[data-idx=N]` span at the START of each commented
+ * segment. The GutterIcons component reads these anchors' DOM positions
+ * and overlays per-segment icons in the daf's left/right gutter. Click on
+ * an icon → DafViewer opens the RishonimInspectorShelf for that segment.
+ *
+ * Anchor placement (start of segment, not end) matters: GutterIcons aligns
+ * the icon vertically against the anchor's bounding rect, so the icon
+ * lines up with the first line of the segment.
+ */
+const segmentGutterSidebar: Renderer = (html, instances, def) => {
+  if (!html || instances.length === 0) return html;
+  if (def.id === 'rishonim') {
+    const segIdxs = instances
+      .map((i) => Number(i.segIdx))
+      .filter((n) => Number.isFinite(n) && n >= 0);
+    return injectRishonimAnchors(html, segIdxs);
+  }
+  return html;
+};
+
+/**
+ * Inject a zero-width `.daf-rishonim-anchor[data-idx="N"]` span before the
+ * first `.daf-word[data-seg=N]` of each commented segment. GutterIcons
+ * measures anchor rects to position per-segment icons in the gutter.
+ */
+function injectRishonimAnchors(html: string, segIdxs: number[]): string {
+  if (typeof document === 'undefined' || segIdxs.length === 0) return html;
+  const doc = new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html');
+  const wanted = new Set(segIdxs);
+  // Find the first .daf-word of each wanted segment in one pass.
+  const firstBySeg = new Map<number, HTMLElement>();
+  const words = doc.body.querySelectorAll<HTMLSpanElement>('.daf-word[data-seg]');
+  for (const el of Array.from(words)) {
+    const segAttr = el.getAttribute('data-seg');
+    if (segAttr === null) continue;
+    const seg = Number(segAttr);
+    if (!wanted.has(seg)) continue;
+    if (firstBySeg.has(seg)) continue;
+    firstBySeg.set(seg, el);
+  }
+  if (firstBySeg.size === 0) return html;
+  for (const [seg, firstEl] of firstBySeg) {
+    const anchor = doc.createElement('span');
+    anchor.className = 'daf-rishonim-anchor';
+    anchor.setAttribute('data-idx', String(seg));
+    // Zero-width / inert — GutterIcons measures the anchor's getBoundingClientRect
+    // to position its icon vertically aligned with the segment's first line.
+    anchor.setAttribute('aria-hidden', 'true');
+    firstEl.parentNode?.insertBefore(anchor, firstEl);
+  }
+  return doc.body.innerHTML;
+}
+
 const RENDERERS: Record<string, Renderer> = {
   'phrase:inline': phraseInline,
+  'segment:gutter+sidebar': segmentGutterSidebar,
 };
 
 /**

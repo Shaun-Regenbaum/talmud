@@ -18,10 +18,6 @@
  * Renderers per (anchor, render) kind are NOT here yet; this slice just
  * wires the loop end-to-end. Phase 2 of the daf integration adds proper
  * renderers that decorate the daf in place.
- *
- * Dev mode (default true) shows draft-status definitions and reveals
- * failure details in the drawer. Production mode (devMode=false) hides
- * drafts and silently skips failed marks.
  */
 
 import { createResource, createSignal, createEffect, onMount, onCleanup, untrack, For, Show, type JSX } from 'solid-js';
@@ -54,6 +50,8 @@ export interface WorkerMarkDefinition {
   label: string;
   description?: string;
   category?: string;
+  /** UI nesting hint — when set, the panel groups this mark under that parent. */
+  parent_mark?: string;
   anchor: 'segment' | 'segment-range' | 'phrase' | 'multi-anchor' | 'cross-daf' | 'external' | 'whole-daf';
   render: { kind: string; [k: string]: unknown };
   extractor: {
@@ -133,7 +131,6 @@ export type RunState =
   | { kind: 'error'; stamp: string; at: number; error: string };
 
 const ENABLED_KEY = 'marks-registry:enabled:v1';
-const DEV_MODE_KEY = 'marks-registry:dev-mode:v1';
 
 function readEnabled(): Set<string> {
   try {
@@ -147,18 +144,6 @@ function readEnabled(): Set<string> {
 
 function writeEnabled(s: Set<string>) {
   try { localStorage.setItem(ENABLED_KEY, JSON.stringify([...s])); } catch { /* ignore */ }
-}
-
-function readDevMode(): boolean {
-  try {
-    const raw = localStorage.getItem(DEV_MODE_KEY);
-    if (raw === 'false') return false;
-  } catch { /* ignore */ }
-  return true; // default to on
-}
-
-function writeDevMode(v: boolean) {
-  try { localStorage.setItem(DEV_MODE_KEY, v ? 'true' : 'false'); } catch { /* ignore */ }
 }
 
 async function fetchAll(): Promise<{ marks: WorkerMarkDefinition[]; enrichments: EnrichmentDefinition[] }> {
@@ -239,7 +224,6 @@ interface Props {
 export default function MarksRegistryPanel(props: Props) {
   const [registry, { refetch: refetchDefs }] = createResource(fetchAll);
   const [enabled, setEnabled] = createSignal<Set<string>>(readEnabled());
-  const [devMode, setDevMode] = createSignal<boolean>(readDevMode());
   const [runs, setRuns] = createSignal<Record<string, RunState>>({});
   // Expand state per mark id — enrichments under each mark are hidden
   // until the user clicks the mark row's chevron. Default collapsed so the
@@ -331,11 +315,6 @@ export default function MarksRegistryPanel(props: Props) {
     writeEnabled(next);
   };
 
-  const onDevModeChange = (v: boolean) => {
-    setDevMode(v);
-    writeDevMode(v);
-  };
-
   // Fire a run for any enabled mark or enrichment, on mount + on daf change.
   // untrack() around the runs() read + setRun() write so the effect doesn't
   // self-trigger on its own writes. The stamp (`tractate/page`) is stored on
@@ -379,8 +358,8 @@ export default function MarksRegistryPanel(props: Props) {
     const workerMarks = reg?.marks ?? [];
     const enrichments = reg?.enrichments ?? [];
     const portedIds = new Set(workerMarks.map((m) => m.id));
-    const visibleMarks = devMode() ? workerMarks : workerMarks.filter((m) => m.status !== 'draft');
-    const visibleEnrichments = devMode() ? enrichments : enrichments.filter((e) => e.status !== 'draft');
+    const visibleMarks = workerMarks;
+    const visibleEnrichments = enrichments;
     const seeds: Row[] = props.seedMarks
       .filter((s) => !portedIds.has(s.id))
       .map((s) => ({ source: 'seed' as const, seed: s }));
@@ -391,17 +370,28 @@ export default function MarksRegistryPanel(props: Props) {
     ];
   };
 
-  /** Top-level rows (marks + seeds) and the enrichments grouped by their
-   *  target_mark. Enrichments whose target_mark doesn't match any mark in
-   *  the registry are stashed under '__orphan__' and rendered at the
-   *  bottom — should be rare. */
+  /** Hierarchical grouping for the toggle list:
+   *    - `top`: top-level rows (marks without a parent_mark, plus seeds).
+   *    - `subMarksByParent`: marks whose `parent_mark` matches a top row's id.
+   *      Rendered nested under the parent's expand section. Falls back to
+   *      top-level if the named parent isn't in the registry.
+   *    - `childrenByMark`: enrichments keyed by their target mark id.
+   *      Orphan enrichments (no matching mark) fall under '__orphan__'.
+   */
   type TopRow =
     | { source: 'seed'; seed: SeedMark }
     | { source: 'mark'; def: WorkerMarkDefinition };
-  const grouped = (): { top: TopRow[]; childrenByMark: Map<string, EnrichmentDefinition[]> } => {
+  const grouped = (): {
+    top: TopRow[];
+    subMarksByParent: Map<string, WorkerMarkDefinition[]>;
+    childrenByMark: Map<string, EnrichmentDefinition[]>;
+  } => {
     const rs = rows();
     const top: TopRow[] = [];
+    const subMarksByParent = new Map<string, WorkerMarkDefinition[]>();
     const childrenByMark = new Map<string, EnrichmentDefinition[]>();
+    const markIds = new Set<string>();
+    for (const r of rs) if (r.source === 'mark') markIds.add(r.def.id);
     for (const r of rs) {
       if (r.source === 'enrichment') {
         const targetId = r.def.mark ?? '__orphan__';
@@ -409,18 +399,32 @@ export default function MarksRegistryPanel(props: Props) {
         list.push(r.def);
         childrenByMark.set(targetId, list);
       } else if (r.source === 'mark') {
-        top.push({ source: 'mark', def: r.def });
+        const parent = r.def.parent_mark;
+        if (parent && markIds.has(parent)) {
+          const list = subMarksByParent.get(parent) ?? [];
+          list.push(r.def);
+          subMarksByParent.set(parent, list);
+        } else {
+          top.push({ source: 'mark', def: r.def });
+        }
       } else {
         top.push({ source: 'seed', seed: r.seed });
       }
     }
-    return { top, childrenByMark };
+    return { top, subMarksByParent, childrenByMark };
   };
 
-  /** Aggregate run-state for a mark's enrichment children — for the
-   *  "X done · Y pending" badge on the collapsed mark row. */
+  /** Aggregate run-state for a mark's enrichment children + its sub-marks'
+   *  enrichments — for the "X done · Y pending" badge on the collapsed
+   *  mark row. Recurses through one level of nesting (parent → sub-mark
+   *  → its enrichments). */
   const childRunSummary = (markId: string): { loading: number; ok: number; error: number; total: number } => {
-    const kids = grouped().childrenByMark.get(markId) ?? [];
+    const g = grouped();
+    const kids: { id: string }[] = [...(g.childrenByMark.get(markId) ?? [])];
+    for (const sub of g.subMarksByParent.get(markId) ?? []) {
+      kids.push(sub);
+      kids.push(...(g.childrenByMark.get(sub.id) ?? []));
+    }
     const summary = { loading: 0, ok: 0, error: 0, total: kids.length };
     const r = runs();
     for (const k of kids) {
@@ -449,10 +453,6 @@ export default function MarksRegistryPanel(props: Props) {
               ({rows().length}, {enabledCount()} on)
             </span>
           </strong>
-          <label style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem', 'font-size': '0.75rem', color: '#666' }}>
-            <input type="checkbox" checked={devMode()} onChange={(e) => onDevModeChange(e.currentTarget.checked)} />
-            dev mode
-          </label>
         </div>
 
         <Show when={registry.error}>{(err) => (
@@ -493,15 +493,21 @@ export default function MarksRegistryPanel(props: Props) {
             };
             const isDraft = () =>
               (row.source === 'mark' || row.source === 'enrichment') && row.def.status === 'draft';
-            const childCount = () => row.source === 'mark'
-              ? (grouped().childrenByMark.get(row.def.id)?.length ?? 0)
-              : 0;
+            const childCount = () => {
+              if (row.source !== 'mark') return 0;
+              const g = grouped();
+              const enrichments = g.childrenByMark.get(row.def.id)?.length ?? 0;
+              const subs = g.subMarksByParent.get(row.def.id) ?? [];
+              let subEnrichments = 0;
+              for (const s of subs) subEnrichments += g.childrenByMark.get(s.id)?.length ?? 0;
+              return enrichments + subs.length + subEnrichments;
+            };
             const isExpandable = () => row.source === 'mark' && childCount() > 0;
             const isExpanded = () => row.source === 'mark' && expandedMarks().has(row.def.id);
             const summary = () => row.source === 'mark' ? childRunSummary(row.def.id) : null;
             return (
               <li style={{
-                'border-left': isFail() && devMode() ? '2px solid #c00' : isDraft() ? '2px solid #fa0' : '2px solid transparent',
+                'border-left': isFail() ? '2px solid #c00' : isDraft() ? '2px solid #fa0' : '2px solid transparent',
                 'padding-left': nested ? '1.5rem' : '0.4rem',
               }}>
                 <div style={{ display: 'flex', 'align-items': 'center', gap: '0.4rem' }}>
@@ -526,7 +532,7 @@ export default function MarksRegistryPanel(props: Props) {
                     onChange={(e) => setOn(e.currentTarget.checked)}
                     style={{ cursor: 'pointer' }}
                   />
-                  <span style={{ 'font-weight': nested ? 400 : 500, opacity: isFail() && !devMode() ? 0.4 : 1, 'font-size': nested ? '0.8rem' : '0.85rem' }}>
+                  <span style={{ 'font-weight': nested ? 400 : 500, 'font-size': nested ? '0.8rem' : '0.85rem' }}>
                     {label()}
                   </span>
                   <span title={`${anchor()} · ${render()}`} style={{ color: '#aaa', 'font-size': '0.7rem', 'font-family': 'monospace' }}>
@@ -591,13 +597,23 @@ export default function MarksRegistryPanel(props: Props) {
                   ? { source: 'mark', def: top.def }
                   : { source: 'seed', seed: top.seed };
                 const markId = top.source === 'mark' ? top.def.id : null;
-                const kids = markId ? (grouped().childrenByMark.get(markId) ?? []) : [];
+                const ownEnrichments = markId ? (grouped().childrenByMark.get(markId) ?? []) : [];
+                const subMarks = markId ? (grouped().subMarksByParent.get(markId) ?? []) : [];
                 const showKids = markId !== null && expandedMarks().has(markId);
                 return (
                   <>
                     {renderRow(topRow, false)}
-                    <Show when={showKids && kids.length > 0}>
-                      <For each={kids}>{(e) => renderRow({ source: 'enrichment', def: e }, true)}</For>
+                    <Show when={showKids}>
+                      <For each={ownEnrichments}>{(e) => renderRow({ source: 'enrichment', def: e }, true)}</For>
+                      <For each={subMarks}>{(sub) => {
+                        const subEnrichments = grouped().childrenByMark.get(sub.id) ?? [];
+                        return (
+                          <>
+                            {renderRow({ source: 'mark', def: sub }, true)}
+                            <For each={subEnrichments}>{(e) => renderRow({ source: 'enrichment', def: e }, true)}</For>
+                          </>
+                        );
+                      }}</For>
                     </Show>
                   </>
                 );

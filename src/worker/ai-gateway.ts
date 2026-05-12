@@ -13,7 +13,7 @@
  * Mechanism: wrapEnv() returns env with env.AI replaced by a Proxy whose
  * .run() injects { gateway: { id } } and retries transient failures. Every
  * existing call site (env.AI.run, runKimiStreaming, runGenerationsModel,
- * runEraLlmModel, etc.) routes through the gateway with zero code changes.
+ * etc.) routes through the gateway with zero code changes.
  *
  * Setup (one-time):
  *   1. Gateway "talmud" already exists on PropheX (created via MCP).

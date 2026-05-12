@@ -32,13 +32,10 @@ export interface SeedMark {
 
 export interface SeedMarkInputs {
   showGenMarkers:       () => boolean; setShowGenMarkers:       (v: boolean) => void; // dormant — rabbi is ported to the worker registry
-  showCommentaries:     () => boolean; setShowCommentaries:     (v: boolean) => void;
-  showGeography:        () => boolean; setShowGeography:        (v: boolean) => void;
   showArguments:        () => boolean; setShowArguments:        (v: boolean) => void;
   showHalachot:         () => boolean; setShowHalachot:         (v: boolean) => void;
   showAggadatot:        () => boolean; setShowAggadatot:        (v: boolean) => void;
   showPesukim:          () => boolean; setShowPesukim:          (v: boolean) => void;
-  showEra:              () => boolean; setShowEra:              (v: boolean) => void;
 }
 
 /**
@@ -53,37 +50,18 @@ export function buildSeedMarks(io: SeedMarkInputs): SeedMark[] {
     // seed automatically. The bridge in DafViewer flips these legacy
     // signals when a registry mark of the same id is toggled, so the
     // legacy renderers (gutter icons, sidebars) keep working.
-    //   - rabbi    → code-marks.ts (LLM extractor, full port)
-    //   - argument → code-marks.ts (legacy-endpoint proxy)
-    //   - halacha  → code-marks.ts (legacy-endpoint proxy)
-    //   - aggadata → code-marks.ts (legacy-endpoint proxy)
-    //   - pesukim  → code-marks.ts (legacy-endpoint proxy)
-    {
-      id: 'geography',
-      label: 'Places',
-      description: 'Inline marker on city/place names; click opens the geography map strip.',
-      anchor: 'phrase',
-      render: 'meta-component',
-      getValue: io.showGeography,
-      setValue: io.setShowGeography,
-    },
-    {
-      id: 'era',
-      label: 'Era',
-      description: 'Per-segment classification of speaker era (tannaitic / amoraic / stam).',
-      anchor: 'segment',
-      render: 'row-tag',
-      getValue: io.showEra,
-      setValue: io.setShowEra,
-    },
-    {
-      id: 'commentaries',
-      label: 'Commentaries',
-      description: 'Left rail showing per-segment commentary from selectable works (Rashi, Tosafot, …).',
-      anchor: 'whole-daf',
-      render: 'side-panel',
-      getValue: io.showCommentaries,
-      setValue: io.setShowCommentaries,
-    },
+    //   - rabbi     → code-marks.ts (LLM extractor, full port)
+    //   - argument  → code-marks.ts (legacy-endpoint proxy)
+    //   - halacha   → code-marks.ts (legacy-endpoint proxy)
+    //   - aggadata  → code-marks.ts (legacy-endpoint proxy)
+    //   - pesukim   → code-marks.ts (legacy-endpoint proxy)
+    //   - places    → code-marks.ts (LLM extractor; drives inline .city-marker wraps)
+    //   - commentary → code-marks.ts (computed extractor; per-segment digest with click-to-open inspector)
+    //
+    // TODO(geography-rederive): the 'geography' seed was removed when the
+    // GeographyStrip / GeographyMap was uninstalled. Rederive a whole-daf
+    // map from the per-rabbi `rabbi.geography` enrichment data (which the
+    // sidebar's RabbiPlacesTimeline already consumes), then reintroduce
+    // the seed entry with a real data binding.
   ];
 }
