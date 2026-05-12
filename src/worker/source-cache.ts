@@ -93,7 +93,10 @@ export async function getSefariaPageCached(
   tractate: string,
   page: string,
 ): Promise<TalmudPageData | null> {
-  const key = `sefaria-bundle:v1:${tractate}:${page}`;
+  // v2: TalmudPageData.rashi/tosafot now carries pieces: string[] for the
+  // daf↔commentary anchor feature. v1 entries lack pieces; bumping forces
+  // a refetch so the field is populated.
+  const key = `sefaria-bundle:v2:${tractate}:${page}`;
   const hit = await readCache<TalmudPageData>(cache, key);
   if (hit) return hit;
   try {

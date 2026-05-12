@@ -12,7 +12,7 @@
 
 import { createSignal, createEffect, onCleanup, Show, type JSX } from 'solid-js';
 import AIActivityPanel from './AIActivityPanel';
-import RendererActivityPanel from './RendererActivityPanel';
+import PipelinePanel from './PipelinePanel';
 
 const DEV_MODE_KEY = 'dev-mode:v1';
 const SHELF_WIDTH_KEY = 'dev-mode:shelf-width:v1';
@@ -150,7 +150,7 @@ export default function DevModeShelf(props: Props) {
       <Show when={props.open}>
         <div style={{ padding: '0.5rem 0.75rem 0', display: 'flex', 'flex-direction': 'column', gap: '0.5rem', 'flex-shrink': 0 }}>
           <AIActivityPanel />
-          <RendererActivityPanel />
+          <PipelinePanel />
         </div>
       </Show>
 

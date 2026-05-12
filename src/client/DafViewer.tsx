@@ -26,6 +26,7 @@ import { MobileShelf, type MobileInteractionMode } from './MobileShelf';
 import MarksRegistryPanel, { enabledMarkDefs, markRunsByMarkId, markStatuses } from './MarksRegistryPanel';
 import { buildSeedMarks } from './seed-marks';
 import { fetchCommentaryAnchorIndex, type CommentaryAnchorIndex } from './commentaryAnchorIndex';
+import { recordStage } from './rendererActivity';
 import { applyMarkRenderers } from './renderers/dispatch';
 import DevModeShelf, { readDevMode, setDevModeActive } from './DevModeShelf';
 import type { GenerationId } from './generations';
@@ -58,9 +59,19 @@ function prevPage(p: string): string {
 }
 
 async function fetchDaf(ref: Ref): Promise<TalmudPageData> {
+  const t0 = performance.now();
   const res = await fetch(`/api/daf/${encodeURIComponent(ref.tractate)}/${ref.page}`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+  const json = await res.json() as TalmudPageData & { _source?: string };
+  const ms = Math.round(performance.now() - t0);
+  // The /api/daf worker doesn't currently emit a cache-state header, but
+  // very-fast responses (<50ms) are almost certainly KV cache hits and
+  // slow responses are upstream fetches. Tune the heuristic if/when the
+  // worker starts emitting a real cf-cache-status equivalent.
+  const cache: 'hit' | 'miss' = ms < 50 ? 'hit' : 'miss';
+  const detail = `${ref.tractate} ${ref.page} · ${json._source ?? 'unknown'}`;
+  recordStage('daf-fetch', 'Daf fetch', ms, { cache, detail });
+  return json;
 }
 
 interface ActiveWord {
@@ -1329,8 +1340,13 @@ export default function DafViewer(): JSX.Element {
     // resolved into concrete span ranges for highlighting.
     const mainSegs = (d as unknown as { mainSegmentsHe?: string[] }).mainSegmentsHe ?? [];
     if (mainSegs.length > 0) {
-      const { html } = injectSegmentMarkers(main, mainSegs);
+      const t0 = performance.now();
+      const { html, stats } = injectSegmentMarkers(main, mainSegs);
       main = html;
+      const ms = Math.round(performance.now() - t0);
+      recordStage('sefaria-align', 'Sefaria align', ms, {
+        detail: `${stats.alignedSegments}/${stats.totalSegments} segs · ${stats.alignedWords}/${stats.totalWords} words`,
+      });
     }
 
     // Chapter-closing formula "הדרן עלך ..." renders as its own centered
@@ -1834,7 +1850,14 @@ export default function DafViewer(): JSX.Element {
     const target = e.target as HTMLElement | null;
     if (!target) return false;
     const wordEl = target.closest?.('.daf-word') as HTMLElement | null;
-    if (!wordEl) return false;
+    // Clicked something that isn't a daf-word inside the daf surface (a
+    // gutter icon, between words, the column background, etc.) — clear
+    // any active anchor highlight so the user can move on without the
+    // stale highlight following them around.
+    if (!wordEl) {
+      if (commAnchorActive()) setCommAnchorActive(null);
+      return false;
+    }
 
     // Walk up to determine which column we're in. main has no .daf-comm-piece
     // ancestor; inner/outer DO.
@@ -1845,9 +1868,18 @@ export default function DafViewer(): JSX.Element {
       // overlay) so the user sees what the piece is commenting on.
       const pieceIdx = Number(pieceEl.getAttribute('data-piece-idx'));
       const comm = pieceEl.getAttribute('data-comm') as 'rashi' | 'tosafot' | null;
-      if (!comm || !Number.isFinite(pieceIdx)) return false;
+      if (!comm || !Number.isFinite(pieceIdx)) {
+        if (commAnchorActive()) setCommAnchorActive(null);
+        return false;
+      }
       const segs = idx.pieceToSegs.get(`${comm}:${pieceIdx}`) ?? [];
-      if (segs.length === 0) return false;
+      if (segs.length === 0) {
+        // The piece exists but has no daf segs mapped — clear anything
+        // active so a click on an unmapped piece reads as "dismiss",
+        // not "leave the previous highlight".
+        if (commAnchorActive()) setCommAnchorActive(null);
+        return false;
+      }
       const cur = commAnchorActive();
       const sameClick = cur && cur.direction === 'from-piece'
         && cur.pieces.length === 1
@@ -1865,11 +1897,23 @@ export default function DafViewer(): JSX.Element {
     // pieces only — the daf word the user clicked stays untouched (it's
     // already the reference; lighting it up just adds noise).
     const segAttr = wordEl.getAttribute('data-seg');
-    if (segAttr === null) return false;
+    if (segAttr === null) {
+      if (commAnchorActive()) setCommAnchorActive(null);
+      return false;
+    }
     const seg = Number(segAttr);
-    if (!Number.isFinite(seg)) return false;
+    if (!Number.isFinite(seg)) {
+      if (commAnchorActive()) setCommAnchorActive(null);
+      return false;
+    }
     const bucket = idx.segToPieces.get(seg);
-    if (!bucket || (bucket.rashi.length === 0 && bucket.tosafot.length === 0)) return false;
+    if (!bucket || (bucket.rashi.length === 0 && bucket.tosafot.length === 0)) {
+      // Clicked a main-column word that has no commentary attached.
+      // Treat as "dismiss the existing highlight" so the user can clear
+      // by clicking any unrelated word.
+      if (commAnchorActive()) setCommAnchorActive(null);
+      return false;
+    }
     const pieces: Array<{ comm: 'rashi' | 'tosafot'; idx: number }> = [
       ...bucket.rashi.map((i) => ({ comm: 'rashi' as const, idx: i })),
       ...bucket.tosafot.map((i) => ({ comm: 'tosafot' as const, idx: i })),
@@ -1884,6 +1928,16 @@ export default function DafViewer(): JSX.Element {
     });
     return true;
   };
+
+  // Esc also clears the anchor highlight — same key already closes
+  // sidebars elsewhere, so the behaviour reads consistently.
+  if (typeof window !== 'undefined') {
+    const onEsc = (ev: KeyboardEvent) => {
+      if (ev.key === 'Escape' && commAnchorActive()) setCommAnchorActive(null);
+    };
+    window.addEventListener('keydown', onEsc);
+    onCleanup(() => window.removeEventListener('keydown', onEsc));
+  }
 
   // Paint effect: toggle .comm-anchor-active on .daf-comm-piece elements
   // (the Rashi/Tosafot blocks). The main column's daf-words are NOT
@@ -2173,6 +2227,15 @@ export default function DafViewer(): JSX.Element {
                 outer={t.outer}
                 amud={pageAmud()}
                 options={{ contentWidth: dafWidth(), mainWidth: 0.48 }}
+                onLayout={(r) => {
+                  // Surface layout/spacer computation timing in the dev
+                  // renderer panel. The layout case + exception come from
+                  // the spacer engine; useful for debugging the rare
+                  // pages that hit a non-default layout case.
+                  recordStage('layout-spacers', 'Layout / spacers', Math.round(r.computeMs), {
+                    detail: `case=${r.spacers.layoutCase} · exc=${r.spacers.exception} · h=${Math.round(r.totalHeight)}px`,
+                  });
+                }}
               />
               {/* Per-kind measurement instances — each publishes its anchor
                   positions to the shared gutterStack. The single

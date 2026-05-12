@@ -2506,15 +2506,25 @@ app.get('/api/daf/:tractate/:page', async (c) => {
   const cache = c.env.CACHE;
 
   if (source !== 'sefaria') {
-    const [hb, segments] = await Promise.all([
+    // HB is the primary typography source for the printed-Talmud look, but
+    // we ALSO fetch Sefaria's bundle in parallel so we can overlay its
+    // per-piece arrays (rashi.pieces / tosafot.pieces) onto the response.
+    // The daf↔commentary anchor click feature requires Sefaria's piece
+    // segmentation to align with its link-anchor refs — without pieces,
+    // the inner/outer columns have no .daf-comm-piece markers and the
+    // click handler can't find anything to highlight. Sefaria failure is
+    // non-fatal; the daf still renders from HB without the anchor
+    // feature.
+    const [hb, segments, sefariaBundle] = await Promise.all([
       getHebrewBooksDafCached(cache, tractate, page),
       getSefariaSegmentsCached(cache, tractate, page),
+      getSefariaPageCached(cache, tractate, page).catch(() => null),
     ]);
     if (hb) {
       const data: TalmudPageData = {
         mainText: { hebrew: hb.main, english: '' },
-        rashi: hb.rashi ? { hebrew: hb.rashi, english: '' } : undefined,
-        tosafot: hb.tosafot ? { hebrew: hb.tosafot, english: '' } : undefined,
+        rashi: hb.rashi ? { hebrew: hb.rashi, english: '', pieces: sefariaBundle?.rashi?.pieces } : undefined,
+        tosafot: hb.tosafot ? { hebrew: hb.tosafot, english: '', pieces: sefariaBundle?.tosafot?.pieces } : undefined,
       };
       return c.json({
         ...data,

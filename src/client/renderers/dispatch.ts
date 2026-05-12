@@ -20,7 +20,6 @@
 
 import { injectRabbiUnderlines, type GenerationRabbi, normalizeHebrew } from '../injectRabbiUnderlines';
 import type { GenerationId } from '../generations';
-import { recordRender } from '../rendererActivity';
 
 export interface MarkInstance {
   excerpt?: string;
@@ -213,41 +212,20 @@ export function applyMarkRenderers(
   let out = html;
   for (const def of marks) {
     const run = runs[def.id];
+    if (!run?.parsed) continue;
     const key = `${def.anchor}:${def.render.kind}`;
-    const at = Date.now();
-    if (!run?.parsed) {
-      recordRender(def.id, key, { kind: 'skip-no-run', at });
-      continue;
-    }
     const r = RENDERERS[key];
-    if (!r) {
-      // No renderer registered for this (anchor, render) combo — expected
-      // for marks that render through the legacy DafViewer bridge
-      // (argument / halacha / aggadata / pesukim via gutter+sidebar).
-      recordRender(def.id, key, { kind: 'skip-no-renderer', at });
-      continue;
-    }
+    // No renderer registered for this (anchor, render) combo — expected
+    // for marks that render through the legacy DafViewer bridge
+    // (argument / halacha / aggadata / pesukim via gutter+sidebar).
+    if (!r) continue;
     const instances = run.parsed.instances ?? [];
-    if (instances.length === 0) {
-      recordRender(def.id, key, { kind: 'skip-zero-instances', at });
-      continue;
-    }
-    const t0 = performance.now();
+    if (instances.length === 0) continue;
     try {
-      const before = out.length;
       out = r(out, instances, def);
-      const ms = Math.round(performance.now() - t0);
-      recordRender(def.id, key, {
-        kind: 'applied',
-        instances: instances.length,
-        bytesBefore: before,
-        bytesAfter: out.length,
-        ms,
-        at,
-      });
     } catch (err) {
-      const msg = String((err as Error)?.message ?? err);
-      recordRender(def.id, key, { kind: 'error', error: msg, at });
+      // eslint-disable-next-line no-console
+      console.warn(`[renderer] ${def.id} (${key}) threw:`, err);
     }
   }
   return out;

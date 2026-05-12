@@ -25,6 +25,9 @@ export interface LayoutResult {
   spacers: SpacerHeights & { innerEnd: number; outerEnd: number };
   geometry: DafGeometry;
   totalHeight: number;
+  /** Wall-clock duration of the layout computation. Lets the caller surface
+   *  spacer-calc timing in dev panels without re-instrumenting. */
+  computeMs: number;
 }
 
 export function computeLayout(
@@ -32,6 +35,7 @@ export function computeLayout(
   options: DafOptions,
   amud: Amud = 'a',
 ): LayoutResult {
+  const t0 = typeof performance !== 'undefined' ? performance.now() : 0;
   const geometry = computeGeometry(options);
   const hasInner = !!texts.inner;
   const hasOuter = !!texts.outer;
@@ -158,6 +162,7 @@ export function computeLayout(
     },
     geometry,
     totalHeight,
+    computeMs: typeof performance !== 'undefined' ? performance.now() - t0 : 0,
   };
 
   if (typeof window !== 'undefined') {
