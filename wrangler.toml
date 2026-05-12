@@ -56,7 +56,12 @@ binding = "ENRICHMENT_QUEUE"
 queue = "enrichment-jobs"
 max_batch_size = 1
 max_batch_timeout = 1
-max_concurrency = 2
+# Bumped 2 → 10. Each LLM enrichment is a separate Worker invocation
+# (queue handler), so concurrency caps simultaneous LLM workloads, not
+# CPU on a single isolate. The previous cap of 2 made warming a 167-page
+# corpus prohibitively slow (~4-7h). AI Gateway handles backpressure if
+# any single provider rate-limits.
+max_concurrency = 10
 max_retries = 1
 
 [[kv_namespaces]]

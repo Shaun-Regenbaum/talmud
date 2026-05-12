@@ -58,6 +58,17 @@ export async function instanceIdOf(markInput: unknown): Promise<string> {
   if (markInput && typeof markInput === 'object') {
     const o = markInput as Record<string, unknown>;
     if (typeof o.id === 'string' && o.id) return slugId(o.id);
+    // Top-level identity fields — covers callers that pass a flat
+    // {name, nameHe, generation, region, places} shape (the rabbi
+    // sidebar does this from dafContext) rather than the mark-instance
+    // {excerpt, fields:{name,...}} shape (warmers and mark anchors do
+    // this). Without this, the two callers compute different
+    // instance_ids for the same rabbi and the cache misses across
+    // surfaces. Order mirrors the fields check below.
+    if (typeof o.name === 'string' && o.name) return slugId(o.name);
+    if (typeof o.topic === 'string' && o.topic) return slugId(o.topic);
+    if (typeof o.title === 'string' && o.title) return slugId(o.title);
+    if (typeof o.verseRef === 'string' && o.verseRef) return slugId(o.verseRef);
     const fields = o.fields as Record<string, unknown> | undefined;
     if (fields) {
       if (typeof fields.id === 'string' && fields.id) return slugId(fields.id);

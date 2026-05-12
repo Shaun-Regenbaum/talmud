@@ -22,6 +22,14 @@
  *     [--mark-timeout 240]  # seconds to wait for a mark to complete
  */
 
+// The local DNS resolver (127.0.2.2 — Pi-hole / VPN / corporate
+// resolver) has been observed to intermittently drop A-record lookups
+// for talmud.shaunregenbaum.com, killing the warmer mid-page with
+// ETIMEDOUT. Force Node to use Cloudflare's public DNS (1.1.1.1) so the
+// run is decoupled from the local resolver's stability.
+import dns from 'node:dns';
+dns.setServers(['1.1.1.1', '1.0.0.1', '8.8.8.8']);
+
 const args = process.argv.slice(2);
 const arg = (k, def) => {
   const i = args.indexOf(k);
@@ -57,25 +65,48 @@ const MARKS = Object.keys(MARK_SYNTHESIS);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function postRun(body) {
-  const r = await fetch(`${WORKER}/api/studio/run`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  let j = null;
-  try { j = await r.json(); } catch { /* ignore */ }
-  return { status: r.status, body: j };
+  // Retry on transient network errors (DNS flakes, ETIMEDOUT, connection
+  // resets). Up to 4 attempts with exponential backoff. Returns null
+  // status code only after exhausting retries.
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      const r = await fetch(`${WORKER}/api/studio/run`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      let j = null;
+      try { j = await r.json(); } catch { /* ignore */ }
+      return { status: r.status, body: j };
+    } catch (e) {
+      if (attempt === 3) {
+        return { status: 0, body: { error: `network: ${(e && e.message) || e}` } };
+      }
+      await sleep(500 * Math.pow(2, attempt));
+    }
+  }
+  return { status: 0, body: null };
 }
 
 async function pollUntilDone(runId, timeoutS) {
   const start = Date.now();
+  let consecutiveNetworkErrs = 0;
   while (Date.now() - start < timeoutS * 1000) {
     await sleep(1500);
-    const r = await fetch(`${WORKER}/api/studio/run-status/${encodeURIComponent(runId)}`);
-    let j = null;
-    try { j = await r.json(); } catch { return null; }
-    if (j && j.status === 'ok') return j;
-    if (j && j.status === 'error') return j;
+    try {
+      const r = await fetch(`${WORKER}/api/studio/run-status/${encodeURIComponent(runId)}`);
+      let j = null;
+      try { j = await r.json(); } catch { return null; }
+      if (j && j.status === 'ok') return j;
+      if (j && j.status === 'error') return j;
+      consecutiveNetworkErrs = 0;
+    } catch (e) {
+      // Transient network blip (DNS flake, ETIMEDOUT, etc.). Tolerate up
+      // to 10 consecutive failures (= ~15s of network unavailability)
+      // before giving up. Single blips just lose a poll tick.
+      consecutiveNetworkErrs++;
+      if (consecutiveNetworkErrs >= 10) return null;
+    }
   }
   return null;
 }
