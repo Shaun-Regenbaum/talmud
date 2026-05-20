@@ -86,7 +86,12 @@ type RunResponse =
   | { status: 'error'; error: string };
 
 const POLL_INTERVAL_MS = 1500;
-const POLL_TIMEOUT_MS = 180_000;
+// Cold-page syntheses (e.g. pesukim.synthesis) can run 60+ seconds end-to-end
+// once their leaves + anchor marks queue behind other in-flight jobs. With
+// client enrichmentQueue concurrency=4 and ~5–10 instances per page, the
+// last card in line can wait ~3–5 min. 600s gives enough headroom that
+// users don't see the synthesis card time out before the worker finishes.
+const POLL_TIMEOUT_MS = 600_000;
 
 async function runEnrichmentImpl(
   enrichmentId: string,
@@ -192,7 +197,11 @@ class RequestQueue {
   }
 }
 
-const enrichmentQueue = new RequestQueue(2);
+// Server max_concurrency=10 on the enrichment queue, so client can dispatch
+// more in parallel without overwhelming workerd. 4 gives a 2× speedup on
+// pages with many pesukim/argument-move instances without risking the
+// 2026-05-07 simultaneous-fan-out incident.
+const enrichmentQueue = new RequestQueue(4);
 
 interface Props {
   markId: string;
