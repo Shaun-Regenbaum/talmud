@@ -35,6 +35,15 @@ const TTL_NEGATIVE = 60 * 60;
 
 type FailedMarker = { __failed: true };
 
+/**
+ * Optional per-call hit/miss reporter. Callers that care about KV cache state
+ * (e.g. routes that emit an `x-cache` response header) pass `{ onCache: fn }`
+ * and get a 'hit' or 'miss' callback after the KV lookup completes.
+ */
+export interface CacheTrack {
+  onCache?: (state: 'hit' | 'miss') => void;
+}
+
 async function readCache<T>(
   cache: KVNamespace | undefined,
   key: string,
@@ -69,9 +78,11 @@ export async function getHebrewBooksDafCached(
   cache: KVNamespace | undefined,
   tractate: string,
   page: string,
+  track?: CacheTrack,
 ): Promise<HebrewBooksDaf | null> {
   const key = `hb:v1:${tractate}:${page}`;
   const hit = await readCache<HebrewBooksDaf | FailedMarker>(cache, key);
+  track?.onCache?.(hit ? 'hit' : 'miss');
   if (hit) {
     if ('__failed' in hit) return null;
     return hit;
@@ -92,12 +103,14 @@ export async function getSefariaPageCached(
   cache: KVNamespace | undefined,
   tractate: string,
   page: string,
+  track?: CacheTrack,
 ): Promise<TalmudPageData | null> {
   // v2: TalmudPageData.rashi/tosafot now carries pieces: string[] for the
   // daf↔commentary anchor feature. v1 entries lack pieces; bumping forces
   // a refetch so the field is populated.
   const key = `sefaria-bundle:v2:${tractate}:${page}`;
   const hit = await readCache<TalmudPageData>(cache, key);
+  track?.onCache?.(hit ? 'hit' : 'miss');
   if (hit) return hit;
   try {
     const data = await sefariaAPI.getTalmudPageWithCommentaries(tractate, page);

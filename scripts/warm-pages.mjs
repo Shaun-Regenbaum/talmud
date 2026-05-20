@@ -51,12 +51,16 @@ const PAGES = PAGES_RAW.split(',').map((s) => s.trim()).filter(Boolean).map((s) 
 
 // Marks → their synthesis enrichment (the aggregate that fans out to
 // every leaf via dependencies). Skip any mark whose synthesis hasn't been
-// shipped yet.
+// shipped yet. Every mark with a synthesis is registered so the warmer
+// fires the full per-instance enrichment chain for that family.
 const MARK_SYNTHESIS = {
   rabbi: 'rabbi.synthesis',
   argument: 'argument.synthesis',
+  'argument-move': 'argument-move.synthesis',  // per-move commentaries + synthesis
   halacha: 'halacha.synthesis',
   pesukim: 'pesukim.synthesis',
+  places: 'places.synthesis',
+  rishonim: 'rishonim.synthesis',
   // aggadata has no synthesis enrichment yet — anchor only.
   aggadata: null,
 };
@@ -139,6 +143,47 @@ async function fireSynthesis(tractate, page, enrichmentId, markInput) {
   }
 }
 
+/** Auxiliary endpoints the frontend hits beyond /api/studio/run. Each is
+ *  GET-cached server-side, so a single warm fetch primes the KV entry.
+ *  /api/daf-context is the slowest of these (legacy rabbi-id pipeline);
+ *  warming it explicitly so the rabbi sidebar's generationByName + slug
+ *  lookups don't pay the cold-start cost on first daf load. */
+async function warmAuxiliaryEndpoints(tractate, page) {
+  const endpoints = [
+    `/api/daf/${encodeURIComponent(tractate)}/${page}`,
+    `/api/daf-context/${encodeURIComponent(tractate)}/${page}`,
+    `/api/commentaries/${encodeURIComponent(tractate)}/${page}`,
+    `/api/references/${encodeURIComponent(tractate)}/${page}`,
+  ];
+  for (const path of endpoints) {
+    try {
+      // 30s timeout — daf-context can take ~10s on a cold page.
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 30000);
+      await fetch(`${WORKER}${path}`, { signal: controller.signal });
+      clearTimeout(timer);
+    } catch { /* ignore — tolerate one slow aux fetch per page */ }
+  }
+}
+
+/** Warm /api/pasuk for every cited verse on a page. Cheap-ish; each call
+ *  is one Sefaria fetch + KV write. The pesukim mark output gives us the
+ *  verseRefs to warm. */
+async function warmPasukim(tractate, page, pesukimResult) {
+  const instances = pesukimResult?.parsed?.instances;
+  if (!Array.isArray(instances)) return;
+  for (const inst of instances) {
+    const ref = inst?.fields?.verseRef;
+    if (!ref) continue;
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 12000);
+      await fetch(`${WORKER}/api/pasuk?ref=${encodeURIComponent(ref)}`, { signal: controller.signal });
+      clearTimeout(timer);
+    } catch { /* ignore */ }
+  }
+}
+
 let pagesDone = 0;
 let syntheses = 0;
 let markErrors = 0;
@@ -148,6 +193,10 @@ for (const { tractate, page } of PAGES) {
   pagesDone++;
   const pT0 = Date.now();
   const synthesesBefore = syntheses;
+  // Warm the auxiliary endpoints in parallel with the first marks. These
+  // are cheap GETs that the frontend hits on daf load — daf text, legacy
+  // rabbi-context (generationByName), commentary picker, references.
+  const auxPromise = warmAuxiliaryEndpoints(tractate, page);
   // Fire all marks for this page in parallel.
   const results = await Promise.all(
     MARKS.map(async (mark) => {
@@ -155,6 +204,7 @@ for (const { tractate, page } of PAGES) {
       return { mark, ...out };
     }),
   );
+  await auxPromise;
   // For each successful mark, fan out syntheses per instance.
   for (const r of results) {
     if (!r.ok) {
@@ -169,6 +219,12 @@ for (const { tractate, page } of PAGES) {
     for (const inst of instances) {
       await fireSynthesis(tractate, page, synthId, inst);
       syntheses++;
+    }
+    // Pesukim: also warm the /api/pasuk endpoint for each cited verse
+    // (used by the pasuk sidebar's "expanded" view that shows the verse
+    // in context with prev/next verses).
+    if (r.mark === 'pesukim') {
+      await warmPasukim(tractate, page, { parsed: r.parsed });
     }
   }
   const pElapsed = Math.round((Date.now() - pT0) / 1000);

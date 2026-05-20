@@ -15,6 +15,7 @@ import {
   getSaCommentaryCached,
   getDafTopicsCached,
   getMishnaBundleCached,
+  type CacheTrack,
 } from './source-cache';
 import { runWarmCron, readWarmCursor, warmProgressProcessed, getWarmTotal, type EmailBinding } from './warm-cron';
 import {
@@ -2505,6 +2506,20 @@ app.get('/api/daf/:tractate/:page', async (c) => {
   const source = c.req.query('source');
   const cache = c.env.CACHE;
 
+  // Track KV hit/miss state across all slice fetches so we can emit an
+  // x-cache: hit|miss|partial header. The renderer-activity panel reads
+  // this to label daf-fetch accurately, replacing a brittle client-side
+  // timing heuristic that always reported "miss" because edge RTT + 3
+  // parallel KV gets routinely exceeded the 50ms threshold even when
+  // everything was warm.
+  const states: Array<'hit' | 'miss'> = [];
+  const track: CacheTrack = { onCache: (s) => states.push(s) };
+  const setCacheHeader = () => {
+    if (states.length === 0) { c.header('x-cache', 'miss'); return; }
+    const hits = states.filter((s) => s === 'hit').length;
+    c.header('x-cache', hits === states.length ? 'hit' : hits === 0 ? 'miss' : 'partial');
+  };
+
   if (source !== 'sefaria') {
     // HB is the primary typography source for the printed-Talmud look, but
     // we ALSO fetch Sefaria's bundle in parallel so we can overlay its
@@ -2516,9 +2531,9 @@ app.get('/api/daf/:tractate/:page', async (c) => {
     // non-fatal; the daf still renders from HB without the anchor
     // feature.
     const [hb, segments, sefariaBundle] = await Promise.all([
-      getHebrewBooksDafCached(cache, tractate, page),
-      getSefariaSegmentsCached(cache, tractate, page),
-      getSefariaPageCached(cache, tractate, page).catch(() => null),
+      getHebrewBooksDafCached(cache, tractate, page, track),
+      getSefariaSegmentsCached(cache, tractate, page, track),
+      getSefariaPageCached(cache, tractate, page, track).catch(() => null),
     ]);
     if (hb) {
       const data: TalmudPageData = {
@@ -2526,6 +2541,7 @@ app.get('/api/daf/:tractate/:page', async (c) => {
         rashi: hb.rashi ? { hebrew: hb.rashi, english: '', pieces: sefariaBundle?.rashi?.pieces } : undefined,
         tosafot: hb.tosafot ? { hebrew: hb.tosafot, english: '', pieces: sefariaBundle?.tosafot?.pieces } : undefined,
       };
+      setCacheHeader();
       return c.json({
         ...data,
         _source: 'hebrewbooks',
@@ -2534,14 +2550,16 @@ app.get('/api/daf/:tractate/:page', async (c) => {
       });
     }
     if (source === 'hebrewbooks') {
+      setCacheHeader();
       return c.json({ error: 'HebrewBooks fetch failed' }, 502);
     }
   }
 
   const [data, segments] = await Promise.all([
-    getSefariaPageCached(cache, tractate, page),
-    getSefariaSegmentsCached(cache, tractate, page),
+    getSefariaPageCached(cache, tractate, page, track),
+    getSefariaSegmentsCached(cache, tractate, page, track),
   ]);
+  setCacheHeader();
   if (!data) return c.json({ error: 'Sefaria fetch failed' }, 502);
   return c.json({
     ...data,
@@ -2610,13 +2628,17 @@ async function getSefariaSegmentsCached(
   cache: KVNamespace | undefined,
   tractate: string,
   page: string,
+  track?: CacheTrack,
 ): Promise<SefariaSegments | null> {
   const cacheKey = `sefaria-seg:v1:${tractate}:${page}`;
   if (cache) {
     const cached = await cache.get(cacheKey);
+    track?.onCache?.(cached !== null ? 'hit' : 'miss');
     if (cached !== null) {
       try { return JSON.parse(cached) as SefariaSegments; } catch { /* fall through */ }
     }
+  } else {
+    track?.onCache?.('miss');
   }
   try {
     const ref = `${tractate}.${page}`;

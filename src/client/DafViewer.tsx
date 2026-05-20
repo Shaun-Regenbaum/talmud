@@ -64,12 +64,13 @@ async function fetchDaf(ref: Ref): Promise<TalmudPageData> {
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = await res.json() as TalmudPageData & { _source?: string };
   const ms = Math.round(performance.now() - t0);
-  // The /api/daf worker doesn't currently emit a cache-state header, but
-  // very-fast responses (<50ms) are almost certainly KV cache hits and
-  // slow responses are upstream fetches. Tune the heuristic if/when the
-  // worker starts emitting a real cf-cache-status equivalent.
-  const cache: 'hit' | 'miss' = ms < 50 ? 'hit' : 'miss';
-  const detail = `${ref.tractate} ${ref.page} · ${json._source ?? 'unknown'}`;
+  // The worker emits x-cache: hit|miss|partial reflecting KV state across
+  // the three slice reads. 'partial' (some hit, some miss) renders as
+  // 'miss' since at least one upstream fetch ran.
+  const xCache = res.headers.get('x-cache');
+  const cache: 'hit' | 'miss' = xCache === 'hit' ? 'hit' : 'miss';
+  const cacheDetail = xCache === 'partial' ? ' (partial)' : '';
+  const detail = `${ref.tractate} ${ref.page} · ${json._source ?? 'unknown'}${cacheDetail}`;
   recordStage('daf-fetch', 'Daf fetch', ms, { cache, detail });
   return json;
 }
