@@ -184,56 +184,131 @@ async function warmPasukim(tractate, page, pesukimResult) {
   }
 }
 
+/**
+ * Block until the worker is reachable. When the local network drops mid-run
+ * (DNS resolver flake, VPN drop, etc.) every fetch returns HTTP 0 instantly,
+ * the per-mark retry exhausts in milliseconds, and a long run can chew
+ * through hundreds of pages without warming anything — they all get logged
+ * as "done · +0 syntheses · err=8". Health-checking before each page makes
+ * the warmer wait through the outage instead of pretending pages are warm.
+ *
+ * Probe: GET /api/admin/warm-status (cheap, no LLM, returns 200 instantly
+ * when the worker is up). Exponential backoff with a 60s cap so a long
+ * outage doesn't busy-loop. Logs each transition so the operator can see
+ * what's happening.
+ */
+async function awaitNetworkHealthy() {
+  let consecutiveFails = 0;
+  while (true) {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8000);
+      const r = await fetch(`${WORKER}/api/admin/warm-status`, { signal: controller.signal });
+      clearTimeout(timer);
+      if (r.ok) {
+        if (consecutiveFails > 0) {
+          console.log(`[health] recovered after ${consecutiveFails} fails`);
+        }
+        return;
+      }
+      consecutiveFails++;
+    } catch {
+      consecutiveFails++;
+    }
+    const wait = Math.min(60_000, 1000 * Math.pow(2, Math.min(consecutiveFails, 6)));
+    if (consecutiveFails <= 2 || consecutiveFails % 5 === 0) {
+      console.warn(`[health] unreachable, sleeping ${wait / 1000}s (fail ${consecutiveFails})`);
+    }
+    await sleep(wait);
+  }
+}
+
 let pagesDone = 0;
 let syntheses = 0;
 let markErrors = 0;
+let pagesFakeDone = 0;
+let pagesRetried = 0;
 const t0 = Date.now();
 
+const MAX_PAGE_RETRIES = 3;
+
 for (const { tractate, page } of PAGES) {
-  pagesDone++;
-  const pT0 = Date.now();
-  const synthesesBefore = syntheses;
-  // Warm the auxiliary endpoints in parallel with the first marks. These
-  // are cheap GETs that the frontend hits on daf load — daf text, legacy
-  // rabbi-context (generationByName), commentary picker, references.
-  const auxPromise = warmAuxiliaryEndpoints(tractate, page);
-  // Fire all marks for this page in parallel.
-  const results = await Promise.all(
-    MARKS.map(async (mark) => {
-      const out = await runMarkSync(tractate, page, mark);
-      return { mark, ...out };
-    }),
-  );
-  await auxPromise;
-  // For each successful mark, fan out syntheses per instance.
-  for (const r of results) {
-    if (!r.ok) {
-      markErrors++;
-      console.error(`✗ ${tractate}/${page} ${r.mark}: ${r.error}`);
+  // Page-level retry: if every mark fails on this page, it's almost
+  // certainly a network blip rather than a data problem. Retry the page
+  // up to MAX_PAGE_RETRIES times with health-check + backoff between
+  // attempts. After the cap, log a fake-done warning and advance.
+  let success = false;
+  let attempt = 0;
+  while (!success && attempt <= MAX_PAGE_RETRIES) {
+    if (attempt > 0) {
+      pagesRetried++;
+      console.warn(`[retry] ${tractate}/${page} attempt ${attempt + 1}/${MAX_PAGE_RETRIES + 1}`);
+      await awaitNetworkHealthy();
+      await sleep(2000 * attempt);
+    } else {
+      // Cheap pre-flight on every page — costs ~50ms when healthy, blocks
+      // for as long as it takes when not.
+      await awaitNetworkHealthy();
+    }
+    pagesDone++;
+    const pT0 = Date.now();
+    const synthesesBefore = syntheses;
+    const markErrorsBefore = markErrors;
+    const auxPromise = warmAuxiliaryEndpoints(tractate, page);
+    const results = await Promise.all(
+      MARKS.map(async (mark) => {
+        const out = await runMarkSync(tractate, page, mark);
+        return { mark, ...out };
+      }),
+    );
+    await auxPromise;
+    const successCount = results.filter((r) => r.ok).length;
+    for (const r of results) {
+      if (!r.ok) {
+        markErrors++;
+        console.error(`✗ ${tractate}/${page} ${r.mark}: ${r.error}`);
+        continue;
+      }
+      const synthId = MARK_SYNTHESIS[r.mark];
+      if (!synthId) continue;
+      const instances = r.parsed?.instances;
+      if (!Array.isArray(instances)) continue;
+      for (const inst of instances) {
+        await fireSynthesis(tractate, page, synthId, inst);
+        syntheses++;
+      }
+      if (r.mark === 'pesukim') {
+        await warmPasukim(tractate, page, { parsed: r.parsed });
+      }
+    }
+    const pElapsed = Math.round((Date.now() - pT0) / 1000);
+    const totalElapsed = Math.round((Date.now() - t0) / 1000);
+    const sCount = syntheses - synthesesBefore;
+    if (successCount === 0) {
+      // All marks failed — almost certainly network. Don't accept this
+      // page as done; rewind the counter and let the while loop retry.
+      pagesDone--;
+      // Undo the markErrors bump so retries don't double-count.
+      markErrors = markErrorsBefore;
+      attempt++;
+      if (attempt > MAX_PAGE_RETRIES) {
+        pagesFakeDone++;
+        console.error(
+          `[fake-done] ${tractate}/${page} · all marks failed ${MAX_PAGE_RETRIES + 1}× · skipping`,
+        );
+        pagesDone++;  // accept the skip and move on
+        break;
+      }
       continue;
     }
-    const synthId = MARK_SYNTHESIS[r.mark];
-    if (!synthId) continue;
-    const instances = r.parsed?.instances;
-    if (!Array.isArray(instances)) continue;
-    for (const inst of instances) {
-      await fireSynthesis(tractate, page, synthId, inst);
-      syntheses++;
-    }
-    // Pesukim: also warm the /api/pasuk endpoint for each cited verse
-    // (used by the pasuk sidebar's "expanded" view that shows the verse
-    // in context with prev/next verses).
-    if (r.mark === 'pesukim') {
-      await warmPasukim(tractate, page, { parsed: r.parsed });
-    }
+    success = true;
+    console.log(
+      `[${pagesDone}/${PAGES.length}] ${tractate}/${page} · ${pElapsed}s · +${sCount} syntheses · running ${totalElapsed}s · total syntheses=${syntheses} err=${markErrors} ok=${successCount}/${MARKS.length}`,
+    );
   }
-  const pElapsed = Math.round((Date.now() - pT0) / 1000);
-  const totalElapsed = Math.round((Date.now() - t0) / 1000);
-  const sCount = syntheses - synthesesBefore;
-  console.log(`[${pagesDone}/${PAGES.length}] ${tractate}/${page} · ${pElapsed}s · +${sCount} syntheses · running ${totalElapsed}s · total syntheses=${syntheses} err=${markErrors}`);
 }
 
 const totalElapsed = Math.round((Date.now() - t0) / 1000);
 console.log('');
-console.log(`Done. pages=${PAGES.length} syntheses-fired=${syntheses} mark-errors=${markErrors} · ${totalElapsed}s`);
+console.log(`Done. pages=${PAGES.length} syntheses-fired=${syntheses} mark-errors=${markErrors} retries=${pagesRetried} fake-done=${pagesFakeDone} · ${totalElapsed}s`);
 console.log('Synthesis enrichments fire-and-forget — they fan out the full leaf set via deps, drained by the queue (concurrency=2). The KV will become fully hot as they complete in the background.');
