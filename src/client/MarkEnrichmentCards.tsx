@@ -21,7 +21,7 @@ import { createResource, createSignal, createEffect, untrack, For, Show, type JS
 import { Portal } from 'solid-js/web';
 import { HebraizedWithRabbis as Hebraized } from './rabbiLinks';
 import { devModeActive } from './DevModeShelf';
-import { trackAI } from './aiActivity';
+import { trackAI, queueActivity } from './aiActivity';
 import InstanceInspectorShelf from './InstanceInspectorShelf';
 
 // Single global "which card has the inspector open?" signal — keyed by the
@@ -117,6 +117,34 @@ async function runEnrichmentImpl(
   return j as unknown as RunResult;
 }
 
+// Builds the activity-store id + label for an enrichment run. Pulled out
+// of runEnrichment() so the request queue can mark the entry `queued` the
+// moment it's pushed onto the FIFO (before a slot is free) — the same id
+// is later promoted to `loading` by trackAI() when the task actually fires.
+function enrichmentActivityKey(
+  enrichmentId: string,
+  tractate: string,
+  page: string,
+  markInput: unknown,
+  instanceKey: string,
+): { id: string; label: string } {
+  const inst = markInput as
+    | { name?: string; fields?: { id?: string; name?: string; verseRef?: string; topic?: string } }
+    | null;
+  const instanceTag =
+    inst?.fields?.id
+    ?? inst?.fields?.name
+    ?? inst?.fields?.verseRef
+    ?? inst?.fields?.topic
+    ?? inst?.name
+    ?? '';
+  const id = `${enrichmentId}:${tractate}:${page}:${instanceKey}`;
+  const label = instanceTag
+    ? `${enrichmentId} · ${instanceTag} · ${tractate} ${page}`
+    : `${enrichmentId} · ${tractate} ${page}`;
+  return { id, label };
+}
+
 // Wraps the actual run in `trackAI` so the AIActivityPanel sees the
 // loading→ok lifecycle and the dev-shelf log captures [ai] lines.
 //
@@ -133,20 +161,7 @@ async function runEnrichment(
   markInput: unknown,
   instanceKey: string,
 ): Promise<RunResult> {
-  const inst = markInput as
-    | { name?: string; fields?: { id?: string; name?: string; verseRef?: string; topic?: string } }
-    | null;
-  const instanceTag =
-    inst?.fields?.id
-    ?? inst?.fields?.name
-    ?? inst?.fields?.verseRef
-    ?? inst?.fields?.topic
-    ?? inst?.name
-    ?? '';
-  const id = `${enrichmentId}:${tractate}:${page}:${instanceKey}`;
-  const label = instanceTag
-    ? `${enrichmentId} · ${instanceTag} · ${tractate} ${page}`
-    : `${enrichmentId} · ${tractate} ${page}`;
+  const { id, label } = enrichmentActivityKey(enrichmentId, tractate, page, markInput, instanceKey);
   return trackAI(id, label, () => runEnrichmentImpl(enrichmentId, tractate, page, markInput));
 }
 
@@ -176,7 +191,15 @@ class RequestQueue {
   private queue: Array<() => void> = [];
   private active = 0;
   constructor(private readonly concurrency: number) {}
-  enqueue<T>(task: () => Promise<T>): Promise<T> {
+  // `activityId` + `activityLabel` are reported to the shared activity
+  // store as a `queued` entry the instant the task is pushed onto the
+  // FIFO. When pump() finally invokes the task, trackAI() inside the work
+  // function promotes the same id to `loading`. If a slot is free
+  // immediately (active < concurrency), the queued state is set then
+  // overwritten on the same tick — that's fine; the panel just never
+  // shows a flash of "queued" for fast-path enqueues.
+  enqueue<T>(activityId: string, activityLabel: string, task: () => Promise<T>): Promise<T> {
+    queueActivity(activityId, activityLabel);
     return new Promise((resolve, reject) => {
       const run = () => {
         this.active++;
@@ -275,7 +298,10 @@ export default function MarkEnrichmentCards(props: Props) {
         const cur = runs()[d.id];
         if (cur && cur.kind !== 'idle' && cur.stamp === s) continue;
         setRun(d.id, { kind: 'loading', stamp: s });
-        void enrichmentQueue.enqueue(() =>
+        const { id: actId, label: actLabel } = enrichmentActivityKey(
+          d.id, props.tractate, props.page, props.instance, props.instanceKey,
+        );
+        void enrichmentQueue.enqueue(actId, actLabel, () =>
           runEnrichment(d.id, props.tractate, props.page, props.instance, props.instanceKey),
         ).then(
           (result) => {

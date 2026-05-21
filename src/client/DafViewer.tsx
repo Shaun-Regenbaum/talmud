@@ -450,7 +450,16 @@ export default function DafViewer(): JSX.Element {
       instances?: Array<{
         startSegIdx: number;
         endSegIdx: number;
-        fields: { title: string; titleHe?: string; summary: string; excerpt: string; theme?: string };
+        fields: {
+          title: string;
+          titleHe?: string;
+          summary: string;
+          excerpt: string;
+          endExcerpt?: string;
+          tokenStart?: number;
+          tokenEnd?: number;
+          theme?: string;
+        };
       }>;
     };
     if (!Array.isArray(p.instances)) return;
@@ -460,6 +469,11 @@ export default function DafViewer(): JSX.Element {
         titleHe: inst.fields.titleHe,
         summary: inst.fields.summary,
         excerpt: inst.fields.excerpt,
+        endExcerpt: inst.fields.endExcerpt,
+        startSegIdx: inst.startSegIdx,
+        endSegIdx: inst.endSegIdx,
+        tokenStart: inst.fields.tokenStart,
+        tokenEnd: inst.fields.tokenEnd,
         theme: inst.fields.theme,
       })),
     };
@@ -1144,32 +1158,41 @@ export default function DafViewer(): JSX.Element {
     }
 
     if (s?.kind === 'aggadata') {
-      const anchor = dafRootDiv.querySelector<HTMLElement>(
-        `.daf-aggadata-anchor[data-idx="${s.index}"]`,
-      );
+      const story = s.story;
       const mainText = dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
-      if (anchor && mainText) {
-        // Prefer the story's explicit closing anchor so the highlight ends
-        // where the narrative actually ends. Fall back to the next story's
-        // start anchor, then to the end of the amud, when the end anchor is
-        // missing (LLM paraphrased or the match normalization dropped it).
-        const endAnchor = dafRootDiv.querySelector<HTMLElement>(
-          `.daf-aggadata-end-anchor[data-idx="${s.index}"]`,
+      const hasTokens = typeof story.tokenStart === 'number' && typeof story.tokenEnd === 'number'
+        && typeof story.startSegIdx === 'number' && typeof story.endSegIdx === 'number';
+      if (hasTokens && mainText) {
+        // Worker post-processor resolved both anchors to (seg, tok) — paint
+        // exactly that span, ignoring the injected anchor markers entirely.
+        const r = buildTokenRange(mainText, story.startSegIdx!, story.endSegIdx!, story.tokenStart, story.tokenEnd);
+        if (r) collectRange(r, 'aggadata');
+      } else {
+        const anchor = dafRootDiv.querySelector<HTMLElement>(
+          `.daf-aggadata-anchor[data-idx="${s.index}"]`,
         );
-        const range = document.createRange();
-        range.setStartAfter(anchor);
-        if (endAnchor) {
-          range.setEndAfter(endAnchor);
-        } else {
-          const allStoryAnchors = Array.from(
-            dafRootDiv.querySelectorAll<HTMLElement>('.daf-aggadata-anchor'),
-          ).sort((a, b) => Number(a.getAttribute('data-idx') ?? 0) - Number(b.getAttribute('data-idx') ?? 0));
-          const pos = allStoryAnchors.findIndex((el) => el === anchor);
-          const next = pos >= 0 && pos + 1 < allStoryAnchors.length ? allStoryAnchors[pos + 1] : null;
-          if (next) range.setEndBefore(next);
-          else range.setEndAfter(mainText);
+        if (anchor && mainText) {
+          // Fallback: rely on the injected anchor markers. Prefer the
+          // story's explicit closing anchor; otherwise the next story's
+          // start; otherwise (worst case) the end of the amud.
+          const endAnchor = dafRootDiv.querySelector<HTMLElement>(
+            `.daf-aggadata-end-anchor[data-idx="${s.index}"]`,
+          );
+          const range = document.createRange();
+          range.setStartAfter(anchor);
+          if (endAnchor) {
+            range.setEndAfter(endAnchor);
+          } else {
+            const allStoryAnchors = Array.from(
+              dafRootDiv.querySelectorAll<HTMLElement>('.daf-aggadata-anchor'),
+            ).sort((a, b) => Number(a.getAttribute('data-idx') ?? 0) - Number(b.getAttribute('data-idx') ?? 0));
+            const pos = allStoryAnchors.findIndex((el) => el === anchor);
+            const next = pos >= 0 && pos + 1 < allStoryAnchors.length ? allStoryAnchors[pos + 1] : null;
+            if (next) range.setEndBefore(next);
+            else range.setEndAfter(mainText);
+          }
+          collectRange(range, 'aggadata');
         }
-        collectRange(range, 'aggadata');
       }
     }
 
@@ -2426,6 +2449,7 @@ export default function DafViewer(): JSX.Element {
                 'border-radius': '50%',
                 border: '2px solid #d6d3d1', 'border-top-color': '#0f766e',
                 animation: 'daf-spin 0.8s linear infinite',
+                'flex-shrink': 0,
               }} />
               {s.label || s.id}…
             </span>

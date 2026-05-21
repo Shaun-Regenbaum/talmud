@@ -205,6 +205,7 @@ export function GenerationTimeline(props: GenerationTimelineProps): JSX.Element 
               'border-radius': '50%',
               border: '2px solid #d6d3d1', 'border-top-color': '#7c2d12',
               animation: 'daf-spin 0.8s linear infinite',
+              'flex-shrink': 0,
             }} />
             <span>Organizing the timeline…</span>
           </Show>
