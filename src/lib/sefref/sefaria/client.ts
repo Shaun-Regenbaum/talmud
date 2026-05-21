@@ -138,6 +138,59 @@ function parseAnchorRefRange(anchorRef: string): { start: number; end: number } 
   return { start, end };
 }
 
+/**
+ * v3 response shape. Unlike v1, v3 returns the actual text shape Sefaria
+ * stores: Talmud commentary is depth-2 (`string[][]`, one inner array per
+ * main-text segment), while the v1 `/api/texts/` endpoint silently flattens
+ * to segment 0 only — losing every piece past the first segment. See
+ * `flattenPieces` for the unwrap.
+ */
+interface SefariaV3Response {
+  ref: string;
+  versions: Array<{
+    language?: string;
+    actualLanguage?: string;
+    text: unknown;
+  }>;
+}
+
+/**
+ * Flatten any depth of nested string arrays into a flat list of non-empty
+ * strings. Sefaria stores Talmud commentary as `string[][]` (segment →
+ * pieces), Rishonim as `string[]`, and individual snippets as `string`.
+ *
+ * @internal Exported for unit tests.
+ */
+export function flattenPieces(text: unknown): string[] {
+  if (typeof text === 'string') return text.length > 0 ? [text] : [];
+  if (!Array.isArray(text)) return [];
+  const out: string[] = [];
+  for (const entry of text) {
+    if (typeof entry === 'string') {
+      if (entry.length > 0) out.push(entry);
+    } else if (Array.isArray(entry)) {
+      out.push(...flattenPieces(entry));
+    }
+  }
+  return out;
+}
+
+/**
+ * Pick the version whose `actualLanguage`/`language` matches the requested
+ * tag. Sefaria returns versions[] in catalog order, which is not necessarily
+ * the language order we asked for.
+ *
+ * @internal Exported for unit tests.
+ */
+export function pickV3Version(versions: SefariaV3Response['versions'], lang: 'he' | 'en'): unknown {
+  for (const v of versions) {
+    const tag = (v.actualLanguage ?? v.language ?? '').toLowerCase();
+    if (lang === 'he' && (tag === 'he' || tag === 'hebrew')) return v.text;
+    if (lang === 'en' && (tag === 'en' || tag === 'english')) return v.text;
+  }
+  return undefined;
+}
+
 class SefariaAPI {
   async getText(ref: string, options?: {
     lang?: string;
@@ -160,6 +213,20 @@ class SefariaAPI {
       throw new Error(`Failed to fetch text: ${response.statusText}`);
     }
 
+    return response.json();
+  }
+
+  /**
+   * Fetch a ref via the v3 texts endpoint, requesting both Hebrew and English
+   * versions in one round-trip. Required for Talmud commentary (Rashi /
+   * Tosafot), which v1 silently truncates to its first segment.
+   */
+  async getTextV3(ref: string): Promise<SefariaV3Response> {
+    const url = `${SEFARIA_API_BASE}/v3/texts/${encodeURIComponent(ref)}?version=hebrew&version=english`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch v3 text: ${response.statusText}`);
+    }
     return response.json();
   }
 
@@ -189,34 +256,34 @@ class SefariaAPI {
       link.type === 'commentary'
     );
 
-    let rashiData = null;
-    let tosafotData = null;
-
-    if (rashiLink) {
-      try {
-        rashiData = await this.getText(rashiLink.ref);
-      } catch (e) {
+    // Talmud commentary lives at depth-2 (`he: string[][]`); v1 only returns
+    // segment 0. v3 preserves the full shape — we flatten to one piece per
+    // lemma so the renderer's anchor markers map 1:1 to actual Rashi /
+    // Tosafot entries.
+    const [rashiV3, tosafotV3] = await Promise.all([
+      rashiLink ? this.getTextV3(rashiLink.ref).catch((e) => {
         console.warn('Failed to fetch Rashi:', e);
-      }
-    }
-
-    if (tosafotLink) {
-      try {
-        tosafotData = await this.getText(tosafotLink.ref);
-      } catch (e) {
+        return null;
+      }) : Promise.resolve(null),
+      tosafotLink ? this.getTextV3(tosafotLink.ref).catch((e) => {
         console.warn('Failed to fetch Tosafot:', e);
-      }
-    }
+        return null;
+      }) : Promise.resolve(null),
+    ]);
 
     const formatText = (text: string | string[]): string => {
       return Array.isArray(text) ? text.join(' ') : text;
     };
-    /** Preserve per-piece array shape when Sefaria gave us one. Returns
-     *  undefined when the source was a single string (no piece boundaries
-     *  to anchor against). */
-    const piecesOf = (text: string | string[]): string[] | undefined => {
-      if (!Array.isArray(text)) return undefined;
-      return text.map((p) => (typeof p === 'string' ? p : ''));
+    const buildCommentary = (data: SefariaV3Response | null) => {
+      if (!data) return undefined;
+      const hePieces = flattenPieces(pickV3Version(data.versions, 'he'));
+      const enPieces = flattenPieces(pickV3Version(data.versions, 'en'));
+      if (hePieces.length === 0 && enPieces.length === 0) return undefined;
+      return {
+        hebrew: hePieces.join(' '),
+        english: enPieces.join(' '),
+        pieces: hePieces.length > 0 ? hePieces : undefined,
+      };
     };
 
     return {
@@ -224,16 +291,8 @@ class SefariaAPI {
         hebrew: formatText(mainTextResponse.he),
         english: formatText(mainTextResponse.text)
       },
-      rashi: rashiData ? {
-        hebrew: formatText(rashiData.he),
-        english: formatText(rashiData.text),
-        pieces: piecesOf(rashiData.he),
-      } : undefined,
-      tosafot: tosafotData ? {
-        hebrew: formatText(tosafotData.he),
-        english: formatText(tosafotData.text),
-        pieces: piecesOf(tosafotData.he),
-      } : undefined
+      rashi: buildCommentary(rashiV3),
+      tosafot: buildCommentary(tosafotV3),
     };
   }
 

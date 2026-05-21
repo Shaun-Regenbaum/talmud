@@ -102,7 +102,7 @@ describe('source-cache CacheTrack', () => {
     it('reports hit when KV has the entry', async () => {
       const states: Array<'hit' | 'miss'> = [];
       const kv = makeFakeKV({
-        'sefaria-bundle:v2:Berakhot:2a': JSON.stringify({
+        'sefaria-bundle:v3:Berakhot:2a': JSON.stringify({
           mainText: { hebrew: 'cached-h', english: 'cached-e' },
         }),
       });
