@@ -2605,7 +2605,7 @@ CODE_ENRICHMENTS.push(
   ),
   makeEnrichment(
     'halacha', 'halacha.synthesis', 'Synthesis',
-    'One tight paragraph: daf conclusion → codification → practical rule → key dispute (if any).',
+    'One tight paragraph weaving codification, dispute, and (optionally) gemara source — short orientation, then the narrative thread the structured cards cannot give.',
     HALACHA_SYNTHESIS_SYSTEM_PROMPT, HALACHA_SYNTHESIS_USER_TEMPLATE, HALACHA_SYNTHESIS_OUTPUT_SCHEMA,
     {
       mode: 'aggregate', scope: 'local',
@@ -2615,7 +2615,7 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'halacha.practical' },
         { enrichment: 'halacha.disputes' },
       ],
-      defHash: 'halacha.synthesis-v2', cacheVersion: '2',
+      defHash: 'halacha.synthesis-v3', cacheVersion: '3',
     },
   ),
 );

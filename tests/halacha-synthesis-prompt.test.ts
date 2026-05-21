@@ -16,7 +16,15 @@ describe('HALACHA_SYNTHESIS_SYSTEM_PROMPT', () => {
 
   it('frames the paragraph as modern-day halacha, not historical survey', () => {
     expect(p).toMatch(/modern-day halacha|contemporary/i);
-    expect(p).toMatch(/LEAD with the practical halacha today/);
+  });
+
+  it('forces sentence (a) to be an orientation, not a restatement of the Practical card', () => {
+    // Past regression: (a) duplicated the Practical card's lechatchila/bedieved.
+    // The synthesis paragraph's job is the narrative thread the cards cannot
+    // give; mechanics live in the dedicated card.
+    expect(p).toMatch(/ONE short orienting sentence/);
+    expect(p).toMatch(/NOT a restatement of the Practical card/);
+    expect(p).toMatch(/narrative thread/i);
   });
 
   it('bans academic Talmud-scholar register', () => {
@@ -29,7 +37,7 @@ describe('HALACHA_SYNTHESIS_SYSTEM_PROMPT', () => {
   it('locks the section ordering: practical → codes → disputes → gemara source', () => {
     // Match the (a)/(b)/(c)/(d) markers in the JSON-schema description so we
     // don't accidentally pick up the same phrases in the intro sentence.
-    const a = p.indexOf('(a) the practical halacha today');
+    const a = p.indexOf('(a) ONE short orienting sentence');
     const b = p.indexOf('(b) where it sits in the codes');
     const c = p.indexOf('(c) live disputes');
     const d = p.indexOf('(d) gemara source');
@@ -51,8 +59,8 @@ describe('HALACHA_SYNTHESIS_SYSTEM_PROMPT', () => {
     expect(p).toMatch(/Do NOT re-translate the same term twice/);
   });
 
-  it('keeps the 4-5 sentence hard ceiling', () => {
-    expect(p).toMatch(/4-5 sentences/);
+  it('allows 3-5 sentences with a hard ceiling at 5', () => {
+    expect(p).toMatch(/3-5 sentences/);
     expect(p).toMatch(/Hard ceiling/);
   });
 
