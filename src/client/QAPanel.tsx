@@ -1,16 +1,18 @@
 /**
- * QAPanel — "Explore deeper" expander attached to each argument-move card.
+ * QAPanel — "Questions" expander attached to a mark instance card. Used on
+ * argument-move and pesukim today; any mark that registers
+ * `<mark>.suggested-questions` + `<mark>.qa` enrichments can mount this.
  *
  * What it does
  * ------------
- * 1. Renders a collapsed "Explore deeper" button. The first time the user
+ * 1. Renders a collapsed "Questions" button. The first time the user
  *    expands it, fetches the curated suggested-questions list (via
- *    /api/studio/run for argument-move.suggested-questions) AND the
+ *    /api/studio/run for `<mark>.suggested-questions`) AND the
  *    community-asked registry (via /api/qa/registry).
  * 2. Shows the top 1-2 questions by default; "show more" reveals the rest
  *    (curated first, then community, ranked by clickCount).
  * 3. Clicking a question lazy-loads its answer via /api/studio/run for
- *    argument-move.qa with `user_question` set. The answer caches in shared
+ *    `<mark>.qa` with `user_question` set. The answer caches in shared
  *    KV so the second person to ask the same question gets it instantly.
  * 4. "+ Ask your own question" opens a textarea + submit. Submit POSTs to
  *    /api/qa/ask which validates, rate-limits, appends to the registry, and
@@ -31,12 +33,20 @@ import { hebraize } from './hebraize';
 import { trackAI } from './aiActivity';
 
 export interface QAPanelProps {
-  /** Argument-move id, e.g. fields.id from ArgumentMoveInstance. Used as
-   *  the registry partition + as the instance for /api/studio/run. */
-  moveId: string;
-  /** The mark instance that the worker needs to recreate the move (must
-   *  match what MarkEnrichmentCards passes for argument-move). */
-  moveInstance: unknown;
+  /** Mark id — drives which `<mark>.suggested-questions` + `<mark>.qa`
+   *  enrichments are invoked, and which registry partition the community
+   *  questions live in. Defaults to 'argument-move' for back-compat. */
+  mark?: 'argument-move' | 'pesukim';
+  /** Stable id for the instance — argument-move's fields.id, pesukim's
+   *  verseRef, etc. Used as the registry partition. Aliased from `moveId`
+   *  for back-compat. */
+  instanceId?: string;
+  /** @deprecated Use `instanceId`. Kept so existing call sites compile. */
+  moveId?: string;
+  /** The mark instance that the worker needs to recreate the run. */
+  instance?: unknown;
+  /** @deprecated Use `instance`. Kept so existing call sites compile. */
+  moveInstance?: unknown;
   tractate: string;
   page: string;
 }
@@ -105,35 +115,38 @@ async function pollJob(runId: string): Promise<RunResultLike> {
   throw new Error(`qa job ${runId} timed out`);
 }
 
-async function fetchSuggested(tractate: string, page: string, moveId: string, instance: unknown): Promise<SuggestedQuestion[]> {
+async function fetchSuggested(mark: string, tractate: string, page: string, instanceId: string, instance: unknown): Promise<SuggestedQuestion[]> {
+  const enrichmentId = `${mark}.suggested-questions`;
   const result = await trackAI(
-    `argument-move.suggested-questions:${tractate}:${page}:${moveId}`,
-    `Suggested questions · ${moveId}`,
-    () => runEnrichmentDirect('argument-move.suggested-questions', tractate, page, instance),
+    `${enrichmentId}:${tractate}:${page}:${instanceId}`,
+    `Suggested questions · ${instanceId}`,
+    () => runEnrichmentDirect(enrichmentId, tractate, page, instance),
   );
   const parsed = result.parsed as SuggestedQuestionsPayload | null;
   return Array.isArray(parsed?.questions) ? parsed!.questions : [];
 }
 
-async function fetchRegistry(tractate: string, page: string, moveId: string): Promise<CommunityQuestion[]> {
-  const r = await fetch(`/api/qa/registry?tractate=${encodeURIComponent(tractate)}&page=${encodeURIComponent(page)}&move_id=${encodeURIComponent(moveId)}`);
+async function fetchRegistry(mark: string, tractate: string, page: string, instanceId: string): Promise<CommunityQuestion[]> {
+  const q = new URLSearchParams({ tractate, page, mark, instance_id: instanceId });
+  const r = await fetch(`/api/qa/registry?${q.toString()}`);
   if (!r.ok) return [];
   const j = await r.json() as RegistryPayload;
   return Array.isArray(j.community) ? j.community : [];
 }
 
-async function fetchAnswer(tractate: string, page: string, moveId: string, instance: unknown, question: string): Promise<QAAnswer | null> {
+async function fetchAnswer(mark: string, tractate: string, page: string, instanceId: string, instance: unknown, question: string): Promise<QAAnswer | null> {
+  const enrichmentId = `${mark}.qa`;
   const result = await trackAI(
-    `argument-move.qa:${tractate}:${page}:${moveId}:${question.slice(0, 40)}`,
+    `${enrichmentId}:${tractate}:${page}:${instanceId}:${question.slice(0, 40)}`,
     `Answering · ${question.slice(0, 80)}`,
-    () => runEnrichmentDirect('argument-move.qa', tractate, page, instance, question),
+    () => runEnrichmentDirect(enrichmentId, tractate, page, instance, question),
   );
   const parsed = result.parsed as QAAnswer | null;
   if (parsed && typeof parsed.answer === 'string') return parsed;
   return null;
 }
 
-async function postAsk(tractate: string, page: string, moveId: string, instance: unknown, question: string): Promise<{
+async function postAsk(mark: string, tractate: string, page: string, instanceId: string, instance: unknown, question: string): Promise<{
   qHash: string;
   alreadyAsked: boolean;
   rateLimited?: boolean;
@@ -143,7 +156,9 @@ async function postAsk(tractate: string, page: string, moveId: string, instance:
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      tractate, page, move_id: moveId,
+      tractate, page,
+      mark,
+      instance_id: instanceId,
       mark_input: instance,
       question,
     }),
@@ -178,6 +193,12 @@ function pickQALoadingCopy(): string {
 }
 
 export default function QAPanel(props: QAPanelProps): JSX.Element {
+  // Resolve back-compat aliases. Older call sites pass moveId/moveInstance;
+  // newer ones pass instanceId/instance + mark.
+  const mark = (): 'argument-move' | 'pesukim' => props.mark ?? 'argument-move';
+  const instanceId = (): string => props.instanceId ?? props.moveId ?? '';
+  const instance = (): unknown => props.instance ?? props.moveInstance;
+
   const [expanded, setExpanded] = createSignal(false);
   const [showAll, setShowAll] = createSignal(false);
   const [askingOpen, setAskingOpen] = createSignal(false);
@@ -195,12 +216,12 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
   // Two parallel resources, both gated on `expanded` so we don't pay
   // anything until the user opens the panel for the first time.
   const [suggested, { mutate: setSuggested }] = createResource(
-    () => (expanded() ? { t: props.tractate, p: props.page, m: props.moveId, i: props.moveInstance } : null),
-    (k) => fetchSuggested(k.t, k.p, k.m, k.i),
+    () => (expanded() ? { mk: mark(), t: props.tractate, p: props.page, m: instanceId(), i: instance() } : null),
+    (k) => fetchSuggested(k.mk, k.t, k.p, k.m, k.i),
   );
   const [registry, { refetch: refetchRegistry, mutate: setRegistry }] = createResource(
-    () => (expanded() ? { t: props.tractate, p: props.page, m: props.moveId } : null),
-    (k) => fetchRegistry(k.t, k.p, k.m),
+    () => (expanded() ? { mk: mark(), t: props.tractate, p: props.page, m: instanceId() } : null),
+    (k) => fetchRegistry(k.mk, k.t, k.p, k.m),
   );
 
   // Combined, ordered list of questions. Curated first (in their generated
@@ -242,7 +263,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
     }
     setOpenAnswers((m) => ({ ...m, [key]: { state: 'loading', loadingCopy: pickQALoadingCopy() } }));
     try {
-      const ans = await fetchAnswer(props.tractate, props.page, props.moveId, props.moveInstance, q);
+      const ans = await fetchAnswer(mark(), props.tractate, props.page, instanceId(), instance(), q);
       if (!ans) throw new Error('empty answer');
       setOpenAnswers((m) => ({ ...m, [key]: { state: 'ok', data: ans } }));
       // Best-effort click bump for community questions.
@@ -253,7 +274,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             tractate: props.tractate, page: props.page,
-            move_id: props.moveId, qHash: ce.qHash,
+            mark: mark(), instance_id: instanceId(), qHash: ce.qHash,
           }),
         }).catch(() => { /* swallow */ });
       }
@@ -270,7 +291,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
       return;
     }
     setAskError(null);
-    const reply = await postAsk(props.tractate, props.page, props.moveId, props.moveInstance, q);
+    const reply = await postAsk(mark(), props.tractate, props.page, instanceId(), instance(), q);
     if (reply.error) {
       setAskError(reply.rateLimited
         ? 'You\'ve asked a lot of new questions recently — please wait a bit before asking another.'

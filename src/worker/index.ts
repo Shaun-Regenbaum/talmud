@@ -2096,7 +2096,7 @@ app.get('/api/log/recent', async (c) => {
 // + rewrite as a single value on every interaction.
 //
 // Key shape:
-//   qa-registry:argument-move:v1:{move_id}:{tractate}:{page}
+//   qa-registry:{mark}:v1:{instance_id}:{tractate}:{page}
 //
 // Body shape (JSON):
 //   {
@@ -2104,13 +2104,21 @@ app.get('/api/log/recent', async (c) => {
 //   }
 //
 // Curated questions aren't stored here — they live in the
-// argument-move.suggested-questions enrichment cache and are fetched by the
-// client directly. The registry only tracks user-submitted ones because
-// those are the ones the worker would otherwise have no way to enumerate
-// (KV list-by-prefix is slow / paginated and we want this on the hot path).
+// {mark}.suggested-questions enrichment cache and are fetched by the client
+// directly. The registry only tracks user-submitted ones because those are
+// the ones the worker would otherwise have no way to enumerate (KV list-by-
+// prefix is slow / paginated and we want this on the hot path).
+//
+// The `mark` partition lets argument-move and pesukim share the same QA
+// machinery without colliding on instance ids. The endpoint dispatches the
+// `<mark>.qa` enrichment to fill the answer cache.
 // ---------------------------------------------------------------------------
 
-const QA_REGISTRY_PREFIX = 'qa-registry:argument-move:v1';
+// Marks that have a `<mark>.qa` enrichment registered. Keep this small —
+// adding a mark here requires the corresponding suggested-questions + qa
+// enrichments to exist in code-marks.ts.
+const QA_ALLOWED_MARKS = new Set(['argument-move', 'pesukim']);
+const QA_DEFAULT_MARK = 'argument-move';
 const QA_COMMUNITY_CAP = 50;
 const QA_QUESTION_MAX_CHARS = 280;
 // Rate limiting for /api/qa/ask: per-IP rolling window keyed in KV. Cheap
@@ -2129,17 +2137,17 @@ interface QaRegistry {
   community: QaRegistryEntry[];
 }
 
-function qaRegistryKey(tractate: string, page: string, moveId: string): string {
+function qaRegistryKey(mark: string, tractate: string, page: string, instanceId: string): string {
   // Mirror the cache-keys.ts sanitization so registry keys can't carry
-  // colons or slashes that would collide across moves.
+  // colons or slashes that would collide across instances.
   const safe = (s: string) => s.toLowerCase().replace(/[^a-z0-9._-]+/g, '_').slice(0, 80);
-  return `${QA_REGISTRY_PREFIX}:${safe(moveId)}:${safe(tractate)}:${safe(page)}`;
+  return `qa-registry:${safe(mark)}:v1:${safe(instanceId)}:${safe(tractate)}:${safe(page)}`;
 }
 
-async function readQaRegistry(env: Bindings, tractate: string, page: string, moveId: string): Promise<QaRegistry> {
+async function readQaRegistry(env: Bindings, mark: string, tractate: string, page: string, instanceId: string): Promise<QaRegistry> {
   if (!env.CACHE) return { community: [] };
   try {
-    const raw = await env.CACHE.get(qaRegistryKey(tractate, page, moveId));
+    const raw = await env.CACHE.get(qaRegistryKey(mark, tractate, page, instanceId));
     if (!raw) return { community: [] };
     const parsed = JSON.parse(raw) as QaRegistry;
     if (!parsed || !Array.isArray(parsed.community)) return { community: [] };
@@ -2149,9 +2157,22 @@ async function readQaRegistry(env: Bindings, tractate: string, page: string, mov
   }
 }
 
-async function writeQaRegistry(env: Bindings, tractate: string, page: string, moveId: string, reg: QaRegistry): Promise<void> {
+async function writeQaRegistry(env: Bindings, mark: string, tractate: string, page: string, instanceId: string, reg: QaRegistry): Promise<void> {
   if (!env.CACHE) return;
-  await env.CACHE.put(qaRegistryKey(tractate, page, moveId), JSON.stringify(reg));
+  await env.CACHE.put(qaRegistryKey(mark, tractate, page, instanceId), JSON.stringify(reg));
+}
+
+// Pull (mark, instanceId) out of a request. Accepts both legacy
+// `move_id`/(no mark, defaults to argument-move) and the generalized
+// `instance_id`+`mark` forms.
+function resolveQaScope(input: {
+  mark?: string; move_id?: string; instance_id?: string;
+}): { mark: string; instanceId: string } | null {
+  const mark = input.mark ?? QA_DEFAULT_MARK;
+  if (!QA_ALLOWED_MARKS.has(mark)) return null;
+  const instanceId = input.instance_id ?? input.move_id;
+  if (!instanceId) return null;
+  return { mark, instanceId };
 }
 
 function clientIp(c: { req: { header: (k: string) => string | undefined; raw: unknown } }): string {
@@ -2190,34 +2211,44 @@ async function tickRateLimit(env: Bindings, scope: string, who: string): Promise
 }
 
 /**
- * GET /api/qa/registry?tractate&page&move_id
+ * GET /api/qa/registry?tractate&page&move_id|instance_id&mark
  *
- * Returns the community-submitted question list for one move so the client
- * can render the Explore-deeper panel without enumerating KV. Curated
- * questions are fetched separately via /api/studio/run on
- * argument-move.suggested-questions.
+ * Returns the community-submitted question list for one anchor so the client
+ * can render the Questions panel without enumerating KV. Curated questions
+ * are fetched separately via /api/studio/run on `<mark>.suggested-questions`.
+ *
+ * `mark` defaults to 'argument-move' for back-compat with older clients.
  */
 app.get('/api/qa/registry', async (c) => {
   const tractate = c.req.query('tractate');
   const page = c.req.query('page');
-  const moveId = c.req.query('move_id');
-  if (!tractate || !page || !moveId) {
-    return c.json({ error: 'tractate, page, move_id required' }, 400);
+  if (!tractate || !page) {
+    return c.json({ error: 'tractate, page required' }, 400);
   }
-  const reg = await readQaRegistry(c.env, tractate, page, moveId);
+  const scope = resolveQaScope({
+    mark: c.req.query('mark'),
+    move_id: c.req.query('move_id'),
+    instance_id: c.req.query('instance_id'),
+  });
+  if (!scope) {
+    return c.json({ error: 'mark must be one of argument-move|pesukim and instance_id (or move_id) is required' }, 400);
+  }
+  const reg = await readQaRegistry(c.env, scope.mark, tractate, page, scope.instanceId);
   return c.json(reg);
 });
 
 /**
  * POST /api/qa/ask
  *
- * Body: { tractate, page, move_id, question, mark_input }
+ * Body: { tractate, page, mark?, instance_id|move_id, question, mark_input }
  *
  * Normalizes + hashes the question, dedupes against the registry, appends
- * to community if new, and enqueues the argument-move.qa enrichment so the
+ * to community if new, and enqueues the `<mark>.qa` enrichment so the
  * answer cache fills in for everyone. The actual answer is fetched
  * separately via /api/studio/run by the client (which polls the queue) —
  * this endpoint only kicks the job and records the question for other users.
+ *
+ * `mark` defaults to 'argument-move' for back-compat with older clients.
  *
  * Returns: { qHash, alreadyAsked, rateLimited?, remaining }
  */
@@ -2226,11 +2257,16 @@ app.post('/api/qa/ask', async (c) => {
   try { body = await c.req.json(); }
   catch { return c.json({ error: 'invalid JSON' }, 400); }
   const b = body as Partial<{
-    tractate: string; page: string; move_id: string;
+    tractate: string; page: string;
+    mark: string; move_id: string; instance_id: string;
     question: string; mark_input: unknown;
   }>;
-  if (!b.tractate || !b.page || !b.move_id || !b.question) {
-    return c.json({ error: 'tractate, page, move_id, question required' }, 400);
+  if (!b.tractate || !b.page || !b.question) {
+    return c.json({ error: 'tractate, page, question required' }, 400);
+  }
+  const scope = resolveQaScope({ mark: b.mark, move_id: b.move_id, instance_id: b.instance_id });
+  if (!scope) {
+    return c.json({ error: 'mark must be one of argument-move|pesukim and instance_id (or move_id) is required' }, 400);
   }
   const trimmed = b.question.trim();
   if (trimmed.length === 0) return c.json({ error: 'question is empty' }, 400);
@@ -2243,11 +2279,11 @@ app.post('/api/qa/ask', async (c) => {
   // Existence check before rate-limiting. If the question is already in the
   // registry, we just bump click count and return — no LLM, no rate-limit
   // burn for the user. (They'd hit the cached answer anyway.)
-  const reg = await readQaRegistry(c.env, b.tractate, b.page, b.move_id);
+  const reg = await readQaRegistry(c.env, scope.mark, b.tractate, b.page, scope.instanceId);
   const existing = reg.community.find((e) => e.qHash === qHash);
   if (existing) {
     existing.clickCount += 1;
-    await writeQaRegistry(c.env, b.tractate, b.page, b.move_id, reg);
+    await writeQaRegistry(c.env, scope.mark, b.tractate, b.page, scope.instanceId, reg);
     return c.json({ qHash, alreadyAsked: true, remaining: -1 });
   }
 
@@ -2265,7 +2301,7 @@ app.post('/api/qa/ask', async (c) => {
     clickCount: 1,
   });
   while (reg.community.length > QA_COMMUNITY_CAP) reg.community.pop();
-  await writeQaRegistry(c.env, b.tractate, b.page, b.move_id, reg);
+  await writeQaRegistry(c.env, scope.mark, b.tractate, b.page, scope.instanceId, reg);
 
   // Kick the enrichment job so the answer is ready by the time the client
   // polls for it. The /api/studio/run hot-path lookup will still cache-hit
@@ -2273,7 +2309,7 @@ app.post('/api/qa/ask', async (c) => {
   if (c.env.ENRICHMENT_QUEUE) {
     const job: JobMessage = {
       runId: '',
-      enrichment_id: 'argument-move.qa',
+      enrichment_id: `${scope.mark}.qa`,
       tractate: b.tractate,
       page: b.page,
       mark_input: b.mark_input,
@@ -2295,7 +2331,7 @@ app.post('/api/qa/ask', async (c) => {
 /**
  * POST /api/qa/click
  *
- * Body: { tractate, page, move_id, qHash }
+ * Body: { tractate, page, mark?, instance_id|move_id, qHash }
  *
  * Bumps click count for ranking. Best-effort — off-by-one doesn't matter
  * and we don't fail the request on a write race. Used for the "show top
@@ -2305,15 +2341,23 @@ app.post('/api/qa/click', async (c) => {
   let body: unknown;
   try { body = await c.req.json(); }
   catch { return c.json({ error: 'invalid JSON' }, 400); }
-  const b = body as Partial<{ tractate: string; page: string; move_id: string; qHash: string }>;
-  if (!b.tractate || !b.page || !b.move_id || !b.qHash) {
-    return c.json({ error: 'tractate, page, move_id, qHash required' }, 400);
+  const b = body as Partial<{
+    tractate: string; page: string;
+    mark: string; move_id: string; instance_id: string;
+    qHash: string;
+  }>;
+  if (!b.tractate || !b.page || !b.qHash) {
+    return c.json({ error: 'tractate, page, qHash required' }, 400);
   }
-  const reg = await readQaRegistry(c.env, b.tractate, b.page, b.move_id);
+  const scope = resolveQaScope({ mark: b.mark, move_id: b.move_id, instance_id: b.instance_id });
+  if (!scope) {
+    return c.json({ error: 'mark must be one of argument-move|pesukim and instance_id (or move_id) is required' }, 400);
+  }
+  const reg = await readQaRegistry(c.env, scope.mark, b.tractate, b.page, scope.instanceId);
   const entry = reg.community.find((e) => e.qHash === b.qHash);
   if (entry) {
     entry.clickCount += 1;
-    await writeQaRegistry(c.env, b.tractate, b.page, b.move_id, reg);
+    await writeQaRegistry(c.env, scope.mark, b.tractate, b.page, scope.instanceId, reg);
   }
   return c.json({ ok: true });
 });
@@ -3360,6 +3404,31 @@ Output STRICT JSON only (no markdown, no prose):
   ]
 }
 
+DISAMBIGUATING BARE NAMES — REQUIRED REASONING:
+
+Many tannaitic and amoraic names refer to MULTIPLE distinct sages (Rabban Gamliel I/II/III/IV/V, Rabbi Yehuda bar Ilai vs Yehuda HaNasi, Rav Huna I vs II, etc.). When the Hebrew uses a bare form WITHOUT a disambiguating suffix (no "הזקן", "דיבנה", "ברבי", "השני", "נשיאה"), you MUST disambiguate before emitting an English name.
+
+Apply these rules IN ORDER:
+
+(a) ANCHOR ON CONTEMPORARIES. Identify other named rabbis in the sugya whose generation is clear. The ambiguous bare-name sage is almost always their contemporary. Example: if "רבי אליעזר בן הורקנוס" (tanna-2) appears in the same Mishnah as "רבן גמליאל", that Gamliel is Rabban Gamliel II of Yavneh (tanna-2), NOT Gamliel I haZaken.
+
+(b) APPLY THESE DEFAULTS FOR BARE HEBREW NAMES (use unless context contradicts):
+    - bare "רבן גמליאל" → Rabban Gamliel of Yavneh (II), tanna-2. Gamliel I haZaken is almost ALWAYS written explicitly as "רבן גמליאל הזקן" in the Bavli.
+    - bare "רבי יהודה" → Rabbi Yehuda bar Ilai, tanna-4. Yehuda HaNasi is written as bare "רבי" alone (no name) or "רבינו הקדוש".
+    - bare "רבי אליעזר" → Rabbi Eliezer ben Hyrcanus, tanna-2. Rabbi Eliezer ben Yaakov is always named in full.
+    - bare "רבי מאיר" → Rabbi Meir, tanna-4.
+    - bare "רבי שמעון" → Rabbi Shimon bar Yochai, tanna-4.
+    - bare "רבי יוסי" → Rabbi Yose ben Chalafta, tanna-4.
+    - bare "רבן שמעון בן גמליאל" (no "הזקן") → Rabban Shimon b. Gamliel II, tanna-5 (father of Rebbi).
+    - bare "רב יהודה" → Rav Yehuda bar Yechezkel, amora-bavel-2.
+    - bare "רב הונא" → Rav Huna, amora-bavel-2 (head of Sura after Rav).
+    - bare "רב נחמן" → Rav Nachman bar Yaakov, amora-bavel-2.
+    - "רבא" → Rava bar Yosef bar Chama (amora-bavel-4); "רבה" → Rabbah bar Nachmani (amora-bavel-3). Distinguish carefully — they are different sages.
+
+(c) ALWAYS EMIT THE DISAMBIGUATING ENGLISH FORM when applying a default. If you decide "רבן גמליאל" is Gamliel II, emit name="Rabban Gamliel of Yavneh (II)", NOT bare "Rabban Gamliel". This makes downstream slug resolution route to the correct entry. Only emit a bare English form when the Hebrew itself is unambiguous about which version.
+
+(d) ONLY identify a rabbi as Gamliel I haZaken / Shimon b. Gamliel the Elder / Yehuda HaNasi / Rav Huna II if the Hebrew text explicitly uses the disambiguating suffix, OR the contemporary anchor clearly points there.
+
 Rules:
 - nameHe MUST be copied verbatim from the Hebrew source — preserve exactly how the rabbi is named there (abbreviations matter: "ר' יוחנן" vs "רבי יוחנן").
 - If the same rabbi appears under multiple Hebrew forms in the text, list each distinct form as a separate entry with the same English name and generation.
@@ -3769,7 +3838,7 @@ app.get('/api/daf-context/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
   const cache = c.env.CACHE;
-  const baseKey = `daf-context:v5:${tractate}:${page}`;
+  const baseKey = `daf-context:v6:${tractate}:${page}`;
   const stage2Key = `${baseKey}:stage2`;
 
   const bypass = c.req.query('refresh') === '1';

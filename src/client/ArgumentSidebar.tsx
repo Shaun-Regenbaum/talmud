@@ -1032,9 +1032,8 @@ function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JS
       {/* Per-pasuk synthesis card. Mounts MarkEnrichmentCards markId="pesukim";
           production shows the synthesis paragraph, dev mode adds the dropdown
           with [global] tanach-context + [local] exegesis leaves. */}
-      <MarkEnrichmentCards
-        markId="pesukim"
-        instance={{
+      {(() => {
+        const pesukimInstance = {
           startSegIdx: props.pasuk.startSegIdx,
           endSegIdx: props.pasuk.endSegIdx,
           fields: {
@@ -1043,11 +1042,28 @@ function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JS
             excerpt: props.pasuk.excerpt,
             summary: props.pasuk.summary,
           },
-        }}
-        instanceKey={props.pasuk.verseRef}
-        tractate={props.tractate}
-        page={props.page}
-      />
+        };
+        return (
+          <>
+            <MarkEnrichmentCards
+              markId="pesukim"
+              instance={pesukimInstance}
+              instanceKey={props.pasuk.verseRef}
+              tractate={props.tractate}
+              page={props.page}
+            />
+            {/* Questions panel: curated follow-ups + community + free-form
+                asking. Same UX as the argument-move card. */}
+            <QAPanel
+              mark="pesukim"
+              instanceId={props.pasuk.verseRef}
+              instance={pesukimInstance}
+              tractate={props.tractate}
+              page={props.page}
+            />
+          </>
+        );
+      })()}
     </div>
   );
 }
