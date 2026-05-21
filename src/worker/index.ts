@@ -6008,6 +6008,27 @@ Rules:
 - If the parens contain a non-transliteration (e.g. an English aside, a year, a verse reference like "Deut 6:7", an English gloss), leave them as-is.
 - Output ONLY the transformed text. No prose, no explanation, no markdown fences. Preserve all whitespace, punctuation, line breaks exactly.`;
 
+/** Split a string into `{ leading, core, trailing }` whitespace segments.
+ *  Callers strip the outer whitespace before hashing / sending to the LLM
+ *  (whose response is trimmed) and reattach `leading` + result + `trailing`
+ *  on the way out. This matters for the per-slice render path in
+ *  HebraizedWithRabbis: each text slice between rabbi-link buttons carries
+ *  the single space that sits next to the button, and losing it produces
+ *  "Rabbi Amireciting" / "thatRabbi Ami" in rendered prose. */
+export function splitOuterWhitespace(text: string): { leading: string; core: string; trailing: string } {
+  if (!text) return { leading: '', core: '', trailing: '' };
+  const leading = /^\s*/.exec(text)?.[0] ?? '';
+  if (leading.length === text.length) {
+    return { leading: text, core: '', trailing: '' };
+  }
+  const trailing = /\s*$/.exec(text)?.[0] ?? '';
+  return {
+    leading,
+    core: text.slice(leading.length, text.length - trailing.length),
+    trailing,
+  };
+}
+
 app.post('/api/hebraize', async (c) => {
   if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
   let body: { text?: string };
@@ -6016,17 +6037,21 @@ app.post('/api/hebraize', async (c) => {
   const text = body.text ?? '';
   if (!text) return c.json({ hebraized: '', _empty: true });
   if (text.length > 8000) return c.json({ error: 'text too long (max 8000 chars)' }, 413);
-  if (!/\([^)]+\)/.test(text)) return c.json({ hebraized: text, _noop: true });
+
+  const { leading, core, trailing } = splitOuterWhitespace(text);
+  if (!core) return c.json({ hebraized: text, _empty: true });
+  if (!/\([^)]+\)/.test(core)) return c.json({ hebraized: text, _noop: true });
 
   const cache = c.env.CACHE;
-  // Hash the input so cache key is short + content-addressed. Workers have
-  // SubtleCrypto available; sha-256 over UTF-8 bytes.
-  const hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  // Hash the trimmed CORE so slices that differ only in surrounding
+  // whitespace share a cache entry. Surrounding whitespace is reattached on
+  // every return path below.
+  const hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(core));
   const hash = Array.from(new Uint8Array(hashBuf)).map((b) => b.toString(16).padStart(2, '0')).join('');
   const key = `hebraize:v1:${hash}`;
   if (cache) {
     const hit = await cache.get(key);
-    if (hit) return c.json({ hebraized: hit, _cached: true });
+    if (hit) return c.json({ hebraized: leading + hit + trailing, _cached: true });
   }
 
   try {
@@ -6034,9 +6059,9 @@ app.post('/api/hebraize', async (c) => {
       model: '@cf/google/gemma-4-26b-a4b-it',
       messages: [
         { role: 'system', content: HEBRAIZE_LLM_SYSTEM_PROMPT },
-        { role: 'user', content: text },
+        { role: 'user', content: core },
       ],
-      max_tokens: Math.min(4096, Math.ceil(text.length * 1.5) + 256),
+      max_tokens: Math.min(4096, Math.ceil(core.length * 1.5) + 256),
       temperature: 0,
       thinking: false,
     });
@@ -6045,7 +6070,7 @@ app.post('/api/hebraize', async (c) => {
     if (cache) {
       c.executionCtx.waitUntil(cache.put(key, out, { expirationTtl: 60 * 60 * 24 * 365 }));
     }
-    return c.json({ hebraized: out });
+    return c.json({ hebraized: leading + out + trailing });
   } catch (err) {
     return c.json({ error: String(err).slice(0, 300) }, 502);
   }
