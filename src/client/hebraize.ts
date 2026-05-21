@@ -59,6 +59,44 @@ const HEBRAIZE_DICT: Record<string, string> = {
   bittul: 'ביטול',
   hefsek: 'הפסק',
   "shi'ur": 'שיעור',
+  // HEBREW_GLOSS_STYLE "ALWAYS hebraize" terms — every prompt asks the LLM
+  // to gloss these, so they must appear in both formats (Pass 1 + Pass 2).
+  lechatchila: 'לכתחילה',
+  'le-chatchila': 'לכתחילה',
+  bedieved: 'בדיעבד',
+  bediavad: 'בדיעבד',
+  'be-dieved': 'בדיעבד',
+  sugya: 'סוגיא',
+  sugiya: 'סוגיא',
+  psak: 'פסק',
+  pesak: 'פסק',
+  rov: 'רוב',
+  chazaka: 'חזקה',
+  chazakah: 'חזקה',
+  safek: 'ספק',
+  tahara: 'טהרה',
+  taharah: 'טהרה',
+  terumah: 'תרומה',
+  teruma: 'תרומה',
+  maaser: 'מעשר',
+  "ma'aser": 'מעשר',
+  chametz: 'חמץ',
+  hametz: 'חמץ',
+  matzah: 'מצה',
+  matza: 'מצה',
+  treif: 'טריפה',
+  trefah: 'טריפה',
+  kosher: 'כשר',
+  kasher: 'כשר',
+  pesach: 'פסח',
+  'yom tov': 'יום טוב',
+  bracha: 'ברכה',
+  tzitzit: 'ציצית',
+  tefillin: 'תפילין',
+  'bet din': 'בית דין',
+  eved: 'עבד',
+  get: 'גט',
+  kiddushin: 'קידושין',
 
   // ── Composite phrases (multi-word) ────────────────────────────────────
   'yetzer hara': 'יצר הרע',
@@ -271,10 +309,14 @@ const NORMALIZED_DICT: Record<string, string> = (() => {
 // letters (ʿ, ʼ, ʾ, ʻ), and the ASCII apostrophe / Unicode quotes.
 const PAREN_RE = /\(([A-Za-zÀ-ſḀ-ỿʼʻʿʾʹʺ'‘’ \-.]{2,80})\)/g;
 
-/** Bare-word lookup for the inverted-format pass. Built once from the
- *  normalized dict, escaped for regex, longest first so multi-word phrases
- *  win over their single-word substrings. */
-const BARE_KEYS_SORTED = Object.keys(NORMALIZED_DICT).sort((a, b) => b.length - a.length);
+/** Bare-word lookup for the inverted-format pass. Includes BOTH the
+ *  original dict keys (e.g. `lechatchila`) and their normalized forms
+ *  (`lehathila`) — otherwise `ch`/`kh`/`ḥ`-containing transliterations
+ *  never match because the regex only sees the post-normalization form.
+ *  Longest first so multi-word phrases win over single-word substrings. */
+const BARE_KEYS_SORTED = Array.from(
+  new Set([...Object.keys(HEBRAIZE_DICT), ...Object.keys(NORMALIZED_DICT)]),
+).sort((a, b) => b.length - a.length);
 const ESCAPED_KEYS = BARE_KEYS_SORTED.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
 // Match "<known-transliteration> (english gloss)" — bare transliteration
 // outside parens followed by a Latin-only gloss inside parens. Word boundary
@@ -284,10 +326,33 @@ const INVERTED_RE = new RegExp(
   'gi',
 );
 
+/** Strip parenthetical echoes — `X (X)` collapses to `X`. The source LLM
+ *  produces these when it dutifully applies "Form B" gloss to a proper noun
+ *  or bare Hebrew letter that has no useful English equivalent (e.g.
+ *  `רבי עקיבא (רבי עקיבא)`, `ח׳ (ח׳)`, `דוד המלך (דוד המלך)`). The backref
+ *  forces the parens content to equal the preceding token sequence
+ *  character-for-character; legit Form B like `Rabbi Akiva (רבי עקיבא)` —
+ *  different scripts — never matches. Caps at 6 tokens preceding to keep
+ *  the regex bounded. */
+const ECHO_PAREN_RE = /(\S+(?:\s+\S+){0,5})\s*\(\1\)/g;
+export function stripEchoParens(text: string): string {
+  if (!text) return text;
+  let prev = text;
+  // Iterate: nested echoes (rare, but possible after the LLM cascades two
+  // glosses) need a second pass to fully collapse.
+  for (let i = 0; i < 3; i++) {
+    const next = prev.replace(ECHO_PAREN_RE, '$1');
+    if (next === prev) break;
+    prev = next;
+  }
+  return prev;
+}
+
 /** Scan `text` for two formats:
  *   1. `english (transliteration)` → `english (עברית)`
  *   2. `transliteration (english gloss)` → `english gloss (עברית)`
  *  Anything else (verse refs, dates, English-only asides) is unchanged.
+ *  Finally, collapse echo-parens (`X (X)` → `X`).
  */
 export function hebraize(text: string): string {
   if (!text) return text;
@@ -305,6 +370,9 @@ export function hebraize(text: string): string {
     if (/[֐-׿\d]/.test(gloss)) return full;
     return `${gloss} (${heb})`;
   });
+  // Pass 3: collapse echo-parens. Runs AFTER the dict passes so that a
+  // dict-promoted Hebrew matching its English equivalent gets collapsed too.
+  out = stripEchoParens(out);
   return out;
 }
 
