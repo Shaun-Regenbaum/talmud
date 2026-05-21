@@ -2042,7 +2042,7 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'argument-move.commentaries' },
         { mark: 'argument-move' },
       ],
-      defHash: 'argument-move.qa-v2', cacheVersion: '2',
+      defHash: 'argument-move.qa-v3', cacheVersion: '3',
       model: ARGUMENT_PRO_MODEL,
     },
   ),
