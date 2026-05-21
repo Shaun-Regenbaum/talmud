@@ -326,6 +326,67 @@ const INVERTED_RE = new RegExp(
   'gi',
 );
 
+/** Bare-word hebraize whitelist — names of authorities + work titles that
+ *  should be in Hebrew script whenever they appear, even outside parens.
+ *  Curated CONSERVATIVELY: each entry must be unambiguous in halachic
+ *  context. Generic religious terms ("Torah", "Mishnah", "Gemara",
+ *  "Halacha") are deliberately excluded — they flow naturally as English
+ *  in this corpus and bare-swapping would hurt readability. Multi-word
+ *  entries are matched first via longest-first sort so "Mishneh Torah"
+ *  wins over a hypothetical bare "Torah" entry. */
+const BARE_HEBRAIZE_NAMES: Record<string, string> = {
+  // Halachic authorities
+  Rambam: 'רמב״ם',
+  Ramban: 'רמב״ן',
+  Rashba: 'רשב״א',
+  Ritva: 'ריטב״א',
+  Rashi: 'רש״י',
+  Tosafot: 'תוספות',
+  Tosfos: 'תוספות',
+  Meiri: 'מאירי',
+  Maharsha: 'מהרש״א',
+  Rema: 'רמ״א',
+  Tur: 'טור',
+  Rosh: 'רא״ש',
+  // Work titles (multi-word — listed alongside their spelling variants).
+  'Mishneh Torah': 'משנה תורה',
+  'Shulchan Aruch': 'שולחן ערוך',
+  'Orach Chaim': 'אורח חיים',
+  'Orach Chayim': 'אורח חיים',
+  'Orach Chayyim': 'אורח חיים',
+  'Yoreh Deah': 'יורה דעה',
+  'Even HaEzer': 'אבן העזר',
+  'Even Ha-Ezer': 'אבן העזר',
+  'Choshen Mishpat': 'חושן משפט',
+};
+
+/** Lowercase lookup for case-insensitive match. */
+const BARE_NAMES_LOOKUP: Record<string, string> = Object.fromEntries(
+  Object.entries(BARE_HEBRAIZE_NAMES).map(([k, v]) => [k.toLowerCase(), v]),
+);
+
+/** Names with collision potential — exclude via negative lookahead. `Rosh`
+ *  also means a holiday qualifier ("Rosh Hashanah", "Rosh Chodesh"); never
+ *  swap in those contexts. */
+const BARE_NAMES_KEYS_SORTED = Object.keys(BARE_HEBRAIZE_NAMES).sort((a, b) => b.length - a.length);
+const BARE_NAMES_ALT = BARE_NAMES_KEYS_SORTED.map((k) => {
+  const esc = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if (k === 'Rosh') {
+    return `${esc}(?!\\s+(?:Hashanah|HaShanah|Hashana|HaShana|Chodesh|Hodesh|HaShana))`;
+  }
+  return esc;
+}).join('|');
+const BARE_NAMES_RE = new RegExp(`\\b(${BARE_NAMES_ALT})\\b`, 'gi');
+
+/** Replace bare-word occurrences of whitelisted authorities and work titles
+ *  with their Hebrew script. Case-insensitive; word-boundary on both sides
+ *  prevents mid-word matches ("torture" never matches "tor"). Multi-word
+ *  entries match first (longest-first sort), so "Mishneh Torah" wins. */
+export function hebraizeBareNames(text: string): string {
+  if (!text) return text;
+  return text.replace(BARE_NAMES_RE, (match) => BARE_NAMES_LOOKUP[match.toLowerCase()] ?? match);
+}
+
 /** Strip parenthetical echoes — `X (X)` collapses to `X`. The source LLM
  *  produces these when it dutifully applies "Form B" gloss to a proper noun
  *  or bare Hebrew letter that has no useful English equivalent (e.g.
@@ -352,7 +413,8 @@ export function stripEchoParens(text: string): string {
  *   1. `english (transliteration)` → `english (עברית)`
  *   2. `transliteration (english gloss)` → `english gloss (עברית)`
  *  Anything else (verse refs, dates, English-only asides) is unchanged.
- *  Finally, collapse echo-parens (`X (X)` → `X`).
+ *  Then bare-swap whitelisted authority/work names. Finally, collapse
+ *  echo-parens (`X (X)` → `X`).
  */
 export function hebraize(text: string): string {
   if (!text) return text;
@@ -370,7 +432,10 @@ export function hebraize(text: string): string {
     if (/[֐-׿\d]/.test(gloss)) return full;
     return `${gloss} (${heb})`;
   });
-  // Pass 3: collapse echo-parens. Runs AFTER the dict passes so that a
+  // Pass 3: bare-word swap for halachic authorities and work titles. Runs
+  // BEFORE echo-strip so that any echoes the bare-swap creates get caught.
+  out = hebraizeBareNames(out);
+  // Pass 4: collapse echo-parens. Runs AFTER the dict passes so that a
   // dict-promoted Hebrew matching its English equivalent gets collapsed too.
   out = stripEchoParens(out);
   return out;

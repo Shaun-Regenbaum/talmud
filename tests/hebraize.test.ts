@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { hebraize, stripEchoParens } from '../src/client/hebraize';
+import { hebraize, stripEchoParens, hebraizeBareNames } from '../src/client/hebraize';
 
 // ---------------------------------------------------------------------------
 // stripEchoParens — the sanitizer for "X (X)" outputs the source LLM produces
@@ -97,7 +97,7 @@ const PASS1_DICT_SWAP: Array<[string, string]> = [
   // Unknown term stays unchanged.
   ['this aside (whatever) is unknown',           'this aside (whatever) is unknown'],
   // Verse refs / dates / non-transliteration parens are left alone.
-  ['Mishneh Torah (Hilchot Shabbat 8:1)',        'Mishneh Torah (Hilchot Shabbat 8:1)'],
+  ['Mishneh Torah (Hilchot Shabbat 8:1)',        'משנה תורה (Hilchot Shabbat 8:1)'],
   ['compiled (c. 200 CE)',                       'compiled (c. 200 CE)'],
 ];
 
@@ -190,7 +190,7 @@ const GLOSS_STYLE_TERMS_PASS1: Array<[string, string]> = [
   ['performed (lechatchila)',          'performed (לכתחילה)'],
   ['the meat (bedieved) is permitted', 'the meat (בדיעבד) is permitted'],
   ['the (sugya) records',              'the (סוגיא) records'],
-  ['final (psak) of the Rambam',       'final (פסק) of the Rambam'],
+  ['final (psak) of the Rambam',       'final (פסק) of the רמב״ם'],
   ['the principle of (rov)',           'the principle of (רוב)'],
   ['a (chazaka) overrides',            'a (חזקה) overrides'],
   ['matter of (safek)',                'matter of (ספק)'],
@@ -277,7 +277,7 @@ describe('hebraize — variant transliterations land on same Hebrew', () => {
 // running echo-strip AFTER the dict pass, not before.
 const GLOSS_STYLE_CASCADE: Array<[string, string]> = [
   ['the סוגיא (sugya) records',           'the סוגיא records'],
-  ['final פסק (psak) of the Rambam',      'final פסק of the Rambam'],
+  ['final פסק (psak) of the Rambam',      'final פסק of the רמב״ם'],
   ['observance of פסח (pesach) requires', 'observance of פסח requires'],
   ['dons תפילין (tefillin) at shacharit', 'dons תפילין at shacharit'],
 ];
@@ -310,4 +310,102 @@ describe('hebraize — new dict entries do not false-positive on substrings', ()
       expect(hebraize(input)).toBe(expected);
     });
   }
+});
+
+// ---------------------------------------------------------------------------
+// hebraizeBareNames — bare-word swap for halachic authorities + work titles.
+// These appear in halacha synthesis prose unwrapped by parens (e.g. "Rambam
+// in Mishneh Torah"); the dict passes never touch them. This pass closes
+// that gap with a curated whitelist.
+// ---------------------------------------------------------------------------
+
+const BARE_NAMES_SWAP: Array<[string, string]> = [
+  // Single-word authorities.
+  ['Rambam in Mishneh Torah codifies',           'רמב״ם in משנה תורה codifies'],
+  ['Rashi explains the gemara',                  'רש״י explains the gemara'],
+  ['Tosafot disagree',                           'תוספות disagree'],
+  ['Tosfos disagree',                            'תוספות disagree'],
+  ['the Ramban argues against',                  'the רמב״ן argues against'],
+  ['Rashba and Ritva both hold',                 'רשב״א and ריטב״א both hold'],
+  ['the Meiri suggests',                         'the מאירי suggests'],
+  ['Maharsha notes',                             'מהרש״א notes'],
+  ['the Rema rules',                             'the רמ״א rules'],
+  ['the Tur and Shulchan Aruch',                 'the טור and שולחן ערוך'],
+  ['following Rosh permits',                     'following רא״ש permits'],
+  // Multi-word work titles.
+  ['Shulchan Aruch Orach Chaim 235',             'שולחן ערוך אורח חיים 235'],
+  ['Orach Chayim 235:3 follows',                 'אורח חיים 235:3 follows'],
+  ['Orach Chayyim 235:3 follows',                'אורח חיים 235:3 follows'],
+  ['Yoreh Deah codifies the dietary law',        'יורה דעה codifies the dietary law'],
+  ['Even HaEzer governs marriage',               'אבן העזר governs marriage'],
+  ['Even Ha-Ezer governs marriage',              'אבן העזר governs marriage'],
+  ['Choshen Mishpat covers civil disputes',      'חושן משפט covers civil disputes'],
+  // Case-insensitive.
+  ['the RAMBAM holds',                           'the רמב״ם holds'],
+  ['the rashi explains',                         'the רש״י explains'],
+];
+
+describe('hebraizeBareNames — authority + work-title swap', () => {
+  for (const [input, expected] of BARE_NAMES_SWAP) {
+    it(`"${input}" → "${expected}"`, () => {
+      expect(hebraizeBareNames(input)).toBe(expected);
+    });
+  }
+});
+
+// Negative cases: collisions with everyday English contexts the whitelist
+// must NOT mangle.
+const BARE_NAMES_PRESERVE: Array<[string, string]> = [
+  // "Rosh Hashanah" / "Rosh Chodesh" — holiday qualifiers, not the work.
+  ['celebrated on Rosh Hashanah',                'celebrated on Rosh Hashanah'],
+  ['Rosh HaShanah falls in Tishrei',             'Rosh HaShanah falls in Tishrei'],
+  ['observed on Rosh Chodesh',                   'observed on Rosh Chodesh'],
+  ['the Rosh Chodesh blessing',                  'the Rosh Chodesh blessing'],
+  // Mid-word — word boundary prevents these.
+  ['the torture of the inquisition',             'the torture of the inquisition'],
+  ['the future generations',                     'the future generations'],
+  ['the Ritvan king',                            'the Ritvan king'],  // Ritvan ≠ Ritva
+  // Generic religious terms deliberately NOT in whitelist — must stay English.
+  ['the Torah commands',                         'the Torah commands'],
+  ['the Mishnah records',                        'the Mishnah records'],
+  ['the Gemara discusses',                       'the Gemara discusses'],
+  // Already-Hebrew text untouched.
+  ['רמב״ם in his code',                          'רמב״ם in his code'],
+];
+
+describe('hebraizeBareNames — preserves non-matches', () => {
+  for (const [input, expected] of BARE_NAMES_PRESERVE) {
+    it(`leaves "${input}" alone`, () => {
+      expect(hebraizeBareNames(input)).toBe(expected);
+    });
+  }
+});
+
+// End-to-end through hebraize() pipeline — the user's reported failure case
+// from the halacha synthesis output, plus the cascade with other passes.
+describe('hebraize — full pipeline catches bare-word authorities', () => {
+  it('hebraicizes Rambam, Mishneh Torah, Tur, Shulchan Aruch, Rosh in halacha prose', () => {
+    const input = 'Rambam in Mishneh Torah codifies the position; the Tur and Shulchan Aruch follow; Rosh dissents.';
+    const out = hebraize(input);
+    expect(out).toContain('רמב״ם');
+    expect(out).toContain('משנה תורה');
+    expect(out).toContain('טור');
+    expect(out).toContain('שולחן ערוך');
+    expect(out).toContain('רא״ש');
+    // Verify English connective tissue is preserved.
+    expect(out).toContain(' in ');
+    expect(out).toContain(' codifies ');
+    expect(out).toContain(' follow; ');
+    expect(out).toContain(' dissents.');
+  });
+
+  it('does not double-hebraize when the LLM already wrote Hebrew', () => {
+    const input = 'רמב״ם holds the obligation extends until dawn; the Rema agrees.';
+    const out = hebraize(input);
+    expect(out).toContain('רמב״ם');
+    expect(out).toContain('רמ״א');
+    // No literal duplicate of either.
+    expect(out.match(/רמב״ם/g)?.length).toBe(1);
+    expect(out.match(/רמ״א/g)?.length).toBe(1);
+  });
 });
