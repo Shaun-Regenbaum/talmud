@@ -182,6 +182,41 @@ def main() -> int:
         # Also add the slug itself so matching can go either way.
         add_alias(slug.replace('-', ' '), slug)
 
+    # Override bare-name aliases. Many tannaitic and amoraic names refer to
+    # multiple distinct sages (Rabban Gamliel I/II/III, Rabbi Yehuda bar
+    # Ilai vs HaNasi, etc.) and Sefaria's first-wins auto-aliasing routes
+    # the bare form to whichever entry processed first — often the wrong
+    # one. Pin the bare aliases to the most commonly intended sage per
+    # standard Talmudic-discourse convention. The LLM disambiguation
+    # prompt also tries to emit the disambiguated English form, but this
+    # is the safety net for when it doesn't.
+    BARE_NAME_OVERRIDES: dict[str, str] = {
+        'rabban gamliel': 'rabban-gamliel',                          # → Gamliel II of Yavneh (not I haZaken)
+        'rabban gamaliel': 'rabban-gamliel',                         # Sefaria spelling variant
+        'rabbi yehuda': 'rabbi-yehudah-b-ilai',                      # → bar Ilai (not HaNasi)
+        'rabbi yehudah': 'rabbi-yehudah-b-ilai',
+        'rabbi judah': 'rabbi-yehudah-b-ilai',
+        'rabbi eliezer': 'rabbi-eliezer-b-hyrcanus',                 # → ben Hyrcanus (not ben Yaakov)
+        'rabbi meir': 'rabbi-meir',
+        'rabbi shimon': 'shimon-bar-yochai',                         # → bar Yochai
+        'rabbi simeon': 'shimon-bar-yochai',
+        'rabbi yose': 'rabbi-yose-b-chalafta',                       # → ben Chalafta
+        'rabbi yossi': 'rabbi-yose-b-chalafta',
+        'rabban shimon b. gamliel': 'rabban-shimon-b-gamliel-(ii)',  # → SbG II (not the Elder)
+        'rabban shimon ben gamliel': 'rabban-shimon-b-gamliel-(ii)',
+        'rabban simeon b. gamliel': 'rabban-shimon-b-gamliel-(ii)',
+        'rav yehuda': 'rav-yehudah-b-yechezkel',                     # → Rav Yehuda bar Yechezkel
+        'rav yehudah': 'rav-yehudah-b-yechezkel',
+        'rav huna': 'rav-huna',                                      # → Rav Huna of Sura
+        'rav nachman': 'rav-nachman-b-yaakov',                       # → bar Yaakov
+        'rav nahman': 'rav-nachman-b-yaakov',
+    }
+    for bare_key, target_slug in BARE_NAME_OVERRIDES.items():
+        if target_slug in entries:
+            alias_index[bare_key] = target_slug
+        else:
+            print(f'  [warn] BARE_NAME_OVERRIDES: target slug {target_slug!r} not in dataset, skipping {bare_key!r}')
+
     out = {
         'generatedAt': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
         'source': 'https://www.sefaria.org/api/topics?type=person',

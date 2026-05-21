@@ -245,9 +245,22 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
 
   const visibleList = () => {
     const all = combined();
-    return showAll() ? all : all.slice(0, DEFAULT_VISIBLE);
+    if (showAll()) return all;
+    const top = all.slice(0, DEFAULT_VISIBLE);
+    // Pin any below-the-fold item with an open answer panel so a just-asked
+    // (or just-clicked) question stays visible without forcing "show more".
+    const opened = openAnswers();
+    const extras = all.slice(DEFAULT_VISIBLE).filter((it) => opened[normalizeQ(it.q)]);
+    return [...top, ...extras];
   };
-  const hiddenCount = () => Math.max(0, combined().length - DEFAULT_VISIBLE);
+  const hiddenCount = () => {
+    const all = combined();
+    if (showAll()) return 0;
+    const opened = openAnswers();
+    const belowFold = all.slice(DEFAULT_VISIBLE);
+    const shown = belowFold.filter((it) => opened[normalizeQ(it.q)]).length;
+    return Math.max(0, belowFold.length - shown);
+  };
 
   const handleQuestionClick = async (q: string) => {
     const key = normalizeQ(q);
