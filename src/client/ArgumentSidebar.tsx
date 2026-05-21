@@ -1121,10 +1121,10 @@ function RishonimBody(props: { instance: RishonimInstance; tractate: string; pag
               <p dir="rtl" lang="he" style={{
                 margin: '0.4rem 0 0', 'font-family': '"Mekorot Vilna", serif',
                 'font-size': '1rem', 'line-height': 1.65, color: '#222',
-              }}>{c.textHe}</p>
+              }} innerHTML={c.textHe} />
             </Show>
             <Show when={c.textEn}>
-              <p style={{ margin: '0.4rem 0 0', 'font-size': '0.86rem', 'line-height': 1.55, color: '#475569' }}>{c.textEn}</p>
+              <p style={{ margin: '0.4rem 0 0', 'font-size': '0.86rem', 'line-height': 1.55, color: '#475569' }} innerHTML={c.textEn} />
             </Show>
           </details>
         )}</For>

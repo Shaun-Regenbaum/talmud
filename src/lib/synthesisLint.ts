@@ -89,3 +89,99 @@ export function lintSynthesis(text: string): PasukCitationIssue[] {
   }
   return issues;
 }
+
+// ---------------------------------------------------------------------------
+// Calque detector — flags English phrases that are word-for-word literal
+// renderings of fixed Hebrew/Aramaic halachic terms. The grammatically
+// marked English ("most flesh", "son of his year", "house of justice")
+// reads as nonsense to a learner who doesn't already know the underlying
+// Hebrew. HEBREW_GLOSS_STYLE and TANACH_NAMING_STYLE explicitly forbid
+// these; this lint guards against the prompt drifting back to them.
+//
+// Originally added after a Chulin 21a synthesis emitted "Eli's broken neck
+// occurred without most flesh" — calque of רוב בשר, the technical threshold
+// of "majority of surrounding neck-flesh that normally tears with the
+// spine."
+// ---------------------------------------------------------------------------
+
+export interface CalqueIssue {
+  kind: 'calque';
+  /** The English calque text that was matched in the output. */
+  match: string;
+  /** Character offset in the source text. */
+  index: number;
+  /** The Hebrew/Aramaic term the calque is a literal rendering of. */
+  hebrew: string;
+  /** Short label for what the calque means (the legitimate concept). */
+  meaning: string;
+}
+
+interface CalqueRule {
+  /** Pattern must be /…/i (case-insensitive). The detector adds the `g` flag. */
+  re: RegExp;
+  hebrew: string;
+  meaning: string;
+}
+
+// Add a new rule here when a calque ships to production. Keep patterns
+// CONSERVATIVE — a false positive in a synthesis blocks the user. Only
+// include phrases that have no legitimate non-Talmudic English usage.
+const CALQUE_RULES: CalqueRule[] = [
+  // רוב בשר — Chulin 21a's failure case. "Most flesh" / "most of the flesh" /
+  // "majority of the flesh" are all calques of the shechita/neveila threshold
+  // term. The legitimate English is either "רוב בשר" itself or a clear gloss
+  // like "the majority of the surrounding neck-flesh."
+  {
+    re: /\b(?:without|severing|severs|majority of(?: the)?|most of(?: the)?|most)\s+(?:the\s+)?flesh\b/i,
+    hebrew: 'רוב בשר',
+    meaning: 'majority of surrounding flesh (shechita / neveila threshold)',
+  },
+  // בן שנתו — cattle/sheep terminology for a one-year-old animal. "Son of
+  // his year" / "sons of their year" are pure calques.
+  {
+    re: /\bsons?\s+of\s+(?:his|their)\s+year\b/i,
+    hebrew: 'בן שנתו',
+    meaning: 'a year-old animal',
+  },
+  // בית דין — rabbinic court. "House of justice" is the literal calque;
+  // legitimate English is "court" (or just "בית דין").
+  {
+    re: /\bhouse\s+of\s+justice\b/i,
+    hebrew: 'בית דין',
+    meaning: 'rabbinic court',
+  },
+  // שבע מצוות בני נח — the Noahide laws. Two phrasings of the calque cover
+  // most LLM outputs. Plain "sons of Noah" appears in legitimate biblical
+  // narrative (Bereishit 10) so we only flag the compound *commandments*
+  // forms, never bare "sons of Noah."
+  {
+    re: /\b(?:seven\s+)?(?:commandments|laws|mitzvot)\s+of\s+(?:the\s+)?sons?\s+of\s+Noah\b/i,
+    hebrew: 'שבע מצוות בני נח',
+    meaning: 'the Noahide laws',
+  },
+  {
+    re: /\bsons?\s+of\s+Noah'?s?\s+(?:commandments|laws|mitzvot)\b/i,
+    hebrew: 'שבע מצוות בני נח',
+    meaning: 'the Noahide laws',
+  },
+];
+
+export function lintCalques(text: string): CalqueIssue[] {
+  if (!text) return [];
+  const out: CalqueIssue[] = [];
+  for (const { re, hebrew, meaning } of CALQUE_RULES) {
+    // Force global so matchAll walks every occurrence; keep the source rule
+    // non-global so adding `g` here is the only place we juggle that flag.
+    const globalRe = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g');
+    for (const m of text.matchAll(globalRe)) {
+      out.push({
+        kind: 'calque',
+        match: m[0],
+        index: m.index ?? 0,
+        hebrew,
+        meaning,
+      });
+    }
+  }
+  return out;
+}

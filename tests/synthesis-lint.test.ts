@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { lintSynthesis } from '../src/lib/synthesisLint';
+import { lintSynthesis, lintCalques } from '../src/lib/synthesisLint';
 
 // ---------------------------------------------------------------------------
 // Should FLAG — the LLM cited a pasuk with English translation but no Hebrew
@@ -114,4 +114,108 @@ describe('lintSynthesis — book-name disambiguation + position', () => {
     const text = "the Tehillimkop scrollwork — 'a decorative motif' — appears in 4:5 of the manuscript";
     expect(lintSynthesis(text)).toEqual([]);
   });
+});
+
+// ---------------------------------------------------------------------------
+// Calque detector — flags word-for-word translations of fixed Hebrew/Aramaic
+// halachic terms (e.g. "most flesh" for רוב בשר). These read as nonsense to
+// learners because the calqued English doesn't carry the technical meaning.
+// HEBREW_GLOSS_STYLE forbids them; this test guards against the prompt
+// regressing back to them.
+// ---------------------------------------------------------------------------
+
+describe('lintCalques — flags known calques', () => {
+  it('flags the original Chulin 21a failure: "without most flesh"', () => {
+    const text = "The Gemara resolves the objection that Eli's broken neck occurred without most flesh by distinguishing old age (זקנה שאני).";
+    const issues = lintCalques(text);
+    expect(issues.length).toBe(1);
+    expect(issues[0]).toMatchObject({
+      kind: 'calque',
+      hebrew: 'רוב בשר',
+      meaning: 'majority of surrounding flesh (shechita / neveila threshold)',
+    });
+    expect(issues[0].match.toLowerCase()).toContain('most flesh');
+  });
+
+  it('flags the padded variant "severing most of the flesh"', () => {
+    const text = "Rashi explains that Eli's advanced age weakened his bones, so the neck snapped without the usual requirement of severing most of the flesh.";
+    const issues = lintCalques(text);
+    expect(issues.length).toBe(1);
+    expect(issues[0].hebrew).toBe('רוב בשר');
+  });
+
+  it('flags "majority of the flesh"', () => {
+    const text = "The threshold requires breaking the spine plus the majority of the flesh torn with it.";
+    const issues = lintCalques(text);
+    expect(issues.length).toBe(1);
+    expect(issues[0].hebrew).toBe('רוב בשר');
+  });
+
+  it('flags "son of his year" / "sons of their year" (calque of בן שנתו)', () => {
+    expect(lintCalques('a son of his year is brought as a korban').length).toBe(1);
+    expect(lintCalques('sheep that are sons of their year').length).toBe(1);
+  });
+
+  it('flags "house of justice" (calque of בית דין)', () => {
+    const text = "the house of justice required three judges to convene";
+    const issues = lintCalques(text);
+    expect(issues.length).toBe(1);
+    expect(issues[0].hebrew).toBe('בית דין');
+  });
+
+  it('flags both phrasings of the Noahide-laws calque', () => {
+    const a = "the seven commandments of the sons of Noah apply to gentiles";
+    const b = "Rambam explains the sons of Noah's commandments in Hilchot Melachim";
+    expect(lintCalques(a).length).toBe(1);
+    expect(lintCalques(a)[0].hebrew).toBe('שבע מצוות בני נח');
+    expect(lintCalques(b).length).toBe(1);
+    expect(lintCalques(b)[0].hebrew).toBe('שבע מצוות בני נח');
+  });
+
+  it('reports the offset of each match', () => {
+    const text = "prefix prefix prefix without most flesh suffix suffix";
+    const issues = lintCalques(text);
+    expect(issues.length).toBe(1);
+    const slice = text.slice(issues[0].index, issues[0].index + issues[0].match.length);
+    expect(slice.toLowerCase()).toContain('most flesh');
+  });
+
+  it('flags multiple distinct calques in one paragraph', () => {
+    const text = "the house of justice ruled on whether a son of his year qualifies, citing the seven commandments of the sons of Noah";
+    const issues = lintCalques(text);
+    // 3 distinct calques: בית דין, בן שנתו, שבע מצוות בני נח.
+    const hebrews = issues.map(i => i.hebrew).sort();
+    expect(hebrews).toEqual(['בית דין', 'בן שנתו', 'שבע מצוות בני נח']);
+  });
+});
+
+describe('lintCalques — does NOT flag legitimate prose', () => {
+  const CLEAN: string[] = [
+    // Hebrew script is the canonical anchor — these are the correct forms.
+    "Eli's broken neck occurred without רוב בשר (the majority of surrounding neck-flesh that must tear with the spine)",
+    "the קרבן is a בן שנתו (year-old animal)",
+    "the בית דין convened three judges",
+    "the שבע מצוות בני נח (Noahide laws) apply to all humanity",
+    // English using conventional equivalents, not calques.
+    "the court convened three judges",
+    "the Noahide laws apply to gentiles, not the Sinai covenant",
+    "the sacrifice required a year-old animal",
+    // Bare "sons of Noah" — legitimate biblical reference to Shem, Cham, Yefet
+    // in Bereishit 10. Must NOT be flagged.
+    "the genealogy of the sons of Noah is laid out in Bereishit 10",
+    "Shem, Cham, and Yefet — the sons of Noah — repopulated the earth after the flood",
+    // Plain "flesh" without the calque collocation. Must NOT be flagged.
+    "the flesh of the animal must be salted before cooking",
+    "Rashi clarifies the laws of forbidden flesh in his commentary",
+    // Words that share a stem but aren't the calque.
+    "the court ordered a fleshing of the hide before tanning",
+    // Empty / no calques.
+    "",
+    "a synthesis paragraph with no offending phrases at all",
+  ];
+  for (const text of CLEAN) {
+    it(`leaves "${text.slice(0, 60)}${text.length > 60 ? '…' : ''}" alone`, () => {
+      expect(lintCalques(text)).toEqual([]);
+    });
+  }
 });
