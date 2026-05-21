@@ -53,7 +53,9 @@ import {
 import { wrapEnv, gatewayStatus, gatewayActive } from './ai-gateway';
 import { runLLM, type LLMModelId } from './llm';
 import { lookupRelationships } from './rabbi-graph';
+import { lintSynthesis } from '../lib/synthesisLint';
 import { readSettings, writeSettings, isLLMModelId, MODEL_PRESETS } from './settings';
+import { lookupGloss } from './word-glosses';
 import {
   readMark, listMarks, writeMark, deleteMark, validateMark,
   readEnrichment, listEnrichments, writeEnrichment, deleteEnrichment, validateEnrichment,
@@ -828,6 +830,9 @@ interface RunResult {
   prompt_chars: number;
   resolved: { system_prompt: string; user_prompt: string };
   cache_hit: boolean;
+  // Deterministic post-generation lint issues. Currently populated for
+  // pesukim.synthesis (missing-Hebrew-excerpt). Empty array means clean.
+  lint_issues?: unknown[];
 }
 
 interface RunResultEnrichment extends RunResult {
@@ -1674,16 +1679,36 @@ async function runEnrichmentOnce(
   // translates the verse to English and quotes that — the regression the
   // synthesisLint catches.
   let pasukHe = '';
+  let crossRefsHe = '';
   if (def.id.startsWith('pesukim.')) {
     const mi = markInput as { verseRef?: string; fields?: { verseRef?: string } } | null;
-    const ref = mi?.verseRef ?? mi?.fields?.verseRef ?? '';
-    if (ref) pasukHe = await fetchPasukHebrewForPrompt(rc.env, ref);
+    const focalRef = mi?.verseRef ?? mi?.fields?.verseRef ?? '';
+    if (focalRef) pasukHe = await fetchPasukHebrewForPrompt(rc.env, focalRef);
+    // For synthesis only: also fetch Hebrew for every OTHER pasuk cited on
+    // the daf, so the LLM can quote cross-references (e.g. Tehillim 119:148
+    // when the focal is 119:62) without reconstructing from training memory.
+    if (def.id === 'pesukim.synthesis') {
+      const pesukimAnchors = inputs.anchors.pesukim as { fields?: { verseRef?: string } }[] | undefined;
+      if (Array.isArray(pesukimAnchors) && pesukimAnchors.length > 0) {
+        const seen = new Set<string>([focalRef]);
+        const lines: string[] = [];
+        for (const inst of pesukimAnchors) {
+          const ref = inst?.fields?.verseRef;
+          if (!ref || seen.has(ref)) continue;
+          seen.add(ref);
+          const he = await fetchPasukHebrewForPrompt(rc.env, ref);
+          if (he) lines.push(`- ${ref}: "${he}"`);
+        }
+        crossRefsHe = lines.join('\n');
+      }
+    }
   }
 
   const vars: Record<string, unknown> = {
     ...inputs.vars,
     mark_input: markInput,
     pasuk_he: pasukHe,
+    cross_refs_he: crossRefsHe,
     depends: inputs.depends,
     anchors: inputs.anchors,
   };
@@ -1719,6 +1744,17 @@ async function runEnrichmentOnce(
   if (parsed && (def.id === 'rabbi.relationships.evidence' || def.id === 'rabbi.geography.evidence')) {
     parsed = await postProcessRabbiEvidence(parsed, rc.env, tractate, page);
   }
+  // Post-generation lint for pesukim.synthesis: flag outputs where the LLM
+  // cited a pasuk with English-only quotes and no Hebrew verbatim text.
+  // We attach issues to the result (visible in dev tray / cache) but do NOT
+  // reject — a false-positive lint shouldn't block the whole run. Issues
+  // ARE used to gate cache writes so bad outputs don't get pinned.
+  let lint_issues: unknown[] | undefined;
+  if (def.id === 'pesukim.synthesis' && parsed && !parse_error) {
+    const synth = (parsed as { synthesis?: string }).synthesis ?? '';
+    const issues = lintSynthesis(synth);
+    if (issues.length > 0) lint_issues = issues;
+  }
   const out: RunResultEnrichment = {
     content: result.content,
     reasoning: result.reasoning_content || undefined,
@@ -1740,8 +1776,13 @@ async function runEnrichmentOnce(
     cache_hit: false,
     deps_resolved: Object.keys(inputs.depends).length > 0 ? inputs.depends : undefined,
     anchors_resolved: Object.keys(inputs.anchors).length > 0 ? inputs.anchors : undefined,
+    ...(lint_issues ? { lint_issues } : {}),
   };
-  if (cacheKey && !parse_error) await writeCachedResult(rc.env, cacheKey, out);
+  // Gate cache writes on lint passing. Bad outputs get returned to the
+  // current caller (visible with lint_issues attached) but aren't pinned —
+  // a bypass_cache=true re-run will get a fresh shot at producing clean
+  // Hebrew-anchored prose.
+  if (cacheKey && !parse_error && !lint_issues) await writeCachedResult(rc.env, cacheKey, out);
   return out;
 }
 
@@ -2859,7 +2900,15 @@ const TRANSLATE_IDIOM_GUIDANCE =
   '  - גזירה שווה → "analogical derivation"\n' +
   '  - גברא / חפצא → "person" / "object" in technical legal sense\n' +
   '  - דתנן / דתניא / דתני → "as the Mishnah/Baraita teaches"\n' +
-  'When the literal Hebrew and the Talmudic usage differ, pick the Talmudic usage unless the surrounding passage clearly demands the literal meaning. Use the aligned Hebrew+English segment from Sefaria as your primary anchor for the local argument.';
+  'When the literal Hebrew and the Talmudic usage differ, pick the Talmudic usage unless the surrounding passage clearly demands the literal meaning. Use the aligned Hebrew+English segment from Sefaria as your primary anchor for the local argument.\n' +
+  '\n' +
+  'PRIORITY: if the aligned Sefaria English segment contains a clear English gloss for this exact word, return that exact gloss verbatim. The aligned segment is the authoritative anchor for the local sense.\n' +
+  '\n' +
+  'MORPHOLOGY: preserve number and tense.\n' +
+  '  - Hebrew plural suffixes -ות / -ים translate as English plurals (שעות = "hours" not "watch"; ימים = "days"; בתים = "houses").\n' +
+  '  - Aramaic plural suffixes -ין / -י / -ן translate as plurals.\n' +
+  '  - Conjugated verbs keep their tense/person (אמר = "said"; אמרי = "they say"; יאמר = "he will say").\n' +
+  '  - Construct forms (smichut) translate as "X of Y" or as a compound.';
 
 app.post('/api/translate', async (c) => {
   let body: TranslateBody;

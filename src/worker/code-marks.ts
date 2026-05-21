@@ -2590,6 +2590,9 @@ Pasuk citation:
 Focal pasuk — Hebrew verbatim text (QUOTE FROM THIS WHEN YOU CITE THE VERSE; do not reconstruct or translate-and-quote):
 {{pasuk_he}}
 
+Other pesukim cited on this daf — Hebrew verbatim text (QUOTE FROM THESE if the gemara invokes them as cross-references; do not reconstruct):
+{{cross_refs_he}}
+
 Tanach context (verse's plain meaning in its own scriptural context):
 {{depends.pesukim.tanach-context}}
 
@@ -2649,8 +2652,9 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'pesukim.tanach-context' },
         { enrichment: 'pesukim.exegesis' },
         { mark: 'rabbi' },
+        { mark: 'pesukim' },
       ],
-      defHash: 'pesukim.synthesis-v5', cacheVersion: '5',
+      defHash: 'pesukim.synthesis-v6', cacheVersion: '6',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
