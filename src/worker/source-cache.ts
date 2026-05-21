@@ -105,12 +105,13 @@ export async function getSefariaPageCached(
   page: string,
   track?: CacheTrack,
 ): Promise<TalmudPageData | null> {
-  // v3: switched commentary fetches from Sefaria's v1 `/api/texts/` (which
-  // silently truncates Talmud Rashi/Tosafot to segment 0 — typically 2
-  // pieces out of dozens) to v3 `/api/v3/texts/` with proper nested-array
-  // flattening. v2 entries carry the truncated pieces; bumping forces a
-  // refetch with the full commentary.
-  const key = `sefaria-bundle:v3:${tractate}:${page}`;
+  // v4: switched commentary fetches from Sefaria's v1 `/api/texts/` to v3
+  // with nested-array flattening AND fixed the ref construction — v3
+  // populated KV with single-piece entries because it inherited the
+  // segment-anchored ref ("Rashi on Chullin 21a:1:1") from /api/related
+  // instead of the daf-level ref. Bumping forces refetch with the
+  // corrected whole-daf ref.
+  const key = `sefaria-bundle:v4:${tractate}:${page}`;
   const hit = await readCache<TalmudPageData>(cache, key);
   track?.onCache?.(hit ? 'hit' : 'miss');
   if (hit) return hit;

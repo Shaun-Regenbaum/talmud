@@ -260,12 +260,20 @@ class SefariaAPI {
     // segment 0. v3 preserves the full shape — we flatten to one piece per
     // lemma so the renderer's anchor markers map 1:1 to actual Rashi /
     // Tosafot entries.
+    //
+    // We build the daf-level ref ourselves rather than using
+    // `rashiLink.ref` directly — Sefaria's /api/related returns segment-
+    // anchored refs like "Rashi on Chullin 21a:1:1" which would narrow the
+    // v3 fetch to one piece. The link presence is still our existence
+    // check, but the ref we pass is the whole-daf ref.
+    const rashiRef = `Rashi on ${tractate} ${page}`;
+    const tosafotRef = `Tosafot on ${tractate} ${page}`;
     const [rashiV3, tosafotV3] = await Promise.all([
-      rashiLink ? this.getTextV3(rashiLink.ref).catch((e) => {
+      rashiLink ? this.getTextV3(rashiRef).catch((e) => {
         console.warn('Failed to fetch Rashi:', e);
         return null;
       }) : Promise.resolve(null),
-      tosafotLink ? this.getTextV3(tosafotLink.ref).catch((e) => {
+      tosafotLink ? this.getTextV3(tosafotRef).catch((e) => {
         console.warn('Failed to fetch Tosafot:', e);
         return null;
       }) : Promise.resolve(null),

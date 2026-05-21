@@ -119,17 +119,22 @@ describe('getTalmudPageWithCommentaries', () => {
         });
       }
       if (url.endsWith('/api/related/Berakhot.2a')) {
+        // Sefaria returns segment-anchored refs here (e.g.
+        // "Rashi on Berakhot 2a:1:1") — not the daf-level ref. Passing
+        // that suffix through to v3 would narrow the fetch to a single
+        // piece, which is the bug we're guarding against. The
+        // implementation must build the daf-level ref itself.
         return jsonResponse({
           links: [
             {
               index_title: 'Rashi on Berakhot',
               type: 'commentary',
-              ref: 'Rashi on Berakhot 2a',
+              ref: 'Rashi on Berakhot 2a:1:1',
             },
             {
               index_title: 'Tosafot on Berakhot',
               type: 'commentary',
-              ref: 'Tosafot on Berakhot 2a',
+              ref: 'Tosafot on Berakhot 2a:5:1',
             },
           ],
         });
@@ -190,7 +195,10 @@ describe('getTalmudPageWithCommentaries', () => {
     expect(data.tosafot?.pieces).toEqual(['tos-0a', 'tos-2a', 'tos-2b']);
     expect(data.tosafot?.english).toBe('');
 
-    // Sanity: we called the v3 endpoint, not v1, for both commentaries.
+    // Sanity: we called the v3 endpoint, not v1, for both commentaries —
+    // and with the daf-level ref, NOT the segment-anchored ref from
+    // /api/related. A regression that re-introduces the suffix would
+    // produce single-piece results in production.
     const calls = fetchSpy.mock.calls.map((c) =>
       typeof c[0] === 'string' ? c[0] : c[0].toString(),
     );
@@ -198,6 +206,9 @@ describe('getTalmudPageWithCommentaries', () => {
       .toBe(true);
     expect(calls.some((u) => u.includes('/api/v3/texts/') && u.includes('Tosafot')))
       .toBe(true);
+    // Specifically: no v3 URL carries the ":N:N" segment suffix.
+    expect(calls.find((u) => u.includes('/api/v3/texts/') && /%3A\d+%3A\d+/.test(u)))
+      .toBeUndefined();
   });
 
   it('omits commentary entries when Sefaria has no link for them', async () => {
