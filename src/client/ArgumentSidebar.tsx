@@ -3,8 +3,10 @@ import type { Section, Rabbi, HalachaTopic, AggadataStory, Pasuk } from './shape
 import { GENERATION_BY_ID, type GenerationId } from './generations';
 import type { IdentifiedRabbi } from './dafContext';
 import { Hebraized } from './Hebraized';
+import { RabbiText, RabbiLinkProvider, HebraizedWithRabbis } from './rabbiLinks';
 
 import MarkEnrichmentCards from './MarkEnrichmentCards';
+import QAPanel from './QAPanel';
 import RabbiLineageTree, { type RelationshipsData, type RelationshipsEvidence } from './RabbiLineageTree';
 import { type GeographyData, type GeographyEvidence } from './RabbiGeographyCard';
 import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeline';
@@ -42,6 +44,17 @@ export interface ArgumentSidebarProps {
   activeRabbi: string | null;
   onClose: () => void;
   onHighlightRabbi: (name: string | null) => void;
+  /** Push a rabbi onto the sidebar stack (called by chips, voice nodes,
+   *  and prose mentions). Distinct from onHighlightRabbi (which only
+   *  toggles daf highlights without changing the sidebar). */
+  onPushRabbi: (name: string) => void;
+  /** Label of the previous stack entry — null when the stack is at depth 1
+   *  (no back available). When non-null, the sidebar renders a back chip. */
+  previousLabel: string | null;
+  onBack: () => void;
+  /** Daf-wide identified rabbis. Used to resolve display names mentioned
+   *  in enrichment prose to clickable links. */
+  dafRabbis: IdentifiedRabbi[];
   /** Highlights a contiguous segment range on the daf. Used when the user
    *  clicks an argument-move card so the corresponding sub-range of the
    *  section is painted. Pass null to clear. `key` is a stable id (e.g. the
@@ -207,6 +220,8 @@ function ArgumentMoveCard(props: {
   highlightedMoveId: string | null;
   onHighlightRabbi: (name: string | null) => void;
   onHighlightMove: (move: ArgumentMoveInstance | null) => void;
+  onPushRabbi: (name: string) => void;
+  dafRabbis: IdentifiedRabbi[];
   generationByName: Map<string, GenerationId>;
 }): JSX.Element {
   const f = props.move.fields;
@@ -273,6 +288,16 @@ function ArgumentMoveCard(props: {
         tractate={props.tractate}
         page={props.page}
       />
+      {/* Explore-deeper Q&A panel — collapsed by default; the first expand
+          lazily loads suggested questions + community-asked registry, and
+          per-question answers stream in via shared KV-cached
+          argument-move.qa runs. */}
+      <QAPanel
+        moveId={f.id}
+        moveInstance={props.move}
+        tractate={props.tractate}
+        page={props.page}
+      />
       <Show when={f.rabbiNames.length > 0}>
         <div style={{
           'margin-top': '0.5rem',
@@ -284,8 +309,8 @@ function ArgumentMoveCard(props: {
             const genInfo = genId ? GENERATION_BY_ID[genId] : null;
             return (
               <button
-                onClick={() => props.onHighlightRabbi(active() ? null : name)}
-                title={active() ? 'Click to un-highlight' : 'Click to highlight in daf'}
+                onClick={() => props.onPushRabbi(name)}
+                title={`Open ${name}`}
                 style={{
                   border: '1px solid ' + (active() ? '#eab308' : '#d6d3d1'),
                   background: active() ? '#fef3c7' : '#fff',
@@ -322,6 +347,8 @@ function ArgumentBody(props: {
   page: string;
   activeRabbi: string | null;
   onHighlightRabbi: (name: string | null) => void;
+  onPushRabbi: (name: string) => void;
+  dafRabbis: IdentifiedRabbi[];
   onHighlightRange: (range: { start: number; end: number; key: string; tokenStart?: number; tokenEnd?: number } | null) => void;
   generationByName: Map<string, GenerationId>;
 }): JSX.Element {
@@ -430,7 +457,7 @@ function ArgumentBody(props: {
         onResolved={handleResolved}
       />
       <Show when={voicesData()}>
-        {(data) => <ArgumentVoiceMap data={data()} />}
+        {(data) => <ArgumentVoiceMap data={data()} onClickVoice={props.onPushRabbi} />}
       </Show>
       <Show when={sectionMoves()}>
         {(moves) => (
@@ -451,6 +478,8 @@ function ArgumentBody(props: {
                 highlightedMoveId={highlightedMoveId()}
                 onHighlightRabbi={props.onHighlightRabbi}
                 onHighlightMove={handleHighlightMove}
+                onPushRabbi={props.onPushRabbi}
+                dafRabbis={props.dafRabbis}
                 generationByName={props.generationByName}
               />
             )}</For>
@@ -518,7 +547,7 @@ function RulingRow(props: {
               </a>
             </div>
             <div style={{ color: '#555', 'line-height': 1.45, 'font-size': '0.85rem' }}>
-              <Hebraized text={r().summary} />
+              <HebraizedWithRabbis text={r().summary} />
             </div>
           </div>
         );
@@ -812,7 +841,7 @@ function HalachaBody(props: {
                     {t().ref}
                   </div>
                   <div style={{ color: '#555', 'line-height': 1.45, 'font-size': '0.85rem' }}>
-                    <Hebraized text={t().ruling} />
+                    <HebraizedWithRabbis text={t().ruling} />
                   </div>
                 </div>
               )}
@@ -845,7 +874,7 @@ function HalachaBody(props: {
                   <span style={{ 'margin-left': '0.35rem' }}>Lechatchila</span>
                 </div>
                 <div style={{ 'font-size': '0.88rem', color: '#222', 'line-height': 1.5 }}>
-                  <Hebraized text={pr().lechatchila} />
+                  <HebraizedWithRabbis text={pr().lechatchila} />
                 </div>
               </div>
             </Show>
@@ -856,7 +885,7 @@ function HalachaBody(props: {
                   <span style={{ 'margin-left': '0.35rem' }}>Bedieved</span>
                 </div>
                 <div style={{ 'font-size': '0.88rem', color: '#222', 'line-height': 1.5 }}>
-                  <Hebraized text={pr().bedieved} />
+                  <HebraizedWithRabbis text={pr().bedieved} />
                 </div>
               </div>
             </Show>
@@ -910,12 +939,12 @@ function HalachaBody(props: {
               </div>
               <For each={d.positions}>{(p) => (
                 <div style={{ 'font-size': '0.82rem', 'line-height': 1.5, color: '#444', 'margin-bottom': '0.2rem' }}>
-                  <span style={{ 'font-weight': 600, color: '#222' }}>{p.voice}:</span> <Hebraized text={p.position} />
+                  <span style={{ 'font-weight': 600, color: '#222' }}>{p.voice}:</span> <HebraizedWithRabbis text={p.position} />
                 </div>
               )}</For>
               <Show when={d.settled}>
                 <div style={{ 'font-size': '0.78rem', color: '#666', 'font-style': 'italic', 'margin-top': '0.2rem' }}>
-                  <Hebraized text={d.settled} />
+                  <HebraizedWithRabbis text={d.settled} />
                 </div>
               </Show>
             </div>
@@ -1083,6 +1112,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
   return (
     <Show when={props.content}>
       {(c) => (
+        <RabbiLinkProvider value={{ rabbis: props.dafRabbis, onPushRabbi: props.onPushRabbi }}>
         <aside
           style={{
             background: '#fff',
@@ -1095,6 +1125,30 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
             color: '#222',
           }}
         >
+            <Show when={props.previousLabel}>
+              {(label) => (
+                <button
+                  type="button"
+                  onClick={props.onBack}
+                  title={`Back to ${label()}`}
+                  style={{
+                    display: 'flex', 'align-items': 'center', gap: '0.35rem',
+                    width: '100%', 'text-align': 'left',
+                    background: '#f5f3ee', border: '1px solid #e5e3dc',
+                    'border-radius': '4px',
+                    padding: '0.35rem 0.55rem', margin: '0 0 0.55rem',
+                    cursor: 'pointer', font: 'inherit',
+                    'font-size': '0.75rem', color: '#555',
+                  }}
+                >
+                  <span style={{ 'font-size': '0.85rem', 'line-height': 1 }}>←</span>
+                  <span style={{
+                    'white-space': 'nowrap', overflow: 'hidden',
+                    'text-overflow': 'ellipsis',
+                  }}>{label()}</span>
+                </button>
+              )}
+            </Show>
             <header style={{
               display: 'flex',
               'align-items': 'center',
@@ -1130,6 +1184,8 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                 page={props.page}
                 activeRabbi={props.activeRabbi}
                 onHighlightRabbi={props.onHighlightRabbi}
+                onPushRabbi={props.onPushRabbi}
+                dafRabbis={props.dafRabbis}
                 onHighlightRange={(r) => props.onHighlightRange?.(r)}
                 generationByName={props.generationByName}
               />
@@ -1204,7 +1260,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                       </div>
                     </Show>
                     <p style={{ margin: '0 0 0.8rem', color: '#333', 'line-height': 1.55 }}>
-                      <Hebraized text={story.summary} />
+                      <HebraizedWithRabbis text={story.summary} />
                     </p>
                   </div>
                 );
@@ -1212,6 +1268,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
             </Show>
 
         </aside>
+        </RabbiLinkProvider>
       )}
     </Show>
   );

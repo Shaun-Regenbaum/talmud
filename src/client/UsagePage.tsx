@@ -452,15 +452,14 @@ export function UsagePage(): JSX.Element {
 
   return (
     <main
+      class="page-shell"
       style={{
-        padding: '1.5rem 2rem',
-        'max-width': '960px',
-        margin: '0 auto',
+        '--page-max': '960px',
         'font-family': 'system-ui, -apple-system, sans-serif',
         color: '#222',
       }}
     >
-      <header style={{ display: 'flex', 'align-items': 'center', gap: '1rem', 'margin-bottom': '1.2rem' }}>
+      <header class="responsive-row" style={{ 'margin-bottom': '1.2rem' }}>
         <h1 style={{ margin: 0, 'font-size': '1.4rem' }}>Usage</h1>
         <a href="#daf" style={{ color: '#666', 'font-size': '0.85rem', 'text-decoration': 'none' }}>← back to daf</a>
         <button

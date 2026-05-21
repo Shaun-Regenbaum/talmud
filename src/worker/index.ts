@@ -75,6 +75,8 @@ import {
   keyForGemara,
   keyForCommentaries,
   instanceIdOf,
+  qualifierHash,
+  normalizeQualifier,
 } from './cache-keys';
 
 type Movement = 'bavel->israel' | 'israel->bavel' | 'both' | null;
@@ -133,6 +135,10 @@ interface JobMessage {
   model_override?: string;
   mark_input?: unknown;
   bypass_cache?: boolean;
+  /** Free-text input that becomes part of the enrichment's cache key (via
+   *  qualifierHash) and is exposed to its prompt as {{user_question}}. Used
+   *  by argument-move.qa today. Empty/undefined means a vanilla run. */
+  user_question?: string;
 }
 
 function stripHtmlServer(html: string): string {
@@ -1624,14 +1630,19 @@ async function runEnrichmentOnce(
   bypassCache: boolean,
   modelOverride?: LLMModelId,
   parentChain: ReadonlySet<string> = new Set(),
+  /** Free-text qualifier (e.g. the user's question for argument-move.qa).
+   *  Hashed into the cache key when present, and exposed to the prompt
+   *  template as {{user_question}}. */
+  userQuestion?: string,
 ): Promise<RunResultEnrichment> {
   const instance_id = await instanceIdOf(markInput);
+  const qHash = userQuestion ? await qualifierHash(userQuestion) : undefined;
   const cacheKey = modelOverride
     // Per-call model overrides skip the canonical cache to avoid polluting
     // the default-traffic key. Re-running with the same override hits the
     // gateway prompt cache but not KV — consistent with bypass behavior.
     ? null
-    : keyForEnrichment(def, instance_id, def.scope === 'local' ? { tractate, page } : undefined);
+    : keyForEnrichment(def, instance_id, def.scope === 'local' ? { tractate, page } : undefined, qHash);
   if (cacheKey && !bypassCache) {
     const hit = await readCachedResult(rc.env, cacheKey);
     if (hit) return { ...hit, cache_hit: true };
@@ -1711,6 +1722,10 @@ async function runEnrichmentOnce(
     cross_refs_he: crossRefsHe,
     depends: inputs.depends,
     anchors: inputs.anchors,
+    // Normalized so prompts see a clean version even when the user submits
+    // sloppy whitespace/casing. Empty string when absent so {{user_question}}
+    // is safe to interpolate in any prompt.
+    user_question: userQuestion ? normalizeQualifier(userQuestion) : '',
   };
   const systemPrompt = renderTemplate(def.system_prompt, vars);
   const userPrompt = renderTemplate(def.user_prompt_template, vars);
@@ -1817,7 +1832,8 @@ async function cacheKeyForRunBody(env: Bindings, body: JobMessage): Promise<{
     if (!def) return { key: null, defKind: null };
     const instance_id = await instanceIdOf(body.mark_input);
     const dafForKey = def.scope === 'local' ? { tractate: body.tractate, page: body.page } : undefined;
-    return { key: keyForEnrichment(def, instance_id, dafForKey), defKind: 'enrichment' };
+    const qHash = body.user_question ? await qualifierHash(body.user_question) : undefined;
+    return { key: keyForEnrichment(def, instance_id, dafForKey, qHash), defKind: 'enrichment' };
   }
   // ad_hoc has no canonical key
   return { key: null, defKind: null };
@@ -1834,6 +1850,7 @@ async function makeRunId(body: JobMessage): Promise<string> {
     body.mark_id ?? body.enrichment_id ?? 'adhoc',
     body.tractate, body.page,
     await instanceIdOf(body.mark_input),
+    body.user_question ? `q_${await qualifierHash(body.user_question)}` : 'noq',
     body.bypass_cache ? 'fresh' : 'cached',
     String(Math.floor(Date.now() / 1000)),
   ];
@@ -1877,6 +1894,8 @@ app.post('/api/studio/run', async (c) => {
     model_override: body.model_override,
     mark_input: body.mark_input,
     bypass_cache: body.bypass_cache === true,
+    user_question: typeof body.user_question === 'string' && body.user_question.trim().length > 0
+      ? body.user_question : undefined,
   };
 
   // Hot path: canonical cache hit short-circuits the queue entirely.
@@ -2065,6 +2084,238 @@ app.get('/api/log/recent', async (c) => {
   if (!cache) return c.json({ error: 'no cache' }, 503);
   const raw = await cache.get('client-logs:recent');
   return c.json({ logs: raw ? (JSON.parse(raw) as unknown[]) : [] });
+});
+
+// ---------------------------------------------------------------------------
+// Per-move Q&A registry — supports the Explore-deeper panel on argument-move
+// cards. We keep ONE small JSON blob per move that lists which questions
+// users have asked about it (curated + community). The actual answers live
+// in the shared enrichment cache via argument-move.qa, keyed per
+// (move, normalized question hash). Decoupling these means: (a) the answer
+// cache stays uniformly shaped; (b) the registry stays small enough to read
+// + rewrite as a single value on every interaction.
+//
+// Key shape:
+//   qa-registry:argument-move:v1:{move_id}:{tractate}:{page}
+//
+// Body shape (JSON):
+//   {
+//     community: [{ q, qHash, askedAt, clickCount }]
+//   }
+//
+// Curated questions aren't stored here — they live in the
+// argument-move.suggested-questions enrichment cache and are fetched by the
+// client directly. The registry only tracks user-submitted ones because
+// those are the ones the worker would otherwise have no way to enumerate
+// (KV list-by-prefix is slow / paginated and we want this on the hot path).
+// ---------------------------------------------------------------------------
+
+const QA_REGISTRY_PREFIX = 'qa-registry:argument-move:v1';
+const QA_COMMUNITY_CAP = 50;
+const QA_QUESTION_MAX_CHARS = 280;
+// Rate limiting for /api/qa/ask: per-IP rolling window keyed in KV. Cheap
+// abuse gate; not perfect (NAT, mobile carriers share IPs) but raises the
+// floor for someone trying to burn LLM credits via the open endpoint.
+const QA_ASK_RATE_LIMIT_WINDOW_SEC = 60 * 60;
+const QA_ASK_RATE_LIMIT_MAX = 8;
+
+interface QaRegistryEntry {
+  q: string;
+  qHash: string;
+  askedAt: number;
+  clickCount: number;
+}
+interface QaRegistry {
+  community: QaRegistryEntry[];
+}
+
+function qaRegistryKey(tractate: string, page: string, moveId: string): string {
+  // Mirror the cache-keys.ts sanitization so registry keys can't carry
+  // colons or slashes that would collide across moves.
+  const safe = (s: string) => s.toLowerCase().replace(/[^a-z0-9._-]+/g, '_').slice(0, 80);
+  return `${QA_REGISTRY_PREFIX}:${safe(moveId)}:${safe(tractate)}:${safe(page)}`;
+}
+
+async function readQaRegistry(env: Bindings, tractate: string, page: string, moveId: string): Promise<QaRegistry> {
+  if (!env.CACHE) return { community: [] };
+  try {
+    const raw = await env.CACHE.get(qaRegistryKey(tractate, page, moveId));
+    if (!raw) return { community: [] };
+    const parsed = JSON.parse(raw) as QaRegistry;
+    if (!parsed || !Array.isArray(parsed.community)) return { community: [] };
+    return parsed;
+  } catch {
+    return { community: [] };
+  }
+}
+
+async function writeQaRegistry(env: Bindings, tractate: string, page: string, moveId: string, reg: QaRegistry): Promise<void> {
+  if (!env.CACHE) return;
+  await env.CACHE.put(qaRegistryKey(tractate, page, moveId), JSON.stringify(reg));
+}
+
+function clientIp(c: { req: { header: (k: string) => string | undefined; raw: unknown } }): string {
+  // CF-Connecting-IP is the standard CF header; fall back through the others
+  // for local dev. Keep this as a single concatenated id rather than IP-only
+  // so two-cookie / two-mobile scenarios still share a counter.
+  return (
+    c.req.header('cf-connecting-ip')
+    ?? c.req.header('x-forwarded-for')?.split(',')[0]?.trim()
+    ?? c.req.header('x-real-ip')
+    ?? 'unknown'
+  );
+}
+
+async function tickRateLimit(env: Bindings, scope: string, who: string): Promise<{ ok: boolean; remaining: number }> {
+  if (!env.CACHE) return { ok: true, remaining: QA_ASK_RATE_LIMIT_MAX };
+  const key = `ratelimit:${scope}:${who}`;
+  const raw = await env.CACHE.get(key);
+  const now = Math.floor(Date.now() / 1000);
+  let count = 0;
+  let windowStart = now;
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw) as { count: number; windowStart: number };
+      if (now - parsed.windowStart < QA_ASK_RATE_LIMIT_WINDOW_SEC) {
+        count = parsed.count;
+        windowStart = parsed.windowStart;
+      }
+    } catch { /* ignore corrupt */ }
+  }
+  count += 1;
+  await env.CACHE.put(key, JSON.stringify({ count, windowStart }), {
+    expirationTtl: QA_ASK_RATE_LIMIT_WINDOW_SEC,
+  });
+  return { ok: count <= QA_ASK_RATE_LIMIT_MAX, remaining: Math.max(0, QA_ASK_RATE_LIMIT_MAX - count) };
+}
+
+/**
+ * GET /api/qa/registry?tractate&page&move_id
+ *
+ * Returns the community-submitted question list for one move so the client
+ * can render the Explore-deeper panel without enumerating KV. Curated
+ * questions are fetched separately via /api/studio/run on
+ * argument-move.suggested-questions.
+ */
+app.get('/api/qa/registry', async (c) => {
+  const tractate = c.req.query('tractate');
+  const page = c.req.query('page');
+  const moveId = c.req.query('move_id');
+  if (!tractate || !page || !moveId) {
+    return c.json({ error: 'tractate, page, move_id required' }, 400);
+  }
+  const reg = await readQaRegistry(c.env, tractate, page, moveId);
+  return c.json(reg);
+});
+
+/**
+ * POST /api/qa/ask
+ *
+ * Body: { tractate, page, move_id, question, mark_input }
+ *
+ * Normalizes + hashes the question, dedupes against the registry, appends
+ * to community if new, and enqueues the argument-move.qa enrichment so the
+ * answer cache fills in for everyone. The actual answer is fetched
+ * separately via /api/studio/run by the client (which polls the queue) —
+ * this endpoint only kicks the job and records the question for other users.
+ *
+ * Returns: { qHash, alreadyAsked, rateLimited?, remaining }
+ */
+app.post('/api/qa/ask', async (c) => {
+  let body: unknown;
+  try { body = await c.req.json(); }
+  catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const b = body as Partial<{
+    tractate: string; page: string; move_id: string;
+    question: string; mark_input: unknown;
+  }>;
+  if (!b.tractate || !b.page || !b.move_id || !b.question) {
+    return c.json({ error: 'tractate, page, move_id, question required' }, 400);
+  }
+  const trimmed = b.question.trim();
+  if (trimmed.length === 0) return c.json({ error: 'question is empty' }, 400);
+  if (trimmed.length > QA_QUESTION_MAX_CHARS) {
+    return c.json({ error: `question must be ≤${QA_QUESTION_MAX_CHARS} chars` }, 400);
+  }
+
+  const qHash = await qualifierHash(trimmed);
+
+  // Existence check before rate-limiting. If the question is already in the
+  // registry, we just bump click count and return — no LLM, no rate-limit
+  // burn for the user. (They'd hit the cached answer anyway.)
+  const reg = await readQaRegistry(c.env, b.tractate, b.page, b.move_id);
+  const existing = reg.community.find((e) => e.qHash === qHash);
+  if (existing) {
+    existing.clickCount += 1;
+    await writeQaRegistry(c.env, b.tractate, b.page, b.move_id, reg);
+    return c.json({ qHash, alreadyAsked: true, remaining: -1 });
+  }
+
+  // Novel question — gate behind the per-IP rate limit because this will
+  // trigger an LLM call.
+  const rl = await tickRateLimit(c.env, 'qa-ask', clientIp(c));
+  if (!rl.ok) {
+    return c.json({ error: 'rate-limited', rateLimited: true, remaining: 0 }, 429);
+  }
+
+  reg.community.unshift({
+    q: trimmed,
+    qHash,
+    askedAt: Date.now(),
+    clickCount: 1,
+  });
+  while (reg.community.length > QA_COMMUNITY_CAP) reg.community.pop();
+  await writeQaRegistry(c.env, b.tractate, b.page, b.move_id, reg);
+
+  // Kick the enrichment job so the answer is ready by the time the client
+  // polls for it. The /api/studio/run hot-path lookup will still cache-hit
+  // on the second user with the same normalized question.
+  if (c.env.ENRICHMENT_QUEUE) {
+    const job: JobMessage = {
+      runId: '',
+      enrichment_id: 'argument-move.qa',
+      tractate: b.tractate,
+      page: b.page,
+      mark_input: b.mark_input,
+      user_question: trimmed,
+      bypass_cache: false,
+    };
+    job.runId = await makeRunId(job);
+    try {
+      await c.env.ENRICHMENT_QUEUE.send(job);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn('[qa/ask] queue send failed:', String((err as Error)?.message ?? err));
+    }
+  }
+
+  return c.json({ qHash, alreadyAsked: false, remaining: rl.remaining });
+});
+
+/**
+ * POST /api/qa/click
+ *
+ * Body: { tractate, page, move_id, qHash }
+ *
+ * Bumps click count for ranking. Best-effort — off-by-one doesn't matter
+ * and we don't fail the request on a write race. Used for the "show top
+ * 2 questions" ranking on the panel.
+ */
+app.post('/api/qa/click', async (c) => {
+  let body: unknown;
+  try { body = await c.req.json(); }
+  catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const b = body as Partial<{ tractate: string; page: string; move_id: string; qHash: string }>;
+  if (!b.tractate || !b.page || !b.move_id || !b.qHash) {
+    return c.json({ error: 'tractate, page, move_id, qHash required' }, 400);
+  }
+  const reg = await readQaRegistry(c.env, b.tractate, b.page, b.move_id);
+  const entry = reg.community.find((e) => e.qHash === b.qHash);
+  if (entry) {
+    entry.clickCount += 1;
+    await writeQaRegistry(c.env, b.tractate, b.page, b.move_id, reg);
+  }
+  return c.json({ ok: true });
 });
 
 // --- Telemetry + /usage dashboard ---------------------------------------
@@ -2933,7 +3184,10 @@ app.post('/api/translate', async (c) => {
   const ctxHash = (hebrewBefore || hebrewAfter)
     ? `:${shortHash(hebrewBefore + '' + hebrewAfter)}`
     : '';
-  const cacheKey = `translate:v2:${tractate}:${page}:${word}${ctxHash}`;
+  // v3: DeepSeek V4 Flash primary + hardcoded dict short-circuit +
+  // morphology-aware prompt. Bumped from v2 to invalidate stale Gemma-era
+  // translations (Gemma 4 26B was returning e.g. שעות → "watches").
+  const cacheKey = `translate:v3:${tractate}:${page}:${word}${ctxHash}`;
   const t0 = Date.now();
   if (cache) {
     const cached = await cache.get(cacheKey);
@@ -2941,6 +3195,19 @@ app.post('/api/translate', async (c) => {
       recordTelemetry(c, { endpoint: 'translate', tractate, page, cache_hit: true, ms: Date.now() - t0, ok: true });
       return c.json({ translation: cached, cached: true });
     }
+  }
+
+  // Hardcoded dict for high-frequency Talmudic words whose gloss is
+  // context-free (Aramaic discourse markers, Mishnaic structural terms,
+  // common Hebrew nouns small models botch the plural of). Skips the LLM
+  // entirely and caches the result alongside LLM-produced ones.
+  const dictGloss = lookupGloss(word);
+  if (dictGloss) {
+    if (cache) {
+      await cache.put(cacheKey, dictGloss, { expirationTtl: 60 * 60 * 24 * 30 });
+    }
+    recordTelemetry(c, { endpoint: 'translate', tractate, page, cache_hit: false, model: 'dict', ms: Date.now() - t0, ok: true });
+    return c.json({ translation: dictGloss, cached: false, _model: 'dict' });
   }
 
   if (!c.env.AI) {
@@ -2991,11 +3258,12 @@ app.post('/api/translate', async (c) => {
     : 'You translate single Hebrew or Aramaic words from the Talmud into English. Return ONLY the English translation — a single word or short phrase, no quotation marks, no explanation, no punctuation. If the word is a proper name (a Rabbi or place), return the conventional English rendering.\n\n'
   ) + TRANSLATE_IDIOM_GUIDANCE;
 
-  // Gemma-4 no-thinking primary; Kimi K2.6 thinking as upgrade fallback when
-  // Gemma returns empty or errors. No Llama anywhere in this repo.
+  // DeepSeek V4 Flash primary (frontier-adjacent Hebrew morphology at
+  // $0.14/$0.28 per 1M; reasoning auto-disabled in llm.ts for low latency).
+  // Kimi K2.5 thinking fallback when DeepSeek returns empty or errors.
   const translateModels: Array<{ id: LLMModelId; label: string; kimi?: boolean }> = [
-    { id: '@cf/google/gemma-4-26b-a4b-it', label: 'gemma-4-26b' },
-    { id: '@cf/moonshotai/kimi-k2.5',      label: 'kimi-k2.5', kimi: true },
+    { id: 'openrouter/deepseek/deepseek-v4-flash', label: 'deepseek-v4-flash' },
+    { id: '@cf/moonshotai/kimi-k2.5',              label: 'kimi-k2.5', kimi: true },
   ];
 
   const attempts: string[] = [];
@@ -5753,6 +6021,8 @@ async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: Executi
       rc, def, job.tractate, job.page, job.mark_input,
       job.bypass_cache === true,
       job.model_override as LLMModelId | undefined,
+      undefined,
+      job.user_question,
     );
     await writeResult({
       status: 'ok',

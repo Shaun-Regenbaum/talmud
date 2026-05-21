@@ -43,6 +43,21 @@ async function shortHash(input: string): Promise<string> {
   return hex;
 }
 
+/** Normalize free-text input (e.g. a user-submitted question) so cosmetic
+ *  variation doesn't fan the cache out: trim, lowercase, collapse internal
+ *  whitespace. Used by callers that want a stable cache-key qualifier from
+ *  arbitrary text. Exported so the same normalization can be reused both
+ *  when computing a write key and when looking up an existing entry. */
+export function normalizeQualifier(s: string): string {
+  return s.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+/** Hash a normalized qualifier to a short stable id suitable for use inside
+ *  a KV key. Same input → same output across processes. */
+export async function qualifierHash(s: string): Promise<string> {
+  return shortHash(normalizeQualifier(s));
+}
+
 /**
  * Derive a stable per-instance id from a mark instance. Preference order:
  *   1. mark_input.fields.id (if the extractor emits one)
@@ -119,14 +134,22 @@ export function keyForEnrichment(
   def: AnyEnrichmentDefinition,
   instance_id: string,
   daf?: { tractate: string; page: string },
+  /** Optional extra key dimension for enrichments whose output depends on
+   *  caller-supplied input (e.g. argument-move.qa, where each user question
+   *  produces a distinct answer). Pass the already-hashed qualifier — callers
+   *  should normalize then hash with qualifierHash() so cosmetic variation
+   *  doesn't fan the cache out. */
+  qualifier?: string,
 ): string {
   const scope = enrichmentScope(def);
   const head = `enrich:${def.id}:${def.cache_version}:${instance_id}`;
-  if (scope === 'local') {
-    if (!daf) throw new Error(`enrichment ${def.id} is scope=local but no daf was supplied to keyForEnrichment`);
-    return `${head}:${slugDaf(daf.tractate, daf.page)}`;
-  }
-  return head;
+  const body = scope === 'local'
+    ? (() => {
+        if (!daf) throw new Error(`enrichment ${def.id} is scope=local but no daf was supplied to keyForEnrichment`);
+        return `${head}:${slugDaf(daf.tractate, daf.page)}`;
+      })()
+    : head;
+  return qualifier ? `${body}:q_${qualifier}` : body;
 }
 
 /** Both schema-shape and KV-shape definitions carry `scope`. */

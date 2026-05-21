@@ -1823,6 +1823,145 @@ const ARGUMENT_MOVE_SYNTHESIS_OUTPUT_SCHEMA = {
   },
 };
 
+// ---------------------------------------------------------------------------
+// argument-move.suggested-questions
+//
+// Generates a short list of follow-up questions a learner might want answered
+// about THIS specific move that the 2-3 sentence synthesis doesn't address.
+// Used to power the "Explore deeper" panel on each move card — the panel
+// shows the top 1-2 questions by default and lets the user reveal the rest.
+//
+// Lazy: only fires when the user expands the panel, so we don't pay for moves
+// nobody opens. Cached forever per move.
+// ---------------------------------------------------------------------------
+
+const ARGUMENT_MOVE_SUGGESTED_QUESTIONS_SYSTEM_PROMPT = `You are a Talmud chavruta. Given ONE argumentative move and the surrounding gemara + commentaries, produce a SHORT list of follow-up questions a learner is likely to want answered AFTER reading the move's 2-3 sentence synthesis. The synthesis says WHAT the move does; these questions should target WHY it works.
+
+Output STRICT JSON only:
+
+{
+  "questions": [
+    {
+      "q": "The question, phrased the way a learner would ask it. 8-18 words. End with a question mark.",
+      "why_useful": "Half-sentence hint on what answering this question unlocks. Shown as title-text on hover, not as the answer itself."
+    }
+  ]
+}
+
+Rules:
+- Generate exactly 4-5 questions, ordered by general usefulness (most-illuminating first).
+- Each question must be specific to THIS move's content — never generic ('what is the context?', 'who is Rabbi X?'). If you can't tell which move it's about from the question alone, it's too generic.
+- Aim at the *mechanism*: why does the objection bite, what unstated premise gets violated, what does a resolution have to concede, why is this particular verse the one quoted, why does the questioner expect a different phrasing, etc.
+- One question per concrete sub-issue. Don't duplicate.
+- Plain English. NO puff. Hebrew (in parentheses) only for terms with no clean English equivalent.
+- If the move is a pure Stam connector with nothing interesting to ask about, return ONE question that probes whatever substance does exist; do not pad.`;
+
+const ARGUMENT_MOVE_SUGGESTED_QUESTIONS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+THIS move:
+{{mark_input}}
+
+All moves on this daf (for context — DO NOT generate questions about other moves):
+{{anchors.argument-move}}
+
+Hebrew source for the daf:
+{{gemara_he}}
+
+Existing per-move synthesis (so you can target what the synthesis SKIPS):
+{{depends.argument-move.synthesis}}
+
+Generate the suggested-questions list per the schema.`;
+
+const ARGUMENT_MOVE_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA = {
+  name: 'argument_move_suggested_questions',
+  strict: true,
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['questions'],
+    properties: {
+      questions: {
+        type: 'array',
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['q', 'why_useful'],
+          properties: {
+            q: { type: 'string' },
+            why_useful: { type: 'string' },
+          },
+        },
+      },
+    },
+  },
+};
+
+// ---------------------------------------------------------------------------
+// argument-move.qa
+//
+// Parameterized by `user_question` (free-text from a learner). Each (move,
+// normalized-question) pair caches independently via the qualifier dimension
+// of keyForEnrichment, so the first user to ask "why does the verse need to
+// say from neshef to neshef?" pays for the LLM call and every learner after
+// gets a cache hit. Used for both curated questions (from suggested-questions
+// above) and custom user submissions — same prompt, same cache, same answer
+// regardless of where the question came from.
+// ---------------------------------------------------------------------------
+
+const ARGUMENT_MOVE_QA_SYSTEM_PROMPT = `You are a Talmud chavruta answering a learner's specific question about ONE move on the daf. The learner has already read the 2-3 sentence synthesis; they want depth, not a restatement.
+
+Output STRICT JSON only:
+
+{
+  "answer": "A focused paragraph, 3-6 sentences, that directly answers the learner's question. Lead with the answer; back it up with the specific gemara mechanics — what assumption is at stake, what verse-phrasing or logical move drives the question, what the move concedes or assumes. Quote short Hebrew (3-6 words, in parentheses) when the precise wording is load-bearing. Cite Rashi or Tosafot in ONE clause if they actually clarify; never enumerate commentaries.",
+  "confidence": "high | medium | low"
+}
+
+Rules:
+- 3-6 sentences. Hard ceiling — do NOT pad.
+- Answer the LEARNER'S question, not whatever question you'd rather answer. If the question doesn't make sense for this move, say so plainly and set confidence='low'.
+- If the available sources (move, synthesis, gemara, commentaries) don't contain enough to ground a real answer, give your best partial read and set confidence='low'.
+- Ground every claim in the move's actual content or the cited verse / commentary. Don't invent positions.
+- NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "intricate", "profound", "lens", "captures", "embodies".
+- NO jargon: write "transmitter" not "tradent", "interpret" not "exegete".
+- Hebrew script (not transliteration) in parentheses for technical terms.`;
+
+const ARGUMENT_MOVE_QA_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+THIS move:
+{{mark_input}}
+
+The learner's question (answer THIS specifically):
+{{user_question}}
+
+Existing per-move synthesis (the learner has already read this — go deeper, don't restate):
+{{depends.argument-move.synthesis}}
+
+Commentary digest for THIS move:
+{{depends.argument-move.commentaries}}
+
+All moves on this daf (for cross-reference if the question pulls in another move):
+{{anchors.argument-move}}
+
+Hebrew source for the daf:
+{{gemara_he}}
+
+Answer the learner's question per the schema.`;
+
+const ARGUMENT_MOVE_QA_OUTPUT_SCHEMA = {
+  name: 'argument_move_qa',
+  strict: true,
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['answer', 'confidence'],
+    properties: {
+      answer: { type: 'string' },
+      confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
+    },
+  },
+};
+
 CODE_ENRICHMENTS.push(
   makeEnrichment(
     'argument-move', 'argument-move.commentaries', 'Commentaries',
@@ -1848,6 +1987,42 @@ CODE_ENRICHMENTS.push(
         { mark: 'rabbi' },
       ],
       defHash: 'argument-move.synthesis-v4', cacheVersion: '4',
+      model: ARGUMENT_FLASH_MODEL,
+    },
+  ),
+  // mode='augment-content' (not 'aggregate') so MarkEnrichmentCards' auto-fire
+  // for the argument-move card keeps treating argument-move.synthesis as the
+  // sole primary. The Explore-deeper panel invokes these two directly via
+  // /api/studio/run, on demand, so we don't fan out per-move LLM calls for
+  // moves nobody opens.
+  makeEnrichment(
+    'argument-move', 'argument-move.suggested-questions', 'Suggested questions',
+    'Curated follow-up questions the synthesis doesn\'t answer. Powers the Explore-deeper panel.',
+    ARGUMENT_MOVE_SUGGESTED_QUESTIONS_SYSTEM_PROMPT, ARGUMENT_MOVE_SUGGESTED_QUESTIONS_USER_TEMPLATE, ARGUMENT_MOVE_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content', scope: 'local',
+      dependencies: [
+        'gemara',
+        { mark: 'argument-move' },
+        { enrichment: 'argument-move.synthesis' },
+      ],
+      defHash: 'argument-move.suggested-questions-v1', cacheVersion: '1',
+      model: ARGUMENT_FLASH_MODEL,
+    },
+  ),
+  makeEnrichment(
+    'argument-move', 'argument-move.qa', 'Q&A',
+    'Answer one learner-supplied question about THIS move. Cache keyed per (move, normalized question).',
+    ARGUMENT_MOVE_QA_SYSTEM_PROMPT, ARGUMENT_MOVE_QA_USER_TEMPLATE, ARGUMENT_MOVE_QA_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content', scope: 'local',
+      dependencies: [
+        'gemara',
+        { enrichment: 'argument-move.synthesis' },
+        { enrichment: 'argument-move.commentaries' },
+        { mark: 'argument-move' },
+      ],
+      defHash: 'argument-move.qa-v1', cacheVersion: '1',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),

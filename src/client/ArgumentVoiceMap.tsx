@@ -45,6 +45,21 @@ export interface ArgumentVoicesData {
 
 interface Props {
   data: ArgumentVoicesData;
+  /** Optional click handler — when provided, named (non-Stam, non-anonymous)
+   *  voice nodes become buttons that open the rabbi's sidebar entry. */
+  onClickVoice?: (name: string) => void;
+}
+
+/** Heuristic: a voice that names an actual rabbi we can route to vs an
+ *  anonymous/structural label like "Stam", "Gemara's question", etc. */
+function isClickableVoiceName(name: string): boolean {
+  if (!name) return false;
+  const n = name.trim().toLowerCase();
+  if (n === 'stam' || n === 'gemara' || n === "gemara's question") return false;
+  if (n.startsWith('gemara')) return false;
+  if (n.startsWith('supporting baraita') || n === 'baraita') return false;
+  if (n === 'sages' || n === 'tanna kamma' || n === 'rabbanan') return false;
+  return true;
 }
 
 const AXIS_WIDTH = 110;
@@ -323,48 +338,56 @@ export default function ArgumentVoiceMap(props: Props): JSX.Element {
             }}</For>
 
             {/* Nodes */}
-            <For each={layout().nodes}>{(n) => (
-              <g>
-                <title>{n.stance ? `${n.name} (${n.role})\n${n.stance}` : `${n.name} (${n.role})`}</title>
-                <rect
-                  x={n.x}
-                  y={n.y}
-                  width={NODE_W}
-                  height={NODE_H}
-                  rx={6}
-                  ry={6}
-                  fill="#fff"
-                  stroke={n.color}
-                  stroke-width={1.5}
-                />
-                <rect
-                  x={n.x}
-                  y={n.y}
-                  width={4}
-                  height={NODE_H}
-                  rx={2}
-                  ry={2}
-                  fill={n.color}
-                />
-                <text
-                  x={n.x + NODE_W / 2}
-                  y={n.y + 16}
-                  text-anchor="middle"
-                  font-size="11"
-                  font-weight="600"
-                  font-family="system-ui, -apple-system, sans-serif"
-                  fill="#222"
-                >{compactName(n.name)}</text>
-                <text
-                  x={n.x + NODE_W / 2}
-                  y={n.y + 30}
-                  text-anchor="middle"
-                  font-size="9"
-                  font-family="system-ui, -apple-system, sans-serif"
-                  fill="#888"
-                >{n.role}</text>
-              </g>
-            )}</For>
+            <For each={layout().nodes}>{(n) => {
+              const clickable = props.onClickVoice && isClickableVoiceName(n.name);
+              const titleText = n.stance ? `${n.name} (${n.role})\n${n.stance}` : `${n.name} (${n.role})`;
+              return (
+                <g
+                  onClick={clickable ? () => props.onClickVoice!(n.name) : undefined}
+                  style={clickable ? { cursor: 'pointer' } : undefined}
+                >
+                  <title>{clickable ? `${titleText}\n— click to open` : titleText}</title>
+                  <rect
+                    x={n.x}
+                    y={n.y}
+                    width={NODE_W}
+                    height={NODE_H}
+                    rx={6}
+                    ry={6}
+                    fill="#fff"
+                    stroke={n.color}
+                    stroke-width={1.5}
+                  />
+                  <rect
+                    x={n.x}
+                    y={n.y}
+                    width={4}
+                    height={NODE_H}
+                    rx={2}
+                    ry={2}
+                    fill={n.color}
+                  />
+                  <text
+                    x={n.x + NODE_W / 2}
+                    y={n.y + 16}
+                    text-anchor="middle"
+                    font-size="11"
+                    font-weight="600"
+                    font-family="system-ui, -apple-system, sans-serif"
+                    fill="#222"
+                    style={clickable ? { 'text-decoration': 'underline', 'text-decoration-style': 'dotted', 'text-underline-offset': '2px' } : undefined}
+                  >{compactName(n.name)}</text>
+                  <text
+                    x={n.x + NODE_W / 2}
+                    y={n.y + 30}
+                    text-anchor="middle"
+                    font-size="9"
+                    font-family="system-ui, -apple-system, sans-serif"
+                    fill="#888"
+                  >{n.role}</text>
+                </g>
+              );
+            }}</For>
           </svg>
         </div>
 

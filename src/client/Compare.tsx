@@ -109,9 +109,9 @@ export default function Compare() {
 
       <section style={{ display: 'flex', gap: '1rem', 'align-items': 'center', 'margin-bottom': '0.75rem', 'flex-wrap': 'wrap' }}>
         <button onClick={goPrev} style={{ padding: '0.35rem 0.6rem', cursor: 'pointer' }}>←</button>
-        <label style={{ display: 'flex', gap: '0.4rem', 'align-items': 'center' }}>
+        <label style={{ display: 'flex', gap: '0.4rem', 'align-items': 'center', 'min-width': 0, 'max-width': '100%', flex: '1 1 18rem' }}>
           <select value={fixtureId()} onChange={(e) => selectFixture(e.currentTarget.value)}
-                  style={{ padding: '0.35rem 0.5rem', 'font-size': '0.9rem', 'min-width': '24rem' }}>
+                  style={{ padding: '0.35rem 0.5rem', 'font-size': '0.9rem', 'min-width': 0, 'max-width': '100%', flex: '1 1 18rem' }}>
             <For each={fixtures}>
               {(f) => <option value={f.id}>{f.label} — {f.hint}</option>}
             </For>
@@ -146,7 +146,7 @@ export default function Compare() {
         <MeasurementTable ours={ours()} theirs={theirs()} />
       </section>
 
-      <div style={{ display: 'grid', 'grid-template-columns': '1fr 1fr', gap: '0.75rem', 'align-items': 'start' }}>
+      <div class="compare-grid">
         <section style={{ 'min-width': 0 }}>
           <h2 style={{ 'font-size': '0.85rem', 'text-transform': 'uppercase', 'letter-spacing': '0.08em', color: '#8a2a2b', 'margin-bottom': '0.4rem' }}>
             Ours

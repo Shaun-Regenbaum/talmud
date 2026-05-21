@@ -1,6 +1,7 @@
 import { Show, type JSX } from 'solid-js';
 import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
 import type { GenerationId } from './generations';
+import type { IdentifiedRabbi } from './dafContext';
 
 export type MobileInteractionMode = 'select' | 'translate';
 
@@ -24,6 +25,10 @@ interface MobileShelfProps {
   page: string;
   activeRabbi: string | null;
   onHighlightRabbi: (name: string | null) => void;
+  onPushRabbi: (name: string) => void;
+  previousLabel: string | null;
+  onBack: () => void;
+  dafRabbis: IdentifiedRabbi[];
   onOpenRabbiSlug: (slug: string) => void;
   generationByName: Map<string, GenerationId>;
 }
@@ -127,6 +132,10 @@ function ExpansionView(props: MobileShelfProps): JSX.Element {
           activeRabbi={props.activeRabbi}
           onClose={props.onCloseExpansion}
           onHighlightRabbi={props.onHighlightRabbi}
+          onPushRabbi={props.onPushRabbi}
+          previousLabel={props.previousLabel}
+          onBack={props.onBack}
+          dafRabbis={props.dafRabbis}
           onOpenRabbiSlug={props.onOpenRabbiSlug}
           generationByName={props.generationByName}
         />

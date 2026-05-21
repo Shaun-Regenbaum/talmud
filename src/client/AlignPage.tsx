@@ -63,8 +63,8 @@ export function AlignPage(): JSX.Element {
   });
 
   return (
-    <main style={{ padding: '1.5rem 2rem', 'max-width': '1400px', margin: '0 auto', 'font-family': 'system-ui, -apple-system, sans-serif', color: '#222' }}>
-      <header style={{ display: 'flex', 'align-items': 'center', gap: '0.8rem', 'flex-wrap': 'wrap', 'margin-bottom': '1rem' }}>
+    <main class="page-shell" style={{ '--page-max': '1400px', 'font-family': 'system-ui, -apple-system, sans-serif', color: '#222' }}>
+      <header class="responsive-row" style={{ 'margin-bottom': '1rem' }}>
         <h1 style={{ margin: 0, 'font-size': '1.4rem' }}>Alignment</h1>
         <a href="#daf" style={{ color: '#666', 'font-size': '0.85rem', 'text-decoration': 'none' }}>← back to daf</a>
         <select
@@ -96,7 +96,7 @@ export function AlignPage(): JSX.Element {
 
       <Show when={daf()}>
         {(d) => (
-          <div style={{ display: 'grid', 'grid-template-columns': '1.2fr 1fr', gap: '1.5rem', 'align-items': 'start' }}>
+          <div class="responsive-2col">
             <section>
               <h2 style={{ 'font-size': '0.9rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', 'margin-bottom': '0.4rem' }}>
                 Rendered daf (HebrewBooks) — segments colored

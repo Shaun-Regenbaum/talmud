@@ -326,16 +326,22 @@ export default function DafViewer(): JSX.Element {
   const [page, setPage] = createSignal(params.get('page') ?? '2a');
   const [active, setActive] = createSignal<ActiveWord | null>(null);
 
-  // Responsive daf sizing. 16px main padding × 2 + 12px edge-icon slack × 2 = 56px
-  // clearance so edge-positioned gutter icons (`-10px` / `calc(100% + 10px)`)
-  // stay on-screen when the viewport is narrower than the desktop 520px daf.
+  // Daf sizing. On desktop, scale down for narrow viewports; on phones the
+  // daf stays at full 520px and the wrapping .daf-surface scrolls
+  // horizontally (with browser pinch-zoom) so the traditional Tzurat
+  // HaDaf layout is preserved verbatim.
+  // 16px main padding × 2 + 12px edge-icon slack × 2 = 56px clearance so
+  // edge-positioned gutter icons stay on-screen on narrow desktops.
   const [viewportW, setViewportW] = createSignal(window.innerWidth);
   onMount(() => {
     const onResize = () => setViewportW(window.innerWidth);
     window.addEventListener('resize', onResize);
     onCleanup(() => window.removeEventListener('resize', onResize));
   });
-  const dafWidth = () => Math.min(520, Math.max(280, viewportW() - 56));
+  const dafWidth = () => {
+    if (viewportW() <= 767) return 520;
+    return Math.min(520, Math.max(280, viewportW() - 56));
+  };
 
   const ref = createMemo<Ref>(() => ({ tractate: tractate(), page: page() }));
   const [daf] = createResource(ref, fetchDaf);
@@ -548,8 +554,52 @@ export default function DafViewer(): JSX.Element {
   // means the picker card expands to show that segment's comments inline.
   const [activeCommentarySegIdx, setActiveCommentarySegIdx] = createSignal<number | null>(null);
 
-  // Sidebar state
-  const [sidebar, setSidebar] = createSignal<SidebarContent | null>(null);
+  // Sidebar state — a navigation stack. The TOP of the stack is the view
+  // currently rendered. Most callers replace the stack outright (a gutter
+  // click opens a fresh argument); cross-enrichment jumps (rabbi chip
+  // inside an argument, bio link inside a rabbi) PUSH so the back chip
+  // can pop them and restore the previous view.
+  const [sidebarStack, setSidebarStack] = createSignal<SidebarContent[]>([]);
+  const sidebar = (): SidebarContent | null => {
+    const s = sidebarStack();
+    return s.length > 0 ? s[s.length - 1] : null;
+  };
+  const setSidebar = (content: SidebarContent | null) => {
+    setSidebarStack(content ? [content] : []);
+  };
+  const pushSidebar = (content: SidebarContent) => {
+    setSidebarStack((s) => {
+      // Skip a redundant push if the top of stack is already this exact
+      // entry (same kind + same primary id). Cheap idempotence so a
+      // double-click on a chip doesn't pile duplicates.
+      const top = s[s.length - 1];
+      if (top && sidebarKey(top) === sidebarKey(content)) return s;
+      return [...s, content];
+    });
+  };
+  const popSidebar = () => {
+    setSidebarStack((s) => (s.length > 1 ? s.slice(0, -1) : s));
+  };
+  // Short label for a stack entry — used to title the back chip so the
+  // user sees what they're returning to.
+  const sidebarLabel = (c: SidebarContent): string => {
+    if (c.kind === 'argument') return c.section.title || 'Argument';
+    if (c.kind === 'halacha') return c.topic.topic || 'Halacha';
+    if (c.kind === 'aggadata') return c.story.title || 'Aggada';
+    if (c.kind === 'pesuk') return c.pasuk.verseRef || 'Pasuk';
+    if (c.kind === 'rabbi') return c.rabbi.name || 'Rabbi';
+    if (c.kind === 'rishonim') return `Rishonim · seg ${c.instance.segIdx + 1}`;
+    return 'Back';
+  };
+  const sidebarKey = (c: SidebarContent): string => {
+    if (c.kind === 'argument') return `argument:${c.section.startSegIdx}-${c.section.endSegIdx}`;
+    if (c.kind === 'halacha') return `halacha:${c.topic.topic}`;
+    if (c.kind === 'aggadata') return `aggadata:${c.story.title}`;
+    if (c.kind === 'pesuk') return `pesuk:${c.pasuk.verseRef}`;
+    if (c.kind === 'rabbi') return `rabbi:${c.rabbi.slug ?? c.rabbi.name}`;
+    if (c.kind === 'rishonim') return `rishonim:${c.instance.segIdx}`;
+    return 'unknown';
+  };
   // Set by ArgumentSidebar when the user clicks an argument-move card. Paints
   // a yellow band over the move's segment range in the main daf text. When
   // tokenStart/tokenEnd are present, paints just those words within the
@@ -1759,12 +1809,48 @@ export default function DafViewer(): JSX.Element {
     setLastInteractedCard('argument');
   };
 
+  // Cross-enrichment rabbi click (chip / voice node / prose mention inside
+  // an open sidebar). Same resolution as openRabbi, but PUSHES onto the
+  // sidebar stack so the back chip restores the previous view.
+  const pushRabbi = (name: string) => {
+    let r: IdentifiedRabbi | null = dafContext()?.rabbis.find((x) => x.name === name) ?? null;
+    if (!r) {
+      const argRun = markRunsByMarkId()['rabbi'];
+      const inst = (argRun?.parsed as { instances?: Array<{ excerpt?: string; fields: Record<string, unknown> }> } | undefined)
+        ?.instances?.find((i) => i.fields?.name === name);
+      if (inst) {
+        r = {
+          slug: null,
+          name,
+          nameHe: String(inst.fields.nameHe ?? inst.excerpt ?? ''),
+          generation: (inst.fields.generation ?? 'unknown') as GenerationId,
+          region: null,
+          places: [],
+          moved: null,
+          bio: null,
+          image: null,
+          wiki: null,
+        };
+      }
+    }
+    if (!r) {
+      // Unresolved: just light up daf occurrences and bail. No sidebar push
+      // — without an IdentifiedRabbi there's nothing to render.
+      setActiveRabbi(name);
+      return;
+    }
+    setActiveRabbi(r.name);
+    pushSidebar({ kind: 'rabbi', rabbi: r });
+    setLastInteractedCard('argument');
+  };
+
   // Bio-text link → open that rabbi's bio. Prefer the in-context entry (so
   // we also light up daf highlights); otherwise pull the standalone entry
-  // from the dataset via /api/rabbi/:slug.
+  // from the dataset via /api/rabbi/:slug. ALWAYS pushes so chains of
+  // rabbi → cited-rabbi → ... can be unwound by the back chip.
   const openRabbiSlug = async (slug: string) => {
     const inCtx = dafContext()?.rabbis.find((x) => x.slug === slug);
-    if (inCtx) { openRabbi(inCtx.name); return; }
+    if (inCtx) { pushRabbi(inCtx.name); return; }
     try {
       const res = await fetch(`/api/rabbi/${encodeURIComponent(slug)}`);
       if (!res.ok) return;
@@ -1772,7 +1858,7 @@ export default function DafViewer(): JSX.Element {
       if (!body.rabbi) return;
       setActiveRabbi(null);
       setActivePlace(null);
-      setSidebar({ kind: 'rabbi', rabbi: body.rabbi });
+      pushSidebar({ kind: 'rabbi', rabbi: body.rabbi });
       setLastInteractedCard('argument');
     } catch { /* silent — link falls back to no-op */ }
   };
@@ -2392,6 +2478,10 @@ export default function DafViewer(): JSX.Element {
                 if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
               }}
               onHighlightRabbi={(name) => (name ? openRabbi(name) : setActiveRabbi(null))}
+              onPushRabbi={pushRabbi}
+              previousLabel={sidebarStack().length > 1 ? sidebarLabel(sidebarStack()[sidebarStack().length - 2]) : null}
+              onBack={popSidebar}
+              dafRabbis={dafContext()?.rabbis ?? []}
               onHighlightRange={setArgumentMoveHighlight}
               onOpenRabbiSlug={openRabbiSlug}
               generationByName={generationByName()}
@@ -2415,6 +2505,10 @@ export default function DafViewer(): JSX.Element {
           page={page()}
           activeRabbi={activeRabbi()}
           onHighlightRabbi={(name) => (name ? openRabbi(name) : setActiveRabbi(null))}
+          onPushRabbi={pushRabbi}
+          previousLabel={sidebarStack().length > 1 ? sidebarLabel(sidebarStack()[sidebarStack().length - 2]) : null}
+          onBack={popSidebar}
+          dafRabbis={dafContext()?.rabbis ?? []}
           onOpenRabbiSlug={openRabbiSlug}
           generationByName={generationByName()}
         />

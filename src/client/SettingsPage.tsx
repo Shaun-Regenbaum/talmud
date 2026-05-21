@@ -129,7 +129,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div style={{ 'max-width': '880px', margin: '40px auto', padding: '20px', 'font-family': 'system-ui, sans-serif' }}>
+    <div class="page-shell" style={{ '--page-max': '880px', 'font-family': 'system-ui, sans-serif' }}>
       <h1 style={{ 'font-size': '24px', 'margin-bottom': '8px' }}>LLM Settings</h1>
       <p style={{ color: '#666', margin: '0 0 24px' }}>
         Default model and fallback chain for every LLM call in the worker. Changes apply immediately;

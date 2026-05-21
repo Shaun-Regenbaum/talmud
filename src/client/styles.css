@@ -45,6 +45,64 @@ main {
   margin: 0 auto;
 }
 
+/* Shared responsive page shell. Use on any page-root <main>/<div> to get a
+   capped max-width on desktop that collapses to full-bleed (with smaller
+   padding) on phones. Pages can still set their own desktop max-width by
+   overriding --page-max. */
+.page-shell {
+  --page-max: 1280px;
+  width: 100%;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 1.5rem 2rem;
+  box-sizing: border-box;
+}
+
+@media (max-width: 767px) {
+  .page-shell {
+    padding: 0.75rem;
+  }
+}
+
+/* Flex row that wraps on narrow viewports. Used for toolbars / header rows
+   that line up controls horizontally on desktop but should stack on phones. */
+.responsive-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Compare page side-by-side renderer grid: stacks on phones since both
+   renderers need their own width. */
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+@media (max-width: 767px) {
+  .compare-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Two-column grid that collapses to a single column on phones. */
+.responsive-2col {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 767px) {
+  .responsive-2col {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
 header {
   border-bottom: 1px solid var(--line);
   padding-bottom: 1rem;
@@ -215,9 +273,26 @@ body.dev-shelf-open .daf-page {
     user-select: none;
     -webkit-user-select: none;
   }
-  /* Native pan + pinch-zoom on the daf container regardless of mode. */
+  /* Native pan + pinch-zoom on the daf container regardless of mode. The
+     traditional Tzurat HaDaf renders at full 520px width on phones (the
+     layout is sacred — see DafViewer dafWidth), so the surface scrolls
+     horizontally when the viewport is narrower. */
   .daf-surface {
     touch-action: pan-x pan-y pinch-zoom;
+    overflow-x: auto;
+    overflow-y: visible;
+    /* Hint scrollbar styling on iOS for the rare moments it's visible. */
+    -webkit-overflow-scrolling: touch;
+    /* Override the desktop inline style: when content overflows, flex
+       centering hides the leading edge out of reach. Anchor to start so
+       users can pan both directions. */
+    justify-content: flex-start !important;
+  }
+  /* The body column wraps the surface — keep its overflow visible so
+     gutter icons that bleed past the daf edge aren't clipped. */
+  .daf-body-col {
+    width: 100%;
+    min-width: 0;
   }
 }
 

@@ -19,7 +19,7 @@
 
 import { createResource, createSignal, createEffect, untrack, For, Show, type JSX } from 'solid-js';
 import { Portal } from 'solid-js/web';
-import { Hebraized } from './Hebraized';
+import { HebraizedWithRabbis as Hebraized } from './rabbiLinks';
 import { devModeActive } from './DevModeShelf';
 import { trackAI } from './aiActivity';
 import InstanceInspectorShelf from './InstanceInspectorShelf';
