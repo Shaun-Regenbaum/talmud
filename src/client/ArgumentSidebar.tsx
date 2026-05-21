@@ -1068,23 +1068,64 @@ function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JS
   );
 }
 
-// ---------------------------------------------------------------------------
+// ===========================================================================
 // Aggadata — per-story narrative sidebar panel.
 // ---------------------------------------------------------------------------
-//
-// Header: title + Hebrew label + theme chip + summary paragraph (the existing
-// inline view). Below it: MarkEnrichmentCards markId="aggadata" (synthesis +
-// dev-mode leaves: background / interpretation / parallels) and a QAPanel for
-// suggested-questions + free-form Q&A. Mirrors PasukPanel's layout so the
-// three enrichment-bearing marks (pesukim, halacha, aggadata) feel the same
-// in the sidebar.
+// Top   : story title + Hebrew label + theme chip + summary
+// Mid   : synthesis paragraph via MarkEnrichmentCards(markId="aggadata"). Its
+//         deps_resolved carries aggadata.background / aggadata.interpretation /
+//         aggadata.parallels.
+// Below : structured leaf cards (Background, Interpretation, Parallels) so
+//         the user can read each lens independently rather than parsing the
+//         synthesis wall of text.
+// Bottom: QAPanel for suggested-questions + free-form Q&A.
+// ===========================================================================
+
+interface AggadataBackgroundData { background: string; }
+interface AggadataInterpretationData { interpretation: string; }
+type AggadataParallelKind = 'same-story' | 'same-actors' | 'same-motif' | 'tanach-source';
+interface AggadataParallelItem { ref: string; kind: AggadataParallelKind; note: string; }
+interface AggadataParallelsData { parallels: AggadataParallelItem[]; prose: string; }
+
+const PARALLEL_KIND_LABEL: Record<AggadataParallelKind, string> = {
+  'same-story': 'Same story',
+  'same-actors': 'Same actors',
+  'same-motif': 'Same motif',
+  'tanach-source': 'Tanach source',
+};
+
 function AggadataPanel(props: {
   story: AggadataStory;
   index: number;
   tractate: string;
   page: string;
 }): JSX.Element {
+  const [background, setBackground] = createSignal<AggadataBackgroundData | null>(null);
+  const [interpretation, setInterpretation] = createSignal<AggadataInterpretationData | null>(null);
+  const [parallels, setParallels] = createSignal<AggadataParallelsData | null>(null);
+
   const instanceKey = () => `${props.tractate}:${props.page}:${props.index}:${props.story.title}`;
+
+  // Wipe captured leaves when the user opens a different story, so the new
+  // story's enrichments don't render the previous story's content during the
+  // refetch window.
+  createEffect(() => {
+    void instanceKey();
+    setBackground(null);
+    setInterpretation(null);
+    setParallels(null);
+  });
+
+  const handleResolved = (r: { deps_resolved?: Record<string, unknown>; anchors_resolved?: Record<string, unknown> }) => {
+    const deps = r.deps_resolved ?? {};
+    const bg = deps['aggadata.background'] as AggadataBackgroundData | undefined;
+    if (bg && typeof bg.background === 'string') setBackground(bg);
+    const ip = deps['aggadata.interpretation'] as AggadataInterpretationData | undefined;
+    if (ip && typeof ip.interpretation === 'string') setInterpretation(ip);
+    const pa = deps['aggadata.parallels'] as AggadataParallelsData | undefined;
+    if (pa && Array.isArray(pa.parallels)) setParallels(pa);
+  };
+
   const markInstance = () => ({
     startSegIdx: props.story.startSegIdx ?? 0,
     endSegIdx: props.story.endSegIdx ?? 0,
@@ -1138,7 +1179,84 @@ function AggadataPanel(props: {
         instanceKey={instanceKey()}
         tractate={props.tractate}
         page={props.page}
+        onResolved={handleResolved}
       />
+      <Show when={background()}>
+        {(bg) => (
+          <div style={{
+            border: '1px solid #eae8e0', 'border-radius': '6px',
+            background: '#fafaf7', padding: '0.7rem 0.85rem', 'margin-top': '0.7rem',
+          }}>
+            <div style={{
+              'font-size': '0.7rem', 'text-transform': 'uppercase',
+              'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.4rem',
+            }}>Background</div>
+            <div style={{ 'font-size': '0.88rem', color: '#222', 'line-height': 1.55 }}>
+              <HebraizedWithRabbis text={bg().background} />
+            </div>
+          </div>
+        )}
+      </Show>
+      <Show when={interpretation()}>
+        {(ip) => (
+          <div style={{
+            border: '1px solid #eae8e0', 'border-radius': '6px',
+            background: '#fafaf7', padding: '0.7rem 0.85rem', 'margin-top': '0.7rem',
+          }}>
+            <div style={{
+              'font-size': '0.7rem', 'text-transform': 'uppercase',
+              'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.4rem',
+            }}>Interpretation</div>
+            <div style={{ 'font-size': '0.88rem', color: '#222', 'line-height': 1.55 }}>
+              <HebraizedWithRabbis text={ip().interpretation} />
+            </div>
+          </div>
+        )}
+      </Show>
+      <Show when={(() => {
+        const pa = parallels();
+        return pa && (pa.parallels.length > 0 || pa.prose) ? pa : null;
+      })()}>
+        {(pa) => (
+          <div style={{
+            border: '1px solid #eae8e0', 'border-radius': '6px',
+            background: '#fafaf7', padding: '0.7rem 0.85rem', 'margin-top': '0.7rem',
+          }}>
+            <div style={{
+              'font-size': '0.7rem', 'text-transform': 'uppercase',
+              'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.4rem',
+            }}>Parallels</div>
+            <Show when={pa().prose}>
+              <div style={{
+                'font-size': '0.82rem', color: '#555', 'line-height': 1.5,
+                'font-style': 'italic', 'margin-bottom': '0.5rem',
+              }}>
+                <HebraizedWithRabbis text={pa().prose} />
+              </div>
+            </Show>
+            <For each={pa().parallels}>{(p) => (
+              <div style={{ 'margin-bottom': '0.5rem' }}>
+                <div style={{ 'margin-bottom': '0.15rem', display: 'flex', 'align-items': 'baseline', gap: '0.4rem', 'flex-wrap': 'wrap' }}>
+                  <span style={{ 'font-weight': 600, color: '#1e40af', 'font-size': '0.85rem' }}>
+                    {p.ref}
+                  </span>
+                  <span style={{
+                    'font-size': '0.65rem', padding: '0.1rem 0.4rem',
+                    background: '#faf5ff', border: '1px solid #d8b4fe',
+                    color: '#7c3aed', 'border-radius': '999px',
+                    'text-transform': 'uppercase', 'letter-spacing': '0.06em',
+                  }}>
+                    {PARALLEL_KIND_LABEL[p.kind as AggadataParallelKind] ?? p.kind}
+                  </span>
+                </div>
+                <div style={{ 'font-size': '0.82rem', color: '#444', 'line-height': 1.5 }}>
+                  <HebraizedWithRabbis text={p.note} />
+                </div>
+              </div>
+            )}</For>
+          </div>
+        )}
+      </Show>
       <QAPanel
         mark="aggadata"
         instanceId={instanceId()}
