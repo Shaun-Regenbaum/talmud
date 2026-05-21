@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { flattenPieces, pickV3Version, sefariaAPI } from '../src/lib/sefref/sefaria/client';
+import {
+  flattenPieces,
+  flattenTalmudCommentaryPieces,
+  pickV3Version,
+  sefariaAPI,
+} from '../src/lib/sefref/sefaria/client';
 
 describe('flattenPieces', () => {
   it('returns a one-element array for a non-empty string', () => {
@@ -50,6 +55,41 @@ describe('flattenPieces', () => {
 
   it('returns [] for an empty array', () => {
     expect(flattenPieces([])).toEqual([]);
+  });
+});
+
+describe('flattenTalmudCommentaryPieces', () => {
+  it('emits 1-based "S:P" keys aligned with non-empty pieces (depth-2)', () => {
+    // Mirrors Berakhot 2a Rashi: segment 1 has 2 pieces, 2 empty,
+    // segment 3 has 1, segment 5 has multiple. Keys must match Sefaria's
+    // ref convention so they line up with related-links refs like
+    // "Rashi on Berakhot 2a:1:1" / ":3:1" / ":5:2".
+    const text = [
+      ['p1a', 'p1b'],
+      [],
+      ['p3a'],
+      [],
+      ['p5a', 'p5b'],
+    ];
+    const { pieces, keys } = flattenTalmudCommentaryPieces(text);
+    expect(pieces).toEqual(['p1a', 'p1b', 'p3a', 'p5a', 'p5b']);
+    expect(keys).toEqual(['1:1', '1:2', '3:1', '5:1', '5:2']);
+  });
+
+  it('preserves inner index when empties appear mid-segment', () => {
+    // Defensive: if Sefaria ever returns an empty-string placeholder inside
+    // an inner array, the surviving pieces keep their original 1-based
+    // positions so the keys still match link refs.
+    const text = [['p1a', '', 'p1c']];
+    const { pieces, keys } = flattenTalmudCommentaryPieces(text);
+    expect(pieces).toEqual(['p1a', 'p1c']);
+    expect(keys).toEqual(['1:1', '1:3']);
+  });
+
+  it('returns empty arrays for non-array / empty input', () => {
+    expect(flattenTalmudCommentaryPieces(null)).toEqual({ pieces: [], keys: [] });
+    expect(flattenTalmudCommentaryPieces('scalar')).toEqual({ pieces: [], keys: [] });
+    expect(flattenTalmudCommentaryPieces([])).toEqual({ pieces: [], keys: [] });
   });
 });
 
@@ -185,6 +225,11 @@ describe('getTalmudPageWithCommentaries', () => {
       'rashi-piece-3a',
       'rashi-piece-3b',
     ]);
+    // pieceKeys are parallel to pieces and use Sefaria's 1-based "S:P"
+    // convention — they're the bridge between the rendered piece spans
+    // and the link refs ("Rashi on Berakhot 2a:S:P") used by the
+    // daf↔commentary anchor index.
+    expect(data.rashi?.pieceKeys).toEqual(['1:1', '1:2', '3:1', '4:1', '4:2']);
     expect(data.rashi?.hebrew).toBe(
       'rashi-piece-0a rashi-piece-0b rashi-piece-2a rashi-piece-3a rashi-piece-3b',
     );
@@ -193,6 +238,7 @@ describe('getTalmudPageWithCommentaries', () => {
     // Tosafot also flattens correctly even when one language version is
     // missing from the v3 response.
     expect(data.tosafot?.pieces).toEqual(['tos-0a', 'tos-2a', 'tos-2b']);
+    expect(data.tosafot?.pieceKeys).toEqual(['1:1', '3:1', '3:2']);
     expect(data.tosafot?.english).toBe('');
 
     // Sanity: we called the v3 endpoint, not v1, for both commentaries —

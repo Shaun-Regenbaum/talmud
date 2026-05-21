@@ -110,13 +110,13 @@ export async function getSefariaPageCached(
   page: string,
   track?: CacheTrack,
 ): Promise<TalmudPageData | null> {
+  // v5: added pieceKeys (Sefaria's 1-based "S:P" position strings) parallel
+  // to pieces — v4 entries don't have them, so the daf↔commentary click
+  // anchor falls back to the broken global-index path. Bumping forces a
+  // refetch that populates pieceKeys.
   // v4: switched commentary fetches from Sefaria's v1 `/api/texts/` to v3
-  // with nested-array flattening AND fixed the ref construction — v3
-  // populated KV with single-piece entries because it inherited the
-  // segment-anchored ref ("Rashi on Chullin 21a:1:1") from /api/related
-  // instead of the daf-level ref. Bumping forces refetch with the
-  // corrected whole-daf ref.
-  const key = `sefaria-bundle:v4:${tractate}:${page}`;
+  // with nested-array flattening AND fixed the ref construction.
+  const key = `sefaria-bundle:v5:${tractate}:${page}`;
   const hit = await readCache<TalmudPageData>(cache, key);
   track?.onCache?.(hit ? 'hit' : 'miss');
   if (hit) return hit;

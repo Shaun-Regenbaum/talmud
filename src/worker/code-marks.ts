@@ -1858,7 +1858,8 @@ Rules:
 - Each question must be specific to THIS move's content — never generic ('what is the context?', 'who is Rabbi X?'). If you can't tell which move it's about from the question alone, it's too generic.
 - Aim at the *mechanism*: why does the objection bite, what unstated premise gets violated, what does a resolution have to concede, why is this particular verse the one quoted, why does the questioner expect a different phrasing, etc.
 - One question per concrete sub-issue. Don't duplicate.
-- Plain English. NO puff. Hebrew (in parentheses) only for terms with no clean English equivalent.
+- Plain English. NO puff.
+- Hebrew SCRIPT (not transliteration) in parentheses for technical terms — write '(מעשה)' not '(ma\\'aseh)', '(קושיא)' not '(kushya)', '(דרשה)' not '(derashah)'. English concept first, Hebrew in parens.
 - If the move is a pure Stam connector with nothing interesting to ask about, return ONE question that probes whatever substance does exist; do not pad.`;
 
 const ARGUMENT_MOVE_SUGGESTED_QUESTIONS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
@@ -2026,7 +2027,7 @@ CODE_ENRICHMENTS.push(
         { mark: 'argument-move' },
         { enrichment: 'argument-move.synthesis' },
       ],
-      defHash: 'argument-move.suggested-questions-v1', cacheVersion: '1',
+      defHash: 'argument-move.suggested-questions-v2', cacheVersion: '2',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -2669,17 +2670,19 @@ HARD RULE — pasuk citations (rejected if violated):
 - If the Hebrew won't fit your sentence budget, CUT the English translation, not the Hebrew. The Hebrew is verbatim Torah; English paraphrase is dispensable.
 - The {{pasuk_he}} field of the user prompt gives you the focal pasuk's Hebrew text verbatim — quote from THAT, do not reconstruct.`;
 
-const PESUKIM_TANACH_CONTEXT_SYSTEM_PROMPT = `You are a scholar of Tanach. Given ONE pasuk by canonical reference, write a tight summary of its plain meaning in its own biblical context — what the pasuk says, what's around it, what the perek / sefer is doing. Daf-agnostic — about the pasuk itself, not how the gemara uses it.
+const PESUKIM_TANACH_CONTEXT_SYSTEM_PROMPT = `You are a scholar of Tanach. Given ONE pasuk by canonical reference, write a substantive summary of its plain meaning in its own biblical context. Daf-agnostic — about the pasuk itself, not how the gemara uses it. The goal is that a learner who has never read this verse before walks away knowing WHO said it, TO WHOM, in WHAT scenario, and WHAT it's doing in the broader narrative or legal sequence.
 
 Output STRICT JSON only:
 
 {
-  "context": "2-3 sentences. (1) What the pasuk says in plain English. (2) Where it sits in its sefer / perek / parshah. (3) Optional: one factual note that often matters for how chazal cite it (e.g., 'spoken by Moshe Rabbeinu to Israel', 'from the Aseret HaDibrot', 'a kelalah in Devarim 28'). NO theological exposition, NO derush. Plain peshat."
+  "context": "3-4 sentences of concrete peshat. Cover, in this order: (1) the pasuk's plain English meaning, including the load-bearing Hebrew phrase in quotes when it carries the verse's force; (2) the speaker and the addressee — Moshe to Israel? Hashem to Moshe? a prophet to a king? — and the immediate narrative or legal moment (mid-tochechah, in the Aseret HaDibrot, the parsha of nedarim, the description of the Mishkan, etc.); (3) where it sits in its sefer / perek / parshah and what the surrounding pesukim are doing around it (e.g. 'comes inside the parsha of krias shema — sandwiched between the obligation to love Hashem and the obligation of tefillin'); (4) optional: one factual note that often matters for how chazal cite it (e.g. 'paired with a parallel pasuk in Devarim 11', 'one of three kelalim in Bamidbar 6'). NO theological exposition, NO derush, NO 'this teaches us'. Plain peshat with enough surrounding scaffolding to anchor a chazal citation."
 }
 
 Rules:
-- 2-3 sentences. Tight.
-- NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "profoundly", "lens", "captures".
+- 3-4 sentences. Substantive — leave a learner oriented, not just informed of the words.
+- Quote the load-bearing Hebrew phrase verbatim when it carries the verse's force.
+- Name the speaker and the addressee whenever determinable from the pasuk's surroundings.
+- NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "profoundly", "lens", "captures", "embodies".
 
 ${TANACH_NAMING_STYLE}`;
 
@@ -2702,15 +2705,16 @@ const PESUKIM_TANACH_CONTEXT_OUTPUT_SCHEMA = {
   },
 };
 
-const PESUKIM_EXEGESIS_SYSTEM_PROMPT = `You are a scholar of Talmud. Given ONE pasuk citation on a daf — verse reference + the Hebrew excerpt as it appears in the gemara + the surrounding gemara — describe HOW the gemara is using the verse, and IDENTIFY THE SPECIFIC EXEGETICAL METHOD when one is being invoked.
+const PESUKIM_EXEGESIS_SYSTEM_PROMPT = `You are a scholar of Talmud. Given ONE pasuk citation on a daf — verse reference + the Hebrew excerpt as it appears in the gemara + the surrounding gemara — describe (a) the LOCAL QUESTION OR MOVE that prompts the gemara to reach for this verse here, (b) HOW the gemara is using the verse, and (c) the SPECIFIC EXEGETICAL METHOD when one is being invoked.
 
 Not every citation invokes a formal method — sometimes a verse is just plain proof, narrative quotation, or a mnemonic. Be precise: only name a method when the gemara is actually using it; otherwise say so plainly.
 
 Output STRICT JSON only:
 
 {
-  "use": "1-2 sentences in plain English: what role this verse plays in the gemara's argument here. Pick from: proof for a halacha; prooftext / mnemonic support (asmakhta); contrast or counter-citation; exegetical derivation (and name the method in 'method' below); narrative quotation; tangential allusion. Name the role explicitly.",
-  "method": "OPTIONAL. When the gemara is INVOKING a specific exegetical method to derive its conclusion, name the method in plain English with the Hebrew technical term in parens, plus 1 sentence on how the derivation works HERE. If the citation is plain proof / narrative / mnemonic / contrast (no formal derivation), return empty string."
+  "prompting_issue": "1-2 sentences in plain English: what local question, problem, or argumentative move on THIS daf prompts the gemara to reach for THIS verse? Be specific — not 'the gemara is discussing tefillah' but 'the Mishnah opens with the evening Shema before the morning, which is the reverse of how a day is usually counted — the gemara needs to defend that ordering'. If no real tension is being resolved (pure narrative quotation, asmakhta with no derivation), say so plainly.",
+  "use": "1-2 sentences in plain English: what role this verse plays in the gemara's argument here. Pick from: proof for a halacha; prooftext / mnemonic support (asmakhta); contrast or counter-citation; exegetical derivation (and name the method in 'method' below); narrative quotation; tangential allusion. Name the role explicitly. Quote the load-bearing Hebrew word(s) verbatim (3-6 words, in parens) when the precise phrasing is what carries the proof.",
+  "method": "OPTIONAL. When the gemara is INVOKING a specific exegetical method to derive its conclusion, name the method in plain English with the Hebrew technical term in parens, plus 1-2 sentences on how the derivation works HERE — what word/phrase the method hinges on, and what the unstated assumption is. If the citation is plain proof / narrative / mnemonic / contrast (no formal derivation), return empty string."
 }
 
 The midot you should identify when applicable (the midot she-haTorah nidreshet bahem):
@@ -2754,26 +2758,44 @@ const PESUKIM_EXEGESIS_OUTPUT_SCHEMA = {
   schema: {
     type: 'object',
     additionalProperties: false,
-    required: ['use', 'method'],
+    required: ['prompting_issue', 'use', 'method'],
     properties: {
+      prompting_issue: { type: 'string' },
       use: { type: 'string' },
       method: { type: 'string' },
     },
   },
 };
 
-const PESUKIM_SYNTHESIS_SYSTEM_PROMPT = `You are a scholar of Talmud and Tanach. Given ONE pasuk citation on a daf along with its Tanach context and the gemara's exegetical use, compose a tight paragraph that ties them together.
+const PESUKIM_SYNTHESIS_SYSTEM_PROMPT = `You are a scholar of Talmud and Tanach. Given ONE pasuk citation on a daf along with its Tanach context and the gemara's exegetical use, compose ONE substantive paragraph that teaches the learner what's actually going on — not a summary of the leaves, but a concrete reading that ties verse to sugya.
+
+A learner reading this paragraph should walk away knowing:
+  (a) what the verse actually says and where it sits in Tanach,
+  (b) what local question or move on the daf prompts the gemara to reach for THIS verse,
+  (c) the precise mechanism — the named midah, the word-order argument, the asmakhta, etc.,
+  (d) what halacha or argumentative claim the citation lands or sets up.
 
 Output STRICT JSON only:
 
 {
-  "synthesis": "ONE paragraph, MAX 4 sentences, MAX 25 words per sentence. (1) The pasuk and its peshat in 1 sentence. (2) How the gemara is using it here in 1-2 sentences (proof / prooftext / contrast / exegetical method). When the gemara invokes a named midah (gezeira shava, kal va-chomer, hekesh, etc.), name it explicitly. (3) When relevant, name a rabbi tied to the citation (originator or interlocutor). End with one sentence on what the citation lands or sets up."
+  "synthesis": "ONE paragraph, 4-6 sentences, ~20-30 words per sentence. Cover, IN ORDER, in this single paragraph:
+
+  (1) The pasuk's plain context — quote the load-bearing Hebrew phrase verbatim and name the speaker / addressee / immediate scene when relevant ('spoken by Moshe in the parsha of krias shema', 'inside the tochechah', 'said by Yeshayahu to King Achaz', etc.). Don't just paraphrase the words — orient the learner inside Tanach.
+
+  (2) The local gemara question or move that prompts reaching for this verse HERE. Be concrete. Not 'the gemara is discussing X' — instead 'the Mishnah orders evening before morning, which inverts the usual day order, so the gemara needs a textual anchor'.
+
+  (3) The mechanism. When the gemara invokes a named midah (גזירה שווה, היקש, קל וחומר, ריבוי ומיעוט, כלל ופרט, אסמכתא, etc.), NAME IT EXPLICITLY with the Hebrew in parens, and describe in plain English how the derivation works HERE — what word, phrase, or juxtaposition the method hinges on. If it's plain proof, mnemonic, or contrast (no formal derivation), name THAT explicitly and explain why this verse is the right anchor.
+
+  (4) The landing — what halacha, claim, or sugya-structure the citation establishes. Name a rabbi tied to the citation (originator or interlocutor) when one is on the daf.
+  "
 }
 
 HARD RULES:
-- MAX 4 sentences. MAX 25 words per sentence. Cut, don't pad.
-- Concrete. Name the pasuk, the use, the midah (if applicable), the rabbi (if relevant).
-- NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "intricate", "profound", "lens", "captures", "embodies".
+- 4-6 sentences. Substantive but tight — each sentence does real work.
+- CONCRETE: name the speaker, the prompting question, the midah, the load-bearing Hebrew phrase, the landing claim. Vague summary ('establishes a daily cycle', 'this anchors the structure') is the failure mode to avoid.
+- Quote Hebrew verbatim when the precise wording is what carries the proof. The {{pasuk_he}} field has the focal pasuk; quote from THAT.
+- When a named midah is being invoked, you MUST name it explicitly with the Hebrew technical term in parens (e.g. 'a gezeira shava (גזירה שווה) on the word X' or 'a hekesh (היקש) drawn from the adjacent pasuk').
+- NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "anchors", "deeply", "intricate", "profound", "lens", "captures", "embodies". 'Anchors the structure' is BANNED — say what the citation actually establishes.
 - NO jargon: write "transmitter" not "tradent", "interpret" not "exegete".
 
 ${TANACH_NAMING_STYLE}`;
@@ -2822,7 +2844,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'global',
       dependencies: [],
-      defHash: 'pesukim.tanach-context-v4', cacheVersion: '4',
+      defHash: 'pesukim.tanach-context-v5', cacheVersion: '5',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -2833,7 +2855,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', 'commentaries'],
-      defHash: 'pesukim.exegesis-v5', cacheVersion: '5',
+      defHash: 'pesukim.exegesis-v6', cacheVersion: '6',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -2850,7 +2872,7 @@ CODE_ENRICHMENTS.push(
         { mark: 'rabbi' },
         { mark: 'pesukim' },
       ],
-      defHash: 'pesukim.synthesis-v6', cacheVersion: '6',
+      defHash: 'pesukim.synthesis-v7', cacheVersion: '7',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),

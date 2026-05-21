@@ -29,6 +29,7 @@ interface MobileShelfProps {
   previousLabel: string | null;
   onBack: () => void;
   dafRabbis: IdentifiedRabbi[];
+  dafRabbiNames: string[];
   onOpenRabbiSlug: (slug: string) => void;
   generationByName: Map<string, GenerationId>;
 }
@@ -136,6 +137,7 @@ function ExpansionView(props: MobileShelfProps): JSX.Element {
           previousLabel={props.previousLabel}
           onBack={props.onBack}
           dafRabbis={props.dafRabbis}
+          dafRabbiNames={props.dafRabbiNames}
           onOpenRabbiSlug={props.onOpenRabbiSlug}
           generationByName={props.generationByName}
         />
@@ -152,6 +154,7 @@ function labelForSidebar(s: SidebarContent | null): string {
     case 'aggadata': return 'Aggadata';
     case 'pesuk': return 'Pasuk';
     case 'rabbi': return 'Rabbi';
+    case 'voice-group': return 'Voice';
     case 'rishonim': return 'Rishonim';
   }
 }

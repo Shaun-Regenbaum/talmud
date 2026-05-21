@@ -2977,8 +2977,18 @@ app.get('/api/daf/:tractate/:page', async (c) => {
     if (hb) {
       const data: TalmudPageData = {
         mainText: { hebrew: hb.main, english: '' },
-        rashi: hb.rashi ? { hebrew: hb.rashi, english: '', pieces: sefariaBundle?.rashi?.pieces } : undefined,
-        tosafot: hb.tosafot ? { hebrew: hb.tosafot, english: '', pieces: sefariaBundle?.tosafot?.pieces } : undefined,
+        rashi: hb.rashi ? {
+          hebrew: hb.rashi,
+          english: '',
+          pieces: sefariaBundle?.rashi?.pieces,
+          pieceKeys: sefariaBundle?.rashi?.pieceKeys,
+        } : undefined,
+        tosafot: hb.tosafot ? {
+          hebrew: hb.tosafot,
+          english: '',
+          pieces: sefariaBundle?.tosafot?.pieces,
+          pieceKeys: sefariaBundle?.tosafot?.pieceKeys,
+        } : undefined,
       };
       setCacheHeader();
       return c.json({

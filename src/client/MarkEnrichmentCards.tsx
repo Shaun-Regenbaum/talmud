@@ -461,7 +461,13 @@ export default function MarkEnrichmentCards(props: Props) {
 
   const isInspectorOpen = () => openInspectorKey() === props.instanceKey;
   const closeInspector = () => setOpenInspectorKey(null);
-  const openInspector = () => setOpenInspectorKey(props.instanceKey);
+  const openInspector = (e?: MouseEvent) => {
+    // Cards may live inside an outer click-target (e.g. ArgumentMoveCard's
+    // toggleHighlight wrapper). Stop propagation so the inspector affordance
+    // doesn't double as a highlight toggle.
+    if (e) e.stopPropagation();
+    setOpenInspectorKey(props.instanceKey);
+  };
 
   // Sidebar card: production view in all modes — clean synthesis output in
   // a subtle container. The dev-mode 'i' affordance overlays the top-right

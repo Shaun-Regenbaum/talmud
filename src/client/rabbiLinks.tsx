@@ -1,23 +1,27 @@
 /**
- * Rabbi-link utilities: resolve a display name to a slug against the daf's
- * rabbi list, and render English prose with rabbi mentions wrapped as
- * clickable spans.
+ * Rabbi-link utilities: resolve a display name against the daf's rabbi list,
+ * and render English prose with rabbi mentions wrapped as clickable links.
  *
- * Resolution is strictly bounded to dafContext().rabbis — no fuzzy match
- * against unknown names — so unresolved text stays inert. Routing is by
- * `name` (the caller passes that to `onPushRabbi` and DafViewer's openRabbi
- * looks up the IdentifiedRabbi by name).
+ * The matcher pool combines two sources:
+ *   1. `rabbis` — IdentifiedRabbi entries from dafContext. Used for name
+ *      normalization and slug-keyed routing.
+ *   2. `extraNames` — bare display names from structured fields (move.rabbiNames,
+ *      section.rabbiNames, voices[].name) that may not be present in
+ *      dafContext (the rabbi-places dataset has gaps; the LLM-extracted
+ *      names are more complete). These match in the prose; routing falls
+ *      through pushRabbi's name-lookup fallback chain in DafViewer.
+ *
+ * The context value uses ACCESSORS (functions), not plain values, so Solid
+ * tracks reads inside JSX/memos and consumers re-evaluate when daf-level
+ * state changes (e.g. dafContext loads async after the sidebar mounts).
  */
-import { For, createContext, useContext, type JSX } from 'solid-js';
+import { For, createContext, createMemo, useContext, type Accessor, type JSX } from 'solid-js';
 import type { IdentifiedRabbi } from './dafContext';
 import { Hebraized } from './Hebraized';
 
-/** Provided by ArgumentSidebar / panels so deeply-nested prose (e.g. inside
- *  MarkEnrichmentCards' ParsedFieldView) can wrap rabbi mentions as click-
- *  ables without prop-drilling through generic components. Absent context
- *  means "render plain text" — RabbiText silently falls back to Hebraized. */
 export interface RabbiLinkContextValue {
-  rabbis: IdentifiedRabbi[];
+  rabbis: Accessor<IdentifiedRabbi[]>;
+  extraNames: Accessor<string[]>;
   onPushRabbi: (name: string) => void;
 }
 
@@ -44,7 +48,14 @@ export function useRabbiLinks(): RabbiLinkContextValue | null {
 export function HebraizedWithRabbis(props: { text: string | undefined | null }): JSX.Element {
   const ctx = useRabbiLinks();
   if (!ctx) return <Hebraized text={props.text} />;
-  return <RabbiText text={props.text} rabbis={ctx.rabbis} onPushRabbi={ctx.onPushRabbi} />;
+  return (
+    <RabbiText
+      text={props.text}
+      rabbis={ctx.rabbis()}
+      extraNames={ctx.extraNames()}
+      onPushRabbi={ctx.onPushRabbi}
+    />
+  );
 }
 
 /** Normalize a rabbi name for fuzzy English match: drop honorific prefixes,
@@ -74,19 +85,16 @@ export function resolveRabbi(
 
 /** Build a regex that matches any of the given rabbi display names as
  *  whole words. Names are sorted longest-first so "Rabbi Yochanan ben
- *  Zakkai" beats "Rabbi Yochanan". Word boundaries are unicode-safe
- *  enough for our English prose. */
+ *  Zakkai" beats "Rabbi Yochanan". */
 function buildNameRegex(names: string[]): RegExp | null {
-  if (names.length === 0) return null;
-  const escaped = names
+  const cleaned = names
     .filter((n) => n && n.trim().length > 0)
     .sort((a, b) => b.length - a.length)
     .map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  if (escaped.length === 0) return null;
-  return new RegExp(`\\b(${escaped.join('|')})\\b`, 'g');
+  if (cleaned.length === 0) return null;
+  return new RegExp(`\\b(${cleaned.join('|')})\\b`, 'g');
 }
 
-/** Inline link styling for clickable rabbi mentions inside prose. */
 const linkStyle: JSX.CSSProperties = {
   background: 'none',
   border: 'none',
@@ -100,66 +108,60 @@ const linkStyle: JSX.CSSProperties = {
   font: 'inherit',
 };
 
-/** Render `text` as a paragraph, wrapping every occurrence of a name from
- *  `rabbis` (or any explicit name in `extraNames`) as a clickable button
- *  that calls `onPushRabbi(displayName)`. Anything that doesn't match
- *  passes through Hebraized (so existing (term) markup keeps working).
- *
- *  `extraNames` lets a caller (e.g. an argument-move card) feed in names
- *  from a structured field — say `move.rabbiNames` — that may include
- *  rabbis not in dafContext yet but worth wrapping anyway. We still try
- *  to resolve via `rabbis` before treating it as a click target; an
- *  unresolved name falls through as plain text. */
+/** Render `text`, wrapping every occurrence of a known rabbi name as a
+ *  clickable inline button. Names not in either pool pass through as plain
+ *  text. Matching is whole-word; routing goes through `onPushRabbi`,
+ *  which falls back to a stub IdentifiedRabbi when the name isn't in
+ *  dafContext. */
 export function RabbiText(props: {
   text: string | undefined | null;
   rabbis: IdentifiedRabbi[];
   onPushRabbi: (name: string) => void;
   extraNames?: string[];
 }): JSX.Element {
-  const text = props.text ?? '';
-  if (!text) return <></>;
-
-  // Pool of names to scan for. Each entry is a display name we'll attempt
-  // to resolve at click time. Pulling display names off `rabbis` plus any
-  // structured extras gives us both daf-wide coverage and per-instance
-  // names the enricher already extracted.
-  const pool = [
-    ...props.rabbis.map((r) => r.name),
-    ...(props.extraNames ?? []),
-  ];
-  // De-dupe — extraNames frequently overlap dafContext names.
-  const uniq = Array.from(new Set(pool.filter((n) => n && n.trim().length > 0)));
-  const re = buildNameRegex(uniq);
-  if (!re) {
-    return <Hebraized text={text} />;
-  }
-
-  type Part = { kind: 'text'; value: string } | { kind: 'link'; value: string };
-  const parts: Part[] = [];
-  let lastIdx = 0;
-  re.lastIndex = 0;
-  for (let m = re.exec(text); m !== null; m = re.exec(text)) {
-    if (m.index > lastIdx) {
-      parts.push({ kind: 'text', value: text.slice(lastIdx, m.index) });
+  // All reactive reads happen inside this memo so prop changes (e.g.
+  // dafContext loading after mount, a new sidebar entry pushing) trigger
+  // re-tokenization.
+  const parts = createMemo(() => {
+    const text = props.text ?? '';
+    if (!text) return [] as Array<{ kind: 'text' | 'link'; value: string }>;
+    const pool = [
+      ...props.rabbis.map((r) => r.name),
+      ...(props.extraNames ?? []),
+    ];
+    const uniq = Array.from(new Set(pool.filter((n) => n && n.trim().length > 0)));
+    const re = buildNameRegex(uniq);
+    const out: Array<{ kind: 'text' | 'link'; value: string }> = [];
+    if (!re) {
+      out.push({ kind: 'text', value: text });
+      return out;
     }
-    parts.push({ kind: 'link', value: m[1] });
-    lastIdx = m.index + m[0].length;
-  }
-  if (lastIdx < text.length) {
-    parts.push({ kind: 'text', value: text.slice(lastIdx) });
-  }
+    let lastIdx = 0;
+    re.lastIndex = 0;
+    for (let m = re.exec(text); m !== null; m = re.exec(text)) {
+      if (m.index > lastIdx) out.push({ kind: 'text', value: text.slice(lastIdx, m.index) });
+      out.push({ kind: 'link', value: m[1] });
+      lastIdx = m.index + m[0].length;
+    }
+    if (lastIdx < text.length) out.push({ kind: 'text', value: text.slice(lastIdx) });
+    return out;
+  });
 
   return (
-    <For each={parts}>{(p) => {
+    <For each={parts()}>{(p) => {
       if (p.kind === 'text') return <Hebraized text={p.value} />;
+      // For routing: try slug resolution against rabbis; if missing,
+      // still emit a link button — pushRabbi handles unresolved names by
+      // building a stub from the rabbi mark or just highlighting on the
+      // daf.
       const resolved = resolveRabbi(p.value, props.rabbis);
-      if (!resolved) return <Hebraized text={p.value} />;
+      const targetName = resolved ? resolved.name : p.value;
       return (
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); props.onPushRabbi(resolved.name); }}
+          onClick={(e) => { e.stopPropagation(); props.onPushRabbi(targetName); }}
           style={linkStyle}
-          title={`Open ${resolved.name}`}
+          title={`Open ${targetName}`}
         >{p.value}</button>
       );
     }}</For>

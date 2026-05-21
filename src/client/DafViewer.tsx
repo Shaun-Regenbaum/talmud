@@ -31,6 +31,18 @@ import { applyMarkRenderers } from './renderers/dispatch';
 import DevModeShelf, { readDevMode, setDevModeActive } from './DevModeShelf';
 import type { GenerationId } from './generations';
 import { GENERATION_BY_ID } from './generations';
+import { resolveVoiceGroup, voiceGroupNames } from './voiceGroups';
+
+/** Normalize a rabbi name for fuzzy lookup: drop honorific prefixes, lower
+ *  case, collapse whitespace. Mirrors rabbiLinks.normalizeRabbiName but
+ *  inlined to avoid a circular module dependency for the resolver. */
+function normalizeRabbiName(s: string): string {
+  return s
+    .replace(/\b(Rabbi|Rabban|Rav|Rabbah|R\.)\s+/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
 
 interface Ref {
   tractate: string;
@@ -588,6 +600,7 @@ export default function DafViewer(): JSX.Element {
     if (c.kind === 'aggadata') return c.story.title || 'Aggada';
     if (c.kind === 'pesuk') return c.pasuk.verseRef || 'Pasuk';
     if (c.kind === 'rabbi') return c.rabbi.name || 'Rabbi';
+    if (c.kind === 'voice-group') return c.group.name;
     if (c.kind === 'rishonim') return `Rishonim · seg ${c.instance.segIdx + 1}`;
     return 'Back';
   };
@@ -597,6 +610,7 @@ export default function DafViewer(): JSX.Element {
     if (c.kind === 'aggadata') return `aggadata:${c.story.title}`;
     if (c.kind === 'pesuk') return `pesuk:${c.pasuk.verseRef}`;
     if (c.kind === 'rabbi') return `rabbi:${c.rabbi.slug ?? c.rabbi.name}`;
+    if (c.kind === 'voice-group') return `voice-group:${c.group.name}`;
     if (c.kind === 'rishonim') return `rishonim:${c.instance.segIdx}`;
     return 'unknown';
   };
@@ -628,7 +642,7 @@ export default function DafViewer(): JSX.Element {
      *      clicked piece keeps its highlight as the source. */
     direction: 'from-main' | 'from-piece';
     segs: number[];
-    pieces: Array<{ comm: 'rashi' | 'tosafot'; idx: number }>;
+    pieces: Array<{ comm: 'rashi' | 'tosafot'; key: string }>;
   } | null>(null);
 
 
@@ -911,6 +925,44 @@ export default function DafViewer(): JSX.Element {
     const m = new Map<string, GenerationId>();
     for (const r of generations() ?? []) m.set(r.name, r.generation);
     return m;
+  });
+
+  // Daf-wide rabbi-name pool. Joins dafContext().rabbis (which carries
+  // slugs + bios) with every name the LLM mentioned in structured fields:
+  // argument section.rabbiNames, argument-move.rabbiNames, and
+  // argument.voices[].name. Used by the sidebar's RabbiText to make rabbi
+  // mentions in enrichment prose clickable even when the rabbi isn't
+  // covered by the rabbi-places dataset.
+  const dafRabbiNames = createMemo<string[]>(() => {
+    const names = new Set<string>();
+    for (const r of dafContext()?.rabbis ?? []) {
+      if (r.name) names.add(r.name);
+    }
+    const runs = markRunsByMarkId();
+    const argParsed = runs['argument']?.parsed as {
+      instances?: Array<{ fields?: { rabbiNames?: string[] } }>;
+    } | undefined;
+    for (const inst of argParsed?.instances ?? []) {
+      for (const n of inst.fields?.rabbiNames ?? []) if (n) names.add(n);
+    }
+    const moveParsed = runs['argument-move']?.parsed as {
+      instances?: Array<{ fields?: { rabbiNames?: string[]; voice?: string } }>;
+    } | undefined;
+    for (const inst of moveParsed?.instances ?? []) {
+      for (const n of inst.fields?.rabbiNames ?? []) if (n) names.add(n);
+    }
+    const rabbiParsed = runs['rabbi']?.parsed as {
+      instances?: Array<{ fields?: { name?: string } }>;
+    } | undefined;
+    for (const inst of rabbiParsed?.instances ?? []) {
+      if (inst.fields?.name) names.add(inst.fields.name);
+    }
+    // Collective voices ("Sages", "Tanna Kamma", etc.) always match — they
+    // appear in prose constantly but rarely show up in rabbiNames since
+    // the LLM treats them as anonymous. pushRabbi routes them to a static
+    // descriptive bio via VOICE_GROUPS.
+    for (const n of voiceGroupNames()) names.add(n);
+    return Array.from(names);
   });
 
   // Reset sidebar state on daf change.
@@ -1365,18 +1417,31 @@ export default function DafViewer(): JSX.Element {
     if (!d) return null;
     let main = tokenizeHebrewHtml(d.mainText.hebrew);
     // When Sefaria provided per-piece arrays, wrap each piece with a
-    // .daf-comm-piece[data-piece-idx][data-comm="rashi|tosafot"] span so the
+    // .daf-comm-piece[data-piece-key][data-comm="rashi|tosafot"] span so the
     // commentary↔daf anchor click handler can highlight specific Rashi /
     // Tosafot pieces (rather than the whole column). Falls back to the
-    // joined hebrew string when pieces aren't available.
-    const wrapPieces = (pieces: string[] | undefined, joined: string, comm: 'rashi' | 'tosafot'): string => {
+    // joined hebrew string when pieces aren't available. The key is
+    // Sefaria's 1-based "S:P" ref position ("segment 11, piece 1" →
+    // "11:1") so it maps directly to the related-links ref shape. When
+    // pieceKeys is missing (pre-v5 cache), we omit the attribute — the
+    // click handler treats that as "no anchor data".
+    const wrapPieces = (
+      pieces: string[] | undefined,
+      pieceKeys: string[] | undefined,
+      joined: string,
+      comm: 'rashi' | 'tosafot',
+    ): string => {
       if (!pieces || pieces.length === 0) return tokenizeHebrewHtml(joined);
       return pieces
-        .map((p, i) => `<span class="daf-comm-piece" data-piece-idx="${i}" data-comm="${comm}">${tokenizeHebrewHtml(p)}</span>`)
+        .map((p, i) => {
+          const key = pieceKeys?.[i];
+          const keyAttr = key ? ` data-piece-key="${key}"` : '';
+          return `<span class="daf-comm-piece" data-comm="${comm}"${keyAttr}>${tokenizeHebrewHtml(p)}</span>`;
+        })
         .join(' ');
     };
-    let inner = d.rashi ? wrapPieces(d.rashi.pieces, d.rashi.hebrew, 'rashi') : '';
-    let outer = d.tosafot ? wrapPieces(d.tosafot.pieces, d.tosafot.hebrew, 'tosafot') : '';
+    let inner = d.rashi ? wrapPieces(d.rashi.pieces, d.rashi.pieceKeys, d.rashi.hebrew, 'rashi') : '';
+    let outer = d.tosafot ? wrapPieces(d.tosafot.pieces, d.tosafot.pieceKeys, d.tosafot.hebrew, 'tosafot') : '';
 
     // First word of the masechet (always daf 2a) renders as a centered block
     // incipit. Source HTML from HebrewBooks inconsistently marks this word
@@ -1605,6 +1670,7 @@ export default function DafViewer(): JSX.Element {
     const s = sidebar();
     if (!s) return null;
     if (s.kind === 'rabbi') return `rabbi:${s.rabbi.name}`;
+    if (s.kind === 'voice-group') return `voice-group:${s.group.name}`;
     return `${s.kind}:${s.index}`;
   });
 
@@ -1810,10 +1876,48 @@ export default function DafViewer(): JSX.Element {
   };
 
   // Cross-enrichment rabbi click (chip / voice node / prose mention inside
-  // an open sidebar). Same resolution as openRabbi, but PUSHES onto the
-  // sidebar stack so the back chip restores the previous view.
+  // an open sidebar). Resolves a display name to an IdentifiedRabbi
+  // through a layered chain so common phrasing mismatches still land on a
+  // useful sidebar entry. Push (not replace) so the back chip can pop.
+  //
+  // Resolution chain:
+  //   1. Exact name match in dafContext.
+  //   2. Normalized (strip Rabbi/Rav/R. prefix, lowercase) match in dafContext.
+  //   3. Substring match: dafContext name contains the query, or vice
+  //      versa. Only when EXACTLY one candidate matches — multiple matches
+  //      mean ambiguity (e.g. two Rabbi Yochanans), and we'd rather fall
+  //      through than route to the wrong one.
+  //   4. Rabbi mark (registry-driven, generation only).
+  //   5. Collective voice (Sages, Tanna Kamma, Stam, etc.) — synthesizes a
+  //      stub with a static descriptive bio.
+  //   6. Stub fallback: open the sidebar with just the name + 'unknown'
+  //      generation so the user at least sees what they clicked.
   const pushRabbi = (name: string) => {
-    let r: IdentifiedRabbi | null = dafContext()?.rabbis.find((x) => x.name === name) ?? null;
+    const ctx = dafContext()?.rabbis ?? [];
+    let r: IdentifiedRabbi | null = null;
+
+    // 1. exact
+    r = ctx.find((x) => x.name === name) ?? null;
+
+    // 2. normalized
+    if (!r) {
+      const norm = normalizeRabbiName(name);
+      if (norm) r = ctx.find((x) => normalizeRabbiName(x.name) === norm) ?? null;
+    }
+
+    // 3. substring (single-match guard)
+    if (!r) {
+      const norm = normalizeRabbiName(name);
+      if (norm) {
+        const candidates = ctx.filter((x) => {
+          const cnorm = normalizeRabbiName(x.name);
+          return cnorm.includes(norm) || norm.includes(cnorm);
+        });
+        if (candidates.length === 1) r = candidates[0];
+      }
+    }
+
+    // 4. rabbi mark
     if (!r) {
       const argRun = markRunsByMarkId()['rabbi'];
       const inst = (argRun?.parsed as { instances?: Array<{ excerpt?: string; fields: Record<string, unknown> }> } | undefined)
@@ -1833,13 +1937,39 @@ export default function DafViewer(): JSX.Element {
         };
       }
     }
+
+    // 5. collective voice — push a dedicated voice-group sidebar entry
+    // rather than masquerading as a rabbi. Returns early because
+    // voice-groups render through their own panel, not RabbiBody.
     if (!r) {
-      // Unresolved: just light up daf occurrences and bail. No sidebar push
-      // — without an IdentifiedRabbi there's nothing to render.
-      setActiveRabbi(name);
-      return;
+      const g = resolveVoiceGroup(name);
+      if (g) {
+        setActiveRabbi(g.name);
+        setActivePlace(null);
+        pushSidebar({ kind: 'voice-group', group: g });
+        setLastInteractedCard('argument');
+        return;
+      }
     }
+
+    // 6. last-resort stub — push something so the click isn't a dead end.
+    if (!r) {
+      r = {
+        slug: null,
+        name,
+        nameHe: '',
+        generation: 'unknown' as GenerationId,
+        region: null,
+        places: [],
+        moved: null,
+        bio: null,
+        image: null,
+        wiki: null,
+      };
+    }
+
     setActiveRabbi(r.name);
+    setActivePlace(null);
     pushSidebar({ kind: 'rabbi', rabbi: r });
     setLastInteractedCard('argument');
   };
@@ -1953,13 +2083,17 @@ export default function DafViewer(): JSX.Element {
     if (pieceEl) {
       // Reverse direction: piece → segs. Highlight is on the daf (range
       // overlay) so the user sees what the piece is commenting on.
-      const pieceIdx = Number(pieceEl.getAttribute('data-piece-idx'));
+      const pieceKey = pieceEl.getAttribute('data-piece-key');
       const comm = pieceEl.getAttribute('data-comm') as 'rashi' | 'tosafot' | null;
-      if (!comm || !Number.isFinite(pieceIdx)) {
+      if (!comm || !pieceKey) {
+        // No piece-key on this span means the renderer fell back to the
+        // pieceless path (no Sefaria piece array available) — there's
+        // nothing to anchor against. Clear any prior highlight so the
+        // click reads as a dismissal.
         if (commAnchorActive()) setCommAnchorActive(null);
         return false;
       }
-      const segs = idx.pieceToSegs.get(`${comm}:${pieceIdx}`) ?? [];
+      const segs = idx.pieceToSegs.get(`${comm}:${pieceKey}`) ?? [];
       if (segs.length === 0) {
         // The piece exists but has no daf segs mapped — clear anything
         // active so a click on an unmapped piece reads as "dismiss",
@@ -1971,11 +2105,11 @@ export default function DafViewer(): JSX.Element {
       const sameClick = cur && cur.direction === 'from-piece'
         && cur.pieces.length === 1
         && cur.pieces[0].comm === comm
-        && cur.pieces[0].idx === pieceIdx;
+        && cur.pieces[0].key === pieceKey;
       setCommAnchorActive(sameClick ? null : {
         direction: 'from-piece',
         segs,
-        pieces: [{ comm, idx: pieceIdx }],
+        pieces: [{ comm, key: pieceKey }],
       });
       return true;
     }
@@ -2001,9 +2135,9 @@ export default function DafViewer(): JSX.Element {
       if (commAnchorActive()) setCommAnchorActive(null);
       return false;
     }
-    const pieces: Array<{ comm: 'rashi' | 'tosafot'; idx: number }> = [
-      ...bucket.rashi.map((i) => ({ comm: 'rashi' as const, idx: i })),
-      ...bucket.tosafot.map((i) => ({ comm: 'tosafot' as const, idx: i })),
+    const pieces: Array<{ comm: 'rashi' | 'tosafot'; key: string }> = [
+      ...bucket.rashi.map((k) => ({ comm: 'rashi' as const, key: k })),
+      ...bucket.tosafot.map((k) => ({ comm: 'tosafot' as const, key: k })),
     ];
     const cur = commAnchorActive();
     const sameClick = cur && cur.direction === 'from-main'
@@ -2066,8 +2200,10 @@ export default function DafViewer(): JSX.Element {
     const active = commAnchorActive();
     if (!active || active.direction !== 'from-main') return;
     for (const p of active.pieces) {
+      // CSS.escape would be safer in general; piece keys are "S:P" with
+      // digits + colon, so a literal selector is fine here.
       dafRootDiv.querySelectorAll<HTMLElement>(
-        `.daf-comm-piece[data-piece-idx="${p.idx}"][data-comm="${p.comm}"]`,
+        `.daf-comm-piece[data-piece-key="${p.key}"][data-comm="${p.comm}"]`,
       ).forEach((el) => el.classList.add('comm-anchor-active'));
     }
   });
@@ -2482,6 +2618,7 @@ export default function DafViewer(): JSX.Element {
               previousLabel={sidebarStack().length > 1 ? sidebarLabel(sidebarStack()[sidebarStack().length - 2]) : null}
               onBack={popSidebar}
               dafRabbis={dafContext()?.rabbis ?? []}
+              dafRabbiNames={dafRabbiNames()}
               onHighlightRange={setArgumentMoveHighlight}
               onOpenRabbiSlug={openRabbiSlug}
               generationByName={generationByName()}
@@ -2509,6 +2646,7 @@ export default function DafViewer(): JSX.Element {
           previousLabel={sidebarStack().length > 1 ? sidebarLabel(sidebarStack()[sidebarStack().length - 2]) : null}
           onBack={popSidebar}
           dafRabbis={dafContext()?.rabbis ?? []}
+          dafRabbiNames={dafRabbiNames()}
           onOpenRabbiSlug={openRabbiSlug}
           generationByName={generationByName()}
         />

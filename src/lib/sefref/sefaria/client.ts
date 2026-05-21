@@ -52,15 +52,22 @@ export interface TalmudPageData {
     english: string;
     /** Per-piece Hebrew text. Sefaria returns commentary as an array where
      *  each entry is one Rashi piece — preserved here so the renderer can
-     *  wrap each piece with a data-piece-idx marker for the bidirectional
+     *  wrap each piece with a data-piece-key marker for the bidirectional
      *  daf↔commentary anchor highlight. */
     pieces?: string[];
+    /** Parallel array of "S:P" keys for each piece, matching Sefaria's
+     *  1-based depth-2 ref shape ("Rashi on Berakhot 2a:S:P"). Used by the
+     *  click-anchor index to resolve link refs back to specific piece spans
+     *  in the DOM. */
+    pieceKeys?: string[];
   };
   tosafot?: {
     hebrew: string;
     english: string;
     /** Same shape as rashi.pieces. */
     pieces?: string[];
+    /** Same shape as rashi.pieceKeys. */
+    pieceKeys?: string[];
   };
 }
 
@@ -176,6 +183,44 @@ export function flattenPieces(text: unknown): string[] {
 }
 
 /**
+ * Flatten a depth-2 Talmud-commentary tree (string[][]: segment → pieces)
+ * into parallel `pieces` and `pieceKeys` arrays. Keys use Sefaria's 1-based
+ * "S:P" convention so they line up directly with link refs of the form
+ * "Rashi on <Tractate> <Daf>:S:P". Empty pieces are skipped on both sides.
+ *
+ * Non-depth-2 inputs are accepted defensively: a depth-1 string[] is treated
+ * as a single-segment commentary (keys "1:1", "1:2", ...). Scalars and other
+ * shapes return empty arrays.
+ *
+ * @internal Exported for unit tests.
+ */
+export function flattenTalmudCommentaryPieces(
+  text: unknown,
+): { pieces: string[]; keys: string[] } {
+  const pieces: string[] = [];
+  const keys: string[] = [];
+  if (!Array.isArray(text)) return { pieces, keys };
+  for (let s = 0; s < text.length; s++) {
+    const seg = text[s];
+    if (Array.isArray(seg)) {
+      // Key off the raw inner index so empty-string entries (which we drop)
+      // don't shift the position numbers used by Sefaria's "S:P" refs.
+      for (let p = 0; p < seg.length; p++) {
+        const entry = seg[p];
+        if (typeof entry === 'string' && entry.length > 0) {
+          pieces.push(entry);
+          keys.push(`${s + 1}:${p + 1}`);
+        }
+      }
+    } else if (typeof seg === 'string' && seg.length > 0) {
+      pieces.push(seg);
+      keys.push(`${s + 1}:1`);
+    }
+  }
+  return { pieces, keys };
+}
+
+/**
  * Pick the version whose `actualLanguage`/`language` matches the requested
  * tag. Sefaria returns versions[] in catalog order, which is not necessarily
  * the language order we asked for.
@@ -284,13 +329,14 @@ class SefariaAPI {
     };
     const buildCommentary = (data: SefariaV3Response | null) => {
       if (!data) return undefined;
-      const hePieces = flattenPieces(pickV3Version(data.versions, 'he'));
+      const heFlat = flattenTalmudCommentaryPieces(pickV3Version(data.versions, 'he'));
       const enPieces = flattenPieces(pickV3Version(data.versions, 'en'));
-      if (hePieces.length === 0 && enPieces.length === 0) return undefined;
+      if (heFlat.pieces.length === 0 && enPieces.length === 0) return undefined;
       return {
-        hebrew: hePieces.join(' '),
+        hebrew: heFlat.pieces.join(' '),
         english: enPieces.join(' '),
-        pieces: hePieces.length > 0 ? hePieces : undefined,
+        pieces: heFlat.pieces.length > 0 ? heFlat.pieces : undefined,
+        pieceKeys: heFlat.keys.length > 0 ? heFlat.keys : undefined,
       };
     };
 

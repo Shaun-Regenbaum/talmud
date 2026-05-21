@@ -35,6 +35,7 @@ export type SidebarContent =
   | { kind: 'aggadata'; story: AggadataStory; index: number }
   | { kind: 'pesuk'; pasuk: Pasuk; index: number }
   | { kind: 'rabbi'; rabbi: IdentifiedRabbi }
+  | { kind: 'voice-group'; group: { name: string; nameHe: string; bio: string } }
   | { kind: 'rishonim'; instance: RishonimInstance; index: number };
 
 export interface ArgumentSidebarProps {
@@ -55,6 +56,11 @@ export interface ArgumentSidebarProps {
   /** Daf-wide identified rabbis. Used to resolve display names mentioned
    *  in enrichment prose to clickable links. */
   dafRabbis: IdentifiedRabbi[];
+  /** Bare rabbi names from LLM-extracted structured fields (move.rabbiNames,
+   *  section.rabbiNames, voice nodes) that may not be in dafRabbis (the
+   *  rabbi-places dataset has gaps). Matched in prose; routing falls
+   *  through pushRabbi's name-lookup chain. */
+  dafRabbiNames: string[];
   /** Highlights a contiguous segment range on the daf. Used when the user
    *  clicks an argument-move card so the corresponding sub-range of the
    *  section is painted. Pass null to clear. `key` is a stable id (e.g. the
@@ -280,14 +286,23 @@ function ArgumentMoveCard(props: {
         </Show>
       </button>
       {/* Per-move synthesis. Mounts its own MarkEnrichmentCards so each move
-          gets its own "built from" tray. */}
-      <MarkEnrichmentCards
-        markId="argument-move"
-        instance={props.move}
-        instanceKey={f.id}
-        tractate={props.tractate}
-        page={props.page}
-      />
+          gets its own "built from" tray. The wrapping div extends the move
+          card's click-to-highlight target to the synthesis body — clicks
+          on rabbi-link buttons + chips stopPropagation so they don't toggle
+          the highlight. */}
+      <div
+        onClick={toggleHighlight}
+        title={isActive() ? 'Click to clear highlight' : 'Click to highlight this move on the daf'}
+        style={{ cursor: 'pointer' }}
+      >
+        <MarkEnrichmentCards
+          markId="argument-move"
+          instance={props.move}
+          instanceKey={f.id}
+          tractate={props.tractate}
+          page={props.page}
+        />
+      </div>
       {/* Explore-deeper Q&A panel — collapsed by default; the first expand
           lazily loads suggested questions + community-asked registry, and
           per-question answers stream in via shared KV-cached
@@ -1112,7 +1127,11 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
   return (
     <Show when={props.content}>
       {(c) => (
-        <RabbiLinkProvider value={{ rabbis: props.dafRabbis, onPushRabbi: props.onPushRabbi }}>
+        <RabbiLinkProvider value={{
+          rabbis: () => props.dafRabbis,
+          extraNames: () => props.dafRabbiNames,
+          onPushRabbi: props.onPushRabbi,
+        }}>
         <aside
           style={{
             background: '#fff',
@@ -1163,6 +1182,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                   : c().kind === 'aggadata' ? 'Aggada'
                   : c().kind === 'pesuk' ? 'Pasuk'
                   : c().kind === 'rishonim' ? 'Rishonim'
+                  : c().kind === 'voice-group' ? 'Voice'
                   : 'Rabbi'}
                 {' · '}
                 {props.tractate} {props.page}
@@ -1199,6 +1219,33 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                 generationByName={props.generationByName}
                 onHighlightRange={(r) => props.onHighlightRange?.(r)}
               />
+            </Show>
+
+            <Show when={c().kind === 'voice-group'}>
+              {(() => {
+                const g = (c() as Extract<SidebarContent, { kind: 'voice-group' }>).group;
+                return (
+                  <div>
+                    <h3 style={{ margin: '0 0 0.15rem', 'font-size': '1.1rem', color: '#222', 'font-weight': 600 }}>
+                      {g.name}
+                    </h3>
+                    <Show when={g.nameHe}>
+                      <p dir="rtl" lang="he" style={{
+                        margin: '0 0 0.7rem', 'font-family': '"Mekorot Vilna", serif',
+                        'font-size': '1.05rem', color: '#666',
+                      }}>{g.nameHe}</p>
+                    </Show>
+                    <div style={{
+                      'font-size': '0.7rem', color: '#999',
+                      'text-transform': 'uppercase', 'letter-spacing': '0.08em',
+                      'margin-bottom': '0.45rem',
+                    }}>Collective voice</div>
+                    <p style={{ margin: 0, color: '#333', 'line-height': 1.6 }}>
+                      {g.bio}
+                    </p>
+                  </div>
+                );
+              })()}
             </Show>
 
             <Show when={c().kind === 'halacha'}>

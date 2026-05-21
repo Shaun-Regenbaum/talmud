@@ -27,6 +27,7 @@
 
 import { createSignal, createResource, For, Show, type JSX } from 'solid-js';
 import { Hebraized } from './Hebraized';
+import { hebraize } from './hebraize';
 import { trackAI } from './aiActivity';
 
 export interface QAPanelProps {
@@ -160,13 +161,36 @@ async function postAsk(tractate: string, page: string, moveId: string, instance:
 
 const DEFAULT_VISIBLE = 2;
 
+// Flavor copy for the per-question loading state. Picked once when the run
+// kicks off and stored alongside the loading state so it doesn't re-roll on
+// every Solid re-render. Same playful voice as MarkEnrichmentCards'
+// loadingCopy() so the panel feels consistent with the rest of the daf.
+const QA_LOADING_OPTIONS = [
+  'Asking the Rabbis…',
+  'Checking a Sefer…',
+  'Asking my Chavruta…',
+  'Double-Checking the Sugya…',
+  'Checking Rashi…',
+  'Asking the Maggid Shiur…',
+];
+function pickQALoadingCopy(): string {
+  return QA_LOADING_OPTIONS[Math.floor(Math.random() * QA_LOADING_OPTIONS.length)];
+}
+
 export default function QAPanel(props: QAPanelProps): JSX.Element {
   const [expanded, setExpanded] = createSignal(false);
   const [showAll, setShowAll] = createSignal(false);
   const [askingOpen, setAskingOpen] = createSignal(false);
   const [askText, setAskText] = createSignal('');
   const [askError, setAskError] = createSignal<string | null>(null);
-  const [openAnswers, setOpenAnswers] = createSignal<Record<string, { state: 'loading' | 'ok' | 'error'; data?: QAAnswer; error?: string }>>({});
+  const [openAnswers, setOpenAnswers] = createSignal<Record<string, {
+    state: 'loading' | 'ok' | 'error';
+    data?: QAAnswer;
+    error?: string;
+    /** Loading flavor copy. Picked once at the loading-state transition so
+     *  it doesn't shuffle on every re-render. */
+    loadingCopy?: string;
+  }>>({});
 
   // Two parallel resources, both gated on `expanded` so we don't pay
   // anything until the user opens the panel for the first time.
@@ -216,7 +240,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
       });
       return;
     }
-    setOpenAnswers((m) => ({ ...m, [key]: { state: 'loading' } }));
+    setOpenAnswers((m) => ({ ...m, [key]: { state: 'loading', loadingCopy: pickQALoadingCopy() } }));
     try {
       const ans = await fetchAnswer(props.tractate, props.page, props.moveId, props.moveInstance, q);
       if (!ans) throw new Error('empty answer');
@@ -296,7 +320,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
         aria-expanded={expanded()}
       >
         <span>{expanded() ? '−' : '+'}</span>
-        <span>Explore deeper</span>
+        <span>Questions</span>
       </button>
 
       <Show when={expanded()}>
@@ -315,7 +339,11 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
                 <button
                   type="button"
                   onClick={() => handleQuestionClick(item.q)}
-                  title={item.why ?? ''}
+                  // Title is an HTML attribute — can't host a JSX component,
+                  // so we run the why_useful hint through the synchronous
+                  // dict pass directly. Async LLM upgrade isn't worth it for
+                  // hover text that vanishes the moment the user moves on.
+                  title={item.why ? hebraize(item.why) : ''}
                   style={{
                     all: 'unset',
                     display: 'block',
@@ -332,7 +360,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
                   }}
                 >
                   <span style={{ color: '#999', 'margin-right': '0.3rem' }}>›</span>
-                  {item.q}
+                  <Hebraized text={item.q} />
                   <Show when={item.origin === 'community'}>
                     <span style={{
                       'margin-left': '0.4rem',
@@ -361,7 +389,9 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
                       'line-height': 1.55,
                     }}>
                       <Show when={state().state === 'loading'}>
-                        <span style={{ color: '#888', 'font-style': 'italic' }}>Thinking through it…</span>
+                        <span style={{ color: '#888', 'font-style': 'italic' }}>
+                          {state().loadingCopy ?? 'Asking the Rabbis…'}
+                        </span>
                       </Show>
                       <Show when={state().state === 'error'}>
                         <span style={{ color: '#c00', 'font-family': 'monospace', 'font-size': '0.78rem' }}>
