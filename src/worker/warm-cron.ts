@@ -10,10 +10,15 @@
  */
 import { TRACTATE_IDS } from '../lib/sefref/hebrewbooks/client';
 import { iterAmudim } from '../lib/sefref/amudim';
-import { getHebrewBooksDafCached } from './source-cache';
+import {
+  getHebrewBooksDafCached,
+  getSefariaPageCached,
+  getSefariaSegmentsCached,
+} from './source-cache';
 import { computeCacheStats, writeCachedCacheStats } from './cache-stats';
 
 const CURSOR_KEY = 'warm-cursor:v1';
+const SEFARIA_CURSOR_KEY = 'warm-cursor-sefaria:v1';
 const BATCH_SIZE = 20;
 const FETCH_SLEEP_MS = 1000;
 
@@ -99,8 +104,19 @@ export async function runWarmCron(env: WarmEnv): Promise<void> {
   if (!cache) return;
 
   const cursor = await readWarmCursor(cache);
-  if (cursor.done) return;
+  if (!cursor.done) {
+    await runHbPhase(env, cursor);
+    return;
+  }
+  // HB phase complete — every tick now drains a batch of the Sefaria
+  // phase. Sefaria slices have a 30-day TTL (vs HB which is permanent),
+  // so the phase loops forever instead of latching done: any entry that
+  // expires gets refilled on the next walk-through.
+  await runSefariaPhase(env);
+}
 
+async function runHbPhase(env: WarmEnv, cursor: WarmCursor): Promise<void> {
+  const cache = env.CACHE!;
   let { tractateIdx, amudIdx } = cursor;
   let processed = 0;
   let fetched = 0;
@@ -120,7 +136,7 @@ export async function runWarmCron(env: WarmEnv): Promise<void> {
         JSON.stringify({ tractateIdx: TRACTATES.length, amudIdx: 0, done: true }),
       );
       // eslint-disable-next-line no-console
-      console.log(`[warm-cron] complete. total=${TOTAL_AMUDIM}`);
+      console.log(`[warm-cron] HB complete. total=${TOTAL_AMUDIM}`);
       await refreshStats(cache);
       await sendCompletionEmail(env);
       return;
@@ -145,7 +161,99 @@ export async function runWarmCron(env: WarmEnv): Promise<void> {
   const elapsed = Date.now() - start;
   // eslint-disable-next-line no-console
   console.log(
-    `[warm-cron] processed=${processed} fetched=${fetched} elapsed=${elapsed}ms cursor=${tractateIdx}:${amudIdx}`,
+    `[warm-cron] HB processed=${processed} fetched=${fetched} elapsed=${elapsed}ms cursor=${tractateIdx}:${amudIdx}`,
   );
   await refreshStats(cache);
+}
+
+interface SefariaWarmCursor {
+  tractateIdx: number;
+  amudIdx: number;
+  /** Wraps incremented each time the cursor reaches the end of shas and
+   *  resets to 0. Visible in /api/admin/warm-status so we can see how many
+   *  full passes the maintenance walk has done. */
+  wraps?: number;
+}
+
+async function readSefariaCursor(cache: KVNamespace): Promise<SefariaWarmCursor> {
+  const raw = await cache.get(SEFARIA_CURSOR_KEY);
+  if (!raw) return { tractateIdx: 0, amudIdx: 0, wraps: 0 };
+  try { return JSON.parse(raw) as SefariaWarmCursor; }
+  catch { return { tractateIdx: 0, amudIdx: 0, wraps: 0 }; }
+}
+
+export async function readSefariaWarmCursor(cache: KVNamespace): Promise<SefariaWarmCursor> {
+  return readSefariaCursor(cache);
+}
+
+export function sefariaWarmProgressProcessed(cursor: SefariaWarmCursor): number {
+  let n = 0;
+  for (let i = 0; i < cursor.tractateIdx && i < AMUDIM_BY_TRACTATE.length; i++) {
+    n += AMUDIM_BY_TRACTATE[i].length;
+  }
+  n += cursor.amudIdx;
+  return Math.min(n, TOTAL_AMUDIM);
+}
+
+async function runSefariaPhase(env: WarmEnv): Promise<void> {
+  const cache = env.CACHE!;
+  const cursor = await readSefariaCursor(cache);
+  let { tractateIdx, amudIdx, wraps = 0 } = cursor;
+  let processed = 0;
+  let fetched = 0;
+  const start = Date.now();
+
+  while (processed < BATCH_SIZE) {
+    while (
+      tractateIdx < TRACTATES.length &&
+      amudIdx >= AMUDIM_BY_TRACTATE[tractateIdx].length
+    ) {
+      tractateIdx++;
+      amudIdx = 0;
+    }
+    if (tractateIdx >= TRACTATES.length) {
+      // End of shas — wrap around so expired entries get refilled.
+      wraps++;
+      tractateIdx = 0;
+      amudIdx = 0;
+      // eslint-disable-next-line no-console
+      console.log(`[warm-cron] Sefaria pass ${wraps} complete — wrapping`);
+    }
+
+    const tractate = TRACTATES[tractateIdx];
+    const amud = AMUDIM_BY_TRACTATE[tractateIdx][amudIdx];
+    const bundleKey = `sefaria-bundle:v2:${tractate}:${amud}`;
+    const segKey = `sefaria-seg:v1:${tractate}:${amud}`;
+    const [bundleHit, segHit] = await Promise.all([
+      cache.get(bundleKey),
+      cache.get(segKey),
+    ]);
+
+    let didFetch = false;
+    if (bundleHit === null) {
+      await getSefariaPageCached(cache, tractate, amud);
+      didFetch = true;
+    }
+    if (segHit === null) {
+      await getSefariaSegmentsCached(cache, tractate, amud);
+      didFetch = true;
+    }
+    if (didFetch) {
+      fetched++;
+      await new Promise((r) => setTimeout(r, FETCH_SLEEP_MS));
+    }
+
+    amudIdx++;
+    processed++;
+  }
+
+  await cache.put(
+    SEFARIA_CURSOR_KEY,
+    JSON.stringify({ tractateIdx, amudIdx, wraps }),
+  );
+  const elapsed = Date.now() - start;
+  // eslint-disable-next-line no-console
+  console.log(
+    `[warm-cron] Sefaria processed=${processed} fetched=${fetched} elapsed=${elapsed}ms cursor=${tractateIdx}:${amudIdx} wraps=${wraps}`,
+  );
 }

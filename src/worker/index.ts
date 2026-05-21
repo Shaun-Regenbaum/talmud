@@ -15,9 +15,19 @@ import {
   getSaCommentaryCached,
   getDafTopicsCached,
   getMishnaBundleCached,
+  getSefariaSegmentsCached,
   type CacheTrack,
+  type SefariaSegments,
 } from './source-cache';
-import { runWarmCron, readWarmCursor, warmProgressProcessed, getWarmTotal, type EmailBinding } from './warm-cron';
+import {
+  runWarmCron,
+  readWarmCursor,
+  warmProgressProcessed,
+  getWarmTotal,
+  readSefariaWarmCursor,
+  sefariaWarmProgressProcessed,
+  type EmailBinding,
+} from './warm-cron';
 import {
   computeCacheStats,
   readCachedCacheStats,
@@ -1809,8 +1819,10 @@ app.get('/api/admin/warm-status', async (c) => {
   const cache = c.env.CACHE;
   if (!cache) return c.json({ error: 'no cache binding' }, 503);
   const cursor = await readWarmCursor(cache);
+  const sefariaCursor = await readSefariaWarmCursor(cache);
   const total = getWarmTotal();
   const processed = warmProgressProcessed(cursor);
+  const sefariaProcessed = sefariaWarmProgressProcessed(sefariaCursor);
   return c.json({
     done: cursor.done === true,
     tractateIdx: cursor.tractateIdx,
@@ -1818,6 +1830,14 @@ app.get('/api/admin/warm-status', async (c) => {
     processed,
     total,
     percent: total === 0 ? 0 : Math.round((processed / total) * 1000) / 10,
+    sefaria: {
+      tractateIdx: sefariaCursor.tractateIdx,
+      amudIdx: sefariaCursor.amudIdx,
+      processed: sefariaProcessed,
+      total,
+      percent: total === 0 ? 0 : Math.round((sefariaProcessed / total) * 1000) / 10,
+      wraps: sefariaCursor.wraps ?? 0,
+    },
   });
 });
 
@@ -2613,58 +2633,6 @@ interface TranslateBody {
   segIdx?: number;
 }
 
-/**
- * Sefaria v3 parallel Hebrew + English segments for a daf. Each array index
- * is one logical block (usually one Mishnah or Gemara clause). Used to pull
- * the specific English segment that aligns with the user's click context,
- * rather than dumping the full daf's English as blanket context.
- */
-interface SefariaSegments {
-  he: string[];
-  en: string[];
-}
-
-async function getSefariaSegmentsCached(
-  cache: KVNamespace | undefined,
-  tractate: string,
-  page: string,
-  track?: CacheTrack,
-): Promise<SefariaSegments | null> {
-  const cacheKey = `sefaria-seg:v1:${tractate}:${page}`;
-  if (cache) {
-    const cached = await cache.get(cacheKey);
-    track?.onCache?.(cached !== null ? 'hit' : 'miss');
-    if (cached !== null) {
-      try { return JSON.parse(cached) as SefariaSegments; } catch { /* fall through */ }
-    }
-  } else {
-    track?.onCache?.('miss');
-  }
-  try {
-    const ref = `${tractate}.${page}`;
-    const url = `https://www.sefaria.org/api/v3/texts/${encodeURIComponent(ref)}?version=hebrew&version=english`;
-    const res = await fetch(url, { headers: { accept: 'application/json' } });
-    if (!res.ok) return null;
-    const j = (await res.json()) as { versions?: Array<{ actualLanguage?: string; language?: string; text?: unknown }> };
-    const vs = j.versions ?? [];
-    const pick = (lang: string): string[] => {
-      const v = vs.find((x) => (x.actualLanguage ?? x.language) === lang);
-      if (!v || !Array.isArray(v.text)) return [];
-      return (v.text as unknown[]).map((t) => (typeof t === 'string' ? t : String(t ?? '')));
-    };
-    const out: SefariaSegments = { he: pick('he'), en: pick('en') };
-    // Align lengths (Sefaria sometimes has mismatched segment counts).
-    const n = Math.min(out.he.length, out.en.length);
-    out.he = out.he.slice(0, n);
-    out.en = out.en.slice(0, n);
-    if (cache && n > 0) {
-      await cache.put(cacheKey, JSON.stringify(out), { expirationTtl: 60 * 60 * 24 * 30 });
-    }
-    return n > 0 ? out : null;
-  } catch {
-    return null;
-  }
-}
 
 // Aggressive Hebrew normalizer for substring alignment — strips nikkud,
 // cantillation, geresh/gershayim, all punctuation, and collapses whitespace.

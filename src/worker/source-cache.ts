@@ -44,6 +44,11 @@ export interface CacheTrack {
   onCache?: (state: 'hit' | 'miss') => void;
 }
 
+export interface SefariaSegments {
+  he: string[];
+  en: string[];
+}
+
 async function readCache<T>(
   cache: KVNamespace | undefined,
   key: string,
@@ -222,5 +227,52 @@ export async function getSaCommentaryCached(
     return data;
   } catch {
     return {};
+  }
+}
+
+/**
+ * Sefaria v3 parallel Hebrew + English segments for a daf. Each array index
+ * is one logical block (usually one Mishnah or Gemara clause). Migrated out
+ * of src/worker/index.ts so the warm-cron Sefaria phase can prefill these
+ * across the whole shas without re-implementing the upstream fetch.
+ */
+export async function getSefariaSegmentsCached(
+  cache: KVNamespace | undefined,
+  tractate: string,
+  page: string,
+  track?: CacheTrack,
+): Promise<SefariaSegments | null> {
+  const cacheKey = `sefaria-seg:v1:${tractate}:${page}`;
+  if (cache) {
+    const cached = await cache.get(cacheKey);
+    track?.onCache?.(cached !== null ? 'hit' : 'miss');
+    if (cached !== null) {
+      try { return JSON.parse(cached) as SefariaSegments; } catch { /* fall through */ }
+    }
+  } else {
+    track?.onCache?.('miss');
+  }
+  try {
+    const ref = `${tractate}.${page}`;
+    const url = `https://www.sefaria.org/api/v3/texts/${encodeURIComponent(ref)}?version=hebrew&version=english`;
+    const res = await fetch(url, { headers: { accept: 'application/json' } });
+    if (!res.ok) return null;
+    const j = (await res.json()) as { versions?: Array<{ actualLanguage?: string; language?: string; text?: unknown }> };
+    const vs = j.versions ?? [];
+    const pick = (lang: string): string[] => {
+      const v = vs.find((x) => (x.actualLanguage ?? x.language) === lang);
+      if (!v || !Array.isArray(v.text)) return [];
+      return (v.text as unknown[]).map((t) => (typeof t === 'string' ? t : String(t ?? '')));
+    };
+    const out: SefariaSegments = { he: pick('he'), en: pick('en') };
+    const n = Math.min(out.he.length, out.en.length);
+    out.he = out.he.slice(0, n);
+    out.en = out.en.slice(0, n);
+    if (cache && n > 0) {
+      await cache.put(cacheKey, JSON.stringify(out), { expirationTtl: TTL_30_DAYS });
+    }
+    return n > 0 ? out : null;
+  } catch {
+    return null;
   }
 }
