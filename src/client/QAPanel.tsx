@@ -65,7 +65,7 @@ interface RunResultLike {
 }
 type RunResponse =
   | { status: 'ok'; result: RunResultLike }
-  | { status: 'pending'; runId: string }
+  | { status: 'pending'; runId: string; cacheKey?: string }
   | { status: 'error'; error: string };
 
 const POLL_INTERVAL_MS = 1500;
@@ -96,16 +96,17 @@ async function runEnrichmentDirect(
   if ('status' in j) {
     if (j.status === 'ok') return j.result;
     if (j.status === 'error') throw new Error(j.error);
-    if (j.status === 'pending') return pollJob(j.runId);
+    if (j.status === 'pending') return pollJob(j.runId, j.cacheKey);
   }
   return j as unknown as RunResultLike;
 }
 
-async function pollJob(runId: string): Promise<RunResultLike> {
+async function pollJob(runId: string, cacheKey?: string): Promise<RunResultLike> {
   const start = Date.now();
+  const qs = cacheKey ? `?k=${encodeURIComponent(cacheKey)}` : '';
   while (Date.now() - start < POLL_TIMEOUT_MS) {
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
-    const r = await fetch(`/api/studio/run-status/${encodeURIComponent(runId)}`);
+    const r = await fetch(`/api/studio/run-status/${encodeURIComponent(runId)}${qs}`);
     const j = await r.json() as RunResponse | { status: 'pending' };
     if ('status' in j) {
       if (j.status === 'ok') return (j as { result: RunResultLike }).result;

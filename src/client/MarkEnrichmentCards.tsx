@@ -77,12 +77,17 @@ async function fetchEnrichments(): Promise<EnrichmentDef[]> {
 }
 
 // Worker's run endpoint returns one of:
-//   { status: 'ok', result: RunResult, total_ms? }     ← cache hit, immediate
-//   { status: 'pending', runId: string }               ← enqueued, poll
+//   { status: 'ok', result: RunResult, total_ms? }            ← cache hit, immediate
+//   { status: 'pending', runId: string, cacheKey?: string }   ← enqueued, poll
 //   { status: 'error', error: string }
+//
+// `cacheKey` (when present) is the canonical KV key that runEnrichmentOnce
+// writes to right before the queue handler writes `job:{runId}`. The
+// polling helper passes it back so run-status can recover the result via
+// canonical cache if the consumer was terminated in that write gap.
 type RunResponse =
   | { status: 'ok'; result: RunResult; total_ms?: number }
-  | { status: 'pending'; runId: string }
+  | { status: 'pending'; runId: string; cacheKey?: string }
   | { status: 'error'; error: string };
 
 const POLL_INTERVAL_MS = 1500;
@@ -111,7 +116,7 @@ async function runEnrichmentImpl(
   if ('status' in j) {
     if (j.status === 'ok') return j.result;
     if (j.status === 'error') throw new Error(j.error);
-    if (j.status === 'pending') return pollJob(j.runId);
+    if (j.status === 'pending') return pollJob(j.runId, j.cacheKey);
   }
   // Legacy/synchronous shape — treat the whole body as RunResult for back-compat.
   return j as unknown as RunResult;
@@ -165,11 +170,12 @@ async function runEnrichment(
   return trackAI(id, label, () => runEnrichmentImpl(enrichmentId, tractate, page, markInput));
 }
 
-async function pollJob(runId: string): Promise<RunResult> {
+async function pollJob(runId: string, cacheKey?: string): Promise<RunResult> {
   const start = Date.now();
+  const qs = cacheKey ? `?k=${encodeURIComponent(cacheKey)}` : '';
   while (Date.now() - start < POLL_TIMEOUT_MS) {
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
-    const r = await fetch(`/api/studio/run-status/${encodeURIComponent(runId)}`);
+    const r = await fetch(`/api/studio/run-status/${encodeURIComponent(runId)}${qs}`);
     const j = await r.json() as RunResponse | { status: 'pending' };
     if ('status' in j) {
       if (j.status === 'ok') return (j as { result: RunResult }).result;

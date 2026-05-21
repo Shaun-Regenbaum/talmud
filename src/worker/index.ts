@@ -2125,26 +2125,51 @@ app.post('/api/studio/run', async (c) => {
     return c.json({ error: 'ENRICHMENT_QUEUE binding not available' }, 503);
   }
   job.runId = await makeRunId(job);
+  // Compute the canonical cache key up-front so the client can use it as a
+  // polling fallback. runEnrichmentOnce writes to this key right before the
+  // queue handler writes `job:{runId}`; if the consumer is terminated in
+  // that gap (CPU limit, restart) the canonical key may have the result
+  // while the job key never lands. Returning the cacheKey lets the client
+  // recover by checking it directly via run-status.
+  const { key: cacheKey } = job.bypass_cache
+    ? { key: null as string | null }
+    : await cacheKeyForRunBody(c.env, job);
   await c.env.ENRICHMENT_QUEUE.send(job);
-  return c.json({ status: 'pending', runId: job.runId }, 202);
+  return c.json({ status: 'pending', runId: job.runId, cacheKey: cacheKey ?? undefined }, 202);
 });
 
 /**
  * GET /api/studio/run-status/:runId — polling endpoint for queued jobs.
  * Reads `job:{runId}` from KV. While the job is still running, returns 202
  * with `{ status: 'pending' }`. When done, returns 200 with the result.
+ *
+ * Optional `?k=<cacheKey>` query: if `job:{runId}` is missing, falls back
+ * to the canonical cache key. Covers the gap where the queue consumer
+ * wrote canonical cache but was terminated before writing the job key.
  */
 app.get('/api/studio/run-status/:runId', async (c) => {
   const runId = c.req.param('runId');
   const cache = c.env.CACHE;
   if (!cache) return c.json({ error: 'CACHE binding not available' }, 503);
   const raw = await cache.get(`job:${runId}`);
-  if (!raw) return c.json({ status: 'pending' }, 202);
-  try {
-    return c.json(JSON.parse(raw));
-  } catch {
-    return c.json({ status: 'error', error: 'corrupt job record' }, 500);
+  if (raw) {
+    try {
+      return c.json(JSON.parse(raw));
+    } catch {
+      return c.json({ status: 'error', error: 'corrupt job record' }, 500);
+    }
   }
+  const cacheKey = c.req.query('k');
+  if (cacheKey) {
+    const cached = await cache.get(cacheKey);
+    if (cached) {
+      try {
+        const result = JSON.parse(cached) as RunResult;
+        return c.json({ status: 'ok', result: { ...result, cache_hit: true, total_ms: 0 } });
+      } catch { /* corrupt canonical entry — fall through to pending */ }
+    }
+  }
+  return c.json({ status: 'pending' }, 202);
 });
 
 /**

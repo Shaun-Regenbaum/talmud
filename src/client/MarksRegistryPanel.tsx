@@ -166,12 +166,14 @@ async function fetchAll(): Promise<{ marks: WorkerMarkDefinition[]; enrichments:
 }
 
 // /api/studio/run is now async (queue-backed). Three response shapes:
-//   { status: 'ok', result }                 ← cache hit, immediate
-//   { status: 'pending', runId } (HTTP 202)  ← enqueued, poll run-status
+//   { status: 'ok', result }                            ← cache hit, immediate
+//   { status: 'pending', runId, cacheKey? } (HTTP 202)  ← enqueued, poll run-status
 //   { status: 'error', error }
+// cacheKey is forwarded to run-status so the polling recovers the result
+// from the canonical cache when the queue consumer never wrote job:{runId}.
 type RunResponse =
   | { status: 'ok'; result: RunResult; total_ms?: number }
-  | { status: 'pending'; runId: string }
+  | { status: 'pending'; runId: string; cacheKey?: string }
   | { status: 'error'; error: string };
 
 const POLL_INTERVAL_MS = 1500;
@@ -190,17 +192,18 @@ async function postAndAwait(body: unknown): Promise<RunResult> {
   if ('status' in j) {
     if (j.status === 'ok') return j.result;
     if (j.status === 'error') throw new Error(j.error);
-    if (j.status === 'pending') return pollJob(j.runId);
+    if (j.status === 'pending') return pollJob(j.runId, j.cacheKey);
   }
   // Back-compat: legacy synchronous shape — treat the whole body as RunResult.
   return j as unknown as RunResult;
 }
 
-async function pollJob(runId: string): Promise<RunResult> {
+async function pollJob(runId: string, cacheKey?: string): Promise<RunResult> {
   const start = Date.now();
+  const qs = cacheKey ? `?k=${encodeURIComponent(cacheKey)}` : '';
   while (Date.now() - start < POLL_TIMEOUT_MS) {
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
-    const r = await fetch(`/api/studio/run-status/${encodeURIComponent(runId)}`);
+    const r = await fetch(`/api/studio/run-status/${encodeURIComponent(runId)}${qs}`);
     const j = await r.json() as RunResponse;
     if ('status' in j) {
       if (j.status === 'ok') return (j as { result: RunResult }).result;
