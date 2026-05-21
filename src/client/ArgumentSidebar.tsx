@@ -1069,6 +1069,88 @@ function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JS
 }
 
 // ---------------------------------------------------------------------------
+// Aggadata — per-story narrative sidebar panel.
+// ---------------------------------------------------------------------------
+//
+// Header: title + Hebrew label + theme chip + summary paragraph (the existing
+// inline view). Below it: MarkEnrichmentCards markId="aggadata" (synthesis +
+// dev-mode leaves: background / interpretation / parallels) and a QAPanel for
+// suggested-questions + free-form Q&A. Mirrors PasukPanel's layout so the
+// three enrichment-bearing marks (pesukim, halacha, aggadata) feel the same
+// in the sidebar.
+function AggadataPanel(props: {
+  story: AggadataStory;
+  index: number;
+  tractate: string;
+  page: string;
+}): JSX.Element {
+  const instanceKey = () => `${props.tractate}:${props.page}:${props.index}:${props.story.title}`;
+  const markInstance = () => ({
+    startSegIdx: props.story.startSegIdx ?? 0,
+    endSegIdx: props.story.endSegIdx ?? 0,
+    fields: {
+      title: props.story.title,
+      titleHe: props.story.titleHe ?? '',
+      summary: props.story.summary,
+      excerpt: props.story.excerpt,
+      endExcerpt: props.story.endExcerpt ?? '',
+      theme: props.story.theme ?? '',
+    },
+  });
+  const instanceId = () => `${props.story.title}|${props.story.excerpt}`;
+
+  return (
+    <div>
+      <h3 style={{ margin: '0 0 0.3rem', 'font-size': '1.05rem', color: '#7c3aed' }}>
+        {props.story.title}
+      </h3>
+      <Show when={props.story.titleHe}>
+        <p dir="rtl" lang="he" style={{
+          margin: '0 0 0.5rem', 'font-family': '"Mekorot Vilna", serif',
+          'font-size': '1rem', color: '#666',
+        }}>
+          {props.story.titleHe}
+        </p>
+      </Show>
+      <Show when={props.story.theme}>
+        <div style={{ 'margin-bottom': '0.7rem' }}>
+          <span style={{
+            display: 'inline-block',
+            padding: '0.1rem 0.5rem',
+            'font-size': '0.7rem',
+            'text-transform': 'uppercase',
+            'letter-spacing': '0.06em',
+            color: '#7c3aed',
+            background: '#faf5ff',
+            border: '1px solid #d8b4fe',
+            'border-radius': '3px',
+          }}>
+            {props.story.theme}
+          </span>
+        </div>
+      </Show>
+      <p style={{ margin: '0 0 0.8rem', color: '#333', 'line-height': 1.55 }}>
+        <HebraizedWithRabbis text={props.story.summary} />
+      </p>
+      <MarkEnrichmentCards
+        markId="aggadata"
+        instance={markInstance()}
+        instanceKey={instanceKey()}
+        tractate={props.tractate}
+        page={props.page}
+      />
+      <QAPanel
+        mark="aggadata"
+        instanceId={instanceId()}
+        instance={markInstance()}
+        tractate={props.tractate}
+        page={props.page}
+      />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Rishonim — per-segment commentary digest panel.
 // ---------------------------------------------------------------------------
 //
@@ -1290,44 +1372,12 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
             </Show>
 
             <Show when={c().kind === 'aggadata'}>
-              {(() => {
-                const story = (c() as Extract<SidebarContent, { kind: 'aggadata' }>).story;
-                return (
-                  <div>
-                    <h3 style={{ margin: '0 0 0.3rem', 'font-size': '1.05rem', color: '#7c3aed' }}>
-                      {story.title}
-                    </h3>
-                    <Show when={story.titleHe}>
-                      <p dir="rtl" lang="he" style={{
-                        margin: '0 0 0.5rem', 'font-family': '"Mekorot Vilna", serif',
-                        'font-size': '1rem', color: '#666',
-                      }}>
-                        {story.titleHe}
-                      </p>
-                    </Show>
-                    <Show when={story.theme}>
-                      <div style={{ 'margin-bottom': '0.7rem' }}>
-                        <span style={{
-                          display: 'inline-block',
-                          padding: '0.1rem 0.5rem',
-                          'font-size': '0.7rem',
-                          'text-transform': 'uppercase',
-                          'letter-spacing': '0.06em',
-                          color: '#7c3aed',
-                          background: '#faf5ff',
-                          border: '1px solid #d8b4fe',
-                          'border-radius': '3px',
-                        }}>
-                          {story.theme}
-                        </span>
-                      </div>
-                    </Show>
-                    <p style={{ margin: '0 0 0.8rem', color: '#333', 'line-height': 1.55 }}>
-                      <HebraizedWithRabbis text={story.summary} />
-                    </p>
-                  </div>
-                );
-              })()}
+              <AggadataPanel
+                story={(c() as Extract<SidebarContent, { kind: 'aggadata' }>).story}
+                index={(c() as Extract<SidebarContent, { kind: 'aggadata' }>).index}
+                tractate={props.tractate}
+                page={props.page}
+              />
             </Show>
 
         </aside>

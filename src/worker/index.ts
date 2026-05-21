@@ -1015,6 +1015,8 @@ async function runMarkOnce(
     parsed = await postProcessArgumentMove(parsed, rc.env, tractate, page);
   } else if (parsed && def.id === 'pesukim') {
     parsed = await postProcessPesukim(parsed, rc.env, tractate, page);
+  } else if (parsed && def.id === 'aggadata') {
+    parsed = await postProcessAggadata(parsed, rc.env, tractate, page);
   }
   const out: RunResult = {
     content: result.content,
@@ -1528,6 +1530,153 @@ async function postProcessPesukim(
       if (endExcerpt) {
         // eslint-disable-next-line no-console
         console.warn(`[pesukim] endExcerpt "${endExcerpt}" not found in [${startHit.seg},${upperSeg}]`);
+      }
+    }
+    inst.fields = f;
+  }
+  return obj;
+}
+
+/**
+ * Post-process aggadata instances. Mirrors postProcessPesukim: locates the
+ * LLM's verbatim `excerpt` and `endExcerpt` in the segment grid and writes
+ * startSegIdx/endSegIdx + tokenStart/tokenEnd for pixel-precise highlighting.
+ * Without this, the client's highlight painter falls back to "next story or
+ * end of amud" which is wildly too wide whenever there is no immediately-
+ * following aggadata on the daf.
+ */
+async function postProcessAggadata(
+  parsed: unknown,
+  env: Bindings,
+  tractate: string,
+  page: string,
+): Promise<unknown> {
+  if (!parsed || typeof parsed !== 'object') return parsed;
+  const obj = parsed as { instances?: unknown };
+  if (!Array.isArray(obj.instances)) return parsed;
+
+  const slice = await getGemaraSlice(env, tractate, page, false);
+  const segs = slice.segments_he;
+  if (segs.length === 0) return parsed;
+
+  const normalize = (s: string) =>
+    s.replace(/[֑-ׇ]/g, '')
+      .replace(/[׳״"'.,:;!?\-–—()[\]{}]/g, '')
+      .replace(/[​-‏‪-‮﻿]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  const segNorms = segs.map(normalize);
+  const segWords = segNorms.map((s) => s.split(' ').filter(Boolean));
+
+  type Story = {
+    startSegIdx?: number;
+    endSegIdx?: number;
+    fields: { excerpt?: string; endExcerpt?: string; tokenStart?: number; tokenEnd?: number; [k: string]: unknown };
+  };
+  const instances = obj.instances as Story[];
+
+  const findInRange = (needle: string[], fromSeg: number, toSeg: number): { seg: number; tok: number; matchLen: number } | null => {
+    if (needle.length < 2) return null;
+    const needleStr = needle.join(' ');
+    for (let i = fromSeg; i <= toSeg && i < segNorms.length; i++) {
+      if (!segNorms[i].includes(needleStr)) continue;
+      const words = segWords[i];
+      for (let w = 0; w + needle.length <= words.length; w++) {
+        let ok = true;
+        for (let k = 0; k < needle.length; k++) {
+          if (words[w + k] !== needle[k]) { ok = false; break; }
+        }
+        if (ok) return { seg: i, tok: w, matchLen: needle.length };
+      }
+      return { seg: i, tok: 0, matchLen: needle.length };
+    }
+    return null;
+  };
+
+  const findExcerpt = (excerpt: string, fromSeg: number, toSeg: number): { seg: number; tok: number; matchLen: number } | null => {
+    const ex = normalize(excerpt);
+    if (!ex) return null;
+    const exWords = ex.split(' ').filter(Boolean);
+    if (exWords.length === 0) return null;
+    const tries: string[][] = [exWords];
+    if (exWords.length > 4) tries.push(exWords.slice(0, 4));
+    if (exWords.length > 3) tries.push(exWords.slice(0, 3));
+    if (exWords.length > 2) tries.push(exWords.slice(0, 2));
+    for (const needle of tries) {
+      const hit = findInRange(needle, fromSeg, toSeg);
+      if (hit) return hit;
+    }
+    return null;
+  };
+
+  // For endExcerpt we want the LAST occurrence within the LLM's claimed
+  // [startSeg, endSeg] window, since the closing phrase may share words with
+  // material earlier in the story (a refrain or repeated maxim). Scan forward
+  // and keep the last hit.
+  const findExcerptLast = (excerpt: string, fromSeg: number, toSeg: number): { seg: number; tok: number; matchLen: number } | null => {
+    const ex = normalize(excerpt);
+    if (!ex) return null;
+    const exWords = ex.split(' ').filter(Boolean);
+    if (exWords.length === 0) return null;
+    const tries: string[][] = [exWords];
+    if (exWords.length > 4) tries.push(exWords.slice(0, 4));
+    if (exWords.length > 3) tries.push(exWords.slice(0, 3));
+    if (exWords.length > 2) tries.push(exWords.slice(0, 2));
+    for (const needle of tries) {
+      let last: { seg: number; tok: number; matchLen: number } | null = null;
+      const needleStr = needle.join(' ');
+      for (let i = fromSeg; i <= toSeg && i < segNorms.length; i++) {
+        if (!segNorms[i].includes(needleStr)) continue;
+        const words = segWords[i];
+        let segHit: { seg: number; tok: number; matchLen: number } | null = null;
+        for (let w = 0; w + needle.length <= words.length; w++) {
+          let ok = true;
+          for (let k = 0; k < needle.length; k++) {
+            if (words[w + k] !== needle[k]) { ok = false; break; }
+          }
+          if (ok) segHit = { seg: i, tok: w, matchLen: needle.length };
+        }
+        last = segHit ?? { seg: i, tok: 0, matchLen: needle.length };
+      }
+      if (last) return last;
+    }
+    return null;
+  };
+
+  for (const inst of instances) {
+    if (!inst || typeof inst !== 'object') continue;
+    const f = inst.fields ?? ({} as Story['fields']);
+    const startExcerpt = typeof f.excerpt === 'string' ? f.excerpt : '';
+    const endExcerpt = typeof f.endExcerpt === 'string' ? f.endExcerpt : '';
+
+    const startHit = findExcerpt(startExcerpt, 0, segNorms.length - 1);
+    if (!startHit) { inst.fields = f; continue; }
+    inst.startSegIdx = startHit.seg;
+    f.tokenStart = startHit.tok;
+
+    const llmEndSeg = typeof inst.endSegIdx === 'number' && inst.endSegIdx >= startHit.seg
+      ? inst.endSegIdx
+      : startHit.seg;
+    // Aggadic units span multiple segments more often than pesukim, so allow
+    // a wider slack window past the LLM's endSegIdx (it under-counts more).
+    const upperSeg = Math.min(segNorms.length - 1, llmEndSeg + 2);
+    let endHit = endExcerpt ? findExcerptLast(endExcerpt, startHit.seg, upperSeg) : null;
+    if (endHit) {
+      const beforeStart = endHit.seg < startHit.seg
+        || (endHit.seg === startHit.seg && endHit.tok < startHit.tok);
+      if (beforeStart) endHit = null;
+    }
+
+    if (endHit) {
+      inst.endSegIdx = endHit.seg;
+      const wordsInEndSeg = segWords[endHit.seg]?.length ?? 0;
+      f.tokenEnd = Math.max(0, Math.min(endHit.tok + endHit.matchLen - 1, wordsInEndSeg - 1));
+    } else {
+      inst.endSegIdx = startHit.seg;
+      f.tokenEnd = startHit.tok + startHit.matchLen - 1;
+      if (endExcerpt) {
+        // eslint-disable-next-line no-console
+        console.warn(`[aggadata] endExcerpt "${endExcerpt}" not found in [${startHit.seg},${upperSeg}]`);
       }
     }
     inst.fields = f;

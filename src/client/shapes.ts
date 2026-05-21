@@ -74,6 +74,14 @@ export interface AggadataStory {
   summary: string;
   excerpt: string;
   endExcerpt?: string;
+  startSegIdx?: number;
+  endSegIdx?: number;
+  /** Word offsets within startSegIdx / endSegIdx for sub-segment-precise
+   *  highlighting. Set by the worker's postProcessAggadata when it locates
+   *  the verbatim excerpt + endExcerpt in the gemara. Absent → highlight
+   *  falls back to anchor-marker behaviour. */
+  tokenStart?: number;
+  tokenEnd?: number;
   theme?: string;
 }
 

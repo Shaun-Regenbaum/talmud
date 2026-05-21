@@ -250,7 +250,8 @@ Output STRICT JSON only:
         "title": "Short English title (e.g. 'The poor scholar's prayer').",
         "titleHe": "Short Hebrew label (3-5 words).",
         "summary": "2-3 sentence English summary of what happens in this story / what the maxim teaches.",
-        "excerpt": "3-5 Hebrew/Aramaic words copied VERBATIM from the source where this aggadah begins.",
+        "excerpt": "3-5 Hebrew/Aramaic words copied VERBATIM from the source where this aggadah BEGINS.",
+        "endExcerpt": "Last 3-5 Hebrew/Aramaic words of the story, copied VERBATIM from the source — where this aggadah ENDS on the daf. NOT the start of the next halachic discussion or the next story. If the story is one line long, this can still be the closing 3-5 words of that same line; it MUST NOT equal excerpt.",
         "theme": "One word/short phrase tag: 'martyrdom' | 'study' | 'prayer' | 'reward' | 'suffering' | 'miracle' | 'parable' | 'ethics' | 'biography' | 'other'."
       }
     }
@@ -259,8 +260,9 @@ Output STRICT JSON only:
 
 Rules:
 - 0-6 aggadic units per daf. Many dafim have none — return an empty instances array if so.
-- "excerpt" MUST be Hebrew/Aramaic verbatim from the source.
-- "startSegIdx" / "endSegIdx" must be valid 0-based indices from the [N] markers.
+- "excerpt" AND "endExcerpt" MUST be Hebrew/Aramaic verbatim from the source. excerpt anchors the story's start; endExcerpt anchors its end. The two MUST differ (an aggadic unit is at least one sentence long).
+- endExcerpt is the LAST 3-5 words of the story itself — the closing words of the narrative or maxim. Do NOT pick the first words of whatever comes next on the daf.
+- "startSegIdx" / "endSegIdx" must be valid 0-based indices from the [N] markers. endSegIdx must be the segment that contains endExcerpt.
 - Use Sefaria-style English transliteration with the (term) auto-hebraize convention.
 - NEVER literally translate a fixed Hebrew/Aramaic halachic phrase into bare English. Calques like "most flesh" (for רוב בשר), "house of justice" (for בית דין), "son of his year" (for בן שנתו), "sons of Noah" (for בני נח) are forbidden. Either keep the Hebrew (Sefaria-style transliteration + auto-hebraize) or use the conventional English equivalent ("court", "Noahides", "year-old animal").`;
 
@@ -291,12 +293,13 @@ const AGGADATA_OUTPUT_SCHEMA = {
             fields: {
               type: 'object',
               additionalProperties: false,
-              required: ['title', 'titleHe', 'summary', 'excerpt', 'theme'],
+              required: ['title', 'titleHe', 'summary', 'excerpt', 'endExcerpt', 'theme'],
               properties: {
                 title: { type: 'string' },
                 titleHe: { type: 'string' },
                 summary: { type: 'string' },
                 excerpt: { type: 'string' },
+                endExcerpt: { type: 'string' },
                 theme: { type: 'string' },
               },
             },
@@ -535,8 +538,8 @@ export const CODE_MARKS: MarkDefinition[] = [
     },
     dependencies: ['gemara'],
     status: 'promoted',
-    def_hash: 'aggadata-llm-v2',
-    cache_version: '3',
+    def_hash: 'aggadata-llm-v3',
+    cache_version: '4',
     source: 'code',
     updated_at: NOW,
   },
@@ -3162,6 +3165,410 @@ CODE_ENRICHMENTS.push(
         { mark: 'pesukim' },
       ],
       defHash: 'pesukim.qa-v2', cacheVersion: '2',
+      model: ARGUMENT_PRO_MODEL,
+    },
+  ),
+);
+
+// ---------------------------------------------------------------------------
+// Aggadata enrichments — operate on a single aggadic story instance from the
+// `aggadata` mark. The anchor identifies WHERE the story sits on the daf; the
+// enrichments answer WHO the actors are (background), WHAT it means in this
+// sugya (interpretation), and WHERE the same story or motif appears elsewhere
+// (parallels). The synthesis weaves them. Q&A mirrors pesukim's pattern.
+// ---------------------------------------------------------------------------
+
+const AGGADATA_LEAF_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+Aggadic story identified on this daf:
+{{mark_input}}
+
+Hebrew/Aramaic source for the daf:
+{{gemara_he}}
+
+English translation:
+{{gemara_en}}
+
+Produce the requested output per the schema.`;
+
+const AGGADATA_BACKGROUND_SYSTEM_PROMPT = `You are a scholar of Talmud and rabbinic history. Given ONE aggadic story (title, Hebrew label, summary, opening Hebrew excerpt, theme), write a substantive background paragraph that orients the reader to the historical, geographical, and cultural setting of the story — independent of where it happens to be cited on this daf.
+
+Output STRICT JSON only:
+
+{
+  "background": "3-5 sentences of plain orientation. Cover, in this order: (1) WHO the named actors are — their generation (תנא, אמורא, generation number when known), their primary teachers/study circle, what they are best known for elsewhere; (2) WHEN and WHERE the story is set — Bavel vs. Eretz Yisrael, which בית מדרש or town, the historical period; (3) the cultural or material BACKGROUND a reader of that time would have known but a modern reader doesn't (Roman pressure, agricultural cycle, structure of the בית מדרש, halachic dispute the story sits inside, etc.); (4) optional: one factual note that often matters when the story is cited (e.g. 'one of several עליות אמוראים from Bavel to Eretz Yisrael in the third generation'). NO theology, NO derush, NO 'this teaches us'. Plain peshat orientation."
+}
+
+Rules:
+- 3-5 sentences. Substantive — leave a learner oriented, not just informed of the headline.
+- Daf-agnostic. Talk about the actors and setting; do NOT explain why the gemara cites the story here. That's the interpretation card's job.
+- Name actors by their canonical name (Rabbi Zeira, Rabbi Ami, Rabbi Yochanan) — never invent identifications.
+- NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "profoundly", "lens", "captures", "embodies".
+
+${HEBREW_GLOSS_STYLE}`;
+
+const AGGADATA_BACKGROUND_OUTPUT_SCHEMA = {
+  name: 'aggadata_background',
+  strict: true,
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['background'],
+    properties: { background: { type: 'string' } },
+  },
+};
+
+const AGGADATA_INTERPRETATION_SYSTEM_PROMPT = `You are a Talmud scholar reading an aggadic story in its sugya. Given ONE story on a daf (title, Hebrew label, summary, opening Hebrew excerpt, theme) plus the daf's Hebrew/Aramaic source and available rishonim, explain what the story DOES in this sugya — why the gemara tells it at this point, what tension or maxim it surfaces, and how the classical commentators read it.
+
+Output STRICT JSON only:
+
+{
+  "interpretation": "3-5 sentences. Order: (a) the LOCAL FUNCTION of the story in this sugya — what halachic or thematic question is on the table, why an aggadic vignette serves the argument here (proof, illustration, mussar punctuation, biographical aside, polemical contrast); (b) the central tension or maxim the story surfaces, quoted briefly from the Hebrew when load-bearing (3-6 words); (c) Rashi's or Tosafot's or another rishon's reading when they comment and it sharpens the point — one short clause, never an enumeration; (d) optional: one note on what the story is NOT doing (e.g. 'not a halachic ruling — only mussar') when readers commonly over-read it."
+}
+
+Rules:
+- 3-5 sentences. Daf-local — about THIS story HERE.
+- Ground every claim in the gemara text or in a rishon you can actually quote. Don't invent.
+- Quote short Hebrew (3-6 words, in parens) when the precise wording carries the interpretation.
+- NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "profoundly", "lens", "captures", "embodies".
+
+${HEBREW_GLOSS_STYLE}`;
+
+const AGGADATA_INTERPRETATION_OUTPUT_SCHEMA = {
+  name: 'aggadata_interpretation',
+  strict: true,
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['interpretation'],
+    properties: { interpretation: { type: 'string' } },
+  },
+};
+
+const AGGADATA_PARALLELS_SYSTEM_PROMPT = `You are a scholar of rabbinic literature. Given ONE aggadic story (title, Hebrew label, summary), identify other places in classical Jewish literature where the SAME story, the same actors in a similar incident, or the same motif appears — Bavli, Yerushalmi, Midrash, Tanach analogues. Daf-agnostic. Often empty.
+
+Output STRICT JSON only:
+
+{
+  "parallels": [
+    {
+      "ref": "Sefaria-style canonical reference of the parallel source — e.g. 'Yerushalmi Berakhot 2:3', 'Bereishit Rabbah 78:5', 'Tehillim 23:4', 'Chullin 7b'. Use traditional Hebrew names for Tanach books.",
+      "kind": "'same-story' | 'same-actors' | 'same-motif' | 'tanach-source'",
+      "note": "ONE sentence explaining the parallel — what's the same, what shifts. Plain English."
+    }
+  ],
+  "prose": "Optional ONE-sentence framing if the parallels reveal a pattern (e.g. 'the עלייה-to-Eretz-Yisrael astonishment motif recurs throughout the third generation'). Empty string when there is no pattern to surface."
+}
+
+Rules:
+- 0-4 parallels. Most stories have 0 — return an empty array when there's no real parallel. Do NOT invent.
+- 'same-story' means the same narrative incident with the same actors. 'same-actors' means the same rabbis in a similar (but distinct) incident. 'same-motif' means a different story with the same structural beats. 'tanach-source' means a verse the aggadah is drawing on directly.
+- ref MUST be a citable reference. If you can't supply a real ref, omit the entry. Never fabricate.
+- prose is OPTIONAL — empty string when the parallels speak for themselves.
+- NO puff. NO 'this teaches us'.
+
+${HEBREW_GLOSS_STYLE}`;
+
+const AGGADATA_PARALLELS_OUTPUT_SCHEMA = {
+  name: 'aggadata_parallels',
+  strict: true,
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['parallels', 'prose'],
+    properties: {
+      parallels: {
+        type: 'array',
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['ref', 'kind', 'note'],
+          properties: {
+            ref: { type: 'string' },
+            kind: { type: 'string', enum: ['same-story', 'same-actors', 'same-motif', 'tanach-source'] },
+            note: { type: 'string' },
+          },
+        },
+      },
+      prose: { type: 'string' },
+    },
+  },
+};
+
+const AGGADATA_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud scholar reading an aggadic story in its sugya. Given ONE story plus the background, interpretation, and parallels enrichments, compose a tight paragraph that orients the user — who and where, what the story does HERE, where else it lives — in the voice of a chavruta walking the reader through the page.
+
+Output STRICT JSON only:
+
+{
+  "synthesis": "ONE paragraph, 4-5 sentences. Order: (a) ONE short orienting sentence naming the actors and the moment ('Rabbi Zeira, newly arrived in Eretz Yisrael, encounters Rabbi Ami in the בית מדרש'); (b) the LOCAL FUNCTION — what halachic or thematic question is on the table, why this vignette serves the sugya; (c) the central tension or maxim the story surfaces, quoted briefly from the Hebrew when load-bearing (3-6 words); (d) ONE clause on parallels or rishon-reading when it sharpens the point — drop when it would dilute; (e) optional: one note on what the story is NOT doing when readers commonly over-read it. Hard ceiling: 5 sentences."
+}
+
+HARD RULES:
+- 4-5 sentences. Hard ceiling — do NOT pad.
+- About THIS story only. Don't summarize the rest of the daf.
+- Sentence (a) names actors and moment — a frame, NOT a restatement of the Background card (the user already sees that). Aim for ~20 words.
+- The synthesis's job is the NARRATIVE THREAD the structured cards cannot give — actors + local function + tension + parallel/rishon — woven into a paragraph.
+- Ground every claim in the background / interpretation / parallels inputs. Don't invent.
+- Quote short Hebrew (3-6 words, in parens) when the precise wording carries the meaning.
+- NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "profoundly", "lens", "captures", "embodies".
+- NO academic Talmud-scholar register: write "transmitter" not "tradent", "interpret" not "exegete".
+
+HEBREW GLOSS — SYNTHESIS-LOCAL OVERRIDE OF THE BASE RULES BELOW:
+- On the FIRST occurrence of a Hebrew term in this paragraph, attach the English gloss per the base style.
+- On EVERY SUBSEQUENT occurrence in the SAME paragraph, use bare Hebrew script with NO gloss. Do NOT re-translate the same term twice.
+
+${HEBREW_GLOSS_STYLE}`;
+
+const AGGADATA_SYNTHESIS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+THIS aggadic story:
+{{mark_input}}
+
+Background (who the actors are, where/when the story is set):
+{{depends.aggadata.background}}
+
+Interpretation (what the story does in this sugya):
+{{depends.aggadata.interpretation}}
+
+Parallels (other places the same story / motif lives):
+{{depends.aggadata.parallels}}
+
+Hebrew/Aramaic source for the daf:
+{{gemara_he}}
+
+Rabbis identified on the daf:
+{{anchors.rabbi}}
+
+Compose ONE tight paragraph per the schema.`;
+
+const AGGADATA_SYNTHESIS_OUTPUT_SCHEMA = {
+  name: 'aggadata_synthesis',
+  strict: true,
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['synthesis'],
+    properties: { synthesis: { type: 'string' } },
+  },
+};
+
+const AGGADATA_SUGGESTED_QUESTIONS_SYSTEM_PROMPT = `You are a chavruta studying gemara with an aggadic story. Given ONE aggadah cited on a daf plus the synthesis paragraph, produce a SHORT list of follow-up questions a learner is likely to want answered AFTER reading the synthesis. The synthesis says WHAT the story does; these questions should target WHY, the historical mechanism, and the surrounding context that the synthesis didn't fit.
+
+Output STRICT JSON only:
+
+{
+  "questions": [
+    {
+      "q": "The question, phrased the way a learner would ask it. 8-18 words. End with a question mark.",
+      "why_useful": "Half-sentence hint on what answering this question unlocks."
+    }
+  ]
+}
+
+Rules:
+- Generate exactly 4-5 questions, ordered by general usefulness (most-illuminating first).
+- Each question must be specific to THIS story — never generic ('who said it?', 'what happened?'). If you can't tell which story is the subject from the question alone, it's too generic.
+- Aim at the MECHANISM: why does the sugya need an aggadic vignette here, what historical realia would clarify the story, what unstated cultural premise is the punchline relying on, how do Rashi or Maharsha read the climax, where does the same motif appear elsewhere.
+- One question per concrete sub-issue. Don't duplicate.
+- Plain English. NO puff.
+- Hebrew SCRIPT (not transliteration) in parens for technical terms — '(אגדה)' not '(aggadah)', '(בית מדרש)' not '(beit midrash)'. English first, Hebrew in parens.
+
+${HEBREW_GLOSS_STYLE}`;
+
+const AGGADATA_SUGGESTED_QUESTIONS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+THIS aggadic story:
+{{mark_input}}
+
+All aggadot on this daf (for context — DO NOT generate questions about other stories):
+{{anchors.aggadata}}
+
+Hebrew/Aramaic source for the daf:
+{{gemara_he}}
+
+Existing synthesis (so you can target what the synthesis SKIPS):
+{{depends.aggadata.synthesis}}
+
+Generate the suggested-questions list per the schema.`;
+
+const AGGADATA_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA = {
+  name: 'aggadata_suggested_questions',
+  strict: true,
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['questions'],
+    properties: {
+      questions: {
+        type: 'array',
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['q', 'why_useful'],
+          properties: {
+            q: { type: 'string' },
+            why_useful: { type: 'string' },
+          },
+        },
+      },
+    },
+  },
+};
+
+const AGGADATA_QA_SYSTEM_PROMPT = `You are a Talmud chavruta answering a learner's specific question about ONE aggadic story on the daf. The learner has already read the synthesis paragraph; they want depth, not a restatement. Assume the learner is intelligent but does NOT already know how rabbinic-historical context works — so treat the answer as teaching, not just describing.
+
+Output STRICT JSON only:
+
+{
+  "answer": "A focused paragraph, 4-7 sentences, that directly answers the learner's question.",
+  "confidence": "high | medium | low"
+}
+
+Core stance:
+- Lead with a one-sentence direct answer to the question as the learner asked it.
+- Then back it up with the specific historical, narrative, or exegetical mechanics: who the actors are, what the cultural premise is, what halachic or thematic question the story is serving, what word or phrase carries the punchline.
+- Quote short Hebrew (3-6 words, in parens) when the precise wording is load-bearing.
+- Cite Rashi or Maharsha or a parallel source in ONE clause if they actually sharpen the answer; never enumerate commentaries.
+
+The "explain the category" rule:
+When the learner's question turns on a TYPE or CATEGORY of rabbinic move — what an אגדה IS vs. a הלכה, what a מעשה functions as in argument, what מוסר framing does, why the gemara puts a biographical anecdote inside a halachic sugya — you MUST spend a sentence explaining what that category IS and how it carries argumentative weight, in plain English, BEFORE applying it to THIS story.
+
+Hard rules:
+- 4-7 sentences. Hard ceiling — do NOT pad past 7.
+- Answer the LEARNER'S question, not whatever question you'd rather answer. If the question doesn't make sense for this story, say so plainly and set confidence='low'.
+- If the available sources (story, synthesis, background, interpretation, parallels, gemara, commentaries) don't contain enough to ground a real answer, give your best partial read and set confidence='low'.
+- Ground every claim in the story's actual content or the cited commentary/parallel. Don't invent positions.
+- Hebrew script (not transliteration) in parens for technical terms — but always after introducing the concept in English.
+- NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "intricate", "profound", "lens", "captures", "embodies", "anchors".
+- NO scholarly jargon: write "transmitter" not "tradent", "interpret" not "exegete".
+
+${HEBREW_GLOSS_STYLE}`;
+
+const AGGADATA_QA_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+THIS aggadic story:
+{{mark_input}}
+
+The learner's question (answer THIS specifically):
+{{user_question}}
+
+Existing synthesis (the learner has already read this — go deeper, don't restate):
+{{depends.aggadata.synthesis}}
+
+Background for the story:
+{{depends.aggadata.background}}
+
+Interpretation in this sugya:
+{{depends.aggadata.interpretation}}
+
+Parallels in other sources:
+{{depends.aggadata.parallels}}
+
+Hebrew/Aramaic source for the daf:
+{{gemara_he}}
+
+Rashi + Tosafot + other rishonim available for the daf:
+{{commentaries}}
+
+Answer the learner's question per the schema.`;
+
+const AGGADATA_QA_OUTPUT_SCHEMA = {
+  name: 'aggadata_qa',
+  strict: true,
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['answer', 'confidence'],
+    properties: {
+      answer: { type: 'string' },
+      confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
+    },
+  },
+};
+
+CODE_ENRICHMENTS.push(
+  makeEnrichment(
+    'aggadata', 'aggadata.background', 'Background',
+    'Who the actors are, where/when the story is set, what cultural-historical realia a reader of the time would have known. Daf-agnostic.',
+    AGGADATA_BACKGROUND_SYSTEM_PROMPT, AGGADATA_LEAF_USER_TEMPLATE, AGGADATA_BACKGROUND_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content', scope: 'global',
+      dependencies: [],
+      defHash: 'aggadata.background-v1', cacheVersion: '1',
+      model: ARGUMENT_FLASH_MODEL,
+    },
+  ),
+  makeEnrichment(
+    'aggadata', 'aggadata.interpretation', 'Interpretation',
+    'What the story does in THIS sugya — local function, central tension, classical rishon-reading.',
+    AGGADATA_INTERPRETATION_SYSTEM_PROMPT, AGGADATA_LEAF_USER_TEMPLATE, AGGADATA_INTERPRETATION_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content', scope: 'local',
+      dependencies: ['gemara', 'commentaries'],
+      defHash: 'aggadata.interpretation-v1', cacheVersion: '1',
+      model: ARGUMENT_FLASH_MODEL,
+    },
+  ),
+  makeEnrichment(
+    'aggadata', 'aggadata.parallels', 'Parallels',
+    'Other places the same story / actors / motif appears — Bavli, Yerushalmi, Midrash, Tanach. Often empty.',
+    AGGADATA_PARALLELS_SYSTEM_PROMPT, AGGADATA_LEAF_USER_TEMPLATE, AGGADATA_PARALLELS_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content', scope: 'global',
+      dependencies: [],
+      defHash: 'aggadata.parallels-v1', cacheVersion: '1',
+      model: ARGUMENT_FLASH_MODEL,
+    },
+  ),
+  makeEnrichment(
+    'aggadata', 'aggadata.synthesis', 'Synthesis',
+    'Tight paragraph weaving background, local interpretation, and parallels into one read.',
+    AGGADATA_SYNTHESIS_SYSTEM_PROMPT, AGGADATA_SYNTHESIS_USER_TEMPLATE, AGGADATA_SYNTHESIS_OUTPUT_SCHEMA,
+    {
+      mode: 'aggregate', scope: 'local',
+      dependencies: [
+        'gemara',
+        { enrichment: 'aggadata.background' },
+        { enrichment: 'aggadata.interpretation' },
+        { enrichment: 'aggadata.parallels' },
+        { mark: 'rabbi' },
+        { mark: 'aggadata' },
+      ],
+      defHash: 'aggadata.synthesis-v1', cacheVersion: '1',
+      model: ARGUMENT_PRO_MODEL,
+    },
+  ),
+  makeEnrichment(
+    'aggadata', 'aggadata.suggested-questions', 'Suggested questions',
+    'Curated follow-up questions the synthesis doesn\'t answer. Powers the Questions panel on each aggadah card.',
+    AGGADATA_SUGGESTED_QUESTIONS_SYSTEM_PROMPT, AGGADATA_SUGGESTED_QUESTIONS_USER_TEMPLATE, AGGADATA_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content', scope: 'local',
+      dependencies: [
+        'gemara',
+        { mark: 'aggadata' },
+        { enrichment: 'aggadata.synthesis' },
+      ],
+      defHash: 'aggadata.suggested-questions-v1', cacheVersion: '1',
+      model: ARGUMENT_FLASH_MODEL,
+    },
+  ),
+  makeEnrichment(
+    'aggadata', 'aggadata.qa', 'Q&A',
+    'Answer one learner-supplied question about THIS aggadic story. Cache keyed per (story, normalized question).',
+    AGGADATA_QA_SYSTEM_PROMPT, AGGADATA_QA_USER_TEMPLATE, AGGADATA_QA_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content', scope: 'local',
+      dependencies: [
+        'gemara',
+        'commentaries',
+        { enrichment: 'aggadata.background' },
+        { enrichment: 'aggadata.interpretation' },
+        { enrichment: 'aggadata.parallels' },
+        { enrichment: 'aggadata.synthesis' },
+        { mark: 'aggadata' },
+      ],
+      defHash: 'aggadata.qa-v1', cacheVersion: '1',
       model: ARGUMENT_PRO_MODEL,
     },
   ),

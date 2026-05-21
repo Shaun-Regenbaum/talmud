@@ -36,7 +36,7 @@ export interface QAPanelProps {
   /** Mark id — drives which `<mark>.suggested-questions` + `<mark>.qa`
    *  enrichments are invoked, and which registry partition the community
    *  questions live in. Defaults to 'argument-move' for back-compat. */
-  mark?: 'argument-move' | 'pesukim';
+  mark?: 'argument-move' | 'pesukim' | 'aggadata';
   /** Stable id for the instance — argument-move's fields.id, pesukim's
    *  verseRef, etc. Used as the registry partition. Aliased from `moveId`
    *  for back-compat. */
@@ -195,7 +195,7 @@ function pickQALoadingCopy(): string {
 export default function QAPanel(props: QAPanelProps): JSX.Element {
   // Resolve back-compat aliases. Older call sites pass moveId/moveInstance;
   // newer ones pass instanceId/instance + mark.
-  const mark = (): 'argument-move' | 'pesukim' => props.mark ?? 'argument-move';
+  const mark = (): 'argument-move' | 'pesukim' | 'aggadata' => props.mark ?? 'argument-move';
   const instanceId = (): string => props.instanceId ?? props.moveId ?? '';
   const instance = (): unknown => props.instance ?? props.moveInstance;
 
