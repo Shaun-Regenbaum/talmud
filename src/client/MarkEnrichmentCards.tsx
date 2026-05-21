@@ -536,6 +536,63 @@ export default function MarkEnrichmentCards(props: Props) {
  *   - field starting with `historical_*`, `role_*`, `bio*` → paragraph
  *   - arrays of strings → bulleted list
  */
+/**
+ * Render an item inside the array branch of ParsedFieldView. Items are
+ * usually either strings (legacy / simple lists) or objects (rabbi
+ * relationships/geography/evidence). Picks a primary-identifier field
+ * (name, place, title, label, excerpt) for the headline and renders any
+ * remaining fields as a small comma-separated suffix. Falls back to
+ * stringified JSON for anything we don't recognize so the user sees real
+ * data instead of "[object Object]".
+ */
+function ArrayItem(props: { item: unknown }) {
+  const v = props.item;
+  if (v === null || v === undefined) return null;
+  if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
+    return <>{String(v)}</>;
+  }
+  if (typeof v !== 'object') return <>{String(v)}</>;
+  const obj = v as Record<string, unknown>;
+  // Hebrew/Aramaic excerpts get RTL treatment — evidence enrichments use
+  // {excerpt, refStub, etc.}; the excerpt is the only field worth seeing
+  // first.
+  const HEAD_KEYS = ['name', 'place', 'title', 'label', 'excerpt', 'id'];
+  const headKey = HEAD_KEYS.find((k) => typeof obj[k] === 'string' && (obj[k] as string).length > 0);
+  const head = headKey ? (obj[headKey] as string) : null;
+  const restEntries = Object.entries(obj).filter(([k, val]) => {
+    if (k === headKey) return false;
+    if (val === null || val === undefined || val === '') return false;
+    if (typeof val === 'boolean' && !val) return false;
+    return true;
+  });
+  if (!head && restEntries.length === 0) return null;
+  return (
+    <span>
+      <Show when={head}>
+        <Show when={headKey === 'excerpt'} fallback={<span style={{ 'font-weight': 500 }}><Hebraized text={head as string} /></span>}>
+          <span dir="rtl" lang="he" style={{ 'font-family': '"Mekorot Vilna", serif' }}>{head}</span>
+        </Show>
+      </Show>
+      <Show when={restEntries.length > 0}>
+        <span style={{ color: '#666', 'font-size': '0.85em' }}>
+          {head ? ' — ' : ''}
+          <For each={restEntries}>
+            {([k, val], i) => (
+              <>
+                {i() > 0 ? ', ' : ''}
+                <span style={{ color: '#888' }}>{k}:</span>{' '}
+                <Show when={typeof val === 'string'} fallback={<>{JSON.stringify(val)}</>}>
+                  <Hebraized text={val as string} />
+                </Show>
+              </>
+            )}
+          </For>
+        </span>
+      </Show>
+    </span>
+  );
+}
+
 function ParsedFieldView(props: { parsed: Record<string, unknown> }) {
   const entries = () => Object.entries(props.parsed)
     .filter(([, v]) => v !== null && v !== '' && !(Array.isArray(v) && v.length === 0));
@@ -576,7 +633,7 @@ function ParsedFieldView(props: { parsed: Record<string, unknown> }) {
                   {label}
                 </div>
                 <ul style={{ margin: 0, 'padding-left': '1rem' }}>
-                  <For each={value}>{(v) => <li>{String(v)}</li>}</For>
+                  <For each={value}>{(v) => <li><ArrayItem item={v} /></li>}</For>
                 </ul>
               </div>
             );
