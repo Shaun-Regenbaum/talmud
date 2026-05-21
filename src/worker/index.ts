@@ -2273,7 +2273,7 @@ app.get('/api/log/recent', async (c) => {
 // Marks that have a `<mark>.qa` enrichment registered. Keep this small —
 // adding a mark here requires the corresponding suggested-questions + qa
 // enrichments to exist in code-marks.ts.
-const QA_ALLOWED_MARKS = new Set(['argument-move', 'pesukim']);
+const QA_ALLOWED_MARKS = new Set(['argument-move', 'pesukim', 'aggadata']);
 const QA_DEFAULT_MARK = 'argument-move';
 const QA_COMMUNITY_CAP = 50;
 const QA_QUESTION_MAX_CHARS = 280;
@@ -2387,7 +2387,7 @@ app.get('/api/qa/registry', async (c) => {
     instance_id: c.req.query('instance_id'),
   });
   if (!scope) {
-    return c.json({ error: 'mark must be one of argument-move|pesukim and instance_id (or move_id) is required' }, 400);
+    return c.json({ error: 'mark must be one of argument-move|pesukim|aggadata and instance_id (or move_id) is required' }, 400);
   }
   const reg = await readQaRegistry(c.env, scope.mark, tractate, page, scope.instanceId);
   return c.json(reg);
@@ -2422,7 +2422,7 @@ app.post('/api/qa/ask', async (c) => {
   }
   const scope = resolveQaScope({ mark: b.mark, move_id: b.move_id, instance_id: b.instance_id });
   if (!scope) {
-    return c.json({ error: 'mark must be one of argument-move|pesukim and instance_id (or move_id) is required' }, 400);
+    return c.json({ error: 'mark must be one of argument-move|pesukim|aggadata and instance_id (or move_id) is required' }, 400);
   }
   const trimmed = b.question.trim();
   if (trimmed.length === 0) return c.json({ error: 'question is empty' }, 400);
@@ -2507,7 +2507,7 @@ app.post('/api/qa/click', async (c) => {
   }
   const scope = resolveQaScope({ mark: b.mark, move_id: b.move_id, instance_id: b.instance_id });
   if (!scope) {
-    return c.json({ error: 'mark must be one of argument-move|pesukim and instance_id (or move_id) is required' }, 400);
+    return c.json({ error: 'mark must be one of argument-move|pesukim|aggadata and instance_id (or move_id) is required' }, 400);
   }
   const reg = await readQaRegistry(c.env, scope.mark, b.tractate, b.page, scope.instanceId);
   const entry = reg.community.find((e) => e.qHash === b.qHash);
