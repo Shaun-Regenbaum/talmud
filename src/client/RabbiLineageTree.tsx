@@ -83,6 +83,8 @@ const BOTTOM_PADDING = 22;
 /** Max character count we'll let render before truncating with ellipsis.
  *  Calibrated against NODE_W=152 + font-size=11 + horizontal padding. */
 const NAME_MAX_CHARS = 22;
+/** Subject node uses font-size=13 (larger), so fewer chars fit in NODE_W. */
+const SUBJECT_NAME_MAX_CHARS = 21;
 
 const EVIDENCE_BG = '#fef3c7';
 const EVIDENCE_BORDER = '#eab308';
@@ -114,20 +116,34 @@ function genIndex(id: GenerationId): number {
   return i < 0 ? GENERATION_IDS.indexOf('unknown') : i;
 }
 
-/** Compact a rabbi's display name so it fits in a node card: shorten
- *  "Rabbi" → "R.", "Rav" → "R.", "Rabban" → "Rb.", "Mar" stays, plus
- *  "bar" / "ben" → "b.". Truncates with ellipsis if still over NAME_MAX_CHARS.
- *  Subject node keeps the full name — only non-subject node labels are
- *  passed through this. */
-function compactRabbiName(name: string): string {
-  const compact = name
+function compactifyHonorifics(name: string): string {
+  return name
     .replace(/^Rabbi\s+/, 'R. ')
     .replace(/^Rabban\s+/, 'Rb. ')
     .replace(/^Rav\s+/, 'R. ')
     .replace(/\s+bar\s+/g, ' b. ')
     .replace(/\s+ben\s+/g, ' b. ');
+}
+
+/** Compact a rabbi's display name so it fits in a node card: shorten
+ *  "Rabbi" → "R.", "Rav" → "R.", "Rabban" → "Rb.", "Mar" stays, plus
+ *  "bar" / "ben" → "b.". Truncates with ellipsis if still over NAME_MAX_CHARS.
+ *  Used for non-subject node labels — these always compact, even short
+ *  names, so the row reads as a consistent abbreviated set. */
+function compactRabbiName(name: string): string {
+  const compact = compactifyHonorifics(name);
   if (compact.length <= NAME_MAX_CHARS) return compact;
   return compact.slice(0, NAME_MAX_CHARS - 1) + '…';
+}
+
+/** Fit the subject's display name to the node card. Prefer the full form
+ *  (subject is the focal node), falling back to honorific compaction and
+ *  finally ellipsis only when the name still overflows. */
+function fitSubjectName(name: string): string {
+  if (name.length <= SUBJECT_NAME_MAX_CHARS) return name;
+  const compact = compactifyHonorifics(name);
+  if (compact.length <= SUBJECT_NAME_MAX_CHARS) return compact;
+  return compact.slice(0, SUBJECT_NAME_MAX_CHARS - 1) + '…';
 }
 
 /** Map a family relation string to a coarse generation offset relative to
@@ -609,7 +625,8 @@ export default function RabbiLineageTree(props: Props): JSX.Element {
                     fill="#888"
                   >{n.familyRelation}</text>
                 </Show>
-                {/* Person name. Subject keeps full form; other nodes get
+                {/* Person name. Subject prefers full form but falls back to
+                    compaction/ellipsis when too long; other nodes always get
                     "Rabbi" → "R." compaction + ellipsis truncation so long
                     names like "Rabbi Shimon bar Yochai" don't overflow
                     the card. Full name is in the <title> tooltip. */}
@@ -621,7 +638,7 @@ export default function RabbiLineageTree(props: Props): JSX.Element {
                   font-weight={n.role === 'subject' || n.primary ? 600 : 500}
                   font-family="system-ui, -apple-system, sans-serif"
                   fill={labelColor}
-                >{n.role === 'subject' ? n.name : compactRabbiName(n.name)}</text>
+                >{n.role === 'subject' ? fitSubjectName(n.name) : compactRabbiName(n.name)}</text>
                 {/* Evidence dot in the top-right corner */}
                 <Show when={hasEv}>
                   <circle
