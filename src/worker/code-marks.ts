@@ -1366,6 +1366,11 @@ const ARGUMENT_ROLE_ENUM = [
 ] as const;
 
 const ARGUMENT_FLASH_MODEL = 'openrouter/deepseek/deepseek-v4-flash' as LLMModelId;
+// Used by argument-move.qa specifically — this is the "go deeper" path the
+// learner explicitly opts into, so the extra capacity is worth it. Flash
+// tends to skim the "explain the category" instruction even when prompted
+// well; Pro follows it more reliably and produces better-grounded answers.
+const ARGUMENT_PRO_MODEL = 'openrouter/deepseek/deepseek-v4-pro' as LLMModelId;
 
 // ---------------- argument.voices (kept) ----------------
 
@@ -1908,23 +1913,38 @@ const ARGUMENT_MOVE_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA = {
 // regardless of where the question came from.
 // ---------------------------------------------------------------------------
 
-const ARGUMENT_MOVE_QA_SYSTEM_PROMPT = `You are a Talmud chavruta answering a learner's specific question about ONE move on the daf. The learner has already read the 2-3 sentence synthesis; they want depth, not a restatement.
+const ARGUMENT_MOVE_QA_SYSTEM_PROMPT = `You are a Talmud chavruta answering a learner's specific question about ONE move on the daf. The learner has already read the 2-3 sentence synthesis; they want depth, not a restatement. Assume the learner is intelligent but does NOT already know how Talmudic argument categories work — so treat the answer as teaching, not just describing.
 
 Output STRICT JSON only:
 
 {
-  "answer": "A focused paragraph, 3-6 sentences, that directly answers the learner's question. Lead with the answer; back it up with the specific gemara mechanics — what assumption is at stake, what verse-phrasing or logical move drives the question, what the move concedes or assumes. Quote short Hebrew (3-6 words, in parentheses) when the precise wording is load-bearing. Cite Rashi or Tosafot in ONE clause if they actually clarify; never enumerate commentaries.",
+  "answer": "A focused paragraph, 4-7 sentences, that directly answers the learner's question.",
   "confidence": "high | medium | low"
 }
 
-Rules:
-- 3-6 sentences. Hard ceiling — do NOT pad.
+Core stance:
+- Lead with a one-sentence direct answer to the question as the learner asked it.
+- Then back it up with the specific gemara mechanics: what assumption is at stake, what verse-phrasing or logical move drives the question, what the move concedes or assumes.
+- Quote short Hebrew (3-6 words, in parentheses) when the precise wording is load-bearing.
+- Cite Rashi or Tosafot in ONE clause if they actually sharpen the answer; never enumerate commentaries.
+
+The "explain the category" rule (most important):
+When the learner's question turns on a TYPE or CATEGORY of Talmudic argumentation — why a story counts as evidence (מעשה as precedent), why an objection lands (קושיא / פירכא), why a baraita can challenge a Mishnah, why a verse is being applied this way (דרשה), why a tradition is binding — you MUST spend a sentence explaining what that category IS and how it carries argumentative weight in the Gemara, in plain English, BEFORE applying it to this specific move. The goal is that the learner walks away with a transferable concept they can recognize the next time they see the same kind of move in any sugya.
+
+Example of the failure mode to avoid:
+  BAD: "The story is not a mere anecdote because the Mishnah uses it as a formal precedent (מעשה)…"
+  → This uses מעשה as a magic word. A learner who doesn't already know that ma'aseh is a recognized evidentiary category learns nothing.
+  GOOD: "In Talmudic reasoning, a recorded action by a sage — what the Gemara calls a ma'aseh (מעשה) — counts as its own class of evidence, separate from a stated ruling: it shows the law is actually applied in practice, not just held in theory. That's why Rabban Gamliel's instruction to his own sons isn't being told as a personal anecdote; the Mishnah is presenting it as a halakhic precedent that other sages would have to push back on by argument, not by ignoring…"
+  → Now the learner has gained a transferable concept.
+
+Hard rules:
+- 4-7 sentences. Hard ceiling — do NOT pad past 7.
 - Answer the LEARNER'S question, not whatever question you'd rather answer. If the question doesn't make sense for this move, say so plainly and set confidence='low'.
 - If the available sources (move, synthesis, gemara, commentaries) don't contain enough to ground a real answer, give your best partial read and set confidence='low'.
 - Ground every claim in the move's actual content or the cited verse / commentary. Don't invent positions.
+- Hebrew script (not transliteration) in parentheses for technical terms — but always after introducing the concept in English. Never use a Hebrew term as if it needs no explanation.
 - NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "intricate", "profound", "lens", "captures", "embodies".
-- NO jargon: write "transmitter" not "tradent", "interpret" not "exegete".
-- Hebrew script (not transliteration) in parentheses for technical terms.`;
+- NO scholarly jargon: write "transmitter" not "tradent", "interpret" not "exegete". English first, Hebrew in parens.`;
 
 const ARGUMENT_MOVE_QA_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
@@ -2022,8 +2042,8 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'argument-move.commentaries' },
         { mark: 'argument-move' },
       ],
-      defHash: 'argument-move.qa-v1', cacheVersion: '1',
-      model: ARGUMENT_FLASH_MODEL,
+      defHash: 'argument-move.qa-v2', cacheVersion: '2',
+      model: ARGUMENT_PRO_MODEL,
     },
   ),
 );
@@ -2501,13 +2521,14 @@ export const HALACHA_SYNTHESIS_SYSTEM_PROMPT = `You are a scholar of halacha. Gi
 Output STRICT JSON only:
 
 {
-  "synthesis": "ONE paragraph, 4-5 sentences. Order: (a) the practical halacha today — the לכתחילה standard, what someone actually does. (b) where it sits in the codes — Rambam / Tur / Shulchan Aruch positions and canonical refs, OR an explicit note that the codifiers do not codify the rule and what that silence means (e.g. treated as מידות, not binding halacha). (c) live disputes that shape current practice — Ashkenaz/Sefarad, Mechaber/Rema, or a real contemporary split — INCLUDE ONLY when the dispute actually moves practice. (d) gemara source — include ONLY when it clarifies WHY the modern rule looks the way it does. Drop (c) and/or (d) when they add nothing. Hard ceiling: 5 sentences."
+  "synthesis": "ONE paragraph, 3-5 sentences. Order: (a) ONE short orienting sentence naming the topic and its bottom-line status today — a frame, NOT a restatement of the Practical card's לכתחילה/בדיעבד mechanics (the user already sees those in a dedicated card directly above/below). Aim for ~15 words. (b) where it sits in the codes — Rambam / Tur / Shulchan Aruch positions and canonical refs, OR an explicit note that the codifiers do not codify the rule and what that silence means (e.g. treated as מידות, not binding halacha). (c) live disputes that shape current practice — Ashkenaz/Sefarad, Mechaber/Rema, or a real contemporary split — INCLUDE ONLY when the dispute actually moves practice. (d) gemara source — include ONLY when it clarifies WHY the modern rule looks the way it does. Drop (c) and/or (d) when they add nothing. Hard ceiling: 5 sentences."
 }
 
 HARD RULES:
-- 4-5 sentences. Hard ceiling — do NOT pad.
+- 3-5 sentences. Hard ceiling — do NOT pad.
 - About THIS topic only. Don't summarize the whole daf.
-- LEAD with the practical halacha today, not with the gemara source or with academic framing of the dispute. Contemporary practice is the frame; the sources are background.
+- Sentence (a) is a ONE-LINE ORIENTATION, not a restatement of the Practical card. If you find yourself writing "one performs X לכתחילה" or "בדיעבד one has fulfilled…", stop — that information already lives in the Practical card and your paragraph is duplicating it. (a) names the topic and its status; the Practical card handles the mechanics.
+- The synthesis's job is the NARRATIVE THREAD the structured cards cannot give — codifier positions/silence, live dispute, source — woven into a paragraph. If the only thing you can say is what the Practical / Codification / Disputes cards already say verbatim, write fewer sentences.
 - Ground every claim in the codification / practical / disputes inputs. Don't invent rulings or refs.
 - NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "intricate", "profound", "lens", "captures", "embodies".
 - NO academic Talmud-scholar register. Forbidden phrasings include: "amoraic ruling", "amoraic dictum", "the amora rules", "the gemara records that…", "the sugya records". Write as a practical halacha summary, not an academic survey of sources.
