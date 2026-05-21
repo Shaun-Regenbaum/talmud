@@ -2231,10 +2231,20 @@ export default function DafViewer(): JSX.Element {
     }
   });
 
+  // Multi-word drag-select for mobile translate mode (see touch handlers
+  // below). When the drag handler fires setActiveFromWordEls itself, the
+  // synthesised mouseup that follows touchend must be a no-op or it would
+  // immediately reclick-toggle the phrase off.
+  let suppressNextMouseUp = false;
+
   // On mouseup: prefer a text selection snapped to word boundaries over a plain
   // word click. Any .daf-word element intersecting the selection range counts
   // as "selected", so starting a drag mid-word includes the whole word.
   const onMouseUpRoot = (e: MouseEvent) => {
+    if (suppressNextMouseUp) {
+      suppressNextMouseUp = false;
+      return;
+    }
     // Commentary anchor highlight fires alongside any other click behaviour
     // (translate popup, commentary-on-tap, etc). Runs first so it lights
     // up the cross-references even when the click also triggers something
@@ -2242,35 +2252,33 @@ export default function DafViewer(): JSX.Element {
     handleCommentaryAnchorClick(e);
 
     // Mobile interaction modes override the desktop click-to-translate flow.
-    // select: native selection only, no translation popup. translate: same
-    // as desktop, plus toggle-off when retapping the currently-active word.
-    // Commentary-on-tap must fire in both modes when a work is selected, so
-    // check it before the select-mode early return.
+    // select: native selection only, no translation popup. translate: tap a
+    // word to translate it (drag-across handled by touch handlers below).
+    // Commentary-on-tap takes precedence in both modes when a work is open.
     if (isMobile()) {
-      const sel = window.getSelection();
-      const hasSelection = !!sel && !sel.isCollapsed;
-      if (!hasSelection && activeCommentaryWork()) {
-        const target = e.target as HTMLElement | null;
-        const wordEl = target?.closest?.('.daf-word') as HTMLElement | null;
-        if (wordEl) {
-          const segAttr = wordEl.getAttribute('data-seg');
-          if (segAttr !== null) {
-            const s = Number(segAttr);
-            if (Number.isFinite(s) && commentaryBySegIdx().has(s)) {
-              openCommentaryAtSeg(s);
-              return;
-            }
+      const target = e.target as HTMLElement | null;
+      const wordEl = target?.closest?.('.daf-word') as HTMLElement | null;
+      if (activeCommentaryWork() && wordEl) {
+        const segAttr = wordEl.getAttribute('data-seg');
+        if (segAttr !== null) {
+          const s = Number(segAttr);
+          if (Number.isFinite(s) && commentaryBySegIdx().has(s)) {
+            openCommentaryAtSeg(s);
+            return;
           }
         }
       }
       if (mobileMode() === 'select') return;
-      // translate mode — fall through with the reclick-toggle check below.
-      const target = e.target as HTMLElement | null;
-      const reclickedEl = target?.closest?.('.daf-word') as HTMLElement | null;
-      if (reclickedEl && active()?.els.includes(reclickedEl)) {
+      // translate mode — tap-to-translate, bypassing rabbi/city/etc handlers
+      // so the drawer doesn't hijack the popup when a rabbi-underlined word
+      // is tapped.
+      if (!wordEl) return;
+      if (active()?.els.includes(wordEl)) {
         clearActive();
         return;
       }
+      setActiveFromWordEls([wordEl], e);
+      return;
     }
 
     const sel = window.getSelection();
@@ -2326,6 +2334,78 @@ export default function DafViewer(): JSX.Element {
       }
     }
     setActiveFromWordEls([wordEl], e);
+  };
+
+  // Mobile translate mode: drag across consecutive words to translate the
+  // phrase. Horizontal motion is reserved for us by `touch-action: pan-y
+  // pinch-zoom` on .daf-surface in translate mode (see styles.css), so the
+  // browser only consumes vertical pans; horizontal drag is ours to track.
+  let dragState: {
+    startX: number;
+    startY: number;
+    seen: Set<HTMLElement>;
+    ordered: HTMLElement[];
+    dragging: boolean;
+  } | null = null;
+
+  const onTouchStartSurface = (e: TouchEvent) => {
+    if (!isMobile() || mobileMode() !== 'translate') { dragState = null; return; }
+    if (e.touches.length !== 1) { dragState = null; return; }
+    const target = e.target as HTMLElement | null;
+    const wordEl = target?.closest?.('.daf-word') as HTMLElement | null;
+    if (!wordEl) { dragState = null; return; }
+    const t = e.touches[0];
+    dragState = {
+      startX: t.clientX,
+      startY: t.clientY,
+      seen: new Set([wordEl]),
+      ordered: [wordEl],
+      dragging: false,
+    };
+  };
+
+  const onTouchMoveSurface = (e: TouchEvent) => {
+    if (!dragState || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    const dx = t.clientX - dragState.startX;
+    const dy = t.clientY - dragState.startY;
+    if (!dragState.dragging) {
+      if (Math.hypot(dx, dy) < 8) return;
+      // Direction lock — if the motion is mostly vertical, abandon the
+      // drag so the browser's pan-y scroll wins. Only commit to drag-select
+      // for clearly horizontal motion.
+      if (Math.abs(dy) > Math.abs(dx)) { dragState = null; return; }
+      dragState.dragging = true;
+    }
+    const el = document.elementFromPoint(t.clientX, t.clientY) as HTMLElement | null;
+    const wordEl = el?.closest?.('.daf-word') as HTMLElement | null;
+    if (wordEl && !dragState.seen.has(wordEl)) {
+      dragState.seen.add(wordEl);
+      dragState.ordered.push(wordEl);
+    }
+  };
+
+  const onTouchEndSurface = (_e: TouchEvent) => {
+    const state = dragState;
+    dragState = null;
+    if (!state || !state.dragging) return;
+    if (state.ordered.length < 2) return;
+    if (state.ordered.length > MAX_PHRASE_WORDS) return;
+    const sorted = [...state.ordered].sort((a, b) => {
+      const pos = a.compareDocumentPosition(b);
+      if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
+      if (pos & Node.DOCUMENT_POSITION_PRECEDING) return 1;
+      return 0;
+    });
+    suppressNextMouseUp = true;
+    // Defer past the synthesised mousedown/mouseup that fire after touchend,
+    // so the popup's outside-click dismiss listener doesn't immediately close
+    // the popup we're about to open.
+    setTimeout(() => setActiveFromWordEls(sorted), 0);
+  };
+
+  const onTouchCancelSurface = (_e: TouchEvent) => {
+    dragState = null;
   };
 
   // Keyboard nav — arrow keys go to prev/next page when not typing into an input.
@@ -2472,7 +2552,15 @@ export default function DafViewer(): JSX.Element {
           RabbiPlacesTimeline already renders them well. A whole-daf map
           would aggregate those per-rabbi enrichments. Until then, the
           top-bar toggle nav is empty and hidden. */}
-      <div class="daf-surface" onMouseUp={onMouseUpRoot} style={{ display: 'flex', 'justify-content': 'center' }}>
+      <div
+        class="daf-surface"
+        onMouseUp={onMouseUpRoot}
+        onTouchStart={onTouchStartSurface}
+        onTouchMove={onTouchMoveSurface}
+        onTouchEnd={onTouchEndSurface}
+        onTouchCancel={onTouchCancelSurface}
+        style={{ display: 'flex', 'justify-content': 'center' }}
+      >
         <Show
           when={!daf.loading && tokenized()}
           fallback={
