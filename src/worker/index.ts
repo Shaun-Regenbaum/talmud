@@ -1845,6 +1845,67 @@ app.get('/api/admin/warm-status', async (c) => {
   });
 });
 
+/**
+ * One-shot maintenance endpoint: walks a single page (1000 keys) of the
+ * given prefix and rewrites any entry that still has an expiration so it
+ * becomes infinite-TTL. Returns the next cursor so the caller can loop
+ * via curl until `done: true`.
+ *
+ * Designed for the post-deploy cleanup after dropping TTL from
+ * writeCachedResult — existing mark:/enrich: entries still carry their
+ * original 90-day expiration baked in at write time. Doing this from KV
+ * bindings (not the dashboard API) is ~10× faster.
+ *
+ * Usage:
+ *   while :; do
+ *     out=$(curl -s -X POST "https://talmud.shaunregenbaum.com/api/admin/strip-ttl?prefix=enrich:&cursor=$cur")
+ *     cur=$(echo "$out" | jq -r .next_cursor)
+ *     echo "$out"
+ *     [ "$(echo "$out" | jq -r .done)" = "true" ] && break
+ *   done
+ */
+app.post('/api/admin/strip-ttl', async (c) => {
+  const cache = c.env.CACHE;
+  if (!cache) return c.json({ error: 'no cache binding' }, 503);
+  const prefix = c.req.query('prefix');
+  if (!prefix) return c.json({ error: 'prefix query param required' }, 400);
+  const cursor = c.req.query('cursor') || undefined;
+
+  const list = await cache.list({ prefix, limit: 1000, cursor });
+  const withTtl = list.keys.filter((k) => typeof k.expiration === 'number' && k.expiration > 0);
+  let rewritten = 0;
+  const errors: string[] = [];
+
+  // KV writes are at most ~1000/sec per namespace; reading is faster. Run
+  // sequentially per key but in parallel across the page in groups of 25
+  // so we don't blow CPU budget on a 1000-key page.
+  const GROUP = 25;
+  for (let i = 0; i < withTtl.length; i += GROUP) {
+    const slice = withTtl.slice(i, i + GROUP);
+    await Promise.all(slice.map(async (k) => {
+      try {
+        const v = await cache.get(k.name);
+        if (v === null) return;  // gone between list and get
+        await cache.put(k.name, v);  // no expirationTtl → infinite
+        rewritten++;
+      } catch (err) {
+        errors.push(`${k.name}: ${String((err as Error)?.message ?? err).slice(0, 80)}`);
+      }
+    }));
+  }
+
+  return c.json({
+    prefix,
+    seen: list.keys.length,
+    alreadyNoTtl: list.keys.length - withTtl.length,
+    rewritten,
+    errorCount: errors.length,
+    errorsSample: errors.slice(0, 3),
+    next_cursor: list.list_complete ? null : list.cursor,
+    done: list.list_complete,
+  });
+});
+
 app.get('/api/admin/cache-stats', async (c) => {
   const cache = c.env.CACHE;
   if (!cache) return c.json({ error: 'no cache binding' }, 503);
