@@ -126,8 +126,6 @@ const PASS2_INVERTED_SWAP: Array<[string, string]> = [
 ];
 
 const PASS2_INVERTED_NOOP: Array<[string, string]> = [
-  // Gloss contains Hebrew — leave alone (it's not a gloss, it's a citation).
-  ['kushya (קושיא) is resolved', 'kushya (קושיא) is resolved'],
   // Gloss contains a digit — verse ref / page number style, leave alone.
   ['Shabbat (31a) records',     'Shabbat (31a) records'],
   // Word-boundary guard: translit is mid-word, not a standalone term.
@@ -135,6 +133,14 @@ const PASS2_INVERTED_NOOP: Array<[string, string]> = [
   // Translit not in dict — no swap.
   ['foobar (some gloss)',       'foobar (some gloss)'],
 ];
+
+// `kushya (קושיא)` is now a Pass3 cascade case rather than a noop: bare-swap
+// converts `kushya` → `קושיא`, then echo-strip collapses `קושיא (קושיא)` → `קושיא`.
+describe('hebraize — bare-translit followed by its Hebrew form cascades cleanly', () => {
+  it('"kushya (קושיא) is resolved" → "קושיא is resolved"', () => {
+    expect(hebraize('kushya (קושיא) is resolved')).toBe('קושיא is resolved');
+  });
+});
 
 describe('hebraize Pass 2 — translit (gloss) → gloss (עברית)', () => {
   for (const [input, expected] of PASS2_INVERTED_SWAP) {
@@ -189,27 +195,29 @@ describe('hebraize — full pipeline', () => {
 const GLOSS_STYLE_TERMS_PASS1: Array<[string, string]> = [
   ['performed (lechatchila)',          'performed (לכתחילה)'],
   ['the meat (bedieved) is permitted', 'the meat (בדיעבד) is permitted'],
-  ['the (sugya) records',              'the (סוגיא) records'],
+  // Stopword-preceded parens get stripped (function-word interjection).
+  ['the (sugya) records',              'the סוגיא records'],
   ['final (psak) of the Rambam',       'final (פסק) of the רמב״ם'],
-  ['the principle of (rov)',           'the principle of (רוב)'],
-  ['a (chazaka) overrides',            'a (חזקה) overrides'],
-  ['matter of (safek)',                'matter of (ספק)'],
-  ['restored to (tahara)',             'restored to (טהרה)'],
-  ['set aside as (terumah)',           'set aside as (תרומה)'],
-  ['tithed as (maaser)',               'tithed as (מעשר)'],
-  ['the (chametz) is sold',            'the (חמץ) is sold'],
+  ['the principle of (rov)',           'the principle of רוב'],
+  ['a (chazaka) overrides',            'a חזקה overrides'],
+  ['matter of (safek)',                'matter of ספק'],
+  ['restored to (tahara)',             'restored to טהרה'],
+  ['set aside as (terumah)',           'set aside as תרומה'],
+  ['tithed as (maaser)',               'tithed as מעשר'],
+  ['the (chametz) is sold',            'the חמץ is sold'],
+  // Content-word-preceded parens are KEPT (legit Form B).
   ['eats (matzah) on seder night',     'eats (מצה) on seder night'],
-  ['classified as (treif)',            'classified as (טריפה)'],
+  ['classified as (treif)',            'classified as טריפה'],
   ['is (kosher) for the table',        'is (כשר) for the table'],
-  ['observance of (pesach)',           'observance of (פסח)'],
-  ['the (yom tov) restrictions',       'the (יום טוב) restrictions'],
-  ['recites a (bracha)',               'recites a (ברכה)'],
+  ['observance of (pesach)',           'observance of פסח'],
+  ['the (yom tov) restrictions',       'the יום טוב restrictions'],
+  ['recites a (bracha)',               'recites a ברכה'],
   ['wears (tzitzit) daily',            'wears (ציצית) daily'],
   ['dons (tefillin) at shacharit',     'dons (תפילין) at shacharit'],
-  ['convened the (bet din)',           'convened the (בית דין)'],
-  ['freed his (eved)',                 'freed his (עבד)'],
-  ['delivers a (get)',                 'delivers a (גט)'],
-  ['the (kiddushin) is valid',         'the (קידושין) is valid'],
+  ['convened the (bet din)',           'convened the בית דין'],
+  ['freed his (eved)',                 'freed his עבד'],
+  ['delivers a (get)',                 'delivers a גט'],
+  ['the (kiddushin) is valid',         'the קידושין is valid'],
 ];
 
 describe('hebraize — HEBREW_GLOSS_STYLE always-hebraize terms (Pass 1)', () => {
@@ -249,18 +257,18 @@ describe('hebraize — HEBREW_GLOSS_STYLE always-hebraize terms (Pass 2 inverted
 const GLOSS_STYLE_VARIANTS: Array<[string, string]> = [
   // Hyphenated variants of compound transliterations.
   ['performed (le-chatchila)',     'performed (לכתחילה)'],
-  ['the (be-dieved) ruling',       'the (בדיעבד) ruling'],
+  ['the (be-dieved) ruling',       'the בדיעבד ruling'],
   // Trailing -h optional pair.
-  ['restored to (taharah)',        'restored to (טהרה)'],
-  ['relies on a (chazakah)',       'relies on a (חזקה)'],
-  ['set aside as (teruma)',        'set aside as (תרומה)'],
+  ['restored to (taharah)',        'restored to טהרה'],
+  ['relies on a (chazakah)',       'relies on a חזקה'],
+  ['set aside as (teruma)',        'set aside as תרומה'],
   ['eats (matza) on seder night',  'eats (מצה) on seder night'],
   // Sephardi/academic transliteration of ḥ (folded to h, then matches "h").
-  ['the (hametz) is sold',         'the (חמץ) is sold'],
-  ['the (ḥametz) is sold',         'the (חמץ) is sold'],
+  ['the (hametz) is sold',         'the חמץ is sold'],
+  ['the (ḥametz) is sold',         'the חמץ is sold'],
   // Apostrophe variants — `ma'aser` and `maaser` both hit מעשר.
-  ['tithed as (ma\'aser)',         'tithed as (מעשר)'],
-  ['tithed as (maaser)',           'tithed as (מעשר)'],
+  ['tithed as (ma\'aser)',         'tithed as מעשר'],
+  ['tithed as (maaser)',           'tithed as מעשר'],
 ];
 
 describe('hebraize — variant transliterations land on same Hebrew', () => {
@@ -407,5 +415,382 @@ describe('hebraize — full pipeline catches bare-word authorities', () => {
     // No literal duplicate of either.
     expect(out.match(/רמב״ם/g)?.length).toBe(1);
     expect(out.match(/רמ״א/g)?.length).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Halachic-procedure bare-name coverage. Authors of LLM prompts can't list
+// every term the model will emit; this section locks in coverage for the
+// classes of terms that have surfaced as transliteration leaks in cached
+// halacha-synthesis output.
+// ---------------------------------------------------------------------------
+
+const HALACHIC_BARE_SWAP: Array<[string, string]> = [
+  // Procedures
+  ['the act of melikah is performed',          'the act of מליקה is performed'],
+  ['melikha differs from shechita',            'מליקה differs from שחיטה'],
+  ['shechitah requires a sharp blade',         'שחיטה requires a sharp blade'],
+  ['chalitza releases the obligation',         'חליצה releases the obligation'],
+  ['chalitzah ceremony',                       'חליצה ceremony'],
+  ['yibum is the levirate marriage',           'יבום is the levirate marriage'],
+  // Kashrut categories
+  ['a neveilah and a baraita',                 'a נבלה and a ברייתא'],
+  ['classified as neveila',                    'classified as נבלה'],
+  ['the nevelah is forbidden',                 'the נבלה is forbidden'],
+  ['treif meat',                               'טריפה meat'],
+  ['the treifa was disqualified',              'the טריפה was disqualified'],
+  // Sacrifices
+  ['the chatat offering',                      'the חטאת offering'],
+  ['asham for unintentional sin',              'אשם for unintentional sin'],
+  ['a korban brought to the altar',            'a קרבן brought to the altar'],
+  ['the korbanot of the tamid',                'the קרבנות of the tamid'],
+  // Marriage / family
+  ['the ketubah obligates the husband',        'the כתובה obligates the husband'],
+  ['the ketuba document',                      'the כתובה document'],
+  // Priestly portions
+  ['the challah portion is separated',         'the חלה portion is separated'],
+  ['pidyon haben is performed',                'פדיון haben is performed'],
+  ['the bechor receives a double portion',     'the בכור receives a double portion'],
+  // Concluding / collective sages
+  ['the siyum celebration',                    'the סיום celebration'],
+  ['Chazal teach us',                          'חז״ל teach us'],
+  ['Hazal interpret the verse',                'חז״ל interpret the verse'],
+  // Generations
+  ['the amoraim disagree on this point',       'the אמוראים disagree on this point'],
+  ['the tannaim of Yavneh',                    'the תנאים of Yavneh'],
+  ['the rishonim debate',                      'the ראשונים debate'],
+  ['acharonim follow Rosh',                    'אחרונים follow רא״ש'],
+  // Discourse
+  ['a baraita contradicts the mishnah',        'a ברייתא contradicts the mishnah'],
+  ['several baraitot are cited',               'several ברייתות are cited'],
+  ['the kushya is sharp',                      'the קושיא is sharp'],
+  ['the terutz resolves the contradiction',    'the תירוץ resolves the contradiction'],
+];
+
+describe('hebraize — halachic-procedure bare-name swap', () => {
+  for (const [input, expected] of HALACHIC_BARE_SWAP) {
+    it(`"${input}" → "${expected}"`, () => {
+      expect(hebraize(input)).toBe(expected);
+    });
+  }
+});
+
+// Real-world regression: the user-reported "melikah and a baraita's account"
+// snippet should now hebraicize both terms.
+describe('hebraize — original reported halacha-prose snippets', () => {
+  it('hebraicizes the "melikah and a baraita\'s account" fragment', () => {
+    const input = "the Mishnah requires melikah and a baraita's account confirms the procedure";
+    const out = hebraize(input);
+    expect(out).toContain('מליקה');
+    expect(out).toContain('ברייתא');
+    expect(out).toContain(' and ');
+    expect(out).toContain(" account ");
+  });
+});
+
+// Negative guards: the new terms must NOT collide with everyday English.
+const HALACHIC_BARE_PRESERVE: string[] = [
+  // Mid-word collisions
+  'a koreckle of the law',           // "kor" not present anyway, but guarding shape
+  // Substring of longer English words
+  'the matamoreal evidence',         // 'amoraim' is not a substring here
+  // English words that happen to look like halachic terms
+  'the challah recipe varies by region',  // ambiguous; in this corpus, swapping is desired
+];
+
+describe('hebraize — halachic-bare guards (no mid-word collisions)', () => {
+  for (const input of HALACHIC_BARE_PRESERVE.slice(0, 2)) {
+    it(`leaves "${input}" alone`, () => {
+      expect(hebraize(input)).toBe(input);
+    });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Real-world halacha-prose snippets — regression coverage drawn from
+// patterns observed in actual cached enrichment output. Each test pins a
+// specific failure mode the bare-name pass repairs.
+// ---------------------------------------------------------------------------
+
+describe('hebraize — real-world halacha-prose regression coverage', () => {
+  it('the original "melikah and a baraita" failure case', () => {
+    const input = "The Mishnah requires melikah and a baraita's account confirms the procedure for a chatat bird offering.";
+    const out = hebraize(input);
+    expect(out).toContain('מליקה');
+    expect(out).toContain('ברייתא');
+    expect(out).toContain('חטאת');
+  });
+
+  it('Rambam-in-Mishneh-Torah opening with multiple authorities', () => {
+    const input = "Rambam in Mishneh Torah codifies it; the Tur and Shulchan Aruch Orach Chaim 235:3 follow; Rosh dissents.";
+    const out = hebraize(input);
+    expect(out).toContain('רמב״ם');
+    expect(out).toContain('משנה תורה');
+    expect(out).toContain('טור');
+    expect(out).toContain('שולחן ערוך');
+    expect(out).toContain('אורח חיים');
+    expect(out).toContain('רא״ש');
+    // English connective tissue preserved.
+    expect(out).toContain(' codifies it; ');
+  });
+
+  it('generations of sages in one sentence', () => {
+    const input = "The tannaim debate the rule, the amoraim extend it, the rishonim codify it, and the acharonim refine it.";
+    const out = hebraize(input);
+    expect(out).toContain('תנאים');
+    expect(out).toContain('אמוראים');
+    expect(out).toContain('ראשונים');
+    expect(out).toContain('אחרונים');
+  });
+
+  it('sacrificial categories together', () => {
+    const input = "The chatat, asham, and olah differ in their procedures; the korban shelamim is unique.";
+    const out = hebraize(input);
+    expect(out).toContain('חטאת');
+    expect(out).toContain('אשם');
+    expect(out).toContain('קרבן');
+    // 'olah' and 'shelamim' deliberately NOT in bare whitelist (English overlap risk)
+    expect(out).toContain('olah');
+    expect(out).toContain('shelamim');
+  });
+
+  it('marriage and divorce halachic terms', () => {
+    const input = "After chalitza is performed, the woman is freed; yibum is the alternative levirate path. The ketubah governs the marriage obligations.";
+    const out = hebraize(input);
+    expect(out).toContain('חליצה');
+    expect(out).toContain('יבום');
+    expect(out).toContain('כתובה');
+  });
+
+  it('kashrut categories — neveilah vs treifa', () => {
+    const input = "A neveilah is animal flesh dead from causes other than valid shechita; a treifa is from an animal with a disqualifying defect.";
+    const out = hebraize(input);
+    expect(out).toContain('נבלה');
+    expect(out).toContain('שחיטה');
+    expect(out).toContain('טריפה');
+  });
+
+  it('argument-structure terms together', () => {
+    const input = "The kushya is sharp, and the terutz that resolves it relies on a baraita not previously cited.";
+    const out = hebraize(input);
+    expect(out).toContain('קושיא');
+    expect(out).toContain('תירוץ');
+    expect(out).toContain('ברייתא');
+  });
+
+  it('Chazal capitalized and bare', () => {
+    const input = "Chazal teach the principle; later Hazal extend it in their commentaries.";
+    const out = hebraize(input);
+    expect(out.match(/חז״ל/g)?.length).toBe(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Deliberate EXCLUSIONS — terms we kept out of the bare-name whitelist
+// because they flow as English in this corpus. Bare-swapping them would
+// hurt readability. These tests pin down the boundary so future contributors
+// don't drift toward over-hebraicization.
+// ---------------------------------------------------------------------------
+
+const DELIBERATE_EXCLUSIONS: string[] = [
+  // Generic religious terms — flow as English in halachic prose.
+  'the Torah commands daily prayer',
+  'the Mishnah records this position',
+  'the Gemara discusses the case',
+  'Jewish halacha demands more',
+  'the Talmud is the authoritative source',
+  'rabbinic halacha is binding',
+  // Times / calendar — flow as English.
+  'on Shabbat the rule changes',
+  'before Pesach we clean',
+  'after Sukkot the season ends',
+  // Body / common nouns that overlap dict shorter forms.
+  'olah of joy filled the room',         // 'olah' deliberately excluded
+  'the shelamim of peace',               // 'shelamim' deliberately excluded
+  // Pseudo-Hebrew but unrelated English words.
+  'the future of the case',              // 'tur' is substring; word-boundary stops
+  'past torture, the system reformed',   // 'tor' substring
+  // Rosh-collision guards.
+  'Rosh Hashanah is the new year',
+  'Rosh Chodesh marks the new month',
+  'Rosh HaShanah falls in Tishrei',
+];
+
+describe('hebraize — deliberate exclusions preserve English readability', () => {
+  for (const input of DELIBERATE_EXCLUSIONS) {
+    it(`leaves "${input}" alone`, () => {
+      expect(hebraize(input)).toBe(input);
+    });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Mid-word collision guards for the expanded whitelist. Word-boundary regex
+// SHOULD prevent these from firing — these tests lock that in.
+// ---------------------------------------------------------------------------
+
+const MID_WORD_GUARDS: Array<[string, string]> = [
+  // 'chatat' as substring
+  ['the chataton particles',           'the chataton particles'],
+  // 'asham' as substring of 'ashamed'
+  ['he felt ashamed by the ruling',    'he felt ashamed by the ruling'],
+  // 'korban' as substring
+  ['the korbanot building',            'the קרבנות building'], // korbanot IS a whole-word match
+  ['the korbanesque flavor',           'the korbanesque flavor'],
+  // 'bechor' as substring (rare but defensible)
+  ['the bechored expression',          'the bechored expression'],
+  // 'baraita' as substring
+  ['baraitatic literature',            'baraitatic literature'],
+  // 'kushya' as substring
+  ['the kushyatic question',           'the kushyatic question'],
+  // 'siyum' as substring
+  ['the siyumesque ending',            'the siyumesque ending'],
+];
+
+describe('hebraize — mid-word collision guards', () => {
+  for (const [input, expected] of MID_WORD_GUARDS) {
+    it(`"${input}" → "${expected}"`, () => {
+      expect(hebraize(input)).toBe(expected);
+    });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Spelling-variant coverage — the LLM emits multiple romanizations of the
+// same Hebrew term (Tosafot/Tosfos, Chazal/Hazal, treif/treifa/trefah).
+// All variants must land on the same Hebrew script.
+// ---------------------------------------------------------------------------
+
+const SPELLING_VARIANTS: Array<[string[], string]> = [
+  // Tosafot / Tosfos
+  [['Tosafot comment here', 'Tosfos comment here'],     'תוספות'],
+  // Chazal / Hazal
+  [['Chazal taught', 'Hazal taught'],                    'חז״ל'],
+  // Neveilah variants
+  [['classified as neveilah', 'classified as neveila',
+    'classified as nevelah'],                            'נבלה'],
+  // Treif / Treifa / Trefah
+  [['called treif', 'called treifa', 'called trefah'],   'טריפה'],
+  // Chalitza / Chalitzah
+  [['performs chalitza', 'performs chalitzah'],          'חליצה'],
+  // Melikah / Melikha
+  [['the melikah ritual', 'the melikha ritual'],         'מליקה'],
+  // Shechita / Shechitah
+  [['valid shechita', 'valid shechitah'],                'שחיטה'],
+  // Ketubah / Ketuba
+  [['the ketubah obligation', 'the ketuba obligation'],  'כתובה'],
+  // Challah / Challa
+  [['the challah portion', 'the challa portion'],        'חלה'],
+  // Bechor / Bekhor
+  [['the bechor inherits', 'the bekhor inherits'],       'בכור'],
+  // Orach Chaim spellings
+  [['Orach Chaim 235', 'Orach Chayim 235',
+    'Orach Chayyim 235'],                                'אורח חיים'],
+];
+
+describe('hebraize — spelling variants all land on same Hebrew', () => {
+  for (const [inputs, expectedHebrew] of SPELLING_VARIANTS) {
+    for (const input of inputs) {
+      it(`"${input}" produces "${expectedHebrew}"`, () => {
+        expect(hebraize(input)).toContain(expectedHebrew);
+      });
+    }
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Pipeline cascade — `Authority (transliteration)` paren forms still work
+// when the authority is also in the bare-name whitelist. Tests that adding
+// to the whitelist didn't break the dict's paren-pass.
+// ---------------------------------------------------------------------------
+
+describe('hebraize — paren form still works for whitelisted terms', () => {
+  const cases: Array<[string, string]> = [
+    // Pass 1 swaps content → Pass 4 strips redundant function-word parens.
+    ['the (melikah) procedure',          'the מליקה procedure'],
+    ['classified as (neveilah)',         'classified as נבלה'],
+    ['records a (baraita)',              'records a ברייתא'],
+    ['the (kushya) is resolved',         'the קושיא is resolved'],
+  ];
+  for (const [input, expected] of cases) {
+    it(`"${input}" → "${expected}"`, () => {
+      expect(hebraize(input)).toBe(expected);
+    });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// stripStopwordHebrewParens — strips pure-Hebrew parens when preceded by an
+// English function word (article/preposition/conjunction/possessive/
+// demonstrative). Content-word-preceded parens are kept because they're
+// legit Form B glosses (Tanna → תנא).
+// ---------------------------------------------------------------------------
+
+import { stripStopwordHebrewParens } from '../src/client/hebraize';
+
+const STOPWORD_STRIP: Array<[string, string]> = [
+  // Articles
+  ['the (מליקה) procedure',         'the מליקה procedure'],
+  ['a (נבלה) is forbidden',          'a נבלה is forbidden'],
+  ['an (אורח חיים) section',         'an אורח חיים section'],
+  // Possessives
+  ['his (עבד) was freed',            'his עבד was freed'],
+  ['her (כתובה) obligates',          'her כתובה obligates'],
+  ['their (מנהג) varies',            'their מנהג varies'],
+  // Demonstratives
+  ['this (סוגיא) covers',            'this סוגיא covers'],
+  ['that (קושיא) is sharp',          'that קושיא is sharp'],
+  // Prepositions
+  ['classified as (נבלה)',           'classified as נבלה'],
+  ['of (רוב) applies',               'of רוב applies'],
+  ['to (טהרה) returns',              'to טהרה returns'],
+  ['from (טומאה) to (טהרה)',         'from טומאה to טהרה'],
+  ['at (יבנה) the council',          'at יבנה the council'],
+  ['for (פסח) we clean',             'for פסח we clean'],
+  ['with (כפרה) the priest',         'with כפרה the priest'],
+  // Conjunctions
+  ['and (תוספות) disagree',          'and תוספות disagree'],
+  ['or (רמ״א) rules',                'or רמ״א rules'],
+  ['but (מהרש״א) holds',             'but מהרש״א holds'],
+];
+
+const STOPWORD_KEEP: Array<[string, string]> = [
+  // Content word before — legit Form B gloss.
+  ['Tanna (תנא) at Yavneh',           'Tanna (תנא) at Yavneh'],
+  ['atonement (כפרה) does not',       'atonement (כפרה) does not'],
+  ['procedure (מליקה) is performed',  'procedure (מליקה) is performed'],
+  ['principle (רוב) applies',         'principle (רוב) applies'],
+  ['ruling (פסק) of the court',       'ruling (פסק) of the court'],
+  // Verb before — also content word.
+  ['wears (ציצית) daily',             'wears (ציצית) daily'],
+  ['eats (מצה) on seder night',       'eats (מצה) on seder night'],
+  // Parens contain English, not Hebrew — pass doesn't fire.
+  ['the (Hilchot Shabbat 8:1) section', 'the (Hilchot Shabbat 8:1) section'],
+  ['of (some English aside)',          'of (some English aside)'],
+];
+
+describe('stripStopwordHebrewParens — strips function-word interjections', () => {
+  for (const [input, expected] of STOPWORD_STRIP) {
+    it(`"${input}" → "${expected}"`, () => {
+      expect(stripStopwordHebrewParens(input)).toBe(expected);
+    });
+  }
+});
+
+describe('stripStopwordHebrewParens — preserves Form B and English-content parens', () => {
+  for (const [input, expected] of STOPWORD_KEEP) {
+    it(`leaves "${input}" alone`, () => {
+      expect(stripStopwordHebrewParens(input)).toBe(expected);
+    });
+  }
+});
+
+// Real-world failure case from the user's halacha synthesis output —
+// multiple stopword-preceded parens in one sentence.
+describe('hebraize — multi-strip in halacha prose', () => {
+  it('strips all function-word parens in the user-reported snippet', () => {
+    const input = 'The (sugya) covers a (kushya) of (rov), with the (terutz) relying on a (baraita).';
+    const out = hebraize(input);
+    expect(out).toBe('The סוגיא covers a קושיא of רוב, with the תירוץ relying on a ברייתא.');
   });
 });

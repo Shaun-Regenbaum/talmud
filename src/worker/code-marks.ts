@@ -606,6 +606,17 @@ FORM B — English first, Hebrew script in parens. Use when the English term flo
 HARD RULES (output is rejected if violated):
 - NEVER write a transliteration alone in parens. "(terumah)", "(gezeira shava)", "(lechatchila)" — all forbidden. Always pair Hebrew script with English meaning, not transliteration with itself.
 - NEVER use bare transliteration as a standalone term either. "Lechatchila, one may eat…" is wrong — use "לכתחילה (the ideal standard), one may eat…" OR "Performed לכתחילה, one may eat…".
+- NEVER calque-translate a fixed Hebrew/Aramaic halachic phrase into bare English. A "calque" is a word-for-word literal translation that produces grammatically marked or meaningless English. If the English would only make sense to someone who already knows the underlying Hebrew term, the term IS the technical concept and MUST appear in Hebrew script. The English is then a gloss in parens — not a replacement.
+    BAD:  "Eli's broken neck occurred without most flesh"                  (calque of רוב בשר)
+    BAD:  "the requirement of severing most of the flesh"                  (same calque, padded)
+    BAD:  "a son of his year"                                               (calque of בן שנתו)
+    BAD:  "the house of justice"                                            (calque of בית דין — use 'בית דין' or English 'court')
+    BAD:  "the sons of Noah's commandments"                                 (calque of שבע מצוות בני נח)
+    BAD:  "great in fear of Heaven"                                         (calque of גדול ביראת שמים)
+    GOOD: "Eli's broken neck occurred without רוב בשר (the majority of surrounding flesh that normally must tear with the spine)"
+    GOOD: "a בן שנתו (year-old animal)"
+    GOOD: "the שבע מצוות בני נח (Noahide laws)"
+  Heuristic: read the sentence aloud in English. If a reader who doesn't know the term has to stop and ask "wait, most WHAT?" or "year of what?", you've calqued. Restore the Hebrew.
 - Common terms to ALWAYS hebraize (any time you use them, pair with Hebrew script):
     lechatchila → לכתחילה          (the ideal standard / a-priori)
     bedieved → בדיעבד               (after the fact)
@@ -639,6 +650,16 @@ HARD RULES (output is rejected if violated):
     patur → פטור                    (exempt)
     asur → אסור                     (forbidden)
     mutar → מותר                    (permitted)
+    rov basar → רוב בשר             (majority of surrounding flesh — shechita / neveila threshold)
+    mafreket → מפרקת                (spinal column / nape — neveila context)
+    siman / simanim → סימן / סימנים (the trachea + esophagus, the shechita organs)
+    veshet → ושט                    (esophagus)
+    kaneh → קנה                     (trachea / windpipe)
+    bnei Noach → בני נח             (Noahides — NEVER "sons of Noah")
+    sheva mitzvot bnei Noach → שבע מצוות בני נח (Noahide laws — NEVER "seven commandments of the sons of Noah")
+    ben shnato → בן שנתו            (a one-year-old [animal] — NEVER "son of his year")
+    bekhor → בכור                   (firstborn)
+    pidyon haben → פדיון הבן        (redemption of the firstborn son)
 - Verbatim daf / pasuk excerpts go in Hebrew script with quote marks, optionally followed by an English gloss in parens.
 - HARD RULE — verbatim daf words in quotes ('…' or "…") MUST be Hebrew/Aramaic script, NEVER transliteration. The single-quoted form is a signal that what's inside is a direct quote from the daf, and direct quotes are by definition in the source language.
     BAD:  "the gemara uses 'hutz'u' to describe how they were brought out"
@@ -1418,7 +1439,9 @@ Rules:
 - "side" letters are LOCAL to this section — Position A is whoever is introduced first as a distinct position, not a global label.
 - Every edge's "from" and "to" MUST match a name in the voices array. Validate before emitting.
 - For a section with one position only (no real dispute), emit voices but an EMPTY edges array.
-- NO puff in "stance" — concrete: name what they hold and against whom.`;
+- NO puff in "stance" — concrete: name what they hold and against whom.
+
+${HEBREW_GLOSS_STYLE}`;
 
 const ARGUMENT_VOICES_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
@@ -1487,7 +1510,9 @@ Output STRICT JSON only:
 
 Rules:
 - Plain English. Use Hebrew script in parentheses for technical terms (תרומה, יצר הרע) — never transliteration.
-- Reference Mishnayot or earlier dafim by canonical citation when the section assumes them.`;
+- Reference Mishnayot or earlier dafim by canonical citation when the section assumes them.
+
+${HEBREW_GLOSS_STYLE}`;
 
 const ARGUMENT_BACKGROUND_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
@@ -1533,7 +1558,9 @@ HARD RULES:
 - When two rabbis are paired with an established relationship (Abaye–Rava, Rav–Shmuel), name it.
 - NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "intricate", "profound", "deeply", "lens", "captures", "embodies".
 - NO jargon: write "transmitter" not "tradent", "interpret" not "exegete".
-- Hebrew script (not transliteration) for technical terms in parentheses; verbatim short Aramaic phrases only when distinctive.`;
+- Hebrew script (not transliteration) for technical terms in parentheses; verbatim short Aramaic phrases only when distinctive.
+
+${HEBREW_GLOSS_STYLE}`;
 
 const ARGUMENT_SYNTHESIS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
@@ -1656,7 +1683,9 @@ HARD RULES (output is rejected if violated):
 - "voice" is descriptive and may be anonymous ("Gemara's question"). "rabbiNames" is only for actual named rabbis.
 - "excerpt" and "endExcerpt" are Hebrew/Aramaic verbatim from the source. excerpt anchors the START; endExcerpt anchors the END. These together define the move's actual span — DO NOT just copy the first/last words of the section; copy the first/last words of THIS move's content. The LAST move in a section MUST have an endExcerpt that genuinely matches its final words, not arbitrary section-trailing words.
 - Pick the SINGLE best role tag per move. Use "other" sparingly.
-- "id" MUST be deterministic: '{sectionStartSegIdx}-{sectionEndSegIdx}_{moveOrderInSection}'.`;
+- "id" MUST be deterministic: '{sectionStartSegIdx}-{sectionEndSegIdx}_{moveOrderInSection}'.
+
+${HEBREW_GLOSS_STYLE}`;
 
 const ARGUMENT_MOVE_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 

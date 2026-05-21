@@ -97,6 +97,28 @@ const HEBRAIZE_DICT: Record<string, string> = {
   eved: 'עבד',
   get: 'גט',
   kiddushin: 'קידושין',
+  // Halachic procedures + categories — common bare-transliteration leaks
+  // (also added to BARE_HEBRAIZE_NAMES below for whole-word swap).
+  melikah: 'מליקה',
+  melikha: 'מליקה',
+  shechita: 'שחיטה',
+  shechitah: 'שחיטה',
+  chalitza: 'חליצה',
+  chalitzah: 'חליצה',
+  yibum: 'יבום',
+  neveilah: 'נבלה',
+  neveila: 'נבלה',
+  nevelah: 'נבלה',
+  ketubah: 'כתובה',
+  ketuba: 'כתובה',
+  challah: 'חלה',
+  challa: 'חלה',
+  pidyon: 'פדיון',
+  bechor: 'בכור',
+  bekhor: 'בכור',
+  siyum: 'סיום',
+  chazal: 'חז״ל',
+  hazal: 'חז״ל',
 
   // ── Composite phrases (multi-word) ────────────────────────────────────
   'yetzer hara': 'יצר הרע',
@@ -358,6 +380,49 @@ const BARE_HEBRAIZE_NAMES: Record<string, string> = {
   'Even HaEzer': 'אבן העזר',
   'Even Ha-Ezer': 'אבן העזר',
   'Choshen Mishpat': 'חושן משפט',
+  // Halachic procedures (unambiguous in this corpus).
+  melikah: 'מליקה',
+  melikha: 'מליקה',
+  shechita: 'שחיטה',
+  shechitah: 'שחיטה',
+  chalitza: 'חליצה',
+  chalitzah: 'חליצה',
+  yibum: 'יבום',
+  // Kashrut categories.
+  neveilah: 'נבלה',
+  neveila: 'נבלה',
+  nevelah: 'נבלה',
+  treif: 'טריפה',
+  treifa: 'טריפה',
+  trefah: 'טריפה',
+  // Sacrifices.
+  chatat: 'חטאת',
+  asham: 'אשם',
+  korban: 'קרבן',
+  korbanot: 'קרבנות',
+  // Marriage / family.
+  ketubah: 'כתובה',
+  ketuba: 'כתובה',
+  // Priestly portions / firstborn.
+  challah: 'חלה',
+  challa: 'חלה',
+  pidyon: 'פדיון',
+  bechor: 'בכור',
+  bekhor: 'בכור',
+  // Concluding / collective sages.
+  siyum: 'סיום',
+  Chazal: 'חז״ל',
+  Hazal: 'חז״ל',
+  // Generation labels.
+  amoraim: 'אמוראים',
+  tannaim: 'תנאים',
+  rishonim: 'ראשונים',
+  acharonim: 'אחרונים',
+  // Discourse / argument terms.
+  baraita: 'ברייתא',
+  baraitot: 'ברייתות',
+  kushya: 'קושיא',
+  terutz: 'תירוץ',
 };
 
 /** Lowercase lookup for case-insensitive match. */
@@ -385,6 +450,46 @@ const BARE_NAMES_RE = new RegExp(`\\b(${BARE_NAMES_ALT})\\b`, 'gi');
 export function hebraizeBareNames(text: string): string {
   if (!text) return text;
   return text.replace(BARE_NAMES_RE, (match) => BARE_NAMES_LOOKUP[match.toLowerCase()] ?? match);
+}
+
+/** Function words that, when immediately preceding a pure-Hebrew parens
+ *  group, mark the parens as a redundant mid-phrase interjection rather
+ *  than a Form B gloss. `the (מליקה) procedure` has "the" before — strip.
+ *  `procedure (מליקה)` has "procedure" before (content word, not in list)
+ *  — keep, because parens correctly hold the Hebrew gloss for "procedure". */
+const PAREN_STRIP_STOPWORDS = [
+  // Articles
+  'the', 'a', 'an',
+  // Possessive determiners — behave like articles before a noun.
+  'his', 'her', 'its', 'their', 'our', 'my', 'your',
+  // Demonstratives
+  'this', 'that', 'these', 'those',
+  // Prepositions
+  'of', 'in', 'on', 'at', 'by', 'for', 'with', 'to', 'from', 'as',
+  'into', 'onto', 'upon', 'against', 'between', 'among', 'through',
+  'over', 'under', 'before', 'after', 'about',
+  // Conjunctions
+  'and', 'or', 'but', 'nor', 'so', 'yet',
+];
+
+/** Match: `<stopword><space>(Hebrew content)` — and strip just the parens.
+ *  Hebrew content can include nikud, gershayim, and basic Hebrew-adjacent
+ *  punctuation (commas, periods, colons used in verse refs). */
+const STOPWORD_HEB_PAREN_RE = new RegExp(
+  `(\\b(?:${PAREN_STRIP_STOPWORDS.join('|')})\\s+)\\(([֐-׿][֐-׿װ-״\\s'\".,:;-]*)\\)`,
+  'gi',
+);
+
+/** Strip pure-Hebrew parens that are awkward mid-phrase interjections.
+ *  Detected via the preceding function word — if the parens are preceded
+ *  by an article/preposition/conjunction, the LLM injected them where a
+ *  Form B gloss would have an English noun. Stripping the parens makes
+ *  the Hebrew read as plain prose: `the (מליקה) procedure` → `the מליקה
+ *  procedure`. Content-word-preceded parens (real Form B glosses like
+ *  `Tanna (תנא)`) are left alone. */
+export function stripStopwordHebrewParens(text: string): string {
+  if (!text) return text;
+  return text.replace(STOPWORD_HEB_PAREN_RE, '$1$2');
 }
 
 /** Strip parenthetical echoes — `X (X)` collapses to `X`. The source LLM
@@ -435,7 +540,12 @@ export function hebraize(text: string): string {
   // Pass 3: bare-word swap for halachic authorities and work titles. Runs
   // BEFORE echo-strip so that any echoes the bare-swap creates get caught.
   out = hebraizeBareNames(out);
-  // Pass 4: collapse echo-parens. Runs AFTER the dict passes so that a
+  // Pass 4: strip pure-Hebrew parens preceded by a function word — these
+  // are mid-phrase interjections, not Form B glosses. `the (מליקה)
+  // procedure` → `the מליקה procedure`. Content-word-preceded parens
+  // (real Form B like `Tanna (תנא)`) are kept.
+  out = stripStopwordHebrewParens(out);
+  // Pass 5: collapse echo-parens. Runs AFTER the dict passes so that a
   // dict-promoted Hebrew matching its English equivalent gets collapsed too.
   out = stripEchoParens(out);
   return out;
