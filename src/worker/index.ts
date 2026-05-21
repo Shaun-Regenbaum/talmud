@@ -794,9 +794,13 @@ async function readCachedResult(env: Bindings, key: string): Promise<RunResult |
 
 async function writeCachedResult(env: Bindings, key: string, result: RunResult): Promise<void> {
   if (!env.CACHE) return;
-  // 90 day TTL — outputs are deterministic per (def_hash, cache_version, daf
-  // or instance), so they're stable until the operator bumps cache_version.
-  await env.CACHE.put(key, JSON.stringify(result), { expirationTtl: 90 * 24 * 3600 });
+  // No TTL — outputs are deterministic per (def_hash, cache_version, daf
+  // or instance). The canonical way to force a recache is to bump
+  // cache_version on the definition (old key becomes unreachable) or
+  // call /api/studio/run with bypass_cache=true. A TTL on top of that
+  // just makes warmed pages silently rot — measured pain: full-shas
+  // warming costs ~$1000 and ~17 days; we don't want it expiring on us.
+  await env.CACHE.put(key, JSON.stringify(result));
 }
 
 /** Computed-mark function signature. Receives env + (tractate, page) and
