@@ -160,6 +160,56 @@ function cleanVerseText(s: string): string {
     .trim();
 }
 
+/**
+ * Fetch the Hebrew verbatim text of a single pasuk for prompt injection.
+ * Shares the `pasuk:v4:` KV cache with the /api/pasuk endpoint so warm-cache
+ * fetches are free. Returns '' on any failure — callers treat that as "no
+ * Hebrew text available" rather than failing the whole enrichment run.
+ *
+ * Used by pesukim.* enrichments to inject `{{pasuk_he}}` into the prompt so
+ * the LLM has a verbatim source to quote from instead of reconstructing
+ * (which it has been doing wrong: English translation in quotes, no Hebrew).
+ */
+async function fetchPasukHebrewForPrompt(env: Bindings, ref: string): Promise<string> {
+  if (!ref) return '';
+  const safe = ref.replace(/[^A-Za-z0-9 .:-]/g, '_');
+  const key = `pasuk:v4:${safe}`;
+  const cache = env.CACHE;
+  if (cache) {
+    const hit = await cache.get(key);
+    if (hit) {
+      try {
+        const parsed = JSON.parse(hit) as { he?: string };
+        if (parsed.he) return parsed.he;
+      } catch { /* fall through to live fetch */ }
+    }
+  }
+  try {
+    const res = await sefariaAPI.getText(ref, { context: 0 });
+    const heRaw = Array.isArray(res.he) ? res.he.join(' ') : (res.he ?? '');
+    const enRaw = Array.isArray(res.text) ? res.text.join(' ') : (res.text ?? '');
+    const he = cleanVerseText(heRaw);
+    const en = cleanVerseText(enRaw);
+    if (cache && he) {
+      const canonical = res.ref ?? ref;
+      const m = canonical.match(/^(.+?)\s+(\d+):(\d+)$/);
+      let prevRef: string | null = null;
+      let nextRef: string | null = null;
+      if (m) {
+        const [, book, chap, verseStr] = m;
+        const verse = parseInt(verseStr, 10);
+        if (verse > 1) prevRef = `${book} ${chap}:${verse - 1}`;
+        nextRef = `${book} ${chap}:${verse + 1}`;
+      }
+      const cached = { ref: canonical, heRef: res.heRef ?? null, he, en, prevRef, nextRef, book: res.book ?? null };
+      await cache.put(key, JSON.stringify(cached), { expirationTtl: 60 * 60 * 24 * 365 });
+    }
+    return he;
+  } catch {
+    return '';
+  }
+}
+
 // Minimal support utilities used by the kept routes (daf-context, region,
 // mesorah, and the offline rabbi data-build pipeline). The legacy
 // enrichment routes that originally introduced these have been removed.
@@ -1619,9 +1669,21 @@ async function runEnrichmentOnce(
   nextChain.add(def.id);
   const inputs = await resolveDependencies(rc, def.dependencies, tractate, page, markInput, bypassCache, nextChain);
 
+  // Pre-fetch the focal pasuk's Hebrew verbatim for pesukim.* enrichments so
+  // the LLM has a verbatim source to quote from. Without this the model
+  // translates the verse to English and quotes that — the regression the
+  // synthesisLint catches.
+  let pasukHe = '';
+  if (def.id.startsWith('pesukim.')) {
+    const mi = markInput as { verseRef?: string; fields?: { verseRef?: string } } | null;
+    const ref = mi?.verseRef ?? mi?.fields?.verseRef ?? '';
+    if (ref) pasukHe = await fetchPasukHebrewForPrompt(rc.env, ref);
+  }
+
   const vars: Record<string, unknown> = {
     ...inputs.vars,
     mark_input: markInput,
+    pasuk_he: pasukHe,
     depends: inputs.depends,
     anchors: inputs.anchors,
   };

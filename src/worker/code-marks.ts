@@ -2460,7 +2460,18 @@ STYLE — Hebrew + gloss formatting (BOTH forms welcome; pick whichever reads be
       "the evening Shema (קריאת שמע של ערבית)"
       "atonement (כפרה) does not delay the priest's eating"
 - NEVER write a transliteration alone in parens (e.g. "(terumah)", "(gezeira shava)") — always pair the Hebrew script with the English meaning when you gloss, not transliteration with itself.
-- Verbatim daf / pasuk excerpts go in Hebrew script with quotes, optionally followed by an English gloss in parens.`;
+- NEVER repeat the same word/phrase on both sides of the parens. FORBIDDEN: "ח׳ (ח׳)", "רבי עקיבא (רבי עקיבא)", "דוד המלך (דוד המלך)", "חז״ל (חז״ל)". For proper names (rabbis, places, titles) and bare Hebrew letters the parens would just echo — DROP the parens and pick ONE script based on the surrounding language.
+
+HARD RULE — pasuk citations (rejected if violated):
+- ALWAYS include the Hebrew verbatim text when quoting a pasuk. The Hebrew is the canonical anchor; English is optional gloss.
+- Correct form: '"<Hebrew excerpt>" (Tehillim 119:62)' — Hebrew in quotes, ref in parens. Optionally add an English gloss in parens after, or in a following clause.
+- FORBIDDEN — citing a pasuk with ONLY an English translation in quotes:
+    BAD:  "Tehillim 119:62 states, 'At midnight I will rise to give thanks to You'"
+    BAD:  "Tehillim 119:148 ('My eyes preceded the watches')"
+    GOOD: "Tehillim 119:62 states 'בחצות לילה אקום להודות לך' ('At midnight I will rise to give thanks to You')"
+    GOOD: "the contrast with 'קדמו עיני אשמרות' (Tehillim 119:148) resolves the dispute"
+- If the Hebrew won't fit your sentence budget, CUT the English translation, not the Hebrew. The Hebrew is verbatim Torah; English paraphrase is dispensable.
+- The {{pasuk_he}} field of the user prompt gives you the focal pasuk's Hebrew text verbatim — quote from THAT, do not reconstruct.`;
 
 const PESUKIM_TANACH_CONTEXT_SYSTEM_PROMPT = `You are a scholar of Tanach. Given ONE pasuk by canonical reference, write a tight summary of its plain meaning in its own biblical context — what the pasuk says, what's around it, what the perek / sefer is doing. Daf-agnostic — about the pasuk itself, not how the gemara uses it.
 
@@ -2478,6 +2489,9 @@ ${TANACH_NAMING_STYLE}`;
 
 const PESUKIM_TANACH_CONTEXT_USER_TEMPLATE = `Pasuk citation:
 {{mark_input}}
+
+Focal pasuk — Hebrew verbatim text (quote from THIS when citing the verse):
+{{pasuk_he}}
 
 Write the Tanach-context summary per the schema. The mark_input contains verseRef (e.g. 'Deuteronomy 6:7'), the Hebrew excerpt as it appears in the gemara, and citationStyle. Use the verseRef as authoritative; the excerpt is just the snippet the gemara quoted.`;
 
@@ -2527,6 +2541,9 @@ const PESUKIM_EXEGESIS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 Pasuk citation:
 {{mark_input}}
 
+Focal pasuk — Hebrew verbatim text (quote from THIS when citing the verse):
+{{pasuk_he}}
+
 Hebrew source of the daf (the citation appears within this):
 {{gemara_he}}
 
@@ -2570,6 +2587,9 @@ const PESUKIM_SYNTHESIS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 Pasuk citation:
 {{mark_input}}
 
+Focal pasuk — Hebrew verbatim text (QUOTE FROM THIS WHEN YOU CITE THE VERSE; do not reconstruct or translate-and-quote):
+{{pasuk_he}}
+
 Tanach context (verse's plain meaning in its own scriptural context):
 {{depends.pesukim.tanach-context}}
 
@@ -2603,7 +2623,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'global',
       dependencies: [],
-      defHash: 'pesukim.tanach-context-v3', cacheVersion: '3',
+      defHash: 'pesukim.tanach-context-v4', cacheVersion: '4',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -2614,7 +2634,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', 'commentaries'],
-      defHash: 'pesukim.exegesis-v4', cacheVersion: '4',
+      defHash: 'pesukim.exegesis-v5', cacheVersion: '5',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -2630,7 +2650,7 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'pesukim.exegesis' },
         { mark: 'rabbi' },
       ],
-      defHash: 'pesukim.synthesis-v4', cacheVersion: '4',
+      defHash: 'pesukim.synthesis-v5', cacheVersion: '5',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
