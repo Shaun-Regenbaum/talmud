@@ -151,7 +151,8 @@ Rules:
 - Sections must partition the daf cleanly: section i+1's startSegIdx === section i's endSegIdx + 1, no gaps, no overlaps.
 - For a one-segment section, startSegIdx === endSegIdx.
 - "excerpt" and "endExcerpt" MUST be Hebrew/Aramaic copied VERBATIM from the source — never translate. excerpt anchors the section's first words, endExcerpt anchors its last words. These together MUST match the section's true range — do NOT extend endExcerpt into the next section's content.
-- "rabbiNames" enumerates EVERY distinct voice in the section in order: named rabbis ("Rabbi Eliezer"), collective voices ("Sages", "Tanna Kamma"), and every Stam/Gemara move ("Gemara's question", "First answer", "Objection"). When the Gemara offers multiple answers to the same question, each is its own entry.`;
+- "rabbiNames" enumerates EVERY distinct voice in the section in order: named rabbis ("Rabbi Eliezer"), collective voices ("Sages", "Tanna Kamma"), and every Stam/Gemara move ("Gemara's question", "First answer", "Objection"). When the Gemara offers multiple answers to the same question, each is its own entry.
+- "title" and "summary" — NEVER literally translate a fixed Hebrew/Aramaic halachic phrase into bare English (no "most flesh" for רוב בשר, no "house of justice" for בית דין, no "son of his year" for בן שנתו, no "sons of Noah" for בני נח). If a phrase is a fixed technical term, keep it in Hebrew script (e.g. "without רוב בשר") or use the conventional English equivalent ("court", "Noahides", "a year-old animal"). Calque translations read as nonsense to the learner.`;
 
 const ARGUMENT_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
@@ -187,7 +188,8 @@ Rules:
 - 1-5 topics per daf. Skip purely aggadic or exegetical sections that have no halachic ruling.
 - "excerpt" MUST be Hebrew/Aramaic verbatim from the source.
 - "startSegIdx" / "endSegIdx" must be valid 0-based indices from the [N] markers in the numbered source. For a one-segment topic, start === end.
-- Use Sefaria-style English transliteration with the (term) auto-hebraize convention: "the time for evening Shema (kriat shema)", "an act of designation (yi'ud)".`;
+- Use Sefaria-style English transliteration with the (term) auto-hebraize convention: "the time for evening Shema (kriat shema)", "an act of designation (yi'ud)".
+- NEVER literally translate a fixed Hebrew/Aramaic halachic phrase into bare English. Calques like "most flesh" (for רוב בשר), "house of justice" (for בית דין), "son of his year" (for בן שנתו), "sons of Noah" (for בני נח) are forbidden. Either keep the Hebrew (Sefaria-style transliteration + auto-hebraize, e.g. "rov basar") or use the conventional English equivalent ("court", "Noahides", "year-old animal").`;
 
 const HALACHA_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
@@ -259,7 +261,8 @@ Rules:
 - 0-6 aggadic units per daf. Many dafim have none — return an empty instances array if so.
 - "excerpt" MUST be Hebrew/Aramaic verbatim from the source.
 - "startSegIdx" / "endSegIdx" must be valid 0-based indices from the [N] markers.
-- Use Sefaria-style English transliteration with the (term) auto-hebraize convention.`;
+- Use Sefaria-style English transliteration with the (term) auto-hebraize convention.
+- NEVER literally translate a fixed Hebrew/Aramaic halachic phrase into bare English. Calques like "most flesh" (for רוב בשר), "house of justice" (for בית דין), "son of his year" (for בן שנתו), "sons of Noah" (for בני נח) are forbidden. Either keep the Hebrew (Sefaria-style transliteration + auto-hebraize) or use the conventional English equivalent ("court", "Noahides", "year-old animal").`;
 
 const AGGADATA_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
@@ -334,7 +337,8 @@ Rules:
 - For phrasing that echoes a verse but doesn't introduce it — use citationStyle: "allusion".
 - For loose paraphrase — use citationStyle: "paraphrase".
 - "excerpt" AND "endExcerpt" MUST be Hebrew/Aramaic verbatim from the source. excerpt anchors the citation's start; endExcerpt anchors its end. For a citation that's only 2-5 words long they may share words but should not be identical unless the citation IS a single short phrase.
-- startSegIdx / endSegIdx must be valid 0-based indices from the [N] markers.`;
+- startSegIdx / endSegIdx must be valid 0-based indices from the [N] markers.
+- "summary" — NEVER literally translate a fixed Hebrew/Aramaic halachic phrase into bare English. Calques like "most flesh" (for רוב בשר), "house of justice" (for בית דין), "son of his year" (for בן שנתו), "sons of Noah" (for בני נח) are forbidden. Either keep the Hebrew or use the conventional English equivalent.`;
 
 const PESUKIM_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
@@ -479,8 +483,8 @@ export const CODE_MARKS: MarkDefinition[] = [
     },
     dependencies: ['gemara'],
     status: 'promoted',
-    def_hash: 'argument-llm-v2',
-    cache_version: '3',
+    def_hash: 'argument-llm-v3',
+    cache_version: '4',
     source: 'code',
     updated_at: NOW,
   },
@@ -505,8 +509,8 @@ export const CODE_MARKS: MarkDefinition[] = [
     },
     dependencies: ['gemara'],
     status: 'promoted',
-    def_hash: 'halacha-llm-v1',
-    cache_version: '2',
+    def_hash: 'halacha-llm-v2',
+    cache_version: '3',
     source: 'code',
     updated_at: NOW,
   },
@@ -531,8 +535,8 @@ export const CODE_MARKS: MarkDefinition[] = [
     },
     dependencies: ['gemara'],
     status: 'promoted',
-    def_hash: 'aggadata-llm-v1',
-    cache_version: '2',
+    def_hash: 'aggadata-llm-v2',
+    cache_version: '3',
     source: 'code',
     updated_at: NOW,
   },
@@ -557,8 +561,8 @@ export const CODE_MARKS: MarkDefinition[] = [
     },
     dependencies: ['gemara'],
     status: 'promoted',
-    def_hash: 'pesukim-llm-v3',
-    cache_version: '4',
+    def_hash: 'pesukim-llm-v4',
+    cache_version: '5',
     source: 'code',
     updated_at: NOW,
   },
@@ -1283,31 +1287,31 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
     'rabbi.bio', 'Bio (general)',
     'Daf-agnostic biographical sketch — era, region, teachers, signature.',
     RABBI_BIO_SYSTEM_PROMPT, RABBI_LEAF_USER_TEMPLATE, RABBI_BIO_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.bio-v4', cacheVersion: '4' },
+    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.bio-v5', cacheVersion: '5' },
   ),
   makeRabbiEnrichment(
     'rabbi.philosophy', 'Philosophy',
     'Cross-Gemara stance + recurring exegetical method. Daf-agnostic.',
     RABBI_PHILOSOPHY_SYSTEM_PROMPT, RABBI_LEAF_USER_TEMPLATE, RABBI_PHILOSOPHY_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.philosophy-v3', cacheVersion: '3' },
+    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.philosophy-v4', cacheVersion: '4' },
   ),
   makeRabbiEnrichment(
     'rabbi.relationships', 'Relationships',
     'Teachers, students, frequent debate partners, family — structured lists + prose summary. Daf-agnostic.',
     RABBI_RELATIONSHIPS_SYSTEM_PROMPT, RABBI_LEAF_USER_TEMPLATE, RABBI_RELATIONSHIPS_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.relationships-v5', cacheVersion: '5' },
+    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.relationships-v6', cacheVersion: '6' },
   ),
   makeRabbiEnrichment(
     'rabbi.classification', 'Classification',
     'Aggadist / halachist / exegetist — primary mode of activity in classical sources.',
     RABBI_CLASSIFICATION_SYSTEM_PROMPT, RABBI_LEAF_USER_TEMPLATE, RABBI_CLASSIFICATION_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.classification-v1', cacheVersion: '1' },
+    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.classification-v2', cacheVersion: '2' },
   ),
   makeRabbiEnrichment(
     'rabbi.geography', 'Geography',
     'Birthplace + primary study places + notable places + Bavel↔Israel movements. Daf-agnostic.',
     RABBI_GEOGRAPHY_SYSTEM_PROMPT, RABBI_LEAF_USER_TEMPLATE, RABBI_GEOGRAPHY_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.geography-v2', cacheVersion: '2' },
+    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.geography-v3', cacheVersion: '3' },
   ),
   // Synthesis — the user-facing card. Depends on the leaves plus the
   // gemara text and the full rabbi instance list (so the prompt can name
@@ -1331,8 +1335,8 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
         { enrichment: 'rabbi.location' },
         { mark: 'rabbi' },
       ],
-      defHash: 'rabbi.synthesis-v9',
-      cacheVersion: '9',
+      defHash: 'rabbi.synthesis-v10',
+      cacheVersion: '10',
     },
   ),
   // Per-daf evidence enrichments. Each finds excerpts in THIS daf that
@@ -1346,7 +1350,7 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', { enrichment: 'rabbi.relationships' }],
-      defHash: 'rabbi.relationships.evidence-v1', cacheVersion: '1',
+      defHash: 'rabbi.relationships.evidence-v2', cacheVersion: '2',
     },
   ),
   makeRabbiEnrichment(
@@ -1356,7 +1360,7 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', { enrichment: 'rabbi.geography' }],
-      defHash: 'rabbi.geography.evidence-v1', cacheVersion: '1',
+      defHash: 'rabbi.geography.evidence-v2', cacheVersion: '2',
     },
   ),
   makeRabbiEnrichment(
@@ -1366,7 +1370,7 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', { enrichment: 'rabbi.geography' }, { mark: 'rabbi' }],
-      defHash: 'rabbi.location-v1', cacheVersion: '1',
+      defHash: 'rabbi.location-v2', cacheVersion: '2',
     },
   ),
 ];
@@ -1606,7 +1610,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', { mark: 'argument-move' }, { mark: 'rabbi' }],
-      defHash: 'argument.voices-v3', cacheVersion: '3',
+      defHash: 'argument.voices-v4', cacheVersion: '4',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -1617,7 +1621,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', 'commentaries', 'mishna'],
-      defHash: 'argument.background-v2', cacheVersion: '2',
+      defHash: 'argument.background-v3', cacheVersion: '3',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -1636,7 +1640,7 @@ CODE_ENRICHMENTS.push(
         { mark: 'rabbi' },
         { mark: 'argument-move' },
       ],
-      defHash: 'argument.synthesis-v7', cacheVersion: '7',
+      defHash: 'argument.synthesis-v8', cacheVersion: '8',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -1764,8 +1768,8 @@ CODE_MARKS.push({
   },
   dependencies: ['gemara', { mark: 'argument' }],
   status: 'promoted',
-  def_hash: 'argument-move-v7',
-  cache_version: '7',
+  def_hash: 'argument-move-v8',
+  cache_version: '8',
   source: 'code',
   updated_at: NOW,
 });
@@ -1785,7 +1789,9 @@ Rules:
 - About THIS move only — do NOT summarize the surrounding section.
 - Empty string when a commentator is silent — don't pad.
 - Hebrew script in parentheses for technical terms (תרומה, יצר הרע) — never transliteration.
-- Plain English. NO puff. NO jargon: write "transmitter" not "tradent", "interpret" not "exegete".`;
+- Plain English. NO puff. NO jargon: write "transmitter" not "tradent", "interpret" not "exegete".
+
+${HEBREW_GLOSS_STYLE}`;
 
 const ARGUMENT_MOVE_COMMENTARIES_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
@@ -1831,7 +1837,9 @@ HARD RULES:
 - NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "intricate", "profound", "lens", "captures", "embodies".
 - NO jargon: write "transmitter" not "tradent", "interpret" not "exegete".
 - Hebrew script (not transliteration) for technical terms in parentheses; verbatim short Aramaic phrases only when distinctive.
-- If the move is purely a Stam connector with nothing to say, output a single short factual sentence and stop.`;
+- If the move is purely a Stam connector with nothing to say, output a single short factual sentence and stop.
+
+${HEBREW_GLOSS_STYLE}`;
 
 const ARGUMENT_MOVE_SYNTHESIS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
@@ -1895,7 +1903,9 @@ Rules:
 - One question per concrete sub-issue. Don't duplicate.
 - Plain English. NO puff.
 - Hebrew SCRIPT (not transliteration) in parentheses for technical terms — write '(מעשה)' not '(ma\\'aseh)', '(קושיא)' not '(kushya)', '(דרשה)' not '(derashah)'. English concept first, Hebrew in parens.
-- If the move is a pure Stam connector with nothing interesting to ask about, return ONE question that probes whatever substance does exist; do not pad.`;
+- If the move is a pure Stam connector with nothing interesting to ask about, return ONE question that probes whatever substance does exist; do not pad.
+
+${HEBREW_GLOSS_STYLE}`;
 
 const ARGUMENT_MOVE_SUGGESTED_QUESTIONS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
@@ -1982,7 +1992,9 @@ Other hard rules:
 Example of the right shape (3 sentences, not 7):
   Question: "Why does the Gemara open with 'where is the tanna standing'?"
   GOOD: "It's a stock Gemara move called תנא היכא קאי — a question that asks what topic the Mishnah is presupposing when it dives in without naming one. Here, the Mishnah opens with 'from when' (מאימתי) but never says what mitzvah is being timed, so the Gemara is flagging the missing subject before going on to identify it as the obligation to recite Shema. Rashi adds that the tanna should have first stated the matter (דבר) before asking about its time."
-  → Three sentences: category named + glossed; mechanism on this move; brief Rashi clarification. No meta-commentary, no closing reflection. Done.`;
+  → Three sentences: category named + glossed; mechanism on this move; brief Rashi clarification. No meta-commentary, no closing reflection. Done.
+
+${HEBREW_GLOSS_STYLE}`;
 
 const ARGUMENT_MOVE_QA_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
@@ -2028,7 +2040,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', 'commentaries'],
-      defHash: 'argument-move.commentaries-v1', cacheVersion: '1',
+      defHash: 'argument-move.commentaries-v2', cacheVersion: '2',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -2044,7 +2056,7 @@ CODE_ENRICHMENTS.push(
         { mark: 'argument-move' },
         { mark: 'rabbi' },
       ],
-      defHash: 'argument-move.synthesis-v4', cacheVersion: '4',
+      defHash: 'argument-move.synthesis-v5', cacheVersion: '5',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -2064,7 +2076,7 @@ CODE_ENRICHMENTS.push(
         { mark: 'argument-move' },
         { enrichment: 'argument-move.synthesis' },
       ],
-      defHash: 'argument-move.suggested-questions-v2', cacheVersion: '2',
+      defHash: 'argument-move.suggested-questions-v3', cacheVersion: '3',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -2080,7 +2092,7 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'argument-move.commentaries' },
         { mark: 'argument-move' },
       ],
-      defHash: 'argument-move.qa-v4', cacheVersion: '4',
+      defHash: 'argument-move.qa-v5', cacheVersion: '5',
       model: ARGUMENT_PRO_MODEL,
     },
   ),
@@ -2128,7 +2140,8 @@ Rules:
 - Do NOT include personal names that happen to look like place names. Only emit confirmed geographic references.
 - Do NOT include generic location words like "place" (מקום) or "city" (עיר) unless they're a proper noun reference.
 - "kind": pick the SINGLE best tag. A yeshiva-bearing city like Sura is 'city' (not 'academy'), unless the daf is specifically referencing the academy/court ('בי דינא דסורא' = academy). When in doubt, 'city'.
-- No duplicates with identical excerpt.`;
+- No duplicates with identical excerpt.
+- "name" — use conventional scholarly English (e.g. 'Eretz Yisrael', 'Bavel'). NEVER calque-translate a fixed Hebrew place phrase ("land of the deer" for ארץ הצבי, "house of the academy" for בית מדרש). Either keep the Hebrew or use the conventional English.`;
 
 const PLACES_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
@@ -2200,8 +2213,8 @@ CODE_MARKS.push({
   },
   dependencies: ['gemara'],
   status: 'promoted',
-  def_hash: 'places-v1',
-  cache_version: '1',
+  def_hash: 'places-v2',
+  cache_version: '2',
   source: 'code',
   updated_at: NOW,
 });
@@ -2219,7 +2232,9 @@ HARD RULES:
 - Ground every claim in actual history — no invented anecdotes. If uncertain, hedge ("traditionally associated with…", "by the time of the late amoraim…").
 - NO puff: avoid "this teaches us", "underscores", "highlights", "intricate", "profound".
 - Hebrew in parentheses for technical terms (ישיבה, מתיבתא) — never transliteration.
-- If the place is generic (e.g. "ארץ ישראל" used as a halachic category, not a setting), focus on its halachic/legal force on this daf rather than geographic detail.`;
+- If the place is generic (e.g. "ארץ ישראל" used as a halachic category, not a setting), focus on its halachic/legal force on this daf rather than geographic detail.
+
+${HEBREW_GLOSS_STYLE}`;
 
 const PLACES_SYNTHESIS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
@@ -2256,7 +2271,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'aggregate', scope: 'local',
       dependencies: ['gemara', { mark: 'places' }, { mark: 'rabbi' }],
-      defHash: 'places.synthesis-v1', cacheVersion: '1',
+      defHash: 'places.synthesis-v2', cacheVersion: '2',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -2317,7 +2332,9 @@ HARD RULES (output is rejected if violated):
 - NO jargon: write "transmitter" not "tradent", "interpret" not "exegete".
 - Hebrew script (not transliteration) for technical terms in parentheses; verbatim short Aramaic phrases only when distinctive.
 - If a rishon is silent or trivially restates the segment, skip them.
-- If only ONE commentary exists, just summarize their reading in 1-2 sentences — don't pad.`;
+- If only ONE commentary exists, just summarize their reading in 1-2 sentences — don't pad.
+
+${HEBREW_GLOSS_STYLE}`;
 
 const RISHONIM_SYNTHESIS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
@@ -2351,7 +2368,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'aggregate', scope: 'local',
       dependencies: ['gemara', { mark: 'rishonim' }],
-      defHash: 'rishonim.synthesis-v2', cacheVersion: '2',
+      defHash: 'rishonim.synthesis-v3', cacheVersion: '3',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -2618,7 +2635,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara'],
-      defHash: 'halacha.codification-v2', cacheVersion: '2',
+      defHash: 'halacha.codification-v3', cacheVersion: '3',
     },
   ),
   makeEnrichment(
@@ -2628,7 +2645,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara'],
-      defHash: 'halacha.practical-v2', cacheVersion: '2',
+      defHash: 'halacha.practical-v3', cacheVersion: '3',
     },
   ),
   makeEnrichment(
@@ -2638,7 +2655,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara'],
-      defHash: 'halacha.disputes-v2', cacheVersion: '2',
+      defHash: 'halacha.disputes-v3', cacheVersion: '3',
     },
   ),
   makeEnrichment(
@@ -2653,7 +2670,7 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'halacha.practical' },
         { enrichment: 'halacha.disputes' },
       ],
-      defHash: 'halacha.synthesis-v3', cacheVersion: '3',
+      defHash: 'halacha.synthesis-v4', cacheVersion: '4',
     },
   ),
 );
@@ -2695,6 +2712,16 @@ STYLE — Hebrew + gloss formatting (BOTH forms welcome; pick whichever reads be
       "atonement (כפרה) does not delay the priest's eating"
 - NEVER write a transliteration alone in parens (e.g. "(terumah)", "(gezeira shava)") — always pair the Hebrew script with the English meaning when you gloss, not transliteration with itself.
 - NEVER repeat the same word/phrase on both sides of the parens. FORBIDDEN: "ח׳ (ח׳)", "רבי עקיבא (רבי עקיבא)", "דוד המלך (דוד המלך)", "חז״ל (חז״ל)". For proper names (rabbis, places, titles) and bare Hebrew letters the parens would just echo — DROP the parens and pick ONE script based on the surrounding language.
+- NEVER calque-translate a fixed Hebrew/Aramaic halachic phrase into bare English. A "calque" is a word-for-word literal translation that produces grammatically marked or meaningless English. If the English would only make sense to someone who already knows the underlying Hebrew term, the term IS the technical concept and MUST appear in Hebrew script. The English is then a gloss in parens — not a replacement.
+    BAD:  "Eli's broken neck occurred without most flesh"                  (calque of רוב בשר)
+    BAD:  "the requirement of severing most of the flesh"                  (same calque, padded)
+    BAD:  "a son of his year"                                               (calque of בן שנתו)
+    BAD:  "the house of justice"                                            (calque of בית דין — use 'בית דין' or English 'court')
+    BAD:  "the sons of Noah's commandments"                                 (calque of שבע מצוות בני נח)
+    GOOD: "without רוב בשר (the majority of surrounding flesh that normally must tear with the spine)"
+    GOOD: "a בן שנתו (year-old animal)"
+    GOOD: "the שבע מצוות בני נח (Noahide laws)"
+  Heuristic: read the sentence aloud in English. If a reader who doesn't know the term has to stop and ask "wait, most WHAT?" or "year of what?", you've calqued. Restore the Hebrew.
 
 HARD RULE — pasuk citations (rejected if violated):
 - ALWAYS include the Hebrew verbatim text when quoting a pasuk. The Hebrew is the canonical anchor; English is optional gloss.
@@ -3066,7 +3093,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'global',
       dependencies: [],
-      defHash: 'pesukim.tanach-context-v5', cacheVersion: '5',
+      defHash: 'pesukim.tanach-context-v6', cacheVersion: '6',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -3077,7 +3104,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', 'commentaries'],
-      defHash: 'pesukim.exegesis-v6', cacheVersion: '6',
+      defHash: 'pesukim.exegesis-v7', cacheVersion: '7',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -3094,7 +3121,7 @@ CODE_ENRICHMENTS.push(
         { mark: 'rabbi' },
         { mark: 'pesukim' },
       ],
-      defHash: 'pesukim.synthesis-v8', cacheVersion: '8',
+      defHash: 'pesukim.synthesis-v9', cacheVersion: '9',
       // Pro instead of Flash: synthesis must follow the strict 4-5 sentence
       // structure and avoid the explicit banned-phrase list. Flash skims
       // multi-rule prompts (the same reason argument-move.qa runs on Pro);
@@ -3116,7 +3143,7 @@ CODE_ENRICHMENTS.push(
         { mark: 'pesukim' },
         { enrichment: 'pesukim.synthesis' },
       ],
-      defHash: 'pesukim.suggested-questions-v1', cacheVersion: '1',
+      defHash: 'pesukim.suggested-questions-v2', cacheVersion: '2',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -3134,7 +3161,7 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'pesukim.synthesis' },
         { mark: 'pesukim' },
       ],
-      defHash: 'pesukim.qa-v1', cacheVersion: '1',
+      defHash: 'pesukim.qa-v2', cacheVersion: '2',
       model: ARGUMENT_PRO_MODEL,
     },
   ),
