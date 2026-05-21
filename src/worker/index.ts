@@ -2014,6 +2014,56 @@ async function makeRunId(body: JobMessage): Promise<string> {
 }
 
 /**
+ * Ring buffer of recent enrichment-queue job failures. Captures the full
+ * error message + context that the `job:{runId}` record drops after 1h, so
+ * postmortems past the panel's display window are possible without scraping
+ * Cloudflare observability. Distinct from `telemetry:v1:recent` (which stores
+ * classified error_kind, not the raw message, and is for usage rollups).
+ *
+ *   recent-errors:v1  →  RecentJobError[] (cap 200, TTL 30d)
+ */
+interface RecentJobError {
+  ts: number;
+  runId: string;
+  kind: 'mark' | 'enrichment' | 'ad_hoc';
+  id?: string;
+  tractate: string;
+  page: string;
+  error: string;
+  totalMs: number;
+  /** Producer→consumer queue latency in ms, extracted from the unix-seconds
+   *  timestamp embedded in runId by makeRunId. */
+  queueWaitMs?: number;
+}
+
+const RECENT_ERRORS_KEY = 'recent-errors:v1';
+const RECENT_ERRORS_CAP = 200;
+const RECENT_ERRORS_TTL = 60 * 60 * 24 * 30;
+
+function enqueueTsFromRunId(runId: string): number | undefined {
+  const m = runId.match(/:(\d{8,})$/);
+  return m ? parseInt(m[1], 10) * 1000 : undefined;
+}
+
+async function recordRecentJobError(
+  env: Bindings,
+  rec: Omit<RecentJobError, 'ts'>,
+): Promise<void> {
+  const cache = env.CACHE;
+  if (!cache) return;
+  try {
+    const existing = await cache.get(RECENT_ERRORS_KEY);
+    const arr = existing ? (JSON.parse(existing) as RecentJobError[]) : [];
+    arr.push({ ts: Date.now(), ...rec });
+    while (arr.length > RECENT_ERRORS_CAP) arr.shift();
+    await cache.put(RECENT_ERRORS_KEY, JSON.stringify(arr), { expirationTtl: RECENT_ERRORS_TTL });
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn('[recent-errors] KV write failed:', String(err));
+  }
+}
+
+/**
  * POST /api/studio/run — async producer.
  *
  * 1. Validate body.
@@ -2095,6 +2145,31 @@ app.get('/api/studio/run-status/:runId', async (c) => {
   } catch {
     return c.json({ status: 'error', error: 'corrupt job record' }, 500);
   }
+});
+
+/**
+ * GET /api/admin/recent-errors — read the queue-failure ring buffer. Returns
+ * up to RECENT_ERRORS_CAP entries, newest last. Optional `?limit=N` truncates;
+ * `?id=places` filters by mark/enrichment id; `?tractate=Pesachim` filters
+ * by tractate.
+ */
+app.get('/api/admin/recent-errors', async (c) => {
+  const cache = c.env.CACHE;
+  if (!cache) return c.json({ error: 'CACHE binding not available' }, 503);
+  const raw = await cache.get(RECENT_ERRORS_KEY);
+  let arr: RecentJobError[] = [];
+  if (raw) {
+    try { arr = JSON.parse(raw) as RecentJobError[]; }
+    catch { return c.json({ error: 'corrupt buffer' }, 500); }
+  }
+  const idFilter = c.req.query('id');
+  const tractateFilter = c.req.query('tractate');
+  let out = arr;
+  if (idFilter) out = out.filter((e) => e.id === idFilter);
+  if (tractateFilter) out = out.filter((e) => e.tractate === tractateFilter);
+  const limit = Math.min(parseInt(c.req.query('limit') ?? '200', 10) || 200, RECENT_ERRORS_CAP);
+  if (out.length > limit) out = out.slice(out.length - limit);
+  return c.json({ count: out.length, errors: out });
 });
 
 app.get('/api/admin/warm-status', async (c) => {
@@ -6264,10 +6339,25 @@ async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: Executi
       result: { kind: 'enrichment', ...result, definition: def, total_ms: Date.now() - t0 },
     });
   } catch (err) {
+    const errorMsg = String((err as Error)?.message ?? err);
+    const totalMs = Date.now() - t0;
+    // eslint-disable-next-line no-console
+    console.error('[queue] job failed', job.runId, '·', job.mark_id ?? job.enrichment_id ?? 'adhoc', job.tractate, job.page, '·', errorMsg.slice(0, 500));
     await writeResult({
       status: 'error',
-      error: String((err as Error)?.message ?? err),
-      total_ms: Date.now() - t0,
+      error: errorMsg,
+      total_ms: totalMs,
+    });
+    const enqueueTs = enqueueTsFromRunId(job.runId);
+    await recordRecentJobError(env, {
+      runId: job.runId,
+      kind: job.mark_id ? 'mark' : job.enrichment_id ? 'enrichment' : 'ad_hoc',
+      id: job.mark_id ?? job.enrichment_id,
+      tractate: job.tractate,
+      page: job.page,
+      error: errorMsg.slice(0, 1000),
+      totalMs,
+      ...(enqueueTs ? { queueWaitMs: t0 - enqueueTs } : {}),
     });
   }
 }
@@ -6297,6 +6387,19 @@ export default {
         // Network / KV blip — let the runtime retry once (max_retries=1).
         // eslint-disable-next-line no-console
         console.error('[queue] processEnrichmentJob threw:', err);
+        const body = msg.body;
+        const errorMsg = String((err as Error)?.message ?? err);
+        const enqueueTs = enqueueTsFromRunId(body.runId);
+        await recordRecentJobError(env, {
+          runId: body.runId,
+          kind: body.mark_id ? 'mark' : body.enrichment_id ? 'enrichment' : 'ad_hoc',
+          id: body.mark_id ?? body.enrichment_id,
+          tractate: body.tractate,
+          page: body.page,
+          error: `[outer] ${errorMsg}`.slice(0, 1000),
+          totalMs: 0,
+          ...(enqueueTs ? { queueWaitMs: Date.now() - enqueueTs } : {}),
+        });
         msg.retry();
       }
     }
