@@ -2834,39 +2834,30 @@ const PESUKIM_EXEGESIS_OUTPUT_SCHEMA = {
   },
 };
 
-const PESUKIM_SYNTHESIS_SYSTEM_PROMPT = `You are a scholar of Talmud and Tanach. Given ONE pasuk citation on a daf along with its Tanach context and the gemara's exegetical use, compose ONE substantive paragraph that teaches the learner what's actually going on — not a summary of the leaves, but a concrete reading that ties verse to sugya.
+const PESUKIM_SYNTHESIS_SYSTEM_PROMPT = `You are a scholar of Talmud and Tanach. Given ONE pasuk citation on a daf along with its Tanach context and the gemara's exegetical use, output FOUR short labeled sections that teach the learner what's actually going on.
 
-A learner reading this paragraph should walk away knowing:
-  (a) WHERE the pasuk sits in Tanach — who is speaking, to whom, in what parsha, and what surrounds it,
-  (b) WHAT local question or move on the daf prompts the gemara to reach for THIS verse,
-  (c) the precise MECHANISM — the named midah, the word-order argument, the asmakhta, etc.,
-  (d) what halacha or claim the citation LANDS.
+The output is NOT one paragraph. It is FOUR separate fields, each rendered as its own small labeled section in the UI (the same shape halacha leaf cards use). Each field is 1-2 sentences. No field repeats another field's content. No field stacks two components together.
 
 Output STRICT JSON only:
 
 {
-  "synthesis": "ONE paragraph, exactly 4-5 sentences, ~22-30 words each. One sentence per component below. NO sentence may stack two components. Cover IN ORDER:
+  "tanach_context": "1-2 sentences. WHERE the pasuk sits in Tanach. Name the speaker (e.g. 'Moshe Rabbeinu', 'Hashem to Moshe', 'Yeshayahu to King Achaz'), the parsha or section (e.g. 'in the parsha of krias shema in Va\\'etchanan', 'inside the tochechah of Devarim 28', 'from the Aseret HaDibrot'), and the immediate textual neighborhood (e.g. 'sits between the obligation to love Hashem (Devarim 6:5) and the mitzvah of tefillin (Devarim 6:8)'). Quote the load-bearing Hebrew phrase verbatim. This field is MANDATORY — never leave it empty.",
 
-  SENTENCE 1 — TANACH ORIENTATION (MANDATORY, NEVER SKIP). Name the speaker (e.g. 'Moshe Rabbeinu', 'Hashem to Moshe', 'Yeshayahu to King Achaz'), the parsha or section (e.g. 'in the parsha of krias shema in Va\\'etchanan', 'inside the tochechah of Devarim 28', 'from the Aseret HaDibrot'), and the immediate textual neighborhood (e.g. 'sandwiched between the obligation to love Hashem and the mitzvah of tefillin'). Quote the load-bearing Hebrew phrase verbatim.
+  "why_here": "1-2 sentences. The concrete local question on the daf that drives the citation. Not 'the gemara is discussing X' — instead 'the Mishnah orders evening Shema before morning, which inverts the usual day order, so the gemara needs a textual anchor for that sequence.' Be specific about what's being defended, attacked, or derived.",
 
-  SENTENCE 2 — PROMPTING ISSUE. The concrete local question on the daf that drives the citation. Not 'the gemara discusses X' — instead 'the Mishnah orders evening Shema before morning, which inverts the usual day order, so the gemara needs a textual anchor for that ordering.'
+  "mechanism": "1-2 sentences. The exact exegetical or rhetorical move. When the gemara invokes a named midah (גזירה שווה, היקש, קל וחומר, ריבוי ומיעוט, כלל ופרט, אסמכתא, דבר הלמד מעניינו, etc.), NAME IT with the Hebrew in parens, and say what word/phrase/juxtaposition the derivation hinges on. If it's plain proof (no formal derivation), say so explicitly and explain why this verse is the right anchor (e.g. 'plain word-order proof — the verse itself lists שכיבה before קימה').",
 
-  SENTENCE 3 — MECHANISM. When the gemara invokes a named midah (גזירה שווה, היקש, קל וחומר, ריבוי ומיעוט, כלל ופרט, אסמכתא, דבר הלמד מעניינו, etc.), NAME IT EXPLICITLY with the Hebrew in parens, and say in plain English what word/phrase/juxtaposition the derivation hinges on. If plain proof (no formal derivation), say so explicitly and explain why this verse is the right anchor (e.g. 'plain word-order proof — the verse lists שכיבה before קימה').
-
-  SENTENCE 4 — LANDING. The halacha or claim the citation establishes. Name a rabbi tied to the citation when one is on the daf.
-
-  OPTIONAL SENTENCE 5 — only if a SECOND distinct argumentative move follows on the daf (e.g. a counter-cite, an immediate objection that the citation answers). Otherwise stop at 4 sentences.
-  "
+  "landing": "1 sentence. The halacha or claim the citation establishes. Name a rabbi tied to the citation when one is on the daf. Be CONCRETE — what does the gemara conclude? Avoid abstractions like 'establishes the structure'."
 }
 
 HARD RULES:
-- Exactly 4-5 sentences. Each sentence is its own COMPONENT — no run-on stacking.
-- SENTENCE 1 is MANDATORY and must orient the learner in Tanach (speaker + parsha/section + neighborhood). Skipping it is the most common failure — do not skip it.
+- Each field is 1-2 sentences. No field is a paragraph.
+- Each field is independently complete — a reader scanning only one field gets one clean idea.
+- NO repetition across fields. If you said it in tanach_context, do NOT say it again in landing.
 - Quote Hebrew verbatim when the precise wording carries the proof. The {{pasuk_he}} field has the focal pasuk; quote from THAT.
 - When a named midah is invoked, name it explicitly with Hebrew in parens.
-- NO repetition. If you said 'the Mishnah follows the verse's order' once, do NOT say 'the verse's order is the foundational justification' as a separate sentence. One claim, one sentence.
 
-FORBIDDEN PHRASES (rejected if present):
+FORBIDDEN PHRASES (rejected if present in ANY field):
   - "anchors", "anchors the structure", "anchors the sugya"
   - "foundational justification", "the foundational"
   - "this teaches us", "we see that", "this explains why"
@@ -2874,21 +2865,17 @@ FORBIDDEN PHRASES (rejected if present):
   - "lens", "captures", "embodies"
   - "the citation thus establishes" — instead say WHAT the halacha actually is
 
-EXAMPLE OF THE FAILURE MODE TO AVOID
-(taken verbatim from a real bad output for Berakhot 2a's citation of Devarim 6:7):
+EXAMPLE (Devarim 6:7 cited on Berakhot 2a):
 
-  BAD: "The gemara on Berakhot 2a opens by questioning why the Mishnah begins with the evening Shema before the morning. The Tanna stands on the pasuk Devarim 6:7, which says 'ובשכבך ובקומך', and the verse places lying down before rising, so the Mishnah follows that order. This is a plain reading, not a formal midah. The citation establishes that Shema applies twice daily, evening and morning, and the Mishnah's opening with evening is dictated by the Torah's phrasing. The verse's order remains the foundational justification for the sugya's structure."
+  tanach_context: "Moshe Rabbeinu, in the parsha of krias shema in Va\\'etchanan, commands Israel to speak of these words 'ובשכבך ובקומך' (when you lie down and when you rise). The pasuk sits between the obligation to love Hashem (Devarim 6:5) and the mitzvah of tefillin (Devarim 6:8) — part of the second paragraph of Shema."
 
-  WHY IT FAILS:
-   • No Tanach orientation at all — never names Moshe Rabbeinu, never mentions Va\\'etchanan or krias shema, never says what's around the pasuk (v'ahavta before it, tefillin after).
-   • The last two sentences SAY THE SAME THING — both claim the verse dictates the Mishnah's order.
-   • Uses the banned phrase "foundational justification for the sugya's structure".
-   • Uses the banned phrase "the citation establishes that".
+  why_here: "The opening Mishnah names the evening Shema before the morning, which inverts the usual day-ordering. The gemara needs a textual reason to defend why the Tanna lists evening first."
 
-  GOOD (for the same citation):
-   "Moshe Rabbeinu, in the parsha of krias shema in Va\\'etchanan, commands Israel to speak of these words 'ובשכבך ובקומך' (when you lie down and when you rise) — the pasuk sits between the obligation to love Hashem (Devarim 6:5) and the mitzvah of tefillin (Devarim 6:8). The opening Mishnah names the evening Shema before the morning, which inverts the usual day-ordering, so the gemara needs a textual reason to defend that sequence. The proof is plain word-order, not a formal midah — the verse itself lists שכיבה before קימה, so the Tanna is reading the Mishnah's sequence straight off the pasuk's own phrasing. From this the gemara derives that the obligation to recite Shema applies twice daily, evening first, morning second — the Mishnah's structure follows Torah's own ordering rather than chronological intuition."
+  mechanism: "Plain word-order proof, not a formal midah — the verse itself lists שכיבה before קימה, so the Tanna is reading the Mishnah's sequence straight off the pasuk's phrasing. No derivation method is invoked; the verse's surface order IS the proof."
 
-  Notice how the GOOD version: (1) orients you in Tanach before touching the daf, (2) names the prompting issue concretely, (3) explicitly says 'plain word-order, not a formal midah', (4) lands a concrete halacha, (5) never repeats itself, (6) avoids every forbidden phrase.
+  landing: "The obligation to recite Shema applies twice daily, evening first and morning second, because the Mishnah's order follows the Torah's own phrasing rather than chronological intuition."
+
+  Notice: (a) each field is short and self-contained, (b) tanach_context orients in Tanach before the daf is even mentioned, (c) mechanism is explicit about 'plain word-order, not a formal midah', (d) landing names a concrete halacha, (e) no field repeats another, (f) no forbidden phrases.
 
 - NO jargon: write "transmitter" not "tradent", "interpret" not "exegete".
 
@@ -2917,7 +2904,7 @@ Hebrew source of the daf:
 Rabbis identified on the daf:
 {{anchors.rabbi}}
 
-Compose ONE tight paragraph per the schema.`;
+Fill the four labeled fields per the schema. Each is 1-2 sentences — no field is a paragraph.`;
 
 const PESUKIM_SYNTHESIS_OUTPUT_SCHEMA = {
   name: 'pesukim_synthesis',
@@ -2925,8 +2912,13 @@ const PESUKIM_SYNTHESIS_OUTPUT_SCHEMA = {
   schema: {
     type: 'object',
     additionalProperties: false,
-    required: ['synthesis'],
-    properties: { synthesis: { type: 'string' } },
+    required: ['tanach_context', 'why_here', 'mechanism', 'landing'],
+    properties: {
+      tanach_context: { type: 'string' },
+      why_here: { type: 'string' },
+      mechanism: { type: 'string' },
+      landing: { type: 'string' },
+    },
   },
 };
 
@@ -3124,7 +3116,7 @@ CODE_ENRICHMENTS.push(
         { mark: 'rabbi' },
         { mark: 'pesukim' },
       ],
-      defHash: 'pesukim.synthesis-v9', cacheVersion: '9',
+      defHash: 'pesukim.synthesis-v10', cacheVersion: '10',
       // Pro instead of Flash: synthesis must follow the strict 4-5 sentence
       // structure and avoid the explicit banned-phrase list. Flash skims
       // multi-rule prompts (the same reason argument-move.qa runs on Pro);

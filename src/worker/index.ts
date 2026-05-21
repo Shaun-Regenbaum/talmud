@@ -1915,7 +1915,14 @@ async function runEnrichmentOnce(
   // ARE used to gate cache writes so bad outputs don't get pinned.
   let lint_issues: unknown[] | undefined;
   if (def.id === 'pesukim.synthesis' && parsed && !parse_error) {
-    const synth = (parsed as { synthesis?: string }).synthesis ?? '';
+    // Synthesis now emits four labeled fields (tanach_context / why_here /
+    // mechanism / landing) instead of a single `synthesis` blob. Concatenate
+    // them so the linter sees the full body. Falls back to the legacy single
+    // field for any older cached payloads still in flight.
+    const p = parsed as Partial<Record<'tanach_context' | 'why_here' | 'mechanism' | 'landing' | 'synthesis', string>>;
+    const synth = [p.tanach_context, p.why_here, p.mechanism, p.landing]
+      .filter((s): s is string => typeof s === 'string' && s.length > 0)
+      .join('\n\n') || (p.synthesis ?? '');
     const issues = lintSynthesis(synth);
     if (issues.length > 0) lint_issues = issues;
   }
