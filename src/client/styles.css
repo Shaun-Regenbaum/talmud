@@ -268,10 +268,11 @@ body.dev-shelf-open .daf-page {
     max-height: none !important;
     overflow: visible !important;
   }
-  /* Native pan + pinch-zoom on the daf container in select mode (default).
-     The traditional Tzurat HaDaf renders at full 520px width on phones (the
+  /* Native pan + pinch-zoom on the daf container regardless of mode. The
+     traditional Tzurat HaDaf renders at full 520px width on phones (the
      layout is sacred — see DafViewer dafWidth), so the surface scrolls
-     horizontally when the viewport is narrower. */
+     horizontally when the viewport is narrower. Multi-word translation
+     relies on the OS's native long-press selection handles. */
   .daf-surface {
     touch-action: pan-x pan-y pinch-zoom;
     overflow-x: auto;
@@ -282,23 +283,6 @@ body.dev-shelf-open .daf-page {
        centering hides the leading edge out of reach. Anchor to start so
        users can pan both directions. */
     justify-content: flex-start !important;
-  }
-  /* Translate mode reserves horizontal touch motion for our drag-across-words
-     phrase selector (DafViewer onTouch* handlers). Vertical pan and pinch-zoom
-     still work natively; users can scroll horizontally by switching to Select
-     mode or pinch-zooming. */
-  body[data-mobile-mode="translate"] .daf-surface {
-    touch-action: pan-y pinch-zoom;
-  }
-  /* Suppress the iOS long-press selection menu in translate mode so the blue
-     handles don't fight the tap-to-translate / drag-to-translate flow. */
-  body[data-mobile-mode="translate"] .daf-word,
-  body[data-mobile-mode="translate"] .daf-text,
-  body[data-mobile-mode="translate"] .rashi-script,
-  body[data-mobile-mode="translate"] .hebrew {
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-touch-callout: none;
   }
   /* The body column wraps the surface — keep its overflow visible so
      gutter icons that bleed past the daf edge aren't clipped. */
