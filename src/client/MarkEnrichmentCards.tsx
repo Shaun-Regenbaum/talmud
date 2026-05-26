@@ -21,8 +21,12 @@ import { createResource, createSignal, createEffect, onCleanup, untrack, For, Sh
 import { Portal } from 'solid-js/web';
 import { HebraizedWithRabbis as Hebraized } from './rabbiLinks';
 import { devModeActive } from './DevModeShelf';
-import { trackAI, queueActivity } from './aiActivity';
+import { trackAI } from './aiActivity';
 import InstanceInspectorShelf from './InstanceInspectorShelf';
+import {
+  RequestQueue, QUEUE_PRIORITY, runResultCache, runCacheKey, isAbort,
+  type RunResult,
+} from './enrichmentQueue';
 
 // Single global "which card has the inspector open?" signal — keyed by the
 // card's instanceKey. Only one drawer at a time across the whole page.
@@ -42,27 +46,6 @@ interface EnrichmentDef {
 }
 
 
-interface RunResult {
-  content: string;
-  parsed: unknown;
-  parse_error: string | null;
-  model: string;
-  total_ms: number;
-  usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number; cost?: number } | null;
-  transport?: string;
-  attempts?: number;
-  elapsed_ms?: number;
-  resolved?: { system_prompt: string; user_prompt: string };
-  /** Aggregate-only: parsed output of each dep enrichment, keyed by dep id.
-   *  Lets the client surface leaves in the inspector without a second
-   *  round-trip. */
-  deps_resolved?: Record<string, unknown>;
-  /** Aggregate-only: parsed output of each dep MARK (e.g. `{ mark: 'rabbi' }`
-   *  → instances list under the 'rabbi' key). Same fetch as deps_resolved;
-   *  surfaced so a sidebar can render mark-specific UI without re-fetching. */
-  anchors_resolved?: Record<string, unknown>;
-}
-
 type RunState =
   | { kind: 'idle' }
   | { kind: 'loading'; stamp: string }
@@ -74,27 +57,6 @@ async function fetchEnrichments(): Promise<EnrichmentDef[]> {
   if (!r.ok) return [];
   const j = await r.json() as { enrichments: EnrichmentDef[] };
   return j.enrichments;
-}
-
-// Client-side memo of completed enrichment runs, keyed by
-// enrichmentId:tractate:page:instanceKey. The server already caches in KV,
-// but every sidebar mount otherwise re-POSTs /api/studio/run and waits behind
-// the shared queue — so re-opening an anchor (or the second/third click on a
-// page) showed a spinner even though the result was already known. With this
-// memo a re-click renders instantly and never touches the queue at all.
-// Within a session, instanceKey ↔ mark_input is stable per (tractate, page),
-// so this is safe. Cleared wholesale on `marks-runs-invalidate` (model/prompt
-// changes) and on full reload.
-const runResultCache = new Map<string, RunResult>();
-function runCacheKey(enrichmentId: string, tractate: string, page: string, instanceKey: string): string {
-  return `${enrichmentId}:${tractate}:${page}:${instanceKey}`;
-}
-if (typeof window !== 'undefined') {
-  window.addEventListener('marks-runs-invalidate', () => runResultCache.clear());
-}
-
-function isAbort(err: unknown): boolean {
-  return (err as { name?: string } | null)?.name === 'AbortError';
 }
 
 // Worker's run endpoint returns one of:
@@ -209,70 +171,6 @@ async function pollJob(runId: string, cacheKey?: string, signal?: AbortSignal): 
     }
   }
   throw new Error(`job ${runId} timed out after ${POLL_TIMEOUT_MS / 1000}s`);
-}
-
-// Queue priority tiers (lower = drains first). A user opening an anchor must
-// not wait behind speculative work: background prefetch (LOW) and
-// scroll-deferred move cards (NORMAL) yield to the synthesis the user just
-// clicked (HIGH). Within a tier, ties break FIFO so ordering stays stable.
-export const QUEUE_PRIORITY = { high: 0, normal: 1, low: 2 } as const;
-type QueuePriority = (typeof QUEUE_PRIORITY)[keyof typeof QUEUE_PRIORITY];
-
-// Shared priority queue with bounded concurrency so opening one section that
-// mounts many move cards doesn't barrage `/api/studio/run` in parallel
-// (workerd dies on the simultaneous fan-out + 30k-char prompts; see
-// 2026-05-07 incident). KV cache hits still go through the queue but resolve
-// fast, so there's no penalty once a section has been opened before.
-interface QueueItem { run: () => void; priority: number; seq: number }
-class RequestQueue {
-  private queue: QueueItem[] = [];
-  private active = 0;
-  private seq = 0;
-  constructor(private readonly concurrency: number) {}
-  // `activityId` + `activityLabel` are reported to the shared activity
-  // store as a `queued` entry the instant the task is pushed onto the
-  // queue. When pump() finally invokes the task, trackAI() inside the work
-  // function promotes the same id to `loading`. If a slot is free
-  // immediately (active < concurrency), the queued state is set then
-  // overwritten on the same tick — that's fine; the panel just never
-  // shows a flash of "queued" for fast-path enqueues.
-  enqueue<T>(
-    activityId: string,
-    activityLabel: string,
-    task: (signal: AbortSignal) => Promise<T>,
-    signal?: AbortSignal,
-    priority: QueuePriority = QUEUE_PRIORITY.normal,
-  ): Promise<T> {
-    queueActivity(activityId, activityLabel);
-    return new Promise((resolve, reject) => {
-      const run = () => {
-        // Dropped while still waiting for a slot (sidebar closed, anchor
-        // switched, daf changed). Reject without burning a concurrency slot
-        // so the queue keeps draining for the current daf.
-        if (signal?.aborted) { reject(new DOMException('Aborted', 'AbortError')); return; }
-        this.active++;
-        task(signal ?? new AbortController().signal).then(
-          (v) => { this.active--; this.pump(); resolve(v); },
-          (e) => { this.active--; this.pump(); reject(e); },
-        );
-      };
-      this.queue.push({ run, priority, seq: this.seq++ });
-      this.pump();
-    });
-  }
-  private pump() {
-    while (this.active < this.concurrency && this.queue.length > 0) {
-      // Pick the highest-priority (lowest tier, then lowest seq) waiting task.
-      let bestIdx = 0;
-      for (let i = 1; i < this.queue.length; i++) {
-        const a = this.queue[i];
-        const b = this.queue[bestIdx];
-        if (a.priority < b.priority || (a.priority === b.priority && a.seq < b.seq)) bestIdx = i;
-      }
-      const next = this.queue.splice(bestIdx, 1)[0];
-      next.run();
-    }
-  }
 }
 
 // Server max_concurrency=10 on the enrichment queue, so client can dispatch
