@@ -165,4 +165,18 @@ export function prefetchDaf(
         });
       });
   }
+
+  // Reverse-index capture (rabbi.observations) — one daf-level run, fired LAST
+  // and deliberately NOT counted in the visible progress bar: it's an internal
+  // deterministic collect step, not a card the reader opens. Enqueued after the
+  // synthesis tasks so it sits at the back of the LOW queue and runs once they
+  // (incl. rabbi.location, which it reads from cache for the high-confidence
+  // place tier) have landed. Correctness doesn't depend on ordering — it pulls
+  // its mark deps in regardless. mark_input { id: 'daf' } shares the canonical
+  // daf-level cache key with the cron path. Only when the daf has rabbis.
+  const rabbiParsed = marks['rabbi']?.parsed as { instances?: MarkInstance[] } | undefined;
+  if (Array.isArray(rabbiParsed?.instances) && rabbiParsed.instances.length > 0) {
+    void enqueueEnrichmentRun('rabbi.observations', tractate, page, { id: 'daf' }, 'rabbi.observations:daf', controller.signal)
+      .catch(() => undefined);
+  }
 }

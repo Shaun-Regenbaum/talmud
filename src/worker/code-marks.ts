@@ -1410,6 +1410,39 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
       defHash: 'rabbi.location-v2', cacheVersion: '2',
     },
   ),
+  // rabbi.observations — DETERMINISTIC accumulation step. No LLM, no card.
+  // Runs LAST on a daf: it depends on the entity marks, so the resolver
+  // computes/reads them first, then a `def.id === 'rabbi.observations'`
+  // short-circuit in runEnrichmentOnce joins them by segment into per-rabbi
+  // observation slices (place / opinion / story / exegesis / lineage) and
+  // writes one KV slice per rabbi+daf (rabbi-obs:v1:{slug}:{tractate}:{page}).
+  // `computed` kind keeps it out of /api/studio/enrichments (that endpoint
+  // serves llm-kind only) so it never renders as a card; `draft` is belt-and-
+  // suspenders. This is the COLLECT half — nothing here promotes back into the
+  // canonical dataset or what users see. See src/worker/rabbi-observations.ts.
+  {
+    id: 'rabbi.observations',
+    label: 'Observations (accumulate)',
+    description: 'Deterministic reverse-index capture: per-rabbi place/opinion/story/exegesis/lineage observations for this daf, written to rabbi-obs:v1. No LLM, no card.',
+    category: 'internal',
+    target_mark: 'rabbi',
+    mode: 'aggregate',
+    scope: 'local',
+    dependencies: [
+      'gemara',
+      { mark: 'rabbi' },
+      { mark: 'places' },
+      { mark: 'aggadata' },
+      { mark: 'argument-move' },
+      { mark: 'pesukim' },
+    ],
+    extractor: { kind: 'computed', fn: 'rabbi.observations-join' },
+    status: 'draft',
+    def_hash: 'rabbi.observations-v1',
+    cache_version: '1',
+    source: 'code',
+    updated_at: NOW,
+  },
 ];
 
 // ---------------------------------------------------------------------------

@@ -16,6 +16,7 @@ import {
   getSefariaSegmentsCached,
 } from './source-cache';
 import { computeCacheStats, writeCachedCacheStats } from './cache-stats';
+import type { JobMessage } from './index';
 
 const CURSOR_KEY = 'warm-cursor:v1';
 const SEFARIA_CURSOR_KEY = 'warm-cursor-sefaria:v1';
@@ -45,6 +46,13 @@ export interface EmailBinding {
 export interface WarmEnv {
   CACHE?: KVNamespace;
   EMAIL?: EmailBinding;
+  ENRICHMENT_QUEUE?: Queue<JobMessage>;
+  /** When '1', the Sefaria Shas walk also enqueues rabbi.observations per amud
+   *  so the per-rabbi reverse index backfills across all of Shas. OFF by
+   *  default: it forces every entity mark (incl. the expensive argument-move
+   *  fan-out + pesukim) to extract across the whole shas. Set via wrangler.toml
+   *  [vars] once you're ready to pay for the backfill. */
+  OBSERVATIONS_WARM_SHAS?: string;
 }
 
 export function getWarmTotal(): number {
@@ -241,6 +249,19 @@ async function runSefariaPhase(env: WarmEnv): Promise<void> {
     if (didFetch) {
       fetched++;
       await new Promise((r) => setTimeout(r, FETCH_SLEEP_MS));
+    }
+
+    // Optional reverse-index backfill (gated). Enqueues one rabbi.observations
+    // job for this amud; it computes/reads the entity marks via dependency
+    // resolution and writes the per-rabbi slices. OFF unless OBSERVATIONS_WARM_SHAS='1'.
+    if (env.OBSERVATIONS_WARM_SHAS === '1' && env.ENRICHMENT_QUEUE) {
+      const obsRunId = `rabbi.observations:${tractate}:${amud}:daf:noq:cached:${Math.floor(Date.now() / 1000)}`
+        .replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
+      const obsJob: JobMessage = { runId: obsRunId, enrichment_id: 'rabbi.observations', mark_input: { id: 'daf' }, tractate, page: amud };
+      await env.ENRICHMENT_QUEUE.send(obsJob).catch((e) => {
+        // eslint-disable-next-line no-console
+        console.error(`[warm-cron] enqueue rabbi.observations ${tractate}/${amud} failed:`, e);
+      });
     }
 
     amudIdx++;
