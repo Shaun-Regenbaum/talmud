@@ -211,20 +211,27 @@ async function pollJob(runId: string, cacheKey?: string, signal?: AbortSignal): 
   throw new Error(`job ${runId} timed out after ${POLL_TIMEOUT_MS / 1000}s`);
 }
 
-// Shared FIFO queue with bounded concurrency so opening one section that
+// Queue priority tiers (lower = drains first). A user opening an anchor must
+// not wait behind speculative work: background prefetch (LOW) and
+// scroll-deferred move cards (NORMAL) yield to the synthesis the user just
+// clicked (HIGH). Within a tier, ties break FIFO so ordering stays stable.
+export const QUEUE_PRIORITY = { high: 0, normal: 1, low: 2 } as const;
+type QueuePriority = (typeof QUEUE_PRIORITY)[keyof typeof QUEUE_PRIORITY];
+
+// Shared priority queue with bounded concurrency so opening one section that
 // mounts many move cards doesn't barrage `/api/studio/run` in parallel
 // (workerd dies on the simultaneous fan-out + 30k-char prompts; see
-// 2026-05-07 incident). Aggregates fire first, then per-move syntheses
-// drain in order so cards fill in top-to-bottom as the user reads. KV cache
-// hits still go through the queue but resolve fast, so there's no penalty
-// once a section has been opened before.
+// 2026-05-07 incident). KV cache hits still go through the queue but resolve
+// fast, so there's no penalty once a section has been opened before.
+interface QueueItem { run: () => void; priority: number; seq: number }
 class RequestQueue {
-  private queue: Array<() => void> = [];
+  private queue: QueueItem[] = [];
   private active = 0;
+  private seq = 0;
   constructor(private readonly concurrency: number) {}
   // `activityId` + `activityLabel` are reported to the shared activity
   // store as a `queued` entry the instant the task is pushed onto the
-  // FIFO. When pump() finally invokes the task, trackAI() inside the work
+  // queue. When pump() finally invokes the task, trackAI() inside the work
   // function promotes the same id to `loading`. If a slot is free
   // immediately (active < concurrency), the queued state is set then
   // overwritten on the same tick — that's fine; the panel just never
@@ -234,6 +241,7 @@ class RequestQueue {
     activityLabel: string,
     task: (signal: AbortSignal) => Promise<T>,
     signal?: AbortSignal,
+    priority: QueuePriority = QUEUE_PRIORITY.normal,
   ): Promise<T> {
     queueActivity(activityId, activityLabel);
     return new Promise((resolve, reject) => {
@@ -248,14 +256,21 @@ class RequestQueue {
           (e) => { this.active--; this.pump(); reject(e); },
         );
       };
-      this.queue.push(run);
+      this.queue.push({ run, priority, seq: this.seq++ });
       this.pump();
     });
   }
   private pump() {
     while (this.active < this.concurrency && this.queue.length > 0) {
-      const next = this.queue.shift()!;
-      next();
+      // Pick the highest-priority (lowest tier, then lowest seq) waiting task.
+      let bestIdx = 0;
+      for (let i = 1; i < this.queue.length; i++) {
+        const a = this.queue[i];
+        const b = this.queue[bestIdx];
+        if (a.priority < b.priority || (a.priority === b.priority && a.seq < b.seq)) bestIdx = i;
+      }
+      const next = this.queue.splice(bestIdx, 1)[0];
+      next.run();
     }
   }
 }
@@ -267,11 +282,13 @@ class RequestQueue {
 const enrichmentQueue = new RequestQueue(4);
 
 /**
- * Enqueue one enrichment run on the shared FIFO from OUTSIDE this component
+ * Enqueue one enrichment run on the shared queue from OUTSIDE this component
  * (e.g. the daf-load prefetcher). Same queue + same activity tracking the
  * cards use, so prefetch and user-triggered work share one concurrency budget
  * and warm the same server-side cache — a later card mount for the same
  * (enrichment, instance) gets a fast KV hit instead of a cold generation.
+ * Enqueued at LOW priority so a user opening an anchor always drains ahead of
+ * speculative prefetch work.
  */
 export function enqueueEnrichmentRun(
   enrichmentId: string,
@@ -285,6 +302,7 @@ export function enqueueEnrichmentRun(
   return enrichmentQueue.enqueue(id, label, (sig) =>
     runEnrichment(enrichmentId, tractate, page, instance, instanceKey, sig),
     signal,
+    QUEUE_PRIORITY.low,
   );
 }
 
@@ -392,6 +410,13 @@ export default function MarkEnrichmentCards(props: Props) {
   // A per-run AbortController is aborted on cleanup (stamp change / unmount)
   // so a closed sidebar or switched anchor frees its concurrency slot
   // immediately instead of polling a pending job for up to 600s.
+  //
+  // Priority: the synthesis a user just opened jumps ahead of background
+  // prefetch (LOW). The exception is `argument-move` cards — an argument
+  // mounts 15-40 of them, scroll-deferred, so they're NORMAL (still above
+  // prefetch, but they don't starve the primary synthesis or another anchor
+  // the user opens next).
+  const cardPriority = props.markId === 'argument-move' ? QUEUE_PRIORITY.normal : QUEUE_PRIORITY.high;
   createEffect(() => {
     const list = matching();
     if (list.length === 0) return;
@@ -411,6 +436,7 @@ export default function MarkEnrichmentCards(props: Props) {
         void enrichmentQueue.enqueue(actId, actLabel, (sig) =>
           runEnrichment(d.id, props.tractate, props.page, props.instance, props.instanceKey, sig),
           controller.signal,
+          cardPriority,
         ).then(
           (result) => {
             runResultCache.set(runCacheKey(d.id, props.tractate, props.page, props.instanceKey), result);
