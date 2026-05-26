@@ -34,6 +34,7 @@ import DevModeShelf, { readDevMode, setDevModeActive } from './DevModeShelf';
 import type { GenerationId } from './generations';
 import { GENERATION_BY_ID } from './generations';
 import { resolveVoiceGroup, voiceGroupNames } from './voiceGroups';
+import { t } from './i18n';
 
 /** Normalize a rabbi name for fuzzy lookup: drop honorific prefixes, lower
  *  case, collapse whitespace. Mirrors rabbiLinks.normalizeRabbiName but
@@ -2401,7 +2402,7 @@ export default function DafViewer(): JSX.Element {
   return (
     <main class="daf-page" classList={{ 'daf-no-rabbi-underlines': !showGenMarkers() }}>
       <header class="daf-header" style={{ display: 'flex', 'align-items': 'center', 'justify-content': 'center', gap: '0.75rem', 'flex-wrap': 'wrap', 'margin-bottom': '1rem' }}>
-        <h1 style={{ margin: 0, 'font-size': '1.25rem' }}>Talmud</h1>
+        <h1 style={{ margin: 0, 'font-size': '1.25rem' }}>{t('app.title')}</h1>
 
         <select
           value={tractate()}
@@ -2434,7 +2435,7 @@ export default function DafViewer(): JSX.Element {
               border: 'none',
               'border-radius': '4px',
             }}
-            title="Toggle amud (side)"
+            title={t('header.amud.title')}
           >
             {pageAmud()}
           </button>
@@ -2444,7 +2445,7 @@ export default function DafViewer(): JSX.Element {
         <button
           onClick={goToYomi}
           disabled={yomiLoading()}
-          title={yomiError() ?? "Jump to today's Daf Yomi"}
+          title={yomiError() ?? t('header.todaysDaf.title')}
           style={{
             padding: '0.35rem 0.7rem',
             cursor: yomiLoading() ? 'wait' : 'pointer',
@@ -2457,18 +2458,23 @@ export default function DafViewer(): JSX.Element {
             opacity: yomiLoading() ? 0.7 : 1,
           }}
         >
-          {yomiLoading() ? 'Finding today’s daf…' : "Today's Daf"}
+          {yomiLoading() ? t('header.todaysDaf.finding') : t('header.todaysDaf')}
         </button>
 
         <span style={{ color: '#888', 'font-size': '0.85rem' }}>
-          {tractate()} {page()} · ← / → to navigate · click any word to translate
+          {tractate()} {page()} · {t('header.nav.hint')}
         </span>
 
         <button
           onClick={() => { const v = !devOpen(); setDevOpen(v); setDevModeActive(v); }}
-          title="Toggle dev sidebar (marks + console log)"
+          title={t('header.dev.title')}
           style={{
-            'margin-left': 'auto',
+            // Push to the inline-end edge, but reserve clearance for the
+            // fixed EN/HE TopBar toggle (inset-inline-end: 8px, ~80px wide)
+            // so it isn't hidden behind it. Logical props keep this correct
+            // when the chrome flips to RTL in Hebrew.
+            'margin-inline-start': 'auto',
+            'margin-inline-end': '92px',
             padding: '0.35rem 0.6rem',
             cursor: 'pointer',
             'font-size': '0.8rem',
@@ -2479,7 +2485,7 @@ export default function DafViewer(): JSX.Element {
             'border-radius': '4px',
           }}
         >
-          dev
+          {t('header.dev')}
         </button>
       </header>
 
@@ -2654,7 +2660,7 @@ export default function DafViewer(): JSX.Element {
           href="#usage"
           style={{ color: 'inherit', 'text-decoration': 'none', 'border-bottom': '1px dotted #bbb' }}
         >
-          Usage &amp; reports
+          {t('dev.usageReports')}
         </a>
         {' · '}
         <a
@@ -2669,7 +2675,7 @@ export default function DafViewer(): JSX.Element {
           }}
           style={{ color: 'inherit', 'text-decoration': 'none', 'border-bottom': '1px dotted #bbb' }}
         >
-          Alignment debug
+          {t('dev.alignmentDebug')}
         </a>
       </footer>
       </section>

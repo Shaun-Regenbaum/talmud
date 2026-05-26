@@ -11,6 +11,15 @@ import RabbiLineageTree, { type RelationshipsData, type RelationshipsEvidence } 
 import { type GeographyData, type GeographyEvidence } from './RabbiGeographyCard';
 import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeline';
 import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
+import { t } from './i18n';
+
+/** Translate an argument move-kind to the active language, falling back to the
+ *  raw kind string when the catalog has no entry. */
+function moveKindLabel(kind: string): string {
+  const key = `move.kind.${kind}`;
+  const v = t(key);
+  return v === key ? kind : v;
+}
 
 export interface RishonComment {
   work: string;
@@ -264,7 +273,7 @@ function ArgumentMoveCard(props: {
       <button
         type="button"
         onClick={toggleHighlight}
-        title={isActive() ? 'Click to clear highlight' : 'Click to highlight this move on the daf'}
+        title={isActive() ? t('move.highlight.clear') : t('move.highlight.set')}
         style={{
           all: 'unset',
           display: 'block',
@@ -281,14 +290,14 @@ function ArgumentMoveCard(props: {
           <span style={{
             'text-transform': 'uppercase', 'letter-spacing': '0.06em',
             'font-weight': 600, color: roleColor(),
-          }}>{f.role}</span>
+          }}>{moveKindLabel(f.role)}</span>
           <span style={{ color: '#999' }}>·</span>
           <span style={{ color: '#555' }}>{f.voice}</span>
           <span style={{ color: '#bbb', 'font-size': '0.65rem', 'font-family': 'ui-monospace, Menlo, monospace' }}>
             seg {props.move.startSegIdx === props.move.endSegIdx ? props.move.startSegIdx : `${props.move.startSegIdx}–${props.move.endSegIdx}`}
           </span>
           <Show when={isActive()}>
-            <span style={{ color: '#a16207', 'font-size': '0.65rem', 'margin-left': 'auto' }}>highlighted</span>
+            <span style={{ color: '#a16207', 'font-size': '0.65rem', 'margin-left': 'auto' }}>{t('move.highlighted')}</span>
           </Show>
         </div>
         <Show when={f.excerpt}>
@@ -305,7 +314,7 @@ function ArgumentMoveCard(props: {
           the highlight. */}
       <div
         onClick={toggleHighlight}
-        title={isActive() ? 'Click to clear highlight' : 'Click to highlight this move on the daf'}
+        title={isActive() ? t('move.highlight.clear') : t('move.highlight.set')}
         style={{ cursor: 'pointer' }}
       >
         <MarkEnrichmentCards
@@ -338,7 +347,7 @@ function ArgumentMoveCard(props: {
             return (
               <button
                 onClick={() => props.onPushRabbi(name)}
-                title={`Open ${name}`}
+                title={t('common.open', { name })}
                 style={{
                   border: '1px solid ' + (active() ? '#eab308' : '#d6d3d1'),
                   background: active() ? '#fef3c7' : '#fff',
@@ -496,7 +505,7 @@ function ArgumentBody(props: {
               'letter-spacing': '0.08em',
               color: '#999',
               'margin-bottom': '0.5rem',
-            }}>Moves</div>
+            }}>{t('argument.moves')}</div>
             <For each={moves()}>{(move) => (
               <ArgumentMoveCard
                 move={move}
@@ -1517,14 +1526,14 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
               'margin-bottom': '0.75rem',
             }}>
               <span style={{ 'font-size': '0.7rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.08em' }}>
-                {c().kind === 'argument' ? 'Argument'
-                  : c().kind === 'halacha' ? 'Practical Halacha'
-                  : c().kind === 'aggadata' ? 'Aggada'
-                  : c().kind === 'pesuk' ? 'Pasuk'
-                  : c().kind === 'place' ? 'Place'
-                  : c().kind === 'rishonim' ? 'Rishonim'
-                  : c().kind === 'voice-group' ? 'Voice'
-                  : 'Rabbi'}
+                {c().kind === 'argument' ? t('sidebar.kind.argument')
+                  : c().kind === 'halacha' ? t('sidebar.kind.halacha')
+                  : c().kind === 'aggadata' ? t('sidebar.kind.aggadata')
+                  : c().kind === 'pesuk' ? t('sidebar.kind.pesuk')
+                  : c().kind === 'place' ? t('sidebar.kind.place')
+                  : c().kind === 'rishonim' ? t('sidebar.kind.rishonim')
+                  : c().kind === 'voice-group' ? t('sidebar.kind.voice-group')
+                  : t('sidebar.kind.rabbi')}
                 {' · '}
                 {props.tractate} {props.page}
               </span>
@@ -1534,7 +1543,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                   background: 'transparent', border: 'none', cursor: 'pointer',
                   'font-size': '1.2rem', color: '#888', padding: '0.1rem 0.3rem',
                 }}
-                aria-label="Close"
+                aria-label={t('common.close')}
               >×</button>
             </header>
 

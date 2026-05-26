@@ -31,7 +31,7 @@ import { createSignal, createResource, For, Show, type JSX } from 'solid-js';
 import { Hebraized } from './Hebraized';
 import { hebraize } from './hebraize';
 import { trackAI } from './aiActivity';
-import { lang } from './i18n';
+import { lang, t } from './i18n';
 
 export interface QAPanelProps {
   /** Mark id — drives which `<mark>.suggested-questions` + `<mark>.qa`
@@ -358,7 +358,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
         aria-expanded={expanded()}
       >
         <span>{expanded() ? '−' : '+'}</span>
-        <span>Questions</span>
+        <span>{t('qa.questions')}</span>
       </button>
 
       <Show when={expanded()}>
@@ -459,7 +459,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
 
           <Show when={!suggested.loading && !registry.loading && combined().length === 0}>
             <div style={{ color: '#888', 'font-size': '0.78rem', 'font-style': 'italic' }}>
-              No suggested questions yet. Ask your own below.
+              {t('qa.empty')}
             </div>
           </Show>
 
@@ -501,7 +501,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
                 <textarea
                   value={askText()}
                   onInput={(e) => setAskText((e.currentTarget as HTMLTextAreaElement).value)}
-                  placeholder="Ask your own question about this move…"
+                  placeholder={t('qa.placeholder')}
                   rows={3}
                   style={{
                     width: '100%',
@@ -542,7 +542,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
                       'font-size': '0.78rem',
                     }}
                   >
-                    Submit
+                    {t('qa.submit')}
                   </button>
                   <button
                     type="button"
@@ -555,7 +555,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
                       'font-size': '0.78rem',
                     }}
                   >
-                    Cancel
+                    {t('qa.cancel')}
                   </button>
                 </div>
                 <Show when={suggested() || registry()}>
@@ -564,9 +564,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
                     'font-size': '0.7rem',
                     color: '#999',
                   }}>
-                    Your question will be answered with the move + commentaries
-                    as context. New questions are visible to future learners on
-                    this move — no personal info is recorded.
+                    {t('qa.privacy')}
                   </div>
                 </Show>
               </div>
@@ -588,7 +586,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
                 }}
               >
                 <span style={{ 'font-size': '0.9rem', color: '#999' }}>+</span>
-                <span>Ask your own question</span>
+                <span>{t('qa.askYourOwn')}</span>
               </button>
             </Show>
           </div>

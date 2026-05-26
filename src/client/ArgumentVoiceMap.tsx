@@ -21,6 +21,15 @@
  */
 
 import { For, Show, type JSX } from 'solid-js';
+import { t } from './i18n';
+
+/** Translate an argument-taxonomy role to the active language, falling back to
+ *  the raw role string when the catalog has no entry for it. */
+function roleLabel(role: string): string {
+  const key = `voice.role.${role}`;
+  const v = t(key);
+  return v === key ? role : v;
+}
 
 export interface ArgumentVoice {
   name: string;
@@ -87,15 +96,15 @@ const EDGE_NEUTRAL = '#666';
  *  Row ordering top→bottom: A, support-A, stam, support-B, B, C, unaligned. */
 function sideMeta(side: string): { rowOrder: number; label: string; color: string } {
   const s = (side ?? '').toLowerCase();
-  if (s === 'a') return { rowOrder: 0, label: 'Position A', color: COLOR_A };
-  if (s === 'support-a') return { rowOrder: 1, label: 'Supports A', color: COLOR_SUPPORT };
-  if (s === 'stam') return { rowOrder: 2, label: 'Stam', color: COLOR_STAM };
-  if (s === 'support-b') return { rowOrder: 3, label: 'Supports B', color: COLOR_SUPPORT };
-  if (s === 'b') return { rowOrder: 4, label: 'Position B', color: COLOR_B };
-  if (s === 'c') return { rowOrder: 5, label: 'Position C', color: COLOR_C };
-  if (s === 'unaligned') return { rowOrder: 6, label: 'Unaligned', color: COLOR_UNALIGNED };
+  if (s === 'a') return { rowOrder: 0, label: t('voices.position.a'), color: COLOR_A };
+  if (s === 'support-a') return { rowOrder: 1, label: t('voices.supportsA'), color: COLOR_SUPPORT };
+  if (s === 'stam') return { rowOrder: 2, label: t('voices.stam'), color: COLOR_STAM };
+  if (s === 'support-b') return { rowOrder: 3, label: t('voices.supportsB'), color: COLOR_SUPPORT };
+  if (s === 'b') return { rowOrder: 4, label: t('voices.position.b'), color: COLOR_B };
+  if (s === 'c') return { rowOrder: 5, label: t('voices.position.c'), color: COLOR_C };
+  if (s === 'unaligned') return { rowOrder: 6, label: t('voices.unaligned'), color: COLOR_UNALIGNED };
   // Unknown side: place at the bottom under its own label.
-  return { rowOrder: 7, label: side || 'Other', color: COLOR_UNALIGNED };
+  return { rowOrder: 7, label: side || t('voices.other'), color: COLOR_UNALIGNED };
 }
 
 /** Reuse RabbiLineageTree's compaction rule. Subject-less view, so every
@@ -262,7 +271,7 @@ export default function ArgumentVoiceMap(props: Props): JSX.Element {
           'letter-spacing': '0.08em',
           color: '#888',
           'margin-bottom': '0.5rem',
-        }}>Voices</div>
+        }}>{t('voices.title')}</div>
 
         {/* Pannable canvas: when the SVG is wider/taller than the sidebar
             slot, the wrapper scrolls in both axes. SVG renders at its
@@ -384,7 +393,7 @@ export default function ArgumentVoiceMap(props: Props): JSX.Element {
                     font-size="9"
                     font-family="system-ui, -apple-system, sans-serif"
                     fill="#888"
-                  >{n.role}</text>
+                  >{roleLabel(n.role)}</text>
                 </g>
               );
             }}</For>
@@ -400,15 +409,15 @@ export default function ArgumentVoiceMap(props: Props): JSX.Element {
         }}>
           <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.3rem' }}>
             <span style={{ display: 'inline-block', width: '14px', height: '0', 'border-top': `1.5px solid ${EDGE_SUPPORT}` }} />
-            supports / responds
+            {t('voices.legend.supports')}
           </span>
           <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.3rem' }}>
             <span style={{ display: 'inline-block', width: '14px', height: '0', 'border-top': `1.5px dashed ${EDGE_OPPOSE}` }} />
-            opposes
+            {t('voices.legend.opposes')}
           </span>
           <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.3rem' }}>
             <span style={{ display: 'inline-block', width: '14px', height: '0', 'border-top': `1.5px solid ${EDGE_NEUTRAL}` }} />
-            cites
+            {t('voices.legend.cites')}
           </span>
         </div>
       </div>

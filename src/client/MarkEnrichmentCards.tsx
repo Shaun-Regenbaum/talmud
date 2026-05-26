@@ -27,7 +27,7 @@ import {
   RequestQueue, QUEUE_PRIORITY, runResultCache, runCacheKey, isAbort,
   type RunResult,
 } from './enrichmentQueue';
-import { lang } from './i18n';
+import { lang, t } from './i18n';
 
 // Single global "which card has the inspector open?" signal — keyed by the
 // card's instanceKey. Only one drawer at a time across the whole page.
@@ -397,42 +397,42 @@ export default function MarkEnrichmentCards(props: Props) {
   const loadingCopy = (): string => {
     if (props.markId === 'rabbi') {
       const inst = props.instance as { name?: string } | null;
-      return inst?.name ? `Interviewing ${inst.name}…` : 'Interviewing the Rabbi…';
+      return inst?.name ? t('loading.rabbi.named', { name: inst.name }) : t('loading.rabbi');
     }
     if (props.markId === 'argument') {
       const inst = props.instance as { fields?: { title?: string } } | null;
       const title = inst?.fields?.title;
-      return title ? `Tracing the argument: ${title}…` : 'Tracing the argument…';
+      return title ? t('loading.argument.named', { title }) : t('loading.argument');
     }
     if (props.markId === 'argument-move') {
       const inst = props.instance as { fields?: { voice?: string } } | null;
       const voice = inst?.fields?.voice;
-      return voice ? `Listening to ${voice}…` : 'Tracing the flow…';
+      return voice ? t('loading.move.named', { voice }) : t('loading.move');
     }
     if (props.markId === 'halacha') {
       const inst = props.instance as { fields?: { title?: string; topic?: string } } | null;
       const title = inst?.fields?.title ?? inst?.fields?.topic;
-      return title ? `Asking a Rav about ${title}…` : 'Asking the Rav…';
+      return title ? t('loading.halacha.named', { title }) : t('loading.halacha');
     }
     if (props.markId === 'aggadata') {
       const inst = props.instance as { fields?: { title?: string } } | null;
       const title = inst?.fields?.title;
-      return title ? `Pondering ${title}…` : 'Wondering…';
+      return title ? t('loading.aggadata.named', { title }) : t('loading.aggadata');
     }
     if (props.markId === 'pesukim') {
       const inst = props.instance as { fields?: { verseRef?: string } } | null;
       const ref = inst?.fields?.verseRef;
-      return ref ? `Reading ${ref} in context…` : 'Reading the verse in context…';
+      return ref ? t('loading.pesukim.named', { ref }) : t('loading.pesukim');
     }
     if (props.markId === 'places') {
       const inst = props.instance as { fields?: { name?: string } } | null;
       const name = inst?.fields?.name;
-      return name ? `Visiting ${name}…` : 'Travelling…';
+      return name ? t('loading.places.named', { name }) : t('loading.places');
     }
     if (props.markId === 'rishonim') {
-      return 'Listening to Rashi and Tosafot…';
+      return t('loading.rishonim');
     }
-    return 'Learning…';
+    return t('loading.default');
   };
 
   // Body renderer shared across dev / non-dev: loading state, error, or
