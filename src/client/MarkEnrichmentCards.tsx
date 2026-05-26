@@ -232,6 +232,26 @@ class RequestQueue {
 // 2026-05-07 simultaneous-fan-out incident.
 const enrichmentQueue = new RequestQueue(4);
 
+/**
+ * Enqueue one enrichment run on the shared FIFO from OUTSIDE this component
+ * (e.g. the daf-load prefetcher). Same queue + same activity tracking the
+ * cards use, so prefetch and user-triggered work share one concurrency budget
+ * and warm the same server-side cache — a later card mount for the same
+ * (enrichment, instance) gets a fast KV hit instead of a cold generation.
+ */
+export function enqueueEnrichmentRun(
+  enrichmentId: string,
+  tractate: string,
+  page: string,
+  instance: unknown,
+  instanceKey: string,
+): Promise<RunResult> {
+  const { id, label } = enrichmentActivityKey(enrichmentId, tractate, page, instance, instanceKey);
+  return enrichmentQueue.enqueue(id, label, () =>
+    runEnrichment(enrichmentId, tractate, page, instance, instanceKey),
+  );
+}
+
 interface Props {
   markId: string;
   instance: unknown;

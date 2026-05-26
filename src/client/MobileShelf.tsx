@@ -3,7 +3,7 @@ import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
 import type { GenerationId } from './generations';
 import type { IdentifiedRabbi } from './dafContext';
 
-export type MobileInteractionMode = 'select' | 'translate';
+export type MobileInteractionMode = 'read' | 'translate';
 
 // Legacy: the drawer used to have its own tabs (commentaries / geography).
 // Both moved to other surfaces — commentary became per-segment via the
@@ -34,9 +34,10 @@ interface MobileShelfProps {
   generationByName: Map<string, GenerationId>;
 }
 
-// Fixed-bottom sheet on mobile. Toolbar shows interaction-mode pills
-// (Select / Translate); when a sidebar content is active, the toolbar
-// flips to an expansion view that renders the ArgumentSidebar inline.
+// Fixed-bottom sheet on mobile. The interaction-mode bar (Read / Translate)
+// is pinned at the very bottom and is ALWAYS visible so the user can switch
+// modes even while reading drawer content. When a sidebar is active its
+// content expands above the bar.
 export function MobileShelf(props: MobileShelfProps): JSX.Element {
   return (
     <div
@@ -54,51 +55,59 @@ export function MobileShelf(props: MobileShelfProps): JSX.Element {
         'flex-direction': 'column',
       }}
     >
-      <Show
-        when={props.sidebar !== null}
-        fallback={<ToolbarView {...props} />}
-      >
+      <Show when={props.sidebar !== null}>
         <ExpansionView {...props} />
       </Show>
+      <ModeBar mode={props.mode} onModeChange={props.onModeChange} />
     </div>
   );
 }
 
-function ToolbarView(props: MobileShelfProps): JSX.Element {
-  const modeButtons: Array<{ id: MobileInteractionMode; label: string }> = [
-    { id: 'select', label: 'Select' },
-    { id: 'translate', label: 'Translate' },
-  ];
+const MODE_BUTTONS: Array<{ id: MobileInteractionMode; label: string; hint: string }> = [
+  { id: 'read', label: 'Read', hint: 'Pan & zoom; tap icons to open' },
+  { id: 'translate', label: 'Translate', hint: 'Tap words to translate' },
+];
+
+// Pinned interaction-mode pills. Stays at the bottom of the shelf regardless
+// of whether a drawer is open, so mode is always switchable and visible.
+function ModeBar(props: { mode: MobileInteractionMode; onModeChange: (m: MobileInteractionMode) => void }): JSX.Element {
   return (
-    <div style={{ padding: '0.7rem 0.8rem', display: 'flex', 'flex-direction': 'column', gap: '0.5rem' }}>
-      <div style={{ display: 'flex', gap: '0.5rem' }}>
-        {modeButtons.map((b) => (
-          <button
-            type="button"
-            onClick={() => props.onModeChange(b.id)}
-            style={{
-              flex: 1,
-              padding: '0.6rem 0.4rem',
-              border: props.mode === b.id ? '2px solid #8a2a2b' : '1px solid #d6d3d1',
-              background: props.mode === b.id ? '#fff7e6' : '#fff',
-              'border-radius': '6px',
-              cursor: 'pointer',
-              'font-family': 'inherit',
-              'font-size': '0.85rem',
-              'font-weight': props.mode === b.id ? 600 : 400,
-            }}
-          >
-            {b.label}
-          </button>
-        ))}
-      </div>
+    <div style={{
+      padding: '0.6rem 0.8rem',
+      display: 'flex',
+      gap: '0.5rem',
+      'border-top': '1px solid #eee',
+      'flex-shrink': 0,
+      background: '#fff',
+    }}>
+      {MODE_BUTTONS.map((b) => (
+        <button
+          type="button"
+          onClick={() => props.onModeChange(b.id)}
+          aria-pressed={props.mode === b.id}
+          title={b.hint}
+          style={{
+            flex: 1,
+            padding: '0.55rem 0.4rem',
+            border: props.mode === b.id ? '2px solid #8a2a2b' : '1px solid #d6d3d1',
+            background: props.mode === b.id ? '#fff7e6' : '#fff',
+            'border-radius': '6px',
+            cursor: 'pointer',
+            'font-family': 'inherit',
+            'font-size': '0.85rem',
+            'font-weight': props.mode === b.id ? 600 : 400,
+          }}
+        >
+          {b.label}
+        </button>
+      ))}
     </div>
   );
 }
 
 function ExpansionView(props: MobileShelfProps): JSX.Element {
   return (
-    <div style={{ display: 'flex', 'flex-direction': 'column', height: '100%', 'min-height': 0 }}>
+    <div style={{ display: 'flex', 'flex-direction': 'column', flex: 1, 'min-height': 0 }}>
       <div style={{
         display: 'flex',
         'align-items': 'center',

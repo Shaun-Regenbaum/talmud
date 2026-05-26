@@ -24,6 +24,8 @@ import { CommentaryStrip } from './CommentaryStrip';
 // GeographyStrip removed pending rederivation — see TODO(geography-rederive).
 import { MobileShelf, type MobileInteractionMode } from './MobileShelf';
 import MarksRegistryPanel, { enabledMarkDefs, markRunsByMarkId, markStatuses } from './MarksRegistryPanel';
+import DafLoadProgress from './DafLoadProgress';
+import { prefetchDaf } from './dafPrefetch';
 import { buildSeedMarks } from './seed-marks';
 import { fetchCommentaryAnchorIndex, type CommentaryAnchorIndex } from './commentaryAnchorIndex';
 import { recordStage } from './rendererActivity';
@@ -162,6 +164,12 @@ function paintRangeOverlay(
 ): void {
   if (ranges.length === 0) return;
   const originRect = origin.getBoundingClientRect();
+  // getClientRects() returns visually-scaled coordinates when an ancestor is
+  // CSS-transformed (mobile fit-to-width). The band divs are appended inside
+  // that same transformed frame, so writing scaled px would scale a second
+  // time. Divide deltas/dimensions by the effective scale (visual width /
+  // layout width) to cancel it. scale === 1 on desktop → no-op.
+  const scale = origin.offsetWidth > 0 ? originRect.width / origin.offsetWidth : 1;
   // Rects on the same visual line share a `top` within a few px (hebrew
   // diacritics, anchors, etc. can nudge it). Half a line-height is a safe
   // bucketing tolerance.
@@ -203,10 +211,10 @@ function paintRangeOverlay(
       el.className = `daf-range-highlight daf-range-highlight-${kind}`;
       if (i === 0) el.classList.add('daf-range-highlight-first');
       if (i === bands.length - 1) el.classList.add('daf-range-highlight-last');
-      el.style.left = `${b.left - originRect.left}px`;
-      el.style.top = `${b.top - originRect.top}px`;
-      el.style.width = `${b.right - b.left}px`;
-      el.style.height = `${b.bottom - b.top}px`;
+      el.style.left = `${(b.left - originRect.left) / scale}px`;
+      el.style.top = `${(b.top - originRect.top) / scale}px`;
+      el.style.width = `${(b.right - b.left) / scale}px`;
+      el.style.height = `${(b.bottom - b.top) / scale}px`;
       if (bg) el.style.backgroundColor = bg;
       overlay.appendChild(el);
     }
@@ -354,6 +362,38 @@ export default function DafViewer(): JSX.Element {
     if (viewportW() <= 767) return 520;
     return Math.min(520, Math.max(280, viewportW() - 56));
   };
+
+  // Mobile fit-to-width: the daf is rendered at its sacred 520px and then
+  // visually scaled down (CSS transform) so the whole page fits on load —
+  // the user pinch-zooms in from there. Desktop reflows via dafWidth instead,
+  // so scale stays 1. `surfaceW` is the measured available width of the
+  // scroll surface; `dafNaturalH` is the un-scaled rendered daf height,
+  // needed to size the wrapper so page flow below the daf is correct.
+  // NOTE: transforming the daf double-scales any overlay painted from
+  // getBoundingClientRect deltas — paintRangeOverlay and GutterIcons both
+  // divide by the measured ancestor scale to compensate.
+  // Seed with an innerWidth-based estimate (minus rough section padding) so
+  // the first mobile paint is already scaled; the ResizeObserver refines it.
+  const [surfaceW, setSurfaceW] = createSignal(
+    typeof window !== 'undefined' && window.innerWidth <= 767 ? window.innerWidth - 24 : 0,
+  );
+  const [dafNaturalH, setDafNaturalH] = createSignal(0);
+  const dafScale = () => {
+    if (viewportW() > 767) return 1;
+    const w = surfaceW();
+    if (w <= 0) return 1;
+    return Math.min(1, w / 520);
+  };
+  let surfaceEl: HTMLDivElement | undefined;
+  onMount(() => {
+    if (typeof ResizeObserver === 'undefined' || !surfaceEl) return;
+    const ro = new ResizeObserver(() => {
+      if (surfaceEl) setSurfaceW(surfaceEl.clientWidth);
+    });
+    ro.observe(surfaceEl);
+    setSurfaceW(surfaceEl.clientWidth);
+    onCleanup(() => ro.disconnect());
+  });
 
   const ref = createMemo<Ref>(() => ({ tractate: tractate(), page: page() }));
   const [daf] = createResource(ref, fetchDaf);
@@ -551,6 +591,30 @@ export default function DafViewer(): JSX.Element {
     return out;
   };
 
+  // Prefetch trigger: once the daf's anchor marks have settled (none still
+  // loading), warm the section-level syntheses + suggested-questions so the
+  // reader doesn't wait on a cold generation when they open a sidebar. The
+  // signature (daf + per-mark instance counts) guards against re-firing and
+  // self-corrects if a daf change briefly leaves stale mark runs visible — the
+  // generation-guarded prefetchDaf supersedes any stale cohort.
+  let lastPrefetchSig = '';
+  createEffect(() => {
+    const t = tractate();
+    const p = page();
+    const statuses = markStatuses();
+    const relevant = statuses.filter((s) => s.kind !== 'idle');
+    if (relevant.length === 0) return;             // no marks enabled / loaded yet
+    if (relevant.some((s) => s.kind === 'loading')) return; // anchors not done
+    const runs = markRunsByMarkId();
+    const sig = `${t}:${p}|` + Object.entries(runs)
+      .map(([m, r]) => `${m}=${(r?.parsed as { instances?: unknown[] } | undefined)?.instances?.length ?? 0}`)
+      .sort()
+      .join(',');
+    if (sig === lastPrefetchSig) return;
+    lastPrefetchSig = sig;
+    prefetchDaf(t, p, runs);
+  });
+
   // Back-compat: underline injection + timeline take a GenerationRabbi[]; derive it.
   const generations = createMemo<GenerationRabbi[] | null>(() => {
     const ctx = dafContext();
@@ -666,13 +730,14 @@ export default function DafViewer(): JSX.Element {
   // churn in the setters that still reference it.
   const setLastInteractedCard = (_v: 'argument' | 'commentary' | null): void => { /* no-op after layout split */ };
 
-  // Mobile-only viewport detection + interaction mode. Default `select` lets
-  // users tap-and-hold for copy/paste out of the box; `translate` re-enables
-  // the desktop word-click translation popup.
+  // Mobile-only viewport detection + interaction mode. Default `read` is a
+  // quiet survey posture: pan/zoom freely, tap-and-hold for copy/paste, and
+  // tap rabbi/city icons to open their drawer — but plain word taps do
+  // nothing. `translate` re-enables the desktop word-click translation popup.
   const [isMobile, setIsMobile] = createSignal(
     typeof window !== 'undefined' && window.matchMedia?.('(max-width: 767px)').matches,
   );
-  const [mobileMode, setMobileMode] = createSignal<MobileInteractionMode>('select');
+  const [mobileMode, setMobileMode] = createSignal<MobileInteractionMode>('read');
   // The mobile drawer's drawer-tab system was retired alongside the
   // GeographyStrip — there are no remaining tabs. Commentary moved to the
   // per-segment inspector and geography is awaiting rederivation. The
@@ -712,6 +777,17 @@ export default function DafViewer(): JSX.Element {
   // Ref to the DafRenderer's .daf-root — resolved imperatively because
   // DafRenderer renders it internally.
   const [dafRootEl, setDafRootEl] = createSignal<HTMLElement | null>(null);
+  // Track the un-scaled daf height so the mobile scale wrapper can reserve the
+  // correct (scaled) vertical space. offsetHeight is a layout value, so it is
+  // unaffected by the CSS transform applied to the same element.
+  createEffect(() => {
+    const root = dafRootEl();
+    if (!root || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => setDafNaturalH(root.offsetHeight));
+    ro.observe(root);
+    setDafNaturalH(root.offsetHeight);
+    onCleanup(() => ro.disconnect());
+  });
 
   createEffect(() => {
     if (typeof localStorage === 'undefined') return;
@@ -2242,9 +2318,9 @@ export default function DafViewer(): JSX.Element {
     if (sel && !sel.isCollapsed && sel.rangeCount > 0) {
       const snapped = collectSnappedWords(sel.getRangeAt(0));
       if (snapped.length >= 2 && snapped.length <= MAX_PHRASE_WORDS) {
-        // Mobile select mode opts out of translation entirely — the user is
+        // Mobile read mode opts out of translation entirely — the user is
         // selecting for native copy/paste, not asking to translate.
-        if (isMobile() && mobileMode() === 'select') return;
+        if (isMobile() && mobileMode() === 'read') return;
         setActiveFromWordEls(snapped, e);
         return;
       }
@@ -2273,8 +2349,8 @@ export default function DafViewer(): JSX.Element {
           }
         }
       }
-      if (mobileMode() === 'select') {
-        // Select mode: rabbi/city taps still open their drawers; plain words
+      if (mobileMode() === 'read') {
+        // Read mode: rabbi/city taps still open their drawers; plain words
         // are left alone so native long-press selection isn't pre-empted.
         const rabbiEl = target.closest('.rabbi-underline') as HTMLElement | null;
         if (rabbiEl) {
@@ -2441,7 +2517,14 @@ export default function DafViewer(): JSX.Element {
         </button>
       </header>
 
-      <Show when={markStatuses().some((s) => s.kind === 'loading' || s.kind === 'error')}>
+      {/* Unified load bar — one progress indicator + status line for the whole
+          daf (anchor extraction + section prefetch), replacing the former
+          scatter of per-mark spinners. */}
+      <DafLoadProgress />
+
+      {/* Mark errors still surface explicitly — the progress bar abstracts
+          them into its count, but a failed anchor is worth naming. */}
+      <Show when={markStatuses().some((s) => s.kind === 'error')}>
         <section
           style={{
             'margin-bottom': '1rem',
@@ -2454,26 +2537,12 @@ export default function DafViewer(): JSX.Element {
             'align-items': 'center',
             'justify-content': 'center',
             'font-size': '0.75rem',
-            color: '#888',
+            color: '#c33',
           }}
         >
-          {/* Registry-driven marks — one badge per loading/error mark. */}
-          <For each={markStatuses().filter((s) => s.kind === 'loading')}>{(s) => (
-            <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
-              <span style={{
-                display: 'inline-block', width: '0.75rem', height: '0.75rem',
-                'border-radius': '50%',
-                border: '2px solid #d6d3d1', 'border-top-color': '#0f766e',
-                animation: 'daf-spin 0.8s linear infinite',
-                'flex-shrink': 0,
-              }} />
-              {s.label || s.id}…
-            </span>
-          )}</For>
           <For each={markStatuses().filter((s) => s.kind === 'error')}>{(s) => (
-            <span style={{ color: '#c33' }}>{s.label || s.id}: {s.error}</span>
+            <span>{s.label || s.id}: {s.error}</span>
           )}</For>
-          <style>{`@keyframes daf-spin { to { transform: rotate(360deg); } }`}</style>
         </section>
       </Show>
 
@@ -2488,7 +2557,7 @@ export default function DafViewer(): JSX.Element {
           RabbiPlacesTimeline already renders them well. A whole-daf map
           would aggregate those per-rabbi enrichments. Until then, the
           top-bar toggle nav is empty and hidden. */}
-      <div class="daf-surface" onMouseUp={onMouseUpRoot} style={{ display: 'flex', 'justify-content': 'center' }}>
+      <div ref={surfaceEl} class="daf-surface" onMouseUp={onMouseUpRoot} style={{ display: 'flex', 'justify-content': 'center' }}>
         <Show
           when={!daf.loading && tokenized()}
           fallback={
@@ -2500,8 +2569,24 @@ export default function DafViewer(): JSX.Element {
         >
           {(t) => (
             <div
+              class="daf-scale-wrap"
+              style={dafScale() < 1
+                ? {
+                    width: `${Math.round(520 * dafScale())}px`,
+                    height: dafNaturalH() > 0 ? `${Math.round(dafNaturalH() * dafScale())}px` : undefined,
+                  }
+                : {}}
+            >
+            <div
               ref={setDafRootEl as (el: HTMLDivElement) => void}
-              style={{ position: 'relative' }}
+              style={dafScale() < 1
+                ? {
+                    position: 'relative',
+                    width: '520px',
+                    transform: `scale(${dafScale()})`,
+                    'transform-origin': 'top left',
+                  }
+                : { position: 'relative' }}
             >
               <DafRenderer
                 main={t.main}
@@ -2569,6 +2654,7 @@ export default function DafViewer(): JSX.Element {
                 />
               </Show>
               <GutterOverlay />
+            </div>
             </div>
           )}
         </Show>
