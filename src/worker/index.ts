@@ -1137,6 +1137,9 @@ async function runMarkOnce(
       : undefined,
     thinking: ext.thinking_off ? false : undefined,
     bypass_cache: bypassCache,
+    // Cost-ledger attribution; the fan-out path spreads llmOptsBase, so this
+    // tags every argument-move sub-call too.
+    tag: `mark:${def.id}`,
   };
 
   let result: LLMResult;
@@ -2097,6 +2100,7 @@ async function runEnrichmentOnce(
       : undefined,
     thinking: def.thinking_off ? false : undefined,
     bypass_cache: bypassCache,
+    tag: `enrich:${def.id}`,
   });
 
   let parsed: unknown = null;
@@ -2607,6 +2611,89 @@ app.get('/api/rabbi-observations/:slug', async (c) => {
     byType,
     aggregated,
     observations,
+  });
+});
+
+/**
+ * GET /api/admin/llm-cost — sum the per-call cost ledger (llmcost:v1:*) that
+ * runLLM writes. Unique-key entries, so the totals are exact even under the
+ * 50-way concurrent queue. Used to size the rabbi.observations backfill.
+ *
+ *   ?since=<unix-ms>  only count calls at/after this timestamp
+ *   ?clear=1          delete the ledger (reset before a measurement window)
+ */
+interface LlmCostRec {
+  ts: number; model: string; transport: string; tag: string;
+  attempts: number; ms: number;
+  cost: number | null; prompt_tokens: number | null; completion_tokens: number | null; total_tokens: number | null;
+}
+app.get('/api/admin/llm-cost', async (c) => {
+  const cache = c.env.CACHE;
+  if (!cache) return c.json({ error: 'no cache binding' }, 503);
+  const prefix = 'llmcost:v1:';
+
+  if (c.req.query('clear') === '1') {
+    let cursor: string | undefined;
+    let deleted = 0;
+    do {
+      const res = await cache.list({ prefix, cursor, limit: 1000 });
+      for (const k of res.keys) { await cache.delete(k.name); deleted++; }
+      cursor = res.list_complete ? undefined : res.cursor;
+    } while (cursor && deleted < 50000);
+    return c.json({ cleared: deleted });
+  }
+
+  const since = parseInt(c.req.query('since') ?? '0', 10) || 0;
+  const keys: string[] = [];
+  let cursor: string | undefined;
+  do {
+    const res = await cache.list({ prefix, cursor, limit: 1000 });
+    for (const k of res.keys) keys.push(k.name);
+    cursor = res.list_complete ? undefined : res.cursor;
+  } while (cursor && keys.length < 10000);
+
+  let totalCost = 0;
+  let calls = 0;
+  let callsWithCost = 0;
+  let promptTokens = 0;
+  let completionTokens = 0;
+  let minTs = Number.POSITIVE_INFINITY;
+  let maxTs = 0;
+  const byModel: Record<string, { calls: number; cost: number; promptTokens: number; completionTokens: number }> = {};
+  const byTag: Record<string, { calls: number; cost: number }> = {};
+
+  for (const key of keys) {
+    const raw = await cache.get(key);
+    if (!raw) continue;
+    let r: LlmCostRec;
+    try { r = JSON.parse(raw) as LlmCostRec; } catch { continue; }
+    if (since && r.ts < since) continue;
+    calls++;
+    if (typeof r.cost === 'number') { totalCost += r.cost; callsWithCost++; }
+    if (typeof r.prompt_tokens === 'number') promptTokens += r.prompt_tokens;
+    if (typeof r.completion_tokens === 'number') completionTokens += r.completion_tokens;
+    if (r.ts < minTs) minTs = r.ts;
+    if (r.ts > maxTs) maxTs = r.ts;
+    const m = (byModel[r.model] ??= { calls: 0, cost: 0, promptTokens: 0, completionTokens: 0 });
+    m.calls++; m.cost += r.cost ?? 0; m.promptTokens += r.prompt_tokens ?? 0; m.completionTokens += r.completion_tokens ?? 0;
+    const t = (byTag[r.tag] ??= { calls: 0, cost: 0 });
+    t.calls++; t.cost += r.cost ?? 0;
+  }
+
+  const round = (n: number) => Math.round(n * 1e6) / 1e6;
+  for (const m of Object.values(byModel)) m.cost = round(m.cost);
+  for (const t of Object.values(byTag)) t.cost = round(t.cost);
+
+  return c.json({
+    totalCostUsd: round(totalCost),
+    calls,
+    callsWithCost,
+    promptTokens,
+    completionTokens,
+    window: { from: calls ? minTs : null, to: calls ? maxTs : null },
+    byModel,
+    byTag,
+    truncated: keys.length >= 10000,
   });
 });
 
