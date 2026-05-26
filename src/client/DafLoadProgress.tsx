@@ -86,11 +86,18 @@ export default function DafLoadProgress(): JSX.Element {
         role="status"
         aria-live="polite"
         style={{
-          // In normal flow above the daf — never overlaps the text. Centered
-          // to the reading column and themed with the page's parchment vars.
-          'max-width': '720px',
-          margin: '0 auto 1rem',
-          padding: '0 0.25rem',
+          // Pinned directly above the daf: rendered inside the daf body
+          // column so it's exactly the daf's width, and sticky so it stays
+          // above the daf as the reader scrolls. Parchment background so daf
+          // text scrolling underneath doesn't bleed through.
+          position: 'sticky',
+          top: 0,
+          'z-index': 50,
+          width: '100%',
+          'box-sizing': 'border-box',
+          background: 'var(--bg)',
+          padding: '0.4rem 0.25rem',
+          'margin-bottom': '0.5rem',
           'font-family': 'system-ui, -apple-system, sans-serif',
           'font-size': '0.72rem',
           color: 'var(--muted)',

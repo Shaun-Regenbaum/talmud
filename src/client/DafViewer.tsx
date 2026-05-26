@@ -2468,11 +2468,6 @@ export default function DafViewer(): JSX.Element {
         </button>
       </header>
 
-      {/* Unified load bar — one progress indicator + status line for the whole
-          daf (anchor extraction + section prefetch), replacing the former
-          scatter of per-mark spinners. */}
-      <DafLoadProgress />
-
       {/* Mark errors still surface explicitly — the progress bar abstracts
           them into its count, but a failed anchor is worth naming. */}
       <Show when={markStatuses().some((s) => s.kind === 'error')}>
@@ -2508,6 +2503,12 @@ export default function DafViewer(): JSX.Element {
           RabbiPlacesTimeline already renders them well. A whole-daf map
           would aggregate those per-rabbi enrichments. Until then, the
           top-bar toggle nav is empty and hidden. */}
+      {/* Unified load bar — one progress indicator + status line for the whole
+          daf (anchor extraction + section prefetch). Lives inside the daf
+          body column so it's exactly the daf's width, pinned (sticky) directly
+          above the daf as the reader scrolls. */}
+      <DafLoadProgress />
+
       <div ref={surfaceEl} class="daf-surface" onMouseUp={onMouseUpRoot} style={{ display: 'flex', 'justify-content': 'center' }}>
         <Show
           when={!daf.loading && tokenized()}
