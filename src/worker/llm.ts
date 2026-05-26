@@ -22,7 +22,7 @@
  * resolved from KV before runLLM is called; runLLM itself only reads opts.
  */
 
-import { runWithRetry, RETRYABLE } from './ai-gateway';
+import { runWithRetry, FALLBACK_WORTHY } from './ai-gateway';
 import { readSettings, type SettingsEnv } from './settings';
 
 export type LLMModelId = `@cf/${string}` | `openrouter/${string}`;
@@ -107,6 +107,46 @@ export class LLMError extends Error {
 
 const DEFAULT_TEMPERATURE = 0.2;
 
+// Hard cap on a single OpenRouter call (fetch + stream drain combined). Without
+// this, a stalled connection or a streaming response that goes quiet
+// mid-message wedges the consumer until Cloudflare kills the invocation, the
+// job retries once, then drops. Symptom in the wild was a queue backlog that
+// drained at ~0.6/s instead of the configured ~10/s.
+//
+// 240s ceiling. The heaviest mark (argument-move on a long daf) emits a large
+// structured JSON and legitimately runs 90-180s on DeepSeek V4 Pro, so 90s was
+// cutting off correct-but-slow work. Queue consumers get a 15-min wall budget,
+// so even three chained models at 240s each (12 min) fits.
+//
+// NOTE: AbortController.signal is wired to fetch as best-effort cancellation,
+// but it is NOT the primary timeout mechanism — workerd's fetch does not
+// reliably interrupt an in-flight *streaming* response when the signal aborts
+// mid-stream, so the abort frequently never propagated. The authoritative
+// timeout is withHardTimeout() in runLLM (a Promise.race), which fires
+// regardless of transport behavior. This AbortController just tries to free
+// the underlying connection when we give up.
+const OPENROUTER_CALL_TIMEOUT_MS = 240_000;
+
+// Hard ceiling per model attempt, enforced by Promise.race in runLLM so it
+// fires no matter what the transport does (see note above). On expiry it
+// rejects with a RETRYABLE error so runLLM walks to the next model in the
+// fallback chain. The abandoned call keeps running in the background until the
+// isolate ends; that's acceptable — correctness over a leaked socket.
+const MODEL_CALL_HARD_TIMEOUT_MS = 240_000;
+
+function withHardTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new LLMError(408, `fetch failed: ${label} hard-timed-out after ${ms}ms`)),
+      ms,
+    );
+  });
+  return Promise.race([p, timeout]).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
+}
+
 /**
  * Resolve the model + fallback chain to call:
  *   1. explicit opts.model + opts.fallback wins (per-call override)
@@ -143,7 +183,7 @@ export async function runLLM(env: LLMEnv, opts: LLMCallOptions): Promise<LLMResu
   for (let i = 0; i < chain.length; i++) {
     const model = chain[i];
     try {
-      const result = await callOnce(env, model, opts);
+      const result = await withHardTimeout(callOnce(env, model, opts), MODEL_CALL_HARD_TIMEOUT_MS, model);
       return { ...result, attempts: i + 1 };
     } catch (err) {
       lastErr = err;
@@ -155,7 +195,7 @@ export async function runLLM(env: LLMEnv, opts: LLMCallOptions): Promise<LLMResu
       // the cascade.
       // eslint-disable-next-line no-console
       console.warn(`[runLLM] ${model} attempt ${i + 1}/${chain.length} failed: ${detail.slice(0, 300)}`);
-      if (!RETRYABLE.test(detail) || i === chain.length - 1) throw err;
+      if (!FALLBACK_WORTHY.test(detail) || i === chain.length - 1) throw err;
     }
   }
   throw lastErr ?? new LLMError(500, 'runLLM: no models in chain');
@@ -283,63 +323,113 @@ async function callOpenRouterGateway(env: LLMEnv, model: LLMModelId, opts: LLMCa
   }
 
   const url = openRouterGatewayUrl(env);
-  // Retry on transient transport errors (5xx, 429). Non-retryable (4xx other
-  // than 429) throws on the first attempt.
-  const resp = await runWithRetry(async () => {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
-      'HTTP-Referer': 'https://talmud.shaunregenbaum.com',
-      'X-Title': 'talmud',
-    };
-    if (opts.bypass_cache) headers['cf-aig-skip-cache'] = 'true';
-    const r = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body),
+  // One AbortController for the whole call (fetch + stream drain). On timeout,
+  // every subsequent fetch retry inside runWithRetry will also abort instantly
+  // — so the inner retry loop short-circuits after ~15s of backoff sleeps
+  // instead of looping forever on a wedged endpoint.
+  const controller = new AbortController();
+  const timeoutHandle = setTimeout(() => controller.abort(), OPENROUTER_CALL_TIMEOUT_MS);
+  try {
+    // Retry on transient transport errors (5xx, 429). Non-retryable (4xx other
+    // than 429) throws on the first attempt.
+    const resp = await runWithRetry(async () => {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+        'HTTP-Referer': 'https://talmud.shaunregenbaum.com',
+        'X-Title': 'talmud',
+      };
+      if (opts.bypass_cache) headers['cf-aig-skip-cache'] = 'true';
+      let r: Response;
+      try {
+        r = await fetch(url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        });
+      } catch (err) {
+        // AbortError → re-throw as a message that matches RETRYABLE so
+        // runLLM's fallback chain treats it as transient and tries the next
+        // model. (RETRYABLE looks for "fetch failed" / "network".)
+        // workerd's fetch doesn't reliably set err.name = 'AbortError' the
+        // way Node/undici does — check the controller's own state as the
+        // authoritative signal that WE aborted (not some other transport
+        // failure that happens to share an error class).
+        if (controller.signal.aborted || (err as Error)?.name === 'AbortError') {
+          throw new LLMError(408, `fetch failed: OpenRouter call aborted after ${OPENROUTER_CALL_TIMEOUT_MS}ms`);
+        }
+        throw err;
+      }
+      if (!r.ok) {
+        const text = await r.text().catch(() => '');
+        throw new LLMError(r.status, `OpenRouter HTTP ${r.status}: ${text.slice(0, 500)}`);
+      }
+      return r;
     });
-    if (!r.ok) {
-      const text = await r.text().catch(() => '');
-      throw new LLMError(r.status, `OpenRouter HTTP ${r.status}: ${text.slice(0, 500)}`);
-    }
-    return r;
-  });
 
-  if (opts.stream) {
-    if (!resp.body) throw new LLMError(500, 'OpenRouter stream returned empty body');
-    const parsed = await parseOpenAIStream(resp.body);
+    if (opts.stream) {
+      if (!resp.body) throw new LLMError(500, 'OpenRouter stream returned empty body');
+      try {
+        const parsed = await parseOpenAIStream(resp.body);
+        return {
+          ...parsed,
+          prompt_chars: promptChars,
+          elapsed_ms: Date.now() - t0,
+          model,
+          transport: 'openrouter-gateway',
+        };
+      } catch (err) {
+        // The body stream errors on AbortError when the controller fires
+        // mid-stream — surface it as a retryable transport failure.
+        // workerd's fetch doesn't reliably set err.name = 'AbortError' the
+        // way Node/undici does — check the controller's own state as the
+        // authoritative signal that WE aborted (not some other transport
+        // failure that happens to share an error class).
+        if (controller.signal.aborted || (err as Error)?.name === 'AbortError') {
+          throw new LLMError(408, `fetch failed: OpenRouter stream aborted after ${OPENROUTER_CALL_TIMEOUT_MS}ms`);
+        }
+        throw err;
+      }
+    }
+
+    // resp.json() reads the body stream — if the abort fires mid-read the
+     // stream errors out, surface as retryable transport failure rather than
+     // letting the raw "operation aborted" error escape unwrapped.
+    let json: {
+      choices?: Array<{
+        message?: { content?: string; reasoning?: string; reasoning_content?: string };
+        finish_reason?: string | null;
+      }>;
+      usage?: LLMUsage;
+    };
+    try {
+      json = (await resp.json()) as typeof json;
+    } catch (err) {
+      if (controller.signal.aborted || (err as Error)?.name === 'AbortError') {
+        throw new LLMError(408, `fetch failed: OpenRouter body read aborted after ${OPENROUTER_CALL_TIMEOUT_MS}ms`);
+      }
+      throw err;
+    }
+    const content = json.choices?.[0]?.message?.content ?? '';
+    const reasoning =
+      json.choices?.[0]?.message?.reasoning_content ??
+      json.choices?.[0]?.message?.reasoning ??
+      '';
+    const finish = json.choices?.[0]?.finish_reason ?? null;
     return {
-      ...parsed,
+      content,
+      reasoning_content: reasoning,
+      finish_reason: finish,
+      usage: json.usage ?? null,
       prompt_chars: promptChars,
       elapsed_ms: Date.now() - t0,
       model,
       transport: 'openrouter-gateway',
     };
+  } finally {
+    clearTimeout(timeoutHandle);
   }
-
-  const json = (await resp.json()) as {
-    choices?: Array<{
-      message?: { content?: string; reasoning?: string; reasoning_content?: string };
-      finish_reason?: string | null;
-    }>;
-    usage?: LLMUsage;
-  };
-  const content = json.choices?.[0]?.message?.content ?? '';
-  const reasoning =
-    json.choices?.[0]?.message?.reasoning_content ??
-    json.choices?.[0]?.message?.reasoning ??
-    '';
-  const finish = json.choices?.[0]?.finish_reason ?? null;
-  return {
-    content,
-    reasoning_content: reasoning,
-    finish_reason: finish,
-    usage: json.usage ?? null,
-    prompt_chars: promptChars,
-    elapsed_ms: Date.now() - t0,
-    model,
-    transport: 'openrouter-gateway',
-  };
 }
 
 // ---------------------------------------------------------------------------

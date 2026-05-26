@@ -51,7 +51,7 @@ import {
   type LLMRabbiOutput,
 } from '../lib/rabbi/types';
 import { wrapEnv, gatewayStatus, gatewayActive } from './ai-gateway';
-import { runLLM, type LLMModelId } from './llm';
+import { runLLM, type LLMModelId, type LLMResult, type LLMUsage } from './llm';
 import { lookupRelationships } from './rabbi-graph';
 import { lintSynthesis } from '../lib/synthesisLint';
 import { readSettings, writeSettings, isLLMModelId, MODEL_PRESETS } from './settings';
@@ -68,6 +68,7 @@ import type {
   EnrichmentDefinition as SchemaEnrichmentDefinition,
   EnrichmentDependency,
   MarkDependency,
+  LLMExtractor,
 } from './studio-schema';
 import {
   keyForMark,
@@ -125,7 +126,9 @@ interface Bindings {
 // Message shape on the enrichment queue. Carries everything the consumer
 // needs to recreate the run-handler context: which mark/enrichment to run,
 // the daf, optional mark_input + model_override + bypass_cache.
-interface JobMessage {
+// Exported so yomi-cron.ts can enqueue warm jobs directly (type-only import,
+// erased at build — no runtime cycle with this entry module).
+export interface JobMessage {
   runId: string;
   mark_id?: string;
   enrichment_id?: string;
@@ -342,15 +345,27 @@ app.get('/api/admin/ai-gateway-test', async (c) => {
   if (c.req.query('run') !== '1') return c.json({ status, hint: 'append ?run=1 to invoke' });
   const explicitModel = c.req.query('model');
   const nonce = c.req.query('nonce') || '';
+  // ?big=N forces a large structured output to reproduce the long-generation
+  // abort. The prompt asks for N JSON items; combined with a high max_tokens,
+  // it drives generation long enough to hit whatever ceiling owns the
+  // "operation aborted" failure. ?tokens=N overrides max_tokens.
+  const big = parseInt(c.req.query('big') || '0', 10);
+  const tokens = parseInt(c.req.query('tokens') || (big > 0 ? '16000' : '16'), 10);
+  const t0 = Date.now();
   try {
+    const messages = big > 0
+      ? [
+          { role: 'system' as const, content: `Output STRICT JSON: {"items":[...]}. Each item is {"i":<index>,"text":"a detailed 40-word sentence about the number"}. Output EXACTLY ${big} items, indices 0..${big - 1}. No prose outside the JSON.` },
+          { role: 'user' as const, content: `Generate the ${big}-item list now${nonce ? ' (' + nonce + ')' : ''}.` },
+        ]
+      : [
+          { role: 'system' as const, content: 'Reply with the single word OK and nothing else.' },
+          { role: 'user' as const, content: `Ping${nonce ? ' ' + nonce : ''}.` },
+        ];
     const result = await runLLM(c.env, {
-      // omit model when no override → runLLM resolves from settings KV.
       ...(explicitModel ? { model: explicitModel as LLMModelId } : {}),
-      messages: [
-        { role: 'system', content: 'Reply with the single word OK and nothing else.' },
-        { role: 'user', content: `Ping${nonce ? ' ' + nonce : ''}.` },
-      ],
-      max_tokens: 16,
+      messages,
+      max_tokens: tokens,
       temperature: 0,
     });
     return c.json({
@@ -361,15 +376,19 @@ app.get('/api/admin/ai-gateway-test', async (c) => {
       attempts: result.attempts,
       ms: result.elapsed_ms,
       usage: result.usage,
-      reply: result.content,
+      reply_len: result.content.length,
+      reply: big > 0 ? result.content.slice(0, 120) + '…' : result.content,
     });
   } catch (err) {
+    const e = err as Error;
     return c.json(
       {
         status,
         route: gatewayActive(c.env) ? 'gateway' : 'binding',
         explicitModel: explicitModel ?? null,
-        error: String((err as Error)?.message ?? err),
+        ms: Date.now() - t0,
+        error_name: e?.name ?? null,
+        error: String(e?.message ?? err),
       },
       500,
     );
@@ -921,6 +940,108 @@ const COMPUTED_FNS: Record<string, ComputedMarkFn> = {
   },
 };
 
+// Per-section fan-out concurrency. Each section call is small (~3-6 moves);
+// 5 in flight balances throughput against producer pressure / provider rate.
+const FAN_OUT_CONCURRENCY = 5;
+
+/**
+ * Fan an LLM extractor out over the instances of a parent mark: one call per
+ * instance (with `anchors.<fanOutMarkId>` narrowed to that single instance),
+ * concatenating the per-call `instances` arrays into one merged result. This
+ * bounds per-call output so the heaviest dapim don't exceed the provider's
+ * streaming window (the failure mode that killed argument-move on 40+-move
+ * dapim). Calls run in waves of FAN_OUT_CONCURRENCY.
+ *
+ * Completeness over partials: if ANY section call fails (after runLLM's own
+ * retry + fallback chain), the whole thing throws so runMarkOnce does NOT
+ * cache a partial move list — the queue retries the daf instead. Falls back to
+ * a single whole-daf call when the parent has 0 or 1 instances.
+ */
+async function runExtractorFannedOut(
+  rc: RunCtx,
+  ext: LLMExtractor,
+  baseVars: Record<string, unknown>,
+  fanOutMarkId: string,
+  llmOptsBase: Record<string, unknown>,
+): Promise<{ result: LLMResult; systemPromptSample: string; userPromptSample: string }> {
+  const anchors = (baseVars.anchors ?? {}) as Record<string, unknown>;
+  const instances = anchors[fanOutMarkId];
+
+  const renderAndCall = async (anchorsOverride: Record<string, unknown>, maxTokens: number) => {
+    const callVars = { ...baseVars, anchors: anchorsOverride };
+    const systemPrompt = renderTemplate(ext.system_prompt, callVars);
+    const userPrompt = renderTemplate(ext.user_prompt_template, callVars);
+    const r = await runLLM(rc.env, {
+      ...llmOptsBase,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      max_tokens: maxTokens,
+    } as Parameters<typeof runLLM>[1]);
+    return { r, systemPrompt, userPrompt };
+  };
+
+  // Nothing to split — one call over the whole daf (preserves prior behavior).
+  if (!Array.isArray(instances) || instances.length <= 1) {
+    const { r, systemPrompt, userPrompt } = await renderAndCall(anchors, 16000);
+    return { result: r, systemPromptSample: systemPrompt, userPromptSample: userPrompt };
+  }
+
+  const t0 = Date.now();
+  const mergedInstances: unknown[] = [];
+  const usage: LLMUsage = { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
+  let promptChars = 0;
+  let attempts = 1;
+  let model = '';
+  let transport = '';
+  let reasoning = '';
+  let sysSample = '';
+  let userSample = '';
+
+  for (let i = 0; i < instances.length; i += FAN_OUT_CONCURRENCY) {
+    const wave = instances.slice(i, i + FAN_OUT_CONCURRENCY);
+    const settled = await Promise.all(
+      wave.map((inst) => renderAndCall({ ...anchors, [fanOutMarkId]: [inst] }, 8000)),
+    );
+    for (const { r, systemPrompt, userPrompt } of settled) {
+      if (!sysSample) { sysSample = systemPrompt; userSample = userPrompt; }
+      // A section whose JSON won't parse is a hard failure — throw so the daf
+      // isn't cached with a section's moves silently missing.
+      let p: { instances?: unknown[] };
+      try {
+        p = JSON.parse(r.content) as { instances?: unknown[] };
+      } catch (err) {
+        throw new Error(`fan-out ${fanOutMarkId}: section JSON parse failed: ${String(err).slice(0, 120)}`);
+      }
+      if (Array.isArray(p.instances)) mergedInstances.push(...p.instances);
+      promptChars += r.prompt_chars;
+      attempts = Math.max(attempts, r.attempts);
+      model = r.model;
+      transport = r.transport;
+      if (r.reasoning_content) reasoning = r.reasoning_content;
+      if (r.usage) {
+        usage.prompt_tokens = (usage.prompt_tokens ?? 0) + (r.usage.prompt_tokens ?? 0);
+        usage.completion_tokens = (usage.completion_tokens ?? 0) + (r.usage.completion_tokens ?? 0);
+        usage.total_tokens = (usage.total_tokens ?? 0) + (r.usage.total_tokens ?? 0);
+      }
+    }
+  }
+
+  const result: LLMResult = {
+    content: JSON.stringify({ instances: mergedInstances }),
+    reasoning_content: reasoning,
+    finish_reason: 'stop',
+    usage,
+    prompt_chars: promptChars,
+    elapsed_ms: Date.now() - t0,
+    model: (model || ext.model || '') as LLMResult['model'],
+    transport: (transport || 'openrouter-gateway') as LLMResult['transport'],
+    attempts,
+  };
+  return { result, systemPromptSample: sysSample, userPromptSample: userSample };
+}
+
 async function runMarkOnce(
   rc: RunCtx,
   def: SchemaMarkDefinition,
@@ -979,24 +1100,39 @@ async function runMarkOnce(
     depends: inputs.depends,
     anchors: inputs.anchors,
   };
-  const systemPrompt = renderTemplate(ext.system_prompt, vars);
-  const userPrompt = renderTemplate(ext.user_prompt_template, vars);
-
-  const result = await runLLM(rc.env, {
+  // Shared runLLM options (everything except messages + max_tokens, which the
+  // single-call and per-section-call paths set themselves).
+  const llmOptsBase = {
     ...(ext.model ? { model: ext.model } : {}),
     ...(ext.fallback && ext.fallback.length > 0 ? { fallback: ext.fallback } : {}),
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
-    ],
-    max_tokens: 16000,
     temperature: 0.2,
     response_format: ext.output_schema
-      ? { type: 'json_schema', json_schema: ext.output_schema }
+      ? { type: 'json_schema' as const, json_schema: ext.output_schema }
       : undefined,
     thinking: ext.thinking_off ? false : undefined,
     bypass_cache: bypassCache,
-  });
+  };
+
+  let result: LLMResult;
+  let systemPrompt: string;
+  let userPrompt: string;
+  if (ext.fan_out_over) {
+    const fanned = await runExtractorFannedOut(rc, ext, vars, ext.fan_out_over, llmOptsBase);
+    result = fanned.result;
+    systemPrompt = fanned.systemPromptSample;
+    userPrompt = fanned.userPromptSample;
+  } else {
+    systemPrompt = renderTemplate(ext.system_prompt, vars);
+    userPrompt = renderTemplate(ext.user_prompt_template, vars);
+    result = await runLLM(rc.env, {
+      ...llmOptsBase,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      max_tokens: 16000,
+    });
+  }
 
   let parsed: unknown = null;
   let parse_error: string | null = null;

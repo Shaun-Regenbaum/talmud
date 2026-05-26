@@ -1768,11 +1768,18 @@ CODE_MARKS.push({
     user_prompt_template: ARGUMENT_MOVE_USER_TEMPLATE,
     output_schema: ARGUMENT_MOVE_OUTPUT_SCHEMA,
     thinking_off: true,
+    // Fan out one LLM call per argument SECTION rather than one giant call for
+    // the whole daf. The heaviest dapim (40+ moves) produced ~16k tokens of
+    // output in a single call, exceeding DeepSeek's streaming window (~160s)
+    // and failing with "operation aborted". Per-section calls emit ~3-6 moves
+    // each (~2k tokens, ~20s) and run concurrently, so no single call gets
+    // anywhere near the cutoff.
+    fan_out_over: 'argument',
   },
   dependencies: ['gemara', { mark: 'argument' }],
   status: 'promoted',
-  def_hash: 'argument-move-v8',
-  cache_version: '8',
+  def_hash: 'argument-move-v9',
+  cache_version: '9',
   source: 'code',
   updated_at: NOW,
 });

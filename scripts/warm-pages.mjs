@@ -39,8 +39,9 @@ const arg = (k, def) => {
 const WORKER = arg('--worker', 'https://talmud.shaunregenbaum.com');
 const PAGES_RAW = arg('--pages', '');
 const MARK_TIMEOUT_S = parseInt(arg('--mark-timeout', '240'), 10);
+const INCLUDE_QUESTIONS = args.includes('--include-questions');
 if (!PAGES_RAW) {
-  console.error('Usage: --pages "Tractate:page,Tractate:page,..."');
+  console.error('Usage: --pages "Tractate:page,Tractate:page,..." [--include-questions]');
   process.exit(1);
 }
 const PAGES = PAGES_RAW.split(',').map((s) => s.trim()).filter(Boolean).map((s) => {
@@ -61,10 +62,19 @@ const MARK_SYNTHESIS = {
   pesukim: 'pesukim.synthesis',
   places: 'places.synthesis',
   rishonim: 'rishonim.synthesis',
-  // aggadata has no synthesis enrichment yet — anchor only.
-  aggadata: null,
+  aggadata: 'aggadata.synthesis',
 };
 const MARKS = Object.keys(MARK_SYNTHESIS);
+
+// Marks → their per-instance suggested-questions enrichment. Fired only when
+// --include-questions is passed. These aren't in any synthesis dep chain
+// (the QA panel fires them on-demand client-side), so the warmer has to fan
+// them out explicitly. .qa is per-question free-text and can't be pre-warmed.
+const MARK_QUESTIONS = {
+  'argument-move': 'argument-move.suggested-questions',
+  pesukim: 'pesukim.suggested-questions',
+  aggadata: 'aggadata.suggested-questions',
+};
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -130,8 +140,8 @@ async function runMarkSync(tractate, page, markId) {
   return { ok: false, error: `HTTP ${status} ${JSON.stringify(body).slice(0, 120)}` };
 }
 
-/** Fire a synthesis fire-and-forget — don't wait. */
-async function fireSynthesis(tractate, page, enrichmentId, markInput) {
+/** Fire an enrichment (synthesis OR suggested-questions) fire-and-forget. */
+async function fireEnrichment(tractate, page, enrichmentId, markInput) {
   try {
     await fetch(`${WORKER}/api/studio/run`, {
       method: 'POST',
@@ -225,6 +235,7 @@ async function awaitNetworkHealthy() {
 
 let pagesDone = 0;
 let syntheses = 0;
+let questionsFired = 0;
 let markErrors = 0;
 let pagesFakeDone = 0;
 let pagesRetried = 0;
@@ -253,6 +264,7 @@ for (const { tractate, page } of PAGES) {
     pagesDone++;
     const pT0 = Date.now();
     const synthesesBefore = syntheses;
+    const questionsBefore = questionsFired;
     const markErrorsBefore = markErrors;
     const auxPromise = warmAuxiliaryEndpoints(tractate, page);
     const results = await Promise.all(
@@ -270,12 +282,18 @@ for (const { tractate, page } of PAGES) {
         continue;
       }
       const synthId = MARK_SYNTHESIS[r.mark];
-      if (!synthId) continue;
+      const questionsId = INCLUDE_QUESTIONS ? MARK_QUESTIONS[r.mark] : null;
       const instances = r.parsed?.instances;
       if (!Array.isArray(instances)) continue;
       for (const inst of instances) {
-        await fireSynthesis(tractate, page, synthId, inst);
-        syntheses++;
+        if (synthId) {
+          await fireEnrichment(tractate, page, synthId, inst);
+          syntheses++;
+        }
+        if (questionsId) {
+          await fireEnrichment(tractate, page, questionsId, inst);
+          questionsFired++;
+        }
       }
       if (r.mark === 'pesukim') {
         await warmPasukim(tractate, page, { parsed: r.parsed });
@@ -284,6 +302,7 @@ for (const { tractate, page } of PAGES) {
     const pElapsed = Math.round((Date.now() - pT0) / 1000);
     const totalElapsed = Math.round((Date.now() - t0) / 1000);
     const sCount = syntheses - synthesesBefore;
+    const qCount = INCLUDE_QUESTIONS ? questionsFired - questionsBefore : 0;
     if (successCount === 0) {
       // All marks failed — almost certainly network. Don't accept this
       // page as done; rewind the counter and let the while loop retry.
@@ -302,13 +321,14 @@ for (const { tractate, page } of PAGES) {
       continue;
     }
     success = true;
+    const qSuffix = INCLUDE_QUESTIONS ? ` · +${qCount} questions` : '';
     console.log(
-      `[${pagesDone}/${PAGES.length}] ${tractate}/${page} · ${pElapsed}s · +${sCount} syntheses · running ${totalElapsed}s · total syntheses=${syntheses} err=${markErrors} ok=${successCount}/${MARKS.length}`,
+      `[${pagesDone}/${PAGES.length}] ${tractate}/${page} · ${pElapsed}s · +${sCount} syntheses${qSuffix} · running ${totalElapsed}s · total syntheses=${syntheses}${INCLUDE_QUESTIONS ? ` questions=${questionsFired}` : ''} err=${markErrors} ok=${successCount}/${MARKS.length}`,
     );
   }
 }
 
 const totalElapsed = Math.round((Date.now() - t0) / 1000);
 console.log('');
-console.log(`Done. pages=${PAGES.length} syntheses-fired=${syntheses} mark-errors=${markErrors} retries=${pagesRetried} fake-done=${pagesFakeDone} · ${totalElapsed}s`);
+console.log(`Done. pages=${PAGES.length} syntheses-fired=${syntheses}${INCLUDE_QUESTIONS ? ` questions-fired=${questionsFired}` : ''} mark-errors=${markErrors} retries=${pagesRetried} fake-done=${pagesFakeDone} · ${totalElapsed}s`);
 console.log('Synthesis enrichments fire-and-forget — they fan out the full leaf set via deps, drained by the queue (concurrency=2). The KV will become fully hot as they complete in the background.');

@@ -1,20 +1,27 @@
 /**
  * Daily pre-warm for tomorrow's Daf Yomi. Pulls tomorrow's daf from Sefaria's
- * calendar API and POSTs to `/api/studio/run` once per canonical mark for
- * both amudim (a + b). The studio endpoint reads through the cache-keys.ts
- * helpers, so a successful run lands a KV entry that the next reader hits
+ * calendar API and enqueues one enrichment job per canonical mark for both
+ * amudim (a + b). Each job is picked up by the queue consumer as its own
+ * Worker invocation (its own CPU/wall budget), which reads through the
+ * cache-keys.ts helpers and lands a KV entry the next reader hits
  * synchronously.
  *
- * Uses subrequests to the public hostname rather than in-process dispatch so
- * each mark run executes as its own Worker invocation with its own CPU/wall
- * budget — fitting all of them into one cron tick would blow the time limit.
+ * NOTE: this used to POST to `https://talmud.shaunregenbaum.com/api/studio/run`
+ * — a subrequest from the Worker back to its own custom-domain route. That is
+ * the classic Cloudflare worker-to-self loopback: every such POST returned
+ * HTTP 522 (origin connection timeout) and nothing ever warmed. We now enqueue
+ * straight onto ENRICHMENT_QUEUE, exactly what the producer endpoint does
+ * after validation, so the consumer fan-out (one invocation per mark) is
+ * preserved without the loopback.
  *
- * Idempotent: the studio handler short-circuits on cache-hit, so re-running
- * the cron is effectively free once warm.
+ * Idempotent: runMarkOnce short-circuits on cache-hit, so re-running the cron
+ * costs one KV read per mark once warm — no LLM calls.
  */
 
+import { instanceIdOf } from './cache-keys';
+import type { JobMessage } from './index';
+
 const SEFARIA_CALENDAR_URL = 'https://www.sefaria.org/api/calendars';
-const PUBLIC_BASE_URL = 'https://talmud.shaunregenbaum.com';
 const WARM_MARKS = ['rabbi', 'argument', 'halacha', 'aggadata', 'pesukim'] as const;
 
 interface CalendarItem {
@@ -58,11 +65,32 @@ async function fetchDafYomi(
   return { tractate: m[1].trim(), daf: parseInt(m[2], 10) };
 }
 
-interface YomiCronEnv {
-  CACHE?: KVNamespace;
+/**
+ * Build a runId matching makeRunId()'s format for the warm case: no mark_input,
+ * no user_question, cache-respecting. The instance_id segment is cosmetic for
+ * marks (keyForMark ignores it) but we keep the shape identical so run-status
+ * polling and the postmortem ring buffer's `:{unixSeconds}` suffix parse the
+ * same way.
+ */
+async function warmRunId(markId: string, tractate: string, page: string): Promise<string> {
+  const parts = [
+    markId,
+    tractate,
+    page,
+    await instanceIdOf(undefined),
+    'noq',
+    'cached',
+    String(Math.floor(Date.now() / 1000)),
+  ];
+  return parts.join(':').replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
 }
 
-export async function runYomiWarmCron(_env: YomiCronEnv): Promise<void> {
+interface YomiCronEnv {
+  CACHE?: KVNamespace;
+  ENRICHMENT_QUEUE?: Queue<JobMessage>;
+}
+
+export async function runYomiWarmCron(env: YomiCronEnv): Promise<void> {
   const { year, month, day } = tomorrowUtc();
   const yomi = await fetchDafYomi(year, month, day);
   if (!yomi) {
@@ -71,6 +99,11 @@ export async function runYomiWarmCron(_env: YomiCronEnv): Promise<void> {
     return;
   }
   const { tractate, daf } = yomi;
+  if (!env.ENRICHMENT_QUEUE) {
+    // eslint-disable-next-line no-console
+    console.error('[yomi-cron] ENRICHMENT_QUEUE binding not available; cannot warm');
+    return;
+  }
   // eslint-disable-next-line no-console
   console.log(`[yomi-cron] warming ${tractate} ${daf} for ${year}-${month}-${day}`);
 
@@ -78,23 +111,22 @@ export async function runYomiWarmCron(_env: YomiCronEnv): Promise<void> {
   const jobs: Promise<void>[] = [];
   for (const page of pages) {
     for (const markId of WARM_MARKS) {
-      const url = `${PUBLIC_BASE_URL}/api/studio/run`;
+      const runId = await warmRunId(markId, tractate, page);
+      const job: JobMessage = { runId, mark_id: markId, tractate, page };
       jobs.push(
-        fetch(url, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ mark_id: markId, tractate, page }),
-        })
-          .then((r) => {
+        env.ENRICHMENT_QUEUE.send(job)
+          .then(() => {
             // eslint-disable-next-line no-console
-            console.log(`[yomi-cron] mark=${markId} ${tractate}/${page} -> ${r.status}`);
+            console.log(`[yomi-cron] enqueued mark=${markId} ${tractate}/${page} runId=${runId}`);
           })
           .catch((e) => {
             // eslint-disable-next-line no-console
-            console.error(`[yomi-cron] mark=${markId} ${tractate}/${page} failed:`, e);
+            console.error(`[yomi-cron] enqueue mark=${markId} ${tractate}/${page} failed:`, e);
           }),
       );
     }
   }
   await Promise.allSettled(jobs);
+  // eslint-disable-next-line no-console
+  console.log(`[yomi-cron] enqueued ${jobs.length} warm job(s) for ${tractate} ${daf}`);
 }

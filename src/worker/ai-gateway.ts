@@ -30,7 +30,18 @@ export interface AiGatewayEnv {
   AI_GATEWAY_DISABLE?: string;
 }
 
+// Same-model retry (used by runWithRetry around a single fetch): only genuine
+// transient TRANSPORT failures. Deliberately excludes timeouts/aborts —
+// retrying the identical slow call against the identical endpoint just stalls
+// again and burns the backoff budget. A stall is recovered by switching MODELS
+// (see FALLBACK_WORTHY), not by hammering the same one.
 export const RETRYABLE = /1031|InferenceUpstreamError|3046|AiError 3046|HTTP 5\d\d|HTTP 429|fetch failed|network/i;
+
+// Model-fallback worthiness (used by runLLM to decide whether to walk to the
+// next model in the chain): everything RETRYABLE plus timeouts/aborts. A model
+// that times out or gets its stream aborted should hand off to the next model,
+// which may be faster or routed to a healthier provider.
+export const FALLBACK_WORTHY = /1031|InferenceUpstreamError|3046|AiError 3046|HTTP 5\d\d|HTTP 429|fetch failed|network|aborted|timed-out|timed out|timeout/i;
 // Bumped 3 → 5 to ride out transient OpenRouter / gateway 5xx bursts. Backoff
 // is exponential (1s, 2s, 4s, 8s, 16s) + 0–500ms jitter; total worst-case
 // wait ≈31s before giving up — fits inside the queue consumer's 90s budget

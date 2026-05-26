@@ -242,6 +242,14 @@ export interface LLMExtractor {
   output_schema?: unknown;
   /** Workers AI Kimi only: disable thinking-mode. */
   thinking_off?: boolean;
+  /** When set, fan the extractor out over the instances of this dependency
+   *  mark: instead of one LLM call per daf, run one call per parent instance
+   *  (with `anchors.<fan_out_over>` narrowed to that single instance) and
+   *  concatenate the resulting `instances` arrays into one merged result.
+   *  Bounds per-call output so the heaviest dapim don't exceed the provider's
+   *  streaming window. The mark MUST declare `{ mark: <fan_out_over> }` in its
+   *  dependencies. */
+  fan_out_over?: string;
 }
 
 export interface SefariaExtractor {

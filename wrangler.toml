@@ -14,6 +14,15 @@ directory = "./dist/client"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
 
+# Raise the CPU ceiling well above the 30s default. Queue jobs that parse a
+# large LLM streaming response (argument-move on a long daf emits a big
+# structured JSON) can accumulate CPU time in the SSE parser; the default cap
+# would kill the invocation with an opaque "operation aborted". Workers Paid
+# allows up to 300_000ms (5 min). Wall-clock for queue consumers is separately
+# bounded at 15 min by the platform; this only governs on-CPU time.
+[limits]
+cpu_ms = 300000
+
 # Workers AI binding (env.AI.run('@cf/...')). NOT the same as the AI Gateway
 # URL — the Gateway is a fetch() target hit by src/worker/llm.ts using the
 # OPENROUTER_API_KEY Bearer header, and is what every active LLM call uses.
@@ -56,12 +65,14 @@ binding = "ENRICHMENT_QUEUE"
 queue = "enrichment-jobs"
 max_batch_size = 1
 max_batch_timeout = 1
-# Bumped 2 → 10. Each LLM enrichment is a separate Worker invocation
+# Bumped 2 → 10 → 50. Each LLM enrichment is a separate Worker invocation
 # (queue handler), so concurrency caps simultaneous LLM workloads, not
 # CPU on a single isolate. The previous cap of 2 made warming a 167-page
-# corpus prohibitively slow (~4-7h). AI Gateway handles backpressure if
-# any single provider rate-limits.
-max_concurrency = 10
+# corpus prohibitively slow (~4-7h), and 10 still throttled full-Shas
+# anchor warming to ~12h. AI Gateway handles backpressure if any single
+# provider rate-limits; runLLM's per-call retry chain rides out 429s
+# within a single job's lifecycle so queue-level retries aren't burned.
+max_concurrency = 50
 max_retries = 1
 
 [[kv_namespaces]]
