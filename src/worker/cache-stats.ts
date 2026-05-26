@@ -26,10 +26,10 @@ import { getWarmTotal } from './warm-cron';
 import { CODE_MARKS, CODE_ENRICHMENTS } from './code-marks';
 import { listMarks, listEnrichments } from './studio-registry';
 
-// v4: dropped the legacy analyze/halacha/aggadata/dafContext buckets and
-// replaced them with registry-driven mark/enrichment rows. Old v3 payloads
-// reference cache prefixes that no part of the worker writes anymore.
-export const CACHE_STATS_KEY = 'cache-stats:v4';
+// v5: mark/enrichment rows now carry a per-cache-version breakdown (`versions`
+// + `staleCount`) so the dashboard can show how much KV is held by superseded
+// versions. v4 payloads lack those fields.
+export const CACHE_STATS_KEY = 'cache-stats:v5';
 const FRESH_MS = 60_000;
 
 export interface CacheStats {
@@ -74,8 +74,10 @@ export interface MarkCacheRow {
   label: string;
   source: 'code' | 'kv';
   cache_version: string;
-  count: number;
+  count: number;          // entries at the CURRENT cache_version
   percent: number;
+  versions: Record<string, number>; // count per cache version present in KV
+  staleCount: number;     // entries at superseded (non-current) versions
 }
 
 export interface EnrichmentCacheRow {
@@ -85,7 +87,9 @@ export interface EnrichmentCacheRow {
   scope: 'global' | 'local';
   source: 'code' | 'kv';
   cache_version: string;
-  count: number;
+  count: number;          // entries at the CURRENT cache_version
+  versions: Record<string, number>;
+  staleCount: number;
 }
 
 interface RabbisFile {
@@ -141,6 +145,41 @@ async function countPrefix(cache: KVNamespace, prefix: string): Promise<number> 
   return count;
 }
 
+/**
+ * Scan a `mark:<id>:` / `enrich:<id>:` prefix (all versions) and bucket the
+ * keys by their cache-version segment. Key shape is
+ * `<family>:<id>:<version>:<rest>`, so after stripping the passed prefix
+ * (which ends in the trailing colon after <id>) the version is the first
+ * colon-delimited segment of what remains. The trailing colon in `prefix`
+ * keeps `mark:argument:` from matching `mark:argument-move:…`.
+ */
+async function countByVersion(cache: KVNamespace, prefix: string): Promise<Record<string, number>> {
+  const counts: Record<string, number> = {};
+  let cursor: string | undefined = undefined;
+  for (;;) {
+    const res = (await cache.list({ prefix, cursor, limit: 1000 })) as {
+      keys: Array<{ name: string }>;
+      list_complete: boolean;
+      cursor?: string;
+    };
+    for (const k of res.keys) {
+      const rest = k.name.slice(prefix.length);
+      const version = rest.split(':')[0] || '(none)';
+      counts[version] = (counts[version] ?? 0) + 1;
+    }
+    if (res.list_complete) break;
+    cursor = res.cursor;
+    if (!cursor) break;
+  }
+  return counts;
+}
+
+function staleSum(versions: Record<string, number>, current: string): number {
+  let sum = 0;
+  for (const [v, n] of Object.entries(versions)) if (v !== current) sum += n;
+  return sum;
+}
+
 function pct(count: number, total: number): number {
   if (total <= 0) return 0;
   return Math.round((count / total) * 1000) / 10;
@@ -187,22 +226,35 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
   const markDefs = await mergedMarks(cache);
   const enrichDefs = await mergedEnrichments(cache);
 
-  const markCounts = await Promise.all(
-    markDefs.map((m) => countPrefix(cache, `mark:${m.id}:${m.cache_version}:`)),
+  // Scan the version-agnostic id prefix once per mark/enrichment and bucket by
+  // version — this covers the current version AND any superseded ones still
+  // taking up KV (orphaned by a cache_version bump).
+  const markVersions = await Promise.all(
+    markDefs.map((m) => countByVersion(cache, `mark:${m.id}:`)),
   );
-  const enrichCounts = await Promise.all(
-    enrichDefs.map((e) => countPrefix(cache, `enrich:${e.id}:${e.cache_version}:`)),
+  const enrichVersions = await Promise.all(
+    enrichDefs.map((e) => countByVersion(cache, `enrich:${e.id}:`)),
   );
 
-  const marks: MarkCacheRow[] = markDefs.map((m, i) => ({
-    id: m.id, label: m.label, source: m.source, cache_version: m.cache_version,
-    count: markCounts[i], percent: pct(markCounts[i], total),
-  }));
+  const marks: MarkCacheRow[] = markDefs.map((m, i) => {
+    const versions = markVersions[i];
+    const count = versions[m.cache_version] ?? 0;
+    return {
+      id: m.id, label: m.label, source: m.source, cache_version: m.cache_version,
+      count, percent: pct(count, total),
+      versions, staleCount: staleSum(versions, m.cache_version),
+    };
+  });
 
-  const enrichments: EnrichmentCacheRow[] = enrichDefs.map((e, i) => ({
-    id: e.id, label: e.label, target_mark: e.target_mark, scope: e.scope,
-    source: e.source, cache_version: e.cache_version, count: enrichCounts[i],
-  }));
+  const enrichments: EnrichmentCacheRow[] = enrichDefs.map((e, i) => {
+    const versions = enrichVersions[i];
+    const count = versions[e.cache_version] ?? 0;
+    return {
+      id: e.id, label: e.label, target_mark: e.target_mark, scope: e.scope,
+      source: e.source, cache_version: e.cache_version, count,
+      versions, staleCount: staleSum(versions, e.cache_version),
+    };
+  });
 
   let totalRabbis = 0;
   let withBio = 0;

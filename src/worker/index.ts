@@ -55,6 +55,10 @@ import { runLLM, type LLMModelId, type LLMResult, type LLMUsage } from './llm';
 import { lookupRelationships } from './rabbi-graph';
 import { lintSynthesis } from '../lib/synthesisLint';
 import { readSettings, writeSettings, isLLMModelId, MODEL_PRESETS } from './settings';
+import { costUsd as priceCostUsd, normalizeUsage } from './pricing';
+import { recordUsage, readUsageSummary } from './usage-rollup';
+import { recordUnknownRabbi, recordObservedPlace, listUnknownRabbis, listObservedPlaces } from './unknown-registry';
+import { fetchGatewayCost } from './aigw-analytics';
 import { lookupGloss } from './word-glosses';
 import {
   readMark, listMarks, writeMark, deleteMark, validateMark,
@@ -115,6 +119,9 @@ interface Bindings {
   // OpenRouter via AI Gateway Universal Endpoint (see src/worker/llm.ts).
   OPENROUTER_API_KEY?: string;
   CLOUDFLARE_ACCOUNT_ID?: string;
+  // Cloudflare API token (Account Analytics: Read) for the AI Gateway cost
+  // query in aigw-analytics.ts. Set via `wrangler secret put CF_ANALYTICS_TOKEN`.
+  CF_ANALYTICS_TOKEN?: string;
   OPENROUTER_GATEWAY_PROVIDER?: string;
   DEFAULT_LLM_MODEL?: string;
   // Enrichment job queue — see wrangler.toml + queue handler at the bottom
@@ -1163,7 +1170,13 @@ async function runMarkOnce(
     parsed = await postProcessAggadata(parsed, rc.env, tractate, page);
   } else if (parsed && def.id === 'rabbi') {
     parsed = postProcessRabbi(parsed, stripHtmlServer(String(vars.hebrew ?? '')));
+  } else if (parsed && def.id === 'places') {
+    // Places have no global gazetteer — log every observed location to the
+    // "needs global enrichment" backlog so we can see what to add over time.
+    recordObservedPlacesFromMark(rc, parsed, tractate, page);
   }
+  // Attribute this fresh LLM call's tokens + cost to the daily rollup.
+  captureLlmUsage(rc, { kind: 'mark', id: def.id, result: { model: result.model, usage: result.usage, parse_error } });
   const out: RunResult = {
     content: result.content,
     reasoning: result.reasoning_content || undefined,
@@ -1987,6 +2000,11 @@ async function runEnrichmentOnce(
     // know a Sefaria slug), and the placeholder prompt must never run.
     const inst = markInput as { name?: string; nameHe?: string; generation?: GenerationId } | null;
     const ident = enrichRabbi(inst?.name ?? '', inst?.nameHe ?? '', inst?.generation ?? 'unknown');
+    // Rabbi not in the bundled dataset → add to the "needs global enrichment"
+    // backlog so we can track who to add a base bio for as usage grows.
+    if (!ident.slug && (inst?.name || inst?.nameHe)) {
+      recordUnknownRabbi(rc.env, rc.ctx, { name: inst?.name, nameHe: inst?.nameHe, generation: inst?.generation, tractate, page });
+    }
     const out: RunResultEnrichment = {
       content: JSON.stringify(ident),
       parsed: ident,
@@ -2092,14 +2110,14 @@ async function runEnrichmentOnce(
   // ARE used to gate cache writes so bad outputs don't get pinned.
   let lint_issues: unknown[] | undefined;
   if (def.id === 'pesukim.synthesis' && parsed && !parse_error) {
-    // Synthesis now emits four labeled fields (tanach_context / why_here /
-    // mechanism / landing) instead of a single `synthesis` blob. Concatenate
-    // them so the linter sees the full body. Falls back to the legacy single
-    // field for any older cached payloads still in flight.
-    const p = parsed as Partial<Record<'tanach_context' | 'why_here' | 'mechanism' | 'landing' | 'synthesis', string>>;
-    const synth = [p.tanach_context, p.why_here, p.mechanism, p.landing]
-      .filter((s): s is string => typeof s === 'string' && s.length > 0)
-      .join('\n\n') || (p.synthesis ?? '');
+    // Synthesis emits a single `synthesis` prose field. (An earlier revision
+    // emitted four labeled fields; concat them as a fallback so any older
+    // cached payloads still in flight continue to lint.)
+    const p = parsed as Partial<Record<'synthesis' | 'tanach_context' | 'why_here' | 'mechanism' | 'landing', string>>;
+    const synth = p.synthesis
+      ?? [p.tanach_context, p.why_here, p.mechanism, p.landing]
+        .filter((s): s is string => typeof s === 'string' && s.length > 0)
+        .join('\n\n');
     const issues = lintSynthesis(synth);
     if (issues.length > 0) lint_issues = issues;
   }
@@ -2131,6 +2149,8 @@ async function runEnrichmentOnce(
   // a bypass_cache=true re-run will get a fresh shot at producing clean
   // Hebrew-anchored prose.
   if (cacheKey && !parse_error && !lint_issues) await writeCachedResult(rc.env, cacheKey, out);
+  // Attribute this fresh LLM call's tokens + cost to the daily rollup.
+  captureLlmUsage(rc, { kind: 'enrichment', id: def.id, result: { model: result.model, usage: result.usage, parse_error } });
   return out;
 }
 
@@ -2289,6 +2309,8 @@ app.post('/api/studio/run', async (c) => {
       if (cached) {
         try {
           const result = JSON.parse(cached) as RunResult;
+          // Record the cache-hit so per-mark / per-enrichment hit-rate is real.
+          recordTelemetry(c, runTelemetryRec(job, { ...result, cache_hit: true }, 0));
           // total_ms isn't stored in the cached payload (only added at run
           // exit), so inject it on cache-hits — the panel renders it as the
           // run badge and shows "undefinedms" otherwise.
@@ -2828,6 +2850,11 @@ interface TelemetryRecord {
   mark_id?: string;
   /** Set when endpoint === 'studio-enrichment'. */
   enrichment_id?: string;
+  /** Token usage + estimated USD cost for the (recent-window) cost view.
+   *  cost_usd is null when the model has no known list price. */
+  tokens_in?: number;
+  tokens_out?: number;
+  cost_usd?: number | null;
 }
 
 function classifyError(detail: string): TelemetryErrorKind {
@@ -2861,6 +2888,74 @@ async function logTelemetry(cache: KVNamespace | undefined, rec: TelemetryRecord
   } catch (err) {
     // eslint-disable-next-line no-console
     console.warn('[telemetry] KV write failed:', String(err));
+  }
+}
+
+/**
+ * Cost attribution for one freshly-computed LLM result. Increments the
+ * persistent daily rollup (usage-rollup.ts) so total/per-mark/per-enrichment
+ * spend stays lifetime-accurate beyond the 500-entry telemetry window. Called
+ * from the two LLM compute paths (runMarkOnce / runEnrichmentOnce); cache hits
+ * and deterministic short-circuits don't reach here, so the rollup counts real
+ * LLM calls only. Fire-and-forget via rc.ctx.
+ */
+function captureLlmUsage(
+  rc: RunCtx,
+  args: { kind: 'mark' | 'enrichment'; id: string; result: { model?: string; usage?: LLMUsage | null; parse_error?: string | null } },
+): void {
+  const { input, output } = normalizeUsage(args.result.usage as Parameters<typeof normalizeUsage>[0]);
+  const cost = priceCostUsd(args.result.model, args.result.usage as Parameters<typeof priceCostUsd>[1]);
+  recordUsage(rc.env, rc.ctx, {
+    ok: !args.result.parse_error,
+    cacheHit: false,
+    model: args.result.model ?? null,
+    tokensIn: input,
+    tokensOut: output,
+    costUsd: cost,
+    markId: args.kind === 'mark' ? args.id : undefined,
+    enrichmentId: args.kind === 'enrichment' ? args.id : undefined,
+  });
+}
+
+/** Build a studio-run telemetry record (latency + cache-hit + tokens/cost) for
+ *  a mark or enrichment run. Used at the queue-job boundary and the producer
+ *  cache-hit fast path so per-mark / per-enrichment latency + hit-rate reflect
+ *  the real pipeline (translate was previously the only thing recording). */
+function runTelemetryRec(
+  job: { mark_id?: string; enrichment_id?: string; tractate: string; page: string },
+  result: { model?: string; usage?: unknown; parse_error?: string | null; cache_hit?: boolean },
+  ms: number,
+): Omit<TelemetryRecord, 'ts'> {
+  const { input, output } = normalizeUsage(result.usage as Parameters<typeof normalizeUsage>[0]);
+  const cost = priceCostUsd(result.model, result.usage as Parameters<typeof priceCostUsd>[1]);
+  const isMark = !!job.mark_id;
+  return {
+    endpoint: isMark ? 'studio-mark' : job.enrichment_id ? 'studio-enrichment' : 'studio-adhoc',
+    tractate: job.tractate,
+    page: job.page,
+    cache_hit: result.cache_hit ?? false,
+    model: result.model,
+    ms,
+    ok: !result.parse_error,
+    error_kind: result.parse_error ? classifyError(result.parse_error) : undefined,
+    mark_id: job.mark_id,
+    enrichment_id: job.enrichment_id,
+    tokens_in: input,
+    tokens_out: output,
+    cost_usd: cost,
+  };
+}
+
+/** Record every place instance the `places` mark emitted into the observed-place
+ *  backlog (there is no global places gazetteer, so all of them are candidates
+ *  for global enrichment). */
+function recordObservedPlacesFromMark(rc: RunCtx, parsed: unknown, tractate: string, page: string): void {
+  const p = parsed as { instances?: Array<{ fields?: { name?: string; nameHe?: string; kind?: string; region?: string } }> } | null;
+  if (!p || !Array.isArray(p.instances)) return;
+  for (const inst of p.instances) {
+    const f = inst?.fields;
+    if (!f || (!f.name && !f.nameHe)) continue;
+    recordObservedPlace(rc.env, rc.ctx, { name: f.name, nameHe: f.nameHe, kind: f.kind, region: f.region, tractate, page });
   }
 }
 
@@ -2997,8 +3092,42 @@ app.get('/api/usage', async (c) => {
       mark_id: r.mark_id, enrichment_id: r.enrichment_id,
     }));
 
+  // --- Cost ----------------------------------------------------------------
+  // Self-tracked lifetime totals from the persistent daily rollups, plus the
+  // authoritative AI Gateway figure (cached 5 min so the 30s dashboard refresh
+  // doesn't hammer the CF analytics API).
+  const selfTracked = cache ? await readUsageSummary(cache) : null;
+  let aiGateway: Awaited<ReturnType<typeof fetchGatewayCost>>;
+  if (cache) {
+    const cachedAigw = await cache.get('aigw-cost:v1');
+    let parsed: Awaited<ReturnType<typeof fetchGatewayCost>> | null = null;
+    if (cachedAigw) { try { parsed = JSON.parse(cachedAigw); } catch { parsed = null; } }
+    if (parsed) {
+      aiGateway = parsed;
+    } else {
+      aiGateway = await fetchGatewayCost(c.env);
+      c.executionCtx.waitUntil(cache.put('aigw-cost:v1', JSON.stringify(aiGateway), { expirationTtl: 300 }));
+    }
+  } else {
+    aiGateway = await fetchGatewayCost(c.env);
+  }
+
+  // --- Needs-enrichment backlog -------------------------------------------
+  const unknownRabbis = cache ? await listUnknownRabbis(cache) : { total: 0, sightings: 0, sample: [] };
+  const observedPlaces = cache ? await listObservedPlaces(cache) : { total: 0, sightings: 0, sample: [] };
+
+  // --- Hard queue-job failures (separate ring buffer from telemetry) -------
+  let jobErrors: RecentJobError[] = [];
+  if (cache) {
+    const jeRaw = await cache.get(RECENT_ERRORS_KEY);
+    if (jeRaw) { try { jobErrors = (JSON.parse(jeRaw) as RecentJobError[]).slice(-30).reverse(); } catch { jobErrors = []; } }
+  }
+
   return c.json({
     telemetry: { perEndpoint, perMark, perEnrichment, recentErrors, totalCount: telemetry.length },
+    cost: { selfTracked, aiGateway },
+    unknowns: { rabbis: unknownRabbis, places: observedPlaces },
+    jobErrors,
     reports: [...reports].reverse(),
   });
 });
@@ -6205,6 +6334,7 @@ async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: Executi
         status: 'ok',
         result: { kind: 'mark', ...result, definition: def, total_ms: Date.now() - t0 },
       });
+      recordTelemetry({ env: wrapped, executionCtx: ctx }, runTelemetryRec(job, result, Date.now() - t0));
       return;
     }
     let def: EnrichmentDefinition | null = null;
@@ -6236,6 +6366,7 @@ async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: Executi
       status: 'ok',
       result: { kind: 'enrichment', ...result, definition: def, total_ms: Date.now() - t0 },
     });
+    recordTelemetry({ env: wrapped, executionCtx: ctx }, runTelemetryRec(job, result, Date.now() - t0));
   } catch (err) {
     const errorMsg = String((err as Error)?.message ?? err);
     const totalMs = Date.now() - t0;
