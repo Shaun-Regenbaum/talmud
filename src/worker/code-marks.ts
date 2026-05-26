@@ -2950,16 +2950,48 @@ const PESUKIM_TANACH_CONTEXT_OUTPUT_SCHEMA = {
   },
 };
 
-const PESUKIM_EXEGESIS_SYSTEM_PROMPT = `You are a scholar of Talmud. Given ONE pasuk citation on a daf — verse reference + the Hebrew excerpt as it appears in the gemara + the surrounding gemara — describe (a) the LOCAL QUESTION OR MOVE that prompts the gemara to reach for this verse here, (b) HOW the gemara is using the verse, and (c) the SPECIFIC EXEGETICAL METHOD when one is being invoked.
+// Shared leaf user template for the daf-local pesukim leaves (why-here,
+// mechanism). Mirrors HALACHA_LEAF_USER_TEMPLATE — one template feeds every
+// leaf that needs the gemara + commentaries for a single citation.
+const PESUKIM_LEAF_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+Pasuk citation:
+{{mark_input}}
+
+Focal pasuk — Hebrew verbatim text (quote from THIS when citing the verse):
+{{pasuk_he}}
+
+Hebrew source of the daf (the citation appears within this):
+{{gemara_he}}
+
+Rashi + Tosafot + other rishonim available for the daf:
+{{commentaries}}
+
+Produce the requested output per the schema.`;
+
+const PESUKIM_WHY_HERE_SYSTEM_PROMPT = `You are a scholar of Talmud. Given ONE pasuk citation on a daf — verse reference + the Hebrew excerpt as it appears in the gemara + the surrounding gemara — state the concrete LOCAL question or argumentative move on THIS daf that drives the gemara to reach for THIS verse.
+
+Output STRICT JSON only:
+
+{
+  "why_here": "1-2 sentences in plain English: the specific local question, problem, or move that prompts the citation. Be specific — not 'the gemara is discussing tefillah' but 'the Mishnah opens with the evening Shema before the morning, which inverts the usual day order, so the gemara needs to defend that ordering.' If no real tension is being resolved (pure narrative quotation, or asmakhta with no derivation), say so plainly."
+}
+
+Rules:
+- Daf-LOCAL: about what's happening on THIS daf, not the verse's meaning in Tanach.
+- Concrete and specific. Name what is being defended, attacked, or derived.
+- NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "profound", "lens", "captures", "embodies".
+
+${TANACH_NAMING_STYLE}`;
+
+const PESUKIM_MECHANISM_SYSTEM_PROMPT = `You are a scholar of Talmud. Given ONE pasuk citation on a daf — verse reference + the Hebrew excerpt as it appears in the gemara + the surrounding gemara — describe the exact exegetical or rhetorical MOVE the gemara makes with THIS verse here, and name the SPECIFIC method when one is being invoked.
 
 Not every citation invokes a formal method — sometimes a verse is just plain proof, narrative quotation, or a mnemonic. Be precise: only name a method when the gemara is actually using it; otherwise say so plainly.
 
 Output STRICT JSON only:
 
 {
-  "prompting_issue": "1-2 sentences in plain English: what local question, problem, or argumentative move on THIS daf prompts the gemara to reach for THIS verse? Be specific — not 'the gemara is discussing tefillah' but 'the Mishnah opens with the evening Shema before the morning, which is the reverse of how a day is usually counted — the gemara needs to defend that ordering'. If no real tension is being resolved (pure narrative quotation, asmakhta with no derivation), say so plainly.",
-  "use": "1-2 sentences in plain English: what role this verse plays in the gemara's argument here. Pick from: proof for a halacha; prooftext / mnemonic support (asmakhta); contrast or counter-citation; exegetical derivation (and name the method in 'method' below); narrative quotation; tangential allusion. Name the role explicitly. Quote the load-bearing Hebrew word(s) verbatim (3-6 words, in parens) when the precise phrasing is what carries the proof.",
-  "method": "OPTIONAL. When the gemara is INVOKING a specific exegetical method to derive its conclusion, name the method in plain English with the Hebrew technical term in parens, plus 1-2 sentences on how the derivation works HERE — what word/phrase the method hinges on, and what the unstated assumption is. If the citation is plain proof / narrative / mnemonic / contrast (no formal derivation), return empty string."
+  "mechanism": "1-2 sentences. The exact exegetical or rhetorical move. When the gemara invokes a named midah (גזירה שווה, היקש, קל וחומר, ריבוי ומיעוט, כלל ופרט, אסמכתא, דבר הלמד מעניינו, etc.), NAME IT with the Hebrew in parens, and say what word / phrase / juxtaposition the derivation hinges on, plus what the unstated assumption is. If it's plain proof (no formal derivation), say so explicitly and explain why this verse is the right anchor (e.g. 'plain word-order proof — the verse itself lists שכיבה before קימה')."
 }
 
 The midot you should identify when applicable (the midot she-haTorah nidreshet bahem):
@@ -2976,12 +3008,27 @@ The midot you should identify when applicable (the midot she-haTorah nidreshet b
 
 Rules:
 - Daf-LOCAL: about how the gemara uses THIS pasuk on THIS daf.
-- ONLY name a method when the gemara genuinely invokes one. Plain proof citations should say so in 'use' and leave 'method' empty.
+- ONLY name a method when the gemara genuinely invokes one. Plain proof citations should say so explicitly and not force a method name.
 - Concrete. NO puff. NO "this teaches us", NO "we see that".
 
 ${TANACH_NAMING_STYLE}`;
 
-const PESUKIM_EXEGESIS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+const PESUKIM_LANDING_SYSTEM_PROMPT = `You are a scholar of Talmud. Given ONE pasuk citation on a daf, state the halacha or claim that THIS citation establishes on the daf.
+
+Output STRICT JSON only:
+
+{
+  "landing": "1 sentence. The concrete halacha or claim the citation establishes. Name a rabbi tied to the citation when one is identified on the daf. Be CONCRETE — what does the gemara actually conclude? Avoid abstractions like 'establishes the structure' or 'anchors the sugya'."
+}
+
+Rules:
+- ONE sentence. Concrete — a specific halacha or claim, not an abstraction.
+- Name the rabbi tied to the citation when one is identified on the daf.
+- NO puff. Forbidden: "anchors", "establishes the structure", "this teaches us", "we see that", "highlights", "underscores", "deeply", "profound", "lens", "captures", "embodies".
+
+${TANACH_NAMING_STYLE}`;
+
+const PESUKIM_LANDING_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
 Pasuk citation:
 {{mark_input}}
@@ -2989,71 +3036,66 @@ Pasuk citation:
 Focal pasuk — Hebrew verbatim text (quote from THIS when citing the verse):
 {{pasuk_he}}
 
-Hebrew source of the daf (the citation appears within this):
+Hebrew source of the daf:
 {{gemara_he}}
 
-Rashi + Tosafot + other rishonim available for the daf:
-{{commentaries}}
+Rabbis identified on the daf:
+{{anchors.rabbi}}
 
-Describe how the gemara uses this verse here, per the schema.`;
+State the halacha or claim this citation establishes, per the schema.`;
 
-const PESUKIM_EXEGESIS_OUTPUT_SCHEMA = {
-  name: 'pesukim_exegesis',
+const PESUKIM_WHY_HERE_OUTPUT_SCHEMA = {
+  name: 'pesukim_why_here',
   strict: true,
   schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['prompting_issue', 'use', 'method'],
-    properties: {
-      prompting_issue: { type: 'string' },
-      use: { type: 'string' },
-      method: { type: 'string' },
-    },
+    type: 'object', additionalProperties: false,
+    required: ['why_here'], properties: { why_here: { type: 'string' } },
   },
 };
 
-const PESUKIM_SYNTHESIS_SYSTEM_PROMPT = `You are a scholar of Talmud and Tanach. Given ONE pasuk citation on a daf along with its Tanach context and the gemara's exegetical use, output FOUR short labeled sections that teach the learner what's actually going on.
+const PESUKIM_MECHANISM_OUTPUT_SCHEMA = {
+  name: 'pesukim_mechanism',
+  strict: true,
+  schema: {
+    type: 'object', additionalProperties: false,
+    required: ['mechanism'], properties: { mechanism: { type: 'string' } },
+  },
+};
 
-The output is NOT one paragraph. It is FOUR separate fields, each rendered as its own small labeled section in the UI (the same shape halacha leaf cards use). Each field is 1-2 sentences. No field repeats another field's content. No field stacks two components together.
+const PESUKIM_LANDING_OUTPUT_SCHEMA = {
+  name: 'pesukim_landing',
+  strict: true,
+  schema: {
+    type: 'object', additionalProperties: false,
+    required: ['landing'], properties: { landing: { type: 'string' } },
+  },
+};
+
+// Synthesis aggregate — mirrors halacha.synthesis: one tight prose paragraph
+// that weaves the section leaves (Tanach context / why here / mechanism /
+// landing) into a single narrative thread. Each section also renders as its
+// own card below, so the synthesis is the connecting story, NOT a restatement.
+const PESUKIM_SYNTHESIS_SYSTEM_PROMPT = `You are a scholar of Talmud and Tanach. Given ONE pasuk citation on a daf plus four pre-computed sections — where the pasuk sits in Tanach, the local question that prompts the citation, the exegetical mechanism, and what it establishes — compose ONE tight paragraph that weaves them into a single thread.
 
 Output STRICT JSON only:
 
 {
-  "tanach_context": "1-2 sentences. WHERE the pasuk sits in Tanach. Name the speaker (e.g. 'Moshe Rabbeinu', 'Hashem to Moshe', 'Yeshayahu to King Achaz'), the parsha or section (e.g. 'in the parsha of krias shema in Va\\'etchanan', 'inside the tochechah of Devarim 28', 'from the Aseret HaDibrot'), and the immediate textual neighborhood (e.g. 'sits between the obligation to love Hashem (Devarim 6:5) and the mitzvah of tefillin (Devarim 6:8)'). Quote the load-bearing Hebrew phrase verbatim. This field is MANDATORY — never leave it empty.",
-
-  "why_here": "1-2 sentences. The concrete local question on the daf that drives the citation. Not 'the gemara is discussing X' — instead 'the Mishnah orders evening Shema before morning, which inverts the usual day order, so the gemara needs a textual anchor for that sequence.' Be specific about what's being defended, attacked, or derived.",
-
-  "mechanism": "1-2 sentences. The exact exegetical or rhetorical move. When the gemara invokes a named midah (גזירה שווה, היקש, קל וחומר, ריבוי ומיעוט, כלל ופרט, אסמכתא, דבר הלמד מעניינו, etc.), NAME IT with the Hebrew in parens, and say what word/phrase/juxtaposition the derivation hinges on. If it's plain proof (no formal derivation), say so explicitly and explain why this verse is the right anchor (e.g. 'plain word-order proof — the verse itself lists שכיבה before קימה').",
-
-  "landing": "1 sentence. The halacha or claim the citation establishes. Name a rabbi tied to the citation when one is on the daf. Be CONCRETE — what does the gemara conclude? Avoid abstractions like 'establishes the structure'."
+  "synthesis": "ONE paragraph, 3-4 sentences. Order: (a) a short orienting clause — where the pasuk sits in Tanach and who speaks it; (b) the concrete local question on the daf that drives the citation; (c) the exegetical move — name the midah with the Hebrew in parens when one is invoked (גזירה שווה, היקש, קל וחומר, אסמכתא, etc.), or say plainly it's straight proof; (d) what the gemara concludes. Quote the load-bearing Hebrew phrase verbatim from the focal pasuk when the precise wording carries the proof. Hard ceiling: 4 sentences."
 }
 
 HARD RULES:
-- Each field is 1-2 sentences. No field is a paragraph.
-- Each field is independently complete — a reader scanning only one field gets one clean idea.
-- NO repetition across fields. If you said it in tanach_context, do NOT say it again in landing.
+- 3-4 sentences. Hard ceiling — do NOT pad.
+- About THIS citation only. Don't summarize the whole daf.
+- The synthesis is the NARRATIVE THREAD connecting the four section cards the user sees below — not a verbatim restatement of them. If the only thing you can say is what those cards already say, write fewer sentences.
+- Ground every claim in the four section inputs + the pasuk text. Don't invent.
 - Quote Hebrew verbatim when the precise wording carries the proof. The {{pasuk_he}} field has the focal pasuk; quote from THAT.
-- When a named midah is invoked, name it explicitly with Hebrew in parens.
 
-FORBIDDEN PHRASES (rejected if present in ANY field):
+FORBIDDEN PHRASES (rejected if present):
   - "anchors", "anchors the structure", "anchors the sugya"
   - "foundational justification", "the foundational"
   - "this teaches us", "we see that", "this explains why"
   - "highlights", "underscores", "deeply", "intricate", "profound"
   - "lens", "captures", "embodies"
-  - "the citation thus establishes" — instead say WHAT the halacha actually is
-
-EXAMPLE (Devarim 6:7 cited on Berakhot 2a):
-
-  tanach_context: "Moshe Rabbeinu, in the parsha of krias shema in Va\\'etchanan, commands Israel to speak of these words 'ובשכבך ובקומך' (when you lie down and when you rise). The pasuk sits between the obligation to love Hashem (Devarim 6:5) and the mitzvah of tefillin (Devarim 6:8) — part of the second paragraph of Shema."
-
-  why_here: "The opening Mishnah names the evening Shema before the morning, which inverts the usual day-ordering. The gemara needs a textual reason to defend why the Tanna lists evening first."
-
-  mechanism: "Plain word-order proof, not a formal midah — the verse itself lists שכיבה before קימה, so the Tanna is reading the Mishnah's sequence straight off the pasuk's phrasing. No derivation method is invoked; the verse's surface order IS the proof."
-
-  landing: "The obligation to recite Shema applies twice daily, evening first and morning second, because the Mishnah's order follows the Torah's own phrasing rather than chronological intuition."
-
-  Notice: (a) each field is short and self-contained, (b) tanach_context orients in Tanach before the daf is even mentioned, (c) mechanism is explicit about 'plain word-order, not a formal midah', (d) landing names a concrete halacha, (e) no field repeats another, (f) no forbidden phrases.
 
 - NO jargon: write "transmitter" not "tradent", "interpret" not "exegete".
 
@@ -3070,11 +3112,17 @@ Focal pasuk — Hebrew verbatim text (QUOTE FROM THIS WHEN YOU CITE THE VERSE; d
 Other pesukim cited on this daf — Hebrew verbatim text (QUOTE FROM THESE if the gemara invokes them as cross-references; do not reconstruct):
 {{cross_refs_he}}
 
-Tanach context (verse's plain meaning in its own scriptural context):
+Where the pasuk sits in Tanach:
 {{depends.pesukim.tanach-context}}
 
-Exegetical use on this daf (how the gemara uses the verse here):
-{{depends.pesukim.exegesis}}
+The local question on the daf that drives the citation:
+{{depends.pesukim.why-here}}
+
+The exegetical mechanism:
+{{depends.pesukim.mechanism}}
+
+What the citation establishes:
+{{depends.pesukim.landing}}
 
 Hebrew source of the daf:
 {{gemara_he}}
@@ -3082,7 +3130,7 @@ Hebrew source of the daf:
 Rabbis identified on the daf:
 {{anchors.rabbi}}
 
-Fill the four labeled fields per the schema. Each is 1-2 sentences — no field is a paragraph.`;
+Weave these into ONE tight paragraph per the schema.`;
 
 const PESUKIM_SYNTHESIS_OUTPUT_SCHEMA = {
   name: 'pesukim_synthesis',
@@ -3090,13 +3138,8 @@ const PESUKIM_SYNTHESIS_OUTPUT_SCHEMA = {
   schema: {
     type: 'object',
     additionalProperties: false,
-    required: ['tanach_context', 'why_here', 'mechanism', 'landing'],
-    properties: {
-      tanach_context: { type: 'string' },
-      why_here: { type: 'string' },
-      mechanism: { type: 'string' },
-      landing: { type: 'string' },
-    },
+    required: ['synthesis'],
+    properties: { synthesis: { type: 'string' } },
   },
 };
 
@@ -3233,8 +3276,11 @@ Existing synthesis (the learner has already read this — go deeper, don't resta
 Tanach context for the pasuk:
 {{depends.pesukim.tanach-context}}
 
-How the gemara uses the verse here (prompting issue / use / method):
-{{depends.pesukim.exegesis}}
+The local question on the daf that drives the citation:
+{{depends.pesukim.why-here}}
+
+How the gemara uses the verse here (the exegetical mechanism):
+{{depends.pesukim.mechanism}}
 
 Hebrew source of the daf:
 {{gemara_he}}
@@ -3270,36 +3316,62 @@ CODE_ENRICHMENTS.push(
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
+  // Section leaves — each renders as its own bordered card in the pasuk
+  // panel (mirrors halacha's codification / practical / disputes). The
+  // synthesis aggregate depends on all three (+ tanach-context) so they
+  // resolve in one run and surface via deps_resolved → onResolved.
   makeEnrichment(
-    'pesukim', 'pesukim.exegesis', 'Exegesis',
-    'How the gemara uses this verse on this daf — proof / prooftext / contrast / exegetical method.',
-    PESUKIM_EXEGESIS_SYSTEM_PROMPT, PESUKIM_EXEGESIS_USER_TEMPLATE, PESUKIM_EXEGESIS_OUTPUT_SCHEMA,
+    'pesukim', 'pesukim.why-here', 'Why here',
+    'The concrete local question on this daf that drives the gemara to cite this verse.',
+    PESUKIM_WHY_HERE_SYSTEM_PROMPT, PESUKIM_LEAF_USER_TEMPLATE, PESUKIM_WHY_HERE_OUTPUT_SCHEMA,
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', 'commentaries'],
-      defHash: 'pesukim.exegesis-v7', cacheVersion: '7',
+      defHash: 'pesukim.why-here-v1', cacheVersion: '1',
+      model: ARGUMENT_FLASH_MODEL,
+    },
+  ),
+  makeEnrichment(
+    'pesukim', 'pesukim.mechanism', 'Mechanism',
+    'The exact exegetical / rhetorical move the gemara makes with this verse — the midah, or plain proof.',
+    PESUKIM_MECHANISM_SYSTEM_PROMPT, PESUKIM_LEAF_USER_TEMPLATE, PESUKIM_MECHANISM_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content', scope: 'local',
+      dependencies: ['gemara', 'commentaries'],
+      defHash: 'pesukim.mechanism-v1', cacheVersion: '1',
+      model: ARGUMENT_FLASH_MODEL,
+    },
+  ),
+  makeEnrichment(
+    'pesukim', 'pesukim.landing', 'Landing',
+    'The concrete halacha or claim this citation establishes on the daf.',
+    PESUKIM_LANDING_SYSTEM_PROMPT, PESUKIM_LANDING_USER_TEMPLATE, PESUKIM_LANDING_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content', scope: 'local',
+      dependencies: ['gemara', { mark: 'rabbi' }],
+      defHash: 'pesukim.landing-v1', cacheVersion: '1',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
   makeEnrichment(
     'pesukim', 'pesukim.synthesis', 'Synthesis',
-    'Tight paragraph: the verse, what it says, how the gemara uses it, where it lands.',
+    'Tight paragraph weaving the four section leaves into a single narrative thread.',
     PESUKIM_SYNTHESIS_SYSTEM_PROMPT, PESUKIM_SYNTHESIS_USER_TEMPLATE, PESUKIM_SYNTHESIS_OUTPUT_SCHEMA,
     {
       mode: 'aggregate', scope: 'local',
       dependencies: [
         'gemara',
         { enrichment: 'pesukim.tanach-context' },
-        { enrichment: 'pesukim.exegesis' },
+        { enrichment: 'pesukim.why-here' },
+        { enrichment: 'pesukim.mechanism' },
+        { enrichment: 'pesukim.landing' },
         { mark: 'rabbi' },
         { mark: 'pesukim' },
       ],
-      defHash: 'pesukim.synthesis-v10', cacheVersion: '10',
-      // Pro instead of Flash: synthesis must follow the strict 4-5 sentence
+      defHash: 'pesukim.synthesis-v11', cacheVersion: '11',
+      // Pro instead of Flash: the synthesis must follow the 3-4 sentence
       // structure and avoid the explicit banned-phrase list. Flash skims
-      // multi-rule prompts (the same reason argument-move.qa runs on Pro);
-      // Pro adheres to the MANDATORY-Tanach-orientation sentence and to the
-      // BAD/GOOD example pattern.
+      // multi-rule prompts (the same reason argument-move.qa runs on Pro).
       model: ARGUMENT_PRO_MODEL,
     },
   ),
@@ -3316,7 +3388,7 @@ CODE_ENRICHMENTS.push(
         { mark: 'pesukim' },
         { enrichment: 'pesukim.synthesis' },
       ],
-      defHash: 'pesukim.suggested-questions-v2', cacheVersion: '2',
+      defHash: 'pesukim.suggested-questions-v3', cacheVersion: '3',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -3330,11 +3402,12 @@ CODE_ENRICHMENTS.push(
         'gemara',
         'commentaries',
         { enrichment: 'pesukim.tanach-context' },
-        { enrichment: 'pesukim.exegesis' },
+        { enrichment: 'pesukim.why-here' },
+        { enrichment: 'pesukim.mechanism' },
         { enrichment: 'pesukim.synthesis' },
         { mark: 'pesukim' },
       ],
-      defHash: 'pesukim.qa-v2', cacheVersion: '2',
+      defHash: 'pesukim.qa-v3', cacheVersion: '3',
       model: ARGUMENT_PRO_MODEL,
     },
   ),

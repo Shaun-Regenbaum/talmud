@@ -995,6 +995,25 @@ function HalachaBody(props: {
   );
 }
 
+/** One labeled section box in the pasuk panel — same shape as halacha's
+ *  codification / practical / disputes cards. */
+function PasukSection(props: { label: string; text: string }): JSX.Element {
+  return (
+    <div style={{
+      border: '1px solid #eae8e0', 'border-radius': '6px',
+      background: '#fafaf7', padding: '0.7rem 0.85rem', 'margin-top': '0.7rem',
+    }}>
+      <div style={{
+        'font-size': '0.7rem', 'text-transform': 'uppercase',
+        'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.4rem',
+      }}>{props.label}</div>
+      <div style={{ 'font-size': '0.88rem', color: '#222', 'line-height': 1.55 }}>
+        <HebraizedWithRabbis text={props.text} />
+      </div>
+    </div>
+  );
+}
+
 /** Sidebar panel for a cited pasuk: shows the full Hebrew Tanakh verse and,
  *  on expand, the surrounding verses inlined as one continuous Hebrew block
  *  (prev + cited + next) with the cited verse rendered dark and the others
@@ -1010,6 +1029,34 @@ function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JS
     () => (expanded() ? detail()?.nextRef ?? null : null),
     (r) => fetchPasuk(r),
   );
+
+  // Section leaves, surfaced from the synthesis aggregate's deps_resolved
+  // (same mechanism HalachaBody uses). Each renders as its own card below the
+  // synthesis paragraph.
+  const [tanachContext, setTanachContext] = createSignal<string | null>(null);
+  const [whyHere, setWhyHere] = createSignal<string | null>(null);
+  const [mechanism, setMechanism] = createSignal<string | null>(null);
+  const [landing, setLanding] = createSignal<string | null>(null);
+
+  createEffect(() => {
+    void props.pasuk.verseRef;
+    setTanachContext(null);
+    setWhyHere(null);
+    setMechanism(null);
+    setLanding(null);
+  });
+
+  const handleResolved = (r: { deps_resolved?: Record<string, unknown>; anchors_resolved?: Record<string, unknown> }) => {
+    const deps = r.deps_resolved ?? {};
+    const tc = deps['pesukim.tanach-context'] as { context?: string } | undefined;
+    if (tc && typeof tc.context === 'string') setTanachContext(tc.context);
+    const wh = deps['pesukim.why-here'] as { why_here?: string } | undefined;
+    if (wh && typeof wh.why_here === 'string') setWhyHere(wh.why_here);
+    const me = deps['pesukim.mechanism'] as { mechanism?: string } | undefined;
+    if (me && typeof me.mechanism === 'string') setMechanism(me.mechanism);
+    const la = deps['pesukim.landing'] as { landing?: string } | undefined;
+    if (la && typeof la.landing === 'string') setLanding(la.landing);
+  };
 
   return (
     <div>
@@ -1054,9 +1101,11 @@ function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JS
         }}
         title={expanded() ? 'Hide surrounding verses' : 'Show verse before + after'}
       >{expanded() ? '› collapse ‹' : '‹ expand ›'}</button>
-      {/* Per-pasuk synthesis card. Mounts MarkEnrichmentCards markId="pesukim";
-          production shows the synthesis paragraph, dev mode adds the dropdown
-          with [global] tanach-context + [local] exegesis leaves. */}
+      {/* Per-pasuk synthesis card. Mounts MarkEnrichmentCards markId="pesukim":
+          the synthesis paragraph renders in its own box, and its resolved
+          leaves (tanach-context / why-here / mechanism / landing) come back
+          via onResolved and render as separate section cards below — the same
+          structure as the halacha panel. */}
       {(() => {
         const pesukimInstance = {
           startSegIdx: props.pasuk.startSegIdx,
@@ -1076,7 +1125,12 @@ function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JS
               instanceKey={props.pasuk.verseRef}
               tractate={props.tractate}
               page={props.page}
+              onResolved={handleResolved}
             />
+            <Show when={tanachContext()}>{(t) => <PasukSection label="Tanach context" text={t()} />}</Show>
+            <Show when={whyHere()}>{(t) => <PasukSection label="Why here" text={t()} />}</Show>
+            <Show when={mechanism()}>{(t) => <PasukSection label="Mechanism" text={t()} />}</Show>
+            <Show when={landing()}>{(t) => <PasukSection label="Landing" text={t()} />}</Show>
             {/* Questions panel: curated follow-ups + community + free-form
                 asking. Same UX as the argument-move card. */}
             <QAPanel
