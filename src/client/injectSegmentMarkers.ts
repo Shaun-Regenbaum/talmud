@@ -36,7 +36,7 @@ export interface SegmentStats {
  * `hbRaw` should be the RAW HebrewBooks word (pre-normalization) so we can
  * detect the abbreviation punctuation (geresh / gershayim / ASCII quotes).
  */
-function abbreviationMatches(hbRaw: string, sefWords: string[], sj: number): number {
+export function abbreviationMatches(hbRaw: string, sefWords: string[], sj: number): number {
   // Strip nikkud/cantillation but KEEP punctuation so we can see the ' / ׳ / " / ״ markers.
   const s = hbRaw.replace(/[֑-ׇ]/g, '').trim();
   const eq = (a: string, b: string): boolean => normalizeHebrew(a) === normalizeHebrew(b);
@@ -64,6 +64,17 @@ function abbreviationMatches(hbRaw: string, sefWords: string[], sj: number): num
   // וא"ר  →  ואמר רבי
   if (/^וא[״"״]ר$/.test(s)) {
     if (sj + 1 < sefWords.length && eq(sefWords[sj], 'ואמר') && eq(sefWords[sj + 1], 'רבי')) return 2;
+    return 0;
+  }
+
+  // חכ"א → חכמים אומרים  ;  וחכ"א → וחכמים אומרים  ("(and) the Sages say").
+  // Needs an explicit rule: the generic acronym matcher caps each Sefaria word
+  // at 2 acronym letters, but חכמים supplies 3 (ח,כ,_ → חכ plus the leading ו),
+  // so it can't split חכא/וחכא on its own. Very common in Mishna/baraita.
+  m = s.match(/^(ו?)חכ[״"״]א$/);
+  if (m) {
+    const first = m[1] ? 'וחכמים' : 'חכמים';
+    if (sj + 1 < sefWords.length && eq(sefWords[sj], first) && eq(sefWords[sj + 1], 'אומרים')) return 2;
     return 0;
   }
 
