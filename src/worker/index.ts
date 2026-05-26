@@ -345,27 +345,15 @@ app.get('/api/admin/ai-gateway-test', async (c) => {
   if (c.req.query('run') !== '1') return c.json({ status, hint: 'append ?run=1 to invoke' });
   const explicitModel = c.req.query('model');
   const nonce = c.req.query('nonce') || '';
-  // ?big=N forces a large structured output to reproduce the long-generation
-  // abort. The prompt asks for N JSON items; combined with a high max_tokens,
-  // it drives generation long enough to hit whatever ceiling owns the
-  // "operation aborted" failure. ?tokens=N overrides max_tokens.
-  const big = parseInt(c.req.query('big') || '0', 10);
-  const tokens = parseInt(c.req.query('tokens') || (big > 0 ? '16000' : '16'), 10);
-  const t0 = Date.now();
   try {
-    const messages = big > 0
-      ? [
-          { role: 'system' as const, content: `Output STRICT JSON: {"items":[...]}. Each item is {"i":<index>,"text":"a detailed 40-word sentence about the number"}. Output EXACTLY ${big} items, indices 0..${big - 1}. No prose outside the JSON.` },
-          { role: 'user' as const, content: `Generate the ${big}-item list now${nonce ? ' (' + nonce + ')' : ''}.` },
-        ]
-      : [
-          { role: 'system' as const, content: 'Reply with the single word OK and nothing else.' },
-          { role: 'user' as const, content: `Ping${nonce ? ' ' + nonce : ''}.` },
-        ];
     const result = await runLLM(c.env, {
+      // omit model when no override → runLLM resolves from settings KV.
       ...(explicitModel ? { model: explicitModel as LLMModelId } : {}),
-      messages,
-      max_tokens: tokens,
+      messages: [
+        { role: 'system', content: 'Reply with the single word OK and nothing else.' },
+        { role: 'user', content: `Ping${nonce ? ' ' + nonce : ''}.` },
+      ],
+      max_tokens: 16,
       temperature: 0,
     });
     return c.json({
@@ -376,19 +364,15 @@ app.get('/api/admin/ai-gateway-test', async (c) => {
       attempts: result.attempts,
       ms: result.elapsed_ms,
       usage: result.usage,
-      reply_len: result.content.length,
-      reply: big > 0 ? result.content.slice(0, 120) + '…' : result.content,
+      reply: result.content,
     });
   } catch (err) {
-    const e = err as Error;
     return c.json(
       {
         status,
         route: gatewayActive(c.env) ? 'gateway' : 'binding',
         explicitModel: explicitModel ?? null,
-        ms: Date.now() - t0,
-        error_name: e?.name ?? null,
-        error: String(e?.message ?? err),
+        error: String((err as Error)?.message ?? err),
       },
       500,
     );
