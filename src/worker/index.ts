@@ -142,17 +142,6 @@ export interface JobMessage {
    *  qualifierHash) and is exposed to its prompt as {{user_question}}. Used
    *  by argument-move.qa today. Empty/undefined means a vanilla run. */
   user_question?: string;
-  /** Warm-path flag for mark jobs. When true, after the mark extraction
-   *  lands the consumer fans out a follow-up enrichment job per extracted
-   *  instance (the promoted aggregate/synthesis for that mark), mirroring what
-   *  MarkEnrichmentCards fires when a user opens the sidebar. Running the
-   *  aggregate cascade-warms its dependency leaves via resolveDependencies. */
-  warm_cascade?: boolean;
-  /** Warm-path job kind: pre-bake /api/daf-context (rabbi identification +
-   *  bios) for this daf. Handled by warmDafContext — Stage 1 (Gemma) then
-   *  Stage 2 (Kimi+thinking). Routed through the queue so each daf runs in
-   *  its own invocation budget rather than blocking the cron. */
-  daf_context?: boolean;
 }
 
 function stripHtmlServer(html: string): string {
@@ -1037,6 +1026,30 @@ async function runExtractorFannedOut(
   return { result, systemPromptSample: sysSample, userPromptSample: userSample };
 }
 
+// Rabbi-mark post-processing: run the deterministic known-rabbi string-match
+// safety net (the same augmentWithKnownRabbis the legacy /api/daf-context used)
+// so rabbis the LLM missed but that appear verbatim in the daf still get an
+// underline + timeline entry. Rebuilds the instance list from the augmented
+// rabbis — `excerpt` is non-load-bearing for the rabbi mark (the renderer and
+// sidebar key off fields.nameHe), so mirroring it from nameHe is safe.
+function postProcessRabbi(parsed: unknown, hebrewText: string): unknown {
+  const p = parsed as { instances?: Array<{ fields?: { name?: string; nameHe?: string; generation?: string } }> } | null;
+  if (!p || !Array.isArray(p.instances)) return parsed;
+  const modelRabbis = p.instances.map((i) => ({
+    name: String(i.fields?.name ?? ''),
+    nameHe: String(i.fields?.nameHe ?? ''),
+    generation: (i.fields?.generation ?? 'unknown') as GenerationId,
+  }));
+  const augmented = augmentWithKnownRabbis(modelRabbis, hebrewText);
+  return {
+    ...p,
+    instances: augmented.map((r) => ({
+      excerpt: r.nameHe,
+      fields: { name: r.name, nameHe: r.nameHe, generation: r.generation },
+    })),
+  };
+}
+
 async function runMarkOnce(
   rc: RunCtx,
   def: SchemaMarkDefinition,
@@ -1148,6 +1161,8 @@ async function runMarkOnce(
     parsed = await postProcessPesukim(parsed, rc.env, tractate, page);
   } else if (parsed && def.id === 'aggadata') {
     parsed = await postProcessAggadata(parsed, rc.env, tractate, page);
+  } else if (parsed && def.id === 'rabbi') {
+    parsed = postProcessRabbi(parsed, stripHtmlServer(String(vars.hebrew ?? '')));
   }
   const out: RunResult = {
     content: result.content,
@@ -1959,6 +1974,37 @@ async function runEnrichmentOnce(
       }
       // Miss — fall through to the LLM path with the disambiguation prompt.
     }
+  }
+
+  // Deterministic short-circuit for rabbi.identity. The slug / region / places
+  // / moved fields come from the precomputed rabbi-places.json join (the same
+  // enrichRabbi the legacy /api/daf-context used) — an LLM can't produce a
+  // Sefaria slug, so there's no fallback path: enrichRabbi always returns an
+  // IdentifiedRabbi (nulled fields for rabbis not in the dataset). This is the
+  // single source of canonical identity data the timeline + bio sidebar read.
+  if (def.id === 'rabbi.identity') {
+    // Always short-circuit — there is no useful LLM fallback (a model can't
+    // know a Sefaria slug), and the placeholder prompt must never run.
+    const inst = markInput as { name?: string; nameHe?: string; generation?: GenerationId } | null;
+    const ident = enrichRabbi(inst?.name ?? '', inst?.nameHe ?? '', inst?.generation ?? 'unknown');
+    const out: RunResultEnrichment = {
+      content: JSON.stringify(ident),
+      parsed: ident,
+      parse_error: null,
+      model: ident.slug ? `lookup:${ident.slug}` : 'lookup:miss',
+      transport: 'lookup',
+      attempts: 0,
+      usage: { input_tokens: 0, output_tokens: 0, total_tokens: 0 },
+      elapsed_ms: 0,
+      prompt_chars: 0,
+      resolved: {
+        system_prompt: '(deterministic lookup: rabbi-places.json)',
+        user_prompt: `(identity lookup for rabbi: ${inst?.name ?? '(unnamed)'})`,
+      },
+      cache_hit: false,
+    };
+    if (cacheKey) await writeCachedResult(rc.env, cacheKey, out);
+    return out;
   }
 
   const nextChain = new Set(parentChain);
@@ -4286,30 +4332,6 @@ async function generateDafContextStage2(
     console.warn(`[daf-context:stage2] ${tractate}/${page} threw:`, err);
     recordTelemetry({ env, executionCtx: ctx }, { endpoint: 'daf-context-stage2', tractate, page, cache_hit: false, model: 'kimi-k2.5', ms: Date.now() - s2t0, ok: false, error_kind: 'other' });
   }
-}
-
-// Warm path (queue job): ensure Stage 1 is cached (generate via Gemma if
-// missing), then ensure Stage 2 is cached. Used by yomi-cron. Awaits both
-// inline — the queue job owns its own invocation budget.
-async function warmDafContext(
-  env: Bindings, ctx: ExecutionContext, tractate: string, page: string,
-): Promise<void> {
-  const cache = env.CACHE;
-  if (!cache || !env.AI) return;
-  const baseKey = dafContextBaseKey(tractate, page);
-  const { hebrewText, englishContext } = await fetchDafContextSources(env, tractate, page);
-  if (!hebrewText) return;
-  if (!(await cache.get(baseKey)) && !(await cache.get(`${baseKey}:stage2`))) {
-    const s1 = await runGenerationsModel(
-      env, '@cf/google/gemma-4-26b-a4b-it', hebrewText, englishContext, tractate, page,
-      { maxTokens: 6000, enableThinking: false },
-    );
-    if (!('error' in s1)) {
-      const stage1Ctx: DafContext = { rabbis: enrichAll(augmentWithKnownRabbis(s1.rabbis, hebrewText)) };
-      await cache.put(baseKey, JSON.stringify(stage1Ctx), { expirationTtl: DAF_CONTEXT_TTL });
-    }
-  }
-  await generateDafContextStage2(env, ctx, tractate, page, { hebrewText, englishContext });
 }
 
 // Unified daf context — the single source of truth for underlines, timeline,

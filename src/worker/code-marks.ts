@@ -447,8 +447,8 @@ export const CODE_MARKS: MarkDefinition[] = [
     },
     dependencies: ['gemara'],
     status: 'promoted',
-    def_hash: 'rabbi-v1',
-    cache_version: '1',
+    def_hash: 'rabbi-v2',
+    cache_version: '2',
     source: 'code',
     updated_at: NOW,
   },
@@ -1316,6 +1316,39 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
     RABBI_GEOGRAPHY_SYSTEM_PROMPT, RABBI_LEAF_USER_TEMPLATE, RABBI_GEOGRAPHY_OUTPUT_SCHEMA,
     { mode: 'augment-content', scope: 'global', defHash: 'rabbi.geography-v3', cacheVersion: '3' },
   ),
+  // rabbi.identity — DETERMINISTIC. Resolved server-side from rabbi-places.json
+  // via enrichRabbi (see the short-circuit in runEnrichmentOnce); the LLM
+  // extractor below never executes. Carries the canonical join data the
+  // timeline + bio sidebar need (slug, region, places, moved, image, wiki) —
+  // the role the legacy /api/daf-context filled. Daf-agnostic, so 'global'.
+  makeRabbiEnrichment(
+    'rabbi.identity', 'Identity',
+    'Canonical identity from rabbi-places.json: Sefaria slug, region, places, Bavel↔Israel movement, image, wiki. Deterministic — no LLM.',
+    '(deterministic: resolved from rabbi-places.json; this prompt is never executed)',
+    '(deterministic lookup for {{mark_input.name}})',
+    {
+      name: 'rabbi_identity',
+      strict: true,
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['slug', 'name', 'nameHe', 'generation', 'region', 'places', 'moved', 'bio', 'image', 'wiki'],
+        properties: {
+          slug: { type: ['string', 'null'] },
+          name: { type: 'string' },
+          nameHe: { type: 'string' },
+          generation: { type: 'string' },
+          region: { type: ['string', 'null'] },
+          places: { type: 'array', items: { type: 'string' } },
+          moved: { type: ['string', 'null'] },
+          bio: { type: ['string', 'null'] },
+          image: { type: ['string', 'null'] },
+          wiki: { type: ['string', 'null'] },
+        },
+      },
+    },
+    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.identity-v1', cacheVersion: '1' },
+  ),
   // Synthesis — the user-facing card. Depends on the leaves plus the
   // gemara text and the full rabbi instance list (so the prompt can name
   // OTHER rabbis on the same daf).
@@ -1336,10 +1369,11 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
         { enrichment: 'rabbi.relationships.evidence' },
         { enrichment: 'rabbi.geography.evidence' },
         { enrichment: 'rabbi.location' },
+        { enrichment: 'rabbi.identity' },
         { mark: 'rabbi' },
       ],
-      defHash: 'rabbi.synthesis-v10',
-      cacheVersion: '10',
+      defHash: 'rabbi.synthesis-v11',
+      cacheVersion: '11',
     },
   ),
   // Per-daf evidence enrichments. Each finds excerpts in THIS daf that
