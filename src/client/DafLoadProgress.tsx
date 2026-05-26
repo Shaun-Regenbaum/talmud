@@ -29,23 +29,34 @@ export default function DafLoadProgress(): JSX.Element {
   const combined = createMemo(() => {
     const m = marks();
     const pf = prefetchProgress();
-    const total = m.total + pf.total;
-    const done = m.done + pf.done;
-    return { total, done, marksLoading: m.total > 0 && m.done < m.total, pf };
+    const marksLoading = m.total > 0 && m.done < m.total;
+    const prefetchActive = pf.total > 0 && pf.done < pf.total;
+    return { m, pf, marksLoading, prefetchActive };
   });
 
+  // Phase-weighted so the bar climbs monotonically instead of filling during
+  // anchor extraction then snapping backwards when the prefetch cohort appears.
+  // Anchors occupy the first 30%; section prefetch the remaining 70%.
+  const ANCHOR_WEIGHT = 30;
   const percent = createMemo(() => {
-    const { total, done } = combined();
-    if (total === 0) return 0;
-    return Math.min(100, Math.round((done / total) * 100));
+    const { m, pf } = combined();
+    if (m.total === 0 && pf.total === 0) return 0;
+    const anchorFrac = m.total > 0 ? m.done / m.total : 1;
+    const anchorPct = anchorFrac * ANCHOR_WEIGHT;
+    if (pf.total === 0) {
+      // Prefetch not planned yet (or none coming). Hold at the anchor ceiling;
+      // visibility hides the bar if no prefetch ultimately fires.
+      return Math.round(m.done < m.total ? anchorPct : ANCHOR_WEIGHT);
+    }
+    return Math.round(ANCHOR_WEIGHT + (pf.done / pf.total) * (100 - ANCHOR_WEIGHT));
   });
 
   const label = createMemo(() => {
     const c = combined();
     if (c.marksLoading) {
-      return `Analyzing daf — ${marks().done} of ${marks().total} anchors`;
+      return `Analyzing daf — ${c.m.done} of ${c.m.total} anchors`;
     }
-    if (c.pf.total > 0 && c.pf.done < c.pf.total) {
+    if (c.prefetchActive) {
       return `Loading ${c.pf.currentLabel ?? 'sections'} — ${c.pf.done} of ${c.pf.total}`;
     }
     return 'Up to date';
@@ -56,8 +67,8 @@ export default function DafLoadProgress(): JSX.Element {
   const [visible, setVisible] = createSignal(false);
   let hideTimer: ReturnType<typeof setTimeout> | undefined;
   createEffect(() => {
-    const { total, done } = combined();
-    const incomplete = total > 0 && done < total;
+    const c = combined();
+    const incomplete = c.marksLoading || c.prefetchActive;
     if (incomplete) {
       if (hideTimer) { clearTimeout(hideTimer); hideTimer = undefined; }
       setVisible(true);
@@ -75,43 +86,43 @@ export default function DafLoadProgress(): JSX.Element {
         role="status"
         aria-live="polite"
         style={{
-          position: 'sticky',
-          top: 0,
-          'z-index': 40,
-          background: 'rgba(255,255,255,0.94)',
-          'backdrop-filter': 'blur(4px)',
-          'border-bottom': '1px solid #ece9e4',
-          padding: '0.3rem 0.75rem 0.35rem',
+          // In normal flow above the daf — never overlaps the text. Centered
+          // to the reading column and themed with the page's parchment vars.
+          'max-width': '720px',
+          margin: '0 auto 1rem',
+          padding: '0 0.25rem',
+          'font-family': 'system-ui, -apple-system, sans-serif',
           'font-size': '0.72rem',
-          color: '#6b6258',
+          color: 'var(--muted)',
         }}
       >
-        <div style={{ display: 'flex', 'align-items': 'center', gap: '0.5rem', 'margin-bottom': '0.28rem' }}>
+        <div style={{ display: 'flex', 'align-items': 'center', gap: '0.45rem', 'margin-bottom': '0.3rem' }}>
           <span
             style={{
               display: 'inline-block', width: '0.6rem', height: '0.6rem',
               'border-radius': '50%',
-              border: '2px solid #d6d3d1', 'border-top-color': '#8a2a2b',
+              border: '2px solid var(--line)', 'border-top-color': 'var(--accent)',
               animation: 'daf-spin 0.8s linear infinite',
               'flex-shrink': 0,
             }}
           />
-          <span style={{ flex: 1, 'min-width': 0, 'white-space': 'nowrap', overflow: 'hidden', 'text-overflow': 'ellipsis' }}>
+          <span style={{ flex: 1, 'min-width': 0, 'white-space': 'nowrap', overflow: 'hidden', 'text-overflow': 'ellipsis', 'letter-spacing': '0.01em' }}>
             {label()}
           </span>
-          <span style={{ 'font-variant-numeric': 'tabular-nums', color: '#a39a8c', 'flex-shrink': 0 }}>
+          <span style={{ 'font-variant-numeric': 'tabular-nums', color: '#a39a8c', 'flex-shrink': 0 }} aria-hidden="true">
             {percent()}%
           </span>
         </div>
-        {/* track */}
-        <div style={{ height: '3px', background: '#eceae6', 'border-radius': '2px', overflow: 'hidden' }}>
+        {/* track — thin parchment rule that fills with the accent */}
+        <div style={{ height: '2px', background: 'var(--line)', 'border-radius': '1px', overflow: 'hidden' }}>
           <div
             style={{
               height: '100%',
               width: `${percent()}%`,
-              background: 'linear-gradient(90deg, #8a2a2b, #b5564f)',
-              'border-radius': '2px',
-              transition: 'width 0.35s ease',
+              background: 'var(--accent)',
+              'border-radius': '1px',
+              transition: 'width 0.4s ease',
+              opacity: 0.8,
             }}
           />
         </div>
