@@ -38,6 +38,7 @@ import { runYomiWarmCron } from './yomi-cron';
 import { GENERATION_IDS, GENERATION_BY_ID, GENERATIONS_PROMPT_REFERENCE, type GenerationId } from '../client/generations';
 import rabbiPlacesData from '../lib/data/rabbi-places.json';
 import { extractTalmudContent } from '../lib/sefref/alignment';
+import { fetchHebrewBooksDaf } from '../lib/sefref/hebrewbooks/client';
 import {
   RABBI_ENRICH_SYSTEM_PROMPT,
   buildRabbiEnrichUserMessage,
@@ -2695,6 +2696,38 @@ app.get('/api/admin/llm-cost', async (c) => {
     byTag,
     truncated: keys.length >= 10000,
   });
+});
+
+/**
+ * GET /api/admin/hb-probe — diagnose HebrewBooks fetch failures from the
+ * WORKER's egress (Cloudflare network), which is what actually matters (it
+ * works fine from a browser/ISP). Fetches a few dafim raw (no cache) and
+ * reports status/latency/error per daf.
+ *
+ *   ?tractate=Berakhot&pages=2a,5a,10a,15b,20a
+ *   ?concurrent=1   fire them all at once (replicates the backfill's burst)
+ */
+app.get('/api/admin/hb-probe', async (c) => {
+  const tractate = c.req.query('tractate') ?? 'Berakhot';
+  const pages = (c.req.query('pages') ?? '2a,5a,10a,15b,20a').split(',').map((s) => s.trim()).filter(Boolean);
+  const concurrent = c.req.query('concurrent') === '1';
+
+  const probeOne = async (page: string) => {
+    const t0 = Date.now();
+    try {
+      const d = await fetchHebrewBooksDaf(tractate, page);
+      return { page, ok: true, ms: Date.now() - t0, mainLen: d.main.length, rashiLen: d.rashi.length, tosafotLen: d.tosafot.length };
+    } catch (e) {
+      return { page, ok: false, ms: Date.now() - t0, error: String((e as Error)?.message ?? e).slice(0, 300) };
+    }
+  };
+
+  const results = concurrent
+    ? await Promise.all(pages.map(probeOne))
+    : await (async () => { const out = []; for (const p of pages) out.push(await probeOne(p)); return out; })();
+
+  const ok = results.filter((r) => r.ok).length;
+  return c.json({ tractate, mode: concurrent ? 'concurrent' : 'sequential', attempted: results.length, ok, failed: results.length - ok, results });
 });
 
 app.get('/api/admin/warm-status', async (c) => {
