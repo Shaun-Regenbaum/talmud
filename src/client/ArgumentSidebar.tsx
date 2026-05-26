@@ -11,6 +11,7 @@ import RabbiLineageTree, { type RelationshipsData, type RelationshipsEvidence } 
 import { type GeographyData, type GeographyEvidence } from './RabbiGeographyCard';
 import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeline';
 import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
+import { selectSectionMoves } from '../lib/argumentMoves';
 import { t } from './i18n';
 
 /** Translate an argument move-kind to the active language, falling back to the
@@ -430,17 +431,14 @@ function ArgumentBody(props: {
   const sectionMoves = createMemo(() => {
     const all = allMoves();
     if (!all) return null;
-    const sStart = props.section.startSegIdx;
-    const sEnd = props.section.endSegIdx;
-    return all
-      .filter((m) =>
-        // Match by parent-section reference if present, else fall back to
-        // segment-range containment (for older cached payloads).
-        (typeof m.fields.sectionStartSegIdx === 'number' && m.fields.sectionStartSegIdx === sStart)
-        || (typeof sStart === 'number' && typeof sEnd === 'number'
-            && m.startSegIdx >= sStart && m.endSegIdx <= sEnd),
-      )
-      .sort((a, b) => a.fields.moveOrder - b.fields.moveOrder);
+    // selectSectionMoves dedupes by move id and prefers an exact parent-section
+    // match, so a stale / doubled argument-move cache (two partitions' worth of
+    // moves for the same daf — the Shabbat 126a bug) renders as one clean set
+    // instead of duplicate cards, each of which would spin its own synthesis.
+    return selectSectionMoves(all, {
+      startSegIdx: props.section.startSegIdx,
+      endSegIdx: props.section.endSegIdx,
+    });
   });
 
   const handleHighlightMove = (move: ArgumentMoveInstance | null) => {
@@ -947,7 +945,7 @@ function HalachaBody(props: {
                       'font-size': '0.75rem', padding: '0.15rem 0.5rem',
                       background: '#fff', border: '1px solid #e5e3dc',
                       'border-radius': '999px', color: '#444',
-                    }}>{item}</span>
+                    }}><Hebraized text={item} capitalize /></span>
                   )}</For>
                 </div>
               </div>
@@ -961,7 +959,7 @@ function HalachaBody(props: {
                       'font-size': '0.75rem', padding: '0.15rem 0.5rem',
                       background: '#fef3c7', border: '1px solid #fde68a',
                       'border-radius': '999px', color: '#92400e',
-                    }}>{item}</span>
+                    }}><Hebraized text={item} capitalize /></span>
                   )}</For>
                 </div>
               </div>

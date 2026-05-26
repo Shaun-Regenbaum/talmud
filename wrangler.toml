@@ -58,6 +58,13 @@ OPENROUTER_GATEWAY_PROVIDER = "openrouter"
 # ~$70 (entity marks only). Safe to leave at "1" — it's a no-op once latched.
 # To re-run a pass, delete the obs-backfill-cursor:v1 KV key.
 OBSERVATIONS_WARM_SHAS = "1"
+# Zone (shaunregenbaum.com) id for the Usage-page activity tracker. Not secret.
+# Used by src/worker/cf-zone-analytics.ts to query CF zone HTTP analytics
+# (httpRequests1dGroups) for app accesses + country breakdown. The query also
+# needs a token with "Zone Analytics: Read" set as the CF_ZONE_ANALYTICS_TOKEN
+# secret (`wrangler secret put CF_ZONE_ANALYTICS_TOKEN`); it falls back to
+# CF_ANALYTICS_TOKEN if that one is broadened to include zone analytics.
+CF_ZONE_TAG = "4808b439c50e3a42494ae7e0b2fa1bec"
 
 # Cloudflare Queue — long-running enrichment jobs run in the consumer worker
 # instead of holding the producer's request invocation. Producer (POST

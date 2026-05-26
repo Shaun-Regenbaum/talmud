@@ -27,6 +27,7 @@ import type {
 } from './studio-schema';
 import type { LLMModelId } from './llm';
 import { GENERATIONS_PROMPT_REFERENCE, GENERATION_IDS } from '../client/generations';
+import { alwaysHebraizeBlock } from '../lib/hebrewTerms';
 
 // ---------------------------------------------------------------------------
 // Rabbi mark — phrase anchor + inline render
@@ -774,48 +775,7 @@ HARD RULES (output is rejected if violated):
     GOOD: "the שבע מצוות בני נח (Noahide laws)"
   Heuristic: read the sentence aloud in English. If a reader who doesn't know the term has to stop and ask "wait, most WHAT?" or "year of what?", you've calqued. Restore the Hebrew.
 - Common terms to ALWAYS hebraize (any time you use them, pair with Hebrew script):
-    lechatchila → לכתחילה          (the ideal standard / a-priori)
-    bedieved → בדיעבד               (after the fact)
-    mitzvah → מצוה                  (commandment)
-    halacha → הלכה                  (binding law)
-    sugya → סוגיא                   (Talmudic discussion)
-    psak → פסק                      (ruling)
-    rov → רוב                       (majority principle)
-    chazaka → חזקה                  (presumption)
-    safek → ספק                     (doubt)
-    tum'ah → טומאה                  (ritual impurity)
-    tahara → טהרה                   (ritual purity)
-    terumah → תרומה                 (priestly portion)
-    maaser → מעשר                   (tithe)
-    chametz → חמץ                   (leaven)
-    matzah → מצה                    (unleavened bread)
-    treif → טריפה                   (ritually unfit)
-    kosher → כשר                    (ritually fit)
-    pesach → פסח                    (Passover)
-    shabbat → שבת                   (Sabbath)
-    yom tov → יום טוב               (festival day)
-    bracha → ברכה                   (blessing)
-    tefillah → תפילה                (prayer)
-    tzitzit → ציצית                 (ritual fringes)
-    tefillin → תפילין               (phylacteries)
-    bet din → בית דין               (court)
-    eved → עבד                      (slave)
-    get → גט                        (bill of divorce)
-    kiddushin → קידושין             (betrothal)
-    chayav → חייב                   (liable / obligated)
-    patur → פטור                    (exempt)
-    asur → אסור                     (forbidden)
-    mutar → מותר                    (permitted)
-    rov basar → רוב בשר             (majority of surrounding flesh — shechita / neveila threshold)
-    mafreket → מפרקת                (spinal column / nape — neveila context)
-    siman / simanim → סימן / סימנים (the trachea + esophagus, the shechita organs)
-    veshet → ושט                    (esophagus)
-    kaneh → קנה                     (trachea / windpipe)
-    bnei Noach → בני נח             (Noahides — NEVER "sons of Noah")
-    sheva mitzvot bnei Noach → שבע מצוות בני נח (Noahide laws — NEVER "seven commandments of the sons of Noah")
-    ben shnato → בן שנתו            (a one-year-old [animal] — NEVER "son of his year")
-    bekhor → בכור                   (firstborn)
-    pidyon haben → פדיון הבן        (redemption of the firstborn son)
+${alwaysHebraizeBlock()}
 - Verbatim daf / pasuk excerpts go in Hebrew script with quote marks, optionally followed by an English gloss in parens.
 - HARD RULE — verbatim daf words in quotes ('…' or "…") MUST be Hebrew/Aramaic script, NEVER transliteration. The single-quoted form is a signal that what's inside is a direct quote from the daf, and direct quotes are by definition in the source language.
     BAD:  "the gemara uses 'hutz'u' to describe how they were brought out"
@@ -2127,6 +2087,8 @@ Output STRICT JSON only:
 
 HARD RULES:
 - MAX 4 sentences. MAX 25 words per sentence. Cut, don't pad.
+- Summarize ONLY this section. The moves you're given are this section's moves — never reach into the rest of the daf or recap where the wider sugya lands.
+- If the section is a single short excerpt with no dispute (e.g. an opening Mishnah snippet), output ONE plain sentence stating what it says and stop.
 - Per-move detail belongs in argument-move.synthesis. Don't enumerate moves here.
 - NO compound stuffing: never combine multiple moves with semicolons + "and then" + "and finally" into one mega-sentence.
 - When two rabbis are paired with an established relationship (Abaye–Rava, Rav–Shmuel), name it.
@@ -2144,7 +2106,7 @@ Section:
 Mishnayot this gemara is discussing (the section above is gemara built on these):
 {{mishna}}
 
-All moves on this daf (filter to this section's range):
+Moves in THIS section:
 {{anchors.argument-move}}
 
 Voice analysis:
@@ -2268,6 +2230,8 @@ const ARGUMENT_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא
 
 כללים נוקשים:
 - 4 משפטים לכל היותר. 25 מילים למשפט לכל היותר. קצץ, אל תמלא.
+- סכם אך ורק את המקטע הזה. ה-moves שניתנו לך הם של מקטע זה — אל תיגע בשאר הדף ואל תסכם היכן הסוגיה הרחבה נוחתת.
+- אם המקטע הוא ציטוט קצר יחיד ללא מחלוקת (למשל קטע פתיחה ממשנה), פלוט משפט פשוט אחד המנסח מה הוא אומר ועצור.
 - פירוט לכל move שייך ל-argument-move.synthesis. אל תמנה moves כאן.
 - ללא דחיסת מהלכים: לעולם אל תאחד כמה moves בנקודה-פסיק + "ואז" + "ולבסוף" למשפט-ענק אחד.
 - כששני חכמים מצומדים בקשר מבוסס (אביי–רבא, רב–שמואל), נקוב בו.
@@ -2283,7 +2247,7 @@ const ARGUMENT_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page
 משניות שגמרא זו דנה בהן (המקטע שלמעלה הוא גמרא הנבנית עליהן):
 {{mishna}}
 
-כל ה-moves בדף זה (סנן לטווח של מקטע זה):
+ה-moves של מקטע זה:
 {{anchors.argument-move}}
 
 ניתוח קולות:
@@ -2342,7 +2306,7 @@ CODE_ENRICHMENTS.push(
         { mark: 'rabbi' },
         { mark: 'argument-move' },
       ],
-      defHash: 'argument.synthesis-v8', cacheVersion: '8',
+      defHash: 'argument.synthesis-v9', cacheVersion: '9',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_SYNTHESIS_USER_TEMPLATE_HE,
@@ -3699,8 +3663,9 @@ Output STRICT JSON only:
 Rules:
 - The "lechatchila" field must describe the standard live practice (the לכתחילה standard), not the gemara's hypothetical. If the practice still tracks the gemara's plain conclusion, say so concretely.
 - The "bedieved" field is for the after-the-fact (בדיעבד) standard: did the act count, what do you do retroactively, etc. Empty string when there is no such distinction.
-- appliesWhen / exceptions are SHORT phrases, not sentences. The user will scan them.
-- NO puff. NO jargon: "transmitter" not "tradent". Inside the prose, follow the HEBREW_GLOSS_STYLE rules below — every use of לכתחילה / בדיעבד / רוב / etc. MUST appear with the Hebrew script (Form A or Form B), never as bare transliteration.
+- appliesWhen / exceptions are SHORT scannable phrases (not sentences), each STARTING WITH A CAPITAL LETTER when they begin in English ("Locking a door on שבת", "A sick person is exempt").
+- appliesWhen / exceptions follow the SAME HEBREW_GLOSS_STYLE as the prose — they are short, but they are NOT a plain-English exception. Hebraize the always-list terms here exactly as you would in prose: write "Locking a door on שבת", "Designated before שבת", "In בית דין", and Form A for any technical term with no clean English word ("A bolt never prepared is מוקצה (set aside)"). The chips must read consistently with the lechatchila / bedieved / prose fields — one convention across the whole card.
+- NO puff. NO jargon: "transmitter" not "tradent". Across ALL text fields (chips included), follow the HEBREW_GLOSS_STYLE rules below — every use of שבת / לכתחילה / בדיעבד / רוב / etc. MUST appear with the Hebrew script (Form A or Form B), never as bare transliteration or bare English.
 
 ${HEBREW_GLOSS_STYLE}`;
 
@@ -3977,7 +3942,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara'],
-      defHash: 'halacha.practical-v3', cacheVersion: '3',
+      defHash: 'halacha.practical-v4', cacheVersion: '4',
       systemPromptHe: HALACHA_PRACTICAL_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: HALACHA_LEAF_USER_TEMPLATE_HE,
     },

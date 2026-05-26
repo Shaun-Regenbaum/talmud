@@ -84,6 +84,22 @@ interface AigwCost {
   byModel?: AigwModelRow[];
 }
 
+interface ZoneWindow {
+  requests: number;
+  visits: number;
+}
+
+interface ZoneActivity {
+  configured: boolean;
+  ok: boolean;
+  error?: string;
+  windowStart?: string;
+  windowEnd?: string;
+  byDay?: Array<{ date: string; requests: number; visits: number }>;
+  byCountry?: Array<{ country: string; requests: number }>;
+  totals?: { day: ZoneWindow; week: ZoneWindow; month: ZoneWindow };
+}
+
 interface UnknownRabbi {
   name: string;
   nameHe: string;
@@ -123,6 +139,7 @@ interface UsagePayload {
     selfTracked: UsageSummary | null;
     aiGateway: AigwCost;
   };
+  activity: ZoneActivity;
   unknowns: {
     rabbis: UnknownSummary<UnknownRabbi>;
     places: UnknownSummary<ObservedPlace>;
@@ -250,6 +267,39 @@ function SectionHeading(props: SectionHeadingProps): JSX.Element {
   );
 }
 
+// ---- Collapsible top-level section ---------------------------------------
+// Owns the <section> + clickable heading; remembers open/closed in
+// localStorage (key usage.section.<id>) so a reader's layout survives reloads
+// and the 30s auto-refresh. Wrapped blocks supply only their body — the title
+// lives here.
+function CollapsibleSection(props: { id: string; title: string; hint?: string; defaultOpen?: boolean; children: JSX.Element }): JSX.Element {
+  const storageKey = `usage.section.${props.id}`;
+  const initial = (() => {
+    if (typeof window === 'undefined') return props.defaultOpen ?? false;
+    const saved = window.localStorage.getItem(storageKey);
+    if (saved === '1') return true;
+    if (saved === '0') return false;
+    return props.defaultOpen ?? false;
+  })();
+  const [open, setOpen] = createSignal(initial);
+  const toggle = () => {
+    const next = !open();
+    setOpen(next);
+    if (typeof window !== 'undefined') window.localStorage.setItem(storageKey, next ? '1' : '0');
+  };
+  return (
+    <section style={{ 'margin-bottom': '1.6rem' }}>
+      <div onClick={toggle} style={{ cursor: 'pointer', display: 'flex', 'align-items': 'baseline', gap: '0.4rem', 'user-select': 'none' }}>
+        <span style={{ color: '#bbb', 'font-size': '0.8rem', 'line-height': 1, width: '0.8rem', 'flex-shrink': 0 }}>{open() ? '▾' : '▸'}</span>
+        <SectionHeading title={props.title} hint={props.hint} />
+      </div>
+      <Show when={open()}>
+        <div style={{ 'padding-left': '1.2rem' }}>{props.children}</div>
+      </Show>
+    </section>
+  );
+}
+
 const tableStyle = { width: '100%', 'border-collapse': 'collapse', 'font-size': '0.85rem' } as const;
 const thStyle = { padding: '0.4rem 0.5rem' } as const;
 
@@ -373,8 +423,7 @@ function PipelineSection(props: { stats: CacheStats }): JSX.Element {
   const total = () => props.stats.total;
   const localEnrich = () => props.stats.enrichments.filter((e) => e.scope === 'local');
   return (
-    <section style={{ 'margin-bottom': '1.8rem' }}>
-      <SectionHeading title={t('usage.pipeline.title')} hint={t('usage.pipeline.hint', { count: fmtInt(total()) })} />
+    <>
       <table style={tableStyle}>
         <thead>
           <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
@@ -421,7 +470,7 @@ function PipelineSection(props: { stats: CacheStats }): JSX.Element {
           <EnrichmentTable rows={localEnrich()} />
         </Show>
       </div>
-    </section>
+    </>
   );
 }
 
@@ -524,9 +573,7 @@ function GlobalRepoSection(props: { stats: CacheStats; observedPlaces: number })
     return null;
   };
   return (
-    <section style={{ 'margin-bottom': '1.8rem' }}>
-      <SectionHeading title={t('usage.globalRepo.title')} hint={t('usage.globalRepo.hint')} />
-
+    <>
       <div style={{ 'font-size': '0.85rem' }}>
         <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.3rem' }}>{t('usage.rabbiCoverage.title')} <span style={{ color: '#999', 'font-weight': 'normal' }}>{t('usage.rabbiCoverage.sub', { count: fmtInt(r().totalRabbis) })}</span></h3>
         <table style={tableStyle}>
@@ -555,16 +602,14 @@ function GlobalRepoSection(props: { stats: CacheStats; observedPlaces: number })
           </p>
         </Show>
       </div>
-    </section>
+    </>
   );
 }
 
 // ---- Needs-enrichment backlog -------------------------------------------
 function BacklogSection(props: { rabbis: UnknownSummary<UnknownRabbi>; places: UnknownSummary<ObservedPlace> }): JSX.Element {
   return (
-    <section style={{ 'margin-bottom': '1.8rem' }}>
-      <SectionHeading title={t('usage.backlog.title')} hint={t('usage.backlog.hint')} />
-      <div style={{ display: 'flex', gap: '1.5rem', 'flex-wrap': 'wrap' }}>
+    <div style={{ display: 'flex', gap: '1.5rem', 'flex-wrap': 'wrap' }}>
         <div style={{ flex: '1 1 320px', 'min-width': '300px' }}>
           <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.3rem' }}>
             {t('usage.backlog.rabbis.title')} <span style={{ color: '#c33', 'font-weight': 'normal' }}>{t('usage.backlog.distinct', { count: fmtInt(props.rabbis.total) })}</span>
@@ -626,8 +671,7 @@ function BacklogSection(props: { rabbis: UnknownSummary<UnknownRabbi>; places: U
             </table>
           </Show>
         </div>
-      </div>
-    </section>
+    </div>
   );
 }
 
@@ -639,6 +683,71 @@ function StatCard(props: { label: string; value: string; sub?: string; color?: s
       <div style={{ 'font-size': '1.25rem', 'font-weight': 600, color: props.color ?? '#222', 'font-variant-numeric': 'tabular-nums' }}>{props.value}</div>
       <Show when={props.sub}><div style={{ 'font-size': '0.72rem', color: '#999' }}>{props.sub}</div></Show>
     </div>
+  );
+}
+
+// ---- Activity (CF zone analytics) ----------------------------------------
+function ActivitySection(props: { activity: ZoneActivity }): JSX.Element {
+  const a = () => props.activity;
+  const totals = () => a().totals;
+  const byDay = () => a().byDay ?? [];
+  const maxDay = () => Math.max(1, ...byDay().map((d) => d.requests));
+  const byCountry = () => a().byCountry ?? [];
+  const countryTotal = () => byCountry().reduce((s, c) => s + c.requests, 0);
+  return (
+    <Show
+      when={a().ok}
+      fallback={
+        <p style={{ color: a().configured ? '#c33' : '#888', 'font-size': '0.82rem', background: '#fafafa', padding: '0.5rem 0.7rem', 'border-radius': '4px', border: '1px solid #eee' }}>
+          <Show when={!a().configured} fallback={<>{t('usage.activity.queryFailed', { error: a().error ?? '' })}</>}>
+            {t('usage.activity.notConfigured.before')}<code>wrangler secret put CF_ZONE_ANALYTICS_TOKEN</code>{t('usage.activity.notConfigured.after', { error: a().error ?? '' })}
+          </Show>
+        </p>
+      }
+    >
+      <div style={{ display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.8rem' }}>
+        <StatCard label={t('usage.activity.today')} value={fmtInt(totals()?.day.requests ?? 0)} sub={t('usage.activity.visits', { count: fmtInt(totals()?.day.visits ?? 0) })} />
+        <StatCard label={t('usage.activity.week')} value={fmtInt(totals()?.week.requests ?? 0)} sub={t('usage.activity.visits', { count: fmtInt(totals()?.week.visits ?? 0) })} />
+        <StatCard label={t('usage.activity.month')} value={fmtInt(totals()?.month.requests ?? 0)} color="#0066CC" sub={t('usage.activity.visits', { count: fmtInt(totals()?.month.visits ?? 0) })} />
+      </div>
+
+      <Show when={byDay().length > 0}>
+        <div style={{ 'margin-bottom': '0.9rem' }}>
+          <div style={{ 'font-size': '0.75rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.04em', 'margin-bottom': '0.3rem' }}>{t('usage.activity.trend')}</div>
+          <div style={{ display: 'flex', 'align-items': 'flex-end', gap: '2px', height: '60px' }}>
+            <For each={byDay()}>
+              {(d) => (
+                <div
+                  title={`${d.date}: ${fmtInt(d.requests)}`}
+                  style={{ flex: '1 1 0', background: '#4b7bec', 'border-radius': '2px 2px 0 0', height: `${Math.max(2, (d.requests / maxDay()) * 100)}%`, 'min-width': '3px' }}
+                />
+              )}
+            </For>
+          </div>
+        </div>
+      </Show>
+
+      <Show when={byCountry().length > 0}>
+        <div style={{ 'font-size': '0.75rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.04em', 'margin-bottom': '0.2rem' }}>{t('usage.activity.fromWhere')}</div>
+        <table style={tableStyle}>
+          <tbody>
+            <For each={byCountry()}>
+              {(c) => (
+                <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+                  <td style={{ padding: '0.3rem 0.5rem' }}>{c.country || t('usage.activity.unknownCountry')}</td>
+                  <td style={{ padding: '0.3rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', color: '#555' }}>{fmtInt(c.requests)}</td>
+                  <td style={{ padding: '0.3rem 0.5rem', width: '40%' }}>
+                    <div style={{ height: '8px', background: '#f0f0f0', 'border-radius': '3px', overflow: 'hidden' }}>
+                      <div style={{ width: `${countryTotal() > 0 ? Math.min(100, (c.requests / countryTotal()) * 100) : 0}%`, height: '100%', background: '#4b7bec' }} />
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </For>
+          </tbody>
+        </table>
+      </Show>
+    </Show>
   );
 }
 
@@ -661,9 +770,7 @@ function CostSection(props: { cost: UsagePayload['cost']; stats: CacheStats | un
   };
 
   return (
-    <section style={{ 'margin-bottom': '1.8rem' }}>
-      <SectionHeading title={t('usage.cost.title')} hint={t('usage.cost.hint')} />
-
+    <>
       {/* AI Gateway (authoritative) */}
       <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0.2rem 0 0.4rem' }}>{t('usage.aigw.title')} <span style={{ color: '#999', 'font-weight': 'normal' }}>{t('usage.aigw.sub')}</span></h3>
       <Show
@@ -736,7 +843,7 @@ function CostSection(props: { cost: UsagePayload['cost']; stats: CacheStats | un
           </>
         )}
       </Show>
-    </section>
+    </>
   );
 }
 
@@ -826,20 +933,37 @@ export function UsagePage(): JSX.Element {
       </header>
 
       <Show when={data()}>
-        {(d) => <CostSection cost={d().cost} stats={cacheStats()} />}
+        {(d) => (
+          <>
+            <CollapsibleSection id="activity" title={t('usage.activity.title')} hint={t('usage.activity.hint')} defaultOpen>
+              <ActivitySection activity={d().activity} />
+            </CollapsibleSection>
+            <CollapsibleSection id="cost" title={t('usage.cost.title')} hint={t('usage.cost.hint')} defaultOpen>
+              <CostSection cost={d().cost} stats={cacheStats()} />
+            </CollapsibleSection>
+          </>
+        )}
       </Show>
 
       <Show when={cacheStats()}>
         {(cs) => (
           <>
-            <PipelineSection stats={cs()} />
-            <GlobalRepoSection stats={cs()} observedPlaces={data()?.unknowns.places.total ?? 0} />
+            <CollapsibleSection id="pipeline" title={t('usage.pipeline.title')} hint={t('usage.pipeline.hint', { count: fmtInt(cs().total) })}>
+              <PipelineSection stats={cs()} />
+            </CollapsibleSection>
+            <CollapsibleSection id="globalRepo" title={t('usage.globalRepo.title')} hint={t('usage.globalRepo.hint')}>
+              <GlobalRepoSection stats={cs()} observedPlaces={data()?.unknowns.places.total ?? 0} />
+            </CollapsibleSection>
           </>
         )}
       </Show>
 
       <Show when={data()}>
-        {(d) => <BacklogSection rabbis={d().unknowns.rabbis} places={d().unknowns.places} />}
+        {(d) => (
+          <CollapsibleSection id="backlog" title={t('usage.backlog.title')} hint={t('usage.backlog.hint')}>
+            <BacklogSection rabbis={d().unknowns.rabbis} places={d().unknowns.places} />
+          </CollapsibleSection>
+        )}
       </Show>
 
       <Show when={data.error}>
@@ -849,6 +973,7 @@ export function UsagePage(): JSX.Element {
       <Show when={data()}>
         {(d) => (
           <>
+            <CollapsibleSection id="telemetry" title={t('usage.group.telemetry')} hint={t('usage.group.telemetry.hint')}>
             <LatencyTable
               title={t('usage.latency.byEndpoint', { count: d().telemetry.totalCount })}
               rows={Object.entries(d().telemetry.perEndpoint).sort(([a], [b]) => a.localeCompare(b))}
@@ -876,7 +1001,9 @@ export function UsagePage(): JSX.Element {
                 </ul>
               </Show>
             </section>
+            </CollapsibleSection>
 
+            <CollapsibleSection id="errors" title={t('usage.group.errors')} hint={t('usage.group.errors.hint')}>
             <section style={{ 'margin-bottom': '1.6rem' }}>
               <SectionHeading title={t('usage.jobErrors.title', { count: d().jobErrors.length })} hint={t('usage.jobErrors.hint')} />
               <Show when={d().jobErrors.length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.none')}</p>}>
@@ -915,6 +1042,7 @@ export function UsagePage(): JSX.Element {
                 </ul>
               </Show>
             </section>
+            </CollapsibleSection>
           </>
         )}
       </Show>

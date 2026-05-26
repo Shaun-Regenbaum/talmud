@@ -16,7 +16,14 @@
  *      map to the same Hebrew — the lookup normalizes both.
  */
 
+import { canonicalDictEntries } from '../lib/hebrewTerms';
+
 const HEBRAIZE_DICT: Record<string, string> = {
+  // HEBREW_GLOSS_STYLE "ALWAYS hebraize" core terms — single-sourced from
+  // src/lib/hebrewTerms so the prompt's always-list and this dict can't drift.
+  // Spread first; everything below is the long tail (sugya structure, places,
+  // texts, codices) that lives only here.
+  ...canonicalDictEntries(),
   // ── Sugya structure / argument moves ─────────────────────────────────
   "yi'ud": 'ייעוד',
   hakhanah: 'הכנה',
@@ -59,55 +66,11 @@ const HEBRAIZE_DICT: Record<string, string> = {
   bittul: 'ביטול',
   hefsek: 'הפסק',
   "shi'ur": 'שיעור',
-  // HEBREW_GLOSS_STYLE "ALWAYS hebraize" terms — every prompt asks the LLM
-  // to gloss these, so they must appear in both formats (Pass 1 + Pass 2).
-  lechatchila: 'לכתחילה',
-  'le-chatchila': 'לכתחילה',
-  bedieved: 'בדיעבד',
-  bediavad: 'בדיעבד',
-  'be-dieved': 'בדיעבד',
-  sugya: 'סוגיא',
-  sugiya: 'סוגיא',
-  psak: 'פסק',
-  pesak: 'פסק',
-  rov: 'רוב',
-  'rov basar': 'רוב בשר',
-  'rov besar': 'רוב בשר',
-  mafreket: 'מפרקת',
-  simanim: 'סימנים',
-  veshet: 'ושט',
-  kaneh: 'קנה',
-  'bnei noach': 'בני נח',
-  'bnei noah': 'בני נח',
-  'bnei noaḥ': 'בני נח',
-  'ben shnato': 'בן שנתו',
-  'ben shenato': 'בן שנתו',
-  chazaka: 'חזקה',
-  chazakah: 'חזקה',
-  safek: 'ספק',
-  tahara: 'טהרה',
-  taharah: 'טהרה',
-  terumah: 'תרומה',
-  teruma: 'תרומה',
-  maaser: 'מעשר',
-  "ma'aser": 'מעשר',
-  chametz: 'חמץ',
-  hametz: 'חמץ',
-  matzah: 'מצה',
-  matza: 'מצה',
-  treif: 'טריפה',
-  trefah: 'טריפה',
-  kosher: 'כשר',
-  kasher: 'כשר',
-  pesach: 'פסח',
-  'yom tov': 'יום טוב',
-  bracha: 'ברכה',
-  tzitzit: 'ציצית',
-  tefillin: 'תפילין',
-  'bet din': 'בית דין',
-  eved: 'עבד',
-  get: 'גט',
-  kiddushin: 'קידושין',
+  // (lechatchila, bedieved, sugya, psak, rov, chazaka, safek, tahara,
+  //  terumah, maaser, chametz, matzah, treif, kosher, pesach, yom tov,
+  //  bracha, tzitzit, tefillin, bet din, eved, get, kiddushin, rov basar,
+  //  mafreket, siman/simanim, veshet, kaneh, bnei Noach, ben shnato, bekhor,
+  //  pidyon haben, … now come from canonicalDictEntries() spread above.)
   // Halachic procedures + categories — common bare-transliteration leaks
   // (also added to BARE_HEBRAIZE_NAMES below for whole-word swap).
   melikah: 'מליקה',
@@ -523,6 +486,21 @@ export function stripEchoParens(text: string): string {
     prev = next;
   }
   return prev;
+}
+
+/** Capitalize the first cased letter of a phrase, skipping leading quotes,
+ *  parens, and whitespace. Hebrew script has no case, so a phrase that opens
+ *  with Hebrew is returned unchanged (`toUpperCase` is a no-op there). Used
+ *  for the appliesWhen / exceptions chips, which the LLM emits lowercase but
+ *  which render as standalone scannable labels — "locking a door on Shabbat"
+ *  should read "Locking a door on Shabbat". Apply AFTER hebraize() so the
+ *  inverted pass (which can move an English gloss to the front) doesn't strand
+ *  a lowercased word at the start. */
+export function capitalizeFirst(text: string): string {
+  if (!text) return text;
+  const i = text.search(/[^\s'"“”‘’(\[]/);
+  if (i < 0) return text;
+  return text.slice(0, i) + text.charAt(i).toUpperCase() + text.slice(i + 1);
 }
 
 /** Scan `text` for two formats:

@@ -10,9 +10,9 @@
  * swaps in place. On any LLM error, the dict-pass result stays.
  */
 import { createResource, createMemo, type JSX } from 'solid-js';
-import { hebraize, unresolvedParens, hebraizeLLM } from './hebraize';
+import { hebraize, unresolvedParens, hebraizeLLM, capitalizeFirst } from './hebraize';
 
-export function Hebraized(props: { text: string | undefined | null }): JSX.Element {
+export function Hebraized(props: { text: string | undefined | null; capitalize?: boolean }): JSX.Element {
   const dictPass = createMemo(() => hebraize(props.text ?? ''));
   // Only fire the LLM pass when the dict pass has unresolved parens. The
   // resource source returns null otherwise, which short-circuits the fetch.
@@ -21,5 +21,11 @@ export function Hebraized(props: { text: string | undefined | null }): JSX.Eleme
     return unresolvedParens(t).length > 0 ? t : null;
   });
   const [llmPass] = createResource(llmInput, (t) => hebraizeLLM(t));
-  return <>{llmPass() ?? dictPass()}</>;
+  // Capitalize AFTER both passes — the inverted pass can move an English gloss
+  // to the front, so capitalizing earlier would strand a lowercase word.
+  const out = createMemo(() => {
+    const s = llmPass() ?? dictPass();
+    return props.capitalize ? capitalizeFirst(s) : s;
+  });
+  return <>{out()}</>;
 }

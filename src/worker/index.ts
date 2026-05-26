@@ -55,11 +55,13 @@ import { wrapEnv, gatewayStatus, gatewayActive } from './ai-gateway';
 import { runLLM, type LLMModelId, type LLMResult, type LLMUsage } from './llm';
 import { lookupRelationships } from './rabbi-graph';
 import { lintSynthesis } from '../lib/synthesisLint';
+import { partitionSections, dedupeByRange, selectSectionMoves, type MoveLike } from '../lib/argumentMoves';
 import { readSettings, writeSettings, isLLMModelId, MODEL_PRESETS } from './settings';
 import { costUsd as priceCostUsd, normalizeUsage } from './pricing';
 import { recordUsage, readUsageSummary } from './usage-rollup';
 import { recordUnknownRabbi, recordObservedPlace, listUnknownRabbis, listObservedPlaces } from './unknown-registry';
 import { fetchGatewayCost } from './aigw-analytics';
+import { fetchZoneActivity } from './cf-zone-analytics';
 import { lookupGloss } from './word-glosses';
 import {
   readMark, listMarks, writeMark, deleteMark, validateMark,
@@ -986,7 +988,13 @@ async function runExtractorFannedOut(
   llmOptsBase: Record<string, unknown>,
 ): Promise<{ result: LLMResult; systemPromptSample: string; userPromptSample: string }> {
   const anchors = (baseVars.anchors ?? {}) as Record<string, unknown>;
-  const instances = anchors[fanOutMarkId];
+  // Dedupe the parent instances by segment range before fanning: if the parent
+  // mark emitted the same section twice (a doubled `argument` partition), we'd
+  // otherwise call the LLM for that section twice and concatenate the moves.
+  const rawInstances = anchors[fanOutMarkId];
+  const instances = Array.isArray(rawInstances)
+    ? dedupeByRange(rawInstances as Array<Partial<{ startSegIdx: number; endSegIdx: number }>>)
+    : rawInstances;
 
   const renderAndCall = async (anchorsOverride: Record<string, unknown>, maxTokens: number) => {
     const callVars = { ...baseVars, anchors: anchorsOverride };
@@ -1357,19 +1365,14 @@ async function postProcessArgument(
     if (cur.endSegIdx > lastSeg) cur.endSegIdx = lastSeg;
   }
 
-  // Pass 3: ensure clean partition — next section's startSegIdx ===
-  // prev.endSegIdx + 1. The LLM is told to do this but doesn't always.
-  // If a gap exists, push the next section's start back. If overlap, push
-  // forward.
-  for (let i = 1; i < instances.length; i++) {
-    const prev = instances[i - 1];
-    const cur = instances[i];
-    if (!prev || !cur) continue;
-    if (cur.startSegIdx !== prev.endSegIdx + 1) {
-      cur.startSegIdx = prev.endSegIdx + 1;
-      if (cur.endSegIdx < cur.startSegIdx) cur.endSegIdx = cur.startSegIdx;
-    }
-  }
+  // Pass 3: collapse a doubled / overlapping partition into one clean tiling.
+  // V4 Flash occasionally emits its section partition more than once (e.g.
+  // segs 1–3 as a single section AND again as 1, 2, 3); partitionSections drops
+  // the overlaps and re-tiles so the next section's startSegIdx === prev.endSegIdx
+  // + 1, closing any gap a dropped section left. Without this the argument-move
+  // fan-out runs each duplicated section and the sidebar shows two partitions'
+  // worth of moves.
+  obj.instances = partitionSections(instances, lastSeg);
 
   return obj;
 }
@@ -2111,6 +2114,23 @@ async function runEnrichmentOnce(
         }
         crossRefsHe = lines.join('\n');
       }
+    }
+  }
+
+  // Scope the moves injected into argument.synthesis to THIS section. The
+  // argument-move mark emits every move on the daf; handing the LLM the whole
+  // list (with only a soft "filter to this section" instruction) makes it
+  // summarize the entire sugya — worst for a 1-segment opening excerpt, which
+  // then gets a whole-daf summary. selectSectionMoves narrows to the section's
+  // moves and dedupes them, so the synthesis stays about the section alone.
+  if (def.id === 'argument.synthesis') {
+    const mi = markInput as { startSegIdx?: number; endSegIdx?: number } | null;
+    const all = inputs.anchors['argument-move'];
+    if (mi && typeof mi.startSegIdx === 'number' && typeof mi.endSegIdx === 'number' && Array.isArray(all)) {
+      inputs.anchors['argument-move'] = selectSectionMoves(
+        all as MoveLike[],
+        { startSegIdx: mi.startSegIdx, endSegIdx: mi.endSegIdx },
+      );
     }
   }
 
@@ -3508,6 +3528,24 @@ app.get('/api/usage', async (c) => {
     aiGateway = await fetchGatewayCost(c.env);
   }
 
+  // --- Activity (CF zone analytics) ---------------------------------------
+  // Edge request + country data for the app host, cached 5 min like the AI
+  // Gateway figure so the 30s dashboard refresh doesn't hammer CF analytics.
+  let activity: Awaited<ReturnType<typeof fetchZoneActivity>>;
+  if (cache) {
+    const cachedAct = await cache.get('zone-activity:v1');
+    let parsed: Awaited<ReturnType<typeof fetchZoneActivity>> | null = null;
+    if (cachedAct) { try { parsed = JSON.parse(cachedAct); } catch { parsed = null; } }
+    if (parsed) {
+      activity = parsed;
+    } else {
+      activity = await fetchZoneActivity(c.env);
+      c.executionCtx.waitUntil(cache.put('zone-activity:v1', JSON.stringify(activity), { expirationTtl: 300 }));
+    }
+  } else {
+    activity = await fetchZoneActivity(c.env);
+  }
+
   // --- Needs-enrichment backlog -------------------------------------------
   const unknownRabbis = cache ? await listUnknownRabbis(cache) : { total: 0, sightings: 0, sample: [] };
   const observedPlaces = cache ? await listObservedPlaces(cache) : { total: 0, sightings: 0, sample: [] };
@@ -3522,6 +3560,7 @@ app.get('/api/usage', async (c) => {
   return c.json({
     telemetry: { perEndpoint, perMark, perEnrichment, recentErrors, totalCount: telemetry.length },
     cost: { selfTracked, aiGateway },
+    activity,
     unknowns: { rabbis: unknownRabbis, places: observedPlaces },
     jobErrors,
     reports: [...reports].reverse(),
