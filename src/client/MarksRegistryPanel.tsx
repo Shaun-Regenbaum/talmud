@@ -22,6 +22,7 @@
 
 import { createResource, createSignal, createEffect, onMount, onCleanup, untrack, For, Show, type JSX } from 'solid-js';
 import { trackAI } from './aiActivity';
+import { lang } from './i18n';
 import type { SeedMark } from './seed-marks';
 import type { MarkDef as RendererMarkDef, MarkRunOutput as RendererMarkRunOutput } from './renderers/dispatch';
 
@@ -214,16 +215,21 @@ async function pollJob(runId: string, cacheKey?: string): Promise<RunResult> {
   throw new Error(`job ${runId} timed out after ${POLL_TIMEOUT_MS / 1000}s`);
 }
 
+// Output language threads into every run. The worker namespaces the :he cache
+// + selects the *_he prompt variant; the lang also tags the activityId so the
+// client-side run cache + trackAI dedup don't serve an EN result for HE.
 async function runMark(id: string, tractate: string, page: string, bypassCache = false): Promise<RunResult> {
-  const activityId = `mark:${id}:${tractate}:${page}${bypassCache ? ':fresh' : ''}`;
+  const l = lang();
+  const activityId = `mark:${id}:${tractate}:${page}:${l}${bypassCache ? ':fresh' : ''}`;
   const label = `${id} · ${tractate} ${page}`;
-  return trackAI(activityId, label, () => postAndAwait({ mark_id: id, tractate, page, bypass_cache: bypassCache }));
+  return trackAI(activityId, label, () => postAndAwait({ mark_id: id, tractate, page, bypass_cache: bypassCache, lang: l }));
 }
 
 async function runEnrichment(id: string, tractate: string, page: string, bypassCache = false): Promise<RunResult> {
-  const activityId = `enrichment:${id}:${tractate}:${page}${bypassCache ? ':fresh' : ''}`;
+  const l = lang();
+  const activityId = `enrichment:${id}:${tractate}:${page}:${l}${bypassCache ? ':fresh' : ''}`;
   const label = `${id} · ${tractate} ${page}`;
-  return trackAI(activityId, label, () => postAndAwait({ enrichment_id: id, tractate, page, bypass_cache: bypassCache }));
+  return trackAI(activityId, label, () => postAndAwait({ enrichment_id: id, tractate, page, bypass_cache: bypassCache, lang: l }));
 }
 
 interface Props {

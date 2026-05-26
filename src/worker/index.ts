@@ -1081,6 +1081,9 @@ async function runMarkOnce(
   if (def.extractor.kind === 'computed') {
     const fn = COMPUTED_FNS[def.extractor.fn];
     if (!fn) throw new Error(`mark ${def.id}: no computed fn '${def.extractor.fn}' registered`);
+    // Computed marks are deterministic + language-neutral, so keep them on the
+    // English (suffix-free) key regardless of rc.lang — no point fanning the
+    // cache for identical output.
     const cacheKey = keyForMark(def, tractate, page);
     if (!bypassCache) {
       const hit = await readCachedResult(rc.env, cacheKey);
@@ -1114,7 +1117,13 @@ async function runMarkOnce(
     throw new Error(`mark ${def.id} extractor.kind=${def.extractor.kind} not supported`);
   }
   const ext = def.extractor;
-  const cacheKey = keyForMark(def, tractate, page);
+  // Only fan the cache out by language when this mark actually has a Hebrew
+  // prompt — otherwise the :he run would produce byte-identical English
+  // structure and just waste a cache slot + an LLM call. Marks with a `_he`
+  // prompt (argument, halacha, aggadata, pesukim, argument-move) emit a
+  // Hebrew title/summary, so those get their own :he namespace.
+  const useHe = rc.lang === 'he' && !!ext.system_prompt_he;
+  const cacheKey = keyForMark(def, tractate, page, useHe ? 'he' : 'en');
   if (!bypassCache) {
     const hit = await readCachedResult(rc.env, cacheKey);
     if (hit) return { ...hit, cache_hit: true };
@@ -1142,14 +1151,18 @@ async function runMarkOnce(
   let result: LLMResult;
   let systemPrompt: string;
   let userPrompt: string;
+  // Hebrew mode selects the *_he prompt variant when the mark defines one
+  // (mirrors runEnrichmentOnce). Falls back to English when absent.
+  const sysTpl = useHe && ext.system_prompt_he ? ext.system_prompt_he : ext.system_prompt;
+  const usrTpl = useHe && ext.user_prompt_template_he ? ext.user_prompt_template_he : ext.user_prompt_template;
   if (ext.fan_out_over) {
-    const fanned = await runExtractorFannedOut(rc, ext, vars, ext.fan_out_over, llmOptsBase);
+    const fanned = await runExtractorFannedOut(rc, { ...ext, system_prompt: sysTpl, user_prompt_template: usrTpl }, vars, ext.fan_out_over, llmOptsBase);
     result = fanned.result;
     systemPrompt = fanned.systemPromptSample;
     userPrompt = fanned.userPromptSample;
   } else {
-    systemPrompt = renderTemplate(ext.system_prompt, vars);
-    userPrompt = renderTemplate(ext.user_prompt_template, vars);
+    systemPrompt = renderTemplate(sysTpl, vars);
+    userPrompt = renderTemplate(usrTpl, vars);
     result = await runLLM(rc.env, {
       ...llmOptsBase,
       messages: [
@@ -2196,7 +2209,12 @@ async function cacheKeyForRunBody(env: Bindings, body: JobMessage): Promise<{
   if (body.mark_id) {
     const def = await loadMarkDef(env, body.mark_id);
     if (!def) return { key: null, defKind: null };
-    return { key: keyForMark(def, body.tractate, body.page), defKind: 'mark' };
+    // Mirror runMarkOnce: only namespace :he when the mark has a Hebrew prompt,
+    // so the producer's cache-check and the consumer's write-through agree on
+    // the key (otherwise a HE request would hit the EN-cached mark).
+    const ext = def.extractor as { system_prompt_he?: string } | undefined;
+    const useHe = body.lang === 'he' && !!ext?.system_prompt_he;
+    return { key: keyForMark(def, body.tractate, body.page, useHe ? 'he' : 'en'), defKind: 'mark' };
   }
   if (body.enrichment_id) {
     const def = await loadEnrichmentDef(env, body.enrichment_id);

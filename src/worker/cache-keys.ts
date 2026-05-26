@@ -126,8 +126,19 @@ export function keyForCommentaries(tractate: string, page: string): string {
   return `ctx:commentaries:v1:${slugDaf(tractate, page)}`;
 }
 
-export function keyForMark(def: AnyMarkDefinition, tractate: string, page: string): string {
-  return `mark:${def.id}:${def.cache_version}:${slugDaf(tractate, page)}`;
+export function keyForMark(
+  def: AnyMarkDefinition,
+  tractate: string,
+  page: string,
+  /** Output language. 'en' (default) keeps the key byte-identical to the
+   *  pre-i18n shape so existing caches stay reachable; 'he' inserts a `:he`
+   *  segment after cache_version so marks whose title/summary differ by
+   *  language get their own namespace. Marks with no `_he` prompt produce
+   *  identical structure either way but are still keyed per-language. */
+  lang: 'en' | 'he' = 'en',
+): string {
+  const langSeg = lang === 'he' ? ':he' : '';
+  return `mark:${def.id}:${def.cache_version}${langSeg}:${slugDaf(tractate, page)}`;
 }
 
 export function keyForEnrichment(
@@ -143,8 +154,8 @@ export function keyForEnrichment(
   /** Output language. 'en' (default) keeps the key byte-identical to the
    *  pre-i18n shape so existing caches stay reachable; 'he' inserts a `:he`
    *  segment right after cache_version, giving Hebrew its own namespace
-   *  (e.g. enrich:rabbi.bio:5:he:Abaye). Marks have no lang dimension — their
-   *  output is language-neutral structured data. */
+   *  (e.g. enrich:rabbi.bio:5:he:Abaye). keyForMark takes the same dimension
+   *  so structural marks with a `_he` prompt cache Hebrew titles separately. */
   lang: 'en' | 'he' = 'en',
 ): string {
   const scope = enrichmentScope(def);
