@@ -17,12 +17,16 @@
  * falls back to a generic key/value dump of the parsed JSON.
  */
 
-import { createResource, createSignal, createEffect, untrack, For, Show, type JSX } from 'solid-js';
+import { createResource, createSignal, createEffect, onCleanup, untrack, For, Show, type JSX } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { HebraizedWithRabbis as Hebraized } from './rabbiLinks';
 import { devModeActive } from './DevModeShelf';
-import { trackAI, queueActivity } from './aiActivity';
+import { trackAI } from './aiActivity';
 import InstanceInspectorShelf from './InstanceInspectorShelf';
+import {
+  RequestQueue, QUEUE_PRIORITY, runResultCache, runCacheKey, isAbort,
+  type RunResult,
+} from './enrichmentQueue';
 
 // Single global "which card has the inspector open?" signal — keyed by the
 // card's instanceKey. Only one drawer at a time across the whole page.
@@ -41,27 +45,6 @@ interface EnrichmentDef {
   source: 'kv' | 'code';
 }
 
-
-interface RunResult {
-  content: string;
-  parsed: unknown;
-  parse_error: string | null;
-  model: string;
-  total_ms: number;
-  usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number; cost?: number } | null;
-  transport?: string;
-  attempts?: number;
-  elapsed_ms?: number;
-  resolved?: { system_prompt: string; user_prompt: string };
-  /** Aggregate-only: parsed output of each dep enrichment, keyed by dep id.
-   *  Lets the client surface leaves in the inspector without a second
-   *  round-trip. */
-  deps_resolved?: Record<string, unknown>;
-  /** Aggregate-only: parsed output of each dep MARK (e.g. `{ mark: 'rabbi' }`
-   *  → instances list under the 'rabbi' key). Same fetch as deps_resolved;
-   *  surfaced so a sidebar can render mark-specific UI without re-fetching. */
-  anchors_resolved?: Record<string, unknown>;
-}
 
 type RunState =
   | { kind: 'idle' }
@@ -103,11 +86,13 @@ async function runEnrichmentImpl(
   tractate: string,
   page: string,
   markInput: unknown,
+  signal?: AbortSignal,
 ): Promise<RunResult> {
   const r = await fetch('/api/studio/run', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ enrichment_id: enrichmentId, tractate, page, mark_input: markInput }),
+    signal,
   });
   const j = await r.json() as RunResponse | { error?: string };
   if (!r.ok && r.status !== 202) {
@@ -116,7 +101,7 @@ async function runEnrichmentImpl(
   if ('status' in j) {
     if (j.status === 'ok') return j.result;
     if (j.status === 'error') throw new Error(j.error);
-    if (j.status === 'pending') return pollJob(j.runId, j.cacheKey);
+    if (j.status === 'pending') return pollJob(j.runId, j.cacheKey, signal);
   }
   // Legacy/synchronous shape — treat the whole body as RunResult for back-compat.
   return j as unknown as RunResult;
@@ -165,17 +150,19 @@ async function runEnrichment(
   page: string,
   markInput: unknown,
   instanceKey: string,
+  signal?: AbortSignal,
 ): Promise<RunResult> {
   const { id, label } = enrichmentActivityKey(enrichmentId, tractate, page, markInput, instanceKey);
-  return trackAI(id, label, () => runEnrichmentImpl(enrichmentId, tractate, page, markInput));
+  return trackAI(id, label, () => runEnrichmentImpl(enrichmentId, tractate, page, markInput, signal));
 }
 
-async function pollJob(runId: string, cacheKey?: string): Promise<RunResult> {
+async function pollJob(runId: string, cacheKey?: string, signal?: AbortSignal): Promise<RunResult> {
   const start = Date.now();
   const qs = cacheKey ? `?k=${encodeURIComponent(cacheKey)}` : '';
   while (Date.now() - start < POLL_TIMEOUT_MS) {
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
-    const r = await fetch(`/api/studio/run-status/${encodeURIComponent(runId)}${qs}`);
+    if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+    const r = await fetch(`/api/studio/run-status/${encodeURIComponent(runId)}${qs}`, { signal });
     const j = await r.json() as RunResponse | { status: 'pending' };
     if ('status' in j) {
       if (j.status === 'ok') return (j as { result: RunResult }).result;
@@ -186,46 +173,6 @@ async function pollJob(runId: string, cacheKey?: string): Promise<RunResult> {
   throw new Error(`job ${runId} timed out after ${POLL_TIMEOUT_MS / 1000}s`);
 }
 
-// Shared FIFO queue with bounded concurrency so opening one section that
-// mounts many move cards doesn't barrage `/api/studio/run` in parallel
-// (workerd dies on the simultaneous fan-out + 30k-char prompts; see
-// 2026-05-07 incident). Aggregates fire first, then per-move syntheses
-// drain in order so cards fill in top-to-bottom as the user reads. KV cache
-// hits still go through the queue but resolve fast, so there's no penalty
-// once a section has been opened before.
-class RequestQueue {
-  private queue: Array<() => void> = [];
-  private active = 0;
-  constructor(private readonly concurrency: number) {}
-  // `activityId` + `activityLabel` are reported to the shared activity
-  // store as a `queued` entry the instant the task is pushed onto the
-  // FIFO. When pump() finally invokes the task, trackAI() inside the work
-  // function promotes the same id to `loading`. If a slot is free
-  // immediately (active < concurrency), the queued state is set then
-  // overwritten on the same tick — that's fine; the panel just never
-  // shows a flash of "queued" for fast-path enqueues.
-  enqueue<T>(activityId: string, activityLabel: string, task: () => Promise<T>): Promise<T> {
-    queueActivity(activityId, activityLabel);
-    return new Promise((resolve, reject) => {
-      const run = () => {
-        this.active++;
-        task().then(
-          (v) => { this.active--; this.pump(); resolve(v); },
-          (e) => { this.active--; this.pump(); reject(e); },
-        );
-      };
-      this.queue.push(run);
-      this.pump();
-    });
-  }
-  private pump() {
-    while (this.active < this.concurrency && this.queue.length > 0) {
-      const next = this.queue.shift()!;
-      next();
-    }
-  }
-}
-
 // Server max_concurrency=10 on the enrichment queue, so client can dispatch
 // more in parallel without overwhelming workerd. 4 gives a 2× speedup on
 // pages with many pesukim/argument-move instances without risking the
@@ -233,11 +180,13 @@ class RequestQueue {
 const enrichmentQueue = new RequestQueue(4);
 
 /**
- * Enqueue one enrichment run on the shared FIFO from OUTSIDE this component
+ * Enqueue one enrichment run on the shared queue from OUTSIDE this component
  * (e.g. the daf-load prefetcher). Same queue + same activity tracking the
  * cards use, so prefetch and user-triggered work share one concurrency budget
  * and warm the same server-side cache — a later card mount for the same
  * (enrichment, instance) gets a fast KV hit instead of a cold generation.
+ * Enqueued at LOW priority so a user opening an anchor always drains ahead of
+ * speculative prefetch work.
  */
 export function enqueueEnrichmentRun(
   enrichmentId: string,
@@ -245,10 +194,13 @@ export function enqueueEnrichmentRun(
   page: string,
   instance: unknown,
   instanceKey: string,
+  signal?: AbortSignal,
 ): Promise<RunResult> {
   const { id, label } = enrichmentActivityKey(enrichmentId, tractate, page, instance, instanceKey);
-  return enrichmentQueue.enqueue(id, label, () =>
-    runEnrichment(enrichmentId, tractate, page, instance, instanceKey),
+  return enrichmentQueue.enqueue(id, label, (sig) =>
+    runEnrichment(enrichmentId, tractate, page, instance, instanceKey, sig),
+    signal,
+    QUEUE_PRIORITY.low,
   );
 }
 
@@ -311,63 +263,87 @@ export default function MarkEnrichmentCards(props: Props) {
 
   const stamp = () => `${props.tractate}/${props.page}/${props.instanceKey}`;
 
+  // Apply a finished result to this card's run state: set the run `ok`, fan
+  // out the aggregate's resolved deps to per-leaf run state, and forward
+  // deps/anchors to the parent sidebar. Shared by the cache-hit and
+  // fresh-fetch paths so both behave identically.
+  const applyResult = (d: EnrichmentDef, s: string, result: RunResult) => {
+    if (stamp() !== s) return;
+    setRun(d.id, { kind: 'ok', stamp: s, result });
+    // For aggregate enrichments: server returns each dep's parsed output in
+    // `deps_resolved` (enrichments) and `anchors_resolved` (marks). Populate
+    // per-leaf run state so the dev dropdown can render leaves instantly
+    // without a second /api/studio/run call. Forward both maps to onResolved
+    // so parent sidebars can render mark-specific UI from the same data.
+    const resolved = result.deps_resolved;
+    if (resolved || result.anchors_resolved) {
+      props.onResolved?.({
+        deps_resolved: resolved,
+        anchors_resolved: result.anchors_resolved,
+      });
+    }
+    if (resolved) {
+      for (const [depId, depParsed] of Object.entries(resolved)) {
+        setRun(depId, {
+          kind: 'ok',
+          stamp: s,
+          result: {
+            content: typeof depParsed === 'string' ? depParsed : JSON.stringify(depParsed),
+            parsed: typeof depParsed === 'object' ? depParsed : null,
+            parse_error: null,
+            model: result.model,
+            total_ms: 0,
+            usage: null,
+          },
+        });
+      }
+    }
+  };
+
   // Auto-fire each enrichment on mount + when the daf or instance changes.
-  // Each call goes through the shared `enrichmentQueue` (concurrency 2) so
-  // mounting many move cards doesn't barrage the worker. Results that arrive
-  // after the user has navigated away (stale stamp) are dropped.
+  // Order of operations per def:
+  //   1. Client-cache hit → apply synchronously, no spinner, no queue slot.
+  //   2. Already-ok for this exact stamp → skip.
+  //   3. Otherwise enqueue a fetch on the shared `enrichmentQueue`.
+  // A per-run AbortController is aborted on cleanup (stamp change / unmount)
+  // so a closed sidebar or switched anchor frees its concurrency slot
+  // immediately instead of polling a pending job for up to 600s.
+  //
+  // Priority: the synthesis a user just opened jumps ahead of background
+  // prefetch (LOW). The exception is `argument-move` cards — an argument
+  // mounts 15-40 of them, scroll-deferred, so they're NORMAL (still above
+  // prefetch, but they don't starve the primary synthesis or another anchor
+  // the user opens next).
+  const cardPriority = props.markId === 'argument-move' ? QUEUE_PRIORITY.normal : QUEUE_PRIORITY.high;
   createEffect(() => {
     const list = matching();
     if (list.length === 0) return;
     const s = stamp();
+    const controller = new AbortController();
+    onCleanup(() => controller.abort());
     untrack(() => {
       for (const d of list) {
+        const cached = runResultCache.get(runCacheKey(d.id, props.tractate, props.page, props.instanceKey));
+        if (cached) { applyResult(d, s, cached); continue; }
         const cur = runs()[d.id];
         if (cur && cur.kind !== 'idle' && cur.stamp === s) continue;
         setRun(d.id, { kind: 'loading', stamp: s });
         const { id: actId, label: actLabel } = enrichmentActivityKey(
           d.id, props.tractate, props.page, props.instance, props.instanceKey,
         );
-        void enrichmentQueue.enqueue(actId, actLabel, () =>
-          runEnrichment(d.id, props.tractate, props.page, props.instance, props.instanceKey),
+        void enrichmentQueue.enqueue(actId, actLabel, (sig) =>
+          runEnrichment(d.id, props.tractate, props.page, props.instance, props.instanceKey, sig),
+          controller.signal,
+          cardPriority,
         ).then(
           (result) => {
-            // Drop the result if the user moved on (different daf or
-            // instance) — the new effect run already queued a fresh task
-            // for the current stamp.
-            if (stamp() !== s) return;
-            setRun(d.id, { kind: 'ok', stamp: s, result });
-            // For aggregate enrichments: server returns each dep's parsed
-            // output in `deps_resolved` (enrichments) and `anchors_resolved`
-            // (marks). Populate per-leaf run state so the dev dropdown can
-            // render leaves instantly without a second /api/studio/run call.
-            // Forward both maps to onResolved so parent sidebars can render
-            // mark-specific UI from the same data.
-            const resolved = result.deps_resolved;
-            if (resolved || result.anchors_resolved) {
-              props.onResolved?.({
-                deps_resolved: resolved,
-                anchors_resolved: result.anchors_resolved,
-              });
-            }
-            if (resolved) {
-              for (const [depId, depParsed] of Object.entries(resolved)) {
-                setRun(depId, {
-                  kind: 'ok',
-                  stamp: s,
-                  result: {
-                    content: typeof depParsed === 'string' ? depParsed : JSON.stringify(depParsed),
-                    parsed: typeof depParsed === 'object' ? depParsed : null,
-                    parse_error: null,
-                    model: result.model,
-                    total_ms: 0,
-                    usage: null,
-                  },
-                });
-              }
-            }
+            runResultCache.set(runCacheKey(d.id, props.tractate, props.page, props.instanceKey), result);
+            applyResult(d, s, result);
           },
           (err) => {
-            if (stamp() !== s) return;
+            // Aborted (sidebar closed / anchor switched) or superseded — leave
+            // the run state alone; a fresh effect run owns the current stamp.
+            if (isAbort(err) || stamp() !== s) return;
             setRun(d.id, { kind: 'error', stamp: s, error: String((err as Error)?.message ?? err) });
           },
         );

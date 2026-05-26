@@ -142,17 +142,6 @@ export interface JobMessage {
    *  qualifierHash) and is exposed to its prompt as {{user_question}}. Used
    *  by argument-move.qa today. Empty/undefined means a vanilla run. */
   user_question?: string;
-  /** Warm-path flag for mark jobs. When true, after the mark extraction
-   *  lands the consumer fans out a follow-up enrichment job per extracted
-   *  instance (the promoted aggregate/synthesis for that mark), mirroring what
-   *  MarkEnrichmentCards fires when a user opens the sidebar. Running the
-   *  aggregate cascade-warms its dependency leaves via resolveDependencies. */
-  warm_cascade?: boolean;
-  /** Warm-path job kind: pre-bake /api/daf-context (rabbi identification +
-   *  bios) for this daf. Handled by warmDafContext — Stage 1 (Gemma) then
-   *  Stage 2 (Kimi+thinking). Routed through the queue so each daf runs in
-   *  its own invocation budget rather than blocking the cron. */
-  daf_context?: boolean;
 }
 
 function stripHtmlServer(html: string): string {
@@ -1037,6 +1026,30 @@ async function runExtractorFannedOut(
   return { result, systemPromptSample: sysSample, userPromptSample: userSample };
 }
 
+// Rabbi-mark post-processing: run the deterministic known-rabbi string-match
+// safety net (the same augmentWithKnownRabbis the legacy /api/daf-context used)
+// so rabbis the LLM missed but that appear verbatim in the daf still get an
+// underline + timeline entry. Rebuilds the instance list from the augmented
+// rabbis — `excerpt` is non-load-bearing for the rabbi mark (the renderer and
+// sidebar key off fields.nameHe), so mirroring it from nameHe is safe.
+function postProcessRabbi(parsed: unknown, hebrewText: string): unknown {
+  const p = parsed as { instances?: Array<{ fields?: { name?: string; nameHe?: string; generation?: string } }> } | null;
+  if (!p || !Array.isArray(p.instances)) return parsed;
+  const modelRabbis = p.instances.map((i) => ({
+    name: String(i.fields?.name ?? ''),
+    nameHe: String(i.fields?.nameHe ?? ''),
+    generation: (i.fields?.generation ?? 'unknown') as GenerationId,
+  }));
+  const augmented = augmentWithKnownRabbis(modelRabbis, hebrewText);
+  return {
+    ...p,
+    instances: augmented.map((r) => ({
+      excerpt: r.nameHe,
+      fields: { name: r.name, nameHe: r.nameHe, generation: r.generation },
+    })),
+  };
+}
+
 async function runMarkOnce(
   rc: RunCtx,
   def: SchemaMarkDefinition,
@@ -1148,6 +1161,8 @@ async function runMarkOnce(
     parsed = await postProcessPesukim(parsed, rc.env, tractate, page);
   } else if (parsed && def.id === 'aggadata') {
     parsed = await postProcessAggadata(parsed, rc.env, tractate, page);
+  } else if (parsed && def.id === 'rabbi') {
+    parsed = postProcessRabbi(parsed, stripHtmlServer(String(vars.hebrew ?? '')));
   }
   const out: RunResult = {
     content: result.content,
@@ -1959,6 +1974,37 @@ async function runEnrichmentOnce(
       }
       // Miss — fall through to the LLM path with the disambiguation prompt.
     }
+  }
+
+  // Deterministic short-circuit for rabbi.identity. The slug / region / places
+  // / moved fields come from the precomputed rabbi-places.json join (the same
+  // enrichRabbi the legacy /api/daf-context used) — an LLM can't produce a
+  // Sefaria slug, so there's no fallback path: enrichRabbi always returns an
+  // IdentifiedRabbi (nulled fields for rabbis not in the dataset). This is the
+  // single source of canonical identity data the timeline + bio sidebar read.
+  if (def.id === 'rabbi.identity') {
+    // Always short-circuit — there is no useful LLM fallback (a model can't
+    // know a Sefaria slug), and the placeholder prompt must never run.
+    const inst = markInput as { name?: string; nameHe?: string; generation?: GenerationId } | null;
+    const ident = enrichRabbi(inst?.name ?? '', inst?.nameHe ?? '', inst?.generation ?? 'unknown');
+    const out: RunResultEnrichment = {
+      content: JSON.stringify(ident),
+      parsed: ident,
+      parse_error: null,
+      model: ident.slug ? `lookup:${ident.slug}` : 'lookup:miss',
+      transport: 'lookup',
+      attempts: 0,
+      usage: { input_tokens: 0, output_tokens: 0, total_tokens: 0 },
+      elapsed_ms: 0,
+      prompt_chars: 0,
+      resolved: {
+        system_prompt: '(deterministic lookup: rabbi-places.json)',
+        user_prompt: `(identity lookup for rabbi: ${inst?.name ?? '(unnamed)'})`,
+      },
+      cache_hit: false,
+    };
+    if (cacheKey) await writeCachedResult(rc.env, cacheKey, out);
+    return out;
   }
 
   const nextChain = new Set(parentChain);
@@ -3769,60 +3815,6 @@ app.post('/api/translate', async (c) => {
   return c.json({ error: 'All translation models failed', attempts }, 502);
 });
 
-/**
- * Per-rabbi generation classification for a daf. Used by the client to
- * underline each rabbi name in the Hebrew text with a color indicating
- * era + generation. Two-stage: Gemma-4 no-thinking first pass, Kimi K2.6
- * with thinking background upgrade. Cached forever per daf.
- */
-const GENERATIONS_SYSTEM_PROMPT = `You are a scholar of Talmudic history. Given a daf (page) of Talmud, identify every distinct rabbi named in it and assign each one a generation ID.
-
-${GENERATIONS_PROMPT_REFERENCE}
-
-Output STRICT JSON only (no markdown, no prose):
-
-{
-  "rabbis": [
-    {
-      "name": "Rabbi's conventional English name (e.g. 'Rabbi Eliezer')",
-      "nameHe": "EXACT Hebrew name as it appears in the source text (e.g. 'ר\\' אליעזר' or 'רבי אליעזר'). Preserve abbreviation style.",
-      "generation": "one of the IDs above (zugim, tanna-1...tanna-6, amora-ey-1...amora-ey-5, amora-bavel-1...amora-bavel-8, savora, unknown)"
-    }
-  ]
-}
-
-DISAMBIGUATING BARE NAMES — REQUIRED REASONING:
-
-Many tannaitic and amoraic names refer to MULTIPLE distinct sages (Rabban Gamliel I/II/III/IV/V, Rabbi Yehuda bar Ilai vs Yehuda HaNasi, Rav Huna I vs II, etc.). When the Hebrew uses a bare form WITHOUT a disambiguating suffix (no "הזקן", "דיבנה", "ברבי", "השני", "נשיאה"), you MUST disambiguate before emitting an English name.
-
-Apply these rules IN ORDER:
-
-(a) ANCHOR ON CONTEMPORARIES. Identify other named rabbis in the sugya whose generation is clear. The ambiguous bare-name sage is almost always their contemporary. Example: if "רבי אליעזר בן הורקנוס" (tanna-2) appears in the same Mishnah as "רבן גמליאל", that Gamliel is Rabban Gamliel II of Yavneh (tanna-2), NOT Gamliel I haZaken.
-
-(b) APPLY THESE DEFAULTS FOR BARE HEBREW NAMES (use unless context contradicts):
-    - bare "רבן גמליאל" → Rabban Gamliel of Yavneh (II), tanna-2. Gamliel I haZaken is almost ALWAYS written explicitly as "רבן גמליאל הזקן" in the Bavli.
-    - bare "רבי יהודה" → Rabbi Yehuda bar Ilai, tanna-4. Yehuda HaNasi is written as bare "רבי" alone (no name) or "רבינו הקדוש".
-    - bare "רבי אליעזר" → Rabbi Eliezer ben Hyrcanus, tanna-2. Rabbi Eliezer ben Yaakov is always named in full.
-    - bare "רבי מאיר" → Rabbi Meir, tanna-4.
-    - bare "רבי שמעון" → Rabbi Shimon bar Yochai, tanna-4.
-    - bare "רבי יוסי" → Rabbi Yose ben Chalafta, tanna-4.
-    - bare "רבן שמעון בן גמליאל" (no "הזקן") → Rabban Shimon b. Gamliel II, tanna-5 (father of Rebbi).
-    - bare "רב יהודה" → Rav Yehuda bar Yechezkel, amora-bavel-2.
-    - bare "רב הונא" → Rav Huna, amora-bavel-2 (head of Sura after Rav).
-    - bare "רב נחמן" → Rav Nachman bar Yaakov, amora-bavel-2.
-    - "רבא" → Rava bar Yosef bar Chama (amora-bavel-4); "רבה" → Rabbah bar Nachmani (amora-bavel-3). Distinguish carefully — they are different sages.
-
-(c) ALWAYS EMIT THE DISAMBIGUATING ENGLISH FORM when applying a default. If you decide "רבן גמליאל" is Gamliel II, emit name="Rabban Gamliel of Yavneh (II)", NOT bare "Rabban Gamliel". This makes downstream slug resolution route to the correct entry. Only emit a bare English form when the Hebrew itself is unambiguous about which version.
-
-(d) ONLY identify a rabbi as Gamliel I haZaken / Shimon b. Gamliel the Elder / Yehuda HaNasi / Rav Huna II if the Hebrew text explicitly uses the disambiguating suffix, OR the contemporary anchor clearly points there.
-
-Rules:
-- nameHe MUST be copied verbatim from the Hebrew source — preserve exactly how the rabbi is named there (abbreviations matter: "ר' יוחנן" vs "רבי יוחנן").
-- If the same rabbi appears under multiple Hebrew forms in the text, list each distinct form as a separate entry with the same English name and generation.
-- If a rabbi moved (e.g. Rabbi Zeira from Bavel to Eretz Yisrael), use the generation of their PRIMARY teaching location. For Rabbi Zeira specifically, use amora-ey-3.
-- If the text has anonymous attributions like "Tanna" (תנא) or "the Sages" (חכמים) — DO NOT include them.
-- No duplicates (same exact nameHe).`;
-
 interface GenerationsResult {
   rabbis: Array<{
     name: string;
@@ -3832,18 +3824,6 @@ interface GenerationsResult {
 }
 
 const GENERATION_ID_SET = new Set<string>(GENERATION_IDS);
-
-export function validateGenerations(x: unknown): x is GenerationsResult {
-  if (!x || typeof x !== 'object') return false;
-  const g = x as GenerationsResult;
-  if (!Array.isArray(g.rabbis)) return false;
-  for (const r of g.rabbis) {
-    if (typeof r.name !== 'string') return false;
-    if (typeof r.nameHe !== 'string') return false;
-    if (typeof r.generation !== 'string' || !GENERATION_ID_SET.has(r.generation)) return false;
-  }
-  return true;
-}
 
 // Strip Hebrew nikkud + cantillation + common punctuation for fuzzy matching.
 function normalizeHe(s: string): string {
@@ -3993,162 +3973,6 @@ export function augmentWithKnownRabbis(
   return [...sanitized, ...added];
 }
 
-// JSON schema used to constrain the generations model output. Forces the
-// model to emit a rabbis array with the exact shape we expect — supported
-// by Kimi K2.6 via response_format.type = "json_schema".
-const GENERATIONS_JSON_SCHEMA = {
-  name: 'rabbi_generations',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['rabbis'],
-    properties: {
-      rabbis: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['name', 'nameHe', 'generation'],
-          properties: {
-            name: { type: 'string' },
-            nameHe: { type: 'string' },
-            generation: { type: 'string', enum: GENERATION_IDS },
-          },
-        },
-      },
-    },
-  },
-};
-
-async function runGenerationsModel(
-  env: Bindings,
-  modelId: string,
-  hebrewText: string,
-  englishContext: string,
-  tractate: string,
-  page: string,
-  opts: { maxTokens: number; enableThinking: boolean },
-): Promise<GenerationsResult | { error: string }> {
-  // Kimi K2.6 has a 256k context window; the Hebrew daf is at most a few
-  // thousand tokens so we barely need to slice. Keep a generous cap as a
-  // safety net against upstream pages that somehow balloon.
-  const userContent = [
-    `Tractate: ${tractate}`,
-    `Page: ${page}`,
-    '',
-    'Hebrew/Aramaic source (copy nameHe VERBATIM from here):',
-    hebrewText.slice(0, 40000),
-    '',
-    'English translation (for rabbi identification):',
-    englishContext.slice(0, 12000) || '(unavailable)',
-  ].join('\n');
-  try {
-    const r = await runLLM(env, {
-      model: modelId as LLMModelId,
-      messages: [
-        { role: 'system', content: GENERATIONS_SYSTEM_PROMPT },
-        { role: 'user', content: userContent },
-      ],
-      max_tokens: opts.maxTokens,
-      temperature: 0.1,
-      thinking: opts.enableThinking,
-      response_format: { type: 'json_schema', json_schema: GENERATIONS_JSON_SCHEMA },
-    });
-    const payload = r.content.trim() || extractJsonPayload({ response: r.content });
-    if (!payload) return { error: `${modelId}: empty payload` };
-    let parsed: unknown;
-    try { parsed = JSON.parse(payload); }
-    catch {
-      const repaired = payload
-        .replace(/,(\s*[}\]])/g, '$1')
-        .replace(/\r/g, '')
-        .replace(/"((?:[^"\\]|\\.)*?)"/g, (_m, inner: string) => `"${inner.replace(/\n/g, ' ')}"`);
-      try { parsed = JSON.parse(repaired); }
-      catch (err) { return { error: `${modelId}: non-JSON (${String(err).slice(0, 100)})` }; }
-    }
-    if (!validateGenerations(parsed)) return { error: `${modelId}: schema mismatch` };
-    return parsed as GenerationsResult;
-  } catch (err) {
-    return { error: `${modelId}: ${String(err).slice(0, 200)}` };
-  }
-}
-
-// Streaming variant for Kimi K2.6 thinking — Workers AI Gateway hard-times-out
-// non-streaming thinking calls (AiError 3046), so Stage 2 of /api/daf-context
-// goes through SSE like /api/analyze does. Returns the same shape as
-// runGenerationsModel plus diagnostic fields so silent timeouts surface in logs.
-interface GenerationsStreamDiag {
-  prompt_chars: number;
-  content_chars: number;
-  reasoning_chars: number;
-  elapsed_ms: number;
-  finish_reason: string | null;
-  usage: StreamedResult['usage'];
-}
-async function runGenerationsModelStreaming(
-  env: Bindings,
-  modelId: string,
-  hebrewText: string,
-  englishContext: string,
-  tractate: string,
-  page: string,
-  opts: { maxTokens: number; enableThinking: boolean },
-): Promise<(GenerationsResult & { _diag: GenerationsStreamDiag }) | { error: string; _diag: GenerationsStreamDiag | null }> {
-  const userContent = [
-    `Tractate: ${tractate}`,
-    `Page: ${page}`,
-    '',
-    'Hebrew/Aramaic source (copy nameHe VERBATIM from here):',
-    hebrewText.slice(0, 40000),
-    '',
-    'English translation (for rabbi identification):',
-    englishContext.slice(0, 12000) || '(unavailable)',
-  ].join('\n');
-  let streamed: StreamedResult;
-  try {
-    streamed = await runKimiStreaming(
-      env, modelId,
-      [
-        { role: 'system', content: GENERATIONS_SYSTEM_PROMPT },
-        { role: 'user', content: userContent },
-      ],
-      opts.maxTokens,
-      { chatTemplateKwargs: { enable_thinking: opts.enableThinking } },
-    );
-  } catch (err) {
-    return { error: `${modelId}: ${String(err).slice(0, 200)}`, _diag: null };
-  }
-  const diag: GenerationsStreamDiag = {
-    prompt_chars: streamed.prompt_chars,
-    content_chars: streamed.content.length,
-    reasoning_chars: streamed.reasoning_content.length,
-    elapsed_ms: streamed.elapsed_ms,
-    finish_reason: streamed.finish_reason,
-    usage: streamed.usage,
-  };
-  let payload = streamed.content.trim();
-  if (!payload && streamed.reasoning_content) {
-    const m = streamed.reasoning_content.match(/\{[\s\S]*"rabbis"[\s\S]*\}/);
-    if (m) payload = m[0];
-  }
-  const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (fenced) payload = fenced[1].trim();
-  if (!payload) return { error: `${modelId}: empty payload`, _diag: diag };
-  let parsed: unknown;
-  try { parsed = JSON.parse(payload); }
-  catch {
-    const repaired = payload
-      .replace(/,(\s*[}\]])/g, '$1')
-      .replace(/\r/g, '')
-      .replace(/"((?:[^"\\]|\\.)*?)"/g, (_m, inner: string) => `"${inner.replace(/\n/g, ' ')}"`);
-    try { parsed = JSON.parse(repaired); }
-    catch (err) { return { error: `${modelId}: non-JSON (${String(err).slice(0, 100)})`, _diag: diag }; }
-  }
-  if (!validateGenerations(parsed)) return { error: `${modelId}: schema mismatch`, _diag: diag };
-  return { ...(parsed as GenerationsResult), _diag: diag };
-}
-
 // --- Shared enrichment --------------------------------------------------
 // An IdentifiedRabbi is the unit of state shared across the three features
 // that care about rabbis in a daf: underlines, timeline, geography map, and
@@ -4213,174 +4037,6 @@ export function enrichAll(rabbis: GenerationsResult['rabbis']): IdentifiedRabbi[
   }
   return [...bySlug.values(), ...unslugged];
 }
-
-interface DafContext {
-  rabbis: IdentifiedRabbi[];
-}
-
-const DAF_CONTEXT_TTL = 60 * 60 * 24 * 365;
-const dafContextBaseKey = (tractate: string, page: string) => `daf-context:v6:${tractate}:${page}`;
-
-// Fetch the daf's Hebrew (HebrewBooks) + English (Sefaria) source text used to
-// prompt the rabbi-identification models. Shared by Stage 1 and the Stage-2
-// re-trigger / warm paths (which don't have the text in hand on a cache hit).
-async function fetchDafContextSources(
-  env: Bindings, tractate: string, page: string,
-): Promise<{ hebrewText: string; englishContext: string }> {
-  let hebrewText = '';
-  let englishContext = '';
-  try {
-    const [hb, english] = await Promise.all([
-      getHebrewBooksDafCached(env.CACHE, tractate, page),
-      getSefariaEnglishContext(tractate, page, env.CACHE).catch(() => ''),
-    ]);
-    if (hb) hebrewText = stripHtmlServer(hb.main);
-    englishContext = english;
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.warn('[daf-context] source fetch partial failure:', err);
-  }
-  return { hebrewText, englishContext };
-}
-
-// Stage 2: Kimi K2.5 with thinking. Idempotent and self-locking — noops if a
-// Stage-2 result is already cached or another run holds the short-lived lock,
-// so it's safe to call from the route handler (fresh + cache-hit paths) AND
-// the warm queue without stampeding the model. Refetches sources when not
-// supplied (the cache-hit and warm callers don't have them).
-async function generateDafContextStage2(
-  env: Bindings, ctx: ExecutionContext, tractate: string, page: string,
-  pre?: { hebrewText: string; englishContext: string },
-): Promise<void> {
-  const cache = env.CACHE;
-  if (!cache || !env.AI) return;
-  const stage2Key = `${dafContextBaseKey(tractate, page)}:stage2`;
-  if (await cache.get(stage2Key)) return;            // already upgraded
-  const lockKey = `${stage2Key}:lock`;
-  if (await cache.get(lockKey)) return;              // another run in flight
-  await cache.put(lockKey, '1', { expirationTtl: 300 });
-
-  let { hebrewText = '', englishContext = '' } = pre ?? {};
-  if (!hebrewText) ({ hebrewText, englishContext } = await fetchDafContextSources(env, tractate, page));
-  if (!hebrewText) return;
-
-  const s2t0 = Date.now();
-  try {
-    const r = await runGenerationsModelStreaming(
-      env, '@cf/moonshotai/kimi-k2.5', hebrewText, englishContext, tractate, page,
-      { maxTokens: 16000, enableThinking: true },
-    );
-    if ('error' in r) {
-      // eslint-disable-next-line no-console
-      console.warn(`[daf-context:stage2] ${tractate}/${page} failed:`, r.error, r._diag ? JSON.stringify(r._diag) : '');
-      recordTelemetry({ env, executionCtx: ctx }, { endpoint: 'daf-context-stage2', tractate, page, cache_hit: false, model: 'kimi-k2.5', ms: Date.now() - s2t0, ok: false, error_kind: classifyError(r.error) });
-      return;
-    }
-    // eslint-disable-next-line no-console
-    console.log(`[daf-context:stage2] ${tractate}/${page} ok rabbis=${r.rabbis.length}`, JSON.stringify(r._diag));
-    const upgraded: DafContext = { rabbis: enrichAll(augmentWithKnownRabbis(r.rabbis, hebrewText)) };
-    await cache.put(stage2Key, JSON.stringify(upgraded), { expirationTtl: DAF_CONTEXT_TTL });
-    recordTelemetry({ env, executionCtx: ctx }, { endpoint: 'daf-context-stage2', tractate, page, cache_hit: false, model: 'kimi-k2.5', ms: Date.now() - s2t0, ok: true });
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.warn(`[daf-context:stage2] ${tractate}/${page} threw:`, err);
-    recordTelemetry({ env, executionCtx: ctx }, { endpoint: 'daf-context-stage2', tractate, page, cache_hit: false, model: 'kimi-k2.5', ms: Date.now() - s2t0, ok: false, error_kind: 'other' });
-  }
-}
-
-// Warm path (queue job): ensure Stage 1 is cached (generate via Gemma if
-// missing), then ensure Stage 2 is cached. Used by yomi-cron. Awaits both
-// inline — the queue job owns its own invocation budget.
-async function warmDafContext(
-  env: Bindings, ctx: ExecutionContext, tractate: string, page: string,
-): Promise<void> {
-  const cache = env.CACHE;
-  if (!cache || !env.AI) return;
-  const baseKey = dafContextBaseKey(tractate, page);
-  const { hebrewText, englishContext } = await fetchDafContextSources(env, tractate, page);
-  if (!hebrewText) return;
-  if (!(await cache.get(baseKey)) && !(await cache.get(`${baseKey}:stage2`))) {
-    const s1 = await runGenerationsModel(
-      env, '@cf/google/gemma-4-26b-a4b-it', hebrewText, englishContext, tractate, page,
-      { maxTokens: 6000, enableThinking: false },
-    );
-    if (!('error' in s1)) {
-      const stage1Ctx: DafContext = { rabbis: enrichAll(augmentWithKnownRabbis(s1.rabbis, hebrewText)) };
-      await cache.put(baseKey, JSON.stringify(stage1Ctx), { expirationTtl: DAF_CONTEXT_TTL });
-    }
-  }
-  await generateDafContextStage2(env, ctx, tractate, page, { hebrewText, englishContext });
-}
-
-// Unified daf context — the single source of truth for underlines, timeline,
-// geography map, and rabbi bio sidebar. Stage 1 is Gemma-4 26B (no thinking,
-// ~15s); Stage 2 is Kimi K2.6 with thinking (background, ~1–3 min).
-app.get('/api/daf-context/:tractate/:page', async (c) => {
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  const cache = c.env.CACHE;
-  const baseKey = `daf-context:v6:${tractate}:${page}`;
-  const stage2Key = `${baseKey}:stage2`;
-
-  const bypass = c.req.query('refresh') === '1';
-  const cachedOnly = c.req.query('cached_only') === '1';
-  const wantStage2 = c.req.query('stage') === '2';
-  const t0 = Date.now();
-
-  if (cache && !bypass) {
-    if (wantStage2) {
-      const cached = await cache.get(stage2Key);
-      if (cached) {
-        recordTelemetry(c, { endpoint: 'daf-context', tractate, page, cache_hit: true, model: 'kimi-k2.5', ms: Date.now() - t0, ok: true });
-        return c.json({ ...JSON.parse(cached) as DafContext, _cached: true, _stage: 2 });
-      }
-      return c.body(null, 204);
-    }
-    const upgraded = await cache.get(stage2Key);
-    if (upgraded) {
-      recordTelemetry(c, { endpoint: 'daf-context', tractate, page, cache_hit: true, model: 'kimi-k2.5', ms: Date.now() - t0, ok: true });
-      return c.json({ ...JSON.parse(upgraded) as DafContext, _cached: true, _stage: 2 });
-    }
-    const cached = await cache.get(baseKey);
-    if (cached) {
-      // Stage 1 is cached but Stage 2 is not (checked above). Re-trigger the
-      // Stage-2 upgrade in the background — otherwise a Stage 2 that failed or
-      // never completed leaves the client polling ?stage=2 forever with no
-      // path to recompute. generateDafContextStage2 is idempotent + locked.
-      c.executionCtx.waitUntil(generateDafContextStage2(c.env, c.executionCtx, tractate, page));
-      recordTelemetry(c, { endpoint: 'daf-context', tractate, page, cache_hit: true, model: 'gemma-4-26b', ms: Date.now() - t0, ok: true });
-      return c.json({ ...JSON.parse(cached) as DafContext, _cached: true, _stage: 1 });
-    }
-  }
-  if (cachedOnly) return c.json({ cached: false }, 404);
-  if (wantStage2) return c.body(null, 204);
-  if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-
-  const { hebrewText, englishContext } = await fetchDafContextSources(c.env, tractate, page);
-  if (!hebrewText) {
-    recordTelemetry(c, { endpoint: 'daf-context', tractate, page, cache_hit: false, ms: Date.now() - t0, ok: false, error_kind: 'other' });
-    return c.json({ error: 'No Hebrew source available' }, 502);
-  }
-
-  // Stage 1: Gemma-4, no thinking
-  const s1 = await runGenerationsModel(
-    c.env, '@cf/google/gemma-4-26b-a4b-it', hebrewText, englishContext, tractate, page,
-    { maxTokens: 6000, enableThinking: false },
-  );
-  if ('error' in s1) {
-    recordTelemetry(c, { endpoint: 'daf-context', tractate, page, cache_hit: false, model: 'gemma-4-26b', ms: Date.now() - t0, ok: false, error_kind: classifyError(s1.error) });
-    return c.json({ error: 'Stage-1 classification failed', attempts: [s1.error] }, 502);
-  }
-  const augmented = augmentWithKnownRabbis(s1.rabbis, hebrewText);
-  const stage1Ctx: DafContext = { rabbis: enrichAll(augmented) };
-  if (cache) await cache.put(baseKey, JSON.stringify(stage1Ctx), { expirationTtl: DAF_CONTEXT_TTL });
-  recordTelemetry(c, { endpoint: 'daf-context', tractate, page, cache_hit: false, model: 'gemma-4-26b', ms: Date.now() - t0, ok: true });
-
-  // Stage 2: Kimi K2.5, thinking enabled, in background.
-  c.executionCtx.waitUntil(generateDafContextStage2(c.env, c.executionCtx, tractate, page, { hebrewText, englishContext }));
-
-  return c.json({ ...stage1Ctx, _cached: false, _stage: 1 });
-});
 
 // --- Admin: per-rabbi enrichment ----------------------------------------
 // One-shot Kimi K2.6 thinking call per rabbi to fill in the structured

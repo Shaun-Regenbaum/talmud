@@ -145,23 +145,29 @@ export default function DevModeShelf(props: Props) {
         </button>
       </div>
 
-      {/* Activity panels — live spinners for AI runs + last apply per
-          renderer. Both self-hide when empty. */}
-      <Show when={props.open}>
-        <div style={{ padding: '0.5rem 0.75rem 0', display: 'flex', 'flex-direction': 'column', gap: '0.5rem', 'flex-shrink': 0 }}>
-          <AIActivityPanel />
-          <PipelinePanel />
-        </div>
-      </Show>
-
-      {/* Marks slot — fills remaining space. */}
+      {/* Scrollable body: activity panels + marks share ONE scroll region so a
+          long activity list (e.g. a full prefetch cohort) or a long marks list
+          is always reachable instead of being clipped by the shelf. */}
       <div style={{
         flex: 1,
         'overflow-y': 'auto',
-        padding: '0.5rem 0.75rem',
         'min-height': 0,
+        display: 'flex',
+        'flex-direction': 'column',
       }}>
-        {props.children}
+        {/* Activity panels — live spinners for AI runs + last apply per
+            renderer. Both self-hide when empty. */}
+        <Show when={props.open}>
+          <div style={{ padding: '0.5rem 0.75rem 0', display: 'flex', 'flex-direction': 'column', gap: '0.5rem', 'flex-shrink': 0 }}>
+            <AIActivityPanel />
+            <PipelinePanel />
+          </div>
+        </Show>
+
+        {/* Marks slot */}
+        <div style={{ padding: '0.5rem 0.75rem' }}>
+          {props.children}
+        </div>
       </div>
     </aside>
   );

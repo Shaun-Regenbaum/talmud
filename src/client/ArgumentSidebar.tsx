@@ -29,12 +29,25 @@ export interface RishonimInstance {
   };
 }
 
+/** A `places` mark instance, as emitted by the LLM extractor. */
+export interface PlaceInstance {
+  excerpt?: string;
+  fields: {
+    name: string;
+    nameHe: string;
+    kind: string;
+    region: string;
+    knownAs?: string[];
+  };
+}
+
 export type SidebarContent =
   | { kind: 'argument'; section: Section; index: number }
   | { kind: 'halacha'; topic: HalachaTopic; index: number }
   | { kind: 'aggadata'; story: AggadataStory; index: number }
   | { kind: 'pesuk'; pasuk: Pasuk; index: number }
   | { kind: 'rabbi'; rabbi: IdentifiedRabbi }
+  | { kind: 'place'; place: PlaceInstance }
   | { kind: 'voice-group'; group: { name: string; nameHe: string; bio: string } }
   | { kind: 'rishonim'; instance: RishonimInstance; index: number };
 
@@ -609,6 +622,10 @@ function RabbiBody(props: {
   const [geography, setGeography] = createSignal<GeographyData | null>(null);
   const [geographyEvidence, setGeographyEvidence] = createSignal<GeographyEvidence[]>([]);
   const [location, setLocation] = createSignal<LocationInference | null>(null);
+  // Canonical identity (slug/region/places/moved) from the rabbi.identity
+  // enrichment, carried in the synthesis aggregate's deps_resolved. When the
+  // rabbi was opened from a mark stub (no region/places), this fills them in.
+  const [identity, setIdentity] = createSignal<IdentifiedRabbi | null>(null);
 
   const instanceKey = () => props.rabbi.name;
 
@@ -620,11 +637,14 @@ function RabbiBody(props: {
     setGeography(null);
     setGeographyEvidence([]);
     setLocation(null);
+    setIdentity(null);
     props.onHighlightRange(null);
   });
 
   const handleResolved = (r: { deps_resolved?: Record<string, unknown>; anchors_resolved?: Record<string, unknown> }) => {
     const deps = r.deps_resolved ?? {};
+    const ident = deps['rabbi.identity'] as IdentifiedRabbi | undefined;
+    if (ident && typeof ident.name === 'string') setIdentity(ident);
     const rel = deps['rabbi.relationships'] as RelationshipsData | undefined;
     if (rel && Array.isArray(rel.teachers)) {
       setRelationships(rel);
@@ -647,10 +667,14 @@ function RabbiBody(props: {
     if (loc && typeof loc.place === 'string' && loc.place.length > 0) setLocation(loc);
   };
 
+  // Effective fields: prefer the resolved rabbi.identity over the (possibly
+  // stub) instance the rabbi was opened with.
+  const effRegion = () => identity()?.region ?? props.rabbi.region;
+  const effPlaces = () => identity()?.places ?? props.rabbi.places;
   const gen = () => GENERATION_BY_ID[props.rabbi.generation];
-  const regionLabel = () => props.rabbi.region === 'israel' ? 'Eretz Yisrael'
-    : props.rabbi.region === 'bavel' ? 'Bavel'
-    : props.rabbi.region;
+  const regionLabel = () => effRegion() === 'israel' ? 'Eretz Yisrael'
+    : effRegion() === 'bavel' ? 'Bavel'
+    : effRegion();
   const metaParts = (): string[] => {
     const g = gen();
     const parts: string[] = [];
@@ -658,7 +682,8 @@ function RabbiBody(props: {
     if (g) parts.push(g.era);
     const rl = regionLabel();
     if (rl) parts.push(rl);
-    if (props.rabbi.places.length > 0) parts.push(props.rabbi.places.join(', '));
+    const pl = effPlaces();
+    if (pl.length > 0) parts.push(pl.join(', '));
     return parts;
   };
 
@@ -1273,6 +1298,51 @@ function AggadataPanel(props: {
 // ---------------------------------------------------------------------------
 //
 // Mounted in the right sidebar when a rishonim gutter icon is clicked.
+// MarkEnrichmentCards fires places.synthesis (which aggregates the
+// daf-agnostic profile/significance/figures leaves) and renders it. The
+// instanceKey mirrors the prefetcher's `places:<name>` so a warmed run is
+// reused instantly. region/kind render as small chips above the card.
+function PlaceBody(props: { place: PlaceInstance; tractate: string; page: string }): JSX.Element {
+  const f = () => props.place.fields;
+  const regionLabel = (r: string): string =>
+    r === 'israel' ? 'Eretz Yisrael' : r === 'bavel' ? 'Bavel' : r === 'other' ? 'Other' : r;
+  const chip = (text: string): JSX.Element => (
+    <span style={{
+      'font-size': '0.65rem', color: '#9a3412', background: '#fff7ed',
+      border: '1px solid #fed7aa', 'border-radius': '999px',
+      padding: '0.1rem 0.45rem', 'text-transform': 'uppercase', 'letter-spacing': '0.05em',
+    }}>{text}</span>
+  );
+  return (
+    <div>
+      <h3 style={{ margin: '0 0 0.15rem', 'font-size': '1.1rem', color: '#222', 'font-weight': 600 }}>
+        {f().name}
+      </h3>
+      <Show when={f().nameHe}>
+        <p dir="rtl" lang="he" style={{
+          margin: '0 0 0.5rem', 'font-family': '"Mekorot Vilna", serif',
+          'font-size': '1.05rem', color: '#666',
+        }}>{f().nameHe}</p>
+      </Show>
+      <div style={{ display: 'flex', gap: '0.35rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.7rem' }}>
+        <Show when={f().kind}>{chip(f().kind)}</Show>
+        <Show when={f().region}>{chip(regionLabel(f().region))}</Show>
+        <Show when={(f().knownAs ?? []).length > 0}>
+          {chip(`also ${(f().knownAs ?? []).join(', ')}`)}
+        </Show>
+      </div>
+
+      <MarkEnrichmentCards
+        markId="places"
+        instance={props.place}
+        instanceKey={`places:${f().name}`}
+        tractate={props.tractate}
+        page={props.page}
+      />
+    </div>
+  );
+}
+
 // MarkEnrichmentCards handles the LLM synthesis (rishonim.synthesis) and
 // the leaf walk; below it we render the primary-source Hebrew + English
 // per rishon as collapsible details so the user can drop into Rashi /
@@ -1397,6 +1467,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                   : c().kind === 'halacha' ? 'Practical Halacha'
                   : c().kind === 'aggadata' ? 'Aggada'
                   : c().kind === 'pesuk' ? 'Pasuk'
+                  : c().kind === 'place' ? 'Place'
                   : c().kind === 'rishonim' ? 'Rishonim'
                   : c().kind === 'voice-group' ? 'Voice'
                   : 'Rabbi'}
@@ -1476,6 +1547,14 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
             <Show when={c().kind === 'pesuk'}>
               <PasukPanel
                 pasuk={(c() as Extract<SidebarContent, { kind: 'pesuk' }>).pasuk}
+                tractate={props.tractate}
+                page={props.page}
+              />
+            </Show>
+
+            <Show when={c().kind === 'place'}>
+              <PlaceBody
+                place={(c() as Extract<SidebarContent, { kind: 'place' }>).place}
                 tractate={props.tractate}
                 page={props.page}
               />

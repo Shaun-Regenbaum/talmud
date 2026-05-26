@@ -17,7 +17,7 @@ import { ensureMasechetIncipit } from './ensureMasechetIncipit';
 import { injectAnchorMarkers, injectOpinionMarkers, injectAggadataAnchors, injectPesukimAnchors } from './anchorMarkers';
 import { GutterIcons, type GutterKind } from './GutterIcons';
 import { GutterOverlay } from './GutterOverlay';
-import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
+import { ArgumentSidebar, type SidebarContent, type PlaceInstance } from './ArgumentSidebar';
 import { BugReport } from './BugReport';
 import { type CommentaryWork, type CommentaryComment } from './CommentaryPicker';
 import { CommentaryStrip } from './CommentaryStrip';
@@ -25,7 +25,7 @@ import { CommentaryStrip } from './CommentaryStrip';
 import { MobileShelf, type MobileInteractionMode } from './MobileShelf';
 import MarksRegistryPanel, { enabledMarkDefs, markRunsByMarkId, markStatuses } from './MarksRegistryPanel';
 import DafLoadProgress from './DafLoadProgress';
-import { prefetchDaf } from './dafPrefetch';
+import { prefetchDaf, cancelPrefetch } from './dafPrefetch';
 import { buildSeedMarks } from './seed-marks';
 import { fetchCommentaryAnchorIndex, type CommentaryAnchorIndex } from './commentaryAnchorIndex';
 import { recordStage } from './rendererActivity';
@@ -292,9 +292,8 @@ function collectSurroundingHebrew(els: HTMLElement[], windowSize = CONTEXT_WINDO
 }
 
 // Module-level session caches shared across remounts.
-import type { DafContext, IdentifiedRabbi } from './dafContext';
+import type { IdentifiedRabbi } from './dafContext';
 
-const dafContextSessionCache = new Map<string, DafContext>();
 const analysisSessionCache = new Map<string, DafAnalysis>();
 const halachaSessionCache = new Map<string, HalachaResult>();
 const aggadataSessionCache = new Map<string, AggadataResult>();
@@ -398,11 +397,9 @@ export default function DafViewer(): JSX.Element {
   const ref = createMemo<Ref>(() => ({ tractate: tractate(), page: page() }));
   const [daf] = createResource(ref, fetchDaf);
 
-  // Unified per-daf state — the single source of truth for underlines,
-  // timeline, geography map, and bio sidebar. Populated from /api/daf-context.
-  const [dafContext, setDafContext] = createSignal<DafContext | null>(null);
-  const [genLoading, setGenLoading] = createSignal(false);
-  const [genError, setGenError] = createSignal<string | null>(null);
+  // Per-daf rabbi list — derived from the `rabbi` mark run (see dafRabbis()
+  // below). The legacy /api/daf-context fetch + its dafContext signal were
+  // removed; the mark + rabbi.identity enrichment are the single source now.
   // Defaults flipped to false — fresh users see an unannotated daf, then
   // opt into individual layers via the marks panel. Existing users keep
   // their persisted state in localStorage.
@@ -615,11 +612,49 @@ export default function DafViewer(): JSX.Element {
     prefetchDaf(t, p, runs);
   });
 
-  // Back-compat: underline injection + timeline take a GenerationRabbi[]; derive it.
+  // The `rabbi` mark run (post-augmentWithKnownRabbis) is the single source of
+  // identified rabbis on the daf.
+  const rabbiMarkInstances = createMemo(() => {
+    const parsed = markRunsByMarkId()['rabbi']?.parsed as {
+      instances?: Array<{ excerpt?: string; fields?: { name?: string; nameHe?: string; generation?: GenerationId } }>;
+    } | undefined;
+    return parsed?.instances ?? [];
+  });
+
+  // Underline injection + timeline take a GenerationRabbi[]; derive it from the
+  // rabbi mark (every occurrence, no dedup — underlines wrap each match).
   const generations = createMemo<GenerationRabbi[] | null>(() => {
-    const ctx = dafContext();
-    if (!ctx) return null;
-    return ctx.rabbis.map((r) => ({ name: r.name, nameHe: r.nameHe, generation: r.generation }));
+    const insts = rabbiMarkInstances();
+    if (insts.length === 0) return null;
+    return insts
+      .map((i) => ({
+        name: String(i.fields?.name ?? ''),
+        nameHe: String(i.fields?.nameHe ?? i.excerpt ?? ''),
+        generation: (i.fields?.generation ?? 'unknown') as GenerationId,
+      }))
+      .filter((r) => r.nameHe || r.name);
+  });
+
+  // Daf rabbi list as IdentifiedRabbi[] for the sidebar + routing. Thin —
+  // slug/region/places are null/empty here; the per-rabbi bio sidebar fills
+  // them from the rabbi.identity enrichment when a rabbi is opened. Deduped
+  // by canonical name.
+  const dafRabbis = createMemo<IdentifiedRabbi[]>(() => {
+    const seen = new Set<string>();
+    const out: IdentifiedRabbi[] = [];
+    for (const i of rabbiMarkInstances()) {
+      const name = String(i.fields?.name ?? '');
+      const nameHe = String(i.fields?.nameHe ?? i.excerpt ?? '');
+      const dedupKey = name || nameHe;
+      if (!dedupKey || seen.has(dedupKey)) continue;
+      seen.add(dedupKey);
+      out.push({
+        slug: null, name, nameHe,
+        generation: (i.fields?.generation ?? 'unknown') as GenerationId,
+        region: null, places: [], moved: null, bio: null, image: null, wiki: null,
+      });
+    }
+    return out;
   });
 
   // TODO(geography-rederive): the rabbiPlaces memo previously fed
@@ -678,6 +713,7 @@ export default function DafViewer(): JSX.Element {
     if (c.kind === 'aggadata') return c.story.title || 'Aggada';
     if (c.kind === 'pesuk') return c.pasuk.verseRef || 'Pasuk';
     if (c.kind === 'rabbi') return c.rabbi.name || 'Rabbi';
+    if (c.kind === 'place') return c.place.fields.name || 'Place';
     if (c.kind === 'voice-group') return c.group.name;
     if (c.kind === 'rishonim') return `Rishonim · seg ${c.instance.segIdx + 1}`;
     return 'Back';
@@ -688,6 +724,7 @@ export default function DafViewer(): JSX.Element {
     if (c.kind === 'aggadata') return `aggadata:${c.story.title}`;
     if (c.kind === 'pesuk') return `pesuk:${c.pasuk.verseRef}`;
     if (c.kind === 'rabbi') return `rabbi:${c.rabbi.slug ?? c.rabbi.name}`;
+    if (c.kind === 'place') return `place:${c.place.fields.name}`;
     if (c.kind === 'voice-group') return `voice-group:${c.group.name}`;
     if (c.kind === 'rishonim') return `rishonim:${c.instance.segIdx}`;
     return 'unknown';
@@ -881,85 +918,6 @@ export default function DafViewer(): JSX.Element {
     return () => controller.abort();
   };
 
-  createEffect(() => {
-    const t = tractate();
-    const p = page();
-    const key = `${t}:${p}`;
-    setGenError(null);
-    const cached = dafContextSessionCache.get(key);
-    if (cached) { setDafContext(cached); setGenLoading(false); return; }
-    setDafContext(null);
-
-    const controller = new AbortController();
-    const url = (cachedOnly: boolean, stage2 = false) =>
-      `/api/daf-context/${encodeURIComponent(t)}/${p}`
-      + (stage2 ? '?stage=2' : cachedOnly ? '?cached_only=1' : '');
-
-    // Stage 2 poller — upgrades the rabbi set once Kimi+thinking finishes.
-    const pollStage2 = async () => {
-      const delays = [3000, 5000, 8000, 12000, 20000, 30000];
-      for (const d of delays) {
-        await new Promise((r) => setTimeout(r, d));
-        if (controller.signal.aborted) return;
-        if (t !== tractate() || p !== page()) return;
-        try {
-          const res = await fetch(url(false, true), { signal: controller.signal });
-          if (res.status === 204) continue;
-          if (!res.ok) continue;
-          const json = (await res.json()) as { rabbis?: IdentifiedRabbi[]; _stage?: number };
-          if (json.rabbis && json._stage === 2) {
-            const ctx = { rabbis: json.rabbis };
-            dafContextSessionCache.set(key, ctx);
-            setDafContext(ctx);
-            return;
-          }
-        } catch (err) {
-          if ((err as Error).name === 'AbortError') return;
-        }
-      }
-    };
-
-    const go = async () => {
-      const fetchOne = async (cachedOnly: boolean): Promise<{ ctx: DafContext; stage: number } | null> => {
-        const res = await fetch(url(cachedOnly), { signal: controller.signal });
-        if (res.status === 404) return null;
-        const json = (await res.json()) as { rabbis?: IdentifiedRabbi[]; _stage?: number; error?: string; attempts?: string[] };
-        if (!res.ok || json.error) {
-          const detail = (json.error ?? '') + ' ' + (json.attempts ?? []).join(' ');
-          if (/1031|UpstreamError/i.test(detail)) throw new Error('Cloudflare AI temporarily unavailable (1031).');
-          throw new Error(json.error ?? `HTTP ${res.status}`);
-        }
-        if (!json.rabbis) return null;
-        return { ctx: { rabbis: json.rabbis }, stage: json._stage ?? 1 };
-      };
-      try {
-        const cached = await fetchOne(true);
-        if (t !== tractate() || p !== page()) return;
-        if (cached) {
-          dafContextSessionCache.set(key, cached.ctx);
-          setDafContext(cached.ctx);
-          if (cached.stage === 1) void pollStage2();
-          return;
-        }
-        setGenLoading(true);
-        const fresh = await fetchOne(false);
-        if (t !== tractate() || p !== page()) return;
-        if (fresh) {
-          dafContextSessionCache.set(key, fresh.ctx);
-          setDafContext(fresh.ctx);
-          if (fresh.stage === 1) void pollStage2();
-        }
-      } catch (err) {
-        if (t !== tractate() || p !== page()) return;
-        if ((err as Error).name === 'AbortError') return;
-        setGenError(String((err as Error).message ?? err));
-      } finally {
-        if (t === tractate() && p === page()) setGenLoading(false);
-      }
-    };
-    void go();
-    return () => controller.abort();
-  });
 
   // analysis()/halacha()/aggadata()/pesukim() are now hydrated entirely by
   // the registry-mark adapter effects above (search "Adapter:"). On daf
@@ -1006,15 +964,14 @@ export default function DafViewer(): JSX.Element {
     return m;
   });
 
-  // Daf-wide rabbi-name pool. Joins dafContext().rabbis (which carries
-  // slugs + bios) with every name the LLM mentioned in structured fields:
-  // argument section.rabbiNames, argument-move.rabbiNames, and
-  // argument.voices[].name. Used by the sidebar's RabbiText to make rabbi
-  // mentions in enrichment prose clickable even when the rabbi isn't
-  // covered by the rabbi-places dataset.
+  // Daf-wide rabbi-name pool. Joins dafRabbis() (the rabbi mark) with every
+  // name the LLM mentioned in structured fields: argument section.rabbiNames,
+  // argument-move.rabbiNames, and argument.voices[].name. Used by the
+  // sidebar's RabbiText to make rabbi mentions in enrichment prose clickable
+  // even when the rabbi isn't covered by the rabbi-places dataset.
   const dafRabbiNames = createMemo<string[]>(() => {
     const names = new Set<string>();
-    for (const r of dafContext()?.rabbis ?? []) {
+    for (const r of dafRabbis()) {
       if (r.name) names.add(r.name);
     }
     const runs = markRunsByMarkId();
@@ -1047,6 +1004,11 @@ export default function DafViewer(): JSX.Element {
   // Reset sidebar state on daf change.
   createEffect(() => {
     void tractate(); void page();
+    // Abort the previous daf's section-prefetch cohort so its queued/polling
+    // tasks free the shared enrichment-queue slots immediately; the
+    // prefetch-trigger effect re-arms a fresh cohort once the new daf's marks
+    // settle.
+    cancelPrefetch();
     setSidebar(null);
     setActiveRabbi(null);
     setActiveLocation(null);
@@ -1777,6 +1739,7 @@ export default function DafViewer(): JSX.Element {
     const s = sidebar();
     if (!s) return null;
     if (s.kind === 'rabbi') return `rabbi:${s.rabbi.name}`;
+    if (s.kind === 'place') return `place:${s.place.fields.name}`;
     if (s.kind === 'voice-group') return `voice-group:${s.group.name}`;
     return `${s.kind}:${s.index}`;
   });
@@ -1945,12 +1908,11 @@ export default function DafViewer(): JSX.Element {
 
   // Click handler shared by text / map / timeline / sidebar — opens the rabbi
   // card AND highlights every mention of that rabbi across the daf.
-  // Source priority: legacy dafContext (richer — has places/bio/wiki/region
-  // joined from rabbi-places.json) → new registry-driven rabbi mark output
-  // (just name/nameHe/generation; the per-rabbi enrichment cards in the
-  // sidebar fill in the rest contextually).
+  // Source: dafRabbis() (the rabbi mark; name/nameHe/generation). The
+  // per-rabbi enrichment cards in the sidebar fill in places/bio/region/slug
+  // contextually via the rabbi.identity + rabbi.* enrichments.
   const openRabbi = (name: string) => {
-    let r: IdentifiedRabbi | null = dafContext()?.rabbis.find((x) => x.name === name) ?? null;
+    let r: IdentifiedRabbi | null = dafRabbis().find((x) => x.name === name) ?? null;
     if (!r) {
       const argRun = markRunsByMarkId()['rabbi'];
       const inst = (argRun?.parsed as { instances?: Array<{ excerpt?: string; fields: Record<string, unknown> }> } | undefined)
@@ -1982,6 +1944,29 @@ export default function DafViewer(): JSX.Element {
     setLastInteractedCard('argument');
   };
 
+  // City-marker click → highlight every mention of the place AND open the
+  // place card. The card needs the full mark instance (nameHe/kind/region) so
+  // it can fire places.synthesis with the same shape the prefetcher warmed;
+  // `data-city` only carries the canonical English name, so we look the
+  // instance back up in the places mark run. Falls back to a minimal instance
+  // (still opens the card; the synthesis re-derives from the name) if the run
+  // hasn't landed or the name isn't found.
+  const openPlace = (name: string) => {
+    const run = markRunsByMarkId()['places'];
+    const instances = (run?.parsed as { instances?: PlaceInstance[] } | undefined)?.instances;
+    const found = instances?.find((i) => i.fields?.name === name) ?? null;
+    const place: PlaceInstance = found ?? {
+      fields: { name, nameHe: '', kind: '', region: '', knownAs: [] },
+    };
+    setActiveRabbi(null);
+    setActiveLocation(null);
+    setActiveLocationRabbis([]);
+    clearCommentarySelection();
+    setActivePlace(name);
+    setSidebar({ kind: 'place', place });
+    setLastInteractedCard('argument');
+  };
+
   // Cross-enrichment rabbi click (chip / voice node / prose mention inside
   // an open sidebar). Resolves a display name to an IdentifiedRabbi
   // through a layered chain so common phrasing mismatches still land on a
@@ -2000,7 +1985,7 @@ export default function DafViewer(): JSX.Element {
   //   6. Stub fallback: open the sidebar with just the name + 'unknown'
   //      generation so the user at least sees what they clicked.
   const pushRabbi = (name: string) => {
-    const ctx = dafContext()?.rabbis ?? [];
+    const ctx = dafRabbis();
     let r: IdentifiedRabbi | null = null;
 
     // 1. exact
@@ -2086,7 +2071,10 @@ export default function DafViewer(): JSX.Element {
   // from the dataset via /api/rabbi/:slug. ALWAYS pushes so chains of
   // rabbi → cited-rabbi → ... can be unwound by the back chip.
   const openRabbiSlug = async (slug: string) => {
-    const inCtx = dafContext()?.rabbis.find((x) => x.slug === slug);
+    // dafRabbis() carries null slugs (the join lives in the rabbi.identity
+    // enrichment now), so this won't match by slug — fall through to the
+    // standalone /api/rabbi/:slug fetch, which resolves the dataset entry.
+    const inCtx = dafRabbis().find((x) => x.slug === slug);
     if (inCtx) { pushRabbi(inCtx.name); return; }
     try {
       const res = await fetch(`/api/rabbi/${encodeURIComponent(slug)}`);
@@ -2349,13 +2337,7 @@ export default function DafViewer(): JSX.Element {
         const cityEl = target.closest('.city-marker') as HTMLElement | null;
         if (cityEl) {
           const cityName = cityEl.getAttribute('data-city');
-          if (cityName) {
-            setActiveRabbi(null);
-            setActiveLocation(null);
-            setActiveLocationRabbis([]);
-            setActivePlace(cityName);
-            return;
-          }
+          if (cityName) { openPlace(cityName); return; }
         }
         return;
       }
@@ -2378,18 +2360,11 @@ export default function DafViewer(): JSX.Element {
       if (rabbiName) { openRabbi(rabbiName); return; }
     }
     // Click on a city marker → highlight every mention of that city across
-    // the daf. (Geography side panel was removed; the place-highlight
-    // behaviour stays so per-city tinting still works.)
+    // the daf AND open the place card (profile/significance/figures synthesis).
     const cityEl = target.closest('.city-marker') as HTMLElement | null;
     if (cityEl) {
       const cityName = cityEl.getAttribute('data-city');
-      if (cityName) {
-        setActiveRabbi(null);
-        setActiveLocation(null);
-        setActiveLocationRabbis([]);
-        setActivePlace(cityName);
-        return;
-      }
+      if (cityName) { openPlace(cityName); return; }
     }
     const wordEl = target.closest('.daf-word') as HTMLElement | null;
     if (!wordEl) return;
@@ -2506,11 +2481,6 @@ export default function DafViewer(): JSX.Element {
         </button>
       </header>
 
-      {/* Unified load bar — one progress indicator + status line for the whole
-          daf (anchor extraction + section prefetch), replacing the former
-          scatter of per-mark spinners. */}
-      <DafLoadProgress />
-
       {/* Mark errors still surface explicitly — the progress bar abstracts
           them into its count, but a failed anchor is worth naming. */}
       <Show when={markStatuses().some((s) => s.kind === 'error')}>
@@ -2546,6 +2516,12 @@ export default function DafViewer(): JSX.Element {
           RabbiPlacesTimeline already renders them well. A whole-daf map
           would aggregate those per-rabbi enrichments. Until then, the
           top-bar toggle nav is empty and hidden. */}
+      {/* Unified load bar — one progress indicator + status line for the whole
+          daf (anchor extraction + section prefetch). Lives inside the daf
+          body column so it's exactly the daf's width, pinned (sticky) directly
+          above the daf as the reader scrolls. */}
+      <DafLoadProgress />
+
       <div ref={surfaceEl} class="daf-surface" onMouseUp={onMouseUpRoot} style={{ display: 'flex', 'justify-content': 'center' }}>
         <Show
           when={!daf.loading && tokenized()}
@@ -2732,7 +2708,7 @@ export default function DafViewer(): JSX.Element {
               onPushRabbi={pushRabbi}
               previousLabel={sidebarStack().length > 1 ? sidebarLabel(sidebarStack()[sidebarStack().length - 2]) : null}
               onBack={popSidebar}
-              dafRabbis={dafContext()?.rabbis ?? []}
+              dafRabbis={dafRabbis()}
               dafRabbiNames={dafRabbiNames()}
               onHighlightRange={setArgumentMoveHighlight}
               onOpenRabbiSlug={openRabbiSlug}
@@ -2760,7 +2736,7 @@ export default function DafViewer(): JSX.Element {
           onPushRabbi={pushRabbi}
           previousLabel={sidebarStack().length > 1 ? sidebarLabel(sidebarStack()[sidebarStack().length - 2]) : null}
           onBack={popSidebar}
-          dafRabbis={dafContext()?.rabbis ?? []}
+          dafRabbis={dafRabbis()}
           dafRabbiNames={dafRabbiNames()}
           onOpenRabbiSlug={openRabbiSlug}
           generationByName={generationByName()}
