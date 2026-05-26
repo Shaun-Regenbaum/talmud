@@ -161,6 +161,42 @@ Hebrew/Aramaic source — each line begins with [N], the 0-based segment index. 
 
 Identify the argument structure. Return JSON per the schema.`;
 
+const ARGUMENT_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. בהינתן מקור עברי/ארמי של עמוד ממוקד המחולק לקטעים ממוספרים ותרגומו לאנגלית (באותו מספור), זהה את מבנה הסוגיה כחטיבות נפרדות.
+
+החזר JSON תקני בלבד — ללא markdown, ללא טקסט חופשי. ערכי "title" ו-"summary" ייכתבו בעברית.
+
+{
+  "summary": "סקירה בת משפט–שניים בעברית של מה שהדף הזה טוען.",
+  "instances": [
+    {
+      "startSegIdx": 0,
+      "endSegIdx": 4,
+      "fields": {
+        "title": "כותרת קצרה ותיאורית בעברית (למשל 'משנת הפתיחה', 'קושיית הגמרא הראשונה').",
+        "summary": "תיאור בן 2–3 משפטים בעברית של מה החטיבה הזו טוענת.",
+        "excerpt": "3-5 מילים בעברית/ארמית המועתקות מילה-במילה מן המקור העברי הממוקד, במקום שבו החטיבה מתחילה.",
+        "endExcerpt": "3-5 מילים בעברית/ארמית המועתקות מילה-במילה מן המקור העברי, במקום שבו החטיבה מסתיימת (המילים האחרונות של החטיבה, מיד לפני שמתחילה החטיבה הבאה). חייבות להיות שונות מ-excerpt אלא אם החטיבה היא ביטוי יחיד.",
+        "rabbiNames": ["Rabbi Yochanan", "Gemara's question", "First answer"]
+      }
+    }
+  ]
+}
+
+כללים:
+- חלק את העמוד הממוקד ל-3-8 חטיבות לפי מבנה הטיעון, לא לפי פסקה.
+- החטיבות חייבות לחלק את הדף במדויק: startSegIdx של חטיבה i+1 שווה ל-endSegIdx של חטיבה i ועוד 1; ללא רווחים, ללא חפיפות.
+- לחטיבה בת קטע אחד, startSegIdx שווה ל-endSegIdx.
+- "excerpt" ו-"endExcerpt" חייבים להיות עברית/ארמית המועתקות מילה-במילה מן המקור — לעולם אל תתרגם. excerpt מעגן את מילות הפתיחה של החטיבה, endExcerpt את מילות הסיום. יחד עליהם להתאים לטווח האמיתי של החטיבה — אל תמשיך את endExcerpt אל תוכן החטיבה הבאה.
+- "rabbiNames" מונה כל קול נבדל בחטיבה לפי הסדר: חכמים נקובים, קולות קיבוציים ("Sages", "Tanna Kamma"), וכל מהלך של הסתמא/הגמרא ("Gemara's question", "First answer", "Objection"). השאר ערכים אלה באנגלית כפי שבדוגמה, כדי שיתאימו לזיהוי הקולות במערכת. כשהגמרא מציעה כמה תשובות לאותה קושיה, כל אחת היא ערך נפרד.
+- "title" ו-"summary" נכתבים בעברית. מונח הלכתי/ארמי קבוע — השאר אותו בכתב עברי כפי שהוא (למשל "רוב בשר", "בית דין", "בני נח").`;
+
+const ARGUMENT_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+מקור עברי/ארמי — כל שורה מתחילה ב-[N], אינדקס הקטע (מבוסס-0). השתמש באינדקסים אלה עבור startSegIdx / endSegIdx:
+{{segments_he}}
+
+זהה את מבנה הסוגיה. החזר JSON לפי הסכמה.`;
+
 // ---------------------------------------------------------------------------
 // Halacha mark — topics + start/end segment indices.
 // ---------------------------------------------------------------------------
@@ -197,6 +233,38 @@ Hebrew/Aramaic source — each line begins with [N], the 0-based segment index. 
 {{segments_he}}
 
 Identify halachic topics. Return JSON per the schema.`;
+
+const HALACHA_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בהלכה. בהינתן מקור עברי/ארמי של עמוד ממוקד המחולק לקטעים ממוספרים ותרגומו לאנגלית (באותו מספור), זהה את הנושאים ההלכתיים המעשיים העיקריים הנידונים בדף.
+
+החזר JSON תקני בלבד. ערכי "topic" ו-"summary" ייכתבו בעברית.
+
+{
+  "instances": [
+    {
+      "startSegIdx": 0,
+      "endSegIdx": 3,
+      "fields": {
+        "topic": "כותרת קצרה בעברית לנושא (למשל 'זמן קריאת שמע של ערבית').",
+        "topicHe": "תווית עברית קצרה לנושא (3-5 מילים).",
+        "summary": "הסבר בן 2–3 משפטים בעברית של איזו שאלה הלכתית מתבררת בטווח הקטעים הזה.",
+        "excerpt": "3-5 מילים בעברית/ארמית המועתקות מילה-במילה מן המקור, במקום שבו הנושא מתחיל."
+      }
+    }
+  ]
+}
+
+כללים:
+- 1-5 נושאים לדף. דלג על חלקים אגדיים או דרשניים גרידא שאין בהם פסק הלכה.
+- "excerpt" חייב להיות עברית/ארמית מילה-במילה מן המקור.
+- "startSegIdx" / "endSegIdx" חייבים להיות אינדקסים תקפים מבוססי-0 מסימוני ה-[N] שבמקור הממוספר. לנושא בן קטע אחד, start שווה ל-end.
+- "topic" ו-"summary" נכתבים בעברית. מונח הלכתי/ארמי קבוע — השאר אותו בכתב עברי כפי שהוא (למשל "רוב בשר", "בית דין", "בני נח").`;
+
+const HALACHA_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+מקור עברי/ארמי — כל שורה מתחילה ב-[N], אינדקס הקטע (מבוסס-0). השתמש באינדקסים אלה עבור startSegIdx / endSegIdx:
+{{segments_he}}
+
+זהה נושאים הלכתיים. החזר JSON לפי הסכמה.`;
 
 const HALACHA_OUTPUT_SCHEMA = {
   name: 'halacha_topics',
@@ -272,6 +340,42 @@ Hebrew/Aramaic source — each line begins with [N], the 0-based segment index. 
 {{segments_he}}
 
 Identify aggadic units. Return JSON per the schema (empty instances array if there are none).`;
+
+const AGGADATA_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. בהינתן מקור עברי/ארמי של עמוד ממוקד (קטעים ממוספרים) ותרגומו לאנגלית (באותו מספור), זהה כל יחידה אגדית — סיפורי מעשה, אנקדוטות ביוגרפיות, משלים, דיווחי חלום/נס, ומימרות מוסר השזורות בנרטיב. דלג על דרשה הלכתית גרידא.
+
+החזר JSON תקני בלבד. ערכי "title" ו-"summary" ייכתבו בעברית.
+
+{
+  "instances": [
+    {
+      "startSegIdx": 0,
+      "endSegIdx": 3,
+      "fields": {
+        "title": "כותרת קצרה בעברית (למשל 'תפילת התלמיד העני').",
+        "titleHe": "תווית עברית קצרה (3-5 מילים).",
+        "summary": "סיכום בן 2–3 משפטים בעברית של מה שקורה בסיפור / מה שהמימרה מלמדת.",
+        "excerpt": "3-5 מילים בעברית/ארמית המועתקות מילה-במילה מן המקור, במקום שבו האגדה מתחילה.",
+        "endExcerpt": "3-5 המילים האחרונות של הסיפור, מועתקות מילה-במילה מן המקור — במקום שבו האגדה מסתיימת בדף. לא תחילת הדיון ההלכתי הבא או הסיפור הבא. אם הסיפור באורך שורה אחת, אלה עדיין מילות הסיום של אותה שורה; חייבות להיות שונות מ-excerpt.",
+        "theme": "תגית של מילה/ביטוי קצר באנגלית: 'martyrdom' | 'study' | 'prayer' | 'reward' | 'suffering' | 'miracle' | 'parable' | 'ethics' | 'biography' | 'other'."
+      }
+    }
+  ]
+}
+
+כללים:
+- 0-6 יחידות אגדה לדף. בדפים רבים אין כלל — החזר מערך instances ריק במקרה כזה.
+- "excerpt" וגם "endExcerpt" חייבים להיות עברית/ארמית מילה-במילה מן המקור. excerpt מעגן את תחילת הסיפור; endExcerpt את סופו. השניים חייבים להיות שונים (יחידה אגדית היא לכל הפחות משפט אחד).
+- endExcerpt הוא 3-5 המילים האחרונות של הסיפור עצמו — מילות הסיום של הנרטיב או המימרה. אל תבחר את מילות הפתיחה של מה שבא אחריו בדף.
+- "startSegIdx" / "endSegIdx" חייבים להיות אינדקסים תקפים מבוססי-0 מסימוני ה-[N]. endSegIdx הוא הקטע המכיל את endExcerpt.
+- "theme" נשאר ערך אנגלי מן הרשימה הסגורה לעיל.
+- "title" ו-"summary" נכתבים בעברית. מונח הלכתי/ארמי קבוע — השאר אותו בכתב עברי כפי שהוא.`;
+
+const AGGADATA_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+מקור עברי/ארמי — כל שורה מתחילה ב-[N], אינדקס הקטע (מבוסס-0). השתמש באינדקסים אלה עבור startSegIdx / endSegIdx:
+{{segments_he}}
+
+זהה יחידות אגדה. החזר JSON לפי הסכמה (מערך instances ריק אם אין).`;
 
 const AGGADATA_OUTPUT_SCHEMA = {
   name: 'aggadata_stories',
@@ -349,6 +453,43 @@ Hebrew/Aramaic source — each line begins with [N], the 0-based segment index:
 {{segments_he}}
 
 Identify Tanach references. Return JSON per the schema (empty instances if none).`;
+
+const PESUKIM_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בתנ"ך ובש"ס. בהינתן מקור עברי/ארמי של עמוד ממוקד (קטעים ממוספרים) ותרגומו לאנגלית (באותו מספור), זהה כל הפניה לפסוק מן התנ"ך בדף — ציטוטים מפורשים, רמזים, ופרפראזות.
+
+החזר JSON תקני בלבד. ערך "summary" ייכתב בעברית.
+
+{
+  "instances": [
+    {
+      "startSegIdx": 5,
+      "endSegIdx": 5,
+      "fields": {
+        "verseRef": "הפניה קנונית בסגנון Sefaria באנגלית, למשל 'Psalms 4:5', 'Genesis 24:63', 'Isaiah 6:3'.",
+        "citationStyle": "'explicit' | 'allusion' | 'paraphrase'",
+        "excerpt": "המילים בעברית/ארמית מן הדף המצטטות או רומזות לפסוק — מועתקות מילה-במילה מן המקור. זו תחילת ביטוי הציטוט.",
+        "endExcerpt": "3-5 המילים האחרונות של ביטוי הציטוט, מועתקות מילה-במילה. לציטוט קצר/בן שורה זה יכול להיות סוף \"excerpt\"; לציטוט ארוך יותר זה מסמן היכן מסתיים ציטוט-הפסוק בדף. מחרוזת ריקה אינה קבילה כשהציטוט ארוך מ-5 מילים.",
+        "summary": "1–2 משפטים בעברית המסבירים כיצד הפסוק משמש בהקשר זה (ראיה, אסמכתא, ניגוד, עוגן דרשני)."
+      }
+    }
+  ]
+}
+
+כללים:
+- 0-15 פסוקים לדף. בחלק אין כלל — החזר instances ריק במקרה כזה.
+- לציטוטים מפורשים המסומנים ב-שנאמר / שנא' / דכתיב / כדכתיב / אמר קרא — השתמש ב-citationStyle: "explicit".
+- לניסוח המהדהד פסוק אך אינו מציג אותו — השתמש ב-citationStyle: "allusion".
+- לפרפראזה חופשית — השתמש ב-citationStyle: "paraphrase".
+- "verseRef" נשאר הפניה קנונית באנגלית בסגנון Sefaria. "citationStyle" נשאר ערך אנגלי מן הרשימה.
+- "excerpt" וגם "endExcerpt" חייבים להיות עברית/ארמית מילה-במילה מן המקור. excerpt מעגן את תחילת הציטוט; endExcerpt את סופו. לציטוט בן 2-5 מילים בלבד הם עשויים לחלוק מילים אך לא להיות זהים אלא אם הציטוט הוא ביטוי קצר יחיד.
+- startSegIdx / endSegIdx חייבים להיות אינדקסים תקפים מבוססי-0 מסימוני ה-[N].
+- "summary" נכתב בעברית. מונח הלכתי/ארמי קבוע — השאר אותו בכתב עברי כפי שהוא.`;
+
+const PESUKIM_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+מקור עברי/ארמי — כל שורה מתחילה ב-[N], אינדקס הקטע (מבוסס-0):
+{{segments_he}}
+
+זהה הפניות לתנ"ך. החזר JSON לפי הסכמה (instances ריק אם אין).`;
 
 const PESUKIM_OUTPUT_SCHEMA = {
   name: 'pesukim_refs',
@@ -481,6 +622,8 @@ export const CODE_MARKS: MarkDefinition[] = [
       model: 'openrouter/deepseek/deepseek-v4-flash' as LLMModelId,
       system_prompt: ARGUMENT_SYSTEM_PROMPT,
       user_prompt_template: ARGUMENT_USER_TEMPLATE,
+      system_prompt_he: ARGUMENT_SYSTEM_PROMPT_HE,
+      user_prompt_template_he: ARGUMENT_USER_TEMPLATE_HE,
       output_schema: ARGUMENT_OUTPUT_SCHEMA,
       thinking_off: true,
     },
@@ -507,6 +650,8 @@ export const CODE_MARKS: MarkDefinition[] = [
       model: 'openrouter/deepseek/deepseek-v4-flash' as LLMModelId,
       system_prompt: HALACHA_SYSTEM_PROMPT,
       user_prompt_template: HALACHA_USER_TEMPLATE,
+      system_prompt_he: HALACHA_SYSTEM_PROMPT_HE,
+      user_prompt_template_he: HALACHA_USER_TEMPLATE_HE,
       output_schema: HALACHA_OUTPUT_SCHEMA,
       thinking_off: true,
     },
@@ -533,6 +678,8 @@ export const CODE_MARKS: MarkDefinition[] = [
       model: 'openrouter/deepseek/deepseek-v4-flash' as LLMModelId,
       system_prompt: AGGADATA_SYSTEM_PROMPT,
       user_prompt_template: AGGADATA_USER_TEMPLATE,
+      system_prompt_he: AGGADATA_SYSTEM_PROMPT_HE,
+      user_prompt_template_he: AGGADATA_USER_TEMPLATE_HE,
       output_schema: AGGADATA_OUTPUT_SCHEMA,
       thinking_off: true,
     },
@@ -559,6 +706,8 @@ export const CODE_MARKS: MarkDefinition[] = [
       model: 'openrouter/deepseek/deepseek-v4-flash' as LLMModelId,
       system_prompt: PESUKIM_SYSTEM_PROMPT,
       user_prompt_template: PESUKIM_USER_TEMPLATE,
+      system_prompt_he: PESUKIM_SYSTEM_PROMPT_HE,
+      user_prompt_template_he: PESUKIM_USER_TEMPLATE_HE,
       output_schema: PESUKIM_OUTPUT_SCHEMA,
       thinking_off: true,
     },
@@ -2223,6 +2372,57 @@ Hebrew/Aramaic source — each line begins with [N], the 0-based segment index:
 
 Break every section into moves. Return the flat instance list per the schema.`;
 
+const ARGUMENT_MOVE_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. בהינתן גמרא של דף ורשימת חטיבות הטיעון הגדולות שכבר חולצו, פרק כל חטיבה ל-MOVES (מהלכים) טיעוניים.
+
+"move" הוא צעד עצמאי יחיד בתוך חטיבה: קושיה, תשובה, השגה, הבאת ברייתא תומכת, יישוב, או הרחבה קצרה. ברוב החטיבות 3-6 מהלכים. חטיבה בעלת מהלך יחיד נדירה — לגיטימית רק כשהחטיבה היא ציטוט יחיד או מאמר בן שורה.
+
+החזר JSON תקני בלבד. ערכי "voice" ו-"summary" ייכתבו בעברית.
+
+{
+  "instances": [
+    {
+      "startSegIdx": 0,
+      "endSegIdx": 1,
+      "fields": {
+        "id": "מזהה יציב, בפורמט '{sectionStartSegIdx}-{sectionEndSegIdx}_{moveOrderInSection}' (למשל '0-4_0', '0-4_1', '5-9_0').",
+        "sectionStartSegIdx": 0,
+        "sectionEndSegIdx": 4,
+        "moveOrder": 0,
+        "role": "opening" | "question" | "answer" | "objection" | "rejection" | "supporting-evidence" | "resolution" | "digression" | "shift" | "other",
+        "voice": "תווית קצרה בעברית של מי הדובר (למשל 'קושיית הגמרא', 'רבי יוחנן', 'סתמא', 'ברייתא תומכת', 'תירוץ רבא'). התאם לאופן שבו המהלך באמת נקרא.",
+        "rabbiNames": ["Named rabbis ONLY, in English (e.g. 'Rabbi Yochanan', 'Rava'). מערך ריק למהלכים אנונימיים כמו 'קושיית הגמרא' או 'סתמא'."],
+        "excerpt": "3-5 מילים בעברית/ארמית המועתקות מילה-במילה מן המקור, במקום שבו המהלך מתחיל (המילים הראשונות של המהלך).",
+        "endExcerpt": "3-5 מילים בעברית/ארמית המועתקות מילה-במילה מן המקור, במקום שבו המהלך מסתיים (המילים האחרונות של המהלך, מיד לפני המהלך הבא או גבול החטיבה). חייבות להיות שונות מ-excerpt אלא אם המהלך הוא ביטוי יחיד.",
+        "summary": "משפט אחד בעברית: מה המהלך הזה עושה."
+      }
+    }
+  ]
+}
+
+כללים מחייבים (הפלט נדחה אם מופרים):
+- הוצא את כל המהלכים מכל החטיבות ברשימת instances שטוחה אחת, בסדר הקריאה.
+- בתוך כל חטיבה: טווחי המהלכים מחלקים במדויק (next.startSegIdx === prev.endSegIdx + 1, ללא רווחים, ללא חפיפות, הכול בתוך טווח החטיבה).
+- חטיבה המכילה כמה עמדות נבדלות (למשל "רבי X אומר א, חכמים אומרים ב, רבי Y אומר ג") חייבת להתפרק ל-3+ מהלכים — אחד לכל עמדה. אל תאחד כמה דעות למהלך יחיד.
+- חטיבה המכילה קושיה + תירוץ היא לפחות 2 מהלכים. קושיה + כמה תירוצים = מהלך קושיה אחד + N מהלכי תירוץ.
+- חטיבה הפרושה על ≥4 קטעים כמעט תמיד בעלת 3+ מהלכים. מהלך יחיד המכסה ≥4 קטעים מעיד כמעט תמיד על התעצלות — בחן מחדש את המבנה.
+- חטיבת משנה המונה עמדות של חכמים שונים חייבת להתפרק למהלך אחד לכל עמדת חכם, בתוספת מהלכים לכל קושיית מסגרת, סיפור תומך, או הכללה.
+- "voice" תיאורי ויכול להיות אנונימי ("קושיית הגמרא"). "rabbiNames" הוא רק לחכמים נקובים ממש (באנגלית).
+- "excerpt" ו-"endExcerpt" הם עברית/ארמית מילה-במילה מן המקור. excerpt מעגן את ההתחלה; endExcerpt את הסוף. יחד הם מגדירים את הטווח האמיתי של המהלך — אל תעתיק סתם את מילות הפתיחה/הסיום של החטיבה; העתק את מילות הפתיחה/הסיום של תוכן המהלך הזה. המהלך האחרון בחטיבה חייב endExcerpt התואם באמת את מילותיו האחרונות.
+- בחר את תגית ה-role היחידה הטובה ביותר לכל מהלך. השתמש ב-"other" במשׂורה.
+- "id" חייב להיות דטרמיניסטי: '{sectionStartSegIdx}-{sectionEndSegIdx}_{moveOrderInSection}'.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const ARGUMENT_MOVE_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+חטיבות (הוצא מהלכים מקובצים לפיהן — sectionStartSegIdx/sectionEndSegIdx של כל מהלך חייבים להתאים לאחד הטווחים האלה):
+{{anchors.argument}}
+
+מקור עברי/ארמי — כל שורה מתחילה ב-[N], אינדקס הקטע (מבוסס-0):
+{{segments_he}}
+
+פרק כל חטיבה למהלכים. החזר את רשימת ה-instances השטוחה לפי הסכמה.`;
+
 const ARGUMENT_MOVE_OUTPUT_SCHEMA = {
   name: 'argument_moves',
   strict: true,
@@ -2285,6 +2485,8 @@ CODE_MARKS.push({
     model: ARGUMENT_FLASH_MODEL,
     system_prompt: ARGUMENT_MOVE_SYSTEM_PROMPT,
     user_prompt_template: ARGUMENT_MOVE_USER_TEMPLATE,
+    system_prompt_he: ARGUMENT_MOVE_SYSTEM_PROMPT_HE,
+    user_prompt_template_he: ARGUMENT_MOVE_USER_TEMPLATE_HE,
     output_schema: ARGUMENT_MOVE_OUTPUT_SCHEMA,
     thinking_off: true,
     // Fan out one LLM call per argument SECTION rather than one giant call for
