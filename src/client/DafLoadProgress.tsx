@@ -15,6 +15,7 @@
 import { createMemo, createEffect, createSignal, onCleanup, Show, type JSX } from 'solid-js';
 import { markStatuses } from './MarksRegistryPanel';
 import { prefetchProgress } from './dafPrefetch';
+import { t } from './i18n';
 
 const COMPLETE_LINGER_MS = 700;
 
@@ -54,12 +55,16 @@ export default function DafLoadProgress(): JSX.Element {
   const label = createMemo(() => {
     const c = combined();
     if (c.marksLoading) {
-      return `Analyzing daf — ${c.m.done} of ${c.m.total} anchors`;
+      return t('dafLoad.analyzing', { done: c.m.done, total: c.m.total });
     }
     if (c.prefetchActive) {
-      return `Loading ${c.pf.currentLabel ?? 'sections'} — ${c.pf.done} of ${c.pf.total}`;
+      return t('dafLoad.loadingSections', {
+        section: c.pf.currentLabel ?? t('dafLoad.sections'),
+        done: c.pf.done,
+        total: c.pf.total,
+      });
     }
-    return 'Up to date';
+    return t('dafLoad.upToDate');
   });
 
   // Visibility: show whenever there's incomplete work; linger briefly at 100%

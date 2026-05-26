@@ -27,6 +27,7 @@
 import { createMemo, createSignal, For, Show, type JSX } from 'solid-js';
 import { ISRAEL_SHAPE, BAVEL_SHAPE } from './geoShapes';
 import { GENERATION_BY_ID, type GenerationId } from './generations';
+import { t } from './i18n';
 
 export type Region = 'israel' | 'bavel' | 'other';
 
@@ -354,7 +355,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
           props.onHighlightPlace(active() ? null : city.name);
         }}
       >
-        <title>{`${city.name} (${city.nameHe}) · mentioned in daf`}</title>
+        <title>{`${city.name} (${city.nameHe}) · ${t('geography.mentionedInDaf')}`}</title>
       </circle>
     );
   };
@@ -372,7 +373,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
       }}
     >
       <div style={{ color: '#999', 'font-size': '0.72rem', 'margin-bottom': '0.35rem', 'text-transform': 'uppercase', 'letter-spacing': '0.06em' }}>
-        Geography · click a dot to highlight
+        {t('geography.heading')}
       </div>
 
       <Show
@@ -386,7 +387,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
               animation: 'daf-spin 0.8s linear infinite',
               'flex-shrink': 0,
             }} />
-            Mapping rabbi geography…
+            {t('geography.mapping')}
           </p>
         }
       >
@@ -405,14 +406,14 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
             }}
           >
             <div style={{ 'font-size': '0.8rem', 'font-weight': 600, color: '#1f2937', 'margin-bottom': '0.3rem' }}>
-              Eretz Yisrael
+              {t('geography.eretzYisrael')}
             </div>
             <svg
               viewBox={`-6 -4 ${ISRAEL_SHAPE.width + 12} ${ISRAEL_SHAPE.height + 8}`}
               style={{ width: '100%', flex: 1, display: 'block', 'min-height': 0 }}
               preserveAspectRatio="xMidYMid meet"
               role="img"
-              aria-label="Eretz Yisrael — rabbi geographic origins"
+              aria-label={t('geography.eretzYisrael.aria')}
             >
               <path
                 d={ISRAEL_SHAPE.d}
@@ -447,14 +448,14 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
             }}
           >
             <div style={{ 'font-size': '0.8rem', 'font-weight': 600, color: '#1e40af', 'margin-bottom': '0.3rem' }}>
-              Bavel
+              {t('geography.bavel')}
             </div>
             <svg
               viewBox="30 -10 82 195"
               style={{ width: '100%', flex: 1, display: 'block', 'min-height': 0 }}
               preserveAspectRatio="xMidYMid meet"
               role="img"
-              aria-label="Bavel — rabbi geographic origins"
+              aria-label={t('geography.bavel.aria')}
             >
               {/* Invisible hit-box so clicks anywhere inside the region fire onRegionClick */}
               <rect
@@ -486,10 +487,10 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
                 opacity="0.8"
               />
               <text x="50" y="-3" text-anchor="middle" font-family="Georgia,serif" font-size="7" font-style="italic" fill="#1e40af" opacity="0.85">
-                Euphrates
+                {t('geography.euphrates')}
               </text>
               <text x="100" y="7" text-anchor="middle" font-family="Georgia,serif" font-size="7" font-style="italic" fill="#1e40af" opacity="0.85">
-                Tigris
+                {t('geography.tigris')}
               </text>
               <circle cx="96" cy="174" r="1.5" fill="#2563eb" opacity="0.8" />
               <For each={data().placeDots.filter((c) => c.region === 'bavel')}>
@@ -513,13 +514,13 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
           }}
         >
           <span>
-            Eretz Yisrael: <strong style={{ color: '#1f2937' }}>{data().israelCount}</strong>
+            {t('geography.eretzYisrael')}: <strong style={{ color: '#1f2937' }}>{data().israelCount}</strong>
           </span>
           <Show when={data().placeDots.length > 0}>
-            <span style={{ color: '#888' }}>Places mentioned: {data().placeDots.length}</span>
+            <span style={{ color: '#888' }}>{t('geography.placesMentioned')}: {data().placeDots.length}</span>
           </Show>
           <span>
-            Bavel: <strong style={{ color: '#92400e' }}>{data().bavelCount}</strong>
+            {t('geography.bavel')}: <strong style={{ color: '#92400e' }}>{data().bavelCount}</strong>
           </span>
         </div>
 
@@ -537,7 +538,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
             }}
           >
             <div style={{ color: '#6b7280', 'font-size': '0.64rem', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>
-              Migration
+              {t('geography.migration')}
             </div>
             <For each={data().moverRows}>
               {(row) => {
@@ -552,8 +553,8 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
                 const toLabel   = fromB ? 'E' : 'B';
                 const fromColor = fromB ? '#92400e' : '#1f2937';
                 const toColor   = fromB ? '#1f2937' : '#92400e';
-                const fromFull  = fromB ? 'Bavel' : 'Eretz Yisrael';
-                const toFull    = fromB ? 'Eretz Yisrael' : 'Bavel';
+                const fromFull  = fromB ? t('geography.bavel') : t('geography.eretzYisrael');
+                const toFull    = fromB ? t('geography.eretzYisrael') : t('geography.bavel');
                 const arrow = row.direction === 'both' ? '↔' : '→';
                 return (
                   <div

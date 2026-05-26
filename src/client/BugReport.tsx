@@ -1,4 +1,5 @@
 import { createSignal, Show, type JSX } from 'solid-js';
+import { t } from './i18n';
 
 export interface BugReportProps {
   tractate: string;
@@ -68,24 +69,24 @@ export function BugReport(props: BugReportProps): JSX.Element {
                   'font-family': 'inherit',
                 }}
               >
-                Report a problem
+                {t('bugreport.open')}
               </button>
             }
           >
             <span style={{ color: '#059669' }}>
-              Thanks — report sent for {props.tractate} {props.page}.
+              {t('bugreport.sent', { daf: `${props.tractate} ${props.page}` })}
             </span>
           </Show>
         }
       >
         <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.4rem', 'align-items': 'stretch', 'text-align': 'left' }}>
           <div style={{ color: '#666', 'font-size': '0.72rem' }}>
-            Reporting a problem with <b>{props.tractate} {props.page}</b> — what went wrong?
+            {t('bugreport.prompt', { daf: `${props.tractate} ${props.page}` })}
           </div>
           <textarea
             value={text()}
             onInput={(e) => setText(e.currentTarget.value)}
-            placeholder="e.g. Rabbi Yochanan wasn't underlined in this passage, or the translation for this word was wrong."
+            placeholder={t('bugreport.placeholder')}
             rows={3}
             style={{
               width: '100%',
@@ -114,7 +115,7 @@ export function BugReport(props: BugReportProps): JSX.Element {
                 cursor: 'pointer',
               }}
             >
-              Cancel
+              {t('bugreport.cancel')}
             </button>
             <button
               onClick={submit}
@@ -130,12 +131,12 @@ export function BugReport(props: BugReportProps): JSX.Element {
                 opacity: status() === 'submitting' || !text().trim() ? 0.6 : 1,
               }}
             >
-              {status() === 'submitting' ? 'Sending…' : 'Submit'}
+              {status() === 'submitting' ? t('bugreport.sending') : t('bugreport.submit')}
             </button>
           </div>
           <Show when={errorMsg()}>
             <div style={{ color: '#c33', 'font-size': '0.72rem' }}>
-              Couldn't send: {errorMsg()}
+              {t('bugreport.sendError', { error: errorMsg() ?? '' })}
             </div>
           </Show>
         </div>

@@ -1,6 +1,7 @@
 import { createMemo, createSignal, createEffect, For, Show, onCleanup, type JSX } from 'solid-js';
 import { GENERATION_BY_ID, type GenerationId } from './generations';
 import rabbiHierarchyData from '../lib/data/rabbi-hierarchy.json';
+import { t } from './i18n';
 
 interface RabbiLite {
   slug?: string | null;
@@ -383,11 +384,11 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
     >
       <header style={{ display: 'flex', 'align-items': 'baseline', 'justify-content': 'space-between', 'margin-bottom': '0.35rem' }}>
         <h3 style={{ margin: 0, 'font-size': '0.8rem', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', color: '#666' }}>
-          Chain of tradition
+          {t('rabbi.tree.title')}
         </h3>
         <Show when={!hasEdges}>
           <span style={{ color: '#999', 'font-size': '0.65rem' }} title="Run `bun run build-rabbi-hierarchy` to populate edges">
-            no edges
+            {t('rabbi.tree.noEdges')}
           </span>
         </Show>
       </header>
@@ -404,13 +405,13 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
               <line x1="1" y1="3" x2="14" y2="3" stroke="#555" stroke-width="1" />
               <path d="M12,1 L16,3 L12,5 z" fill="#555" />
             </svg>
-            teacher → student
+            {t('rabbi.tree.teacherStudent')}
           </span>
           <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.2rem' }}>
             <svg width="18" height="6" aria-hidden="true">
               <line x1="1" y1="3" x2="17" y2="3" stroke="#999" stroke-width="1" stroke-dasharray="3 3" />
             </svg>
-            contemporary
+            {t('rabbi.tree.contemporary')}
           </span>
         </div>
       </Show>
@@ -444,7 +445,7 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
                     'justify-content': 'center',
                     padding: '0.3rem 0',
                   }}
-                  title={era.label}
+                  title={t(`rabbi.tree.era.${era.id}`)}
                 >
                   <span
                     style={{
@@ -457,7 +458,7 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
                       'text-transform': 'uppercase',
                     }}
                   >
-                    {era.label}
+                    {t(`rabbi.tree.era.${era.id}`)}
                   </span>
                 </div>
 
@@ -483,7 +484,7 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
                               'text-transform': 'uppercase',
                               'flex-shrink': 0,
                             }}>
-                              Gen {row.rank}
+                              {t('rabbi.tree.gen', { n: row.rank })}
                             </span>
                             <hr style={{ flex: 1, border: 0, 'border-top': '1px dashed #e0e0e0', margin: 0 }} />
                           </div>
@@ -566,7 +567,9 @@ export function RabbiTreeStrip(props: RabbiTreeStripProps): JSX.Element {
                             'font-family': 'inherit',
                             transition: 'opacity 120ms, background 120ms',
                           }}
-                          title={e.onDaf ? 'On this daf' : `${e.role ?? 'related'} of a rabbi on this daf`}
+                          title={e.onDaf
+                            ? t('rabbi.tree.onThisDaf')
+                            : t('rabbi.tree.relatedRole', { role: t(`rabbi.tree.role.${e.role ?? 'related'}`) })}
                         >
                           <Show when={!e.onDaf}>
                             <span style={{ 'font-size': '0.58rem', 'margin-right': '0.2rem', color: '#999' }}>

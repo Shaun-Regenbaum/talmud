@@ -17,6 +17,7 @@
 
 import { For, Show, createSignal, type JSX } from 'solid-js';
 import { GENERATION_BY_ID, GENERATION_IDS, type GenerationId } from './generations';
+import { t } from './i18n';
 
 export interface RelationshipPerson {
   name: string;
@@ -483,7 +484,7 @@ export default function RabbiLineageTree(props: Props): JSX.Element {
         'align-items': 'center',
         'justify-content': 'space-between',
       }}>
-        <span>Lineage</span>
+        <span>{t('rabbi.lineage.title')}</span>
         <Show when={hasOverflow()}>
           <button
             type="button"
@@ -496,7 +497,7 @@ export default function RabbiLineageTree(props: Props): JSX.Element {
               'text-transform': 'uppercase',
               'letter-spacing': '0.06em',
             }}
-          >{expanded() ? 'collapse' : 'show all'}</button>
+          >{expanded() ? t('common.collapse') : t('common.showAll')}</button>
         </Show>
       </div>
 
@@ -590,7 +591,7 @@ export default function RabbiLineageTree(props: Props): JSX.Element {
                 onClick={() => hasEv && clickNode(n)}
               >
                 <title>{
-                  ev ? `${n.name}\nOn this daf: ${ev.note || ev.excerpt}`
+                  ev ? `${n.name}\n${t('rabbi.onThisDaf', { text: ev.note || ev.excerpt })}`
                     : `${n.name}${n.familyRelation ? ` — ${n.familyRelation}` : ''}${gen?.label ? ` · ${gen.label}` : ''}`
                 }</title>
                 <rect
@@ -665,7 +666,7 @@ export default function RabbiLineageTree(props: Props): JSX.Element {
             display: 'inline-block', width: '12px', height: '1.5px',
             'border-top': '1.5px dashed #999',
           }} />
-          <span>Debate partners</span>
+          <span>{t('rabbi.lineage.debatePartners')}</span>
         </div>
       </Show>
     </div>

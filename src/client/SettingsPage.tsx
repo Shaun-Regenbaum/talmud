@@ -6,6 +6,7 @@
  * Single-user app — no auth gate.
  */
 import { createResource, createSignal, For, Show } from 'solid-js';
+import { t } from './i18n';
 
 type LLMModelId = `@cf/${string}` | `openrouter/${string}`;
 
@@ -130,10 +131,9 @@ export default function SettingsPage() {
 
   return (
     <div class="page-shell" style={{ '--page-max': '880px', 'font-family': 'system-ui, sans-serif' }}>
-      <h1 style={{ 'font-size': '24px', 'margin-bottom': '8px' }}>LLM Settings</h1>
+      <h1 style={{ 'font-size': '24px', 'margin-bottom': '8px' }}>{t('settings.title')}</h1>
       <p style={{ color: '#666', margin: '0 0 24px' }}>
-        Default model and fallback chain for every LLM call in the worker. Changes apply immediately;
-        no redeploy. Per-call <code>?model=</code> overrides on enrichment endpoints win over these defaults.
+        {t('settings.intro.before')}<code>?model=</code>{t('settings.intro.after')}
       </p>
 
       <Show when={data()}>{(loaded) => {
@@ -145,7 +145,7 @@ export default function SettingsPage() {
         return (
           <>
             <section style={{ 'margin-bottom': '32px' }}>
-              <h2 style={{ 'font-size': '16px', 'margin-bottom': '8px' }}>Default model</h2>
+              <h2 style={{ 'font-size': '16px', 'margin-bottom': '8px' }}>{t('settings.section.defaultModel')}</h2>
               <select
                 value={defaultModel() ?? ''}
                 onChange={(e) => setDefaultModel(e.currentTarget.value as LLMModelId)}
@@ -163,7 +163,7 @@ export default function SettingsPage() {
                 onClick={() => defaultModel() && onProbe(defaultModel() as LLMModelId)}
                 style={{ 'margin-top': '8px', padding: '4px 12px', 'font-size': '13px' }}
               >
-                {probing()[defaultModel() ?? ''] ? 'probing…' : 'probe (ping)'}
+                {probing()[defaultModel() ?? ''] ? t('settings.probing') : t('settings.probePing')}
               </button>
               <Show when={probeResult()[defaultModel() ?? '']}>{(r) => (
                 <div style={{ 'margin-top': '8px', 'font-family': 'monospace', 'font-size': '12px', color: r().error ? '#c00' : '#080' }}>
@@ -173,22 +173,22 @@ export default function SettingsPage() {
             </section>
 
             <section style={{ 'margin-bottom': '32px' }}>
-              <h2 style={{ 'font-size': '16px', 'margin-bottom': '8px' }}>Fallback chain</h2>
+              <h2 style={{ 'font-size': '16px', 'margin-bottom': '8px' }}>{t('settings.section.fallbackChain')}</h2>
               <p style={{ color: '#666', 'font-size': '13px', margin: '0 0 12px' }}>
-                Tried in order if the default model returns a retryable failure (HTTP 5xx, 429, 1031, 3046, network).
+                {t('settings.fallbackChain.hint')}
               </p>
-              <Show when={fallbackChain().length > 0} fallback={<div style={{ color: '#999', 'font-style': 'italic' }}>(empty — no fallback)</div>}>
+              <Show when={fallbackChain().length > 0} fallback={<div style={{ color: '#999', 'font-style': 'italic' }}>{t('settings.fallbackChain.empty')}</div>}>
                 <ol style={{ 'padding-left': '20px', margin: '0 0 12px' }}>
                   <For each={fallbackChain()}>{(id) => {
                     const p = presets.find((x) => x.id === id);
                     return (
                       <li style={{ 'margin-bottom': '6px' }}>
                         <span style={{ 'font-family': 'monospace' }}>{p?.label ?? id}</span>
-                        <button onClick={() => moveUp(id)} style={{ 'margin-left': '8px', padding: '2px 6px' }}>↑</button>
-                        <button onClick={() => moveDown(id)} style={{ 'margin-left': '4px', padding: '2px 6px' }}>↓</button>
-                        <button onClick={() => removeFromChain(id)} style={{ 'margin-left': '4px', padding: '2px 6px' }}>remove</button>
+                        <button onClick={() => moveUp(id)} title={t('settings.moveUp')} aria-label={t('settings.moveUp')} style={{ 'margin-left': '8px', padding: '2px 6px' }}>↑</button>
+                        <button onClick={() => moveDown(id)} title={t('settings.moveDown')} aria-label={t('settings.moveDown')} style={{ 'margin-left': '4px', padding: '2px 6px' }}>↓</button>
+                        <button onClick={() => removeFromChain(id)} style={{ 'margin-left': '4px', padding: '2px 6px' }}>{t('settings.remove')}</button>
                         <button onClick={() => onProbe(id)} style={{ 'margin-left': '4px', padding: '2px 6px' }}>
-                          {probing()[id] ? '…' : 'probe'}
+                          {probing()[id] ? '…' : t('settings.probe')}
                         </button>
                         <Show when={probeResult()[id]}>{(r) => (
                           <span style={{ 'margin-left': '8px', 'font-family': 'monospace', 'font-size': '12px', color: r().error ? '#c00' : '#080' }}>
@@ -208,7 +208,7 @@ export default function SettingsPage() {
                   }}
                   style={{ width: '100%', padding: '8px', 'font-size': '14px' }}
                 >
-                  <option value="">+ add to fallback chain…</option>
+                  <option value="">{t('settings.addToChain')}</option>
                   <For each={remainingPresets()}>{(p) => (
                     <option value={p.id}>{p.label} — {p.vendor}</option>
                   )}</For>
@@ -222,27 +222,27 @@ export default function SettingsPage() {
                 onClick={onSave}
                 style={{ padding: '10px 20px', 'font-size': '14px', background: '#000', color: '#fff', border: 0, cursor: 'pointer' }}
               >
-                {saving() ? 'saving…' : 'save'}
+                {saving() ? t('settings.saving') : t('settings.save')}
               </button>
               <Show when={savedAt()}>{(at) => (
                 <span style={{ 'margin-left': '12px', color: '#080', 'font-size': '13px' }}>
-                  saved {new Date(at()).toLocaleTimeString()}
+                  {t('settings.savedAt', { time: new Date(at()).toLocaleTimeString() })}
                 </span>
               )}</Show>
               <Show when={error()}>{(msg) => (
                 <span style={{ 'margin-left': '12px', color: '#c00', 'font-size': '13px' }}>
-                  error: {msg()}
+                  {t('settings.errorPrefix', { msg: msg() })}
                 </span>
               )}</Show>
               <p style={{ color: '#666', 'font-size': '12px', 'margin-top': '12px' }}>
-                Last saved at server: {loaded().settings.updatedAt}
+                {t('settings.lastSavedAtServer', { time: loaded().settings.updatedAt })}
               </p>
             </section>
           </>
         );
       }}</Show>
       <Show when={data.error}>
-        <div style={{ color: '#c00' }}>Failed to load settings: {String(data.error)}</div>
+        <div style={{ color: '#c00' }}>{t('settings.loadFailed', { error: String(data.error) })}</div>
       </Show>
     </div>
   );

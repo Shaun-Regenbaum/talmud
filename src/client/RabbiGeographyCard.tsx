@@ -11,6 +11,7 @@
  */
 
 import { For, Show, createSignal, type JSX } from 'solid-js';
+import { t } from './i18n';
 
 export interface BirthPlace {
   place: string;
@@ -75,7 +76,7 @@ function regionColor(r: BirthPlace['region']): string {
 function regionLabel(r: BirthPlace['region']): string {
   if (r === 'israel') return 'Eretz Yisrael';
   if (r === 'bavel') return 'Bavel';
-  return r === 'other' ? 'Other' : 'Unknown';
+  return r === 'other' ? t('region.other') : t('region.unknown');
 }
 
 export default function RabbiGeographyCard(props: Props): JSX.Element {
@@ -124,7 +125,7 @@ export default function RabbiGeographyCard(props: Props): JSX.Element {
         type="button"
         onClick={() => hasEv() && clickEvidence(ev())}
         disabled={!hasEv()}
-        title={ev() ? `On this daf: ${ev()!.note || ev()!.excerpt}` : rp.sublabel || ''}
+        title={ev() ? t('rabbi.onThisDaf', { text: ev()!.note || ev()!.excerpt }) : rp.sublabel || ''}
         style={{
           display: 'inline-flex',
           'align-items': 'center',
@@ -152,7 +153,7 @@ export default function RabbiGeographyCard(props: Props): JSX.Element {
           <span style={{ color: '#888', 'font-size': '0.72rem' }}>· {rp.sublabel}</span>
         </Show>
         <Show when={hasEv()}>
-          <span style={{ color: '#a16207', 'font-size': '0.62rem', 'margin-left': '0.2rem' }}>● on daf</span>
+          <span style={{ color: '#a16207', 'font-size': '0.62rem', 'margin-left': '0.2rem' }}>● {t('rabbi.onDaf')}</span>
         </Show>
       </button>
     );
@@ -172,7 +173,7 @@ export default function RabbiGeographyCard(props: Props): JSX.Element {
         type="button"
         onClick={() => hasEv() && clickEvidence(ev())}
         disabled={!hasEv()}
-        title={ev() ? `On this daf: ${ev()!.note || ev()!.excerpt}` : (mv.m.reason || '')}
+        title={ev() ? t('rabbi.onThisDaf', { text: ev()!.note || ev()!.excerpt }) : (mv.m.reason || '')}
         style={{
           width: '100%',
           display: 'flex',
@@ -193,7 +194,7 @@ export default function RabbiGeographyCard(props: Props): JSX.Element {
           <span style={{ color: '#999' }}>→</span>
           <span style={{ color: toColor(), 'font-weight': 600 }}>{mv.m.to}</span>
           <Show when={hasEv()}>
-            <span style={{ color: '#a16207', 'font-size': '0.62rem', 'margin-left': 'auto' }}>● on daf</span>
+            <span style={{ color: '#a16207', 'font-size': '0.62rem', 'margin-left': 'auto' }}>● {t('rabbi.onDaf')}</span>
           </Show>
         </div>
         <Show when={mv.m.approximateWhen}>
@@ -227,17 +228,17 @@ export default function RabbiGeographyCard(props: Props): JSX.Element {
           'letter-spacing': '0.08em',
           color: '#888',
           'margin-bottom': '0.5rem',
-        }}>Geography</div>
+        }}>{t('rabbi.geography.title')}</div>
 
         <Show when={props.data.movements.length > 0}>
-          <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.3rem' }}>Movements</div>
+          <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.3rem' }}>{t('rabbi.geography.movements')}</div>
           <div style={{ 'margin-bottom': '0.6rem' }}>
             <For each={props.data.movements}>{(m, i) => <Movement m={m} idx={i()} />}</For>
           </div>
         </Show>
 
         <Show when={props.data.birthplace?.place}>
-          <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.3rem' }}>Birthplace</div>
+          <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.3rem' }}>{t('rabbi.geography.birthplace')}</div>
           <div style={{ 'margin-bottom': '0.5rem' }}>
             <PlaceRow
               kind="birthplace"
@@ -249,7 +250,7 @@ export default function RabbiGeographyCard(props: Props): JSX.Element {
         </Show>
 
         <Show when={props.data.primaryStudyPlaces.length > 0}>
-          <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.3rem' }}>Studied at</div>
+          <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.3rem' }}>{t('rabbi.geography.studiedAt')}</div>
           <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.35rem', 'margin-bottom': '0.5rem' }}>
             <For each={props.data.primaryStudyPlaces}>{(s) => (
               <PlaceRow
@@ -262,7 +263,7 @@ export default function RabbiGeographyCard(props: Props): JSX.Element {
         </Show>
 
         <Show when={props.data.notablePlaces.length > 0}>
-          <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.3rem' }}>Notable places</div>
+          <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.3rem' }}>{t('rabbi.geography.notablePlaces')}</div>
           <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.25rem' }}>
             <For each={props.data.notablePlaces}>{(n) => (
               <PlaceRow kind="notable" label={n.place} sublabel={n.event} />

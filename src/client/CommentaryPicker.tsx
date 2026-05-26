@@ -1,4 +1,5 @@
 import { For, Show, createSignal, createEffect, type JSX } from 'solid-js';
+import { t } from './i18n';
 
 export interface CommentaryComment {
   anchorRef: string;
@@ -82,9 +83,9 @@ export function CommentaryPicker(props: CommentaryPickerProps): JSX.Element {
   };
 
   const activeWork = () => {
-    const t = props.activeTitle;
-    if (!t) return null;
-    return (props.works ?? []).find((w) => w.title === t) ?? null;
+    const title = props.activeTitle;
+    if (!title) return null;
+    return (props.works ?? []).find((w) => w.title === title) ?? null;
   };
 
   // Per-comment translation state. Reactive so the inline text swaps in when
@@ -142,18 +143,18 @@ export function CommentaryPicker(props: CommentaryPickerProps): JSX.Element {
           'margin-bottom': '0.45rem',
         }}
       >
-        Commentaries on this daf
+        {t('commentary.heading')}
       </div>
 
       <Show when={props.loading}>
         <div style={{ color: '#888', 'font-style': 'italic', 'font-size': '0.82rem' }}>
-          Loading…
+          {t('commentary.loading')}
         </div>
       </Show>
 
       <Show when={!props.loading && props.works && props.works.length === 0}>
         <div style={{ color: '#888', 'font-style': 'italic', 'font-size': '0.82rem' }}>
-          No commentary links on this daf.
+          {t('commentary.empty')}
         </div>
       </Show>
 
@@ -173,7 +174,7 @@ export function CommentaryPicker(props: CommentaryPickerProps): JSX.Element {
             cursor: 'pointer',
           }}
         >
-          <option value="">— choose a commentary —</option>
+          <option value="">{t('commentary.choose')}</option>
           <For each={props.works ?? []}>
             {(w) => (
               <option value={w.title}>
@@ -187,7 +188,7 @@ export function CommentaryPicker(props: CommentaryPickerProps): JSX.Element {
 
         <Show when={props.activeTitle && props.activeSegIdx === null}>
           <div style={{ 'margin-top': '0.5rem', 'font-size': '0.72rem', color: '#666' }}>
-            Click any highlighted span on the daf to open the specific comment.
+            {t('commentary.clickHint')}
           </div>
         </Show>
 
@@ -231,14 +232,17 @@ export function CommentaryPicker(props: CommentaryPickerProps): JSX.Element {
                   )}
                 </Show>
                 <div style={{ 'font-size': '0.72rem', color: '#999', 'margin-top': '0.2rem' }}>
-                  {props.activeComments.length} comment
-                  {props.activeComments.length === 1 ? '' : 's'} on segment #
-                  {(props.activeSegIdx ?? 0) + 1}
+                  {t(
+                    props.activeComments.length === 1
+                      ? 'commentary.segmentCount.one'
+                      : 'commentary.segmentCount.other',
+                    { count: props.activeComments.length, seg: (props.activeSegIdx ?? 0) + 1 },
+                  )}
                 </div>
               </div>
               <button
                 onClick={props.onCloseSegment}
-                aria-label="Close segment"
+                aria-label={t('commentary.closeSegment')}
                 style={{
                   background: 'transparent',
                   border: 'none',
@@ -260,8 +264,8 @@ export function CommentaryPicker(props: CommentaryPickerProps): JSX.Element {
                   if (comment.textEn && comment.textEn.trim()) {
                     return { text: comment.textEn, kind: 'sefaria' };
                   }
-                  const t = tx();
-                  if (t && t.state === 'ready') return { text: t.text, kind: 'kimi' };
+                  const cur = tx();
+                  if (cur && cur.state === 'ready') return { text: cur.text, kind: 'kimi' };
                   return null;
                 };
                 return (
@@ -304,7 +308,7 @@ export function CommentaryPicker(props: CommentaryPickerProps): JSX.Element {
                           />
                           <Show when={pair().kind === 'kimi'}>
                             <div style={{ 'margin-top': '0.3rem', 'font-size': '0.65rem', color: '#999', 'font-style': 'italic' }}>
-                              auto-translated
+                              {t('commentary.autoTranslated')}
                             </div>
                           </Show>
                         </>
@@ -312,17 +316,19 @@ export function CommentaryPicker(props: CommentaryPickerProps): JSX.Element {
                     </Show>
                     <Show when={!comment.textEn && tx()?.state === 'loading'}>
                       <div style={{ color: '#888', 'font-style': 'italic', 'font-size': '0.78rem' }}>
-                        Translating…
+                        {t('commentary.translating')}
                       </div>
                     </Show>
                     <Show when={!comment.textEn && tx()?.state === 'error'}>
                       <div style={{ color: '#c33', 'font-size': '0.75rem' }}>
-                        Couldn't translate: {(tx() as { state: 'error'; error: string }).error}
+                        {t('commentary.translateError', {
+                          error: (tx() as { state: 'error'; error: string }).error,
+                        })}
                       </div>
                     </Show>
                     <Show when={!comment.textHe && !englishPair()}>
                       <div style={{ color: '#999', 'font-style': 'italic', 'font-size': '0.78rem' }}>
-                        (No text available)
+                        {t('commentary.noText')}
                       </div>
                     </Show>
                   </div>

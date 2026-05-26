@@ -1,4 +1,5 @@
 import { createSignal, createEffect, onCleanup, Show, type JSX } from 'solid-js';
+import { t } from './i18n';
 
 export interface TranslationPopupProps {
   word: string;
@@ -140,7 +141,7 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
       </div>
       <div style={{ 'font-size': '0.95rem', color: '#222', 'min-height': '1.4em' }}>
         <Show when={loading()}>
-          <span style={{ color: '#888', 'font-style': 'italic' }}>Translating…</span>
+          <span style={{ color: '#888', 'font-style': 'italic' }}>{t('translation.loading')}</span>
         </Show>
         <Show when={error()}>
           <span style={{ color: '#c33' }}>{error()}</span>

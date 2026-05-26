@@ -24,6 +24,7 @@
 
 import { For, Show, createSignal, type JSX } from 'solid-js';
 import type { BirthPlace, GeographyData, GeographyEvidence, Movement, NotablePlace, StudyPlace } from './RabbiGeographyCard';
+import { t } from './i18n';
 
 export interface LocationInference {
   place: string;
@@ -86,7 +87,7 @@ function regionColor(r: Region): string {
 function regionLabel(r: Region): string {
   if (r === 'israel') return 'Eretz Yisrael';
   if (r === 'bavel') return 'Bavel';
-  return r === 'unknown' ? 'Unknown' : 'Other';
+  return r === 'unknown' ? t('region.unknown') : t('region.other');
 }
 
 function buildEvents(data: GeographyData): TimelineEvent[] {
@@ -233,7 +234,7 @@ export default function RabbiPlacesTimeline(props: Props): JSX.Element {
             'text-transform': 'uppercase',
             'letter-spacing': '0.08em',
             color: '#888',
-          }}>Places — timeline</span>
+          }}>{t('rabbi.places.title')}</span>
           <Show when={regionsPresent().length > 0}>
             <span style={{
               display: 'inline-flex', 'align-items': 'center',
@@ -322,7 +323,7 @@ export default function RabbiPlacesTimeline(props: Props): JSX.Element {
                   type="button"
                   onClick={() => hasEv && clickEvent(ev)}
                   disabled={!hasEv}
-                  title={e ? `On this daf: ${e.note || e.excerpt}` : undefined}
+                  title={e ? t('rabbi.onThisDaf', { text: e.note || e.excerpt }) : undefined}
                   style={{
                     display: 'block',
                     width: '100%',
@@ -368,16 +369,16 @@ export default function RabbiPlacesTimeline(props: Props): JSX.Element {
                       'font-size': '0.6rem', color: '#999',
                       'text-transform': 'uppercase', 'letter-spacing': '0.07em',
                       'font-weight': 500,
-                    }}>{ev.label.toLowerCase()}</span>
+                    }}>{t(`rabbi.places.kind.${ev.kind}`)}</span>
                     <Show when={isHere}>
                       <span style={{
                         color: '#0066CC', 'font-size': '0.6rem',
                         'font-weight': 700, 'margin-left': 'auto',
                         'text-transform': 'uppercase', 'letter-spacing': '0.08em',
-                      }}>you are here{props.location?.confidence ? ` · ${props.location.confidence}` : ''}</span>
+                      }}>{t('rabbi.places.youAreHere')}{props.location?.confidence ? ` · ${t(`rabbi.places.confidence.${props.location.confidence}`)}` : ''}</span>
                     </Show>
                     <Show when={hasEv && !isHere}>
-                      <span style={{ color: '#a16207', 'font-size': '0.6rem', 'margin-left': 'auto', 'font-weight': 600 }}>on daf</span>
+                      <span style={{ color: '#a16207', 'font-size': '0.6rem', 'margin-left': 'auto', 'font-weight': 600 }}>{t('rabbi.onDaf')}</span>
                     </Show>
                   </div>
                   <Show when={ev.detail}>

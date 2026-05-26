@@ -159,7 +159,7 @@ function RabbiRow(props: {
         'font-family': 'inherit',
         'font-size': '0.85rem',
       }}
-      title={props.active ? 'Click to un-highlight' : 'Click to highlight in daf'}
+      title={props.active ? t('rabbi.row.unhighlight') : t('rabbi.row.highlight')}
     >
       <div style={{ 'font-weight': 600, color: '#333' }}>
         {props.rabbi.name}{' '}
@@ -869,7 +869,7 @@ function HalachaBody(props: {
             <div style={{
               'font-size': '0.7rem', 'text-transform': 'uppercase',
               'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.5rem',
-            }}>Codification</div>
+            }}>{t('halacha.codification')}</div>
             <RulingRow
               source="mishnehTorah" label="Mishneh Torah" color="#8a2a2b"
               ruling={cod().mishnehTorah ? { ref: cod().mishnehTorah!.ref, summary: cod().mishnehTorah!.ruling } : undefined}
@@ -915,12 +915,12 @@ function HalachaBody(props: {
             <div style={{
               'font-size': '0.7rem', 'text-transform': 'uppercase',
               'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.5rem',
-            }}>Practical</div>
+            }}>{t('halacha.practical')}</div>
             <Show when={pr().lechatchila}>
               <div style={{ 'margin-bottom': '0.4rem' }}>
                 <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>
                   <span lang="he" dir="ltr" style={{ 'font-family': '"Mekorot Vilna", serif', 'font-size': '0.85rem', 'text-transform': 'none', color: '#666' }}>לכתחילה</span>
-                  <span style={{ 'margin-left': '0.35rem' }}>Lechatchila</span>
+                  <span style={{ 'margin-left': '0.35rem' }}>{t('halacha.lechatchila')}</span>
                 </div>
                 <div style={{ 'font-size': '0.88rem', color: '#222', 'line-height': 1.5 }}>
                   <HebraizedWithRabbis text={pr().lechatchila} />
@@ -931,7 +931,7 @@ function HalachaBody(props: {
               <div style={{ 'margin-bottom': '0.4rem' }}>
                 <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>
                   <span lang="he" dir="ltr" style={{ 'font-family': '"Mekorot Vilna", serif', 'font-size': '0.85rem', 'text-transform': 'none', color: '#666' }}>בדיעבד</span>
-                  <span style={{ 'margin-left': '0.35rem' }}>Bedieved</span>
+                  <span style={{ 'margin-left': '0.35rem' }}>{t('halacha.bedieved')}</span>
                 </div>
                 <div style={{ 'font-size': '0.88rem', color: '#222', 'line-height': 1.5 }}>
                   <HebraizedWithRabbis text={pr().bedieved} />
@@ -940,7 +940,7 @@ function HalachaBody(props: {
             </Show>
             <Show when={pr().appliesWhen.length > 0}>
               <div style={{ 'margin-bottom': '0.4rem' }}>
-                <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>Applies when</div>
+                <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>{t('halacha.appliesWhen')}</div>
                 <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.3rem' }}>
                   <For each={pr().appliesWhen}>{(item) => (
                     <span style={{
@@ -954,7 +954,7 @@ function HalachaBody(props: {
             </Show>
             <Show when={pr().exceptions.length > 0}>
               <div style={{ 'margin-bottom': '0.4rem' }}>
-                <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>Exceptions</div>
+                <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>{t('halacha.exceptions')}</div>
                 <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.3rem' }}>
                   <For each={pr().exceptions}>{(item) => (
                     <span style={{
@@ -977,7 +977,7 @@ function HalachaBody(props: {
           <div style={{
             'font-size': '0.7rem', 'text-transform': 'uppercase',
             'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.5rem',
-          }}>Disputes</div>
+          }}>{t('halacha.disputes')}</div>
           <For each={disputes()}>{(d) => (
             <div style={{ 'margin-bottom': '0.6rem' }}>
               <div style={{ 'font-weight': 500, color: '#333', 'font-size': '0.88rem', 'margin-bottom': '0.25rem' }}>
@@ -1076,7 +1076,7 @@ function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JS
         {detail()?.heRef ?? props.pasuk.verseRef}
       </h3>
       <Show when={detail.loading && !detail()}>
-        <p style={{ color: '#999', 'font-style': 'italic', margin: '0 0 0.5rem' }}>Leining the parsha…</p>
+        <p style={{ color: '#999', 'font-style': 'italic', margin: '0 0 0.5rem' }}>{t('pasuk.loading')}</p>
       </Show>
       {/* Hybrid font stack — Mekorot Vilna preserved as the primary face for
           letters + nikud (the Talmud aesthetic), with Tanakh-capable serifs
@@ -1108,8 +1108,8 @@ function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JS
           font: 'inherit', 'font-size': '0.62rem',
           'letter-spacing': '0.06em', 'text-transform': 'uppercase',
         }}
-        title={expanded() ? 'Hide surrounding verses' : 'Show verse before + after'}
-      >{expanded() ? '› collapse ‹' : '‹ expand ›'}</button>
+        title={expanded() ? t('pasuk.verses.hide') : t('pasuk.verses.show')}
+      >{expanded() ? `› ${t('common.collapse')} ‹` : `‹ ${t('common.expand')} ›`}</button>
       {/* Per-pasuk synthesis card. Mounts MarkEnrichmentCards markId="pesukim":
           the synthesis paragraph renders in its own box, and its resolved
           leaves (tanach-context / why-here / mechanism / landing) come back
@@ -1136,10 +1136,10 @@ function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JS
               page={props.page}
               onResolved={handleResolved}
             />
-            <Show when={tanachContext()}>{(t) => <PasukSection label="Tanach context" text={t()} />}</Show>
-            <Show when={whyHere()}>{(t) => <PasukSection label="Why here" text={t()} />}</Show>
-            <Show when={mechanism()}>{(t) => <PasukSection label="Mechanism" text={t()} />}</Show>
-            <Show when={landing()}>{(t) => <PasukSection label="Landing" text={t()} />}</Show>
+            <Show when={tanachContext()}>{(tc) => <PasukSection label={t('pasuk.tanachContext')} text={tc()} />}</Show>
+            <Show when={whyHere()}>{(wh) => <PasukSection label={t('pasuk.whyHere')} text={wh()} />}</Show>
+            <Show when={mechanism()}>{(me) => <PasukSection label={t('pasuk.mechanism')} text={me()} />}</Show>
+            <Show when={landing()}>{(la) => <PasukSection label={t('pasuk.landing')} text={la()} />}</Show>
             {/* Questions panel: curated follow-ups + community + free-form
                 asking. Same UX as the argument-move card. */}
             <QAPanel
@@ -1174,13 +1174,6 @@ interface AggadataInterpretationData { interpretation: string; }
 type AggadataParallelKind = 'same-story' | 'same-actors' | 'same-motif' | 'tanach-source';
 interface AggadataParallelItem { ref: string; kind: AggadataParallelKind; note: string; }
 interface AggadataParallelsData { parallels: AggadataParallelItem[]; prose: string; }
-
-const PARALLEL_KIND_LABEL: Record<AggadataParallelKind, string> = {
-  'same-story': 'Same story',
-  'same-actors': 'Same actors',
-  'same-motif': 'Same motif',
-  'tanach-source': 'Tanach source',
-};
 
 function AggadataPanel(props: {
   story: AggadataStory;
@@ -1278,7 +1271,7 @@ function AggadataPanel(props: {
             <div style={{
               'font-size': '0.7rem', 'text-transform': 'uppercase',
               'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.4rem',
-            }}>Background</div>
+            }}>{t('aggadata.background')}</div>
             <div style={{ 'font-size': '0.88rem', color: '#222', 'line-height': 1.55 }}>
               <HebraizedWithRabbis text={bg().background} />
             </div>
@@ -1294,7 +1287,7 @@ function AggadataPanel(props: {
             <div style={{
               'font-size': '0.7rem', 'text-transform': 'uppercase',
               'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.4rem',
-            }}>Interpretation</div>
+            }}>{t('aggadata.interpretation')}</div>
             <div style={{ 'font-size': '0.88rem', color: '#222', 'line-height': 1.55 }}>
               <HebraizedWithRabbis text={ip().interpretation} />
             </div>
@@ -1313,7 +1306,7 @@ function AggadataPanel(props: {
             <div style={{
               'font-size': '0.7rem', 'text-transform': 'uppercase',
               'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.4rem',
-            }}>Parallels</div>
+            }}>{t('aggadata.parallels')}</div>
             <Show when={pa().prose}>
               <div style={{
                 'font-size': '0.82rem', color: '#555', 'line-height': 1.5,
@@ -1334,7 +1327,7 @@ function AggadataPanel(props: {
                     color: '#7c3aed', 'border-radius': '999px',
                     'text-transform': 'uppercase', 'letter-spacing': '0.06em',
                   }}>
-                    {PARALLEL_KIND_LABEL[p.kind as AggadataParallelKind] ?? p.kind}
+                    {t(`aggadata.parallel.${p.kind}`)}
                   </span>
                 </div>
                 <div style={{ 'font-size': '0.82rem', color: '#444', 'line-height': 1.5 }}>
@@ -1368,7 +1361,7 @@ function AggadataPanel(props: {
 function PlaceBody(props: { place: PlaceInstance; tractate: string; page: string }): JSX.Element {
   const f = () => props.place.fields;
   const regionLabel = (r: string): string =>
-    r === 'israel' ? 'Eretz Yisrael' : r === 'bavel' ? 'Bavel' : r === 'other' ? 'Other' : r;
+    r === 'israel' ? 'Eretz Yisrael' : r === 'bavel' ? 'Bavel' : r === 'other' ? t('region.other') : r;
   const chip = (text: string): JSX.Element => (
     <span style={{
       'font-size': '0.65rem', color: '#9a3412', background: '#fff7ed',
@@ -1391,7 +1384,7 @@ function PlaceBody(props: { place: PlaceInstance; tractate: string; page: string
         <Show when={f().kind}>{chip(f().kind)}</Show>
         <Show when={f().region}>{chip(regionLabel(f().region))}</Show>
         <Show when={(f().knownAs ?? []).length > 0}>
-          {chip(`also ${(f().knownAs ?? []).join(', ')}`)}
+          {chip(t('place.alsoKnownAs', { names: (f().knownAs ?? []).join(', ') }))}
         </Show>
       </div>
 
@@ -1415,9 +1408,11 @@ function RishonimBody(props: { instance: RishonimInstance; tractate: string; pag
   return (
     <div>
       <h3 style={{ margin: '0 0 0.5rem', 'font-size': '1.05rem', color: '#475569' }}>
-        Rishonim on segment {inst().segIdx + 1}
+        {t('rishonim.onSegment', { n: inst().segIdx + 1 })}
         <span style={{ 'margin-left': '0.5rem', color: '#94a3b8', 'font-size': '0.78rem', 'font-weight': 400 }}>
-          {inst().fields.commentCount} comment{inst().fields.commentCount === 1 ? '' : 's'} · {inst().fields.works.length} work{inst().fields.works.length === 1 ? '' : 's'}
+          {t(inst().fields.commentCount === 1 ? 'rishonim.commentCount.one' : 'rishonim.commentCount.other', { count: inst().fields.commentCount })}
+          {' · '}
+          {t(inst().fields.works.length === 1 ? 'rishonim.workCount.one' : 'rishonim.workCount.other', { count: inst().fields.works.length })}
         </span>
       </h3>
 
@@ -1435,7 +1430,7 @@ function RishonimBody(props: { instance: RishonimInstance; tractate: string; pag
           'text-transform': 'uppercase', 'letter-spacing': '0.06em',
           'margin-bottom': '0.3rem',
         }}>
-          Primary sources
+          {t('rishonim.primarySources')}
         </div>
         <For each={inst().fields.comments}>{(c) => (
           <details style={{
@@ -1498,7 +1493,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                 <button
                   type="button"
                   onClick={props.onBack}
-                  title={`Back to ${label()}`}
+                  title={t('sidebar.backTo', { label: label() })}
                   style={{
                     display: 'flex', 'align-items': 'center', gap: '0.35rem',
                     width: '100%', 'text-align': 'left',
@@ -1589,7 +1584,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                       'font-size': '0.7rem', color: '#999',
                       'text-transform': 'uppercase', 'letter-spacing': '0.08em',
                       'margin-bottom': '0.45rem',
-                    }}>Collective voice</div>
+                    }}>{t('voiceGroup.collective')}</div>
                     <p style={{ margin: 0, color: '#333', 'line-height': 1.6 }}>
                       {g.bio}
                     </p>

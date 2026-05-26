@@ -1,4 +1,5 @@
 import { createResource, createSignal, For, Show, type JSX } from 'solid-js';
+import { t } from './i18n';
 
 interface PerEndpoint {
   count: number;
@@ -299,7 +300,7 @@ function AnchorRow(props: { row: MarkRow; total: number }): JSX.Element {
           <span style={{ color: '#888', 'font-size': '0.75rem', 'margin-left': '0.4rem' }}>({r().id} · v{r().cache_version} · {r().source})</span>
           <Show when={r().staleCount > 0}>
             <span style={{ 'font-size': '0.7rem', color: '#b58100', 'margin-left': '0.4rem', background: '#fff7e0', padding: '0.05rem 0.35rem', 'border-radius': '3px' }}>
-              {fmtInt(r().staleCount)} stale
+              {t('usage.staleBadge', { count: fmtInt(r().staleCount) })}
             </span>
           </Show>
         </td>
@@ -316,14 +317,14 @@ function AnchorRow(props: { row: MarkRow; total: number }): JSX.Element {
           <td colspan={4} style={{ padding: '0.3rem 0.5rem 0.6rem 1.6rem' }}>
             <div style={{ 'font-size': '0.78rem', color: '#666' }}>
               <div style={{ 'margin-bottom': '0.3rem' }}>
-                <b>v{r().cache_version}</b> (current) — {fmtInt(r().count)} dafim
+                <b>v{r().cache_version}</b> {t('usage.version.current', { count: fmtInt(r().count) })}
               </div>
-              <Show when={otherVersions().length > 0} fallback={<span style={{ color: '#aaa' }}>No superseded versions in cache.</span>}>
-                <div style={{ color: '#b58100', 'margin-bottom': '0.2rem' }}>Superseded versions still in KV (orphaned — safe to purge):</div>
+              <Show when={otherVersions().length > 0} fallback={<span style={{ color: '#aaa' }}>{t('usage.version.noSuperseded')}</span>}>
+                <div style={{ color: '#b58100', 'margin-bottom': '0.2rem' }}>{t('usage.version.supersededHeading')}</div>
                 <For each={otherVersions()}>
                   {([v, n]) => (
                     <div style={{ 'font-family': 'monospace', 'padding-left': '0.5rem' }}>
-                      mark:{r().id}:{v}: → {fmtInt(n)} entries
+                      mark:{r().id}:{v}: → {t('usage.version.entries', { count: fmtInt(n) })}
                     </div>
                   )}
                 </For>
@@ -343,31 +344,31 @@ function PipelineSection(props: { stats: CacheStats }): JSX.Element {
   const localEnrich = () => props.stats.enrichments.filter((e) => e.scope === 'local');
   return (
     <section style={{ 'margin-bottom': '1.8rem' }}>
-      <SectionHeading title="Per-daf pipeline coverage" hint={`of ${fmtInt(total())} dafim in the shas`} />
+      <SectionHeading title={t('usage.pipeline.title')} hint={t('usage.pipeline.hint', { count: fmtInt(total()) })} />
       <table style={tableStyle}>
         <thead>
           <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
-            <th style={thStyle}>Stage</th>
-            <th style={{ ...thStyle, 'text-align': 'right' }}>Cached</th>
+            <th style={thStyle}>{t('usage.col.stage')}</th>
+            <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cached')}</th>
             <th style={thStyle} />
             <th style={{ ...thStyle, 'text-align': 'right' }}>%</th>
           </tr>
         </thead>
         <tbody>
-          <SourceRow label="HebrewBooks pages (hb:v2)" count={s().hebrewbooks.count} total={total()} percent={s().hebrewbooks.percent} />
-          <SourceRow label="Aligned to Sefaria — gemara (ctx:gemara:v1)" count={s().gemara.count} total={total()} percent={s().gemara.percent} />
-          <SourceRow label="Aligned to Sefaria — commentaries (ctx:commentaries:v1)" count={s().commentaries.count} total={total()} percent={s().commentaries.percent} />
+          <SourceRow label={t('usage.source.hebrewbooks')} count={s().hebrewbooks.count} total={total()} percent={s().hebrewbooks.percent} />
+          <SourceRow label={t('usage.source.gemara')} count={s().gemara.count} total={total()} percent={s().gemara.percent} />
+          <SourceRow label={t('usage.source.commentaries')} count={s().commentaries.count} total={total()} percent={s().commentaries.percent} />
         </tbody>
       </table>
 
       <div style={{ 'margin-top': '1rem' }}>
-        <SectionHeading title="Anchors per daf" hint="click a row to see cache versions" />
-        <Show when={props.stats.marks.length > 0} fallback={<p style={{ color: '#888' }}>No marks registered.</p>}>
+        <SectionHeading title={t('usage.anchors.title')} hint={t('usage.anchors.hint')} />
+        <Show when={props.stats.marks.length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.anchors.empty')}</p>}>
           <table style={tableStyle}>
             <thead>
               <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
-                <th style={thStyle}>Anchor</th>
-                <th style={{ ...thStyle, 'text-align': 'right' }}>Dafim</th>
+                <th style={thStyle}>{t('usage.col.anchor')}</th>
+                <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.dafim')}</th>
                 <th style={thStyle} />
                 <th style={{ ...thStyle, 'text-align': 'right' }}>%</th>
               </tr>
@@ -380,8 +381,8 @@ function PipelineSection(props: { stats: CacheStats }): JSX.Element {
       </div>
 
       <div style={{ 'margin-top': '1rem' }}>
-        <SectionHeading title="Local enrichments" hint="per mark-instance, per daf — depth on top of anchors" />
-        <Show when={localEnrich().length > 0} fallback={<p style={{ color: '#888' }}>No local enrichments registered.</p>}>
+        <SectionHeading title={t('usage.localEnrich.title')} hint={t('usage.localEnrich.hint')} />
+        <Show when={localEnrich().length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.localEnrich.empty')}</p>}>
           <EnrichmentTable rows={localEnrich()} />
         </Show>
       </div>
@@ -394,10 +395,10 @@ function EnrichmentTable(props: { rows: EnrichmentRow[]; denominatorFor?: (e: En
     <table style={tableStyle}>
       <thead>
         <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
-          <th style={thStyle}>Enrichment</th>
-          <th style={thStyle}>Mark</th>
-          <th style={{ ...thStyle, 'text-align': 'right' }}>Cached</th>
-          <th style={{ ...thStyle, 'text-align': 'right' }}>Stale</th>
+          <th style={thStyle}>{t('usage.col.enrichment')}</th>
+          <th style={thStyle}>{t('usage.col.mark')}</th>
+          <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cached')}</th>
+          <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.stale')}</th>
         </tr>
       </thead>
       <tbody>
@@ -454,10 +455,10 @@ function RabbiCoverageRow(props: { label: string; filled: number | null; total: 
         <Show when={tracked()}><ProgressBar percent={percent()} /></Show>
       </td>
       <td style={{ padding: '0.35rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', color: complete() ? '#2a8a42' : '#333', 'white-space': 'nowrap' }}>
-        <Show when={tracked()} fallback={<span style={{ color: '#999', 'font-size': '0.78rem' }}>not tracked</span>}>{percent().toFixed(1)}%</Show>
+        <Show when={tracked()} fallback={<span style={{ color: '#999', 'font-size': '0.78rem' }}>{t('usage.notTracked')}</span>}>{percent().toFixed(1)}%</Show>
       </td>
       <td style={{ padding: '0.35rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', color: missing() === 0 ? '#999' : '#c33', 'font-size': '0.78rem', 'white-space': 'nowrap' }}>
-        <Show when={tracked()} fallback={<span>—</span>}>{missing() === 0 ? '—' : `${fmtInt(missing())} missing`}</Show>
+        <Show when={tracked()} fallback={<span>—</span>}>{missing() === 0 ? '—' : t('usage.missing', { count: fmtInt(missing()) })}</Show>
       </td>
     </tr>
   );
@@ -475,33 +476,33 @@ function GlobalRepoSection(props: { stats: CacheStats; observedPlaces: number })
   };
   return (
     <section style={{ 'margin-bottom': '1.8rem' }}>
-      <SectionHeading title="Global repository" hint="enriched once, reused across every daf" />
+      <SectionHeading title={t('usage.globalRepo.title')} hint={t('usage.globalRepo.hint')} />
 
       <div style={{ 'font-size': '0.85rem' }}>
-        <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.3rem' }}>Rabbi dataset coverage <span style={{ color: '#999', 'font-weight': 'normal' }}>· bundled JSON, {fmtInt(r().totalRabbis)} rabbis</span></h3>
+        <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.3rem' }}>{t('usage.rabbiCoverage.title')} <span style={{ color: '#999', 'font-weight': 'normal' }}>{t('usage.rabbiCoverage.sub', { count: fmtInt(r().totalRabbis) })}</span></h3>
         <table style={tableStyle}>
           <tbody>
-            <RabbiCoverageRow label="Bio (any source)" filled={r().withBio} total={r().totalRabbis} />
-            <RabbiCoverageRow label="Sefaria bio" filled={r().withSefariaBio} total={r().totalRabbis} hint="from Sefaria PersonTopic API" />
-            <RabbiCoverageRow label="Hebrew Wikipedia" filled={r().withWiki} total={r().totalRabbis} hint="Hebrew Wikipedia page linked" />
-            <RabbiCoverageRow label="Generation identified" filled={r().withGeneration} total={r().totalRabbis} />
-            <RabbiCoverageRow label="Region (E.Y. / Bavel)" filled={r().withRegion} total={r().totalRabbis} />
-            <RabbiCoverageRow label="Places (cities)" filled={r().withPlaces} total={r().totalRabbis} />
-            <RabbiCoverageRow label="Chain of tradition" filled={r().withHierarchyEdges} total={r().totalRabbis} hint="teacher / student / contemporary" />
-            <RabbiCoverageRow label="Familial relations" filled={r().withFamily} total={r().totalRabbis} hint="father / mother / spouse / child / sibling" />
-            <RabbiCoverageRow label="Orientation" filled={r().withOrientation} total={r().totalRabbis} hint="mystical / practical / mixed" />
+            <RabbiCoverageRow label={t('usage.rabbi.bio')} filled={r().withBio} total={r().totalRabbis} />
+            <RabbiCoverageRow label={t('usage.rabbi.sefariaBio')} filled={r().withSefariaBio} total={r().totalRabbis} hint={t('usage.rabbi.sefariaBio.hint')} />
+            <RabbiCoverageRow label={t('usage.rabbi.wiki')} filled={r().withWiki} total={r().totalRabbis} hint={t('usage.rabbi.wiki.hint')} />
+            <RabbiCoverageRow label={t('usage.rabbi.generation')} filled={r().withGeneration} total={r().totalRabbis} />
+            <RabbiCoverageRow label={t('usage.rabbi.region')} filled={r().withRegion} total={r().totalRabbis} />
+            <RabbiCoverageRow label={t('usage.rabbi.places')} filled={r().withPlaces} total={r().totalRabbis} />
+            <RabbiCoverageRow label={t('usage.rabbi.chain')} filled={r().withHierarchyEdges} total={r().totalRabbis} hint={t('usage.rabbi.chain.hint')} />
+            <RabbiCoverageRow label={t('usage.rabbi.family')} filled={r().withFamily} total={r().totalRabbis} hint={t('usage.rabbi.family.hint')} />
+            <RabbiCoverageRow label={t('usage.rabbi.orientation')} filled={r().withOrientation} total={r().totalRabbis} hint={t('usage.rabbi.orientation.hint')} />
           </tbody>
         </table>
       </div>
 
       <div style={{ 'margin-top': '1.2rem' }}>
-        <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.3rem' }}>Global enrichments cached <span style={{ color: '#999', 'font-weight': 'normal' }}>· the pool of pre-generated context to pull from</span></h3>
-        <Show when={globalEnrich().length > 0} fallback={<p style={{ color: '#888' }}>No global enrichments registered.</p>}>
+        <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.3rem' }}>{t('usage.globalEnrich.title')} <span style={{ color: '#999', 'font-weight': 'normal' }}>{t('usage.globalEnrich.sub')}</span></h3>
+        <Show when={globalEnrich().length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.globalEnrich.empty')}</p>}>
           <EnrichmentTable rows={globalEnrich()} denominatorFor={denom} />
         </Show>
         <Show when={props.observedPlaces === 0}>
           <p style={{ 'font-size': '0.78rem', color: '#b58100', 'margin-top': '0.4rem' }}>
-            Note: there is no global places gazetteer yet — place enrichments are LLM-inferred per sighting. The backlog below is the seed for one.
+            {t('usage.globalEnrich.noGazetteer')}
           </p>
         </Show>
       </div>
@@ -513,19 +514,19 @@ function GlobalRepoSection(props: { stats: CacheStats; observedPlaces: number })
 function BacklogSection(props: { rabbis: UnknownSummary<UnknownRabbi>; places: UnknownSummary<ObservedPlace> }): JSX.Element {
   return (
     <section style={{ 'margin-bottom': '1.8rem' }}>
-      <SectionHeading title="Needs global enrichment" hint="entities seen in the app that have no global record yet — grows as users explore" />
+      <SectionHeading title={t('usage.backlog.title')} hint={t('usage.backlog.hint')} />
       <div style={{ display: 'flex', gap: '1.5rem', 'flex-wrap': 'wrap' }}>
         <div style={{ flex: '1 1 320px', 'min-width': '300px' }}>
           <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.3rem' }}>
-            Rabbis not in dataset <span style={{ color: '#c33', 'font-weight': 'normal' }}>· {fmtInt(props.rabbis.total)} distinct</span>
+            {t('usage.backlog.rabbis.title')} <span style={{ color: '#c33', 'font-weight': 'normal' }}>{t('usage.backlog.distinct', { count: fmtInt(props.rabbis.total) })}</span>
           </h3>
-          <Show when={props.rabbis.sample.length > 0} fallback={<p style={{ color: '#888', 'font-size': '0.82rem' }}>None yet — every rabbi seen so far resolved to the dataset.</p>}>
+          <Show when={props.rabbis.sample.length > 0} fallback={<p style={{ color: '#888', 'font-size': '0.82rem' }}>{t('usage.backlog.rabbis.empty')}</p>}>
             <table style={tableStyle}>
               <thead>
                 <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
-                  <th style={thStyle}>Name</th>
-                  <th style={{ ...thStyle, 'text-align': 'right' }}>Seen</th>
-                  <th style={thStyle}>Dafim</th>
+                  <th style={thStyle}>{t('usage.col.name')}</th>
+                  <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.seen')}</th>
+                  <th style={thStyle}>{t('usage.col.dafim')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -548,15 +549,15 @@ function BacklogSection(props: { rabbis: UnknownSummary<UnknownRabbi>; places: U
 
         <div style={{ flex: '1 1 320px', 'min-width': '300px' }}>
           <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.3rem' }}>
-            Places observed <span style={{ color: '#888', 'font-weight': 'normal' }}>· {fmtInt(props.places.total)} distinct (no gazetteer)</span>
+            {t('usage.backlog.places.title')} <span style={{ color: '#888', 'font-weight': 'normal' }}>{t('usage.backlog.places.distinct', { count: fmtInt(props.places.total) })}</span>
           </h3>
-          <Show when={props.places.sample.length > 0} fallback={<p style={{ color: '#888', 'font-size': '0.82rem' }}>No places observed yet.</p>}>
+          <Show when={props.places.sample.length > 0} fallback={<p style={{ color: '#888', 'font-size': '0.82rem' }}>{t('usage.backlog.places.empty')}</p>}>
             <table style={tableStyle}>
               <thead>
                 <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
-                  <th style={thStyle}>Place</th>
-                  <th style={thStyle}>Kind</th>
-                  <th style={{ ...thStyle, 'text-align': 'right' }}>Seen</th>
+                  <th style={thStyle}>{t('usage.col.place')}</th>
+                  <th style={thStyle}>{t('usage.col.kind')}</th>
+                  <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.seen')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -612,34 +613,34 @@ function CostSection(props: { cost: UsagePayload['cost']; stats: CacheStats | un
 
   return (
     <section style={{ 'margin-bottom': '1.8rem' }}>
-      <SectionHeading title="Cost" hint="two sources — AI Gateway is authoritative; self-tracked attributes spend per mark/enrichment" />
+      <SectionHeading title={t('usage.cost.title')} hint={t('usage.cost.hint')} />
 
       {/* AI Gateway (authoritative) */}
-      <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0.2rem 0 0.4rem' }}>AI Gateway <span style={{ color: '#999', 'font-weight': 'normal' }}>· provider-reported, last 30d</span></h3>
+      <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0.2rem 0 0.4rem' }}>{t('usage.aigw.title')} <span style={{ color: '#999', 'font-weight': 'normal' }}>{t('usage.aigw.sub')}</span></h3>
       <Show
         when={aigw().ok}
         fallback={
           <p style={{ color: aigw().configured ? '#c33' : '#888', 'font-size': '0.82rem', background: '#fafafa', padding: '0.5rem 0.7rem', 'border-radius': '4px', border: '1px solid #eee' }}>
-            <Show when={!aigw().configured} fallback={<>AI Gateway query failed: {aigw().error}</>}>
-              Not configured. Set a Cloudflare API token (Account Analytics: Read) via <code>wrangler secret put CF_ANALYTICS_TOKEN</code> to pull authoritative spend. ({aigw().error})
+            <Show when={!aigw().configured} fallback={<>{t('usage.aigw.queryFailed', { error: aigw().error ?? '' })}</>}>
+              {t('usage.aigw.notConfigured.before')}<code>wrangler secret put CF_ANALYTICS_TOKEN</code>{t('usage.aigw.notConfigured.after', { error: aigw().error ?? '' })}
             </Show>
           </p>
         }
       >
         <div style={{ display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.6rem' }}>
-          <StatCard label="Total cost" value={fmtUsd(aigw().costUsd)} color="#2a8a42" />
-          <StatCard label="Requests" value={fmtInt(aigw().requests ?? 0)} />
-          <StatCard label="Tokens in" value={fmtTokens(aigw().tokensIn)} />
-          <StatCard label="Tokens out" value={fmtTokens(aigw().tokensOut)} />
+          <StatCard label={t('usage.stat.totalCost')} value={fmtUsd(aigw().costUsd)} color="#2a8a42" />
+          <StatCard label={t('usage.stat.requests')} value={fmtInt(aigw().requests ?? 0)} />
+          <StatCard label={t('usage.stat.tokensIn')} value={fmtTokens(aigw().tokensIn)} />
+          <StatCard label={t('usage.stat.tokensOut')} value={fmtTokens(aigw().tokensOut)} />
         </div>
         <Show when={(aigw().byModel?.length ?? 0) > 0}>
           <table style={tableStyle}>
             <thead>
               <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
-                <th style={thStyle}>Model</th>
-                <th style={{ ...thStyle, 'text-align': 'right' }}>Requests</th>
-                <th style={{ ...thStyle, 'text-align': 'right' }}>Tokens</th>
-                <th style={{ ...thStyle, 'text-align': 'right' }}>Cost</th>
+                <th style={thStyle}>{t('usage.col.model')}</th>
+                <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.requests')}</th>
+                <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.tokens')}</th>
+                <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cost')}</th>
               </tr>
             </thead>
             <tbody>
@@ -660,28 +661,28 @@ function CostSection(props: { cost: UsagePayload['cost']; stats: CacheStats | un
 
       {/* Self-tracked (per-mark/enrichment attribution) */}
       <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '1.1rem 0 0.4rem' }}>
-        Self-tracked <span style={{ color: '#999', 'font-weight': 'normal' }}>· daily rollups, priced models only{self()?.fromDate ? ` · since ${self()!.fromDate}` : ''}</span>
+        {t('usage.selfTracked.title')} <span style={{ color: '#999', 'font-weight': 'normal' }}>{self()?.fromDate ? t('usage.selfTracked.subSince', { date: self()!.fromDate ?? '' }) : t('usage.selfTracked.sub')}</span>
       </h3>
-      <Show when={self()} fallback={<p style={{ color: '#888', 'font-size': '0.82rem' }}>No usage recorded yet.</p>}>
+      <Show when={self()} fallback={<p style={{ color: '#888', 'font-size': '0.82rem' }}>{t('usage.selfTracked.empty')}</p>}>
         {(s) => (
           <>
             <div style={{ display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.6rem' }}>
-              <StatCard label="Cost (priced)" value={fmtUsd(s().totals.costUsd)} color="#2a8a42" sub={`${fmtInt(s().totals.pricedCalls)} priced calls`} />
-              <StatCard label="Unpriced calls" value={fmtInt(s().totals.unpricedCalls)} sub="Workers AI — see gateway" />
-              <StatCard label="LLM calls" value={fmtInt(s().totals.calls)} sub={`${fmtInt(s().totals.errors)} errored`} />
-              <StatCard label="Tokens" value={fmtTokens(s().totals.tokensIn + s().totals.tokensOut)} sub={`${fmtTokens(s().totals.tokensIn)} in / ${fmtTokens(s().totals.tokensOut)} out`} />
+              <StatCard label={t('usage.stat.costPriced')} value={fmtUsd(s().totals.costUsd)} color="#2a8a42" sub={t('usage.stat.pricedCalls', { count: fmtInt(s().totals.pricedCalls) })} />
+              <StatCard label={t('usage.stat.unpricedCalls')} value={fmtInt(s().totals.unpricedCalls)} sub={t('usage.stat.unpricedCalls.sub')} />
+              <StatCard label={t('usage.stat.llmCalls')} value={fmtInt(s().totals.calls)} sub={t('usage.stat.errored', { count: fmtInt(s().totals.errors) })} />
+              <StatCard label={t('usage.stat.tokens')} value={fmtTokens(s().totals.tokensIn + s().totals.tokensOut)} sub={t('usage.stat.tokensInOut', { in: fmtTokens(s().totals.tokensIn), out: fmtTokens(s().totals.tokensOut) })} />
             </div>
             <Show when={projection()}>
               {(p) => (
                 <p style={{ 'font-size': '0.82rem', color: '#555', background: '#f5f8ff', padding: '0.5rem 0.7rem', 'border-radius': '4px', border: '1px solid #e0e8f5', 'margin-bottom': '0.6rem' }}>
-                  Projection: ~{fmtUsd(p().perDaf)}/daf (priced models) × {fmtInt(p().remaining)} remaining dafim ≈ <b>{fmtUsd(p().projected)}</b> to warm the rest of the shas.
-                  <span style={{ color: '#999' }}> Excludes Workers AI spend — check the gateway total for the full picture.</span>
+                  {t('usage.projection.before', { perDaf: fmtUsd(p().perDaf), remaining: fmtInt(p().remaining) })}<b>{fmtUsd(p().projected)}</b>{t('usage.projection.after')}
+                  <span style={{ color: '#999' }}> {t('usage.projection.note')}</span>
                 </p>
               )}
             </Show>
             <Show when={Object.keys(s().byMark).length > 0 || Object.keys(s().byEnrichment).length > 0}>
-              <CostBreakdown title="By mark" buckets={s().byMark} />
-              <CostBreakdown title="By enrichment" buckets={s().byEnrichment} />
+              <CostBreakdown title={t('usage.byMark')} buckets={s().byMark} />
+              <CostBreakdown title={t('usage.byEnrichment')} buckets={s().byEnrichment} />
             </Show>
           </>
         )}
@@ -702,9 +703,9 @@ function CostBreakdown(props: { title: string; buckets: Record<string, UsageBuck
               {([id, b]) => (
                 <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
                   <td style={{ padding: '0.3rem 0.5rem', 'font-family': 'monospace', 'font-size': '0.8rem' }}>{id}</td>
-                  <td style={{ padding: '0.3rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', color: '#888' }}>{fmtInt(b.calls)} calls</td>
+                  <td style={{ padding: '0.3rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', color: '#888' }}>{t('usage.callsCount', { count: fmtInt(b.calls) })}</td>
                   <td style={{ padding: '0.3rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', color: '#888' }}>{fmtTokens(b.tokensIn + b.tokensOut)}</td>
-                  <td style={{ padding: '0.3rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>{b.pricedCalls ? fmtUsd(b.costUsd) : <span style={{ color: '#bbb' }}>unpriced</span>}</td>
+                  <td style={{ padding: '0.3rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>{b.pricedCalls ? fmtUsd(b.costUsd) : <span style={{ color: '#bbb' }}>{t('usage.unpriced')}</span>}</td>
                 </tr>
               )}
             </For>
@@ -720,17 +721,17 @@ function LatencyTable(props: { title: string; hint?: string; rows: Array<[string
   return (
     <section style={{ 'margin-bottom': '1.6rem' }}>
       <SectionHeading title={props.title} hint={props.hint} />
-      <Show when={props.rows.length > 0} fallback={<p style={{ color: '#888' }}>No data yet.</p>}>
+      <Show when={props.rows.length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.noDataYet')}</p>}>
         <table style={tableStyle}>
           <thead>
             <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
-              <th style={thStyle}>Name</th>
-              <th style={{ ...thStyle, 'text-align': 'right' }}>Calls</th>
-              <th style={{ ...thStyle, 'text-align': 'right' }}>Cache hit%</th>
+              <th style={thStyle}>{t('usage.col.name')}</th>
+              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.calls')}</th>
+              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cacheHit')}</th>
               <th style={{ ...thStyle, 'text-align': 'right' }}>p50</th>
               <th style={{ ...thStyle, 'text-align': 'right' }}>p95</th>
-              <th style={{ ...thStyle, 'text-align': 'right' }}>Errors</th>
-              <th style={thStyle}>Kinds</th>
+              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.errors')}</th>
+              <th style={thStyle}>{t('usage.col.kinds')}</th>
             </tr>
           </thead>
           <tbody>
@@ -765,13 +766,13 @@ export function UsagePage(): JSX.Element {
   return (
     <main class="page-shell" style={{ '--page-max': '960px', 'font-family': 'system-ui, -apple-system, sans-serif', color: '#222' }}>
       <header class="responsive-row" style={{ 'margin-bottom': '1.2rem' }}>
-        <h1 style={{ margin: 0, 'font-size': '1.4rem' }}>Usage</h1>
-        <a href="#daf" style={{ color: '#666', 'font-size': '0.85rem', 'text-decoration': 'none' }}>← back to daf</a>
+        <h1 style={{ margin: 0, 'font-size': '1.4rem' }}>{t('usage.title')}</h1>
+        <a href="#daf" style={{ color: '#666', 'font-size': '0.85rem', 'text-decoration': 'none' }}>{t('usage.backToDaf')}</a>
         <button
           onClick={() => { void refetch(); void refetchCache(); }}
           style={{ 'margin-left': 'auto', padding: '0.3rem 0.7rem', border: '1px solid #ddd', 'border-radius': '4px', background: '#fff', cursor: 'pointer', 'font-size': '0.8rem' }}
         >
-          Refresh
+          {t('usage.refresh')}
         </button>
       </header>
 
@@ -793,22 +794,22 @@ export function UsagePage(): JSX.Element {
       </Show>
 
       <Show when={data.error}>
-        <p style={{ color: '#c33' }}>Failed to load: {String(data.error)}</p>
+        <p style={{ color: '#c33' }}>{t('usage.loadFailed', { error: String(data.error) })}</p>
       </Show>
 
       <Show when={data()}>
         {(d) => (
           <>
             <LatencyTable
-              title={`Latency by endpoint (${d().telemetry.totalCount} recent calls)`}
+              title={t('usage.latency.byEndpoint', { count: d().telemetry.totalCount })}
               rows={Object.entries(d().telemetry.perEndpoint).sort(([a], [b]) => a.localeCompare(b))}
             />
-            <LatencyTable title="Studio runs by mark" hint="rolled up across /api/studio/run with mark_id" rows={Object.entries(d().telemetry.perMark).sort(([a], [b]) => a.localeCompare(b))} />
-            <LatencyTable title="Studio runs by enrichment" hint="rolled up across /api/studio/run with enrichment_id" rows={Object.entries(d().telemetry.perEnrichment).sort(([a], [b]) => a.localeCompare(b))} />
+            <LatencyTable title={t('usage.latency.byMark')} hint={t('usage.latency.byMark.hint')} rows={Object.entries(d().telemetry.perMark).sort(([a], [b]) => a.localeCompare(b))} />
+            <LatencyTable title={t('usage.latency.byEnrichment')} hint={t('usage.latency.byEnrichment.hint')} rows={Object.entries(d().telemetry.perEnrichment).sort(([a], [b]) => a.localeCompare(b))} />
 
             <section style={{ 'margin-bottom': '1.6rem' }}>
-              <SectionHeading title="Recent errors" hint="from request telemetry" />
-              <Show when={d().telemetry.recentErrors.length > 0} fallback={<p style={{ color: '#888' }}>None.</p>}>
+              <SectionHeading title={t('usage.recentErrors.title')} hint={t('usage.recentErrors.hint')} />
+              <Show when={d().telemetry.recentErrors.length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.none')}</p>}>
                 <ul style={{ 'list-style': 'none', padding: 0, margin: 0, 'font-size': '0.8rem' }}>
                   <For each={d().telemetry.recentErrors}>
                     {(e) => (
@@ -818,7 +819,7 @@ export function UsagePage(): JSX.Element {
                         <Show when={e.mark_id}><span style={{ 'font-family': 'monospace', color: '#555' }}>mark={e.mark_id}</span></Show>
                         <Show when={e.enrichment_id}><span style={{ 'font-family': 'monospace', color: '#555' }}>enrich={e.enrichment_id}</span></Show>
                         <Show when={e.tractate || e.page}><span style={{ color: '#666' }}>{e.tractate} {e.page}</span></Show>
-                        <span style={{ color: '#c33' }}>{e.error_kind ?? 'other'}</span>
+                        <span style={{ color: '#c33' }}>{e.error_kind ?? t('usage.errorKind.other')}</span>
                         <Show when={e.model}><span style={{ color: '#888', 'font-size': '0.75rem' }}>({e.model})</span></Show>
                       </li>
                     )}
@@ -828,8 +829,8 @@ export function UsagePage(): JSX.Element {
             </section>
 
             <section style={{ 'margin-bottom': '1.6rem' }}>
-              <SectionHeading title={`Queue job failures (${d().jobErrors.length})`} hint="hard exceptions in the enrichment queue consumer" />
-              <Show when={d().jobErrors.length > 0} fallback={<p style={{ color: '#888' }}>None.</p>}>
+              <SectionHeading title={t('usage.jobErrors.title', { count: d().jobErrors.length })} hint={t('usage.jobErrors.hint')} />
+              <Show when={d().jobErrors.length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.none')}</p>}>
                 <ul style={{ 'list-style': 'none', padding: 0, margin: 0, 'font-size': '0.8rem' }}>
                   <For each={d().jobErrors}>
                     {(e) => (
@@ -848,8 +849,8 @@ export function UsagePage(): JSX.Element {
             </section>
 
             <section>
-              <SectionHeading title={`Bug reports (${d().reports.length})`} />
-              <Show when={d().reports.length > 0} fallback={<p style={{ color: '#888' }}>Inbox empty.</p>}>
+              <SectionHeading title={t('usage.bugReports.title', { count: d().reports.length })} />
+              <Show when={d().reports.length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.bugReports.empty')}</p>}>
                 <ul style={{ 'list-style': 'none', padding: 0, margin: 0 }}>
                   <For each={d().reports}>
                     {(r) => (
