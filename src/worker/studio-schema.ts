@@ -237,6 +237,14 @@ export interface LLMExtractor {
    *  {{segments_he}} {{segments_en}} {{mark_input}} {{depends.<id>}}.
    *  Missing placeholders render as empty strings. */
   user_prompt_template: string;
+  /** Hebrew-output counterparts, selected when a run is requested with
+   *  lang='he'. When absent, the runner falls back to the English prompt.
+   *  Only prose-emitting ENRICHMENTS carry these — mark extractors produce
+   *  language-neutral structured data and stay single-prompt. The JSON
+   *  contract (keys, enum values) MUST be identical to the English prompt;
+   *  the prompt-parity test in tests/prompt-parity.test.ts enforces this. */
+  system_prompt_he?: string;
+  user_prompt_template_he?: string;
   /** Optional JSON schema for response_format. Strongly recommended for
    *  structured anchor extraction. */
   output_schema?: unknown;

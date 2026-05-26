@@ -27,6 +27,7 @@ import {
   RequestQueue, QUEUE_PRIORITY, runResultCache, runCacheKey, isAbort,
   type RunResult,
 } from './enrichmentQueue';
+import { lang } from './i18n';
 
 // Single global "which card has the inspector open?" signal — keyed by the
 // card's instanceKey. Only one drawer at a time across the whole page.
@@ -91,7 +92,7 @@ async function runEnrichmentImpl(
   const r = await fetch('/api/studio/run', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ enrichment_id: enrichmentId, tractate, page, mark_input: markInput }),
+    body: JSON.stringify({ enrichment_id: enrichmentId, tractate, page, mark_input: markInput, lang: lang() }),
     signal,
   });
   const j = await r.json() as RunResponse | { error?: string };

@@ -31,6 +31,7 @@ import { createSignal, createResource, For, Show, type JSX } from 'solid-js';
 import { Hebraized } from './Hebraized';
 import { hebraize } from './hebraize';
 import { trackAI } from './aiActivity';
+import { lang } from './i18n';
 
 export interface QAPanelProps {
   /** Mark id — drives which `<mark>.suggested-questions` + `<mark>.qa`
@@ -82,6 +83,7 @@ async function runEnrichmentDirect(
     enrichment_id: enrichmentId,
     tractate, page,
     mark_input: markInput,
+    lang: lang(),
   };
   if (userQuestion) body.user_question = userQuestion;
   const r = await fetch('/api/studio/run', {
@@ -162,6 +164,7 @@ async function postAsk(mark: string, tractate: string, page: string, instanceId:
       instance_id: instanceId,
       mark_input: instance,
       question,
+      lang: lang(),
     }),
   });
   const j = await r.json() as { qHash?: string; alreadyAsked?: boolean; rateLimited?: boolean; error?: string };

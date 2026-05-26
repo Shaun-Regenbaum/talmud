@@ -66,6 +66,11 @@ export interface EnrichmentDefinition {
   dependencies?: EnrichmentDependency[];
   system_prompt: string;
   user_prompt_template: string;
+  /** Hebrew-output counterparts, selected when a run is requested with
+   *  lang='he'. Absent → runner falls back to the English prompt. See
+   *  LLMExtractor in studio-schema.ts for the parity contract. */
+  system_prompt_he?: string;
+  user_prompt_template_he?: string;
   /** Optional override; falls back to settings.defaultModel. */
   model?: LLMModelId;
   /** Optional JSON schema for response_format. */

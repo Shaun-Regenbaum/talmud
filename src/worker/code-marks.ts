@@ -676,6 +676,29 @@ HARD RULES (output is rejected if violated):
   If you don't remember the Hebrew/Aramaic verbatim, paraphrase in English instead of writing the transliteration in quotes. NEVER fake a verbatim quote with transliteration.
 - Plain English is the BASE; Hebrew script is the technical anchor. Don't pile Hebrew script on every common word — only where the term is genuinely the technical concept.`;
 
+/**
+ * Hebrew-output style guide — the lang='he' counterpart of HEBREW_GLOSS_STYLE.
+ * The gloss convention INVERTS in Hebrew mode: there is no English base to
+ * gloss into, so technical terms are simply written in their natural Hebrew
+ * form with no parenthetical aid. Every *_SYSTEM_PROMPT_HE appends this the
+ * way the English prompts append HEBREW_GLOSS_STYLE. The hard rules about
+ * keeping JSON keys / enum values / required-English-name fields in English
+ * live here so every Hebrew prompt inherits them uniformly.
+ */
+const HEBREW_NATIVE_STYLE = `סגנון — כתיבה בעברית (החל באופן אחיד על כל הפרוזה):
+
+- כתוב את כל שדות הטקסט החופשי בעברית רהוטה, ברמה המתאימה ללומד תורה משכיל. עברית תקנית עם מינוח תלמודי טבעי.
+- מונחים הלכתיים ותלמודיים — כתוב אותם בעברית כצורתם הטבעית (לכתחילה, בדיעבד, גזירה שווה, רוב, חזקה, ספק, טומאה, טהרה). אל תוסיף תרגום או הסבר באנגלית בסוגריים — זהו ההפך מן המצב האנגלי; כאן כל הטקסט ממילא בעברית.
+- שמות חכמים ומקומות — כתוב בעברית כמקובל בספרות חז"ל (רבי יוחנן, רבא, אביי, ריש לקיש; טבריה, ציפורי, סורא, נהרדעא, פומבדיתא, יבנה, קיסריה, לוד).
+- ציטוטים מן הדף או מן הפסוק — בעברית/ארמית מילה במילה, בתוך מירכאות. לעולם אל תכתוב תעתיק לטיני בתוך מירכאות.
+
+כללים נוקשים (הפלט נפסל אם מופרים):
+- שמות השדות (keys) ב-JSON, וכל ערכי ה-enum (כגון "halachist", "israel", "high", "teacher"), חייבים להישאר באנגלית בדיוק כפי שהוגדרו בסכימה. תרגם לעברית אך ורק את ערכי המחרוזת הפרוזאיים — לעולם לא את שמות השדות ולא את ערכי ה-enum.
+- שדה המבקש במפורש שם באנגלית (למשל "name": "Conventional English name") — מלא אותו באנגלית כנדרש. שדה מקביל "nameHe" — מלא בעברית.
+- ציטוטי excerpt מן הדף נשארים בעברית/ארמית מילה במילה כפי שהם בדף, ללא שינוי.
+- הימנע ממליצות ריקות ומשפה מנופחת. אל תכתוב: "תמצית", "מבעד לעדשה של", "מגלם", "עומק רוחני", "ביטוי מובהק", "רגישות עמוקה", "שואף בעקביות", "טבוע בו". כתוב משפטי נושא-נשוא-מושא ענייניים עם עובדות קונקרטיות (תקופה, אזור, שמות חכמים, שיטות).
+- עברית היא שפת הבסיס; אין צורך לפזר מילים לועזיות או תעתיקים.`;
+
 
 // rabbi.bio — DAF-AGNOSTIC general biography. Same regardless of which daf
 // triggered the click. The daf is NOT the subject; the rabbi is.
@@ -1135,6 +1158,312 @@ OTHER rabbis named on this daf (read this list to find classical relationships y
 
 Compose ONE tight paragraph per the schema. The rabbi is the subject; the daf is the lens. When the OTHER-rabbis list contains a known partner/teacher/student of the subject, name them and the relationship. Do NOT summarize what the subject says on this daf.`;
 
+// ===========================================================================
+// HEBREW-OUTPUT PROMPTS (lang='he'). Full parallels of the English rabbi
+// prompts above. They share the EXACT JSON contract — same keys, same enum
+// values, same template variables — with their English counterparts; only
+// the prose instructions and field descriptions are in Hebrew. The
+// prompt-parity test (tests/prompt-parity.test.ts) enforces that parity.
+// Fields that must stay English (JSON keys, enum values, "Conventional
+// English name" fields) are kept English here on purpose.
+// ===========================================================================
+
+const RABBI_BIO_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. כתוב מתווה ביוגרפי תמציתי בן 2-3 משפטים על חכם אחד. ביוגרפיה כללית — התמקד במי האדם הזה בקשת הרחבה של חייו ופועלו, ולא במה שהוא עושה בדף מסוים.
+
+החזר JSON תקין בלבד:
+
+{
+  "bio": "2-3 משפטים. תקופה ושנים, אזור (ארץ ישראל / בבל / ישיבות מסוימות), רבותיו הבולטים, ועמדה הלכתית או אגדית אופיינית אם יש. קונקרטי וצפוף; ללא מילוי מיותר."
+}
+
+כללים:
+- 2-3 משפטים לכל היותר.
+- טענות היסטוריות חייבות להתאים לדור שסופק בקלט.
+- אל תזכיר מה החכם עושה בדף המסוים הזה. לכך מיועד enrichment אחר.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const RABBI_PHILOSOPHY_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. תאר את העמדה הרחבה של חכם אחד על פני הש"ס כולו ואת שיטת הדרשנות החוזרת שלו — מה הוא מחזיק לאורך כלל מאמריו, ולא מה שהוא אומר במקרה בדף אחד.
+
+החזר JSON תקין בלבד:
+
+{
+  "philosophy": "2-3 משפטים. נקוב בעמדות או בשיטות מסוימות שהוא ידוע בהן על פני הש"ס כולו: עמדה הלכתית חוזרת (למשל 'פוסק בעקביות כדעה המקילה בענייני טומאה'), שיטה דרשנית אופיינית (למשל 'דורש גזירה שווה בטקסטים שאינם מפורשים'), או דרך טיעון קבועה. מותר לסיים במשפט אחד הנוקב במסורת מייצגת אחת; מסורת זו אינה חייבת להיות בדף הנוכחי. אם אינך יכול לנקוב בעמדה מסוימת ומבוססת מכלל מאמריו, החזר מחרוזת ריקה."
+}
+
+מילים וביטויים אסורים (אל תכתוב לעולם):
+- "רגישות", "מבעד לעדשה של", "לוכד את התמצית", "מגלם", "עוסק לעומק ב", "שאף בעקביות", "טביעת אצבע אינטלקטואלית", "אופייני לגישתו", "נקודת מבט ייחודית", "נשגב"
+- הפשטות כלליות: "שלמות הקהילה", "עומק רוחני", "מציאות מוחשית", "חיי היומיום"
+- מסגור מקומי לדף: "בדף זה", "בסוגיה הנוכחית", "כאן הוא מחזיק" — enrichment זה אינו תלוי-דף; אל תתייחס לדף המוקד.
+
+הצורה הנדרשת: עמדות נקובות ומסוימות על פני כלל המאמרים, דוגמאות קונקרטיות, שיטות נקובות. דוגמה לסגנון הרצוי:
+- "רבי יוחנן רגיל למסור בשם רבי יהודה הנשיא ומופיע בזוגות מחלוקת עם ריש לקיש; בענייני הלכה הוא נוטה לדעה המחמירה, ושיטת הדרשנות שלו נשענת בכבדות על קריאות מדרשיות צמודות של פסוקים."
+- "אביי ידוע בהבחנותיו ההגיוניות הדקות במחלוקותיו עם רבא; הכלל הרשום בבבלי הוא שהלכה כרבא חוץ משישה מקומות הנמנים תחת יע"ל קג"ם."
+
+אם אין לך תוכן עובדתי מסוים כזה על החכם, החזר מחרוזת ריקה.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const RABBI_RELATIONSHIPS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. זהה את הקשרים החשובים ביותר של חכם עם חכמים נקובים אחרים: רבותיו, תלמידיו המרכזיים, בני הפלוגתא התדירים, וקשרי משפחה. הצג כרשימות מובנות בתוספת סיכום פרוזה קצר.
+
+החזר JSON תקין בלבד:
+
+{
+  "teachers":  [{ "name": "Conventional English name", "primary": true | false, "note": "הקשר אופציונלי במשפט אחד בעברית, מחרוזת ריקה אם אין" }],
+  "students":  [{ "name": "Conventional English name", "primary": true | false, "note": "..." }],
+  "debatePartners": [{ "name": "Conventional English name", "note": "..." }],
+  "family":    [{ "name": "Conventional English name", "relation": "uncle | father | son | nephew | brother-in-law | etc. (ערך זה נשאר באנגלית)" }],
+  "prose": "1-2 משפטים בעברית המסכמים את הנ"ל (ה-synthesis צורך אותם; הקוראים רואים את הרשימות)."
+}
+
+הבהרת זהות:
+- ייתכן שלחכם בקלט יש שם נפוץ המשותף לכמה דמויות היסטוריות (למשל "רבי אלעזר" עשוי להתייחס לרבי אלעזר בן פדת, רבי אלעזר בן שמוע, רבי אלעזר בן עזריה, רבי אלעזר בן ערך, ועוד). השתמש בשדות "generation" + "region" + "places" שבקלט כדי לקבוע באיזו דמות מדובר. דוגמה: "רבי אלעזר" עם generation=amora-ey-3 + region=israel = רבי אלעזר בן פדת (תלמידו המובהק של רבי יוחנן).
+- לאחר שקבעת את הזהות, מלא את הרשימות עבור אותה דמות. אל תצמצם למערכים ריקים רק משום שהשם המופשט רב-משמעי — שדות הדור/האזור/המקומות מבהירים אותו.
+- רק אם השם כללי כל כך שאף עם הדור והאזור אינך מצליח לזהות דמות היסטורית מסוימת — רק אז החזר מערכים ריקים.
+
+שמות פטרונימיים (כלל נוקשה):
+- אם "name" שבקלט כולל פטרונים — "X bar Y", "X ben Y", "X b. Y", "פלוני בן פלוני", "פלוני בריה דרב פלוני" — אזי Y הוא הורה וחייב להופיע במערך "family" עם relation="father" (או "mother" עבור "X b. Imma Y"). זה אינו ניתן למשא ומתן: הפטרונים הוא ראיה נומינלית ישירה להורה.
+  דוגמאות:
+  - "Mar, son of Ravina" / "Mar bar Ravina" → family חייב לכלול { name: "Ravina", relation: "father" }
+  - "Abba bar Abba" → family חייב לכלול { name: "Abba", relation: "father" }
+  - "Rava bar Rav Yosef bar Chama" → family חייב לכלול { name: "Rav Yosef bar Chama", relation: "father" }
+  - "Rabbah bar bar Chana" → family חייב לכלול { name: "Bar Chana", relation: "father" } ו-{ name: "Chana", relation: "grandfather" }
+- אם הורה הנקוב בפטרונים היה בעצמו חכם ידוע, פעמים רבות (לא תמיד) הוא גם רבו המובהק של החכם. במקרה כזה (למשל רבא בר רב יוסף שלמד אצל אביו), הוסף את ההורה גם ל-"family" (father) וגם ל-"teachers" (primary).
+
+ציפיות לפי דור:
+- עבור כל חכם המתועד היטב בתלמוד או במקורות הקלאסיים, צפה ללפחות רב אחד ותלמיד אחד בפלט. לרוב האמוראים והתנאים יש כמה רבותיים וכמה תלמידים ידועים.
+- אמוראי בבל המאוחרים (amora-bavel-6/7/8) הם עורכי הש"ס האחרונים וכמעט תמיד יש להם רב מובהק ידוע (בדרך כלל רב אשי או רבינא) ולעיתים קרובות מספר חברים נקובים. אל תחזיר מערך ריק עבורם.
+- החזרת teachers=[] ו-students=[] מקובלת רק כשהחכם באמת בלתי ידוע (דמות המוזכרת פעם אחת ללא קשרים ידועים).
+
+כללים:
+- סמן primary=true לכל היותר ב-1-2 ערכים ב-teachers וב-1-2 ב-students. primary = הקשר קנוני לזיהוי החכם (למשל עבור אביי: הרב המובהק = רבה בר נחמני; בן הפלוגתא המובהק = רבא). כל השאר primary=false.
+- נקוב בחכמים ממשיים היכן שאפשר — דלג על הכללות מעורפלות ('החכמים', 'חבריו') אלא אם הן מסוימות דיין (למשל 'תנאי יבנה').
+- "note" אופציונלי — העבר מחרוזת ריקה אם אין מה להוסיף.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const RABBI_CLASSIFICATION_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. סווג חכם אחד לפי אופן הפעילות העיקרי שלו במקורות הקלאסיים.
+
+החזר JSON תקין בלבד:
+
+{
+  "category": "aggadist" | "halachist" | "exegetist",
+  "justification": "משפט אחד. נמק את בסיס הסיווג — למשל יחס החומר ההלכתי לעומת האגדי המיוחס לו, שיטה אופיינית, או הדרך שבה המסורת המאוחרת מאפיינת אותו."
+}
+
+כללים:
+- "halachist": חכמים הידועים בעיקר בפסיקת הלכה, בזוגות מחלוקת, ובהכרעות הלכתיות (למשל אביי, רבא, שמואל).
+- "aggadist": חכמים הידועים בעיקר בתורות מוסר/אגדה/מחשבה (למשל רבי יהושע בן לוי, רבי עקיבא במעשה מרכבה).
+- "exegetist": חכמים הידועים בעיקר בפרשנות מקרא/מדרש כפועלם האופייני (למשל רבי ישמעאל, רבי עקיבא בסדר המדרשים).
+- רוב החכמים הם כל השלושה במידה כלשהי — בחר את הציר הדומיננטי. אם באמת חצי-חצי, ברירת המחדל היא halachist עבור חכמי בבל.
+- ה-justification יהיה משפט הצהרתי יחיד, ללא היסוס.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const RABBI_GEOGRAPHY_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. תאר את הגיאוגרפיה של חיי החכם: היכן נולד, היכן למד בעיקר, באילו מקומות השתתף או מופיע בסיפורים מהם, והאם נדד אי-פעם בין בבל לארץ ישראל (או נדידות משמעותיות אחרות). אינו תלוי-דף.
+
+החזר JSON תקין בלבד:
+
+{
+  "birthplace": { "place": "עיר או אזור בעברית, או מחרוזת ריקה אם לא ידוע.", "region": "israel" | "bavel" | "other" | "unknown" },
+  "primaryStudyPlaces": [{ "place": "עיר", "academy": "שם ישיבה/מתיבתא אם מתועד, מחרוזת ריקה אחרת", "period": "שלב חיים אופציונלי במשפט אחד, למשל 'מנעוריו ואילך'; מחרוזת ריקה אם לא ידוע" }],
+  "notablePlaces": [{ "place": "עיר", "event": "תיאור במשפט אחד מדוע מקום זה חשוב לחכם (סיפור, פסק, אירוע חיים)" }],
+  "movements": [{ "from": "בבל | ארץ ישראל | עיר מסוימת", "to": "בבל | ארץ ישראל | עיר מסוימת", "approximateWhen": "קירוב במשפט אחד אם ידוע, מחרוזת ריקה אם לא", "reason": "סיבה במשפט אחד אם ידועה (לימוד, גלות, קריאה ציבורית), מחרוזת ריקה אם לא" }],
+  "prose": "סיכום בן 1-2 משפטים בעברית; ה-synthesis צורך אותו."
+}
+
+הבהרת זהות:
+- ייתכן שלחכם בקלט יש שם נפוץ המשותף לכמה דמויות (למשל "רבי אלעזר"). השתמש בשדות "generation" + "region" + "places" כדי לקבוע באיזו דמות מדובר. לאחר הקביעה, מלא את הגיאוגרפיה עבור אותה דמות — אל תצמצם למערכים ריקים רק בגלל רב-משמעות השם.
+- לרוב התנאים והאמוראים המתועדים היטב יש לפחות מקום לימוד אחד ידוע (עיר ישיבה). עבור amora-bavel-* חשוב על סורא/פומבדיתא/נהרדעא; עבור amora-ey-* חשוב על טבריה/קיסריה/ציפורי; עבור tanna-* חשוב על יבנה/אושא/בני ברק/ציפורי. החזרת primaryStudyPlaces=[] מקובלת רק עבור דמויות בלתי ידועות באמת.
+
+כללים:
+- עבור כל חכם מתועד היטב, צפה ללפחות ערך אחד ב-primaryStudyPlaces. מערכים ריקים מקובלים רק כשהגיאוגרפיה באמת לא ידועה — לא כפתח מילוט בשם רב-משמעי.
+- birthplace.place עשוי להיות ריק כדין כשאין מקור לכך. קבע את birthplace.region לאזור הפעילות העיקרי של החכם (israel/bavel) גם כשהעיר לא ידועה.
+- השתמש בשמות מקומות עבריים מקובלים בספרות חז"ל (טבריה, ציפורי, סורא, נהרדעא, פומבדיתא, יבנה, קיסריה, לוד).
+- "movements" יכלול רק נדידות בבל↔ארץ ישראל מתועדות או העתקות מקום משמעותיות אחרות. אל תמנה כל בית כנסת שחכם ביקר בו.
+- אם החכם מעולם לא נדד בין אזורים, השאר את "movements" כמערך ריק.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const RABBI_RELATIONSHIPS_EVIDENCE_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. בהינתן קשריו הידועים של חכם (מ-rabbi.relationships) וטקסט המקור של הדף הנוכחי, מצא כל ציטוט בעברית/ארמית בדף זה המזכיר אחת מאותן דמויות נקובות ביחס לחכם הנדון (רב, תלמיד, בן פלוגתא, משפחה). מערך ריק אם הדף אינו מתייחס לאף אחת מהן.
+
+החזר JSON תקין בלבד:
+
+{
+  "evidence": [
+    {
+      "kind": "teacher" | "student" | "partner" | "family",
+      "name": "Conventional English name (חייב להתאים לאחד מן הקלט rabbi.relationships)",
+      "excerpt": "3-7 מילים בעברית/ארמית המועתקות מילה במילה מן הדף, במקום שבו הקשר עולה",
+      "note": "תיאור במשפט אחד בעברית של מה שמתרחש (למשל 'אביי מצטט את רבא', 'במחלוקת עם', 'אביו מלמד')"
+    }
+  ]
+}
+
+כללים:
+- כלול רק חכמים מן הקלט rabbi.relationships — אל תרחיב.
+- "excerpt" חייב להיות עברית/ארמית מילה במילה מן הדף. ייעשה לו התאמה בצד השרת לחישוב טווחי הדגשה ללחיצה.
+- אם הדף מזכיר את אותו קשר בכמה מקומות, פלוט ערך אחד לכל מיקום.
+- מערך evidence ריק מקובל — לרוב קשריו של חכם אינם מוזכרים במישרין בכל דף.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const RABBI_GEOGRAPHY_EVIDENCE_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. בהינתן הגיאוגרפיה הידועה של חכם (מ-rabbi.geography) וטקסט המקור של הדף הנוכחי, מצא כל ציטוט בעברית/ארמית המתייחס לאחד ממקומותיו הידועים של החכם, לישיבותיו, או לנדידותיו המתועדות. מערך ריק אם אין.
+
+החזר JSON תקין בלבד:
+
+{
+  "evidence": [
+    {
+      "kind": "birthplace" | "study" | "notable" | "movement",
+      "place": "שם המקום (או מחרוזת ריקה אם הציטוט מתייחס לנדידה באופן מופשט)",
+      "excerpt": "3-7 מילים בעברית/ארמית המועתקות מילה במילה מן הדף",
+      "note": "תיאור במשפט אחד בעברית של מה שמתרחש"
+    }
+  ]
+}
+
+כללים:
+- התייחס רק למקומות/נדידות מן הקלט rabbi.geography.
+- "excerpt" חייב להיות עברית/ארמית מילה במילה מן הדף.
+- מערך evidence ריק מקובל.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const RABBI_LOCATION_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. בהינתן הגיאוגרפיה הידועה של חכם (מקום לידה + מקומות לימוד + מקומות בולטים + נדידות) יחד עם טקסט הגמרא של הדף הנוכחי, הסק היכן היה החכם בעת שנאמרה התורה שבדף זה — כלומר איזה ממקומותיו הידועים מתאים ביותר לתוכן הדף.
+
+החזר JSON תקין בלבד:
+
+{
+  "place": "שם מקום אחד המועתק מילה במילה מן הגיאוגרפיה שבקלט (מקום לימוד עיקרי, מקום לידה, מקום בולט, או יעד של נדידה). מחרוזת ריקה רק כשהדף אינו נותן כל רמז מיקומי.",
+  "region": "israel" | "bavel" | "other" | "unknown",
+  "confidence": "high" | "medium" | "low",
+  "justification": "משפט אחד בעברית המצטט את ראיית הדף — נקוב בחכם בן-פלוגתא הידוע כחולק מקום ('בדיון עם רבי יוחנן ← טבריה'), אזכור ישיבה, שם מקום בסוגיה, או מושב ההוראה האופייני של החכם בתקופה זו."
+}
+
+הבהרת זהות:
+- קרא את הדף בעיון. אם החכם חולק / מוסר מחכם נקוב אחר, השתמש במקומו הידוע של החכם האחר כרמז.
+- עבור amora-bavel-* ברירת המחדל היא הישיבה העיקרית של החכם (סורא/פומבדיתא/נהרדעא/מחוזא); עבור amora-ey-* ברירת המחדל היא מושב ההוראה העיקרי (טבריה/קיסריה/ציפורי).
+- עבור תנאים, ברירת המחדל היא ישיבת התקופה הרלוונטית (יבנה כ-80-120; אושא כ-140-165; בני ברק לחבורת רבי עקיבא; ציפורי לרבי יהודה הנשיא).
+- אם מתועדת נדידה והדף מתייחס להקשר שלאחריה, השתמש במקום היעד.
+- confidence='high' = הדף נוקב במקום / בבן-פלוגתא ידוע שמקומו חד-משמעי. 'medium' = המושב העיקרי של החכם ללא ראיה סותרת בדף. 'low' = ניחוש מיטבי, הדף נותן מעט אות.
+
+כללים:
+- "place" חייב להיות מועתק מילה במילה מאחד המקומות שבגיאוגרפיה שבקלט. אל תמציא שמות מקומות חדשים.
+- מחרוזת "place" ריקה מקובלת רק כאשר הגיאוגרפיה שבקלט עצמה ריקה.
+- ה-justification חייב לצטט ראיה מסוימת מן הדף (חכם נקוב, ביטוי מקום, הקשר הסוגיה) — לא הצהרות ביוגרפיות כלליות.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const RABBI_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. תקבל ארבע פסקאות קצרות על חכם אחד (bio, philosophy, relationships, classification) יחד עם רשימת החכמים האחרים הנקובים בדף הנוכחי. חבר פסקה אחת הדוקה על חכם זה כאדם, כשהדף הנוכחי משמש עדשה.
+
+החזר JSON תקין בלבד:
+
+{
+  "synthesis": "פסקה אחת, 4-5 משפטים. עובדות קונקרטיות בלבד — תקופה, אזור, אסימון סיווג, פילוסופיה אופיינית, וקשרים נקובים. כאשר לחכם אחר בדף זה יש קשר קלאסי עם הנדון (רב, תלמיד, בן פלוגתא, בן דור), נקוב בו ובמהות הקשר. אל תסכם מה החכם הזה אומר בדף זה, ואל תפרפרזה את הסוגיה."
+}
+
+כללים נוקשים (ה-synthesis נפסל אם מופרים):
+1. לעולם אל תפרפרזה את מה שהחכם אומר בדף זה. הדף הוא העדשה, לא הנושא. ביטויים אסורים: "כאן מלמד", "בדף זה", "בסוגייתנו", "אומר ש", "טוען ש", "פוסק ש", "מחזיק כאן", "בעמוד זה". אם אתה מוצא את עצמך מסכם תורה — עצור.
+2. הפסקה חייבת להיקרא כתיאור מי החכם, לא מה הוא אומר.
+3. הזכר חכמים אחרים מתוך {{anchors.rabbi}} כאשר קיים קשר קלאסי עם הנדון. דוגמאות: אביי ורבא, רב ושמואל, רבי יוחנן וריש לקיש, הלל ושמאי. השתמש בשמות מרשימת ה-anchors.
+
+מילים וביטויים אסורים (אל תשתמש באף אחד מהם — הם מליצה ריקה או ז'רגון):
+- מליצה: "רגישות", "מבעד לעדשה של", "לוכד את התמצית", "מגלם", "שאף בעקביות", "עוסק לעומק ב", "נשגב", "מוחשי", "עומק רוחני", "טביעת אצבע אינטלקטואלית"
+- שפת מסגור: "זוהי העדשה", "אנו רואים את X דרך Y", "X חושף", "X ממחיש", "X מהווה חלון אל"
+- הפשטות כלליות: "שלמות הקהילה", "אינטימיות ברית", "הכרה רוחנית"
+- תארי מידה: "עמוקות", "עמוקות שבעמוקות", "באופן אופייני"
+
+הצורה הנדרשת: משפטי נושא-נשוא-מושא עם ישויות נקובות, עברית רהוטה. דוגמה לסגנון הרצוי:
+
+"אביי היה אמורא בבלי מן הדור הרביעי בפומבדיתא, כ-280–339 לספירה; הוא מסווג כהלכן, וידוע בכל הבבלי בהבחנותיו ההגיוניות הדקות במחלוקות הלכתיות. התייתם בצעירותו, גודל ולומד בידי דודו רבה בר נחמני, שאת מקומו ירש בראשות הישיבה. בן שיחו המפורסם ביותר הוא רבא, ונוכחותו בדף זה מעלה את זוג המחלוקת הקנוני אביי ורבא; המסורת רושמת שהלכה כרבא חוץ משישה מקומות הנמנים תחת יע"ל קג"ם. עמדתו הרחבה של אביי שיטתית ומונחית-נוהל — הוא הדמות שאחרונים מצטטים כשהם זקוקים לקריאה מבנית נקייה של מחלוקת."
+
+שים לב: תקופה, אזור, שנים, אסימון סיווג ("הלכן"), קשרים (רבה, רבא), עמדה רחבה — ללא סיכום מה אביי אומר בעמוד.
+
+כללים:
+- 4-5 משפטים, פסקה יחידה.
+- אם פסקת קלט ריקה או מעורפלת, דלג על אותו חוט; אל תמלא סתם.
+- אם חוט ה-relationships סותר את {{anchors.rabbi}}, העדף את {{anchors.rabbi}} לעניין אילו חכמים אחרים באמת נמצאים בדף זה.
+
+${HEBREW_NATIVE_STYLE}`;
+
+// Hebrew user templates — same template variables as the English versions.
+const RABBI_LEAF_USER_TEMPLATE_HE = `החכם:
+{{mark_input}}
+
+מסכת: {{tractate}}, דף {{page}}.
+
+עברית מוקד של הדף:
+{{hebrew}}
+
+החזר JSON לפי הסכימה.`;
+
+const RABBI_SYNTHESIS_USER_TEMPLATE_HE = `החכם (נושא ה-synthesis):
+{{mark_input}}
+
+מסכת: {{tractate}}, דף {{page}}.
+
+קלט על החכם הנדון:
+
+[BIO]
+{{depends.rabbi.bio}}
+
+[PHILOSOPHY (חוצה-ש"ס)]
+{{depends.rabbi.philosophy}}
+
+[RELATIONSHIPS]
+{{depends.rabbi.relationships}}
+
+[CLASSIFICATION]
+{{depends.rabbi.classification}}
+
+חכמים אחרים הנקובים בדף זה (קרא רשימה זו כדי למצוא קשרים קלאסיים שעליך לנקוב בהם):
+{{anchors.rabbi}}
+
+חבר פסקה אחת הדוקה לפי הסכימה. החכם הוא הנושא; הדף הוא העדשה. כאשר רשימת החכמים-האחרים כוללת בן פלוגתא/רב/תלמיד ידוע של הנדון, נקוב בו ובקשר. אל תסכם מה הנדון אומר בדף זה.`;
+
+const RABBI_RELATIONSHIPS_EVIDENCE_USER_TEMPLATE_HE = `החכם:
+{{mark_input}}
+
+מסכת: {{tractate}}, דף {{page}}.
+
+מקור עברי/ארמי — מקטעים ממוספרים [N] (משמשים בצד השרת למיפוי ציטוטים חזרה לטווחי מקטעים):
+{{segments_he}}
+
+קשרים ידועים (מצא ראיה לשמות אלה בדף שלמעלה):
+{{depends.rabbi.relationships}}
+
+החזר ציטוטים לפי הסכימה. מערך evidence ריק מקובל כשהדף אינו מתייחס לאף אחד משמות הקלט.`;
+
+const RABBI_GEOGRAPHY_EVIDENCE_USER_TEMPLATE_HE = `החכם:
+{{mark_input}}
+
+מסכת: {{tractate}}, דף {{page}}.
+
+מקור עברי/ארמי — מקטעים ממוספרים [N]:
+{{segments_he}}
+
+גיאוגרפיה ידועה (מצא ראיה למקומות/נדידות אלה בדף שלמעלה):
+{{depends.rabbi.geography}}
+
+החזר ציטוטים לפי הסכימה. מערך evidence ריק מקובל כשהדף אינו מתייחס לאף אחת מעובדות הקלט.`;
+
+const RABBI_LOCATION_USER_TEMPLATE_HE = `החכם:
+{{mark_input}}
+
+מסכת: {{tractate}}, דף {{page}}.
+
+מקור עברי/ארמי — מקטעים ממוספרים [N]:
+{{segments_he}}
+
+חכמים אחרים הנקובים בדף זה (שימושי להסקת מיקום לפי מושביהם הידועים):
+{{anchors.rabbi}}
+
+הגיאוגרפיה הידועה של החכם הנדון (פלט ה-"place" שלך חייב לבוא ממערך זה):
+{{depends.rabbi.geography}}
+
+הסק את המקום הסביר ביותר לפי הסכימה.`;
+
 const RABBI_BIO_OUTPUT_SCHEMA = {
   name: 'rabbi_bio', strict: true,
   schema: { type: 'object', additionalProperties: false, required: ['bio'], properties: { bio: { type: 'string' } } },
@@ -1237,6 +1566,11 @@ function makeEnrichment(
     defHash: string;
     cacheVersion: string;
     model?: LLMModelId;
+    /** Hebrew-output prompt variants. Selected by the runner when a run is
+     *  requested with lang='he'. Must share the JSON contract (keys + enum
+     *  values) with the English prompt — enforced by tests/prompt-parity. */
+    systemPromptHe?: string;
+    userPromptTemplateHe?: string;
   },
 ): EnrichmentDefinition {
   return {
@@ -1252,6 +1586,8 @@ function makeEnrichment(
       ...(opts.model ? { model: opts.model } : {}),
       system_prompt: systemPrompt,
       user_prompt_template: userPromptTemplate,
+      ...(opts.systemPromptHe ? { system_prompt_he: opts.systemPromptHe } : {}),
+      ...(opts.userPromptTemplateHe ? { user_prompt_template_he: opts.userPromptTemplateHe } : {}),
       output_schema: outputSchema,
       thinking_off: true,
     },
@@ -1276,6 +1612,8 @@ const makeRabbiEnrichment = (
     dependencies?: EnrichmentDependency[];
     defHash: string;
     cacheVersion: string;
+    systemPromptHe?: string;
+    userPromptTemplateHe?: string;
   },
 ): EnrichmentDefinition => makeEnrichment('rabbi', id, label, description, systemPrompt, userPromptTemplate, outputSchema, opts);
 
@@ -1290,31 +1628,36 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
     'rabbi.bio', 'Bio (general)',
     'Daf-agnostic biographical sketch — era, region, teachers, signature.',
     RABBI_BIO_SYSTEM_PROMPT, RABBI_LEAF_USER_TEMPLATE, RABBI_BIO_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.bio-v5', cacheVersion: '5' },
+    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.bio-v5', cacheVersion: '5',
+      systemPromptHe: RABBI_BIO_SYSTEM_PROMPT_HE, userPromptTemplateHe: RABBI_LEAF_USER_TEMPLATE_HE },
   ),
   makeRabbiEnrichment(
     'rabbi.philosophy', 'Philosophy',
     'Cross-Gemara stance + recurring exegetical method. Daf-agnostic.',
     RABBI_PHILOSOPHY_SYSTEM_PROMPT, RABBI_LEAF_USER_TEMPLATE, RABBI_PHILOSOPHY_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.philosophy-v4', cacheVersion: '4' },
+    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.philosophy-v4', cacheVersion: '4',
+      systemPromptHe: RABBI_PHILOSOPHY_SYSTEM_PROMPT_HE, userPromptTemplateHe: RABBI_LEAF_USER_TEMPLATE_HE },
   ),
   makeRabbiEnrichment(
     'rabbi.relationships', 'Relationships',
     'Teachers, students, frequent debate partners, family — structured lists + prose summary. Daf-agnostic.',
     RABBI_RELATIONSHIPS_SYSTEM_PROMPT, RABBI_LEAF_USER_TEMPLATE, RABBI_RELATIONSHIPS_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.relationships-v6', cacheVersion: '6' },
+    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.relationships-v6', cacheVersion: '6',
+      systemPromptHe: RABBI_RELATIONSHIPS_SYSTEM_PROMPT_HE, userPromptTemplateHe: RABBI_LEAF_USER_TEMPLATE_HE },
   ),
   makeRabbiEnrichment(
     'rabbi.classification', 'Classification',
     'Aggadist / halachist / exegetist — primary mode of activity in classical sources.',
     RABBI_CLASSIFICATION_SYSTEM_PROMPT, RABBI_LEAF_USER_TEMPLATE, RABBI_CLASSIFICATION_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.classification-v2', cacheVersion: '2' },
+    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.classification-v2', cacheVersion: '2',
+      systemPromptHe: RABBI_CLASSIFICATION_SYSTEM_PROMPT_HE, userPromptTemplateHe: RABBI_LEAF_USER_TEMPLATE_HE },
   ),
   makeRabbiEnrichment(
     'rabbi.geography', 'Geography',
     'Birthplace + primary study places + notable places + Bavel↔Israel movements. Daf-agnostic.',
     RABBI_GEOGRAPHY_SYSTEM_PROMPT, RABBI_LEAF_USER_TEMPLATE, RABBI_GEOGRAPHY_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.geography-v3', cacheVersion: '3' },
+    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.geography-v3', cacheVersion: '3',
+      systemPromptHe: RABBI_GEOGRAPHY_SYSTEM_PROMPT_HE, userPromptTemplateHe: RABBI_LEAF_USER_TEMPLATE_HE },
   ),
   // rabbi.identity — DETERMINISTIC. Resolved server-side from rabbi-places.json
   // via enrichRabbi (see the short-circuit in runEnrichmentOnce); the LLM
@@ -1374,6 +1717,8 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
       ],
       defHash: 'rabbi.synthesis-v11',
       cacheVersion: '11',
+      systemPromptHe: RABBI_SYNTHESIS_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: RABBI_SYNTHESIS_USER_TEMPLATE_HE,
     },
   ),
   // Per-daf evidence enrichments. Each finds excerpts in THIS daf that
@@ -1388,6 +1733,8 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', { enrichment: 'rabbi.relationships' }],
       defHash: 'rabbi.relationships.evidence-v2', cacheVersion: '2',
+      systemPromptHe: RABBI_RELATIONSHIPS_EVIDENCE_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: RABBI_RELATIONSHIPS_EVIDENCE_USER_TEMPLATE_HE,
     },
   ),
   makeRabbiEnrichment(
@@ -1398,6 +1745,8 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', { enrichment: 'rabbi.geography' }],
       defHash: 'rabbi.geography.evidence-v2', cacheVersion: '2',
+      systemPromptHe: RABBI_GEOGRAPHY_EVIDENCE_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: RABBI_GEOGRAPHY_EVIDENCE_USER_TEMPLATE_HE,
     },
   ),
   makeRabbiEnrichment(
@@ -1408,6 +1757,8 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', { enrichment: 'rabbi.geography' }, { mark: 'rabbi' }],
       defHash: 'rabbi.location-v2', cacheVersion: '2',
+      systemPromptHe: RABBI_LOCATION_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: RABBI_LOCATION_USER_TEMPLATE_HE,
     },
   ),
 ];
@@ -1639,6 +1990,134 @@ const ARGUMENT_SYNTHESIS_OUTPUT_SCHEMA = {
   },
 };
 
+// ---------------- Hebrew-output parallels (argument section level) ----------------
+
+const ARGUMENT_VOICES_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. עבור כל חכם נקוב המופיע במקטע זה, תאר את תפקידו הטיעוני בתוך המקטע, ופלוט גרף המראה כיצד הקולות מתקשרים (מי חולק על מי, מי תומך במי). מקומי-לדף — על מה שהם עושים כאן, לא על הביוגרפיה הכללית שלהם.
+
+החזר JSON תקין בלבד:
+
+{
+  "voices": [
+    {
+      "name": "Conventional English name (תואם ל-rabbiNames שברשימת ה-moves).",
+      "nameHe": "שם עברי כפי שכתוב בדף (למשל 'רבי יוחנן', 'רבא'). מחרוזת ריקה אם אינו מופיע.",
+      "role": "originator" | "transmitter" | "respondent" | "objector" | "supporter" | "cited-authority" | "questioner",
+      "side": "תווית קצרה למחנה שהקול הזה טוען עבורו במחלוקת המקטע. השתמש ב-'A' לעמדה המובחנת הראשונה שהוצגה, 'B' לעמדה הנגדית, 'C' לעמדה שלישית אם יש. השתמש ב-'stam' לעורך הסתמי של הגמרא כשנכלל. השתמש ב-'support-A' / 'support-B' לדמויות המובאות רק לתמיכה בצד (ברייתות, מקורות תומכים). השתמש ב-'unaligned' כשהקול מעלה שאלה או מוסר אך אינו נוקט עמדה.",
+      "stance": "1-2 משפטים בעברית: איזו עמדה החכם הזה נוקט במחלוקת המקטע, ולמה הוא מגיב (אם בכלל).",
+      "opinionStart": "3-5 המילים הראשונות בעברית/ארמית של שורת הפתיחה של חכם זה במקטע, מילה במילה. מחרוזת ריקה אם עמדתו אינה מעוגנת בביטוי יחיד."
+    }
+  ],
+  "edges": [
+    {
+      "from": "Conventional English name של הקול המבצע את הפעולה (חייב להתאים ל-'name' במערך voices).",
+      "to": "Conventional English name של הקול שהפעולה מכוונת אליו (חייב להתאים ל-'name' במערך voices).",
+      "kind": "opposes" | "supports" | "responds-to" | "cites" | "resolves",
+      "note": "תווית אופציונלית במשפט אחד שתשב על תווית הקשת (למשל 'בדין הבדיעבד', 'מצטט ברייתא'). מחרוזת ריקה כשאין צורך בתווית."
+    }
+  ]
+}
+
+סוגי קשתות (edge kinds):
+- "opposes" — הקול-מקור חולק במישרין / דוחה / סותר את עמדת הקול-יעד. הנפוץ ביותר בין בעלי הפלוגתא העיקריים.
+- "supports" — הקול-מקור מצטט או טוען בעד עמדת הקול-יעד. השתמש בו לברייתות תומכות, למוסרים שמימרתם מחזקת צד, ולהסכמות מפורשות.
+- "responds-to" — הקול-מקור עונה לשאלה שהעלה הקול-יעד. השתמש בו דווקא לזוגות שאלה→תשובה, לא להתנגדות.
+- "cites" — הקול-מקור מצטט / מביא את הקול-יעד כסמכות מבלי לנקוט עמדת תמיכה/התנגדות ברורה.
+- "resolves" — מהלך הקול-מקור מכריע את המחלוקת בין שני קולות קודמים. ה-"to" הוא הקול שעמדתו מתקבלת; הוסף קשת שנייה מן המכריע אל הצד האחר עם kind="opposes" אם רלוונטי.
+
+כללים:
+- דלג על קולות סתמיים ("שאלת הגמרא", "סתמא", "ברייתא תומכת") אלא אם הם מקשרים באופן משמעותי בין קולות נקובים, ואז פלוט אותם כ-voices עם name="Stam" והשתמש בהם כקצוות קשת.
+- ערך voice אחד לכל חכם מובחן, גם אם הוא מדבר כמה פעמים.
+- אותיות ה-"side" הן מקומיות למקטע זה — עמדה A היא מי שמוצג ראשון כעמדה מובחנת, לא תווית גלובלית.
+- ה-"from" וה-"to" של כל קשת חייבים להתאים לשם במערך voices. ודא זאת לפני הפליטה.
+- במקטע בעל עמדה אחת בלבד (ללא מחלוקת ממשית), פלוט voices אך מערך edges ריק.
+- ללא מליצה ב-"stance" — קונקרטי: נקוב במה הוא מחזיק ונגד מי.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const ARGUMENT_VOICES_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+המקטע:
+{{mark_input}}
+
+כל ה-moves בדף זה (סנן לאלה ש-sectionStartSegIdx / sectionEndSegIdx שלהם נופלים בתוך המקטע שלמעלה):
+{{anchors.argument-move}}
+
+חכמים שזוהו בדף זה (עם דור):
+{{anchors.rabbi}}
+
+עבור כל חכם נקוב המופיע ב-moves של מקטע זה, תאר את תפקידו הטיעוני לפי הסכימה.`;
+
+const ARGUMENT_BACKGROUND_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. בהינתן מקטע אחד של דף וההקשר של רש"י/תוספות, כתוב את הרקע שהקורא צריך כדי לעקוב אחר מקטע זה — מושגים, סוגיות קודמות, רקע משנאי.
+
+החזר JSON תקין בלבד:
+
+{
+  "background": "2-4 משפטים. קונקרטי: נקוב במושג ההלכתי שעל הפרק, במסורת הקודמת שהמקטע מניח, ובכל משנה או סוגיה קודמת שהוא נבנה עליה. ללא מליצה, ללא 'מכאן אנו למדים', ללא מסגור מטא. אם אין צורך ברקע מיוחד מעבר לקריאה פשוטה, החזר משפט יחיד קצר המודה בכך."
+}
+
+כללים:
+- עברית רהוטה. הזכר משניות או דפים קודמים בציטוט קנוני כשהמקטע מניח אותם.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const ARGUMENT_BACKGROUND_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+המקטע:
+{{mark_input}}
+
+מקור עברי של הדף:
+{{gemara_he}}
+
+משניות שגמרא זו דנה בהן (מעוגנות מ-Sefaria — המקטע שלמעלה הוא גמרא הנבנית עליהן):
+{{mishna}}
+
+רש"י + תוספות + ראשונים נוספים:
+{{commentaries}}
+
+כתוב את הרקע לפי הסכימה. כאשר המקטע מבאר במישרין אחת מן המשניות שלמעלה, נקוב בה במפורש (למשל "נבנה על משנה ברכות א:א").`;
+
+const ARGUMENT_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. תקבל מקטע של דף, את רשימת ה-moves שבתוכו, ניתוח קולות לכל חכם, רקע, ותצוגת פירוש קצרה. חבר פסקה אחת הדוקה הנוקבת בשאלה הכוללת של המקטע, בעמדות הנקובות, והיכן הוא נוחת.
+
+החזר JSON תקין בלבד:
+
+{
+  "synthesis": "פסקה אחת, 4 משפטים לכל היותר. כל משפט 25 מילים לכל היותר. (1) נסח את שאלת המקטע או נושאו בעברית. (2) מנה את העמדות הנקובות, בפסוקית אחת לכל אחת — תמציתי: 'רבי אליעזר אומר X; חכמים אומרים Y; רבן גמליאל אומר Z'. (3) משפט אחד אופציונלי השוזר את רש"י או תוספות אם הוא מבהיר את המחלוקת באופן משמעותי. (4) משפט מסכם אחד: היכן המקטע נוחת (שאלה פתוחה / מסקנה / מעבר למקטע הבא). אל תסכם moves בודדים — לכך מיועד argument-move.synthesis."
+}
+
+כללים נוקשים:
+- 4 משפטים לכל היותר. 25 מילים למשפט לכל היותר. קצץ, אל תמלא.
+- פירוט לכל move שייך ל-argument-move.synthesis. אל תמנה moves כאן.
+- ללא דחיסת מהלכים: לעולם אל תאחד כמה moves בנקודה-פסיק + "ואז" + "ולבסוף" למשפט-ענק אחד.
+- כששני חכמים מצומדים בקשר מבוסס (אביי–רבא, רב–שמואל), נקוב בו.
+- ללא מליצה. אסור: "מכאן אנו למדים", "אנו רואים ש", "מדגיש", "מבליט", "מורכב", "עמוק", "עמוקות", "עדשה", "לוכד", "מגלם".
+
+${HEBREW_NATIVE_STYLE}`;
+
+const ARGUMENT_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+המקטע:
+{{mark_input}}
+
+משניות שגמרא זו דנה בהן (המקטע שלמעלה הוא גמרא הנבנית עליהן):
+{{mishna}}
+
+כל ה-moves בדף זה (סנן לטווח של מקטע זה):
+{{anchors.argument-move}}
+
+ניתוח קולות:
+{{depends.argument.voices}}
+
+רקע:
+{{depends.argument.background}}
+
+רש"י + תוספות + ראשונים נוספים הזמינים לדף (התייחס בקצרה אם זה מחדד את הכרעת המקטע):
+{{commentaries}}
+
+חכמים שזוהו בדף:
+{{anchors.rabbi}}
+
+חבר פסקה אחת לפי הסכימה.`;
+
 CODE_ENRICHMENTS.push(
   makeEnrichment(
     'argument', 'argument.voices', 'Voices',
@@ -1649,6 +2128,8 @@ CODE_ENRICHMENTS.push(
       dependencies: ['gemara', { mark: 'argument-move' }, { mark: 'rabbi' }],
       defHash: 'argument.voices-v4', cacheVersion: '4',
       model: ARGUMENT_FLASH_MODEL,
+      systemPromptHe: ARGUMENT_VOICES_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: ARGUMENT_VOICES_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
@@ -1660,6 +2141,8 @@ CODE_ENRICHMENTS.push(
       dependencies: ['gemara', 'commentaries', 'mishna'],
       defHash: 'argument.background-v3', cacheVersion: '3',
       model: ARGUMENT_FLASH_MODEL,
+      systemPromptHe: ARGUMENT_BACKGROUND_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: ARGUMENT_BACKGROUND_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
@@ -1679,6 +2162,8 @@ CODE_ENRICHMENTS.push(
       ],
       defHash: 'argument.synthesis-v8', cacheVersion: '8',
       model: ARGUMENT_FLASH_MODEL,
+      systemPromptHe: ARGUMENT_SYNTHESIS_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: ARGUMENT_SYNTHESIS_USER_TEMPLATE_HE,
     },
   ),
 );
@@ -2076,6 +2561,169 @@ const ARGUMENT_MOVE_QA_OUTPUT_SCHEMA = {
   },
 };
 
+// ---------------- Hebrew-output parallels (argument-move level) ----------------
+
+const ARGUMENT_MOVE_COMMENTARIES_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. בהינתן move טיעוני אחד בדף והראשונים הזמינים, הפק תקציר פירוש הדוק עבור ה-move הזה בלבד — מה רש"י ותוספות אומרים על תוכן ה-move המסוים הזה.
+
+החזר JSON תקין בלבד:
+
+{
+  "rashi": "1-2 משפטים בעברית המסכמים מה רש"י אומר על ה-move הזה. מחרוזת ריקה אם רש"י שותק על move זה.",
+  "tosafot": "אותה צורה לתוספות. מחרוזת ריקה אם נעדר.",
+  "other": "הערה אופציונלית במשפט אחד מראשון אחר (רמב"ן, רשב"א וכו') רק אם היא מבהירה מהותית את ה-move הזה. מחרוזת ריקה אחרת.",
+  "note": "הערת שילוב אופציונלית במשפט אחד הקושרת את הפירושים למה שה-move הזה טוען. מחרוזת ריקה אם אין צורך."
+}
+
+כללים:
+- על ה-move הזה בלבד — אל תסכם את המקטע הסובב.
+- מחרוזת ריקה כשמפרש שותק — אל תמלא.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const ARGUMENT_MOVE_COMMENTARIES_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+ה-move הזה:
+{{mark_input}}
+
+מקור עברי לדף:
+{{gemara_he}}
+
+רש"י + תוספות + ראשונים נוספים:
+{{commentaries}}
+
+הפק את תקציר הפירוש עבור ה-move הזה לפי הסכימה.`;
+
+const ARGUMENT_MOVE_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. בהינתן move טיעוני אחד בדף (שאלה / תשובה / קושיא וכו') יחד עם הגמרא הסובבת, רשימת ה-moves המלאה לדף זה, והפירושים הזמינים, חבר פסקה הדוקה על ה-move המסוים הזה.
+
+החזר JSON תקין בלבד:
+
+{
+  "synthesis": "פסקה אחת, 2-3 משפטים. (א) נקוב במי מדבר ומה ה-move שלו עושה (שואל, עונה, מקשה, תומך, מכריע). (ב) כש-move מגיב או תוקף move קודם, נקוב במהלך הקודם באופן קונקרטי ('עונה על שאלת הפתיחה של הגמרא', 'מקשה על שיטת רבי אליעזר', 'מצטט ברייתא לתמיכה ברבא'). (ג) כשרש"י או תוספות מבהירים או חולקים באופן משמעותי על ה-move הזה, שזור זאת בפסוקית קצרה אחת — אזכור פירוש אחד לכל היותר לפסקה; דלג אם אינו נושא משקל."
+}
+
+כללים נוקשים:
+- 2-3 משפטים. תקרה קשיחה — אל תמלא.
+- על ה-move הזה בלבד. אל תסכם את כל המקטע.
+- בסס כל טענה בתוכן הממשי של ה-move. אל תמציא עמדות.
+- ללא מליצה. אסור: "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק", "מורכב", "עדשה", "לוכד", "מגלם".
+- אם ה-move הוא מקשר סתמי בלבד שאין בו מה לומר, פלוט משפט עובדתי קצר יחיד ועצור.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const ARGUMENT_MOVE_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+ה-move הזה:
+{{mark_input}}
+
+כל ה-moves בדף זה (השתמש כדי לזהות על מה ה-move הזה מגיב / תומך / מקשה):
+{{anchors.argument-move}}
+
+מקור עברי לדף:
+{{gemara_he}}
+
+תקציר פירוש ל-move הזה (השתמש כדי לשזור פסוקית פירוש קצרה אחת אם היא מחדדת את ה-synthesis; אל תמנה):
+{{depends.argument-move.commentaries}}
+
+חכמים שזוהו בדף:
+{{anchors.rabbi}}
+
+חבר פסקה הדוקה אחת על ה-move הזה לפי הסכימה.`;
+
+const ARGUMENT_MOVE_SUGGESTED_QUESTIONS_SYSTEM_PROMPT_HE = `אתה חברותא בלימוד הש"ס. בהינתן move טיעוני אחד והגמרא + הפירושים הסובבים, הפק רשימה קצרה של שאלות המשך שלומד סביר ירצה תשובה עליהן לאחר קריאת ה-synthesis בן 2-3 המשפטים של ה-move. ה-synthesis אומר מה ה-move עושה; שאלות אלו מכוונות אל מדוע הוא עובד.
+
+החזר JSON תקין בלבד:
+
+{
+  "questions": [
+    {
+      "q": "השאלה, מנוסחת כפי שלומד היה שואל אותה. 8-18 מילים. סיים בסימן שאלה.",
+      "why_useful": "רמז בחצי משפט על מה שמענה על שאלה זו פותח. מוצג כטקסט-כותרת בריחוף, לא כתשובה עצמה."
+    }
+  ]
+}
+
+כללים:
+- הפק בדיוק 4-5 שאלות, מסודרות לפי תועלת כללית (המאירה ביותר ראשונה).
+- כל שאלה חייבת להיות מסוימת לתוכן ה-move הזה — לעולם לא כללית ('מהו ההקשר?', 'מי הוא רבי X?'). אם אי אפשר לדעת על איזה move מדובר מן השאלה לבדה, היא כללית מדי.
+- כוון אל המנגנון: מדוע הקושיא נושכת, איזו הנחה סמויה מופרת, על מה הכרעה חייבת לוותר, מדוע דווקא פסוק זה מצוטט, מדוע השואל מצפה לנוסח אחר, וכדומה.
+- שאלה אחת לכל תת-עניין קונקרטי. אל תכפיל.
+- אם ה-move הוא מקשר סתמי טהור שאין בו מה לשאול, החזר שאלה אחת המתחקה אחר המהות הקיימת; אל תמלא.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const ARGUMENT_MOVE_SUGGESTED_QUESTIONS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+ה-move הזה:
+{{mark_input}}
+
+כל ה-moves בדף זה (להקשר — אל תפיק שאלות על moves אחרים):
+{{anchors.argument-move}}
+
+מקור עברי לדף:
+{{gemara_he}}
+
+ה-synthesis הקיים ל-move (כדי שתוכל לכוון אל מה שה-synthesis מדלג עליו):
+{{depends.argument-move.synthesis}}
+
+הפק את רשימת שאלות ההמשך לפי הסכימה.`;
+
+const ARGUMENT_MOVE_QA_SYSTEM_PROMPT_HE = `אתה חברותא בלימוד הש"ס העונה לשאלה מסוימת של לומד על move אחד בדף. היה החברותא שמגיע לעיקר — קצר, קונקרטי, ללא הקדמות מיותרות.
+
+החזר JSON תקין בלבד:
+
+{
+  "answer": "פסקה הדוקה, 3-5 משפטים, העונה במישרין לשאלת הלומד.",
+  "confidence": "high | medium | low"
+}
+
+מבנה (בסדר זה):
+1. משפט אחד: התשובה הישירה. אם השאלה נסבה על קטגוריה של טיעון תלמודי (מעשה, קושיא, דרשה וכו'), נקוב בה ובאר אותה בתוך משפט זה — חצי פסוקית מספיקה, למשל "זה נחשב מעשה — פעולת חכם מתועדת שהגמרא מתייחסת אליה כסוג ראיה בפני עצמו."
+2. משפט אחד: המנגנון המסוים ב-move הזה — איזו הנחה על הפרק, איזה ניסוח פסוק או מהלך לוגי מניע אותו.
+3. פסוקית אחת אופציונלית: רש"י/תוספות, רק אם הם באמת מחדדים את התשובה.
+4. עצור. אל תוסיף משפט מסכם המהרהר במה שהשאלה או התשובה מגלות.
+
+כללים נגד מילוי (אלו הדפוסים שמנפחים תשובות):
+- אל תחזור על משפט 1 במילים אחרות במשפט 2. כל משפט חייב לשאת מידע חדש.
+- אל תיסחף מעבר לשאלת הלומד. אם שאלו על השאלה, אל תסביר מה תשובת הגמרא מגלה. אם שאלו על פסוק, אל תסכם את כל הסוגיה.
+- אל תכתוב מטא-פרשנות: ביטויים אסורים כוללים "כוח השאלה הוא ש…", "הנקודה האמיתית כאן היא…", "מה שזה חושף הוא…".
+- אל תקדיש שני משפטים להסבר קטגוריה. חצי משפט הוא התקציב.
+- ללא מליצה: ביטויים אסורים כוללים "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק", "מורכב", "עדשה", "לוכד", "מגלם".
+
+כללים נוקשים נוספים:
+- 3-5 משפטים. תקרה קשיחה. אם אתה במשפט 5 ועדיין כותב, עצור.
+- ענה לשאלת הלומד, לא לשאלה שהיית מעדיף לענות עליה. אם השאלה אינה הגיונית עבור move זה, אמור זאת בפשטות במשפט אחד וקבע confidence='low'.
+- אם המקורות הזמינים אינם מכילים די כדי לבסס תשובה ממשית, תן את הקריאה החלקית הטובה ביותר ב-2-3 משפטים וקבע confidence='low'.
+- בסס כל טענה בתוכן הממשי של ה-move או בפסוק/פירוש המצוטט. אל תמציא עמדות.
+
+דוגמה לצורה הנכונה (3 משפטים, לא 7):
+  שאלה: "מדוע הגמרא פותחת ב'תנא היכא קאי'?"
+  טוב: "זהו מהלך גמרא שגור הנקרא תנא היכא קאי — שאלה השואלת איזה נושא המשנה מניחה כשהיא צוללת בלי לנקוב בו. כאן המשנה פותחת ב'מאימתי' אך אינה אומרת איזו מצווה מתוזמנת, ולכן הגמרא מסמנת את הנושא החסר לפני שתזהה אותו כחובת קריאת שמע. רש"י מוסיף שהתנא היה צריך לפתוח בדבר עצמו לפני שישאל על זמנו."
+  → שלושה משפטים: קטגוריה נקובה ומבוארת; מנגנון ב-move הזה; הבהרת רש"י קצרה. ללא מטא-פרשנות, ללא הרהור מסכם. סיום.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const ARGUMENT_MOVE_QA_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+ה-move הזה:
+{{mark_input}}
+
+שאלת הלומד (ענה דווקא עליה):
+{{user_question}}
+
+ה-synthesis הקיים ל-move (הלומד כבר קרא אותו — העמק, אל תחזור):
+{{depends.argument-move.synthesis}}
+
+תקציר פירוש ל-move הזה:
+{{depends.argument-move.commentaries}}
+
+כל ה-moves בדף זה (לסימוכין אם השאלה מושכת move אחר):
+{{anchors.argument-move}}
+
+מקור עברי לדף:
+{{gemara_he}}
+
+ענה לשאלת הלומד לפי הסכימה.`;
+
 CODE_ENRICHMENTS.push(
   makeEnrichment(
     'argument-move', 'argument-move.commentaries', 'Commentaries',
@@ -2086,6 +2734,8 @@ CODE_ENRICHMENTS.push(
       dependencies: ['gemara', 'commentaries'],
       defHash: 'argument-move.commentaries-v2', cacheVersion: '2',
       model: ARGUMENT_FLASH_MODEL,
+      systemPromptHe: ARGUMENT_MOVE_COMMENTARIES_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: ARGUMENT_MOVE_COMMENTARIES_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
@@ -2102,6 +2752,8 @@ CODE_ENRICHMENTS.push(
       ],
       defHash: 'argument-move.synthesis-v5', cacheVersion: '5',
       model: ARGUMENT_FLASH_MODEL,
+      systemPromptHe: ARGUMENT_MOVE_SYNTHESIS_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: ARGUMENT_MOVE_SYNTHESIS_USER_TEMPLATE_HE,
     },
   ),
   // mode='augment-content' (not 'aggregate') so MarkEnrichmentCards' auto-fire
@@ -2122,6 +2774,8 @@ CODE_ENRICHMENTS.push(
       ],
       defHash: 'argument-move.suggested-questions-v3', cacheVersion: '3',
       model: ARGUMENT_FLASH_MODEL,
+      systemPromptHe: ARGUMENT_MOVE_SUGGESTED_QUESTIONS_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: ARGUMENT_MOVE_SUGGESTED_QUESTIONS_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
@@ -2138,6 +2792,8 @@ CODE_ENRICHMENTS.push(
       ],
       defHash: 'argument-move.qa-v5', cacheVersion: '5',
       model: ARGUMENT_PRO_MODEL,
+      systemPromptHe: ARGUMENT_MOVE_QA_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: ARGUMENT_MOVE_QA_USER_TEMPLATE_HE,
     },
   ),
 );
@@ -2181,7 +2837,8 @@ Output STRICT JSON only:
 Rules:
 - excerpt MUST be copied VERBATIM from the Hebrew source. Preserve attached prefixes — "בסורא" stays as-is in excerpt; nameHe strips the prefix to "סורא".
 - If the same place appears multiple times in the daf under different forms (e.g. "סורא" and "בסורא"), emit ONE instance per distinct excerpt. The downstream renderer wraps each verbatim occurrence.
-- Do NOT include personal names that happen to look like place names. Only emit confirmed geographic references.
+- People are NOT places. Never emit a rabbi or sage as a place — not even one whose name is built on a toponym. "רב ירמיה מדפתי" (Rav Yirmeya of Difti) is a PERSON: emit at most the bare place "דפתי" (Difti), never the full name. Treat as a person anything that opens with a title (רב / רבי / ר' / רבא / רבה / מר / אבא / אביי / רבן / ריש) or carries a patronymic (" בר ", "בריה ד", " בן "). e.g. רב אשי, רבי מאיר, מר בריה דרבינא, דרו בר פפא, רבינא are all PEOPLE, not places.
+- Peoples and nations are NOT places. A gentilic/ethnonym names a PEOPLE, not a location: ארמאי (Aramean), כותי (Samaritan/Cuthean), נכרי / גוי (gentile) — do NOT emit them. Emit a land only when the land itself is named (e.g. ארם / Aram, מצרים / Egypt).
 - Do NOT include generic location words like "place" (מקום) or "city" (עיר) unless they're a proper noun reference.
 - "kind": pick the SINGLE best tag. A yeshiva-bearing city like Sura is 'city' (not 'academy'), unless the daf is specifically referencing the academy/court ('בי דינא דסורא' = academy). When in doubt, 'city'.
 - No duplicates with identical excerpt.
@@ -2257,8 +2914,8 @@ CODE_MARKS.push({
   },
   dependencies: ['gemara'],
   status: 'promoted',
-  def_hash: 'places-v2',
-  cache_version: '2',
+  def_hash: 'places-v3',
+  cache_version: '3',
   source: 'code',
   updated_at: NOW,
 });
@@ -2286,6 +2943,8 @@ const makePlaceEnrichment = (
     dependencies?: EnrichmentDependency[];
     defHash: string;
     cacheVersion: string;
+    systemPromptHe?: string;
+    userPromptTemplateHe?: string;
   },
 ): EnrichmentDefinition => makeEnrichment('places', id, label, description, systemPrompt, userPromptTemplate, outputSchema, opts);
 
@@ -2348,6 +3007,60 @@ HARD RULES:
 
 ${HEBREW_GLOSS_STYLE}`;
 
+// ---------------- Hebrew-output parallels (place leaves) ----------------
+
+const PLACE_LEAF_USER_TEMPLATE_HE = `מקום:
+{{mark_input}}
+
+החזר JSON לפי הסכימה.`;
+
+const PLACE_PROFILE_SYSTEM_PROMPT_HE = `אתה גיאוגרף הש"ס. בהינתן מקום אחד (שמו הקנוני, סוגו — עיר/ישיבה/ארץ/אזור — ותגית האזור התלמודי), כתוב פרופיל הדוק שאינו תלוי-דף.
+
+החזר JSON תקין בלבד:
+
+{
+  "profile": "2-3 משפטים. (א) מה הוא והיכן הוא (עיר על הפרת בבבל, ישיבה תנאית בגליל, ארץ ישראל כטריטוריה הלכתית, וכו'). (ב) מתי פרח ותחת מי — הדור/ות ותקופת בולטותו בחיי החכמים. גיאוגרפיה רק היכן שהיא נושאת משקל (נהר, ציר מסחר, קרבה למרכז אחר)."
+}
+
+כללים נוקשים:
+- 2-3 משפטים. תקרה קשיחה.
+- אינו תלוי-דף: תאר את המקום עצמו, לא סוגיה כלשהי. אל תתייחס ל"דף זה".
+- בסס כל טענה בהיסטוריה ממשית — ללא פרט בדוי. הסתייג כשלא ודאי ("לפי המסורת", "עד התקופה האמוראית המאוחרת").
+- ללא מליצה: הימנע מ"מכאן אנו למדים", "מדגיש", "מבליט", "מורכב", "עמוק".
+
+${HEBREW_NATIVE_STYLE}`;
+
+const PLACE_SIGNIFICANCE_SYSTEM_PROMPT_HE = `אתה היסטוריון של הש"ס. בהינתן מקום אחד, הסבר את חשיבותו בעולם התלמודי — אינו תלוי-דף.
+
+החזר JSON תקין בלבד:
+
+{
+  "significance": "2-3 משפטים. מדוע הש"ס מתעניין במקום זה? נקוב בתפקידו: מושב ישיבה/בית דין נקוב, קטגוריה הלכתית (למשל הבחנות ארץ ישראל מול בבל במצוות התלויות בארץ, סמכות עיבור השנה, סמיכה), מרכז מסחר או תרבות, או זירת סיפור. אם הוא מעגן ניגוד הלכתי או מוסדי חוזר (ארץ ישראל מול בבל, סורא מול פומבדיתא), אמור זאת באופן קונקרטי."
+}
+
+כללים נוקשים:
+- 2-3 משפטים. תקרה קשיחה.
+- אינו תלוי-דף: התפקיד הקבוע של המקום, לא סוגיה אחת.
+- תפקיד קונקרטי על פני תארים. אם זו קטגוריה הלכתית, נקוב בקטגוריה.
+- ללא מליצה. אסור: "מכאן אנו למדים", "מדגיש", "מבליט", "מורכב", "עמוק".
+
+${HEBREW_NATIVE_STYLE}`;
+
+const PLACE_FIGURES_SYSTEM_PROMPT_HE = `אתה היסטוריון של הש"ס. בהינתן מקום אחד, נקוב בחכמים המזוהים ביותר עמו — אינו תלוי-דף.
+
+החזר JSON תקין בלבד:
+
+{
+  "figures": "1-2 משפטים הנוקבים ב-2-5 החכמים המזוהים ביותר עם מקום זה וכיצד (ייסדו/עמדו בראש ישיבתו, לימדו שם, פסקו מבית דינו, או ממוקמים בו שוב ושוב בגמרא). למשל 'רב ייסד את הישיבה בסורא; רב אשי עמד בראשה לימים'. אם אין חכם מסוים הקשור באמינות למקום, אמור זאת בפסוקית אחת במקום לנחש."
+}
+
+כללים נוקשים:
+- 1-2 משפטים. תקרה קשיחה.
+- נקוב בקשרים אמיתיים ומתועדים בלבד — אל תמציא קשר חכם-מקום.
+- ללא מליצה.
+
+${HEBREW_NATIVE_STYLE}`;
+
 const PLACE_PROFILE_OUTPUT_SCHEMA = {
   name: 'place_profile', strict: true,
   schema: { type: 'object', additionalProperties: false, required: ['profile'], properties: { profile: { type: 'string' } } },
@@ -2366,19 +3079,22 @@ CODE_ENRICHMENTS.push(
     'places.profile', 'Profile',
     'Daf-agnostic profile: what/where the place is, its era of prominence, and geography that matters.',
     PLACE_PROFILE_SYSTEM_PROMPT, PLACE_LEAF_USER_TEMPLATE, PLACE_PROFILE_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'places.profile-v1', cacheVersion: '1' },
+    { mode: 'augment-content', scope: 'global', defHash: 'places.profile-v1', cacheVersion: '1',
+      systemPromptHe: PLACE_PROFILE_SYSTEM_PROMPT_HE, userPromptTemplateHe: PLACE_LEAF_USER_TEMPLATE_HE },
   ),
   makePlaceEnrichment(
     'places.significance', 'Significance',
     'Daf-agnostic role in the Talmudic world: academy/court seat, halachic category, trade/cultural center.',
     PLACE_SIGNIFICANCE_SYSTEM_PROMPT, PLACE_LEAF_USER_TEMPLATE, PLACE_SIGNIFICANCE_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'places.significance-v1', cacheVersion: '1' },
+    { mode: 'augment-content', scope: 'global', defHash: 'places.significance-v1', cacheVersion: '1',
+      systemPromptHe: PLACE_SIGNIFICANCE_SYSTEM_PROMPT_HE, userPromptTemplateHe: PLACE_LEAF_USER_TEMPLATE_HE },
   ),
   makePlaceEnrichment(
     'places.figures', 'Figures',
     'Daf-agnostic: the sages most associated with the place and how.',
     PLACE_FIGURES_SYSTEM_PROMPT, PLACE_LEAF_USER_TEMPLATE, PLACE_FIGURES_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'places.figures-v1', cacheVersion: '1' },
+    { mode: 'augment-content', scope: 'global', defHash: 'places.figures-v1', cacheVersion: '1',
+      systemPromptHe: PLACE_FIGURES_SYSTEM_PROMPT_HE, userPromptTemplateHe: PLACE_LEAF_USER_TEMPLATE_HE },
   ),
 );
 
@@ -2437,6 +3153,49 @@ const PLACES_SYNTHESIS_OUTPUT_SCHEMA = {
   },
 };
 
+const PLACES_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה גיאוגרף הש"ס. בהינתן רפרנס גיאוגרפי אחד שזוהה בדף והגמרא הסובבת, חבר פסקה הדוקה על המקום המסוים הזה בהקשר של הדף הזה.
+
+החזר JSON תקין בלבד:
+
+{
+  "synthesis": "פסקה אחת, 2-3 משפטים. (א) נסח מהו המקום הזה (עיר בבבל, ישיבה תנאית ביבנה, ארץ ישראל כקטגוריה הלכתית, וכו'). (ב) נקוב בחשיבותו בזמן הדור הרלוונטי (מי לימד שם, מה הוא הצמיח, מדוע הגמרא מזכירה אותו). (ג) קשור חזרה לאופן שבו הדף משתמש במקום — האם הוא תפאורה, הבחנה הלכתית (ארץ ישראל מול בבל), זירת סיפור, או מרכז סמכות? שמור על תמציתיות."
+}
+
+כללים נוקשים:
+- 2-3 משפטים. תקרה קשיחה.
+- בסס כל טענה בהיסטוריה ממשית — ללא אנקדוטות בדויות. אם לא ודאי, הסתייג ("לפי המסורת מזוהה עם…", "עד תקופת האמוראים המאוחרים…").
+- ללא מליצה: הימנע מ"מכאן אנו למדים", "מדגיש", "מבליט", "מורכב", "עמוק".
+- אם המקום כללי (למשל "ארץ ישראל" המשמשת כקטגוריה הלכתית, לא כתפאורה), התמקד בכוחו ההלכתי/המשפטי בדף זה ולא בפרט גיאוגרפי.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const PLACES_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+רפרנס המקום הזה:
+{{mark_input}}
+
+רקע על מקום זה (אינו תלוי-דף — השתמש כביסוס, אל תחזור עליו סתם):
+
+[PROFILE]
+{{depends.places.profile}}
+
+[SIGNIFICANCE]
+{{depends.places.significance}}
+
+[ASSOCIATED SAGES]
+{{depends.places.figures}}
+
+מקור עברי/ארמי לדף:
+{{gemara_he}}
+
+תרגום אנגלי:
+{{gemara_en}}
+
+חכמים שזוהו בדף (להקשר על מי מלמד היכן):
+{{anchors.rabbi}}
+
+חבר פסקה הדוקה אחת על המקום הזה לפי הסכימה. פתח במה המקום הוא ומדוע הוא חשוב (בהישען על הרקע), ואז עבור לאופן שבו דף זה משתמש בו. אל תחזור על הרקע מילה במילה.`;
+
 CODE_ENRICHMENTS.push(
   makeEnrichment(
     'places', 'places.synthesis', 'Synthesis',
@@ -2454,6 +3213,8 @@ CODE_ENRICHMENTS.push(
       ],
       defHash: 'places.synthesis-v3', cacheVersion: '3',
       model: ARGUMENT_FLASH_MODEL,
+      systemPromptHe: PLACES_SYNTHESIS_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: PLACES_SYNTHESIS_USER_TEMPLATE_HE,
     },
   ),
 );
@@ -2541,6 +3302,37 @@ const RISHONIM_SYNTHESIS_OUTPUT_SCHEMA = {
   },
 };
 
+const RISHONIM_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. בהינתן מקטע אחד של גמרא והראשונים שפירשו את המקטע הזה (רש"י, תוספות, רמב"ן, רשב"א, מאירי, ריטב"א, ר"ן וכו'), חבר פסקה הדוקה השוזרת את קולותיהם לכדי קריאה אחת.
+
+החזר JSON תקין בלבד:
+
+{
+  "synthesis": "פסקה אחת, 2-3 משפטים. (א) נקוב במה המקטע אומר (פסוקית קצרה אחת). (ב) שזור את הראשונים הנושאים את המשקל הרב ביותר — מה רש"י מבהיר? היכן תוספות דוחים או פותחים שאלה? אם ראשון בולט (רמב"ן, מאירי, רשב"א) מחדד את הנקודה, הזכר אותו בפסוקית קצרה. (ג) כשהראשונים חולקים, נקוב במחלוקת באופן קונקרטי. אל תמנה כל פירוש; בחר את ה-1-3 שבאמת מזיזים את הקריאה."
+}
+
+כללים נוקשים (הפלט נפסל אם מופרים):
+- 2-3 משפטים. תקרה קשיחה — אל תמלא.
+- על המקטע הזה בלבד. אל תיסחף לטיעון הרחב של המקטע.
+- בסס כל טענה בטקסט הפירוש שסופק — אל תמציא עמדה שראשון לא נקט.
+- ללא מליצה. אסור: "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק", "מורכב", "עדשה", "לוכד", "מגלם".
+- אם ראשון שותק או רק חוזר על המקטע, דלג עליו.
+- אם קיים פירוש אחד בלבד, סכם את קריאתו ב-1-2 משפטים — אל תמלא.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const RISHONIM_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+המקטע הזה (עם ראשוניו):
+{{mark_input}}
+
+מקור עברי/ארמי לדף הסובב:
+{{gemara_he}}
+
+תרגום אנגלי:
+{{gemara_en}}
+
+חבר פסקה הדוקה אחת השוזרת את קריאת הראשונים של המקטע הזה לפי הסכימה.`;
+
 CODE_ENRICHMENTS.push(
   makeEnrichment(
     'rishonim', 'rishonim.synthesis', 'Synthesis',
@@ -2551,6 +3343,8 @@ CODE_ENRICHMENTS.push(
       dependencies: ['gemara', { mark: 'rishonim' }],
       defHash: 'rishonim.synthesis-v3', cacheVersion: '3',
       model: ARGUMENT_FLASH_MODEL,
+      systemPromptHe: RISHONIM_SYNTHESIS_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: RISHONIM_SYNTHESIS_USER_TEMPLATE_HE,
     },
   ),
 );
@@ -2808,6 +3602,126 @@ const HALACHA_SYNTHESIS_OUTPUT_SCHEMA = {
   },
 };
 
+// ---------------- Hebrew-output parallels (halacha) ----------------
+
+const HALACHA_LEAF_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+נושא הלכתי שזוהה בדף זה:
+{{mark_input}}
+
+מקור עברי/ארמי לדף:
+{{gemara_he}}
+
+תרגום אנגלי:
+{{gemara_en}}
+
+הפק את הפלט המבוקש לפי הסכימה.`;
+
+const HALACHA_CODIFICATION_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בהלכה. בהינתן נושא הלכתי אחד שעלה בדף, הפק את שלשלת הפסיקה הקנונית: מה משנה תורה, הטור, השולחן ערוך והרמ"א פוסקים בנושא המדויק הזה.
+
+החזר JSON תקין בלבד:
+
+{
+  "mishnehTorah": { "ref": "ספר זמנים, הלכות קריאת שמע א:א", "ruling": "סיכום בן 1-2 משפטים בעברית של פסק הרמב"ם בנושא הזה." } | null,
+  "tur":          { "ref": "אורח חיים רלה",                  "ruling": "אותה צורה — סיכום בן 1-2 משפטים של עמדת הטור." } | null,
+  "shulchanAruch":{ "ref": "אורח חיים רלה:א",                "ruling": "אותה צורה — פסק בית יוסף בלשון המחבר." } | null,
+  "rema":         { "ref": "אורח חיים רלה:א",                "ruling": "אותה צורה — הגהת הרמ"א / עמדה אשכנזית. ריק כשהרמ"א אינו חולק." } | null,
+  "prose": "פסקה קצרה אחת (2-3 משפטים) המתחקה כיצד מסקנת הדף נפסקת — נקוב מי הפוסק הראשון שמקבע את הכלל, היכן הפוסקים המאוחרים מתפצלים אם בכלל, ומהי העמדה המעשית הסופית."
+}
+
+כללים:
+- ref חייב להיות מראה מקום אמיתי וניתן לציטוט (ספר + הלכות + פרק:הלכה למשנה תורה; סימן[:סעיף] לטור/שו"ע/רמ"א). אם אינך יכול לספק מראה מקום אמיתי בביטחון, החזר null לאותו פוסק — אל תמציא מראי מקום.
+- עבור כל ערך שאינו null, ה-ruling חייב להתאים באמת למה שהפוסק אומר בנושא הזה, לא להגהה כללית.
+- הרמ"א אינו null רק כשהוא חולק במפורש, מסייג, או מוסיף מנהג אשכנז לפסק המחבר. אם הרמ"א מסכים בשתיקה, השאר null.
+- prose הוא סיפור הדוק, לא רשימה — התמקד בשלשלת (מי מקבע ראשון, היכן מתפצל).
+- ללא מליצה. אסור: "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק", "עדשה", "לוכד", "מגלם".
+
+${HEBREW_NATIVE_STYLE}`;
+
+const HALACHA_PRACTICAL_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בהלכה ובפסק מעשי. בהינתן נושא הלכתי אחד שעלה בדף, תאר את היישום המעשי של ההלכה הפסוקה — מה צריך לעשות בפועל, מתי זה חל, ומהם מקרי הקצה הנפוצים.
+
+החזר JSON תקין בלבד:
+
+{
+  "lechatchila": "1-2 משפטים: כיצד מקיימים את ההלכה לכתחילה. מהי הנהגה הסטנדרטית?",
+  "bedieved":    "משפט אחד על דין הבדיעבד, היכן שרלוונטי. מחרוזת ריקה אם אין הבחנת לכתחילה/בדיעבד.",
+  "appliesWhen": ["ביטויים קצרים — 2-4 פריטים — הנוקבים במצבים שבהם הלכה זו מופעלת (למשל 'אכילת לחם', 'לאחר רדת הלילה', 'ברשות הרבים')."],
+  "exceptions":  ["ביטויים קצרים — 0-3 פריטים — הנוקבים בחריגים נפוצים או מקרי קצה ('חולה פטור', 'בשבת הדין משתנה'). מערך ריק אם אין."],
+  "prose": "פסקה קצרה אחת (2-3 משפטים) על אופן יישום הכלל כיום — מה האדם הטיפוסי עושה, מה מכשיל אותו, וכל סף הלכתי שהגמרא הציגה ועדיין שולט בהלכה למעשה."
+}
+
+כללים:
+- שדה "lechatchila" חייב לתאר את ההנהגה החיה הסטנדרטית (סטנדרט הלכתחילה), לא היפותזה של הגמרא. אם ההלכה למעשה עדיין הולכת אחר מסקנת הגמרא הפשוטה, אמור זאת באופן קונקרטי.
+- שדה "bedieved" הוא לדין הבדיעבד: האם המעשה נחשב, מה עושים למפרע, וכו'. מחרוזת ריקה כשאין הבחנה כזו.
+- appliesWhen / exceptions הם ביטויים קצרים, לא משפטים. המשתמש סורק אותם.
+- ללא מליצה.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const HALACHA_DISPUTES_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בהלכה. בהינתן נושא הלכתי אחד שעלה בדף, מנה את העמדות החולקות העיקריות בקרב הראשונים, את חילוקי המחבר/רמ"א, וכל מסגור מחודש מתקופת האחרונים — אך רק כשהמחלוקת מתועדת היטב ומשפיעה מהותית על ההלכה למעשה.
+
+החזר JSON תקין בלבד:
+
+{
+  "disputes": [
+    {
+      "axis": "ashkenaz-sefarad" | "rishonim" | "acharonim" | "modern" | "other",
+      "label": "ביטוי קצר הנוקב במחלוקת (למשל 'רמב"ם מול תוספות בשיעורים', 'ספרדים מול אשכנזים באמירת יעלה ויבוא').",
+      "positions": [
+        { "voice": "שם הפוסק או הקבוצה בעברית (רמב"ם, תוספות, מחבר, רמ"א, משנה ברורה, ...)", "position": "סיכום במשפט אחד של מה שקול זה מחזיק בנושא הזה." }
+      ],
+      "settled": "משפט קצר: היכן המחלוקת נוחתת כיום, או 'לא הוכרע — שני המנהגים נוהגים' כשאף צד אינו דומיננטי. מחרוזת ריקה אם אין הכרעה נקייה."
+    }
+  ]
+}
+
+כללים:
+- אפס מחלוקות הוא המקרה הנפוץ — לרוב הנושאים ההלכתיים יש תשובה אחת מיושבת. החזר מערך disputes ריק כשהנושא אינו שנוי במחלוקת. אל תמציא מחלוקות כדי למלא את השדה.
+- מחלוקת חייבת לכלול לפחות 2 עמדות ותוצאה מעשית.
+- "voice" נוקב במקור מסוים, לא בקטגוריה מעורפלת — "רמב"ם" ולא "ראשוני ספרד", "משנה ברורה" ולא "אחרוני אשכנז".
+- "settled" הוא המצב המעשי בשורה התחתונה. השתמש ב'לא הוכרע — שני המנהגים נוהגים' כשבאמת אף צד אינו דומיננטי.
+- ללא מליצה.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const HALACHA_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בהלכה. בהינתן נושא הלכתי אחד שעלה בדף יחד עם שלשלת הפסיקה, היישום המעשי, וכל מחלוקת עיקרית, חבר פסקה הדוקה הממוסגרת כבירור הלכה בן-ימינו — מה היהודי המקיים עושה, היכן זה יושב בקודקסים, והיכן המתחים החיים.
+
+החזר JSON תקין בלבד:
+
+{
+  "synthesis": "פסקה אחת, 3-5 משפטים. סדר: (א) משפט מכוון קצר אחד הנוקב בנושא ובמעמדו בשורה התחתונה כיום — מסגרת, לא חזרה על מכניקת הלכתחילה/בדיעבד של כרטיס היישום (המשתמש כבר רואה אותה בכרטיס ייעודי). כ-15 מילים. (ב) היכן זה יושב בקודקסים — עמדות רמב"ם / טור / שולחן ערוך ומראי מקום קנוניים, או ציון מפורש שהפוסקים אינם פוסקים את הכלל ומה שתיקה זו אומרת. (ג) מחלוקות חיות המעצבות הלכה למעשה — אשכנז/ספרד, מחבר/רמ"א, או פיצול בן-זמננו אמיתי — כלול רק כשהמחלוקת באמת מזיזה את ההלכה למעשה. (ד) מקור הגמרא — כלול רק כשהוא מבהיר מדוע הכלל המודרני נראה כפי שהוא נראה. השמט את (ג) ו/או (ד) כשאינם מוסיפים דבר. תקרה קשיחה: 5 משפטים."
+}
+
+כללים נוקשים:
+- 3-5 משפטים. תקרה קשיחה — אל תמלא.
+- על הנושא הזה בלבד. אל תסכם את כל הדף.
+- משפט (א) הוא כיוון של שורה אחת, לא חזרה על כרטיס היישום. אם אתה מוצא את עצמך כותב "עושים X לכתחילה" או "בדיעבד יצא", עצור — מידע זה כבר חי בכרטיס היישום.
+- תפקיד ה-synthesis הוא חוט הסיפור שהכרטיסים המובְנים אינם יכולים לתת — עמדות/שתיקת פוסקים, מחלוקת חיה, מקור — שזורים לפסקה.
+- בסס כל טענה בקלט הפסיקה / המעשי / המחלוקות. אל תמציא פסקים או מראי מקום.
+- ללא מליצה. אסור: "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק", "מורכב", "עדשה", "לוכד", "מגלם".
+- המשתמש יקרא פסקה זו ראשונה. עליה לעמוד בפני עצמה.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const HALACHA_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+נושא הלכתי:
+{{mark_input}}
+
+שלשלת הפסיקה (משנה תורה / טור / שולחן ערוך / רמ"א):
+{{depends.halacha.codification}}
+
+יישום מעשי (לכתחילה / בדיעבד / מתי / חריגים):
+{{depends.halacha.practical}}
+
+מחלוקות עיקריות (מערך ריק כשאינו שנוי במחלוקת):
+{{depends.halacha.disputes}}
+
+מקור עברי/ארמי לדף (לביסוס בלבד):
+{{gemara_he}}
+
+הפק את ה-synthesis לפי הסכימה.`;
+
 CODE_ENRICHMENTS.push(
   makeEnrichment(
     'halacha', 'halacha.codification', 'Codification',
@@ -2817,6 +3731,8 @@ CODE_ENRICHMENTS.push(
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara'],
       defHash: 'halacha.codification-v3', cacheVersion: '3',
+      systemPromptHe: HALACHA_CODIFICATION_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: HALACHA_LEAF_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
@@ -2827,6 +3743,8 @@ CODE_ENRICHMENTS.push(
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara'],
       defHash: 'halacha.practical-v3', cacheVersion: '3',
+      systemPromptHe: HALACHA_PRACTICAL_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: HALACHA_LEAF_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
@@ -2837,6 +3755,8 @@ CODE_ENRICHMENTS.push(
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara'],
       defHash: 'halacha.disputes-v3', cacheVersion: '3',
+      systemPromptHe: HALACHA_DISPUTES_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: HALACHA_LEAF_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
@@ -2852,6 +3772,8 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'halacha.disputes' },
       ],
       defHash: 'halacha.synthesis-v4', cacheVersion: '4',
+      systemPromptHe: HALACHA_SYNTHESIS_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: HALACHA_SYNTHESIS_USER_TEMPLATE_HE,
     },
   ),
 );
@@ -3304,6 +4226,292 @@ const PESUKIM_QA_OUTPUT_SCHEMA = {
   },
 };
 
+// ---------------- Hebrew-output parallels (pesukim) ----------------
+
+// The Hebrew counterpart of TANACH_NAMING_STYLE. Writing in Hebrew already
+// yields the traditional book names; this adds the verbatim-pasuk-quote rule
+// (still essential in he mode) and the yeshivish register on top of the
+// shared HEBREW_NATIVE_STYLE.
+const HEBREW_NATIVE_TANACH_STYLE = `${HEBREW_NATIVE_STYLE}
+
+סגנון — שמות התנ"ך וציטוט פסוקים:
+- השתמש בשמות העבריים המסורתיים לספרי התנ"ך (בראשית, שמות, ויקרא, במדבר, דברים; יהושע, שופטים, שמואל, מלכים, ישעיהו, ירמיהו, יחזקאל, תרי עשר; תהילים, משלי, איוב, שיר השירים, קהלת, דניאל, עזרא, נחמיה, דברי הימים). הקלט מספק את ה-verseRef בלועזית (למשל "Deuteronomy 6:7"); עליך לפלוט בשם המסורתי בעברית (דברים ו:ז).
+- מינוח ישיבתי בגוף הטקסט: "פסוק"/"פסוקים" ולא "verse", "חומש" ולא "Pentateuch", "סוגיה", "ספר", "מידה".
+- ציטוט פסוקים — כלל נוקשה: צטט תמיד את לשון הפסוק בעברית מילה במילה בתוך מירכאות, ואחריו מראה המקום בסוגריים — '"בחצות לילה אקום להודות לך" (תהילים קיט:סב)'. לעולם אל תצטט פסוק בתרגום בלבד. שדה {{pasuk_he}} שבקלט נותן את לשון הפסוק המוקד מילה במילה — צטט ממנו, אל תשחזר מהזיכרון.`;
+
+const PESUKIM_LEAF_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+ציטוט הפסוק:
+{{mark_input}}
+
+הפסוק המוקד — לשון עברית מילה במילה (צטט מכאן בעת ציטוט הפסוק):
+{{pasuk_he}}
+
+מקור עברי של הדף (הציטוט מופיע בתוכו):
+{{gemara_he}}
+
+רש"י + תוספות + ראשונים נוספים הזמינים לדף:
+{{commentaries}}
+
+הפק את הפלט המבוקש לפי הסכימה.`;
+
+const PESUKIM_TANACH_CONTEXT_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בתנ"ך. בהינתן פסוק אחד לפי מראה מקום קנוני, כתוב סיכום מהותי של פשוטו במקומו המקראי. אינו תלוי-דף — על הפסוק עצמו, לא על אופן השימוש של הגמרא בו. המטרה: שלומד שלא קרא פסוק זה מעולם ידע מי אמרו, למי, באיזה מצב, ומה הוא עושה בסיפור או ברצף ההלכתי הרחב.
+
+החזר JSON תקין בלבד:
+
+{
+  "context": "3-4 משפטים של פשט קונקרטי. כסה, בסדר זה: (1) משמעות הפסוק בפשטו, כולל הביטוי העברי הנושא משקל בתוך מירכאות כשהוא נושא את כוח הפסוק; (2) הדובר והנמען — משה לישראל? הקב"ה למשה? נביא למלך? — והרגע הסיפורי או ההלכתי המיידי (בתוך התוכחה, בעשרת הדיברות, בפרשת נדרים, בתיאור המשכן וכו'); (3) היכן הוא יושב בספר / פרק / פרשה ומה הפסוקים הסובבים עושים סביבו; (4) אופציונלי: הערה עובדתית אחת שלעיתים חשובה לאופן שחז"ל מצטטים אותו. ללא הטפה תיאולוגית, ללא דרוש, ללא 'מכאן אנו למדים'. פשט עם די תשתית סובבת כדי לעגן ציטוט של חז"ל."
+}
+
+כללים:
+- 3-4 משפטים. מהותי — השאר את הלומד מכוון, לא רק מיודע במילים.
+- צטט את הביטוי העברי הנושא משקל מילה במילה כשהוא נושא את כוח הפסוק.
+- נקוב בדובר ובנמען בכל פעם שניתן לקבוע זאת מסביבות הפסוק.
+- ללא מליצה. אסור: "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק", "עדשה", "לוכד", "מגלם".
+
+${HEBREW_NATIVE_TANACH_STYLE}`;
+
+const PESUKIM_TANACH_CONTEXT_USER_TEMPLATE_HE = `ציטוט הפסוק:
+{{mark_input}}
+
+הפסוק המוקד — לשון עברית מילה במילה (צטט מכאן בעת ציטוט הפסוק):
+{{pasuk_he}}
+
+כתוב את סיכום הקשר התנ"ך לפי הסכימה. ה-mark_input מכיל verseRef (למשל 'Deuteronomy 6:7'), את הציטוט העברי כפי שהוא מופיע בגמרא, ואת citationStyle. השתמש ב-verseRef כמוסמך; הציטוט הוא רק הקטע שהגמרא ציטטה.`;
+
+const PESUKIM_WHY_HERE_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. בהינתן ציטוט פסוק אחד בדף — מראה מקום + הציטוט העברי כפי שהוא מופיע בגמרא + הגמרא הסובבת — נקוב בשאלה המקומית הקונקרטית או במהלך הטיעוני בדף הזה המניע את הגמרא לפנות לפסוק הזה.
+
+החזר JSON תקין בלבד:
+
+{
+  "why_here": "1-2 משפטים בעברית: השאלה, הבעיה, או המהלך המקומי המסוים המעורר את הציטוט. היה מסוים — לא 'הגמרא דנה בתפילה' אלא 'המשנה פותחת בקריאת שמע של ערבית לפני של שחרית, מה שמהפך את סדר היום הרגיל, ולכן הגמרא צריכה להצדיק את הסדר הזה'. אם אין מתח ממשי המיושב (ציטוט סיפורי טהור, או אסמכתא ללא דרשה), אמור זאת בפשטות."
+}
+
+כללים:
+- מקומי-לדף: על מה שקורה בדף הזה, לא על משמעות הפסוק בתנ"ך.
+- קונקרטי ומסוים. נקוב במה מוגן, מותקף, או נדרש.
+- ללא מליצה. אסור: "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק", "עדשה", "לוכד", "מגלם".
+
+${HEBREW_NATIVE_TANACH_STYLE}`;
+
+const PESUKIM_MECHANISM_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. בהינתן ציטוט פסוק אחד בדף — מראה מקום + הציטוט העברי כפי שהוא בגמרא + הגמרא הסובבת — תאר את המהלך הדרשני או הרטורי המדויק שהגמרא עושה עם הפסוק הזה כאן, ונקוב במידה המסוימת כשהיא מופעלת.
+
+לא כל ציטוט מפעיל מידה פורמלית — לעיתים פסוק הוא ראיה פשוטה, ציטוט סיפורי, או סימן. היה מדויק: נקוב במידה רק כשהגמרא באמת משתמשת בה; אחרת אמור זאת בפשטות.
+
+החזר JSON תקין בלבד:
+
+{
+  "mechanism": "1-2 משפטים. המהלך הדרשני או הרטורי המדויק. כשהגמרא מפעילה מידה נקובה (גזירה שווה, היקש, קל וחומר, ריבוי ומיעוט, כלל ופרט, אסמכתא, דבר הלמד מעניינו וכו'), נקוב בה, ואמור על איזו מילה / ביטוי / סמיכות הדרשה נשענת, ומהי ההנחה הסמויה. אם זו ראיה פשוטה (ללא דרשה פורמלית), אמור זאת במפורש והסבר מדוע פסוק זה הוא העוגן הנכון (למשל 'ראיה פשוטה מסדר המילים — הפסוק עצמו מונה שכיבה לפני קימה')."
+}
+
+המידות שעליך לזהות בעת הצורך (המידות שהתורה נדרשת בהן):
+  - גזירה שווה — לימוד מאותה מילה/ביטוי המופיעים בשתי פרשיות. חפש "נאמר כאן ... ונאמר להלן ..." או "אתיא X X".
+  - קל וחומר — אם חומרה נוהגת בקל, ודאי שנוהגת בחמור (וההפך לקולא). חפש "ומה אם ... קל וחומר ש...".
+  - היקש — לימוד מסמיכות. שתי פרשיות הסמוכות נדונות כדומות.
+  - בנין אב — לימוד מן הפרט המייצג. "מה מצינו ב-A ... אף B".
+  - כלל ופרט / פרט וכלל — כללי הריבוי והמיעוט.
+  - ריבוי ומיעוט — הכללה ומיעוט דרך 'אך / רק / כל'.
+  - דבר הלמד מעניינו — משמעות הנלמדת מן ההקשר הסמוך.
+  - אסמכתא — דין דרבנן שניתן לו סימן מן הכתוב ללא דרשה גמורה. נקוב בה בעת הצורך; אל תטעה בה כדרשה גמורה.
+  - דרש — קריאה שאינה פשט (ניקוד מחדש, ספירת אותיות) כשאינה תואמת אחת המידות הנקובות.
+
+כללים:
+- מקומי-לדף: על אופן השימוש של הגמרא בפסוק הזה בדף הזה.
+- נקוב במידה רק כשהגמרא באמת מפעילה אחת. ציטוטי ראיה פשוטה — אמור זאת במפורש ואל תכפה שם מידה.
+- קונקרטי. ללא מליצה. ללא "מכאן אנו למדים", ללא "אנו רואים ש".
+
+${HEBREW_NATIVE_TANACH_STYLE}`;
+
+const PESUKIM_LANDING_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. בהינתן ציטוט פסוק אחד בדף, נקוב בהלכה או בטענה שהציטוט הזה מבסס בדף.
+
+החזר JSON תקין בלבד:
+
+{
+  "landing": "משפט אחד. ההלכה או הטענה הקונקרטית שהציטוט מבסס. נקוב בחכם הקשור לציטוט כשמזוהה אחד בדף. היה קונקרטי — מה הגמרא באמת מסיקה? הימנע מהפשטות כמו 'מבסס את המבנה' או 'מעגן את הסוגיה'."
+}
+
+כללים:
+- משפט אחד. קונקרטי — הלכה או טענה מסוימת, לא הפשטה.
+- נקוב בחכם הקשור לציטוט כשמזוהה אחד בדף.
+- ללא מליצה. אסור: "מעגן", "מבסס את המבנה", "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק", "עדשה", "לוכד", "מגלם".
+
+${HEBREW_NATIVE_TANACH_STYLE}`;
+
+const PESUKIM_LANDING_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+ציטוט הפסוק:
+{{mark_input}}
+
+הפסוק המוקד — לשון עברית מילה במילה (צטט מכאן בעת ציטוט הפסוק):
+{{pasuk_he}}
+
+מקור עברי של הדף:
+{{gemara_he}}
+
+חכמים שזוהו בדף:
+{{anchors.rabbi}}
+
+נקוב בהלכה או בטענה שציטוט זה מבסס, לפי הסכימה.`;
+
+const PESUKIM_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס ובתנ"ך. בהינתן ציטוט פסוק אחד בדף יחד עם ארבעה מקטעים מחושבים מראש — היכן הפסוק יושב בתנ"ך, השאלה המקומית המעוררת את הציטוט, המנגנון הדרשני, ומה הוא מבסס — חבר פסקה הדוקה אחת השוזרת אותם לחוט יחיד.
+
+החזר JSON תקין בלבד:
+
+{
+  "synthesis": "פסקה אחת, 3-4 משפטים. סדר: (א) פסוקית מכוונת קצרה — היכן הפסוק יושב בתנ"ך ומי אומרו; (ב) השאלה המקומית הקונקרטית בדף המניעה את הציטוט; (ג) המהלך הדרשני — נקוב במידה (גזירה שווה, היקש, קל וחומר, אסמכתא וכו') כשמופעלת אחת, או אמור בפשטות שזו ראיה ישירה; (ד) מה הגמרא מסיקה. צטט את הביטוי העברי הנושא משקל מילה במילה מן הפסוק המוקד כשהדיוק נושא את הראיה. תקרה קשיחה: 4 משפטים."
+}
+
+כללים נוקשים:
+- 3-4 משפטים. תקרה קשיחה — אל תמלא.
+- על הציטוט הזה בלבד. אל תסכם את כל הדף.
+- ה-synthesis הוא חוט הסיפור המחבר את ארבעת הכרטיסים שהמשתמש רואה מתחת — לא חזרה מילולית עליהם. אם כל מה שתוכל לומר הוא מה שאותם כרטיסים כבר אומרים, כתוב פחות משפטים.
+- בסס כל טענה בארבעת הקלטים + לשון הפסוק. אל תמציא.
+- צטט עברית מילה במילה כשהדיוק נושא את הראיה. שדה {{pasuk_he}} מכיל את הפסוק המוקד; צטט ממנו.
+
+ביטויים אסורים (נפסל אם נוכחים):
+  - "מעגן", "מעגן את המבנה", "מעגן את הסוגיה"
+  - "הצדקה יסודית", "היסודי"
+  - "מכאן אנו למדים", "אנו רואים ש", "זה מסביר מדוע"
+  - "מבליט", "מדגיש", "עמוק", "מורכב"
+  - "עדשה", "לוכד", "מגלם"
+
+${HEBREW_NATIVE_TANACH_STYLE}`;
+
+const PESUKIM_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+ציטוט הפסוק:
+{{mark_input}}
+
+הפסוק המוקד — לשון עברית מילה במילה (צטט מכאן בעת ציטוט הפסוק; אל תשחזר ואל תתרגם-ותצטט):
+{{pasuk_he}}
+
+פסוקים נוספים המצוטטים בדף — לשון עברית מילה במילה (צטט מאלה אם הגמרא מפעילה אותם כסימוכין; אל תשחזר):
+{{cross_refs_he}}
+
+היכן הפסוק יושב בתנ"ך:
+{{depends.pesukim.tanach-context}}
+
+השאלה המקומית בדף המניעה את הציטוט:
+{{depends.pesukim.why-here}}
+
+המנגנון הדרשני:
+{{depends.pesukim.mechanism}}
+
+מה הציטוט מבסס:
+{{depends.pesukim.landing}}
+
+מקור עברי של הדף:
+{{gemara_he}}
+
+חכמים שזוהו בדף:
+{{anchors.rabbi}}
+
+שזור אותם לפסקה הדוקה אחת לפי הסכימה.`;
+
+const PESUKIM_SUGGESTED_QUESTIONS_SYSTEM_PROMPT_HE = `אתה חברותא הלומד גמרא עם ציטוט פסוק. בהינתן פסוק אחד המצוטט בדף + השימוש הדרשני של הגמרא + פסקת ה-synthesis, הפק רשימה קצרה של שאלות המשך שלומד סביר ירצה תשובה עליהן לאחר קריאת ה-synthesis. ה-synthesis אומר מה הציטוט עושה; שאלות אלו מכוונות אל מדוע הוא עובד, אל המנגנון, ואל ההקשר הסובב שה-synthesis לא הכיל.
+
+החזר JSON תקין בלבד:
+
+{
+  "questions": [
+    {
+      "q": "השאלה, מנוסחת כפי שלומד היה שואל אותה. 8-18 מילים. סיים בסימן שאלה.",
+      "why_useful": "רמז בחצי משפט על מה שמענה על שאלה זו פותח. מוצג כטקסט-כותרת בריחוף, לא כתשובה עצמה."
+    }
+  ]
+}
+
+כללים:
+- הפק בדיוק 4-5 שאלות, מסודרות לפי תועלת כללית (המאירה ביותר ראשונה).
+- כל שאלה חייבת להיות מסוימת לציטוט הזה — לעולם לא כללית ('מה הפסוק אומר?', 'מי אמרו?'). אם אי אפשר לדעת מן השאלה לבדה על איזה פסוק מדובר, היא כללית מדי.
+- כוון אל המנגנון: מדוע הגמרא צריכה פסוק כאן בכלל, איזה פסוק אחר היה יכול לעשות אותה עבודה, על איזו הנחה סמויה הדרשה נשענת, מדוע דווקא ניסוח זה ולא הפסוק המקביל פרק אחד אחר-כך, כיצד רש"י או תוספות קוראים את הראיה.
+- שאלה אחת לכל תת-עניין קונקרטי. אל תכפיל.
+- כשהציטוט מפעיל מידה נקובה, לפחות שאלה אחת תתחקה אחר אופן פעולת המידה הזו באופן כללי (כך שהלומד ייצא עם מושג בר-העברה).
+
+${HEBREW_NATIVE_TANACH_STYLE}`;
+
+const PESUKIM_SUGGESTED_QUESTIONS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+ציטוט הפסוק הזה:
+{{mark_input}}
+
+הפסוק המוקד — לשון עברית מילה במילה:
+{{pasuk_he}}
+
+כל הפסוקים המצוטטים בדף זה (להקשר — אל תפיק שאלות על פסוקים אחרים):
+{{anchors.pesukim}}
+
+מקור עברי של הדף:
+{{gemara_he}}
+
+ה-synthesis הקיים (כדי שתוכל לכוון אל מה שה-synthesis מדלג עליו):
+{{depends.pesukim.synthesis}}
+
+הפק את רשימת שאלות ההמשך לפי הסכימה.`;
+
+const PESUKIM_QA_SYSTEM_PROMPT_HE = `אתה חברותא בלימוד הש"ס העונה לשאלה מסוימת של לומד על ציטוט פסוק אחד בדף. הלומד כבר קרא את פסקת ה-synthesis; הוא רוצה עומק, לא חזרה. הנח שהלומד נבון אך אינו יודע מראש כיצד פועלות קטגוריות הדרשנות התלמודיות — לכן התייחס לתשובה כהוראה, לא רק כתיאור.
+
+החזר JSON תקין בלבד:
+
+{
+  "answer": "פסקה ממוקדת, 4-7 משפטים, העונה במישרין לשאלת הלומד.",
+  "confidence": "high | medium | low"
+}
+
+עמדת יסוד:
+- פתח במשפט אחד של תשובה ישירה לשאלה כפי שהלומד שאל.
+- ואז בסס אותה בהקשר התנ"ך המסוים + מכניקת הגמרא: מה הפסוק אומר בפשטו, איזו שאלה מקומית מעוררת את הציטוט, על איזו מילה או ביטוי הדרשה נשענת.
+- צטט עברית קצרה (3-6 מילים, בתוך מירכאות) כשהדיוק נושא משקל.
+- צטט רש"י או תוספות בפסוקית אחת אם הם באמת מחדדים את התשובה; לעולם אל תמנה פירושים.
+
+כלל "הסבר את הקטגוריה" (החשוב ביותר):
+כששאלת הלומד נסבה על סוג או קטגוריה של מהלך דרשני — מהי גזירה שווה, מהי אסמכתא, מדוע היקש עובד, מדוע סדר מילים בפסוק נחשב לדרשה — עליך להקדיש משפט להסבר מהי אותה קטגוריה וכיצד היא נושאת משקל טיעוני, בעברית פשוטה, לפני יישומה על הפסוק הזה. המטרה: שהלומד ייצא עם מושג בר-העברה שיזהה בפעם הבאה בכל סוגיה.
+
+דוגמה לכשל שיש להימנע ממנו:
+  רע: "הגמרא משתמשת בזה כגזירה שווה על המילה 'X'…" — זה משתמש ב'גזירה שווה' כמילת קסם.
+  טוב: "גזירה שווה היא לימוד המעביר דין מפסוק אחד לאחר כשאותה מילה מופיעה בשניהם — היא עובדת מפני שחז"ל רואים אוצר מילים משותף כסימן לקטגוריה משפטית משותפת, לא מקרי. כאן הגמרא נתפסת למילה 'X' גם בפסוקנו וגם בויקרא…" — כעת הלומד קנה מושג בר-העברה.
+
+כללים נוקשים:
+- 4-7 משפטים. תקרה קשיחה — אל תמלא מעבר ל-7.
+- ענה לשאלת הלומד, לא לשאלה שהיית מעדיף. אם השאלה אינה הגיונית עבור ציטוט זה, אמור זאת בפשטות וקבע confidence='low'.
+- אם המקורות הזמינים אינם מכילים די לבסס תשובה ממשית, תן את הקריאה החלקית הטובה ביותר וקבע confidence='low'.
+- בסס כל טענה בתוכן הממשי של הפסוק, במהלך המקומי של הגמרא, או בפירוש המצוטט. אל תמציא עמדות.
+- צטט פסוקים מילה במילה בעברית (לא תרגום בתוך מירכאות). שדה {{pasuk_he}} הוא הפסוק המוקד.
+- ללא מליצה. אסור: "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק", "מורכב", "עדשה", "לוכד", "מגלם", "מעגן".
+
+${HEBREW_NATIVE_TANACH_STYLE}`;
+
+const PESUKIM_QA_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+ציטוט הפסוק הזה:
+{{mark_input}}
+
+הפסוק המוקד — לשון עברית מילה במילה (צטט מכאן בעת ציטוט הפסוק):
+{{pasuk_he}}
+
+שאלת הלומד (ענה דווקא עליה):
+{{user_question}}
+
+ה-synthesis הקיים (הלומד כבר קרא אותו — העמק, אל תחזור):
+{{depends.pesukim.synthesis}}
+
+הקשר התנ"ך לפסוק:
+{{depends.pesukim.tanach-context}}
+
+השאלה המקומית בדף המניעה את הציטוט:
+{{depends.pesukim.why-here}}
+
+כיצד הגמרא משתמשת בפסוק כאן (המנגנון הדרשני):
+{{depends.pesukim.mechanism}}
+
+מקור עברי של הדף:
+{{gemara_he}}
+
+רש"י + תוספות + ראשונים נוספים הזמינים לדף:
+{{commentaries}}
+
+ענה לשאלת הלומד לפי הסכימה.`;
+
 CODE_ENRICHMENTS.push(
   makeEnrichment(
     'pesukim', 'pesukim.tanach-context', 'Tanach context',
@@ -3314,6 +4522,8 @@ CODE_ENRICHMENTS.push(
       dependencies: [],
       defHash: 'pesukim.tanach-context-v6', cacheVersion: '6',
       model: ARGUMENT_FLASH_MODEL,
+      systemPromptHe: PESUKIM_TANACH_CONTEXT_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: PESUKIM_TANACH_CONTEXT_USER_TEMPLATE_HE,
     },
   ),
   // Section leaves — each renders as its own bordered card in the pasuk
@@ -3329,6 +4539,8 @@ CODE_ENRICHMENTS.push(
       dependencies: ['gemara', 'commentaries'],
       defHash: 'pesukim.why-here-v1', cacheVersion: '1',
       model: ARGUMENT_FLASH_MODEL,
+      systemPromptHe: PESUKIM_WHY_HERE_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: PESUKIM_LEAF_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
@@ -3340,6 +4552,8 @@ CODE_ENRICHMENTS.push(
       dependencies: ['gemara', 'commentaries'],
       defHash: 'pesukim.mechanism-v1', cacheVersion: '1',
       model: ARGUMENT_FLASH_MODEL,
+      systemPromptHe: PESUKIM_MECHANISM_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: PESUKIM_LEAF_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
@@ -3351,6 +4565,8 @@ CODE_ENRICHMENTS.push(
       dependencies: ['gemara', { mark: 'rabbi' }],
       defHash: 'pesukim.landing-v1', cacheVersion: '1',
       model: ARGUMENT_FLASH_MODEL,
+      systemPromptHe: PESUKIM_LANDING_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: PESUKIM_LANDING_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
@@ -3373,6 +4589,8 @@ CODE_ENRICHMENTS.push(
       // structure and avoid the explicit banned-phrase list. Flash skims
       // multi-rule prompts (the same reason argument-move.qa runs on Pro).
       model: ARGUMENT_PRO_MODEL,
+      systemPromptHe: PESUKIM_SYNTHESIS_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: PESUKIM_SYNTHESIS_USER_TEMPLATE_HE,
     },
   ),
   // Mirror of argument-move.suggested-questions / argument-move.qa: powers the
@@ -3390,6 +4608,8 @@ CODE_ENRICHMENTS.push(
       ],
       defHash: 'pesukim.suggested-questions-v3', cacheVersion: '3',
       model: ARGUMENT_FLASH_MODEL,
+      systemPromptHe: PESUKIM_SUGGESTED_QUESTIONS_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: PESUKIM_SUGGESTED_QUESTIONS_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
@@ -3409,6 +4629,8 @@ CODE_ENRICHMENTS.push(
       ],
       defHash: 'pesukim.qa-v3', cacheVersion: '3',
       model: ARGUMENT_PRO_MODEL,
+      systemPromptHe: PESUKIM_QA_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: PESUKIM_QA_USER_TEMPLATE_HE,
     },
   ),
 );
@@ -3729,6 +4951,211 @@ const AGGADATA_QA_OUTPUT_SCHEMA = {
   },
 };
 
+// ---------------- Hebrew-output parallels (aggadata) ----------------
+
+const AGGADATA_LEAF_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+סיפור אגדי שזוהה בדף זה:
+{{mark_input}}
+
+מקור עברי/ארמי לדף:
+{{gemara_he}}
+
+תרגום אנגלי:
+{{gemara_en}}
+
+הפק את הפלט המבוקש לפי הסכימה.`;
+
+const AGGADATA_BACKGROUND_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס ובהיסטוריה של חז"ל. בהינתן סיפור אגדי אחד (כותרת, תווית עברית, תקציר, ציטוט עברי פותח, נושא), כתוב פסקת רקע מהותית המכוונת את הקורא להקשר ההיסטורי, הגיאוגרפי והתרבותי של הסיפור — ללא תלות במקום שבו הוא מצוטט בדף הזה.
+
+החזר JSON תקין בלבד:
+
+{
+  "background": "3-5 משפטים של כיוון פשוט. כסה, בסדר זה: (1) מי הדמויות הנקובות — דורן (תנא, אמורא, מספר דור כשידוע), רבותיהם/חבורת לימודם, ובמה הם ידועים במקומות אחרים; (2) מתי והיכן הסיפור מתרחש — בבל מול ארץ ישראל, איזה בית מדרש או עיר, התקופה ההיסטורית; (3) הרקע התרבותי או החומרי שקורא בן הזמן ההוא היה מכיר אך קורא בן-ימינו אינו מכיר (לחץ רומי, מחזור חקלאי, מבנה בית המדרש, מחלוקת הלכתית שהסיפור יושב בתוכה); (4) אופציונלי: הערה עובדתית אחת שלעיתים חשובה כשהסיפור מצוטט. ללא תיאולוגיה, ללא דרוש, ללא 'מכאן אנו למדים'. כיוון פשט."
+}
+
+כללים:
+- 3-5 משפטים. מהותי — השאר את הלומד מכוון, לא רק מיודע בכותרת.
+- אינו תלוי-דף. דבר על הדמויות והתפאורה; אל תסביר מדוע הגמרא מצטטת את הסיפור כאן. זו עבודת כרטיס הפרשנות.
+- נקוב בדמויות בשמן הקנוני (רבי זירא, רבי אמי, רבי יוחנן) — אל תמציא זיהויים.
+- ללא מליצה. אסור: "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק", "עדשה", "לוכד", "מגלם".
+
+${HEBREW_NATIVE_STYLE}`;
+
+const AGGADATA_INTERPRETATION_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הקורא סיפור אגדי בסוגייתו. בהינתן סיפור אחד בדף (כותרת, תווית עברית, תקציר, ציטוט עברי פותח, נושא) יחד עם מקור הדף העברי/ארמי והראשונים הזמינים, הסבר מה הסיפור עושה בסוגיה הזו — מדוע הגמרא מספרת אותו בנקודה זו, איזה מתח או מימרה הוא מעלה, וכיצד המפרשים הקלאסיים קוראים אותו.
+
+החזר JSON תקין בלבד:
+
+{
+  "interpretation": "3-5 משפטים. סדר: (א) התפקיד המקומי של הסיפור בסוגיה — איזו שאלה הלכתית או נושאית על הפרק, מדוע ויניטה אגדית משרתת את הטיעון כאן (ראיה, המחשה, פיסוק מוסרי, הערה ביוגרפית, ניגוד פולמוסי); (ב) המתח המרכזי או המימרה שהסיפור מעלה, מצוטט בקצרה מן העברית כשהוא נושא משקל (3-6 מילים); (ג) קריאת רש"י או תוספות או ראשון אחר כשהם מפרשים והדבר מחדד את הנקודה — פסוקית קצרה אחת, לעולם לא מניין; (ד) אופציונלי: הערה אחת על מה שהסיפור אינו עושה (למשל 'אינו פסק הלכה — מוסר בלבד') כשקוראים נוטים לקרוא בו יתר."
+}
+
+כללים:
+- 3-5 משפטים. מקומי-לדף — על הסיפור הזה כאן.
+- בסס כל טענה בטקסט הגמרא או בראשון שאתה יכול לצטט. אל תמציא.
+- צטט עברית קצרה (3-6 מילים, בסוגריים) כשהדיוק נושא את הפרשנות.
+- ללא מליצה. אסור: "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק", "עדשה", "לוכד", "מגלם".
+
+${HEBREW_NATIVE_STYLE}`;
+
+const AGGADATA_PARALLELS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בספרות חז"ל. בהינתן סיפור אגדי אחד (כותרת, תווית עברית, תקציר), זהה מקומות אחרים בספרות היהודית הקלאסית שבהם מופיע אותו סיפור, אותן דמויות באירוע דומה, או אותו מוטיב — בבלי, ירושלמי, מדרש, מקבילות בתנ"ך. אינו תלוי-דף. לעיתים קרובות ריק.
+
+החזר JSON תקין בלבד:
+
+{
+  "parallels": [
+    {
+      "ref": "מראה מקום קנוני בסגנון Sefaria של המקור המקביל — למשל 'Yerushalmi Berakhot 2:3', 'Bereishit Rabbah 78:5', 'תהילים כג:ד', 'Chullin 7b'. השתמש בשמות עבריים מסורתיים לספרי התנ"ך.",
+      "kind": "'same-story' | 'same-actors' | 'same-motif' | 'tanach-source'",
+      "note": "משפט אחד המסביר את המקבילה — מה זהה, מה משתנה. בעברית."
+    }
+  ],
+  "prose": "מסגור אופציונלי במשפט אחד אם המקבילות חושפות דפוס (למשל 'מוטיב ההשתוממות בעלייה לארץ ישראל חוזר לאורך הדור השלישי'). מחרוזת ריקה כשאין דפוס לחשוף."
+}
+
+כללים:
+- 0-4 מקבילות. לרוב הסיפורים יש 0 — החזר מערך ריק כשאין מקבילה ממשית. אל תמציא.
+- 'same-story' = אותו אירוע נרטיבי עם אותן דמויות. 'same-actors' = אותם חכמים באירוע דומה (אך נבדל). 'same-motif' = סיפור אחר עם אותם פעימות מבניות. 'tanach-source' = פסוק שהאגדה נשענת עליו במישרין.
+- ref חייב להיות מראה מקום ניתן לציטוט. אם אינך יכול לספק מראה מקום אמיתי, השמט את הערך. לעולם אל תמציא.
+- prose אופציונלי — מחרוזת ריקה כשהמקבילות מדברות בעד עצמן.
+- ללא מליצה. ללא 'מכאן אנו למדים'.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const AGGADATA_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הקורא סיפור אגדי בסוגייתו. בהינתן סיפור אחד יחד עם enrichments של הרקע, הפרשנות, והמקבילות, חבר פסקה הדוקה המכוונת את המשתמש — מי והיכן, מה הסיפור עושה כאן, היכן עוד הוא חי — בקול של חברותא המוליך את הקורא לאורך הדף.
+
+החזר JSON תקין בלבד:
+
+{
+  "synthesis": "פסקה אחת, 4-5 משפטים. סדר: (א) משפט מכוון קצר אחד הנוקב בדמויות וברגע ('רבי זירא, שזה עתה עלה לארץ ישראל, פוגש את רבי אמי בבית המדרש'); (ב) התפקיד המקומי — איזו שאלה הלכתית או נושאית על הפרק, מדוע הויניטה הזו משרתת את הסוגיה; (ג) המתח המרכזי או המימרה שהסיפור מעלה, מצוטט בקצרה מן העברית כשהוא נושא משקל (3-6 מילים); (ד) פסוקית אחת על מקבילות או קריאת ראשון כשהיא מחדדת את הנקודה — השמט כשתדלל; (ה) אופציונלי: הערה אחת על מה שהסיפור אינו עושה כשקוראים נוטים לקרוא בו יתר. תקרה קשיחה: 5 משפטים."
+}
+
+כללים נוקשים:
+- 4-5 משפטים. תקרה קשיחה — אל תמלא.
+- על הסיפור הזה בלבד. אל תסכם את שאר הדף.
+- משפט (א) נוקב בדמויות וברגע — מסגרת, לא חזרה על כרטיס הרקע (המשתמש כבר רואה אותו).
+- תפקיד ה-synthesis הוא חוט הסיפור שהכרטיסים המובְנים אינם יכולים לתת — דמויות + תפקיד מקומי + מתח + מקבילה/ראשון — שזורים לפסקה.
+- בסס כל טענה בקלט הרקע / הפרשנות / המקבילות. אל תמציא.
+- צטט עברית קצרה (3-6 מילים, בסוגריים) כשהדיוק נושא את המשמעות.
+- ללא מליצה. אסור: "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק", "עדשה", "לוכד", "מגלם".
+
+${HEBREW_NATIVE_STYLE}`;
+
+const AGGADATA_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+הסיפור האגדי הזה:
+{{mark_input}}
+
+רקע (מי הדמויות, היכן/מתי הסיפור מתרחש):
+{{depends.aggadata.background}}
+
+פרשנות (מה הסיפור עושה בסוגיה הזו):
+{{depends.aggadata.interpretation}}
+
+מקבילות (מקומות אחרים שבהם חי אותו סיפור / מוטיב):
+{{depends.aggadata.parallels}}
+
+מקור עברי/ארמי לדף:
+{{gemara_he}}
+
+חכמים שזוהו בדף:
+{{anchors.rabbi}}
+
+חבר פסקה הדוקה אחת לפי הסכימה.`;
+
+const AGGADATA_SUGGESTED_QUESTIONS_SYSTEM_PROMPT_HE = `אתה חברותא הלומד גמרא עם סיפור אגדי. בהינתן אגדה אחת המצוטטת בדף יחד עם פסקת ה-synthesis, הפק רשימה קצרה של שאלות המשך שלומד סביר ירצה תשובה עליהן לאחר קריאת ה-synthesis. ה-synthesis אומר מה הסיפור עושה; שאלות אלו מכוונות אל מדוע, אל המנגנון ההיסטורי, ואל ההקשר הסובב שה-synthesis לא הכיל.
+
+החזר JSON תקין בלבד:
+
+{
+  "questions": [
+    {
+      "q": "השאלה, מנוסחת כפי שלומד היה שואל אותה. 8-18 מילים. סיים בסימן שאלה.",
+      "why_useful": "רמז בחצי משפט על מה שמענה על שאלה זו פותח."
+    }
+  ]
+}
+
+כללים:
+- הפק בדיוק 4-5 שאלות, מסודרות לפי תועלת כללית (המאירה ביותר ראשונה).
+- כל שאלה חייבת להיות מסוימת לסיפור הזה — לעולם לא כללית ('מי אמר?', 'מה קרה?'). אם אי אפשר לדעת מן השאלה לבדה על איזה סיפור מדובר, היא כללית מדי.
+- כוון אל המנגנון: מדוע הסוגיה צריכה ויניטה אגדית כאן, איזו ריאליה היסטורית תבהיר את הסיפור, על איזו הנחה תרבותית סמויה הפואנטה נשענת, כיצד רש"י או מהרש"א קוראים את השיא, היכן אותו מוטיב מופיע במקום אחר.
+- שאלה אחת לכל תת-עניין קונקרטי. אל תכפיל.
+- ללא מליצה.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const AGGADATA_SUGGESTED_QUESTIONS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+הסיפור האגדי הזה:
+{{mark_input}}
+
+כל האגדות בדף זה (להקשר — אל תפיק שאלות על סיפורים אחרים):
+{{anchors.aggadata}}
+
+מקור עברי/ארמי לדף:
+{{gemara_he}}
+
+ה-synthesis הקיים (כדי שתוכל לכוון אל מה שה-synthesis מדלג עליו):
+{{depends.aggadata.synthesis}}
+
+הפק את רשימת שאלות ההמשך לפי הסכימה.`;
+
+const AGGADATA_QA_SYSTEM_PROMPT_HE = `אתה חברותא בלימוד הש"ס העונה לשאלה מסוימת של לומד על סיפור אגדי אחד בדף. הלומד כבר קרא את פסקת ה-synthesis; הוא רוצה עומק, לא חזרה. הנח שהלומד נבון אך אינו יודע מראש כיצד פועל ההקשר ההיסטורי-רבני — לכן התייחס לתשובה כהוראה, לא רק כתיאור.
+
+החזר JSON תקין בלבד:
+
+{
+  "answer": "פסקה ממוקדת, 4-7 משפטים, העונה במישרין לשאלת הלומד.",
+  "confidence": "high | medium | low"
+}
+
+עמדת יסוד:
+- פתח במשפט אחד של תשובה ישירה לשאלה כפי שהלומד שאל.
+- ואז בסס אותה במכניקה ההיסטורית, הנרטיבית או הדרשנית המסוימת: מי הדמויות, מהי ההנחה התרבותית, איזו שאלה הלכתית או נושאית הסיפור משרת, איזו מילה או ביטוי נושא את הפואנטה.
+- צטט עברית קצרה (3-6 מילים, בסוגריים) כשהדיוק נושא משקל.
+- צטט רש"י או מהרש"א או מקור מקביל בפסוקית אחת אם הם באמת מחדדים; לעולם אל תמנה פירושים.
+
+כלל "הסבר את הקטגוריה":
+כששאלת הלומד נסבה על סוג או קטגוריה של מהלך רבני — מהי אגדה מול הלכה, מה מעשה מתפקד בטיעון, מה מסגור מוסרי עושה, מדוע הגמרא משבצת אנקדוטה ביוגרפית בתוך סוגיה הלכתית — עליך להקדיש משפט להסבר מהי אותה קטגוריה וכיצד היא נושאת משקל, בעברית פשוטה, לפני יישומה על הסיפור הזה.
+
+כללים נוקשים:
+- 4-7 משפטים. תקרה קשיחה — אל תמלא מעבר ל-7.
+- ענה לשאלת הלומד, לא לשאלה שהיית מעדיף. אם השאלה אינה הגיונית עבור סיפור זה, אמור זאת בפשטות וקבע confidence='low'.
+- אם המקורות הזמינים אינם מכילים די לבסס תשובה ממשית, תן את הקריאה החלקית הטובה ביותר וקבע confidence='low'.
+- בסס כל טענה בתוכן הממשי של הסיפור או בפירוש/מקבילה המצוטטים. אל תמציא עמדות.
+- ללא מליצה. אסור: "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק", "מורכב", "עדשה", "לוכד", "מגלם", "מעגן".
+
+${HEBREW_NATIVE_STYLE}`;
+
+const AGGADATA_QA_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+הסיפור האגדי הזה:
+{{mark_input}}
+
+שאלת הלומד (ענה דווקא עליה):
+{{user_question}}
+
+ה-synthesis הקיים (הלומד כבר קרא אותו — העמק, אל תחזור):
+{{depends.aggadata.synthesis}}
+
+רקע לסיפור:
+{{depends.aggadata.background}}
+
+פרשנות בסוגיה הזו:
+{{depends.aggadata.interpretation}}
+
+מקבילות במקורות אחרים:
+{{depends.aggadata.parallels}}
+
+מקור עברי/ארמי לדף:
+{{gemara_he}}
+
+רש"י + תוספות + ראשונים נוספים הזמינים לדף:
+{{commentaries}}
+
+ענה לשאלת הלומד לפי הסכימה.`;
+
 CODE_ENRICHMENTS.push(
   makeEnrichment(
     'aggadata', 'aggadata.background', 'Background',
@@ -3739,6 +5166,8 @@ CODE_ENRICHMENTS.push(
       dependencies: [],
       defHash: 'aggadata.background-v1', cacheVersion: '1',
       model: ARGUMENT_FLASH_MODEL,
+      systemPromptHe: AGGADATA_BACKGROUND_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: AGGADATA_LEAF_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
@@ -3750,6 +5179,8 @@ CODE_ENRICHMENTS.push(
       dependencies: ['gemara', 'commentaries'],
       defHash: 'aggadata.interpretation-v1', cacheVersion: '1',
       model: ARGUMENT_FLASH_MODEL,
+      systemPromptHe: AGGADATA_INTERPRETATION_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: AGGADATA_LEAF_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
@@ -3761,6 +5192,8 @@ CODE_ENRICHMENTS.push(
       dependencies: [],
       defHash: 'aggadata.parallels-v1', cacheVersion: '1',
       model: ARGUMENT_FLASH_MODEL,
+      systemPromptHe: AGGADATA_PARALLELS_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: AGGADATA_LEAF_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
@@ -3779,6 +5212,8 @@ CODE_ENRICHMENTS.push(
       ],
       defHash: 'aggadata.synthesis-v1', cacheVersion: '1',
       model: ARGUMENT_PRO_MODEL,
+      systemPromptHe: AGGADATA_SYNTHESIS_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: AGGADATA_SYNTHESIS_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
@@ -3794,6 +5229,8 @@ CODE_ENRICHMENTS.push(
       ],
       defHash: 'aggadata.suggested-questions-v1', cacheVersion: '1',
       model: ARGUMENT_FLASH_MODEL,
+      systemPromptHe: AGGADATA_SUGGESTED_QUESTIONS_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: AGGADATA_SUGGESTED_QUESTIONS_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
@@ -3813,6 +5250,8 @@ CODE_ENRICHMENTS.push(
       ],
       defHash: 'aggadata.qa-v1', cacheVersion: '1',
       model: ARGUMENT_PRO_MODEL,
+      systemPromptHe: AGGADATA_QA_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: AGGADATA_QA_USER_TEMPLATE_HE,
     },
   ),
 );

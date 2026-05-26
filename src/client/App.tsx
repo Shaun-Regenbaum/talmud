@@ -1,4 +1,5 @@
 import { createSignal, Show } from 'solid-js';
+import { TopBar } from './TopBar';
 import PretextSpike from './PretextSpike';
 import Compare from './Compare';
 import DafViewer from './DafViewer';
@@ -31,6 +32,8 @@ export default function App() {
   window.addEventListener('hashchange', () => setRoute(currentRoute()));
 
   return (
+    <>
+    <TopBar />
     <Show when={route() === 'align'} fallback={
       <Show when={route() === 'usage'} fallback={
         <Show when={route() === 'compare'} fallback={
@@ -54,5 +57,6 @@ export default function App() {
     }>
       <AlignPage />
     </Show>
+    </>
   );
 }

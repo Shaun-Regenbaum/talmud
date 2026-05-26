@@ -47,6 +47,46 @@ export interface ObservedPlace {
   dafs: string[];
 }
 
+// The `places` mark is an LLM extractor that, on rabbi-heavy dafim, over-emits:
+// it tags people ("רב אשי", "רבי מאיר", "רב ירמיה מדפתי") and peoples ("ארמאי"
+// Aramean, "כותי" Samaritan) as locations. The prompt now warns against this,
+// but a flash model still leaks, so we keep a deterministic net here — applied
+// both when recording a sighting and when listing the backlog (so junk already
+// in KV stops showing without a destructive purge).
+const RABBI_TITLE_TOKENS = new Set(['רב', 'רבי', 'רבא', 'רבה', 'מר', 'אבא', 'אביי', 'רבן', 'ריש', "ר'", 'ר׳']);
+const RABBI_SOLO_NAMES = new Set(['רבינא', 'אביי', 'רבא', 'רבה', 'רבן']); // single-token names carrying no title
+const ETHNONYMS_HE = new Set(['ארמאי', 'ארמית', 'ארמאין', 'כותי', 'כותים', 'נכרי', 'נכרים', 'גוי', 'גויים', 'עכום']);
+const PATRONYMIC_RE = /\s(בר|בן|ברה)\s|\sבריה/; // "X bar/ben Y", "X בריה ד..." (son of) — boundary-anchored so it doesn't fire inside טבריה (Tiberias)
+
+function stripNiqqud(s?: string): string {
+  return (s || '').replace(/[֑-ׇ]/g, '').trim();
+}
+
+function looksLikePerson(name?: string, nameHe?: string): boolean {
+  const he = stripNiqqud(nameHe);
+  if (he) {
+    const tokens = he.split(/\s+/);
+    if (RABBI_TITLE_TOKENS.has(tokens[0])) return true;
+    if (tokens.length === 1 && RABBI_SOLO_NAMES.has(tokens[0])) return true;
+    if (PATRONYMIC_RE.test(` ${he} `)) return true;
+  }
+  const en = (name || '').trim();
+  if (/^(rabbi|rav|rava|ravina|rabbah|rabban|mar|abaye|resh)\b/i.test(en)) return true;
+  if (/\b(bar|ben|son of)\b/i.test(en)) return true;
+  return false;
+}
+
+function isEthnonym(name?: string, nameHe?: string): boolean {
+  if (ETHNONYMS_HE.has(stripNiqqud(nameHe))) return true;
+  return /^(aramean|aramaean|samaritan|cuthean|gentile|heathen|idolater)/i.test((name || '').trim());
+}
+
+/** True when an emitted "place" is a real geographic location — i.e. not a
+ *  rabbi/sage misclassified as a city, and not a people/nation. */
+export function isRealPlace(name?: string, nameHe?: string): boolean {
+  return !looksLikePerson(name, nameHe) && !isEthnonym(name, nameHe);
+}
+
 async function bump<T extends { firstSeen: number; lastSeen: number; count: number; dafs: string[] }>(
   cache: KVNamespace,
   key: string,
@@ -93,6 +133,7 @@ export function recordObservedPlace(
   p: { name?: string; nameHe?: string; kind?: string; region?: string; tractate: string; page: string },
 ): void {
   if (!env.CACHE) return;
+  if (!isRealPlace(p.name, p.nameHe)) return; // people / peoples are not gazetteer candidates
   const keyPart = norm(p.name || '') || norm(p.nameHe || '');
   if (!keyPart) return;
   const daf = `${p.tractate} ${p.page}`.trim();
@@ -113,7 +154,12 @@ export interface UnknownSummary<T> {
   sample: T[];          // top entities by sighting count
 }
 
-async function listPrefix<T extends { count: number }>(cache: KVNamespace, prefix: string, sample: number): Promise<UnknownSummary<T>> {
+async function listPrefix<T extends { count: number }>(
+  cache: KVNamespace,
+  prefix: string,
+  sample: number,
+  keep?: (r: T) => boolean,
+): Promise<UnknownSummary<T>> {
   const names: string[] = [];
   let cursor: string | undefined;
   for (;;) {
@@ -131,6 +177,7 @@ async function listPrefix<T extends { count: number }>(cache: KVNamespace, prefi
     if (!raw) continue;
     try {
       const r = JSON.parse(raw) as T;
+      if (keep && !keep(r)) continue;
       parsed.push(r);
       sightings += r.count ?? 0;
     } catch { /* skip corrupt */ }
@@ -144,5 +191,7 @@ export function listUnknownRabbis(cache: KVNamespace, sample = 50): Promise<Unkn
 }
 
 export function listObservedPlaces(cache: KVNamespace, sample = 50): Promise<UnknownSummary<ObservedPlace>> {
-  return listPrefix<ObservedPlace>(cache, PLACE_PREFIX, sample);
+  // Hide historical junk (rabbis/peoples the old prompt mis-tagged as places)
+  // without a destructive purge — the bad KV entries simply age out via TTL.
+  return listPrefix<ObservedPlace>(cache, PLACE_PREFIX, sample, (r) => isRealPlace(r.name, r.nameHe));
 }

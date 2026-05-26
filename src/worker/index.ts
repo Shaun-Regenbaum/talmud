@@ -149,6 +149,10 @@ export interface JobMessage {
    *  qualifierHash) and is exposed to its prompt as {{user_question}}. Used
    *  by argument-move.qa today. Empty/undefined means a vanilla run. */
   user_question?: string;
+  /** Output language for enrichments. 'he' selects the *_he prompt variant
+   *  and a `:he`-namespaced cache key; omitted/'en' is the default English
+   *  path. Marks ignore this (language-neutral output). */
+  lang?: 'en' | 'he';
 }
 
 function stripHtmlServer(html: string): string {
@@ -688,6 +692,8 @@ function adaptCodeEnrichment(code: SchemaEnrichmentDefinition): EnrichmentDefini
     dependencies: code.dependencies,
     system_prompt: code.extractor.system_prompt,
     user_prompt_template: code.extractor.user_prompt_template,
+    system_prompt_he: code.extractor.system_prompt_he,
+    user_prompt_template_he: code.extractor.user_prompt_template_he,
     model: code.extractor.model,
     output_schema: code.extractor.output_schema,
     thinking_off: code.extractor.thinking_off,
@@ -740,6 +746,11 @@ interface RunCtx {
   env: Bindings;
   url: string;
   ctx: ExecutionContext;
+  /** Output language for enrichment prompts + cache keys. Flows from the
+   *  JobMessage through the whole dependency tree so a Hebrew bio's upstream
+   *  (relationships, geography, …) are generated in Hebrew too. Marks ignore
+   *  it. Defaults to 'en' at every construction site. */
+  lang: 'en' | 'he';
 }
 
 interface ResolvedInputs {
@@ -1950,7 +1961,7 @@ async function runEnrichmentOnce(
     // the default-traffic key. Re-running with the same override hits the
     // gateway prompt cache but not KV — consistent with bypass behavior.
     ? null
-    : keyForEnrichment(def, instance_id, def.scope === 'local' ? { tractate, page } : undefined, qHash);
+    : keyForEnrichment(def, instance_id, def.scope === 'local' ? { tractate, page } : undefined, qHash, rc.lang);
   if (cacheKey && !bypassCache) {
     const hit = await readCachedResult(rc.env, cacheKey);
     if (hit) return { ...hit, cache_hit: true };
@@ -2071,8 +2082,15 @@ async function runEnrichmentOnce(
     // is safe to interpolate in any prompt.
     user_question: userQuestion ? normalizeQualifier(userQuestion) : '',
   };
-  const systemPrompt = renderTemplate(def.system_prompt, vars);
-  const userPrompt = renderTemplate(def.user_prompt_template, vars);
+  // Select the Hebrew prompt variant when this run is lang='he' AND the def
+  // provides one; otherwise fall back to English. Falling back (rather than
+  // erroring) means an enrichment without a *_he prompt still works in he
+  // mode — it just produces English prose until its Hebrew prompt is authored.
+  const useHe = rc.lang === 'he';
+  const systemPromptTpl = useHe && def.system_prompt_he ? def.system_prompt_he : def.system_prompt;
+  const userPromptTpl = useHe && def.user_prompt_template_he ? def.user_prompt_template_he : def.user_prompt_template;
+  const systemPrompt = renderTemplate(systemPromptTpl, vars);
+  const userPrompt = renderTemplate(userPromptTpl, vars);
 
   const model = modelOverride ?? def.model;
   const result = await runLLM(rc.env, {
@@ -2186,7 +2204,7 @@ async function cacheKeyForRunBody(env: Bindings, body: JobMessage): Promise<{
     const instance_id = await instanceIdOf(body.mark_input);
     const dafForKey = def.scope === 'local' ? { tractate: body.tractate, page: body.page } : undefined;
     const qHash = body.user_question ? await qualifierHash(body.user_question) : undefined;
-    return { key: keyForEnrichment(def, instance_id, dafForKey, qHash), defKind: 'enrichment' };
+    return { key: keyForEnrichment(def, instance_id, dafForKey, qHash, body.lang ?? 'en'), defKind: 'enrichment' };
   }
   // ad_hoc has no canonical key
   return { key: null, defKind: null };
@@ -2204,6 +2222,7 @@ async function makeRunId(body: JobMessage): Promise<string> {
     body.tractate, body.page,
     await instanceIdOf(body.mark_input),
     body.user_question ? `q_${await qualifierHash(body.user_question)}` : 'noq',
+    body.lang === 'he' ? 'he' : 'en',
     body.bypass_cache ? 'fresh' : 'cached',
     String(Math.floor(Date.now() / 1000)),
   ];
@@ -2299,6 +2318,7 @@ app.post('/api/studio/run', async (c) => {
     bypass_cache: body.bypass_cache === true,
     user_question: typeof body.user_question === 'string' && body.user_question.trim().length > 0
       ? body.user_question : undefined,
+    lang: body.lang === 'he' ? 'he' : undefined,
   };
 
   // Hot path: canonical cache hit short-circuits the queue entirely.
@@ -2715,6 +2735,7 @@ app.post('/api/qa/ask', async (c) => {
     tractate: string; page: string;
     mark: string; move_id: string; instance_id: string;
     question: string; mark_input: unknown;
+    lang: 'en' | 'he';
   }>;
   if (!b.tractate || !b.page || !b.question) {
     return c.json({ error: 'tractate, page, question required' }, 400);
@@ -2770,6 +2791,7 @@ app.post('/api/qa/ask', async (c) => {
       mark_input: b.mark_input,
       user_question: trimmed,
       bypass_cache: false,
+      lang: b.lang === 'he' ? 'he' : undefined,
     };
     job.runId = await makeRunId(job);
     try {
@@ -6316,6 +6338,7 @@ async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: Executi
     env: wrapped,
     url: 'https://localhost/internal',
     ctx,
+    lang: job.lang === 'he' ? 'he' : 'en',
   };
   const t0 = Date.now();
 

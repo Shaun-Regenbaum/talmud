@@ -140,9 +140,16 @@ export function keyForEnrichment(
    *  should normalize then hash with qualifierHash() so cosmetic variation
    *  doesn't fan the cache out. */
   qualifier?: string,
+  /** Output language. 'en' (default) keeps the key byte-identical to the
+   *  pre-i18n shape so existing caches stay reachable; 'he' inserts a `:he`
+   *  segment right after cache_version, giving Hebrew its own namespace
+   *  (e.g. enrich:rabbi.bio:5:he:Abaye). Marks have no lang dimension — their
+   *  output is language-neutral structured data. */
+  lang: 'en' | 'he' = 'en',
 ): string {
   const scope = enrichmentScope(def);
-  const head = `enrich:${def.id}:${def.cache_version}:${instance_id}`;
+  const langSeg = lang === 'he' ? ':he' : '';
+  const head = `enrich:${def.id}:${def.cache_version}${langSeg}:${instance_id}`;
   const body = scope === 'local'
     ? (() => {
         if (!daf) throw new Error(`enrichment ${def.id} is scope=local but no daf was supplied to keyForEnrichment`);
