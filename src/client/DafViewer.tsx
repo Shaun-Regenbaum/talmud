@@ -17,7 +17,7 @@ import { ensureMasechetIncipit } from './ensureMasechetIncipit';
 import { injectAnchorMarkers, injectOpinionMarkers, injectAggadataAnchors, injectPesukimAnchors } from './anchorMarkers';
 import { GutterIcons, type GutterKind } from './GutterIcons';
 import { GutterOverlay } from './GutterOverlay';
-import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
+import { ArgumentSidebar, type SidebarContent, type PlaceInstance } from './ArgumentSidebar';
 import { BugReport } from './BugReport';
 import { type CommentaryWork, type CommentaryComment } from './CommentaryPicker';
 import { CommentaryStrip } from './CommentaryStrip';
@@ -713,6 +713,7 @@ export default function DafViewer(): JSX.Element {
     if (c.kind === 'aggadata') return c.story.title || 'Aggada';
     if (c.kind === 'pesuk') return c.pasuk.verseRef || 'Pasuk';
     if (c.kind === 'rabbi') return c.rabbi.name || 'Rabbi';
+    if (c.kind === 'place') return c.place.fields.name || 'Place';
     if (c.kind === 'voice-group') return c.group.name;
     if (c.kind === 'rishonim') return `Rishonim · seg ${c.instance.segIdx + 1}`;
     return 'Back';
@@ -723,6 +724,7 @@ export default function DafViewer(): JSX.Element {
     if (c.kind === 'aggadata') return `aggadata:${c.story.title}`;
     if (c.kind === 'pesuk') return `pesuk:${c.pasuk.verseRef}`;
     if (c.kind === 'rabbi') return `rabbi:${c.rabbi.slug ?? c.rabbi.name}`;
+    if (c.kind === 'place') return `place:${c.place.fields.name}`;
     if (c.kind === 'voice-group') return `voice-group:${c.group.name}`;
     if (c.kind === 'rishonim') return `rishonim:${c.instance.segIdx}`;
     return 'unknown';
@@ -1737,6 +1739,7 @@ export default function DafViewer(): JSX.Element {
     const s = sidebar();
     if (!s) return null;
     if (s.kind === 'rabbi') return `rabbi:${s.rabbi.name}`;
+    if (s.kind === 'place') return `place:${s.place.fields.name}`;
     if (s.kind === 'voice-group') return `voice-group:${s.group.name}`;
     return `${s.kind}:${s.index}`;
   });
@@ -1938,6 +1941,29 @@ export default function DafViewer(): JSX.Element {
     }
     setActiveRabbi(r.name);
     setSidebar({ kind: 'rabbi', rabbi: r });
+    setLastInteractedCard('argument');
+  };
+
+  // City-marker click → highlight every mention of the place AND open the
+  // place card. The card needs the full mark instance (nameHe/kind/region) so
+  // it can fire places.synthesis with the same shape the prefetcher warmed;
+  // `data-city` only carries the canonical English name, so we look the
+  // instance back up in the places mark run. Falls back to a minimal instance
+  // (still opens the card; the synthesis re-derives from the name) if the run
+  // hasn't landed or the name isn't found.
+  const openPlace = (name: string) => {
+    const run = markRunsByMarkId()['places'];
+    const instances = (run?.parsed as { instances?: PlaceInstance[] } | undefined)?.instances;
+    const found = instances?.find((i) => i.fields?.name === name) ?? null;
+    const place: PlaceInstance = found ?? {
+      fields: { name, nameHe: '', kind: '', region: '', knownAs: [] },
+    };
+    setActiveRabbi(null);
+    setActiveLocation(null);
+    setActiveLocationRabbis([]);
+    clearCommentarySelection();
+    setActivePlace(name);
+    setSidebar({ kind: 'place', place });
     setLastInteractedCard('argument');
   };
 
@@ -2311,13 +2337,7 @@ export default function DafViewer(): JSX.Element {
         const cityEl = target.closest('.city-marker') as HTMLElement | null;
         if (cityEl) {
           const cityName = cityEl.getAttribute('data-city');
-          if (cityName) {
-            setActiveRabbi(null);
-            setActiveLocation(null);
-            setActiveLocationRabbis([]);
-            setActivePlace(cityName);
-            return;
-          }
+          if (cityName) { openPlace(cityName); return; }
         }
         return;
       }
@@ -2340,18 +2360,11 @@ export default function DafViewer(): JSX.Element {
       if (rabbiName) { openRabbi(rabbiName); return; }
     }
     // Click on a city marker → highlight every mention of that city across
-    // the daf. (Geography side panel was removed; the place-highlight
-    // behaviour stays so per-city tinting still works.)
+    // the daf AND open the place card (profile/significance/figures synthesis).
     const cityEl = target.closest('.city-marker') as HTMLElement | null;
     if (cityEl) {
       const cityName = cityEl.getAttribute('data-city');
-      if (cityName) {
-        setActiveRabbi(null);
-        setActiveLocation(null);
-        setActiveLocationRabbis([]);
-        setActivePlace(cityName);
-        return;
-      }
+      if (cityName) { openPlace(cityName); return; }
     }
     const wordEl = target.closest('.daf-word') as HTMLElement | null;
     if (!wordEl) return;

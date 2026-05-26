@@ -2263,6 +2263,125 @@ CODE_MARKS.push({
   updated_at: NOW,
 });
 
+// ---------------------------------------------------------------------------
+// Place leaf enrichments — daf-agnostic facets of ONE place, mirroring the
+// rabbi leaves. Each is scope:'global' so it's cached once per place
+// (keyed off fields.name via instanceIdOf) and reused across every daf that
+// references it. The region is carried on the mark instance itself
+// (israel | bavel | other) — the same classification cityRegions provides —
+// so no separate gazetteer lookup is needed. Leaves render only in dev mode;
+// production users see the synthesis, which aggregates all three.
+// ---------------------------------------------------------------------------
+
+const makePlaceEnrichment = (
+  id: string,
+  label: string,
+  description: string,
+  systemPrompt: string,
+  userPromptTemplate: string,
+  outputSchema: unknown,
+  opts: {
+    mode: 'augment-content' | 'aggregate';
+    scope: EnrichmentScope;
+    dependencies?: EnrichmentDependency[];
+    defHash: string;
+    cacheVersion: string;
+  },
+): EnrichmentDefinition => makeEnrichment('places', id, label, description, systemPrompt, userPromptTemplate, outputSchema, opts);
+
+// Leaves are daf-agnostic: the prompt sees ONLY the place identity (name,
+// kind, region) — never a specific daf's gemara — so the globally-cached
+// output is stable no matter which daf triggered the run.
+const PLACE_LEAF_USER_TEMPLATE = `Place:
+{{mark_input}}
+
+Return JSON per the schema.`;
+
+const PLACE_PROFILE_SYSTEM_PROMPT = `You are a Talmud geographer. Given ONE place (its canonical name, kind — city/academy/land/region — and Talmudic region tag), write a tight daf-agnostic profile.
+
+Output STRICT JSON only:
+
+{
+  "profile": "2-3 sentences. (a) What and where it is (a city on the Euphrates in Bavel, a Tannaitic academy in the Galilee, the Land of Israel as a halachic territory, etc.). (b) When it flourished and under whom — the generation(s) and era of its prominence in rabbinic life. Geography only where it carries weight (river, trade route, proximity to another center)."
+}
+
+HARD RULES:
+- 2-3 sentences. Hard ceiling.
+- Daf-agnostic: describe the place itself, NOT any one sugya. Do not reference "this daf".
+- Ground every claim in actual history — no invented detail. Hedge when uncertain ("traditionally", "by the late amoraic period").
+- NO puff: avoid "this teaches us", "underscores", "highlights", "intricate", "profound".
+- Hebrew in parentheses for technical terms (ישיבה, מתיבתא) — never transliteration.
+
+${HEBREW_GLOSS_STYLE}`;
+
+const PLACE_SIGNIFICANCE_SYSTEM_PROMPT = `You are a Talmud historian. Given ONE place, explain its significance in the Talmudic world — daf-agnostic.
+
+Output STRICT JSON only:
+
+{
+  "significance": "2-3 sentences. Why does the Talmud care about this place? Name its FUNCTION: seat of a named academy/court, a halachic category (e.g. Eretz Yisrael vs. Bavel distinctions in mitzvot ha-teluyot ba-aretz, calendar authority, semicha), a trade or cultural center, a story locale. If it anchors a recurring halachic or institutional contrast (Israel vs. Bavel, Sura vs. Pumbedita), say so concretely."
+}
+
+HARD RULES:
+- 2-3 sentences. Hard ceiling.
+- Daf-agnostic: the place's standing role, not one sugya.
+- Concrete function over adjectives. If it's a halachic category, name the category.
+- NO puff. Forbidden: "this teaches us", "underscores", "highlights", "intricate", "profound".
+- Hebrew in parentheses for technical terms — never transliteration.
+
+${HEBREW_GLOSS_STYLE}`;
+
+const PLACE_FIGURES_SYSTEM_PROMPT = `You are a Talmud historian. Given ONE place, name the sages most associated with it — daf-agnostic.
+
+Output STRICT JSON only:
+
+{
+  "figures": "1-2 sentences naming the 2-5 sages most identified with this place and HOW (founded/headed its academy, taught there, ruled from its court, are repeatedly located there in the Gemara). E.g. 'Rav founded the academy at Sura; Rav Ashi later headed it.' If no specific sage is reliably tied to the place, say so in one clause rather than guessing."
+}
+
+HARD RULES:
+- 1-2 sentences. Hard ceiling.
+- Name real, attested associations only — do NOT invent a sage-place tie.
+- Use conventional English names (Rav, Shmuel, Rav Ashi, Rabbi Yochanan).
+- Hebrew in parentheses only for technical terms — names stay in English.
+- NO puff.
+
+${HEBREW_GLOSS_STYLE}`;
+
+const PLACE_PROFILE_OUTPUT_SCHEMA = {
+  name: 'place_profile', strict: true,
+  schema: { type: 'object', additionalProperties: false, required: ['profile'], properties: { profile: { type: 'string' } } },
+};
+const PLACE_SIGNIFICANCE_OUTPUT_SCHEMA = {
+  name: 'place_significance', strict: true,
+  schema: { type: 'object', additionalProperties: false, required: ['significance'], properties: { significance: { type: 'string' } } },
+};
+const PLACE_FIGURES_OUTPUT_SCHEMA = {
+  name: 'place_figures', strict: true,
+  schema: { type: 'object', additionalProperties: false, required: ['figures'], properties: { figures: { type: 'string' } } },
+};
+
+CODE_ENRICHMENTS.push(
+  makePlaceEnrichment(
+    'places.profile', 'Profile',
+    'Daf-agnostic profile: what/where the place is, its era of prominence, and geography that matters.',
+    PLACE_PROFILE_SYSTEM_PROMPT, PLACE_LEAF_USER_TEMPLATE, PLACE_PROFILE_OUTPUT_SCHEMA,
+    { mode: 'augment-content', scope: 'global', defHash: 'places.profile-v1', cacheVersion: '1' },
+  ),
+  makePlaceEnrichment(
+    'places.significance', 'Significance',
+    'Daf-agnostic role in the Talmudic world: academy/court seat, halachic category, trade/cultural center.',
+    PLACE_SIGNIFICANCE_SYSTEM_PROMPT, PLACE_LEAF_USER_TEMPLATE, PLACE_SIGNIFICANCE_OUTPUT_SCHEMA,
+    { mode: 'augment-content', scope: 'global', defHash: 'places.significance-v1', cacheVersion: '1' },
+  ),
+  makePlaceEnrichment(
+    'places.figures', 'Figures',
+    'Daf-agnostic: the sages most associated with the place and how.',
+    PLACE_FIGURES_SYSTEM_PROMPT, PLACE_LEAF_USER_TEMPLATE, PLACE_FIGURES_OUTPUT_SCHEMA,
+    { mode: 'augment-content', scope: 'global', defHash: 'places.figures-v1', cacheVersion: '1' },
+  ),
+);
+
 const PLACES_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud geographer. Given ONE geographic reference identified on a daf and the surrounding gemara, compose a tight paragraph about THIS specific place IN THE CONTEXT OF THIS DAF.
 
 Output STRICT JSON only:
@@ -2285,6 +2404,17 @@ const PLACES_SYNTHESIS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 THIS place reference:
 {{mark_input}}
 
+Background on this place (daf-agnostic — use as grounding, do NOT just restate):
+
+[PROFILE]
+{{depends.places.profile}}
+
+[SIGNIFICANCE]
+{{depends.places.significance}}
+
+[ASSOCIATED SAGES]
+{{depends.places.figures}}
+
 Hebrew/Aramaic source for the daf:
 {{gemara_he}}
 
@@ -2294,7 +2424,7 @@ English translation:
 Rabbis identified on the daf (for context on who's teaching where):
 {{anchors.rabbi}}
 
-Compose ONE tight paragraph about THIS place per the schema.`;
+Compose ONE tight paragraph about THIS place per the schema. Lead with what the place is and why it matters (drawing on the background), then pivot to how THIS daf uses it. Do NOT merely repeat the background verbatim.`;
 
 const PLACES_SYNTHESIS_OUTPUT_SCHEMA = {
   name: 'places_synthesis',
@@ -2314,8 +2444,15 @@ CODE_ENRICHMENTS.push(
     PLACES_SYNTHESIS_SYSTEM_PROMPT, PLACES_SYNTHESIS_USER_TEMPLATE, PLACES_SYNTHESIS_OUTPUT_SCHEMA,
     {
       mode: 'aggregate', scope: 'local',
-      dependencies: ['gemara', { mark: 'places' }, { mark: 'rabbi' }],
-      defHash: 'places.synthesis-v2', cacheVersion: '2',
+      dependencies: [
+        'gemara',
+        { enrichment: 'places.profile' },
+        { enrichment: 'places.significance' },
+        { enrichment: 'places.figures' },
+        { mark: 'places' },
+        { mark: 'rabbi' },
+      ],
+      defHash: 'places.synthesis-v3', cacheVersion: '3',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),

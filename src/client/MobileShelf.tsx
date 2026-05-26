@@ -157,6 +157,7 @@ function labelForSidebar(s: SidebarContent | null): string {
     case 'aggadata': return 'Aggadata';
     case 'pesuk': return 'Pasuk';
     case 'rabbi': return 'Rabbi';
+    case 'place': return 'Place';
     case 'voice-group': return 'Voice';
     case 'rishonim': return 'Rishonim';
   }
