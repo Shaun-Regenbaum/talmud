@@ -286,40 +286,60 @@ function SourceRow(props: { label: string; count: number; total: number; percent
   );
 }
 
+// Per-language slices of a row's `versions` map. The current version in lang L
+// is fresh; superseded versions in L are stale. `:he` suffix = Hebrew bucket.
+function langCount(versions: Record<string, number>, cv: string, he: boolean): number {
+  return versions[he ? `${cv}:he` : cv] ?? 0;
+}
+function langStaleVersions(versions: Record<string, number>, cv: string, he: boolean): Array<[string, number]> {
+  return Object.entries(versions)
+    .filter(([v]) => {
+      const isHe = v.endsWith(':he');
+      return he ? (isHe && v !== `${cv}:he`) : (!isHe && v !== cv);
+    })
+    .sort(([a], [b]) => b.localeCompare(a));
+}
+
+// Small chip marking a Hebrew (:he) row.
+function HeTag(): JSX.Element {
+  return (
+    <span style={{ 'font-size': '0.7rem', color: '#1d4ed8', 'margin-left': '0.4rem', background: '#eef2ff', padding: '0.05rem 0.4rem', 'border-radius': '3px', 'font-weight': 600 }}>
+      {t('usage.heRow')}
+    </span>
+  );
+}
+
 // ---- Expandable anchor (mark) row with per-version breakdown -------------
-function AnchorRow(props: { row: MarkRow; total: number }): JSX.Element {
+// `he` renders the Hebrew (:he) slice of the same mark as its own row.
+function AnchorRow(props: { row: MarkRow; total: number; he?: boolean }): JSX.Element {
   const [open, setOpen] = createSignal(false);
   const r = () => props.row;
-  // The current version in EITHER language is "current"; the rest are stale.
-  const otherVersions = () =>
-    Object.entries(r().versions)
-      .filter(([v]) => v !== r().cache_version && v !== `${r().cache_version}:he`)
-      .sort(([a], [b]) => b.localeCompare(a));
-  const complete = () => r().percent >= 100;
+  const he = () => props.he === true;
+  const count = () => langCount(r().versions, r().cache_version, he());
+  const percent = () => (props.total > 0 ? (count() / props.total) * 100 : 0);
+  const otherVersions = () => langStaleVersions(r().versions, r().cache_version, he());
+  const staleCount = () => otherVersions().reduce((s, [, n]) => s + n, 0);
+  const complete = () => percent() >= 100;
   return (
     <>
       <tr style={{ 'border-bottom': '1px solid #f4f4f4', cursor: 'pointer' }} onClick={() => setOpen(!open())}>
         <td style={{ padding: '0.4rem 0.5rem' }}>
           <span style={{ color: '#bbb', 'margin-right': '0.4rem', display: 'inline-block', width: '0.7rem' }}>{open() ? '▾' : '▸'}</span>
           {r().label}
-          <span style={{ color: '#888', 'font-size': '0.75rem', 'margin-left': '0.4rem' }}>({r().id} · v{r().cache_version} · {r().source})</span>
-          <Show when={r().staleCount > 0}>
+          <Show when={he()}><HeTag /></Show>
+          <span style={{ color: '#888', 'font-size': '0.75rem', 'margin-left': '0.4rem' }}>({r().id} · v{r().cache_version}{he() ? ':he' : ''} · {r().source})</span>
+          <Show when={staleCount() > 0}>
             <span style={{ 'font-size': '0.7rem', color: '#b58100', 'margin-left': '0.4rem', background: '#fff7e0', padding: '0.05rem 0.35rem', 'border-radius': '3px' }}>
-              {t('usage.staleBadge', { count: fmtInt(r().staleCount) })}
-            </span>
-          </Show>
-          <Show when={r().heCount > 0}>
-            <span style={{ 'font-size': '0.7rem', color: '#1d4ed8', 'margin-left': '0.4rem', background: '#eef2ff', padding: '0.05rem 0.35rem', 'border-radius': '3px' }}>
-              {t('usage.heBadge', { count: fmtInt(r().heCount) })} ({(props.total > 0 ? (r().heCount / props.total) * 100 : 0).toFixed(1)}%)
+              {t('usage.staleBadge', { count: fmtInt(staleCount()) })}
             </span>
           </Show>
         </td>
         <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>
-          {fmtInt(r().count)} / {fmtInt(props.total)}
+          {fmtInt(count())} / {fmtInt(props.total)}
         </td>
-        <td style={{ padding: '0.4rem 0.5rem', width: '38%' }}><ProgressBar percent={r().percent} /></td>
+        <td style={{ padding: '0.4rem 0.5rem', width: '38%' }}><ProgressBar percent={percent()} /></td>
         <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', color: complete() ? '#2a8a42' : '#333', 'white-space': 'nowrap' }}>
-          {r().percent.toFixed(1)}%
+          {percent().toFixed(1)}%
         </td>
       </tr>
       <Show when={open()}>
@@ -327,8 +347,7 @@ function AnchorRow(props: { row: MarkRow; total: number }): JSX.Element {
           <td colspan={4} style={{ padding: '0.3rem 0.5rem 0.6rem 1.6rem' }}>
             <div style={{ 'font-size': '0.78rem', color: '#666' }}>
               <div style={{ 'margin-bottom': '0.3rem' }}>
-                <b>v{r().cache_version}</b> {t('usage.version.current', { count: fmtInt(r().count) })}
-                <Show when={r().heCount > 0}><span style={{ color: '#1d4ed8' }}>{' · '}{t('usage.heBadge', { count: fmtInt(r().heCount) })}</span></Show>
+                <b>v{r().cache_version}{he() ? ':he' : ''}</b> {t('usage.version.current', { count: fmtInt(count()) })}
               </div>
               <Show when={otherVersions().length > 0} fallback={<span style={{ color: '#aaa' }}>{t('usage.version.noSuperseded')}</span>}>
                 <div style={{ color: '#b58100', 'margin-bottom': '0.2rem' }}>{t('usage.version.supersededHeading')}</div>
@@ -385,7 +404,12 @@ function PipelineSection(props: { stats: CacheStats }): JSX.Element {
               </tr>
             </thead>
             <tbody>
-              <For each={props.stats.marks}>{(m) => <AnchorRow row={m} total={total()} />}</For>
+              <For each={props.stats.marks}>{(m) => (
+                <>
+                  <AnchorRow row={m} total={total()} />
+                  <Show when={m.heCount > 0}><AnchorRow row={m} total={total()} he /></Show>
+                </>
+              )}</For>
             </tbody>
           </table>
         </Show>
@@ -398,6 +422,35 @@ function PipelineSection(props: { stats: CacheStats }): JSX.Element {
         </Show>
       </div>
     </section>
+  );
+}
+
+// One enrichment row, in a given language slice. `he` shows the Hebrew (:he)
+// cache as its own line. The denominator ratio is only meaningful for English
+// (instance counts are language-neutral), so it's omitted on the Hebrew row.
+function EnrichRow(props: { e: EnrichmentRow; denom: number | null; he?: boolean }): JSX.Element {
+  const e = () => props.e;
+  const he = () => props.he === true;
+  const count = () => langCount(e().versions, e().cache_version, he());
+  const stale = () => langStaleVersions(e().versions, e().cache_version, he()).reduce((s, [, n]) => s + n, 0);
+  return (
+    <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+      <td style={{ padding: '0.4rem 0.5rem' }}>
+        {e().label}
+        <Show when={he()}><HeTag /></Show>
+        <span style={{ color: '#888', 'font-size': '0.75rem', 'margin-left': '0.4rem' }}>({e().id} · v{e().cache_version}{he() ? ':he' : ''} · {e().source})</span>
+      </td>
+      <td style={{ padding: '0.4rem 0.5rem', 'font-family': 'monospace', color: '#555' }}>{e().target_mark}</td>
+      <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>
+        {fmtInt(count())}
+        <Show when={!he() && props.denom != null && props.denom > 0}>
+          <span style={{ color: '#999' }}> / {fmtInt(props.denom!)} ({((count() / props.denom!) * 100).toFixed(0)}%)</span>
+        </Show>
+      </td>
+      <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', color: stale() ? '#b58100' : '#bbb' }}>
+        {stale() ? fmtInt(stale()) : '—'}
+      </td>
+    </tr>
   );
 }
 
@@ -414,30 +467,12 @@ function EnrichmentTable(props: { rows: EnrichmentRow[]; denominatorFor?: (e: En
       </thead>
       <tbody>
         <For each={props.rows}>
-          {(e) => {
-            const denom = props.denominatorFor?.(e) ?? null;
-            return (
-              <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
-                <td style={{ padding: '0.4rem 0.5rem' }}>
-                  {e.label}
-                  <span style={{ color: '#888', 'font-size': '0.75rem', 'margin-left': '0.4rem' }}>({e.id} · v{e.cache_version} · {e.source})</span>
-                </td>
-                <td style={{ padding: '0.4rem 0.5rem', 'font-family': 'monospace', color: '#555' }}>{e.target_mark}</td>
-                <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>
-                  {fmtInt(e.count)}
-                  <Show when={denom != null && denom > 0}>
-                    <span style={{ color: '#999' }}> / {fmtInt(denom!)} ({((e.count / denom!) * 100).toFixed(0)}%)</span>
-                  </Show>
-                  <Show when={e.heCount > 0}>
-                    <span style={{ color: '#1d4ed8', 'margin-left': '0.4rem', 'font-size': '0.72rem' }}>{t('usage.heBadge', { count: fmtInt(e.heCount) })}</span>
-                  </Show>
-                </td>
-                <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', color: e.staleCount ? '#b58100' : '#bbb' }}>
-                  {e.staleCount ? fmtInt(e.staleCount) : '—'}
-                </td>
-              </tr>
-            );
-          }}
+          {(e) => (
+            <>
+              <EnrichRow e={e} denom={props.denominatorFor?.(e) ?? null} />
+              <Show when={e.heCount > 0}><EnrichRow e={e} denom={null} he /></Show>
+            </>
+          )}
         </For>
       </tbody>
     </table>
