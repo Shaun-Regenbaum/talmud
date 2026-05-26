@@ -1,22 +1,23 @@
 /**
  * Daf-load prefetcher. When a daf's anchor marks have loaded, eagerly warm the
- * SECTION-level enrichments the reader is most likely to open next — the
- * per-section syntheses plus the suggested-questions lists — so opening a
- * sidebar shows content immediately instead of waiting on a cold generation.
+ * enrichments the reader is most likely to open next — the per-section and
+ * per-move syntheses plus the suggested-questions lists — so opening a sidebar
+ * shows content immediately instead of waiting on a cold generation.
  *
- * Scope is deliberately section-level:
+ * Scope:
  *   - Prefetched: argument/pesukim/places/halacha/rabbi/rishonim syntheses,
- *     and pesukim/aggadata suggested-questions.
- *   - Deferred (lazy, on section-open): per-MOVE enrichments
- *     (argument-move.synthesis, argument-move.suggested-questions) — a daf has
- *     15-40 moves, so warming them all on load would be 30-80 calls.
+ *     pesukim/aggadata suggested-questions, AND the per-MOVE enrichments
+ *     (argument-move.synthesis + argument-move.suggested-questions). Moves were
+ *     previously deferred to section-open, but a daf has 15-40 of them and the
+ *     scroll-deferred lazy loading left many never requested — so they now warm
+ *     up front like everything else.
  *   - Never prefetched: QA answers (<mark>.qa) — fetched only when the reader
  *     clicks a specific question.
  *
  * Work funnels through the SAME bounded queue the cards use
- * (enqueueEnrichmentRun), so prefetch and user-triggered fetches share one
- * concurrency budget and warm the same server cache. Progress is exposed as a
- * signal for the unified load bar.
+ * (enqueueEnrichmentRun) at LOW priority, so prefetch warms the shared server
+ * cache without ever starving a foreground anchor click. Progress is exposed
+ * as a signal for the unified load bar.
  */
 
 import { createSignal } from 'solid-js';
@@ -41,10 +42,13 @@ const [progress, setProgress] = createSignal<PrefetchProgress>({
 /** Read the live prefetch progress (consumed by DafLoadProgress). */
 export const prefetchProgress = progress;
 
-// Section-level enrichments to warm per mark instance. Keep in sync with the
-// aggregate/suggested-questions enrichments registered in worker/code-marks.ts.
+// Enrichments to warm per mark instance, keyed by mark id. Keep in sync with
+// the aggregate/suggested-questions enrichments registered in
+// worker/code-marks.ts. `argument-move` instances come from the argument-move
+// mark run, so its syntheses + questions fan out one-per-move.
 const SECTION_PREFETCH: Record<string, string[]> = {
   argument: ['argument.synthesis'],
+  'argument-move': ['argument-move.synthesis', 'argument-move.suggested-questions'],
   pesukim: ['pesukim.synthesis', 'pesukim.suggested-questions'],
   aggadata: ['aggadata.synthesis', 'aggadata.suggested-questions'],
   places: ['places.synthesis'],
@@ -56,6 +60,8 @@ const SECTION_PREFETCH: Record<string, string[]> = {
 // enrichmentId → friendly family label shown in the status line.
 const FRIENDLY: Record<string, string> = {
   'argument.synthesis': 'arguments',
+  'argument-move.synthesis': 'argument moves',
+  'argument-move.suggested-questions': 'move questions',
   'pesukim.synthesis': 'verses',
   'pesukim.suggested-questions': 'verse questions',
   'aggadata.synthesis': 'aggadot',
