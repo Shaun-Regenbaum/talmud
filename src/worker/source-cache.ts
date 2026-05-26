@@ -8,7 +8,7 @@
  * adjacent amudim fetched by /api/analyze overlap heavily.
  *
  * Cache shape:
- *   hb:v1:<Tractate>:<daf>            → HebrewBooksDaf JSON
+ *   hb:v2:<Tractate>:<daf>            → HebrewBooksDaf JSON
  *   sefaria-bundle:v1:<Tractate>:<daf> → TalmudPageData JSON
  *   rishonim:v1:<Tractate>:<daf>       → RishonimBundle JSON
  *   halacha-refs:v1:<Tractate>:<daf>   → HalachicRefBundle JSON
@@ -85,7 +85,12 @@ export async function getHebrewBooksDafCached(
   page: string,
   track?: CacheTrack,
 ): Promise<HebrewBooksDaf | null> {
-  const key = `hb:v1:${tractate}:${page}`;
+  // v2: extractShastext now bounds each column by its enclosing </fieldset>
+  // and tolerates HebrewBooks' malformed chapter-boundary markup (unclosed
+  // Gemara <div> at a perek end, stray leading </div> at a perek start). v1
+  // entries hold over-captured (perek-end) or empty (perek-start) Gemara, so
+  // bumping forces a refetch with the corrected extraction.
+  const key = `hb:v2:${tractate}:${page}`;
   const hit = await readCache<HebrewBooksDaf | FailedMarker>(cache, key);
   track?.onCache?.(hit ? 'hit' : 'miss');
   if (hit) {

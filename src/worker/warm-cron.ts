@@ -144,7 +144,7 @@ async function runHbPhase(env: WarmEnv, cursor: WarmCursor): Promise<void> {
 
     const tractate = TRACTATES[tractateIdx];
     const amud = AMUDIM_BY_TRACTATE[tractateIdx][amudIdx];
-    const key = `hb:v1:${tractate}:${amud}`;
+    const key = `hb:v2:${tractate}:${amud}`;
     const existing = await cache.get(key);
 
     if (existing === null) {

@@ -41,7 +41,7 @@ describe('source-cache CacheTrack', () => {
     it('reports hit when KV has the entry', async () => {
       const states: Array<'hit' | 'miss'> = [];
       const kv = makeFakeKV({
-        'hb:v1:Berakhot:2a': JSON.stringify({
+        'hb:v2:Berakhot:2a': JSON.stringify({
           main: 'cached-main',
           rashi: 'cached-rashi',
           tosafot: 'cached-tosafot',
@@ -79,7 +79,7 @@ describe('source-cache CacheTrack', () => {
       // that's still a KV hit — we didn't go to the network this call.
       const states: Array<'hit' | 'miss'> = [];
       const kv = makeFakeKV({
-        'hb:v1:Berakhot:2a': JSON.stringify({ __failed: true }),
+        'hb:v2:Berakhot:2a': JSON.stringify({ __failed: true }),
       });
       const data = await getHebrewBooksDafCached(kv, 'Berakhot', '2a', {
         onCache: (s) => states.push(s),
@@ -90,7 +90,7 @@ describe('source-cache CacheTrack', () => {
 
     it('does not throw when track is omitted', async () => {
       const kv = makeFakeKV({
-        'hb:v1:Berakhot:2a': JSON.stringify({ main: 'm' }),
+        'hb:v2:Berakhot:2a': JSON.stringify({ main: 'm' }),
       });
       await expect(
         getHebrewBooksDafCached(kv, 'Berakhot', '2a'),

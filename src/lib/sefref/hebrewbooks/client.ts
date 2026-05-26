@@ -139,24 +139,53 @@ export async function fetchHebrewBooksDaf(
 }
 
 /**
- * Extract the inner HTML of a <div class="shastextN"> block, handling nested
- * <div> elements via depth counting. Returns an empty string if the block
- * isn't found.
+ * Extract the inner HTML of a <div class="shastextN"> block.
+ *
+ * Each shastext block (2 = Gemara, 3 = Rashi, 4 = Tosafot) is the sole content
+ * of its enclosing <fieldset>. On most dapim the block's <div> is well-formed
+ * and a plain <div>-depth scan finds its matching </div>. But HebrewBooks'
+ * markup is malformed at CHAPTER BOUNDARIES, in two opposite ways that both
+ * broke the old pure-depth scan:
+ *
+ *   - Perek END (e.g. Chullin 26b): the shastext2 <div> is left UNCLOSED — it
+ *     is closed implicitly by </fieldset>. A depth scan never returns to 0
+ *     within the block and runs on, swallowing the following Rashi/Tosafot
+ *     fieldsets (over-capture). Downstream, the segment aligner then drifts
+ *     and only a handful of segments align.
+ *   - Perek START (e.g. Chullin 27a): a STRAY leading </div> sits right after
+ *     the opening tag (`<div class="shastext2"> </div><span ...>השוחט...`). A
+ *     depth scan hits depth 0 on that first close and returns an empty block.
+ *
+ * So we bound the scan by the enclosing </fieldset>, skip a stray leading
+ * </div>, and — if the block's own closing </div> is missing — fall back to
+ * everything up to that </fieldset>. Returns '' if the block isn't found.
  */
-function extractShastext(html: string, n: 2 | 3 | 4): string {
+export function extractShastext(html: string, n: 2 | 3 | 4): string {
   const className = `shastext${n}`;
   const startRe = new RegExp(`<div\\s+class="${className}"[^>]*>`, 'i');
   const startMatch = startRe.exec(html);
   if (!startMatch) return '';
 
-  const contentStart = startMatch.index + startMatch[0].length;
+  let contentStart = startMatch.index + startMatch[0].length;
+
+  // The block lives inside one <fieldset>; its end can never be past that
+  // fieldset's close. This is the hard bound that tames the unclosed-div case.
+  let fieldsetEnd = html.indexOf('</fieldset>', contentStart);
+  if (fieldsetEnd < 0) fieldsetEnd = html.length;
+
+  // Skip a stray leading </div> (perek-start pages emit one before the text).
+  const leadingClose = html.slice(contentStart, fieldsetEnd).match(/^\s*<\/div>/i);
+  if (leadingClose) contentStart += leadingClose[0].length;
+
   let depth = 1;
   let pos = contentStart;
 
-  while (depth > 0 && pos < html.length) {
-    const openIdx = html.indexOf('<div', pos);
-    const closeIdx = html.indexOf('</div>', pos);
-    if (closeIdx < 0) break;
+  while (pos < fieldsetEnd) {
+    let openIdx = html.indexOf('<div', pos);
+    let closeIdx = html.indexOf('</div>', pos);
+    if (openIdx >= fieldsetEnd) openIdx = -1;
+    if (closeIdx >= fieldsetEnd) closeIdx = -1;
+    if (closeIdx < 0) break; // no closing </div> before the fieldset ends
     if (openIdx >= 0 && openIdx < closeIdx) {
       depth++;
       pos = openIdx + 4;
@@ -168,5 +197,8 @@ function extractShastext(html: string, n: 2 | 3 | 4): string {
       pos = closeIdx + 6;
     }
   }
-  return '';
+
+  // Block's own </div> is missing (unclosed at a perek end): take everything
+  // up to the enclosing fieldset close.
+  return html.slice(contentStart, fieldsetEnd).trim();
 }

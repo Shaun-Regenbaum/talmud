@@ -217,7 +217,7 @@ function CacheStatusSection(props: { stats: CacheStats }): JSX.Element {
           </tr>
         </thead>
         <tbody>
-          <CacheRow label="HebrewBooks (hb:v1)" count={s().hebrewbooks.count} total={total()} percent={s().hebrewbooks.percent} />
+          <CacheRow label="HebrewBooks (hb:v2)" count={s().hebrewbooks.count} total={total()} percent={s().hebrewbooks.percent} />
           <CacheRow label="Sefaria gemara slice (ctx:gemara:v1)" count={s().gemara.count} total={total()} percent={s().gemara.percent} />
           <CacheRow label="Sefaria commentaries (ctx:commentaries:v1)" count={s().commentaries.count} total={total()} percent={s().commentaries.percent} />
         </tbody>

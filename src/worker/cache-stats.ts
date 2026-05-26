@@ -179,7 +179,7 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
   const total = getWarmTotal();
 
   const [hbCount, gemaraCount, commentariesCount] = await Promise.all([
-    countPrefix(cache, 'hb:v1:'),
+    countPrefix(cache, 'hb:v2:'),
     countPrefix(cache, 'ctx:gemara:v1:'),
     countPrefix(cache, 'ctx:commentaries:v1:'),
   ]);
