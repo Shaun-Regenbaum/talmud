@@ -471,6 +471,8 @@ export default function DafViewer(): JSX.Element {
         topic: inst.fields.topic,
         topicHe: inst.fields.topicHe,
         excerpt: inst.fields.excerpt,
+        startSegIdx: inst.startSegIdx,
+        endSegIdx: inst.endSegIdx,
         rulings: {},
       })),
     };
@@ -1587,8 +1589,8 @@ export default function DafViewer(): JSX.Element {
     const a = analysis();
     if (a && showArguments()) {
       const anchors = a.sections
-        .map((s, i) => ({ excerpt: s.excerpt ?? '', index: i }))
-        .filter((x) => x.excerpt.length > 0);
+        .map((s, i) => ({ excerpt: s.excerpt ?? '', index: i, startSegIdx: s.startSegIdx }))
+        .filter((x) => x.excerpt.length > 0 || x.startSegIdx != null);
       if (anchors.length > 0) main = injectAnchorMarkers(main, anchors, 'daf-argument-anchor', ctx);
       // Per-rabbi opinion anchors so the highlight can narrow to one rabbi's
       // statement (rather than the whole section) when the sidebar surfaces
@@ -1600,8 +1602,8 @@ export default function DafViewer(): JSX.Element {
     const h = halacha();
     if (h && showHalachot()) {
       const anchors = h.topics
-        .map((t, i) => ({ excerpt: t.excerpt ?? '', index: i }))
-        .filter((x) => x.excerpt.length > 0);
+        .map((t, i) => ({ excerpt: t.excerpt ?? '', index: i, startSegIdx: t.startSegIdx }))
+        .filter((x) => x.excerpt.length > 0 || x.startSegIdx != null);
       if (anchors.length > 0) main = injectAnchorMarkers(main, anchors, 'daf-halacha-anchor', ctx);
     }
 
@@ -1611,8 +1613,8 @@ export default function DafViewer(): JSX.Element {
     const ag = aggadata();
     if (ag && showAggadatot()) {
       const anchors = ag.stories
-        .map((s, i) => ({ excerpt: s.excerpt ?? '', endExcerpt: s.endExcerpt, index: i }))
-        .filter((x) => x.excerpt.length > 0);
+        .map((s, i) => ({ excerpt: s.excerpt ?? '', endExcerpt: s.endExcerpt, index: i, startSegIdx: s.startSegIdx, endSegIdx: s.endSegIdx }))
+        .filter((x) => x.excerpt.length > 0 || x.startSegIdx != null);
       if (anchors.length > 0) main = injectAggadataAnchors(main, anchors, ctx);
     }
 
@@ -1621,8 +1623,8 @@ export default function DafViewer(): JSX.Element {
     const pe = pesukim();
     if (pe && showPesukim()) {
       const anchors = pe.pesukim
-        .map((p, i) => ({ excerpt: p.excerpt ?? '', endExcerpt: p.endExcerpt, index: i }))
-        .filter((x) => x.excerpt.length > 0);
+        .map((p, i) => ({ excerpt: p.excerpt ?? '', endExcerpt: p.endExcerpt, index: i, startSegIdx: p.startSegIdx, endSegIdx: p.endSegIdx }))
+        .filter((x) => x.excerpt.length > 0 || x.startSegIdx != null);
       if (anchors.length > 0) main = injectPesukimAnchors(main, anchors, ctx);
     }
 

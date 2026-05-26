@@ -50,6 +50,8 @@ export interface HalachaTopic {
   topic: string;
   topicHe?: string;
   excerpt?: string;
+  startSegIdx?: number;
+  endSegIdx?: number;
   rulings: {
     mishnehTorah?: Ruling;
     shulchanAruch?: Ruling;
