@@ -84,6 +84,20 @@ function instanceKeyOf(markId: string, inst: MarkInstance, idx: number): string 
 // completions from the previous daf must not bump the new bar.
 let gen = 0;
 
+// AbortController for the in-flight cohort. A daf change (or a new prefetch
+// for a different daf) aborts it so the previous daf's queued/polling tasks
+// stop occupying the shared enrichment queue's concurrency slots — otherwise
+// navigating away mid-prefetch left up-to-600s pending polls clogging the
+// queue, starving the new daf's prefetch and the user's anchor clicks.
+let activeController: AbortController | null = null;
+
+/** Abort the in-flight prefetch cohort and clear the progress bar. Called on
+ *  daf navigation so stale section-warming work is dropped immediately. */
+export function cancelPrefetch(): void {
+  if (activeController) { activeController.abort(); activeController = null; }
+  setProgress({ dafKey: '', total: 0, done: 0, currentLabel: null });
+}
+
 interface MarkRun { parsed?: unknown }
 
 /**
@@ -98,6 +112,11 @@ export function prefetchDaf(
 ): void {
   const dafKey = `${tractate}:${page}`;
   const myGen = ++gen;
+  // Supersede any previous cohort: abort it so its tasks vacate the shared
+  // queue, then arm a fresh controller for this daf's tasks.
+  if (activeController) activeController.abort();
+  const controller = new AbortController();
+  activeController = controller;
 
   interface Task { enrichmentId: string; instance: unknown; instanceKey: string }
   const tasks: Task[] = [];
@@ -122,8 +141,9 @@ export function prefetchDaf(
   if (tasks.length === 0) return;
 
   for (const t of tasks) {
-    void enqueueEnrichmentRun(t.enrichmentId, tractate, page, t.instance, t.instanceKey)
-      // Best-effort: a failed prefetch just means the card generates on open.
+    void enqueueEnrichmentRun(t.enrichmentId, tractate, page, t.instance, t.instanceKey, controller.signal)
+      // Best-effort: a failed or aborted prefetch just means the card
+      // generates on open.
       .catch(() => undefined)
       .finally(() => {
         if (myGen !== gen) return; // superseded by a newer daf

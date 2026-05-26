@@ -110,8 +110,24 @@ export async function trackAI<T>(
     finishActivity(id, label, true);
     return result;
   } catch (err) {
+    // Aborted work (sidebar closed, anchor switched, daf changed) isn't a
+    // failure — evict the entry rather than flashing a red error in the panel.
+    if ((err as { name?: string } | null)?.name === 'AbortError') {
+      dropActivity(id);
+      throw err;
+    }
     const msg = String((err as Error)?.message ?? err);
     finishActivity(id, label, false, msg);
     throw err;
   }
+}
+
+/** Remove an entry outright (used for aborted work). */
+export function dropActivity(id: string): void {
+  setActivities((cur) => {
+    if (!(id in cur)) return cur;
+    const next = { ...cur };
+    delete next[id];
+    return next;
+  });
 }

@@ -25,7 +25,7 @@ import { CommentaryStrip } from './CommentaryStrip';
 import { MobileShelf, type MobileInteractionMode } from './MobileShelf';
 import MarksRegistryPanel, { enabledMarkDefs, markRunsByMarkId, markStatuses } from './MarksRegistryPanel';
 import DafLoadProgress from './DafLoadProgress';
-import { prefetchDaf } from './dafPrefetch';
+import { prefetchDaf, cancelPrefetch } from './dafPrefetch';
 import { buildSeedMarks } from './seed-marks';
 import { fetchCommentaryAnchorIndex, type CommentaryAnchorIndex } from './commentaryAnchorIndex';
 import { recordStage } from './rendererActivity';
@@ -1047,6 +1047,11 @@ export default function DafViewer(): JSX.Element {
   // Reset sidebar state on daf change.
   createEffect(() => {
     void tractate(); void page();
+    // Abort the previous daf's section-prefetch cohort so its queued/polling
+    // tasks free the shared enrichment-queue slots immediately; the
+    // prefetch-trigger effect re-arms a fresh cohort once the new daf's marks
+    // settle.
+    cancelPrefetch();
     setSidebar(null);
     setActiveRabbi(null);
     setActiveLocation(null);

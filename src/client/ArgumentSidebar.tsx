@@ -12,6 +12,33 @@ import { type GeographyData, type GeographyEvidence } from './RabbiGeographyCard
 import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeline';
 import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
 
+// Defers mounting `children` until the placeholder scrolls within ~300px of
+// the viewport, then keeps them mounted. Used to stagger the per-move
+// synthesis cards: an argument can have 15-40 moves, and mounting them all at
+// once fired that many cold `argument-move` runs simultaneously, saturating
+// the shared enrichment queue and starving every later anchor click. Gating
+// on visibility caps in-flight move fetches to roughly what's on screen.
+function VisibilityGate(props: { children: JSX.Element; minHeight?: string }): JSX.Element {
+  const [shown, setShown] = createSignal(false);
+  let obs: IntersectionObserver | undefined;
+  onCleanup(() => obs?.disconnect());
+  const attach = (node: HTMLDivElement) => {
+    if (typeof IntersectionObserver === 'undefined') { setShown(true); return; }
+    obs = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) {
+        setShown(true);
+        obs?.disconnect();
+      }
+    }, { rootMargin: '300px' });
+    obs.observe(node);
+  };
+  return (
+    <Show when={shown()} fallback={<div ref={attach} style={{ 'min-height': props.minHeight ?? '2.75rem' }} />}>
+      {props.children}
+    </Show>
+  );
+}
+
 export interface RishonComment {
   work: string;
   workHe: string;
@@ -295,13 +322,15 @@ function ArgumentMoveCard(props: {
         title={isActive() ? 'Click to clear highlight' : 'Click to highlight this move on the daf'}
         style={{ cursor: 'pointer' }}
       >
-        <MarkEnrichmentCards
-          markId="argument-move"
-          instance={props.move}
-          instanceKey={f.id}
-          tractate={props.tractate}
-          page={props.page}
-        />
+        <VisibilityGate>
+          <MarkEnrichmentCards
+            markId="argument-move"
+            instance={props.move}
+            instanceKey={f.id}
+            tractate={props.tractate}
+            page={props.page}
+          />
+        </VisibilityGate>
       </div>
       {/* Explore-deeper Q&A panel — collapsed by default; the first expand
           lazily loads suggested questions + community-asked registry, and
