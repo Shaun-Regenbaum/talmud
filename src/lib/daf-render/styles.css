@@ -380,14 +380,8 @@
   background-color: rgba(138, 42, 43, 0.22);
 }
 
-/* Daf↔commentary anchor highlight on the .daf-comm-piece block (the
-   Rashi/Tosafot piece in the inner/outer column). The MAIN-column daf
-   gets the continuous teal range-overlay band (see
-   .daf-range-highlight-comm-anchor above) instead of per-word pills,
-   so this rule covers only the commentary side. */
-.daf-root .daf-comm-piece.comm-anchor-active {
-  background-color: rgba(15, 118, 110, 0.10);
-  outline: 1.5px solid rgba(15, 118, 110, 0.45);
-  outline-offset: 1px;
-  border-radius: 2px;
-}
+/* Daf↔commentary anchor highlight: both directions now paint the continuous
+   teal range-overlay band (.daf-range-highlight-comm-anchor above) — the main
+   column when a piece is clicked, and the Rashi/Tosafot piece in the
+   inner/outer column when a daf word is clicked. No per-piece CSS outline,
+   which broke into a separate box per wrapped line on multi-line pieces. */

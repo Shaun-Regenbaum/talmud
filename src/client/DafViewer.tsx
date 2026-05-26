@@ -1290,6 +1290,25 @@ export default function DafViewer(): JSX.Element {
           if (r) commAnchorRanges.push(r);
         }
       }
+    } else if (commActive && commActive.direction === 'from-main' && commActive.pieces.length > 0) {
+      // User clicked a daf word → paint a continuous teal band over each
+      // Rashi/Tosafot piece that glosses it, in the inner/outer column.
+      // Painting a range overlay (rather than a CSS outline on the wrapping
+      // .daf-comm-piece span) gives one clean band per line; an inline
+      // outline on a span that wraps across lines renders as a separate
+      // broken-up box per line fragment, which reads as a glitch.
+      for (const p of commActive.pieces) {
+        // Piece keys are "S:P" (digits + colon), so a literal selector is fine.
+        dafRootDiv
+          .querySelectorAll<HTMLElement>(
+            `.daf-comm-piece[data-piece-key="${p.key}"][data-comm="${p.comm}"]`,
+          )
+          .forEach((el) => {
+            const r = document.createRange();
+            r.selectNodeContents(el);
+            commAnchorRanges.push(r);
+          });
+      }
     }
 
     // Commentary: whenever a work is active, tint every main-text segment
@@ -2201,35 +2220,10 @@ export default function DafViewer(): JSX.Element {
     });
   }
 
-  // Paint effect: toggle .comm-anchor-active on .daf-comm-piece elements
-  // (the Rashi/Tosafot blocks). ONLY runs when direction === 'from-main'
-  // — i.e., the user clicked a daf word and we're showing them which
-  // Rashi/Tosafot discusses that segment. For direction === 'from-piece',
-  // the user already clicked the piece (so highlighting it is redundant);
-  // only the daf range overlay paints. This keeps the highlight strictly
-  // one-sided per click: click daf → only commentary lights up; click
-  // commentary → only daf lights up.
-  createEffect(() => {
-    if (typeof document === 'undefined') return;
-    const root = dafRootEl();
-    if (!root) return;
-    const dafRootDiv = root.querySelector<HTMLElement>('.daf-root') ?? root;
-
-    // Clear prior piece highlights unconditionally.
-    dafRootDiv.querySelectorAll('.daf-comm-piece.comm-anchor-active').forEach((el) =>
-      el.classList.remove('comm-anchor-active'),
-    );
-
-    const active = commAnchorActive();
-    if (!active || active.direction !== 'from-main') return;
-    for (const p of active.pieces) {
-      // CSS.escape would be safer in general; piece keys are "S:P" with
-      // digits + colon, so a literal selector is fine here.
-      dafRootDiv.querySelectorAll<HTMLElement>(
-        `.daf-comm-piece[data-piece-key="${p.key}"][data-comm="${p.comm}"]`,
-      ).forEach((el) => el.classList.add('comm-anchor-active'));
-    }
-  });
+  // Note: when direction === 'from-main' (user clicked a daf word), the
+  // Rashi/Tosafot pieces that gloss it are painted as range overlays in the
+  // main paint effect above — same continuous-band treatment as everything
+  // else — rather than via a CSS outline on the wrapping .daf-comm-piece span.
 
   // On mouseup: prefer a text selection snapped to word boundaries over a plain
   // word click. Any .daf-word element intersecting the selection range counts
