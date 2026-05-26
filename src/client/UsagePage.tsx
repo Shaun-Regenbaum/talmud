@@ -310,7 +310,7 @@ function AnchorRow(props: { row: MarkRow; total: number }): JSX.Element {
           </Show>
           <Show when={r().heCount > 0}>
             <span style={{ 'font-size': '0.7rem', color: '#1d4ed8', 'margin-left': '0.4rem', background: '#eef2ff', padding: '0.05rem 0.35rem', 'border-radius': '3px' }}>
-              {t('usage.heBadge', { count: fmtInt(r().heCount) })}
+              {t('usage.heBadge', { count: fmtInt(r().heCount) })} ({(props.total > 0 ? (r().heCount / props.total) * 100 : 0).toFixed(1)}%)
             </span>
           </Show>
         </td>

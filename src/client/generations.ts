@@ -63,6 +63,22 @@ export const GENERATION_BY_ID: Record<GenerationId, GenerationInfo> =
 
 export const GENERATION_IDS: GenerationId[] = GENERATIONS.map((g) => g.id);
 
+/** Hebrew display label for a generation, derived from its group + index so we
+ *  don't maintain 25 parallel strings. Used by the rabbi lineage / tree views
+ *  under Hebrew (dir=rtl) where the English `label` would read out of place. */
+export function generationLabelHe(info: GenerationInfo): string {
+  const m = info.id.match(/-(\d+)$/);
+  const n = m ? ` (${m[1]})` : '';
+  switch (info.group) {
+    case 'zugim': return 'זוגות';
+    case 'tanna': return `תנא${n}`;
+    case 'amora-ey': return `אמורא א״י${n}`;
+    case 'amora-bavel': return `אמורא בבל${n}`;
+    case 'savora': return 'סבוראים';
+    default: return 'לא ידוע';
+  }
+}
+
 /**
  * Compact taxonomy prompt text for the AI model — lists generation IDs with
  * their era and representative sages so the model can assign an ID to each

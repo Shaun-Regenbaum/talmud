@@ -21,7 +21,7 @@
  */
 
 import { For, Show, type JSX } from 'solid-js';
-import { t } from './i18n';
+import { t, lang } from './i18n';
 
 /** Translate an argument-taxonomy role to the active language, falling back to
  *  the raw role string when the catalog has no entry for it. */
@@ -122,12 +122,20 @@ function compactName(name: string): string {
 
 interface LaidNode {
   name: string;
+  nameHe?: string;
   side: string;
   role: string;
   stance: string;
   color: string;
   x: number;
   y: number;
+}
+
+/** Display name for a voice node: the Hebrew form in Hebrew mode (when the
+ *  enrichment supplied one), else the conventional English name. The English
+ *  `name` stays the click/resolution identity — only the label flips. */
+function voiceDisplayName(n: { name: string; nameHe?: string }): string {
+  return lang() === 'he' && n.nameHe ? n.nameHe : n.name;
 }
 
 interface LaidEdge {
@@ -185,6 +193,7 @@ function buildLayout(data: ArgumentVoicesData): { nodes: LaidNode[]; edges: Laid
       const meta = sideMeta(v.side);
       const node: LaidNode = {
         name: v.name,
+        nameHe: v.nameHe,
         side: v.side,
         role: v.role,
         stance: v.stance,
@@ -284,6 +293,11 @@ export default function ArgumentVoiceMap(props: Props): JSX.Element {
           'max-height': '480px',
           'overflow-x': 'auto',
           'overflow-y': 'auto',
+          // The diagram is an inherently left-to-right tree (axis on the left,
+          // rows flowing right). Pin the scroll container to LTR so that under
+          // a page-level dir=rtl (Hebrew) the scroll origin stays on the left
+          // and the right-hand columns aren't hidden off-screen.
+          direction: 'ltr',
           border: '1px solid #f0eee6',
           'border-radius': '4px',
           background: '#fff',
@@ -385,7 +399,7 @@ export default function ArgumentVoiceMap(props: Props): JSX.Element {
                     font-family="system-ui, -apple-system, sans-serif"
                     fill="#222"
                     style={clickable ? { 'text-decoration': 'underline', 'text-decoration-style': 'dotted', 'text-underline-offset': '2px' } : undefined}
-                  >{compactName(n.name)}</text>
+                  >{compactName(voiceDisplayName(n))}</text>
                   <text
                     x={n.x + NODE_W / 2}
                     y={n.y + 30}

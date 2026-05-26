@@ -16,8 +16,15 @@
  */
 
 import { For, Show, createSignal, type JSX } from 'solid-js';
-import { GENERATION_BY_ID, GENERATION_IDS, type GenerationId } from './generations';
-import { t } from './i18n';
+import { GENERATION_BY_ID, GENERATION_IDS, generationLabelHe, type GenerationId } from './generations';
+import { t, lang } from './i18n';
+
+/** Generation label in the active language. */
+function genLabel(id: GenerationId): string {
+  const info = GENERATION_BY_ID[id];
+  if (!info) return id;
+  return lang() === 'he' ? generationLabelHe(info) : info.label;
+}
 
 export interface RelationshipPerson {
   name: string;
@@ -456,7 +463,7 @@ export default function RabbiLineageTree(props: Props): JSX.Element {
       if (!rows.has(idx)) {
         rows.set(idx, {
           y: n.y + NODE_H / 2,
-          label: gen?.label ?? n.generationId,
+          label: genLabel(n.generationId),
           color: gen?.color ?? '#999',
         });
       }
@@ -511,6 +518,9 @@ export default function RabbiLineageTree(props: Props): JSX.Element {
         'max-height': '480px',
         'overflow-x': 'auto',
         'overflow-y': 'auto',
+        // Inherently LTR diagram — pin scroll direction so the page-level
+        // dir=rtl (Hebrew) doesn't push the right-hand generations off-screen.
+        direction: 'ltr',
         border: '1px solid #f0eee6',
         'border-radius': '4px',
         background: '#fff',
@@ -592,7 +602,7 @@ export default function RabbiLineageTree(props: Props): JSX.Element {
               >
                 <title>{
                   ev ? `${n.name}\n${t('rabbi.onThisDaf', { text: ev.note || ev.excerpt })}`
-                    : `${n.name}${n.familyRelation ? ` — ${n.familyRelation}` : ''}${gen?.label ? ` · ${gen.label}` : ''}`
+                    : `${n.name}${n.familyRelation ? ` — ${n.familyRelation}` : ''}${gen ? ` · ${genLabel(n.generationId)}` : ''}`
                 }</title>
                 <rect
                   x={n.x}
