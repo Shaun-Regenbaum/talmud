@@ -103,4 +103,13 @@ describe('sanitizeNameHe — trim trailing context words', () => {
     const model = out.find((r) => r.name === 'Rabbi Alexandri');
     expect(model?.nameHe).toBe("ר' אלכסנדרי");
   });
+
+  it('augmentWithKnownRabbis dedupes a rabbi the model named twice', () => {
+    const input = [
+      { name: 'Rabbi Yochanan', nameHe: 'רבי יוחנן', generation: 'amora-ey-2' as GenerationId },
+      { name: 'Rabbi Yochanan', nameHe: 'רבי יוחנן', generation: 'amora-ey-2' as GenerationId },
+    ];
+    const out = augmentWithKnownRabbis(input, 'רבי יוחנן אמר');
+    expect(out.filter((r) => r.nameHe === 'רבי יוחנן')).toHaveLength(1);
+  });
 });

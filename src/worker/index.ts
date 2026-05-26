@@ -55,7 +55,8 @@ import { wrapEnv, gatewayStatus, gatewayActive } from './ai-gateway';
 import { runLLM, type LLMModelId, type LLMResult, type LLMUsage } from './llm';
 import { lookupRelationships } from './rabbi-graph';
 import { lintSynthesis } from '../lib/synthesisLint';
-import { partitionSections, dedupeByRange, selectSectionMoves, type MoveLike } from '../lib/argumentMoves';
+import { lintHalachaParsed } from '../lib/halachaLint';
+import { partitionSections, dedupeByRange, dedupeBy, selectSectionMoves, type MoveLike } from '../lib/argumentMoves';
 import { readSettings, writeSettings, isLLMModelId, MODEL_PRESETS } from './settings';
 import { costUsd as priceCostUsd, normalizeUsage } from './pricing';
 import { recordUsage, readUsageSummary } from './usage-rollup';
@@ -2117,13 +2118,15 @@ async function runEnrichmentOnce(
     }
   }
 
-  // Scope the moves injected into argument.synthesis to THIS section. The
-  // argument-move mark emits every move on the daf; handing the LLM the whole
-  // list (with only a soft "filter to this section" instruction) makes it
-  // summarize the entire sugya — worst for a 1-segment opening excerpt, which
-  // then gets a whole-daf summary. selectSectionMoves narrows to the section's
-  // moves and dedupes them, so the synthesis stays about the section alone.
-  if (def.id === 'argument.synthesis') {
+  // Scope the moves injected into the section-level argument enrichments
+  // (argument.synthesis, argument.voices) to THIS section. The argument-move
+  // mark emits every move on the daf; handing the LLM the whole list with only
+  // a soft "filter to this section" instruction makes synthesis summarize the
+  // entire sugya (worst for a 1-segment opening excerpt) and lets voices pull
+  // in rabbis from other sections. selectSectionMoves narrows to the section's
+  // moves and dedupes them. Move-level (argument-move.*) enrichments are NOT
+  // scoped — they deliberately get the full list to cross-reference other moves.
+  if (def.mark === 'argument') {
     const mi = markInput as { startSegIdx?: number; endSegIdx?: number } | null;
     const all = inputs.anchors['argument-move'];
     if (mi && typeof mi.startSegIdx === 'number' && typeof mi.endSegIdx === 'number' && Array.isArray(all)) {
@@ -2202,6 +2205,16 @@ async function runEnrichmentOnce(
         .filter((s): s is string => typeof s === 'string' && s.length > 0)
         .join('\n\n');
     const issues = lintSynthesis(synth);
+    if (issues.length > 0) lint_issues = issues;
+  }
+  // Post-generation lint for halacha enrichments: flag HEBREW_GLOSS_STYLE
+  // violations (bare / parenthesized transliterations, calques) across every
+  // prose field and chip. Same non-blocking, cache-gating posture as
+  // pesukim.synthesis above — a non-compliant output is returned (with
+  // lint_issues attached) but not pinned to cache, so a bypass_cache re-run
+  // gets a fresh shot at clean Hebrew-anchored output.
+  if (def.id.startsWith('halacha.') && parsed && !parse_error) {
+    const issues = lintHalachaParsed(parsed);
     if (issues.length > 0) lint_issues = issues;
   }
   const out: RunResultEnrichment = {
@@ -2290,7 +2303,12 @@ async function runRabbiObservations(
 
   const rabbiInsts = asInstances(inputs.anchors.rabbi);
   const placeInsts = asInstances(inputs.anchors.places);
-  const moves = rangeItemsOf(inputs.anchors['argument-move']);
+  // Dedupe by move id: a doubled argument-move cache would otherwise
+  // double-count every per-move observation in the reverse index.
+  const moves = dedupeBy(
+    rangeItemsOf(inputs.anchors['argument-move']),
+    (m) => String((m.fields as { id?: unknown })?.id ?? `${m.startSegIdx}-${m.endSegIdx}`),
+  );
   const aggadata = rangeItemsOf(inputs.anchors.aggadata);
   const pesukim = rangeItemsOf(inputs.anchors.pesukim);
 
@@ -4522,9 +4540,14 @@ export function augmentWithKnownRabbis(
   modelRabbis: GenerationsResult['rabbis'],
   hebrewText: string,
 ): GenerationsResult['rabbis'] {
-  const sanitized = modelRabbis
-    .map((r) => ({ ...r, nameHe: sanitizeNameHe(r.nameHe) }))
-    .filter((r) => r.nameHe.length > 0);
+  const sanitized = dedupeBy(
+    modelRabbis
+      .map((r) => ({ ...r, nameHe: sanitizeNameHe(r.nameHe) }))
+      .filter((r) => r.nameHe.length > 0),
+    // Drop a rabbi the model named twice (same person, identical Hebrew name)
+    // so the rabbi anchors fed to downstream enrichments aren't doubled.
+    (r) => normalizeHe(r.nameHe),
+  );
   const textNorm = normalizeHe(expandAbbreviations(hebrewText));
   const seenHe = new Set(sanitized.map((r) => normalizeHe(r.nameHe)));
   const added: GenerationsResult['rabbis'] = [];

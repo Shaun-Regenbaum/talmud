@@ -27,6 +27,7 @@ import MarksRegistryPanel, { enabledMarkDefs, markRunsByMarkId, markStatuses } f
 import DafLoadProgress from './DafLoadProgress';
 import { prefetchDaf, cancelPrefetch } from './dafPrefetch';
 import { buildSeedMarks } from './seed-marks';
+import { partitionSections, dedupeBy } from '../lib/argumentMoves';
 import { fetchCommentaryAnchorIndex, type CommentaryAnchorIndex } from './commentaryAnchorIndex';
 import { recordStage } from './rendererActivity';
 import { applyMarkRenderers } from './renderers/dispatch';
@@ -433,7 +434,14 @@ export default function DafViewer(): JSX.Element {
       }>;
     };
     if (!Array.isArray(p.instances)) return;
-    const sections: Section[] = p.instances.map((inst) => ({
+    // Collapse a doubled / overlapping section partition (the Shabbat 126a
+    // class: the argument extractor occasionally emits its partition twice).
+    // Without this, an already-cached doubled blob renders duplicate gutter
+    // icons and duplicate sidebar sections. Mirrors the server's
+    // postProcessArgument so client + worker agree on the partition.
+    const lastSeg = Math.max(0, ...p.instances.map((i) => i.endSegIdx));
+    const cleanInstances = partitionSections(p.instances, lastSeg);
+    const sections: Section[] = cleanInstances.map((inst) => ({
       title: inst.fields.title,
       summary: inst.fields.summary,
       excerpt: inst.fields.excerpt,
@@ -467,8 +475,14 @@ export default function DafViewer(): JSX.Element {
       }>;
     };
     if (!Array.isArray(p.instances)) return;
+    // Defensive: drop exact-duplicate topics (same topic at the same range)
+    // a doubled LLM output could emit, without collapsing distinct topics.
+    const topicInstances = dedupeBy(
+      p.instances,
+      (i) => `${i.fields.topic}|${i.startSegIdx}|${i.endSegIdx}`,
+    );
     const adapted: HalachaResult = {
-      topics: p.instances.map((inst) => ({
+      topics: topicInstances.map((inst) => ({
         topic: inst.fields.topic,
         topicHe: inst.fields.topicHe,
         excerpt: inst.fields.excerpt,
@@ -503,8 +517,13 @@ export default function DafViewer(): JSX.Element {
       }>;
     };
     if (!Array.isArray(p.instances)) return;
+    // Defensive: drop exact-duplicate stories (same title at the same range).
+    const storyInstances = dedupeBy(
+      p.instances,
+      (i) => `${i.fields.title}|${i.startSegIdx}|${i.endSegIdx}`,
+    );
     const adapted: AggadataResult = {
-      stories: p.instances.map((inst) => ({
+      stories: storyInstances.map((inst) => ({
         title: inst.fields.title,
         titleHe: inst.fields.titleHe,
         summary: inst.fields.summary,
@@ -542,7 +561,14 @@ export default function DafViewer(): JSX.Element {
       }>;
     };
     if (!Array.isArray(p.instances)) return;
-    const pesukim = p.instances.map((inst) => ({
+    // Defensive: drop exact-duplicate citations (same verse, same spot, same
+    // excerpt). The location is in the key so the same verse cited at two
+    // different points on the daf is preserved.
+    const pesukimInstances = dedupeBy(
+      p.instances,
+      (i) => `${i.fields.verseRef ?? ''}|${i.startSegIdx}|${i.endSegIdx}|${i.fields.excerpt ?? ''}`,
+    );
+    const pesukim = pesukimInstances.map((inst) => ({
       verseRef: inst.fields.verseRef ?? '',
       citationStyle: inst.fields.citationStyle ?? 'explicit',
       excerpt: inst.fields.excerpt ?? '',

@@ -98,6 +98,26 @@ export function dedupeByRange<T extends Partial<SectionRange>>(instances: T[]): 
 }
 
 /**
+ * Drop entries that share a key, keeping the first occurrence. A conservative
+ * defense for instance lists that aren't partitions (pesukim, aggadata,
+ * halacha): a doubled LLM output would otherwise render the same citation /
+ * story / topic twice. The caller picks a key that includes BOTH the content
+ * and the location, so two legitimately-distinct entries (e.g. the same verse
+ * cited at two spots on the daf) are never collapsed.
+ */
+export function dedupeBy<T>(items: T[], keyFn: (item: T) => string): T[] {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const item of items) {
+    const key = keyFn(item);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(item);
+  }
+  return out;
+}
+
+/**
  * Pick the moves that belong to one argument section, robust to a stale or
  * doubled `argument-move` cache that holds two partitions' worth of moves for
  * the same daf.

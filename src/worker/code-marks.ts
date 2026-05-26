@@ -1982,7 +1982,7 @@ const ARGUMENT_VOICES_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 Section:
 {{mark_input}}
 
-All moves on this daf (filter to those whose sectionStartSegIdx / sectionEndSegIdx fall within the section above):
+Moves in THIS section:
 {{anchors.argument-move}}
 
 Rabbis identified on this daf (with generation):
@@ -2183,7 +2183,7 @@ const ARGUMENT_VOICES_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 המקטע:
 {{mark_input}}
 
-כל ה-moves בדף זה (סנן לאלה ש-sectionStartSegIdx / sectionEndSegIdx שלהם נופלים בתוך המקטע שלמעלה):
+ה-moves של מקטע זה:
 {{anchors.argument-move}}
 
 חכמים שזוהו בדף זה (עם דור):

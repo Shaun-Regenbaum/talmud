@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   partitionSections,
   dedupeByRange,
+  dedupeBy,
   selectSectionMoves,
   type MoveLike,
   type SectionRange,
@@ -97,6 +98,23 @@ describe('dedupeByRange', () => {
     const y = { tag: 'y' } as Partial<SectionRange> & { tag: string };
     const out = dedupeByRange([x, y]);
     expect(out).toEqual([x, y]);
+  });
+});
+
+describe('dedupeBy', () => {
+  it('drops entries sharing a key, keeping the first', () => {
+    const items = [
+      { ref: 'Exodus 20:8', seg: 3, tag: 'a' },
+      { ref: 'Exodus 20:8', seg: 3, tag: 'b' }, // exact dup
+      { ref: 'Exodus 20:8', seg: 7, tag: 'c' }, // same verse, different spot — keep
+    ];
+    const out = dedupeBy(items, (i) => `${i.ref}|${i.seg}`);
+    expect(out.map((i) => i.tag)).toEqual(['a', 'c']);
+  });
+
+  it('keeps everything when keys are unique', () => {
+    const items = [{ k: 1 }, { k: 2 }, { k: 3 }];
+    expect(dedupeBy(items, (i) => String(i.k))).toEqual(items);
   });
 });
 
