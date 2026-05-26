@@ -29,7 +29,8 @@ import { listMarks, listEnrichments } from './studio-registry';
 // v4: dropped the legacy analyze/halacha/aggadata/dafContext buckets and
 // replaced them with registry-driven mark/enrichment rows. Old v3 payloads
 // reference cache prefixes that no part of the worker writes anymore.
-export const CACHE_STATS_KEY = 'cache-stats:v4';
+// v5: added the `observations` bucket (rabbi.observations reverse index).
+export const CACHE_STATS_KEY = 'cache-stats:v5';
 const FRESH_MS = 60_000;
 
 export interface CacheStats {
@@ -42,6 +43,13 @@ export interface CacheStats {
   };
   marks: MarkCacheRow[];
   enrichments: EnrichmentCacheRow[];
+  // rabbi.observations reverse index (collect-only). `slices` = rabbi×daf
+  // observation slices written so far; `rabbis` = distinct rabbis with at
+  // least one slice (the dirty-marker count).
+  observations: {
+    slices: number;
+    rabbis: number;
+  };
   rabbis: {
     totalRabbis: number;
     withBio: number;                      // any bio text
@@ -178,10 +186,13 @@ async function mergedEnrichments(cache: KVNamespace): Promise<Array<{
 export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats> {
   const total = getWarmTotal();
 
-  const [hbCount, gemaraCount, commentariesCount] = await Promise.all([
+  const [hbCount, gemaraCount, commentariesCount, obsSlices, obsRabbis] = await Promise.all([
     countPrefix(cache, 'hb:v2:'),
     countPrefix(cache, 'ctx:gemara:v1:'),
     countPrefix(cache, 'ctx:commentaries:v1:'),
+    // `rabbi-obs:v1:` matches slice keys only (dirty keys are `rabbi-obs-dirty:v1:`).
+    countPrefix(cache, 'rabbi-obs:v1:'),
+    countPrefix(cache, 'rabbi-obs-dirty:v1:'),
   ]);
 
   const markDefs = await mergedMarks(cache);
@@ -258,6 +269,7 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     },
     marks,
     enrichments,
+    observations: { slices: obsSlices, rabbis: obsRabbis },
     rabbis: {
       totalRabbis, withBio, withSefariaBio, withWiki,
       withGeneration, withRegion, withPlaces,

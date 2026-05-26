@@ -75,6 +75,10 @@ interface CacheStats {
   };
   marks: MarkRow[];
   enrichments: EnrichmentRow[];
+  observations: {
+    slices: number;
+    rabbis: number;
+  };
   rabbis: {
     totalRabbis: number;
     withBio: number;
@@ -294,6 +298,32 @@ function CacheStatusSection(props: { stats: CacheStats }): JSX.Element {
             </tbody>
           </table>
         </Show>
+      </div>
+
+      <div style={{ 'margin-top': '1.2rem' }}>
+        <SectionHeading title="Rabbi observations" hint="reverse index — collect-only; inspect at /api/rabbi-observations/:slug" />
+        <table style={{ width: '100%', 'border-collapse': 'collapse', 'font-size': '0.85rem' }}>
+          <tbody>
+            <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+              <td style={{ padding: '0.4rem 0.5rem' }}>
+                Observation slices
+                <span style={{ color: '#888', 'font-size': '0.75rem', 'margin-left': '0.4rem' }}>(rabbi-obs:v1 — one per rabbi×daf)</span>
+              </td>
+              <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>
+                {fmtInt(props.stats.observations?.slices ?? 0)}
+              </td>
+            </tr>
+            <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+              <td style={{ padding: '0.4rem 0.5rem' }}>
+                Rabbis with observations
+                <span style={{ color: '#888', 'font-size': '0.75rem', 'margin-left': '0.4rem' }}>(distinct slugs)</span>
+              </td>
+              <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>
+                {fmtInt(props.stats.observations?.rabbis ?? 0)}
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <div style={{ 'margin-top': '1.2rem', 'font-size': '0.85rem', color: '#333' }}>
