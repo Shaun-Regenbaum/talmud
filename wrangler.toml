@@ -50,11 +50,13 @@ DEFAULT_LLM_MODEL = "openrouter/deepseek/deepseek-v4-pro"
 # Must match the provider name added in dash.cloudflare.com → AI → AI Gateway
 # → talmud → Providers.
 OPENROUTER_GATEWAY_PROVIDER = "openrouter"
-# Full-Shas rabbi.observations backfill. When "1", the 5-min warm-cron Sefaria
-# walk enqueues a rabbi.observations job per amud (20/tick ≈ full shas in ~1
-# day), forcing the entity marks to compute and the reverse index to fill.
-# Measured cost ≈ $0.013/amud (marks only) ≈ ~$70 for a cold full pass. Re-runs
-# after the first pass are cache hits. Set back to "0" once one pass completes.
+# Full-Shas rabbi.observations backfill. When "1", the 5-min warm-cron runs a
+# dedicated, self-latching backfill phase: its own cursor walks the whole shas
+# once (~20 amudim/tick ≈ ~1 day), enqueues one cache-respecting
+# rabbi.observations job per amud, then latches done and stops for good.
+# Cache-respecting, so already-computed amudim are ~$0 hits; a cold full pass ≈
+# ~$70 (entity marks only). Safe to leave at "1" — it's a no-op once latched.
+# To re-run a pass, delete the obs-backfill-cursor:v1 KV key.
 OBSERVATIONS_WARM_SHAS = "1"
 
 # Cloudflare Queue — long-running enrichment jobs run in the consumer worker
