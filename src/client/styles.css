@@ -27,6 +27,7 @@
   --fg: #1a1a1a;
   --muted: #6b6b6b;
   --accent: #8a2a2b;
+  --accent-strong: #6f2122;
   --line: #e5e3dc;
 }
 
@@ -172,6 +173,180 @@ section h2 {
 body.dev-shelf-open .daf-page {
   padding-left: calc(1rem + var(--dev-shelf-width, 0px));
   transition: padding-left 60ms linear;
+}
+
+/* ======================================================================
+   Daf top bar — one wrapping row in three zones: brand + navigation on the
+   inline-start, utilities (dev + EN/HE) auto-margined to the inline-end, and
+   the nav hint dropped onto its own centered row below. Every control shares
+   one height, radius, border, and surface; the maroon --accent is reserved
+   for the single primary action (Today's Daf). Active toggles go to ink
+   (--fg); everything else lives on neutrals. JSX in DafViewer.tsx header.
+   ====================================================================== */
+:root {
+  --tb-h: 2.15rem;        /* shared control height */
+  --tb-radius: 6px;
+  --tb-surface: #fff;
+}
+
+.daf-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.tb-wordmark {
+  margin: 0;
+  margin-inline-end: 0.25rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+
+/* Shared baseline for every interactive control in the bar. */
+.tb-select,
+.tb-nav,
+.tb-primary,
+.tb-toggle,
+.tb-seg {
+  height: var(--tb-h);
+  font-size: 0.85rem;
+  font-family: inherit;
+  border-radius: var(--tb-radius);
+  box-sizing: border-box;
+}
+
+.tb-select {
+  padding: 0 0.55rem;
+  border: 1px solid var(--line);
+  background: var(--tb-surface);
+  color: var(--fg);
+  cursor: pointer;
+}
+.tb-select:hover { border-color: var(--muted); }
+
+/* Segmented navigation pill: ‹ | daf | amud | › share one bordered
+   container with hairline dividers so they read as a single unit. */
+.tb-nav {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: 1px solid var(--line);
+  background: var(--tb-surface);
+  overflow: hidden;
+}
+.tb-navbtn {
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: var(--fg);
+  padding: 0 0.6rem;
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.tb-navbtn:hover { background: var(--line); }
+.tb-daf {
+  width: 3.2rem;
+  height: 100%;
+  border: none;
+  border-inline: 1px solid var(--line);
+  background: transparent;
+  color: var(--fg);
+  text-align: center;
+  font-size: 0.9rem;
+  font-family: inherit;
+  -moz-appearance: textfield;
+}
+.tb-daf::-webkit-outer-spin-button,
+.tb-daf::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.tb-amud {
+  height: 100%;
+  min-width: 1.9rem;
+  border: none;
+  background: transparent;
+  color: var(--fg);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.tb-amud:hover { background: var(--line); }
+
+/* Primary action — the only maroon in the bar. */
+.tb-primary {
+  padding: 0 0.85rem;
+  border: 1px solid transparent;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tb-primary:hover:not(:disabled) { background: var(--accent-strong); }
+.tb-primary:disabled { opacity: 0.65; cursor: wait; }
+.tb-primary.is-error { background: #b3261e; }
+
+/* Hint drops to its own centered row below the controls. */
+.tb-hint {
+  order: 2;
+  flex-basis: 100%;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+/* Utilities (dev + EN/HE) cluster at the inline-end of the first row. */
+.tb-utils {
+  order: 1;
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tb-toggle {
+  padding: 0 0.65rem;
+  border: 1px solid var(--line);
+  background: var(--tb-surface);
+  color: var(--muted);
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.tb-toggle:hover { border-color: var(--muted); color: var(--fg); }
+.tb-toggle.is-active {
+  background: var(--fg);
+  border-color: var(--fg);
+  color: var(--bg);
+}
+
+/* EN/HE segmented control — two buttons sharing one bordered pill. */
+.tb-seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  background: var(--tb-surface);
+}
+.tb-seg-btn {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  padding: 0 0.55rem;
+  height: calc(var(--tb-h) - 8px);
+  border-radius: calc(var(--tb-radius) - 2px);
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+}
+.tb-seg-btn:hover { color: var(--fg); }
+.tb-seg-btn.is-active {
+  background: var(--fg);
+  color: var(--bg);
+  font-weight: 700;
 }
 
 .daf-layout {

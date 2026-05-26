@@ -34,7 +34,7 @@ import DevModeShelf, { readDevMode, setDevModeActive } from './DevModeShelf';
 import type { GenerationId } from './generations';
 import { GENERATION_BY_ID } from './generations';
 import { resolveVoiceGroup, voiceGroupNames } from './voiceGroups';
-import { t } from './i18n';
+import { t, lang, setLang } from './i18n';
 
 /** Normalize a rabbi name for fuzzy lookup: drop honorific prefixes, lower
  *  case, collapse whitespace. Mirrors rabbiLinks.normalizeRabbiName but
@@ -2401,92 +2401,66 @@ export default function DafViewer(): JSX.Element {
 
   return (
     <main class="daf-page" classList={{ 'daf-no-rabbi-underlines': !showGenMarkers() }}>
-      <header class="daf-header" style={{ display: 'flex', 'align-items': 'center', 'justify-content': 'center', gap: '0.75rem', 'flex-wrap': 'wrap', 'margin-bottom': '1rem' }}>
-        <h1 style={{ margin: 0, 'font-size': '1.25rem' }}>{t('app.title')}</h1>
+      <header class="daf-header">
+        <h1 class="tb-wordmark">{t('app.title')}</h1>
 
         <select
+          class="tb-select"
           value={tractate()}
           onChange={(e) => setTractateAndSync(e.currentTarget.value)}
-          style={{ padding: '0.4rem 0.55rem', 'font-size': '0.95rem' }}
         >
           <For each={TRACTATE_OPTIONS}>
             {(opt) => <option value={opt.value}>{opt.value} · {opt.label}</option>}
           </For>
         </select>
 
-        <div style={{ display: 'flex', 'align-items': 'center', gap: '0.3rem' }}>
-          <button onClick={() => go(prevPage(page()))} style={{ padding: '0.35rem 0.6rem', cursor: 'pointer' }}>←</button>
+        {/* Back | daf | amud | forward share one segmented pill so the page
+            reference reads as a single unit. */}
+        <div class="tb-nav">
+          <button class="tb-navbtn" onClick={() => go(prevPage(page()))} title={t('header.nav.hint')}>‹</button>
           <input
+            class="tb-daf"
             type="number"
             min={2}
             value={pageNum()}
             onInput={(e) => setPageNum(Number(e.currentTarget.value))}
-            style={{ width: '4rem', padding: '0.35rem 0.4rem', 'font-size': '0.95rem', 'text-align': 'center' }}
           />
-          <button
-            onClick={toggleAmud}
-            style={{
-              padding: '0.35rem 0.65rem',
-              cursor: 'pointer',
-              'font-weight': 'bold',
-              'min-width': '2rem',
-              background: pageAmud() === 'a' ? '#8a2a2b' : '#0066cc',
-              color: 'white',
-              border: 'none',
-              'border-radius': '4px',
-            }}
-            title={t('header.amud.title')}
-          >
+          <button class="tb-amud" onClick={toggleAmud} title={t('header.amud.title')}>
             {pageAmud()}
           </button>
-          <button onClick={() => go(nextPage(page()))} style={{ padding: '0.35rem 0.6rem', cursor: 'pointer' }}>→</button>
+          <button class="tb-navbtn" onClick={() => go(nextPage(page()))} title={t('header.nav.hint')}>›</button>
         </div>
 
         <button
+          class="tb-primary"
+          classList={{ 'is-error': !!yomiError() }}
           onClick={goToYomi}
           disabled={yomiLoading()}
           title={yomiError() ?? t('header.todaysDaf.title')}
-          style={{
-            padding: '0.35rem 0.7rem',
-            cursor: yomiLoading() ? 'wait' : 'pointer',
-            'font-weight': 600,
-            background: yomiError() ? '#c33' : '#0f766e',
-            color: 'white',
-            border: 'none',
-            'border-radius': '4px',
-            'font-size': '0.85rem',
-            opacity: yomiLoading() ? 0.7 : 1,
-          }}
         >
           {yomiLoading() ? t('header.todaysDaf.finding') : t('header.todaysDaf')}
         </button>
 
-        <span style={{ color: '#888', 'font-size': '0.85rem' }}>
+        <div class="tb-utils">
+          <button
+            class="tb-toggle"
+            classList={{ 'is-active': devOpen() }}
+            onClick={() => { const v = !devOpen(); setDevOpen(v); setDevModeActive(v); }}
+            title={t('header.dev.title')}
+          >
+            {t('header.dev')}
+          </button>
+          {/* EN/HE language toggle, folded inline here on the daf page; the
+              floating TopBar overlay covers the other routes (see App.tsx). */}
+          <div class="tb-seg" role="group" aria-label="Language">
+            <button class="tb-seg-btn" classList={{ 'is-active': lang() === 'en' }} aria-pressed={lang() === 'en'} onClick={() => setLang('en')}>EN</button>
+            <button class="tb-seg-btn" classList={{ 'is-active': lang() === 'he' }} aria-pressed={lang() === 'he'} onClick={() => setLang('he')}>עב</button>
+          </div>
+        </div>
+
+        <span class="tb-hint">
           {tractate()} {page()} · {t('header.nav.hint')}
         </span>
-
-        <button
-          onClick={() => { const v = !devOpen(); setDevOpen(v); setDevModeActive(v); }}
-          title={t('header.dev.title')}
-          style={{
-            // Push to the inline-end edge, but reserve clearance for the
-            // fixed EN/HE TopBar toggle (inset-inline-end: 8px, ~80px wide)
-            // so it isn't hidden behind it. Logical props keep this correct
-            // when the chrome flips to RTL in Hebrew.
-            'margin-inline-start': 'auto',
-            'margin-inline-end': '92px',
-            padding: '0.35rem 0.6rem',
-            cursor: 'pointer',
-            'font-size': '0.8rem',
-            'font-family': 'ui-monospace, Menlo, monospace',
-            background: devOpen() ? '#000' : 'transparent',
-            color: devOpen() ? '#fff' : '#444',
-            border: '1px solid #ccc',
-            'border-radius': '4px',
-          }}
-        >
-          {t('header.dev')}
-        </button>
       </header>
 
       {/* Mark errors still surface explicitly — the progress bar abstracts

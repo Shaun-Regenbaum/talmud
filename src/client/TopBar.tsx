@@ -9,22 +9,16 @@ import { type JSX } from 'solid-js';
 import { lang, setLang, type Lang } from './i18n';
 
 export function TopBar(): JSX.Element {
+  // Shares the daf header's `.tb-seg` / `.tb-seg-btn` segmented-control styling
+  // (see styles.css) so the language switch looks identical whether it's folded
+  // into the daf header or floating here over the other routes.
   const btn = (value: Lang, label: string): JSX.Element => (
     <button
       type="button"
+      class="tb-seg-btn"
+      classList={{ 'is-active': lang() === value }}
       onClick={() => setLang(value)}
       aria-pressed={lang() === value}
-      style={{
-        border: 'none',
-        background: lang() === value ? '#1f2937' : 'transparent',
-        color: lang() === value ? '#fff' : '#6b7280',
-        padding: '0.2rem 0.55rem',
-        'border-radius': '5px',
-        'font-size': '0.8rem',
-        'font-weight': lang() === value ? '700' : '500',
-        cursor: 'pointer',
-        'line-height': '1.2',
-      }}
     >
       {label}
     </button>
@@ -32,17 +26,14 @@ export function TopBar(): JSX.Element {
 
   return (
     <div
+      class="tb-seg"
+      role="group"
+      aria-label="Language"
       style={{
         position: 'fixed',
         top: '8px',
         'inset-inline-end': '8px',
         'z-index': '2000',
-        display: 'flex',
-        gap: '2px',
-        padding: '3px',
-        background: '#fff',
-        border: '1px solid #d6d3d1',
-        'border-radius': '7px',
         'box-shadow': '0 1px 4px rgba(0,0,0,0.08)',
       }}
     >

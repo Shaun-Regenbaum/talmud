@@ -33,7 +33,9 @@ export default function App() {
 
   return (
     <>
-    <TopBar />
+    {/* The daf page folds the EN/HE toggle into its own header; the floating
+        overlay covers every other route. */}
+    <Show when={route() !== 'daf'}><TopBar /></Show>
     <Show when={route() === 'align'} fallback={
       <Show when={route() === 'usage'} fallback={
         <Show when={route() === 'compare'} fallback={
