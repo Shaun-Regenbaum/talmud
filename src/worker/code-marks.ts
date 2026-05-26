@@ -2306,7 +2306,7 @@ CODE_ENRICHMENTS.push(
         { mark: 'rabbi' },
         { mark: 'argument-move' },
       ],
-      defHash: 'argument.synthesis-v9', cacheVersion: '9',
+      defHash: 'argument.synthesis-v10', cacheVersion: '10',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_SYNTHESIS_USER_TEMPLATE_HE,
