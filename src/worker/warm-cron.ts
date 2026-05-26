@@ -107,9 +107,67 @@ async function refreshStats(cache: KVNamespace): Promise<void> {
   }
 }
 
+// ---------------------------------------------------------------------------
+// rabbi.observations full-Shas backfill — ONE-TIME, self-latching.
+//
+// Gated by OBSERVATIONS_WARM_SHAS='1'. Independent of the HB/Sefaria phases:
+// its own cursor walks the whole shas exactly once (OBS_BACKFILL_BATCH amudim
+// per 5-min tick ≈ ~1 day), enqueuing one rabbi.observations job per amud, then
+// latches { done: true } and never enqueues again. Cache-respecting (no
+// bypass) — an already-computed amud is a queue cache-hit (~$0); only uncached
+// amudim incur LLM cost. To re-run a full pass later, delete the cursor key.
+// ---------------------------------------------------------------------------
+const OBS_BACKFILL_CURSOR_KEY = 'obs-backfill-cursor:v1';
+const OBS_BACKFILL_BATCH = 20;
+
+interface ObsBackfillCursor { tractateIdx: number; amudIdx: number; enqueued: number; done?: boolean }
+
+async function runObservationsBackfill(env: WarmEnv): Promise<void> {
+  if (env.OBSERVATIONS_WARM_SHAS !== '1' || !env.ENRICHMENT_QUEUE || !env.CACHE) return;
+  const cache = env.CACHE;
+  const raw = await cache.get(OBS_BACKFILL_CURSOR_KEY);
+  let cur: ObsBackfillCursor = { tractateIdx: 0, amudIdx: 0, enqueued: 0 };
+  if (raw) { try { cur = JSON.parse(raw) as ObsBackfillCursor; } catch { /* reset */ } }
+  if (cur.done) return; // one-time: latched after a full pass
+
+  let { tractateIdx, amudIdx } = cur;
+  let enqueued = cur.enqueued ?? 0;
+  let processed = 0;
+  while (processed < OBS_BACKFILL_BATCH) {
+    while (tractateIdx < TRACTATES.length && amudIdx >= AMUDIM_BY_TRACTATE[tractateIdx].length) {
+      tractateIdx++; amudIdx = 0;
+    }
+    if (tractateIdx >= TRACTATES.length) {
+      await cache.put(OBS_BACKFILL_CURSOR_KEY, JSON.stringify({ tractateIdx, amudIdx: 0, enqueued, done: true }));
+      // eslint-disable-next-line no-console
+      console.log(`[warm-cron] rabbi.observations backfill COMPLETE — enqueued ${enqueued} amudim`);
+      return;
+    }
+    const tractate = TRACTATES[tractateIdx];
+    const amud = AMUDIM_BY_TRACTATE[tractateIdx][amudIdx];
+    const runId = `rabbi.observations:${tractate}:${amud}:daf:noq:cached:${Math.floor(Date.now() / 1000)}`
+      .replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
+    await env.ENRICHMENT_QUEUE.send({ runId, enrichment_id: 'rabbi.observations', mark_input: { id: 'daf' }, tractate, page: amud })
+      .catch((e) => {
+        // eslint-disable-next-line no-console
+        console.error(`[warm-cron] enqueue rabbi.observations ${tractate}/${amud} failed:`, e);
+      });
+    enqueued++;
+    amudIdx++;
+    processed++;
+  }
+  await cache.put(OBS_BACKFILL_CURSOR_KEY, JSON.stringify({ tractateIdx, amudIdx, enqueued }));
+  // eslint-disable-next-line no-console
+  console.log(`[warm-cron] rabbi.observations backfill progress: enqueued=${enqueued} cursor=${tractateIdx}:${amudIdx}`);
+}
+
 export async function runWarmCron(env: WarmEnv): Promise<void> {
   const cache = env.CACHE;
   if (!cache) return;
+
+  // One-time observations backfill (gated, self-latching). Runs independent of
+  // the source-warming phases below so it isn't blocked by them.
+  await runObservationsBackfill(env);
 
   const cursor = await readWarmCursor(cache);
   if (!cursor.done) {
@@ -249,19 +307,6 @@ async function runSefariaPhase(env: WarmEnv): Promise<void> {
     if (didFetch) {
       fetched++;
       await new Promise((r) => setTimeout(r, FETCH_SLEEP_MS));
-    }
-
-    // Optional reverse-index backfill (gated). Enqueues one rabbi.observations
-    // job for this amud; it computes/reads the entity marks via dependency
-    // resolution and writes the per-rabbi slices. OFF unless OBSERVATIONS_WARM_SHAS='1'.
-    if (env.OBSERVATIONS_WARM_SHAS === '1' && env.ENRICHMENT_QUEUE) {
-      const obsRunId = `rabbi.observations:${tractate}:${amud}:daf:noq:cached:${Math.floor(Date.now() / 1000)}`
-        .replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
-      const obsJob: JobMessage = { runId: obsRunId, enrichment_id: 'rabbi.observations', mark_input: { id: 'daf' }, tractate, page: amud };
-      await env.ENRICHMENT_QUEUE.send(obsJob).catch((e) => {
-        // eslint-disable-next-line no-console
-        console.error(`[warm-cron] enqueue rabbi.observations ${tractate}/${amud} failed:`, e);
-      });
     }
 
     amudIdx++;
