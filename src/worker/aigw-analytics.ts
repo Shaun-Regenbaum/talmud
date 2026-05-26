@@ -57,7 +57,7 @@ query GatewayUsage($accountTag: string!, $gateway: string!, $start: Time!, $end:
         filter: { gateway: $gateway, datetime_geq: $start, datetime_leq: $end }
       ) {
         count
-        sum { cost tokensIn tokensOut }
+        sum { cost cachedTokensIn cachedTokensOut uncachedTokensIn uncachedTokensOut }
         dimensions { model provider }
       }
     }
@@ -66,7 +66,15 @@ query GatewayUsage($accountTag: string!, $gateway: string!, $start: Time!, $end:
 
 interface GraphQLGroup {
   count?: number;
-  sum?: { cost?: number; tokensIn?: number; tokensOut?: number };
+  // Token sums are split cached/uncached in the AI Gateway dataset; we add the
+  // two halves to report total in/out. There is no plain tokensIn/tokensOut sum.
+  sum?: {
+    cost?: number;
+    cachedTokensIn?: number;
+    cachedTokensOut?: number;
+    uncachedTokensIn?: number;
+    uncachedTokensOut?: number;
+  };
   dimensions?: { model?: string; provider?: string };
 }
 
@@ -115,8 +123,8 @@ export async function fetchGatewayCost(env: AigwEnv, days = 30): Promise<AigwCos
     for (const g of groups) {
       const c = g.count ?? 0;
       const cost = g.sum?.cost ?? 0;
-      const tin = g.sum?.tokensIn ?? 0;
-      const tout = g.sum?.tokensOut ?? 0;
+      const tin = (g.sum?.cachedTokensIn ?? 0) + (g.sum?.uncachedTokensIn ?? 0);
+      const tout = (g.sum?.cachedTokensOut ?? 0) + (g.sum?.uncachedTokensOut ?? 0);
       requests += c;
       costUsd += cost;
       tokensIn += tin;
