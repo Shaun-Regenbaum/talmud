@@ -262,7 +262,11 @@ export default function MarkEnrichmentCards(props: Props) {
     return sel ? [sel] : primary();
   };
 
-  const stamp = () => `${props.tractate}/${props.page}/${props.instanceKey}`;
+  // lang() is part of the stamp so a language switch re-runs the auto-fire
+  // effect below and re-fetches the card under the new lang (the worker keys
+  // its cache per-lang too). Without it, switching EN↔HE left the old
+  // language's text rendered until a full reload.
+  const stamp = () => `${props.tractate}/${props.page}/${props.instanceKey}/${lang()}`;
 
   // Apply a finished result to this card's run state: set the run `ok`, fan
   // out the aggregate's resolved deps to per-leaf run state, and forward
@@ -320,11 +324,15 @@ export default function MarkEnrichmentCards(props: Props) {
     const list = matching();
     if (list.length === 0) return;
     const s = stamp();
+    // Capture lang at fire time so the async cache-write below keys under the
+    // language the request was actually fired with (not whatever lang is active
+    // when the promise resolves, which may have flipped mid-flight).
+    const curLang = lang();
     const controller = new AbortController();
     onCleanup(() => controller.abort());
     untrack(() => {
       for (const d of list) {
-        const cached = runResultCache.get(runCacheKey(d.id, props.tractate, props.page, props.instanceKey));
+        const cached = runResultCache.get(runCacheKey(d.id, props.tractate, props.page, props.instanceKey, curLang));
         if (cached) { applyResult(d, s, cached); continue; }
         const cur = runs()[d.id];
         if (cur && cur.kind !== 'idle' && cur.stamp === s) continue;
@@ -338,7 +346,7 @@ export default function MarkEnrichmentCards(props: Props) {
           cardPriority,
         ).then(
           (result) => {
-            runResultCache.set(runCacheKey(d.id, props.tractate, props.page, props.instanceKey), result);
+            runResultCache.set(runCacheKey(d.id, props.tractate, props.page, props.instanceKey, curLang), result);
             applyResult(d, s, result);
           },
           (err) => {

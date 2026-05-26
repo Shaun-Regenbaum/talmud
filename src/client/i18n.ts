@@ -416,6 +416,8 @@ const CATALOG: Record<string, Entry> = {
   'usage.errorKind.other': { en: 'other', he: 'אחר' },
   'usage.jobErrors.title': { en: 'Queue job failures ({count})', he: 'כשלי משימות בתור ({count})' },
   'usage.jobErrors.hint': { en: 'hard exceptions in the enrichment queue consumer', he: 'חריגות קשות בצרכן תור ההעשרה' },
+  'usage.lintFailures.title': { en: 'Lint failures ({count})', he: 'כשלי בדיקת סגנון ({count})' },
+  'usage.lintFailures.hint': { en: 'cards pinned after repeated gloss-style / Hebrew-anchor lint failures', he: 'כרטיסים שננעלו לאחר כשלים חוזרים בבדיקת סגנון/עוגן עברי' },
   'usage.bugReports.title': { en: 'Bug reports ({count})', he: 'דיווחי תקלות ({count})' },
   'usage.bugReports.empty': { en: 'Inbox empty.', he: 'תיבת הדואר ריקה.' },
   'usage.notTracked': { en: 'not tracked', he: 'לא במעקב' },

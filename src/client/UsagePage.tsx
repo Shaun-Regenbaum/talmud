@@ -43,6 +43,21 @@ interface BugReport {
   country: string | null;
 }
 
+interface LintFailure {
+  at: number;
+  enrichmentId: string;
+  tractate: string;
+  page: string;
+  lang: 'en' | 'he';
+  attempts: number;
+  issues: string[];
+}
+
+interface LintFailuresSummary {
+  recent: LintFailure[];
+  counts: Record<string, number>;
+}
+
 interface UsageBucket {
   calls: number;
   tokensIn: number;
@@ -145,6 +160,7 @@ interface UsagePayload {
     places: UnknownSummary<ObservedPlace>;
   };
   jobErrors: JobError[];
+  lintFailures: LintFailuresSummary;
   reports: BugReport[];
 }
 
@@ -1017,6 +1033,38 @@ export function UsagePage(): JSX.Element {
                           <span style={{ color: '#666' }}>{e.tractate} {e.page}</span>
                         </div>
                         <div style={{ color: '#c33', 'font-family': 'monospace', 'font-size': '0.74rem', 'white-space': 'pre-wrap' }}>{e.error}</div>
+                      </li>
+                    )}
+                  </For>
+                </ul>
+              </Show>
+            </section>
+
+            <section style={{ 'margin-bottom': '1.6rem' }}>
+              <SectionHeading title={t('usage.lintFailures.title', { count: d().lintFailures.recent.length })} hint={t('usage.lintFailures.hint')} />
+              <Show when={Object.keys(d().lintFailures.counts).length > 0}>
+                <div style={{ display: 'flex', gap: '0.4rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.5rem' }}>
+                  <For each={Object.entries(d().lintFailures.counts).sort((a, b) => b[1] - a[1])}>
+                    {([id, n]) => (
+                      <span style={{ 'font-size': '0.74rem', 'font-family': 'monospace', padding: '0.15rem 0.45rem', background: '#fef3c7', border: '1px solid #fde68a', 'border-radius': '999px', color: '#92400e' }}>
+                        {id} · {n}
+                      </span>
+                    )}
+                  </For>
+                </div>
+              </Show>
+              <Show when={d().lintFailures.recent.length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.none')}</p>}>
+                <ul style={{ 'list-style': 'none', padding: 0, margin: 0, 'font-size': '0.8rem' }}>
+                  <For each={d().lintFailures.recent}>
+                    {(f) => (
+                      <li style={{ padding: '0.4rem 0', 'border-bottom': '1px solid #f4f4f4' }}>
+                        <div style={{ display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.15rem' }}>
+                          <span style={{ color: '#999', 'white-space': 'nowrap' }}>{fmtTime(f.at)}</span>
+                          <span style={{ 'font-family': 'monospace', color: '#555' }}>{f.enrichmentId}</span>
+                          <span style={{ color: '#666' }}>{f.tractate} {f.page}{f.lang === 'he' ? ' · he' : ''}</span>
+                          <span style={{ color: '#92400e' }}>×{f.attempts}</span>
+                        </div>
+                        <div style={{ color: '#a16207', 'font-family': 'monospace', 'font-size': '0.74rem', 'white-space': 'pre-wrap' }}>{f.issues.join(' · ')}</div>
                       </li>
                     )}
                   </For>

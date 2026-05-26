@@ -361,13 +361,17 @@ export default function MarksRegistryPanel(props: Props) {
    *  Niddah's rabbi row as "failed" with the Keritot job's timeout
    *  message. Compare against `props.tractate/${props.page}` at
    *  resolve-time (reactive — reflects the current daf). */
-  const currentStamp = () => `${props.tractate}/${props.page}`;
+  const currentStamp = () => `${props.tractate}/${props.page}/${lang()}`;
 
   createEffect(() => {
     const reg = registry();
     if (!reg) return;
     const on = enabled();
-    const stamp = `${props.tractate}/${props.page}`;
+    // lang() is in the stamp so a language switch re-fires every enabled mark
+    // and enrichment under the new lang (each run threads lang() into the
+    // request + the worker's :he cache namespace). Without it, switching
+    // EN↔HE left the previous language's mark output rendered until reload.
+    const stamp = `${props.tractate}/${props.page}/${lang()}`;
 
     untrack(() => {
       for (const m of reg.marks) {

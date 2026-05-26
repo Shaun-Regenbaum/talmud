@@ -56,6 +56,7 @@ import { runLLM, type LLMModelId, type LLMResult, type LLMUsage } from './llm';
 import { lookupRelationships } from './rabbi-graph';
 import { lintSynthesis } from '../lib/synthesisLint';
 import { lintHalachaParsed } from '../lib/halachaLint';
+import { noteLintAttempt, readLintFailures, type LintFailuresSummary } from './lint-failures';
 import { partitionSections, dedupeByRange, dedupeBy, selectSectionMoves, type MoveLike } from '../lib/argumentMoves';
 import { readSettings, writeSettings, isLLMModelId, MODEL_PRESETS } from './settings';
 import { costUsd as priceCostUsd, normalizeUsage } from './pricing';
@@ -2240,11 +2241,22 @@ async function runEnrichmentOnce(
     anchors_resolved: Object.keys(inputs.anchors).length > 0 ? inputs.anchors : undefined,
     ...(lint_issues ? { lint_issues } : {}),
   };
-  // Gate cache writes on lint passing. Bad outputs get returned to the
-  // current caller (visible with lint_issues attached) but aren't pinned —
-  // a bypass_cache=true re-run will get a fresh shot at producing clean
-  // Hebrew-anchored prose.
-  if (cacheKey && !parse_error && !lint_issues) await writeCachedResult(rc.env, cacheKey, out);
+  // Gate cache writes on lint passing — but BOUND the retries. A clean output
+  // is pinned immediately. A lint-failing output is left uncached so the next
+  // request regenerates (the model is mildly nondeterministic, so a retry may
+  // come back clean) — UNTIL it has failed MAX_LINT_ATTEMPTS times, at which
+  // point we pin the best-effort output anyway so reads become cache hits and
+  // regeneration stops. Without this cap the warm crons re-pay for a
+  // persistently-failing card forever. Capped failures surface on /api/usage.
+  if (cacheKey && !parse_error) {
+    if (!lint_issues) {
+      await writeCachedResult(rc.env, cacheKey, out);
+    } else if (await noteLintAttempt(rc.env, rc.ctx, cacheKey, {
+      enrichmentId: def.id, tractate, page, lang: rc.lang, issues: lint_issues,
+    })) {
+      await writeCachedResult(rc.env, cacheKey, out);
+    }
+  }
   // Attribute this fresh LLM call's tokens + cost to the daily rollup.
   captureLlmUsage(rc, { kind: 'enrichment', id: def.id, result: { model: result.model, usage: result.usage, parse_error } });
   return out;
@@ -3575,12 +3587,18 @@ app.get('/api/usage', async (c) => {
     if (jeRaw) { try { jobErrors = (JSON.parse(jeRaw) as RecentJobError[]).slice(-30).reverse(); } catch { jobErrors = []; } }
   }
 
+  // --- Capped lint failures (cards that hit MAX_LINT_ATTEMPTS and were pinned
+  // with gloss-style / missing-Hebrew issues still present). Surfaces the cost
+  // sink so a persistently-failing prompt is visible, not silent.
+  const lintFailures: LintFailuresSummary = await readLintFailures(cache);
+
   return c.json({
     telemetry: { perEndpoint, perMark, perEnrichment, recentErrors, totalCount: telemetry.length },
     cost: { selfTracked, aiGateway },
     activity,
     unknowns: { rabbis: unknownRabbis, places: observedPlaces },
     jobErrors,
+    lintFailures,
     reports: [...reports].reverse(),
   });
 });

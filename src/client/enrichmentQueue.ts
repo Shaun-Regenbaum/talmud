@@ -51,8 +51,8 @@ export function isAbort(err: unknown): boolean {
 // and on full reload.
 export const runResultCache = new Map<string, RunResult>();
 
-export function runCacheKey(enrichmentId: string, tractate: string, page: string, instanceKey: string): string {
-  return `${enrichmentId}:${tractate}:${page}:${instanceKey}`;
+export function runCacheKey(enrichmentId: string, tractate: string, page: string, instanceKey: string, lang: string): string {
+  return `${enrichmentId}:${tractate}:${page}:${instanceKey}:${lang}`;
 }
 
 /** Drop every cached run. Wired to the `marks-runs-invalidate` event below so

@@ -458,7 +458,7 @@ export default function DafViewer(): JSX.Element {
     }));
     const adapted: DafAnalysis = { summary: p.summary ?? '', sections };
     setAnalysis(adapted);
-    analysisSessionCache.set(`${tractate()}:${page()}`, adapted);
+    analysisSessionCache.set(`${tractate()}:${page()}:${lang()}`, adapted);
   });
 
   // Adapter: halacha mark instances → HalachaResult shape consumed by the
@@ -492,7 +492,7 @@ export default function DafViewer(): JSX.Element {
       })),
     };
     setHalacha(adapted);
-    halachaSessionCache.set(`${tractate()}:${page()}`, adapted);
+    halachaSessionCache.set(`${tractate()}:${page()}:${lang()}`, adapted);
   });
 
   // Adapter: aggadata mark instances → AggadataResult.
@@ -537,7 +537,7 @@ export default function DafViewer(): JSX.Element {
       })),
     };
     setAggadata(adapted);
-    aggadataSessionCache.set(`${tractate()}:${page()}`, adapted);
+    aggadataSessionCache.set(`${tractate()}:${page()}:${lang()}`, adapted);
   });
 
   // Adapter: pesukim mark instances → PesukimResult.
@@ -581,7 +581,7 @@ export default function DafViewer(): JSX.Element {
     })) as unknown as PesukimResult['pesukim'];
     const adapted: PesukimResult = { pesukim };
     setPesukim(adapted);
-    pesukimSessionCache.set(`${tractate()}:${page()}`, adapted);
+    pesukimSessionCache.set(`${tractate()}:${page()}:${lang()}`, adapted);
   });
 
   // Bridge: when a code-defined registry mark is enabled (rabbi already has
@@ -949,14 +949,16 @@ export default function DafViewer(): JSX.Element {
 
 
   // analysis()/halacha()/aggadata()/pesukim() are now hydrated entirely by
-  // the registry-mark adapter effects above (search "Adapter:"). On daf
-  // change we clear the stale data; the adapter effect re-fires once the
-  // corresponding mark run lands. Session caches stay in place for instant
-  // back-nav restoration.
+  // the registry-mark adapter effects above (search "Adapter:"). On daf change
+  // — or a language switch — we clear the stale data; the adapter effect
+  // re-fires once the corresponding mark run lands under the new lang. Session
+  // caches are keyed per-lang so back-nav and EN↔HE both restore instantly
+  // without showing the other language's text.
   createEffect(() => {
     const t = tractate();
     const p = page();
-    const key = `${t}:${p}`;
+    const l = lang();
+    const key = `${t}:${p}:${l}`;
     setAnalysis(analysisSessionCache.get(key) ?? null);
     setHalacha(halachaSessionCache.get(key) ?? null);
     setAggadata(aggadataSessionCache.get(key) ?? null);
