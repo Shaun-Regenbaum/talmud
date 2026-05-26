@@ -2272,7 +2272,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', { mark: 'argument-move' }, { mark: 'rabbi' }],
-      defHash: 'argument.voices-v4', cacheVersion: '4',
+      defHash: 'argument.voices-v5', cacheVersion: '5',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_VOICES_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_VOICES_USER_TEMPLATE_HE,
