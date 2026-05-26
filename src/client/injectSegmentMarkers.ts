@@ -191,6 +191,24 @@ export function abbreviationMatches(hbRaw: string, sefWords: string[], sj: numbe
     return 0;
   }
 
+  // Gematria numerals: a single Hebrew letter + geresh marks a small number
+  // (ב׳ → two, ג׳ → three, … י׳ → ten, כ׳ → twenty, ק׳ → hundred). HebrewBooks
+  // writes them this way; Sefaria spells them out, and the spelling varies by
+  // gender and construct state (שְׁתֵּי / שְׁנַיִם, שָׁלֹשׁ / שְׁלֹשָׁה / שְׁלֹשֶׁת).
+  // Match conditionally on the next Sefaria word so a non-numeric letter+geresh
+  // token (e.g. a chapter/verse reference) just falls through to the acronym
+  // matcher and isn't forced into a bogus number. Restricted to ONE letter:
+  // teens (י״ב, ט״ו) are two-letter tokens that spell out to two words, which
+  // this 1→1 rule deliberately doesn't handle.
+  const bare = s.replace(/[^א-ת]/g, '');
+  if (bare.length === 1 && /[׳'״"]/.test(s)) {
+    const forms = NUMBER_WORDS[GEMATRIA[bare] ?? -1];
+    if (forms && sj < sefWords.length) {
+      const n = normalizeHebrew(sefWords[sj]);
+      if (forms.some((f) => normalizeHebrew(f) === n)) return 1;
+    }
+  }
+
   // --- Generic fallback: first-letter acronym matcher --------------------
   // Most rabbinic abbreviations are letter-acronyms where each Sefaria word
   // contributes 1 or 2 consecutive letters to the abbreviation (2 when the
@@ -200,6 +218,41 @@ export function abbreviationMatches(hbRaw: string, sefWords: string[], sj: numbe
 }
 
 const FINAL_MAP: Record<string, string> = { 'ך': 'כ', 'ם': 'מ', 'ן': 'נ', 'ף': 'פ', 'ץ': 'צ' };
+
+// Hebrew letter → gematria value (regular letters only; final forms never
+// stand alone as a numeral).
+const GEMATRIA: Record<string, number> = {
+  'א': 1, 'ב': 2, 'ג': 3, 'ד': 4, 'ה': 5, 'ו': 6, 'ז': 7, 'ח': 8, 'ט': 9,
+  'י': 10, 'כ': 20, 'ל': 30, 'מ': 40, 'נ': 50, 'ס': 60, 'ע': 70, 'פ': 80, 'צ': 90,
+  'ק': 100, 'ר': 200, 'ש': 300, 'ת': 400,
+};
+
+// Gematria value → accepted spelled-out cardinal forms (any gender, absolute
+// or construct). Compared after normalizeHebrew on both sides, so plain
+// consonantal spellings suffice. Only single-word numbers appear here, matching
+// the single-letter restriction in the rule above.
+const NUMBER_WORDS: Record<number, string[]> = {
+  1: ['אחד', 'אחת'],
+  2: ['שנים', 'שתים', 'שני', 'שתי', 'שניים', 'שתיים'],
+  3: ['שלש', 'שלשה', 'שלוש', 'שלושה', 'שלשת', 'שלושת'],
+  4: ['ארבע', 'ארבעה', 'ארבעת'],
+  5: ['חמש', 'חמשה', 'חמישה', 'חמשת'],
+  6: ['שש', 'ששה', 'שישה', 'ששת'],
+  7: ['שבע', 'שבעה', 'שבעת'],
+  8: ['שמנה', 'שמונה', 'שמנת', 'שמונת'],
+  9: ['תשע', 'תשעה', 'תשעת'],
+  10: ['עשר', 'עשרה', 'עשרת'],
+  20: ['עשרים'],
+  30: ['שלשים', 'שלושים'],
+  40: ['ארבעים'],
+  50: ['חמשים', 'חמישים'],
+  60: ['ששים', 'שישים'],
+  70: ['שבעים'],
+  80: ['שמנים', 'שמונים'],
+  90: ['תשעים'],
+  100: ['מאה'],
+  200: ['מאתים', 'מאתיים'],
+};
 
 function genericAcronymMatch(hbRaw: string, sefWords: string[], sj: number): number {
   // Must contain a gershayim-style separator — that's the marker that this

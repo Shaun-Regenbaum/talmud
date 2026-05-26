@@ -37,6 +37,43 @@ describe('abbreviationMatches — חכ"א / וחכ"א (the Sages say)', () => {
   });
 });
 
+describe('abbreviationMatches — gematria numerals', () => {
+  // Regression: HebrewBooks writes small numbers as a letter + geresh (ג׳),
+  // Sefaria spells them out (שָׁלֹשׁ), so "מבת ג׳ שנים" didn't align against
+  // "מבת שלש שנים". The numeral now matches the next Sefaria word against the
+  // number's spellings (gender + construct variants).
+  it("ג' → three, matching שלש / שלשה / שלושה / שלשת", () => {
+    for (const w of ['שָׁלֹשׁ', 'שְׁלֹשָׁה', 'שלושה', 'שְׁלֹשֶׁת']) {
+      expect(abbreviationMatches("ג'", [w, 'שנים'], 0)).toBe(1);
+    }
+  });
+
+  it("ב' → two, matching the construct שתי and absolute שנים", () => {
+    expect(abbreviationMatches("ב'", ['שְׁתֵּי', 'שערות'], 0)).toBe(1);
+    expect(abbreviationMatches("ב'", ['שְׁנַיִם'], 0)).toBe(1);
+  });
+
+  it('accepts the Hebrew geresh ׳ as well as ASCII apostrophe', () => {
+    expect(abbreviationMatches('ה׳', ['חֲמִשָּׁה'], 0)).toBe(1);
+  });
+
+  it("maps tens and hundreds (כ' → twenty, ק' → hundred)", () => {
+    expect(abbreviationMatches("כ'", ['עשרים'], 0)).toBe(1);
+    expect(abbreviationMatches("ק'", ['מאה'], 0)).toBe(1);
+  });
+
+  it('returns 0 when the next word is not that number (falls through safely)', () => {
+    // ג׳ followed by a non-number word: no bogus consumption.
+    expect(abbreviationMatches("ג'", ['רבי', 'יהודה'], 0)).toBe(0);
+    // ה׳ as the Divine name before אלהינו must NOT be read as "five".
+    expect(abbreviationMatches("ה'", ['אלהינו'], 0)).toBe(0);
+  });
+
+  it('does not treat a plain (geresh-less) letter as a numeral', () => {
+    expect(abbreviationMatches('ג', ['שלש'], 0)).toBe(0);
+  });
+});
+
 describe('abbreviationMatches — existing expansions still work', () => {
   it('ר\' → רבי (1 word)', () => {
     expect(abbreviationMatches("ר'", ['רבי', 'יהודה'], 0)).toBe(1);
