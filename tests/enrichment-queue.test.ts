@@ -37,7 +37,7 @@ describe('RequestQueue — concurrency', () => {
 
 describe('RequestQueue — priority', () => {
   it('drains higher-priority tasks first while a slot is occupied', async () => {
-    const q = new RequestQueue(1);
+    const q = new RequestQueue(1, 0); // reserve 0: test pure priority ordering
     const order: string[] = [];
     const block = defer();
     // Occupy the only slot, then enqueue out of priority order.
@@ -66,7 +66,7 @@ describe('RequestQueue — priority', () => {
   });
 
   it('a HIGH task enqueued later still jumps ahead of waiting LOW prefetch work', async () => {
-    const q = new RequestQueue(1);
+    const q = new RequestQueue(1, 0); // reserve 0: isolate priority from the slot reservation
     const order: string[] = [];
     const block = defer();
     void q.enqueue('block', 'l', () => { order.push('block'); return block.promise; });
@@ -81,6 +81,40 @@ describe('RequestQueue — priority', () => {
     await flush();
     expect(order[0]).toBe('block');
     expect(order[1]).toBe('click'); // user click drains before the prefetch backlog
+  });
+});
+
+describe('RequestQueue — foreground slot reservation', () => {
+  it('LOW (background prefetch) cannot occupy the reserved slot', async () => {
+    const q = new RequestQueue(2, 1); // 2 slots, reserve 1 → LOW may use at most 1
+    const started: string[] = [];
+    const blockers = [defer(), defer(), defer()];
+    for (let i = 0; i < 3; i++) {
+      void q.enqueue(`low${i}`, 'l', () => { started.push(`low${i}`); return blockers[i].promise; }, undefined, QUEUE_PRIORITY.low);
+    }
+    // Only one LOW runs; the second slot stays reserved for foreground.
+    expect(started).toEqual(['low0']);
+
+    // A foreground click (HIGH) takes the reserved slot immediately — it does
+    // NOT wait behind the in-flight LOW prefetch.
+    const hi = defer();
+    void q.enqueue('click', 'l', () => { started.push('click'); return hi.promise; }, undefined, QUEUE_PRIORITY.high);
+    expect(started).toEqual(['low0', 'click']);
+
+    // When the running LOW finishes, the next LOW may use its (non-reserved) slot.
+    blockers[0].resolve('x');
+    await flush();
+    expect(started).toContain('low1');
+  });
+
+  it('NORMAL foreground work is not capped by the reservation', async () => {
+    const q = new RequestQueue(2, 1);
+    const started: string[] = [];
+    const b = [defer(), defer()];
+    // Two NORMAL tasks may use both slots — the reserve only restrains LOW.
+    void q.enqueue('n0', 'l', () => { started.push('n0'); return b[0].promise; }, undefined, QUEUE_PRIORITY.normal);
+    void q.enqueue('n1', 'l', () => { started.push('n1'); return b[1].promise; }, undefined, QUEUE_PRIORITY.normal);
+    expect(started).toEqual(['n0', 'n1']);
   });
 });
 

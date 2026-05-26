@@ -82,12 +82,22 @@ export type QueuePriority = (typeof QUEUE_PRIORITY)[keyof typeof QUEUE_PRIORITY]
 // (workerd dies on the simultaneous fan-out + 30k-char prompts; see
 // 2026-05-07 incident). KV cache hits still go through the queue but resolve
 // fast, so there's no penalty once a section has been opened before.
-interface QueueItem { run: () => void; priority: number; seq: number }
+//
+// Two scheduling guarantees on top of plain concurrency:
+//   - Priority: a waiting HIGH task drains before NORMAL before LOW.
+//   - Foreground reservation: LOW (background prefetch) may occupy at most
+//     `concurrency - reserve` slots, so a slot is always kept free for a
+//     foreground click. Priority alone isn't enough — it only reorders
+//     WAITING tasks and can't preempt an in-flight cold generation, so without
+//     the reservation a burst of cold LOW prefetch fills every slot and a
+//     user's HIGH click still stalls ~60s waiting for one to finish.
+interface QueueItem { run: () => void; priority: number; seq: number; isLow: boolean }
 export class RequestQueue {
   private queue: QueueItem[] = [];
   private active = 0;
+  private activeLow = 0;
   private seq = 0;
-  constructor(private readonly concurrency: number) {}
+  constructor(private readonly concurrency: number, private readonly reserve = 1) {}
   // `activityId` + `activityLabel` are reported to the shared activity
   // store as a `queued` entry the instant the task is pushed onto the
   // queue. When pump() finally invokes the task, trackAI() inside the work
@@ -103,6 +113,7 @@ export class RequestQueue {
     priority: QueuePriority = QUEUE_PRIORITY.normal,
   ): Promise<T> {
     queueActivity(activityId, activityLabel);
+    const isLow = priority >= QUEUE_PRIORITY.low;
     return new Promise((resolve, reject) => {
       const run = () => {
         // Dropped while still waiting for a slot (sidebar closed, anchor
@@ -110,24 +121,33 @@ export class RequestQueue {
         // so the queue keeps draining for the current daf.
         if (signal?.aborted) { reject(new DOMException('Aborted', 'AbortError')); return; }
         this.active++;
+        if (isLow) this.activeLow++;
+        const done = () => { this.active--; if (isLow) this.activeLow--; this.pump(); };
         task(signal ?? new AbortController().signal).then(
-          (v) => { this.active--; this.pump(); resolve(v); },
-          (e) => { this.active--; this.pump(); reject(e); },
+          (v) => { done(); resolve(v); },
+          (e) => { done(); reject(e); },
         );
       };
-      this.queue.push({ run, priority, seq: this.seq++ });
+      this.queue.push({ run, priority, seq: this.seq++, isLow });
       this.pump();
     });
   }
   private pump() {
+    const lowCap = Math.max(0, this.concurrency - this.reserve);
     while (this.active < this.concurrency && this.queue.length > 0) {
-      // Pick the highest-priority (lowest tier, then lowest seq) waiting task.
-      let bestIdx = 0;
-      for (let i = 1; i < this.queue.length; i++) {
-        const a = this.queue[i];
-        const b = this.queue[bestIdx];
-        if (a.priority < b.priority || (a.priority === b.priority && a.seq < b.seq)) bestIdx = i;
+      // Highest-priority eligible task (lowest tier, then FIFO). A LOW task is
+      // ineligible once `concurrency - reserve` LOW tasks are already running,
+      // keeping a slot open for foreground work.
+      let bestIdx = -1;
+      for (let i = 0; i < this.queue.length; i++) {
+        const item = this.queue[i];
+        if (item.isLow && this.activeLow >= lowCap) continue;
+        const best = bestIdx === -1 ? null : this.queue[bestIdx];
+        if (!best || item.priority < best.priority || (item.priority === best.priority && item.seq < best.seq)) {
+          bestIdx = i;
+        }
       }
+      if (bestIdx === -1) break; // only LOW tasks remain and the LOW cap is full
       const next = this.queue.splice(bestIdx, 1)[0];
       next.run();
     }
