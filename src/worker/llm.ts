@@ -46,6 +46,10 @@ export interface LLMUsage {
   prompt_tokens?: number;
   completion_tokens?: number;
   total_tokens?: number;
+  /** Billed cost in USD, returned by OpenRouter when the request sets
+   *  `usage: { include: true }`. Accounts for prompt-cache discounts. Absent
+   *  on Workers AI (`@cf/*`) calls, which aren't billed per-token here. */
+  cost?: number;
 }
 
 export interface LLMCallOptions {
@@ -78,6 +82,10 @@ export interface LLMCallOptions {
    * crons where cache hits are desirable.
    */
   bypass_cache?: boolean;
+  /** Optional attribution label written to the cost ledger (e.g.
+   *  'mark:rabbi', 'enrich:rabbi.synthesis'). Lets /api/admin/llm-cost break
+   *  spend down by mark/enrichment. Untagged calls still count toward totals. */
+  tag?: string;
 }
 
 export type LLMTransport = 'workers-ai' | 'openrouter-gateway';
@@ -184,6 +192,7 @@ export async function runLLM(env: LLMEnv, opts: LLMCallOptions): Promise<LLMResu
     const model = chain[i];
     try {
       const result = await withHardTimeout(callOnce(env, model, opts), MODEL_CALL_HARD_TIMEOUT_MS, model);
+      await recordLLMCost(env, model, opts.tag, i + 1, result);
       return { ...result, attempts: i + 1 };
     } catch (err) {
       lastErr = err;
@@ -199,6 +208,43 @@ export async function runLLM(env: LLMEnv, opts: LLMCallOptions): Promise<LLMResu
     }
   }
   throw lastErr ?? new LLMError(500, 'runLLM: no models in chain');
+}
+
+// Per-call cost ledger. One unique KV key per billable LLM call so 50-way
+// concurrent queue workers never clobber each other (a single ring buffer's
+// read-modify-write would lose entries and undercount). /api/admin/llm-cost
+// sums the prefix. Best-effort + short TTL; failures never block the call.
+const LLM_COST_PREFIX = 'llmcost:v1:';
+const LLM_COST_TTL_S = 7 * 24 * 3600;
+
+async function recordLLMCost(
+  env: LLMEnv,
+  model: LLMModelId,
+  tag: string | undefined,
+  attempts: number,
+  result: Omit<LLMResult, 'attempts'>,
+): Promise<void> {
+  const cache = env.CACHE;
+  if (!cache) return;
+  try {
+    const u = result.usage;
+    const key = `${LLM_COST_PREFIX}${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    const rec = {
+      ts: Date.now(),
+      model,
+      transport: result.transport,
+      tag: tag ?? 'untagged',
+      attempts,
+      ms: result.elapsed_ms,
+      cost: typeof u?.cost === 'number' ? u.cost : null,
+      prompt_tokens: u?.prompt_tokens ?? null,
+      completion_tokens: u?.completion_tokens ?? null,
+      total_tokens: u?.total_tokens ?? null,
+    };
+    await cache.put(key, JSON.stringify(rec), { expirationTtl: LLM_COST_TTL_S });
+  } catch {
+    // best-effort telemetry; never fail the LLM call over a ledger write
+  }
 }
 
 async function callOnce(env: LLMEnv, model: LLMModelId, opts: LLMCallOptions): Promise<Omit<LLMResult, 'attempts'>> {
@@ -298,6 +344,9 @@ async function callOpenRouterGateway(env: LLMEnv, model: LLMModelId, opts: LLMCa
     temperature: opts.temperature ?? DEFAULT_TEMPERATURE,
   };
   if (opts.response_format) body.response_format = opts.response_format;
+  // Ask OpenRouter to return billed cost (USD, net of prompt-cache discounts)
+  // in the response `usage` object. Drives the cost ledger / /api/admin/llm-cost.
+  body.usage = { include: true };
   if (opts.reasoning_effort) body.reasoning_effort = opts.reasoning_effort;
   // DeepSeek V4 Pro reasons by default and burns ~30-90s on full-daf prompts.
   // OpenRouter accepts `reasoning: { enabled: false }` to disable. We turn it

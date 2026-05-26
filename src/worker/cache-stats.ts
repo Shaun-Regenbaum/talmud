@@ -26,9 +26,10 @@ import { getWarmTotal } from './warm-cron';
 import { CODE_MARKS, CODE_ENRICHMENTS } from './code-marks';
 import { listMarks, listEnrichments } from './studio-registry';
 
-// v5: mark/enrichment rows now carry a per-cache-version breakdown (`versions`
-// + `staleCount`) so the dashboard can show how much KV is held by superseded
-// versions. v4 payloads lack those fields.
+// v5: mark/enrichment rows carry a per-cache-version breakdown (`versions` +
+// `staleCount`) + the `observations` bucket (rabbi.observations reverse index).
+// v6: rows also carry `heCount` and `versions` buckets Hebrew entries under
+// `<version>:he`, so the dashboard can report EN vs HE cache coverage.
 export const CACHE_STATS_KEY = 'cache-stats:v6';
 const FRESH_MS = 60_000;
 
@@ -42,6 +43,13 @@ export interface CacheStats {
   };
   marks: MarkCacheRow[];
   enrichments: EnrichmentCacheRow[];
+  // rabbi.observations reverse index (collect-only). `slices` = rabbi×daf
+  // observation slices written so far; `rabbis` = distinct rabbis with at
+  // least one slice (the dirty-marker count).
+  observations: {
+    slices: number;
+    rabbis: number;
+  };
   rabbis: {
     totalRabbis: number;
     withBio: number;                      // any bio text
@@ -227,10 +235,13 @@ async function mergedEnrichments(cache: KVNamespace): Promise<Array<{
 export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats> {
   const total = getWarmTotal();
 
-  const [hbCount, gemaraCount, commentariesCount] = await Promise.all([
+  const [hbCount, gemaraCount, commentariesCount, obsSlices, obsRabbis] = await Promise.all([
     countPrefix(cache, 'hb:v2:'),
     countPrefix(cache, 'ctx:gemara:v1:'),
     countPrefix(cache, 'ctx:commentaries:v1:'),
+    // `rabbi-obs:v1:` matches slice keys only (dirty keys are `rabbi-obs-dirty:v1:`).
+    countPrefix(cache, 'rabbi-obs:v1:'),
+    countPrefix(cache, 'rabbi-obs-dirty:v1:'),
   ]);
 
   const markDefs = await mergedMarks(cache);
@@ -322,6 +333,7 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     },
     marks,
     enrichments,
+    observations: { slices: obsSlices, rabbis: obsRabbis },
     rabbis: {
       totalRabbis, withBio, withSefariaBio, withWiki,
       withGeneration, withRegion, withPlaces,

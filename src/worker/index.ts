@@ -38,6 +38,7 @@ import { runYomiWarmCron } from './yomi-cron';
 import { GENERATION_IDS, GENERATION_BY_ID, GENERATIONS_PROMPT_REFERENCE, type GenerationId } from '../client/generations';
 import rabbiPlacesData from '../lib/data/rabbi-places.json';
 import { extractTalmudContent } from '../lib/sefref/alignment';
+import { fetchHebrewBooksDaf } from '../lib/sefref/hebrewbooks/client';
 import {
   RABBI_ENRICH_SYSTEM_PROMPT,
   buildRabbiEnrichUserMessage,
@@ -83,6 +84,15 @@ import {
   qualifierHash,
   normalizeQualifier,
 } from './cache-keys';
+import {
+  buildObservationSlices,
+  resolveSegIdxs,
+  normalizeForMatch,
+  type ResolvedRabbi,
+  type ResolvedPlace,
+  type RangeItem,
+  type ObservationSlice,
+} from './rabbi-observations';
 
 type Movement = 'bavel->israel' | 'israel->bavel' | 'both' | null;
 interface RabbiPlacesEntry {
@@ -128,6 +138,9 @@ interface Bindings {
   // of this file. /api/studio/run enqueues a JobMessage; the queue consumer
   // runs the LLM chain and writes the result to KV under `job:{runId}`.
   ENRICHMENT_QUEUE?: Queue<JobMessage>;
+  // When '1', the background Sefaria Shas walk also enqueues rabbi.observations
+  // per amud (full reverse-index backfill). OFF by default — see WarmEnv.
+  OBSERVATIONS_WARM_SHAS?: string;
 }
 
 // Message shape on the enrichment queue. Carries everything the consumer
@@ -682,7 +695,13 @@ function renderTemplate(tpl: string, vars: Record<string, unknown>): string {
 // ===========================================================================
 
 function adaptCodeEnrichment(code: SchemaEnrichmentDefinition): EnrichmentDefinition | null {
-  if (code.extractor.kind !== 'llm') return null;
+  // 'computed' enrichments carry no prompts — they're intercepted by a
+  // `def.id`-keyed short-circuit in runEnrichmentOnce (like rabbi.identity)
+  // and never hit the LLM path. Pass them through with empty prompt fields so
+  // the runner can still load + cache them; everything the short-circuit needs
+  // (scope, dependencies, cache_version) is preserved below.
+  if (code.extractor.kind !== 'llm' && code.extractor.kind !== 'computed') return null;
+  const llm = code.extractor.kind === 'llm' ? code.extractor : null;
   return {
     id: code.id,
     label: code.label,
@@ -690,13 +709,13 @@ function adaptCodeEnrichment(code: SchemaEnrichmentDefinition): EnrichmentDefini
     mark: code.target_mark,
     scope: code.scope,
     dependencies: code.dependencies,
-    system_prompt: code.extractor.system_prompt,
-    user_prompt_template: code.extractor.user_prompt_template,
-    system_prompt_he: code.extractor.system_prompt_he,
-    user_prompt_template_he: code.extractor.user_prompt_template_he,
-    model: code.extractor.model,
-    output_schema: code.extractor.output_schema,
-    thinking_off: code.extractor.thinking_off,
+    system_prompt: llm?.system_prompt ?? '',
+    user_prompt_template: llm?.user_prompt_template ?? '',
+    system_prompt_he: llm?.system_prompt_he,
+    user_prompt_template_he: llm?.user_prompt_template_he,
+    model: llm?.model,
+    output_schema: llm?.output_schema,
+    thinking_off: llm?.thinking_off,
     cache_version: code.cache_version,
     source: 'code',
     updated_at: code.updated_at,
@@ -1146,6 +1165,9 @@ async function runMarkOnce(
       : undefined,
     thinking: ext.thinking_off ? false : undefined,
     bypass_cache: bypassCache,
+    // Cost-ledger attribution; the fan-out path spreads llmOptsBase, so this
+    // tags every argument-move sub-call too.
+    tag: `mark:${def.id}`,
   };
 
   let result: LLMResult;
@@ -2053,6 +2075,15 @@ async function runEnrichmentOnce(
   nextChain.add(def.id);
   const inputs = await resolveDependencies(rc, def.dependencies, tractate, page, markInput, bypassCache, nextChain);
 
+  // Deterministic accumulation step — runs LAST (its mark deps are resolved
+  // above) and writes per-rabbi observation slices to KV as a side effect.
+  // No LLM. See runRabbiObservations + src/worker/rabbi-observations.ts.
+  if (def.id === 'rabbi.observations') {
+    const out = await runRabbiObservations(rc, def, tractate, page, inputs);
+    if (cacheKey) await writeCachedResult(rc.env, cacheKey, out);
+    return out;
+  }
+
   // Pre-fetch the focal pasuk's Hebrew verbatim for pesukim.* enrichments so
   // the LLM has a verbatim source to quote from. Without this the model
   // translates the verse to English and quotes that — the regression the
@@ -2119,6 +2150,7 @@ async function runEnrichmentOnce(
       : undefined,
     thinking: def.thinking_off ? false : undefined,
     bypass_cache: bypassCache,
+    tag: `enrich:${def.id}`,
   });
 
   let parsed: unknown = null;
@@ -2183,6 +2215,146 @@ async function runEnrichmentOnce(
   // Attribute this fresh LLM call's tokens + cost to the daily rollup.
   captureLlmUsage(rc, { kind: 'enrichment', id: def.id, result: { model: result.model, usage: result.usage, parse_error } });
   return out;
+}
+
+// ===========================================================================
+// rabbi.observations — deterministic reverse-index capture.
+//
+// Joins the daf's already-extracted entity marks (rabbi / places / aggadata /
+// argument-move / pesukim) into per-rabbi observation slices and writes one KV
+// slice per rabbi+daf. The pure join logic lives in rabbi-observations.ts;
+// this wrapper does the I/O: resolve each rabbi/place's segment positions by
+// matching their Hebrew against the daf segments, resolve canonical slugs via
+// enrichRabbi, opportunistically read cached rabbi.location for the high-
+// confidence place tier, then persist. Never calls an LLM, never amplifies
+// LLM cost (location is read-from-cache only). This is the COLLECT half.
+// ===========================================================================
+
+const RABBI_OBS_PREFIX = 'rabbi-obs:v1';
+const RABBI_OBS_DIRTY_PREFIX = 'rabbi-obs-dirty:v1';
+
+/** Daf component of a rabbi-obs key — mirrors cache-keys.ts slugDaf so the
+ *  inspect endpoint's prefix list is stable. */
+export function obsDafSlug(tractate: string, page: string): string {
+  const clean = (s: string) => s.toLowerCase().replace(/[^a-z0-9.-]+/g, '_');
+  return `${clean(tractate)}:${clean(page)}`;
+}
+function obsSlugId(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9._-]+/g, '_').slice(0, 80);
+}
+
+function asInstances(v: unknown): Array<Record<string, unknown>> {
+  return Array.isArray(v) ? (v as Array<Record<string, unknown>>) : [];
+}
+function rangeItemsOf(v: unknown): RangeItem[] {
+  return asInstances(v)
+    .filter((i) => typeof i.startSegIdx === 'number' && typeof i.endSegIdx === 'number')
+    .map((i) => ({
+      startSegIdx: i.startSegIdx as number,
+      endSegIdx: i.endSegIdx as number,
+      fields: (i.fields as Record<string, unknown>) ?? {},
+    }));
+}
+
+async function runRabbiObservations(
+  rc: RunCtx,
+  def: EnrichmentDefinition,
+  tractate: string,
+  page: string,
+  inputs: ResolvedInputs,
+): Promise<RunResultEnrichment> {
+  const t0 = Date.now();
+  const computedAt = new Date().toISOString();
+  const segmentsHe = (inputs.vars.segments_he as string[] | undefined) ?? [];
+  const normSegs = segmentsHe.map(normalizeForMatch);
+
+  const rabbiInsts = asInstances(inputs.anchors.rabbi);
+  const placeInsts = asInstances(inputs.anchors.places);
+  const moves = rangeItemsOf(inputs.anchors['argument-move']);
+  const aggadata = rangeItemsOf(inputs.anchors.aggadata);
+  const pesukim = rangeItemsOf(inputs.anchors.pesukim);
+
+  // rabbi.location is per-rabbi; read it from cache (no LLM trigger) so the
+  // high-confidence place tier lights up for browsed dafs (synthesis prefetch
+  // already computed it). Absent on a cold warm walk — we just skip the tier.
+  const locDef = await loadEnrichmentDef(rc.env, 'rabbi.location');
+
+  const resolvedRabbis: ResolvedRabbi[] = [];
+  for (const inst of rabbiInsts) {
+    const fields = (inst.fields as Record<string, unknown>) ?? {};
+    const name = String(fields.name ?? '');
+    const nameHe = String(fields.nameHe ?? inst.excerpt ?? '');
+    if (!name && !nameHe) continue;
+    const generation = (fields.generation ?? 'unknown') as GenerationId;
+    const ident = enrichRabbi(name, nameHe, generation);
+    const slug = ident.slug ?? obsSlugId(name || nameHe);
+    if (!slug) continue;
+    const segIdxs = resolveSegIdxs(String(inst.excerpt ?? nameHe), normSegs);
+
+    let location: { place: string } | null = null;
+    if (locDef) {
+      try {
+        const iid = await instanceIdOf(inst);
+        const hit = await readCachedResult(rc.env, keyForEnrichment(locDef, iid, { tractate, page }));
+        const place = (hit?.parsed as { place?: string } | null)?.place;
+        if (typeof place === 'string' && place.trim()) location = { place: place.trim() };
+      } catch { /* best-effort; high tier is optional */ }
+    }
+
+    resolvedRabbis.push({ slug, name: name || nameHe, nameHe, generation, segIdxs, location });
+  }
+
+  const resolvedPlaces: ResolvedPlace[] = placeInsts
+    .map((inst) => {
+      const fields = (inst.fields as Record<string, unknown>) ?? {};
+      return {
+        name: String(fields.name ?? ''),
+        nameHe: String(fields.nameHe ?? ''),
+        kind: typeof fields.kind === 'string' ? fields.kind : undefined,
+        region: typeof fields.region === 'string' ? fields.region : undefined,
+        segIdxs: resolveSegIdxs(String(inst.excerpt ?? fields.nameHe ?? ''), normSegs),
+      };
+    })
+    .filter((p) => p.name || p.nameHe);
+
+  const slices = buildObservationSlices({
+    tractate, page, defHash: def.cache_version, computedAt,
+    rabbis: resolvedRabbis, places: resolvedPlaces, moves, aggadata, pesukim,
+  });
+
+  // Persist: one idempotent slice per (rabbi, daf), keyed by canonical slug.
+  // Concurrent daf runs never clobber each other (distinct keys); re-running a
+  // daf overwrites only its own slices. A per-slug dirty marker is a cheap
+  // breadcrumb for a future synthesis pass (no atomic-append needed).
+  const dafSlug = obsDafSlug(tractate, page);
+  const byType: Record<string, number> = {};
+  let totalObs = 0;
+  if (rc.env.CACHE) {
+    for (const slice of slices) {
+      await rc.env.CACHE.put(`${RABBI_OBS_PREFIX}:${slice.slug}:${dafSlug}`, JSON.stringify(slice));
+      await rc.env.CACHE.put(`${RABBI_OBS_DIRTY_PREFIX}:${slice.slug}`, computedAt);
+      totalObs += slice.observations.length;
+      for (const o of slice.observations) byType[o.type] = (byType[o.type] ?? 0) + 1;
+    }
+  }
+
+  const summary = { tractate, page, rabbis: slices.length, observations: totalObs, byType, computedAt };
+  return {
+    content: JSON.stringify(summary),
+    parsed: summary,
+    parse_error: null,
+    model: 'computed:rabbi.observations',
+    transport: 'computed',
+    attempts: 0,
+    usage: { input_tokens: 0, output_tokens: 0, total_tokens: 0 },
+    elapsed_ms: Date.now() - t0,
+    prompt_chars: 0,
+    resolved: {
+      system_prompt: '(deterministic: rabbi-observations join over daf marks)',
+      user_prompt: `(rabbi.observations ${tractate} ${page}: ${slices.length} rabbis, ${totalObs} observations)`,
+    },
+    cache_hit: false,
+  };
 }
 
 /**
@@ -2432,6 +2604,190 @@ app.get('/api/admin/recent-errors', async (c) => {
   const limit = Math.min(parseInt(c.req.query('limit') ?? '200', 10) || 200, RECENT_ERRORS_CAP);
   if (out.length > limit) out = out.slice(out.length - limit);
   return c.json({ count: out.length, errors: out });
+});
+
+/**
+ * GET /api/rabbi-observations/:slug — read the accumulated reverse index for
+ * one rabbi. Lists every rabbi-obs:v1:{slug}:* daf slice, merges them, and
+ * aggregates observation frequency across dafs (the exact read a future
+ * synthesis pass will perform). Read-only; nothing here promotes data back.
+ *
+ *   ?type=place   filter the flat `observations` list to one type
+ *   ?min=2        only return aggregated entries seen on >= min dafs
+ */
+app.get('/api/rabbi-observations/:slug', async (c) => {
+  const cache = c.env.CACHE;
+  if (!cache) return c.json({ error: 'no cache binding' }, 503);
+  const slug = c.req.param('slug');
+  const prefix = `rabbi-obs:v1:${slug}:`;
+
+  const keys: string[] = [];
+  let cursor: string | undefined;
+  do {
+    const res = await cache.list({ prefix, cursor, limit: 1000 });
+    for (const k of res.keys) keys.push(k.name);
+    cursor = res.list_complete ? undefined : res.cursor;
+  } while (cursor && keys.length < 5000);
+
+  const slices: ObservationSlice[] = [];
+  for (const key of keys) {
+    const raw = await cache.get(key);
+    if (!raw) continue;
+    try { slices.push(JSON.parse(raw) as ObservationSlice); } catch { /* skip corrupt slice */ }
+  }
+
+  const typeFilter = c.req.query('type');
+  const minDafs = Math.max(1, parseInt(c.req.query('min') ?? '1', 10) || 1);
+  const RANK: Record<string, number> = { high: 3, medium: 2, low: 1 };
+
+  const byType: Record<string, number> = {};
+  // Frequency across dafs, keyed by observation hash (same place/move/verse on
+  // N dafs => dafs:N) — the signal a future "notable places" ranking needs.
+  const freq = new Map<string, { type: string; payload: unknown; dafs: number; confidence: string }>();
+  const observations: Array<Record<string, unknown>> = [];
+  for (const s of slices) {
+    for (const o of s.observations) {
+      byType[o.type] = (byType[o.type] ?? 0) + 1;
+      const prev = freq.get(o.hash);
+      if (prev) {
+        prev.dafs += 1;
+        if ((RANK[o.confidence] ?? 0) > (RANK[prev.confidence] ?? 0)) prev.confidence = o.confidence;
+      } else {
+        freq.set(o.hash, { type: o.type, payload: o.payload, dafs: 1, confidence: o.confidence });
+      }
+      if (!typeFilter || o.type === typeFilter) {
+        observations.push({ ...o, tractate: s.tractate, page: s.page });
+      }
+    }
+  }
+  const aggregated = [...freq.values()]
+    .filter((e) => e.dafs >= minDafs)
+    .sort((a, b) => b.dafs - a.dafs || (RANK[b.confidence] ?? 0) - (RANK[a.confidence] ?? 0));
+
+  return c.json({
+    slug,
+    name: slices[0]?.name ?? slug,
+    nameHe: slices[0]?.nameHe ?? '',
+    dafCount: slices.length,
+    byType,
+    aggregated,
+    observations,
+  });
+});
+
+/**
+ * GET /api/admin/llm-cost — sum the per-call cost ledger (llmcost:v1:*) that
+ * runLLM writes. Unique-key entries, so the totals are exact even under the
+ * 50-way concurrent queue. Used to size the rabbi.observations backfill.
+ *
+ *   ?since=<unix-ms>  only count calls at/after this timestamp
+ *   ?clear=1          delete the ledger (reset before a measurement window)
+ */
+interface LlmCostRec {
+  ts: number; model: string; transport: string; tag: string;
+  attempts: number; ms: number;
+  cost: number | null; prompt_tokens: number | null; completion_tokens: number | null; total_tokens: number | null;
+}
+app.get('/api/admin/llm-cost', async (c) => {
+  const cache = c.env.CACHE;
+  if (!cache) return c.json({ error: 'no cache binding' }, 503);
+  const prefix = 'llmcost:v1:';
+
+  if (c.req.query('clear') === '1') {
+    let cursor: string | undefined;
+    let deleted = 0;
+    do {
+      const res = await cache.list({ prefix, cursor, limit: 1000 });
+      for (const k of res.keys) { await cache.delete(k.name); deleted++; }
+      cursor = res.list_complete ? undefined : res.cursor;
+    } while (cursor && deleted < 50000);
+    return c.json({ cleared: deleted });
+  }
+
+  const since = parseInt(c.req.query('since') ?? '0', 10) || 0;
+  const keys: string[] = [];
+  let cursor: string | undefined;
+  do {
+    const res = await cache.list({ prefix, cursor, limit: 1000 });
+    for (const k of res.keys) keys.push(k.name);
+    cursor = res.list_complete ? undefined : res.cursor;
+  } while (cursor && keys.length < 10000);
+
+  let totalCost = 0;
+  let calls = 0;
+  let callsWithCost = 0;
+  let promptTokens = 0;
+  let completionTokens = 0;
+  let minTs = Number.POSITIVE_INFINITY;
+  let maxTs = 0;
+  const byModel: Record<string, { calls: number; cost: number; promptTokens: number; completionTokens: number }> = {};
+  const byTag: Record<string, { calls: number; cost: number }> = {};
+
+  for (const key of keys) {
+    const raw = await cache.get(key);
+    if (!raw) continue;
+    let r: LlmCostRec;
+    try { r = JSON.parse(raw) as LlmCostRec; } catch { continue; }
+    if (since && r.ts < since) continue;
+    calls++;
+    if (typeof r.cost === 'number') { totalCost += r.cost; callsWithCost++; }
+    if (typeof r.prompt_tokens === 'number') promptTokens += r.prompt_tokens;
+    if (typeof r.completion_tokens === 'number') completionTokens += r.completion_tokens;
+    if (r.ts < minTs) minTs = r.ts;
+    if (r.ts > maxTs) maxTs = r.ts;
+    const m = (byModel[r.model] ??= { calls: 0, cost: 0, promptTokens: 0, completionTokens: 0 });
+    m.calls++; m.cost += r.cost ?? 0; m.promptTokens += r.prompt_tokens ?? 0; m.completionTokens += r.completion_tokens ?? 0;
+    const t = (byTag[r.tag] ??= { calls: 0, cost: 0 });
+    t.calls++; t.cost += r.cost ?? 0;
+  }
+
+  const round = (n: number) => Math.round(n * 1e6) / 1e6;
+  for (const m of Object.values(byModel)) m.cost = round(m.cost);
+  for (const t of Object.values(byTag)) t.cost = round(t.cost);
+
+  return c.json({
+    totalCostUsd: round(totalCost),
+    calls,
+    callsWithCost,
+    promptTokens,
+    completionTokens,
+    window: { from: calls ? minTs : null, to: calls ? maxTs : null },
+    byModel,
+    byTag,
+    truncated: keys.length >= 10000,
+  });
+});
+
+/**
+ * GET /api/admin/hb-probe — diagnose HebrewBooks fetch failures from the
+ * WORKER's egress (Cloudflare network), which is what actually matters (it
+ * works fine from a browser/ISP). Fetches a few dafim raw (no cache) and
+ * reports status/latency/error per daf.
+ *
+ *   ?tractate=Berakhot&pages=2a,5a,10a,15b,20a
+ *   ?concurrent=1   fire them all at once (replicates the backfill's burst)
+ */
+app.get('/api/admin/hb-probe', async (c) => {
+  const tractate = c.req.query('tractate') ?? 'Berakhot';
+  const pages = (c.req.query('pages') ?? '2a,5a,10a,15b,20a').split(',').map((s) => s.trim()).filter(Boolean);
+  const concurrent = c.req.query('concurrent') === '1';
+
+  const probeOne = async (page: string) => {
+    const t0 = Date.now();
+    try {
+      const d = await fetchHebrewBooksDaf(tractate, page);
+      return { page, ok: true, ms: Date.now() - t0, mainLen: d.main.length, rashiLen: d.rashi.length, tosafotLen: d.tosafot.length };
+    } catch (e) {
+      return { page, ok: false, ms: Date.now() - t0, error: String((e as Error)?.message ?? e).slice(0, 300) };
+    }
+  };
+
+  const results = concurrent
+    ? await Promise.all(pages.map(probeOne))
+    : await (async () => { const out = []; for (const p of pages) out.push(await probeOne(p)); return out; })();
+
+  const ok = results.filter((r) => r.ok).length;
+  return c.json({ tractate, mode: concurrent ? 'concurrent' : 'sequential', attempted: results.length, ok, failed: results.length - ok, results });
 });
 
 app.get('/api/admin/warm-status', async (c) => {

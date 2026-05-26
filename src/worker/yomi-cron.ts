@@ -132,6 +132,23 @@ export async function runYomiWarmCron(env: YomiCronEnv): Promise<void> {
     for (const markId of WARM_MARKS) jobs.push(enqueue(markId, page, 'en'));
     // Second pass: Hebrew structural marks so HE readers hit a warm :he cache.
     for (const markId of WARM_MARKS_HE) jobs.push(enqueue(markId, page, 'he'));
+    // Reverse-index capture — enqueued last; it depends on the marks above and
+    // pulls any not-yet-warmed ones (incl. argument-move) via dependency
+    // resolution, so it runs only once they've landed. mark_input { id: 'daf' }
+    // keys the canonical daf-level cache the browse-path prefetch shares.
+    const obsRunId = await warmRunId('rabbi.observations', tractate, page);
+    const obsJob: JobMessage = { runId: obsRunId, enrichment_id: 'rabbi.observations', mark_input: { id: 'daf' }, tractate, page };
+    jobs.push(
+      env.ENRICHMENT_QUEUE.send(obsJob)
+        .then(() => {
+          // eslint-disable-next-line no-console
+          console.log(`[yomi-cron] enqueued rabbi.observations ${tractate}/${page} runId=${obsRunId}`);
+        })
+        .catch((e) => {
+          // eslint-disable-next-line no-console
+          console.error(`[yomi-cron] enqueue rabbi.observations ${tractate}/${page} failed:`, e);
+        }),
+    );
   }
   await Promise.allSettled(jobs);
   // eslint-disable-next-line no-console
