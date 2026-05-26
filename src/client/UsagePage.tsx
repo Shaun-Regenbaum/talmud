@@ -142,6 +142,7 @@ interface MarkRow {
   source: 'code' | 'kv';
   cache_version: string;
   count: number;
+  heCount: number;
   percent: number;
   versions: Record<string, number>;
   staleCount: number;
@@ -155,6 +156,7 @@ interface EnrichmentRow {
   source: 'code' | 'kv';
   cache_version: string;
   count: number;
+  heCount: number;
   versions: Record<string, number>;
   staleCount: number;
 }
@@ -288,8 +290,11 @@ function SourceRow(props: { label: string; count: number; total: number; percent
 function AnchorRow(props: { row: MarkRow; total: number }): JSX.Element {
   const [open, setOpen] = createSignal(false);
   const r = () => props.row;
+  // The current version in EITHER language is "current"; the rest are stale.
   const otherVersions = () =>
-    Object.entries(r().versions).filter(([v]) => v !== r().cache_version).sort(([a], [b]) => b.localeCompare(a));
+    Object.entries(r().versions)
+      .filter(([v]) => v !== r().cache_version && v !== `${r().cache_version}:he`)
+      .sort(([a], [b]) => b.localeCompare(a));
   const complete = () => r().percent >= 100;
   return (
     <>
@@ -301,6 +306,11 @@ function AnchorRow(props: { row: MarkRow; total: number }): JSX.Element {
           <Show when={r().staleCount > 0}>
             <span style={{ 'font-size': '0.7rem', color: '#b58100', 'margin-left': '0.4rem', background: '#fff7e0', padding: '0.05rem 0.35rem', 'border-radius': '3px' }}>
               {t('usage.staleBadge', { count: fmtInt(r().staleCount) })}
+            </span>
+          </Show>
+          <Show when={r().heCount > 0}>
+            <span style={{ 'font-size': '0.7rem', color: '#1d4ed8', 'margin-left': '0.4rem', background: '#eef2ff', padding: '0.05rem 0.35rem', 'border-radius': '3px' }}>
+              {t('usage.heBadge', { count: fmtInt(r().heCount) })}
             </span>
           </Show>
         </td>
@@ -318,6 +328,7 @@ function AnchorRow(props: { row: MarkRow; total: number }): JSX.Element {
             <div style={{ 'font-size': '0.78rem', color: '#666' }}>
               <div style={{ 'margin-bottom': '0.3rem' }}>
                 <b>v{r().cache_version}</b> {t('usage.version.current', { count: fmtInt(r().count) })}
+                <Show when={r().heCount > 0}><span style={{ color: '#1d4ed8' }}>{' · '}{t('usage.heBadge', { count: fmtInt(r().heCount) })}</span></Show>
               </div>
               <Show when={otherVersions().length > 0} fallback={<span style={{ color: '#aaa' }}>{t('usage.version.noSuperseded')}</span>}>
                 <div style={{ color: '#b58100', 'margin-bottom': '0.2rem' }}>{t('usage.version.supersededHeading')}</div>
@@ -416,6 +427,9 @@ function EnrichmentTable(props: { rows: EnrichmentRow[]; denominatorFor?: (e: En
                   {fmtInt(e.count)}
                   <Show when={denom != null && denom > 0}>
                     <span style={{ color: '#999' }}> / {fmtInt(denom!)} ({((e.count / denom!) * 100).toFixed(0)}%)</span>
+                  </Show>
+                  <Show when={e.heCount > 0}>
+                    <span style={{ color: '#1d4ed8', 'margin-left': '0.4rem', 'font-size': '0.72rem' }}>{t('usage.heBadge', { count: fmtInt(e.heCount) })}</span>
                   </Show>
                 </td>
                 <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', color: e.staleCount ? '#b58100' : '#bbb' }}>

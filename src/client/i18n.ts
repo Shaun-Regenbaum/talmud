@@ -340,6 +340,7 @@ const CATALOG: Record<string, Entry> = {
   'usage.localEnrich.hint': { en: 'per mark-instance, per daf — depth on top of anchors', he: 'לכל מופע סימון, לכל דף — עומק מעל העוגנים' },
   'usage.localEnrich.empty': { en: 'No local enrichments registered.', he: 'אין העשרות מקומיות רשומות.' },
   'usage.staleBadge': { en: '{count} stale', he: '{count} מיושנים' },
+  'usage.heBadge': { en: '{count} he', he: '{count} עברית' },
   'usage.version.current': { en: '(current) — {count} dafim', he: '(נוכחי) — {count} דפים' },
   'usage.version.noSuperseded': { en: 'No superseded versions in cache.', he: 'אין גרסאות מוחלפות במטמון.' },
   'usage.version.supersededHeading': { en: 'Superseded versions still in KV (orphaned — safe to purge):', he: 'גרסאות מוחלפות שעדיין ב-KV (יתומות — ניתן למחוק בבטחה):' },

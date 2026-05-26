@@ -29,7 +29,7 @@ import { listMarks, listEnrichments } from './studio-registry';
 // v5: mark/enrichment rows now carry a per-cache-version breakdown (`versions`
 // + `staleCount`) so the dashboard can show how much KV is held by superseded
 // versions. v4 payloads lack those fields.
-export const CACHE_STATS_KEY = 'cache-stats:v5';
+export const CACHE_STATS_KEY = 'cache-stats:v6';
 const FRESH_MS = 60_000;
 
 export interface CacheStats {
@@ -74,9 +74,10 @@ export interface MarkCacheRow {
   label: string;
   source: 'code' | 'kv';
   cache_version: string;
-  count: number;          // entries at the CURRENT cache_version
+  count: number;          // entries at the CURRENT cache_version (English)
+  heCount: number;        // entries at the CURRENT cache_version, Hebrew (:he)
   percent: number;
-  versions: Record<string, number>; // count per cache version present in KV
+  versions: Record<string, number>; // count per cache version present in KV (`:he` suffix = Hebrew)
   staleCount: number;     // entries at superseded (non-current) versions
 }
 
@@ -87,7 +88,8 @@ export interface EnrichmentCacheRow {
   scope: 'global' | 'local';
   source: 'code' | 'kv';
   cache_version: string;
-  count: number;          // entries at the CURRENT cache_version
+  count: number;          // entries at the CURRENT cache_version (English)
+  heCount: number;        // entries at the CURRENT cache_version, Hebrew (:he)
   versions: Record<string, number>;
   staleCount: number;
 }
@@ -164,8 +166,13 @@ async function countByVersion(cache: KVNamespace, prefix: string): Promise<Recor
     };
     for (const k of res.keys) {
       const rest = k.name.slice(prefix.length);
-      const version = rest.split(':')[0] || '(none)';
-      counts[version] = (counts[version] ?? 0) + 1;
+      const segs = rest.split(':');
+      const version = segs[0] || '(none)';
+      // keyForMark/keyForEnrichment insert a `he` segment right after the
+      // cache_version for Hebrew output; bucket those under `<version>:he`
+      // so the usage page can report EN vs HE coverage separately.
+      const bucket = segs[1] === 'he' ? `${version}:he` : version;
+      counts[bucket] = (counts[bucket] ?? 0) + 1;
     }
     if (res.list_complete) break;
     cursor = res.cursor;
@@ -176,7 +183,10 @@ async function countByVersion(cache: KVNamespace, prefix: string): Promise<Recor
 
 function staleSum(versions: Record<string, number>, current: string): number {
   let sum = 0;
-  for (const [v, n] of Object.entries(versions)) if (v !== current) sum += n;
+  const currentHe = `${current}:he`;
+  // The current version in EITHER language is fresh; everything else (older
+  // versions, in either language) is stale.
+  for (const [v, n] of Object.entries(versions)) if (v !== current && v !== currentHe) sum += n;
   return sum;
 }
 
@@ -239,9 +249,10 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
   const marks: MarkCacheRow[] = markDefs.map((m, i) => {
     const versions = markVersions[i];
     const count = versions[m.cache_version] ?? 0;
+    const heCount = versions[`${m.cache_version}:he`] ?? 0;
     return {
       id: m.id, label: m.label, source: m.source, cache_version: m.cache_version,
-      count, percent: pct(count, total),
+      count, heCount, percent: pct(count, total),
       versions, staleCount: staleSum(versions, m.cache_version),
     };
   });
@@ -249,9 +260,10 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
   const enrichments: EnrichmentCacheRow[] = enrichDefs.map((e, i) => {
     const versions = enrichVersions[i];
     const count = versions[e.cache_version] ?? 0;
+    const heCount = versions[`${e.cache_version}:he`] ?? 0;
     return {
       id: e.id, label: e.label, target_mark: e.target_mark, scope: e.scope,
-      source: e.source, cache_version: e.cache_version, count,
+      source: e.source, cache_version: e.cache_version, count, heCount,
       versions, staleCount: staleSum(versions, e.cache_version),
     };
   });

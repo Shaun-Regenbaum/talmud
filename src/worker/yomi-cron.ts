@@ -23,6 +23,11 @@ import type { JobMessage } from './index';
 
 const SEFARIA_CALENDAR_URL = 'https://www.sefaria.org/api/calendars';
 const WARM_MARKS = ['rabbi', 'argument', 'halacha', 'aggadata', 'pesukim'] as const;
+// Marks that carry a Hebrew prompt variant get a second warm pass under
+// lang=he so Hebrew readers don't hit a cold structural extraction. Marks
+// without a *_he prompt (rabbi) emit identical English structure either way,
+// so warming them under :he would just duplicate the cache for no gain.
+const WARM_MARKS_HE = ['argument', 'halacha', 'aggadata', 'pesukim'] as const;
 
 interface CalendarItem {
   title?: { en?: string };
@@ -72,13 +77,14 @@ async function fetchDafYomi(
  * polling and the postmortem ring buffer's `:{unixSeconds}` suffix parse the
  * same way.
  */
-async function warmRunId(markId: string, tractate: string, page: string): Promise<string> {
+async function warmRunId(markId: string, tractate: string, page: string, lang: 'en' | 'he' = 'en'): Promise<string> {
   const parts = [
     markId,
     tractate,
     page,
     await instanceIdOf(undefined),
     'noq',
+    ...(lang === 'he' ? ['he'] : []),
     'cached',
     String(Math.floor(Date.now() / 1000)),
   ];
@@ -109,22 +115,23 @@ export async function runYomiWarmCron(env: YomiCronEnv): Promise<void> {
 
   const pages = [`${daf}a`, `${daf}b`];
   const jobs: Promise<void>[] = [];
-  for (const page of pages) {
-    for (const markId of WARM_MARKS) {
-      const runId = await warmRunId(markId, tractate, page);
-      const job: JobMessage = { runId, mark_id: markId, tractate, page };
-      jobs.push(
-        env.ENRICHMENT_QUEUE.send(job)
-          .then(() => {
-            // eslint-disable-next-line no-console
-            console.log(`[yomi-cron] enqueued mark=${markId} ${tractate}/${page} runId=${runId}`);
-          })
-          .catch((e) => {
-            // eslint-disable-next-line no-console
-            console.error(`[yomi-cron] enqueue mark=${markId} ${tractate}/${page} failed:`, e);
-          }),
-      );
+  const queue = env.ENRICHMENT_QUEUE;
+  const enqueue = async (markId: string, page: string, lang: 'en' | 'he'): Promise<void> => {
+    const runId = await warmRunId(markId, tractate, page, lang);
+    const job: JobMessage = { runId, mark_id: markId, tractate, page, ...(lang === 'he' ? { lang: 'he' } : {}) };
+    try {
+      await queue.send(job);
+      // eslint-disable-next-line no-console
+      console.log(`[yomi-cron] enqueued mark=${markId} lang=${lang} ${tractate}/${page} runId=${runId}`);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(`[yomi-cron] enqueue mark=${markId} lang=${lang} ${tractate}/${page} failed:`, e);
     }
+  };
+  for (const page of pages) {
+    for (const markId of WARM_MARKS) jobs.push(enqueue(markId, page, 'en'));
+    // Second pass: Hebrew structural marks so HE readers hit a warm :he cache.
+    for (const markId of WARM_MARKS_HE) jobs.push(enqueue(markId, page, 'he'));
   }
   await Promise.allSettled(jobs);
   // eslint-disable-next-line no-console
