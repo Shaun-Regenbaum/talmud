@@ -615,8 +615,22 @@ export default function DafViewer(): JSX.Element {
     prefetchDaf(t, p, runs);
   });
 
-  // Back-compat: underline injection + timeline take a GenerationRabbi[]; derive it.
+  // Underline injection + timeline take a GenerationRabbi[]. Primary source is
+  // the `rabbi` mark run (post-augmentWithKnownRabbis); the legacy dafContext
+  // fetch is the fallback until /api/daf-context is removed.
   const generations = createMemo<GenerationRabbi[] | null>(() => {
+    const rabbiParsed = markRunsByMarkId()['rabbi']?.parsed as {
+      instances?: Array<{ excerpt?: string; fields?: { name?: string; nameHe?: string; generation?: GenerationId } }>;
+    } | undefined;
+    if (rabbiParsed?.instances?.length) {
+      return rabbiParsed.instances
+        .map((i) => ({
+          name: String(i.fields?.name ?? ''),
+          nameHe: String(i.fields?.nameHe ?? i.excerpt ?? ''),
+          generation: (i.fields?.generation ?? 'unknown') as GenerationId,
+        }))
+        .filter((r) => r.nameHe || r.name);
+    }
     const ctx = dafContext();
     if (!ctx) return null;
     return ctx.rabbis.map((r) => ({ name: r.name, nameHe: r.nameHe, generation: r.generation }));

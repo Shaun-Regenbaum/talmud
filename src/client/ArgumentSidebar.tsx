@@ -638,6 +638,10 @@ function RabbiBody(props: {
   const [geography, setGeography] = createSignal<GeographyData | null>(null);
   const [geographyEvidence, setGeographyEvidence] = createSignal<GeographyEvidence[]>([]);
   const [location, setLocation] = createSignal<LocationInference | null>(null);
+  // Canonical identity (slug/region/places/moved) from the rabbi.identity
+  // enrichment, carried in the synthesis aggregate's deps_resolved. When the
+  // rabbi was opened from a mark stub (no region/places), this fills them in.
+  const [identity, setIdentity] = createSignal<IdentifiedRabbi | null>(null);
 
   const instanceKey = () => props.rabbi.name;
 
@@ -649,11 +653,14 @@ function RabbiBody(props: {
     setGeography(null);
     setGeographyEvidence([]);
     setLocation(null);
+    setIdentity(null);
     props.onHighlightRange(null);
   });
 
   const handleResolved = (r: { deps_resolved?: Record<string, unknown>; anchors_resolved?: Record<string, unknown> }) => {
     const deps = r.deps_resolved ?? {};
+    const ident = deps['rabbi.identity'] as IdentifiedRabbi | undefined;
+    if (ident && typeof ident.name === 'string') setIdentity(ident);
     const rel = deps['rabbi.relationships'] as RelationshipsData | undefined;
     if (rel && Array.isArray(rel.teachers)) {
       setRelationships(rel);
@@ -676,10 +683,14 @@ function RabbiBody(props: {
     if (loc && typeof loc.place === 'string' && loc.place.length > 0) setLocation(loc);
   };
 
+  // Effective fields: prefer the resolved rabbi.identity over the (possibly
+  // stub) instance the rabbi was opened with.
+  const effRegion = () => identity()?.region ?? props.rabbi.region;
+  const effPlaces = () => identity()?.places ?? props.rabbi.places;
   const gen = () => GENERATION_BY_ID[props.rabbi.generation];
-  const regionLabel = () => props.rabbi.region === 'israel' ? 'Eretz Yisrael'
-    : props.rabbi.region === 'bavel' ? 'Bavel'
-    : props.rabbi.region;
+  const regionLabel = () => effRegion() === 'israel' ? 'Eretz Yisrael'
+    : effRegion() === 'bavel' ? 'Bavel'
+    : effRegion();
   const metaParts = (): string[] => {
     const g = gen();
     const parts: string[] = [];
@@ -687,7 +698,8 @@ function RabbiBody(props: {
     if (g) parts.push(g.era);
     const rl = regionLabel();
     if (rl) parts.push(rl);
-    if (props.rabbi.places.length > 0) parts.push(props.rabbi.places.join(', '));
+    const pl = effPlaces();
+    if (pl.length > 0) parts.push(pl.join(', '));
     return parts;
   };
 
