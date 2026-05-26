@@ -738,11 +738,6 @@ export default function DafViewer(): JSX.Element {
     typeof window !== 'undefined' && window.matchMedia?.('(max-width: 767px)').matches,
   );
   const [mobileMode, setMobileMode] = createSignal<MobileInteractionMode>('read');
-  // The mobile drawer's drawer-tab system was retired alongside the
-  // GeographyStrip — there are no remaining tabs. Commentary moved to the
-  // per-segment inspector and geography is awaiting rederivation. The
-  // shelf now shows either the toolbar (no sidebar) or the ArgumentSidebar
-  // (when a gutter icon opens content).
   createEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
     const mq = window.matchMedia('(max-width: 767px)');
@@ -750,12 +745,6 @@ export default function DafViewer(): JSX.Element {
     update();
     mq.addEventListener('change', update);
     onCleanup(() => mq.removeEventListener('change', update));
-  });
-  // Mirror the mobile mode onto <body> so stylesheet rules can gate
-  // user-select per mode on mobile.
-  createEffect(() => {
-    if (typeof document === 'undefined') return;
-    document.body.dataset.mobileMode = isMobile() ? mobileMode() : '';
   });
 
   // Geography-driven highlight: when the user clicks a city/region on the

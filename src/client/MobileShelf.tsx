@@ -5,12 +5,6 @@ import type { IdentifiedRabbi } from './dafContext';
 
 export type MobileInteractionMode = 'read' | 'translate';
 
-// Legacy: the drawer used to have its own tabs (commentaries / geography).
-// Both moved to other surfaces — commentary became per-segment via the
-// rishonim gutter icon, geography is desktop-only via the Map pill. The
-// drawer now exclusively hosts the active ArgumentSidebar content.
-export type MobileDrawerTab = never;
-
 interface MobileShelfProps {
   mode: MobileInteractionMode;
   onModeChange: (m: MobileInteractionMode) => void;
