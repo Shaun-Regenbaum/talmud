@@ -142,6 +142,17 @@ export interface JobMessage {
    *  qualifierHash) and is exposed to its prompt as {{user_question}}. Used
    *  by argument-move.qa today. Empty/undefined means a vanilla run. */
   user_question?: string;
+  /** Warm-path flag for mark jobs. When true, after the mark extraction
+   *  lands the consumer fans out a follow-up enrichment job per extracted
+   *  instance (the promoted aggregate/synthesis for that mark), mirroring what
+   *  MarkEnrichmentCards fires when a user opens the sidebar. Running the
+   *  aggregate cascade-warms its dependency leaves via resolveDependencies. */
+  warm_cascade?: boolean;
+  /** Warm-path job kind: pre-bake /api/daf-context (rabbi identification +
+   *  bios) for this daf. Handled by warmDafContext — Stage 1 (Gemma) then
+   *  Stage 2 (Kimi+thinking). Routed through the queue so each daf runs in
+   *  its own invocation budget rather than blocking the cron. */
+  daf_context?: boolean;
 }
 
 function stripHtmlServer(html: string): string {
@@ -4207,6 +4218,100 @@ interface DafContext {
   rabbis: IdentifiedRabbi[];
 }
 
+const DAF_CONTEXT_TTL = 60 * 60 * 24 * 365;
+const dafContextBaseKey = (tractate: string, page: string) => `daf-context:v6:${tractate}:${page}`;
+
+// Fetch the daf's Hebrew (HebrewBooks) + English (Sefaria) source text used to
+// prompt the rabbi-identification models. Shared by Stage 1 and the Stage-2
+// re-trigger / warm paths (which don't have the text in hand on a cache hit).
+async function fetchDafContextSources(
+  env: Bindings, tractate: string, page: string,
+): Promise<{ hebrewText: string; englishContext: string }> {
+  let hebrewText = '';
+  let englishContext = '';
+  try {
+    const [hb, english] = await Promise.all([
+      getHebrewBooksDafCached(env.CACHE, tractate, page),
+      getSefariaEnglishContext(tractate, page, env.CACHE).catch(() => ''),
+    ]);
+    if (hb) hebrewText = stripHtmlServer(hb.main);
+    englishContext = english;
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn('[daf-context] source fetch partial failure:', err);
+  }
+  return { hebrewText, englishContext };
+}
+
+// Stage 2: Kimi K2.5 with thinking. Idempotent and self-locking — noops if a
+// Stage-2 result is already cached or another run holds the short-lived lock,
+// so it's safe to call from the route handler (fresh + cache-hit paths) AND
+// the warm queue without stampeding the model. Refetches sources when not
+// supplied (the cache-hit and warm callers don't have them).
+async function generateDafContextStage2(
+  env: Bindings, ctx: ExecutionContext, tractate: string, page: string,
+  pre?: { hebrewText: string; englishContext: string },
+): Promise<void> {
+  const cache = env.CACHE;
+  if (!cache || !env.AI) return;
+  const stage2Key = `${dafContextBaseKey(tractate, page)}:stage2`;
+  if (await cache.get(stage2Key)) return;            // already upgraded
+  const lockKey = `${stage2Key}:lock`;
+  if (await cache.get(lockKey)) return;              // another run in flight
+  await cache.put(lockKey, '1', { expirationTtl: 300 });
+
+  let { hebrewText = '', englishContext = '' } = pre ?? {};
+  if (!hebrewText) ({ hebrewText, englishContext } = await fetchDafContextSources(env, tractate, page));
+  if (!hebrewText) return;
+
+  const s2t0 = Date.now();
+  try {
+    const r = await runGenerationsModelStreaming(
+      env, '@cf/moonshotai/kimi-k2.5', hebrewText, englishContext, tractate, page,
+      { maxTokens: 16000, enableThinking: true },
+    );
+    if ('error' in r) {
+      // eslint-disable-next-line no-console
+      console.warn(`[daf-context:stage2] ${tractate}/${page} failed:`, r.error, r._diag ? JSON.stringify(r._diag) : '');
+      recordTelemetry({ env, executionCtx: ctx }, { endpoint: 'daf-context-stage2', tractate, page, cache_hit: false, model: 'kimi-k2.5', ms: Date.now() - s2t0, ok: false, error_kind: classifyError(r.error) });
+      return;
+    }
+    // eslint-disable-next-line no-console
+    console.log(`[daf-context:stage2] ${tractate}/${page} ok rabbis=${r.rabbis.length}`, JSON.stringify(r._diag));
+    const upgraded: DafContext = { rabbis: enrichAll(augmentWithKnownRabbis(r.rabbis, hebrewText)) };
+    await cache.put(stage2Key, JSON.stringify(upgraded), { expirationTtl: DAF_CONTEXT_TTL });
+    recordTelemetry({ env, executionCtx: ctx }, { endpoint: 'daf-context-stage2', tractate, page, cache_hit: false, model: 'kimi-k2.5', ms: Date.now() - s2t0, ok: true });
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn(`[daf-context:stage2] ${tractate}/${page} threw:`, err);
+    recordTelemetry({ env, executionCtx: ctx }, { endpoint: 'daf-context-stage2', tractate, page, cache_hit: false, model: 'kimi-k2.5', ms: Date.now() - s2t0, ok: false, error_kind: 'other' });
+  }
+}
+
+// Warm path (queue job): ensure Stage 1 is cached (generate via Gemma if
+// missing), then ensure Stage 2 is cached. Used by yomi-cron. Awaits both
+// inline — the queue job owns its own invocation budget.
+async function warmDafContext(
+  env: Bindings, ctx: ExecutionContext, tractate: string, page: string,
+): Promise<void> {
+  const cache = env.CACHE;
+  if (!cache || !env.AI) return;
+  const baseKey = dafContextBaseKey(tractate, page);
+  const { hebrewText, englishContext } = await fetchDafContextSources(env, tractate, page);
+  if (!hebrewText) return;
+  if (!(await cache.get(baseKey)) && !(await cache.get(`${baseKey}:stage2`))) {
+    const s1 = await runGenerationsModel(
+      env, '@cf/google/gemma-4-26b-a4b-it', hebrewText, englishContext, tractate, page,
+      { maxTokens: 6000, enableThinking: false },
+    );
+    if (!('error' in s1)) {
+      const stage1Ctx: DafContext = { rabbis: enrichAll(augmentWithKnownRabbis(s1.rabbis, hebrewText)) };
+      await cache.put(baseKey, JSON.stringify(stage1Ctx), { expirationTtl: DAF_CONTEXT_TTL });
+    }
+  }
+  await generateDafContextStage2(env, ctx, tractate, page, { hebrewText, englishContext });
+}
+
 // Unified daf context — the single source of truth for underlines, timeline,
 // geography map, and rabbi bio sidebar. Stage 1 is Gemma-4 26B (no thinking,
 // ~15s); Stage 2 is Kimi K2.6 with thinking (background, ~1–3 min).
@@ -4238,6 +4343,11 @@ app.get('/api/daf-context/:tractate/:page', async (c) => {
     }
     const cached = await cache.get(baseKey);
     if (cached) {
+      // Stage 1 is cached but Stage 2 is not (checked above). Re-trigger the
+      // Stage-2 upgrade in the background — otherwise a Stage 2 that failed or
+      // never completed leaves the client polling ?stage=2 forever with no
+      // path to recompute. generateDafContextStage2 is idempotent + locked.
+      c.executionCtx.waitUntil(generateDafContextStage2(c.env, c.executionCtx, tractate, page));
       recordTelemetry(c, { endpoint: 'daf-context', tractate, page, cache_hit: true, model: 'gemma-4-26b', ms: Date.now() - t0, ok: true });
       return c.json({ ...JSON.parse(cached) as DafContext, _cached: true, _stage: 1 });
     }
@@ -4246,19 +4356,7 @@ app.get('/api/daf-context/:tractate/:page', async (c) => {
   if (wantStage2) return c.body(null, 204);
   if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
 
-  let hebrewText = '';
-  let englishContext = '';
-  try {
-    const [hb, english] = await Promise.all([
-      getHebrewBooksDafCached(cache, tractate, page),
-      getSefariaEnglishContext(tractate, page, cache).catch(() => ''),
-    ]);
-    if (hb) hebrewText = stripHtmlServer(hb.main);
-    englishContext = english;
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.warn('[daf-context] source fetch partial failure:', err);
-  }
+  const { hebrewText, englishContext } = await fetchDafContextSources(c.env, tractate, page);
   if (!hebrewText) {
     recordTelemetry(c, { endpoint: 'daf-context', tractate, page, cache_hit: false, ms: Date.now() - t0, ok: false, error_kind: 'other' });
     return c.json({ error: 'No Hebrew source available' }, 502);
@@ -4275,37 +4373,11 @@ app.get('/api/daf-context/:tractate/:page', async (c) => {
   }
   const augmented = augmentWithKnownRabbis(s1.rabbis, hebrewText);
   const stage1Ctx: DafContext = { rabbis: enrichAll(augmented) };
-  if (cache) await cache.put(baseKey, JSON.stringify(stage1Ctx), { expirationTtl: 60 * 60 * 24 * 365 });
+  if (cache) await cache.put(baseKey, JSON.stringify(stage1Ctx), { expirationTtl: DAF_CONTEXT_TTL });
   recordTelemetry(c, { endpoint: 'daf-context', tractate, page, cache_hit: false, model: 'gemma-4-26b', ms: Date.now() - t0, ok: true });
 
-  // Stage 2: Kimi K2.6, thinking enabled, in background.
-  if (cache) {
-    const hebSnap = hebrewText;
-    const engSnap = englishContext;
-    const env = c.env;
-    const ctx = c.executionCtx;
-    c.executionCtx.waitUntil((async () => {
-      const s2t0 = Date.now();
-      try {
-        const r = await runGenerationsModelStreaming(
-          env, '@cf/moonshotai/kimi-k2.5', hebSnap, engSnap, tractate, page,
-          { maxTokens: 16000, enableThinking: true },
-        );
-        if ('error' in r) {
-          console.warn(`[daf-context:stage2] ${tractate}/${page} failed:`, r.error, r._diag ? JSON.stringify(r._diag) : '');
-          recordTelemetry({ env, executionCtx: ctx }, { endpoint: 'daf-context-stage2', tractate, page, cache_hit: false, model: 'kimi-k2.5', ms: Date.now() - s2t0, ok: false, error_kind: classifyError(r.error) });
-          return;
-        }
-        console.log(`[daf-context:stage2] ${tractate}/${page} ok rabbis=${r.rabbis.length}`, JSON.stringify(r._diag));
-        const upgraded: DafContext = { rabbis: enrichAll(augmentWithKnownRabbis(r.rabbis, hebSnap)) };
-        await cache.put(stage2Key, JSON.stringify(upgraded), { expirationTtl: 60 * 60 * 24 * 365 });
-        recordTelemetry({ env, executionCtx: ctx }, { endpoint: 'daf-context-stage2', tractate, page, cache_hit: false, model: 'kimi-k2.5', ms: Date.now() - s2t0, ok: true });
-      } catch (err) {
-        console.warn(`[daf-context:stage2] ${tractate}/${page} threw:`, err);
-        recordTelemetry({ env, executionCtx: ctx }, { endpoint: 'daf-context-stage2', tractate, page, cache_hit: false, model: 'kimi-k2.5', ms: Date.now() - s2t0, ok: false, error_kind: 'other' });
-      }
-    })());
-  }
+  // Stage 2: Kimi K2.5, thinking enabled, in background.
+  c.executionCtx.waitUntil(generateDafContextStage2(c.env, c.executionCtx, tractate, page, { hebrewText, englishContext }));
 
   return c.json({ ...stage1Ctx, _cached: false, _stage: 1 });
 });
