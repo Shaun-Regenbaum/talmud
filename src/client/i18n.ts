@@ -7,7 +7,7 @@
  *      caller threads lang() into the request body; the worker selects the
  *      Hebrew prompt variant and a `:he`-namespaced cache key (see
  *      src/worker/cache-keys.ts + code-marks.ts *_HE prompts).
- *   2. UI chrome direction + (eventually) the t() string catalog. On 'he' the
+ *   2. UI chrome direction + the t() string catalog (below). On 'he' the
  *      document goes dir=rtl; the Vilna daf is already internally RTL so only
  *      the surrounding chrome flips.
  *
@@ -50,10 +50,10 @@ export function setLang(next: Lang): void {
   }
   applyToDocument(next);
   // Drop cached enrichment runs so cards re-fetch under the new lang's cache
-  // key. clearRunResultCache() listens for this event (see enrichmentQueue.ts).
+  // key. clearRunResultCache() + MarksRegistryPanel listen for this event; the
+  // per-lang stamps (MarkEnrichmentCards / MarksRegistryPanel) then re-fire.
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('marks-runs-invalidate'));
-    window.dispatchEvent(new CustomEvent('lang-changed', { detail: next }));
   }
 }
 
