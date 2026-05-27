@@ -831,7 +831,7 @@ interface DisputeItem {
 }
 interface DisputesData { disputes: DisputeItem[]; }
 
-function HalachaBody(props: {
+export function HalachaBody(props: {
   topic: HalachaTopic;
   index: number;
   tractate: string;
@@ -874,19 +874,8 @@ function HalachaBody(props: {
   });
 
   return (
-    <div>
-      <h3 style={{ margin: '0 0 0.3rem', 'font-size': '1.05rem', color: '#1e40af' }}>
-        {props.topic.topic}
-      </h3>
-      <Show when={props.topic.topicHe}>
-        <p dir="rtl" lang="he" style={{
-          margin: '0 0 0.85rem', 'font-family': '"Mekorot Vilna", serif',
-          'font-size': '0.95rem', color: '#666',
-        }}>
-          {props.topic.topicHe}
-        </p>
-      </Show>
-      <MarkEnrichmentCards
+    <Panel accent={ACCENTS.halacha} title={props.topic.topic} titleHe={props.topic.topicHe}>
+      <Synthesis
         markId="halacha"
         instance={markInstance()}
         instanceKey={instanceKey()}
@@ -939,14 +928,7 @@ function HalachaBody(props: {
       </Show>
       <Show when={practical()}>
         {(pr) => (
-          <div style={{
-            border: '1px solid #eae8e0', 'border-radius': '6px',
-            background: '#fafaf7', padding: '0.7rem 0.85rem', 'margin-top': '0.7rem',
-          }}>
-            <div style={{
-              'font-size': '0.7rem', 'text-transform': 'uppercase',
-              'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.5rem',
-            }}>{t('halacha.practical')}</div>
+          <SectionCard label="halacha.practical">
             <Show when={pr().lechatchila}>
               <div style={{ 'margin-bottom': '0.4rem' }}>
                 <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>
@@ -997,18 +979,11 @@ function HalachaBody(props: {
                 </div>
               </div>
             </Show>
-          </div>
+          </SectionCard>
         )}
       </Show>
       <Show when={disputes().length > 0}>
-        <div style={{
-          border: '1px solid #eae8e0', 'border-radius': '6px',
-          background: '#fafaf7', padding: '0.7rem 0.85rem', 'margin-top': '0.7rem',
-        }}>
-          <div style={{
-            'font-size': '0.7rem', 'text-transform': 'uppercase',
-            'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.5rem',
-          }}>{t('halacha.disputes')}</div>
+        <SectionCard label="halacha.disputes">
           <For each={disputes()}>{(d) => (
             <div style={{ 'margin-bottom': '0.6rem' }}>
               <div style={{ 'font-weight': 500, color: '#333', 'font-size': '0.88rem', 'margin-bottom': '0.25rem' }}>
@@ -1029,14 +1004,11 @@ function HalachaBody(props: {
               </Show>
             </div>
           )}</For>
-        </div>
+        </SectionCard>
       </Show>
-    </div>
+    </Panel>
   );
 }
-
-/** One labeled section box in the pasuk panel — same shape as halacha's
- *  codification / practical / disputes cards. */
 
 /** Sidebar panel for a cited pasuk: shows the full Hebrew Tanakh verse and,
  *  on expand, the surrounding verses inlined as one continuous Hebrew block
@@ -1311,7 +1283,7 @@ export function AggadataPanel(props: {
 // daf-agnostic profile/significance/figures leaves) and renders it. The
 // instanceKey mirrors the prefetcher's `places:<name>` so a warmed run is
 // reused instantly. region/kind render as small chips above the card.
-function PlaceBody(props: { place: PlaceInstance; tractate: string; page: string }): JSX.Element {
+export function PlaceBody(props: { place: PlaceInstance; tractate: string; page: string }): JSX.Element {
   const f = () => props.place.fields;
   const regionLabel = (r: string): string =>
     r === 'israel' ? t('geography.eretzYisrael') : r === 'bavel' ? t('geography.bavel') : r === 'other' ? t('region.other') : r;
@@ -1323,16 +1295,7 @@ function PlaceBody(props: { place: PlaceInstance; tractate: string; page: string
     }}>{text}</span>
   );
   return (
-    <div>
-      <h3 style={{ margin: '0 0 0.15rem', 'font-size': '1.1rem', color: '#222', 'font-weight': 600 }}>
-        {f().name}
-      </h3>
-      <Show when={f().nameHe}>
-        <p dir="rtl" lang="he" style={{
-          margin: '0 0 0.5rem', 'font-family': '"Mekorot Vilna", serif',
-          'font-size': '1.05rem', color: '#666',
-        }}>{f().nameHe}</p>
-      </Show>
+    <Panel accent={ACCENTS.place} title={f().name} titleHe={f().nameHe}>
       <div style={{ display: 'flex', gap: '0.35rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.7rem' }}>
         <Show when={f().kind}>{chip(f().kind)}</Show>
         <Show when={f().region}>{chip(regionLabel(f().region))}</Show>
@@ -1340,15 +1303,14 @@ function PlaceBody(props: { place: PlaceInstance; tractate: string; page: string
           {chip(t('place.alsoKnownAs', { names: (f().knownAs ?? []).join(', ') }))}
         </Show>
       </div>
-
-      <MarkEnrichmentCards
+      <Synthesis
         markId="places"
         instance={props.place}
         instanceKey={`places:${f().name}`}
         tractate={props.tractate}
         page={props.page}
       />
-    </div>
+    </Panel>
   );
 }
 
@@ -1356,20 +1318,18 @@ function PlaceBody(props: { place: PlaceInstance; tractate: string; page: string
 // the leaf walk; below it we render the primary-source Hebrew + English
 // per rishon as collapsible details so the user can drop into Rashi /
 // Tosafot / Ramban / etc. directly.
-function RishonimBody(props: { instance: RishonimInstance; tractate: string; page: string }): JSX.Element {
+export function RishonimBody(props: { instance: RishonimInstance; tractate: string; page: string }): JSX.Element {
   const inst = () => props.instance;
+  const meta = (
+    <div style={{ color: '#94a3b8', 'font-size': '0.78rem', 'margin-bottom': '0.5rem' }}>
+      {t(inst().fields.commentCount === 1 ? 'rishonim.commentCount.one' : 'rishonim.commentCount.other', { count: inst().fields.commentCount })}
+      {' · '}
+      {t(inst().fields.works.length === 1 ? 'rishonim.workCount.one' : 'rishonim.workCount.other', { count: inst().fields.works.length })}
+    </div>
+  );
   return (
-    <div>
-      <h3 style={{ margin: '0 0 0.5rem', 'font-size': '1.05rem', color: '#475569' }}>
-        {t('rishonim.onSegment', { n: inst().segIdx + 1 })}
-        <span style={{ 'margin-left': '0.5rem', color: '#94a3b8', 'font-size': '0.78rem', 'font-weight': 400 }}>
-          {t(inst().fields.commentCount === 1 ? 'rishonim.commentCount.one' : 'rishonim.commentCount.other', { count: inst().fields.commentCount })}
-          {' · '}
-          {t(inst().fields.works.length === 1 ? 'rishonim.workCount.one' : 'rishonim.workCount.other', { count: inst().fields.works.length })}
-        </span>
-      </h3>
-
-      <MarkEnrichmentCards
+    <Panel accent={ACCENTS.rishonim} title={t('rishonim.onSegment', { n: inst().segIdx + 1 })} meta={meta}>
+      <Synthesis
         markId="rishonim"
         instance={inst()}
         instanceKey={`rishonim:${props.tractate}:${props.page}:${inst().segIdx}`}
@@ -1410,7 +1370,7 @@ function RishonimBody(props: { instance: RishonimInstance; tractate: string; pag
           </details>
         )}</For>
       </div>
-    </div>
+    </Panel>
   );
 }
 
