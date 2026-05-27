@@ -15,6 +15,7 @@ import { injectSegmentMarkers } from './injectSegmentMarkers';
 import { injectHadran } from './injectHadran';
 import { ensureMasechetIncipit } from './ensureMasechetIncipit';
 import { injectAnchorMarkers, injectOpinionMarkers, injectAggadataAnchors, injectPesukimAnchors } from './anchorMarkers';
+import { buildTokenRange } from './highlightRange';
 import { GutterIcons, type GutterKind } from './GutterIcons';
 import { GutterOverlay } from './GutterOverlay';
 import { ArgumentSidebar, type SidebarContent, type PlaceInstance } from './ArgumentSidebar';
@@ -101,58 +102,6 @@ interface ActiveWord {
   segIdx?: number;
 }
 
-/**
- * Build a DOM Range over `.daf-word[data-seg=N]` spans inside `mainCol`,
- * optionally bounded by tokenStart (offset within startSeg) and tokenEnd
- * (offset within endSeg, inclusive). When tokens are absent, paints the
- * whole startSeg → endSeg span (legacy whole-segment behaviour).
- *
- * Used by argument-move and pesukim highlights for sub-segment precision —
- * critical when multiple moves/citations live inside the same Sefaria
- * segment (e.g., the opening Mishnah of a tractate is one big segment that
- * the LLM identifies as 4-5 distinct moves).
- *
- * Walks the .daf-word stream in DOM order: tokenStart counts forward from
- * the first word of startSeg, tokenEnd counts forward from the first word
- * of endSeg. Out-of-range token indices clamp to the segment's word count.
- */
-function buildTokenRange(
-  mainCol: HTMLElement,
-  startSeg: number,
-  endSegRequested: number,
-  tokenStart?: number,
-  tokenEnd?: number,
-): Range | null {
-  const firstSpans = mainCol.querySelectorAll<HTMLElement>(`.daf-word[data-seg="${startSeg}"]`);
-  if (firstSpans.length === 0) return null;
-  // Walk down to find a tagged endSeg (LLM ranges occasionally over-shoot).
-  let endSeg = -1;
-  let endSpans: NodeListOf<HTMLElement> | null = null;
-  for (let s = endSegRequested; s >= startSeg; s--) {
-    const found = mainCol.querySelectorAll<HTMLElement>(`.daf-word[data-seg="${s}"]`);
-    if (found.length > 0) { endSeg = s; endSpans = found; break; }
-  }
-  if (!endSpans) return null;
-
-  const tokStart = typeof tokenStart === 'number' && tokenStart >= 0 && tokenStart < firstSpans.length
-    ? tokenStart : 0;
-  const tokEnd = typeof tokenEnd === 'number' && tokenEnd >= 0 && tokenEnd < endSpans.length
-    ? tokenEnd : endSpans.length - 1;
-
-  const range = document.createRange();
-  range.setStartBefore(firstSpans[tokStart]);
-  // Same-segment case: use endSpans (= firstSpans) sliced to tokEnd, but
-  // ensure tokEnd >= tokStart to avoid an inverted range.
-  if (startSeg === endSeg) {
-    const safeEnd = Math.max(tokStart, tokEnd);
-    const lastInSeg = firstSpans.length - 1;
-    range.setEndAfter(firstSpans[Math.min(safeEnd, lastInSeg)]);
-  } else {
-    range.setEndAfter(endSpans[tokEnd]);
-  }
-  return range;
-}
-
 // Merges a Range's per-word client rects into one band per line and paints
 // them as absolute-positioned divs into `overlay`. Coordinates are resolved
 // against `origin` (which must be a positioned ancestor of `overlay`).
@@ -160,7 +109,7 @@ function paintRangeOverlay(
   overlay: HTMLElement,
   origin: HTMLElement,
   ranges: Range[],
-  kind: 'section' | 'halacha' | 'aggadata' | 'pesuk' | 'move' | 'commentary' | 'commentary-active' | 'comm-anchor',
+  kind: 'section' | 'halacha' | 'aggadata' | 'pesuk' | 'rishonim' | 'move' | 'commentary' | 'commentary-active' | 'comm-anchor',
   /** Optional per-range inline background color. */
   bgFor?: (rangeIdx: number) => string | undefined,
 ): void {
@@ -1145,6 +1094,7 @@ export default function DafViewer(): JSX.Element {
     const halachaRanges: Range[] = [];
     const aggadataRanges: Range[] = [];
     const pesukRanges: Range[] = [];
+    const rishonimRanges: Range[] = [];
     const moveRanges: Range[] = [];
     const commentaryRanges: Range[] = [];
     const commentaryActiveRanges: Range[] = [];
@@ -1153,12 +1103,13 @@ export default function DafViewer(): JSX.Element {
      *  commAnchorActive.direction === 'from-piece'. */
     const commAnchorRanges: Range[] = [];
 
-    const collectRange = (range: Range, bucket: 'section' | 'halacha' | 'aggadata' | 'pesuk') => {
+    const collectRange = (range: Range, bucket: 'section' | 'halacha' | 'aggadata' | 'pesuk' | 'rishonim') => {
       if (range.collapsed) return;
       if (bucket === 'section') sectionRanges.push(range);
       else if (bucket === 'halacha') halachaRanges.push(range);
       else if (bucket === 'aggadata') aggadataRanges.push(range);
-      else pesukRanges.push(range);
+      else if (bucket === 'pesuk') pesukRanges.push(range);
+      else rishonimRanges.push(range);
     };
 
     // Build a Range covering all `.daf-word[data-seg=N]` spans (first→last) in
@@ -1173,6 +1124,15 @@ export default function DafViewer(): JSX.Element {
       return range;
     };
 
+    // ── Sidebar-card highlight ──────────────────────────────────────────
+    // The daf-text range(s) tinted for the currently-open sidebar card,
+    // dispatched on sidebar().kind (+ activeRabbi for the per-rabbi argument
+    // case). Each kind resolves its span differently — opinion anchors, an
+    // excerpt-length marker walk, a token range, or a single segment — so they
+    // stay as distinct blocks rather than one forced union. The move /
+    // commentary / rabbi-class highlights further below are independent of
+    // sidebar().kind and intentionally remain separate.
+    //
     // Argument: whole section (no rabbi) or a single rabbi's opinion range(s).
     // Skip the section-wide tint when the user has clicked a specific
     // sub-section card — the move-range highlight (painted below) is the
@@ -1360,6 +1320,15 @@ export default function DafViewer(): JSX.Element {
       }
     }
 
+    // Rishonim: tint the single segment the open rishonim card covers. The
+    // mark is per-segment (segIdx, not a range), so paint start == end.
+    if (s?.kind === 'rishonim') {
+      const mainText = dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
+      const seg = s.instance.segIdx;
+      const r = mainText ? buildTokenRange(mainText, seg, seg) : null;
+      if (r) collectRange(r, 'rishonim');
+    }
+
     // Argument-move highlight — set by ArgumentSidebar when the user clicks
     // a subsection card. Paints a yellow band over the move's segment range
     // in the main column. When tokenStart/tokenEnd are present (worker's
@@ -1477,6 +1446,7 @@ export default function DafViewer(): JSX.Element {
     paintRangeOverlay(overlay, dafRootDiv, halachaRanges, 'halacha');
     paintRangeOverlay(overlay, dafRootDiv, aggadataRanges, 'aggadata');
     paintRangeOverlay(overlay, dafRootDiv, pesukRanges, 'pesuk');
+    paintRangeOverlay(overlay, dafRootDiv, rishonimRanges, 'rishonim');
     paintRangeOverlay(overlay, dafRootDiv, moveRanges, 'move');
     paintRangeOverlay(overlay, dafRootDiv, commAnchorRanges, 'comm-anchor');
 
