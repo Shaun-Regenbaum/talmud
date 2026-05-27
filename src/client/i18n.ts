@@ -21,8 +21,17 @@ export type Lang = 'en' | 'he';
 
 const STORAGE_KEY = 'talmud:lang';
 
+// Language resolution order: an explicit `?lang=` in the URL wins (so a shared
+// link presets the language regardless of the recipient's history), then the
+// per-browser localStorage preference, then English.
 function initialLang(): Lang {
   if (typeof window === 'undefined') return 'en';
+  const urlLang = new URLSearchParams(window.location.search).get('lang');
+  if (urlLang === 'he' || urlLang === 'en') {
+    // Make the shared link's choice sticky for this browser too.
+    try { window.localStorage.setItem(STORAGE_KEY, urlLang); } catch { /* ignore */ }
+    return urlLang;
+  }
   const stored = window.localStorage.getItem(STORAGE_KEY);
   return stored === 'he' ? 'he' : 'en';
 }
@@ -39,8 +48,22 @@ function applyToDocument(l: Lang): void {
   root.dir = l === 'he' ? 'rtl' : 'ltr';
 }
 
-// Apply once at module load so the very first paint has the right dir.
+/** Keep `?lang=` in the address bar in sync with the active language (without a
+ *  history entry), so the URL the user copies always carries the language. */
+function applyLangToUrl(l: Lang): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('lang') === l) return;
+    url.searchParams.set('lang', l);
+    window.history.replaceState(window.history.state, '', url.toString());
+  } catch { /* non-browser / malformed URL — localStorage still carries it */ }
+}
+
+// Apply once at module load so the very first paint has the right dir, and the
+// URL reflects the active language even before the user touches the switch.
 applyToDocument(lang());
+applyLangToUrl(lang());
 
 export function setLang(next: Lang): void {
   if (next === lang()) return;
@@ -49,6 +72,7 @@ export function setLang(next: Lang): void {
     window.localStorage.setItem(STORAGE_KEY, next);
   }
   applyToDocument(next);
+  applyLangToUrl(next);
   // Drop cached enrichment runs so cards re-fetch under the new lang's cache
   // key. clearRunResultCache() + MarksRegistryPanel listen for this event; the
   // per-lang stamps (MarkEnrichmentCards / MarksRegistryPanel) then re-fire.
@@ -444,6 +468,17 @@ const CATALOG: Record<string, Entry> = {
   'halacha.codification': { en: 'Codification', he: 'פסיקה' },
   'halacha.practical': { en: 'Practical', he: 'למעשה' },
   'halacha.disputes': { en: 'Disputes', he: 'מחלוקות' },
+  // Codification source labels (the פסיקה rows).
+  'source.mishnehTorah': { en: 'Mishneh Torah', he: 'משנה תורה' },
+  'source.tur': { en: 'Tur', he: 'טור' },
+  'source.shulchanAruch': { en: 'Shulchan Aruch', he: 'שולחן ערוך' },
+  'source.rema': { en: 'Rema', he: 'רמ״א' },
+  // Dispute axis chips (מחלוקות).
+  'axis.ashkenaz-sefarad': { en: 'Ashkenaz–Sefarad', he: 'אשכנז–ספרד' },
+  'axis.rishonim': { en: 'Rishonim', he: 'ראשונים' },
+  'axis.acharonim': { en: 'Acharonim', he: 'אחרונים' },
+  'axis.modern': { en: 'Modern', he: 'מודרני' },
+  'axis.other': { en: 'Other', he: 'אחר' },
   'halacha.lechatchila': { en: 'Lechatchila', he: 'לכתחילה' },
   'halacha.bedieved': { en: 'Bedieved', he: 'בדיעבד' },
   'halacha.appliesWhen': { en: 'Applies when', he: 'חל כאשר' },

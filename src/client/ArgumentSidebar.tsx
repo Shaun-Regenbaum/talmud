@@ -22,6 +22,14 @@ function moveKindLabel(kind: string): string {
   return v === key ? kind : v;
 }
 
+/** Translate a halacha dispute axis (rishonim / acharonim / …), falling back to
+ *  the raw axis string when the catalog has no entry. */
+function axisLabel(axis: string): string {
+  const key = `axis.${axis}`;
+  const v = t(key);
+  return v === key ? axis : v;
+}
+
 export interface RishonComment {
   work: string;
   workHe: string;
@@ -869,11 +877,11 @@ function HalachaBody(props: {
               'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.5rem',
             }}>{t('halacha.codification')}</div>
             <RulingRow
-              source="mishnehTorah" label="Mishneh Torah" color="#8a2a2b"
+              source="mishnehTorah" label={t('source.mishnehTorah')} color="#8a2a2b"
               ruling={cod().mishnehTorah ? { ref: cod().mishnehTorah!.ref, summary: cod().mishnehTorah!.ruling } : undefined}
             />
             <Show when={cod().tur}>
-              {(t) => (
+              {(tur) => (
                 <div style={{
                   padding: '0.55rem 0.7rem', background: '#fafaf7',
                   border: '1px solid #eae8e0', 'border-radius': '4px',
@@ -883,22 +891,22 @@ function HalachaBody(props: {
                     'font-size': '0.68rem', 'text-transform': 'uppercase',
                     'letter-spacing': '0.06em', 'font-weight': 600, color: '#a16207',
                     'margin-bottom': '0.25rem',
-                  }}>Tur</div>
+                  }}>{t('source.tur')}</div>
                   <div style={{ 'font-weight': 500, color: '#333', 'margin-bottom': '0.2rem', 'font-size': '0.85rem' }}>
-                    {t().ref}
+                    {tur().ref}
                   </div>
                   <div style={{ color: '#555', 'line-height': 1.45, 'font-size': '0.85rem' }}>
-                    <HebraizedWithRabbis text={t().ruling} />
+                    <HebraizedWithRabbis text={tur().ruling} />
                   </div>
                 </div>
               )}
             </Show>
             <RulingRow
-              source="shulchanAruch" label="Shulchan Aruch" color="#1e40af"
+              source="shulchanAruch" label={t('source.shulchanAruch')} color="#1e40af"
               ruling={cod().shulchanAruch ? { ref: cod().shulchanAruch!.ref, summary: cod().shulchanAruch!.ruling } : undefined}
             />
             <RulingRow
-              source="rema" label="Rema" color="#7c3aed"
+              source="rema" label={t('source.rema')} color="#7c3aed"
               ruling={cod().rema ? { ref: cod().rema!.ref, summary: cod().rema!.ruling } : undefined}
             />
           </div>
@@ -981,7 +989,7 @@ function HalachaBody(props: {
               <div style={{ 'font-weight': 500, color: '#333', 'font-size': '0.88rem', 'margin-bottom': '0.25rem' }}>
                 {d.label}
                 <span style={{ 'font-size': '0.65rem', color: '#999', 'margin-left': '0.4rem', 'text-transform': 'uppercase', 'letter-spacing': '0.06em' }}>
-                  {d.axis}
+                  {axisLabel(d.axis)}
                 </span>
               </div>
               <For each={d.positions}>{(p) => (
