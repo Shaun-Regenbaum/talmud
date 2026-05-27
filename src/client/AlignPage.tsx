@@ -52,14 +52,16 @@ function leadingWords(s: string | undefined, n: number): string | undefined {
   return w || undefined;
 }
 
-/** The dibur ha'maschil (lemma) of a Rashi/Tosafot piece — the Gemara words it
- *  quotes, before the " - " that separates the lemma from the comment. */
+/** The dibur ha'maschil (lemma) a commentary quotes from the Gemara — its
+ *  opening Gemara words, separated from the comment body. */
 function diburHaMaschil(he: string | undefined): string | undefined {
   if (!he) return undefined;
-  // The lemma ends at the first separator between it and the comment: a dash,
-  // a sentence period, a colon, or "כו'/וכו'". (Rashi/Tosafot use the dash;
-  // Rishonim like the Rashba use a period — "המונח כאן וכאן אסור. פירש רש"י…".)
-  const lemma = stripTags(he).split(/\s[-־–—]\s|\.\s|:\s|\s?[וב]?כו['׳]/)[0];
+  // Sefaria bolds the lemma at the start: "<b>נגר הנגרר נועלין בו במקדש</b> פיר…"
+  // (Rishonim, much of Rashi/Tosafot). Take that bold run as the DH.
+  const bold = /^\s*<(b|strong)>([\s\S]*?)<\/\1>/i.exec(he);
+  // Otherwise the lemma ends at the first separator: a dash, sentence period,
+  // colon, or "כו'/וכו'" — e.g. "המונח כאן וכאן אסור. פירש רש"י…".
+  const lemma = bold ? stripTags(bold[2]) : stripTags(he).split(/\s[-־–—]\s|\.\s|:\s|\s?[וב]?כו['׳]/)[0];
   return leadingWords(lemma, 6);
 }
 
