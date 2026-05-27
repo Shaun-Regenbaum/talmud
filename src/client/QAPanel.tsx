@@ -36,18 +36,13 @@ import { lang, t } from './i18n';
 export interface QAPanelProps {
   /** Mark id — drives which `<mark>.suggested-questions` + `<mark>.qa`
    *  enrichments are invoked, and which registry partition the community
-   *  questions live in. Defaults to 'argument-move' for back-compat. */
-  mark?: 'argument-move' | 'pesukim' | 'aggadata';
+   *  questions live in. */
+  mark: 'argument-move' | 'pesukim' | 'aggadata';
   /** Stable id for the instance — argument-move's fields.id, pesukim's
-   *  verseRef, etc. Used as the registry partition. Aliased from `moveId`
-   *  for back-compat. */
-  instanceId?: string;
-  /** @deprecated Use `instanceId`. Kept so existing call sites compile. */
-  moveId?: string;
+   *  verseRef, etc. Used as the registry partition. */
+  instanceId: string;
   /** The mark instance that the worker needs to recreate the run. */
-  instance?: unknown;
-  /** @deprecated Use `instance`. Kept so existing call sites compile. */
-  moveInstance?: unknown;
+  instance: unknown;
   tractate: string;
   page: string;
 }
@@ -197,11 +192,9 @@ function pickQALoadingCopy(): string {
 }
 
 export default function QAPanel(props: QAPanelProps): JSX.Element {
-  // Resolve back-compat aliases. Older call sites pass moveId/moveInstance;
-  // newer ones pass instanceId/instance + mark.
-  const mark = (): 'argument-move' | 'pesukim' | 'aggadata' => props.mark ?? 'argument-move';
-  const instanceId = (): string => props.instanceId ?? props.moveId ?? '';
-  const instance = (): unknown => props.instance ?? props.moveInstance;
+  const mark = (): 'argument-move' | 'pesukim' | 'aggadata' => props.mark;
+  const instanceId = (): string => props.instanceId;
+  const instance = (): unknown => props.instance;
 
   const [expanded, setExpanded] = createSignal(false);
   const [showAll, setShowAll] = createSignal(false);
