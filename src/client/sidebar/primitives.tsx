@@ -29,6 +29,7 @@ import QAPanel from '../QAPanel';
  *  six hardcoded hex values stop drifting. */
 export const ACCENTS = {
   argument: '#8a2a2b',
+  'argument-overview': '#8a2a2b',
   halacha: '#1e40af',
   aggadata: '#7c3aed',
   pesuk: '#9a3412',
@@ -45,6 +46,7 @@ export type SidebarKind = keyof typeof ACCENTS;
 export function kindLabelKey(kind: SidebarKind): CatalogKey {
   switch (kind) {
     case 'argument': return 'sidebar.kind.argument';
+    case 'argument-overview': return 'sidebar.kind.argument-overview';
     case 'halacha': return 'sidebar.kind.halacha';
     case 'aggadata': return 'sidebar.kind.aggadata';
     case 'pesuk': return 'sidebar.kind.pesuk';

@@ -511,6 +511,29 @@ export const CODE_MARKS: MarkDefinition[] = [
     updated_at: NOW,
   },
   {
+    id: 'argument-overview',
+    label: 'Argument map',
+    description: 'Whole-daf argument flowchart (one button → sidebar voice map for the entire page), grounded on dafyomi.co.il study context.',
+    category: 'experimental',
+    anchor: 'whole-daf',
+    render: {
+      kind: 'chip',
+      color: '#8a2a2b',
+      position: 'header',
+    },
+    // Deterministic single anchorless instance — the chip + daf-level
+    // enrichments hang off it; no LLM at the mark layer.
+    extractor: {
+      kind: 'computed',
+      fn: 'whole-daf-instance',
+    },
+    status: 'promoted',
+    def_hash: 'argument-overview-v1',
+    cache_version: '1',
+    source: 'code',
+    updated_at: NOW,
+  },
+  {
     id: 'halacha',
     label: 'Halachot',
     description: 'Halacha-topic gutter icons + sidebar.',
@@ -1948,6 +1971,125 @@ CODE_ENRICHMENTS.push(
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_SYNTHESIS_USER_TEMPLATE_HE,
+    },
+  ),
+);
+
+// ---------------------------------------------------------------------------
+// argument-overview mark enrichments — a SINGLE whole-daf voice graph for the
+// entire page (vs argument.voices, which is per-section). Reuses the voices
+// JSON contract + the ArgumentVoiceMap renderer; grounded on the aggregated
+// dafyomi.co.il study context ({{context}}: point-by-point outline, halacha
+// summary, comparison charts) plus the daf's own argument sections + rabbis.
+// ---------------------------------------------------------------------------
+
+const ARGUMENT_OVERVIEW_VOICES_SYSTEM_PROMPT = `You are a Talmud scholar. Emit a SINGLE graph of the major argumentative voices across this ENTIRE daf — who argues with whom, who supports whom — at the level of the whole page (not one section). Daf-local: about what these figures do on this daf, not their biography.
+
+Output STRICT JSON only:
+
+{
+  "voices": [
+    {
+      "name": "Conventional English name (e.g. 'Rav Yehudah', 'Ula'). Use 'Stam' for the anonymous Gemara when it meaningfully links voices.",
+      "nameHe": "Hebrew name as written (e.g. 'רב יהודה'). Empty string if not present.",
+      "role": "originator" | "transmitter" | "respondent" | "objector" | "supporter" | "cited-authority" | "questioner",
+      "side": "The camp this voice argues for in the daf's main dispute. 'A' for the first distinct position, 'B' for the opposing one, 'C' for a third. 'stam' for the anonymous redactor. 'support-A' / 'support-B' for figures cited only to back a side. 'unaligned' for questioners/transmitters who take no position.",
+      "stance": "1-2 plain-English sentences: the position this figure takes on the daf and what they respond to.",
+      "opinionStart": "First 3-5 Hebrew/Aramaic words of their opening line, verbatim. Empty string if not anchored to one phrase."
+    }
+  ],
+  "edges": [
+    { "from": "name of the voice doing the action (must match a voices 'name')", "to": "name of the targeted voice (must match a voices 'name')", "kind": "opposes" | "supports" | "responds-to" | "cites" | "resolves", "note": "OPTIONAL 1-clause edge label, else empty string" }
+  ]
+}
+
+EDGE KINDS: opposes (objects to / rejects), supports (argues for / cites in favor), responds-to (answers a question raised), cites (quotes as authority, no clear stance), resolves (concludes a dispute; "to" is the upheld side).
+
+Rules:
+- One voice entry per distinct figure even if they appear in several sections.
+- Keep it to the MAJOR voices that drive the daf's argument — do not list every name mentioned in passing. Aim for the disputants and those who respond to / support / resolve them.
+- 'side' letters are local to THIS daf — Position A is whoever is introduced first as a distinct position.
+- Every edge's "from" and "to" MUST match a name in voices. Validate before emitting.
+- If the daf has no real dispute, emit voices with an EMPTY edges array.
+- Use the study-aid context (point-by-point outline, halacha summary, charts) to identify positions and who opposes whom — it already lays out the debate structure. Prefer it where it conflicts with your own segmentation.
+- NO puff in "stance" — concrete: what they hold and against whom.
+
+${HEBREW_GLOSS_STYLE}`;
+
+const ARGUMENT_OVERVIEW_VOICES_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+Full daf:
+{{gemara}}
+
+Argument sections already extracted on this daf:
+{{anchors.argument}}
+
+Rabbis identified on this daf (with generation):
+{{anchors.rabbi}}
+
+Study-aid context (dafyomi.co.il — point-by-point outline, halacha summary, comparison charts):
+{{context}}
+
+Emit ONE whole-daf voice graph per the schema: the major disputants across the entire page, who argues with whom, who supports whom.`;
+
+const ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud scholar. You'll receive a full daf, its argument sections, the whole-daf voice graph, and study-aid context. Compose ONE tight paragraph orienting a reader to the WHOLE page: its central question(s), the main named positions, and where the daf lands.
+
+Output STRICT JSON only:
+
+{
+  "synthesis": "ONE paragraph, MAX 4 sentences. Each sentence MAX 25 words. (1) The daf's central question or topic. (2) The main named positions, one terse clause each. (3) ONE optional sentence on how the sections connect. (4) ONE closing sentence: where the daf lands (open / resolved / shifts on). Do NOT recap section by section."
+}
+
+HARD RULES:
+- MAX 4 sentences. MAX 25 words per sentence. Cut, don't pad.
+- Whole-daf orientation, not a section recap. Per-section detail lives in argument.synthesis.
+- NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "intricate", "profound", "lens", "captures".
+- Hebrew script (not transliteration) for technical terms in parentheses.
+
+${HEBREW_GLOSS_STYLE}`;
+
+const ARGUMENT_OVERVIEW_SYNTHESIS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+Full daf:
+{{gemara}}
+
+Argument sections on this daf:
+{{anchors.argument}}
+
+Whole-daf voice graph:
+{{depends.argument-overview.voices}}
+
+Study-aid context (dafyomi.co.il):
+{{context}}
+
+Write the whole-daf overview paragraph per the schema.`;
+
+CODE_ENRICHMENTS.push(
+  makeEnrichment(
+    'argument-overview', 'argument-overview.voices', 'Voices',
+    'A single whole-daf graph of the major argumentative voices.',
+    ARGUMENT_OVERVIEW_VOICES_SYSTEM_PROMPT, ARGUMENT_OVERVIEW_VOICES_USER_TEMPLATE, ARGUMENT_VOICES_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content', scope: 'local',
+      dependencies: ['gemara', 'context', { mark: 'argument' }, { mark: 'rabbi' }],
+      defHash: 'argument-overview.voices-v1', cacheVersion: '1',
+      model: ARGUMENT_FLASH_MODEL,
+    },
+  ),
+  makeSynthesis(
+    'argument-overview', 'argument-overview.synthesis',
+    'One tight paragraph orienting a reader to the whole daf: its question, the main positions, where it lands.',
+    ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT, ARGUMENT_OVERVIEW_SYNTHESIS_USER_TEMPLATE,
+    {
+      dependencies: [
+        'gemara',
+        'context',
+        { enrichment: 'argument-overview.voices' },
+        { mark: 'argument' },
+        { mark: 'rabbi' },
+      ],
+      defHash: 'argument-overview.synthesis-v1', cacheVersion: '1',
+      model: ARGUMENT_FLASH_MODEL,
     },
   ),
 );

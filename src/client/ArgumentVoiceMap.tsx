@@ -22,6 +22,7 @@
 
 import { For, Show, type JSX } from 'solid-js';
 import { t, lang } from './i18n';
+import { orthogonalEdgePath } from './flow/orthogonalEdge';
 
 /** Translate an argument-taxonomy role to the active language, falling back to
  *  the raw role string when the catalog has no entry for it. */
@@ -226,28 +227,13 @@ function buildLayout(data: ArgumentVoicesData): { nodes: LaidNode[]; edges: Laid
   return { nodes, edges, rows, width, height };
 }
 
-/** Edge path. Same-row → short horizontal line between the near edges.
- *  Different rows → L-shape through a midline Y. */
+/** Edge path — delegated to the shared orthogonal router so connectors are
+ *  always horizontal/vertical/L-shaped, never diagonal. */
 function edgePath(from: LaidNode, to: LaidNode): string {
-  const fromMidX = from.x + NODE_W / 2;
-  const toMidX = to.x + NODE_W / 2;
-  if (from.y === to.y) {
-    const startX = from.x + (toMidX > fromMidX ? NODE_W : 0);
-    const endX = to.x + (toMidX > fromMidX ? 0 : NODE_W);
-    return `M ${startX} ${from.y + NODE_H / 2} L ${endX} ${to.y + NODE_H / 2}`;
-  }
-  if (Math.abs(fromMidX - toMidX) < 1) {
-    // Same column, different row — straight vertical.
-    if (to.y > from.y) return `M ${fromMidX} ${from.y + NODE_H} L ${toMidX} ${to.y}`;
-    return `M ${fromMidX} ${from.y} L ${toMidX} ${to.y + NODE_H}`;
-  }
-  // L-shape: down/up from `from`, across, then up/down into `to`.
-  if (to.y > from.y) {
-    const midY = (from.y + NODE_H + to.y) / 2;
-    return `M ${fromMidX} ${from.y + NODE_H} L ${fromMidX} ${midY} L ${toMidX} ${midY} L ${toMidX} ${to.y}`;
-  }
-  const midY = (to.y + NODE_H + from.y) / 2;
-  return `M ${fromMidX} ${from.y} L ${fromMidX} ${midY} L ${toMidX} ${midY} L ${toMidX} ${to.y + NODE_H}`;
+  return orthogonalEdgePath(
+    { x: from.x, y: from.y, w: NODE_W, h: NODE_H },
+    { x: to.x, y: to.y, w: NODE_W, h: NODE_H },
+  );
 }
 
 function edgeColor(kind: ArgumentEdge['kind']): string {

@@ -164,5 +164,6 @@ function labelForSidebar(s: SidebarContent | null): string {
     case 'place': return 'Place';
     case 'voice-group': return 'Voice';
     case 'rishonim': return 'Rishonim';
+    case 'argument-overview': return 'Argument map';
   }
 }
