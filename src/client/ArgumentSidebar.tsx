@@ -635,7 +635,7 @@ async function fetchPasuk(ref: string): Promise<PasukDetail> {
 //          deps. Items the daf actually mentions (via .evidence) get a
 //          soft-highlight and clicking them paints the daf range.
 // ===========================================================================
-function RabbiBody(props: {
+export function RabbiBody(props: {
   rabbi: IdentifiedRabbi;
   tractate: string;
   page: string;
@@ -711,51 +711,33 @@ function RabbiBody(props: {
     if (pl.length > 0) parts.push(pl.join(', '));
     return parts;
   };
-  // In Hebrew mode lead with the Hebrew name; in English lead with the English
-  // name. The other appears as the secondary line below.
-  const primaryName = () => (lang() === 'he' && props.rabbi.nameHe ? props.rabbi.nameHe : props.rabbi.name);
-  const secondaryName = () => (lang() === 'he' && props.rabbi.nameHe ? props.rabbi.name : props.rabbi.nameHe);
-
   return (
-    <div>
-      <h3
-        dir={lang() === 'he' ? 'rtl' : 'ltr'}
-        lang={lang() === 'he' ? 'he' : undefined}
-        style={{
-          margin: '0 0 0.15rem', 'font-size': '1.1rem', color: '#222', 'font-weight': 600,
-          ...(lang() === 'he' ? { 'font-family': '"Mekorot Vilna", serif' } : {}),
-        }}
-      >
-        {primaryName()}
-      </h3>
-      <Show when={secondaryName()}>
-        <p
-          dir={lang() === 'he' ? 'ltr' : 'rtl'}
-          lang={lang() === 'he' ? undefined : 'he'}
-          style={{
-            margin: '0 0 0.6rem', 'font-size': '1.05rem', color: '#666',
-            ...(lang() === 'he' ? {} : { 'font-family': '"Mekorot Vilna", serif' }),
-          }}
-        >{secondaryName()}</p>
-      </Show>
-      <Show when={metaParts().length > 0}>
-        <div style={{
-          display: 'flex', 'align-items': 'center', gap: '0.45rem',
-          'font-size': '0.78rem', color: '#666',
-          'margin-bottom': '0.85rem', 'flex-wrap': 'wrap',
-          'line-height': 1.5,
-        }}>
-          <Show when={gen()}>
-            <span style={{
-              display: 'inline-block', width: '0.55rem', height: '0.55rem',
-              'background-color': gen()!.color, 'border-radius': '50%',
-              'flex-shrink': 0,
-            }} />
-          </Show>
-          <span>{metaParts().join(' · ')}</span>
-        </div>
-      </Show>
-      <MarkEnrichmentCards
+    <Panel
+      accent={ACCENTS.rabbi}
+      flip="rabbi"
+      title={props.rabbi.name}
+      titleHe={props.rabbi.nameHe}
+      meta={
+        <Show when={metaParts().length > 0}>
+          <div style={{
+            display: 'flex', 'align-items': 'center', gap: '0.45rem',
+            'font-size': '0.78rem', color: '#666',
+            'margin-bottom': '0.85rem', 'flex-wrap': 'wrap',
+            'line-height': 1.5,
+          }}>
+            <Show when={gen()}>
+              <span style={{
+                display: 'inline-block', width: '0.55rem', height: '0.55rem',
+                'background-color': gen()!.color, 'border-radius': '50%',
+                'flex-shrink': 0,
+              }} />
+            </Show>
+            <span>{metaParts().join(' · ')}</span>
+          </div>
+        </Show>
+      }
+    >
+      <Synthesis
         markId="rabbi"
         instance={{
           name: props.rabbi.name,
@@ -791,7 +773,7 @@ function RabbiBody(props: {
           />
         )}
       </Show>
-    </div>
+    </Panel>
   );
 }
 
