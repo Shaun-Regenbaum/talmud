@@ -12,7 +12,8 @@ import type { ContextItem } from './types.ts';
 export interface SegMatch {
   /** ContextItem.key this placement applies to. */
   key: string;
-  /** Segments the item maps to. Empty = leave unplaced (no-op). */
+  /** Segments the item maps to. Empty = leave unplaced (no-op) UNLESS
+   *  `wholeDaf` is set, which is a deliberate daf-level placement. */
   segs: number[];
   /** Matcher id, e.g. 'tosfos-dh' | 'ai' | 'pieceKeys'. */
   via: string;
@@ -21,6 +22,10 @@ export interface SegMatch {
   /** Optional verbatim Hebrew phrase the item is about (AI matcher emits this);
    *  the client resolves it to exact HB word positions via the HB locator. */
   quote?: string;
+  /** The matcher grounded this item at WHOLE-DAF level on purpose (no single
+   *  segment fits — a general note). A placement, not a failure; `segs` stays
+   *  empty and the item is marked placed so the workbench shows "whole daf". */
+  wholeDaf?: boolean;
 }
 
 /** Write placements onto items in place. Returns the number changed. */
@@ -29,9 +34,10 @@ export function applyMatches(items: ContextItem[], matches: SegMatch[]): number 
   let changed = 0;
   for (const item of items) {
     const m = byKey.get(item.key);
-    if (!m || m.segs.length === 0) continue;
-    item.segs = dedupeSorted(m.segs);
-    item.via = m.via;
+    if (!m) continue;
+    if (!m.wholeDaf && m.segs.length === 0) continue; // unplaced no-op
+    item.segs = m.wholeDaf ? [] : dedupeSorted(m.segs);
+    item.via = m.via; // a whole-daf AI placement is `via:'ai'` + `segs:[]`
     item.confidence = m.confidence;
     changed++;
   }
