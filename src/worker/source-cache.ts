@@ -31,6 +31,7 @@ import {
 } from '../lib/sefref';
 import type { DafyomiDaf } from '../lib/sefref/dafyomi/schema';
 import { keyForDafyomi } from './cache-keys';
+import { scrapeDafyomiLive } from './dafyomi-live';
 
 const TTL_30_DAYS = 60 * 60 * 24 * 30;
 const TTL_NEGATIVE = 60 * 60;
@@ -261,6 +262,9 @@ export interface DafyomiFetchOpts {
   assetOrigin?: string;
   /** Skip the read-cache (incl. negative cache) and re-resolve from assets. */
   refresh?: boolean;
+  /** When the daf isn't in the committed static corpus, fetch + parse it live
+   *  from dafyomi.co.il (then memoize). Defaults off; callers opt in. */
+  allowLive?: boolean;
   track?: CacheTrack;
 }
 
@@ -271,7 +275,7 @@ export async function getDafyomiContentCached(
   page: string,
   opts: DafyomiFetchOpts = {},
 ): Promise<DafyomiDaf | null> {
-  const { assetOrigin, refresh, track } = opts;
+  const { assetOrigin, refresh, allowLive, track } = opts;
   const m = page.match(/^(\d+)/);
   if (!m) return null;
   const daf = m[1];
@@ -288,16 +292,25 @@ export async function getDafyomiContentCached(
   try {
     let res = await assets.fetch(new Request(`https://assets.local${path}`));
     if (!res.ok && assetOrigin) res = await fetch(`${assetOrigin}${path}`);
-    if (!res.ok) {
-      await writeCache(cache, key, { __failed: true } satisfies FailedMarker, TTL_NEGATIVE);
-      return null;
+    if (res.ok) {
+      const data = (await res.json()) as DafyomiDaf;
+      await writeCache(cache, key, data);
+      return data;
     }
-    const data = (await res.json()) as DafyomiDaf;
-    await writeCache(cache, key, data);
-    return data;
+    // Not in the committed corpus — fetch + parse live (then memoize) so every
+    // daf works, not just the pre-scraped ones.
+    if (allowLive) {
+      const live = await scrapeDafyomiLive(tractate, parseInt(daf, 10));
+      if (live) {
+        await writeCache(cache, key, live);
+        return live;
+      }
+    }
+    await writeCache(cache, key, { __failed: true } satisfies FailedMarker, TTL_NEGATIVE);
+    return null;
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.warn(`[source-cache] dafyomi asset read failed for ${tractate} ${daf}:`, err);
+    console.warn(`[source-cache] dafyomi read failed for ${tractate} ${daf}:`, err);
     await writeCache(cache, key, { __failed: true } satisfies FailedMarker, TTL_NEGATIVE);
     return null;
   }

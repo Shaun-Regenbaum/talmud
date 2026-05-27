@@ -17,6 +17,9 @@ importers:
       hono:
         specifier: ^4.6.0
         version: 4.12.14
+      node-html-parser:
+        specifier: ^7.1.0
+        version: 7.1.0
       solid-js:
         specifier: ^1.9.0
         version: 1.9.12
@@ -36,9 +39,6 @@ importers:
       jsdom:
         specifier: ^29.1.1
         version: 29.1.1
-      node-html-parser:
-        specifier: ^7.1.0
-        version: 7.1.0
       typescript:
         specifier: ^5.7.0
         version: 5.9.3

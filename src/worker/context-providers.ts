@@ -35,6 +35,8 @@ import type { ContextItem } from '../lib/context/types';
 export interface ContextEnv {
   CACHE?: KVNamespace;
   ASSETS: Fetcher;
+  /** Set to "0" to disable on-demand live dafyomi.co.il fetching. */
+  DAFYOMI_LIVE?: string;
 }
 
 /**
@@ -49,8 +51,9 @@ export async function collectContext(
   assetOrigin?: string,
 ): Promise<ContextItem[]> {
   const cache = env.CACHE;
+  const allowLive = env.DAFYOMI_LIVE !== '0';
   const [dafyomi, sefariaPage, rishonim, halacha, mishna, topics] = await Promise.all([
-    getDafyomiContentCached(cache, env.ASSETS, tractate, page, { assetOrigin }).catch(() => null),
+    getDafyomiContentCached(cache, env.ASSETS, tractate, page, { assetOrigin, allowLive }).catch(() => null),
     getSefariaPageCached(cache, tractate, page).catch(() => null),
     getRishonimCached(cache, tractate, page).catch(() => ({})),
     getHalachaRefsCached(cache, tractate, page).catch(() => ({})),
