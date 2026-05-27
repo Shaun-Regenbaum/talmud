@@ -1992,8 +1992,8 @@ async function postProcessRabbiEvidence(
  *  as a `${startSegIdx}-${endSegIdx}` stamp — or null when the enrichment isn't
  *  section-anchored (so no range guard applies). Used to reject a cache hit
  *  whose title-derived key resolved to a stale, differently-ranged entry. */
-function sectionRangeOf(def: EnrichmentDefinition, markInput: unknown): string | null {
-  if (def.mark !== 'argument') return null;
+function sectionRangeOf(def: EnrichmentDefinition | null, markInput: unknown): string | null {
+  if (!def || def.mark !== 'argument') return null;
   const mi = markInput as { startSegIdx?: number; endSegIdx?: number } | null;
   if (mi && typeof mi.startSegIdx === 'number' && typeof mi.endSegIdx === 'number') {
     return `${mi.startSegIdx}-${mi.endSegIdx}`;
@@ -2599,13 +2599,22 @@ app.post('/api/studio/run', async (c) => {
       const cached = await c.env.CACHE.get(key);
       if (cached) {
         try {
-          const result = JSON.parse(cached) as RunResult;
-          // Record the cache-hit so per-mark / per-enrichment hit-rate is real.
-          recordTelemetry(c, runTelemetryRec(job, { ...result, cache_hit: true }, 0));
-          // total_ms isn't stored in the cached payload (only added at run
-          // exit), so inject it on cache-hits — the panel renders it as the
-          // run badge and shows "undefinedms" otherwise.
-          return c.json({ status: 'ok', result: { ...result, cache_hit: true, total_ms: 0 } });
+          const result = JSON.parse(cached) as RunResultEnrichment;
+          // Section-enrichment range guard (mirrors runEnrichmentOnce): the
+          // title-keyed section cache can hold another section's result after a
+          // re-extraction shifts the title's range. Only serve the hot-path hit
+          // when the stamped range matches the requested section; otherwise
+          // fall through to enqueue so it recomputes for the correct range.
+          const def = job.enrichment_id ? await loadEnrichmentDef(c.env, job.enrichment_id) : null;
+          const sectionRange = sectionRangeOf(def, job.mark_input);
+          if (!sectionRange || result.section_range === sectionRange) {
+            // Record the cache-hit so per-mark / per-enrichment hit-rate is real.
+            recordTelemetry(c, runTelemetryRec(job, { ...result, cache_hit: true }, 0));
+            // total_ms isn't stored in the cached payload (only added at run
+            // exit), so inject it on cache-hits — the panel renders it as the
+            // run badge and shows "undefinedms" otherwise.
+            return c.json({ status: 'ok', result: { ...result, cache_hit: true, total_ms: 0 } });
+          }
         } catch { /* corrupt cache; fall through to enqueue */ }
       }
     }
