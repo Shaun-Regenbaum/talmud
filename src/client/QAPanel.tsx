@@ -219,12 +219,15 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
 
   // Two parallel resources, both gated on `expanded` so we don't pay
   // anything until the user opens the panel for the first time.
+  // lang() is in the resource source (`l`) so switching language re-fetches the
+  // suggested questions under the new lang (they're LLM-generated, so they
+  // differ EN↔HE) instead of leaving the old language's list shown until reload.
   const [suggested, { mutate: setSuggested }] = createResource(
-    () => (expanded() ? { mk: mark(), t: props.tractate, p: props.page, m: instanceId(), i: instance() } : null),
+    () => (expanded() ? { mk: mark(), t: props.tractate, p: props.page, m: instanceId(), i: instance(), l: lang() } : null),
     (k) => fetchSuggested(k.mk, k.t, k.p, k.m, k.i),
   );
   const [registry, { refetch: refetchRegistry, mutate: setRegistry }] = createResource(
-    () => (expanded() ? { mk: mark(), t: props.tractate, p: props.page, m: instanceId() } : null),
+    () => (expanded() ? { mk: mark(), t: props.tractate, p: props.page, m: instanceId(), l: lang() } : null),
     (k) => fetchRegistry(k.mk, k.t, k.p, k.m),
   );
 
@@ -304,14 +307,14 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
     const q = askText().trim();
     if (q.length === 0) return;
     if (q.length > 280) {
-      setAskError('Please keep questions under 280 characters.');
+      setAskError(t('qa.error.tooLong'));
       return;
     }
     setAskError(null);
     const reply = await postAsk(mark(), props.tractate, props.page, instanceId(), instance(), q);
     if (reply.error) {
       setAskError(reply.rateLimited
-        ? 'You\'ve asked a lot of new questions recently — please wait a bit before asking another.'
+        ? t('qa.error.rateLimit')
         : reply.error);
       return;
     }
@@ -365,7 +368,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
         <div style={{ 'margin-top': '0.55rem' }}>
           <Show when={suggested.loading || registry.loading}>
             <div style={{ color: '#888', 'font-size': '0.78rem', 'font-style': 'italic' }}>
-              Loading questions…
+              {t('qa.loadingQuestions')}
             </div>
           </Show>
 
@@ -407,9 +410,9 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
                       'text-transform': 'uppercase',
                       'letter-spacing': '0.05em',
                     }}>
-                      community
+                      {t('qa.community')}
                       <Show when={typeof item.clickCount === 'number' && item.clickCount! > 1}>
-                        {' '}· asked {item.clickCount}×
+                        {' '}· {t('qa.askedCount', { count: item.clickCount! })}
                       </Show>
                     </span>
                   </Show>
@@ -446,7 +449,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
                             'font-size': '0.7rem',
                             color: '#a16207',
                           }}>
-                            Low confidence — the available sources didn't fully answer this.
+                            {t('qa.lowConfidence')}
                           </div>
                         </Show>
                       </Show>
@@ -475,7 +478,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
                 'margin-top': '0.2rem',
               }}
             >
-              ⌄ show {hiddenCount()} more
+              ⌄ {t('qa.showMore', { count: hiddenCount() })}
             </button>
           </Show>
           <Show when={showAll() && combined().length > DEFAULT_VISIBLE}>
@@ -490,7 +493,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
                 'margin-top': '0.2rem',
               }}
             >
-              ⌃ show less
+              ⌃ {t('qa.showLess')}
             </button>
           </Show>
 

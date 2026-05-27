@@ -15,6 +15,7 @@
 
 import { createEffect, onMount, onCleanup, type JSX } from 'solid-js';
 import { publishGutterEntry, clearGutterEntry, type GutterSide } from './gutterStack';
+import { t } from './i18n';
 
 export type GutterKind = 'argument' | 'halacha' | 'aggadata' | 'pesuk' | 'rishonim';
 
@@ -182,11 +183,11 @@ export function colorForKind(kind: GutterKind): string {
 }
 
 export function titleForKind(kind: GutterKind): string {
-  return kind === 'argument' ? 'Argument structure & rabbis'
-    : kind === 'halacha' ? 'Practical halacha'
-    : kind === 'aggadata' ? 'Aggada — narrative on this line'
-    : kind === 'rishonim' ? 'Rishonim on this line'
-    : 'Pasuk — Tanach citation';
+  return kind === 'argument' ? t('gutter.argument')
+    : kind === 'halacha' ? t('gutter.halacha')
+    : kind === 'aggadata' ? t('gutter.aggadata')
+    : kind === 'rishonim' ? t('gutter.rishonim')
+    : t('gutter.pesukim');
 }
 
 /** SVG/glyph for an icon, sized to the 14×14 button. Stroke-based Lucide

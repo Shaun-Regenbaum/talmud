@@ -85,8 +85,8 @@ function regionColor(r: Region): string {
 }
 
 function regionLabel(r: Region): string {
-  if (r === 'israel') return 'Eretz Yisrael';
-  if (r === 'bavel') return 'Bavel';
+  if (r === 'israel') return t('geography.eretzYisrael');
+  if (r === 'bavel') return t('geography.bavel');
   return r === 'unknown' ? t('region.unknown') : t('region.other');
 }
 

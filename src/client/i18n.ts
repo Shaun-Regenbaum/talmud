@@ -587,6 +587,32 @@ const CATALOG: Record<string, Entry> = {
   'dafLoad.family.halachot': { en: 'halachot', he: 'הלכות' },
   'dafLoad.family.rabbis': { en: 'rabbis', he: 'חכמים' },
   'dafLoad.family.rishonim': { en: 'rishonim', he: 'ראשונים' },
+
+  // — Gutter icon tooltips —
+  'gutter.argument': { en: 'Argument structure & rabbis', he: 'מבנה הסוגיה וחכמים' },
+  'gutter.halacha': { en: 'Practical halacha', he: 'הלכה למעשה' },
+  'gutter.aggadata': { en: 'Aggada — narrative on this line', he: 'אגדה — סיפור בשורה זו' },
+  'gutter.rishonim': { en: 'Rishonim on this line', he: 'ראשונים על שורה זו' },
+  'gutter.pesukim': { en: 'Pasuk — Tanach citation', he: 'פסוק — ציטוט מהתנ״ך' },
+
+  // — Explore-deeper Q&A panel —
+  'qa.loadingQuestions': { en: 'Loading questions…', he: 'טוען שאלות…' },
+  'qa.community': { en: 'community', he: 'קהילה' },
+  'qa.askedCount': { en: 'asked {count}×', he: 'נשאל {count}×' },
+  'qa.lowConfidence': {
+    en: "Low confidence — the available sources didn't fully answer this.",
+    he: 'ביטחון נמוך — המקורות הזמינים לא ענו על כך במלואו.',
+  },
+  'qa.showMore': { en: 'show {count} more', he: 'הצג עוד {count}' },
+  'qa.showLess': { en: 'show less', he: 'הצג פחות' },
+  'qa.error.tooLong': {
+    en: 'Please keep questions under 280 characters.',
+    he: 'נא לשמור על שאלות מתחת ל-280 תווים.',
+  },
+  'qa.error.rateLimit': {
+    en: "You've asked a lot of new questions recently — please wait a bit before asking another.",
+    he: 'שאלת הרבה שאלות חדשות לאחרונה — נא להמתין מעט לפני שאלה נוספת.',
+  },
 };
 
 /**

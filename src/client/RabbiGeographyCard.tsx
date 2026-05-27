@@ -74,8 +74,8 @@ function regionColor(r: BirthPlace['region']): string {
 }
 
 function regionLabel(r: BirthPlace['region']): string {
-  if (r === 'israel') return 'Eretz Yisrael';
-  if (r === 'bavel') return 'Bavel';
+  if (r === 'israel') return t('geography.eretzYisrael');
+  if (r === 'bavel') return t('geography.bavel');
   return r === 'other' ? t('region.other') : t('region.unknown');
 }
 

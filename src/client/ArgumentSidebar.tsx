@@ -1359,7 +1359,7 @@ function AggadataPanel(props: {
 function PlaceBody(props: { place: PlaceInstance; tractate: string; page: string }): JSX.Element {
   const f = () => props.place.fields;
   const regionLabel = (r: string): string =>
-    r === 'israel' ? 'Eretz Yisrael' : r === 'bavel' ? 'Bavel' : r === 'other' ? t('region.other') : r;
+    r === 'israel' ? t('geography.eretzYisrael') : r === 'bavel' ? t('geography.bavel') : r === 'other' ? t('region.other') : r;
   const chip = (text: string): JSX.Element => (
     <span style={{
       'font-size': '0.65rem', color: '#9a3412', background: '#fff7ed',
