@@ -191,7 +191,7 @@ export function AlignPage(): JSX.Element {
       <Show when={daf()}>
         <>
           <div class="responsive-2col">
-              <section>
+              <section class="align-sticky-source">
                 <h2 style={{ 'font-size': '0.9rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', margin: '0 0 0.4rem' }}>
                   Source text <span style={{ 'text-transform': 'none', color: '#bbb', 'font-weight': 400 }}>· HebrewBooks</span>
                 </h2>
