@@ -1,0 +1,46 @@
+{
+  "name": "rabbi_geography_evidence",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "evidence"
+    ],
+    "properties": {
+      "evidence": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "place",
+            "excerpt",
+            "note"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "birthplace",
+                "study",
+                "notable",
+                "movement"
+              ]
+            },
+            "place": {
+              "type": "string"
+            },
+            "excerpt": {
+              "type": "string"
+            },
+            "note": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -78,6 +78,10 @@ import {
   type EnrichmentDefinition,
 } from './studio-registry';
 import { CODE_MARKS, CODE_ENRICHMENTS, findCodeMark, findCodeEnrichment } from './code-marks';
+import {
+  ENRICH_JSON_SCHEMA,
+  TRANSLATE_BIO_JSON_SCHEMA,
+} from './output-schemas';
 import type {
   MarkDefinition as SchemaMarkDefinition,
   EnrichmentDefinition as SchemaEnrichmentDefinition,
@@ -4806,21 +4810,6 @@ function validateEnriched(x: unknown): x is EnrichedRabbi {
   return true;
 }
 
-const ENRICH_JSON_SCHEMA = {
-  name: 'rabbi_enrichment',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['generation', 'region', 'places', 'moved'],
-    properties: {
-      generation: { type: 'string', enum: GENERATION_IDS },
-      region: { type: ['string', 'null'], enum: ['israel', 'bavel', null] },
-      places: { type: 'array', items: { type: 'string' } },
-      moved: { type: ['string', 'null'], enum: [null, 'bavel->israel', 'israel->bavel', 'both'] },
-    },
-  },
-};
 
 // Sage filter: only entries whose canonicalHe starts with a rabbinic title
 // (or is a standalone sage name) are worth enriching. Biblical figures and
@@ -6445,20 +6434,6 @@ function validateTranslatedBio(x: unknown): x is TranslatedBio {
   return true;
 }
 
-const TRANSLATE_BIO_JSON_SCHEMA = {
-  name: 'wiki_bio_translation',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['canonicalEn', 'bioEn', 'aliases'],
-    properties: {
-      canonicalEn: { type: 'string' },
-      bioEn: { type: 'string' },
-      aliases: { type: 'array', items: { type: 'string' } },
-    },
-  },
-};
 
 app.post('/api/admin/translate-bio', async (c) => {
   if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);

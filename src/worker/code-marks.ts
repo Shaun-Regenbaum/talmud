@@ -28,6 +28,54 @@ import type {
 import type { LLMModelId } from './llm';
 import { GENERATIONS_PROMPT_REFERENCE, GENERATION_IDS } from '../client/generations';
 import { alwaysHebraizeBlock } from '../lib/hebrewTerms';
+import {
+  AGGADATA_BACKGROUND_OUTPUT_SCHEMA,
+  AGGADATA_INTERPRETATION_OUTPUT_SCHEMA,
+  AGGADATA_OUTPUT_SCHEMA,
+  AGGADATA_PARALLELS_OUTPUT_SCHEMA,
+  AGGADATA_QA_OUTPUT_SCHEMA,
+  AGGADATA_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA,
+  AGGADATA_SYNTHESIS_OUTPUT_SCHEMA,
+  ARGUMENT_BACKGROUND_OUTPUT_SCHEMA,
+  ARGUMENT_MOVE_COMMENTARIES_OUTPUT_SCHEMA,
+  ARGUMENT_MOVE_OUTPUT_SCHEMA,
+  ARGUMENT_MOVE_QA_OUTPUT_SCHEMA,
+  ARGUMENT_MOVE_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA,
+  ARGUMENT_MOVE_SYNTHESIS_OUTPUT_SCHEMA,
+  ARGUMENT_OUTPUT_SCHEMA,
+  ARGUMENT_SYNTHESIS_OUTPUT_SCHEMA,
+  ARGUMENT_VOICES_OUTPUT_SCHEMA,
+  HALACHA_CODIFICATION_OUTPUT_SCHEMA,
+  HALACHA_DISPUTES_OUTPUT_SCHEMA,
+  HALACHA_OUTPUT_SCHEMA,
+  HALACHA_PRACTICAL_OUTPUT_SCHEMA,
+  HALACHA_SYNTHESIS_OUTPUT_SCHEMA,
+  PESUKIM_LANDING_OUTPUT_SCHEMA,
+  PESUKIM_MECHANISM_OUTPUT_SCHEMA,
+  PESUKIM_OUTPUT_SCHEMA,
+  PESUKIM_QA_OUTPUT_SCHEMA,
+  PESUKIM_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA,
+  PESUKIM_SYNTHESIS_OUTPUT_SCHEMA,
+  PESUKIM_TANACH_CONTEXT_OUTPUT_SCHEMA,
+  PESUKIM_WHY_HERE_OUTPUT_SCHEMA,
+  PLACES_OUTPUT_SCHEMA,
+  PLACES_SYNTHESIS_OUTPUT_SCHEMA,
+  PLACE_FIGURES_OUTPUT_SCHEMA,
+  PLACE_PROFILE_OUTPUT_SCHEMA,
+  PLACE_SIGNIFICANCE_OUTPUT_SCHEMA,
+  RABBI_BIO_OUTPUT_SCHEMA,
+  RABBI_CLASSIFICATION_OUTPUT_SCHEMA,
+  RABBI_GEOGRAPHY_EVIDENCE_OUTPUT_SCHEMA,
+  RABBI_GEOGRAPHY_OUTPUT_SCHEMA,
+  RABBI_LOCATION_OUTPUT_SCHEMA,
+  RABBI_OUTPUT_SCHEMA,
+  RABBI_PHILOSOPHY_OUTPUT_SCHEMA,
+  RABBI_RELATIONSHIPS_EVIDENCE_OUTPUT_SCHEMA,
+  RABBI_RELATIONSHIPS_OUTPUT_SCHEMA,
+  RABBI_SYNTHESIS_OUTPUT_SCHEMA,
+  RISHONIM_SYNTHESIS_OUTPUT_SCHEMA,
+  proseSchema,
+} from './output-schemas';
 
 // ---------------------------------------------------------------------------
 // Rabbi mark — phrase anchor + inline render
@@ -65,38 +113,6 @@ Rules:
 - If the text has anonymous attributions like "Tanna" (תנא) or "the Sages" (חכמים) — DO NOT include them.
 - No duplicates (same exact excerpt).`;
 
-const RABBI_OUTPUT_SCHEMA = {
-  name: 'rabbi_marks',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['instances'],
-    properties: {
-      instances: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['excerpt', 'fields'],
-          properties: {
-            excerpt: { type: 'string' },
-            fields: {
-              type: 'object',
-              additionalProperties: false,
-              required: ['name', 'nameHe', 'generation'],
-              properties: {
-                name: { type: 'string' },
-                nameHe: { type: 'string' },
-                generation: { type: 'string', enum: GENERATION_IDS },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-};
 
 const RABBI_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
@@ -267,40 +283,6 @@ const HALACHA_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
 זהה נושאים הלכתיים. החזר JSON לפי הסכמה.`;
 
-const HALACHA_OUTPUT_SCHEMA = {
-  name: 'halacha_topics',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['instances'],
-    properties: {
-      instances: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['startSegIdx', 'endSegIdx', 'fields'],
-          properties: {
-            startSegIdx: { type: 'integer', minimum: 0 },
-            endSegIdx: { type: 'integer', minimum: 0 },
-            fields: {
-              type: 'object',
-              additionalProperties: false,
-              required: ['topic', 'topicHe', 'summary', 'excerpt'],
-              properties: {
-                topic: { type: 'string' },
-                topicHe: { type: 'string' },
-                summary: { type: 'string' },
-                excerpt: { type: 'string' },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-};
 
 // ---------------------------------------------------------------------------
 // Aggadata mark — narrative units (stories, parables, ethical maxims).
@@ -378,42 +360,6 @@ const AGGADATA_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
 זהה יחידות אגדה. החזר JSON לפי הסכמה (מערך instances ריק אם אין).`;
 
-const AGGADATA_OUTPUT_SCHEMA = {
-  name: 'aggadata_stories',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['instances'],
-    properties: {
-      instances: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['startSegIdx', 'endSegIdx', 'fields'],
-          properties: {
-            startSegIdx: { type: 'integer', minimum: 0 },
-            endSegIdx: { type: 'integer', minimum: 0 },
-            fields: {
-              type: 'object',
-              additionalProperties: false,
-              required: ['title', 'titleHe', 'summary', 'excerpt', 'endExcerpt', 'theme'],
-              properties: {
-                title: { type: 'string' },
-                titleHe: { type: 'string' },
-                summary: { type: 'string' },
-                excerpt: { type: 'string' },
-                endExcerpt: { type: 'string' },
-                theme: { type: 'string' },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-};
 
 // ---------------------------------------------------------------------------
 // Pesukim mark — biblical citations / allusions.
@@ -492,78 +438,7 @@ const PESUKIM_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
 זהה הפניות לתנ"ך. החזר JSON לפי הסכמה (instances ריק אם אין).`;
 
-const PESUKIM_OUTPUT_SCHEMA = {
-  name: 'pesukim_refs',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['instances'],
-    properties: {
-      instances: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['startSegIdx', 'endSegIdx', 'fields'],
-          properties: {
-            startSegIdx: { type: 'integer', minimum: 0 },
-            endSegIdx: { type: 'integer', minimum: 0 },
-            fields: {
-              type: 'object',
-              additionalProperties: false,
-              required: ['verseRef', 'citationStyle', 'excerpt', 'endExcerpt', 'summary'],
-              properties: {
-                verseRef: { type: 'string' },
-                citationStyle: { type: 'string', enum: ['explicit', 'allusion', 'paraphrase'] },
-                excerpt: { type: 'string' },
-                endExcerpt: { type: 'string' },
-                summary: { type: 'string' },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-};
 
-const ARGUMENT_OUTPUT_SCHEMA = {
-  name: 'argument_sections',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['summary', 'instances'],
-    properties: {
-      summary: { type: 'string' },
-      instances: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['startSegIdx', 'endSegIdx', 'fields'],
-          properties: {
-            startSegIdx: { type: 'integer', minimum: 0 },
-            endSegIdx: { type: 'integer', minimum: 0 },
-            fields: {
-              type: 'object',
-              additionalProperties: false,
-              required: ['title', 'summary', 'excerpt', 'endExcerpt', 'rabbiNames'],
-              properties: {
-                title: { type: 'string' },
-                summary: { type: 'string' },
-                excerpt: { type: 'string' },
-                endExcerpt: { type: 'string' },
-                rabbiNames: { type: 'array', items: { type: 'string' } },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-};
 
 export const CODE_MARKS: MarkDefinition[] = [
   {
@@ -942,66 +817,6 @@ Rules:
 
 ${HEBREW_GLOSS_STYLE}`;
 
-const RABBI_GEOGRAPHY_OUTPUT_SCHEMA = {
-  name: 'rabbi_geography',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['birthplace', 'primaryStudyPlaces', 'notablePlaces', 'movements', 'prose'],
-    properties: {
-      birthplace: {
-        type: 'object',
-        additionalProperties: false,
-        required: ['place', 'region'],
-        properties: {
-          place: { type: 'string' },
-          region: { type: 'string', enum: ['israel', 'bavel', 'other', 'unknown'] },
-        },
-      },
-      primaryStudyPlaces: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['place', 'academy', 'period'],
-          properties: {
-            place: { type: 'string' },
-            academy: { type: 'string' },
-            period: { type: 'string' },
-          },
-        },
-      },
-      notablePlaces: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['place', 'event'],
-          properties: {
-            place: { type: 'string' },
-            event: { type: 'string' },
-          },
-        },
-      },
-      movements: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['from', 'to', 'approximateWhen', 'reason'],
-          properties: {
-            from: { type: 'string' },
-            to: { type: 'string' },
-            approximateWhen: { type: 'string' },
-            reason: { type: 'string' },
-          },
-        },
-      },
-      prose: { type: 'string' },
-    },
-  },
-};
 
 // rabbi.relationships.evidence — find excerpts in THIS daf that reference
 // the rabbi's known relationships, so the lineage tree can highlight the
@@ -1029,31 +844,6 @@ Rules:
 
 ${HEBREW_GLOSS_STYLE}`;
 
-const RABBI_RELATIONSHIPS_EVIDENCE_OUTPUT_SCHEMA = {
-  name: 'rabbi_relationships_evidence',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['evidence'],
-    properties: {
-      evidence: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['kind', 'name', 'excerpt', 'note'],
-          properties: {
-            kind: { type: 'string', enum: ['teacher', 'student', 'partner', 'family'] },
-            name: { type: 'string' },
-            excerpt: { type: 'string' },
-            note: { type: 'string' },
-          },
-        },
-      },
-    },
-  },
-};
 
 // rabbi.geography.evidence — same idea for places + movements.
 const RABBI_GEOGRAPHY_EVIDENCE_SYSTEM_PROMPT = `You are a Talmud scholar. Given a rabbi's known geography (from rabbi.geography) and the source text of the current daf, find every Hebrew/Aramaic excerpt that references one of the rabbi's known places, academies, or attested movements. Empty array if none.
@@ -1078,31 +868,6 @@ Rules:
 
 ${HEBREW_GLOSS_STYLE}`;
 
-const RABBI_GEOGRAPHY_EVIDENCE_OUTPUT_SCHEMA = {
-  name: 'rabbi_geography_evidence',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['evidence'],
-    properties: {
-      evidence: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['kind', 'place', 'excerpt', 'note'],
-          properties: {
-            kind: { type: 'string', enum: ['birthplace', 'study', 'notable', 'movement'] },
-            place: { type: 'string' },
-            excerpt: { type: 'string' },
-            note: { type: 'string' },
-          },
-        },
-      },
-    },
-  },
-};
 
 const RABBI_RELATIONSHIPS_EVIDENCE_USER_TEMPLATE = `Rabbi:
 {{mark_input}}
@@ -1160,21 +925,6 @@ Rules:
 
 ${HEBREW_GLOSS_STYLE}`;
 
-const RABBI_LOCATION_OUTPUT_SCHEMA = {
-  name: 'rabbi_location',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['place', 'region', 'confidence', 'justification'],
-    properties: {
-      place: { type: 'string' },
-      region: { type: 'string', enum: ['israel', 'bavel', 'other', 'unknown'] },
-      confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
-      justification: { type: 'string' },
-    },
-  },
-};
 
 const RABBI_LOCATION_USER_TEMPLATE = `Rabbi:
 {{mark_input}}
@@ -1573,100 +1323,7 @@ const RABBI_LOCATION_USER_TEMPLATE_HE = `החכם:
 
 הסק את המקום הסביר ביותר לפי הסכימה.`;
 
-/** The output schema shared by every single-prose-field enrichment — the leaf
- *  facets (bio, background, …) and the synthesis aggregates. One required
- *  string property. Collapses ~20 byte-identical inline literals; the schema
- *  name + field stay explicit so the LLM contract is unchanged (guarded by the
- *  CODE_ENRICHMENTS fingerprint snapshot in tests/). */
-function proseSchema(name: string, field: string) {
-  return {
-    name,
-    strict: true,
-    schema: {
-      type: 'object',
-      additionalProperties: false,
-      required: [field],
-      properties: { [field]: { type: 'string' } },
-    },
-  };
-}
 
-const RABBI_BIO_OUTPUT_SCHEMA = proseSchema('rabbi_bio', 'bio');
-const RABBI_PHILOSOPHY_OUTPUT_SCHEMA = proseSchema('rabbi_philosophy', 'philosophy');
-const RABBI_RELATIONSHIPS_OUTPUT_SCHEMA = {
-  name: 'rabbi_relationships',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['teachers', 'students', 'debatePartners', 'family', 'prose'],
-    properties: {
-      teachers: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['name', 'primary', 'note'],
-          properties: {
-            name: { type: 'string' },
-            primary: { type: 'boolean' },
-            note: { type: 'string' },
-          },
-        },
-      },
-      students: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['name', 'primary', 'note'],
-          properties: {
-            name: { type: 'string' },
-            primary: { type: 'boolean' },
-            note: { type: 'string' },
-          },
-        },
-      },
-      debatePartners: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['name', 'note'],
-          properties: {
-            name: { type: 'string' },
-            note: { type: 'string' },
-          },
-        },
-      },
-      family: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['name', 'relation'],
-          properties: {
-            name: { type: 'string' },
-            relation: { type: 'string' },
-          },
-        },
-      },
-      prose: { type: 'string' },
-    },
-  },
-};
-const RABBI_CLASSIFICATION_OUTPUT_SCHEMA = {
-  name: 'rabbi_classification', strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['category', 'justification'],
-    properties: {
-      category: { type: 'string', enum: ['aggadist', 'halachist', 'exegetist'] },
-      justification: { type: 'string' },
-    },
-  },
-};
 function makeEnrichment(
   targetMark: string,
   id: string,
@@ -2033,47 +1690,6 @@ Rabbis identified on this daf (with generation):
 
 For each NAMED rabbi appearing in this section's moves, describe their argumentative role per the schema.`;
 
-const ARGUMENT_VOICES_OUTPUT_SCHEMA = {
-  name: 'argument_voices',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['voices', 'edges'],
-    properties: {
-      voices: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['name', 'nameHe', 'role', 'side', 'stance', 'opinionStart'],
-          properties: {
-            name: { type: 'string' },
-            nameHe: { type: 'string' },
-            role: { type: 'string', enum: ['originator', 'transmitter', 'respondent', 'objector', 'supporter', 'cited-authority', 'questioner'] },
-            side: { type: 'string' },
-            stance: { type: 'string' },
-            opinionStart: { type: 'string' },
-          },
-        },
-      },
-      edges: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['from', 'to', 'kind', 'note'],
-          properties: {
-            from: { type: 'string' },
-            to: { type: 'string' },
-            kind: { type: 'string', enum: ['opposes', 'supports', 'responds-to', 'cites', 'resolves'] },
-            note: { type: 'string' },
-          },
-        },
-      },
-    },
-  },
-};
 
 // ---------------- argument.background (kept) ----------------
 
@@ -2107,7 +1723,6 @@ Rashi + Tosafot + other rishonim:
 
 Write the background per the schema. When the section directly elaborates one of the mishnayot above, name it explicitly (e.g. "Builds on Mishnah Berakhot 1:1").`;
 
-const ARGUMENT_BACKGROUND_OUTPUT_SCHEMA = proseSchema('argument_background', 'background');
 
 // ---------------- argument.synthesis (tightened, drops subsection/commentary/flow leaves) ----------------
 
@@ -2156,6 +1771,7 @@ Rabbis identified on the daf:
 {{anchors.rabbi}}
 
 Compose ONE paragraph per the schema.`;
+
 
 // ---------------- Hebrew-output parallels (argument section level) ----------------
 
@@ -2442,46 +2058,6 @@ const ARGUMENT_MOVE_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
 פרק כל חטיבה למהלכים. החזר את רשימת ה-instances השטוחה לפי הסכמה.`;
 
-const ARGUMENT_MOVE_OUTPUT_SCHEMA = {
-  name: 'argument_moves',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['instances'],
-    properties: {
-      instances: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['startSegIdx', 'endSegIdx', 'fields'],
-          properties: {
-            startSegIdx: { type: 'integer', minimum: 0 },
-            endSegIdx: { type: 'integer', minimum: 0 },
-            fields: {
-              type: 'object',
-              additionalProperties: false,
-              required: ['id', 'sectionStartSegIdx', 'sectionEndSegIdx', 'moveOrder', 'role', 'voice', 'rabbiNames', 'excerpt', 'endExcerpt', 'summary'],
-              properties: {
-                id: { type: 'string' },
-                sectionStartSegIdx: { type: 'integer', minimum: 0 },
-                sectionEndSegIdx: { type: 'integer', minimum: 0 },
-                moveOrder: { type: 'integer', minimum: 0 },
-                role: { type: 'string', enum: ARGUMENT_ROLE_ENUM },
-                voice: { type: 'string' },
-                rabbiNames: { type: 'array', items: { type: 'string' } },
-                excerpt: { type: 'string' },
-                endExcerpt: { type: 'string' },
-                summary: { type: 'string' },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-};
 
 CODE_MARKS.push({
   id: 'argument-move',
@@ -2556,21 +2132,6 @@ Rashi + Tosafot + other rishonim:
 
 Produce the commentary digest for THIS move per the schema.`;
 
-const ARGUMENT_MOVE_COMMENTARIES_OUTPUT_SCHEMA = {
-  name: 'argument_move_commentaries',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['rashi', 'tosafot', 'other', 'note'],
-    properties: {
-      rashi: { type: 'string' },
-      tosafot: { type: 'string' },
-      other: { type: 'string' },
-      note: { type: 'string' },
-    },
-  },
-};
 
 const ARGUMENT_MOVE_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud scholar. Given ONE argumentative move on a daf (a question / answer / objection / etc.) along with the surrounding gemara, the full move list for this daf, and the available commentaries, compose a tight paragraph about THIS specific move.
 
@@ -2609,6 +2170,7 @@ Rabbis identified on the daf:
 {{anchors.rabbi}}
 
 Compose ONE tight paragraph about THIS move per the schema.`;
+
 
 // ---------------------------------------------------------------------------
 // argument-move.suggested-questions
@@ -2662,29 +2224,6 @@ Existing per-move synthesis (so you can target what the synthesis SKIPS):
 
 Generate the suggested-questions list per the schema.`;
 
-const ARGUMENT_MOVE_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA = {
-  name: 'argument_move_suggested_questions',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['questions'],
-    properties: {
-      questions: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['q', 'why_useful'],
-          properties: {
-            q: { type: 'string' },
-            why_useful: { type: 'string' },
-          },
-        },
-      },
-    },
-  },
-};
 
 // ---------------------------------------------------------------------------
 // argument-move.qa
@@ -2757,19 +2296,6 @@ Hebrew source for the daf:
 
 Answer the learner's question per the schema.`;
 
-const ARGUMENT_MOVE_QA_OUTPUT_SCHEMA = {
-  name: 'argument_move_qa',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['answer', 'confidence'],
-    properties: {
-      answer: { type: 'string' },
-      confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
-    },
-  },
-};
 
 // ---------------- Hebrew-output parallels (argument-move level) ----------------
 
@@ -3063,40 +2589,6 @@ English translation (for context only):
 
 Identify every geographic reference. Return JSON per the schema.`;
 
-const PLACES_OUTPUT_SCHEMA = {
-  name: 'places_marks',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['instances'],
-    properties: {
-      instances: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['excerpt', 'fields'],
-          properties: {
-            excerpt: { type: 'string' },
-            fields: {
-              type: 'object',
-              additionalProperties: false,
-              required: ['name', 'nameHe', 'kind', 'region', 'knownAs'],
-              properties: {
-                name: { type: 'string' },
-                nameHe: { type: 'string' },
-                kind: { type: 'string', enum: PLACES_KIND_ENUM },
-                region: { type: 'string', enum: PLACES_REGION_ENUM },
-                knownAs: { type: 'array', items: { type: 'string' } },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-};
 
 CODE_MARKS.push({
   id: 'places',
@@ -3270,9 +2762,6 @@ const PLACE_FIGURES_SYSTEM_PROMPT_HE = `אתה היסטוריון של הש"ס. 
 
 ${HEBREW_NATIVE_STYLE}`;
 
-const PLACE_PROFILE_OUTPUT_SCHEMA = proseSchema('place_profile', 'profile');
-const PLACE_SIGNIFICANCE_OUTPUT_SCHEMA = proseSchema('place_significance', 'significance');
-const PLACE_FIGURES_OUTPUT_SCHEMA = proseSchema('place_figures', 'figures');
 
 CODE_ENRICHMENTS.push(
   makePlaceEnrichment(
@@ -3341,6 +2830,7 @@ Rabbis identified on the daf (for context on who's teaching where):
 {{anchors.rabbi}}
 
 Compose ONE tight paragraph about THIS place per the schema. Lead with what the place is and why it matters (drawing on the background), then pivot to how THIS daf uses it. Do NOT merely repeat the background verbatim.`;
+
 
 const PLACES_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה גיאוגרף הש"ס. בהינתן רפרנס גיאוגרפי אחד שזוהה בדף והגמרא הסובבת, חבר פסקה הדוקה על המקום המסוים הזה בהקשר של הדף הזה.
 
@@ -3479,6 +2969,7 @@ English translation:
 
 Compose ONE tight paragraph weaving the rishonim's reading of THIS segment per the schema.`;
 
+
 const RISHONIM_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. בהינתן מקטע אחד של גמרא והראשונים שפירשו את המקטע הזה (רש"י, תוספות, רמב"ן, רשב"א, מאירי, ריטב"א, ר"ן וכו'), חבר פסקה הדוקה השוזרת את קולותיהם לכדי קריאה אחת.
 
 החזר JSON תקין בלבד:
@@ -3572,58 +3063,6 @@ Rules:
 
 ${HEBREW_GLOSS_STYLE}`;
 
-const HALACHA_CODIFICATION_OUTPUT_SCHEMA = {
-  name: 'halacha_codification',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['mishnehTorah', 'tur', 'shulchanAruch', 'rema', 'prose'],
-    properties: {
-      mishnehTorah: {
-        anyOf: [
-          { type: 'null' },
-          {
-            type: 'object', additionalProperties: false,
-            required: ['ref', 'ruling'],
-            properties: { ref: { type: 'string' }, ruling: { type: 'string' } },
-          },
-        ],
-      },
-      tur: {
-        anyOf: [
-          { type: 'null' },
-          {
-            type: 'object', additionalProperties: false,
-            required: ['ref', 'ruling'],
-            properties: { ref: { type: 'string' }, ruling: { type: 'string' } },
-          },
-        ],
-      },
-      shulchanAruch: {
-        anyOf: [
-          { type: 'null' },
-          {
-            type: 'object', additionalProperties: false,
-            required: ['ref', 'ruling'],
-            properties: { ref: { type: 'string' }, ruling: { type: 'string' } },
-          },
-        ],
-      },
-      rema: {
-        anyOf: [
-          { type: 'null' },
-          {
-            type: 'object', additionalProperties: false,
-            required: ['ref', 'ruling'],
-            properties: { ref: { type: 'string' }, ruling: { type: 'string' } },
-          },
-        ],
-      },
-      prose: { type: 'string' },
-    },
-  },
-};
 
 const HALACHA_PRACTICAL_SYSTEM_PROMPT = `You are a scholar of halacha and practical psak. Given ONE halachic topic surfaced on a daf, describe the PRACTICAL application of the settled halacha — what someone has to actually do, when it applies, and what the common edge cases are.
 
@@ -3646,22 +3085,6 @@ Rules:
 
 ${HEBREW_GLOSS_STYLE}`;
 
-const HALACHA_PRACTICAL_OUTPUT_SCHEMA = {
-  name: 'halacha_practical',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['lechatchila', 'bedieved', 'appliesWhen', 'exceptions', 'prose'],
-    properties: {
-      lechatchila: { type: 'string' },
-      bedieved: { type: 'string' },
-      appliesWhen: { type: 'array', items: { type: 'string' } },
-      exceptions: { type: 'array', items: { type: 'string' } },
-      prose: { type: 'string' },
-    },
-  },
-};
 
 const HALACHA_DISPUTES_SYSTEM_PROMPT = `You are a scholar of halacha. Given ONE halachic topic surfaced on a daf, list the MAJOR dissenting positions among the rishonim, the Mechaber/Rema split, and any Acharonim-era reframing — but ONLY when the dispute is well-attested and materially affects practice.
 
@@ -3689,39 +3112,6 @@ Rules:
 
 ${HEBREW_GLOSS_STYLE}`;
 
-const HALACHA_DISPUTES_OUTPUT_SCHEMA = {
-  name: 'halacha_disputes',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['disputes'],
-    properties: {
-      disputes: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['axis', 'label', 'positions', 'settled'],
-          properties: {
-            axis: { type: 'string', enum: ['ashkenaz-sefarad', 'rishonim', 'acharonim', 'modern', 'other'] },
-            label: { type: 'string' },
-            positions: {
-              type: 'array',
-              items: {
-                type: 'object',
-                additionalProperties: false,
-                required: ['voice', 'position'],
-                properties: { voice: { type: 'string' }, position: { type: 'string' } },
-              },
-            },
-            settled: { type: 'string' },
-          },
-        },
-      },
-    },
-  },
-};
 
 export const HALACHA_SYNTHESIS_SYSTEM_PROMPT = `You are a scholar of halacha. Given ONE halachic topic surfaced on a daf plus the codification trail, practical application, and any major disputes, compose a tight paragraph framed as a modern-day halacha exploration — what the practicing Jew does, where it sits in the codes, and where the live tensions are.
 
@@ -3767,6 +3157,7 @@ Hebrew/Aramaic source for the daf (for grounding only):
 {{gemara_he}}
 
 Produce the synthesis per the schema.`;
+
 
 // ---------------- Hebrew-output parallels (halacha) ----------------
 
@@ -4026,7 +3417,6 @@ Focal pasuk — Hebrew verbatim text (quote from THIS when citing the verse):
 
 Write the Tanach-context summary per the schema. The mark_input contains verseRef (e.g. 'Deuteronomy 6:7'), the Hebrew excerpt as it appears in the gemara, and citationStyle. Use the verseRef as authoritative; the excerpt is just the snippet the gemara quoted.`;
 
-const PESUKIM_TANACH_CONTEXT_OUTPUT_SCHEMA = proseSchema('pesukim_tanach_context', 'context');
 
 // Shared leaf user template for the daf-local pesukim leaves (why-here,
 // mechanism). Mirrors HALACHA_LEAF_USER_TEMPLATE — one template feeds every
@@ -4122,11 +3512,8 @@ Rabbis identified on the daf:
 
 State the halacha or claim this citation establishes, per the schema.`;
 
-const PESUKIM_WHY_HERE_OUTPUT_SCHEMA = proseSchema('pesukim_why_here', 'why_here');
 
-const PESUKIM_MECHANISM_OUTPUT_SCHEMA = proseSchema('pesukim_mechanism', 'mechanism');
 
-const PESUKIM_LANDING_OUTPUT_SCHEMA = proseSchema('pesukim_landing', 'landing');
 
 // Synthesis aggregate — mirrors halacha.synthesis: one tight prose paragraph
 // that weaves the section leaves (Tanach context / why here / mechanism /
@@ -4189,6 +3576,7 @@ Rabbis identified on the daf:
 
 Weave these into ONE tight paragraph per the schema.`;
 
+
 // ---------------------------------------------------------------------------
 // pesukim.suggested-questions — mirrors argument-move.suggested-questions but
 // targets a pasuk citation. Generates 4-5 follow-up questions a learner might
@@ -4239,29 +3627,6 @@ Existing synthesis (so you can target what the synthesis SKIPS):
 
 Generate the suggested-questions list per the schema.`;
 
-const PESUKIM_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA = {
-  name: 'pesukim_suggested_questions',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['questions'],
-    properties: {
-      questions: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['q', 'why_useful'],
-          properties: {
-            q: { type: 'string' },
-            why_useful: { type: 'string' },
-          },
-        },
-      },
-    },
-  },
-};
 
 // ---------------------------------------------------------------------------
 // pesukim.qa — parameterized by `user_question`. Mirrors argument-move.qa:
@@ -4336,19 +3701,6 @@ Rashi + Tosafot + other rishonim available for the daf:
 
 Answer the learner's question per the schema.`;
 
-const PESUKIM_QA_OUTPUT_SCHEMA = {
-  name: 'pesukim_qa',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['answer', 'confidence'],
-    properties: {
-      answer: { type: 'string' },
-      confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
-    },
-  },
-};
 
 // ---------------- Hebrew-output parallels (pesukim) ----------------
 
@@ -4795,7 +4147,6 @@ Rules:
 
 ${HEBREW_GLOSS_STYLE}`;
 
-const AGGADATA_BACKGROUND_OUTPUT_SCHEMA = proseSchema('aggadata_background', 'background');
 
 const AGGADATA_INTERPRETATION_SYSTEM_PROMPT = `You are a Talmud scholar reading an aggadic story in its sugya. Given ONE story on a daf (title, Hebrew label, summary, opening Hebrew excerpt, theme) plus the daf's Hebrew/Aramaic source and available rishonim, explain what the story DOES in this sugya — why the gemara tells it at this point, what tension or maxim it surfaces, and how the classical commentators read it.
 
@@ -4813,7 +4164,6 @@ Rules:
 
 ${HEBREW_GLOSS_STYLE}`;
 
-const AGGADATA_INTERPRETATION_OUTPUT_SCHEMA = proseSchema('aggadata_interpretation', 'interpretation');
 
 const AGGADATA_PARALLELS_SYSTEM_PROMPT = `You are a scholar of rabbinic literature. Given ONE aggadic story (title, Hebrew label, summary), identify other places in classical Jewish literature where the SAME story, the same actors in a similar incident, or the same motif appears — Bavli, Yerushalmi, Midrash, Tanach analogues. Daf-agnostic. Often empty.
 
@@ -4839,31 +4189,6 @@ Rules:
 
 ${HEBREW_GLOSS_STYLE}`;
 
-const AGGADATA_PARALLELS_OUTPUT_SCHEMA = {
-  name: 'aggadata_parallels',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['parallels', 'prose'],
-    properties: {
-      parallels: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['ref', 'kind', 'note'],
-          properties: {
-            ref: { type: 'string' },
-            kind: { type: 'string', enum: ['same-story', 'same-actors', 'same-motif', 'tanach-source'] },
-            note: { type: 'string' },
-          },
-        },
-      },
-      prose: { type: 'string' },
-    },
-  },
-};
 
 const AGGADATA_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud scholar reading an aggadic story in its sugya. Given ONE story plus the background, interpretation, and parallels enrichments, compose a tight paragraph that orients the user — who and where, what the story does HERE, where else it lives — in the voice of a chavruta walking the reader through the page.
 
@@ -4911,6 +4236,7 @@ Rabbis identified on the daf:
 
 Compose ONE tight paragraph per the schema.`;
 
+
 const AGGADATA_SUGGESTED_QUESTIONS_SYSTEM_PROMPT = `You are a chavruta studying gemara with an aggadic story. Given ONE aggadah cited on a daf plus the synthesis paragraph, produce a SHORT list of follow-up questions a learner is likely to want answered AFTER reading the synthesis. The synthesis says WHAT the story does; these questions should target WHY, the historical mechanism, and the surrounding context that the synthesis didn't fit.
 
 Output STRICT JSON only:
@@ -4950,29 +4276,6 @@ Existing synthesis (so you can target what the synthesis SKIPS):
 
 Generate the suggested-questions list per the schema.`;
 
-const AGGADATA_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA = {
-  name: 'aggadata_suggested_questions',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['questions'],
-    properties: {
-      questions: {
-        type: 'array',
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          required: ['q', 'why_useful'],
-          properties: {
-            q: { type: 'string' },
-            why_useful: { type: 'string' },
-          },
-        },
-      },
-    },
-  },
-};
 
 const AGGADATA_QA_SYSTEM_PROMPT = `You are a Talmud chavruta answering a learner's specific question about ONE aggadic story on the daf. The learner has already read the synthesis paragraph; they want depth, not a restatement. Assume the learner is intelligent but does NOT already know how rabbinic-historical context works — so treat the answer as teaching, not just describing.
 
@@ -5031,19 +4334,6 @@ Rashi + Tosafot + other rishonim available for the daf:
 
 Answer the learner's question per the schema.`;
 
-const AGGADATA_QA_OUTPUT_SCHEMA = {
-  name: 'aggadata_qa',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['answer', 'confidence'],
-    properties: {
-      answer: { type: 'string' },
-      confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
-    },
-  },
-};
 
 // ---------------- Hebrew-output parallels (aggadata) ----------------
 

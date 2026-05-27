@@ -1,0 +1,46 @@
+{
+  "name": "aggadata_parallels",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "parallels",
+      "prose"
+    ],
+    "properties": {
+      "parallels": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ref",
+            "kind",
+            "note"
+          ],
+          "properties": {
+            "ref": {
+              "type": "string"
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "same-story",
+                "same-actors",
+                "same-motif",
+                "tanach-source"
+              ]
+            },
+            "note": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "prose": {
+        "type": "string"
+      }
+    }
+  }
+}

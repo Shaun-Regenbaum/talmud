@@ -1,0 +1,16 @@
+{
+  "name": "aggadata_interpretation",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "interpretation"
+    ],
+    "properties": {
+      "interpretation": {
+        "type": "string"
+      }
+    }
+  }
+}

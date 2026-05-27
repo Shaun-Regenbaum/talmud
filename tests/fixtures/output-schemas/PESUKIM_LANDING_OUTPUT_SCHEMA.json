@@ -1,0 +1,16 @@
+{
+  "name": "pesukim_landing",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "landing"
+    ],
+    "properties": {
+      "landing": {
+        "type": "string"
+      }
+    }
+  }
+}

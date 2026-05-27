@@ -1,0 +1,101 @@
+{
+  "name": "argument_moves",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "instances"
+    ],
+    "properties": {
+      "instances": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "startSegIdx",
+            "endSegIdx",
+            "fields"
+          ],
+          "properties": {
+            "startSegIdx": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "endSegIdx": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "fields": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "sectionStartSegIdx",
+                "sectionEndSegIdx",
+                "moveOrder",
+                "role",
+                "voice",
+                "rabbiNames",
+                "excerpt",
+                "endExcerpt",
+                "summary"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "sectionStartSegIdx": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "sectionEndSegIdx": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "moveOrder": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "opening",
+                    "question",
+                    "answer",
+                    "objection",
+                    "rejection",
+                    "supporting-evidence",
+                    "resolution",
+                    "digression",
+                    "shift",
+                    "other"
+                  ]
+                },
+                "voice": {
+                  "type": "string"
+                },
+                "rabbiNames": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "excerpt": {
+                  "type": "string"
+                },
+                "endExcerpt": {
+                  "type": "string"
+                },
+                "summary": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "name": "rabbi_geography",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "birthplace",
+      "primaryStudyPlaces",
+      "notablePlaces",
+      "movements",
+      "prose"
+    ],
+    "properties": {
+      "birthplace": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "place",
+          "region"
+        ],
+        "properties": {
+          "place": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string",
+            "enum": [
+              "israel",
+              "bavel",
+              "other",
+              "unknown"
+            ]
+          }
+        }
+      },
+      "primaryStudyPlaces": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "place",
+            "academy",
+            "period"
+          ],
+          "properties": {
+            "place": {
+              "type": "string"
+            },
+            "academy": {
+              "type": "string"
+            },
+            "period": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "notablePlaces": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "place",
+            "event"
+          ],
+          "properties": {
+            "place": {
+              "type": "string"
+            },
+            "event": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "movements": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "from",
+            "to",
+            "approximateWhen",
+            "reason"
+          ],
+          "properties": {
+            "from": {
+              "type": "string"
+            },
+            "to": {
+              "type": "string"
+            },
+            "approximateWhen": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "prose": {
+        "type": "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "rabbi_bio",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "bio"
+    ],
+    "properties": {
+      "bio": {
+        "type": "string"
+      }
+    }
+  }
+}

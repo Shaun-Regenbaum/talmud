@@ -1,0 +1,59 @@
+{
+  "name": "halacha_topics",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "instances"
+    ],
+    "properties": {
+      "instances": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "startSegIdx",
+            "endSegIdx",
+            "fields"
+          ],
+          "properties": {
+            "startSegIdx": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "endSegIdx": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "fields": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "topic",
+                "topicHe",
+                "summary",
+                "excerpt"
+              ],
+              "properties": {
+                "topic": {
+                  "type": "string"
+                },
+                "topicHe": {
+                  "type": "string"
+                },
+                "summary": {
+                  "type": "string"
+                },
+                "excerpt": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

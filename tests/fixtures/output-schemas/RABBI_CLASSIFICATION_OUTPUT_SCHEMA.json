@@ -1,0 +1,25 @@
+{
+  "name": "rabbi_classification",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "category",
+      "justification"
+    ],
+    "properties": {
+      "category": {
+        "type": "string",
+        "enum": [
+          "aggadist",
+          "halachist",
+          "exegetist"
+        ]
+      },
+      "justification": {
+        "type": "string"
+      }
+    }
+  }
+}

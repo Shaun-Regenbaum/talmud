@@ -1,0 +1,16 @@
+{
+  "name": "rabbi_philosophy",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "philosophy"
+    ],
+    "properties": {
+      "philosophy": {
+        "type": "string"
+      }
+    }
+  }
+}

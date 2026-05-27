@@ -1,0 +1,232 @@
+/**
+ * Single source of truth for every code-defined LLM structured-output schema.
+ *
+ * Each output is a zod schema; `responseFormat` (schema-util) derives the
+ * `response_format.json_schema` envelope sent to the model, and `z.infer` gives
+ * the parsed-result type. Replaces the hand-written JSON-Schema literals that
+ * used to live inline in code-marks.ts / index.ts. The generated json_schema is
+ * verified semantically equivalent to those originals by
+ * tests/output-schema-parity.test.ts (golden fixtures under
+ * tests/fixtures/output-schemas).
+ */
+import { z } from 'zod';
+import { GENERATION_IDS } from '../client/generations';
+import { responseFormat } from './schema-util';
+
+const GEN = [...GENERATION_IDS] as [string, ...string[]];
+
+// ---- shared building blocks ------------------------------------------------
+const seg = () => z.number().int().min(0); // 0-based segment index
+const single = (key: string) => z.object({ [key]: z.string() }); // { key: string }
+const QA = z.object({ answer: z.string(), confidence: z.enum(['high', 'medium', 'low']) });
+const SUGGESTED_QUESTIONS = z.object({
+  questions: z.array(z.object({ q: z.string(), why_useful: z.string() })),
+});
+
+/** `{ instances: [{ startSegIdx, endSegIdx, fields }] }` + optional top-level extras. */
+const segInstances = (fields: z.ZodRawShape, extra: z.ZodRawShape = {}) =>
+  z.object({
+    ...extra,
+    instances: z.array(z.object({ startSegIdx: seg(), endSegIdx: seg(), fields: z.object(fields) })),
+  });
+
+/** `{ instances: [{ excerpt, fields }] }` (phrase-anchored marks). */
+const markInstances = (fields: z.ZodRawShape) =>
+  z.object({ instances: z.array(z.object({ excerpt: z.string(), fields: z.object(fields) })) });
+
+/** A one-prose-field schema with a runtime-derived name — used where a
+ *  synthesis enrichment's schema name comes from its id rather than a fixed
+ *  export. Same shape as the `*_SYNTHESIS_OUTPUT_SCHEMA` consts. */
+export function proseSchema(name: string, field: string) {
+  return responseFormat(name, single(field));
+}
+
+// ===========================================================================
+// Marks
+// ===========================================================================
+export const RABBI_OUTPUT_SCHEMA = responseFormat('rabbi_marks',
+  markInstances({ name: z.string(), nameHe: z.string(), generation: z.enum(GEN) }));
+
+export const PLACES_OUTPUT_SCHEMA = responseFormat('places_marks',
+  markInstances({
+    name: z.string(),
+    nameHe: z.string(),
+    kind: z.enum(['city', 'academy', 'land', 'region']),
+    region: z.enum(['israel', 'bavel', 'other']),
+    knownAs: z.array(z.string()),
+  }));
+
+export const HALACHA_OUTPUT_SCHEMA = responseFormat('halacha_topics',
+  segInstances({ topic: z.string(), topicHe: z.string(), summary: z.string(), excerpt: z.string() }));
+
+export const AGGADATA_OUTPUT_SCHEMA = responseFormat('aggadata_stories',
+  segInstances({
+    title: z.string(), titleHe: z.string(), summary: z.string(),
+    excerpt: z.string(), endExcerpt: z.string(), theme: z.string(),
+  }));
+
+export const PESUKIM_OUTPUT_SCHEMA = responseFormat('pesukim_refs',
+  segInstances({
+    verseRef: z.string(),
+    citationStyle: z.enum(['explicit', 'allusion', 'paraphrase']),
+    excerpt: z.string(), endExcerpt: z.string(), summary: z.string(),
+  }));
+
+export const ARGUMENT_OUTPUT_SCHEMA = responseFormat('argument_sections',
+  segInstances({
+    title: z.string(), summary: z.string(), excerpt: z.string(),
+    endExcerpt: z.string(), rabbiNames: z.array(z.string()),
+  }, { summary: z.string() }));
+
+export const ARGUMENT_MOVE_OUTPUT_SCHEMA = responseFormat('argument_moves',
+  segInstances({
+    id: z.string(),
+    sectionStartSegIdx: seg(), sectionEndSegIdx: seg(), moveOrder: seg(),
+    role: z.enum(['opening', 'question', 'answer', 'objection', 'rejection', 'supporting-evidence', 'resolution', 'digression', 'shift', 'other']),
+    voice: z.string(), rabbiNames: z.array(z.string()),
+    excerpt: z.string(), endExcerpt: z.string(), summary: z.string(),
+  }));
+
+// ===========================================================================
+// Argument enrichments
+// ===========================================================================
+export const ARGUMENT_VOICES_OUTPUT_SCHEMA = responseFormat('argument_voices', z.object({
+  voices: z.array(z.object({
+    name: z.string(), nameHe: z.string(),
+    role: z.enum(['originator', 'transmitter', 'respondent', 'objector', 'supporter', 'cited-authority', 'questioner']),
+    side: z.string(), stance: z.string(), opinionStart: z.string(),
+  })),
+  edges: z.array(z.object({
+    from: z.string(), to: z.string(),
+    kind: z.enum(['opposes', 'supports', 'responds-to', 'cites', 'resolves']),
+    note: z.string(),
+  })),
+}));
+export const ARGUMENT_BACKGROUND_OUTPUT_SCHEMA = responseFormat('argument_background', single('background'));
+export const ARGUMENT_SYNTHESIS_OUTPUT_SCHEMA = responseFormat('argument_synthesis', single('synthesis'));
+
+// ===========================================================================
+// Argument-move enrichments
+// ===========================================================================
+export const ARGUMENT_MOVE_COMMENTARIES_OUTPUT_SCHEMA = responseFormat('argument_move_commentaries',
+  z.object({ rashi: z.string(), tosafot: z.string(), other: z.string(), note: z.string() }));
+export const ARGUMENT_MOVE_SYNTHESIS_OUTPUT_SCHEMA = responseFormat('argument_move_synthesis', single('synthesis'));
+export const ARGUMENT_MOVE_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA = responseFormat('argument_move_suggested_questions', SUGGESTED_QUESTIONS);
+export const ARGUMENT_MOVE_QA_OUTPUT_SCHEMA = responseFormat('argument_move_qa', QA);
+
+// ===========================================================================
+// Place enrichments
+// ===========================================================================
+export const PLACE_PROFILE_OUTPUT_SCHEMA = responseFormat('place_profile', single('profile'));
+export const PLACE_SIGNIFICANCE_OUTPUT_SCHEMA = responseFormat('place_significance', single('significance'));
+export const PLACE_FIGURES_OUTPUT_SCHEMA = responseFormat('place_figures', single('figures'));
+export const PLACES_SYNTHESIS_OUTPUT_SCHEMA = responseFormat('places_synthesis', single('synthesis'));
+
+// ===========================================================================
+// Rishonim
+// ===========================================================================
+export const RISHONIM_SYNTHESIS_OUTPUT_SCHEMA = responseFormat('rishonim_synthesis', single('synthesis'));
+
+// ===========================================================================
+// Halacha enrichments
+// ===========================================================================
+const halachaRuling = z.object({ ref: z.string(), ruling: z.string() }).nullable();
+export const HALACHA_CODIFICATION_OUTPUT_SCHEMA = responseFormat('halacha_codification', z.object({
+  mishnehTorah: halachaRuling, tur: halachaRuling, shulchanAruch: halachaRuling, rema: halachaRuling,
+  prose: z.string(),
+}));
+export const HALACHA_DISPUTES_OUTPUT_SCHEMA = responseFormat('halacha_disputes', z.object({
+  disputes: z.array(z.object({
+    axis: z.enum(['ashkenaz-sefarad', 'rishonim', 'acharonim', 'modern', 'other']),
+    label: z.string(),
+    positions: z.array(z.object({ voice: z.string(), position: z.string() })),
+    settled: z.string(),
+  })),
+}));
+export const HALACHA_PRACTICAL_OUTPUT_SCHEMA = responseFormat('halacha_practical', z.object({
+  lechatchila: z.string(), bedieved: z.string(),
+  appliesWhen: z.array(z.string()), exceptions: z.array(z.string()), prose: z.string(),
+}));
+export const HALACHA_SYNTHESIS_OUTPUT_SCHEMA = responseFormat('halacha_synthesis', single('synthesis'));
+
+// ===========================================================================
+// Pesukim enrichments
+// ===========================================================================
+export const PESUKIM_TANACH_CONTEXT_OUTPUT_SCHEMA = responseFormat('pesukim_tanach_context', single('context'));
+export const PESUKIM_WHY_HERE_OUTPUT_SCHEMA = responseFormat('pesukim_why_here', single('why_here'));
+export const PESUKIM_MECHANISM_OUTPUT_SCHEMA = responseFormat('pesukim_mechanism', single('mechanism'));
+export const PESUKIM_LANDING_OUTPUT_SCHEMA = responseFormat('pesukim_landing', single('landing'));
+export const PESUKIM_SYNTHESIS_OUTPUT_SCHEMA = responseFormat('pesukim_synthesis', single('synthesis'));
+export const PESUKIM_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA = responseFormat('pesukim_suggested_questions', SUGGESTED_QUESTIONS);
+export const PESUKIM_QA_OUTPUT_SCHEMA = responseFormat('pesukim_qa', QA);
+
+// ===========================================================================
+// Aggadata enrichments
+// ===========================================================================
+export const AGGADATA_BACKGROUND_OUTPUT_SCHEMA = responseFormat('aggadata_background', single('background'));
+export const AGGADATA_INTERPRETATION_OUTPUT_SCHEMA = responseFormat('aggadata_interpretation', single('interpretation'));
+export const AGGADATA_PARALLELS_OUTPUT_SCHEMA = responseFormat('aggadata_parallels', z.object({
+  parallels: z.array(z.object({
+    ref: z.string(),
+    kind: z.enum(['same-story', 'same-actors', 'same-motif', 'tanach-source']),
+    note: z.string(),
+  })),
+  prose: z.string(),
+}));
+export const AGGADATA_SYNTHESIS_OUTPUT_SCHEMA = responseFormat('aggadata_synthesis', single('synthesis'));
+export const AGGADATA_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA = responseFormat('aggadata_suggested_questions', SUGGESTED_QUESTIONS);
+export const AGGADATA_QA_OUTPUT_SCHEMA = responseFormat('aggadata_qa', QA);
+
+// ===========================================================================
+// Rabbi enrichments
+// ===========================================================================
+const region4 = z.enum(['israel', 'bavel', 'other', 'unknown']);
+export const RABBI_GEOGRAPHY_OUTPUT_SCHEMA = responseFormat('rabbi_geography', z.object({
+  birthplace: z.object({ place: z.string(), region: region4 }),
+  primaryStudyPlaces: z.array(z.object({ place: z.string(), academy: z.string(), period: z.string() })),
+  notablePlaces: z.array(z.object({ place: z.string(), event: z.string() })),
+  movements: z.array(z.object({ from: z.string(), to: z.string(), approximateWhen: z.string(), reason: z.string() })),
+  prose: z.string(),
+}));
+export const RABBI_RELATIONSHIPS_EVIDENCE_OUTPUT_SCHEMA = responseFormat('rabbi_relationships_evidence', z.object({
+  evidence: z.array(z.object({
+    kind: z.enum(['teacher', 'student', 'partner', 'family']),
+    name: z.string(), excerpt: z.string(), note: z.string(),
+  })),
+}));
+export const RABBI_GEOGRAPHY_EVIDENCE_OUTPUT_SCHEMA = responseFormat('rabbi_geography_evidence', z.object({
+  evidence: z.array(z.object({
+    kind: z.enum(['birthplace', 'study', 'notable', 'movement']),
+    place: z.string(), excerpt: z.string(), note: z.string(),
+  })),
+}));
+export const RABBI_LOCATION_OUTPUT_SCHEMA = responseFormat('rabbi_location', z.object({
+  place: z.string(), region: region4,
+  confidence: z.enum(['high', 'medium', 'low']), justification: z.string(),
+}));
+export const RABBI_BIO_OUTPUT_SCHEMA = responseFormat('rabbi_bio', single('bio'));
+export const RABBI_PHILOSOPHY_OUTPUT_SCHEMA = responseFormat('rabbi_philosophy', single('philosophy'));
+export const RABBI_RELATIONSHIPS_OUTPUT_SCHEMA = responseFormat('rabbi_relationships', z.object({
+  teachers: z.array(z.object({ name: z.string(), primary: z.boolean(), note: z.string() })),
+  students: z.array(z.object({ name: z.string(), primary: z.boolean(), note: z.string() })),
+  debatePartners: z.array(z.object({ name: z.string(), note: z.string() })),
+  family: z.array(z.object({ name: z.string(), relation: z.string() })),
+  prose: z.string(),
+}));
+export const RABBI_CLASSIFICATION_OUTPUT_SCHEMA = responseFormat('rabbi_classification', z.object({
+  category: z.enum(['aggadist', 'halachist', 'exegetist']), justification: z.string(),
+}));
+export const RABBI_SYNTHESIS_OUTPUT_SCHEMA = responseFormat('rabbi_synthesis', single('synthesis'));
+
+// ===========================================================================
+// index.ts: legacy rabbi-places enrichment + wiki bio translation
+// ===========================================================================
+export const ENRICH_JSON_SCHEMA = responseFormat('rabbi_enrichment', z.object({
+  generation: z.enum(GEN),
+  region: z.enum(['israel', 'bavel']).nullable(),
+  places: z.array(z.string()),
+  moved: z.enum(['bavel->israel', 'israel->bavel', 'both']).nullable(),
+}));
+export const TRANSLATE_BIO_JSON_SCHEMA = responseFormat('wiki_bio_translation', z.object({
+  canonicalEn: z.string(), bioEn: z.string(), aliases: z.array(z.string()),
+}));

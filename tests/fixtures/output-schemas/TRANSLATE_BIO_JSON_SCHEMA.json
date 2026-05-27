@@ -1,0 +1,27 @@
+{
+  "name": "wiki_bio_translation",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "canonicalEn",
+      "bioEn",
+      "aliases"
+    ],
+    "properties": {
+      "canonicalEn": {
+        "type": "string"
+      },
+      "bioEn": {
+        "type": "string"
+      },
+      "aliases": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

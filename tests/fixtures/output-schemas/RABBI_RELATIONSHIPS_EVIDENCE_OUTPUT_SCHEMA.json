@@ -1,0 +1,46 @@
+{
+  "name": "rabbi_relationships_evidence",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "evidence"
+    ],
+    "properties": {
+      "evidence": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "name",
+            "excerpt",
+            "note"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "teacher",
+                "student",
+                "partner",
+                "family"
+              ]
+            },
+            "name": {
+              "type": "string"
+            },
+            "excerpt": {
+              "type": "string"
+            },
+            "note": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

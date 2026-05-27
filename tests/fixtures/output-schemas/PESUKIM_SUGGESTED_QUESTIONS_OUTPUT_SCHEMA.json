@@ -1,0 +1,32 @@
+{
+  "name": "pesukim_suggested_questions",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "questions"
+    ],
+    "properties": {
+      "questions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "q",
+            "why_useful"
+          ],
+          "properties": {
+            "q": {
+              "type": "string"
+            },
+            "why_useful": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
