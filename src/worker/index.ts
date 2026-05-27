@@ -2,11 +2,14 @@ import { Hono } from 'hono';
 import {
   sefariaAPI,
   adjacentAmud,
+  getSefariaLinks,
+  linksToLinkingData,
   type TalmudPageData,
   type RishonimBundle,
   type HalachicRefBundle,
   type HebrewBooksDaf,
 } from '../lib/sefref';
+import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
 import {
   getHebrewBooksDafCached,
   getSefariaPageCached,
@@ -16,6 +19,7 @@ import {
   getDafTopicsCached,
   getMishnaBundleCached,
   getSefariaSegmentsCached,
+  getDafyomiContentCached,
   type CacheTrack,
   type SefariaSegments,
 } from './source-cache';
@@ -59,7 +63,7 @@ import { lintSynthesis } from '../lib/synthesisLint';
 import { lintHalachaParsed } from '../lib/halachaLint';
 import { noteLintAttempt, readLintFailures, type LintFailuresSummary } from './lint-failures';
 import { partitionSections, dedupeByRange, dedupeBy, selectSectionMoves, type MoveLike } from '../lib/argumentMoves';
-import { readSettings, writeSettings, resetSettings, isLLMModelId, MODEL_PRESETS } from './settings';
+import { DEFAULT_MODEL, DEFAULT_FALLBACK_CHAIN, isLLMModelId, MODEL_PRESETS } from './settings';
 import { costUsd as priceCostUsd, normalizeUsage } from './pricing';
 import { recordUsage, readUsageSummary } from './usage-rollup';
 import { recordUnknownRabbi, recordObservedPlace, listUnknownRabbis, listObservedPlaces } from './unknown-registry';
@@ -414,49 +418,24 @@ app.get('/api/admin/ai-gateway-test', async (c) => {
 });
 
 /**
- * LLM settings — read/write the default model + fallback chain that runLLM
- * resolves at call time. Backed by KV under `llm-settings:v1` (see
- * src/worker/settings.ts). The model dropdown in the client is built from
- * MODEL_PRESETS, exposed here so the page can render without bundling them.
+ * LLM model config — READ-ONLY. There is no runtime settings store anymore;
+ * the default model + fallback are code constants (settings.ts) optionally
+ * overridden per-deploy by the DEFAULT_LLM_MODEL env var, and each
+ * mark/enrichment pins its own model. This endpoint just surfaces the
+ * effective config (for display) + the preset catalog (for the probe tool).
  */
-app.get('/api/admin/llm-settings', async (c) => {
-  const settings = await readSettings(c.env);
-  return c.json({ settings, presets: MODEL_PRESETS });
-});
-
-app.post('/api/admin/llm-settings', async (c) => {
-  let body: unknown;
-  try { body = await c.req.json(); }
-  catch { return c.json({ error: 'invalid JSON body' }, 400); }
-  const b = body as { defaultModel?: unknown; fallbackChain?: unknown; perStepOverrides?: unknown };
-  if (!isLLMModelId(b.defaultModel)) {
-    return c.json({ error: 'defaultModel must be "@cf/..." or "openrouter/..."' }, 400);
-  }
-  if (!Array.isArray(b.fallbackChain) || !b.fallbackChain.every(isLLMModelId)) {
-    return c.json({ error: 'fallbackChain must be an array of model ids' }, 400);
-  }
-  const overrides = b.perStepOverrides;
-  if (overrides !== undefined && (typeof overrides !== 'object' || overrides === null || Array.isArray(overrides))) {
-    return c.json({ error: 'perStepOverrides must be an object' }, 400);
-  }
-  if (overrides && !Object.values(overrides).every(isLLMModelId)) {
-    return c.json({ error: 'perStepOverrides values must be model ids' }, 400);
-  }
-  if (!c.env.CACHE) return c.json({ error: 'CACHE binding not available' }, 503);
-  const saved = await writeSettings(c.env, {
-    defaultModel: b.defaultModel as LLMModelId,
-    fallbackChain: b.fallbackChain as LLMModelId[],
-    perStepOverrides: overrides as Record<string, LLMModelId> | undefined,
+app.get('/api/admin/llm-settings', (c) => {
+  const fromEnv = c.env.DEFAULT_LLM_MODEL;
+  const defaultModel = isLLMModelId(fromEnv) ? fromEnv : DEFAULT_MODEL;
+  return c.json({
+    settings: {
+      defaultModel,
+      fallbackChain: DEFAULT_FALLBACK_CHAIN,
+      source: isLLMModelId(fromEnv) ? 'env (wrangler.toml DEFAULT_LLM_MODEL)' : 'code (settings.ts)',
+      editable: false,
+    },
+    presets: MODEL_PRESETS,
   });
-  return c.json({ settings: saved });
-});
-
-// Reset to the codebase DEFAULTS (clears the KV override). Use this when a
-// saved runtime override has drifted from what the code says it should be.
-app.delete('/api/admin/llm-settings', async (c) => {
-  if (!c.env.CACHE) return c.json({ error: 'CACHE binding not available' }, 503);
-  const settings = await resetSettings(c.env);
-  return c.json({ settings, reset: true });
 });
 
 /**
@@ -4091,6 +4070,49 @@ app.get('/api/references/:tractate/:page', async (c) => {
         expirationTtl: 60 * 60 * 24 * 30,
       });
     }
+    return c.json(payload);
+  } catch (err) {
+    return c.json({ error: String(err) }, 502);
+  }
+});
+
+// Structured dafyomi.co.il study content for a daf (both amudim, all content
+// types present). Read-only: served from the committed static corpus via the
+// ASSETS binding, memoized in KV. 404s rather than fabricating when a daf
+// hasn't been ingested. Consumed by the alignment-page context workbench.
+app.get('/api/dafyomi/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  if (!getDafyomiMasechet(tractate)) {
+    return c.json({ error: `tractate not ingested: ${tractate}` }, 404);
+  }
+  const states: Array<'hit' | 'miss'> = [];
+  const data = await getDafyomiContentCached(c.env.CACHE, c.env.ASSETS, tractate, page, {
+    onCache: (s) => states.push(s),
+  });
+  if (!data) return c.json({ error: `no dafyomi content for ${tractate} ${page}` }, 404);
+  c.header('x-cache', states[0] === 'hit' ? 'hit' : 'miss');
+  return c.json(data);
+});
+
+// Sefaria commentary links for a daf, grouped by 0-based segment index. Wraps
+// getSefariaLinks (previously client-only) with a 30-day KV cache so the
+// alignment workbench can show commentaries as one of its context sources.
+app.get('/api/sefaria-links/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const cache = c.env.CACHE;
+  const cacheKey = `sefaria-links:v1:${tractate.toLowerCase()}:${page.toLowerCase()}`;
+  if (cache && c.req.query('refresh') !== '1') {
+    const hit = await cache.get(cacheKey);
+    if (hit !== null) { c.header('x-cache', 'hit'); return c.json(JSON.parse(hit) as object); }
+  }
+  try {
+    const links = await getSefariaLinks(tractate, page);
+    const grouped = linksToLinkingData(links, `${tractate} ${page}`);
+    const payload = { tractate, page, links, grouped, fetchedAt: new Date().toISOString() };
+    if (cache) await cache.put(cacheKey, JSON.stringify(payload), { expirationTtl: 60 * 60 * 24 * 30 });
+    c.header('x-cache', 'miss');
     return c.json(payload);
   } catch (err) {
     return c.json({ error: String(err) }, 502);

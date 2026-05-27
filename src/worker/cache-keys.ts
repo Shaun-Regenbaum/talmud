@@ -124,6 +124,11 @@ function pickStable(o: Record<string, unknown>): Record<string, unknown> {
 export function keyForGemara(tractate: string, page: string): string {
   return `ctx:gemara:v1:${slugDaf(tractate, page)}`;
 }
+/** dafyomi.co.il structured corpus, keyed by daf NUMBER (both amudim share one
+ *  file). Bump v1 -> v2 when DafyomiDaf.schemaVersion changes. */
+export function keyForDafyomi(tractate: string, daf: string): string {
+  return `dafyomi:v1:${slugDaf(tractate, daf)}`;
+}
 export function keyForCommentaries(tractate: string, page: string): string {
   return `ctx:commentaries:v1:${slugDaf(tractate, page)}`;
 }

@@ -1,24 +1,20 @@
 /**
- * LLM settings: persisted in KV under key `llm-settings:v1`. Read by runLLM
- * to resolve the default model + fallback chain at call time. Mutated via
- * /api/admin/llm-settings.
+ * LLM model catalog + the explicit default model chain.
  *
- * Designed for the single-user case — one settings object, no per-user
- * scoping. Phase 4 (Studio) layers `?model=` query overrides on top of
- * these defaults; Phase 3 will add `perStepOverrides` entries that runLLM
- * looks up by enrichment step ID.
+ * There is NO runtime KV settings layer — the default model + fallback are the
+ * CODE constants below (DEFAULT_MODEL / DEFAULT_FALLBACK_CHAIN), so what runs is
+ * what the repo says. (We removed the old `llm-settings:v1` KV override: it
+ * could silently diverge from the code — prod had Kimi pinned in its fallback
+ * long after the code dropped it — which was confusing and a footgun.)
+ *
+ * Per-task model choices are PINNED at each mark/enrichment (see
+ * ARGUMENT_FLASH_MODEL / ARGUMENT_PRO_MODEL in code-marks.ts); this default only
+ * governs LLM calls that pass no explicit model. wrangler.toml's
+ * DEFAULT_LLM_MODEL env var can still override the default per-deploy without a
+ * code change (explicit + in-repo), falling back to DEFAULT_MODEL here.
  */
 
 import type { LLMModelId } from './llm';
-
-export const SETTINGS_KEY = 'llm-settings:v1';
-
-export interface LLMSettings {
-  defaultModel: LLMModelId;
-  fallbackChain: LLMModelId[];
-  perStepOverrides?: Record<string, LLMModelId>;
-  updatedAt: string;
-}
 
 /**
  * Curated list shown in the settings dropdown. Add an entry here to make a
@@ -53,58 +49,13 @@ export const MODEL_PRESETS: ModelPreset[] = [
   { id: 'openrouter/google/gemini-2.5-flash',      vendor: 'Google',              label: 'Gemini 2.5 Flash',         notes: 'Fast, multimodal' },
 ];
 
-// The actual production workhorse. Note: marks/enrichments PIN their model
-// per task (DeepSeek V4 Flash for structural extraction + synthesis, V4 Pro
-// for Q&A) via shared constants in code-marks.ts — see ARGUMENT_FLASH_MODEL /
-// ARGUMENT_PRO_MODEL. This default only governs LLM calls that DON'T pass an
-// explicit model, so it must reflect reality (DeepSeek), not an aspirational
-// or legacy value. (It was '@cf/…/kimi-k2.5', which read as "Kimi is the
-// default" even though nothing un-pinned actually ran on it.)
-const DEFAULTS: LLMSettings = {
-  defaultModel: 'openrouter/deepseek/deepseek-v4-pro',
-  fallbackChain: ['openrouter/deepseek/deepseek-v4-flash'],
-  updatedAt: new Date(0).toISOString(),
-};
-
-export interface SettingsEnv {
-  CACHE?: KVNamespace;
-}
-
-export async function readSettings(env: SettingsEnv): Promise<LLMSettings> {
-  if (!env.CACHE) return DEFAULTS;
-  const raw = await env.CACHE.get(SETTINGS_KEY);
-  if (!raw) return DEFAULTS;
-  try {
-    const parsed = JSON.parse(raw) as Partial<LLMSettings>;
-    return {
-      defaultModel: parsed.defaultModel ?? DEFAULTS.defaultModel,
-      fallbackChain: Array.isArray(parsed.fallbackChain) ? parsed.fallbackChain as LLMModelId[] : DEFAULTS.fallbackChain,
-      perStepOverrides: parsed.perStepOverrides,
-      updatedAt: parsed.updatedAt ?? DEFAULTS.updatedAt,
-    };
-  } catch {
-    return DEFAULTS;
-  }
-}
-
-export async function writeSettings(env: SettingsEnv, next: Omit<LLMSettings, 'updatedAt'>): Promise<LLMSettings> {
-  if (!env.CACHE) throw new Error('CACHE binding not available');
-  const merged: LLMSettings = { ...next, updatedAt: new Date().toISOString() };
-  await env.CACHE.put(SETTINGS_KEY, JSON.stringify(merged));
-  return merged;
-}
-
-/**
- * Delete any saved KV override so the explicit codebase DEFAULTS above become
- * the single source of truth again. The KV layer is an OPTIONAL runtime
- * override (swap models without a redeploy, surfaced in the Settings page) — but
- * a stale value silently diverging from the code is a footgun, so this gives a
- * clean "reset to code" path.
- */
-export async function resetSettings(env: SettingsEnv): Promise<LLMSettings> {
-  if (env.CACHE) await env.CACHE.delete(SETTINGS_KEY);
-  return DEFAULTS;
-}
+// The default model + fallback for any LLM call that passes no explicit model.
+// This is THE source of truth (no KV override). Marks/enrichments mostly pin
+// their own model per task (ARGUMENT_FLASH_MODEL / ARGUMENT_PRO_MODEL in
+// code-marks.ts), so this governs only un-pinned calls. DeepSeek because that's
+// what actually runs in prod; never Kimi (dropped over Workers AI limits).
+export const DEFAULT_MODEL: LLMModelId = 'openrouter/deepseek/deepseek-v4-pro';
+export const DEFAULT_FALLBACK_CHAIN: LLMModelId[] = ['openrouter/deepseek/deepseek-v4-flash'];
 
 /** Validate a string is one of the model-id shapes runLLM accepts. */
 export function isLLMModelId(s: unknown): s is LLMModelId {
