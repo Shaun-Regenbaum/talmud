@@ -38,10 +38,56 @@ function renderAlignedHtml(mainHtml: string, segmentsHe: string[]): { html: stri
   return injectSegmentMarkers(hadran, segmentsHe);
 }
 
+// --- left-pane "base layer" views ---------------------------------------
+// All views emit `.daf-word[data-seg]` spans so the segment-coloring + the
+// hover-highlight <style> (and the onMouseOver handler) work identically.
+
+type LeftView = 'hb' | 'segments' | 'rashi' | 'tosafot';
+const LEFT_VIEWS: { id: LeftView; label: string }[] = [
+  { id: 'hb', label: 'HebrewBooks' },
+  { id: 'segments', label: 'Sefaria segments' },
+  { id: 'rashi', label: 'Rashi' },
+  { id: 'tosafot', label: 'Tosafot' },
+];
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+/** Sefaria text carries markup (<b>/<strong>/…); strip it, escape, collapse. */
+function clean(s: string): string {
+  return escapeHtml(s.replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim();
+}
+/** Sefaria "S:P" pieceKey (1-based segment) -> 0-based segment index. */
+function segOfKey(key: string | undefined): number | null {
+  if (!key) return null;
+  const s = parseInt(String(key).split(':')[0], 10);
+  return Number.isFinite(s) ? s - 1 : null;
+}
+
+/** Exact view: each Sefaria segment is its own colored span (no fuzzy match). */
+function buildSegmentsHtml(segs: string[]): string {
+  if (!segs.length) return '<p style="color:#aaa">No Sefaria segments for this daf.</p>';
+  return segs.map((s, i) => `<span class="daf-word" data-seg="${i}">${clean(s)} </span>`).join('');
+}
+
+/** Commentary view: each piece is a block, colored by the segment it anchors
+ *  to (via its parallel pieceKey). Pieces without a key are left uncolored. */
+function buildCommentaryHtml(pieces?: string[], keys?: string[]): string {
+  if (!pieces?.length) return '<p style="color:#aaa">No pieces for this commentary on this daf.</p>';
+  return pieces.map((p, i) => {
+    const seg = segOfKey(keys?.[i]);
+    const attr = seg != null ? ` data-seg="${seg}"` : '';
+    const tag = seg != null ? `<span style="font-family:monospace;font-size:0.7rem;color:#888">#${seg} </span>` : '';
+    return `<div class="daf-word"${attr} style="margin-bottom:0.35rem;padding:0.15rem 0.3rem">${tag}${clean(p)}</div>`;
+  }).join('');
+}
+
 export function AlignPage(): JSX.Element {
   const initialParams = new URLSearchParams(window.location.search);
   const [tractate, setTractate] = createSignal(initialParams.get('tractate') ?? 'Berakhot');
   const [page, setPage] = createSignal(initialParams.get('page') ?? '5a');
+  // Which base text fills the left "alignment canvas".
+  const [leftView, setLeftView] = createSignal<LeftView>('hb');
   // Two highlight layers: `pinned` from the selected source (persistent),
   // `hover` from hovering a card/segment (transient). Hover wins when active.
   const [pinnedSegs, setPinnedSegs] = createSignal<number[]>([]);
@@ -66,6 +112,19 @@ export function AlignPage(): JSX.Element {
   const segmentCount = () => daf()?.mainSegmentsHe?.length ?? 0;
   const stats = () => rendered()?.stats;
   const isHot = (i: number) => highlight().includes(i);
+
+  // HTML for the left canvas, per the selected base-layer view. Every view
+  // emits `.daf-word[data-seg]` spans so coloring + highlighting are shared.
+  const leftHtml = createMemo(() => {
+    const d = daf();
+    if (!d) return '';
+    switch (leftView()) {
+      case 'segments': return buildSegmentsHtml(d.mainSegmentsHe ?? []);
+      case 'rashi': return buildCommentaryHtml(d.rashi?.pieces, d.rashi?.pieceKeys);
+      case 'tosafot': return buildCommentaryHtml(d.tosafot?.pieces, d.tosafot?.pieceKeys);
+      default: return rendered()?.html ?? '';
+    }
+  });
 
   // The unified external-context pool, assembled server-side from dafyomi.co.il
   // + Sefaria sources (commentary text, Mishnayot, Rishonim, halacha, topics),
@@ -151,9 +210,29 @@ export function AlignPage(): JSX.Element {
           <>
             <div class="responsive-2col">
               <section>
-                <h2 style={{ 'font-size': '0.9rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', 'margin-bottom': '0.4rem' }}>
-                  Rendered daf (HebrewBooks) — segments colored
-                </h2>
+                <div style={{ display: 'flex', 'flex-wrap': 'wrap', 'align-items': 'center', gap: '0.4rem', 'margin-bottom': '0.4rem' }}>
+                  <h2 style={{ 'font-size': '0.9rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', margin: 0 }}>
+                    Alignment canvas — segments colored
+                  </h2>
+                  <div style={{ display: 'flex', gap: '0.25rem', 'margin-left': 'auto' }}>
+                    <For each={LEFT_VIEWS}>
+                      {(v) => (
+                        <button
+                          type="button"
+                          onClick={() => setLeftView(v.id)}
+                          style={{
+                            padding: '0.15rem 0.5rem', 'font-size': '0.75rem', 'border-radius': '999px', cursor: 'pointer',
+                            border: `1px solid ${leftView() === v.id ? '#8a2a2b' : '#ddd'}`,
+                            background: leftView() === v.id ? '#8a2a2b' : '#fff',
+                            color: leftView() === v.id ? '#fff' : '#555',
+                          }}
+                        >
+                          {v.label}
+                        </button>
+                      )}
+                    </For>
+                  </div>
+                </div>
                 <div
                   dir="rtl"
                   lang="he"
@@ -165,9 +244,9 @@ export function AlignPage(): JSX.Element {
                     border: '1px solid #eee',
                     'border-radius': '6px',
                     background: '#fff',
-                    'text-align': 'justify',
+                    'text-align': leftView() === 'hb' || leftView() === 'segments' ? 'justify' : 'right',
                   }}
-                  innerHTML={rendered()?.html ?? ''}
+                  innerHTML={leftHtml()}
                   onMouseOver={(e) => {
                     const t = e.target as HTMLElement;
                     const w = t.closest('.daf-word') as HTMLElement | null;
