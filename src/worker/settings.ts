@@ -94,6 +94,18 @@ export async function writeSettings(env: SettingsEnv, next: Omit<LLMSettings, 'u
   return merged;
 }
 
+/**
+ * Delete any saved KV override so the explicit codebase DEFAULTS above become
+ * the single source of truth again. The KV layer is an OPTIONAL runtime
+ * override (swap models without a redeploy, surfaced in the Settings page) — but
+ * a stale value silently diverging from the code is a footgun, so this gives a
+ * clean "reset to code" path.
+ */
+export async function resetSettings(env: SettingsEnv): Promise<LLMSettings> {
+  if (env.CACHE) await env.CACHE.delete(SETTINGS_KEY);
+  return DEFAULTS;
+}
+
 /** Validate a string is one of the model-id shapes runLLM accepts. */
 export function isLLMModelId(s: unknown): s is LLMModelId {
   if (typeof s !== 'string') return false;

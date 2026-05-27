@@ -59,7 +59,7 @@ import { lintSynthesis } from '../lib/synthesisLint';
 import { lintHalachaParsed } from '../lib/halachaLint';
 import { noteLintAttempt, readLintFailures, type LintFailuresSummary } from './lint-failures';
 import { partitionSections, dedupeByRange, dedupeBy, selectSectionMoves, type MoveLike } from '../lib/argumentMoves';
-import { readSettings, writeSettings, isLLMModelId, MODEL_PRESETS } from './settings';
+import { readSettings, writeSettings, resetSettings, isLLMModelId, MODEL_PRESETS } from './settings';
 import { costUsd as priceCostUsd, normalizeUsage } from './pricing';
 import { recordUsage, readUsageSummary } from './usage-rollup';
 import { recordUnknownRabbi, recordObservedPlace, listUnknownRabbis, listObservedPlaces } from './unknown-registry';
@@ -449,6 +449,14 @@ app.post('/api/admin/llm-settings', async (c) => {
     perStepOverrides: overrides as Record<string, LLMModelId> | undefined,
   });
   return c.json({ settings: saved });
+});
+
+// Reset to the codebase DEFAULTS (clears the KV override). Use this when a
+// saved runtime override has drifted from what the code says it should be.
+app.delete('/api/admin/llm-settings', async (c) => {
+  if (!c.env.CACHE) return c.json({ error: 'CACHE binding not available' }, 503);
+  const settings = await resetSettings(c.env);
+  return c.json({ settings, reset: true });
 });
 
 /**

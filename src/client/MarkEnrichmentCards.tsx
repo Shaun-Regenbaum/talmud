@@ -177,14 +177,14 @@ async function pollJob(runId: string, cacheKey?: string, signal?: AbortSignal): 
 // The Cloudflare queue consumer runs at max_concurrency=50 and the run route's
 // cache-hit hot-path is a single KV read, so the browser can dispatch well
 // beyond the old value of 4 — the bottleneck on a warmed daf was this client
-// gate, not the server. 12 fills a page's section/move/anchor cards ~3× faster
-// (cache hits especially). Upper bound considerations: on a COLD page each
-// in-flight slot can enqueue a job that fans out (×5 for argument-move), so
-// 12 → up to ~60 concurrent OpenRouter calls from one tab — past ~16 you risk
-// 429s during cold loads with no real gain (a viewport rarely shows >12 cards
-// needing fetch; the rest are scroll-deferred). 12 stays clear of that and of
-// the 2026-05-07 simultaneous-fan-out incident.
-const enrichmentQueue = new RequestQueue(12);
+// gate, not the server. 16 fills a page's section/move/anchor cards ~4× faster
+// vs the old 4 (cache hits especially). Upper-bound note: on a COLD page each
+// in-flight slot can enqueue a job that fans out (×5 for argument-move), so 16
+// → up to ~80 concurrent OpenRouter calls from one tab. 16 is the practical
+// ceiling — push higher and cold loads risk OpenRouter 429s with no real gain
+// (a viewport rarely shows >16 cards needing fetch; the rest are
+// scroll-deferred). Watching for errors at 16; the 429 path already falls back.
+const enrichmentQueue = new RequestQueue(16);
 
 /**
  * Enqueue one enrichment run on the shared queue from OUTSIDE this component
