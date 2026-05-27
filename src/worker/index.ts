@@ -171,6 +171,11 @@ export interface JobMessage {
    *  and a `:he`-namespaced cache key; omitted/'en' is the default English
    *  path. Marks ignore this (language-neutral output). */
   lang?: 'en' | 'he';
+  /** Deep-warm job: run this daf's structural marks, then fan out a warm job
+   *  for every per-instance enrichment (synthesis + suggested-questions). Used
+   *  by /api/warm-daf to comprehensively pre-warm an adjacent daf so navigation
+   *  lands on a fully-cached page. Mutually exclusive with mark_id/enrichment_id. */
+  warm_deep?: boolean;
 }
 
 function stripHtmlServer(html: string): string {
@@ -2640,6 +2645,29 @@ app.post('/api/studio/run', async (c) => {
     : await cacheKeyForRunBody(c.env, job);
   await c.env.ENRICHMENT_QUEUE.send(job);
   return c.json({ status: 'pending', runId: job.runId, cacheKey: cacheKey ?? undefined }, 202);
+});
+
+/**
+ * POST /api/warm-daf — comprehensively pre-warm one daf (marks + every
+ * per-instance enrichment up to suggested-questions). Enqueues a single
+ * `warm_deep` job; the consumer runs the marks and fans out the enrichment
+ * warm jobs (cache-respecting). The client fires this for the adjacent dapim
+ * on idle so forward/back navigation lands on a fully-cached page.
+ */
+app.post('/api/warm-daf', async (c) => {
+  let raw: unknown;
+  try { raw = await c.req.json(); }
+  catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const body = raw as { tractate?: string; page?: string; lang?: string };
+  if (!body.tractate || !body.page) return c.json({ error: 'tractate and page required' }, 400);
+  if (!c.env.ENRICHMENT_QUEUE) return c.json({ error: 'ENRICHMENT_QUEUE binding not available' }, 503);
+  const lang: 'en' | 'he' = body.lang === 'he' ? 'he' : 'en';
+  const runId = `warm-deep:${body.tractate}:${body.page}:${lang}:${Math.floor(Date.now() / 1000)}`
+    .replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
+  await c.env.ENRICHMENT_QUEUE.send({
+    runId, warm_deep: true, tractate: body.tractate, page: body.page, ...(lang === 'he' ? { lang } : {}),
+  });
+  return c.json({ status: 'pending', runId }, 202);
 });
 
 /**
@@ -6831,6 +6859,69 @@ app.get('/api/enrich-rabbi-bio/:tractate/:page/:slug', async (c) => {
 
 const YOMI_WARM_CRON = '0 3 * * *';
 
+// Mark → per-instance enrichments to warm. Mirrors the client's SECTION_PREFETCH
+// (src/client/dafPrefetch.ts) so an adjacent-daf deep-warm lands the exact cache
+// keys a reader's cards will later hit. Keep the two in sync.
+const DEEP_WARM_PLAN: Record<string, string[]> = {
+  argument: ['argument.synthesis'],
+  'argument-move': ['argument-move.synthesis', 'argument-move.suggested-questions'],
+  pesukim: ['pesukim.synthesis', 'pesukim.suggested-questions'],
+  aggadata: ['aggadata.synthesis', 'aggadata.suggested-questions'],
+  places: ['places.synthesis'],
+  halacha: ['halacha.synthesis'],
+  rabbi: ['rabbi.synthesis'],
+  rishonim: ['rishonim.synthesis'],
+};
+
+/**
+ * Comprehensively warm one daf: run its structural marks (cache-respecting,
+ * sequentially so we don't spike OpenRouter concurrency from a single job),
+ * then fan out a warm job per (instance, enrichment) — skipping any already
+ * cached so re-warming a settled daf is just KV reads, not queue churn. Powers
+ * /api/warm-daf, which the client fires for the adjacent dapim so navigation
+ * lands on a fully-cached page.
+ */
+async function deepWarmDaf(
+  rc: RunCtx,
+  tractate: string,
+  page: string,
+  lang: 'en' | 'he',
+): Promise<{ marks: number; enqueued: number; skipped: number }> {
+  const queue = rc.env.ENRICHMENT_QUEUE;
+  const cache = rc.env.CACHE;
+  if (!queue) return { marks: 0, enqueued: 0, skipped: 0 };
+  let marks = 0, enqueued = 0, skipped = 0;
+
+  for (const [markId, enrichmentIds] of Object.entries(DEEP_WARM_PLAN)) {
+    const markDef = await loadMarkDef(rc.env, markId);
+    if (!markDef) continue;
+    let instances: unknown[] = [];
+    try {
+      const res = await runMarkOnce(rc, markDef, tractate, page, false);
+      marks++;
+      const parsed = res.parsed as { instances?: unknown[] } | null;
+      instances = Array.isArray(parsed?.instances) ? parsed.instances : [];
+    } catch { continue; }
+
+    for (const inst of instances) {
+      for (const enrichmentId of enrichmentIds) {
+        const def = await loadEnrichmentDef(rc.env, enrichmentId);
+        if (!def) continue;
+        const iid = await instanceIdOf(inst);
+        const key = keyForEnrichment(def, iid, def.scope === 'local' ? { tractate, page } : undefined, undefined, lang);
+        if (key && cache && (await cache.get(key))) { skipped++; continue; }
+        const runId = `warm:${enrichmentId}:${tractate}:${page}:${iid}:${lang}:${Math.floor(Date.now() / 1000)}`
+          .replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
+        try {
+          await queue.send({ runId, enrichment_id: enrichmentId, tractate, page, mark_input: inst, ...(lang === 'he' ? { lang } : {}) });
+          enqueued++;
+        } catch { /* best-effort warm */ }
+      }
+    }
+  }
+  return { marks, enqueued, skipped };
+}
+
 /**
  * Run one queued enrichment job: replay the same logic the synchronous
  * /api/studio/run handler used to do, but write the outcome under
@@ -6867,6 +6958,13 @@ async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: Executi
     cache.put(jobKey, JSON.stringify(payload), { expirationTtl: 3600 });
 
   try {
+    if (job.warm_deep) {
+      const stats = await deepWarmDaf(rc, job.tractate, job.page, rc.lang);
+      await writeResult({ status: 'ok', result: { kind: 'warm', ...stats, total_ms: Date.now() - t0 } });
+      // eslint-disable-next-line no-console
+      console.log(`[queue] deep-warm ${job.tractate}/${job.page} lang=${rc.lang} marks=${stats.marks} enqueued=${stats.enqueued} skipped=${stats.skipped}`);
+      return;
+    }
     if (job.mark_id) {
       const def = await loadMarkDef(wrapped, job.mark_id);
       if (!def) {

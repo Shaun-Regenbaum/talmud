@@ -646,17 +646,32 @@ export default function DafViewer(): JSX.Element {
     prefetchDaf(t, p, runs);
   });
 
-  // Warm the NEXT daf's assembled text on idle so forward navigation renders
-  // instantly (the heavy per-section enrichments still lazy-load on arrival).
-  // Text only — no LLM cost; just primes the server's daf cache. Aborts on daf
-  // change so we never prefetch a page the reader has already left.
+  // Comprehensively pre-warm the adjacent dapim on idle so navigating either
+  // direction lands on a fully-cached page: the assembled text (instant render)
+  // plus a server-side deep-warm (marks + every per-instance enrichment up to
+  // suggested-questions, cache-respecting). Fired ~2.5s after the daf settles
+  // and aborted on daf change so we don't warm a page the reader has left.
+  // lang() is tracked so a language switch re-warms the neighbours in the new
+  // language.
   createEffect(() => {
     const t = tractate();
-    const np = nextPage(page());
+    const p = page();
+    const l = lang();
     const controller = new AbortController();
     const timer = setTimeout(() => {
-      void fetch(`/api/daf/${encodeURIComponent(t)}/${np}`, { signal: controller.signal }).catch(() => {});
-    }, 1500);
+      for (const np of [nextPage(p), prevPage(p)]) {
+        // Prime the assembled-daf cache (zero LLM cost) for instant render.
+        void fetch(`/api/daf/${encodeURIComponent(t)}/${np}`, { signal: controller.signal }).catch(() => {});
+        // Deep-warm marks + enrichments (cache-respecting — a settled neighbour
+        // is just KV reads).
+        void fetch('/api/warm-daf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tractate: t, page: np, lang: l }),
+          signal: controller.signal,
+        }).catch(() => {});
+      }
+    }, 2500);
     onCleanup(() => { clearTimeout(timer); controller.abort(); });
   });
 

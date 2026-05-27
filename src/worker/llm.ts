@@ -157,10 +157,14 @@ function withHardTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T
 
 /**
  * Resolve the model + fallback chain to call:
- *   1. explicit opts.model + opts.fallback wins (per-call override)
+ *   1. explicit opts.model + opts.fallback wins (per-call override — this is
+ *      what marks/enrichments use; they pin DeepSeek Flash/Pro per task)
  *   2. else settings KV (settable via /api/admin/llm-settings)
  *   3. else env.DEFAULT_LLM_MODEL (wrangler.toml [vars])
- *   4. else Kimi (preserves pre-existing behavior)
+ *   4. else DeepSeek V4 Pro (a hardcoded floor only reached if both the KV
+ *      settings and the env var are somehow unset; NOT Kimi — Kimi was dropped
+ *      from prod over Workers AI concurrency limits and silently bottoming out
+ *      on it was a footgun)
  */
 async function resolveChain(env: LLMEnv, opts: LLMCallOptions): Promise<LLMModelId[]> {
   if (opts.model) return [opts.model, ...(opts.fallback ?? [])];
@@ -175,7 +179,7 @@ async function resolveChain(env: LLMEnv, opts: LLMCallOptions): Promise<LLMModel
   if (fromEnv && (fromEnv.startsWith('@cf/') || fromEnv.startsWith('openrouter/'))) {
     return [fromEnv as LLMModelId, ...(opts.fallback ?? [])];
   }
-  return ['@cf/moonshotai/kimi-k2.5', ...(opts.fallback ?? [])];
+  return ['openrouter/deepseek/deepseek-v4-pro' as LLMModelId, ...(opts.fallback ?? [])];
 }
 
 /**

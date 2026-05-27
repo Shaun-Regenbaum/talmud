@@ -43,7 +43,7 @@ export interface ModelPreset {
 export const MODEL_PRESETS: ModelPreset[] = [
   // Workers AI (@cf/*) bills in neurons, not per-token list prices — left
   // unpriced; lean on the AI Gateway analytics figure for these.
-  { id: '@cf/moonshotai/kimi-k2.5',                vendor: 'Cloudflare/Moonshot', label: 'Kimi K2.5 (Workers AI)',  notes: 'Current production default — thinking-mode capable' },
+  { id: '@cf/moonshotai/kimi-k2.5',                vendor: 'Cloudflare/Moonshot', label: 'Kimi K2.5 (Workers AI)',  notes: 'Free (neuron-billed) but dropped from prod over Workers AI concurrency limits — selectable, not the default/fallback' },
   { id: '@cf/google/gemma-4-26b-a4b-it',           vendor: 'Cloudflare/Google',   label: 'Gemma 4 26B (Workers AI)', notes: 'Fast, no thinking; used for translate + era' },
   { id: 'openrouter/deepseek/deepseek-v4-flash',   vendor: 'DeepSeek',            label: 'DeepSeek V4 Flash',        notes: '$0.14/$0.28 per 1M — cheapest frontier-adjacent option', inputPer1M: 0.14, outputPer1M: 0.28 },
   { id: 'openrouter/deepseek/deepseek-v4-pro',     vendor: 'DeepSeek',            label: 'DeepSeek V4 Pro',          notes: '$0.435/$0.87 per 1M (75% off through 2026-05-31), $1.74/$3.48 after', inputPer1M: 0.435, outputPer1M: 0.87 },
@@ -53,9 +53,16 @@ export const MODEL_PRESETS: ModelPreset[] = [
   { id: 'openrouter/google/gemini-2.5-flash',      vendor: 'Google',              label: 'Gemini 2.5 Flash',         notes: 'Fast, multimodal' },
 ];
 
+// The actual production workhorse. Note: marks/enrichments PIN their model
+// per task (DeepSeek V4 Flash for structural extraction + synthesis, V4 Pro
+// for Q&A) via shared constants in code-marks.ts — see ARGUMENT_FLASH_MODEL /
+// ARGUMENT_PRO_MODEL. This default only governs LLM calls that DON'T pass an
+// explicit model, so it must reflect reality (DeepSeek), not an aspirational
+// or legacy value. (It was '@cf/…/kimi-k2.5', which read as "Kimi is the
+// default" even though nothing un-pinned actually ran on it.)
 const DEFAULTS: LLMSettings = {
-  defaultModel: '@cf/moonshotai/kimi-k2.5',
-  fallbackChain: ['openrouter/deepseek/deepseek-v4-pro'],
+  defaultModel: 'openrouter/deepseek/deepseek-v4-pro',
+  fallbackChain: ['openrouter/deepseek/deepseek-v4-flash'],
   updatedAt: new Date(0).toISOString(),
 };
 
