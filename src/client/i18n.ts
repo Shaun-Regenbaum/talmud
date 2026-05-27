@@ -100,7 +100,7 @@ export function toggleLang(): void {
 
 type Entry = { en: string; he: string };
 
-const CATALOG: Record<string, Entry> = {
+const CATALOG = {
   // — App / daf header —
   'app.title': { en: 'Talmud', he: 'תלמוד' },
   'header.nav.hint': {
@@ -648,7 +648,11 @@ const CATALOG: Record<string, Entry> = {
     en: "You've asked a lot of new questions recently — please wait a bit before asking another.",
     he: 'שאלת הרבה שאלות חדשות לאחרונה — נא להמתין מעט לפני שאלה נוספת.',
   },
-};
+} satisfies Record<string, Entry>;
+
+/** Every known catalog key. Lets UI props (e.g. section labels) demand a real
+ *  key at compile time instead of an arbitrary string. */
+export type CatalogKey = keyof typeof CATALOG;
 
 /**
  * Translate a catalog key for the active language. Unknown keys fall back to
@@ -656,7 +660,7 @@ const CATALOG: Record<string, Entry> = {
  * Optional {placeholder} interpolation via the params object.
  */
 export function t(key: string, params?: Record<string, string | number>): string {
-  const entry = CATALOG[key];
+  const entry = (CATALOG as Record<string, Entry>)[key];
   let s = entry ? (lang() === 'he' ? entry.he : entry.en) : key;
   if (params) {
     for (const [k, v] of Object.entries(params)) {

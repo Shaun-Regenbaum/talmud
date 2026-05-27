@@ -13,6 +13,7 @@ import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeli
 import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
 import { selectSectionMoves } from '../lib/argumentMoves';
 import { t, lang } from './i18n';
+import { ACCENTS, Panel, QASection, SectionCard, Synthesis } from './sidebar/primitives';
 
 /** Localize an era date-range ("c. 290 – 320 CE") for Hebrew display. */
 function eraLabel(era: string): string {
@@ -1205,7 +1206,7 @@ type AggadataParallelKind = 'same-story' | 'same-actors' | 'same-motif' | 'tanac
 interface AggadataParallelItem { ref: string; kind: AggadataParallelKind; note: string; }
 interface AggadataParallelsData { parallels: AggadataParallelItem[]; prose: string; }
 
-function AggadataPanel(props: {
+export function AggadataPanel(props: {
   story: AggadataStory;
   index: number;
   tractate: string;
@@ -1250,20 +1251,13 @@ function AggadataPanel(props: {
     },
   });
   const instanceId = () => `${props.story.title}|${props.story.excerpt}`;
+  const visibleParallels = () => {
+    const pa = parallels();
+    return pa && (pa.parallels.length > 0 || pa.prose) ? pa : null;
+  };
 
   return (
-    <div>
-      <h3 style={{ margin: '0 0 0.3rem', 'font-size': '1.05rem', color: '#7c3aed' }}>
-        {props.story.title}
-      </h3>
-      <Show when={props.story.titleHe}>
-        <p dir="rtl" lang="he" style={{
-          margin: '0 0 0.5rem', 'font-family': '"Mekorot Vilna", serif',
-          'font-size': '1rem', color: '#666',
-        }}>
-          {props.story.titleHe}
-        </p>
-      </Show>
+    <Panel accent={ACCENTS.aggadata} title={props.story.title} titleHe={props.story.titleHe}>
       <Show when={props.story.theme}>
         <div style={{ 'margin-bottom': '0.7rem' }}>
           <span style={{
@@ -1284,7 +1278,7 @@ function AggadataPanel(props: {
       <p style={{ margin: '0 0 0.8rem', color: '#333', 'line-height': 1.55 }}>
         <HebraizedWithRabbis text={props.story.summary} />
       </p>
-      <MarkEnrichmentCards
+      <Synthesis
         markId="aggadata"
         instance={markInstance()}
         instanceKey={instanceKey()}
@@ -1293,50 +1287,14 @@ function AggadataPanel(props: {
         onResolved={handleResolved}
       />
       <Show when={background()}>
-        {(bg) => (
-          <div style={{
-            border: '1px solid #eae8e0', 'border-radius': '6px',
-            background: '#fafaf7', padding: '0.7rem 0.85rem', 'margin-top': '0.7rem',
-          }}>
-            <div style={{
-              'font-size': '0.7rem', 'text-transform': 'uppercase',
-              'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.4rem',
-            }}>{t('aggadata.background')}</div>
-            <div style={{ 'font-size': '0.88rem', color: '#222', 'line-height': 1.55 }}>
-              <HebraizedWithRabbis text={bg().background} />
-            </div>
-          </div>
-        )}
+        {(bg) => <SectionCard label="aggadata.background" text={bg().background} />}
       </Show>
       <Show when={interpretation()}>
-        {(ip) => (
-          <div style={{
-            border: '1px solid #eae8e0', 'border-radius': '6px',
-            background: '#fafaf7', padding: '0.7rem 0.85rem', 'margin-top': '0.7rem',
-          }}>
-            <div style={{
-              'font-size': '0.7rem', 'text-transform': 'uppercase',
-              'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.4rem',
-            }}>{t('aggadata.interpretation')}</div>
-            <div style={{ 'font-size': '0.88rem', color: '#222', 'line-height': 1.55 }}>
-              <HebraizedWithRabbis text={ip().interpretation} />
-            </div>
-          </div>
-        )}
+        {(ip) => <SectionCard label="aggadata.interpretation" text={ip().interpretation} />}
       </Show>
-      <Show when={(() => {
-        const pa = parallels();
-        return pa && (pa.parallels.length > 0 || pa.prose) ? pa : null;
-      })()}>
+      <Show when={visibleParallels()}>
         {(pa) => (
-          <div style={{
-            border: '1px solid #eae8e0', 'border-radius': '6px',
-            background: '#fafaf7', padding: '0.7rem 0.85rem', 'margin-top': '0.7rem',
-          }}>
-            <div style={{
-              'font-size': '0.7rem', 'text-transform': 'uppercase',
-              'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.4rem',
-            }}>{t('aggadata.parallels')}</div>
+          <SectionCard label="aggadata.parallels">
             <Show when={pa().prose}>
               <div style={{
                 'font-size': '0.82rem', color: '#555', 'line-height': 1.5,
@@ -1365,17 +1323,17 @@ function AggadataPanel(props: {
                 </div>
               </div>
             )}</For>
-          </div>
+          </SectionCard>
         )}
       </Show>
-      <QAPanel
+      <QASection
         mark="aggadata"
         instanceId={instanceId()}
         instance={markInstance()}
         tractate={props.tractate}
         page={props.page}
       />
-    </div>
+    </Panel>
   );
 }
 
