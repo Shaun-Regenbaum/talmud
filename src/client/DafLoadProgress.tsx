@@ -14,7 +14,7 @@
 
 import { createMemo, createEffect, createSignal, onCleanup, Show, type JSX } from 'solid-js';
 import { markStatuses } from './MarksRegistryPanel';
-import { prefetchProgress } from './dafPrefetch';
+import { prefetchProgress, loadNotice } from './dafPrefetch';
 import { t } from './i18n';
 
 const COMPLETE_LINGER_MS = 700;
@@ -85,8 +85,37 @@ export default function DafLoadProgress(): JSX.Element {
   });
   onCleanup(() => { if (hideTimer) clearTimeout(hideTimer); });
 
+  // Top-level notice: a budget pause or a wave of failures, so generation
+  // problems don't read as a silently-stuck bar. Persists (independent of the
+  // bar's auto-hide) until the next daf clears the cohort.
+  const notice = createMemo(() => loadNotice(prefetchProgress()));
+
   return (
-    <Show when={visible()}>
+    <>
+    <Show when={notice()}>
+      {(kind) => (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            display: 'flex', 'align-items': 'center', gap: '0.4rem',
+            position: 'sticky', top: 0, 'z-index': 50,
+            width: '100%', 'box-sizing': 'border-box',
+            padding: '0.4rem 0.55rem', 'margin-bottom': '0.5rem',
+            'border-radius': '4px',
+            border: `1px solid ${kind() === 'paused' ? '#f59e0b' : '#ef4444'}`,
+            background: kind() === 'paused' ? '#fffbeb' : '#fef2f2',
+            color: kind() === 'paused' ? '#92400e' : '#b91c1c',
+            'font-family': 'system-ui, -apple-system, sans-serif',
+            'font-size': '0.72rem', 'line-height': 1.4,
+          }}
+        >
+          <span aria-hidden="true">{kind() === 'paused' ? '⏸' : '⚠'}</span>
+          <span>{kind() === 'paused' ? t('dafLoad.paused') : t('dafLoad.failed')}</span>
+        </div>
+      )}
+    </Show>
+    <Show when={visible() && !notice()}>
       <div
         role="status"
         aria-live="polite"
@@ -140,5 +169,6 @@ export default function DafLoadProgress(): JSX.Element {
         </div>
       </div>
     </Show>
+    </>
   );
 }

@@ -586,13 +586,16 @@ export default function DafViewer(): JSX.Element {
     if (relevant.length === 0) return;             // no marks enabled / loaded yet
     if (relevant.some((s) => s.kind === 'loading')) return; // anchors not done
     const runs = markRunsByMarkId();
-    const sig = `${t}:${p}|` + Object.entries(runs)
+    // The argument-overview warm only fires in dev mode (the chip is dev-only),
+    // so dev state is part of the signature — opening dev re-runs and warms it.
+    const dev = devOpen();
+    const sig = `${t}:${p}:${dev ? 'ov' : ''}|` + Object.entries(runs)
       .map(([m, r]) => `${m}=${(r?.parsed as { instances?: unknown[] } | undefined)?.instances?.length ?? 0}`)
       .sort()
       .join(',');
     if (sig === lastPrefetchSig) return;
     lastPrefetchSig = sig;
-    prefetchDaf(t, p, runs);
+    prefetchDaf(t, p, runs, { overview: dev });
   });
 
   // Comprehensively pre-warm the adjacent dapim on idle so navigating either
@@ -2599,7 +2602,9 @@ export default function DafViewer(): JSX.Element {
           above the daf as the reader scrolls. */}
       <DafLoadProgress />
 
-      <Show when={chipMarks().length > 0}>
+      {/* Whole-daf chip marks (argument map) are experimental — shown only when
+          dev mode is open. */}
+      <Show when={devOpen() && chipMarks().length > 0}>
         <div class="daf-chip-bar" style={{ display: 'flex', gap: '0.4rem', 'flex-wrap': 'wrap', margin: '0 0 0.6rem' }}>
           <For each={chipMarks()}>{(m) => {
             const color = (m.render as { color?: string }).color ?? '#8a2a2b';
