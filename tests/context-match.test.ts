@@ -50,6 +50,12 @@ describe('AI match prompt + parse', () => {
     expect(user).toContain('segment zero');
   });
 
+  it('captures an optional Hebrew quote', () => {
+    const content = JSON.stringify({ matches: [{ key: 'ins:0', segStart: 1, segEnd: 1, confidence: 0.7, quote: 'מן הארכובה ולמטה' }] });
+    const m = parseMatchResponse(content, new Set(['ins:0']), 5);
+    expect(m[0].quote).toBe('מן הארכובה ולמטה');
+  });
+
   it('parses valid matches, dropping unknown keys / out-of-range / null', () => {
     const content = JSON.stringify({
       matches: [

@@ -6,6 +6,7 @@ import { injectSegmentMarkers, type SegmentStats } from './injectSegmentMarkers'
 import { ContextSourcePanel } from './ContextSourcePanel';
 import type { ContextItem } from '../lib/context/types';
 import { applyMatches, type SegMatch } from '../lib/context/match';
+import { buildHbWords, locateInHb, type HbWords, type LocateQuery } from './hbAlign';
 
 interface AlignedDaf extends TalmudPageData {
   _source?: string;
@@ -39,9 +40,6 @@ function renderAlignedHtml(mainHtml: string, segmentsHe: string[]): { html: stri
 }
 
 // --- left-pane "base layer" views ---------------------------------------
-// All views emit `.daf-word[data-seg]` spans so the segment-coloring + the
-// hover-highlight <style> (and the onMouseOver handler) work identically.
-
 type LeftView = 'hb' | 'segments' | 'rashi' | 'tosafot';
 const LEFT_VIEWS: { id: LeftView; label: string }[] = [
   { id: 'hb', label: 'HebrewBooks' },
@@ -53,25 +51,18 @@ const LEFT_VIEWS: { id: LeftView; label: string }[] = [
 function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
-/** Sefaria text carries markup (<b>/<strong>/…); strip it, escape, collapse. */
 function clean(s: string): string {
   return escapeHtml(s.replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim();
 }
-/** Sefaria "S:P" pieceKey (1-based segment) -> 0-based segment index. */
 function segOfKey(key: string | undefined): number | null {
   if (!key) return null;
   const s = parseInt(String(key).split(':')[0], 10);
   return Number.isFinite(s) ? s - 1 : null;
 }
-
-/** Exact view: each Sefaria segment is its own colored span (no fuzzy match). */
 function buildSegmentsHtml(segs: string[]): string {
   if (!segs.length) return '<p style="color:#aaa">No Sefaria segments for this daf.</p>';
   return segs.map((s, i) => `<span class="daf-word" data-seg="${i}">${clean(s)} </span>`).join('');
 }
-
-/** Commentary view: each piece is a block, colored by the segment it anchors
- *  to (via its parallel pieceKey). Pieces without a key are left uncolored. */
 function buildCommentaryHtml(pieces?: string[], keys?: string[]): string {
   if (!pieces?.length) return '<p style="color:#aaa">No pieces for this commentary on this daf.</p>';
   return pieces.map((p, i) => {
@@ -82,26 +73,49 @@ function buildCommentaryHtml(pieces?: string[], keys?: string[]): string {
   }).join('');
 }
 
+/** First `n` whitespace words of a Hebrew string, or undefined. */
+function leadingWords(s: string | undefined, n: number): string | undefined {
+  if (!s) return undefined;
+  const w = s.trim().split(/\s+/).slice(0, n).join(' ');
+  return w || undefined;
+}
+
+/** What Hebrew to look for per source. AI quote (if any) wins; else the item's
+ *  natural Hebrew anchor — the dibur ha'maschil for Rashi/Tosafot, the term/DH
+ *  for dafyomi, leading Hebrew otherwise. `segs` always passed (bias + fallback). */
+function hbQueryFor(item: ContextItem, quotes: Map<string, string>): LocateQuery {
+  const segs = item.segs;
+  const aiQuote = quotes.get(item.key);
+  if (aiQuote) return { phrase: aiQuote, segs };
+  if (item.source === 'sefaria-rashi' || item.source === 'sefaria-tosafot') {
+    return { phrase: leadingWords(item.body?.he, 4), segs }; // dibur ha'maschil
+  }
+  return { phrase: leadingWords(item.title?.he, 6) ?? leadingWords(item.body?.he, 6), segs };
+}
+
+interface HL { segs: number[]; words: number[] }
+const EMPTY: HL = { segs: [], words: [] };
+
 export function AlignPage(): JSX.Element {
   const initialParams = new URLSearchParams(window.location.search);
   const [tractate, setTractate] = createSignal(initialParams.get('tractate') ?? 'Berakhot');
   const [page, setPage] = createSignal(initialParams.get('page') ?? '5a');
-  // Which base text fills the left "alignment canvas".
   const [leftView, setLeftView] = createSignal<LeftView>('hb');
-  // Two highlight layers: `pinned` from the selected source (persistent),
-  // `hover` from hovering a card/segment (transient). Hover wins when active.
-  const [pinnedSegs, setPinnedSegs] = createSignal<number[]>([]);
-  const [hoverSegs, setHoverSegs] = createSignal<number[]>([]);
-  const highlight = () => (hoverSegs().length ? hoverSegs() : pinnedSegs());
-  // AI matches applied on top of the server-assembled pool.
+  // Highlight has two layers (pinned from a selected source, hover transient)
+  // and two granularities: `words` = exact HB word indices, `segs` = segments.
+  const [pinned, setPinned] = createSignal<HL>(EMPTY);
+  const [hover, setHover] = createSignal<HL>(EMPTY);
+  const effective = () => (hover().segs.length || hover().words.length ? hover() : pinned());
+  // AI matches + the Hebrew quotes they emit (resolved to HB spans client-side).
   const [matches, setMatches] = createSignal<SegMatch[]>([]);
+  const [aiQuotes, setAiQuotes] = createSignal<Map<string, string>>(new Map());
   const [matchingSource, setMatchingSource] = createSignal<string | null>(null);
 
   const ref = createMemo(() => ({ tractate: tractate(), page: page() }));
   const [daf] = createResource(ref, fetchDaf);
   const [context] = createResource(ref, fetchContext);
-  // Reset client-side AI matches when the daf changes.
-  createMemo(() => { ref(); setMatches([]); setPinnedSegs([]); });
+  // Reset client-side state when the daf changes.
+  createMemo(() => { ref(); setMatches([]); setAiQuotes(new Map()); setPinned(EMPTY); });
 
   const rendered = createMemo(() => {
     const d = daf();
@@ -109,12 +123,16 @@ export function AlignPage(): JSX.Element {
     return renderAlignedHtml(d.mainText.hebrew, d.mainSegmentsHe ?? []);
   });
 
+  // Indexed HB word stream (for the locator). Derived from the HB render.
+  const hbWords = createMemo<HbWords | null>(() => {
+    const html = rendered()?.html;
+    return html ? buildHbWords(html) : null;
+  });
+
   const segmentCount = () => daf()?.mainSegmentsHe?.length ?? 0;
   const stats = () => rendered()?.stats;
-  const isHot = (i: number) => highlight().includes(i);
+  const isHot = (i: number) => effective().segs.includes(i);
 
-  // HTML for the left canvas, per the selected base-layer view. Every view
-  // emits `.daf-word[data-seg]` spans so coloring + highlighting are shared.
   const leftHtml = createMemo(() => {
     const d = daf();
     if (!d) return '';
@@ -126,13 +144,19 @@ export function AlignPage(): JSX.Element {
     }
   });
 
-  // The unified external-context pool, assembled server-side from dafyomi.co.il
-  // + Sefaria sources (commentary text, Mishnayot, Rishonim, halacha, topics),
-  // already anchored deterministically. Client-side AI-match promotions are
-  // layered on top (cloned so the resource stays pristine).
+  // The context pool + client-side HB placement: clone, apply AI segment
+  // matches, then locate each item's Hebrew on the HB word stream.
   const contextItems = createMemo<ContextItem[]>(() => {
     const items = (context() ?? []).map((i) => ({ ...i }));
     if (matches().length) applyMatches(items, matches());
+    const hb = hbWords();
+    if (hb && hb.norm.length) {
+      const quotes = aiQuotes();
+      for (const it of items) {
+        const loc = locateInHb(hb, hbQueryFor(it, quotes));
+        if (loc) { it.hbWords = loc.words; it.hbVia = loc.via; it.hbConfidence = loc.confidence; }
+      }
+    }
     return items;
   });
 
@@ -155,7 +179,13 @@ export function AlignPage(): JSX.Element {
       });
       if (!res.ok) return;
       const data = (await res.json()) as { matches?: SegMatch[] };
-      if (data.matches?.length) setMatches((prev) => [...prev, ...data.matches!]);
+      const got = data.matches ?? [];
+      if (got.length) {
+        const nextQuotes = new Map(aiQuotes());
+        for (const m of got) if (m.quote) nextQuotes.set(m.key, m.quote);
+        setAiQuotes(nextQuotes);
+        setMatches((prev) => [...prev, ...got]);
+      }
     } finally {
       setMatchingSource(null);
     }
@@ -212,7 +242,7 @@ export function AlignPage(): JSX.Element {
               <section>
                 <div style={{ display: 'flex', 'flex-wrap': 'wrap', 'align-items': 'center', gap: '0.4rem', 'margin-bottom': '0.4rem' }}>
                   <h2 style={{ 'font-size': '0.9rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', margin: 0 }}>
-                    Alignment canvas — segments colored
+                    Alignment canvas
                   </h2>
                   <div style={{ display: 'flex', gap: '0.25rem', 'margin-left': 'auto' }}>
                     <For each={LEFT_VIEWS}>
@@ -248,18 +278,22 @@ export function AlignPage(): JSX.Element {
                   }}
                   innerHTML={leftHtml()}
                   onMouseOver={(e) => {
-                    const t = e.target as HTMLElement;
-                    const w = t.closest('.daf-word') as HTMLElement | null;
-                    const s = w?.getAttribute('data-seg');
-                    if (s !== null && s !== undefined) setHoverSegs([Number(s)]);
+                    const w = (e.target as HTMLElement).closest('.daf-word') as HTMLElement | null;
+                    if (!w) return;
+                    const s = w.getAttribute('data-seg');
+                    const wi = w.getAttribute('data-word-index');
+                    setHover({ segs: s != null ? [Number(s)] : [], words: wi != null ? [Number(wi)] : [] });
                   }}
-                  onMouseLeave={() => setHoverSegs([])}
+                  onMouseLeave={() => setHover(EMPTY)}
                 />
                 <style>{`
                   ${Array.from({ length: segmentCount() }).map((_, i) =>
                     `.daf-word[data-seg="${i}"] { background-color: ${segColor(i)}; border-radius: 2px; }`
                   ).join('\n')}
-                  ${highlight().map((i) => `.daf-word[data-seg="${i}"] { outline: 2px solid #8a2a2b; }`).join('\n')}
+                  ${(leftView() === 'hb' && effective().words.length
+                    ? effective().words.map((w) => `.daf-word[data-word-index="${w}"] { outline: 2px solid #8a2a2b; background-color: #fde68a; }`)
+                    : effective().segs.map((s) => `.daf-word[data-seg="${s}"] { outline: 2px solid #8a2a2b; }`)
+                  ).join('\n')}
                 `}</style>
               </section>
 
@@ -282,8 +316,8 @@ export function AlignPage(): JSX.Element {
                             background: isHot(i()) ? '#fef3c7' : segColor(i()),
                             opacity: aligned() ? 1 : 0.45,
                           }}
-                          onMouseEnter={() => setHoverSegs([i()])}
-                          onMouseLeave={() => setHoverSegs([])}
+                          onMouseEnter={() => setHover({ segs: [i()], words: [] })}
+                          onMouseLeave={() => setHover(EMPTY)}
                         >
                           <div style={{ display: 'flex', 'align-items': 'baseline', gap: '0.5rem', 'margin-bottom': '0.25rem' }}>
                             <span style={{ 'font-family': 'monospace', 'font-size': '0.72rem', color: '#555' }}>#{i()}</span>
@@ -319,9 +353,9 @@ export function AlignPage(): JSX.Element {
               </Show>
               <ContextSourcePanel
                 items={contextItems()}
-                onHover={(segs) => setHoverSegs(segs)}
-                onLeave={() => setHoverSegs([])}
-                onSelectSource={(_source, segs) => setPinnedSegs(segs)}
+                onHover={(h) => setHover(h)}
+                onLeave={() => setHover(EMPTY)}
+                onSelectSource={(_source, h) => setPinned(h)}
                 onMatch={runAiMatch}
                 matchingSource={matchingSource()}
               />

@@ -45,6 +45,13 @@ export interface ContextItem {
   /** Tosfos-DH matcher input: niqqud-stripped DH opening words. Only set on
    *  dafyomi Tosfos items; lets the matcher place them via Sefaria pieceKeys. */
   dhNormalized?: string;
+
+  /** Client-side HB placement (computed in the alignment workbench, not from
+   *  the server pool): the exact HebrewBooks word indices this item maps to,
+   *  plus how it was located and a confidence. Drives word-level highlighting. */
+  hbWords?: number[];
+  hbVia?: string;
+  hbConfidence?: number;
 }
 
 /** A short human label for an item's segment placement (for card chips). */
