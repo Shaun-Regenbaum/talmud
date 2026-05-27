@@ -13,7 +13,7 @@ import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeli
 import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
 import { selectSectionMoves } from '../lib/argumentMoves';
 import { t, lang } from './i18n';
-import { ACCENTS, Panel, QASection, SectionCard, Synthesis } from './sidebar/primitives';
+import { ACCENTS, HebrewProse, Panel, QASection, SectionCard, Synthesis } from './sidebar/primitives';
 
 /** Localize an era date-range ("c. 290 – 320 CE") for Hebrew display. */
 function eraLabel(era: string): string {
@@ -1037,28 +1037,12 @@ function HalachaBody(props: {
 
 /** One labeled section box in the pasuk panel — same shape as halacha's
  *  codification / practical / disputes cards. */
-function PasukSection(props: { label: string; text: string }): JSX.Element {
-  return (
-    <div style={{
-      border: '1px solid #eae8e0', 'border-radius': '6px',
-      background: '#fafaf7', padding: '0.7rem 0.85rem', 'margin-top': '0.7rem',
-    }}>
-      <div style={{
-        'font-size': '0.7rem', 'text-transform': 'uppercase',
-        'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.4rem',
-      }}>{props.label}</div>
-      <div style={{ 'font-size': '0.88rem', color: '#222', 'line-height': 1.55 }}>
-        <HebraizedWithRabbis text={props.text} />
-      </div>
-    </div>
-  );
-}
 
 /** Sidebar panel for a cited pasuk: shows the full Hebrew Tanakh verse and,
  *  on expand, the surrounding verses inlined as one continuous Hebrew block
  *  (prev + cited + next) with the cited verse rendered dark and the others
  *  dimmed so the citation still stands out. */
-function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JSX.Element {
+export function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JSX.Element {
   const [expanded, setExpanded] = createSignal(true);
   const [detail] = createResource(() => props.pasuk.verseRef, fetchPasuk);
   const [prev] = createResource(
@@ -1098,28 +1082,26 @@ function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JS
     if (la && typeof la.landing === 'string') setLanding(la.landing);
   };
 
+  const pesukimInstance = () => ({
+    startSegIdx: props.pasuk.startSegIdx,
+    endSegIdx: props.pasuk.endSegIdx,
+    fields: {
+      verseRef: props.pasuk.verseRef,
+      citationStyle: props.pasuk.citationStyle,
+      excerpt: props.pasuk.excerpt,
+      summary: props.pasuk.summary,
+    },
+  });
+
   return (
-    <div>
-      <h3 dir="rtl" lang="he" style={{
-        margin: '0 0 0.5rem', 'font-family': '"Mekorot Vilna", serif',
-        'font-size': '1.05rem', color: '#9a3412',
-      }}>
-        {detail()?.heRef ?? props.pasuk.verseRef}
-      </h3>
+    <Panel accent={ACCENTS.pesuk} title={detail()?.heRef ?? props.pasuk.verseRef} titleLang="he">
       <Show when={detail.loading && !detail()}>
         <p style={{ color: '#999', 'font-style': 'italic', margin: '0 0 0.5rem' }}>{t('pasuk.loading')}</p>
       </Show>
-      {/* Hybrid font stack — Mekorot Vilna preserved as the primary face for
-          letters + nikud (the Talmud aesthetic), with Tanakh-capable serifs
-          (Cardo, SBL Hebrew, Taamey/Frank Ruehl CLM, Times New Roman) added
-          as fallbacks so the browser can per-codepoint resolve cantillation
-          marks (te'amim) that Mekorot Vilna has no glyphs for. Without
-          those fallbacks the te'amim render as empty tofu rectangles. */}
-      <p dir="rtl" lang="he" style={{
-        margin: '0 0 0.4rem',
-        'font-family': '"Mekorot Vilna", "Cardo", "SBL Hebrew", "Taamey Frank CLM", "Frank Ruehl CLM", "Times New Roman", "Times", serif',
-        'font-size': '1.05rem', 'line-height': 1.85,
-      }}>
+      {/* Verse text in the Tanakh font variant — the widened fallback chain so
+          cantillation te'amim resolve where Mekorot Vilna has no glyph; prev /
+          next context dimmed and shown only while expanded. */}
+      <HebrewProse variant="tanakh" size="1.05rem" margin="0 0 0.4rem" lineHeight={1.85}>
         <Show when={expanded() && prev()?.he}>
           <span style={{ color: '#a8a29e' }}>{prev()!.he} </span>
         </Show>
@@ -1129,7 +1111,7 @@ function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JS
         <Show when={expanded() && next()?.he}>
           <span style={{ color: '#a8a29e' }}> {next()!.he}</span>
         </Show>
-      </p>
+      </HebrewProse>
       <button
         type="button"
         onClick={() => setExpanded(!expanded())}
@@ -1146,44 +1128,27 @@ function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JS
           leaves (tanach-context / why-here / mechanism / landing) come back
           via onResolved and render as separate section cards below — the same
           structure as the halacha panel. */}
-      {(() => {
-        const pesukimInstance = {
-          startSegIdx: props.pasuk.startSegIdx,
-          endSegIdx: props.pasuk.endSegIdx,
-          fields: {
-            verseRef: props.pasuk.verseRef,
-            citationStyle: props.pasuk.citationStyle,
-            excerpt: props.pasuk.excerpt,
-            summary: props.pasuk.summary,
-          },
-        };
-        return (
-          <>
-            <MarkEnrichmentCards
-              markId="pesukim"
-              instance={pesukimInstance}
-              instanceKey={props.pasuk.verseRef}
-              tractate={props.tractate}
-              page={props.page}
-              onResolved={handleResolved}
-            />
-            <Show when={tanachContext()}>{(tc) => <PasukSection label={t('pasuk.tanachContext')} text={tc()} />}</Show>
-            <Show when={whyHere()}>{(wh) => <PasukSection label={t('pasuk.whyHere')} text={wh()} />}</Show>
-            <Show when={mechanism()}>{(me) => <PasukSection label={t('pasuk.mechanism')} text={me()} />}</Show>
-            <Show when={landing()}>{(la) => <PasukSection label={t('pasuk.landing')} text={la()} />}</Show>
-            {/* Questions panel: curated follow-ups + community + free-form
-                asking. Same UX as the argument-move card. */}
-            <QAPanel
-              mark="pesukim"
-              instanceId={props.pasuk.verseRef}
-              instance={pesukimInstance}
-              tractate={props.tractate}
-              page={props.page}
-            />
-          </>
-        );
-      })()}
-    </div>
+      <Synthesis
+        markId="pesukim"
+        instance={pesukimInstance()}
+        instanceKey={props.pasuk.verseRef}
+        tractate={props.tractate}
+        page={props.page}
+        onResolved={handleResolved}
+      />
+      <Show when={tanachContext()}>{(tc) => <SectionCard label="pasuk.tanachContext" text={tc()} />}</Show>
+      <Show when={whyHere()}>{(wh) => <SectionCard label="pasuk.whyHere" text={wh()} />}</Show>
+      <Show when={mechanism()}>{(me) => <SectionCard label="pasuk.mechanism" text={me()} />}</Show>
+      <Show when={landing()}>{(la) => <SectionCard label="pasuk.landing" text={la()} />}</Show>
+      {/* Questions panel: curated follow-ups + community + free-form asking. */}
+      <QASection
+        mark="pesukim"
+        instanceId={props.pasuk.verseRef}
+        instance={pesukimInstance()}
+        tractate={props.tractate}
+        page={props.page}
+      />
+    </Panel>
   );
 }
 

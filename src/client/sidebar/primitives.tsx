@@ -152,6 +152,9 @@ export function SectionCard(props: {
 export function Panel(props: {
   accent: string;
   title: string;
+  /** The title's own language. 'he' (e.g. a pasuk's verse reference) renders
+   *  the heading itself RTL in the Vilna serif. Default 'en'. */
+  titleLang?: 'en' | 'he';
   titleHe?: string;
   flip?: 'name' | 'rabbi';
   meta?: JSX.Element;
@@ -159,7 +162,7 @@ export function Panel(props: {
 }): JSX.Element {
   const flipped = () => props.flip === 'rabbi' && lang() === 'he' && !!props.titleHe;
   const primary = () => (flipped() ? props.titleHe! : props.title);
-  const primaryIsHe = () => flipped();
+  const primaryIsHe = () => props.titleLang === 'he' || flipped();
   const secondary = () => (flipped() ? props.title : props.titleHe);
   // The secondary line is Hebrew unless we flipped (then it's the Latin name).
   const secondaryIsHe = () => !flipped();
@@ -177,7 +180,7 @@ export function Panel(props: {
         <h3
           dir="rtl"
           lang="he"
-          style={{ margin: '0 0 0.3rem', 'font-size': '1.15rem', color: props.accent, 'font-family': HE_FONT }}
+          style={{ margin: '0 0 0.3rem', 'font-size': '1.05rem', color: props.accent, 'font-family': HE_FONT }}
         >
           {primary()}
         </h3>
