@@ -39,45 +39,24 @@ function renderAlignedHtml(mainHtml: string, segmentsHe: string[]): { html: stri
   return injectSegmentMarkers(hadran, segmentsHe);
 }
 
-// --- left-pane "base layer" views ---------------------------------------
-type LeftView = 'hb' | 'segments' | 'rashi' | 'tosafot';
-const LEFT_VIEWS: { id: LeftView; label: string }[] = [
-  { id: 'hb', label: 'HebrewBooks' },
-  { id: 'segments', label: 'Sefaria segments' },
-  { id: 'rashi', label: 'Rashi' },
-  { id: 'tosafot', label: 'Tosafot' },
-];
-
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-function clean(s: string): string {
-  return escapeHtml(s.replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim();
-}
-function segOfKey(key: string | undefined): number | null {
-  if (!key) return null;
-  const s = parseInt(String(key).split(':')[0], 10);
-  return Number.isFinite(s) ? s - 1 : null;
-}
-function buildSegmentsHtml(segs: string[]): string {
-  if (!segs.length) return '<p style="color:#aaa">No Sefaria segments for this daf.</p>';
-  return segs.map((s, i) => `<span class="daf-word" data-seg="${i}">${clean(s)} </span>`).join('');
-}
-function buildCommentaryHtml(pieces?: string[], keys?: string[]): string {
-  if (!pieces?.length) return '<p style="color:#aaa">No pieces for this commentary on this daf.</p>';
-  return pieces.map((p, i) => {
-    const seg = segOfKey(keys?.[i]);
-    const attr = seg != null ? ` data-seg="${seg}"` : '';
-    const tag = seg != null ? `<span style="font-family:monospace;font-size:0.7rem;color:#888">#${seg} </span>` : '';
-    return `<div class="daf-word"${attr} style="margin-bottom:0.35rem;padding:0.15rem 0.3rem">${tag}${clean(p)}</div>`;
-  }).join('');
+/** Drop HTML markup (Sefaria text carries <b>/<strong>/<i>/<big>) for display. */
+function stripTags(s: string): string {
+  return s.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
 }
 
 /** First `n` whitespace words of a Hebrew string, or undefined. */
 function leadingWords(s: string | undefined, n: number): string | undefined {
   if (!s) return undefined;
-  const w = s.trim().split(/\s+/).slice(0, n).join(' ');
+  const w = stripTags(s).split(/\s+/).slice(0, n).join(' ');
   return w || undefined;
+}
+
+/** The dibur ha'maschil (lemma) of a Rashi/Tosafot piece — the Gemara words it
+ *  quotes, before the " - " that separates the lemma from the comment. */
+function diburHaMaschil(he: string | undefined): string | undefined {
+  if (!he) return undefined;
+  const lemma = stripTags(he).split(/\s[-־–—]\s/)[0];
+  return leadingWords(lemma, 6);
 }
 
 /** What Hebrew to look for per source. AI quote (if any) wins; else the item's
@@ -88,7 +67,7 @@ function hbQueryFor(item: ContextItem, quotes: Map<string, string>): LocateQuery
   const aiQuote = quotes.get(item.key);
   if (aiQuote) return { phrase: aiQuote, segs };
   if (item.source === 'sefaria-rashi' || item.source === 'sefaria-tosafot') {
-    return { phrase: leadingWords(item.body?.he, 4), segs }; // dibur ha'maschil
+    return { phrase: diburHaMaschil(item.body?.he), segs };
   }
   return { phrase: leadingWords(item.title?.he, 6) ?? leadingWords(item.body?.he, 6), segs };
 }
@@ -100,7 +79,6 @@ export function AlignPage(): JSX.Element {
   const initialParams = new URLSearchParams(window.location.search);
   const [tractate, setTractate] = createSignal(initialParams.get('tractate') ?? 'Berakhot');
   const [page, setPage] = createSignal(initialParams.get('page') ?? '5a');
-  const [leftView, setLeftView] = createSignal<LeftView>('hb');
   // Highlight has two layers (pinned from a selected source, hover transient)
   // and two granularities: `words` = exact HB word indices, `segs` = segments.
   const [pinned, setPinned] = createSignal<HL>(EMPTY);
@@ -131,18 +109,6 @@ export function AlignPage(): JSX.Element {
 
   const segmentCount = () => daf()?.mainSegmentsHe?.length ?? 0;
   const stats = () => rendered()?.stats;
-  const isHot = (i: number) => effective().segs.includes(i);
-
-  const leftHtml = createMemo(() => {
-    const d = daf();
-    if (!d) return '';
-    switch (leftView()) {
-      case 'segments': return buildSegmentsHtml(d.mainSegmentsHe ?? []);
-      case 'rashi': return buildCommentaryHtml(d.rashi?.pieces, d.rashi?.pieceKeys);
-      case 'tosafot': return buildCommentaryHtml(d.tosafot?.pieces, d.tosafot?.pieceKeys);
-      default: return rendered()?.html ?? '';
-    }
-  });
 
   // The context pool + client-side HB placement: clone, apply AI segment
   // matches, then locate each item's Hebrew on the HB word stream.
@@ -191,19 +157,6 @@ export function AlignPage(): JSX.Element {
     }
   };
 
-  const perSegmentWordCounts = createMemo<number[]>(() => {
-    const html = rendered()?.html ?? '';
-    const n = segmentCount();
-    const counts = new Array(n).fill(0);
-    const re = /data-seg="(\d+)"/g;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(html)) !== null) {
-      const idx = Number(m[1]);
-      if (idx >= 0 && idx < n) counts[idx]++;
-    }
-    return counts;
-  });
-
   return (
     <main class="page-shell" style={{ '--page-max': '1400px', 'font-family': 'system-ui, -apple-system, sans-serif', color: '#222' }}>
       <header class="responsive-row" style={{ 'margin-bottom': '1rem' }}>
@@ -236,33 +189,12 @@ export function AlignPage(): JSX.Element {
       <Show when={daf.error}><p style={{ color: '#c33' }}>Error: {String(daf.error)}</p></Show>
 
       <Show when={daf()}>
-        {(d) => (
-          <>
-            <div class="responsive-2col">
+        <>
+          <div class="responsive-2col">
               <section>
-                <div style={{ display: 'flex', 'flex-wrap': 'wrap', 'align-items': 'center', gap: '0.4rem', 'margin-bottom': '0.4rem' }}>
-                  <h2 style={{ 'font-size': '0.9rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', margin: 0 }}>
-                    Alignment canvas
-                  </h2>
-                  <div style={{ display: 'flex', gap: '0.25rem', 'margin-left': 'auto' }}>
-                    <For each={LEFT_VIEWS}>
-                      {(v) => (
-                        <button
-                          type="button"
-                          onClick={() => setLeftView(v.id)}
-                          style={{
-                            padding: '0.15rem 0.5rem', 'font-size': '0.75rem', 'border-radius': '999px', cursor: 'pointer',
-                            border: `1px solid ${leftView() === v.id ? '#8a2a2b' : '#ddd'}`,
-                            background: leftView() === v.id ? '#8a2a2b' : '#fff',
-                            color: leftView() === v.id ? '#fff' : '#555',
-                          }}
-                        >
-                          {v.label}
-                        </button>
-                      )}
-                    </For>
-                  </div>
-                </div>
+                <h2 style={{ 'font-size': '0.9rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', margin: '0 0 0.4rem' }}>
+                  Source text <span style={{ 'text-transform': 'none', color: '#bbb', 'font-weight': 400 }}>· HebrewBooks</span>
+                </h2>
                 <div
                   dir="rtl"
                   lang="he"
@@ -274,9 +206,9 @@ export function AlignPage(): JSX.Element {
                     border: '1px solid #eee',
                     'border-radius': '6px',
                     background: '#fff',
-                    'text-align': leftView() === 'hb' || leftView() === 'segments' ? 'justify' : 'right',
+                    'text-align': 'justify',
                   }}
-                  innerHTML={leftHtml()}
+                  innerHTML={rendered()?.html ?? ''}
                   onMouseOver={(e) => {
                     const w = (e.target as HTMLElement).closest('.daf-word') as HTMLElement | null;
                     if (!w) return;
@@ -290,7 +222,7 @@ export function AlignPage(): JSX.Element {
                   ${Array.from({ length: segmentCount() }).map((_, i) =>
                     `.daf-word[data-seg="${i}"] { background-color: ${segColor(i)}; border-radius: 2px; }`
                   ).join('\n')}
-                  ${(leftView() === 'hb' && effective().words.length
+                  ${(effective().words.length
                     ? effective().words.map((w) => `.daf-word[data-word-index="${w}"] { outline: 2px solid #8a2a2b; background-color: #fde68a; }`)
                     : effective().segs.map((s) => `.daf-word[data-seg="${s}"] { outline: 2px solid #8a2a2b; }`)
                   ).join('\n')}
@@ -298,70 +230,26 @@ export function AlignPage(): JSX.Element {
               </section>
 
               <section>
-                <h2 style={{ 'font-size': '0.9rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', 'margin-bottom': '0.4rem' }}>
-                  Sefaria segments
-                </h2>
-                <ol style={{ 'list-style': 'none', padding: 0, margin: 0, 'font-size': '0.9rem' }}>
-                  <For each={d().mainSegmentsHe ?? []}>
-                    {(seg, i) => {
-                      const words = () => perSegmentWordCounts()[i()] ?? 0;
-                      const aligned = () => words() > 0;
-                      return (
-                        <li
-                          style={{
-                            padding: '0.5rem 0.7rem',
-                            'margin-bottom': '0.4rem',
-                            'border-radius': '4px',
-                            border: isHot(i()) ? '2px solid #8a2a2b' : '1px solid #eee',
-                            background: isHot(i()) ? '#fef3c7' : segColor(i()),
-                            opacity: aligned() ? 1 : 0.45,
-                          }}
-                          onMouseEnter={() => setHover({ segs: [i()], words: [] })}
-                          onMouseLeave={() => setHover(EMPTY)}
-                        >
-                          <div style={{ display: 'flex', 'align-items': 'baseline', gap: '0.5rem', 'margin-bottom': '0.25rem' }}>
-                            <span style={{ 'font-family': 'monospace', 'font-size': '0.72rem', color: '#555' }}>#{i()}</span>
-                            <span style={{ 'font-size': '0.72rem', color: aligned() ? '#059669' : '#c33' }}>
-                              {aligned() ? `${words()} word${words() === 1 ? '' : 's'} aligned` : 'not aligned'}
-                            </span>
-                          </div>
-                          <div dir="rtl" lang="he" style={{ 'font-family': '"Mekorot Vilna", serif', 'line-height': 1.55, 'font-size': '0.95rem' }}>
-                            {seg}
-                          </div>
-                          <Show when={(d().mainSegmentsEn ?? [])[i()]}>
-                            <div style={{ 'font-size': '0.78rem', color: '#555', 'margin-top': '0.3rem', 'font-style': 'italic' }}>
-                              {(d().mainSegmentsEn ?? [])[i()]}
-                            </div>
-                          </Show>
-                        </li>
-                      );
-                    }}
-                  </For>
-                </ol>
+                <Show when={context.loading}>
+                  <p style={{ color: '#aaa', 'font-size': '0.85rem' }}>Loading connections…</p>
+                </Show>
+                <Show when={!context.loading && contextItems().length === 0}>
+                  <p style={{ color: '#aaa', 'font-size': '0.85rem' }}>
+                    No external context for {tractate()} {page()}. For dafyomi.co.il content, run{' '}
+                    <code>node scripts/scrape-dafyomi.mjs --tractate {tractate()} --daf {(page().match(/\d+/) ?? [''])[0]}</code>.
+                  </p>
+                </Show>
+                <ContextSourcePanel
+                  items={contextItems()}
+                  onHover={(h) => setHover(h)}
+                  onLeave={() => setHover(EMPTY)}
+                  onSelectSource={(_source, h) => setPinned(h)}
+                  onMatch={runAiMatch}
+                  matchingSource={matchingSource()}
+                />
               </section>
             </div>
-
-            <div style={{ 'margin-top': '1.5rem' }}>
-              <Show when={context.loading}>
-                <p style={{ color: '#aaa', 'font-size': '0.85rem' }}>Loading external context…</p>
-              </Show>
-              <Show when={!context.loading && contextItems().length === 0}>
-                <p style={{ color: '#aaa', 'font-size': '0.85rem' }}>
-                  No external context for {tractate()} {page()}. For dafyomi.co.il content, run{' '}
-                  <code>node scripts/scrape-dafyomi.mjs --tractate {tractate()} --daf {(page().match(/\d+/) ?? [''])[0]}</code>.
-                </p>
-              </Show>
-              <ContextSourcePanel
-                items={contextItems()}
-                onHover={(h) => setHover(h)}
-                onLeave={() => setHover(EMPTY)}
-                onSelectSource={(_source, h) => setPinned(h)}
-                onMatch={runAiMatch}
-                matchingSource={matchingSource()}
-              />
-            </div>
-          </>
-        )}
+        </>
       </Show>
     </main>
   );
