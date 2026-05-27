@@ -1,0 +1,70 @@
+{
+  "name": "argument_sections",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "summary",
+      "instances"
+    ],
+    "properties": {
+      "summary": {
+        "type": "string"
+      },
+      "instances": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "startSegIdx",
+            "endSegIdx",
+            "fields"
+          ],
+          "properties": {
+            "startSegIdx": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "endSegIdx": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "fields": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "title",
+                "summary",
+                "excerpt",
+                "endExcerpt",
+                "rabbiNames"
+              ],
+              "properties": {
+                "title": {
+                  "type": "string"
+                },
+                "summary": {
+                  "type": "string"
+                },
+                "excerpt": {
+                  "type": "string"
+                },
+                "endExcerpt": {
+                  "type": "string"
+                },
+                "rabbiNames": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "name": "halacha_codification",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "mishnehTorah",
+      "tur",
+      "shulchanAruch",
+      "rema",
+      "prose"
+    ],
+    "properties": {
+      "mishnehTorah": {
+        "anyOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "ref",
+              "ruling"
+            ],
+            "properties": {
+              "ref": {
+                "type": "string"
+              },
+              "ruling": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "tur": {
+        "anyOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "ref",
+              "ruling"
+            ],
+            "properties": {
+              "ref": {
+                "type": "string"
+              },
+              "ruling": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "shulchanAruch": {
+        "anyOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "ref",
+              "ruling"
+            ],
+            "properties": {
+              "ref": {
+                "type": "string"
+              },
+              "ruling": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "rema": {
+        "anyOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "ref",
+              "ruling"
+            ],
+            "properties": {
+              "ref": {
+                "type": "string"
+              },
+              "ruling": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "prose": {
+        "type": "string"
+      }
+    }
+  }
+}

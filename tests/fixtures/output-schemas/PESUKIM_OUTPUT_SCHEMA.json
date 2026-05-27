@@ -1,0 +1,68 @@
+{
+  "name": "pesukim_refs",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "instances"
+    ],
+    "properties": {
+      "instances": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "startSegIdx",
+            "endSegIdx",
+            "fields"
+          ],
+          "properties": {
+            "startSegIdx": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "endSegIdx": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "fields": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "verseRef",
+                "citationStyle",
+                "excerpt",
+                "endExcerpt",
+                "summary"
+              ],
+              "properties": {
+                "verseRef": {
+                  "type": "string"
+                },
+                "citationStyle": {
+                  "type": "string",
+                  "enum": [
+                    "explicit",
+                    "allusion",
+                    "paraphrase"
+                  ]
+                },
+                "excerpt": {
+                  "type": "string"
+                },
+                "endExcerpt": {
+                  "type": "string"
+                },
+                "summary": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

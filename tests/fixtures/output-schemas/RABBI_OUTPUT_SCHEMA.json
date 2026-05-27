@@ -1,0 +1,73 @@
+{
+  "name": "rabbi_marks",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "instances"
+    ],
+    "properties": {
+      "instances": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "excerpt",
+            "fields"
+          ],
+          "properties": {
+            "excerpt": {
+              "type": "string"
+            },
+            "fields": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "nameHe",
+                "generation"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "nameHe": {
+                  "type": "string"
+                },
+                "generation": {
+                  "type": "string",
+                  "enum": [
+                    "zugim",
+                    "tanna-1",
+                    "tanna-2",
+                    "tanna-3",
+                    "tanna-4",
+                    "tanna-5",
+                    "tanna-6",
+                    "amora-ey-1",
+                    "amora-ey-2",
+                    "amora-ey-3",
+                    "amora-ey-4",
+                    "amora-ey-5",
+                    "amora-bavel-1",
+                    "amora-bavel-2",
+                    "amora-bavel-3",
+                    "amora-bavel-4",
+                    "amora-bavel-5",
+                    "amora-bavel-6",
+                    "amora-bavel-7",
+                    "amora-bavel-8",
+                    "savora",
+                    "unknown"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

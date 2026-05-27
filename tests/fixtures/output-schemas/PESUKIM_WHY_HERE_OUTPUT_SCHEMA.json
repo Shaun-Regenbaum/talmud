@@ -1,0 +1,16 @@
+{
+  "name": "pesukim_why_here",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "why_here"
+    ],
+    "properties": {
+      "why_here": {
+        "type": "string"
+      }
+    }
+  }
+}

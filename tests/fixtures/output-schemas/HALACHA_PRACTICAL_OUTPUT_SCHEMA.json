@@ -1,0 +1,38 @@
+{
+  "name": "halacha_practical",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "lechatchila",
+      "bedieved",
+      "appliesWhen",
+      "exceptions",
+      "prose"
+    ],
+    "properties": {
+      "lechatchila": {
+        "type": "string"
+      },
+      "bedieved": {
+        "type": "string"
+      },
+      "appliesWhen": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "exceptions": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "prose": {
+        "type": "string"
+      }
+    }
+  }
+}

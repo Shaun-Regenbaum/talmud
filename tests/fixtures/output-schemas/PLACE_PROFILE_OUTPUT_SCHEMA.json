@@ -1,0 +1,16 @@
+{
+  "name": "place_profile",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "profile"
+    ],
+    "properties": {
+      "profile": {
+        "type": "string"
+      }
+    }
+  }
+}

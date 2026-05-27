@@ -1,0 +1,92 @@
+{
+  "name": "argument_voices",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "voices",
+      "edges"
+    ],
+    "properties": {
+      "voices": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "nameHe",
+            "role",
+            "side",
+            "stance",
+            "opinionStart"
+          ],
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "nameHe": {
+              "type": "string"
+            },
+            "role": {
+              "type": "string",
+              "enum": [
+                "originator",
+                "transmitter",
+                "respondent",
+                "objector",
+                "supporter",
+                "cited-authority",
+                "questioner"
+              ]
+            },
+            "side": {
+              "type": "string"
+            },
+            "stance": {
+              "type": "string"
+            },
+            "opinionStart": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "edges": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "from",
+            "to",
+            "kind",
+            "note"
+          ],
+          "properties": {
+            "from": {
+              "type": "string"
+            },
+            "to": {
+              "type": "string"
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "opposes",
+                "supports",
+                "responds-to",
+                "cites",
+                "resolves"
+              ]
+            },
+            "note": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

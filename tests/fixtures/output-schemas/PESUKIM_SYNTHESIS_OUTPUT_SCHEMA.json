@@ -1,0 +1,16 @@
+{
+  "name": "pesukim_synthesis",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "synthesis"
+    ],
+    "properties": {
+      "synthesis": {
+        "type": "string"
+      }
+    }
+  }
+}

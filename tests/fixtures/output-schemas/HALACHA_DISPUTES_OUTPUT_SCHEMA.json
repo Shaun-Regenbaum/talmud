@@ -1,0 +1,63 @@
+{
+  "name": "halacha_disputes",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "disputes"
+    ],
+    "properties": {
+      "disputes": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "axis",
+            "label",
+            "positions",
+            "settled"
+          ],
+          "properties": {
+            "axis": {
+              "type": "string",
+              "enum": [
+                "ashkenaz-sefarad",
+                "rishonim",
+                "acharonim",
+                "modern",
+                "other"
+              ]
+            },
+            "label": {
+              "type": "string"
+            },
+            "positions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "voice",
+                  "position"
+                ],
+                "properties": {
+                  "voice": {
+                    "type": "string"
+                  },
+                  "position": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "settled": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

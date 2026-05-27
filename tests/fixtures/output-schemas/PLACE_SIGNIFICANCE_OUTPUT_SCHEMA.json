@@ -1,0 +1,16 @@
+{
+  "name": "place_significance",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "significance"
+    ],
+    "properties": {
+      "significance": {
+        "type": "string"
+      }
+    }
+  }
+}

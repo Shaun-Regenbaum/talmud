@@ -1,0 +1,67 @@
+{
+  "name": "aggadata_stories",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "instances"
+    ],
+    "properties": {
+      "instances": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "startSegIdx",
+            "endSegIdx",
+            "fields"
+          ],
+          "properties": {
+            "startSegIdx": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "endSegIdx": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "fields": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "title",
+                "titleHe",
+                "summary",
+                "excerpt",
+                "endExcerpt",
+                "theme"
+              ],
+              "properties": {
+                "title": {
+                  "type": "string"
+                },
+                "titleHe": {
+                  "type": "string"
+                },
+                "summary": {
+                  "type": "string"
+                },
+                "excerpt": {
+                  "type": "string"
+                },
+                "endExcerpt": {
+                  "type": "string"
+                },
+                "theme": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

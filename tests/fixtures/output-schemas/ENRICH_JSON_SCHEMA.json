@@ -1,0 +1,72 @@
+{
+  "name": "rabbi_enrichment",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "generation",
+      "region",
+      "places",
+      "moved"
+    ],
+    "properties": {
+      "generation": {
+        "type": "string",
+        "enum": [
+          "zugim",
+          "tanna-1",
+          "tanna-2",
+          "tanna-3",
+          "tanna-4",
+          "tanna-5",
+          "tanna-6",
+          "amora-ey-1",
+          "amora-ey-2",
+          "amora-ey-3",
+          "amora-ey-4",
+          "amora-ey-5",
+          "amora-bavel-1",
+          "amora-bavel-2",
+          "amora-bavel-3",
+          "amora-bavel-4",
+          "amora-bavel-5",
+          "amora-bavel-6",
+          "amora-bavel-7",
+          "amora-bavel-8",
+          "savora",
+          "unknown"
+        ]
+      },
+      "region": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          "israel",
+          "bavel",
+          null
+        ]
+      },
+      "places": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "moved": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          null,
+          "bavel->israel",
+          "israel->bavel",
+          "both"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "name": "rabbi_relationships",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "teachers",
+      "students",
+      "debatePartners",
+      "family",
+      "prose"
+    ],
+    "properties": {
+      "teachers": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "primary",
+            "note"
+          ],
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "primary": {
+              "type": "boolean"
+            },
+            "note": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "students": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "primary",
+            "note"
+          ],
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "primary": {
+              "type": "boolean"
+            },
+            "note": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "debatePartners": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "note"
+          ],
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "note": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "family": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "relation"
+          ],
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "relation": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "prose": {
+        "type": "string"
+      }
+    }
+  }
+}

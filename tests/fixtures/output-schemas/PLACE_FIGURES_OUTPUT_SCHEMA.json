@@ -1,0 +1,16 @@
+{
+  "name": "place_figures",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "figures"
+    ],
+    "properties": {
+      "figures": {
+        "type": "string"
+      }
+    }
+  }
+}

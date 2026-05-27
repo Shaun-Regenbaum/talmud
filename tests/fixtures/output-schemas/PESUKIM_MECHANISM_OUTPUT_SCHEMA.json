@@ -1,0 +1,16 @@
+{
+  "name": "pesukim_mechanism",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "mechanism"
+    ],
+    "properties": {
+      "mechanism": {
+        "type": "string"
+      }
+    }
+  }
+}

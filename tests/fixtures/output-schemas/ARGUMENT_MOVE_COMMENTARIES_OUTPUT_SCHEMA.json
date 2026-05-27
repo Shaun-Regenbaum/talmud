@@ -1,0 +1,28 @@
+{
+  "name": "argument_move_commentaries",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "rashi",
+      "tosafot",
+      "other",
+      "note"
+    ],
+    "properties": {
+      "rashi": {
+        "type": "string"
+      },
+      "tosafot": {
+        "type": "string"
+      },
+      "other": {
+        "type": "string"
+      },
+      "note": {
+        "type": "string"
+      }
+    }
+  }
+}
