@@ -1,8 +1,15 @@
 import { createResource, createSignal, For, Show, createMemo, type JSX } from 'solid-js';
 import { TRACTATE_OPTIONS, type TalmudPageData } from '../lib/sefref';
+import type { DafyomiDaf } from '../lib/sefref/dafyomi/schema';
+import type { SefariaLink } from '../lib/sefref/sefaria/links';
 import { tokenizeHebrewHtml } from './tokenize';
 import { injectHadran } from './injectHadran';
 import { injectSegmentMarkers, type SegmentStats } from './injectSegmentMarkers';
+import { ContextSourcePanel } from './ContextSourcePanel';
+import { fromDafyomi } from '../lib/context/fromDafyomi';
+import { fromSefariaCommentary } from '../lib/context/fromSefariaCommentary';
+import { matchTosfos } from '../lib/context/anchor/tosfos';
+import type { ContextItem } from '../lib/context/types';
 
 interface AlignedDaf extends TalmudPageData {
   _source?: string;
@@ -16,8 +23,20 @@ async function fetchDaf(input: { tractate: string; page: string }): Promise<Alig
   return res.json();
 }
 
-// Cycle through a pleasant, distinguishable palette so adjacent segments
-// stand out visually. Same indices always produce the same color.
+async function fetchDafyomi(input: { tractate: string; page: string }): Promise<DafyomiDaf | null> {
+  const res = await fetch(`/api/dafyomi/${encodeURIComponent(input.tractate)}/${input.page}`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+async function fetchLinks(input: { tractate: string; page: string }): Promise<SefariaLink[]> {
+  const res = await fetch(`/api/sefaria-links/${encodeURIComponent(input.tractate)}/${input.page}`);
+  if (!res.ok) return [];
+  const data = (await res.json()) as { links?: SefariaLink[] };
+  return data.links ?? [];
+}
+
 const PALETTE = [
   '#fee2e2', '#fef3c7', '#dcfce7', '#dbeafe', '#ede9fe',
   '#fce7f3', '#ffedd5', '#d1fae5', '#cffafe', '#e0e7ff',
@@ -34,10 +53,13 @@ export function AlignPage(): JSX.Element {
   const initialParams = new URLSearchParams(window.location.search);
   const [tractate, setTractate] = createSignal(initialParams.get('tractate') ?? 'Berakhot');
   const [page, setPage] = createSignal(initialParams.get('page') ?? '5a');
-  const [hoveredSeg, setHoveredSeg] = createSignal<number | null>(null);
+  // Segments to highlight on the daf — set from either column or a context card.
+  const [highlight, setHighlight] = createSignal<number[]>([]);
 
   const ref = createMemo(() => ({ tractate: tractate(), page: page() }));
   const [daf] = createResource(ref, fetchDaf);
+  const [dafyomi] = createResource(ref, fetchDafyomi);
+  const [links] = createResource(ref, fetchLinks);
 
   const rendered = createMemo(() => {
     const d = daf();
@@ -47,8 +69,21 @@ export function AlignPage(): JSX.Element {
 
   const segmentCount = () => daf()?.mainSegmentsHe?.length ?? 0;
   const stats = () => rendered()?.stats;
+  const isHot = (i: number) => highlight().includes(i);
 
-  // Per-segment word counts by grepping the rendered HTML for data-seg="<i>".
+  // Combined external-context items: dafyomi.co.il content + Sefaria
+  // commentaries, with the deterministic Tosfos-DH matcher promoting amud
+  // anchors to segments where it can.
+  const contextItems = createMemo<ContextItem[]>(() => {
+    const items: ContextItem[] = [];
+    const dy = dafyomi();
+    if (dy) items.push(...fromDafyomi(dy));
+    const lk = links();
+    if (lk?.length) items.push(...fromSefariaCommentary(lk));
+    matchTosfos(items, daf()?.tosafot);
+    return items;
+  });
+
   const perSegmentWordCounts = createMemo<number[]>(() => {
     const html = rendered()?.html ?? '';
     const n = segmentCount();
@@ -65,16 +100,15 @@ export function AlignPage(): JSX.Element {
   return (
     <main class="page-shell" style={{ '--page-max': '1400px', 'font-family': 'system-ui, -apple-system, sans-serif', color: '#222' }}>
       <header class="responsive-row" style={{ 'margin-bottom': '1rem' }}>
-        <h1 style={{ margin: 0, 'font-size': '1.4rem' }}>Alignment</h1>
+        <h1 style={{ margin: 0, 'font-size': '1.4rem' }}>Alignment workbench</h1>
         <a href="#daf" style={{ color: '#666', 'font-size': '0.85rem', 'text-decoration': 'none' }}>← back to daf</a>
+        <a href="#about" style={{ color: '#666', 'font-size': '0.85rem', 'text-decoration': 'none' }}>sources & credits</a>
         <select
           value={tractate()}
           onChange={(e) => setTractate(e.currentTarget.value)}
           style={{ padding: '0.3rem 0.5rem', 'font-size': '0.9rem', 'margin-left': '1rem' }}
         >
-          <For each={TRACTATE_OPTIONS}>
-            {(o) => <option value={o.value}>{o.value}</option>}
-          </For>
+          <For each={TRACTATE_OPTIONS}>{(o) => <option value={o.value}>{o.value}</option>}</For>
         </select>
         <input
           value={page()}
@@ -96,85 +130,103 @@ export function AlignPage(): JSX.Element {
 
       <Show when={daf()}>
         {(d) => (
-          <div class="responsive-2col">
-            <section>
-              <h2 style={{ 'font-size': '0.9rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', 'margin-bottom': '0.4rem' }}>
-                Rendered daf (HebrewBooks) — segments colored
-              </h2>
-              <div
-                dir="rtl"
-                lang="he"
-                style={{
-                  'font-family': '"Mekorot Vilna", serif',
-                  'font-size': '1.05rem',
-                  'line-height': 1.7,
-                  padding: '1rem',
-                  border: '1px solid #eee',
-                  'border-radius': '6px',
-                  background: '#fff',
-                  'text-align': 'justify',
-                }}
-                innerHTML={rendered()?.html ?? ''}
-                onMouseOver={(e) => {
-                  const t = e.target as HTMLElement;
-                  const w = t.closest('.daf-word') as HTMLElement | null;
-                  const s = w?.getAttribute('data-seg');
-                  if (s !== null && s !== undefined) setHoveredSeg(Number(s));
-                }}
-                onMouseLeave={() => setHoveredSeg(null)}
-              />
-              <style>{`
-                ${Array.from({ length: segmentCount() }).map((_, i) =>
-                  `.daf-word[data-seg="${i}"] { background-color: ${segColor(i)}; border-radius: 2px; }`
-                ).join('\n')}
-                .daf-word[data-seg].hovered { outline: 2px solid #8a2a2b; }
-              `}</style>
-            </section>
-
-            <section>
-              <h2 style={{ 'font-size': '0.9rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', 'margin-bottom': '0.4rem' }}>
-                Sefaria segments
-              </h2>
-              <ol style={{ 'list-style': 'none', padding: 0, margin: 0, 'font-size': '0.9rem' }}>
-                <For each={d().mainSegmentsHe ?? []}>
-                  {(seg, i) => {
-                    const words = () => perSegmentWordCounts()[i()] ?? 0;
-                    const aligned = () => words() > 0;
-                    const isHover = () => hoveredSeg() === i();
-                    return (
-                      <li
-                        style={{
-                          padding: '0.5rem 0.7rem',
-                          'margin-bottom': '0.4rem',
-                          'border-radius': '4px',
-                          border: '1px solid #eee',
-                          background: isHover() ? '#fef3c7' : segColor(i()),
-                          opacity: aligned() ? 1 : 0.45,
-                        }}
-                        onMouseEnter={() => setHoveredSeg(i())}
-                        onMouseLeave={() => setHoveredSeg(null)}
-                      >
-                        <div style={{ display: 'flex', 'align-items': 'baseline', gap: '0.5rem', 'margin-bottom': '0.25rem' }}>
-                          <span style={{ 'font-family': 'monospace', 'font-size': '0.72rem', color: '#555' }}>#{i()}</span>
-                          <span style={{ 'font-size': '0.72rem', color: aligned() ? '#059669' : '#c33' }}>
-                            {aligned() ? `${words()} word${words() === 1 ? '' : 's'} aligned` : 'not aligned'}
-                          </span>
-                        </div>
-                        <div dir="rtl" lang="he" style={{ 'font-family': '"Mekorot Vilna", serif', 'line-height': 1.55, 'font-size': '0.95rem' }}>
-                          {seg}
-                        </div>
-                        <Show when={(d().mainSegmentsEn ?? [])[i()]}>
-                          <div style={{ 'font-size': '0.78rem', color: '#555', 'margin-top': '0.3rem', 'font-style': 'italic' }}>
-                            {(d().mainSegmentsEn ?? [])[i()]}
-                          </div>
-                        </Show>
-                      </li>
-                    );
+          <>
+            <div class="responsive-2col">
+              <section>
+                <h2 style={{ 'font-size': '0.9rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', 'margin-bottom': '0.4rem' }}>
+                  Rendered daf (HebrewBooks) — segments colored
+                </h2>
+                <div
+                  dir="rtl"
+                  lang="he"
+                  style={{
+                    'font-family': '"Mekorot Vilna", serif',
+                    'font-size': '1.05rem',
+                    'line-height': 1.7,
+                    padding: '1rem',
+                    border: '1px solid #eee',
+                    'border-radius': '6px',
+                    background: '#fff',
+                    'text-align': 'justify',
                   }}
-                </For>
-              </ol>
-            </section>
-          </div>
+                  innerHTML={rendered()?.html ?? ''}
+                  onMouseOver={(e) => {
+                    const t = e.target as HTMLElement;
+                    const w = t.closest('.daf-word') as HTMLElement | null;
+                    const s = w?.getAttribute('data-seg');
+                    if (s !== null && s !== undefined) setHighlight([Number(s)]);
+                  }}
+                  onMouseLeave={() => setHighlight([])}
+                />
+                <style>{`
+                  ${Array.from({ length: segmentCount() }).map((_, i) =>
+                    `.daf-word[data-seg="${i}"] { background-color: ${segColor(i)}; border-radius: 2px; }`
+                  ).join('\n')}
+                  ${highlight().map((i) => `.daf-word[data-seg="${i}"] { outline: 2px solid #8a2a2b; }`).join('\n')}
+                `}</style>
+              </section>
+
+              <section>
+                <h2 style={{ 'font-size': '0.9rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', 'margin-bottom': '0.4rem' }}>
+                  Sefaria segments
+                </h2>
+                <ol style={{ 'list-style': 'none', padding: 0, margin: 0, 'font-size': '0.9rem' }}>
+                  <For each={d().mainSegmentsHe ?? []}>
+                    {(seg, i) => {
+                      const words = () => perSegmentWordCounts()[i()] ?? 0;
+                      const aligned = () => words() > 0;
+                      return (
+                        <li
+                          style={{
+                            padding: '0.5rem 0.7rem',
+                            'margin-bottom': '0.4rem',
+                            'border-radius': '4px',
+                            border: isHot(i()) ? '2px solid #8a2a2b' : '1px solid #eee',
+                            background: isHot(i()) ? '#fef3c7' : segColor(i()),
+                            opacity: aligned() ? 1 : 0.45,
+                          }}
+                          onMouseEnter={() => setHighlight([i()])}
+                          onMouseLeave={() => setHighlight([])}
+                        >
+                          <div style={{ display: 'flex', 'align-items': 'baseline', gap: '0.5rem', 'margin-bottom': '0.25rem' }}>
+                            <span style={{ 'font-family': 'monospace', 'font-size': '0.72rem', color: '#555' }}>#{i()}</span>
+                            <span style={{ 'font-size': '0.72rem', color: aligned() ? '#059669' : '#c33' }}>
+                              {aligned() ? `${words()} word${words() === 1 ? '' : 's'} aligned` : 'not aligned'}
+                            </span>
+                          </div>
+                          <div dir="rtl" lang="he" style={{ 'font-family': '"Mekorot Vilna", serif', 'line-height': 1.55, 'font-size': '0.95rem' }}>
+                            {seg}
+                          </div>
+                          <Show when={(d().mainSegmentsEn ?? [])[i()]}>
+                            <div style={{ 'font-size': '0.78rem', color: '#555', 'margin-top': '0.3rem', 'font-style': 'italic' }}>
+                              {(d().mainSegmentsEn ?? [])[i()]}
+                            </div>
+                          </Show>
+                        </li>
+                      );
+                    }}
+                  </For>
+                </ol>
+              </section>
+            </div>
+
+            <div style={{ 'margin-top': '1.5rem' }}>
+              <Show when={dafyomi.loading || links.loading}>
+                <p style={{ color: '#aaa', 'font-size': '0.85rem' }}>Loading external context…</p>
+              </Show>
+              <Show when={!dafyomi.loading && !dafyomi()}>
+                <p style={{ color: '#aaa', 'font-size': '0.85rem' }}>
+                  No dafyomi.co.il content ingested for {tractate()} {page()} — run{' '}
+                  <code>node scripts/scrape-dafyomi.mjs --tractate {tractate()} --daf {(page().match(/\d+/) ?? [''])[0]}</code>.
+                </p>
+              </Show>
+              <ContextSourcePanel
+                items={contextItems()}
+                onHover={(segs) => setHighlight(segs)}
+                onLeave={() => setHighlight([])}
+              />
+            </div>
+          </>
         )}
       </Show>
     </main>

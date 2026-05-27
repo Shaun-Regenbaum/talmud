@@ -306,8 +306,10 @@ const CATALOG = {
 
   // — Settings page —
   'settings.title': { en: 'LLM Settings', he: 'הגדרות מודל שפה' },
-  'settings.intro.before': { en: 'Default model and fallback chain for every LLM call in the worker. Changes apply immediately; no redeploy. Per-call ', he: 'מודל ברירת המחדל ושרשרת הגיבוי לכל קריאה למודל בשרת. שינויים חלים מיד, ללא פריסה מחדש. דריסות ' },
-  'settings.intro.after': { en: ' overrides on enrichment endpoints win over these defaults.', he: ' פר-קריאה בנקודות הקצה של ההעשרה גוברות על ברירות המחדל האלה.' },
+  'settings.intro.before': { en: 'Effective default model + fallback chain. Code-configured (settings.ts, optionally the DEFAULT_LLM_MODEL env var) — this view is read-only. Most calls pin their own model per task. Per-call ', he: 'מודל ברירת המחדל ושרשרת הגיבוי בפועל. מוגדרים בקוד (settings.ts, ואופציונלית משתנה הסביבה DEFAULT_LLM_MODEL) — תצוגה זו לקריאה בלבד. רוב הקריאות נועלות מודל משלהן לכל משימה. דריסות ' },
+  'settings.intro.after': { en: ' overrides on enrichment endpoints still win over these defaults.', he: ' פר-קריאה בנקודות הקצה של ההעשרה עדיין גוברות על ברירות המחדל האלה.' },
+  'settings.source': { en: 'source: {source}', he: 'מקור: {source}' },
+  'settings.section.catalog': { en: 'Model catalog', he: 'קטלוג מודלים' },
   'settings.section.defaultModel': { en: 'Default model', he: 'מודל ברירת מחדל' },
   'settings.section.fallbackChain': { en: 'Fallback chain', he: 'שרשרת גיבוי' },
   'settings.probing': { en: 'probing…', he: 'בודק…' },

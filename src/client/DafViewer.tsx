@@ -1067,6 +1067,12 @@ export default function DafViewer(): JSX.Element {
     })();
   });
 
+  // Tracks the selection identity (sidebar item + optional sub-move) we last
+  // auto-scrolled into view on mobile, so repaints from hover / resize / late
+  // font-load don't re-yank the scroll position. Reset to null when the
+  // selection clears so reopening the same item scrolls again.
+  let lastScrolledSelKey: string | null = null;
+
   // Apply all highlights (section / halacha range + per-rabbi accent) based
   // on the current sidebar + activeRabbi state. Range tints are drawn as
   // absolute-positioned overlay divs computed from Range.getClientRects() so
@@ -1480,6 +1486,37 @@ export default function DafViewer(): JSX.Element {
     if (place) {
       const sel = `.city-marker[data-city="${place.replace(/"/g, '\\"')}"]`;
       dafRootDiv.querySelectorAll(sel).forEach((el) => el.classList.add('city-highlighted'));
+    }
+
+    // Mobile: when the selection (a section / halacha / aggadata / pesuk, or a
+    // sub-move clicked in the shelf) changes, scroll the daf so the
+    // highlighted span sits near the top of the viewport — otherwise it
+    // routinely lands behind the fixed bottom shelf or off-screen and the
+    // user never sees the highlight they just triggered. Keyed on the
+    // selection identity so the many non-selection repaints (hover, resize,
+    // font-load) don't fight the user's own scrolling.
+    const moveKey = argumentMoveHighlight()?.key ?? '';
+    const selKey = s ? `${sidebarActiveKey() ?? ''}#${moveKey}` : null;
+    if (!selKey) {
+      lastScrolledSelKey = null;
+    } else if (isMobile() && selKey !== lastScrolledSelKey) {
+      lastScrolledSelKey = selKey;
+      // Scroll to the topmost *selection* band only (ignore the ambient
+      // commentary tint, which can sit higher up the daf).
+      const bands = overlay.querySelectorAll<HTMLElement>(
+        '.daf-range-highlight-section, .daf-range-highlight-halacha, .daf-range-highlight-aggadata, .daf-range-highlight-pesuk, .daf-range-highlight-move',
+      );
+      let topY = Infinity;
+      bands.forEach((el) => {
+        const r = el.getBoundingClientRect();
+        if (r.height > 0 && r.top < topY) topY = r.top;
+      });
+      if (topY !== Infinity) {
+        // Park the span ~12% down from the top of the viewport: clears the
+        // page header while keeping it well above the bottom shelf.
+        const desiredTop = window.innerHeight * 0.12;
+        window.scrollBy({ top: topY - desiredTop, behavior: 'smooth' });
+      }
     }
   };
 
@@ -2753,6 +2790,7 @@ export default function DafViewer(): JSX.Element {
           onCloseExpansion={() => {
             setSidebar(null);
             setActiveRabbi(null);
+            setArgumentMoveHighlight(null);
             if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
           }}
           tractate={tractate()}
@@ -2764,6 +2802,7 @@ export default function DafViewer(): JSX.Element {
           onBack={popSidebar}
           dafRabbis={dafRabbis()}
           dafRabbiNames={dafRabbiNames()}
+          onHighlightRange={setArgumentMoveHighlight}
           onOpenRabbiSlug={openRabbiSlug}
           generationByName={generationByName()}
         />

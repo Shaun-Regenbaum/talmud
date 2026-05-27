@@ -7,6 +7,7 @@ import { UsagePage } from './UsagePage';
 import { AlignPage } from './AlignPage';
 import { SagesPage } from './SagesPage';
 import SettingsPage from './SettingsPage';
+import { AttributionsPage } from './AttributionsPage';
 
 function currentRoute() {
   // #sages/<slug> deep-links into SagesPage; treat the prefix as the route.
@@ -41,7 +42,11 @@ export default function App() {
         <Show when={route() === 'compare'} fallback={
           <Show when={route() === 'spike'} fallback={
             <Show when={route() === 'sages'} fallback={
-              <Show when={route() === 'settings'} fallback={<DafViewer />}>
+              <Show when={route() === 'settings'} fallback={
+                <Show when={route() === 'about'} fallback={<DafViewer />}>
+                  <AttributionsPage />
+                </Show>
+              }>
                 <SettingsPage />
               </Show>
             }>

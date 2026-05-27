@@ -24,28 +24,25 @@
  * fall back to direct binding without redeploying code.
  */
 
+import { isRetryable } from './llm-error';
+
 export interface AiGatewayEnv {
   AI?: Ai;
   AI_GATEWAY_ID?: string;
   AI_GATEWAY_DISABLE?: string;
 }
 
-// Same-model retry (used by runWithRetry around a single fetch): only genuine
-// transient TRANSPORT failures. Deliberately excludes timeouts/aborts —
-// retrying the identical slow call against the identical endpoint just stalls
-// again and burns the backoff budget. A stall is recovered by switching MODELS
-// (see FALLBACK_WORTHY), not by hammering the same one.
-export const RETRYABLE = /1031|InferenceUpstreamError|3046|AiError 3046|HTTP 5\d\d|HTTP 429|fetch failed|network/i;
-
-// Model-fallback worthiness (used by runLLM to decide whether to walk to the
-// next model in the chain): everything RETRYABLE plus timeouts/aborts. A model
-// that times out or gets its stream aborted should hand off to the next model,
-// which may be faster or routed to a healthier provider.
-export const FALLBACK_WORTHY = /1031|InferenceUpstreamError|3046|AiError 3046|HTTP 5\d\d|HTTP 429|fetch failed|network|aborted|timed-out|timed out|timeout/i;
-// Bumped 3 → 5 to ride out transient OpenRouter / gateway 5xx bursts. Backoff
-// is exponential (1s, 2s, 4s, 8s, 16s) + 0–500ms jitter; total worst-case
-// wait ≈31s before giving up — fits inside the queue consumer's 90s budget
-// and matches how upstream provider outages typically clear in 5–15s.
+// Retry/fallback classification now lives on the error itself (see ./llm-error):
+// LLMError carries `retryable` / `fallbackWorthy`, and isRetryable() /
+// isFallbackWorthy() also handle foreign throwables. runWithRetry retries only
+// same-model transient transport failures (isRetryable); a stalled or timed-out
+// model is recovered by switching MODELS (runLLM + isFallbackWorthy), not by
+// hammering the same one.
+//
+// MAX_ATTEMPTS bumped 3 → 5 to ride out transient OpenRouter / gateway 5xx
+// bursts. Backoff is exponential (1s, 2s, 4s, 8s, 16s) + 0–500ms jitter; total
+// worst-case wait ≈31s before giving up — fits inside the queue consumer's 90s
+// budget and matches how upstream provider outages typically clear in 5–15s.
 const MAX_ATTEMPTS = 5;
 
 export function gatewayActive(env: AiGatewayEnv): boolean {
@@ -71,16 +68,31 @@ function backoffMs(attempt: number): number {
   return 1000 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 500);
 }
 
-export async function runWithRetry<T>(perform: () => Promise<T>): Promise<T> {
+// Interruptible delay: resolves after `ms`, or rejects immediately if `signal`
+// aborts first. Without this the backoff between retries blocks even after the
+// caller has given up (e.g. callOpenRouterGateway's hard-timeout controller has
+// already fired) — wasting up to a full backoff interval before noticing.
+function delay(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) { reject(new DOMException('Aborted', 'AbortError')); return; }
+    const onAbort = () => { clearTimeout(timer); reject(new DOMException('Aborted', 'AbortError')); };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+    signal?.addEventListener('abort', onAbort, { once: true });
+  });
+}
+
+export async function runWithRetry<T>(perform: () => Promise<T>, signal?: AbortSignal): Promise<T> {
   let lastErr: unknown = null;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
       return await perform();
     } catch (err) {
       lastErr = err;
-      const detail = String((err as Error)?.message ?? err);
-      if (!RETRYABLE.test(detail) || attempt === MAX_ATTEMPTS) throw err;
-      await new Promise((r) => setTimeout(r, backoffMs(attempt)));
+      if (!isRetryable(err) || attempt === MAX_ATTEMPTS) throw err;
+      await delay(backoffMs(attempt), signal);
     }
   }
   throw lastErr;

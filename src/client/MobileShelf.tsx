@@ -26,6 +26,9 @@ interface MobileShelfProps {
   dafRabbiNames: string[];
   onOpenRabbiSlug: (slug: string) => void;
   generationByName: Map<string, GenerationId>;
+  onHighlightRange?: (
+    range: { start: number; end: number; key: string; tokenStart?: number; tokenEnd?: number } | null,
+  ) => void;
 }
 
 // Fixed-bottom sheet on mobile. The interaction-mode bar (Read / Translate)
@@ -141,6 +144,7 @@ function ExpansionView(props: MobileShelfProps): JSX.Element {
           onBack={props.onBack}
           dafRabbis={props.dafRabbis}
           dafRabbiNames={props.dafRabbiNames}
+          onHighlightRange={props.onHighlightRange}
           onOpenRabbiSlug={props.onOpenRabbiSlug}
           generationByName={props.generationByName}
         />
