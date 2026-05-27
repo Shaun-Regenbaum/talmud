@@ -1667,8 +1667,6 @@ const RABBI_CLASSIFICATION_OUTPUT_SCHEMA = {
     },
   },
 };
-const RABBI_SYNTHESIS_OUTPUT_SCHEMA = proseSchema('rabbi_synthesis', 'synthesis');
-
 function makeEnrichment(
   targetMark: string,
   id: string,
@@ -1734,6 +1732,44 @@ const makeRabbiEnrichment = (
     userPromptTemplateHe?: string;
   },
 ): EnrichmentDefinition => makeEnrichment('rabbi', id, label, description, systemPrompt, userPromptTemplate, outputSchema, opts);
+
+/** Every synthesis aggregate is the same shape: label "Synthesis", mode
+ *  'aggregate', scope 'local', and a single-`synthesis`-string output whose
+ *  schema name is the id with separators underscored (rabbi.synthesis →
+ *  rabbi_synthesis). Only the prompts, dependencies, and version differ — pass
+ *  those; everything else is fixed here. */
+function makeSynthesis(
+  targetMark: string,
+  id: string,
+  description: string,
+  systemPrompt: string,
+  userPromptTemplate: string,
+  opts: {
+    dependencies: EnrichmentDependency[];
+    defHash: string;
+    cacheVersion: string;
+    scope?: EnrichmentScope;
+    model?: LLMModelId;
+    systemPromptHe?: string;
+    userPromptTemplateHe?: string;
+  },
+): EnrichmentDefinition {
+  return makeEnrichment(
+    targetMark, id, 'Synthesis', description,
+    systemPrompt, userPromptTemplate,
+    proseSchema(id.replace(/[.-]/g, '_'), 'synthesis'),
+    {
+      mode: 'aggregate',
+      scope: opts.scope ?? 'local',
+      dependencies: opts.dependencies,
+      defHash: opts.defHash,
+      cacheVersion: opts.cacheVersion,
+      model: opts.model,
+      systemPromptHe: opts.systemPromptHe,
+      userPromptTemplateHe: opts.userPromptTemplateHe,
+    },
+  );
+}
 
 export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
   // Leaf enrichments — each focuses on one facet of the rabbi. The
@@ -1813,13 +1849,11 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
   // Synthesis — the user-facing card. Depends on the leaves plus the
   // gemara text and the full rabbi instance list (so the prompt can name
   // OTHER rabbis on the same daf).
-  makeRabbiEnrichment(
-    'rabbi.synthesis', 'Synthesis',
+  makeSynthesis(
+    'rabbi', 'rabbi.synthesis',
     'One tight paragraph about the rabbi as a person, with this daf as the lens. Synthesizes bio + philosophy + relationships + classification + geography.',
-    RABBI_SYNTHESIS_SYSTEM_PROMPT, RABBI_SYNTHESIS_USER_TEMPLATE, RABBI_SYNTHESIS_OUTPUT_SCHEMA,
+    RABBI_SYNTHESIS_SYSTEM_PROMPT, RABBI_SYNTHESIS_USER_TEMPLATE,
     {
-      mode: 'aggregate',
-      scope: 'local',
       dependencies: [
         'gemara',
         { enrichment: 'rabbi.bio' },
@@ -2123,8 +2157,6 @@ Rabbis identified on the daf:
 
 Compose ONE paragraph per the schema.`;
 
-const ARGUMENT_SYNTHESIS_OUTPUT_SCHEMA = proseSchema('argument_synthesis', 'synthesis');
-
 // ---------------- Hebrew-output parallels (argument section level) ----------------
 
 const ARGUMENT_VOICES_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. עבור כל חכם נקוב המופיע במקטע זה, תאר את תפקידו הטיעוני בתוך המקטע, ופלוט גרף המראה כיצד הקולות מתקשרים (מי חולק על מי, מי תומך במי). מקומי-לדף — על מה שהם עושים כאן, לא על הביוגרפיה הכללית שלהם.
@@ -2282,12 +2314,11 @@ CODE_ENRICHMENTS.push(
       userPromptTemplateHe: ARGUMENT_BACKGROUND_USER_TEMPLATE_HE,
     },
   ),
-  makeEnrichment(
-    'argument', 'argument.synthesis', 'Synthesis',
+  makeSynthesis(
+    'argument', 'argument.synthesis',
     'One tight paragraph: what this section argues, who pushes what, where it lands.',
-    ARGUMENT_SYNTHESIS_SYSTEM_PROMPT, ARGUMENT_SYNTHESIS_USER_TEMPLATE, ARGUMENT_SYNTHESIS_OUTPUT_SCHEMA,
+    ARGUMENT_SYNTHESIS_SYSTEM_PROMPT, ARGUMENT_SYNTHESIS_USER_TEMPLATE,
     {
-      mode: 'aggregate', scope: 'local',
       dependencies: [
         'gemara',
         'commentaries',
@@ -2578,8 +2609,6 @@ Rabbis identified on the daf:
 {{anchors.rabbi}}
 
 Compose ONE tight paragraph about THIS move per the schema.`;
-
-const ARGUMENT_MOVE_SYNTHESIS_OUTPUT_SCHEMA = proseSchema('argument_move_synthesis', 'synthesis');
 
 // ---------------------------------------------------------------------------
 // argument-move.suggested-questions
@@ -2919,12 +2948,11 @@ CODE_ENRICHMENTS.push(
       userPromptTemplateHe: ARGUMENT_MOVE_COMMENTARIES_USER_TEMPLATE_HE,
     },
   ),
-  makeEnrichment(
-    'argument-move', 'argument-move.synthesis', 'Synthesis',
+  makeSynthesis(
+    'argument-move', 'argument-move.synthesis',
     'Tight per-move paragraph: who, what, what it responds to, brief commentary touch.',
-    ARGUMENT_MOVE_SYNTHESIS_SYSTEM_PROMPT, ARGUMENT_MOVE_SYNTHESIS_USER_TEMPLATE, ARGUMENT_MOVE_SYNTHESIS_OUTPUT_SCHEMA,
+    ARGUMENT_MOVE_SYNTHESIS_SYSTEM_PROMPT, ARGUMENT_MOVE_SYNTHESIS_USER_TEMPLATE,
     {
-      mode: 'aggregate', scope: 'local',
       dependencies: [
         'gemara',
         { enrichment: 'argument-move.commentaries' },
@@ -3314,8 +3342,6 @@ Rabbis identified on the daf (for context on who's teaching where):
 
 Compose ONE tight paragraph about THIS place per the schema. Lead with what the place is and why it matters (drawing on the background), then pivot to how THIS daf uses it. Do NOT merely repeat the background verbatim.`;
 
-const PLACES_SYNTHESIS_OUTPUT_SCHEMA = proseSchema('places_synthesis', 'synthesis');
-
 const PLACES_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה גיאוגרף הש"ס. בהינתן רפרנס גיאוגרפי אחד שזוהה בדף והגמרא הסובבת, חבר פסקה הדוקה על המקום המסוים הזה בהקשר של הדף הזה.
 
 החזר JSON תקין בלבד:
@@ -3360,12 +3386,11 @@ const PLACES_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}
 חבר פסקה הדוקה אחת על המקום הזה לפי הסכימה. פתח במה המקום הוא ומדוע הוא חשוב (בהישען על הרקע), ואז עבור לאופן שבו דף זה משתמש בו. אל תחזור על הרקע מילה במילה.`;
 
 CODE_ENRICHMENTS.push(
-  makeEnrichment(
-    'places', 'places.synthesis', 'Synthesis',
+  makeSynthesis(
+    'places', 'places.synthesis',
     'Tight per-place paragraph: what it is, why it matters at the time of this daf, how the gemara uses it.',
-    PLACES_SYNTHESIS_SYSTEM_PROMPT, PLACES_SYNTHESIS_USER_TEMPLATE, PLACES_SYNTHESIS_OUTPUT_SCHEMA,
+    PLACES_SYNTHESIS_SYSTEM_PROMPT, PLACES_SYNTHESIS_USER_TEMPLATE,
     {
-      mode: 'aggregate', scope: 'local',
       dependencies: [
         'gemara',
         { enrichment: 'places.profile' },
@@ -3454,8 +3479,6 @@ English translation:
 
 Compose ONE tight paragraph weaving the rishonim's reading of THIS segment per the schema.`;
 
-const RISHONIM_SYNTHESIS_OUTPUT_SCHEMA = proseSchema('rishonim_synthesis', 'synthesis');
-
 const RISHONIM_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. בהינתן מקטע אחד של גמרא והראשונים שפירשו את המקטע הזה (רש"י, תוספות, רמב"ן, רשב"א, מאירי, ריטב"א, ר"ן וכו'), חבר פסקה הדוקה השוזרת את קולותיהם לכדי קריאה אחת.
 
 החזר JSON תקין בלבד:
@@ -3488,12 +3511,11 @@ const RISHONIM_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page
 חבר פסקה הדוקה אחת השוזרת את קריאת הראשונים של המקטע הזה לפי הסכימה.`;
 
 CODE_ENRICHMENTS.push(
-  makeEnrichment(
-    'rishonim', 'rishonim.synthesis', 'Synthesis',
+  makeSynthesis(
+    'rishonim', 'rishonim.synthesis',
     'Tight per-segment paragraph weaving Rashi + Tosafot + named rishonim into a single reading.',
-    RISHONIM_SYNTHESIS_SYSTEM_PROMPT, RISHONIM_SYNTHESIS_USER_TEMPLATE, RISHONIM_SYNTHESIS_OUTPUT_SCHEMA,
+    RISHONIM_SYNTHESIS_SYSTEM_PROMPT, RISHONIM_SYNTHESIS_USER_TEMPLATE,
     {
-      mode: 'aggregate', scope: 'local',
       dependencies: ['gemara', { mark: 'rishonim' }],
       defHash: 'rishonim.synthesis-v3', cacheVersion: '3',
       model: ARGUMENT_FLASH_MODEL,
@@ -3746,8 +3768,6 @@ Hebrew/Aramaic source for the daf (for grounding only):
 
 Produce the synthesis per the schema.`;
 
-const HALACHA_SYNTHESIS_OUTPUT_SCHEMA = proseSchema('halacha_synthesis', 'synthesis');
-
 // ---------------- Hebrew-output parallels (halacha) ----------------
 
 const HALACHA_LEAF_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
@@ -3905,12 +3925,11 @@ CODE_ENRICHMENTS.push(
       userPromptTemplateHe: HALACHA_LEAF_USER_TEMPLATE_HE,
     },
   ),
-  makeEnrichment(
-    'halacha', 'halacha.synthesis', 'Synthesis',
+  makeSynthesis(
+    'halacha', 'halacha.synthesis',
     'One tight paragraph weaving codification, dispute, and (optionally) gemara source — short orientation, then the narrative thread the structured cards cannot give.',
-    HALACHA_SYNTHESIS_SYSTEM_PROMPT, HALACHA_SYNTHESIS_USER_TEMPLATE, HALACHA_SYNTHESIS_OUTPUT_SCHEMA,
+    HALACHA_SYNTHESIS_SYSTEM_PROMPT, HALACHA_SYNTHESIS_USER_TEMPLATE,
     {
-      mode: 'aggregate', scope: 'local',
       dependencies: [
         'gemara',
         { enrichment: 'halacha.codification' },
@@ -4169,8 +4188,6 @@ Rabbis identified on the daf:
 {{anchors.rabbi}}
 
 Weave these into ONE tight paragraph per the schema.`;
-
-const PESUKIM_SYNTHESIS_OUTPUT_SCHEMA = proseSchema('pesukim_synthesis', 'synthesis');
 
 // ---------------------------------------------------------------------------
 // pesukim.suggested-questions — mirrors argument-move.suggested-questions but
@@ -4676,12 +4693,11 @@ CODE_ENRICHMENTS.push(
       userPromptTemplateHe: PESUKIM_LANDING_USER_TEMPLATE_HE,
     },
   ),
-  makeEnrichment(
-    'pesukim', 'pesukim.synthesis', 'Synthesis',
+  makeSynthesis(
+    'pesukim', 'pesukim.synthesis',
     'Tight paragraph weaving the four section leaves into a single narrative thread.',
-    PESUKIM_SYNTHESIS_SYSTEM_PROMPT, PESUKIM_SYNTHESIS_USER_TEMPLATE, PESUKIM_SYNTHESIS_OUTPUT_SCHEMA,
+    PESUKIM_SYNTHESIS_SYSTEM_PROMPT, PESUKIM_SYNTHESIS_USER_TEMPLATE,
     {
-      mode: 'aggregate', scope: 'local',
       dependencies: [
         'gemara',
         { enrichment: 'pesukim.tanach-context' },
@@ -4894,8 +4910,6 @@ Rabbis identified on the daf:
 {{anchors.rabbi}}
 
 Compose ONE tight paragraph per the schema.`;
-
-const AGGADATA_SYNTHESIS_OUTPUT_SCHEMA = proseSchema('aggadata_synthesis', 'synthesis');
 
 const AGGADATA_SUGGESTED_QUESTIONS_SYSTEM_PROMPT = `You are a chavruta studying gemara with an aggadic story. Given ONE aggadah cited on a daf plus the synthesis paragraph, produce a SHORT list of follow-up questions a learner is likely to want answered AFTER reading the synthesis. The synthesis says WHAT the story does; these questions should target WHY, the historical mechanism, and the surrounding context that the synthesis didn't fit.
 
@@ -5276,12 +5290,11 @@ CODE_ENRICHMENTS.push(
       userPromptTemplateHe: AGGADATA_LEAF_USER_TEMPLATE_HE,
     },
   ),
-  makeEnrichment(
-    'aggadata', 'aggadata.synthesis', 'Synthesis',
+  makeSynthesis(
+    'aggadata', 'aggadata.synthesis',
     'Tight paragraph weaving background, local interpretation, and parallels into one read.',
-    AGGADATA_SYNTHESIS_SYSTEM_PROMPT, AGGADATA_SYNTHESIS_USER_TEMPLATE, AGGADATA_SYNTHESIS_OUTPUT_SCHEMA,
+    AGGADATA_SYNTHESIS_SYSTEM_PROMPT, AGGADATA_SYNTHESIS_USER_TEMPLATE,
     {
-      mode: 'aggregate', scope: 'local',
       dependencies: [
         'gemara',
         { enrichment: 'aggadata.background' },

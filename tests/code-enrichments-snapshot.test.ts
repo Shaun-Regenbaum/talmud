@@ -17,7 +17,10 @@ function fingerprint(e: (typeof CODE_ENRICHMENTS)[number]): string {
     .output_schema;
   const name = schema?.name ?? '-';
   const required = (schema?.schema?.required ?? []).join(',');
-  return `${e.id}@${e.cache_version} mode=${e.mode} scope=${e.scope} mark=${e.target_mark} schema=${name}[${required}]`;
+  const deps = (e.dependencies ?? [])
+    .map((d) => (typeof d === 'string' ? d : 'enrichment' in d ? `e:${d.enrichment}` : `m:${d.mark}`))
+    .join('|');
+  return `${e.id}@${e.cache_version} mode=${e.mode} scope=${e.scope} mark=${e.target_mark} schema=${name}[${required}] deps=[${deps}]`;
 }
 
 describe('CODE_ENRICHMENTS cache identity', () => {
