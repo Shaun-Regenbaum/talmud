@@ -1,6 +1,6 @@
 import { For, Show, createEffect, createMemo, createResource, createSignal, onCleanup, type JSX } from 'solid-js';
 import type { Section, Rabbi, HalachaTopic, AggadataStory, Pasuk } from './shapes';
-import { GENERATION_BY_ID, type GenerationId } from './generations';
+import { GENERATION_BY_ID, generationLabelHe, type GenerationId } from './generations';
 import type { IdentifiedRabbi } from './dafContext';
 import { Hebraized } from './Hebraized';
 import { RabbiText, RabbiLinkProvider, HebraizedWithRabbis } from './rabbiLinks';
@@ -12,7 +12,16 @@ import { type GeographyData, type GeographyEvidence } from './RabbiGeographyCard
 import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeline';
 import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
 import { selectSectionMoves } from '../lib/argumentMoves';
-import { t } from './i18n';
+import { t, lang } from './i18n';
+
+/** Localize an era date-range ("c. 290 – 320 CE") for Hebrew display. */
+function eraLabel(era: string): string {
+  if (lang() !== 'he' || !era) return era;
+  return era
+    .replace(/\bBCE\b/g, 'לפנה״ס')
+    .replace(/\bCE\b/g, 'לספירה')
+    .replace(/\bc\.\s*/g, '~');
+}
 
 /** Translate an argument move-kind to the active language, falling back to the
  *  raw kind string when the catalog has no entry. */
@@ -687,31 +696,46 @@ function RabbiBody(props: {
   const effRegion = () => identity()?.region ?? props.rabbi.region;
   const effPlaces = () => identity()?.places ?? props.rabbi.places;
   const gen = () => GENERATION_BY_ID[props.rabbi.generation];
-  const regionLabel = () => effRegion() === 'israel' ? 'Eretz Yisrael'
-    : effRegion() === 'bavel' ? 'Bavel'
+  const regionLabel = () => effRegion() === 'israel' ? t('geography.eretzYisrael')
+    : effRegion() === 'bavel' ? t('geography.bavel')
     : effRegion();
   const metaParts = (): string[] => {
     const g = gen();
     const parts: string[] = [];
-    if (g) parts.push(g.label);
-    if (g) parts.push(g.era);
+    if (g) parts.push(lang() === 'he' ? generationLabelHe(g) : g.label);
+    if (g) parts.push(eraLabel(g.era));
     const rl = regionLabel();
     if (rl) parts.push(rl);
     const pl = effPlaces();
     if (pl.length > 0) parts.push(pl.join(', '));
     return parts;
   };
+  // In Hebrew mode lead with the Hebrew name; in English lead with the English
+  // name. The other appears as the secondary line below.
+  const primaryName = () => (lang() === 'he' && props.rabbi.nameHe ? props.rabbi.nameHe : props.rabbi.name);
+  const secondaryName = () => (lang() === 'he' && props.rabbi.nameHe ? props.rabbi.name : props.rabbi.nameHe);
 
   return (
     <div>
-      <h3 style={{ margin: '0 0 0.15rem', 'font-size': '1.1rem', color: '#222', 'font-weight': 600 }}>
-        {props.rabbi.name}
+      <h3
+        dir={lang() === 'he' ? 'rtl' : 'ltr'}
+        lang={lang() === 'he' ? 'he' : undefined}
+        style={{
+          margin: '0 0 0.15rem', 'font-size': '1.1rem', color: '#222', 'font-weight': 600,
+          ...(lang() === 'he' ? { 'font-family': '"Mekorot Vilna", serif' } : {}),
+        }}
+      >
+        {primaryName()}
       </h3>
-      <Show when={props.rabbi.nameHe}>
-        <p dir="rtl" lang="he" style={{
-          margin: '0 0 0.6rem', 'font-family': '"Mekorot Vilna", serif',
-          'font-size': '1.05rem', color: '#666',
-        }}>{props.rabbi.nameHe}</p>
+      <Show when={secondaryName()}>
+        <p
+          dir={lang() === 'he' ? 'ltr' : 'rtl'}
+          lang={lang() === 'he' ? undefined : 'he'}
+          style={{
+            margin: '0 0 0.6rem', 'font-size': '1.05rem', color: '#666',
+            ...(lang() === 'he' ? {} : { 'font-family': '"Mekorot Vilna", serif' }),
+          }}
+        >{secondaryName()}</p>
       </Show>
       <Show when={metaParts().length > 0}>
         <div style={{
