@@ -75,7 +75,8 @@ export type SidebarContent =
   | { kind: 'rabbi'; rabbi: IdentifiedRabbi }
   | { kind: 'place'; place: PlaceInstance }
   | { kind: 'voice-group'; group: { name: string; nameHe: string; bio: string } }
-  | { kind: 'rishonim'; instance: RishonimInstance; index: number };
+  | { kind: 'rishonim'; instance: RishonimInstance; index: number }
+  | { kind: 'argument-overview' };
 
 export interface ArgumentSidebarProps {
   content: SidebarContent | null;
@@ -534,6 +535,52 @@ export function ArgumentBody(props: {
       </Show>
     </Panel>
     </Show>
+  );
+}
+
+/** Whole-daf argument overview. Runs the daf-level `argument-overview`
+ *  enrichments (one synthesis paragraph + a single voice graph for the entire
+ *  page) and renders the same ArgumentVoiceMap used per-section. Mirrors
+ *  ArgumentBody's voices flow, minus the per-section move list. */
+function ArgumentOverviewBody(props: {
+  tractate: string;
+  page: string;
+  onPushRabbi: (name: string) => void;
+}): JSX.Element {
+  // Whole-daf voices+edges, surfaced from the synthesis aggregate's
+  // deps_resolved (exactly like the per-section panel). Drives ArgumentVoiceMap.
+  const [voicesData, setVoicesData] = createSignal<ArgumentVoicesData | null>(null);
+
+  // Reset when the daf changes so a stale graph doesn't linger.
+  createEffect(() => {
+    void `${props.tractate}/${props.page}`;
+    setVoicesData(null);
+  });
+
+  const handleResolved = (r: { deps_resolved?: Record<string, unknown>; anchors_resolved?: Record<string, unknown> }) => {
+    const voices = r.deps_resolved?.['argument-overview.voices'] as ArgumentVoicesData | undefined;
+    if (voices && Array.isArray(voices.voices)) {
+      setVoicesData({ voices: voices.voices, edges: Array.isArray(voices.edges) ? voices.edges : [] });
+    }
+  };
+
+  return (
+    <Panel accent={ACCENTS.argument} title={t('overview.title')}>
+      <HebrewProse size="0.8rem" color="#999" margin="0 0 0.6rem">
+        {t('overview.experimental')}
+      </HebrewProse>
+      <Synthesis
+        markId="argument-overview"
+        instance={{ fields: {} }}
+        instanceKey={`${props.tractate}/${props.page}/overview`}
+        tractate={props.tractate}
+        page={props.page}
+        onResolved={handleResolved}
+      />
+      <Show when={voicesData()}>
+        {(data) => <ArgumentVoiceMap data={data()} onClickVoice={props.onPushRabbi} />}
+      </Show>
+    </Panel>
   );
 }
 
@@ -1507,6 +1554,14 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                 index={(c() as Extract<SidebarContent, { kind: 'aggadata' }>).index}
                 tractate={props.tractate}
                 page={props.page}
+              />
+            </Show>
+
+            <Show when={c().kind === 'argument-overview'}>
+              <ArgumentOverviewBody
+                tractate={props.tractate}
+                page={props.page}
+                onPushRabbi={props.onPushRabbi}
               />
             </Show>
 

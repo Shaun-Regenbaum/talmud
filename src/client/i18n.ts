@@ -170,6 +170,15 @@ const CATALOG = {
   'sidebar.kind.rishonim': { en: 'Rishonim', he: 'ראשונים' },
   'sidebar.kind.voice-group': { en: 'Voice', he: 'קול' },
   'sidebar.kind.rabbi': { en: 'Rabbi', he: 'חכם' },
+  'sidebar.kind.argument-overview': { en: 'Argument map', he: 'מפת הטיעון' },
+
+  // — Whole-daf argument overview —
+  'overview.chip': { en: 'Argument map', he: 'מפת הטיעון' },
+  'overview.title': { en: 'Whole-daf argument map', he: 'מפת הטיעון של הדף' },
+  'overview.experimental': {
+    en: 'Experimental — synthesized from dafyomi.co.il study context; positions are inferred.',
+    he: 'ניסיוני — מסונתז מתוכן הלימוד של dafyomi.co.il; העמדות מוסקות.',
+  },
 
   // — Common —
   'common.open': { en: 'Open {name}', he: 'פתיחת {name}' },

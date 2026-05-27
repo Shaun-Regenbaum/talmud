@@ -18,6 +18,7 @@
 import { For, Show, createSignal, type JSX } from 'solid-js';
 import { GENERATION_BY_ID, GENERATION_IDS, generationLabelHe, type GenerationId } from './generations';
 import { t, lang } from './i18n';
+import { orthogonalEdgePath, type EdgeRect } from './flow/orthogonalEdge';
 
 /** Generation label in the active language. */
 function genLabel(id: GenerationId): string {
@@ -347,49 +348,21 @@ function buildLayout(
   return { nodes, edges, width, height };
 }
 
-/** SVG line path for a parent edge — connects the bottom-center of the upper
- *  node to the top-center of the lower node (a vertical drop). */
-function parentPath(from: LaidNode, to: LaidNode): string {
-  const fromMidX = from.x + NODE_W / 2;
-  const toMidX = to.x + NODE_W / 2;
-  const sameColumn = Math.abs(fromMidX - toMidX) < 1;
-
-  // Teacher above subject (`to` is the teacher in graph terms, but rendering-
-  // wise `to.y < from.y` since earlier generation = lower y).
-  if (to.y < from.y) {
-    if (sameColumn) {
-      // Clean vertical drop from teacher's bottom to subject's top.
-      return `M ${toMidX} ${to.y + NODE_H} L ${fromMidX} ${from.y}`;
-    }
-    // Off-column teacher: L-shape. Down from teacher's bottom to a midline
-    // Y, then horizontal to subject's column, then down to subject's top.
-    const midY = (to.y + NODE_H + from.y) / 2;
-    return `M ${toMidX} ${to.y + NODE_H} L ${toMidX} ${midY} L ${fromMidX} ${midY} L ${fromMidX} ${from.y}`;
-  }
-
-  // Student below subject.
-  if (to.y > from.y) {
-    if (sameColumn) {
-      return `M ${fromMidX} ${from.y + NODE_H} L ${toMidX} ${to.y}`;
-    }
-    const midY = (from.y + NODE_H + to.y) / 2;
-    return `M ${fromMidX} ${from.y + NODE_H} L ${fromMidX} ${midY} L ${toMidX} ${midY} L ${toMidX} ${to.y}`;
-  }
-
-  // Same-row fallback (teacher in subject's row — rare). Short horizontal
-  // line between the nearer edges.
-  const startX = from.x + (toMidX > fromMidX ? NODE_W : 0);
-  const endX = to.x + (toMidX > fromMidX ? 0 : NODE_W);
-  return `M ${startX} ${from.y + NODE_H / 2} L ${endX} ${to.y + NODE_H / 2}`;
+function rect(n: LaidNode): EdgeRect {
+  return { x: n.x, y: n.y, w: NODE_W, h: NODE_H };
 }
 
-/** Partner edge — horizontal dashed line between the two nodes. */
+/** Parent edge (teacher↔student) — delegated to the shared orthogonal router
+ *  so it is always a clean vertical drop or L-shape, never diagonal. */
+function parentPath(from: LaidNode, to: LaidNode): string {
+  return orthogonalEdgePath(rect(from), rect(to));
+}
+
+/** Partner edge — same orthogonal router. When the partner sits in the
+ *  subject's row this is a horizontal line; off-row it routes as an L-shape
+ *  rather than the diagonal the old single-segment version drew. */
 function partnerPath(from: LaidNode, to: LaidNode): string {
-  const fromMidY = from.y + NODE_H / 2;
-  const toMidY = to.y + NODE_H / 2;
-  const startX = from.x + (to.x > from.x ? NODE_W : 0);
-  const endX = to.x + (to.x > from.x ? 0 : NODE_W);
-  return `M ${startX} ${fromMidY} L ${endX} ${toMidY}`;
+  return orthogonalEdgePath(rect(from), rect(to));
 }
 
 export default function RabbiLineageTree(props: Props): JSX.Element {

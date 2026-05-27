@@ -9,6 +9,7 @@ import {
 } from '../lib/sefref';
 import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
 import { collectContext } from './context-providers';
+import { formatContextForPrompt } from '../lib/context/select';
 import { aiMatchToSegments } from './context-match';
 import type { MatchInput } from '../lib/context/anchor/ai-prompt';
 import {
@@ -823,6 +824,14 @@ async function resolveDependencies(
       out.vars.mishna = mishnaBundleToString(filtered);
       return;
     }
+    if (dep === 'context') {
+      // Aggregated external context (dafyomi Points/Halacha/Charts + Sefaria),
+      // rendered as grouped plain text for the prompt. Each source that fails
+      // contributes nothing rather than throwing.
+      const items = await collectContext(rc.env, tractate, page);
+      out.vars.context = formatContextForPrompt(items);
+      return;
+    }
     if (typeof dep === 'object' && dep !== null) {
       if ('enrichment' in dep) {
         const depId = dep.enrichment;
@@ -973,6 +982,10 @@ const COMPUTED_FNS: Record<string, ComputedMarkFn> = {
       }));
     return { instances };
   },
+  // Whole-daf marks (anchor: 'whole-daf') carry no per-segment anchor — they
+  // represent one daf-level concept. Emit a single anchorless instance so the
+  // chip renders and daf-level enrichments have something to attach to.
+  'whole-daf-instance': async () => ({ instances: [{ fields: {} }] }),
 };
 
 // Per-section fan-out concurrency. Each section call is small (~3-6 moves);

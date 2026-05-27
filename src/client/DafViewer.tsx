@@ -728,6 +728,7 @@ export default function DafViewer(): JSX.Element {
     if (c.kind === 'place') return c.place.fields.name || 'Place';
     if (c.kind === 'voice-group') return c.group.name;
     if (c.kind === 'rishonim') return `Rishonim · seg ${c.instance.segIdx + 1}`;
+    if (c.kind === 'argument-overview') return t('overview.chip');
     return 'Back';
   };
   const sidebarKey = (c: SidebarContent): string => {
@@ -739,7 +740,19 @@ export default function DafViewer(): JSX.Element {
     if (c.kind === 'place') return `place:${c.place.fields.name}`;
     if (c.kind === 'voice-group') return `voice-group:${c.group.name}`;
     if (c.kind === 'rishonim') return `rishonim:${c.instance.segIdx}`;
+    if (c.kind === 'argument-overview') return 'argument-overview';
     return 'unknown';
+  };
+
+  // Whole-daf 'chip' marks (anchor: 'whole-daf', render.kind: 'chip') surface
+  // as a button bar above the daf. Clicking opens the mark's daf-level sidebar
+  // panel. Generic over the registry — any future chip mark gets a button; the
+  // open routing is per-mark id.
+  const chipMarks = createMemo(() =>
+    enabledMarkDefs().filter((m) => (m.render as { kind?: string }).kind === 'chip'),
+  );
+  const openChip = (id: string) => {
+    if (id === 'argument-overview') setSidebar({ kind: 'argument-overview' });
   };
   // Set by ArgumentSidebar when the user clicks an argument-move card. Paints
   // a yellow band over the move's segment range in the main daf text. When
@@ -1825,6 +1838,7 @@ export default function DafViewer(): JSX.Element {
     if (s.kind === 'rabbi') return `rabbi:${s.rabbi.name}`;
     if (s.kind === 'place') return `place:${s.place.fields.name}`;
     if (s.kind === 'voice-group') return `voice-group:${s.group.name}`;
+    if (s.kind === 'argument-overview') return 'argument-overview';
     return `${s.kind}:${s.index}`;
   });
 
@@ -2584,6 +2598,34 @@ export default function DafViewer(): JSX.Element {
           body column so it's exactly the daf's width, pinned (sticky) directly
           above the daf as the reader scrolls. */}
       <DafLoadProgress />
+
+      <Show when={chipMarks().length > 0}>
+        <div class="daf-chip-bar" style={{ display: 'flex', gap: '0.4rem', 'flex-wrap': 'wrap', margin: '0 0 0.6rem' }}>
+          <For each={chipMarks()}>{(m) => {
+            const color = (m.render as { color?: string }).color ?? '#8a2a2b';
+            const label = m.id === 'argument-overview' ? t('overview.chip') : m.id;
+            const active = () => sidebar()?.kind === 'argument-overview' && m.id === 'argument-overview';
+            return (
+              <button
+                type="button"
+                onClick={() => openChip(m.id)}
+                title={label}
+                style={{
+                  'font-size': '0.75rem',
+                  'font-weight': 600,
+                  padding: '0.25rem 0.7rem',
+                  'border-radius': '999px',
+                  border: `1px solid ${color}`,
+                  color: active() ? '#fff' : color,
+                  background: active() ? color : '#fff',
+                  cursor: 'pointer',
+                  'font-family': 'system-ui, -apple-system, sans-serif',
+                }}
+              >{label}</button>
+            );
+          }}</For>
+        </div>
+      </Show>
 
       <div ref={surfaceEl} class="daf-surface" onMouseUp={onMouseUpRoot} style={{ display: 'flex', 'justify-content': 'center' }}>
         <Show

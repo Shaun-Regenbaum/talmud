@@ -12,6 +12,8 @@ exports[`CODE_ENRICHMENTS cache identity > per-enrichment fingerprint is stable 
   "argument-move.qa@5 mode=augment-content scope=local mark=argument-move schema=argument_move_qa[answer,confidence] deps=[gemara|e:argument-move.synthesis|e:argument-move.commentaries|m:argument-move]",
   "argument-move.suggested-questions@3 mode=augment-content scope=local mark=argument-move schema=argument_move_suggested_questions[questions] deps=[gemara|m:argument-move|e:argument-move.synthesis]",
   "argument-move.synthesis@5 mode=aggregate scope=local mark=argument-move schema=argument_move_synthesis[synthesis] deps=[gemara|e:argument-move.commentaries|m:argument-move|m:rabbi]",
+  "argument-overview.synthesis@1 mode=aggregate scope=local mark=argument-overview schema=argument_overview_synthesis[synthesis] deps=[gemara|context|e:argument-overview.voices|m:argument|m:rabbi]",
+  "argument-overview.voices@1 mode=augment-content scope=local mark=argument-overview schema=argument_voices[voices,edges] deps=[gemara|context|m:argument|m:rabbi]",
   "argument.background@3 mode=augment-content scope=local mark=argument schema=argument_background[background] deps=[gemara|commentaries|mishna]",
   "argument.synthesis@10 mode=aggregate scope=local mark=argument schema=argument_synthesis[synthesis] deps=[gemara|commentaries|mishna|e:argument.voices|e:argument.background|m:rabbi|m:argument-move]",
   "argument.voices@5 mode=augment-content scope=local mark=argument schema=argument_voices[voices,edges] deps=[gemara|m:argument-move|m:rabbi]",
