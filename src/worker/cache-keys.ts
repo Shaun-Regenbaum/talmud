@@ -72,25 +72,27 @@ export async function qualifierHash(s: string): Promise<string> {
 export async function instanceIdOf(markInput: unknown): Promise<string> {
   if (markInput && typeof markInput === 'object') {
     const o = markInput as Record<string, unknown>;
-    if (typeof o.id === 'string' && o.id) return slugId(o.id);
-    // Top-level identity fields — covers callers that pass a flat
-    // {name, nameHe, generation, region, places} shape (the rabbi
-    // sidebar does this from dafContext) rather than the mark-instance
-    // {excerpt, fields:{name,...}} shape (warmers and mark anchors do
-    // this). Without this, the two callers compute different
-    // instance_ids for the same rabbi and the cache misses across
-    // surfaces. Order mirrors the fields check below.
-    if (typeof o.name === 'string' && o.name) return slugId(o.name);
-    if (typeof o.topic === 'string' && o.topic) return slugId(o.topic);
-    if (typeof o.title === 'string' && o.title) return slugId(o.title);
-    if (typeof o.verseRef === 'string' && o.verseRef) return slugId(o.verseRef);
     const fields = o.fields as Record<string, unknown> | undefined;
-    if (fields) {
-      if (typeof fields.id === 'string' && fields.id) return slugId(fields.id);
-      if (typeof fields.name === 'string' && fields.name) return slugId(fields.name);
-      if (typeof fields.topic === 'string' && fields.topic) return slugId(fields.topic);
-      if (typeof fields.title === 'string' && fields.title) return slugId(fields.title);
-      if (typeof fields.verseRef === 'string' && fields.verseRef) return slugId(fields.verseRef);
+    // Identity-label preference order. Top-level fields cover callers that pass
+    // a flat {name, nameHe, generation, ...} shape (the rabbi sidebar, from
+    // dafContext); the fields.* entries cover the mark-instance
+    // {excerpt, fields:{name,...}} shape (warmers + mark anchors). Both must
+    // agree so the same rabbi shares a cache key across surfaces.
+    const labels: unknown[] = [
+      o.id, o.name, o.topic, o.title, o.verseRef,
+      fields?.id, fields?.name, fields?.topic, fields?.title, fields?.verseRef,
+    ];
+    for (const label of labels) {
+      if (typeof label !== 'string' || !label) continue;
+      const slug = slugId(label);
+      // A label is only usable as an id if slugId leaves real alphanumerics.
+      // Hebrew (and other non-Latin) titles/topics slug to just "_", so
+      // returning that would collide EVERY Hebrew section/topic on a daf onto
+      // one cache key (the bug that made all Hebrew argument cards render the
+      // same section). On a degenerate slug, fall through to the structural
+      // hash below — which includes the segment range + verbatim title/excerpt
+      // and so stays distinct per section.
+      if (/[a-z0-9]/.test(slug)) return slug;
     }
     // Anchor-shape fallback: hash the stable structural fields.
     const stable = pickStable(o);
