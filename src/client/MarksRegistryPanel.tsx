@@ -180,10 +180,26 @@ type RunResponse =
 const POLL_INTERVAL_MS = 1500;
 const POLL_TIMEOUT_MS = 180_000;
 
+/** Studio secret for the privileged /api/studio/run knobs (bypass_cache here).
+ *  The owner sets it once via
+ *  `localStorage.setItem('talmud_studio_secret', '<secret>')` in the browser
+ *  console; it rides along as the x-studio-secret header so the server treats
+ *  these requests as trusted. Absent => the server simply downgrades
+ *  bypass_cache to a cache-respecting run (no error), so this panel still works
+ *  read-only for everyone else. */
+function studioHeaders(): Record<string, string> {
+  try {
+    const s = localStorage.getItem('talmud_studio_secret');
+    return s ? { 'x-studio-secret': s } : {};
+  } catch {
+    return {};
+  }
+}
+
 async function postAndAwait(body: unknown): Promise<RunResult> {
   const r = await fetch('/api/studio/run', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...studioHeaders() },
     body: JSON.stringify(body),
   });
   const j = await r.json() as RunResponse | { error?: string };

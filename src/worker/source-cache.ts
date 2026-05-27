@@ -297,15 +297,17 @@ export async function getDafyomiContentCached(
     let corpus = await readJsonAsset(assets.fetch(new Request(`https://assets.local${path}`)));
     if (!corpus && assetOrigin) corpus = await readJsonAsset(fetch(`${assetOrigin}${path}`));
     if (corpus) {
-      await writeCache(cache, key, corpus);
+      // dafyomi.co.il study content for a daf never changes — cache it forever,
+      // like the HebrewBooks daf HTML (ttl=null), not the 30-day Sefaria default.
+      await writeCache(cache, key, corpus, null);
       return corpus;
     }
     // Not in the committed corpus — fetch + parse live (then memoize) so every
-    // daf works, not just the pre-scraped ones.
+    // daf works, not just the pre-scraped ones. Same never-expire policy.
     if (allowLive) {
       const live = await scrapeDafyomiLive(tractate, parseInt(daf, 10));
       if (live) {
-        await writeCache(cache, key, live);
+        await writeCache(cache, key, live, null);
         return live;
       }
     }

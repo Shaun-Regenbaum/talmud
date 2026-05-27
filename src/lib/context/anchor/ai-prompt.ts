@@ -25,11 +25,12 @@ You are given the daf as a numbered list of Hebrew segments with English transla
 For EACH item, decide which segment (or contiguous range of segments) it most directly discusses or comments on.
 Rules:
 - Use the segment INDICES shown (0-based).
+- Most study-note items DO comment on a specific line — localize whenever you reasonably can. Prefer the single best segment over a wide range.
 - If an item maps to one segment, set segEnd = segStart.
 - If it spans consecutive segments, set segStart..segEnd.
-- If an item is general to the whole daf / you cannot localize it, set segStart = null.
+- Only set segStart = null when the item is genuinely about the whole daf (e.g. a general summary or methodology note) and no single segment fits.
 - confidence is 0..1 (how sure you are of the localization).
-- "quote": copy 3-8 words of HEBREW VERBATIM from the segment(s) — the exact phrase the item is about — so it can be located precisely in the printed text. Copy the Hebrew exactly as shown; do not translate or paraphrase. Use "" if you can't pin a phrase.
+- "quote": copy 3-8 CONSECUTIVE words of HEBREW exactly as they appear in the chosen segment — the precise phrase the item is about — so it can be located in the printed text. Do not translate, paraphrase, reorder, or merge non-adjacent words. Use "" only if no phrase fits.
 Reply with ONLY JSON: {"matches":[{"key":"<key>","segStart":<int|null>,"segEnd":<int|null>,"confidence":<number>,"quote":"<hebrew or empty>"}]}`;
 
 export function buildMatchPrompt(

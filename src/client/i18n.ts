@@ -659,6 +659,10 @@ const CATALOG = {
     en: "You've asked a lot of new questions recently — please wait a bit before asking another.",
     he: 'שאלת הרבה שאלות חדשות לאחרונה — נא להמתין מעט לפני שאלה נוספת.',
   },
+  'qa.error.paused': {
+    en: 'AI generation is paused for now to keep this project sustainable. Please try again tomorrow.',
+    he: 'יצירת התוכן בבינה מלאכותית מושהית כעת כדי לשמור על קיימות הפרויקט. נא לנסות שוב מחר.',
+  },
 } satisfies Record<string, Entry>;
 
 /** Every known catalog key. Lets UI props (e.g. section labels) demand a real

@@ -104,6 +104,25 @@ main {
   }
 }
 
+/* Alignment workbench: keep the source text pinned in view while the taller
+   connections column scrolls past it. Desktop only — on phones the columns
+   stack, so a sticky/scrolling source would just cover the connections. */
+.align-sticky-source {
+  position: sticky;
+  top: 1rem;
+  align-self: start;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+@media (max-width: 767px) {
+  .align-sticky-source {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+}
+
 header {
   border-bottom: 1px solid var(--line);
   padding-bottom: 1rem;

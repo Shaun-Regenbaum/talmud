@@ -60,6 +60,7 @@ import {
 } from '../lib/rabbi/types';
 import { wrapEnv, gatewayStatus, gatewayActive } from './ai-gateway';
 import { runLLM, type LLMModelId, type LLMResult, type LLMUsage } from './llm';
+import { checkBudget, isBudgetPaused, budgetStatus, clearPauses, type BudgetScope } from './budget';
 import { lookupRelationships } from './rabbi-graph';
 import { lintSynthesis } from '../lib/synthesisLint';
 import { lintHalachaParsed } from '../lib/halachaLint';
@@ -156,6 +157,16 @@ interface Bindings {
   // When '1', the background Sefaria Shas walk also enqueues rabbi.observations
   // per amud (full reverse-index backfill). OFF by default — see WarmEnv.
   OBSERVATIONS_WARM_SHAS?: string;
+  // Shared secret gating the privileged /api/studio/run knobs (ad_hoc,
+  // model_override, bypass_cache) and the admin mutation endpoints. Presented
+  // by trusted tools as the `x-studio-secret` header. UNSET => every request is
+  // treated as untrusted (fail-safe): the public app still works (it only uses
+  // the safe subset), but no one can use the worker as a free LLM proxy.
+  // Set via `wrangler secret put STUDIO_SECRET`.
+  STUDIO_SECRET?: string;
+  // Spend-budget overrides (USD) read by ./budget. Default 300 / 10 when unset.
+  DAILY_BUDGET_USD?: string;
+  HOURLY_CUSTOM_BUDGET_USD?: string;
 }
 
 // Message shape on the enrichment queue. Carries everything the consumer
@@ -186,6 +197,51 @@ export interface JobMessage {
    *  by /api/warm-daf to comprehensively pre-warm an adjacent daf so navigation
    *  lands on a fully-cached page. Mutually exclusive with mark_id/enrichment_id. */
   warm_deep?: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Request trust + spend-pause helpers (see ./budget for the budget guard).
+// ---------------------------------------------------------------------------
+
+/** Constant-time-ish string compare (avoids early-exit timing leaks beyond
+ *  length). */
+function timingSafeEqualStr(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+/**
+ * True iff the request carries the STUDIO_SECRET (header `x-studio-secret`, or
+ * `Authorization: Bearer <secret>`). Returns FALSE whenever the secret is unset
+ * — fail-safe, so the privileged /api/studio/run knobs (ad_hoc, model_override,
+ * bypass_cache) and the admin mutation endpoints stay locked until the owner
+ * provisions the secret. The public daf app never needs these, so locking them
+ * by default doesn't degrade it.
+ */
+function isTrustedRequest(c: { req: { header: (k: string) => string | undefined }; env: Bindings }): boolean {
+  const secret = c.env.STUDIO_SECRET;
+  if (!secret) return false;
+  const presented =
+    c.req.header('x-studio-secret') ??
+    c.req.header('authorization')?.replace(/^Bearer\s+/i, '') ??
+    '';
+  return presented.length > 0 && timingSafeEqualStr(presented, secret);
+}
+
+/** Seconds until a pause lifts, for a Retry-After-style hint. */
+function pauseRetryAfterSec(until?: number): number {
+  if (!until) return 3600;
+  return Math.max(1, Math.ceil((until - Date.now()) / 1000));
+}
+
+/** Human fallback message for a paused response. The client maps the `paused`
+ *  flag to its own localized copy; this is for non-UI / API consumers. */
+function pauseErrorMessage(scope?: BudgetScope): string {
+  return scope === 'custom'
+    ? 'Custom-question generation is paused for now (hourly budget reached). Please try again later.'
+    : 'AI generation is paused for now (daily budget reached). Please try again tomorrow.';
 }
 
 function stripHtmlServer(html: string): string {
@@ -2220,6 +2276,9 @@ async function runEnrichmentOnce(
     thinking: def.thinking_off ? false : undefined,
     bypass_cache: bypassCache,
     tag: `enrich:${def.id}`,
+    // Custom Q&A enrichments (<mark>.qa) count against the hourly custom-question
+    // budget; everything else only against the daily total. See ./budget.
+    cost_class: def.id.endsWith('.qa') ? 'custom-question' : undefined,
   });
 
   let parsed: unknown = null;
@@ -2586,6 +2645,18 @@ app.post('/api/studio/run', async (c) => {
   catch { return c.json({ error: 'invalid JSON' }, 400); }
   const body = raw as Partial<JobMessage>;
   if (!body.tractate || !body.page) return c.json({ error: 'tractate and page required' }, 400);
+
+  // Hijack lockdown: the privileged knobs let a caller run arbitrary prompts
+  // (ad_hoc), pick an expensive model (model_override), or force fresh paid runs
+  // (bypass_cache) — i.e. use the worker as a free LLM proxy. Gate them behind
+  // STUDIO_SECRET. Public callers get the safe subset only: a registered
+  // mark/enrichment on real daf content, cached, default model.
+  const trusted = isTrustedRequest(c);
+  if (!trusted) {
+    if (body.ad_hoc !== undefined) return c.json({ error: 'ad_hoc runs require studio auth' }, 403);
+    if (body.model_override !== undefined) return c.json({ error: 'model_override requires studio auth' }, 403);
+  }
+
   if (body.model_override && !isLLMModelId(body.model_override)) {
     return c.json({ error: 'model_override must start with @cf/ or openrouter/' }, 400);
   }
@@ -2596,12 +2667,13 @@ app.post('/api/studio/run', async (c) => {
     runId: '',  // assigned below
     mark_id: body.mark_id,
     enrichment_id: body.enrichment_id,
-    ad_hoc: body.ad_hoc,
+    ad_hoc: trusted ? body.ad_hoc : undefined,
     tractate: body.tractate,
     page: body.page,
-    model_override: body.model_override,
+    model_override: trusted ? body.model_override : undefined,
     mark_input: body.mark_input,
-    bypass_cache: body.bypass_cache === true,
+    // Public callers can't force a fresh paid run; downgrade to cache-respecting.
+    bypass_cache: trusted ? body.bypass_cache === true : false,
     user_question: typeof body.user_question === 'string' && body.user_question.trim().length > 0
       ? body.user_question : undefined,
     lang: body.lang === 'he' ? 'he' : undefined,
@@ -2638,6 +2710,20 @@ app.post('/api/studio/run', async (c) => {
   if (!c.env.ENRICHMENT_QUEUE) {
     return c.json({ error: 'ENRICHMENT_QUEUE binding not available' }, 503);
   }
+  // Budget gate before enqueueing real LLM work. Cache hits already returned
+  // above (free, ungated). The queue consumer re-checks at the runLLM
+  // chokepoint, but failing here gives the client an immediate paused signal.
+  const customRun = !!(job.enrichment_id && job.enrichment_id.endsWith('.qa') && job.user_question);
+  const gate = await checkBudget(c.env, { custom: customRun });
+  if (!gate.ok) {
+    return c.json({
+      status: 'error',
+      error: pauseErrorMessage(gate.scope),
+      paused: true,
+      scope: gate.scope,
+      retryAfter: pauseRetryAfterSec(gate.until),
+    }, 429);
+  }
   job.runId = await makeRunId(job);
   // Compute the canonical cache key up-front so the client can use it as a
   // polling fallback. runEnrichmentOnce writes to this key right before the
@@ -2666,6 +2752,14 @@ app.post('/api/warm-daf', async (c) => {
   const body = raw as { tractate?: string; page?: string; lang?: string };
   if (!body.tractate || !body.page) return c.json({ error: 'tractate and page required' }, 400);
   if (!c.env.ENRICHMENT_QUEUE) return c.json({ error: 'ENRICHMENT_QUEUE binding not available' }, 503);
+  // Don't fan out a deep-warm storm once the daily budget is paused.
+  const gate = await checkBudget(c.env, { custom: false });
+  if (!gate.ok) {
+    return c.json({
+      status: 'error', error: pauseErrorMessage(gate.scope),
+      paused: true, scope: gate.scope, retryAfter: pauseRetryAfterSec(gate.until),
+    }, 429);
+  }
   const lang: 'en' | 'he' = body.lang === 'he' ? 'he' : 'en';
   const runId = `warm-deep:${body.tractate}:${body.page}:${lang}:${Math.floor(Date.now() / 1000)}`
     .replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
@@ -2822,6 +2916,7 @@ app.get('/api/admin/llm-cost', async (c) => {
   const prefix = 'llmcost:v1:';
 
   if (c.req.query('clear') === '1') {
+    if (!isTrustedRequest(c)) return c.json({ error: 'clearing the cost ledger requires studio auth' }, 403);
     let cursor: string | undefined;
     let deleted = 0;
     do {
@@ -2884,6 +2979,26 @@ app.get('/api/admin/llm-cost', async (c) => {
     byTag,
     truncated: keys.length >= 10000,
   });
+});
+
+/**
+ * GET /api/admin/budget — spend-budget snapshot: today's total spend, this
+ * hour's custom-question spend, the caps, and any active pause latches. Read-
+ * only (open). See ./budget.
+ */
+app.get('/api/admin/budget', async (c) => {
+  return c.json(await budgetStatus(c.env));
+});
+
+/**
+ * POST /api/admin/budget/reset — manually lift the pause latches (trusted only).
+ * The bucket counters keep accruing in their window, so if spend is still over
+ * the cap the next call re-arms the pause immediately.
+ */
+app.post('/api/admin/budget/reset', async (c) => {
+  if (!isTrustedRequest(c)) return c.json({ error: 'studio auth required' }, 403);
+  const cleared = await clearPauses(c.env);
+  return c.json({ ok: true, ...cleared });
 });
 
 /**
@@ -2964,6 +3079,7 @@ app.get('/api/admin/warm-status', async (c) => {
  *   done
  */
 app.post('/api/admin/strip-ttl', async (c) => {
+  if (!isTrustedRequest(c)) return c.json({ error: 'studio auth required' }, 403);
   const cache = c.env.CACHE;
   if (!cache) return c.json({ error: 'no cache binding' }, 503);
   const prefix = c.req.query('prefix');
@@ -3263,6 +3379,19 @@ app.post('/api/qa/ask', async (c) => {
     existing.clickCount += 1;
     await writeQaRegistry(c.env, scope.mark, b.tractate, b.page, scope.instanceId, reg);
     return c.json({ qHash, alreadyAsked: true, remaining: -1 });
+  }
+
+  // Budget gate: pause new custom questions once the hourly custom budget (or
+  // the daily total) is exhausted. Checked before the per-IP rate limit so a
+  // paused request doesn't burn the user's quota.
+  const gate = await checkBudget(c.env, { custom: true });
+  if (!gate.ok) {
+    return c.json({
+      error: pauseErrorMessage(gate.scope),
+      paused: true,
+      scope: gate.scope,
+      retryAfter: pauseRetryAfterSec(gate.until),
+    }, 429);
   }
 
   // Novel question — gate behind the per-IP rate limit because this will
@@ -5924,6 +6053,7 @@ const FAMILY_INVERSE: Record<string, string> = {
 };
 
 app.post('/api/admin/rabbi-compile/graph', async (c) => {
+  if (!isTrustedRequest(c)) return c.json({ error: 'studio auth required' }, 403);
   const cache = c.env.CACHE;
   if (!cache) return c.json({ error: 'CACHE unavailable' }, 503);
 
@@ -6007,6 +6137,7 @@ interface RabbiCohortBlob {
 }
 
 app.post('/api/admin/rabbi-compile/cohort', async (c) => {
+  if (!isTrustedRequest(c)) return c.json({ error: 'studio auth required' }, 403);
   const cache = c.env.CACHE;
   if (!cache) return c.json({ error: 'CACHE unavailable' }, 503);
 
@@ -6039,6 +6170,7 @@ interface RabbiPlacesIndexBlob {
 }
 
 app.post('/api/admin/rabbi-compile/places-index', async (c) => {
+  if (!isTrustedRequest(c)) return c.json({ error: 'studio auth required' }, 403);
   const cache = c.env.CACHE;
   if (!cache) return c.json({ error: 'CACHE unavailable' }, 503);
 
@@ -6067,6 +6199,7 @@ interface RabbiAcademyRosterBlob {
 }
 
 app.post('/api/admin/rabbi-compile/academy-roster', async (c) => {
+  if (!isTrustedRequest(c)) return c.json({ error: 'studio auth required' }, 403);
   const cache = c.env.CACHE;
   if (!cache) return c.json({ error: 'CACHE unavailable' }, 503);
 
@@ -7043,8 +7176,17 @@ async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: Executi
     });
     recordTelemetry({ env: wrapped, executionCtx: ctx }, runTelemetryRec(job, result, Date.now() - t0));
   } catch (err) {
-    const errorMsg = String((err as Error)?.message ?? err);
     const totalMs = Date.now() - t0;
+    // A budget pause is an expected back-pressure outcome, not a failure: write
+    // it as a paused result the client poller can surface, and DON'T record it
+    // in the recent-errors buffer (it would drown out real failures).
+    const paused = isBudgetPaused(err);
+    if (paused) {
+      const scope = (err as { scope?: BudgetScope }).scope;
+      await writeResult({ status: 'error', error: pauseErrorMessage(scope), paused: true, scope, total_ms: totalMs });
+      return;
+    }
+    const errorMsg = String((err as Error)?.message ?? err);
     // eslint-disable-next-line no-console
     console.error('[queue] job failed', job.runId, '·', job.mark_id ?? job.enrichment_id ?? 'adhoc', job.tractate, job.page, '·', errorMsg.slice(0, 500));
     await writeResult({

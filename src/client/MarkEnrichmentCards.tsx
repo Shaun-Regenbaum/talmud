@@ -25,6 +25,7 @@ import { trackAI } from './aiActivity';
 import InstanceInspectorShelf from './InstanceInspectorShelf';
 import {
   RequestQueue, QUEUE_PRIORITY, runResultCache, runCacheKey, isAbort,
+  PAUSED_ERROR, isPausedBody,
   type RunResult,
 } from './enrichmentQueue';
 import { lang, t } from './i18n';
@@ -96,6 +97,7 @@ async function runEnrichmentImpl(
     signal,
   });
   const j = await r.json() as RunResponse | { error?: string };
+  if (isPausedBody(j)) throw new Error(PAUSED_ERROR);
   if (!r.ok && r.status !== 202) {
     throw new Error((j as { error?: string }).error ?? `HTTP ${r.status}`);
   }
@@ -165,6 +167,7 @@ async function pollJob(runId: string, cacheKey?: string, signal?: AbortSignal): 
     if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
     const r = await fetch(`/api/studio/run-status/${encodeURIComponent(runId)}${qs}`, { signal });
     const j = await r.json() as RunResponse | { status: 'pending' };
+    if (isPausedBody(j)) throw new Error(PAUSED_ERROR);
     if ('status' in j) {
       if (j.status === 'ok') return (j as { result: RunResult }).result;
       if (j.status === 'error') throw new Error((j as { error: string }).error);
@@ -472,9 +475,14 @@ export default function MarkEnrichmentCards(props: Props) {
       );
     }
     if (r.kind === 'error') {
+      const paused = r.error === PAUSED_ERROR;
       return (
-        <div style={{ color: '#c00', 'font-family': 'monospace', 'font-size': '0.78rem', padding: '0.4rem 0' }}>
-          {r.error}
+        <div style={{
+          color: paused ? '#a16207' : '#c00',
+          'font-family': paused ? 'inherit' : 'monospace',
+          'font-size': '0.78rem', padding: '0.4rem 0',
+        }}>
+          {paused ? t('qa.error.paused') : r.error}
         </div>
       );
     }

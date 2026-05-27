@@ -25,6 +25,7 @@
 import { runWithRetry } from './ai-gateway';
 import { LLMError, isFallbackWorthy, NEITHER, TIMEOUT } from './llm-error';
 import { DEFAULT_MODEL, DEFAULT_FALLBACK_CHAIN } from './settings';
+import { checkBudget, recordSpend, BudgetPausedError } from './budget';
 
 export type LLMModelId = `@cf/${string}` | `openrouter/${string}`;
 
@@ -37,6 +38,9 @@ export interface LLMEnv {
   CLOUDFLARE_ACCOUNT_ID?: string;
   OPENROUTER_GATEWAY_PROVIDER?: string;
   DEFAULT_LLM_MODEL?: string;
+  // Spend-budget overrides read by ./budget (checkBudget / recordSpend).
+  DAILY_BUDGET_USD?: string;
+  HOURLY_CUSTOM_BUDGET_USD?: string;
 }
 
 export interface LLMMessage {
@@ -88,6 +92,10 @@ export interface LLMCallOptions {
    *  'mark:rabbi', 'enrich:rabbi.synthesis'). Lets /api/admin/llm-cost break
    *  spend down by mark/enrichment. Untagged calls still count toward totals. */
   tag?: string;
+  /** Spend classification for the budget guard (./budget). 'custom-question'
+   *  counts against the hourly custom-Q&A cap AND the daily total; everything
+   *  else counts only against the daily total. */
+  cost_class?: 'custom-question';
 }
 
 export type LLMTransport = 'workers-ai' | 'openrouter-gateway';
@@ -182,6 +190,15 @@ export function resolveChain(env: LLMEnv, opts: LLMCallOptions): LLMModelId[] {
  * without trying fallback.
  */
 export async function runLLM(env: LLMEnv, opts: LLMCallOptions): Promise<LLMResult> {
+  // Budget gate (./budget): refuse before spending when a pause is latched. The
+  // thrown BudgetPausedError is classified NEITHER, so runLLM does NOT walk the
+  // fallback chain on it — it surfaces immediately to the caller. This is the
+  // single authoritative chokepoint: every paid path (marks, enrichments, QA,
+  // warm/yomi crons) funnels through here.
+  const custom = opts.cost_class === 'custom-question';
+  const gate = await checkBudget(env, { custom });
+  if (!gate.ok) throw new BudgetPausedError(gate.scope ?? 'all', gate.until, gate.reason);
+
   const chain = resolveChain(env, opts);
 
   let lastErr: unknown = null;
@@ -190,6 +207,8 @@ export async function runLLM(env: LLMEnv, opts: LLMCallOptions): Promise<LLMResu
     try {
       const result = await withHardTimeout(callOnce(env, model, opts), MODEL_CALL_HARD_TIMEOUT_MS, model);
       await recordLLMCost(env, model, opts.tag, i + 1, result);
+      // Feed the spend budget (./budget) so the next checkBudget sees this call.
+      await recordSpend(env, { model: result.model, usage: result.usage, custom });
       return { ...result, attempts: i + 1 };
     } catch (err) {
       lastErr = err;

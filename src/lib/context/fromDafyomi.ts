@@ -13,7 +13,9 @@ import type {
 import type { ContextItem } from './types.ts';
 
 const SOURCE_LABEL: Record<DafyomiContentType, string> = {
-  insights: 'Insights', background: 'Background', halacha: 'Halacha', tosfos: 'Tosfos',
+  // dafyomi "Tosfos" is the Kollel's explanation OF Tosafot, not Tosafot itself —
+  // label it so it reads as a companion to the Sefaria "Tosafot" source.
+  insights: 'Insights', background: 'Background', halacha: 'Halacha', tosfos: 'Tosafot explanation',
   review: 'Review', points: 'Points', hebcharts: 'Charts', yerushalmi: 'Yerushalmi',
 };
 
