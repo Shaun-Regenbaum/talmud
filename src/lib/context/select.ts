@@ -19,6 +19,23 @@ export interface ContextSelectOpts {
   includeWholeDaf?: boolean;
 }
 
+/** The target segments an enrichment instance covers, from its mark-input
+ *  location (`startSegIdx`..`endSegIdx`). Returns `[]` when there's no segment
+ *  location (a whole-daf instance) — which `contextForAnchor` treats as "all".
+ *  So a section enrichment gets its own slice; a whole-daf one gets everything. */
+export function segsFromMarkInput(markInput: unknown): number[] {
+  const m = markInput && typeof markInput === 'object' ? (markInput as Record<string, unknown>) : null;
+  if (!m) return [];
+  const start = typeof m.startSegIdx === 'number' ? m.startSegIdx
+    : typeof m.endSegIdx === 'number' ? m.endSegIdx : null;
+  const end = typeof m.endSegIdx === 'number' ? m.endSegIdx
+    : typeof m.startSegIdx === 'number' ? m.startSegIdx : null;
+  if (start === null || end === null) return [];
+  const out: number[] = [];
+  for (let s = Math.max(0, Math.min(start, end)); s <= Math.max(start, end); s++) out.push(s);
+  return out;
+}
+
 /** Items relevant to a target. `targetSegs: []` (whole daf) returns everything.
  *  Otherwise: whole-daf items are in (unless disabled), and segment items are
  *  in when they overlap the target. */

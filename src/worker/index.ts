@@ -9,7 +9,7 @@ import {
 } from '../lib/sefref';
 import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
 import { collectContext } from './context-providers';
-import { formatContextForPrompt } from '../lib/context/select';
+import { formatContextForPrompt, contextForAnchor, segsFromMarkInput } from '../lib/context/select';
 import { aiMatchToSegments } from './context-match';
 import type { MatchInput } from '../lib/context/anchor/ai-prompt';
 import {
@@ -896,11 +896,14 @@ async function resolveDependencies(
       return;
     }
     if (dep === 'context') {
-      // Aggregated external context (dafyomi Points/Halacha/Charts + Sefaria),
-      // rendered as grouped plain text for the prompt. Each source that fails
+      // Aggregated external context (dafyomi Points/Halacha/Charts + Sefaria
+      // Rishonim/halacha/topics), SCOPED to the instance's segments: a section
+      // enrichment gets the context grounded to its own lines; a whole-daf one
+      // (no segment location) gets the full pool. Each source that fails
       // contributes nothing rather than throwing.
       const items = await collectContext(rc.env, tractate, page);
-      out.vars.context = formatContextForPrompt(items);
+      const scoped = contextForAnchor(items, segsFromMarkInput(markInput));
+      out.vars.context = formatContextForPrompt(scoped);
       return;
     }
     if (typeof dep === 'object' && dep !== null) {

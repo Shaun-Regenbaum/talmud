@@ -1753,7 +1753,10 @@ Mishnayot this gemara is discussing (anchored from Sefaria — the section above
 Rashi + Tosafot + other rishonim:
 {{commentaries}}
 
-Write the background per the schema. When the section directly elaborates one of the mishnayot above, name it explicitly (e.g. "Builds on Mishnah Berakhot 1:1").`;
+Study-aid context grounded to THIS section (dafyomi.co.il outline/background/halacha + Sefaria Rishonim/halacha anchored to these segments):
+{{context}}
+
+Write the background per the schema. Use the study-aid context to name prerequisite concepts and terms precisely. When the section directly elaborates one of the mishnayot above, name it explicitly (e.g. "Builds on Mishnah Berakhot 1:1").`;
 
 
 // ---------------- argument.synthesis (tightened, drops subsection/commentary/flow leaves) ----------------
@@ -1889,7 +1892,10 @@ const ARGUMENT_BACKGROUND_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{pag
 רש"י + תוספות + ראשונים נוספים:
 {{commentaries}}
 
-כתוב את הרקע לפי הסכימה. כאשר המקטע מבאר במישרין אחת מן המשניות שלמעלה, נקוב בה במפורש (למשל "נבנה על משנה ברכות א:א").`;
+חומר עזר ללימוד המעוגן למקטע זה (dafyomi.co.il — נקודות/רקע/הלכה + ראשונים והלכה מ-Sefaria המעוגנים לסגמנטים אלו):
+{{context}}
+
+כתוב את הרקע לפי הסכימה. השתמש בחומר העזר כדי לנקוב במושגים ומונחים מוקדמים בדייקנות. כאשר המקטע מבאר במישרין אחת מן המשניות שלמעלה, נקוב בה במפורש (למשל "נבנה על משנה ברכות א:א").`;
 
 const ARGUMENT_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. תקבל מקטע של דף, את רשימת ה-moves שבתוכו, ניתוח קולות לכל חכם, רקע, ותצוגת פירוש קצרה. חבר פסקה אחת הדוקה הנוקבת בשאלה הכוללת של המקטע, בעמדות הנקובות, והיכן הוא נוחת.
 
@@ -1955,8 +1961,8 @@ CODE_ENRICHMENTS.push(
     ARGUMENT_BACKGROUND_SYSTEM_PROMPT, ARGUMENT_BACKGROUND_USER_TEMPLATE, ARGUMENT_BACKGROUND_OUTPUT_SCHEMA,
     {
       mode: 'augment-content', scope: 'local',
-      dependencies: ['gemara', 'commentaries', 'mishna'],
-      defHash: 'argument.background-v3', cacheVersion: '3',
+      dependencies: ['gemara', 'commentaries', 'mishna', 'context'],
+      defHash: 'argument.background-v4', cacheVersion: '4',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_BACKGROUND_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_BACKGROUND_USER_TEMPLATE_HE,
