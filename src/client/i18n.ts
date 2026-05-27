@@ -574,6 +574,19 @@ const CATALOG: Record<string, Entry> = {
   'dafLoad.loadingSections': { en: 'Loading {section} — {done} of {total}', he: 'טוען {section} — {done} מתוך {total}' },
   'dafLoad.sections': { en: 'sections', he: 'מקטעים' },
   'dafLoad.upToDate': { en: 'Up to date', he: 'מעודכן' },
+  // Prefetch family labels — substituted into dafLoad.loadingSections. Keyed
+  // from dafPrefetch's FRIENDLY map so the warmed-family name localizes too.
+  'dafLoad.family.arguments': { en: 'arguments', he: 'סוגיות' },
+  'dafLoad.family.argumentMoves': { en: 'argument moves', he: 'מהלכים' },
+  'dafLoad.family.moveQuestions': { en: 'move questions', he: 'שאלות מהלך' },
+  'dafLoad.family.verses': { en: 'verses', he: 'פסוקים' },
+  'dafLoad.family.verseQuestions': { en: 'verse questions', he: 'שאלות פסוקים' },
+  'dafLoad.family.aggadot': { en: 'aggadot', he: 'אגדות' },
+  'dafLoad.family.aggadahQuestions': { en: 'aggadah questions', he: 'שאלות אגדה' },
+  'dafLoad.family.places': { en: 'places', he: 'מקומות' },
+  'dafLoad.family.halachot': { en: 'halachot', he: 'הלכות' },
+  'dafLoad.family.rabbis': { en: 'rabbis', he: 'חכמים' },
+  'dafLoad.family.rishonim': { en: 'rishonim', he: 'ראשונים' },
 };
 
 /**

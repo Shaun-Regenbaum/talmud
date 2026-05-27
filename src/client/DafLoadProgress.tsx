@@ -59,7 +59,7 @@ export default function DafLoadProgress(): JSX.Element {
     }
     if (c.prefetchActive) {
       return t('dafLoad.loadingSections', {
-        section: c.pf.currentLabel ?? t('dafLoad.sections'),
+        section: t(c.pf.currentLabel ?? 'dafLoad.sections'),
         done: c.pf.done,
         total: c.pf.total,
       });

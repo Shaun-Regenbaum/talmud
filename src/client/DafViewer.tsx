@@ -1050,6 +1050,18 @@ export default function DafViewer(): JSX.Element {
     setCommentaryAnchorIndex(null);
   });
 
+  // Close any open sidebar when the language flips. Its contents are being
+  // re-fetched under the new lang (see the per-lang adapter + enrichment-card
+  // logic), so the stale panel — still showing the old language's text —
+  // shouldn't linger. Skip the initial run (nothing is open at mount).
+  let langInited = false;
+  createEffect(() => {
+    void lang();
+    if (!langInited) { langInited = true; return; }
+    setSidebar(null);
+    setArgumentMoveHighlight(null);
+  });
+
   // Fetch the bidirectional commentary anchor index for the current daf
   // (Sefaria links → segToPieces + pieceToSegs maps). Session-cached
   // inside the helper, so re-mounts within a single page session are

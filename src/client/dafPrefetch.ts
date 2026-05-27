@@ -28,7 +28,8 @@ export interface PrefetchProgress {
   dafKey: string;
   total: number;
   done: number;
-  /** Friendly label of the family currently being warmed, or null when idle/done. */
+  /** i18n catalog KEY for the family currently being warmed (translated by the
+   *  consumer via t()), or null when idle/done. */
   currentLabel: string | null;
 }
 
@@ -57,19 +58,22 @@ const SECTION_PREFETCH: Record<string, string[]> = {
   rishonim: ['rishonim.synthesis'],
 };
 
-// enrichmentId → friendly family label shown in the status line.
+// enrichmentId → i18n catalog KEY for the family label shown in the status
+// line. DafLoadProgress runs the key through t() so the label localizes (and
+// re-localizes live on a language switch) instead of being a hardcoded English
+// string baked into the otherwise-translated progress sentence.
 const FRIENDLY: Record<string, string> = {
-  'argument.synthesis': 'arguments',
-  'argument-move.synthesis': 'argument moves',
-  'argument-move.suggested-questions': 'move questions',
-  'pesukim.synthesis': 'verses',
-  'pesukim.suggested-questions': 'verse questions',
-  'aggadata.synthesis': 'aggadot',
-  'aggadata.suggested-questions': 'aggadah questions',
-  'places.synthesis': 'places',
-  'halacha.synthesis': 'halachot',
-  'rabbi.synthesis': 'rabbis',
-  'rishonim.synthesis': 'rishonim',
+  'argument.synthesis': 'dafLoad.family.arguments',
+  'argument-move.synthesis': 'dafLoad.family.argumentMoves',
+  'argument-move.suggested-questions': 'dafLoad.family.moveQuestions',
+  'pesukim.synthesis': 'dafLoad.family.verses',
+  'pesukim.suggested-questions': 'dafLoad.family.verseQuestions',
+  'aggadata.synthesis': 'dafLoad.family.aggadot',
+  'aggadata.suggested-questions': 'dafLoad.family.aggadahQuestions',
+  'places.synthesis': 'dafLoad.family.places',
+  'halacha.synthesis': 'dafLoad.family.halachot',
+  'rabbi.synthesis': 'dafLoad.family.rabbis',
+  'rishonim.synthesis': 'dafLoad.family.rishonim',
 };
 
 interface MarkInstance {
@@ -142,7 +146,7 @@ export function prefetchDaf(
     dafKey,
     total: tasks.length,
     done: 0,
-    currentLabel: tasks.length > 0 ? 'sections' : null,
+    currentLabel: tasks.length > 0 ? 'dafLoad.sections' : null,
   });
   if (tasks.length === 0) return;
 
@@ -160,7 +164,7 @@ export function prefetchDaf(
             dafKey,
             total: p.total,
             done,
-            currentLabel: done < p.total ? (FRIENDLY[t.enrichmentId] ?? 'sections') : null,
+            currentLabel: done < p.total ? (FRIENDLY[t.enrichmentId] ?? 'dafLoad.sections') : null,
           };
         });
       });
