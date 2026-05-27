@@ -5,6 +5,11 @@ import { type ContextItem, rangeLabel } from '../lib/context/types';
 interface Hl { segs: number[]; words: number[] }
 const EMPTY: Hl = { segs: [], words: [] };
 
+/** Drop HTML markup (Sefaria text carries <b>/<strong>/<i>/<big>) for display. */
+function stripTags(s: string | undefined): string {
+  return s ? s.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim() : '';
+}
+
 /** Precisely located on the HB text (a real phrase/AI hit, not a coarse
  *  segment fallback). */
 function isPrecise(it: ContextItem): boolean {
@@ -70,7 +75,7 @@ export function ContextSourcePanel(props: {
   return (
     <section>
       <h2 style={{ 'font-size': '0.9rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', 'margin-bottom': '0.4rem' }}>
-        External context
+        Connections
         <span style={{ 'text-transform': 'none', 'margin-left': '0.6rem', color: '#aaa', 'font-size': '0.8rem' }}>
           {props.items.length} items · {preciseCount()} located on the text
         </span>
@@ -134,8 +139,8 @@ function ContextCard(props: { item: ContextItem; onEnter: () => void; onLeave: (
   const placed = () => isPrecise(it);
   const via = () => it.hbVia ?? it.via;
   const conf = () => it.hbConfidence ?? it.confidence;
-  const placeLabel = () => (it.hbWords?.length ? `${it.hbWords.length} word${it.hbWords.length === 1 ? '' : 's'}` : rangeLabel(it.segs, it.amud));
-  const bodyEn = () => it.body?.en ?? '';
+  const placeLabel = () => (placed() ? `${it.hbWords!.length} word${it.hbWords!.length === 1 ? '' : 's'}` : rangeLabel(it.segs, it.amud));
+  const bodyEn = () => stripTags(it.body?.en ?? '');
   const long = () => bodyEn().length > 280;
   const shown = () => (open() || !long() ? bodyEn() : bodyEn().slice(0, 280) + '…');
 
@@ -170,10 +175,10 @@ function ContextCard(props: { item: ContextItem; onEnter: () => void; onLeave: (
       <Show when={it.title?.he || it.title?.en}>
         <div style={{ 'margin-bottom': '0.2rem' }}>
           <Show when={it.title?.he}>
-            <span dir="rtl" lang="he" style={{ 'font-family': '"Mekorot Vilna", serif', 'font-size': '0.95rem', 'margin-left': '0.4rem' }}>{it.title!.he}</span>
+            <span dir="rtl" lang="he" style={{ 'font-family': '"Mekorot Vilna", serif', 'font-size': '0.95rem', 'margin-left': '0.4rem' }}>{stripTags(it.title!.he)}</span>
           </Show>
           <Show when={it.title?.en}>
-            <span style={{ 'font-weight': 600, 'font-size': '0.85rem' }}>{it.title!.en}</span>
+            <span style={{ 'font-weight': 600, 'font-size': '0.85rem' }}>{stripTags(it.title!.en)}</span>
           </Show>
         </div>
       </Show>
@@ -187,7 +192,7 @@ function ContextCard(props: { item: ContextItem; onEnter: () => void; onLeave: (
         </Show>
       </Show>
       <Show when={!bodyEn() && it.body?.he}>
-        <div dir="rtl" lang="he" style={{ 'font-family': '"Mekorot Vilna", serif', 'font-size': '0.9rem', 'line-height': 1.55 }}>{it.body!.he}</div>
+        <div dir="rtl" lang="he" style={{ 'font-family': '"Mekorot Vilna", serif', 'font-size': '0.9rem', 'line-height': 1.55 }}>{stripTags(it.body!.he)}</div>
       </Show>
     </article>
   );
