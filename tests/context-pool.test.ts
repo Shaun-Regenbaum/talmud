@@ -25,15 +25,36 @@ describe('fromSefaria mappers', () => {
     expect(items[0].via).toBe('mishnah');
   });
 
-  it('maps Rishonim, halacha refs, and topics as whole-daf (segs:[])', () => {
-    const rishonim = fromRishonim({ Ramban: { hebrew: 'רמב"ן', english: 'Ramban text', ref: 'Ramban on Chullin 76a' } });
-    const halacha = fromHalachaRefs({ 'Shulchan Arukh, YD 55:1': [{ ref: 'Shulchan Arukh, YD 55:1', hebrew: 'ה', english: 'SA' }] });
+  it('anchors Rishonim per comment to the linked segment (via sefaria-link)', () => {
+    const rishonim = fromRishonim([
+      { label: 'Rashba', ref: 'Rashba on Eruvin 102a:2', hebrew: 'רשב"א', english: 'Rashba text', segStart: 3, segEnd: 3 },
+      { label: 'Rosh', ref: 'Rosh, Eruvin 10:5', hebrew: 'רא"ש', english: 'Rosh text', segStart: 5, segEnd: 6 },
+    ]);
+    expect(rishonim[0].segs).toEqual([3]);
+    expect(rishonim[0].via).toBe('sefaria-link');
+    expect(rishonim[0].sourceLabel).toBe('Rashba');
+    expect(rishonim[1].segs).toEqual([5, 6]); // multi-segment anchor
+  });
+
+  it('anchors halacha refs to their linked segment, leaving anchorless ones unplaced', () => {
+    const halacha = fromHalachaRefs({
+      'Mishneh Torah, Sabbath': [
+        { ref: 'Mishneh Torah, Sabbath 25:6', hebrew: 'ה', english: 'MT', segStart: 10, segEnd: 10 },
+        { ref: 'Mishneh Torah, Sabbath 25:7', hebrew: 'ה', english: 'MT' }, // no anchorRef
+      ],
+    });
+    expect(halacha).toHaveLength(2);
+    expect(halacha[0].segs).toEqual([10]);
+    expect(halacha[0].via).toBe('sefaria-link');
+    expect(halacha[0].source).toBe('sefaria-halacha');
+    expect(halacha[1].segs).toEqual([]);
+    expect(halacha[1].via).toBeUndefined();
+  });
+
+  it('leaves topics whole-daf (no per-segment anchor)', () => {
     const topics = fromTopics([{ slug: 'tereifah', titleEn: 'Tereifah', sources: [{ ref: 'Chullin 42a' }] }]);
-    for (const it of [rishonim[0], halacha[0], topics[0]]) {
-      expect(it.segs).toEqual([]);
-      expect(it.via).toBeUndefined();
-    }
-    expect(rishonim[0].sourceLabel).toBe('Ramban');
+    expect(topics[0].segs).toEqual([]);
+    expect(topics[0].via).toBeUndefined();
     expect(topics[0].body?.en).toContain('Sources: Chullin 42a');
   });
 });

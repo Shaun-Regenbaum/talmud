@@ -142,7 +142,9 @@ export async function getRishonimCached(
   tractate: string,
   page: string,
 ): Promise<RishonimBundle> {
-  const key = `rishonim:v1:${tractate}:${page}`;
+  // v2: per-comment, segment-anchored RishonComment[] (was a whole-daf blob
+  // Record<label, snippet>). Bumping forces a refetch into the new shape.
+  const key = `rishonim:v2:${tractate}:${page}`;
   const hit = await readCache<RishonimBundle>(cache, key);
   if (hit) return hit;
   try {
@@ -150,7 +152,7 @@ export async function getRishonimCached(
     await writeCache(cache, key, data);
     return data;
   } catch {
-    return {};
+    return [];
   }
 }
 
@@ -159,7 +161,8 @@ export async function getHalachaRefsCached(
   tractate: string,
   page: string,
 ): Promise<HalachicRefBundle> {
-  const key = `halacha-refs:v1:${tractate}:${page}`;
+  // v2: snippets now carry segStart/segEnd (the linked daf segment).
+  const key = `halacha-refs:v2:${tractate}:${page}`;
   const hit = await readCache<HalachicRefBundle>(cache, key);
   if (hit) return hit;
   try {

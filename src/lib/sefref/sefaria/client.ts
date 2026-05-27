@@ -77,12 +77,25 @@ export interface CommentatorSnippet {
   ref: string;
 }
 
-export type RishonimBundle = Record<string, CommentatorSnippet>;
+/** One Rishon comment, anchored to the daf segment(s) Sefaria links it to.
+ *  `segStart`/`segEnd` are 0-indexed against the gemara segment array. */
+export interface RishonComment {
+  label: string;
+  ref: string;
+  hebrew: string;
+  english: string;
+  segStart: number;
+  segEnd: number;
+}
+export type RishonimBundle = RishonComment[];
 
 export interface HalachicSnippet {
   ref: string;
   hebrew: string;
   english: string;
+  /** 0-indexed daf segment(s) this ref anchors to (from the link's anchorRef). */
+  segStart?: number;
+  segEnd?: number;
 }
 
 export type HalachicRefBundle = Record<string, HalachicSnippet[]>;
@@ -122,15 +135,28 @@ export type SefariaTopicBundle = SefariaTopic[];
  * or getText ref. Not every tractate has every commentator — missing ones are
  * simply omitted from the bundle.
  */
-const RISHONIM_BOOKS: ReadonlyArray<{ label: string; book: string }> = [
-  { label: 'Rashba',              book: 'Rashba' },
-  { label: 'Ritva',               book: 'Ritva' },
-  { label: 'Ramban',              book: 'Ramban' },
-  { label: 'Meiri',               book: 'Beit HaBechira' },
-  { label: 'Rosh',                book: 'Rosh' },
-  { label: 'Maharsha',            book: 'Maharsha' },
-  { label: 'Chidushei Aggadot',   book: 'Chidushei Aggadot of the Maharsha' },
-];
+/** Rishonim we surface, keyed by the "book part" of Sefaria's index_title
+ *  (the index_title with its trailing " on <Tractate>" / " <Tractate>"
+ *  stripped) → the short display label. Rashi/Tosafot are their own sources;
+ *  Steinsaltz is the modern translation — both excluded here. */
+const RISHONIM: ReadonlyMap<string, string> = new Map([
+  ['Rashba', 'Rashba'],
+  ['Ritva', 'Ritva'],
+  ['Ramban', 'Ramban'],
+  ['Beit HaBechira', 'Meiri'],
+  ['Rosh', 'Rosh'],
+  ['Ran', 'Ran'],
+  ['Rabbeinu Chananel', 'Rabbeinu Chananel'],
+  ['Rif', 'Rif'],
+]);
+
+/** Map a Sefaria commentary index_title (e.g. "Rashba on Eruvin", "Rif Eruvin",
+ *  "Beit HaBechira on Eruvin") to our Rishon label, or null if not one we keep. */
+export function rishonLabel(indexTitle: string, tractate: string): string | null {
+  const esc = tractate.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const book = indexTitle.replace(new RegExp(`\\s+(?:on\\s+)?${esc}\\b.*$`), '').trim();
+  return RISHONIM.get(book) ?? null;
+}
 
 /** Parse the trailing segment range from a Sefaria ref like
  *  "Berakhot 2a:1-5" → { start: 1, end: 5 } or "Shabbat 20b:5" →
@@ -355,23 +381,45 @@ class SefariaAPI {
    * Ramban, Meiri/Beit HaBechira, Rosh, Maharsha, Chidushei Aggadot).
    * Returns only the commentators Sefaria has for this tractate+page.
    */
-  async fetchRishonim(tractate: string, page: string): Promise<RishonimBundle> {
+  /**
+   * Rishonim on the daf, ONE item per comment, anchored to the segment(s)
+   * Sefaria links it to. Driven by /api/related (whose Commentary links carry
+   * `ref` = the comment and `anchorRef` = the daf segment) rather than the old
+   * `"<book> on <daf>"` whole-daf blob — so each comment lands on its line, and
+   * chapter-structured books like the Rosh anchor correctly instead of
+   * resolving to the wrong sugya.
+   */
+  async fetchRishonim(tractate: string, page: string, opts: { maxPerBook?: number } = {}): Promise<RishonimBundle> {
+    const maxPerBook = opts.maxPerBook ?? 12;
     const ref = `${tractate}.${page}`;
-    const out: RishonimBundle = {};
+    const related = await this.getRelated(ref).catch(() => null);
+    if (!related) return [];
+    const byBook = new Map<string, { ref: string; anchorRef: string }[]>();
+    for (const l of related.links) {
+      if (l.category !== 'Commentary') continue;
+      const label = rishonLabel(l.index_title, tractate);
+      if (!label) continue;
+      const arr = byBook.get(label) ?? [];
+      if (arr.length < maxPerBook && !arr.some((x) => x.ref === l.ref)) arr.push({ ref: l.ref, anchorRef: l.anchorRef });
+      byBook.set(label, arr);
+    }
+    const out: RishonComment[] = [];
     await Promise.all(
-      RISHONIM_BOOKS.map(async ({ label, book }) => {
-        try {
-          const text = await this.getText(`${book} on ${ref}`);
-          const hebrew = Array.isArray(text.he) ? text.he.join(' ') : (text.he ?? '');
-          const english = Array.isArray(text.text) ? text.text.join(' ') : (text.text ?? '');
+      Array.from(byBook.entries()).flatMap(([label, links]) =>
+        links.map(async ({ ref: cref, anchorRef }) => {
+          const range = parseAnchorRefRange(anchorRef);
+          if (!range) return;
+          const t = await this.getText(cref).catch(() => null);
+          if (!t) return;
+          const hebrew = Array.isArray(t.he) ? t.he.join(' ') : (t.he ?? '');
+          const english = Array.isArray(t.text) ? t.text.join(' ') : (t.text ?? '');
           if (hebrew || english) {
-            out[label] = { hebrew, english, ref: text.ref };
+            out.push({ label, ref: cref, hebrew, english, segStart: range.start - 1, segEnd: range.end - 1 });
           }
-        } catch {
-          // commentator not available for this daf — skip silently
-        }
-      })
+        }),
+      ),
     );
+    out.sort((a, b) => a.segStart - b.segStart || a.label.localeCompare(b.label));
     return out;
   }
 
@@ -390,11 +438,12 @@ class SefariaAPI {
     const related = await this.getRelated(ref).catch(() => null);
     if (!related) return {};
     const halakhahLinks = related.links.filter(l => l.category === 'Halakhah');
-    const grouped = new Map<string, string[]>();
+    // Keep each ref's anchorRef so the snippet can anchor to its daf segment.
+    const grouped = new Map<string, { ref: string; anchorRef: string }[]>();
     for (const link of halakhahLinks) {
       const book = link.index_title;
       const refs = grouped.get(book) ?? [];
-      if (!refs.includes(link.ref)) refs.push(link.ref);
+      if (!refs.some((r) => r.ref === link.ref)) refs.push({ ref: link.ref, anchorRef: link.anchorRef });
       grouped.set(book, refs);
     }
     const out: HalachicRefBundle = {};
@@ -402,14 +451,17 @@ class SefariaAPI {
       Array.from(grouped.entries()).map(async ([book, refs]) => {
         const capped = refs.slice(0, maxPerBook);
         const texts = await Promise.all(
-          capped.map(r => this.getText(r).catch(() => null))
+          capped.map(async (r) => ({ link: r, t: await this.getText(r.ref).catch(() => null) }))
         );
         const snippets: HalachicSnippet[] = [];
-        for (const t of texts) {
+        for (const { link, t } of texts) {
           if (!t) continue;
           const hebrew = Array.isArray(t.he) ? t.he.join(' ') : (t.he ?? '');
           const english = Array.isArray(t.text) ? t.text.join(' ') : (t.text ?? '');
-          if (hebrew || english) snippets.push({ ref: t.ref, hebrew, english });
+          const range = parseAnchorRefRange(link.anchorRef);
+          if (hebrew || english) {
+            snippets.push({ ref: t.ref, hebrew, english, segStart: range ? range.start - 1 : undefined, segEnd: range ? range.end - 1 : undefined });
+          }
         }
         if (snippets.length) out[book] = snippets;
       })

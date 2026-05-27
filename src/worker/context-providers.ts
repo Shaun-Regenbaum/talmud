@@ -55,7 +55,7 @@ export async function collectContext(
   const [dafyomi, sefariaPage, rishonim, halacha, mishna, topics] = await Promise.all([
     getDafyomiContentCached(cache, env.ASSETS, tractate, page, { assetOrigin, allowLive }).catch(() => null),
     getSefariaPageCached(cache, tractate, page).catch(() => null),
-    getRishonimCached(cache, tractate, page).catch(() => ({})),
+    getRishonimCached(cache, tractate, page).catch(() => []),
     getHalachaRefsCached(cache, tractate, page).catch(() => ({})),
     getMishnaBundleCached(cache, tractate, page).catch(() => []),
     getDafTopicsCached(cache, tractate, page).catch(() => []),

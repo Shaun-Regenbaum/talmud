@@ -652,8 +652,21 @@ async function getCommentariesSlice(env: Bindings, tractate: string, page: strin
       try { return JSON.parse(cached) as CommentariesSlice; } catch { /* fall through */ }
     }
   }
+  // Rishonim now arrive as per-comment, segment-anchored entries; collapse them
+  // back into the per-commentator { hebrew, english, ref } map this slice
+  // exposes to enrichment prompts (joining a commentator's comments in order).
   const bundle = await getRishonimCached(cache, tractate, page);
-  const slice: CommentariesSlice = { tractate, page, by_commentator: bundle ?? {} };
+  const by_commentator: Record<string, { hebrew: string; english: string; ref: string }> = {};
+  for (const c of bundle ?? []) {
+    const ex = by_commentator[c.label];
+    if (ex) {
+      ex.hebrew = `${ex.hebrew} ${c.hebrew}`.trim();
+      ex.english = `${ex.english} ${c.english}`.trim();
+    } else {
+      by_commentator[c.label] = { hebrew: c.hebrew, english: c.english, ref: c.ref };
+    }
+  }
+  const slice: CommentariesSlice = { tractate, page, by_commentator };
   if (cache) await cache.put(key, JSON.stringify(slice), { expirationTtl: SLICE_TTL_S });
   return slice;
 }
