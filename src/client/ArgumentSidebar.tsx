@@ -5,15 +5,13 @@ import type { IdentifiedRabbi } from './dafContext';
 import { Hebraized } from './Hebraized';
 import { RabbiText, RabbiLinkProvider, HebraizedWithRabbis } from './rabbiLinks';
 
-import MarkEnrichmentCards from './MarkEnrichmentCards';
-import QAPanel from './QAPanel';
 import RabbiLineageTree, { type RelationshipsData, type RelationshipsEvidence } from './RabbiLineageTree';
 import { type GeographyData, type GeographyEvidence } from './RabbiGeographyCard';
 import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeline';
 import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
 import { selectSectionMoves } from '../lib/argumentMoves';
 import { t, lang } from './i18n';
-import { ACCENTS, HebrewProse, Panel, QASection, SectionCard, Synthesis } from './sidebar/primitives';
+import { ACCENTS, HebrewProse, Panel, QASection, SectionCard, Synthesis, kindLabelKey } from './sidebar/primitives';
 
 /** Localize an era date-range ("c. 290 – 320 CE") for Hebrew display. */
 function eraLabel(era: string): string {
@@ -336,7 +334,7 @@ function ArgumentMoveCard(props: {
         title={isActive() ? t('move.highlight.clear') : t('move.highlight.set')}
         style={{ cursor: 'pointer' }}
       >
-        <MarkEnrichmentCards
+        <Synthesis
           markId="argument-move"
           instance={props.move}
           instanceKey={f.id}
@@ -348,9 +346,10 @@ function ArgumentMoveCard(props: {
           lazily loads suggested questions + community-asked registry, and
           per-question answers stream in via shared KV-cached
           argument-move.qa runs. */}
-      <QAPanel
-        moveId={f.id}
-        moveInstance={props.move}
+      <QASection
+        mark="argument-move"
+        instanceId={f.id}
+        instance={props.move}
         tractate={props.tractate}
         page={props.page}
       />
@@ -397,7 +396,7 @@ function ArgumentMoveCard(props: {
   );
 }
 
-function ArgumentBody(props: {
+export function ArgumentBody(props: {
   section: Section;
   tractate: string;
   page: string;
@@ -480,19 +479,13 @@ function ArgumentBody(props: {
   // Bail rather than crash the whole tree.
   return (
     <Show when={props.section}>
-    <div>
-      <h3 style={{ margin: '0 0 0.3rem', 'font-size': '1.05rem', color: '#8a2a2b' }}>
-        {props.section.title}
-      </h3>
+    <Panel accent={ACCENTS.argument} title={props.section.title}>
       <Show when={props.section.excerpt}>
-        <p dir="rtl" lang="he" style={{
-          margin: '0 0 0.75rem', 'font-family': '"Mekorot Vilna", serif',
-          'font-size': '0.95rem', color: '#555',
-        }}>
+        <HebrewProse size="0.95rem" color="#555" margin="0 0 0.75rem">
           {props.section.excerpt}…
-        </p>
+        </HebrewProse>
       </Show>
-      <MarkEnrichmentCards
+      <Synthesis
         markId="argument"
         instance={{
           startSegIdx: props.section.startSegIdx,
@@ -539,7 +532,7 @@ function ArgumentBody(props: {
           </div>
         )}
       </Show>
-    </div>
+    </Panel>
     </Show>
   );
 }
@@ -1356,6 +1349,23 @@ export function RishonimBody(props: { instance: RishonimInstance; tractate: stri
   );
 }
 
+/** Collective "voice group" panel (e.g. the Stam / anonymous Gemara voice):
+ *  a name + Hebrew twin + a one-line collective bio. No enrichments. */
+export function VoiceGroupBody(props: { group: { name: string; nameHe: string; bio: string } }): JSX.Element {
+  return (
+    <Panel accent={ACCENTS['voice-group']} title={props.group.name} titleHe={props.group.nameHe}>
+      <div style={{
+        'font-size': '0.7rem', color: '#999',
+        'text-transform': 'uppercase', 'letter-spacing': '0.08em',
+        'margin-bottom': '0.45rem',
+      }}>{t('voiceGroup.collective')}</div>
+      <p style={{ margin: 0, color: '#333', 'line-height': 1.6 }}>
+        {props.group.bio}
+      </p>
+    </Panel>
+  );
+}
+
 export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
   const onKey = (e: KeyboardEvent) => {
     if (e.key === 'Escape') props.onClose();
@@ -1416,14 +1426,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
               'margin-bottom': '0.75rem',
             }}>
               <span style={{ 'font-size': '0.7rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.08em' }}>
-                {c().kind === 'argument' ? t('sidebar.kind.argument')
-                  : c().kind === 'halacha' ? t('sidebar.kind.halacha')
-                  : c().kind === 'aggadata' ? t('sidebar.kind.aggadata')
-                  : c().kind === 'pesuk' ? t('sidebar.kind.pesuk')
-                  : c().kind === 'place' ? t('sidebar.kind.place')
-                  : c().kind === 'rishonim' ? t('sidebar.kind.rishonim')
-                  : c().kind === 'voice-group' ? t('sidebar.kind.voice-group')
-                  : t('sidebar.kind.rabbi')}
+                {t(kindLabelKey(c().kind))}
                 {' · '}
                 {props.tractate} {props.page}
               </span>
@@ -1462,30 +1465,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
             </Show>
 
             <Show when={c().kind === 'voice-group'}>
-              {(() => {
-                const g = (c() as Extract<SidebarContent, { kind: 'voice-group' }>).group;
-                return (
-                  <div>
-                    <h3 style={{ margin: '0 0 0.15rem', 'font-size': '1.1rem', color: '#222', 'font-weight': 600 }}>
-                      {g.name}
-                    </h3>
-                    <Show when={g.nameHe}>
-                      <p dir="rtl" lang="he" style={{
-                        margin: '0 0 0.7rem', 'font-family': '"Mekorot Vilna", serif',
-                        'font-size': '1.05rem', color: '#666',
-                      }}>{g.nameHe}</p>
-                    </Show>
-                    <div style={{
-                      'font-size': '0.7rem', color: '#999',
-                      'text-transform': 'uppercase', 'letter-spacing': '0.08em',
-                      'margin-bottom': '0.45rem',
-                    }}>{t('voiceGroup.collective')}</div>
-                    <p style={{ margin: 0, color: '#333', 'line-height': 1.6 }}>
-                      {g.bio}
-                    </p>
-                  </div>
-                );
-              })()}
+              <VoiceGroupBody group={(c() as Extract<SidebarContent, { kind: 'voice-group' }>).group} />
             </Show>
 
             <Show when={c().kind === 'halacha'}>

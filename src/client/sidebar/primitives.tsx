@@ -227,9 +227,8 @@ export function Synthesis(props: {
 }
 
 /**
- * The follow-up Q&A affordance. Thin forwarder over QAPanel using only the
- * current (non-deprecated) prop names, so once every body routes through here
- * QAPanel's legacy moveId/moveInstance props can be deleted.
+ * The follow-up Q&A affordance. Thin forwarder over QAPanel so panel bodies
+ * compose it from the same primitive vocabulary as the rest of the section.
  */
 export function QASection(props: {
   mark: 'argument-move' | 'pesukim' | 'aggadata';
