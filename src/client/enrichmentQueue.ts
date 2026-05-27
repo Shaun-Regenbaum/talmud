@@ -37,6 +37,22 @@ export function isAbort(err: unknown): boolean {
   return (err as { name?: string } | null)?.name === 'AbortError';
 }
 
+/** Sentinel message thrown by run helpers when the server reports a spend
+ *  pause (`{ paused: true }` from /api/studio/run or run-status). The UI maps it
+ *  to a friendly localized message (t('qa.error.paused')) rather than showing a
+ *  raw error string. See src/worker/budget.ts. */
+export const PAUSED_ERROR = 'BUDGET_PAUSED';
+
+/** True if a run / run-status JSON body signals a budget pause. */
+export function isPausedBody(j: unknown): boolean {
+  return !!(j && typeof j === 'object' && (j as { paused?: boolean }).paused === true);
+}
+
+/** True if a caught error is the paused sentinel. */
+export function isPausedError(err: unknown): boolean {
+  return (err as { message?: string } | null)?.message === PAUSED_ERROR;
+}
+
 // ---------------------------------------------------------------------------
 // Client-side result cache
 // ---------------------------------------------------------------------------
