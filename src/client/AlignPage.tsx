@@ -128,11 +128,12 @@ export function AlignPage(): JSX.Element {
     if (hb && hb.norm.length) {
       const quotes = aiQuotes();
       for (const it of items) {
-        // AI grounded this item at whole-daf level (placed by meaning, but no
-        // single segment fits): record it as such — no word span to highlight.
+        // AI returned no segment for this item. If we at least know its amud,
+        // keep that (more specific than whole-daf, and avoids clutter); only
+        // mark an explicit whole-daf grounding when nothing finer is known.
         if (it.via === 'ai' && it.segs.length === 0) {
-          it.hbVia = 'ai-daf';
           it.hbConfidence = it.confidence;
+          if (!it.amud) it.hbVia = 'ai-daf';
           continue;
         }
         const loc = locateInHb(hb, hbQueryFor(it, quotes));
@@ -179,10 +180,17 @@ export function AlignPage(): JSX.Element {
     setMatches((prev) => [...prev, ...got]);
   };
 
-  // Items that aren't grounded on a span yet (unplaced, or only amud-level) and
-  // that the AI placer hasn't already handled — the auto-grounding candidates.
+  // Sources that comment on a specific line are worth AI grounding. Sefaria
+  // halacha cross-refs and topic tags are daf-level REFERENCE context by nature
+  // — force-grounding them just yields whole-daf clutter (and LLM spend), so we
+  // leave them at their natural coarse level.
+  const GROUNDABLE_EXCLUDE = new Set(['sefaria-halacha', 'sefaria-topic']);
+
+  // Items not yet grounded on a span (unplaced, or only amud-level), from a
+  // groundable source, that the AI placer hasn't already handled.
   const candidatesToGround = (): ContextItem[] =>
     contextItems().filter((it) => {
+      if (GROUNDABLE_EXCLUDE.has(it.source)) return false;
       const lvl = placementLevel(it);
       return (lvl === null || lvl === 'amud') && !isAiGrounded(it);
     });
@@ -190,22 +198,22 @@ export function AlignPage(): JSX.Element {
   /** Automatically ground everything on load, batched, with a progress count.
    *  Server-cached per daf, so revisits are instant and don't re-spend. */
   const runAutoGrounding = async (forKey: string) => {
-    let pending = candidatesToGround();
-    const total = pending.length;
+    const total = candidatesToGround().length;
     if (!total) { setGrounding(null); return; }
     setGrounding({ left: total, total });
-    const BATCH = 20;
+    const BATCH = 30;
+    const sent = new Set<string>(); // CUMULATIVE — each item is sent at most once
     let done = 0;
-    while (pending.length) {
+    // Re-derive each round (a batch may place several items at once); only ever
+    // send items we haven't sent, so a model that omits an item can't loop us.
+    for (;;) {
       if (`${tractate()}:${page()}` !== forKey) return; // daf changed mid-run
-      const batch = pending.slice(0, BATCH);
+      const batch = candidatesToGround().filter((it) => !sent.has(it.key)).slice(0, BATCH);
+      if (!batch.length) break;
+      batch.forEach((b) => sent.add(b.key));
       await groundBatch(batch);
       done += batch.length;
       setGrounding({ left: Math.max(0, total - done), total });
-      // Re-derive; drop the batch we just sent so an item the model couldn't
-      // place isn't retried forever.
-      const sent = new Set(batch.map((b) => b.key));
-      pending = candidatesToGround().filter((it) => !sent.has(it.key));
     }
     setGrounding(null);
   };
