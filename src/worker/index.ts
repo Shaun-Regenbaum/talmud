@@ -4095,6 +4095,7 @@ app.get('/api/dafyomi/:tractate/:page', async (c) => {
   const data = await getDafyomiContentCached(c.env.CACHE, c.env.ASSETS, tractate, page, {
     assetOrigin: new URL(c.req.url).origin,
     refresh: c.req.query('refresh') === '1',
+    allowLive: (c.env as { DAFYOMI_LIVE?: string }).DAFYOMI_LIVE !== '0',
     track: { onCache: (s) => states.push(s) },
   });
   if (!data) return c.json({ error: `no dafyomi content for ${tractate} ${page}` }, 404);
