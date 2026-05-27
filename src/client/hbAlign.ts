@@ -151,6 +151,14 @@ export function locateInHb(hb: HbWords, q: LocateQuery): Located | null {
       const at = findFuzzy(hb.raw, rawTokens, win.first, win.last);
       if (at >= 0) return mk(hb, at, rawTokens.length, 'phrase-fuzzy', conf(normTokens.length, true, true));
     }
+    // 3b. fuzzy, ANYWHERE — only for a distinctive (>=3-token) phrase with no
+    //     window, so an unsegmented Rishon's dibur-ha'maschil still lands
+    //     despite the daf's leading prefixes (וְ/הַ/…). First run wins; >=3
+    //     tokens keeps false hits unlikely.
+    if (!win && normTokens.length >= 3) {
+      const at = findFuzzy(hb.raw, rawTokens, 0, lastWord);
+      if (at >= 0) return mk(hb, at, rawTokens.length, 'phrase-fuzzy', conf(normTokens.length, false, true));
+    }
   }
 
   // 4. coarse fallback: the whole segment range.

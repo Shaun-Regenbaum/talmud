@@ -77,4 +77,17 @@ describe('locateInHb', () => {
     expect(locateInHb(hb, { phrase: 'דבר אחר לגמרי' })).toBeNull();
     expect(locateInHb(hb, {})).toBeNull();
   });
+
+  // An unsegmented Rishon's dibur-ha'maschil has no window, and the daf prefixes
+  // its opening word (וְהַמּוּנָּח vs the lemma הַמּוּנָּח) — so a >=3-word phrase
+  // gets a fuzzy whole-daf placement; a 2-word one stays unplaced (too risky).
+  const dh = mkHb(['רבי', 'יוחנן', 'אמר', 'והמונח', 'כאן', 'וכאן', 'אסור'], [0, 0, 0, 1, 1, 1, 1]);
+  it('fuzzy-places a >=3-word phrase anywhere when it has no window (prefix-tolerant)', () => {
+    const r = locateInHb(dh, { phrase: 'המונח כאן וכאן' })!;
+    expect(r.via).toBe('phrase-fuzzy');
+    expect(r.words).toEqual([3, 4, 5]);
+  });
+  it('does NOT fuzzy-place a 2-word phrase with no window', () => {
+    expect(locateInHb(dh, { phrase: 'המונח כאן' })).toBeNull();
+  });
 });
