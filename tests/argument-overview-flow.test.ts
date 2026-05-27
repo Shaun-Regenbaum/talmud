@@ -1,8 +1,29 @@
 import { describe, it, expect } from 'vitest';
-import { filterFlowConnections, type FlowConnection } from '../src/client/ArgumentFlowGraph';
+import { filterFlowConnections, assignLanes, type FlowConnection } from '../src/client/ArgumentFlowGraph';
 import { tokenizeRabbiMentions } from '../src/client/rabbiLinks';
 
 const conn = (from: number, to: number): FlowConnection => ({ from, to, kind: 'continues', note: '' });
+
+describe('assignLanes — connectors that overlap vertically get different lanes', () => {
+  it('puts non-overlapping (sequential) connectors in the same lane', () => {
+    // 0→1 ends at row 1; 2→3 starts at row 2 — no overlap, reuse lane 0.
+    expect(assignLanes([conn(0, 1), conn(2, 3)])).toEqual([0, 0]);
+  });
+  it('separates connectors whose row-spans overlap', () => {
+    // 0→3 spans rows 0..3; 1→2 sits inside it — must be a different lane.
+    expect(assignLanes([conn(0, 3), conn(1, 2)])).toEqual([0, 1]);
+  });
+  it('reuses a freed lane once a run has ended', () => {
+    // 0→2 and 1→4 overlap (lanes 0,1); 3→5 starts after 0→2 ended → lane 0 again.
+    expect(assignLanes([conn(0, 2), conn(1, 4), conn(3, 5)])).toEqual([0, 1, 0]);
+  });
+  it('handles reversed (upward) connectors by row extent, not direction', () => {
+    expect(assignLanes([conn(3, 0), conn(1, 2)])).toEqual([0, 1]);
+  });
+  it('empty in -> empty out', () => {
+    expect(assignLanes([])).toEqual([]);
+  });
+});
 
 describe('filterFlowConnections — overview flow graph edges', () => {
   it('keeps valid in-range connections', () => {
