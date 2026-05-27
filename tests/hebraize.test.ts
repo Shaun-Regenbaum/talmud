@@ -30,6 +30,14 @@ const ECHO_STRIP: Array<[string, string]> = [
     "falls in the ח׳ (ח׳) section, often cited by חז״ל (חז״ל) as a prooftext",
     "falls in the ח׳ section, often cited by חז״ל as a prooftext",
   ],
+  // Shabbat 125b aggadata regression — the hebraize LLM over-translated Form B
+  // English glosses back into Hebrew, producing these echoes on the daf:
+  //   רבי יהודה הנשיא (Rabbi Yehuda HaNasi) -> רבי יהודה הנשיא (רבי יהודה הנשיא)
+  //   concrete מעשה (action)                -> concrete מעשה (מעשה)
+  ['involves רבי יהודה הנשיא (רבי יהודה הנשיא), the redactor', 'involves רבי יהודה הנשיא, the redactor'],
+  ['the redactor of the משנה (משנה) and',          'the redactor of the משנה and'],
+  ['requires a concrete מעשה (מעשה) or mere',      'requires a concrete מעשה or mere'],
+  ['community in ארץ ישראל (ארץ ישראל) in the',    'community in ארץ ישראל in the'],
 ];
 
 describe('stripEchoParens — collapses `X (X)`', () => {

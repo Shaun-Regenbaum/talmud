@@ -36,6 +36,7 @@ import {
 } from './cache-stats';
 import { runYomiWarmCron } from './yomi-cron';
 import { GENERATION_IDS, GENERATION_BY_ID, GENERATIONS_PROMPT_REFERENCE, type GenerationId } from '../client/generations';
+import { stripEchoParens } from '../client/hebraize';
 import rabbiPlacesData from '../lib/data/rabbi-places.json';
 import { extractTalmudContent } from '../lib/sefref/alignment';
 import { fetchHebrewBooksDaf } from '../lib/sefref/hebrewbooks/client';
@@ -6468,6 +6469,18 @@ Rules:
  *  HebraizedWithRabbis: each text slice between rabbi-link buttons carries
  *  the single space that sits next to the button, and losing it produces
  *  "Rabbi Amireciting" / "thatRabbi Ami" in rendered prose. */
+/** Sanitize the hebraize LLM's output before it is cached or returned. The
+ *  model is told to leave English glosses alone and only convert
+ *  transliterations, but even a capable model occasionally over-translates a
+ *  Form B gloss — turning `מעשה (action)` into `מעשה (מעשה)` or `רבי יהודה
+ *  הנשיא (Rabbi Yehuda HaNasi)` into `רבי יהודה הנשיא (רבי יהודה הנשיא)`. Those
+ *  show up as visible echoes on the daf. `stripEchoParens` is deterministic
+ *  and collapses exactly `X (X)`, so running it here guarantees the model can
+ *  never leak an echo regardless of which model is wired in. */
+export function sanitizeHebraizeOutput(text: string): string {
+  return stripEchoParens(text);
+}
+
 export function splitOuterWhitespace(text: string): { leading: string; core: string; trailing: string } {
   if (!text) return { leading: '', core: '', trailing: '' };
   const leading = /^\s*/.exec(text)?.[0] ?? '';
@@ -6501,7 +6514,10 @@ app.post('/api/hebraize', async (c) => {
   // every return path below.
   const hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(core));
   const hash = Array.from(new Uint8Array(hashBuf)).map((b) => b.toString(16).padStart(2, '0')).join('');
-  const key = `hebraize:v1:${hash}`;
+  // v2: bumped when the primary model switched Gemma -> DeepSeek and the
+  // echo-strip guard was added. Old v1 entries (which can hold Gemma echoes)
+  // are abandoned rather than re-cleaned.
+  const key = `hebraize:v2:${hash}`;
   if (cache) {
     const hit = await cache.get(key);
     if (hit) return c.json({ hebraized: leading + hit + trailing, _cached: true });
@@ -6509,16 +6525,23 @@ app.post('/api/hebraize', async (c) => {
 
   try {
     const r = await runLLM(c.env, {
-      model: '@cf/google/gemma-4-26b-a4b-it',
+      // DeepSeek follows the "only convert transliterations, leave English
+      // glosses alone" rule far more reliably than the small Gemma model that
+      // used to run here (which over-translated glosses into echoes). Gemma
+      // stays as a cheap local fallback if the gateway/OpenRouter is down.
+      model: 'openrouter/deepseek/deepseek-v4-flash',
+      fallback: ['@cf/google/gemma-4-26b-a4b-it'],
       messages: [
         { role: 'system', content: HEBRAIZE_LLM_SYSTEM_PROMPT },
         { role: 'user', content: core },
       ],
       max_tokens: Math.min(4096, Math.ceil(core.length * 1.5) + 256),
       temperature: 0,
-      thinking: false,
     });
-    const out = r.content.trim();
+    // Guard the model output: collapse any `X (X)` echo the model emitted so a
+    // mistranslated gloss can never reach the cache or the UI (see
+    // sanitizeHebraizeOutput).
+    const out = sanitizeHebraizeOutput(r.content.trim());
     if (!out) return c.json({ error: 'empty response', text }, 502);
     if (cache) {
       c.executionCtx.waitUntil(cache.put(key, out, { expirationTtl: 60 * 60 * 24 * 365 }));

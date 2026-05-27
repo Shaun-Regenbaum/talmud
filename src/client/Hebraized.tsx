@@ -10,7 +10,7 @@
  * swaps in place. On any LLM error, the dict-pass result stays.
  */
 import { createResource, createMemo, type JSX } from 'solid-js';
-import { hebraize, unresolvedParens, hebraizeLLM, capitalizeFirst } from './hebraize';
+import { hebraize, unresolvedParens, hebraizeLLM, capitalizeFirst, stripEchoParens } from './hebraize';
 
 export function Hebraized(props: { text: string | undefined | null; capitalize?: boolean }): JSX.Element {
   const dictPass = createMemo(() => hebraize(props.text ?? ''));
@@ -24,7 +24,13 @@ export function Hebraized(props: { text: string | undefined | null; capitalize?:
   // Capitalize AFTER both passes — the inverted pass can move an English gloss
   // to the front, so capitalizing earlier would strand a lowercase word.
   const out = createMemo(() => {
-    const s = llmPass() ?? dictPass();
+    // The LLM pass output is otherwise used raw — unlike dictPass(), which
+    // ends with stripEchoParens. A model can over-translate a Form B gloss
+    // into an echo (`מעשה (מעשה)`), and stale KV entries from the old model
+    // may still carry one, so collapse echoes here too. dictPass() is already
+    // echo-clean, so the guard only matters on the LLM branch.
+    const llm = llmPass();
+    const s = llm != null ? stripEchoParens(llm) : dictPass();
     return props.capitalize ? capitalizeFirst(s) : s;
   });
   return <>{out()}</>;
