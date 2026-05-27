@@ -29,6 +29,8 @@ import {
   type SefariaTopicBundle,
   type MishnaBundle,
 } from '../lib/sefref';
+import type { DafyomiDaf } from '../lib/sefref/dafyomi/schema';
+import { keyForDafyomi } from './cache-keys';
 
 const TTL_30_DAYS = 60 * 60 * 24 * 30;
 const TTL_NEGATIVE = 60 * 60;
@@ -241,6 +243,49 @@ export async function getSaCommentaryCached(
  * of src/worker/index.ts so the warm-cron Sefaria phase can prefill these
  * across the whole shas without re-implementing the upstream fetch.
  */
+/**
+ * Structured dafyomi.co.il study content for a daf (both amudim, all content
+ * types present), produced offline by scripts/scrape-dafyomi.mjs and committed
+ * to static/dafyomi/<Tractate>/<daf>.json. Read at runtime through the ASSETS
+ * binding (NOT bundled into the worker), then memoized in KV.
+ *
+ * `page` may be "76a" or "76b" — both resolve to the same daf file (76).
+ * A daf that hasn't been scraped is negative-cached (1h) and returns null, so
+ * the route 404s rather than fabricating content.
+ */
+export async function getDafyomiContentCached(
+  cache: KVNamespace | undefined,
+  assets: Fetcher,
+  tractate: string,
+  page: string,
+  track?: CacheTrack,
+): Promise<DafyomiDaf | null> {
+  const m = page.match(/^(\d+)/);
+  if (!m) return null;
+  const daf = m[1];
+  const key = keyForDafyomi(tractate, daf);
+  const hit = await readCache<DafyomiDaf | FailedMarker>(cache, key);
+  track?.onCache?.(hit ? 'hit' : 'miss');
+  if (hit) return '__failed' in hit ? null : hit;
+
+  const url = `https://assets.local/dafyomi/${encodeURIComponent(tractate)}/${daf}.json`;
+  try {
+    const res = await assets.fetch(new Request(url));
+    if (!res.ok) {
+      await writeCache(cache, key, { __failed: true } satisfies FailedMarker, TTL_NEGATIVE);
+      return null;
+    }
+    const data = (await res.json()) as DafyomiDaf;
+    await writeCache(cache, key, data);
+    return data;
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn(`[source-cache] dafyomi asset read failed for ${tractate} ${daf}:`, err);
+    await writeCache(cache, key, { __failed: true } satisfies FailedMarker, TTL_NEGATIVE);
+    return null;
+  }
+}
+
 export async function getSefariaSegmentsCached(
   cache: KVNamespace | undefined,
   tractate: string,

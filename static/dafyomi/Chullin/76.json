@@ -1,0 +1,3402 @@
+{
+  "schemaVersion": 1,
+  "tractate": "Chullin",
+  "daf": 76,
+  "source": {
+    "site": "dafyomi.co.il",
+    "publisher": "Kollel Iyun HaDaf",
+    "urls": {
+      "insights": "https://www.dafyomi.co.il/chulin/insites/ch-dt-076.htm",
+      "background": "https://www.dafyomi.co.il/chulin/backgrnd/ch-in-076.htm",
+      "halacha": "https://www.dafyomi.co.il/chulin/halachah/ch-hl-076.htm",
+      "tosfos": "https://www.dafyomi.co.il/chulin/tosfos/ch-ts-076.htm",
+      "review": "https://www.dafyomi.co.il/chulin/review/ch-rg-076.htm?q=1",
+      "points": "https://www.dafyomi.co.il/chulin/points/ch-ps-076.htm",
+      "hebcharts": "https://www.dafyomi.co.il/chulin/hebcharts/ch-tl-076.htm",
+      "yerushalmi": "https://www.dafyomi.co.il/chulin/yerushalmi/ch-yr-076.htm"
+    },
+    "fetchedAt": "2026-05-27T09:00:54.062Z"
+  },
+  "amudim": {
+    "a": {
+      "insights": {
+        "type": "insights",
+        "amud": "a",
+        "wholeDaf": true,
+        "titleLine": "INSIGHTS TO THE DAF - CHULIN 76",
+        "body": {
+          "type": "insights",
+          "entries": [
+            {
+              "marker": "1)",
+              "level": 0,
+              "title": {
+                "en": "THE DISCUSSION OF \"TZOMES HA'GIDIN\""
+              },
+              "body": {
+                "en": "The Mishnah teaches the laws that apply to an animal with a broken leg bone, and an animal with a missing Tzomes ha'Gidin.\nWhy is this Mishnah placed here, in the chapter that discusses the laws of a fetus? It belongs in the previous chapter, \"Elu Tereifos,\" that discusses the blemishes that render an animal a Tereifah!"
+              },
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "body": {
+                    "en": "The RAMBAM (in Perush ha'Mishnayos) explains that this Mishnah is placed here because of the last law that it teaches: \"If the bone is broken but most of the flesh around it is still intact, the Shechitah is Metaher it.\" This law is similar to the law discussed in the preceding Mishnayos with regard to when the Shechitah of a cow is Metaher the fetus inside it."
+                  },
+                  "refs": [
+                    {
+                      "raw": "RAMBAM",
+                      "kind": "rambam"
+                    }
+                  ]
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "body": {
+                    "en": "The TIFERES YISRAEL explains that this Mishnah is located here because the Mishnah earlier teaches that if a protruding limb of a fetus was cut off before the cow's Shechitah, the remaining part of the fetus inside the womb may be eaten, regardless of where the cut was made on the limb of the fetus (the fetus is permitted even if it is a Tereifah). The Mishnah here points out that this does not apply to a limb that was cut off of a grown cow. A cow would not be Kosher if its limb was cut off at any point above the Arkuvah (see following Insight)."
+                  },
+                  "refs": [
+                    {
+                      "raw": "TIFERES YISRAEL",
+                      "kind": "other"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "marker": "2)",
+              "level": 0,
+              "title": {
+                "en": "HALACHAH: THE \"ARKUVAH\" AND \"TZOMES HA'GIDIN\""
+              },
+              "body": {
+                "en": "The Mishnah teaches that when an animal's hind leg was cut anywhere below the Arkuvah, the animal is Kosher. When the cut was above the Arkuvah, the animal is a Tereifah.\nThere are two opinions in the Gemara with regard to which Arkuvah the Mishnah is discussing. Rav Yehudah says that the Mishnah is discussing the lower Arkuvah (knee joint), which is below the Tzomes ha'Gidin. Ula says that the Mishnah is discussing the upper Arkuvah, which is above the Tzomes ha'Gidin. According to Ula, even if the bone attached to the upper Arkuvah is severed above the Tzomes ha'Gidin (but below the upper Arkuvah), the animal is Kosher.\nWhich opinion does the Halachah follow?"
+              },
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "body": {
+                    "en": "RASHI (DH v'Chi) rules in accordance with Rav Yehudah. If the bone is severed from the lower Arkuvah and upward, then the animal is a Tereifah. Similarly, the removal of the Tzomes ha'Gidin renders the animal a Tereifah.\nThe ROSH (4:7) quotes the SEFER HA'TERUMAH who accepts Rashi's opinion and rules that the Arkuvah mentioned in the Mishnah is the lower Arkuvah, and such was the custom in Ashkenaz and Tzarfas (Germany and France)."
+                  },
+                  "refs": [
+                    {
+                      "raw": "RASHI",
+                      "kind": "rashi"
+                    },
+                    {
+                      "raw": "DH v'Chi",
+                      "kind": "other"
+                    },
+                    {
+                      "raw": "ROSH",
+                      "kind": "rishon"
+                    },
+                    {
+                      "raw": "SEFER HA'TERUMAH",
+                      "kind": "other"
+                    }
+                  ]
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "body": {
+                    "en": "The ROSH quotes the RIVA who asserts that the Halachah follows the second, more lenient opinion, as is evident from the conclusion of the Gemara. The RIVA writes that RABEINU YITZCHAK BEN YEHUDAH permitted an animal that had a leg that was severed above the Tzomes ha'Gidin but below the upper Arkuvah. He suggests that the RIF also seems to rule this way, since the Rif omits the first opinion and mentions only the second opinion.\nThis is also the view of the RAMBAN. However, the Ramban points out that this opinion leads to a Halachic anomaly. When the Tzomes ha'Gidin of the leg of an animal was removed or injured, rendering the animal a Tereifah, it should be possible to make the animal Kosher again by cutting the leg off at the bone above the Tzomes ha'Gidin, and below the upper Arkuvah! Indeed, the Ramban suggests that this method could be used to \"fix\" an animal from which the Tzomes ha'Gidin was removed. (The Ramban points out that this procedure is effective only when it is done while the animal is still alive, before the Shechitah.) (See the following Insight for a discussion of this Halachah.)\nThe Rosh disagrees with the Ramban's reasoning and maintains that the status of Tereifah is irreversible. Once an animal becomes a Tereifah, it cannot become permitted.\nThe SHULCHAN ARUCH (YD 55:1) records both opinions. The REMA writes that the practice in all of Ashkenaz and Tzarfas is to follow the stringent opinion. (Z. Wainstein)"
+                  },
+                  "refs": [
+                    {
+                      "raw": "ROSH",
+                      "kind": "rishon"
+                    },
+                    {
+                      "raw": "RIVA",
+                      "kind": "rishon"
+                    },
+                    {
+                      "raw": "RABEINU YITZCHAK BEN YEHUDAH",
+                      "kind": "other"
+                    },
+                    {
+                      "raw": "RIF",
+                      "kind": "rishon"
+                    },
+                    {
+                      "raw": "RAMBAN",
+                      "kind": "rishon"
+                    },
+                    {
+                      "raw": "SHULCHAN ARUCH",
+                      "kind": "shulchanAruch"
+                    },
+                    {
+                      "raw": "REMA",
+                      "kind": "other"
+                    },
+                    {
+                      "raw": "YD 55:1",
+                      "kind": "shulchanAruch"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "marker": "3)",
+              "level": 0,
+              "title": {
+                "en": "REVERSING THE STATUS OF \"TEREIFAH\""
+              },
+              "body": {
+                "en": "The Mishnah teaches that when an animal's hind leg was cut anywhere below the Arkuvah, the animal is Kosher. When the cut was above the Arkuvah, the animal is a Tereifah.\nThere are two opinions in the Gemara with regard to which Arkuvah the Mishnah is discussing. Rav Yehudah says that the Mishnah is discussing the lower Arkuvah (knee joint), which is below the Tzomes ha'Gidin. Ula says that the Mishnah is discussing the upper Arkuvah, which is above the Tzomes ha'Gidin. According to Ula, even if the bone attached to the upper Arkuvah is severed above the Tzomes ha'Gidin (but below the upper Arkuvah), the animal is Kosher.\nThe ROSH (4:7) infers from the words of the RIF, who omits the first opinion and mentions only the second opinion, that the Rif rules like the second opinion (see previous Insight). This is also the view of the RAMBAN. The Ramban points out that this opinion leads to a Halachic anomaly. When the Tzomes ha'Gidin of the leg of an animal was removed or injured, rendering the animal a Tereifah, it should be possible to make the animal Kosher again by cutting the leg off at the bone above the Tzomes ha'Gidin, and below the upper Arkuvah! Indeed, the Ramban suggests that this method could be used to \"fix\" an animal from which the Tzomes ha'Gidin was removed. (The Ramban points out that this procedure is effective only when it is done while the animal is still alive, before the Shechitah.)\nThe Rosh disagrees with the Ramban's reasoning and maintains that the status of Tereifah is irreversible. Once an animal becomes a Tereifah, it can no longer be permitted.\nThe Ramban's opinion is problematic for several reasons."
+              },
+              "children": [
+                {
+                  "marker": "1.",
+                  "level": 2,
+                  "body": {
+                    "en": "The Gemara earlier (54a) states that when an animal received a fatal blow in its Gid ha'Nasheh, it is not a Tereifah, because the Chachamim had a tradition that there exists a medication that can be applied to heal the wound. The Gemara there shows that a wound that can be healed does not render the animal a Tereifah! How, then, can the removal of the Tzomes ha'Gidin render the animal a Tereifah if that status can be remedied by cutting the bone above that area?"
+                  },
+                  "refs": [
+                    {
+                      "raw": "54a",
+                      "kind": "gemara"
+                    }
+                  ]
+                },
+                {
+                  "marker": "2.",
+                  "level": 2,
+                  "body": {
+                    "en": "The Gemara in Bava Kama (41a) seems to contradict the Ramban's opinion. The Mishnah there teaches that a Shor Tam that kills a person is put to death, and a Shor Mu'ad that kills a person not only is put to death, but the owner must pay \"Kofer\" to the family of the victim. The Gemara asks how is possible for a Shor Tam that kills a person to become a Mu'ad? If the Shor is put to death the first time that it kills a person, then it will never be able to kill a person three times!\nAccording to the Ramban, there is a simple answer to the Gemara's question there. A Shor Tam that is a Tereifah is not put to death for killing a person. The Gemara in Sanhedrin (78a) teaches a principle that in a case in which a person is exempt from Misah for killing another person, an animal is also exempt from Misah for killing. Since a person who is a Tereifah is not put to death, an animal that is a Tereifah is not put to death. Accordingly, when a Shor Tam was a Tereifah due to the removal of its Tzomes ha'Gidin, it is not put to death. If, after killing two people, its bone above the Tzomes ha'Gidin is cut, the animal becomes Kosher and when it then kills a third person, it is a Shor Mu'ad that must be put to death! Why, according to the Ramban, does the Gemara in Bava Kama not suggest this answer? (TESHUVAS AMUDEI OR #48)\nThe ACHIEZER (1:12:5, DH uv'Emes) answers that it must be that the Ramban maintains that there is a difference between a wound that can be healed through medication and a wound that can be altered from the status of a Tereifah through another act. RAV SHLOMO HEIMANN zt'l explains that an animal that cannot survive for twelve months in its present state is considered a Tereifah. An animal that can survive for twelve months once its leg is amputated is considered a different animal. In contrast, the animal that lives for twelve months because of medication is considered the same animal that was sick. When medication enables an animal to survive for twelve months, this shows retroactively that the animal was not a Tereifah.\nHowever, this logic applies only to cases of Tereifos in animals, but not to Tereifos in humans. Tereifos in animals are derived from the Halachah l'Moshe mi'Sinai, while Tereifos in humans (such as the law that a person who murdered a Tereifah person, or a Tereifah person who murdered a healthy person, is not punished with the death penalty) is not a Halachah l'Moshe mi'Sinai but rather it is based on the logic that when a \"Gavra Ketila\" (a dead person; i.e. one who is going to die soon) kills or is killed, the perpetrator is exempt from the death penalty. Therefore, a human whose status as a Tereifah could be altered by amputating the leg above the Tzomes ha'Gidin is not considered a \"Gavra Ketila\" and is not a Tereifah. If he murders another person, he is liable for the death penalty. Accordingly, when a bull with the same condition killed, the bull is not considered a Tereifah with regard to being exempt from the death penalty (even though such an animal is forbidden to be eaten before the amputation). (D. Bloom)"
+                  },
+                  "refs": [
+                    {
+                      "raw": "41a",
+                      "kind": "gemara"
+                    },
+                    {
+                      "raw": "TESHUVAS AMUDEI OR",
+                      "kind": "other"
+                    },
+                    {
+                      "raw": "78a",
+                      "kind": "gemara"
+                    },
+                    {
+                      "raw": "ACHIEZER",
+                      "kind": "other"
+                    },
+                    {
+                      "raw": "RAV SHLOMO HEIMANN",
+                      "kind": "other"
+                    },
+                    {
+                      "raw": "1:12:5, DH uv'Emes",
+                      "kind": "other"
+                    }
+                  ]
+                }
+              ],
+              "refs": [
+                {
+                  "raw": "ROSH",
+                  "kind": "rishon"
+                },
+                {
+                  "raw": "RIF",
+                  "kind": "rishon"
+                },
+                {
+                  "raw": "RAMBAN",
+                  "kind": "rishon"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "background": {
+        "type": "background",
+        "amud": "a",
+        "wholeDaf": true,
+        "titleLine": "BACKGROUND TO THE DAF - CHULIN 76",
+        "body": {
+          "type": "background",
+          "girsa": [
+            {
+              "marker": "[1]",
+              "level": 0,
+              "title": {
+                "en": "Rashi 76a DH v'Chen she'Nital Tzomes ha'Gidin וכן שניטל צומת הגידין :",
+                "he": "וכן שניטל צומת הגידין"
+              },
+              "body": {},
+              "children": [],
+              "refs": [
+                {
+                  "raw": "Rashi 76a DH v'Chen she'Nital Tzomes ha'Gidin וכן שניטל צומת הגידין :",
+                  "kind": "rashi"
+                }
+              ]
+            },
+            {
+              "marker": "[2]",
+              "level": 0,
+              "title": {
+                "en": "Tosfos 76a DH Ela:"
+              },
+              "body": {},
+              "children": [],
+              "refs": [
+                {
+                  "raw": "Tosfos 76a DH Ela:",
+                  "kind": "tosfos"
+                }
+              ]
+            }
+          ],
+          "glossary": [
+            {
+              "marker": "1)",
+              "level": 0,
+              "label": "[line 1]",
+              "title": {
+                "en": "ARKUVAH",
+                "he": "ארכובה"
+              },
+              "body": {
+                "en": "the knee-joint (RASHI); there are two joints called Arkuvah (see below, entry #3)"
+              },
+              "children": [],
+              "refs": [
+                {
+                  "raw": "(RASHI)",
+                  "kind": "rashi"
+                },
+                {
+                  "raw": "RASHI",
+                  "kind": "rashi"
+                }
+              ]
+            },
+            {
+              "marker": "2)",
+              "level": 0,
+              "label": "[line 2]",
+              "title": {
+                "en": "MIN HA'ARKUVAH UL'MAILAH PESULAH",
+                "he": "מן הארכובה ולמעלה פסולה"
+              },
+              "body": {
+                "en": "if its hind legs were cut off above the knees, it is a Tereifah (The Tana of our Mishnah argues with Rebbi Shimon ben Elazar (Tosefta 3:3), who rules that this is not a Tereifah. In the list of the eighteen Simanei Tereifah of Perek Elu Tereifos (Daf 42a et seq.), this Siman Tereifah also includes the removal of the \"Tzomes ha'Gidin,\" the \"meeting point of the sinews (or tendons),\" tendons that attach the muscles of the middle of the leg to the bones of the lower leg; the exact location is discussed in our Gemara — see next entry)"
+              },
+              "children": [],
+              "refs": [
+                {
+                  "raw": "Daf 42a et seq.",
+                  "kind": "gemara"
+                }
+              ]
+            },
+            {
+              "marker": "3)",
+              "level": 0,
+              "label": "[line 3]",
+              "title": {
+                "en": "TZOMES HA'GIDIN",
+                "he": "צומת הגידין"
+              },
+              "body": {
+                "en": "the \"meeting point of the sinews (or tendons),\" tendons that attach the muscles of the middle of the leg to the bones of the lower leg (TZOMES HA'GIDIN)"
+              },
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "body": {
+                    "en": "(a)The hind leg of Kosher animals consists of three major limbs: the Yerech, thigh (which contains the Kulis, femur or thigh bone), the Shok, calf (which contains the Shok, tibia), and the Etzem ha'Tachton, the lower limb of the leg (which contains the metatarsus)."
+                  }
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "body": {
+                    "en": "(b)The bones of these three limbs are connected by two joints. The joint that separates the Kulis and the Shok is called the Arkuvah Elyonah, the knee (O.F. jenoil - the knee). This joint is clearly visible in a camel, while in most animals, such as the cow, it is covered by the animal's torso. The Tzomes ha'Gidin is situated near the bottom of the Shok. The joint that separates the Shok and the Etzem ha'Tachton is called the Arkuvah ha'Tachtonah (O.F. cencron), the ankle joint, also known as the \"Arkuvah ha'Nimkeres Im ha'Rosh.\" One of the six joint bones of the Arkuvah ha'Tachtonah is the Arkuma, the talus."
+                  }
+                },
+                {
+                  "marker": "(c)",
+                  "level": 1,
+                  "body": {
+                    "en": "(c)From the Arkuma and up, for a length of about two or three Etzba'os, the Shok has no flesh, only hide. The Gidin of the Tzomes ha'Gidin at this point are all clumped together and lie directly on the bone. Above that area, flesh covers the Shok, and the Gidin are embedded in the flesh. At the lowest part of the flesh, the Gidin are still clumped together (RASHI). As they go up the Shok, they spread out into the flesh."
+                  },
+                  "refs": [
+                    {
+                      "raw": "(RASHI)",
+                      "kind": "rashi"
+                    },
+                    {
+                      "raw": "RASHI",
+                      "kind": "rashi"
+                    }
+                  ]
+                },
+                {
+                  "marker": "(d)",
+                  "level": 1,
+                  "body": {
+                    "en": "(d)There are three major opinions as to the location of the Tzomes ha'Gidin:"
+                  }
+                }
+              ]
+            },
+            {
+              "marker": "1.",
+              "level": 0,
+              "title": {},
+              "body": {
+                "en": "1.Rabah, quoting Rav Ashi, states that the Tzomes ha'Gidin is located at the lowest part of the flesh that covers the Shok, where the Gidin are clumped together."
+              },
+              "children": []
+            },
+            {
+              "marker": "2.",
+              "level": 0,
+              "title": {},
+              "body": {
+                "en": "2.Rabah bar Rav Huna, also quoting Rav Ashi, states that the Tzomes ha'Gidin is at the point where the Shok has no flesh, where the Gidin that are clumped together lie directly on the bone."
+              },
+              "children": []
+            },
+            {
+              "marker": "3.",
+              "level": 0,
+              "title": {},
+              "body": {
+                "en": "3.Rava the son of Rabah bar Rav Huna, also quoting Rav Ashi, states that the Tzomes ha'Gidin includes both areas mentioned by the previous two Amora'im."
+              },
+              "children": []
+            },
+            {
+              "marker": "4a)",
+              "level": 0,
+              "label": "[line 18]",
+              "title": {
+                "en": "MADLEI",
+                "he": "מדלי"
+              },
+              "body": {
+                "en": "raises [the knife higher up, closer to the main part of the animal and its vital organs] (but above the Tzomes ha'Gidin)"
+              },
+              "children": []
+            },
+            {
+              "marker": "b)",
+              "level": 0,
+              "label": "[line 19]",
+              "title": {
+                "en": "METATEI",
+                "he": "מתתי"
+              },
+              "body": {
+                "en": "lowers [the knife lower down, further away from the main part of the animal and its vital organs] (but at the Tzomes ha'Gidin)"
+              },
+              "children": []
+            },
+            {
+              "marker": "5a)",
+              "level": 0,
+              "label": "[line 21]",
+              "title": {
+                "en": "D'A'GARMA UL'VAR",
+                "he": "דאגרמא ולבר"
+              },
+              "body": {
+                "en": "that are on the bone and above (lit. outward) (i.e. the Gidin that are in the flesh)"
+              },
+              "children": []
+            },
+            {
+              "marker": "b)",
+              "level": 0,
+              "label": "[line 22]",
+              "title": {
+                "en": "D'A'GARMA UL'GAV",
+                "he": "דאגרמא ולגיו"
+              },
+              "body": {
+                "en": "that are on the bone and downward (lit. inward) (i.e. the Gidin that are directly on the bone)"
+              },
+              "children": []
+            },
+            {
+              "marker": "6)",
+              "level": 0,
+              "label": "[line 23]",
+              "title": {
+                "en": "D'ILAVEI ARKUMA",
+                "he": "דעילוי ערקומא"
+              },
+              "body": {
+                "en": "that are above the Arkuma (one of the six bones of the ankle joint)"
+              },
+              "children": []
+            },
+            {
+              "marker": "7)",
+              "level": 0,
+              "label": "[line 24]",
+              "title": {
+                "en": "LO TATZISU LEI",
+                "he": "לא תציתו ליה"
+              },
+              "body": {
+                "en": "do not listen to him"
+              },
+              "children": []
+            },
+            {
+              "marker": "8)",
+              "level": 0,
+              "label": "[line 25]",
+              "title": {
+                "en": "HEICHA D'PAR'EI TABACHEI",
+                "he": "היכא דפרעי טבחי"
+              },
+              "body": {
+                "en": "where the butchers tear open [the hide of the animal in order to remove the flesh]"
+              },
+              "children": []
+            },
+            {
+              "marker": "9)",
+              "level": 0,
+              "label": "[line 30]",
+              "title": {
+                "en": "ARBA'AH BITDEI",
+                "he": "ארבעה בטדי"
+              },
+              "body": {
+                "en": "(a) four Etzba'os, finger-breadths (RASHI); (b) four measures of four Etzba'os each (RIF, RAMBAM, RASHBA, TOSFOS, RABEINU CHANANEL)"
+              },
+              "children": [],
+              "refs": [
+                {
+                  "raw": "(RASHI)",
+                  "kind": "rashi"
+                },
+                {
+                  "raw": "(RIF, RAMBAM, RASHBA, TOSFOS, RABEINU CHANANEL)",
+                  "kind": "tosfos"
+                },
+                {
+                  "raw": "RASHI",
+                  "kind": "rashi"
+                },
+                {
+                  "raw": "RIF, RAMBAM, RASHBA, TOSFOS, RABEINU CHANANEL",
+                  "kind": "tosfos"
+                }
+              ]
+            },
+            {
+              "marker": "10a)",
+              "level": 0,
+              "label": "[line 31]",
+              "title": {
+                "en": "BELITEI",
+                "he": "בליטי"
+              },
+              "body": {
+                "en": "protruding"
+              },
+              "children": []
+            },
+            {
+              "marker": "b)",
+              "level": 0,
+              "label": "[line 31]",
+              "title": {
+                "en": "BELI'EI",
+                "he": "בליעי"
+              },
+              "body": {
+                "en": "embedded in the flesh"
+              },
+              "children": []
+            },
+            {
+              "marker": "11a)",
+              "level": 0,
+              "label": "[line 31]",
+              "title": {
+                "en": "ASHUNEI",
+                "he": "אשוני"
+              },
+              "body": {
+                "en": "hard"
+              },
+              "children": []
+            },
+            {
+              "marker": "b)",
+              "level": 0,
+              "label": "[line 32]",
+              "title": {
+                "en": "RECHICHEI",
+                "he": "רכיכי"
+              },
+              "body": {
+                "en": "soft"
+              },
+              "children": []
+            },
+            {
+              "marker": "12a)",
+              "level": 0,
+              "label": "[line 32]",
+              "title": {
+                "en": "ALIMEI",
+                "he": "אלימי"
+              },
+              "body": {
+                "en": "thick"
+              },
+              "children": []
+            },
+            {
+              "marker": "b)",
+              "level": 0,
+              "label": "[line 32]",
+              "title": {
+                "en": "KETINEI",
+                "he": "קטיני"
+              },
+              "body": {
+                "en": "thin"
+              },
+              "children": []
+            },
+            {
+              "marker": "13a)",
+              "level": 0,
+              "label": "[last line]",
+              "title": {
+                "en": "CHIVREI",
+                "he": "חוורי"
+              },
+              "body": {
+                "en": "white"
+              },
+              "children": []
+            },
+            {
+              "marker": "b)",
+              "level": 0,
+              "label": "[last line]",
+              "title": {
+                "en": "LO CHIVREI",
+                "he": "לא חוורי"
+              },
+              "body": {
+                "en": "(lit. not white) off-white"
+              },
+              "children": []
+            },
+            {
+              "marker": "14)",
+              "level": 0,
+              "label": "[line 1]",
+              "title": {
+                "en": "D'ZIGEI",
+                "he": "דזיגי"
+              },
+              "body": {
+                "en": "that are clear (O.F. clers), i.e. only slightly whitish"
+              },
+              "children": []
+            },
+            {
+              "marker": "15)",
+              "level": 0,
+              "label": "[line 11]",
+              "title": {
+                "en": "NAPTZEI",
+                "he": "נפציה"
+              },
+              "body": {
+                "en": "(O.F. charpir) he disentangled it; he split it"
+              },
+              "children": []
+            },
+            {
+              "marker": "16)",
+              "level": 0,
+              "label": "[line 18]",
+              "title": {
+                "en": "K'CHUT HA'SARBAL",
+                "he": "כחוט הסרבל"
+              },
+              "body": {
+                "en": "like the string used to tighten the collar of a woolen cloak"
+              },
+              "children": []
+            },
+            {
+              "marker": "17)",
+              "level": 0,
+              "label": "[line 21]",
+              "title": {
+                "en": "TILSA D'CHOL CHAD V'CHAD",
+                "he": "תלתא דכל חד וחד"
+              },
+              "body": {
+                "en": "a third of each and every one"
+              },
+              "children": []
+            },
+            {
+              "marker": "18)",
+              "level": 0,
+              "label": "[line 26]",
+              "title": {
+                "en": "ZEH V'ZEH",
+                "he": "זה וזה"
+              },
+              "body": {
+                "en": "(lit. this and that) the animal and the limb"
+              },
+              "children": []
+            },
+            {
+              "marker": "19)",
+              "level": 0,
+              "label": "[line 37]",
+              "title": {
+                "en": "HADUREI A'PIRCHEI LAMAH LACH?",
+                "he": "הדורי אפירכי למה לך?"
+              },
+              "body": {
+                "en": "Must you search for questions [from Beraisa'os that are unknown and need not be considered when dealing with Halachic rulings]?"
+              },
+              "children": []
+            },
+            {
+              "marker": "20a)",
+              "level": 0,
+              "label": "[line 40]",
+              "title": {
+                "en": "YEYASHER! V'CHEN TIRGEMA ARYOCH B'BAVEL",
+                "he": "יישר! וכן תרגמה אריוך בבבל"
+              },
+              "body": {
+                "en": "You did well! and that is how Aryoch (see next entry) explained it in Bavel"
+              },
+              "children": []
+            },
+            {
+              "marker": "b)",
+              "level": 0,
+              "label": "[line 40]",
+              "title": {
+                "en": "ARYOCH",
+                "he": "אריוך"
+              },
+              "body": {
+                "en": "Shmuel, who was called by this name because he was compared to a king (Reicha means king or nobleman in Aramaic), as follows: (a) the Halachah follows his opinion in monetary matters just like a king, and the name \"Aryoch\" is the name of a king in the verse \"Aryoch Melech Elasar\" (Bereishis 14:1) (RASHI; the name of this king was chosen because the word \"Ari,\" \"lion,\" is embedded in it — TOSFOS to Shabbos 53a DH Aryoch); (b) the Halachah follows his opinion in monetary matters just like \"Dina d'Malchusa Dina\" (\"the laws of kingdoms are binding\") (RASHI to Menachos 38b); (c) He was thoroughly versed in the Halachos of monetary matters and he sat in judgment like a king who presides over the court in his land (TOSFOS RI HA'ZAKEN to Kidushin 39a, RASHI to Shabbos 53a)"
+              },
+              "children": [],
+              "refs": [
+                {
+                  "raw": "RASHI",
+                  "kind": "rashi"
+                },
+                {
+                  "raw": "TOSFOS",
+                  "kind": "tosfos"
+                },
+                {
+                  "raw": "TOSFOS RI HA'ZAKEN",
+                  "kind": "tosfos"
+                },
+                {
+                  "raw": "RASHI to Menachos 38b",
+                  "kind": "rashi"
+                },
+                {
+                  "raw": "TOSFOS RI HA'ZAKEN to Kidushin 39a, RASHI to Shabbos 53a",
+                  "kind": "rashi"
+                }
+              ]
+            },
+            {
+              "marker": "21)",
+              "level": 0,
+              "label": "[line 43]",
+              "title": {
+                "en": "ROV OVYO",
+                "he": "רוב עוביו"
+              },
+              "body": {
+                "en": "the majority of the thickness [of the bone] (i.e. flesh covers the majority of the edge of the broken bone)"
+              },
+              "children": []
+            },
+            {
+              "marker": "22)",
+              "level": 0,
+              "label": "[line 43]",
+              "title": {
+                "en": "ROV HEKEIFO",
+                "he": "רוב הקיפו"
+              },
+              "body": {
+                "en": "the majority of the perimeter [of the bone] (i.e. the flesh covers the majority of the sides of the broken bone, even if the edge is sticking out)"
+              },
+              "children": []
+            }
+          ]
+        }
+      },
+      "halacha": {
+        "type": "halacha",
+        "amud": "a",
+        "wholeDaf": true,
+        "titleLine": "OUTLINES OF HALACHOS - CHULIN 76",
+        "body": {
+          "type": "halacha",
+          "gemara": [
+            {
+              "marker": "1.",
+              "level": 2,
+              "label": "48a (Rav Yosef):",
+              "body": {
+                "en": "If a hole in the lung is a Tereifah, even if the lung sticks to the flesh between the ribs, it is Tereifah!"
+              }
+            },
+            {
+              "marker": "2.",
+              "level": 2,
+              "label": "(Beraisa):",
+              "body": {
+                "en": "If a man's Ever was punctured, he is a Petzu'a Daka (he may not marry). If the hole was sealed, he is Kosher. This is a disqualification that can become permitted."
+              },
+              "children": [
+                {
+                  "marker": "i.",
+                  "level": 3,
+                  "label": "Suggestion:",
+                  "body": {
+                    "en": "'This' excludes our case (the sealing does not make the animal Kosher)."
+                  }
+                }
+              ]
+            },
+            {
+              "marker": "3.",
+              "level": 2,
+              "label": "Rejection (Ravina):",
+              "body": {
+                "en": "No. It excludes a scab that forms on a hole in the lung. That does not help."
+              }
+            },
+            {
+              "marker": "4.",
+              "level": 2,
+              "label": "54a:",
+              "body": {
+                "en": "Certain hunters would kill animals by hitting them on the Gid ha'Nasheh, or on the kidney. R. Yehudah ben Beseira and R. Aba ruled that they are not Tereifos, for we cannot add to the Tereifos that Chachamim listed."
+              }
+            },
+            {
+              "marker": "5.",
+              "level": 2,
+              "body": {
+                "en": "Even though we see that the animals die from this, we have a tradition that a salve could enable them to live."
+              }
+            },
+            {
+              "marker": "6.",
+              "level": 2,
+              "label": "57b (R. Yehoshua ben Levi - Mishnah):",
+              "body": {
+                "en": "A hole in the Kaneh the size of an Italian Isar is Tereifah."
+              }
+            },
+            {
+              "marker": "7.",
+              "level": 2,
+              "label": "Question (R. Yosi ben Nehhurai):",
+              "body": {
+                "en": "There was a sheep that had a hole in its Kaneh; they sealed it, and it healed!"
+              },
+              "children": [
+                {
+                  "marker": "i.",
+                  "level": 3,
+                  "label": "Counter-question (R. Yehoshua ben Levi):",
+                  "body": {
+                    "en": "It is known that a detached leg is Tereifah, yet R. Shimon ben Chalifta's chicken leg came off; they covered it with a reed, and it healed!"
+                  }
+                }
+              ]
+            },
+            {
+              "marker": "8.",
+              "level": 2,
+              "label": "Answer (to both questions):",
+              "body": {
+                "en": "You must say, even though it healed, the chicken did not live a year. Also the sheep did not survive a year!"
+              }
+            },
+            {
+              "marker": "9.",
+              "level": 2,
+              "label": "59a:",
+              "body": {
+                "en": "A deer whose hind legs were cut was brought in front of the Reish Galusa. Rav checked Tzomes ha'Gidim (the juncture of the sinews) and ruled that it is Kosher."
+              }
+            },
+            {
+              "marker": "10.",
+              "level": 2,
+              "label": "68b (Rabah):",
+              "body": {
+                "en": "A Treifah never becomes permitted."
+              }
+            },
+            {
+              "marker": "11.",
+              "level": 2,
+              "label": "76a (Mishnah):",
+              "body": {
+                "en": "If the leg was cut above the (knee) joint, it is Treifah. If Tzomes ha'Gidim was removed, it is Treifah."
+              }
+            }
+          ],
+          "rishonim": [
+            {
+              "marker": "1.",
+              "level": 2,
+              "label": "Rambam (Hilchos Shechitah 10:12):",
+              "body": {
+                "en": "One may not add to the Tereifos. Anything that happened to an animal or bird other than what the early Chachamim listed and Batei Din of Yisrael agreed upon, it is possible that it will live, even if we know medically that it will not live."
+              },
+              "children": [
+                {
+                  "marker": "i.",
+                  "level": 3,
+                  "label": "Kesef Mishneh:",
+                  "body": {
+                    "en": "The Rambam learns from Chulin 54a. He explains that a tradition from Sinai teaches that a salve could enable them to live, even though our medical books say that there is no cure."
+                  }
+                }
+              ]
+            },
+            {
+              "marker": "2.",
+              "level": 2,
+              "label": "Ramban (76a DH u'Posku):",
+              "body": {
+                "en": "If the leg was cut at Tzomes ha'Gidim, or there is a hole in the spleen, the animal can live if we cut the leg higher or remove the spleen! Even so, once it became a Tereifah, it is always forbidden. This requires investigation. If the leg was cut at Tzomes ha'Gidim and one slaughtered it, Vadai it is Tereifah, for it had a mortal injury. It could not live in its present state, even with a salve (unless one cut the leg above). If one cut the leg above and then slaughtered it, it is Kosher. Even if the injury made it start to die, this is merely a dangerously sick animal. We find Tereifos that get cured, e.g. a punctured lung that later became tangled with flesh. Netulas ha'Gidim (they were removed) is Tereifah. If it was cut higher, it is not Netulas ha'Gidim. If one leaves it 12 months, it is Kosher. There are damaged limbs that are Tereifah, even though if they are removed, it is Kosher. This requires investigation."
+              },
+              "refs": [
+                {
+                  "raw": "76a DH u'Posku",
+                  "kind": "gemara"
+                }
+              ],
+              "children": [
+                {
+                  "marker": "i.",
+                  "level": 3,
+                  "label": "Rebuttal (Rosh Chulin 4:7):",
+                  "body": {
+                    "en": "It is difficult to say that a Tereifah becomes Kosher b'Yedei Adam (through man's action). Rather, if it was cut at Tzomes ha'Gidim, it will die. The sickness of Tereifah already entered. We cannot fix it. This is unlike a (punctured) lung that by itself gets tangled with flesh."
+                  },
+                  "refs": [
+                    {
+                      "raw": "Rosh Chulin 4:7",
+                      "kind": "rishon"
+                    }
+                  ]
+                },
+                {
+                  "marker": "ii.",
+                  "level": 3,
+                  "label": "Ran (26a DH ul'Inyan):",
+                  "body": {
+                    "en": "If the leg was cut at Tzomes ha'Gidim, this pains the animal and it becomes Tereifah. It cannot become permitted later. A removed spleen or kidney is Kosher, but if it was punctured or stricken it is Tereifah. Removing it afterwards does not help, for the puncture hurt it more than removal does, and made it Tereifah. Rav checked Tzomes ha'Gidim of the deer brought in front of the Reish Galusa. They did not say to cut it above Tzomes ha'Gidim (and below the knee), to be Machshir it in any case!"
+                  },
+                  "refs": [
+                    {
+                      "raw": "26a DH ul'Inyan",
+                      "kind": "gemara"
+                    }
+                  ]
+                },
+                {
+                  "marker": "iii.",
+                  "level": 3,
+                  "body": {
+                    "en": "NOTE: perhaps they checked it to avoid unnecessary pain to animals, or to be Machshir the entire remnant of the leg! Perhaps the Gemara connotes that Rav would have declared it Tereifah if it was cut at Tzomes ha'Gidim."
+                  }
+                },
+                {
+                  "marker": "iv.",
+                  "level": 3,
+                  "label": "Ha'Emek Davar (Shmos 22:30 (and footnote 1 DH v'Hinei), and ha'Emek She'elah (125 p.33):):",
+                  "body": {
+                    "en": "The Ramban and Ran hold that if something could be cured, it is not Tereifah. The Shach (57:48) says that if it lives more than 12 months, this is a miracle. The Maharshal says that a tiny minority can live more than 12 months. Both of these are difficult. Rather, a Tereifah cannot live, i.e. by itself. The Rambam says so. Tosfos (Bechoros 38b DH v'Simanech) says that something that does not heal by itself is a fixed Mum, even if we can cure it. If a Safek Tereifah lives 12 months, we assume that it was not Tereifah, for it is very rare that it would chance upon something that heals it. If a Vadai Tereifah lived 12 months, we must say that this happened. This applies to Tereifos of tradition. If we have no tradition for it, it is Tereifah only if there is no cure and it is destined for dogs. We learn from \"la'Kelev Tashlichun Oso.\" This is like the Rambam. Chulin 54a is no proof for the Ramban, for it discusses a potential Tereifah for which there was no tradition. The Mishnah (42a) concludes 'if something like it does not live, it is Tereifah', to forbid even if it lives through a cure."
+                  },
+                  "refs": [
+                    {
+                      "raw": "and footnote 1 DH v'Hinei",
+                      "kind": "other"
+                    },
+                    {
+                      "raw": "Bechoros 38b DH v'Simanech",
+                      "kind": "gemara"
+                    },
+                    {
+                      "raw": "42a",
+                      "kind": "gemara"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "marker": "3.",
+              "level": 2,
+              "label": "Toras Kohanim (Shmini Perek 3,10):",
+              "body": {
+                "en": "One might have thought that if an animal ate poison, it is Tereifah. \"Neveilah u'Tereifah\" equates Tereifah to Neveilah. Just like Neveilah is not Bas Chayim (cannot live), also Tereifah."
+              },
+              "children": [
+                {
+                  "marker": "i.",
+                  "level": 3,
+                  "label": "Ra'avad:",
+                  "body": {
+                    "en": "If one would let blood from it, it could live."
+                  }
+                },
+                {
+                  "marker": "ii.",
+                  "level": 3,
+                  "label": "Ha'Emek She'elah (125, p.34):",
+                  "body": {
+                    "en": "A verse equates Tereifos to Tamei animals, to forbid them even if they live through a cure."
+                  }
+                }
+              ]
+            },
+            {
+              "marker": "4.",
+              "level": 2,
+              "label": "Toras ha'Bayis (Beis 2 Sha'ar 3 49b):",
+              "body": {
+                "en": "The Gemara says that a hole in the Beis ha'Kosos the size of a Sela makes a Tereifah. Even though we see people in which a Tefach is open and they live, regarding Tereifos we rely only on what Chachamim said. If not, we would permit a puncture in the intestines or the membrane around the brain, for doctors experimented and say that they can live. We rely on the Ge'onim; their opinion is a Kabalah. Tana'im argue about whether living 12 months is a Siman that it is Kosher. R. Yosi cited a case in which such a woman was cured, and R. Shimon answered that she did not live 12 months. This shows that even a cure will not enable a Tereifah to live 12 months."
+              },
+              "refs": [
+                {
+                  "raw": "Beis 2 Sha'ar 3 49b",
+                  "kind": "gemara"
+                }
+              ],
+              "children": [
+                {
+                  "marker": "i.",
+                  "level": 3,
+                  "label": "Chikrei Lev (YD 26):",
+                  "body": {
+                    "en": "The Rashba retracted from what he wrote in Teshuvah 1:98 (that a Tereifah cannot live)."
+                  },
+                  "refs": [
+                    {
+                      "raw": "YD 26",
+                      "kind": "shulchanAruch"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "poskim": [
+            {
+              "marker": "1.",
+              "level": 2,
+              "label": "Shulchan Aruch (YD 55:1):",
+              "body": {
+                "en": "If Tzomes ha'Gidim was removed, it is Treifah."
+              },
+              "refs": [
+                {
+                  "raw": "YD 55:1",
+                  "kind": "shulchanAruch"
+                }
+              ],
+              "children": [
+                {
+                  "marker": "i.",
+                  "level": 3,
+                  "label": "Gra (3):",
+                  "body": {
+                    "en": "This is like Toras ha'Bayis and the Rosh, unlike the Ramban."
+                  }
+                },
+                {
+                  "marker": "ii.",
+                  "level": 3,
+                  "label": "Pri Chodosh (41:13):",
+                  "body": {
+                    "en": "A hole in Tarpash ha'Kaved (the boundary between the liver and the lungs) is Tereifah, but if it was sealed with fat or a scab closed it, it is Kosher. The Gemara said that a Tereifah does not become Kosher again, i.e. through man. Naturally, they can become Kosher, e.g. a hole in the lung that became tangled with flesh."
+                  }
+                },
+                {
+                  "marker": "iii.",
+                  "level": 3,
+                  "label": "Chazon Ish (YD Tereifos 5:3 DH v'Af):",
+                  "body": {
+                    "en": "Hash-m created cures even for Tereifos. Bava Basra 74b discusses a stone that can revive the dead! Shmuel could heal someone beheaded, if not for wind. Chizkiyah hid Sefer ha'Refu'os, for it cured people immediately. Not all cures were known in all generations. Some were revealed and forgotten. Hash-m entrusted Chachamim to fix the Tereifos according to the Ru'ach ha'Kodesh that He put on them. Ravina and Rav Ashi are Sof Hora'ah (Bava Metzia 86a). We cannot be Mechadesh Torah after them. Tereifos were determimed according to Hash-m's providence at that time. The illnesses in the arsenal of the angel of death at that time, for which no cure was known, those are the Tereifos that the Torah forbade then and for all future generations."
+                  },
+                  "refs": [
+                    {
+                      "raw": "YD Tereifos 5:3 DH v'Af",
+                      "kind": "other"
+                    },
+                    {
+                      "raw": "Bava Metzia 86a",
+                      "kind": "gemara"
+                    }
+                  ]
+                },
+                {
+                  "marker": "iv.",
+                  "level": 3,
+                  "label": "Igros Moshe (CM 2:73:4):",
+                  "body": {
+                    "en": "The Rambam knew that nature changed. Traditions for Tereifos are forbidden forever. The Gemara could say that something without a tradition is not Tereifah if they knew a cure for it. The Rashba did not know that nature changed, and this forced him (to refute those who said that Tereifos sometimes live more than 12 months)."
+                  },
+                  "refs": [
+                    {
+                      "raw": "CM 2:73:4",
+                      "kind": "other"
+                    }
+                  ]
+                },
+                {
+                  "marker": "v.",
+                  "level": 3,
+                  "label": "Tzitz Eliezer (19:32):",
+                  "body": {
+                    "en": "In the past, there was no cure if the kidneys were removed. The Rambam permits when the kidneys were removed, and in Perek 10 (Halachah 12,13) he says that we cannot add to or detract from the Tereifos listed. It does not matter if it is medically known that it can or cannot live. We follow the Torah. The Kesef Mishneh explains that this is because it is a tradition from Sinai."
+                  }
+                }
+              ]
+            }
+          ],
+          "question": {
+            "en": "CAN A TEREIFAH BE CURED? [Tereifah: cure]"
+          }
+        }
+      },
+      "tosfos": {
+        "type": "tosfos",
+        "amud": "a",
+        "wholeDaf": false,
+        "titleLine": "POINT BY POINT SUMMARY OF TOSFOS - CHULIN 76",
+        "body": {
+          "type": "tosfos",
+          "pieces": [
+            {
+              "dhHe": "אלא",
+              "dhNormalized": "אלא",
+              "dhTranslit": "ELA",
+              "body": {
+                "en": "SUMMARY: Tosfos explains why we cannot answer for Rav Yehudah that he holds d'Agrama uli'Bar.\nQuestion: This is difficult, as perhaps he holds like the opinion that the Tzomes ha'Gidin are \"d'Agrama uli'Bar,\" meaning that they start from where they come out of the bone? However, he holds that the animal is not made a Treifah from the area above the Arkuvah due to Tzomes ha'Gidin.\nAnswer #1: Being that Ula asked this question, it is apparently obvious that he held Tzomes ha'Gidin is \"d'Agrama uli'Gav\" (by the bone itself).\nAnswer #2: Additionally, Rav Yehudah says later that it is where the butchers separate the meat from the bone. This is the same opinion as that of Rava the son of Rabah bar Rav Huna who says it is from the joint and up which is even more.",
+                "he": "תימה דלמא סובר כמ\"ד צומת הגידין הוי דאגרמא ולבר דהיינו כשיוצא מן העצם אבל למעלה מן הארכובה לא מיטרף משום צומת הגידין וי\"ל מדפריך ליה עולא מכלל דהוה פשיטא ליה דצומת הגידין הוי דאגרמא ולגיו ועוד דרב יהודה דקאמר בסמוך היכא דפרעי טבחי והיינו דרבא בריה דרבה בר רב הונא דקאמר עילוי ערקומא שהוא עדיין יותר"
+              }
+            }
+          ]
+        }
+      },
+      "review": {
+        "type": "review",
+        "amud": "a",
+        "wholeDaf": true,
+        "titleLine": "REVIEW QUESTIONS - CHULIN 76",
+        "body": {
+          "type": "review",
+          "entries": [
+            {
+              "marker": "1)",
+              "level": 0,
+              "body": {},
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "body": {
+                    "en": "What does the Tana say about an animal whose hind legs are severed ...\nANSWER: The Tana rules that an animal whose hind legs are severed ..."
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "body": {
+                        "en": "... from the Arkuvah downwards?\nANSWER: ... from the Arkuvah downwards - is Kasher."
+                      }
+                    },
+                    {
+                      "marker": "2.",
+                      "level": 2,
+                      "body": {
+                        "en": "... from the Arkuvah upwards?\nANSWER: ... from the Arkuvah upwards is a Tereifah."
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "body": {
+                    "en": "And what does he say about a case where ...\nANSWER: He also rules that one whose ..."
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "body": {
+                        "en": "... the Tzomes ha'Gidin (the nerve junction that is situated on the hind legs) has been removed?\nANSWER: ... Tzomes ha'Gidin (the nerve junction [comprising three nerves] that is situated on the hind legs) has been removed - is T'reifah."
+                      }
+                    },
+                    {
+                      "marker": "2.",
+                      "level": 2,
+                      "body": {
+                        "en": "... a bone in the hind leg is broken?\nANSWER: ... hind leg has a broken bone - is Kasher, but only as long as the majority of the flesh is still intact."
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(c)",
+                  "level": 1,
+                  "body": {
+                    "en": "What does he say about the broken limb itself?\nANSWER: The broken limb itself - he declares forbidden anyway, based on the Pasuk \"u'Basar ba'Sadeh T'reifah Lo Socheilu\"."
+                  }
+                },
+                {
+                  "marker": "(d)",
+                  "level": 1,
+                  "body": {
+                    "en": "Rav Yehudah Amar Rav quoting Rebbi Chiya, describes the Arkuvah in our Mishnah as the one that is sold together with the head. Which limb is that?\nANSWER: Rav Yehudah Amar Rav quoting Rebbi Chiya, describes the Arkuvah in our Mishnah as the one that is sold together with the head - which refers to the lowest of the three bones that comprise the leg (the one that corresponds to the ankle bone)."
+                  }
+                },
+                {
+                  "marker": "(e)",
+                  "level": 1,
+                  "body": {
+                    "en": "How does he then define ...\nANSWER: And he defines ..."
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "body": {
+                        "en": "... Lematah min ha'Arkuvah that is Kasher?\nANSWER: ... Lematah min ha'Arkuvah that is Kasher, as - immediately below the knee-bone (commonly known as the middle bone) which joins it with the calf (the Shok)."
+                      }
+                    },
+                    {
+                      "marker": "2.",
+                      "level": 2,
+                      "body": {
+                        "en": "... le'Ma'alah min ha'Arkuvah that is T'reifah?\nANSWER: ... Lema'alah min ha'Arkuvah that is T'reifah as - immediately above the knee-bone."
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "marker": "2)",
+              "level": 0,
+              "body": {},
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "body": {
+                    "en": "Ula Amar Rebbi Hoshaya explains Arkuvah as the bone that can be seen protruding from the front of a camel's leg. Which bone is that?\nANSWER: Ula Amar Rebbi Hoshaya explains Arkuvah as the one that can be seen protruding from the front of a camel's leg, which is - the joint that joins the calf to the thigh-bone (the Yerech)."
+                  }
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "body": {
+                    "en": "How does he then ...\nANSWER: And he ..."
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "body": {
+                        "en": "... explain Lematah and Lema'alah min ha'Arkuvah?\nANSWER: ... explains Lematah and Lema'alah min ha'Arkuvah to mean - the middle bone and the thigh bone respectively."
+                      }
+                    },
+                    {
+                      "marker": "2.",
+                      "level": 2,
+                      "body": {
+                        "en": "... query Rav Yehudah, based on the continuation of our Mishnah 've'Chein she'Nital Tzomes ha'Gidin'?\nANSWER: ... queries Rav Yehudah, based on the continuation of our Mishnah ve'Chein she'Nital Tzomes ha'Gidin - which implies that the bone corresponding to the Tzomes ha'Gidin is Kasher (otherwise it would be unnecessary to mention it, seeing as it must have been severed)."
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(c)",
+                  "level": 1,
+                  "body": {
+                    "en": "Why did Ula reject Rav Yehudah's answer, making two cases out of a cut in the leg and the removal of the Tzomes ha'Gidim?\nANSWER: Ula rejected Rav Yehudah's answer (making two cases out of a cut in the leg and the removal of the Tzomes ha'Gidim), since Necht'chu means that the legs are completely severed, including the Tzomes ha'Gidin (which he did not need to mention, now that the removal of the Tzomes alone renders the animal T'reifah)."
+                  }
+                },
+                {
+                  "marker": "(d)",
+                  "level": 1,
+                  "body": {
+                    "en": "Rav Yehudah had no answer. On what grounds did he reject his own suggestion that perhaps the Tana means Lematah min ha'Arkuvah but Lema'alah mi'Tzomes ha'Gidin?\nANSWER: Rav Yehudah had no answer. And he rejected his own suggestion that perhaps the Tana means Lematah min ha'Arkuvah but Lema'alah mi'Tzomes ha'Gidin - inasmuch as the Tana said 'min ha'Arkuvah u'Lema'alah' (and not 'min ha'Tzomes u'Lema'alah')."
+                  }
+                }
+              ]
+            },
+            {
+              "marker": "3)",
+              "level": 0,
+              "body": {},
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "body": {
+                    "en": "How does Rav Papa quote Rav Yehudah Amar Rav ... (Lematah ... and Lema'alah ... ) to conform to Ula Amar Rebbi Hoshaya? Which Arkuvah is he referring to?\nANSWER: Rav Papa quotes Rav Yehudah Amar Rav ... (Lematah ... and Lema'alah ... ) as - Lematah min ha'Arkuvah u'mi'Tzomes ha'Gidin, and Lema'alah mi'Tzomes ha'Gidin, to conform to Ula Amar Rebbi Hoshaya."
+                  }
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "body": {
+                    "en": "To which Arkuvah is Rav Yehudah now referring?\nANSWER: Rav Yehudah is now referring - to the Arkuvah Elyonah."
+                  }
+                },
+                {
+                  "marker": "(c)",
+                  "level": 1,
+                  "body": {
+                    "en": "If Lema'alah ... therefore refers to the thigh-bone, what does Lematah ... refer to?\nANSWER: Lema'alah ... therefore refers to the thigh-bone, and Lematah ... - the lower bone (which is completely permitted)."
+                  }
+                },
+                {
+                  "marker": "(d)",
+                  "level": 1,
+                  "body": {
+                    "en": "And what does he then hold regarding the middle (calf)-bone?\nANSWER: Regarding the middle (calf)-bone, he now holds that - if the part that corresponds to Tzomes ha'Gidin breaks, it is T'reifah (ve'Chein Nital Tzomes ha'Gidin), whilst should it break above that point, it is Kasher."
+                  }
+                }
+              ]
+            },
+            {
+              "marker": "4)",
+              "level": 0,
+              "body": {},
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "body": {
+                    "en": "What problem do we have with Ula Amar Rebbi Hoshaya? How do the rulings in our Mishnah appear to contradict each other?\nANSWER: The problem with Ula Amar Rebbi Hoshaya is that - if the leg above the Tzomes ha'Gidin is Kasher (as we just explained), how can the Tzomes ha'Gidin be T'reifah?"
+                  }
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "body": {
+                    "en": "How does Rav Ashi answer this Kashya?\nANSWER: Rav Ashi (whom we quoted a number of times in Eilu T'reifos) answers that - we cannot compare one case of T'reifus to another; like we see here, that lower down is T'reifah, whereas higher up is Kasher."
+                  }
+                },
+                {
+                  "marker": "(c)",
+                  "level": 1,
+                  "body": {
+                    "en": "Like which Lashon do we rule, and like whom (Rav Yehudah or Ula)?\nANSWER: We rule like Rav Yehudah in the first Lashon, seeing as we do not find that Rav Yehudah Amar Rav retracted."
+                  }
+                },
+                {
+                  "marker": "(d)",
+                  "level": 1,
+                  "body": {
+                    "en": "What are the ramifications of this ruling?\nANSWER: Consequently, anywhere above the knee-bone that is severed is T'reifah, and so is Nital ha'Tzomes."
+                  }
+                }
+              ]
+            },
+            {
+              "marker": "5)",
+              "level": 0,
+              "body": {},
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "body": {
+                    "en": "Rabah Amar Rav Ashi (or Rav Asi) defines the Tzomes as de'Agr'ma u'le'Bar. Given that the knee-bone above the joint is devoid of flesh, what does ...\nANSWER: Rabah Amar Rav Ashi (or Rav Asi) defines the Tzomes as de'Agr'ma u'le'Bar. Given that the knee-bone above the joint is devoid of flesh ..."
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "body": {
+                        "en": "... he mean?\nANSWER: ... Rabah must mean that - in the space of the first three Etzba'os that the Gidin leave the bone, they are still attached to it; from then on, they separate from the bone but are still merged into one. That is when they are called Tzomes ha'Gidin, until they separate into three separate entities."
+                      }
+                    },
+                    {
+                      "marker": "2.",
+                      "level": 2,
+                      "body": {
+                        "en": "... Rabah bar Rav Huna mean when he says 'de'Agr'ma u'le'Gev'?\nANSWER: ... Rabah bar Rav Huna who says de'Agr'ma u'le'Gev means that - it is in the space of the first three Tefachim that the Gidin are attached to the bone that they are called Tzomes ha'Gidin."
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "body": {
+                    "en": "Rava b'rei de'Rabah bar Rav Huna Amar Rav Ashi is the most stringent of them all. What does he say?\nANSWER: Rava b'rei de'Rabah bar Rav Huna Amar Rav Ashi considers the three Gidin to be Tzomes ha'Gidin all the way from just above the lower knee-bone (the Arkuma) up to the point where the three Gidin separate."
+                  }
+                },
+                {
+                  "marker": "(c)",
+                  "level": 1,
+                  "body": {
+                    "en": "What did Rebbi Aba comment, when a certain Talmid-Chacham declared that the Tzomes ha'Gidin corresponding to the actual Arkom is T'reifah?\nANSWER: When a certain Talmid-Chacham declared that the Tzomes ha'Gidin corresponding to the actual Arkom is T'reifah, Rebbi Aba commented that - the people should take no notice of him, because he had gone too far."
+                  }
+                }
+              ]
+            },
+            {
+              "marker": "6)",
+              "level": 0,
+              "body": {},
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "body": {
+                    "en": "Rebbi Aba quoted Rav Yehudah, who gave the Shi'ur as from the point where the butcher flays the animal. What was the purpose of that flaying?\nANSWER: Rebbi Aba quoted Rav Yehudah, who gave the Shi'ur as from the point where the butcher flays the animal - either to porge the leg of the Chalavim and to remove the nerves under discussion, or because that is where the butchers tend to begin the flaying process."
+                  }
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "body": {
+                    "en": "With whose opinion does Rav Yehudah conform?\nANSWER: Rav Yehudah's opinion conforms - to that of Rava b'rei de'Rabah bar Rav Huna (de'Iluy Arkuma)."
+                  }
+                },
+                {
+                  "marker": "(c)",
+                  "level": 1,
+                  "body": {
+                    "en": "Rav Yehudah Amar Shmuel defined the Tzomes ha'Gidin as Tzomsin. What did he mean by that?\nANSWER: Rav Yehudah Amar Shmuel defined the Tzomes ha'Gidin as Tzomsin - as long as the three Gidin are joined and look like one Gid."
+                  }
+                }
+              ]
+            },
+            {
+              "marker": "7)",
+              "level": 0,
+              "body": {},
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "body": {
+                    "en": "A certain Talmid-Chacham quoting Rav Yehudah, gave the Shiur for that as from the place where the Gidin fuse, up to the point where they separate. From whom did Rav Yehudah hear that?\nANSWER: A certain Talmid-Chacham quoting Rav Yehudah, gave the Shi'ur for that as from the place where the Gidin fuse, up to the point where they separate. Rav Yehudah heard that - from Shmuel."
+                  }
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "body": {
+                    "en": "What measurement does Abaye give in defining this Shi'ur.\nANSWER: Abaye defines this Shi'ur as - four finger-breadths ..."
+                  }
+                },
+                {
+                  "marker": "(c)",
+                  "level": 1,
+                  "body": {
+                    "en": "To which category of animal does the current Shi'ur pertain.\nANSWER: ... and it pertains - only to large animals."
+                  }
+                },
+                {
+                  "marker": "(d)",
+                  "level": 1,
+                  "body": {
+                    "en": "Abaye gives four signs by which to recognize the Tzomes ha'Gidin of a small animal. Three of them are: as long as they still protrude from the flesh, if they are hard and if they are thick. What is the fourth?\nANSWER: Abaye gives four signs by which to recognize the Tzomes ha'Gidin of a small animal; if they protrude from the flesh, if they are hard, if they are thick - and if they are white."
+                  }
+                },
+                {
+                  "marker": "(e)",
+                  "level": 1,
+                  "body": {
+                    "en": "What does Mar bar Rav Ashi comment regarding the fourth Si'man?\nANSWER: Mar bar Rav Ashi comments that - if they are transparent, it is as they are white."
+                  }
+                }
+              ]
+            },
+            {
+              "marker": "8)",
+              "level": 0,
+              "body": {},
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "body": {
+                    "en": "Based on the fact that one of the three Gidin is thick, and the other two, thin, what does Ameimar in the name of Rav Z'vid say about a case where...\nANSWER: Based on the fact that one of the three Gidin is thick, and the other two, thin, Ameimar in the name of Rav Z'vid rules that in a case where..."
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "body": {
+                        "en": "... the thick one snaps?\nANSWER: ... the thick one snaps - 'the majority of the building has collapsed', and the animal is a T'reifah."
+                      }
+                    },
+                    {
+                      "marker": "2.",
+                      "level": 2,
+                      "body": {
+                        "en": "... the two thin ones snap?\nANSWER: ... the two thin ones snap - the majority of Gidin have gone, and the animal is a T'reifah, too."
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "body": {
+                    "en": "Mar bar Rav Ashi is more lenient than Ameimar. What does he say?\nANSWER: According to Mar bar Rav Ashi - as long as either the thick Gid or the two thin ones remain intact, the animal is Kasher."
+                  }
+                },
+                {
+                  "marker": "(c)",
+                  "level": 1,
+                  "body": {
+                    "en": "Like whom is the Halachah?\nANSWER: The Halachah is like Mar bar Rav Ashi, as it always is, with the exception of two cases, as we learned in Sanhedrin (see also Tosfos DH 'Mar bar Rav Ashi')."
+                  }
+                },
+                {
+                  "marker": "(d)",
+                  "level": 1,
+                  "body": {
+                    "en": "And like whom is the Halachah regarding the Shi'ur of Tzomes ha'Gidin?\nANSWER: The Halachah regarding the Shi'ur of Tzomes ha'Gidin - is le'Chumra like the most stringent opinion (like it is in all cases of unresolved Machlokos in d'Oraysos, to which category T'reifos belongs). Consequently, from above the Arkom up to the point where the Gidin separate is considered Tzomes ha'Gidin."
+                  }
+                }
+              ]
+            },
+            {
+              "marker": "9)",
+              "level": 0,
+              "body": {},
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "body": {
+                    "en": "How many Gidin does a bird have?\nANSWER: A bird has - sixteen Gidin."
+                  }
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "body": {
+                    "en": "What happens if one of them snaps?\nANSWER: If one of them snaps - the bird is a T'reifah."
+                  }
+                },
+                {
+                  "marker": "(c)",
+                  "level": 1,
+                  "body": {
+                    "en": "What did Mar bar Rav Ashi see his father do when he found only fifteen Gidin in a chicken instead of sixteen?\nANSWER: When Mar bar Rav Ashi's father found only fifteen Gidin in a chicken instead of sixteen, he saw his father - split open a Gid that looked a little thicker that the others to reveal that it comprised two Gidin."
+                  }
+                },
+                {
+                  "marker": "(d)",
+                  "level": 1,
+                  "body": {
+                    "en": "On what grounds did Shmuel object when Rav Yehudah informed him of Rav's ruling, declaring an animal T'reifah if the majority of one Gid snaps?\nANSWER: When Rav Yehudah informed Shmuel of Rav's ruling, declaring an animal a T'reifah if the majority of one Gid snaps, the latter objected - on the grounds that even if one entire Gid has snapped, the two remaining ones form a majority, so why should the animal be declared a T'reifah?"
+                  }
+                },
+                {
+                  "marker": "(e)",
+                  "level": 1,
+                  "body": {
+                    "en": "In any event, according to Rav Yehudah, even Shmuel requires a majority of two Gidin to remain intact. Ravna'i Amar Shmuel disagrees with this. What did Ravna'i quote Shmuel as saying? What is a Chut ha'Sarbol?\nANSWER: In any event, according to Rav Yehudah, even Shmuel requires a majority of two Gidin to remain intact. Ravna'i Amar Shmuel disagrees with this - in that he declares the animal Kasher if even the thickness of the thread with which one ties the neck of a woolen cloak (Chut ha'Sarbol) of each Gid remains intact."
+                  }
+                }
+              ]
+            },
+            {
+              "marker": "10)",
+              "level": 0,
+              "body": {},
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "body": {
+                    "en": "How do others explain Rav Yehudah Amar Rav's statement Tzomes ha'Gidin she'Amru be'Rubo?\nANSWER: Others explain Rav Yehudah Amar Rav's statement Tzomes ha'Gidin she'Amru be'Rubo - to mean the majority of the Gidin must snap for the animal to be a T'reifah."
+                  }
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "body": {
+                    "en": "On what grounds did Shmuel protest this time, when Rav Yehudah told him what Rav said?\nANSWER: This time, Shmuel objected on the grounds that - as long as a third of the Gidin remains intact, it will suffice ..."
+                  }
+                },
+                {
+                  "marker": "(c)",
+                  "level": 1,
+                  "body": {
+                    "en": "What do we comment now vis-a-vis Ravna'i Amar Shmuel?\nANSWER: ... on which we comment that - this in fact supports Ravna'i Amar Shmuel, who says that even if only the thickness of a Chut ha'Sarbol remains, the animal is Kasher. Note, that to conform to Mar bar Rav Ashi, we will have to establish Shmuel by either the thick Gid (even though the two thin ones are completely severed), or vice-versa."
+                  }
+                }
+              ]
+            },
+            {
+              "marker": "11)",
+              "level": 0,
+              "body": {},
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "body": {
+                    "en": "Commenting on the final case in our Mishnah (Nishbar ha'Etzem ... ) Rav rules that as long as the majority of the flesh remains intact, both the animal and the limb are permitted. Assuming that it is not, what distinction does he draw between the middle bone (the calf) and the lower one?\nANSWER: Commenting on the final case in our Mishnah (Nishbar ha'Etzem ... ) Rav rules that as long as the majority of the flesh remains intact, both the animal and the limb are permitted. Assuming that it is not, he declares both the bone and the animal forbidden if the middle bone (the calf) is broken, but permits the animal if the fracture is in the lower one."
+                  }
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "body": {
+                    "en": "What does Shmuel say?\nANSWER: According to Shmuel - either way, the animal is Kasher."
+                  }
+                },
+                {
+                  "marker": "(c)",
+                  "level": 1,
+                  "body": {
+                    "en": "What did Rav Acha bar Rav Huna retort, when Rav Nachman asked how it is possible according to Shmuel, for the bone to be thrown on to the trash-heap and the animal to be Kasher?\nANSWER: When Rav Nachman asked Rav Acha bar Rav Huna how it is possible according to Shmuel, for the bone to be thrown on to the trash-heap and the animal to be Kasher, he retorted that - he (Rav Nachman) could have asked the same Kashya on Rav (with regard to the lower bone) ..."
+                  }
+                },
+                {
+                  "marker": "(d)",
+                  "level": 1,
+                  "body": {
+                    "en": "What did Rav Nachman reply? How did he amend his Kashya?\nANSWER: ... to which he replied that - what he meant to ask was how it is possible for a bone on which the animal's life depends to be thrown on to the trash-heap, and the animal remains Kasher."
+                  }
+                }
+              ]
+            },
+            {
+              "marker": "12)",
+              "level": 0,
+              "body": {},
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "body": {
+                    "en": "In Eretz Yisrael, they had difficulty in deciding the Halachah. Like whom did they finally rule?\nANSWER: In Eretz Yisrael, they had difficulty in deciding the Halachah. They finally ruled - like Rav ..."
+                  }
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "body": {
+                    "en": "They added that the bone itself is Metamei be'Masa (renders the person who carries it Tamei, even though he does not actually touch it). Why is that?\nANSWER: ... adding that the bone itself is Metamei be'Masa (renders the person who carries it Tamei, even though he does not actually touch it) - because Shechitah Osah Nipul."
+                  }
+                }
+              ]
+            },
+            {
+              "marker": "13)",
+              "level": 0,
+              "body": {},
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "body": {
+                    "en": "Rav Chisda queries the previous ruling from the Beraisa that we discussed earlier, where Rebbi Meir asked the Rabbanan 'Lo, Im Tiharah Shechitas T'reifah Osah, ve'es ha'Eiver ha'Meduldal ... ?'. What is the Kashya?\nANSWER: Rav Chisda queries the previous ruling from the Beraisa that we discussed earlier, where Rebbi Meir asked the Rabbanan 'Lo, Im Tiharah Shechitas T'reifah Osah, v'es ha'Eiver ha'Meduldal ... ?' - indicating that Ein Shechitah Osah Nipul."
+                  }
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "body": {
+                    "en": "Rabah queries Rav Chisda from the Mishnah earlier 'Nishch'tah, Huchsh'ru be'Damehah', Divrei Rebbi Meir; Rebbi Shimon Omer 'Lo Huchsh'ru'. How does this pose a Kashya on Rav Chisda?\nANSWER: Rabah queries Rav Chisda from the Mishnah earlier 'Nishch'tah, Huchsh'ru be'Damehah', Divrei Rebbi Meir; Rebbi Shimon Omer 'Lo Huchsh'ru' - which also seems to hold 'Ein Shechitah Osah Nipul' (otherwise why would the Eiver require Hechsher) for Tum'as Ochlin? In that case, why did Rav Chisda not rather ask from a Mishnah than from a Beraisa?"
+                  }
+                },
+                {
+                  "marker": "(c)",
+                  "level": 1,
+                  "body": {
+                    "en": "What did Rav Chisda reply? Why did he prefer to ask from the Beraisa than from the Mishnah?\nANSWER: Rav Chisda replied - by establishing Huchsh'ru in the Mishnah (like we did earlier) with regard to the Basar (which is subject to Tum'as Ochlin, but not to Eiver min ha'Chai), and not with regard to the Eiver. That is why he preferred to ask from the Beraisa."
+                  }
+                }
+              ]
+            },
+            {
+              "marker": "14)",
+              "level": 0,
+              "body": {},
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "body": {
+                    "en": "What did Rebbi Zeira comment when, upon his arrival from Bavel, he heard Rebbi Yirmiyah bar Aba repeating the distinction that Rav made between a fracture on the middle hind-leg bone and one on the lower one?\nANSWER: When, upon his arrival from Bavel, Rebbi Zeira heard Rebbi Yirmiyah bar Aba repeating the distinction that Rav made between a fracture on the middle hind-leg bone and one on the lower one, he exclaimed - 'Yeyasher', because that is what Shmuel said in Bavel."
+                  }
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "body": {
+                    "en": "Why did he refer to Shmuel as Aryoch?\nANSWER: He referred to Shmuel as Aryoch - because we rule like Shmuel in money-matters, and this is hinted in the Pasuk in Vayeira (in connection with the battle of the kings) \"Aryoch Melech Elasar\", whose acronym is 'Aryoch Melech, ve'Al Isur' (Aryoch is the king, but not in matters concerning Isur)."
+                  }
+                },
+                {
+                  "marker": "(c)",
+                  "level": 1,
+                  "body": {
+                    "en": "But did Shmuel not argue with Rav over this point?\nANSWER: Shmuel did indeed argue with Rav over this point, initially, but (presumably on account of Rav Nachman's Kashya) - he later retracted and ended up agreeing with him."
+                  }
+                }
+              ]
+            },
+            {
+              "marker": "15)",
+              "level": 0,
+              "body": {},
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "body": {
+                    "en": "What does the Beraisa say about a case where the lower leg-bone fractures and protrudes from the flesh? Under which circumstances will the bone be permitted?\nANSWER: The Beraisa rules that, in a case where the lower leg-bone fractures and protrudes from the flesh, it will be permitted - provided most of it is covered by flesh and skin."
+                  }
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "body": {
+                    "en": "Rav Dimi quoting Rebbi Yochanan, gives the Shi'ur as Rov Avav. What does this mean?\nANSWER: Rav Dimi quoting Rebbi Yochanan, gives the Shi'ur as Rov Avav - only a minority of the fractured bone (the cavity) protrudes, whilst the majority is surrounded by flesh and skin."
+                  }
+                },
+                {
+                  "marker": "(c)",
+                  "level": 1,
+                  "body": {
+                    "en": "What do others say?\nANSWER: Others say - that as long as the majority of the flesh and skin that surround the bone at the location of the fracture is intact (Rov Hekeifo), the bone is permitted, even if the majority of the cavity protrudes from a small hole in the skin."
+                  }
+                },
+                {
+                  "marker": "(d)",
+                  "level": 1,
+                  "body": {
+                    "en": "What does Rav Papa therefore rule?\nANSWER: Rav Papa therefore rules that - the bone is only permitted with a combination of Rov Avav and Rov Hekeifo."
+                  }
+                }
+              ]
+            },
+            {
+              "marker": "16)",
+              "level": 0,
+              "body": {},
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "body": {
+                    "en": "Ula Amar Rebbi Yochanan ruled 'Or, Harei hu ke'Basar'. Rav Nachman asked why he did not say 'Or Mitztaref le'Basar'. What is the difference between the two statements?\nANSWER: Ula Amar Rebbi Yochanan ruled 'Or, Harei hu ke'Basar', which means - (with regard to the precious Halachah) that - the skin is as good as the flesh. When Rav Nachman asked why he did not say 'Or Mitztaref le'Basar', he meant that - surely the skin is only effective if it combines with the flesh (half flesh, and half skin), but not that it can replace it?"
+                  }
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "body": {
+                    "en": "How did Ula refute Rav Nachman's proof from the Lashon of the Beraisa 'Im Or u'Basar Chofin es Rubo' (implying that it only combines with the flesh, as he explained)? How does he read the Beraisa?\nANSWER: Ula refuted Rav Nachman's proof from the Lashon of the Beraisa 'Im Or u'Basar Chofin es Rubo' (implying that it only combines with the flesh, as he explained), inasmuch as his version of the text was 'Im Or O Basar Chofin es Rubo ... ' (implying that it can even replace it)."
+                  }
+                }
+              ]
+            },
+            {
+              "marker": "17)",
+              "level": 0,
+              "body": {},
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "body": {
+                    "en": "What did Rav Nachman ask Ula according to the second Lashon, where, quoting Rebbi Yochanan, he originally stated 'Or Mitztaref le'Basar'?\nANSWER: According to the second Lashon, where Ula Amar Rebbi Yochanan originally stated 'Or Mitztaref le'Basar', Rav Nachman asked him - whether he should not have said 'Or Mashlim le'Basar' (which means that skin will only help to supplement the flesh, if the flesh comprises the majority of what covers the fracture)."
+                  }
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "body": {
+                    "en": "In response, Ula cited an incident that took place with Rebbi Yitzchak. What did Rebbi Yochanan rule when they brought him a duck with a fractured bone that protruded from the leg, and where most of it was covered half by skin and half by flesh?\nANSWER: In response, Ula cited an incident that took place with Rebbi Yitzchak, when they brought before Rebbi Yochanan a duck with a fractured bone that protruded from the leg, where most of it was covered half by skin and half by flesh - and which Rebbi Yochanan declared Kasher."
+                  }
+                },
+                {
+                  "marker": "(c)",
+                  "level": 1,
+                  "body": {
+                    "en": "On what basis did Rav Nachman refute Ula's proof from that incident? Why is a duck different?\nANSWER: Rav Nachman however, refuted Ula's proof from there on the grounds that - a duck is different, because its skin is soft, and is therefore comparable to flesh."
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "points": {
+        "type": "points",
+        "amud": "a",
+        "wholeDaf": false,
+        "titleLine": "POINT BY POINT OUTLINE - CHULIN 76",
+        "body": {
+          "type": "points",
+          "entries": [
+            {
+              "marker": "1)",
+              "level": 0,
+              "title": {
+                "en": "CUTTING THE LEGS OF AN ANIMAL"
+              },
+              "body": {},
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "label": "(Mishnah):",
+                  "body": {
+                    "en": "If an animal's (hind) leg was cut from below the (knee) joint it is Kosher. If it was cut above the joint, it is Terefah;",
+                    "he": "(דף עו,א משנה) בהמה שנחתכו רגליה מן הארכובה ולמטה כשרה מן הארכובה ולמעלה פסולה"
+                  },
+                  "speaker": {
+                    "roleEn": "Mishnah",
+                    "raw": "(Mishnah):"
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "body": {
+                        "en": "Similarly, if the juncture of the sinews was removed, it is Terefah.",
+                        "he": "וכן שניטל צומת הגידין"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "body": {
+                    "en": "If the bone was broken, if most of the skin is intact, Shechitah permits the part below the break. If not, it does not.",
+                    "he": "נשבר העצם אם רוב הבשר קיים שחיטתו מטהרתו ואם לאו אין שחיטתו מטהרתו:"
+                  }
+                },
+                {
+                  "marker": "(c)",
+                  "level": 1,
+                  "label": "Version #1 (Gemara - Rav Yehudah):",
+                  "body": {
+                    "en": "'Below' means below the joint. 'Above' means above the joint;",
+                    "he": "אמר רב יהודה אמר רב אמר רבי חייא למטה למטה מן הארכובה למעלה למעלה מן הארכובה"
+                  },
+                  "speaker": {
+                    "roleEn": "Version #1 (Gemara",
+                    "rabbiEn": "Rav Yehudah",
+                    "raw": "Version #1 (Gemara - Rav Yehudah):"
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "body": {
+                        "en": "'Joint' refers to the one normally sold with the head (the lower knee; an area analogous to the human ankle).",
+                        "he": "באיזו ארכובה אמרו בארכובה הנמכרת עם הראש"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(d)",
+                  "level": 1,
+                  "label": "(Ula):",
+                  "body": {
+                    "en": "The corresponding joint of a camel is noticeable from the outside (the upper knee.)",
+                    "he": "עולא אמר רבי אושעיא כנגדו בגמל ניכר"
+                  },
+                  "speaker": {
+                    "roleEn": "Ula",
+                    "raw": "(Ula):"
+                  }
+                },
+                {
+                  "marker": "(e)",
+                  "level": 1,
+                  "label": "Question (Ula):",
+                  "body": {
+                    "en": "The Mishnah fits my explanation. It teaches that if the juncture of the sinews was removed, it is Terefah, just like if the leg was cut above the upper knee.",
+                    "he": "אמר ליה עולא לרב יהודה בשלמא לדידי דאמינא כנגדו בגמל ניכר היינו דקתני וכן שניטל צומת הגידין"
+                  },
+                  "speaker": {
+                    "roleEn": "Question (Ula",
+                    "raw": "Question (Ula):"
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "body": {
+                        "en": "You (Rav Yehudah) say that the joint is the lower knee. Since the juncture of the sinews is above this, we already know that it is Terefah!",
+                        "he": "אלא לדידך מאי וכן שניטל צומת הגידין"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(f)",
+                  "level": 1,
+                  "label": "Answer (Rav Yehudah):",
+                  "body": {
+                    "en": "The Mishnah teaches that it is Terefah if either the bone was broken but the sinews are intact, or if the sinews were cut but the bone is intact.",
+                    "he": "אמר ליה רכובה בלא צומת הגידים וצומת הגידים בלא רכובה"
+                  },
+                  "speaker": {
+                    "roleEn": "Answer (Rav Yehudah",
+                    "raw": "Answer (Rav Yehudah):"
+                  }
+                },
+                {
+                  "marker": "(g)",
+                  "level": 1,
+                  "label": "Objection (Ula):",
+                  "body": {
+                    "en": "The Reisha says 'cut' (not broken). If so, the sinews were also cut!",
+                    "he": "והא נחתכו קתני"
+                  },
+                  "speaker": {
+                    "roleEn": "Objection (Ula",
+                    "raw": "Objection (Ula):"
+                  }
+                },
+                {
+                  "marker": "(h)",
+                  "level": 1,
+                  "body": {
+                    "en": "Rav Yehudah was silent.",
+                    "he": "אישתיק"
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "label": "Suggestion (Rav Yehudah):",
+                      "body": {
+                        "en": "I should have answered that 'below' means below the joint, and 'above' means above the juncture of the sinews!",
+                        "he": "לבתר דנפק אמר מ\"ט לא אמרי ליה למטה למטה מן הארכובה למעלה למעלה מצומת הגידין"
+                      },
+                      "speaker": {
+                        "roleEn": "Suggestion (Rav Yehudah",
+                        "raw": "Suggestion (Rav Yehudah):"
+                      }
+                    },
+                    {
+                      "marker": "2.",
+                      "level": 2,
+                      "label": "Rejection (Rav Yehudah):",
+                      "body": {
+                        "en": "No. Just like Ula rejected the answer I gave, he would likewise reject this. 'Above' means directly above!",
+                        "he": "הדר אמר ולא אמרי ליה ואמר לי נחתכו קתני הכא נמי מן הארכובה ולמעלה קתני"
+                      },
+                      "speaker": {
+                        "roleEn": "Rejection (Rav Yehudah",
+                        "raw": "Rejection (Rav Yehudah):"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(i)",
+                  "level": 1,
+                  "label": "Version #2 (Rav Papa - Rav Yehudah):",
+                  "body": {
+                    "en": "'Below' means below the joint and the juncture of the sinews. 'Above' means above the joint;",
+                    "he": "רב פפא מתני הכי אמר רב יהודה אמר רב אמר רבי חייא למטה למטה מן הארכובה ומצומת הגידין למעלה למעלה מן הארכובה ומצומת הגידין"
+                  },
+                  "speaker": {
+                    "roleEn": "Version #2 (Rav Papa",
+                    "rabbiEn": "Rav Yehudah",
+                    "raw": "Version #2 (Rav Papa - Rav Yehudah):"
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "body": {
+                        "en": "Similarly, if the juncture of the sinews is removed, it is Terefah.",
+                        "he": "וכן שניטל צומת הגידין"
+                      }
+                    },
+                    {
+                      "marker": "2.",
+                      "level": 2,
+                      "body": {
+                        "en": "'Joint' refers to the upper knee.",
+                        "he": "וארכובה גופה כדעולא"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(j)",
+                  "level": 1,
+                  "label": "Question (R. Oshaya):",
+                  "body": {
+                    "en": "Do we ever find that if we cut below (by the juncture of the sinews), it is Terefah, but if we cut above (on the bone between the upper and lower knee) it is Kosher?!",
+                    "he": "א\"ר אושעיא ומי איכא מידי דאילו מדלי פסיק ליה וחיה מתתי פסיק ליה ומתה"
+                  },
+                  "speaker": {
+                    "roleEn": "Question (R. Oshaya",
+                    "raw": "Question (R. Oshaya):"
+                  }
+                },
+                {
+                  "marker": "(k)",
+                  "level": 1,
+                  "label": "Answer (Rav Ashi):",
+                  "body": {
+                    "en": "Yes! We cannot compare Terefos!",
+                    "he": "אמר רב אשי טרפות קא מדמית להדדי אין אומרין בטרפות זו דומה לזו שהרי חותכה מכאן ומתה חותכה מכאן וחיה"
+                  },
+                  "speaker": {
+                    "roleEn": "Answer (Rav Ashi",
+                    "raw": "Answer (Rav Ashi):"
+                  }
+                }
+              ]
+            },
+            {
+              "marker": "2)",
+              "level": 0,
+              "title": {
+                "en": "THE JUNCTURE OF THE SINEWS (TZOMES HA'GIDIM)"
+              },
+              "body": {},
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "label": "Question:",
+                  "body": {
+                    "en": "What is considered the juncture of the sinews?",
+                    "he": "ואלו הן צומת הגידין"
+                  },
+                  "speaker": {
+                    "roleEn": "Question",
+                    "raw": "Question:"
+                  }
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "label": "Answer #1 (Rabah):",
+                  "body": {
+                    "en": "It is from where they leave the bone and beyond.",
+                    "he": "רבה אמר רב אשי דאגרמא ולבר"
+                  },
+                  "speaker": {
+                    "roleEn": "Answer #1 (Rabah",
+                    "raw": "Answer #1 (Rabah):"
+                  }
+                },
+                {
+                  "marker": "(c)",
+                  "level": 1,
+                  "label": "Answer #2 (Rabah bar Rav Huna):",
+                  "body": {
+                    "en": "It is from where they leave the bone, towards the inside.",
+                    "he": "רבה בר רב הונא אמר רב אשי דאגרמא ולגיו"
+                  },
+                  "speaker": {
+                    "roleEn": "Answer #2 (Rabah bar Rav Huna",
+                    "raw": "Answer #2 (Rabah bar Rav Huna):"
+                  }
+                },
+                {
+                  "marker": "(d)",
+                  "level": 1,
+                  "label": "Answer #3 (Rava brei d'Rabah bar Rav Huna):",
+                  "body": {
+                    "en": "It is above the Arkuma (a bone of the lower knee.)",
+                    "he": "רבא בריה דרבה בר רב הונא אמר רב אסי דעילוי ערקומא"
+                  },
+                  "speaker": {
+                    "roleEn": "Answer #3 (Rava brei d'Rabah bar Rav Huna",
+                    "raw": "Answer #3 (Rava brei d'Rabah bar Rav Huna):"
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "body": {
+                        "en": "A Talmid was saying that the juncture of the sinews is at the Arkuma itself.",
+                        "he": "יתיב ההוא מרבנן קמיה דר' אבא ויתיב וקאמר דערקומא גופה"
+                      }
+                    },
+                    {
+                      "marker": "2.",
+                      "level": 2,
+                      "label": "R. Aba:",
+                      "body": {
+                        "en": "That is wrong. Rav Yehudah taught that it is where butchers start flaying the leg; this is the opinion of Rava brei d'Rabah bar Rav Huna.",
+                        "he": "אמר ליה רבי אבא לא תציתו ליה הכי אמר רב יהודה היכא דפרעי טבחי והיינו רבא בריה דרבה בר רב הונא אמר רב אסי"
+                      },
+                      "speaker": {
+                        "roleEn": "R. Aba",
+                        "raw": "R. Aba:"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(e)",
+                  "level": 1,
+                  "label": "(Rav Yehudah):",
+                  "body": {
+                    "en": "The juncture of the sinews is located at the point where the sinews meet.",
+                    "he": "אמר רב יהודה אמר שמואל צומת הגידים שאמרו מקום שהגידין צומתין"
+                  },
+                  "speaker": {
+                    "roleEn": "Rav Yehudah",
+                    "raw": "(Rav Yehudah):"
+                  }
+                },
+                {
+                  "marker": "(f)",
+                  "level": 1,
+                  "label": "Question:",
+                  "body": {
+                    "en": "How far does the juncture extend?",
+                    "he": "ועד כמה"
+                  },
+                  "speaker": {
+                    "roleEn": "Question",
+                    "raw": "Question:"
+                  }
+                },
+                {
+                  "marker": "(g)",
+                  "level": 1,
+                  "label": "Answer (R. Yaakov):",
+                  "body": {
+                    "en": "Rav Yehudah said he heard from Shmuel that it extends from the point that the sinews meet until the point that they separate.",
+                    "he": "א\"ל ההוא מדרבנן ורב יעקב שמיה כי הוינן בי רב יהודה אמר לן שמעו מני מלתא דמגברא רבה שמיע לי ומנו שמואל צומת הגידין שאמרו מקום שהגידין צומתין בו וממקום שצומתין עד מקום שמתפשטין"
+                  },
+                  "speaker": {
+                    "roleEn": "Answer (R. Yaakov",
+                    "raw": "Answer (R. Yaakov):"
+                  }
+                },
+                {
+                  "marker": "(h)",
+                  "level": 1,
+                  "label": "Question:",
+                  "body": {
+                    "en": "How far is that?",
+                    "he": "וכמה"
+                  },
+                  "speaker": {
+                    "roleEn": "Question",
+                    "raw": "Question:"
+                  }
+                },
+                {
+                  "marker": "(i)",
+                  "level": 1,
+                  "label": "Answer (Abaye):",
+                  "body": {
+                    "en": "In an ox, it is the width of four fingers (Rashi; many explain, the width of 16 fingers.)",
+                    "he": "אמר אביי ארבעה בטדי בתורא"
+                  },
+                  "refs": [
+                    {
+                      "raw": "Rashi; many explain, the width of 16 fingers.",
+                      "kind": "rashi"
+                    }
+                  ],
+                  "speaker": {
+                    "roleEn": "Answer (Abaye",
+                    "raw": "Answer (Abaye):"
+                  }
+                },
+                {
+                  "marker": "(j)",
+                  "level": 1,
+                  "label": "Question:",
+                  "body": {
+                    "en": "How far does it extend in a small animal?",
+                    "he": "בדקה מאי"
+                  },
+                  "speaker": {
+                    "roleEn": "Question",
+                    "raw": "Question:"
+                  }
+                },
+                {
+                  "marker": "(k)",
+                  "level": 1,
+                  "label": "Answer (Abaye):",
+                  "body": {
+                    "en": "The following are the characteristics that show that an area is the juncture of the sinews:",
+                    "he": "אמר אביי"
+                  },
+                  "speaker": {
+                    "roleEn": "Answer (Abaye",
+                    "raw": "Answer (Abaye):"
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "body": {
+                        "en": "The sinews stick out of the flesh. They are not buried in it;",
+                        "he": "בליטי הוו צומת הגידים בליעי לא הוו צומת הגידים"
+                      }
+                    },
+                    {
+                      "marker": "2.",
+                      "level": 2,
+                      "body": {
+                        "en": "The sinews are hard, and not soft. They are strong, and not weak. They are large, and not small;",
+                        "he": "אשוני הוו צומת הגידים רכיכי לא הוו צומת הגידים אלימי הוו צומת הגידים קטיני לא הוו צומת הגידים"
+                      }
+                    },
+                    {
+                      "marker": "3.",
+                      "level": 2,
+                      "body": {
+                        "en": "They are white. If not, they are not part of the juncture of the sinews.",
+                        "he": "חוורי הוו צומת הגידים לא חוורי לא הוו צומת הגידים"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(l)",
+                  "level": 1,
+                  "label": "(Mar bar Rav Ashi):",
+                  "body": {
+                    "en": "If they are clear, even if they are not white they are the juncture of the sinews.",
+                    "he": "(דף עו,ב) מר בר רב אשי אמר כיון דזיגי אע\"ג דלא חוורי"
+                  },
+                  "speaker": {
+                    "roleEn": "Mar bar Rav Ashi",
+                    "raw": "(Mar bar Rav Ashi):"
+                  }
+                },
+                {
+                  "marker": "(m)",
+                  "level": 1,
+                  "label": "(Ameimar):",
+                  "body": {
+                    "en": "There are three sinews. One is great and two are small;",
+                    "he": "אמר אמימר משמיה דרב זביד תלתא חוטי הוו חד אלימא ותרי קטיני"
+                  },
+                  "speaker": {
+                    "roleEn": "Ameimar",
+                    "raw": "(Ameimar):"
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "body": {
+                        "en": "If the great one breaks, the majority of the support is gone. It is Terefah;",
+                        "he": "איפסיק אלימא אזדא רוב בנין"
+                      }
+                    },
+                    {
+                      "marker": "2.",
+                      "level": 2,
+                      "body": {
+                        "en": "If the small ones break, the majority of sinews are broken. It is Terefah.",
+                        "he": "איפסיק קטיני אזדא רוב מנין"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(n)",
+                  "level": 1,
+                  "label": "(Mar bar Rav Ashi):",
+                  "body": {
+                    "en": "If the great one breaks, the majority of sinews is intact. It is Kosher;",
+                    "he": "מר בר רב אשי מתני לקולא איפסיק אלימא האיכא רוב מנין"
+                  },
+                  "speaker": {
+                    "roleEn": "Mar bar Rav Ashi",
+                    "raw": "(Mar bar Rav Ashi):"
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "body": {
+                        "en": "If the small ones break, the majority of the support is intact. It is Kosher.",
+                        "he": "איפסיק קטיני האיכא רוב בנין"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(o)",
+                  "level": 1,
+                  "body": {
+                    "en": "In birds, there are 16 sinews. If any one of them breaks, it is Terefah.",
+                    "he": "בעופות שיתסר חוטי הוו אי פסיק חד מינייהו טרפה"
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "body": {
+                        "en": "Rav Ashi inspected a bird and found 15. One of which was extra thick. He unraveled it, and found that it was really two.",
+                        "he": "אמר מר בר רב אשי הוה קאימנא קמיה דאבא ואייתו לקמיה עופא ובדק ואשכח ביה חמיסר הוה חד דהוה שני מחבריה נפציה ואשכח תרי"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(p)",
+                  "level": 1,
+                  "label": "(Rav Yehudah citing Rav):",
+                  "body": {
+                    "en": "If the majority of the juncture of the sinews breaks, it is Terefah.",
+                    "he": "אמר רב יהודה אמר רב צומת הגידין שאמרו ברובו"
+                  },
+                  "speaker": {
+                    "roleEn": "Rav Yehudah citing Rav",
+                    "raw": "(Rav Yehudah citing Rav):"
+                  }
+                },
+                {
+                  "marker": "(q)",
+                  "level": 1,
+                  "label": "Question:",
+                  "body": {
+                    "en": "What does Rav call 'the majority'?",
+                    "he": "מאי רובו"
+                  },
+                  "speaker": {
+                    "roleEn": "Question",
+                    "raw": "Question:"
+                  }
+                },
+                {
+                  "marker": "(r)",
+                  "level": 1,
+                  "label": "Version #1 - Answer:",
+                  "body": {
+                    "en": "He means the majority of one of them.",
+                    "he": "רוב אחד מהן"
+                  },
+                  "speaker": {
+                    "roleEn": "Version #1",
+                    "rabbiEn": "Answer",
+                    "raw": "Version #1 - Answer:"
+                  }
+                },
+                {
+                  "marker": "(s)",
+                  "level": 1,
+                  "label": "Objection (Rav Yehudah citing Shmuel):",
+                  "body": {
+                    "en": "Even if one would break entirely, two would remain (it would be Kosher)!",
+                    "he": "כי אמריתה קמיה דשמואל אמר לי מכדי תלתא הוו כי מיפסיק חד מינייהו לגמרי הא איכא תרי"
+                  },
+                  "speaker": {
+                    "roleEn": "Objection (Rav Yehudah citing Shmuel",
+                    "raw": "Objection (Rav Yehudah citing Shmuel):"
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "label": "Inference:",
+                      "body": {
+                        "en": "Shmuel requires that two remain. If two were cut, it would be Terefah. This argues with Ravnai's version of Shmuel's opinion.",
+                        "he": "טעמא דאיכא תרי הא ליכא תרי לא ופליגא דרבנאי"
+                      },
+                      "speaker": {
+                        "roleEn": "Inference",
+                        "raw": "Inference:"
+                      }
+                    },
+                    {
+                      "marker": "2.",
+                      "level": 2,
+                      "label": "(Ravnai citing Shmuel):",
+                      "body": {
+                        "en": "Even if a sinew (weak) like a drawstring (that supports a neckline) remains, it is Kosher.",
+                        "he": "דאמר רבנאי אמר שמואל צומת הגידים אפי' לא נשתייר בה אלא כחוט הסרבל כשרה"
+                      },
+                      "speaker": {
+                        "roleEn": "Ravnai citing Shmuel",
+                        "raw": "(Ravnai citing Shmuel):"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(t)",
+                  "level": 1,
+                  "label": "Version #2 - Answer:",
+                  "body": {
+                    "en": "He means the majority of every one of them.",
+                    "he": "ואיכא דאמרי מאי רובו רוב כל אחד ואחד"
+                  },
+                  "speaker": {
+                    "roleEn": "Version #2",
+                    "rabbiEn": "Answer",
+                    "raw": "Version #2 - Answer:"
+                  }
+                },
+                {
+                  "marker": "(u)",
+                  "level": 1,
+                  "label": "Objection (Rav Yehudah citing Shmuel):",
+                  "body": {
+                    "en": "Since there are three, even if a third of each sinew would remain, it would be Kosher!",
+                    "he": "כי אמריתה קמיה דשמואל אמר לי מכדי תלתא הוו האיכא תלתא דכל חד וחד"
+                  },
+                  "speaker": {
+                    "roleEn": "Objection (Rav Yehudah citing Shmuel",
+                    "raw": "Objection (Rav Yehudah citing Shmuel):"
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "body": {
+                        "en": "This supports Ravnai.",
+                        "he": "מסייע ליה לרבנאי"
+                      }
+                    },
+                    {
+                      "marker": "2.",
+                      "level": 2,
+                      "label": "(Ravnai citing Shmuel):",
+                      "body": {
+                        "en": "Even if a sinew like a drawstring remains, it is Kosher.",
+                        "he": "דאמר רבנאי אמר שמואל צומת הגידין שאמרו אפי' לא נשתייר בה אלא כחוט הסרבל כשרה:"
+                      },
+                      "speaker": {
+                        "roleEn": "Ravnai citing Shmuel",
+                        "raw": "(Ravnai citing Shmuel):"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "hebcharts": {
+        "type": "hebcharts",
+        "amud": "a",
+        "wholeDaf": false,
+        "titleLine": "טבלאות - חולין עו",
+        "body": {
+          "type": "hebcharts",
+          "tables": [
+            {
+              "headers": [
+                {
+                  "he": ""
+                },
+                {
+                  "he": "באיזה ארכובה מיירי?"
+                },
+                {
+                  "he": "מה דין עצם האמצעית שנחתכה?"
+                }
+              ],
+              "rows": [
+                [
+                  {
+                    "he": "לרב יהודה אמר רב אמר ר' חייא"
+                  },
+                  {
+                    "he": "בארכובה התחתונה [2]"
+                  },
+                  {
+                    "he": "טרפה"
+                  }
+                ],
+                [
+                  {
+                    "he": "לעולא אמר ר' אושעיא ולרב פפא בשם רב יהודה וכו'"
+                  },
+                  {
+                    "he": "בארכובה העליונה"
+                  },
+                  {
+                    "he": "כשרה [3]"
+                  }
+                ]
+              ],
+              "caption": {
+                "he": "איזו היא הארכובה הנזכרת במשנתנו, ומה דין עצם האמצעית שנחתכה [1]?"
+              }
+            }
+          ]
+        }
+      },
+      "yerushalmi": {
+        "type": "yerushalmi",
+        "amud": "a",
+        "wholeDaf": true,
+        "titleLine": "POINT BY POINT OUTLINES OF THE YERUSHALMI - CHULIN 76",
+        "body": {
+          "type": "yerushalmi",
+          "entries": [
+            {
+              "marker": "1)",
+              "level": 0,
+              "title": {
+                "en": "PARTIALLY SEPARATED TERUMAH AND MA'ASROS (Yerushalmi Terumos Perek 4 Halachah 1 Daf 18a)"
+              },
+              "body": {},
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "label": "(Mishnah):",
+                  "body": {
+                    "en": "One who partially separated Terumah and Ma'asros (i.e. less than the required amount); he should remove the rest of it from the same pile, but he may not separate from it for a pile elsewhere."
+                  }
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "label": "(R. Meir):",
+                  "body": {
+                    "en": "He may even separate from it for a pile elsewhere."
+                  }
+                },
+                {
+                  "marker": "(c)",
+                  "level": 1,
+                  "label": "(Gemara):",
+                  "body": {
+                    "en": "'One who partially separated Terumah and Ma'asros...' The Mishnah is discussing when he separated with intent to further separate."
+                  }
+                },
+                {
+                  "marker": "(d)",
+                  "level": 1,
+                  "label": "(R. Shmuel citing R. Zeira):",
+                  "body": {
+                    "en": "The Mishnah's case is even when he didn't have that intent."
+                  }
+                },
+                {
+                  "marker": "(e)",
+                  "level": 1,
+                  "label": "(R. Mana to R. Yudan):",
+                  "body": {
+                    "en": "Is R. Shmuel disagreeing with the Gemara's previous statement?"
+                  }
+                },
+                {
+                  "marker": "(f)",
+                  "level": 1,
+                  "label": "(R. Yudan to R. Mana):",
+                  "body": {
+                    "en": "R. Shmuel reasons that even if he didn't have specific intent, it is as if he did."
+                  }
+                },
+                {
+                  "marker": "(g)",
+                  "level": 1,
+                  "label": "Question:",
+                  "body": {
+                    "en": "What's the difference whether he separates from it for itself or for elsewhere?"
+                  }
+                },
+                {
+                  "marker": "(h)",
+                  "level": 1,
+                  "label": "Answer:",
+                  "body": {
+                    "en": "When he separates from it for itself, we assume that all of the produce that came to his hand was from the Tevel (since it's viewed as a continuation of his earlier separation). But when he separates for elsewhere, he is assumed to have taken both Tevel and Chulin (since the earlier separation was already completed)."
+                  }
+                },
+                {
+                  "marker": "(i)",
+                  "level": 1,
+                  "label": "Rebuttal:",
+                  "body": {
+                    "en": "When he took it in his hand to add to his earlier separation, we assume that he only took out Tevel. But if, when it was now in his hand, he instead decided to use it as Terumah for elsewhere, should we be concerned that he has both Tevel and Chulin in his hand? And when he took it to separate for elsewhere (and we are concerned that he has a mixture of Tevel and Chulin), but then he decided to use it for itself, should we now say that he only has Tevel in his hand?"
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "body": {
+                        "en": "And if, when he separated the first time, he gave less than he usually gives and he then came a second time to complete his separation, we say that he took only the Tevel in his hand; but when he separated the second time and ultimately gave more than he usually gives, do we also say that he has Chulin in his hand?"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(j)",
+                  "level": 1,
+                  "label": "Question:",
+                  "body": {
+                    "en": "If he mistakenly thought that he needed to add another two Se'ah of Terumah but he only needed to add one, do we also say that since he intended the second Se'ah to also be Terumah, he would have taken from the Tevel and he can now use it for elsewhere?"
+                  }
+                },
+                {
+                  "marker": "(k)",
+                  "level": 1,
+                  "label": "(R. Imi citing Reish Lakish):",
+                  "body": {
+                    "en": "That Se'ah could be used Terumah for elsewhere."
+                  }
+                },
+                {
+                  "marker": "(l)",
+                  "level": 1,
+                  "label": "Question:",
+                  "body": {
+                    "en": "But the Mishnah taught, 'but not for elsewhere'?"
+                  }
+                },
+                {
+                  "marker": "(m)",
+                  "level": 1,
+                  "label": "Answer:",
+                  "body": {
+                    "en": "That is referring to adding on more Terumah than he usually gives."
+                  }
+                },
+                {
+                  "marker": "(n)",
+                  "level": 1,
+                  "label": "Question:",
+                  "body": {
+                    "en": "This is understandable for Terumah, but (one is not permitted to add extra) Maaser?! Doesn't Reish Lakish agree that Mishnah's text includes the case of Ma'asros?"
+                  }
+                },
+                {
+                  "marker": "(o)",
+                  "level": 1,
+                  "body": {
+                    "en": "Rather, Reish Lakish reasons that when we say that only Tevel came to his hand, it makes no difference whether he separates from it for itself or for elsewhere."
+                  }
+                },
+                {
+                  "marker": "(p)",
+                  "level": 1,
+                  "label": "Question:",
+                  "body": {
+                    "en": "Then how do you explain the Mishnah's words 'but not for elsewhere'?"
+                  }
+                },
+                {
+                  "marker": "(q)",
+                  "level": 1,
+                  "label": "Answer:",
+                  "body": {
+                    "en": "Originally he separated from most of the pile (which on a Torah level means that the minority of Tevel becomes annulled in the majority of Chulin). However, the Rabbis decreed that it is not annulled, but permitted separating from the same pile, but not for other produce that has a Torah obligation."
+                  }
+                },
+                {
+                  "marker": "(r)",
+                  "level": 1,
+                  "body": {
+                    "en": "There is a dispute between Chizkiyah and R. Yochanan..."
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "label": "(Reish Lakish citing Chizkiyah):",
+                      "body": {
+                        "en": "(On a Torah level) Tevel is annulled in the majority."
+                      }
+                    },
+                    {
+                      "marker": "2.",
+                      "level": 2,
+                      "label": "(R. Yochanan):",
+                      "body": {
+                        "en": "It's not annulled - since he could separate Terumah from the Tevel part to also make it Chulin, it is as if he is able to identify each wheat kernel of Tevel."
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(s)",
+                  "level": 1,
+                  "body": {
+                    "en": "Some (wish to differentiate between when he separated for most of the pile and when he did it for less than half) by explaining like the teaching of R. Eliezer ben Yaakov (who disagreed with our Mishnah) - he said that if one partially separated Terumos and Ma'asros, he may not separate from it, whether for itself or for another pile. (We are concerned that when he takes some of the pile to separate for the rest or for elsewhere, he might take from produce that is already Chulin.)"
+                  }
+                },
+                {
+                  "marker": "(t)",
+                  "level": 1,
+                  "label": "Question:",
+                  "body": {
+                    "en": "Perhaps R. Eliezer ben Yaakov was only discussing one who didn't yet separate for most of the pile (since on a Torah level he must still separate), but if he did (so the obligation is now only Rabbinic), perhaps he would not have said it..."
+                  }
+                },
+                {
+                  "marker": "(u)",
+                  "level": 1,
+                  "label": "Answer:",
+                  "body": {
+                    "en": "Learn from this question - if a person had two piles in front of him and from each one he partially separated Terumos and Ma'asros, may he now separate from one for the other?"
+                  }
+                },
+                {
+                  "marker": "(v)",
+                  "level": 1,
+                  "body": {
+                    "en": "The students of R. Chiya asked him this question and he answered with the pasuk (Koheles 4:5), \"The fool folds his arms and eats his flesh''.(He ruled like R. Eliezer ben Yaakov and he does not differentiate between having separated for the majority or the minority of the pile.)"
+                  }
+                },
+                {
+                  "marker": "(w)",
+                  "level": 1,
+                  "label": "(R. Elazar citing R. Chiya the Great):",
+                  "body": {
+                    "en": "It's only for the second pile that he may not separate from the first pile, but he may separate for it itself (as he follows the first Tana)."
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "b": {
+      "tosfos": {
+        "type": "tosfos",
+        "amud": "b",
+        "titleLine": "POINT BY POINT SUMMARY OF TOSFOS - CHULIN 76",
+        "body": {
+          "type": "tosfos",
+          "pieces": [
+            {
+              "dhHe": "הכא נמי",
+              "dhNormalized": "הכא נמי",
+              "dhTranslit": "HACHA NAMI",
+              "body": {
+                "en": "SUMMARY: Tosfos explains why Ula's opinion is understandable.\nExplanation: According to Ula it is understandable, as he can explain that this is immediately below the Arkuvah.\nImplied Question: This is despite the fact that not in every place will it be kosher, as it will be invalid opposite the Tzomes ha'Gidin. (How, then, can he say this?)\nAnswer: Even so, being that it is immediately below and immediately above, the Mishnah's terminology is understandable.",
+                "he": "לעולא ניחא דמצי לפרש מן הארכובה ולמטה מיד אף על גב דלא בכל מקום כשרה כמו כנגד צומת הגידין מכל מקום כיון דמיתוקם למטה מיד ולמעלה מיד ניחא"
+              }
+            },
+            {
+              "dhHe": "מר בר רב אשי",
+              "dhNormalized": "מר בר רב אשי",
+              "dhTranslit": "MAR BAR RAV ASHI",
+              "body": {
+                "en": "SUMMARY: Tosfos quotes an argument regarding when we do not rule like Mar bar Rav Ashi.\nOpinion #1: Rashi explains that we hold like Mar bar Rav Ashi in every case besides from an Odisa (an admission) document and reversing an oath. This is also stated by the Seder Tanaim v'Amoraim.\nOpinion #2: Rabeinu Chananel explains that we hold like Mar bar Rav Ashi in every situation besides reversing an oath and white. The way to remember this is \"he totally turned (i.e. reversing an oath) white. \"White\" refers to the case of our Gemara. This is also the opinion of Rabeinu Tam.",
+                "he": "פי' בקונטרס דכמר בר רב אשי קיי\"ל בכל דוכתי בר ממכתב אודיתא ומיפך שבועה וכן יש בסדר תנאים ואמוראים ור\"ח פי' דקיי\"ל כוותיה בכל דוכתין בר ממיפך שבועה וחיורי וסימן כולו הפך לבן וחיורי היינו הך דשמעתין וכן פי' רבינו תם"
+              }
+            },
+            {
+              "dhHe": "איפסיק",
+              "dhNormalized": "איפסיק",
+              "dhTranslit": "IFSIK",
+              "body": {
+                "en": "SUMMARY: Tosfos explains why the snapping of one Gid is not listed as a Treifah that applies to birds but not animals.\nImplied Question: This type of Treifah was not able to be listed amongst the types of Treifos that apply to birds but do not apply to animals (56a). (Why not?)\nAnswer: This is because when one of them snaps, all of them will end up snapping (it therefore cannot be considered as only one being snapped).",
+                "he": "לא שייך למתני גבי יתר עליהן עוף (לעיל נו.) משום דכשנפסק אחד מהן סוף כולן ליפסק"
+              },
+              "refs": [
+                {
+                  "raw": "56a",
+                  "kind": "gemara"
+                }
+              ]
+            },
+            {
+              "dhHe": "ואם לאו",
+              "dhNormalized": "ואם לאו",
+              "dhTranslit": "V'IM LAV",
+              "body": {
+                "en": "SUMMARY: Tosfos explains why the seemingly drastic case of a leg being cut off above the Arkuvah was presented.\nImplied Question: While the first part of the Mishnah states a case where its legs were cut off above the Arkuvah, the same law would apply to a case where the bone was broken and there was not a majority of meat in that area. (Why, then, did the Mishnah state a drastic case of being totally cut off when it could have stated a less drastic case of a bone being broken without the leg being totally cut off?)\nAnswer: The first case was stated this way to match the terminology of the case where it was cut below the Arkuvah. In the second part of the Mishnah, even if the legs were totally cut off under the Arkuvah it is still kosher.",
+                "he": "והא דקתני רישא נחתכו רגליה מן הארכובה ולמעלה ה\"ה נמי נשבר העצם ואין רוב בשר קיים ואגב סיפא נקט נחתכו דלמטה אפי' נחתכו לגמרי כשרה"
+              }
+            },
+            {
+              "dhHe": "רוב",
+              "dhNormalized": "רוב",
+              "dhTranslit": "ROV",
+              "body": {
+                "en": "SUMMARY: Tosfos explains how one can have most of the width but not most of the circumference, and visa versa.\nExplanation: Sometimes we find one without the other, where the one is not totally round but rather is wide on one side and narrow on the other.\nObservation: Rashi explains the case differently.",
+                "he": "זימנין דמשכחת לה זה בלא זה שאין העצם עגול לגמרי אלא מרחיב מצד אחד ומיצר מצד אחד ובקונטרס פירש בענין אחר"
+              }
+            },
+            {
+              "dhHe": "למאי",
+              "dhNormalized": "למאי",
+              "dhTranslit": "L'MAI",
+              "body": {
+                "en": "SUMMARY: Tosfos explains how we see that the argument in Pesachim (84a) is relative to our Gemara.\nQuestion: This is difficult. Regarding Korban Pesach, one opinion is that we look at its current status, and the other opinion is that we look at its eventual status, as explained in Pesachim (84a). What does this have to do with our argument which hinges on whether or not the skin protects the animal?\nAnswer: The Beraisa states, \"If skin and meat cover most of it.\" This indicates that if it is considered meat, it protects.",
+                "he": "תימה דהתם גבי פסח פליגי משום דמר אזיל בתר השתא ומר אזיל בתר סוף כדמפרש בכיצד צולין (פסחים פד.) ומה שייכא ההיא פלוגתא הכא לענין הגנה וי\"ל משום דברייתא קתני אם עור ובשר חופין את רובו משמע דאי חשיב בשר מגין"
+              },
+              "refs": [
+                {
+                  "raw": "84a",
+                  "kind": "gemara"
+                }
+              ]
+            },
+            {
+              "dhHe": "גידין",
+              "dhNormalized": "גידין",
+              "dhTranslit": "GIDIN",
+              "body": {
+                "en": "SUMMARY: Tosfos and Rashi argue whether these sinews come from the neck or feet.\nExplanation #1: In Pesachim (84a), Rashi explains that this refers to the sinews of the neck.\nQuestion #1: This does not seem to be correct, as the Gemara here understands it is referring to the sinews in the foot.\nQuestion #2: Additionally, the sinews of the neck are always hard, and people do not normally eat them just as they do not eat bone. This is as the Gemara says in Pesachim (83b) that sinews, leftover Korban meat, and bones should be burned on the sixteenth of Nisan. The Gemara asks, what is the case of sinews? If they are sinews that are meaty, they should be eaten! If they are leftover, they are Nosar! It must be that they are sinews from the neck. This indicates that sinews from the neck are never eaten and are always leftover.",
+                "he": "בפרק כיצד צולין (שם דף פד.) פי' בקונטרס גידי צואר ואין נראה דהכא מייתי לה אגידי רגל ועוד דגידי צואר לעולם קשין הן ואין רגילות לאכלן כלל כמו עצמות כדאמרינן בכיצד צולין (שם פג:) הגידין והנותר והעצמות ישרפו לששה עשר ופריך הני גידין היכי דמי אי גידי בשר ליכלינהו ואי דאייתור היינו נותר אלא פשיטא גידי צואר משמע שהם רגילים להיות נותר בכל שעה"
+              },
+              "refs": [
+                {
+                  "raw": "84a",
+                  "kind": "gemara"
+                },
+                {
+                  "raw": "83b",
+                  "kind": "gemara"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "points": {
+        "type": "points",
+        "amud": "b",
+        "titleLine": "POINT BY POINT OUTLINE - CHULIN 76",
+        "body": {
+          "type": "points",
+          "entries": [
+            {
+              "marker": "3)",
+              "level": 0,
+              "title": {
+                "en": "A BROKEN LEG"
+              },
+              "body": {},
+              "children": [
+                {
+                  "marker": "(a)",
+                  "level": 1,
+                  "label": "(Mishnah):",
+                  "body": {
+                    "en": "If the bone was broken... .",
+                    "he": "נשבר העצם כו':"
+                  },
+                  "speaker": {
+                    "roleEn": "Mishnah",
+                    "raw": "(Mishnah):"
+                  }
+                },
+                {
+                  "marker": "(b)",
+                  "level": 1,
+                  "label": "(Rav):",
+                  "body": {
+                    "en": "(If the break is) above the knee, if most of the flesh remains, the animal and the (bottom of the) leg are both permitted. If not, both are forbidden;",
+                    "he": "אמר רב למעלה מן הארכובה אם רוב הבשר קיים זה וזה מותר ואם לאו זה וזה אסור"
+                  },
+                  "speaker": {
+                    "roleEn": "Rav",
+                    "raw": "(Rav):"
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "body": {
+                        "en": "(If the break is) below the knee, if most of the flesh remains, the animal and the leg are both permitted. If not, the animal is permitted, and the leg is forbidden.",
+                        "he": "למטה מן הארכובה אם רוב הבשר קיים זה וזה מותר אם לאו אבר אסור ובהמה מותרת"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(c)",
+                  "level": 1,
+                  "label": "(Shmuel):",
+                  "body": {
+                    "en": "In all cases, the animal is permitted. If most of the flesh remains, also the leg is permitted. If not, it is not.",
+                    "he": "ושמואל אמר בין למעלה בין למטה אם רוב הבשר קיים זה וזה מותר אם לאו אבר אסור ובהמה מותרת"
+                  },
+                  "speaker": {
+                    "roleEn": "Shmuel",
+                    "raw": "(Shmuel):"
+                  }
+                },
+                {
+                  "marker": "(d)",
+                  "level": 1,
+                  "label": "Question (Rav Nachman against Shmuel):",
+                  "body": {
+                    "en": "People will say that the leg is in the wasteheap (it is as if it fell off), yet the animal is permitted?!",
+                    "he": "מתקיף לה רב נחמן לשמואל יאמרו אבר ממנה מוטל באשפה ומותרת"
+                  },
+                  "speaker": {
+                    "roleEn": "Question (Rav Nachman against Shmuel",
+                    "raw": "Question (Rav Nachman against Shmuel):"
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "label": "Question (Rav Acha bar Rav Huna against Rav Nachman):",
+                      "body": {
+                        "en": "This also challenges Rav. People will say that the leg is in the wasteheap, yet the animal is permitted?!",
+                        "he": "א\"ל רב אחא בר רב הונא לרב נחמן לרב נמי יאמרו אבר ממנה מוטל באשפה ומותרת"
+                      },
+                      "speaker": {
+                        "roleEn": "Question (Rav Acha bar Rav Huna against Rav Nachman",
+                        "raw": "Question (Rav Acha bar Rav Huna against Rav Nachman):"
+                      }
+                    },
+                    {
+                      "marker": "2.",
+                      "level": 2,
+                      "label": "Answer (Rav Nachman):",
+                      "body": {
+                        "en": "I meant that they will say 'a limb vital to the life of the animal is in the wasteheap, yet the animal is permitted?!' (Rav permitted only when the break is below the knee.)",
+                        "he": "א\"ל הכי קאמינא אבר שחיה ממנה מוטל באשפה ומותרת"
+                      },
+                      "speaker": {
+                        "roleEn": "Answer (Rav Nachman",
+                        "raw": "Answer (Rav Nachman):"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(e)",
+                  "level": 1,
+                  "body": {
+                    "en": "Chachamim of Eretz Yisrael sent three messages (to Bavel). First they said that the Halachah follows Rav. Later, they ruled like Shmuel. Later, they again ruled like Rav, and said that the leg has Tum'as Masa. (It is Metamei one who moves it.)",
+                    "he": "שלחו מתם הלכתא כוותיה דרב הדור שלחו כוותיה דשמואל הדור שלחו כוותיה דרב ואבר עצמו מטמא במשא"
+                  }
+                },
+                {
+                  "marker": "(f)",
+                  "level": 1,
+                  "label": "Question (Rav Chisda - Beraisa):",
+                  "body": {
+                    "en": "Shechitah is Metaher (even) a Terefah animal, and a dangling limb, for this is part of the animal. You have no source to be Metaher the fetus, for it is not part of the animal.",
+                    "he": "מתיב רב חסדא לא אם טיהרה שחיטת טרפה אותה ואת האבר המדולדל בה דבר שגופה תטהר את העובר דבר שאינו גופה"
+                  },
+                  "speaker": {
+                    "roleEn": "Question (Rav Chisda",
+                    "rabbiEn": "Beraisa",
+                    "raw": "Question (Rav Chisda - Beraisa):"
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "label": "Question (Rabah):",
+                      "body": {
+                        "en": "Why did you ask from a Beraisa, and not from a Mishnah?",
+                        "he": "א\"ל רבה הדורי אפירכי למה לך אותיב ממתני'"
+                      },
+                      "speaker": {
+                        "roleEn": "Question (Rabah",
+                        "raw": "Question (Rabah):"
+                      },
+                      "children": [
+                        {
+                          "marker": "i.",
+                          "level": 3,
+                          "label": "(Mishnah):",
+                          "body": {
+                            "en": "R. Meir says that if an animal (with a dangling limb and flesh) was slaughtered, they (the limb and flesh) are Huchsheru (implying, they do not have Tum'as Nevelah!)",
+                            "he": "נשחטה בהמה הוכשרו בדמיה דברי ר\"מ"
+                          },
+                          "speaker": {
+                            "roleEn": "Mishnah",
+                            "raw": "(Mishnah):"
+                          }
+                        },
+                        {
+                          "marker": "ii.",
+                          "level": 3,
+                          "body": {
+                            "en": "R. Shimon says that they are not Huchsheru.",
+                            "he": "ר\"ש אומר לא הוכשרו"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "marker": "2.",
+                      "level": 2,
+                      "label": "Answer (Rav Chisda):",
+                      "body": {
+                        "en": "One could explain the Mishnah like above (73b. 'They', i.e. dangling flesh and meat that separated from a dangling limb, become Huchsheru.",
+                        "he": "א\"ל מתני' איכא לדחויי כדדחינן"
+                      },
+                      "speaker": {
+                        "roleEn": "Answer (Rav Chisda",
+                        "raw": "Answer (Rav Chisda):"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(g)",
+                  "level": 1,
+                  "body": {
+                    "en": "R. Yirmeyah bar Aba was teaching Rav's opinion.",
+                    "he": "כי סליק ר' זירא אשכחיה לרב ירמיה דיתיב וקאמר לה להא שמעתא"
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "label": "R. Zeira:",
+                      "body": {
+                        "en": "Very good. Also Shmuel holds like this.",
+                        "he": "א\"ל יישר וכן תרגמה אריוך בבבל אריוך מנו שמואל"
+                      },
+                      "speaker": {
+                        "roleEn": "R. Zeira",
+                        "raw": "R. Zeira:"
+                      }
+                    },
+                    {
+                      "marker": "2.",
+                      "level": 2,
+                      "label": "Question:",
+                      "body": {
+                        "en": "Shmuel argues!",
+                        "he": "והא מיפלג פליג"
+                      },
+                      "speaker": {
+                        "roleEn": "Question",
+                        "raw": "Question:"
+                      }
+                    },
+                    {
+                      "marker": "3.",
+                      "level": 2,
+                      "label": "Answer:",
+                      "body": {
+                        "en": "Shmuel retracted, and agreed with Rav.",
+                        "he": "הדר ביה שמואל לגביה דרב"
+                      },
+                      "speaker": {
+                        "roleEn": "Answer",
+                        "raw": "Answer:"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(h)",
+                  "level": 1,
+                  "label": "(Beraisa):",
+                  "body": {
+                    "en": "If the bone broke and it sticks out:",
+                    "he": "ת\"ר נשבר העצם ויצא לחוץ"
+                  },
+                  "speaker": {
+                    "roleEn": "Beraisa",
+                    "raw": "(Beraisa):"
+                  },
+                  "children": [
+                    {
+                      "marker": "1.",
+                      "level": 2,
+                      "body": {
+                        "en": "If skin and flesh cover the majority, it is permitted; if not, it is forbidden.",
+                        "he": "אם עור ובשר חופין את רובו מותר אם לאו אסור"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "marker": "(i)",
+                  "level": 1,
+                  "label": "Question:",
+                  "body": {
+                    "en": "What is considered the majority?",
+                    "he": "וכמה רובו"
+                  },
+                  "speaker": {
+                    "roleEn": "Question",
+                    "raw": "Question:"
+                  }
+                },
+                {
+                  "marker": "(j)",
+                  "level": 1,
+                  "label": "Version #1 (Rav Dimi):",
+                  "body": {
+                    "en": "We require the majority of the thickness of the bone.",
+                    "he": "כי אתא רב דימי אמר ר' יוחנן רוב עוביו"
+                  },
+                  "speaker": {
+                    "roleEn": "Version #1 (Rav Dimi",
+                    "raw": "Version #1 (Rav Dimi):"
+                  }
+                },
+                {
+                  "marker": "(k)",
+                  "level": 1,
+                  "label": "Version #2 (Rav Dimi):",
+                  "body": {
+                    "en": "We require the majority of the circumference. (Tosfos - if the broken surface of the bone is not circular, this differs from the majority of the thickness; Rashi - in Version #2, we do not care if the broken surface juts out; in Version #1, the only concern is that most of the surface of the break is covered.) (end of Version #2)",
+                    "he": "ואמרי לה רוב הקיפו"
+                  },
+                  "speaker": {
+                    "roleEn": "Version #2 (Rav Dimi",
+                    "raw": "Version #2 (Rav Dimi):"
+                  }
+                },
+                {
+                  "marker": "(l)",
+                  "level": 1,
+                  "label": "(Rav Papa):",
+                  "body": {
+                    "en": "Since we do not know which is correct, we require both majorities.",
+                    "he": "אמר רב פפא הלכך בעינן רוב עוביו ובעינן רוב הקיפו"
+                  },
+                  "speaker": {
+                    "roleEn": "Rav Papa",
+                    "raw": "(Rav Papa):"
+                  }
+                },
+                {
+                  "marker": "(m)",
+                  "level": 1,
+                  "label": "Version #1 (Ula):",
+                  "body": {
+                    "en": "Skin is like flesh (regarding covering the majority).",
+                    "he": "אמר עולא אמר רבי יוחנן עור הרי הוא כבשר"
+                  },
+                  "speaker": {
+                    "roleEn": "Version #1 (Ula",
+                    "raw": "Version #1 (Ula):"
+                  }
+                },
+                {
+                  "marker": "(n)",
+                  "level": 1,
+                  "label": "Question (Rav Nachman):",
+                  "body": {
+                    "en": "You should say that skin joins with flesh (i.e. that both are required)!",
+                    "he": "א\"ל רב נחמן לעולא ולימא מר עור מצטרף לבשר דהא עור ובשר קתני"
+                  },
+                  "speaker": {
+                    "roleEn": "Question (Rav Nachman",
+                    "raw": "Question (Rav Nachman):"
+                  }
+                },
+                {
+                  "marker": "(o)",
+                  "level": 1,
+                  "label": "Answer (Ula):",
+                  "body": {
+                    "en": "The text of the Beraisa says 'skin or flesh'.",
+                    "he": "א\"ל אנן עור או בשר תנינן"
+                  },
+                  "speaker": {
+                    "roleEn": "Answer (Ula",
+                    "raw": "Answer (Ula):"
+                  }
+                },
+                {
+                  "marker": "(p)",
+                  "level": 1,
+                  "label": "Version #2 (Ula):",
+                  "body": {
+                    "en": "Skin joins up with flesh.",
+                    "he": "איכא דאמרי [אמר עולא] א\"ר יוחנן עור מצטרף לבשר"
+                  },
+                  "speaker": {
+                    "roleEn": "Version #2 (Ula",
+                    "raw": "Version #2 (Ula):"
+                  }
+                },
+                {
+                  "marker": "(q)",
+                  "level": 1,
+                  "label": "Question (Rav Nachman):",
+                  "body": {
+                    "en": "You should say skin can complete the required majority of flesh covering the bone (i.e. most of the covering must come from the flesh)!",
+                    "he": "א\"ל רב נחמן לעולא ולימא מר עור משלים לבשר לחומרא"
+                  },
+                  "speaker": {
+                    "roleEn": "Question (Rav Nachman",
+                    "raw": "Question (Rav Nachman):"
+                  }
+                },
+                {
+                  "marker": "(r)",
+                  "level": 1,
+                  "label": "Answer (Ula):",
+                  "body": {
+                    "en": "I saw R. Yochanan permit a chick in which skin joined flesh to cover most of a break.",
+                    "he": "א\"ל אנא עובדא ידענא דההוא בר גוזלא דהוה בי רבי יצחק דעור מצטרף לבשר הוה ואתא לקמיה דר' יוחנן ואכשריה"
+                  },
+                  "speaker": {
+                    "roleEn": "Answer (Ula",
+                    "raw": "Answer (Ula):"
+                  }
+                },
+                {
+                  "marker": "(s)",
+                  "level": 1,
+                  "label": "Rejection (Rav Nachman):",
+                  "body": {
+                    "en": "You cannot learn from that case. The skin of chicks is very soft, like flesh!",
+                    "he": "א\"ל בר גוזלא קאמרת בר גוזלא דרכיך שאני"
+                  },
+                  "speaker": {
+                    "roleEn": "Rejection (Rav Nachman",
+                    "raw": "Rejection (Rav Nachman):"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "hebcharts": {
+        "type": "hebcharts",
+        "amud": "b",
+        "titleLine": "טבלאות - חולין עו",
+        "body": {
+          "type": "hebcharts",
+          "tables": [
+            {
+              "headers": [
+                {
+                  "he": ""
+                },
+                {
+                  "he": "כשנפסק אחד מהדקים [5]"
+                },
+                {
+                  "he": "כשנפסקו שני הדקים / כשנפסק האחד העבה"
+                },
+                {
+                  "he": "כשנפסק אחד עבה ואחד דק"
+                }
+              ],
+              "rows": [
+                [
+                  {
+                    "he": "לאמימר משמיה דרב זביד"
+                  },
+                  {
+                    "he": "כשרה"
+                  },
+                  {
+                    "he": "טרפה [6]"
+                  },
+                  {
+                    "he": "טרפה"
+                  }
+                ],
+                [
+                  {
+                    "he": "למר בר רב אשי"
+                  },
+                  {
+                    "he": "כשרה"
+                  },
+                  {
+                    "he": "כשרה [7]"
+                  },
+                  {
+                    "he": "טרפה"
+                  }
+                ]
+              ],
+              "caption": {
+                "he": "צומת הגידים דבהמה [4] שנפסקו בה חוטים, לאמוראים דלהלן, מה הדין?"
+              }
+            },
+            {
+              "headers": [
+                {
+                  "he": ""
+                },
+                {
+                  "he": "בנפסק רוב אחד מהם"
+                },
+                {
+                  "he": "בנפסק רוב שלושתם"
+                }
+              ],
+              "rows": [
+                [
+                  {
+                    "he": "ללישנא קמא"
+                  },
+                  {
+                    "he": "לרב: טרפה לשמואל: כשרה"
+                  },
+                  {
+                    "he": "לרב יהודה: טרפה [8] לרבנאי בשם שמואל: כשרה [9]"
+                  }
+                ],
+                [
+                  {
+                    "he": "לאיכא דאמרי"
+                  },
+                  {
+                    "he": "כשרה"
+                  },
+                  {
+                    "he": "לרב: טרפה לשמואל: כשרה"
+                  }
+                ]
+              ],
+              "caption": {
+                "he": "צומת הגידים שנפסקו בה חוטים ברובם לאמוראים דלהלן מה הדין?"
+              }
+            },
+            {
+              "headers": [
+                {
+                  "he": ""
+                },
+                {
+                  "he": "כשרוב הבשר קיים"
+                },
+                {
+                  "he": "כשאין רוב הבשר קיים"
+                }
+              ],
+              "rows": [
+                [
+                  {
+                    "he": "למעלה מן הארכובה"
+                  },
+                  {
+                    "he": "שניהם מותרים"
+                  },
+                  {
+                    "he": "לרב: שניהם אסורים לשמואל: האבר אסור והבהמה מותרת"
+                  }
+                ],
+                [
+                  {
+                    "he": "למטה מן הארכובה"
+                  },
+                  {
+                    "he": "שניהם מותרים"
+                  },
+                  {
+                    "he": "האבר אסור והבהמה מותרת"
+                  }
+                ]
+              ],
+              "caption": {
+                "he": "נשבר העצם של רגל הבהמה, מה דין הבהמה ומה דין חלק האבר שנשבר?"
+              }
+            },
+            {
+              "headers": [
+                {
+                  "he": ""
+                },
+                {
+                  "he": "לצד שעור הרי הוא כבשר"
+                },
+                {
+                  "he": "לצד שעור מצטרף לבשר"
+                },
+                {
+                  "he": "לצד שעור משלים לבשר"
+                }
+              ],
+              "rows": [
+                [
+                  {
+                    "he": "בניטל הבשר מתחת העור והעור חופה לרובו"
+                  },
+                  {
+                    "he": "כשרה [10]"
+                  },
+                  {
+                    "he": "טרפה [11]"
+                  },
+                  {
+                    "he": "טרפה"
+                  }
+                ],
+                [
+                  {
+                    "he": "העור והבשר חופים חצי חצי"
+                  },
+                  {
+                    "he": "כשרה"
+                  },
+                  {
+                    "he": "כשרה"
+                  },
+                  {
+                    "he": "טרפה [12]"
+                  }
+                ]
+              ],
+              "caption": {
+                "he": "נשבר העצם ויצא לחוץ וחופים עור ובשר את רובו, מה הדין באופנים דלהלן?"
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "absent": []
+}

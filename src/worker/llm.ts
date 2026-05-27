@@ -24,11 +24,12 @@
 
 import { runWithRetry } from './ai-gateway';
 import { LLMError, isFallbackWorthy, NEITHER, TIMEOUT } from './llm-error';
-import { readSettings, type SettingsEnv } from './settings';
+import { DEFAULT_MODEL, DEFAULT_FALLBACK_CHAIN } from './settings';
 
 export type LLMModelId = `@cf/${string}` | `openrouter/${string}`;
 
-export interface LLMEnv extends SettingsEnv {
+export interface LLMEnv {
+  CACHE?: KVNamespace;
   AI?: Ai;
   AI_GATEWAY_ID?: string;
   AI_GATEWAY_DISABLE?: string;
@@ -155,30 +156,23 @@ function withHardTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T
 }
 
 /**
- * Resolve the model + fallback chain to call:
- *   1. explicit opts.model + opts.fallback wins (per-call override — this is
- *      what marks/enrichments use; they pin DeepSeek Flash/Pro per task)
- *   2. else settings KV (settable via /api/admin/llm-settings)
- *   3. else env.DEFAULT_LLM_MODEL (wrangler.toml [vars])
- *   4. else DeepSeek V4 Pro (a hardcoded floor only reached if both the KV
- *      settings and the env var are somehow unset; NOT Kimi — Kimi was dropped
- *      from prod over Workers AI concurrency limits and silently bottoming out
- *      on it was a footgun)
+ * Resolve the model + fallback chain to call. Code-driven (no KV layer):
+ *   1. explicit opts.model wins (per-call override — this is what marks /
+ *      enrichments use; they pin DeepSeek Flash/Pro per task). No default
+ *      fallback is appended to a pinned model unless the caller passes one.
+ *   2. else env.DEFAULT_LLM_MODEL (wrangler.toml [vars]) if set + valid
+ *   3. else DEFAULT_MODEL (settings.ts) — the explicit code floor.
+ * The default fallback chain (DEFAULT_FALLBACK_CHAIN) is appended in cases 2/3
+ * unless the caller overrides it. NOT Kimi anywhere — it was dropped over
+ * Workers AI concurrency limits.
  */
-async function resolveChain(env: LLMEnv, opts: LLMCallOptions): Promise<LLMModelId[]> {
+export function resolveChain(env: LLMEnv, opts: LLMCallOptions): LLMModelId[] {
   if (opts.model) return [opts.model, ...(opts.fallback ?? [])];
-
-  const settings = await readSettings(env);
-  if (settings) {
-    const fallback = opts.fallback ?? settings.fallbackChain ?? [];
-    return [settings.defaultModel, ...fallback];
-  }
-
   const fromEnv = env.DEFAULT_LLM_MODEL;
-  if (fromEnv && (fromEnv.startsWith('@cf/') || fromEnv.startsWith('openrouter/'))) {
-    return [fromEnv as LLMModelId, ...(opts.fallback ?? [])];
-  }
-  return ['openrouter/deepseek/deepseek-v4-pro' as LLMModelId, ...(opts.fallback ?? [])];
+  const base: LLMModelId = (typeof fromEnv === 'string' && (fromEnv.startsWith('@cf/') || fromEnv.startsWith('openrouter/')))
+    ? fromEnv as LLMModelId
+    : DEFAULT_MODEL;
+  return [base, ...(opts.fallback ?? DEFAULT_FALLBACK_CHAIN)];
 }
 
 /**
@@ -188,7 +182,7 @@ async function resolveChain(env: LLMEnv, opts: LLMCallOptions): Promise<LLMModel
  * without trying fallback.
  */
 export async function runLLM(env: LLMEnv, opts: LLMCallOptions): Promise<LLMResult> {
-  const chain = await resolveChain(env, opts);
+  const chain = resolveChain(env, opts);
 
   let lastErr: unknown = null;
   for (let i = 0; i < chain.length; i++) {
