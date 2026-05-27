@@ -646,6 +646,20 @@ export default function DafViewer(): JSX.Element {
     prefetchDaf(t, p, runs);
   });
 
+  // Warm the NEXT daf's assembled text on idle so forward navigation renders
+  // instantly (the heavy per-section enrichments still lazy-load on arrival).
+  // Text only — no LLM cost; just primes the server's daf cache. Aborts on daf
+  // change so we never prefetch a page the reader has already left.
+  createEffect(() => {
+    const t = tractate();
+    const np = nextPage(page());
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      void fetch(`/api/daf/${encodeURIComponent(t)}/${np}`, { signal: controller.signal }).catch(() => {});
+    }, 1500);
+    onCleanup(() => { clearTimeout(timer); controller.abort(); });
+  });
+
   // The `rabbi` mark run (post-augmentWithKnownRabbis) is the single source of
   // identified rabbis on the daf.
   const rabbiMarkInstances = createMemo(() => {

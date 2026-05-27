@@ -174,11 +174,13 @@ async function pollJob(runId: string, cacheKey?: string, signal?: AbortSignal): 
   throw new Error(`job ${runId} timed out after ${POLL_TIMEOUT_MS / 1000}s`);
 }
 
-// Server max_concurrency=10 on the enrichment queue, so client can dispatch
-// more in parallel without overwhelming workerd. 4 gives a 2× speedup on
-// pages with many pesukim/argument-move instances without risking the
-// 2026-05-07 simultaneous-fan-out incident.
-const enrichmentQueue = new RequestQueue(4);
+// The Cloudflare queue consumer runs at max_concurrency=50 and the run route's
+// cache-hit hot-path is a single KV read, so the browser can dispatch well
+// beyond the old value of 4 — the bottleneck on a warmed daf was this client
+// gate, not the server. 8 roughly halves the time to fill a page's
+// section/move/anchor cards (cache hits especially) while staying clear of the
+// queue ceiling and the 2026-05-07 simultaneous-fan-out incident.
+const enrichmentQueue = new RequestQueue(8);
 
 /**
  * Enqueue one enrichment run on the shared queue from OUTSIDE this component

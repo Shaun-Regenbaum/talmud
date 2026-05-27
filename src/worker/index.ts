@@ -804,34 +804,39 @@ async function resolveDependencies(
     Object.assign(out.vars, gemaraSliceToVars(slice));
     return out;
   }
-  for (const dep of dependencies) {
+  // Resolve all dependencies CONCURRENTLY. They're independent (each writes a
+  // distinct key in out.vars/depends/anchors), and a section synthesis can
+  // depend on several LLM enrichments (voices, background) plus sub-marks —
+  // serial resolution stacked their latencies. Promise.all overlaps them; the
+  // queue consumer's max_concurrency still caps total simultaneous LLM load.
+  await Promise.all(dependencies.map(async (dep) => {
     if (dep === 'gemara') {
       const slice = await getGemaraSlice(rc.env, tractate, page, bypassCache);
       Object.assign(out.vars, gemaraSliceToVars(slice));
-      continue;
+      return;
     }
     if (dep === 'commentaries') {
       const slice = await getCommentariesSlice(rc.env, tractate, page, bypassCache);
       out.vars.commentaries = commentariesSliceToString(slice);
-      continue;
+      return;
     }
     if (dep === 'mishna') {
       const bundle = await getMishnaBundleCached(rc.env.CACHE, tractate, page);
       const filtered = selectMishnaForMark(bundle, markInput);
       out.vars.mishna = mishnaBundleToString(filtered);
-      continue;
+      return;
     }
     if (typeof dep === 'object' && dep !== null) {
       if ('enrichment' in dep) {
         const depId = dep.enrichment;
         if (parentChain.has(depId)) {
           out.depends[depId] = { error: `cycle detected (${[...parentChain].join(' → ')} → ${depId})` };
-          continue;
+          return;
         }
         const depDef = await loadEnrichmentDef(rc.env, depId);
         if (!depDef) {
           out.depends[depId] = { error: 'not found' };
-          continue;
+          return;
         }
         try {
           const result = await runEnrichmentOnce(rc, depDef, tractate, page, markInput, bypassCache, undefined, parentChain);
@@ -839,14 +844,14 @@ async function resolveDependencies(
         } catch (err) {
           out.depends[depId] = { error: String((err as Error)?.message ?? err) };
         }
-        continue;
+        return;
       }
       if ('mark' in dep) {
         const markId = dep.mark;
         const markDef = await loadMarkDef(rc.env, markId);
         if (!markDef) {
           out.anchors[markId] = { error: 'not found' };
-          continue;
+          return;
         }
         try {
           const result = await runMarkOnce(rc, markDef, tractate, page, bypassCache);
@@ -857,10 +862,10 @@ async function resolveDependencies(
         } catch (err) {
           out.anchors[markId] = { error: String((err as Error)?.message ?? err) };
         }
-        continue;
+        return;
       }
     }
-  }
+  }));
   return out;
 }
 
