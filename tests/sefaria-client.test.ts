@@ -3,8 +3,26 @@ import {
   flattenPieces,
   flattenTalmudCommentaryPieces,
   pickV3Version,
+  rishonLabel,
   sefariaAPI,
 } from '../src/lib/sefref/sefaria/client';
+
+describe('rishonLabel', () => {
+  it('maps Rishonim index_titles (various naming) to a short label', () => {
+    expect(rishonLabel('Rashba on Eruvin', 'Eruvin')).toBe('Rashba');
+    expect(rishonLabel('Ritva on Eruvin', 'Eruvin')).toBe('Ritva');
+    expect(rishonLabel('Rosh on Eruvin', 'Eruvin')).toBe('Rosh');
+    expect(rishonLabel('Beit HaBechira on Eruvin', 'Eruvin')).toBe('Meiri');
+    expect(rishonLabel('Rif Eruvin', 'Eruvin')).toBe('Rif'); // no "on"
+    expect(rishonLabel('Rashba on Bava Metzia', 'Bava Metzia')).toBe('Rashba'); // spaced tractate
+  });
+  it('excludes Rashi/Tosafot/Steinsaltz and unknown books', () => {
+    expect(rishonLabel('Rashi on Eruvin', 'Eruvin')).toBeNull();
+    expect(rishonLabel('Tosafot on Eruvin', 'Eruvin')).toBeNull();
+    expect(rishonLabel('Steinsaltz on Eruvin', 'Eruvin')).toBeNull();
+    expect(rishonLabel('Tosafot Rid on Eruvin Second Recension', 'Eruvin')).toBeNull();
+  });
+});
 
 describe('flattenPieces', () => {
   it('returns a one-element array for a non-empty string', () => {

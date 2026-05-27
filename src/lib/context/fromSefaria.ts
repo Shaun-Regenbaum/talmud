@@ -46,26 +46,39 @@ export function fromCommentaryPieces(
   });
 }
 
-/** Rishonim (Rashba, Ritva, Ramban, …) — whole-daf snippets. */
-export function fromRishonim(bundle: RishonimBundle | undefined): ContextItem[] {
-  if (!bundle) return [];
-  return Object.entries(bundle).map(([label, snip]) =>
-    item('sefaria-rishonim', label, 'rishon', `rishon:${label}`, {
-      title: { en: label }, body: { he: snip.hebrew, en: snip.english }, url: refUrl(snip.ref),
-    }),
-  );
+/** Inclusive 0-indexed segment range, dropping negatives. */
+function segArr(start: number, end: number): number[] {
+  const out: number[] = [];
+  for (let s = Math.max(0, start); s <= end; s++) out.push(s);
+  return out;
 }
 
-/** Shulchan Aruch / halachic refs linked to this daf — whole-daf. */
+/** Rishonim (Rashba, Ritva, Rosh, …) — one item per comment, anchored to the
+ *  daf segment(s) Sefaria links it to (`via: 'sefaria-link'`). */
+export function fromRishonim(bundle: RishonimBundle | undefined): ContextItem[] {
+  if (!bundle) return [];
+  return bundle.map((c, i) => {
+    const segs = segArr(c.segStart, c.segEnd);
+    return item('sefaria-rishonim', c.label, 'rishon', `rishon:${c.ref || i}`, {
+      title: { en: c.label }, body: { he: c.hebrew, en: c.english }, url: refUrl(c.ref),
+      segs, via: segs.length ? 'sefaria-link' : undefined,
+    });
+  });
+}
+
+/** Halachic codifications (Mishneh Torah, Shulchan Aruch, …) linked to this daf
+ *  — one item per ref, anchored to its segment when Sefaria gives an anchorRef. */
 export function fromHalachaRefs(bundle: HalachicRefBundle | undefined): ContextItem[] {
   if (!bundle) return [];
   const out: ContextItem[] = [];
-  for (const [ref, snips] of Object.entries(bundle)) {
-    const first = snips[0];
-    if (!first) continue;
-    out.push(item('sefaria-halacha', 'Halacha', 'shulchanAruch', `halacha:${ref}`, {
-      title: { en: ref }, body: { he: first.hebrew, en: first.english }, url: refUrl(first.ref ?? ref),
-    }));
+  for (const [book, snips] of Object.entries(bundle)) {
+    snips.forEach((s, i) => {
+      const segs = s.segStart != null && s.segEnd != null ? segArr(s.segStart, s.segEnd) : [];
+      out.push(item('sefaria-halacha', 'Halacha', 'halachaRef', `halacha:${s.ref || `${book}:${i}`}`, {
+        title: { en: s.ref || book }, body: { he: s.hebrew, en: s.english }, url: refUrl(s.ref),
+        segs, via: segs.length ? 'sefaria-link' : undefined,
+      }));
+    });
   }
   return out;
 }
