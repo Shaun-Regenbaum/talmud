@@ -2818,6 +2818,7 @@ export default function DafViewer(): JSX.Element {
               onHighlightRange={setArgumentMoveHighlight}
               onOpenRabbiSlug={openRabbiSlug}
               generationByName={generationByName()}
+              dafSections={analysis()?.sections ?? []}
             />
           </Show>
         </aside>
@@ -2847,6 +2848,7 @@ export default function DafViewer(): JSX.Element {
           onHighlightRange={setArgumentMoveHighlight}
           onOpenRabbiSlug={openRabbiSlug}
           generationByName={generationByName()}
+          dafSections={analysis()?.sections ?? []}
         />
       </Show>
       <DevModeShelf open={devOpen()} onClose={() => { setDevOpen(false); setDevModeActive(false); }}>

@@ -250,6 +250,11 @@ export interface LLMExtractor {
   output_schema?: unknown;
   /** Workers AI Kimi only: disable thinking-mode. */
   thinking_off?: boolean;
+  /** Enable provider reasoning/thinking for this extractor. On OpenRouter
+   *  deepseek/* slugs reasoning is OFF by default (for fast structured output);
+   *  set this to opt a heavier reasoning pass (e.g. the daf-level argument
+   *  connection graph) back in. Maps to runLLM's reasoning_effort. */
+  reasoning_effort?: 'low' | 'medium' | 'high';
   /** When set, fan the extractor out over the instances of this dependency
    *  mark: instead of one LLM call per daf, run one call per parent instance
    *  (with `anchors.<fan_out_over>` narrowed to that single instance) and

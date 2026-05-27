@@ -102,6 +102,17 @@ export const ARGUMENT_VOICES_OUTPUT_SCHEMA = responseFormat('argument_voices', z
     note: z.string(),
   })),
 }));
+// Daf-level argument FLOW: how the argument sections relate to each other.
+// `from`/`to` are 0-based indices into the daf's ordered argument sections
+// (the `argument` mark instances). Drives the whole-daf overview flow graph.
+export const ARGUMENT_OVERVIEW_FLOW_OUTPUT_SCHEMA = responseFormat('argument_overview_flow', z.object({
+  connections: z.array(z.object({
+    from: z.number().int(),
+    to: z.number().int(),
+    kind: z.enum(['continues', 'resolves', 'depends-on', 'parallels', 'contrasts', 'generalizes', 'cites']),
+    note: z.string(),
+  })),
+}));
 export const ARGUMENT_BACKGROUND_OUTPUT_SCHEMA = responseFormat('argument_background', single('background'));
 export const ARGUMENT_SYNTHESIS_OUTPUT_SCHEMA = responseFormat('argument_synthesis', single('synthesis'));
 

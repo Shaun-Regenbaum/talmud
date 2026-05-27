@@ -9,6 +9,7 @@ import RabbiLineageTree, { type RelationshipsData, type RelationshipsEvidence } 
 import { type GeographyData, type GeographyEvidence } from './RabbiGeographyCard';
 import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeline';
 import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
+import ArgumentFlowGraph, { type FlowConnection } from './ArgumentFlowGraph';
 import { selectSectionMoves } from '../lib/argumentMoves';
 import { t, lang } from './i18n';
 import { ACCENTS, HebrewProse, Panel, QASection, SectionCard, Synthesis, kindLabelKey } from './sidebar/primitives';
@@ -108,6 +109,9 @@ export interface ArgumentSidebarProps {
   onHighlightRange?: (range: { start: number; end: number; key: string; tokenStart?: number; tokenEnd?: number } | null) => void;
   onOpenRabbiSlug?: (slug: string) => void;
   generationByName: Map<string, GenerationId>;
+  /** The daf's ordered argument sections (from the `argument` mark). Feeds the
+   *  whole-daf overview's flow graph — its nodes are these sections. */
+  dafSections?: Section[];
 }
 
 // Parse markdown-style links out of a bio string. Sefaria `/topics/<slug>`
@@ -538,31 +542,77 @@ export function ArgumentBody(props: {
   );
 }
 
-/** Whole-daf argument overview. Runs the daf-level `argument-overview`
- *  enrichments (one synthesis paragraph + a single voice graph for the entire
- *  page) and renders the same ArgumentVoiceMap used per-section. Mirrors
- *  ArgumentBody's voices flow, minus the per-section move list. */
-function ArgumentOverviewBody(props: {
+/** Drill-in: one argument section's voice map, fed by that section's
+ *  `argument.voices` (the same per-section enrichment the section panel uses;
+ *  warmed on daf load, so this is usually a cache hit). */
+function OverviewSectionVoices(props: {
+  section: Section;
   tractate: string;
   page: string;
   onPushRabbi: (name: string) => void;
 }): JSX.Element {
-  // Whole-daf voices+edges, surfaced from the synthesis aggregate's
-  // deps_resolved (exactly like the per-section panel). Drives ArgumentVoiceMap.
-  const [voicesData, setVoicesData] = createSignal<ArgumentVoicesData | null>(null);
+  const [voices, setVoices] = createSignal<ArgumentVoicesData | null>(null);
+  const instanceKey = () => `${props.section.startSegIdx}-${props.section.endSegIdx}-${props.section.title}`;
+  createEffect(() => { void instanceKey(); setVoices(null); });
+  const onResolved = (r: { deps_resolved?: Record<string, unknown> }) => {
+    const v = r.deps_resolved?.['argument.voices'] as ArgumentVoicesData | undefined;
+    if (v && Array.isArray(v.voices)) setVoices({ voices: v.voices, edges: Array.isArray(v.edges) ? v.edges : [] });
+  };
+  return (
+    <div style={{ 'margin-top': '0.6rem', 'border-top': '1px dashed #e5e3dc', 'padding-top': '0.6rem' }}>
+      <Show when={props.section.summary}>
+        <HebrewProse size="0.85rem" color="#444" margin="0 0 0.5rem">{props.section.summary}</HebrewProse>
+      </Show>
+      <Synthesis
+        markId="argument"
+        instance={{
+          startSegIdx: props.section.startSegIdx,
+          endSegIdx: props.section.endSegIdx,
+          fields: {
+            title: props.section.title,
+            summary: props.section.summary,
+            excerpt: props.section.excerpt,
+            rabbiNames: props.section.rabbis.map((r) => r.name),
+          },
+        }}
+        instanceKey={instanceKey()}
+        tractate={props.tractate}
+        page={props.page}
+        onResolved={onResolved}
+      />
+      <Show when={voices()}>
+        {(data) => <ArgumentVoiceMap data={data()} onClickVoice={props.onPushRabbi} />}
+      </Show>
+    </div>
+  );
+}
 
-  // Reset when the daf changes so a stale graph doesn't linger.
+/** Whole-daf argument overview. Top: a one-paragraph synthesis + a flow graph
+ *  of how the daf's argument sections relate (from `argument-overview.flow`,
+ *  surfaced via the synthesis aggregate's deps_resolved). Click a section node
+ *  to drill into that argument's voice map. Shows every argument on the daf,
+ *  not one collapsed graph. */
+function ArgumentOverviewBody(props: {
+  tractate: string;
+  page: string;
+  sections: Section[];
+  onPushRabbi: (name: string) => void;
+}): JSX.Element {
+  const [connections, setConnections] = createSignal<FlowConnection[]>([]);
+  const [active, setActive] = createSignal<number | null>(null);
+
   createEffect(() => {
     void `${props.tractate}/${props.page}`;
-    setVoicesData(null);
+    setConnections([]);
+    setActive(null);
   });
 
   const handleResolved = (r: { deps_resolved?: Record<string, unknown>; anchors_resolved?: Record<string, unknown> }) => {
-    const voices = r.deps_resolved?.['argument-overview.voices'] as ArgumentVoicesData | undefined;
-    if (voices && Array.isArray(voices.voices)) {
-      setVoicesData({ voices: voices.voices, edges: Array.isArray(voices.edges) ? voices.edges : [] });
-    }
+    const flow = r.deps_resolved?.['argument-overview.flow'] as { connections?: FlowConnection[] } | undefined;
+    if (flow && Array.isArray(flow.connections)) setConnections(flow.connections);
   };
+
+  const nodes = () => props.sections.map((s, i) => ({ index: i, title: s.title }));
 
   return (
     <Panel accent={ACCENTS.argument} title={t('overview.title')}>
@@ -577,8 +627,28 @@ function ArgumentOverviewBody(props: {
         page={props.page}
         onResolved={handleResolved}
       />
-      <Show when={voicesData()}>
-        {(data) => <ArgumentVoiceMap data={data()} onClickVoice={props.onPushRabbi} />}
+      <Show
+        when={props.sections.length > 0}
+        fallback={
+          <HebrewProse size="0.85rem" color="#999" margin="0.6rem 0 0">
+            {t('overview.empty')}
+          </HebrewProse>
+        }
+      >
+        <ArgumentFlowGraph
+          nodes={nodes()}
+          connections={connections()}
+          activeIndex={active()}
+          onSelect={(i) => setActive(active() === i ? null : i)}
+        />
+        <Show when={active() !== null && props.sections[active()!]}>
+          <OverviewSectionVoices
+            section={props.sections[active()!]}
+            tractate={props.tractate}
+            page={props.page}
+            onPushRabbi={props.onPushRabbi}
+          />
+        </Show>
       </Show>
     </Panel>
   );
@@ -1561,6 +1631,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
               <ArgumentOverviewBody
                 tractate={props.tractate}
                 page={props.page}
+                sections={props.dafSections ?? []}
                 onPushRabbi={props.onPushRabbi}
               />
             </Show>

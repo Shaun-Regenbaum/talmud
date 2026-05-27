@@ -95,6 +95,29 @@ function buildNameRegex(names: string[]): RegExp | null {
   return new RegExp(`\\b(${cleaned.join('|')})\\b`, 'g');
 }
 
+export interface RabbiTextPart { kind: 'text' | 'link'; value: string; }
+
+/** Split prose into plain-text and rabbi-link parts. Every matched name yields
+ *  a 'link' part whose `value` is the matched name verbatim — so a linkified
+ *  name is NEVER rendered empty (the blank-name class). Names are matched
+ *  whole-word, longest-first. Pure + exported for tests. */
+export function tokenizeRabbiMentions(text: string, names: string[]): RabbiTextPart[] {
+  if (!text) return [];
+  const uniq = Array.from(new Set(names.filter((n) => n && n.trim().length > 0)));
+  const re = buildNameRegex(uniq);
+  if (!re) return [{ kind: 'text', value: text }];
+  const out: RabbiTextPart[] = [];
+  let lastIdx = 0;
+  re.lastIndex = 0;
+  for (let m = re.exec(text); m !== null; m = re.exec(text)) {
+    if (m.index > lastIdx) out.push({ kind: 'text', value: text.slice(lastIdx, m.index) });
+    out.push({ kind: 'link', value: m[1] });
+    lastIdx = m.index + m[0].length;
+  }
+  if (lastIdx < text.length) out.push({ kind: 'text', value: text.slice(lastIdx) });
+  return out;
+}
+
 const linkStyle: JSX.CSSProperties = {
   background: 'none',
   border: 'none',
@@ -122,30 +145,10 @@ export function RabbiText(props: {
   // All reactive reads happen inside this memo so prop changes (e.g.
   // dafContext loading after mount, a new sidebar entry pushing) trigger
   // re-tokenization.
-  const parts = createMemo(() => {
-    const text = props.text ?? '';
-    if (!text) return [] as Array<{ kind: 'text' | 'link'; value: string }>;
-    const pool = [
-      ...props.rabbis.map((r) => r.name),
-      ...(props.extraNames ?? []),
-    ];
-    const uniq = Array.from(new Set(pool.filter((n) => n && n.trim().length > 0)));
-    const re = buildNameRegex(uniq);
-    const out: Array<{ kind: 'text' | 'link'; value: string }> = [];
-    if (!re) {
-      out.push({ kind: 'text', value: text });
-      return out;
-    }
-    let lastIdx = 0;
-    re.lastIndex = 0;
-    for (let m = re.exec(text); m !== null; m = re.exec(text)) {
-      if (m.index > lastIdx) out.push({ kind: 'text', value: text.slice(lastIdx, m.index) });
-      out.push({ kind: 'link', value: m[1] });
-      lastIdx = m.index + m[0].length;
-    }
-    if (lastIdx < text.length) out.push({ kind: 'text', value: text.slice(lastIdx) });
-    return out;
-  });
+  const parts = createMemo(() => tokenizeRabbiMentions(props.text ?? '', [
+    ...props.rabbis.map((r) => r.name),
+    ...(props.extraNames ?? []),
+  ]));
 
   return (
     <For each={parts()}>{(p) => {

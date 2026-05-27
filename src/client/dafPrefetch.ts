@@ -74,6 +74,7 @@ const FRIENDLY: Record<string, string> = {
   'halacha.synthesis': 'dafLoad.family.halachot',
   'rabbi.synthesis': 'dafLoad.family.rabbis',
   'rishonim.synthesis': 'dafLoad.family.rishonim',
+  'argument-overview.synthesis': 'dafLoad.family.argumentOverview',
 };
 
 interface MarkInstance {
@@ -139,6 +140,20 @@ export function prefetchDaf(
       for (const enrichmentId of enrichmentIds) {
         tasks.push({ enrichmentId, instance: inst, instanceKey });
       }
+    });
+  }
+
+  // Whole-daf argument overview — one daf-level run, COUNTED in the bar. Warms
+  // argument-overview.synthesis, which pulls the cross-section flow graph
+  // (argument-overview.flow, deepseek-v4-pro + reasoning) in as a dependency,
+  // so opening the overview chip is a cache hit. Only when the daf actually has
+  // argument sections to relate.
+  const argInstances = (marks['argument']?.parsed as { instances?: MarkInstance[] } | undefined)?.instances;
+  if (Array.isArray(argInstances) && argInstances.length > 0) {
+    tasks.push({
+      enrichmentId: 'argument-overview.synthesis',
+      instance: { fields: {} },
+      instanceKey: 'argument-overview:daf',
     });
   }
 
