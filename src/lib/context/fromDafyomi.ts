@@ -1,17 +1,16 @@
 /**
  * @fileoverview Map a DafyomiDaf into workbench ContextItems.
  *
- * One item per "card-sized" unit: a Tosfos piece, a glossary term, a Points
- * top-entry, an insights/halacha/review/yerushalmi top-entry, or a chart.
- * Items start anchored at amud (or whole-daf) level; the matchers in
- * `./anchor/` promote the ones they can.
+ * One item per card-sized unit (a Tosfos piece, glossary term, Points entry,
+ * insight, chart, …). dafyomi items arrive unplaced (`segs: []`) with a coarse
+ * `amud` when known; matchers place them onto segments later (Tosfos-DH
+ * deterministically, AI for the rest).
  */
 
 import type {
-  DafyomiDaf, DafyomiContentType, DafyomiEntry, DafyomiAmudContent, DafyomiText,
+  DafyomiDaf, DafyomiContentType, DafyomiEntry, DafyomiAmudContent,
 } from '../sefref/dafyomi/schema.ts';
-import type { ContextItem, AnchorState } from './types.ts';
-import { highlightSegsFor } from './types.ts';
+import type { ContextItem } from './types.ts';
 
 const SOURCE_LABEL: Record<DafyomiContentType, string> = {
   insights: 'Insights', background: 'Background', halacha: 'Halacha', tosfos: 'Tosfos',
@@ -36,10 +35,9 @@ function collectBlock(
 ): void {
   const type = block.type;
   const url = daf.source.urls[type];
-  const anchor: AnchorState = block.wholeDaf ? { kind: 'whole-daf' } : { kind: 'amud', amud };
-  const base = (kind: string, key: string): Omit<ContextItem, 'title' | 'body'> => ({
-    source: `dafyomi:${type}`, sourceLabel: SOURCE_LABEL[type], kind, key,
-    url, anchor, anchorMatched: false, highlightSegs: highlightSegsFor(anchor),
+  const base = (kind: string, key: string): ContextItem => ({
+    source: `dafyomi:${type}`, sourceLabel: SOURCE_LABEL[type], kind, key, url,
+    segs: [], ...(block.wholeDaf ? {} : { amud }),
   });
 
   const b = block.body;
@@ -49,17 +47,12 @@ function collectBlock(
         ...base('tosfos-piece', `${type}:${amud}:${i}`),
         title: { he: p.dhHe, en: p.dhTranslit },
         body: p.body,
-        refs: p.refs,
-        match: { dhNormalized: p.dhNormalized },
+        dhNormalized: p.dhNormalized,
       }));
       break;
     case 'background':
       b.girsa.forEach((e, i) => out.push({ ...base('girsa', `${type}:girsa:${i}`), ...entryCard(e) }));
-      b.glossary.forEach((e, i) => out.push({
-        ...base('glossary', `${type}:gloss:${i}`),
-        ...entryCard(e),
-        match: { termHe: e.title?.he },
-      }));
+      b.glossary.forEach((e, i) => out.push({ ...base('glossary', `${type}:gloss:${i}`), ...entryCard(e) }));
       break;
     case 'halacha': {
       const groups: [string, DafyomiEntry[]][] = [['Gemara', b.gemara], ['Rishonim', b.rishonim], ['Poskim', b.poskim]];
@@ -72,15 +65,9 @@ function collectBlock(
       }
       break;
     }
-    case 'points':
-      b.entries.forEach((e, i) => out.push({
-        ...base('points', `${type}:${amud}:${i}`),
-        ...entryCard(e),
-        match: { pointsHe: collectHe(e), pointsEn: collectEn(e) },
-      }));
-      break;
     case 'insights':
     case 'review':
+    case 'points':
     case 'yerushalmi':
       b.entries.forEach((e, i) => out.push({ ...base(b.type, `${type}:${amud}:${i}`), ...entryCard(e) }));
       break;
@@ -94,11 +81,9 @@ function collectBlock(
   }
 }
 
-function entryCard(e: DafyomiEntry): { title?: DafyomiText; body?: DafyomiText; refs?: DafyomiEntry['refs'] } {
-  const title = e.title?.en || e.title?.he
-    ? e.title
-    : (e.label ? { en: e.label } : undefined);
-  return { title, body: { en: collectEn(e), he: collectHe(e) }, refs: e.refs };
+function entryCard(e: DafyomiEntry): { title?: ContextItem['title']; body?: ContextItem['body'] } {
+  const title = e.title?.en || e.title?.he ? e.title : (e.label ? { en: e.label } : undefined);
+  return { title, body: { en: collectEn(e), he: collectHe(e) } };
 }
 
 function collectEn(e: DafyomiEntry, depth = 0): string {

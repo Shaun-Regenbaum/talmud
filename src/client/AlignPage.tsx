@@ -1,15 +1,11 @@
 import { createResource, createSignal, For, Show, createMemo, type JSX } from 'solid-js';
 import { TRACTATE_OPTIONS, type TalmudPageData } from '../lib/sefref';
-import type { DafyomiDaf } from '../lib/sefref/dafyomi/schema';
-import type { SefariaLink } from '../lib/sefref/sefaria/links';
 import { tokenizeHebrewHtml } from './tokenize';
 import { injectHadran } from './injectHadran';
 import { injectSegmentMarkers, type SegmentStats } from './injectSegmentMarkers';
 import { ContextSourcePanel } from './ContextSourcePanel';
-import { fromDafyomi } from '../lib/context/fromDafyomi';
-import { fromSefariaCommentary } from '../lib/context/fromSefariaCommentary';
-import { matchTosfos } from '../lib/context/anchor/tosfos';
 import type { ContextItem } from '../lib/context/types';
+import { applyMatches, type SegMatch } from '../lib/context/match';
 
 interface AlignedDaf extends TalmudPageData {
   _source?: string;
@@ -23,18 +19,11 @@ async function fetchDaf(input: { tractate: string; page: string }): Promise<Alig
   return res.json();
 }
 
-async function fetchDafyomi(input: { tractate: string; page: string }): Promise<DafyomiDaf | null> {
-  const res = await fetch(`/api/dafyomi/${encodeURIComponent(input.tractate)}/${input.page}`);
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
-}
-
-async function fetchLinks(input: { tractate: string; page: string }): Promise<SefariaLink[]> {
-  const res = await fetch(`/api/sefaria-links/${encodeURIComponent(input.tractate)}/${input.page}`);
+async function fetchContext(input: { tractate: string; page: string }): Promise<ContextItem[]> {
+  const res = await fetch(`/api/context/${encodeURIComponent(input.tractate)}/${input.page}`);
   if (!res.ok) return [];
-  const data = (await res.json()) as { links?: SefariaLink[] };
-  return data.links ?? [];
+  const data = (await res.json()) as { items?: ContextItem[] };
+  return data.items ?? [];
 }
 
 const PALETTE = [
@@ -53,13 +42,20 @@ export function AlignPage(): JSX.Element {
   const initialParams = new URLSearchParams(window.location.search);
   const [tractate, setTractate] = createSignal(initialParams.get('tractate') ?? 'Berakhot');
   const [page, setPage] = createSignal(initialParams.get('page') ?? '5a');
-  // Segments to highlight on the daf — set from either column or a context card.
-  const [highlight, setHighlight] = createSignal<number[]>([]);
+  // Two highlight layers: `pinned` from the selected source (persistent),
+  // `hover` from hovering a card/segment (transient). Hover wins when active.
+  const [pinnedSegs, setPinnedSegs] = createSignal<number[]>([]);
+  const [hoverSegs, setHoverSegs] = createSignal<number[]>([]);
+  const highlight = () => (hoverSegs().length ? hoverSegs() : pinnedSegs());
+  // AI matches applied on top of the server-assembled pool.
+  const [matches, setMatches] = createSignal<SegMatch[]>([]);
+  const [matchingSource, setMatchingSource] = createSignal<string | null>(null);
 
   const ref = createMemo(() => ({ tractate: tractate(), page: page() }));
   const [daf] = createResource(ref, fetchDaf);
-  const [dafyomi] = createResource(ref, fetchDafyomi);
-  const [links] = createResource(ref, fetchLinks);
+  const [context] = createResource(ref, fetchContext);
+  // Reset client-side AI matches when the daf changes.
+  createMemo(() => { ref(); setMatches([]); setPinnedSegs([]); });
 
   const rendered = createMemo(() => {
     const d = daf();
@@ -71,18 +67,40 @@ export function AlignPage(): JSX.Element {
   const stats = () => rendered()?.stats;
   const isHot = (i: number) => highlight().includes(i);
 
-  // Combined external-context items: dafyomi.co.il content + Sefaria
-  // commentaries, with the deterministic Tosfos-DH matcher promoting amud
-  // anchors to segments where it can.
+  // The unified external-context pool, assembled server-side from dafyomi.co.il
+  // + Sefaria sources (commentary text, Mishnayot, Rishonim, halacha, topics),
+  // already anchored deterministically. Client-side AI-match promotions are
+  // layered on top (cloned so the resource stays pristine).
   const contextItems = createMemo<ContextItem[]>(() => {
-    const items: ContextItem[] = [];
-    const dy = dafyomi();
-    if (dy) items.push(...fromDafyomi(dy));
-    const lk = links();
-    if (lk?.length) items.push(...fromSefariaCommentary(lk));
-    matchTosfos(items, daf()?.tosafot);
+    const items = (context() ?? []).map((i) => ({ ...i }));
+    if (matches().length) applyMatches(items, matches());
     return items;
   });
+
+  const runAiMatch = async (source: string, items: ContextItem[]) => {
+    setMatchingSource(source);
+    try {
+      const res = await fetch('/api/context/match', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          tractate: tractate(),
+          page: page(),
+          items: items.map((it) => ({
+            key: it.key,
+            label: it.sourceLabel,
+            title: it.title?.en ?? it.title?.he,
+            text: (it.body?.en ?? it.body?.he ?? '').slice(0, 600),
+          })),
+        }),
+      });
+      if (!res.ok) return;
+      const data = (await res.json()) as { matches?: SegMatch[] };
+      if (data.matches?.length) setMatches((prev) => [...prev, ...data.matches!]);
+    } finally {
+      setMatchingSource(null);
+    }
+  };
 
   const perSegmentWordCounts = createMemo<number[]>(() => {
     const html = rendered()?.html ?? '';
@@ -154,9 +172,9 @@ export function AlignPage(): JSX.Element {
                     const t = e.target as HTMLElement;
                     const w = t.closest('.daf-word') as HTMLElement | null;
                     const s = w?.getAttribute('data-seg');
-                    if (s !== null && s !== undefined) setHighlight([Number(s)]);
+                    if (s !== null && s !== undefined) setHoverSegs([Number(s)]);
                   }}
-                  onMouseLeave={() => setHighlight([])}
+                  onMouseLeave={() => setHoverSegs([])}
                 />
                 <style>{`
                   ${Array.from({ length: segmentCount() }).map((_, i) =>
@@ -185,8 +203,8 @@ export function AlignPage(): JSX.Element {
                             background: isHot(i()) ? '#fef3c7' : segColor(i()),
                             opacity: aligned() ? 1 : 0.45,
                           }}
-                          onMouseEnter={() => setHighlight([i()])}
-                          onMouseLeave={() => setHighlight([])}
+                          onMouseEnter={() => setHoverSegs([i()])}
+                          onMouseLeave={() => setHoverSegs([])}
                         >
                           <div style={{ display: 'flex', 'align-items': 'baseline', gap: '0.5rem', 'margin-bottom': '0.25rem' }}>
                             <span style={{ 'font-family': 'monospace', 'font-size': '0.72rem', color: '#555' }}>#{i()}</span>
@@ -211,19 +229,22 @@ export function AlignPage(): JSX.Element {
             </div>
 
             <div style={{ 'margin-top': '1.5rem' }}>
-              <Show when={dafyomi.loading || links.loading}>
+              <Show when={context.loading}>
                 <p style={{ color: '#aaa', 'font-size': '0.85rem' }}>Loading external context…</p>
               </Show>
-              <Show when={!dafyomi.loading && !dafyomi()}>
+              <Show when={!context.loading && contextItems().length === 0}>
                 <p style={{ color: '#aaa', 'font-size': '0.85rem' }}>
-                  No dafyomi.co.il content ingested for {tractate()} {page()} — run{' '}
+                  No external context for {tractate()} {page()}. For dafyomi.co.il content, run{' '}
                   <code>node scripts/scrape-dafyomi.mjs --tractate {tractate()} --daf {(page().match(/\d+/) ?? [''])[0]}</code>.
                 </p>
               </Show>
               <ContextSourcePanel
                 items={contextItems()}
-                onHover={(segs) => setHighlight(segs)}
-                onLeave={() => setHighlight([])}
+                onHover={(segs) => setHoverSegs(segs)}
+                onLeave={() => setHoverSegs([])}
+                onSelectSource={(_source, segs) => setPinnedSegs(segs)}
+                onMatch={runAiMatch}
+                matchingSource={matchingSource()}
               />
             </div>
           </>

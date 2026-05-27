@@ -34,6 +34,13 @@ const segInstances = (fields: z.ZodRawShape, extra: z.ZodRawShape = {}) =>
 const markInstances = (fields: z.ZodRawShape) =>
   z.object({ instances: z.array(z.object({ excerpt: z.string(), fields: z.object(fields) })) });
 
+/** A one-prose-field schema with a runtime-derived name — used where a
+ *  synthesis enrichment's schema name comes from its id rather than a fixed
+ *  export. Same shape as the `*_SYNTHESIS_OUTPUT_SCHEMA` consts. */
+export function proseSchema(name: string, field: string) {
+  return responseFormat(name, single(field));
+}
+
 // ===========================================================================
 // Marks
 // ===========================================================================

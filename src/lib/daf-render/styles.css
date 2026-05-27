@@ -264,6 +264,11 @@
 .daf-root .daf-range-highlight-aggadata {
   background-color: rgba(124, 58, 237, 0.22);
 }
+/* Rishonim highlight — slate tint matching the rishonim gutter/sidebar accent
+   (#475569), distinct from section/halacha/aggadata/pesuk. */
+.daf-root .daf-range-highlight-rishonim {
+  background-color: rgba(71, 85, 105, 0.18);
+}
 /* Pesuk highlight — warm amber/orange tint to match the gutter badge color
    so a Tanach citation reads as visually distinct from sections (red-brown),
    halacha (blue), aggadata (violet), and commentary (violet). */

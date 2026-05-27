@@ -2,14 +2,15 @@ import { Hono } from 'hono';
 import {
   sefariaAPI,
   adjacentAmud,
-  getSefariaLinks,
-  linksToLinkingData,
   type TalmudPageData,
   type RishonimBundle,
   type HalachicRefBundle,
   type HebrewBooksDaf,
 } from '../lib/sefref';
 import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
+import { collectContext } from './context-providers';
+import { aiMatchToSegments } from './context-match';
+import type { MatchInput } from '../lib/context/anchor/ai-prompt';
 import {
   getHebrewBooksDafCached,
   getSefariaPageCached,
@@ -4092,32 +4093,45 @@ app.get('/api/dafyomi/:tractate/:page', async (c) => {
   }
   const states: Array<'hit' | 'miss'> = [];
   const data = await getDafyomiContentCached(c.env.CACHE, c.env.ASSETS, tractate, page, {
-    onCache: (s) => states.push(s),
+    assetOrigin: new URL(c.req.url).origin,
+    refresh: c.req.query('refresh') === '1',
+    track: { onCache: (s) => states.push(s) },
   });
   if (!data) return c.json({ error: `no dafyomi content for ${tractate} ${page}` }, 404);
   c.header('x-cache', states[0] === 'hit' ? 'hit' : 'miss');
   return c.json(data);
 });
 
-// Sefaria commentary links for a daf, grouped by 0-based segment index. Wraps
-// getSefariaLinks (previously client-only) with a 30-day KV cache so the
-// alignment workbench can show commentaries as one of its context sources.
-app.get('/api/sefaria-links/:tractate/:page', async (c) => {
+// The unified external-context pool for a daf: dafyomi.co.il study content +
+// Sefaria commentary text / Mishnayot / Rishonim / halacha refs / topics, all
+// normalized to anchored ContextItems. One call powers the alignment workbench
+// and is the same pool enrichments draw from (see src/lib/context/select).
+app.get('/api/context/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
-  const cache = c.env.CACHE;
-  const cacheKey = `sefaria-links:v1:${tractate.toLowerCase()}:${page.toLowerCase()}`;
-  if (cache && c.req.query('refresh') !== '1') {
-    const hit = await cache.get(cacheKey);
-    if (hit !== null) { c.header('x-cache', 'hit'); return c.json(JSON.parse(hit) as object); }
-  }
   try {
-    const links = await getSefariaLinks(tractate, page);
-    const grouped = linksToLinkingData(links, `${tractate} ${page}`);
-    const payload = { tractate, page, links, grouped, fetchedAt: new Date().toISOString() };
-    if (cache) await cache.put(cacheKey, JSON.stringify(payload), { expirationTtl: 60 * 60 * 24 * 30 });
-    c.header('x-cache', 'miss');
-    return c.json(payload);
+    const items = await collectContext(c.env, tractate, page, new URL(c.req.url).origin);
+    return c.json({ tractate, page, items, fetchedAt: new Date().toISOString() });
+  } catch (err) {
+    return c.json({ error: String(err) }, 502);
+  }
+});
+
+// AI segment-matcher: place a batch of whole-daf context items onto the
+// segment(s) they discuss. Returns SegMatches the client applies. On-demand
+// (LLM cost); the deterministic matchers in /api/context run for free.
+app.post('/api/context/match', async (c) => {
+  let body: { tractate?: string; page?: string; items?: MatchInput[] };
+  try { body = await c.req.json(); } catch { return c.json({ error: 'bad JSON body' }, 400); }
+  const t = body.tractate;
+  const p = body.page;
+  const items = Array.isArray(body.items) ? body.items.filter((i) => i && typeof i.key === 'string') : [];
+  if (!t || !p || items.length === 0) return c.json({ error: 'tractate, page, and items[] required' }, 400);
+  try {
+    const segments = await getSefariaSegmentsCached(c.env.CACHE, t, p);
+    if (!segments) return c.json({ matches: [], warning: 'no segments for daf' });
+    const matches = await aiMatchToSegments(c.env, segments.he, segments.en, items);
+    return c.json({ matches });
   } catch (err) {
     return c.json({ error: String(err) }, 502);
   }

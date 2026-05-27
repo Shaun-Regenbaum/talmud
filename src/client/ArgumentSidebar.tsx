@@ -5,14 +5,13 @@ import type { IdentifiedRabbi } from './dafContext';
 import { Hebraized } from './Hebraized';
 import { RabbiText, RabbiLinkProvider, HebraizedWithRabbis } from './rabbiLinks';
 
-import MarkEnrichmentCards from './MarkEnrichmentCards';
-import QAPanel from './QAPanel';
 import RabbiLineageTree, { type RelationshipsData, type RelationshipsEvidence } from './RabbiLineageTree';
 import { type GeographyData, type GeographyEvidence } from './RabbiGeographyCard';
 import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeline';
 import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
 import { selectSectionMoves } from '../lib/argumentMoves';
 import { t, lang } from './i18n';
+import { ACCENTS, HebrewProse, Panel, QASection, SectionCard, Synthesis, kindLabelKey } from './sidebar/primitives';
 
 /** Localize an era date-range ("c. 290 – 320 CE") for Hebrew display. */
 function eraLabel(era: string): string {
@@ -335,7 +334,7 @@ function ArgumentMoveCard(props: {
         title={isActive() ? t('move.highlight.clear') : t('move.highlight.set')}
         style={{ cursor: 'pointer' }}
       >
-        <MarkEnrichmentCards
+        <Synthesis
           markId="argument-move"
           instance={props.move}
           instanceKey={f.id}
@@ -347,9 +346,10 @@ function ArgumentMoveCard(props: {
           lazily loads suggested questions + community-asked registry, and
           per-question answers stream in via shared KV-cached
           argument-move.qa runs. */}
-      <QAPanel
-        moveId={f.id}
-        moveInstance={props.move}
+      <QASection
+        mark="argument-move"
+        instanceId={f.id}
+        instance={props.move}
         tractate={props.tractate}
         page={props.page}
       />
@@ -396,7 +396,7 @@ function ArgumentMoveCard(props: {
   );
 }
 
-function ArgumentBody(props: {
+export function ArgumentBody(props: {
   section: Section;
   tractate: string;
   page: string;
@@ -479,19 +479,13 @@ function ArgumentBody(props: {
   // Bail rather than crash the whole tree.
   return (
     <Show when={props.section}>
-    <div>
-      <h3 style={{ margin: '0 0 0.3rem', 'font-size': '1.05rem', color: '#8a2a2b' }}>
-        {props.section.title}
-      </h3>
+    <Panel accent={ACCENTS.argument} title={props.section.title}>
       <Show when={props.section.excerpt}>
-        <p dir="rtl" lang="he" style={{
-          margin: '0 0 0.75rem', 'font-family': '"Mekorot Vilna", serif',
-          'font-size': '0.95rem', color: '#555',
-        }}>
+        <HebrewProse size="0.95rem" color="#555" margin="0 0 0.75rem">
           {props.section.excerpt}…
-        </p>
+        </HebrewProse>
       </Show>
-      <MarkEnrichmentCards
+      <Synthesis
         markId="argument"
         instance={{
           startSegIdx: props.section.startSegIdx,
@@ -538,7 +532,7 @@ function ArgumentBody(props: {
           </div>
         )}
       </Show>
-    </div>
+    </Panel>
     </Show>
   );
 }
@@ -634,7 +628,7 @@ async function fetchPasuk(ref: string): Promise<PasukDetail> {
 //          deps. Items the daf actually mentions (via .evidence) get a
 //          soft-highlight and clicking them paints the daf range.
 // ===========================================================================
-function RabbiBody(props: {
+export function RabbiBody(props: {
   rabbi: IdentifiedRabbi;
   tractate: string;
   page: string;
@@ -710,51 +704,33 @@ function RabbiBody(props: {
     if (pl.length > 0) parts.push(pl.join(', '));
     return parts;
   };
-  // In Hebrew mode lead with the Hebrew name; in English lead with the English
-  // name. The other appears as the secondary line below.
-  const primaryName = () => (lang() === 'he' && props.rabbi.nameHe ? props.rabbi.nameHe : props.rabbi.name);
-  const secondaryName = () => (lang() === 'he' && props.rabbi.nameHe ? props.rabbi.name : props.rabbi.nameHe);
-
   return (
-    <div>
-      <h3
-        dir={lang() === 'he' ? 'rtl' : 'ltr'}
-        lang={lang() === 'he' ? 'he' : undefined}
-        style={{
-          margin: '0 0 0.15rem', 'font-size': '1.1rem', color: '#222', 'font-weight': 600,
-          ...(lang() === 'he' ? { 'font-family': '"Mekorot Vilna", serif' } : {}),
-        }}
-      >
-        {primaryName()}
-      </h3>
-      <Show when={secondaryName()}>
-        <p
-          dir={lang() === 'he' ? 'ltr' : 'rtl'}
-          lang={lang() === 'he' ? undefined : 'he'}
-          style={{
-            margin: '0 0 0.6rem', 'font-size': '1.05rem', color: '#666',
-            ...(lang() === 'he' ? {} : { 'font-family': '"Mekorot Vilna", serif' }),
-          }}
-        >{secondaryName()}</p>
-      </Show>
-      <Show when={metaParts().length > 0}>
-        <div style={{
-          display: 'flex', 'align-items': 'center', gap: '0.45rem',
-          'font-size': '0.78rem', color: '#666',
-          'margin-bottom': '0.85rem', 'flex-wrap': 'wrap',
-          'line-height': 1.5,
-        }}>
-          <Show when={gen()}>
-            <span style={{
-              display: 'inline-block', width: '0.55rem', height: '0.55rem',
-              'background-color': gen()!.color, 'border-radius': '50%',
-              'flex-shrink': 0,
-            }} />
-          </Show>
-          <span>{metaParts().join(' · ')}</span>
-        </div>
-      </Show>
-      <MarkEnrichmentCards
+    <Panel
+      accent={ACCENTS.rabbi}
+      flip="rabbi"
+      title={props.rabbi.name}
+      titleHe={props.rabbi.nameHe}
+      meta={
+        <Show when={metaParts().length > 0}>
+          <div style={{
+            display: 'flex', 'align-items': 'center', gap: '0.45rem',
+            'font-size': '0.78rem', color: '#666',
+            'margin-bottom': '0.85rem', 'flex-wrap': 'wrap',
+            'line-height': 1.5,
+          }}>
+            <Show when={gen()}>
+              <span style={{
+                display: 'inline-block', width: '0.55rem', height: '0.55rem',
+                'background-color': gen()!.color, 'border-radius': '50%',
+                'flex-shrink': 0,
+              }} />
+            </Show>
+            <span>{metaParts().join(' · ')}</span>
+          </div>
+        </Show>
+      }
+    >
+      <Synthesis
         markId="rabbi"
         instance={{
           name: props.rabbi.name,
@@ -790,7 +766,7 @@ function RabbiBody(props: {
           />
         )}
       </Show>
-    </div>
+    </Panel>
   );
 }
 
@@ -830,7 +806,7 @@ interface DisputeItem {
 }
 interface DisputesData { disputes: DisputeItem[]; }
 
-function HalachaBody(props: {
+export function HalachaBody(props: {
   topic: HalachaTopic;
   index: number;
   tractate: string;
@@ -873,19 +849,8 @@ function HalachaBody(props: {
   });
 
   return (
-    <div>
-      <h3 style={{ margin: '0 0 0.3rem', 'font-size': '1.05rem', color: '#1e40af' }}>
-        {props.topic.topic}
-      </h3>
-      <Show when={props.topic.topicHe}>
-        <p dir="rtl" lang="he" style={{
-          margin: '0 0 0.85rem', 'font-family': '"Mekorot Vilna", serif',
-          'font-size': '0.95rem', color: '#666',
-        }}>
-          {props.topic.topicHe}
-        </p>
-      </Show>
-      <MarkEnrichmentCards
+    <Panel accent={ACCENTS.halacha} title={props.topic.topic} titleHe={props.topic.topicHe}>
+      <Synthesis
         markId="halacha"
         instance={markInstance()}
         instanceKey={instanceKey()}
@@ -938,14 +903,7 @@ function HalachaBody(props: {
       </Show>
       <Show when={practical()}>
         {(pr) => (
-          <div style={{
-            border: '1px solid #eae8e0', 'border-radius': '6px',
-            background: '#fafaf7', padding: '0.7rem 0.85rem', 'margin-top': '0.7rem',
-          }}>
-            <div style={{
-              'font-size': '0.7rem', 'text-transform': 'uppercase',
-              'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.5rem',
-            }}>{t('halacha.practical')}</div>
+          <SectionCard label="halacha.practical">
             <Show when={pr().lechatchila}>
               <div style={{ 'margin-bottom': '0.4rem' }}>
                 <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>
@@ -996,18 +954,11 @@ function HalachaBody(props: {
                 </div>
               </div>
             </Show>
-          </div>
+          </SectionCard>
         )}
       </Show>
       <Show when={disputes().length > 0}>
-        <div style={{
-          border: '1px solid #eae8e0', 'border-radius': '6px',
-          background: '#fafaf7', padding: '0.7rem 0.85rem', 'margin-top': '0.7rem',
-        }}>
-          <div style={{
-            'font-size': '0.7rem', 'text-transform': 'uppercase',
-            'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.5rem',
-          }}>{t('halacha.disputes')}</div>
+        <SectionCard label="halacha.disputes">
           <For each={disputes()}>{(d) => (
             <div style={{ 'margin-bottom': '0.6rem' }}>
               <div style={{ 'font-weight': 500, color: '#333', 'font-size': '0.88rem', 'margin-bottom': '0.25rem' }}>
@@ -1028,28 +979,9 @@ function HalachaBody(props: {
               </Show>
             </div>
           )}</For>
-        </div>
+        </SectionCard>
       </Show>
-    </div>
-  );
-}
-
-/** One labeled section box in the pasuk panel — same shape as halacha's
- *  codification / practical / disputes cards. */
-function PasukSection(props: { label: string; text: string }): JSX.Element {
-  return (
-    <div style={{
-      border: '1px solid #eae8e0', 'border-radius': '6px',
-      background: '#fafaf7', padding: '0.7rem 0.85rem', 'margin-top': '0.7rem',
-    }}>
-      <div style={{
-        'font-size': '0.7rem', 'text-transform': 'uppercase',
-        'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.4rem',
-      }}>{props.label}</div>
-      <div style={{ 'font-size': '0.88rem', color: '#222', 'line-height': 1.55 }}>
-        <HebraizedWithRabbis text={props.text} />
-      </div>
-    </div>
+    </Panel>
   );
 }
 
@@ -1057,7 +989,7 @@ function PasukSection(props: { label: string; text: string }): JSX.Element {
  *  on expand, the surrounding verses inlined as one continuous Hebrew block
  *  (prev + cited + next) with the cited verse rendered dark and the others
  *  dimmed so the citation still stands out. */
-function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JSX.Element {
+export function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JSX.Element {
   const [expanded, setExpanded] = createSignal(true);
   const [detail] = createResource(() => props.pasuk.verseRef, fetchPasuk);
   const [prev] = createResource(
@@ -1097,28 +1029,26 @@ function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JS
     if (la && typeof la.landing === 'string') setLanding(la.landing);
   };
 
+  const pesukimInstance = () => ({
+    startSegIdx: props.pasuk.startSegIdx,
+    endSegIdx: props.pasuk.endSegIdx,
+    fields: {
+      verseRef: props.pasuk.verseRef,
+      citationStyle: props.pasuk.citationStyle,
+      excerpt: props.pasuk.excerpt,
+      summary: props.pasuk.summary,
+    },
+  });
+
   return (
-    <div>
-      <h3 dir="rtl" lang="he" style={{
-        margin: '0 0 0.5rem', 'font-family': '"Mekorot Vilna", serif',
-        'font-size': '1.05rem', color: '#9a3412',
-      }}>
-        {detail()?.heRef ?? props.pasuk.verseRef}
-      </h3>
+    <Panel accent={ACCENTS.pesuk} title={detail()?.heRef ?? props.pasuk.verseRef} titleLang="he">
       <Show when={detail.loading && !detail()}>
         <p style={{ color: '#999', 'font-style': 'italic', margin: '0 0 0.5rem' }}>{t('pasuk.loading')}</p>
       </Show>
-      {/* Hybrid font stack — Mekorot Vilna preserved as the primary face for
-          letters + nikud (the Talmud aesthetic), with Tanakh-capable serifs
-          (Cardo, SBL Hebrew, Taamey/Frank Ruehl CLM, Times New Roman) added
-          as fallbacks so the browser can per-codepoint resolve cantillation
-          marks (te'amim) that Mekorot Vilna has no glyphs for. Without
-          those fallbacks the te'amim render as empty tofu rectangles. */}
-      <p dir="rtl" lang="he" style={{
-        margin: '0 0 0.4rem',
-        'font-family': '"Mekorot Vilna", "Cardo", "SBL Hebrew", "Taamey Frank CLM", "Frank Ruehl CLM", "Times New Roman", "Times", serif',
-        'font-size': '1.05rem', 'line-height': 1.85,
-      }}>
+      {/* Verse text in the Tanakh font variant — the widened fallback chain so
+          cantillation te'amim resolve where Mekorot Vilna has no glyph; prev /
+          next context dimmed and shown only while expanded. */}
+      <HebrewProse variant="tanakh" size="1.05rem" margin="0 0 0.4rem" lineHeight={1.85}>
         <Show when={expanded() && prev()?.he}>
           <span style={{ color: '#a8a29e' }}>{prev()!.he} </span>
         </Show>
@@ -1128,7 +1058,7 @@ function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JS
         <Show when={expanded() && next()?.he}>
           <span style={{ color: '#a8a29e' }}> {next()!.he}</span>
         </Show>
-      </p>
+      </HebrewProse>
       <button
         type="button"
         onClick={() => setExpanded(!expanded())}
@@ -1145,44 +1075,27 @@ function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JS
           leaves (tanach-context / why-here / mechanism / landing) come back
           via onResolved and render as separate section cards below — the same
           structure as the halacha panel. */}
-      {(() => {
-        const pesukimInstance = {
-          startSegIdx: props.pasuk.startSegIdx,
-          endSegIdx: props.pasuk.endSegIdx,
-          fields: {
-            verseRef: props.pasuk.verseRef,
-            citationStyle: props.pasuk.citationStyle,
-            excerpt: props.pasuk.excerpt,
-            summary: props.pasuk.summary,
-          },
-        };
-        return (
-          <>
-            <MarkEnrichmentCards
-              markId="pesukim"
-              instance={pesukimInstance}
-              instanceKey={props.pasuk.verseRef}
-              tractate={props.tractate}
-              page={props.page}
-              onResolved={handleResolved}
-            />
-            <Show when={tanachContext()}>{(tc) => <PasukSection label={t('pasuk.tanachContext')} text={tc()} />}</Show>
-            <Show when={whyHere()}>{(wh) => <PasukSection label={t('pasuk.whyHere')} text={wh()} />}</Show>
-            <Show when={mechanism()}>{(me) => <PasukSection label={t('pasuk.mechanism')} text={me()} />}</Show>
-            <Show when={landing()}>{(la) => <PasukSection label={t('pasuk.landing')} text={la()} />}</Show>
-            {/* Questions panel: curated follow-ups + community + free-form
-                asking. Same UX as the argument-move card. */}
-            <QAPanel
-              mark="pesukim"
-              instanceId={props.pasuk.verseRef}
-              instance={pesukimInstance}
-              tractate={props.tractate}
-              page={props.page}
-            />
-          </>
-        );
-      })()}
-    </div>
+      <Synthesis
+        markId="pesukim"
+        instance={pesukimInstance()}
+        instanceKey={props.pasuk.verseRef}
+        tractate={props.tractate}
+        page={props.page}
+        onResolved={handleResolved}
+      />
+      <Show when={tanachContext()}>{(tc) => <SectionCard label="pasuk.tanachContext" text={tc()} />}</Show>
+      <Show when={whyHere()}>{(wh) => <SectionCard label="pasuk.whyHere" text={wh()} />}</Show>
+      <Show when={mechanism()}>{(me) => <SectionCard label="pasuk.mechanism" text={me()} />}</Show>
+      <Show when={landing()}>{(la) => <SectionCard label="pasuk.landing" text={la()} />}</Show>
+      {/* Questions panel: curated follow-ups + community + free-form asking. */}
+      <QASection
+        mark="pesukim"
+        instanceId={props.pasuk.verseRef}
+        instance={pesukimInstance()}
+        tractate={props.tractate}
+        page={props.page}
+      />
+    </Panel>
   );
 }
 
@@ -1205,7 +1118,7 @@ type AggadataParallelKind = 'same-story' | 'same-actors' | 'same-motif' | 'tanac
 interface AggadataParallelItem { ref: string; kind: AggadataParallelKind; note: string; }
 interface AggadataParallelsData { parallels: AggadataParallelItem[]; prose: string; }
 
-function AggadataPanel(props: {
+export function AggadataPanel(props: {
   story: AggadataStory;
   index: number;
   tractate: string;
@@ -1250,20 +1163,13 @@ function AggadataPanel(props: {
     },
   });
   const instanceId = () => `${props.story.title}|${props.story.excerpt}`;
+  const visibleParallels = () => {
+    const pa = parallels();
+    return pa && (pa.parallels.length > 0 || pa.prose) ? pa : null;
+  };
 
   return (
-    <div>
-      <h3 style={{ margin: '0 0 0.3rem', 'font-size': '1.05rem', color: '#7c3aed' }}>
-        {props.story.title}
-      </h3>
-      <Show when={props.story.titleHe}>
-        <p dir="rtl" lang="he" style={{
-          margin: '0 0 0.5rem', 'font-family': '"Mekorot Vilna", serif',
-          'font-size': '1rem', color: '#666',
-        }}>
-          {props.story.titleHe}
-        </p>
-      </Show>
+    <Panel accent={ACCENTS.aggadata} title={props.story.title} titleHe={props.story.titleHe}>
       <Show when={props.story.theme}>
         <div style={{ 'margin-bottom': '0.7rem' }}>
           <span style={{
@@ -1284,7 +1190,7 @@ function AggadataPanel(props: {
       <p style={{ margin: '0 0 0.8rem', color: '#333', 'line-height': 1.55 }}>
         <HebraizedWithRabbis text={props.story.summary} />
       </p>
-      <MarkEnrichmentCards
+      <Synthesis
         markId="aggadata"
         instance={markInstance()}
         instanceKey={instanceKey()}
@@ -1293,50 +1199,14 @@ function AggadataPanel(props: {
         onResolved={handleResolved}
       />
       <Show when={background()}>
-        {(bg) => (
-          <div style={{
-            border: '1px solid #eae8e0', 'border-radius': '6px',
-            background: '#fafaf7', padding: '0.7rem 0.85rem', 'margin-top': '0.7rem',
-          }}>
-            <div style={{
-              'font-size': '0.7rem', 'text-transform': 'uppercase',
-              'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.4rem',
-            }}>{t('aggadata.background')}</div>
-            <div style={{ 'font-size': '0.88rem', color: '#222', 'line-height': 1.55 }}>
-              <HebraizedWithRabbis text={bg().background} />
-            </div>
-          </div>
-        )}
+        {(bg) => <SectionCard label="aggadata.background" text={bg().background} />}
       </Show>
       <Show when={interpretation()}>
-        {(ip) => (
-          <div style={{
-            border: '1px solid #eae8e0', 'border-radius': '6px',
-            background: '#fafaf7', padding: '0.7rem 0.85rem', 'margin-top': '0.7rem',
-          }}>
-            <div style={{
-              'font-size': '0.7rem', 'text-transform': 'uppercase',
-              'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.4rem',
-            }}>{t('aggadata.interpretation')}</div>
-            <div style={{ 'font-size': '0.88rem', color: '#222', 'line-height': 1.55 }}>
-              <HebraizedWithRabbis text={ip().interpretation} />
-            </div>
-          </div>
-        )}
+        {(ip) => <SectionCard label="aggadata.interpretation" text={ip().interpretation} />}
       </Show>
-      <Show when={(() => {
-        const pa = parallels();
-        return pa && (pa.parallels.length > 0 || pa.prose) ? pa : null;
-      })()}>
+      <Show when={visibleParallels()}>
         {(pa) => (
-          <div style={{
-            border: '1px solid #eae8e0', 'border-radius': '6px',
-            background: '#fafaf7', padding: '0.7rem 0.85rem', 'margin-top': '0.7rem',
-          }}>
-            <div style={{
-              'font-size': '0.7rem', 'text-transform': 'uppercase',
-              'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.4rem',
-            }}>{t('aggadata.parallels')}</div>
+          <SectionCard label="aggadata.parallels">
             <Show when={pa().prose}>
               <div style={{
                 'font-size': '0.82rem', color: '#555', 'line-height': 1.5,
@@ -1365,17 +1235,17 @@ function AggadataPanel(props: {
                 </div>
               </div>
             )}</For>
-          </div>
+          </SectionCard>
         )}
       </Show>
-      <QAPanel
+      <QASection
         mark="aggadata"
         instanceId={instanceId()}
         instance={markInstance()}
         tractate={props.tractate}
         page={props.page}
       />
-    </div>
+    </Panel>
   );
 }
 
@@ -1388,7 +1258,7 @@ function AggadataPanel(props: {
 // daf-agnostic profile/significance/figures leaves) and renders it. The
 // instanceKey mirrors the prefetcher's `places:<name>` so a warmed run is
 // reused instantly. region/kind render as small chips above the card.
-function PlaceBody(props: { place: PlaceInstance; tractate: string; page: string }): JSX.Element {
+export function PlaceBody(props: { place: PlaceInstance; tractate: string; page: string }): JSX.Element {
   const f = () => props.place.fields;
   const regionLabel = (r: string): string =>
     r === 'israel' ? t('geography.eretzYisrael') : r === 'bavel' ? t('geography.bavel') : r === 'other' ? t('region.other') : r;
@@ -1400,16 +1270,7 @@ function PlaceBody(props: { place: PlaceInstance; tractate: string; page: string
     }}>{text}</span>
   );
   return (
-    <div>
-      <h3 style={{ margin: '0 0 0.15rem', 'font-size': '1.1rem', color: '#222', 'font-weight': 600 }}>
-        {f().name}
-      </h3>
-      <Show when={f().nameHe}>
-        <p dir="rtl" lang="he" style={{
-          margin: '0 0 0.5rem', 'font-family': '"Mekorot Vilna", serif',
-          'font-size': '1.05rem', color: '#666',
-        }}>{f().nameHe}</p>
-      </Show>
+    <Panel accent={ACCENTS.place} title={f().name} titleHe={f().nameHe}>
       <div style={{ display: 'flex', gap: '0.35rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.7rem' }}>
         <Show when={f().kind}>{chip(f().kind)}</Show>
         <Show when={f().region}>{chip(regionLabel(f().region))}</Show>
@@ -1417,15 +1278,14 @@ function PlaceBody(props: { place: PlaceInstance; tractate: string; page: string
           {chip(t('place.alsoKnownAs', { names: (f().knownAs ?? []).join(', ') }))}
         </Show>
       </div>
-
-      <MarkEnrichmentCards
+      <Synthesis
         markId="places"
         instance={props.place}
         instanceKey={`places:${f().name}`}
         tractate={props.tractate}
         page={props.page}
       />
-    </div>
+    </Panel>
   );
 }
 
@@ -1433,20 +1293,18 @@ function PlaceBody(props: { place: PlaceInstance; tractate: string; page: string
 // the leaf walk; below it we render the primary-source Hebrew + English
 // per rishon as collapsible details so the user can drop into Rashi /
 // Tosafot / Ramban / etc. directly.
-function RishonimBody(props: { instance: RishonimInstance; tractate: string; page: string }): JSX.Element {
+export function RishonimBody(props: { instance: RishonimInstance; tractate: string; page: string }): JSX.Element {
   const inst = () => props.instance;
+  const meta = (
+    <div style={{ color: '#94a3b8', 'font-size': '0.78rem', 'margin-bottom': '0.5rem' }}>
+      {t(inst().fields.commentCount === 1 ? 'rishonim.commentCount.one' : 'rishonim.commentCount.other', { count: inst().fields.commentCount })}
+      {' · '}
+      {t(inst().fields.works.length === 1 ? 'rishonim.workCount.one' : 'rishonim.workCount.other', { count: inst().fields.works.length })}
+    </div>
+  );
   return (
-    <div>
-      <h3 style={{ margin: '0 0 0.5rem', 'font-size': '1.05rem', color: '#475569' }}>
-        {t('rishonim.onSegment', { n: inst().segIdx + 1 })}
-        <span style={{ 'margin-left': '0.5rem', color: '#94a3b8', 'font-size': '0.78rem', 'font-weight': 400 }}>
-          {t(inst().fields.commentCount === 1 ? 'rishonim.commentCount.one' : 'rishonim.commentCount.other', { count: inst().fields.commentCount })}
-          {' · '}
-          {t(inst().fields.works.length === 1 ? 'rishonim.workCount.one' : 'rishonim.workCount.other', { count: inst().fields.works.length })}
-        </span>
-      </h3>
-
-      <MarkEnrichmentCards
+    <Panel accent={ACCENTS.rishonim} title={t('rishonim.onSegment', { n: inst().segIdx + 1 })} meta={meta}>
+      <Synthesis
         markId="rishonim"
         instance={inst()}
         instanceKey={`rishonim:${props.tractate}:${props.page}:${inst().segIdx}`}
@@ -1487,7 +1345,24 @@ function RishonimBody(props: { instance: RishonimInstance; tractate: string; pag
           </details>
         )}</For>
       </div>
-    </div>
+    </Panel>
+  );
+}
+
+/** Collective "voice group" panel (e.g. the Stam / anonymous Gemara voice):
+ *  a name + Hebrew twin + a one-line collective bio. No enrichments. */
+export function VoiceGroupBody(props: { group: { name: string; nameHe: string; bio: string } }): JSX.Element {
+  return (
+    <Panel accent={ACCENTS['voice-group']} title={props.group.name} titleHe={props.group.nameHe}>
+      <div style={{
+        'font-size': '0.7rem', color: '#999',
+        'text-transform': 'uppercase', 'letter-spacing': '0.08em',
+        'margin-bottom': '0.45rem',
+      }}>{t('voiceGroup.collective')}</div>
+      <p style={{ margin: 0, color: '#333', 'line-height': 1.6 }}>
+        {props.group.bio}
+      </p>
+    </Panel>
   );
 }
 
@@ -1551,14 +1426,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
               'margin-bottom': '0.75rem',
             }}>
               <span style={{ 'font-size': '0.7rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.08em' }}>
-                {c().kind === 'argument' ? t('sidebar.kind.argument')
-                  : c().kind === 'halacha' ? t('sidebar.kind.halacha')
-                  : c().kind === 'aggadata' ? t('sidebar.kind.aggadata')
-                  : c().kind === 'pesuk' ? t('sidebar.kind.pesuk')
-                  : c().kind === 'place' ? t('sidebar.kind.place')
-                  : c().kind === 'rishonim' ? t('sidebar.kind.rishonim')
-                  : c().kind === 'voice-group' ? t('sidebar.kind.voice-group')
-                  : t('sidebar.kind.rabbi')}
+                {t(kindLabelKey(c().kind))}
                 {' · '}
                 {props.tractate} {props.page}
               </span>
@@ -1597,30 +1465,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
             </Show>
 
             <Show when={c().kind === 'voice-group'}>
-              {(() => {
-                const g = (c() as Extract<SidebarContent, { kind: 'voice-group' }>).group;
-                return (
-                  <div>
-                    <h3 style={{ margin: '0 0 0.15rem', 'font-size': '1.1rem', color: '#222', 'font-weight': 600 }}>
-                      {g.name}
-                    </h3>
-                    <Show when={g.nameHe}>
-                      <p dir="rtl" lang="he" style={{
-                        margin: '0 0 0.7rem', 'font-family': '"Mekorot Vilna", serif',
-                        'font-size': '1.05rem', color: '#666',
-                      }}>{g.nameHe}</p>
-                    </Show>
-                    <div style={{
-                      'font-size': '0.7rem', color: '#999',
-                      'text-transform': 'uppercase', 'letter-spacing': '0.08em',
-                      'margin-bottom': '0.45rem',
-                    }}>{t('voiceGroup.collective')}</div>
-                    <p style={{ margin: 0, color: '#333', 'line-height': 1.6 }}>
-                      {g.bio}
-                    </p>
-                  </div>
-                );
-              })()}
+              <VoiceGroupBody group={(c() as Extract<SidebarContent, { kind: 'voice-group' }>).group} />
             </Show>
 
             <Show when={c().kind === 'halacha'}>
