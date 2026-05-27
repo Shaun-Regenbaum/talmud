@@ -29,7 +29,8 @@ Rules:
 - If it spans consecutive segments, set segStart..segEnd.
 - If an item is general to the whole daf / you cannot localize it, set segStart = null.
 - confidence is 0..1 (how sure you are of the localization).
-Reply with ONLY JSON: {"matches":[{"key":"<key>","segStart":<int|null>,"segEnd":<int|null>,"confidence":<number>}]}`;
+- "quote": copy 3-8 words of HEBREW VERBATIM from the segment(s) — the exact phrase the item is about — so it can be located precisely in the printed text. Copy the Hebrew exactly as shown; do not translate or paraphrase. Use "" if you can't pin a phrase.
+Reply with ONLY JSON: {"matches":[{"key":"<key>","segStart":<int|null>,"segEnd":<int|null>,"confidence":<number>,"quote":"<hebrew or empty>"}]}`;
 
 export function buildMatchPrompt(
   segmentsHe: string[],
@@ -52,7 +53,7 @@ export function buildMatchPrompt(
   return { system: SYS, user };
 }
 
-interface RawMatch { key?: unknown; segStart?: unknown; segEnd?: unknown; confidence?: unknown }
+interface RawMatch { key?: unknown; segStart?: unknown; segEnd?: unknown; confidence?: unknown; quote?: unknown }
 
 /** Parse the model's JSON into validated SegMatches. Drops unknown keys,
  *  out-of-range segments, and whole-daf (null) results. */
@@ -67,7 +68,8 @@ export function parseMatchResponse(content: string, validKeys: Set<string>, segC
     if (start == null) continue; // null / whole-daf / out of range
     const end = toSeg(m.segEnd, segCount);
     const confidence = typeof m.confidence === 'number' ? clamp01(m.confidence) : undefined;
-    out.push({ key: m.key, segs: segRange(start, end != null && end >= start ? end : start), via: 'ai', confidence });
+    const quote = typeof m.quote === 'string' && m.quote.trim() ? m.quote.trim() : undefined;
+    out.push({ key: m.key, segs: segRange(start, end != null && end >= start ? end : start), via: 'ai', confidence, quote });
   }
   return out;
 }

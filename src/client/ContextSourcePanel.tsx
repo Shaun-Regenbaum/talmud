@@ -1,18 +1,27 @@
 import { createSignal, createMemo, createEffect, For, Show, type JSX } from 'solid-js';
 import { type ContextItem, rangeLabel } from '../lib/context/types';
 
+/** Highlight payload: precise HB word indices + the segments they sit in. */
+interface Hl { segs: number[]; words: number[] }
+const EMPTY: Hl = { segs: [], words: [] };
+
+/** Precisely located on the HB text (a real phrase/AI hit, not a coarse
+ *  segment fallback). */
+function isPrecise(it: ContextItem): boolean {
+  return !!it.hbWords?.length && it.hbVia !== 'segment';
+}
+
 /**
  * The alignment workbench's external-context panel. Source tabs pick a
- * "match-up": selecting one pins a persistent highlight of that source's
- * segments onto the daf (via `onSelectSource`). Cards report their placement
- * (`segs`) + how it was matched. Sources still at whole-daf get a "Match to
- * text (AI)" button that runs the LLM segment-matcher.
+ * "match-up"; selecting one pins its placement onto the HB daf (`onSelectSource`).
+ * Cards report how each item landed on the text (via + confidence). Sources with
+ * items not yet precisely located get a "Match to text (AI)" button.
  */
 export function ContextSourcePanel(props: {
   items: ContextItem[];
-  onHover: (segs: number[]) => void;
+  onHover: (h: Hl) => void;
   onLeave: () => void;
-  onSelectSource?: (source: string, segs: number[]) => void;
+  onSelectSource?: (source: string, h: Hl) => void;
   onMatch?: (source: string, items: ContextItem[]) => void;
   matchingSource?: string | null;
 }): JSX.Element {
@@ -30,27 +39,32 @@ export function ContextSourcePanel(props: {
 
   const itemsOf = (source: string) =>
     source === 'all' ? props.items : props.items.filter((i) => i.source === source);
-  const segsOf = (source: string) => {
-    const set = new Set<number>();
-    for (const it of itemsOf(source)) for (const s of it.segs) set.add(s);
-    return Array.from(set).sort((a, b) => a - b);
+  const hlOf = (source: string): Hl => {
+    const segs = new Set<number>();
+    const words = new Set<number>();
+    for (const it of itemsOf(source)) {
+      for (const s of it.segs) segs.add(s);
+      for (const w of it.hbWords ?? []) words.add(w);
+    }
+    return { segs: [...segs].sort((a, b) => a - b), words: [...words].sort((a, b) => a - b) };
   };
 
   const visible = createMemo(() => itemsOf(selected()));
-  const placedCount = createMemo(() => props.items.filter((i) => i.segs.length > 0).length);
-  const unplacedInSelected = createMemo(() =>
-    selected() === 'all' ? [] : itemsOf(selected()).filter((i) => i.segs.length === 0),
+  const preciseCount = createMemo(() => props.items.filter(isPrecise).length);
+  // Items in the selected source not yet precisely located (candidates for AI).
+  const needAi = createMemo(() =>
+    selected() === 'all' ? [] : itemsOf(selected()).filter((i) => !isPrecise(i)),
   );
 
   const pick = (source: string) => {
     setSelected(source);
-    props.onSelectSource?.(source, source === 'all' ? [] : segsOf(source));
+    props.onSelectSource?.(source, source === 'all' ? EMPTY : hlOf(source));
   };
 
-  // Re-pin highlight when items change (e.g. after AI matching places segments).
+  // Re-pin when items change (e.g. after AI matching places words).
   createEffect(() => {
     props.items; // track
-    if (selected() !== 'all') props.onSelectSource?.(selected(), segsOf(selected()));
+    if (selected() !== 'all') props.onSelectSource?.(selected(), hlOf(selected()));
   });
 
   return (
@@ -58,7 +72,7 @@ export function ContextSourcePanel(props: {
       <h2 style={{ 'font-size': '0.9rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', 'margin-bottom': '0.4rem' }}>
         External context
         <span style={{ 'text-transform': 'none', 'margin-left': '0.6rem', color: '#aaa', 'font-size': '0.8rem' }}>
-          {props.items.length} items · {placedCount()} placed on segments
+          {props.items.length} items · {preciseCount()} located on the text
         </span>
       </h2>
 
@@ -67,18 +81,18 @@ export function ContextSourcePanel(props: {
         <For each={sources()}>
           {(s) => <Tab active={selected() === s.source} label={s.label} n={s.n} onClick={() => pick(s.source)} />}
         </For>
-        <Show when={selected() !== 'all' && unplacedInSelected().length > 0 && props.onMatch}>
+        <Show when={selected() !== 'all' && needAi().length > 0 && props.onMatch}>
           <button
             type="button"
             disabled={props.matchingSource === selected()}
-            onClick={() => props.onMatch?.(selected(), unplacedInSelected())}
+            onClick={() => props.onMatch?.(selected(), needAi())}
             style={{
               'margin-left': '0.5rem', padding: '0.2rem 0.7rem', 'font-size': '0.78rem', 'border-radius': '6px',
               border: '1px solid #0369a1', background: props.matchingSource === selected() ? '#e0f2fe' : '#0369a1',
               color: props.matchingSource === selected() ? '#0369a1' : '#fff', cursor: 'pointer',
             }}
           >
-            {props.matchingSource === selected() ? 'matching…' : `Match ${unplacedInSelected().length} to text (AI)`}
+            {props.matchingSource === selected() ? 'matching…' : `Match ${needAi().length} to text (AI)`}
           </button>
         </Show>
       </div>
@@ -86,7 +100,7 @@ export function ContextSourcePanel(props: {
       <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.5rem' }}>
         <For each={visible()}>
           {(item) => (
-            <ContextCard item={item} onEnter={() => props.onHover(item.segs)} onLeave={props.onLeave} />
+            <ContextCard item={item} onEnter={() => props.onHover({ segs: item.segs, words: item.hbWords ?? [] })} onLeave={props.onLeave} />
           )}
         </For>
         <Show when={visible().length === 0}>
@@ -117,7 +131,10 @@ function Tab(props: { active: boolean; label: string; n: number; onClick: () => 
 function ContextCard(props: { item: ContextItem; onEnter: () => void; onLeave: () => void }): JSX.Element {
   const [open, setOpen] = createSignal(false);
   const it = props.item;
-  const placed = () => it.segs.length > 0;
+  const placed = () => isPrecise(it);
+  const via = () => it.hbVia ?? it.via;
+  const conf = () => it.hbConfidence ?? it.confidence;
+  const placeLabel = () => (it.hbWords?.length ? `${it.hbWords.length} word${it.hbWords.length === 1 ? '' : 's'}` : rangeLabel(it.segs, it.amud));
   const bodyEn = () => it.body?.en ?? '';
   const long = () => bodyEn().length > 280;
   const shown = () => (open() || !long() ? bodyEn() : bodyEn().slice(0, 280) + '…');
@@ -128,7 +145,7 @@ function ContextCard(props: { item: ContextItem; onEnter: () => void; onLeave: (
       onMouseLeave={props.onLeave}
       style={{
         border: '1px solid #eee', 'border-radius': '6px', padding: '0.55rem 0.7rem', background: '#fff',
-        'border-left': `3px solid ${placed() ? '#059669' : '#d1d5db'}`,
+        'border-left': `3px solid ${placed() ? '#059669' : it.hbWords?.length ? '#f59e0b' : '#d1d5db'}`,
       }}
     >
       <div style={{ display: 'flex', 'align-items': 'baseline', gap: '0.5rem', 'margin-bottom': '0.25rem', 'flex-wrap': 'wrap' }}>
@@ -136,11 +153,11 @@ function ContextCard(props: { item: ContextItem; onEnter: () => void; onLeave: (
           {it.sourceLabel}
         </span>
         <span style={{ 'font-size': '0.68rem', 'font-family': 'monospace', color: placed() ? '#059669' : '#999' }}>
-          {rangeLabel(it.segs, it.amud)}
+          {placeLabel()}
         </span>
-        <Show when={it.via}>
+        <Show when={via()}>
           <span style={{ 'font-size': '0.62rem', 'font-family': 'monospace', color: '#0369a1', background: '#e0f2fe', padding: '0 0.3rem', 'border-radius': '3px' }}>
-            {it.via}{it.confidence != null ? ` ${it.confidence.toFixed(2)}` : ''}
+            {via()}{conf() != null ? ` ${conf()!.toFixed(2)}` : ''}
           </span>
         </Show>
         <Show when={it.url}>

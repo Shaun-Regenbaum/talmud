@@ -18,6 +18,9 @@ export interface SegMatch {
   via: string;
   /** 0..1 confidence (AI matchers set this; deterministic ones may omit). */
   confidence?: number;
+  /** Optional verbatim Hebrew phrase the item is about (AI matcher emits this);
+   *  the client resolves it to exact HB word positions via the HB locator. */
+  quote?: string;
 }
 
 /** Write placements onto items in place. Returns the number changed. */
