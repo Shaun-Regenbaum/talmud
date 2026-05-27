@@ -1573,14 +1573,26 @@ const RABBI_LOCATION_USER_TEMPLATE_HE = `החכם:
 
 הסק את המקום הסביר ביותר לפי הסכימה.`;
 
-const RABBI_BIO_OUTPUT_SCHEMA = {
-  name: 'rabbi_bio', strict: true,
-  schema: { type: 'object', additionalProperties: false, required: ['bio'], properties: { bio: { type: 'string' } } },
-};
-const RABBI_PHILOSOPHY_OUTPUT_SCHEMA = {
-  name: 'rabbi_philosophy', strict: true,
-  schema: { type: 'object', additionalProperties: false, required: ['philosophy'], properties: { philosophy: { type: 'string' } } },
-};
+/** The output schema shared by every single-prose-field enrichment — the leaf
+ *  facets (bio, background, …) and the synthesis aggregates. One required
+ *  string property. Collapses ~20 byte-identical inline literals; the schema
+ *  name + field stay explicit so the LLM contract is unchanged (guarded by the
+ *  CODE_ENRICHMENTS fingerprint snapshot in tests/). */
+function proseSchema(name: string, field: string) {
+  return {
+    name,
+    strict: true,
+    schema: {
+      type: 'object',
+      additionalProperties: false,
+      required: [field],
+      properties: { [field]: { type: 'string' } },
+    },
+  };
+}
+
+const RABBI_BIO_OUTPUT_SCHEMA = proseSchema('rabbi_bio', 'bio');
+const RABBI_PHILOSOPHY_OUTPUT_SCHEMA = proseSchema('rabbi_philosophy', 'philosophy');
 const RABBI_RELATIONSHIPS_OUTPUT_SCHEMA = {
   name: 'rabbi_relationships',
   strict: true,
@@ -1655,10 +1667,7 @@ const RABBI_CLASSIFICATION_OUTPUT_SCHEMA = {
     },
   },
 };
-const RABBI_SYNTHESIS_OUTPUT_SCHEMA = {
-  name: 'rabbi_synthesis', strict: true,
-  schema: { type: 'object', additionalProperties: false, required: ['synthesis'], properties: { synthesis: { type: 'string' } } },
-};
+const RABBI_SYNTHESIS_OUTPUT_SCHEMA = proseSchema('rabbi_synthesis', 'synthesis');
 
 function makeEnrichment(
   targetMark: string,
@@ -2064,16 +2073,7 @@ Rashi + Tosafot + other rishonim:
 
 Write the background per the schema. When the section directly elaborates one of the mishnayot above, name it explicitly (e.g. "Builds on Mishnah Berakhot 1:1").`;
 
-const ARGUMENT_BACKGROUND_OUTPUT_SCHEMA = {
-  name: 'argument_background',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['background'],
-    properties: { background: { type: 'string' } },
-  },
-};
+const ARGUMENT_BACKGROUND_OUTPUT_SCHEMA = proseSchema('argument_background', 'background');
 
 // ---------------- argument.synthesis (tightened, drops subsection/commentary/flow leaves) ----------------
 
@@ -2123,16 +2123,7 @@ Rabbis identified on the daf:
 
 Compose ONE paragraph per the schema.`;
 
-const ARGUMENT_SYNTHESIS_OUTPUT_SCHEMA = {
-  name: 'argument_synthesis',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['synthesis'],
-    properties: { synthesis: { type: 'string' } },
-  },
-};
+const ARGUMENT_SYNTHESIS_OUTPUT_SCHEMA = proseSchema('argument_synthesis', 'synthesis');
 
 // ---------------- Hebrew-output parallels (argument section level) ----------------
 
@@ -2588,16 +2579,7 @@ Rabbis identified on the daf:
 
 Compose ONE tight paragraph about THIS move per the schema.`;
 
-const ARGUMENT_MOVE_SYNTHESIS_OUTPUT_SCHEMA = {
-  name: 'argument_move_synthesis',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['synthesis'],
-    properties: { synthesis: { type: 'string' } },
-  },
-};
+const ARGUMENT_MOVE_SYNTHESIS_OUTPUT_SCHEMA = proseSchema('argument_move_synthesis', 'synthesis');
 
 // ---------------------------------------------------------------------------
 // argument-move.suggested-questions
@@ -3260,18 +3242,9 @@ const PLACE_FIGURES_SYSTEM_PROMPT_HE = `אתה היסטוריון של הש"ס. 
 
 ${HEBREW_NATIVE_STYLE}`;
 
-const PLACE_PROFILE_OUTPUT_SCHEMA = {
-  name: 'place_profile', strict: true,
-  schema: { type: 'object', additionalProperties: false, required: ['profile'], properties: { profile: { type: 'string' } } },
-};
-const PLACE_SIGNIFICANCE_OUTPUT_SCHEMA = {
-  name: 'place_significance', strict: true,
-  schema: { type: 'object', additionalProperties: false, required: ['significance'], properties: { significance: { type: 'string' } } },
-};
-const PLACE_FIGURES_OUTPUT_SCHEMA = {
-  name: 'place_figures', strict: true,
-  schema: { type: 'object', additionalProperties: false, required: ['figures'], properties: { figures: { type: 'string' } } },
-};
+const PLACE_PROFILE_OUTPUT_SCHEMA = proseSchema('place_profile', 'profile');
+const PLACE_SIGNIFICANCE_OUTPUT_SCHEMA = proseSchema('place_significance', 'significance');
+const PLACE_FIGURES_OUTPUT_SCHEMA = proseSchema('place_figures', 'figures');
 
 CODE_ENRICHMENTS.push(
   makePlaceEnrichment(
@@ -3341,16 +3314,7 @@ Rabbis identified on the daf (for context on who's teaching where):
 
 Compose ONE tight paragraph about THIS place per the schema. Lead with what the place is and why it matters (drawing on the background), then pivot to how THIS daf uses it. Do NOT merely repeat the background verbatim.`;
 
-const PLACES_SYNTHESIS_OUTPUT_SCHEMA = {
-  name: 'places_synthesis',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['synthesis'],
-    properties: { synthesis: { type: 'string' } },
-  },
-};
+const PLACES_SYNTHESIS_OUTPUT_SCHEMA = proseSchema('places_synthesis', 'synthesis');
 
 const PLACES_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה גיאוגרף הש"ס. בהינתן רפרנס גיאוגרפי אחד שזוהה בדף והגמרא הסובבת, חבר פסקה הדוקה על המקום המסוים הזה בהקשר של הדף הזה.
 
@@ -3490,16 +3454,7 @@ English translation:
 
 Compose ONE tight paragraph weaving the rishonim's reading of THIS segment per the schema.`;
 
-const RISHONIM_SYNTHESIS_OUTPUT_SCHEMA = {
-  name: 'rishonim_synthesis',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['synthesis'],
-    properties: { synthesis: { type: 'string' } },
-  },
-};
+const RISHONIM_SYNTHESIS_OUTPUT_SCHEMA = proseSchema('rishonim_synthesis', 'synthesis');
 
 const RISHONIM_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. בהינתן מקטע אחד של גמרא והראשונים שפירשו את המקטע הזה (רש"י, תוספות, רמב"ן, רשב"א, מאירי, ריטב"א, ר"ן וכו'), חבר פסקה הדוקה השוזרת את קולותיהם לכדי קריאה אחת.
 
@@ -3791,16 +3746,7 @@ Hebrew/Aramaic source for the daf (for grounding only):
 
 Produce the synthesis per the schema.`;
 
-const HALACHA_SYNTHESIS_OUTPUT_SCHEMA = {
-  name: 'halacha_synthesis',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['synthesis'],
-    properties: { synthesis: { type: 'string' } },
-  },
-};
+const HALACHA_SYNTHESIS_OUTPUT_SCHEMA = proseSchema('halacha_synthesis', 'synthesis');
 
 // ---------------- Hebrew-output parallels (halacha) ----------------
 
@@ -4061,16 +4007,7 @@ Focal pasuk — Hebrew verbatim text (quote from THIS when citing the verse):
 
 Write the Tanach-context summary per the schema. The mark_input contains verseRef (e.g. 'Deuteronomy 6:7'), the Hebrew excerpt as it appears in the gemara, and citationStyle. Use the verseRef as authoritative; the excerpt is just the snippet the gemara quoted.`;
 
-const PESUKIM_TANACH_CONTEXT_OUTPUT_SCHEMA = {
-  name: 'pesukim_tanach_context',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['context'],
-    properties: { context: { type: 'string' } },
-  },
-};
+const PESUKIM_TANACH_CONTEXT_OUTPUT_SCHEMA = proseSchema('pesukim_tanach_context', 'context');
 
 // Shared leaf user template for the daf-local pesukim leaves (why-here,
 // mechanism). Mirrors HALACHA_LEAF_USER_TEMPLATE — one template feeds every
@@ -4166,32 +4103,11 @@ Rabbis identified on the daf:
 
 State the halacha or claim this citation establishes, per the schema.`;
 
-const PESUKIM_WHY_HERE_OUTPUT_SCHEMA = {
-  name: 'pesukim_why_here',
-  strict: true,
-  schema: {
-    type: 'object', additionalProperties: false,
-    required: ['why_here'], properties: { why_here: { type: 'string' } },
-  },
-};
+const PESUKIM_WHY_HERE_OUTPUT_SCHEMA = proseSchema('pesukim_why_here', 'why_here');
 
-const PESUKIM_MECHANISM_OUTPUT_SCHEMA = {
-  name: 'pesukim_mechanism',
-  strict: true,
-  schema: {
-    type: 'object', additionalProperties: false,
-    required: ['mechanism'], properties: { mechanism: { type: 'string' } },
-  },
-};
+const PESUKIM_MECHANISM_OUTPUT_SCHEMA = proseSchema('pesukim_mechanism', 'mechanism');
 
-const PESUKIM_LANDING_OUTPUT_SCHEMA = {
-  name: 'pesukim_landing',
-  strict: true,
-  schema: {
-    type: 'object', additionalProperties: false,
-    required: ['landing'], properties: { landing: { type: 'string' } },
-  },
-};
+const PESUKIM_LANDING_OUTPUT_SCHEMA = proseSchema('pesukim_landing', 'landing');
 
 // Synthesis aggregate — mirrors halacha.synthesis: one tight prose paragraph
 // that weaves the section leaves (Tanach context / why here / mechanism /
@@ -4254,16 +4170,7 @@ Rabbis identified on the daf:
 
 Weave these into ONE tight paragraph per the schema.`;
 
-const PESUKIM_SYNTHESIS_OUTPUT_SCHEMA = {
-  name: 'pesukim_synthesis',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['synthesis'],
-    properties: { synthesis: { type: 'string' } },
-  },
-};
+const PESUKIM_SYNTHESIS_OUTPUT_SCHEMA = proseSchema('pesukim_synthesis', 'synthesis');
 
 // ---------------------------------------------------------------------------
 // pesukim.suggested-questions — mirrors argument-move.suggested-questions but
@@ -4872,16 +4779,7 @@ Rules:
 
 ${HEBREW_GLOSS_STYLE}`;
 
-const AGGADATA_BACKGROUND_OUTPUT_SCHEMA = {
-  name: 'aggadata_background',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['background'],
-    properties: { background: { type: 'string' } },
-  },
-};
+const AGGADATA_BACKGROUND_OUTPUT_SCHEMA = proseSchema('aggadata_background', 'background');
 
 const AGGADATA_INTERPRETATION_SYSTEM_PROMPT = `You are a Talmud scholar reading an aggadic story in its sugya. Given ONE story on a daf (title, Hebrew label, summary, opening Hebrew excerpt, theme) plus the daf's Hebrew/Aramaic source and available rishonim, explain what the story DOES in this sugya — why the gemara tells it at this point, what tension or maxim it surfaces, and how the classical commentators read it.
 
@@ -4899,16 +4797,7 @@ Rules:
 
 ${HEBREW_GLOSS_STYLE}`;
 
-const AGGADATA_INTERPRETATION_OUTPUT_SCHEMA = {
-  name: 'aggadata_interpretation',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['interpretation'],
-    properties: { interpretation: { type: 'string' } },
-  },
-};
+const AGGADATA_INTERPRETATION_OUTPUT_SCHEMA = proseSchema('aggadata_interpretation', 'interpretation');
 
 const AGGADATA_PARALLELS_SYSTEM_PROMPT = `You are a scholar of rabbinic literature. Given ONE aggadic story (title, Hebrew label, summary), identify other places in classical Jewish literature where the SAME story, the same actors in a similar incident, or the same motif appears — Bavli, Yerushalmi, Midrash, Tanach analogues. Daf-agnostic. Often empty.
 
@@ -5006,16 +4895,7 @@ Rabbis identified on the daf:
 
 Compose ONE tight paragraph per the schema.`;
 
-const AGGADATA_SYNTHESIS_OUTPUT_SCHEMA = {
-  name: 'aggadata_synthesis',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    required: ['synthesis'],
-    properties: { synthesis: { type: 'string' } },
-  },
-};
+const AGGADATA_SYNTHESIS_OUTPUT_SCHEMA = proseSchema('aggadata_synthesis', 'synthesis');
 
 const AGGADATA_SUGGESTED_QUESTIONS_SYSTEM_PROMPT = `You are a chavruta studying gemara with an aggadic story. Given ONE aggadah cited on a daf plus the synthesis paragraph, produce a SHORT list of follow-up questions a learner is likely to want answered AFTER reading the synthesis. The synthesis says WHAT the story does; these questions should target WHY, the historical mechanism, and the surrounding context that the synthesis didn't fit.
 
