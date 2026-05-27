@@ -2,8 +2,27 @@ import { describe, it, expect } from 'vitest';
 import {
   fromCommentaryPieces, fromRishonim, fromHalachaRefs, fromMishna, fromTopics,
 } from '../src/lib/context/fromSefaria';
-import { contextForAnchor, formatContextForPrompt } from '../src/lib/context/select';
+import { contextForAnchor, formatContextForPrompt, segsFromMarkInput } from '../src/lib/context/select';
 import type { ContextItem } from '../src/lib/context/types';
+
+describe('segsFromMarkInput — instance location → target segments', () => {
+  it('expands a startSegIdx..endSegIdx range', () => {
+    expect(segsFromMarkInput({ startSegIdx: 2, endSegIdx: 4 })).toEqual([2, 3, 4]);
+  });
+  it('treats a single segIdx as a one-segment target', () => {
+    expect(segsFromMarkInput({ startSegIdx: 5 })).toEqual([5]);
+    expect(segsFromMarkInput({ endSegIdx: 3 })).toEqual([3]);
+  });
+  it('returns [] for a whole-daf instance (no segment location) → contextForAnchor takes all', () => {
+    expect(segsFromMarkInput({})).toEqual([]);
+    expect(segsFromMarkInput(null)).toEqual([]);
+    expect(segsFromMarkInput('nope')).toEqual([]);
+  });
+  it('clamps negatives and tolerates reversed bounds', () => {
+    expect(segsFromMarkInput({ startSegIdx: -2, endSegIdx: 1 })).toEqual([0, 1]);
+    expect(segsFromMarkInput({ startSegIdx: 4, endSegIdx: 2 })).toEqual([2, 3, 4]);
+  });
+});
 
 describe('fromSefaria mappers', () => {
   it('places Rashi/Tosafot pieces on segments via pieceKeys (S:P, 1-based)', () => {
