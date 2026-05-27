@@ -54,11 +54,12 @@ export function placementOf(it: ContextItem): Placement | null {
   const via = it.hbVia ?? it.via;
   const confidence = it.hbConfidence ?? it.confidence;
 
-  // Whole-daf: a deliberate daf-level grounding (the AI placer's null segStart).
-  // `ai-daf` is the client-resolved marker; `via:'ai' + no anchors` is the same
-  // decision before HB resolution has run.
-  if (it.hbVia === 'ai-daf' || (it.via === 'ai' && it.segs.length === 0 && !it.hbWords?.length)) {
-    return { level: 'daf', segs: [], amud: it.amud, via, confidence };
+  // Whole-daf: a deliberate daf-level grounding (the AI placer's null segStart),
+  // but only when nothing finer is known. `ai-daf` is the client-resolved
+  // marker; `via:'ai' + no anchors` is the same decision before HB resolution.
+  // A known amud is more specific, so don't collapse those to whole-daf.
+  if (it.hbVia === 'ai-daf' || (it.via === 'ai' && it.segs.length === 0 && !it.hbWords?.length && !it.amud)) {
+    return { level: 'daf', segs: [], via, confidence };
   }
 
   // Resolved onto HB words: 'words' when it's a tight phrase landing, else a

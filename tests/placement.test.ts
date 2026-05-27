@@ -46,6 +46,9 @@ describe('placementOf — derives the finest justified level', () => {
     const p = placementOf(item({ key: 'e', segs: [], amud: 'b' }))!;
     expect(p.level).toBe('amud');
     expect(p.amud).toBe('b');
+    // AI returned whole-daf, but a known amud is more specific — keep it as amud,
+    // not a whole-daf collapse (avoids clutter when bulk auto-grounding).
+    expect(placementLevel(item({ key: 'e2', segs: [], via: 'ai', amud: 'a', confidence: 0.5 }))).toBe('amud');
   });
 
   it('null: nothing grounded at all', () => {
