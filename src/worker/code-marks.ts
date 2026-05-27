@@ -45,6 +45,7 @@ import {
   ARGUMENT_OUTPUT_SCHEMA,
   ARGUMENT_SYNTHESIS_OUTPUT_SCHEMA,
   ARGUMENT_VOICES_OUTPUT_SCHEMA,
+  ARGUMENT_OVERVIEW_FLOW_OUTPUT_SCHEMA,
   HALACHA_CODIFICATION_OUTPUT_SCHEMA,
   HALACHA_DISPUTES_OUTPUT_SCHEMA,
   HALACHA_OUTPUT_SCHEMA,
@@ -1367,6 +1368,10 @@ function makeEnrichment(
      *  values) with the English prompt — enforced by tests/prompt-parity. */
     systemPromptHe?: string;
     userPromptTemplateHe?: string;
+    /** Opt into a provider reasoning pass (deepseek reasoning is off by
+     *  default). When set, thinking is left ON and reasoning_effort is passed
+     *  through. Use for heavy cross-section reasoning (argument-overview.flow). */
+    reasoningEffort?: 'low' | 'medium' | 'high';
   },
 ): EnrichmentDefinition {
   return {
@@ -1385,7 +1390,11 @@ function makeEnrichment(
       ...(opts.systemPromptHe ? { system_prompt_he: opts.systemPromptHe } : {}),
       ...(opts.userPromptTemplateHe ? { user_prompt_template_he: opts.userPromptTemplateHe } : {}),
       output_schema: outputSchema,
-      thinking_off: true,
+      // Reasoning pass keeps thinking ON; otherwise disable it for fast
+      // structured output (the default for every other enrichment).
+      ...(opts.reasoningEffort
+        ? { reasoning_effort: opts.reasoningEffort }
+        : { thinking_off: true }),
     },
     status: 'promoted',
     def_hash: opts.defHash,
@@ -1983,56 +1992,54 @@ CODE_ENRICHMENTS.push(
 // summary, comparison charts) plus the daf's own argument sections + rabbis.
 // ---------------------------------------------------------------------------
 
-const ARGUMENT_OVERVIEW_VOICES_SYSTEM_PROMPT = `You are a Talmud scholar. Emit a SINGLE graph of the major argumentative voices across this ENTIRE daf — who argues with whom, who supports whom — at the level of the whole page (not one section). Daf-local: about what these figures do on this daf, not their biography.
+const ARGUMENT_OVERVIEW_FLOW_SYSTEM_PROMPT = `You are a Talmud scholar mapping how the distinct arguments on a daf relate to EACH OTHER. You'll receive the daf's ordered argument SECTIONS (each section is one sugya / dispute / step), plus the gemara and study context. Reason carefully about the dialectical relationships BETWEEN sections — not the voices within them.
 
 Output STRICT JSON only:
 
 {
-  "voices": [
+  "connections": [
     {
-      "name": "Conventional English name (e.g. 'Rav Yehudah', 'Ula'). Use 'Stam' for the anonymous Gemara when it meaningfully links voices.",
-      "nameHe": "Hebrew name as written (e.g. 'רב יהודה'). Empty string if not present.",
-      "role": "originator" | "transmitter" | "respondent" | "objector" | "supporter" | "cited-authority" | "questioner",
-      "side": "The camp this voice argues for in the daf's main dispute. 'A' for the first distinct position, 'B' for the opposing one, 'C' for a third. 'stam' for the anonymous redactor. 'support-A' / 'support-B' for figures cited only to back a side. 'unaligned' for questioners/transmitters who take no position.",
-      "stance": "1-2 plain-English sentences: the position this figure takes on the daf and what they respond to.",
-      "opinionStart": "First 3-5 Hebrew/Aramaic words of their opening line, verbatim. Empty string if not anchored to one phrase."
+      "from": <0-based index of the source section in the list below>,
+      "to": <0-based index of the target section>,
+      "kind": "continues" | "resolves" | "depends-on" | "parallels" | "contrasts" | "generalizes" | "cites",
+      "note": "ONE concrete clause naming the actual link, e.g. 'applies the dragging-bolt rule to a reed bolt', 'resolves the question raised in the prior section'."
     }
-  ],
-  "edges": [
-    { "from": "name of the voice doing the action (must match a voices 'name')", "to": "name of the targeted voice (must match a voices 'name')", "kind": "opposes" | "supports" | "responds-to" | "cites" | "resolves", "note": "OPTIONAL 1-clause edge label, else empty string" }
   ]
 }
 
-EDGE KINDS: opposes (objects to / rejects), supports (argues for / cites in favor), responds-to (answers a question raised), cites (quotes as authority, no clear stance), resolves (concludes a dispute; "to" is the upheld side).
+CONNECTION KINDS:
+- "continues" — the later section directly carries the same thread forward (the next step of one sugya).
+- "resolves" — the section settles a question or dispute left open in the target section.
+- "depends-on" — the section's argument presupposes a definition or ruling established in the target.
+- "parallels" — the two sections run structurally analogous arguments on different cases.
+- "contrasts" — the sections reach opposing conclusions on a shared issue.
+- "generalizes" — the section abstracts a principle from the target's specific case.
+- "cites" — the section quotes or invokes the target's case/ruling as support.
 
 Rules:
-- One voice entry per distinct figure even if they appear in several sections.
-- Keep it to the MAJOR voices that drive the daf's argument — do not list every name mentioned in passing. Aim for the disputants and those who respond to / support / resolve them.
-- 'side' letters are local to THIS daf — Position A is whoever is introduced first as a distinct position.
-- Every edge's "from" and "to" MUST match a name in voices. Validate before emitting.
-- If the daf has no real dispute, emit voices with an EMPTY edges array.
-- Use the study-aid context (point-by-point outline, halacha summary, charts) to identify positions and who opposes whom — it already lays out the debate structure. Prefer it where it conflicts with your own segmentation.
-- NO puff in "stance" — concrete: what they hold and against whom.
+- Indices refer to the sections list IN ORDER, starting at 0.
+- Emit a connection ONLY when the link is real and specific — name it in "note". Do NOT connect every adjacent pair by default.
+- A section may relate to several others; emit one entry per relationship.
+- Prefer the strongest, most specific kind. Skip vague "related to".
+- If the sections are genuinely independent, emit an EMPTY connections array.
+- Use the study context (point-by-point outline, halacha summary) to spot when a later sugya resolves or depends on an earlier one.
 
 ${HEBREW_GLOSS_STYLE}`;
 
-const ARGUMENT_OVERVIEW_VOICES_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+const ARGUMENT_OVERVIEW_FLOW_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+Ordered argument sections on this daf (index = position in this list, starting at 0):
+{{anchors.argument}}
 
 Full daf:
 {{gemara}}
 
-Argument sections already extracted on this daf:
-{{anchors.argument}}
-
-Rabbis identified on this daf (with generation):
-{{anchors.rabbi}}
-
 Study-aid context (dafyomi.co.il — point-by-point outline, halacha summary, comparison charts):
 {{context}}
 
-Emit ONE whole-daf voice graph per the schema: the major disputants across the entire page, who argues with whom, who supports whom.`;
+Emit the connections BETWEEN these sections per the schema. Reason about how each sugya relates to the others (continues / resolves / depends-on / parallels / contrasts / generalizes / cites).`;
 
-const ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud scholar. You'll receive a full daf, its argument sections, the whole-daf voice graph, and study-aid context. Compose ONE tight paragraph orienting a reader to the WHOLE page: its central question(s), the main named positions, and where the daf lands.
+const ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud scholar. You'll receive a full daf, its argument sections, the connections between those sections, and study-aid context. Compose ONE tight paragraph orienting a reader to the WHOLE page: its central question(s), the main named positions, how the sections connect, and where the daf lands.
 
 Output STRICT JSON only:
 
@@ -2056,8 +2063,8 @@ Full daf:
 Argument sections on this daf:
 {{anchors.argument}}
 
-Whole-daf voice graph:
-{{depends.argument-overview.voices}}
+Connections between the sections (indices into the list above):
+{{depends.argument-overview.flow}}
 
 Study-aid context (dafyomi.co.il):
 {{context}}
@@ -2066,29 +2073,32 @@ Write the whole-daf overview paragraph per the schema.`;
 
 CODE_ENRICHMENTS.push(
   makeEnrichment(
-    'argument-overview', 'argument-overview.voices', 'Voices',
-    'A single whole-daf graph of the major argumentative voices.',
-    ARGUMENT_OVERVIEW_VOICES_SYSTEM_PROMPT, ARGUMENT_OVERVIEW_VOICES_USER_TEMPLATE, ARGUMENT_VOICES_OUTPUT_SCHEMA,
+    'argument-overview', 'argument-overview.flow', 'Argument flow',
+    'How the daf\'s argument sections relate to each other (continues / resolves / depends-on / parallels / ...).',
+    ARGUMENT_OVERVIEW_FLOW_SYSTEM_PROMPT, ARGUMENT_OVERVIEW_FLOW_USER_TEMPLATE, ARGUMENT_OVERVIEW_FLOW_OUTPUT_SCHEMA,
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', 'context', { mark: 'argument' }, { mark: 'rabbi' }],
-      defHash: 'argument-overview.voices-v1', cacheVersion: '1',
-      model: ARGUMENT_FLASH_MODEL,
+      defHash: 'argument-overview.flow-v1', cacheVersion: '1',
+      // Cross-section relationship reasoning is the part that needs real
+      // thought — run deepseek-v4-pro with reasoning on (vs flash elsewhere).
+      model: ARGUMENT_PRO_MODEL,
+      reasoningEffort: 'high',
     },
   ),
   makeSynthesis(
     'argument-overview', 'argument-overview.synthesis',
-    'One tight paragraph orienting a reader to the whole daf: its question, the main positions, where it lands.',
+    'One tight paragraph orienting a reader to the whole daf: its question, the main positions, how the sections connect, where it lands.',
     ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT, ARGUMENT_OVERVIEW_SYNTHESIS_USER_TEMPLATE,
     {
       dependencies: [
         'gemara',
         'context',
-        { enrichment: 'argument-overview.voices' },
+        { enrichment: 'argument-overview.flow' },
         { mark: 'argument' },
         { mark: 'rabbi' },
       ],
-      defHash: 'argument-overview.synthesis-v1', cacheVersion: '1',
+      defHash: 'argument-overview.synthesis-v2', cacheVersion: '2',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),

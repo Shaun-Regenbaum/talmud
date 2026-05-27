@@ -175,9 +175,13 @@ const CATALOG = {
   // — Whole-daf argument overview —
   'overview.chip': { en: 'Argument map', he: 'מפת הטיעון' },
   'overview.title': { en: 'Whole-daf argument map', he: 'מפת הטיעון של הדף' },
+  'overview.empty': {
+    en: 'No argument sections on this daf yet — open it with Arguments enabled so they load.',
+    he: 'אין עדיין מקטעי טיעון בדף זה.',
+  },
   'overview.experimental': {
-    en: 'Experimental — synthesized from dafyomi.co.il study context; positions are inferred.',
-    he: 'ניסיוני — מסונתז מתוכן הלימוד של dafyomi.co.il; העמדות מוסקות.',
+    en: 'Experimental — sections and their connections are LLM-derived from the daf and dafyomi.co.il study context. Click a section for its voices.',
+    he: 'ניסיוני — המקטעים והקשרים ביניהם מופקים על ידי מודל מתוך הדף ותוכן הלימוד של dafyomi.co.il. לחצו על מקטע לקולות.',
   },
 
   // — Common —
@@ -633,6 +637,7 @@ const CATALOG = {
   'dafLoad.family.halachot': { en: 'halachot', he: 'הלכות' },
   'dafLoad.family.rabbis': { en: 'rabbis', he: 'חכמים' },
   'dafLoad.family.rishonim': { en: 'rishonim', he: 'ראשונים' },
+  'dafLoad.family.argumentOverview': { en: 'argument map', he: 'מפת הטיעון' },
 
   // — Gutter icon tooltips —
   'gutter.argument': { en: 'Argument structure & rabbis', he: 'מבנה הסוגיה וחכמים' },

@@ -77,6 +77,9 @@ export interface EnrichmentDefinition {
   output_schema?: unknown;
   /** When true, runLLM is called with thinking disabled (Workers AI Kimi). */
   thinking_off?: boolean;
+  /** Opt into a provider reasoning pass (deepseek reasoning is off by default).
+   *  Maps to runLLM's reasoning_effort. */
+  reasoning_effort?: 'low' | 'medium' | 'high';
   cache_version: string;
   source: 'kv' | 'code';
   updated_at: string;

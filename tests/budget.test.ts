@@ -66,6 +66,16 @@ describe('daily total cap', () => {
     expect(decision.until).toBe(Date.UTC(2026, 4, 28, 0, 0, 0));
   });
 
+  it('exposes a human-readable reason on a pause (so the UI can tell the user why)', async () => {
+    const { kv } = makeFakeKV();
+    const env: BudgetEnv = { CACHE: kv, DAILY_BUDGET_USD: '10' };
+    await recordSpend(env, { model: 'openrouter/deepseek/deepseek-v4-pro', usage: { cost: 9.6 }, custom: false }, T);
+    const decision = await checkBudget(env, { custom: false }, T);
+    expect(decision.ok).toBe(false);
+    expect(typeof decision.reason).toBe('string');
+    expect((decision.reason ?? '').length).toBeGreaterThan(0);
+  });
+
   it('uses 90% of the cap as the trip point (in-flight headroom)', async () => {
     const { kv } = makeFakeKV();
     const env: BudgetEnv = { CACHE: kv, DAILY_BUDGET_USD: '100' }; // trip = 90

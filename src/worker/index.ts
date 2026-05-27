@@ -564,6 +564,7 @@ app.get('/api/studio/enrichments', async (c) => {
       model: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).model,
       output_schema: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).output_schema,
       thinking_off: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).thinking_off,
+      reasoning_effort: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).reasoning_effort,
       cache_version: e.cache_version,
       source: 'code',
       updated_at: e.updated_at,
@@ -775,6 +776,7 @@ function adaptCodeEnrichment(code: SchemaEnrichmentDefinition): EnrichmentDefini
     model: llm?.model,
     output_schema: llm?.output_schema,
     thinking_off: llm?.thinking_off,
+    reasoning_effort: llm?.reasoning_effort,
     cache_version: code.cache_version,
     source: 'code',
     updated_at: code.updated_at,
@@ -2274,6 +2276,7 @@ async function runEnrichmentOnce(
       ? { type: 'json_schema', json_schema: def.output_schema }
       : undefined,
     thinking: def.thinking_off ? false : undefined,
+    reasoning_effort: def.reasoning_effort,
     bypass_cache: bypassCache,
     tag: `enrich:${def.id}`,
     // Custom Q&A enrichments (<mark>.qa) count against the hourly custom-question
