@@ -104,6 +104,14 @@ export function isAiGrounded(it: ContextItem): boolean {
   return it.via === 'ai' || it.hbVia === 'ai-phrase' || it.hbVia === 'ai-segment' || it.hbVia === 'ai-daf';
 }
 
+/** Sources that are daf-level REFERENCE context by nature (halachic cross-refs,
+ *  topic tags) — not tied to a specific line. The workbench leaves these at
+ *  their coarse level rather than force-grounding them onto a segment. */
+export const REFERENCE_SOURCES: ReadonlySet<string> = new Set(['sefaria-halacha', 'sefaria-topic']);
+export function isReferenceSource(it: ContextItem): boolean {
+  return REFERENCE_SOURCES.has(it.source);
+}
+
 /** What an enrichment/anchor asks for: a specific segment, or the whole daf. */
 export type GroundingTarget = { seg: number } | { daf: true };
 

@@ -74,11 +74,22 @@ function collectBlock(
       b.entries.forEach((e, i) => out.push({ ...base(b.type, `${type}:${amud}:${i}`), ...entryCard(e) }));
       break;
     case 'hebcharts':
-      b.tables.forEach((t, i) => out.push({
-        ...base('chart', `${type}:${amud}:${i}`),
-        title: t.caption,
-        body: { he: tableToText(t.headers.map((h) => h.he ?? ''), t.rows.map((r) => r.map((c) => c.he ?? ''))) },
-      }));
+      b.tables.forEach((t, i) => {
+        const headers = t.headers.map((h) => h.he ?? '');
+        const rows = t.rows.map((r) => r.map((c) => c.he ?? ''));
+        out.push({
+          ...base('chart', `${type}:${amud}:${i}`),
+          title: t.caption,
+          // body keeps the flattened text (AI-match input + plain fallback);
+          // `table` keeps the structure so the card renders a real table.
+          body: { he: tableToText(headers, rows) },
+          table: {
+            headers,
+            rows,
+            notes: t.notes?.map((n) => ({ marker: n.marker, text: n.text.he ?? '' })),
+          },
+        });
+      });
       break;
   }
 }
