@@ -6,7 +6,8 @@ import { injectSegmentMarkers, type SegmentStats } from './injectSegmentMarkers'
 import { ContextSourcePanel } from './ContextSourcePanel';
 import type { ContextItem } from '../lib/context/types';
 import { applyMatches, type SegMatch } from '../lib/context/match';
-import { placementLevel, isAiGrounded } from '../lib/context/placement';
+import { placementLevel, isAiGrounded, isReferenceSource } from '../lib/context/placement';
+import { diburHaMaschil, leadingWords } from '../lib/context/dibur';
 import { buildHbWords, locateInHb, type HbWords, type LocateQuery } from './hbAlign';
 
 interface AlignedDaf extends TalmudPageData {
@@ -40,30 +41,6 @@ function renderAlignedHtml(mainHtml: string, segmentsHe: string[]): { html: stri
   return injectSegmentMarkers(hadran, segmentsHe);
 }
 
-/** Drop HTML markup (Sefaria text carries <b>/<strong>/<i>/<big>) for display. */
-function stripTags(s: string): string {
-  return s.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
-}
-
-/** First `n` whitespace words of a Hebrew string, or undefined. */
-function leadingWords(s: string | undefined, n: number): string | undefined {
-  if (!s) return undefined;
-  const w = stripTags(s).split(/\s+/).slice(0, n).join(' ');
-  return w || undefined;
-}
-
-/** The dibur ha'maschil (lemma) a commentary quotes from the Gemara — its
- *  opening Gemara words, separated from the comment body. */
-function diburHaMaschil(he: string | undefined): string | undefined {
-  if (!he) return undefined;
-  // Sefaria bolds the lemma at the start: "<b>נגר הנגרר נועלין בו במקדש</b> פיר…"
-  // (Rishonim, much of Rashi/Tosafot). Take that bold run as the DH.
-  const bold = /^\s*<(b|strong)>([\s\S]*?)<\/\1>/i.exec(he);
-  // Otherwise the lemma ends at the first separator: a dash, sentence period,
-  // colon, or "כו'/וכו'" — e.g. "המונח כאן וכאן אסור. פירש רש"י…".
-  const lemma = bold ? stripTags(bold[2]) : stripTags(he).split(/\s[-־–—]\s|\.\s|:\s|\s?[וב]?כו['׳]/)[0];
-  return leadingWords(lemma, 6);
-}
 
 /** Sources whose text opens with a Gemara lemma (dibur ha'maschil). */
 const DH_SOURCES = new Set(['sefaria-rashi', 'sefaria-tosafot', 'sefaria-rishonim']);
@@ -182,17 +159,13 @@ export function AlignPage(): JSX.Element {
     setMatches((prev) => [...prev, ...got]);
   };
 
-  // Sources that comment on a specific line are worth AI grounding. Sefaria
-  // halacha cross-refs and topic tags are daf-level REFERENCE context by nature
-  // — force-grounding them just yields whole-daf clutter (and LLM spend), so we
-  // leave them at their natural coarse level.
-  const GROUNDABLE_EXCLUDE = new Set(['sefaria-halacha', 'sefaria-topic']);
-
   // Items not yet grounded on a span (unplaced, or only amud-level), from a
-  // groundable source, that the AI placer hasn't already handled.
+  // groundable source, that the AI placer hasn't already handled. Reference
+  // sources (halachic cross-refs, topics) are daf-level by nature — force-
+  // grounding them just yields whole-daf clutter (and LLM spend), so skip them.
   const candidatesToGround = (): ContextItem[] =>
     contextItems().filter((it) => {
-      if (GROUNDABLE_EXCLUDE.has(it.source)) return false;
+      if (isReferenceSource(it)) return false;
       const lvl = placementLevel(it);
       return (lvl === null || lvl === 'amud') && !isAiGrounded(it);
     });

@@ -1,6 +1,6 @@
 import { createSignal, createMemo, createEffect, For, Show, type JSX } from 'solid-js';
 import { type ContextItem, rangeLabel } from '../lib/context/types';
-import { isLocated, placementOf } from '../lib/context/placement';
+import { isLocated, placementOf, isReferenceSource } from '../lib/context/placement';
 
 /** Highlight payload: precise HB word indices + the segments they sit in, or a
  *  whole-daf wash (`daf`). */
@@ -145,7 +145,9 @@ function ContextCard(props: { item: ContextItem; onEnter: () => void; onLeave: (
       case 'daf': return 'whole daf';
       case 'words': return `${it.hbWords!.length} word${it.hbWords!.length === 1 ? '' : 's'}`;
       case 'amud': return `amud ${it.amud}`;
-      default: return rangeLabel(it.segs, it.amud); // 'segment' span or unplaced
+      case 'segment': return rangeLabel(it.segs, it.amud);
+      // unplaced: distinguish daf-level reference context from a placement miss.
+      default: return isReferenceSource(it) ? 'reference' : 'not located';
     }
   };
   // Word-precise → green, whole-daf → violet, segment → amber, else neutral.
@@ -202,9 +204,58 @@ function ContextCard(props: { item: ContextItem; onEnter: () => void; onLeave: (
           </button>
         </Show>
       </Show>
-      <Show when={!bodyEn() && it.body?.he}>
+      <Show when={it.table}>
+        {(tbl) => <ChartTable table={tbl()} />}
+      </Show>
+      <Show when={!it.table && !bodyEn() && it.body?.he}>
         <div dir="rtl" lang="he" style={{ 'font-family': '"Mekorot Vilna", serif', 'font-size': '0.9rem', 'line-height': 1.55 }}>{stripTags(it.body!.he)}</div>
       </Show>
     </article>
+  );
+}
+
+/** Render a dafyomi Hebrew comparison chart as a bordered RTL table: the first
+ *  cell of each row is the (blue, bold) row label; footnotes follow below. */
+function ChartTable(props: { table: NonNullable<ContextItem['table']> }): JSX.Element {
+  const cell = { border: '1px solid #4b5563', padding: '0.25rem 0.45rem', 'text-align': 'center', 'vertical-align': 'middle' } as const;
+  const hasHeaders = () => props.table.headers.some((h) => stripTags(h));
+  return (
+    <div style={{ 'overflow-x': 'auto', 'margin-top': '0.35rem' }}>
+      <table dir="rtl" lang="he" style={{ 'border-collapse': 'collapse', 'font-family': '"Mekorot Vilna", serif', 'font-size': '0.85rem', width: '100%' }}>
+        <Show when={hasHeaders()}>
+          <thead>
+            <tr>
+              <For each={props.table.headers}>
+                {(h) => <th style={{ ...cell, background: '#fef9c3', color: '#1e3a8a', 'font-weight': 700 }}>{stripTags(h)}</th>}
+              </For>
+            </tr>
+          </thead>
+        </Show>
+        <tbody>
+          <For each={props.table.rows}>
+            {(row) => (
+              <tr>
+                <For each={row}>
+                  {(c, ci) => (
+                    <td style={{ ...cell, color: ci() === 0 ? '#1e3a8a' : '#333', 'font-weight': ci() === 0 ? 700 : 400 }}>{stripTags(c)}</td>
+                  )}
+                </For>
+              </tr>
+            )}
+          </For>
+        </tbody>
+      </table>
+      <Show when={props.table.notes?.length}>
+        <div style={{ 'margin-top': '0.35rem', 'font-size': '0.72rem', color: '#666' }}>
+          <For each={props.table.notes}>
+            {(n) => (
+              <div dir="rtl" lang="he" style={{ 'font-family': '"Mekorot Vilna", serif' }}>
+                <span style={{ color: '#0369a1', 'font-family': 'monospace' }}>{n.marker}</span> {stripTags(n.text)}
+              </div>
+            )}
+          </For>
+        </div>
+      </Show>
+    </div>
   );
 }

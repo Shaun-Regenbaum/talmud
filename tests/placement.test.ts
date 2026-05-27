@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  placementOf, placementLevel, isLocated, isPrecise, isGrounded, isAiGrounded, contextForTarget,
+  placementOf, placementLevel, isLocated, isPrecise, isGrounded, isAiGrounded, isReferenceSource, contextForTarget,
 } from '../src/lib/context/placement';
 import type { ContextItem } from '../src/lib/context/types';
 
@@ -73,6 +73,13 @@ describe('grounding predicates', () => {
     expect(isAiGrounded(daf)).toBe(true);
     expect(isAiGrounded(item({ key: 'x', segs: [4], hbVia: 'ai-segment', hbWords: [1] }))).toBe(true);
     expect(isAiGrounded(seg)).toBe(false); // deterministic 'mishnah'
+  });
+
+  it('isReferenceSource flags daf-level reference sources only', () => {
+    expect(isReferenceSource(item({ key: 'h', source: 'sefaria-halacha' }))).toBe(true);
+    expect(isReferenceSource(item({ key: 't', source: 'sefaria-topic' }))).toBe(true);
+    expect(isReferenceSource(item({ key: 'r', source: 'sefaria-rishonim' }))).toBe(false);
+    expect(isReferenceSource(item({ key: 'i', source: 'dafyomi:insights' }))).toBe(false);
   });
 });
 

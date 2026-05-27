@@ -26,6 +26,20 @@ describe('fromDafyomi', () => {
     const gloss = items.filter((i) => i.kind === 'glossary');
     expect(gloss.some((g) => g.title?.he === 'ארכובה')).toBe(true);
   });
+  it('hebcharts items carry a structured table (headers + rows) plus flattened body', () => {
+    const charts = items.filter((i) => i.kind === 'chart');
+    expect(charts.length).toBeGreaterThan(0);
+    const c = charts[0];
+    // the structure the card renders as a real table
+    expect(c.table).toBeDefined();
+    expect(c.table!.headers.length).toBeGreaterThanOrEqual(2);
+    expect(c.table!.rows.length).toBeGreaterThanOrEqual(1);
+    // every row is an array of cells; the first cell is the (non-empty) row label
+    expect(Array.isArray(c.table!.rows[0])).toBe(true);
+    expect(c.table!.rows[0][0].trim().length).toBeGreaterThan(0);
+    // the flattened text fallback is kept for AI-match input / plain display
+    expect(c.body?.he).toContain(' | ');
+  });
 });
 
 describe('matchTosfos', () => {

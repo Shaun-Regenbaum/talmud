@@ -46,6 +46,15 @@ export interface ContextItem {
    *  dafyomi Tosfos items; lets the matcher place them via Sefaria pieceKeys. */
   dhNormalized?: string;
 
+  /** Structured comparison table (dafyomi Hebrew charts) — kept so the card can
+   *  render a real table instead of the flattened pipe-text in `body`. Cells are
+   *  display-ready Hebrew; the first cell of each row is the row label. */
+  table?: {
+    headers: string[];
+    rows: string[][];
+    notes?: { marker: string; text: string }[];
+  };
+
   /** Client-side HB placement (computed in the alignment workbench, not from
    *  the server pool): the exact HebrewBooks word indices this item maps to,
    *  plus how it was located and a confidence. Drives word-level highlighting. */
