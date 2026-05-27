@@ -32,6 +32,7 @@ import { Hebraized } from './Hebraized';
 import { hebraize } from './hebraize';
 import { trackAI } from './aiActivity';
 import { lang, t } from './i18n';
+import { PAUSED_ERROR, isPausedBody, isPausedError } from './enrichmentQueue';
 
 export interface QAPanelProps {
   /** Mark id — drives which `<mark>.suggested-questions` + `<mark>.qa`
@@ -87,6 +88,7 @@ async function runEnrichmentDirect(
     body: JSON.stringify(body),
   });
   const j = await r.json() as RunResponse | { error?: string };
+  if (isPausedBody(j)) throw new Error(PAUSED_ERROR);
   if (!r.ok && r.status !== 202) {
     throw new Error((j as { error?: string }).error ?? `HTTP ${r.status}`);
   }
@@ -105,6 +107,7 @@ async function pollJob(runId: string, cacheKey?: string): Promise<RunResultLike>
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
     const r = await fetch(`/api/studio/run-status/${encodeURIComponent(runId)}${qs}`);
     const j = await r.json() as RunResponse | { status: 'pending' };
+    if (isPausedBody(j)) throw new Error(PAUSED_ERROR);
     if ('status' in j) {
       if (j.status === 'ok') return (j as { result: RunResultLike }).result;
       if (j.status === 'error') throw new Error((j as { error: string }).error);
@@ -148,6 +151,7 @@ async function postAsk(mark: string, tractate: string, page: string, instanceId:
   qHash: string;
   alreadyAsked: boolean;
   rateLimited?: boolean;
+  paused?: boolean;
   error?: string;
 }> {
   const r = await fetch('/api/qa/ask', {
@@ -162,9 +166,14 @@ async function postAsk(mark: string, tractate: string, page: string, instanceId:
       lang: lang(),
     }),
   });
-  const j = await r.json() as { qHash?: string; alreadyAsked?: boolean; rateLimited?: boolean; error?: string };
+  const j = await r.json() as { qHash?: string; alreadyAsked?: boolean; rateLimited?: boolean; paused?: boolean; error?: string };
   if (!r.ok) {
-    return { qHash: '', alreadyAsked: false, rateLimited: r.status === 429, error: j.error ?? `HTTP ${r.status}` };
+    return {
+      qHash: '', alreadyAsked: false,
+      rateLimited: r.status === 429 && !j.paused,
+      paused: j.paused === true,
+      error: j.error ?? `HTTP ${r.status}`,
+    };
   }
   return {
     qHash: j.qHash ?? '',
@@ -292,7 +301,8 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
         }).catch(() => { /* swallow */ });
       }
     } catch (err) {
-      setOpenAnswers((m) => ({ ...m, [key]: { state: 'error', error: String((err as Error)?.message ?? err) } }));
+      const msg = isPausedError(err) ? t('qa.error.paused') : String((err as Error)?.message ?? err);
+      setOpenAnswers((m) => ({ ...m, [key]: { state: 'error', error: msg } }));
     }
   };
 
@@ -306,9 +316,11 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
     setAskError(null);
     const reply = await postAsk(mark(), props.tractate, props.page, instanceId(), instance(), q);
     if (reply.error) {
-      setAskError(reply.rateLimited
-        ? t('qa.error.rateLimit')
-        : reply.error);
+      setAskError(reply.paused
+        ? t('qa.error.paused')
+        : reply.rateLimited
+          ? t('qa.error.rateLimit')
+          : reply.error);
       return;
     }
     // Optimistically prepend to registry so it appears immediately, then
