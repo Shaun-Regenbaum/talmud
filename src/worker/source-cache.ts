@@ -253,24 +253,41 @@ export async function getSaCommentaryCached(
  * A daf that hasn't been scraped is negative-cached (1h) and returns null, so
  * the route 404s rather than fabricating content.
  */
+export interface DafyomiFetchOpts {
+  /** Incoming request origin, used as a dev-mode fallback when the ASSETS
+   *  binding (which serves the built dist/client dir) hasn't been built yet —
+   *  Vite serves static/ at the public path in dev, so a same-origin fetch
+   *  resolves there. In prod the ASSETS binding handles it on the first try. */
+  assetOrigin?: string;
+  /** Skip the read-cache (incl. negative cache) and re-resolve from assets. */
+  refresh?: boolean;
+  track?: CacheTrack;
+}
+
 export async function getDafyomiContentCached(
   cache: KVNamespace | undefined,
   assets: Fetcher,
   tractate: string,
   page: string,
-  track?: CacheTrack,
+  opts: DafyomiFetchOpts = {},
 ): Promise<DafyomiDaf | null> {
+  const { assetOrigin, refresh, track } = opts;
   const m = page.match(/^(\d+)/);
   if (!m) return null;
   const daf = m[1];
   const key = keyForDafyomi(tractate, daf);
-  const hit = await readCache<DafyomiDaf | FailedMarker>(cache, key);
-  track?.onCache?.(hit ? 'hit' : 'miss');
-  if (hit) return '__failed' in hit ? null : hit;
+  if (!refresh) {
+    const hit = await readCache<DafyomiDaf | FailedMarker>(cache, key);
+    track?.onCache?.(hit ? 'hit' : 'miss');
+    if (hit) return '__failed' in hit ? null : hit;
+  } else {
+    track?.onCache?.('miss');
+  }
 
-  const url = `https://assets.local/dafyomi/${encodeURIComponent(tractate)}/${daf}.json`;
+  const path = `/dafyomi/${encodeURIComponent(tractate)}/${daf}.json`;
   try {
-    const res = await assets.fetch(new Request(url));
+    let res = await assets.fetch(new Request(`https://assets.local${path}`));
+    if (!res.ok && assetOrigin) res = await fetch(`${assetOrigin}${path}`);
     if (!res.ok) {
       await writeCache(cache, key, { __failed: true } satisfies FailedMarker, TTL_NEGATIVE);
       return null;

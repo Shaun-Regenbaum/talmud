@@ -1,75 +1,59 @@
 /**
- * @fileoverview Normalized cross-source "context item" model for the alignment
- * workbench.
+ * @fileoverview The one context model.
  *
- * Every external source (dafyomi.co.il content types, Sefaria commentaries, …)
- * maps into a `ContextItem` so the workbench can show, hover-highlight, and
- * judge anchoring uniformly. `AnchorState` is a ladder: items start at
- * `whole-daf`/`amud` and get *promoted* toward `segment`/`segment-range`/
- * `phrase` by the matchers in `./anchor/`. Promotion is always optional —
- * an unmatched item stays at its coarse anchor and is never dropped.
+ * Every external source (dafyomi.co.il content types, Sefaria commentary text,
+ * Mishnayot, Rishonim, …) maps into a flat `ContextItem`. The only anchor is
+ * `segs` — the main-text segment indices the item touches; `[]` means it's not
+ * localized to a segment (whole-daf, optionally narrowed to an `amud`). A
+ * matcher (deterministic or AI) "places" an item by filling in `segs`.
  */
 
-import type { DafyomiContentType, DafyomiText, DafyomiRef } from '../sefref/dafyomi/schema.ts';
+import type { DafyomiContentType, DafyomiText } from '../sefref/dafyomi/schema.ts';
 
-export type AnchorState =
-  | { kind: 'whole-daf' }
-  | { kind: 'amud'; amud: 'a' | 'b' }
-  | { kind: 'segment'; segIdx: number }
-  | { kind: 'segment-range'; startSegIdx: number; endSegIdx: number }
-  | { kind: 'phrase'; segIdx: number; excerpt: string };
-
-export type ContextSource = 'sefaria-commentary' | `dafyomi:${DafyomiContentType}`;
-
-/** Extra fields the anchor matchers read; not shown directly. */
-export interface ContextMatchHints {
-  /** Tosfos: niqqud-stripped DH opening words. */
-  dhNormalized?: string;
-  /** Background glossary: the Hebrew term. */
-  termHe?: string;
-  /** Points: the interleaved Hebrew source text + English, for fuzzy matching. */
-  pointsHe?: string;
-  pointsEn?: string;
-}
+export type ContextSource =
+  | 'sefaria-rashi'
+  | 'sefaria-tosafot'
+  | 'sefaria-rishonim'
+  | 'sefaria-halacha'
+  | 'sefaria-mishnah'
+  | 'sefaria-topic'
+  | `dafyomi:${DafyomiContentType}`;
 
 export interface ContextItem {
   source: ContextSource;
-  /** Human-readable source label, e.g. "Insights", "Tosfos", "Rashi". */
+  /** Human-readable source label, e.g. "Insights", "Rashi". */
   sourceLabel: string;
-  /** Sub-kind within the source, e.g. 'tosfos-piece', 'glossary', 'commentary'. */
+  /** Sub-kind within the source, e.g. 'tosfos-piece', 'glossary', 'rishon'. */
   kind: string;
-  /** Stable-ish identifier (unique within a daf's items of one source). */
+  /** Stable id, unique within a daf's items. */
   key: string;
   title?: DafyomiText;
   body?: DafyomiText;
-  refs?: DafyomiRef[];
   /** Source URL for attribution / click-through. */
   url?: string;
-  anchor: AnchorState;
-  /** True once an anchor has been promoted past whole-daf/amud by a matcher. */
-  anchorMatched: boolean;
-  /** Segments to highlight on the daf when this item is hovered. */
-  highlightSegs: number[];
-  match?: ContextMatchHints;
+
+  /** Main-text segments this item maps to (0-based, sorted, unique). `[]` =
+   *  not localized to a segment. This is the only anchor. */
+  segs: number[];
+  /** Coarse locator when known but not segment-mapped (display only). */
+  amud?: 'a' | 'b';
+  /** How `segs` was produced: 'pieceKeys' | 'mishnah' | 'tosfos-dh' | 'ai'. */
+  via?: string;
+  /** Matcher confidence 0..1 (AI matches carry this). */
+  confidence?: number;
+
+  /** Tosfos-DH matcher input: niqqud-stripped DH opening words. Only set on
+   *  dafyomi Tosfos items; lets the matcher place them via Sefaria pieceKeys. */
+  dhNormalized?: string;
 }
 
-/** Segments an anchor lights up. whole-daf / amud highlight nothing (we have no
- *  amud→segment map), segment/phrase one, segment-range an inclusive span. */
-export function highlightSegsFor(anchor: AnchorState): number[] {
-  switch (anchor.kind) {
-    case 'segment': return [anchor.segIdx];
-    case 'phrase': return [anchor.segIdx];
-    case 'segment-range': {
-      const out: number[] = [];
-      for (let i = anchor.startSegIdx; i <= anchor.endSegIdx; i++) out.push(i);
-      return out;
-    }
-    default: return [];
-  }
-}
-
-/** Re-derive highlightSegs after a matcher mutates an item's anchor. */
-export function refreshHighlight(item: ContextItem): ContextItem {
-  item.highlightSegs = highlightSegsFor(item.anchor);
-  return item;
+/** A short human label for an item's segment placement (for card chips). */
+export function rangeLabel(segs: number[], amud?: 'a' | 'b'): string {
+  if (segs.length === 0) return amud ? `amud ${amud}` : 'whole daf';
+  if (segs.length === 1) return `seg ${segs[0]}`;
+  const sorted = [...segs].sort((a, b) => a - b);
+  const contiguous = sorted.every((s, i) => i === 0 || s === sorted[i - 1] + 1);
+  if (contiguous) return `seg ${sorted[0]}–${sorted[sorted.length - 1]}`;
+  const shown = sorted.slice(0, 4).join(', ');
+  return `segs ${shown}${sorted.length > 4 ? '…' : ''}`;
 }
