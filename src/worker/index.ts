@@ -889,6 +889,13 @@ interface RunResult {
 interface RunResultEnrichment extends RunResult {
   deps_resolved?: Record<string, unknown>;
   anchors_resolved?: Record<string, unknown>;
+  /** Segment range (`${startSegIdx}-${endSegIdx}`) this section enrichment was
+   *  computed for. Section enrichments (def.mark==='argument') are cache-keyed
+   *  by the section TITLE — a volatile LLM label that can reattach to a
+   *  different range on re-extraction — so we stamp the range and refuse a
+   *  cache hit whose stamp doesn't match the section being requested. Absent on
+   *  non-section enrichments and on entries predating the stamp. */
+  section_range?: string;
 }
 
 async function readCachedResult(env: Bindings, key: string): Promise<RunResult | null> {
@@ -1981,6 +1988,19 @@ async function postProcessRabbiEvidence(
   return obj;
 }
 
+/** The segment range a section-level argument enrichment is being computed for,
+ *  as a `${startSegIdx}-${endSegIdx}` stamp — or null when the enrichment isn't
+ *  section-anchored (so no range guard applies). Used to reject a cache hit
+ *  whose title-derived key resolved to a stale, differently-ranged entry. */
+function sectionRangeOf(def: EnrichmentDefinition, markInput: unknown): string | null {
+  if (def.mark !== 'argument') return null;
+  const mi = markInput as { startSegIdx?: number; endSegIdx?: number } | null;
+  if (mi && typeof mi.startSegIdx === 'number' && typeof mi.endSegIdx === 'number') {
+    return `${mi.startSegIdx}-${mi.endSegIdx}`;
+  }
+  return null;
+}
+
 async function runEnrichmentOnce(
   rc: RunCtx,
   def: EnrichmentDefinition,
@@ -2003,9 +2023,18 @@ async function runEnrichmentOnce(
     // gateway prompt cache but not KV — consistent with bypass behavior.
     ? null
     : keyForEnrichment(def, instance_id, def.scope === 'local' ? { tractate, page } : undefined, qHash, rc.lang);
+  // Section enrichments key by title (see instanceIdOf); guard against a
+  // drifted title serving another section's cache by validating the stamped
+  // range. Null for non-section enrichments (no guard).
+  const sectionRange = sectionRangeOf(def, markInput);
   if (cacheKey && !bypassCache) {
-    const hit = await readCachedResult(rc.env, cacheKey);
-    if (hit) return { ...hit, cache_hit: true };
+    const hit = await readCachedResult(rc.env, cacheKey) as RunResultEnrichment | null;
+    // Reject a hit whose stamped range doesn't match the requested section
+    // (covers both a drifted title AND legacy entries with no stamp) so it
+    // recomputes for the correct range instead of returning stale content.
+    if (hit && (!sectionRange || hit.section_range === sectionRange)) {
+      return { ...hit, cache_hit: true };
+    }
   }
 
   // Graph short-circuit for rabbi.relationships. Sefaria's rabbi graph
@@ -2241,6 +2270,7 @@ async function runEnrichmentOnce(
     deps_resolved: Object.keys(inputs.depends).length > 0 ? inputs.depends : undefined,
     anchors_resolved: Object.keys(inputs.anchors).length > 0 ? inputs.anchors : undefined,
     ...(lint_issues ? { lint_issues } : {}),
+    ...(sectionRange ? { section_range: sectionRange } : {}),
   };
   // Gate cache writes on lint passing — but BOUND the retries. A clean output
   // is pinned immediately. A lint-failing output is left uncached so the next
