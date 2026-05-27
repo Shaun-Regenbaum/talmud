@@ -1,8 +1,9 @@
 import { createSignal, createMemo, createEffect, For, Show, type JSX } from 'solid-js';
 import { type ContextItem, rangeLabel } from '../lib/context/types';
 
-/** Highlight payload: precise HB word indices + the segments they sit in. */
-interface Hl { segs: number[]; words: number[] }
+/** Highlight payload: precise HB word indices + the segments they sit in, or a
+ *  whole-daf wash (`daf`). */
+interface Hl { segs: number[]; words: number[]; daf?: boolean }
 const EMPTY: Hl = { segs: [], words: [] };
 
 /** Drop HTML markup (Sefaria text carries <b>/<strong>/<i>/<big>) for display. */
@@ -10,10 +11,18 @@ function stripTags(s: string | undefined): string {
   return s ? s.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim() : '';
 }
 
-/** Precisely located on the HB text (a real phrase/AI hit, not a coarse
- *  segment fallback). */
+/** Anchored to specific HB words (a segment span or tighter) — "located on the
+ *  text". Whole-daf groundings are placed but not anchored to a span. */
+function isLocated(it: ContextItem): boolean {
+  return !!it.hbWords?.length;
+}
+/** Word-precise: a real phrase/AI-quote landing, not a whole-segment fallback. */
 function isPrecise(it: ContextItem): boolean {
-  return !!it.hbWords?.length && it.hbVia !== 'segment';
+  return isLocated(it) && it.hbVia !== 'segment' && it.hbVia !== 'ai-segment';
+}
+/** Already grounded by the AI placer (so the AI button shouldn't re-offer it). */
+function aiGrounded(it: ContextItem): boolean {
+  return it.via === 'ai' || it.hbVia === 'ai-phrase' || it.hbVia === 'ai-segment' || it.hbVia === 'ai-daf';
 }
 
 /**
@@ -55,10 +64,12 @@ export function ContextSourcePanel(props: {
   };
 
   const visible = createMemo(() => itemsOf(selected()));
-  const preciseCount = createMemo(() => props.items.filter(isPrecise).length);
-  // Items in the selected source not yet precisely located (candidates for AI).
+  const locatedCount = createMemo(() => props.items.filter(isLocated).length);
+  const dafCount = createMemo(() => props.items.filter((i) => i.hbVia === 'ai-daf').length);
+  // Candidates for the AI placer: not already word-precise and not yet grounded
+  // by the AI (so a second click doesn't re-send what it already placed).
   const needAi = createMemo(() =>
-    selected() === 'all' ? [] : itemsOf(selected()).filter((i) => !isPrecise(i)),
+    selected() === 'all' ? [] : itemsOf(selected()).filter((i) => !isPrecise(i) && !aiGrounded(i)),
   );
 
   const pick = (source: string) => {
@@ -77,7 +88,7 @@ export function ContextSourcePanel(props: {
       <h2 style={{ 'font-size': '0.9rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.05em', 'margin-bottom': '0.4rem' }}>
         Connections
         <span style={{ 'text-transform': 'none', 'margin-left': '0.6rem', color: '#aaa', 'font-size': '0.8rem' }}>
-          {props.items.length} items · {preciseCount()} located on the text
+          {props.items.length} items · {locatedCount()} located on the text{dafCount() > 0 ? ` · ${dafCount()} whole-daf` : ''}
         </span>
       </h2>
 
@@ -105,7 +116,15 @@ export function ContextSourcePanel(props: {
       <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.5rem' }}>
         <For each={visible()}>
           {(item) => (
-            <ContextCard item={item} onEnter={() => props.onHover({ segs: item.segs, words: item.hbWords ?? [] })} onLeave={props.onLeave} />
+            <ContextCard
+              item={item}
+              onEnter={() => props.onHover(
+                item.hbVia === 'ai-daf'
+                  ? { segs: [], words: [], daf: true }
+                  : { segs: item.segs, words: item.hbWords ?? [] },
+              )}
+              onLeave={props.onLeave}
+            />
           )}
         </For>
         <Show when={visible().length === 0}>
@@ -137,9 +156,13 @@ function ContextCard(props: { item: ContextItem; onEnter: () => void; onLeave: (
   const [open, setOpen] = createSignal(false);
   const it = props.item;
   const placed = () => isPrecise(it);
+  const wholeDaf = () => it.hbVia === 'ai-daf';
   const via = () => it.hbVia ?? it.via;
   const conf = () => it.hbConfidence ?? it.confidence;
-  const placeLabel = () => (placed() ? `${it.hbWords!.length} word${it.hbWords!.length === 1 ? '' : 's'}` : rangeLabel(it.segs, it.amud));
+  const placeLabel = () =>
+    wholeDaf() ? 'whole daf'
+      : placed() ? `${it.hbWords!.length} word${it.hbWords!.length === 1 ? '' : 's'}`
+      : rangeLabel(it.segs, it.amud);
   const bodyEn = () => stripTags(it.body?.en ?? '');
   const long = () => bodyEn().length > 280;
   const shown = () => (open() || !long() ? bodyEn() : bodyEn().slice(0, 280) + '…');
@@ -150,14 +173,14 @@ function ContextCard(props: { item: ContextItem; onEnter: () => void; onLeave: (
       onMouseLeave={props.onLeave}
       style={{
         border: '1px solid #eee', 'border-radius': '6px', padding: '0.55rem 0.7rem', background: '#fff',
-        'border-left': `3px solid ${placed() ? '#059669' : it.hbWords?.length ? '#f59e0b' : '#d1d5db'}`,
+        'border-left': `3px solid ${placed() ? '#059669' : wholeDaf() ? '#a78bfa' : it.hbWords?.length ? '#f59e0b' : '#d1d5db'}`,
       }}
     >
       <div style={{ display: 'flex', 'align-items': 'baseline', gap: '0.5rem', 'margin-bottom': '0.25rem', 'flex-wrap': 'wrap' }}>
         <span style={{ 'font-size': '0.68rem', 'font-weight': 700, color: '#8a2a2b', 'text-transform': 'uppercase', 'letter-spacing': '0.04em' }}>
           {it.sourceLabel}
         </span>
-        <span style={{ 'font-size': '0.68rem', 'font-family': 'monospace', color: placed() ? '#059669' : '#999' }}>
+        <span style={{ 'font-size': '0.68rem', 'font-family': 'monospace', color: placed() ? '#059669' : wholeDaf() ? '#7c3aed' : '#999' }}>
           {placeLabel()}
         </span>
         <Show when={via()}>

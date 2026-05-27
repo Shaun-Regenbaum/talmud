@@ -72,7 +72,7 @@ function hbQueryFor(item: ContextItem, quotes: Map<string, string>): LocateQuery
   return { phrase: leadingWords(item.title?.he, 6) ?? leadingWords(item.body?.he, 6), segs };
 }
 
-interface HL { segs: number[]; words: number[] }
+interface HL { segs: number[]; words: number[]; daf?: boolean }
 const EMPTY: HL = { segs: [], words: [] };
 
 export function AlignPage(): JSX.Element {
@@ -83,7 +83,7 @@ export function AlignPage(): JSX.Element {
   // and two granularities: `words` = exact HB word indices, `segs` = segments.
   const [pinned, setPinned] = createSignal<HL>(EMPTY);
   const [hover, setHover] = createSignal<HL>(EMPTY);
-  const effective = () => (hover().segs.length || hover().words.length ? hover() : pinned());
+  const effective = () => (hover().segs.length || hover().words.length || hover().daf ? hover() : pinned());
   // AI matches + the Hebrew quotes they emit (resolved to HB spans client-side).
   const [matches, setMatches] = createSignal<SegMatch[]>([]);
   const [aiQuotes, setAiQuotes] = createSignal<Map<string, string>>(new Map());
@@ -119,8 +119,26 @@ export function AlignPage(): JSX.Element {
     if (hb && hb.norm.length) {
       const quotes = aiQuotes();
       for (const it of items) {
+        // AI grounded this item at whole-daf level (placed by meaning, but no
+        // single segment fits): record it as such — no word span to highlight.
+        if (it.via === 'ai' && it.segs.length === 0) {
+          it.hbVia = 'ai-daf';
+          it.hbConfidence = it.confidence;
+          continue;
+        }
         const loc = locateInHb(hb, hbQueryFor(it, quotes));
-        if (loc) { it.hbWords = loc.words; it.hbVia = loc.via; it.hbConfidence = loc.confidence; }
+        if (!loc) continue;
+        it.hbWords = loc.words;
+        if (it.via === 'ai') {
+          // Contextual AI placement: trust the segment pick (chosen by meaning);
+          // a verbatim quote only TIGHTENS it onto exact words when it lands.
+          // Either way carry the AI's own confidence, not the locator's coarse 0.3.
+          it.hbVia = loc.via === 'segment' ? 'ai-segment' : 'ai-phrase';
+          it.hbConfidence = it.confidence ?? loc.confidence;
+        } else {
+          it.hbVia = loc.via;
+          it.hbConfidence = loc.confidence;
+        }
       }
     }
     return items;
@@ -203,8 +221,11 @@ export function AlignPage(): JSX.Element {
                     'font-size': '1.05rem',
                     'line-height': 1.7,
                     padding: '1rem',
-                    border: '1px solid #eee',
                     'border-radius': '6px',
+                    // A whole-daf grounding (hovering an "ai-daf" item) washes the
+                    // entire canvas, since it's about the page as a whole.
+                    border: effective().daf ? '1px solid #fcd34d' : '1px solid #eee',
+                    'box-shadow': effective().daf ? 'inset 0 0 0 9999px rgba(252,211,77,0.12)' : 'none',
                     background: '#fff',
                     'text-align': 'justify',
                   }}

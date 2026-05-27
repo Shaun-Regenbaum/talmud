@@ -25,12 +25,13 @@ You are given the daf as a numbered list of Hebrew segments with English transla
 For EACH item, decide which segment (or contiguous range of segments) it most directly discusses or comments on.
 Rules:
 - Use the segment INDICES shown (0-based).
+- Match by MEANING, not shared words: read the English translations to understand what each item is about, then pick the segment that discusses the same point — even when the item and the segment share no vocabulary (e.g. an English study note about a Hebrew line).
 - Most study-note items DO comment on a specific line — localize whenever you reasonably can. Prefer the single best segment over a wide range.
 - If an item maps to one segment, set segEnd = segStart.
 - If it spans consecutive segments, set segStart..segEnd.
-- Only set segStart = null when the item is genuinely about the whole daf (e.g. a general summary or methodology note) and no single segment fits.
+- Set segStart = null ONLY when the item genuinely concerns the whole daf (a general summary or methodology note) and no single segment fits best. This is a real "whole-daf" placement, not a failure — still give a confidence.
 - confidence is 0..1 (how sure you are of the localization).
-- "quote": copy 3-8 CONSECUTIVE words of HEBREW exactly as they appear in the chosen segment — the precise phrase the item is about — so it can be located in the printed text. Do not translate, paraphrase, reorder, or merge non-adjacent words. Use "" only if no phrase fits.
+- "quote": copy 3-8 CONSECUTIVE words of HEBREW exactly as they appear in the chosen segment — the precise phrase the item is about — so it can be tightened onto the exact printed words. Do not translate, paraphrase, reorder, or merge non-adjacent words. Use "" when no contiguous phrase fits; the segment placement still stands.
 Reply with ONLY JSON: {"matches":[{"key":"<key>","segStart":<int|null>,"segEnd":<int|null>,"confidence":<number>,"quote":"<hebrew or empty>"}]}`;
 
 export function buildMatchPrompt(
@@ -56,8 +57,10 @@ export function buildMatchPrompt(
 
 interface RawMatch { key?: unknown; segStart?: unknown; segEnd?: unknown; confidence?: unknown; quote?: unknown }
 
-/** Parse the model's JSON into validated SegMatches. Drops unknown keys,
- *  out-of-range segments, and whole-daf (null) results. */
+/** Parse the model's JSON into validated SegMatches. Drops unknown keys and
+ *  out-of-range segments. An explicit null `segStart` is a deliberate whole-daf
+ *  placement (kept, marked `wholeDaf`); a non-null but out-of-range index is junk
+ *  (dropped). */
 export function parseMatchResponse(content: string, validKeys: Set<string>, segCount: number): SegMatch[] {
   let parsed: { matches?: RawMatch[] };
   try { parsed = JSON.parse(content); } catch { return []; }
@@ -65,10 +68,15 @@ export function parseMatchResponse(content: string, validKeys: Set<string>, segC
   const out: SegMatch[] = [];
   for (const m of matches) {
     if (typeof m.key !== 'string' || !validKeys.has(m.key)) continue;
-    const start = toSeg(m.segStart, segCount);
-    if (start == null) continue; // null / whole-daf / out of range
-    const end = toSeg(m.segEnd, segCount);
     const confidence = typeof m.confidence === 'number' ? clamp01(m.confidence) : undefined;
+    if (m.segStart == null) {
+      // Explicit whole-daf grounding — a placement, not a drop.
+      out.push({ key: m.key, segs: [], via: 'ai', wholeDaf: true, confidence });
+      continue;
+    }
+    const start = toSeg(m.segStart, segCount);
+    if (start == null) continue; // a number but out of range → junk
+    const end = toSeg(m.segEnd, segCount);
     const quote = typeof m.quote === 'string' && m.quote.trim() ? m.quote.trim() : undefined;
     out.push({ key: m.key, segs: segRange(start, end != null && end >= start ? end : start), via: 'ai', confidence, quote });
   }
