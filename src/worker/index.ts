@@ -4263,6 +4263,14 @@ app.get('/api/context/:tractate/:page', async (c) => {
 // AI segment-matcher: place a batch of whole-daf context items onto the
 // segment(s) they discuss. Returns SegMatches the client applies. On-demand
 // (LLM cost); the deterministic matchers in /api/context run for free.
+/** Stable 32-bit FNV-1a of a daf's item-key set, for caching AI placements. */
+function hashMatchKeys(keys: string[]): string {
+  const s = [...keys].sort().join('|');
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return h.toString(36);
+}
+
 app.post('/api/context/match', async (c) => {
   let body: { tractate?: string; page?: string; items?: MatchInput[] };
   try { body = await c.req.json(); } catch { return c.json({ error: 'bad JSON body' }, 400); }
@@ -4270,10 +4278,21 @@ app.post('/api/context/match', async (c) => {
   const p = body.page;
   const items = Array.isArray(body.items) ? body.items.filter((i) => i && typeof i.key === 'string') : [];
   if (!t || !p || items.length === 0) return c.json({ error: 'tractate, page, and items[] required' }, 400);
+  const cache = c.env.CACHE;
+  // The AI placement for a fixed (daf, item-set) is stable, and auto-grounding
+  // re-requests it on every visit — so cache it forever (bump v1 to invalidate).
+  const cacheKey = `ctx-match:v1:${t}:${p}:${hashMatchKeys(items.map((i) => i.key))}`;
+  if (cache) {
+    const hit = await cache.get(cacheKey);
+    if (hit !== null) {
+      try { return c.json({ matches: JSON.parse(hit), cached: true }); } catch { /* fall through */ }
+    }
+  }
   try {
-    const segments = await getSefariaSegmentsCached(c.env.CACHE, t, p);
+    const segments = await getSefariaSegmentsCached(cache, t, p);
     if (!segments) return c.json({ matches: [], warning: 'no segments for daf' });
     const matches = await aiMatchToSegments(c.env, segments.he, segments.en, items);
+    if (cache) { try { await cache.put(cacheKey, JSON.stringify(matches)); } catch { /* ignore */ } }
     return c.json({ matches });
   } catch (err) {
     return c.json({ error: String(err) }, 502);

@@ -1,6 +1,6 @@
 import { createSignal, createMemo, createEffect, For, Show, type JSX } from 'solid-js';
 import { type ContextItem, rangeLabel } from '../lib/context/types';
-import { isLocated, isPrecise, isAiGrounded, placementOf } from '../lib/context/placement';
+import { isLocated, placementOf } from '../lib/context/placement';
 
 /** Highlight payload: precise HB word indices + the segments they sit in, or a
  *  whole-daf wash (`daf`). */
@@ -23,8 +23,8 @@ export function ContextSourcePanel(props: {
   onHover: (h: Hl) => void;
   onLeave: () => void;
   onSelectSource?: (source: string, h: Hl) => void;
-  onMatch?: (source: string, items: ContextItem[]) => void;
-  matchingSource?: string | null;
+  /** Auto-grounding progress, or null when idle/done. */
+  grounding?: { left: number; total: number } | null;
 }): JSX.Element {
   const [selected, setSelected] = createSignal<string>('all');
 
@@ -53,11 +53,6 @@ export function ContextSourcePanel(props: {
   const visible = createMemo(() => itemsOf(selected()));
   const locatedCount = createMemo(() => props.items.filter(isLocated).length);
   const dafCount = createMemo(() => props.items.filter((i) => placementOf(i)?.level === 'daf').length);
-  // Candidates for the AI placer: not already word-precise and not yet grounded
-  // by the AI (so a second click doesn't re-send what it already placed).
-  const needAi = createMemo(() =>
-    selected() === 'all' ? [] : itemsOf(selected()).filter((i) => !isPrecise(i) && !isAiGrounded(i)),
-  );
 
   const pick = (source: string) => {
     setSelected(source);
@@ -79,24 +74,22 @@ export function ContextSourcePanel(props: {
         </span>
       </h2>
 
+      <style>{`@keyframes ctx-spin { to { transform: rotate(360deg); } } .ctx-spin { animation: ctx-spin 0.7s linear infinite; }`}</style>
       <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.35rem', 'margin-bottom': '0.6rem', 'align-items': 'center' }}>
         <Tab active={selected() === 'all'} label="All" n={props.items.length} onClick={() => pick('all')} />
         <For each={sources()}>
           {(s) => <Tab active={selected() === s.source} label={s.label} n={s.n} onClick={() => pick(s.source)} />}
         </For>
-        <Show when={selected() !== 'all' && needAi().length > 0 && props.onMatch}>
-          <button
-            type="button"
-            disabled={props.matchingSource === selected()}
-            onClick={() => props.onMatch?.(selected(), needAi())}
-            style={{
-              'margin-left': '0.5rem', padding: '0.2rem 0.7rem', 'font-size': '0.78rem', 'border-radius': '6px',
-              border: '1px solid #0369a1', background: props.matchingSource === selected() ? '#e0f2fe' : '#0369a1',
-              color: props.matchingSource === selected() ? '#0369a1' : '#fff', cursor: 'pointer',
-            }}
-          >
-            {props.matchingSource === selected() ? 'matching…' : `Match ${needAi().length} to text (AI)`}
-          </button>
+        <Show when={props.grounding}>
+          {(g) => (
+            <span style={{ 'margin-left': '0.5rem', display: 'inline-flex', 'align-items': 'center', gap: '0.4rem', 'font-size': '0.78rem', color: '#0369a1' }}>
+              <span
+                class="ctx-spin"
+                style={{ width: '0.8rem', height: '0.8rem', border: '2px solid #bae6fd', 'border-top-color': '#0369a1', 'border-radius': '50%', 'box-sizing': 'border-box' }}
+              />
+              {g().left > 0 ? `grounding ${g().left} more…` : 'finishing…'}
+            </span>
+          )}
         </Show>
       </div>
 

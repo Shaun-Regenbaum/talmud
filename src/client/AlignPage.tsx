@@ -1,4 +1,4 @@
-import { createResource, createSignal, For, Show, createMemo, type JSX } from 'solid-js';
+import { createResource, createSignal, For, Show, createMemo, createEffect, type JSX } from 'solid-js';
 import { TRACTATE_OPTIONS, type TalmudPageData } from '../lib/sefref';
 import { tokenizeHebrewHtml } from './tokenize';
 import { injectHadran } from './injectHadran';
@@ -6,6 +6,7 @@ import { injectSegmentMarkers, type SegmentStats } from './injectSegmentMarkers'
 import { ContextSourcePanel } from './ContextSourcePanel';
 import type { ContextItem } from '../lib/context/types';
 import { applyMatches, type SegMatch } from '../lib/context/match';
+import { placementLevel, isAiGrounded } from '../lib/context/placement';
 import { buildHbWords, locateInHb, type HbWords, type LocateQuery } from './hbAlign';
 
 interface AlignedDaf extends TalmudPageData {
@@ -55,18 +56,25 @@ function leadingWords(s: string | undefined, n: number): string | undefined {
  *  quotes, before the " - " that separates the lemma from the comment. */
 function diburHaMaschil(he: string | undefined): string | undefined {
   if (!he) return undefined;
-  const lemma = stripTags(he).split(/\s[-־–—]\s/)[0];
+  // The lemma ends at the first separator between it and the comment: a dash,
+  // a sentence period, a colon, or "כו'/וכו'". (Rashi/Tosafot use the dash;
+  // Rishonim like the Rashba use a period — "המונח כאן וכאן אסור. פירש רש"י…".)
+  const lemma = stripTags(he).split(/\s[-־–—]\s|\.\s|:\s|\s?[וב]?כו['׳]/)[0];
   return leadingWords(lemma, 6);
 }
 
+/** Sources whose text opens with a Gemara lemma (dibur ha'maschil). */
+const DH_SOURCES = new Set(['sefaria-rashi', 'sefaria-tosafot', 'sefaria-rishonim']);
+
 /** What Hebrew to look for per source. AI quote (if any) wins; else the item's
- *  natural Hebrew anchor — the dibur ha'maschil for Rashi/Tosafot, the term/DH
- *  for dafyomi, leading Hebrew otherwise. `segs` always passed (bias + fallback). */
+ *  natural Hebrew anchor — the dibur ha'maschil for Rashi/Tosafot/Rishonim, the
+ *  term/DH for dafyomi, leading Hebrew otherwise. `segs` always passed (bias +
+ *  fallback); when an item has none, the locator's no-window phrase search runs. */
 function hbQueryFor(item: ContextItem, quotes: Map<string, string>): LocateQuery {
   const segs = item.segs;
   const aiQuote = quotes.get(item.key);
   if (aiQuote) return { phrase: aiQuote, segs };
-  if (item.source === 'sefaria-rashi' || item.source === 'sefaria-tosafot') {
+  if (DH_SOURCES.has(item.source)) {
     return { phrase: diburHaMaschil(item.body?.he), segs };
   }
   return { phrase: leadingWords(item.title?.he, 6) ?? leadingWords(item.body?.he, 6), segs };
@@ -87,13 +95,14 @@ export function AlignPage(): JSX.Element {
   // AI matches + the Hebrew quotes they emit (resolved to HB spans client-side).
   const [matches, setMatches] = createSignal<SegMatch[]>([]);
   const [aiQuotes, setAiQuotes] = createSignal<Map<string, string>>(new Map());
-  const [matchingSource, setMatchingSource] = createSignal<string | null>(null);
+  // Auto-grounding progress: { left, total } while running, null when idle/done.
+  const [grounding, setGrounding] = createSignal<{ left: number; total: number } | null>(null);
 
   const ref = createMemo(() => ({ tractate: tractate(), page: page() }));
   const [daf] = createResource(ref, fetchDaf);
   const [context] = createResource(ref, fetchContext);
   // Reset client-side state when the daf changes.
-  createMemo(() => { ref(); setMatches([]); setAiQuotes(new Map()); setPinned(EMPTY); });
+  createMemo(() => { ref(); setMatches([]); setAiQuotes(new Map()); setPinned(EMPTY); setGrounding(null); });
 
   const rendered = createMemo(() => {
     const d = daf();
@@ -144,36 +153,74 @@ export function AlignPage(): JSX.Element {
     return items;
   });
 
-  const runAiMatch = async (source: string, items: ContextItem[]) => {
-    setMatchingSource(source);
-    try {
-      const res = await fetch('/api/context/match', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          tractate: tractate(),
-          page: page(),
-          items: items.map((it) => ({
-            key: it.key,
-            label: it.sourceLabel,
-            title: it.title?.en ?? it.title?.he,
-            text: (it.body?.en ?? it.body?.he ?? '').slice(0, 600),
-          })),
-        }),
-      });
-      if (!res.ok) return;
-      const data = (await res.json()) as { matches?: SegMatch[] };
-      const got = data.matches ?? [];
-      if (got.length) {
-        const nextQuotes = new Map(aiQuotes());
-        for (const m of got) if (m.quote) nextQuotes.set(m.key, m.quote);
-        setAiQuotes(nextQuotes);
-        setMatches((prev) => [...prev, ...got]);
-      }
-    } finally {
-      setMatchingSource(null);
-    }
+  /** Ground one batch of items via the AI placer; apply the results. */
+  const groundBatch = async (items: ContextItem[]): Promise<void> => {
+    const res = await fetch('/api/context/match', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        tractate: tractate(),
+        page: page(),
+        items: items.map((it) => ({
+          key: it.key,
+          label: it.sourceLabel,
+          title: it.title?.en ?? it.title?.he,
+          text: (it.body?.en ?? it.body?.he ?? '').slice(0, 600),
+        })),
+      }),
+    });
+    if (!res.ok) return;
+    const data = (await res.json()) as { matches?: SegMatch[] };
+    const got = data.matches ?? [];
+    if (!got.length) return;
+    const nextQuotes = new Map(aiQuotes());
+    for (const m of got) if (m.quote) nextQuotes.set(m.key, m.quote);
+    setAiQuotes(nextQuotes);
+    setMatches((prev) => [...prev, ...got]);
   };
+
+  // Items that aren't grounded on a span yet (unplaced, or only amud-level) and
+  // that the AI placer hasn't already handled — the auto-grounding candidates.
+  const candidatesToGround = (): ContextItem[] =>
+    contextItems().filter((it) => {
+      const lvl = placementLevel(it);
+      return (lvl === null || lvl === 'amud') && !isAiGrounded(it);
+    });
+
+  /** Automatically ground everything on load, batched, with a progress count.
+   *  Server-cached per daf, so revisits are instant and don't re-spend. */
+  const runAutoGrounding = async (forKey: string) => {
+    let pending = candidatesToGround();
+    const total = pending.length;
+    if (!total) { setGrounding(null); return; }
+    setGrounding({ left: total, total });
+    const BATCH = 20;
+    let done = 0;
+    while (pending.length) {
+      if (`${tractate()}:${page()}` !== forKey) return; // daf changed mid-run
+      const batch = pending.slice(0, BATCH);
+      await groundBatch(batch);
+      done += batch.length;
+      setGrounding({ left: Math.max(0, total - done), total });
+      // Re-derive; drop the batch we just sent so an item the model couldn't
+      // place isn't retried forever.
+      const sent = new Set(batch.map((b) => b.key));
+      pending = candidatesToGround().filter((it) => !sent.has(it.key));
+    }
+    setGrounding(null);
+  };
+
+  // Fire once per daf, when the context pool and the HB word stream are ready.
+  let autoRunFor = '';
+  createEffect(() => {
+    const items = context();
+    const hb = hbWords();
+    const key = `${tractate()}:${page()}`;
+    if (!items || !items.length || !hb) return;
+    if (autoRunFor === key) return;
+    autoRunFor = key;
+    void runAutoGrounding(key);
+  });
 
   return (
     <main class="page-shell" style={{ '--page-max': '1400px', 'font-family': 'system-ui, -apple-system, sans-serif', color: '#222' }}>
@@ -265,8 +312,7 @@ export function AlignPage(): JSX.Element {
                   onHover={(h) => setHover(h)}
                   onLeave={() => setHover(EMPTY)}
                   onSelectSource={(_source, h) => setPinned(h)}
-                  onMatch={runAiMatch}
-                  matchingSource={matchingSource()}
+                  grounding={grounding()}
                 />
               </section>
             </div>
