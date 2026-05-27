@@ -22,6 +22,7 @@
 
 import { createSignal } from 'solid-js';
 import { enqueueEnrichmentRun } from './MarkEnrichmentCards';
+import { isPausedError, isAbort } from './enrichmentQueue';
 
 export interface PrefetchProgress {
   /** `${tractate}:${page}` this cohort belongs to. */
@@ -31,6 +32,12 @@ export interface PrefetchProgress {
   /** i18n catalog KEY for the family currently being warmed (translated by the
    *  consumer via t()), or null when idle/done. */
   currentLabel: string | null;
+  /** A warm task hit the spend-budget pause (429). Sticky for the cohort so the
+   *  load bar can say so instead of silently filling. */
+  paused: boolean;
+  /** Count of warm tasks that errored for a non-pause, non-abort reason
+   *  (provider down, missing key, etc.). Drives the systemic-failure notice. */
+  failed: number;
 }
 
 const [progress, setProgress] = createSignal<PrefetchProgress>({
@@ -38,10 +45,21 @@ const [progress, setProgress] = createSignal<PrefetchProgress>({
   total: 0,
   done: 0,
   currentLabel: null,
+  paused: false,
+  failed: 0,
 });
 
 /** Read the live prefetch progress (consumed by DafLoadProgress). */
 export const prefetchProgress = progress;
+
+/** What top-level notice (if any) the load bar should surface for a cohort.
+ *  'paused' the moment any task is budget-paused; 'failed' once several tasks
+ *  have errored (a single transient hiccup stays quiet). Pure + tested. */
+export function loadNotice(p: PrefetchProgress): 'paused' | 'failed' | null {
+  if (p.paused) return 'paused';
+  if (p.failed >= 3) return 'failed';
+  return null;
+}
 
 // Enrichments to warm per mark instance, keyed by mark id. Keep in sync with
 // the aggregate/suggested-questions enrichments registered in
@@ -106,7 +124,7 @@ let activeController: AbortController | null = null;
  *  daf navigation so stale section-warming work is dropped immediately. */
 export function cancelPrefetch(): void {
   if (activeController) { activeController.abort(); activeController = null; }
-  setProgress({ dafKey: '', total: 0, done: 0, currentLabel: null });
+  setProgress({ dafKey: '', total: 0, done: 0, currentLabel: null, paused: false, failed: 0 });
 }
 
 interface MarkRun { parsed?: unknown }
@@ -120,6 +138,7 @@ export function prefetchDaf(
   tractate: string,
   page: string,
   marks: Record<string, MarkRun | undefined>,
+  opts?: { overview?: boolean },
 ): void {
   const dafKey = `${tractate}:${page}`;
   const myGen = ++gen;
@@ -146,10 +165,12 @@ export function prefetchDaf(
   // Whole-daf argument overview — one daf-level run, COUNTED in the bar. Warms
   // argument-overview.synthesis, which pulls the cross-section flow graph
   // (argument-overview.flow, deepseek-v4-pro + reasoning) in as a dependency,
-  // so opening the overview chip is a cache hit. Only when the daf actually has
-  // argument sections to relate.
+  // so opening the overview chip is a cache hit. Gated on `opts.overview` (dev
+  // mode) — the chip is dev-only/experimental, so we don't pay the reasoning
+  // pass on every daf load for users who can't open it. Only when the daf
+  // actually has argument sections to relate.
   const argInstances = (marks['argument']?.parsed as { instances?: MarkInstance[] } | undefined)?.instances;
-  if (Array.isArray(argInstances) && argInstances.length > 0) {
+  if (opts?.overview && Array.isArray(argInstances) && argInstances.length > 0) {
     tasks.push({
       enrichmentId: 'argument-overview.synthesis',
       instance: { fields: {} },
@@ -162,23 +183,31 @@ export function prefetchDaf(
     total: tasks.length,
     done: 0,
     currentLabel: tasks.length > 0 ? 'dafLoad.sections' : null,
+    paused: false,
+    failed: 0,
   });
   if (tasks.length === 0) return;
 
   for (const t of tasks) {
+    // Resolve with the error (or null) so we can classify the outcome — a card
+    // still generates on open, but a budget pause or a wave of failures should
+    // surface in the bar instead of filling silently.
     void enqueueEnrichmentRun(t.enrichmentId, tractate, page, t.instance, t.instanceKey, controller.signal)
-      // Best-effort: a failed or aborted prefetch just means the card
-      // generates on open.
-      .catch(() => undefined)
-      .finally(() => {
-        if (myGen !== gen) return; // superseded by a newer daf
+      .then(() => null, (err: unknown) => err)
+      .then((err: unknown) => {
+        if (myGen !== gen || controller.signal.aborted || isAbort(err)) return; // superseded / navigated away
+        const paused = isPausedError(err);
+        const failed = err != null && !paused;
         setProgress((p) => {
           if (p.dafKey !== dafKey) return p;
           const done = p.done + 1;
           return {
+            ...p,
             dafKey,
             total: p.total,
             done,
+            paused: p.paused || paused,
+            failed: p.failed + (failed ? 1 : 0),
             currentLabel: done < p.total ? (FRIENDLY[t.enrichmentId] ?? 'dafLoad.sections') : null,
           };
         });

@@ -624,6 +624,14 @@ const CATALOG = {
   'dafLoad.loadingSections': { en: 'Loading {section} — {done} of {total}', he: 'טוען {section} — {done} מתוך {total}' },
   'dafLoad.sections': { en: 'sections', he: 'מקטעים' },
   'dafLoad.upToDate': { en: 'Up to date', he: 'מעודכן' },
+  'dafLoad.paused': {
+    en: 'AI generation is paused for now (spend budget reached). Cards will fill in once it resumes.',
+    he: 'יצירת התוכן בבינה מלאכותית מושהית כעת (תקציב ההוצאה הושג). הכרטיסים יתמלאו כשהיא תתחדש.',
+  },
+  'dafLoad.failed': {
+    en: 'Some content couldn’t be generated just now. Open a card to retry.',
+    he: 'חלק מהתוכן לא נוצר כעת. פתחו כרטיס כדי לנסות שוב.',
+  },
   // Prefetch family labels — substituted into dafLoad.loadingSections. Keyed
   // from dafPrefetch's FRIENDLY map so the warmed-family name localizes too.
   'dafLoad.family.arguments': { en: 'arguments', he: 'סוגיות' },
