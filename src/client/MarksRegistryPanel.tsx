@@ -155,6 +155,31 @@ function writeEnabled(s: Set<string>) {
   try { localStorage.setItem(ENABLED_KEY, JSON.stringify([...s])); } catch { /* ignore */ }
 }
 
+// Marks introduced after the "enable all on first visit" default should still
+// turn ON for users who already have a saved set (otherwise a new mark is
+// invisible to every existing user). Each entry is applied AT MOST ONCE — its
+// tag is recorded so a later explicit toggle-off sticks. Append a new entry
+// (with a fresh tag) whenever a new default-on mark ships.
+const DEFAULTS_APPLIED_KEY = 'marks-registry:defaults-applied:v1';
+const FORCE_ON_DEFAULTS: { tag: string; ids: string[] }[] = [
+  { tag: 'argument-overview-2026-05', ids: ['argument-overview'] },
+];
+
+function readAppliedDefaults(): Set<string> {
+  try {
+    const raw = localStorage.getItem(DEFAULTS_APPLIED_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as unknown;
+      if (Array.isArray(parsed)) return new Set(parsed.filter((s): s is string => typeof s === 'string'));
+    }
+  } catch { /* ignore */ }
+  return new Set();
+}
+
+function writeAppliedDefaults(tags: Iterable<string>) {
+  try { localStorage.setItem(DEFAULTS_APPLIED_KEY, JSON.stringify([...tags])); } catch { /* ignore */ }
+}
+
 async function fetchAll(): Promise<{ marks: WorkerMarkDefinition[]; enrichments: EnrichmentDefinition[] }> {
   const [m, e] = await Promise.all([
     fetch('/api/studio/marks').then((r) => r.ok ? r.json() : { marks: [] }),
@@ -293,12 +318,32 @@ export default function MarksRegistryPanel(props: Props) {
   createEffect(() => {
     const reg = registry();
     if (!reg) return;
-    if (hasEverSavedEnabled()) return;
     const promoted = reg.marks.filter((m) => m.status !== 'draft').map((m) => m.id);
     if (promoted.length === 0) return;
-    const next = new Set([...enabled(), ...promoted]);
-    setEnabled(next);
-    writeEnabled(next);
+
+    if (!hasEverSavedEnabled()) {
+      // First visit: every promoted mark on. Record all force-on tags as
+      // applied so the migration below never re-enables them later.
+      const next = new Set([...enabled(), ...promoted]);
+      setEnabled(next);
+      writeEnabled(next);
+      writeAppliedDefaults(FORCE_ON_DEFAULTS.map((d) => d.tag));
+      return;
+    }
+
+    // Returning user with a saved set: apply any not-yet-applied force-on
+    // defaults exactly once, so newly-shipped default-on marks turn on without
+    // clobbering the user's explicit choices for everything else.
+    const applied = readAppliedDefaults();
+    const pending = FORCE_ON_DEFAULTS.filter((d) => !applied.has(d.tag));
+    if (pending.length === 0) return;
+    const ids = pending.flatMap((d) => d.ids).filter((id) => promoted.includes(id));
+    if (ids.length > 0) {
+      const next = new Set([...enabled(), ...ids]);
+      setEnabled(next);
+      writeEnabled(next);
+    }
+    writeAppliedDefaults([...applied, ...pending.map((d) => d.tag)]);
   });
 
   // Re-publish enabled marks (with their definitions) and the parsed run
