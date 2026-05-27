@@ -290,12 +290,15 @@ export async function getDafyomiContentCached(
 
   const path = `/dafyomi/${encodeURIComponent(tractate)}/${daf}.json`;
   try {
-    let res = await assets.fetch(new Request(`https://assets.local${path}`));
-    if (!res.ok && assetOrigin) res = await fetch(`${assetOrigin}${path}`);
-    if (res.ok) {
-      const data = (await res.json()) as DafyomiDaf;
-      await writeCache(cache, key, data);
-      return data;
+    // A committed corpus file is real JSON. NOTE: the production ASSETS binding
+    // serves the SPA index.html with status 200 for a missing path (so res.ok
+    // is true even on a miss) — only accept a body that's actually our JSON,
+    // otherwise treat it as "not in the corpus" and fall through to live.
+    let corpus = await readJsonAsset(assets.fetch(new Request(`https://assets.local${path}`)));
+    if (!corpus && assetOrigin) corpus = await readJsonAsset(fetch(`${assetOrigin}${path}`));
+    if (corpus) {
+      await writeCache(cache, key, corpus);
+      return corpus;
     }
     // Not in the committed corpus — fetch + parse live (then memoize) so every
     // daf works, not just the pre-scraped ones.
@@ -312,6 +315,20 @@ export async function getDafyomiContentCached(
     // eslint-disable-next-line no-console
     console.warn(`[source-cache] dafyomi read failed for ${tractate} ${daf}:`, err);
     await writeCache(cache, key, { __failed: true } satisfies FailedMarker, TTL_NEGATIVE);
+    return null;
+  }
+}
+
+/** Read a response as DafyomiDaf JSON, or null if it isn't (e.g. a 404, or the
+ *  SPA index.html that asset servers return for missing paths). */
+async function readJsonAsset(p: Promise<Response>): Promise<DafyomiDaf | null> {
+  try {
+    const res = await p;
+    if (!res.ok) return null;
+    const text = await res.text();
+    if (!text.trimStart().startsWith('{')) return null; // HTML / SPA fallback
+    return JSON.parse(text) as DafyomiDaf;
+  } catch {
     return null;
   }
 }
