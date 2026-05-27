@@ -293,13 +293,18 @@ function collectSurroundingHebrew(els: HTMLElement[], windowSize = CONTEXT_WINDO
   };
 }
 
-// Module-level session caches shared across remounts.
+// Module-level session caches shared across remounts. Bounded with LRU
+// eviction so they restore instantly on back-nav / language flip but don't
+// grow without limit over a long session (one entry per daf × lang). ~16 dapim
+// per language is far more than any realistic back-nav window.
 import type { IdentifiedRabbi } from './dafContext';
+import { LruMap } from '../lib/lruMap';
 
-const analysisSessionCache = new Map<string, DafAnalysis>();
-const halachaSessionCache = new Map<string, HalachaResult>();
-const aggadataSessionCache = new Map<string, AggadataResult>();
-const pesukimSessionCache = new Map<string, PesukimResult>();
+const SESSION_CACHE_MAX = 32;
+const analysisSessionCache = new LruMap<string, DafAnalysis>(SESSION_CACHE_MAX);
+const halachaSessionCache = new LruMap<string, HalachaResult>(SESSION_CACHE_MAX);
+const aggadataSessionCache = new LruMap<string, AggadataResult>(SESSION_CACHE_MAX);
+const pesukimSessionCache = new LruMap<string, PesukimResult>(SESSION_CACHE_MAX);
 
 const GEN_KEY = 'daf.showGenMarkers';
 const COMMENTARIES_KEY = 'daf.toggle.commentaries';

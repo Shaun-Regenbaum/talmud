@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, beforeAll } from 'vitest';
 import type { RunResult } from '../src/client/enrichmentQueue';
+import type { LruMap } from '../src/lib/lruMap';
 
 // The module registers a `marks-runs-invalidate` listener on `window` at load
 // (guarded by `typeof window !== 'undefined'`). The default test env is `node`
@@ -10,7 +11,7 @@ class FakeWindow extends EventTarget {}
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (globalThis as any).window = new FakeWindow();
 
-let runResultCache: Map<string, RunResult>;
+let runResultCache: LruMap<string, RunResult>;
 let runCacheKey: (e: string, t: string, p: string, i: string, lang: string) => string;
 let clearRunResultCache: () => void;
 

@@ -9,6 +9,7 @@
  */
 
 import { queueActivity } from './aiActivity';
+import { LruMap } from '../lib/lruMap';
 
 export interface RunResult {
   content: string;
@@ -48,8 +49,10 @@ export function isAbort(err: unknown): boolean {
 // re-click renders instantly and never touches the queue at all. Within a
 // session, instanceKey ↔ mark_input is stable per (tractate, page), so this is
 // safe. Cleared wholesale on `marks-runs-invalidate` (model/prompt changes)
-// and on full reload.
-export const runResultCache = new Map<string, RunResult>();
+// and on full reload. LRU-bounded so a long session (a heavy daf mounts dozens
+// of move/anchor cards) doesn't accumulate run results without limit — an
+// evicted entry just re-fetches (usually a fast server cache hit).
+export const runResultCache = new LruMap<string, RunResult>(1000);
 
 export function runCacheKey(enrichmentId: string, tractate: string, page: string, instanceKey: string, lang: string): string {
   return `${enrichmentId}:${tractate}:${page}:${instanceKey}:${lang}`;
