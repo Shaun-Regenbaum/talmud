@@ -23,6 +23,7 @@
 import { createResource, createSignal, createEffect, onMount, onCleanup, untrack, For, Show, type JSX } from 'solid-js';
 import { trackAI } from './aiActivity';
 import { lang } from './i18n';
+import { devModeActive } from './DevModeShelf';
 import type { SeedMark } from './seed-marks';
 import type { MarkDef as RendererMarkDef, MarkRunOutput as RendererMarkRunOutput } from './renderers/dispatch';
 
@@ -53,6 +54,8 @@ export interface WorkerMarkDefinition {
   category?: string;
   /** UI nesting hint — when set, the panel groups this mark under that parent. */
   parent_mark?: string;
+  /** Experimental feature flag — hidden from readers; only surfaces in dev mode. */
+  experimental?: boolean;
   anchor: 'segment' | 'segment-range' | 'phrase' | 'multi-anchor' | 'cross-daf' | 'external' | 'whole-daf';
   render: { kind: string; [k: string]: unknown };
   extractor: {
@@ -281,6 +284,19 @@ interface Props {
 
 export default function MarksRegistryPanel(props: Props) {
   const [registry, { refetch: refetchDefs }] = createResource(fetchAll);
+  // Experimental marks (e.g. the whole-daf argument map) are hidden from readers
+  // and only surface in dev mode — across the toggle list, rendering, status,
+  // the auto-run loop, and first-visit default-on. devModeActive() is reactive,
+  // so flipping dev mode shows/hides them live without a reload.
+  const visibleMarks = (reg: { marks: WorkerMarkDefinition[] } | undefined): WorkerMarkDefinition[] =>
+    reg ? reg.marks.filter((m) => !m.experimental || devModeActive()) : [];
+  // An enrichment is hidden when its parent mark is experimental and dev is off
+  // — so a hidden mark's enrichments neither show in the panel nor auto-run.
+  const hiddenEnrichment = (markId: string | undefined): boolean => {
+    if (devModeActive() || !markId) return false;
+    const reg = registry();
+    return (reg?.marks ?? []).some((m) => m.id === markId && m.experimental === true);
+  };
   const [enabled, setEnabled] = createSignal<Set<string>>(readEnabled());
   const [runs, setRuns] = createSignal<Record<string, RunState>>({});
   // Expand state per mark id — enrichments under each mark are hidden
@@ -318,7 +334,7 @@ export default function MarksRegistryPanel(props: Props) {
   createEffect(() => {
     const reg = registry();
     if (!reg) return;
-    const promoted = reg.marks.filter((m) => m.status !== 'draft').map((m) => m.id);
+    const promoted = visibleMarks(reg).filter((m) => m.status !== 'draft').map((m) => m.id);
     if (promoted.length === 0) return;
 
     if (!hasEverSavedEnabled()) {
@@ -354,7 +370,7 @@ export default function MarksRegistryPanel(props: Props) {
     if (!reg) return;
     const on = enabled();
     const defs: RendererMarkDef[] = [];
-    for (const m of reg.marks) {
+    for (const m of visibleMarks(reg)) {
       if (!on.has(m.id)) continue;
       defs.push({ id: m.id, anchor: m.anchor, render: m.render });
     }
@@ -385,7 +401,7 @@ export default function MarksRegistryPanel(props: Props) {
     const on = enabled();
     const r = runs();
     const out: MarkStatusEntry[] = [];
-    for (const m of reg.marks) {
+    for (const m of visibleMarks(reg)) {
       if (!on.has(m.id)) continue;
       const s = r[m.id];
       if (!s || s.kind === 'idle') {
@@ -435,7 +451,7 @@ export default function MarksRegistryPanel(props: Props) {
     const stamp = `${props.tractate}/${props.page}/${lang()}`;
 
     untrack(() => {
-      for (const m of reg.marks) {
+      for (const m of visibleMarks(reg)) {
         if (!on.has(m.id)) continue;
         const cur = runs()[m.id];
         if (cur && cur.kind !== 'idle' && cur.stamp === stamp) continue;
@@ -446,6 +462,7 @@ export default function MarksRegistryPanel(props: Props) {
         );
       }
       for (const e of reg.enrichments) {
+        if (hiddenEnrichment(e.mark)) continue; // experimental mark, dev off
         if (!on.has(e.id)) continue;
         const cur = runs()[e.id];
         if (cur && cur.kind !== 'idle' && cur.stamp === stamp) continue;
@@ -463,18 +480,17 @@ export default function MarksRegistryPanel(props: Props) {
    *  proper port replaces the legacy wrapper). */
   const rows = (): Row[] => {
     const reg = registry();
-    const workerMarks = reg?.marks ?? [];
-    const enrichments = reg?.enrichments ?? [];
-    const portedIds = new Set(workerMarks.map((m) => m.id));
-    const visibleMarks = workerMarks;
-    const visibleEnrichments = enrichments;
+    const marks = visibleMarks(reg); // experimental marks gated to dev mode
+    const portedIds = new Set(marks.map((m) => m.id));
+    // Hide enrichments belonging to a hidden (experimental, non-dev) mark.
+    const enrichments = (reg?.enrichments ?? []).filter((e) => !hiddenEnrichment(e.mark));
     const seeds: Row[] = props.seedMarks
       .filter((s) => !portedIds.has(s.id))
       .map((s) => ({ source: 'seed' as const, seed: s }));
     return [
-      ...visibleMarks.map((d): Row => ({ source: 'mark', def: d })),
+      ...marks.map((d): Row => ({ source: 'mark', def: d })),
       ...seeds,
-      ...visibleEnrichments.map((d): Row => ({ source: 'enrichment', def: d })),
+      ...enrichments.map((d): Row => ({ source: 'enrichment', def: d })),
     ];
   };
 

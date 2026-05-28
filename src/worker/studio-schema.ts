@@ -371,6 +371,12 @@ export interface MarkDefinition {
    *  parent_mark='argument'. */
   parent_mark?: string;
 
+  /** Experimental (vs production) feature flag. Experimental marks — and their
+   *  enrichments, rendering, and auto-run — are hidden from readers and only
+   *  surface when dev mode is on. Orthogonal to `status` (the author→promote
+   *  workflow): a mark can be `promoted` yet still `experimental`. */
+  experimental?: boolean;
+
   status: MarkStatus;
   /** Derived from sha256(extractor + render). Bumped automatically on save.
    *  Cache key for instances includes this — editing the prompt auto-busts. */

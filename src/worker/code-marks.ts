@@ -516,6 +516,9 @@ export const CODE_MARKS: MarkDefinition[] = [
     label: 'Argument map',
     description: 'Whole-daf argument flowchart (one button → sidebar voice map for the entire page), grounded on dafyomi.co.il study context.',
     category: 'experimental',
+    // Dev-only for now: the whole-daf diagram is still being shaped (sugya-
+    // spanning ranges, cross-daf boundaries). Hidden from readers until promoted.
+    experimental: true,
     anchor: 'whole-daf',
     render: {
       kind: 'chip',
