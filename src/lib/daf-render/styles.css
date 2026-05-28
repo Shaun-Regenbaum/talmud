@@ -180,6 +180,18 @@
   font-weight: bold;
 }
 
+/* Some Sefaria commentary pieces (e.g. Rashi on Eruvin 102a) embed the printed
+   page's geometric diagrams as inline base64 <img> data URIs. With no rule they
+   render baseline-aligned mid-paragraph, inflating that one line box and
+   stranding its few words in a band of whitespace. Render each as its own
+   centered block, capped to the column width, matching the printed page. */
+.daf-root .daf-text img {
+  display: block;
+  margin: 0.5em auto;
+  max-width: 100%;
+  height: auto;
+}
+
 /* HebrewBooks wraps each Tosafot/commentary section in a block-level div with
    margin-bottom:3px. We want sections to flow inline (short sections continue
    on the same line as the next section) rather than each taking its own line,
