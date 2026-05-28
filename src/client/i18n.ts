@@ -118,6 +118,7 @@ const CATALOG = {
   },
   'dev.usageReports': { en: 'Usage & reports', he: 'שימוש ודוחות' },
   'dev.alignmentDebug': { en: 'Alignment debug', he: 'ניפוי יישור' },
+  'dev.mcpGuide': { en: 'Connect via MCP', he: 'חיבור דרך MCP' },
 
   // — Argument sidebar —
   'argument.title': { en: 'Argument', he: 'סוגיה' },

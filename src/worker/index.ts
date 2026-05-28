@@ -157,6 +157,10 @@ interface Bindings {
   // When '1', the background Sefaria Shas walk also enqueues rabbi.observations
   // per amud (full reverse-index backfill). OFF by default — see WarmEnv.
   OBSERVATIONS_WARM_SHAS?: string;
+  // Dynamic Worker Loader binding (wrangler.toml `worker_loaders`). Spins up the
+  // isolated sandbox the code-mode MCP `execute` tool runs in. Optional: when
+  // unset, GET/POST /mcp returns 503 and the rest of the worker is unaffected.
+  LOADER?: WorkerLoader;
   // Shared secret gating the privileged /api/studio/run knobs (ad_hoc,
   // model_override, bypass_cache) and the admin mutation endpoints. Presented
   // by trusted tools as the `x-studio-secret` header. UNSET => every request is
@@ -434,6 +438,60 @@ const STRATEGY_NAMES = [
 const app = new Hono<{ Bindings: Bindings }>();
 
 app.get('/api/health', (c) => c.json({ ok: true }));
+
+/**
+ * Code-mode MCP server (Streamable HTTP) at /mcp. Exposes two tools — `search`
+ * and `execute` — built from the curated OpenAPI spec (mcp-openapi.ts). The
+ * `execute` tool runs LLM-written code in an isolated sandbox (env.LOADER) whose
+ * only outside access is the `request` bridge below, which re-enters our own
+ * Hono app in-process for any /api/* path. The endpoint is public and gets the
+ * untrusted safe subset; a trusted operator can forward an `x-studio-secret`
+ * header on their MCP client to unlock the privileged /api/studio/run knobs.
+ */
+app.all('/mcp', async (c) => {
+  if (!c.env.LOADER) {
+    return c.json({ error: 'MCP unavailable: worker_loaders LOADER binding not configured' }, 503);
+  }
+  // Loaded lazily: @cloudflare/codemode imports `cloudflare:workers` (RpcTarget),
+  // which only resolves inside workerd. A static import would break the node
+  // unit tests that import this module (tests/*.test.ts -> src/worker/index).
+  const [{ StreamableHTTPTransport }, { buildCodeModeMcpServer }] = await Promise.all([
+    import('@hono/mcp'),
+    import('./mcp'),
+  ]);
+  const studioSecret = c.req.header('x-studio-secret');
+  const server = buildCodeModeMcpServer({
+    loader: c.env.LOADER,
+    request: async ({ method, path, query, body }) => {
+      if (typeof path !== 'string' || !path.startsWith('/api/')) {
+        return { error: 'request bridge only proxies /api/* paths' };
+      }
+      const u = new URL(path, 'http://internal');
+      if (query) {
+        for (const [k, v] of Object.entries(query)) {
+          if (v !== undefined) u.searchParams.set(k, String(v));
+        }
+      }
+      const headers: Record<string, string> = { 'content-type': 'application/json' };
+      if (studioSecret) headers['x-studio-secret'] = studioSecret;
+      try {
+        const res = await app.request(
+          u.pathname + u.search,
+          { method, headers, body: body == null || method === 'GET' ? undefined : JSON.stringify(body) },
+          c.env,
+        );
+        const text = await res.text();
+        try { return JSON.parse(text); } catch { return text; }
+      } catch (err) {
+        return { error: err instanceof Error ? err.message : String(err) };
+      }
+    },
+  });
+  const transport = new StreamableHTTPTransport();
+  await server.connect(transport);
+  const res = await transport.handleRequest(c);
+  return res ?? c.body(null, 204);
+});
 
 // AI Gateway smoke test. Reports gateway config + routes a tiny Kimi prompt
 // through whichever path is active (gateway when configured, else binding).

@@ -2779,6 +2779,13 @@ export default function DafViewer(): JSX.Element {
         >
           {t('dev.alignmentDebug')}
         </a>
+        {' · '}
+        <a
+          href="#mcp"
+          style={{ color: 'inherit', 'text-decoration': 'none', 'border-bottom': '1px dotted #bbb' }}
+        >
+          {t('dev.mcpGuide')}
+        </a>
       </footer>
       </section>
       </div>
