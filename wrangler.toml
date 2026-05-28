@@ -3,6 +3,12 @@ main = "src/worker/index.ts"
 compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
 
+# Dynamic Worker Loader — powers the code-mode MCP server at /mcp. The `execute`
+# tool runs LLM-written code in an isolated worker spun up via env.LOADER; the
+# sandbox has no env/secrets and no outbound network (its only host access is the
+# /api request bridge in src/worker/mcp.ts). See @cloudflare/codemode.
+worker_loaders = [{ binding = "LOADER" }]
+
 # Custom production domain. Requires shaunregenbaum.com to be an active zone
 # on the same Cloudflare account (PropheX) that `wrangler whoami` reports.
 routes = [
