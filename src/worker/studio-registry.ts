@@ -46,6 +46,8 @@ export interface MarkDefinition {
   dependencies?: MarkDependency[];
   /** UI-only nesting hint — see MarkDefinition.parent_mark in studio-schema.ts. */
   parent_mark?: string;
+  /** Experimental feature flag — dev-only visibility. See studio-schema.ts. */
+  experimental?: boolean;
   /** Bump to invalidate cached extractions for this mark. */
   cache_version: string;
   source: 'kv' | 'code';
@@ -241,6 +243,7 @@ export function validateMark(input: unknown): { ok: true; spec: Omit<MarkDefinit
       user_prompt_template: typeof m.user_prompt_template === 'string' ? m.user_prompt_template : undefined,
       fields_schema: m.fields_schema,
       dependencies: dv.deps,
+      experimental: m.experimental === true || undefined,
       cache_version: typeof m.cache_version === 'string' ? m.cache_version : '1',
     },
   };
