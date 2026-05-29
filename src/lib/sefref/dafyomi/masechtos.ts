@@ -24,7 +24,12 @@ export type DafyomiContentType =
   | 'review'
   | 'points'
   | 'hebcharts'
-  | 'yerushalmi';
+  | 'yerushalmi'
+  // Revach l'Daf — brief per-daf highlights (SUMMARY + "A BIT MORE"). Unlike the
+  // eight above it lives in the memdb app (revdaf.php?tid=&id=), not the
+  // {dir}/{folder}/{prefix}-{typecode}-{NNN}.htm tree, so it has no
+  // DAFYOMI_CONTENT_TYPES spec and is fetched via buildRevachUrl below.
+  | 'revach';
 
 export interface DafyomiContentTypeSpec {
   type: DafyomiContentType;
@@ -69,11 +74,15 @@ interface DafyomiMasechetSeed {
   dir: string;
   prefix: string;
   gid: number;
+  /** Revach l'Daf masechet id (revdaf.php?tid=). Differs from `gid`; only set
+   *  for tractates whose Revach `tid` has been confirmed. Absent => Revach is
+   *  skipped for that masechet (never guessed). */
+  tid?: number;
   verified?: boolean;
 }
 
 const SEED: DafyomiMasechetSeed[] = [
-  { tractate: 'Chullin', dir: 'chulin', prefix: 'ch', gid: 33, verified: true },
+  { tractate: 'Chullin', dir: 'chulin', prefix: 'ch', gid: 33, tid: 31, verified: true },
 
   // TODO: verify dir/prefix/gid against live pages before scraping these.
   { tractate: 'Berakhot',     dir: 'berachos',   prefix: 'br', gid: 1 },
@@ -123,6 +132,8 @@ export interface DafyomiMasechet {
   prefix: string;
   /** galei gid query param. */
   gid: number;
+  /** Revach l'Daf masechet id (revdaf.php?tid=), or undefined if not mapped. */
+  tid?: number;
   /** Highest Bavli daf number (dafim run 2..lastDaf), derived from amudim.ts. */
   lastDaf: number;
   /** Whether the dir/prefix/gid have been confirmed against live pages. */
@@ -169,4 +180,13 @@ export function buildDafyomiUrl(
   daf: number,
 ): string {
   return `${ORIGIN}/${m.dir}/${spec.folder}/${m.prefix}-${spec.typecode}-${dafToNNN(daf)}.htm${spec.query ?? ''}`;
+}
+
+/** Build the Revach l'Daf page URL for `daf`, or null when the masechet has no
+ *  known Revach `tid` (so we never guess one). Revach uses the memdb app
+ *  (revdaf.php?tid=&id=NN), not the folder/typecode .htm tree — `id` is the
+ *  plain Bavli daf number with no zero-padding. */
+export function buildRevachUrl(m: DafyomiMasechet, daf: number): string | null {
+  if (m.tid == null) return null;
+  return `${ORIGIN}/memdb/revdaf.php?tid=${m.tid}&id=${daf}`;
 }

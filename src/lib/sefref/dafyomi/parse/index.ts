@@ -12,6 +12,7 @@ import { parseTosfos } from './tosfos.ts';
 import { parseBackground } from './background.ts';
 import { parseReview } from './review.ts';
 import { parseHebCharts } from './hebcharts.ts';
+import { parseRevach } from './revach.ts';
 import type {
   DafyomiContentType, DafyomiAmudContent, DafyomiBody, DafyomiEntry, DafyomiPointsEntry,
 } from '../schema.ts';
@@ -26,6 +27,20 @@ export interface ParsedContent {
 export function parseDafyomiContent(type: DafyomiContentType, html: string): ParsedContent {
   const warnings: string[] = [];
   const title = titleLine(html);
+
+  // Revach pages have no #content container (they predate it) — parse the
+  // SUMMARY / A BIT MORE cells directly, before the #content guard below.
+  if (type === 'revach') {
+    const { entries } = parseRevach(html);
+    if (entries.length === 0) warnings.push('no revach entries parsed');
+    return {
+      type,
+      titleLine: title,
+      blocks: entries.length ? [{ type, amud: 'a', wholeDaf: true, titleLine: title, body: { type, entries } }] : [],
+      parseWarnings: warnings,
+    };
+  }
+
   const content = contentRoot(html);
   if (!content) {
     warnings.push('no #content container found');
