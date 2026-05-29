@@ -35,10 +35,11 @@ interface Props {
 const NODE_W = 310;
 const NODE_H = 54;
 const ROW_GAP = 28;
-const LANE_BASE = 26;     // first lane's bow-out from the card's right edge
-const LANE_STEP = 18;     // extra bow per concurrent connector lane
+const LANE_BASE = 26;     // first lane's distance out from the card's right edge
+const LANE_STEP = 18;     // extra offset per concurrent connector lane
 const TOP_PAD = 10;
 const LEFT_PAD = 10;
+const CORNER_R = 18;      // rounded-corner radius on the connector's two turns
 
 const KIND_COLOR: Record<FlowConnection['kind'], string> = {
   continues: '#666',
@@ -143,17 +144,26 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
     return (Object.keys(KIND_COLOR) as FlowConnection['kind'][]).filter((k) => seen.has(k));
   };
 
-  // Soft side curve through the right gutter: a single cubic that leaves the
-  // source's right edge horizontally, bows out to the lane depth, and returns
-  // horizontally into the target's right edge (so the arrowhead points cleanly
-  // left into the card). Both control points share the lane's x, which gives
-  // the calm asymmetric arc; lanes keep concurrent curves from overlapping.
+  // Squared connector through the right gutter: out of the source's right edge,
+  // a gently rounded corner into a long straight vertical run at the lane's x,
+  // then a rounded corner back into the target's right edge (arrowhead points
+  // cleanly left into the card). The radius is clamped so it never overshoots a
+  // short horizontal or vertical leg.
   const edgePath = (c: FlowConnection, lane: number): string => {
     const x = laneX(lane);
     const y1 = rowMidY(c.from);
     const y2 = rowMidY(c.to);
     const rightX = LEFT_PAD + NODE_W;
-    return `M ${rightX} ${y1} C ${x} ${y1}, ${x} ${y2}, ${rightX} ${y2}`;
+    const dir = y2 >= y1 ? 1 : -1;
+    const r = Math.min(CORNER_R, x - rightX, Math.abs(y2 - y1) / 2);
+    return [
+      `M ${rightX} ${y1}`,
+      `L ${x - r} ${y1}`,
+      `Q ${x} ${y1} ${x} ${y1 + dir * r}`,
+      `L ${x} ${y2 - dir * r}`,
+      `Q ${x} ${y2} ${x - r} ${y2}`,
+      `L ${rightX} ${y2}`,
+    ].join(' ');
   };
 
   const badgeCX = LEFT_PAD + 18;
