@@ -2003,7 +2003,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', { mark: 'argument-move' }, { mark: 'rabbi' }],
-      checks: ['edge-integrity'],
+      checks: ['derive-voice-edges', 'edge-integrity'],
       defHash: 'argument.voices-v5', cacheVersion: '5',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_VOICES_SYSTEM_PROMPT_HE,

@@ -28,7 +28,7 @@ describe('declarative check wiring', () => {
     'halacha.practical': ['hebrew-gloss'],
     'halacha.disputes': ['hebrew-gloss'],
     'halacha.synthesis': ['hebrew-gloss'],
-    'argument.voices': ['edge-integrity'],
+    'argument.voices': ['derive-voice-edges', 'edge-integrity'],
     'rabbi.relationships.evidence': ['reanchor-rabbi-evidence'],
     'rabbi.geography.evidence': ['reanchor-rabbi-evidence'],
   };
