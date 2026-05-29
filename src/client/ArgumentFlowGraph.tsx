@@ -35,10 +35,10 @@ interface Props {
 const NODE_W = 310;
 const NODE_H = 54;
 const ROW_GAP = 28;
-const LANE_STEP = 16;     // x offset per concurrent connector lane
+const LANE_BASE = 26;     // first lane's bow-out from the card's right edge
+const LANE_STEP = 18;     // extra bow per concurrent connector lane
 const TOP_PAD = 10;
 const LEFT_PAD = 10;
-const CORNER_R = 9;       // rounded-corner radius on connector turns
 
 const KIND_COLOR: Record<FlowConnection['kind'], string> = {
   continues: '#666',
@@ -127,11 +127,13 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
   const edges = () => filterFlowConnections(props.connections, props.nodes.length);
   const lanes = () => assignLanes(edges());
   const laneCount = () => { const ls = lanes(); return ls.length ? Math.max(...ls) + 1 : 0; };
-  // Gutter only as wide as the lanes actually used (min one step of breathing room).
-  const gutter = () => Math.max(LANE_STEP, laneCount() * LANE_STEP) + 16;
+  // Gutter wide enough for the deepest lane's bow plus the arrowhead. The cubic
+  // only bulges to ~3/4 of the control offset, so this leaves a little air.
+  const gutter = () => LANE_BASE + Math.max(1, laneCount()) * LANE_STEP + 8;
   const width = () => LEFT_PAD + NODE_W + gutter();
 
-  const laneX = (lane: number) => LEFT_PAD + NODE_W + 12 + lane * LANE_STEP;
+  // How far this lane's curve bows out past the card's right edge.
+  const laneX = (lane: number) => LEFT_PAD + NODE_W + LANE_BASE + lane * LANE_STEP;
 
   // Distinct kinds present, for the legend (color/dash carry the meaning now —
   // inline labels piled up and were unreadable, mirroring ArgumentVoiceMap).
@@ -141,25 +143,17 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
     return (Object.keys(KIND_COLOR) as FlowConnection['kind'][]).filter((k) => seen.has(k));
   };
 
-  // Orthogonal connector hugging the right gutter: out of the source's right
-  // edge, into its lane, vertical to the target's row, back into the target.
-  // The two turns are softened with quarter-circle arcs (radius clamped so it
-  // never overshoots a short run) — reads less like a wiring diagram.
+  // Soft side curve through the right gutter: a single cubic that leaves the
+  // source's right edge horizontally, bows out to the lane depth, and returns
+  // horizontally into the target's right edge (so the arrowhead points cleanly
+  // left into the card). Both control points share the lane's x, which gives
+  // the calm asymmetric arc; lanes keep concurrent curves from overlapping.
   const edgePath = (c: FlowConnection, lane: number): string => {
     const x = laneX(lane);
     const y1 = rowMidY(c.from);
     const y2 = rowMidY(c.to);
     const rightX = LEFT_PAD + NODE_W;
-    const dir = y2 >= y1 ? 1 : -1;
-    const r = Math.min(CORNER_R, Math.abs(y2 - y1) / 2, (rightX - x) / 2);
-    return [
-      `M ${rightX} ${y1}`,
-      `L ${x + r} ${y1}`,
-      `Q ${x} ${y1} ${x} ${y1 + dir * r}`,
-      `L ${x} ${y2 - dir * r}`,
-      `Q ${x} ${y2} ${x + r} ${y2}`,
-      `L ${rightX} ${y2}`,
-    ].join(' ');
+    return `M ${rightX} ${y1} C ${x} ${y1}, ${x} ${y2}, ${rightX} ${y2}`;
   };
 
   const badgeCX = LEFT_PAD + 18;
@@ -193,10 +187,10 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                 d={edgePath(c, lanes()[i()])}
                 fill="none"
                 stroke={color}
-                stroke-width={1.75}
+                stroke-width={1.5}
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                stroke-opacity={0.9}
+                stroke-opacity={0.8}
                 stroke-dasharray={KIND_DASH[c.kind]}
                 marker-end={`url(#flow-arrow-${c.kind})`}
               >
