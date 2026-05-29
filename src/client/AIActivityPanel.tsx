@@ -29,6 +29,11 @@ export default function AIActivityPanel(): JSX.Element {
   onCleanup(() => clearInterval(interval));
 
   const [showQueued, setShowQueued] = createSignal(false);
+  const [showRunning, setShowRunning] = createSignal(false);
+  const [showDone, setShowDone] = createSignal(false);
+  // Cap how many running rows render at once; the rest collapse behind a
+  // "+N more running" toggle so a burst of parallel jobs doesn't flood the panel.
+  const MAX_RUNNING = 5;
 
   // Partition into loading (active) / queued (waiting on a slot) / terminal
   // (recently finished, still lingering). Order top-to-bottom by lifecycle:
@@ -129,8 +134,25 @@ export default function AIActivityPanel(): JSX.Element {
           'margin-bottom': '0.3rem',
         }}>AI activity</div>
 
-        {/* Active work first */}
-        <For each={groups().loading}>{(entry) => renderEntry(entry)}</For>
+        {/* Active work first — capped at MAX_RUNNING, the rest collapsed. */}
+        <For each={showRunning() ? groups().loading : groups().loading.slice(0, MAX_RUNNING)}>{(entry) => renderEntry(entry)}</For>
+        <Show when={groups().loading.length > MAX_RUNNING}>
+          <div
+            onClick={() => setShowRunning((v) => !v)}
+            title={showRunning() ? 'Show fewer running' : 'Show all running'}
+            style={{ display: 'flex', 'align-items': 'center', gap: '0.4rem', padding: '0.15rem 0', cursor: 'pointer', color: '#8a2a2b' }}
+          >
+            <span style={{
+              display: 'inline-block', width: '0.7rem', height: '0.7rem', 'border-radius': '50%',
+              border: '2px solid #d6d3d1', 'border-top-color': '#8a2a2b',
+              animation: 'daf-spin 0.8s linear infinite', 'flex-shrink': 0,
+            }} />
+            <span style={{ flex: 1, 'min-width': 0 }}>
+              {showRunning() ? 'show fewer' : `+${groups().loading.length - MAX_RUNNING} more running`}
+              <span style={{ color: '#888', 'font-size': '0.7rem' }}> {showRunning() ? '▾' : '▸'}</span>
+            </span>
+          </div>
+        </Show>
 
         {/* Queued — collapsed to a single count by default. */}
         <Show when={groups().queued.length > 0}>
@@ -155,8 +177,23 @@ export default function AIActivityPanel(): JSX.Element {
           </Show>
         </Show>
 
-        {/* Recently finished */}
-        <For each={groups().terminal}>{(entry) => renderEntry(entry)}</For>
+        {/* Recently finished — collapsed to a single count by default. */}
+        <Show when={groups().terminal.length > 0}>
+          <div
+            onClick={() => setShowDone((v) => !v)}
+            title={showDone() ? 'Hide finished' : 'Show finished'}
+            style={{ display: 'flex', 'align-items': 'center', gap: '0.4rem', padding: '0.15rem 0', cursor: 'pointer', color: '#15803d' }}
+          >
+            <span style={{ 'flex-shrink': 0 }}>✓</span>
+            <span style={{ flex: 1, 'min-width': 0 }}>
+              {groups().terminal.length} finished
+              <span style={{ color: '#888', 'font-size': '0.7rem' }}> {showDone() ? '▾' : '▸'}</span>
+            </span>
+          </div>
+          <Show when={showDone()}>
+            <For each={groups().terminal}>{(entry) => renderEntry(entry)}</For>
+          </Show>
+        </Show>
       </div>
     </Show>
   );
