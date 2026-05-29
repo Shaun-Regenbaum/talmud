@@ -32,13 +32,13 @@ interface Props {
   onSelect: (index: number) => void;
 }
 
-const NODE_W = 300;
-const NODE_H = 46;
-const ROW_GAP = 30;
+const NODE_W = 310;
+const NODE_H = 54;
+const ROW_GAP = 28;
 const LANE_STEP = 16;     // x offset per concurrent connector lane
-const TOP_PAD = 8;
-const LEFT_PAD = 8;
-const NAME_MAX = 46;
+const TOP_PAD = 10;
+const LEFT_PAD = 10;
+const CORNER_R = 9;       // rounded-corner radius on connector turns
 
 const KIND_COLOR: Record<FlowConnection['kind'], string> = {
   continues: '#666',
@@ -53,11 +53,6 @@ const KIND_DASH: Partial<Record<FlowConnection['kind'], string>> = {
   contrasts: '5 3',
   parallels: '2 3',
 };
-
-function clip(s: string): string {
-  const t = s.trim();
-  return t.length <= NAME_MAX ? t : t.slice(0, NAME_MAX - 1) + '…';
-}
 
 /** Keep only connections whose endpoints are valid section indices and which
  *  aren't self-loops. Guards against the LLM emitting an out-of-range or
@@ -91,6 +86,39 @@ export function assignLanes(connections: FlowConnection[]): number[] {
   return lanes;
 }
 
+const LINE_H = 15;        // px between wrapped title lines
+const TITLE_CHARS = 40;   // approx chars per line at NODE_W / 12px system font
+const TITLE_LINES = 2;    // wrap to at most this many lines, then ellipsize
+
+/** Greedy word-wrap to at most `maxLines` lines of ~`maxChars` each, ellipsizing
+ *  any overflow on the final line. SVG can't measure text without the DOM, so we
+ *  budget by character count — good enough for section titles, and keeps the
+ *  whole node in (Solid-safe) SVG rather than foreignObject. */
+function wrapTitle(s: string, maxChars: number, maxLines: number): string[] {
+  const words = s.trim().split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let cur = '';
+  let i = 0;
+  for (; i < words.length; i++) {
+    const cand = cur ? `${cur} ${words[i]}` : words[i];
+    if (cand.length <= maxChars || !cur) {
+      cur = cand;
+    } else {
+      lines.push(cur);
+      cur = words[i];
+      if (lines.length === maxLines - 1) { i++; break; }
+    }
+  }
+  let rest = cur;
+  for (; i < words.length; i++) rest += ` ${words[i]}`;
+  if (rest.length <= maxChars) {
+    if (rest) lines.push(rest);
+  } else {
+    lines.push(rest.slice(0, maxChars - 1).trimEnd() + '…');
+  }
+  return lines.length ? lines : [''];
+}
+
 export default function ArgumentFlowGraph(props: Props): JSX.Element {
   const nodeY = (i: number) => TOP_PAD + i * (NODE_H + ROW_GAP);
   const rowMidY = (i: number) => nodeY(i) + NODE_H / 2;
@@ -115,29 +143,46 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
 
   // Orthogonal connector hugging the right gutter: out of the source's right
   // edge, into its lane, vertical to the target's row, back into the target.
+  // The two turns are softened with quarter-circle arcs (radius clamped so it
+  // never overshoots a short run) — reads less like a wiring diagram.
   const edgePath = (c: FlowConnection, lane: number): string => {
     const x = laneX(lane);
     const y1 = rowMidY(c.from);
     const y2 = rowMidY(c.to);
     const rightX = LEFT_PAD + NODE_W;
-    return `M ${rightX} ${y1} L ${x} ${y1} L ${x} ${y2} L ${rightX} ${y2}`;
+    const dir = y2 >= y1 ? 1 : -1;
+    const r = Math.min(CORNER_R, Math.abs(y2 - y1) / 2, (rightX - x) / 2);
+    return [
+      `M ${rightX} ${y1}`,
+      `L ${x + r} ${y1}`,
+      `Q ${x} ${y1} ${x} ${y1 + dir * r}`,
+      `L ${x} ${y2 - dir * r}`,
+      `Q ${x} ${y2} ${x + r} ${y2}`,
+      `L ${rightX} ${y2}`,
+    ].join(' ');
   };
+
+  const badgeCX = LEFT_PAD + 18;
+  const titleX = LEFT_PAD + 38;
 
   return (
     <Show when={props.nodes.length > 0}>
       <div style={{
         width: '100%', 'min-width': 0, 'max-height': '520px',
         'overflow-x': 'auto', 'overflow-y': 'auto', direction: 'ltr',
-        border: '1px solid #f0eee6', 'border-radius': '4px', background: '#fff',
-        'margin-top': '0.6rem',
+        border: '1px solid #ece9df', 'border-radius': '8px', background: '#fdfcf9',
+        'margin-top': '0.6rem', padding: '0.35rem 0.2rem',
       }}>
         <svg width={width()} height={height()} viewBox={`0 0 ${width()} ${height()}`} style={{ display: 'block' }}>
           <defs>
             <For each={Object.entries(KIND_COLOR)}>{([kind, color]) => (
-              <marker id={`flow-arrow-${kind}`} markerWidth="7" markerHeight="7" refX="5.5" refY="3" orient="auto">
+              <marker id={`flow-arrow-${kind}`} markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
                 <path d="M 0 0 L 6 3 L 0 6 z" fill={color} />
               </marker>
             )}</For>
+            <filter id="flow-card-shadow" x="-10%" y="-20%" width="120%" height="150%">
+              <feDropShadow dx="0" dy="1" stdDeviation="1.4" flood-color="#3a3320" flood-opacity="0.12" />
+            </filter>
           </defs>
 
           {/* Connectors (behind nodes). Hover the path for the kind + note. */}
@@ -148,7 +193,10 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                 d={edgePath(c, lanes()[i()])}
                 fill="none"
                 stroke={color}
-                stroke-width={1.5}
+                stroke-width={1.75}
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-opacity={0.9}
                 stroke-dasharray={KIND_DASH[c.kind]}
                 marker-end={`url(#flow-arrow-${c.kind})`}
               >
@@ -157,26 +205,43 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
             );
           }}</For>
 
-          {/* Nodes */}
+          {/* Nodes: rounded card + number badge + word-wrapped title. */}
           <For each={props.nodes}>{(n) => {
             const active = () => props.activeIndex === n.index;
+            const cy = () => nodeY(n.index) + NODE_H / 2;
+            const lines = () => wrapTitle(n.title, TITLE_CHARS, TITLE_LINES);
             return (
               <g style={{ cursor: 'pointer' }} onClick={() => props.onSelect(n.index)}>
                 <title>{`${n.index + 1}. ${n.title} — click for voices`}</title>
                 <rect
-                  x={LEFT_PAD} y={nodeY(n.index)} width={NODE_W} height={NODE_H} rx={6} ry={6}
-                  fill={active() ? '#fdf2f2' : '#fff'}
-                  stroke={active() ? '#8a2a2b' : '#d9d6cc'}
-                  stroke-width={active() ? 2 : 1.5}
+                  x={LEFT_PAD} y={nodeY(n.index)} width={NODE_W} height={NODE_H} rx={10} ry={10}
+                  fill={active() ? '#fdf2f2' : '#ffffff'}
+                  stroke={active() ? '#8a2a2b' : '#e4e0d4'}
+                  stroke-width={active() ? 1.75 : 1}
+                  filter="url(#flow-card-shadow)"
+                />
+                <circle
+                  cx={badgeCX} cy={cy()} r={11}
+                  fill={active() ? '#8a2a2b' : '#f2eee4'}
+                  stroke={active() ? '#8a2a2b' : '#e4e0d4'} stroke-width={1}
                 />
                 <text
-                  x={LEFT_PAD + 12} y={nodeY(n.index) + NODE_H / 2 + 1}
-                  text-anchor="start" dominant-baseline="middle"
-                  font-size="11" font-weight="600"
+                  x={badgeCX} y={cy()} text-anchor="middle" dominant-baseline="central"
+                  font-size="11" font-weight="700"
                   font-family="system-ui, -apple-system, sans-serif"
-                  fill="#222"
-                  direction={lang() === 'he' ? 'rtl' : 'ltr'}
-                >{`${n.index + 1}. ${clip(n.title)}`}</text>
+                  fill={active() ? '#ffffff' : '#8a2a2b'}
+                >{n.index + 1}</text>
+                <For each={lines()}>{(line, li) => (
+                  <text
+                    x={titleX}
+                    y={cy() + (li() - (lines().length - 1) / 2) * LINE_H}
+                    text-anchor="start" dominant-baseline="central"
+                    font-size="12" font-weight="600"
+                    font-family="system-ui, -apple-system, sans-serif"
+                    fill="#2a2723"
+                    direction={lang() === 'he' ? 'rtl' : 'ltr'}
+                  >{line}</text>
+                )}</For>
               </g>
             );
           }}</For>
@@ -186,14 +251,19 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
       {/* Legend: color + dash → connection kind (only the kinds in use). */}
       <Show when={kindsPresent().length > 0}>
         <div style={{
-          display: 'flex', 'flex-wrap': 'wrap', gap: '0.4rem 0.85rem',
-          'margin-top': '0.5rem', 'font-size': '0.64rem', color: '#888',
+          display: 'flex', 'flex-wrap': 'wrap', gap: '0.35rem 0.45rem',
+          'margin-top': '0.55rem',
         }}>
           <For each={kindsPresent()}>{(kind) => (
-            <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.3rem' }}>
+            <span style={{
+              display: 'inline-flex', 'align-items': 'center', gap: '0.35rem',
+              padding: '0.12rem 0.5rem', background: '#faf8f3',
+              border: '1px solid #ece7db', 'border-radius': '999px',
+              'font-size': '0.66rem', color: '#6b6661',
+            }}>
               <span style={{
                 display: 'inline-block', width: '16px', height: 0,
-                'border-top': `1.5px ${KIND_DASH[kind] ? 'dashed' : 'solid'} ${KIND_COLOR[kind]}`,
+                'border-top': `2px ${KIND_DASH[kind] ? 'dashed' : 'solid'} ${KIND_COLOR[kind]}`,
               }} />
               {kind}
             </span>
