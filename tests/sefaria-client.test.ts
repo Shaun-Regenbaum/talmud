@@ -16,11 +16,26 @@ describe('rishonLabel', () => {
     expect(rishonLabel('Rif Eruvin', 'Eruvin')).toBe('Rif'); // no "on"
     expect(rishonLabel('Rashba on Bava Metzia', 'Bava Metzia')).toBe('Rashba'); // spaced tractate
   });
+  it('maps the expanded Rishonim set (verified Sefaria index_titles)', () => {
+    expect(rishonLabel('Yad Ramah on Sanhedrin', 'Sanhedrin')).toBe('Yad Ramah');
+    expect(rishonLabel('Ri Migash on Bava Batra', 'Bava Batra')).toBe('Ri Migash');
+    expect(rishonLabel('Rabbeinu Gershom on Bava Batra', 'Bava Batra')).toBe('Rabbeinu Gershom');
+    expect(rishonLabel('Tosafot Rid on Bava Batra', 'Bava Batra')).toBe('Tosafot Rid');
+    expect(rishonLabel('Tosafot HaRosh on Berakhot', 'Berakhot')).toBe('Tosafot HaRosh');
+    expect(rishonLabel('Shita Mekubetzet on Bava Batra', 'Bava Batra')).toBe('Shita Mekubetzet');
+    expect(rishonLabel('Mordechai on Bava Batra', 'Bava Batra')).toBe('Mordechai');
+    expect(rishonLabel('HaMaor HaKatan on Berakhot', 'Berakhot')).toBe('Baal HaMaor');
+    expect(rishonLabel("Chiddushei HaRa'ah on Berakhot", 'Berakhot')).toBe("Ra'ah");
+    expect(rishonLabel('Chiddushei Ramban on Bava Batra', 'Bava Batra')).toBe('Ramban');
+    expect(rishonLabel('Chidushei Halachot on Berakhot', 'Berakhot')).toBe('Maharsha');
+    expect(rishonLabel('Chidushei Agadot on Sanhedrin', 'Sanhedrin')).toBe('Maharsha (Aggadah)');
+  });
   it('excludes Rashi/Tosafot/Steinsaltz and unknown books', () => {
     expect(rishonLabel('Rashi on Eruvin', 'Eruvin')).toBeNull();
     expect(rishonLabel('Tosafot on Eruvin', 'Eruvin')).toBeNull();
     expect(rishonLabel('Steinsaltz on Eruvin', 'Eruvin')).toBeNull();
-    expect(rishonLabel('Tosafot Rid on Eruvin Second Recension', 'Eruvin')).toBeNull();
+    expect(rishonLabel('Rashash on Eruvin', 'Eruvin')).toBeNull(); // Acharon glosses, not kept
+    expect(rishonLabel('Penei Yehoshua on Ketubot', 'Ketubot')).toBeNull();
   });
 });
 
