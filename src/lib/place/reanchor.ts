@@ -318,3 +318,38 @@ export function reanchorRabbiEvidence(parsed: unknown, segmentsHe: string[]): un
   }
   return obj;
 }
+
+// ---------------------------------------------------------------------------
+// argument.narrative beats (section typing P2b — narrative move layer)
+// ---------------------------------------------------------------------------
+
+/**
+ * Anchor each narrative beat to its segment via its verbatim `excerpt`, so the
+ * story beats become the narrative section's first-class, clickable move layer
+ * (parallel to argument-move for disputes). Same single-segment, whole-daf
+ * resolution as rabbi-evidence: beats sit at the top level under `beats`, each
+ * with a verbatim `excerpt`. Beats with no match keep their text but get no
+ * seg/token fields (rendered un-clickable).
+ */
+export function reanchorNarrative(parsed: unknown, segmentsHe: string[]): unknown {
+  if (!parsed || typeof parsed !== 'object') return parsed;
+  const obj = parsed as { beats?: unknown };
+  if (!Array.isArray(obj.beats)) return parsed;
+  if (segmentsHe.length === 0) return parsed;
+  const grid = buildVerbatimGrid(segmentsHe);
+
+  type Beat = { excerpt?: string; startSegIdx?: number; endSegIdx?: number; tokenStart?: number; tokenEnd?: number; [k: string]: unknown };
+  for (const b of obj.beats as Beat[]) {
+    if (!b || typeof b !== 'object') continue;
+    const ex = typeof b.excerpt === 'string' ? b.excerpt : '';
+    if (!ex) continue;
+    const hit = findExcerpt(grid, ex, 0, segmentsHe.length - 1);
+    if (hit) {
+      b.startSegIdx = hit.seg;
+      b.endSegIdx = hit.seg;
+      b.tokenStart = hit.tok;
+      b.tokenEnd = hit.tok + hit.matchLen - 1;
+    }
+  }
+  return obj;
+}
