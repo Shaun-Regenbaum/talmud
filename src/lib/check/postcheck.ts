@@ -16,7 +16,7 @@
 
 import { lintSynthesis } from '../synthesisLint';
 import { lintHalachaParsed } from '../halachaLint';
-import { reanchorArgument, reanchorArgumentMove, reanchorPesukim, reanchorAggadata, reanchorRabbiEvidence } from '../place/reanchor';
+import { reanchorArgument, reanchorArgumentMove, reanchorPesukim, reanchorAggadata, reanchorRabbiEvidence, reanchorNarrative } from '../place/reanchor';
 import { normalizeHebrew, buildVerbatimGrid, findExcerpt } from '../place/verbatim';
 
 export type Severity = 'hard' | 'soft';
@@ -236,6 +236,7 @@ export const CHECKS: Record<string, PostCheck> = {
   'reanchor-pesukim': transform('reanchor-pesukim', reanchorPesukim),
   'reanchor-aggadata': transform('reanchor-aggadata', reanchorAggadata),
   'reanchor-rabbi-evidence': transform('reanchor-rabbi-evidence', reanchorRabbiEvidence),
+  'reanchor-narrative': transform('reanchor-narrative', reanchorNarrative),
   'hebrew-excerpt': hebrewExcerpt,
   'hebrew-gloss': hebrewGloss,
   'anchor-verbatim': anchorVerbatim,
