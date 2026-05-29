@@ -2867,7 +2867,12 @@ export default function DafViewer(): JSX.Element {
       </Show>
       <DevModeShelf open={devOpen()} onClose={() => { setDevOpen(false); setDevModeActive(false); }}>
         <ChecksPanel tractate={tractate()} page={page()} />
-        <TypeProfilePanel tractate={tractate()} page={page()} />
+        <TypeProfilePanel
+          tractate={tractate()}
+          page={page()}
+          active={(() => { const h = argumentMoveHighlight(); return h && h.key.startsWith('typeprofile') ? { start: h.start, end: h.end } : null; })()}
+          onHighlight={(r) => setArgumentMoveHighlight(r ? { start: r.start, end: r.end, key: `typeprofile-${r.start}-${r.end}` } : null)}
+        />
         <MarksRegistryPanel
           tractate={tractate()}
           page={page()}

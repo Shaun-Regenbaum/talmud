@@ -18,7 +18,14 @@ const PRIMARY_COLOR: Record<string, string> = {
   'pure-dialectic': '#6b7280', aggadata: '#7c3aed', halacha: '#0369a1', pesukim: '#a16207',
 };
 
-export default function TypeProfilePanel(props: { tractate: string; page: string }): JSX.Element {
+export default function TypeProfilePanel(props: {
+  tractate: string;
+  page: string;
+  /** Highlight a section's segment span on the daf (null clears). */
+  onHighlight?: (range: { start: number; end: number } | null) => void;
+  /** The currently-highlighted range, for active styling + toggle. */
+  active?: { start: number; end: number } | null;
+}): JSX.Element {
   const [data] = createResource(
     () => `${props.tractate}|${props.page}`,
     async (): Promise<ProfilesResponse | null> => {
@@ -39,8 +46,19 @@ export default function TypeProfilePanel(props: { tractate: string; page: string
           color: '#888', 'margin-bottom': '0.3rem',
         }}>Section types · {data()!.count}</div>
 
-        <For each={data()!.profiles}>{(p) => (
-          <div style={{ display: 'flex', gap: '0.4rem', padding: '0.12rem 0', 'align-items': 'baseline' }}>
+        <For each={data()!.profiles}>{(p) => {
+          const isActive = () => props.active?.start === p.unit.startSegIdx && props.active?.end === p.unit.endSegIdx;
+          return (
+          <div
+            onClick={() => props.onHighlight?.(isActive() ? null : { start: p.unit.startSegIdx, end: p.unit.endSegIdx })}
+            title="Click to highlight this section on the daf"
+            style={{
+              display: 'flex', gap: '0.4rem', padding: '0.12rem 0.2rem', 'align-items': 'baseline',
+              cursor: 'pointer', 'border-radius': '3px',
+              background: isActive() ? '#fff7ed' : 'transparent',
+              'box-shadow': isActive() ? 'inset 2px 0 0 #ea580c' : 'none',
+            }}
+          >
             <span style={{ 'flex-shrink': 0, color: '#bbb', 'font-size': '0.68rem', 'font-variant-numeric': 'tabular-nums' }}>
               {p.unit.startSegIdx}-{p.unit.endSegIdx}
             </span>
@@ -55,7 +73,8 @@ export default function TypeProfilePanel(props: { tractate: string; page: string
               flex: 1, 'min-width': 0, 'white-space': 'nowrap', overflow: 'hidden', 'text-overflow': 'ellipsis', color: '#555',
             }} title={p.title}>{p.title ?? ''}</span>
           </div>
-        )}</For>
+          );
+        }}</For>
       </div>
     </Show>
   );
