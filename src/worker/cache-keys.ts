@@ -131,9 +131,11 @@ export function keyForGemara(tractate: string, page: string): string {
  *  predate it and would otherwise never show Revach, since the positive cache
  *  has no TTL).
  *  v2 -> v3: charset-sniff decode (UTF-8 vs windows-1255) — v2 entries fetched
- *  from windows-1255 pages cached mojibake'd Hebrew (U+FFFD "????"). */
+ *  from windows-1255 pages cached mojibake'd Hebrew (U+FFFD "????").
+ *  v3 -> v4: background parser fix — pages with no girsa section (no girsasep)
+ *  had their entire glossary swallowed; v3 cached those as empty background. */
 export function keyForDafyomi(tractate: string, daf: string): string {
-  return `dafyomi:v3:${slugDaf(tractate, daf)}`;
+  return `dafyomi:v4:${slugDaf(tractate, daf)}`;
 }
 export function keyForCommentaries(tractate: string, page: string): string {
   return `ctx:commentaries:v1:${slugDaf(tractate, page)}`;

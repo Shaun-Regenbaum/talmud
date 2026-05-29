@@ -89,10 +89,24 @@ describe('background parser', () => {
     const body = r.blocks[0].body;
     if (body.type !== 'background') throw new Error('wrong body type');
     expect(body.glossary.length).toBeGreaterThan(10);
+    expect(body.girsa.length).toBeGreaterThan(0); // this page HAS a girsa section
     const arkuvah = body.glossary[0];
     expect(arkuvah.title?.he).toBe('ארכובה');
     expect(arkuvah.title?.en).toBe('ARKUVAH');
     expect(arkuvah.body.en).toContain('knee-joint');
+  });
+
+  it('parses the glossary on a page with NO girsa section (no girsasep separator)', () => {
+    // Regression: the parser used to stay stuck in "girsa" mode without a
+    // girsasep separator and swallow every glossary entry (Sanhedrin 37a).
+    const sr = parseDafyomiContent('background', fixture('sanhedrin-backgrnd-037.htm'));
+    const body = sr.blocks[0].body;
+    if (body.type !== 'background') throw new Error('wrong body type');
+    expect(body.girsa.length).toBe(0);
+    expect(body.glossary.length).toBeGreaterThan(40); // ~62 terms
+    expect(body.glossary[0].title?.he).toBe('ושלש שורות');
+    expect(body.glossary[0].title?.en).toBe('SHALOSH SHUROS');
+    expect(sr.parseWarnings).toEqual([]);
   });
 });
 
