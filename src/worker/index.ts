@@ -39,7 +39,9 @@ import {
   readCachedCacheStats,
   writeCachedCacheStats,
   isFresh,
+  cacheGcTargets,
 } from './cache-stats';
+import { gcStaleCache } from './cache-gc';
 import { runYomiWarmCron } from './yomi-cron';
 import { GENERATION_IDS, GENERATION_BY_ID, GENERATIONS_PROMPT_REFERENCE, type GenerationId } from '../client/generations';
 import { stripEchoParens } from '../client/hebraize';
@@ -2586,6 +2588,22 @@ app.get('/api/admin/cache-stats', async (c) => {
   const stats = await computeCacheStats(cache);
   await writeCachedCacheStats(cache, stats);
   return c.json(stats);
+});
+
+// GC orphaned cache entries (those left at a superseded cache_version after a
+// def bump — unreachable, no-TTL cruft). Dry-run by default; `?apply=1` deletes
+// (gated by STUDIO_SECRET, since deletion is destructive). `maxDeletes` caps a
+// single pass so a real run is bounded. See src/worker/cache-gc.ts.
+app.post('/api/admin/cache-gc', async (c) => {
+  const cache = c.env.CACHE;
+  if (!cache) return c.json({ error: 'no cache binding' }, 503);
+  const apply = c.req.query('apply') === '1';
+  if (apply && !isTrustedRequest(c)) return c.json({ error: 'deletion requires studio auth (?apply=1)' }, 403);
+  const maxDeletes = Math.min(Number(c.req.query('maxDeletes')) || 2000, 20000);
+  const targets = await cacheGcTargets(cache);
+  const summary = await gcStaleCache(cache, targets, { dryRun: !apply, maxDeletes });
+  // Only echo prefixes that actually have stale entries — keeps the report short.
+  return c.json({ ...summary, results: summary.results.filter((r) => r.stale > 0) });
 });
 
 /**
