@@ -1424,6 +1424,7 @@ const makeRabbiEnrichment = (
     mode: 'augment-content' | 'aggregate';
     scope: EnrichmentScope;
     dependencies?: EnrichmentDependency[];
+    checks?: string[];
     defHash: string;
     cacheVersion: string;
     systemPromptHe?: string;
@@ -1584,6 +1585,7 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', { enrichment: 'rabbi.relationships' }],
+      checks: ['reanchor-rabbi-evidence'],
       defHash: 'rabbi.relationships.evidence-v2', cacheVersion: '2',
       systemPromptHe: RABBI_RELATIONSHIPS_EVIDENCE_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: RABBI_RELATIONSHIPS_EVIDENCE_USER_TEMPLATE_HE,
@@ -1596,6 +1598,7 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', { enrichment: 'rabbi.geography' }],
+      checks: ['reanchor-rabbi-evidence'],
       defHash: 'rabbi.geography.evidence-v2', cacheVersion: '2',
       systemPromptHe: RABBI_GEOGRAPHY_EVIDENCE_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: RABBI_GEOGRAPHY_EVIDENCE_USER_TEMPLATE_HE,

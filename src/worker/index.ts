@@ -1428,92 +1428,6 @@ async function runMarkOnce(
   return out;
 }
 
-/**
- * Post-process the two rabbi-evidence enrichments. Each `evidence` entry
- * has a verbatim Hebrew `excerpt`; this resolves it to (startSegIdx,
- * endSegIdx, tokenStart, tokenEnd) so the sidebar can call
- * onHighlightRange with the right values when the user clicks an evidence
- * row. Entries with no match are kept (so the user still sees the note +
- * place name) but with seg/token fields absent.
- */
-async function postProcessRabbiEvidence(
-  parsed: unknown,
-  env: Bindings,
-  tractate: string,
-  page: string,
-): Promise<unknown> {
-  if (!parsed || typeof parsed !== 'object') return parsed;
-  const obj = parsed as { evidence?: unknown };
-  if (!Array.isArray(obj.evidence)) return parsed;
-
-  const slice = await getGemaraSlice(env, tractate, page, false);
-  const segs = slice.segments_he;
-  if (segs.length === 0) return parsed;
-
-  const normalize = (s: string) =>
-    s.replace(/[֑-ׇ]/g, '')
-      .replace(/[׳״"'.,:;!?\-–—()[\]{}]/g, '')
-      .replace(/[​-‏‪-‮﻿]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-  const segNorms = segs.map(normalize);
-  const segWords = segNorms.map((s) => s.split(' ').filter(Boolean));
-
-  type Evidence = {
-    excerpt?: string;
-    startSegIdx?: number;
-    endSegIdx?: number;
-    tokenStart?: number;
-    tokenEnd?: number;
-    [k: string]: unknown;
-  };
-  const entries = obj.evidence as Evidence[];
-  for (const e of entries) {
-    if (!e || typeof e !== 'object') continue;
-    const ex = normalize(typeof e.excerpt === 'string' ? e.excerpt : '');
-    if (!ex) continue;
-    const exWords = ex.split(' ').filter(Boolean);
-    if (exWords.length === 0) continue;
-
-    const tries: string[][] = [exWords];
-    if (exWords.length > 4) tries.push(exWords.slice(0, 4));
-    if (exWords.length > 3) tries.push(exWords.slice(0, 3));
-    if (exWords.length > 2) tries.push(exWords.slice(0, 2));
-
-    let foundSeg = -1;
-    let foundTok = -1;
-    let foundLen = 0;
-    outer: for (const needle of tries) {
-      if (needle.length < 2) continue;
-      const needleStr = needle.join(' ');
-      for (let i = 0; i < segNorms.length; i++) {
-        if (!segNorms[i].includes(needleStr)) continue;
-        const words = segWords[i];
-        for (let w = 0; w + needle.length <= words.length; w++) {
-          let ok = true;
-          for (let k = 0; k < needle.length; k++) {
-            if (words[w + k] !== needle[k]) { ok = false; break; }
-          }
-          if (ok) {
-            foundSeg = i; foundTok = w; foundLen = needle.length;
-            break outer;
-          }
-        }
-        foundSeg = i; foundTok = 0; foundLen = needle.length;
-        break outer;
-      }
-    }
-
-    if (foundSeg >= 0) {
-      e.startSegIdx = foundSeg;
-      e.endSegIdx = foundSeg;
-      e.tokenStart = foundTok;
-      e.tokenEnd = foundTok + foundLen - 1;
-    }
-  }
-  return obj;
-}
-
 /** The segment range a section-level argument enrichment is being computed for,
  *  as a `${startSegIdx}-${endSegIdx}` stamp — or null when the enrichment isn't
  *  section-anchored (so no range guard applies). Used to reject a cache hit
@@ -1743,31 +1657,30 @@ async function runEnrichmentOnce(
     try { parsed = JSON.parse(result.content); }
     catch (err) { parse_error = String(err).slice(0, 200); }
   }
-  // Per-enrichment post-processing. Evidence enrichments emit verbatim
-  // Hebrew excerpts that need to be resolved to (startSegIdx, endSegIdx,
-  // tokenStart, tokenEnd) on the server so the sidebar can paint click-
-  // to-highlight ranges without re-walking the daf on the client.
-  if (parsed && (def.id === 'rabbi.relationships.evidence' || def.id === 'rabbi.geography.evidence')) {
-    parsed = await postProcessRabbiEvidence(parsed, rc.env, tractate, page);
-  }
-  // Post-generation validation via the standardized check layer
-  // (src/lib/check/postcheck.ts). An enrichment opts into validators through
-  // `checks: []` in code-marks.ts: pesukim.synthesis -> 'hebrew-excerpt'
-  // (flag pesukim cited with English-only quotes and no Hebrew verbatim text);
-  // halacha.* -> 'hebrew-gloss' (flag HEBREW_GLOSS_STYLE violations — bare /
-  // parenthesized transliterations, calques — across every prose field + chip).
+  // Post-generation processing via the standardized check layer
+  // (src/lib/check/postcheck.ts). An enrichment opts in through `checks: []` in
+  // code-marks.ts. Transforms run first:
+  //   - rabbi.{relationships,geography}.evidence -> 'reanchor-rabbi-evidence'
+  //     resolves each evidence excerpt to (startSegIdx, endSegIdx, tokenStart,
+  //     tokenEnd) so the sidebar can paint click-to-highlight ranges.
+  // Then validators:
+  //   - pesukim.synthesis -> 'hebrew-excerpt' (pesukim cited with English-only
+  //     quotes and no Hebrew verbatim text);
+  //   - halacha.* -> 'hebrew-gloss' (HEBREW_GLOSS_STYLE violations: bare /
+  //     parenthesized transliterations, calques, across every prose field + chip);
+  //   - argument.voices -> 'edge-integrity' (soft, observe-only).
   // Issues are attached to the result (visible in dev tray / cache) but never
-  // reject the run; only `hard` issues gate the cache write below so a bad
-  // output isn't pinned. `soft` issues (e.g. edge-integrity on argument.voices)
-  // are observe-only. These validators inspect `parsed` only (no segment grid).
+  // reject the run; only `hard` issues gate the cache write below. The transforms
+  // need the segment grid, so fetch the gemara slice once when any check runs.
   let lint_issues: unknown[] | undefined;   // hard subset → gating + /api/usage path
   let check_issues: unknown[] | undefined;  // all severities → observation
   let hardIssueCount = 0;
   if (parsed && !parse_error && def.checks && def.checks.length > 0) {
+    const slice = await getGemaraSlice(rc.env, tractate, page, false);
     const checked = await runChecks(def.checks, parsed, {
-      tractate, page, segmentsHe: [], defId: def.id, lang: rc.lang,
+      tractate, page, segmentsHe: slice.segments_he, defId: def.id, lang: rc.lang,
     });
-    parsed = checked.parsed; // honor the transform contract (validators leave it unchanged)
+    parsed = checked.parsed;
     if (checked.issues.length > 0) {
       check_issues = checked.issues;
       const hard = checked.issues.filter((i) => i.severity === 'hard');

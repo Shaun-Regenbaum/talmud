@@ -29,6 +29,8 @@ describe('declarative check wiring', () => {
     'halacha.disputes': ['hebrew-gloss'],
     'halacha.synthesis': ['hebrew-gloss'],
     'argument.voices': ['edge-integrity'],
+    'rabbi.relationships.evidence': ['reanchor-rabbi-evidence'],
+    'rabbi.geography.evidence': ['reanchor-rabbi-evidence'],
   };
 
   it('canon marks declare the expected checks', () => {

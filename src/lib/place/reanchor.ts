@@ -281,3 +281,40 @@ export function reanchorAggadata(parsed: unknown, segmentsHe: string[]): unknown
   }
   return obj;
 }
+
+// ---------------------------------------------------------------------------
+// rabbi-evidence (rabbi.relationships.evidence / rabbi.geography.evidence)
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve each evidence entry's verbatim `excerpt` to a single-segment anchor
+ * (startSegIdx === endSegIdx) plus token offsets, so the sidebar can paint a
+ * click-to-highlight range. Unlike the mark re-anchorers the excerpt sits at the
+ * TOP level of each entry (not under `fields`), and the search spans the whole
+ * daf. Entries with no match keep their note/place name but get no seg/token
+ * fields. Byte-identical to the former inline postProcessRabbiEvidence:
+ * findExcerpt over [0, last] with default opts is exactly its prefix-fallback +
+ * word-aligned/substring matcher and `matchLen = matched-prefix length`.
+ */
+export function reanchorRabbiEvidence(parsed: unknown, segmentsHe: string[]): unknown {
+  if (!parsed || typeof parsed !== 'object') return parsed;
+  const obj = parsed as { evidence?: unknown };
+  if (!Array.isArray(obj.evidence)) return parsed;
+  if (segmentsHe.length === 0) return parsed;
+  const grid = buildVerbatimGrid(segmentsHe);
+
+  type Evidence = { excerpt?: string; startSegIdx?: number; endSegIdx?: number; tokenStart?: number; tokenEnd?: number; [k: string]: unknown };
+  for (const e of obj.evidence as Evidence[]) {
+    if (!e || typeof e !== 'object') continue;
+    const ex = typeof e.excerpt === 'string' ? e.excerpt : '';
+    if (!ex) continue;
+    const hit = findExcerpt(grid, ex, 0, segmentsHe.length - 1);
+    if (hit) {
+      e.startSegIdx = hit.seg;
+      e.endSegIdx = hit.seg;
+      e.tokenStart = hit.tok;
+      e.tokenEnd = hit.tok + hit.matchLen - 1;
+    }
+  }
+  return obj;
+}
