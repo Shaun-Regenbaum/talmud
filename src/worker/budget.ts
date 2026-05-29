@@ -33,6 +33,12 @@
 import { costUsd, type TokenUsage } from './pricing';
 import { LLMError, NEITHER } from './llm-error';
 
+/** Minimal Cloudflare Email-send binding (send_email). Structurally compatible
+ *  with the one in warm-cron.ts and the EMAIL binding in wrangler.toml. */
+export interface EmailBinding {
+  send(message: { to: string; from: string; subject: string; html?: string; text?: string }): Promise<{ messageId: string }>;
+}
+
 /** Env surface budget functions need. Bindings / LLMEnv both satisfy this. */
 export interface BudgetEnv {
   CACHE?: KVNamespace;
@@ -40,6 +46,9 @@ export interface BudgetEnv {
   DAILY_BUDGET_USD?: string;
   /** Per-deploy override for the hourly custom-question cap (USD). Defaults to 10. */
   HOURLY_CUSTOM_BUDGET_USD?: string;
+  /** Cloudflare send_email binding. When present, recordSpend emails an alert
+   *  (deduped per window) the first time a daily/hourly cap trips. */
+  EMAIL?: EmailBinding;
 }
 
 export type BudgetScope = 'all' | 'custom';
@@ -49,6 +58,16 @@ const TOTAL_BUCKET = `${PREFIX}total:`; // + YYYYMMDD (UTC)
 const CUSTOM_BUCKET = `${PREFIX}custom:`; // + YYYYMMDDHH (UTC)
 const PAUSE_ALL = `${PREFIX}pause:all`;
 const PAUSE_CUSTOM = `${PREFIX}pause:custom`;
+// Dedup flags so a tripped cap emails at most once per window (the daily latch
+// re-arms on every subsequent call; the queue runs 50-way concurrent).
+const ALERTED_DAILY = `${PREFIX}alerted:daily:`; // + YYYYMMDD (UTC)
+const ALERTED_CUSTOM = `${PREFIX}alerted:custom:`; // + YYYYMMDDHH (UTC)
+
+// Spend-alert recipient + sender. `to` must be a verified Cloudflare Email
+// Routing destination address; `from` must be on a zone we control.
+const ALERT_TO = 'shaunregenbaum@gmail.com';
+const ALERT_FROM = 'budget-alert@shaunregenbaum.com';
+const APP_URL = 'https://talmud.shaunregenbaum.com';
 
 // Daily counter must outlive its day enough to catch late-arriving cost from a
 // long job that started yesterday; the hourly counter only needs its window
@@ -150,6 +169,30 @@ async function armLatch(cache: KVNamespace, key: string, latch: PauseLatch, now:
   await cache.put(key, JSON.stringify(latch), { expirationTtl: ttl });
 }
 
+/** Best-effort: send a spend alert, swallowing any failure. A send needs a
+ *  verified destination (see ALERT_TO) — until then it just logs and returns. */
+async function sendBudgetAlert(env: BudgetEnv, subject: string, text: string): Promise<void> {
+  const email = env.EMAIL;
+  if (!email) return;
+  try {
+    await email.send({ from: ALERT_FROM, to: ALERT_TO, subject, text });
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('[budget] alert email failed:', err);
+  }
+}
+
+/** Send `subject`/`text` at most once per window. Sets the dedup flag BEFORE
+ *  sending so a concurrent crosser skips; under KV's ~60s consistency a burst
+ *  may still emit a couple duplicate alerts, which is acceptable. */
+async function alertOnce(
+  cache: KVNamespace, flagKey: string, ttlS: number, env: BudgetEnv, subject: string, text: string,
+): Promise<void> {
+  if (await cache.get(flagKey)) return;
+  await cache.put(flagKey, '1', { expirationTtl: ttlS });
+  await sendBudgetAlert(env, subject, text);
+}
+
 /**
  * Record a completed call's spend. Bumps the daily total (always) and the
  * hourly custom bucket (when custom), arming the matching pause latch when a
@@ -168,11 +211,20 @@ export async function recordSpend(
   try {
     const total = await bumpCounter(cache, `${TOTAL_BUCKET}${dayBucket(now)}`, usd, TOTAL_TTL_S);
     if (total >= dailyTrip(env)) {
+      const until = nextUtcMidnight(now);
       await armLatch(cache, PAUSE_ALL, {
-        until: nextUtcMidnight(now),
+        until,
         reason: `daily spend $${total.toFixed(2)} reached trip $${dailyTrip(env).toFixed(2)} (cap $${dailyCap(env)})`,
         spentUsd: total,
       }, now);
+      await alertOnce(
+        cache, `${ALERTED_DAILY}${dayBucket(now)}`, Math.max(60, Math.ceil((until - now) / 1000) + 300), env,
+        `[talmud] Daily LLM spend paused — $${total.toFixed(2)}`,
+        `Daily LLM spend reached $${total.toFixed(2)} (trip $${dailyTrip(env).toFixed(2)}, hard cap $${dailyCap(env)}).\n` +
+        `ALL AI generation is now paused until the next UTC midnight (${new Date(until).toISOString()}).\n\n` +
+        `If this is unexpected, check for runaway/abusive usage.\n\n` +
+        `Budget status: ${APP_URL}/api/admin/budget\nUsage dashboard: ${APP_URL}/usage\n`,
+      );
     }
     if (args.custom) {
       const spent = await bumpCounter(cache, `${CUSTOM_BUCKET}${hourBucket(now)}`, usd, CUSTOM_TTL_S);
@@ -182,6 +234,13 @@ export async function recordSpend(
           reason: `custom-question spend $${spent.toFixed(2)} reached cap $${hourlyCustomCap(env)} this hour`,
           spentUsd: spent,
         }, now);
+        await alertOnce(
+          cache, `${ALERTED_CUSTOM}${hourBucket(now)}`, 3600 + 300, env,
+          `[talmud] Hourly custom-question spend cap hit — $${spent.toFixed(2)}`,
+          `Custom-question spend hit $${spent.toFixed(2)} (cap $${hourlyCustomCap(env)}) within the hour ${hourBucket(now)} UTC.\n` +
+          `Custom Q&A is paused for the rest of the hour. A sudden hit here often means someone is hammering custom questions to use the LLM.\n\n` +
+          `Budget status: ${APP_URL}/api/admin/budget\nUsage dashboard: ${APP_URL}/usage\n`,
+        );
       }
     }
   } catch {

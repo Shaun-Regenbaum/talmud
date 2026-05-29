@@ -25,7 +25,7 @@
 import { runWithRetry } from './ai-gateway';
 import { LLMError, isFallbackWorthy, NEITHER, TIMEOUT } from './llm-error';
 import { DEFAULT_MODEL, DEFAULT_FALLBACK_CHAIN } from './settings';
-import { checkBudget, recordSpend, BudgetPausedError } from './budget';
+import { checkBudget, recordSpend, BudgetPausedError, type EmailBinding } from './budget';
 
 export type LLMModelId = `@cf/${string}` | `openrouter/${string}`;
 
@@ -41,6 +41,8 @@ export interface LLMEnv {
   // Spend-budget overrides read by ./budget (checkBudget / recordSpend).
   DAILY_BUDGET_USD?: string;
   HOURLY_CUSTOM_BUDGET_USD?: string;
+  // send_email binding — recordSpend uses it to email a spend alert on cap trips.
+  EMAIL?: EmailBinding;
 }
 
 export interface LLMMessage {
