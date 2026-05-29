@@ -505,6 +505,7 @@ export const CODE_MARKS: MarkDefinition[] = [
       thinking_off: true,
     },
     dependencies: ['gemara'],
+    checks: ['reanchor-argument', 'anchor-verbatim', 'partition-clean'],
     status: 'promoted',
     def_hash: 'argument-llm-v3',
     cache_version: '4',
@@ -587,6 +588,7 @@ export const CODE_MARKS: MarkDefinition[] = [
       thinking_off: true,
     },
     dependencies: ['gemara'],
+    checks: ['reanchor-aggadata', 'anchor-verbatim'],
     status: 'promoted',
     def_hash: 'aggadata-llm-v3',
     cache_version: '4',
@@ -615,6 +617,7 @@ export const CODE_MARKS: MarkDefinition[] = [
       thinking_off: true,
     },
     dependencies: ['gemara'],
+    checks: ['reanchor-pesukim', 'anchor-verbatim'],
     status: 'promoted',
     def_hash: 'pesukim-llm-v4',
     cache_version: '5',
@@ -1363,6 +1366,8 @@ function makeEnrichment(
     mode: 'augment-content' | 'aggregate';
     scope: EnrichmentScope;
     dependencies?: EnrichmentDependency[];
+    /** Post-LLM validators this enrichment opts into (see EnrichmentDefinition.checks). */
+    checks?: string[];
     defHash: string;
     cacheVersion: string;
     model?: LLMModelId;
@@ -1385,6 +1390,7 @@ function makeEnrichment(
     mode: opts.mode,
     scope: opts.scope,
     dependencies: opts.dependencies,
+    ...(opts.checks ? { checks: opts.checks } : {}),
     extractor: {
       kind: 'llm',
       ...(opts.model ? { model: opts.model } : {}),
@@ -1418,6 +1424,7 @@ const makeRabbiEnrichment = (
     mode: 'augment-content' | 'aggregate';
     scope: EnrichmentScope;
     dependencies?: EnrichmentDependency[];
+    checks?: string[];
     defHash: string;
     cacheVersion: string;
     systemPromptHe?: string;
@@ -1438,6 +1445,7 @@ function makeSynthesis(
   userPromptTemplate: string,
   opts: {
     dependencies: EnrichmentDependency[];
+    checks?: string[];
     defHash: string;
     cacheVersion: string;
     scope?: EnrichmentScope;
@@ -1454,6 +1462,7 @@ function makeSynthesis(
       mode: 'aggregate',
       scope: opts.scope ?? 'local',
       dependencies: opts.dependencies,
+      checks: opts.checks,
       defHash: opts.defHash,
       cacheVersion: opts.cacheVersion,
       model: opts.model,
@@ -1576,6 +1585,7 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', { enrichment: 'rabbi.relationships' }],
+      checks: ['reanchor-rabbi-evidence'],
       defHash: 'rabbi.relationships.evidence-v2', cacheVersion: '2',
       systemPromptHe: RABBI_RELATIONSHIPS_EVIDENCE_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: RABBI_RELATIONSHIPS_EVIDENCE_USER_TEMPLATE_HE,
@@ -1588,6 +1598,7 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', { enrichment: 'rabbi.geography' }],
+      checks: ['reanchor-rabbi-evidence'],
       defHash: 'rabbi.geography.evidence-v2', cacheVersion: '2',
       systemPromptHe: RABBI_GEOGRAPHY_EVIDENCE_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: RABBI_GEOGRAPHY_EVIDENCE_USER_TEMPLATE_HE,
@@ -1952,6 +1963,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', { mark: 'argument-move' }, { mark: 'rabbi' }],
+      checks: ['edge-integrity'],
       defHash: 'argument.voices-v5', cacheVersion: '5',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_VOICES_SYSTEM_PROMPT_HE,
@@ -2254,6 +2266,7 @@ CODE_MARKS.push({
     fan_out_over: 'argument',
   },
   dependencies: ['gemara', { mark: 'argument' }],
+  checks: ['reanchor-argument-move', 'anchor-verbatim', 'partition-clean'],
   status: 'promoted',
   def_hash: 'argument-move-v9',
   cache_version: '9',
@@ -3448,6 +3461,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara'],
+      checks: ['hebrew-gloss'],
       defHash: 'halacha.codification-v3', cacheVersion: '3',
       systemPromptHe: HALACHA_CODIFICATION_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: HALACHA_LEAF_USER_TEMPLATE_HE,
@@ -3460,6 +3474,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara'],
+      checks: ['hebrew-gloss'],
       defHash: 'halacha.practical-v4', cacheVersion: '4',
       systemPromptHe: HALACHA_PRACTICAL_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: HALACHA_LEAF_USER_TEMPLATE_HE,
@@ -3472,6 +3487,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara'],
+      checks: ['hebrew-gloss'],
       defHash: 'halacha.disputes-v3', cacheVersion: '3',
       systemPromptHe: HALACHA_DISPUTES_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: HALACHA_LEAF_USER_TEMPLATE_HE,
@@ -3488,6 +3504,7 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'halacha.practical' },
         { enrichment: 'halacha.disputes' },
       ],
+      checks: ['hebrew-gloss'],
       defHash: 'halacha.synthesis-v4', cacheVersion: '4',
       systemPromptHe: HALACHA_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: HALACHA_SYNTHESIS_USER_TEMPLATE_HE,
@@ -4220,6 +4237,7 @@ CODE_ENRICHMENTS.push(
         { mark: 'rabbi' },
         { mark: 'pesukim' },
       ],
+      checks: ['hebrew-excerpt'],
       defHash: 'pesukim.synthesis-v11', cacheVersion: '11',
       // Pro instead of Flash: the synthesis must follow the 3-4 sentence
       // structure and avoid the explicit banned-phrase list. Flash skims

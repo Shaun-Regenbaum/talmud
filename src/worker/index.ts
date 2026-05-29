@@ -62,9 +62,8 @@ import { wrapEnv, gatewayStatus, gatewayActive } from './ai-gateway';
 import { runLLM, type LLMModelId, type LLMResult, type LLMUsage } from './llm';
 import { checkBudget, isBudgetPaused, budgetStatus, clearPauses, type BudgetScope } from './budget';
 import { lookupRelationships } from './rabbi-graph';
-import { lintSynthesis } from '../lib/synthesisLint';
-import { lintHalachaParsed } from '../lib/halachaLint';
-import { reanchorArgument, reanchorArgumentMove, reanchorPesukim, reanchorAggadata } from '../lib/place/reanchor';
+import { runChecks } from '../lib/check/postcheck';
+import { composeTypeProfile, type LayerId, type LayerInstance, type TypeProfile, type UnitRange } from '../lib/typing/profile';
 import { noteLintAttempt, readLintFailures, type LintFailuresSummary } from './lint-failures';
 import { partitionSections, dedupeByRange, dedupeBy, selectSectionMoves, type MoveLike } from '../lib/argumentMoves';
 import { DEFAULT_MODEL, DEFAULT_FALLBACK_CHAIN, isLLMModelId, MODEL_PRESETS } from './settings';
@@ -601,6 +600,94 @@ app.delete('/api/studio/marks/:id', async (c) => {
   return c.json({ ok: true });
 });
 
+// Observation surface for the post-LLM check layer. Re-runs each daf-level
+// mark's declared checks against its ALREADY-CACHED (anchored) output — no LLM
+// call, no cache write — so the dev panel can show which soft/observe-only
+// checks (anchor-verbatim, partition-clean, …) are firing on real content
+// before any of them is promoted to a hard, cache-gating check. Marks only:
+// they have one cache entry per daf; instance-scoped enrichment checks
+// (edge-integrity, rabbi-evidence) aren't enumerable without their instances.
+app.get('/api/studio/checks/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
+  const marks = CODE_MARKS.filter((m) => (m.checks?.length ?? 0) > 0);
+  if (marks.length === 0) return c.json({ tractate, page, results: [], total_issues: 0 });
+
+  const slice = await getGemaraSlice(c.env, tractate, page, false);
+  const results: { mark_id: string; cached: boolean; issues: unknown[] }[] = [];
+  let total = 0;
+  for (const def of marks) {
+    const hit = await readCachedResult(c.env, keyForMark(def, tractate, page, lang));
+    if (!hit || hit.parsed == null) { results.push({ mark_id: def.id, cached: false, issues: [] }); continue; }
+    // Clone so the idempotent transform re-runs don't mutate the cached object.
+    const { issues } = await runChecks(def.checks ?? [], structuredClone(hit.parsed), {
+      tractate, page, segmentsHe: slice.segments_he, defId: def.id, lang,
+    });
+    total += issues.length;
+    results.push({ mark_id: def.id, cached: true, issues });
+  }
+  return c.json({ tractate, page, total_issues: total, results });
+});
+
+// --- Section typing (P1/P2): deterministic TypeProfile composition ----------
+// Read-only over CACHED marks (no LLM, no cache write). For each argument
+// section on the daf, intersect the content overlays (halacha/aggadata/pesukim)
+// + the dialectical base (argument-move) and emit a TypeProfile: which layers
+// claim the section, the dominant `primary` content dimension (pure-dialectic
+// when no overlay materially covers it), and `isDispute` (from the section's
+// cached argument.voices graph). This is the observation/validation surface for
+// section typing — it shows, on real content, that e.g. the Ashmedai story is
+// narrative-primary (not a voice dispute). Gating + new enrichments build on it.
+type RawInstance = { startSegIdx?: unknown; endSegIdx?: unknown; fields?: Record<string, unknown> };
+async function readMarkInstances(env: Bindings, markId: string, tractate: string, page: string): Promise<RawInstance[]> {
+  const def = findCodeMark(markId);
+  if (!def) return [];
+  const hit = await readCachedResult(env, keyForMark(def, tractate, page, 'en'));
+  const parsed = hit?.parsed as { instances?: unknown } | null;
+  return Array.isArray(parsed?.instances) ? (parsed!.instances as RawInstance[]) : [];
+}
+function toLayerInstances(layer: LayerId, insts: RawInstance[]): LayerInstance[] {
+  const out: LayerInstance[] = [];
+  insts.forEach((i, idx) => {
+    if (typeof i.startSegIdx !== 'number' || typeof i.endSegIdx !== 'number') return;
+    const f = i.fields ?? {};
+    const id = (typeof f.title === 'string' && f.title) || (typeof f.topic === 'string' && f.topic)
+      || (typeof f.theme === 'string' && f.theme) || (typeof f.excerpt === 'string' && f.excerpt) || String(idx);
+    out.push({ layer, instanceId: id, startSegIdx: i.startSegIdx, endSegIdx: i.endSegIdx });
+  });
+  return out;
+}
+async function buildDafTypeProfiles(env: Bindings, tractate: string, page: string): Promise<(TypeProfile & { title?: string })[]> {
+  const sections = await readMarkInstances(env, 'argument', tractate, page);
+  const overlays: LayerInstance[] = [
+    ...toLayerInstances('aggadata', await readMarkInstances(env, 'aggadata', tractate, page)),
+    ...toLayerInstances('halacha', await readMarkInstances(env, 'halacha', tractate, page)),
+    ...toLayerInstances('pesukim', await readMarkInstances(env, 'pesukim', tractate, page)),
+    ...toLayerInstances('argument-move', await readMarkInstances(env, 'argument-move', tractate, page)),
+  ];
+  const voicesDef = findCodeEnrichment('argument.voices');
+  const profiles: (TypeProfile & { title?: string })[] = [];
+  for (const sec of sections) {
+    if (typeof sec.startSegIdx !== 'number' || typeof sec.endSegIdx !== 'number') continue;
+    const unit: UnitRange = { tractate, page, startSegIdx: sec.startSegIdx, endSegIdx: sec.endSegIdx };
+    let voices: { edges?: { kind?: string }[] } | null = null;
+    if (voicesDef) {
+      const iid = await instanceIdOf(sec);
+      const vhit = await readCachedResult(env, keyForEnrichment(voicesDef, iid, { tractate, page }));
+      voices = (vhit?.parsed as { edges?: { kind?: string }[] }) ?? null;
+    }
+    profiles.push({ ...composeTypeProfile(unit, overlays, { voices }), title: typeof sec.fields?.title === 'string' ? sec.fields.title : undefined });
+  }
+  return profiles;
+}
+app.get('/api/studio/type-profiles/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const profiles = await buildDafTypeProfiles(c.env, tractate, page);
+  return c.json({ tractate, page, count: profiles.length, profiles });
+});
+
 app.get('/api/studio/enrichments', async (c) => {
   // Merge KV + code-defined. KV wins on collision. Code-defined entries are
   // normalized to the KV-flat shape (extractor flattened, `mark` instead of
@@ -841,6 +928,7 @@ function adaptCodeEnrichment(code: SchemaEnrichmentDefinition): EnrichmentDefini
     mark: code.target_mark,
     scope: code.scope,
     dependencies: code.dependencies,
+    checks: code.checks,
     system_prompt: llm?.system_prompt ?? '',
     user_prompt_template: llm?.user_prompt_template ?? '',
     system_prompt_he: llm?.system_prompt_he,
@@ -1027,7 +1115,12 @@ interface RunResult {
   cache_hit: boolean;
   // Deterministic post-generation lint issues. Currently populated for
   // pesukim.synthesis (missing-Hebrew-excerpt). Empty array means clean.
+  // Holds only the `hard` issues that gate the cache write.
   lint_issues?: unknown[];
+  // Full standardized check-layer output (all severities, including `soft`
+  // observe-only checks like anchor-verbatim / partition-clean / edge-integrity).
+  // Never gates; surfaced for quality observation before a check is promoted.
+  check_issues?: unknown[];
 }
 
 interface RunResultEnrichment extends RunResult {
@@ -1367,20 +1460,30 @@ async function runMarkOnce(
     try { parsed = JSON.parse(result.content); }
     catch (err) { parse_error = String(err).slice(0, 200); }
   }
-  // Per-mark post-processing. Some extractors (notably argument-move) can't
-  // reliably emit segment indices for sub-ranges, so we re-derive them from
-  // the verbatim Hebrew excerpt the LLM IS good at copying. Also computes
-  // token (word) offsets within the matched segment so the highlight painter
-  // can paint exactly the move/citation, not the whole containing segment.
-  if (parsed && def.id === 'argument') {
-    parsed = await postProcessArgument(parsed, rc.env, tractate, page);
-  } else if (parsed && def.id === 'argument-move') {
-    parsed = await postProcessArgumentMove(parsed, rc.env, tractate, page);
-  } else if (parsed && def.id === 'pesukim') {
-    parsed = await postProcessPesukim(parsed, rc.env, tractate, page);
-  } else if (parsed && def.id === 'aggadata') {
-    parsed = await postProcessAggadata(parsed, rc.env, tractate, page);
-  } else if (parsed && def.id === 'rabbi') {
+  // Per-mark post-processing via the declarative check layer
+  // (src/lib/check/postcheck.ts). Some extractors (notably argument-move) can't
+  // reliably emit segment indices for sub-ranges, so the verbatim re-anchorers
+  // (reanchor-argument/-move/-pesukim/-aggadata) re-derive them from the Hebrew
+  // excerpt the LLM IS good at copying, and compute token (word) offsets within
+  // the matched segment so the highlight painter can paint exactly the
+  // move/citation, not the whole containing segment. A definition opts in via
+  // `checks: []` in code-marks.ts; the transforms need the segment grid, so
+  // fetch the gemara slice once when any check runs.
+  let markCheckIssues: unknown[] | undefined;
+  if (parsed && def.checks && def.checks.length > 0) {
+    const slice = await getGemaraSlice(rc.env, tractate, page, false);
+    const checked = await runChecks(def.checks, parsed, {
+      tractate, page, segmentsHe: slice.segments_he, defId: def.id, lang: rc.lang,
+    });
+    parsed = checked.parsed;
+    // Mark validators (anchor-verbatim / partition-clean) are all `soft` — they
+    // never gate the mark's cache write; attach them for quality observation.
+    if (checked.issues.length > 0) markCheckIssues = checked.issues;
+  }
+  // Special cases that don't fit the segments-only transform signature yet:
+  //   - rabbi:  needs the daf Hebrew text, not the segment grid (A1b will port it).
+  //   - places: a side effect (backlog logging), not a parsed-output transform.
+  if (parsed && def.id === 'rabbi') {
     parsed = postProcessRabbi(parsed, stripHtmlServer(String(vars.hebrew ?? '')));
   } else if (parsed && def.id === 'places') {
     // Places have no global gazetteer — log every observed location to the
@@ -1408,210 +1511,10 @@ async function runMarkOnce(
       user_prompt: userPrompt.length > 2000 ? userPrompt.slice(0, 2000) + '… [+' + (userPrompt.length - 2000) + ' chars]' : userPrompt,
     },
     cache_hit: false,
+    ...(markCheckIssues ? { check_issues: markCheckIssues } : {}),
   };
   if (!parse_error) await writeCachedResult(rc.env, cacheKey, out);
   return out;
-}
-
-/**
- * Post-process argument mark output: anchor section start + end to real
- * Hebrew text by matching `excerpt` and `endExcerpt` against the segmented
- * gemara. The LLM-provided startSegIdx/endSegIdx are treated as hints and
- * overwritten when the excerpts match. Sections then partition the daf
- * cleanly (each section's endSegIdx ≥ startSegIdx, and ≥ previous section's
- * endSegIdx). Without this pass, the section's endSegIdx is whatever the
- * LLM guessed and frequently overshoots into the next section's content —
- * which then shows up as a too-large pink highlight and as misaligned
- * moves (since argument-move uses these section ranges as its partition
- * bounds).
- */
-async function postProcessArgument(
-  parsed: unknown,
-  env: Bindings,
-  tractate: string,
-  page: string,
-): Promise<unknown> {
-  if (!parsed || typeof parsed !== 'object') return parsed;
-  if (!Array.isArray((parsed as { instances?: unknown }).instances)) return parsed;
-  const slice = await getGemaraSlice(env, tractate, page, false);
-  return reanchorArgument(parsed, slice.segments_he);
-}
-
-/**
- * Post-process argument-move mark output: V4-Flash reliably copies the
- * verbatim Hebrew excerpt for each move but its startSegIdx/endSegIdx are
- * frequently the WHOLE section (every move = same range, "lazy partition"
- * issue). Re-derive ranges by locating each excerpt in the gemara's
- * numbered segments and computing the next-move boundary.
- *
- * Algorithm:
- *   1. For each move, normalize the excerpt and search the segments_he
- *      array for the segment whose normalized text contains it. That seg
- *      becomes the move's startSegIdx.
- *   2. The endSegIdx is the segment right before the next move's startSegIdx
- *      (within the same parent section), or the section's endSegIdx for the
- *      last move in a section.
- *   3. If an excerpt can't be located, leave the LLM-emitted range alone
- *      (don't make things worse).
- *
- * LIMITATION (TODO: sub-segment anchoring):
- *   When Sefaria packages a section as a SINGLE segment — most commonly the
- *   opening Mishnah of a tractate, where the whole Mishnah is one block at
- *   segments_he[0] — every move inside that section resolves to the same
- *   startSegIdx. Clicking different moves all highlight the same span on
- *   the daf even though the LLM correctly identified them as distinct.
- *
- *   Fix path (separate piece of work; see legacy halacha highlight in
- *   DafViewer.tsx for the existing word-token precedent):
- *     1. Extend mark instance fields to optionally carry { tokenStart,
- *        tokenEnd } — word indices within the segment.
- *     2. Have this post-processor also walk the .daf-word stream of the
- *        matched segment to compute the excerpt's word range, not just
- *        its segment.
- *     3. Update the move-highlight painter in DafViewer.applyHighlights
- *        to paint over [seg.tokenStart .. seg.tokenEnd] when those fields
- *        are present, falling back to whole-segment when absent.
- *   Most non-Mishnah sections are split into multiple segments per move so
- *   this only bites bundled-Mishnah-style blocks.
- */
-async function postProcessArgumentMove(
-  parsed: unknown,
-  env: Bindings,
-  tractate: string,
-  page: string,
-): Promise<unknown> {
-  if (!parsed || typeof parsed !== 'object') return parsed;
-  if (!Array.isArray((parsed as { instances?: unknown }).instances)) return parsed;
-  const slice = await getGemaraSlice(env, tractate, page, false);
-  return reanchorArgumentMove(parsed, slice.segments_he);
-}
-
-/**
- * Post-process pesukim mark output: assign tokenStart/tokenEnd to each
- * citation so the click-highlight paints exactly the cited verse phrase
- * inside its segment, not the whole segment. The pasuk excerpt IS the
- * full citation text, so tokenEnd = tokenStart + wordCount - 1 cleanly.
- *
- * Same multi-prefix matcher as argument-move; same fallback if matching
- * fails (leave whatever the LLM emitted alone — the seg-range will at
- * least be inside the daf).
- */
-async function postProcessPesukim(
-  parsed: unknown,
-  env: Bindings,
-  tractate: string,
-  page: string,
-): Promise<unknown> {
-  if (!parsed || typeof parsed !== 'object') return parsed;
-  if (!Array.isArray((parsed as { instances?: unknown }).instances)) return parsed;
-  const slice = await getGemaraSlice(env, tractate, page, false);
-  return reanchorPesukim(parsed, slice.segments_he);
-}
-
-/**
- * Post-process aggadata instances. Mirrors postProcessPesukim: locates the
- * LLM's verbatim `excerpt` and `endExcerpt` in the segment grid and writes
- * startSegIdx/endSegIdx + tokenStart/tokenEnd for pixel-precise highlighting.
- * Without this, the client's highlight painter falls back to "next story or
- * end of amud" which is wildly too wide whenever there is no immediately-
- * following aggadata on the daf.
- */
-async function postProcessAggadata(
-  parsed: unknown,
-  env: Bindings,
-  tractate: string,
-  page: string,
-): Promise<unknown> {
-  if (!parsed || typeof parsed !== 'object') return parsed;
-  if (!Array.isArray((parsed as { instances?: unknown }).instances)) return parsed;
-  const slice = await getGemaraSlice(env, tractate, page, false);
-  return reanchorAggadata(parsed, slice.segments_he);
-}
-
-/**
- * Post-process the two rabbi-evidence enrichments. Each `evidence` entry
- * has a verbatim Hebrew `excerpt`; this resolves it to (startSegIdx,
- * endSegIdx, tokenStart, tokenEnd) so the sidebar can call
- * onHighlightRange with the right values when the user clicks an evidence
- * row. Entries with no match are kept (so the user still sees the note +
- * place name) but with seg/token fields absent.
- */
-async function postProcessRabbiEvidence(
-  parsed: unknown,
-  env: Bindings,
-  tractate: string,
-  page: string,
-): Promise<unknown> {
-  if (!parsed || typeof parsed !== 'object') return parsed;
-  const obj = parsed as { evidence?: unknown };
-  if (!Array.isArray(obj.evidence)) return parsed;
-
-  const slice = await getGemaraSlice(env, tractate, page, false);
-  const segs = slice.segments_he;
-  if (segs.length === 0) return parsed;
-
-  const normalize = (s: string) =>
-    s.replace(/[֑-ׇ]/g, '')
-      .replace(/[׳״"'.,:;!?\-–—()[\]{}]/g, '')
-      .replace(/[​-‏‪-‮﻿]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-  const segNorms = segs.map(normalize);
-  const segWords = segNorms.map((s) => s.split(' ').filter(Boolean));
-
-  type Evidence = {
-    excerpt?: string;
-    startSegIdx?: number;
-    endSegIdx?: number;
-    tokenStart?: number;
-    tokenEnd?: number;
-    [k: string]: unknown;
-  };
-  const entries = obj.evidence as Evidence[];
-  for (const e of entries) {
-    if (!e || typeof e !== 'object') continue;
-    const ex = normalize(typeof e.excerpt === 'string' ? e.excerpt : '');
-    if (!ex) continue;
-    const exWords = ex.split(' ').filter(Boolean);
-    if (exWords.length === 0) continue;
-
-    const tries: string[][] = [exWords];
-    if (exWords.length > 4) tries.push(exWords.slice(0, 4));
-    if (exWords.length > 3) tries.push(exWords.slice(0, 3));
-    if (exWords.length > 2) tries.push(exWords.slice(0, 2));
-
-    let foundSeg = -1;
-    let foundTok = -1;
-    let foundLen = 0;
-    outer: for (const needle of tries) {
-      if (needle.length < 2) continue;
-      const needleStr = needle.join(' ');
-      for (let i = 0; i < segNorms.length; i++) {
-        if (!segNorms[i].includes(needleStr)) continue;
-        const words = segWords[i];
-        for (let w = 0; w + needle.length <= words.length; w++) {
-          let ok = true;
-          for (let k = 0; k < needle.length; k++) {
-            if (words[w + k] !== needle[k]) { ok = false; break; }
-          }
-          if (ok) {
-            foundSeg = i; foundTok = w; foundLen = needle.length;
-            break outer;
-          }
-        }
-        foundSeg = i; foundTok = 0; foundLen = needle.length;
-        break outer;
-      }
-    }
-
-    if (foundSeg >= 0) {
-      e.startSegIdx = foundSeg;
-      e.endSegIdx = foundSeg;
-      e.tokenStart = foundTok;
-      e.tokenEnd = foundTok + foundLen - 1;
-    }
-  }
-  return obj;
 }
 
 /** The segment range a section-level argument enrichment is being computed for,
@@ -1843,40 +1746,36 @@ async function runEnrichmentOnce(
     try { parsed = JSON.parse(result.content); }
     catch (err) { parse_error = String(err).slice(0, 200); }
   }
-  // Per-enrichment post-processing. Evidence enrichments emit verbatim
-  // Hebrew excerpts that need to be resolved to (startSegIdx, endSegIdx,
-  // tokenStart, tokenEnd) on the server so the sidebar can paint click-
-  // to-highlight ranges without re-walking the daf on the client.
-  if (parsed && (def.id === 'rabbi.relationships.evidence' || def.id === 'rabbi.geography.evidence')) {
-    parsed = await postProcessRabbiEvidence(parsed, rc.env, tractate, page);
-  }
-  // Post-generation lint for pesukim.synthesis: flag outputs where the LLM
-  // cited a pasuk with English-only quotes and no Hebrew verbatim text.
-  // We attach issues to the result (visible in dev tray / cache) but do NOT
-  // reject — a false-positive lint shouldn't block the whole run. Issues
-  // ARE used to gate cache writes so bad outputs don't get pinned.
-  let lint_issues: unknown[] | undefined;
-  if (def.id === 'pesukim.synthesis' && parsed && !parse_error) {
-    // Synthesis emits a single `synthesis` prose field. (An earlier revision
-    // emitted four labeled fields; concat them as a fallback so any older
-    // cached payloads still in flight continue to lint.)
-    const p = parsed as Partial<Record<'synthesis' | 'tanach_context' | 'why_here' | 'mechanism' | 'landing', string>>;
-    const synth = p.synthesis
-      ?? [p.tanach_context, p.why_here, p.mechanism, p.landing]
-        .filter((s): s is string => typeof s === 'string' && s.length > 0)
-        .join('\n\n');
-    const issues = lintSynthesis(synth);
-    if (issues.length > 0) lint_issues = issues;
-  }
-  // Post-generation lint for halacha enrichments: flag HEBREW_GLOSS_STYLE
-  // violations (bare / parenthesized transliterations, calques) across every
-  // prose field and chip. Same non-blocking, cache-gating posture as
-  // pesukim.synthesis above — a non-compliant output is returned (with
-  // lint_issues attached) but not pinned to cache, so a bypass_cache re-run
-  // gets a fresh shot at clean Hebrew-anchored output.
-  if (def.id.startsWith('halacha.') && parsed && !parse_error) {
-    const issues = lintHalachaParsed(parsed);
-    if (issues.length > 0) lint_issues = issues;
+  // Post-generation processing via the standardized check layer
+  // (src/lib/check/postcheck.ts). An enrichment opts in through `checks: []` in
+  // code-marks.ts. Transforms run first:
+  //   - rabbi.{relationships,geography}.evidence -> 'reanchor-rabbi-evidence'
+  //     resolves each evidence excerpt to (startSegIdx, endSegIdx, tokenStart,
+  //     tokenEnd) so the sidebar can paint click-to-highlight ranges.
+  // Then validators:
+  //   - pesukim.synthesis -> 'hebrew-excerpt' (pesukim cited with English-only
+  //     quotes and no Hebrew verbatim text);
+  //   - halacha.* -> 'hebrew-gloss' (HEBREW_GLOSS_STYLE violations: bare /
+  //     parenthesized transliterations, calques, across every prose field + chip);
+  //   - argument.voices -> 'edge-integrity' (soft, observe-only).
+  // Issues are attached to the result (visible in dev tray / cache) but never
+  // reject the run; only `hard` issues gate the cache write below. The transforms
+  // need the segment grid, so fetch the gemara slice once when any check runs.
+  let lint_issues: unknown[] | undefined;   // hard subset → gating + /api/usage path
+  let check_issues: unknown[] | undefined;  // all severities → observation
+  let hardIssueCount = 0;
+  if (parsed && !parse_error && def.checks && def.checks.length > 0) {
+    const slice = await getGemaraSlice(rc.env, tractate, page, false);
+    const checked = await runChecks(def.checks, parsed, {
+      tractate, page, segmentsHe: slice.segments_he, defId: def.id, lang: rc.lang,
+    });
+    parsed = checked.parsed;
+    if (checked.issues.length > 0) {
+      check_issues = checked.issues;
+      const hard = checked.issues.filter((i) => i.severity === 'hard');
+      hardIssueCount = hard.length;
+      if (hard.length > 0) lint_issues = hard;
+    }
   }
   const out: RunResultEnrichment = {
     content: result.content,
@@ -1900,20 +1799,22 @@ async function runEnrichmentOnce(
     deps_resolved: Object.keys(inputs.depends).length > 0 ? inputs.depends : undefined,
     anchors_resolved: Object.keys(inputs.anchors).length > 0 ? inputs.anchors : undefined,
     ...(lint_issues ? { lint_issues } : {}),
+    ...(check_issues ? { check_issues } : {}),
     ...(sectionRange ? { section_range: sectionRange } : {}),
   };
-  // Gate cache writes on lint passing — but BOUND the retries. A clean output
-  // is pinned immediately. A lint-failing output is left uncached so the next
-  // request regenerates (the model is mildly nondeterministic, so a retry may
-  // come back clean) — UNTIL it has failed MAX_LINT_ATTEMPTS times, at which
-  // point we pin the best-effort output anyway so reads become cache hits and
-  // regeneration stops. Without this cap the warm crons re-pay for a
-  // persistently-failing card forever. Capped failures surface on /api/usage.
+  // Gate cache writes on the checks passing — but BOUND the retries. An output
+  // with no `hard` issues is pinned immediately. A hard-failing output is left
+  // uncached so the next request regenerates (the model is mildly
+  // nondeterministic, so a retry may come back clean) — UNTIL it has failed
+  // MAX_LINT_ATTEMPTS times, at which point we pin the best-effort output anyway
+  // so reads become cache hits and regeneration stops. Without this cap the warm
+  // crons re-pay for a persistently-failing card forever. (Soft issues never
+  // gate.) Capped failures surface on /api/usage.
   if (cacheKey && !parse_error) {
-    if (!lint_issues) {
+    if (hardIssueCount === 0) {
       await writeCachedResult(rc.env, cacheKey, out);
     } else if (await noteLintAttempt(rc.env, rc.ctx, cacheKey, {
-      enrichmentId: def.id, tractate, page, lang: rc.lang, issues: lint_issues,
+      enrichmentId: def.id, tractate, page, lang: rc.lang, issues: lint_issues ?? [],
     })) {
       await writeCachedResult(rc.env, cacheKey, out);
     }

@@ -9,6 +9,7 @@ import RabbiLineageTree, { type RelationshipsData, type RelationshipsEvidence } 
 import { type GeographyData, type GeographyEvidence } from './RabbiGeographyCard';
 import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeline';
 import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
+import { devModeActive } from './DevModeShelf';
 import ArgumentFlowGraph, { type FlowConnection } from './ArgumentFlowGraph';
 import { selectSectionMoves } from '../lib/argumentMoves';
 import { t, lang } from './i18n';
@@ -67,6 +68,55 @@ export interface PlaceInstance {
     region: string;
     knownAs?: string[];
   };
+}
+
+/** Section-typing gate for the voice-dispute map (Track C, P2). The voices
+ *  graph models a מחלוקת; rendering it on a story or a one-sided Stam Q&A is the
+ *  "Demons"/"Stam questioner→respondent" pathology. We compute the section's
+ *  TypeProfile (deterministic, cached marks, via /api/studio/type-profiles) and
+ *  suppress the map unless the section is a real, non-narrative dispute. Gated
+ *  to dev mode + reversible: readers are unaffected until this is promoted, and
+ *  when the profile is unknown we default to showing (current behavior). The
+ *  reliable signal is `primary` (the deterministic composition) overriding the
+ *  noisy `isDispute` voices flag — a story can carry stray `opposes` edges. */
+interface SectionTypeProfile { unit: { startSegIdx: number; endSegIdx: number }; primary: string; isDispute: boolean }
+function useVoicesGate(tractate: () => string, page: () => string, section: () => { startSegIdx?: number; endSegIdx?: number } | undefined) {
+  const [profiles] = createResource(
+    () => `${tractate()}|${page()}`,
+    async (): Promise<SectionTypeProfile[]> => {
+      try {
+        const r = await fetch(`/api/studio/type-profiles/${encodeURIComponent(tractate())}/${encodeURIComponent(page())}`);
+        if (!r.ok) return [];
+        return ((await r.json()) as { profiles?: SectionTypeProfile[] }).profiles ?? [];
+      } catch { return []; }
+    },
+  );
+  const profile = (): SectionTypeProfile | undefined => {
+    const s = section();
+    if (!s || typeof s.startSegIdx !== 'number' || typeof s.endSegIdx !== 'number') return undefined;
+    return (profiles() ?? []).find((p) => p.unit.startSegIdx === s.startSegIdx && p.unit.endSegIdx === s.endSegIdx);
+  };
+  const suppress = (): boolean => {
+    if (!devModeActive()) return false;            // readers unaffected
+    const p = profile();
+    if (!p) return false;                          // unknown → show (safe default)
+    return !(p.isDispute && p.primary !== 'aggadata'); // hide unless a real, non-narrative dispute
+  };
+  return { profile, suppress };
+}
+
+/** A small dev-mode note explaining why the voice-dispute map was hidden. */
+function VoicesSuppressedNote(props: { profile: SectionTypeProfile | undefined }): JSX.Element {
+  return (
+    <div style={{
+      'margin-top': '0.6rem', padding: '0.45rem 0.6rem', 'border-radius': '4px',
+      background: '#f8fafc', border: '1px dashed #cbd5e1', color: '#64748b', 'font-size': '0.75rem', 'line-height': 1.5,
+    }}>
+      <b>Section typing (dev):</b> typed <b>{props.profile?.primary ?? 'pure-dialectic'}</b>
+      {props.profile?.isDispute ? '' : ' · not a dispute'} — the voice-dispute map is hidden here
+      because this section isn't a real מחלוקת. The move flow below is the right view.
+    </div>
+  );
 }
 
 export type SidebarContent =
@@ -419,6 +469,8 @@ export function ArgumentBody(props: {
   // argument.voices output (structured voices + edges) — resolved via the
   // section synthesis aggregate's deps_resolved. Drives ArgumentVoiceMap.
   const [voicesData, setVoicesData] = createSignal<ArgumentVoicesData | null>(null);
+  // Section-typing gate: hide the voice-dispute map on non-dispute sections (dev mode).
+  const voicesGate = useVoicesGate(() => props.tractate, () => props.page, () => props.section);
 
   // Clear stale move state when the user opens a different section. The
   // section's synthesis run will repopulate via onResolved as soon as the
@@ -508,13 +560,16 @@ export function ArgumentBody(props: {
         page={props.page}
         onResolved={handleResolved}
       />
-      <Show when={voicesData()}>
+      <Show when={!voicesGate.suppress() && voicesData()}>
         {(data) => (
           <div style={{ position: 'relative' }}>
             <InspectDot instanceKey={instanceKey()} leafId="argument.voices" style={{ position: 'absolute', top: '0.2rem', right: 0, 'z-index': 2 }} />
             <ArgumentVoiceMap data={data()} onClickVoice={props.onPushRabbi} />
           </div>
         )}
+      </Show>
+      <Show when={voicesData() && voicesGate.suppress()}>
+        <VoicesSuppressedNote profile={voicesGate.profile()} />
       </Show>
       <Show when={sectionMoves()}>
         {(moves) => (
@@ -558,6 +613,7 @@ function OverviewSectionVoices(props: {
   onPushRabbi: (name: string) => void;
 }): JSX.Element {
   const [voices, setVoices] = createSignal<ArgumentVoicesData | null>(null);
+  const voicesGate = useVoicesGate(() => props.tractate, () => props.page, () => props.section);
   const instanceKey = () => `${props.section.startSegIdx}-${props.section.endSegIdx}-${props.section.title}`;
   createEffect(() => { void instanceKey(); setVoices(null); });
   const onResolved = (r: { deps_resolved?: Record<string, unknown> }) => {
@@ -586,8 +642,11 @@ function OverviewSectionVoices(props: {
         page={props.page}
         onResolved={onResolved}
       />
-      <Show when={voices()}>
+      <Show when={!voicesGate.suppress() && voices()}>
         {(data) => <ArgumentVoiceMap data={data()} onClickVoice={props.onPushRabbi} />}
+      </Show>
+      <Show when={voices() && voicesGate.suppress()}>
+        <VoicesSuppressedNote profile={voicesGate.profile()} />
       </Show>
     </div>
   );

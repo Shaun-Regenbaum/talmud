@@ -667,14 +667,20 @@ export default function MarksRegistryPanel(props: Props) {
                       'line-height': 1,
                     }}
                   >{isOn() ? '●' : '○'}</button>
-                  <span style={{ 'font-weight': nested ? 400 : 500, 'font-size': nested ? '0.8rem' : '0.85rem' }}>
+                  <span style={{
+                    'font-weight': nested ? 400 : 500, 'font-size': nested ? '0.8rem' : '0.85rem',
+                    // Truncate on one line instead of wrapping: a long label that
+                    // wraps flips between 1 and 2 lines as the status badge's width
+                    // changes (spinner → "✓ 1234ms"), which reads as row jitter.
+                    flex: 1, 'min-width': 0, 'white-space': 'nowrap', overflow: 'hidden', 'text-overflow': 'ellipsis',
+                  }} title={label()}>
                     {label()}
                   </span>
-                  <span title={`anchored on ${anchor()} · rendered ${render()}`} style={{ color: '#aaa', 'font-size': '0.7rem', 'font-family': 'monospace' }}>
+                  <span title={`anchored on ${anchor()} · rendered ${render()}`} style={{ color: '#aaa', 'font-size': '0.7rem', 'font-family': 'monospace', 'flex-shrink': 0 }}>
                     {anchor()[0]}/{String(render())[0]}
                   </span>
                   <Show when={row.source !== 'seed' && isOn()}>
-                    <span style={{ 'font-size': '0.7rem', display: 'inline-flex', 'align-items': 'center', gap: '0.3rem', color: state().kind === 'error' ? '#c00' : state().kind === 'loading' ? '#888' : state().kind === 'ok' ? '#15803d' : '#aaa' }}>
+                    <span style={{ 'font-size': '0.7rem', display: 'inline-flex', 'align-items': 'center', gap: '0.3rem', 'flex-shrink': 0, color: state().kind === 'error' ? '#c00' : state().kind === 'loading' ? '#888' : state().kind === 'ok' ? '#15803d' : '#aaa' }}>
                       <Show when={state().kind === 'loading'}>
                         <span style={{
                           display: 'inline-block', width: '0.65rem', height: '0.65rem',
@@ -702,7 +708,7 @@ export default function MarksRegistryPanel(props: Props) {
                   </Show>
                   {/* Summary badge on collapsed mark rows showing enrichment progress */}
                   <Show when={row.source === 'mark' && !isExpanded() && childCount() > 0}>
-                    <span style={{ 'font-size': '0.68rem', color: '#aaa', 'margin-left': '0.1rem' }}>
+                    <span style={{ 'font-size': '0.68rem', color: '#aaa', 'margin-left': '0.1rem', 'flex-shrink': 0, 'white-space': 'nowrap' }}>
                       {childCount()} enrich{childCount() === 1 ? '' : 'ments'}
                       <Show when={summary()!.loading > 0}> · {summary()!.loading}…</Show>
                       <Show when={summary()!.ok > 0}> · {summary()!.ok} done</Show>

@@ -8,6 +8,7 @@
  */
 
 import type { ContextItem } from './types.ts';
+import type { AnchorCoord } from './coord.ts';
 
 export interface SegMatch {
   /** ContextItem.key this placement applies to. */
@@ -15,6 +16,11 @@ export interface SegMatch {
   /** Segments the item maps to. Empty = leave unplaced (no-op) UNLESS
    *  `wholeDaf` is set, which is a deliberate daf-level placement. */
   segs: number[];
+  /** Cross-daf anchor: set by a matcher when the item's true home is a segment
+   *  on ANOTHER daf (parallel sugya, citation target). Additive — in-daf
+   *  matchers leave it undefined and only fill `segs`. When present, the match
+   *  counts as a placement even if `segs` is empty. */
+  coord?: AnchorCoord;
   /** Matcher id, e.g. 'tosfos-dh' | 'ai' | 'pieceKeys'. */
   via: string;
   /** 0..1 confidence (AI matchers set this; deterministic ones may omit). */
@@ -35,10 +41,11 @@ export function applyMatches(items: ContextItem[], matches: SegMatch[]): number 
   for (const item of items) {
     const m = byKey.get(item.key);
     if (!m) continue;
-    if (!m.wholeDaf && m.segs.length === 0) continue; // unplaced no-op
+    if (!m.wholeDaf && m.segs.length === 0 && !m.coord) continue; // unplaced no-op
     item.segs = m.wholeDaf ? [] : dedupeSorted(m.segs);
     item.via = m.via; // a whole-daf AI placement is `via:'ai'` + `segs:[]`
     item.confidence = m.confidence;
+    if (m.coord) item.coord = m.coord; // cross-daf target (additive)
     changed++;
   }
   return changed;

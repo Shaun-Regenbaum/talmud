@@ -21,11 +21,17 @@
  */
 
 import type { ContextItem } from './types.ts';
+import { type AnchorCoord, type DafRef, isCrossDaf } from './coord.ts';
 
-export type PlacementLevel = 'words' | 'segment' | 'amud' | 'daf';
+/** `cross-daf` is orthogonal to the in-daf granularities: the item's home is a
+ *  segment on ANOTHER page, so relative to the daf in view it is the least
+ *  "here" — hence it ranks below `daf`. Only derived when `placementOf` is
+ *  given the current daf AND the item carries an off-daf `coord`. */
+export type PlacementLevel = 'cross-daf' | 'words' | 'segment' | 'amud' | 'daf';
 
-/** Coarsest→finest, for ranking "most specific grounding wins". */
-export const LEVEL_RANK: Record<PlacementLevel, number> = { daf: 0, amud: 1, segment: 2, words: 3 };
+/** Coarsest→finest, for ranking "most specific grounding wins". `cross-daf`
+ *  sits below everything on-daf (it isn't on this page at all). */
+export const LEVEL_RANK: Record<PlacementLevel, number> = { 'cross-daf': -1, daf: 0, amud: 1, segment: 2, words: 3 };
 
 export interface Placement {
   /** The finest granularity this grounding reached. */
@@ -36,6 +42,8 @@ export interface Placement {
   words?: number[];
   /** Side of the daf, when known (set for 'amud', carried for finer levels). */
   amud?: 'a' | 'b';
+  /** Off-daf target (set only for 'cross-daf'). */
+  coord?: AnchorCoord;
   /** How it was placed: 'tosfos-dh' | 'pieceKeys' | 'mishnah' | 'ai' |
    *  'phrase'|'phrase-in-seg'|'phrase-fuzzy' | 'ai-phrase'|'ai-segment'|'ai-daf' | … */
   via?: string;
@@ -50,9 +58,16 @@ const WORD_VIAS = new Set(['phrase', 'phrase-in-seg', 'phrase-fuzzy', 'ai-phrase
  * Normalize an item's grounding into a `Placement`, or `null` if it isn't
  * grounded at all (no words, no segments, no amud, no whole-daf decision).
  */
-export function placementOf(it: ContextItem): Placement | null {
+export function placementOf(it: ContextItem, currentDaf?: DafRef): Placement | null {
   const via = it.hbVia ?? it.via;
   const confidence = it.hbConfidence ?? it.confidence;
+
+  // Cross-daf: the item's true home is a segment on another page. Only derived
+  // when the caller supplies the daf in view AND the item's coord points off it
+  // — so existing single-arg callers see unchanged behavior.
+  if (it.coord && currentDaf && isCrossDaf(it.coord, currentDaf)) {
+    return { level: 'cross-daf', segs: [], coord: it.coord, via, confidence };
+  }
 
   // Whole-daf: a deliberate daf-level grounding (the AI placer's null segStart),
   // but only when nothing finer is known. `ai-daf` is the client-resolved
