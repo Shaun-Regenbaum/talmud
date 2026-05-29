@@ -325,13 +325,9 @@ function ArgumentMoveCard(props: {
   onPushRabbi: (name: string) => void;
   dafRabbis: IdentifiedRabbi[];
   generationByName: Map<string, GenerationId>;
-  /** Section typing: on a narrative-primary section the dialectical role
-   *  (question/answer/objection/…) is the wrong taxonomy, so we hide the role
-   *  chip and drop its color-coding. The story's flow is the beat list above. */
-  hideRole?: boolean;
 }): JSX.Element {
   const f = props.move.fields;
-  const roleColor = () => (props.hideRole ? '#cbd5e1' : (ROLE_COLORS[f.role] ?? '#64748b'));
+  const roleColor = () => ROLE_COLORS[f.role] ?? '#64748b';
   const isActive = () => props.highlightedMoveId === f.id;
   const toggleHighlight = () => props.onHighlightMove(isActive() ? null : props.move);
 
@@ -365,13 +361,11 @@ function ArgumentMoveCard(props: {
           display: 'flex', 'align-items': 'center', gap: '0.5rem',
           'margin-bottom': '0.3rem', 'font-size': '0.7rem',
         }}>
-          <Show when={!props.hideRole}>
-            <span style={{
-              'text-transform': 'uppercase', 'letter-spacing': '0.06em',
-              'font-weight': 600, color: roleColor(),
-            }}>{moveKindLabel(f.role)}</span>
-            <span style={{ color: '#999' }}>·</span>
-          </Show>
+          <span style={{
+            'text-transform': 'uppercase', 'letter-spacing': '0.06em',
+            'font-weight': 600, color: roleColor(),
+          }}>{moveKindLabel(f.role)}</span>
+          <span style={{ color: '#999' }}>·</span>
           <span style={{ color: '#555' }}>{f.voice}</span>
           <span style={{ color: '#bbb', 'font-size': '0.65rem', 'font-family': 'ui-monospace, Menlo, monospace' }}>
             seg {props.move.startSegIdx === props.move.endSegIdx ? props.move.startSegIdx : `${props.move.startSegIdx}–${props.move.endSegIdx}`}
@@ -577,10 +571,17 @@ export function ArgumentBody(props: {
       </Show>
       <Show when={voicesGate.suppress()}>
         <Show when={voicesGate.profile()?.primary === 'aggadata'} fallback={<VoicesSuppressedNote profile={voicesGate.profile()} />}>
-          <ArgumentNarrative section={props.section} tractate={props.tractate} page={props.page} />
+          <ArgumentNarrative
+            section={props.section}
+            tractate={props.tractate}
+            page={props.page}
+            onHighlight={(r) => props.onHighlightRange(r ? { start: r.start, end: r.end, key: `beat-${r.start}-${r.tokenStart ?? 0}`, tokenStart: r.tokenStart, tokenEnd: r.tokenEnd } : null)}
+          />
         </Show>
       </Show>
-      <Show when={sectionMoves()}>
+      {/* Dialectical move list — hidden on narrative-primary sections, where the
+          anchored beat list in the narrative view above IS the move layer. */}
+      <Show when={voicesGate.profile()?.primary !== 'aggadata' && sectionMoves()}>
         {(moves) => (
           <div style={{ 'margin-top': '1rem' }}>
             <div style={{
@@ -589,7 +590,7 @@ export function ArgumentBody(props: {
               'letter-spacing': '0.08em',
               color: '#999',
               'margin-bottom': '0.5rem',
-            }}>{voicesGate.profile()?.primary === 'aggadata' ? 'Passages' : t('argument.moves')}</div>
+            }}>{t('argument.moves')}</div>
             <For each={moves()}>{(move) => (
               <ArgumentMoveCard
                 move={move}
@@ -602,7 +603,6 @@ export function ArgumentBody(props: {
                 onPushRabbi={props.onPushRabbi}
                 dafRabbis={props.dafRabbis}
                 generationByName={props.generationByName}
-                hideRole={voicesGate.profile()?.primary === 'aggadata'}
               />
             )}</For>
           </div>

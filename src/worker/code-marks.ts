@@ -1750,14 +1750,16 @@ Output STRICT JSON only:
 {
   "summary": "1-2 sentences: what happens in this story, in plain English.",
   "actors": [{ "name": "Conventional English name of a character — a rabbi, a biblical/legendary figure, a collective ('the demons'), or 'Narrator' for the anonymous teller", "role": "protagonist | antagonist | authority | narrator | other" }],
-  "beats": [{ "n": 1, "actor": "which actor acts in this beat (MUST match a name in actors)", "action": "one sentence: what happens or is said, in narrative order" }]
+  "beats": [{ "n": 1, "kind": "scene | action | dialogue | turn | resolution", "actor": "which actor acts in this beat (MUST match a name in actors)", "action": "one sentence: what happens or is said, in narrative order", "excerpt": "3-7 Hebrew/Aramaic words copied VERBATIM from the daf where this beat begins" }]
 }
 
 Rules:
 - Order beats by their occurrence in the text (n = 1, 2, 3 …); each beat is one concrete event.
-- Actors are CHARACTERS in the story, not "voices in a dispute". Demons, kings, animals, and biblical figures are valid actors.
-- Do NOT invent opposing "sides" or legal positions — this is narrative, not שקלא וטריא.
-- Plain English; Hebrew script in parentheses for technical terms, never transliteration.
+- "kind" is a NARRATIVE role, never a dialectical one: scene (sets the setting), action (something happens), dialogue (a character speaks), turn (a reversal/twist), resolution (how it ends). NEVER use question/answer/objection — this is a story, not שקלא וטריא.
+- "excerpt" MUST be copied verbatim from the daf text (the opening words of the beat), so the beat can be located on the page. Do not paraphrase or translate it.
+- Actors are CHARACTERS in the story. Demons, kings, animals, and biblical figures are valid actors.
+- Do NOT invent opposing "sides" or legal positions.
+- Plain English for "action"; Hebrew script in parentheses for technical terms, never transliteration.
 
 ${HEBREW_GLOSS_STYLE}`;
 
@@ -2015,7 +2017,8 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', { mark: 'argument-move' }, { mark: 'rabbi' }],
-      defHash: 'argument.narrative-v1', cacheVersion: '1',
+      checks: ['reanchor-narrative'],
+      defHash: 'argument.narrative-v2', cacheVersion: '2',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),

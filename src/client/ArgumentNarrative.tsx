@@ -7,12 +7,16 @@
  * an LLM call only when a dev opens a narrative section.
  */
 
-import { createResource, For, Show, type JSX } from 'solid-js';
+import { createResource, createSignal, For, Show, type JSX } from 'solid-js';
 import { lang } from './i18n';
 
 interface Actor { name: string; role: string }
-interface Beat { n: number; actor: string; action: string }
+interface Beat { n: number; kind?: string; actor: string; action: string; excerpt?: string; startSegIdx?: number; endSegIdx?: number; tokenStart?: number; tokenEnd?: number }
 interface NarrativeData { summary: string; actors: Actor[]; beats: Beat[] }
+
+const KIND_COLOR: Record<string, string> = {
+  scene: '#0369a1', action: '#15803d', dialogue: '#7c3aed', turn: '#b45309', resolution: '#be123c',
+};
 
 const POLL_INTERVAL_MS = 1500;
 const POLL_TIMEOUT_MS = 90_000;
@@ -54,11 +58,14 @@ export default function ArgumentNarrative(props: {
   section: { startSegIdx?: number; endSegIdx?: number; title?: string };
   tractate: string;
   page: string;
+  /** Highlight a beat's span on the daf (null clears). */
+  onHighlight?: (range: { start: number; end: number; tokenStart?: number; tokenEnd?: number } | null) => void;
 }): JSX.Element {
   const [data] = createResource(
     () => `${props.tractate}|${props.page}|${props.section.startSegIdx}-${props.section.endSegIdx}`,
     () => runNarrative(props.tractate, props.page, props.section),
   );
+  const [activeBeat, setActiveBeat] = createSignal<number | null>(null);
 
   return (
     <div style={{ 'margin-top': '0.6rem' }}>
@@ -96,15 +103,43 @@ export default function ArgumentNarrative(props: {
             </Show>
 
             <Show when={d().beats?.length > 0}>
-              <ol style={{ margin: 0, padding: '0 0 0 1.2rem', display: 'flex', 'flex-direction': 'column', gap: '0.3rem' }}>
-                <For each={[...d().beats].sort((a, b) => a.n - b.n)}>{(b) => (
-                  <li style={{ 'font-size': '0.82rem', color: '#444', 'line-height': 1.5 }}>
-                    <Show when={b.actor}>
-                      <span style={{ 'font-weight': 600, color: '#222' }}>{b.actor}: </span>
-                    </Show>
-                    {b.action}
-                  </li>
-                )}</For>
+              <ol style={{ margin: 0, padding: 0, 'list-style': 'none', display: 'flex', 'flex-direction': 'column', gap: '0.3rem' }}>
+                <For each={[...d().beats].sort((a, b) => a.n - b.n)}>{(b) => {
+                  const anchored = () => typeof b.startSegIdx === 'number';
+                  const isActive = () => activeBeat() === b.n;
+                  const toggle = () => {
+                    if (!anchored() || !props.onHighlight) return;
+                    const next = isActive() ? null : b.n;
+                    setActiveBeat(next);
+                    props.onHighlight(next === null ? null : { start: b.startSegIdx!, end: b.endSegIdx ?? b.startSegIdx!, tokenStart: b.tokenStart, tokenEnd: b.tokenEnd });
+                  };
+                  return (
+                    <li
+                      onClick={toggle}
+                      title={anchored() ? 'Highlight this beat on the daf' : undefined}
+                      style={{
+                        'font-size': '0.82rem', color: '#444', 'line-height': 1.5,
+                        display: 'flex', gap: '0.4rem', 'align-items': 'baseline',
+                        padding: '0.15rem 0.3rem', 'border-radius': '4px',
+                        cursor: anchored() ? 'pointer' : 'default',
+                        background: isActive() ? '#fff7ed' : 'transparent',
+                        'box-shadow': isActive() ? 'inset 2px 0 0 #ea580c' : 'none',
+                      }}
+                    >
+                      <span style={{ 'flex-shrink': 0, color: '#bbb', 'font-variant-numeric': 'tabular-nums', 'font-size': '0.72rem' }}>{b.n}</span>
+                      <Show when={b.kind}>
+                        <span style={{
+                          'flex-shrink': 0, 'font-size': '0.6rem', 'text-transform': 'uppercase', 'letter-spacing': '0.04em',
+                          color: KIND_COLOR[b.kind ?? ''] ?? '#888',
+                        }}>{b.kind}</span>
+                      </Show>
+                      <span>
+                        <Show when={b.actor}><span style={{ 'font-weight': 600, color: '#222' }}>{b.actor}: </span></Show>
+                        {b.action}
+                      </span>
+                    </li>
+                  );
+                }}</For>
               </ol>
             </Show>
           </>

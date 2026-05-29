@@ -122,10 +122,15 @@ export const ARGUMENT_NARRATIVE_OUTPUT_SCHEMA = responseFormat('argument_narrati
     name: z.string(),
     role: z.enum(['protagonist', 'antagonist', 'authority', 'narrator', 'other']),
   })),
+  // Each beat carries a NARRATIVE kind (not a dialectical role) and a verbatim
+  // Hebrew `excerpt` so the worker can anchor the beat to its segment — making
+  // the beats the narrative section's first-class, clickable move layer.
   beats: z.array(z.object({
     n: z.number().int().min(1),
+    kind: z.enum(['scene', 'action', 'dialogue', 'turn', 'resolution']),
     actor: z.string(),
     action: z.string(),
+    excerpt: z.string(),
   })),
 }));
 export const ARGUMENT_BACKGROUND_OUTPUT_SCHEMA = responseFormat('argument_background', single('background'));
