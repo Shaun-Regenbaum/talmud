@@ -125,11 +125,20 @@ function instancesOf(parsed: unknown): RangeInstance[] {
  *  was ~40% false positives (correct anchors whose phrase merely isn't
  *  contiguous). Skips instances with no excerpt or a <2-word excerpt (findExcerpt
  *  itself rejects <2-word needles as too ambiguous). */
+/** Marks where anchor-verbatim is promoted to `hard` (gates the cache write).
+ *  Chosen from real-traffic observation: pesukim + aggadata anchor reliably
+ *  (zero flags sampled across 23 dapim post the placer-mirroring refinement), so
+ *  a flag there is a genuine hallucination worth blocking. argument /
+ *  argument-move still flag occasionally (boundary-spanning excerpts), so they
+ *  stay `soft` (observe-only) pending more data. */
+const ANCHOR_VERBATIM_HARD_MARKS: ReadonlySet<string> = new Set(['pesukim', 'aggadata']);
+
 const anchorVerbatim: PostCheck = {
   id: 'anchor-verbatim',
   phase: 'validate',
   run: (parsed, ctx) => {
     const issues: CheckIssue[] = [];
+    const severity: Severity = ANCHOR_VERBATIM_HARD_MARKS.has(ctx.defId) ? 'hard' : 'soft';
     const segs = ctx.segmentsHe;
     const grid = buildVerbatimGrid(segs);
     for (const inst of instancesOf(parsed)) {
@@ -138,13 +147,13 @@ const anchorVerbatim: PostCheck = {
       if (normalizeHebrew(excerpt).split(' ').filter(Boolean).length < 2) continue;
       const seg = inst.startSegIdx;
       if (typeof seg !== 'number' || seg < 0 || seg >= segs.length) {
-        issues.push({ kind: 'anchor-out-of-range', severity: 'soft', match: excerpt, index: typeof seg === 'number' ? seg : -1 });
+        issues.push({ kind: 'anchor-out-of-range', severity, match: excerpt, index: typeof seg === 'number' ? seg : -1 });
         continue;
       }
       // Confine the search to the single anchored segment: a hit there is the
       // same prefix the placer would have matched to land on this segment.
       if (!findExcerpt(grid, excerpt, seg, seg)) {
-        issues.push({ kind: 'excerpt-not-in-segment', severity: 'soft', match: excerpt, index: seg });
+        issues.push({ kind: 'excerpt-not-in-segment', severity, match: excerpt, index: seg });
       }
     }
     return { issues };
