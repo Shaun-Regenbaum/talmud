@@ -18,6 +18,7 @@ import { lintSynthesis } from '../synthesisLint';
 import { lintHalachaParsed } from '../halachaLint';
 import { reanchorArgument, reanchorArgumentMove, reanchorPesukim, reanchorAggadata, reanchorRabbiEvidence, reanchorNarrative } from '../place/reanchor';
 import { normalizeHebrew, buildVerbatimGrid, findExcerpt } from '../place/verbatim';
+import { deriveVoiceEdges } from '../typing/voices';
 
 export type Severity = 'hard' | 'soft';
 
@@ -246,6 +247,7 @@ export const CHECKS: Record<string, PostCheck> = {
   'reanchor-aggadata': transform('reanchor-aggadata', reanchorAggadata),
   'reanchor-rabbi-evidence': transform('reanchor-rabbi-evidence', reanchorRabbiEvidence),
   'reanchor-narrative': transform('reanchor-narrative', reanchorNarrative),
+  'derive-voice-edges': { id: 'derive-voice-edges', phase: 'transform', run: (parsed) => ({ parsed: deriveVoiceEdges(parsed) }) },
   'hebrew-excerpt': hebrewExcerpt,
   'hebrew-gloss': hebrewGloss,
   'anchor-verbatim': anchorVerbatim,

@@ -10,6 +10,7 @@ import { type GeographyData, type GeographyEvidence } from './RabbiGeographyCard
 import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeline';
 import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
 import ArgumentNarrative from './ArgumentNarrative';
+import { deriveVoiceEdges } from '../lib/typing/voices';
 import ArgumentFlowGraph, { type FlowConnection } from './ArgumentFlowGraph';
 import { selectSectionMoves } from '../lib/argumentMoves';
 import { t, lang } from './i18n';
@@ -554,7 +555,9 @@ export function ArgumentBody(props: {
     const voices = r.deps_resolved?.['argument.voices'] as ArgumentVoicesData | undefined;
     if (voices && Array.isArray(voices.voices)) {
       // Edges may be absent on older cached entries — default to [].
-      setVoicesData({ voices: voices.voices, edges: Array.isArray(voices.edges) ? voices.edges : [] });
+      // Repair edge directions / drop malformed edges deterministically, so even
+      // already-cached graphs (pre the derive-voice-edges transform) render right.
+      setVoicesData(deriveVoiceEdges({ voices: voices.voices, edges: Array.isArray(voices.edges) ? voices.edges : [] }) as ArgumentVoicesData);
     }
   };
 
@@ -689,7 +692,7 @@ function OverviewSectionVoices(props: {
   createEffect(() => { void instanceKey(); setVoices(null); });
   const onResolved = (r: { deps_resolved?: Record<string, unknown> }) => {
     const v = r.deps_resolved?.['argument.voices'] as ArgumentVoicesData | undefined;
-    if (v && Array.isArray(v.voices)) setVoices({ voices: v.voices, edges: Array.isArray(v.edges) ? v.edges : [] });
+    if (v && Array.isArray(v.voices)) setVoices(deriveVoiceEdges({ voices: v.voices, edges: Array.isArray(v.edges) ? v.edges : [] }) as ArgumentVoicesData);
   };
   return (
     <div style={{ 'margin-top': '0.6rem', 'border-top': '1px dashed #e5e3dc', 'padding-top': '0.6rem' }}>
