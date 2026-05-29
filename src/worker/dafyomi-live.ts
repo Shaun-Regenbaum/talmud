@@ -13,6 +13,7 @@
 
 import { getDafyomiMasechet, buildRevachUrl, type DafyomiContentType } from '../lib/sefref/dafyomi/masechtos';
 import { assembleDaf, type FetchedType } from '../lib/sefref/dafyomi/assemble';
+import { decodeDafyomiHtml } from '../lib/sefref/dafyomi/decode';
 import type { DafyomiDaf } from '../lib/sefref/dafyomi/schema';
 
 const ORIGIN = 'https://www.dafyomi.co.il';
@@ -34,7 +35,9 @@ async function fetchText(url: string, requiredMarker: string | null): Promise<st
     try {
       const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT, accept: 'text/html' } });
       if (res.ok) {
-        const body = await res.text();
+        // dafyomi serves a mix of UTF-8 and windows-1255 with no charset header;
+        // sniff so Hebrew doesn't mojibake into U+FFFD ("????").
+        const body = decodeDafyomiHtml(await res.arrayBuffer());
         if (requiredMarker && !body.includes(requiredMarker)) return null;
         return body;
       }
