@@ -17,7 +17,7 @@
 import { lintSynthesis } from '../synthesisLint';
 import { lintHalachaParsed } from '../halachaLint';
 import { reanchorArgument, reanchorArgumentMove, reanchorPesukim, reanchorAggadata, reanchorRabbiEvidence } from '../place/reanchor';
-import { normalizeHebrew } from '../place/verbatim';
+import { normalizeHebrew, buildVerbatimGrid, findExcerpt } from '../place/verbatim';
 
 export type Severity = 'hard' | 'soft';
 
@@ -108,28 +108,42 @@ function instancesOf(parsed: unknown): RangeInstance[] {
   return Array.isArray(arr) ? (arr as RangeInstance[]) : [];
 }
 
-/** anchor-verbatim — the instance's verbatim `excerpt` is actually present
- *  (as a normalized substring) in the segment it was anchored to. Catches
- *  hallucinations and prefix-only fallbacks where the re-anchorer landed on a
- *  segment that doesn't literally contain the claimed text. Skips instances
- *  with no excerpt or a <2-word excerpt (too short to verify meaningfully). */
+/** anchor-verbatim — the instance's `excerpt` can actually be located in the
+ *  segment it was anchored to, USING THE SAME MATCHER THAT PLACED IT. The
+ *  re-anchorers (reanchorArgumentMove / -Pesukim / -Aggadata) call findExcerpt,
+ *  which anchors on the longest matching prefix of the excerpt (full → 4 → 3 →
+ *  2 words) — so a lightly-paraphrased tail, or a quote that spills into the
+ *  next segment, still legitimately anchors on its opening words. Re-running
+ *  findExcerpt against the single anchored segment reproduces that decision:
+ *  a hit means the placer had a real reason to land here; a miss means the
+ *  excerpt reached this segment only via the fallback bump (prevMatchSeg+1 /
+ *  section start), i.e. it is genuinely mis-anchored (or hallucinated).
+ *
+ *  This deliberately mirrors the placer instead of demanding a full contiguous
+ *  substring: the old `segNorm.includes(fullExcerpt)` test flagged every
+ *  prefix-anchored placement as `excerpt-not-in-segment`, which on real dapim
+ *  was ~40% false positives (correct anchors whose phrase merely isn't
+ *  contiguous). Skips instances with no excerpt or a <2-word excerpt (findExcerpt
+ *  itself rejects <2-word needles as too ambiguous). */
 const anchorVerbatim: PostCheck = {
   id: 'anchor-verbatim',
   phase: 'validate',
   run: (parsed, ctx) => {
     const issues: CheckIssue[] = [];
     const segs = ctx.segmentsHe;
+    const grid = buildVerbatimGrid(segs);
     for (const inst of instancesOf(parsed)) {
       const excerpt = inst.fields?.excerpt;
       if (typeof excerpt !== 'string' || !excerpt) continue;
-      const normEx = normalizeHebrew(excerpt);
-      if (normEx.split(' ').filter(Boolean).length < 2) continue;
+      if (normalizeHebrew(excerpt).split(' ').filter(Boolean).length < 2) continue;
       const seg = inst.startSegIdx;
       if (typeof seg !== 'number' || seg < 0 || seg >= segs.length) {
         issues.push({ kind: 'anchor-out-of-range', severity: 'soft', match: excerpt, index: typeof seg === 'number' ? seg : -1 });
         continue;
       }
-      if (!normalizeHebrew(segs[seg]).includes(normEx)) {
+      // Confine the search to the single anchored segment: a hit there is the
+      // same prefix the placer would have matched to land on this segment.
+      if (!findExcerpt(grid, excerpt, seg, seg)) {
         issues.push({ kind: 'excerpt-not-in-segment', severity: 'soft', match: excerpt, index: seg });
       }
     }

@@ -47,6 +47,39 @@ describe('anchor-verbatim', () => {
     const { issues } = await runChecks(['anchor-verbatim'], parsed, ctx({ segmentsHe: segs, defId: 'argument' }));
     expect(issues).toEqual([]);
   });
+
+  // The check must mirror the placer (findExcerpt), which anchors on the
+  // longest matching PREFIX of the excerpt (full -> 4 -> 3 -> 2 words). A
+  // lightly-paraphrased tail or a quote spilling past the segment still
+  // anchors correctly on its opening words, so it must NOT be flagged — that
+  // was ~40% of the old check's flags on real dapim (false positives).
+  it('does NOT flag when the excerpt opening (>=2-word prefix) is present but the full phrase is not contiguous', async () => {
+    // seg1 is "תנו רבנן המביא גט"; the excerpt opens on it but its tail
+    // ("בידו פסול") spills past the segment / is paraphrased.
+    const parsed = { instances: [{ startSegIdx: 1, fields: { excerpt: 'תנו רבנן המביא גט בידו פסול' } }] };
+    const { issues } = await runChecks(['anchor-verbatim'], parsed, ctx({ segmentsHe: segs, defId: 'argument-move' }));
+    expect(issues).toEqual([]);
+  });
+
+  it('still flags when not even a 2-word opening prefix is present (fallback-bumped / hallucinated)', async () => {
+    // Opening words absent from seg2 -> the placer could only have reached
+    // seg2 via the fallback bump. This is the real Pesachim-60b pile-up shape:
+    // moves clamped onto the section start whose text lives further down.
+    const parsed = { instances: [{ startSegIdx: 2, fields: { excerpt: 'תנו רבנן המביא גט' } }] };
+    const { issues } = await runChecks(['anchor-verbatim'], parsed, ctx({ segmentsHe: segs, defId: 'argument-move' }));
+    expect(kinds(issues)).toEqual(['excerpt-not-in-segment']);
+    expect(issues[0].index).toBe(2);
+    expect(allSoft(issues)).toBe(true);
+  });
+
+  it('does not leak a prefix match from a neighbouring segment (search confined to the anchored segment)', async () => {
+    // "אמר רבא" lives in seg2, NOT seg1. Anchoring it to seg1 must still flag,
+    // even though a different segment contains the prefix.
+    const parsed = { instances: [{ startSegIdx: 1, fields: { excerpt: 'אמר רבא הלכה' } }] };
+    const { issues } = await runChecks(['anchor-verbatim'], parsed, ctx({ segmentsHe: segs, defId: 'argument-move' }));
+    expect(kinds(issues)).toEqual(['excerpt-not-in-segment']);
+    expect(issues[0].index).toBe(1);
+  });
 });
 
 describe('partition-clean', () => {
