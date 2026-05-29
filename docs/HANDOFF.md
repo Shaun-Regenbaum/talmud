@@ -14,8 +14,10 @@ layer** and **one post-LLM check layer**, then building section-typing on top.
 Work is split into Track A (backend, leading) → B (render/DX) → C (typing).
 
 Done & shippable: **A1** (unified verbatim placer) = **PR #45** (open, needs owner review/merge).
-In progress: **A2** (standardized check layer) — the library exists + is tested,
-but is **not yet wired into the runners**. That wiring is your immediate task.
+**A2** (standardized check layer) is now **fully wired into both runners** — the
+registry library (increment 1) plus the runner rewiring (increment 2) are
+committed on `framework-check-layer`. Your immediate task is **A3** (add new
+soft checks). See "YOUR IMMEDIATE TASK" below.
 
 ## Repo + how to work in it (IMPORTANT)
 
@@ -64,26 +66,48 @@ Key engine files in `src/worker/index.ts`:
 - Regression tests added: `tests/place/verbatim.test.ts` (matcher contract: normalization, prefix fallback, token offsets, matchLen, first/last), `tests/place/reanchor-invariants.test.ts` (idempotency + clean partition / in-bounds moves / ordered offsets).
 - **Stale-cache finding**: 2 aggadata fixtures (Gittin 68a, Sanhedrin 59b) had production cache from an OLDER `postProcessAggadata` (1-word `endExcerpt` → old fallback painted to segment end; current code paints the start excerpt). Their `expected` was regenerated from current code and marked `_regeneratedFromCurrentCode` in-file. The other 14 stay anchored to live production.
 
-### A2 — standardized check layer, INCREMENT 1 ONLY (committed on `framework-check-layer`, NOT yet PR'd)
+### A2 — standardized check layer (committed on `framework-check-layer`, NOT yet PR'd)
+**Increment 1 — the registry library:**
 - `src/lib/check/postcheck.ts` — `PostCheck` registry + `runChecks(ids, parsed, ctx)`. Two phases: `transform` (mutates parsed — the re-anchorers are registered as `reanchor-argument` etc.) and `validate` (returns `CheckIssue[]` with `severity: 'hard'|'soft'` — the linters `lintSynthesis`/`lintHalachaParsed` are registered as `hebrew-excerpt`/`hebrew-gloss`). `runChecks` runs transforms (in order) then validators.
 - `tests/check/postcheck.test.ts` (8 cases) — transforms resolve anchors identically to the direct re-anchorer; validators flag a calque / English-only pasuk; phases ordered; unknown ids tolerated.
-- **This layer is additive and NOT used by the runners yet.** Nothing imports `runChecks` in `index.ts`.
 
-Current totals: 57 test files, **1253 tests passing**; typecheck clean except the unrelated MCP-module errors.
+**Increment 2 — wired into the runners (commit `45317c2`):**
+- Added `checks?: string[]` to `MarkDefinition`/`EnrichmentDefinition` in BOTH `studio-schema.ts` and `studio-registry.ts` (the runner's enrichment def is the *registry* type, not the schema one — `adaptCodeEnrichment` now copies `checks` across). Excluded from `def_hash`/the cache key (cache keys use only `id`+`cache_version`; `def_hash` is a literal, never recomputed from the def — verified).
+- Declared checks on the code defs (`code-marks.ts`): argument/argument-move/pesukim/aggadata → `reanchor-*`; pesukim.synthesis → `hebrew-excerpt`; halacha.{codification,practical,disputes,synthesis} → `hebrew-gloss`. Threaded `checks` through `makeEnrichment`/`makeSynthesis`.
+- `runMarkOnce`: the `if (def.id===…)` re-anchor chain is replaced by one `runChecks(def.checks, …)` call (fetches the gemara slice once). rabbi/places stay special-cased. The 4 inline `postProcessArgument/…` wrappers are DELETED (golden tests import the pure re-anchorers directly, not the wrappers).
+- `runEnrichmentOnce`: the two lint if-blocks are replaced by `runChecks`; gating now keys on `hardIssueCount` (all current validator issues are `hard`, so identical to the old `!lint_issues`). `lint_issues` still stored on `RunResult` (now `CheckIssue[]`; `summarizeIssue` output is unchanged since `match` is always present). `postProcessRabbiEvidence` unchanged (A1b).
+- `tests/check/wiring.test.ts` (5 cases) — locks the declared checks to the registry; proves `keyForMark`/`keyForEnrichment` are invariant to `checks`.
 
-## YOUR IMMEDIATE TASK — A2 increment 2: wire `runChecks` into the runners
+Current totals: 58 test files, **1258 tests passing**; typecheck clean except the unrelated MCP-module errors. **Not yet PR'd** — PR `framework-check-layer` with `--base section-typing-design` so the diff is just A2 stacked on A1.
 
-Goal: replace the two hardcoded `if (def.id===…)` post-process chains with `runChecks`, driven by a new declarative `checks?: string[]` on each definition. Must stay byte-identical (golden suite green) and **must not bump `def_hash`**.
+## YOUR IMMEDIATE TASK — A3: add new checks, ship them `soft`
 
-Steps:
-1. **Add `checks?: string[]`** to `MarkDefinition` and `EnrichmentDefinition` in `src/worker/studio-schema.ts`.
-2. **Exclude `checks` from `def_hash`.** Find the `def_hash` computation (sha256 over `extractor + render`, ~studio-schema.ts:569 and wherever it's computed for code/KV defs) and ensure `checks` is NOT included (checks are post-processing, not generation input). Verify a def with `checks` set produces the SAME `def_hash` as before → cache keys unchanged.
-3. **Declare checks on the code defs** in `src/worker/code-marks.ts`: `argument` → `['reanchor-argument']`, `argument-move` → `['reanchor-argument-move']`, `pesukim` → `['reanchor-pesukim']`, `aggadata` → `['reanchor-aggadata']`, `pesukim.synthesis` → `['hebrew-excerpt']`, `halacha.*` → `['hebrew-gloss']`.
-4. **Rewire `runMarkOnce`** (`src/worker/index.ts`): replace the `if (def.id==='argument') parsed = await postProcessArgument(...) else if …` chain with `const { parsed: checked, issues } = await runChecks(def.checks ?? [], parsed, { tractate, page, segmentsHe: slice.segments_he, defId: def.id, lang })`. You'll need the gemara slice available (the delegating wrappers fetch it; centralize one fetch). **Special cases that DON'T fit the segments-only transform yet:** `postProcessRabbi` (needs the daf Hebrew text, not segments — different signature) and `recordObservedPlacesFromMark` (a side effect, not a transform). Leave those as-is for now, or model them explicitly. Only the 4 verbatim re-anchorers move to `runChecks`.
-5. **Rewire `runEnrichmentOnce`**: replace its `pesukim.synthesis`/`halacha.*` lint if-chain with `runChecks(def.checks ?? [], parsed, ctx)`. Keep `postProcessRabbiEvidence` as-is for now (it's a transform but not yet ported — see A1b). Feed the `hard` issues into the EXISTING cache-gating (`noteLintAttempt` / `MAX_LINT_ATTEMPTS`): pin on no hard issues; otherwise bounded-retry. Preserve `lint_issues` on `RunResult` (or alias to `check_issues` keeping the same JSON path so `/api/usage` `readLintFailures` and the dev tray keep working).
-6. **Verify**: `pnpm test` (golden + all must stay green → proves the rewiring reproduces the if-chains exactly), filtered `tsc`. Then PR `framework-check-layer` with `--base section-typing-design` so the diff is just A2 (stacked on A1).
+A2 is done (above). Now ADD net-new checks to the registry, shipped `soft` first
+so they observe-only (never gate the cache) until you've watched them on
+`GET /api/usage` (`readLintFailures`) and decided to promote per-mark.
 
-Risk: getting the cache-gating semantics or the synthesis-text extraction subtly wrong. The golden suite + `tests/check/postcheck.test.ts` are your safety net; add a test that a `hard` issue prevents the cache write.
+New checks to add in `src/lib/check/postcheck.ts` (register in `CHECKS`, declare
+on the relevant defs via `checks: []`, cover with `tests/check/`):
+- **`anchor-verbatim`** (validate) — the resolved excerpt is actually present in
+  its claimed segment. Catches hallucinations like `אריגתא` where the daf says
+  `כשורי`. Needs `ctx.segmentsHe` (already passed in `runMarkOnce`; for
+  enrichments the validator ctx currently passes `segmentsHe: []`, so if you
+  attach this to an enrichment, wire a real slice there too).
+- **`edge-integrity`** (validate) — voices-graph edges: from/to ∈ voices,
+  ordered ranges, no contradictory `opposes`+`supports` on one pair.
+- **`partition-clean`** (validate) — no gaps/overlaps/dupes in section/move
+  partitions. Catches the duplicated Rav Amram/Yalta moves.
+
+Ship all three `soft`. Promote to `hard` per-mark only after observing — and
+**only that promotion warrants a per-mark `cache_version` bump, one at a time**
+(full-shas re-warm is ~$1000; never bump broadly).
+
+Verify: `pnpm test` (all green) + filtered `tsc`. The check registry +
+`tests/check/*` are your safety net.
+
+NOTE: A2 itself is committed on `framework-check-layer` but **not yet PR'd** — if
+the owner hasn't picked it up, open it first (`gh pr create --base
+section-typing-design`, stacked on A1/PR #45) before stacking A3 on top.
 
 ## REMAINING ROADMAP (tasks already filed)
 
