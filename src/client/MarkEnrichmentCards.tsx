@@ -33,6 +33,47 @@ import { lang, t } from './i18n';
 // Single global "which card has the inspector open?" signal — keyed by the
 // card's instanceKey. Only one drawer at a time across the whole page.
 const [openInspectorKey, setOpenInspectorKey] = createSignal<string | null>(null);
+// Which leaf the open inspector is focused on (null = the synthesis aggregate).
+// Module-level so a section card rendered OUTSIDE the owning MarkEnrichmentCards
+// (e.g. HalachaBody's Codification card) can open the drawer focused on its leaf.
+const [inspectorView, setInspectorView] = createSignal<string | null>(null);
+
+/** Open the instance inspector for `instanceKey`, optionally focused on a
+ *  specific leaf enrichment id (null = the synthesis). Any section affordance
+ *  can call this; the MarkEnrichmentCards with that key owns the drawer. */
+export function openInstanceInspector(instanceKey: string, leafId: string | null = null): void {
+  setInspectorView(leafId);
+  setOpenInspectorKey(instanceKey);
+}
+
+/** The small circular "i" affordance. Dev-mode only. Drop next to any section
+ *  (a SectionCard label, a viz header) to open the inspector focused on that
+ *  section's leaf. Highlights when its target is the one currently shown. */
+export function InspectDot(props: { instanceKey: string; leafId?: string | null; title?: string; style?: JSX.CSSProperties }): JSX.Element {
+  const active = () =>
+    openInspectorKey() === props.instanceKey && (inspectorView() ?? null) === (props.leafId ?? null);
+  return (
+    <Show when={devModeActive()}>
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); openInstanceInspector(props.instanceKey, props.leafId ?? null); }}
+        title={props.title ?? 'Inspect this section'}
+        aria-label={props.title ?? 'Inspect this section'}
+        style={{
+          width: '1.25rem', height: '1.25rem', padding: 0, cursor: 'pointer',
+          background: active() ? '#000' : 'transparent',
+          color: active() ? '#fff' : '#aaa',
+          border: '1px solid #ddd', 'border-radius': '50%',
+          'font-size': '0.62rem', 'font-family': 'ui-serif, Georgia, serif',
+          'font-style': 'italic', 'line-height': 1, 'flex-shrink': 0,
+          ...(props.style ?? {}),
+        }}
+      >
+        i
+      </button>
+    </Show>
+  );
+}
 
 interface EnrichmentDef {
   id: string;
@@ -242,10 +283,16 @@ interface Props {
 export default function MarkEnrichmentCards(props: Props) {
   const [defs] = createResource(fetchEnrichments);
   const [runs, setRuns] = createSignal<Record<string, RunState>>({});
-  const [selectedDevView, setSelectedDevView] = createSignal<string | null>(null);
 
   const setRun = (id: string, state: RunState) =>
     setRuns((cur) => ({ ...cur, [id]: state }));
+
+  // Is THIS instance's inspector open, and which leaf is it focused on? Reads
+  // the module-level signals so section cards (which live outside this
+  // component) can drive the drawer. inspectorSelectedId() is null when the
+  // synthesis is shown.
+  const isInspectorOpen = () => openInspectorKey() === props.instanceKey;
+  const inspectorSelectedId = () => (isInspectorOpen() ? inspectorView() : null);
 
   const allMatching = () => (defs() ?? []).filter((d) => d.mark === props.markId && d.status !== 'draft');
   // The user-facing card is the aggregate (synthesis). Leaves only render
@@ -260,16 +307,10 @@ export default function MarkEnrichmentCards(props: Props) {
     if (a.length > 0) return a;
     return leaves();
   };
-  // What to render when user selects a specific leaf in dev mode.
-  const devSelected = () => {
-    const id = selectedDevView();
-    if (!id) return null;
-    return allMatching().find((d) => d.id === id) ?? null;
-  };
-  const matching = () => {
-    const sel = devSelected();
-    return sel ? [sel] : primary();
-  };
+  // The card body + auto-fire always track the PRIMARY (synthesis) view. The
+  // inspector's leaf selection is independent (it fetches the leaf on demand),
+  // so opening a section's inspector never mutates the synthesis card.
+  const matching = () => primary();
 
   // lang() is part of the stamp so a language switch re-runs the auto-fire
   // effect below and re-fetches the card under the new lang (the worker keys
@@ -375,19 +416,57 @@ export default function MarkEnrichmentCards(props: Props) {
     return tail.replace(/[-_]/g, ' ').replace(/\b\w/, (m) => m.toUpperCase());
   };
 
-  // Which enrichment is currently the focal one? In dev mode this follows
-  // the dropdown / badge selection; otherwise it's the first aggregate
-  // (= synthesis) or, if none, the first leaf.
-  const currentView = (): EnrichmentDef | null => {
-    const sel = selectedDevView();
-    if (sel) return allMatching().find((d) => d.id === sel) ?? null;
+  // The synthesis/aggregate view — what the sidebar card always shows.
+  const primaryView = (): EnrichmentDef | null => {
     const a = aggregates();
     if (a.length > 0) return a[0];
     const l = leaves();
     return l.length > 0 ? l[0] : null;
   };
+  const primaryRun = (): RunState => runs()[primaryView()?.id ?? ''] ?? { kind: 'idle' };
+
+  // The inspector's focal view — follows its leaf selection, else the primary.
+  const currentView = (): EnrichmentDef | null => {
+    const sel = inspectorSelectedId();
+    if (sel) return allMatching().find((d) => d.id === sel) ?? null;
+    return primaryView();
+  };
   const currentRun = (): RunState =>
     runs()[currentView()?.id ?? ''] ?? { kind: 'idle' };
+
+  // When a leaf is selected in the inspector, make sure we have its FULL run
+  // (prompt + telemetry). Leaves fanned out from the aggregate's deps_resolved
+  // carry only content — no `resolved` — so fetch the leaf directly. The worker
+  // cached it under its own key during dep resolution (with the same
+  // mark_input), so this is a cache hit, not a fresh LLM call. Fetched in the
+  // background so the visible content doesn't flicker to a spinner.
+  createEffect(() => {
+    const id = inspectorSelectedId();
+    if (!id) return;
+    const def = untrack(() => allMatching().find((d) => d.id === id));
+    if (!def) return;
+    const cur = untrack(() => runs()[id]);
+    if (cur?.kind === 'loading') return;
+    if (cur?.kind === 'ok' && cur.result.resolved) return; // already have prompts
+    const s = stamp();
+    const curLang = lang();
+    const controller = new AbortController();
+    onCleanup(() => controller.abort());
+    const { id: actId, label: actLabel } = enrichmentActivityKey(
+      id, props.tractate, props.page, props.instance, props.instanceKey,
+    );
+    void enrichmentQueue.enqueue(actId, actLabel, (sig) =>
+      runEnrichment(id, props.tractate, props.page, props.instance, props.instanceKey, sig),
+      controller.signal,
+      QUEUE_PRIORITY.high,
+    ).then(
+      (result) => {
+        runResultCache.set(runCacheKey(id, props.tractate, props.page, props.instanceKey, curLang), result);
+        if (stamp() === s) setRun(id, { kind: 'ok', stamp: s, result });
+      },
+      (err) => { if (!isAbort(err) && stamp() === s) { /* keep synthetic content; inspection just lacks prompts */ } },
+    );
+  });
 
   // Dependencies that fed the current view. For a synthesis-style aggregate
   // the deps are the leaves it consumed (taken from deps_resolved on the
@@ -452,10 +531,10 @@ export default function MarkEnrichmentCards(props: Props) {
     return t('loading.default');
   };
 
-  // Body renderer shared across dev / non-dev: loading state, error, or
-  // the content paragraph (Hebraized + parsed JSON aware).
-  const renderBody = (): JSX.Element => {
-    const r = currentRun();
+  // Body renderer for a given run: loading state, error, or the content
+  // paragraph (Hebraized + parsed JSON aware). The card renders the primary
+  // run; the inspector renders its selected view's run.
+  const renderRunBody = (r: RunState): JSX.Element => {
     if (r.kind === 'loading' || r.kind === 'idle') {
       return (
         <div style={{
@@ -496,6 +575,8 @@ export default function MarkEnrichmentCards(props: Props) {
       </p>
     );
   };
+  const renderCardBody = (): JSX.Element => renderRunBody(primaryRun());
+  const renderInspectorBody = (): JSX.Element => renderRunBody(currentRun());
 
   // Human-friendly label for the instance (used in the inspector header).
   const instanceLabel = (): string => {
@@ -511,14 +592,13 @@ export default function MarkEnrichmentCards(props: Props) {
     );
   };
 
-  const isInspectorOpen = () => openInspectorKey() === props.instanceKey;
-  const closeInspector = () => setOpenInspectorKey(null);
+  const closeInspector = () => { setOpenInspectorKey(null); setInspectorView(null); };
   const openInspector = (e?: MouseEvent) => {
     // Cards may live inside an outer click-target (e.g. ArgumentMoveCard's
     // toggleHighlight wrapper). Stop propagation so the inspector affordance
     // doesn't double as a highlight toggle.
     if (e) e.stopPropagation();
-    setOpenInspectorKey(props.instanceKey);
+    openInstanceInspector(props.instanceKey, null);
   };
 
   // Sidebar card: production view in all modes — clean synthesis output in
@@ -534,7 +614,7 @@ export default function MarkEnrichmentCards(props: Props) {
         'border-radius': '6px',
         padding: '0.85rem 1rem',
       }}>
-        {renderBody()}
+        {renderCardBody()}
         <Show when={devModeActive()}>
           <button
             onClick={openInspector}
@@ -546,8 +626,8 @@ export default function MarkEnrichmentCards(props: Props) {
               width: '1.4rem', height: '1.4rem',
               padding: 0,
               cursor: 'pointer',
-              background: isInspectorOpen() ? '#000' : 'transparent',
-              color: isInspectorOpen() ? '#fff' : '#888',
+              background: (isInspectorOpen() && inspectorSelectedId() === null) ? '#000' : 'transparent',
+              color: (isInspectorOpen() && inspectorSelectedId() === null) ? '#fff' : '#888',
               border: '1px solid #ddd',
               'border-radius': '50%',
               'font-size': '0.7rem',
@@ -572,13 +652,13 @@ export default function MarkEnrichmentCards(props: Props) {
             markId={props.markId}
             aggregates={aggregates()}
             leaves={leaves()}
-            selected={selectedDevView()}
-            onSelect={(id) => setSelectedDevView(id)}
+            selected={inspectorSelectedId()}
+            onSelect={(id) => setInspectorView(id)}
             currentView={currentView()}
             currentRun={currentRun()}
             depBadges={currentDepBadges()}
             prettyDepLabel={(depId) => prettyDepLabel(depId, props.markId)}
-            renderBody={renderBody}
+            renderBody={renderInspectorBody}
             onClose={closeInspector}
           />
         </Portal>
