@@ -6795,6 +6795,26 @@ async function deepWarmDaf(
     }
   } catch { /* profile composition is best-effort; never block the deep-warm */ }
 
+  // Whole-daf Overview: warm argument-overview.flow (the section-to-section
+  // connections) and .synthesis (the daf summary). The flow is what the reader
+  // Overview's sugya map stitches into discussions — without it every section
+  // shows as its own singleton sugya. The one-time global sweep left gaps and
+  // never ran for new daf-yomi dapim, so warm it here. Keyed on the canonical
+  // whole-daf instance { fields: {} } to match readFlowConnections + the client.
+  for (const eid of ['argument-overview.flow', 'argument-overview.synthesis']) {
+    try {
+      const def = await loadEnrichmentDef(rc.env, eid);
+      if (!def) continue;
+      const iid = await instanceIdOf({ fields: {} });
+      const key = keyForEnrichment(def, iid, { tractate, page }, undefined, lang);
+      if (key && cache && (await cache.get(key))) { skipped++; continue; }
+      const runId = `warm:${eid}:${tractate}:${page}:${lang}:${Math.floor(Date.now() / 1000)}`
+        .replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
+      await queue.send({ runId, enrichment_id: eid, tractate, page, mark_input: { fields: {} }, ...(lang === 'he' ? { lang } : {}) });
+      enqueued++;
+    } catch { /* best-effort warm */ }
+  }
+
   // Cross-daf bridges (the reader Overview's sugya map): compute + pin this
   // daf's forward bridge and the previous daf's bridge into this one. Both
   // dapim's argument sections are warm (run above / globally), so the bridge
