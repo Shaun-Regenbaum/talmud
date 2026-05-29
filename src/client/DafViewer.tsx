@@ -35,6 +35,7 @@ import { applyMarkRenderers } from './renderers/dispatch';
 import DevModeShelf, { readDevMode, setDevModeActive } from './DevModeShelf';
 import ChecksPanel from './ChecksPanel';
 import TypeProfilePanel from './TypeProfilePanel';
+import SugyaMap from './SugyaMap';
 import type { GenerationId } from './generations';
 import { GENERATION_BY_ID } from './generations';
 import { resolveVoiceGroup, voiceGroupNames } from './voiceGroups';
@@ -2871,6 +2872,11 @@ export default function DafViewer(): JSX.Element {
           page={page()}
           active={(() => { const h = argumentMoveHighlight(); return h && h.key.startsWith('typeprofile') ? { start: h.start, end: h.end } : null; })()}
           onHighlight={(r) => setArgumentMoveHighlight(r ? { start: r.start, end: r.end, key: `typeprofile-${r.start}-${r.end}` } : null)}
+        />
+        <SugyaMap
+          tractate={tractate()}
+          page={page()}
+          onHighlight={(r) => setArgumentMoveHighlight(r ? { start: r.start, end: r.end, key: `sugya-${r.start}` } : null)}
         />
         <MarksRegistryPanel
           tractate={tractate()}
