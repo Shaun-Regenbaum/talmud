@@ -29,6 +29,7 @@ import {
   getDafyomiMasechet, DAFYOMI_CONTENT_TYPES, buildDafyomiUrl, buildRevachUrl, dafToNNN,
 } from '../src/lib/sefref/dafyomi/masechtos.ts';
 import { assembleDaf } from '../src/lib/sefref/dafyomi/assemble.ts';
+import { decodeDafyomiHtml } from '../src/lib/sefref/dafyomi/decode.ts';
 
 // Revach l'Daf lives in the memdb app (revdaf.php?tid=&id=), not the
 // {dir}/{folder}/{prefix}-{typecode}-{NNN}.htm tree, so it has no
@@ -103,7 +104,8 @@ async function fetchWithRetry(url, marker) {
       const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT, Accept: 'text/html' } });
       if (res.status === 404) return { absent: true };
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const body = await res.text();
+      // Sniff charset: dafyomi mixes UTF-8 and windows-1255 with no header.
+      const body = decodeDafyomiHtml(await res.arrayBuffer());
       if (!body.includes(marker)) return { absent: true };
       return { html: body };
     } catch (err) {

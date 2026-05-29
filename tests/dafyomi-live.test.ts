@@ -29,7 +29,13 @@ const insightsHtml = readFileSync(
 );
 
 function res(body: string, status = 200) {
-  return { ok: status >= 200 && status < 300, status, text: async () => body };
+  // fetchText now reads arrayBuffer() (to charset-sniff); keep text() too.
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    text: async () => body,
+    arrayBuffer: async () => new TextEncoder().encode(body).buffer,
+  };
 }
 
 /** Install a fetch stub driven by a (url) -> Response map function. Records the

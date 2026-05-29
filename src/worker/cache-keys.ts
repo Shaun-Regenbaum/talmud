@@ -129,9 +129,11 @@ export function keyForGemara(tractate: string, page: string): string {
  *  cached dapim become unreachable and re-fetch fresh.
  *  v1 -> v2: added the Revach l'Daf content type (entries cached under v1
  *  predate it and would otherwise never show Revach, since the positive cache
- *  has no TTL). */
+ *  has no TTL).
+ *  v2 -> v3: charset-sniff decode (UTF-8 vs windows-1255) — v2 entries fetched
+ *  from windows-1255 pages cached mojibake'd Hebrew (U+FFFD "????"). */
 export function keyForDafyomi(tractate: string, daf: string): string {
-  return `dafyomi:v2:${slugDaf(tractate, daf)}`;
+  return `dafyomi:v3:${slugDaf(tractate, daf)}`;
 }
 export function keyForCommentaries(tractate: string, page: string): string {
   return `ctx:commentaries:v1:${slugDaf(tractate, page)}`;
