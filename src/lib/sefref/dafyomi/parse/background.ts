@@ -23,46 +23,42 @@ export interface BackgroundResult {
   lineCounts?: string;
 }
 
-type Section = 'girsa' | 'glossary';
-
 export function parseBackground(content: HTMLElement): BackgroundResult {
   const girsa: DafyomiEntry[] = [];
   const glossary: DafyomiEntry[] = [];
   let lineCounts: string | undefined;
-  let section: Section = 'girsa';
   let lastGirsa: DafyomiEntry | null = null;
 
   for (const el of elementChildren(content)) {
     const cls = el.getAttribute('class') ?? '';
 
     if (/\blinecount\b/.test(cls)) { lineCounts = text(el).replace(/^\[|\]$/g, ''); continue; }
-    if (/\bgirsasep\b/.test(cls)) {
-      // Any separator after the first opening one moves us toward glossary.
-      if (/GLOSSARY/i.test(text(el)) || (girsa.length > 0 && /\bbase\b/.test(cls))) {
-        section = 'glossary';
-      }
+    if (/\b(girsasep|girsatext)\b/.test(cls)) continue; // separators / section preamble
+
+    // Classify by the element's OWN class, not a stateful girsa->glossary flip
+    // keyed on the `girsasep` separator: some background pages have no girsa
+    // section at all (and so no separator), and the state machine would stay
+    // stuck in "girsa" and swallow their entire glossary. girsaloc/girsa are
+    // girsa; a plain `def` is a glossary entry — order matters since girsa
+    // elements also carry the `def` class.
+    if (/\bgirsaloc\b/.test(cls)) {
+      const term = collapse((el.querySelector('.girsalocheb') ?? el.querySelector('.defheb'))?.text ?? '');
+      const entry: DafyomiEntry = {
+        marker: collapse(el.querySelector('.nm')?.text ?? '') || undefined,
+        level: 0,
+        title: txt(stripMarker(text(el)), term),
+        body: {},
+        children: [],
+      };
+      const refs = extractRefs(el);
+      if (refs.length) entry.refs = refs;
+      girsa.push(entry);
+      lastGirsa = entry;
       continue;
     }
-    if (/\bgirsatext\b/.test(cls)) continue; // section preamble
-
-    if (section === 'girsa') {
-      if (/\bgirsaloc\b/.test(cls)) {
-        const term = collapse((el.querySelector('.girsalocheb') ?? el.querySelector('.defheb'))?.text ?? '');
-        const entry: DafyomiEntry = {
-          marker: collapse(el.querySelector('.nm')?.text ?? '') || undefined,
-          level: 0,
-          title: txt(stripMarker(text(el)), term),
-          body: {},
-          children: [],
-        };
-        const refs = extractRefs(el);
-        if (refs.length) entry.refs = refs;
-        girsa.push(entry);
-        lastGirsa = entry;
-      } else if (/\bgirsa\b/.test(cls)) {
-        const body = text(el);
-        if (lastGirsa && body) lastGirsa.body.en = lastGirsa.body.en ? `${lastGirsa.body.en}\n${body}` : body;
-      }
+    if (/\bgirsa\b/.test(cls)) {
+      const body = text(el);
+      if (lastGirsa && body) lastGirsa.body.en = lastGirsa.body.en ? `${lastGirsa.body.en}\n${body}` : body;
       continue;
     }
 
