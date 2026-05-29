@@ -599,6 +599,36 @@ app.delete('/api/studio/marks/:id', async (c) => {
   return c.json({ ok: true });
 });
 
+// Observation surface for the post-LLM check layer. Re-runs each daf-level
+// mark's declared checks against its ALREADY-CACHED (anchored) output — no LLM
+// call, no cache write — so the dev panel can show which soft/observe-only
+// checks (anchor-verbatim, partition-clean, …) are firing on real content
+// before any of them is promoted to a hard, cache-gating check. Marks only:
+// they have one cache entry per daf; instance-scoped enrichment checks
+// (edge-integrity, rabbi-evidence) aren't enumerable without their instances.
+app.get('/api/studio/checks/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
+  const marks = CODE_MARKS.filter((m) => (m.checks?.length ?? 0) > 0);
+  if (marks.length === 0) return c.json({ tractate, page, results: [], total_issues: 0 });
+
+  const slice = await getGemaraSlice(c.env, tractate, page, false);
+  const results: { mark_id: string; cached: boolean; issues: unknown[] }[] = [];
+  let total = 0;
+  for (const def of marks) {
+    const hit = await readCachedResult(c.env, keyForMark(def, tractate, page, lang));
+    if (!hit || hit.parsed == null) { results.push({ mark_id: def.id, cached: false, issues: [] }); continue; }
+    // Clone so the idempotent transform re-runs don't mutate the cached object.
+    const { issues } = await runChecks(def.checks ?? [], structuredClone(hit.parsed), {
+      tractate, page, segmentsHe: slice.segments_he, defId: def.id, lang,
+    });
+    total += issues.length;
+    results.push({ mark_id: def.id, cached: true, issues });
+  }
+  return c.json({ tractate, page, total_issues: total, results });
+});
+
 app.get('/api/studio/enrichments', async (c) => {
   // Merge KV + code-defined. KV wins on collision. Code-defined entries are
   // normalized to the KV-flat shape (extractor flattened, `mark` instead of

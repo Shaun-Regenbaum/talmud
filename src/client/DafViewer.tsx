@@ -33,6 +33,7 @@ import { fetchCommentaryAnchorIndex, type CommentaryAnchorIndex } from './commen
 import { recordStage } from './rendererActivity';
 import { applyMarkRenderers } from './renderers/dispatch';
 import DevModeShelf, { readDevMode, setDevModeActive } from './DevModeShelf';
+import ChecksPanel from './ChecksPanel';
 import type { GenerationId } from './generations';
 import { GENERATION_BY_ID } from './generations';
 import { resolveVoiceGroup, voiceGroupNames } from './voiceGroups';
@@ -2864,6 +2865,7 @@ export default function DafViewer(): JSX.Element {
         />
       </Show>
       <DevModeShelf open={devOpen()} onClose={() => { setDevOpen(false); setDevModeActive(false); }}>
+        <ChecksPanel tractate={tractate()} page={page()} />
         <MarksRegistryPanel
           tractate={tractate()}
           page={page()}
