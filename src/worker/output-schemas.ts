@@ -113,6 +113,21 @@ export const ARGUMENT_OVERVIEW_FLOW_OUTPUT_SCHEMA = responseFormat('argument_ove
     note: z.string(),
   })),
 }));
+// Section typing (P2b): a NARRATIVE view for story-primary sections, where the
+// dispute-oriented `voices` graph is the wrong model. Actors (characters) +
+// ordered beats (what happens, step by step) instead of opposing legal positions.
+export const ARGUMENT_NARRATIVE_OUTPUT_SCHEMA = responseFormat('argument_narrative', z.object({
+  summary: z.string(),
+  actors: z.array(z.object({
+    name: z.string(),
+    role: z.enum(['protagonist', 'antagonist', 'authority', 'narrator', 'other']),
+  })),
+  beats: z.array(z.object({
+    n: z.number().int().min(1),
+    actor: z.string(),
+    action: z.string(),
+  })),
+}));
 export const ARGUMENT_BACKGROUND_OUTPUT_SCHEMA = responseFormat('argument_background', single('background'));
 export const ARGUMENT_SYNTHESIS_OUTPUT_SCHEMA = responseFormat('argument_synthesis', single('synthesis'));
 

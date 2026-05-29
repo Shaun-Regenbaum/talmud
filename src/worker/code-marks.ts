@@ -45,6 +45,7 @@ import {
   ARGUMENT_OUTPUT_SCHEMA,
   ARGUMENT_SYNTHESIS_OUTPUT_SCHEMA,
   ARGUMENT_VOICES_OUTPUT_SCHEMA,
+  ARGUMENT_NARRATIVE_OUTPUT_SCHEMA,
   ARGUMENT_OVERVIEW_FLOW_OUTPUT_SCHEMA,
   HALACHA_CODIFICATION_OUTPUT_SCHEMA,
   HALACHA_DISPUTES_OUTPUT_SCHEMA,
@@ -1737,6 +1738,43 @@ Rabbis identified on this daf (with generation):
 For each NAMED rabbi appearing in this section's moves, describe their argumentative role per the schema.`;
 
 
+// ---------------- argument.narrative (section typing P2b) ----------------
+// Story view for NARRATIVE-primary sections, where the dispute-oriented voices
+// graph is the wrong model (a maaseh/aggadah is not a מחלוקת). Actors + ordered
+// beats instead of opposing legal positions.
+
+const ARGUMENT_NARRATIVE_SYSTEM_PROMPT = `You are a Talmud scholar. This section of the daf is a NARRATIVE (a story / aggadah / מעשה), NOT a legal dispute. Retell it as a story — characters and what happens — never as opposing legal opinions.
+
+Output STRICT JSON only:
+
+{
+  "summary": "1-2 sentences: what happens in this story, in plain English.",
+  "actors": [{ "name": "Conventional English name of a character — a rabbi, a biblical/legendary figure, a collective ('the demons'), or 'Narrator' for the anonymous teller", "role": "protagonist | antagonist | authority | narrator | other" }],
+  "beats": [{ "n": 1, "actor": "which actor acts in this beat (MUST match a name in actors)", "action": "one sentence: what happens or is said, in narrative order" }]
+}
+
+Rules:
+- Order beats by their occurrence in the text (n = 1, 2, 3 …); each beat is one concrete event.
+- Actors are CHARACTERS in the story, not "voices in a dispute". Demons, kings, animals, and biblical figures are valid actors.
+- Do NOT invent opposing "sides" or legal positions — this is narrative, not שקלא וטריא.
+- Plain English; Hebrew script in parentheses for technical terms, never transliteration.
+
+${HEBREW_GLOSS_STYLE}`;
+
+const ARGUMENT_NARRATIVE_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+Section (a narrative):
+{{mark_input}}
+
+Moves / segments in THIS section, in order:
+{{anchors.argument-move}}
+
+Figures identified on this daf:
+{{anchors.rabbi}}
+
+Retell this section as a story per the schema: list the actors, then the ordered beats.`;
+
+
 // ---------------- argument.background (kept) ----------------
 
 const ARGUMENT_BACKGROUND_SYSTEM_PROMPT = `You are a Talmud scholar. Given one section of a daf and its Rashi/Tosafot context, write the background a reader needs to follow this section — concepts, prior sugyot, mishnaic backdrop.
@@ -1968,6 +2006,17 @@ CODE_ENRICHMENTS.push(
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_VOICES_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_VOICES_USER_TEMPLATE_HE,
+    },
+  ),
+  makeEnrichment(
+    'argument', 'argument.narrative', 'Narrative',
+    'Story view for narrative-primary sections: actors + ordered beats, instead of the dispute voice graph (section typing).',
+    ARGUMENT_NARRATIVE_SYSTEM_PROMPT, ARGUMENT_NARRATIVE_USER_TEMPLATE, ARGUMENT_NARRATIVE_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content', scope: 'local',
+      dependencies: ['gemara', { mark: 'argument-move' }, { mark: 'rabbi' }],
+      defHash: 'argument.narrative-v1', cacheVersion: '1',
+      model: ARGUMENT_FLASH_MODEL,
     },
   ),
   makeEnrichment(

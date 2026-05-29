@@ -9,6 +9,7 @@ import RabbiLineageTree, { type RelationshipsData, type RelationshipsEvidence } 
 import { type GeographyData, type GeographyEvidence } from './RabbiGeographyCard';
 import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeline';
 import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
+import ArgumentNarrative from './ArgumentNarrative';
 import { devModeActive } from './DevModeShelf';
 import ArgumentFlowGraph, { type FlowConnection } from './ArgumentFlowGraph';
 import { selectSectionMoves } from '../lib/argumentMoves';
@@ -568,8 +569,10 @@ export function ArgumentBody(props: {
           </div>
         )}
       </Show>
-      <Show when={voicesData() && voicesGate.suppress()}>
-        <VoicesSuppressedNote profile={voicesGate.profile()} />
+      <Show when={voicesGate.suppress()}>
+        <Show when={voicesGate.profile()?.primary === 'aggadata'} fallback={<VoicesSuppressedNote profile={voicesGate.profile()} />}>
+          <ArgumentNarrative section={props.section} tractate={props.tractate} page={props.page} />
+        </Show>
       </Show>
       <Show when={sectionMoves()}>
         {(moves) => (
@@ -622,9 +625,10 @@ function OverviewSectionVoices(props: {
   };
   return (
     <div style={{ 'margin-top': '0.6rem', 'border-top': '1px dashed #e5e3dc', 'padding-top': '0.6rem' }}>
-      <Show when={props.section.summary}>
-        <HebrewProse size="0.85rem" color="#444" margin="0 0 0.5rem">{props.section.summary}</HebrewProse>
-      </Show>
+      {/* The section summary was rendered here via HebrewProse (RTL/centered),
+          which mis-styles the English summary AND duplicates the synthesis prose
+          below. Dropped — the Synthesis card is the single prose source, matching
+          the main section panel. */}
       <Synthesis
         markId="argument"
         instance={{
@@ -645,8 +649,10 @@ function OverviewSectionVoices(props: {
       <Show when={!voicesGate.suppress() && voices()}>
         {(data) => <ArgumentVoiceMap data={data()} onClickVoice={props.onPushRabbi} />}
       </Show>
-      <Show when={voices() && voicesGate.suppress()}>
-        <VoicesSuppressedNote profile={voicesGate.profile()} />
+      <Show when={voicesGate.suppress()}>
+        <Show when={voicesGate.profile()?.primary === 'aggadata'} fallback={<VoicesSuppressedNote profile={voicesGate.profile()} />}>
+          <ArgumentNarrative section={props.section} tractate={props.tractate} page={props.page} />
+        </Show>
       </Show>
     </div>
   );
