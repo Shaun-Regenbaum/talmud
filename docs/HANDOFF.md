@@ -13,11 +13,24 @@ output) several different ways. We're converging them onto **one anchoring
 layer** and **one post-LLM check layer**, then building section-typing on top.
 Work is split into Track A (backend, leading) → B (render/DX) → C (typing).
 
-Done & shippable: **A1** (unified verbatim placer) = **PR #45** (open, needs owner review/merge).
-**A2** (standardized check layer) is now **fully wired into both runners** — the
-registry library (increment 1) plus the runner rewiring (increment 2) are
-committed on `framework-check-layer`. Your immediate task is **A3** (add new
-soft checks). See "YOUR IMMEDIATE TASK" below.
+**Track A (backend) is functionally complete** — A1, A2, A3, A1b, A4 are all
+done and live as a stacked PR chain (none merged yet; owner admin-merges
+top-to-bottom):
+
+| PR  | Increment | Base |
+|-----|-----------|------|
+| #45 | A1 — unified verbatim placer | master |
+| #49 | A2 — check layer wired into the runners | #45 |
+| #50 | A3 — soft integrity checks (anchor-verbatim / partition-clean / edge-integrity) | #49 |
+| #51 | A1b — rabbi-evidence anchoring onto the placer | #50 |
+| #52 | A4 — cross-daf anchor coordinate | #51 |
+
+Totals on the tip branch (`framework-crossdaf-coord`): **61 test files, 1292
+tests passing**; typecheck clean. **Your immediate task is to merge the stack**
+(owner) — then the only Track A work left is *promoting* a soft A3 check to
+`hard` once you've watched it on real traffic (needs observation data first, so
+it can't be done blind). After that it's Track B (render/DX) and Track C
+(section typing). See "YOUR IMMEDIATE TASK" + "REMAINING ROADMAP".
 
 ## Repo + how to work in it (IMPORTANT)
 
@@ -78,42 +91,31 @@ Key engine files in `src/worker/index.ts`:
 - `runEnrichmentOnce`: the two lint if-blocks are replaced by `runChecks`; gating now keys on `hardIssueCount` (all current validator issues are `hard`, so identical to the old `!lint_issues`). `lint_issues` still stored on `RunResult` (now `CheckIssue[]`; `summarizeIssue` output is unchanged since `match` is always present). `postProcessRabbiEvidence` unchanged (A1b).
 - `tests/check/wiring.test.ts` (5 cases) — locks the declared checks to the registry; proves `keyForMark`/`keyForEnrichment` are invariant to `checks`.
 
-Current totals: 58 test files, **1258 tests passing**; typecheck clean except the unrelated MCP-module errors. **Not yet PR'd** — PR `framework-check-layer` with `--base section-typing-design` so the diff is just A2 stacked on A1.
+Current totals: 58 test files, **1258 tests passing** (A2 tip).
 
-## YOUR IMMEDIATE TASK — A3: add new checks, ship them `soft`
+### A3 — soft integrity checks (PR #50, on `framework-checks-a3`)
+Three observe-only validators in `src/lib/check/postcheck.ts`, all `severity: 'soft'` (never gate, no `cache_version` bump):
+- `anchor-verbatim` — resolved excerpt literally present (normalized) in its anchored segment. On argument/argument-move/pesukim/aggadata.
+- `partition-clean` — inverted ranges, exact-duplicate instances, and (argument only) overlapping section ranges. On argument/argument-move.
+- `edge-integrity` — argument.voices graph: edges to unknown voices, self-loops, opposes+supports on one pair. On argument.voices.
+Surfaced via a new `check_issues` field on `RunResult` (marks attach all; enrichments split `hard`→`lint_issues`/gating, full set→`check_issues`). Tests: `tests/check/soft-checks.test.ts`.
 
-A2 is done (above). Now ADD net-new checks to the registry, shipped `soft` first
-so they observe-only (never gate the cache) until you've watched them on
-`GET /api/usage` (`readLintFailures`) and decided to promote per-mark.
+### A1b — rabbi-evidence onto the placer (PR #51, on `framework-rabbi-evidence`)
+`reanchorRabbiEvidence` in `src/lib/place/reanchor.ts` (excerpt at the entry top level, whole-daf search) registered as the `reanchor-rabbi-evidence` transform; the two evidence enrichments opt in; `runEnrichmentOnce` drops the `postProcessRabbiEvidence` special-case and feeds `runChecks` the real gemara slice (so enrichment transforms get the segment grid); the inline fn is deleted. Byte-identical (`findExcerpt` ≡ the old loop). Tests: `tests/place/reanchor-rabbi-evidence.test.ts`. (Remaining A1b: the fuzzier `hbAlign.findExact/findFuzzy` + `rabbi-observations.resolveSegIdxs` — DIFFERENT normalization, converge behind their own coverage, NOT a byte-identical merge.)
 
-New checks to add in `src/lib/check/postcheck.ts` (register in `CHECKS`, declare
-on the relevant defs via `checks: []`, cover with `tests/check/`):
-- **`anchor-verbatim`** (validate) — the resolved excerpt is actually present in
-  its claimed segment. Catches hallucinations like `אריגתא` where the daf says
-  `כשורי`. Needs `ctx.segmentsHe` (already passed in `runMarkOnce`; for
-  enrichments the validator ctx currently passes `segmentsHe: []`, so if you
-  attach this to an enrichment, wire a real slice there too).
-- **`edge-integrity`** (validate) — voices-graph edges: from/to ∈ voices,
-  ordered ranges, no contradictory `opposes`+`supports` on one pair.
-- **`partition-clean`** (validate) — no gaps/overlaps/dupes in section/move
-  partitions. Catches the duplicated Rav Amram/Yalta moves.
+### A4 — cross-daf coordinate (PR #52, on `framework-crossdaf-coord`)
+`src/lib/context/coord.ts`: `AnchorCoord {tractate,page,seg}` + `AnchorSpan` + helpers (`coordForSeg`, `localSeg`, `sameDaf`/`isCrossDaf`, `normalizeSpan`, `spanByDaf`, `coordFromTarget` bridging the unused `CrossDafAnchor`). Optional `coord?` added to `SegMatch`/`ContextItem`/`Placement`; `placementOf(it, currentDaf?)` derives a `cross-daf` level only when a daf is supplied AND the coord is off it (single-arg callers unchanged). `applyMatches` carries the coord. Purely additive, no cache bump. Tests: `tests/context-coord.test.ts`. Unblocks the cross-page sugya map.
 
-Ship all three `soft`. Promote to `hard` per-mark only after observing — and
-**only that promotion warrants a per-mark `cache_version` bump, one at a time**
-(full-shas re-warm is ~$1000; never bump broadly).
+## YOUR IMMEDIATE TASK — merge the Track A stack, then promote a check
 
-Verify: `pnpm test` (all green) + filtered `tsc`. The check registry +
-`tests/check/*` are your safety net.
+1. **Merge the stack** (owner admin-merge, top-to-bottom): #45 → #49 → #50 → #51 → #52. Each becomes mergeable once its base lands. Then `pnpm ship` from a worktree to deploy (all of it is byte-identical / additive — no cache bump, so deploy is safe).
+2. **Promote one A3 soft check to `hard`** — but only AFTER watching it on real traffic. The soft issues ride in `RunResult.check_issues`; you need a way to observe their rate (extend `/api/usage` to roll up `check_issues`, or sample cached outputs) BEFORE flipping a check to `hard`. Promotion = change that check's `severity` to `'hard'` for one mark and bump THAT mark's `cache_version` once (full-shas re-warm ≈ $1000 — never bump broadly).
 
-NOTE: A2 itself is committed on `framework-check-layer` but **not yet PR'd** — if
-the owner hasn't picked it up, open it first (`gh pr create --base
-section-typing-design`, stacked on A1/PR #45) before stacking A3 on top.
+## REMAINING ROADMAP
 
-## REMAINING ROADMAP (tasks already filed)
-
-- **A3 — new checks, soft→hard.** Add `anchor-verbatim` (resolved excerpt actually present in its claimed segment — catches hallucinations like `אריגתא` where the daf says `כשורי`), `edge-integrity` (voices-graph edges: from/to ∈ voices, ordered ranges, no contradictory `opposes`+`supports` on one pair), `partition-clean` (no gaps/overlaps/dupes — catches the duplicated Rav Amram/Yalta moves). Ship `soft` first, observe via `GET /api/usage` (`readLintFailures`), promote to `hard` per-mark — and **only that promotion warrants a per-mark `cache_version` bump, one at a time** (full-shas re-warm is ~$1000, so never bump broadly).
-- **A4 — cross-daf coordinate.** Add `src/lib/context/coord.ts` (`AnchorCoord {tractate,page,seg}`, `AnchorSpan = AnchorCoord[]`, bridge helpers); optional `coord?` on `SegMatch` (`src/lib/context/match.ts`) + `Placement` (`src/lib/context/placement.ts`); derive a `cross-daf` level. Purely additive (in-daf readers ignore it). `CrossDafAnchor` already exists unused in studio-schema.ts. Unblocks the cross-page "sugya map".
-- **A1b — converge remaining matchers.** Port `postProcessRabbiEvidence` (`index.ts`) onto `verbatim.ts` (add a rabbi-evidence golden fixture). Then `hbAlign.findExact/findFuzzy` (`src/client/hbAlign.ts`) + `rabbi-observations.resolveSegIdxs` — these use DIFFERENT normalization (final-letter folding, fuzzy/abbrev tolerance), so converge carefully behind their own golden coverage, NOT a byte-identical merge.
+- **Observe → promote soft checks** (see immediate task #2). Blocked on an observation surface for `check_issues`.
+- **A1b leftovers** — converge `hbAlign.findExact/findFuzzy` (`src/client/hbAlign.ts`) + `rabbi-observations.resolveSegIdxs`. These use DIFFERENT normalization (final-letter folding, fuzzy/abbrev tolerance), so converge carefully behind their own golden coverage, NOT a byte-identical merge.
+- **Use A4** — build the cross-page sugya map on `coord.ts` (`spanByDaf` is the consumer shape); have a matcher/citation resolver populate `SegMatch.coord`.
 - **Track B (render/DX)** and **Track C (section typing + coverage)** — see the plan file + `docs/section-typing.md`. Track C's key finding: most "uncategorized" daf segments are pure dialectic (שקלא וטריא) which no content mark models — so `argument` is the base type and halacha/aggadata/pesukim are overlays.
 
 ## Verify anything
