@@ -125,9 +125,13 @@ export function keyForGemara(tractate: string, page: string): string {
   return `ctx:gemara:v1:${slugDaf(tractate, page)}`;
 }
 /** dafyomi.co.il structured corpus, keyed by daf NUMBER (both amudim share one
- *  file). Bump v1 -> v2 when DafyomiDaf.schemaVersion changes. */
+ *  file). Bump the version when the set of ingested content changes so old
+ *  cached dapim become unreachable and re-fetch fresh.
+ *  v1 -> v2: added the Revach l'Daf content type (entries cached under v1
+ *  predate it and would otherwise never show Revach, since the positive cache
+ *  has no TTL). */
 export function keyForDafyomi(tractate: string, daf: string): string {
-  return `dafyomi:v1:${slugDaf(tractate, daf)}`;
+  return `dafyomi:v2:${slugDaf(tractate, daf)}`;
 }
 export function keyForCommentaries(tractate: string, page: string): string {
   return `ctx:commentaries:v1:${slugDaf(tractate, page)}`;
