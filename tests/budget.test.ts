@@ -23,6 +23,13 @@ function makeFakeKV(initial: Record<string, string> = {}) {
   return { kv: kv as unknown as KVNamespace, store };
 }
 
+// Fake send_email binding that captures every message it's asked to send.
+function makeFakeEmail() {
+  const sent: Array<{ to: string; from: string; subject: string; text?: string }> = [];
+  const email = { send: async (m: { to: string; from: string; subject: string; text?: string }) => { sent.push(m); return { messageId: `m${sent.length}` }; } };
+  return { email, sent };
+}
+
 // 2026-05-27 19:43 UTC -> day bucket 20260527, hour bucket 2026052719.
 const T = Date.UTC(2026, 4, 27, 19, 43, 0);
 const DAY = '20260527';
@@ -131,6 +138,45 @@ describe('unpriced calls', () => {
     await recordSpend(env, { model: '@cf/google/gemma-4-26b-a4b-it', usage: { prompt_tokens: 9999 }, custom: true }, T);
     expect(store.has(`budget:v1:total:${DAY}`)).toBe(false);
     expect(store.has(`budget:v1:custom:${HOUR}`)).toBe(false);
+  });
+});
+
+describe('spend alert emails', () => {
+  it('emails once when the daily cap trips, and dedupes within the same day', async () => {
+    const { kv } = makeFakeKV();
+    const { email, sent } = makeFakeEmail();
+    const env: BudgetEnv = { CACHE: kv, DAILY_BUDGET_USD: '10', EMAIL: email }; // trip = 9.5
+    await recordSpend(env, { model: 'x', usage: { cost: 9.6 }, custom: false }, T);
+    expect(sent).toHaveLength(1);
+    expect(sent[0].to).toBe('shaunregenbaum@gmail.com');
+    expect(sent[0].subject).toContain('Daily LLM spend paused');
+    // Subsequent over-trip spend the same day must NOT send again.
+    await recordSpend(env, { model: 'x', usage: { cost: 1 }, custom: false }, T + 1000);
+    expect(sent).toHaveLength(1);
+  });
+
+  it('emails when the hourly custom cap trips', async () => {
+    const { kv } = makeFakeKV();
+    const { email, sent } = makeFakeEmail();
+    const env: BudgetEnv = { CACHE: kv, HOURLY_CUSTOM_BUDGET_USD: '0.5', DAILY_BUDGET_USD: '1000', EMAIL: email };
+    await recordSpend(env, { model: 'x', usage: { cost: 0.6 }, custom: true }, T);
+    expect(sent).toHaveLength(1);
+    expect(sent[0].subject).toContain('custom-question spend cap');
+  });
+
+  it('does not email while under the trip point', async () => {
+    const { kv } = makeFakeKV();
+    const { email, sent } = makeFakeEmail();
+    const env: BudgetEnv = { CACHE: kv, DAILY_BUDGET_USD: '10', EMAIL: email };
+    await recordSpend(env, { model: 'x', usage: { cost: 5 }, custom: false }, T);
+    expect(sent).toHaveLength(0);
+  });
+
+  it('still records spend (no throw) when no EMAIL binding is present', async () => {
+    const { kv, store } = makeFakeKV();
+    const env: BudgetEnv = { CACHE: kv, DAILY_BUDGET_USD: '10' };
+    await recordSpend(env, { model: 'x', usage: { cost: 9.6 }, custom: false }, T);
+    expect(store.has('budget:v1:pause:all')).toBe(true);
   });
 });
 

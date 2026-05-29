@@ -28,7 +28,7 @@ const SOURCES: SourceCredit[] = [
   {
     name: 'Kollel Iyun HaDaf (Dafyomi Advancement Forum)',
     url: 'https://www.dafyomi.co.il',
-    role: 'Per-daf study material: Background, Insights, Halacha, Tosfos outlines, Review questions, Points outlines, charts, and Yerushalmi parallels',
+    role: 'Per-daf study material: Background, Insights, Halacha, Tosfos outlines, Review questions, Points outlines, charts, Yerushalmi parallels, and Revach l\'Daf highlights (co-published with Revach l\'Neshamah, revach.net)',
     note: 'Headed by Rav Mordecai Kornfeld. Content © Kollel Iyun HaDaf, ingested as a study source with attribution and links back to the original pages. Not redistributed as a standalone copy.',
   },
 ];

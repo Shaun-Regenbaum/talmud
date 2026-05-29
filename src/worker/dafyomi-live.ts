@@ -11,8 +11,9 @@
  * never fabricated.
  */
 
-import { getDafyomiMasechet, type DafyomiContentType } from '../lib/sefref/dafyomi/masechtos';
+import { getDafyomiMasechet, buildRevachUrl, type DafyomiContentType } from '../lib/sefref/dafyomi/masechtos';
 import { assembleDaf, type FetchedType } from '../lib/sefref/dafyomi/assemble';
+import { decodeDafyomiHtml } from '../lib/sefref/dafyomi/decode';
 import type { DafyomiDaf } from '../lib/sefref/dafyomi/schema';
 
 const ORIGIN = 'https://www.dafyomi.co.il';
@@ -24,19 +25,20 @@ const FOLDER_TO_TYPE: Record<string, DafyomiContentType> = {
   review: 'review', points: 'points', hebcharts: 'hebcharts', yerushalmi: 'yerushalmi',
 };
 
-async function fetchText(url: string, expectContent: boolean): Promise<string | null> {
-  // One retry: firing the hub + up to 8 content pages in parallel occasionally
-  // sees a transient failure, and since the result is cached we don't want a
-  // partial daf persisted. A genuine 404 (page has no #content) returns null
-  // without burning the retry on a real "absent".
+/** Fetch a page, retrying once on a transient failure. `requiredMarker` is a
+ *  substring that a real page must contain (folder pages have `id="content"`;
+ *  Revach pages predate it and instead carry "A BIT MORE"); pass null for the
+ *  hub page, which has neither. A page missing its marker (a 404/landing/SPA
+ *  fallback) returns null = "absent", without burning the retry. */
+async function fetchText(url: string, requiredMarker: string | null): Promise<string | null> {
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT, accept: 'text/html' } });
       if (res.ok) {
-        const body = await res.text();
-        // Real content pages always have the #content container; 404/landing
-        // pages don't. (The hub page itself is exempt.)
-        if (expectContent && !body.includes('id="content"')) return null;
+        // dafyomi serves a mix of UTF-8 and windows-1255 with no charset header;
+        // sniff so Hebrew doesn't mojibake into U+FFFD ("????").
+        const body = decodeDafyomiHtml(await res.arrayBuffer());
+        if (requiredMarker && !body.includes(requiredMarker)) return null;
         return body;
       }
       if (res.status === 404) return null; // genuinely absent — no retry
@@ -65,9 +67,15 @@ export async function scrapeDafyomiLive(tractate: string, daf: number): Promise<
   const m = getDafyomiMasechet(tractate);
   if (!m || daf < 2 || daf > m.lastDaf) return null;
 
-  const hub = await fetchText(`${ORIGIN}/new_daflinks.php?gid=${m.gid}&daf=${daf}`, false);
-  if (!hub) return null;
-  const urls = urlsFromHub(hub);
+  // The hub drives the 8 folder content types via the masechet's gid. A failed
+  // hub (e.g. an unverified gid) is NOT fatal: Revach lives in the memdb app and
+  // is keyed only by the (verified) tid, so we still fetch it below.
+  const hub = await fetchText(`${ORIGIN}/new_daflinks.php?gid=${m.gid}&daf=${daf}`, null);
+  const urls = hub ? urlsFromHub(hub) : new Map<DafyomiContentType, string>();
+
+  // Revach l'Daf isn't in the hub, so fetch it directly when tid is known.
+  const revachUrl = buildRevachUrl(m, daf);
+  if (revachUrl) urls.set('revach', revachUrl);
   if (urls.size === 0) return null;
 
   // Fetch sequentially, not in a burst: hammering their Apache server with ~9
@@ -75,7 +83,8 @@ export async function scrapeDafyomiLive(tractate: string, daf: number): Promise<
   // partial daf) and is impolite. Sequential is ~3s for a cold daf, then cached.
   const fetched: FetchedType[] = [];
   for (const [type, url] of urls) {
-    fetched.push({ type, url, html: await fetchText(url, true) });
+    const marker = type === 'revach' ? 'A BIT MORE' : 'id="content"';
+    fetched.push({ type, url, html: await fetchText(url, marker) });
   }
 
   const { daf: dafObj } = assembleDaf(tractate, daf, fetched);

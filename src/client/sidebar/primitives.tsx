@@ -22,7 +22,7 @@
 import { Show, type JSX } from 'solid-js';
 import { lang, t, type CatalogKey } from '../i18n';
 import { HebraizedWithRabbis } from '../rabbiLinks';
-import MarkEnrichmentCards from '../MarkEnrichmentCards';
+import MarkEnrichmentCards, { InspectDot } from '../MarkEnrichmentCards';
 import QAPanel from '../QAPanel';
 
 /** Per-type accent (the title color). Bodies pass `accent={ACCENTS.x}` so the
@@ -129,11 +129,22 @@ export function SectionCard(props: {
   spacing?: 'tight' | 'loose';
   text?: string;
   children?: JSX.Element;
+  /** Dev-mode 'i' affordance: opens the instance inspector focused on this
+   *  section's leaf enrichment. `leafId` is the enrichment id that produced
+   *  the section (e.g. 'pesukim.tanach-context'). */
+  inspect?: { instanceKey: string; leafId: string };
 }): JSX.Element {
   return (
     <div style={SECTION_BOX}>
-      <div style={{ ...SECTION_LABEL, 'margin-bottom': props.spacing === 'loose' ? '0.5rem' : '0.4rem' }}>
-        {t(props.label)}
+      <div style={{
+        ...SECTION_LABEL,
+        'margin-bottom': props.spacing === 'loose' ? '0.5rem' : '0.4rem',
+        display: 'flex', 'align-items': 'center', gap: '0.4rem',
+      }}>
+        <span>{t(props.label)}</span>
+        <Show when={props.inspect}>
+          {(ins) => <InspectDot instanceKey={ins().instanceKey} leafId={ins().leafId} style={{ 'margin-left': 'auto' }} />}
+        </Show>
       </div>
       <Show when={props.text != null} fallback={props.children}>
         <div style={SECTION_PROSE}>

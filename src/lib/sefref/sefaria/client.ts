@@ -143,19 +143,51 @@ const RISHONIM: ReadonlyMap<string, string> = new Map([
   ['Rashba', 'Rashba'],
   ['Ritva', 'Ritva'],
   ['Ramban', 'Ramban'],
+  ['Chiddushei Ramban', 'Ramban'], // Sefaria titles the BB/Sanhedrin Ramban this way
   ['Beit HaBechira', 'Meiri'],
   ['Rosh', 'Rosh'],
   ['Ran', 'Ran'],
   ['Rabbeinu Chananel', 'Rabbeinu Chananel'],
   ['Rif', 'Rif'],
+  // Additional Rishonim Sefaria carries on various masechtos (the book part of
+  // the index_title -> our label). Keys are the exact post-strip forms verified
+  // against Sefaria link index_titles; a key simply doesn't fire on masechtos
+  // that lack the work.
+  ['Ri Migash', 'Ri Migash'],
+  ['Yad Ramah', 'Yad Ramah'],
+  ['Rabbeinu Gershom', 'Rabbeinu Gershom'],
+  ['Tosafot Rid', 'Tosafot Rid'],
+  ['Tosafot HaRosh', 'Tosafot HaRosh'],
+  ['Shita Mekubetzet', 'Shita Mekubetzet'],
+  ['Mordechai', 'Mordechai'],
+  ['HaMaor HaKatan', 'Baal HaMaor'],
+  ['HaMaor HaGadol', 'Baal HaMaor'],
+  ["Chiddushei HaRa'ah", "Ra'ah"],
+  ['Maharam', 'Maharam'],
+  // Maharsha — was surfaced before the discovery refactor dropped it.
+  ['Chidushei Halachot', 'Maharsha'],
+  ['Chidushei Agadot', 'Maharsha (Aggadah)'],
+]);
+
+/** Select Acharonim, keyed the same way (book part of the index_title -> label).
+ *  Surfaced alongside the Rishonim in the alignment pool; kept in a separate map
+ *  so the two tiers stay distinguishable. */
+const ACHARONIM: ReadonlyMap<string, string> = new Map([
+  ['Rashash', 'Rashash'],
+  ['Gilyon HaShas', 'Gilyon HaShas'],
+  ['Penei Yehoshua', 'Penei Yehoshua'],
+  ['Ben Yehoyada', 'Ben Yehoyada'],
+  ['Chidushei Chatam Sofer', 'Chatam Sofer'],
+  ['Chiddushei Rabbi Akiva Eiger', 'Rabbi Akiva Eiger'],
 ]);
 
 /** Map a Sefaria commentary index_title (e.g. "Rashba on Eruvin", "Rif Eruvin",
- *  "Beit HaBechira on Eruvin") to our Rishon label, or null if not one we keep. */
+ *  "Beit HaBechira on Eruvin") to our commentator label, or null if not one we
+ *  surface. Covers both the Rishonim and the select Acharonim above. */
 export function rishonLabel(indexTitle: string, tractate: string): string | null {
   const esc = tractate.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const book = indexTitle.replace(new RegExp(`\\s+(?:on\\s+)?${esc}\\b.*$`), '').trim();
-  return RISHONIM.get(book) ?? null;
+  return RISHONIM.get(book) ?? ACHARONIM.get(book) ?? null;
 }
 
 /** Parse the trailing segment range from a Sefaria ref like

@@ -13,9 +13,10 @@
       "review": "https://www.dafyomi.co.il/chulin/review/ch-rg-076.htm?q=1",
       "points": "https://www.dafyomi.co.il/chulin/points/ch-ps-076.htm",
       "hebcharts": "https://www.dafyomi.co.il/chulin/hebcharts/ch-tl-076.htm",
-      "yerushalmi": "https://www.dafyomi.co.il/chulin/yerushalmi/ch-yr-076.htm"
+      "yerushalmi": "https://www.dafyomi.co.il/chulin/yerushalmi/ch-yr-076.htm",
+      "revach": "https://www.dafyomi.co.il/memdb/revdaf.php?tid=31&id=76"
     },
-    "fetchedAt": "2026-05-27T09:00:54.062Z"
+    "fetchedAt": "2026-05-29T08:21:04.447Z"
   },
   "amudim": {
     "a": {
@@ -2709,6 +2710,127 @@
                   }
                 }
               ]
+            }
+          ]
+        }
+      },
+      "revach": {
+        "type": "revach",
+        "amud": "a",
+        "wholeDaf": true,
+        "titleLine": "REVACH L'DAF - CHULIN 76",
+        "body": {
+          "type": "revach",
+          "entries": [
+            {
+              "marker": "1.",
+              "level": 0,
+              "title": {
+                "en": "If the hind leg of an animal is severed below the joint, the animal is Kosher. If it is severed above the joint, the animal is a Tereifah."
+              },
+              "body": {
+                "en": "According to Rav Yehudah, the joint in this context is the lower joint (tarsus). According to Ula, it is the upper joint (patella)."
+              }
+            },
+            {
+              "marker": "2.",
+              "level": 0,
+              "title": {
+                "en": "If the junction of the sinews was removed or severed, the animal is a Tereifah."
+              },
+              "body": {
+                "en": "If the junction of the sinews was severed, then even if the bone remains intact the animal is a Tereifah."
+              }
+            },
+            {
+              "marker": "3.",
+              "level": 0,
+              "title": {
+                "en": "There are differences of opinion regarding the precise location of the junction of the sinews."
+              },
+              "body": {
+                "en": "According to one opinion, the junction of the sinews is the outer part of the sinews which faces away from the bone. According to a second opinion, it is the inner part of the sinews, toward the bone. A third opinion maintains that it is the area above the bone and is called the \"Arkum.\""
+              }
+            },
+            {
+              "marker": "4.",
+              "level": 0,
+              "title": {
+                "en": "Ameimar says in the name of Rav Zevid that the junction of the sinews of an animal consists of three strands: one thick and two thin. If the thick one or the two thin ones are severed, the animal is a Tereifah."
+              },
+              "body": {
+                "en": "The one thick strand is regarded as the majority of the structure of the sinews, and the two thin ones are the majority of the strands. Therefore, the animal is a Tereifah, according to Ameimar."
+              }
+            },
+            {
+              "marker": "5.",
+              "level": 0,
+              "title": {
+                "en": "Mar bar Rav Ashi says in the name of Rav Zevid that if one thick strand or two thin strands are severed, the animal is not a Tereifah."
+              },
+              "body": {
+                "en": "If the thick strand is severed, the majority of the strands are still intact, and if the two thin strands are severed, the majority of the structure is intact. Therefore, the animal is not a Tereifah, according to Mar bar Rav Ashi."
+              }
+            },
+            {
+              "marker": "6.",
+              "level": 0,
+              "title": {
+                "en": "The junction of the sinews of a bird consists of sixteen strands. If even one of them is severed, the bird is a Tereifah."
+              },
+              "body": {
+                "en": "When one of the strands is severed, all of the strands are in danger of tearing. Therefore, the bird is a Tereifah."
+              }
+            },
+            {
+              "marker": "7.",
+              "level": 0,
+              "title": {
+                "en": "When an animal suffered a compound fracture of its leg, it is permitted if most of the flesh remains."
+              },
+              "body": {
+                "en": "This is true whether the fracture is above or below the joint."
+              }
+            },
+            {
+              "marker": "8.",
+              "level": 0,
+              "title": {
+                "en": "When an animal suffered a compound fracture of its leg below the joint, and most of the flesh is not remaining, the limb is forbidden but the animal it is permitted. If the fracture occurred above the joint, there is a disagreement about whether the animal is a Tereifah."
+              },
+              "body": {
+                "en": "According to Rav, if the compound fracture occurred above the joint and most of the flesh does not remain, the animal is a Tereifah. Shmuel maintains that only the limb is forbidden, but the animal is permitted."
+              }
+            },
+            {
+              "marker": "9.",
+              "level": 0,
+              "title": {
+                "en": "When the limb is forbidden but the animal is permitted, the forbidden limb is Metamei with Masa."
+              },
+              "body": {
+                "en": "The limb is considered to have fallen off at the time of the Shechitah and is an Ever Min ha'Chai, which conveys Tum'as Neveilah."
+              }
+            },
+            {
+              "marker": "10.",
+              "level": 0,
+              "title": {
+                "en": "When an animal suffered a compound fracture of its leg, and the skin and flesh cover most of the thickness of the bone (or, according to another version, most of the circumference of the bone), it is Kosher."
+              },
+              "body": {
+                "en": "Rav Papa maintains that the skin and the flesh must cover most of the thickness and most of the circumference of the bone."
+              }
+            },
+            {
+              "marker": "11.",
+              "level": 0,
+              "title": {
+                "en": "Ula says in the name of Rebbi Yochanan that if only skin covers the bone, it is Kosher. However, in the second version, Ula says that the skin can combine with the flesh to cover the bone."
+              },
+              "body": {
+                "en": "According to the second version of Ula in the name of Rebbi Yochanan, if the bone is covered by half flesh and half skin, it is Kosher, but if only skin covers the bone, it is a Tereifah."
+              }
             }
           ]
         }

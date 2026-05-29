@@ -17,6 +17,7 @@ const SOURCE_LABEL: Record<DafyomiContentType, string> = {
   // label it so it reads as a companion to the Sefaria "Tosafot" source.
   insights: 'Insights', background: 'Background', halacha: 'Halacha', tosfos: 'Tosafot explanation',
   review: 'Review', points: 'Points', hebcharts: 'Charts', yerushalmi: 'Yerushalmi',
+  revach: 'Revach l\'Daf',
 };
 
 export function fromDafyomi(daf: DafyomiDaf): ContextItem[] {
@@ -71,6 +72,7 @@ function collectBlock(
     case 'review':
     case 'points':
     case 'yerushalmi':
+    case 'revach':
       b.entries.forEach((e, i) => out.push({ ...base(b.type, `${type}:${amud}:${i}`), ...entryCard(e) }));
       break;
     case 'hebcharts':

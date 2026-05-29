@@ -14,6 +14,7 @@ import ArgumentFlowGraph, { type FlowConnection } from './ArgumentFlowGraph';
 import { selectSectionMoves } from '../lib/argumentMoves';
 import { t, lang } from './i18n';
 import { ACCENTS, HebrewProse, Panel, QASection, SectionCard, Synthesis, kindLabelKey } from './sidebar/primitives';
+import { InspectDot } from './MarkEnrichmentCards';
 
 /** Localize an era date-range ("c. 290 – 320 CE") for Hebrew display. */
 function eraLabel(era: string): string {
@@ -560,7 +561,12 @@ export function ArgumentBody(props: {
         onResolved={handleResolved}
       />
       <Show when={!voicesGate.suppress() && voicesData()}>
-        {(data) => <ArgumentVoiceMap data={data()} onClickVoice={props.onPushRabbi} />}
+        {(data) => (
+          <div style={{ position: 'relative' }}>
+            <InspectDot instanceKey={instanceKey()} leafId="argument.voices" style={{ position: 'absolute', top: '0.2rem', right: 0, 'z-index': 2 }} />
+            <ArgumentVoiceMap data={data()} onClickVoice={props.onPushRabbi} />
+          </div>
+        )}
       </Show>
       <Show when={voicesData() && voicesGate.suppress()}>
         <VoicesSuppressedNote profile={voicesGate.profile()} />
@@ -922,24 +928,30 @@ export function RabbiBody(props: {
       />
       <Show when={relationships()}>
         {(rel) => (
-          <RabbiLineageTree
-            subjectName={props.rabbi.name}
-            subjectGeneration={props.rabbi.generation}
-            data={rel()}
-            evidence={relationshipsEvidence()}
-            generationByName={props.generationByName}
-            onHighlightRange={props.onHighlightRange}
-          />
+          <div style={{ position: 'relative' }}>
+            <InspectDot instanceKey={instanceKey()} leafId="rabbi.relationships" style={{ position: 'absolute', top: '0.2rem', right: 0, 'z-index': 2 }} />
+            <RabbiLineageTree
+              subjectName={props.rabbi.name}
+              subjectGeneration={props.rabbi.generation}
+              data={rel()}
+              evidence={relationshipsEvidence()}
+              generationByName={props.generationByName}
+              onHighlightRange={props.onHighlightRange}
+            />
+          </div>
         )}
       </Show>
       <Show when={geography()}>
         {(geo) => (
-          <RabbiPlacesTimeline
-            data={geo()}
-            evidence={geographyEvidence()}
-            location={location()}
-            onHighlightRange={props.onHighlightRange}
-          />
+          <div style={{ position: 'relative' }}>
+            <InspectDot instanceKey={instanceKey()} leafId="rabbi.geography" style={{ position: 'absolute', top: '0.2rem', right: 0, 'z-index': 2 }} />
+            <RabbiPlacesTimeline
+              data={geo()}
+              evidence={geographyEvidence()}
+              location={location()}
+              onHighlightRange={props.onHighlightRange}
+            />
+          </div>
         )}
       </Show>
     </Panel>
@@ -1040,7 +1052,11 @@ export function HalachaBody(props: {
             <div style={{
               'font-size': '0.7rem', 'text-transform': 'uppercase',
               'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.5rem',
-            }}>{t('halacha.codification')}</div>
+              display: 'flex', 'align-items': 'center', gap: '0.4rem',
+            }}>
+              <span>{t('halacha.codification')}</span>
+              <InspectDot instanceKey={instanceKey()} leafId="halacha.codification" style={{ 'margin-left': 'auto' }} />
+            </div>
             <RulingRow
               source="mishnehTorah" label={t('source.mishnehTorah')} color="#8a2a2b"
               ruling={cod().mishnehTorah ? { ref: cod().mishnehTorah!.ref, summary: cod().mishnehTorah!.ruling } : undefined}
@@ -1079,7 +1095,7 @@ export function HalachaBody(props: {
       </Show>
       <Show when={practical()}>
         {(pr) => (
-          <SectionCard label="halacha.practical">
+          <SectionCard label="halacha.practical" inspect={{ instanceKey: instanceKey(), leafId: 'halacha.practical' }}>
             <Show when={pr().lechatchila}>
               <div style={{ 'margin-bottom': '0.4rem' }}>
                 <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>
@@ -1134,7 +1150,7 @@ export function HalachaBody(props: {
         )}
       </Show>
       <Show when={disputes().length > 0}>
-        <SectionCard label="halacha.disputes">
+        <SectionCard label="halacha.disputes" inspect={{ instanceKey: instanceKey(), leafId: 'halacha.disputes' }}>
           <For each={disputes()}>{(d) => (
             <div style={{ 'margin-bottom': '0.6rem' }}>
               <div style={{ 'font-weight': 500, color: '#333', 'font-size': '0.88rem', 'margin-bottom': '0.25rem' }}>
@@ -1259,10 +1275,10 @@ export function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string
         page={props.page}
         onResolved={handleResolved}
       />
-      <Show when={tanachContext()}>{(tc) => <SectionCard label="pasuk.tanachContext" text={tc()} />}</Show>
-      <Show when={whyHere()}>{(wh) => <SectionCard label="pasuk.whyHere" text={wh()} />}</Show>
-      <Show when={mechanism()}>{(me) => <SectionCard label="pasuk.mechanism" text={me()} />}</Show>
-      <Show when={landing()}>{(la) => <SectionCard label="pasuk.landing" text={la()} />}</Show>
+      <Show when={tanachContext()}>{(tc) => <SectionCard label="pasuk.tanachContext" text={tc()} inspect={{ instanceKey: props.pasuk.verseRef, leafId: 'pesukim.tanach-context' }} />}</Show>
+      <Show when={whyHere()}>{(wh) => <SectionCard label="pasuk.whyHere" text={wh()} inspect={{ instanceKey: props.pasuk.verseRef, leafId: 'pesukim.why-here' }} />}</Show>
+      <Show when={mechanism()}>{(me) => <SectionCard label="pasuk.mechanism" text={me()} inspect={{ instanceKey: props.pasuk.verseRef, leafId: 'pesukim.mechanism' }} />}</Show>
+      <Show when={landing()}>{(la) => <SectionCard label="pasuk.landing" text={la()} inspect={{ instanceKey: props.pasuk.verseRef, leafId: 'pesukim.landing' }} />}</Show>
       {/* Questions panel: curated follow-ups + community + free-form asking. */}
       <QASection
         mark="pesukim"
@@ -1375,14 +1391,14 @@ export function AggadataPanel(props: {
         onResolved={handleResolved}
       />
       <Show when={background()}>
-        {(bg) => <SectionCard label="aggadata.background" text={bg().background} />}
+        {(bg) => <SectionCard label="aggadata.background" text={bg().background} inspect={{ instanceKey: instanceKey(), leafId: 'aggadata.background' }} />}
       </Show>
       <Show when={interpretation()}>
-        {(ip) => <SectionCard label="aggadata.interpretation" text={ip().interpretation} />}
+        {(ip) => <SectionCard label="aggadata.interpretation" text={ip().interpretation} inspect={{ instanceKey: instanceKey(), leafId: 'aggadata.interpretation' }} />}
       </Show>
       <Show when={visibleParallels()}>
         {(pa) => (
-          <SectionCard label="aggadata.parallels">
+          <SectionCard label="aggadata.parallels" inspect={{ instanceKey: instanceKey(), leafId: 'aggadata.parallels' }}>
             <Show when={pa().prose}>
               <div style={{
                 'font-size': '0.82rem', color: '#555', 'line-height': 1.5,

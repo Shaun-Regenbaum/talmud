@@ -143,8 +143,12 @@ export async function getRishonimCached(
   page: string,
 ): Promise<RishonimBundle> {
   // v2: per-comment, segment-anchored RishonComment[] (was a whole-daf blob
-  // Record<label, snippet>). Bumping forces a refetch into the new shape.
-  const key = `rishonim:v2:${tractate}:${page}`;
+  // Record<label, snippet>). v3: expanded the Rishonim allowlist (Yad Ramah,
+  // Ri Migash, Rabbeinu Gershom, Tosafot Rid/HaRosh, Shita Mekubetzet, Baal
+  // HaMaor, Ra'ah, Mordechai, Maharsha, …). v4: added select Acharonim (Rashash,
+  // Gilyon HaShas, Penei Yehoshua, Ben Yehoyada, Chatam Sofer, R' Akiva Eiger).
+  // Bump so cached dapim refetch with the new works.
+  const key = `rishonim:v4:${tractate}:${page}`;
   const hit = await readCache<RishonimBundle>(cache, key);
   if (hit) return hit;
   try {

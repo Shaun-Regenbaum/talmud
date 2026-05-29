@@ -11,9 +11,17 @@ describe('fromDafyomi', () => {
   const items = fromDafyomi(corpus());
   it('produces items for every present content type', () => {
     const sources = new Set(items.map((i) => i.source));
-    for (const t of ['insights', 'background', 'halacha', 'tosfos', 'review', 'points', 'hebcharts', 'yerushalmi']) {
+    for (const t of ['insights', 'background', 'halacha', 'tosfos', 'review', 'points', 'hebcharts', 'yerushalmi', 'revach']) {
       expect(sources.has(`dafyomi:${t}`)).toBe(true);
     }
+  });
+  it('revach items pair the SUMMARY highlight (title) with the A BIT MORE body', () => {
+    const rev = items.filter((i) => i.source === 'dafyomi:revach');
+    expect(rev.length).toBeGreaterThan(1);
+    expect(rev[0].sourceLabel).toBe("Revach l'Daf");
+    expect(rev[0].title?.en?.length ?? 0).toBeGreaterThan(0);
+    expect(rev[0].body?.en?.length ?? 0).toBeGreaterThan(0);
+    expect(rev[0].segs).toEqual([]); // unplaced until the AI matcher anchors it
   });
   it('tosfos items start unplaced (segs:[]) with an amud + DH key', () => {
     const tos = items.filter((i) => i.kind === 'tosfos-piece');
