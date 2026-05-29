@@ -4,8 +4,8 @@
  * sugya units — and draws them: one row per daf, the daf's sections as cells,
  * and the sugya CONTAINING the current daf highlighted across whatever pages it
  * spans. The headline is "this discussion runs from 125b to 126a", which no
- * per-daf view can show. Dev-mode only (mounted in DevModeShelf) while the
- * cross-daf flow is still warming.
+ * per-daf view can show. Reader-facing: mounted at the foot of the Overview
+ * sidebar (ArgumentOverviewBody); the panel self-hides when there is no window.
  */
 
 import { createResource, For, Show, type JSX } from 'solid-js';

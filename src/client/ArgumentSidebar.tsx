@@ -12,6 +12,7 @@ import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
 import ArgumentNarrative from './ArgumentNarrative';
 import { deriveVoiceEdges } from '../lib/typing/voices';
 import ArgumentFlowGraph, { type FlowConnection } from './ArgumentFlowGraph';
+import SugyaMap from './SugyaMap';
 import { selectSectionMoves } from '../lib/argumentMoves';
 import { t, lang } from './i18n';
 import { ACCENTS, HebrewProse, Panel, QASection, SectionCard, Synthesis, kindLabelKey } from './sidebar/primitives';
@@ -723,6 +724,7 @@ function ArgumentOverviewBody(props: {
   page: string;
   sections: Section[];
   onPushRabbi: (name: string) => void;
+  onHighlightRange?: (range: { start: number; end: number; key: string } | null) => void;
 }): JSX.Element {
   const [connections, setConnections] = createSignal<FlowConnection[]>([]);
   const [active, setActive] = createSignal<number | null>(null);
@@ -731,7 +733,22 @@ function ArgumentOverviewBody(props: {
     void `${props.tractate}/${props.page}`;
     setConnections([]);
     setActive(null);
+    props.onHighlightRange?.(null);
   });
+
+  // Clicking a section card both opens its voices and paints the section's
+  // segment range on the daf (clicking the active card again clears both).
+  const selectSection = (i: number) => {
+    const next = active() === i ? null : i;
+    setActive(next);
+    if (next === null) { props.onHighlightRange?.(null); return; }
+    const s = props.sections[i];
+    if (s && s.startSegIdx != null && s.endSegIdx != null) {
+      props.onHighlightRange?.({ start: s.startSegIdx, end: s.endSegIdx, key: `overview:${i}` });
+    } else {
+      props.onHighlightRange?.(null);
+    }
+  };
 
   const handleResolved = (r: { deps_resolved?: Record<string, unknown>; anchors_resolved?: Record<string, unknown> }) => {
     const flow = r.deps_resolved?.['argument-overview.flow'] as { connections?: FlowConnection[] } | undefined;
@@ -762,7 +779,7 @@ function ArgumentOverviewBody(props: {
           nodes={nodes()}
           connections={connections()}
           activeIndex={active()}
-          onSelect={(i) => setActive(active() === i ? null : i)}
+          onSelect={selectSection}
         />
         <Show when={active() !== null && props.sections[active()!]}>
           <OverviewSectionVoices
@@ -772,6 +789,12 @@ function ArgumentOverviewBody(props: {
             onPushRabbi={props.onPushRabbi}
           />
         </Show>
+        {/* Cross-page sugya map: how this daf's discussion spans neighbours. */}
+        <SugyaMap
+          tractate={props.tractate}
+          page={props.page}
+          onHighlight={(r) => props.onHighlightRange?.(r ? { start: r.start, end: r.end, key: 'sugya' } : null)}
+        />
       </Show>
     </Panel>
   );
@@ -1766,6 +1789,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                 page={props.page}
                 sections={props.dafSections ?? []}
                 onPushRabbi={props.onPushRabbi}
+                onHighlightRange={props.onHighlightRange}
               />
             </Show>
 

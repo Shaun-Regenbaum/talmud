@@ -35,7 +35,6 @@ import { applyMarkRenderers } from './renderers/dispatch';
 import DevModeShelf, { readDevMode, setDevModeActive } from './DevModeShelf';
 import ChecksPanel from './ChecksPanel';
 import TypeProfilePanel from './TypeProfilePanel';
-import SugyaMap from './SugyaMap';
 import type { GenerationId } from './generations';
 import { GENERATION_BY_ID } from './generations';
 import { resolveVoiceGroup, voiceGroupNames } from './voiceGroups';
@@ -2607,7 +2606,7 @@ export default function DafViewer(): JSX.Element {
       {/* Whole-daf chip marks (the Overview) — shown to all readers now that the
           per-daf overview is promoted and its flow is warmed globally. */}
       <Show when={chipMarks().length > 0}>
-        <div class="daf-chip-bar" style={{ display: 'flex', gap: '0.4rem', 'flex-wrap': 'wrap', margin: '0 0 0.6rem' }}>
+        <div class="daf-chip-bar" style={{ display: 'flex', 'justify-content': 'center', gap: '0.4rem', 'flex-wrap': 'wrap', margin: '0 0 0.6rem' }}>
           <For each={chipMarks()}>{(m) => {
             const color = (m.render as { color?: string }).color ?? '#8a2a2b';
             const label = m.id === 'argument-overview' ? t('overview.chip') : m.id;
@@ -2872,11 +2871,6 @@ export default function DafViewer(): JSX.Element {
           page={page()}
           active={(() => { const h = argumentMoveHighlight(); return h && h.key.startsWith('typeprofile') ? { start: h.start, end: h.end } : null; })()}
           onHighlight={(r) => setArgumentMoveHighlight(r ? { start: r.start, end: r.end, key: `typeprofile-${r.start}-${r.end}` } : null)}
-        />
-        <SugyaMap
-          tractate={tractate()}
-          page={page()}
-          onHighlight={(r) => setArgumentMoveHighlight(r ? { start: r.start, end: r.end, key: `sugya-${r.start}` } : null)}
         />
         <MarksRegistryPanel
           tractate={tractate()}
