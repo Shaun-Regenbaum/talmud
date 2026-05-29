@@ -30,12 +30,20 @@ describe('rishonLabel', () => {
     expect(rishonLabel('Chidushei Halachot on Berakhot', 'Berakhot')).toBe('Maharsha');
     expect(rishonLabel('Chidushei Agadot on Sanhedrin', 'Sanhedrin')).toBe('Maharsha (Aggadah)');
   });
+  it('maps the select Acharonim now surfaced in align', () => {
+    expect(rishonLabel('Rashash on Eruvin', 'Eruvin')).toBe('Rashash');
+    expect(rishonLabel('Gilyon HaShas on Bava Batra', 'Bava Batra')).toBe('Gilyon HaShas');
+    expect(rishonLabel('Penei Yehoshua on Ketubot', 'Ketubot')).toBe('Penei Yehoshua');
+    expect(rishonLabel('Ben Yehoyada on Sanhedrin', 'Sanhedrin')).toBe('Ben Yehoyada');
+    expect(rishonLabel('Chidushei Chatam Sofer on Bava Batra', 'Bava Batra')).toBe('Chatam Sofer');
+    expect(rishonLabel('Chiddushei Rabbi Akiva Eiger on Berakhot', 'Berakhot')).toBe('Rabbi Akiva Eiger');
+  });
   it('excludes Rashi/Tosafot/Steinsaltz and unknown books', () => {
     expect(rishonLabel('Rashi on Eruvin', 'Eruvin')).toBeNull();
     expect(rishonLabel('Tosafot on Eruvin', 'Eruvin')).toBeNull();
     expect(rishonLabel('Steinsaltz on Eruvin', 'Eruvin')).toBeNull();
-    expect(rishonLabel('Rashash on Eruvin', 'Eruvin')).toBeNull(); // Acharon glosses, not kept
-    expect(rishonLabel('Penei Yehoshua on Ketubot', 'Ketubot')).toBeNull();
+    expect(rishonLabel('Reshimot Shiurim on Berakhot', 'Berakhot')).toBeNull(); // modern shiurim, not kept
+    expect(rishonLabel('Petach Einayim on Sanhedrin', 'Sanhedrin')).toBeNull();
   });
 });
 
