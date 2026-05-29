@@ -113,18 +113,33 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
 
     '/api/dafyomi/{tractate}/{page}': {
       get: {
-        summary: 'Dafyomi.co.il study content for the daf (markdown + assets).',
+        summary: 'Structured dafyomi.co.il (Kollel Iyun HaDaf) study content for the daf.',
+        description:
+          'Returns a DafyomiDaf: { tractate, daf, source{urls,fetchedAt}, amudim{a,b}, absent[] }. ' +
+          'amudim hold per-amud, per-type blocks across nine content types: insights, background, ' +
+          'halacha, tosfos, review, points, hebcharts, yerushalmi, and revach (Revach l\'Daf — brief ' +
+          'SUMMARY + "A BIT MORE" highlights). Daf 76 of Chullin is committed; every other daf is ' +
+          'fetched live then cached. Pass refresh=1 to bypass the cache and re-fetch.',
         parameters: [tractate, page, refresh],
-        responses: { '200': { description: 'Dafyomi study payload' } },
+        responses: { '200': { description: 'DafyomiDaf' } },
       },
     },
 
     '/api/context/{tractate}/{page}': {
       get: {
-        summary: 'Unified context pool: Sefaria commentary, mishnah, rishonim, halacha, topics.',
-        description: 'Returns { tractate, page, items: ContextItem[], fetchedAt }. Each item has a key, type, and text used as enrichment context.',
+        summary: 'Unified alignment/context pool: every external source normalized to anchored ContextItems.',
+        description:
+          'Returns { tractate, page, items: ContextItem[], fetchedAt }. items pools ALL external sources for the daf: ' +
+          'Sefaria Rashi/Tosafot piece text, Mishnayot, Rishonim, Shulchan Aruch/halacha, topics, AND the nine ' +
+          'dafyomi.co.il study types (source="dafyomi:<type>", including "dafyomi:revach" = Revach l\'Daf). ' +
+          'This is the same pool the alignment workbench renders. Each ContextItem carries: source, sourceLabel, ' +
+          'kind, key, title{he,en}, body{he,en}, url, and its PLACEMENT onto the daf — segs (0-based main-text ' +
+          'segment indices; [] = not yet localized / whole-daf), amud (coarse a/b when known), via ' +
+          '("pieceKeys"|"mishnah"|"tosfos-dh"|"ai"|…), and confidence (0..1 for AI matches). To judge alignment ' +
+          'quality: inspect how many items have non-empty segs vs segs:[] (unplaced), and their via/confidence. ' +
+          'Whole-daf items can be anchored by POSTing them to /api/context/match.',
         parameters: [tractate, page],
-        responses: { '200': { description: 'Context pool' } },
+        responses: { '200': { description: 'Context/alignment pool (ContextItem[])' } },
       },
     },
 
