@@ -66,6 +66,7 @@ import { checkBudget, isBudgetPaused, budgetStatus, clearPauses, type BudgetScop
 import { lookupRelationships } from './rabbi-graph';
 import { runChecks } from '../lib/check/postcheck';
 import { composeTypeProfile, type LayerId, type LayerInstance, type TypeProfile, type UnitRange } from '../lib/typing/profile';
+import { findMarkers } from '../lib/typing/markers';
 import { noteLintAttempt, readLintFailures, type LintFailuresSummary } from './lint-failures';
 import { partitionSections, dedupeByRange, dedupeBy, selectSectionMoves, type MoveLike } from '../lib/argumentMoves';
 import { DEFAULT_MODEL, DEFAULT_FALLBACK_CHAIN, isLLMModelId, MODEL_PRESETS } from './settings';
@@ -687,7 +688,12 @@ app.get('/api/studio/type-profiles/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
   const profiles = await buildDafTypeProfiles(c.env, tractate, page);
-  return c.json({ tractate, page, count: profiles.length, profiles });
+  // Structural markers (Hadran / perek boundaries) — deterministic from the
+  // gemara text, so a daf straddling two perakim renders a divider + downstream
+  // summaries can split rather than conflate.
+  const slice = await getGemaraSlice(c.env, tractate, page, false);
+  const markers = findMarkers(slice.segments_he);
+  return c.json({ tractate, page, count: profiles.length, profiles, markers });
 });
 
 app.get('/api/studio/enrichments', async (c) => {
