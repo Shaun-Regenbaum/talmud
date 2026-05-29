@@ -126,6 +126,10 @@ export interface RunResult {
   elapsed_ms: number;
   resolved: { system_prompt: string; user_prompt: string };
   total_ms: number;
+  /** True when the worker served this from the KV cache (no LLM call). On a
+   *  hit total_ms is injected as 0, but elapsed_ms still carries the original
+   *  generation time from when the result was first computed. */
+  cache_hit?: boolean;
 }
 
 export type RunState =
@@ -586,7 +590,7 @@ export default function MarksRegistryPanel(props: Props) {
         )}</Show>
 
         {/* Render a single Row (mark / seed / enrichment) with the
-            checkbox, status, re-run, etc. Used for both top-level marks
+            on/off switch, status, re-run, etc. Used for both top-level marks
             and the nested enrichments. */}
         {(() => {
           const renderRow = (row: Row, nested: boolean): JSX.Element => {
@@ -650,16 +654,23 @@ export default function MarksRegistryPanel(props: Props) {
                       }}
                     >{isExpanded() ? '▾' : '▸'}</button>
                   </Show>
-                  <input
-                    type="checkbox"
-                    checked={isOn()}
-                    onChange={(e) => setOn(e.currentTarget.checked)}
-                    style={{ cursor: 'pointer' }}
-                  />
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={isOn()}
+                    onClick={() => setOn(!isOn())}
+                    title={isOn() ? 'turn off' : 'turn on'}
+                    style={{
+                      background: 'transparent', border: 'none', cursor: 'pointer',
+                      padding: 0, width: '0.9rem', 'flex-shrink': 0,
+                      color: isOn() ? '#444' : '#ccc', 'font-size': '0.7rem',
+                      'line-height': 1,
+                    }}
+                  >{isOn() ? '●' : '○'}</button>
                   <span style={{ 'font-weight': nested ? 400 : 500, 'font-size': nested ? '0.8rem' : '0.85rem' }}>
                     {label()}
                   </span>
-                  <span title={`${anchor()} · ${render()}`} style={{ color: '#aaa', 'font-size': '0.7rem', 'font-family': 'monospace' }}>
+                  <span title={`anchored on ${anchor()} · rendered ${render()}`} style={{ color: '#aaa', 'font-size': '0.7rem', 'font-family': 'monospace' }}>
                     {anchor()[0]}/{String(render())[0]}
                   </span>
                   <Show when={row.source !== 'seed' && isOn()}>
@@ -674,7 +685,15 @@ export default function MarksRegistryPanel(props: Props) {
                         }} />
                       </Show>
                       <Show when={state().kind === 'ok'}>
-                        <span>✓ {(state() as Extract<RunState, { kind: 'ok' }>).result.total_ms}ms</span>
+                        {(() => {
+                          const res = () => (state() as Extract<RunState, { kind: 'ok' }>).result;
+                          return (
+                            <Show when={res().cache_hit} fallback={<span>✓ {res().elapsed_ms}ms</span>}>
+                              <span style={{ 'font-size': '0.62rem', color: '#15803d', background: '#dcfce7', padding: '0 0.3rem', 'border-radius': '3px' }}>cached</span>
+                              <span style={{ color: '#888' }}>{res().elapsed_ms}ms</span>
+                            </Show>
+                          );
+                        })()}
                       </Show>
                       <Show when={state().kind === 'error'}>
                         <span>✗</span>
@@ -759,16 +778,17 @@ export default function MarksRegistryPanel(props: Props) {
         <div style={{ display: 'flex', gap: '0.4rem', 'margin-top': '0.4rem', 'flex-wrap': 'wrap' }}>
           <button
             onClick={() => refetchDefs()}
+            title="Re-fetch the mark/enrichment definitions from the server (use after editing a def). Does not re-run anything."
             style={{ padding: '2px 8px', 'font-size': '0.7rem', cursor: 'pointer', background: 'transparent', border: '1px solid #ddd', 'border-radius': '3px', color: '#888' }}
           >
-            refresh registry
+            reload defs
           </button>
           <button
             onClick={() => setRuns({})}
-            title="Clear cached run results so enabled marks re-fire (use after changing models / prompts)"
+            title="Clear cached results so every mark re-fetches for this daf (cache-respecting). For a true bypass-cache re-run of one mark, use its ↻."
             style={{ padding: '2px 8px', 'font-size': '0.7rem', cursor: 'pointer', background: 'transparent', border: '1px solid #ddd', 'border-radius': '3px', color: '#888' }}
           >
-            re-run all
+            refresh results
           </button>
         </div>
       </div>

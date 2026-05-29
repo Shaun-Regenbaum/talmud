@@ -10,7 +10,7 @@
  * handler enforces single-open by setting a module-level signal).
  */
 
-import { createSignal, For, Show, type JSX } from 'solid-js';
+import { For, Show, type JSX } from 'solid-js';
 
 interface EnrichmentDef {
   id: string;
@@ -31,6 +31,7 @@ interface RunResult {
   transport?: string;
   attempts?: number;
   elapsed_ms?: number;
+  cache_hit?: boolean;
   resolved?: { system_prompt: string; user_prompt: string };
   deps_resolved?: Record<string, unknown>;
   anchors_resolved?: Record<string, unknown>;
@@ -57,15 +58,23 @@ interface Props {
   onClose: () => void;
 }
 
-type Tab = 'synthesis' | 'prompts' | 'telemetry';
-
 export default function InstanceInspectorShelf(props: Props) {
-  const [tab, setTab] = createSignal<Tab>('synthesis');
-
   const result = (): RunResult | null =>
     props.currentRun.kind === 'ok' ? props.currentRun.result : null;
   const errorMsg = (): string | null =>
     props.currentRun.kind === 'error' ? props.currentRun.error : null;
+
+  // Compact one-line telemetry — everything tied to this single run, so it
+  // sits with the generation instead of behind a separate tab. On a cache
+  // hit total_ms is 0, so report the persisted generation time (elapsed_ms).
+  const metaLine = (r: RunResult): string => {
+    const parts = [r.model, r.cache_hit ? 'cached' : 'fresh'];
+    if (typeof r.elapsed_ms === 'number') parts.push(`gen ${r.elapsed_ms}ms`);
+    const tok = r.usage?.total_tokens;
+    if (typeof tok === 'number') parts.push(`${tok} tok`);
+    if (typeof r.usage?.cost === 'number') parts.push(`$${r.usage.cost.toFixed(6)}`);
+    return parts.join(' · ');
+  };
 
   return (
     <div style={{
@@ -94,14 +103,6 @@ export default function InstanceInspectorShelf(props: Props) {
       }}>
         <strong>{props.instanceLabel}</strong>
         <code style={{ color: '#888', 'font-size': '0.75rem' }}>{props.markId}</code>
-        <Show when={result()}>{(r) => (
-          <span style={{ color: '#666', 'font-size': '0.75rem', 'font-family': 'ui-monospace, Menlo, monospace' }}>
-            {r().model} · {r().total_ms}ms
-            <Show when={r().usage?.cost}>
-              {' '}· ${(r().usage?.cost ?? 0).toFixed(6)}
-            </Show>
-          </span>
-        )}</Show>
         <Show when={errorMsg()}>
           <span style={{ 'font-size': '0.75rem', color: '#c00' }}>✗ failed</span>
         </Show>
@@ -113,27 +114,9 @@ export default function InstanceInspectorShelf(props: Props) {
         </button>
       </div>
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', 'border-bottom': '1px solid #eee', background: '#fafafa' }}>
-        <For each={(['synthesis', 'prompts', 'telemetry'] as const)}>{(t) => (
-          <button
-            onClick={() => setTab(t)}
-            style={{
-              padding: '6px 14px',
-              'font-size': '13px',
-              border: 0,
-              'border-bottom': tab() === t ? '2px solid #000' : '2px solid transparent',
-              background: 'transparent',
-              cursor: 'pointer',
-              'font-weight': tab() === t ? 600 : 400,
-            }}
-          >
-            {t}
-          </button>
-        )}</For>
-      </div>
-
-      {/* Body */}
+      {/* Body — one unified view: view picker + built-from, a compact
+          telemetry line, the generation, then collapsible prompt + raw
+          telemetry. Everything here belongs to the single selected run. */}
       <div style={{ flex: 1, 'overflow-y': 'auto', padding: '0.75rem' }}>
         <Show when={errorMsg()}>{(msg) => (
           <div style={{ background: '#fee', color: '#900', padding: '0.6rem', 'border-radius': '4px', 'margin-bottom': '0.6rem', 'font-family': 'ui-monospace, Menlo, monospace', 'font-size': '12px' }}>
@@ -141,101 +124,101 @@ export default function InstanceInspectorShelf(props: Props) {
           </div>
         )}</Show>
 
-        <Show when={tab() === 'synthesis'}>
-          <div style={{ 'font-size': '0.72rem', color: '#888', display: 'flex', 'align-items': 'center', gap: '0.4rem', 'margin-bottom': '0.6rem' }}>
-            <span>view:</span>
-            <select
-              value={props.selected ?? ''}
-              onChange={(e) => props.onSelect(e.currentTarget.value || null)}
-              style={{ 'font-size': '0.78rem', padding: '2px 6px', 'font-family': 'inherit' }}
-            >
-              <Show when={props.aggregates.length > 0}>
-                <option value="">{`[${props.aggregates[0]?.scope ?? 'local'}] synthesis`}</option>
-              </Show>
-              <For each={props.leaves}>{(d) => (
-                <option value={d.id}>{`[${d.scope ?? 'global'}] ${props.prettyDepLabel(d.id)}`}</option>
-              )}</For>
-            </select>
-            <Show when={props.currentView?.mode === 'aggregate'}>
-              <span style={{ color: '#aaa' }}>aggregate</span>
+        {/* view picker + aggregate marker */}
+        <div style={{ 'font-size': '0.72rem', color: '#888', display: 'flex', 'align-items': 'center', gap: '0.4rem', 'margin-bottom': '0.5rem' }}>
+          <span>view:</span>
+          <select
+            value={props.selected ?? ''}
+            onChange={(e) => props.onSelect(e.currentTarget.value || null)}
+            style={{ 'font-size': '0.78rem', padding: '2px 6px', 'font-family': 'inherit' }}
+          >
+            <Show when={props.aggregates.length > 0}>
+              <option value="">{`[${props.aggregates[0]?.scope ?? 'local'}] synthesis`}</option>
             </Show>
-          </div>
-
-          <div style={{
-            background: '#fafafa',
-            border: '1px solid #eee',
-            'border-radius': '6px',
-            padding: '0.7rem 0.85rem',
-            'margin-bottom': '0.6rem',
-          }}>
-            {props.renderBody()}
-          </div>
-
-          <Show when={props.depBadges.length > 0}>
-            <div style={{
-              display: 'flex', gap: '0.3rem', 'align-items': 'center',
-              'flex-wrap': 'wrap',
-            }}>
-              <span style={{ 'font-size': '0.7rem', color: '#888' }}>built from</span>
-              <For each={props.depBadges}>{(depId) => (
-                <button
-                  onClick={() => props.onSelect(depId === props.currentView?.id ? null : depId)}
-                  title={`View ${depId}`}
-                  style={{
-                    padding: '2px 9px', 'font-size': '0.72rem', cursor: 'pointer',
-                    background: props.selected === depId ? '#000' : '#f0f0f0',
-                    color: props.selected === depId ? '#fff' : '#444',
-                    border: '1px solid #ddd', 'border-radius': '10px',
-                    'font-family': 'inherit',
-                  }}
-                >
-                  {props.prettyDepLabel(depId)}
-                </button>
-              )}</For>
-            </div>
+            <For each={props.leaves}>{(d) => (
+              <option value={d.id}>{`[${d.scope ?? 'global'}] ${props.prettyDepLabel(d.id)}`}</option>
+            )}</For>
+          </select>
+          <Show when={props.currentView?.mode === 'aggregate'}>
+            <span style={{ color: '#aaa' }}>aggregate</span>
           </Show>
+        </div>
+
+        {/* compact telemetry line for this run */}
+        <Show when={result()}>{(r) => (
+          <div style={{ 'font-size': '0.72rem', color: '#666', 'font-family': 'ui-monospace, Menlo, monospace', 'margin-bottom': '0.5rem' }}>
+            {metaLine(r())}
+          </div>
+        )}</Show>
+
+        {/* generation */}
+        <div style={{
+          background: '#fafafa',
+          border: '1px solid #eee',
+          'border-radius': '6px',
+          padding: '0.7rem 0.85rem',
+          'margin-bottom': '0.6rem',
+        }}>
+          {props.renderBody()}
+        </div>
+
+        <Show when={props.depBadges.length > 0}>
+          <div style={{
+            display: 'flex', gap: '0.3rem', 'align-items': 'center',
+            'flex-wrap': 'wrap', 'margin-bottom': '0.6rem',
+          }}>
+            <span style={{ 'font-size': '0.7rem', color: '#888' }}>built from</span>
+            <For each={props.depBadges}>{(depId) => (
+              <button
+                onClick={() => props.onSelect(depId === props.currentView?.id ? null : depId)}
+                title={`View ${depId}`}
+                style={{
+                  padding: '2px 9px', 'font-size': '0.72rem', cursor: 'pointer',
+                  background: props.selected === depId ? '#000' : '#f0f0f0',
+                  color: props.selected === depId ? '#fff' : '#444',
+                  border: '1px solid #ddd', 'border-radius': '10px',
+                  'font-family': 'inherit',
+                }}
+              >
+                {props.prettyDepLabel(depId)}
+              </button>
+            )}</For>
+          </div>
         </Show>
 
-        <Show when={tab() === 'prompts'}>
-          <Show when={result()?.resolved} fallback={
-            <div style={{ color: '#999', 'font-style': 'italic' }}>
-              {props.currentRun.kind === 'loading' ? 'Thinking…' : 'no run output yet (or this leaf is served from a cached parent — re-run via the marks panel to capture prompts)'}
-            </div>
-          }>{(resolved) => (
-            <>
-              <details open style={{ 'margin-bottom': '0.5rem' }}>
-                <summary style={{ color: '#666', cursor: 'pointer' }}>system_prompt</summary>
-                <pre style={{ 'white-space': 'pre-wrap', 'font-family': 'ui-monospace, Menlo, monospace', 'font-size': '12px', margin: '0.4rem 0 0', background: '#f8f8f8', padding: '0.6rem', 'border-radius': '3px' }}>
-                  {resolved().system_prompt}
-                </pre>
-              </details>
-              <details open>
-                <summary style={{ color: '#666', cursor: 'pointer' }}>user_prompt</summary>
-                <pre style={{ 'white-space': 'pre-wrap', 'font-family': 'ui-monospace, Menlo, monospace', 'font-size': '12px', margin: '0.4rem 0 0', background: '#f8f8f8', padding: '0.6rem', 'border-radius': '3px' }}>
-                  {resolved().user_prompt}
-                </pre>
-              </details>
-            </>
-          )}</Show>
-        </Show>
+        {/* prompt sent to the model — collapsed by default */}
+        <Show when={result()?.resolved}>{(resolved) => (
+          <details style={{ 'margin-bottom': '0.5rem' }}>
+            <summary style={{ color: '#666', cursor: 'pointer', 'font-size': '0.78rem' }}>prompt (system + user)</summary>
+            <div style={{ color: '#888', 'font-size': '0.7rem', margin: '0.4rem 0 0.1rem' }}>system</div>
+            <pre style={{ 'white-space': 'pre-wrap', 'font-family': 'ui-monospace, Menlo, monospace', 'font-size': '12px', margin: 0, background: '#f8f8f8', padding: '0.6rem', 'border-radius': '3px' }}>
+              {resolved().system_prompt}
+            </pre>
+            <div style={{ color: '#888', 'font-size': '0.7rem', margin: '0.5rem 0 0.1rem' }}>user</div>
+            <pre style={{ 'white-space': 'pre-wrap', 'font-family': 'ui-monospace, Menlo, monospace', 'font-size': '12px', margin: 0, background: '#f8f8f8', padding: '0.6rem', 'border-radius': '3px' }}>
+              {resolved().user_prompt}
+            </pre>
+          </details>
+        )}</Show>
 
-        <Show when={tab() === 'telemetry'}>
-          <Show when={result()} fallback={
-            <div style={{ color: '#999', 'font-style': 'italic' }}>no run output yet</div>
-          }>{(r) => (
-            <pre style={{ 'white-space': 'pre-wrap', 'font-family': 'ui-monospace, Menlo, monospace', 'font-size': '12px', margin: 0 }}>
+        {/* raw telemetry — collapsed by default */}
+        <Show when={result()}>{(r) => (
+          <details>
+            <summary style={{ color: '#666', cursor: 'pointer', 'font-size': '0.78rem' }}>raw telemetry</summary>
+            <pre style={{ 'white-space': 'pre-wrap', 'font-family': 'ui-monospace, Menlo, monospace', 'font-size': '12px', margin: '0.4rem 0 0' }}>
               {JSON.stringify({
                 model: r().model,
                 transport: r().transport,
                 attempts: r().attempts,
+                cache_hit: r().cache_hit,
                 elapsed_ms: r().elapsed_ms,
                 total_ms: r().total_ms,
                 usage: r().usage,
                 parse_error: r().parse_error,
               }, null, 2)}
             </pre>
-          )}</Show>
-        </Show>
+          </details>
+        )}</Show>
       </div>
     </div>
   );
