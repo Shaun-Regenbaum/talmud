@@ -1472,15 +1472,20 @@ async function runMarkOnce(
   // `checks: []` in code-marks.ts; the transforms need the segment grid, so
   // fetch the gemara slice once when any check runs.
   let markCheckIssues: unknown[] | undefined;
+  let markHardIssues: unknown[] | undefined;
   if (parsed && def.checks && def.checks.length > 0) {
     const slice = await getGemaraSlice(rc.env, tractate, page, false);
     const checked = await runChecks(def.checks, parsed, {
       tractate, page, segmentsHe: slice.segments_he, defId: def.id, lang: rc.lang,
     });
     parsed = checked.parsed;
-    // Mark validators (anchor-verbatim / partition-clean) are all `soft` — they
-    // never gate the mark's cache write; attach them for quality observation.
-    if (checked.issues.length > 0) markCheckIssues = checked.issues;
+    // Attach all issues for observation; `hard` ones (e.g. anchor-verbatim on
+    // pesukim/aggadata, where it's promoted) gate the cache write below.
+    if (checked.issues.length > 0) {
+      markCheckIssues = checked.issues;
+      const hard = checked.issues.filter((i) => i.severity === 'hard');
+      if (hard.length > 0) markHardIssues = hard;
+    }
   }
   // Special cases that don't fit the segments-only transform signature yet:
   //   - rabbi:  needs the daf Hebrew text, not the segment grid (A1b will port it).
@@ -1514,8 +1519,22 @@ async function runMarkOnce(
     },
     cache_hit: false,
     ...(markCheckIssues ? { check_issues: markCheckIssues } : {}),
+    ...(markHardIssues ? { lint_issues: markHardIssues } : {}),
   };
-  if (!parse_error) await writeCachedResult(rc.env, cacheKey, out);
+  // Gate on hard check issues, BOUNDED — same posture as runEnrichmentOnce. A
+  // clean output (or one with only soft issues) is pinned; a hard-failing one
+  // (e.g. a hallucinated pesukim/aggadata anchor) is left uncached so the next
+  // request regenerates — until MAX_LINT_ATTEMPTS, then pinned anyway so a
+  // persistently-failing card stops re-paying. Capped failures surface on /api/usage.
+  if (!parse_error) {
+    if (!markHardIssues) {
+      await writeCachedResult(rc.env, cacheKey, out);
+    } else if (await noteLintAttempt(rc.env, rc.ctx, cacheKey, {
+      enrichmentId: def.id, tractate, page, lang: rc.lang, issues: markHardIssues,
+    })) {
+      await writeCachedResult(rc.env, cacheKey, out);
+    }
+  }
   return out;
 }
 
