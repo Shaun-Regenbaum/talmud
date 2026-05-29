@@ -25,6 +25,7 @@ import rabbiOrientationData from '../lib/data/rabbi-orientation.json';
 import { getWarmTotal } from './warm-cron';
 import { CODE_MARKS, CODE_ENRICHMENTS } from './code-marks';
 import { listMarks, listEnrichments } from './studio-registry';
+import type { GcTarget } from './cache-gc';
 
 // v5: mark/enrichment rows carry a per-cache-version breakdown (`versions` +
 // `staleCount`) + the `observations` bucket (rabbi.observations reverse index).
@@ -230,6 +231,16 @@ async function mergedEnrichments(cache: KVNamespace): Promise<Array<{
     source: 'kv', cache_version: e.cache_version,
   });
   return [...byId.values()].sort((a, b) => a.id.localeCompare(b.id));
+}
+
+/** Version-agnostic id prefixes + current versions for every mark + enrichment
+ *  (code and KV). The input to the stale-cache GC (src/worker/cache-gc.ts). */
+export async function cacheGcTargets(cache: KVNamespace): Promise<GcTarget[]> {
+  const [marks, enrich] = await Promise.all([mergedMarks(cache), mergedEnrichments(cache)]);
+  return [
+    ...marks.map((m) => ({ prefix: `mark:${m.id}:`, currentVersion: m.cache_version })),
+    ...enrich.map((e) => ({ prefix: `enrich:${e.id}:`, currentVersion: e.cache_version })),
+  ];
 }
 
 export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats> {
