@@ -1,13 +1,15 @@
 /**
- * Cross-page sugya map (Track C #2). A sugya is one continuous discussion; it
- * often does not begin or end on the daf you're reading. This panel answers the
- * one question no per-daf view can: "does the discussion at the top of this daf
- * spill across the page break?" It calls GET /api/studio/sugya/:t/:p — which
- * walks the continuing cross-daf bridges to a window of neighbouring dapim and
- * assembles the sugya containing this daf — and lists that sugya's sections by
- * their titles, grouped by daf. Sections ON this daf are clickable (they paint
- * the matching text); sections on a neighbouring daf show what you'd be reading
- * if you kept going. Reader-facing: mounted at the foot of the Overview sidebar.
+ * Cross-page sugya map (Track C #2). A sugya is one continuous discussion, and
+ * it often does not begin or end on the daf you're reading. A daf holds SEVERAL
+ * sugyot: the first usually carries over from the previous daf, the last often
+ * spills onto the next, and several sit wholly in between. This panel lists
+ * EVERY discussion on the daf in order, flags the ones that cross a page break
+ * (showing the neighbouring-daf sections as context — the part you'd otherwise
+ * miss), and lets you click any section on this daf to highlight its text.
+ *
+ * Data: GET /api/studio/sugya/:t/:p returns `sugyot` (every sugya in the window
+ * around this daf, each with titled section ranges grouped by daf). We render
+ * the ones that touch this daf. Reader-facing: foot of the Overview sidebar.
  */
 
 import { createResource, For, Show, type JSX } from 'solid-js';
@@ -35,55 +37,73 @@ export default function SugyaMap(props: {
     },
   );
 
-  const current = () => data()?.current ?? null;
-  const dapim = () => current()?.dapim ?? [];
+  // Smallest section-start on THIS daf — used to order the discussions top-down.
+  const firstSegHere = (s: SugyaUnit): number => {
+    const here = s.dapim.find((d) => d.page === props.page);
+    return here && here.sections.length ? Math.min(...here.sections.map((x) => x.start)) : Number.MAX_SAFE_INTEGER;
+  };
+
+  // Every sugya that touches this daf, in reading order.
+  const onThisDaf = (): SugyaUnit[] =>
+    (data()?.sugyot ?? [])
+      .filter((s) => s.dapim.some((d) => d.page === props.page))
+      .sort((a, b) => firstSegHere(a) - firstSegHere(b));
+
+  const crossingCount = () => onThisDaf().filter((s) => s.crossesDaf).length;
 
   return (
-    <Show when={current() && dapim().length > 0}>
+    <Show when={onThisDaf().length > 0}>
       <div style={{ 'margin-top': '0.6rem', border: '1px solid #ede9fe', 'border-radius': '6px', background: '#faf8ff', padding: '0.55rem 0.65rem' }}>
         <div style={{
           'font-size': '0.62rem', 'text-transform': 'uppercase', 'letter-spacing': '0.07em',
-          color: '#9333ea', 'font-weight': 700, 'margin-bottom': '0.3rem',
-        }}>Sugya — this discussion</div>
-
-        {/* Plain-language headline: does it cross the page break, or not? */}
-        <div style={{ 'font-size': '0.8rem', color: '#555', 'line-height': 1.45, 'margin-bottom': '0.45rem' }}>
-          <Show
-            when={current()!.crossesDaf}
-            fallback={<>The discussion that opens this daf stays on <b>{props.page}</b>.</>}
-          >
-            The discussion that opens this daf runs across{' '}
-            <b style={{ color: '#7c3aed' }}>{dapim().map((d) => d.page).join(' → ')}</b> — it doesn't begin and end here.
-          </Show>
+          color: '#9333ea', 'font-weight': 700, 'margin-bottom': '0.15rem',
+        }}>Sugya map — discussions on this daf</div>
+        <div style={{ 'font-size': '0.72rem', color: '#888', 'margin-bottom': '0.5rem' }}>
+          {onThisDaf().length} discussion{onThisDaf().length === 1 ? '' : 's'}
+          <Show when={crossingCount() > 0}>{`, ${crossingCount()} cross${crossingCount() === 1 ? 'es' : ''} a page break`}</Show>
         </div>
 
-        {/* The sugya's sections, grouped by daf. Sections on THIS daf are
-            clickable (paint the text); neighbouring dapim are context. */}
-        <For each={dapim()}>{(d) => {
-          const here = () => d.page === props.page;
-          return (
-            <div style={{ 'margin-bottom': '0.35rem' }}>
-              <div style={{
-                'font-size': '0.66rem', 'font-weight': 700, 'text-transform': 'uppercase', 'letter-spacing': '0.04em',
-                color: here() ? '#111' : '#a78b6a', 'margin-bottom': '0.15rem',
-              }}>{d.page}{here() ? ' · this daf' : ''}</div>
-              <For each={d.sections}>{(s) => (
-                <div
-                  onClick={() => { if (here()) props.onHighlight?.({ start: s.start, end: s.end }); }}
-                  title={here() ? 'Click to highlight this section on the daf' : `On ${d.page}`}
-                  style={{
-                    'font-size': '0.78rem', 'line-height': 1.4, padding: '0.12rem 0.35rem',
-                    'border-radius': '4px', 'margin-bottom': '0.1rem',
-                    cursor: here() ? 'pointer' : 'default',
-                    color: here() ? '#333' : '#999',
-                    background: here() ? '#fff' : 'transparent',
-                    border: here() ? '1px solid #eee' : '1px solid transparent',
-                  }}
-                >{s.title || `section at segment ${s.start}`}</div>
-              )}</For>
-            </div>
-          );
-        }}</For>
+        <For each={onThisDaf()}>{(s) => (
+          <div style={{
+            'border-left': `3px solid ${s.crossesDaf ? '#a78bfa' : '#e5e5e5'}`,
+            'padding-left': '0.5rem', 'margin-bottom': '0.55rem',
+          }}>
+            {/* Cross-boundary flag: which pages this one discussion spans. */}
+            <Show when={s.crossesDaf}>
+              <div style={{ 'font-size': '0.68rem', 'font-weight': 700, color: '#7c3aed', 'margin-bottom': '0.18rem' }}>
+                spans <For each={s.dapim}>{(d, i) => (
+                  <>{i() > 0 ? ' → ' : ''}<span style={{ 'text-decoration': d.page === props.page ? 'underline' : 'none' }}>{d.page}</span></>
+                )}</For>
+              </div>
+            </Show>
+
+            {/* Sections grouped by daf; this daf clickable, neighbours muted. */}
+            <For each={s.dapim}>{(d) => {
+              const here = () => d.page === props.page;
+              return (
+                <div>
+                  <Show when={!here()}>
+                    <div style={{ 'font-size': '0.62rem', 'text-transform': 'uppercase', 'letter-spacing': '0.04em', color: '#a78b6a', margin: '0.1rem 0 0.05rem' }}>{d.page}</div>
+                  </Show>
+                  <For each={d.sections}>{(sec) => (
+                    <div
+                      onClick={() => { if (here()) props.onHighlight?.({ start: sec.start, end: sec.end }); }}
+                      title={here() ? 'Click to highlight this section on the daf' : `On ${d.page}`}
+                      style={{
+                        'font-size': '0.78rem', 'line-height': 1.4, padding: '0.12rem 0.35rem',
+                        'border-radius': '4px', 'margin-bottom': '0.1rem',
+                        cursor: here() ? 'pointer' : 'default',
+                        color: here() ? '#333' : '#aaa',
+                        background: here() ? '#fff' : 'transparent',
+                        border: here() ? '1px solid #eee' : '1px solid transparent',
+                      }}
+                    >{sec.title || `section at segment ${sec.start}`}</div>
+                  )}</For>
+                </div>
+              );
+            }}</For>
+          </div>
+        )}</For>
       </div>
     </Show>
   );
