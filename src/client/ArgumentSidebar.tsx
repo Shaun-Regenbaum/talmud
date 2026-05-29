@@ -108,20 +108,6 @@ function useVoicesGate(tractate: () => string, page: () => string, section: () =
   return { profile, suppress };
 }
 
-/** A small dev-mode note explaining why the voice-dispute map was hidden. */
-function VoicesSuppressedNote(props: { profile: SectionTypeProfile | undefined }): JSX.Element {
-  return (
-    <div style={{
-      'margin-top': '0.6rem', padding: '0.45rem 0.6rem', 'border-radius': '4px',
-      background: '#f8fafc', border: '1px dashed #cbd5e1', color: '#64748b', 'font-size': '0.75rem', 'line-height': 1.5,
-    }}>
-      <b>Section typing (dev):</b> typed <b>{props.profile?.primary ?? 'pure-dialectic'}</b>
-      {props.profile?.isDispute ? '' : ' · not a dispute'} — the voice-dispute map is hidden here
-      because this section isn't a real מחלוקת. The move flow below is the right view.
-    </div>
-  );
-}
-
 export type SidebarContent =
   | { kind: 'argument'; section: Section; index: number }
   | { kind: 'halacha'; topic: HalachaTopic; index: number }
@@ -630,7 +616,7 @@ export function ArgumentBody(props: {
         <Show
           when={voicesGate.profile()?.primary === 'aggadata'}
           fallback={
-            <Show when={sectionMoves()} fallback={<VoicesSuppressedNote profile={voicesGate.profile()} />}>
+            <Show when={sectionMoves()}>
               {(moves) => <ArgumentMoveFlow moves={moves()} highlightedMoveId={highlightedMoveId()} onHighlightMove={handleHighlightMove} />}
             </Show>
           }
@@ -720,10 +706,8 @@ function OverviewSectionVoices(props: {
       <Show when={!voicesGate.suppress() && voices()}>
         {(data) => <ArgumentVoiceMap data={data()} onClickVoice={props.onPushRabbi} />}
       </Show>
-      <Show when={voicesGate.suppress()}>
-        <Show when={voicesGate.profile()?.primary === 'aggadata'} fallback={<VoicesSuppressedNote profile={voicesGate.profile()} />}>
-          <ArgumentNarrative section={props.section} tractate={props.tractate} page={props.page} />
-        </Show>
+      <Show when={voicesGate.suppress() && voicesGate.profile()?.primary === 'aggadata'}>
+        <ArgumentNarrative section={props.section} tractate={props.tractate} page={props.page} />
       </Show>
     </div>
   );
@@ -758,9 +742,6 @@ function ArgumentOverviewBody(props: {
 
   return (
     <Panel accent={ACCENTS.argument} title={t('overview.title')}>
-      <HebrewProse size="0.8rem" color="#999" margin="0 0 0.6rem">
-        {t('overview.experimental')}
-      </HebrewProse>
       <Synthesis
         markId="argument-overview"
         instance={{ fields: {} }}

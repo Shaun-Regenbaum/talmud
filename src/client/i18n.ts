@@ -180,11 +180,6 @@ const CATALOG = {
     en: 'No argument sections on this daf yet — open it with Arguments enabled so they load.',
     he: 'אין עדיין מקטעי טיעון בדף זה.',
   },
-  'overview.experimental': {
-    en: 'Experimental — sections and their connections are LLM-derived from the daf and dafyomi.co.il study context. Click a section for its voices.',
-    he: 'ניסיוני — המקטעים והקשרים ביניהם מופקים על ידי מודל מתוך הדף ותוכן הלימוד של dafyomi.co.il. לחצו על מקטע לקולות.',
-  },
-
   // — Common —
   'common.open': { en: 'Open {name}', he: 'פתיחת {name}' },
   'common.close': { en: 'Close', he: 'סגירה' },
