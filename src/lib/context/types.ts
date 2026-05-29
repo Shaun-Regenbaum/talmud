@@ -9,6 +9,7 @@
  */
 
 import type { DafyomiContentType, DafyomiText } from '../sefref/dafyomi/schema.ts';
+import type { AnchorCoord } from './coord.ts';
 
 export type ContextSource =
   | 'sefaria-rashi'
@@ -41,6 +42,11 @@ export interface ContextItem {
   via?: string;
   /** Matcher confidence 0..1 (AI matches carry this). */
   confidence?: number;
+  /** Cross-daf anchor: the item's true home is a segment on ANOTHER daf
+   *  (parallel sugya, citation target). Additive and orthogonal to `segs` —
+   *  the in-daf reader ignores it; the cross-page sugya map reads it. See
+   *  src/lib/context/coord.ts. */
+  coord?: AnchorCoord;
 
   /** Tosfos-DH matcher input: niqqud-stripped DH opening words. Only set on
    *  dafyomi Tosfos items; lets the matcher place them via Sefaria pieceKeys. */
