@@ -64,12 +64,13 @@ export async function scrapeDafyomiLive(tractate: string, daf: number): Promise<
   const m = getDafyomiMasechet(tractate);
   if (!m || daf < 2 || daf > m.lastDaf) return null;
 
+  // The hub drives the 8 folder content types via the masechet's gid. A failed
+  // hub (e.g. an unverified gid) is NOT fatal: Revach lives in the memdb app and
+  // is keyed only by the (verified) tid, so we still fetch it below.
   const hub = await fetchText(`${ORIGIN}/new_daflinks.php?gid=${m.gid}&daf=${daf}`, null);
-  if (!hub) return null;
-  const urls = urlsFromHub(hub);
+  const urls = hub ? urlsFromHub(hub) : new Map<DafyomiContentType, string>();
 
-  // Revach l'Daf isn't in the hub (it lives in the memdb app), so fetch it
-  // directly when the masechet has a known tid.
+  // Revach l'Daf isn't in the hub, so fetch it directly when tid is known.
   const revachUrl = buildRevachUrl(m, daf);
   if (revachUrl) urls.set('revach', revachUrl);
   if (urls.size === 0) return null;

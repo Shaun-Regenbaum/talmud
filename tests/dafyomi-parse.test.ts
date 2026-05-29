@@ -135,11 +135,32 @@ describe('buildRevachUrl', () => {
     const m = getDafyomiMasechet('Chullin')!;
     expect(buildRevachUrl(m, 110)).toBe('https://www.dafyomi.co.il/memdb/revdaf.php?tid=31&id=110');
   });
+  it('uses the right tid where Revach tid diverges from gid', () => {
+    // gid skips 28/29 (Eduyos/Avos), so from Horayot on, tid < gid.
+    expect(buildRevachUrl(getDafyomiMasechet('Berakhot')!, 2)).toBe('https://www.dafyomi.co.il/memdb/revdaf.php?tid=1&id=2');
+    expect(buildRevachUrl(getDafyomiMasechet('Horayot')!, 2)).toBe('https://www.dafyomi.co.il/memdb/revdaf.php?tid=28&id=2');
+    expect(buildRevachUrl(getDafyomiMasechet('Niddah')!, 2)).toBe('https://www.dafyomi.co.il/memdb/revdaf.php?tid=40&id=2');
+  });
   it('returns null when the masechet has no known Revach tid', () => {
-    const m = getDafyomiMasechet('Berakhot')!; // unverified, no tid
+    // No SEED row omits tid anymore, so synthesize one to cover the guard.
+    const m = { ...getDafyomiMasechet('Chullin')!, tid: undefined };
     expect(buildRevachUrl(m, 2)).toBeNull();
   });
+  it('maps a Revach tid for every tractate in the table', () => {
+    for (const t of TRACTATES_WITH_REVACH) {
+      expect(getDafyomiMasechet(t)?.tid, t).toBeTypeOf('number');
+    }
+  });
 });
+
+/** Every app tractate that should now resolve a Revach tid. */
+const TRACTATES_WITH_REVACH = [
+  'Berakhot', 'Shabbat', 'Eruvin', 'Pesachim', 'Shekalim', 'Yoma', 'Sukkah', 'Beitzah',
+  'Rosh Hashanah', 'Taanit', 'Megillah', 'Moed Katan', 'Chagigah', 'Yevamot', 'Ketubot',
+  'Nedarim', 'Nazir', 'Sotah', 'Gittin', 'Kiddushin', 'Bava Kamma', 'Bava Metzia', 'Bava Batra',
+  'Sanhedrin', 'Makkot', 'Shevuot', 'Avodah Zarah', 'Horayot', 'Zevachim', 'Menachot',
+  'Chullin', 'Bekhorot', 'Arakhin', 'Temurah', 'Keritot', 'Meilah', 'Niddah',
+];
 
 describe('assembleDaf', () => {
   it('files blocks per amud, records source URLs, and lists absent types', () => {
