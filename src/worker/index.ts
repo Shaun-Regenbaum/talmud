@@ -4357,8 +4357,10 @@ app.post('/api/context/match', async (c) => {
   if (!t || !p || items.length === 0) return c.json({ error: 'tractate, page, and items[] required' }, 400);
   const cache = c.env.CACHE;
   // The AI placement for a fixed (daf, item-set) is stable, and auto-grounding
-  // re-requests it on every visit — so cache it forever (bump v1 to invalidate).
-  const cacheKey = `ctx-match:v1:${t}:${p}:${hashMatchKeys(items.map((i) => i.key))}`;
+  // re-requests it on every visit — so cache it forever (bump the version to
+  // invalidate). v1 -> v2: the matcher now chunks large item sets; v1 entries
+  // were matched in one oversized batch that silently left everything unplaced.
+  const cacheKey = `ctx-match:v2:${t}:${p}:${hashMatchKeys(items.map((i) => i.key))}`;
   if (cache) {
     const hit = await cache.get(cacheKey);
     if (hit !== null) {
