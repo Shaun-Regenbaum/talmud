@@ -34,6 +34,7 @@ import { recordStage } from './rendererActivity';
 import { applyMarkRenderers } from './renderers/dispatch';
 import DevModeShelf, { readDevMode, setDevModeActive } from './DevModeShelf';
 import ChecksPanel from './ChecksPanel';
+import TypeProfilePanel from './TypeProfilePanel';
 import type { GenerationId } from './generations';
 import { GENERATION_BY_ID } from './generations';
 import { resolveVoiceGroup, voiceGroupNames } from './voiceGroups';
@@ -2866,6 +2867,7 @@ export default function DafViewer(): JSX.Element {
       </Show>
       <DevModeShelf open={devOpen()} onClose={() => { setDevOpen(false); setDevModeActive(false); }}>
         <ChecksPanel tractate={tractate()} page={page()} />
+        <TypeProfilePanel tractate={tractate()} page={page()} />
         <MarksRegistryPanel
           tractate={tractate()}
           page={page()}

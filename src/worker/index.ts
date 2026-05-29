@@ -63,6 +63,7 @@ import { runLLM, type LLMModelId, type LLMResult, type LLMUsage } from './llm';
 import { checkBudget, isBudgetPaused, budgetStatus, clearPauses, type BudgetScope } from './budget';
 import { lookupRelationships } from './rabbi-graph';
 import { runChecks } from '../lib/check/postcheck';
+import { composeTypeProfile, type LayerId, type LayerInstance, type TypeProfile, type UnitRange } from '../lib/typing/profile';
 import { noteLintAttempt, readLintFailures, type LintFailuresSummary } from './lint-failures';
 import { partitionSections, dedupeByRange, dedupeBy, selectSectionMoves, type MoveLike } from '../lib/argumentMoves';
 import { DEFAULT_MODEL, DEFAULT_FALLBACK_CHAIN, isLLMModelId, MODEL_PRESETS } from './settings';
@@ -627,6 +628,64 @@ app.get('/api/studio/checks/:tractate/:page', async (c) => {
     results.push({ mark_id: def.id, cached: true, issues });
   }
   return c.json({ tractate, page, total_issues: total, results });
+});
+
+// --- Section typing (P1/P2): deterministic TypeProfile composition ----------
+// Read-only over CACHED marks (no LLM, no cache write). For each argument
+// section on the daf, intersect the content overlays (halacha/aggadata/pesukim)
+// + the dialectical base (argument-move) and emit a TypeProfile: which layers
+// claim the section, the dominant `primary` content dimension (pure-dialectic
+// when no overlay materially covers it), and `isDispute` (from the section's
+// cached argument.voices graph). This is the observation/validation surface for
+// section typing — it shows, on real content, that e.g. the Ashmedai story is
+// narrative-primary (not a voice dispute). Gating + new enrichments build on it.
+type RawInstance = { startSegIdx?: unknown; endSegIdx?: unknown; fields?: Record<string, unknown> };
+async function readMarkInstances(env: Bindings, markId: string, tractate: string, page: string): Promise<RawInstance[]> {
+  const def = findCodeMark(markId);
+  if (!def) return [];
+  const hit = await readCachedResult(env, keyForMark(def, tractate, page, 'en'));
+  const parsed = hit?.parsed as { instances?: unknown } | null;
+  return Array.isArray(parsed?.instances) ? (parsed!.instances as RawInstance[]) : [];
+}
+function toLayerInstances(layer: LayerId, insts: RawInstance[]): LayerInstance[] {
+  const out: LayerInstance[] = [];
+  insts.forEach((i, idx) => {
+    if (typeof i.startSegIdx !== 'number' || typeof i.endSegIdx !== 'number') return;
+    const f = i.fields ?? {};
+    const id = (typeof f.title === 'string' && f.title) || (typeof f.topic === 'string' && f.topic)
+      || (typeof f.theme === 'string' && f.theme) || (typeof f.excerpt === 'string' && f.excerpt) || String(idx);
+    out.push({ layer, instanceId: id, startSegIdx: i.startSegIdx, endSegIdx: i.endSegIdx });
+  });
+  return out;
+}
+async function buildDafTypeProfiles(env: Bindings, tractate: string, page: string): Promise<(TypeProfile & { title?: string })[]> {
+  const sections = await readMarkInstances(env, 'argument', tractate, page);
+  const overlays: LayerInstance[] = [
+    ...toLayerInstances('aggadata', await readMarkInstances(env, 'aggadata', tractate, page)),
+    ...toLayerInstances('halacha', await readMarkInstances(env, 'halacha', tractate, page)),
+    ...toLayerInstances('pesukim', await readMarkInstances(env, 'pesukim', tractate, page)),
+    ...toLayerInstances('argument-move', await readMarkInstances(env, 'argument-move', tractate, page)),
+  ];
+  const voicesDef = findCodeEnrichment('argument.voices');
+  const profiles: (TypeProfile & { title?: string })[] = [];
+  for (const sec of sections) {
+    if (typeof sec.startSegIdx !== 'number' || typeof sec.endSegIdx !== 'number') continue;
+    const unit: UnitRange = { tractate, page, startSegIdx: sec.startSegIdx, endSegIdx: sec.endSegIdx };
+    let voices: { edges?: { kind?: string }[] } | null = null;
+    if (voicesDef) {
+      const iid = await instanceIdOf(sec);
+      const vhit = await readCachedResult(env, keyForEnrichment(voicesDef, iid, { tractate, page }));
+      voices = (vhit?.parsed as { edges?: { kind?: string }[] }) ?? null;
+    }
+    profiles.push({ ...composeTypeProfile(unit, overlays, { voices }), title: typeof sec.fields?.title === 'string' ? sec.fields.title : undefined });
+  }
+  return profiles;
+}
+app.get('/api/studio/type-profiles/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const profiles = await buildDafTypeProfiles(c.env, tractate, page);
+  return c.json({ tractate, page, count: profiles.length, profiles });
 });
 
 app.get('/api/studio/enrichments', async (c) => {
