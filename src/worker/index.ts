@@ -773,11 +773,6 @@ async function readFlowConnections(env: Bindings, tractate: string, page: string
     .filter((c) => typeof c.from === 'number' && typeof c.to === 'number')
     .map((c) => ({ from: c.from as number, to: c.to as number, kind: typeof c.kind === 'string' ? c.kind : 'continues' }));
 }
-async function sectionsFor(env: Bindings, tractate: string, page: string): Promise<Array<{ startSegIdx: number; endSegIdx: number }>> {
-  return (await readMarkInstances(env, 'argument', tractate, page))
-    .filter((i) => typeof i.startSegIdx === 'number' && typeof i.endSegIdx === 'number')
-    .map((i) => ({ startSegIdx: i.startSegIdx as number, endSegIdx: i.endSegIdx as number }));
-}
 
 // Assemble the cross-page sugyot around a daf: walk the continuing bridges to a
 // bounded window of dapim, load each one's sections + flow, and stitch them
@@ -807,8 +802,23 @@ app.get('/api/studio/sugya/:tractate/:page', async (c) => {
   }
 
   const dapim: DafForAssembly[] = [];
+  // seg -> { end, title } per daf, so the response can label each section by its
+  // human title (not a bare segment index) and highlight its full segment range.
+  const secAt = new Map<string, { end: number; title: string }>();
   for (const p of pages) {
-    dapim.push({ ref: { tractate, page: p }, sections: await sectionsFor(env, tractate, p), flow: await readFlowConnections(env, tractate, p) });
+    const insts = (await readMarkInstances(env, 'argument', tractate, p))
+      .filter((i) => typeof i.startSegIdx === 'number' && typeof i.endSegIdx === 'number');
+    for (const i of insts) {
+      secAt.set(`${p}:${i.startSegIdx}`, {
+        end: i.endSegIdx as number,
+        title: typeof i.fields?.title === 'string' ? (i.fields.title as string) : '',
+      });
+    }
+    dapim.push({
+      ref: { tractate, page: p },
+      sections: insts.map((i) => ({ startSegIdx: i.startSegIdx as number, endSegIdx: i.endSegIdx as number })),
+      flow: await readFlowConnections(env, tractate, p),
+    });
   }
   const bridges = [];
   for (let i = 0; i < dapim.length - 1; i++) {
@@ -820,7 +830,24 @@ app.get('/api/studio/sugya/:tractate/:page', async (c) => {
   const targetFirst = targetSecs.length ? targetSecs.reduce((a, b) => (b.startSegIdx < a.startSegIdx ? b : a)) : null;
   const current = targetFirst ? sugyaContaining(sugyot, coordForSeg({ tractate, page }, targetFirst.startSegIdx)) : null;
 
-  return c.json({ tractate, page, window: pages, count: sugyot.length, sugyot, current });
+  // Decorate each daf row with titled section ranges (start/end/title) so the
+  // client can render "Opening Mishnah: Time for Evening Shema" instead of "0".
+  const withTitles = (u: typeof sugyot[number]) => ({
+    ...u,
+    dapim: u.dapim.map((d) => ({
+      ...d,
+      sections: d.segs.map((seg) => {
+        const s = secAt.get(`${d.page}:${seg}`);
+        return { start: seg, end: s?.end ?? seg, title: s?.title ?? '' };
+      }),
+    })),
+  });
+
+  return c.json({
+    tractate, page, window: pages, count: sugyot.length,
+    sugyot: sugyot.map(withTitles),
+    current: current ? withTitles(current) : null,
+  });
 });
 
 app.get('/api/studio/enrichments', async (c) => {
@@ -6707,10 +6734,10 @@ async function deepWarmDaf(
   tractate: string,
   page: string,
   lang: 'en' | 'he',
-): Promise<{ marks: number; enqueued: number; skipped: number }> {
+): Promise<{ marks: number; enqueued: number; skipped: number; bridges: number }> {
   const queue = rc.env.ENRICHMENT_QUEUE;
   const cache = rc.env.CACHE;
-  if (!queue) return { marks: 0, enqueued: 0, skipped: 0 };
+  if (!queue) return { marks: 0, enqueued: 0, skipped: 0, bridges: 0 };
   let marks = 0, enqueued = 0, skipped = 0;
 
   for (const [markId, enrichmentIds] of Object.entries(DEEP_WARM_PLAN)) {
@@ -6768,7 +6795,23 @@ async function deepWarmDaf(
     }
   } catch { /* profile composition is best-effort; never block the deep-warm */ }
 
-  return { marks, enqueued, skipped };
+  // Cross-daf bridges (the reader Overview's sugya map): compute + pin this
+  // daf's forward bridge and the previous daf's bridge into this one. Both
+  // dapim's argument sections are warm (run above / globally), so the bridge
+  // verdict resolves and caches instead of leaving the first reader to pay the
+  // cold bridge LLM calls. Best-effort — a bridge failure never fails the warm.
+  let bridges = 0;
+  try {
+    const fwd = await computeDafBridge(rc.env, tractate, page);
+    if (fwd.via !== 'no-data') bridges++;
+    const prev = adjacentAmud(tractate, page, -1);
+    if (prev) {
+      const back = await computeDafBridge(rc.env, tractate, prev);
+      if (back.via !== 'no-data') bridges++;
+    }
+  } catch { /* bridges are best-effort */ }
+
+  return { marks, enqueued, skipped, bridges };
 }
 
 /**
@@ -6811,7 +6854,7 @@ async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: Executi
       const stats = await deepWarmDaf(rc, job.tractate, job.page, rc.lang);
       await writeResult({ status: 'ok', result: { kind: 'warm', ...stats, total_ms: Date.now() - t0 } });
       // eslint-disable-next-line no-console
-      console.log(`[queue] deep-warm ${job.tractate}/${job.page} lang=${rc.lang} marks=${stats.marks} enqueued=${stats.enqueued} skipped=${stats.skipped}`);
+      console.log(`[queue] deep-warm ${job.tractate}/${job.page} lang=${rc.lang} marks=${stats.marks} enqueued=${stats.enqueued} skipped=${stats.skipped} bridges=${stats.bridges}`);
       return;
     }
     if (job.mark_id) {
