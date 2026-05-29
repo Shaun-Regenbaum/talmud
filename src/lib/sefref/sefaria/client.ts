@@ -143,11 +143,30 @@ const RISHONIM: ReadonlyMap<string, string> = new Map([
   ['Rashba', 'Rashba'],
   ['Ritva', 'Ritva'],
   ['Ramban', 'Ramban'],
+  ['Chiddushei Ramban', 'Ramban'], // Sefaria titles the BB/Sanhedrin Ramban this way
   ['Beit HaBechira', 'Meiri'],
   ['Rosh', 'Rosh'],
   ['Ran', 'Ran'],
   ['Rabbeinu Chananel', 'Rabbeinu Chananel'],
   ['Rif', 'Rif'],
+  // Additional Rishonim Sefaria carries on various masechtos (the book part of
+  // the index_title -> our label). Keys are the exact post-strip forms verified
+  // against Sefaria link index_titles; a key simply doesn't fire on masechtos
+  // that lack the work.
+  ['Ri Migash', 'Ri Migash'],
+  ['Yad Ramah', 'Yad Ramah'],
+  ['Rabbeinu Gershom', 'Rabbeinu Gershom'],
+  ['Tosafot Rid', 'Tosafot Rid'],
+  ['Tosafot HaRosh', 'Tosafot HaRosh'],
+  ['Shita Mekubetzet', 'Shita Mekubetzet'],
+  ['Mordechai', 'Mordechai'],
+  ['HaMaor HaKatan', 'Baal HaMaor'],
+  ['HaMaor HaGadol', 'Baal HaMaor'],
+  ["Chiddushei HaRa'ah", "Ra'ah"],
+  ['Maharam', 'Maharam'],
+  // Maharsha — was surfaced before the discovery refactor dropped it.
+  ['Chidushei Halachot', 'Maharsha'],
+  ['Chidushei Agadot', 'Maharsha (Aggadah)'],
 ]);
 
 /** Map a Sefaria commentary index_title (e.g. "Rashba on Eruvin", "Rif Eruvin",
