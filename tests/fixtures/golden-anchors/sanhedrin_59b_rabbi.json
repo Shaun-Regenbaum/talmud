@@ -1,0 +1,318 @@
+{
+ "tractate": "Sanhedrin",
+ "page": "59b",
+ "mark": "rabbi",
+ "cache_hit": true,
+ "raw": {
+  "instances": [
+   {
+    "excerpt": "ר' יהודה",
+    "fields": {
+     "name": "Rabbi Yehuda",
+     "nameHe": "ר' יהודה",
+     "generation": "tanna-4"
+    }
+   },
+   {
+    "excerpt": "רב אושעיא",
+    "fields": {
+     "name": "Rav Oshaya",
+     "nameHe": "רב אושעיא",
+     "generation": "amora-bavel-1"
+    }
+   },
+   {
+    "excerpt": "ר' יוסי בר אבין",
+    "fields": {
+     "name": "Rabbi Yosei bar Avin",
+     "nameHe": "ר' יוסי בר אבין",
+     "generation": "amora-ey-4"
+    }
+   },
+   {
+    "excerpt": "ר' יוסי בר חנינא",
+    "fields": {
+     "name": "Rabbi Yosei bar Chanina",
+     "nameHe": "ר' יוסי בר חנינא",
+     "generation": "amora-ey-2"
+    }
+   },
+   {
+    "excerpt": "רב יהודה",
+    "fields": {
+     "name": "Rav Yehuda",
+     "nameHe": "רב יהודה",
+     "generation": "amora-bavel-2"
+    }
+   },
+   {
+    "excerpt": "רב",
+    "fields": {
+     "name": "Rav",
+     "nameHe": "רב",
+     "generation": "amora-bavel-1"
+    }
+   },
+   {
+    "excerpt": "ר' הונא",
+    "fields": {
+     "name": "Rav Huna",
+     "nameHe": "ר' הונא",
+     "generation": "amora-bavel-2"
+    }
+   },
+   {
+    "excerpt": "רחבה",
+    "fields": {
+     "name": "Rachava",
+     "nameHe": "רחבה",
+     "generation": "amora-bavel-3"
+    }
+   },
+   {
+    "excerpt": "רבה בר רב הונא",
+    "fields": {
+     "name": "Rabba bar Rav Huna",
+     "nameHe": "רבה בר רב הונא",
+     "generation": "amora-bavel-3"
+    }
+   },
+   {
+    "excerpt": "ר' יוסי ברבי יהודה",
+    "fields": {
+     "name": "Rabbi Yosei son of Rabbi Yehuda",
+     "nameHe": "ר' יוסי ברבי יהודה",
+     "generation": "tanna-5"
+    }
+   },
+   {
+    "excerpt": "ר\"ש בן מנסיא",
+    "fields": {
+     "name": "Rabbi Shimon ben Menasya",
+     "nameHe": "ר\"ש בן מנסיא",
+     "generation": "tanna-5"
+    }
+   },
+   {
+    "excerpt": "ר' יהודה בן תימא",
+    "fields": {
+     "name": "Rabbi Yehuda ben Teima",
+     "nameHe": "ר' יהודה בן תימא",
+     "generation": "tanna-4"
+    }
+   },
+   {
+    "excerpt": "ר\"ש בן חלפתא",
+    "fields": {
+     "name": "Rabbi Shimon ben Chalafta",
+     "nameHe": "ר\"ש בן חלפתא",
+     "generation": "tanna-5"
+    }
+   },
+   {
+    "excerpt": "ר' זירא",
+    "fields": {
+     "name": "Rabbi Zeira",
+     "nameHe": "ר' זירא",
+     "generation": "amora-ey-3"
+    }
+   },
+   {
+    "excerpt": "ר' אבהו",
+    "fields": {
+     "name": "Rabbi Abbahu",
+     "nameHe": "ר' אבהו",
+     "generation": "amora-ey-2"
+    }
+   },
+   {
+    "excerpt": "ר\"ש",
+    "fields": {
+     "name": "Rabbi Shimon",
+     "nameHe": "ר\"ש",
+     "generation": "tanna-4"
+    }
+   }
+  ]
+ },
+ "expected": {
+  "instances": [
+   {
+    "excerpt": "ר' יהודה",
+    "fields": {
+     "name": "Rabbi Yehuda",
+     "nameHe": "ר' יהודה",
+     "generation": "tanna-4"
+    }
+   },
+   {
+    "excerpt": "רב אושעיא",
+    "fields": {
+     "name": "Rav Oshaya",
+     "nameHe": "רב אושעיא",
+     "generation": "amora-bavel-1"
+    }
+   },
+   {
+    "excerpt": "ר' יוסי בר אבין",
+    "fields": {
+     "name": "Rabbi Yosei bar Avin",
+     "nameHe": "ר' יוסי בר אבין",
+     "generation": "amora-ey-4"
+    }
+   },
+   {
+    "excerpt": "ר' יוסי בר חנינא",
+    "fields": {
+     "name": "Rabbi Yosei bar Chanina",
+     "nameHe": "ר' יוסי בר חנינא",
+     "generation": "amora-ey-2"
+    }
+   },
+   {
+    "excerpt": "רב יהודה",
+    "fields": {
+     "name": "Rav Yehuda",
+     "nameHe": "רב יהודה",
+     "generation": "amora-bavel-2"
+    }
+   },
+   {
+    "excerpt": "רב",
+    "fields": {
+     "name": "Rav",
+     "nameHe": "רב",
+     "generation": "amora-bavel-1"
+    }
+   },
+   {
+    "excerpt": "ר' הונא",
+    "fields": {
+     "name": "Rav Huna",
+     "nameHe": "ר' הונא",
+     "generation": "amora-bavel-2"
+    }
+   },
+   {
+    "excerpt": "רחבה",
+    "fields": {
+     "name": "Rachava",
+     "nameHe": "רחבה",
+     "generation": "amora-bavel-3"
+    }
+   },
+   {
+    "excerpt": "רבה בר רב הונא",
+    "fields": {
+     "name": "Rabba bar Rav Huna",
+     "nameHe": "רבה בר רב הונא",
+     "generation": "amora-bavel-3"
+    }
+   },
+   {
+    "excerpt": "ר' יוסי ברבי יהודה",
+    "fields": {
+     "name": "Rabbi Yosei son of Rabbi Yehuda",
+     "nameHe": "ר' יוסי ברבי יהודה",
+     "generation": "tanna-5"
+    }
+   },
+   {
+    "excerpt": "ר\"ש בן מנסיא",
+    "fields": {
+     "name": "Rabbi Shimon ben Menasya",
+     "nameHe": "ר\"ש בן מנסיא",
+     "generation": "tanna-5"
+    }
+   },
+   {
+    "excerpt": "ר' יהודה בן תימא",
+    "fields": {
+     "name": "Rabbi Yehuda ben Teima",
+     "nameHe": "ר' יהודה בן תימא",
+     "generation": "tanna-4"
+    }
+   },
+   {
+    "excerpt": "ר\"ש בן חלפתא",
+    "fields": {
+     "name": "Rabbi Shimon ben Chalafta",
+     "nameHe": "ר\"ש בן חלפתא",
+     "generation": "tanna-5"
+    }
+   },
+   {
+    "excerpt": "ר' זירא",
+    "fields": {
+     "name": "Rabbi Zeira",
+     "nameHe": "ר' זירא",
+     "generation": "amora-ey-3"
+    }
+   },
+   {
+    "excerpt": "ר' אבהו",
+    "fields": {
+     "name": "Rabbi Abbahu",
+     "nameHe": "ר' אבהו",
+     "generation": "amora-ey-2"
+    }
+   },
+   {
+    "excerpt": "ר\"ש",
+    "fields": {
+     "name": "Rabbi Shimon",
+     "nameHe": "ר\"ש",
+     "generation": "tanna-4"
+    }
+   },
+   {
+    "excerpt": "רבי יוסי בר אבין",
+    "fields": {
+     "name": "Rebbi Yose b. Rebbi Abun",
+     "nameHe": "רבי יוסי בר אבין",
+     "generation": "unknown"
+    }
+   },
+   {
+    "excerpt": "רבי יהודה",
+    "fields": {
+     "name": "Rabbi Yehudah [b. Il'ai]",
+     "nameHe": "רבי יהודה",
+     "generation": "unknown"
+    }
+   },
+   {
+    "excerpt": "רבי יוסי",
+    "fields": {
+     "name": "Rabbi Yose b. Chalafta",
+     "nameHe": "רבי יוסי",
+     "generation": "unknown"
+    }
+   },
+   {
+    "excerpt": "רבי זירא",
+    "fields": {
+     "name": "Rabbi Zeira",
+     "nameHe": "רבי זירא",
+     "generation": "unknown"
+    }
+   },
+   {
+    "excerpt": "רב הונא",
+    "fields": {
+     "name": "Rav Huna",
+     "nameHe": "רב הונא",
+     "generation": "unknown"
+    }
+   },
+   {
+    "excerpt": "רבה",
+    "fields": {
+     "name": "Rabbah [b. Nachmani]",
+     "nameHe": "רבה",
+     "generation": "unknown"
+    }
+   }
+  ]
+ }
+}

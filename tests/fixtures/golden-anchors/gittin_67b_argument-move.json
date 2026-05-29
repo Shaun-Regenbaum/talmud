@@ -1,0 +1,1104 @@
+{
+ "tractate": "Gittin",
+ "page": "67b",
+ "mark": "argument-move",
+ "cache_hit": true,
+ "raw": {
+  "instances": [
+   {
+    "startSegIdx": 0,
+    "endSegIdx": 0,
+    "fields": {
+     "id": "0-0_0",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 0,
+     "moveOrder": 0,
+     "role": "other",
+     "voice": "Gemara's note",
+     "rabbiNames": [],
+     "excerpt": "וְאִיכָּא דְּאָפֵיךְ לְהוּ",
+     "endExcerpt": "וְאִיכָּא דְּאָפֵיךְ לְהוּ",
+     "summary": "The Gemara notes that some reverse the opinions of Rav Huna and Rabbi Yochanan regarding the dispute about counting the group."
+    }
+   },
+   {
+    "startSegIdx": 1,
+    "endSegIdx": 1,
+    "fields": {
+     "id": "1-1_0",
+     "sectionStartSegIdx": 1,
+     "sectionEndSegIdx": 1,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Baraita",
+     "rabbiNames": [],
+     "excerpt": "אָמַר לַעֲשָׂרָה: ״כִּתְבוּ גֵּט״",
+     "endExcerpt": "אֶחָד מוֹלִיךְ בְּמַעֲמַד כּוּלָּם",
+     "summary": "The baraita teaches the rules for a husband instructing ten people to write or deliver a get, distinguishing between general instructions and the phrase 'all of you'."
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "id": "2-2_0",
+     "sectionStartSegIdx": 2,
+     "sectionEndSegIdx": 2,
+     "moveOrder": 0,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "אִיבַּעְיָא לְהוּ: מָנָה אוֹתָן, מַהוּ?",
+     "endExcerpt": "מָנָה אוֹתָן, מַהוּ?",
+     "summary": "The Gemara raises a dilemma: if the husband counted the ten people (rather than saying 'all of you'), what is the halacha (הלכה)?"
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "id": "2-2_1",
+     "sectionStartSegIdx": 2,
+     "sectionEndSegIdx": 2,
+     "moveOrder": 1,
+     "role": "answer",
+     "voice": "Rav Huna's answer",
+     "rabbiNames": [
+      "Rav Huna"
+     ],
+     "excerpt": "רַב הוּנָא אָמַר: מָנָה אֵינוֹ כְּ״כוּלְּכֶם״",
+     "endExcerpt": "מָנָה אֵינוֹ כְּ״כוּלְּכֶם״",
+     "summary": "Rav Huna rules that counting the group is not equivalent to saying 'all of you'."
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "id": "2-2_2",
+     "sectionStartSegIdx": 2,
+     "sectionEndSegIdx": 2,
+     "moveOrder": 2,
+     "role": "answer",
+     "voice": "Rabbi Yochanan's answer in the name of Rabbi Elazar of Rome",
+     "rabbiNames": [
+      "Rabbi Yochanan",
+      "Rabbi Elazar"
+     ],
+     "excerpt": "רַבִּי יוֹחָנָן מִשּׁוּם רַבִּי אֶלְעָזָר דְּמִן רוֹמָה אָמַר: מָנָה הֲרֵי הוּא כְּ״כוּלְּכֶם״",
+     "endExcerpt": "מָנָה הֲרֵי הוּא כְּ״כוּלְּכֶם״",
+     "summary": "Rabbi Yochanan, citing Rabbi Elazar of Rome, rules that counting the group is equivalent to saying 'all of you'."
+    }
+   },
+   {
+    "startSegIdx": 3,
+    "endSegIdx": 3,
+    "fields": {
+     "id": "3-3_0",
+     "sectionStartSegIdx": 3,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 0,
+     "role": "resolution",
+     "voice": "Rav Pappa's resolution",
+     "rabbiNames": [
+      "Rav Pappa"
+     ],
+     "excerpt": "אָמַר רַב פָּפָּא: וְלָא פְּלִיגִי",
+     "endExcerpt": "וְאָמְרִי לַהּ לְהַאי גִּיסָא",
+     "summary": "Rav Pappa resolves the dispute by distinguishing between counting all of them and counting only some, each referring to a different side."
+    }
+   },
+   {
+    "startSegIdx": 4,
+    "endSegIdx": 4,
+    "fields": {
+     "id": "4-6_0",
+     "sectionStartSegIdx": 4,
+     "sectionEndSegIdx": 6,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Rav Yehuda's enactment",
+     "rabbiNames": [
+      "Rav Yehuda"
+     ],
+     "excerpt": "אַתְקֵין רַב יְהוּדָה בְּגִיטָּא דְּ״כוּלְּכֶם״",
+     "endExcerpt": "אוֹבִילוּ – אוֹ כּוּלְּכוֹן אוֹ כֹּל חַד וְחַד מִינְּכוֹן",
+     "summary": "Rav Yehuda instituted a formula for a 'all of you' get: write – either all of you or each one; sign – either all of you or any two; deliver – either all of you or each one."
+    }
+   },
+   {
+    "startSegIdx": 5,
+    "endSegIdx": 5,
+    "fields": {
+     "id": "4-6_1",
+     "sectionStartSegIdx": 4,
+     "sectionEndSegIdx": 6,
+     "moveOrder": 1,
+     "role": "objection",
+     "voice": "Rava's objection",
+     "rabbiNames": [
+      "Rava"
+     ],
+     "excerpt": "אָמַר רָבָא: זִימְנִין דְּגָאֵיז לֵיהּ לְדִיבּוּרֵיהּ",
+     "endExcerpt": "וְאָתֵי לְאִיפְּסוֹלֵי",
+     "summary": "Rava objects that sometimes the husband might cut short and say only 'all of you', leading to invalidation."
+    }
+   },
+   {
+    "startSegIdx": 6,
+    "endSegIdx": 6,
+    "fields": {
+     "id": "4-6_2",
+     "sectionStartSegIdx": 4,
+     "sectionEndSegIdx": 6,
+     "moveOrder": 2,
+     "role": "resolution",
+     "voice": "Rava's alternative formula",
+     "rabbiNames": [
+      "Rava"
+     ],
+     "excerpt": "אֶלָּא אָמַר רָבָא: ״כְּתוֹבוּ – כֹּל חַד מִינְּכוֹן",
+     "endExcerpt": "אוֹבִילוּ – כֹּל חַד מִינְּכוֹן״",
+     "summary": "Rava instead proposes a different formula: write – each one; sign – any two; deliver – each one."
+    }
+   },
+   {
+    "startSegIdx": 7,
+    "endSegIdx": 7,
+    "fields": {
+     "id": "7-7_0",
+     "sectionStartSegIdx": 7,
+     "sectionEndSegIdx": 7,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Gemara's concluding formula",
+     "rabbiNames": [],
+     "excerpt": "הֲדַרַן עֲלָךְ הָאוֹמֵר",
+     "endExcerpt": "הֲדַרַן עֲלָךְ הָאוֹמֵר",
+     "summary": "The Gemara concludes the chapter with the standard formula 'We return to you, O one who says...'"
+    }
+   },
+   {
+    "startSegIdx": 8,
+    "endSegIdx": 9,
+    "fields": {
+     "id": "8-9_0",
+     "sectionStartSegIdx": 8,
+     "sectionEndSegIdx": 9,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Mishnah",
+     "rabbiNames": [],
+     "excerpt": "מִי שֶׁאֲחָזוֹ קוּרְדְּיָיקוֹס",
+     "endExcerpt": "לֹא אָמַר כְּלוּם",
+     "summary": "The mishnah opens with the case of one seized by kurdiyakos who said 'write a get for my wife' — his words are void."
+    }
+   },
+   {
+    "startSegIdx": 8,
+    "endSegIdx": 9,
+    "fields": {
+     "id": "8-9_1",
+     "sectionStartSegIdx": 8,
+     "sectionEndSegIdx": 9,
+     "moveOrder": 1,
+     "role": "other",
+     "voice": "Mishnah",
+     "rabbiNames": [],
+     "excerpt": "אָמַר: ״כִּתְבוּ גֵּט לְאִשְׁתִּי״",
+     "endExcerpt": "אֵין דְּבָרָיו הָאַחֲרוֹנִים כְּלוּם",
+     "summary": "The mishnah adds: if he said 'write a get' and was then seized and retracted, his latter words are void."
+    }
+   },
+   {
+    "startSegIdx": 8,
+    "endSegIdx": 9,
+    "fields": {
+     "id": "8-9_2",
+     "sectionStartSegIdx": 8,
+     "sectionEndSegIdx": 9,
+     "moveOrder": 2,
+     "role": "resolution",
+     "voice": "Mishnah",
+     "rabbiNames": [],
+     "excerpt": "נִשְׁתַּתֵּק, וְאָמְרוּ לוֹ",
+     "endExcerpt": "הֲרֵי אֵלּוּ יִכְתְּבוּ וְיִתְּנוּ",
+     "summary": "The mishnah concludes: if he became mute and nodded consistently in response to questions, they write and give the get."
+    }
+   },
+   {
+    "startSegIdx": 10,
+    "endSegIdx": 10,
+    "fields": {
+     "id": "10-16_0",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 0,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "מַאי קוּרְדְּיָיקוֹס?",
+     "endExcerpt": "מַאי קוּרְדְּיָיקוֹס?",
+     "summary": "The Gemara asks what the term 'kurdiyakos' means."
+    }
+   },
+   {
+    "startSegIdx": 10,
+    "endSegIdx": 10,
+    "fields": {
+     "id": "10-16_1",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 1,
+     "role": "answer",
+     "voice": "Shmuel's answer",
+     "rabbiNames": [
+      "Shmuel"
+     ],
+     "excerpt": "אָמַר שְׁמוּאֵל: דְּנַכְתֵיהּ חַמְרָא חַדְתָּא",
+     "endExcerpt": "דְּמַעְצַרְתָּא",
+     "summary": "Shmuel explains that kurdiyakos is a fever caused by new wine from the press."
+    }
+   },
+   {
+    "startSegIdx": 10,
+    "endSegIdx": 10,
+    "fields": {
+     "id": "10-16_2",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 2,
+     "role": "objection",
+     "voice": "Gemara's objection",
+     "rabbiNames": [],
+     "excerpt": "וְלִיתְנֵי: מִי שֶׁנְּשָׁכוֹ יַיִן חָדָשׁ!",
+     "endExcerpt": "יַיִן חָדָשׁ!",
+     "summary": "The Gemara objects: why not simply say 'one who was bitten by new wine'?"
+    }
+   },
+   {
+    "startSegIdx": 10,
+    "endSegIdx": 10,
+    "fields": {
+     "id": "10-16_3",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 3,
+     "role": "answer",
+     "voice": "Gemara's answer",
+     "rabbiNames": [],
+     "excerpt": "הָא קָא מַשְׁמַע לַן, דְּהָא רוּחָא – ״קוּרְדְּיָיקוֹס״ שְׁמַהּ",
+     "endExcerpt": "״קוּרְדְּיָיקוֹס״ שְׁמַהּ",
+     "summary": "The Gemara answers that the term teaches that this specific type of fever is called 'kurdiyakos'."
+    }
+   },
+   {
+    "startSegIdx": 11,
+    "endSegIdx": 11,
+    "fields": {
+     "id": "10-16_4",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 4,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "לְמַאי נָפְקָא מִינַּהּ?",
+     "endExcerpt": "לְמַאי נָפְקָא מִינַּהּ?",
+     "summary": "The Gemara asks what practical difference this definition makes."
+    }
+   },
+   {
+    "startSegIdx": 11,
+    "endSegIdx": 11,
+    "fields": {
+     "id": "10-16_5",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 5,
+     "role": "answer",
+     "voice": "Gemara's answer",
+     "rabbiNames": [],
+     "excerpt": "לִקְמִיעָא",
+     "endExcerpt": "לִקְמִיעָא",
+     "summary": "The Gemara answers that the distinction matters for writing an amulet (קמיע) specifically for this condition."
+    }
+   },
+   {
+    "startSegIdx": 11,
+    "endSegIdx": 11,
+    "fields": {
+     "id": "10-16_6",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 6,
+     "role": "answer",
+     "voice": "Gemara's remedy",
+     "rabbiNames": [],
+     "excerpt": "מַאי אָסוּתֵיהּ?",
+     "endExcerpt": "וְחַמְרָא מַרְקָא",
+     "summary": "The Gemara states the remedy: red meat on coals and diluted wine."
+    }
+   },
+   {
+    "startSegIdx": 12,
+    "endSegIdx": 13,
+    "fields": {
+     "id": "10-16_7",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 7,
+     "role": "supporting-evidence",
+     "voice": "Abaye quoting his mother",
+     "rabbiNames": [
+      "Abaye"
+     ],
+     "excerpt": "אָמַר אַבָּיֵי, אֲמַרָה לִי אֵם",
+     "endExcerpt": "וְלִיסְלַיק וְלִיתֵיב",
+     "summary": "Abaye reports his mother's remedies for sun-related ailments of different durations, including immersion and leeks."
+    }
+   },
+   {
+    "startSegIdx": 14,
+    "endSegIdx": 14,
+    "fields": {
+     "id": "10-16_8",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 8,
+     "role": "supporting-evidence",
+     "voice": "Gemara's additional remedies",
+     "rabbiNames": [],
+     "excerpt": "לְשִׁימְשָׁא – בִּישְׂרָא סוּמָּקָא אַגּוּמְרֵי",
+     "endExcerpt": "וְחַמְרָא חַיָּיא",
+     "summary": "The Gemara lists remedies for sun and snow ailments: red meat on coals with diluted wine for sun, and fatty meat on coals with undiluted wine for snow."
+    }
+   },
+   {
+    "startSegIdx": 15,
+    "endSegIdx": 15,
+    "fields": {
+     "id": "10-16_9",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 9,
+     "role": "digression",
+     "voice": "Story about Rav Amram the Pious",
+     "rabbiNames": [
+      "Rav Amram"
+     ],
+     "excerpt": "רַב עַמְרָם חֲסִידָא",
+     "endExcerpt": "וְחַמְרָא חַיָּיא",
+     "summary": "A story is told about Rav Amram the Pious being mistreated by the Exilarch's household, who deliberately gave him the wrong remedy."
+    }
+   },
+   {
+    "startSegIdx": 16,
+    "endSegIdx": 16,
+    "fields": {
+     "id": "10-16_10",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 10,
+     "role": "resolution",
+     "voice": "Yalta's intervention",
+     "rabbiNames": [
+      "Yalta"
+     ],
+     "excerpt": "שָׁמְעָה יַלְתָּא",
+     "endExcerpt": "וְקָאֵי בִּישְׂרֵיהּ פְּשִׁיטֵי פְּשִׁיטֵי",
+     "summary": "Yalta intervenes by immersing Rav Amram in a bathhouse until the water turns to blood)Skip and his flesh becomes smooth."
+    }
+   },
+   {
+    "startSegIdx": 17,
+    "endSegIdx": 17,
+    "fields": {
+     "id": "17-21_0",
+     "sectionStartSegIdx": 17,
+     "sectionEndSegIdx": 21,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Narrator (Stam)",
+     "rabbiNames": [
+      "Rav Yosef",
+      "Rav Sheshet"
+     ],
+     "excerpt": "רַב יוֹסֵף אִיעֲסֵק בְּרִיחְיָא",
+     "endExcerpt": "שֶׁמְּחַמֶּמֶת אֶת בְּעָלֶיהָ",
+     "summary": "The narrator reports that Rav Yosef engaged in grinding and Rav Sheshet in weaving, with Rav Sheshet praising work that warms the body."
+    }
+   },
+   {
+    "startSegIdx": 18,
+    "endSegIdx": 18,
+    "fields": {
+     "id": "17-21_1",
+     "sectionStartSegIdx": 17,
+     "sectionEndSegIdx": 21,
+     "moveOrder": 1,
+     "role": "question",
+     "voice": "Exilarch's question",
+     "rabbiNames": [
+      "Exilarch",
+      "Rav Sheshet"
+     ],
+     "excerpt": "אֲמַר לֵיהּ רֵישׁ גָּלוּתָא לְרַב שֵׁשֶׁת",
+     "endExcerpt": "דַּחֲשִׁידִי אַאֵבֶר מִן הַחַי",
+     "summary": "The Exilarch asks Rav Sheshet why he does not attend his feasts, and Rav Sheshet answers that the servants are suspected of serving אֵבֶר מִן הַחַי (a limb from a living animal)."
+    }
+   },
+   {
+    "startSegIdx": 18,
+    "endSegIdx": 18,
+    "fields": {
+     "id": "17-21_2",
+     "sectionStartSegIdx": 17,
+     "sectionEndSegIdx": 21,
+     "moveOrder": 2,
+     "role": "objection",
+     "voice": "Exilarch's objection",
+     "rabbiNames": [
+      "Exilarch",
+      "Rav Sheshet"
+     ],
+     "excerpt": "אֲמַר לֵיהּ: מִי יֵימַר?",
+     "endExcerpt": "אַיְיתִי לִי חֲדָא כַּרְעָא מֵחֵיוְתָא",
+     "summary": "The Exilarch objects, asking who says so, and Rav Sheshet responds by instructing his attendant to bring a leg from a living animal to prove the point."
+    }
+   },
+   {
+    "startSegIdx": 19,
+    "endSegIdx": 19,
+    "fields": {
+     "id": "17-21_3",
+     "sectionStartSegIdx": 17,
+     "sectionEndSegIdx": 21,
+     "moveOrder": 3,
+     "role": "supporting-evidence",
+     "voice": "Rav Sheshet's demonstration",
+     "rabbiNames": [
+      "Rav Sheshet"
+     ],
+     "excerpt": "אַיְיתִי לֵיהּ. אֲמַר לְהוּ: אַהְדְּמוּ לִי הַדְמֵי דְּחֵיוְתָא",
+     "endExcerpt": "הַאי בַּת חָמֵשׁ רַגְלַיִם הֲוַאי?!",
+     "summary": "Rav Sheshet demonstrates the servants' dishonesty by having them bring legs of an animal, showing they brought a three-legged and then a five-legged creature, exposing their deceit."
+    }
+   },
+   {
+    "startSegIdx": 20,
+    "endSegIdx": 20,
+    "fields": {
+     "id": "17-21_4",
+     "sectionStartSegIdx": 17,
+     "sectionEndSegIdx": 21,
+     "moveOrder": 4,
+     "role": "resolution",
+     "voice": "Exilarch's proposal and Rav Sheshet's acceptance",
+     "rabbiNames": [
+      "Exilarch",
+      "Rav Sheshet"
+     ],
+     "excerpt": "אֲמַר לֵיהּ: אִי הָכִי, לִיעְבְּדוּ קַמֵּיהּ (שַׁמָּעֵיהּ) דְּמָר",
+     "endExcerpt": "כַּרְכַהּ בְּסוּדָרֵיהּ",
+     "summary": "The Exilarch proposes that Rav Sheshet's attendant prepare food before him, and Rav Sheshet agrees; they bring bread and a jar of wine, and Rav Sheshet wraps the bread in his scarf."
+    }
+   },
+   {
+    "startSegIdx": 21,
+    "endSegIdx": 21,
+    "fields": {
+     "id": "17-21_5",
+     "sectionStartSegIdx": 17,
+     "sectionEndSegIdx": 21,
+     "moveOrder": 5,
+     "role": "digression",
+     "voice": "Narrator (Stam)",
+     "rabbiNames": [],
+     "excerpt": "לְבָתַר דְּאָכֵיל, אָמְרִי לֵיהּ:",
+     "endExcerpt": "אָמְרִי לֵיהּ:",
+     "summary": "After eating, they said to him, setting up the next exchange (which continues beyond the section)."
+    }
+   }
+  ]
+ },
+ "expected": {
+  "instances": [
+   {
+    "startSegIdx": 0,
+    "endSegIdx": 0,
+    "fields": {
+     "id": "0-0_0",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 0,
+     "moveOrder": 0,
+     "role": "other",
+     "voice": "Gemara's note",
+     "rabbiNames": [],
+     "excerpt": "וְאִיכָּא דְּאָפֵיךְ לְהוּ",
+     "endExcerpt": "וְאִיכָּא דְּאָפֵיךְ לְהוּ",
+     "summary": "The Gemara notes that some reverse the opinions of Rav Huna and Rabbi Yochanan regarding the dispute about counting the group.",
+     "tokenStart": 0,
+     "tokenEnd": 2
+    }
+   },
+   {
+    "startSegIdx": 1,
+    "endSegIdx": 1,
+    "fields": {
+     "id": "1-1_0",
+     "sectionStartSegIdx": 1,
+     "sectionEndSegIdx": 1,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Baraita",
+     "rabbiNames": [],
+     "excerpt": "אָמַר לַעֲשָׂרָה: ״כִּתְבוּ גֵּט״",
+     "endExcerpt": "אֶחָד מוֹלִיךְ בְּמַעֲמַד כּוּלָּם",
+     "summary": "The baraita teaches the rules for a husband instructing ten people to write or deliver a get, distinguishing between general instructions and the phrase 'all of you'.",
+     "tokenStart": 0,
+     "tokenEnd": 36
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "id": "2-2_0",
+     "sectionStartSegIdx": 2,
+     "sectionEndSegIdx": 2,
+     "moveOrder": 0,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "אִיבַּעְיָא לְהוּ: מָנָה אוֹתָן, מַהוּ?",
+     "endExcerpt": "מָנָה אוֹתָן, מַהוּ?",
+     "summary": "The Gemara raises a dilemma: if the husband counted the ten people (rather than saying 'all of you'), what is the halacha (הלכה)?",
+     "tokenStart": 0,
+     "tokenEnd": 4
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "id": "2-2_1",
+     "sectionStartSegIdx": 2,
+     "sectionEndSegIdx": 2,
+     "moveOrder": 1,
+     "role": "answer",
+     "voice": "Rav Huna's answer",
+     "rabbiNames": [
+      "Rav Huna"
+     ],
+     "excerpt": "רַב הוּנָא אָמַר: מָנָה אֵינוֹ כְּ״כוּלְּכֶם״",
+     "endExcerpt": "מָנָה אֵינוֹ כְּ״כוּלְּכֶם״",
+     "summary": "Rav Huna rules that counting the group is not equivalent to saying 'all of you'.",
+     "tokenStart": 5,
+     "tokenEnd": 10
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "id": "2-2_2",
+     "sectionStartSegIdx": 2,
+     "sectionEndSegIdx": 2,
+     "moveOrder": 2,
+     "role": "answer",
+     "voice": "Rabbi Yochanan's answer in the name of Rabbi Elazar of Rome",
+     "rabbiNames": [
+      "Rabbi Yochanan",
+      "Rabbi Elazar"
+     ],
+     "excerpt": "רַבִּי יוֹחָנָן מִשּׁוּם רַבִּי אֶלְעָזָר דְּמִן רוֹמָה אָמַר: מָנָה הֲרֵי הוּא כְּ״כוּלְּכֶם״",
+     "endExcerpt": "מָנָה הֲרֵי הוּא כְּ״כוּלְּכֶם״",
+     "summary": "Rabbi Yochanan, citing Rabbi Elazar of Rome, rules that counting the group is equivalent to saying 'all of you'.",
+     "tokenStart": 11,
+     "tokenEnd": 22
+    }
+   },
+   {
+    "startSegIdx": 3,
+    "endSegIdx": 3,
+    "fields": {
+     "id": "3-3_0",
+     "sectionStartSegIdx": 3,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 0,
+     "role": "resolution",
+     "voice": "Rav Pappa's resolution",
+     "rabbiNames": [
+      "Rav Pappa"
+     ],
+     "excerpt": "אָמַר רַב פָּפָּא: וְלָא פְּלִיגִי",
+     "endExcerpt": "וְאָמְרִי לַהּ לְהַאי גִּיסָא",
+     "summary": "Rav Pappa resolves the dispute by distinguishing between counting all of them and counting only some, each referring to a different side.",
+     "tokenStart": 0,
+     "tokenEnd": 18
+    }
+   },
+   {
+    "startSegIdx": 4,
+    "endSegIdx": 4,
+    "fields": {
+     "id": "4-6_0",
+     "sectionStartSegIdx": 4,
+     "sectionEndSegIdx": 6,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Rav Yehuda's enactment",
+     "rabbiNames": [
+      "Rav Yehuda"
+     ],
+     "excerpt": "אַתְקֵין רַב יְהוּדָה בְּגִיטָּא דְּ״כוּלְּכֶם״",
+     "endExcerpt": "אוֹבִילוּ – אוֹ כּוּלְּכוֹן אוֹ כֹּל חַד וְחַד מִינְּכוֹן",
+     "summary": "Rav Yehuda instituted a formula for a 'all of you' get: write – either all of you or each one; sign – either all of you or any two; deliver – either all of you or each one.",
+     "tokenStart": 0,
+     "tokenEnd": 27
+    }
+   },
+   {
+    "startSegIdx": 5,
+    "endSegIdx": 5,
+    "fields": {
+     "id": "4-6_1",
+     "sectionStartSegIdx": 4,
+     "sectionEndSegIdx": 6,
+     "moveOrder": 1,
+     "role": "objection",
+     "voice": "Rava's objection",
+     "rabbiNames": [
+      "Rava"
+     ],
+     "excerpt": "אָמַר רָבָא: זִימְנִין דְּגָאֵיז לֵיהּ לְדִיבּוּרֵיהּ",
+     "endExcerpt": "וְאָתֵי לְאִיפְּסוֹלֵי",
+     "summary": "Rava objects that sometimes the husband might cut short and say only 'all of you', leading to invalidation.",
+     "tokenStart": 0,
+     "tokenEnd": 14
+    }
+   },
+   {
+    "startSegIdx": 6,
+    "endSegIdx": 6,
+    "fields": {
+     "id": "4-6_2",
+     "sectionStartSegIdx": 4,
+     "sectionEndSegIdx": 6,
+     "moveOrder": 2,
+     "role": "resolution",
+     "voice": "Rava's alternative formula",
+     "rabbiNames": [
+      "Rava"
+     ],
+     "excerpt": "אֶלָּא אָמַר רָבָא: ״כְּתוֹבוּ – כֹּל חַד מִינְּכוֹן",
+     "endExcerpt": "אוֹבִילוּ – כֹּל חַד מִינְּכוֹן״",
+     "summary": "Rava instead proposes a different formula: write – each one; sign – any two; deliver – each one.",
+     "tokenStart": 0,
+     "tokenEnd": 14
+    }
+   },
+   {
+    "startSegIdx": 7,
+    "endSegIdx": 7,
+    "fields": {
+     "id": "7-7_0",
+     "sectionStartSegIdx": 7,
+     "sectionEndSegIdx": 7,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Gemara's concluding formula",
+     "rabbiNames": [],
+     "excerpt": "הֲדַרַן עֲלָךְ הָאוֹמֵר",
+     "endExcerpt": "הֲדַרַן עֲלָךְ הָאוֹמֵר",
+     "summary": "The Gemara concludes the chapter with the standard formula 'We return to you, O one who says...'",
+     "tokenStart": 0,
+     "tokenEnd": 2
+    }
+   },
+   {
+    "startSegIdx": 8,
+    "endSegIdx": 8,
+    "fields": {
+     "id": "8-9_0",
+     "sectionStartSegIdx": 8,
+     "sectionEndSegIdx": 9,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Mishnah",
+     "rabbiNames": [],
+     "excerpt": "מִי שֶׁאֲחָזוֹ קוּרְדְּיָיקוֹס",
+     "endExcerpt": "לֹא אָמַר כְּלוּם",
+     "summary": "The mishnah opens with the case of one seized by kurdiyakos who said 'write a get for my wife' — his words are void.",
+     "tokenStart": 0,
+     "tokenEnd": 9
+    }
+   },
+   {
+    "startSegIdx": 8,
+    "endSegIdx": 8,
+    "fields": {
+     "id": "8-9_1",
+     "sectionStartSegIdx": 8,
+     "sectionEndSegIdx": 9,
+     "moveOrder": 1,
+     "role": "other",
+     "voice": "Mishnah",
+     "rabbiNames": [],
+     "excerpt": "אָמַר: ״כִּתְבוּ גֵּט לְאִשְׁתִּי״",
+     "endExcerpt": "אֵין דְּבָרָיו הָאַחֲרוֹנִים כְּלוּם",
+     "summary": "The mishnah adds: if he said 'write a get' and was then seized and retracted, his latter words are void.",
+     "tokenStart": 10,
+     "tokenEnd": 23
+    }
+   },
+   {
+    "startSegIdx": 9,
+    "endSegIdx": 9,
+    "fields": {
+     "id": "8-9_2",
+     "sectionStartSegIdx": 8,
+     "sectionEndSegIdx": 9,
+     "moveOrder": 2,
+     "role": "resolution",
+     "voice": "Mishnah",
+     "rabbiNames": [],
+     "excerpt": "נִשְׁתַּתֵּק, וְאָמְרוּ לוֹ",
+     "endExcerpt": "הֲרֵי אֵלּוּ יִכְתְּבוּ וְיִתְּנוּ",
+     "summary": "The mishnah concludes: if he became mute and nodded consistently in response to questions, they write and give the get.",
+     "tokenStart": 0,
+     "tokenEnd": 23
+    }
+   },
+   {
+    "startSegIdx": 10,
+    "endSegIdx": 10,
+    "fields": {
+     "id": "10-16_0",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 0,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "מַאי קוּרְדְּיָיקוֹס?",
+     "endExcerpt": "מַאי קוּרְדְּיָיקוֹס?",
+     "summary": "The Gemara asks what the term 'kurdiyakos' means.",
+     "tokenStart": 1,
+     "tokenEnd": 2
+    }
+   },
+   {
+    "startSegIdx": 10,
+    "endSegIdx": 10,
+    "fields": {
+     "id": "10-16_1",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 1,
+     "role": "answer",
+     "voice": "Shmuel's answer",
+     "rabbiNames": [
+      "Shmuel"
+     ],
+     "excerpt": "אָמַר שְׁמוּאֵל: דְּנַכְתֵיהּ חַמְרָא חַדְתָּא",
+     "endExcerpt": "דְּמַעְצַרְתָּא",
+     "summary": "Shmuel explains that kurdiyakos is a fever caused by new wine from the press.",
+     "tokenStart": 3,
+     "tokenEnd": 8
+    }
+   },
+   {
+    "startSegIdx": 10,
+    "endSegIdx": 10,
+    "fields": {
+     "id": "10-16_2",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 2,
+     "role": "objection",
+     "voice": "Gemara's objection",
+     "rabbiNames": [],
+     "excerpt": "וְלִיתְנֵי: מִי שֶׁנְּשָׁכוֹ יַיִן חָדָשׁ!",
+     "endExcerpt": "יַיִן חָדָשׁ!",
+     "summary": "The Gemara objects: why not simply say 'one who was bitten by new wine'?",
+     "tokenStart": 9,
+     "tokenEnd": 13
+    }
+   },
+   {
+    "startSegIdx": 10,
+    "endSegIdx": 10,
+    "fields": {
+     "id": "10-16_3",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 3,
+     "role": "answer",
+     "voice": "Gemara's answer",
+     "rabbiNames": [],
+     "excerpt": "הָא קָא מַשְׁמַע לַן, דְּהָא רוּחָא – ״קוּרְדְּיָיקוֹס״ שְׁמַהּ",
+     "endExcerpt": "״קוּרְדְּיָיקוֹס״ שְׁמַהּ",
+     "summary": "The Gemara answers that the term teaches that this specific type of fever is called 'kurdiyakos'.",
+     "tokenStart": 14,
+     "tokenEnd": 21
+    }
+   },
+   {
+    "startSegIdx": 11,
+    "endSegIdx": 11,
+    "fields": {
+     "id": "10-16_4",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 4,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "לְמַאי נָפְקָא מִינַּהּ?",
+     "endExcerpt": "לְמַאי נָפְקָא מִינַּהּ?",
+     "summary": "The Gemara asks what practical difference this definition makes.",
+     "tokenStart": 0,
+     "tokenEnd": 2
+    }
+   },
+   {
+    "startSegIdx": 12,
+    "endSegIdx": 12,
+    "fields": {
+     "id": "10-16_5",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 5,
+     "role": "answer",
+     "voice": "Gemara's answer",
+     "rabbiNames": [],
+     "excerpt": "לִקְמִיעָא",
+     "endExcerpt": "לִקְמִיעָא",
+     "summary": "The Gemara answers that the distinction matters for writing an amulet (קמיע) specifically for this condition.",
+     "tokenStart": 0,
+     "tokenEnd": 38
+    }
+   },
+   {
+    "startSegIdx": 11,
+    "endSegIdx": 11,
+    "fields": {
+     "id": "10-16_6",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 6,
+     "role": "answer",
+     "voice": "Gemara's remedy",
+     "rabbiNames": [],
+     "excerpt": "מַאי אָסוּתֵיהּ?",
+     "endExcerpt": "וְחַמְרָא מַרְקָא",
+     "summary": "The Gemara states the remedy: red meat on coals and diluted wine.",
+     "tokenStart": 4,
+     "tokenEnd": 10
+    }
+   },
+   {
+    "startSegIdx": 12,
+    "endSegIdx": 13,
+    "fields": {
+     "id": "10-16_7",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 7,
+     "role": "supporting-evidence",
+     "voice": "Abaye quoting his mother",
+     "rabbiNames": [
+      "Abaye"
+     ],
+     "excerpt": "אָמַר אַבָּיֵי, אֲמַרָה לִי אֵם",
+     "endExcerpt": "וְלִיסְלַיק וְלִיתֵיב",
+     "summary": "Abaye reports his mother's remedies for sun-related ailments of different durations, including immersion and leeks.",
+     "tokenStart": 0,
+     "tokenEnd": 27
+    }
+   },
+   {
+    "startSegIdx": 14,
+    "endSegIdx": 14,
+    "fields": {
+     "id": "10-16_8",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 8,
+     "role": "supporting-evidence",
+     "voice": "Gemara's additional remedies",
+     "rabbiNames": [],
+     "excerpt": "לְשִׁימְשָׁא – בִּישְׂרָא סוּמָּקָא אַגּוּמְרֵי",
+     "endExcerpt": "וְחַמְרָא חַיָּיא",
+     "summary": "The Gemara lists remedies for sun and snow ailments: red meat on coals with diluted wine for sun, and fatty meat on coals with undiluted wine for snow.",
+     "tokenStart": 0,
+     "tokenEnd": 11
+    }
+   },
+   {
+    "startSegIdx": 15,
+    "endSegIdx": 15,
+    "fields": {
+     "id": "10-16_9",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 9,
+     "role": "digression",
+     "voice": "Story about Rav Amram the Pious",
+     "rabbiNames": [
+      "Rav Amram"
+     ],
+     "excerpt": "רַב עַמְרָם חֲסִידָא",
+     "endExcerpt": "וְחַמְרָא חַיָּיא",
+     "summary": "A story is told about Rav Amram the Pious being mistreated by the Exilarch's household, who deliberately gave him the wrong remedy.",
+     "tokenStart": 0,
+     "tokenEnd": 44
+    }
+   },
+   {
+    "startSegIdx": 16,
+    "endSegIdx": 16,
+    "fields": {
+     "id": "10-16_10",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 16,
+     "moveOrder": 10,
+     "role": "resolution",
+     "voice": "Yalta's intervention",
+     "rabbiNames": [
+      "Yalta"
+     ],
+     "excerpt": "שָׁמְעָה יַלְתָּא",
+     "endExcerpt": "וְקָאֵי בִּישְׂרֵיהּ פְּשִׁיטֵי פְּשִׁיטֵי",
+     "summary": "Yalta intervenes by immersing Rav Amram in a bathhouse until the water turns to blood)Skip and his flesh becomes smooth.",
+     "tokenStart": 0,
+     "tokenEnd": 21
+    }
+   },
+   {
+    "startSegIdx": 17,
+    "endSegIdx": 17,
+    "fields": {
+     "id": "17-21_0",
+     "sectionStartSegIdx": 17,
+     "sectionEndSegIdx": 21,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Narrator (Stam)",
+     "rabbiNames": [
+      "Rav Yosef",
+      "Rav Sheshet"
+     ],
+     "excerpt": "רַב יוֹסֵף אִיעֲסֵק בְּרִיחְיָא",
+     "endExcerpt": "שֶׁמְּחַמֶּמֶת אֶת בְּעָלֶיהָ",
+     "summary": "The narrator reports that Rav Yosef engaged in grinding and Rav Sheshet in weaving, with Rav Sheshet praising work that warms the body.",
+     "tokenStart": 0,
+     "tokenEnd": 13
+    }
+   },
+   {
+    "startSegIdx": 18,
+    "endSegIdx": 18,
+    "fields": {
+     "id": "17-21_1",
+     "sectionStartSegIdx": 17,
+     "sectionEndSegIdx": 21,
+     "moveOrder": 1,
+     "role": "question",
+     "voice": "Exilarch's question",
+     "rabbiNames": [
+      "Exilarch",
+      "Rav Sheshet"
+     ],
+     "excerpt": "אֲמַר לֵיהּ רֵישׁ גָּלוּתָא לְרַב שֵׁשֶׁת",
+     "endExcerpt": "דַּחֲשִׁידִי אַאֵבֶר מִן הַחַי",
+     "summary": "The Exilarch asks Rav Sheshet why he does not attend his feasts, and Rav Sheshet answers that the servants are suspected of serving אֵבֶר מִן הַחַי (a limb from a living animal).",
+     "tokenStart": 0,
+     "tokenEnd": 20
+    }
+   },
+   {
+    "startSegIdx": 19,
+    "endSegIdx": 19,
+    "fields": {
+     "id": "17-21_2",
+     "sectionStartSegIdx": 17,
+     "sectionEndSegIdx": 21,
+     "moveOrder": 2,
+     "role": "objection",
+     "voice": "Exilarch's objection",
+     "rabbiNames": [
+      "Exilarch",
+      "Rav Sheshet"
+     ],
+     "excerpt": "אֲמַר לֵיהּ: מִי יֵימַר?",
+     "endExcerpt": "אַיְיתִי לִי חֲדָא כַּרְעָא מֵחֵיוְתָא",
+     "summary": "The Exilarch objects, asking who says so, and Rav Sheshet responds by instructing his attendant to bring a leg from a living animal to prove the point.",
+     "tokenStart": 26,
+     "tokenEnd": 26
+    }
+   },
+   {
+    "startSegIdx": 19,
+    "endSegIdx": 19,
+    "fields": {
+     "id": "17-21_3",
+     "sectionStartSegIdx": 17,
+     "sectionEndSegIdx": 21,
+     "moveOrder": 3,
+     "role": "supporting-evidence",
+     "voice": "Rav Sheshet's demonstration",
+     "rabbiNames": [
+      "Rav Sheshet"
+     ],
+     "excerpt": "אַיְיתִי לֵיהּ. אֲמַר לְהוּ: אַהְדְּמוּ לִי הַדְמֵי דְּחֵיוְתָא",
+     "endExcerpt": "הַאי בַּת חָמֵשׁ רַגְלַיִם הֲוַאי?!",
+     "summary": "Rav Sheshet demonstrates the servants' dishonesty by having them bring legs of an animal, showing they brought a three-legged and then a five-legged creature, exposing their deceit.",
+     "tokenStart": 0,
+     "tokenEnd": 40
+    }
+   },
+   {
+    "startSegIdx": 20,
+    "endSegIdx": 20,
+    "fields": {
+     "id": "17-21_4",
+     "sectionStartSegIdx": 17,
+     "sectionEndSegIdx": 21,
+     "moveOrder": 4,
+     "role": "resolution",
+     "voice": "Exilarch's proposal and Rav Sheshet's acceptance",
+     "rabbiNames": [
+      "Exilarch",
+      "Rav Sheshet"
+     ],
+     "excerpt": "אֲמַר לֵיהּ: אִי הָכִי, לִיעְבְּדוּ קַמֵּיהּ (שַׁמָּעֵיהּ) דְּמָר",
+     "endExcerpt": "כַּרְכַהּ בְּסוּדָרֵיהּ",
+     "summary": "The Exilarch proposes that Rav Sheshet's attendant prepare food before him, and Rav Sheshet agrees; they bring bread and a jar of wine, and Rav Sheshet wraps the bread in his scarf.",
+     "tokenStart": 0,
+     "tokenEnd": 26
+    }
+   },
+   {
+    "startSegIdx": 21,
+    "endSegIdx": 21,
+    "fields": {
+     "id": "17-21_5",
+     "sectionStartSegIdx": 17,
+     "sectionEndSegIdx": 21,
+     "moveOrder": 5,
+     "role": "digression",
+     "voice": "Narrator (Stam)",
+     "rabbiNames": [],
+     "excerpt": "לְבָתַר דְּאָכֵיל, אָמְרִי לֵיהּ:",
+     "endExcerpt": "אָמְרִי לֵיהּ:",
+     "summary": "After eating, they said to him, setting up the next exchange (which continues beyond the section).",
+     "tokenStart": 0,
+     "tokenEnd": 3
+    }
+   }
+  ]
+ }
+}

@@ -1,0 +1,94 @@
+{
+ "tractate": "Gittin",
+ "page": "68a",
+ "mark": "aggadata",
+ "cache_hit": true,
+ "raw": {
+  "instances": [
+   {
+    "startSegIdx": 0,
+    "endSegIdx": 3,
+    "fields": {
+     "title": "The stolen cup and the trap",
+     "titleHe": "גניבת כוס הכסף",
+     "summary": "Rav Chisda's servants steal a silver cup and hide it in his cloak. When confronted, he claims he ate and tasted something white, leading to a search that reveals the cup. Later, they dig a pit and cover it with a mat to trap him, but a child's verse and his servant's warning save him.",
+     "excerpt": "אִיגְּנִיב לַן כָּסָא דְכַסְפָּא",
+     "endExcerpt": "דַּחֲשִׁידִי עַבְדֵי דְּלָא מְעַלּוּ",
+     "theme": "biography"
+    }
+   },
+   {
+    "startSegIdx": 4,
+    "endSegIdx": 5,
+    "fields": {
+     "title": "Three hundred types of demons",
+     "titleHe": "שלוש מאות מיני שדים",
+     "summary": "The verse 'shidah veshidot' is interpreted as referring to female demons. Rabbi Yochanan states that there were three hundred types of demons in Shichin, but the nature of the female demon herself is unknown.",
+     "excerpt": "אָמַר רַבִּי יוֹחָנָן: שְׁלֹשׁ מֵאוֹת מִינֵי שֵׁדִים",
+     "endExcerpt": "וְשֵׁידָה עַצְמָהּ אֵינִי יוֹדֵעַ מָה הִיא",
+     "theme": "other"
+    }
+   },
+   {
+    "startSegIdx": 6,
+    "endSegIdx": 12,
+    "fields": {
+     "title": "Solomon captures Ashmedai",
+     "titleHe": "לכידת אשמדאי",
+     "summary": "King Solomon seeks the shamir worm to build the Temple. The rabbis advise him to capture a male and female demon to learn its location. They reveal Ashmedai, king of demons, lives on a mountain. Benaiah son of Yehoyada uses a chain and ring with God's name, wine, and wool to trap Ashmedai, who is brought to Solomon.",
+     "excerpt": "אָמַר מָר, הָכָא תַּרְגִּימוּ: שֵׁידָא וְשֵׁידְתִין",
+     "endExcerpt": "נְפַקָא",
+     "theme": "miracle"
+    }
+   }
+  ]
+ },
+ "expected": {
+  "instances": [
+   {
+    "startSegIdx": 0,
+    "endSegIdx": 3,
+    "fields": {
+     "title": "The stolen cup and the trap",
+     "titleHe": "גניבת כוס הכסף",
+     "summary": "Rav Chisda's servants steal a silver cup and hide it in his cloak. When confronted, he claims he ate and tasted something white, leading to a search that reveals the cup. Later, they dig a pit and cover it with a mat to trap him, but a child's verse and his servant's warning save him.",
+     "excerpt": "אִיגְּנִיב לַן כָּסָא דְכַסְפָּא",
+     "endExcerpt": "דַּחֲשִׁידִי עַבְדֵי דְּלָא מְעַלּוּ",
+     "theme": "biography",
+     "tokenStart": 0,
+     "tokenEnd": 25
+    }
+   },
+   {
+    "startSegIdx": 5,
+    "endSegIdx": 5,
+    "fields": {
+     "title": "Three hundred types of demons",
+     "titleHe": "שלוש מאות מיני שדים",
+     "summary": "The verse 'shidah veshidot' is interpreted as referring to female demons. Rabbi Yochanan states that there were three hundred types of demons in Shichin, but the nature of the female demon herself is unknown.",
+     "excerpt": "אָמַר רַבִּי יוֹחָנָן: שְׁלֹשׁ מֵאוֹת מִינֵי שֵׁדִים",
+     "endExcerpt": "וְשֵׁידָה עַצְמָהּ אֵינִי יוֹדֵעַ מָה הִיא",
+     "theme": "other",
+     "tokenStart": 0,
+     "tokenEnd": 14
+    }
+   },
+   {
+    "startSegIdx": 6,
+    "endSegIdx": 6,
+    "fields": {
+     "title": "Solomon captures Ashmedai",
+     "titleHe": "לכידת אשמדאי",
+     "summary": "King Solomon seeks the shamir worm to build the Temple. The rabbis advise him to capture a male and female demon to learn its location. They reveal Ashmedai, king of demons, lives on a mountain. Benaiah son of Yehoyada uses a chain and ring with God's name, wine, and wool to trap Ashmedai, who is brought to Solomon.",
+     "excerpt": "אָמַר מָר, הָכָא תַּרְגִּימוּ: שֵׁידָא וְשֵׁידְתִין",
+     "endExcerpt": "נְפַקָא",
+     "theme": "miracle",
+     "tokenStart": 0,
+     "tokenEnd": 5
+    }
+   }
+  ]
+ },
+ "_regeneratedFromCurrentCode": true,
+ "_reason": "Production cache predated the 1-word-endExcerpt fallback in postProcessAggadata; expected regenerated from current code (verified faithful by the 14 production-anchored golden cases)."
+}

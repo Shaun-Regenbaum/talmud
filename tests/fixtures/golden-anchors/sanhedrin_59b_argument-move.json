@@ -1,0 +1,1256 @@
+{
+ "tractate": "Sanhedrin",
+ "page": "59b",
+ "mark": "argument-move",
+ "cache_hit": true,
+ "raw": {
+  "instances": [
+   {
+    "startSegIdx": 0,
+    "endSegIdx": 1,
+    "fields": {
+     "id": "0-1_0",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 1,
+     "moveOrder": 0,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "וַהֲרֵי מִילָה, שֶׁנֶּאֶמְרָה לִבְנֵי נֹחַ",
+     "endExcerpt": "לְיִשְׂרָאֵל נֶאֶמְרָה וְלֹא לִבְנֵי נֹחַ",
+     "summary": "The Gemara raises an objection: circumcision was commanded to Noahides (Abraham) and repeated at Sinai, yet it applies only to Israel, not Noahides."
+    }
+   },
+   {
+    "startSegIdx": 0,
+    "endSegIdx": 1,
+    "fields": {
+     "id": "0-1_1",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 1,
+     "moveOrder": 1,
+     "role": "answer",
+     "voice": "Gemara's answer",
+     "rabbiNames": [],
+     "excerpt": "הָהוּא לְמִישְׁרֵי שַׁבָּת הוּא דַּאֲתָא",
+     "endExcerpt": "וַאֲפִילּוּ בְּשַׁבָּת",
+     "summary": "The Gemara answers that the Sinai verse comes to permit circumcision on Shabbat, not to command Noahides."
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "id": "2-3_0",
+     "sectionStartSegIdx": 2,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 0,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "וַהֲרֵי פְּרִיָּה וּרְבִיָּה, שֶׁנֶּאֶמְרָה לִבְנֵי נֹחַ",
+     "endExcerpt": "לְיִשְׂרָאֵל נֶאֶמְרָה וְלֹא לִבְנֵי נֹחַ",
+     "summary": "The gemara objects: procreation was commanded to Noahides and repeated at Sinai, yet it applies only to Israel, not to Noahides."
+    }
+   },
+   {
+    "startSegIdx": 3,
+    "endSegIdx": 3,
+    "fields": {
+     "id": "2-3_1",
+     "sectionStartSegIdx": 2,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 1,
+     "role": "answer",
+     "voice": "Gemara's answer",
+     "rabbiNames": [],
+     "excerpt": "הָהוּא, לְכׇל דָּבָר שֶׁבְּמִנְיָן צָרִיךְ מִנְיָן אַחֵר לְהַתִּירוֹ הוּא דַּאֲתָא",
+     "endExcerpt": "צָרִיךְ מִנְיָן אַחֵר לְהַתִּירוֹ הוּא דַּאֲתָא",
+     "summary": "The gemara answers: that verse comes to teach that a matter requiring a count (a prohibition) needs another count to permit it (i.e., the prohibition of marital relations during the giving of the Torah)."
+    }
+   },
+   {
+    "startSegIdx": 4,
+    "endSegIdx": 7,
+    "fields": {
+     "id": "4-7_0",
+     "sectionStartSegIdx": 4,
+     "sectionEndSegIdx": 7,
+     "moveOrder": 0,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "אִי הָכִי, כֹּל חֲדָא וַחֲדָא נָמֵי נֵימָא מִשּׁוּם מִילְּתָא אִיתְּנַי",
+     "endExcerpt": "מִשּׁוּם מִילְּתָא אִיתְּנַי",
+     "summary": "The Gemara challenges: if so, could we not say that every repeated commandment is for a specific purpose?"
+    }
+   },
+   {
+    "startSegIdx": 4,
+    "endSegIdx": 7,
+    "fields": {
+     "id": "4-7_1",
+     "sectionStartSegIdx": 4,
+     "sectionEndSegIdx": 7,
+     "moveOrder": 1,
+     "role": "answer",
+     "voice": "Gemara's answer",
+     "rabbiNames": [],
+     "excerpt": "הָכִי קָאָמַר: אַזְהָרָה מִיהְדָּר וּמִיתְנָא בַּהּ, לְמָה לִי",
+     "endExcerpt": "לְמָה לִי",
+     "summary": "The Gemara answers: the question is about the warning (אזהרה) itself being repeated—why is that necessary?"
+    }
+   },
+   {
+    "startSegIdx": 4,
+    "endSegIdx": 7,
+    "fields": {
+     "id": "4-7_2",
+     "sectionStartSegIdx": 4,
+     "sectionEndSegIdx": 7,
+     "moveOrder": 2,
+     "role": "resolution",
+     "voice": "Gemara's conclusion",
+     "rabbiNames": [
+      "Rabbi Yehuda"
+     ],
+     "excerpt": "וְאֵין לָנוּ אֶלָּא גִּיד הַנָּשֶׁה בִּלְבַד, וְאַלִּיבָּא דְּרַבִּי יְהוּדָה",
+     "endExcerpt": "הָא לָא אִיתְּנַי כְּלָל",
+     "summary": "The Gemara concludes: only the prohibition of the sciatic nerve (גיד הנשה) was given to Noahides and not repeated, according to Rabbi Yehuda; the other commandments were repeated for a specific purpose, but otherwise they would not apply to Noahides at all."
+    }
+   },
+   {
+    "startSegIdx": 8,
+    "endSegIdx": 8,
+    "fields": {
+     "id": "8-11_0",
+     "sectionStartSegIdx": 8,
+     "sectionEndSegIdx": 11,
+     "moveOrder": 0,
+     "role": "answer",
+     "voice": "Gemara's alternative answer",
+     "rabbiNames": [],
+     "excerpt": "אִי בָּעֵית אֵימָא: מִילָה מֵעִיקָּרָא לְאַבְרָהָם הוּא דְּקָא מַזְהַר לֵיהּ רַחֲמָנָא",
+     "endExcerpt": "אִינִישׁ אַחֲרִינָא – לָא",
+     "summary": "The Gemara offers an alternative explanation: circumcision was originally commanded only to Abraham and his seed, not to all Noahides."
+    }
+   },
+   {
+    "startSegIdx": 9,
+    "endSegIdx": 9,
+    "fields": {
+     "id": "8-11_1",
+     "sectionStartSegIdx": 8,
+     "sectionEndSegIdx": 11,
+     "moveOrder": 1,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "אֶלָּא מֵעַתָּה, בְּנֵי יִשְׁמָעֵאל לִחַיְיבוּ?",
+     "endExcerpt": "כִּי בְיִצְחָק יִקָּרֵא לְךָ זָרַע",
+     "summary": "The Gemara asks: if so, should the children of Ishmael be obligated in circumcision? It answers by citing the verse that Isaac is the designated seed."
+    }
+   },
+   {
+    "startSegIdx": 10,
+    "endSegIdx": 10,
+    "fields": {
+     "id": "8-11_2",
+     "sectionStartSegIdx": 8,
+     "sectionEndSegIdx": 11,
+     "moveOrder": 2,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "בְּנֵי עֵשָׂו לִחַיְיבוּ.",
+     "endExcerpt": "וְלֹא כָּל יִצְחָק",
+     "summary": "The Gemara asks: should the children of Esau be obligated? It answers by interpreting 'in Isaac' to mean not all of Isaac's descendants."
+    }
+   },
+   {
+    "startSegIdx": 11,
+    "endSegIdx": 11,
+    "fields": {
+     "id": "8-11_3",
+     "sectionStartSegIdx": 8,
+     "sectionEndSegIdx": 11,
+     "moveOrder": 3,
+     "role": "objection",
+     "voice": "Rabbi Oshaya's objection",
+     "rabbiNames": [
+      "Rabbi Oshaya"
+     ],
+     "excerpt": "מַתְקֵיף לַהּ רַב אוֹשַׁעְיָא: אֶלָּא מֵעַתָּה, בְּנֵי קְטוּרָה לָא לִחַיְיבוּ?",
+     "endExcerpt": "לְרַבּוֹת בְּנֵי קְטוּרָה",
+     "summary": "Rabbi Oshaya objects: if so, should the children of Keturah not be obligated? Rabbi Yosei bar Avin cites a verse to include them."
+    }
+   },
+   {
+    "startSegIdx": 12,
+    "endSegIdx": 14,
+    "fields": {
+     "id": "12-14_0",
+     "sectionStartSegIdx": 12,
+     "sectionEndSegIdx": 14,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Rav Yehuda in the name of Rav",
+     "rabbiNames": [
+      "Rav Yehuda",
+      "Rav"
+     ],
+     "excerpt": "אָמַר רַב יְהוּדָה אָמַר רַב: אָדָם הָרִאשׁוֹן לֹא הוּתַּר לוֹ בָּשָׂר לַאֲכִילָה",
+     "endExcerpt": "נָתַתִּי לָכֶם אֶת כֹּל",
+     "summary": "Rav Yehuda states in the name of Rav that Adam was not permitted to eat meat, only vegetation, and that permission was granted to the Noahides, as the verse says 'like the green herb I have given you everything'."
+    }
+   },
+   {
+    "startSegIdx": 12,
+    "endSegIdx": 14,
+    "fields": {
+     "id": "12-14_1",
+     "sectionStartSegIdx": 12,
+     "sectionEndSegIdx": 14,
+     "moveOrder": 1,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "יָכוֹל לֹא יְהֵא אֵבֶר מִן הַחַי נוֹהֵג בּוֹ",
+     "endExcerpt": "לֹא תֹאכֵלוּ",
+     "summary": "The gemara raises the possibility that one might think eating a limb from a living animal (אבר מן החי) is permitted, but the verse 'but flesh with its life, its blood, you shall not eat' prohibits it."
+    }
+   },
+   {
+    "startSegIdx": 12,
+    "endSegIdx": 14,
+    "fields": {
+     "id": "12-14_2",
+     "sectionStartSegIdx": 12,
+     "sectionEndSegIdx": 14,
+     "moveOrder": 2,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "יָכוֹל אַף לִשְׁרָצִים",
+     "endExcerpt": "תַּלְמוּד לוֹמַר: אַךְ",
+     "summary": "The gemara asks whether the prohibition of eating a limb from a living animal might also apply to insects, and answers that the word 'אך' (but) excludes them."
+    }
+   },
+   {
+    "startSegIdx": 12,
+    "endSegIdx": 14,
+    "fields": {
+     "id": "12-14_3",
+     "sectionStartSegIdx": 12,
+     "sectionEndSegIdx": 14,
+     "moveOrder": 3,
+     "role": "answer",
+     "voice": "Rav Huna's answer",
+     "rabbiNames": [
+      "Rav Huna"
+     ],
+     "excerpt": "וּמַאי תַּלְמוּדָא? אָמַר רַב הוּנָא: דָּמוֹ – מִי שֶׁדָּמוֹ חָלוּק מִבְּשָׂרוֹ",
+     "endExcerpt": "יָצְאוּ שְׁרָצִים שֶׁאֵין דָּמָם חָלוּק מִבְּשֶׁרָם",
+     "summary": "Rav Huna explains that the verse's phrase 'דמו' (its blood) implies that the prohibition applies only to animals whose blood is distinct from their flesh, excluding insects whose blood is not distinct."
+    }
+   },
+   {
+    "startSegIdx": 15,
+    "endSegIdx": 15,
+    "fields": {
+     "id": "15-20_0",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 0,
+     "role": "objection",
+     "voice": "Gemara's objection",
+     "rabbiNames": [],
+     "excerpt": "מֵיתִיבִי: ״וּרְדוּ בִּדְגַת הַיָּם״",
+     "endExcerpt": "מַאי לָאו, לַאֲכִילָה?",
+     "summary": "The Gemara raises an objection from the verse 'וּרְדוּ בִּדְגַת הַיָּם' (have dominion over the fish of the sea), suggesting it might permit eating fish."
+    }
+   },
+   {
+    "startSegIdx": 16,
+    "endSegIdx": 16,
+    "fields": {
+     "id": "15-20_1",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 1,
+     "role": "answer",
+     "voice": "Gemara's answer",
+     "rabbiNames": [],
+     "excerpt": "לֹא, לִמְלָאכָה",
+     "endExcerpt": "לֹא, לִמְלָאכָה",
+     "summary": "The Gemara answers that the dominion was for labor, not for eating."
+    }
+   },
+   {
+    "startSegIdx": 17,
+    "endSegIdx": 17,
+    "fields": {
+     "id": "15-20_2",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 2,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "וְדָגִים בְּנֵי מְלָאכָה נִינְהוּ?",
+     "endExcerpt": "וְדָגִים בְּנֵי מְלָאכָה נִינְהוּ?",
+     "summary": "The Gemara questions whether fish are suitable for labor."
+    }
+   },
+   {
+    "startSegIdx": 18,
+    "endSegIdx": 18,
+    "fields": {
+     "id": "15-20_3",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 3,
+     "role": "supporting-evidence",
+     "voice": "Racha's question",
+     "rabbiNames": [
+      "Racha"
+     ],
+     "excerpt": "אִין, כִּדְרַחֲבָה",
+     "endExcerpt": "הִנְהִיג בְּעִיזָּא וְשִׁיבּוּטָא – מַאי?",
+     "summary": "The Gemara cites Racha's question about driving a goat and a fish together to show that fish can be used for work."
+    }
+   },
+   {
+    "startSegIdx": 19,
+    "endSegIdx": 19,
+    "fields": {
+     "id": "15-20_4",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 4,
+     "role": "objection",
+     "voice": "Gemara's objection",
+     "rabbiNames": [],
+     "excerpt": "תָּא שְׁמַע: ״וּבְעוֹף הַשָּׁמַיִם״",
+     "endExcerpt": "מַאי לָאו, לַאֲכִילָה?",
+     "summary": "The Gemara raises another objection from the verse 'וּבְעוֹף הַשָּׁמַיִם' (and over the birds of the heavens), suggesting it permits eating birds."
+    }
+   },
+   {
+    "startSegIdx": 20,
+    "endSegIdx": 20,
+    "fields": {
+     "id": "15-20_5",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 5,
+     "role": "answer",
+     "voice": "Gemara's answer",
+     "rabbiNames": [],
+     "excerpt": "לֹא, לִמְלָאכָה",
+     "endExcerpt": "לֹא, לִמְלָאכָה",
+     "summary": "The Gemara answers that the dominion over birds was also for labor, not for eating."
+    }
+   },
+   {
+    "startSegIdx": 21,
+    "endSegIdx": 21,
+    "fields": {
+     "id": "15-20_6",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 6,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "וְעוֹפוֹת בְּנֵי מְלָאכָה נִינְהוּ?",
+     "endExcerpt": "וְעוֹפוֹת בְּנֵי מְלָאכָה נִינְהוּ?",
+     "summary": "The Gemara questions whether birds are suitable for labor."
+    }
+   },
+   {
+    "startSegIdx": 22,
+    "endSegIdx": 22,
+    "fields": {
+     "id": "15-20_7",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 7,
+     "role": "supporting-evidence",
+     "voice": "Rabba bar Rav Huna's question",
+     "rabbiNames": [
+      "Rabba bar Rav Huna"
+     ],
+     "excerpt": "אִין, כִּדְבָעֵי רַבָּה בַּר רַב הוּנָא",
+     "endExcerpt": "דָּשׁ בַּאֲוָוזִין וְתַרְנְגוֹלִין לְרַבִּי יוֹסֵי בְּרַבִּי יְהוּדָה מַאי?",
+     "summary": "The Gemara cites Rabba bar Rav Huna's question about threshing with geese and chickens to show that birds can be used for work."
+    }
+   },
+   {
+    "startSegIdx": 23,
+    "endSegIdx": 23,
+    "fields": {
+     "id": "15-20_8",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 8,
+     "role": "objection",
+     "voice": "Gemara's objection",
+     "rabbiNames": [],
+     "excerpt": "תָּא שְׁמַע: ״וּבְכׇל חַיָּה הָרֹמֶשֶׂת עַל הָאָרֶץ״",
+     "endExcerpt": "תָּא שְׁמַע: ״וּבְכׇל חַיָּה הָרֹמֶשֶׂת עַל הָאָרֶץ״",
+     "summary": "The Gemara raises an objection from the verse 'וּבְכׇל חַיָּה הָרֹמֶשֶׂת' (and over every creeping thing on the earth)."
+    }
+   },
+   {
+    "startSegIdx": 24,
+    "endSegIdx": 24,
+    "fields": {
+     "id": "15-20_9",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 9,
+     "role": "answer",
+     "voice": "Gemara's answer",
+     "rabbiNames": [],
+     "excerpt": "הָהוּא לְאֵתוֹיֵי נָחָשׁ הוּא דַּאֲתָא",
+     "endExcerpt": "הָהוּא לְאֵתוֹיֵי נָחָשׁ הוּא דַּאֲתָא",
+     "summary": "The Gemara answers that this verse comes to include the serpent, not to permit eating creeping things."
+    }
+   },
+   {
+    "startSegIdx": 25,
+    "endSegIdx": 25,
+    "fields": {
+     "id": "15-20_10",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 10,
+     "role": "supporting-evidence",
+     "voice": "Rabbi Shimon ben Menasya's teaching",
+     "rabbiNames": [
+      "Rabbi Shimon ben Menasya"
+     ],
+     "excerpt": "דְּתַנְיָא, רַבִּי שִׁמְעוֹן בֶּן מְנַסְיָא אוֹמֵר",
+     "endExcerpt": "וּמוֹצִיא בָּהּ עָפָר לְגִנָּתוֹ וּלְחוּרְבָּתוֹ",
+     "summary": "Rabbi Shimon ben Menasya teaches that the serpent, if not cursed, could have been a great servant, bringing precious items and soil for gardening."
+    }
+   },
+   {
+    "startSegIdx": 21,
+    "endSegIdx": 21,
+    "fields": {
+     "id": "21-22_0",
+     "sectionStartSegIdx": 21,
+     "sectionEndSegIdx": 22,
+     "moveOrder": 0,
+     "role": "objection",
+     "voice": "Gemara's objection",
+     "rabbiNames": [
+      "Rabbi Yehuda ben Teima"
+     ],
+     "excerpt": "מֵיתִיבִי, הָיָה רַבִּי יְהוּדָה בֶּן תֵּימָא אוֹמֵר: אָדָם הָרִאשׁוֹן מֵיסֵב בְּגַן עֵדֶן הָיָה",
+     "endExcerpt": "וְנִתְקַנֵּא בּוֹ",
+     "summary": "The Gemara raises an objection from Rabbi Yehuda ben Teima's statement that Adam reclined in the Garden of Eden and ministering angels roasted meat and strained wine for him, implying Adam ate meat."
+    }
+   },
+   {
+    "startSegIdx": 21,
+    "endSegIdx": 21,
+    "fields": {
+     "id": "21-22_1",
+     "sectionStartSegIdx": 21,
+     "sectionEndSegIdx": 22,
+     "moveOrder": 1,
+     "role": "answer",
+     "voice": "Gemara's answer",
+     "rabbiNames": [],
+     "excerpt": "הָתָם בְּבָשָׂר הַיּוֹרֵד מִן הַשָּׁמַיִם",
+     "endExcerpt": "הָתָם בְּבָשָׂר הַיּוֹרֵד מִן הַשָּׁמַיִם",
+     "summary": "The Gemara answers that the meat in the objection was meat that descended from heaven, not from animals on earth."
+    }
+   },
+   {
+    "startSegIdx": 22,
+    "endSegIdx": 22,
+    "fields": {
+     "id": "21-22_2",
+     "sectionStartSegIdx": 21,
+     "sectionEndSegIdx": 22,
+     "moveOrder": 2,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "מִי אִיכָּא בָּשָׂר הַיּוֹרֵד מִן הַשָּׁמַיִם?",
+     "endExcerpt": "מִי אִיכָּא בָּשָׂר הַיּוֹרֵד מִן הַשָּׁמַיִם?",
+     "summary": "The Gemara questions whether meat can actually descend from heaven."
+    }
+   },
+   {
+    "startSegIdx": 22,
+    "endSegIdx": 22,
+    "fields": {
+     "id": "21-22_3",
+     "sectionStartSegIdx": 21,
+     "sectionEndSegIdx": 22,
+     "moveOrder": 3,
+     "role": "supporting-evidence",
+     "voice": "Supporting story about Rabbi Shimon ben Chalafta",
+     "rabbiNames": [
+      "Rabbi Shimon ben Chalafta"
+     ],
+     "excerpt": "אִין, כִּי הָא דְּרַבִּי שִׁמְעוֹן בֶּן חֲלַפְתָּא הֲוָה קָאָזֵיל בְּאוֹרְחָא",
+     "endExcerpt": "אֵין דָּבָר טָמֵא יוֹרֵד מִן הַשָּׁמַיִם",
+     "summary": "The Gemara cites a story about Rabbi Shimon ben Chalafta encountering lions, receiving two legs of meat from heaven, and the sages ruling that no impure thing descends from heaven."
+    }
+   },
+   {
+    "startSegIdx": 23,
+    "endSegIdx": 23,
+    "fields": {
+     "id": "21-22_4",
+     "sectionStartSegIdx": 21,
+     "sectionEndSegIdx": 22,
+     "moveOrder": 4,
+     "role": "question",
+     "voice": "Rabbi Zeira's question",
+     "rabbiNames": [
+      "Rabbi Zeira",
+      "Rabbi Avahu"
+     ],
+     "excerpt": "בָּעֵי מִינֵּיהּ רַבִּי זֵירָא מֵרַבִּי אֲבָהוּ: יָרְדָה לוֹ דְּמוּת חֲמוֹר, מַהוּ?",
+     "endExcerpt": "יָרְדָה לוֹ דְּמוּת חֲמוֹר, מַהוּ?",
+     "summary": "Rabbi Zeira asks Rabbi Avahu whether a donkey-shaped object that descended from heaven is considered impure."
+    }
+   },
+   {
+    "startSegIdx": 23,
+    "endSegIdx": 23,
+    "fields": {
+     "id": "21-22_5",
+     "sectionStartSegIdx": 21,
+     "sectionEndSegIdx": 22,
+     "moveOrder": 5,
+     "role": "answer",
+     "voice": "Rabbi Avahu's answer",
+     "rabbiNames": [
+      "Rabbi Avahu"
+     ],
+     "excerpt": "אֲמַר לֵיהּ: יָארוּד נָאלָא! הָא אָמְרִי לֵיהּ: אֵין דָּבָר טָמֵא יוֹרֵד מִן הַשָּׁמַיִם",
+     "endExcerpt": "אֵין דָּבָר טָמֵא יוֹרֵד מִן הַשָּׁמַיִם",
+     "summary": "Rabbi Avahu rebukes Rabbi Zeira and reaffirms that no impure thing descends from heaven."
+    }
+   },
+   {
+    "startSegIdx": 23,
+    "endSegIdx": 24,
+    "fields": {
+     "id": "23-24_0",
+     "sectionStartSegIdx": 23,
+     "sectionEndSegIdx": 24,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Tannaic statement",
+     "rabbiNames": [
+      "Rabbi Shimon"
+     ],
+     "excerpt": "רַבִּי שִׁמְעוֹן אוֹמֵר: אַף עַל הַכִּישּׁוּף",
+     "endExcerpt": "אַף עַל הַכִּישּׁוּף",
+     "summary": "Rabbi Shimon states that sorcery is also prohibited to Noahides."
+    }
+   },
+   {
+    "startSegIdx": 24,
+    "endSegIdx": 24,
+    "fields": {
+     "id": "23-24_1",
+     "sectionStartSegIdx": 23,
+     "sectionEndSegIdx": 24,
+     "moveOrder": 1,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "מַאי טַעְמֵיהּ דְּרַבִּי שִׁמְעוֹן?",
+     "endExcerpt": "מַאי טַעְמֵיהּ דְּרַבִּי שִׁמְעוֹן?",
+     "summary": "The Gemara asks for the scriptural basis of Rabbi Shimon's position."
+    }
+   },
+   {
+    "startSegIdx": 24,
+    "endSegIdx": 24,
+    "fields": {
+     "id": "23-24_2",
+     "sectionStartSegIdx": 23,
+     "sectionEndSegIdx": 24,
+     "moveOrder": 2,
+     "role": "answer",
+     "voice": "Gemara's answer (citing verse)",
+     "rabbiNames": [],
+     "excerpt": "דִּכְתִיב:",
+     "endExcerpt": "דִּכְתִיב:",
+     "summary": "The Gemara begins to cite a verse to support Rabbi Shimon's reasoning."
+    }
+   }
+  ]
+ },
+ "expected": {
+  "instances": [
+   {
+    "startSegIdx": 0,
+    "endSegIdx": 0,
+    "fields": {
+     "id": "0-1_0",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 1,
+     "moveOrder": 0,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "וַהֲרֵי מִילָה, שֶׁנֶּאֶמְרָה לִבְנֵי נֹחַ",
+     "endExcerpt": "לְיִשְׂרָאֵל נֶאֶמְרָה וְלֹא לִבְנֵי נֹחַ",
+     "summary": "The Gemara raises an objection: circumcision was commanded to Noahides (Abraham) and repeated at Sinai, yet it applies only to Israel, not Noahides.",
+     "tokenStart": 0,
+     "tokenEnd": 19
+    }
+   },
+   {
+    "startSegIdx": 1,
+    "endSegIdx": 1,
+    "fields": {
+     "id": "0-1_1",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 1,
+     "moveOrder": 1,
+     "role": "answer",
+     "voice": "Gemara's answer",
+     "rabbiNames": [],
+     "excerpt": "הָהוּא לְמִישְׁרֵי שַׁבָּת הוּא דַּאֲתָא",
+     "endExcerpt": "וַאֲפִילּוּ בְּשַׁבָּת",
+     "summary": "The Gemara answers that the Sinai verse comes to permit circumcision on Shabbat, not to command Noahides.",
+     "tokenStart": 0,
+     "tokenEnd": 7
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "id": "2-3_0",
+     "sectionStartSegIdx": 2,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 0,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "וַהֲרֵי פְּרִיָּה וּרְבִיָּה, שֶׁנֶּאֶמְרָה לִבְנֵי נֹחַ",
+     "endExcerpt": "לְיִשְׂרָאֵל נֶאֶמְרָה וְלֹא לִבְנֵי נֹחַ",
+     "summary": "The gemara objects: procreation was commanded to Noahides and repeated at Sinai, yet it applies only to Israel, not to Noahides.",
+     "tokenStart": 0,
+     "tokenEnd": 22
+    }
+   },
+   {
+    "startSegIdx": 3,
+    "endSegIdx": 3,
+    "fields": {
+     "id": "2-3_1",
+     "sectionStartSegIdx": 2,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 1,
+     "role": "answer",
+     "voice": "Gemara's answer",
+     "rabbiNames": [],
+     "excerpt": "הָהוּא, לְכׇל דָּבָר שֶׁבְּמִנְיָן צָרִיךְ מִנְיָן אַחֵר לְהַתִּירוֹ הוּא דַּאֲתָא",
+     "endExcerpt": "צָרִיךְ מִנְיָן אַחֵר לְהַתִּירוֹ הוּא דַּאֲתָא",
+     "summary": "The gemara answers: that verse comes to teach that a matter requiring a count (a prohibition) needs another count to permit it (i.e., the prohibition of marital relations during the giving of the Torah).",
+     "tokenStart": 0,
+     "tokenEnd": 9
+    }
+   },
+   {
+    "startSegIdx": 4,
+    "endSegIdx": 4,
+    "fields": {
+     "id": "4-7_0",
+     "sectionStartSegIdx": 4,
+     "sectionEndSegIdx": 7,
+     "moveOrder": 0,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "אִי הָכִי, כֹּל חֲדָא וַחֲדָא נָמֵי נֵימָא מִשּׁוּם מִילְּתָא אִיתְּנַי",
+     "endExcerpt": "מִשּׁוּם מִילְּתָא אִיתְּנַי",
+     "summary": "The Gemara challenges: if so, could we not say that every repeated commandment is for a specific purpose?",
+     "tokenStart": 0,
+     "tokenEnd": 9
+    }
+   },
+   {
+    "startSegIdx": 5,
+    "endSegIdx": 5,
+    "fields": {
+     "id": "4-7_1",
+     "sectionStartSegIdx": 4,
+     "sectionEndSegIdx": 7,
+     "moveOrder": 1,
+     "role": "answer",
+     "voice": "Gemara's answer",
+     "rabbiNames": [],
+     "excerpt": "הָכִי קָאָמַר: אַזְהָרָה מִיהְדָּר וּמִיתְנָא בַּהּ, לְמָה לִי",
+     "endExcerpt": "לְמָה לִי",
+     "summary": "The Gemara answers: the question is about the warning (אזהרה) itself being repeated—why is that necessary?",
+     "tokenStart": 0,
+     "tokenEnd": 7
+    }
+   },
+   {
+    "startSegIdx": 6,
+    "endSegIdx": 7,
+    "fields": {
+     "id": "4-7_2",
+     "sectionStartSegIdx": 4,
+     "sectionEndSegIdx": 7,
+     "moveOrder": 2,
+     "role": "resolution",
+     "voice": "Gemara's conclusion",
+     "rabbiNames": [
+      "Rabbi Yehuda"
+     ],
+     "excerpt": "וְאֵין לָנוּ אֶלָּא גִּיד הַנָּשֶׁה בִּלְבַד, וְאַלִּיבָּא דְּרַבִּי יְהוּדָה",
+     "endExcerpt": "הָא לָא אִיתְּנַי כְּלָל",
+     "summary": "The Gemara concludes: only the prohibition of the sciatic nerve (גיד הנשה) was given to Noahides and not repeated, according to Rabbi Yehuda; the other commandments were repeated for a specific purpose, but otherwise they would not apply to Noahides at all.",
+     "tokenStart": 0,
+     "tokenEnd": 8
+    }
+   },
+   {
+    "startSegIdx": 8,
+    "endSegIdx": 8,
+    "fields": {
+     "id": "8-11_0",
+     "sectionStartSegIdx": 8,
+     "sectionEndSegIdx": 11,
+     "moveOrder": 0,
+     "role": "answer",
+     "voice": "Gemara's alternative answer",
+     "rabbiNames": [],
+     "excerpt": "אִי בָּעֵית אֵימָא: מִילָה מֵעִיקָּרָא לְאַבְרָהָם הוּא דְּקָא מַזְהַר לֵיהּ רַחֲמָנָא",
+     "endExcerpt": "אִינִישׁ אַחֲרִינָא – לָא",
+     "summary": "The Gemara offers an alternative explanation: circumcision was originally commanded only to Abraham and his seed, not to all Noahides.",
+     "tokenStart": 0,
+     "tokenEnd": 24
+    }
+   },
+   {
+    "startSegIdx": 9,
+    "endSegIdx": 9,
+    "fields": {
+     "id": "8-11_1",
+     "sectionStartSegIdx": 8,
+     "sectionEndSegIdx": 11,
+     "moveOrder": 1,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "אֶלָּא מֵעַתָּה, בְּנֵי יִשְׁמָעֵאל לִחַיְיבוּ?",
+     "endExcerpt": "כִּי בְיִצְחָק יִקָּרֵא לְךָ זָרַע",
+     "summary": "The Gemara asks: if so, should the children of Ishmael be obligated in circumcision? It answers by citing the verse that Isaac is the designated seed.",
+     "tokenStart": 0,
+     "tokenEnd": 9
+    }
+   },
+   {
+    "startSegIdx": 10,
+    "endSegIdx": 10,
+    "fields": {
+     "id": "8-11_2",
+     "sectionStartSegIdx": 8,
+     "sectionEndSegIdx": 11,
+     "moveOrder": 2,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "בְּנֵי עֵשָׂו לִחַיְיבוּ.",
+     "endExcerpt": "וְלֹא כָּל יִצְחָק",
+     "summary": "The Gemara asks: should the children of Esau be obligated? It answers by interpreting 'in Isaac' to mean not all of Isaac's descendants.",
+     "tokenStart": 0,
+     "tokenEnd": 6
+    }
+   },
+   {
+    "startSegIdx": 11,
+    "endSegIdx": 11,
+    "fields": {
+     "id": "8-11_3",
+     "sectionStartSegIdx": 8,
+     "sectionEndSegIdx": 11,
+     "moveOrder": 3,
+     "role": "objection",
+     "voice": "Rabbi Oshaya's objection",
+     "rabbiNames": [
+      "Rabbi Oshaya"
+     ],
+     "excerpt": "מַתְקֵיף לַהּ רַב אוֹשַׁעְיָא: אֶלָּא מֵעַתָּה, בְּנֵי קְטוּרָה לָא לִחַיְיבוּ?",
+     "endExcerpt": "לְרַבּוֹת בְּנֵי קְטוּרָה",
+     "summary": "Rabbi Oshaya objects: if so, should the children of Keturah not be obligated? Rabbi Yosei bar Avin cites a verse to include them.",
+     "tokenStart": 0,
+     "tokenEnd": 25
+    }
+   },
+   {
+    "startSegIdx": 12,
+    "endSegIdx": 13,
+    "fields": {
+     "id": "12-14_0",
+     "sectionStartSegIdx": 12,
+     "sectionEndSegIdx": 14,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Rav Yehuda in the name of Rav",
+     "rabbiNames": [
+      "Rav Yehuda",
+      "Rav"
+     ],
+     "excerpt": "אָמַר רַב יְהוּדָה אָמַר רַב: אָדָם הָרִאשׁוֹן לֹא הוּתַּר לוֹ בָּשָׂר לַאֲכִילָה",
+     "endExcerpt": "נָתַתִּי לָכֶם אֶת כֹּל",
+     "summary": "Rav Yehuda states in the name of Rav that Adam was not permitted to eat meat, only vegetation, and that permission was granted to the Noahides, as the verse says 'like the green herb I have given you everything'.",
+     "tokenStart": 0,
+     "tokenEnd": 11
+    }
+   },
+   {
+    "startSegIdx": 13,
+    "endSegIdx": 13,
+    "fields": {
+     "id": "12-14_1",
+     "sectionStartSegIdx": 12,
+     "sectionEndSegIdx": 14,
+     "moveOrder": 1,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "יָכוֹל לֹא יְהֵא אֵבֶר מִן הַחַי נוֹהֵג בּוֹ",
+     "endExcerpt": "לֹא תֹאכֵלוּ",
+     "summary": "The gemara raises the possibility that one might think eating a limb from a living animal (אבר מן החי) is permitted, but the verse 'but flesh with its life, its blood, you shall not eat' prohibits it.",
+     "tokenStart": 12,
+     "tokenEnd": 27
+    }
+   },
+   {
+    "startSegIdx": 13,
+    "endSegIdx": 13,
+    "fields": {
+     "id": "12-14_2",
+     "sectionStartSegIdx": 12,
+     "sectionEndSegIdx": 14,
+     "moveOrder": 2,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "יָכוֹל אַף לִשְׁרָצִים",
+     "endExcerpt": "תַּלְמוּד לוֹמַר: אַךְ",
+     "summary": "The gemara asks whether the prohibition of eating a limb from a living animal might also apply to insects, and answers that the word 'אך' (but) excludes them.",
+     "tokenStart": 28,
+     "tokenEnd": 33
+    }
+   },
+   {
+    "startSegIdx": 14,
+    "endSegIdx": 14,
+    "fields": {
+     "id": "12-14_3",
+     "sectionStartSegIdx": 12,
+     "sectionEndSegIdx": 14,
+     "moveOrder": 3,
+     "role": "answer",
+     "voice": "Rav Huna's answer",
+     "rabbiNames": [
+      "Rav Huna"
+     ],
+     "excerpt": "וּמַאי תַּלְמוּדָא? אָמַר רַב הוּנָא: דָּמוֹ – מִי שֶׁדָּמוֹ חָלוּק מִבְּשָׂרוֹ",
+     "endExcerpt": "יָצְאוּ שְׁרָצִים שֶׁאֵין דָּמָם חָלוּק מִבְּשֶׁרָם",
+     "summary": "Rav Huna explains that the verse's phrase 'דמו' (its blood) implies that the prohibition applies only to animals whose blood is distinct from their flesh, excluding insects whose blood is not distinct.",
+     "tokenStart": 0,
+     "tokenEnd": 15
+    }
+   },
+   {
+    "startSegIdx": 15,
+    "endSegIdx": 15,
+    "fields": {
+     "id": "15-20_0",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 0,
+     "role": "objection",
+     "voice": "Gemara's objection",
+     "rabbiNames": [],
+     "excerpt": "מֵיתִיבִי: ״וּרְדוּ בִּדְגַת הַיָּם״",
+     "endExcerpt": "מַאי לָאו, לַאֲכִילָה?",
+     "summary": "The Gemara raises an objection from the verse 'וּרְדוּ בִּדְגַת הַיָּם' (have dominion over the fish of the sea), suggesting it might permit eating fish.",
+     "tokenStart": 0,
+     "tokenEnd": 6
+    }
+   },
+   {
+    "startSegIdx": 17,
+    "endSegIdx": 17,
+    "fields": {
+     "id": "15-20_1",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 1,
+     "role": "answer",
+     "voice": "Gemara's answer",
+     "rabbiNames": [],
+     "excerpt": "לֹא, לִמְלָאכָה",
+     "endExcerpt": "לֹא, לִמְלָאכָה",
+     "summary": "The Gemara answers that the dominion was for labor, not for eating.",
+     "tokenStart": 7,
+     "tokenEnd": 8
+    }
+   },
+   {
+    "startSegIdx": 16,
+    "endSegIdx": 16,
+    "fields": {
+     "id": "15-20_2",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 2,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "וְדָגִים בְּנֵי מְלָאכָה נִינְהוּ?",
+     "endExcerpt": "וְדָגִים בְּנֵי מְלָאכָה נִינְהוּ?",
+     "summary": "The Gemara questions whether fish are suitable for labor.",
+     "tokenStart": 0,
+     "tokenEnd": 3
+    }
+   },
+   {
+    "startSegIdx": 16,
+    "endSegIdx": 16,
+    "fields": {
+     "id": "15-20_3",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 3,
+     "role": "supporting-evidence",
+     "voice": "Racha's question",
+     "rabbiNames": [
+      "Racha"
+     ],
+     "excerpt": "אִין, כִּדְרַחֲבָה",
+     "endExcerpt": "הִנְהִיג בְּעִיזָּא וְשִׁיבּוּטָא – מַאי?",
+     "summary": "The Gemara cites Racha's question about driving a goat and a fish together to show that fish can be used for work.",
+     "tokenStart": 4,
+     "tokenEnd": 11
+    }
+   },
+   {
+    "startSegIdx": 17,
+    "endSegIdx": 17,
+    "fields": {
+     "id": "15-20_4",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 4,
+     "role": "objection",
+     "voice": "Gemara's objection",
+     "rabbiNames": [],
+     "excerpt": "תָּא שְׁמַע: ״וּבְעוֹף הַשָּׁמַיִם״",
+     "endExcerpt": "מַאי לָאו, לַאֲכִילָה?",
+     "summary": "The Gemara raises another objection from the verse 'וּבְעוֹף הַשָּׁמַיִם' (and over the birds of the heavens), suggesting it permits eating birds.",
+     "tokenStart": 0,
+     "tokenEnd": 8
+    }
+   },
+   {
+    "startSegIdx": 15,
+    "endSegIdx": 15,
+    "fields": {
+     "id": "15-20_5",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 5,
+     "role": "answer",
+     "voice": "Gemara's answer",
+     "rabbiNames": [],
+     "excerpt": "לֹא, לִמְלָאכָה",
+     "endExcerpt": "לֹא, לִמְלָאכָה",
+     "summary": "The Gemara answers that the dominion over birds was also for labor, not for eating.",
+     "tokenStart": 7,
+     "tokenEnd": 8
+    }
+   },
+   {
+    "startSegIdx": 18,
+    "endSegIdx": 18,
+    "fields": {
+     "id": "15-20_6",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 6,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "וְעוֹפוֹת בְּנֵי מְלָאכָה נִינְהוּ?",
+     "endExcerpt": "וְעוֹפוֹת בְּנֵי מְלָאכָה נִינְהוּ?",
+     "summary": "The Gemara questions whether birds are suitable for labor.",
+     "tokenStart": 0,
+     "tokenEnd": 3
+    }
+   },
+   {
+    "startSegIdx": 18,
+    "endSegIdx": 18,
+    "fields": {
+     "id": "15-20_7",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 7,
+     "role": "supporting-evidence",
+     "voice": "Rabba bar Rav Huna's question",
+     "rabbiNames": [
+      "Rabba bar Rav Huna"
+     ],
+     "excerpt": "אִין, כִּדְבָעֵי רַבָּה בַּר רַב הוּנָא",
+     "endExcerpt": "דָּשׁ בַּאֲוָוזִין וְתַרְנְגוֹלִין לְרַבִּי יוֹסֵי בְּרַבִּי יְהוּדָה מַאי?",
+     "summary": "The Gemara cites Rabba bar Rav Huna's question about threshing with geese and chickens to show that birds can be used for work.",
+     "tokenStart": 4,
+     "tokenEnd": 17
+    }
+   },
+   {
+    "startSegIdx": 19,
+    "endSegIdx": 19,
+    "fields": {
+     "id": "15-20_8",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 8,
+     "role": "objection",
+     "voice": "Gemara's objection",
+     "rabbiNames": [],
+     "excerpt": "תָּא שְׁמַע: ״וּבְכׇל חַיָּה הָרֹמֶשֶׂת עַל הָאָרֶץ״",
+     "endExcerpt": "תָּא שְׁמַע: ״וּבְכׇל חַיָּה הָרֹמֶשֶׂת עַל הָאָרֶץ״",
+     "summary": "The Gemara raises an objection from the verse 'וּבְכׇל חַיָּה הָרֹמֶשֶׂת' (and over every creeping thing on the earth).",
+     "tokenStart": 0,
+     "tokenEnd": 6
+    }
+   },
+   {
+    "startSegIdx": 19,
+    "endSegIdx": 19,
+    "fields": {
+     "id": "15-20_9",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 9,
+     "role": "answer",
+     "voice": "Gemara's answer",
+     "rabbiNames": [],
+     "excerpt": "הָהוּא לְאֵתוֹיֵי נָחָשׁ הוּא דַּאֲתָא",
+     "endExcerpt": "הָהוּא לְאֵתוֹיֵי נָחָשׁ הוּא דַּאֲתָא",
+     "summary": "The Gemara answers that this verse comes to include the serpent, not to permit eating creeping things.",
+     "tokenStart": 7,
+     "tokenEnd": 11
+    }
+   },
+   {
+    "startSegIdx": 20,
+    "endSegIdx": 20,
+    "fields": {
+     "id": "15-20_10",
+     "sectionStartSegIdx": 15,
+     "sectionEndSegIdx": 20,
+     "moveOrder": 10,
+     "role": "supporting-evidence",
+     "voice": "Rabbi Shimon ben Menasya's teaching",
+     "rabbiNames": [
+      "Rabbi Shimon ben Menasya"
+     ],
+     "excerpt": "דְּתַנְיָא, רַבִּי שִׁמְעוֹן בֶּן מְנַסְיָא אוֹמֵר",
+     "endExcerpt": "וּמוֹצִיא בָּהּ עָפָר לְגִנָּתוֹ וּלְחוּרְבָּתוֹ",
+     "summary": "Rabbi Shimon ben Menasya teaches that the serpent, if not cursed, could have been a great servant, bringing precious items and soil for gardening.",
+     "tokenStart": 0,
+     "tokenEnd": 51
+    }
+   },
+   {
+    "startSegIdx": 21,
+    "endSegIdx": 21,
+    "fields": {
+     "id": "21-22_0",
+     "sectionStartSegIdx": 21,
+     "sectionEndSegIdx": 22,
+     "moveOrder": 0,
+     "role": "objection",
+     "voice": "Gemara's objection",
+     "rabbiNames": [
+      "Rabbi Yehuda ben Teima"
+     ],
+     "excerpt": "מֵיתִיבִי, הָיָה רַבִּי יְהוּדָה בֶּן תֵּימָא אוֹמֵר: אָדָם הָרִאשׁוֹן מֵיסֵב בְּגַן עֵדֶן הָיָה",
+     "endExcerpt": "וְנִתְקַנֵּא בּוֹ",
+     "summary": "The Gemara raises an objection from Rabbi Yehuda ben Teima's statement that Adam reclined in the Garden of Eden and ministering angels roasted meat and strained wine for him, implying Adam ate meat.",
+     "tokenStart": 0,
+     "tokenEnd": 28
+    }
+   },
+   {
+    "startSegIdx": 21,
+    "endSegIdx": 21,
+    "fields": {
+     "id": "21-22_1",
+     "sectionStartSegIdx": 21,
+     "sectionEndSegIdx": 22,
+     "moveOrder": 1,
+     "role": "answer",
+     "voice": "Gemara's answer",
+     "rabbiNames": [],
+     "excerpt": "הָתָם בְּבָשָׂר הַיּוֹרֵד מִן הַשָּׁמַיִם",
+     "endExcerpt": "הָתָם בְּבָשָׂר הַיּוֹרֵד מִן הַשָּׁמַיִם",
+     "summary": "The Gemara answers that the meat in the objection was meat that descended from heaven, not from animals on earth.",
+     "tokenStart": 29,
+     "tokenEnd": 33
+    }
+   },
+   {
+    "startSegIdx": 22,
+    "endSegIdx": 22,
+    "fields": {
+     "id": "21-22_2",
+     "sectionStartSegIdx": 21,
+     "sectionEndSegIdx": 22,
+     "moveOrder": 2,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "מִי אִיכָּא בָּשָׂר הַיּוֹרֵד מִן הַשָּׁמַיִם?",
+     "endExcerpt": "מִי אִיכָּא בָּשָׂר הַיּוֹרֵד מִן הַשָּׁמַיִם?",
+     "summary": "The Gemara questions whether meat can actually descend from heaven.",
+     "tokenStart": 0,
+     "tokenEnd": 5
+    }
+   },
+   {
+    "startSegIdx": 22,
+    "endSegIdx": 22,
+    "fields": {
+     "id": "21-22_3",
+     "sectionStartSegIdx": 21,
+     "sectionEndSegIdx": 22,
+     "moveOrder": 3,
+     "role": "supporting-evidence",
+     "voice": "Supporting story about Rabbi Shimon ben Chalafta",
+     "rabbiNames": [
+      "Rabbi Shimon ben Chalafta"
+     ],
+     "excerpt": "אִין, כִּי הָא דְּרַבִּי שִׁמְעוֹן בֶּן חֲלַפְתָּא הֲוָה קָאָזֵיל בְּאוֹרְחָא",
+     "endExcerpt": "אֵין דָּבָר טָמֵא יוֹרֵד מִן הַשָּׁמַיִם",
+     "summary": "The Gemara cites a story about Rabbi Shimon ben Chalafta encountering lions, receiving two legs of meat from heaven, and the sages ruling that no impure thing descends from heaven.",
+     "tokenStart": 6,
+     "tokenEnd": 56
+    }
+   },
+   {
+    "startSegIdx": 22,
+    "endSegIdx": 22,
+    "fields": {
+     "id": "21-22_4",
+     "sectionStartSegIdx": 21,
+     "sectionEndSegIdx": 22,
+     "moveOrder": 4,
+     "role": "question",
+     "voice": "Rabbi Zeira's question",
+     "rabbiNames": [
+      "Rabbi Zeira",
+      "Rabbi Avahu"
+     ],
+     "excerpt": "בָּעֵי מִינֵּיהּ רַבִּי זֵירָא מֵרַבִּי אֲבָהוּ: יָרְדָה לוֹ דְּמוּת חֲמוֹר, מַהוּ?",
+     "endExcerpt": "יָרְדָה לוֹ דְּמוּת חֲמוֹר, מַהוּ?",
+     "summary": "Rabbi Zeira asks Rabbi Avahu whether a donkey-shaped object that descended from heaven is considered impure.",
+     "tokenStart": 0,
+     "tokenEnd": 0
+    }
+   },
+   {
+    "startSegIdx": 22,
+    "endSegIdx": 22,
+    "fields": {
+     "id": "21-22_5",
+     "sectionStartSegIdx": 21,
+     "sectionEndSegIdx": 22,
+     "moveOrder": 5,
+     "role": "answer",
+     "voice": "Rabbi Avahu's answer",
+     "rabbiNames": [
+      "Rabbi Avahu"
+     ],
+     "excerpt": "אֲמַר לֵיהּ: יָארוּד נָאלָא! הָא אָמְרִי לֵיהּ: אֵין דָּבָר טָמֵא יוֹרֵד מִן הַשָּׁמַיִם",
+     "endExcerpt": "אֵין דָּבָר טָמֵא יוֹרֵד מִן הַשָּׁמַיִם",
+     "summary": "Rabbi Avahu rebukes Rabbi Zeira and reaffirms that no impure thing descends from heaven.",
+     "tokenStart": 0,
+     "tokenEnd": 56
+    }
+   },
+   {
+    "startSegIdx": 24,
+    "endSegIdx": 24,
+    "fields": {
+     "id": "23-24_0",
+     "sectionStartSegIdx": 23,
+     "sectionEndSegIdx": 24,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Tannaic statement",
+     "rabbiNames": [
+      "Rabbi Shimon"
+     ],
+     "excerpt": "רַבִּי שִׁמְעוֹן אוֹמֵר: אַף עַל הַכִּישּׁוּף",
+     "endExcerpt": "אַף עַל הַכִּישּׁוּף",
+     "summary": "Rabbi Shimon states that sorcery is also prohibited to Noahides.",
+     "tokenStart": 0,
+     "tokenEnd": 5
+    }
+   },
+   {
+    "startSegIdx": 24,
+    "endSegIdx": 24,
+    "fields": {
+     "id": "23-24_1",
+     "sectionStartSegIdx": 23,
+     "sectionEndSegIdx": 24,
+     "moveOrder": 1,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "מַאי טַעְמֵיהּ דְּרַבִּי שִׁמְעוֹן?",
+     "endExcerpt": "מַאי טַעְמֵיהּ דְּרַבִּי שִׁמְעוֹן?",
+     "summary": "The Gemara asks for the scriptural basis of Rabbi Shimon's position.",
+     "tokenStart": 6,
+     "tokenEnd": 9
+    }
+   },
+   {
+    "startSegIdx": 24,
+    "endSegIdx": 24,
+    "fields": {
+     "id": "23-24_2",
+     "sectionStartSegIdx": 23,
+     "sectionEndSegIdx": 24,
+     "moveOrder": 2,
+     "role": "answer",
+     "voice": "Gemara's answer (citing verse)",
+     "rabbiNames": [],
+     "excerpt": "דִּכְתִיב:",
+     "endExcerpt": "דִּכְתִיב:",
+     "summary": "The Gemara begins to cite a verse to support Rabbi Shimon's reasoning.",
+     "tokenStart": 0,
+     "tokenEnd": 10
+    }
+   }
+  ]
+ }
+}

@@ -1,0 +1,134 @@
+{
+ "tractate": "Berakhot",
+ "page": "2a",
+ "mark": "argument",
+ "cache_hit": true,
+ "raw": {
+  "summary": "The daf opens with the Mishnah's dispute about the earliest time for reciting the evening Shema, then the Gemara questions why the Mishnah begins with evening and clarifies the Tanna's scriptural basis, and finally explains why the Mishnah uses the phrase \"when the priests enter to eat their terumah\" rather than simply \"at nightfall.\"",
+  "instances": [
+   {
+    "startSegIdx": 0,
+    "endSegIdx": 4,
+    "fields": {
+     "title": "Opening Mishnah: Time for Evening Shema",
+     "summary": "The Mishnah presents three opinions on the time for reciting the evening Shema: from when priests enter to eat terumah until the end of the first watch (Rabbi Eliezer), until midnight (the Sages), and until dawn (Rabban Gamliel). A story illustrates Rabban Gamliel's lenient ruling, and the Mishnah extends this principle to other mitzvot whose proper time is until dawn, explaining that the Sages set midnight as a safeguard.",
+     "excerpt": "מֵאֵימָתַי קוֹרִין אֶת שְׁמַע בָּעֲרָבִין?",
+     "endExcerpt": "כְּדֵי לְהַרְחִיק אָדָם מִן הָעֲבֵירָה:",
+     "rabbiNames": [
+      "Rabbi Eliezer",
+      "Sages",
+      "Rabban Gamliel"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 5,
+    "endSegIdx": 7,
+    "fields": {
+     "title": "Gemara's First Question: Why Begin with Evening?",
+     "summary": "The Gemara asks why the Tanna begins with the evening Shema rather than the morning Shema, given that the verse mentions \"when you lie down\" before \"when you rise.\" It answers that the Tanna is expounding the verse, which lists lying down first.",
+     "excerpt": "גְּמָ׳ תַּנָּא הֵיכָא קָאֵי דְּקָתָנֵי ״מֵאֵימָתַי״?",
+     "endExcerpt": "מִשָּׁעָה שֶׁהַכֹּהֲנִים נִכְנָסִין לֶאֱכוֹל בִּתְרוּמָתָן.",
+     "rabbiNames": [
+      "Gemara's question",
+      "First answer"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 8,
+    "endSegIdx": 10,
+    "fields": {
+     "title": "Alternative Answer and Further Question",
+     "summary": "The Gemara offers an alternative answer: the Tanna learns from the order of creation (evening then morning). It then questions why the Mishnah's later section (about blessings) lists morning before evening, and resolves that the Tanna first discusses evening, then morning, and while still on morning explains its laws before returning to evening.",
+     "excerpt": "וְאִי בָּעֵית אֵימָא: יָלֵיף מִבְּרִיָּיתוֹ שֶׁל עוֹלָם,",
+     "endExcerpt": "וַהֲדַר פָּרֵישׁ מִילֵּי דְעַרְבִית.",
+     "rabbiNames": [
+      "Second answer",
+      "Gemara's question",
+      "Resolution"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 11,
+    "endSegIdx": 13,
+    "fields": {
+     "title": "Why 'When Priests Enter' Rather Than 'Nightfall'?",
+     "summary": "The Gemara asks why the Mishnah says \"from the time the priests enter to eat their terumah\" instead of simply \"from nightfall.\" It explains that the Mishnah teaches incidentally that priests eat terumah after nightfall, and that atonement does not delay eating terumah, citing a verse about sunset and purification.",
+     "excerpt": "אָמַר מָר מִשָּׁעָה שֶׁהַכֹּהֲנִים נִכְנָסִים לֶאֱכוֹל בִּתְרוּמָתָן.",
+     "endExcerpt": "וְהַאי ״וְטָהֵר״ — טְהַר יוֹמָא.",
+     "rabbiNames": [
+      "Gemara's question",
+      "Gemara's answer",
+      "Supporting baraita"
+     ]
+    }
+   }
+  ]
+ },
+ "expected": {
+  "summary": "The daf opens with the Mishnah's dispute about the earliest time for reciting the evening Shema, then the Gemara questions why the Mishnah begins with evening and clarifies the Tanna's scriptural basis, and finally explains why the Mishnah uses the phrase \"when the priests enter to eat their terumah\" rather than simply \"at nightfall.\"",
+  "instances": [
+   {
+    "startSegIdx": 0,
+    "endSegIdx": 4,
+    "fields": {
+     "title": "Opening Mishnah: Time for Evening Shema",
+     "summary": "The Mishnah presents three opinions on the time for reciting the evening Shema: from when priests enter to eat terumah until the end of the first watch (Rabbi Eliezer), until midnight (the Sages), and until dawn (Rabban Gamliel). A story illustrates Rabban Gamliel's lenient ruling, and the Mishnah extends this principle to other mitzvot whose proper time is until dawn, explaining that the Sages set midnight as a safeguard.",
+     "excerpt": "מֵאֵימָתַי קוֹרִין אֶת שְׁמַע בָּעֲרָבִין?",
+     "endExcerpt": "כְּדֵי לְהַרְחִיק אָדָם מִן הָעֲבֵירָה:",
+     "rabbiNames": [
+      "Rabbi Eliezer",
+      "Sages",
+      "Rabban Gamliel"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 5,
+    "endSegIdx": 7,
+    "fields": {
+     "title": "Gemara's First Question: Why Begin with Evening?",
+     "summary": "The Gemara asks why the Tanna begins with the evening Shema rather than the morning Shema, given that the verse mentions \"when you lie down\" before \"when you rise.\" It answers that the Tanna is expounding the verse, which lists lying down first.",
+     "excerpt": "גְּמָ׳ תַּנָּא הֵיכָא קָאֵי דְּקָתָנֵי ״מֵאֵימָתַי״?",
+     "endExcerpt": "מִשָּׁעָה שֶׁהַכֹּהֲנִים נִכְנָסִין לֶאֱכוֹל בִּתְרוּמָתָן.",
+     "rabbiNames": [
+      "Gemara's question",
+      "First answer"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 8,
+    "endSegIdx": 10,
+    "fields": {
+     "title": "Alternative Answer and Further Question",
+     "summary": "The Gemara offers an alternative answer: the Tanna learns from the order of creation (evening then morning). It then questions why the Mishnah's later section (about blessings) lists morning before evening, and resolves that the Tanna first discusses evening, then morning, and while still on morning explains its laws before returning to evening.",
+     "excerpt": "וְאִי בָּעֵית אֵימָא: יָלֵיף מִבְּרִיָּיתוֹ שֶׁל עוֹלָם,",
+     "endExcerpt": "וַהֲדַר פָּרֵישׁ מִילֵּי דְעַרְבִית.",
+     "rabbiNames": [
+      "Second answer",
+      "Gemara's question",
+      "Resolution"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 11,
+    "endSegIdx": 13,
+    "fields": {
+     "title": "Why 'When Priests Enter' Rather Than 'Nightfall'?",
+     "summary": "The Gemara asks why the Mishnah says \"from the time the priests enter to eat their terumah\" instead of simply \"from nightfall.\" It explains that the Mishnah teaches incidentally that priests eat terumah after nightfall, and that atonement does not delay eating terumah, citing a verse about sunset and purification.",
+     "excerpt": "אָמַר מָר מִשָּׁעָה שֶׁהַכֹּהֲנִים נִכְנָסִים לֶאֱכוֹל בִּתְרוּמָתָן.",
+     "endExcerpt": "וְהַאי ״וְטָהֵר״ — טְהַר יוֹמָא.",
+     "rabbiNames": [
+      "Gemara's question",
+      "Gemara's answer",
+      "Supporting baraita"
+     ]
+    }
+   }
+  ]
+ }
+}
