@@ -344,29 +344,43 @@ export default function ArgumentVoiceMap(props: Props): JSX.Element {
               </filter>
             </defs>
 
-            {/* Vertical spine */}
+            {/* Warm spine, trimmed to span only the actual rows (no empty
+                tail above the first / below the last marker). */}
             <line
-              x1={AXIS_WIDTH - 2}
-              y1={TOP_PADDING - 4}
-              x2={AXIS_WIDTH - 2}
-              y2={layout().height - BOTTOM_PADDING + 4}
-              stroke="#d4d4d4"
-              stroke-width={1}
+              x1={AXIS_WIDTH}
+              y1={layout().rows[0]?.y ?? TOP_PADDING}
+              x2={AXIS_WIDTH}
+              y2={layout().rows[layout().rows.length - 1]?.y ?? TOP_PADDING}
+              stroke="#e4e0d4"
+              stroke-width={1.5}
+              stroke-linecap="round"
             />
 
-            {/* Side axis labels */}
+            {/* Side axis: label · node-dot on the spine · connector to the card. */}
             <For each={layout().rows}>{(row) => (
               <>
                 <line
-                  x1={AXIS_WIDTH - 2}
+                  x1={AXIS_WIDTH}
                   y1={row.y}
-                  x2={AXIS_WIDTH + 6}
+                  x2={AXIS_WIDTH + COL_GAP}
                   y2={row.y}
-                  stroke="#999"
+                  stroke="#e4e0d4"
                   stroke-width={1.5}
+                  stroke-linecap="round"
                 />
-                <circle cx={AXIS_WIDTH - 10} cy={row.y} r={4} fill={row.color} stroke="#fff" stroke-width={1} />
-                <text x={AXIS_WIDTH - 18} y={row.y + 4} text-anchor="end" font-size="10" font-family="system-ui, -apple-system, sans-serif" fill="#555">
+                {/* White halo (canvas colour) lets the dot punch cleanly
+                    through the spine + connector. */}
+                <circle cx={AXIS_WIDTH} cy={row.y} r={5} fill={row.color} stroke="#fdfcf9" stroke-width={2} />
+                <text
+                  x={AXIS_WIDTH - 16}
+                  y={row.y}
+                  text-anchor="end"
+                  dominant-baseline="central"
+                  font-size="10"
+                  font-weight="500"
+                  font-family="system-ui, -apple-system, sans-serif"
+                  fill="#6b6661"
+                >
                   {row.label}
                 </text>
               </>
