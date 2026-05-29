@@ -146,14 +146,9 @@ export function McpPage(): JSX.Element {
 
       <h2 style={{ 'font-size': '1.05rem', 'margin-bottom': '0.4rem' }}>Access</h2>
       <p style={{ color: '#444', 'font-size': '0.9rem', 'line-height': 1.55, 'margin-bottom': '2rem' }}>
-        The endpoint is open and runs the public read-only subset: it can read everything and run the
-        registered marks/enrichments on real daf content (cached, default model). The sandbox has no
-        secrets and no outbound network of its own — its only access is the in-app API bridge. The
-        privileged <code>/api/studio/run</code> knobs (<code>ad_hoc</code>, <code>model_override</code>,{' '}
-        <code>bypass_cache</code>) require a studio secret; the owner can unlock them by adding an{' '}
-        <code>x-studio-secret</code> header in the client config (e.g.{' '}
-        <code>claude mcp add --transport http talmud {MCP_URL} --header "x-studio-secret: …"</code>).
-        Total AI spend is capped by a server-side budget guard.
+        The endpoint is open and read-focused — connect and start pulling daf data right away.
+        Everything in the examples above works on the public endpoint. A few advanced operations are
+        reserved for the maintainer and will return an authorization error if called.
       </p>
     </main>
   );
