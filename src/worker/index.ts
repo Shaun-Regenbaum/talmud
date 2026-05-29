@@ -1026,7 +1026,12 @@ interface RunResult {
   cache_hit: boolean;
   // Deterministic post-generation lint issues. Currently populated for
   // pesukim.synthesis (missing-Hebrew-excerpt). Empty array means clean.
+  // Holds only the `hard` issues that gate the cache write.
   lint_issues?: unknown[];
+  // Full standardized check-layer output (all severities, including `soft`
+  // observe-only checks like anchor-verbatim / partition-clean / edge-integrity).
+  // Never gates; surfaced for quality observation before a check is promoted.
+  check_issues?: unknown[];
 }
 
 interface RunResultEnrichment extends RunResult {
@@ -1375,12 +1380,16 @@ async function runMarkOnce(
   // move/citation, not the whole containing segment. A definition opts in via
   // `checks: []` in code-marks.ts; the transforms need the segment grid, so
   // fetch the gemara slice once when any check runs.
+  let markCheckIssues: unknown[] | undefined;
   if (parsed && def.checks && def.checks.length > 0) {
     const slice = await getGemaraSlice(rc.env, tractate, page, false);
     const checked = await runChecks(def.checks, parsed, {
       tractate, page, segmentsHe: slice.segments_he, defId: def.id, lang: rc.lang,
     });
     parsed = checked.parsed;
+    // Mark validators (anchor-verbatim / partition-clean) are all `soft` — they
+    // never gate the mark's cache write; attach them for quality observation.
+    if (checked.issues.length > 0) markCheckIssues = checked.issues;
   }
   // Special cases that don't fit the segments-only transform signature yet:
   //   - rabbi:  needs the daf Hebrew text, not the segment grid (A1b will port it).
@@ -1413,6 +1422,7 @@ async function runMarkOnce(
       user_prompt: userPrompt.length > 2000 ? userPrompt.slice(0, 2000) + '… [+' + (userPrompt.length - 2000) + ' chars]' : userPrompt,
     },
     cache_hit: false,
+    ...(markCheckIssues ? { check_issues: markCheckIssues } : {}),
   };
   if (!parse_error) await writeCachedResult(rc.env, cacheKey, out);
   return out;
@@ -1747,9 +1757,11 @@ async function runEnrichmentOnce(
   // halacha.* -> 'hebrew-gloss' (flag HEBREW_GLOSS_STYLE violations — bare /
   // parenthesized transliterations, calques — across every prose field + chip).
   // Issues are attached to the result (visible in dev tray / cache) but never
-  // reject the run; `hard` issues gate the cache write below so a bad output
-  // isn't pinned. These validators inspect `parsed` only (no segment grid).
-  let lint_issues: unknown[] | undefined;
+  // reject the run; only `hard` issues gate the cache write below so a bad
+  // output isn't pinned. `soft` issues (e.g. edge-integrity on argument.voices)
+  // are observe-only. These validators inspect `parsed` only (no segment grid).
+  let lint_issues: unknown[] | undefined;   // hard subset → gating + /api/usage path
+  let check_issues: unknown[] | undefined;  // all severities → observation
   let hardIssueCount = 0;
   if (parsed && !parse_error && def.checks && def.checks.length > 0) {
     const checked = await runChecks(def.checks, parsed, {
@@ -1757,8 +1769,10 @@ async function runEnrichmentOnce(
     });
     parsed = checked.parsed; // honor the transform contract (validators leave it unchanged)
     if (checked.issues.length > 0) {
-      lint_issues = checked.issues;
-      hardIssueCount = checked.issues.filter((i) => i.severity === 'hard').length;
+      check_issues = checked.issues;
+      const hard = checked.issues.filter((i) => i.severity === 'hard');
+      hardIssueCount = hard.length;
+      if (hard.length > 0) lint_issues = hard;
     }
   }
   const out: RunResultEnrichment = {
@@ -1783,6 +1797,7 @@ async function runEnrichmentOnce(
     deps_resolved: Object.keys(inputs.depends).length > 0 ? inputs.depends : undefined,
     anchors_resolved: Object.keys(inputs.anchors).length > 0 ? inputs.anchors : undefined,
     ...(lint_issues ? { lint_issues } : {}),
+    ...(check_issues ? { check_issues } : {}),
     ...(sectionRange ? { section_range: sectionRange } : {}),
   };
   // Gate cache writes on the checks passing — but BOUND the retries. An output

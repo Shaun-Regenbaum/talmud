@@ -17,10 +17,10 @@ import { keyForMark, keyForEnrichment } from '../../src/worker/cache-keys';
 
 describe('declarative check wiring', () => {
   const markChecks: Record<string, string[]> = {
-    argument: ['reanchor-argument'],
-    'argument-move': ['reanchor-argument-move'],
-    pesukim: ['reanchor-pesukim'],
-    aggadata: ['reanchor-aggadata'],
+    argument: ['reanchor-argument', 'anchor-verbatim', 'partition-clean'],
+    'argument-move': ['reanchor-argument-move', 'anchor-verbatim', 'partition-clean'],
+    pesukim: ['reanchor-pesukim', 'anchor-verbatim'],
+    aggadata: ['reanchor-aggadata', 'anchor-verbatim'],
   };
   const enrichmentChecks: Record<string, string[]> = {
     'pesukim.synthesis': ['hebrew-excerpt'],
@@ -28,6 +28,7 @@ describe('declarative check wiring', () => {
     'halacha.practical': ['hebrew-gloss'],
     'halacha.disputes': ['hebrew-gloss'],
     'halacha.synthesis': ['hebrew-gloss'],
+    'argument.voices': ['edge-integrity'],
   };
 
   it('canon marks declare the expected checks', () => {
