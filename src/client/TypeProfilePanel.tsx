@@ -12,7 +12,8 @@ import { createResource, For, Show, type JSX } from 'solid-js';
 
 interface Claim { layer: string; coverage: number }
 interface Profile { unit: { startSegIdx: number; endSegIdx: number }; claims: Claim[]; primary: string; isDispute: boolean; title?: string }
-interface ProfilesResponse { tractate: string; page: string; count: number; profiles: Profile[] }
+interface Marker { startSegIdx: number; endSegIdx: number; kind: string }
+interface ProfilesResponse { tractate: string; page: string; count: number; profiles: Profile[]; markers?: Marker[] }
 
 const PRIMARY_COLOR: Record<string, string> = {
   'pure-dialectic': '#6b7280', aggadata: '#7c3aed', halacha: '#0369a1', pesukim: '#a16207',
@@ -45,6 +46,19 @@ export default function TypeProfilePanel(props: {
           'font-size': '0.65rem', 'text-transform': 'uppercase', 'letter-spacing': '0.06em',
           color: '#888', 'margin-bottom': '0.3rem',
         }}>Section types · {data()!.count}</div>
+
+        <Show when={(data()!.markers ?? []).length > 0}>
+          <For each={data()!.markers}>{(m) => (
+            <div style={{
+              display: 'flex', 'align-items': 'center', gap: '0.4rem', margin: '0.1rem 0 0.25rem',
+              color: '#9a3412', 'font-size': '0.68rem', 'text-transform': 'uppercase', 'letter-spacing': '0.05em',
+            }}>
+              <span style={{ flex: 1, 'border-top': '1px dashed #fdba74' }} />
+              <span>⎯ {m.kind} · perek boundary · seg {m.startSegIdx}</span>
+              <span style={{ flex: 1, 'border-top': '1px dashed #fdba74' }} />
+            </div>
+          )}</For>
+        </Show>
 
         <For each={data()!.profiles}>{(p) => {
           const isActive = () => props.active?.start === p.unit.startSegIdx && props.active?.end === p.unit.endSegIdx;
