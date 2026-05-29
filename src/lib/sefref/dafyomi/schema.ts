@@ -92,7 +92,10 @@ export type DafyomiBody =
   | { type: 'review';     entries: DafyomiEntry[] }
   | { type: 'points';     entries: DafyomiPointsEntry[] }
   | { type: 'hebcharts';  tables: DafyomiTable[] }
-  | { type: 'yerushalmi'; entries: DafyomiEntry[] };
+  | { type: 'yerushalmi'; entries: DafyomiEntry[] }
+  // Revach l'Daf: each entry pairs a brief SUMMARY highlight (entry.title) with
+  // its "A BIT MORE" elaboration (entry.body), keyed by the printed number.
+  | { type: 'revach';     entries: DafyomiEntry[] };
 
 /** One content type's parsed result, scoped to one amud. Content types that
  *  don't subdivide by amud on the site report a single `amud: 'a'` block whose

@@ -26,9 +26,26 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import {
-  getDafyomiMasechet, DAFYOMI_CONTENT_TYPES, buildDafyomiUrl, dafToNNN,
+  getDafyomiMasechet, DAFYOMI_CONTENT_TYPES, buildDafyomiUrl, buildRevachUrl, dafToNNN,
 } from '../src/lib/sefref/dafyomi/masechtos.ts';
 import { assembleDaf } from '../src/lib/sefref/dafyomi/assemble.ts';
+
+// Revach l'Daf lives in the memdb app (revdaf.php?tid=&id=), not the
+// {dir}/{folder}/{prefix}-{typecode}-{NNN}.htm tree, so it has no
+// DAFYOMI_CONTENT_TYPES spec. We give it a pseudo-spec only so the cache path
+// and --types filtering work uniformly; its URL + presence marker are
+// special-cased below.
+const REVACH_SPEC = { type: 'revach', folder: 'memdb', typecode: 'rev' };
+const ALL_SPECS = [...DAFYOMI_CONTENT_TYPES, REVACH_SPEC];
+
+/** Live page URL for a spec (Revach uses a different URL shape). */
+function urlFor(m, spec, daf) {
+  return spec.type === 'revach' ? buildRevachUrl(m, daf) : buildDafyomiUrl(m, spec, daf);
+}
+/** Substring a real page must contain (Revach pages have no #content). */
+function markerFor(spec) {
+  return spec.type === 'revach' ? 'A BIT MORE' : 'id="content"';
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CACHE_DIR = join(__dirname, '.cache', 'dafyomi');
@@ -57,8 +74,8 @@ if (!masechet) { console.error(`error: tractate "${TRACTATE}" is not mapped in m
 if (!masechet.verified) console.warn(`[warn] masechet "${TRACTATE}" (dir=${masechet.dir} prefix=${masechet.prefix}) is UNVERIFIED — wrong dir/prefix will show as all-absent dafim`);
 
 const specs = TYPES
-  ? DAFYOMI_CONTENT_TYPES.filter((s) => TYPES.includes(s.type))
-  : DAFYOMI_CONTENT_TYPES;
+  ? ALL_SPECS.filter((s) => TYPES.includes(s.type))
+  : ALL_SPECS;
 if (specs.length === 0) { console.error(`error: no content types match --types ${TYPES}`); process.exit(1); }
 
 const dafs = ONE_DAF
@@ -76,7 +93,7 @@ function absentMarkerPath(typecode, daf) {
   return join(CACHE_DIR, masechet.dir, typecode, `${dafToNNN(daf)}.absent`);
 }
 
-async function fetchWithRetry(url) {
+async function fetchWithRetry(url, marker) {
   let lastErr;
   for (let attempt = 0; attempt < 3; attempt++) {
     const wait = Date.now() - lastFetchTs;
@@ -87,7 +104,7 @@ async function fetchWithRetry(url) {
       if (res.status === 404) return { absent: true };
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const body = await res.text();
-      if (!body.includes('id="content"')) return { absent: true };
+      if (!body.includes(marker)) return { absent: true };
       return { html: body };
     } catch (err) {
       lastErr = err;
@@ -105,8 +122,9 @@ async function getHtml(spec, daf) {
     if (existsSync(htmlPath)) return { html: await readFile(htmlPath, 'utf-8'), cached: true };
     if (existsSync(absPath)) return { absent: true, cached: true };
   }
-  const url = buildDafyomiUrl(masechet, spec, daf);
-  const result = await fetchWithRetry(url);
+  const url = urlFor(masechet, spec, daf);
+  if (!url) return { absent: true }; // e.g. Revach with no known tid for this masechet
+  const result = await fetchWithRetry(url, markerFor(spec));
   await mkdir(dirname(htmlPath), { recursive: true });
   if (result.absent) { await writeFile(absPath, '', 'utf-8'); return { absent: true }; }
   await writeFile(htmlPath, result.html, 'utf-8');
@@ -134,7 +152,7 @@ async function main() {
       try { r = await getHtml(spec, daf); }
       catch (err) { console.error(`  [err] ${TRACTATE} ${daf} ${spec.type}: ${err.message}`); r = { absent: true }; }
       if (!r.cached && (r.html || r.absent)) fetchedCount++;
-      fetched.push({ type: spec.type, url: buildDafyomiUrl(masechet, spec, daf), html: r.absent ? null : r.html });
+      fetched.push({ type: spec.type, url: urlFor(masechet, spec, daf) ?? '', html: r.absent ? null : r.html });
     }
 
     const { daf: dafObj, warnings } = assembleDaf(TRACTATE, daf, fetched);

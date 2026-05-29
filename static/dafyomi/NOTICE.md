@@ -16,5 +16,7 @@ If you are from Kollel Iyun HaDaf and would like anything changed, please reach
 out via the project repository.
 
 Content types ingested: Insights, Background, Halacha, Tosfos outlines, Review
-questions, Points outline, Hebrew charts, Yerushalmi outlines. Regenerate with
+questions, Points outline, Hebrew charts, Yerushalmi outlines, and Revach l'Daf
+(brief per-daf highlights, co-published with Revach l'Neshamah,
+<https://www.revach.net>). Regenerate with
 `node scripts/scrape-dafyomi.mjs --tractate <Tractate>`.

@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { parseDafyomiContent } from '../src/lib/sefref/dafyomi/parse/index';
 import { assembleDaf } from '../src/lib/sefref/dafyomi/assemble';
 import {
-  getDafyomiMasechet, dafToNNN, buildDafyomiUrl, getContentTypeSpec, DAFYOMI_CONTENT_TYPES,
+  getDafyomiMasechet, dafToNNN, buildDafyomiUrl, buildRevachUrl, getContentTypeSpec, DAFYOMI_CONTENT_TYPES,
 } from '../src/lib/sefref/dafyomi/masechtos';
 
 const fixture = (name: string) =>
@@ -106,6 +106,38 @@ describe('points parser', () => {
     const sub = a.entries[0].children?.[0];
     expect(sub?.speaker?.roleEn).toBe('Mishnah');
     expect(sub?.body.he?.length ?? 0).toBeGreaterThan(0); // ptshebtext attached
+  });
+});
+
+describe('revach parser', () => {
+  const r = parseDafyomiContent('revach', fixture('chulin-revach-110.htm'));
+  it('reads the title and one whole-daf block (no #content container)', () => {
+    expect(r.titleLine).toBe("REVACH L'DAF - CHULIN 110");
+    expect(r.parseWarnings).toEqual([]);
+    expect(r.blocks).toHaveLength(1);
+    expect(r.blocks[0].wholeDaf).toBe(true);
+  });
+  it('pairs each SUMMARY highlight (title) with its A BIT MORE elaboration (body)', () => {
+    const body = r.blocks[0].body;
+    if (body.type !== 'revach') throw new Error('wrong body type');
+    expect(body.entries).toHaveLength(5);
+    const first = body.entries[0];
+    expect(first.marker).toBe('1.');
+    expect(first.title?.en).toBe('The Gemara explains that Rav did not really maintain that it is forbidden to eat udders.');
+    expect(first.body.en).toContain('Tatalfush');
+    // numbers embedded in prose ("Pesachim (50a)") must NOT start a new item
+    expect(body.entries[2].body.en).toContain('Pesachim (50a)');
+  });
+});
+
+describe('buildRevachUrl', () => {
+  it('builds the memdb URL for a masechet with a known tid (no zero-padding)', () => {
+    const m = getDafyomiMasechet('Chullin')!;
+    expect(buildRevachUrl(m, 110)).toBe('https://www.dafyomi.co.il/memdb/revdaf.php?tid=31&id=110');
+  });
+  it('returns null when the masechet has no known Revach tid', () => {
+    const m = getDafyomiMasechet('Berakhot')!; // unverified, no tid
+    expect(buildRevachUrl(m, 2)).toBeNull();
   });
 });
 
