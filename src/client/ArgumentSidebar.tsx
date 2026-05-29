@@ -453,6 +453,59 @@ function ArgumentMoveCard(props: {
   );
 }
 
+/** Compact dialectical move-flow for pure-dialectic sections (שקלא וטריא) — the
+ *  third section-typing view, alongside the dispute voice graph and the
+ *  narrative beats. Shows the section's moves as an ordered, role-colored
+ *  sequence (question -> answer -> objection -> resolution …), click-to-highlight
+ *  on the daf. Where the voices graph is wrong (no real dispute) and the
+ *  narrative view is wrong (not a story), THIS is the fit-for-purpose view. */
+function ArgumentMoveFlow(props: {
+  moves: ArgumentMoveInstance[];
+  highlightedMoveId: string | null;
+  onHighlightMove: (move: ArgumentMoveInstance | null) => void;
+}): JSX.Element {
+  return (
+    <div style={{ 'margin-top': '0.6rem' }}>
+      <div style={{
+        'font-size': '0.7rem', 'text-transform': 'uppercase', 'letter-spacing': '0.08em',
+        color: '#999', 'margin-bottom': '0.4rem', display: 'flex', 'align-items': 'center', gap: '0.4rem',
+      }}>
+        Dialectic
+        <span dir="rtl" lang="he" style={{ 'font-family': '"Mekorot Vilna", serif', 'font-size': '0.8rem', color: '#666', 'text-transform': 'none', 'letter-spacing': 0 }}>שקלא וטריא</span>
+      </div>
+      <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.15rem' }}>
+        <For each={props.moves}>{(m) => {
+          const f = m.fields;
+          const color = ROLE_COLORS[f.role] ?? '#64748b';
+          const isActive = () => props.highlightedMoveId === f.id;
+          return (
+            <div
+              onClick={() => props.onHighlightMove(isActive() ? null : m)}
+              title="Highlight this move on the daf"
+              style={{
+                display: 'flex', 'align-items': 'baseline', gap: '0.45rem', cursor: 'pointer',
+                padding: '0.2rem 0.4rem', 'border-radius': '4px',
+                'border-left': `3px solid ${color}`,
+                background: isActive() ? '#fff7ed' : '#fafaf7',
+              }}
+            >
+              <span style={{
+                'flex-shrink': 0, 'font-size': '0.62rem', 'text-transform': 'uppercase', 'letter-spacing': '0.05em',
+                'font-weight': 600, color, 'min-width': '5.5rem',
+              }}>{moveKindLabel(f.role)}</span>
+              <span style={{ 'flex-shrink': 0, color: '#555', 'font-size': '0.74rem' }}>{f.voice}</span>
+              <span dir="rtl" lang="he" style={{
+                flex: 1, 'min-width': 0, 'white-space': 'nowrap', overflow: 'hidden', 'text-overflow': 'ellipsis',
+                'font-family': '"Mekorot Vilna", serif', 'font-size': '0.8rem', color: '#777',
+              }}>{f.excerpt}</span>
+            </div>
+          );
+        }}</For>
+      </div>
+    </div>
+  );
+}
+
 export function ArgumentBody(props: {
   section: Section;
   tractate: string;
@@ -570,7 +623,14 @@ export function ArgumentBody(props: {
         )}
       </Show>
       <Show when={voicesGate.suppress()}>
-        <Show when={voicesGate.profile()?.primary === 'aggadata'} fallback={<VoicesSuppressedNote profile={voicesGate.profile()} />}>
+        <Show
+          when={voicesGate.profile()?.primary === 'aggadata'}
+          fallback={
+            <Show when={sectionMoves()} fallback={<VoicesSuppressedNote profile={voicesGate.profile()} />}>
+              {(moves) => <ArgumentMoveFlow moves={moves()} highlightedMoveId={highlightedMoveId()} onHighlightMove={handleHighlightMove} />}
+            </Show>
+          }
+        >
           <ArgumentNarrative
             section={props.section}
             tractate={props.tractate}
