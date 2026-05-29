@@ -515,12 +515,12 @@ export const CODE_MARKS: MarkDefinition[] = [
   },
   {
     id: 'argument-overview',
-    label: 'Argument map',
-    description: 'Whole-daf argument flowchart (one button → sidebar voice map for the entire page), grounded on dafyomi.co.il study context.',
-    category: 'experimental',
-    // Dev-only for now: the whole-daf diagram is still being shaped (sugya-
-    // spanning ranges, cross-daf boundaries). Hidden from readers until promoted.
-    experimental: true,
+    label: 'Overview',
+    description: 'Whole-daf overview: the page\'s argument sections and how they relate (continues / resolves / depends-on / …), grounded on dafyomi.co.il study context.',
+    category: 'canon',
+    // Promoted to readers. The per-daf overview (sections + their flow) is solid
+    // and warmed globally; cross-daf / sugya-spanning ranges are a later layer
+    // (the sugya map) that builds on this, not a blocker for the per-daf view.
     anchor: 'whole-daf',
     render: {
       kind: 'chip',

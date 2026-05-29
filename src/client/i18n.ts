@@ -171,11 +171,11 @@ const CATALOG = {
   'sidebar.kind.rishonim': { en: 'Rishonim', he: 'ראשונים' },
   'sidebar.kind.voice-group': { en: 'Voice', he: 'קול' },
   'sidebar.kind.rabbi': { en: 'Rabbi', he: 'חכם' },
-  'sidebar.kind.argument-overview': { en: 'Argument map', he: 'מפת הטיעון' },
+  'sidebar.kind.argument-overview': { en: 'Overview', he: 'סקירה' },
 
   // — Whole-daf argument overview —
-  'overview.chip': { en: 'Argument map', he: 'מפת הטיעון' },
-  'overview.title': { en: 'Whole-daf argument map', he: 'מפת הטיעון של הדף' },
+  'overview.chip': { en: 'Overview', he: 'סקירה' },
+  'overview.title': { en: 'Daf overview', he: 'סקירת הדף' },
   'overview.empty': {
     en: 'No argument sections on this daf yet — open it with Arguments enabled so they load.',
     he: 'אין עדיין מקטעי טיעון בדף זה.',
@@ -646,7 +646,7 @@ const CATALOG = {
   'dafLoad.family.halachot': { en: 'halachot', he: 'הלכות' },
   'dafLoad.family.rabbis': { en: 'rabbis', he: 'חכמים' },
   'dafLoad.family.rishonim': { en: 'rishonim', he: 'ראשונים' },
-  'dafLoad.family.argumentOverview': { en: 'argument map', he: 'מפת הטיעון' },
+  'dafLoad.family.argumentOverview': { en: 'overview', he: 'סקירה' },
 
   // — Gutter icon tooltips —
   'gutter.argument': { en: 'Argument structure & rabbis', he: 'מבנה הסוגיה וחכמים' },
