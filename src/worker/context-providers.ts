@@ -20,6 +20,7 @@
 import {
   getDafyomiContentCached,
   getSefariaPageCached,
+  getSefariaSegmentsCached,
   getRishonimCached,
   getHalachaRefsCached,
   getMishnaBundleCached,
@@ -30,6 +31,7 @@ import {
   fromCommentaryPieces, fromRishonim, fromHalachaRefs, fromMishna, fromTopics,
 } from '../lib/context/fromSefaria';
 import { matchTosfos } from '../lib/context/anchor/tosfos';
+import { matchBackgroundTerms } from '../lib/context/anchor/bg-term';
 import type { ContextItem } from '../lib/context/types';
 
 export interface ContextEnv {
@@ -52,9 +54,10 @@ export async function collectContext(
 ): Promise<ContextItem[]> {
   const cache = env.CACHE;
   const allowLive = env.DAFYOMI_LIVE !== '0';
-  const [dafyomi, sefariaPage, rishonim, halacha, mishna, topics] = await Promise.all([
+  const [dafyomi, sefariaPage, segments, rishonim, halacha, mishna, topics] = await Promise.all([
     getDafyomiContentCached(cache, env.ASSETS, tractate, page, { assetOrigin, allowLive }).catch(() => null),
     getSefariaPageCached(cache, tractate, page).catch(() => null),
+    getSefariaSegmentsCached(cache, tractate, page).catch(() => null),
     getRishonimCached(cache, tractate, page).catch(() => []),
     getHalachaRefsCached(cache, tractate, page).catch(() => ({})),
     getMishnaBundleCached(cache, tractate, page).catch(() => []),
@@ -74,6 +77,8 @@ export async function collectContext(
     const dy = fromDafyomi(dafyomi);
     // Promote dafyomi Tosfos pieces to segments via Sefaria's tosafot pieceKeys.
     matchTosfos(dy, sefariaPage?.tosafot);
+    // Place Background glossary/girsa terms onto the segment(s) that quote them.
+    matchBackgroundTerms(dy, segments?.he);
     items.push(...dy);
   }
   return items;
