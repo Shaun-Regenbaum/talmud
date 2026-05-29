@@ -86,7 +86,10 @@ import { CODE_MARKS, CODE_ENRICHMENTS, findCodeMark, findCodeEnrichment } from '
 import {
   ENRICH_JSON_SCHEMA,
   TRANSLATE_BIO_JSON_SCHEMA,
+  ARGUMENT_BRIDGE_OUTPUT_SCHEMA,
 } from './output-schemas';
+import { findHadranSegments } from '../lib/typing/markers';
+import { hadranBridge, edgeOfTractateBridge, buildBridgePrompt, llmBridge, type DafBridge, type BridgeSection } from '../lib/typing/bridge';
 import type {
   MarkDefinition as SchemaMarkDefinition,
   EnrichmentDefinition as SchemaEnrichmentDefinition,
@@ -694,6 +697,66 @@ app.get('/api/studio/type-profiles/:tractate/:page', async (c) => {
   const slice = await getGemaraSlice(c.env, tractate, page, false);
   const markers = findMarkers(slice.segments_he);
   return c.json({ tractate, page, count: profiles.length, profiles, markers });
+});
+
+// Cross-daf bridge (sugya map): does this daf's closing discussion continue into
+// the next amud? Deterministic Hadran short-circuit (perek boundary → no), else
+// a cheap Flash judgement over the two boundary sections. Cached by daf.
+const bridgeKey = (t: string, p: string) =>
+  `bridge:v1:${t.toLowerCase().replace(/[^a-z0-9.-]+/g, '_')}:${p.toLowerCase().replace(/[^a-z0-9.-]+/g, '_')}`;
+async function computeDafBridge(env: Bindings, tractate: string, page: string): Promise<DafBridge> {
+  const from = { tractate, page };
+  const nextPage = adjacentAmud(tractate, page, 1);
+  if (!nextPage) return edgeOfTractateBridge(from);
+  const to = { tractate, page: nextPage };
+  const cache = env.CACHE;
+  const key = bridgeKey(tractate, page);
+  if (cache) { const c = await cache.get(key); if (c) { try { return JSON.parse(c) as DafBridge; } catch { /* recompute */ } } }
+
+  // Deterministic: a Hadran in the daf's final segment(s) closes the perek.
+  const slice = await getGemaraSlice(env, tractate, page, false);
+  const hadran = findHadranSegments(slice.segments_he);
+  const endsWithHadran = hadran.length > 0 && hadran[hadran.length - 1] >= slice.segments_he.length - 2;
+  let bridge = hadranBridge(from, to, endsWithHadran);
+
+  if (!bridge) {
+    const str = (v: unknown): string => (typeof v === 'string' ? v : '');
+    const numSeg = (i: RawInstance) => (typeof i.startSegIdx === 'number' ? i.startSegIdx : -1);
+    const prev = (await readMarkInstances(env, 'argument', tractate, page)).filter((i) => numSeg(i) >= 0);
+    const next = (await readMarkInstances(env, 'argument', tractate, nextPage)).filter((i) => numSeg(i) >= 0);
+    const prevLast = prev.length ? prev.reduce((a, b) => (numSeg(b) > numSeg(a) ? b : a)) : null;
+    const nextFirst = next.length ? next.reduce((a, b) => (numSeg(b) < numSeg(a) ? b : a)) : null;
+    if (!prevLast || !nextFirst) {
+      bridge = { from, to, continues: false, kind: 'new-topic', via: 'no-data', note: 'argument sections not warmed for both dapim' };
+    } else {
+      const prevSec: BridgeSection = { title: str(prevLast.fields?.title), summary: str(prevLast.fields?.summary), excerpt: str(prevLast.fields?.endExcerpt) || str(prevLast.fields?.excerpt) };
+      const nextSec: BridgeSection = { title: str(nextFirst.fields?.title), summary: str(nextFirst.fields?.summary), excerpt: str(nextFirst.fields?.excerpt) };
+      try {
+        const res = await runLLM(env, {
+          model: 'openrouter/deepseek/deepseek-v4-flash' as LLMModelId,
+          messages: [
+            { role: 'system', content: 'You are a Talmud scholar judging whether a sugya continues across a daf boundary.' },
+            { role: 'user', content: buildBridgePrompt(prevSec, nextSec) },
+          ],
+          max_tokens: 1500, temperature: 0.2,
+          response_format: { type: 'json_schema', json_schema: ARGUMENT_BRIDGE_OUTPUT_SCHEMA },
+          thinking: false, tag: 'argument-overview.bridge',
+        });
+        let verdict: { continues?: unknown; note?: unknown } = {};
+        try { verdict = JSON.parse(res.content); } catch { /* fall through */ }
+        bridge = llmBridge(from, to, verdict);
+      } catch {
+        bridge = { from, to, continues: false, kind: 'new-topic', via: 'no-data', note: 'bridge LLM unavailable' };
+      }
+    }
+  }
+  // Don't pin a no-data verdict — it should retry once the dafim are warmed / budget frees.
+  if (cache && bridge.via !== 'no-data') await cache.put(key, JSON.stringify(bridge));
+  return bridge;
+}
+app.get('/api/studio/bridge/:tractate/:page', async (c) => {
+  const bridge = await computeDafBridge(c.env, c.req.param('tractate'), c.req.param('page'));
+  return c.json(bridge);
 });
 
 app.get('/api/studio/enrichments', async (c) => {

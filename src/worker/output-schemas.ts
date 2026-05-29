@@ -133,6 +133,11 @@ export const ARGUMENT_NARRATIVE_OUTPUT_SCHEMA = responseFormat('argument_narrati
     excerpt: z.string(),
   })),
 }));
+// Cross-daf bridge verdict (sugya map): does the boundary continue into the next daf?
+export const ARGUMENT_BRIDGE_OUTPUT_SCHEMA = responseFormat('argument_bridge', z.object({
+  continues: z.boolean(),
+  note: z.string(),
+}));
 export const ARGUMENT_BACKGROUND_OUTPUT_SCHEMA = responseFormat('argument_background', single('background'));
 export const ARGUMENT_SYNTHESIS_OUTPUT_SCHEMA = responseFormat('argument_synthesis', single('synthesis'));
 
