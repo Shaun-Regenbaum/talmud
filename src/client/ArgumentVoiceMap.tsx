@@ -73,14 +73,15 @@ function isClickableVoiceName(name: string): boolean {
 }
 
 const AXIS_WIDTH = 110;
-const NODE_W = 152;
-const NODE_H = 40;
-const ROW_H = 84;
+const NODE_W = 178;
+const NODE_H = 52;
+const ROW_H = 96;
 const COL_GAP = 22;
-const NODE_GAP = 14;
+const NODE_GAP = 16;
 const TOP_PADDING = 22;
 const BOTTOM_PADDING = 24;
 const NAME_MAX_CHARS = 22;
+const VERT_LANE_STEP = 8;   // x offset between parallel vertical connectors
 
 const COLOR_A = '#1d4ed8';        // Position A — primary blue
 const COLOR_B = '#b91c1c';        // Position B — primary red
@@ -144,6 +145,9 @@ interface LaidEdge {
   to: LaidNode;
   kind: ArgumentEdge['kind'];
   note?: string;
+  /** x-offset for the vertical run of a same-column connector, so parallel
+   *  connectors sit side-by-side instead of overlapping (0 = centered). */
+  offset: number;
 }
 
 function buildLayout(data: ArgumentVoicesData): { nodes: LaidNode[]; edges: LaidEdge[]; rows: { y: number; label: string; color: string }[]; width: number; height: number } {
@@ -215,7 +219,37 @@ function buildLayout(data: ArgumentVoicesData): { nodes: LaidNode[]; edges: Laid
     const from = nodeByName.get(e.from);
     const to = nodeByName.get(e.to);
     if (!from || !to) continue;
-    edges.push({ from, to, kind: e.kind, note: e.note });
+    edges.push({ from, to, kind: e.kind, note: e.note, offset: 0 });
+  }
+
+  // Separate parallel vertical connectors. Edges that run straight down a
+  // single column (e.g. Position A → Stam → Position B, plus any spanning
+  // A → B) otherwise draw on top of each other. Within each column, colour the
+  // edges' y-intervals into lanes (touching segments share a lane) and spread
+  // each lane's vertical run symmetrically around the column centre.
+  const SAME_COL = (a: LaidNode, b: LaidNode) => Math.abs(a.x - b.x) < 1;
+  const byCol = new Map<number, LaidEdge[]>();
+  for (const e of edges) {
+    if (!SAME_COL(e.from, e.to)) continue;
+    const key = Math.round(e.from.x);
+    (byCol.get(key) ?? byCol.set(key, []).get(key)!).push(e);
+  }
+  for (const list of byCol.values()) {
+    const items = list
+      .map((e) => ({ e, lo: Math.min(e.from.y, e.to.y), hi: Math.max(e.from.y, e.to.y) }))
+      .sort((a, b) => a.lo - b.lo || a.hi - b.hi);
+    const laneHi: number[] = [];
+    const laneOf = new Map<LaidEdge, number>();
+    for (const it of items) {
+      let lane = laneHi.findIndex((h) => h <= it.lo); // touching segments share
+      if (lane === -1) { lane = laneHi.length; laneHi.push(it.hi); }
+      else laneHi[lane] = it.hi;
+      laneOf.set(it.e, lane);
+    }
+    const laneCount = laneHi.length;
+    for (const it of items) {
+      it.e.offset = (laneOf.get(it.e)! - (laneCount - 1) / 2) * VERT_LANE_STEP;
+    }
   }
 
   // Rows array for axis labels.
@@ -227,9 +261,18 @@ function buildLayout(data: ArgumentVoicesData): { nodes: LaidNode[]; edges: Laid
   return { nodes, edges, rows, width, height };
 }
 
-/** Edge path — delegated to the shared orthogonal router so connectors are
+/** Edge path. A same-column connector draws as a straight vertical at the
+ *  column centre plus its lane offset (so parallel runs sit side-by-side);
+ *  everything else delegates to the shared orthogonal router so connectors are
  *  always horizontal/vertical/L-shaped, never diagonal. */
-function edgePath(from: LaidNode, to: LaidNode): string {
+function edgePath(e: LaidEdge): string {
+  const { from, to } = e;
+  if (Math.abs(from.x - to.x) < 1) {
+    const x = from.x + NODE_W / 2 + e.offset;
+    const upper = from.y <= to.y ? from : to;
+    const lower = from.y <= to.y ? to : from;
+    return `M ${x} ${upper.y + NODE_H} L ${x} ${lower.y}`;
+  }
   return orthogonalEdgePath(
     { x: from.x, y: from.y, w: NODE_W, h: NODE_H },
     { x: to.x, y: to.y, w: NODE_W, h: NODE_H },
@@ -284,9 +327,10 @@ export default function ArgumentVoiceMap(props: Props): JSX.Element {
           // a page-level dir=rtl (Hebrew) the scroll origin stays on the left
           // and the right-hand columns aren't hidden off-screen.
           direction: 'ltr',
-          border: '1px solid #f0eee6',
-          'border-radius': '4px',
-          background: '#fff',
+          border: '1px solid #ece9df',
+          'border-radius': '8px',
+          background: '#fdfcf9',
+          padding: '0.35rem 0.2rem',
         }}>
           <svg
             width={layout().width}
@@ -294,6 +338,12 @@ export default function ArgumentVoiceMap(props: Props): JSX.Element {
             viewBox={`0 0 ${layout().width} ${layout().height}`}
             style={{ display: 'block' }}
           >
+            <defs>
+              <filter id="voice-card-shadow" x="-10%" y="-20%" width="120%" height="150%">
+                <feDropShadow dx="0" dy="1" stdDeviation="1.4" flood-color="#3a3320" flood-opacity="0.12" />
+              </filter>
+            </defs>
+
             {/* Vertical spine */}
             <line
               x1={AXIS_WIDTH - 2}
@@ -335,10 +385,12 @@ export default function ArgumentVoiceMap(props: Props): JSX.Element {
                 : `${e.from.name} ${e.kind} ${e.to.name}`;
               return (
                 <path
-                  d={edgePath(e.from, e.to)}
+                  d={edgePath(e)}
                   fill="none"
                   stroke={stroke}
                   stroke-width={1.5}
+                  stroke-linecap="round"
+                  stroke-opacity={0.8}
                   stroke-dasharray={dash}
                 >
                   <title>{titleText}</title>
@@ -361,38 +413,36 @@ export default function ArgumentVoiceMap(props: Props): JSX.Element {
                     y={n.y}
                     width={NODE_W}
                     height={NODE_H}
-                    rx={6}
-                    ry={6}
-                    fill="#fff"
-                    stroke={n.color}
-                    stroke-width={1.5}
+                    rx={10}
+                    ry={10}
+                    fill="#ffffff"
+                    stroke="#e4e0d4"
+                    stroke-width={1}
+                    filter="url(#voice-card-shadow)"
                   />
-                  <rect
-                    x={n.x}
-                    y={n.y}
-                    width={4}
-                    height={NODE_H}
-                    rx={2}
-                    ry={2}
-                    fill={n.color}
-                  />
+                  {/* Side-colour badge (replaces the old left accent bar, which
+                      overlapped the rounded border and read as a blob). */}
+                  <circle cx={n.x + 19} cy={n.y + NODE_H / 2} r={9} fill={n.color} />
                   <text
-                    x={n.x + NODE_W / 2}
-                    y={n.y + 16}
-                    text-anchor="middle"
-                    font-size="11"
+                    x={n.x + 36}
+                    y={n.y + NODE_H / 2 - 6}
+                    text-anchor="start"
+                    dominant-baseline="central"
+                    font-size="11.5"
                     font-weight="600"
                     font-family="system-ui, -apple-system, sans-serif"
-                    fill="#222"
+                    fill="#2a2723"
+                    direction={lang() === 'he' ? 'rtl' : 'ltr'}
                     style={clickable ? { 'text-decoration': 'underline', 'text-decoration-style': 'dotted', 'text-underline-offset': '2px' } : undefined}
                   >{compactName(voiceDisplayName(n))}</text>
                   <text
-                    x={n.x + NODE_W / 2}
-                    y={n.y + 30}
-                    text-anchor="middle"
-                    font-size="9"
+                    x={n.x + 36}
+                    y={n.y + NODE_H / 2 + 10}
+                    text-anchor="start"
+                    dominant-baseline="central"
+                    font-size="9.5"
                     font-family="system-ui, -apple-system, sans-serif"
-                    fill="#888"
+                    fill="#8a857c"
                   >{roleLabel(n.role)}</text>
                 </g>
               );
