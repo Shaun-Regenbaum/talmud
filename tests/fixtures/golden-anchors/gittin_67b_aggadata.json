@@ -1,0 +1,92 @@
+{
+ "tractate": "Gittin",
+ "page": "67b",
+ "mark": "aggadata",
+ "cache_hit": true,
+ "raw": {
+  "instances": [
+   {
+    "startSegIdx": 12,
+    "endSegIdx": 13,
+    "fields": {
+     "title": "Abaye's mother's remedies for sunstroke",
+     "titleHe": "סגולות לשימשא בת יומא",
+     "summary": "Abaye reports his mother's folk remedies for sunstroke of different durations: for a one-day sunstroke, a jug of water; for two days, a certain procedure; for three days, roasted red meat on coals and diluted wine. For an old sunstroke, a more elaborate ritual involving a black hen and immersion in water.",
+     "excerpt": "אֲמַרָה לִי אֵם: לְשִׁימְשָׁא בַּת יוֹמָא",
+     "endExcerpt": "וְלִסְלַיק וְלִיתֵיב",
+     "theme": "other"
+    }
+   },
+   {
+    "startSegIdx": 15,
+    "endSegIdx": 16,
+    "fields": {
+     "title": "Rav Amram the Pious and Yalta's cure",
+     "titleHe": "רב עמרם חסידא וילתא",
+     "summary": "Rav Amram the Pious, when tormented by the Exilarch's household, was made to lie on snow. The next day, when asked what he wanted, he requested roasted red meat on coals and diluted wine, but they brought fatty meat and fresh wine instead. Yalta heard, brought him to the bathhouse, and immersed him in water until the water turned to blood and his flesh came off in strips.",
+     "excerpt": "רַב עַמְרָם חֲסִידָא, כִּי הֲוָה מְצַעֲרִין לֵיהּ",
+     "endExcerpt": "וְקָאֵי בִּישְׂרֵיהּ פְּשִׁיטֵי פְּשִׁיטֵי",
+     "theme": "suffering"
+    }
+   },
+   {
+    "startSegIdx": 17,
+    "endSegIdx": 21,
+    "fields": {
+     "title": "Rav Sheshet and the Exilarch's test",
+     "titleHe": "רב ששת וריש גלותא",
+     "summary": "Rav Sheshet, who was blind, declined the Exilarch's invitation to a meal, claiming the servants were suspected of serving forbidden meat. To prove it, he had his servant steal a leg from the Exilarch's kitchen, then showed that the servants brought a three-legged animal and later a five-legged one. The Exilarch then arranged a meal where Rav Sheshet detected a fly in his bread through touch.",
+     "excerpt": "אֲמַר לֵיהּ רֵישׁ גָּלוּתָא לְרַב שֵׁשֶׁת",
+     "endExcerpt": "גַּשְּׁשֵׁיהּ וְשַׁקְלַהּ, כַּרְכַהּ בְּסוּדָרֵיהּ",
+     "theme": "biography"
+    }
+   }
+  ]
+ },
+ "expected": {
+  "instances": [
+   {
+    "startSegIdx": 12,
+    "endSegIdx": 13,
+    "fields": {
+     "title": "Abaye's mother's remedies for sunstroke",
+     "titleHe": "סגולות לשימשא בת יומא",
+     "summary": "Abaye reports his mother's folk remedies for sunstroke of different durations: for a one-day sunstroke, a jug of water; for two days, a certain procedure; for three days, roasted red meat on coals and diluted wine. For an old sunstroke, a more elaborate ritual involving a black hen and immersion in water.",
+     "excerpt": "אֲמַרָה לִי אֵם: לְשִׁימְשָׁא בַּת יוֹמָא",
+     "endExcerpt": "וְלִסְלַיק וְלִיתֵיב",
+     "theme": "other",
+     "tokenStart": 2,
+     "tokenEnd": 27
+    }
+   },
+   {
+    "startSegIdx": 15,
+    "endSegIdx": 16,
+    "fields": {
+     "title": "Rav Amram the Pious and Yalta's cure",
+     "titleHe": "רב עמרם חסידא וילתא",
+     "summary": "Rav Amram the Pious, when tormented by the Exilarch's household, was made to lie on snow. The next day, when asked what he wanted, he requested roasted red meat on coals and diluted wine, but they brought fatty meat and fresh wine instead. Yalta heard, brought him to the bathhouse, and immersed him in water until the water turned to blood and his flesh came off in strips.",
+     "excerpt": "רַב עַמְרָם חֲסִידָא, כִּי הֲוָה מְצַעֲרִין לֵיהּ",
+     "endExcerpt": "וְקָאֵי בִּישְׂרֵיהּ פְּשִׁיטֵי פְּשִׁיטֵי",
+     "theme": "suffering",
+     "tokenStart": 0,
+     "tokenEnd": 21
+    }
+   },
+   {
+    "startSegIdx": 18,
+    "endSegIdx": 20,
+    "fields": {
+     "title": "Rav Sheshet and the Exilarch's test",
+     "titleHe": "רב ששת וריש גלותא",
+     "summary": "Rav Sheshet, who was blind, declined the Exilarch's invitation to a meal, claiming the servants were suspected of serving forbidden meat. To prove it, he had his servant steal a leg from the Exilarch's kitchen, then showed that the servants brought a three-legged animal and later a five-legged one. The Exilarch then arranged a meal where Rav Sheshet detected a fly in his bread through touch.",
+     "excerpt": "אֲמַר לֵיהּ רֵישׁ גָּלוּתָא לְרַב שֵׁשֶׁת",
+     "endExcerpt": "גַּשְּׁשֵׁיהּ וְשַׁקְלַהּ, כַּרְכַהּ בְּסוּדָרֵיהּ",
+     "theme": "biography",
+     "tokenStart": 0,
+     "tokenEnd": 26
+    }
+   }
+  ]
+ }
+}

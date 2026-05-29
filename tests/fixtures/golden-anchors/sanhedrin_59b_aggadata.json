@@ -1,0 +1,120 @@
+{
+ "tractate": "Sanhedrin",
+ "page": "59b",
+ "mark": "aggadata",
+ "cache_hit": true,
+ "raw": {
+  "instances": [
+   {
+    "startSegIdx": 20,
+    "endSegIdx": 20,
+    "fields": {
+     "title": "The loss of the great servant serpent",
+     "titleHe": "חבל על שמש גדול",
+     "summary": "Rabbi Shimon ben Menasya laments the curse of the serpent, explaining that had it not been cursed, every Jew would have two good serpents to bring precious stones and sandalwood from north and south, and even to plow fields.",
+     "excerpt": "חֲבָל עַל שַׁמָּשׁ גָּדוֹל שֶׁאָבַד מִן הָעוֹלָם",
+     "endExcerpt": "וּלְחוּרְבָּתוֹ",
+     "theme": "other"
+    }
+   },
+   {
+    "startSegIdx": 21,
+    "endSegIdx": 21,
+    "fields": {
+     "title": "Adam in Eden served by angels",
+     "titleHe": "אדם הראשון מיסב בגן עדן",
+     "summary": "Rabbi Yehuda ben Teima describes Adam the First reclining in the Garden of Eden, with ministering angels roasting meat and straining wine for him, until the serpent saw his honor and became jealous.",
+     "excerpt": "אָדָם הָרִאשׁוֹן מֵיסֵב בְּגַן עֵדֶן הָיָה",
+     "endExcerpt": "וְנִתְקַנֵּא בּוֹ",
+     "theme": "biography"
+    }
+   },
+   {
+    "startSegIdx": 22,
+    "endSegIdx": 22,
+    "fields": {
+     "title": "Meat from heaven for Rabbi Shimon ben Chalafta",
+     "titleHe": "אין דבר טמא יורד מן השמים",
+     "summary": "Rabbi Shimon ben Chalafta was traveling when lions roared at him; he recited a verse, and two legs of meat fell from heaven. The lions ate one and left the other. He brought it to the study hall and asked if it was pure, and was told that nothing impure descends from heaven.",
+     "excerpt": "רַבִּי שִׁמְעוֹן בֶּן חֲלַפְתָּא הֲוָה קָאָזֵיל בְּאוֹרְחָא",
+     "endExcerpt": "אֵין דָּבָר טָמֵא יוֹרֵד מִן הַשָּׁמַיִם",
+     "theme": "miracle"
+    }
+   },
+   {
+    "startSegIdx": 23,
+    "endSegIdx": 23,
+    "fields": {
+     "title": "The donkey-shaped object from heaven",
+     "titleHe": "ירדה לו דמות חמור",
+     "summary": "Rabbi Zeira asked Rabbi Avahu: if a donkey-shaped object descended from heaven, what is its status? Rabbi Avahu rebuked him, saying that they already stated that nothing impure descends from heaven.",
+     "excerpt": "יָרְדָה לוֹ דְּמוּת חֲמוֹר, מַהוּ",
+     "endExcerpt": "אֵין דָּבָר טָמֵא יוֹרֵד מִן הַשָּׁמַיִם",
+     "theme": "miracle"
+    }
+   }
+  ]
+ },
+ "expected": {
+  "instances": [
+   {
+    "startSegIdx": 20,
+    "endSegIdx": 20,
+    "fields": {
+     "title": "The loss of the great servant serpent",
+     "titleHe": "חבל על שמש גדול",
+     "summary": "Rabbi Shimon ben Menasya laments the curse of the serpent, explaining that had it not been cursed, every Jew would have two good serpents to bring precious stones and sandalwood from north and south, and even to plow fields.",
+     "excerpt": "חֲבָל עַל שַׁמָּשׁ גָּדוֹל שֶׁאָבַד מִן הָעוֹלָם",
+     "endExcerpt": "וּלְחוּרְבָּתוֹ",
+     "theme": "other",
+     "tokenStart": 6,
+     "tokenEnd": 12
+    }
+   },
+   {
+    "startSegIdx": 21,
+    "endSegIdx": 21,
+    "fields": {
+     "title": "Adam in Eden served by angels",
+     "titleHe": "אדם הראשון מיסב בגן עדן",
+     "summary": "Rabbi Yehuda ben Teima describes Adam the First reclining in the Garden of Eden, with ministering angels roasting meat and straining wine for him, until the serpent saw his honor and became jealous.",
+     "excerpt": "אָדָם הָרִאשׁוֹן מֵיסֵב בְּגַן עֵדֶן הָיָה",
+     "endExcerpt": "וְנִתְקַנֵּא בּוֹ",
+     "theme": "biography",
+     "tokenStart": 7,
+     "tokenEnd": 28
+    }
+   },
+   {
+    "startSegIdx": 22,
+    "endSegIdx": 23,
+    "fields": {
+     "title": "Meat from heaven for Rabbi Shimon ben Chalafta",
+     "titleHe": "אין דבר טמא יורד מן השמים",
+     "summary": "Rabbi Shimon ben Chalafta was traveling when lions roared at him; he recited a verse, and two legs of meat fell from heaven. The lions ate one and left the other. He brought it to the study hall and asked if it was pure, and was told that nothing impure descends from heaven.",
+     "excerpt": "רַבִּי שִׁמְעוֹן בֶּן חֲלַפְתָּא הֲוָה קָאָזֵיל בְּאוֹרְחָא",
+     "endExcerpt": "אֵין דָּבָר טָמֵא יוֹרֵד מִן הַשָּׁמַיִם",
+     "theme": "miracle",
+     "tokenStart": 0,
+     "tokenEnd": 23
+    }
+   },
+   {
+    "startSegIdx": 23,
+    "endSegIdx": 23,
+    "fields": {
+     "title": "The donkey-shaped object from heaven",
+     "titleHe": "ירדה לו דמות חמור",
+     "summary": "Rabbi Zeira asked Rabbi Avahu: if a donkey-shaped object descended from heaven, what is its status? Rabbi Avahu rebuked him, saying that they already stated that nothing impure descends from heaven.",
+     "excerpt": "יָרְדָה לוֹ דְּמוּת חֲמוֹר, מַהוּ",
+     "endExcerpt": "אֵין דָּבָר טָמֵא יוֹרֵד מִן הַשָּׁמַיִם",
+     "theme": "miracle",
+     "tokenStart": 6,
+     "tokenEnd": 23
+    }
+   }
+  ]
+ },
+ "_regeneratedFromCurrentCode": true,
+ "_reason": "Production cache predated the 1-word-endExcerpt fallback in postProcessAggadata; expected regenerated from current code (verified faithful by the 14 production-anchored golden cases)."
+}

@@ -1,0 +1,950 @@
+{
+ "tractate": "Gittin",
+ "page": "68a",
+ "mark": "argument-move",
+ "cache_hit": true,
+ "raw": {
+  "instances": [
+   {
+    "startSegIdx": 0,
+    "endSegIdx": 0,
+    "fields": {
+     "id": "0-3_0",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Demons' complaint",
+     "rabbiNames": [],
+     "excerpt": "אִיגְּנִיב לַן כָּסָא דְכַסְפָּא",
+     "endExcerpt": "דִּכְרִיכָה בְּסוּדָרֵיהּ",
+     "summary": "The demons complain that their silver cup was stolen, and they find it wrapped in Rav Chisda's cloak."
+    }
+   },
+   {
+    "startSegIdx": 1,
+    "endSegIdx": 1,
+    "fields": {
+     "id": "0-3_1",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 1,
+     "role": "question",
+     "voice": "Demons' question",
+     "rabbiNames": [],
+     "excerpt": "אָמְרִי לֵיהּ: חֲזִי מָר",
+     "endExcerpt": "לְצַעוֹרַן",
+     "summary": "The demons ask Rav Chisda to see that he does not eat their food, suggesting it is only to torment them."
+    }
+   },
+   {
+    "startSegIdx": 1,
+    "endSegIdx": 1,
+    "fields": {
+     "id": "0-3_2",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 2,
+     "role": "answer",
+     "voice": "Rav Chisda's answer",
+     "rabbiNames": [
+      "Rav Chisda"
+     ],
+     "excerpt": "אֲמַר לְהוּ: אֲנָא מֵיכָל אֲכַלִי",
+     "endExcerpt": "טַעְמָא דְחִיוָּרָא",
+     "summary": "Rav Chisda insists he will eat and tastes a white substance in the food."
+    }
+   },
+   {
+    "startSegIdx": 1,
+    "endSegIdx": 1,
+    "fields": {
+     "id": "0-3_3",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 3,
+     "role": "objection",
+     "voice": "Demons' objection",
+     "rabbiNames": [],
+     "excerpt": "אָמְרִי לֵיהּ: חִיוָּרָא לָא עֲבִיד לַן",
+     "endExcerpt": "הָאִידָּנָא",
+     "summary": "The demons object that white substance is not currently produced for them."
+    }
+   },
+   {
+    "startSegIdx": 1,
+    "endSegIdx": 1,
+    "fields": {
+     "id": "0-3_4",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 4,
+     "role": "resolution",
+     "voice": "Rav Chisda's resolution",
+     "rabbiNames": [
+      "Rav Chisda"
+     ],
+     "excerpt": "אֲמַר לְהוּ: בְּדַקוּ בְּדוּכְתֵּיהּ",
+     "endExcerpt": "לָקוּתָא הִיא",
+     "summary": "Rav Chisda instructs them to check the place, citing his principle that black on white or white on black is a sign of leprosy."
+    }
+   },
+   {
+    "startSegIdx": 1,
+    "endSegIdx": 1,
+    "fields": {
+     "id": "0-3_5",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 5,
+     "role": "supporting-evidence",
+     "voice": "Supporting baraita",
+     "rabbiNames": [],
+     "excerpt": "בְּדוּק אַשְׁכְּחוּהּ",
+     "endExcerpt": "אַשְׁכְּחוּהּ",
+     "summary": "They check and find the leprous spot, confirming Rav Chisda's diagnosis."
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "id": "0-3_6",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 6,
+     "role": "opening",
+     "voice": "Narrative continuation",
+     "rabbiNames": [],
+     "excerpt": "כִּי קָא נָפֵיק",
+     "endExcerpt": "לֵיתֵי מָר לֵינַח",
+     "summary": "As Rav Chisda leaves, the demons dig a pit, cover it with a mat, and invite him to rest."
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "id": "0-3_7",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 7,
+     "role": "digression",
+     "voice": "Rav Chisda's snort",
+     "rabbiNames": [
+      "Rav Chisda"
+     ],
+     "excerpt": "נְחַר לֵיהּ רַב חִסְדָּא מֵאֲחוֹרֵיהּ",
+     "endExcerpt": "מֵאֲחוֹרֵיהּ",
+     "summary": "Rav Chisda snorts from behind, signaling his awareness."
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "id": "0-3_8",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 8,
+     "role": "question",
+     "voice": "Rav Chisda's question to child",
+     "rabbiNames": [
+      "Rav Chisda"
+     ],
+     "excerpt": "אֲמַר לֵיהּ לְיָנוֹקָא: פְּסוֹק לִי פְּסוּקָיךְ",
+     "endExcerpt": "פְּסוּקָיךְ",
+     "summary": "Rav Chisda asks a child to recite his verse."
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "id": "0-3_9",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 9,
+     "role": "answer",
+     "voice": "Child's answer",
+     "rabbiNames": [],
+     "excerpt": "אֲמַר לֵיהּ: נְטֵה לְךָ עַל יְמִינְךָ",
+     "endExcerpt": "עַל שְׂמֹאלֶךָ",
+     "summary": "The child recites the verse 'Incline to your right or to your left,' warning Rav Chisda to avoid the trap."
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "id": "0-3_10",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 10,
+     "role": "question",
+     "voice": "Rav Chisda's question to servant",
+     "rabbiNames": [
+      "Rav Chisda"
+     ],
+     "excerpt": "אֲמַר לֵיה לְשַׁמָּעֵיהּ: מַאי קָא חָזֵית",
+     "endExcerpt": "קָא חָזֵית",
+     "summary": "Rav Chisda asks his servant what he sees."
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "id": "0-3_11",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 11,
+     "role": "answer",
+     "voice": "Servant's answer",
+     "rabbiNames": [],
+     "excerpt": "אֲמַר לֵיהּ: צִיפְּתָא דְּשַׁדְיָא",
+     "endExcerpt": "דְּשַׁדְיָא",
+     "summary": "The servant reports seeing a mat spread over the pit."
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "id": "0-3_12",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 12,
+     "role": "resolution",
+     "voice": "Rav Chisda's instruction",
+     "rabbiNames": [
+      "Rav Chisda"
+     ],
+     "excerpt": "אֲמַר לֵיהּ: הֲדַר מִינַּהּ",
+     "endExcerpt": "מִינַּהּ",
+     "summary": "Rav Chisda tells the servant to turn back from the trap."
+    }
+   },
+   {
+    "startSegIdx": 3,
+    "endSegIdx": 3,
+    "fields": {
+     "id": "0-3_13",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 13,
+     "role": "question",
+     "voice": "Demons' question",
+     "rabbiNames": [],
+     "excerpt": "לְבָתַר דִּנְפַק, אֲמַר לֵיהּ רַב חִסְדָּא",
+     "endExcerpt": "יָדַע מָר",
+     "summary": "After escaping, the demons ask Rav Chisda how he knew of the plot."
+    }
+   },
+   {
+    "startSegIdx": 3,
+    "endSegIdx": 3,
+    "fields": {
+     "id": "0-3_14",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 14,
+     "role": "answer",
+     "voice": "Rav Chisda's answer",
+     "rabbiNames": [
+      "Rav Chisda"
+     ],
+     "excerpt": "אֲמַר לֵיהּ: חֲדָא – דִּנְחַר לִי מָר",
+     "endExcerpt": "דְּלָא מְעַלּוּ",
+     "summary": "Rav Chisda explains he knew from three signs: his own snort, the child's verse, and the fact that servants are suspected of being dishonest."
+    }
+   },
+   {
+    "startSegIdx": 4,
+    "endSegIdx": 5,
+    "fields": {
+     "id": "4-5_0",
+     "sectionStartSegIdx": 4,
+     "sectionEndSegIdx": 5,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Gemara's interpretation",
+     "rabbiNames": [],
+     "excerpt": "עָשִׂיתִי לִי שָׁרִים וְשָׁרוֹת",
+     "endExcerpt": "שִׁידְּתָא",
+     "summary": "The Gemara interprets the verse from Ecclesiastes, explaining 'sharim vesharon' as types of music, 'ta'anugot' as pools and bathhouses, and 'shidah veshidot' as male and female demons, with a Western alternative term 'shidta'."
+    }
+   },
+   {
+    "startSegIdx": 4,
+    "endSegIdx": 5,
+    "fields": {
+     "id": "4-5_1",
+     "sectionStartSegIdx": 4,
+     "sectionEndSegIdx": 5,
+     "moveOrder": 1,
+     "role": "supporting-evidence",
+     "voice": "Rabbi Yochanan",
+     "rabbiNames": [
+      "Rabbi Yochanan"
+     ],
+     "excerpt": "אָמַר רַבִּי יוֹחָנָן",
+     "endExcerpt": "מָה הִיא",
+     "summary": "Rabbi Yochanan states that there were three hundred types of demons in Shichin, but he does not know what a female demon herself is."
+    }
+   },
+   {
+    "startSegIdx": 6,
+    "endSegIdx": 7,
+    "fields": {
+     "id": "6-7_0",
+     "sectionStartSegIdx": 6,
+     "sectionEndSegIdx": 7,
+     "moveOrder": 0,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "אָמַר מָר, הָכָא תַּרְגִּימוּ: שֵׁידָא וְשֵׁידְתִין",
+     "endExcerpt": "לְמַאי אִיבְּעִי לֵיהּ?",
+     "summary": "The Gemara asks why Solomon needed male and female demons (שֵׁדָה וְשֵׁידְתִין)."
+    }
+   },
+   {
+    "startSegIdx": 6,
+    "endSegIdx": 7,
+    "fields": {
+     "id": "6-7_1",
+     "sectionStartSegIdx": 6,
+     "sectionEndSegIdx": 7,
+     "moveOrder": 1,
+     "role": "answer",
+     "voice": "Gemara's explanation",
+     "rabbiNames": [],
+     "excerpt": "דִּכְתִיב: ״וְהַבַּיִת בְּהִבָּנוֹתוֹ אֶבֶן שְׁלֵמָה מַסָּע נִבְנָה וְגוֹ׳״",
+     "endExcerpt": "אֲמַרוּ לֵיהּ: אִיכָּא שָׁמִירָא דְּאַיְיתִי מֹשֶׁה לְאַבְנֵי אֵפוֹד",
+     "summary": "The Gemara explains that when building the Temple, Solomon asked the Sages how to cut stones without iron, and they told him about the shamir worm that Moses used for the stones of the ephod."
+    }
+   },
+   {
+    "startSegIdx": 6,
+    "endSegIdx": 7,
+    "fields": {
+     "id": "6-7_2",
+     "sectionStartSegIdx": 6,
+     "sectionEndSegIdx": 7,
+     "moveOrder": 2,
+     "role": "answer",
+     "voice": "Sages' advice to Solomon",
+     "rabbiNames": [],
+     "excerpt": "אֲמַר לְהוּ: הֵיכָא אִישְׁתְּכַח?",
+     "endExcerpt": "דִּילְמָא אַשְׁמְדַאי – מַלְכָּא דְשֵׁידֵי, יָדַע",
+     "summary": "The Sages advised Solomon to bring male and female demons and subdue them together, as they might know and reveal the location of the shamir; the demons said they did not know, but suggested that Ashmedai, the king of demons, might know."
+    }
+   },
+   {
+    "startSegIdx": 8,
+    "endSegIdx": 8,
+    "fields": {
+     "id": "8-9_0",
+     "sectionStartSegIdx": 8,
+     "sectionEndSegIdx": 9,
+     "moveOrder": 0,
+     "role": "question",
+     "voice": "Solomon's question to the demons",
+     "rabbiNames": [
+      "Solomon"
+     ],
+     "excerpt": "אֲמַר לְהוּ: הֵיכָא אִיתֵיהּ?",
+     "endExcerpt": "אָמְרִי לֵיהּ: אִיתֵיהּ בְּטוּרָא פְּלָן.",
+     "summary": "Solomon asks the demons where Ashmedai is, and they reply that he is on a certain mountain."
+    }
+   },
+   {
+    "startSegIdx": 8,
+    "endSegIdx": 8,
+    "fields": {
+     "id": "8-9_1",
+     "sectionStartSegIdx": 8,
+     "sectionEndSegIdx": 9,
+     "moveOrder": 1,
+     "role": "answer",
+     "voice": "Demons' description of Ashmedai's routine",
+     "rabbiNames": [],
+     "excerpt": "כַּרְיָא לֵיהּ בֵּירָא",
+     "endExcerpt": "וְחָתֵים לֵיהּ וְאָזֵיל.",
+     "summary": "The demons describe Ashmedai's daily routine: he ascends to heaven to study, descends to earth to study, then returns to check his seal, drink, and reseal it."
+    }
+   },
+   {
+    "startSegIdx": 9,
+    "endSegIdx": 9,
+    "fields": {
+     "id": "8-9_2",
+     "sectionStartSegIdx": 8,
+     "sectionEndSegIdx": 9,
+     "moveOrder": 2,
+     "role": "resolution",
+     "voice": "Solomon's plan and Benaiah's preparation",
+     "rabbiNames": [
+      "Solomon",
+      "Benaiah ben Yehoyada"
+     ],
+     "excerpt": "שַׁדְּרֵיהּ לִבְנָיָהוּ בֶּן יְהוֹיָדָע",
+     "endExcerpt": "סְלֵיק יְתֵיב בְּאִילָנָא",
+     "summary": "Solomon sends Benaiah ben Yehoyada with a chain engraved with the Name, a ring engraved with the Name, tufts of wool, and skins of wine; Benaiah digs a pit below, drains the water, plugs it with wool, digs a pit above, pours in wine, and covers it, then sits in a tree."
+    }
+   },
+   {
+    "startSegIdx": 10,
+    "endSegIdx": 10,
+    "fields": {
+     "id": "10-11_0",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 11,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Narrative (Ashmedai's arrival)",
+     "rabbiNames": [
+      "Ashmedai"
+     ],
+     "excerpt": "כִּי אֲתָא סַיְירֵיהּ לְגוּשְׁפַּנְקָא",
+     "endExcerpt": "לָא אִישְׁתִּי",
+     "summary": "Ashmedai arrives, finds wine instead of water, and refuses to drink, citing verses against wine."
+    }
+   },
+   {
+    "startSegIdx": 11,
+    "endSegIdx": 11,
+    "fields": {
+     "id": "10-11_1",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 11,
+     "moveOrder": 1,
+     "role": "resolution",
+     "voice": "Narrative (Ashmedai's capture)",
+     "rabbiNames": [
+      "Ashmedai",
+      "Benaiah ben Yehoyada"
+     ],
+     "excerpt": "כִּי צָחֵי, לָא סַגִּיא לֵיהּ",
+     "endExcerpt": "שְׁמָא דְּמָרָךְ עֲלָךְ",
+     "summary": "Ashmedai becomes thirsty, drinks, falls asleep; Benaiah descends, chains him, and seals the chain with the Name."
+    }
+   },
+   {
+    "startSegIdx": 12,
+    "endSegIdx": 12,
+    "fields": {
+     "id": "12-12_0",
+     "sectionStartSegIdx": 12,
+     "sectionEndSegIdx": 12,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Narrator (Stam)",
+     "rabbiNames": [],
+     "excerpt": "כִּי נָקֵיט לֵיהּ וְאָתֵי",
+     "endExcerpt": "נְפַקָא",
+     "summary": "The narrative describes Ashmedai's violent journey as Benaiah leads him, uprooting a palm tree and destroying a house, until a widow comes out to beg him not to destroy her hut."
+    }
+   }
+  ]
+ },
+ "expected": {
+  "instances": [
+   {
+    "startSegIdx": 0,
+    "endSegIdx": 0,
+    "fields": {
+     "id": "0-3_0",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Demons' complaint",
+     "rabbiNames": [],
+     "excerpt": "אִיגְּנִיב לַן כָּסָא דְכַסְפָּא",
+     "endExcerpt": "דִּכְרִיכָה בְּסוּדָרֵיהּ",
+     "summary": "The demons complain that their silver cup was stolen, and they find it wrapped in Rav Chisda's cloak.",
+     "tokenStart": 0,
+     "tokenEnd": 10
+    }
+   },
+   {
+    "startSegIdx": 1,
+    "endSegIdx": 1,
+    "fields": {
+     "id": "0-3_1",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 1,
+     "role": "question",
+     "voice": "Demons' question",
+     "rabbiNames": [],
+     "excerpt": "אָמְרִי לֵיהּ: חֲזִי מָר",
+     "endExcerpt": "לְצַעוֹרַן",
+     "summary": "The demons ask Rav Chisda to see that he does not eat their food, suggesting it is only to torment them.",
+     "tokenStart": 0,
+     "tokenEnd": 9
+    }
+   },
+   {
+    "startSegIdx": 1,
+    "endSegIdx": 1,
+    "fields": {
+     "id": "0-3_2",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 2,
+     "role": "answer",
+     "voice": "Rav Chisda's answer",
+     "rabbiNames": [
+      "Rav Chisda"
+     ],
+     "excerpt": "אֲמַר לְהוּ: אֲנָא מֵיכָל אֲכַלִי",
+     "endExcerpt": "טַעְמָא דְחִיוָּרָא",
+     "summary": "Rav Chisda insists he will eat and tastes a white substance in the food.",
+     "tokenStart": 10,
+     "tokenEnd": 18
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "id": "0-3_3",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 3,
+     "role": "objection",
+     "voice": "Demons' objection",
+     "rabbiNames": [],
+     "excerpt": "אָמְרִי לֵיהּ: חִיוָּרָא לָא עֲבִיד לַן",
+     "endExcerpt": "הָאִידָּנָא",
+     "summary": "The demons object that white substance is not currently produced for them.",
+     "tokenStart": 0,
+     "tokenEnd": 48
+    }
+   },
+   {
+    "startSegIdx": 1,
+    "endSegIdx": 1,
+    "fields": {
+     "id": "0-3_4",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 4,
+     "role": "resolution",
+     "voice": "Rav Chisda's resolution",
+     "rabbiNames": [
+      "Rav Chisda"
+     ],
+     "excerpt": "אֲמַר לְהוּ: בְּדַקוּ בְּדוּכְתֵּיהּ",
+     "endExcerpt": "לָקוּתָא הִיא",
+     "summary": "Rav Chisda instructs them to check the place, citing his principle that black on white or white on black is a sign of leprosy.",
+     "tokenStart": 26,
+     "tokenEnd": 38
+    }
+   },
+   {
+    "startSegIdx": 1,
+    "endSegIdx": 1,
+    "fields": {
+     "id": "0-3_5",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 5,
+     "role": "supporting-evidence",
+     "voice": "Supporting baraita",
+     "rabbiNames": [],
+     "excerpt": "בְּדוּק אַשְׁכְּחוּהּ",
+     "endExcerpt": "אַשְׁכְּחוּהּ",
+     "summary": "They check and find the leprous spot, confirming Rav Chisda's diagnosis.",
+     "tokenStart": 39,
+     "tokenEnd": 40
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "id": "0-3_6",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 6,
+     "role": "opening",
+     "voice": "Narrative continuation",
+     "rabbiNames": [],
+     "excerpt": "כִּי קָא נָפֵיק",
+     "endExcerpt": "לֵיתֵי מָר לֵינַח",
+     "summary": "As Rav Chisda leaves, the demons dig a pit, cover it with a mat, and invite him to rest.",
+     "tokenStart": 0,
+     "tokenEnd": 14
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "id": "0-3_7",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 7,
+     "role": "digression",
+     "voice": "Rav Chisda's snort",
+     "rabbiNames": [
+      "Rav Chisda"
+     ],
+     "excerpt": "נְחַר לֵיהּ רַב חִסְדָּא מֵאֲחוֹרֵיהּ",
+     "endExcerpt": "מֵאֲחוֹרֵיהּ",
+     "summary": "Rav Chisda snorts from behind, signaling his awareness.",
+     "tokenStart": 15,
+     "tokenEnd": 48
+    }
+   },
+   {
+    "startSegIdx": 3,
+    "endSegIdx": 3,
+    "fields": {
+     "id": "0-3_8",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 8,
+     "role": "question",
+     "voice": "Rav Chisda's question to child",
+     "rabbiNames": [
+      "Rav Chisda"
+     ],
+     "excerpt": "אֲמַר לֵיהּ לְיָנוֹקָא: פְּסוֹק לִי פְּסוּקָיךְ",
+     "endExcerpt": "פְּסוּקָיךְ",
+     "summary": "Rav Chisda asks a child to recite his verse.",
+     "tokenStart": 2,
+     "tokenEnd": 25
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "id": "0-3_9",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 9,
+     "role": "answer",
+     "voice": "Child's answer",
+     "rabbiNames": [],
+     "excerpt": "אֲמַר לֵיהּ: נְטֵה לְךָ עַל יְמִינְךָ",
+     "endExcerpt": "עַל שְׂמֹאלֶךָ",
+     "summary": "The child recites the verse 'Incline to your right or to your left,' warning Rav Chisda to avoid the trap.",
+     "tokenStart": 26,
+     "tokenEnd": 34
+    }
+   },
+   {
+    "startSegIdx": 3,
+    "endSegIdx": 3,
+    "fields": {
+     "id": "0-3_10",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 10,
+     "role": "question",
+     "voice": "Rav Chisda's question to servant",
+     "rabbiNames": [
+      "Rav Chisda"
+     ],
+     "excerpt": "אֲמַר לֵיה לְשַׁמָּעֵיהּ: מַאי קָא חָזֵית",
+     "endExcerpt": "קָא חָזֵית",
+     "summary": "Rav Chisda asks his servant what he sees.",
+     "tokenStart": 2,
+     "tokenEnd": 25
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "id": "0-3_11",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 11,
+     "role": "answer",
+     "voice": "Servant's answer",
+     "rabbiNames": [],
+     "excerpt": "אֲמַר לֵיהּ: צִיפְּתָא דְּשַׁדְיָא",
+     "endExcerpt": "דְּשַׁדְיָא",
+     "summary": "The servant reports seeing a mat spread over the pit.",
+     "tokenStart": 20,
+     "tokenEnd": 48
+    }
+   },
+   {
+    "startSegIdx": 3,
+    "endSegIdx": 3,
+    "fields": {
+     "id": "0-3_12",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 12,
+     "role": "resolution",
+     "voice": "Rav Chisda's instruction",
+     "rabbiNames": [
+      "Rav Chisda"
+     ],
+     "excerpt": "אֲמַר לֵיהּ: הֲדַר מִינַּהּ",
+     "endExcerpt": "מִינַּהּ",
+     "summary": "Rav Chisda tells the servant to turn back from the trap.",
+     "tokenStart": 2,
+     "tokenEnd": 2
+    }
+   },
+   {
+    "startSegIdx": 3,
+    "endSegIdx": 3,
+    "fields": {
+     "id": "0-3_13",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 13,
+     "role": "question",
+     "voice": "Demons' question",
+     "rabbiNames": [],
+     "excerpt": "לְבָתַר דִּנְפַק, אֲמַר לֵיהּ רַב חִסְדָּא",
+     "endExcerpt": "יָדַע מָר",
+     "summary": "After escaping, the demons ask Rav Chisda how he knew of the plot.",
+     "tokenStart": 0,
+     "tokenEnd": 9
+    }
+   },
+   {
+    "startSegIdx": 3,
+    "endSegIdx": 3,
+    "fields": {
+     "id": "0-3_14",
+     "sectionStartSegIdx": 0,
+     "sectionEndSegIdx": 3,
+     "moveOrder": 14,
+     "role": "answer",
+     "voice": "Rav Chisda's answer",
+     "rabbiNames": [
+      "Rav Chisda"
+     ],
+     "excerpt": "אֲמַר לֵיהּ: חֲדָא – דִּנְחַר לִי מָר",
+     "endExcerpt": "דְּלָא מְעַלּוּ",
+     "summary": "Rav Chisda explains he knew from three signs: his own snort, the child's verse, and the fact that servants are suspected of being dishonest.",
+     "tokenStart": 10,
+     "tokenEnd": 25
+    }
+   },
+   {
+    "startSegIdx": 4,
+    "endSegIdx": 4,
+    "fields": {
+     "id": "4-5_0",
+     "sectionStartSegIdx": 4,
+     "sectionEndSegIdx": 5,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Gemara's interpretation",
+     "rabbiNames": [],
+     "excerpt": "עָשִׂיתִי לִי שָׁרִים וְשָׁרוֹת",
+     "endExcerpt": "שִׁידְּתָא",
+     "summary": "The Gemara interprets the verse from Ecclesiastes, explaining 'sharim vesharon' as types of music, 'ta'anugot' as pools and bathhouses, and 'shidah veshidot' as male and female demons, with a Western alternative term 'shidta'.",
+     "tokenStart": 0,
+     "tokenEnd": 28
+    }
+   },
+   {
+    "startSegIdx": 5,
+    "endSegIdx": 5,
+    "fields": {
+     "id": "4-5_1",
+     "sectionStartSegIdx": 4,
+     "sectionEndSegIdx": 5,
+     "moveOrder": 1,
+     "role": "supporting-evidence",
+     "voice": "Rabbi Yochanan",
+     "rabbiNames": [
+      "Rabbi Yochanan"
+     ],
+     "excerpt": "אָמַר רַבִּי יוֹחָנָן",
+     "endExcerpt": "מָה הִיא",
+     "summary": "Rabbi Yochanan states that there were three hundred types of demons in Shichin, but he does not know what a female demon herself is.",
+     "tokenStart": 0,
+     "tokenEnd": 14
+    }
+   },
+   {
+    "startSegIdx": 6,
+    "endSegIdx": 6,
+    "fields": {
+     "id": "6-7_0",
+     "sectionStartSegIdx": 6,
+     "sectionEndSegIdx": 7,
+     "moveOrder": 0,
+     "role": "question",
+     "voice": "Gemara's question",
+     "rabbiNames": [],
+     "excerpt": "אָמַר מָר, הָכָא תַּרְגִּימוּ: שֵׁידָא וְשֵׁידְתִין",
+     "endExcerpt": "לְמַאי אִיבְּעִי לֵיהּ?",
+     "summary": "The Gemara asks why Solomon needed male and female demons (שֵׁדָה וְשֵׁידְתִין).",
+     "tokenStart": 0,
+     "tokenEnd": 10
+    }
+   },
+   {
+    "startSegIdx": 6,
+    "endSegIdx": 6,
+    "fields": {
+     "id": "6-7_1",
+     "sectionStartSegIdx": 6,
+     "sectionEndSegIdx": 7,
+     "moveOrder": 1,
+     "role": "answer",
+     "voice": "Gemara's explanation",
+     "rabbiNames": [],
+     "excerpt": "דִּכְתִיב: ״וְהַבַּיִת בְּהִבָּנוֹתוֹ אֶבֶן שְׁלֵמָה מַסָּע נִבְנָה וְגוֹ׳״",
+     "endExcerpt": "אֲמַרוּ לֵיהּ: אִיכָּא שָׁמִירָא דְּאַיְיתִי מֹשֶׁה לְאַבְנֵי אֵפוֹד",
+     "summary": "The Gemara explains that when building the Temple, Solomon asked the Sages how to cut stones without iron, and they told him about the shamir worm that Moses used for the stones of the ephod.",
+     "tokenStart": 11,
+     "tokenEnd": 31
+    }
+   },
+   {
+    "startSegIdx": 7,
+    "endSegIdx": 7,
+    "fields": {
+     "id": "6-7_2",
+     "sectionStartSegIdx": 6,
+     "sectionEndSegIdx": 7,
+     "moveOrder": 2,
+     "role": "answer",
+     "voice": "Sages' advice to Solomon",
+     "rabbiNames": [],
+     "excerpt": "אֲמַר לְהוּ: הֵיכָא אִישְׁתְּכַח?",
+     "endExcerpt": "דִּילְמָא אַשְׁמְדַאי – מַלְכָּא דְשֵׁידֵי, יָדַע",
+     "summary": "The Sages advised Solomon to bring male and female demons and subdue them together, as they might know and reveal the location of the shamir; the demons said they did not know, but suggested that Ashmedai, the king of demons, might know.",
+     "tokenStart": 0,
+     "tokenEnd": 28
+    }
+   },
+   {
+    "startSegIdx": 8,
+    "endSegIdx": 8,
+    "fields": {
+     "id": "8-9_0",
+     "sectionStartSegIdx": 8,
+     "sectionEndSegIdx": 9,
+     "moveOrder": 0,
+     "role": "question",
+     "voice": "Solomon's question to the demons",
+     "rabbiNames": [
+      "Solomon"
+     ],
+     "excerpt": "אֲמַר לְהוּ: הֵיכָא אִיתֵיהּ?",
+     "endExcerpt": "אָמְרִי לֵיהּ: אִיתֵיהּ בְּטוּרָא פְּלָן.",
+     "summary": "Solomon asks the demons where Ashmedai is, and they reply that he is on a certain mountain.",
+     "tokenStart": 0,
+     "tokenEnd": 8
+    }
+   },
+   {
+    "startSegIdx": 8,
+    "endSegIdx": 8,
+    "fields": {
+     "id": "8-9_1",
+     "sectionStartSegIdx": 8,
+     "sectionEndSegIdx": 9,
+     "moveOrder": 1,
+     "role": "answer",
+     "voice": "Demons' description of Ashmedai's routine",
+     "rabbiNames": [],
+     "excerpt": "כַּרְיָא לֵיהּ בֵּירָא",
+     "endExcerpt": "וְחָתֵים לֵיהּ וְאָזֵיל.",
+     "summary": "The demons describe Ashmedai's daily routine: he ascends to heaven to study, descends to earth to study, then returns to check his seal, drink, and reseal it.",
+     "tokenStart": 9,
+     "tokenEnd": 42
+    }
+   },
+   {
+    "startSegIdx": 9,
+    "endSegIdx": 9,
+    "fields": {
+     "id": "8-9_2",
+     "sectionStartSegIdx": 8,
+     "sectionEndSegIdx": 9,
+     "moveOrder": 2,
+     "role": "resolution",
+     "voice": "Solomon's plan and Benaiah's preparation",
+     "rabbiNames": [
+      "Solomon",
+      "Benaiah ben Yehoyada"
+     ],
+     "excerpt": "שַׁדְּרֵיהּ לִבְנָיָהוּ בֶּן יְהוֹיָדָע",
+     "endExcerpt": "סְלֵיק יְתֵיב בְּאִילָנָא",
+     "summary": "Solomon sends Benaiah ben Yehoyada with a chain engraved with the Name, a ring engraved with the Name, tufts of wool, and skins of wine; Benaiah digs a pit below, drains the water, plugs it with wool, digs a pit above, pours in wine, and covers it, then sits in a tree.",
+     "tokenStart": 0,
+     "tokenEnd": 36
+    }
+   },
+   {
+    "startSegIdx": 10,
+    "endSegIdx": 10,
+    "fields": {
+     "id": "10-11_0",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 11,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Narrative (Ashmedai's arrival)",
+     "rabbiNames": [
+      "Ashmedai"
+     ],
+     "excerpt": "כִּי אֲתָא סַיְירֵיהּ לְגוּשְׁפַּנְקָא",
+     "endExcerpt": "לָא אִישְׁתִּי",
+     "summary": "Ashmedai arrives, finds wine instead of water, and refuses to drink, citing verses against wine.",
+     "tokenStart": 0,
+     "tokenEnd": 25
+    }
+   },
+   {
+    "startSegIdx": 10,
+    "endSegIdx": 11,
+    "fields": {
+     "id": "10-11_1",
+     "sectionStartSegIdx": 10,
+     "sectionEndSegIdx": 11,
+     "moveOrder": 1,
+     "role": "resolution",
+     "voice": "Narrative (Ashmedai's capture)",
+     "rabbiNames": [
+      "Ashmedai",
+      "Benaiah ben Yehoyada"
+     ],
+     "excerpt": "כִּי צָחֵי, לָא סַגִּיא לֵיהּ",
+     "endExcerpt": "שְׁמָא דְּמָרָךְ עֲלָךְ",
+     "summary": "Ashmedai becomes thirsty, drinks, falls asleep; Benaiah descends, chains him, and seals the chain with the Name.",
+     "tokenStart": 26,
+     "tokenEnd": 15
+    }
+   },
+   {
+    "startSegIdx": 12,
+    "endSegIdx": 12,
+    "fields": {
+     "id": "12-12_0",
+     "sectionStartSegIdx": 12,
+     "sectionEndSegIdx": 12,
+     "moveOrder": 0,
+     "role": "opening",
+     "voice": "Narrator (Stam)",
+     "rabbiNames": [],
+     "excerpt": "כִּי נָקֵיט לֵיהּ וְאָתֵי",
+     "endExcerpt": "נְפַקָא",
+     "summary": "The narrative describes Ashmedai's violent journey as Benaiah leads him, uprooting a palm tree and destroying a house, until a widow comes out to beg him not to destroy her hut.",
+     "tokenStart": 0,
+     "tokenEnd": 17
+    }
+   }
+  ]
+ }
+}

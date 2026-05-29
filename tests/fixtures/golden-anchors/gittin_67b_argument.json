@@ -1,0 +1,276 @@
+{
+ "tractate": "Gittin",
+ "page": "67b",
+ "mark": "argument",
+ "cache_hit": true,
+ "raw": {
+  "summary": "The daf discusses the laws of writing and delivering a get when a husband instructs a group, the distinction between 'write' and 'all of you write', and remedies for various ailments including kurdiyakos (a type of fever).",
+  "instances": [
+   {
+    "startSegIdx": 0,
+    "endSegIdx": 0,
+    "fields": {
+     "title": "Alternative version of the earlier dispute",
+     "summary": "Some reverse the opinions of Rav Huna and Rabbi Yochanan regarding whether counting the group is like saying 'all of you'.",
+     "excerpt": "וְאִיכָּא דְּאָפֵיךְ לְהוּ",
+     "endExcerpt": "וְאִיכָּא דְּאָפֵיךְ לְהוּ",
+     "rabbiNames": [
+      "Gemara's note"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 1,
+    "endSegIdx": 1,
+    "fields": {
+     "title": "Baraita on instructions to a group",
+     "summary": "A baraita teaches that if a husband tells ten people 'write a get and give it to my wife', one writes on behalf of all; if he says 'all of you write', one writes in the presence of all. Similarly for delivery.",
+     "excerpt": "אָמַר לַעֲשָׂרָה: ״כִּתְבוּ גֵּט״",
+     "endExcerpt": "אֶחָד מוֹלִיךְ בְּמַעֲמַד כּוּלָּם",
+     "rabbiNames": [
+      "Tanna Kamma"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "title": "Dispute: Does counting the group equal 'all of you'?",
+     "summary": "A dilemma is raised: if the husband counted the ten people, does that have the same effect as saying 'all of you'? Rav Huna says it does not, while Rabbi Yochanan in the name of Rabbi Elazar of Rome says it does.",
+     "excerpt": "אִיבַּעְיָא לְהוּ: מָנָה אוֹתָן, מַהוּ?",
+     "endExcerpt": "מָנָה הֲרֵי הוּא כְּ״כוּלְּכֶם״",
+     "rabbiNames": [
+      "Gemara's question",
+      "Rav Huna",
+      "Rabbi Yochanan",
+      "Rabbi Elazar"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 3,
+    "endSegIdx": 3,
+    "fields": {
+     "title": "Rav Pappa's resolution",
+     "summary": "Rav Pappa says they do not disagree: one case is where he counted all of them, the other where he counted only some, and they refer to different sides of the dispute.",
+     "excerpt": "אָמַר רַב פָּפָּא: וְלָא פְּלִיגִי",
+     "endExcerpt": "וְאָמְרִי לַהּ לְהַאי גִּיסָא",
+     "rabbiNames": [
+      "Rav Pappa"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 4,
+    "endSegIdx": 6,
+    "fields": {
+     "title": "Rav Yehuda's enactment and Rava's objection",
+     "summary": "Rav Yehuda instituted a formula for a 'all of you' get: write – either all of you or each one; sign – either all of you or any two; deliver – either all of you or each one. Rava objects that sometimes the husband might cut short and say only 'all of you', leading to invalidation. Rava instead proposes a different formula: write – each one; sign – any two; deliver – each one.",
+     "excerpt": "אַתְקֵין רַב יְהוּדָה בְּגִיטָּא דְּ״כוּלְּכֶם״",
+     "endExcerpt": "אוֹבִילוּ – כֹּל חַד מִינְּכוֹן",
+     "rabbiNames": [
+      "Rav Yehuda",
+      "Rava",
+      "Rava"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 7,
+    "endSegIdx": 7,
+    "fields": {
+     "title": "Conclusion of the chapter",
+     "summary": "The mishnah of the chapter is cited: 'He who says...'",
+     "excerpt": "הֲדַרַן עֲלָךְ הָאוֹמֵר",
+     "endExcerpt": "הֲדַרַן עֲלָךְ הָאוֹמֵר",
+     "rabbiNames": [
+      "Gemara's note"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 8,
+    "endSegIdx": 9,
+    "fields": {
+     "title": "Mishnah: One seized by kurdiyakos",
+     "summary": "The mishnah states: If one was seized by kurdiyakos and said 'write a get for my wife', he said nothing. If he said 'write a get' and was then seized and retracted, his latter words are void. If he became mute and nodded in response to questions, we test him three times and if consistent, they write and give.",
+     "excerpt": "מִי שֶׁאֲחָזוֹ קוּרְדְּיָיקוֹס",
+     "endExcerpt": "הֲרֵי אֵלּוּ יִכְתְּבוּ וְיִתְּנוּ",
+     "rabbiNames": [
+      "Tanna Kamma"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 10,
+    "endSegIdx": 16,
+    "fields": {
+     "title": "Gemara on kurdiyakos and remedies",
+     "summary": "The Gemara explains that kurdiyakos is a fever from new wine from the press. It discusses remedies: red meat on coals and diluted wine for sun-related ailments, and various cures including a black chicken, leeks, and immersion. A story is told about Rav Amram the Pious and Yalta's intervention.",
+     "excerpt": "מַאי קוּרְדְּיָיקוֹס? אָמַר שְׁמוּאֵל",
+     "endExcerpt": "וְקָאֵי בִּישְׂרֵיהּ פְּשִׁיטֵי פְּשִׁיטֵי",
+     "rabbiNames": [
+      "Gemara's question",
+      "Shmuel",
+      "Abaye",
+      "Rav Amram",
+      "Yalta"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 17,
+    "endSegIdx": 21,
+    "fields": {
+     "title": "Stories about Rav Yosef, Rav Sheshet, and the Exilarch",
+     "summary": "Rav Yosef engaged in grinding, Rav Sheshet in weaving, praising work that warms the body. The Exilarch asks Rav Sheshet why he does not attend his feasts; Rav Sheshet demonstrates that the servants are suspected of serving forbidden meat. A humorous exchange follows with a multi-legged animal and a dish of bread and a jar of wine.",
+     "excerpt": "רַב יוֹסֵף אִיעֲסֵק בְּרִיחְיָא",
+     "endExcerpt": "אָמְרִי לֵיהּ:",
+     "rabbiNames": [
+      "Rav Yosef",
+      "Rav Sheshet",
+      "Exilarch",
+      "Rav Sheshet",
+      "Rav Sheshet"
+     ]
+    }
+   }
+  ]
+ },
+ "expected": {
+  "summary": "The daf discusses the laws of writing and delivering a get when a husband instructs a group, the distinction between 'write' and 'all of you write', and remedies for various ailments including kurdiyakos (a type of fever).",
+  "instances": [
+   {
+    "startSegIdx": 0,
+    "endSegIdx": 0,
+    "fields": {
+     "title": "Alternative version of the earlier dispute",
+     "summary": "Some reverse the opinions of Rav Huna and Rabbi Yochanan regarding whether counting the group is like saying 'all of you'.",
+     "excerpt": "וְאִיכָּא דְּאָפֵיךְ לְהוּ",
+     "endExcerpt": "וְאִיכָּא דְּאָפֵיךְ לְהוּ",
+     "rabbiNames": [
+      "Gemara's note"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 1,
+    "endSegIdx": 1,
+    "fields": {
+     "title": "Baraita on instructions to a group",
+     "summary": "A baraita teaches that if a husband tells ten people 'write a get and give it to my wife', one writes on behalf of all; if he says 'all of you write', one writes in the presence of all. Similarly for delivery.",
+     "excerpt": "אָמַר לַעֲשָׂרָה: ״כִּתְבוּ גֵּט״",
+     "endExcerpt": "אֶחָד מוֹלִיךְ בְּמַעֲמַד כּוּלָּם",
+     "rabbiNames": [
+      "Tanna Kamma"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 2,
+    "endSegIdx": 2,
+    "fields": {
+     "title": "Dispute: Does counting the group equal 'all of you'?",
+     "summary": "A dilemma is raised: if the husband counted the ten people, does that have the same effect as saying 'all of you'? Rav Huna says it does not, while Rabbi Yochanan in the name of Rabbi Elazar of Rome says it does.",
+     "excerpt": "אִיבַּעְיָא לְהוּ: מָנָה אוֹתָן, מַהוּ?",
+     "endExcerpt": "מָנָה הֲרֵי הוּא כְּ״כוּלְּכֶם״",
+     "rabbiNames": [
+      "Gemara's question",
+      "Rav Huna",
+      "Rabbi Yochanan",
+      "Rabbi Elazar"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 3,
+    "endSegIdx": 3,
+    "fields": {
+     "title": "Rav Pappa's resolution",
+     "summary": "Rav Pappa says they do not disagree: one case is where he counted all of them, the other where he counted only some, and they refer to different sides of the dispute.",
+     "excerpt": "אָמַר רַב פָּפָּא: וְלָא פְּלִיגִי",
+     "endExcerpt": "וְאָמְרִי לַהּ לְהַאי גִּיסָא",
+     "rabbiNames": [
+      "Rav Pappa"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 4,
+    "endSegIdx": 6,
+    "fields": {
+     "title": "Rav Yehuda's enactment and Rava's objection",
+     "summary": "Rav Yehuda instituted a formula for a 'all of you' get: write – either all of you or each one; sign – either all of you or any two; deliver – either all of you or each one. Rava objects that sometimes the husband might cut short and say only 'all of you', leading to invalidation. Rava instead proposes a different formula: write – each one; sign – any two; deliver – each one.",
+     "excerpt": "אַתְקֵין רַב יְהוּדָה בְּגִיטָּא דְּ״כוּלְּכֶם״",
+     "endExcerpt": "אוֹבִילוּ – כֹּל חַד מִינְּכוֹן",
+     "rabbiNames": [
+      "Rav Yehuda",
+      "Rava",
+      "Rava"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 7,
+    "endSegIdx": 7,
+    "fields": {
+     "title": "Conclusion of the chapter",
+     "summary": "The mishnah of the chapter is cited: 'He who says...'",
+     "excerpt": "הֲדַרַן עֲלָךְ הָאוֹמֵר",
+     "endExcerpt": "הֲדַרַן עֲלָךְ הָאוֹמֵר",
+     "rabbiNames": [
+      "Gemara's note"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 8,
+    "endSegIdx": 9,
+    "fields": {
+     "title": "Mishnah: One seized by kurdiyakos",
+     "summary": "The mishnah states: If one was seized by kurdiyakos and said 'write a get for my wife', he said nothing. If he said 'write a get' and was then seized and retracted, his latter words are void. If he became mute and nodded in response to questions, we test him three times and if consistent, they write and give.",
+     "excerpt": "מִי שֶׁאֲחָזוֹ קוּרְדְּיָיקוֹס",
+     "endExcerpt": "הֲרֵי אֵלּוּ יִכְתְּבוּ וְיִתְּנוּ",
+     "rabbiNames": [
+      "Tanna Kamma"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 10,
+    "endSegIdx": 16,
+    "fields": {
+     "title": "Gemara on kurdiyakos and remedies",
+     "summary": "The Gemara explains that kurdiyakos is a fever from new wine from the press. It discusses remedies: red meat on coals and diluted wine for sun-related ailments, and various cures including a black chicken, leeks, and immersion. A story is told about Rav Amram the Pious and Yalta's intervention.",
+     "excerpt": "מַאי קוּרְדְּיָיקוֹס? אָמַר שְׁמוּאֵל",
+     "endExcerpt": "וְקָאֵי בִּישְׂרֵיהּ פְּשִׁיטֵי פְּשִׁיטֵי",
+     "rabbiNames": [
+      "Gemara's question",
+      "Shmuel",
+      "Abaye",
+      "Rav Amram",
+      "Yalta"
+     ]
+    }
+   },
+   {
+    "startSegIdx": 17,
+    "endSegIdx": 21,
+    "fields": {
+     "title": "Stories about Rav Yosef, Rav Sheshet, and the Exilarch",
+     "summary": "Rav Yosef engaged in grinding, Rav Sheshet in weaving, praising work that warms the body. The Exilarch asks Rav Sheshet why he does not attend his feasts; Rav Sheshet demonstrates that the servants are suspected of serving forbidden meat. A humorous exchange follows with a multi-legged animal and a dish of bread and a jar of wine.",
+     "excerpt": "רַב יוֹסֵף אִיעֲסֵק בְּרִיחְיָא",
+     "endExcerpt": "אָמְרִי לֵיהּ:",
+     "rabbiNames": [
+      "Rav Yosef",
+      "Rav Sheshet",
+      "Exilarch",
+      "Rav Sheshet",
+      "Rav Sheshet"
+     ]
+    }
+   }
+  ]
+ }
+}
