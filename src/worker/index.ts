@@ -90,6 +90,8 @@ import {
 } from './output-schemas';
 import { findHadranSegments } from '../lib/typing/markers';
 import { hadranBridge, edgeOfTractateBridge, buildBridgePrompt, llmBridge, type DafBridge, type BridgeSection } from '../lib/typing/bridge';
+import { assembleSugyot, sugyaContaining, type DafForAssembly } from '../lib/typing/assemble';
+import { coordForSeg } from '../lib/context/coord';
 import type {
   MarkDefinition as SchemaMarkDefinition,
   EnrichmentDefinition as SchemaEnrichmentDefinition,
@@ -757,6 +759,68 @@ async function computeDafBridge(env: Bindings, tractate: string, page: string): 
 app.get('/api/studio/bridge/:tractate/:page', async (c) => {
   const bridge = await computeDafBridge(c.env, c.req.param('tractate'), c.req.param('page'));
   return c.json(bridge);
+});
+
+// Load a daf's cached argument-overview.flow connections (section-index edges).
+async function readFlowConnections(env: Bindings, tractate: string, page: string): Promise<Array<{ from: number; to: number; kind: string }>> {
+  const def = findCodeEnrichment('argument-overview.flow');
+  if (!def) return [];
+  const iid = await instanceIdOf({ fields: {} });
+  const hit = await readCachedResult(env, keyForEnrichment(def, iid, { tractate, page }));
+  const conns = (hit?.parsed as { connections?: unknown } | null)?.connections;
+  if (!Array.isArray(conns)) return [];
+  return (conns as Array<Record<string, unknown>>)
+    .filter((c) => typeof c.from === 'number' && typeof c.to === 'number')
+    .map((c) => ({ from: c.from as number, to: c.to as number, kind: typeof c.kind === 'string' ? c.kind : 'continues' }));
+}
+async function sectionsFor(env: Bindings, tractate: string, page: string): Promise<Array<{ startSegIdx: number; endSegIdx: number }>> {
+  return (await readMarkInstances(env, 'argument', tractate, page))
+    .filter((i) => typeof i.startSegIdx === 'number' && typeof i.endSegIdx === 'number')
+    .map((i) => ({ startSegIdx: i.startSegIdx as number, endSegIdx: i.endSegIdx as number }));
+}
+
+// Assemble the cross-page sugyot around a daf: walk the continuing bridges to a
+// bounded window of dapim, load each one's sections + flow, and stitch them
+// (intra-daf flow + cross-daf bridges) into sugya units. Returns the units and
+// the one containing the target daf's first section.
+const SUGYA_WINDOW_CAP = 5;
+app.get('/api/studio/sugya/:tractate/:page', async (c) => {
+  const env = c.env;
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+
+  // Window: walk forward + backward from the target while the bridge continues.
+  const pages: string[] = [page];
+  let cur = page;
+  while (pages.length < SUGYA_WINDOW_CAP) {
+    const b = await computeDafBridge(env, tractate, cur);
+    if (!b.to || !b.continues) break;
+    pages.push(b.to.page); cur = b.to.page;
+  }
+  cur = page;
+  while (pages.length < SUGYA_WINDOW_CAP) {
+    const prev = adjacentAmud(tractate, cur, -1);
+    if (!prev) break;
+    const b = await computeDafBridge(env, tractate, prev); // prev -> cur
+    if (!b.continues) break;
+    pages.unshift(prev); cur = prev;
+  }
+
+  const dapim: DafForAssembly[] = [];
+  for (const p of pages) {
+    dapim.push({ ref: { tractate, page: p }, sections: await sectionsFor(env, tractate, p), flow: await readFlowConnections(env, tractate, p) });
+  }
+  const bridges = [];
+  for (let i = 0; i < dapim.length - 1; i++) {
+    bridges.push({ continues: (await computeDafBridge(env, tractate, dapim[i].ref.page)).continues });
+  }
+
+  const sugyot = assembleSugyot(dapim, bridges);
+  const targetSecs = dapim.find((d) => d.ref.page === page)?.sections ?? [];
+  const targetFirst = targetSecs.length ? targetSecs.reduce((a, b) => (b.startSegIdx < a.startSegIdx ? b : a)) : null;
+  const current = targetFirst ? sugyaContaining(sugyot, coordForSeg({ tractate, page }, targetFirst.startSegIdx)) : null;
+
+  return c.json({ tractate, page, window: pages, count: sugyot.length, sugyot, current });
 });
 
 app.get('/api/studio/enrichments', async (c) => {
