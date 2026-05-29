@@ -37,6 +37,9 @@ export interface CheckCtx {
   page: string;
   /** Segment grid for placement/anchor transforms (the gemara slice). */
   segmentsHe: string[];
+  /** The daf's Rashi/Tosafot/rishonim Hebrew text (HTML-stripped, one entry per
+   *  commentator) — for commentary-verbatim. Absent unless a check needs it. */
+  commentaryHe?: string[];
   defId: string;
   lang?: 'en' | 'he';
 }
@@ -240,6 +243,49 @@ const edgeIntegrity: PostCheck = {
   },
 };
 
+/** Maximal runs of Hebrew/Aramaic script (≥ minWords words) embedded in prose —
+ *  i.e. quoted source text, not the single-word Hebrew TERMS the gloss style
+ *  sprinkles in. English/digits break a run, so each run is one contiguous
+ *  Hebrew citation. */
+function hebrewRuns(text: string, minWords: number): string[] {
+  if (!text) return [];
+  const out: string[] = [];
+  // Hebrew block (letters + nikud/punct) with internal spaces; bounded by non-Hebrew.
+  const re = /[֑-״](?:[֑-״'"׳״־\-\s]*[֑-״])?/g;
+  for (const m of text.matchAll(re)) {
+    const run = m[0].trim();
+    if (run.split(/\s+/).filter(Boolean).length >= minWords) out.push(run);
+  }
+  return out;
+}
+
+/** commentary-verbatim — a cited Rashi/Tosafot quote must actually appear in the
+ *  daf's real commentary text (quote-or-omit; catches invented citations). For
+ *  each ≥3-word Hebrew run in the rashi/tosafot/other prose fields, verify it is
+ *  present (via the verbatim matcher) in ctx.commentaryHe. Skips when no
+ *  commentary is loaded (can't judge → no false positives). Soft (observe). */
+const commentaryVerbatim: PostCheck = {
+  id: 'commentary-verbatim',
+  phase: 'validate',
+  run: (parsed, ctx) => {
+    const issues: CheckIssue[] = [];
+    const com = ctx.commentaryHe ?? [];
+    if (com.length === 0) return { issues };
+    const grid = buildVerbatimGrid(com);
+    const p = (parsed ?? {}) as Record<string, unknown>;
+    for (const field of ['rashi', 'tosafot', 'other']) {
+      const prose = typeof p[field] === 'string' ? (p[field] as string) : '';
+      for (const run of hebrewRuns(prose, 3)) {
+        if (normalizeHebrew(run).split(' ').filter(Boolean).length < 2) continue;
+        if (!findExcerpt(grid, run, 0, com.length - 1)) {
+          issues.push({ kind: 'invented-commentary-quote', severity: 'soft', match: run, detail: field });
+        }
+      }
+    }
+    return { issues };
+  },
+};
+
 export const CHECKS: Record<string, PostCheck> = {
   'reanchor-argument': transform('reanchor-argument', reanchorArgument),
   'reanchor-argument-move': transform('reanchor-argument-move', reanchorArgumentMove),
@@ -250,6 +296,7 @@ export const CHECKS: Record<string, PostCheck> = {
   'derive-voice-edges': { id: 'derive-voice-edges', phase: 'transform', run: (parsed) => ({ parsed: deriveVoiceEdges(parsed) }) },
   'hebrew-excerpt': hebrewExcerpt,
   'hebrew-gloss': hebrewGloss,
+  'commentary-verbatim': commentaryVerbatim,
   'anchor-verbatim': anchorVerbatim,
   'partition-clean': partitionClean,
   'edge-integrity': edgeIntegrity,
