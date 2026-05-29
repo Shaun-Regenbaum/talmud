@@ -6563,6 +6563,34 @@ async function deepWarmDaf(
       }
     }
   }
+
+  // Section typing: pre-warm the narrative story view, but ONLY for sections
+  // that actually type as narrative (aggadata-primary). The marks are now run +
+  // cached above, so the profile composition is a cache-only read. Without this,
+  // a reader is the first to trigger argument.narrative on a story section (cold
+  // generation); with it, the story view is usually a cache hit.
+  try {
+    const narrativeDef = await loadEnrichmentDef(rc.env, 'argument.narrative');
+    if (narrativeDef) {
+      const profiles = await buildDafTypeProfiles(rc.env, tractate, page);
+      const sections = await readMarkInstances(rc.env, 'argument', tractate, page);
+      for (const prof of profiles) {
+        if (prof.primary !== 'aggadata') continue;
+        const sec = sections.find((s) => s.startSegIdx === prof.unit.startSegIdx && s.endSegIdx === prof.unit.endSegIdx);
+        if (!sec) continue;
+        const iid = await instanceIdOf(sec);
+        const key = keyForEnrichment(narrativeDef, iid, { tractate, page }, undefined, lang);
+        if (key && cache && (await cache.get(key))) { skipped++; continue; }
+        const runId = `warm:argument.narrative:${tractate}:${page}:${iid}:${lang}:${Math.floor(Date.now() / 1000)}`
+          .replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
+        try {
+          await queue.send({ runId, enrichment_id: 'argument.narrative', tractate, page, mark_input: sec, ...(lang === 'he' ? { lang } : {}) });
+          enqueued++;
+        } catch { /* best-effort warm */ }
+      }
+    }
+  } catch { /* profile composition is best-effort; never block the deep-warm */ }
+
   return { marks, enqueued, skipped };
 }
 

@@ -10,7 +10,6 @@ import { type GeographyData, type GeographyEvidence } from './RabbiGeographyCard
 import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeline';
 import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
 import ArgumentNarrative from './ArgumentNarrative';
-import { devModeActive } from './DevModeShelf';
 import ArgumentFlowGraph, { type FlowConnection } from './ArgumentFlowGraph';
 import { selectSectionMoves } from '../lib/argumentMoves';
 import { t, lang } from './i18n';
@@ -98,7 +97,9 @@ function useVoicesGate(tractate: () => string, page: () => string, section: () =
     return (profiles() ?? []).find((p) => p.unit.startSegIdx === s.startSegIdx && p.unit.endSegIdx === s.endSegIdx);
   };
   const suppress = (): boolean => {
-    if (!devModeActive()) return false;            // readers unaffected
+    // Promoted to readers: section typing now drives the view for everyone, not
+    // just dev mode. Safe-by-default — an unknown/uncomputed profile shows the
+    // voice graph exactly as before, so a missing profile never regresses.
     const p = profile();
     if (!p) return false;                          // unknown → show (safe default)
     return !(p.isDispute && p.primary !== 'aggadata'); // hide unless a real, non-narrative dispute

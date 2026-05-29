@@ -149,6 +149,22 @@ export async function runYomiWarmCron(env: YomiCronEnv): Promise<void> {
           console.error(`[yomi-cron] enqueue rabbi.observations ${tractate}/${page} failed:`, e);
         }),
     );
+    // Deep-warm the daf so the section-typing views are ready for the daf-yomi
+    // crowd — notably argument.narrative on story sections, which the deep-warm
+    // path pre-warms only for narrative-primary sections (cache-respecting, so
+    // the marks above are reused, not re-paid). One full deep-warm per daily daf.
+    const deepRunId = (await warmRunId('warm-deep', tractate, page)).replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
+    jobs.push(
+      env.ENRICHMENT_QUEUE.send({ runId: deepRunId, warm_deep: true, tractate, page })
+        .then(() => {
+          // eslint-disable-next-line no-console
+          console.log(`[yomi-cron] enqueued deep-warm ${tractate}/${page} runId=${deepRunId}`);
+        })
+        .catch((e) => {
+          // eslint-disable-next-line no-console
+          console.error(`[yomi-cron] enqueue deep-warm ${tractate}/${page} failed:`, e);
+        }),
+    );
   }
   await Promise.allSettled(jobs);
   // eslint-disable-next-line no-console
