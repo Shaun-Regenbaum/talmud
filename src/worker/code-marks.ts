@@ -2694,6 +2694,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', 'commentaries'],
+      checks: ['commentary-verbatim'],
       defHash: 'argument-move.commentaries-v2', cacheVersion: '2',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_MOVE_COMMENTARIES_SYSTEM_PROMPT_HE,

@@ -1787,8 +1787,15 @@ async function runEnrichmentOnce(
   let hardIssueCount = 0;
   if (parsed && !parse_error && def.checks && def.checks.length > 0) {
     const slice = await getGemaraSlice(rc.env, tractate, page, false);
+    // commentary-verbatim needs the daf's real Rashi/Tosafot text to verify
+    // cited quotes against — fetch it only when a check actually wants it.
+    let commentaryHe: string[] | undefined;
+    if (def.checks.includes('commentary-verbatim')) {
+      const com = await getCommentariesSlice(rc.env, tractate, page, false);
+      commentaryHe = Object.values(com.by_commentator).map((c) => stripHtmlServer(c.hebrew)).filter(Boolean);
+    }
     const checked = await runChecks(def.checks, parsed, {
-      tractate, page, segmentsHe: slice.segments_he, defId: def.id, lang: rc.lang,
+      tractate, page, segmentsHe: slice.segments_he, commentaryHe, defId: def.id, lang: rc.lang,
     });
     parsed = checked.parsed;
     if (checked.issues.length > 0) {
