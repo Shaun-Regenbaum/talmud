@@ -16,6 +16,7 @@ import {
   getSefariaSegmentsCached,
 } from './source-cache';
 import { computeCacheStats, writeCachedCacheStats } from './cache-stats';
+import { keyForHebrewBooks, keyForSefariaBundle, keyForSefariaSegments } from './cache-keys';
 import type { JobMessage } from './index';
 
 const CURSOR_KEY = 'warm-cursor:v1';
@@ -210,7 +211,7 @@ async function runHbPhase(env: WarmEnv, cursor: WarmCursor): Promise<void> {
 
     const tractate = TRACTATES[tractateIdx];
     const amud = AMUDIM_BY_TRACTATE[tractateIdx][amudIdx];
-    const key = `hb:v2:${tractate}:${amud}`;
+    const key = keyForHebrewBooks(tractate, amud);
     const existing = await cache.get(key);
 
     if (existing === null) {
@@ -288,8 +289,8 @@ async function runSefariaPhase(env: WarmEnv): Promise<void> {
 
     const tractate = TRACTATES[tractateIdx];
     const amud = AMUDIM_BY_TRACTATE[tractateIdx][amudIdx];
-    const bundleKey = `sefaria-bundle:v2:${tractate}:${amud}`;
-    const segKey = `sefaria-seg:v1:${tractate}:${amud}`;
+    const bundleKey = keyForSefariaBundle(tractate, amud); // was sefaria-bundle:v2 — drifted from the reader's v5
+    const segKey = keyForSefariaSegments(tractate, amud);
     const [bundleHit, segHit] = await Promise.all([
       cache.get(bundleKey),
       cache.get(segKey),

@@ -143,6 +143,41 @@ export function keyForCommentaries(tractate: string, page: string): string {
   return `ctx:commentaries:v1:${slugDaf(tractate, page)}`;
 }
 
+// Source-content caches (HebrewBooks scans, Sefaria page/segments, dafyomi
+// sub-corpora) that live behind the getters in source-cache.ts. Centralised here
+// so a version bump happens in ONE place: keeping them inline let warm-cron.ts
+// drift to `sefaria-bundle:v2` as a probe while the reader (source-cache.ts)
+// moved to v5, so warm-cron's "already warm?" check always missed.
+// IMPORTANT: these use RAW `${tractate}:${page}`, NOT slugDaf — existing cached
+// entries were written with the raw form (a space/upper-case tractate like
+// "Bava Kamma" is part of the key as-is). Do NOT normalise them or every cached
+// daf cold-misses and re-fetches.
+export function keyForHebrewBooks(tractate: string, page: string): string {
+  return `hb:v2:${tractate}:${page}`;
+}
+export function keyForSefariaBundle(tractate: string, page: string): string {
+  return `sefaria-bundle:v5:${tractate}:${page}`;
+}
+export function keyForSefariaSegments(tractate: string, page: string): string {
+  return `sefaria-seg:v1:${tractate}:${page}`;
+}
+export function keyForRishonim(tractate: string, page: string): string {
+  return `rishonim:v4:${tractate}:${page}`;
+}
+export function keyForHalachaRefs(tractate: string, page: string): string {
+  return `halacha-refs:v2:${tractate}:${page}`;
+}
+export function keyForDafTopics(tractate: string, page: string): string {
+  return `daf-topics:v1:${tractate}:${page}`;
+}
+export function keyForMishnaBundle(tractate: string, page: string): string {
+  return `mishna-bundle:v1:${tractate}:${page}`;
+}
+/** Shulchan Aruch commentary, keyed by an already-sanitised Sefaria ref. */
+export function keyForSaCommentary(safeKey: string): string {
+  return `sa-commentary:v1:${safeKey}`;
+}
+
 export function keyForMark(
   def: AnyMarkDefinition,
   tractate: string,
