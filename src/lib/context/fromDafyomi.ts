@@ -11,6 +11,7 @@ import type {
   DafyomiDaf, DafyomiContentType, DafyomiEntry, DafyomiAmudContent,
 } from '../sefref/dafyomi/schema.ts';
 import type { ContextItem } from './types.ts';
+import { dafCoord, type AnchorCoord } from './coord.ts';
 
 const SOURCE_LABEL: Record<DafyomiContentType, string> = {
   // dafyomi "Tosfos" is the Kollel's explanation OF Tosafot, not Tosafot itself —
@@ -73,7 +74,7 @@ function collectBlock(
     case 'points':
     case 'yerushalmi':
     case 'revach':
-      b.entries.forEach((e, i) => out.push({ ...base(b.type, `${type}:${amud}:${i}`), ...entryCard(e) }));
+      b.entries.forEach((e, i) => out.push({ ...base(b.type, `${type}:${amud}:${i}`), ...entryCard(e), ...entryRefs(e) }));
       break;
     case 'hebcharts':
       b.tables.forEach((t, i) => {
@@ -94,6 +95,16 @@ function collectBlock(
       });
       break;
   }
+}
+
+/** A dafyomi entry's resolved cross-references ("Pesachim 50a") as citation
+ *  coordinates. Daf-level (DAF_SEG, no specific segment) — these are things the
+ *  note CITES, not where it sits. Only Revach populates `refs` today. */
+function entryRefs(e: DafyomiEntry): { refs?: AnchorCoord[] } {
+  const refs = (e.refs ?? [])
+    .filter((r): r is typeof r & { tractate: string; page: string } => !!r.tractate && !!r.page)
+    .map((r) => dafCoord({ tractate: r.tractate, page: r.page }));
+  return refs.length ? { refs } : {};
 }
 
 function entryCard(e: DafyomiEntry): { title?: ContextItem['title']; body?: ContextItem['body'] } {

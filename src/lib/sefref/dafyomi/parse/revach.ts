@@ -13,7 +13,7 @@
  * `<br>`-delimited line, so they don't false-trigger a new item.
  */
 
-import { parseHtml, collapse, HTMLElement } from './common.ts';
+import { parseHtml, collapse, findDafRefs, HTMLElement } from './common.ts';
 import type { DafyomiEntry } from '../schema.ts';
 
 export interface ParsedRevach {
@@ -67,11 +67,15 @@ export function parseRevach(html: string): ParsedRevach {
   for (const n of nums) {
     const head = summary.get(n);
     const detail = more.get(n);
+    // Capture in-text cross-references ("Pesachim 50a") as DafyomiRefs so they
+    // survive as real cross-spine links instead of being lost in the prose.
+    const refs = findDafRefs(`${head ?? ''} ${detail ?? ''}`);
     entries.push({
       marker: `${n}.`,
       level: 0,
       ...(head ? { title: { en: head } } : {}),
       body: detail ? { en: detail } : {},
+      ...(refs.length ? { refs } : {}),
     });
   }
   return { entries };
