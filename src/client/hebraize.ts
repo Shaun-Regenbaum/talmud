@@ -536,6 +536,14 @@ export function stripEchoParens(text: string): string {
  *  should read "Locking a door on Shabbat". Apply AFTER hebraize() so the
  *  inverted pass (which can move an English gloss to the front) doesn't strand
  *  a lowercased word at the start. */
+/** True if `text` contains an empty parenthetical — `()` or `(  )`. The LLM
+ *  hebraize fallback can empty a paren it couldn't resolve (e.g. an English
+ *  name like `(Rabbi Eliezer)` → `()`); callers use this to reject such a
+ *  result and keep the paren-preserving dict pass. Pure + exported for tests. */
+export function hasEmptyParens(text: string): boolean {
+  return /\(\s*\)/.test(text);
+}
+
 export function capitalizeFirst(text: string): string {
   if (!text) return text;
   const i = text.search(/[^\s'"“”‘’(\[]/);

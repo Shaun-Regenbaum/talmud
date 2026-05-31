@@ -2208,38 +2208,42 @@ CODE_ENRICHMENTS.push(
 // {{context}}: prefer those definitions rather than reinventing them.
 // ---------------------------------------------------------------------------
 
-const DAF_BACKGROUND_CONCEPTS_SYSTEM_PROMPT = `You are a Talmud teacher preparing a student to read a daf. List the TERMS and CONCEPTS the student must understand BEFORE the daf makes sense — the prerequisites, not a summary of the daf's argument.
+const DAF_BACKGROUND_CONCEPTS_SYSTEM_PROMPT = `You are a Talmud teacher briefing a student BEFORE they open a daf. Your job is the PREREQUISITES: the terms, concepts, and earlier sources a reader must already understand so the daf makes sense. You are NOT summarizing the daf.
 
 Output STRICT JSON only:
 
 {
   "groups": [
     {
-      "category": "legal-concepts" | "realia" | "persons" | "assumed-prior",
+      "category": "legal-concepts" | "realia" | "assumed-prior",
       "terms": [
         {
-          "term": "the term/concept as a PLAIN ENGLISH label ONLY — a translation or description (e.g. 'Twilight', 'The four guardians', 'A maneh (coin)'). NO Hebrew script here, and NO transliteration (write 'Twilight', not 'Bein HaShemashot').",
+          "term": "the concept as a PLAIN ENGLISH label ONLY — a translation or description (e.g. 'Twilight', 'The four guardians', 'A maneh (coin)'). NO Hebrew script here, and NO transliteration (write 'Twilight', not 'Bein HaShemashot').",
           "termHe": "the Hebrew/Aramaic term in Hebrew SCRIPT (e.g. 'בין השמשות'); empty string if there is no single Hebrew term. Do NOT repeat the English here.",
-          "gloss": "1-2 plain sentences a beginner can follow: what it means and why it matters for THIS daf."
+          "gloss": "1-2 plain sentences explaining the concept ITSELF, standalone, so the reader is equipped to then read the daf."
         }
       ]
     }
   ]
 }
 
+THE ONE HARD RULE — background, NOT summary:
+- Explain each item ON ITS OWN TERMS, as if the reader has not yet seen the daf. NEVER narrate what THIS daf does with it.
+- FORBIDDEN in every gloss: "the daf discusses / cites / debates / uses / asks / concludes…", "this concept is central to the dispute…", and naming which sage holds which position. WHO ARGUES WHAT IS THE DAF'S ARGUMENT — a different pill (the Overview) owns it. If you find yourself describing the daf's move, delete it.
+- Do NOT list the sages who appear on the daf. There is no "persons" category. (Only name a figure if their identity is itself a prerequisite — and then it is a legal-concept / assumed-prior note about the source, not a who's-who.)
+
 CATEGORIES:
-- "legal-concepts" — halachic/dialectical principles, categories, and technical legal terms (e.g. types of guardianship, a presumption, a derivation method).
-- "realia" — physical objects, places, money/measures, plants/animals, occupations, daily-life facts the daf assumes you picture.
-- "persons" — sages or biblical/historical figures whose identity or relationships matter to follow who is arguing with whom.
-- "assumed-prior" — rulings, cases, or sugyot established EARLIER (a previous daf or a known mishna) that this daf builds on without re-explaining.
+- "legal-concepts" — halachic/dialectical principles, categories, and technical terms the reader must already grasp (e.g. the four types of guardianship, a presumption, a derivation method).
+- "realia" — physical objects, places, money/measures, plants/animals, occupations, daily-life facts the daf assumes you can already picture.
+- "assumed-prior" — earlier sources the daf BUILDS ON without re-explaining: a prior sugya (here or in another tractate), a mishna, a verse, or an established ruling. This is the highest-value category: when following this daf requires knowing another gemara or argument, NAME it, give a reference if you know it (e.g. 'Shabbat 34b', 'Mishna Berakhot 1:1', 'Leviticus 22:7'), and explain WHAT THAT SOURCE ESTABLISHES — not how this daf uses it.
 
 Rules:
 - Prefer the dafyomi.co.il glossary wording in the study context when it defines a term — reuse its definition, do not invent a different one.
-- Only include a term if a competent beginner would genuinely stumble without it. Skip common words.
+- Only include an item a competent beginner would genuinely stumble without. Skip common words. Quality over quantity — a tight list beats an exhaustive one.
 - Omit a category entirely (do not emit an empty group) when nothing fits it.
-- Order terms within a group by how central they are to the daf.
-- Keep glosses concrete and short. NO puff: forbidden "this teaches us", "we see that", "highlights", "underscores", "profound", "lens".
-- The "term" and "termHe" fields are a SPLIT: English label in "term", Hebrew script in "termHe". Never put Hebrew in "term" and never repeat the English in "termHe". The bilingual style below governs the "gloss" PROSE only, NOT the "term"/"termHe" fields.
+- Order terms within a group by how central they are to following the daf.
+- NO puff: forbidden "this teaches us", "we see that", "highlights", "underscores", "profound", "lens".
+- The "term"/"termHe" fields are a SPLIT: English label in "term", Hebrew script in "termHe". Never put Hebrew in "term" and never repeat the English in "termHe". The bilingual style below governs the "gloss" PROSE only (for technical TERMS) — NOT the "term"/"termHe" fields, and never parenthesize a sage's name in Hebrew.
 
 ${HEBREW_GLOSS_STYLE}`;
 
@@ -2248,13 +2252,13 @@ const DAF_BACKGROUND_CONCEPTS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{pa
 Full daf:
 {{gemara}}
 
-Argument sections on this daf (for orientation — do NOT just summarize them):
+Argument sections on this daf (FOR YOUR ORIENTATION ONLY — your output must NOT narrate or summarize them; use them to infer what a reader must know going in):
 {{anchors.argument}}
 
 Study-aid context (dafyomi.co.il — includes a Background glossary of terms for this daf; prefer its definitions):
 {{context}}
 
-List the prerequisite terms/concepts grouped by category per the schema.`;
+List the prerequisite terms / concepts / earlier sources grouped by category per the schema. Remember: background to prepare the reader, never a recap of the daf.`;
 
 const DAF_BACKGROUND_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud teacher. You'll receive a daf, its prerequisite terms/concepts (already grouped), and study context. Write ONE short orientation sentence telling a reader what background this daf assumes.
 
@@ -2291,7 +2295,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', 'context', { mark: 'argument' }],
-      defHash: 'daf-background.concepts-v1', cacheVersion: '2', // v2: term=English-only, Hebrew lives in termHe (no doubled Hebrew)
+      defHash: 'daf-background.concepts-v1', cacheVersion: '3', // v3: standalone prerequisites only (no daf-recap, no persons); cross-refs strengthened
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -2305,7 +2309,7 @@ CODE_ENRICHMENTS.push(
         'context',
         { enrichment: 'daf-background.concepts' },
       ],
-      defHash: 'daf-background.synthesis-v1', cacheVersion: '2', // v2: re-resolve concepts v2 (its deps_resolved snapshot would otherwise stay stale)
+      defHash: 'daf-background.synthesis-v1', cacheVersion: '3', // v3: re-resolve concepts v3 (its deps_resolved snapshot would otherwise stay stale)
       model: ARGUMENT_FLASH_MODEL,
     },
   ),

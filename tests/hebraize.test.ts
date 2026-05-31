@@ -1,5 +1,16 @@
 import { describe, it, expect } from 'vitest';
-import { hebraize, stripEchoParens, hebraizeBareNames } from '../src/client/hebraize';
+import { hebraize, stripEchoParens, hebraizeBareNames, hasEmptyParens } from '../src/client/hebraize';
+
+describe('hasEmptyParens — guards the LLM-emptied-paren class', () => {
+  it('detects empty and whitespace-only parens', () => {
+    expect(hasEmptyParens('until midnight (), or until dawn (רבן גמליאל)')).toBe(true);
+    expect(hasEmptyParens('a watch (  )')).toBe(true);
+  });
+  it('passes filled parens through', () => {
+    expect(hasEmptyParens('twilight (בין השמשות)')).toBe(false);
+    expect(hasEmptyParens('no parens at all')).toBe(false);
+  });
+});
 
 // ---------------------------------------------------------------------------
 // stripEchoParens — the sanitizer for "X (X)" outputs the source LLM produces

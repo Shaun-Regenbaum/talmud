@@ -10,7 +10,7 @@
  * swaps in place. On any LLM error, the dict-pass result stays.
  */
 import { createResource, createMemo, For, type JSX } from 'solid-js';
-import { hebraize, unresolvedParens, hebraizeLLM, capitalizeFirst, stripEchoParens } from './hebraize';
+import { hebraize, unresolvedParens, hebraizeLLM, capitalizeFirst, stripEchoParens, hasEmptyParens } from './hebraize';
 
 // A maximal run of Hebrew/Aramaic — letters plus internal spaces, geresh/
 // gershayim, maqaf — starting and ending on a Hebrew character. We isolate each
@@ -49,8 +49,17 @@ export function Hebraized(props: { text: string | undefined | null; capitalize?:
     // into an echo (`מעשה (מעשה)`), and stale KV entries from the old model
     // may still carry one, so collapse echoes here too. dictPass() is already
     // echo-clean, so the guard only matters on the LLM branch.
+    const dict = dictPass();
     const llm = llmPass();
-    const s = llm != null ? stripEchoParens(llm) : dictPass();
+    let s = dict;
+    if (llm != null) {
+      const cleaned = stripEchoParens(llm);
+      // The LLM fallback can empty a paren it couldn't resolve to Hebrew
+      // (`(Rabbi Eliezer)` → `()`). Never accept a result that introduces an
+      // empty parenthetical the dict pass didn't have — keep the dict pass,
+      // which preserves the original parenthetical.
+      s = hasEmptyParens(cleaned) && !hasEmptyParens(dict) ? dict : cleaned;
+    }
     return props.capitalize ? capitalizeFirst(s) : s;
   });
   return <BidiText text={out()} />;

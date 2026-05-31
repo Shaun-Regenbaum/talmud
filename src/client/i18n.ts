@@ -191,7 +191,6 @@ const CATALOG = {
   },
   'background.cat.legal-concepts': { en: 'Legal concepts', he: 'מושגים הלכתיים' },
   'background.cat.realia': { en: 'Realia', he: 'מציאות' },
-  'background.cat.persons': { en: 'Persons', he: 'דמויות' },
   'background.cat.assumed-prior': { en: 'Assumed background', he: 'רקע מוקדם' },
   // — Common —
   'common.open': { en: 'Open {name}', he: 'פתיחת {name}' },
