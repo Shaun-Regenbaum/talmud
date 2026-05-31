@@ -208,12 +208,13 @@ foreground click outranks background prefetch) and an in-session
   `enrich:{id}:{cache_version}{:he?}:{instance_id}[:{tractate}:{page}][:q_{hash}]`.
   Source caches: `keyForGemara`, `keyForDafyomi` (`dafyomi:v5:{daf}`),
   `keyForCommentaries`. **No TTL.**
-- **Two invalidation levers:** `def_hash` = sha256 over the extractor spec, so
-  editing a prompt auto-invalidates; `cache_version` = a manual bump for a
-  semantic change the hash can't see (e.g. the *context* feeding a prompt
-  changed). A bump must **cascade** to every enrichment that lists this one as a
-  `{ enrichment }` dependency — otherwise the dependent cache-hits and readers
-  never see the change.
+- **Invalidation today is `cache_version`** — a manual integer bump on the
+  producer, part of the key, so the old entry becomes unreachable. (`def_hash`
+  on a definition is a *vestigial hand-authored literal*, NOT in the key and not
+  re-derived — see `recipeHash` below for its computed successor.) A bump must
+  **cascade** to every producer that lists this one as a dependency, or the
+  dependent cache-hits and readers never see the change — the cascade the
+  reverse-dependency index now computes (below).
 - **Stale-while-revalidate (shipped).** `previousVersionKey(key, id, version)`
   returns the prior version's key. On a version-bump miss `/api/run`
   serves the previous value tagged `{ stale: true, refreshing: true }` and
@@ -223,9 +224,21 @@ foreground click outranks background prefetch) and an in-session
   value in-tab. This is the framework's **immutable-versions + active-alias**
   idea arriving early; keep it generic and **never overwrite a human-authored
   piece**.
-- **Forward direction.** A content hash (recipe + input hashes) makes staleness
-  automatic, with a reverse-dependency index for "what to re-warm." Stale = a
-  *candidate* for recompute, never a silent overwrite of a human correction.
+- **Content-hash freshness (in progress).** `recipeHash(def)` (`cache-keys.ts`)
+  is the *computed* content hash of a producer's recipe — `extractor` (+ `render`
+  for marks), field-order-insensitive — reproducing the documented `def_hash`
+  contract but derived, so it can't drift. It is deliberately **NOT** in the
+  cache key (GC sweeps by `cache_version`; keying on a content hash would orphan
+  every entry in the TTL-less KV). The plan: store it with each cached run and
+  compare on read to detect staleness automatically. Stale = a *candidate* for
+  recompute, never a silent overwrite of a human correction.
+- **Reverse-dependency index (shipped).** `src/lib/registry/depGraph.ts` inverts
+  the producer `dependencies` DAG: `transitiveDependents(id)` is the full re-warm
+  set when `id` changes, exposed read-only at `GET /api/dependents/:id`. So a
+  `cache_version` bump enumerates exactly what to cascade (e.g.
+  `argument.background` → `argument.synthesis` → the daf overview) instead of
+  relying on memory. `validateProducerGraph` guards the graph in CI (no dangling
+  dependency ids, no cycles).
 
 ## Provenance + confidence
 
@@ -305,6 +318,8 @@ This is the template every later linked source follows: parse → map → place
 |---|---|
 | Coordinates | `src/lib/context/coord.ts` |
 | Note contract | `src/lib/context/types.ts` |
+| Links (relations + constructors) | `src/lib/context/link.ts` |
+| Unified link layer (assembler) | `src/lib/context/dafLinks.ts` → `GET /api/links/:t/:p` |
 | Matcher contract / `applyMatches` | `src/lib/context/match.ts` |
 | Placement levels + predicates | `src/lib/context/placement.ts` |
 | Matchers | `src/lib/context/anchor/{tosfos,bg-term,revach,ai-prompt}.ts` |
@@ -314,7 +329,8 @@ This is the template every later linked source follows: parse → map → place
 | Producer schema | `src/worker/studio-schema.ts` |
 | Producer registry | `src/worker/code-marks.ts` |
 | Run endpoint + SWR | `src/worker/index.ts` (`/api/run`) |
-| Cache keys + versioning | `src/worker/cache-keys.ts` |
+| Cache keys + versioning + `recipeHash` | `src/worker/cache-keys.ts` |
+| Reverse-dependency index + validation | `src/lib/registry/depGraph.ts` → `GET /api/dependents/:id` |
 | Budget gate | `src/worker/budget.ts` |
 | Client queue + result cache | `src/client/enrichmentQueue.ts` |
 | Hebrew/bidi rendering | `src/client/{Hebraized.tsx,hebraize.ts}` |
@@ -335,8 +351,12 @@ The reusable core is spine-agnostic and already separable:
   the system expresses as a Link. Constructors: `citationLink(refs)` (a note's
   external refs), `continuationLink(to)` (the cross-daf bridge, surfaced on
   `/api/bridge` as `link`), and `flowLinks(edges, coordOf)` (the flow graph →
-  `{source, link}[]`). All render through one `linkLabel`. Voice edges converge
-  here next.
+  `{source, link}[]`). All render through one `linkLabel`. (Voice edges are
+  *below* coord granularity — voice-to-voice within a section — so they stay
+  their own model, not Links.) **Consumer:** `dafLinks(daf, …)`
+  (`dafLinks.ts`) assembles a daf's whole link graph — bridge + citations + flow
+  — into one list, served at `GET /api/links/:tractate/:page`. The first thing
+  that reads the unified layer end-to-end.
 - **Placement** — the `SegMatch` + `applyMatches` sink and the pure matcher
   signature `(items, …spineData) => SegMatch[]`, with deterministic-then-AI
   layering and the `placement.ts` level/predicate vocabulary.
