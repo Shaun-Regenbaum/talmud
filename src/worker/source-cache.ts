@@ -7,11 +7,10 @@
  * fetchHebrewBooksDaf or sefariaAPI.* directly. Upstream APIs are slow and
  * adjacent amudim fetched by /api/analyze overlap heavily.
  *
- * Cache shape:
- *   hb:v2:<Tractate>:<daf>            → HebrewBooksDaf JSON
- *   sefaria-bundle:v1:<Tractate>:<daf> → TalmudPageData JSON
- *   rishonim:v1:<Tractate>:<daf>       → RishonimBundle JSON
- *   halacha-refs:v1:<Tractate>:<daf>   → HalachicRefBundle JSON
+ * Cache keys live in cache-keys.ts (keyForHebrewBooks / keyForSefariaBundle /
+ * keyForSefariaSegments / keyForRishonim / keyForHalachaRefs / keyForDafTopics /
+ * keyForMishnaBundle / keyForSaCommentary) — the single place a version is
+ * bumped, so warm-cron.ts can probe the SAME key the reader uses.
  *
  * All entries TTL 30 days. Missing commentators/refs are an intrinsic
  * property of a given tractate+daf and should be cached as "tried and
@@ -30,7 +29,10 @@ import {
   type MishnaBundle,
 } from '../lib/sefref';
 import type { DafyomiDaf } from '../lib/sefref/dafyomi/schema';
-import { keyForDafyomi } from './cache-keys';
+import {
+  keyForDafyomi, keyForHebrewBooks, keyForSefariaBundle, keyForSefariaSegments,
+  keyForRishonim, keyForHalachaRefs, keyForDafTopics, keyForMishnaBundle, keyForSaCommentary,
+} from './cache-keys';
 import { scrapeDafyomiLive } from './dafyomi-live';
 
 const TTL_30_DAYS = 60 * 60 * 24 * 30;
@@ -93,7 +95,7 @@ export async function getHebrewBooksDafCached(
   // Gemara <div> at a perek end, stray leading </div> at a perek start). v1
   // entries hold over-captured (perek-end) or empty (perek-start) Gemara, so
   // bumping forces a refetch with the corrected extraction.
-  const key = `hb:v2:${tractate}:${page}`;
+  const key = keyForHebrewBooks(tractate, page);
   const hit = await readCache<HebrewBooksDaf | FailedMarker>(cache, key);
   track?.onCache?.(hit ? 'hit' : 'miss');
   if (hit) {
@@ -124,7 +126,7 @@ export async function getSefariaPageCached(
   // refetch that populates pieceKeys.
   // v4: switched commentary fetches from Sefaria's v1 `/api/texts/` to v3
   // with nested-array flattening AND fixed the ref construction.
-  const key = `sefaria-bundle:v5:${tractate}:${page}`;
+  const key = keyForSefariaBundle(tractate, page);
   const hit = await readCache<TalmudPageData>(cache, key);
   track?.onCache?.(hit ? 'hit' : 'miss');
   if (hit) return hit;
@@ -148,7 +150,7 @@ export async function getRishonimCached(
   // HaMaor, Ra'ah, Mordechai, Maharsha, …). v4: added select Acharonim (Rashash,
   // Gilyon HaShas, Penei Yehoshua, Ben Yehoyada, Chatam Sofer, R' Akiva Eiger).
   // Bump so cached dapim refetch with the new works.
-  const key = `rishonim:v4:${tractate}:${page}`;
+  const key = keyForRishonim(tractate, page);
   const hit = await readCache<RishonimBundle>(cache, key);
   if (hit) return hit;
   try {
@@ -166,7 +168,7 @@ export async function getHalachaRefsCached(
   page: string,
 ): Promise<HalachicRefBundle> {
   // v2: snippets now carry segStart/segEnd (the linked daf segment).
-  const key = `halacha-refs:v2:${tractate}:${page}`;
+  const key = keyForHalachaRefs(tractate, page);
   const hit = await readCache<HalachicRefBundle>(cache, key);
   if (hit) return hit;
   try {
@@ -193,7 +195,7 @@ export async function getDafTopicsCached(
   tractate: string,
   page: string,
 ): Promise<SefariaTopicBundle> {
-  const key = `daf-topics:v1:${tractate}:${page}`;
+  const key = keyForDafTopics(tractate, page);
   const hit = await readCache<SefariaTopicBundle>(cache, key);
   if (hit) return hit;
   try {
@@ -215,7 +217,7 @@ export async function getMishnaBundleCached(
   tractate: string,
   page: string,
 ): Promise<MishnaBundle> {
-  const key = `mishna-bundle:v1:${tractate}:${page}`;
+  const key = keyForMishnaBundle(tractate, page);
   const hit = await readCache<MishnaBundle>(cache, key);
   if (hit) return hit;
   try {
@@ -233,7 +235,7 @@ export async function getSaCommentaryCached(
 ): Promise<SaCommentaryBundle> {
   // Cache key: replace slashes/spaces with canonical underscores so it's KV-safe.
   const safeKey = saRef.replace(/[^A-Za-z0-9._:,-]+/g, '_');
-  const key = `sa-commentary:v1:${safeKey}`;
+  const key = keyForSaCommentary(safeKey);
   const hit = await readCache<SaCommentaryBundle>(cache, key);
   if (hit) return hit;
   try {
@@ -348,7 +350,7 @@ export async function getSefariaSegmentsCached(
   page: string,
   track?: CacheTrack,
 ): Promise<SefariaSegments | null> {
-  const cacheKey = `sefaria-seg:v1:${tractate}:${page}`;
+  const cacheKey = keyForSefariaSegments(tractate, page);
   if (cache) {
     const cached = await cache.get(cacheKey);
     track?.onCache?.(cached !== null ? 'hit' : 'miss');
