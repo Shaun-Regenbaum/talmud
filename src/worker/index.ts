@@ -9,6 +9,7 @@ import {
 } from '../lib/sefref';
 import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
 import { collectContext } from './context-providers';
+import { placeRevachWithAi } from './revach-ai-place';
 import { formatContextForPrompt, contextForAnchor, segsFromMarkInput } from '../lib/context/select';
 import { aiMatchToSegments } from './context-match';
 import type { MatchInput } from '../lib/context/anchor/ai-prompt';
@@ -1221,6 +1222,9 @@ async function resolveDependencies(
           summary: typeof i.fields?.summary === 'string' ? i.fields.summary : undefined,
         }));
       const items = await collectContext(rc.env, tractate, page, { sections });
+      // Back up the deterministic Revach placer with the cached AI matcher for
+      // any entries it left whole-daf (once per daf; LLM-free on cache hit).
+      await placeRevachWithAi(rc.env, tractate, page, items);
       const scoped = contextForAnchor(items, segsFromMarkInput(markInput));
       out.vars.context = formatContextForPrompt(scoped);
       return;
@@ -2688,10 +2692,11 @@ app.get('/api/admin/hb-probe', async (c) => {
   return c.json({ tractate, mode: concurrent ? 'concurrent' : 'sequential', attempted: results.length, ok, failed: results.length - ok, results });
 });
 
-// Spot-check the deterministic Revach→section placer for one daf: how each
-// whole-daf Revach entry got placed (or left whole-daf) against this amud's
-// argument sections. Read-only, LLM-free — for tuning thresholds + the AI
-// fallback decision. Needs the daf's `argument` mark + dafyomi warm.
+// Spot-check the Revach placer for one daf: how each whole-daf Revach entry got
+// placed (or left whole-daf) against this amud's argument sections, with `via`
+// (revach-section = deterministic, ai = fallback). Read-only by default
+// (LLM-free); pass ?ai=1 to also run the cached AI fallback (one LLM call + KV
+// write on a cold daf). Needs the daf's `argument` mark + dafyomi warm.
 app.get('/api/admin/revach-check/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
@@ -2704,12 +2709,16 @@ app.get('/api/admin/revach-check/:tractate/:page', async (c) => {
       summary: typeof i.fields?.summary === 'string' ? i.fields.summary : undefined,
     }));
   const items = await collectContext(c.env, tractate, page, { sections });
+  // Deterministic by default (LLM-free); pass ?ai=1 to also run the cached AI
+  // fallback (may make one LLM call + write KV on a cold daf).
+  if (c.req.query('ai') === '1') await placeRevachWithAi(c.env, tractate, page, items);
   const sectionTitleForSeg = (seg: number) =>
     sections.find((s) => seg >= s.startSegIdx && seg <= s.endSegIdx)?.title ?? null;
   const revach = items.filter((it) => it.source === 'dafyomi:revach').map((it) => ({
     entry: (it.title?.en ?? it.body?.en ?? '').slice(0, 80),
     placed: it.segs.length ? `${it.segs[0]}-${it.segs[it.segs.length - 1]}` : null,
     section: it.segs.length ? sectionTitleForSeg(it.segs[0]) : null,
+    via: it.via ?? null,
     confidence: it.confidence ?? null,
     refs: (it.refs ?? []).map((r) => `${r.tractate} ${r.page}`),
   }));
