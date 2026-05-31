@@ -247,6 +247,27 @@ export function keyForMesorah(tractate: string, page: string): string {
   return `mesorah:v1:${tractate}:${page}`;
 }
 
+// Commentary-spine + cross-daf bridge caches, previously hand-built in index.ts.
+// Single-site each today (no drift hazard), but centralised so the
+// reverse-dependency index (roadmap step 6) can enumerate every producer's key
+// from one place. Shapes preserved byte-for-byte. NOTE: keyForBridge
+// SLUG-normalises (lowercase, then any run NOT in [a-z0-9.-] -> '_', so '.' and
+// '-' survive), a THIRD normalisation distinct from both the raw source-cache
+// keys and slugDaf — kept verbatim.
+export function keyForCommentaryWorks(tractate: string, page: string): string {
+  return `commentaries:v1:${tractate}:${page}`;
+}
+export function keyForCommentaryText(sourceRef: string): string {
+  return `commentary-tx:v1:${sourceRef}`;
+}
+export function keyForReferences(tractate: string, page: string): string {
+  return `refs:v1:${tractate}:${page}`;
+}
+export function keyForBridge(tractate: string, page: string): string {
+  const norm = (s: string): string => s.toLowerCase().replace(/[^a-z0-9.-]+/g, '_');
+  return `bridge:v1:${norm(tractate)}:${norm(page)}`;
+}
+
 export function keyForMark(
   def: AnyMarkDefinition,
   tractate: string,
