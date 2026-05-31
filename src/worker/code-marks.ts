@@ -2155,8 +2155,12 @@ CODE_ENRICHMENTS.push(
       defHash: 'argument-overview.flow-v1', cacheVersion: '1',
       // Cross-section relationship reasoning is the part that needs real
       // thought — run deepseek-v4-pro with reasoning on (vs flash elsewhere).
+      // Reasoning is 'medium', not 'high': at 'high' the larger dapim blew past
+      // the 240s OpenRouter hard timeout and never cached (~half the Shas had no
+      // flow, so their sugya map showed every section as its own singleton).
+      // 'medium' keeps the cross-section reasoning but finishes in time.
       model: ARGUMENT_PRO_MODEL,
-      reasoningEffort: 'high',
+      reasoningEffort: 'medium',
     },
   ),
   makeSynthesis(
