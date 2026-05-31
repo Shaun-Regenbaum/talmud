@@ -2218,8 +2218,8 @@ Output STRICT JSON only:
       "category": "legal-concepts" | "realia" | "persons" | "assumed-prior",
       "terms": [
         {
-          "term": "the term/concept, in English (e.g. 'Bein HaShemashot', 'the four guardians', 'a maneh')",
-          "termHe": "the Hebrew/Aramaic term in Hebrew SCRIPT (e.g. 'בין השמשות'); empty string if there is no single Hebrew term",
+          "term": "the term/concept as a PLAIN ENGLISH label ONLY — a translation or description (e.g. 'Twilight', 'The four guardians', 'A maneh (coin)'). NO Hebrew script here, and NO transliteration (write 'Twilight', not 'Bein HaShemashot').",
+          "termHe": "the Hebrew/Aramaic term in Hebrew SCRIPT (e.g. 'בין השמשות'); empty string if there is no single Hebrew term. Do NOT repeat the English here.",
           "gloss": "1-2 plain sentences a beginner can follow: what it means and why it matters for THIS daf."
         }
       ]
@@ -2239,6 +2239,7 @@ Rules:
 - Omit a category entirely (do not emit an empty group) when nothing fits it.
 - Order terms within a group by how central they are to the daf.
 - Keep glosses concrete and short. NO puff: forbidden "this teaches us", "we see that", "highlights", "underscores", "profound", "lens".
+- The "term" and "termHe" fields are a SPLIT: English label in "term", Hebrew script in "termHe". Never put Hebrew in "term" and never repeat the English in "termHe". The bilingual style below governs the "gloss" PROSE only, NOT the "term"/"termHe" fields.
 
 ${HEBREW_GLOSS_STYLE}`;
 
@@ -2290,7 +2291,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', 'context', { mark: 'argument' }],
-      defHash: 'daf-background.concepts-v1', cacheVersion: '1',
+      defHash: 'daf-background.concepts-v1', cacheVersion: '2', // v2: term=English-only, Hebrew lives in termHe (no doubled Hebrew)
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
@@ -2304,7 +2305,7 @@ CODE_ENRICHMENTS.push(
         'context',
         { enrichment: 'daf-background.concepts' },
       ],
-      defHash: 'daf-background.synthesis-v1', cacheVersion: '1',
+      defHash: 'daf-background.synthesis-v1', cacheVersion: '2', // v2: re-resolve concepts v2 (its deps_resolved snapshot would otherwise stay stale)
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
