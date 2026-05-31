@@ -14,6 +14,7 @@ import { deriveVoiceEdges } from '../lib/typing/voices';
 import ArgumentFlowGraph, { type FlowConnection } from './ArgumentFlowGraph';
 import { orderBackgroundGroups, type BackgroundGroup } from './backgroundGroups';
 import { adjacentAmud } from '../lib/sefref/amudim';
+import { dafRefHe, pageLabelHe } from '../lib/sefref/tractates';
 import { selectSectionMoves } from '../lib/argumentMoves';
 import { t, lang } from './i18n';
 import { ACCENTS, HebrewProse, Panel, QASection, SectionCard, Synthesis, SidebarPanelFromHint, kindLabelKey, type SidebarHint } from './sidebar/primitives';
@@ -813,6 +814,10 @@ function ArgumentOverviewBody(props: {
     },
   );
 
+  // Adjacent-amud page label for the continuation caption: Hebrew daf form
+  // ('ב.') in he mode, the raw '2a' slug in en.
+  const pageRef = (p: string | null): string => (p ? (lang() === 'he' ? pageLabelHe(p) : p) : '');
+
   // Cross-page continuation hint: a muted caption, not a chip. Subtle on
   // purpose — it's an aside, not a heading (no fill, no border, no bold).
   const crossLabel = (text: string): JSX.Element => (
@@ -851,7 +856,7 @@ function ArgumentOverviewBody(props: {
           return (
             <div style={{ 'margin-bottom': '0.7rem' }}>
               <Show when={hasFirst && bridge()?.fromPrev}>
-                {crossLabel(`↑ continues from ${bridge()!.prev}`)}
+                {crossLabel(t('overview.continuesFrom', { page: pageRef(bridge()!.prev) }))}
               </Show>
               <ArgumentFlowGraph
                 nodes={grpNodes}
@@ -860,7 +865,7 @@ function ArgumentOverviewBody(props: {
                 onSelect={selectSection}
               />
               <Show when={hasLast && bridge()?.toNext}>
-                {crossLabel(`continues onto ${bridge()!.next} ↓`)}
+                {crossLabel(t('overview.continuesOnto', { page: pageRef(bridge()!.next) }))}
               </Show>
               <Show when={activeInGroup() && props.sections[active()!]}>
                 <OverviewSectionVoices
@@ -1865,7 +1870,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
               <span style={{ 'font-size': '0.7rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.08em' }}>
                 {t(kindLabelKey(c().kind))}
                 {' · '}
-                {props.tractate} {props.page}
+                {lang() === 'he' ? dafRefHe(props.tractate, props.page) : `${props.tractate} ${props.page}`}
               </span>
               <button
                 onClick={props.onClose}

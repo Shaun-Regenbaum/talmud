@@ -437,10 +437,15 @@ export default function ArgumentVoiceMap(props: Props): JSX.Element {
                   {/* Side-colour badge (replaces the old left accent bar, which
                       overlapped the rounded border and read as a blob). */}
                   <circle cx={n.x + 19} cy={n.y + NODE_H / 2} r={9} fill={n.color} />
+                  {/* Left-align both lines at n.x+36 (right of the badge) in BOTH
+                      languages. text-anchor is direction-relative: with
+                      direction=rtl, anchor="start" pins the text's RIGHT edge to
+                      n.x+36 so the Hebrew name flows left over the colour badge.
+                      anchor="end" pins the LEFT edge there instead. */}
                   <text
                     x={n.x + 36}
                     y={n.y + NODE_H / 2 - 6}
-                    text-anchor="start"
+                    text-anchor={lang() === 'he' ? 'end' : 'start'}
                     dominant-baseline="central"
                     font-size="11.5"
                     font-weight="600"
@@ -452,11 +457,12 @@ export default function ArgumentVoiceMap(props: Props): JSX.Element {
                   <text
                     x={n.x + 36}
                     y={n.y + NODE_H / 2 + 10}
-                    text-anchor="start"
+                    text-anchor={lang() === 'he' ? 'end' : 'start'}
                     dominant-baseline="central"
                     font-size="9.5"
                     font-family="system-ui, -apple-system, sans-serif"
                     fill="#8a857c"
+                    direction={lang() === 'he' ? 'rtl' : 'ltr'}
                   >{roleLabel(n.role)}</text>
                 </g>
               );
