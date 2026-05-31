@@ -30,6 +30,14 @@ export interface RunResult {
    *  → instances list under the 'rabbi' key). Same fetch as deps_resolved;
    *  surfaced so a sidebar can render mark-specific UI without re-fetching. */
   anchors_resolved?: Record<string, unknown>;
+  /** Stale-while-revalidate (server, /api/studio/run): this value is the
+   *  PREVIOUS cache_version served while the new one recomputes after a bump.
+   *  When `refreshing`, the client shows it with an "updating" marker, does NOT
+   *  persist it in the long-lived run cache (it would pin the stale value), and
+   *  re-fetches shortly to swap in the fresh version. See src/worker/index.ts. */
+  stale?: boolean;
+  refreshing?: boolean;
+  cache_hit?: boolean;
 }
 
 /** True for an AbortError (DOMException or any error whose name is set). */

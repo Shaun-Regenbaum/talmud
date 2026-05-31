@@ -370,6 +370,47 @@ export default function MarkEnrichmentCards(props: Props) {
   // prefetch, but they don't starve the primary synthesis or another anchor
   // the user opens next).
   const cardPriority = props.markId === 'argument-move' ? QUEUE_PRIORITY.normal : QUEUE_PRIORITY.high;
+
+  // Stale-while-revalidate follow-up. The server serves the PREVIOUS
+  // cache_version (tagged `refreshing`) on a version-bump miss while the new one
+  // recomputes in the enrichment-jobs queue. We show that stale value
+  // immediately, then re-fetch on a short backoff to swap in the fresh version
+  // the moment it lands — no reload needed. Bounded attempts: if the recompute
+  // never lands (budget paused → server keeps serving stale), we stop and leave
+  // the stale value shown; a later reload or re-warm fills it. Timers are tied
+  // to the effect's AbortController so a daf/anchor change cancels them.
+  const REFRESH_BACKOFF_MS = [4000, 8000, 16000];
+  const scheduleRefresh = (
+    d: EnrichmentDef, s: string, curLang: string, controller: AbortController, attempt: number,
+  ) => {
+    if (attempt >= REFRESH_BACKOFF_MS.length) return;
+    if (controller.signal.aborted || stamp() !== s) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const onAbort = () => clearTimeout(timer);
+    timer = setTimeout(() => {
+      controller.signal.removeEventListener('abort', onAbort);
+      if (controller.signal.aborted || stamp() !== s) return;
+      const { id: actId, label: actLabel } = enrichmentActivityKey(
+        d.id, props.tractate, props.page, props.instance, props.instanceKey,
+      );
+      void enrichmentQueue.enqueue(actId, actLabel, (sig) =>
+        runEnrichment(d.id, props.tractate, props.page, props.instance, props.instanceKey, sig),
+        controller.signal,
+        cardPriority,
+      ).then(
+        (result) => {
+          if (stamp() !== s) return;
+          if (result.refreshing) { scheduleRefresh(d, s, curLang, controller, attempt + 1); return; }
+          runResultCache.set(runCacheKey(d.id, props.tractate, props.page, props.instanceKey, curLang), result);
+          applyResult(d, s, result);
+        },
+        // Aborted / superseded / transient error — keep the stale value visible.
+        () => {},
+      );
+    }, REFRESH_BACKOFF_MS[attempt]);
+    controller.signal.addEventListener('abort', onAbort, { once: true });
+  };
+
   createEffect(() => {
     const list = matching();
     if (list.length === 0) return;
@@ -396,6 +437,14 @@ export default function MarkEnrichmentCards(props: Props) {
           cardPriority,
         ).then(
           (result) => {
+            // A `refreshing` result is the stale previous version (SWR). Show it,
+            // but don't persist it (it would pin the stale value in the run
+            // cache); instead re-fetch shortly to pick up the fresh version.
+            if (result.refreshing) {
+              applyResult(d, s, result);
+              scheduleRefresh(d, s, curLang, controller, 0);
+              return;
+            }
             runResultCache.set(runCacheKey(d.id, props.tractate, props.page, props.instanceKey, curLang), result);
             applyResult(d, s, result);
           },
@@ -461,7 +510,10 @@ export default function MarkEnrichmentCards(props: Props) {
       QUEUE_PRIORITY.high,
     ).then(
       (result) => {
-        runResultCache.set(runCacheKey(id, props.tractate, props.page, props.instanceKey, curLang), result);
+        // Don't pin a stale SWR value in the cache (see the auto-fire path).
+        if (!result.refreshing) {
+          runResultCache.set(runCacheKey(id, props.tractate, props.page, props.instanceKey, curLang), result);
+        }
         if (stamp() === s) setRun(id, { kind: 'ok', stamp: s, result });
       },
       (err) => { if (!isAbort(err) && stamp() === s) { /* keep synthetic content; inspection just lacks prompts */ } },
@@ -615,6 +667,23 @@ export default function MarkEnrichmentCards(props: Props) {
         padding: '0.85rem 1rem',
       }}>
         {renderCardBody()}
+        <Show when={(() => { const r = primaryRun(); return r.kind === 'ok' && r.result.refreshing; })()}>
+          {/* Stale-while-revalidate: the value above is the previous version,
+              served while the new one recomputes. scheduleRefresh swaps it in. */}
+          <div style={{
+            display: 'flex', 'align-items': 'center', gap: '0.4rem',
+            'margin-top': '0.5rem', color: '#a16207', 'font-size': '0.72rem',
+            'font-style': 'italic',
+          }}>
+            <span style={{
+              display: 'inline-block', width: '0.6rem', height: '0.6rem',
+              'border-radius': '50%',
+              border: '2px solid #e7d9b0', 'border-top-color': '#a16207',
+              animation: 'daf-spin 0.8s linear infinite', 'flex-shrink': 0,
+            }} />
+            {t('enrichment.updating')}
+          </div>
+        </Show>
         <Show when={devModeActive()}>
           <button
             onClick={openInspector}
