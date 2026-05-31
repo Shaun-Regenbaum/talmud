@@ -4,6 +4,7 @@ import {
   keyForHalachaRefs, keyForDafTopics, keyForMishnaBundle, keyForSaCommentary,
   keyForRabbiEnriched, keyForRabbiWikidata, keyForRabbiWikiBio,
   keyForAnalyzeSkeleton, keyForRegion, keyForMesorah,
+  keyForCommentaryWorks, keyForCommentaryText, keyForReferences, keyForBridge,
 } from '../src/worker/cache-keys';
 
 // These keys address a TTL-bounded but huge KV namespace already populated across
@@ -43,5 +44,20 @@ describe('analysis + rabbi enrichment keys — byte-exact contract', () => {
     expect(keyForAnalyzeSkeleton('Bava Kamma', '2a')).toBe('analyze-skel:v2:Bava Kamma:2a');
     expect(keyForRegion('Berakhot', '2a')).toBe('region:v1:Berakhot:2a');
     expect(keyForMesorah('Berakhot', '2a')).toBe('mesorah:v1:Berakhot:2a');
+  });
+});
+
+// Commentary-spine + bridge caches. Commentary/refs use raw tractate:page; the
+// bridge SLUG-normalises (lowercase, then any run not in [a-z0-9.-] -> '_') — a
+// distinct shape that must be preserved exactly, since the cached entries used it.
+describe('commentary-spine + bridge keys — byte-exact contract', () => {
+  it('commentary/refs use raw tractate:page; commentary-text uses the raw sourceRef', () => {
+    expect(keyForCommentaryWorks('Berakhot', '2a')).toBe('commentaries:v1:Berakhot:2a');
+    expect(keyForReferences('Berakhot', '2a')).toBe('refs:v1:Berakhot:2a');
+    expect(keyForCommentaryText('Rashi on Berakhot 2a:1')).toBe('commentary-tx:v1:Rashi on Berakhot 2a:1');
+  });
+  it('the bridge key slug-normalises tractate AND page (lowercase, non-alnum -> _)', () => {
+    expect(keyForBridge('Berakhot', '2a')).toBe('bridge:v1:berakhot:2a');
+    expect(keyForBridge('Bava Kamma', '117b')).toBe('bridge:v1:bava_kamma:117b');
   });
 });
