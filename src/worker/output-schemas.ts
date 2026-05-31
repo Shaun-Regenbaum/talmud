@@ -113,6 +113,20 @@ export const ARGUMENT_OVERVIEW_FLOW_OUTPUT_SCHEMA = responseFormat('argument_ove
     note: z.string(),
   })),
 }));
+// Daf-level BACKGROUND: the terms/concepts a reader needs to understand the daf,
+// grouped into themed sections (legal concepts / realia / persons / assumed-prior
+// sugyot). Drives the whole-daf Background panel. Grounded on the dafyomi.co.il
+// glossary that flows in via {{context}}.
+export const DAF_BACKGROUND_CONCEPTS_OUTPUT_SCHEMA = responseFormat('daf_background_concepts', z.object({
+  groups: z.array(z.object({
+    category: z.enum(['legal-concepts', 'realia', 'persons', 'assumed-prior']),
+    terms: z.array(z.object({
+      term: z.string(),
+      termHe: z.string(),
+      gloss: z.string(),
+    })),
+  })),
+}));
 // Section typing (P2b): a NARRATIVE view for story-primary sections, where the
 // dispute-oriented `voices` graph is the wrong model. Actors (characters) +
 // ordered beats (what happens, step by step) instead of opposing legal positions.

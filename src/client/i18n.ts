@@ -172,6 +172,7 @@ const CATALOG = {
   'sidebar.kind.voice-group': { en: 'Voice', he: 'קול' },
   'sidebar.kind.rabbi': { en: 'Rabbi', he: 'חכם' },
   'sidebar.kind.argument-overview': { en: 'Overview', he: 'סקירה' },
+  'sidebar.kind.daf-background': { en: 'Background', he: 'רקע' },
 
   // — Whole-daf argument overview —
   'overview.chip': { en: 'Overview', he: 'סקירה' },
@@ -180,6 +181,18 @@ const CATALOG = {
     en: 'No argument sections on this daf yet — open it with Arguments enabled so they load.',
     he: 'אין עדיין מקטעי טיעון בדף זה.',
   },
+
+  // — Whole-daf background (terms/concepts a reader needs) —
+  'background.chip': { en: 'Background', he: 'רקע' },
+  'background.title': { en: 'Background', he: 'רקע' },
+  'background.empty': {
+    en: 'No background terms surfaced for this daf yet.',
+    he: 'לא נמצאו עדיין מושגי רקע לדף זה.',
+  },
+  'background.cat.legal-concepts': { en: 'Legal concepts', he: 'מושגים הלכתיים' },
+  'background.cat.realia': { en: 'Realia', he: 'מציאות' },
+  'background.cat.persons': { en: 'Persons', he: 'דמויות' },
+  'background.cat.assumed-prior': { en: 'Assumed background', he: 'רקע מוקדם' },
   // — Common —
   'common.open': { en: 'Open {name}', he: 'פתיחת {name}' },
   'common.close': { en: 'Close', he: 'סגירה' },
@@ -643,6 +656,7 @@ const CATALOG = {
   'dafLoad.family.rabbis': { en: 'rabbis', he: 'חכמים' },
   'dafLoad.family.rishonim': { en: 'rishonim', he: 'ראשונים' },
   'dafLoad.family.argumentOverview': { en: 'overview', he: 'סקירה' },
+  'dafLoad.family.background': { en: 'background', he: 'רקע' },
 
   // — Gutter icon tooltips —
   'gutter.argument': { en: 'Argument structure & rabbis', he: 'מבנה הסוגיה וחכמים' },

@@ -733,6 +733,7 @@ export default function DafViewer(): JSX.Element {
     if (c.kind === 'voice-group') return c.group.name;
     if (c.kind === 'rishonim') return `Rishonim · seg ${c.instance.segIdx + 1}`;
     if (c.kind === 'argument-overview') return t('overview.chip');
+    if (c.kind === 'daf-background') return t('background.chip');
     return 'Back';
   };
   const sidebarKey = (c: SidebarContent): string => {
@@ -745,6 +746,7 @@ export default function DafViewer(): JSX.Element {
     if (c.kind === 'voice-group') return `voice-group:${c.group.name}`;
     if (c.kind === 'rishonim') return `rishonim:${c.instance.segIdx}`;
     if (c.kind === 'argument-overview') return 'argument-overview';
+    if (c.kind === 'daf-background') return 'daf-background';
     return 'unknown';
   };
 
@@ -757,6 +759,7 @@ export default function DafViewer(): JSX.Element {
   );
   const openChip = (id: string) => {
     if (id === 'argument-overview') setSidebar({ kind: 'argument-overview' });
+    else if (id === 'daf-background') setSidebar({ kind: 'daf-background' });
   };
   // Set by ArgumentSidebar when the user clicks an argument-move card. Paints
   // a yellow band over the move's segment range in the main daf text. When
@@ -1843,6 +1846,7 @@ export default function DafViewer(): JSX.Element {
     if (s.kind === 'place') return `place:${s.place.fields.name}`;
     if (s.kind === 'voice-group') return `voice-group:${s.group.name}`;
     if (s.kind === 'argument-overview') return 'argument-overview';
+    if (s.kind === 'daf-background') return 'daf-background';
     return `${s.kind}:${s.index}`;
   });
 
@@ -2609,8 +2613,12 @@ export default function DafViewer(): JSX.Element {
         <div class="daf-chip-bar" style={{ display: 'flex', 'justify-content': 'center', gap: '0.4rem', 'flex-wrap': 'wrap', margin: '0 0 0.6rem' }}>
           <For each={chipMarks()}>{(m) => {
             const color = (m.render as { color?: string }).color ?? '#8a2a2b';
-            const label = m.id === 'argument-overview' ? t('overview.chip') : m.id;
-            const active = () => sidebar()?.kind === 'argument-overview' && m.id === 'argument-overview';
+            // Chip mark id == sidebar kind, so the label + active state are
+            // generic over the registry (no per-mark branching here).
+            const label = m.id === 'argument-overview' ? t('overview.chip')
+              : m.id === 'daf-background' ? t('background.chip')
+              : m.id;
+            const active = () => sidebar()?.kind === m.id;
             return (
               <button
                 type="button"

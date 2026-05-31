@@ -30,6 +30,7 @@ import QAPanel from '../QAPanel';
 export const ACCENTS = {
   argument: '#8a2a2b',
   'argument-overview': '#8a2a2b',
+  'daf-background': '#8a6d3b',
   halacha: '#1e40af',
   aggadata: '#7c3aed',
   pesuk: '#9a3412',
@@ -47,6 +48,7 @@ export function kindLabelKey(kind: SidebarKind): CatalogKey {
   switch (kind) {
     case 'argument': return 'sidebar.kind.argument';
     case 'argument-overview': return 'sidebar.kind.argument-overview';
+    case 'daf-background': return 'sidebar.kind.daf-background';
     case 'halacha': return 'sidebar.kind.halacha';
     case 'aggadata': return 'sidebar.kind.aggadata';
     case 'pesuk': return 'sidebar.kind.pesuk';

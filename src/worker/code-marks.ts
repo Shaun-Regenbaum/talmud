@@ -47,6 +47,7 @@ import {
   ARGUMENT_VOICES_OUTPUT_SCHEMA,
   ARGUMENT_NARRATIVE_OUTPUT_SCHEMA,
   ARGUMENT_OVERVIEW_FLOW_OUTPUT_SCHEMA,
+  DAF_BACKGROUND_CONCEPTS_OUTPUT_SCHEMA,
   HALACHA_CODIFICATION_OUTPUT_SCHEMA,
   HALACHA_DISPUTES_OUTPUT_SCHEMA,
   HALACHA_OUTPUT_SCHEMA,
@@ -535,6 +536,30 @@ export const CODE_MARKS: MarkDefinition[] = [
     },
     status: 'promoted',
     def_hash: 'argument-overview-v1',
+    cache_version: '1',
+    source: 'code',
+    updated_at: NOW,
+  },
+  {
+    id: 'daf-background',
+    label: 'Background',
+    description: 'Whole-daf background: the key terms/concepts a reader needs to follow the daf, grouped into legal concepts / realia / persons / assumed-prior sugyot, grounded on the dafyomi.co.il glossary.',
+    category: 'canon',
+    // Reader-facing (non-experimental), like the overview chip. The deterministic
+    // single anchorless instance carries the chip + daf-level enrichments; no LLM
+    // at the mark layer.
+    anchor: 'whole-daf',
+    render: {
+      kind: 'chip',
+      color: '#8a6d3b',
+      position: 'header',
+    },
+    extractor: {
+      kind: 'computed',
+      fn: 'whole-daf-instance',
+    },
+    status: 'promoted',
+    def_hash: 'daf-background-v1',
     cache_version: '1',
     source: 'code',
     updated_at: NOW,
@@ -2170,6 +2195,116 @@ CODE_ENRICHMENTS.push(
         { mark: 'rabbi' },
       ],
       defHash: 'argument-overview.synthesis-v2', cacheVersion: '3', // v3: per-section Revach placement now reaches this
+      model: ARGUMENT_FLASH_MODEL,
+    },
+  ),
+);
+
+// ---------------------------------------------------------------------------
+// daf-background mark enrichments — the key terms/concepts a reader needs to
+// follow the daf, grouped into themed sections (legal concepts / realia /
+// persons / assumed-prior sugyot). Distinct from argument.background (per
+// SECTION prose). Grounded on the dafyomi.co.il glossary that flows in via
+// {{context}}: prefer those definitions rather than reinventing them.
+// ---------------------------------------------------------------------------
+
+const DAF_BACKGROUND_CONCEPTS_SYSTEM_PROMPT = `You are a Talmud teacher preparing a student to read a daf. List the TERMS and CONCEPTS the student must understand BEFORE the daf makes sense — the prerequisites, not a summary of the daf's argument.
+
+Output STRICT JSON only:
+
+{
+  "groups": [
+    {
+      "category": "legal-concepts" | "realia" | "persons" | "assumed-prior",
+      "terms": [
+        {
+          "term": "the term/concept, in English (e.g. 'Bein HaShemashot', 'the four guardians', 'a maneh')",
+          "termHe": "the Hebrew/Aramaic term in Hebrew SCRIPT (e.g. 'בין השמשות'); empty string if there is no single Hebrew term",
+          "gloss": "1-2 plain sentences a beginner can follow: what it means and why it matters for THIS daf."
+        }
+      ]
+    }
+  ]
+}
+
+CATEGORIES:
+- "legal-concepts" — halachic/dialectical principles, categories, and technical legal terms (e.g. types of guardianship, a presumption, a derivation method).
+- "realia" — physical objects, places, money/measures, plants/animals, occupations, daily-life facts the daf assumes you picture.
+- "persons" — sages or biblical/historical figures whose identity or relationships matter to follow who is arguing with whom.
+- "assumed-prior" — rulings, cases, or sugyot established EARLIER (a previous daf or a known mishna) that this daf builds on without re-explaining.
+
+Rules:
+- Prefer the dafyomi.co.il glossary wording in the study context when it defines a term — reuse its definition, do not invent a different one.
+- Only include a term if a competent beginner would genuinely stumble without it. Skip common words.
+- Omit a category entirely (do not emit an empty group) when nothing fits it.
+- Order terms within a group by how central they are to the daf.
+- Keep glosses concrete and short. NO puff: forbidden "this teaches us", "we see that", "highlights", "underscores", "profound", "lens".
+
+${HEBREW_GLOSS_STYLE}`;
+
+const DAF_BACKGROUND_CONCEPTS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+Full daf:
+{{gemara}}
+
+Argument sections on this daf (for orientation — do NOT just summarize them):
+{{anchors.argument}}
+
+Study-aid context (dafyomi.co.il — includes a Background glossary of terms for this daf; prefer its definitions):
+{{context}}
+
+List the prerequisite terms/concepts grouped by category per the schema.`;
+
+const DAF_BACKGROUND_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud teacher. You'll receive a daf, its prerequisite terms/concepts (already grouped), and study context. Write ONE short orientation sentence telling a reader what background this daf assumes.
+
+Output STRICT JSON only:
+
+{
+  "synthesis": "ONE sentence, MAX 30 words, naming the kind of background the daf leans on (e.g. 'This daf assumes you know the laws of the four guardians and the realia of a borrowed ox'). NOT a summary of the argument."
+}
+
+HARD RULES:
+- ONE sentence. Point at the prerequisites, do not list every term.
+- NO puff. Hebrew script (not transliteration) for technical terms in parentheses.
+
+${HEBREW_GLOSS_STYLE}`;
+
+const DAF_BACKGROUND_SYNTHESIS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+Full daf:
+{{gemara}}
+
+Prerequisite terms/concepts already extracted (grouped by category):
+{{depends.daf-background.concepts}}
+
+Study-aid context (dafyomi.co.il):
+{{context}}
+
+Write the one-sentence background orientation per the schema.`;
+
+CODE_ENRICHMENTS.push(
+  makeEnrichment(
+    'daf-background', 'daf-background.concepts', 'Background concepts',
+    'The terms/concepts a reader needs to follow the daf, grouped into legal concepts / realia / persons / assumed-prior sugyot.',
+    DAF_BACKGROUND_CONCEPTS_SYSTEM_PROMPT, DAF_BACKGROUND_CONCEPTS_USER_TEMPLATE, DAF_BACKGROUND_CONCEPTS_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content', scope: 'local',
+      dependencies: ['gemara', 'context', { mark: 'argument' }],
+      defHash: 'daf-background.concepts-v1', cacheVersion: '1',
+      model: ARGUMENT_FLASH_MODEL,
+    },
+  ),
+  makeSynthesis(
+    'daf-background', 'daf-background.synthesis',
+    'One short sentence orienting a reader to the background this daf assumes.',
+    DAF_BACKGROUND_SYNTHESIS_SYSTEM_PROMPT, DAF_BACKGROUND_SYNTHESIS_USER_TEMPLATE,
+    {
+      dependencies: [
+        'gemara',
+        'context',
+        { enrichment: 'daf-background.concepts' },
+      ],
+      defHash: 'daf-background.synthesis-v1', cacheVersion: '1',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
