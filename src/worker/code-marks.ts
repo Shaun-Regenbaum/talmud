@@ -1801,6 +1801,38 @@ Figures identified on this daf:
 
 Retell this section as a story per the schema: list the actors, then the ordered beats.`;
 
+const ARGUMENT_NARRATIVE_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. מקטע זה של הדף הוא נרטיב (סיפור / אגדה / מעשה), לא מחלוקת הלכתית. ספר אותו מחדש כסיפור — דמויות ומה שקורה — לעולם לא כעמדות הלכתיות נוגדות.
+
+החזר JSON תקין בלבד:
+
+{
+  "summary": "1-2 משפטים בעברית: מה קורה בסיפור הזה.",
+  "actors": [{ "name": "Conventional English name of a character — a rabbi, a biblical/legendary figure, a collective ('the demons'), or 'Narrator' for the anonymous teller", "role": "protagonist | antagonist | authority | narrator | other" }],
+  "beats": [{ "n": 1, "kind": "scene | action | dialogue | turn | resolution", "actor": "which actor acts in this beat (MUST match a name in actors)", "action": "משפט אחד בעברית: מה קורה או נאמר, בסדר הסיפור", "excerpt": "3-7 מילים בעברית/ארמית מועתקות מילה במילה מן הדף, היכן הביט מתחיל" }]
+}
+
+כללים:
+- סדר את ה-beats לפי הופעתם בטקסט (n = 1, 2, 3 …); כל ביט הוא אירוע קונקרטי אחד.
+- "kind" הוא תפקיד נרטיבי, לעולם לא דיאלקטי: scene (קובע את הרקע), action (משהו קורה), dialogue (דמות מדברת), turn (תפנית), resolution (כיצד מסתיים). לעולם אל תשתמש ב-question/answer/objection — זהו סיפור, לא שקלא וטריא.
+- "excerpt" חייב להיות מועתק מילה במילה מטקסט הדף (מילות הפתיחה של הביט), כדי שניתן יהיה לאתרו בעמוד. אל תנסח מחדש ואל תתרגם.
+- ה-actors הם דמויות בסיפור. שדים, מלכים, בעלי חיים ודמויות מקראיות הם actors תקפים.
+- אל תמציא "צדדים" נוגדים או עמדות הלכתיות.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const ARGUMENT_NARRATIVE_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+המקטע (נרטיב):
+{{mark_input}}
+
+ה-moves / קטעים במקטע זה, לפי הסדר:
+{{anchors.argument-move}}
+
+דמויות שזוהו בדף זה:
+{{anchors.rabbi}}
+
+ספר מחדש מקטע זה כסיפור לפי הסכימה: מנה את ה-actors, ואז את ה-beats המסודרים.`;
+
 
 // ---------------- argument.background (kept) ----------------
 
@@ -2043,8 +2075,10 @@ CODE_ENRICHMENTS.push(
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', { mark: 'argument-move' }, { mark: 'rabbi' }],
       checks: ['reanchor-narrative'],
-      defHash: 'argument.narrative-v2', cacheVersion: '2',
+      defHash: 'argument.narrative-v2', cacheVersion: '3', // v3: native Hebrew prompt
       model: ARGUMENT_FLASH_MODEL,
+      systemPromptHe: ARGUMENT_NARRATIVE_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: ARGUMENT_NARRATIVE_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
@@ -2163,6 +2197,37 @@ Study-aid context (dafyomi.co.il):
 
 Write the whole-daf overview paragraph per the schema.`;
 
+const ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. תקבל דף שלם, את מקטעי הטיעון שבו, את הקשרים בין המקטעים, ותוכן לימוד נלווה. חבר פסקה אחת הדוקה המכוונת את הקורא בדף כולו: שאלתו המרכזית, העמדות הנקובות העיקריות, כיצד המקטעים מתחברים, והיכן הדף נוחת.
+
+החזר JSON תקין בלבד:
+
+{
+  "synthesis": "פסקה אחת, 4 משפטים לכל היותר. כל משפט 25 מילים לכל היותר. (1) השאלה או הנושא המרכזי של הדף. (2) העמדות הנקובות העיקריות, פסוקית תמציתית אחת לכל אחת. (3) משפט אחד אופציונלי על אופן התחברות המקטעים. (4) משפט מסכם אחד: היכן הדף נוחת (פתוח / מיושב / עובר הלאה). אל תסכם מקטע אחר מקטע."
+}
+
+כללים נוקשים:
+- 4 משפטים לכל היותר. 25 מילים למשפט לכל היותר. קצץ, אל תמלא.
+- כיוון לכל הדף, לא סיכום מקטע. פירוט לכל מקטע שייך ל-argument.synthesis.
+- ללא מליצה. אסור: "מכאן אנו למדים", "אנו רואים ש", "מדגיש", "מבליט", "מורכב", "עמוק", "עדשה", "לוכד".
+
+${HEBREW_NATIVE_STYLE}`;
+
+const ARGUMENT_OVERVIEW_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+הדף המלא:
+{{gemara}}
+
+מקטעי הטיעון בדף זה:
+{{anchors.argument}}
+
+הקשרים בין המקטעים (אינדקסים לרשימה שלמעלה):
+{{depends.argument-overview.flow}}
+
+תוכן לימוד נלווה (dafyomi.co.il):
+{{context}}
+
+כתוב את פסקת הסקירה של הדף כולו לפי הסכימה.`;
+
 CODE_ENRICHMENTS.push(
   makeEnrichment(
     'argument-overview', 'argument-overview.flow', 'Argument flow',
@@ -2194,8 +2259,10 @@ CODE_ENRICHMENTS.push(
         { mark: 'argument' },
         { mark: 'rabbi' },
       ],
-      defHash: 'argument-overview.synthesis-v2', cacheVersion: '3', // v3: per-section Revach placement now reaches this
+      defHash: 'argument-overview.synthesis-v2', cacheVersion: '4', // v4: native Hebrew prompt (he mode no longer falls back to English)
       model: ARGUMENT_FLASH_MODEL,
+      systemPromptHe: ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: ARGUMENT_OVERVIEW_SYNTHESIS_USER_TEMPLATE_HE,
     },
   ),
 );
@@ -2260,6 +2327,58 @@ Study-aid context (dafyomi.co.il — includes a Background glossary of terms for
 
 List the prerequisite terms / concepts / earlier sources grouped by category per the schema. Remember: background to prepare the reader, never a recap of the daf.`;
 
+const DAF_BACKGROUND_CONCEPTS_SYSTEM_PROMPT_HE = `אתה מלמד תורה המכין תלמיד לפני שהוא פותח דף. תפקידך הוא הרקע המקדים: המונחים, המושגים והמקורות הקודמים שהקורא חייב כבר להבין כדי שהדף יהיה מובן. אינך מסכם את הדף.
+
+החזר JSON תקין בלבד:
+
+{
+  "groups": [
+    {
+      "category": "legal-concepts" | "realia" | "assumed-prior",
+      "terms": [
+        {
+          "term": "the concept as a PLAIN ENGLISH label ONLY — a translation or description (e.g. 'Twilight', 'The four guardians'). NO Hebrew script here, and NO transliteration.",
+          "termHe": "המונח העברי/ארמי בכתב עברי (למשל 'בין השמשות'); מחרוזת ריקה אם אין מונח עברי יחיד. אל תחזור על האנגלית כאן.",
+          "gloss": "1-2 משפטים פשוטים בעברית המסבירים את המושג עצמו, באופן עצמאי, כך שהקורא יהיה מצויד לקראת קריאת הדף."
+        }
+      ]
+    }
+  ]
+}
+
+הכלל הקשה היחיד — רקע, לא סיכום:
+- הסבר כל פריט לגופו, כאילו הקורא טרם ראה את הדף. לעולם אל תספר מה הדף עושה איתו.
+- אסור בכל gloss: "הדף דן / מצטט / מקשה / מסיק…", "מושג זה מרכזי למחלוקת…", ונקיבת שם חכם המחזיק בעמדה. מי מחזיק מה הוא הטיעון של הדף — לכך מיועד פיל אחר (הסקירה). אם אתה מוצא עצמך מתאר את מהלך הדף, מחק אותו.
+- אל תמנה את החכמים המופיעים בדף. אין קטגוריית "persons".
+
+קטגוריות:
+- "legal-concepts" — עקרונות הלכתיים/דיאלקטיים, קטגוריות ומונחים טכניים שהקורא חייב כבר להבין (למשל ארבעה שומרים, חזקה, דרך לימוד).
+- "realia" — חפצים פיזיים, מקומות, מטבעות/מידות, צמחים/בעלי חיים, מקצועות, עובדות חיי יומיום שהדף מניח שאתה כבר מדמיין.
+- "assumed-prior" — מקורות קודמים שהדף בונה עליהם בלי להסבירם מחדש: סוגיה קודמת (כאן או במסכת אחרת), משנה, פסוק, או הלכה מבוססת. זו הקטגוריה בעלת הערך הגבוה ביותר: כשמעקב אחר הדף דורש ידיעת גמרא או טיעון אחר, נקוב בו, תן מראה מקום אם ידוע לך (למשל 'שבת לד:', 'משנה ברכות א:א', 'ויקרא כב:ז'), והסבר מה אותו מקור מבסס — לא כיצד הדף משתמש בו.
+
+כללים:
+- העדף את ניסוח מילון dafyomi.co.il שבתוכן הלימוד כשהוא מגדיר מונח — השתמש בהגדרתו, אל תמציא אחרת.
+- כלול רק פריט שמתחיל מתקשה בלעדיו באמת. דלג על מילים נפוצות. איכות על פני כמות.
+- השמט קטגוריה לגמרי (אל תפלוט קבוצה ריקה) כשדבר אינו מתאים לה.
+- סדר את המונחים בתוך קבוצה לפי מרכזיותם למעקב אחר הדף.
+- ללא מליצה: אסור "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק", "עדשה".
+- שדות "term"/"termHe" הם פיצול: תווית אנגלית ב-"term", כתב עברי ב-"termHe". לעולם אל תכניס עברית ל-"term" ולעולם אל תחזור על האנגלית ב-"termHe".
+
+${HEBREW_NATIVE_STYLE}`;
+
+const DAF_BACKGROUND_CONCEPTS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+הדף המלא:
+{{gemara}}
+
+מקטעי הטיעון בדף זה (לכיוונך בלבד — הפלט שלך אסור שיספר או יסכם אותם; השתמש בהם כדי להסיק מה הקורא חייב לדעת מראש):
+{{anchors.argument}}
+
+תוכן לימוד נלווה (dafyomi.co.il — כולל מילון רקע למונחי הדף; העדף את הגדרותיו):
+{{context}}
+
+מנה את מונחי/מושגי/מקורות הרקע המקדימים מקובצים לפי קטגוריה לפי הסכימה. זכור: רקע להכנת הקורא, לעולם לא סיכום של הדף.`;
+
 const DAF_BACKGROUND_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud teacher. You'll receive a daf, its prerequisite terms/concepts (already grouped), and study context. Write ONE short orientation sentence telling a reader what background this daf assumes.
 
 Output STRICT JSON only:
@@ -2287,6 +2406,33 @@ Study-aid context (dafyomi.co.il):
 
 Write the one-sentence background orientation per the schema.`;
 
+const DAF_BACKGROUND_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה מלמד תורה. תקבל דף, את מונחי/מושגי הרקע שלו (כבר מקובצים), ותוכן לימוד. כתוב משפט כיוון קצר אחד המספר לקורא איזה רקע הדף הזה מניח.
+
+החזר JSON תקין בלבד:
+
+{
+  "synthesis": "משפט אחד, 30 מילים לכל היותר, הנוקב בסוג הרקע שעליו הדף נשען (למשל 'דף זה מניח ידיעת דיני ארבעה שומרים ומציאות השור השאול'). לא סיכום של הטיעון."
+}
+
+כללים נוקשים:
+- משפט אחד. הצבע על הרקע המקדים, אל תמנה כל מונח.
+- ללא מליצה.
+
+${HEBREW_NATIVE_STYLE}`;
+
+const DAF_BACKGROUND_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+הדף המלא:
+{{gemara}}
+
+מונחי/מושגי הרקע המקדימים שכבר חולצו (מקובצים לפי קטגוריה):
+{{depends.daf-background.concepts}}
+
+תוכן לימוד נלווה (dafyomi.co.il):
+{{context}}
+
+כתוב את משפט כיוון הרקע היחיד לפי הסכימה.`;
+
 CODE_ENRICHMENTS.push(
   makeEnrichment(
     'daf-background', 'daf-background.concepts', 'Background concepts',
@@ -2295,12 +2441,14 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', 'context', { mark: 'argument' }],
-      defHash: 'daf-background.concepts-v1', cacheVersion: '4', // v4: pro model for tighter no-narration / no-sage-naming adherence
+      defHash: 'daf-background.concepts-v1', cacheVersion: '5', // v5: native Hebrew prompt (gloss prose no longer falls back to English)
       // Pro (vs flash) follows the "background, not summary" rule far better —
       // flash kept leaking "the Gemara debates…" and naming disputants. Thinking
       // stays off (no reasoningEffort) so the big gemara+context prompt lands
       // well under the OpenRouter cap, like the synthesis below.
       model: ARGUMENT_PRO_MODEL,
+      systemPromptHe: DAF_BACKGROUND_CONCEPTS_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: DAF_BACKGROUND_CONCEPTS_USER_TEMPLATE_HE,
     },
   ),
   makeSynthesis(
@@ -2313,8 +2461,10 @@ CODE_ENRICHMENTS.push(
         'context',
         { enrichment: 'daf-background.concepts' },
       ],
-      defHash: 'daf-background.synthesis-v1', cacheVersion: '4', // v4: re-resolve concepts v4 (its deps_resolved snapshot would otherwise stay stale)
+      defHash: 'daf-background.synthesis-v1', cacheVersion: '5', // v5: native Hebrew prompt + re-resolve concepts v5
       model: ARGUMENT_FLASH_MODEL,
+      systemPromptHe: DAF_BACKGROUND_SYNTHESIS_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: DAF_BACKGROUND_SYNTHESIS_USER_TEMPLATE_HE,
     },
   ),
 );

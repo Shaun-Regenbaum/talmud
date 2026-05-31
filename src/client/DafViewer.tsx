@@ -2614,8 +2614,11 @@ export default function DafViewer(): JSX.Element {
           <For each={chipMarks()}>{(m) => {
             const color = (m.render as { color?: string }).color ?? '#8a2a2b';
             // Chip mark id == sidebar kind, so the label + active state are
-            // generic over the registry (no per-mark branching here).
-            const label = m.id === 'argument-overview' ? t('overview.chip')
+            // generic over the registry (no per-mark branching here). label() is
+            // an accessor (not a captured const) so it re-evaluates t() when the
+            // language flips — otherwise the chip keeps the label of whichever
+            // language it first rendered in.
+            const label = () => m.id === 'argument-overview' ? t('overview.chip')
               : m.id === 'daf-background' ? t('background.chip')
               : m.id;
             const active = () => sidebar()?.kind === m.id;
@@ -2623,7 +2626,7 @@ export default function DafViewer(): JSX.Element {
               <button
                 type="button"
                 onClick={() => openChip(m.id)}
-                title={label}
+                title={label()}
                 style={{
                   'font-size': '0.75rem',
                   'font-weight': 600,
@@ -2635,7 +2638,7 @@ export default function DafViewer(): JSX.Element {
                   cursor: 'pointer',
                   'font-family': 'system-ui, -apple-system, sans-serif',
                 }}
-              >{label}</button>
+              >{label()}</button>
             );
           }}</For>
         </div>
