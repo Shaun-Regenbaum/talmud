@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   keyForHebrewBooks, keyForSefariaBundle, keyForSefariaSegments, keyForRishonim,
   keyForHalachaRefs, keyForDafTopics, keyForMishnaBundle, keyForSaCommentary,
+  keyForRabbiEnriched, keyForRabbiWikidata, keyForRabbiWikiBio,
+  keyForAnalyzeSkeleton, keyForRegion, keyForMesorah,
 } from '../src/worker/cache-keys';
 
 // These keys address a TTL-bounded but huge KV namespace already populated across
@@ -26,5 +28,20 @@ describe('source-cache keys — byte-exact contract', () => {
   it('keeps a space/upper-case tractate in the key verbatim (the cold-miss trap)', () => {
     expect(keyForSefariaBundle('Bava Kamma', '2a')).toBe('sefaria-bundle:v5:Bava Kamma:2a');
     expect(keyForRishonim('Bava Kamma', '117b')).toBe('rishonim:v4:Bava Kamma:117b');
+  });
+});
+
+// Per-daf analysis + per-rabbi enrichment keys, centralised out of index.ts where
+// each was hand-built at 2-4 sites (the drift hazard). Same byte-exact contract.
+describe('analysis + rabbi enrichment keys — byte-exact contract', () => {
+  it('per-rabbi keys use the raw normalised slug', () => {
+    expect(keyForRabbiEnriched('rabbi_yochanan')).toBe('rabbi-enriched:v1:rabbi_yochanan');
+    expect(keyForRabbiWikidata('rabbi_yochanan')).toBe('rabbi-wikidata:v1:rabbi_yochanan');
+    expect(keyForRabbiWikiBio('rabbi_yochanan')).toBe('rabbi-wiki-bio:v1:rabbi_yochanan');
+  });
+  it('per-daf analysis keys use raw tractate:page', () => {
+    expect(keyForAnalyzeSkeleton('Bava Kamma', '2a')).toBe('analyze-skel:v2:Bava Kamma:2a');
+    expect(keyForRegion('Berakhot', '2a')).toBe('region:v1:Berakhot:2a');
+    expect(keyForMesorah('Berakhot', '2a')).toBe('mesorah:v1:Berakhot:2a');
   });
 });

@@ -107,6 +107,12 @@ import {
   qualifierHash,
   normalizeQualifier,
   previousVersionKey,
+  keyForRabbiEnriched,
+  keyForRabbiWikidata,
+  keyForRabbiWikiBio,
+  keyForAnalyzeSkeleton,
+  keyForRegion,
+  keyForMesorah,
 } from './cache-keys';
 import {
   buildObservationSlices,
@@ -5449,7 +5455,7 @@ app.get('/api/admin/rabbi-enrich-unified/:slug', async (c) => {
 
   const refresh = c.req.query('refresh') === '1';
   const cache = c.env.CACHE;
-  const cacheKey = `rabbi-enriched:v1:${slug}`;
+  const cacheKey = keyForRabbiEnriched(slug);
   if (cache && !refresh) {
     const hit = await cache.get(cacheKey);
     if (hit) {
@@ -5506,7 +5512,7 @@ async function readEnriched(
   cache: KVNamespace,
   slug: string,
 ): Promise<EnrichedRabbiRecord | null> {
-  const hit = await cache.get(`rabbi-enriched:v1:${slug}`);
+  const hit = await cache.get(keyForRabbiEnriched(slug));
   if (!hit) return null;
   try {
     return JSON.parse(hit) as EnrichedRabbiRecord;
@@ -5570,7 +5576,7 @@ app.get('/api/admin/rabbi-wikidata/:slug', async (c) => {
   if (!RABBI_PLACES.rabbis[slug]) return c.json({ error: `unknown slug: ${slug}` }, 404);
 
   const refresh = c.req.query('refresh') === '1';
-  const cacheKey = `rabbi-wikidata:v1:${slug}`;
+  const cacheKey = keyForRabbiWikidata(slug);
   if (!refresh) {
     const hit = await cache.get(cacheKey);
     if (hit) return c.json({ slug, record: JSON.parse(hit), _cached: true });
@@ -5625,7 +5631,7 @@ app.get('/api/admin/rabbi-wiki-bio/:slug', async (c) => {
   if (!RABBI_PLACES.rabbis[slug]) return c.json({ error: `unknown slug: ${slug}` }, 404);
 
   const refresh = c.req.query('refresh') === '1';
-  const cacheKey = `rabbi-wiki-bio:v1:${slug}`;
+  const cacheKey = keyForRabbiWikiBio(slug);
   if (!refresh) {
     const hit = await cache.get(cacheKey);
     if (hit) return c.json({ slug, record: JSON.parse(hit), _cached: true });
@@ -6014,14 +6020,14 @@ app.get('/api/region/:tractate/:page', async (c) => {
   if (!cache) return c.json({ error: 'CACHE unavailable' }, 503);
 
   const refresh = c.req.query('refresh') === '1';
-  const cacheKey = `region:v1:${tractate}:${page}`;
+  const cacheKey = keyForRegion(tractate, page);
   if (!refresh) {
     const hit = await cache.get(cacheKey);
     if (hit) return c.json({ ...JSON.parse(hit), _cached: true });
   }
 
   // Pull skeleton (Stage A) — required input.
-  const skelRaw = await cache.get(`analyze-skel:v2:${tractate}:${page}`);
+  const skelRaw = await cache.get(keyForAnalyzeSkeleton(tractate, page));
   if (!skelRaw) {
     return c.json({
       error: 'No cached skeleton; run /api/analyze/.../?skeleton_only=1 first',
@@ -6137,13 +6143,13 @@ app.get('/api/mesorah/:tractate/:page', async (c) => {
   const depthQ = parseInt(c.req.query('depth') ?? '', 10);
   const depth = Number.isFinite(depthQ) && depthQ > 0 && depthQ <= 10 ? depthQ : DEFAULT_MESORAH_DEPTH;
 
-  const cacheKey = `mesorah:v1:${tractate}:${page}`;
+  const cacheKey = keyForMesorah(tractate, page);
   if (!refresh) {
     const hit = await cache.get(cacheKey);
     if (hit) return c.json({ ...JSON.parse(hit), _cached: true });
   }
 
-  const skelRaw = await cache.get(`analyze-skel:v2:${tractate}:${page}`);
+  const skelRaw = await cache.get(keyForAnalyzeSkeleton(tractate, page));
   if (!skelRaw) {
     return c.json({
       error: 'No cached skeleton; run /api/analyze/.../?skeleton_only=1 first',
@@ -6468,7 +6474,7 @@ app.post('/api/hebraize', async (c) => {
 app.get('/api/admin/rabbi-enriched/:slug', async (c) => {
   if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
   const slug = c.req.param('slug');
-  const hit = await c.env.CACHE.get(`rabbi-enriched:v1:${slug}`);
+  const hit = await c.env.CACHE.get(keyForRabbiEnriched(slug));
   if (!hit) return c.json({ error: 'not enriched', slug }, 404);
   return c.json({ slug, record: JSON.parse(hit) });
 });
@@ -6529,13 +6535,13 @@ app.post('/api/enrich-rabbi-bio/:tractate/:page/:slug', async (c) => {
   const needsUnifiedForRegion = wantBio('region');
   const needsGraphForMesorah = wantBio('mesorah');
   const [unifiedRaw, wikidataRaw, wikiBioRaw, graphRaw, skelRaw, regionDafRaw, mesorahDafRaw] = await Promise.all([
-    (wantBio('unified') || needsUnifiedForRegion) ? cache.get(`rabbi-enriched:v1:${slug}`) : Promise.resolve(null),
-    wantBio('wikidata')     ? cache.get(`rabbi-wikidata:v1:${slug}`)         : Promise.resolve(null),
-    wantBio('wiki-bio')     ? cache.get(`rabbi-wiki-bio:v1:${slug}`)         : Promise.resolve(null),
+    (wantBio('unified') || needsUnifiedForRegion) ? cache.get(keyForRabbiEnriched(slug)) : Promise.resolve(null),
+    wantBio('wikidata')     ? cache.get(keyForRabbiWikidata(slug))         : Promise.resolve(null),
+    wantBio('wiki-bio')     ? cache.get(keyForRabbiWikiBio(slug))         : Promise.resolve(null),
     (wantBio('rabbi-graph') || needsGraphForMesorah) ? cache.get('rabbi-graph:v1') : Promise.resolve(null),
-    wantBio('daf-role')     ? cache.get(`analyze-skel:v2:${tractate}:${page}`) : Promise.resolve(null),
-    wantBio('region')       ? cache.get(`region:v1:${tractate}:${page}`)    : Promise.resolve(null),
-    wantBio('mesorah')      ? cache.get(`mesorah:v1:${tractate}:${page}`)   : Promise.resolve(null),
+    wantBio('daf-role')     ? cache.get(keyForAnalyzeSkeleton(tractate, page)) : Promise.resolve(null),
+    wantBio('region')       ? cache.get(keyForRegion(tractate, page))    : Promise.resolve(null),
+    wantBio('mesorah')      ? cache.get(keyForMesorah(tractate, page))   : Promise.resolve(null),
   ]);
 
   const tryParse = <T>(raw: string | null): T | null => {

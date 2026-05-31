@@ -178,6 +178,32 @@ export function keyForSaCommentary(safeKey: string): string {
   return `sa-commentary:v1:${safeKey}`;
 }
 
+// Per-daf analysis + per-rabbi enrichment caches. Each of these was hand-built
+// at 2-4 separate call sites in index.ts — the precise drift hazard that bit
+// `sefaria-bundle` (warm-cron probed v2 while the reader used v5). Centralising
+// makes a version bump land everywhere at once. RAW interpolation (no slugDaf):
+// the rabbi `slug` is already normalised by the caller, and the daf keys were
+// written with raw `tractate:page`. Do not change the shape — existing entries
+// across Shas would cold-miss.
+export function keyForRabbiEnriched(slug: string): string {
+  return `rabbi-enriched:v1:${slug}`;
+}
+export function keyForRabbiWikidata(slug: string): string {
+  return `rabbi-wikidata:v1:${slug}`;
+}
+export function keyForRabbiWikiBio(slug: string): string {
+  return `rabbi-wiki-bio:v1:${slug}`;
+}
+export function keyForAnalyzeSkeleton(tractate: string, page: string): string {
+  return `analyze-skel:v2:${tractate}:${page}`;
+}
+export function keyForRegion(tractate: string, page: string): string {
+  return `region:v1:${tractate}:${page}`;
+}
+export function keyForMesorah(tractate: string, page: string): string {
+  return `mesorah:v1:${tractate}:${page}`;
+}
+
 export function keyForMark(
   def: AnyMarkDefinition,
   tractate: string,
