@@ -92,8 +92,6 @@ export function coordLabel(c: AnchorCoord): string {
   return c.seg >= 0 ? `${c.tractate} ${c.page}:${c.seg}` : `${c.tractate} ${c.page}`;
 }
 
-/** The "cites …" payload for an item's external refs, or '' when there are none. */
-export function citesLabel(refs: AnchorCoord[] | undefined): string {
-  if (!refs || !refs.length) return '';
-  return [...new Set(refs.map(coordLabel))].join(', ');
-}
+// Citations were rendered here via a `citesLabel` side channel. They are now a
+// first-class Link (relation 'cites') — see src/lib/context/link.ts, which reuses
+// coordLabel above. `select.ts` renders them through linkLabel(citationLink(refs)).
