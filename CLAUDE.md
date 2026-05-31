@@ -2,6 +2,23 @@
 
 Talmud study app: Hono on Cloudflare Workers (`src/worker`) + Solid.js/Vite client (`src/client`), shared logic in `src/lib`. Package manager is **pnpm**. TypeScript strict.
 
+## Framework direction — read `docs/framework.md` first
+
+The app is being unified onto one model: **the Talmud covered in "smart notes" (pieces) pinned to "texts" (spines).** A piece knows where it sits (an anchor), what it's built from, how it was made, and how sure we are; pieces compose; views are generated from them. External study-aids are just notes on other texts, *linked* to the right spot. This is a **unification of what already exists** (marks, enrichments, the rabbi registry, flow/bridges, Q&A, context) — adopt it **incrementally, each step retiring a bespoke behaviour**, never a speculative engine.
+
+Principles: deterministic rules grow over time but **AI keeps final say**; context sources are pluggable per piece; pick models by **benchmark** on a fixed 15–30 daf set; **precision over recall** for placement (a wrong anchor is worse than "whole daf"); **human edits/​corrections outrank AI and are never silently overwritten**; **review changes with Codex** (`codex exec --sandbox read-only`) as you go.
+
+### Migration roadmap (remaining, smallest-first; each its own PR)
+1. ✅ **Revach refs** (PR #88) — capture study-aid cross-references as real links + the `refs` contract + coord-aware rendering.
+2. **Revach section placer** — conservatively align Revach entries to the daf's `argument` sections (English↔English, ordered) → fill `anchors`; place-or-omit. Wire `select.ts`/`placement.ts` to read `anchors`.
+3. **Enrichment rollout** — bump `argument.background` (v4→5) + `argument-overview.synthesis` (v2→3), re-warm, with **stale-while-revalidate** (serve previous cached value while the new computes; label it; never clobber a human edit).
+4. **Generic sidebar** — render a piece's enrichments from a declared render hint (retire bespoke `*Body` components).
+5. **Entity pieces** (lift "global" rabbi/place), **link pieces** (unify flow/bridge/voice-edges/citations), **user pieces** (highlights/notes).
+6. **Tractate-continuous + commentary spines** (wire the reserved `external` anchor); **content-hash freshness + reverse-dependency index**.
+7. **Cruft + DX**: remove the orphaned sugya-assembly (`/api/studio/sugya`, `assemble.ts`, `SUGYA_WINDOW_CAP`) and test-only `filterFlowConnections`; drop the `/studio` API prefix; keep `src/worker/mcp-openapi.ts` in sync; expand `docs/framework.md` toward an SDK.
+
+Cross-cutting always: typed piece bodies, resilient anchors, provenance/confidence, eval-gated producer promotion.
+
 - `pnpm test` — Vitest unit suite. `pnpm test:int` — integration (hits a running worker).
 - `pnpm typecheck` — `tsc --noEmit`. Run it plus `pnpm test` before any PR.
 - `pnpm ship` — `vite build && wrangler deploy`. Production is the custom domain **talmud.shaunregenbaum.com**. wrangler is authenticated in this environment.

@@ -4,7 +4,9 @@ import { resolveTractateName, resolveDafRef } from '../src/lib/sefref/dafyomi/ma
 import { parseRevach } from '../src/lib/sefref/dafyomi/parse/revach';
 import { formatContextForPrompt } from '../src/lib/context/select';
 import { dafCoord } from '../src/lib/context/coord';
+import { fromDafyomi } from '../src/lib/context/fromDafyomi';
 import type { ContextItem } from '../src/lib/context/types';
+import type { DafyomiDaf } from '../src/lib/sefref/dafyomi/schema';
 
 describe('resolveTractateName — dafyomi prose spelling → canonical', () => {
   it('maps site/prose spellings (incl. tricky ones)', () => {
@@ -63,6 +65,28 @@ describe('parseRevach — populates entry.refs end-to-end', () => {
       { raw: 'Pesachim 50a', kind: 'gemara', tractate: 'Pesachim', page: '50a' },
       { raw: 'Bava Kama 12b', kind: 'gemara', tractate: 'Bava Kamma', page: '12b' },
     ]);
+  });
+});
+
+describe('fromDafyomi — carries entry.refs onto ContextItem.refs (daf-level coords)', () => {
+  it('maps resolved refs to daf-level coordinates, drops unresolved ones', () => {
+    const daf = {
+      source: { urls: {} },
+      amudim: { a: { revach: {
+        type: 'revach', amud: 'a', wholeDaf: true,
+        body: { type: 'revach', entries: [
+          { marker: '1.', level: 0, title: { en: 'cites' }, body: { en: 'see Pesachim 50a' },
+            refs: [
+              { raw: 'Pesachim 50a', kind: 'gemara', tractate: 'Pesachim', page: '50a' },
+              { raw: 'Rashi DH', kind: 'rashi' }, // no tractate/page → dropped
+            ] },
+          { marker: '2.', level: 0, title: { en: 'no refs' }, body: { en: 'plain' } },
+        ] },
+      } } },
+    } as unknown as DafyomiDaf;
+    const items = fromDafyomi(daf).filter((i) => i.source === 'dafyomi:revach');
+    expect(items[0].refs).toEqual([{ tractate: 'Pesachim', page: '50a', seg: -1 }]);
+    expect(items[1].refs).toBeUndefined();
   });
 });
 
