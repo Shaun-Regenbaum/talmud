@@ -113,6 +113,10 @@ import {
   keyForAnalyzeSkeleton,
   keyForRegion,
   keyForMesorah,
+  keyForCommentaryWorks,
+  keyForCommentaryText,
+  keyForReferences,
+  keyForBridge,
 } from './cache-keys';
 import {
   buildObservationSlices,
@@ -710,15 +714,13 @@ app.get('/api/type-profiles/:tractate/:page', async (c) => {
 // Cross-daf bridge (sugya map): does this daf's closing discussion continue into
 // the next amud? Deterministic Hadran short-circuit (perek boundary → no), else
 // a cheap Flash judgement over the two boundary sections. Cached by daf.
-const bridgeKey = (t: string, p: string) =>
-  `bridge:v1:${t.toLowerCase().replace(/[^a-z0-9.-]+/g, '_')}:${p.toLowerCase().replace(/[^a-z0-9.-]+/g, '_')}`;
 async function computeDafBridge(env: Bindings, tractate: string, page: string): Promise<DafBridge> {
   const from = { tractate, page };
   const nextPage = adjacentAmud(tractate, page, 1);
   if (!nextPage) return edgeOfTractateBridge(from);
   const to = { tractate, page: nextPage };
   const cache = env.CACHE;
-  const key = bridgeKey(tractate, page);
+  const key = keyForBridge(tractate, page);
   if (cache) { const c = await cache.get(key); if (c) { try { return JSON.parse(c) as DafBridge; } catch { /* recompute */ } } }
 
   // Deterministic: a Hadran in the daf's final segment(s) closes the perek.
@@ -3515,7 +3517,7 @@ export async function fetchCommentaryWorks(
   bypassCache = false,
 ): Promise<{ works: CommentaryWork[]; tractate: string; page: string; fetchedAt: string } | { error: string }> {
   const cache = env.CACHE;
-  const cacheKey = `commentaries:v1:${tractate}:${page}`;
+  const cacheKey = keyForCommentaryWorks(tractate, page);
   if (cache && !bypassCache) {
     const hit = await cache.get(cacheKey);
     if (hit !== null) {
@@ -3622,7 +3624,7 @@ app.post('/api/commentary-translate', async (c) => {
   if (!sourceRef || !textHe) return c.json({ error: 'Missing sourceRef or textHe' }, 400);
 
   const cache = c.env.CACHE;
-  const cacheKey = `commentary-tx:v1:${sourceRef}`;
+  const cacheKey = keyForCommentaryText(sourceRef);
   const t0 = Date.now();
   if (cache) {
     const cached = await cache.get(cacheKey);
@@ -3825,7 +3827,7 @@ app.get('/api/references/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
   const cache = c.env.CACHE;
-  const cacheKey = `refs:v1:${tractate}:${page}`;
+  const cacheKey = keyForReferences(tractate, page);
 
   if (cache && c.req.query('refresh') !== '1') {
     const hit = await cache.get(cacheKey);
