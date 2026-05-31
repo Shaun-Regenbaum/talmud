@@ -13,6 +13,7 @@ import { placeRevachWithAi } from './revach-ai-place';
 import { formatContextForPrompt, contextForAnchor, segsFromMarkInput } from '../lib/context/select';
 import { continuationLink, type FlowEdge } from '../lib/context/link';
 import { dafLinks } from '../lib/context/dafLinks';
+import { producerNodesFrom, reverseDependencyIndex, transitiveDependents } from '../lib/registry/depGraph';
 import { aiMatchToSegments } from './context-match';
 import type { MatchInput } from '../lib/context/anchor/ai-prompt';
 import {
@@ -828,6 +829,20 @@ app.get('/api/links/:tractate/:page', async (c) => {
     sectionStartSegs,
   });
   return c.json({ tractate, page, count: links.length, links });
+});
+
+// Reverse-dependency index over the producer graph: "if `id` (a producer or a
+// source input like 'gemara') changes, what must re-warm?" Computes the cascade
+// that is otherwise reasoned about by hand when bumping a cache_version — e.g.
+// bumping argument.background returns argument.synthesis (which depends on it)
+// and everything downstream. Read-only over the static registry; no daf, no KV.
+app.get('/api/dependents/:id', (c) => {
+  const id = c.req.param('id');
+  const nodes = producerNodesFrom([...CODE_MARKS, ...CODE_ENRICHMENTS]);
+  const rev = reverseDependencyIndex(nodes);
+  const direct = [...(rev.get(id) ?? [])].sort();
+  const transitive = [...transitiveDependents(rev, id)].sort();
+  return c.json({ id, direct, transitive, count: transitive.length });
 });
 
 app.get('/api/enrichments', async (c) => {
