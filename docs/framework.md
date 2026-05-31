@@ -329,9 +329,11 @@ The reusable core is spine-agnostic and already separable:
 - **The note** — `ContextItem` with `segs` / `coord` / `refs`, and the
   `rangeLabel` / `coordLabel` renderers.
 - **Links** — `link.ts`: a `Link` is a piece connecting a source anchor to
-  target anchors under a relation. Citations are the first relation
-  (`citationLink(refs)` → `Link{relation:'cites'}`, rendered by `linkLabel`);
-  flow / bridge / voice edges converge here as they're unified (step 5).
+  target anchors under a relation. Two relations so far: `'cites'`
+  (`citationLink(refs)`, a note's external refs) and `'continues'`
+  (`continuationLink(to)`, the tractate-continuity edge — the cross-daf bridge
+  surfaced on `/api/bridge` as `link`), both rendered by `linkLabel`. Flow /
+  voice edges converge here as they're unified (step 5).
 - **Placement** — the `SegMatch` + `applyMatches` sink and the pure matcher
   signature `(items, …spineData) => SegMatch[]`, with deterministic-then-AI
   layering and the `placement.ts` level/predicate vocabulary.

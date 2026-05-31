@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { citationLink, linkLabel, type Link } from '../src/lib/context/link.ts';
-import { dafCoord, coordForSeg } from '../src/lib/context/coord.ts';
+import { citationLink, continuationLink, linkLabel, type Link } from '../src/lib/context/link.ts';
+import { dafCoord, coordForSeg, DAF_SEG } from '../src/lib/context/coord.ts';
 import { formatContextForPrompt } from '../src/lib/context/select.ts';
 import type { ContextItem } from '../src/lib/context/types.ts';
 
@@ -12,6 +12,18 @@ describe('citationLink — refs become a Link(relation: cites)', () => {
   it('wraps refs as a cites link, targets preserved', () => {
     const refs = [dafCoord({ tractate: 'Pesachim', page: '50a' })];
     expect(citationLink(refs)).toEqual({ relation: 'cites', targets: refs });
+  });
+});
+
+describe('continuationLink — the tractate-continuity edge', () => {
+  it('is null when there is no next daf (edge of tractate / no continuation)', () => {
+    expect(continuationLink(null)).toBeNull();
+    expect(continuationLink(undefined)).toBeNull();
+  });
+  it('targets the next daf at whole-daf level (seg = DAF_SEG)', () => {
+    const link = continuationLink({ tractate: 'Shabbat', page: '126a' });
+    expect(link).toEqual({ relation: 'continues', targets: [{ tractate: 'Shabbat', page: '126a', seg: DAF_SEG }] });
+    expect(linkLabel(link)).toBe('Shabbat 126a'); // daf-level coordLabel, no seg suffix
   });
 });
 
