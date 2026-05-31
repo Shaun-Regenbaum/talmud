@@ -2101,14 +2101,8 @@ ${HEBREW_GLOSS_STYLE}`;
 
 const ARGUMENT_OVERVIEW_FLOW_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
-Ordered argument sections on this daf (index = position in this list, starting at 0):
+Ordered argument sections on this daf (index = position in this list, starting at 0). Each section carries its title, summary, and the voices it contains — relate the sections from these:
 {{anchors.argument}}
-
-Full daf:
-{{gemara}}
-
-Study-aid context (dafyomi.co.il — point-by-point outline, halacha summary, comparison charts):
-{{context}}
 
 Emit the connections BETWEEN these sections per the schema. Reason about how each sugya relates to the others (continues / resolves / depends-on / parallels / contrasts / generalizes / cites).`;
 
@@ -2151,16 +2145,16 @@ CODE_ENRICHMENTS.push(
     ARGUMENT_OVERVIEW_FLOW_SYSTEM_PROMPT, ARGUMENT_OVERVIEW_FLOW_USER_TEMPLATE, ARGUMENT_OVERVIEW_FLOW_OUTPUT_SCHEMA,
     {
       mode: 'augment-content', scope: 'local',
-      dependencies: ['gemara', 'context', { mark: 'argument' }, { mark: 'rabbi' }],
+      // Relate sections from their OWN summaries only — not the full daf +
+      // dafyomi context. The big prompt + reasoning model timed out at the 240s
+      // OpenRouter hard cap on most dapim, so flow never cached and the sugya
+      // map collapsed to one section per map across the Shas (198 timeouts in
+      // the error buffer). The section anchors already carry title + summary +
+      // voices, which is all the relating needs. Fast model, no thinking →
+      // lands in seconds, so every daf actually gets a flow.
+      dependencies: [{ mark: 'argument' }],
       defHash: 'argument-overview.flow-v1', cacheVersion: '1',
-      // Cross-section relationship reasoning is the part that needs real
-      // thought — run deepseek-v4-pro with reasoning on (vs flash elsewhere).
-      // Reasoning is 'medium', not 'high': at 'high' the larger dapim blew past
-      // the 240s OpenRouter hard timeout and never cached (~half the Shas had no
-      // flow, so their sugya map showed every section as its own singleton).
-      // 'medium' keeps the cross-section reasoning but finishes in time.
-      model: ARGUMENT_PRO_MODEL,
-      reasoningEffort: 'medium',
+      model: ARGUMENT_FLASH_MODEL,
     },
   ),
   makeSynthesis(
