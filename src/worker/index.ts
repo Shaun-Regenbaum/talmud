@@ -110,6 +110,7 @@ import {
   qualifierHash,
   normalizeQualifier,
   previousVersionKey,
+  recipeHash,
   keyForRabbiEnriched,
   keyForRabbiWikidata,
   keyForRabbiWikiBio,
@@ -845,6 +846,34 @@ app.get('/api/dependents/:id', (c) => {
   return c.json({ id, direct, transitive, count: transitive.length });
 });
 
+// Content-hash staleness probe: does the cached output of a WHOLE-DAF enrichment
+// still match its producer's current recipe? Compares the stored `recipe_hash`
+// (stamped at generation) against recipeHash(currentDef). status:
+//   fresh   — recipe unchanged since this was generated
+//   stale   — the prompt/schema/model changed but cache_version wasn't bumped
+//   unknown — cached before recipe_hash existed (re-warm to resolve)
+//   miss    — nothing cached for this daf yet
+// Read-only; the per-section enrichments need their instance, so this covers the
+// whole-daf instance ({fields:{}}) — the overview/synthesis/background-pill cases.
+app.get('/api/stale/:id/:tractate/:page', async (c) => {
+  const id = c.req.param('id');
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const lang = c.req.query('lang') === 'he' ? 'he' : 'en';
+  const def = await loadEnrichmentDef(c.env, id);
+  if (!def) return c.json({ error: 'unknown enrichment' }, 404);
+  // recipeHash is lang-agnostic (it spans both prompt sets), so comparing an EN
+  // and a HE entry against the same current hash is valid; we just need the
+  // right per-lang KEY to read the entry.
+  const current = await recipeHash(enrichmentRecipe(def));
+  const iid = await instanceIdOf({ fields: {} });
+  const key = keyForEnrichment(def, iid, def.scope === 'local' ? { tractate, page } : undefined, undefined, lang);
+  const hit = (await readCachedResult(c.env, key)) as RunResultEnrichment | null;
+  const cached = hit?.recipe_hash ?? null;
+  const status = !hit ? 'miss' : !cached ? 'unknown' : cached === current ? 'fresh' : 'stale';
+  return c.json({ id, tractate, page, lang, status, cached_recipe: cached, current_recipe: current });
+});
+
 app.get('/api/enrichments', async (c) => {
   // Merge KV + code-defined. KV wins on collision. Code-defined entries are
   // normalized to the KV-flat shape (extractor flattened, `mark` instead of
@@ -1291,6 +1320,11 @@ interface RunResult {
   // observe-only checks like anchor-verbatim / partition-clean / edge-integrity).
   // Never gates; surfaced for quality observation before a check is promoted.
   check_issues?: unknown[];
+  // Content hash of the producer's recipe (extractor [+ render]) at the moment
+  // this was generated — see recipeHash() in cache-keys.ts. Lets a reader detect
+  // that the cached value predates a prompt/schema edit even when cache_version
+  // wasn't bumped (GET /api/stale/...). Absent on entries written before this.
+  recipe_hash?: string;
 }
 
 interface RunResultEnrichment extends RunResult {
@@ -1719,6 +1753,31 @@ function sectionRangeOf(def: EnrichmentDefinition | null, markInput: unknown): s
   return null;
 }
 
+/** Project a (flattened) enrichment definition into the recipe shape recipeHash
+ *  expects — the generation inputs that determine output. The runtime def is the
+ *  studio-registry shape (no nested `extractor`), so we build it explicitly
+ *  rather than hashing a lossy projection. Lang-agnostic: any prompt / schema /
+ *  model edit (en OR he) moves the hash, so the same value is computed at the
+ *  write site and the /api/stale check site regardless of run language. */
+function enrichmentRecipe(def: EnrichmentDefinition): { extractor: unknown } {
+  return {
+    extractor: {
+      system_prompt: def.system_prompt,
+      user_prompt_template: def.user_prompt_template,
+      system_prompt_he: def.system_prompt_he,
+      user_prompt_template_he: def.user_prompt_template_he,
+      model: def.model,
+      output_schema: def.output_schema,
+      // Also output-determining (passed to runLLM): a change to either changes
+      // generation even with identical prompts. (`model` unset = the user's
+      // default model — a runtime resolution outside the definition, so a change
+      // there is not a recipe change and is intentionally out of scope.)
+      thinking_off: def.thinking_off,
+      reasoning_effort: def.reasoning_effort,
+    },
+  };
+}
+
 async function runEnrichmentOnce(
   rc: RunCtx,
   def: EnrichmentDefinition,
@@ -1755,6 +1814,12 @@ async function runEnrichmentOnce(
     }
   }
 
+  // Content hash of this producer's recipe, stamped on every fresh write below
+  // so staleness can be detected later (GET /api/stale). Computed once here,
+  // after the cache-hit early-return so hits don't pay for it. Enrichments have
+  // no `render`, so this hashes the extractor (prompt/schema/model).
+  const recipe_hash = await recipeHash(enrichmentRecipe(def));
+
   // Graph short-circuit for rabbi.relationships. Sefaria's rabbi graph
   // (src/lib/data/rabbi-hierarchy.json) is the source of truth for who
   // a rabbi's teachers/students/colleagues were — much more reliable than
@@ -1780,6 +1845,7 @@ async function runEnrichmentOnce(
             user_prompt: `(graph lookup for rabbi: ${inst.name})`,
           },
           cache_hit: false,
+          recipe_hash,
         };
         if (cacheKey) await writeCachedResult(rc.env, cacheKey, out);
         return out;
@@ -1819,6 +1885,7 @@ async function runEnrichmentOnce(
         user_prompt: `(identity lookup for rabbi: ${inst?.name ?? '(unnamed)'})`,
       },
       cache_hit: false,
+      recipe_hash,
     };
     if (cacheKey) await writeCachedResult(rc.env, cacheKey, out);
     return out;
@@ -1992,6 +2059,7 @@ async function runEnrichmentOnce(
       user_prompt: userPrompt.length > 2000 ? userPrompt.slice(0, 2000) + '… [+' + (userPrompt.length - 2000) + ' chars]' : userPrompt,
     },
     cache_hit: false,
+    recipe_hash,
     deps_resolved: Object.keys(inputs.depends).length > 0 ? inputs.depends : undefined,
     anchors_resolved: Object.keys(inputs.anchors).length > 0 ? inputs.anchors : undefined,
     ...(lint_issues ? { lint_issues } : {}),
