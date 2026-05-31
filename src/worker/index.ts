@@ -11,6 +11,7 @@ import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
 import { collectContext } from './context-providers';
 import { placeRevachWithAi } from './revach-ai-place';
 import { formatContextForPrompt, contextForAnchor, segsFromMarkInput } from '../lib/context/select';
+import { continuationLink } from '../lib/context/link';
 import { aiMatchToSegments } from './context-match';
 import type { MatchInput } from '../lib/context/anchor/ai-prompt';
 import {
@@ -766,7 +767,13 @@ async function computeDafBridge(env: Bindings, tractate: string, page: string): 
 }
 app.get('/api/bridge/:tractate/:page', async (c) => {
   const bridge = await computeDafBridge(c.env, c.req.param('tractate'), c.req.param('page'));
-  return c.json(bridge);
+  // Surface the continuity as a first-class Link (relation 'continues') when the
+  // sugya carries into the next daf — additive, so existing readers of the
+  // boolean `continues` are unaffected, and a continuous-spine view can stitch
+  // dapim from `link.targets` instead of re-deriving the next daf itself.
+  // Computed (not stored on the cached DafBridge), so it needs no cache bump.
+  const link = bridge.continues ? continuationLink(bridge.to) : null;
+  return c.json({ ...bridge, link });
 });
 
 app.get('/api/enrichments', async (c) => {

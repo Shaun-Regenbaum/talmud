@@ -4,20 +4,24 @@
  * (see docs/framework.md): unlike a note, which sits at one place, a link points
  * from where it lives to somewhere else.
  *
- * Today only the CITATION relation is modelled — a study note pointing at the
- * coordinates it cites (e.g. Revach l'Daf saying "see Pesachim 50a"). The
- * source anchor is implicit in the piece carrying the link; a `Link` names the
- * relation + its targets. Flow / bridge / voice edges are the other links in the
- * system and will join this union as they are unified (framework step 5) — at
- * which point this file is where their shared rendering converges, instead of
- * each having its own bespoke encoding.
+ * Two relations are modelled so far:
+ *   - CITES: a study note pointing at the coordinates it cites (e.g. Revach
+ *     l'Daf saying "see Pesachim 50a").
+ *   - CONTINUES: the tractate-continuity edge — the closing discussion of one
+ *     daf carrying into the next (the cross-daf bridge), targeted at the next
+ *     daf (whole-daf level).
+ * The source anchor is implicit in the piece carrying the link; a `Link` names
+ * the relation + its targets. Flow / voice edges are the remaining links in the
+ * system and join this union as they are unified (framework step 5) — this file
+ * is where their shared rendering converges, instead of each having its own
+ * bespoke encoding.
  */
 
-import type { AnchorCoord } from './coord.ts';
+import { dafCoord, type AnchorCoord, type DafRef } from './coord.ts';
 import { coordLabel } from './types.ts';
 
-/** The kinds of link the system models. Grows as flow/bridge/voice converge. */
-export type LinkRelation = 'cites';
+/** The kinds of link the system models. Grows as flow/voice converge. */
+export type LinkRelation = 'cites' | 'continues';
 
 export interface Link {
   relation: LinkRelation;
@@ -31,6 +35,17 @@ export interface Link {
 export function citationLink(refs: AnchorCoord[] | undefined): Link | null {
   if (!refs || !refs.length) return null;
   return { relation: 'cites', targets: refs };
+}
+
+/** The tractate-continuity link: this daf's discussion continues into `to` (the
+ *  next daf), at whole-daf level. Built from a cross-daf bridge when it
+ *  `continues`; null otherwise. The bespoke DafBridge shape still carries the
+ *  verdict + reasoning — this expresses just the EDGE in the shared Link
+ *  vocabulary, so a continuous-spine view can stitch dapim the same way it
+ *  renders any other link. */
+export function continuationLink(to: DafRef | null | undefined): Link | null {
+  if (!to) return null;
+  return { relation: 'continues', targets: [dafCoord(to)] };
 }
 
 /** A link's targets as a compact, deduped label: "Pesachim 50a, Shabbat 2a".
