@@ -43,6 +43,49 @@ async function shortHash(input: string): Promise<string> {
   return hex;
 }
 
+/** Stable JSON: object keys sorted recursively so field ORDER never changes the
+ *  output. Array order is preserved (it is semantic). Used to canonicalize a
+ *  producer's recipe before hashing it. */
+function canonicalJSON(value: unknown): string {
+  const sort = (v: unknown): unknown => {
+    if (Array.isArray(v)) return v.map(sort);
+    if (v && typeof v === 'object') {
+      const src = v as Record<string, unknown>;
+      const out: Record<string, unknown> = {};
+      for (const k of Object.keys(src).sort()) out[k] = sort(src[k]);
+      return out;
+    }
+    return v;
+  };
+  return JSON.stringify(sort(value));
+}
+
+/**
+ * Content hash of a producer's RECIPE — the inputs that determine its output:
+ * the `extractor` (prompt / schema / model) plus, for marks, the `render`
+ * config. This reproduces the documented `def_hash` contract — sha256 over
+ * (extractor + render) — but COMPUTED from the live spec instead of a
+ * hand-authored literal, so it cannot drift from reality the way the current
+ * `def_hash` strings have (e.g. 'rabbi-v2' never re-derives).
+ *
+ * Deliberately EXCLUDED: `checks` (post-processing, not a generation input),
+ * `dependencies` (composition — hashed via their own recipes), and the
+ * bookkeeping fields (`cache_version` / `def_hash` / `status` / `source` /
+ * `updated_at` / `id` / `label`). Field-order insensitive.
+ *
+ * Foundation for content-hash freshness: a later step stores this alongside each
+ * cached run and recomputes staleness automatically, retiring the manual
+ * `cache_version` bump. It is intentionally NOT folded into the cache key — GC
+ * sweeps by `cache_version` only, so keying on a content hash would orphan every
+ * entry permanently in the TTL-less KV.
+ */
+export async function recipeHash(def: { extractor: unknown; render?: unknown }): Promise<string> {
+  const recipe = def.render !== undefined
+    ? { extractor: def.extractor, render: def.render }
+    : { extractor: def.extractor };
+  return shortHash(canonicalJSON(recipe));
+}
+
 /** Normalize free-text input (e.g. a user-submitted question) so cosmetic
  *  variation doesn't fan the cache out: trim, lowercase, collapse internal
  *  whitespace. Used by callers that want a stable cache-key qualifier from

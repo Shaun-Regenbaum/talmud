@@ -26,8 +26,10 @@
  * Architecture decisions:
  *   - Phrase-anchor output carries BOTH excerpt and segIdx+tokenStart+tokenEnd;
  *     the renderer prefers indices and falls back to excerpt match.
- *   - Cache key for run output includes def_hash (sha256 over the extractor
- *     spec); editing a prompt auto-invalidates cache. See src/worker/cache-keys.ts.
+ *   - Cache key for run output uses cache_version (bumped manually). The
+ *     computed content hash of the recipe is recipeHash() in cache-keys.ts —
+ *     the foundation for automatic content-hash freshness that will retire the
+ *     manual bump. (def_hash below is a hand-authored literal, NOT in the key.)
  *   - Toggles persist globally (localStorage); promoted marks default-listed,
  *     drafts visible only when devMode is on.
  *   - Promote = flip `status: 'draft' → 'promoted'`. No codegen.
@@ -386,8 +388,10 @@ export interface MarkDefinition {
   experimental?: boolean;
 
   status: MarkStatus;
-  /** Derived from sha256(extractor + render). Bumped automatically on save.
-   *  Cache key for instances includes this — editing the prompt auto-busts. */
+  /** A hand-authored recipe marker (e.g. 'rabbi-v2'). NOTE: despite the name it
+   *  is NOT currently auto-derived, and the cache key uses cache_version, not
+   *  this. recipeHash() in cache-keys.ts is the computed sha256(extractor[+render])
+   *  successor that content-hash freshness will use. */
   def_hash: string;
   cache_version: string;
   source: 'kv' | 'code';
