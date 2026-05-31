@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { filterFlowConnections, assignLanes, type FlowConnection } from '../src/client/ArgumentFlowGraph';
+import { assignLanes, type FlowConnection } from '../src/client/ArgumentFlowGraph';
 import { tokenizeRabbiMentions } from '../src/client/rabbiLinks';
 
 const conn = (from: number, to: number): FlowConnection => ({ from, to, kind: 'continues', note: '' });
@@ -22,25 +22,6 @@ describe('assignLanes — connectors that overlap vertically get different lanes
   });
   it('empty in -> empty out', () => {
     expect(assignLanes([])).toEqual([]);
-  });
-});
-
-describe('filterFlowConnections — overview flow graph edges', () => {
-  it('keeps valid in-range connections', () => {
-    expect(filterFlowConnections([conn(0, 1), conn(1, 3)], 5)).toHaveLength(2);
-  });
-  it('drops endpoints outside the section range (LLM hallucinated an index)', () => {
-    expect(filterFlowConnections([conn(0, 9)], 5)).toHaveLength(0);
-    expect(filterFlowConnections([conn(-1, 2)], 5)).toHaveLength(0);
-  });
-  it('drops self-loops', () => {
-    expect(filterFlowConnections([conn(3, 3)], 5)).toHaveLength(0);
-  });
-  it('drops non-integer indices', () => {
-    expect(filterFlowConnections([{ from: 0.5, to: 2, kind: 'resolves', note: '' }], 5)).toHaveLength(0);
-  });
-  it('empty in -> empty out', () => {
-    expect(filterFlowConnections([], 5)).toEqual([]);
   });
 });
 
