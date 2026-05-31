@@ -125,7 +125,17 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
   const rowMidY = (i: number) => nodeY(i) + NODE_H / 2;
   const height = () => TOP_PAD * 2 + props.nodes.length * NODE_H + (props.nodes.length - 1) * ROW_GAP;
 
-  const edges = () => filterFlowConnections(props.connections, props.nodes.length);
+  // Map section index -> array position, so a SUBSET of the daf's sections (one
+  // sugya group) lays out compactly in rows 0..k while connections still arrive
+  // keyed by absolute section index. Edges with an endpoint outside this group
+  // are dropped — they belong to another map.
+  const posOf = () => new Map(props.nodes.map((n, i) => [n.index, i]));
+  const edges = () => {
+    const pm = posOf();
+    return props.connections
+      .filter((c) => c.from !== c.to && pm.has(c.from) && pm.has(c.to))
+      .map((c) => ({ from: pm.get(c.from)!, to: pm.get(c.to)!, kind: c.kind, note: c.note, srcSec: c.from, dstSec: c.to }));
+  };
   const lanes = () => assignLanes(edges());
   const laneCount = () => { const ls = lanes(); return ls.length ? Math.max(...ls) + 1 : 0; };
   // Gutter wide enough for the deepest lane's bow plus the arrowhead. The cubic
@@ -204,21 +214,23 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                 stroke-dasharray={KIND_DASH[c.kind]}
                 marker-end={`url(#flow-arrow-${c.kind})`}
               >
-                <title>{`§${c.from + 1} ${c.kind} §${c.to + 1}${c.note ? ` — ${c.note}` : ''}`}</title>
+                <title>{`§${c.srcSec + 1} ${c.kind} §${c.dstSec + 1}${c.note ? ` — ${c.note}` : ''}`}</title>
               </path>
             );
           }}</For>
 
-          {/* Nodes: rounded card + number badge + word-wrapped title. */}
-          <For each={props.nodes}>{(n) => {
+          {/* Nodes: rounded card + number badge + word-wrapped title. Laid out
+              by ARRAY position (i) so a sugya-group subset is compact; the badge
+              still shows the section's absolute daf number (n.index + 1). */}
+          <For each={props.nodes}>{(n, i) => {
             const active = () => props.activeIndex === n.index;
-            const cy = () => nodeY(n.index) + NODE_H / 2;
+            const cy = () => nodeY(i()) + NODE_H / 2;
             const lines = () => wrapTitle(n.title, TITLE_CHARS, TITLE_LINES);
             return (
               <g style={{ cursor: 'pointer' }} onClick={() => props.onSelect(n.index)}>
                 <title>{`${n.index + 1}. ${n.title} — click for voices`}</title>
                 <rect
-                  x={LEFT_PAD} y={nodeY(n.index)} width={NODE_W} height={NODE_H} rx={10} ry={10}
+                  x={LEFT_PAD} y={nodeY(i())} width={NODE_W} height={NODE_H} rx={10} ry={10}
                   fill={active() ? '#fdf2f2' : '#ffffff'}
                   stroke={active() ? '#8a2a2b' : '#e4e0d4'}
                   stroke-width={active() ? 1.75 : 1}
