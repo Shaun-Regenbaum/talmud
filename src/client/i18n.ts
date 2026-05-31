@@ -201,6 +201,7 @@ const CATALOG = {
   'loading.places': { en: 'Travelling…', he: 'נוסע…' },
   'loading.rishonim': { en: 'Listening to Rashi and Tosafot…', he: 'מקשיב לרש״י ולתוספות…' },
   'loading.default': { en: 'Learning…', he: 'לומד…' },
+  'enrichment.updating': { en: 'Updating…', he: 'מתעדכן…' },
 
   // — Questions (Q&A) panel —
   'qa.questions': { en: 'Questions', he: 'שאלות' },
