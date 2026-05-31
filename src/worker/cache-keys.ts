@@ -191,3 +191,20 @@ export function keyForEnrichment(
 function enrichmentScope(def: AnyEnrichmentDefinition): 'global' | 'local' {
   return (def as { scope: 'global' | 'local' }).scope;
 }
+
+/** The cache key for the PREVIOUS numeric cache_version of an enrichment, given
+ *  the current canonical key, the enrichment id, and its current version. Null
+ *  when the version isn't a decrementable integer (>1) or the id:version marker
+ *  isn't present. Powers stale-while-revalidate across a version bump: serve the
+ *  prior version's value while the new one recomputes. */
+export function previousVersionKey(
+  key: string | null,
+  id: string,
+  version: string | undefined,
+): string | null {
+  if (!key || !version || !/^\d+$/.test(version)) return null; // plain decimal only
+  const n = Number(version);
+  if (n <= 1) return null;
+  const marker = `:${id}:${version}:`;
+  return key.includes(marker) ? key.replace(marker, `:${id}:${n - 1}:`) : null;
+}

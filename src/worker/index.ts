@@ -108,6 +108,7 @@ import {
   instanceIdOf,
   qualifierHash,
   normalizeQualifier,
+  previousVersionKey,
 } from './cache-keys';
 import {
   buildObservationSlices,
@@ -2362,6 +2363,39 @@ app.post('/api/studio/run', async (c) => {
             return c.json({ status: 'ok', result: { ...result, cache_hit: true, total_ms: 0 } });
           }
         } catch { /* corrupt cache; fall through to enqueue */ }
+      }
+    }
+  }
+
+  // Stale-while-revalidate: on a version-bump miss, serve the PREVIOUS version's
+  // cached value (tagged refreshing) while the new one recomputes in the
+  // background — so bumping a cache_version never makes readers wait. (No
+  // human-edit path writes the enrichment cache today; when one exists it must
+  // be CAS-guarded so this never overwrites an edit.)
+  if (!job.bypass_cache && job.enrichment_id && c.env.CACHE && c.env.ENRICHMENT_QUEUE) {
+    const def = await loadEnrichmentDef(c.env, job.enrichment_id);
+    const { key } = await cacheKeyForRunBody(c.env, job);
+    const prevKey = previousVersionKey(key, job.enrichment_id, def?.cache_version);
+    if (prevKey) {
+      const stale = await c.env.CACHE.get(prevKey);
+      if (stale) {
+        try {
+          const result = JSON.parse(stale) as RunResultEnrichment;
+          // Mirror the hot path's section-range guard: don't serve a stale
+          // result stamped for a different section than the one requested.
+          const sectionRange = sectionRangeOf(def, job.mark_input);
+          if (!sectionRange || result.section_range === sectionRange) {
+            // Enqueue the recompute only when budget allows (else just serve
+            // stale; the warm path will fill the new version when budget frees).
+            const customRun = !!(job.enrichment_id.endsWith('.qa') && job.user_question);
+            if ((await checkBudget(c.env, { custom: customRun })).ok) {
+              job.runId = await makeRunId(job);
+              await c.env.ENRICHMENT_QUEUE.send(job);
+            }
+            recordTelemetry(c, runTelemetryRec(job, { ...result, cache_hit: true }, 0));
+            return c.json({ status: 'ok', result: { ...result, cache_hit: true, total_ms: 0, stale: true, refreshing: true } });
+          }
+        } catch { /* corrupt prev value; fall through to a normal enqueue */ }
       }
     }
   }
