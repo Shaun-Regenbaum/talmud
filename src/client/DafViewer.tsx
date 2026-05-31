@@ -1,6 +1,6 @@
 import { createResource, createSignal, createEffect, createMemo, onMount, onCleanup, For, Show, type JSX } from 'solid-js';
 import type { TalmudPageData } from '../lib/sefref';
-import { TRACTATE_OPTIONS } from '../lib/sefref';
+import { TRACTATE_OPTIONS, dafRefHe } from '../lib/sefref';
 import { DafRenderer } from '../lib/daf-render';
 import { tokenizeHebrewHtml } from './tokenize';
 import { TranslationPopup } from './TranslationPopup';
@@ -2562,7 +2562,7 @@ export default function DafViewer(): JSX.Element {
         </div>
 
         <span class="tb-hint">
-          {tractate()} {page()} · {t('header.nav.hint')}
+          {lang() === 'he' ? dafRefHe(tractate(), page()) : `${tractate()} ${page()}`} · {t('header.nav.hint')}
         </span>
       </header>
 

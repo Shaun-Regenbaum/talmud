@@ -181,6 +181,10 @@ const CATALOG = {
     en: 'No argument sections on this daf yet — open it with Arguments enabled so they load.',
     he: 'אין עדיין מקטעי טיעון בדף זה.',
   },
+  // Cross-daf continuation captions on the overview maps. {page} is the
+  // adjacent amud, already localized (Hebrew daf form in he mode).
+  'overview.continuesFrom': { en: '↑ continues from {page}', he: '↑ המשך מדף {page}' },
+  'overview.continuesOnto': { en: 'continues onto {page} ↓', he: 'ממשיך לדף {page} ↓' },
 
   // — Whole-daf background (terms/concepts a reader needs) —
   'background.chip': { en: 'Background', he: 'רקע' },

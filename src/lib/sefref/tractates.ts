@@ -73,3 +73,61 @@ export const HEBREW_NUMBERS: Record<number, string> = {
 export function getHebrewPageNumber(num: number): string {
 	return HEBREW_NUMBERS[num] || num.toString();
 }
+
+/**
+ * Convert a positive integer to its Hebrew-numeral (gematria) form, e.g.
+ * 2 -> 'ב', 15 -> 'טו', 127 -> 'קכז'. Covers the full daf range of Shas (the
+ * HEBREW_NUMBERS table above stops at 76, which leaves Latin digits leaking
+ * onto deeper dafim). 15 and 16 use טו/טז to avoid spelling the divine name.
+ * Non-positive / non-finite input falls back to the decimal string.
+ */
+export function toHebrewNumeral(num: number): string {
+	if (!Number.isInteger(num) || num <= 0) return String(num);
+	const HUNDREDS = ['', 'ק', 'ר', 'ש', 'ת'];
+	const TENS = ['', 'י', 'כ', 'ל', 'מ', 'נ', 'ס', 'ע', 'פ', 'צ'];
+	const ONES = ['', 'א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט'];
+	let out = '';
+	let n = num;
+	// Hundreds beyond 400 stack ת's (e.g. 500 = תק), matching the gematria
+	// convention; daf numbers never reach this, but it keeps the fn total.
+	while (n >= 400) { out += 'ת'; n -= 400; }
+	out += HUNDREDS[Math.floor(n / 100)];
+	n %= 100;
+	if (n === 15) return out + 'טו';
+	if (n === 16) return out + 'טז';
+	out += TENS[Math.floor(n / 10)];
+	out += ONES[n % 10];
+	return out;
+}
+
+/** English-slug -> Hebrew-label lookup, built once from TRACTATE_OPTIONS. */
+const HE_LABEL_BY_VALUE = new Map(TRACTATE_OPTIONS.map((o) => [o.value, o.label]));
+
+/**
+ * Hebrew name for a tractate's English slug (e.g. 'Berakhot' -> 'ברכות').
+ * Falls back to the input unchanged when the slug is unknown, so a caller
+ * never renders a blank tractate.
+ */
+export function tractateLabelHe(value: string): string {
+	return HE_LABEL_BY_VALUE.get(value) ?? value;
+}
+
+/**
+ * Hebrew daf form for an 'Na' / 'Nb' page string: '2a' -> 'ב.', '2b' -> 'ב:'
+ * — the standard amud-alef '.' / amud-bet ':' citation marks. Anything that
+ * doesn't match the page pattern is returned unchanged.
+ */
+export function pageLabelHe(page: string): string {
+	const m = /^(\d+)([ab])$/.exec(page.trim());
+	if (!m) return page;
+	return `${toHebrewNumeral(parseInt(m[1], 10))}${m[2] === 'a' ? '.' : ':'}`;
+}
+
+/**
+ * Full Hebrew daf reference, e.g. dafRefHe('Berakhot', '2b') -> 'ברכות ב:'.
+ * Used wherever the UI shows a tractate+page label in Hebrew mode (the English
+ * slug would otherwise leak as transliterated Latin, e.g. "BERAKHOT 2B").
+ */
+export function dafRefHe(tractate: string, page: string): string {
+	return `${tractateLabelHe(tractate)} ${pageLabelHe(page)}`;
+}

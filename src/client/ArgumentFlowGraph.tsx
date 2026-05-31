@@ -242,7 +242,13 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                   <text
                     x={titleX}
                     y={cy() + (li() - (lines().length - 1) / 2) * LINE_H}
-                    text-anchor="start" dominant-baseline="central"
+                    // Left-align the title block at titleX in BOTH languages. SVG
+                    // text-anchor is direction-relative: with direction=rtl,
+                    // anchor="start" pins the text's RIGHT edge to titleX so the
+                    // title flows left over the number badge and clips at the card
+                    // edge. anchor="end" pins the LEFT edge to titleX instead, so
+                    // Hebrew sits to the right of the badge like the English does.
+                    text-anchor={lang() === 'he' ? 'end' : 'start'} dominant-baseline="central"
                     font-size="12" font-weight="600"
                     font-family="system-ui, -apple-system, sans-serif"
                     fill="#2a2723"
