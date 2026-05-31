@@ -30,11 +30,14 @@ interface Props {
   connections: FlowConnection[];
   activeIndex: number | null;
   onSelect: (index: number) => void;
+  /** Suppress this graph's own legend (when a shared legend is rendered once
+   *  for several stacked graphs, e.g. one per sugya in the overview). */
+  hideLegend?: boolean;
 }
 
 const NODE_W = 310;
-const NODE_H = 54;
-const ROW_GAP = 14;
+const NODE_H = 44;
+const ROW_GAP = 10;
 const LANE_BASE = 26;     // first lane's distance out from the card's right edge
 const LANE_STEP = 18;     // extra offset per concurrent connector lane
 const TOP_PAD = 10;
@@ -54,6 +57,35 @@ const KIND_DASH: Partial<Record<FlowConnection['kind'], string>> = {
   contrasts: '5 3',
   parallels: '2 3',
 };
+
+/** Distinct connection kinds present across a set of connections, in the
+ *  canonical KIND_COLOR order — for building one shared <FlowLegend>. */
+export function connectionKinds(connections: FlowConnection[]): FlowConnection['kind'][] {
+  const seen = new Set<FlowConnection['kind']>();
+  for (const c of connections) seen.add(c.kind);
+  return (Object.keys(KIND_COLOR) as FlowConnection['kind'][]).filter((k) => seen.has(k));
+}
+
+/** Color + dash → kind legend. Exported so the overview can render ONE legend
+ *  for several stacked graphs instead of repeating it under each. */
+export function FlowLegend(props: { kinds: FlowConnection['kind'][] }): JSX.Element {
+  return (
+    <div style={{
+      display: 'flex', 'flex-wrap': 'wrap', gap: '0.4rem 0.85rem',
+      'margin-top': '0.5rem', 'font-size': '0.64rem', color: '#888',
+    }}>
+      <For each={props.kinds}>{(kind) => (
+        <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.3rem' }}>
+          <span style={{
+            display: 'inline-block', width: '16px', height: 0,
+            'border-top': `1.5px ${KIND_DASH[kind] ? 'dashed' : 'solid'} ${KIND_COLOR[kind]}`,
+          }} />
+          {kind}
+        </span>
+      )}</For>
+    </div>
+  );
+}
 
 /** Assign each connection a routing lane (0-based) so connectors that share
  *  vertical extent never sit in the same lane — interval-graph coloring, which
