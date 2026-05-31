@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { citationLink, continuationLink, linkLabel, type Link } from '../src/lib/context/link.ts';
+import { citationLink, continuationLink, flowLinks, isLinkRelation, linkLabel, type Link } from '../src/lib/context/link.ts';
 import { dafCoord, coordForSeg, DAF_SEG } from '../src/lib/context/coord.ts';
 import { formatContextForPrompt } from '../src/lib/context/select.ts';
 import type { ContextItem } from '../src/lib/context/types.ts';
@@ -24,6 +24,44 @@ describe('continuationLink — the tractate-continuity edge', () => {
     const link = continuationLink({ tractate: 'Shabbat', page: '126a' });
     expect(link).toEqual({ relation: 'continues', targets: [{ tractate: 'Shabbat', page: '126a', seg: DAF_SEG }] });
     expect(linkLabel(link)).toBe('Shabbat 126a'); // daf-level coordLabel, no seg suffix
+  });
+});
+
+describe('isLinkRelation — guards an untyped kind string', () => {
+  it('accepts the seven modelled relations, rejects others', () => {
+    for (const k of ['cites', 'continues', 'resolves', 'depends-on', 'parallels', 'contrasts', 'generalizes']) {
+      expect(isLinkRelation(k)).toBe(true);
+    }
+    expect(isLinkRelation('elaborates')).toBe(false);
+    expect(isLinkRelation('')).toBe(false);
+  });
+});
+
+describe('flowLinks — the argument flow graph as Links', () => {
+  const G = { tractate: 'Gittin', page: '68a' };
+  // Section index -> coordinate (here: index maps to a segment for the test).
+  const coordOf = (i: number): ReturnType<typeof coordForSeg> | null =>
+    i >= 0 && i < 5 ? coordForSeg(G, i) : null;
+
+  it('maps each edge to {source, link} in the shared vocabulary', () => {
+    const out = flowLinks([{ from: 0, to: 1, kind: 'continues' }, { from: 1, to: 3, kind: 'resolves' }], coordOf);
+    expect(out).toEqual([
+      { source: coordForSeg(G, 0), link: { relation: 'continues', targets: [coordForSeg(G, 1)] } },
+      { source: coordForSeg(G, 1), link: { relation: 'resolves', targets: [coordForSeg(G, 3)] } },
+    ]);
+  });
+
+  it('drops unknown kinds, self-loops, and edges whose endpoint has no coord', () => {
+    const out = flowLinks(
+      [
+        { from: 0, to: 1, kind: 'elaborates' }, // unknown relation
+        { from: 2, to: 2, kind: 'continues' },  // self-loop
+        { from: 0, to: 9, kind: 'depends-on' }, // target out of range -> no coord
+        { from: 3, to: 4, kind: 'parallels' },  // valid
+      ],
+      coordOf,
+    );
+    expect(out).toEqual([{ source: coordForSeg(G, 3), link: { relation: 'parallels', targets: [coordForSeg(G, 4)] } }]);
   });
 });
 
