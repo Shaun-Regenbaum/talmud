@@ -30,7 +30,7 @@ export interface RunResult {
    *  → instances list under the 'rabbi' key). Same fetch as deps_resolved;
    *  surfaced so a sidebar can render mark-specific UI without re-fetching. */
   anchors_resolved?: Record<string, unknown>;
-  /** Stale-while-revalidate (server, /api/studio/run): this value is the
+  /** Stale-while-revalidate (server, /api/run): this value is the
    *  PREVIOUS cache_version served while the new one recomputes after a bump.
    *  When `refreshing`, the client shows it with an "updating" marker, does NOT
    *  persist it in the long-lived run cache (it would pin the stale value), and
@@ -46,7 +46,7 @@ export function isAbort(err: unknown): boolean {
 }
 
 /** Sentinel message thrown by run helpers when the server reports a spend
- *  pause (`{ paused: true }` from /api/studio/run or run-status). The UI maps it
+ *  pause (`{ paused: true }` from /api/run or run-status). The UI maps it
  *  to a friendly localized message (t('qa.error.paused')) rather than showing a
  *  raw error string. See src/worker/budget.ts. */
 export const PAUSED_ERROR = 'BUDGET_PAUSED';
@@ -67,7 +67,7 @@ export function isPausedError(err: unknown): boolean {
 
 // Memo of completed enrichment runs, keyed by
 // enrichmentId:tractate:page:instanceKey. The server already caches in KV, but
-// every sidebar mount otherwise re-POSTs /api/studio/run and waits behind the
+// every sidebar mount otherwise re-POSTs /api/run and waits behind the
 // shared queue — so re-opening an anchor (or the second/third click on a page)
 // showed a spinner even though the result was already known. With this memo a
 // re-click renders instantly and never touches the queue at all. Within a
@@ -105,7 +105,7 @@ export const QUEUE_PRIORITY = { high: 0, normal: 1, low: 2 } as const;
 export type QueuePriority = (typeof QUEUE_PRIORITY)[keyof typeof QUEUE_PRIORITY];
 
 // Shared priority queue with bounded concurrency so opening one section that
-// mounts many move cards doesn't barrage `/api/studio/run` in parallel
+// mounts many move cards doesn't barrage `/api/run` in parallel
 // (workerd dies on the simultaneous fan-out + 30k-char prompts; see
 // 2026-05-07 incident). KV cache hits still go through the queue but resolve
 // fast, so there's no penalty once a section has been opened before.

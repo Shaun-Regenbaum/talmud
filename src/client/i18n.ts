@@ -3,7 +3,7 @@
  * pages can read/set it without a shared context provider. Two things hang off
  * it:
  *
- *   1. Enrichment generation language. Every /api/studio/run (and /api/qa/ask)
+ *   1. Enrichment generation language. Every /api/run (and /api/qa/ask)
  *      caller threads lang() into the request body; the worker selects the
  *      Hebrew prompt variant and a `:he`-namespaced cache key (see
  *      src/worker/cache-keys.ts + code-marks.ts *_HE prompts).
@@ -444,9 +444,9 @@ const CATALOG = {
   'usage.unpriced': { en: 'unpriced', he: 'לא מתומחר' },
   'usage.latency.byEndpoint': { en: 'Latency by endpoint ({count} recent calls)', he: 'זמן תגובה לפי נקודת קצה ({count} קריאות אחרונות)' },
   'usage.latency.byMark': { en: 'Studio runs by mark', he: 'הרצות סטודיו לפי סימון' },
-  'usage.latency.byMark.hint': { en: 'rolled up across /api/studio/run with mark_id', he: 'מסוכם על פני /api/studio/run עם mark_id' },
+  'usage.latency.byMark.hint': { en: 'rolled up across /api/run with mark_id', he: 'מסוכם על פני /api/run עם mark_id' },
   'usage.latency.byEnrichment': { en: 'Studio runs by enrichment', he: 'הרצות סטודיו לפי העשרה' },
-  'usage.latency.byEnrichment.hint': { en: 'rolled up across /api/studio/run with enrichment_id', he: 'מסוכם על פני /api/studio/run עם enrichment_id' },
+  'usage.latency.byEnrichment.hint': { en: 'rolled up across /api/run with enrichment_id', he: 'מסוכם על פני /api/run עם enrichment_id' },
   'usage.recentErrors.title': { en: 'Recent errors', he: 'שגיאות אחרונות' },
   'usage.recentErrors.hint': { en: 'from request telemetry', he: 'מתוך טלמטריית הבקשות' },
   'usage.errorKind.other': { en: 'other', he: 'אחר' },

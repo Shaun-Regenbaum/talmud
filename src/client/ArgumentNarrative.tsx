@@ -26,7 +26,7 @@ async function pollJob(runId: string, cacheKey?: string): Promise<unknown> {
   const qs = cacheKey ? `?k=${encodeURIComponent(cacheKey)}` : '';
   while (Date.now() - start < POLL_TIMEOUT_MS) {
     await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
-    const res = await fetch(`/api/studio/run-status/${encodeURIComponent(runId)}${qs}`);
+    const res = await fetch(`/api/run-status/${encodeURIComponent(runId)}${qs}`);
     const j = await res.json() as { status?: string; result?: { parsed?: unknown }; error?: string };
     if (j.status === 'ok') return j.result?.parsed;
     if (j.status === 'error') throw new Error(j.error ?? 'narrative run failed');
@@ -35,7 +35,7 @@ async function pollJob(runId: string, cacheKey?: string): Promise<unknown> {
 }
 
 async function runNarrative(tractate: string, page: string, markInput: unknown): Promise<NarrativeData | null> {
-  const res = await fetch('/api/studio/run', {
+  const res = await fetch('/api/run', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ enrichment_id: 'argument.narrative', tractate, page, mark_input: markInput, lang: lang() }),

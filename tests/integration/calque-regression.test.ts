@@ -47,7 +47,7 @@ async function pollJob(runId: string): Promise<unknown> {
   const start = Date.now();
   while (Date.now() - start < POLL_TIMEOUT_MS) {
     await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
-    const res = await fetch(`${BASE_URL}/api/studio/run-status/${encodeURIComponent(runId)}`);
+    const res = await fetch(`${BASE_URL}/api/run-status/${encodeURIComponent(runId)}`);
     const j = (await res.json()) as RunResponse;
     if (j.status === 'ok') return j.result.parsed;
     if (j.status === 'error') throw new Error(`run failed: ${j.error}`);
@@ -56,7 +56,7 @@ async function pollJob(runId: string): Promise<unknown> {
 }
 
 async function runMark(markId: string, bypassCache = false): Promise<unknown> {
-  const j = await postJson<RunResponse>('/api/studio/run', {
+  const j = await postJson<RunResponse>('/api/run', {
     mark_id: markId, tractate: TRACTATE, page: PAGE, bypass_cache: bypassCache,
   });
   if (j.status === 'ok') return j.result.parsed;
@@ -65,7 +65,7 @@ async function runMark(markId: string, bypassCache = false): Promise<unknown> {
 }
 
 async function runEnrichment(enrichmentId: string, markInput: unknown, bypassCache = false): Promise<unknown> {
-  const j = await postJson<RunResponse>('/api/studio/run', {
+  const j = await postJson<RunResponse>('/api/run', {
     enrichment_id: enrichmentId,
     tractate: TRACTATE,
     page: PAGE,

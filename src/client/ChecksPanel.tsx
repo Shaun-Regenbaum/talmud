@@ -1,6 +1,6 @@
 /**
  * Dev-panel surfacing for the post-LLM check layer. Calls
- * GET /api/studio/checks/:tractate/:page — which re-runs each daf-level mark's
+ * GET /api/checks/:tractate/:page — which re-runs each daf-level mark's
  * declared checks against its ALREADY-CACHED (anchored) output, no LLM — and
  * lists what the soft/observe-only checks (anchor-verbatim, partition-clean, …)
  * flag on the daf in view. This is the observation surface for deciding whether
@@ -20,7 +20,7 @@ export default function ChecksPanel(props: { tractate: string; page: string }): 
   const [data] = createResource(
     () => `${props.tractate}|${props.page}`,
     async (): Promise<ChecksResponse | null> => {
-      const r = await fetch(`/api/studio/checks/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}`);
+      const r = await fetch(`/api/checks/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}`);
       if (!r.ok) return null;
       return (await r.json()) as ChecksResponse;
     },

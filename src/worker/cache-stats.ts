@@ -205,7 +205,7 @@ function pct(count: number, total: number): number {
 }
 
 /** Merge code-defined marks/enrichments with KV-defined ones. KV wins on id
- *  collision. Mirrors the precedence used by /api/studio/run. */
+ *  collision. Mirrors the precedence used by /api/run. */
 async function mergedMarks(cache: KVNamespace): Promise<Array<{ id: string; label: string; source: 'code' | 'kv'; cache_version: string }>> {
   const kv = await listMarks({ CACHE: cache });
   const byId = new Map<string, { id: string; label: string; source: 'code' | 'kv'; cache_version: string }>();

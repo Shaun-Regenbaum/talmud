@@ -84,7 +84,7 @@ async function postRun(body) {
   // status code only after exhausting retries.
   for (let attempt = 0; attempt < 4; attempt++) {
     try {
-      const r = await fetch(`${WORKER}/api/studio/run`, {
+      const r = await fetch(`${WORKER}/api/run`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(body),
@@ -108,7 +108,7 @@ async function pollUntilDone(runId, timeoutS) {
   while (Date.now() - start < timeoutS * 1000) {
     await sleep(1500);
     try {
-      const r = await fetch(`${WORKER}/api/studio/run-status/${encodeURIComponent(runId)}`);
+      const r = await fetch(`${WORKER}/api/run-status/${encodeURIComponent(runId)}`);
       let j = null;
       try { j = await r.json(); } catch { return null; }
       if (j && j.status === 'ok') return j;
@@ -143,7 +143,7 @@ async function runMarkSync(tractate, page, markId) {
 /** Fire an enrichment (synthesis OR suggested-questions) fire-and-forget. */
 async function fireEnrichment(tractate, page, enrichmentId, markInput) {
   try {
-    await fetch(`${WORKER}/api/studio/run`, {
+    await fetch(`${WORKER}/api/run`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ enrichment_id: enrichmentId, tractate, page, mark_input: markInput }),
@@ -153,7 +153,7 @@ async function fireEnrichment(tractate, page, enrichmentId, markInput) {
   }
 }
 
-/** Auxiliary endpoints the frontend hits beyond /api/studio/run. Each is
+/** Auxiliary endpoints the frontend hits beyond /api/run. Each is
  *  GET-cached server-side, so a single warm fetch primes the KV entry.
  *  /api/daf-context is the slowest of these (legacy rabbi-id pipeline);
  *  warming it explicitly so the rabbi sidebar's generationByName + slug

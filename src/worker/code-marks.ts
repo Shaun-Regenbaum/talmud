@@ -1,6 +1,6 @@
 /**
  * Code-defined registry entries — the canonical "built-in" marks and
- * enrichments. Returned from /api/studio/marks and /api/studio/enrichments
+ * enrichments. Returned from /api/marks and /api/enrichments
  * alongside KV-stored entries (KV wins on id collisions, so a user can
  * override a built-in by saving a same-id KV definition).
  *
@@ -474,7 +474,7 @@ export const CODE_MARKS: MarkDefinition[] = [
   // -------------------------------------------------------------------------
   // The four segment-range marks below proxy their legacy endpoints. The
   // toggle behaviour is now uniform with rabbi (fires through
-  // /api/studio/run, shows in the loading band, surfaces in the inspect
+  // /api/run, shows in the loading band, surfaces in the inspect
   // drawer). Rendering still uses the legacy gutter+sidebar code path; a
   // bridge effect in DafViewer flips the corresponding showX signal when
   // the new mark is enabled. Future work: replace `legacy-endpoint` with a
@@ -1623,7 +1623,7 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
   // short-circuit in runEnrichmentOnce joins them by segment into per-rabbi
   // observation slices (place / opinion / story / exegesis / lineage) and
   // writes one KV slice per rabbi+daf (rabbi-obs:v1:{slug}:{tractate}:{page}).
-  // `computed` kind keeps it out of /api/studio/enrichments (that endpoint
+  // `computed` kind keeps it out of /api/enrichments (that endpoint
   // serves llm-kind only) so it never renders as a card; `draft` is belt-and-
   // suspenders. This is the COLLECT half — nothing here promotes back into the
   // canonical dataset or what users see. See src/worker/rabbi-observations.ts.
@@ -2719,7 +2719,7 @@ CODE_ENRICHMENTS.push(
   // mode='augment-content' (not 'aggregate') so MarkEnrichmentCards' auto-fire
   // for the argument-move card keeps treating argument-move.synthesis as the
   // sole primary. The Explore-deeper panel invokes these two directly via
-  // /api/studio/run, on demand, so we don't fan out per-move LLM calls for
+  // /api/run, on demand, so we don't fan out per-move LLM calls for
   // moves nobody opens.
   makeEnrichment(
     'argument-move', 'argument-move.suggested-questions', 'Suggested questions',
@@ -4870,7 +4870,7 @@ CODE_ENRICHMENTS.push(
 );
 
 // ---------------------------------------------------------------------------
-// Lookup helpers — used by /api/studio/run to resolve an id from either KV
+// Lookup helpers — used by /api/run to resolve an id from either KV
 // or code-defined sources. KV wins on collision.
 // ---------------------------------------------------------------------------
 

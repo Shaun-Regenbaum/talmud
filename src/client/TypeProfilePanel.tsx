@@ -1,6 +1,6 @@
 /**
  * Dev-panel view of section typing (Track C). Calls
- * GET /api/studio/type-profiles/:tractate/:page — which composes a TypeProfile
+ * GET /api/type-profiles/:tractate/:page — which composes a TypeProfile
  * per argument section from the daf's CACHED mark layers (no LLM) — and shows,
  * per section, its derived `primary` content dimension, whether it's a dispute,
  * and the overlay claims with coverage. The observation surface for validating
@@ -30,7 +30,7 @@ export default function TypeProfilePanel(props: {
   const [data] = createResource(
     () => `${props.tractate}|${props.page}`,
     async (): Promise<ProfilesResponse | null> => {
-      const r = await fetch(`/api/studio/type-profiles/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}`);
+      const r = await fetch(`/api/type-profiles/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}`);
       if (!r.ok) return null;
       return (await r.json()) as ProfilesResponse;
     },

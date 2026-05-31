@@ -4,7 +4,7 @@
  * any moment, what just finished, and how long it took.
  *
  * The store is written to by every client-side runner that POSTs to
- * `/api/studio/run` — `MarkEnrichmentCards`'s queue helpers and
+ * `/api/run` — `MarkEnrichmentCards`'s queue helpers and
  * `MarksRegistryPanel`'s runMark/runEnrichment. Read by `AIActivityPanel`
  * (mounted in the dev shelf).
  *

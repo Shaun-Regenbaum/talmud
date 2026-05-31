@@ -27,7 +27,7 @@
  *
  * Enforcement lives at the single chokepoint runLLM() (src/worker/llm.ts):
  * checkBudget() before the call, recordSpend() after. Producer endpoints
- * (qa/ask, studio/run, warm-daf) pre-check too, purely for instant UI feedback
+ * (qa/ask, run, warm-daf) pre-check too, purely for instant UI feedback
  * and to avoid pointless queue churn.
  */
 import { costUsd, type TokenUsage } from './pricing';

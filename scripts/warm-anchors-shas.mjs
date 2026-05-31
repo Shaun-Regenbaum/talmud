@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Fire-and-forget anchors warmer. For every (tractate, page, mark) tuple,
- * POSTs to /api/studio/run and moves on without polling — cache hits return
+ * POSTs to /api/run and moves on without polling — cache hits return
  * 200 immediately, cold ones return 202 with a runId and get processed by the
  * worker queue at its own pace (max_concurrency=10 per wrangler.toml).
  *
@@ -105,7 +105,7 @@ async function enqueueOne(job) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    const r = await fetch(`${WORKER}/api/studio/run`, {
+    const r = await fetch(`${WORKER}/api/run`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ mark_id: job.mark, tractate: job.tractate, page: job.page }),

@@ -182,15 +182,15 @@ prompt:
 - `global` — same regardless of daf (a rabbi's bio). Keyed by instance only.
 - `local` — computed in light of *this* daf (a synthesis). Keyed by instance + daf.
 
-### Run lifecycle — `/api/studio/run`
+### Run lifecycle — `/api/run`
 
 One endpoint runs any producer for a `(tractate, page, mark_input)`. It is async:
 
 ```
-POST /api/studio/run  →  { status: 'ok', result }                  // cache hit, immediate
+POST /api/run  →  { status: 'ok', result }                  // cache hit, immediate
                       →  { status: 'pending', runId, cacheKey? }   // enqueued (202); poll
                       →  { status: 'error', error }
-GET  /api/studio/run-status/:runId  →  same shape; poll until 'ok'
+GET  /api/run-status/:runId  →  same shape; poll until 'ok'
 ```
 
 The cold path enqueues a `JobMessage` onto the `enrichment-jobs` Cloudflare
@@ -214,7 +214,7 @@ foreground click outranks background prefetch) and an in-session
   `{ enrichment }` dependency — otherwise the dependent cache-hits and readers
   never see the change.
 - **Stale-while-revalidate (shipped).** `previousVersionKey(key, id, version)`
-  returns the prior version's key. On a version-bump miss `/api/studio/run`
+  returns the prior version's key. On a version-bump miss `/api/run`
   serves the previous value tagged `{ stale: true, refreshing: true }` and
   enqueues the recompute, so a bump never makes a reader wait. The client
   (`MarkEnrichmentCards`) shows it with an "Updating…" badge, does **not** pin it
@@ -294,7 +294,7 @@ This is the template every later linked source follows: parse → map → place
    `scope`, `cache_version`). Cache keys derive automatically — never hand-build.
 2. If it depends on another enrichment, remember the **cascade**: bumping the
    dependency must bump this one too.
-3. It runs through `/api/studio/run` for free; the client queue + `runResultCache`
+3. It runs through `/api/run` for free; the client queue + `runResultCache`
    + SWR apply automatically.
 4. Keep `src/worker/mcp-openapi.ts` in sync if you add/rename an endpoint.
 
@@ -312,7 +312,7 @@ This is the template every later linked source follows: parse → map → place
 | Select + format for prompt | `src/lib/context/select.ts` |
 | Producer schema | `src/worker/studio-schema.ts` |
 | Producer registry | `src/worker/code-marks.ts` |
-| Run endpoint + SWR | `src/worker/index.ts` (`/api/studio/run`) |
+| Run endpoint + SWR | `src/worker/index.ts` (`/api/run`) |
 | Cache keys + versioning | `src/worker/cache-keys.ts` |
 | Budget gate | `src/worker/budget.ts` |
 | Client queue + result cache | `src/client/enrichmentQueue.ts` |

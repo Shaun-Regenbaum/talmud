@@ -27,14 +27,14 @@ async () => {
   });
 
   let run = await codemode.request({
-    method: "POST", path: "/api/studio/run",
+    method: "POST", path: "/api/run",
     body: { tractate: "Berakhot", page: "2a", mark_id: "argument-move" },
   });
   while (run.status === "pending") {
     await new Promise((r) => setTimeout(r, 1500));
     run = await codemode.request({
       method: "GET",
-      path: \`/api/studio/run-status/\${run.runId}\`,
+      path: \`/api/run-status/\${run.runId}\`,
       query: { k: run.cacheKey },
     });
   }
@@ -139,8 +139,8 @@ export function McpPage(): JSX.Element {
       <p style={{ color: '#555', 'font-size': '0.88rem', margin: '0 0 0.2rem' }}>
         A daf page is text plus <em>marks</em> (structural extractors whose <code>excerpt</code>s are
         the anchors) and <em>enrichments</em> (LLM passes on a mark instance). Marks/enrichments run
-        through <code>POST /api/studio/run</code>, which is async — poll{' '}
-        <code>/api/studio/run-status/&#123;runId&#125;</code> until it is done:
+        through <code>POST /api/run</code>, which is async — poll{' '}
+        <code>/api/run-status/&#123;runId&#125;</code> until it is done:
       </p>
       <Code>{WORKED_EXAMPLE}</Code>
 

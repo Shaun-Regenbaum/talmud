@@ -3,7 +3,7 @@
  * inside the DafViewer's existing "Options" disclosure. Each toggle:
  *
  *   - off (default for all): nothing fetches, no daf decoration
- *   - on:  fetches /api/studio/run for the current tractate/page, stores
+ *   - on:  fetches /api/run for the current tractate/page, stores
  *          the result, exposes a status pill (loading / ok / error)
  *
  * Per-instance prompt/output inspection lives on the synthesis card (via
@@ -45,7 +45,7 @@ export interface EnrichmentDefinition {
   status?: 'draft' | 'promoted';
 }
 
-/** Worker-side mark definition (code or KV) returned by /api/studio/marks.
+/** Worker-side mark definition (code or KV) returned by /api/marks.
  *  Carries the full anchor+render+extractor schema. */
 export interface WorkerMarkDefinition {
   id: string;
@@ -189,8 +189,8 @@ function writeAppliedDefaults(tags: Iterable<string>) {
 
 async function fetchAll(): Promise<{ marks: WorkerMarkDefinition[]; enrichments: EnrichmentDefinition[] }> {
   const [m, e] = await Promise.all([
-    fetch('/api/studio/marks').then((r) => r.ok ? r.json() : { marks: [] }),
-    fetch('/api/studio/enrichments').then((r) => r.ok ? r.json() : { enrichments: [] }),
+    fetch('/api/marks').then((r) => r.ok ? r.json() : { marks: [] }),
+    fetch('/api/enrichments').then((r) => r.ok ? r.json() : { enrichments: [] }),
   ]);
   return {
     marks: ((m as { marks?: WorkerMarkDefinition[] }).marks) ?? [],
@@ -198,7 +198,7 @@ async function fetchAll(): Promise<{ marks: WorkerMarkDefinition[]; enrichments:
   };
 }
 
-// /api/studio/run is now async (queue-backed). Three response shapes:
+// /api/run is now async (queue-backed). Three response shapes:
 //   { status: 'ok', result }                            ← cache hit, immediate
 //   { status: 'pending', runId, cacheKey? } (HTTP 202)  ← enqueued, poll run-status
 //   { status: 'error', error }
@@ -212,7 +212,7 @@ type RunResponse =
 const POLL_INTERVAL_MS = 1500;
 const POLL_TIMEOUT_MS = 180_000;
 
-/** Studio secret for the privileged /api/studio/run knobs (bypass_cache here).
+/** Studio secret for the privileged /api/run knobs (bypass_cache here).
  *  The owner sets it once via
  *  `localStorage.setItem('talmud_studio_secret', '<secret>')` in the browser
  *  console; it rides along as the x-studio-secret header so the server treats
@@ -229,7 +229,7 @@ function studioHeaders(): Record<string, string> {
 }
 
 async function postAndAwait(body: unknown): Promise<RunResult> {
-  const r = await fetch('/api/studio/run', {
+  const r = await fetch('/api/run', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...studioHeaders() },
     body: JSON.stringify(body),
@@ -252,7 +252,7 @@ async function pollJob(runId: string, cacheKey?: string): Promise<RunResult> {
   const qs = cacheKey ? `?k=${encodeURIComponent(cacheKey)}` : '';
   while (Date.now() - start < POLL_TIMEOUT_MS) {
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
-    const r = await fetch(`/api/studio/run-status/${encodeURIComponent(runId)}${qs}`);
+    const r = await fetch(`/api/run-status/${encodeURIComponent(runId)}${qs}`);
     const j = await r.json() as RunResponse;
     if ('status' in j) {
       if (j.status === 'ok') return (j as { result: RunResult }).result;
