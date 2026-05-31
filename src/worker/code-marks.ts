@@ -2290,13 +2290,17 @@ Write the one-sentence background orientation per the schema.`;
 CODE_ENRICHMENTS.push(
   makeEnrichment(
     'daf-background', 'daf-background.concepts', 'Background concepts',
-    'The terms/concepts a reader needs to follow the daf, grouped into legal concepts / realia / persons / assumed-prior sugyot.',
+    'The terms/concepts a reader needs to follow the daf, grouped into legal concepts / realia / assumed-prior sugyot.',
     DAF_BACKGROUND_CONCEPTS_SYSTEM_PROMPT, DAF_BACKGROUND_CONCEPTS_USER_TEMPLATE, DAF_BACKGROUND_CONCEPTS_OUTPUT_SCHEMA,
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', 'context', { mark: 'argument' }],
-      defHash: 'daf-background.concepts-v1', cacheVersion: '3', // v3: standalone prerequisites only (no daf-recap, no persons); cross-refs strengthened
-      model: ARGUMENT_FLASH_MODEL,
+      defHash: 'daf-background.concepts-v1', cacheVersion: '4', // v4: pro model for tighter no-narration / no-sage-naming adherence
+      // Pro (vs flash) follows the "background, not summary" rule far better —
+      // flash kept leaking "the Gemara debates…" and naming disputants. Thinking
+      // stays off (no reasoningEffort) so the big gemara+context prompt lands
+      // well under the OpenRouter cap, like the synthesis below.
+      model: ARGUMENT_PRO_MODEL,
     },
   ),
   makeSynthesis(
@@ -2309,7 +2313,7 @@ CODE_ENRICHMENTS.push(
         'context',
         { enrichment: 'daf-background.concepts' },
       ],
-      defHash: 'daf-background.synthesis-v1', cacheVersion: '3', // v3: re-resolve concepts v3 (its deps_resolved snapshot would otherwise stay stale)
+      defHash: 'daf-background.synthesis-v1', cacheVersion: '4', // v4: re-resolve concepts v4 (its deps_resolved snapshot would otherwise stay stale)
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
