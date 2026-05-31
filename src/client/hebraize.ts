@@ -475,13 +475,44 @@ export function stripStopwordHebrewParens(text: string): string {
  *  different scripts — never matches. Caps at 6 tokens preceding to keep
  *  the regex bounded. */
 const ECHO_PAREN_RE = /(\S+(?:\s+\S+){0,5})\s*\(\1\)/g;
+
+// Hebrew/Aramaic ranges as \u escapes - see the same note in Hebraized.tsx:
+// a literal presentation form (U+FB1D..) can decompose under normalization and
+// silently blow the range open. ־/׳/״ = maqaf/geresh/gershayim.
+const HE = '\\u0590-\\u05FF\\uFB1D-\\uFB4F';
+// A Hebrew run immediately followed by an ALL-Hebrew parenthetical. The gloss
+// convention is "Hebrew term (English meaning)", so an all-Hebrew paren here is
+// suspect - but only a near-echo (the paren restates the term, often
+// malformed/duplicated) is redundant. A genuine Hebrew clarification that adds
+// new words must be kept, so we gate the drop on word overlap below rather than
+// stripping every Hebrew paren. The paren body is restricted to Hebrew + Hebrew
+// punctuation, so digits / other scripts never match.
+const HE_GLOSS_PAREN_RE = new RegExp(
+  `([${HE}][${HE}\\u05BE\\u05F3\\u05F4 -]*?)\\s*\\(\\s*([${HE}][${HE}\\u05BE\\u05F3\\u05F4 ]*)\\)`,
+  'g',
+);
+
+/** Drop an all-Hebrew parenthetical that merely restates the Hebrew term before
+ *  it (a redundant/duplicated gloss). Conservative: keep the paren unless at
+ *  least half its words already appear in the preceding term. */
+function dropHebrewGlossEchoes(text: string): string {
+  return text.replace(HE_GLOSS_PAREN_RE, (m: string, term: string, paren: string) => {
+    const termWords = new Set(term.trim().split(/\s+/).filter(Boolean));
+    const parenWords = paren.trim().split(/\s+/).filter(Boolean);
+    if (parenWords.length === 0) return m;
+    const shared = parenWords.filter((w: string) => termWords.has(w)).length;
+    return shared >= Math.ceil(parenWords.length / 2) ? term : m;
+  });
+}
+
 export function stripEchoParens(text: string): string {
   if (!text) return text;
   let prev = text;
   // Iterate: nested echoes (rare, but possible after the LLM cascades two
   // glosses) need a second pass to fully collapse.
   for (let i = 0; i < 3; i++) {
-    const next = prev.replace(ECHO_PAREN_RE, '$1');
+    let next = prev.replace(ECHO_PAREN_RE, '$1');
+    next = dropHebrewGlossEchoes(next);
     if (next === prev) break;
     prev = next;
   }
