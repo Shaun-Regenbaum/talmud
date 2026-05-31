@@ -7,13 +7,14 @@
  * from here.
  */
 
-export type BackgroundCategory = 'legal-concepts' | 'realia' | 'persons' | 'assumed-prior';
+export type BackgroundCategory = 'legal-concepts' | 'realia' | 'assumed-prior';
 export interface BackgroundTerm { term: string; termHe?: string; gloss: string }
 export interface BackgroundGroup { category: BackgroundCategory; terms: BackgroundTerm[] }
 
-/** Fixed display order — also the allowlist of known categories. */
+/** Fixed display order — also the allowlist of known categories. (No 'persons':
+ *  who-argues-what is the daf's argument, owned by the Overview pill.) */
 export const BACKGROUND_CATEGORY_ORDER: BackgroundCategory[] = [
-  'legal-concepts', 'realia', 'persons', 'assumed-prior',
+  'legal-concepts', 'realia', 'assumed-prior',
 ];
 
 /** Canonicalize the LLM's background groups for display: keep only known

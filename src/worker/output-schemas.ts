@@ -114,12 +114,13 @@ export const ARGUMENT_OVERVIEW_FLOW_OUTPUT_SCHEMA = responseFormat('argument_ove
   })),
 }));
 // Daf-level BACKGROUND: the terms/concepts a reader needs to understand the daf,
-// grouped into themed sections (legal concepts / realia / persons / assumed-prior
-// sugyot). Drives the whole-daf Background panel. Grounded on the dafyomi.co.il
-// glossary that flows in via {{context}}.
+// grouped into themed sections (legal concepts / realia / assumed-prior sugyot).
+// Drives the whole-daf Background panel. Grounded on the dafyomi.co.il glossary
+// that flows in via {{context}}. (No 'persons' — who-argues-what is the daf's
+// argument, owned by the Overview pill, not background.)
 export const DAF_BACKGROUND_CONCEPTS_OUTPUT_SCHEMA = responseFormat('daf_background_concepts', z.object({
   groups: z.array(z.object({
-    category: z.enum(['legal-concepts', 'realia', 'persons', 'assumed-prior']),
+    category: z.enum(['legal-concepts', 'realia', 'assumed-prior']),
     terms: z.array(z.object({
       term: z.string(),
       termHe: z.string(),

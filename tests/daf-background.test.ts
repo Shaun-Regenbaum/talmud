@@ -36,9 +36,18 @@ describe('orderBackgroundGroups — normalize the daf-background.concepts output
   it('ignores unknown categories the LLM might invent', () => {
     const input = [
       { category: 'mysticism', terms: [term('sefirot')] },
-      { category: 'persons', terms: [term('Rava')] },
+      { category: 'realia', terms: [term('maneh')] },
     ] as unknown as BackgroundGroup[];
-    expect(orderBackgroundGroups(input).map((g) => g.category)).toEqual(['persons']);
+    expect(orderBackgroundGroups(input).map((g) => g.category)).toEqual(['realia']);
+  });
+
+  it('drops the retired "persons" category (who-argues-what belongs to Overview)', () => {
+    const input = [
+      { category: 'persons', terms: [term('Rava')] },
+      { category: 'legal-concepts', terms: [term('shemira')] },
+    ] as unknown as BackgroundGroup[];
+    expect(orderBackgroundGroups(input).map((g) => g.category)).toEqual(['legal-concepts']);
+    expect(BACKGROUND_CATEGORY_ORDER).not.toContain('persons');
   });
 
   it('merges duplicate emissions of the same category', () => {
