@@ -12,7 +12,7 @@ import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
 import ArgumentNarrative from './ArgumentNarrative';
 import { deriveVoiceEdges } from '../lib/typing/voices';
 import ArgumentFlowGraph, { type FlowConnection } from './ArgumentFlowGraph';
-import SugyaMap from './SugyaMap';
+import { adjacentAmud } from '../lib/sefref/amudim';
 import { selectSectionMoves } from '../lib/argumentMoves';
 import { t, lang } from './i18n';
 import { ACCENTS, HebrewProse, Panel, QASection, SectionCard, Synthesis, kindLabelKey } from './sidebar/primitives';
@@ -714,11 +714,38 @@ function OverviewSectionVoices(props: {
   );
 }
 
-/** Whole-daf argument overview. Top: a one-paragraph synthesis + a flow graph
- *  of how the daf's argument sections relate (from `argument-overview.flow`,
- *  surfaced via the synthesis aggregate's deps_resolved). Click a section node
- *  to drill into that argument's voice map. Shows every argument on the daf,
- *  not one collapsed graph. */
+// Flow kinds that bind two sections into ONE continuous discussion (sugya).
+// Mirrors SUGYA_BINDING_KINDS in src/lib/typing/sugya.ts. The others (parallels
+// / contrasts / generalizes / cites) are cross-references between DISTINCT
+// sugyot, so they don't merge sections into the same map.
+const SUGYA_BINDING_KINDS = new Set(['continues', 'resolves', 'depends-on']);
+
+/** Partition a daf's argument sections into discussion groups (sugyot): maximal
+ *  connected components over the binding flow edges. Sections with no binding
+ *  edge are their own singleton group. Returns groups of section indices, each
+ *  ascending, ordered by first section — the daf top-to-bottom reading order. */
+function groupSectionsBySugya(sectionCount: number, connections: FlowConnection[]): number[][] {
+  const parent = Array.from({ length: sectionCount }, (_, i) => i);
+  const find = (x: number): number => { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; };
+  const union = (a: number, b: number) => { const ra = find(a), rb = find(b); if (ra !== rb) parent[Math.max(ra, rb)] = Math.min(ra, rb); };
+  for (const c of connections) {
+    if (!SUGYA_BINDING_KINDS.has(c.kind)) continue;
+    if (c.from < 0 || c.to < 0 || c.from >= sectionCount || c.to >= sectionCount || c.from === c.to) continue;
+    union(c.from, c.to);
+  }
+  const groups = new Map<number, number[]>();
+  for (let i = 0; i < sectionCount; i++) {
+    const r = find(i);
+    const g = groups.get(r); if (g) g.push(i); else groups.set(r, [i]);
+  }
+  return [...groups.values()].sort((a, b) => a[0] - b[0]);
+}
+
+/** Whole-daf argument overview. A one-paragraph synthesis, then the daf's
+ *  argument sections drawn as flow-graph MAPS — one map per discussion (sugya),
+ *  split where the sections stop binding to each other. Maps whose discussion
+ *  carries over from the previous daf, or continues onto the next, are flagged.
+ *  Click a section node to drill into its voice map. */
 function ArgumentOverviewBody(props: {
   tractate: string;
   page: string;
@@ -755,7 +782,39 @@ function ArgumentOverviewBody(props: {
     if (flow && Array.isArray(flow.connections)) setConnections(flow.connections);
   };
 
-  const nodes = () => props.sections.map((s, i) => ({ index: i, title: s.title }));
+  // Split the daf's sections into discussion maps. With no flow yet (cold), each
+  // section is its own group; once the flow loads they merge into real sugyot.
+  const groups = () => groupSectionsBySugya(props.sections.length, connections());
+
+  // Cross-page continuation: does the previous daf continue INTO this one (so
+  // the first map carries over), and does this daf continue onto the next (so
+  // the last map spills forward)? Read from the cached cross-daf bridges.
+  const [bridge] = createResource(
+    () => `${props.tractate}|${props.page}`,
+    async (): Promise<{ prev: string | null; next: string | null; fromPrev: boolean; toNext: boolean }> => {
+      const prev = adjacentAmud(props.tractate, props.page, -1);
+      const next = adjacentAmud(props.tractate, props.page, 1);
+      const continues = async (p: string | null): Promise<boolean> => {
+        if (!p) return false;
+        try {
+          const r = await fetch(`/api/studio/bridge/${encodeURIComponent(props.tractate)}/${encodeURIComponent(p)}`);
+          if (!r.ok) return false;
+          return !!((await r.json()) as { continues?: boolean }).continues;
+        } catch { return false; }
+      };
+      // bridge(prev) = prev->this; bridge(this) = this->next.
+      const [fromPrev, toNext] = await Promise.all([continues(prev), continues(props.page)]);
+      return { prev, next, fromPrev, toNext };
+    },
+  );
+
+  const crossLabel = (text: string): JSX.Element => (
+    <div style={{
+      'font-size': '0.7rem', 'font-weight': 600, color: '#9333ea',
+      background: '#faf5ff', border: '1px solid #ede9fe', 'border-radius': '5px',
+      padding: '0.2rem 0.5rem', margin: '0.1rem 0',
+    }}>{text}</div>
+  );
 
   return (
     <Panel accent={ACCENTS.argument} title={t('overview.title')}>
@@ -775,26 +834,39 @@ function ArgumentOverviewBody(props: {
           </HebrewProse>
         }
       >
-        <ArgumentFlowGraph
-          nodes={nodes()}
-          connections={connections()}
-          activeIndex={active()}
-          onSelect={selectSection}
-        />
-        <Show when={active() !== null && props.sections[active()!]}>
-          <OverviewSectionVoices
-            section={props.sections[active()!]}
-            tractate={props.tractate}
-            page={props.page}
-            onPushRabbi={props.onPushRabbi}
-          />
-        </Show>
-        {/* Cross-page sugya map: how this daf's discussion spans neighbours. */}
-        <SugyaMap
-          tractate={props.tractate}
-          page={props.page}
-          onHighlight={(r) => props.onHighlightRange?.(r ? { start: r.start, end: r.end, key: 'sugya' } : null)}
-        />
+        {/* One flow-graph map per discussion. Multiple maps = multiple sugyot on
+            the daf; the cross-page flags show where a discussion runs past the
+            page break. */}
+        <For each={groups()}>{(grp) => {
+          const hasFirst = grp.includes(0);
+          const hasLast = grp.includes(props.sections.length - 1);
+          const grpNodes = grp.map((i) => ({ index: i, title: props.sections[i].title }));
+          const activeInGroup = () => active() !== null && grp.includes(active()!);
+          return (
+            <div style={{ 'margin-bottom': '0.7rem' }}>
+              <Show when={hasFirst && bridge()?.fromPrev}>
+                {crossLabel(`↑ continues from ${bridge()!.prev}`)}
+              </Show>
+              <ArgumentFlowGraph
+                nodes={grpNodes}
+                connections={connections()}
+                activeIndex={active()}
+                onSelect={selectSection}
+              />
+              <Show when={hasLast && bridge()?.toNext}>
+                {crossLabel(`continues onto ${bridge()!.next} ↓`)}
+              </Show>
+              <Show when={activeInGroup() && props.sections[active()!]}>
+                <OverviewSectionVoices
+                  section={props.sections[active()!]}
+                  tractate={props.tractate}
+                  page={props.page}
+                  onPushRabbi={props.onPushRabbi}
+                />
+              </Show>
+            </div>
+          );
+        }}</For>
       </Show>
     </Panel>
   );
