@@ -2688,6 +2688,37 @@ app.get('/api/admin/hb-probe', async (c) => {
   return c.json({ tractate, mode: concurrent ? 'concurrent' : 'sequential', attempted: results.length, ok, failed: results.length - ok, results });
 });
 
+// Spot-check the deterministic Revach→section placer for one daf: how each
+// whole-daf Revach entry got placed (or left whole-daf) against this amud's
+// argument sections. Read-only, LLM-free — for tuning thresholds + the AI
+// fallback decision. Needs the daf's `argument` mark + dafyomi warm.
+app.get('/api/admin/revach-check/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const sections = (await readMarkInstances(c.env, 'argument', tractate, page))
+    .filter((i) => typeof i.startSegIdx === 'number' && typeof i.endSegIdx === 'number')
+    .map((i) => ({
+      startSegIdx: i.startSegIdx as number,
+      endSegIdx: i.endSegIdx as number,
+      title: typeof i.fields?.title === 'string' ? i.fields.title : undefined,
+      summary: typeof i.fields?.summary === 'string' ? i.fields.summary : undefined,
+    }));
+  const items = await collectContext(c.env, tractate, page, { sections });
+  const sectionTitleForSeg = (seg: number) =>
+    sections.find((s) => seg >= s.startSegIdx && seg <= s.endSegIdx)?.title ?? null;
+  const revach = items.filter((it) => it.source === 'dafyomi:revach').map((it) => ({
+    entry: (it.title?.en ?? it.body?.en ?? '').slice(0, 80),
+    placed: it.segs.length ? `${it.segs[0]}-${it.segs[it.segs.length - 1]}` : null,
+    section: it.segs.length ? sectionTitleForSeg(it.segs[0]) : null,
+    confidence: it.confidence ?? null,
+    refs: (it.refs ?? []).map((r) => `${r.tractate} ${r.page}`),
+  }));
+  return c.json({
+    tractate, page, sections: sections.length, revachEntries: revach.length,
+    placed: revach.filter((r) => r.placed).length, items: revach,
+  });
+});
+
 app.get('/api/admin/warm-status', async (c) => {
   const cache = c.env.CACHE;
   if (!cache) return c.json({ error: 'no cache binding' }, 503);
