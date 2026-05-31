@@ -34,7 +34,7 @@ interface Props {
 
 const NODE_W = 310;
 const NODE_H = 54;
-const ROW_GAP = 28;
+const ROW_GAP = 14;
 const LANE_BASE = 26;     // first lane's distance out from the card's right edge
 const LANE_STEP = 18;     // extra offset per concurrent connector lane
 const TOP_PAD = 10;
