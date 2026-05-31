@@ -38,8 +38,8 @@ interface Props {
 const NODE_W = 310;
 const NODE_H = 44;
 const ROW_GAP = 10;
-const LANE_BASE = 26;     // first lane's distance out from the card's right edge
-const LANE_STEP = 18;     // extra offset per concurrent connector lane
+const LANE_BASE = 12;     // first lane's distance out from the card's right edge
+const LANE_STEP = 11;     // extra offset per concurrent connector lane
 const TOP_PAD = 10;
 const LEFT_PAD = 10;
 const CORNER_R = 18;      // rounded-corner radius on the connector's two turns
