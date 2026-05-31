@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { render } from '@solidjs/testing-library';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { PlaceBody, RishonimBody, type PlaceInstance, type RishonimInstance } from '../../src/client/ArgumentSidebar';
+import { PLACES_HINT, PlaceChips, RishonimBody, type PlaceInstance, type RishonimInstance } from '../../src/client/ArgumentSidebar';
+import { SidebarPanelFromHint } from '../../src/client/sidebar/primitives';
 import { setLang, t } from '../../src/client/i18n';
 
 beforeEach(() => {
@@ -13,12 +14,14 @@ afterEach(() => {
   setLang('en');
 });
 
-describe('PlaceBody', () => {
+describe('place panel (generic hint adapter + place chips)', () => {
   const place: PlaceInstance = {
     fields: { name: 'Tiberias', nameHe: 'טבריה', kind: 'city', region: 'israel', knownAs: ['Tveria'] },
   };
-  it('renders the accent title, Hebrew twin, and region/kind chips', () => {
-    const { container } = render(() => <PlaceBody place={place} tractate="Shabbat" page="125b" />);
+  it('renders the accent title, Hebrew twin, and region/kind chips via SidebarPanelFromHint', () => {
+    const { container } = render(() => (
+      <SidebarPanelFromHint hint={PLACES_HINT} instance={place} tractate="Shabbat" page="125b" chips={<PlaceChips place={place} />} />
+    ));
     expect(container.querySelector('h3')!.textContent).toBe('Tiberias');
     const sub = container.querySelector('p[dir="rtl"]')!;
     expect(sub.textContent).toContain('טבריה');

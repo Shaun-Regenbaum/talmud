@@ -240,6 +240,77 @@ export function Synthesis(props: {
 }
 
 /**
+ * A render hint: the small, declarative description of how a piece's enrichment
+ * renders in the sidebar. The end state of "generic sidebar" is that every mark
+ * carries one of these (authored in the registry) instead of a bespoke `*Body`
+ * component. `kind` selects the accent + chrome label; `markId` is the synthesis
+ * enrichment to render; the `*Field` names say which instance fields supply the
+ * heading + the instanceKey. Mark-specific chrome (chips) is passed to the
+ * adapter as JSX, so it stays where its formatting lives.
+ */
+export interface SidebarHint {
+  kind: SidebarKind;
+  markId: string;
+  /** instance.fields[titleField] → the heading. */
+  titleField: string;
+  /** instance.fields[titleHeField] → the Hebrew twin heading (optional). */
+  titleHeField?: string;
+  /** instance.fields[...] → the instanceKey suffix. Defaults to titleField. */
+  instanceKeyField?: string;
+}
+
+export interface ResolvedSidebarHint {
+  accent: string;
+  title: string;
+  titleHe?: string;
+  markId: string;
+  instanceKey: string;
+}
+
+/** Resolve a hint against an instance's fields into concrete display props. Pure
+ *  (no DOM) so the render-hint vocabulary is unit-testable. */
+export function resolveSidebarHint(hint: SidebarHint, fields: Record<string, unknown>): ResolvedSidebarHint {
+  const str = (v: unknown): string => (typeof v === 'string' ? v : '');
+  const titleHe = hint.titleHeField ? str(fields[hint.titleHeField]) : '';
+  const keyVal = str(fields[hint.instanceKeyField ?? hint.titleField]);
+  return {
+    accent: ACCENTS[hint.kind],
+    title: str(fields[hint.titleField]),
+    titleHe: titleHe || undefined,
+    markId: hint.markId,
+    instanceKey: `${hint.markId}:${keyVal}`,
+  };
+}
+
+/**
+ * Generic sidebar panel driven by a render hint: the Panel skeleton (accent +
+ * heading from the hint) wrapping the synthesis card, with mark-specific chips
+ * slotted above. Replaces the per-mark `*Body` boilerplate — each new mark that
+ * follows the heading+chips+synthesis shape needs a hint, not a component.
+ */
+export function SidebarPanelFromHint(props: {
+  hint: SidebarHint;
+  instance: { fields: Record<string, unknown> };
+  tractate: string;
+  page: string;
+  chips?: JSX.Element;
+}): JSX.Element {
+  const r = (): ResolvedSidebarHint => resolveSidebarHint(props.hint, props.instance.fields);
+  return (
+    <Panel accent={r().accent} title={r().title} titleHe={r().titleHe}>
+      {props.chips}
+      <Synthesis
+        markId={r().markId}
+        instance={props.instance}
+        instanceKey={r().instanceKey}
+        tractate={props.tractate}
+        page={props.page}
+      />
+    </Panel>
+  );
+}
+
+/**
  * The follow-up Q&A affordance. Thin forwarder over QAPanel so panel bodies
  * compose it from the same primitive vocabulary as the rest of the section.
  */

@@ -15,7 +15,7 @@ import ArgumentFlowGraph, { type FlowConnection } from './ArgumentFlowGraph';
 import { adjacentAmud } from '../lib/sefref/amudim';
 import { selectSectionMoves } from '../lib/argumentMoves';
 import { t, lang } from './i18n';
-import { ACCENTS, HebrewProse, Panel, QASection, SectionCard, Synthesis, kindLabelKey } from './sidebar/primitives';
+import { ACCENTS, HebrewProse, Panel, QASection, SectionCard, Synthesis, SidebarPanelFromHint, kindLabelKey, type SidebarHint } from './sidebar/primitives';
 import { InspectDot } from './MarkEnrichmentCards';
 
 /** Localize an era date-range ("c. 290 – 320 CE") for Hebrew display. */
@@ -1606,7 +1606,22 @@ export function AggadataPanel(props: {
 // daf-agnostic profile/significance/figures leaves) and renders it. The
 // instanceKey mirrors the prefetcher's `places:<name>` so a warmed run is
 // reused instantly. region/kind render as small chips above the card.
-export function PlaceBody(props: { place: PlaceInstance; tractate: string; page: string }): JSX.Element {
+// The place mark's render hint: heading from `name`/`nameHe`, synthesis from the
+// `places` enrichment. The skeleton (Panel + Synthesis) is now the generic
+// SidebarPanelFromHint; only the place-specific chips remain bespoke. This hint
+// is a client constant for now; the registry-driven step authors it on the mark
+// definition in code-marks.ts so the client needs no per-mark wiring at all.
+export const PLACES_HINT: SidebarHint = {
+  kind: 'place',
+  markId: 'places',
+  titleField: 'name',
+  titleHeField: 'nameHe',
+  instanceKeyField: 'name',
+};
+
+/** Place-specific chrome: kind / region / also-known-as chips. The only part of
+ *  the old PlaceBody that isn't captured by the generic hint. */
+export function PlaceChips(props: { place: PlaceInstance }): JSX.Element {
   const f = () => props.place.fields;
   const regionLabel = (r: string): string =>
     r === 'israel' ? t('geography.eretzYisrael') : r === 'bavel' ? t('geography.bavel') : r === 'other' ? t('region.other') : r;
@@ -1618,22 +1633,13 @@ export function PlaceBody(props: { place: PlaceInstance; tractate: string; page:
     }}>{text}</span>
   );
   return (
-    <Panel accent={ACCENTS.place} title={f().name} titleHe={f().nameHe}>
-      <div style={{ display: 'flex', gap: '0.35rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.7rem' }}>
-        <Show when={f().kind}>{chip(f().kind)}</Show>
-        <Show when={f().region}>{chip(regionLabel(f().region))}</Show>
-        <Show when={(f().knownAs ?? []).length > 0}>
-          {chip(t('place.alsoKnownAs', { names: (f().knownAs ?? []).join(', ') }))}
-        </Show>
-      </div>
-      <Synthesis
-        markId="places"
-        instance={props.place}
-        instanceKey={`places:${f().name}`}
-        tractate={props.tractate}
-        page={props.page}
-      />
-    </Panel>
+    <div style={{ display: 'flex', gap: '0.35rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.7rem' }}>
+      <Show when={f().kind}>{chip(f().kind)}</Show>
+      <Show when={f().region}>{chip(regionLabel(f().region))}</Show>
+      <Show when={(f().knownAs ?? []).length > 0}>
+        {chip(t('place.alsoKnownAs', { names: (f().knownAs ?? []).join(', ') }))}
+      </Show>
+    </div>
   );
 }
 
@@ -1834,10 +1840,12 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
             </Show>
 
             <Show when={c().kind === 'place'}>
-              <PlaceBody
-                place={(c() as Extract<SidebarContent, { kind: 'place' }>).place}
+              <SidebarPanelFromHint
+                hint={PLACES_HINT}
+                instance={(c() as Extract<SidebarContent, { kind: 'place' }>).place}
                 tractate={props.tractate}
                 page={props.page}
+                chips={<PlaceChips place={(c() as Extract<SidebarContent, { kind: 'place' }>).place} />}
               />
             </Show>
 
