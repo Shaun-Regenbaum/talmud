@@ -2029,7 +2029,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', 'commentaries', 'mishna', 'context'],
-      defHash: 'argument.background-v4', cacheVersion: '4',
+      defHash: 'argument.background-v4', cacheVersion: '5', // v5: per-section Revach placement now reaches this
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_BACKGROUND_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_BACKGROUND_USER_TEMPLATE_HE,
@@ -2049,7 +2049,7 @@ CODE_ENRICHMENTS.push(
         { mark: 'rabbi' },
         { mark: 'argument-move' },
       ],
-      defHash: 'argument.synthesis-v10', cacheVersion: '10',
+      defHash: 'argument.synthesis-v10', cacheVersion: '11', // v11: cascade — picks up argument.background v5 (Revach placement)
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_SYNTHESIS_USER_TEMPLATE_HE,
@@ -2169,7 +2169,7 @@ CODE_ENRICHMENTS.push(
         { mark: 'argument' },
         { mark: 'rabbi' },
       ],
-      defHash: 'argument-overview.synthesis-v2', cacheVersion: '2',
+      defHash: 'argument-overview.synthesis-v2', cacheVersion: '3', // v3: per-section Revach placement now reaches this
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
