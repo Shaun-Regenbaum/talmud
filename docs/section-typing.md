@@ -66,7 +66,7 @@ a story. They are parallel overlays that merely happen to share segment indices.
 
 ## Coverage findings — what "no category" actually means
 
-Measured against the live API (`POST /api/studio/run`, all cache hits, zero
+Measured against the live API (`POST /api/run`, all cache hits, zero
 cost) by overlaying the content layers on every segment:
 
 | Daf | content-covered | uncovered segs | what the gaps are |
@@ -300,7 +300,7 @@ The whole-daf "Argument map" / flow graph is still experimental and the
 sugya-spanning version is not built. **Section typing does not depend on it.** It
 rides the per-daf `argument` + `argument-move` marks, which work today and are
 cached (verified: all four content marks for Gittin 67b are 200 cache hits via
-`/api/studio/run`). So we deliver typing now on the working per-daf structure and
+`/api/run`). So we deliver typing now on the working per-daf structure and
 fold it into the diagram later, not the other way round.
 
 Phases — each shippable, flag-gated, reversible:

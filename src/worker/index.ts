@@ -159,7 +159,7 @@ interface Bindings {
   OPENROUTER_GATEWAY_PROVIDER?: string;
   DEFAULT_LLM_MODEL?: string;
   // Enrichment job queue — see wrangler.toml + queue handler at the bottom
-  // of this file. /api/studio/run enqueues a JobMessage; the queue consumer
+  // of this file. /api/run enqueues a JobMessage; the queue consumer
   // runs the LLM chain and writes the result to KV under `job:{runId}`.
   ENRICHMENT_QUEUE?: Queue<JobMessage>;
   // When '1', the background Sefaria Shas walk also enqueues rabbi.observations
@@ -169,7 +169,7 @@ interface Bindings {
   // isolated sandbox the code-mode MCP `execute` tool runs in. Optional: when
   // unset, GET/POST /mcp returns 503 and the rest of the worker is unaffected.
   LOADER?: WorkerLoader;
-  // Shared secret gating the privileged /api/studio/run knobs (ad_hoc,
+  // Shared secret gating the privileged /api/run knobs (ad_hoc,
   // model_override, bypass_cache) and the admin mutation endpoints. Presented
   // by trusted tools as the `x-studio-secret` header. UNSET => every request is
   // treated as untrusted (fail-safe): the public app still works (it only uses
@@ -227,7 +227,7 @@ function timingSafeEqualStr(a: string, b: string): boolean {
 /**
  * True iff the request carries the STUDIO_SECRET (header `x-studio-secret`, or
  * `Authorization: Bearer <secret>`). Returns FALSE whenever the secret is unset
- * — fail-safe, so the privileged /api/studio/run knobs (ad_hoc, model_override,
+ * — fail-safe, so the privileged /api/run knobs (ad_hoc, model_override,
  * bypass_cache) and the admin mutation endpoints stay locked until the owner
  * provisions the secret. The public daf app never needs these, so locking them
  * by default doesn't degrade it.
@@ -454,7 +454,7 @@ app.get('/api/health', (c) => c.json({ ok: true }));
  * only outside access is the `request` bridge below, which re-enters our own
  * Hono app in-process for any /api/* path. The endpoint is public and gets the
  * untrusted safe subset; a trusted operator can forward an `x-studio-secret`
- * header on their MCP client to unlock the privileged /api/studio/run knobs.
+ * header on their MCP client to unlock the privileged /api/run knobs.
  */
 app.all('/mcp', async (c) => {
   if (!c.env.LOADER) {
@@ -571,12 +571,12 @@ app.get('/api/admin/llm-settings', (c) => {
  *   mark-defs:v1:{id}        — what to extract from a daf
  *   enrichment-defs:v1:{id}  — what to derive from a mark
  *
- * Ad-hoc runs (no save) hit /api/studio/run with an inline definition. Saved
+ * Ad-hoc runs (no save) hit /api/run with an inline definition. Saved
  * runs reference an id and get cached. The same registry powers Home (all
  * registered enrichments shown as toggles, off by default) and Studio
  * (per-enrichment editor + preview).
  */
-app.get('/api/studio/marks', async (c) => {
+app.get('/api/marks', async (c) => {
   // Merge KV-stored marks with code-defined seeds. KV wins on id collision
   // (a saved KV definition overrides a built-in with the same id).
   const kv = await listMarks(c.env);
@@ -587,7 +587,7 @@ app.get('/api/studio/marks', async (c) => {
   ];
   return c.json({ marks: merged });
 });
-app.get('/api/studio/marks/:id', async (c) => {
+app.get('/api/marks/:id', async (c) => {
   const id = c.req.param('id');
   const kv = await readMark(c.env, id);
   if (kv) return c.json({ mark: kv });
@@ -595,7 +595,7 @@ app.get('/api/studio/marks/:id', async (c) => {
   if (code) return c.json({ mark: code });
   return c.json({ error: 'not found' }, 404);
 });
-app.put('/api/studio/marks/:id', async (c) => {
+app.put('/api/marks/:id', async (c) => {
   let body: unknown;
   try { body = await c.req.json(); } catch { return c.json({ error: 'invalid JSON' }, 400); }
   const v = validateMark({ ...(body as object), id: c.req.param('id') });
@@ -603,7 +603,7 @@ app.put('/api/studio/marks/:id', async (c) => {
   const saved = await writeMark(c.env, v.spec);
   return c.json({ mark: saved });
 });
-app.delete('/api/studio/marks/:id', async (c) => {
+app.delete('/api/marks/:id', async (c) => {
   await deleteMark(c.env, c.req.param('id'));
   return c.json({ ok: true });
 });
@@ -615,7 +615,7 @@ app.delete('/api/studio/marks/:id', async (c) => {
 // before any of them is promoted to a hard, cache-gating check. Marks only:
 // they have one cache entry per daf; instance-scoped enrichment checks
 // (edge-integrity, rabbi-evidence) aren't enumerable without their instances.
-app.get('/api/studio/checks/:tractate/:page', async (c) => {
+app.get('/api/checks/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
   const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
@@ -689,7 +689,7 @@ async function buildDafTypeProfiles(env: Bindings, tractate: string, page: strin
   }
   return profiles;
 }
-app.get('/api/studio/type-profiles/:tractate/:page', async (c) => {
+app.get('/api/type-profiles/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
   const profiles = await buildDafTypeProfiles(c.env, tractate, page);
@@ -756,12 +756,12 @@ async function computeDafBridge(env: Bindings, tractate: string, page: string): 
   if (cache && bridge.via !== 'no-data') await cache.put(key, JSON.stringify(bridge));
   return bridge;
 }
-app.get('/api/studio/bridge/:tractate/:page', async (c) => {
+app.get('/api/bridge/:tractate/:page', async (c) => {
   const bridge = await computeDafBridge(c.env, c.req.param('tractate'), c.req.param('page'));
   return c.json(bridge);
 });
 
-app.get('/api/studio/enrichments', async (c) => {
+app.get('/api/enrichments', async (c) => {
   // Merge KV + code-defined. KV wins on collision. Code-defined entries are
   // normalized to the KV-flat shape (extractor flattened, `mark` instead of
   // `target_mark`) so the client gets one consistent shape.
@@ -790,7 +790,7 @@ app.get('/api/studio/enrichments', async (c) => {
     }));
   return c.json({ enrichments: [...codeFlat, ...kv] });
 });
-app.get('/api/studio/enrichments/:id', async (c) => {
+app.get('/api/enrichments/:id', async (c) => {
   const id = c.req.param('id');
   const kv = await readEnrichment(c.env, id);
   if (kv) return c.json({ enrichment: kv });
@@ -798,7 +798,7 @@ app.get('/api/studio/enrichments/:id', async (c) => {
   if (code) return c.json({ enrichment: code });
   return c.json({ error: 'not found' }, 404);
 });
-app.put('/api/studio/enrichments/:id', async (c) => {
+app.put('/api/enrichments/:id', async (c) => {
   let body: unknown;
   try { body = await c.req.json(); } catch { return c.json({ error: 'invalid JSON' }, 400); }
   const v = validateEnrichment({ ...(body as object), id: c.req.param('id') });
@@ -806,7 +806,7 @@ app.put('/api/studio/enrichments/:id', async (c) => {
   const saved = await writeEnrichment(c.env, v.spec);
   return c.json({ enrichment: saved });
 });
-app.delete('/api/studio/enrichments/:id', async (c) => {
+app.delete('/api/enrichments/:id', async (c) => {
   await deleteEnrichment(c.env, c.req.param('id'));
   return c.json({ ok: true });
 });
@@ -1233,7 +1233,7 @@ async function writeCachedResult(env: Bindings, key: string, result: RunResult):
   // No TTL — outputs are deterministic per (def_hash, cache_version, daf
   // or instance). The canonical way to force a recache is to bump
   // cache_version on the definition (old key becomes unreachable) or
-  // call /api/studio/run with bypass_cache=true. A TTL on top of that
+  // call /api/run with bypass_cache=true. A TTL on top of that
   // just makes warmed pages silently rot — measured pain: full-shas
   // warming costs ~$1000 and ~17 days; we don't want it expiring on us.
   await env.CACHE.put(key, JSON.stringify(result));
@@ -2082,7 +2082,7 @@ async function runRabbiObservations(
 }
 
 /**
- * POST /api/studio/run — execute a mark or enrichment, return its raw output
+ * POST /api/run — execute a mark or enrichment, return its raw output
  * + telemetry. Cache-aware: results are read/written via cache-keys.ts.
  *
  * Body:
@@ -2194,21 +2194,21 @@ async function recordRecentJobError(
 }
 
 /**
- * POST /api/studio/run — async producer.
+ * POST /api/run — async producer.
  *
  * 1. Validate body.
  * 2. Compute the canonical cache key. If KV has a fresh result and the
  *    request didn't ask for bypass_cache, return 200 with the cached result
  *    immediately (this is the hot path).
  * 3. Otherwise enqueue a JobMessage and return 202 with `{ status: 'pending',
- *    runId, cacheKey }`. The client polls /api/studio/run-status/:runId.
+ *    runId, cacheKey }`. The client polls /api/run-status/:runId.
  *
  * The producer invocation is short-lived: it never holds the request open
  * while an LLM call runs. The queue consumer (queue() handler at the bottom
  * of this file) does the heavy work in its own invocation and writes the
  * result to KV under `job:{runId}` AND the canonical cache key.
  */
-app.post('/api/studio/run', async (c) => {
+app.post('/api/run', async (c) => {
   let raw: unknown;
   try { raw = await c.req.json(); }
   catch { return c.json({ error: 'invalid JSON' }, 400); }
@@ -2372,7 +2372,7 @@ app.post('/api/warm-daf', async (c) => {
 });
 
 /**
- * GET /api/studio/run-status/:runId — polling endpoint for queued jobs.
+ * GET /api/run-status/:runId — polling endpoint for queued jobs.
  * Reads `job:{runId}` from KV. While the job is still running, returns 202
  * with `{ status: 'pending' }`. When done, returns 200 with the result.
  *
@@ -2380,7 +2380,7 @@ app.post('/api/warm-daf', async (c) => {
  * to the canonical cache key. Covers the gap where the queue consumer
  * wrote canonical cache but was terminated before writing the job key.
  */
-app.get('/api/studio/run-status/:runId', async (c) => {
+app.get('/api/run-status/:runId', async (c) => {
   const runId = c.req.param('runId');
   const cache = c.env.CACHE;
   if (!cache) return c.json({ error: 'CACHE binding not available' }, 503);
@@ -2962,7 +2962,7 @@ async function tickRateLimit(env: Bindings, scope: string, who: string): Promise
  *
  * Returns the community-submitted question list for one anchor so the client
  * can render the Questions panel without enumerating KV. Curated questions
- * are fetched separately via /api/studio/run on `<mark>.suggested-questions`.
+ * are fetched separately via /api/run on `<mark>.suggested-questions`.
  *
  * `mark` defaults to 'argument-move' for back-compat with older clients.
  */
@@ -2992,7 +2992,7 @@ app.get('/api/qa/registry', async (c) => {
  * Normalizes + hashes the question, dedupes against the registry, appends
  * to community if new, and enqueues the `<mark>.qa` enrichment so the
  * answer cache fills in for everyone. The actual answer is fetched
- * separately via /api/studio/run by the client (which polls the queue) —
+ * separately via /api/run by the client (which polls the queue) —
  * this endpoint only kicks the job and records the question for other users.
  *
  * `mark` defaults to 'argument-move' for back-compat with older clients.
@@ -3065,7 +3065,7 @@ app.post('/api/qa/ask', async (c) => {
   await writeQaRegistry(c.env, scope.mark, b.tractate, b.page, scope.instanceId, reg);
 
   // Kick the enrichment job so the answer is ready by the time the client
-  // polls for it. The /api/studio/run hot-path lookup will still cache-hit
+  // polls for it. The /api/run hot-path lookup will still cache-hit
   // on the second user with the same normalized question.
   if (c.env.ENRICHMENT_QUEUE) {
     const job: JobMessage = {
@@ -3130,8 +3130,8 @@ app.post('/api/qa/click', async (c) => {
 //   'translate'           legacy /api/translate
 //   'daf-context'         legacy /api/daf-context skeleton stage
 //   'daf-context-stage2'  legacy /api/daf-context bio-enrichment stage
-//   'studio-mark'         /api/studio/run for a mark (see mark_id field)
-//   'studio-enrichment'   /api/studio/run for an enrichment (see enrichment_id)
+//   'studio-mark'         /api/run for a mark (see mark_id field)
+//   'studio-enrichment'   /api/run for an enrichment (see enrichment_id)
 //
 // New entries don't need a code change — /api/usage rolls up dynamically over
 // whatever endpoint values it sees in the ring buffer.
@@ -6829,7 +6829,7 @@ async function deepWarmDaf(
 
 /**
  * Run one queued enrichment job: replay the same logic the synchronous
- * /api/studio/run handler used to do, but write the outcome under
+ * /api/run handler used to do, but write the outcome under
  * `job:{runId}` (for client polling) AND the canonical cache key (so a
  * future direct request hits the cached result without round-tripping the
  * queue).
@@ -6958,7 +6958,7 @@ export default {
     }
   },
   // Queue consumer — wrangler.toml binds queue=enrichment-jobs to this
-  // export. Each message is one /api/studio/run job. max_concurrency=2 caps
+  // export. Each message is one /api/run job. max_concurrency=2 caps
   // simultaneous LLM workloads; max_batch_size=1 means one job per
   // invocation (no batching), which keeps memory bounded per worker.
   queue: async (batch: MessageBatch<JobMessage>, env: Bindings, ctx: ExecutionContext): Promise<void> => {

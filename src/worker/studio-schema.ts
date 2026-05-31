@@ -579,5 +579,5 @@ correct the ones I got wrong.
 
   14. status       — always 'draft' on creation. Promote later via UI.
 
-After fill-in, the worker computes def_hash from sha256(JSON.stringify(extractor) + JSON.stringify(render)) — NOT over `checks` (post-processing, not generation input). Save via PUT /api/studio/marks/{id}.
+After fill-in, the worker computes def_hash from sha256(JSON.stringify(extractor) + JSON.stringify(render)) — NOT over `checks` (post-processing, not generation input). Save via PUT /api/marks/{id}.
 */

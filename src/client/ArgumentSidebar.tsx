@@ -75,7 +75,7 @@ export interface PlaceInstance {
 /** Section-typing gate for the voice-dispute map (Track C, P2). The voices
  *  graph models a מחלוקת; rendering it on a story or a one-sided Stam Q&A is the
  *  "Demons"/"Stam questioner→respondent" pathology. We compute the section's
- *  TypeProfile (deterministic, cached marks, via /api/studio/type-profiles) and
+ *  TypeProfile (deterministic, cached marks, via /api/type-profiles) and
  *  suppress the map unless the section is a real, non-narrative dispute. Gated
  *  to dev mode + reversible: readers are unaffected until this is promoted, and
  *  when the profile is unknown we default to showing (current behavior). The
@@ -87,7 +87,7 @@ function useVoicesGate(tractate: () => string, page: () => string, section: () =
     () => `${tractate()}|${page()}`,
     async (): Promise<SectionTypeProfile[]> => {
       try {
-        const r = await fetch(`/api/studio/type-profiles/${encodeURIComponent(tractate())}/${encodeURIComponent(page())}`);
+        const r = await fetch(`/api/type-profiles/${encodeURIComponent(tractate())}/${encodeURIComponent(page())}`);
         if (!r.ok) return [];
         return ((await r.json()) as { profiles?: SectionTypeProfile[] }).profiles ?? [];
       } catch { return []; }
@@ -800,7 +800,7 @@ function ArgumentOverviewBody(props: {
       const continues = async (p: string | null): Promise<boolean> => {
         if (!p) return false;
         try {
-          const r = await fetch(`/api/studio/bridge/${encodeURIComponent(props.tractate)}/${encodeURIComponent(p)}`);
+          const r = await fetch(`/api/bridge/${encodeURIComponent(props.tractate)}/${encodeURIComponent(p)}`);
           if (!r.ok) return false;
           return !!((await r.json()) as { continues?: boolean }).continues;
         } catch { return false; }

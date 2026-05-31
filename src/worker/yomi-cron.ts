@@ -6,7 +6,7 @@
  * cache-keys.ts helpers and lands a KV entry the next reader hits
  * synchronously.
  *
- * NOTE: this used to POST to `https://talmud.shaunregenbaum.com/api/studio/run`
+ * NOTE: this used to POST to `https://talmud.shaunregenbaum.com/api/run`
  * — a subrequest from the Worker back to its own custom-domain route. That is
  * the classic Cloudflare worker-to-self loopback: every such POST returned
  * HTTP 522 (origin connection timeout) and nothing ever warmed. We now enqueue

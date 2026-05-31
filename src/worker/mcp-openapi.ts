@@ -62,16 +62,16 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
       '   `excerpt` strings ARE the anchors highlighted on the page. There is no',
       '   separate anchors endpoint. Mark ids include: rabbi, argument,',
       '   argument-move, halacha, aggadata, pesukim, places, rishonim,',
-      '   rabbi.observations. List them with GET /api/studio/marks.',
+      '   rabbi.observations. List them with GET /api/marks.',
       '3. ENRICHMENTS are LLM passes that run ON a mark instance to produce the',
       '   synthesized cards (e.g. explain an argument-move). List them with',
-      '   GET /api/studio/enrichments.',
+      '   GET /api/enrichments.',
       '',
-      'RUNNING MARKS/ENRICHMENTS (the engine): POST /api/studio/run is the single',
+      'RUNNING MARKS/ENRICHMENTS (the engine): POST /api/run is the single',
       'entry point. It is ASYNCHRONOUS:',
       '  - On a cache hit it returns 200 { status: "ok", result }.',
       '  - Otherwise it returns 202 { status: "pending", runId, cacheKey }; then',
-      '    poll GET /api/studio/run-status/{runId}?k={cacheKey} until you get',
+      '    poll GET /api/run-status/{runId}?k={cacheKey} until you get',
       '    200 { status: "ok", result } (it returns 202 { status: "pending" }',
       '    while the job is still on the queue).',
       'In code mode you can do this whole loop inside one `execute` call: run a',
@@ -186,13 +186,13 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
       },
     },
 
-    '/api/studio/marks': {
+    '/api/marks': {
       get: {
         summary: 'List all mark definitions (the structural extractors that produce anchors).',
         responses: { '200': { description: '{ marks: MarkDefinition[] }' } },
       },
     },
-    '/api/studio/marks/{id}': {
+    '/api/marks/{id}': {
       get: {
         summary: 'Get one mark definition by id.',
         parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' }, description: 'Mark id, e.g. "argument-move".' }],
@@ -200,13 +200,13 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
       },
     },
 
-    '/api/studio/enrichments': {
+    '/api/enrichments': {
       get: {
         summary: 'List all enrichment definitions (LLM passes that run on a mark instance).',
         responses: { '200': { description: '{ enrichments: EnrichmentDefinition[] }' } },
       },
     },
-    '/api/studio/enrichments/{id}': {
+    '/api/enrichments/{id}': {
       get: {
         summary: 'Get one enrichment definition by id.',
         parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
@@ -214,7 +214,7 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
       },
     },
 
-    '/api/studio/run': {
+    '/api/run': {
       post: {
         summary: 'Run a mark or enrichment for a daf. Async: cache hit => 200 result; else 202 { runId, cacheKey } to poll.',
         description:
@@ -247,12 +247,12 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
         },
       },
     },
-    '/api/studio/run-status/{runId}': {
+    '/api/run-status/{runId}': {
       get: {
         summary: 'Poll a queued run. 202 { status: "pending" } while running; 200 { status: "ok", result } when done.',
         parameters: [
-          { name: 'runId', in: 'path', required: true, schema: { type: 'string' }, description: 'runId from POST /api/studio/run.' },
-          { name: 'k', in: 'query', required: false, schema: { type: 'string' }, description: 'cacheKey fallback returned by POST /api/studio/run.' },
+          { name: 'runId', in: 'path', required: true, schema: { type: 'string' }, description: 'runId from POST /api/run.' },
+          { name: 'k', in: 'query', required: false, schema: { type: 'string' }, description: 'cacheKey fallback returned by POST /api/run.' },
         ],
         responses: { '200': { description: '{ status: "ok", result }' }, '202': { description: '{ status: "pending" }' } },
       },

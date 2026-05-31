@@ -5,7 +5,7 @@ import type { AggadataStory } from '../../src/client/shapes';
 import { AggadataPanel } from '../../src/client/ArgumentSidebar';
 import { setLang, t } from '../../src/client/i18n';
 
-// MarkEnrichmentCards fetches /api/studio/enrichments on mount; stub it so the
+// MarkEnrichmentCards fetches /api/enrichments on mount; stub it so the
 // panel mounts cleanly and we can assert its synchronous structure (the leaf
 // SectionCards arrive later via onResolved and are covered by the SectionCard
 // unit test).

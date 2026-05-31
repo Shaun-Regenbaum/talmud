@@ -2,13 +2,13 @@
  * MarkEnrichmentCards — generic, mark-agnostic component that renders all
  * registered enrichments for a given mark instance.
  *
- * Architecture: pulls /api/studio/enrichments, filters to entries whose
+ * Architecture: pulls /api/enrichments, filters to entries whose
  * `mark` field matches the props.markId, then for each promoted enrichment
- * fires /api/studio/run with `{ enrichment_id, tractate, page, mark_input
+ * fires /api/run with `{ enrichment_id, tractate, page, mark_input
  * = props.instance }` and renders the parsed JSON output.
  *
  * Adding a new enrichment for a mark = drop a row into CODE_ENRICHMENTS
- * (worker/code-marks.ts) or save one via PUT /api/studio/enrichments. The
+ * (worker/code-marks.ts) or save one via PUT /api/enrichments. The
  * sidebar picks it up automatically. No UI code changes per new
  * enrichment.
  *
@@ -96,7 +96,7 @@ type RunState =
   | { kind: 'error'; stamp: string; error: string };
 
 async function fetchEnrichments(): Promise<EnrichmentDef[]> {
-  const r = await fetch('/api/studio/enrichments');
+  const r = await fetch('/api/enrichments');
   if (!r.ok) return [];
   const j = await r.json() as { enrichments: EnrichmentDef[] };
   return j.enrichments;
@@ -131,7 +131,7 @@ async function runEnrichmentImpl(
   markInput: unknown,
   signal?: AbortSignal,
 ): Promise<RunResult> {
-  const r = await fetch('/api/studio/run', {
+  const r = await fetch('/api/run', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ enrichment_id: enrichmentId, tractate, page, mark_input: markInput, lang: lang() }),
@@ -206,7 +206,7 @@ async function pollJob(runId: string, cacheKey?: string, signal?: AbortSignal): 
   while (Date.now() - start < POLL_TIMEOUT_MS) {
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
     if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
-    const r = await fetch(`/api/studio/run-status/${encodeURIComponent(runId)}${qs}`, { signal });
+    const r = await fetch(`/api/run-status/${encodeURIComponent(runId)}${qs}`, { signal });
     const j = await r.json() as RunResponse | { status: 'pending' };
     if (isPausedBody(j)) throw new Error(PAUSED_ERROR);
     if ('status' in j) {
@@ -267,7 +267,7 @@ interface Props {
   /** Fired with the aggregate's `deps_resolved` + `anchors_resolved` once
    *  the synthesis run lands. Lets the parent sidebar render mark-specific
    *  UI (e.g. argument subsection pills) from the same fetch that produced
-   *  the synthesis paragraph — no duplicate `/api/studio/run` call.
+   *  the synthesis paragraph — no duplicate `/api/run` call.
    *  `deps_resolved` keys are enrichment ids; `anchors_resolved` keys are
    *  mark ids. Either may be undefined. */
   onResolved?: (resolved: {
@@ -328,7 +328,7 @@ export default function MarkEnrichmentCards(props: Props) {
     // For aggregate enrichments: server returns each dep's parsed output in
     // `deps_resolved` (enrichments) and `anchors_resolved` (marks). Populate
     // per-leaf run state so the dev dropdown can render leaves instantly
-    // without a second /api/studio/run call. Forward both maps to onResolved
+    // without a second /api/run call. Forward both maps to onResolved
     // so parent sidebars can render mark-specific UI from the same data.
     const resolved = result.deps_resolved;
     if (resolved || result.anchors_resolved) {

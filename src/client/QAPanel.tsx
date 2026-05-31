@@ -7,11 +7,11 @@
  * ------------
  * 1. Renders a collapsed "Questions" button. The first time the user
  *    expands it, fetches the curated suggested-questions list (via
- *    /api/studio/run for `<mark>.suggested-questions`) AND the
+ *    /api/run for `<mark>.suggested-questions`) AND the
  *    community-asked registry (via /api/qa/registry).
  * 2. Shows the top 1-2 questions by default; "show more" reveals the rest
  *    (curated first, then community, ranked by clickCount).
- * 3. Clicking a question lazy-loads its answer via /api/studio/run for
+ * 3. Clicking a question lazy-loads its answer via /api/run for
  *    `<mark>.qa` with `user_question` set. The answer caches in shared
  *    KV so the second person to ask the same question gets it instantly.
  * 4. "+ Ask your own question" opens a textarea + submit. Submit POSTs to
@@ -23,7 +23,7 @@
  * ---------------------------------------------
  * MarkEnrichmentCards auto-fires every aggregate on mount. We need parameterized,
  * on-demand fetches keyed by question text; the existing card has no slot for
- * user-supplied `qualifier` strings. We POST to /api/studio/run directly with
+ * user-supplied `qualifier` strings. We POST to /api/run directly with
  * `user_question` in the body.
  */
 
@@ -82,7 +82,7 @@ async function runEnrichmentDirect(
     lang: lang(),
   };
   if (userQuestion) body.user_question = userQuestion;
-  const r = await fetch('/api/studio/run', {
+  const r = await fetch('/api/run', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -105,7 +105,7 @@ async function pollJob(runId: string, cacheKey?: string): Promise<RunResultLike>
   const qs = cacheKey ? `?k=${encodeURIComponent(cacheKey)}` : '';
   while (Date.now() - start < POLL_TIMEOUT_MS) {
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
-    const r = await fetch(`/api/studio/run-status/${encodeURIComponent(runId)}${qs}`);
+    const r = await fetch(`/api/run-status/${encodeURIComponent(runId)}${qs}`);
     const j = await r.json() as RunResponse | { status: 'pending' };
     if (isPausedBody(j)) throw new Error(PAUSED_ERROR);
     if ('status' in j) {

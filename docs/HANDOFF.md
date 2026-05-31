@@ -51,7 +51,7 @@ it can't be done blind). After that it's Track B (render/DX) and Track C
 ### Environment gotchas (will bite you)
 
 - **node_modules**: the worktree symlinks the main tree's `node_modules` (`ln -s <repo>/node_modules ./node_modules`). It predates PR #32, so `@hono/mcp`, `@cloudflare/codemode`, `@modelcontextprotocol/sdk` are **missing** → `tsc` reports 3-4 "Cannot find module" errors in `src/worker/mcp.ts` + `index.ts:~460`. **These are pre-existing and unrelated — ignore them.** Filter with `npx tsc --noEmit 2>&1 | grep -v "@hono/mcp\|@cloudflare/codemode\|@modelcontextprotocol"`.
-- **Live API**: production `POST /api/studio/run` (cache hits → 200, else 202 + poll `/api/studio/run-status/{runId}?k=`) is open/read. **It blocks the default Python `urllib` user-agent (403)** — set a browser `User-Agent` header. `bypass_cache`/`model_override` need the `x-studio-secret` header (we don't have it). A budget guard ($10/hr, $300/day) caps spend at the `runLLM` chokepoint.
+- **Live API**: production `POST /api/run` (cache hits → 200, else 202 + poll `/api/run-status/{runId}?k=`) is open/read. **It blocks the default Python `urllib` user-agent (403)** — set a browser `User-Agent` header. `bypass_cache`/`model_override` need the `x-studio-secret` header (we don't have it). A budget guard ($10/hr, $300/day) caps spend at the `runLLM` chokepoint.
 - **Sandbox**: throwaway scripts go in `/Users/shaunie/Documents/Code/Sandbox/` (not in-repo). The capture/regen scripts used for A0 are there: `capture_golden_anchors.py`, `regen_stale_aggadata.ts` (run with `npx tsx`).
 
 ## The pipeline (just enough to orient)

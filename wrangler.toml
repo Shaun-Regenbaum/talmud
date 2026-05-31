@@ -76,7 +76,7 @@ CF_ZONE_TAG = "4808b439c50e3a42494ae7e0b2fa1bec"
 # guard latches a pause at 95% of this to leave headroom for in-flight jobs);
 # HOURLY_CUSTOM_BUDGET_USD caps spend on user-submitted custom questions per
 # rolling hour. These are the code defaults made explicit/tunable here — edit +
-# redeploy to change them. The privileged /api/studio/run knobs + admin
+# redeploy to change them. The privileged /api/run knobs + admin
 # mutations are gated by the STUDIO_SECRET secret (`wrangler secret put
 # STUDIO_SECRET`); unset => everyone is treated as untrusted (fail-safe).
 DAILY_BUDGET_USD = "300"
@@ -84,9 +84,9 @@ HOURLY_CUSTOM_BUDGET_USD = "10"
 
 # Cloudflare Queue — long-running enrichment jobs run in the consumer worker
 # instead of holding the producer's request invocation. Producer (POST
-# /api/studio/run) enqueues + returns 202 with a runId; consumer processes
+# /api/run) enqueues + returns 202 with a runId; consumer processes
 # the message and writes the result to KV under `job:{runId}`. Client polls
-# /api/studio/run-status/:runId. Decouples client requests from LLM latency
+# /api/run-status/:runId. Decouples client requests from LLM latency
 # and stops workerd from dying on parallel long-fetches in dev.
 [[queues.producers]]
 queue = "enrichment-jobs"
@@ -127,7 +127,7 @@ head_sampling_rate = 1  # capture 100% of invocations
 # key to force a re-walk. See src/worker/warm-cron.ts.
 #
 # Second cron (03:00 UTC daily) pre-warms tomorrow's Daf Yomi via
-# /api/studio/run for the canonical mark set. See src/worker/yomi-cron.ts.
+# /api/run for the canonical mark set. See src/worker/yomi-cron.ts.
 [triggers]
 crons = ["*/5 * * * *", "0 3 * * *"]
 
