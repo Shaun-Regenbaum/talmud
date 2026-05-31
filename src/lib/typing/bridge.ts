@@ -1,9 +1,9 @@
 /**
  * @fileoverview Cross-daf sugya bridge — does the discussion at the END of one
  * daf continue into the START of the next? This is the boundary-finder the
- * cross-page sugya map needs: combined with the per-daf flow (argument-overview)
- * and stitchSugyot, a `continues` bridge chains two dapim's sections into one
- * sugya that spans the page break (Shabbat 125b–126b).
+ * cross-page sugya map needs: combined with the per-daf flow (argument-overview),
+ * a `continues` bridge marks where two dapim's sections join into one sugya that
+ * spans the page break (Shabbat 125b–126b).
  *
  * Two-tier, cheap-first:
  *   - DETERMINISTIC: a Hadran ("הדרן עלך …") at the end of the from-daf means the

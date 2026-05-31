@@ -715,9 +715,8 @@ function OverviewSectionVoices(props: {
 }
 
 // Flow kinds that bind two sections into ONE continuous discussion (sugya).
-// Mirrors SUGYA_BINDING_KINDS in src/lib/typing/sugya.ts. The others (parallels
-// / contrasts / generalizes / cites) are cross-references between DISTINCT
-// sugyot, so they don't merge sections into the same map.
+// The others (parallels / contrasts / generalizes / cites) are cross-references
+// between DISTINCT sugyot, so they don't merge sections into the same map.
 const SUGYA_BINDING_KINDS = new Set(['continues', 'resolves', 'depends-on']);
 
 /** Partition a daf's argument sections into discussion groups (sugyot) as

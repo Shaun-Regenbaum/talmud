@@ -15,7 +15,7 @@ Principles: deterministic rules grow over time but **AI keeps final say**; conte
 4. **Generic sidebar** — render a piece's enrichments from a declared render hint (retire bespoke `*Body` components).
 5. **Entity pieces** (lift "global" rabbi/place), **link pieces** (unify flow/bridge/voice-edges/citations), **user pieces** (highlights/notes).
 6. **Tractate-continuous + commentary spines** (wire the reserved `external` anchor); **content-hash freshness + reverse-dependency index**.
-7. **Cruft + DX**: remove the orphaned sugya-assembly (`/api/studio/sugya`, `assemble.ts`, `SUGYA_WINDOW_CAP`); drop the `/studio` API prefix; keep `src/worker/mcp-openapi.ts` in sync; expand `docs/framework.md` toward an SDK. (Done: dead `filterFlowConnections` removed — the flow graph's inline `edges()` membership filter subsumes it.)
+7. **Cruft + DX**: drop the `/studio` API prefix; keep `src/worker/mcp-openapi.ts` in sync; expand `docs/framework.md` toward an SDK ✅. (Done: dead `filterFlowConnections` removed — flow graph's inline `edges()` filter subsumes it; orphaned sugya-assembly removed — `/api/studio/sugya` route + `SUGYA_WINDOW_CAP` + `typing/assemble.ts` + `typing/sugya.ts` + `readFlowConnections`, all dead once the route went; `docs/framework.md` SDK-grade rewrite.)
 
 Cross-cutting always: typed piece bodies, resilient anchors, provenance/confidence, eval-gated producer promotion.
 

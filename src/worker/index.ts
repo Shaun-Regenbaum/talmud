@@ -91,8 +91,6 @@ import {
 } from './output-schemas';
 import { findHadranSegments } from '../lib/typing/markers';
 import { hadranBridge, edgeOfTractateBridge, buildBridgePrompt, llmBridge, type DafBridge, type BridgeSection } from '../lib/typing/bridge';
-import { assembleSugyot, sugyaContaining, type DafForAssembly } from '../lib/typing/assemble';
-import { coordForSeg } from '../lib/context/coord';
 import type {
   MarkDefinition as SchemaMarkDefinition,
   EnrichmentDefinition as SchemaEnrichmentDefinition,
@@ -761,95 +759,6 @@ async function computeDafBridge(env: Bindings, tractate: string, page: string): 
 app.get('/api/studio/bridge/:tractate/:page', async (c) => {
   const bridge = await computeDafBridge(c.env, c.req.param('tractate'), c.req.param('page'));
   return c.json(bridge);
-});
-
-// Load a daf's cached argument-overview.flow connections (section-index edges).
-async function readFlowConnections(env: Bindings, tractate: string, page: string): Promise<Array<{ from: number; to: number; kind: string }>> {
-  const def = findCodeEnrichment('argument-overview.flow');
-  if (!def) return [];
-  const iid = await instanceIdOf({ fields: {} });
-  const hit = await readCachedResult(env, keyForEnrichment(def, iid, { tractate, page }));
-  const conns = (hit?.parsed as { connections?: unknown } | null)?.connections;
-  if (!Array.isArray(conns)) return [];
-  return (conns as Array<Record<string, unknown>>)
-    .filter((c) => typeof c.from === 'number' && typeof c.to === 'number')
-    .map((c) => ({ from: c.from as number, to: c.to as number, kind: typeof c.kind === 'string' ? c.kind : 'continues' }));
-}
-
-// Assemble the cross-page sugyot around a daf: walk the continuing bridges to a
-// bounded window of dapim, load each one's sections + flow, and stitch them
-// (intra-daf flow + cross-daf bridges) into sugya units. Returns the units and
-// the one containing the target daf's first section.
-const SUGYA_WINDOW_CAP = 5;
-app.get('/api/studio/sugya/:tractate/:page', async (c) => {
-  const env = c.env;
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-
-  // Window: walk forward + backward from the target while the bridge continues.
-  const pages: string[] = [page];
-  let cur = page;
-  while (pages.length < SUGYA_WINDOW_CAP) {
-    const b = await computeDafBridge(env, tractate, cur);
-    if (!b.to || !b.continues) break;
-    pages.push(b.to.page); cur = b.to.page;
-  }
-  cur = page;
-  while (pages.length < SUGYA_WINDOW_CAP) {
-    const prev = adjacentAmud(tractate, cur, -1);
-    if (!prev) break;
-    const b = await computeDafBridge(env, tractate, prev); // prev -> cur
-    if (!b.continues) break;
-    pages.unshift(prev); cur = prev;
-  }
-
-  const dapim: DafForAssembly[] = [];
-  // seg -> { end, title } per daf, so the response can label each section by its
-  // human title (not a bare segment index) and highlight its full segment range.
-  const secAt = new Map<string, { end: number; title: string }>();
-  for (const p of pages) {
-    const insts = (await readMarkInstances(env, 'argument', tractate, p))
-      .filter((i) => typeof i.startSegIdx === 'number' && typeof i.endSegIdx === 'number');
-    for (const i of insts) {
-      secAt.set(`${p}:${i.startSegIdx}`, {
-        end: i.endSegIdx as number,
-        title: typeof i.fields?.title === 'string' ? (i.fields.title as string) : '',
-      });
-    }
-    dapim.push({
-      ref: { tractate, page: p },
-      sections: insts.map((i) => ({ startSegIdx: i.startSegIdx as number, endSegIdx: i.endSegIdx as number })),
-      flow: await readFlowConnections(env, tractate, p),
-    });
-  }
-  const bridges = [];
-  for (let i = 0; i < dapim.length - 1; i++) {
-    bridges.push({ continues: (await computeDafBridge(env, tractate, dapim[i].ref.page)).continues });
-  }
-
-  const sugyot = assembleSugyot(dapim, bridges);
-  const targetSecs = dapim.find((d) => d.ref.page === page)?.sections ?? [];
-  const targetFirst = targetSecs.length ? targetSecs.reduce((a, b) => (b.startSegIdx < a.startSegIdx ? b : a)) : null;
-  const current = targetFirst ? sugyaContaining(sugyot, coordForSeg({ tractate, page }, targetFirst.startSegIdx)) : null;
-
-  // Decorate each daf row with titled section ranges (start/end/title) so the
-  // client can render "Opening Mishnah: Time for Evening Shema" instead of "0".
-  const withTitles = (u: typeof sugyot[number]) => ({
-    ...u,
-    dapim: u.dapim.map((d) => ({
-      ...d,
-      sections: d.segs.map((seg) => {
-        const s = secAt.get(`${d.page}:${seg}`);
-        return { start: seg, end: s?.end ?? seg, title: s?.title ?? '' };
-      }),
-    })),
-  });
-
-  return c.json({
-    tractate, page, window: pages, count: sugyot.length,
-    sugyot: sugyot.map(withTitles),
-    current: current ? withTitles(current) : null,
-  });
 });
 
 app.get('/api/studio/enrichments', async (c) => {
@@ -6884,7 +6793,7 @@ async function deepWarmDaf(
   // Overview's sugya map stitches into discussions — without it every section
   // shows as its own singleton sugya. The one-time global sweep left gaps and
   // never ran for new daf-yomi dapim, so warm it here. Keyed on the canonical
-  // whole-daf instance { fields: {} } to match readFlowConnections + the client.
+  // whole-daf instance { fields: {} } to match the client.
   for (const eid of ['argument-overview.flow', 'argument-overview.synthesis']) {
     try {
       const def = await loadEnrichmentDef(rc.env, eid);
