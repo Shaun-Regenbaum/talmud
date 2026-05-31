@@ -663,7 +663,7 @@ export default function MarksRegistryPanel(props: Props) {
                     style={{
                       background: 'transparent', border: 'none', cursor: 'pointer',
                       padding: 0, width: '0.9rem', 'flex-shrink': 0,
-                      color: isOn() ? '#444' : '#ccc', 'font-size': '0.7rem',
+                      color: isOn() ? '#15803d' : '#ccc', 'font-size': '0.7rem',
                       'line-height': 1,
                     }}
                   >{isOn() ? '●' : '○'}</button>
@@ -749,11 +749,11 @@ export default function MarksRegistryPanel(props: Props) {
                 const markId = top.source === 'mark' ? top.def.id : null;
                 const ownEnrichments = markId ? (grouped().childrenByMark.get(markId) ?? []) : [];
                 const subMarks = markId ? (grouped().subMarksByParent.get(markId) ?? []) : [];
-                const showKids = markId !== null && expandedMarks().has(markId);
+                const showKids = () => markId !== null && expandedMarks().has(markId);
                 return (
                   <>
                     {renderRow(topRow, false)}
-                    <Show when={showKids}>
+                    <Show when={showKids()}>
                       <For each={ownEnrichments}>{(e) => renderRow({ source: 'enrichment', def: e }, true)}</For>
                       <For each={subMarks}>{(sub) => {
                         const subEnrichments = grouped().childrenByMark.get(sub.id) ?? [];
