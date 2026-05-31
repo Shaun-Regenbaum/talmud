@@ -20,8 +20,27 @@
 import { dafCoord, type AnchorCoord, type DafRef } from './coord.ts';
 import { coordLabel } from './types.ts';
 
-/** The kinds of link the system models. Grows as flow/voice converge. */
-export type LinkRelation = 'cites' | 'continues';
+/** The kinds of link the system models. This is the SAME relation set the
+ *  argument-overview flow graph emits between sections, so flow / voice edges
+ *  express directly as Links (see `flowLinks`). `cites` + `continues` already
+ *  render in prose / on /api/bridge; the rest arrive with their consumers. */
+export type LinkRelation =
+  | 'cites'
+  | 'continues'
+  | 'resolves'
+  | 'depends-on'
+  | 'parallels'
+  | 'contrasts'
+  | 'generalizes';
+
+/** Runtime membership test for the LinkRelation union (for validating an
+ *  untyped `kind` string from an enrichment's JSON output). */
+const LINK_RELATIONS: ReadonlySet<string> = new Set<LinkRelation>([
+  'cites', 'continues', 'resolves', 'depends-on', 'parallels', 'contrasts', 'generalizes',
+]);
+export function isLinkRelation(kind: string): kind is LinkRelation {
+  return LINK_RELATIONS.has(kind);
+}
 
 export interface Link {
   relation: LinkRelation;
@@ -55,4 +74,47 @@ export function continuationLink(to: DafRef | null | undefined): Link | null {
 export function linkLabel(link: Link | null | undefined): string {
   if (!link || !link.targets.length) return '';
   return [...new Set(link.targets.map(coordLabel))].join(', ');
+}
+
+/** One edge of the argument-overview flow graph: section `from` relates to
+ *  section `to` under `kind`, where the numbers are 0-based section indices on
+ *  the daf. (Mirrors `FlowConnection` in ArgumentFlowGraph, kept structural so
+ *  this lib doesn't depend on the client.) */
+export interface FlowEdge {
+  from: number;
+  to: number;
+  kind: string;
+}
+
+/** A flow edge expressed in the shared Link vocabulary: the SOURCE section's
+ *  coordinate paired with the Link to its target. The flow graph's source is
+ *  implicit-per-section, so we surface it explicitly here. */
+export interface FlowLink {
+  source: AnchorCoord;
+  link: Link;
+}
+
+/**
+ * Express the argument-overview flow graph as Links. The graph emits
+ * `{from, to, kind}` over section INDICES; given a resolver from a section
+ * index to its coordinate (e.g. the section's first segment), each edge becomes
+ * a `{source, link}` in the same vocabulary as citations and bridges. So a
+ * future "all links on this daf" or continuous-spine view renders flow edges
+ * with the one `linkLabel` path, instead of the flow graph being a bespoke
+ * island. Edges with an unknown `kind`, or whose endpoints don't resolve to a
+ * coordinate, are dropped (the renderer already guards bad indices).
+ */
+export function flowLinks(
+  edges: readonly FlowEdge[],
+  coordOf: (sectionIdx: number) => AnchorCoord | null,
+): FlowLink[] {
+  const out: FlowLink[] = [];
+  for (const e of edges) {
+    if (!isLinkRelation(e.kind) || e.from === e.to) continue;
+    const source = coordOf(e.from);
+    const target = coordOf(e.to);
+    if (!source || !target) continue;
+    out.push({ source, link: { relation: e.kind, targets: [target] } });
+  }
+  return out;
 }
