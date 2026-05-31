@@ -107,4 +107,44 @@ describe('applyMatches carries a cross-daf coord', () => {
     expect(items[0].coord).toBeUndefined();
     expect(items[0].segs).toEqual([7]);
   });
+
+  it('writes BOTH local segs and a cross-daf coord from one match', () => {
+    // An item placed in-daf that ALSO anchors cross-daf (a parallel sugya). The
+    // two anchors are orthogonal; applyMatches must persist both.
+    const items = [item({ key: 'z', segs: [] })];
+    const changed = applyMatches(items, [{ key: 'z', segs: [3, 1, 3], via: 'ai', confidence: 0.7, coord: coordForSeg(G67, 9) }]);
+    expect(changed).toBe(1);
+    expect(items[0].segs).toEqual([1, 3]); // deduped + sorted
+    expect(items[0].coord).toEqual(coordForSeg(G67, 9));
+  });
+
+  it('a wholeDaf match clears segs yet still carries a coord', () => {
+    const items = [item({ key: 'w', segs: [4] })];
+    const changed = applyMatches(items, [{ key: 'w', segs: [], via: 'ai', wholeDaf: true, coord: coordForSeg(G67, 2) }]);
+    expect(changed).toBe(1);
+    expect(items[0].segs).toEqual([]);
+    expect(items[0].coord).toEqual(coordForSeg(G67, 2));
+  });
+});
+
+// These pin the CURRENT branch order + provenance precedence in placementOf's
+// cross-daf path, which the happy-path tests above leave unspecified. They are a
+// deliberate lock of today's behaviour, not a claim it is the final semantics: a
+// future change to which anchor a mixed (segs + off-daf coord) item resolves to
+// should update these tests on purpose rather than slip through silently.
+describe('placementOf cross-daf — precedence guards', () => {
+  it('cross-daf currently wins over local segs when the coord is off-daf and a current daf is given', () => {
+    // segs[2] would resolve 'segment' single-arg, but the cross-daf branch is
+    // evaluated first, so an off-daf coord + currentDaf takes precedence today.
+    const it = item({ segs: [2], coord: coordForSeg(G67, 4), via: 'parallel-sugya' });
+    expect(placementOf(it, G68)).toEqual({ level: 'cross-daf', segs: [], coord: coordForSeg(G67, 4), via: 'parallel-sugya', confidence: undefined });
+  });
+
+  it('the cross-daf placement reports hbVia/hbConfidence over via/confidence', () => {
+    // placementOf prefers the client-resolved HB provenance (hbVia ?? via).
+    const it = item({ segs: [], coord: coordForSeg(G67, 4), via: 'ai', confidence: 0.4, hbVia: 'ai-phrase', hbConfidence: 0.95 });
+    const p = placementOf(it, G68);
+    expect(p?.via).toBe('ai-phrase');
+    expect(p?.confidence).toBe(0.95);
+  });
 });
