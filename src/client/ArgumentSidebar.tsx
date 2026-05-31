@@ -12,6 +12,7 @@ import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
 import ArgumentNarrative from './ArgumentNarrative';
 import { deriveVoiceEdges } from '../lib/typing/voices';
 import ArgumentFlowGraph, { type FlowConnection } from './ArgumentFlowGraph';
+import { orderBackgroundGroups, type BackgroundGroup } from './backgroundGroups';
 import { adjacentAmud } from '../lib/sefref/amudim';
 import { selectSectionMoves } from '../lib/argumentMoves';
 import { t, lang } from './i18n';
@@ -118,7 +119,8 @@ export type SidebarContent =
   | { kind: 'place'; place: PlaceInstance }
   | { kind: 'voice-group'; group: { name: string; nameHe: string; bio: string } }
   | { kind: 'rishonim'; instance: RishonimInstance; index: number }
-  | { kind: 'argument-overview' };
+  | { kind: 'argument-overview' }
+  | { kind: 'daf-background' };
 
 export interface ArgumentSidebarProps {
   content: SidebarContent | null;
@@ -811,11 +813,12 @@ function ArgumentOverviewBody(props: {
     },
   );
 
+  // Cross-page continuation hint: a muted caption, not a chip. Subtle on
+  // purpose — it's an aside, not a heading (no fill, no border, no bold).
   const crossLabel = (text: string): JSX.Element => (
     <div style={{
-      'font-size': '0.7rem', 'font-weight': 600, color: '#9333ea',
-      background: '#faf5ff', border: '1px solid #ede9fe', 'border-radius': '5px',
-      padding: '0.2rem 0.5rem', margin: '0.1rem 0',
+      'font-size': '0.66rem', 'font-weight': 400, color: '#9ca3af',
+      'letter-spacing': '0.02em', padding: '0.1rem 0.15rem', margin: '0.05rem 0',
     }}>{text}</div>
   );
 
@@ -870,6 +873,86 @@ function ArgumentOverviewBody(props: {
             </div>
           );
         }}</For>
+      </Show>
+    </Panel>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Whole-daf Background: the terms/concepts a reader needs to follow the daf,
+// grouped into themed sections. The `daf-background.synthesis` aggregate renders
+// a one-sentence orientation; its deps_resolved carries `daf-background.concepts`
+// (the themed groups), surfaced below without a second /api/run call.
+// ---------------------------------------------------------------------------
+
+function BackgroundGroups(props: { groups: BackgroundGroup[] }): JSX.Element {
+  return (
+    <div style={{ 'margin-top': '0.7rem', display: 'flex', 'flex-direction': 'column', gap: '0.95rem' }}>
+      <For each={props.groups}>{(g) => (
+        <div>
+          <div style={{
+            'font-size': '0.68rem', 'text-transform': 'uppercase', 'letter-spacing': '0.08em',
+            color: ACCENTS['daf-background'], 'font-weight': 600, 'margin-bottom': '0.4rem',
+          }}>
+            {t(`background.cat.${g.category}`)}
+          </div>
+          <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.55rem' }}>
+            <For each={g.terms}>{(tm) => (
+              <div>
+                <div style={{
+                  display: 'flex', gap: '0.4rem', 'align-items': 'baseline', 'flex-wrap': 'wrap',
+                  'font-size': '0.86rem', 'font-weight': 600, color: '#222',
+                }}>
+                  <span>{tm.term}</span>
+                  <Show when={tm.termHe}>
+                    <span dir="rtl" style={{ color: ACCENTS['daf-background'], 'font-weight': 500 }}>{tm.termHe}</span>
+                  </Show>
+                </div>
+                <div style={{ 'font-size': '0.82rem', color: '#444', 'line-height': 1.5 }}>
+                  <HebraizedWithRabbis text={tm.gloss} />
+                </div>
+              </div>
+            )}</For>
+          </div>
+        </div>
+      )}</For>
+    </div>
+  );
+}
+
+function DafBackgroundBody(props: { tractate: string; page: string }): JSX.Element {
+  const [groups, setGroups] = createSignal<BackgroundGroup[]>([]);
+  const [resolved, setResolved] = createSignal(false);
+
+  createEffect(() => {
+    void `${props.tractate}/${props.page}`;
+    setGroups([]);
+    setResolved(false);
+  });
+
+  const handleResolved = (r: { deps_resolved?: Record<string, unknown> }) => {
+    const concepts = r.deps_resolved?.['daf-background.concepts'] as { groups?: BackgroundGroup[] } | undefined;
+    setGroups(orderBackgroundGroups(concepts?.groups));
+    setResolved(true);
+  };
+
+  return (
+    <Panel accent={ACCENTS['daf-background']} title={t('background.title')}>
+      <Synthesis
+        markId="daf-background"
+        instance={{ fields: {} }}
+        instanceKey={`${props.tractate}/${props.page}/background`}
+        tractate={props.tractate}
+        page={props.page}
+        onResolved={handleResolved}
+      />
+      <Show when={groups().length > 0}>
+        <BackgroundGroups groups={groups()} />
+      </Show>
+      <Show when={resolved() && groups().length === 0}>
+        <HebrewProse size="0.85rem" color="#999" margin="0.6rem 0 0">
+          {t('background.empty')}
+        </HebrewProse>
       </Show>
     </Panel>
   );
@@ -1874,6 +1957,10 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                 onPushRabbi={props.onPushRabbi}
                 onHighlightRange={props.onHighlightRange}
               />
+            </Show>
+
+            <Show when={c().kind === 'daf-background'}>
+              <DafBackgroundBody tractate={props.tractate} page={props.page} />
             </Show>
 
         </aside>

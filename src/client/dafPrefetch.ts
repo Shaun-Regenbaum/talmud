@@ -93,6 +93,7 @@ const FRIENDLY: Record<string, string> = {
   'rabbi.synthesis': 'dafLoad.family.rabbis',
   'rishonim.synthesis': 'dafLoad.family.rishonim',
   'argument-overview.synthesis': 'dafLoad.family.argumentOverview',
+  'daf-background.synthesis': 'dafLoad.family.background',
 };
 
 interface MarkInstance {
@@ -175,6 +176,15 @@ export function prefetchDaf(
       enrichmentId: 'argument-overview.synthesis',
       instance: { fields: {} },
       instanceKey: 'argument-overview:daf',
+    });
+    // Whole-daf Background concepts (terms a reader needs) — same daf-level
+    // shape as the overview; its concepts leaf rides in as a dependency, so
+    // opening the Background chip is a cache hit. Same `opts.overview` (dev)
+    // gate to avoid paying for it on every reader's daf load.
+    tasks.push({
+      enrichmentId: 'daf-background.synthesis',
+      instance: { fields: {} },
+      instanceKey: 'daf-background:daf',
     });
   }
 
