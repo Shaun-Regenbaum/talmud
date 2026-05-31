@@ -55,18 +55,6 @@ const KIND_DASH: Partial<Record<FlowConnection['kind'], string>> = {
   parallels: '2 3',
 };
 
-/** Keep only connections whose endpoints are valid section indices and which
- *  aren't self-loops. Guards against the LLM emitting an out-of-range or
- *  self-referential index — those would otherwise mis-route or be dropped
- *  silently by the renderer. Pure + exported for tests. */
-export function filterFlowConnections(connections: FlowConnection[], nodeCount: number): FlowConnection[] {
-  return connections.filter(
-    (c) => c.from !== c.to
-      && Number.isInteger(c.from) && c.from >= 0 && c.from < nodeCount
-      && Number.isInteger(c.to) && c.to >= 0 && c.to < nodeCount,
-  );
-}
-
 /** Assign each connection a routing lane (0-based) so connectors that share
  *  vertical extent never sit in the same lane — interval-graph coloring, which
  *  keeps parallel runs from drawing on top of each other (the old `i % 4`
@@ -128,7 +116,10 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
   // Map section index -> array position, so a SUBSET of the daf's sections (one
   // sugya group) lays out compactly in rows 0..k while connections still arrive
   // keyed by absolute section index. Edges with an endpoint outside this group
-  // are dropped — they belong to another map.
+  // are dropped — they belong to another map. The same membership test also
+  // guards against the LLM emitting a self-loop or an out-of-range / non-integer
+  // index: a self-loop fails `from !== to`, and a bad index isn't a real section
+  // so `pm.has` rejects it (the map is keyed by integer section indices).
   const posOf = () => new Map(props.nodes.map((n, i) => [n.index, i]));
   const edges = () => {
     const pm = posOf();
