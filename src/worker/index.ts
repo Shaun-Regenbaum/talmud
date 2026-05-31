@@ -1210,7 +1210,17 @@ async function resolveDependencies(
       // enrichment gets the context grounded to its own lines; a whole-daf one
       // (no segment location) gets the full pool. Each source that fails
       // contributes nothing rather than throwing.
-      const items = await collectContext(rc.env, tractate, page);
+      // This amud's argument sections let Revach summaries be placed per-section
+      // (English↔English alignment, conservative); a cheap cached read.
+      const sections = (await readMarkInstances(rc.env, 'argument', tractate, page))
+        .filter((i) => typeof i.startSegIdx === 'number' && typeof i.endSegIdx === 'number')
+        .map((i) => ({
+          startSegIdx: i.startSegIdx as number,
+          endSegIdx: i.endSegIdx as number,
+          title: typeof i.fields?.title === 'string' ? i.fields.title : undefined,
+          summary: typeof i.fields?.summary === 'string' ? i.fields.summary : undefined,
+        }));
+      const items = await collectContext(rc.env, tractate, page, { sections });
       const scoped = contextForAnchor(items, segsFromMarkInput(markInput));
       out.vars.context = formatContextForPrompt(scoped);
       return;
@@ -3914,7 +3924,7 @@ app.get('/api/context/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
   try {
-    const items = await collectContext(c.env, tractate, page, new URL(c.req.url).origin);
+    const items = await collectContext(c.env, tractate, page, { assetOrigin: new URL(c.req.url).origin });
     return c.json({ tractate, page, items, fetchedAt: new Date().toISOString() });
   } catch (err) {
     return c.json({ error: String(err) }, 502);

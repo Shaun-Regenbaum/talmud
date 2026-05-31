@@ -32,6 +32,8 @@ import {
 } from '../lib/context/fromSefaria';
 import { matchTosfos } from '../lib/context/anchor/tosfos';
 import { matchBackgroundTerms } from '../lib/context/anchor/bg-term';
+import { matchRevach, type SectionForMatch } from '../lib/context/anchor/revach';
+import { applyMatches } from '../lib/context/match';
 import type { ContextItem } from '../lib/context/types';
 
 export interface ContextEnv {
@@ -46,16 +48,25 @@ export interface ContextEnv {
  * through its existing KV-cached wrapper, so this is cheap once warm and
  * resilient — a source that fails contributes nothing rather than throwing.
  */
+export interface CollectContextOpts {
+  /** Incoming request origin, for the dev-mode ASSETS fallback. */
+  assetOrigin?: string;
+  /** This amud's argument sections (English title/summary + seg range). When
+   *  provided, Revach entries are conservatively placed onto the section each
+   *  describes; omit to skip Revach placement (e.g. the workbench). */
+  sections?: SectionForMatch[];
+}
+
 export async function collectContext(
   env: ContextEnv,
   tractate: string,
   page: string,
-  assetOrigin?: string,
+  opts: CollectContextOpts = {},
 ): Promise<ContextItem[]> {
   const cache = env.CACHE;
   const allowLive = env.DAFYOMI_LIVE !== '0';
   const [dafyomi, sefariaPage, segments, rishonim, halacha, mishna, topics] = await Promise.all([
-    getDafyomiContentCached(cache, env.ASSETS, tractate, page, { assetOrigin, allowLive }).catch(() => null),
+    getDafyomiContentCached(cache, env.ASSETS, tractate, page, { assetOrigin: opts.assetOrigin, allowLive }).catch(() => null),
     getSefariaPageCached(cache, tractate, page).catch(() => null),
     getSefariaSegmentsCached(cache, tractate, page).catch(() => null),
     getRishonimCached(cache, tractate, page).catch(() => []),
@@ -79,6 +90,9 @@ export async function collectContext(
     matchTosfos(dy, sefariaPage?.tosafot);
     // Place Background glossary/girsa terms onto the segment(s) that quote them.
     matchBackgroundTerms(dy, segments?.he);
+    // Place whole-daf Revach summaries onto the argument section each describes
+    // (conservative; unmatched entries are left whole-daf). LLM-free.
+    if (opts.sections?.length) applyMatches(dy, matchRevach(dy, opts.sections));
     items.push(...dy);
   }
   return items;
