@@ -47,6 +47,16 @@ export function coordForSeg(daf: DafRef, seg: number): AnchorCoord {
   return { tractate: daf.tractate, page: daf.page, seg };
 }
 
+/** Sentinel `seg` meaning "the daf, no specific segment" — for daf-level
+ *  references where the exact segment is unknown (e.g. a citation "Pesachim
+ *  50a"). Negative so it never collides with a real 0-based segment index. */
+export const DAF_SEG = -1;
+
+/** A daf-level coordinate (no specific segment). See {@link DAF_SEG}. */
+export function dafCoord(daf: DafRef): AnchorCoord {
+  return { tractate: daf.tractate, page: daf.page, seg: DAF_SEG };
+}
+
 /** Coordinates for a list of local segment indices on a given daf. */
 export function coordsForSegs(daf: DafRef, segs: number[]): AnchorSpan {
   return segs.map((seg) => coordForSeg(daf, seg));

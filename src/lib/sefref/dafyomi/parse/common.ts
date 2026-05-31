@@ -10,6 +10,7 @@
 
 import { parse, HTMLElement, type Node } from 'node-html-parser';
 import type { DafyomiRef, DafyomiText } from '../schema.ts';
+import { resolveDafRef } from '../masechtos.ts';
 
 export { HTMLElement };
 
@@ -133,6 +134,29 @@ export function extractRefs(el: HTMLElement): DafyomiRef[] {
     }
   }
   return refs;
+}
+
+// A capitalised name (1–3 words, allowing a leading qualifier like "Maseches")
+// directly followed by a daf, the daf optionally parenthesised: "Pesachim (50a)",
+// "Bava Kama 50a", "Maseches Pesachim 50a".
+const DAF_REF_RE = /\b([A-Z][a-zA-Z']+(?:\s+[A-Z][a-zA-Z']+){0,2})\s*\(?(\d{1,3}[ab])\)?/g;
+
+/** Find resolvable cross-references ("Pesachim 50a") in English prose and return
+ *  them as DafyomiRefs with `tractate`/`page` filled. CONSERVATIVE: only emits a
+ *  ref when the name resolves to a KNOWN tractate AND the daf is in range, so
+ *  "Rebbi Eliezer 2a" or "Pesachim 999a" are ignored. Deduped by (tractate, page). */
+export function findDafRefs(prose: string): DafyomiRef[] {
+  const out: DafyomiRef[] = [];
+  const seen = new Set<string>();
+  for (const m of prose.matchAll(DAF_REF_RE)) {
+    const resolved = resolveDafRef(m[1], m[2]);
+    if (!resolved) continue;
+    const key = `${resolved.tractate}:${resolved.page}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ raw: collapse(`${m[1]} ${resolved.page}`), kind: 'gemara', ...resolved });
+  }
+  return out;
 }
 
 function classifyRef(raw: string): DafyomiRef['kind'] {

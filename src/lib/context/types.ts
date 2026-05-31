@@ -48,6 +48,12 @@ export interface ContextItem {
    *  src/lib/context/coord.ts. */
   coord?: AnchorCoord;
 
+  /** External coordinates this note CITES (e.g. "Pesachim 50a"). Rendered as
+   *  links; NEVER used for placement (distinct from `segs`/`coord`). Daf-level
+   *  refs use `seg = DAF_SEG`. (Placement coordinates — `anchors` — arrive with
+   *  their selection/placement wiring in the follow-up that fills them.) */
+  refs?: AnchorCoord[];
+
   /** Tosfos-DH matcher input: niqqud-stripped DH opening words. Only set on
    *  dafyomi Tosfos items; lets the matcher place them via Sefaria pieceKeys. */
   dhNormalized?: string;
@@ -78,4 +84,16 @@ export function rangeLabel(segs: number[], amud?: 'a' | 'b'): string {
   if (contiguous) return `seg ${sorted[0]}–${sorted[sorted.length - 1]}`;
   const shown = sorted.slice(0, 4).join(', ');
   return `segs ${shown}${sorted.length > 4 ? '…' : ''}`;
+}
+
+/** One coordinate as a compact citation string: "Pesachim 50a" (daf-level, i.e.
+ *  `seg < 0`) or "Pesachim 50a:7" (with a real segment, including segment 0). */
+export function coordLabel(c: AnchorCoord): string {
+  return c.seg >= 0 ? `${c.tractate} ${c.page}:${c.seg}` : `${c.tractate} ${c.page}`;
+}
+
+/** The "cites …" payload for an item's external refs, or '' when there are none. */
+export function citesLabel(refs: AnchorCoord[] | undefined): string {
+  if (!refs || !refs.length) return '';
+  return [...new Set(refs.map(coordLabel))].join(', ');
 }

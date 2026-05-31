@@ -14,7 +14,7 @@
  * (daf 76 -> "076"); every content type for a daf uses the same number.
  */
 
-import { TRACTATE_END_AMUD } from '../amudim.ts';
+import { TRACTATE_END_AMUD, amudToNumber } from '../amudim.ts';
 
 export type DafyomiContentType =
   | 'insights'
@@ -148,6 +148,61 @@ export interface DafyomiMasechet {
 const BY_TRACTATE = new Map<string, DafyomiMasechetSeed>(
   SEED.map((s) => [s.tractate.toLowerCase(), s]),
 );
+
+/** Letters-only lowercase, for spelling-insensitive name matching. */
+const nameKey = (s: string): string => s.toLowerCase().replace(/[^a-z]/g, '');
+
+// Map a tractate name AS WRITTEN IN dafyomi.co.il English prose (e.g. "Berachos",
+// "Bava Kama", "Rosh Hashana") to the app's canonical tractate value. Seeded from
+// both the canonical value ("Berakhot") and the site dir ("berachos"), plus a few
+// prose spellings the dir abbreviates or differs from. Used to resolve in-text
+// cross-references like "Pesachim (50a)" — unknown names resolve to null (we never
+// guess a tractate).
+const NAME_TO_TRACTATE: Map<string, string> = (() => {
+  const m = new Map<string, string>();
+  for (const s of SEED) { m.set(nameKey(s.tractate), s.tractate); m.set(nameKey(s.dir), s.tractate); }
+  const aliases: Record<string, string> = {
+    bavakama: 'Bava Kamma', bavakamma: 'Bava Kamma', babakama: 'Bava Kamma',
+    bavametzia: 'Bava Metzia', babametzia: 'Bava Metzia',
+    bavabasra: 'Bava Batra', bavabatra: 'Bava Batra', bababasra: 'Bava Batra',
+    roshhashana: 'Rosh Hashanah', avodahzara: 'Avodah Zarah', avodazara: 'Avodah Zarah',
+    arachin: 'Arakhin', kesubos: 'Ketubot', berochos: 'Berakhot', makkos: 'Makkot',
+    kerisos: 'Keritot', chagiga: 'Chagigah', megila: 'Megillah', megilla: 'Megillah',
+    sukah: 'Sukkah', taanis: 'Taanit', sanhedrin: 'Sanhedrin', shevuos: 'Shevuot',
+  };
+  for (const [k, v] of Object.entries(aliases)) m.set(nameKey(k), v);
+  return m;
+})();
+
+/** Resolve a dafyomi-prose tractate name to its canonical app value, or null.
+ *  Strips leading qualifiers ("Maseches Pesachim" → "Pesachim") and retries
+ *  trailing words, so a wrapped or prefixed name still resolves. */
+export function resolveTractateName(name: string): string | null {
+  const direct = NAME_TO_TRACTATE.get(nameKey(name));
+  if (direct) return direct;
+  const words = name.trim().split(/\s+/).filter((w) => !REF_QUALIFIER.test(w));
+  for (let i = 0; i < words.length; i++) {
+    const hit = NAME_TO_TRACTATE.get(nameKey(words.slice(i).join('')));
+    if (hit) return hit;
+  }
+  return null;
+}
+
+const REF_QUALIFIER = /^(maseches|mesechta|mishnah|mishna|gemara|gemora|daf|perek|tractate|the|in|of|see|cf)$/i;
+
+/** Resolve a prose cross-reference (name + daf) to a real {tractate, page}, or
+ *  null. Rejects out-of-range dapim (e.g. "Pesachim 999a") so a resolved name
+ *  alone can't manufacture a bogus coordinate. */
+export function resolveDafRef(name: string, page: string): { tractate: string; page: string } | null {
+  const tractate = resolveTractateName(name);
+  if (!tractate) return null;
+  const p = page.toLowerCase();
+  const n = amudToNumber(p);
+  const end = TRACTATE_END_AMUD[tractate.toLowerCase()];
+  const endNum = end ? amudToNumber(end) : null;
+  if (n == null || n < 3 || (endNum != null && n > endNum)) return null; // dapim run 2a..end
+  return { tractate, page: p };
+}
 
 /** Highest daf number from amudim.ts end-amud (e.g. "142a" -> 142). */
 function lastDafOf(tractate: string): number | null {
