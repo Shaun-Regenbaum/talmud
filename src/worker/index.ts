@@ -11,7 +11,8 @@ import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
 import { collectContext } from './context-providers';
 import { placeRevachWithAi } from './revach-ai-place';
 import { formatContextForPrompt, contextForAnchor, segsFromMarkInput } from '../lib/context/select';
-import { continuationLink } from '../lib/context/link';
+import { continuationLink, type FlowEdge } from '../lib/context/link';
+import { dafLinks } from '../lib/context/dafLinks';
 import { aiMatchToSegments } from './context-match';
 import type { MatchInput } from '../lib/context/anchor/ai-prompt';
 import {
@@ -774,6 +775,59 @@ app.get('/api/bridge/:tractate/:page', async (c) => {
   // Computed (not stored on the cached DafBridge), so it needs no cache bump.
   const link = bridge.continues ? continuationLink(bridge.to) : null;
   return c.json({ ...bridge, link });
+});
+
+// Read the cached argument-overview.flow connections (section-index edges).
+// Empty when the daf hasn't been warmed — best-effort, never throws.
+async function readFlowConnections(env: Bindings, tractate: string, page: string): Promise<FlowEdge[]> {
+  try {
+    const def = await loadEnrichmentDef(env, 'argument-overview.flow');
+    if (!def) return [];
+    const iid = await instanceIdOf({ fields: {} });
+    const hit = await readCachedResult(env, keyForEnrichment(def, iid, { tractate, page }));
+    const conns = (hit?.parsed as { connections?: unknown } | null)?.connections;
+    if (!Array.isArray(conns)) return [];
+    return (conns as Array<Record<string, unknown>>)
+      .filter((c) => typeof c.from === 'number' && typeof c.to === 'number' && typeof c.kind === 'string')
+      .map((c) => ({ from: c.from as number, to: c.to as number, kind: c.kind as string }));
+  } catch { return []; }
+}
+
+// The unified link layer for a daf: tractate-continuity (bridge), citations
+// (context refs), and the argument flow graph, all in one Link vocabulary. The
+// first real CONSUMER of src/lib/context/link.ts — assembled by the pure
+// `dafLinks`. Best-effort per source: a cold/failed source contributes nothing
+// rather than failing the whole response.
+app.get('/api/links/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const daf = { tractate, page };
+
+  // Argument sections, read once: their ranges place Revach refs (so 'cites'
+  // links get a real segment source, not whole-daf), and their startSegIdx (in
+  // reading order) resolves a flow edge's section index to a coordinate.
+  const sectionInstances = await readMarkInstances(c.env, 'argument', tractate, page).catch(() => []);
+  const sections = sectionInstances
+    .filter((i) => typeof i.startSegIdx === 'number' && typeof i.endSegIdx === 'number')
+    .map((i) => ({
+      startSegIdx: i.startSegIdx as number,
+      endSegIdx: i.endSegIdx as number,
+      title: typeof i.fields?.title === 'string' ? i.fields.title : undefined,
+      summary: typeof i.fields?.summary === 'string' ? i.fields.summary : undefined,
+    }));
+  const sectionStartSegs = sections.map((s) => s.startSegIdx).sort((a, b) => a - b);
+
+  const bridge = await computeDafBridge(c.env, tractate, page).catch(() => null);
+  const items = await collectContext(c.env, tractate, page, { sections }).catch(() => []);
+  const flowEdges = await readFlowConnections(c.env, tractate, page);
+
+  const links = dafLinks(daf, {
+    continuesTo: bridge?.continues ? bridge.to : null,
+    items,
+    flowEdges,
+    sectionStartSegs,
+  });
+  return c.json({ tractate, page, count: links.length, links });
 });
 
 app.get('/api/enrichments', async (c) => {
