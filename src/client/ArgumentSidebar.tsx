@@ -720,25 +720,29 @@ function OverviewSectionVoices(props: {
 // sugyot, so they don't merge sections into the same map.
 const SUGYA_BINDING_KINDS = new Set(['continues', 'resolves', 'depends-on']);
 
-/** Partition a daf's argument sections into discussion groups (sugyot): maximal
- *  connected components over the binding flow edges. Sections with no binding
- *  edge are their own singleton group. Returns groups of section indices, each
- *  ascending, ordered by first section — the daf top-to-bottom reading order. */
-function groupSectionsBySugya(sectionCount: number, connections: FlowConnection[]): number[][] {
-  const parent = Array.from({ length: sectionCount }, (_, i) => i);
-  const find = (x: number): number => { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; };
-  const union = (a: number, b: number) => { const ra = find(a), rb = find(b); if (ra !== rb) parent[Math.max(ra, rb)] = Math.min(ra, rb); };
-  for (const c of connections) {
-    if (!SUGYA_BINDING_KINDS.has(c.kind)) continue;
-    if (c.from < 0 || c.to < 0 || c.from >= sectionCount || c.to >= sectionCount || c.from === c.to) continue;
-    union(c.from, c.to);
+/** Partition a daf's argument sections into discussion groups (sugyot) as
+ *  CONTIGUOUS runs in daf order. The daf is linear, so a sugya is a run of
+ *  consecutive sections; a boundary falls between section b-1 and b only where
+ *  NO binding edge spans that point (a clean cut). This keeps maps in reading
+ *  order and never orphans a passed-over section (e.g. a section the flow
+ *  skipped over with a 2→4 edge stays inside the surrounding discussion).
+ *  Returns contiguous groups of section indices, top-to-bottom. */
+export function groupSectionsBySugya(sectionCount: number, connections: FlowConnection[]): number[][] {
+  if (sectionCount <= 0) return [];
+  const bindings = connections.filter(
+    (c) => SUGYA_BINDING_KINDS.has(c.kind)
+      && c.from >= 0 && c.to >= 0 && c.from < sectionCount && c.to < sectionCount && c.from !== c.to,
+  );
+  // A binding edge spans the gap before section b iff min(endpoints) < b <= max.
+  const spans = (b: number) => bindings.some((c) => Math.min(c.from, c.to) < b && b <= Math.max(c.from, c.to));
+  const groups: number[][] = [];
+  let cur = [0];
+  for (let b = 1; b < sectionCount; b++) {
+    if (spans(b)) cur.push(b);
+    else { groups.push(cur); cur = [b]; }
   }
-  const groups = new Map<number, number[]>();
-  for (let i = 0; i < sectionCount; i++) {
-    const r = find(i);
-    const g = groups.get(r); if (g) g.push(i); else groups.set(r, [i]);
-  }
-  return [...groups.values()].sort((a, b) => a[0] - b[0]);
+  groups.push(cur);
+  return groups;
 }
 
 /** Whole-daf argument overview. A one-paragraph synthesis, then the daf's
