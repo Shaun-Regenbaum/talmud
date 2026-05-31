@@ -486,22 +486,31 @@ const HE = '\\u0590-\\u05FF\\uFB1D-\\uFB4F';
 // malformed/duplicated) is redundant. A genuine Hebrew clarification that adds
 // new words must be kept, so we gate the drop on word overlap below rather than
 // stripping every Hebrew paren. The paren body is restricted to Hebrew + Hebrew
-// punctuation, so digits / other scripts never match.
+// punctuation, so digits / other scripts never match. The GAP between term and
+// paren tolerates closing quotes (straight + curly) and spaces, so a quoted
+// term like 'מלא צואר' (מלא צואר) still matches; the quote is preserved.
+const GLOSS_GAP = ` '"\\u2018\\u2019\\u201C\\u201D`;
 const HE_GLOSS_PAREN_RE = new RegExp(
-  `([${HE}][${HE}\\u05BE\\u05F3\\u05F4 -]*?)\\s*\\(\\s*([${HE}][${HE}\\u05BE\\u05F3\\u05F4 ]*)\\)`,
+  `([${HE}][${HE}\\u05BE\\u05F3\\u05F4 -]*?)([${GLOSS_GAP}]*)\\(\\s*([${HE}][${HE}\\u05BE\\u05F3\\u05F4 ]*)\\)`,
   'g',
 );
 
 /** Drop an all-Hebrew parenthetical that merely restates the Hebrew term before
- *  it (a redundant/duplicated gloss). Conservative: keep the paren unless at
- *  least half its words already appear in the preceding term. */
+ *  it (a redundant/duplicated gloss). Conservative: drop only when EVERY word in
+ *  the paren already appears in the preceding term — i.e. it adds no new
+ *  information (the observed failures are exact or padded repetitions like
+ *  "מלא צואר (מלא צואר וחוץ לצואר)"). A paren that introduces even one new word
+ *  is a real clarification and is kept. Any closing quote in the gap is kept (it
+ *  belongs to the term); only the paren and the whitespace that separated it
+ *  are dropped. */
 function dropHebrewGlossEchoes(text: string): string {
-  return text.replace(HE_GLOSS_PAREN_RE, (m: string, term: string, paren: string) => {
+  return text.replace(HE_GLOSS_PAREN_RE, (m: string, term: string, gap: string, paren: string) => {
     const termWords = new Set(term.trim().split(/\s+/).filter(Boolean));
     const parenWords = paren.trim().split(/\s+/).filter(Boolean);
     if (parenWords.length === 0) return m;
-    const shared = parenWords.filter((w: string) => termWords.has(w)).length;
-    return shared >= Math.ceil(parenWords.length / 2) ? term : m;
+    const addsNewWord = parenWords.some((w: string) => !termWords.has(w));
+    if (addsNewWord) return m;
+    return term + gap.replace(/\s+/g, '');
   });
 }
 

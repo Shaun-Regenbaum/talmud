@@ -24,4 +24,15 @@ describe('stripEchoParens — drop redundant all-Hebrew gloss parentheticals', (
   it('keeps a Hebrew paren with a digit/other script (only Hebrew bodies match)', () => {
     expect(stripEchoParens('the daf דף (דף 2) here')).toBe('the daf דף (דף 2) here');
   });
+  it('KEEPS a quoted paren that adds a new word (not a pure repetition)', () => {
+    // Shares words with the term but introduces 'מבחוץ' — a real clarification.
+    expect(stripEchoParens("a knife 'מלא צואר' (מלא צואר מבחוץ) here"))
+      .toBe("a knife 'מלא צואר' (מלא צואר מבחוץ) here");
+  });
+  it('drops a quote-wrapped echo, keeping the closing quote (the production case)', () => {
+    // A closing quote sits between the term and the paren; the echo must still
+    // be dropped, and the quote that wraps the term must be preserved.
+    expect(stripEchoParens("says the knife must be 'מלא צואר וחוץ לצואר' (מלא צואר וחוץ לצואר). The Gemara"))
+      .toBe("says the knife must be 'מלא צואר וחוץ לצואר'. The Gemara");
+  });
 });
