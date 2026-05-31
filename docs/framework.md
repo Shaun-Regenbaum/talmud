@@ -85,8 +85,9 @@ cross-page sugya map reads it; the in-daf reader ignores it). A plural
 `anchors?: AnchorCoord[]` — many first-class placements per item — is the
 forward shape; it lands with the select/placement wiring that consumes it.
 
-Rendering helpers live next to the type and in `select.ts`: `rangeLabel(segs,
-amud)` (→ `[whole daf]` when unplaced), `citesLabel(refs)`, `coordLabel(c)`.
+Rendering helpers: `rangeLabel(segs, amud)` (→ `[whole daf]` when unplaced) and
+`coordLabel(c)` in `types.ts`; citations render through the **Link** piece
+(`link.ts`) rather than a citation-only helper — see "Links" below.
 
 ## Placement — coordinates earned, conservatively
 
@@ -146,7 +147,7 @@ leaves (see the worked example).
 2. **Select + render for a prompt.** `src/lib/context/select.ts` —
    `contextForAnchor(items, targetSegs)` narrows to what intersects the anchor,
    then `formatContextForPrompt(items)` produces the `{{context}}` block
-   (placement via `rangeLabel`, citations appended via `citesLabel`).
+   (placement via `rangeLabel`, citations appended via `linkLabel(citationLink(refs))`).
 
 ## Producers — `src/worker` (`studio-schema.ts`, `code-marks.ts`)
 
@@ -326,7 +327,11 @@ The reusable core is spine-agnostic and already separable:
 - **Addressing** — `AnchorCoord` / `AnchorSpan` / `DafRef` + the `coord.ts`
   helpers.
 - **The note** — `ContextItem` with `segs` / `coord` / `refs`, and the
-  `rangeLabel` / `citesLabel` / `coordLabel` renderers.
+  `rangeLabel` / `coordLabel` renderers.
+- **Links** — `link.ts`: a `Link` is a piece connecting a source anchor to
+  target anchors under a relation. Citations are the first relation
+  (`citationLink(refs)` → `Link{relation:'cites'}`, rendered by `linkLabel`);
+  flow / bridge / voice edges converge here as they're unified (step 5).
 - **Placement** — the `SegMatch` + `applyMatches` sink and the pure matcher
   signature `(items, …spineData) => SegMatch[]`, with deterministic-then-AI
   layering and the `placement.ts` level/predicate vocabulary.

@@ -9,7 +9,8 @@
  */
 
 import type { ContextItem } from './types.ts';
-import { rangeLabel, citesLabel } from './types.ts';
+import { rangeLabel } from './types.ts';
+import { citationLink, linkLabel } from './link.ts';
 
 export interface ContextSelectOpts {
   /** Restrict to these sources. Default: all. */
@@ -76,7 +77,7 @@ export function formatContextForPrompt(items: ContextItem[], opts: FormatOpts = 
       const title = it.title?.en || it.title?.he || '';
       const body = (it.body?.en || it.body?.he || '').replace(/\s+/g, ' ').trim().slice(0, maxBody);
       const head = [`[${rangeLabel(it.segs, it.amud)}]`, title].filter(Boolean).join(' ');
-      const cites = citesLabel(it.refs);
+      const cites = linkLabel(citationLink(it.refs));
       return `- ${head}${body ? `: ${body}` : ''}${cites ? ` (cites ${cites})` : ''}`;
     });
     blocks.push(`## ${label}\n${lines.join('\n')}`);
