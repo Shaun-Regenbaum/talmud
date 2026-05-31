@@ -78,3 +78,62 @@ export function transitiveDependents(rev: Map<string, Set<string>>, id: string):
   }
   return out;
 }
+
+/** A structural problem in the producer graph. */
+export interface GraphIssue {
+  kind: 'dangling-dependency' | 'cycle';
+  /** The producer the issue is attributed to (the depender for 'dangling', a
+   *  node on the cycle for 'cycle'). */
+  id: string;
+  detail: string;
+}
+
+/**
+ * Validate the producer graph for two classes of registry bug the reverse-dep
+ * cascade can't tolerate:
+ *   - DANGLING: a dependency id that is neither another producer nor a known
+ *     source input (a typo'd `{ enrichment: 'argument.synthsis' }`, or a renamed
+ *     producer a dependent didn't follow). Such a dep silently never resolves.
+ *   - CYCLE: producer A (transitively) depends on itself, which would make the
+ *     re-warm cascade and prompt-resolution loop. The runtime guards against
+ *     looping, but a cycle in the registry is always a mistake.
+ * Returns [] for a healthy graph. Pure — run it over the live registry in CI so
+ * a bad edit fails before it ships.
+ */
+export function validateProducerGraph(
+  nodes: ReadonlyArray<ProducerNode>,
+  sources: ReadonlySet<string>,
+): GraphIssue[] {
+  const issues: GraphIssue[] = [];
+  const ids = new Set(nodes.map((n) => n.id));
+
+  for (const node of nodes) {
+    for (const dep of node.dependsOn) {
+      if (!ids.has(dep) && !sources.has(dep)) {
+        issues.push({ kind: 'dangling-dependency', id: node.id, detail: dep });
+      }
+    }
+  }
+
+  // Cycle detection over producer→producer edges (source leaves can't cycle).
+  const adj = new Map(nodes.map((n) => [n.id, n.dependsOn.filter((d) => ids.has(d))]));
+  const state = new Map<string, 1 | 2>(); // 1 = on the current DFS stack, 2 = done
+  const visit = (id: string, stack: string[]): void => {
+    state.set(id, 1);
+    stack.push(id);
+    for (const next of adj.get(id) ?? []) {
+      const s = state.get(next);
+      if (s === 1) {
+        const from = stack.indexOf(next);
+        issues.push({ kind: 'cycle', id: next, detail: [...stack.slice(from), next].join(' -> ') });
+      } else if (s === undefined) {
+        visit(next, stack);
+      }
+    }
+    stack.pop();
+    state.set(id, 2);
+  };
+  for (const node of nodes) if (state.get(node.id) === undefined) visit(node.id, []);
+
+  return issues;
+}
