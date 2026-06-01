@@ -50,6 +50,7 @@ import { runYomiWarmCron } from './yomi-cron';
 import { GENERATION_IDS, GENERATION_BY_ID, GENERATIONS_PROMPT_REFERENCE, type GenerationId } from '../client/generations';
 import { stripEchoParens } from '../client/hebraize';
 import rabbiPlacesData from '../lib/data/rabbi-places.json';
+import type { EntityPiece } from '../lib/registry/entity';
 import { extractTalmudContent } from '../lib/sefref/alignment';
 import { fetchHebrewBooksDaf } from '../lib/sefref/hebrewbooks/client';
 import {
@@ -860,6 +861,62 @@ app.get('/api/dependents/:id', (c) => {
   const direct = [...(rev.get(id) ?? [])].sort();
   const transitive = [...transitiveDependents(rev, id)].sort();
   return c.json({ id, direct, transitive, count: transitive.length });
+});
+
+// Entity pieces (step 5): a first-class, addressable view of a "global" entity
+// (rabbi / place), assembled READ-ONLY from its already-cached global
+// enrichments. The pieces are keyed per-entity (daf-agnostic), so they're
+// reachable here without a daf. Never triggers an LLM run — a piece is null
+// until something warmed it. See src/lib/registry/entity.ts.
+// Reads a cached GLOBAL enrichment by the SAME key the warm path writes:
+// loadEnrichmentDef (code-fallback, not KV-only) + instanceIdOf(markInput)
+// (which slug-ifies the name, e.g. 'Abaye' → 'abaye') + the daf-less global key.
+// Pass the same markInput shape the card/warmer uses so the instance_id matches.
+async function readGlobalPiece(env: Bindings, enrichmentId: string, markInput: unknown): Promise<unknown> {
+  const def = await loadEnrichmentDef(env, enrichmentId);
+  if (!def) return null;
+  const instanceId = await instanceIdOf(markInput);
+  const hit = await readCachedResult(env, keyForEnrichment(def, instanceId));
+  return hit?.parsed ?? null;
+}
+
+app.get('/api/entity/rabbi/:slug', async (c) => {
+  const slug = c.req.param('slug');
+  const entry = RABBI_PLACES.rabbis[slug];
+  if (!entry) return c.json({ error: 'not found' }, 404);
+  const name = entry.canonical;
+  const nameHe = entry.canonicalHe ?? '';
+  // identity is the deterministic rabbi-places lookup (always available); the
+  // others are the same global enrichments the card reads — keyed by the rabbi
+  // instance the card passes (flat {name,...}), so instanceIdOf matches.
+  const identity = enrichRabbi(name, nameHe, (entry.generation as GenerationId | undefined) ?? 'unknown');
+  const markInput = { name, nameHe };
+  const [relationships, geography] = await Promise.all([
+    readGlobalPiece(c.env, 'rabbi.relationships', markInput),
+    readGlobalPiece(c.env, 'rabbi.geography', markInput),
+  ]);
+  const piece: EntityPiece = {
+    type: 'rabbi', id: slug, name, nameHe: nameHe || undefined,
+    pieces: { identity, relationships, geography },
+  };
+  return c.json(piece);
+});
+
+app.get('/api/entity/place/:name', async (c) => {
+  const name = c.req.param('name');
+  // The place mark instance is {fields:{name,...}} → instanceIdOf slug-ifies it.
+  const markInput = { fields: { name } };
+  const [profile, significance, figures] = await Promise.all([
+    readGlobalPiece(c.env, 'places.profile', markInput),
+    readGlobalPiece(c.env, 'places.significance', markInput),
+    readGlobalPiece(c.env, 'places.figures', markInput),
+  ]);
+  if (!profile && !significance && !figures) return c.json({ error: 'not found (no cached pieces)' }, 404);
+  const piece: EntityPiece = {
+    type: 'place', id: name, name,
+    pieces: { profile, significance, figures },
+  };
+  return c.json(piece);
 });
 
 // Content-hash staleness probe: does the cached output of a WHOLE-DAF enrichment
