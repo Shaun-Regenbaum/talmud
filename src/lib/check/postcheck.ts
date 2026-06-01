@@ -100,10 +100,44 @@ const hebrewGloss: PostCheck = {
   }),
 };
 
-// ---- A3 validate checks: anchor/graph/partition integrity, shipped `soft` ----
-// These observe-only checks never gate the cache; they surface quality signals
-// (hallucinated anchors, malformed voice graphs, dirty partitions) so a check
-// can be promoted to `hard` per-mark once its false-positive rate is known.
+// ---- A3 validate checks: anchor/graph/partition integrity ------------------
+// These surface quality signals (hallucinated anchors, malformed voice graphs,
+// dirty partitions). Severity is per ISSUE KIND, not per check: a single check
+// emits both hard and soft issues. A kind is `hard` (gates the cache) only when
+// a flag there is never a false positive — a structural impossibility — so the
+// noisy/approximate kinds stay `soft` (observe-only) until eval-gated promotion.
+
+/** Default cache-gating severity by issue kind. Centralized here (rather than
+ *  hardcoded at each raise site) so one check can mix severities and a promotion
+ *  is a one-line change. Kinds absent from the table are `soft`.
+ *
+ *  `hard` kinds are structural invariants that cannot legitimately occur:
+ *    - anchor-out-of-range: a segment index past the end of the daf;
+ *    - inverted-range:      end < start;
+ *    - duplicate-instance:  two instances with the identical range AND excerpt.
+ *  The Hebrew linters (hebrew-excerpt / hebrew-gloss) set their own `hard` at the
+ *  raise site — they wrap open-ended sub-linters whose kinds aren't enumerable
+ *  here. Soft, pending data: section-overlap, excerpt-not-in-segment, edge-*. */
+export const KIND_SEVERITY: Record<string, Severity> = {
+  'anchor-out-of-range': 'hard',
+  'inverted-range': 'hard',
+  'duplicate-instance': 'hard',
+};
+
+/** Marks where excerpt-not-in-segment is promoted to `hard`. pesukim + aggadata
+ *  anchor reliably (zero flags sampled across 23 dapim after the placer-mirroring
+ *  refinement), so a flag there is a genuine hallucination worth blocking;
+ *  argument / argument-move still flag occasionally (boundary-spanning excerpts),
+ *  so they stay `soft`. (PR #2 — fuzzy matcher + ±1 window — removes the residual
+ *  false positives and folds this mark-scoping into the table.) */
+const ANCHOR_VERBATIM_HARD_MARKS: ReadonlySet<string> = new Set(['pesukim', 'aggadata']);
+
+/** Resolve an issue kind's severity for a given producer. Pure lookup over
+ *  KIND_SEVERITY, plus the one mark-conditional case (excerpt-not-in-segment). */
+function severityOf(kind: string, defId: string): Severity {
+  if (kind === 'excerpt-not-in-segment' && ANCHOR_VERBATIM_HARD_MARKS.has(defId)) return 'hard';
+  return KIND_SEVERITY[kind] ?? 'soft';
+}
 
 interface RangeInstance { startSegIdx?: unknown; endSegIdx?: unknown; fields?: { excerpt?: unknown; [k: string]: unknown }; [k: string]: unknown }
 
@@ -128,21 +162,15 @@ function instancesOf(parsed: unknown): RangeInstance[] {
  *  prefix-anchored placement as `excerpt-not-in-segment`, which on real dapim
  *  was ~40% false positives (correct anchors whose phrase merely isn't
  *  contiguous). Skips instances with no excerpt or a <2-word excerpt (findExcerpt
- *  itself rejects <2-word needles as too ambiguous). */
-/** Marks where anchor-verbatim is promoted to `hard` (gates the cache write).
- *  Chosen from real-traffic observation: pesukim + aggadata anchor reliably
- *  (zero flags sampled across 23 dapim post the placer-mirroring refinement), so
- *  a flag there is a genuine hallucination worth blocking. argument /
- *  argument-move still flag occasionally (boundary-spanning excerpts), so they
- *  stay `soft` (observe-only) pending more data. */
-const ANCHOR_VERBATIM_HARD_MARKS: ReadonlySet<string> = new Set(['pesukim', 'aggadata']);
-
+ *  itself rejects <2-word needles as too ambiguous). Severity is per kind:
+ *  anchor-out-of-range is always `hard` (an index past the daf is never a false
+ *  positive); excerpt-not-in-segment is `hard` only on the pesukim/aggadata
+ *  marks (see severityOf). */
 const anchorVerbatim: PostCheck = {
   id: 'anchor-verbatim',
   phase: 'validate',
   run: (parsed, ctx) => {
     const issues: CheckIssue[] = [];
-    const severity: Severity = ANCHOR_VERBATIM_HARD_MARKS.has(ctx.defId) ? 'hard' : 'soft';
     const segs = ctx.segmentsHe;
     const grid = buildVerbatimGrid(segs);
     for (const inst of instancesOf(parsed)) {
@@ -151,13 +179,13 @@ const anchorVerbatim: PostCheck = {
       if (normalizeHebrew(excerpt).split(' ').filter(Boolean).length < 2) continue;
       const seg = inst.startSegIdx;
       if (typeof seg !== 'number' || seg < 0 || seg >= segs.length) {
-        issues.push({ kind: 'anchor-out-of-range', severity, match: excerpt, index: typeof seg === 'number' ? seg : -1 });
+        issues.push({ kind: 'anchor-out-of-range', severity: severityOf('anchor-out-of-range', ctx.defId), match: excerpt, index: typeof seg === 'number' ? seg : -1 });
         continue;
       }
       // Confine the search to the single anchored segment: a hit there is the
       // same prefix the placer would have matched to land on this segment.
       if (!findExcerpt(grid, excerpt, seg, seg)) {
-        issues.push({ kind: 'excerpt-not-in-segment', severity, match: excerpt, index: seg });
+        issues.push({ kind: 'excerpt-not-in-segment', severity: severityOf('excerpt-not-in-segment', ctx.defId), match: excerpt, index: seg });
       }
     }
     return { issues };
@@ -180,11 +208,18 @@ const partitionClean: PostCheck = {
     for (const inst of insts) {
       const s = inst.startSegIdx, e = inst.endSegIdx;
       if (typeof s === 'number' && typeof e === 'number' && e < s) {
-        issues.push({ kind: 'inverted-range', severity: 'soft', index: s, detail: `${s}-${e}` });
+        issues.push({ kind: 'inverted-range', severity: severityOf('inverted-range', ctx.defId), index: s, detail: `${s}-${e}` });
       }
+      // True-duplicate identity, not just range+opener: two legitimate moves can
+      // share a segment and a formulaic opening (תא שמע / אמר רבא) yet differ in
+      // their deterministic id, end anchor, or order. Keying on those avoids
+      // hard-blocking a correct output while still catching a genuinely emitted-
+      // twice instance (same id ⇒ same move slot).
       const ex = typeof inst.fields?.excerpt === 'string' ? normalizeHebrew(inst.fields.excerpt) : '';
-      const key = `${s}|${e}|${ex}`;
-      if (seen.has(key)) issues.push({ kind: 'duplicate-instance', severity: 'soft', match: ex || undefined, index: typeof s === 'number' ? s : -1 });
+      const endEx = typeof inst.fields?.endExcerpt === 'string' ? normalizeHebrew(inst.fields.endExcerpt) : '';
+      const id = typeof inst.fields?.id === 'string' ? inst.fields.id : '';
+      const key = `${id}|${s}|${e}|${ex}|${endEx}`;
+      if (seen.has(key)) issues.push({ kind: 'duplicate-instance', severity: severityOf('duplicate-instance', ctx.defId), match: ex || undefined, index: typeof s === 'number' ? s : -1 });
       else seen.add(key);
     }
     if (ctx.defId === 'argument') {
@@ -194,7 +229,7 @@ const partitionClean: PostCheck = {
         .sort((a, b) => a.s - b.s);
       for (let i = 1; i < ranges.length; i++) {
         if (ranges[i].s <= ranges[i - 1].e) {
-          issues.push({ kind: 'section-overlap', severity: 'soft', index: ranges[i].s, detail: `${ranges[i - 1].s}-${ranges[i - 1].e} ∩ ${ranges[i].s}-${ranges[i].e}` });
+          issues.push({ kind: 'section-overlap', severity: severityOf('section-overlap', ctx.defId), index: ranges[i].s, detail: `${ranges[i - 1].s}-${ranges[i - 1].e} ∩ ${ranges[i].s}-${ranges[i].e}` });
         }
       }
     }
@@ -209,8 +244,9 @@ const partitionClean: PostCheck = {
 const edgeIntegrity: PostCheck = {
   id: 'edge-integrity',
   phase: 'validate',
-  run: (parsed) => {
+  run: (parsed, ctx) => {
     const issues: CheckIssue[] = [];
+    const sev = (kind: string): Severity => severityOf(kind, ctx.defId);
     const p = (parsed ?? {}) as { voices?: unknown; edges?: unknown };
     const names = new Set(
       (Array.isArray(p.voices) ? p.voices : [])
@@ -224,9 +260,9 @@ const edgeIntegrity: PostCheck = {
       const from = typeof edge.from === 'string' ? edge.from : '';
       const to = typeof edge.to === 'string' ? edge.to : '';
       const kind = typeof edge.kind === 'string' ? edge.kind : '';
-      if (!names.has(from)) issues.push({ kind: 'edge-unknown-voice', severity: 'soft', match: from, detail: `from -> ${to}` });
-      if (!names.has(to)) issues.push({ kind: 'edge-unknown-voice', severity: 'soft', match: to, detail: `${from} -> to` });
-      if (from && to && from === to) issues.push({ kind: 'edge-self-loop', severity: 'soft', match: from });
+      if (!names.has(from)) issues.push({ kind: 'edge-unknown-voice', severity: sev('edge-unknown-voice'), match: from, detail: `from -> ${to}` });
+      if (!names.has(to)) issues.push({ kind: 'edge-unknown-voice', severity: sev('edge-unknown-voice'), match: to, detail: `${from} -> to` });
+      if (from && to && from === to) issues.push({ kind: 'edge-self-loop', severity: sev('edge-self-loop'), match: from });
       if (from && to && (kind === 'opposes' || kind === 'supports')) {
         const pk = [from, to].sort().join(' ↔ ');
         const set = pairKinds.get(pk) ?? new Set<string>();
@@ -236,7 +272,7 @@ const edgeIntegrity: PostCheck = {
     }
     for (const [pair, kinds] of pairKinds) {
       if (kinds.has('opposes') && kinds.has('supports')) {
-        issues.push({ kind: 'edge-contradiction', severity: 'soft', match: pair });
+        issues.push({ kind: 'edge-contradiction', severity: sev('edge-contradiction'), match: pair });
       }
     }
     return { issues };
