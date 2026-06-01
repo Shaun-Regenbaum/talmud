@@ -7,7 +7,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
-  composeTypeProfile, overlayUncoveredSegs, hasOpposingVoices, PRIMARY_FLOOR,
+  composeTypeProfile, overlayUncoveredSegs, hasOpposingVoices, registerOf, PRIMARY_FLOOR,
   type LayerInstance, type UnitRange,
 } from '../../src/lib/typing/profile';
 
@@ -79,6 +79,32 @@ describe('composeTypeProfile — primary selection', () => {
     const p = composeTypeProfile(unit(0, 3), [inst('rabbi', 'Rava', 0, 3), inst('places', 'Bavel', 0, 3)]);
     expect(p.primary).toBe('pure-dialectic');
     expect(p.claims).toHaveLength(2); // recorded as claims, just not primary-eligible
+  });
+});
+
+describe('register (mishnah/gemara axis)', () => {
+  it('is gemara when no mishnah segments are supplied (the default)', () => {
+    expect(composeTypeProfile(unit(0, 3), []).register).toBe('gemara');
+    expect(registerOf(unit(0, 3))).toBe('gemara');
+    expect(registerOf(unit(0, 3), new Set())).toBe('gemara');
+  });
+
+  it('is mishnah when the majority of the unit segments are mishnah', () => {
+    // unit 0..3; segs 0,1,2 are mishnah → 3/4 ≥ 0.5.
+    const mishnaSegs = new Set([0, 1, 2]);
+    expect(composeTypeProfile(unit(0, 3), [], { mishnaSegs }).register).toBe('mishnah');
+    expect(registerOf(unit(0, 3), mishnaSegs)).toBe('mishnah');
+  });
+
+  it('stays gemara when only a minority brushes the mishnah range', () => {
+    // unit 0..3; only seg 0 is mishnah → 1/4 < 0.5.
+    expect(registerOf(unit(0, 3), new Set([0]))).toBe('gemara');
+  });
+
+  it('is orthogonal to primary: a mishnah unit can be halacha-primary', () => {
+    const p = composeTypeProfile(unit(0, 4), [inst('halacha', 'h', 0, 4)], { mishnaSegs: new Set([0, 1, 2, 3, 4]) });
+    expect(p.primary).toBe('halacha');
+    expect(p.register).toBe('mishnah');
   });
 });
 

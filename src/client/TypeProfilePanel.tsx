@@ -11,7 +11,7 @@
 import { createResource, For, Show, type JSX } from 'solid-js';
 
 interface Claim { layer: string; coverage: number }
-interface Profile { unit: { startSegIdx: number; endSegIdx: number }; claims: Claim[]; primary: string; isDispute: boolean; title?: string }
+interface Profile { unit: { startSegIdx: number; endSegIdx: number }; claims: Claim[]; primary: string; isDispute: boolean; register?: string; title?: string }
 interface Marker { startSegIdx: number; endSegIdx: number; kind: string }
 interface ProfilesResponse { tractate: string; page: string; count: number; profiles: Profile[]; markers?: Marker[] }
 
@@ -80,6 +80,12 @@ export default function TypeProfilePanel(props: {
               'flex-shrink': 0, 'font-size': '0.62rem', 'border-radius': '3px', padding: '0 0.3rem',
               background: (PRIMARY_COLOR[p.primary] ?? '#888') + '22', color: PRIMARY_COLOR[p.primary] ?? '#666',
             }}>{p.primary}</span>
+            <Show when={p.register === 'mishnah'}>
+              <span style={{
+                'flex-shrink': 0, 'font-size': '0.62rem', 'border-radius': '3px', padding: '0 0.3rem',
+                background: '#1e3a8a22', color: '#1e3a8a',
+              }} title="register: mishnah (majority of segments are mishnah-in-talmud)">mishnah</span>
+            </Show>
             <Show when={p.isDispute}>
               <span style={{ 'flex-shrink': 0, 'font-size': '0.6rem', color: '#b91c1c' }} title="argument.voices has an opposes edge">⚔</span>
             </Show>
