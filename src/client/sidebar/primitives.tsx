@@ -19,7 +19,7 @@
  * already shared there. `Panel` owns only the per-type title block, which is
  * what was duplicated/divergent across the bodies.
  */
-import { Show, type JSX } from 'solid-js';
+import { Show, For, createSignal, createEffect, type JSX } from 'solid-js';
 import { lang, t, type CatalogKey } from '../i18n';
 import { HebraizedWithRabbis } from '../rabbiLinks';
 import MarkEnrichmentCards, { InspectDot } from '../MarkEnrichmentCards';
@@ -308,6 +308,156 @@ export function SidebarPanelFromHint(props: {
         tractate={props.tractate}
         page={props.page}
       />
+    </Panel>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Recipe-driven card: a card = header + an ordered list of SECTIONS. Each
+// section is one of a few standard types or a NAMED custom block, so a card is
+// described by a recipe instead of hand-coded. (See docs/framework.md / the
+// "generic sidebar" roadmap item.)
+// ---------------------------------------------------------------------------
+
+/** Uniform contract every named custom block receives. `deps` is the synthesis
+ *  aggregate's resolved leaf outputs (deps_resolved), keyed by enrichment id. */
+export interface SpecialBlockProps {
+  deps: Record<string, unknown>;
+  instance: { fields: Record<string, unknown> };
+  tractate: string;
+  page: string;
+  instanceKey: string;
+}
+export type SpecialBlock = (props: SpecialBlockProps) => JSX.Element;
+
+/** One section of a card, top → bottom. */
+export type SectionSpec =
+  /** Accent-tinted chips from instance fields (e.g. an aggadata theme). */
+  | { type: 'tags'; fields: string[] }
+  /** A paragraph of an instance field, rabbi-linked + Hebraized (e.g. a summary). */
+  | { type: 'prose'; field: string }
+  /** The synthesis card for the recipe's mark; feeds the shared `deps`. */
+  | { type: 'synthesis' }
+  /** A labeled prose box rendering one dependent enrichment's `textField`. */
+  | { type: 'explainer'; dep: string; textField: string; labelKey: CatalogKey }
+  /** The follow-up Q&A affordance. */
+  | { type: 'qa' }
+  /** A genuinely-custom block, looked up by name in the card's `specialBlocks`. */
+  | { type: 'special'; block: string };
+
+export interface SidebarRecipe {
+  kind: SidebarKind;
+  markId: string;
+  titleField: string;
+  titleHeField?: string;
+  titleLang?: 'en' | 'he';
+  flip?: 'name' | 'rabbi';
+  sections: SectionSpec[];
+}
+
+/**
+ * Render a card from its recipe. Draws the Panel header, holds one shared `deps`
+ * signal that the `synthesis` section fills via onResolved, then walks the
+ * sections in order. The card-specific keys (`instanceKey` for the client memo,
+ * `qaInstanceId` for the Q&A qualifier) and `meta` are passed by the caller
+ * since they involve per-card derivation; everything else comes from the recipe.
+ */
+export function SidebarCardFromHint(props: {
+  recipe: SidebarRecipe;
+  instance: { fields: Record<string, unknown> };
+  tractate: string;
+  page: string;
+  instanceKey: string;
+  qaInstanceId?: string;
+  meta?: JSX.Element;
+  specialBlocks?: Record<string, SpecialBlock>;
+}): JSX.Element {
+  const str = (v: unknown): string => (typeof v === 'string' ? v : '');
+  const fields = (): Record<string, unknown> => props.instance.fields;
+  const accent = (): string => ACCENTS[props.recipe.kind];
+  const [deps, setDeps] = createSignal<Record<string, unknown>>({});
+  // Reset captured leaves when the instance changes (mirrors each old body's
+  // handleResolved reset) so a new instance doesn't show the previous one's deps.
+  createEffect(() => { void props.instanceKey; setDeps({}); });
+
+  const renderSection = (s: SectionSpec): JSX.Element => {
+    switch (s.type) {
+      case 'tags': {
+        const vals = (): string[] => s.fields.map((f) => str(fields()[f])).filter(Boolean);
+        return (
+          <Show when={vals().length > 0}>
+            <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.3rem', 'margin-bottom': '0.7rem' }}>
+              <For each={vals()}>{(v) => (
+                <span style={{
+                  display: 'inline-block', padding: '0.1rem 0.5rem', 'font-size': '0.7rem',
+                  'text-transform': 'uppercase', 'letter-spacing': '0.06em',
+                  color: accent(), background: `${accent()}14`, border: `1px solid ${accent()}40`,
+                  'border-radius': '3px',
+                }}>{v}</span>
+              )}</For>
+            </div>
+          </Show>
+        );
+      }
+      case 'prose':
+        return (
+          <Show when={str(fields()[s.field])}>
+            <p style={{ margin: '0 0 0.8rem', color: '#333', 'line-height': 1.55 }}>
+              <HebraizedWithRabbis text={str(fields()[s.field])} />
+            </p>
+          </Show>
+        );
+      case 'synthesis':
+        return (
+          <Synthesis
+            markId={props.recipe.markId}
+            instance={props.instance}
+            instanceKey={props.instanceKey}
+            tractate={props.tractate}
+            page={props.page}
+            onResolved={(r) => setDeps(r.deps_resolved ?? {})}
+          />
+        );
+      case 'explainer': {
+        const text = (): string => {
+          const d = deps()[s.dep] as Record<string, unknown> | undefined;
+          return d ? str(d[s.textField]) : '';
+        };
+        return (
+          <Show when={text()}>
+            <SectionCard label={s.labelKey} text={text()} inspect={{ instanceKey: props.instanceKey, leafId: s.dep }} />
+          </Show>
+        );
+      }
+      case 'qa':
+        return (
+          <QASection
+            mark={props.recipe.markId as 'argument-move' | 'pesukim' | 'aggadata'}
+            instanceId={props.qaInstanceId ?? props.instanceKey}
+            instance={props.instance}
+            tractate={props.tractate}
+            page={props.page}
+          />
+        );
+      case 'special': {
+        const Block = props.specialBlocks?.[s.block];
+        return Block ? (
+          <Block deps={deps()} instance={props.instance} tractate={props.tractate} page={props.page} instanceKey={props.instanceKey} />
+        ) : null;
+      }
+    }
+  };
+
+  return (
+    <Panel
+      accent={accent()}
+      title={str(fields()[props.recipe.titleField])}
+      titleHe={props.recipe.titleHeField ? str(fields()[props.recipe.titleHeField]) || undefined : undefined}
+      titleLang={props.recipe.titleLang}
+      flip={props.recipe.flip}
+      meta={props.meta}
+    >
+      <For each={props.recipe.sections}>{renderSection}</For>
     </Panel>
   );
 }
