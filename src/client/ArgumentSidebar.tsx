@@ -1662,7 +1662,7 @@ export const AGGADATA_RECIPE: SidebarRecipe = {
   titleHeField: 'titleHe',
   sections: [
     { type: 'tags', fields: ['theme'] },
-    { type: 'prose', field: 'summary' },
+    { type: 'prose', field: 'summary', untilSynthesis: true },
     { type: 'synthesis' },
     { type: 'explainer', dep: 'aggadata.background', textField: 'background', labelKey: 'aggadata.background' },
     { type: 'explainer', dep: 'aggadata.interpretation', textField: 'interpretation', labelKey: 'aggadata.interpretation' },

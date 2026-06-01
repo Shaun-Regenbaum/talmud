@@ -3016,7 +3016,7 @@ CODE_ENRICHMENTS.push(
   // /api/run, on demand, so we don't fan out per-move LLM calls for
   // moves nobody opens.
   makeEnrichment(
-    'argument-move', 'argument-move.suggested-questions', 'Suggested questions',
+    'argument-move', 'argument-move.suggested-questions', 'Questions',
     'Curated follow-up questions the synthesis doesn\'t answer. Powers the Explore-deeper panel.',
     ARGUMENT_MOVE_SUGGESTED_QUESTIONS_SYSTEM_PROMPT, ARGUMENT_MOVE_SUGGESTED_QUESTIONS_USER_TEMPLATE, ARGUMENT_MOVE_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA,
     {
@@ -3033,7 +3033,7 @@ CODE_ENRICHMENTS.push(
     },
   ),
   makeEnrichment(
-    'argument-move', 'argument-move.qa', 'Q&A',
+    'argument-move', 'argument-move.qa', 'Answers',
     'Answer one learner-supplied question about THIS move. Cache keyed per (move, normalized question).',
     ARGUMENT_MOVE_QA_SYSTEM_PROMPT, ARGUMENT_MOVE_QA_USER_TEMPLATE, ARGUMENT_MOVE_QA_OUTPUT_SCHEMA,
     {
@@ -4595,7 +4595,7 @@ CODE_ENRICHMENTS.push(
   // Mirror of argument-move.suggested-questions / argument-move.qa: powers the
   // QAPanel "Questions" expander attached to each pasuk card.
   makeEnrichment(
-    'pesukim', 'pesukim.suggested-questions', 'Suggested questions',
+    'pesukim', 'pesukim.suggested-questions', 'Questions',
     'Curated follow-up questions the synthesis doesn\'t answer. Powers the Questions panel on each pasuk card.',
     PESUKIM_SUGGESTED_QUESTIONS_SYSTEM_PROMPT, PESUKIM_SUGGESTED_QUESTIONS_USER_TEMPLATE, PESUKIM_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA,
     {
@@ -4612,7 +4612,7 @@ CODE_ENRICHMENTS.push(
     },
   ),
   makeEnrichment(
-    'pesukim', 'pesukim.qa', 'Q&A',
+    'pesukim', 'pesukim.qa', 'Answers',
     'Answer one learner-supplied question about THIS pasuk citation. Cache keyed per (verse, normalized question).',
     PESUKIM_QA_SYSTEM_PROMPT, PESUKIM_QA_USER_TEMPLATE, PESUKIM_QA_OUTPUT_SCHEMA,
     {
@@ -5124,7 +5124,7 @@ CODE_ENRICHMENTS.push(
     },
   ),
   makeEnrichment(
-    'aggadata', 'aggadata.suggested-questions', 'Suggested questions',
+    'aggadata', 'aggadata.suggested-questions', 'Questions',
     'Curated follow-up questions the synthesis doesn\'t answer. Powers the Questions panel on each aggadah card.',
     AGGADATA_SUGGESTED_QUESTIONS_SYSTEM_PROMPT, AGGADATA_SUGGESTED_QUESTIONS_USER_TEMPLATE, AGGADATA_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA,
     {
@@ -5141,7 +5141,7 @@ CODE_ENRICHMENTS.push(
     },
   ),
   makeEnrichment(
-    'aggadata', 'aggadata.qa', 'Q&A',
+    'aggadata', 'aggadata.qa', 'Answers',
     'Answer one learner-supplied question about THIS aggadic story. Cache keyed per (story, normalized question).',
     AGGADATA_QA_SYSTEM_PROMPT, AGGADATA_QA_USER_TEMPLATE, AGGADATA_QA_OUTPUT_SCHEMA,
     {

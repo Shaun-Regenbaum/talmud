@@ -120,7 +120,7 @@ async function fetchSuggested(mark: string, tractate: string, page: string, inst
   const enrichmentId = `${mark}.suggested-questions`;
   const result = await trackAI(
     `${enrichmentId}:${tractate}:${page}:${instanceId}`,
-    `Suggested questions · ${instanceId}`,
+    `Questions · ${instanceId}`,
     () => runEnrichmentDirect(enrichmentId, tractate, page, instance),
   );
   const parsed = result.parsed as SuggestedQuestionsPayload | null;

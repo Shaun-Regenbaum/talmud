@@ -371,8 +371,11 @@ export type SpecialBlock = (props: SpecialBlockProps) => JSX.Element;
 export type SectionSpec =
   /** Accent-tinted chips from instance fields (e.g. an aggadata theme). */
   | { type: 'tags'; fields: string[] }
-  /** A paragraph of an instance field, rabbi-linked + Hebraized (e.g. a summary). */
-  | { type: 'prose'; field: string }
+  /** A paragraph of an instance field, rabbi-linked + Hebraized (e.g. a summary).
+   *  `untilSynthesis` makes it a placeholder: shown only until the synthesis
+   *  section resolves, then replaced by it (the instant field fills the slot
+   *  while the richer paragraph computes). */
+  | { type: 'prose'; field: string; untilSynthesis?: boolean }
   /** The synthesis card for the recipe's mark; feeds the shared `deps`. */
   | { type: 'synthesis' }
   /** A labeled prose box rendering one dependent enrichment's `textField`.
@@ -476,9 +479,14 @@ export function SidebarCardFromHint(props: {
   const fields = (): Record<string, unknown> => props.instance.fields;
   const accent = (): string => ACCENTS[props.recipe.kind];
   const [deps, setDeps] = createSignal<Record<string, unknown>>({});
-  // Reset captured leaves when the instance changes (mirrors each old body's
-  // handleResolved reset) so a new instance doesn't show the previous one's deps.
-  createEffect(() => { void props.instanceKey; setDeps({}); });
+  // True once the synthesis has resolved (cache hit or fresh). A `prose` section
+  // with `untilSynthesis` shows only until then — the instant `summary` field
+  // fills the slot, then the richer synthesis paragraph replaces it.
+  const [synthesisReady, setSynthesisReady] = createSignal(false);
+  // Reset captured leaves + the synthesis-ready flag when the instance changes
+  // (mirrors each old body's handleResolved reset) so a new instance doesn't
+  // show the previous one's deps or skip its placeholder.
+  createEffect(() => { void props.instanceKey; setDeps({}); setSynthesisReady(false); });
 
   const renderSection = (s: SectionSpec): JSX.Element => {
     switch (s.type) {
@@ -501,7 +509,7 @@ export function SidebarCardFromHint(props: {
       }
       case 'prose':
         return (
-          <Show when={str(fields()[s.field])}>
+          <Show when={str(fields()[s.field]) && !(s.untilSynthesis && synthesisReady())}>
             <p style={{ margin: '0 0 0.8rem', color: '#333', 'line-height': 1.55 }}>
               <HebraizedWithRabbis text={str(fields()[s.field])} />
             </p>
@@ -515,7 +523,7 @@ export function SidebarCardFromHint(props: {
             instanceKey={props.instanceKey}
             tractate={props.tractate}
             page={props.page}
-            onResolved={(r) => setDeps(r.deps_resolved ?? {})}
+            onResolved={(r) => { setDeps(r.deps_resolved ?? {}); setSynthesisReady(true); }}
           />
         );
       case 'explainer': {
