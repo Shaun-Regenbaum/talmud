@@ -496,10 +496,13 @@ export function SidebarCardFromHint(props: {
           <Show when={vals().length > 0}>
             <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.3rem', 'margin-bottom': '0.7rem' }}>
               <For each={vals()}>{(v) => (
+                // Neutral & quiet: a theme tag is a coarse, not-fully-trusted
+                // label, so it stays unobtrusive — muted gray, faint fill,
+                // hairline border, lowercase — rather than a loud accent chip.
                 <span style={{
                   display: 'inline-block', padding: '0.1rem 0.5rem', 'font-size': '0.7rem',
-                  'text-transform': 'uppercase', 'letter-spacing': '0.06em',
-                  color: accent(), background: `${accent()}14`, border: `1px solid ${accent()}40`,
+                  'text-transform': 'lowercase', 'letter-spacing': '0.02em',
+                  color: '#777', background: '#f5f5f4', border: '1px solid #e8e8e6',
                   'border-radius': '3px',
                 }}>{v}</span>
               )}</For>
