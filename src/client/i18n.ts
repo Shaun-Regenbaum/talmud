@@ -186,7 +186,17 @@ const CATALOG = {
   'overview.continuesFrom': { en: '↑ continues from {page}', he: '↑ המשך מדף {page}' },
   'overview.continuesOnto': { en: 'continues onto {page} ↓', he: 'ממשיך לדף {page} ↓' },
   'overview.crossRefs': { en: 'Cross-references', he: 'הפניות' },
+  'overview.connections': { en: 'Connections', he: 'קשרים' },
+  'overview.withinFlow': { en: 'within-daf flow', he: 'מהלך פנימי בדף' },
   'overview.goToDaf': { en: 'Go to {daf}', he: 'מעבר ל{daf}' },
+  // Link-relation labels (the unified link layer, src/lib/context/link.ts).
+  'link.rel.cites': { en: 'cites', he: 'מצטט' },
+  'link.rel.continues': { en: 'continues', he: 'ממשיך' },
+  'link.rel.resolves': { en: 'resolves', he: 'מיישב' },
+  'link.rel.depends-on': { en: 'depends on', he: 'תלוי ב' },
+  'link.rel.parallels': { en: 'parallels', he: 'מקביל' },
+  'link.rel.contrasts': { en: 'contrasts', he: 'מנוגד' },
+  'link.rel.generalizes': { en: 'generalizes', he: 'מכליל' },
 
   // — Whole-daf background (terms/concepts a reader needs) —
   'background.chip': { en: 'Background', he: 'רקע' },
