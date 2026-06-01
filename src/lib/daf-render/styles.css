@@ -309,6 +309,15 @@
 .daf-root .daf-range-highlight-comm-anchor {
   background-color: rgba(15, 118, 110, 0.22);
 }
+/* User pieces — personal highlights. Background is set inline per-highlight
+   (paintRangeOverlay's bgFor callback) from the chosen palette color; the
+   static rule owns only layout + the highlighter blend so the daf text reads
+   through. Pointer-events stay off so clicks fall through to the daf word
+   (the click handler opens the note popover by hit-testing coordinates). */
+.daf-root .daf-range-highlight-user {
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
 /* Era stratification tints — background color is set inline per-segment
    (paintRangeOverlay's bgFor callback) so the static rule only owns layout
    behaviour. Pointer-events stay off so clicks fall through to the daf word. */

@@ -634,6 +634,16 @@ const CATALOG = {
   // — Translation popup —
   'translation.loading': { en: 'Translating…', he: 'מתרגם…' },
 
+  // — User highlights / notes —
+  'highlight.action': { en: 'Highlight:', he: 'הדגשה:' },
+  'highlight.notePlaceholder': { en: 'Add a note…', he: 'הוספת הערה…' },
+  'highlight.delete': { en: 'Delete', he: 'מחיקה' },
+  'highlight.save': { en: 'Save', he: 'שמירה' },
+  'highlight.notesTitle': { en: 'My notes', he: 'ההערות שלי' },
+  'highlight.notesEmpty': { en: 'No highlights on this daf yet.', he: 'אין עדיין הדגשות בדף זה.' },
+  'highlight.notesToggle': { en: 'Notes', he: 'הערות' },
+  'highlight.noteLabel': { en: 'Note', he: 'הערה' },
+
   // — Bug report —
   'bugreport.open': { en: 'Report a problem', he: 'דיווח על תקלה' },
   'bugreport.sent': { en: 'Thanks — report sent for {daf}.', he: 'תודה — הדיווח נשלח עבור {daf}.' },
