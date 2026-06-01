@@ -7,8 +7,9 @@
 import { describe, it, expect } from 'vitest';
 import {
   coordKey, sameDaf, coordForSeg, coordsForSegs, localSeg, isCrossDaf,
-  normalizeSpan, spanByDaf, coordFromTarget,
+  normalizeSpan, spanByDaf, coordFromTarget, spineCoord, DAF_SEG,
 } from '../src/lib/context/coord.ts';
+import { coordLabel } from '../src/lib/context/types.ts';
 import { placementOf } from '../src/lib/context/placement.ts';
 import { applyMatches, type SegMatch } from '../src/lib/context/match.ts';
 import type { ContextItem } from '../src/lib/context/types.ts';
@@ -23,6 +24,30 @@ describe('coord helpers', () => {
     expect(coordKey(c)).toBe('Gittin:68a:4');
     expect(sameDaf(c, G68)).toBe(true);
     expect(sameDaf(c, G67)).toBe(false);
+  });
+
+  it('spineCoord addresses a commentary spine; spine-less coords are byte-identical', () => {
+    const daf = { tractate: 'Berakhot', page: '2a' };
+    // A spine-less (Gemara) coord keys + labels EXACTLY as before.
+    expect(coordKey(coordForSeg(daf, 3))).toBe('Berakhot:2a:3');
+    // A spine coord defaults to whole-daf-of-the-work and keys distinctly so it
+    // never collides with the Gemara segment at the same (tractate, page, seg).
+    expect(spineCoord('Rashi', daf)).toEqual({ spine: 'Rashi', tractate: 'Berakhot', page: '2a', seg: DAF_SEG });
+    expect(coordKey(spineCoord('Rashi', daf, 3))).toBe('Rashi::Berakhot:2a:3');
+    expect(coordKey(spineCoord('Rashi', daf, 3))).not.toBe(coordKey(coordForSeg(daf, 3)));
+    expect(coordLabel(spineCoord('Rashi', daf, 3))).toBe('Rashi · Berakhot 2a:3');
+    expect(coordLabel(spineCoord('Tosafot', daf))).toBe('Tosafot · Berakhot 2a');
+  });
+
+  it('normalizeSpan/spanByDaf collapse mixed-spine coords deterministically', () => {
+    const daf = { tractate: 'Berakhot', page: '2a' };
+    // Same (tractate, page, seg) on the Gemara and two commentary spines.
+    const span = [spineCoord('Tosafot', daf, 3), coordForSeg(daf, 3), spineCoord('Rashi', daf, 3)];
+    // All three survive dedup (distinct keys) and sort deterministically by
+    // seg then spine ('' < 'Rashi' < 'Tosafot').
+    expect(normalizeSpan(span).map(coordKey)).toEqual(['Berakhot:2a:3', 'Rashi::Berakhot:2a:3', 'Tosafot::Berakhot:2a:3']);
+    // spanByDaf collapses spine + dedupes the segment (no duplicate seg 3).
+    expect(spanByDaf(span)).toEqual([{ tractate: 'Berakhot', page: '2a', segs: [3] }]);
   });
 
   it('localSeg returns the seg only on its own daf', () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { citationLink, continuationLink, flowLinks, isLinkRelation, linkLabel, type Link } from '../src/lib/context/link.ts';
-import { dafCoord, coordForSeg, DAF_SEG } from '../src/lib/context/coord.ts';
+import { citationLink, continuationLink, flowLinks, glossLinks, isLinkRelation, linkLabel, type Link } from '../src/lib/context/link.ts';
+import { dafCoord, coordForSeg, spineCoord, DAF_SEG } from '../src/lib/context/coord.ts';
 import { formatContextForPrompt } from '../src/lib/context/select.ts';
 import type { ContextItem } from '../src/lib/context/types.ts';
 
@@ -28,12 +28,37 @@ describe('continuationLink — the tractate-continuity edge', () => {
 });
 
 describe('isLinkRelation — guards an untyped kind string', () => {
-  it('accepts the seven modelled relations, rejects others', () => {
-    for (const k of ['cites', 'continues', 'resolves', 'depends-on', 'parallels', 'contrasts', 'generalizes']) {
+  it('accepts the modelled relations, rejects others', () => {
+    for (const k of ['cites', 'continues', 'resolves', 'depends-on', 'parallels', 'contrasts', 'generalizes', 'glosses']) {
       expect(isLinkRelation(k)).toBe(true);
     }
     expect(isLinkRelation('elaborates')).toBe(false);
     expect(isLinkRelation('')).toBe(false);
+  });
+});
+
+describe('glossLinks — commentary spines as cross-spine Links', () => {
+  const DAF = { tractate: 'Berakhot', page: '2a' };
+
+  it('emits one link per work, sourced on its spine, targeting the deduped daf segs it glosses', () => {
+    const works = [
+      { title: 'Rashi', comments: [{ anchorSegIdx: 1 }, { anchorSegIdx: 0 }, { anchorSegIdx: 1 }] },
+      { title: 'Tosafot', comments: [{ anchorSegIdx: 4 }] },
+    ];
+    expect(glossLinks(DAF, works)).toEqual([
+      { source: spineCoord('Rashi', DAF), link: { relation: 'glosses', targets: [coordForSeg(DAF, 0), coordForSeg(DAF, 1)] } },
+      { source: spineCoord('Tosafot', DAF), link: { relation: 'glosses', targets: [coordForSeg(DAF, 4)] } },
+    ]);
+  });
+
+  it('drops works with no resolvable anchor segment', () => {
+    const works = [{ title: 'Meiri', comments: [{ anchorSegIdx: -1 }] }];
+    expect(glossLinks(DAF, works)).toEqual([]);
+  });
+
+  it('a gloss link labels its source with the spine name', () => {
+    expect(linkLabel({ relation: 'glosses', targets: [spineCoord('Rashi', DAF, 3)] }))
+      .toBe('Rashi · Berakhot 2a:3');
   });
 });
 

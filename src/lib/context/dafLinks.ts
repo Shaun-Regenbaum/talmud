@@ -13,14 +13,14 @@
  */
 
 import { coordForSeg, dafCoord, type AnchorCoord, type DafRef } from './coord.ts';
-import { citationLink, continuationLink, flowLinks, type FlowEdge, type LinkRelation } from './link.ts';
+import { citationLink, continuationLink, flowLinks, glossLinks, type CommentaryWorkLike, type FlowEdge, type LinkRelation } from './link.ts';
 import type { ContextItem } from './types.ts';
 
 /** A link on a daf: where it lives (`source`), the `relation`, and what it
  *  points at (`targets`). `via` records which producer it came from, for
  *  display + debugging. */
 export interface DafLink {
-  via: 'bridge' | 'context' | 'flow';
+  via: 'bridge' | 'context' | 'flow' | 'commentary';
   source: AnchorCoord;
   relation: LinkRelation;
   targets: AnchorCoord[];
@@ -38,6 +38,9 @@ export interface DafLinkInputs {
   /** startSegIdx of each argument section, in flow-index order, so a flow edge's
    *  section index resolves to a coordinate. */
   sectionStartSegs: readonly number[];
+  /** Commentary works on this daf — each becomes a 'glosses' link from its own
+   *  spine to the daf segments it glosses. Optional/absent contributes nothing. */
+  commentaryWorks?: readonly CommentaryWorkLike[];
 }
 
 export function dafLinks(daf: DafRef, input: DafLinkInputs): DafLink[] {
@@ -61,6 +64,11 @@ export function dafLinks(daf: DafRef, input: DafLinkInputs): DafLink[] {
     i >= 0 && i < input.sectionStartSegs.length ? coordForSeg(daf, input.sectionStartSegs[i]) : null;
   for (const fl of flowLinks(input.flowEdges, coordOf)) {
     out.push({ via: 'flow', source: fl.source, relation: fl.link.relation, targets: fl.link.targets });
+  }
+
+  // 4) Commentary spines: each work glosses the daf segments it sits over.
+  for (const gl of glossLinks(daf, input.commentaryWorks ?? [])) {
+    out.push({ via: 'commentary', source: gl.source, relation: gl.link.relation, targets: gl.link.targets, note: gl.source.spine });
   }
 
   return out;

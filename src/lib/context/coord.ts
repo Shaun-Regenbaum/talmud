@@ -24,6 +24,12 @@ export interface AnchorCoord {
   tractate: string;
   page: string;
   seg: number;
+  /** The spine this coordinate addresses. ABSENT means the Gemara spine (the
+   *  daf itself) — the default for everything that existed before commentary
+   *  spines, so spine-less coords serialize/label byte-identically. Present
+   *  (e.g. 'Rashi', 'Tosafot') addresses a commentary spine ON this daf: a
+   *  cross-spine coordinate. See {@link spineCoord}. */
+  spine?: string;
 }
 
 /** An ordered set of coordinates that may straddle multiple dapim. */
@@ -32,9 +38,13 @@ export type AnchorSpan = AnchorCoord[];
 /** A daf reference (the (tractate, page) half of a coordinate). */
 export type DafRef = { tractate: string; page: string };
 
-/** Stable string id for a coordinate — safe as a Map/Set key. */
+/** Stable string id for a coordinate — safe as a Map/Set key. A spine-less
+ *  (Gemara) coordinate keys EXACTLY as before (`tractate:page:seg`); a
+ *  spine-addressed coordinate prefixes its spine so a commentary coord never
+ *  collides with the Gemara segment at the same (tractate, page, seg). */
 export function coordKey(c: AnchorCoord): string {
-  return `${c.tractate}:${c.page}:${c.seg}`;
+  const base = `${c.tractate}:${c.page}:${c.seg}`;
+  return c.spine ? `${c.spine}::${base}` : base;
 }
 
 /** Whether two daf references name the same page. */
@@ -57,6 +67,15 @@ export function dafCoord(daf: DafRef): AnchorCoord {
   return { tractate: daf.tractate, page: daf.page, seg: DAF_SEG };
 }
 
+/** A coordinate on a commentary spine (e.g. Rashi / Tosafot) over a given daf.
+ *  `seg` defaults to {@link DAF_SEG} — "the work's gloss of this daf as a whole"
+ *  — since a commentary work's links cover many daf segments at once. This is
+ *  the cross-spine address the framework reserves: a piece on a NON-daf spine,
+ *  still pinned to (tractate, page) so it renders alongside the daf. */
+export function spineCoord(spine: string, daf: DafRef, seg: number = DAF_SEG): AnchorCoord {
+  return { spine, tractate: daf.tractate, page: daf.page, seg };
+}
+
 /** Coordinates for a list of local segment indices on a given daf. */
 export function coordsForSegs(daf: DafRef, segs: number[]): AnchorSpan {
   return segs.map((seg) => coordForSeg(daf, seg));
@@ -75,8 +94,11 @@ export function isCrossDaf(c: AnchorCoord, currentDaf: DafRef): boolean {
   return !sameDaf(c, currentDaf);
 }
 
-/** Dedupe + order a span by (tractate, page, seg). Stable across processes so
- *  the same span always serializes identically (cache-key friendly). */
+/** Dedupe + order a span by (tractate, page, seg, spine). Stable across
+ *  processes so the same span always serializes identically (cache-key
+ *  friendly). Spine is part of the sort so mixed-spine coords at the same
+ *  (tractate, page, seg) order deterministically rather than by caller order;
+ *  spine-less (Gemara) spans sort exactly as before (empty spine sorts first). */
 export function normalizeSpan(span: AnchorSpan): AnchorSpan {
   const seen = new Set<string>();
   const out: AnchorCoord[] = [];
@@ -88,22 +110,25 @@ export function normalizeSpan(span: AnchorSpan): AnchorSpan {
     (a, b) =>
       a.tractate.localeCompare(b.tractate) ||
       a.page.localeCompare(b.page) ||
-      a.seg - b.seg,
+      a.seg - b.seg ||
+      (a.spine ?? '').localeCompare(b.spine ?? ''),
   );
 }
 
 /** Group a span into per-daf segment lists (normalized: deduped + ordered).
  *  The shape a cross-page sugya map consumes — one entry per daf, each with the
- *  local segments it touches. */
+ *  local segments it touches. Spine is intentionally collapsed here (the sugya
+ *  map addresses Gemara segments); segs are deduped so mixed-spine coords at the
+ *  same (tractate, page, seg) don't emit a duplicate segment. */
 export function spanByDaf(span: AnchorSpan): { tractate: string; page: string; segs: number[] }[] {
-  const groups = new Map<string, { tractate: string; page: string; segs: number[] }>();
+  const groups = new Map<string, { tractate: string; page: string; segs: number[]; seen: Set<number> }>();
   for (const c of normalizeSpan(span)) {
     const dk = `${c.tractate}:${c.page}`;
-    const g = groups.get(dk) ?? { tractate: c.tractate, page: c.page, segs: [] };
-    g.segs.push(c.seg);
+    const g = groups.get(dk) ?? { tractate: c.tractate, page: c.page, segs: [], seen: new Set<number>() };
+    if (!g.seen.has(c.seg)) { g.seen.add(c.seg); g.segs.push(c.seg); }
     groups.set(dk, g);
   }
-  return [...groups.values()];
+  return [...groups.values()].map(({ tractate, page, segs }) => ({ tractate, page, segs }));
 }
 
 /** Bridge from the existing CrossDafAnchor target shape

@@ -17,7 +17,7 @@
  * bespoke encoding.
  */
 
-import { dafCoord, type AnchorCoord, type DafRef } from './coord.ts';
+import { dafCoord, spineCoord, coordForSeg, type AnchorCoord, type DafRef } from './coord.ts';
 import { coordLabel } from './types.ts';
 
 /** The kinds of link the system models. This is the SAME relation set the
@@ -31,15 +31,30 @@ export type LinkRelation =
   | 'depends-on'
   | 'parallels'
   | 'contrasts'
-  | 'generalizes';
+  | 'generalizes'
+  // A commentary spine (Rashi / Tosafot / a rishon) glossing the daf text it
+  // sits over. Not a flow relation — it's the cross-spine edge from a
+  // commentary spine into the Gemara. See `glossLinks`.
+  | 'glosses';
 
 /** Runtime membership test for the LinkRelation union (for validating an
  *  untyped `kind` string from an enrichment's JSON output). */
 const LINK_RELATIONS: ReadonlySet<string> = new Set<LinkRelation>([
-  'cites', 'continues', 'resolves', 'depends-on', 'parallels', 'contrasts', 'generalizes',
+  'cites', 'continues', 'resolves', 'depends-on', 'parallels', 'contrasts', 'generalizes', 'glosses',
 ]);
 export function isLinkRelation(kind: string): kind is LinkRelation {
   return LINK_RELATIONS.has(kind);
+}
+
+/** The subset of relations the argument-overview FLOW graph can emit between
+ *  sections. Excludes `cites` (a citation, not a flow edge) and `glosses` (the
+ *  cross-spine commentary edge) so `flowLinks` can't promote either to a
+ *  `via: 'flow'` link from stray cached flow data. */
+const FLOW_RELATIONS: ReadonlySet<string> = new Set<LinkRelation>([
+  'continues', 'resolves', 'depends-on', 'parallels', 'contrasts', 'generalizes',
+]);
+function isFlowRelation(kind: string): kind is LinkRelation {
+  return FLOW_RELATIONS.has(kind);
 }
 
 export interface Link {
@@ -110,11 +125,43 @@ export function flowLinks(
 ): FlowLink[] {
   const out: FlowLink[] = [];
   for (const e of edges) {
-    if (!isLinkRelation(e.kind) || e.from === e.to) continue;
+    if (!isFlowRelation(e.kind) || e.from === e.to) continue;
     const source = coordOf(e.from);
     const target = coordOf(e.to);
     if (!source || !target) continue;
     out.push({ source, link: { relation: e.kind, targets: [target] } });
+  }
+  return out;
+}
+
+/** The minimal shape `glossLinks` needs from a commentary work — kept
+ *  structural so this lib doesn't depend on the worker's `CommentaryWork`. Each
+ *  comment carries the daf segment index it glosses (the Sefaria anchor). */
+export interface CommentaryWorkLike {
+  title: string;
+  comments: readonly { anchorSegIdx: number }[];
+}
+
+/**
+ * Express a daf's commentary as Links — the cross-spine edges the framework's
+ * "commentary spines" step adds. Each commentary work (Rashi, Tosafot, a
+ * rishon) becomes ONE link sourced on its own spine ({@link spineCoord}) and
+ * targeting the deduped daf segments it glosses, under relation 'glosses'. One
+ * link per work (not per comment) keeps the daf-level graph compact: "Rashi
+ * glosses segs 0,1,4 of this daf." Works with no resolvable anchor segment are
+ * dropped. This lifts the bespoke `CommentaryAnchorIndex` (segToPieces /
+ * pieceToSegs) into the same Link vocabulary as citations, bridges, and flow.
+ */
+export function glossLinks(daf: DafRef, works: readonly CommentaryWorkLike[]): FlowLink[] {
+  const out: FlowLink[] = [];
+  for (const work of works) {
+    const segs = new Set<number>();
+    for (const cm of work.comments) {
+      if (typeof cm.anchorSegIdx === 'number' && cm.anchorSegIdx >= 0) segs.add(cm.anchorSegIdx);
+    }
+    if (segs.size === 0) continue;
+    const targets = [...segs].sort((a, b) => a - b).map((s) => coordForSeg(daf, s));
+    out.push({ source: spineCoord(work.title, daf), link: { relation: 'glosses', targets } });
   }
   return out;
 }
