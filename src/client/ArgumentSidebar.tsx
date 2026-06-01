@@ -841,22 +841,40 @@ function ArgumentOverviewBody(props: {
       } catch { return []; }
     },
   );
-  // Distinct other-daf pages this daf cites, in first-seen order.
-  const citedPages = (): { tractate: string; page: string; label: string }[] => {
+  // The daf's connections, ALL from the unified /api/links layer, rendered
+  // uniformly: cross-daf links (cites + continues + any off-daf flow) grouped by
+  // relation as navigable chips, plus a compact count of the within-daf flow
+  // (whose detailed view is the maps above). Retires the old cites-only list.
+  const relLabel = (rel: string): string => t(`link.rel.${rel}` as Parameters<typeof t>[0]);
+  const crossDafByRelation = (): { relation: string; pages: { tractate: string; page: string; label: string }[] }[] => {
+    const byRel = new Map<string, { tractate: string; page: string; label: string }[]>();
     const seen = new Set<string>();
-    const out: { tractate: string; page: string; label: string }[] = [];
     for (const l of links() ?? []) {
-      if (l.relation !== 'cites') continue;
       for (const tgt of l.targets) {
-        if (tgt.tractate === props.tractate && tgt.page === props.page) continue; // self
-        const k = `${tgt.tractate}|${tgt.page}`;
+        if (tgt.tractate === props.tractate && tgt.page === props.page) continue; // same daf → not here
+        const k = `${l.relation}|${tgt.tractate}|${tgt.page}`;
         if (seen.has(k)) continue;
         seen.add(k);
-        out.push({ tractate: tgt.tractate, page: tgt.page, label: tgt.seg >= 0 ? `${tgt.tractate} ${tgt.page}:${tgt.seg}` : `${tgt.tractate} ${tgt.page}` });
+        const label = tgt.seg >= 0 ? `${tgt.tractate} ${tgt.page}:${tgt.seg}` : `${tgt.tractate} ${tgt.page}`;
+        const arr = byRel.get(l.relation) ?? [];
+        arr.push({ tractate: tgt.tractate, page: tgt.page, label });
+        byRel.set(l.relation, arr);
       }
     }
-    return out;
+    return [...byRel.entries()].map(([relation, pages]) => ({ relation, pages }));
   };
+  const withinFlowCounts = (): { relation: string; count: number }[] => {
+    const byRel = new Map<string, number>();
+    for (const l of links() ?? []) {
+      if (l.via !== 'flow') continue;
+      for (const tgt of l.targets) {
+        if (tgt.tractate !== props.tractate || tgt.page !== props.page) continue; // within-daf only
+        byRel.set(l.relation, (byRel.get(l.relation) ?? 0) + 1);
+      }
+    }
+    return [...byRel.entries()].map(([relation, count]) => ({ relation, count }));
+  };
+  const hasConnections = (): boolean => crossDafByRelation().length > 0 || withinFlowCounts().length > 0;
   const goToDaf = (tractate: string, page: string): void => {
     const u = new URL(window.location.href);
     u.searchParams.set('tractate', tractate);
@@ -930,26 +948,39 @@ function ArgumentOverviewBody(props: {
           );
         }}</For>
       </Show>
-      <Show when={citedPages().length > 0}>
+      <Show when={hasConnections()}>
         <div style={{ 'margin-top': '0.7rem', 'border-top': '1px solid #f0f0f0', 'padding-top': '0.55rem' }}>
           <div style={{
             'font-size': '0.65rem', 'text-transform': 'uppercase', 'letter-spacing': '0.05em',
             color: '#9ca3af', 'margin-bottom': '0.35rem',
-          }}>{t('overview.crossRefs')}</div>
-          <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.3rem' }}>
-            <For each={citedPages()}>{(p) => (
-              <a
-                href="#"
-                onClick={(e) => { e.preventDefault(); goToDaf(p.tractate, p.page); }}
-                title={t('overview.goToDaf', { daf: p.label })}
-                style={{
-                  'font-size': '0.72rem', color: '#1d4ed8', 'text-decoration': 'none',
-                  background: '#eff6ff', border: '1px solid #dbeafe', 'border-radius': '5px',
-                  padding: '0.12rem 0.4rem', 'white-space': 'nowrap',
-                }}
-              >{p.label}</a>
-            )}</For>
-          </div>
+          }}>{t('overview.connections')}</div>
+          {/* Cross-daf links, grouped by relation — each navigable. */}
+          <For each={crossDafByRelation()}>{(grp) => (
+            <div style={{ display: 'flex', 'align-items': 'baseline', 'flex-wrap': 'wrap', gap: '0.3rem', 'margin-bottom': '0.25rem' }}>
+              <span style={{
+                'font-size': '0.62rem', 'text-transform': 'uppercase', 'letter-spacing': '0.05em',
+                color: '#9ca3af', 'flex-shrink': 0,
+              }}>{relLabel(grp.relation)}</span>
+              <For each={grp.pages}>{(p) => (
+                <a
+                  href="#"
+                  onClick={(e) => { e.preventDefault(); goToDaf(p.tractate, p.page); }}
+                  title={t('overview.goToDaf', { daf: p.label })}
+                  style={{
+                    'font-size': '0.72rem', color: '#1d4ed8', 'text-decoration': 'none',
+                    background: '#eff6ff', border: '1px solid #dbeafe', 'border-radius': '5px',
+                    padding: '0.12rem 0.4rem', 'white-space': 'nowrap',
+                  }}
+                >{p.label}</a>
+              )}</For>
+            </div>
+          )}</For>
+          {/* Within-daf flow — the detail is in the maps above; here just a count. */}
+          <Show when={withinFlowCounts().length > 0}>
+            <div style={{ 'font-size': '0.66rem', color: '#9ca3af', 'margin-top': '0.2rem' }}>
+              {t('overview.withinFlow')}: {withinFlowCounts().map((f) => `${f.count} ${relLabel(f.relation)}`).join(' · ')}
+            </div>
+          </Show>
         </div>
       </Show>
     </Panel>
