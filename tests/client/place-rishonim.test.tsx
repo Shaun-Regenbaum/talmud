@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { render } from '@solidjs/testing-library';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { PLACES_HINT, PlaceChips, RishonimBody, type PlaceInstance, type RishonimInstance } from '../../src/client/ArgumentSidebar';
-import { SidebarPanelFromHint } from '../../src/client/sidebar/primitives';
+import { PLACES_HINT, PlaceChips, RISHONIM_RECIPE, RISHONIM_BLOCKS, rishonimDisplayInstance, rishonimSynthInstance, type PlaceInstance, type RishonimInstance } from '../../src/client/ArgumentSidebar';
+import { SidebarPanelFromHint, SidebarCardFromHint } from '../../src/client/sidebar/primitives';
 import { setLang, t } from '../../src/client/i18n';
 
 beforeEach(() => {
@@ -30,13 +30,23 @@ describe('place panel (generic hint adapter + place chips)', () => {
   });
 });
 
-describe('RishonimBody', () => {
+describe('Rishonim recipe card', () => {
   const inst: RishonimInstance = {
     segIdx: 6,
     fields: { works: ['Rashi', 'Tosafot'], commentCount: 3, comments: [] },
   };
   it('renders the segment title, a counts meta line, and the primary-sources label', () => {
-    const { container } = render(() => <RishonimBody instance={inst} tractate="Shabbat" page="125b" />);
+    const { container } = render(() => (
+      <SidebarCardFromHint
+        recipe={RISHONIM_RECIPE}
+        instance={rishonimDisplayInstance(inst)}
+        synthInstance={rishonimSynthInstance(inst)}
+        instanceKey={`rishonim:Shabbat:125b:${inst.segIdx}`}
+        tractate="Shabbat"
+        page="125b"
+        specialBlocks={RISHONIM_BLOCKS}
+      />
+    ));
     const h3 = container.querySelector('h3')!;
     expect(h3.textContent).toContain(t('rishonim.onSegment', { n: 7 }));
     // counts moved to the meta line below the title
