@@ -17,7 +17,7 @@ import { adjacentAmud } from '../lib/sefref/amudim';
 import { dafRefHe, pageLabelHe } from '../lib/sefref/tractates';
 import { selectSectionMoves } from '../lib/argumentMoves';
 import { t, lang } from './i18n';
-import { ACCENTS, HebrewProse, Panel, QASection, SectionCard, Synthesis, SidebarPanelFromHint, SidebarCardFromHint, kindLabelKey, type SidebarHint, type SidebarRecipe, type SpecialBlockProps } from './sidebar/primitives';
+import { ACCENTS, HebrewProse, Panel, QASection, SectionCard, Synthesis, SidebarPanelFromHint, SidebarCardFromHint, setActiveRecipe, kindLabelKey, type SidebarHint, type SidebarRecipe, type SpecialBlockProps } from './sidebar/primitives';
 import { InspectDot } from './MarkEnrichmentCards';
 
 /** Localize an era date-range ("c. 290 – 320 CE") for Hebrew display. */
@@ -1674,6 +1674,14 @@ export const AGGADATA_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Eleme
   'aggadata-parallels': AggadataParallels,
 };
 
+/** Which sidebar kinds are recipe-driven today (the rest are still bespoke
+ *  *Body components). The single source of truth for both the dispatch and the
+ *  dev shelf's Recipe panel — adding an entry here as a card is converted makes
+ *  it light up in the shelf automatically. */
+export const RECIPES_BY_KIND: Partial<Record<SidebarContent['kind'], SidebarRecipe>> = {
+  aggadata: AGGADATA_RECIPE,
+};
+
 /** The mark-instance shape the aggadata extractor emits (mark_input for leaves). */
 export function aggadataInstance(story: AggadataStory): { fields: Record<string, unknown>; startSegIdx: number; endSegIdx: number } {
   return {
@@ -1819,6 +1827,14 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
   };
   window.addEventListener('keydown', onKey);
   onCleanup(() => window.removeEventListener('keydown', onKey));
+
+  // Publish the open card's recipe for the dev shelf's Recipe panel (null when
+  // no card is open or the open card is still a bespoke *Body). Single writer.
+  createEffect(() => {
+    const content = props.content;
+    setActiveRecipe(content ? (RECIPES_BY_KIND[content.kind] ?? null) : null);
+  });
+  onCleanup(() => setActiveRecipe(null));
 
   return (
     <Show when={props.content}>

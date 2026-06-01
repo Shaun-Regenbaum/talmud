@@ -355,6 +355,52 @@ export interface SidebarRecipe {
   sections: SectionSpec[];
 }
 
+/** A flat, render-ready description of a recipe for the dev shelf's Recipe panel.
+ *  Pure (no reactivity) so it's unit-testable and the panel needn't know the
+ *  SectionSpec union internals. */
+export interface RecipeSectionInfo {
+  n: number;
+  type: SectionSpec['type'];
+  /** What the section pulls from — field name(s), the dep/leaf id, or the block
+   *  name. null for self-contained sections (synthesis, qa). The dep id doubles
+   *  as the `leafId` you'd open in the inspect drawer. */
+  target: string | null;
+  /** True only for `special` blocks: genuinely-custom code, not a standard type. */
+  custom: boolean;
+}
+export interface RecipeInfo {
+  kind: SidebarKind;
+  markId: string;
+  header: string;
+  sections: RecipeSectionInfo[];
+}
+export function describeRecipe(recipe: SidebarRecipe): RecipeInfo {
+  const header = recipe.titleHeField
+    ? `${recipe.titleField} / ${recipe.titleHeField}`
+    : recipe.titleField;
+  const sections = recipe.sections.map((s, i): RecipeSectionInfo => {
+    const n = i + 1;
+    switch (s.type) {
+      case 'tags': return { n, type: s.type, target: s.fields.join(', '), custom: false };
+      case 'prose': return { n, type: s.type, target: s.field, custom: false };
+      case 'synthesis': return { n, type: s.type, target: null, custom: false };
+      case 'explainer': return { n, type: s.type, target: s.dep, custom: false };
+      case 'qa': return { n, type: s.type, target: null, custom: false };
+      case 'special': return { n, type: s.type, target: s.block, custom: true };
+    }
+  });
+  return { kind: recipe.kind, markId: recipe.markId, header, sections };
+}
+
+/** The recipe of the currently-open sidebar card, published for the dev shelf's
+ *  Recipe panel. null when no card is open OR the open card is still a bespoke
+ *  (un-converted) *Body — so the panel doubles as a conversion scoreboard: a
+ *  card 'lights up' here the moment it becomes recipe-driven. ArgumentSidebar's
+ *  dispatch is the single writer (see RECIPES_BY_KIND). */
+const [activeRecipeSig, setActiveRecipeSig] = createSignal<SidebarRecipe | null>(null);
+export function activeRecipe(): SidebarRecipe | null { return activeRecipeSig(); }
+export function setActiveRecipe(r: SidebarRecipe | null): void { setActiveRecipeSig(r); }
+
 /**
  * Render a card from its recipe. Draws the Panel header, holds one shared `deps`
  * signal that the `synthesis` section fills via onResolved, then walks the
