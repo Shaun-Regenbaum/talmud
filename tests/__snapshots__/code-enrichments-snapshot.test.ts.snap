@@ -7,7 +7,7 @@ exports[`CODE_ENRICHMENTS cache identity > per-enrichment fingerprint is stable 
   "aggadata.parallels@1 mode=augment-content scope=global mark=aggadata schema=aggadata_parallels[parallels,prose] deps=[]",
   "aggadata.qa@1 mode=augment-content scope=local mark=aggadata schema=aggadata_qa[answer,confidence] deps=[gemara|commentaries|e:aggadata.background|e:aggadata.interpretation|e:aggadata.parallels|e:aggadata.synthesis|m:aggadata]",
   "aggadata.suggested-questions@1 mode=augment-content scope=local mark=aggadata schema=aggadata_suggested_questions[questions] deps=[gemara|m:aggadata|e:aggadata.synthesis]",
-  "aggadata.synthesis@1 mode=aggregate scope=local mark=aggadata schema=aggadata_synthesis[synthesis] deps=[gemara|e:aggadata.background|e:aggadata.interpretation|e:aggadata.parallels|m:rabbi|m:aggadata]",
+  "aggadata.synthesis@2 mode=aggregate scope=local mark=aggadata schema=aggadata_synthesis[synthesis] deps=[gemara|e:aggadata.background|e:aggadata.interpretation|e:aggadata.parallels|m:rabbi|m:aggadata]",
   "argument-move.commentaries@2 mode=augment-content scope=local mark=argument-move schema=argument_move_commentaries[rashi,tosafot,other,note] deps=[gemara|commentaries]",
   "argument-move.qa@5 mode=augment-content scope=local mark=argument-move schema=argument_move_qa[answer,confidence] deps=[gemara|e:argument-move.synthesis|e:argument-move.commentaries|m:argument-move]",
   "argument-move.suggested-questions@3 mode=augment-content scope=local mark=argument-move schema=argument_move_suggested_questions[questions] deps=[gemara|m:argument-move|e:argument-move.synthesis]",
