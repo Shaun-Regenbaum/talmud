@@ -4,6 +4,7 @@ import { TRACTATE_OPTIONS, dafRefHe } from '../lib/sefref';
 import { DafRenderer } from '../lib/daf-render';
 import { tokenizeHebrewHtml } from './tokenize';
 import { TranslationPopup } from './TranslationPopup';
+import { HighlightNotePopover, NotesPanel } from './UserHighlightUI';
 import type {
   DafAnalysis, Section,
   HalachaResult, HalachaTopic,
@@ -16,6 +17,15 @@ import { injectHadran } from './injectHadran';
 import { ensureMasechetIncipit } from './ensureMasechetIncipit';
 import { injectAnchorMarkers, injectOpinionMarkers, injectAggadataAnchors, injectPesukimAnchors } from './anchorMarkers';
 import { buildTokenRange } from './highlightRange';
+import {
+  type UserHighlight,
+  bgForColor,
+  loadUserHighlights,
+  saveUserHighlights,
+  highlightCoversWord,
+  buildHighlight,
+  wordCoordFromTarget,
+} from './userHighlights';
 import { GutterIcons, type GutterKind } from './GutterIcons';
 import { GutterOverlay } from './GutterOverlay';
 import { ArgumentSidebar, type SidebarContent, type PlaceInstance } from './ArgumentSidebar';
@@ -111,7 +121,7 @@ function paintRangeOverlay(
   overlay: HTMLElement,
   origin: HTMLElement,
   ranges: Range[],
-  kind: 'section' | 'halacha' | 'aggadata' | 'pesuk' | 'rishonim' | 'move' | 'commentary' | 'commentary-active' | 'comm-anchor',
+  kind: 'section' | 'halacha' | 'aggadata' | 'pesuk' | 'rishonim' | 'move' | 'commentary' | 'commentary-active' | 'comm-anchor' | 'user',
   /** Optional per-range inline background color. */
   bgFor?: (rangeIdx: number) => string | undefined,
 ): void {
@@ -835,6 +845,118 @@ export default function DafViewer(): JSX.Element {
   // Ref to the DafRenderer's .daf-root — resolved imperatively because
   // DafRenderer renders it internally.
   const [dafRootEl, setDafRootEl] = createSignal<HTMLElement | null>(null);
+
+  // ── User pieces — personal highlights + notes (client-only) ──────────────
+  // Stored in localStorage per (tractate, page), re-painted through the same
+  // overlay machinery as the worker-anchored pieces. No backend, no auth.
+  const [userHighlights, setUserHighlights] = createSignal<UserHighlight[]>([]);
+  // An existing highlight opened (by clicking it) for view/edit/delete.
+  const [openHighlight, setOpenHighlight] = createSignal<{
+    id: string;
+    rect: { left: number; top: number; bottom: number };
+  } | null>(null);
+  const [showNotesList, setShowNotesList] = createSignal(false);
+  // Pending "scroll then open popover" timer from the notes panel (see
+  // jumpToHighlight); cleared on daf change / unmount.
+  let jumpTimer: ReturnType<typeof setTimeout> | undefined;
+
+  // Load this daf's saved highlights whenever the daf changes.
+  createEffect(() => {
+    const t = tractate();
+    const p = page();
+    setUserHighlights(loadUserHighlights(t, p));
+    setOpenHighlight(null);
+    setShowNotesList(false);
+    if (jumpTimer) { clearTimeout(jumpTimer); jumpTimer = undefined; }
+  });
+
+  // Persist on every mutation (untrack the daf identity — the load effect owns
+  // switching dapim; this one only mirrors in-memory changes to storage).
+  const persistHighlights = (next: UserHighlight[]) => {
+    setUserHighlights(next);
+    saveUserHighlights(tractate(), page(), next);
+  };
+  const addHighlight = (h: UserHighlight) => persistHighlights([...userHighlights(), h]);
+  const deleteHighlight = (id: string) =>
+    persistHighlights(userHighlights().filter((h) => h.id !== id));
+  const updateHighlightNote = (id: string, note: string) =>
+    persistHighlights(userHighlights().map((h) => (h.id === id ? { ...h, note } : h)));
+
+  // The main-text `.daf-text` column, or null when the daf isn't mounted.
+  const mainTextCol = (): HTMLElement | null => {
+    const root = dafRootEl();
+    if (!root) return null;
+    const dafRootDiv = root.querySelector<HTMLElement>('.daf-root') ?? root;
+    return dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
+  };
+
+  // Resolve the currently-active selection (from `active().els`) to a user-
+  // highlight word-range. Returns null when the selection isn't inside the
+  // main text column (e.g. a Rashi/Tosafot word) — those aren't highlightable.
+  const highlightCoordsForActive = ():
+    | { startSeg: number; startTok: number; endSeg: number; endTok: number; text: string }
+    | null => {
+    const a = active();
+    if (!a || a.els.length === 0) return null;
+    const mainCol = mainTextCol();
+    if (!mainCol) return null;
+    const first = a.els[0];
+    const last = a.els[a.els.length - 1];
+    const s = wordCoordFromTarget(first, mainCol);
+    const e = wordCoordFromTarget(last, mainCol);
+    if (!s || !e) return null;
+    const text = a.els.map((el) => el.textContent ?? '').join(' ').replace(/\s+/g, ' ').trim();
+    return { startSeg: s.seg, startTok: s.tok, endSeg: e.seg, endTok: e.tok, text };
+  };
+
+  // A plain click on a word already covered by a personal highlight opens that
+  // highlight's note popover (view/edit/delete) instead of translating it.
+  // Returns true when it consumed the click.
+  const tryOpenUserHighlight = (wordEl: HTMLElement, e: MouseEvent): boolean => {
+    const mainCol = mainTextCol();
+    if (!mainCol || !mainCol.contains(wordEl)) return false;
+    const wc = wordCoordFromTarget(wordEl, mainCol);
+    if (!wc) return false;
+    // Search newest-first so an overlap opens the highlight painted on top
+    // (highlights paint in array order; later entries sit above earlier ones).
+    const list = userHighlights();
+    let hit: UserHighlight | undefined;
+    for (let i = list.length - 1; i >= 0; i--) {
+      if (highlightCoversWord(list[i], wc.seg, wc.tok)) { hit = list[i]; break; }
+    }
+    if (!hit) return false;
+    const r = wordEl.getBoundingClientRect();
+    setOpenHighlight({ id: hit.id, rect: { left: r.left, top: r.top, bottom: r.bottom } });
+    clearActive();
+    e.stopPropagation();
+    return true;
+  };
+
+  // From the notes panel: scroll the highlight into view + open its popover.
+  const jumpToHighlight = (h: UserHighlight) => {
+    setShowNotesList(false);
+    const mainCol = mainTextCol();
+    if (!mainCol) return;
+    const range = buildTokenRange(mainCol, h.startSeg, h.endSeg, h.startTok, h.endTok);
+    if (!range) return;
+    const r = range.getBoundingClientRect();
+    const desiredTop = window.innerHeight * 0.3;
+    window.scrollBy({ top: r.top - desiredTop, behavior: 'smooth' });
+    // Re-measure after the scroll settles so the popover lands on the word.
+    if (jumpTimer) clearTimeout(jumpTimer);
+    jumpTimer = setTimeout(() => {
+      jumpTimer = undefined;
+      // The daf may have changed during the scroll — only open if this
+      // highlight is still live on the current page.
+      if (!userHighlights().some((x) => x.id === h.id)) return;
+      const r2 = range.getBoundingClientRect();
+      setOpenHighlight({ id: h.id, rect: { left: r2.left, top: r2.top, bottom: r2.bottom } });
+    }, 350);
+  };
+  onCleanup(() => {
+    if (jumpTimer) clearTimeout(jumpTimer);
+  });
+
   // Track the un-scaled daf height so the mobile scale wrapper can reserve the
   // correct (scaled) vertical space. offsetHeight is a layout value, so it is
   // unaffected by the CSS transform applied to the same element.
@@ -1476,6 +1598,26 @@ export default function DafViewer(): JSX.Element {
     paintRangeOverlay(overlay, dafRootDiv, moveRanges, 'move');
     paintRangeOverlay(overlay, dafRootDiv, commAnchorRanges, 'comm-anchor');
 
+    // User pieces — personal highlights painted under everything else's logic
+    // but on top visually (appended last). Each carries its own color; paint
+    // in one batch with a per-range bgFor so a single overlay pass covers all.
+    {
+      const mainCol = dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
+      if (mainCol) {
+        const list = userHighlights();
+        const ranges: Range[] = [];
+        const colors: string[] = [];
+        for (const h of list) {
+          const r = buildTokenRange(mainCol, h.startSeg, h.endSeg, h.startTok, h.endTok);
+          if (r) {
+            ranges.push(r);
+            colors.push(bgForColor(h.color));
+          }
+        }
+        paintRangeOverlay(overlay, dafRootDiv, ranges, 'user', (i) => colors[i]);
+      }
+    }
+
     // Per-rabbi name accent (yellow) — always applied on top of any tint.
     if (name) {
       const selector = `.rabbi-underline[data-rabbi="${name.replace(/"/g, '\\"')}"]`;
@@ -1549,6 +1691,7 @@ export default function DafViewer(): JSX.Element {
     void activePlace();
     void argumentMoveHighlight();
     void commAnchorActive();
+    void userHighlights();
     // Defer one frame so layout is settled before we measure client rects.
     queueMicrotask(() => queueMicrotask(applyHighlights));
   });
@@ -2445,11 +2588,15 @@ export default function DafViewer(): JSX.Element {
           const cityName = cityEl.getAttribute('data-city');
           if (cityName) { openPlace(cityName); return; }
         }
+        // A tap on a personal highlight opens its note (long-press selection
+        // produced a non-collapsed range handled earlier, so this is a tap).
+        if (wordEl && tryOpenUserHighlight(wordEl, e)) return;
         return;
       }
       // Translate mode: tap-to-translate, bypassing rabbi/city handlers so
       // the drawer doesn't hijack the popup on rabbi-underlined words.
       if (!wordEl) return;
+      if (tryOpenUserHighlight(wordEl, e)) return;
       if (active()?.els.includes(wordEl)) {
         clearActive();
         return;
@@ -2476,7 +2623,8 @@ export default function DafViewer(): JSX.Element {
     if (!wordEl) return;
     // When a commentary work is active, clicking a word inside one of its
     // anchored segments opens that work's comments for the segment instead of
-    // triggering a translation.
+    // triggering a translation. This takes precedence over the highlight
+    // popover so the commentary-on-click path is preserved.
     if (activeCommentaryWork()) {
       const segAttr = wordEl.getAttribute('data-seg');
       if (segAttr !== null) {
@@ -2487,6 +2635,8 @@ export default function DafViewer(): JSX.Element {
         }
       }
     }
+    // A click on an existing personal highlight opens its note popover.
+    if (tryOpenUserHighlight(wordEl, e)) return;
     setActiveFromWordEls([wordEl], e);
   };
 
@@ -2758,8 +2908,74 @@ export default function DafViewer(): JSX.Element {
             hebrewAfter={a().hebrewAfter}
             segIdx={a().segIdx}
             onClose={clearActive}
+            onHighlight={
+              highlightCoordsForActive()
+                ? (color, note) => {
+                    const c = highlightCoordsForActive();
+                    if (c) addHighlight(buildHighlight(c, { color, note }));
+                    clearActive();
+                  }
+                : undefined
+            }
           />
         )}
+      </Show>
+
+      <Show when={openHighlight()}>
+        {(oh) => {
+          const hl = () => userHighlights().find((h) => h.id === oh().id);
+          return (
+            <Show when={hl()}>
+              {(h) => (
+                <HighlightNotePopover
+                  highlight={h()}
+                  anchor={oh().rect}
+                  onSave={(note) => updateHighlightNote(h().id, note)}
+                  onDelete={() => {
+                    deleteHighlight(h().id);
+                    setOpenHighlight(null);
+                  }}
+                  onClose={() => setOpenHighlight(null)}
+                />
+              )}
+            </Show>
+          );
+        }}
+      </Show>
+
+      <Show when={!isMobile() && userHighlights().length > 0}>
+        <button
+          type="button"
+          onClick={() => setShowNotesList((v) => !v)}
+          title={t('highlight.notesTitle')}
+          style={{
+            position: 'fixed',
+            right: '1rem',
+            bottom: '1rem',
+            'z-index': '1000',
+            padding: '0.4rem 0.8rem',
+            'border-radius': '999px',
+            border: '1px solid #d0d0d0',
+            background: '#fff',
+            'box-shadow': '0 2px 8px rgba(0,0,0,0.12)',
+            cursor: 'pointer',
+            'font-size': '0.8rem',
+            'font-weight': 600,
+            'font-family': 'system-ui, -apple-system, sans-serif',
+            color: '#444',
+          }}
+        >
+          {t('highlight.notesToggle')} ({userHighlights().length})
+        </button>
+      </Show>
+
+      <Show when={!isMobile() && showNotesList()}>
+        <NotesPanel
+          highlights={userHighlights()}
+          onJump={jumpToHighlight}
+          onDelete={deleteHighlight}
+          onClose={() => setShowNotesList(false)}
+        />
       </Show>
 
       <BugReport tractate={tractate()} page={page()} />
