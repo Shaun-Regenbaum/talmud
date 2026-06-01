@@ -165,7 +165,74 @@ function instancesOf(parsed: unknown): RangeInstance[] {
  *  itself rejects <2-word needles as too ambiguous). Severity is per kind:
  *  anchor-out-of-range is always `hard` (an index past the daf is never a false
  *  positive); excerpt-not-in-segment is `hard` only on the pesukim/aggadata
- *  marks (see severityOf). */
+ *  marks (see severityOf).
+ *
+ *  The exact prefix match still false-positives on two shapes the matcher can't
+ *  see: malé/ḥaser spelling variants (normalizeHebrew strips nikud but NOT the
+ *  vav/yod matres — מצות vs מצוות) and a lightly-paraphrased OPENING (the tail
+ *  is already tolerated by prefixing, but a reworded first word breaks every
+ *  prefix). So when the exact match misses, fall back to a fuzzy presence test:
+ *  the excerpt is "present" if, at some start offset, ≥FUZZY_PRESENCE_FLOOR of
+ *  its content words align POSITIONALLY with consecutive segment words under an
+ *  edit-distance-1 token match. Ordered alignment (not bag-of-words) stops a
+ *  reordered/scattered set of common words from passing. The fallback relaxes
+ *  only SOFT flags — on the hard pesukim/aggadata path it stays exact, so a
+ *  genuinely mis-anchored excerpt still gates the cache — and never touches the
+ *  placer, so it cannot regress placement or the golden anchors. */
+
+/** Within `max` single-char edits (insert/delete/substitute)? Specialized for
+ *  max=1 — the common malé/ḥaser (single vav/yod) distance — with an early exit
+ *  rather than a full DP table. */
+function withinEdits(a: string, b: string, max: number): boolean {
+  if (a === b) return true;
+  const la = a.length, lb = b.length;
+  if (Math.abs(la - lb) > max) return false;
+  if (la === lb) {
+    let diff = 0;
+    for (let i = 0; i < la; i++) if (a[i] !== b[i] && ++diff > max) return false;
+    return true;
+  }
+  // lengths differ by one: is the shorter the longer with a single deletion?
+  const [short, long] = la < lb ? [a, b] : [b, a];
+  let i = 0, j = 0, skips = 0;
+  while (i < short.length && j < long.length) {
+    if (short[i] === long[j]) { i++; j++; }
+    else if (++skips > max) return false;
+    else j++;
+  }
+  return true;
+}
+
+/** Fraction of the excerpt's content words (≥2 chars) that must align under the
+ *  positional fuzzy match for the excerpt to count as present. 0.6 keeps 2-word
+ *  excerpts strict (both words required) while tolerating ~40% drift on longer
+ *  ones. */
+export const FUZZY_PRESENCE_FLOOR = 0.6;
+
+/** Ordered, contiguous fuzzy presence: is there a start offset where the
+ *  excerpt's content words line up positionally with consecutive segment words
+ *  (each within one edit) for at least FUZZY_PRESENCE_FLOOR of them? Positional
+ *  alignment — not bag-of-words — so a scattered/reordered handful of common
+ *  words can't pass. Only ever used to suppress a SOFT flag (see call site). */
+function fuzzyPresent(excerpt: string, segWords: string[]): boolean {
+  const exWords = normalizeHebrew(excerpt).split(' ').filter((w) => w.length >= 2);
+  if (exWords.length === 0) return false;
+  const need = Math.ceil(exWords.length * FUZZY_PRESENCE_FLOOR);
+  for (let start = 0; start < segWords.length; start++) {
+    let matched = 0;
+    // Out-of-range positions (a window running past the segment end) simply stop
+    // the loop — they never count as matches, so `matched` is honest. A pass at
+    // the tail therefore means the excerpt's OPENING aligns here and the rest
+    // spills into the next segment: the same boundary-spill the prefix matcher
+    // already tolerates, intentionally kept.
+    for (let k = 0; k < exWords.length && start + k < segWords.length; k++) {
+      if (withinEdits(exWords[k], segWords[start + k], 1)) matched++;
+    }
+    if (matched >= need) return true;
+  }
+  return false;
+}
+
 const anchorVerbatim: PostCheck = {
   id: 'anchor-verbatim',
   phase: 'validate',
@@ -182,10 +249,16 @@ const anchorVerbatim: PostCheck = {
         issues.push({ kind: 'anchor-out-of-range', severity: severityOf('anchor-out-of-range', ctx.defId), match: excerpt, index: typeof seg === 'number' ? seg : -1 });
         continue;
       }
-      // Confine the search to the single anchored segment: a hit there is the
-      // same prefix the placer would have matched to land on this segment.
-      if (!findExcerpt(grid, excerpt, seg, seg)) {
-        issues.push({ kind: 'excerpt-not-in-segment', severity: severityOf('excerpt-not-in-segment', ctx.defId), match: excerpt, index: seg });
+      // Confine the search to the single anchored segment: an exact prefix hit
+      // there is the same one the placer matched to land here. On a miss, the
+      // fuzzy fallback absorbs spelling/opening-paraphrase variants — but only
+      // for SOFT flags; the hard pesukim/aggadata path stays exact so a genuine
+      // mis-anchor still gates the cache.
+      const sev = severityOf('excerpt-not-in-segment', ctx.defId);
+      const present = !!findExcerpt(grid, excerpt, seg, seg)
+        || (sev === 'soft' && fuzzyPresent(excerpt, grid.segWords[seg]));
+      if (!present) {
+        issues.push({ kind: 'excerpt-not-in-segment', severity: sev, match: excerpt, index: seg });
       }
     }
     return { issues };

@@ -84,6 +84,45 @@ describe('anchor-verbatim', () => {
     expect(kinds(issues)).toEqual(['excerpt-not-in-segment']);
     expect(issues[0].index).toBe(1);
   });
+
+  // Fuzzy fallback: an excerpt genuinely present but with a malé/ḥaser spelling
+  // variant or a reworded opening (which breaks every exact prefix) must not be
+  // flagged — the words are there.
+  it('does NOT flag a malé/ḥaser spelling variant present in the segment (fuzzy fallback)', async () => {
+    // seg0 has the full spelling "העולם"; the excerpt drops the vav ("העלם").
+    const fuzzy = ['כל העולם כולו'];
+    const parsed = { instances: [{ startSegIdx: 0, fields: { excerpt: 'כל העלם' } }] };
+    const { issues } = await runChecks(['anchor-verbatim'], parsed, ctx({ segmentsHe: fuzzy, defId: 'argument-move' }));
+    expect(issues).toEqual([]);
+  });
+
+  it('does NOT flag a reworded opening when the rest of the words are present (fuzzy fallback)', async () => {
+    // seg2 is "אמר רבא הלכה כרבי"; excerpt opens "ואמר" (extra vav) so no exact
+    // prefix matches, but 3/3 words are present within one edit.
+    const parsed = { instances: [{ startSegIdx: 2, fields: { excerpt: 'ואמר רבא הלכה' } }] };
+    const { issues } = await runChecks(['anchor-verbatim'], parsed, ctx({ segmentsHe: segs, defId: 'argument-move' }));
+    expect(issues).toEqual([]);
+  });
+
+  it('still flags when only a single common word overlaps (fuzzy fallback does not over-suppress)', async () => {
+    // seg2 "אמר רבא הלכה כרבי": the excerpt shares only "אמר"; 1/3 < floor.
+    const parsed = { instances: [{ startSegIdx: 2, fields: { excerpt: 'אמר אביי בגמרא' } }] };
+    const { issues } = await runChecks(['anchor-verbatim'], parsed, ctx({ segmentsHe: segs, defId: 'argument-move' }));
+    expect(kinds(issues)).toEqual(['excerpt-not-in-segment']);
+  });
+
+  it('does NOT apply the fuzzy fallback on the hard pesukim/aggadata path (exact-only, still gates)', async () => {
+    // 'ואמר רבא הלכה' would fuzzily match seg2 (and is suppressed on the soft
+    // path above) — but on pesukim the kind is HARD, so it stays exact and a
+    // non-verbatim excerpt must still flag to gate the cache.
+    const parsed = { instances: [{ startSegIdx: 2, fields: { excerpt: 'ואמר רבא הלכה' } }] };
+    const pesukim = await runChecks(['anchor-verbatim'], parsed, ctx({ segmentsHe: segs, defId: 'pesukim' }));
+    expect(kinds(pesukim.issues)).toEqual(['excerpt-not-in-segment']);
+    expect(pesukim.issues[0].severity).toBe('hard');
+    // Same excerpt on the soft argument-move path is suppressed by the fallback.
+    const move = await runChecks(['anchor-verbatim'], parsed, ctx({ segmentsHe: segs, defId: 'argument-move' }));
+    expect(move.issues).toEqual([]);
+  });
 });
 
 describe('partition-clean', () => {
