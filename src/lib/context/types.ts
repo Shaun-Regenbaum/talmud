@@ -87,9 +87,11 @@ export function rangeLabel(segs: number[], amud?: 'a' | 'b'): string {
 }
 
 /** One coordinate as a compact citation string: "Pesachim 50a" (daf-level, i.e.
- *  `seg < 0`) or "Pesachim 50a:7" (with a real segment, including segment 0). */
+ *  `seg < 0`) or "Pesachim 50a:7" (with a real segment, including segment 0).
+ *  A commentary-spine coordinate prefixes its spine: "Rashi · Berakhot 2a". */
 export function coordLabel(c: AnchorCoord): string {
-  return c.seg >= 0 ? `${c.tractate} ${c.page}:${c.seg}` : `${c.tractate} ${c.page}`;
+  const daf = c.seg >= 0 ? `${c.tractate} ${c.page}:${c.seg}` : `${c.tractate} ${c.page}`;
+  return c.spine ? `${c.spine} · ${daf}` : daf;
 }
 
 // Citations were rendered here via a `citesLabel` side channel. They are now a

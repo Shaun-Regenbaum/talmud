@@ -839,12 +839,17 @@ app.get('/api/links/:tractate/:page', async (c) => {
   const bridge = await computeDafBridge(c.env, tractate, page).catch(() => null);
   const items = await collectContext(c.env, tractate, page, { sections }).catch(() => []);
   const flowEdges = await readFlowConnections(c.env, tractate, page);
+  // Commentary spines: best-effort (cached 30d). A cold/failed fetch contributes
+  // nothing rather than failing the response — same contract as the others.
+  const commentary = await fetchCommentaryWorks(c.env, tractate, page).catch(() => null);
+  const commentaryWorks = commentary && !('error' in commentary) ? commentary.works : [];
 
   const links = dafLinks(daf, {
     continuesTo: bridge?.continues ? bridge.to : null,
     items,
     flowEdges,
     sectionStartSegs,
+    commentaryWorks,
   });
   return c.json({ tractate, page, count: links.length, links });
 });

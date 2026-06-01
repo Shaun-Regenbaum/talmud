@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { dafLinks } from '../src/lib/context/dafLinks';
-import { dafCoord, coordForSeg } from '../src/lib/context/coord';
+import { dafCoord, coordForSeg, spineCoord } from '../src/lib/context/coord';
 import type { ContextItem } from '../src/lib/context/types';
 
 const DAF = { tractate: 'Shabbat', page: '125b' };
@@ -44,13 +44,27 @@ describe('dafLinks — the unified link layer of a daf', () => {
     ]);
   });
 
-  it('combines all three sources in order: bridge, then cites, then flow', () => {
+  it('emits a commentary gloss link per work, sourced on its spine, targeting the daf segs it glosses', () => {
+    const out = dafLinks(DAF, {
+      continuesTo: null, items: [], flowEdges: [], sectionStartSegs: [],
+      commentaryWorks: [
+        { title: 'Rashi', comments: [{ anchorSegIdx: 2 }, { anchorSegIdx: 0 }] },
+        { title: 'Tosafot', comments: [{ anchorSegIdx: -1 }] }, // no resolvable anchor → dropped
+      ],
+    });
+    expect(out).toEqual([
+      { via: 'commentary', source: spineCoord('Rashi', DAF), relation: 'glosses', targets: [coordForSeg(DAF, 0), coordForSeg(DAF, 2)], note: 'Rashi' },
+    ]);
+  });
+
+  it('combines all sources in order: bridge, cites, flow, then commentary', () => {
     const out = dafLinks(DAF, {
       continuesTo: { tractate: 'Shabbat', page: '126a' },
       items: [item({ segs: [4], refs: [dafCoord({ tractate: 'Pesachim', page: '50a' })] })],
       flowEdges: [{ from: 0, to: 1, kind: 'continues' }],
       sectionStartSegs: [4, 8],
+      commentaryWorks: [{ title: 'Rashi', comments: [{ anchorSegIdx: 4 }] }],
     });
-    expect(out.map((l) => l.via)).toEqual(['bridge', 'context', 'flow']);
+    expect(out.map((l) => l.via)).toEqual(['bridge', 'context', 'flow', 'commentary']);
   });
 });
