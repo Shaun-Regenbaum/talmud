@@ -135,23 +135,60 @@ export function SectionCard(props: {
    *  section's leaf enrichment. `leafId` is the enrichment id that produced
    *  the section (e.g. 'pesukim.tanach-context'). */
   inspect?: { instanceKey: string; leafId: string };
+  /** When set, the body is collapsible behind the label. `true` starts
+   *  collapsed (the "dig deeper" default for explainer cards), `false` starts
+   *  open but still toggleable. Omitted → the original always-open card. */
+  collapsed?: boolean;
 }): JSX.Element {
+  // Signal-driven (not native <details>) so the inspect 'i' — which lives in the
+  // label row and stops propagation — never toggles the fold.
+  const collapsible = (): boolean => props.collapsed != null;
+  const [open, setOpen] = createSignal(props.collapsed !== true);
+  const labelRow = (): JSX.Element => (
+    <div style={{
+      ...SECTION_LABEL,
+      'margin-bottom': open() ? (props.spacing === 'loose' ? '0.5rem' : '0.4rem') : 0,
+      display: 'flex', 'align-items': 'center', gap: '0.4rem',
+    }}>
+      <Show when={collapsible()}>
+        <span style={{ color: '#bbb', 'font-size': '0.7rem', width: '0.7rem', display: 'inline-block', transform: open() ? 'rotate(90deg)' : 'none', transition: 'transform 0.12s' }}>▸</span>
+      </Show>
+      <span>{t(props.label)}</span>
+      <Show when={props.inspect}>
+        {(ins) => <InspectDot instanceKey={ins().instanceKey} leafId={ins().leafId} style={{ 'margin-left': 'auto' }} />}
+      </Show>
+    </div>
+  );
+  const body = (): JSX.Element => (
+    <Show when={props.text != null} fallback={props.children}>
+      <div style={SECTION_PROSE}>
+        <HebraizedWithRabbis text={props.text!} />
+      </div>
+    </Show>
+  );
   return (
     <div style={SECTION_BOX}>
-      <div style={{
-        ...SECTION_LABEL,
-        'margin-bottom': props.spacing === 'loose' ? '0.5rem' : '0.4rem',
-        display: 'flex', 'align-items': 'center', gap: '0.4rem',
-      }}>
-        <span>{t(props.label)}</span>
-        <Show when={props.inspect}>
-          {(ins) => <InspectDot instanceKey={ins().instanceKey} leafId={ins().leafId} style={{ 'margin-left': 'auto' }} />}
-        </Show>
-      </div>
-      <Show when={props.text != null} fallback={props.children}>
-        <div style={SECTION_PROSE}>
-          <HebraizedWithRabbis text={props.text!} />
+      <Show
+        when={collapsible()}
+        fallback={<>{labelRow()}{body()}</>}
+      >
+        {/* clickable label toggles; the inspect 'i' inside stops propagation */}
+        <div
+          onClick={() => setOpen((v) => !v)}
+          role="button"
+          tabindex={0}
+          aria-expanded={open()}
+          onKeyDown={(e) => {
+            // Only the wrapper itself toggles — a keydown bubbled up from the
+            // focused inspect 'i' button must not also flip the fold.
+            if (e.currentTarget !== e.target) return;
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen((v) => !v); }
+          }}
+          style={{ cursor: 'pointer', 'user-select': 'none' }}
+        >
+          {labelRow()}
         </div>
+        <Show when={open()}>{body()}</Show>
       </Show>
     </div>
   );
@@ -338,8 +375,10 @@ export type SectionSpec =
   | { type: 'prose'; field: string }
   /** The synthesis card for the recipe's mark; feeds the shared `deps`. */
   | { type: 'synthesis' }
-  /** A labeled prose box rendering one dependent enrichment's `textField`. */
-  | { type: 'explainer'; dep: string; textField: string; labelKey: CatalogKey }
+  /** A labeled prose box rendering one dependent enrichment's `textField`.
+   *  Collapsed by default (the "dig deeper" layer under the synthesis); set
+   *  `defaultOpen` to lead with it expanded. */
+  | { type: 'explainer'; dep: string; textField: string; labelKey: CatalogKey; defaultOpen?: boolean }
   /** The follow-up Q&A affordance. */
   | { type: 'qa' }
   /** A genuinely-custom block, looked up by name in the card's `specialBlocks`.
@@ -486,7 +525,7 @@ export function SidebarCardFromHint(props: {
         };
         return (
           <Show when={text()}>
-            <SectionCard label={s.labelKey} text={text()} inspect={{ instanceKey: props.instanceKey, leafId: s.dep }} />
+            <SectionCard label={s.labelKey} text={text()} inspect={{ instanceKey: props.instanceKey, leafId: s.dep }} collapsed={!s.defaultOpen} />
           </Show>
         );
       }
