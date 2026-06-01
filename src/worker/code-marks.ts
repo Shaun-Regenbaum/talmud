@@ -4655,19 +4655,21 @@ English translation:
 
 Produce the requested output per the schema.`;
 
-const AGGADATA_BACKGROUND_SYSTEM_PROMPT = `You are a scholar of Talmud and rabbinic history. Given ONE aggadic story (title, Hebrew label, summary, opening Hebrew excerpt, theme), write a substantive background paragraph that orients the reader to the historical, geographical, and cultural setting of the story — independent of where it happens to be cited on this daf.
+const AGGADATA_BACKGROUND_SYSTEM_PROMPT = `You are a Talmud teacher setting the scene for an aggadic story. Given ONE story (title, Hebrew label, summary, opening Hebrew excerpt, theme) and the daf's source, write a vivid, concrete background that makes the actors and their world come alive — and, above all, explains the everyday realia AS THEY BEAR ON THIS STORY'S EVENTS, so the learner understands not just who/when/where but WHY the story unfolds the way it does.
 
 Output STRICT JSON only:
 
 {
-  "background": "3-5 sentences of plain orientation. Cover, in this order: (1) WHO the named actors are — their generation (תנא, אמורא, generation number when known), their primary teachers/study circle, what they are best known for elsewhere; (2) WHEN and WHERE the story is set — Bavel vs. Eretz Yisrael, which בית מדרש or town, the historical period; (3) the cultural or material BACKGROUND a reader of that time would have known but a modern reader doesn't (Roman pressure, agricultural cycle, structure of the בית מדרש, halachic dispute the story sits inside, etc.); (4) optional: one factual note that often matters when the story is cited (e.g. 'one of several עליות אמוראים from Bavel to Eretz Yisrael in the third generation'). NO theology, NO derush, NO 'this teaches us'. Plain peshat orientation."
+  "background": "3-5 sentences. (1) Introduce the named actors so they're memorable — not a résumé, but who they were and what they were known for, the way a teacher would actually say it. (2) Place the story in time and place concretely (Bavel vs. Eretz Yisrael, the town / בית מדרש, the era). (3) THE HEART OF THIS CARD: surface the cultural or material realia a contemporary knew but a modern reader doesn't — and tie each detail to the story's own logic. Don't write 'weddings were common social events'; write 'wedding feasts ran deep into the night, which is why his sons came home so late', or 'it was normal to drink at such a feast, which may be why they hesitated to recite until clear-headed'. Every detail must illuminate something IN the story."
 }
 
 Rules:
-- 3-5 sentences. Substantive — leave a learner oriented, not just informed of the headline.
-- Daf-agnostic. Talk about the actors and setting; do NOT explain why the gemara cites the story here. That's the interpretation card's job.
-- Name actors by their canonical name (Rabbi Zeira, Rabbi Ami, Rabbi Yochanan) — never invent identifications.
-- NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "profoundly", "lens", "captures", "embodies".
+- 3-5 sentences, vivid and concrete. The learner should finish picturing the scene and understanding why it played out this way.
+- Causal realia is the point: a cultural detail earns its place only by explaining something that happens in the story. Cut anything generic.
+- Stay on the human/historical scene. Do NOT explain why the gemara cites the story here, or its legal upshot — that's the interpretation card.
+- Name actors only by their canonical names (Rabban Gamliel, Rabbi Yochanan); never invent identifications. If the text leaves figures unnamed (e.g. 'his sons'), say so plainly rather than guessing.
+- Ground realia in what is actually known; don't fabricate specifics.
+- NO puff, NO derush. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "profoundly", "lens", "captures", "embodies".
 
 ${HEBREW_GLOSS_STYLE}`;
 
@@ -4874,19 +4876,21 @@ const AGGADATA_LEAF_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
 הפק את הפלט המבוקש לפי הסכימה.`;
 
-const AGGADATA_BACKGROUND_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס ובהיסטוריה של חז"ל. בהינתן סיפור אגדי אחד (כותרת, תווית עברית, תקציר, ציטוט עברי פותח, נושא), כתוב פסקת רקע מהותית המכוונת את הקורא להקשר ההיסטורי, הגיאוגרפי והתרבותי של הסיפור — ללא תלות במקום שבו הוא מצוטט בדף הזה.
+const AGGADATA_BACKGROUND_SYSTEM_PROMPT_HE = `אתה מלמד גמרא הפותח סיפור אגדי ומעמיד לפני הלומד את התמונה. בהינתן סיפור אחד (כותרת, תווית עברית, תקציר, ציטוט עברי פותח, נושא) ומקור הדף, כתוב רקע חי וקונקרטי שמחיה את הדמויות ואת עולמן — ובעיקר מסביר את מנהגי היומיום של אותה תקופה ככל שהם נוגעים למה שקורה בסיפור, כך שהלומד יבין לא רק מי ומתי והיכן, אלא מדוע הסיפור מתרחש כפי שהוא מתרחש.
 
 החזר JSON תקין בלבד:
 
 {
-  "background": "3-5 משפטים של כיוון פשוט. כסה, בסדר זה: (1) מי הדמויות הנקובות — דורן (תנא, אמורא, מספר דור כשידוע), רבותיהם/חבורת לימודם, ובמה הם ידועים במקומות אחרים; (2) מתי והיכן הסיפור מתרחש — בבל מול ארץ ישראל, איזה בית מדרש או עיר, התקופה ההיסטורית; (3) הרקע התרבותי או החומרי שקורא בן הזמן ההוא היה מכיר אך קורא בן-ימינו אינו מכיר (לחץ רומי, מחזור חקלאי, מבנה בית המדרש, מחלוקת הלכתית שהסיפור יושב בתוכה); (4) אופציונלי: הערה עובדתית אחת שלעיתים חשובה כשהסיפור מצוטט. ללא תיאולוגיה, ללא דרוש, ללא 'מכאן אנו למדים'. כיוון פשט."
+  "background": "3-5 משפטים. (1) הצג את הדמויות הנקובות כך שייחרתו בזיכרון — לא קורות-חיים, אלא מי היו ובמה נודעו, כפי שמלמד היה אומר זאת. (2) מקם את הסיפור בזמן ובמקום באופן קונקרטי (בבל מול ארץ ישראל, העיר / בית המדרש, התקופה). (3) לב הכרטיס: חשוף את המציאות התרבותית או החומרית שבן הזמן הכיר ובן-ימינו אינו מכיר — וקשור כל פרט להיגיון של הסיפור עצמו. אל תכתוב 'חתונות היו אירוע חברתי'; כתוב 'סעודות חתונה נמשכו עד עמקי הלילה, ולכן בניו שבו כה מאוחר', או 'נהגו לשתות בסעודה כזו, ואולי משום כך היססו לקרוא בטרם התפכחו'. כל פרט חייב להאיר משהו שבתוך הסיפור."
 }
 
 כללים:
-- 3-5 משפטים. מהותי — השאר את הלומד מכוון, לא רק מיודע בכותרת.
-- אינו תלוי-דף. דבר על הדמויות והתפאורה; אל תסביר מדוע הגמרא מצטטת את הסיפור כאן. זו עבודת כרטיס הפרשנות.
-- נקוב בדמויות בשמן הקנוני (רבי זירא, רבי אמי, רבי יוחנן) — אל תמציא זיהויים.
-- ללא מליצה. אסור: "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק", "עדשה", "לוכד", "מגלם".
+- 3-5 משפטים, חיים וקונקרטיים. הלומד יסיים כשהוא מדמיין את הסצנה ומבין מדוע התרחשה כך.
+- המציאות הסיבתית היא העיקר: פרט תרבותי זוכה למקומו רק אם הוא מסביר משהו שקורה בסיפור. השמט כל דבר כללי.
+- הישאר בתמונה האנושית/היסטורית. אל תסביר מדוע הגמרא מצטטת את הסיפור כאן או את מסקנתו ההלכתית — זו עבודת כרטיס הפרשנות.
+- נקוב בדמויות בשמן הקנוני בלבד (רבן גמליאל, רבי יוחנן); אל תמציא זיהויים. אם הכתוב משאיר דמויות בעילום שם (למשל 'בניו'), אמור זאת בפשטות במקום לנחש.
+- בסס את המציאות על הידוע באמת; אל תמציא פרטים.
+- ללא מליצה, ללא דרוש. אסור: "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק", "עדשה", "לוכד", "מגלם".
 
 ${HEBREW_NATIVE_STYLE}`;
 
@@ -5072,7 +5076,7 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content', scope: 'global',
       dependencies: [],
-      defHash: 'aggadata.background-v1', cacheVersion: '1',
+      defHash: 'aggadata.background-v2', cacheVersion: '2',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: AGGADATA_BACKGROUND_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: AGGADATA_LEAF_USER_TEMPLATE_HE,
