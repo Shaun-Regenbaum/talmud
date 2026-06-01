@@ -49,6 +49,15 @@ const ECHO_STRIP: Array<[string, string]> = [
   ['the redactor of the משנה (משנה) and',          'the redactor of the משנה and'],
   ['requires a concrete מעשה (מעשה) or mere',      'requires a concrete מעשה or mere'],
   ['community in ארץ ישראל (ארץ ישראל) in the',    'community in ארץ ישראל in the'],
+  // Berakhot 2b pesukim regression — DOUBLED PARENTHETICALS `(X) (X)` (not the
+  // bare `X (X)` form). The pesukim synthesis/explainers emitted these.
+  ['whether (ביאת השמש) (ביאת השמש) refers to',   'whether (ביאת השמש) refers to'],
+  ['reading (ביאת שמשו) (ביאת שמשו) as the',      'reading (ביאת שמשו) as the'],
+  ['and (כפרה) (כפרה) does not delay',            'and (כפרה) does not delay'],
+  // English doubled parenthetical, same bug class.
+  ['cites (sunset) (sunset) permits',             'cites (sunset) permits'],
+  // Two distinct doubled parentheticals in one string.
+  ['(ביאת שמשו) (ביאת שמשו) and (כפרה) (כפרה)',    '(ביאת שמשו) and (כפרה)'],
 ];
 
 describe('stripEchoParens — collapses `X (X)`', () => {
@@ -85,6 +94,9 @@ const ECHO_PRESERVE: string[] = [
   'see the see the cat',
   // Parens-only content (no preceding token), should not crash or alter.
   '(תהילים קי״ט:ס״ב) is the source',
+  // Two ADJACENT but DIFFERENT parentheticals — not a doubled echo, leave both.
+  'compare (ביאת השמש) (צאת הכוכבים) here',
+  'a (sunset) (nightfall) distinction',
 ];
 
 describe('stripEchoParens — preserves non-echo parens', () => {
