@@ -1667,11 +1667,25 @@ export const AGGADATA_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Eleme
  *  `synthesis` section — that's what mounts the MarkEnrichmentCards host the
  *  inspect drawer renders inside. Without it the panel's 'i' targets an
  *  unmounted instanceKey (a dead click). */
+// Defined here (ahead of its blocks/helpers, which live by the old RishonimBody
+// site) so RECIPES_BY_KIND below can reference it; it names blocks by string.
+export const RISHONIM_RECIPE: SidebarRecipe = {
+  kind: 'rishonim',
+  markId: 'rishonim',
+  // No titleField — the header block renders the computed "on segment N" title.
+  sections: [
+    { type: 'special', block: 'rishonim-header' },
+    { type: 'synthesis' },
+    { type: 'special', block: 'rishonim-sources' },
+  ],
+};
+
 export const RECIPES_BY_KIND: Partial<Record<SidebarContent['kind'], SidebarRecipe>> = {
   aggadata: AGGADATA_RECIPE,
   pesuk: PASUK_RECIPE,
   halacha: HALACHA_RECIPE,
   rabbi: RABBI_RECIPE,
+  rishonim: RISHONIM_RECIPE,
 };
 
 /** The instanceKey a recipe-driven card mounts under (the client run memo + the
@@ -1684,6 +1698,7 @@ export function instanceKeyForContent(content: SidebarContent, tractate: string,
     case 'pesuk': return content.pasuk.verseRef;
     case 'halacha': return `${tractate}:${page}:${content.index}:${content.topic.topic}`;
     case 'rabbi': return content.rabbi.name;
+    case 'rishonim': return `rishonim:${tractate}:${page}:${content.instance.segIdx}`;
     default: return null;
   }
 }
@@ -1754,61 +1769,82 @@ export function PlaceChips(props: { place: PlaceInstance }): JSX.Element {
 // the leaf walk; below it we render the primary-source Hebrew + English
 // per rishon as collapsible details so the user can drop into Rashi /
 // Tosafot / Ramban / etc. directly.
-export function RishonimBody(props: { instance: RishonimInstance; tractate: string; page: string }): JSX.Element {
-  const inst = () => props.instance;
-  const meta = (
-    <div style={{ color: '#94a3b8', 'font-size': '0.78rem', 'margin-bottom': '0.5rem' }}>
-      {t(inst().fields.commentCount === 1 ? 'rishonim.commentCount.one' : 'rishonim.commentCount.other', { count: inst().fields.commentCount })}
-      {' · '}
-      {t(inst().fields.works.length === 1 ? 'rishonim.workCount.one' : 'rishonim.workCount.other', { count: inst().fields.works.length })}
-    </div>
-  );
+// Rishonim card — converted to a recipe (RISHONIM_RECIPE). The computed
+// "on segment N" heading + the count line, and the primary-sources list, become
+// NAMED special blocks (both read the instance, not synthesis deps). The mark
+// synthesis still gets the real RishonimInstance via synthInstance, so its
+// mark_input is unchanged.
+function RishonimHeader(props: SpecialBlockProps): JSX.Element {
+  const f = (): Record<string, unknown> => props.instance.fields;
+  const segIdx = (): number => (f().segIdx as number | undefined) ?? 0;
+  const commentCount = (): number => (f().commentCount as number | undefined) ?? 0;
+  const works = (): string[] => (f().works as string[] | undefined) ?? [];
   return (
-    <Panel accent={ACCENTS.rishonim} title={t('rishonim.onSegment', { n: inst().segIdx + 1 })} meta={meta}>
-      <Synthesis
-        markId="rishonim"
-        instance={inst()}
-        instanceKey={`rishonim:${props.tractate}:${props.page}:${inst().segIdx}`}
-        tractate={props.tractate}
-        page={props.page}
-      />
-
-      <div style={{ 'margin-top': '0.8rem' }}>
-        <div style={{
-          'font-size': '0.65rem', color: '#94a3b8',
-          'text-transform': 'uppercase', 'letter-spacing': '0.06em',
-          'margin-bottom': '0.3rem',
-        }}>
-          {t('rishonim.primarySources')}
-        </div>
-        <For each={inst().fields.comments}>{(c) => (
-          <details style={{
-            'margin-bottom': '0.5rem',
-            'border-bottom': '1px solid #f1f5f9',
-            'padding-bottom': '0.45rem',
-          }}>
-            <summary style={{ cursor: 'pointer', 'font-weight': 500, color: '#1f2937' }}>
-              {c.work}
-              <Show when={c.workHe}>
-                <span style={{ 'margin-left': '0.4rem', color: '#94a3b8', 'font-size': '0.78rem', 'font-family': '"Mekorot Vilna", serif' }} dir="rtl" lang="he">{c.workHe}</span>
-              </Show>
-              <span style={{ 'margin-left': '0.4rem', color: '#cbd5e1', 'font-size': '0.7rem', 'font-family': 'ui-monospace, Menlo, monospace' }}>{c.sourceRef}</span>
-            </summary>
-            <Show when={c.textHe}>
-              <p dir="rtl" lang="he" style={{
-                margin: '0.4rem 0 0', 'font-family': '"Mekorot Vilna", serif',
-                'font-size': '1rem', 'line-height': 1.65, color: '#222',
-              }} innerHTML={c.textHe} />
-            </Show>
-            <Show when={c.textEn}>
-              <p style={{ margin: '0.4rem 0 0', 'font-size': '0.86rem', 'line-height': 1.55, color: '#475569' }} innerHTML={c.textEn} />
-            </Show>
-          </details>
-        )}</For>
+    <>
+      <h3 style={{ margin: '0 0 0.3rem', 'font-size': '1.05rem', color: ACCENTS.rishonim }}>
+        {t('rishonim.onSegment', { n: segIdx() + 1 })}
+      </h3>
+      <div style={{ color: '#94a3b8', 'font-size': '0.78rem', 'margin-bottom': '0.5rem' }}>
+        {t(commentCount() === 1 ? 'rishonim.commentCount.one' : 'rishonim.commentCount.other', { count: commentCount() })}
+        {' · '}
+        {t(works().length === 1 ? 'rishonim.workCount.one' : 'rishonim.workCount.other', { count: works().length })}
       </div>
-    </Panel>
+    </>
   );
 }
+
+function RishonimSources(props: SpecialBlockProps): JSX.Element {
+  const comments = (): RishonComment[] => (props.instance.fields.comments as RishonComment[] | undefined) ?? [];
+  return (
+    <div style={{ 'margin-top': '0.8rem' }}>
+      <div style={{
+        'font-size': '0.65rem', color: '#94a3b8',
+        'text-transform': 'uppercase', 'letter-spacing': '0.06em',
+        'margin-bottom': '0.3rem',
+      }}>
+        {t('rishonim.primarySources')}
+      </div>
+      <For each={comments()}>{(c) => (
+        <details style={{
+          'margin-bottom': '0.5rem',
+          'border-bottom': '1px solid #f1f5f9',
+          'padding-bottom': '0.45rem',
+        }}>
+          <summary style={{ cursor: 'pointer', 'font-weight': 500, color: '#1f2937' }}>
+            {c.work}
+            <Show when={c.workHe}>
+              <span style={{ 'margin-left': '0.4rem', color: '#94a3b8', 'font-size': '0.78rem', 'font-family': '"Mekorot Vilna", serif' }} dir="rtl" lang="he">{c.workHe}</span>
+            </Show>
+            <span style={{ 'margin-left': '0.4rem', color: '#cbd5e1', 'font-size': '0.7rem', 'font-family': 'ui-monospace, Menlo, monospace' }}>{c.sourceRef}</span>
+          </summary>
+          <Show when={c.textHe}>
+            <p dir="rtl" lang="he" style={{
+              margin: '0.4rem 0 0', 'font-family': '"Mekorot Vilna", serif',
+              'font-size': '1rem', 'line-height': 1.65, color: '#222',
+            }} innerHTML={c.textHe} />
+          </Show>
+          <Show when={c.textEn}>
+            <p style={{ margin: '0.4rem 0 0', 'font-size': '0.86rem', 'line-height': 1.55, color: '#475569' }} innerHTML={c.textEn} />
+          </Show>
+        </details>
+      )}</For>
+    </div>
+  );
+}
+
+/** Display instance ({fields} with segIdx flattened in for the blocks). */
+export function rishonimDisplayInstance(inst: RishonimInstance): { fields: Record<string, unknown> } {
+  return { fields: { segIdx: inst.segIdx, works: inst.fields.works, commentCount: inst.fields.commentCount, comments: inst.fields.comments } };
+}
+/** The real RishonimInstance the mark synthesis expects as mark_input (unchanged). */
+export function rishonimSynthInstance(inst: RishonimInstance): unknown {
+  return inst;
+}
+
+export const RISHONIM_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
+  'rishonim-header': RishonimHeader,
+  'rishonim-sources': RishonimSources,
+};
 
 /** Collective "voice group" panel (e.g. the Stam / anonymous Gemara voice):
  *  a name + Hebrew twin + a one-line collective bio. No enrichments. */
@@ -1979,10 +2015,14 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
             </Show>
 
             <Show when={c().kind === 'rishonim'}>
-              <RishonimBody
-                instance={(c() as Extract<SidebarContent, { kind: 'rishonim' }>).instance}
+              <SidebarCardFromHint
+                recipe={RISHONIM_RECIPE}
+                instance={rishonimDisplayInstance((c() as Extract<SidebarContent, { kind: 'rishonim' }>).instance)}
+                synthInstance={rishonimSynthInstance((c() as Extract<SidebarContent, { kind: 'rishonim' }>).instance)}
+                instanceKey={instanceKeyForContent(c() as Extract<SidebarContent, { kind: 'rishonim' }>, props.tractate, props.page)!}
                 tractate={props.tractate}
                 page={props.page}
+                specialBlocks={RISHONIM_BLOCKS}
               />
             </Show>
 
