@@ -221,6 +221,9 @@ export const AGGADATA_PARALLELS_OUTPUT_SCHEMA = responseFormat('aggadata_paralle
     ref: z.string(),
     kind: z.enum(['same-story', 'same-actors', 'same-motif', 'tanach-source']),
     note: z.string(),
+    // Verbatim Hebrew/Aramaic from THIS daf the parallel draws from, so a click
+    // can highlight those words in the reader. Empty string when no clean phrase.
+    excerpt: z.string(),
   })),
   prose: z.string(),
 }));

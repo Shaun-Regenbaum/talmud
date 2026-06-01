@@ -17,7 +17,8 @@
           "required": [
             "ref",
             "kind",
-            "note"
+            "note",
+            "excerpt"
           ],
           "properties": {
             "ref": {
@@ -33,6 +34,9 @@
               ]
             },
             "note": {
+              "type": "string"
+            },
+            "excerpt": {
               "type": "string"
             }
           }
