@@ -160,6 +160,24 @@ function pickStable(o: Record<string, unknown>): Record<string, unknown> {
     for (const k of ['excerpt', 'title', 'topic', 'theme', 'verseRef']) {
       if (typeof f[k] === 'string') out[`fields.${k}`] = f[k];
     }
+    // Content signature for comment-bearing instances (rishonim): the synthesis
+    // is a pure function of these comments, so fold their content into the id.
+    // Without it a rishonim instance has no usable label and pickStable yields
+    // only {segIdx} — the key collapses to (segIdx, daf, cache_version), blind to
+    // the comments. A single bad generation then caches permanently and cannot
+    // self-heal even after the source content is corrected; including the content
+    // makes the key change with the comments, so a corrected source regenerates.
+    if (Array.isArray(f.comments)) {
+      out['fields.comments'] = (f.comments as unknown[])
+        .map((c) => {
+          if (!c || typeof c !== 'object') return String(c);
+          const cc = c as Record<string, unknown>;
+          return [cc.work, cc.sourceRef, cc.textHe, cc.textEn]
+            .map((v) => (typeof v === 'string' ? v : ''))
+            .join('|');
+        })
+        .join('\n');
+    }
   }
   return out;
 }

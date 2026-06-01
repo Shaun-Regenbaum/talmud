@@ -3527,7 +3527,7 @@ CODE_ENRICHMENTS.push(
     RISHONIM_SYNTHESIS_SYSTEM_PROMPT, RISHONIM_SYNTHESIS_USER_TEMPLATE,
     {
       dependencies: ['gemara', { mark: 'rishonim' }],
-      defHash: 'rishonim.synthesis-v3', cacheVersion: '3',
+      defHash: 'rishonim.synthesis-v4', cacheVersion: '4',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: RISHONIM_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: RISHONIM_SYNTHESIS_USER_TEMPLATE_HE,
