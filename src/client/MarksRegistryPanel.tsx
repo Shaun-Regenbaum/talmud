@@ -20,12 +20,13 @@
  * renderers that decorate the daf in place.
  */
 
-import { createResource, createSignal, createEffect, onMount, onCleanup, untrack, For, Show, type JSX } from 'solid-js';
+import { createResource, createSignal, createEffect, createMemo, onMount, onCleanup, untrack, For, Show, type JSX } from 'solid-js';
 import { trackAI } from './aiActivity';
 import { lang } from './i18n';
 import { devModeActive } from './DevModeShelf';
 import type { SeedMark } from './seed-marks';
 import type { MarkDef as RendererMarkDef, MarkRunOutput as RendererMarkRunOutput } from './renderers/dispatch';
+import { producerNodesFrom, reverseDependencyIndex, type RawDependency } from '../lib/registry/depGraph';
 
 type LLMModelId = `@cf/${string}` | `openrouter/${string}`;
 
@@ -34,6 +35,10 @@ export interface EnrichmentDefinition {
   label: string;
   description?: string;
   mark: string;
+  /** What this enrichment is built from — source inputs + producer refs.
+   *  Used to detect which enrichments are *consumed* by another producer
+   *  (a synthesis), so the panel shows them as passive status, not a switch. */
+  dependencies?: RawDependency[];
   system_prompt: string;
   user_prompt_template: string;
   model?: LLMModelId;
@@ -54,6 +59,9 @@ export interface WorkerMarkDefinition {
   category?: string;
   /** UI nesting hint — when set, the panel groups this mark under that parent. */
   parent_mark?: string;
+  /** What this mark is built from (source inputs + producer refs) — feeds the
+   *  reverse-dependency index that classifies consumed-vs-standalone enrichments. */
+  dependencies?: RawDependency[];
   /** Experimental feature flag — hidden from readers; only surfaces in dev mode. */
   experimental?: boolean;
   anchor: 'segment' | 'segment-range' | 'phrase' | 'multi-anchor' | 'cross-daf' | 'external' | 'whole-daf';
@@ -430,6 +438,25 @@ export default function MarksRegistryPanel(props: Props) {
     writeEnabled(next);
   };
 
+  // Enrichments that some other producer (a synthesis mark/enrichment) lists as
+  // a dependency. The worker resolves these unconditionally as part of the
+  // consumer's run and renders them out of `deps_resolved` — so an independent
+  // on/off here would be a lie: toggling it changes nothing the reader sees,
+  // and re-running it standalone just duplicates work the consumer already does.
+  // Such rows get a passive status glyph instead of a switch, and the auto-run
+  // loop skips them. An enrichment that nothing consumes is genuinely
+  // standalone — it keeps its real toggle.
+  const dependencyFed = createMemo<Set<string>>(() => {
+    const reg = registry();
+    if (!reg) return new Set();
+    const rev = reverseDependencyIndex(producerNodesFrom([...reg.marks, ...reg.enrichments]));
+    const fed = new Set<string>();
+    for (const e of reg.enrichments) {
+      if ((rev.get(e.id)?.size ?? 0) > 0) fed.add(e.id);
+    }
+    return fed;
+  });
+
   // Fire a run for any enabled mark or enrichment, on mount + on daf change.
   // untrack() around the runs() read + setRun() write so the effect doesn't
   // self-trigger on its own writes. The stamp (`tractate/page`) is stored on
@@ -468,6 +495,7 @@ export default function MarksRegistryPanel(props: Props) {
       }
       for (const e of reg.enrichments) {
         if (hiddenEnrichment(e.mark)) continue; // experimental mark, dev off
+        if (dependencyFed().has(e.id)) continue; // produced via its consumer; no standalone run
         if (!on.has(e.id)) continue;
         const cur = runs()[e.id];
         if (cur && cur.kind !== 'idle' && cur.stamp === stamp) continue;
@@ -554,9 +582,15 @@ export default function MarksRegistryPanel(props: Props) {
       kids.push(sub);
       kids.push(...(g.childrenByMark.get(sub.id) ?? []));
     }
-    const summary = { loading: 0, ok: 0, error: 0, total: kids.length };
+    // Drop dependency-fed enrichments: this panel never runs them standalone
+    // (their producer is fired by the sidebar card), so they'd permanently
+    // count as "pending" and under-report the badge. Sub-mark ids aren't in
+    // the set, so they stay counted.
+    const fed = dependencyFed();
+    const runnable = kids.filter((k) => !fed.has(k.id));
+    const summary = { loading: 0, ok: 0, error: 0, total: runnable.length };
     const r = runs();
-    for (const k of kids) {
+    for (const k of runnable) {
       const st = r[k.id];
       if (st?.kind === 'loading') summary.loading++;
       else if (st?.kind === 'ok') summary.ok++;
@@ -622,6 +656,19 @@ export default function MarksRegistryPanel(props: Props) {
             };
             const isDraft = () =>
               (row.source === 'mark' || row.source === 'enrichment') && row.def.status === 'draft';
+            // A dependency-fed enrichment is consumed by another producer (a
+            // synthesis) and surfaced through that consumer's card, not run
+            // standalone from this panel — so there's no independent on/off to
+            // make. We deliberately do NOT paint a run-state here: the panel's
+            // own runs() never holds these leaves (their producer is fired by
+            // the sidebar card, invisibly to this panel), so any "produced/not"
+            // light would be guessing. The marker just signals "derived, not a
+            // switch"; the tooltip names where it comes from.
+            const isDepFed = () => row.source === 'enrichment' && dependencyFed().has(row.def.id);
+            const parentLabel = () => {
+              if (row.source !== 'enrichment') return '';
+              return registry()?.marks.find((m) => m.id === row.def.mark)?.label ?? row.def.mark;
+            };
             const childCount = () => {
               if (row.source !== 'mark') return 0;
               const g = grouped();
@@ -655,19 +702,36 @@ export default function MarksRegistryPanel(props: Props) {
                       }}
                     >{isExpanded() ? '▾' : '▸'}</button>
                   </Show>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={isOn()}
-                    onClick={() => setOn(!isOn())}
-                    title={isOn() ? 'turn off' : 'turn on'}
-                    style={{
-                      background: 'transparent', border: 'none', cursor: 'pointer',
-                      padding: 0, width: '0.9rem', 'flex-shrink': 0,
-                      color: isOn() ? '#15803d' : '#ccc', 'font-size': '0.7rem',
-                      'line-height': 1,
-                    }}
-                  >{isOn() ? '●' : '○'}</button>
+                  <Show
+                    when={!isDepFed()}
+                    fallback={
+                      // Passive marker, NOT a switch: a dimmed middot signals
+                      // "derived from its mark's card" — no on/off choice here.
+                      <span
+                        aria-hidden="true"
+                        title={`derived from the "${parentLabel()}" card (a synthesis consumes it) — not an independent toggle`}
+                        style={{
+                          width: '0.9rem', 'flex-shrink': 0, 'text-align': 'center',
+                          color: '#cfcfcf', 'font-size': '0.7rem', 'line-height': 1,
+                          cursor: 'default', 'user-select': 'none',
+                        }}
+                      >·</span>
+                    }
+                  >
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={isOn()}
+                      onClick={() => setOn(!isOn())}
+                      title={isOn() ? 'turn off' : 'turn on'}
+                      style={{
+                        background: 'transparent', border: 'none', cursor: 'pointer',
+                        padding: 0, width: '0.9rem', 'flex-shrink': 0,
+                        color: isOn() ? '#15803d' : '#ccc', 'font-size': '0.7rem',
+                        'line-height': 1,
+                      }}
+                    >{isOn() ? '●' : '○'}</button>
+                  </Show>
                   <span style={{
                     'font-weight': nested ? 400 : 500, 'font-size': nested ? '0.8rem' : '0.85rem',
                     // Truncate on one line instead of wrapping: a long label that
@@ -680,7 +744,7 @@ export default function MarksRegistryPanel(props: Props) {
                   <span title={`anchored on ${anchor()} · rendered ${render()}`} style={{ color: '#aaa', 'font-size': '0.7rem', 'font-family': 'monospace', 'flex-shrink': 0 }}>
                     {anchor()[0]}/{String(render())[0]}
                   </span>
-                  <Show when={row.source !== 'seed' && isOn()}>
+                  <Show when={row.source !== 'seed' && isOn() && !isDepFed()}>
                     <span style={{ 'font-size': '0.7rem', display: 'inline-flex', 'align-items': 'center', gap: '0.3rem', 'flex-shrink': 0, color: state().kind === 'error' ? '#c00' : state().kind === 'loading' ? '#888' : state().kind === 'ok' ? '#15803d' : '#aaa' }}>
                       <Show when={state().kind === 'loading'}>
                         <span style={{
@@ -716,7 +780,7 @@ export default function MarksRegistryPanel(props: Props) {
                       <Show when={summary()!.error > 0}> · {summary()!.error} err</Show>
                     </span>
                   </Show>
-                  <Show when={row.source !== 'seed' && isOn()}>
+                  <Show when={row.source !== 'seed' && isOn() && !isDepFed()}>
                     <button
                       onClick={() => {
                         if (row.source === 'seed') return;
@@ -758,10 +822,17 @@ export default function MarksRegistryPanel(props: Props) {
                       <For each={ownEnrichments}>{(e) => renderRow({ source: 'enrichment', def: e }, true)}</For>
                       <For each={subMarks}>{(sub) => {
                         const subEnrichments = grouped().childrenByMark.get(sub.id) ?? [];
+                        // Gate the sub-mark's enrichments on the sub-mark's OWN
+                        // chevron, not just the parent's. Without this the
+                        // sub-mark chevron is a no-op (its enrichments showed
+                        // unconditionally whenever the parent was expanded).
+                        const showSubKids = () => expandedMarks().has(sub.id);
                         return (
                           <>
                             {renderRow({ source: 'mark', def: sub }, true)}
-                            <For each={subEnrichments}>{(e) => renderRow({ source: 'enrichment', def: e }, true)}</For>
+                            <Show when={showSubKids()}>
+                              <For each={subEnrichments}>{(e) => renderRow({ source: 'enrichment', def: e }, true)}</For>
+                            </Show>
                           </>
                         );
                       }}</For>
