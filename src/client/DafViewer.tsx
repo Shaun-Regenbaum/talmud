@@ -2138,7 +2138,7 @@ export default function DafViewer(): JSX.Element {
 
     // 5. collective voice — push a dedicated voice-group sidebar entry
     // rather than masquerading as a rabbi. Returns early because
-    // voice-groups render through their own panel, not RabbiBody.
+    // voice-groups render through their own panel, not the rabbi recipe card.
     if (!r) {
       const g = resolveVoiceGroup(name);
       if (g) {

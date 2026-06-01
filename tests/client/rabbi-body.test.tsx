@@ -2,7 +2,8 @@
 import { render } from '@solidjs/testing-library';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IdentifiedRabbi } from '../../src/client/dafContext';
-import { RabbiBody } from '../../src/client/ArgumentSidebar';
+import { RABBI_RECIPE, RABBI_BLOCKS, rabbiDisplayInstance, rabbiSynthInstance } from '../../src/client/ArgumentSidebar';
+import { SidebarCardFromHint } from '../../src/client/sidebar/primitives';
 import { setLang } from '../../src/client/i18n';
 
 beforeEach(() => {
@@ -27,13 +28,23 @@ const rabbi: IdentifiedRabbi = {
   wiki: null,
 };
 
-const noop = () => {};
+const renderCard = () =>
+  render(() => (
+    <SidebarCardFromHint
+      recipe={RABBI_RECIPE}
+      instance={rabbiDisplayInstance(rabbi)}
+      synthInstance={rabbiSynthInstance(rabbi)}
+      instanceKey={rabbi.name}
+      tractate="Shabbat"
+      page="125b"
+      specialBlocks={RABBI_BLOCKS}
+      extras={{ generationByName: new Map() }}
+    />
+  ));
 
-describe('RabbiBody name-flip', () => {
+describe('Rabbi recipe card — name-flip', () => {
   it('English mode: Latin name is the LTR title, Hebrew name is the RTL subtitle', () => {
-    const { container } = render(() => (
-      <RabbiBody rabbi={rabbi} tractate="Shabbat" page="125b" generationByName={new Map()} onHighlightRange={noop} />
-    ));
+    const { container } = renderCard();
     const h3 = container.querySelector('h3')!;
     expect(h3.textContent).toBe('Rabbi Yochanan');
     expect(h3.getAttribute('dir')).toBeNull();
@@ -43,9 +54,7 @@ describe('RabbiBody name-flip', () => {
 
   it('Hebrew mode: Hebrew name becomes the RTL title, Latin name the LTR subtitle', () => {
     setLang('he');
-    const { container } = render(() => (
-      <RabbiBody rabbi={rabbi} tractate="Shabbat" page="125b" generationByName={new Map()} onHighlightRange={noop} />
-    ));
+    const { container } = renderCard();
     const h3 = container.querySelector('h3')!;
     expect(h3.textContent).toBe('ר׳ יוחנן');
     expect(h3.getAttribute('dir')).toBe('rtl');
@@ -53,5 +62,12 @@ describe('RabbiBody name-flip', () => {
     const sub = container.querySelector('h3 + p')!;
     expect(sub.getAttribute('dir')).toBeNull();
     expect(sub.textContent).toBe('Rabbi Yochanan');
+  });
+
+  it('declares the meta + lineage + geography blocks around the synthesis (flip=rabbi)', () => {
+    expect(RABBI_RECIPE.flip).toBe('rabbi');
+    const blocks = RABBI_RECIPE.sections.flatMap((s) => (s.type === 'special' ? [s.block] : []));
+    expect(blocks).toEqual(['rabbi-meta', 'rabbi-lineage', 'rabbi-geography']);
+    for (const b of blocks) expect(RABBI_BLOCKS[b]).toBeTypeOf('function');
   });
 });

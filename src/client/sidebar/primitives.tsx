@@ -361,12 +361,22 @@ export function SidebarPanelFromHint(props: {
 
 /** Uniform contract every named custom block receives. `deps` is the synthesis
  *  aggregate's resolved leaf outputs (deps_resolved), keyed by enrichment id. */
+/** A reader-text highlight request, threaded sidebar → reader (the same shape
+ *  argument-move / rabbi cards use). */
+export type HighlightRange = { start: number; end: number; key: string; tokenStart?: number; tokenEnd?: number };
+
 export interface SpecialBlockProps {
   deps: Record<string, unknown>;
   instance: { fields: Record<string, unknown> };
   tractate: string;
   page: string;
   instanceKey: string;
+  /** Optional reader-highlight channel for blocks that drive daf highlighting
+   *  (rabbi lineage/geography, future voices). Undefined for cards that don't. */
+  onHighlightRange?: (range: HighlightRange | null) => void;
+  /** Optional card-specific context a block needs beyond the standard contract
+   *  (e.g. rabbi's `generationByName` map). Opaque to the renderer. */
+  extras?: Record<string, unknown>;
 }
 export type SpecialBlock = (props: SpecialBlockProps) => JSX.Element;
 
@@ -482,6 +492,14 @@ export function SidebarCardFromHint(props: {
   qaInstanceId?: string;
   meta?: JSX.Element;
   specialBlocks?: Record<string, SpecialBlock>;
+  /** The shape sent to the mark synthesis as mark_input, when it differs from the
+   *  display `instance` (e.g. rabbi's flat {name,…} vs the {fields} display
+   *  shape). Defaults to `instance`. Keeps the mark_input — and its cache — stable
+   *  across a recipe conversion. */
+  synthInstance?: unknown;
+  /** Reader-highlight channel + card-specific extras, forwarded to special blocks. */
+  onHighlightRange?: (range: HighlightRange | null) => void;
+  extras?: Record<string, unknown>;
 }): JSX.Element {
   const str = (v: unknown): string => (typeof v === 'string' ? v : '');
   const fields = (): Record<string, unknown> => props.instance.fields;
@@ -533,7 +551,7 @@ export function SidebarCardFromHint(props: {
         return (
           <Synthesis
             markId={props.recipe.markId}
-            instance={props.instance}
+            instance={props.synthInstance ?? props.instance}
             instanceKey={props.instanceKey}
             tractate={props.tractate}
             page={props.page}
@@ -564,7 +582,15 @@ export function SidebarCardFromHint(props: {
       case 'special': {
         const Block = props.specialBlocks?.[s.block];
         return Block ? (
-          <Block deps={deps()} instance={props.instance} tractate={props.tractate} page={props.page} instanceKey={props.instanceKey} />
+          <Block
+            deps={deps()}
+            instance={props.instance}
+            tractate={props.tractate}
+            page={props.page}
+            instanceKey={props.instanceKey}
+            onHighlightRange={props.onHighlightRange}
+            extras={props.extras}
+          />
         ) : null;
       }
     }

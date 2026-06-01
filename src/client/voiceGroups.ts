@@ -1,7 +1,7 @@
 /**
  * Collective / anonymous voices that show up in argument prose but aren't
  * individual rabbis with biographical entries — "Sages", "Tanna Kamma",
- * "Stam", etc. The sidebar renders them through the same RabbiBody path
+ * "Stam", etc. The sidebar renders them through the same rabbi-card path
  * by synthesizing a minimal IdentifiedRabbi with a static descriptive bio.
  *
  * Keys are normalized (lowercase, honorific-stripped) so lookups stay
@@ -101,7 +101,7 @@ export function resolveVoiceGroup(query: string): VoiceGroup | null {
 }
 
 /** Synthesize an IdentifiedRabbi from a VoiceGroup so the existing rabbi
- *  sidebar (RabbiBody) renders it. Generation is 'unknown' and places /
+ *  sidebar (the rabbi recipe card) renders it. Generation is 'unknown' and places /
  *  geography are empty — collective voices have no individual biography.
  *  The bio paragraph is the descriptive text from VOICE_GROUPS. */
 export function voiceGroupToRabbi(g: VoiceGroup): IdentifiedRabbi {
