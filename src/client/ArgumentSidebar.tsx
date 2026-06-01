@@ -811,19 +811,21 @@ function ArgumentOverviewBody(props: {
   const [bridge] = createResource(
     () => `${props.tractate}|${props.page}`,
     async (): Promise<{ prev: string | null; next: string | null; fromPrev: boolean; toNext: boolean }> => {
-      const prev = adjacentAmud(props.tractate, props.page, -1);
-      const next = adjacentAmud(props.tractate, props.page, 1);
-      const continues = async (p: string | null): Promise<boolean> => {
-        if (!p) return false;
-        try {
-          const r = await fetch(`/api/bridge/${encodeURIComponent(props.tractate)}/${encodeURIComponent(p)}`);
-          if (!r.ok) return false;
-          return !!((await r.json()) as { continues?: boolean }).continues;
-        } catch { return false; }
+      // The tractate-spine neighborhood in one read (GET /api/spine assembles
+      // both cross-daf bridges server-side). Falls back to local page
+      // arithmetic + no-continuation on any failure.
+      const fallback = {
+        prev: adjacentAmud(props.tractate, props.page, -1),
+        next: adjacentAmud(props.tractate, props.page, 1),
+        fromPrev: false,
+        toNext: false,
       };
-      // bridge(prev) = prev->this; bridge(this) = this->next.
-      const [fromPrev, toNext] = await Promise.all([continues(prev), continues(props.page)]);
-      return { prev, next, fromPrev, toNext };
+      try {
+        const r = await fetch(`/api/spine/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}`);
+        if (!r.ok) return fallback;
+        const d = (await r.json()) as { prev: string | null; next: string | null; fromPrev?: boolean; toNext?: boolean };
+        return { prev: d.prev, next: d.next, fromPrev: !!d.fromPrev, toNext: !!d.toNext };
+      } catch { return fallback; }
     },
   );
 

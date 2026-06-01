@@ -12,6 +12,7 @@ import { collectContext } from './context-providers';
 import { placeRevachWithAi } from './revach-ai-place';
 import { formatContextForPrompt, contextForAnchor, segsFromMarkInput } from '../lib/context/select';
 import { continuationLink, type FlowEdge } from '../lib/context/link';
+import { dafSpine } from '../lib/context/spine';
 import { dafLinks } from '../lib/context/dafLinks';
 import { producerNodesFrom, reverseDependencyIndex, transitiveDependents } from '../lib/registry/depGraph';
 import { aiMatchToSegments } from './context-match';
@@ -794,6 +795,30 @@ app.get('/api/bridge/:tractate/:page', async (c) => {
   // Computed (not stored on the cached DafBridge), so it needs no cache bump.
   const link = bridge.continues ? continuationLink(bridge.to) : null;
   return c.json({ ...bridge, link });
+});
+
+// The tractate-spine neighborhood of a daf (framework step 6): the adjacent
+// windows + whether the sugya flows across each boundary, assembled from the
+// two cached cross-daf bridges (this→next and prev→this). One read replaces the
+// client overview's bespoke pair of /api/bridge fetches; `dafSpine` keeps the
+// forward continuity in the shared Link vocabulary. Best-effort per bridge: a
+// cold/failed compute reads as "no continuation" rather than failing.
+app.get('/api/spine/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const prev = adjacentAmud(tractate, page, -1);
+  const next = adjacentAmud(tractate, page, 1);
+  // Both bridges in parallel (this→next and prev→this), each best-effort.
+  const [thisBridge, prevBridge] = await Promise.all([
+    computeDafBridge(c.env, tractate, page).catch(() => null),
+    prev ? computeDafBridge(c.env, tractate, prev).catch(() => null) : Promise.resolve(null),
+  ]);
+  return c.json(
+    dafSpine(
+      { tractate, page },
+      { prev, next, fromPrev: !!prevBridge?.continues, toNext: !!thisBridge?.continues },
+    ),
+  );
 });
 
 // Read the cached argument-overview.flow connections (section-index edges).
