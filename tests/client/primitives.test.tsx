@@ -102,6 +102,31 @@ describe('Panel', () => {
   });
 });
 
+describe('SectionCard collapse', () => {
+  it('omitting `collapsed` keeps the body always rendered (no toggle)', () => {
+    const { container } = render(() => <SectionCard label="aggadata.background" text="body-text" />);
+    expect(container.textContent).toContain('body-text');
+    expect(container.querySelector('[role="button"]')).toBeNull();
+  });
+
+  it('`collapsed` hides the body until the label is clicked', () => {
+    const { container } = render(() => <SectionCard label="aggadata.background" text="hidden-body" collapsed />);
+    expect(container.textContent).not.toContain('hidden-body');
+    const toggle = container.querySelector('[role="button"]') as HTMLElement;
+    expect(toggle).toBeTruthy();
+    toggle.click();
+    expect(container.textContent).toContain('hidden-body');
+  });
+
+  it('`collapsed={false}` starts open but stays toggleable', () => {
+    const { container } = render(() => <SectionCard label="aggadata.background" text="shown-body" collapsed={false} />);
+    expect(container.textContent).toContain('shown-body');
+    const toggle = container.querySelector('[role="button"]') as HTMLElement;
+    toggle.click();
+    expect(container.textContent).not.toContain('shown-body');
+  });
+});
+
 describe('kindLabelKey / ACCENTS', () => {
   it('maps every kind to a real catalog key', () => {
     for (const kind of Object.keys(ACCENTS) as Array<keyof typeof ACCENTS>) {
