@@ -4760,14 +4760,14 @@ const AGGADATA_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud scholar reading an ag
 Output STRICT JSON only:
 
 {
-  "synthesis": "ONE paragraph, 4-5 sentences. Order: (a) ONE short orienting sentence naming the actors and the moment ('Rabbi Zeira, newly arrived in Eretz Yisrael, encounters Rabbi Ami in the בית מדרש'); (b) the LOCAL FUNCTION — what halachic or thematic question is on the table, why this vignette serves the sugya; (c) the central tension or maxim the story surfaces, quoted briefly from the Hebrew when load-bearing (3-6 words); (d) ONE clause on parallels or rishon-reading when it sharpens the point — drop when it would dilute; (e) optional: one note on what the story is NOT doing when readers commonly over-read it. Hard ceiling: 5 sentences."
+  "synthesis": "ONE tight paragraph, 2-3 sentences (hard ceiling 3). (a) ONE orienting sentence: the actors and the moment ('Rabban Gamliel's sons come home late from a wedding feast'); (b) what the story DOES here — its local function and the central tension it turns on, quoted briefly from the Hebrew when load-bearing (3-6 words); (c) OPTIONAL one clause on a parallel or rishon-reading, only when it genuinely sharpens the point. The Background and Interpretation cards carry the detail; this is the short narrative thread that ties them together — do NOT restate them."
 }
 
 HARD RULES:
-- 4-5 sentences. Hard ceiling — do NOT pad.
+- 2-3 sentences. Hard ceiling 3 — do NOT pad. Shorter is better than padded.
 - About THIS story only. Don't summarize the rest of the daf.
-- Sentence (a) names actors and moment — a frame, NOT a restatement of the Background card (the user already sees that). Aim for ~20 words.
-- The synthesis's job is the NARRATIVE THREAD the structured cards cannot give — actors + local function + tension + parallel/rishon — woven into a paragraph.
+- Sentence (a) frames the actors and moment — NOT a restatement of the Background card (the user already sees that).
+- The synthesis is the SHORT NARRATIVE THREAD the structured cards can't give — a tight orientation, not a digest of them.
 - Ground every claim in the background / interpretation / parallels inputs. Don't invent.
 - Quote short Hebrew (3-6 words, in parens) when the precise wording carries the meaning.
 - NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "profoundly", "lens", "captures", "embodies".
@@ -4981,14 +4981,14 @@ const AGGADATA_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הקורא
 החזר JSON תקין בלבד:
 
 {
-  "synthesis": "פסקה אחת, 4-5 משפטים. סדר: (א) משפט מכוון קצר אחד הנוקב בדמויות וברגע ('רבי זירא, שזה עתה עלה לארץ ישראל, פוגש את רבי אמי בבית המדרש'); (ב) התפקיד המקומי — איזו שאלה הלכתית או נושאית על הפרק, מדוע הויניטה הזו משרתת את הסוגיה; (ג) המתח המרכזי או המימרה שהסיפור מעלה, מצוטט בקצרה מן העברית כשהוא נושא משקל (3-6 מילים); (ד) פסוקית אחת על מקבילות או קריאת ראשון כשהיא מחדדת את הנקודה — השמט כשתדלל; (ה) אופציונלי: הערה אחת על מה שהסיפור אינו עושה כשקוראים נוטים לקרוא בו יתר. תקרה קשיחה: 5 משפטים."
+  "synthesis": "פסקה אחת הדוקה, 2-3 משפטים (תקרה קשיחה 3). (א) משפט מכוון אחד: הדמויות והרגע ('בניו של רבן גמליאל שבים מאוחר מסעודת חתונה'); (ב) מה הסיפור עושה כאן — תפקידו המקומי והמתח המרכזי שעליו הוא סובב, מצוטט בקצרה מן העברית כשהוא נושא משקל (3-6 מילים); (ג) אופציונלי: פסוקית אחת על מקבילה או קריאת ראשון, רק כשהיא באמת מחדדת את הנקודה. כרטיסי הרקע והפרשנות נושאים את הפירוט; זהו חוט הסיפור הקצר שמחבר ביניהם — אל תחזור עליהם."
 }
 
 כללים נוקשים:
-- 4-5 משפטים. תקרה קשיחה — אל תמלא.
+- 2-3 משפטים. תקרה קשיחה 3 — אל תמלא. קצר עדיף על מנופח.
 - על הסיפור הזה בלבד. אל תסכם את שאר הדף.
-- משפט (א) נוקב בדמויות וברגע — מסגרת, לא חזרה על כרטיס הרקע (המשתמש כבר רואה אותו).
-- תפקיד ה-synthesis הוא חוט הסיפור שהכרטיסים המובְנים אינם יכולים לתת — דמויות + תפקיד מקומי + מתח + מקבילה/ראשון — שזורים לפסקה.
+- משפט (א) ממסגר את הדמויות והרגע — לא חזרה על כרטיס הרקע (המשתמש כבר רואה אותו).
+- ה-synthesis הוא חוט הסיפור הקצר שהכרטיסים המובְנים אינם יכולים לתת — כיוון הדוק, לא תקציר שלהם.
 - בסס כל טענה בקלט הרקע / הפרשנות / המקבילות. אל תמציא.
 - צטט עברית קצרה (3-6 מילים, בסוגריים) כשהדיוק נושא את המשמעות.
 - ללא מליצה. אסור: "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק", "עדשה", "לוכד", "מגלם".
@@ -5163,7 +5163,7 @@ CODE_ENRICHMENTS.push(
         { mark: 'rabbi' },
         { mark: 'aggadata' },
       ],
-      defHash: 'aggadata.synthesis-v1', cacheVersion: '1',
+      defHash: 'aggadata.synthesis-v2', cacheVersion: '2',
       model: ARGUMENT_PRO_MODEL,
       systemPromptHe: AGGADATA_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: AGGADATA_SYNTHESIS_USER_TEMPLATE_HE,
