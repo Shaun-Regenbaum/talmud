@@ -1122,69 +1122,28 @@ async function fetchPasuk(ref: string): Promise<PasukDetail> {
 //          deps. Items the daf actually mentions (via .evidence) get a
 //          soft-highlight and clicking them paints the daf range.
 // ===========================================================================
-export function RabbiBody(props: {
-  rabbi: IdentifiedRabbi;
-  tractate: string;
-  page: string;
-  generationByName: Map<string, GenerationId>;
-  onHighlightRange: (range: { start: number; end: number; key: string; tokenStart?: number; tokenEnd?: number } | null) => void;
-}): JSX.Element {
-  const [relationships, setRelationships] = createSignal<RelationshipsData | null>(null);
-  const [relationshipsEvidence, setRelationshipsEvidence] = createSignal<RelationshipsEvidence[]>([]);
-  const [geography, setGeography] = createSignal<GeographyData | null>(null);
-  const [geographyEvidence, setGeographyEvidence] = createSignal<GeographyEvidence[]>([]);
-  const [location, setLocation] = createSignal<LocationInference | null>(null);
-  // Canonical identity (slug/region/places/moved) from the rabbi.identity
-  // enrichment, carried in the synthesis aggregate's deps_resolved. When the
-  // rabbi was opened from a mark stub (no region/places), this fills them in.
-  const [identity, setIdentity] = createSignal<IdentifiedRabbi | null>(null);
+// Rabbi card — converted to a recipe (RABBI_RECIPE below). Its three custom
+// sections are NAMED special blocks: the formatted meta line (generation / era /
+// region / places, with the generation dot), the lineage tree, and the places
+// timeline. The mark synthesis still receives the FLAT {name,…} instance via the
+// recipe's synthInstance, so the rabbi mark_input — and its cache — is unchanged.
 
-  const instanceKey = () => props.rabbi.name;
+const EMPTY_GEN_MAP: Map<string, GenerationId> = new Map();
 
-  // Reset on rabbi change.
-  createEffect(() => {
-    void instanceKey();
-    setRelationships(null);
-    setRelationshipsEvidence([]);
-    setGeography(null);
-    setGeographyEvidence([]);
-    setLocation(null);
-    setIdentity(null);
-    props.onHighlightRange(null);
-  });
-
-  const handleResolved = (r: { deps_resolved?: Record<string, unknown>; anchors_resolved?: Record<string, unknown> }) => {
-    const deps = r.deps_resolved ?? {};
-    const ident = deps['rabbi.identity'] as IdentifiedRabbi | undefined;
-    if (ident && typeof ident.name === 'string') setIdentity(ident);
-    const rel = deps['rabbi.relationships'] as RelationshipsData | undefined;
-    if (rel && Array.isArray(rel.teachers)) {
-      setRelationships(rel);
-    } else if (rel) {
-      // eslint-disable-next-line no-console
-      console.warn('[rabbi] relationships present but wrong shape — teachers not an array:', rel);
-    }
-    const relEv = deps['rabbi.relationships.evidence'] as { evidence?: RelationshipsEvidence[] } | undefined;
-    if (relEv?.evidence) setRelationshipsEvidence(relEv.evidence);
-    const geo = deps['rabbi.geography'] as GeographyData | undefined;
-    if (geo && (geo.birthplace || Array.isArray(geo.primaryStudyPlaces))) {
-      setGeography(geo);
-    } else if (geo) {
-      // eslint-disable-next-line no-console
-      console.warn('[rabbi] geography present but wrong shape:', geo);
-    }
-    const geoEv = deps['rabbi.geography.evidence'] as { evidence?: GeographyEvidence[] } | undefined;
-    if (geoEv?.evidence) setGeographyEvidence(geoEv.evidence);
-    const loc = deps['rabbi.location'] as LocationInference | undefined;
-    if (loc && typeof loc.place === 'string' && loc.place.length > 0) setLocation(loc);
+// Formatted identity meta: generation label + era + region + places, with the
+// generation-color dot. Prefers the resolved rabbi.identity (deps) over the
+// possibly-stub instance the rabbi was opened with.
+function RabbiMeta(props: SpecialBlockProps): JSX.Element {
+  const f = (): Record<string, unknown> => props.instance.fields;
+  const str = (v: unknown): string => (typeof v === 'string' ? v : '');
+  const identity = (): IdentifiedRabbi | undefined => {
+    const i = props.deps['rabbi.identity'] as IdentifiedRabbi | undefined;
+    return i && typeof i.name === 'string' ? i : undefined;
   };
-
-  // Effective fields: prefer the resolved rabbi.identity over the (possibly
-  // stub) instance the rabbi was opened with.
-  const effRegion = () => identity()?.region ?? props.rabbi.region;
-  const effPlaces = () => identity()?.places ?? props.rabbi.places;
-  const gen = () => GENERATION_BY_ID[props.rabbi.generation];
-  const regionLabel = () => effRegion() === 'israel' ? t('geography.eretzYisrael')
+  const gen = () => GENERATION_BY_ID[f().generation as GenerationId];
+  const effRegion = (): string => identity()?.region ?? str(f().region);
+  const effPlaces = (): string[] => identity()?.places ?? ((f().places as string[] | undefined) ?? []);
+  const regionLabel = (): string => effRegion() === 'israel' ? t('geography.eretzYisrael')
     : effRegion() === 'bavel' ? t('geography.bavel')
     : effRegion();
   const metaParts = (): string[] => {
@@ -1199,76 +1158,118 @@ export function RabbiBody(props: {
     return parts;
   };
   return (
-    <Panel
-      accent={ACCENTS.rabbi}
-      flip="rabbi"
-      title={props.rabbi.name}
-      titleHe={props.rabbi.nameHe}
-      meta={
-        <Show when={metaParts().length > 0}>
-          <div style={{
-            display: 'flex', 'align-items': 'center', gap: '0.45rem',
-            'font-size': '0.78rem', color: '#666',
-            'margin-bottom': '0.85rem', 'flex-wrap': 'wrap',
-            'line-height': 1.5,
-          }}>
-            <Show when={gen()}>
-              <span style={{
-                display: 'inline-block', width: '0.55rem', height: '0.55rem',
-                'background-color': gen()!.color, 'border-radius': '50%',
-                'flex-shrink': 0,
-              }} />
-            </Show>
-            <span>{metaParts().join(' · ')}</span>
-          </div>
+    <Show when={metaParts().length > 0}>
+      <div style={{
+        display: 'flex', 'align-items': 'center', gap: '0.45rem',
+        'font-size': '0.78rem', color: '#666',
+        'margin-bottom': '0.85rem', 'flex-wrap': 'wrap',
+        'line-height': 1.5,
+      }}>
+        <Show when={gen()}>
+          <span style={{
+            display: 'inline-block', width: '0.55rem', height: '0.55rem',
+            'background-color': gen()!.color, 'border-radius': '50%',
+            'flex-shrink': 0,
+          }} />
         </Show>
-      }
-    >
-      <Synthesis
-        markId="rabbi"
-        instance={{
-          name: props.rabbi.name,
-          nameHe: props.rabbi.nameHe,
-          generation: props.rabbi.generation,
-          region: props.rabbi.region,
-          places: props.rabbi.places,
-        }}
-        instanceKey={instanceKey()}
-        tractate={props.tractate}
-        page={props.page}
-        onResolved={handleResolved}
-      />
-      <Show when={relationships()}>
-        {(rel) => (
-          <div style={{ position: 'relative' }}>
-            <InspectDot instanceKey={instanceKey()} leafId="rabbi.relationships" style={{ position: 'absolute', top: '0.2rem', right: 0, 'z-index': 2 }} />
-            <RabbiLineageTree
-              subjectName={props.rabbi.name}
-              subjectGeneration={props.rabbi.generation}
-              data={rel()}
-              evidence={relationshipsEvidence()}
-              generationByName={props.generationByName}
-              onHighlightRange={props.onHighlightRange}
-            />
-          </div>
-        )}
-      </Show>
-      <Show when={geography()}>
-        {(geo) => (
-          <div style={{ position: 'relative' }}>
-            <InspectDot instanceKey={instanceKey()} leafId="rabbi.geography" style={{ position: 'absolute', top: '0.2rem', right: 0, 'z-index': 2 }} />
-            <RabbiPlacesTimeline
-              data={geo()}
-              evidence={geographyEvidence()}
-              location={location()}
-              onHighlightRange={props.onHighlightRange}
-            />
-          </div>
-        )}
-      </Show>
-    </Panel>
+        <span>{metaParts().join(' · ')}</span>
+      </div>
+    </Show>
   );
 }
+
+function RabbiLineage(props: SpecialBlockProps): JSX.Element {
+  const f = (): Record<string, unknown> => props.instance.fields;
+  const str = (v: unknown): string => (typeof v === 'string' ? v : '');
+  // Clear any active reader-highlight when the rabbi changes (the old body did this).
+  createEffect(() => { void props.instanceKey; props.onHighlightRange?.(null); });
+  const rel = (): RelationshipsData | undefined => {
+    const r = props.deps['rabbi.relationships'] as RelationshipsData | undefined;
+    return r && Array.isArray(r.teachers) ? r : undefined;
+  };
+  const relEv = (): RelationshipsEvidence[] => {
+    const e = props.deps['rabbi.relationships.evidence'] as { evidence?: RelationshipsEvidence[] } | undefined;
+    return e?.evidence ?? [];
+  };
+  const generationByName = (): Map<string, GenerationId> =>
+    (props.extras?.generationByName as Map<string, GenerationId> | undefined) ?? EMPTY_GEN_MAP;
+  return (
+    <Show when={rel()}>
+      {(r) => (
+        <div style={{ position: 'relative' }}>
+          <InspectDot instanceKey={props.instanceKey} leafId="rabbi.relationships" style={{ position: 'absolute', top: '0.2rem', right: 0, 'z-index': 2 }} />
+          <RabbiLineageTree
+            subjectName={str(f().name)}
+            subjectGeneration={f().generation as GenerationId}
+            data={r()}
+            evidence={relEv()}
+            generationByName={generationByName()}
+            onHighlightRange={props.onHighlightRange ?? (() => {})}
+          />
+        </div>
+      )}
+    </Show>
+  );
+}
+
+function RabbiGeography(props: SpecialBlockProps): JSX.Element {
+  const geo = (): GeographyData | undefined => {
+    const g = props.deps['rabbi.geography'] as GeographyData | undefined;
+    return g && (g.birthplace || Array.isArray(g.primaryStudyPlaces)) ? g : undefined;
+  };
+  const geoEv = (): GeographyEvidence[] => {
+    const e = props.deps['rabbi.geography.evidence'] as { evidence?: GeographyEvidence[] } | undefined;
+    return e?.evidence ?? [];
+  };
+  const loc = (): LocationInference | null => {
+    const l = props.deps['rabbi.location'] as LocationInference | undefined;
+    return l && typeof l.place === 'string' && l.place.length > 0 ? l : null;
+  };
+  return (
+    <Show when={geo()}>
+      {(g) => (
+        <div style={{ position: 'relative' }}>
+          <InspectDot instanceKey={props.instanceKey} leafId="rabbi.geography" style={{ position: 'absolute', top: '0.2rem', right: 0, 'z-index': 2 }} />
+          <RabbiPlacesTimeline
+            data={g()}
+            evidence={geoEv()}
+            location={loc()}
+            onHighlightRange={props.onHighlightRange ?? (() => {})}
+          />
+        </div>
+      )}
+    </Show>
+  );
+}
+
+/** Display instance ({fields} for the heading + meta). */
+export function rabbiDisplayInstance(rabbi: IdentifiedRabbi): { fields: Record<string, unknown> } {
+  return { fields: { name: rabbi.name, nameHe: rabbi.nameHe, generation: rabbi.generation, region: rabbi.region, places: rabbi.places } };
+}
+/** The FLAT shape the rabbi mark synthesis expects as mark_input (unchanged from
+ *  the bespoke body, so the rabbi.synthesis cache stays valid). */
+export function rabbiSynthInstance(rabbi: IdentifiedRabbi): unknown {
+  return { name: rabbi.name, nameHe: rabbi.nameHe, generation: rabbi.generation, region: rabbi.region, places: rabbi.places };
+}
+
+export const RABBI_RECIPE: SidebarRecipe = {
+  kind: 'rabbi',
+  markId: 'rabbi',
+  titleField: 'name',
+  titleHeField: 'nameHe',
+  flip: 'rabbi',
+  sections: [
+    { type: 'special', block: 'rabbi-meta', deps: ['rabbi.identity'] },
+    { type: 'synthesis' },
+    { type: 'special', block: 'rabbi-lineage', deps: ['rabbi.relationships', 'rabbi.relationships.evidence'] },
+    { type: 'special', block: 'rabbi-geography', deps: ['rabbi.geography', 'rabbi.geography.evidence', 'rabbi.location'] },
+  ],
+};
+export const RABBI_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
+  'rabbi-meta': RabbiMeta,
+  'rabbi-lineage': RabbiLineage,
+  'rabbi-geography': RabbiGeography,
+};
 
 // ===========================================================================
 // Halacha body
@@ -1670,6 +1671,7 @@ export const RECIPES_BY_KIND: Partial<Record<SidebarContent['kind'], SidebarReci
   aggadata: AGGADATA_RECIPE,
   pesuk: PASUK_RECIPE,
   halacha: HALACHA_RECIPE,
+  rabbi: RABBI_RECIPE,
 };
 
 /** The instanceKey a recipe-driven card mounts under (the client run memo + the
@@ -1681,6 +1683,7 @@ export function instanceKeyForContent(content: SidebarContent, tractate: string,
     case 'aggadata': return `${tractate}:${page}:${content.index}:${content.story.title}`;
     case 'pesuk': return content.pasuk.verseRef;
     case 'halacha': return `${tractate}:${page}:${content.index}:${content.topic.topic}`;
+    case 'rabbi': return content.rabbi.name;
     default: return null;
   }
 }
@@ -1926,12 +1929,16 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
             </Show>
 
             <Show when={c().kind === 'rabbi'}>
-              <RabbiBody
-                rabbi={(c() as Extract<SidebarContent, { kind: 'rabbi' }>).rabbi}
+              <SidebarCardFromHint
+                recipe={RABBI_RECIPE}
+                instance={rabbiDisplayInstance((c() as Extract<SidebarContent, { kind: 'rabbi' }>).rabbi)}
+                synthInstance={rabbiSynthInstance((c() as Extract<SidebarContent, { kind: 'rabbi' }>).rabbi)}
+                instanceKey={instanceKeyForContent(c() as Extract<SidebarContent, { kind: 'rabbi' }>, props.tractate, props.page)!}
                 tractate={props.tractate}
                 page={props.page}
-                generationByName={props.generationByName}
+                specialBlocks={RABBI_BLOCKS}
                 onHighlightRange={(r) => props.onHighlightRange?.(r)}
+                extras={{ generationByName: props.generationByName }}
               />
             </Show>
 
