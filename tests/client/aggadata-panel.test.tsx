@@ -45,7 +45,7 @@ const renderCard = () =>
   ));
 
 describe('aggadata card (recipe-driven)', () => {
-  it('renders the accent title, Hebrew twin subtitle, theme tag, summary, and QA affordance', () => {
+  it('renders the accent title, Hebrew twin subtitle, summary, and QA affordance', () => {
     const { container } = renderCard();
 
     const h3 = container.querySelector('h3')!;
@@ -56,7 +56,8 @@ describe('aggadata card (recipe-driven)', () => {
     expect(subtitle.getAttribute('lang')).toBe('he');
     expect(subtitle.textContent).toContain('מעשה רבי בנידבך');
 
-    expect(container.textContent).toContain('designation'); // theme tag
+    // Theme tag is retired from the card — the value isn't rendered.
+    expect(container.textContent).not.toContain('designation');
     expect(container.textContent).toContain('A short summary of the story.'); // prose
 
     // QA toggle renders synchronously (its lists are lazy on expand).

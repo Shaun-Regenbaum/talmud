@@ -1661,7 +1661,9 @@ export const AGGADATA_RECIPE: SidebarRecipe = {
   titleField: 'title',
   titleHeField: 'titleHe',
   sections: [
-    { type: 'tags', fields: ['theme'], drop: ['biography'] },
+    // Theme tag retired for now — the taxonomy isn't comprehensive enough to be
+    // worth showing. `theme` is still extracted (latent); restore a
+    // `{ type: 'tags', fields: ['theme'] }` section here to bring it back.
     { type: 'prose', field: 'summary', untilSynthesis: true },
     { type: 'synthesis' },
     { type: 'explainer', dep: 'aggadata.background', textField: 'background', labelKey: 'aggadata.background' },
