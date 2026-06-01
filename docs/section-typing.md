@@ -130,8 +130,9 @@ that materially cover U.
 TypeProfile = {
   unit: { tractate, page, startSegIdx, endSegIdx }   // or a cross-page range
   claims: LayerClaim[]
-  primary: LayerId           // dominant dimension (derived)
-  isDispute: boolean         // argument structure over U has >=2 opposing voices
+  primary: 'pure-dialectic' | 'halacha' | 'aggadata' | 'pesukim'  // content dimension (derived)
+  register: 'mishnah' | 'gemara'   // textual axis, orthogonal to primary (derived)
+  isDispute: boolean         // argument structure over U has >=1 opposing voice
 }
 
 LayerClaim = {
@@ -160,16 +161,28 @@ vocabulary.
   shape with the roles swapped: primary `halacha` (full), nested `aggadata`
   (partial).
 
-### `primary` and `isDispute` are derived, not stored
+### `primary`, `register` and `isDispute` are derived, not stored
 
-The base is always the `argument-move` dialectical role; overlays compete to
-become `primary`. `primary` is chosen deterministically: if an overlay
-(halacha/aggadata/pesukim) materially covers U it can win on coverage ×
-confidence × a small layer-priority tiebreak; **if no overlay clears the floor,
-`primary` falls back to the dialectical base** (`pure-dialectic`) rather than
-"untyped". `isDispute` is true only when the `argument` structure over U has at
-least two voices on opposing sides — this is the gate that stops a story (or a
-one-sided Stam Q&A) from being rendered as a debate.
+These are **three orthogonal axes**, not one. A unit can be a `mishnah` that is
+`halacha`-primary, or a `gemara` that is `pure-dialectic` and a dispute.
+
+- **`primary`** (content — *what it's about*). The base is always the
+  `argument-move` dialectical role; overlays compete to become `primary`,
+  chosen deterministically: an overlay (halacha/aggadata/pesukim) that
+  materially covers U wins on coverage × confidence × a small layer-priority
+  tiebreak; **if no overlay clears the floor (`PRIMARY_FLOOR`), `primary` falls
+  back to the dialectical base** (`pure-dialectic`) rather than "untyped".
+- **`register`** (text — *what kind of text it is*). `mishnah` when the majority
+  (`REGISTER_FLOOR`, 0.5) of U's segments fall in the daf's mishnah-in-talmud
+  ranges, else `gemara`. Derived deterministically from the cached Sefaria
+  `/api/related` mishnah anchors — no LLM. `baraita` is intentionally absent: the
+  source only labels mishnah-in-talmud, so there's no deterministic signal for it
+  yet. (Implemented: `registerOf` in `src/lib/typing/profile.ts`.)
+- **`isDispute`** (rhetoric — *is it a debate*). True only when the `argument`
+  structure over U has at least one `opposes` edge — the gate that stops a story
+  (or a one-sided Stam Q&A) from being rendered as a debate. Orthogonal to the
+  other two: a כולכם dispute with no content overlay is `pure-dialectic` +
+  `isDispute: true`.
 
 ## How analysis & rendering change
 
@@ -240,12 +253,13 @@ Recommendation: make the grounding placement contract the single nucleus.
 - The composition step reads every layer's instances **as placements** and
   intersects them. Bespoke `postProcessX` re-anchoring is migrated to emit
   `SegMatch`/`Placement` rather than ad-hoc index rewriting.
-- This is the same seam as the standardized post-LLM check layer (see the
-  separate checks proposal): a **transform** phase (placement/qualification) and
-  a **validate** phase (the linters + new checks: anchor-verbatim,
-  edge-integrity, partition-clean, type-coherence). Once that seam exists,
-  section typing is "a composition + a renderer dispatch + a validate check," not
-  a seventh bespoke branch.
+- This is the same seam as the standardized post-LLM **pass** layer
+  (`src/lib/check/passes.ts`): a **transform** phase (placement/qualification —
+  e.g. the re-anchorers, `derive-voice-edges`) and a **validate** phase (the
+  linters + checks: anchor-verbatim, edge-integrity, partition-clean,
+  type-coherence). Only validate passes are "checks"; transforms build, not
+  judge. Once that seam exists, section typing is "a composition + a renderer
+  dispatch + a validate check," not a seventh bespoke branch.
 
 The test of whether the framework is extensible: with this seam, typing is
 additive; without it, typing is another `postProcessX`. Right now it would be the
@@ -344,8 +358,12 @@ diagram — that's the near-term path.
    too? Moves are finer and may flip type mid-section (a halachic move inside a
    narrative section). Leaning: type at the unit the renderer cards on, with
    nested claims surfacing finer shifts.
-4. **Mishnah.** A Mishnah section is often `statement` but seeds the whole sugya.
-   Does it get its own primary, or inherit from the gemara that expounds it?
+4. **Mishnah.** ~~Does it get its own primary, or inherit from the gemara that
+   expounds it?~~ *Partly resolved:* the **`register`** axis now labels a unit
+   `mishnah` vs `gemara` deterministically (orthogonal to `primary`), so a
+   Mishnah section keeps its own content `primary` (often `halacha`) *and* is
+   marked `register: mishnah` — no inheritance needed. Open remainder: whether a
+   gemara unit should carry a back-reference to the mishnah it expounds.
 5. **Cross-page composition cost.** Intersecting layers across a multi-daf sugya
    needs all member dapim's marks resident; coordinate with the boundary-finder's
    data-loading.
