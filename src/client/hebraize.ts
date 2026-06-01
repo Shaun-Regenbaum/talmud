@@ -476,6 +476,12 @@ export function stripStopwordHebrewParens(text: string): string {
  *  the regex bounded. */
 const ECHO_PAREN_RE = /(\S+(?:\s+\S+){0,5})\s*\(\1\)/g;
 
+/** Two ADJACENT identical parentheticals — `(X) (X)` → `(X)`. ECHO_PAREN_RE only
+ *  catches the bare `X (X)` form; the LLM gloss convention sometimes doubles a
+ *  *parenthesized* term instead (`(ביאת שמשו) (ביאת שמשו)`). A repeated
+ *  parenthetical is never intentional, so collapsing it is always safe. */
+const DOUBLE_PAREN_RE = /\(\s*([^()]+?)\s*\)(\s*)\(\s*\1\s*\)/g;
+
 // Hebrew/Aramaic ranges as \u escapes - see the same note in Hebraized.tsx:
 // a literal presentation form (U+FB1D..) can decompose under normalization and
 // silently blow the range open. ־/׳/״ = maqaf/geresh/gershayim.
@@ -521,6 +527,7 @@ export function stripEchoParens(text: string): string {
   // glosses) need a second pass to fully collapse.
   for (let i = 0; i < 3; i++) {
     let next = prev.replace(ECHO_PAREN_RE, '$1');
+    next = next.replace(DOUBLE_PAREN_RE, '($1)');
     next = dropHebrewGlossEchoes(next);
     if (next === prev) break;
     prev = next;
