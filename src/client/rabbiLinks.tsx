@@ -159,13 +159,22 @@ export function RabbiText(props: {
       // daf.
       const resolved = resolveRabbi(p.value, props.rabbis);
       const targetName = resolved ? resolved.name : p.value;
+      // Inline <span role="link">, NOT <button> — a <button>'s text is atomic
+      // and gets dropped when the user selects/copies the surrounding prose, so
+      // copying a paragraph silently lost every rabbi name. A span keeps the
+      // name in the document text flow (copyable) while staying clickable +
+      // keyboard-accessible.
       return (
-        <button
-          type="button"
+        <span
+          role="link"
+          tabindex={0}
           onClick={(e) => { e.stopPropagation(); props.onPushRabbi(targetName); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); props.onPushRabbi(targetName); }
+          }}
           style={linkStyle}
           title={`Open ${targetName}`}
-        >{p.value}</button>
+        >{p.value}</span>
       );
     }}</For>
   );
