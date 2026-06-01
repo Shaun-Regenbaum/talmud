@@ -19,6 +19,11 @@ import { selectSectionMoves } from '../lib/argumentMoves';
 import { t, lang } from './i18n';
 import { ACCENTS, HE_FONT, HebrewProse, Panel, QASection, SectionCard, Synthesis, SidebarPanelFromHint, SidebarCardFromHint, setActiveCard, kindLabelKey, type SidebarHint, type SidebarRecipe, type SpecialBlockProps } from './sidebar/primitives';
 import { InspectDot } from './MarkEnrichmentCards';
+// Recipes now live in the shared lib (carried on the worker mark def too).
+// Re-exported so existing importers (CARD_DEFS, tests) keep their `from
+// './ArgumentSidebar'` path.
+import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE } from '../lib/sidebar/recipe';
+export { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE };
 
 /** Localize an era date-range ("c. 290 – 320 CE") for Hebrew display. */
 function eraLabel(era: string): string {
@@ -1251,20 +1256,6 @@ export function rabbiDisplayInstance(rabbi: IdentifiedRabbi): { fields: Record<s
 export function rabbiSynthInstance(rabbi: IdentifiedRabbi): unknown {
   return { name: rabbi.name, nameHe: rabbi.nameHe, generation: rabbi.generation, region: rabbi.region, places: rabbi.places };
 }
-
-export const RABBI_RECIPE: SidebarRecipe = {
-  kind: 'rabbi',
-  markId: 'rabbi',
-  titleField: 'name',
-  titleHeField: 'nameHe',
-  flip: 'rabbi',
-  sections: [
-    { type: 'special', block: 'rabbi-meta', deps: ['rabbi.identity'] },
-    { type: 'synthesis' },
-    { type: 'special', block: 'rabbi-lineage', deps: ['rabbi.relationships', 'rabbi.relationships.evidence'] },
-    { type: 'special', block: 'rabbi-geography', deps: ['rabbi.geography', 'rabbi.geography.evidence', 'rabbi.location'] },
-  ],
-};
 export const RABBI_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
   'rabbi-meta': RabbiMeta,
   'rabbi-lineage': RabbiLineage,
@@ -1478,19 +1469,6 @@ export function halachaInstance(topic: HalachaTopic): { fields: Record<string, u
     },
   };
 }
-
-export const HALACHA_RECIPE: SidebarRecipe = {
-  kind: 'halacha',
-  markId: 'halacha',
-  titleField: 'topic',
-  titleHeField: 'topicHe',
-  sections: [
-    { type: 'synthesis' },
-    { type: 'special', block: 'halacha-codification', deps: ['halacha.codification'] },
-    { type: 'special', block: 'halacha-practical', deps: ['halacha.practical'] },
-    { type: 'special', block: 'halacha-disputes', deps: ['halacha.disputes'] },
-  ],
-};
 export const HALACHA_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
   'halacha-codification': HalachaCodification,
   'halacha-practical': HalachaPractical,
@@ -1566,21 +1544,6 @@ export function pasukInstance(pasuk: Pasuk): { fields: Record<string, unknown>; 
     },
   };
 }
-
-export const PASUK_RECIPE: SidebarRecipe = {
-  kind: 'pesuk',
-  markId: 'pesukim',
-  // No titleField — the verse special block renders the fetched Hebrew ref.
-  sections: [
-    { type: 'special', block: 'pasuk-verse' },
-    { type: 'synthesis' },
-    { type: 'explainer', dep: 'pesukim.tanach-context', textField: 'context', labelKey: 'pasuk.tanachContext' },
-    { type: 'explainer', dep: 'pesukim.why-here', textField: 'why_here', labelKey: 'pasuk.whyHere' },
-    { type: 'explainer', dep: 'pesukim.mechanism', textField: 'mechanism', labelKey: 'pasuk.mechanism' },
-    { type: 'explainer', dep: 'pesukim.landing', textField: 'landing', labelKey: 'pasuk.landing' },
-    { type: 'qa' },
-  ],
-};
 export const PASUK_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
   'pasuk-verse': PasukVerse,
 };
@@ -1636,25 +1599,7 @@ function AggadataParallels(props: SpecialBlockProps): JSX.Element {
 }
 
 /** The aggadata card as a recipe: a theme tag, the story summary, the synthesis,
- *  two explainer boxes, the custom parallels block, then follow-up Q&A. */
-export const AGGADATA_RECIPE: SidebarRecipe = {
-  kind: 'aggadata',
-  markId: 'aggadata',
-  titleField: 'title',
-  titleHeField: 'titleHe',
-  sections: [
-    // Theme tag retired for now — the taxonomy isn't comprehensive enough to be
-    // worth showing. `theme` is still extracted (latent); restore a
-    // `{ type: 'tags', fields: ['theme'] }` section here to bring it back.
-    { type: 'prose', field: 'summary', untilSynthesis: true },
-    { type: 'synthesis' },
-    { type: 'explainer', dep: 'aggadata.background', textField: 'background', labelKey: 'aggadata.background' },
-    { type: 'explainer', dep: 'aggadata.interpretation', textField: 'interpretation', labelKey: 'aggadata.interpretation' },
-    { type: 'special', block: 'aggadata-parallels', deps: ['aggadata.parallels'] },
-    { type: 'qa' },
-  ],
-};
-export const AGGADATA_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
+ *  two explainer boxes, the custom parallels block, then follow-up Q&A. */export const AGGADATA_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
   'aggadata-parallels': AggadataParallels,
 };
 
@@ -1667,19 +1612,6 @@ export const AGGADATA_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Eleme
  *  `synthesis` section — that's what mounts the MarkEnrichmentCards host the
  *  inspect drawer renders inside. Without it the panel's 'i' targets an
  *  unmounted instanceKey (a dead click). */
-// Defined ahead of its blocks/helpers (which live by the old RishonimBody site)
-// so it's in scope before CARD_DEFS; it names blocks by string.
-export const RISHONIM_RECIPE: SidebarRecipe = {
-  kind: 'rishonim',
-  markId: 'rishonim',
-  // No titleField — the header block renders the computed "on segment N" title.
-  sections: [
-    { type: 'special', block: 'rishonim-header' },
-    { type: 'synthesis' },
-    { type: 'special', block: 'rishonim-sources' },
-  ],
-};
-
 /** The instanceKey a recipe-driven card mounts under (the client run memo + the
  *  inspect drawer are keyed by it). Single source of truth so the dispatch and
  *  the dev Recipe panel target the SAME drawer byte-for-byte. null for kinds not

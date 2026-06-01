@@ -40,6 +40,7 @@
  */
 
 import type { LLMModelId } from './llm';
+import type { SidebarRecipe } from '../lib/sidebar/recipe';
 
 // ===========================================================================
 // Anchor — where in the daf this mark's instances live.
@@ -361,6 +362,12 @@ export interface MarkDefinition {
 
   anchor: AnchorKind;
   render: RenderConfig;
+  /** Declarative sidebar-card recipe (header + ordered sections). Carried here
+   *  so the card's structure lives with its mark and is exposed via /api/marks;
+   *  the client renders it (CARD_DEFS) using the same shared recipe object plus
+   *  its special-block components + instance adapters. Absent for marks whose
+   *  card is still a bespoke view. */
+  recipe?: SidebarRecipe;
   extractor: Extractor;
   /** Declared inputs to the extractor. Defaults to ['gemara'] when absent —
    *  current behavior of buildDafContext. Future secondary anchors declare
