@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { instanceIdOf } from '../src/worker/cache-keys';
+import { instanceIdOf, keyForEnrichment } from '../src/worker/cache-keys';
+import { findCodeEnrichment } from '../src/worker/code-marks';
 
 // Regression: Hebrew section titles slug to just "_", so keying section
 // enrichments by slugId(title) collided EVERY Hebrew section on a daf onto one
@@ -63,5 +64,58 @@ describe('instanceIdOf — rishonim comment content sensitivity', () => {
     const a = rishonim(0, [{ work: 'Rashi', sourceRef: 'Rashi on Berakhot 2a:1:1', textHe: 'מאימתי', textEn: 'From when' }]);
     const b = rishonim(0, [{ work: 'Rashi', sourceRef: 'Rashi on Berakhot 2a:1:1', textHe: 'מאימתי', textEn: 'From when' }]);
     expect(await instanceIdOf(a)).toBe(await instanceIdOf(b));
+  });
+
+  // The tightest form of the incident: works/commentCount/segIdx all coincide and
+  // ONLY the comment text differs. The synthesis is a function of that text, so the
+  // id must still diverge — otherwise the wrong synthesis cache-hits.
+  it('diverges when only the comment text differs (same works/count/seg)', async () => {
+    const one = rishonim(0, [{ work: 'Rashi', sourceRef: 'Rashi on Berakhot 2a:1:1', textHe: 'גרסה ראשונה', textEn: 'First reading' }]);
+    const two = rishonim(0, [{ work: 'Rashi', sourceRef: 'Rashi on Berakhot 2a:1:1', textHe: 'גרסה שנייה', textEn: 'Second reading' }]);
+    expect(await instanceIdOf(one)).not.toBe(await instanceIdOf(two));
+  });
+
+  // Guard the actual failure surface: instanceIdOf must NOT collapse to the bare
+  // {segIdx} hash that made the synthesis key content-blind in the first place.
+  it('does not collapse to the content-blind {segIdx} hash', async () => {
+    const withComments = rishonim(0, [{ work: 'Rashi', sourceRef: 'Rashi on Berakhot 2a:1:1', textHe: 'טקסט', textEn: 'text' }]);
+    const segIdxOnly = await instanceIdOf({ segIdx: 0 });
+    expect(await instanceIdOf(withComments)).not.toBe(segIdxOnly);
+  });
+});
+
+// The bug bit at the CACHE KEY, not just the instance id: the rishonim.synthesis
+// key collapsed to (segIdx, daf, cache_version) and served a poisoned entry the
+// correct source could never evict. Lock the end-to-end key (instanceIdOf →
+// keyForEnrichment) so two segments-worth of different comments on the SAME daf
+// can never share a synthesis cache slot again. Assert relationships, not exact
+// strings, so a future cache_version bump doesn't break the test.
+describe('rishonim.synthesis cache key — content sensitivity end-to-end', () => {
+  const def = findCodeEnrichment('rishonim.synthesis');
+  const daf = { tractate: 'Berakhot', page: '2a' };
+  const rishonim = (segIdx: number, textHe: string, textEn: string) =>
+    ({ segIdx, fields: { works: ['Rashi'], commentCount: 1, comments: [{ work: 'Rashi', workHe: 'רש"י', sourceRef: 'Rashi on Berakhot 2a:1:1', textHe, textEn }] } });
+
+  it('registers as a local-scope enrichment (daf belongs in the key)', () => {
+    expect(def).not.toBeNull();
+    // A 'global' scope would drop the daf from the key — a different cross-daf
+    // collision bug. Pin the scope the key shape depends on.
+    expect((def as { scope: string }).scope).toBe('local');
+  });
+
+  it('different comment content on the same daf+segment yields different keys', async () => {
+    const a = rishonim(0, 'מאימתי קורין את שמע', 'From what time');
+    const b = rishonim(0, 'אור לארבעה עשר בודקין את החמץ', 'On the eve of the 14th');
+    const ka = keyForEnrichment(def!, await instanceIdOf(a), daf);
+    const kb = keyForEnrichment(def!, await instanceIdOf(b), daf);
+    expect(ka).not.toBe(kb);
+  });
+
+  it('identical comment content yields a stable, reachable key', async () => {
+    const a = rishonim(0, 'מאימתי קורין את שמע', 'From what time');
+    const b = rishonim(0, 'מאימתי קורין את שמע', 'From what time');
+    const ka = keyForEnrichment(def!, await instanceIdOf(a), daf);
+    const kb = keyForEnrichment(def!, await instanceIdOf(b), daf);
+    expect(ka).toBe(kb);
   });
 });
