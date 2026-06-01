@@ -185,6 +185,8 @@ const CATALOG = {
   // adjacent amud, already localized (Hebrew daf form in he mode).
   'overview.continuesFrom': { en: '↑ continues from {page}', he: '↑ המשך מדף {page}' },
   'overview.continuesOnto': { en: 'continues onto {page} ↓', he: 'ממשיך לדף {page} ↓' },
+  'overview.crossRefs': { en: 'Cross-references', he: 'הפניות' },
+  'overview.goToDaf': { en: 'Go to {daf}', he: 'מעבר ל{daf}' },
 
   // — Whole-daf background (terms/concepts a reader needs) —
   'background.chip': { en: 'Background', he: 'רקע' },

@@ -747,6 +747,14 @@ export function groupSectionsBySugya(sectionCount: number, connections: FlowConn
   return groups;
 }
 
+/** A link from the unified link layer (GET /api/links). Minimal client shape. */
+interface DafLinkLite {
+  via: string;
+  relation: string;
+  targets: { tractate: string; page: string; seg: number }[];
+  note?: string;
+}
+
 /** Whole-daf argument overview. A one-paragraph synthesis, then the daf's
  *  argument sections drawn as flow-graph MAPS — one map per discussion (sugya),
  *  split where the sections stop binding to each other. Maps whose discussion
@@ -814,6 +822,44 @@ function ArgumentOverviewBody(props: {
     },
   );
 
+  // Unified link layer for this daf (src/lib/context/link.ts → /api/links): the
+  // continuity, flow, and CITATIONS in one shape. We surface the citations —
+  // cross-references to OTHER dapim — which no other view shows; the flow is in
+  // the maps above and the continuity in the captions.
+  const [links] = createResource(
+    () => `${props.tractate}|${props.page}`,
+    async (): Promise<DafLinkLite[]> => {
+      try {
+        const r = await fetch(`/api/links/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}`);
+        if (!r.ok) return [];
+        return ((await r.json()) as { links?: DafLinkLite[] }).links ?? [];
+      } catch { return []; }
+    },
+  );
+  // Distinct other-daf pages this daf cites, in first-seen order.
+  const citedPages = (): { tractate: string; page: string; label: string }[] => {
+    const seen = new Set<string>();
+    const out: { tractate: string; page: string; label: string }[] = [];
+    for (const l of links() ?? []) {
+      if (l.relation !== 'cites') continue;
+      for (const tgt of l.targets) {
+        if (tgt.tractate === props.tractate && tgt.page === props.page) continue; // self
+        const k = `${tgt.tractate}|${tgt.page}`;
+        if (seen.has(k)) continue;
+        seen.add(k);
+        out.push({ tractate: tgt.tractate, page: tgt.page, label: tgt.seg >= 0 ? `${tgt.tractate} ${tgt.page}:${tgt.seg}` : `${tgt.tractate} ${tgt.page}` });
+      }
+    }
+    return out;
+  };
+  const goToDaf = (tractate: string, page: string): void => {
+    const u = new URL(window.location.href);
+    u.searchParams.set('tractate', tractate);
+    u.searchParams.set('page', page);
+    u.hash = '';
+    window.location.href = u.toString();
+  };
+
   // Adjacent-amud page label for the continuation caption: Hebrew daf form
   // ('ב.') in he mode, the raw '2a' slug in en.
   const pageRef = (p: string | null): string => (p ? (lang() === 'he' ? pageLabelHe(p) : p) : '');
@@ -878,6 +924,28 @@ function ArgumentOverviewBody(props: {
             </div>
           );
         }}</For>
+      </Show>
+      <Show when={citedPages().length > 0}>
+        <div style={{ 'margin-top': '0.7rem', 'border-top': '1px solid #f0f0f0', 'padding-top': '0.55rem' }}>
+          <div style={{
+            'font-size': '0.65rem', 'text-transform': 'uppercase', 'letter-spacing': '0.05em',
+            color: '#9ca3af', 'margin-bottom': '0.35rem',
+          }}>{t('overview.crossRefs')}</div>
+          <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.3rem' }}>
+            <For each={citedPages()}>{(p) => (
+              <a
+                href="#"
+                onClick={(e) => { e.preventDefault(); goToDaf(p.tractate, p.page); }}
+                title={t('overview.goToDaf', { daf: p.label })}
+                style={{
+                  'font-size': '0.72rem', color: '#1d4ed8', 'text-decoration': 'none',
+                  background: '#eff6ff', border: '1px solid #dbeafe', 'border-radius': '5px',
+                  padding: '0.12rem 0.4rem', 'white-space': 'nowrap',
+                }}
+              >{p.label}</a>
+            )}</For>
+          </div>
+        </div>
       </Show>
     </Panel>
   );
