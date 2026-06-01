@@ -2,21 +2,24 @@
  * RecipePanel — dev-shelf view of the OPEN sidebar card's recipe (its
  * declaration), so dev mode makes clear "what we are defining": the header
  * fields, the ordered sections, each section's type, and what each one pulls
- * from. `special` sections are flagged as custom — the one place genuinely
- * bespoke code lives.
+ * from. `special` sections are flagged as custom — but they still declare their
+ * input leaves, so even custom blocks aren't opaque.
  *
- * Reads the `activeRecipe` signal that ArgumentSidebar's dispatch publishes.
- * When that's null the open card is still a bespoke (un-converted) *Body — the
- * panel says so, which turns it into a live scoreboard of the generic-sidebar
- * migration: a card appears here the moment it becomes recipe-driven.
+ * Each row carries an inspect 'i' that opens the bottom drawer at that section's
+ * true source: explainer/special → their leaf, synthesis/tags/prose → the
+ * synthesis+instance view (where the mark extraction lives). So the panel is
+ * both the map of what's declared AND the way to dig into how each piece was
+ * made — the same drawer the in-card 'i' dots open.
  *
- * Pairs with the existing inspect drawer: this answers "what is this card",
- * the "i" dots + drawer answer "how was each section made". A section's
- * `target` (for explainers) is the same leaf id you open in that drawer.
+ * Reads the `activeCard` signal that ArgumentSidebar's dispatch publishes (the
+ * recipe + the instanceKey to target). When that's null the open card is still
+ * a bespoke (un-converted) *Body — so the panel doubles as a live scoreboard of
+ * the generic-sidebar migration.
  */
 
 import { For, Show, type JSX } from 'solid-js';
-import { activeRecipe, describeRecipe, type RecipeSectionInfo } from './sidebar/primitives';
+import { activeCard, describeRecipe, type RecipeSectionInfo } from './sidebar/primitives';
+import { InspectDot } from './MarkEnrichmentCards';
 
 /** Monospace tag for a section's type — special is highlighted (it's the custom one). */
 function TypeTag(props: { info: RecipeSectionInfo }): JSX.Element {
@@ -36,9 +39,10 @@ function TypeTag(props: { info: RecipeSectionInfo }): JSX.Element {
 }
 
 export default function RecipePanel(): JSX.Element {
+  const card = () => activeCard();
   const info = () => {
-    const r = activeRecipe();
-    return r ? describeRecipe(r) : null;
+    const c = card();
+    return c ? describeRecipe(c.recipe) : null;
   };
   return (
     <div style={{
@@ -94,7 +98,7 @@ export default function RecipePanel(): JSX.Element {
               }}>{i().header}</span>
             </div>
 
-            {/* Sections, in render order */}
+            {/* Sections, in render order — each with an inspect 'i' on its source */}
             <For each={i().sections}>{(s) => (
               <div style={{ display: 'flex', 'align-items': 'baseline', gap: '0.4rem', padding: '0.15rem 0', color: '#444' }}>
                 <span style={{
@@ -111,12 +115,33 @@ export default function RecipePanel(): JSX.Element {
                     'white-space': 'nowrap', overflow: 'hidden', 'text-overflow': 'ellipsis',
                   }}>{s.target}</span>
                 </Show>
+                {/* inspect 'i' → opens the drawer at this section's true source */}
+                <Show when={s.inspect}>
+                  {(insp) => (
+                    <InspectDot
+                      instanceKey={card()!.instanceKey}
+                      leafId={insp().leafId}
+                      title={insp().leafId
+                        ? `inspect ${insp().leafId}`
+                        : 'inspect synthesis + instance (the extraction)'}
+                      style={{ 'flex-shrink': 0 }}
+                    />
+                  )}
+                </Show>
+              </div>
+            )}</For>
+
+            {/* A special block's declared inputs — so 'custom' means custom render,
+                not opaque: its leaf inputs are listed. */}
+            <For each={i().sections.filter((s) => s.custom && (s.inputs?.length ?? 0) > 0)}>{(s) => (
+              <div style={{ color: '#9a3412', 'font-size': '0.66rem', 'margin-top': '0.2rem', 'padding-left': '1.5rem' }}>
+                {s.target} inputs: {s.inputs!.join(', ')}
               </div>
             )}</For>
 
             <Show when={i().sections.some((s) => s.custom)}>
               <div style={{ color: '#9a3412', 'font-size': '0.66rem', 'margin-top': '0.3rem' }}>
-                special = custom block (registered, not freeform)
+                special = custom block (registered, declared inputs — not freeform)
               </div>
             </Show>
           </>

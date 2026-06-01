@@ -17,7 +17,7 @@ import { adjacentAmud } from '../lib/sefref/amudim';
 import { dafRefHe, pageLabelHe } from '../lib/sefref/tractates';
 import { selectSectionMoves } from '../lib/argumentMoves';
 import { t, lang } from './i18n';
-import { ACCENTS, HebrewProse, Panel, QASection, SectionCard, Synthesis, SidebarPanelFromHint, SidebarCardFromHint, setActiveRecipe, kindLabelKey, type SidebarHint, type SidebarRecipe, type SpecialBlockProps } from './sidebar/primitives';
+import { ACCENTS, HebrewProse, Panel, QASection, SectionCard, Synthesis, SidebarPanelFromHint, SidebarCardFromHint, setActiveCard, kindLabelKey, type SidebarHint, type SidebarRecipe, type SpecialBlockProps } from './sidebar/primitives';
 import { InspectDot } from './MarkEnrichmentCards';
 
 /** Localize an era date-range ("c. 290 – 320 CE") for Hebrew display. */
@@ -1666,7 +1666,7 @@ export const AGGADATA_RECIPE: SidebarRecipe = {
     { type: 'synthesis' },
     { type: 'explainer', dep: 'aggadata.background', textField: 'background', labelKey: 'aggadata.background' },
     { type: 'explainer', dep: 'aggadata.interpretation', textField: 'interpretation', labelKey: 'aggadata.interpretation' },
-    { type: 'special', block: 'aggadata-parallels' },
+    { type: 'special', block: 'aggadata-parallels', deps: ['aggadata.parallels'] },
     { type: 'qa' },
   ],
 };
@@ -1677,10 +1677,26 @@ export const AGGADATA_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Eleme
 /** Which sidebar kinds are recipe-driven today (the rest are still bespoke
  *  *Body components). The single source of truth for both the dispatch and the
  *  dev shelf's Recipe panel — adding an entry here as a card is converted makes
- *  it light up in the shelf automatically. */
+ *  it light up in the shelf automatically.
+ *
+ *  Invariant: any recipe whose sections expose inspect dots must include a
+ *  `synthesis` section — that's what mounts the MarkEnrichmentCards host the
+ *  inspect drawer renders inside. Without it the panel's 'i' targets an
+ *  unmounted instanceKey (a dead click). */
 export const RECIPES_BY_KIND: Partial<Record<SidebarContent['kind'], SidebarRecipe>> = {
   aggadata: AGGADATA_RECIPE,
 };
+
+/** The instanceKey a recipe-driven card mounts under (the client run memo + the
+ *  inspect drawer are keyed by it). Single source of truth so the dispatch and
+ *  the dev Recipe panel target the SAME drawer byte-for-byte. null for kinds not
+ *  yet recipe-driven. */
+export function instanceKeyForContent(content: SidebarContent, tractate: string, page: string): string | null {
+  switch (content.kind) {
+    case 'aggadata': return `${tractate}:${page}:${content.index}:${content.story.title}`;
+    default: return null;
+  }
+}
 
 /** The mark-instance shape the aggadata extractor emits (mark_input for leaves). */
 export function aggadataInstance(story: AggadataStory): { fields: Record<string, unknown>; startSegIdx: number; endSegIdx: number } {
@@ -1828,13 +1844,18 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
   window.addEventListener('keydown', onKey);
   onCleanup(() => window.removeEventListener('keydown', onKey));
 
-  // Publish the open card's recipe for the dev shelf's Recipe panel (null when
-  // no card is open or the open card is still a bespoke *Body). Single writer.
+  // Publish the open card (recipe + instanceKey) for the dev shelf's Recipe
+  // panel — null when no card is open or it's still a bespoke *Body. Single
+  // writer. The instanceKey matches what the dispatch mounts, so each panel
+  // row's inspect 'i' targets the very drawer that card renders.
   createEffect(() => {
     const content = props.content;
-    setActiveRecipe(content ? (RECIPES_BY_KIND[content.kind] ?? null) : null);
+    if (!content) { setActiveCard(null); return; }
+    const recipe = RECIPES_BY_KIND[content.kind];
+    const instanceKey = instanceKeyForContent(content, props.tractate, props.page);
+    setActiveCard(recipe && instanceKey ? { recipe, instanceKey } : null);
   });
-  onCleanup(() => setActiveRecipe(null));
+  onCleanup(() => setActiveCard(null));
 
   return (
     <Show when={props.content}>
@@ -1970,7 +1991,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
               <SidebarCardFromHint
                 recipe={AGGADATA_RECIPE}
                 instance={aggadataInstance((c() as Extract<SidebarContent, { kind: 'aggadata' }>).story)}
-                instanceKey={`${props.tractate}:${props.page}:${(c() as Extract<SidebarContent, { kind: 'aggadata' }>).index}:${(c() as Extract<SidebarContent, { kind: 'aggadata' }>).story.title}`}
+                instanceKey={instanceKeyForContent(c() as Extract<SidebarContent, { kind: 'aggadata' }>, props.tractate, props.page)!}
                 qaInstanceId={`${(c() as Extract<SidebarContent, { kind: 'aggadata' }>).story.title}|${(c() as Extract<SidebarContent, { kind: 'aggadata' }>).story.excerpt}`}
                 tractate={props.tractate}
                 page={props.page}

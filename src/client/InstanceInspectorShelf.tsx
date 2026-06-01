@@ -162,6 +162,18 @@ export default function InstanceInspectorShelf(props: Props) {
           {props.renderBody()}
         </div>
 
+        {/* the mark instance this run was built from — the 'extraction' that
+            tags/prose render their fields off. Collapsed; present on aggregate
+            runs that resolved their anchors. */}
+        <Show when={result()?.anchors_resolved}>{(anchors) => (
+          <details style={{ 'margin-bottom': '0.5rem' }}>
+            <summary style={{ color: '#666', cursor: 'pointer', 'font-size': '0.78rem' }}>instance (extraction)</summary>
+            <pre style={{ 'white-space': 'pre-wrap', 'font-family': 'ui-monospace, Menlo, monospace', 'font-size': '12px', margin: '0.4rem 0 0', background: '#f8f8f8', padding: '0.6rem', 'border-radius': '3px' }}>
+              {JSON.stringify(anchors(), null, 2)}
+            </pre>
+          </details>
+        )}</Show>
+
         <Show when={props.depBadges.length > 0}>
           <div style={{
             display: 'flex', gap: '0.3rem', 'align-items': 'center',
