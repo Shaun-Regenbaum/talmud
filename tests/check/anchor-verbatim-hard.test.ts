@@ -6,17 +6,17 @@
  * excerpts) — observe-only there.
  */
 import { describe, it, expect } from 'vitest';
-import { runChecks, type CheckCtx } from '../../src/lib/check/postcheck';
+import { runPasses, type PassCtx } from '../../src/lib/check/passes';
 
 // seg 0 has the text; the instance claims its excerpt is in seg 1 (it isn't) → flagged.
 const segs = ['תנו רבנן המביא גט', 'אמר רבא הלכה כרבי'];
 const flagged = { instances: [{ startSegIdx: 0, fields: { excerpt: 'מילים שאינן שם' } }] };
-const ctx = (defId: string): CheckCtx => ({ tractate: 'Gittin', page: '67b', segmentsHe: segs, defId });
+const ctx = (defId: string): PassCtx => ({ tractate: 'Gittin', page: '67b', segmentsHe: segs, defId });
 
 describe('anchor-verbatim per-mark severity', () => {
   it('is HARD on pesukim and aggadata', async () => {
     for (const defId of ['pesukim', 'aggadata']) {
-      const { issues } = await runChecks(['anchor-verbatim'], structuredClone(flagged), ctx(defId));
+      const { issues } = await runPasses(['anchor-verbatim'], structuredClone(flagged), ctx(defId));
       expect(issues).toHaveLength(1);
       expect(issues[0].severity).toBe('hard');
     }
@@ -24,7 +24,7 @@ describe('anchor-verbatim per-mark severity', () => {
 
   it('stays SOFT on argument and argument-move', async () => {
     for (const defId of ['argument', 'argument-move']) {
-      const { issues } = await runChecks(['anchor-verbatim'], structuredClone(flagged), ctx(defId));
+      const { issues } = await runPasses(['anchor-verbatim'], structuredClone(flagged), ctx(defId));
       expect(issues).toHaveLength(1);
       expect(issues[0].severity).toBe('soft');
     }

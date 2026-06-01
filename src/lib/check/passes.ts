@@ -1,16 +1,18 @@
 /**
- * Standardized post-LLM check layer. Replaces the two hardcoded
+ * Standardized post-LLM pass layer. Replaces the two hardcoded
  * `if (def.id === …)` chains in the worker's runMarkOnce / runEnrichmentOnce
  * (one for anchor-resolution transforms, one for the Hebrew linters) with a
- * single registry of named checks that a definition opts into via `checks: []`.
+ * single registry of named passes that a definition opts into via `passes: []`.
  *
- * Two phases:
- *   - transform: mutates/returns `parsed` (placement, anchor resolution).
- *   - validate:  inspects `parsed`, returns issues. `hard` issues gate the
- *                cache write (via the existing bounded-retry); `soft` issues
+ * A pass is one of two phases — only the validate phase is a "check" (it judges
+ * the output); transform passes derive/repair it:
+ *   - transform: mutates/returns `parsed` (placement, anchor resolution, the
+ *                voice-graph derivation). Not a check — it builds, not judges.
+ *   - validate:  inspects `parsed`, returns issues (a check). `hard` issues gate
+ *                the cache write (via the existing bounded-retry); `soft` issues
  *                are attached as a quality signal but never block.
  *
- * runChecks runs all transforms (in the order listed) then all validators.
+ * runPasses runs all transforms (in the order listed) then all validators.
  * DOM-free / env-free so it lives in src/lib and is unit-testable.
  */
 
@@ -32,7 +34,7 @@ export interface CheckIssue {
   detail?: string;
 }
 
-export interface CheckCtx {
+export interface PassCtx {
   tractate: string;
   page: string;
   /** Segment grid for placement/anchor transforms (the gemara slice). */
@@ -44,17 +46,17 @@ export interface CheckCtx {
   lang?: 'en' | 'he';
 }
 
-export type CheckResult = { parsed: unknown } | { issues: CheckIssue[] };
+export type PassResult = { parsed: unknown } | { issues: CheckIssue[] };
 
-export interface PostCheck {
+export interface PostPass {
   id: string;
   phase: 'transform' | 'validate';
-  run(parsed: unknown, ctx: CheckCtx): CheckResult | Promise<CheckResult>;
+  run(parsed: unknown, ctx: PassCtx): PassResult | Promise<PassResult>;
 }
 
-// ---- transform checks: anchor resolution via the unified placer ----
+// ---- transform passes: anchor resolution via the unified placer ----
 
-const transform = (id: string, fn: (p: unknown, segs: string[]) => unknown): PostCheck => ({
+const transform = (id: string, fn: (p: unknown, segs: string[]) => unknown): PostPass => ({
   id,
   phase: 'transform',
   run: (parsed, ctx) => ({ parsed: fn(parsed, ctx.segmentsHe) }),
@@ -72,7 +74,7 @@ function synthesisText(parsed: unknown): string {
       .join('\n\n');
 }
 
-const hebrewExcerpt: PostCheck = {
+const hebrewExcerpt: PostPass = {
   id: 'hebrew-excerpt',
   phase: 'validate',
   run: (parsed) => ({
@@ -86,7 +88,7 @@ const hebrewExcerpt: PostCheck = {
   }),
 };
 
-const hebrewGloss: PostCheck = {
+const hebrewGloss: PostPass = {
   id: 'hebrew-gloss',
   phase: 'validate',
   run: (parsed) => ({
@@ -233,7 +235,7 @@ function fuzzyPresent(excerpt: string, segWords: string[]): boolean {
   return false;
 }
 
-const anchorVerbatim: PostCheck = {
+const anchorVerbatim: PostPass = {
   id: 'anchor-verbatim',
   phase: 'validate',
   run: (parsed, ctx) => {
@@ -271,7 +273,7 @@ const anchorVerbatim: PostCheck = {
  *  daf — no overlapping section ranges. Move-level overlaps are legitimate
  *  (several moves can share one segment), so overlap is only checked for
  *  `argument`. Catches the duplicated-move / overshooting-section bugs. */
-const partitionClean: PostCheck = {
+const partitionClean: PostPass = {
   id: 'partition-clean',
   phase: 'validate',
   run: (parsed, ctx) => {
@@ -314,7 +316,7 @@ const partitionClean: PostCheck = {
  *  every edge's from/to names a declared voice, no self-loops, and no single
  *  voice pair carries both an `opposes` and a `supports` edge (a contradiction
  *  the model occasionally emits when it double-labels a resolution). */
-const edgeIntegrity: PostCheck = {
+const edgeIntegrity: PostPass = {
   id: 'edge-integrity',
   phase: 'validate',
   run: (parsed, ctx) => {
@@ -373,7 +375,7 @@ function hebrewRuns(text: string, minWords: number): string[] {
  *  each ≥3-word Hebrew run in the rashi/tosafot/other prose fields, verify it is
  *  present (via the verbatim matcher) in ctx.commentaryHe. Skips when no
  *  commentary is loaded (can't judge → no false positives). Soft (observe). */
-const commentaryVerbatim: PostCheck = {
+const commentaryVerbatim: PostPass = {
   id: 'commentary-verbatim',
   phase: 'validate',
   run: (parsed, ctx) => {
@@ -395,7 +397,7 @@ const commentaryVerbatim: PostCheck = {
   },
 };
 
-export const CHECKS: Record<string, PostCheck> = {
+export const PASSES: Record<string, PostPass> = {
   'reanchor-argument': transform('reanchor-argument', reanchorArgument),
   'reanchor-argument-move': transform('reanchor-argument-move', reanchorArgumentMove),
   'reanchor-pesukim': transform('reanchor-pesukim', reanchorPesukim),
@@ -411,23 +413,23 @@ export const CHECKS: Record<string, PostCheck> = {
   'edge-integrity': edgeIntegrity,
 };
 
-/** Run the named checks: transforms first (in listed order), then validators.
- *  Unknown ids are ignored (a definition may reference a check not yet shipped). */
-export async function runChecks(
+/** Run the named passes: transforms first (in listed order), then validators.
+ *  Unknown ids are ignored (a definition may reference a pass not yet shipped). */
+export async function runPasses(
   checkIds: readonly string[],
   parsed: unknown,
-  ctx: CheckCtx,
+  ctx: PassCtx,
 ): Promise<{ parsed: unknown; issues: CheckIssue[] }> {
   let current = parsed;
   const issues: CheckIssue[] = [];
   for (const id of checkIds) {
-    const c = CHECKS[id];
+    const c = PASSES[id];
     if (!c || c.phase !== 'transform') continue;
     const r = await c.run(current, ctx);
     if ('parsed' in r) current = r.parsed;
   }
   for (const id of checkIds) {
-    const c = CHECKS[id];
+    const c = PASSES[id];
     if (!c || c.phase !== 'validate') continue;
     const r = await c.run(current, ctx);
     if ('issues' in r) issues.push(...r.issues);

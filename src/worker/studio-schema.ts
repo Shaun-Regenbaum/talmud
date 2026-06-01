@@ -366,14 +366,14 @@ export interface MarkDefinition {
    *  current behavior of buildDafContext. Future secondary anchors declare
    *  other marks (e.g. an Israel/Bavel map = [{mark:'rabbi'},{mark:'place'}]). */
   dependencies?: MarkDependency[];
-  /** Post-LLM checks this definition opts into, run by the worker's check
-   *  layer (src/lib/check/postcheck.ts) after the extractor produces `parsed`.
-   *  Two phases: `transform` checks (e.g. the verbatim re-anchorers
-   *  'reanchor-argument') mutate the parsed output; `validate` checks return
-   *  issues. Ordered. NOT part of def_hash / the cache key — checks are
+  /** Post-LLM passes this definition opts into, run by the worker's pass
+   *  layer (src/lib/check/passes.ts) after the extractor produces `parsed`.
+   *  Two phases: `transform` passes (e.g. the verbatim re-anchorers
+   *  'reanchor-argument') mutate the parsed output; `validate` passes (checks)
+   *  return issues. Ordered. NOT part of def_hash / the cache key — passes are
    *  post-processing of generated output, not generation input, so toggling
    *  them must never bust the LLM cache. */
-  checks?: string[];
+  passes?: string[];
   /** UI-only nesting hint. When set, the dev panel groups this mark as a
    *  child of `parent_mark` in the toggle list. Architecturally the mark is
    *  still independent (own anchor, own cache, own extractor) — this just
@@ -430,11 +430,11 @@ export interface EnrichmentDefinition {
    *  here are run first (recursively); other marks are extracted on the same
    *  daf. Empty array means the enrichment only sees `mark_input`. */
   dependencies?: EnrichmentDependency[];
-  /** Post-LLM checks this enrichment opts into. See MarkDefinition.checks. The
+  /** Post-LLM passes this enrichment opts into. See MarkDefinition.passes. The
    *  validators ('hebrew-excerpt', 'hebrew-gloss') feed the bounded-retry
    *  cache-gating (a `hard` issue leaves the output uncached until
    *  MAX_LINT_ATTEMPTS). NOT part of def_hash / the cache key. */
-  checks?: string[];
+  passes?: string[];
 
   extractor: Extractor;
 
@@ -583,5 +583,5 @@ correct the ones I got wrong.
 
   14. status       — always 'draft' on creation. Promote later via UI.
 
-After fill-in, the worker computes def_hash from sha256(JSON.stringify(extractor) + JSON.stringify(render)) — NOT over `checks` (post-processing, not generation input). Save via PUT /api/marks/{id}.
+After fill-in, the worker computes def_hash from sha256(JSON.stringify(extractor) + JSON.stringify(render)) — NOT over `passes` (post-processing, not generation input). Save via PUT /api/marks/{id}.
 */

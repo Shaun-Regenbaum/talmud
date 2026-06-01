@@ -44,9 +44,9 @@ export interface MarkDefinition {
   fields_schema?: unknown;
   /** Declared inputs (gemara/commentaries/other marks). See studio-schema.ts. */
   dependencies?: MarkDependency[];
-  /** Post-LLM checks (transform/validate) this mark opts into. See
-   *  MarkDefinition.checks in studio-schema.ts. Not part of the cache key. */
-  checks?: string[];
+  /** Post-LLM passes (transform/validate) this mark opts into. See
+   *  MarkDefinition.passes in studio-schema.ts. Not part of the cache key. */
+  passes?: string[];
   /** UI-only nesting hint — see MarkDefinition.parent_mark in studio-schema.ts. */
   parent_mark?: string;
   /** Experimental feature flag — dev-only visibility. See studio-schema.ts. */
@@ -70,9 +70,9 @@ export interface EnrichmentDefinition {
    *  The runner walks this array and exposes each entry as a template var. */
   dependencies?: EnrichmentDependency[];
   /** Post-LLM validators (e.g. 'hebrew-excerpt', 'hebrew-gloss') this
-   *  enrichment opts into. See EnrichmentDefinition.checks in studio-schema.ts.
+   *  enrichment opts into. See EnrichmentDefinition.passes in studio-schema.ts.
    *  Feeds the cache-gating; not part of the cache key. */
-  checks?: string[];
+  passes?: string[];
   system_prompt: string;
   user_prompt_template: string;
   /** Hebrew-output counterparts, selected when a run is requested with
