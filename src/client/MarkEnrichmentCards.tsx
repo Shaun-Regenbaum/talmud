@@ -35,7 +35,8 @@ import { lang, t } from './i18n';
 const [openInspectorKey, setOpenInspectorKey] = createSignal<string | null>(null);
 // Which leaf the open inspector is focused on (null = the synthesis aggregate).
 // Module-level so a section card rendered OUTSIDE the owning MarkEnrichmentCards
-// (e.g. HalachaBody's Codification card) can open the drawer focused on its leaf.
+// (e.g. a recipe's special block, like halacha's Codification) can open the
+// drawer focused on its leaf.
 const [inspectorView, setInspectorView] = createSignal<string | null>(null);
 
 /** Open the instance inspector for `instanceKey`, optionally focused on a
