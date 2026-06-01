@@ -130,20 +130,6 @@ export default function RecipePanel(): JSX.Element {
                 </Show>
               </div>
             )}</For>
-
-            {/* A special block's declared inputs — so 'custom' means custom render,
-                not opaque: its leaf inputs are listed. */}
-            <For each={i().sections.filter((s) => s.custom && (s.inputs?.length ?? 0) > 0)}>{(s) => (
-              <div style={{ color: '#9a3412', 'font-size': '0.66rem', 'margin-top': '0.2rem', 'padding-left': '1.5rem' }}>
-                {s.target} inputs: {s.inputs!.join(', ')}
-              </div>
-            )}</For>
-
-            <Show when={i().sections.some((s) => s.custom)}>
-              <div style={{ color: '#9a3412', 'font-size': '0.66rem', 'margin-top': '0.3rem' }}>
-                special = custom block (registered, declared inputs — not freeform)
-              </div>
-            </Show>
           </>
         )}
       </Show>
