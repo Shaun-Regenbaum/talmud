@@ -470,7 +470,7 @@ export function describeRecipe(recipe: SidebarRecipe): RecipeInfo {
  *  its recipe + the `instanceKey` (so each panel row's inspect 'i' can target the
  *  drawer for this exact instance). null when no card is open OR the open card is
  *  still a bespoke (un-converted) *Body — so the panel doubles as a conversion
- *  scoreboard. ArgumentSidebar's dispatch is the single writer (RECIPES_BY_KIND). */
+ *  scoreboard. ArgumentSidebar's dispatch is the single writer (CARD_DEFS). */
 export interface ActiveCard { recipe: SidebarRecipe; instanceKey: string; }
 const [activeCardSig, setActiveCardSig] = createSignal<ActiveCard | null>(null);
 export function activeCard(): ActiveCard | null { return activeCardSig(); }

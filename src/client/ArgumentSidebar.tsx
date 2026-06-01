@@ -1667,8 +1667,8 @@ export const AGGADATA_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Eleme
  *  `synthesis` section — that's what mounts the MarkEnrichmentCards host the
  *  inspect drawer renders inside. Without it the panel's 'i' targets an
  *  unmounted instanceKey (a dead click). */
-// Defined here (ahead of its blocks/helpers, which live by the old RishonimBody
-// site) so RECIPES_BY_KIND below can reference it; it names blocks by string.
+// Defined ahead of its blocks/helpers (which live by the old RishonimBody site)
+// so it's in scope before CARD_DEFS; it names blocks by string.
 export const RISHONIM_RECIPE: SidebarRecipe = {
   kind: 'rishonim',
   markId: 'rishonim',
@@ -1678,14 +1678,6 @@ export const RISHONIM_RECIPE: SidebarRecipe = {
     { type: 'synthesis' },
     { type: 'special', block: 'rishonim-sources' },
   ],
-};
-
-export const RECIPES_BY_KIND: Partial<Record<SidebarContent['kind'], SidebarRecipe>> = {
-  aggadata: AGGADATA_RECIPE,
-  pesuk: PASUK_RECIPE,
-  halacha: HALACHA_RECIPE,
-  rabbi: RABBI_RECIPE,
-  rishonim: RISHONIM_RECIPE,
 };
 
 /** The instanceKey a recipe-driven card mounts under (the client run memo + the
@@ -1846,6 +1838,69 @@ export const RISHONIM_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Eleme
   'rishonim-sources': RishonimSources,
 };
 
+// ===========================================================================
+// CARD_DEFS — the single registry of recipe-driven sidebar cards. One entry per
+// SidebarContent kind that renders through SidebarCardFromHint, replacing a wall
+// of per-kind dispatch arms with one generic render. Each entry is the
+// client-side adapter (recipe + special blocks + how to build the display /
+// synthesis instance) — the shape the worker mark-def `recipe` field will later
+// supply directly. Place keeps the older hint adapter; the argument-family +
+// voice-group cards are bespoke views (no recipe).
+//
+// The builders receive the (kind-narrowed) SidebarContent; CARD_DEFS is keyed by
+// kind and only invoked for its own kind, so the casts are sound.
+// ===========================================================================
+interface CardDef {
+  recipe: SidebarRecipe;
+  blocks: Record<string, (p: SpecialBlockProps) => JSX.Element>;
+  /** Display instance ({fields}) feeding the heading + non-synthesis sections. */
+  instance: (c: SidebarContent) => { fields: Record<string, unknown> };
+  /** Optional distinct shape sent to the mark synthesis as mark_input. */
+  synthInstance?: (c: SidebarContent) => unknown;
+  /** Optional Q&A cache qualifier (defaults to instanceKey). */
+  qaInstanceId?: (c: SidebarContent) => string;
+  /** Forward the reader-highlight channel to the card's special blocks. */
+  forwardHighlight?: boolean;
+  /** Card-specific extras for special blocks (e.g. rabbi's generationByName). */
+  extras?: (ctx: { generationByName: Map<string, GenerationId> }) => Record<string, unknown>;
+}
+
+export const CARD_DEFS: Partial<Record<SidebarContent['kind'], CardDef>> = {
+  aggadata: {
+    recipe: AGGADATA_RECIPE,
+    blocks: AGGADATA_BLOCKS,
+    instance: (c) => aggadataInstance((c as Extract<SidebarContent, { kind: 'aggadata' }>).story),
+    qaInstanceId: (c) => {
+      const s = (c as Extract<SidebarContent, { kind: 'aggadata' }>).story;
+      return `${s.title}|${s.excerpt}`;
+    },
+  },
+  pesuk: {
+    recipe: PASUK_RECIPE,
+    blocks: PASUK_BLOCKS,
+    instance: (c) => pasukInstance((c as Extract<SidebarContent, { kind: 'pesuk' }>).pasuk),
+  },
+  halacha: {
+    recipe: HALACHA_RECIPE,
+    blocks: HALACHA_BLOCKS,
+    instance: (c) => halachaInstance((c as Extract<SidebarContent, { kind: 'halacha' }>).topic),
+  },
+  rishonim: {
+    recipe: RISHONIM_RECIPE,
+    blocks: RISHONIM_BLOCKS,
+    instance: (c) => rishonimDisplayInstance((c as Extract<SidebarContent, { kind: 'rishonim' }>).instance),
+    synthInstance: (c) => rishonimSynthInstance((c as Extract<SidebarContent, { kind: 'rishonim' }>).instance),
+  },
+  rabbi: {
+    recipe: RABBI_RECIPE,
+    blocks: RABBI_BLOCKS,
+    instance: (c) => rabbiDisplayInstance((c as Extract<SidebarContent, { kind: 'rabbi' }>).rabbi),
+    synthInstance: (c) => rabbiSynthInstance((c as Extract<SidebarContent, { kind: 'rabbi' }>).rabbi),
+    forwardHighlight: true,
+    extras: (ctx) => ({ generationByName: ctx.generationByName }),
+  },
+};
+
 /** Collective "voice group" panel (e.g. the Stam / anonymous Gemara voice):
  *  a name + Hebrew twin + a one-line collective bio. No enrichments. */
 export function VoiceGroupBody(props: { group: { name: string; nameHe: string; bio: string } }): JSX.Element {
@@ -1877,7 +1932,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
   createEffect(() => {
     const content = props.content;
     if (!content) { setActiveCard(null); return; }
-    const recipe = RECIPES_BY_KIND[content.kind];
+    const recipe = CARD_DEFS[content.kind]?.recipe;
     const instanceKey = instanceKeyForContent(content, props.tractate, props.page);
     setActiveCard(recipe && instanceKey ? { recipe, instanceKey } : null);
   });
@@ -1964,44 +2019,28 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
               />
             </Show>
 
-            <Show when={c().kind === 'rabbi'}>
-              <SidebarCardFromHint
-                recipe={RABBI_RECIPE}
-                instance={rabbiDisplayInstance((c() as Extract<SidebarContent, { kind: 'rabbi' }>).rabbi)}
-                synthInstance={rabbiSynthInstance((c() as Extract<SidebarContent, { kind: 'rabbi' }>).rabbi)}
-                instanceKey={instanceKeyForContent(c() as Extract<SidebarContent, { kind: 'rabbi' }>, props.tractate, props.page)!}
-                tractate={props.tractate}
-                page={props.page}
-                specialBlocks={RABBI_BLOCKS}
-                onHighlightRange={(r) => props.onHighlightRange?.(r)}
-                extras={{ generationByName: props.generationByName }}
-              />
+            {/* All recipe-driven cards (aggadata/pesuk/halacha/rishonim/rabbi)
+                render through one generic arm, keyed by CARD_DEFS. Place keeps
+                the hint adapter; the argument-family + voice-group stay bespoke. */}
+            <Show when={CARD_DEFS[c().kind]}>
+              {(def) => (
+                <SidebarCardFromHint
+                  recipe={def().recipe}
+                  instance={def().instance(c())}
+                  synthInstance={def().synthInstance?.(c())}
+                  instanceKey={instanceKeyForContent(c(), props.tractate, props.page)!}
+                  qaInstanceId={def().qaInstanceId?.(c())}
+                  tractate={props.tractate}
+                  page={props.page}
+                  specialBlocks={def().blocks}
+                  onHighlightRange={def().forwardHighlight ? (r) => props.onHighlightRange?.(r) : undefined}
+                  extras={def().extras?.({ generationByName: props.generationByName })}
+                />
+              )}
             </Show>
 
             <Show when={c().kind === 'voice-group'}>
               <VoiceGroupBody group={(c() as Extract<SidebarContent, { kind: 'voice-group' }>).group} />
-            </Show>
-
-            <Show when={c().kind === 'halacha'}>
-              <SidebarCardFromHint
-                recipe={HALACHA_RECIPE}
-                instance={halachaInstance((c() as Extract<SidebarContent, { kind: 'halacha' }>).topic)}
-                instanceKey={instanceKeyForContent(c() as Extract<SidebarContent, { kind: 'halacha' }>, props.tractate, props.page)!}
-                specialBlocks={HALACHA_BLOCKS}
-                tractate={props.tractate}
-                page={props.page}
-              />
-            </Show>
-
-            <Show when={c().kind === 'pesuk'}>
-              <SidebarCardFromHint
-                recipe={PASUK_RECIPE}
-                instance={pasukInstance((c() as Extract<SidebarContent, { kind: 'pesuk' }>).pasuk)}
-                instanceKey={instanceKeyForContent(c() as Extract<SidebarContent, { kind: 'pesuk' }>, props.tractate, props.page)!}
-                tractate={props.tractate}
-                page={props.page}
-                specialBlocks={PASUK_BLOCKS}
-              />
             </Show>
 
             <Show when={c().kind === 'place'}>
@@ -2011,30 +2050,6 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                 tractate={props.tractate}
                 page={props.page}
                 chips={<PlaceChips place={(c() as Extract<SidebarContent, { kind: 'place' }>).place} />}
-              />
-            </Show>
-
-            <Show when={c().kind === 'rishonim'}>
-              <SidebarCardFromHint
-                recipe={RISHONIM_RECIPE}
-                instance={rishonimDisplayInstance((c() as Extract<SidebarContent, { kind: 'rishonim' }>).instance)}
-                synthInstance={rishonimSynthInstance((c() as Extract<SidebarContent, { kind: 'rishonim' }>).instance)}
-                instanceKey={instanceKeyForContent(c() as Extract<SidebarContent, { kind: 'rishonim' }>, props.tractate, props.page)!}
-                tractate={props.tractate}
-                page={props.page}
-                specialBlocks={RISHONIM_BLOCKS}
-              />
-            </Show>
-
-            <Show when={c().kind === 'aggadata'}>
-              <SidebarCardFromHint
-                recipe={AGGADATA_RECIPE}
-                instance={aggadataInstance((c() as Extract<SidebarContent, { kind: 'aggadata' }>).story)}
-                instanceKey={instanceKeyForContent(c() as Extract<SidebarContent, { kind: 'aggadata' }>, props.tractate, props.page)!}
-                qaInstanceId={`${(c() as Extract<SidebarContent, { kind: 'aggadata' }>).story.title}|${(c() as Extract<SidebarContent, { kind: 'aggadata' }>).story.excerpt}`}
-                tractate={props.tractate}
-                page={props.page}
-                specialBlocks={AGGADATA_BLOCKS}
               />
             </Show>
 
