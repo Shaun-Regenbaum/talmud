@@ -369,8 +369,10 @@ export type SpecialBlock = (props: SpecialBlockProps) => JSX.Element;
 
 /** One section of a card, top → bottom. */
 export type SectionSpec =
-  /** Accent-tinted chips from instance fields (e.g. an aggadata theme). */
-  | { type: 'tags'; fields: string[] }
+  /** Small chips from instance fields (e.g. an aggadata theme). `drop` hides
+   *  specific values (e.g. a retired 'biography' theme that may linger in old
+   *  cached extractions). */
+  | { type: 'tags'; fields: string[]; drop?: string[] }
   /** A paragraph of an instance field, rabbi-linked + Hebraized (e.g. a summary).
    *  `untilSynthesis` makes it a placeholder: shown only until the synthesis
    *  section resolves, then replaced by it (the instant field fills the slot
@@ -491,17 +493,20 @@ export function SidebarCardFromHint(props: {
   const renderSection = (s: SectionSpec): JSX.Element => {
     switch (s.type) {
       case 'tags': {
-        const vals = (): string[] => s.fields.map((f) => str(fields()[f])).filter(Boolean);
+        const dropped = new Set((s.drop ?? []).map((d) => d.toLowerCase()));
+        const vals = (): string[] => s.fields
+          .map((f) => str(fields()[f]))
+          .filter((v) => v && !dropped.has(v.toLowerCase()));
         return (
           <Show when={vals().length > 0}>
             <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.3rem', 'margin-bottom': '0.7rem' }}>
               <For each={vals()}>{(v) => (
                 // Neutral & quiet: a theme tag is a coarse, not-fully-trusted
                 // label, so it stays unobtrusive — muted gray, faint fill,
-                // hairline border, lowercase — rather than a loud accent chip.
+                // hairline border. Title-case so single-word themes read cleanly.
                 <span style={{
                   display: 'inline-block', padding: '0.1rem 0.5rem', 'font-size': '0.7rem',
-                  'text-transform': 'lowercase', 'letter-spacing': '0.02em',
+                  'text-transform': 'capitalize', 'letter-spacing': '0.02em',
                   color: '#777', background: '#f5f5f4', border: '1px solid #e8e8e6',
                   'border-radius': '3px',
                 }}>{v}</span>

@@ -306,7 +306,7 @@ Output STRICT JSON only:
         "summary": "2-3 sentence English summary of what happens in this story / what the maxim teaches.",
         "excerpt": "3-5 Hebrew/Aramaic words copied VERBATIM from the source where this aggadah BEGINS.",
         "endExcerpt": "Last 3-5 Hebrew/Aramaic words of the story, copied VERBATIM from the source — where this aggadah ENDS on the daf. NOT the start of the next halachic discussion or the next story. If the story is one line long, this can still be the closing 3-5 words of that same line; it MUST NOT equal excerpt.",
-        "theme": "One word/short phrase tag: 'martyrdom' | 'study' | 'prayer' | 'reward' | 'suffering' | 'miracle' | 'parable' | 'ethics' | 'biography' | 'other'."
+        "theme": "One word/short phrase tag: 'martyrdom' | 'study' | 'prayer' | 'reward' | 'suffering' | 'miracle' | 'parable' | 'ethics' | 'other'."
       }
     }
   ]
@@ -342,7 +342,7 @@ const AGGADATA_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. 
         "summary": "סיכום בן 2–3 משפטים בעברית של מה שקורה בסיפור / מה שהמימרה מלמדת.",
         "excerpt": "3-5 מילים בעברית/ארמית המועתקות מילה-במילה מן המקור, במקום שבו האגדה מתחילה.",
         "endExcerpt": "3-5 המילים האחרונות של הסיפור, מועתקות מילה-במילה מן המקור — במקום שבו האגדה מסתיימת בדף. לא תחילת הדיון ההלכתי הבא או הסיפור הבא. אם הסיפור באורך שורה אחת, אלה עדיין מילות הסיום של אותה שורה; חייבות להיות שונות מ-excerpt.",
-        "theme": "תגית של מילה/ביטוי קצר באנגלית: 'martyrdom' | 'study' | 'prayer' | 'reward' | 'suffering' | 'miracle' | 'parable' | 'ethics' | 'biography' | 'other'."
+        "theme": "תגית של מילה/ביטוי קצר באנגלית: 'martyrdom' | 'study' | 'prayer' | 'reward' | 'suffering' | 'miracle' | 'parable' | 'ethics' | 'other'."
       }
     }
   ]
