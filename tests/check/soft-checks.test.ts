@@ -1,10 +1,13 @@
 /**
- * A3 — the soft, observe-only validators in the check registry:
+ * A3 — the anchor/graph/partition validators in the check registry:
  *   anchor-verbatim  — resolved excerpt is literally present in its segment
  *   partition-clean  — no inverted ranges / duplicates / section overlaps
  *   edge-integrity   — argument.voices graph is well-formed
- * All emit `severity: 'soft'` so they never gate the cache; these tests pin the
- * detection logic and the soft severity.
+ * Severity is per ISSUE KIND (see KIND_SEVERITY / severityOf): the structural
+ * impossibilities (anchor-out-of-range, inverted-range, duplicate-instance) are
+ * `hard` (gate the cache); the approximate/noisy kinds (excerpt-not-in-segment,
+ * section-overlap, edge-*) stay `soft`. These tests pin both the detection logic
+ * and each kind's severity.
  */
 import { describe, it, expect } from 'vitest';
 import { runChecks, type CheckCtx, type CheckIssue } from '../../src/lib/check/postcheck';
@@ -30,10 +33,11 @@ describe('anchor-verbatim', () => {
     expect(issues[0].index).toBe(1);
   });
 
-  it('flags an out-of-range anchor', async () => {
+  it('flags an out-of-range anchor as hard (an index past the daf is never a false positive)', async () => {
     const parsed = { instances: [{ startSegIdx: 99, fields: { excerpt: 'תנו רבנן' } }] };
     const { issues } = await runChecks(['anchor-verbatim'], parsed, ctx({ segmentsHe: segs, defId: 'argument' }));
     expect(kinds(issues)).toEqual(['anchor-out-of-range']);
+    expect(issues[0].severity).toBe('hard');
   });
 
   it('skips excerpts shorter than 2 words and missing excerpts', async () => {
@@ -83,23 +87,34 @@ describe('anchor-verbatim', () => {
 });
 
 describe('partition-clean', () => {
-  it('flags an inverted range', async () => {
+  it('flags an inverted range as hard (end < start is structurally impossible)', async () => {
     const parsed = { instances: [{ startSegIdx: 5, endSegIdx: 2, fields: { excerpt: 'aaa bbb' } }] };
     const { issues } = await runChecks(['partition-clean'], parsed, ctx({ defId: 'argument-move' }));
     expect(kinds(issues)).toContain('inverted-range');
-    expect(allSoft(issues)).toBe(true);
+    expect(issues.find((i) => i.kind === 'inverted-range')?.severity).toBe('hard');
   });
 
-  it('flags an exact duplicate instance', async () => {
-    const dup = { startSegIdx: 3, endSegIdx: 4, fields: { excerpt: 'אמר רבא הלכה' } };
-    const { issues } = await runChecks(['partition-clean'], { instances: [dup, { ...dup }] }, ctx({ defId: 'argument-move' }));
+  it('flags an exact duplicate instance as hard (identical id + range + anchors is never legitimate)', async () => {
+    const dup = { startSegIdx: 3, endSegIdx: 4, fields: { id: '3-4_0', excerpt: 'אמר רבא הלכה', endExcerpt: 'כרבי יהודה' } };
+    const { issues } = await runChecks(['partition-clean'], { instances: [dup, { ...dup, fields: { ...dup.fields } }] }, ctx({ defId: 'argument-move' }));
     expect(kinds(issues)).toEqual(['duplicate-instance']);
+    expect(issues[0].severity).toBe('hard');
   });
 
-  it('flags overlapping section ranges only for the argument mark', async () => {
+  it('does NOT flag two distinct moves that share a segment range and a formulaic opener', async () => {
+    // Two real תא שמע moves in one segment: same range + opening excerpt, but
+    // different id / end anchor. Must not be hard-blocked as a duplicate.
+    const a = { startSegIdx: 6, endSegIdx: 6, fields: { id: '6-6_0', excerpt: 'תא שמע', endExcerpt: 'פטור' } };
+    const b = { startSegIdx: 6, endSegIdx: 6, fields: { id: '6-6_1', excerpt: 'תא שמע', endExcerpt: 'חייב' } };
+    const { issues } = await runChecks(['partition-clean'], { instances: [a, b] }, ctx({ defId: 'argument-move' }));
+    expect(issues).toEqual([]);
+  });
+
+  it('flags overlapping section ranges only for the argument mark, and only soft (a shared boundary can be legitimate)', async () => {
     const overlapping = { instances: [{ startSegIdx: 0, endSegIdx: 3, fields: {} }, { startSegIdx: 2, endSegIdx: 5, fields: {} }] };
     const asArgument = await runChecks(['partition-clean'], overlapping, ctx({ defId: 'argument' }));
     expect(kinds(asArgument.issues)).toEqual(['section-overlap']);
+    expect(allSoft(asArgument.issues)).toBe(true);
     // Same shape under argument-move: overlaps are legitimate (moves share segments).
     const asMove = await runChecks(['partition-clean'], overlapping, ctx({ defId: 'argument-move' }));
     expect(asMove.issues).toEqual([]);
