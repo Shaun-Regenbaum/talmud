@@ -26,6 +26,13 @@ export type OverlayLayer = 'halacha' | 'aggadata' | 'pesukim';
 export type LayerId = 'argument' | 'argument-move' | OverlayLayer | 'rabbi' | 'places';
 export type PrimaryType = 'pure-dialectic' | OverlayLayer;
 
+/** The textual register of a unit — what KIND of text it is, an axis orthogonal
+ *  to the content `primary` (a unit can be a `mishnah` that is `halacha`, or a
+ *  `gemara` that is `pure-dialectic`). Derived deterministically from the
+ *  mishnah-in-talmud segment ranges; `baraita` is intentionally absent until a
+ *  deterministic signal for it exists (the source only labels mishnah). */
+export type Register = 'mishnah' | 'gemara';
+
 export interface UnitRange {
   tractate: string;
   page: string;
@@ -67,6 +74,11 @@ export interface TypeProfile {
    *  `primary`: a כולכם dispute with no content overlay is
    *  `primary: 'pure-dialectic'`, `isDispute: true`. */
   isDispute: boolean;
+  /** The unit's textual register — `mishnah` when the majority of its segments
+   *  fall in the daf's mishnah-in-talmud ranges, else `gemara`. Orthogonal to
+   *  `primary`. `gemara` when no mishnah ranges were supplied (the common case;
+   *  mishnah is the labeled minority). */
+  register: Register;
 }
 
 /** An overlay must cover at least this fraction of the unit to win `primary`;
@@ -78,6 +90,20 @@ export const PRIMARY_FLOOR = 0.5;
  *  dominates a ruling dominates a bare verse citation. (Design open question
  *  #1 — tune empirically.) */
 export const LAYER_PRIORITY: Record<OverlayLayer, number> = { aggadata: 3, halacha: 2, pesukim: 1 };
+
+/** A unit is `mishnah` when at least this fraction of its segments fall in the
+ *  daf's mishnah ranges; otherwise `gemara`. Majority rule so a section that
+ *  merely brushes a mishnah boundary stays gemara. */
+export const REGISTER_FLOOR = 0.5;
+
+/** The unit's register from the daf's mishnah segment set. Pure; `gemara` when
+ *  no mishnah set is supplied (unknown → the common case, not mishnah). */
+export function registerOf(unit: UnitRange, mishnaSegs?: ReadonlySet<number>): Register {
+  const segs = rangeSegs(unit.startSegIdx, unit.endSegIdx);
+  if (!mishnaSegs || mishnaSegs.size === 0 || segs.length === 0) return 'gemara';
+  const inMishna = segs.filter((s) => mishnaSegs.has(s)).length;
+  return inMishna / segs.length >= REGISTER_FLOOR ? 'mishnah' : 'gemara';
+}
 
 const OVERLAYS: ReadonlySet<LayerId> = new Set<LayerId>(['halacha', 'aggadata', 'pesukim']);
 
@@ -103,11 +129,13 @@ export function hasOpposingVoices(voices?: VoicesGraph | null): boolean {
  * daf (argument/halacha/aggadata/pesukim/…); only those overlapping the unit
  * contribute claims. Pass the unit's `argument.voices` graph (when available) to
  * derive `isDispute`; omit it and `isDispute` is false (unknown → not a dispute).
+ * Pass `mishnaSegs` (the daf's mishnah segment indices) to derive `register`;
+ * omit it and `register` is `gemara`.
  */
 export function composeTypeProfile(
   unit: UnitRange,
   instances: readonly LayerInstance[],
-  opts: { voices?: VoicesGraph | null } = {},
+  opts: { voices?: VoicesGraph | null; mishnaSegs?: ReadonlySet<number> } = {},
 ): TypeProfile {
   const unitSegs = rangeSegs(unit.startSegIdx, unit.endSegIdx);
   const unitSet = new Set(unitSegs);
@@ -137,7 +165,13 @@ export function composeTypeProfile(
     if (score > bestScore) { bestScore = score; primary = c.layer as OverlayLayer; }
   }
 
-  return { unit, claims, primary, isDispute: hasOpposingVoices(opts.voices) };
+  return {
+    unit,
+    claims,
+    primary,
+    isDispute: hasOpposingVoices(opts.voices),
+    register: registerOf(unit, opts.mishnaSegs),
+  };
 }
 
 /**

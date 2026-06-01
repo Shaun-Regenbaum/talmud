@@ -665,8 +665,10 @@ app.get('/api/checks/:tractate/:page', async (c) => {
 // section on the daf, intersect the content overlays (halacha/aggadata/pesukim)
 // + the dialectical base (argument-move) and emit a TypeProfile: which layers
 // claim the section, the dominant `primary` content dimension (pure-dialectic
-// when no overlay materially covers it), and `isDispute` (from the section's
-// cached argument.voices graph). This is the observation/validation surface for
+// when no overlay materially covers it), `register` (mishnah/gemara — the
+// textual axis orthogonal to primary, from the cached mishnah-in-talmud ranges),
+// and `isDispute` (from the section's cached argument.voices graph). This is the
+// observation/validation surface for
 // section typing — it shows, on real content, that e.g. the Ashmedai story is
 // narrative-primary (not a voice dispute). Gating + new enrichments build on it.
 type RawInstance = { startSegIdx?: unknown; endSegIdx?: unknown; fields?: Record<string, unknown> };
@@ -696,6 +698,12 @@ async function buildDafTypeProfiles(env: Bindings, tractate: string, page: strin
     ...toLayerInstances('pesukim', await readMarkInstances(env, 'pesukim', tractate, page)),
     ...toLayerInstances('argument-move', await readMarkInstances(env, 'argument-move', tractate, page)),
   ];
+  // Deterministic register axis: which segments are mishnah-in-talmud (cached
+  // Sefaria /api/related anchors). A section whose majority falls here is
+  // `register: mishnah`, else `gemara`.
+  const mishnaBundle = await getMishnaBundleCached(env.CACHE, tractate, page);
+  const mishnaSegs = new Set<number>();
+  for (const m of mishnaBundle) for (let s = m.anchorStartSeg; s <= m.anchorEndSeg; s++) mishnaSegs.add(s);
   const voicesDef = findCodeEnrichment('argument.voices');
   const profiles: (TypeProfile & { title?: string })[] = [];
   for (const sec of sections) {
@@ -707,7 +715,7 @@ async function buildDafTypeProfiles(env: Bindings, tractate: string, page: strin
       const vhit = await readCachedResult(env, keyForEnrichment(voicesDef, iid, { tractate, page }));
       voices = (vhit?.parsed as { edges?: { kind?: string }[] }) ?? null;
     }
-    profiles.push({ ...composeTypeProfile(unit, overlays, { voices }), title: typeof sec.fields?.title === 'string' ? sec.fields.title : undefined });
+    profiles.push({ ...composeTypeProfile(unit, overlays, { voices, mishnaSegs }), title: typeof sec.fields?.title === 'string' ? sec.fields.title : undefined });
   }
   return profiles;
 }
