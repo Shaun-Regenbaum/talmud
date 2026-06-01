@@ -223,7 +223,7 @@ const CATALOG = {
 
   // — Questions (Q&A) panel —
   'qa.questions': { en: 'Questions', he: 'שאלות' },
-  'qa.empty': { en: 'No suggested questions yet. Ask your own below.', he: 'אין עדיין שאלות מוצעות. שאלו את שלכם למטה.' },
+  'qa.empty': { en: 'No questions yet. Ask your own below.', he: 'אין עדיין שאלות. שאלו את שלכם למטה.' },
   'qa.placeholder': { en: 'Ask your own question about this move…', he: 'שאלו שאלה משלכם על המהלך…' },
   'qa.submit': { en: 'Submit', he: 'שליחה' },
   'qa.cancel': { en: 'Cancel', he: 'ביטול' },
