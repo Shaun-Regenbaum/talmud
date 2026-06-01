@@ -342,8 +342,11 @@ export type SectionSpec =
   | { type: 'explainer'; dep: string; textField: string; labelKey: CatalogKey }
   /** The follow-up Q&A affordance. */
   | { type: 'qa' }
-  /** A genuinely-custom block, looked up by name in the card's `specialBlocks`. */
-  | { type: 'special'; block: string };
+  /** A genuinely-custom block, looked up by name in the card's `specialBlocks`.
+   *  `deps` declares the dependent leaf ids it reads from the shared deps bag —
+   *  so even a custom block has *declared inputs* (shown in the Recipe panel,
+   *  and the first is what its inspect 'i' opens). */
+  | { type: 'special'; block: string; deps?: string[] };
 
 export interface SidebarRecipe {
   kind: SidebarKind;
@@ -362,9 +365,14 @@ export interface RecipeSectionInfo {
   n: number;
   type: SectionSpec['type'];
   /** What the section pulls from — field name(s), the dep/leaf id, or the block
-   *  name. null for self-contained sections (synthesis, qa). The dep id doubles
-   *  as the `leafId` you'd open in the inspect drawer. */
+   *  name. null for self-contained sections (synthesis, qa). */
   target: string | null;
+  /** A special block's declared dependent leaf ids (its inputs). */
+  inputs?: string[];
+  /** What this section's inspect 'i' opens in the bottom drawer — a leaf id, or
+   *  null for the synthesis/instance view (where the mark extraction lives).
+   *  `null` (the whole field) means the section has no inspectable source (qa). */
+  inspect: { leafId: string | null } | null;
   /** True only for `special` blocks: genuinely-custom code, not a standard type. */
   custom: boolean;
 }
@@ -380,26 +388,33 @@ export function describeRecipe(recipe: SidebarRecipe): RecipeInfo {
     : recipe.titleField;
   const sections = recipe.sections.map((s, i): RecipeSectionInfo => {
     const n = i + 1;
+    // tags/prose render fields off the mark instance → their provenance is the
+    // extraction, surfaced as the synthesis/instance view (leafId null).
     switch (s.type) {
-      case 'tags': return { n, type: s.type, target: s.fields.join(', '), custom: false };
-      case 'prose': return { n, type: s.type, target: s.field, custom: false };
-      case 'synthesis': return { n, type: s.type, target: null, custom: false };
-      case 'explainer': return { n, type: s.type, target: s.dep, custom: false };
-      case 'qa': return { n, type: s.type, target: null, custom: false };
-      case 'special': return { n, type: s.type, target: s.block, custom: true };
+      case 'tags': return { n, type: s.type, target: s.fields.join(', '), inspect: { leafId: null }, custom: false };
+      case 'prose': return { n, type: s.type, target: s.field, inspect: { leafId: null }, custom: false };
+      case 'synthesis': return { n, type: s.type, target: null, inspect: { leafId: null }, custom: false };
+      case 'explainer': return { n, type: s.type, target: s.dep, inspect: { leafId: s.dep }, custom: false };
+      case 'qa': return { n, type: s.type, target: null, inspect: null, custom: false };
+      case 'special': return {
+        n, type: s.type, target: s.block, inputs: s.deps,
+        inspect: s.deps && s.deps.length > 0 ? { leafId: s.deps[0] } : { leafId: null },
+        custom: true,
+      };
     }
   });
   return { kind: recipe.kind, markId: recipe.markId, header, sections };
 }
 
-/** The recipe of the currently-open sidebar card, published for the dev shelf's
- *  Recipe panel. null when no card is open OR the open card is still a bespoke
- *  (un-converted) *Body — so the panel doubles as a conversion scoreboard: a
- *  card 'lights up' here the moment it becomes recipe-driven. ArgumentSidebar's
- *  dispatch is the single writer (see RECIPES_BY_KIND). */
-const [activeRecipeSig, setActiveRecipeSig] = createSignal<SidebarRecipe | null>(null);
-export function activeRecipe(): SidebarRecipe | null { return activeRecipeSig(); }
-export function setActiveRecipe(r: SidebarRecipe | null): void { setActiveRecipeSig(r); }
+/** The currently-open sidebar card, published for the dev shelf's Recipe panel:
+ *  its recipe + the `instanceKey` (so each panel row's inspect 'i' can target the
+ *  drawer for this exact instance). null when no card is open OR the open card is
+ *  still a bespoke (un-converted) *Body — so the panel doubles as a conversion
+ *  scoreboard. ArgumentSidebar's dispatch is the single writer (RECIPES_BY_KIND). */
+export interface ActiveCard { recipe: SidebarRecipe; instanceKey: string; }
+const [activeCardSig, setActiveCardSig] = createSignal<ActiveCard | null>(null);
+export function activeCard(): ActiveCard | null { return activeCardSig(); }
+export function setActiveCard(c: ActiveCard | null): void { setActiveCardSig(c); }
 
 /**
  * Render a card from its recipe. Draws the Panel header, holds one shared `deps`
