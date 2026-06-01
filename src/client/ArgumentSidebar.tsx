@@ -17,7 +17,7 @@ import { adjacentAmud } from '../lib/sefref/amudim';
 import { dafRefHe, pageLabelHe } from '../lib/sefref/tractates';
 import { selectSectionMoves } from '../lib/argumentMoves';
 import { t, lang } from './i18n';
-import { ACCENTS, HebrewProse, Panel, QASection, SectionCard, Synthesis, SidebarPanelFromHint, kindLabelKey, type SidebarHint } from './sidebar/primitives';
+import { ACCENTS, HebrewProse, Panel, QASection, SectionCard, Synthesis, SidebarPanelFromHint, SidebarCardFromHint, kindLabelKey, type SidebarHint, type SidebarRecipe, type SpecialBlockProps } from './sidebar/primitives';
 import { InspectDot } from './MarkEnrichmentCards';
 
 /** Localize an era date-range ("c. 290 – 320 CE") for Hebrew display. */
@@ -1622,135 +1622,72 @@ type AggadataParallelKind = 'same-story' | 'same-actors' | 'same-motif' | 'tanac
 interface AggadataParallelItem { ref: string; kind: AggadataParallelKind; note: string; }
 interface AggadataParallelsData { parallels: AggadataParallelItem[]; prose: string; }
 
-export function AggadataPanel(props: {
-  story: AggadataStory;
-  index: number;
-  tractate: string;
-  page: string;
-}): JSX.Element {
-  const [background, setBackground] = createSignal<AggadataBackgroundData | null>(null);
-  const [interpretation, setInterpretation] = createSignal<AggadataInterpretationData | null>(null);
-  const [parallels, setParallels] = createSignal<AggadataParallelsData | null>(null);
-
-  const instanceKey = () => `${props.tractate}:${props.page}:${props.index}:${props.story.title}`;
-
-  // Wipe captured leaves when the user opens a different story, so the new
-  // story's enrichments don't render the previous story's content during the
-  // refetch window.
-  createEffect(() => {
-    void instanceKey();
-    setBackground(null);
-    setInterpretation(null);
-    setParallels(null);
-  });
-
-  const handleResolved = (r: { deps_resolved?: Record<string, unknown>; anchors_resolved?: Record<string, unknown> }) => {
-    const deps = r.deps_resolved ?? {};
-    const bg = deps['aggadata.background'] as AggadataBackgroundData | undefined;
-    if (bg && typeof bg.background === 'string') setBackground(bg);
-    const ip = deps['aggadata.interpretation'] as AggadataInterpretationData | undefined;
-    if (ip && typeof ip.interpretation === 'string') setInterpretation(ip);
-    const pa = deps['aggadata.parallels'] as AggadataParallelsData | undefined;
-    if (pa && Array.isArray(pa.parallels)) setParallels(pa);
+// The genuinely-custom part of the aggadata card: cross-text parallels with kind
+// badges. A NAMED special block referenced from AGGADATA_RECIPE.
+function AggadataParallels(props: SpecialBlockProps): JSX.Element {
+  const pa = (): AggadataParallelsData | null => {
+    const p = props.deps['aggadata.parallels'] as AggadataParallelsData | undefined;
+    return p && Array.isArray(p.parallels) && (p.parallels.length > 0 || p.prose) ? p : null;
   };
-
-  const markInstance = () => ({
-    startSegIdx: props.story.startSegIdx ?? 0,
-    endSegIdx: props.story.endSegIdx ?? 0,
-    fields: {
-      title: props.story.title,
-      titleHe: props.story.titleHe ?? '',
-      summary: props.story.summary,
-      excerpt: props.story.excerpt,
-      endExcerpt: props.story.endExcerpt ?? '',
-      theme: props.story.theme ?? '',
-    },
-  });
-  const instanceId = () => `${props.story.title}|${props.story.excerpt}`;
-  const visibleParallels = () => {
-    const pa = parallels();
-    return pa && (pa.parallels.length > 0 || pa.prose) ? pa : null;
-  };
-
   return (
-    <Panel accent={ACCENTS.aggadata} title={props.story.title} titleHe={props.story.titleHe}>
-      <Show when={props.story.theme}>
-        <div style={{ 'margin-bottom': '0.7rem' }}>
-          <span style={{
-            display: 'inline-block',
-            padding: '0.1rem 0.5rem',
-            'font-size': '0.7rem',
-            'text-transform': 'uppercase',
-            'letter-spacing': '0.06em',
-            color: '#7c3aed',
-            background: '#faf5ff',
-            border: '1px solid #d8b4fe',
-            'border-radius': '3px',
-          }}>
-            {props.story.theme}
-          </span>
-        </div>
-      </Show>
-      <p style={{ margin: '0 0 0.8rem', color: '#333', 'line-height': 1.55 }}>
-        <HebraizedWithRabbis text={props.story.summary} />
-      </p>
-      <Synthesis
-        markId="aggadata"
-        instance={markInstance()}
-        instanceKey={instanceKey()}
-        tractate={props.tractate}
-        page={props.page}
-        onResolved={handleResolved}
-      />
-      <Show when={background()}>
-        {(bg) => <SectionCard label="aggadata.background" text={bg().background} inspect={{ instanceKey: instanceKey(), leafId: 'aggadata.background' }} />}
-      </Show>
-      <Show when={interpretation()}>
-        {(ip) => <SectionCard label="aggadata.interpretation" text={ip().interpretation} inspect={{ instanceKey: instanceKey(), leafId: 'aggadata.interpretation' }} />}
-      </Show>
-      <Show when={visibleParallels()}>
-        {(pa) => (
-          <SectionCard label="aggadata.parallels" inspect={{ instanceKey: instanceKey(), leafId: 'aggadata.parallels' }}>
-            <Show when={pa().prose}>
-              <div style={{
-                'font-size': '0.82rem', color: '#555', 'line-height': 1.5,
-                'font-style': 'italic', 'margin-bottom': '0.5rem',
-              }}>
-                <HebraizedWithRabbis text={pa().prose} />
+    <Show when={pa()}>
+      {(p) => (
+        <SectionCard label="aggadata.parallels" inspect={{ instanceKey: props.instanceKey, leafId: 'aggadata.parallels' }}>
+          <Show when={p().prose}>
+            <div style={{ 'font-size': '0.82rem', color: '#555', 'line-height': 1.5, 'font-style': 'italic', 'margin-bottom': '0.5rem' }}>
+              <HebraizedWithRabbis text={p().prose} />
+            </div>
+          </Show>
+          <For each={p().parallels}>{(par) => (
+            <div style={{ 'margin-bottom': '0.5rem' }}>
+              <div style={{ 'margin-bottom': '0.15rem', display: 'flex', 'align-items': 'baseline', gap: '0.4rem', 'flex-wrap': 'wrap' }}>
+                <span style={{ 'font-weight': 600, color: '#1e40af', 'font-size': '0.85rem' }}>{par.ref}</span>
+                <span style={{ 'font-size': '0.65rem', padding: '0.1rem 0.4rem', background: '#faf5ff', border: '1px solid #d8b4fe', color: '#7c3aed', 'border-radius': '999px', 'text-transform': 'uppercase', 'letter-spacing': '0.06em' }}>{t(`aggadata.parallel.${par.kind}`)}</span>
               </div>
-            </Show>
-            <For each={pa().parallels}>{(p) => (
-              <div style={{ 'margin-bottom': '0.5rem' }}>
-                <div style={{ 'margin-bottom': '0.15rem', display: 'flex', 'align-items': 'baseline', gap: '0.4rem', 'flex-wrap': 'wrap' }}>
-                  <span style={{ 'font-weight': 600, color: '#1e40af', 'font-size': '0.85rem' }}>
-                    {p.ref}
-                  </span>
-                  <span style={{
-                    'font-size': '0.65rem', padding: '0.1rem 0.4rem',
-                    background: '#faf5ff', border: '1px solid #d8b4fe',
-                    color: '#7c3aed', 'border-radius': '999px',
-                    'text-transform': 'uppercase', 'letter-spacing': '0.06em',
-                  }}>
-                    {t(`aggadata.parallel.${p.kind}`)}
-                  </span>
-                </div>
-                <div style={{ 'font-size': '0.82rem', color: '#444', 'line-height': 1.5 }}>
-                  <HebraizedWithRabbis text={p.note} />
-                </div>
-              </div>
-            )}</For>
-          </SectionCard>
-        )}
-      </Show>
-      <QASection
-        mark="aggadata"
-        instanceId={instanceId()}
-        instance={markInstance()}
-        tractate={props.tractate}
-        page={props.page}
-      />
-    </Panel>
+              <div style={{ 'font-size': '0.82rem', color: '#444', 'line-height': 1.5 }}><HebraizedWithRabbis text={par.note} /></div>
+            </div>
+          )}</For>
+        </SectionCard>
+      )}
+    </Show>
   );
+}
+
+/** The aggadata card as a recipe: a theme tag, the story summary, the synthesis,
+ *  two explainer boxes, the custom parallels block, then follow-up Q&A. */
+export const AGGADATA_RECIPE: SidebarRecipe = {
+  kind: 'aggadata',
+  markId: 'aggadata',
+  titleField: 'title',
+  titleHeField: 'titleHe',
+  sections: [
+    { type: 'tags', fields: ['theme'] },
+    { type: 'prose', field: 'summary' },
+    { type: 'synthesis' },
+    { type: 'explainer', dep: 'aggadata.background', textField: 'background', labelKey: 'aggadata.background' },
+    { type: 'explainer', dep: 'aggadata.interpretation', textField: 'interpretation', labelKey: 'aggadata.interpretation' },
+    { type: 'special', block: 'aggadata-parallels' },
+    { type: 'qa' },
+  ],
+};
+export const AGGADATA_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
+  'aggadata-parallels': AggadataParallels,
+};
+
+/** The mark-instance shape the aggadata extractor emits (mark_input for leaves). */
+export function aggadataInstance(story: AggadataStory): { fields: Record<string, unknown>; startSegIdx: number; endSegIdx: number } {
+  return {
+    startSegIdx: story.startSegIdx ?? 0,
+    endSegIdx: story.endSegIdx ?? 0,
+    fields: {
+      title: story.title,
+      titleHe: story.titleHe ?? '',
+      summary: story.summary,
+      excerpt: story.excerpt,
+      endExcerpt: story.endExcerpt ?? '',
+      theme: story.theme ?? '',
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -2014,11 +1951,14 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
             </Show>
 
             <Show when={c().kind === 'aggadata'}>
-              <AggadataPanel
-                story={(c() as Extract<SidebarContent, { kind: 'aggadata' }>).story}
-                index={(c() as Extract<SidebarContent, { kind: 'aggadata' }>).index}
+              <SidebarCardFromHint
+                recipe={AGGADATA_RECIPE}
+                instance={aggadataInstance((c() as Extract<SidebarContent, { kind: 'aggadata' }>).story)}
+                instanceKey={`${props.tractate}:${props.page}:${(c() as Extract<SidebarContent, { kind: 'aggadata' }>).index}:${(c() as Extract<SidebarContent, { kind: 'aggadata' }>).story.title}`}
+                qaInstanceId={`${(c() as Extract<SidebarContent, { kind: 'aggadata' }>).story.title}|${(c() as Extract<SidebarContent, { kind: 'aggadata' }>).story.excerpt}`}
                 tractate={props.tractate}
                 page={props.page}
+                specialBlocks={AGGADATA_BLOCKS}
               />
             </Show>
 
