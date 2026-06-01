@@ -1306,58 +1306,14 @@ interface DisputeItem {
 }
 interface DisputesData { disputes: DisputeItem[]; }
 
-export function HalachaBody(props: {
-  topic: HalachaTopic;
-  index: number;
-  tractate: string;
-  page: string;
-}): JSX.Element {
-  const [codification, setCodification] = createSignal<CodificationData | null>(null);
-  const [practical, setPractical] = createSignal<PracticalData | null>(null);
-  const [disputes, setDisputes] = createSignal<DisputeItem[]>([]);
-
-  const instanceKey = () => `${props.tractate}:${props.page}:${props.index}:${props.topic.topic}`;
-
-  createEffect(() => {
-    void instanceKey();
-    setCodification(null);
-    setPractical(null);
-    setDisputes([]);
-  });
-
-  const handleResolved = (r: { deps_resolved?: Record<string, unknown>; anchors_resolved?: Record<string, unknown> }) => {
-    const deps = r.deps_resolved ?? {};
-    const cod = deps['halacha.codification'] as CodificationData | undefined;
-    if (cod && typeof cod.prose === 'string') setCodification(cod);
-    const pr = deps['halacha.practical'] as PracticalData | undefined;
-    if (pr && typeof pr.prose === 'string') setPractical(pr);
-    const dp = deps['halacha.disputes'] as DisputesData | undefined;
-    if (dp && Array.isArray(dp.disputes)) setDisputes(dp.disputes);
+// Halacha codification: structured ruling rows (Mishneh Torah / Tur / Shulchan
+// Aruch / Rema). A NAMED special block reading the halacha.codification leaf.
+function HalachaCodification(props: SpecialBlockProps): JSX.Element {
+  const codification = (): CodificationData | undefined => {
+    const d = props.deps['halacha.codification'] as CodificationData | undefined;
+    return d && typeof d.prose === 'string' ? d : undefined;
   };
-
-  // The mark instance shape the registry's halacha extractor emits — its
-  // `mark_input` becomes the topic JSON we pass to leaf prompts.
-  const markInstance = () => ({
-    startSegIdx: 0,
-    endSegIdx: 0,
-    fields: {
-      topic: props.topic.topic,
-      topicHe: props.topic.topicHe ?? '',
-      summary: '',
-      excerpt: props.topic.excerpt ?? '',
-    },
-  });
-
   return (
-    <Panel accent={ACCENTS.halacha} title={props.topic.topic} titleHe={props.topic.topicHe}>
-      <Synthesis
-        markId="halacha"
-        instance={markInstance()}
-        instanceKey={instanceKey()}
-        tractate={props.tractate}
-        page={props.page}
-        onResolved={handleResolved}
-      />
       <Show when={codification()}>
         {(cod) => (
           <div style={{ 'margin-top': '0.9rem' }}>
@@ -1367,7 +1323,7 @@ export function HalachaBody(props: {
               display: 'flex', 'align-items': 'center', gap: '0.4rem',
             }}>
               <span>{t('halacha.codification')}</span>
-              <InspectDot instanceKey={instanceKey()} leafId="halacha.codification" style={{ 'margin-left': 'auto' }} />
+              <InspectDot instanceKey={props.instanceKey} leafId="halacha.codification" style={{ 'margin-left': 'auto' }} />
             </div>
             <RulingRow
               source="mishnehTorah" label={t('source.mishnehTorah')} color="#8a2a2b"
@@ -1405,9 +1361,19 @@ export function HalachaBody(props: {
           </div>
         )}
       </Show>
+  );
+}
+
+// Halacha practical guidance: lechatchila / bedieved + applies-when / exceptions.
+function HalachaPractical(props: SpecialBlockProps): JSX.Element {
+  const practical = (): PracticalData | undefined => {
+    const d = props.deps['halacha.practical'] as PracticalData | undefined;
+    return d && typeof d.prose === 'string' ? d : undefined;
+  };
+  return (
       <Show when={practical()}>
         {(pr) => (
-          <SectionCard label="halacha.practical" inspect={{ instanceKey: instanceKey(), leafId: 'halacha.practical' }}>
+          <SectionCard label="halacha.practical" inspect={{ instanceKey: props.instanceKey, leafId: 'halacha.practical' }}>
             <Show when={pr().lechatchila}>
               <div style={{ 'margin-bottom': '0.4rem' }}>
                 <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>
@@ -1461,8 +1427,18 @@ export function HalachaBody(props: {
           </SectionCard>
         )}
       </Show>
+  );
+}
+
+// Halacha disputes: machlokes positions grouped per axis.
+function HalachaDisputes(props: SpecialBlockProps): JSX.Element {
+  const disputes = (): DisputeItem[] => {
+    const d = props.deps['halacha.disputes'] as DisputesData | undefined;
+    return d && Array.isArray(d.disputes) ? d.disputes : [];
+  };
+  return (
       <Show when={disputes().length > 0}>
-        <SectionCard label="halacha.disputes" inspect={{ instanceKey: instanceKey(), leafId: 'halacha.disputes' }}>
+        <SectionCard label="halacha.disputes" inspect={{ instanceKey: props.instanceKey, leafId: 'halacha.disputes' }}>
           <For each={disputes()}>{(d) => (
             <div style={{ 'margin-bottom': '0.6rem' }}>
               <div style={{ 'font-weight': 500, color: '#333', 'font-size': '0.88rem', 'margin-bottom': '0.25rem' }}>
@@ -1485,9 +1461,40 @@ export function HalachaBody(props: {
           )}</For>
         </SectionCard>
       </Show>
-    </Panel>
   );
 }
+
+/** The halacha mark-instance shape (mark_input for the leaves). */
+export function halachaInstance(topic: HalachaTopic): { fields: Record<string, unknown>; startSegIdx: number; endSegIdx: number } {
+  return {
+    startSegIdx: 0,
+    endSegIdx: 0,
+    fields: {
+      topic: topic.topic,
+      topicHe: topic.topicHe ?? '',
+      summary: '',
+      excerpt: topic.excerpt ?? '',
+    },
+  };
+}
+
+export const HALACHA_RECIPE: SidebarRecipe = {
+  kind: 'halacha',
+  markId: 'halacha',
+  titleField: 'topic',
+  titleHeField: 'topicHe',
+  sections: [
+    { type: 'synthesis' },
+    { type: 'special', block: 'halacha-codification', deps: ['halacha.codification'] },
+    { type: 'special', block: 'halacha-practical', deps: ['halacha.practical'] },
+    { type: 'special', block: 'halacha-disputes', deps: ['halacha.disputes'] },
+  ],
+};
+export const HALACHA_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
+  'halacha-codification': HalachaCodification,
+  'halacha-practical': HalachaPractical,
+  'halacha-disputes': HalachaDisputes,
+};
 
 /** Sidebar panel for a cited pasuk: shows the full Hebrew Tanakh verse and,
  *  on expand, the surrounding verses inlined as one continuous Hebrew block
@@ -1662,6 +1669,7 @@ export const AGGADATA_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Eleme
 export const RECIPES_BY_KIND: Partial<Record<SidebarContent['kind'], SidebarRecipe>> = {
   aggadata: AGGADATA_RECIPE,
   pesuk: PASUK_RECIPE,
+  halacha: HALACHA_RECIPE,
 };
 
 /** The instanceKey a recipe-driven card mounts under (the client run memo + the
@@ -1672,6 +1680,7 @@ export function instanceKeyForContent(content: SidebarContent, tractate: string,
   switch (content.kind) {
     case 'aggadata': return `${tractate}:${page}:${content.index}:${content.story.title}`;
     case 'pesuk': return content.pasuk.verseRef;
+    case 'halacha': return `${tractate}:${page}:${content.index}:${content.topic.topic}`;
     default: return null;
   }
 }
@@ -1931,9 +1940,11 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
             </Show>
 
             <Show when={c().kind === 'halacha'}>
-              <HalachaBody
-                topic={(c() as Extract<SidebarContent, { kind: 'halacha' }>).topic}
-                index={(c() as Extract<SidebarContent, { kind: 'halacha' }>).index}
+              <SidebarCardFromHint
+                recipe={HALACHA_RECIPE}
+                instance={halachaInstance((c() as Extract<SidebarContent, { kind: 'halacha' }>).topic)}
+                instanceKey={instanceKeyForContent(c() as Extract<SidebarContent, { kind: 'halacha' }>, props.tractate, props.page)!}
+                specialBlocks={HALACHA_BLOCKS}
                 tractate={props.tractate}
                 page={props.page}
               />
