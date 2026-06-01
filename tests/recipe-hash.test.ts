@@ -18,7 +18,7 @@ const baseMark = () => ({
   },
   render: { kind: 'inline', style: 'underline' },
   dependencies: ['gemara'],
-  checks: ['no-empty'],
+  passes: ['no-empty'],
   cache_version: '2',
   def_hash: 'rabbi-v2',
   status: 'promoted',
@@ -69,12 +69,12 @@ describe('recipeHash — content hash of a producer recipe', () => {
     expect(await recipeHash(m)).not.toBe(await recipeHash(baseMark()));
   });
 
-  it('does NOT move for checks / dependencies / version / bookkeeping changes', async () => {
+  it('does NOT move for passes / dependencies / version / bookkeeping changes', async () => {
     const base = await recipeHash(baseMark());
-    const checks = baseMark(); checks.checks = ['no-empty', 'in-range'];
+    const passes = baseMark(); passes.passes = ['no-empty', 'in-range'];
     const deps = baseMark(); deps.dependencies = ['gemara', 'commentaries'];
     const ver = baseMark(); ver.cache_version = '9'; ver.def_hash = 'rabbi-v9'; ver.updated_at = '2030-01-01';
-    expect(await recipeHash(checks)).toBe(base);
+    expect(await recipeHash(passes)).toBe(base);
     expect(await recipeHash(deps)).toBe(base);
     expect(await recipeHash(ver)).toBe(base);
   });

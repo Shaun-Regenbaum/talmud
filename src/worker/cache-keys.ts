@@ -68,7 +68,7 @@ function canonicalJSON(value: unknown): string {
  * hand-authored literal, so it cannot drift from reality the way the current
  * `def_hash` strings have (e.g. 'rabbi-v2' never re-derives).
  *
- * Deliberately EXCLUDED: `checks` (post-processing, not a generation input),
+ * Deliberately EXCLUDED: `passes` (post-processing, not a generation input),
  * `dependencies` (composition — hashed via their own recipes), and the
  * bookkeeping fields (`cache_version` / `def_hash` / `status` / `source` /
  * `updated_at` / `id` / `label`). Field-order insensitive.

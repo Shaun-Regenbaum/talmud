@@ -22,7 +22,7 @@ interface VoiceEdge { from?: unknown; to?: unknown; kind?: unknown; [k: string]:
 interface VoicesGraph { voices?: unknown; edges?: unknown; [k: string]: unknown }
 
 /** Repair the edge directions + drop malformed edges. Mutates + returns the
- *  graph (matches the other transform checks' contract). Non-graph input and a
+ *  graph (matches the other transform passes' contract). Non-graph input and a
  *  missing edges array pass through untouched. */
 export function deriveVoiceEdges(parsed: unknown): unknown {
   if (!parsed || typeof parsed !== 'object') return parsed;

@@ -1,7 +1,7 @@
 /**
- * Dev-panel surfacing for the post-LLM check layer. Calls
+ * Dev-panel surfacing for the post-LLM pass layer. Calls
  * GET /api/checks/:tractate/:page — which re-runs each daf-level mark's
- * declared checks against its ALREADY-CACHED (anchored) output, no LLM — and
+ * declared passes against its ALREADY-CACHED (anchored) output, no LLM — and
  * lists what the soft/observe-only checks (anchor-verbatim, partition-clean, …)
  * flag on the daf in view. This is the observation surface for deciding whether
  * a soft check is trustworthy enough to promote to a hard, cache-gating one.

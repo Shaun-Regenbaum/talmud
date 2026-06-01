@@ -68,7 +68,7 @@ import { wrapEnv, gatewayStatus, gatewayActive } from './ai-gateway';
 import { runLLM, type LLMModelId, type LLMResult, type LLMUsage } from './llm';
 import { checkBudget, isBudgetPaused, budgetStatus, clearPauses, type BudgetScope } from './budget';
 import { lookupRelationships } from './rabbi-graph';
-import { runChecks } from '../lib/check/postcheck';
+import { runPasses } from '../lib/check/passes';
 import { composeTypeProfile, type LayerId, type LayerInstance, type TypeProfile, type UnitRange } from '../lib/typing/profile';
 import { findMarkers } from '../lib/typing/markers';
 import { noteLintAttempt, readLintFailures, type LintFailuresSummary } from './lint-failures';
@@ -641,7 +641,7 @@ app.get('/api/checks/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
   const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
-  const marks = CODE_MARKS.filter((m) => (m.checks?.length ?? 0) > 0);
+  const marks = CODE_MARKS.filter((m) => (m.passes?.length ?? 0) > 0);
   if (marks.length === 0) return c.json({ tractate, page, results: [], total_issues: 0 });
 
   const slice = await getGemaraSlice(c.env, tractate, page, false);
@@ -651,7 +651,7 @@ app.get('/api/checks/:tractate/:page', async (c) => {
     const hit = await readCachedResult(c.env, keyForMark(def, tractate, page, lang));
     if (!hit || hit.parsed == null) { results.push({ mark_id: def.id, cached: false, issues: [] }); continue; }
     // Clone so the idempotent transform re-runs don't mutate the cached object.
-    const { issues } = await runChecks(def.checks ?? [], structuredClone(hit.parsed), {
+    const { issues } = await runPasses(def.passes ?? [], structuredClone(hit.parsed), {
       tractate, page, segmentsHe: slice.segments_he, defId: def.id, lang,
     });
     total += issues.length;
@@ -1156,7 +1156,7 @@ function adaptCodeEnrichment(code: SchemaEnrichmentDefinition): EnrichmentDefini
     mark: code.target_mark,
     scope: code.scope,
     dependencies: code.dependencies,
-    checks: code.checks,
+    passes: code.passes,
     system_prompt: llm?.system_prompt ?? '',
     user_prompt_template: llm?.user_prompt_template ?? '',
     system_prompt_he: llm?.system_prompt_he,
@@ -1707,19 +1707,19 @@ async function runMarkOnce(
     catch (err) { parse_error = String(err).slice(0, 200); }
   }
   // Per-mark post-processing via the declarative check layer
-  // (src/lib/check/postcheck.ts). Some extractors (notably argument-move) can't
+  // (src/lib/check/passes.ts). Some extractors (notably argument-move) can't
   // reliably emit segment indices for sub-ranges, so the verbatim re-anchorers
   // (reanchor-argument/-move/-pesukim/-aggadata) re-derive them from the Hebrew
   // excerpt the LLM IS good at copying, and compute token (word) offsets within
   // the matched segment so the highlight painter can paint exactly the
   // move/citation, not the whole containing segment. A definition opts in via
-  // `checks: []` in code-marks.ts; the transforms need the segment grid, so
+  // `passes: []` in code-marks.ts; the transforms need the segment grid, so
   // fetch the gemara slice once when any check runs.
   let markCheckIssues: unknown[] | undefined;
   let markHardIssues: unknown[] | undefined;
-  if (parsed && def.checks && def.checks.length > 0) {
+  if (parsed && def.passes && def.passes.length > 0) {
     const slice = await getGemaraSlice(rc.env, tractate, page, false);
-    const checked = await runChecks(def.checks, parsed, {
+    const checked = await runPasses(def.passes, parsed, {
       tractate, page, segmentsHe: slice.segments_he, defId: def.id, lang: rc.lang,
     });
     parsed = checked.parsed;
@@ -2045,7 +2045,7 @@ async function runEnrichmentOnce(
     catch (err) { parse_error = String(err).slice(0, 200); }
   }
   // Post-generation processing via the standardized check layer
-  // (src/lib/check/postcheck.ts). An enrichment opts in through `checks: []` in
+  // (src/lib/check/passes.ts). An enrichment opts in through `passes: []` in
   // code-marks.ts. Transforms run first:
   //   - rabbi.{relationships,geography}.evidence -> 'reanchor-rabbi-evidence'
   //     resolves each evidence excerpt to (startSegIdx, endSegIdx, tokenStart,
@@ -2062,16 +2062,16 @@ async function runEnrichmentOnce(
   let lint_issues: unknown[] | undefined;   // hard subset → gating + /api/usage path
   let check_issues: unknown[] | undefined;  // all severities → observation
   let hardIssueCount = 0;
-  if (parsed && !parse_error && def.checks && def.checks.length > 0) {
+  if (parsed && !parse_error && def.passes && def.passes.length > 0) {
     const slice = await getGemaraSlice(rc.env, tractate, page, false);
     // commentary-verbatim needs the daf's real Rashi/Tosafot text to verify
     // cited quotes against — fetch it only when a check actually wants it.
     let commentaryHe: string[] | undefined;
-    if (def.checks.includes('commentary-verbatim')) {
+    if (def.passes.includes('commentary-verbatim')) {
       const com = await getCommentariesSlice(rc.env, tractate, page, false);
       commentaryHe = Object.values(com.by_commentator).map((c) => stripHtmlServer(c.hebrew)).filter(Boolean);
     }
-    const checked = await runChecks(def.checks, parsed, {
+    const checked = await runPasses(def.passes, parsed, {
       tractate, page, segmentsHe: slice.segments_he, commentaryHe, defId: def.id, lang: rc.lang,
     });
     parsed = checked.parsed;
