@@ -223,6 +223,14 @@ export interface JobMessage {
    *  by /api/warm-daf to comprehensively pre-warm an adjacent daf so navigation
    *  lands on a fully-cached page. Mutually exclusive with mark_id/enrichment_id. */
   warm_deep?: boolean;
+  /** With `warm_deep`, restrict the warm to this set of enrichment ids (the
+   *  re-warm cascade) and EVICT their cache entries so they regenerate. A recipe
+   *  edit leaves the key unchanged, so the cascade must be evicted to actually
+   *  regenerate — but only the cascade, so unchanged dependencies still cache-hit
+   *  (see deepWarmDaf `evict`). Covers the deep-warm surface (synthesis /
+   *  suggested-questions / overview); cascade ids outside it regenerate on their
+   *  next on-demand request. */
+  rewarm_only?: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -872,6 +880,40 @@ app.get('/api/stale/:id/:tractate/:page', async (c) => {
   const cached = hit?.recipe_hash ?? null;
   const status = !hit ? 'miss' : !cached ? 'unknown' : cached === current ? 'fresh' : 'stale';
   return c.json({ id, tractate, page, lang, status, cached_recipe: cached, current_recipe: current });
+});
+
+// Close the freshness loop: re-warm a changed producer + its full transitive
+// dependents (the reverse-dependency cascade) on one daf. Enqueues a single
+// warm-deep job restricted to the cascade; the consumer EVICTS the whole
+// cascade's entries (evictCascadeEntries — not bypass_cache, so unchanged
+// dependencies still cache-hit instead of re-paying) then regenerates the
+// deep-warm surface (synthesis / suggested-questions / overview / narrative) via
+// deepWarmDaf. Non-surface cascade members are evicted too, so nothing stale is
+// served — they regenerate via a surface member's dependency resolution or on
+// their next read. Trusted + budget-gated. Intended flow: edit a prompt →
+// `/api/stale` shows `stale` → call this → the cascade regenerates.
+app.post('/api/admin/rewarm/:id/:tractate/:page', async (c) => {
+  if (!isTrustedRequest(c)) return c.json({ error: 'studio auth required' }, 403);
+  if (!c.env.ENRICHMENT_QUEUE) return c.json({ error: 'ENRICHMENT_QUEUE binding not available' }, 503);
+  const gate = await checkBudget(c.env, { custom: false });
+  if (!gate.ok) {
+    return c.json({
+      status: 'error', error: pauseErrorMessage(gate.scope),
+      paused: true, scope: gate.scope, retryAfter: pauseRetryAfterSec(gate.until),
+    }, 429);
+  }
+  const id = c.req.param('id');
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
+  const rev = reverseDependencyIndex(producerNodesFrom([...CODE_MARKS, ...CODE_ENRICHMENTS]));
+  const cascade = [id, ...transitiveDependents(rev, id)];
+  const runId = `rewarm:${id}:${tractate}:${page}:${lang}:${Math.floor(Date.now() / 1000)}`
+    .replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
+  await c.env.ENRICHMENT_QUEUE.send({
+    runId, warm_deep: true, rewarm_only: cascade, tractate, page, ...(lang === 'he' ? { lang } : {}),
+  });
+  return c.json({ status: 'pending', runId, id, tractate, page, lang, cascade });
 });
 
 app.get('/api/enrichments', async (c) => {
@@ -6867,6 +6909,49 @@ const DEEP_WARM_PLAN: Record<string, string[]> = {
 };
 
 /**
+ * Evict cached outputs of these enrichments on one daf so the next warm/read
+ * regenerates them — the staleness-driven re-warm step. For each enrichment it
+ * deletes the whole-daf-instance key (lang-safe — `{fields:{}}` has no
+ * lang-varying id) for BOTH languages, plus every per-instance key derived from
+ * `def.mark`'s instances. A delete of a non-existent key is a harmless no-op.
+ *
+ * SCOPE (deliberate, documented): per-instance keys are evicted for EN only,
+ * because a section's instance id derives from its `fields.title` and the HE
+ * prompt produces a Hebrew title — so the HE per-section key has a different id
+ * we can't enumerate from the (EN) `readMarkInstances`. HE per-section entries
+ * therefore regenerate on their next read rather than eagerly. Also NOT covered:
+ * qualified `.qa` answers (keyed by the user's question — on-demand, not
+ * pre-warmed) and KV-defined producers (the cascade is over the code registry).
+ * The reader-facing EN cascade — the common edit-a-prompt case — is exact.
+ *
+ * Run from the queue consumer (not a request); even so, keep cascades bounded —
+ * a queue handler is still a Worker invocation with operation limits.
+ */
+async function evictCascadeEntries(env: Bindings, ids: readonly string[], tractate: string, page: string): Promise<number> {
+  const cache = env.CACHE;
+  if (!cache) return 0;
+  let evicted = 0;
+  const wholeIid = await instanceIdOf({ fields: {} });
+  for (const id of ids) {
+    const def = await loadEnrichmentDef(env, id);
+    if (!def) continue;
+    const daf = def.scope === 'local' ? { tractate, page } : undefined;
+    // Whole-daf instance ({fields:{}}) — id is lang-safe, so evict both langs.
+    for (const lang of ['en', 'he'] as const) {
+      const key = keyForEnrichment(def, wholeIid, daf, undefined, lang);
+      if (key) { await cache.delete(key); evicted++; }
+    }
+    // Per-section/entity instances — EN only (the HE id derives from the Hebrew
+    // title we can't enumerate here; see the doc above).
+    for (const inst of await readMarkInstances(env, def.mark, tractate, page).catch(() => [])) {
+      const key = keyForEnrichment(def, await instanceIdOf(inst), daf, undefined, 'en');
+      if (key) { await cache.delete(key); evicted++; }
+    }
+  }
+  return evicted;
+}
+
+/**
  * Comprehensively warm one daf: run its structural marks (cache-respecting,
  * sequentially so we don't spike OpenRouter concurrency from a single job),
  * then fan out a warm job per (instance, enrichment) — skipping any already
@@ -6879,13 +6964,22 @@ async function deepWarmDaf(
   tractate: string,
   page: string,
   lang: 'en' | 'he',
+  /** When set, only warm enrichments in this set (the re-warm cascade from the
+   *  reverse-dependency index). Marks are still run cache-respecting to get
+   *  instances, but only when one of their enrichments is wanted. The caller
+   *  (`/api/admin/rewarm`) evicts the cascade's entries FIRST, so the normal
+   *  cache-skip below finds them missing and regenerates them; unchanged
+   *  (non-cascade) dependencies are not evicted and cache-hit. */
+  only?: ReadonlySet<string>,
 ): Promise<{ marks: number; enqueued: number; skipped: number; bridges: number }> {
   const queue = rc.env.ENRICHMENT_QUEUE;
   const cache = rc.env.CACHE;
   if (!queue) return { marks: 0, enqueued: 0, skipped: 0, bridges: 0 };
   let marks = 0, enqueued = 0, skipped = 0;
+  const wanted = (eid: string): boolean => !only || only.has(eid);
 
   for (const [markId, enrichmentIds] of Object.entries(DEEP_WARM_PLAN)) {
+    if (!enrichmentIds.some(wanted)) continue; // no cascade enrichment uses this mark
     const markDef = await loadMarkDef(rc.env, markId);
     if (!markDef) continue;
     let instances: unknown[] = [];
@@ -6898,6 +6992,7 @@ async function deepWarmDaf(
 
     for (const inst of instances) {
       for (const enrichmentId of enrichmentIds) {
+        if (!wanted(enrichmentId)) continue;
         const def = await loadEnrichmentDef(rc.env, enrichmentId);
         if (!def) continue;
         const iid = await instanceIdOf(inst);
@@ -6919,7 +7014,7 @@ async function deepWarmDaf(
   // a reader is the first to trigger argument.narrative on a story section (cold
   // generation); with it, the story view is usually a cache hit.
   try {
-    const narrativeDef = await loadEnrichmentDef(rc.env, 'argument.narrative');
+    const narrativeDef = wanted('argument.narrative') ? await loadEnrichmentDef(rc.env, 'argument.narrative') : null;
     if (narrativeDef) {
       const profiles = await buildDafTypeProfiles(rc.env, tractate, page);
       const sections = await readMarkInstances(rc.env, 'argument', tractate, page);
@@ -6947,6 +7042,7 @@ async function deepWarmDaf(
   // never ran for new daf-yomi dapim, so warm it here. Keyed on the canonical
   // whole-daf instance { fields: {} } to match the client.
   for (const eid of ['argument-overview.flow', 'argument-overview.synthesis']) {
+    if (!wanted(eid)) continue;
     try {
       const def = await loadEnrichmentDef(rc.env, eid);
       if (!def) continue;
@@ -7016,7 +7112,14 @@ async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: Executi
 
   try {
     if (job.warm_deep) {
-      const stats = await deepWarmDaf(rc, job.tractate, job.page, rc.lang);
+      const only = job.rewarm_only?.length ? new Set(job.rewarm_only) : undefined;
+      // Staleness-driven re-warm: evict the FULL cascade's entries (incl.
+      // non-surface members like argument.background) so nothing stale is served,
+      // then warm — deepWarmDaf regenerates the deep-warm surface, whose
+      // dependency resolution pulls the evicted lower members fresh; the rest
+      // regenerate on their next read. Unchanged (non-cascade) deps cache-hit.
+      if (only && job.rewarm_only) await evictCascadeEntries(rc.env, job.rewarm_only, job.tractate, job.page);
+      const stats = await deepWarmDaf(rc, job.tractate, job.page, rc.lang, only);
       await writeResult({ status: 'ok', result: { kind: 'warm', ...stats, total_ms: Date.now() - t0 } });
       // eslint-disable-next-line no-console
       console.log(`[queue] deep-warm ${job.tractate}/${job.page} lang=${rc.lang} marks=${stats.marks} enqueued=${stats.enqueued} skipped=${stats.skipped} bridges=${stats.bridges}`);
