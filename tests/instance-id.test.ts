@@ -43,3 +43,25 @@ describe('instanceIdOf — Hebrew title collision', () => {
     expect(await instanceIdOf({ fields: { id: '6-8_0' } })).toBe('6-8_0');
   });
 });
+
+// Regression: a rishonim instance carries no id/title/excerpt, so its id used to
+// hash to just {segIdx} — the synthesis cache key was blind to the comments. One
+// bad generation then stuck permanently (saw Berakhot 2a:1 render a Pesachim
+// chametz synthesis from a poisoned entry the correct source couldn't evict).
+// The id must now move with the comment content so a corrected source regenerates.
+describe('instanceIdOf — rishonim comment content sensitivity', () => {
+  const rishonim = (segIdx: number, comments: Array<{ work: string; sourceRef: string; textHe: string; textEn: string }>) =>
+    ({ segIdx, fields: { works: [...new Set(comments.map((c) => c.work))], commentCount: comments.length, comments } });
+
+  it('gives DISTINCT ids to the same segment with different comments', async () => {
+    const shema = rishonim(0, [{ work: 'Rashi', sourceRef: 'Rashi on Berakhot 2a:1:1', textHe: 'מאימתי קורין את שמע', textEn: 'From what time' }]);
+    const chametz = rishonim(0, [{ work: 'Rashi', sourceRef: 'Rashi on Pesachim 2a:1:1', textHe: 'אור לארבעה עשר בודקין את החמץ', textEn: 'On the eve of the 14th' }]);
+    expect(await instanceIdOf(shema)).not.toBe(await instanceIdOf(chametz));
+  });
+
+  it('is stable for identical comment content', async () => {
+    const a = rishonim(0, [{ work: 'Rashi', sourceRef: 'Rashi on Berakhot 2a:1:1', textHe: 'מאימתי', textEn: 'From when' }]);
+    const b = rishonim(0, [{ work: 'Rashi', sourceRef: 'Rashi on Berakhot 2a:1:1', textHe: 'מאימתי', textEn: 'From when' }]);
+    expect(await instanceIdOf(a)).toBe(await instanceIdOf(b));
+  });
+});
