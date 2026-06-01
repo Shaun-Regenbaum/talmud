@@ -25,6 +25,7 @@ import { trackAI } from './aiActivity';
 import { lang } from './i18n';
 import { devModeActive } from './DevModeShelf';
 import type { SeedMark } from './seed-marks';
+import type { SidebarRecipe } from '../lib/sidebar/recipe';
 import type { MarkDef as RendererMarkDef, MarkRunOutput as RendererMarkRunOutput } from './renderers/dispatch';
 import { producerNodesFrom, reverseDependencyIndex, type RawDependency } from '../lib/registry/depGraph';
 
@@ -66,6 +67,8 @@ export interface WorkerMarkDefinition {
   experimental?: boolean;
   anchor: 'segment' | 'segment-range' | 'phrase' | 'multi-anchor' | 'cross-daf' | 'external' | 'whole-daf';
   render: { kind: string; [k: string]: unknown };
+  /** Declarative sidebar-card recipe, when the mark's card is recipe-driven. */
+  recipe?: SidebarRecipe;
   extractor: {
     kind: 'llm' | 'sefaria' | 'computed' | 'manual';
     model?: LLMModelId;

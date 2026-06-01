@@ -79,6 +79,7 @@ import {
   RISHONIM_SYNTHESIS_OUTPUT_SCHEMA,
   proseSchema,
 } from './output-schemas';
+import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE } from '../lib/sidebar/recipe';
 
 // ---------------------------------------------------------------------------
 // Rabbi mark — phrase anchor + inline render
@@ -446,6 +447,7 @@ const PESUKIM_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 export const CODE_MARKS: MarkDefinition[] = [
   {
     id: 'rabbi',
+    recipe: RABBI_RECIPE,
     label: 'Rabbis',
     description: 'Inline underline of rabbi names with generation coloring; click for relationship card.',
     category: 'canon',
@@ -566,6 +568,7 @@ export const CODE_MARKS: MarkDefinition[] = [
   },
   {
     id: 'halacha',
+    recipe: HALACHA_RECIPE,
     label: 'Halachot',
     description: 'Halacha-topic gutter icons + sidebar.',
     category: 'canon',
@@ -594,6 +597,7 @@ export const CODE_MARKS: MarkDefinition[] = [
   },
   {
     id: 'aggadata',
+    recipe: AGGADATA_RECIPE,
     label: 'Aggadatot',
     description: 'Aggadic-story gutter icons + sidebar.',
     category: 'canon',
@@ -623,6 +627,7 @@ export const CODE_MARKS: MarkDefinition[] = [
   },
   {
     id: 'pesukim',
+    recipe: PASUK_RECIPE,
     label: 'Pesukim',
     description: 'Biblical-citation gutter icons + sidebar.',
     category: 'canon',
@@ -3433,6 +3438,7 @@ CODE_ENRICHMENTS.push(
 
 CODE_MARKS.push({
   id: 'rishonim',
+  recipe: RISHONIM_RECIPE,
   label: 'Rishonim',
   description: 'Per-segment rishonim indicator (Rashi, Tosafot, Ramban, …). Gutter icon next to each commented segment; click for the per-segment synthesis.',
   category: 'canon',

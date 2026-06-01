@@ -127,7 +127,9 @@ export function HebrewProse(props: {
  * halacha until harmonized.
  */
 export function SectionCard(props: {
-  label: CatalogKey;
+  // CatalogKey for literal call-sites (keeps autocomplete); a recipe's labelKey
+  // arrives as a plain string — t() resolves known keys and falls back otherwise.
+  label: CatalogKey | (string & {});
   spacing?: 'tight' | 'loose';
   text?: string;
   children?: JSX.Element;
@@ -380,43 +382,11 @@ export interface SpecialBlockProps {
 }
 export type SpecialBlock = (props: SpecialBlockProps) => JSX.Element;
 
-/** One section of a card, top → bottom. */
-export type SectionSpec =
-  /** Small chips from instance fields (e.g. an aggadata theme). `drop` hides
-   *  specific values (e.g. a retired 'biography' theme that may linger in old
-   *  cached extractions). */
-  | { type: 'tags'; fields: string[]; drop?: string[] }
-  /** A paragraph of an instance field, rabbi-linked + Hebraized (e.g. a summary).
-   *  `untilSynthesis` makes it a placeholder: shown only until the synthesis
-   *  section resolves, then replaced by it (the instant field fills the slot
-   *  while the richer paragraph computes). */
-  | { type: 'prose'; field: string; untilSynthesis?: boolean }
-  /** The synthesis card for the recipe's mark; feeds the shared `deps`. */
-  | { type: 'synthesis' }
-  /** A labeled prose box rendering one dependent enrichment's `textField`.
-   *  Collapsed by default (the "dig deeper" layer under the synthesis); set
-   *  `defaultOpen` to lead with it expanded. */
-  | { type: 'explainer'; dep: string; textField: string; labelKey: CatalogKey; defaultOpen?: boolean }
-  /** The follow-up Q&A affordance. */
-  | { type: 'qa' }
-  /** A genuinely-custom block, looked up by name in the card's `specialBlocks`.
-   *  `deps` declares the dependent leaf ids it reads from the shared deps bag —
-   *  so even a custom block has *declared inputs* (shown in the Recipe panel,
-   *  and the first is what its inspect 'i' opens). */
-  | { type: 'special'; block: string; deps?: string[] };
-
-export interface SidebarRecipe {
-  kind: SidebarKind;
-  markId: string;
-  /** Instance field for the card heading. Omit to suppress the Panel heading
-   *  entirely — a card whose header is genuinely custom (e.g. pasuk's fetched
-   *  Hebrew verse ref) renders it from a `special` section instead. */
-  titleField?: string;
-  titleHeField?: string;
-  titleLang?: 'en' | 'he';
-  flip?: 'name' | 'rabbi';
-  sections: SectionSpec[];
-}
+// The recipe shape (SectionSpec / SidebarRecipe) now lives in src/lib/sidebar/
+// recipe.ts so the worker mark definition can carry it. Re-exported here so the
+// many `from './sidebar/primitives'` importers keep working.
+import type { SectionSpec, SidebarRecipe } from '../../lib/sidebar/recipe';
+export type { SectionSpec, SidebarRecipe } from '../../lib/sidebar/recipe';
 
 /** A flat, render-ready description of a recipe for the dev shelf's Recipe panel.
  *  Pure (no reactivity) so it's unit-testable and the panel needn't know the
@@ -437,7 +407,7 @@ export interface RecipeSectionInfo {
   custom: boolean;
 }
 export interface RecipeInfo {
-  kind: SidebarKind;
+  kind: string;
   markId: string;
   header: string;
   sections: RecipeSectionInfo[];
@@ -503,7 +473,7 @@ export function SidebarCardFromHint(props: {
 }): JSX.Element {
   const str = (v: unknown): string => (typeof v === 'string' ? v : '');
   const fields = (): Record<string, unknown> => props.instance.fields;
-  const accent = (): string => ACCENTS[props.recipe.kind];
+  const accent = (): string => ACCENTS[props.recipe.kind as SidebarKind] ?? '#222';
   const [deps, setDeps] = createSignal<Record<string, unknown>>({});
   // True once the synthesis has resolved (cache hit or fresh). A `prose` section
   // with `untilSynthesis` shows only until then — the instant `summary` field
