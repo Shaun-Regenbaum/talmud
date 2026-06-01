@@ -2,13 +2,14 @@
 import { render } from '@solidjs/testing-library';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Pasuk } from '../../src/client/shapes';
-import { PasukPanel } from '../../src/client/ArgumentSidebar';
+import { PASUK_RECIPE, PASUK_BLOCKS, pasukInstance } from '../../src/client/ArgumentSidebar';
+import { SidebarCardFromHint } from '../../src/client/sidebar/primitives';
 import { setLang, t } from '../../src/client/i18n';
 
 beforeEach(() => {
   setLang('en');
   // Verse + enrichment fetches both go through fetch; an empty payload lets
-  // the panel mount and fall back to the verseRef as title.
+  // the card mount and fall back to the verseRef as the heading.
   vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({}) }) as unknown as Response));
 });
 afterEach(() => {
@@ -24,9 +25,21 @@ const pasuk: Pasuk = {
   endSegIdx: 2,
 };
 
-describe('PasukPanel', () => {
-  it('renders the verse reference as an RTL Hebrew-mode title and a tanakh-font verse block', () => {
-    const { container } = render(() => <PasukPanel pasuk={pasuk} tractate="Shabbat" page="125b" />);
+const renderCard = () =>
+  render(() => (
+    <SidebarCardFromHint
+      recipe={PASUK_RECIPE}
+      instance={pasukInstance(pasuk)}
+      instanceKey={pasuk.verseRef}
+      tractate="Shabbat"
+      page="125b"
+      specialBlocks={PASUK_BLOCKS}
+    />
+  ));
+
+describe('Pasuk recipe card', () => {
+  it('renders the verse ref as an RTL Hebrew heading (from the special verse block) + a tanakh-font verse paragraph', () => {
+    const { container } = renderCard();
 
     const h3 = container.querySelector('h3')!;
     expect(h3.getAttribute('dir')).toBe('rtl');
@@ -43,5 +56,14 @@ describe('PasukPanel', () => {
     const buttons = Array.from(container.querySelectorAll('button'));
     expect(buttons.length).toBeGreaterThanOrEqual(2);
     expect(buttons.some((b) => b.textContent?.includes(t('qa.questions')))).toBe(true);
+  });
+
+  it('declares the four explainer leaves + Q&A in order', () => {
+    const ids = PASUK_RECIPE.sections.flatMap((s) => (s.type === 'explainer' ? [s.dep] : []));
+    expect(ids).toEqual([
+      'pesukim.tanach-context', 'pesukim.why-here', 'pesukim.mechanism', 'pesukim.landing',
+    ]);
+    expect(PASUK_RECIPE.sections.some((s) => s.type === 'qa')).toBe(true);
+    expect(PASUK_RECIPE.titleField).toBeUndefined(); // header is the custom verse block
   });
 });

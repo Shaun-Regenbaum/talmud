@@ -17,7 +17,7 @@ import { adjacentAmud } from '../lib/sefref/amudim';
 import { dafRefHe, pageLabelHe } from '../lib/sefref/tractates';
 import { selectSectionMoves } from '../lib/argumentMoves';
 import { t, lang } from './i18n';
-import { ACCENTS, HebrewProse, Panel, QASection, SectionCard, Synthesis, SidebarPanelFromHint, SidebarCardFromHint, setActiveCard, kindLabelKey, type SidebarHint, type SidebarRecipe, type SpecialBlockProps } from './sidebar/primitives';
+import { ACCENTS, HE_FONT, HebrewProse, Panel, QASection, SectionCard, Synthesis, SidebarPanelFromHint, SidebarCardFromHint, setActiveCard, kindLabelKey, type SidebarHint, type SidebarRecipe, type SpecialBlockProps } from './sidebar/primitives';
 import { InspectDot } from './MarkEnrichmentCards';
 
 /** Localize an era date-range ("c. 290 – 320 CE") for Hebrew display. */
@@ -1493,59 +1493,24 @@ export function HalachaBody(props: {
  *  on expand, the surrounding verses inlined as one continuous Hebrew block
  *  (prev + cited + next) with the cited verse rendered dark and the others
  *  dimmed so the citation still stands out. */
-export function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string }): JSX.Element {
+// The pasuk card's custom header + verse block: the fetched Hebrew verse
+// reference as the heading, the verse text (Tanakh font), and the prev/next
+// verses shown dimmed while expanded. A NAMED special block referenced first in
+// PASUK_RECIPE — everything below it (synthesis + the four explainers + Q&A) is
+// standard recipe vocabulary.
+function PasukVerse(props: SpecialBlockProps): JSX.Element {
+  const verseRef = (): string => (typeof props.instance.fields.verseRef === 'string' ? props.instance.fields.verseRef : '');
   const [expanded, setExpanded] = createSignal(true);
-  const [detail] = createResource(() => props.pasuk.verseRef, fetchPasuk);
-  const [prev] = createResource(
-    () => (expanded() ? detail()?.prevRef ?? null : null),
-    (r) => fetchPasuk(r),
-  );
-  const [next] = createResource(
-    () => (expanded() ? detail()?.nextRef ?? null : null),
-    (r) => fetchPasuk(r),
-  );
-
-  // Section leaves, surfaced from the synthesis aggregate's deps_resolved
-  // (same mechanism HalachaBody uses). Each renders as its own card below the
-  // synthesis paragraph.
-  const [tanachContext, setTanachContext] = createSignal<string | null>(null);
-  const [whyHere, setWhyHere] = createSignal<string | null>(null);
-  const [mechanism, setMechanism] = createSignal<string | null>(null);
-  const [landing, setLanding] = createSignal<string | null>(null);
-
-  createEffect(() => {
-    void props.pasuk.verseRef;
-    setTanachContext(null);
-    setWhyHere(null);
-    setMechanism(null);
-    setLanding(null);
-  });
-
-  const handleResolved = (r: { deps_resolved?: Record<string, unknown>; anchors_resolved?: Record<string, unknown> }) => {
-    const deps = r.deps_resolved ?? {};
-    const tc = deps['pesukim.tanach-context'] as { context?: string } | undefined;
-    if (tc && typeof tc.context === 'string') setTanachContext(tc.context);
-    const wh = deps['pesukim.why-here'] as { why_here?: string } | undefined;
-    if (wh && typeof wh.why_here === 'string') setWhyHere(wh.why_here);
-    const me = deps['pesukim.mechanism'] as { mechanism?: string } | undefined;
-    if (me && typeof me.mechanism === 'string') setMechanism(me.mechanism);
-    const la = deps['pesukim.landing'] as { landing?: string } | undefined;
-    if (la && typeof la.landing === 'string') setLanding(la.landing);
-  };
-
-  const pesukimInstance = () => ({
-    startSegIdx: props.pasuk.startSegIdx,
-    endSegIdx: props.pasuk.endSegIdx,
-    fields: {
-      verseRef: props.pasuk.verseRef,
-      citationStyle: props.pasuk.citationStyle,
-      excerpt: props.pasuk.excerpt,
-      summary: props.pasuk.summary,
-    },
-  });
-
+  const [detail] = createResource(verseRef, fetchPasuk);
+  const [prev] = createResource(() => (expanded() ? detail()?.prevRef ?? null : null), (r) => fetchPasuk(r));
+  const [next] = createResource(() => (expanded() ? detail()?.nextRef ?? null : null), (r) => fetchPasuk(r));
   return (
-    <Panel accent={ACCENTS.pesuk} title={detail()?.heRef ?? props.pasuk.verseRef} titleLang="he">
+    <>
+      {/* Hebrew verse ref heading — the card's real header (fetched, so it can't
+          be a static recipe title; the recipe omits titleField for this). */}
+      <h3 dir="rtl" lang="he" style={{ margin: '0 0 0.3rem', 'font-size': '1.05rem', color: ACCENTS.pesuk, 'font-family': HE_FONT }}>
+        {detail()?.heRef ?? verseRef()}
+      </h3>
       <Show when={detail.loading && !detail()}>
         <p style={{ color: '#999', 'font-style': 'italic', margin: '0 0 0.5rem' }}>{t('pasuk.loading')}</p>
       </Show>
@@ -1574,34 +1539,43 @@ export function PasukPanel(props: { pasuk: Pasuk; tractate: string; page: string
         }}
         title={expanded() ? t('pasuk.verses.hide') : t('pasuk.verses.show')}
       >{expanded() ? `› ${t('common.collapse')} ‹` : `‹ ${t('common.expand')} ›`}</button>
-      {/* Per-pasuk synthesis card. Mounts MarkEnrichmentCards markId="pesukim":
-          the synthesis paragraph renders in its own box, and its resolved
-          leaves (tanach-context / why-here / mechanism / landing) come back
-          via onResolved and render as separate section cards below — the same
-          structure as the halacha panel. */}
-      <Synthesis
-        markId="pesukim"
-        instance={pesukimInstance()}
-        instanceKey={props.pasuk.verseRef}
-        tractate={props.tractate}
-        page={props.page}
-        onResolved={handleResolved}
-      />
-      <Show when={tanachContext()}>{(tc) => <SectionCard label="pasuk.tanachContext" text={tc()} inspect={{ instanceKey: props.pasuk.verseRef, leafId: 'pesukim.tanach-context' }} />}</Show>
-      <Show when={whyHere()}>{(wh) => <SectionCard label="pasuk.whyHere" text={wh()} inspect={{ instanceKey: props.pasuk.verseRef, leafId: 'pesukim.why-here' }} />}</Show>
-      <Show when={mechanism()}>{(me) => <SectionCard label="pasuk.mechanism" text={me()} inspect={{ instanceKey: props.pasuk.verseRef, leafId: 'pesukim.mechanism' }} />}</Show>
-      <Show when={landing()}>{(la) => <SectionCard label="pasuk.landing" text={la()} inspect={{ instanceKey: props.pasuk.verseRef, leafId: 'pesukim.landing' }} />}</Show>
-      {/* Questions panel: curated follow-ups + community + free-form asking. */}
-      <QASection
-        mark="pesukim"
-        instanceId={props.pasuk.verseRef}
-        instance={pesukimInstance()}
-        tractate={props.tractate}
-        page={props.page}
-      />
-    </Panel>
+    </>
   );
 }
+
+/** The pasuk mark-instance shape (mark_input for the pesukim leaves). Seg indices
+ *  are passed through as-is (may be undefined) — coercing an absent index to 0
+ *  would mis-scope a malformed pasuk to segment 0, which the old panel avoided. */
+export function pasukInstance(pasuk: Pasuk): { fields: Record<string, unknown>; startSegIdx?: number; endSegIdx?: number } {
+  return {
+    startSegIdx: pasuk.startSegIdx,
+    endSegIdx: pasuk.endSegIdx,
+    fields: {
+      verseRef: pasuk.verseRef,
+      citationStyle: pasuk.citationStyle,
+      excerpt: pasuk.excerpt,
+      summary: pasuk.summary,
+    },
+  };
+}
+
+export const PASUK_RECIPE: SidebarRecipe = {
+  kind: 'pesuk',
+  markId: 'pesukim',
+  // No titleField — the verse special block renders the fetched Hebrew ref.
+  sections: [
+    { type: 'special', block: 'pasuk-verse' },
+    { type: 'synthesis' },
+    { type: 'explainer', dep: 'pesukim.tanach-context', textField: 'context', labelKey: 'pasuk.tanachContext' },
+    { type: 'explainer', dep: 'pesukim.why-here', textField: 'why_here', labelKey: 'pasuk.whyHere' },
+    { type: 'explainer', dep: 'pesukim.mechanism', textField: 'mechanism', labelKey: 'pasuk.mechanism' },
+    { type: 'explainer', dep: 'pesukim.landing', textField: 'landing', labelKey: 'pasuk.landing' },
+    { type: 'qa' },
+  ],
+};
+export const PASUK_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
+  'pasuk-verse': PasukVerse,
+};
 
 // ===========================================================================
 // Aggadata — per-story narrative sidebar panel.
@@ -1687,6 +1661,7 @@ export const AGGADATA_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Eleme
  *  unmounted instanceKey (a dead click). */
 export const RECIPES_BY_KIND: Partial<Record<SidebarContent['kind'], SidebarRecipe>> = {
   aggadata: AGGADATA_RECIPE,
+  pesuk: PASUK_RECIPE,
 };
 
 /** The instanceKey a recipe-driven card mounts under (the client run memo + the
@@ -1696,6 +1671,7 @@ export const RECIPES_BY_KIND: Partial<Record<SidebarContent['kind'], SidebarReci
 export function instanceKeyForContent(content: SidebarContent, tractate: string, page: string): string | null {
   switch (content.kind) {
     case 'aggadata': return `${tractate}:${page}:${content.index}:${content.story.title}`;
+    case 'pesuk': return content.pasuk.verseRef;
     default: return null;
   }
 }
@@ -1964,10 +1940,13 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
             </Show>
 
             <Show when={c().kind === 'pesuk'}>
-              <PasukPanel
-                pasuk={(c() as Extract<SidebarContent, { kind: 'pesuk' }>).pasuk}
+              <SidebarCardFromHint
+                recipe={PASUK_RECIPE}
+                instance={pasukInstance((c() as Extract<SidebarContent, { kind: 'pesuk' }>).pasuk)}
+                instanceKey={instanceKeyForContent(c() as Extract<SidebarContent, { kind: 'pesuk' }>, props.tractate, props.page)!}
                 tractate={props.tractate}
                 page={props.page}
+                specialBlocks={PASUK_BLOCKS}
               />
             </Show>
 

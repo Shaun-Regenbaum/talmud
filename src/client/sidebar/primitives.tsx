@@ -82,7 +82,7 @@ const SECTION_PROSE: JSX.CSSProperties = {
   'line-height': 1.55,
 };
 
-const HE_FONT = '"Mekorot Vilna", serif';
+export const HE_FONT = '"Mekorot Vilna", serif';
 // Tanakh verses carry cantillation; widen the fallback chain so a reader
 // without Mekorot still gets correct mark placement.
 const HE_FONT_TANAKH =
@@ -221,21 +221,24 @@ export function Panel(props: {
 
   return (
     <div>
-      <Show
-        when={primaryIsHe()}
-        fallback={
-          <h3 style={{ margin: '0 0 0.3rem', 'font-size': '1.05rem', color: props.accent }}>
+      {/* No title → the card owns its header via a special section (e.g. pasuk). */}
+      <Show when={primary()}>
+        <Show
+          when={primaryIsHe()}
+          fallback={
+            <h3 style={{ margin: '0 0 0.3rem', 'font-size': '1.05rem', color: props.accent }}>
+              {primary()}
+            </h3>
+          }
+        >
+          <h3
+            dir="rtl"
+            lang="he"
+            style={{ margin: '0 0 0.3rem', 'font-size': '1.05rem', color: props.accent, 'font-family': HE_FONT }}
+          >
             {primary()}
           </h3>
-        }
-      >
-        <h3
-          dir="rtl"
-          lang="he"
-          style={{ margin: '0 0 0.3rem', 'font-size': '1.05rem', color: props.accent, 'font-family': HE_FONT }}
-        >
-          {primary()}
-        </h3>
+        </Show>
       </Show>
       <Show when={secondary()}>
         <Show
@@ -395,7 +398,10 @@ export type SectionSpec =
 export interface SidebarRecipe {
   kind: SidebarKind;
   markId: string;
-  titleField: string;
+  /** Instance field for the card heading. Omit to suppress the Panel heading
+   *  entirely — a card whose header is genuinely custom (e.g. pasuk's fetched
+   *  Hebrew verse ref) renders it from a `special` section instead. */
+  titleField?: string;
   titleHeField?: string;
   titleLang?: 'en' | 'he';
   flip?: 'name' | 'rabbi';
@@ -427,9 +433,9 @@ export interface RecipeInfo {
   sections: RecipeSectionInfo[];
 }
 export function describeRecipe(recipe: SidebarRecipe): RecipeInfo {
-  const header = recipe.titleHeField
-    ? `${recipe.titleField} / ${recipe.titleHeField}`
-    : recipe.titleField;
+  const header = recipe.titleField
+    ? (recipe.titleHeField ? `${recipe.titleField} / ${recipe.titleHeField}` : recipe.titleField)
+    : '(custom header)';
   const sections = recipe.sections.map((s, i): RecipeSectionInfo => {
     const n = i + 1;
     // tags/prose render fields off the mark instance → their provenance is the
@@ -567,7 +573,7 @@ export function SidebarCardFromHint(props: {
   return (
     <Panel
       accent={accent()}
-      title={str(fields()[props.recipe.titleField])}
+      title={props.recipe.titleField ? str(fields()[props.recipe.titleField]) : ''}
       titleHe={props.recipe.titleHeField ? str(fields()[props.recipe.titleHeField]) || undefined : undefined}
       titleLang={props.recipe.titleLang}
       flip={props.recipe.flip}
