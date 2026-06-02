@@ -71,7 +71,7 @@ import { runLLM, type LLMModelId, type LLMResult, type LLMUsage } from './llm';
 import { checkBudget, isBudgetPaused, budgetStatus, clearPauses, type BudgetScope } from './budget';
 import { lookupRelationships } from './rabbi-graph';
 import { runPasses } from '../lib/check/passes';
-import { composeTypeProfile, type LayerId, type LayerInstance, type TypeProfile, type UnitRange } from '../lib/typing/profile';
+import { composeTypeProfile, sectionHasNamedSpeaker, type LayerId, type LayerInstance, type TypeProfile, type UnitRange } from '../lib/typing/profile';
 import { findMarkers } from '../lib/typing/markers';
 import { noteLintAttempt, readLintFailures, type LintFailuresSummary } from './lint-failures';
 import { partitionSections, dedupeByRange, dedupeBy, selectSectionMoves, type MoveLike } from '../lib/argumentMoves';
@@ -706,26 +706,6 @@ function toLayerInstances(layer: LayerId, insts: RawInstance[]): LayerInstance[]
     out.push({ layer, instanceId: id, startSegIdx: i.startSegIdx, endSegIdx: i.endSegIdx });
   });
   return out;
-}
-// Does any argument-move inside [startSegIdx, endSegIdx] name an actual speaker?
-// A move belongs to the section when its parent-section range matches exactly
-// (the move's `sectionStartSegIdx`/`sectionEndSegIdx`) or, failing that, when its
-// own range falls within the section. `rabbiNames` is the move extractor's list
-// of NAMED speakers (empty for anonymous Stam moves), so this is the
-// deterministic "a real מחלוקת is possible here" signal — see
-// TypeProfile.hasNamedSpeaker.
-function sectionHasNamedSpeaker(moves: RawInstance[], startSegIdx: number, endSegIdx: number): boolean {
-  for (const m of moves) {
-    const f = m.fields ?? {};
-    const names = Array.isArray(f.rabbiNames) ? (f.rabbiNames as unknown[]) : [];
-    if (names.length === 0) continue;
-    const ss = f.sectionStartSegIdx, se = f.sectionEndSegIdx;
-    const sectionMatch = ss === startSegIdx && se === endSegIdx;
-    const withinSection = typeof m.startSegIdx === 'number' && typeof m.endSegIdx === 'number'
-      && m.startSegIdx >= startSegIdx && m.endSegIdx <= endSegIdx;
-    if (sectionMatch || withinSection) return true;
-  }
-  return false;
 }
 async function buildDafTypeProfiles(env: Bindings, tractate: string, page: string): Promise<(TypeProfile & { title?: string })[]> {
   const sections = await readMarkInstances(env, 'argument', tractate, page);
