@@ -123,6 +123,19 @@ import {
   keyForCommentaryText,
   keyForReferences,
   keyForBridge,
+  keyForPasuk,
+  keyForCtxMatch,
+  keyForTranslate,
+  keyForHebraize,
+  keyForRabbiBioBySlug,
+  keyForRabbiBioOnDaf,
+  keyForRabbiGraph,
+  keyForRabbiCohort,
+  keyForRabbiPlacesIndex,
+  keyForRabbiAcademyRoster,
+  keyForRabbiObs,
+  keyForRabbiObsDirty,
+  prefixForRabbiObs,
 } from './cache-keys';
 import {
   buildObservationSlices,
@@ -320,7 +333,7 @@ function cleanVerseText(s: string): string {
 async function fetchPasukHebrewForPrompt(env: Bindings, ref: string): Promise<string> {
   if (!ref) return '';
   const safe = ref.replace(/[^A-Za-z0-9 .:-]/g, '_');
-  const key = `pasuk:v4:${safe}`;
+  const key = keyForPasuk(safe);
   const cache = env.CACHE;
   if (cache) {
     const hit = await cache.get(key);
@@ -2238,9 +2251,6 @@ async function runEnrichmentOnce(
 // LLM cost (location is read-from-cache only). This is the COLLECT half.
 // ===========================================================================
 
-const RABBI_OBS_PREFIX = 'rabbi-obs:v1';
-const RABBI_OBS_DIRTY_PREFIX = 'rabbi-obs-dirty:v1';
-
 /** Daf component of a rabbi-obs key — mirrors cache-keys.ts slugDaf so the
  *  inspect endpoint's prefix list is stable. */
 export function obsDafSlug(tractate: string, page: string): string {
@@ -2344,8 +2354,8 @@ async function runRabbiObservations(
   let totalObs = 0;
   if (rc.env.CACHE) {
     for (const slice of slices) {
-      await rc.env.CACHE.put(`${RABBI_OBS_PREFIX}:${slice.slug}:${dafSlug}`, JSON.stringify(slice));
-      await rc.env.CACHE.put(`${RABBI_OBS_DIRTY_PREFIX}:${slice.slug}`, computedAt);
+      await rc.env.CACHE.put(keyForRabbiObs(slice.slug, dafSlug), JSON.stringify(slice));
+      await rc.env.CACHE.put(keyForRabbiObsDirty(slice.slug), computedAt);
       totalObs += slice.observations.length;
       for (const o of slice.observations) byType[o.type] = (byType[o.type] ?? 0) + 1;
     }
@@ -2732,7 +2742,7 @@ app.get('/api/rabbi-observations/:slug', async (c) => {
   const cache = c.env.CACHE;
   if (!cache) return c.json({ error: 'no cache binding' }, 503);
   const slug = c.req.param('slug');
-  const prefix = `rabbi-obs:v1:${slug}:`;
+  const prefix = prefixForRabbiObs(slug);
 
   const keys: string[] = [];
   let cursor: string | undefined;
@@ -4226,7 +4236,7 @@ app.post('/api/context/match', async (c) => {
   // re-requests it on every visit — so cache it forever (bump the version to
   // invalidate). v1 -> v2: the matcher now chunks large item sets; v1 entries
   // were matched in one oversized batch that silently left everything unplaced.
-  const cacheKey = `ctx-match:v2:${t}:${p}:${hashMatchKeys(items.map((i) => i.key))}`;
+  const cacheKey = keyForCtxMatch(t, p, hashMatchKeys(items.map((i) => i.key)));
   if (cache) {
     const hit = await cache.get(cacheKey);
     if (hit !== null) {
@@ -4502,7 +4512,7 @@ app.post('/api/translate', async (c) => {
   // v3: DeepSeek V4 Flash primary + hardcoded dict short-circuit +
   // morphology-aware prompt. Bumped from v2 to invalidate stale Gemma-era
   // translations (Gemma 4 26B was returning e.g. שעות → "watches").
-  const cacheKey = `translate:v3:${tractate}:${page}:${word}${ctxHash}`;
+  const cacheKey = keyForTranslate(tractate, page, word, ctxHash);
   const t0 = Date.now();
   if (cache) {
     const cached = await cache.get(cacheKey);
@@ -4964,7 +4974,7 @@ app.get('/api/admin/enrich-rabbi/:slug', async (c) => {
   // gateway returns transient 502s. Once any daf surfaces a rabbi, every
   // other daf that references them reuses the same enrichment.
   const cache = c.env.CACHE;
-  const cacheKey = `rabbi-bio:v1:${slug}`;
+  const cacheKey = keyForRabbiBioBySlug(slug);
   const bypass = c.req.query('refresh') === '1';
   if (cache && !bypass) {
     const hit = await cache.get(cacheKey);
@@ -6088,7 +6098,7 @@ app.post('/api/admin/rabbi-compile/graph', async (c) => {
     count: Object.keys(nodes).length,
     nodes,
   };
-  await cache.put('rabbi-graph:v1', JSON.stringify(blob), { expirationTtl: RABBI_STAGE_TTL_S });
+  await cache.put(keyForRabbiGraph(), JSON.stringify(blob), { expirationTtl: RABBI_STAGE_TTL_S });
   return c.json({ ok: true, count: blob.count, _ms: Date.now() - t0 });
 });
 
@@ -6123,7 +6133,7 @@ app.post('/api/admin/rabbi-compile/cohort', async (c) => {
     byGeneration,
     bySage,
   };
-  await cache.put('rabbi-cohort:v1', JSON.stringify(blob), { expirationTtl: RABBI_STAGE_TTL_S });
+  await cache.put(keyForRabbiCohort(), JSON.stringify(blob), { expirationTtl: RABBI_STAGE_TTL_S });
   return c.json({ ok: true, generations: Object.keys(byGeneration).length, sages: Object.keys(bySage).length, _ms: Date.now() - t0 });
 });
 
@@ -6152,7 +6162,7 @@ app.post('/api/admin/rabbi-compile/places-index', async (c) => {
     generatedAt: new Date().toISOString(),
     byPlace,
   };
-  await cache.put('rabbi-places-index:v1', JSON.stringify(blob), { expirationTtl: RABBI_STAGE_TTL_S });
+  await cache.put(keyForRabbiPlacesIndex(), JSON.stringify(blob), { expirationTtl: RABBI_STAGE_TTL_S });
   return c.json({ ok: true, places: Object.keys(byPlace).length, _ms: Date.now() - t0 });
 });
 
@@ -6178,7 +6188,7 @@ app.post('/api/admin/rabbi-compile/academy-roster', async (c) => {
     generatedAt: new Date().toISOString(),
     byAcademy,
   };
-  await cache.put('rabbi-academy-roster:v1', JSON.stringify(blob), { expirationTtl: RABBI_STAGE_TTL_S });
+  await cache.put(keyForRabbiAcademyRoster(), JSON.stringify(blob), { expirationTtl: RABBI_STAGE_TTL_S });
   return c.json({ ok: true, academies: Object.keys(byAcademy).length, _ms: Date.now() - t0 });
 });
 
@@ -6186,28 +6196,28 @@ app.post('/api/admin/rabbi-compile/academy-roster', async (c) => {
 // later by daf views).
 app.get('/api/admin/rabbi-graph', async (c) => {
   if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
-  const hit = await c.env.CACHE.get('rabbi-graph:v1');
+  const hit = await c.env.CACHE.get(keyForRabbiGraph());
   if (!hit) return c.json({ error: 'not compiled' }, 404);
   return c.json(JSON.parse(hit));
 });
 
 app.get('/api/admin/rabbi-cohort', async (c) => {
   if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
-  const hit = await c.env.CACHE.get('rabbi-cohort:v1');
+  const hit = await c.env.CACHE.get(keyForRabbiCohort());
   if (!hit) return c.json({ error: 'not compiled' }, 404);
   return c.json(JSON.parse(hit));
 });
 
 app.get('/api/admin/rabbi-places-index', async (c) => {
   if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
-  const hit = await c.env.CACHE.get('rabbi-places-index:v1');
+  const hit = await c.env.CACHE.get(keyForRabbiPlacesIndex());
   if (!hit) return c.json({ error: 'not compiled' }, 404);
   return c.json(JSON.parse(hit));
 });
 
 app.get('/api/admin/rabbi-academy-roster', async (c) => {
   if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
-  const hit = await c.env.CACHE.get('rabbi-academy-roster:v1');
+  const hit = await c.env.CACHE.get(keyForRabbiAcademyRoster());
   if (!hit) return c.json({ error: 'not compiled' }, 404);
   return c.json(JSON.parse(hit));
 });
@@ -6250,10 +6260,10 @@ app.get('/api/admin/rabbi-cache-stats', async (c) => {
     countPrefix('rabbi-influences:v1:'),
     countPrefix('rabbi-appearances:v1:'),
     countPrefix('rabbi-key-dafim:v1:'),
-    readGeneratedAt('rabbi-graph:v1'),
-    readGeneratedAt('rabbi-cohort:v1'),
-    readGeneratedAt('rabbi-places-index:v1'),
-    readGeneratedAt('rabbi-academy-roster:v1'),
+    readGeneratedAt(keyForRabbiGraph()),
+    readGeneratedAt(keyForRabbiCohort()),
+    readGeneratedAt(keyForRabbiPlacesIndex()),
+    readGeneratedAt(keyForRabbiAcademyRoster()),
   ]);
 
   return c.json({
@@ -6440,7 +6450,7 @@ app.get('/api/mesorah/:tractate/:page', async (c) => {
   }
   const skeleton = JSON.parse(skelRaw) as DafSkeleton;
 
-  const graphRaw = await cache.get('rabbi-graph:v1');
+  const graphRaw = await cache.get(keyForRabbiGraph());
   let graph: RabbiGraphBlob | null = null;
   if (graphRaw) {
     try { graph = JSON.parse(graphRaw) as RabbiGraphBlob; } catch { graph = null; }
@@ -6599,7 +6609,7 @@ app.get('/api/pasuk', async (c) => {
   if (!ref || ref.length > 100) return c.json({ error: 'missing or invalid ref' }, 400);
   const cache = c.env.CACHE;
   const safe = ref.replace(/[^A-Za-z0-9 .:-]/g, '_');
-  const key = `pasuk:v4:${safe}`;
+  const key = keyForPasuk(safe);
   if (cache) {
     const hit = await cache.get(key);
     if (hit) return c.json({ ...JSON.parse(hit), _cached: true });
@@ -6719,7 +6729,7 @@ app.post('/api/hebraize', async (c) => {
   // v2: bumped when the primary model switched Gemma -> DeepSeek and the
   // echo-strip guard was added. Old v1 entries (which can hold Gemma echoes)
   // are abandoned rather than re-cleaned.
-  const key = `hebraize:v2:${hash}`;
+  const key = keyForHebraize(hash);
   if (cache) {
     const hit = await cache.get(key);
     if (hit) return c.json({ hebraized: leading + hit + trailing, _cached: true });
@@ -6801,9 +6811,7 @@ app.post('/api/enrich-rabbi-bio/:tractate/:page/:slug', async (c) => {
   const includeNormBio = includeRawBio
     ? includeRawBio.split(',').map((s) => s.trim()).filter(Boolean).sort().join(',')
     : '';
-  const cacheKey = includeNormBio
-    ? `rabbi-bio:v1:i=${includeNormBio}:${tractate}:${page}:${slug}`
-    : `rabbi-bio:v1:${tractate}:${page}:${slug}`;
+  const cacheKey = keyForRabbiBioOnDaf(tractate, page, slug, includeNormBio);
   const includeSetBio = new Set(includeNormBio ? includeNormBio.split(',') : []);
   const wantBio = (s: string) => includeSetBio.size === 0 || includeSetBio.has(s);
 
@@ -6821,7 +6829,7 @@ app.post('/api/enrich-rabbi-bio/:tractate/:page/:slug', async (c) => {
     (wantBio('unified') || needsUnifiedForRegion) ? cache.get(keyForRabbiEnriched(slug)) : Promise.resolve(null),
     wantBio('wikidata')     ? cache.get(keyForRabbiWikidata(slug))         : Promise.resolve(null),
     wantBio('wiki-bio')     ? cache.get(keyForRabbiWikiBio(slug))         : Promise.resolve(null),
-    (wantBio('rabbi-graph') || needsGraphForMesorah) ? cache.get('rabbi-graph:v1') : Promise.resolve(null),
+    (wantBio('rabbi-graph') || needsGraphForMesorah) ? cache.get(keyForRabbiGraph()) : Promise.resolve(null),
     wantBio('daf-role')     ? cache.get(keyForAnalyzeSkeleton(tractate, page)) : Promise.resolve(null),
     wantBio('region')       ? cache.get(keyForRegion(tractate, page))    : Promise.resolve(null),
     wantBio('mesorah')      ? cache.get(keyForMesorah(tractate, page))   : Promise.resolve(null),
@@ -6976,7 +6984,7 @@ app.post('/api/enrich-rabbi-bio/:tractate/:page/:slug', async (c) => {
 app.get('/api/enrich-rabbi-bio/:tractate/:page/:slug', async (c) => {
   if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
   const { tractate, page, slug } = c.req.param();
-  const hit = await c.env.CACHE.get(`rabbi-bio:v1:${tractate}:${page}:${slug}`);
+  const hit = await c.env.CACHE.get(keyForRabbiBioOnDaf(tractate, page, slug));
   if (!hit) return c.json({ error: 'not synthesized' }, 404);
   return c.json(JSON.parse(hit));
 });

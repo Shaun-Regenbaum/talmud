@@ -5,6 +5,10 @@ import {
   keyForRabbiEnriched, keyForRabbiWikidata, keyForRabbiWikiBio,
   keyForAnalyzeSkeleton, keyForRegion, keyForMesorah,
   keyForCommentaryWorks, keyForCommentaryText, keyForReferences, keyForBridge,
+  keyForPasuk, keyForCtxMatch, keyForTranslate, keyForHebraize,
+  keyForRabbiBioBySlug, keyForRabbiBioOnDaf,
+  keyForRabbiGraph, keyForRabbiCohort, keyForRabbiPlacesIndex, keyForRabbiAcademyRoster,
+  keyForRabbiObs, keyForRabbiObsDirty, prefixForRabbiObs,
 } from '../src/worker/cache-keys';
 
 // These keys address a TTL-bounded but huge KV namespace already populated across
@@ -59,5 +63,35 @@ describe('commentary-spine + bridge keys — byte-exact contract', () => {
   it('the bridge key slug-normalises tractate AND page (lowercase, non-alnum -> _)', () => {
     expect(keyForBridge('Berakhot', '2a')).toBe('bridge:v1:berakhot:2a');
     expect(keyForBridge('Bava Kamma', '117b')).toBe('bridge:v1:bava_kamma:117b');
+  });
+});
+
+// The last batch: single-site content caches + the rabbi family, centralised
+// out of index.ts. Raw interpolation (no slug normalisation) — byte-exact.
+describe('content + rabbi caches — byte-exact contract', () => {
+  it('content keys: pasuk / ctx-match / translate / hebraize', () => {
+    expect(keyForPasuk('Genesis 1:1')).toBe('pasuk:v4:Genesis 1:1');
+    expect(keyForCtxMatch('Berakhot', '2a', 'abc123')).toBe('ctx-match:v2:Berakhot:2a:abc123');
+    // translate: ctxHash already carries its own leading separator.
+    expect(keyForTranslate('Berakhot', '2a', 'שלום', ':deadbeef')).toBe('translate:v3:Berakhot:2a:שלום:deadbeef');
+    expect(keyForHebraize('ff00aa')).toBe('hebraize:v2:ff00aa');
+  });
+  it('rabbi-bio: the slug-only and per-daf shapes (incl. the i= include segment)', () => {
+    expect(keyForRabbiBioBySlug('abaye')).toBe('rabbi-bio:v1:abaye');
+    expect(keyForRabbiBioOnDaf('Berakhot', '2a', 'abaye')).toBe('rabbi-bio:v1:Berakhot:2a:abaye');
+    expect(keyForRabbiBioOnDaf('Berakhot', '2a', 'abaye', '')).toBe('rabbi-bio:v1:Berakhot:2a:abaye');
+    expect(keyForRabbiBioOnDaf('Berakhot', '2a', 'abaye', 'mesorah,region'))
+      .toBe('rabbi-bio:v1:i=mesorah,region:Berakhot:2a:abaye');
+  });
+  it('rabbi aggregate blobs: fixed keys, no params', () => {
+    expect(keyForRabbiGraph()).toBe('rabbi-graph:v1');
+    expect(keyForRabbiCohort()).toBe('rabbi-cohort:v1');
+    expect(keyForRabbiPlacesIndex()).toBe('rabbi-places-index:v1');
+    expect(keyForRabbiAcademyRoster()).toBe('rabbi-academy-roster:v1');
+  });
+  it('rabbi-observations: per-(rabbi,daf) slice, dirty marker, and list prefix', () => {
+    expect(keyForRabbiObs('abaye', 'berakhot:2a')).toBe('rabbi-obs:v1:abaye:berakhot:2a');
+    expect(keyForRabbiObsDirty('abaye')).toBe('rabbi-obs-dirty:v1:abaye');
+    expect(prefixForRabbiObs('abaye')).toBe('rabbi-obs:v1:abaye:');
   });
 });
