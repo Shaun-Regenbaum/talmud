@@ -1521,27 +1521,61 @@ async function writeCachedResult(env: Bindings, key: string, result: RunResult):
  *  deterministic source (e.g. Sefaria) rather than an LLM. */
 type ComputedMarkFn = (env: Bindings, tractate: string, page: string) => Promise<{ instances: unknown[] }>;
 
-/** Hardcore rishonim allowlist for the `rishonim` mark. Sefaria's
+/** Rishonim allowlist for the `rishonim` mark. Sefaria's
  *  `category: 'Commentary'` sweeps in acharonim + modern works too — we
- *  filter down to the established Bavli rishonim. Match is on Sefaria's
- *  `collectiveTitle.en`. Add titles here as gaps surface. */
+ *  filter down to the established rishonim, kept in step with the
+ *  alignment-pool list in sefaria/client.ts.
+ *
+ *  Match is on Sefaria's `collectiveTitle.en`, and these are the RAW Sefaria
+ *  forms — which are NOT always the bare name:
+ *    - Ramban is "Chiddushei Ramban" (never bare "Ramban").
+ *    - Baal HaMaor is "HaMaor" (HaMaor HaGadol/HaKatan both collapse here).
+ *    - Maharsha is "Chidushei Halachot" / "Chidushei Agadot".
+ *    - The Rosh on Nedarim/Nazir is "Commentary of the Rosh".
+ *    - Ra'ah appears as both "Ra'ah" and "Chiddushei HaRa'ah".
+ *    - Mordechai is tractate-suffixed ("Mordechai on Bava Batra") so it's
+ *      matched by prefix (see RISHONIM_TITLE_PREFIXES), not exact title.
+ *  Add titles here as gaps surface. */
 const RISHONIM_TITLES = new Set<string>([
+  // Rashi + the Tosafot family
   'Rashi',
   'Tosafot',
   'Tosafot Yeshanim',
   'Tosafot Rid',
   'Tosafot HaRosh',
+  // Geonim / early rishonim
   'Rabbeinu Chananel',
-  'Ramban',
+  'Rabbeinu Gershom',
+  'Rabbeinu Yonah',
+  'Ri Migash',
+  // Core rishonim
+  'Chiddushei Ramban', // Ramban — Sefaria never keys this bare "Ramban"
   'Rashba',
   'Ritva',
   'Ran',
   'Rosh',
+  'Commentary of the Rosh', // the Rosh on Nedarim/Nazir
   'Meiri',
-  'Rabbeinu Yonah',
+  'Rif',
   'Yad Ramah',
   'Or Zarua',
+  'Shita Mekubetzet',
+  'HaMaor', // Baal HaMaor
+  "Ra'ah",
+  "Chiddushei HaRa'ah",
+  'Maharam', // Maharam of Rothenburg
+  // Maharsha is an acharon, surfaced here by the same deliberate choice that
+  // keeps it in the alignment-pool rishonim tier (sefaria/client.ts).
+  'Chidushei Halachot', // Maharsha (al ha-Shas)
+  'Chidushei Agadot', // Maharsha (al ha-Aggados)
 ]);
+
+/** Titles Sefaria stores tractate-suffixed (e.g. "Mordechai on Bava Batra"),
+ *  matched by prefix rather than exact `collectiveTitle.en`. */
+const RISHONIM_TITLE_PREFIXES = ['Mordechai'] as const;
+
+const isRishonTitle = (title: string): boolean =>
+  RISHONIM_TITLES.has(title) || RISHONIM_TITLE_PREFIXES.some((p) => title.startsWith(p));
 
 const COMPUTED_FNS: Record<string, ComputedMarkFn> = {
   'rishonim-from-sefaria': async (env, tractate, page) => {
@@ -1552,7 +1586,7 @@ const COMPUTED_FNS: Record<string, ComputedMarkFn> = {
     // for downstream synthesis.
     const bySeg = new Map<number, Array<{ work: string; workHe: string; textHe: string; textEn: string; sourceRef: string }>>();
     for (const work of result.works) {
-      if (!RISHONIM_TITLES.has(work.title)) continue;
+      if (!isRishonTitle(work.title)) continue;
       for (const c of work.comments) {
         const list = bySeg.get(c.anchorSegIdx) ?? [];
         list.push({ work: work.title, workHe: work.titleHe, textHe: c.textHe, textEn: c.textEn, sourceRef: c.sourceRef });
