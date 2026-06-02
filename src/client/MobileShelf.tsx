@@ -1,5 +1,6 @@
 import { Show, type JSX } from 'solid-js';
 import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
+import type { ConceptTerm } from './conceptLinks';
 import type { GenerationId } from './generations';
 import type { IdentifiedRabbi } from './dafContext';
 import type { Section } from './shapes';
@@ -25,6 +26,7 @@ interface MobileShelfProps {
   onBack: () => void;
   dafRabbis: IdentifiedRabbi[];
   dafRabbiNames: string[];
+  dafBackgroundTerms: ConceptTerm[];
   onOpenRabbiSlug: (slug: string) => void;
   generationByName: Map<string, GenerationId>;
   dafSections?: Section[];
@@ -147,6 +149,7 @@ function ExpansionView(props: MobileShelfProps): JSX.Element {
           onBack={props.onBack}
           dafRabbis={props.dafRabbis}
           dafRabbiNames={props.dafRabbiNames}
+          dafBackgroundTerms={props.dafBackgroundTerms}
           onHighlightRange={props.onHighlightRange}
           onOpenRabbiSlug={props.onOpenRabbiSlug}
           generationByName={props.generationByName}

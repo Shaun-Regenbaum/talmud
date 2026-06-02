@@ -4,6 +4,7 @@ import { GENERATION_BY_ID, generationLabelHe, type GenerationId } from './genera
 import type { IdentifiedRabbi } from './dafContext';
 import { Hebraized } from './Hebraized';
 import { RabbiText, RabbiLinkProvider, HebraizedWithRabbis } from './rabbiLinks';
+import { ConceptLinkProvider, buildConceptMatcher, type ConceptTerm } from './conceptLinks';
 
 import RabbiLineageTree, { type RelationshipsData, type RelationshipsEvidence } from './RabbiLineageTree';
 import { type GeographyData, type GeographyEvidence } from './RabbiGeographyCard';
@@ -172,6 +173,9 @@ export interface ArgumentSidebarProps {
    *  rabbi-places dataset has gaps). Matched in prose; routing falls
    *  through pushRabbi's name-lookup chain. */
   dafRabbiNames: string[];
+  /** This daf's background terms (daf-background.concepts, flattened across
+   *  groups). Mentions of these in any card's prose get a gloss tooltip. */
+  dafBackgroundTerms: ConceptTerm[];
   /** Highlights a contiguous segment range on the daf. Used when the user
    *  clicks an argument-move card so the corresponding sub-range of the
    *  section is painted. Pass null to clear. `key` is a stable id (e.g. the
@@ -1931,6 +1935,9 @@ export function VoiceGroupBody(props: { group: { name: string; nameHe: string; b
 }
 
 export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
+  // Compile the daf's background-term matcher once (not per prose fragment).
+  const conceptMatcher = createMemo(() => buildConceptMatcher(props.dafBackgroundTerms));
+
   const onKey = (e: KeyboardEvent) => {
     if (e.key === 'Escape') props.onClose();
   };
@@ -1958,6 +1965,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
           extraNames: () => props.dafRabbiNames,
           onPushRabbi: props.onPushRabbi,
         }}>
+        <ConceptLinkProvider value={{ matcher: conceptMatcher }}>
         <aside
           style={{
             background: '#fff',
@@ -2081,6 +2089,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
             </Show>
 
         </aside>
+        </ConceptLinkProvider>
         </RabbiLinkProvider>
       )}
     </Show>
