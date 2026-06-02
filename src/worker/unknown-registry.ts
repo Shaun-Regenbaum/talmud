@@ -104,6 +104,14 @@ export function isRealPlace(name?: string, nameHe?: string): boolean {
   return !looksLikePerson(name, nameHe) && !isEthnonym(name, nameHe);
 }
 
+// `count` is a best-effort APPROXIMATION, not an exact tally. This read-modify-
+// write isn't atomic, so concurrent compute for the same key (parallel
+// enrichment jobs, or the same term emitted twice in one daf's output) can read
+// the same prior record and clobber each other's increment. That's an acceptable
+// trade for a triage backlog — the signal we need is "which entities recur a lot
+// and lack global context", and relative ordering survives the occasional lost
+// increment. (`dafs` is similarly best-effort but only ever grows toward MAX_DAFS.)
+// If exact counts ever matter, this needs a Durable Object / queue, not KV.
 async function bump<T extends { firstSeen: number; lastSeen: number; count: number; dafs: string[] }>(
   cache: KVNamespace,
   key: string,
