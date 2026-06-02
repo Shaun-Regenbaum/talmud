@@ -1544,6 +1544,7 @@ const RISHONIM_TITLES = new Set<string>([
   'Tosafot Yeshanim',
   'Tosafot Rid',
   'Tosafot HaRosh',
+  'Piskei Tosafot', // Tosafot's halachic-ruling digest
   // Geonim / early rishonim
   'Rabbeinu Chananel',
   'Rabbeinu Gershom',

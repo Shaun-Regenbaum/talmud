@@ -3480,8 +3480,8 @@ CODE_MARKS.push({
   },
   dependencies: [],
   status: 'promoted',
-  def_hash: 'rishonim-v2',
-  cache_version: '2',
+  def_hash: 'rishonim-v3',
+  cache_version: '3',
   source: 'code',
   updated_at: NOW,
 });
