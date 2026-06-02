@@ -18,6 +18,7 @@
 import { For, createContext, createMemo, useContext, type Accessor, type JSX } from 'solid-js';
 import type { IdentifiedRabbi } from './dafContext';
 import { Hebraized } from './Hebraized';
+import { ConceptAwareText } from './conceptLinks';
 
 export interface RabbiLinkContextValue {
   rabbis: Accessor<IdentifiedRabbi[]>;
@@ -47,7 +48,9 @@ export function useRabbiLinks(): RabbiLinkContextValue | null {
  *  context is present (e.g. outside the sidebar), behaves like Hebraized. */
 export function HebraizedWithRabbis(props: { text: string | undefined | null }): JSX.Element {
   const ctx = useRabbiLinks();
-  if (!ctx) return <Hebraized text={props.text} />;
+  // No rabbi pool here — still layer in concept tooltips (ConceptAwareText
+  // itself falls back to plain Hebraized when there's no concept context).
+  if (!ctx) return <ConceptAwareText text={props.text} />;
   return (
     <RabbiText
       text={props.text}
@@ -152,7 +155,9 @@ export function RabbiText(props: {
 
   return (
     <For each={parts()}>{(p) => {
-      if (p.kind === 'text') return <Hebraized text={p.value} />;
+      // Concept tooltips layer UNDER rabbi links: a name matched as a rabbi is
+      // already a 'link' part, so only the non-rabbi text is scanned for terms.
+      if (p.kind === 'text') return <ConceptAwareText text={p.value} />;
       // For routing: try slug resolution against rabbis; if missing,
       // still emit a link button — pushRabbi handles unresolved names by
       // building a stub from the rabbi mark or just highlighting on the

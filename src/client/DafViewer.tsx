@@ -29,6 +29,9 @@ import {
 import { GutterIcons, type GutterKind } from './GutterIcons';
 import { GutterOverlay } from './GutterOverlay';
 import { ArgumentSidebar, type SidebarContent, type PlaceInstance } from './ArgumentSidebar';
+import { enqueueEnrichmentRun } from './MarkEnrichmentCards';
+import { orderBackgroundGroups, type BackgroundGroup } from './backgroundGroups';
+import type { ConceptTerm } from './conceptLinks';
 import { BugReport } from './BugReport';
 import { type CommentaryWork, type CommentaryComment } from './CommentaryPicker';
 import { CommentaryStrip } from './CommentaryStrip';
@@ -682,6 +685,28 @@ export default function DafViewer(): JSX.Element {
     }
     return out;
   });
+
+  // This daf's background terms (daf-background.concepts), flattened for the
+  // concept-tooltip layer. Reads the SAME daf-background.synthesis run the
+  // prefetcher already warms on daf load (its deps_resolved carries the
+  // concepts), so this is a cache hit, not a second generation. Failures /
+  // not-yet-warm degrade to no tooltips. Keyed on the daf so it refetches on
+  // navigation.
+  const [dafBackgroundTermsRes] = createResource(
+    () => `${tractate()}/${page()}`,
+    async () => {
+      try {
+        const r = await enqueueEnrichmentRun('daf-background.synthesis', tractate(), page(), { fields: {} }, 'daf-background:daf');
+        const concepts = r.deps_resolved?.['daf-background.concepts'] as { groups?: BackgroundGroup[] } | undefined;
+        const out: ConceptTerm[] = [];
+        for (const g of orderBackgroundGroups(concepts?.groups)) {
+          for (const tm of g.terms) out.push({ term: tm.term, termHe: tm.termHe ?? '', gloss: tm.gloss, category: g.category });
+        }
+        return out;
+      } catch { return []; }
+    },
+  );
+  const dafBackgroundTerms = createMemo<ConceptTerm[]>(() => dafBackgroundTermsRes() ?? []);
 
   // TODO(geography-rederive): the rabbiPlaces memo previously fed
   // GeographyMap from the legacy dafContext fetch. Removed pending a
@@ -3055,6 +3080,7 @@ export default function DafViewer(): JSX.Element {
               onBack={popSidebar}
               dafRabbis={dafRabbis()}
               dafRabbiNames={dafRabbiNames()}
+              dafBackgroundTerms={dafBackgroundTerms()}
               onHighlightRange={setArgumentMoveHighlight}
               onOpenRabbiSlug={openRabbiSlug}
               generationByName={generationByName()}
@@ -3086,6 +3112,7 @@ export default function DafViewer(): JSX.Element {
           onBack={popSidebar}
           dafRabbis={dafRabbis()}
           dafRabbiNames={dafRabbiNames()}
+          dafBackgroundTerms={dafBackgroundTerms()}
           onHighlightRange={setArgumentMoveHighlight}
           onOpenRabbiSlug={openRabbiSlug}
           generationByName={generationByName()}
