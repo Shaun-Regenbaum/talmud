@@ -78,7 +78,7 @@ import { partitionSections, dedupeByRange, dedupeBy, selectSectionMoves, type Mo
 import { DEFAULT_MODEL, DEFAULT_FALLBACK_CHAIN, isLLMModelId, MODEL_PRESETS } from './settings';
 import { costUsd as priceCostUsd, normalizeUsage } from './pricing';
 import { recordUsage, readUsageSummary } from './usage-rollup';
-import { recordUnknownRabbi, recordObservedPlace, listUnknownRabbis, listObservedPlaces } from './unknown-registry';
+import { recordUnknownRabbi, recordObservedPlace, recordObservedConcept, listUnknownRabbis, listObservedPlaces, listObservedConcepts } from './unknown-registry';
 import { fetchGatewayCost } from './aigw-analytics';
 import { fetchZoneActivity } from './cf-zone-analytics';
 import { lookupGloss } from './word-glosses';
@@ -2190,6 +2190,12 @@ async function runEnrichmentOnce(
       if (hard.length > 0) lint_issues = hard;
     }
   }
+  // daf-background.concepts has no global glossary — log every term it emits to
+  // the observed-concept backlog so the canonical glossary can be grown from
+  // real usage later (same collect-now pattern as observed-place).
+  if (parsed && !parse_error && def.id === 'daf-background.concepts') {
+    recordObservedConceptsFromEnrichment(rc, parsed, tractate, page);
+  }
   const out: RunResultEnrichment = {
     content: result.content,
     reasoning: result.reasoning_content || undefined,
@@ -3565,6 +3571,21 @@ function recordObservedPlacesFromMark(rc: RunCtx, parsed: unknown, tractate: str
   }
 }
 
+/** Record every term the `daf-background.concepts` enrichment emitted into the
+ *  observed-concept backlog. There is no global glossary yet, so all of them are
+ *  candidates for a future canonical concept registry. */
+function recordObservedConceptsFromEnrichment(rc: RunCtx, parsed: unknown, tractate: string, page: string): void {
+  const p = parsed as { groups?: Array<{ category?: string; terms?: Array<{ term?: string; termHe?: string; gloss?: string }> }> } | null;
+  if (!p || !Array.isArray(p.groups)) return;
+  for (const g of p.groups) {
+    if (!Array.isArray(g?.terms)) continue;
+    for (const t of g.terms) {
+      if (!t || (!t.term && !t.termHe)) continue;
+      recordObservedConcept(rc.env, rc.ctx, { term: t.term, termHe: t.termHe, gloss: t.gloss, category: g.category, tractate, page });
+    }
+  }
+}
+
 interface BugReport {
   ts: number;
   tractate: string;
@@ -3739,6 +3760,7 @@ app.get('/api/usage', async (c) => {
   // --- Needs-enrichment backlog -------------------------------------------
   const unknownRabbis = cache ? await listUnknownRabbis(cache) : { total: 0, sightings: 0, sample: [] };
   const observedPlaces = cache ? await listObservedPlaces(cache) : { total: 0, sightings: 0, sample: [] };
+  const observedConcepts = cache ? await listObservedConcepts(cache) : { total: 0, sightings: 0, sample: [] };
 
   // --- Hard queue-job failures (separate ring buffer from telemetry) -------
   let jobErrors: RecentJobError[] = [];
@@ -3756,7 +3778,7 @@ app.get('/api/usage', async (c) => {
     telemetry: { perEndpoint, perMark, perEnrichment, recentErrors, totalCount: telemetry.length },
     cost: { selfTracked, aiGateway },
     activity,
-    unknowns: { rabbis: unknownRabbis, places: observedPlaces },
+    unknowns: { rabbis: unknownRabbis, places: observedPlaces, concepts: observedConcepts },
     jobErrors,
     lintFailures,
     reports: [...reports].reverse(),

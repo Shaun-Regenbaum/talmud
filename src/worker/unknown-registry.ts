@@ -1,18 +1,24 @@
 /**
  * "Needs global enrichment" backlog. As users explore the app, the rabbi mark
  * surfaces people who aren't in the bundled rabbi-places.json (enrichRabbi
- * returns slug=null), and the places mark surfaces locations that have no
- * global gazetteer at all. We record each distinct sighting here so we can see
- * — and grow — the list of entities still missing base global context.
+ * returns slug=null), the places mark surfaces locations that have no global
+ * gazetteer at all, and the daf-background.concepts enrichment surfaces legal
+ * concepts / realia / assumed-prior terms that have no global glossary yet. We
+ * record each distinct sighting here so we can see — and grow — the list of
+ * entities still missing base global context. This is the collect half of
+ * "collect bottom-up across Shas, dedupe + promote to a canonical registry
+ * later" (the same principle behind the curated rabbi-places.json).
  *
- * One KV entry per entity (`unknown-rabbi:v1:<norm>` / `observed-place:v1:<norm>`)
- * with a sighting count + the dafim it appeared on. Distinct keys mean writes
- * don't contend on a single hot array; each is read-modify-write only on the
- * (rare) cache-miss compute that first sees the entity on a given daf.
+ * One KV entry per entity (`unknown-rabbi:v1:<norm>` / `observed-place:v1:<norm>`
+ * / `observed-concept:v1:<norm>`) with a sighting count + the dafim it appeared
+ * on. Distinct keys mean writes don't contend on a single hot array; each is
+ * read-modify-write only on the (rare) cache-miss compute that first sees the
+ * entity on a given daf.
  */
 
 const RABBI_PREFIX = 'unknown-rabbi:v1:';
 const PLACE_PREFIX = 'observed-place:v1:';
+const CONCEPT_PREFIX = 'observed-concept:v1:';
 const TTL_S = 60 * 60 * 24 * 365; // a year; the backlog is long-lived
 const MAX_DAFS = 25;              // cap the per-entity daf list
 
@@ -41,6 +47,17 @@ export interface ObservedPlace {
   nameHe: string;
   kind?: string;
   region?: string;
+  firstSeen: number;
+  lastSeen: number;
+  count: number;
+  dafs: string[];
+}
+
+export interface ObservedConcept {
+  term: string;       // English label
+  termHe: string;     // Hebrew script (the canonical key — varies less than EN)
+  gloss: string;      // representative gloss (first sighting; canonicalised later)
+  category?: string;  // 'legal-concepts' | 'realia' | 'assumed-prior'
   firstSeen: number;
   lastSeen: number;
   count: number;
@@ -87,6 +104,14 @@ export function isRealPlace(name?: string, nameHe?: string): boolean {
   return !looksLikePerson(name, nameHe) && !isEthnonym(name, nameHe);
 }
 
+// `count` is a best-effort APPROXIMATION, not an exact tally. This read-modify-
+// write isn't atomic, so concurrent compute for the same key (parallel
+// enrichment jobs, or the same term emitted twice in one daf's output) can read
+// the same prior record and clobber each other's increment. That's an acceptable
+// trade for a triage backlog — the signal we need is "which entities recur a lot
+// and lack global context", and relative ordering survives the occasional lost
+// increment. (`dafs` is similarly best-effort but only ever grows toward MAX_DAFS.)
+// If exact counts ever matter, this needs a Durable Object / queue, not KV.
 async function bump<T extends { firstSeen: number; lastSeen: number; count: number; dafs: string[] }>(
   cache: KVNamespace,
   key: string,
@@ -148,6 +173,29 @@ export function recordObservedPlace(
   );
 }
 
+export function recordObservedConcept(
+  env: { CACHE?: KVNamespace },
+  ctx: { waitUntil(p: Promise<unknown>): void },
+  c: { term?: string; termHe?: string; gloss?: string; category?: string; tractate: string; page: string },
+): void {
+  if (!env.CACHE) return;
+  // Key on Hebrew first — Hebrew script is the stabler identity (the English
+  // label drifts: "Kohen"/"priest"/"kohanim"); fall back to English only when
+  // there's no Hebrew.
+  const keyPart = norm(c.termHe || '') || norm(c.term || '');
+  if (!keyPart) return;
+  const daf = `${c.tractate} ${c.page}`.trim();
+  const now = Date.now();
+  ctx.waitUntil(
+    bump<ObservedConcept>(
+      env.CACHE,
+      CONCEPT_PREFIX + keyPart,
+      () => ({ term: c.term ?? '', termHe: c.termHe ?? '', gloss: c.gloss ?? '', category: c.category, firstSeen: now, lastSeen: now, count: 0, dafs: [] }),
+      daf,
+    ),
+  );
+}
+
 export interface UnknownSummary<T> {
   total: number;        // distinct entities tracked
   sightings: number;    // sum of counts
@@ -194,4 +242,11 @@ export function listObservedPlaces(cache: KVNamespace, sample = 50): Promise<Unk
   // Hide historical junk (rabbis/peoples the old prompt mis-tagged as places)
   // without a destructive purge — the bad KV entries simply age out via TTL.
   return listPrefix<ObservedPlace>(cache, PLACE_PREFIX, sample, (r) => isRealPlace(r.name, r.nameHe));
+}
+
+export function listObservedConcepts(cache: KVNamespace, sample = 50): Promise<UnknownSummary<ObservedConcept>> {
+  // No noise filter: terms come from the structured daf-background.concepts
+  // schema (already curated by the LLM into {term, termHe, gloss}), not a
+  // free-text extractor, so there's no people/places leakage to net out.
+  return listPrefix<ObservedConcept>(cache, CONCEPT_PREFIX, sample);
 }
