@@ -187,6 +187,65 @@ export function composeTypeProfile(
   };
 }
 
+/** A move reduced to what named-speaker detection needs: its own range, its
+ *  parent-section range, and the extractor's list of NAMED speakers. */
+export interface MoveLike {
+  startSegIdx?: unknown;
+  endSegIdx?: unknown;
+  fields?: { rabbiNames?: unknown; sectionStartSegIdx?: unknown; sectionEndSegIdx?: unknown };
+}
+
+/** Does any argument-move inside [startSegIdx, endSegIdx] name an actual
+ *  speaker? A move belongs to the section when its parent-section range matches
+ *  exactly, or (failing that) when its own range falls within the section.
+ *  `rabbiNames` is empty for anonymous Stam moves, so this is the deterministic
+ *  "a real מחלוקת is possible here" signal that feeds `TypeProfile.hasNamedSpeaker`
+ *  — the anti-hallucination guard (an `opposes` edge on an all-anonymous section
+ *  is a fabrication). */
+export function sectionHasNamedSpeaker(moves: readonly MoveLike[], startSegIdx: number, endSegIdx: number): boolean {
+  for (const m of moves) {
+    const f = m.fields ?? {};
+    const names = Array.isArray(f.rabbiNames) ? f.rabbiNames : [];
+    if (names.length === 0) continue;
+    const sectionMatch = f.sectionStartSegIdx === startSegIdx && f.sectionEndSegIdx === endSegIdx;
+    const withinSection = typeof m.startSegIdx === 'number' && typeof m.endSegIdx === 'number'
+      && m.startSegIdx >= startSegIdx && m.endSegIdx <= endSegIdx;
+    if (sectionMatch || withinSection) return true;
+  }
+  return false;
+}
+
+/** The profile fields the voice-dispute-map render gate reads. A subset of
+ *  `TypeProfile`; `undefined` means the profile is unknown/uncomputed. */
+export interface GateProfile { primary: string; hasNamedSpeaker?: boolean }
+
+/** Deterministic precheck — could this section EVER show the voice-dispute map?
+ *  Yes unless the profile positively says it's an aggadata story or has no named
+ *  speaker (a fabricated dispute on an anonymous section). Unknown profile →
+ *  eligible (the safe default). No warming race: both inputs are deterministic. */
+export function voicesMapEligible(profile: GateProfile | undefined): boolean {
+  if (!profile) return true;
+  return profile.primary !== 'aggadata' && profile.hasNamedSpeaker !== false;
+}
+
+/** The map shows when the section is eligible AND the (live, just-loaded) voices
+ *  graph carries real opposition. Reading the live graph — not the profile's
+ *  cached `isDispute` — is what dodges the warming race that hid real disputes
+ *  on cold dapim. `null` voices (still loading) → false. */
+export function voicesShowMap(profile: GateProfile | undefined, voices: VoicesGraph | null): boolean {
+  return voicesMapEligible(profile) && hasOpposingVoices(voices);
+}
+
+/** The fallback (move-flow / narrative) shows when the map definitively won't:
+ *  the section is ineligible, OR the synthesis has RESOLVED without a dispute
+ *  (no opposition, or voices absent/invalid). `resolved` — not `voices != null`
+ *  — is the "settled" signal, so a synthesis that resolves with missing/malformed
+ *  voices still falls back instead of rendering bare. Mutually exclusive with
+ *  `voicesShowMap`. */
+export function voicesShowFallback(profile: GateProfile | undefined, voices: VoicesGraph | null, resolved: boolean): boolean {
+  return !voicesMapEligible(profile) || (resolved && !hasOpposingVoices(voices));
+}
+
 /**
  * P0 coverage helper: the unit segments NOT covered by any CONTENT overlay
  * (halacha/aggadata/pesukim). These are the "pure dialectic" segments — covered

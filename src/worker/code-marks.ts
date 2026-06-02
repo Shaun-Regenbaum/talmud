@@ -1712,7 +1712,7 @@ const ARGUMENT_PRO_MODEL = 'openrouter/deepseek/deepseek-v4-pro' as LLMModelId;
 
 // ---------------- argument.voices (kept) ----------------
 
-const ARGUMENT_VOICES_SYSTEM_PROMPT = `You are a Talmud scholar. For each NAMED rabbi appearing in this section, describe their argumentative role within the section, AND emit a graph showing how the voices relate (who argues with whom, who supports whom). Daf-local — about what they're doing here, not their general biography.
+export const ARGUMENT_VOICES_SYSTEM_PROMPT = `You are a Talmud scholar. For each NAMED rabbi appearing in this section, describe their argumentative role within the section, AND emit a graph showing how the voices relate (who argues with whom, who supports whom). Daf-local — about what they're doing here, not their general biography.
 
 Output STRICT JSON only:
 
@@ -1937,7 +1937,7 @@ Compose ONE paragraph per the schema.`;
 
 // ---------------- Hebrew-output parallels (argument section level) ----------------
 
-const ARGUMENT_VOICES_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. עבור כל חכם נקוב המופיע במקטע זה, תאר את תפקידו הטיעוני בתוך המקטע, ופלוט גרף המראה כיצד הקולות מתקשרים (מי חולק על מי, מי תומך במי). מקומי-לדף — על מה שהם עושים כאן, לא על הביוגרפיה הכללית שלהם.
+export const ARGUMENT_VOICES_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. עבור כל חכם נקוב המופיע במקטע זה, תאר את תפקידו הטיעוני בתוך המקטע, ופלוט גרף המראה כיצד הקולות מתקשרים (מי חולק על מי, מי תומך במי). מקומי-לדף — על מה שהם עושים כאן, לא על הביוגרפיה הכללית שלהם.
 
 החזר JSON תקין בלבד:
 

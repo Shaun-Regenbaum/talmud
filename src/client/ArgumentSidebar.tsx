@@ -12,7 +12,7 @@ import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeli
 import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
 import ArgumentNarrative from './ArgumentNarrative';
 import { deriveVoiceEdges } from '../lib/typing/voices';
-import { hasOpposingVoices } from '../lib/typing/profile';
+import { voicesMapEligible, voicesShowMap, voicesShowFallback } from '../lib/typing/profile';
 import ArgumentFlowGraph, { type FlowConnection } from './ArgumentFlowGraph';
 import { orderBackgroundGroups, type BackgroundGroup } from './backgroundGroups';
 import { adjacentAmud } from '../lib/sefref/amudim';
@@ -114,27 +114,14 @@ function useVoicesGate(tractate: () => string, page: () => string, section: () =
     if (!s || typeof s.startSegIdx !== 'number' || typeof s.endSegIdx !== 'number') return undefined;
     return (profiles() ?? []).find((p) => p.unit.startSegIdx === s.startSegIdx && p.unit.endSegIdx === s.endSegIdx);
   };
-  // Deterministic precheck — no warming race. Unknown profile → eligible (the
-  // prior safe default). Positively suppressed only for narrative (aggadata) or
-  // anonymous (no named speaker) sections.
-  const mapEligible = (): boolean => {
-    const p = profile();
-    if (!p) return true;
-    return p.primary !== 'aggadata' && p.hasNamedSpeaker !== false;
-  };
-  // The map shows when eligible AND the live voices graph carries real
-  // opposition. `null` voices (still loading) → false (no flicker).
-  const showVoiceMap = (voices: ArgumentVoicesData | null): boolean =>
-    mapEligible() && hasOpposingVoices(voices);
-  // The fallback (move-flow / narrative) shows when the map definitively won't:
-  // the section is ineligible, or the section synthesis has RESOLVED without a
-  // dispute (no opposition, OR voices absent/invalid). `resolved` — not
-  // `voices != null` — is the "settled" signal, so a synthesis that resolves
-  // with missing/malformed `argument.voices` still falls back to the move-flow
-  // instead of rendering bare. While an eligible section is still loading
-  // (`!resolved`), neither shows.
+  // The three decisions are pure functions in src/lib/typing/profile.ts
+  // (voicesMapEligible / voicesShowMap / voicesShowFallback) so the gate logic
+  // is unit-tested against the regressions it fixes (Chullin 2a hallucination,
+  // Gittin 90a warming race); here we just bind them to the reactive profile.
+  const mapEligible = (): boolean => voicesMapEligible(profile());
+  const showVoiceMap = (voices: ArgumentVoicesData | null): boolean => voicesShowMap(profile(), voices);
   const showFallback = (voices: ArgumentVoicesData | null, resolved: boolean): boolean =>
-    !mapEligible() || (resolved && !hasOpposingVoices(voices));
+    voicesShowFallback(profile(), voices, resolved);
   return { profile, mapEligible, showVoiceMap, showFallback };
 }
 
