@@ -1719,10 +1719,10 @@ Output STRICT JSON only:
 {
   "voices": [
     {
-      "name": "Conventional English name (matches the move-list rabbiNames).",
+      "name": "A CLEAN speaker label: the rabbi's conventional English name (matching the move-list rabbiNames), or 'Stam' for the anonymous Gemara. NEVER a description of the move — not 'Second answer', not 'Resolution (Stam)'. Use 'Stam' and let role/edge carry the function.",
       "nameHe": "Hebrew name as written in the daf (e.g. 'רבי יוחנן', 'רבא'). Empty string if not present.",
-      "role": "originator" | "transmitter" | "respondent" | "objector" | "supporter" | "cited-authority" | "questioner",
-      "side": "A short label for the camp this voice argues for in the section's dispute. Use 'A' for the first distinct position introduced, 'B' for the opposing position, 'C' for a third position if any. Use 'stam' for the Gemara's anonymous redactor when included. Use 'support-A' / 'support-B' for figures cited only to support a side (baraitot, supporting authorities). Use 'unaligned' when the voice raises a question or transmits but doesn't take a position.",
+      "role": "originator" | "transmitter" | "respondent" | "objector" | "supporter" | "cited-authority" | "questioner",  // see ROLES below
+      "side": "A short label for the CAMP this voice argues for. Use 'A' for the first distinct position, 'B' for the opposing position, and 'C' ONLY for a genuine third position. Voices holding the SAME position share a side. Use 'stam' for the Gemara's anonymous redactor when included. Use 'support-A' / 'support-B' for figures cited only to support a side (baraitot, supporting authorities). Use 'unaligned' when the voice raises a question or transmits but doesn't take a position.",
       "stance": "1-2 sentences in plain English: what position this rabbi is taking in this section's dispute, and what they're responding to (if anything).",
       "opinionStart": "First 3-5 Hebrew/Aramaic words of this rabbi's opening line in the section, verbatim. Empty string if their position isn't anchored to a single phrase."
     }
@@ -1737,8 +1737,17 @@ Output STRICT JSON only:
   ]
 }
 
+ROLES (pick the one that fits what the voice DOES in this section):
+- "originator" — states the first position; opens the dispute or the topic.
+- "objector" — holds a position that DISAGREES with another voice. THIS is the role for co-equal disputants in a Mishnaic מחלוקת: in "R. Meir says X, and the Sages say Y", the Sages are an OBJECTOR, not a respondent. Anyone who simply holds a different view is an objector.
+- "respondent" — ANSWERS a question another voice raised (a question→answer pair). Use ONLY for genuine Q&A, NEVER for a parallel disputant who just holds a different opinion.
+- "questioner" — raises a question or difficulty without taking a position.
+- "supporter" — brings a teaching / baraita that reinforces another voice's side.
+- "cited-authority" — quoted as a source without a clear support/oppose stance.
+- "transmitter" — passes on a teaching in someone else's name.
+
 EDGE KINDS:
-- "opposes" — the from-voice directly objects to / rejects / contradicts the to-voice's position. Most common between primary disputants.
+- "opposes" — the from-voice directly objects to / rejects / contradicts the to-voice's position. Most common between primary disputants. Emit ONLY for a REAL disagreement (see Rules).
 - "supports" — the from-voice cites or argues FOR the to-voice's position. Use for supporting baraitot, transmitters whose teaching reinforces a side, and explicit endorsements.
 - "responds-to" — the from-voice answers a question the to-voice raised. Use specifically for question→answer pairs, not for opposition.
 - "cites" — the from-voice quotes / brings the to-voice as authority without taking a clear support/oppose stance.
@@ -1747,7 +1756,9 @@ EDGE KINDS:
 Rules:
 - Skip anonymous voices ("Gemara's question", "Stam", "Supporting baraita") UNLESS they meaningfully connect named voices, in which case emit them as voices with name="Stam" and use them as edge endpoints.
 - One voice entry per distinct rabbi even if they speak multiple times.
+- KEEP SIDES MINIMAL. Most disputes have TWO camps (A vs B); add C only for a genuine third position. Voices holding the same position share a side — do NOT give each speaker its own letter. If the section contains two separate sub-disputes, the second pair is still A vs B within its own pair, not D/E/F.
 - "side" letters are LOCAL to this section — Position A is whoever is introduced first as a distinct position, not a global label.
+- "opposes" means a REAL disagreement. If the section itself HARMONIZES two voices — one explains the other's stricter number/deadline is only a precaution or "fence", or they don't actually conflict — do NOT join them with "opposes"; use "supports"/"cites" or no edge. A different stated number or deadline is not opposition when the sugya reconciles them.
 - Every edge's "from" and "to" MUST match a name in the voices array. Validate before emitting.
 - For a section with one position only (no real dispute), emit voices but an EMPTY edges array.
 - NO puff in "stance" — concrete: name what they hold and against whom.
@@ -1933,10 +1944,10 @@ const ARGUMENT_VOICES_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא ב
 {
   "voices": [
     {
-      "name": "Conventional English name (תואם ל-rabbiNames שברשימת ה-moves).",
+      "name": "תווית דובר נקייה: השם האנגלי המקובל של החכם (תואם ל-rabbiNames שברשימת ה-moves), או 'Stam' לגמרא הסתמית. לעולם לא תיאור של המהלך — לא 'Second answer', לא 'Resolution (Stam)'. השתמש ב-'Stam' ותן ל-role/edge לשאת את התפקיד.",
       "nameHe": "שם עברי כפי שכתוב בדף (למשל 'רבי יוחנן', 'רבא'). מחרוזת ריקה אם אינו מופיע.",
-      "role": "originator" | "transmitter" | "respondent" | "objector" | "supporter" | "cited-authority" | "questioner",
-      "side": "תווית קצרה למחנה שהקול הזה טוען עבורו במחלוקת המקטע. השתמש ב-'A' לעמדה המובחנת הראשונה שהוצגה, 'B' לעמדה הנגדית, 'C' לעמדה שלישית אם יש. השתמש ב-'stam' לעורך הסתמי של הגמרא כשנכלל. השתמש ב-'support-A' / 'support-B' לדמויות המובאות רק לתמיכה בצד (ברייתות, מקורות תומכים). השתמש ב-'unaligned' כשהקול מעלה שאלה או מוסר אך אינו נוקט עמדה.",
+      "role": "originator" | "transmitter" | "respondent" | "objector" | "supporter" | "cited-authority" | "questioner",  // ראה ROLES למטה
+      "side": "תווית קצרה למחנה שהקול הזה טוען עבורו. השתמש ב-'A' לעמדה המובחנת הראשונה, 'B' לעמדה הנגדית, ו-'C' רק לעמדה שלישית ממשית. קולות המחזיקים באותה עמדה חולקים אותו side. השתמש ב-'stam' לעורך הסתמי של הגמרא כשנכלל. השתמש ב-'support-A' / 'support-B' לדמויות המובאות רק לתמיכה בצד (ברייתות, מקורות תומכים). השתמש ב-'unaligned' כשהקול מעלה שאלה או מוסר אך אינו נוקט עמדה.",
       "stance": "1-2 משפטים בעברית: איזו עמדה החכם הזה נוקט במחלוקת המקטע, ולמה הוא מגיב (אם בכלל).",
       "opinionStart": "3-5 המילים הראשונות בעברית/ארמית של שורת הפתיחה של חכם זה במקטע, מילה במילה. מחרוזת ריקה אם עמדתו אינה מעוגנת בביטוי יחיד."
     }
@@ -1951,8 +1962,17 @@ const ARGUMENT_VOICES_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא ב
   ]
 }
 
+תפקידים (ROLES — בחר את זה שמתאים למה שהקול עושה במקטע):
+- "originator" — מציג את העמדה הראשונה; פותח את המחלוקת או את הנושא.
+- "objector" — מחזיק בעמדה החולקת על קול אחר. זהו התפקיד לבעלי פלוגתא שווי-מעמד במחלוקת משנאית: ב"רבי מאיר אומר X וחכמים אומרים Y", החכמים הם objector ולא respondent. כל מי שפשוט מחזיק דעה אחרת הוא objector.
+- "respondent" — עונה לשאלה שהעלה קול אחר (זוג שאלה→תשובה). השתמש בו רק לשאלה-ותשובה ממשית, לעולם לא לבעל פלוגתא מקביל שרק מחזיק דעה אחרת.
+- "questioner" — מעלה שאלה או קושיה מבלי לנקוט עמדה.
+- "supporter" — מביא מימרה / ברייתא המחזקת צד של קול אחר.
+- "cited-authority" — מצוטט כמקור מבלי עמדת תמיכה/התנגדות ברורה.
+- "transmitter" — מוסר מימרה בשם מישהו אחר.
+
 סוגי קשתות (edge kinds):
-- "opposes" — הקול-מקור חולק במישרין / דוחה / סותר את עמדת הקול-יעד. הנפוץ ביותר בין בעלי הפלוגתא העיקריים.
+- "opposes" — הקול-מקור חולק במישרין / דוחה / סותר את עמדת הקול-יעד. הנפוץ ביותר בין בעלי הפלוגתא העיקריים. פלוט רק על מחלוקת ממשית (ראה כללים).
 - "supports" — הקול-מקור מצטט או טוען בעד עמדת הקול-יעד. השתמש בו לברייתות תומכות, למוסרים שמימרתם מחזקת צד, ולהסכמות מפורשות.
 - "responds-to" — הקול-מקור עונה לשאלה שהעלה הקול-יעד. השתמש בו דווקא לזוגות שאלה→תשובה, לא להתנגדות.
 - "cites" — הקול-מקור מצטט / מביא את הקול-יעד כסמכות מבלי לנקוט עמדת תמיכה/התנגדות ברורה.
@@ -1961,7 +1981,9 @@ const ARGUMENT_VOICES_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא ב
 כללים:
 - דלג על קולות סתמיים ("שאלת הגמרא", "סתמא", "ברייתא תומכת") אלא אם הם מקשרים באופן משמעותי בין קולות נקובים, ואז פלוט אותם כ-voices עם name="Stam" והשתמש בהם כקצוות קשת.
 - ערך voice אחד לכל חכם מובחן, גם אם הוא מדבר כמה פעמים.
+- שמור על מספר side מינימלי. לרוב המחלוקות שני מחנות (A מול B); הוסף C רק לעמדה שלישית ממשית. קולות באותה עמדה חולקים side — אל תיתן לכל דובר אות משלו. אם המקטע מכיל שתי תת-מחלוקות נפרדות, הזוג השני הוא עדיין A מול B בתוך עצמו, לא D/E/F.
 - אותיות ה-"side" הן מקומיות למקטע זה — עמדה A היא מי שמוצג ראשון כעמדה מובחנת, לא תווית גלובלית.
+- "opposes" פירושו מחלוקת ממשית. אם המקטע עצמו מיישב בין שני קולות — אחד מסביר שהמספר/הזמן המחמיר של השני הוא רק הרחקה או "גדר", או שאינם באמת סותרים — אל תחבר אותם ב-"opposes"; השתמש ב-"supports"/"cites" או בלא קשת. מספר או זמן שונה שנאמר אינם התנגדות כשהסוגיה מיישבת ביניהם.
 - ה-"from" וה-"to" של כל קשת חייבים להתאים לשם במערך voices. ודא זאת לפני הפליטה.
 - במקטע בעל עמדה אחת בלבד (ללא מחלוקת ממשית), פלוט voices אך מערך edges ריק.
 - ללא מליצה ב-"stance" — קונקרטי: נקוב במה הוא מחזיק ונגד מי.
@@ -2066,7 +2088,7 @@ CODE_ENRICHMENTS.push(
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara', { mark: 'argument-move' }, { mark: 'rabbi' }],
       passes: ['derive-voice-edges', 'edge-integrity'],
-      defHash: 'argument.voices-v5', cacheVersion: '5',
+      defHash: 'argument.voices-v6', cacheVersion: '6',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_VOICES_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_VOICES_USER_TEMPLATE_HE,
