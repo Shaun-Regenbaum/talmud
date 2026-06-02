@@ -3059,6 +3059,7 @@ export default function DafViewer(): JSX.Element {
               onOpenRabbiSlug={openRabbiSlug}
               generationByName={generationByName()}
               dafSections={analysis()?.sections ?? []}
+              onOpenArgument={openArgument}
             />
           </Show>
         </aside>
@@ -3089,6 +3090,7 @@ export default function DafViewer(): JSX.Element {
           onOpenRabbiSlug={openRabbiSlug}
           generationByName={generationByName()}
           dafSections={analysis()?.sections ?? []}
+          onOpenArgument={openArgument}
         />
       </Show>
       <DevModeShelf open={devOpen()} onClose={() => { setDevOpen(false); setDevModeActive(false); }}>

@@ -161,6 +161,9 @@ export interface ArgumentSidebarProps {
   /** The daf's ordered argument sections (from the `argument` mark). Feeds the
    *  whole-daf overview's flow graph — its nodes are these sections. */
   dafSections?: Section[];
+  /** Open the in-depth `argument` card for a section (by index). Lets the
+   *  whole-daf overview hand off into the full per-section argument. */
+  onOpenArgument?: (index: number) => void;
 }
 
 // Parse markdown-style links out of a bio string. Sefaria `/topics/<slug>`
@@ -771,6 +774,7 @@ function ArgumentOverviewBody(props: {
   sections: Section[];
   onPushRabbi: (name: string) => void;
   onHighlightRange?: (range: { start: number; end: number; key: string } | null) => void;
+  onOpenArgument?: (index: number) => void;
 }): JSX.Element {
   const [connections, setConnections] = createSignal<FlowConnection[]>([]);
   const [active, setActive] = createSignal<number | null>(null);
@@ -983,6 +987,20 @@ function ArgumentOverviewBody(props: {
               {t('overview.withinFlow')}: {withinFlowCounts().map((f) => `${f.count} ${relLabel(f.relation)}`).join(' · ')}
             </div>
           </Show>
+        </div>
+      </Show>
+      {/* Hand off into the in-depth argument card. Opens the section the reader
+       *  has drilled into (active), else the start of the argument. */}
+      <Show when={props.onOpenArgument && props.sections.length > 0}>
+        <div style={{ 'margin-top': '0.8rem', 'border-top': '1px solid #f0f0f0', 'padding-top': '0.6rem' }}>
+          <button
+            onClick={() => props.onOpenArgument?.(active() ?? 0)}
+            style={{
+              width: '100%', 'text-align': 'center', cursor: 'pointer', 'font-family': 'inherit',
+              'font-size': '0.78rem', color: '#8a2a2b', background: '#fdf3f3',
+              border: '1px solid #f0dcdc', 'border-radius': '7px', padding: '0.45rem 0.6rem',
+            }}
+          >{t('overview.openArgument')}</button>
         </div>
       </Show>
     </Panel>
@@ -2025,6 +2043,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                 sections={props.dafSections ?? []}
                 onPushRabbi={props.onPushRabbi}
                 onHighlightRange={props.onHighlightRange}
+                onOpenArgument={props.onOpenArgument}
               />
             </Show>
 

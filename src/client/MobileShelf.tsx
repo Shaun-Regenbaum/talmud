@@ -28,6 +28,7 @@ interface MobileShelfProps {
   onOpenRabbiSlug: (slug: string) => void;
   generationByName: Map<string, GenerationId>;
   dafSections?: Section[];
+  onOpenArgument?: (index: number) => void;
   onHighlightRange?: (
     range: { start: number; end: number; key: string; tokenStart?: number; tokenEnd?: number } | null,
   ) => void;
@@ -150,6 +151,7 @@ function ExpansionView(props: MobileShelfProps): JSX.Element {
           onOpenRabbiSlug={props.onOpenRabbiSlug}
           generationByName={props.generationByName}
           dafSections={props.dafSections}
+          onOpenArgument={props.onOpenArgument}
         />
       </div>
     </div>
