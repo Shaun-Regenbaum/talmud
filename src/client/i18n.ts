@@ -207,7 +207,7 @@ const CATALOG = {
     he: 'לא נמצאו עדיין מושגי רקע לדף זה.',
   },
   'background.cat.legal-concepts': { en: 'Legal concepts', he: 'מושגים הלכתיים' },
-  'background.cat.realia': { en: 'Realia', he: 'מציאות' },
+  'background.cat.realia': { en: 'Everyday life', he: 'מציאות' },
   'background.cat.assumed-prior': { en: 'Assumed background', he: 'רקע מוקדם' },
   // — Common —
   'common.open': { en: 'Open {name}', he: 'פתיחת {name}' },

@@ -2389,12 +2389,13 @@ const DAF_BACKGROUND_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud teacher. You'll
 Output STRICT JSON only:
 
 {
-  "synthesis": "ONE sentence, MAX 30 words, naming the kind of background the daf leans on (e.g. 'This daf assumes you know the laws of the four guardians and the realia of a borrowed ox'). NOT a summary of the argument."
+  "synthesis": "ONE sentence, MAX 30 words, naming the kind of background the daf leans on (e.g. 'This daf assumes you know the laws of the four guardians and what a borrowed ox is worth'). NOT a summary of the argument."
 }
 
 HARD RULES:
 - ONE sentence. Point at the prerequisites, do not list every term.
 - NO puff. Hebrew script (not transliteration) for technical terms in parentheses.
+- Write plainly. Never use academic jargon — in particular NEVER the word "realia"; name the concrete things directly (everyday objects, places, measures).
 
 ${HEBREW_GLOSS_STYLE}`;
 
@@ -2466,7 +2467,7 @@ CODE_ENRICHMENTS.push(
         'context',
         { enrichment: 'daf-background.concepts' },
       ],
-      defHash: 'daf-background.synthesis-v1', cacheVersion: '5', // v5: native Hebrew prompt + re-resolve concepts v5
+      defHash: 'daf-background.synthesis-v1', cacheVersion: '6', // v6: drop "realia" from the example + ban the word in the synthesis sentence
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: DAF_BACKGROUND_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: DAF_BACKGROUND_SYNTHESIS_USER_TEMPLATE_HE,
