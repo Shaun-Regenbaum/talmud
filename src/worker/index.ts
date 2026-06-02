@@ -682,7 +682,9 @@ app.get('/api/checks/:tractate/:page', async (c) => {
 // claim the section, the dominant `primary` content dimension (pure-dialectic
 // when no overlay materially covers it), `register` (mishnah/gemara — the
 // textual axis orthogonal to primary, from the cached mishnah-in-talmud ranges),
-// and `isDispute` (from the section's cached argument.voices graph). This is the
+// and `isDispute` (the section's cached argument.voices graph has an `opposes`
+// edge AND the section has a named move-speaker — see `hasNamedSpeaker`, the
+// anti-hallucination guard). This is the
 // observation/validation surface for
 // section typing — it shows, on real content, that e.g. the Ashmedai story is
 // narrative-primary (not a voice dispute). Gating + new enrichments build on it.
@@ -705,13 +707,34 @@ function toLayerInstances(layer: LayerId, insts: RawInstance[]): LayerInstance[]
   });
   return out;
 }
+// Does any argument-move inside [startSegIdx, endSegIdx] name an actual speaker?
+// A move belongs to the section when its parent-section range matches exactly
+// (the move's `sectionStartSegIdx`/`sectionEndSegIdx`) or, failing that, when its
+// own range falls within the section. `rabbiNames` is the move extractor's list
+// of NAMED speakers (empty for anonymous Stam moves), so this is the
+// deterministic "a real מחלוקת is possible here" signal — see
+// TypeProfile.hasNamedSpeaker.
+function sectionHasNamedSpeaker(moves: RawInstance[], startSegIdx: number, endSegIdx: number): boolean {
+  for (const m of moves) {
+    const f = m.fields ?? {};
+    const names = Array.isArray(f.rabbiNames) ? (f.rabbiNames as unknown[]) : [];
+    if (names.length === 0) continue;
+    const ss = f.sectionStartSegIdx, se = f.sectionEndSegIdx;
+    const sectionMatch = ss === startSegIdx && se === endSegIdx;
+    const withinSection = typeof m.startSegIdx === 'number' && typeof m.endSegIdx === 'number'
+      && m.startSegIdx >= startSegIdx && m.endSegIdx <= endSegIdx;
+    if (sectionMatch || withinSection) return true;
+  }
+  return false;
+}
 async function buildDafTypeProfiles(env: Bindings, tractate: string, page: string): Promise<(TypeProfile & { title?: string })[]> {
   const sections = await readMarkInstances(env, 'argument', tractate, page);
+  const moves = await readMarkInstances(env, 'argument-move', tractate, page);
   const overlays: LayerInstance[] = [
     ...toLayerInstances('aggadata', await readMarkInstances(env, 'aggadata', tractate, page)),
     ...toLayerInstances('halacha', await readMarkInstances(env, 'halacha', tractate, page)),
     ...toLayerInstances('pesukim', await readMarkInstances(env, 'pesukim', tractate, page)),
-    ...toLayerInstances('argument-move', await readMarkInstances(env, 'argument-move', tractate, page)),
+    ...toLayerInstances('argument-move', moves),
   ];
   // Deterministic register axis: which segments are mishnah-in-talmud (cached
   // Sefaria /api/related anchors). A section whose majority falls here is
@@ -730,7 +753,13 @@ async function buildDafTypeProfiles(env: Bindings, tractate: string, page: strin
       const vhit = await readCachedResult(env, keyForEnrichment(voicesDef, iid, { tractate, page }));
       voices = (vhit?.parsed as { edges?: { kind?: string }[] }) ?? null;
     }
-    profiles.push({ ...composeTypeProfile(unit, overlays, { voices, mishnaSegs }), title: typeof sec.fields?.title === 'string' ? sec.fields.title : undefined });
+    // When the move mark isn't cached yet (`moves` empty), we can't tell named
+    // from anonymous — pass `undefined` so composeTypeProfile stays permissive
+    // (unknown → not suppressed) rather than mislabel a cold daf's real dispute
+    // as anonymous. Only with moves actually loaded does an empty section mean
+    // "no named speaker".
+    const hasNamedSpeaker = moves.length > 0 ? sectionHasNamedSpeaker(moves, sec.startSegIdx, sec.endSegIdx) : undefined;
+    profiles.push({ ...composeTypeProfile(unit, overlays, { voices, mishnaSegs, hasNamedSpeaker }), title: typeof sec.fields?.title === 'string' ? sec.fields.title : undefined });
   }
   return profiles;
 }

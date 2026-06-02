@@ -119,6 +119,26 @@ describe('isDispute', () => {
     expect(hasOpposingVoices({ edges: [{ kind: 'supports' }, { kind: 'responds-to' }] })).toBe(false);
     expect(composeTypeProfile(unit(0, 3), []).isDispute).toBe(false);
   });
+
+  it('requires a named speaker: an opposes edge on an anonymous section is NOT a dispute', () => {
+    // The Chullin 2a pathology — the voices graph fabricates a מחלוקת (an
+    // `opposes` edge) on the anonymous "hakol shochtin" Mishnah, which has no
+    // named move-speaker. Without a named speaker to ground it, that opposition
+    // is a hallucination and must not register as a dispute.
+    const p = composeTypeProfile(unit(0, 0), [], { voices: { edges: [{ kind: 'opposes' }] }, hasNamedSpeaker: false });
+    expect(p.hasNamedSpeaker).toBe(false);
+    expect(p.isDispute).toBe(false);
+  });
+
+  it('a named speaker + opposition IS a dispute', () => {
+    const p = composeTypeProfile(unit(0, 4), [], { voices: { edges: [{ kind: 'opposes' }] }, hasNamedSpeaker: true });
+    expect(p.hasNamedSpeaker).toBe(true);
+    expect(p.isDispute).toBe(true);
+  });
+
+  it('hasNamedSpeaker defaults to true (permissive) when unknown', () => {
+    expect(composeTypeProfile(unit(0, 3), []).hasNamedSpeaker).toBe(true);
+  });
 });
 
 describe('overlayUncoveredSegs (P0 coverage)', () => {
