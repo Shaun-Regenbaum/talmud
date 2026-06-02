@@ -70,10 +70,21 @@ export interface TypeProfile {
    *  the floor (the always-present dialectical base). Derived, not stored. */
   primary: PrimaryType;
   /** True only when the argument structure over the unit has real opposing
-   *  voices (≥1 `opposes` edge). Gates dispute rendering (P2). Orthogonal to
-   *  `primary`: a כולכם dispute with no content overlay is
-   *  `primary: 'pure-dialectic'`, `isDispute: true`. */
+   *  voices (≥1 `opposes` edge) AND the unit actually contains a NAMED speaker
+   *  (`hasNamedSpeaker`). Gates dispute rendering (P2). Orthogonal to `primary`:
+   *  a כולכם dispute with no content overlay is `primary: 'pure-dialectic'`,
+   *  `isDispute: true`. The named-speaker conjunct is the anti-hallucination
+   *  guard: an anonymous Stam-only section can't host a real מחלוקת, so an
+   *  `opposes` edge there is a fabrication (the model inventing a dispute from
+   *  tractate memory) and must not register as one. */
   isDispute: boolean;
+  /** True when ≥1 of the unit's argument-moves names an actual speaker
+   *  (move `rabbiNames` non-empty). Deterministic — derived from the cached
+   *  move marks, so it's available even before the (LLM) voices graph warms.
+   *  The voices map's render gate ANDs this with live opposition so a section
+   *  with a confidently-wrong fabricated dispute (no named speaker to ground it)
+   *  is suppressed. Defaults to `true` when unknown (permissive). */
+  hasNamedSpeaker: boolean;
   /** The unit's textual register — `mishnah` when the majority of its segments
    *  fall in the daf's mishnah-in-talmud ranges, else `gemara`. Orthogonal to
    *  `primary`. `gemara` when no mishnah ranges were supplied (the common case;
@@ -135,7 +146,7 @@ export function hasOpposingVoices(voices?: VoicesGraph | null): boolean {
 export function composeTypeProfile(
   unit: UnitRange,
   instances: readonly LayerInstance[],
-  opts: { voices?: VoicesGraph | null; mishnaSegs?: ReadonlySet<number> } = {},
+  opts: { voices?: VoicesGraph | null; mishnaSegs?: ReadonlySet<number>; hasNamedSpeaker?: boolean } = {},
 ): TypeProfile {
   const unitSegs = rangeSegs(unit.startSegIdx, unit.endSegIdx);
   const unitSet = new Set(unitSegs);
@@ -165,11 +176,13 @@ export function composeTypeProfile(
     if (score > bestScore) { bestScore = score; primary = c.layer as OverlayLayer; }
   }
 
+  const hasNamedSpeaker = opts.hasNamedSpeaker ?? true; // unknown → permissive
   return {
     unit,
     claims,
     primary,
-    isDispute: hasOpposingVoices(opts.voices),
+    isDispute: hasOpposingVoices(opts.voices) && hasNamedSpeaker,
+    hasNamedSpeaker,
     register: registerOf(unit, opts.mishnaSegs),
   };
 }

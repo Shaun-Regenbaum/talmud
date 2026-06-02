@@ -11,6 +11,7 @@ import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeli
 import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
 import ArgumentNarrative from './ArgumentNarrative';
 import { deriveVoiceEdges } from '../lib/typing/voices';
+import { hasOpposingVoices } from '../lib/typing/profile';
 import ArgumentFlowGraph, { type FlowConnection } from './ArgumentFlowGraph';
 import { orderBackgroundGroups, type BackgroundGroup } from './backgroundGroups';
 import { adjacentAmud } from '../lib/sefref/amudim';
@@ -82,13 +83,20 @@ export interface PlaceInstance {
 /** Section-typing gate for the voice-dispute map (Track C, P2). The voices
  *  graph models a מחלוקת; rendering it on a story or a one-sided Stam Q&A is the
  *  "Demons"/"Stam questioner→respondent" pathology. We compute the section's
- *  TypeProfile (deterministic, cached marks, via /api/type-profiles) and
- *  suppress the map unless the section is a real, non-narrative dispute. Gated
- *  to dev mode + reversible: readers are unaffected until this is promoted, and
- *  when the profile is unknown we default to showing (current behavior). The
- *  reliable signal is `primary` (the deterministic composition) overriding the
- *  noisy `isDispute` voices flag — a story can carry stray `opposes` edges. */
-interface SectionTypeProfile { unit: { startSegIdx: number; endSegIdx: number }; primary: string; isDispute: boolean }
+ *  TypeProfile (deterministic, cached marks, via /api/type-profiles).
+ *
+ *  Two signals, deliberately split by where they're reliable:
+ *   - DETERMINISTIC (from the profile, always available): `primary` (a story is
+ *     never a dispute map) and `hasNamedSpeaker` (a fabricated dispute on an
+ *     anonymous Stam section has no named move-speaker to ground it). These form
+ *     `mapEligible` — could this section EVER show the map.
+ *   - LIVE (from the loaded voices graph, passed in at render): real opposition
+ *     (`hasOpposingVoices`). We read this from the just-loaded graph rather than
+ *     the profile's cached `isDispute` because `isDispute` suffers a warming
+ *     race — on a cold daf the profile reports `false` until the (LLM) voices
+ *     warm, which silently hid the map on genuine disputes (e.g. Gittin 90a's
+ *     Beit Hillel/Shammai). The live graph is present exactly when we'd draw. */
+interface SectionTypeProfile { unit: { startSegIdx: number; endSegIdx: number }; primary: string; isDispute: boolean; hasNamedSpeaker?: boolean }
 function useVoicesGate(tractate: () => string, page: () => string, section: () => { startSegIdx?: number; endSegIdx?: number } | undefined) {
   const [profiles] = createResource(
     () => `${tractate()}|${page()}`,
@@ -105,15 +113,28 @@ function useVoicesGate(tractate: () => string, page: () => string, section: () =
     if (!s || typeof s.startSegIdx !== 'number' || typeof s.endSegIdx !== 'number') return undefined;
     return (profiles() ?? []).find((p) => p.unit.startSegIdx === s.startSegIdx && p.unit.endSegIdx === s.endSegIdx);
   };
-  const suppress = (): boolean => {
-    // Promoted to readers: section typing now drives the view for everyone, not
-    // just dev mode. Safe-by-default — an unknown/uncomputed profile shows the
-    // voice graph exactly as before, so a missing profile never regresses.
+  // Deterministic precheck — no warming race. Unknown profile → eligible (the
+  // prior safe default). Positively suppressed only for narrative (aggadata) or
+  // anonymous (no named speaker) sections.
+  const mapEligible = (): boolean => {
     const p = profile();
-    if (!p) return false;                          // unknown → show (safe default)
-    return !(p.isDispute && p.primary !== 'aggadata'); // hide unless a real, non-narrative dispute
+    if (!p) return true;
+    return p.primary !== 'aggadata' && p.hasNamedSpeaker !== false;
   };
-  return { profile, suppress };
+  // The map shows when eligible AND the live voices graph carries real
+  // opposition. `null` voices (still loading) → false (no flicker).
+  const showVoiceMap = (voices: ArgumentVoicesData | null): boolean =>
+    mapEligible() && hasOpposingVoices(voices);
+  // The fallback (move-flow / narrative) shows when the map definitively won't:
+  // the section is ineligible, or the section synthesis has RESOLVED without a
+  // dispute (no opposition, OR voices absent/invalid). `resolved` — not
+  // `voices != null` — is the "settled" signal, so a synthesis that resolves
+  // with missing/malformed `argument.voices` still falls back to the move-flow
+  // instead of rendering bare. While an eligible section is still loading
+  // (`!resolved`), neither shows.
+  const showFallback = (voices: ArgumentVoicesData | null, resolved: boolean): boolean =>
+    !mapEligible() || (resolved && !hasOpposingVoices(voices));
+  return { profile, mapEligible, showVoiceMap, showFallback };
 }
 
 export type SidebarContent =
@@ -523,6 +544,10 @@ export function ArgumentBody(props: {
   // argument.voices output (structured voices + edges) — resolved via the
   // section synthesis aggregate's deps_resolved. Drives ArgumentVoiceMap.
   const [voicesData, setVoicesData] = createSignal<ArgumentVoicesData | null>(null);
+  // True once the section synthesis has resolved (whether or not it carried a
+  // valid voices graph) — lets the gate distinguish "still loading" from
+  // "settled, no dispute" so a missing/invalid voices graph falls back cleanly.
+  const [voicesResolved, setVoicesResolved] = createSignal(false);
   // Section-typing gate: hide the voice-dispute map on non-dispute sections (dev mode).
   const voicesGate = useVoicesGate(() => props.tractate, () => props.page, () => props.section);
 
@@ -544,10 +569,12 @@ export function ArgumentBody(props: {
     setAllMoves(null);
     setHighlightedMoveId(null);
     setVoicesData(null);
+    setVoicesResolved(false);
     props.onHighlightRange(null);
   });
 
   const handleResolved = (r: { deps_resolved?: Record<string, unknown>; anchors_resolved?: Record<string, unknown> }) => {
+    setVoicesResolved(true);
     const moves = r.anchors_resolved?.['argument-move'] as ArgumentMoveInstance[] | undefined;
     if (Array.isArray(moves)) setAllMoves(moves);
     const voices = r.deps_resolved?.['argument.voices'] as ArgumentVoicesData | undefined;
@@ -616,7 +643,7 @@ export function ArgumentBody(props: {
         page={props.page}
         onResolved={handleResolved}
       />
-      <Show when={!voicesGate.suppress() && voicesData()}>
+      <Show when={voicesGate.showVoiceMap(voicesData()) && voicesData()}>
         {(data) => (
           <div style={{ position: 'relative' }}>
             <InspectDot instanceKey={instanceKey()} leafId="argument.voices" style={{ position: 'absolute', top: '0.2rem', right: 0, 'z-index': 2 }} />
@@ -624,7 +651,7 @@ export function ArgumentBody(props: {
           </div>
         )}
       </Show>
-      <Show when={voicesGate.suppress()}>
+      <Show when={voicesGate.showFallback(voicesData(), voicesResolved())}>
         <Show
           when={voicesGate.profile()?.primary === 'aggadata'}
           fallback={
@@ -685,10 +712,12 @@ function OverviewSectionVoices(props: {
   onPushRabbi: (name: string) => void;
 }): JSX.Element {
   const [voices, setVoices] = createSignal<ArgumentVoicesData | null>(null);
+  const [resolved, setResolved] = createSignal(false);
   const voicesGate = useVoicesGate(() => props.tractate, () => props.page, () => props.section);
   const instanceKey = () => `${props.section.startSegIdx}-${props.section.endSegIdx}-${props.section.title}`;
-  createEffect(() => { void instanceKey(); setVoices(null); });
+  createEffect(() => { void instanceKey(); setVoices(null); setResolved(false); });
   const onResolved = (r: { deps_resolved?: Record<string, unknown> }) => {
+    setResolved(true);
     const v = r.deps_resolved?.['argument.voices'] as ArgumentVoicesData | undefined;
     if (v && Array.isArray(v.voices)) setVoices(deriveVoiceEdges({ voices: v.voices, edges: Array.isArray(v.edges) ? v.edges : [] }) as ArgumentVoicesData);
   };
@@ -715,10 +744,10 @@ function OverviewSectionVoices(props: {
         page={props.page}
         onResolved={onResolved}
       />
-      <Show when={!voicesGate.suppress() && voices()}>
+      <Show when={voicesGate.showVoiceMap(voices()) && voices()}>
         {(data) => <ArgumentVoiceMap data={data()} onClickVoice={props.onPushRabbi} />}
       </Show>
-      <Show when={voicesGate.suppress() && voicesGate.profile()?.primary === 'aggadata'}>
+      <Show when={voicesGate.showFallback(voices(), resolved()) && voicesGate.profile()?.primary === 'aggadata'}>
         <ArgumentNarrative section={props.section} tractate={props.tractate} page={props.page} />
       </Show>
     </div>
