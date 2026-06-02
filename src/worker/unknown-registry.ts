@@ -132,24 +132,150 @@ async function bump<T extends { firstSeen: number; lastSeen: number; count: numb
   }
 }
 
+// Await-able cores. `record*` wrap these in ctx.waitUntil for the request path
+// (fire-and-forget); the cache backfill (backfill-backlog.ts) awaits them
+// directly so it can pace itself against the per-invocation subrequest budget.
+
+export async function putUnknownRabbi(
+  cache: KVNamespace,
+  r: { name?: string; nameHe?: string; generation?: string; tractate: string; page: string },
+): Promise<void> {
+  const keyPart = norm(r.name || '') || norm(r.nameHe || '');
+  if (!keyPart) return;
+  const daf = `${r.tractate} ${r.page}`.trim();
+  const now = Date.now();
+  await bump<UnknownRabbi>(
+    cache,
+    RABBI_PREFIX + keyPart,
+    () => ({ name: r.name ?? '', nameHe: r.nameHe ?? '', generation: r.generation, firstSeen: now, lastSeen: now, count: 0, dafs: [] }),
+    daf,
+  );
+}
+
+export async function putObservedPlace(
+  cache: KVNamespace,
+  p: { name?: string; nameHe?: string; kind?: string; region?: string; tractate: string; page: string },
+): Promise<void> {
+  if (!isRealPlace(p.name, p.nameHe)) return; // people / peoples are not gazetteer candidates
+  const keyPart = norm(p.name || '') || norm(p.nameHe || '');
+  if (!keyPart) return;
+  const daf = `${p.tractate} ${p.page}`.trim();
+  const now = Date.now();
+  await bump<ObservedPlace>(
+    cache,
+    PLACE_PREFIX + keyPart,
+    () => ({ name: p.name ?? '', nameHe: p.nameHe ?? '', kind: p.kind, region: p.region, firstSeen: now, lastSeen: now, count: 0, dafs: [] }),
+    daf,
+  );
+}
+
+export async function putObservedConcept(
+  cache: KVNamespace,
+  c: { term?: string; termHe?: string; gloss?: string; category?: string; tractate: string; page: string },
+): Promise<void> {
+  // Key on Hebrew first — Hebrew script is the stabler identity (the English
+  // label drifts: "Kohen"/"priest"/"kohanim"); fall back to English only when
+  // there's no Hebrew.
+  const keyPart = norm(c.termHe || '') || norm(c.term || '');
+  if (!keyPart) return;
+  const daf = `${c.tractate} ${c.page}`.trim();
+  const now = Date.now();
+  await bump<ObservedConcept>(
+    cache,
+    CONCEPT_PREFIX + keyPart,
+    () => ({ term: c.term ?? '', termHe: c.termHe ?? '', gloss: c.gloss ?? '', category: c.category, firstSeen: now, lastSeen: now, count: 0, dafs: [] }),
+    daf,
+  );
+}
+
+// Batch merge for the cache backfill: dedupes a page's worth of sightings by KV
+// key in memory, then does ONE read-modify-write per distinct entity (count +=
+// the number of distinct dafs it was seen on this batch). This bounds the
+// per-tick subrequest cost to ~distinct-entities (not total sightings) and is
+// inflation-free within a batch — a daf seen twice in the page counts once.
+async function bumpBatch<T extends { firstSeen: number; lastSeen: number; count: number; dafs: string[] }>(
+  cache: KVNamespace,
+  entries: Array<{ key: string; seed: () => T; daf: string }>,
+): Promise<void> {
+  const byKey = new Map<string, { seed: () => T; dafs: string[] }>();
+  for (const e of entries) {
+    if (!e.daf) continue;
+    const g = byKey.get(e.key);
+    if (g) { if (!g.dafs.includes(e.daf)) g.dafs.push(e.daf); }
+    else byKey.set(e.key, { seed: e.seed, dafs: [e.daf] });
+  }
+  const now = Date.now();
+  for (const [key, g] of byKey) {
+    try {
+      const existing = await cache.get(key);
+      const rec: T = existing ? (JSON.parse(existing) as T) : g.seed();
+      rec.lastSeen = now;
+      rec.count = (rec.count ?? 0) + g.dafs.length;
+      for (const d of g.dafs) if (!rec.dafs.includes(d) && rec.dafs.length < MAX_DAFS) rec.dafs.push(d);
+      await cache.put(key, JSON.stringify(rec), { expirationTtl: TTL_S });
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn('[unknown-registry] batch write failed:', String(err));
+    }
+  }
+}
+
+export function putObservedConceptsBatch(
+  cache: KVNamespace,
+  items: Array<{ term?: string; termHe?: string; gloss?: string; category?: string; tractate: string; page: string }>,
+): Promise<void> {
+  const now = Date.now();
+  return bumpBatch<ObservedConcept>(cache, items.flatMap((c) => {
+    const keyPart = norm(c.termHe || '') || norm(c.term || '');
+    if (!keyPart) return [];
+    return [{
+      key: CONCEPT_PREFIX + keyPart,
+      daf: `${c.tractate} ${c.page}`.trim(),
+      seed: () => ({ term: c.term ?? '', termHe: c.termHe ?? '', gloss: c.gloss ?? '', category: c.category, firstSeen: now, lastSeen: now, count: 0, dafs: [] }),
+    }];
+  }));
+}
+
+export function putObservedPlacesBatch(
+  cache: KVNamespace,
+  items: Array<{ name?: string; nameHe?: string; kind?: string; region?: string; tractate: string; page: string }>,
+): Promise<void> {
+  const now = Date.now();
+  return bumpBatch<ObservedPlace>(cache, items.flatMap((p) => {
+    if (!isRealPlace(p.name, p.nameHe)) return [];
+    const keyPart = norm(p.name || '') || norm(p.nameHe || '');
+    if (!keyPart) return [];
+    return [{
+      key: PLACE_PREFIX + keyPart,
+      daf: `${p.tractate} ${p.page}`.trim(),
+      seed: () => ({ name: p.name ?? '', nameHe: p.nameHe ?? '', kind: p.kind, region: p.region, firstSeen: now, lastSeen: now, count: 0, dafs: [] }),
+    }];
+  }));
+}
+
+export function putUnknownRabbisBatch(
+  cache: KVNamespace,
+  items: Array<{ name?: string; nameHe?: string; generation?: string; tractate: string; page: string }>,
+): Promise<void> {
+  const now = Date.now();
+  return bumpBatch<UnknownRabbi>(cache, items.flatMap((r) => {
+    const keyPart = norm(r.name || '') || norm(r.nameHe || '');
+    if (!keyPart) return [];
+    return [{
+      key: RABBI_PREFIX + keyPart,
+      daf: `${r.tractate} ${r.page}`.trim(),
+      seed: () => ({ name: r.name ?? '', nameHe: r.nameHe ?? '', generation: r.generation, firstSeen: now, lastSeen: now, count: 0, dafs: [] }),
+    }];
+  }));
+}
+
 export function recordUnknownRabbi(
   env: { CACHE?: KVNamespace },
   ctx: { waitUntil(p: Promise<unknown>): void },
   r: { name?: string; nameHe?: string; generation?: string; tractate: string; page: string },
 ): void {
   if (!env.CACHE) return;
-  const keyPart = norm(r.name || '') || norm(r.nameHe || '');
-  if (!keyPart) return;
-  const daf = `${r.tractate} ${r.page}`.trim();
-  const now = Date.now();
-  ctx.waitUntil(
-    bump<UnknownRabbi>(
-      env.CACHE,
-      RABBI_PREFIX + keyPart,
-      () => ({ name: r.name ?? '', nameHe: r.nameHe ?? '', generation: r.generation, firstSeen: now, lastSeen: now, count: 0, dafs: [] }),
-      daf,
-    ),
-  );
+  ctx.waitUntil(putUnknownRabbi(env.CACHE, r));
 }
 
 export function recordObservedPlace(
@@ -158,19 +284,7 @@ export function recordObservedPlace(
   p: { name?: string; nameHe?: string; kind?: string; region?: string; tractate: string; page: string },
 ): void {
   if (!env.CACHE) return;
-  if (!isRealPlace(p.name, p.nameHe)) return; // people / peoples are not gazetteer candidates
-  const keyPart = norm(p.name || '') || norm(p.nameHe || '');
-  if (!keyPart) return;
-  const daf = `${p.tractate} ${p.page}`.trim();
-  const now = Date.now();
-  ctx.waitUntil(
-    bump<ObservedPlace>(
-      env.CACHE,
-      PLACE_PREFIX + keyPart,
-      () => ({ name: p.name ?? '', nameHe: p.nameHe ?? '', kind: p.kind, region: p.region, firstSeen: now, lastSeen: now, count: 0, dafs: [] }),
-      daf,
-    ),
-  );
+  ctx.waitUntil(putObservedPlace(env.CACHE, p));
 }
 
 export function recordObservedConcept(
@@ -179,21 +293,7 @@ export function recordObservedConcept(
   c: { term?: string; termHe?: string; gloss?: string; category?: string; tractate: string; page: string },
 ): void {
   if (!env.CACHE) return;
-  // Key on Hebrew first — Hebrew script is the stabler identity (the English
-  // label drifts: "Kohen"/"priest"/"kohanim"); fall back to English only when
-  // there's no Hebrew.
-  const keyPart = norm(c.termHe || '') || norm(c.term || '');
-  if (!keyPart) return;
-  const daf = `${c.tractate} ${c.page}`.trim();
-  const now = Date.now();
-  ctx.waitUntil(
-    bump<ObservedConcept>(
-      env.CACHE,
-      CONCEPT_PREFIX + keyPart,
-      () => ({ term: c.term ?? '', termHe: c.termHe ?? '', gloss: c.gloss ?? '', category: c.category, firstSeen: now, lastSeen: now, count: 0, dafs: [] }),
-      daf,
-    ),
-  );
+  ctx.waitUntil(putObservedConcept(env.CACHE, c));
 }
 
 export interface UnknownSummary<T> {

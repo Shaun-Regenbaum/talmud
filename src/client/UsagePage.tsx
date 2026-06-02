@@ -590,7 +590,7 @@ function RabbiCoverageRow(props: { label: string; filled: number | null; total: 
   );
 }
 
-function GlobalRepoSection(props: { stats: CacheStats; observedPlaces: number }): JSX.Element {
+function GlobalRepoSection(props: { stats: CacheStats; observedPlaces: number; observedConcepts: number }): JSX.Element {
   const r = () => props.stats.rabbis;
   const globalEnrich = () => props.stats.enrichments.filter((e) => e.scope === 'global');
   // Denominator for global enrichment coverage: rabbi.* against the dataset
@@ -629,6 +629,9 @@ function GlobalRepoSection(props: { stats: CacheStats; observedPlaces: number })
             {t('usage.globalEnrich.noGazetteer')}
           </p>
         </Show>
+        <p style={{ 'font-size': '0.78rem', color: '#777', 'margin-top': '0.4rem' }}>
+          {t('usage.globalEnrich.concepts', { count: fmtInt(props.observedConcepts) })}
+        </p>
       </div>
     </>
   );
@@ -636,7 +639,12 @@ function GlobalRepoSection(props: { stats: CacheStats; observedPlaces: number })
 
 // ---- Needs-enrichment backlog -------------------------------------------
 function BacklogSection(props: { rabbis: UnknownSummary<UnknownRabbi>; places: UnknownSummary<ObservedPlace>; concepts: UnknownSummary<ObservedConcept> }): JSX.Element {
+  const combinedTotal = () => props.rabbis.total + props.places.total + props.concepts.total;
   return (
+    <>
+    <p style={{ 'font-size': '0.82rem', color: '#555', margin: '0 0 0.7rem' }}>
+      {t('usage.backlog.combined', { count: fmtInt(combinedTotal()) })}
+    </p>
     <div style={{ display: 'flex', gap: '1.5rem', 'flex-wrap': 'wrap' }}>
         <div style={{ flex: '1 1 320px', 'min-width': '300px' }}>
           <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.3rem' }}>
@@ -731,6 +739,7 @@ function BacklogSection(props: { rabbis: UnknownSummary<UnknownRabbi>; places: U
           </Show>
         </div>
     </div>
+    </>
   );
 }
 
@@ -1011,7 +1020,7 @@ export function UsagePage(): JSX.Element {
               <PipelineSection stats={cs()} />
             </CollapsibleSection>
             <CollapsibleSection id="globalRepo" title={t('usage.globalRepo.title')} hint={t('usage.globalRepo.hint')}>
-              <GlobalRepoSection stats={cs()} observedPlaces={data()?.unknowns.places.total ?? 0} />
+              <GlobalRepoSection stats={cs()} observedPlaces={data()?.unknowns.places.total ?? 0} observedConcepts={data()?.unknowns.concepts.total ?? 0} />
             </CollapsibleSection>
           </>
         )}

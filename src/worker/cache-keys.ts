@@ -29,7 +29,10 @@ export type AnyMarkDefinition = SchemaMarkDefinition | KvMarkDefinition;
 export type AnyEnrichmentDefinition = SchemaEnrichmentDefinition | KvEnrichmentDefinition;
 
 const TRACTATE_PAGE_RE = /[^a-zA-Z0-9.-]/g;
-function slugDaf(tractate: string, page: string): string {
+/** The `{tractate}:{page}` slug that terminates local mark/enrichment keys.
+ *  Exported so the cache backfill can build the exact inverse map
+ *  (slug -> display daf) byte-for-byte rather than re-deriving the transform. */
+export function slugDaf(tractate: string, page: string): string {
   return `${tractate.toLowerCase().replace(TRACTATE_PAGE_RE, '_')}:${page.toLowerCase().replace(TRACTATE_PAGE_RE, '_')}`;
 }
 

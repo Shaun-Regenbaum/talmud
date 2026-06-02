@@ -39,6 +39,7 @@ import {
   sefariaWarmProgressProcessed,
   type EmailBinding,
 } from './warm-cron';
+import { runBacklogBackfill } from './backfill-backlog';
 import {
   computeCacheStats,
   readCachedCacheStats,
@@ -7363,7 +7364,15 @@ export default {
     if (controller.cron === YOMI_WARM_CRON) {
       ctx.waitUntil(runYomiWarmCron(wrapped));
     } else {
-      ctx.waitUntil(runWarmCron(wrapped));
+      // When a backlog backfill is enabled (KV flag `backfill-backlog:state`),
+      // run it INSTEAD of the warm cron this tick so it gets the full
+      // per-invocation subrequest budget; warm resumes once the backfill
+      // deletes its state key. The check is a single cache.get, so it adds
+      // ~nothing when disabled (the common case).
+      ctx.waitUntil(
+        runBacklogBackfill(wrapped, (n, nHe, g) => enrichRabbi(n, nHe, g as GenerationId))
+          .then((r) => (r ? undefined : runWarmCron(wrapped))),
+      );
     }
   },
   // Queue consumer — wrangler.toml binds queue=enrichment-jobs to this
