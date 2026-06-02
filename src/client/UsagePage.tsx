@@ -136,6 +136,17 @@ interface ObservedPlace {
   dafs: string[];
 }
 
+interface ObservedConcept {
+  term: string;
+  termHe: string;
+  gloss: string;
+  category?: string;
+  firstSeen: number;
+  lastSeen: number;
+  count: number;
+  dafs: string[];
+}
+
 interface UnknownSummary<T> {
   total: number;
   sightings: number;
@@ -158,6 +169,7 @@ interface UsagePayload {
   unknowns: {
     rabbis: UnknownSummary<UnknownRabbi>;
     places: UnknownSummary<ObservedPlace>;
+    concepts: UnknownSummary<ObservedConcept>;
   };
   jobErrors: JobError[];
   lintFailures: LintFailuresSummary;
@@ -623,7 +635,7 @@ function GlobalRepoSection(props: { stats: CacheStats; observedPlaces: number })
 }
 
 // ---- Needs-enrichment backlog -------------------------------------------
-function BacklogSection(props: { rabbis: UnknownSummary<UnknownRabbi>; places: UnknownSummary<ObservedPlace> }): JSX.Element {
+function BacklogSection(props: { rabbis: UnknownSummary<UnknownRabbi>; places: UnknownSummary<ObservedPlace>; concepts: UnknownSummary<ObservedConcept> }): JSX.Element {
   return (
     <div style={{ display: 'flex', gap: '1.5rem', 'flex-wrap': 'wrap' }}>
         <div style={{ flex: '1 1 320px', 'min-width': '300px' }}>
@@ -680,6 +692,37 @@ function BacklogSection(props: { rabbis: UnknownSummary<UnknownRabbi>; places: U
                       </td>
                       <td style={{ padding: '0.35rem 0.5rem', 'font-size': '0.78rem', color: '#777' }}>{p.kind ?? '—'}{p.region ? ` · ${p.region}` : ''}</td>
                       <td style={{ padding: '0.35rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>{p.count}</td>
+                    </tr>
+                  )}
+                </For>
+              </tbody>
+            </table>
+          </Show>
+        </div>
+
+        <div style={{ flex: '1 1 320px', 'min-width': '300px' }}>
+          <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.3rem' }}>
+            {t('usage.backlog.concepts.title')} <span style={{ color: '#888', 'font-weight': 'normal' }}>{t('usage.backlog.concepts.distinct', { count: fmtInt(props.concepts.total) })}</span>
+          </h3>
+          <Show when={props.concepts.sample.length > 0} fallback={<p style={{ color: '#888', 'font-size': '0.82rem' }}>{t('usage.backlog.concepts.empty')}</p>}>
+            <table style={tableStyle}>
+              <thead>
+                <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
+                  <th style={thStyle}>{t('usage.col.term')}</th>
+                  <th style={thStyle}>{t('usage.col.category')}</th>
+                  <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.seen')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={props.concepts.sample}>
+                  {(c) => (
+                    <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+                      <td style={{ padding: '0.35rem 0.5rem' }}>
+                        {c.termHe || c.term}
+                        <Show when={c.termHe && c.term}><span style={{ color: '#999', 'font-size': '0.75rem', 'margin-left': '0.4rem' }}>{c.term}</span></Show>
+                      </td>
+                      <td style={{ padding: '0.35rem 0.5rem', 'font-size': '0.78rem', color: '#777' }}>{c.category ?? '—'}</td>
+                      <td style={{ padding: '0.35rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>{c.count}</td>
                     </tr>
                   )}
                 </For>
@@ -977,7 +1020,7 @@ export function UsagePage(): JSX.Element {
       <Show when={data()}>
         {(d) => (
           <CollapsibleSection id="backlog" title={t('usage.backlog.title')} hint={t('usage.backlog.hint')}>
-            <BacklogSection rabbis={d().unknowns.rabbis} places={d().unknowns.places} />
+            <BacklogSection rabbis={d().unknowns.rabbis} places={d().unknowns.places} concepts={d().unknowns.concepts} />
           </CollapsibleSection>
         )}
       </Show>
