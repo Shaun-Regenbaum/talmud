@@ -3448,11 +3448,14 @@ CODE_ENRICHMENTS.push(
 // rishonim mark + its synthesis enrichment
 //
 // Computed extractor (no LLM): pulls per-segment commentary from the existing
-// Sefaria links fetch in the worker, filtered to a hardcoded rishonim
-// allowlist (Rashi / Tosafot family / Ramban / Rashba / Ritva / Ran / Rosh /
-// Meiri / R. Chananel / R. Yonah / Yad Ramah / Or Zarua). One mark instance
-// per segment that has at least one rishon, with the per-rishon text
-// payloads attached for downstream synthesis.
+// Sefaria links fetch in the worker, filtered to the rishonim allowlist
+// (RISHONIM_TITLES in index.ts — Rashi / Tosafot family / R. Chananel /
+// R. Gershom / R. Yonah / Ri Migash / Ramban / Rashba / Ritva / Ran / Rosh /
+// Meiri / Rif / Yad Ramah / Or Zarua / Shita Mekubetzet / Baal HaMaor /
+// Ra'ah / Maharam / Mordechai / Maharsha — kept in step with the alignment
+// pool in sefaria/client.ts). One mark instance per segment that has at least
+// one rishon, with the per-rishon text payloads attached for downstream
+// synthesis.
 //
 // Renders as a per-segment gutter icon (left margin) — NOT inline — so dense
 // commentary doesn't clutter the daf body. Click opens the
@@ -3477,8 +3480,8 @@ CODE_MARKS.push({
   },
   dependencies: [],
   status: 'promoted',
-  def_hash: 'rishonim-v1',
-  cache_version: '1',
+  def_hash: 'rishonim-v2',
+  cache_version: '2',
   source: 'code',
   updated_at: NOW,
 });
