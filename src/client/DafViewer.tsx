@@ -692,11 +692,19 @@ export default function DafViewer(): JSX.Element {
   // concepts), so this is a cache hit, not a second generation. Failures /
   // not-yet-warm degrade to no tooltips. Keyed on the daf so it refetches on
   // navigation.
+  // Keyed on lang() too — the synthesis run is language-specific (/api/run
+  // sends lang), so a language switch must refetch the glossary, not show stale
+  // EN terms. Each fetch aborts the previous so quick daf-flipping doesn't pile
+  // stale runs onto the shared enrichment queue.
+  let bgTermsAbort: AbortController | null = null;
   const [dafBackgroundTermsRes] = createResource(
-    () => `${tractate()}/${page()}`,
+    () => `${tractate()}/${page()}/${lang()}`,
     async () => {
+      bgTermsAbort?.abort();
+      const ac = new AbortController();
+      bgTermsAbort = ac;
       try {
-        const r = await enqueueEnrichmentRun('daf-background.synthesis', tractate(), page(), { fields: {} }, 'daf-background:daf');
+        const r = await enqueueEnrichmentRun('daf-background.synthesis', tractate(), page(), { fields: {} }, 'daf-background:daf', ac.signal);
         const concepts = r.deps_resolved?.['daf-background.concepts'] as { groups?: BackgroundGroup[] } | undefined;
         const out: ConceptTerm[] = [];
         for (const g of orderBackgroundGroups(concepts?.groups)) {

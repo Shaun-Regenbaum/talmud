@@ -28,8 +28,15 @@ export interface ConceptTerm {
   category?: string;
 }
 
+/** A compiled term matcher: a regex over the term surfaces + a lowercased
+ *  surface -> term map for gloss lookup. Built once per terms array (hoisted to
+ *  the provider) rather than per prose fragment. */
+export interface ConceptMatcher { re: RegExp; bySurface: Map<string, ConceptTerm> }
+
 export interface ConceptLinkContextValue {
-  terms: Accessor<ConceptTerm[]>;
+  /** Pre-compiled matcher for this daf's terms. Null when there's nothing to
+   *  match. Memoized at the provider so prose fragments don't recompile it. */
+  matcher: Accessor<ConceptMatcher | null>;
 }
 
 const ConceptLinkContext = createContext<ConceptLinkContextValue | null>(null);
@@ -56,7 +63,7 @@ export function useConceptLinks(): ConceptLinkContextValue | null {
 export function ConceptAwareText(props: { text: string | undefined | null }): JSX.Element {
   const ctx = useConceptLinks();
   if (!ctx) return <Hebraized text={props.text} />;
-  return <ConceptText text={props.text} terms={ctx.terms()} />;
+  return <ConceptText text={props.text} matcher={ctx.matcher()} />;
 }
 
 export interface ConceptTextPart {
@@ -65,10 +72,11 @@ export interface ConceptTextPart {
   term?: ConceptTerm;
 }
 
-/** Build a whole-word, case-insensitive regex over the English term labels,
- *  longest-first so "oral law" beats "law". Returns the regex + a lowercased
- *  surface -> term map for gloss lookup. Null when there's nothing to match. */
-function buildConceptMatcher(terms: ConceptTerm[]): { re: RegExp; bySurface: Map<string, ConceptTerm> } | null {
+/** Compile a whole-word, case-insensitive matcher over the English term labels,
+ *  longest-first so "oral law" beats "law". Word boundaries are Unicode-aware
+ *  (a term may carry transliteration diacritics, e.g. "ḥerem", that ASCII `\b`
+ *  splits wrongly). Null when there's nothing to match. */
+export function buildConceptMatcher(terms: ConceptTerm[]): ConceptMatcher | null {
   const bySurface = new Map<string, ConceptTerm>();
   for (const t of terms) {
     const surface = (t.term || '').trim();
@@ -81,16 +89,21 @@ function buildConceptMatcher(terms: ConceptTerm[]): { re: RegExp; bySurface: Map
   const surfaces = [...bySurface.keys()]
     .sort((a, b) => b.length - a.length)
     .map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  return { re: new RegExp(`\\b(${surfaces.join('|')})\\b`, 'gi'), bySurface };
+  // Unicode letter/number/underscore lookarounds instead of \b: a "word" edge
+  // is "not adjacent to another letter/digit", which holds for diacritics and
+  // (later) Hebrew script too. `u` makes \p{...} valid; `i` for case-insensitive.
+  return {
+    re: new RegExp(`(?<![\\p{L}\\p{N}_])(${surfaces.join('|')})(?![\\p{L}\\p{N}_])`, 'giu'),
+    bySurface,
+  };
 }
 
-/** Split prose into plain-text and concept parts. Each matched term yields a
- *  'concept' part whose `value` is the matched text verbatim (so a linkified
- *  term is never rendered empty) and whose `term` carries the gloss. Matching
- *  is whole-word, case-insensitive, longest-first. Pure + exported for tests. */
-export function tokenizeConceptMentions(text: string, terms: ConceptTerm[]): ConceptTextPart[] {
+/** Split prose into plain-text and concept parts using a pre-compiled matcher.
+ *  Each matched term yields a 'concept' part whose `value` is the matched text
+ *  verbatim (so a linkified term is never rendered empty) and whose `term`
+ *  carries the gloss. Pure. */
+export function tokenizeWithMatcher(text: string, matcher: ConceptMatcher | null): ConceptTextPart[] {
   if (!text) return [];
-  const matcher = buildConceptMatcher(terms);
   if (!matcher) return [{ kind: 'text', value: text }];
   const { re, bySurface } = matcher;
   const out: ConceptTextPart[] = [];
@@ -105,6 +118,12 @@ export function tokenizeConceptMentions(text: string, terms: ConceptTerm[]): Con
   }
   if (lastIdx < text.length) out.push({ kind: 'text', value: text.slice(lastIdx) });
   return out;
+}
+
+/** Convenience for callers that have terms but no compiled matcher (tests).
+ *  Whole-word, case-insensitive, longest-first. Pure + exported for tests. */
+export function tokenizeConceptMentions(text: string, terms: ConceptTerm[]): ConceptTextPart[] {
+  return tokenizeWithMatcher(text, buildConceptMatcher(terms));
 }
 
 const termStyle: JSX.CSSProperties = {
@@ -166,10 +185,11 @@ function ConceptMention(props: { value: string; term: ConceptTerm }): JSX.Elemen
 }
 
 /** Render `text`, wrapping every occurrence of a known background term as a
- *  gloss-tooltip mention. Pure-ish: reads `props` inside a memo so a late daf
- *  background load re-tokenizes. */
-export function ConceptText(props: { text: string | undefined | null; terms: ConceptTerm[] }): JSX.Element {
-  const parts = createMemo(() => tokenizeConceptMentions(props.text ?? '', props.terms));
+ *  gloss-tooltip mention. Reads `props` inside a memo so a late daf background
+ *  load (new matcher) re-tokenizes. The matcher is compiled once at the
+ *  provider, so this is just a scan per fragment. */
+export function ConceptText(props: { text: string | undefined | null; matcher: ConceptMatcher | null }): JSX.Element {
+  const parts = createMemo(() => tokenizeWithMatcher(props.text ?? '', props.matcher));
   return (
     <For each={parts()}>{(p) => {
       if (p.kind === 'text' || !p.term) return <Hebraized text={p.value} />;

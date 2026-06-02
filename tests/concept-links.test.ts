@@ -47,6 +47,16 @@ describe('tokenizeConceptMentions', () => {
     expect(parts.every((p) => p.kind === 'text')).toBe(true);
   });
 
+  it('handles transliteration diacritics with Unicode word boundaries', () => {
+    const terms: ConceptTerm[] = [{ term: 'ḥerem', termHe: 'חרם', gloss: 'A ban / excommunication.' }];
+    // matches as a standalone word...
+    const hit = tokenizeConceptMentions('They declared ḥerem on him.', terms);
+    expect(hit[1]).toMatchObject({ kind: 'concept', value: 'ḥerem' });
+    // ...but not as a substring of a longer diacritic-bearing word
+    const miss = tokenizeConceptMentions('the ḥeremite stayed', terms);
+    expect(miss.every((p) => p.kind === 'text')).toBe(true);
+  });
+
   it('returns a single text part when nothing matches, and [] for empty input', () => {
     expect(tokenizeConceptMentions('nothing here', TERMS)).toEqual([{ kind: 'text', value: 'nothing here' }]);
     expect(tokenizeConceptMentions('', TERMS)).toEqual([]);
