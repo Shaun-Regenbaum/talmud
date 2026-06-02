@@ -286,6 +286,71 @@ export function keyForBridge(tractate: string, page: string): string {
   return `bridge:v1:${norm(tractate)}:${norm(page)}`;
 }
 
+// Single-site content + rabbi caches, previously hand-built in index.ts — the
+// last batch of producer keys to centralise (roadmap step 6). Shapes preserved
+// byte-for-byte (raw interpolation, no slugDaf). Several are built at MANY call
+// sites (pasuk ×2, rabbi-bio's shapes, the rabbi aggregate blobs ×6+ sites
+// each) where an inline literal could drift into a silent cold-miss.
+
+/** A Tanach verse's Hebrew, keyed by a sanitised Sefaria ref (caller replaces
+ *  any char outside [A-Za-z0-9 .:-] with '_'). */
+export function keyForPasuk(safeRef: string): string {
+  return `pasuk:v4:${safeRef}`;
+}
+
+/** The AI context-matcher's per-daf placement of a fixed item set (`itemsHash`
+ *  = hash of the item keys). */
+export function keyForCtxMatch(tractate: string, page: string, itemsHash: string): string {
+  return `ctx-match:v2:${tractate}:${page}:${itemsHash}`;
+}
+
+/** A single word's contextual translation. `ctxHash` is the caller's
+ *  surrounding-text hash, already carrying its own leading separator. */
+export function keyForTranslate(tractate: string, page: string, word: string, ctxHash: string): string {
+  return `translate:v3:${tractate}:${page}:${word}${ctxHash}`;
+}
+
+/** A hebraised English string, keyed by a content hash. */
+export function keyForHebraize(hash: string): string {
+  return `hebraize:v2:${hash}`;
+}
+
+/** A rabbi's global bio enrichment, keyed by slug alone. */
+export function keyForRabbiBioBySlug(slug: string): string {
+  return `rabbi-bio:v1:${slug}`;
+}
+
+/** A rabbi's per-daf bio synthesis. When `include` (the normalised, sorted,
+ *  comma-joined section list) is non-empty it is embedded as an `i=` segment;
+ *  an empty `include` yields the plain (tractate, page, slug) shape. */
+export function keyForRabbiBioOnDaf(tractate: string, page: string, slug: string, include = ''): string {
+  return include
+    ? `rabbi-bio:v1:i=${include}:${tractate}:${page}:${slug}`
+    : `rabbi-bio:v1:${tractate}:${page}:${slug}`;
+}
+
+// Rabbi aggregate blobs — single fixed keys (no params), compiled once by the
+// admin stages and read by the bio synthesiser. Built as raw literals at many
+// call sites (put + several gets + readGeneratedAt); centralised so a typo in
+// one can't silently miss the compiled blob.
+export function keyForRabbiGraph(): string { return 'rabbi-graph:v1'; }
+export function keyForRabbiCohort(): string { return 'rabbi-cohort:v1'; }
+export function keyForRabbiPlacesIndex(): string { return 'rabbi-places-index:v1'; }
+export function keyForRabbiAcademyRoster(): string { return 'rabbi-academy-roster:v1'; }
+
+// Rabbi-observations reverse index — one slice per (rabbi, daf), plus a
+// per-rabbi dirty marker. `dafSlug` is the caller's obsDafSlug(tractate, page).
+export function keyForRabbiObs(slug: string, dafSlug: string): string {
+  return `rabbi-obs:v1:${slug}:${dafSlug}`;
+}
+export function keyForRabbiObsDirty(slug: string): string {
+  return `rabbi-obs-dirty:v1:${slug}`;
+}
+/** Prefix for listing every daf slice of one rabbi (note the trailing ':'). */
+export function prefixForRabbiObs(slug: string): string {
+  return `rabbi-obs:v1:${slug}:`;
+}
+
 export function keyForMark(
   def: AnyMarkDefinition,
   tractate: string,
