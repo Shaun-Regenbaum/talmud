@@ -1392,12 +1392,17 @@ function HalachaPractical(props: SpecialBlockProps): JSX.Element {
               <Show when={pr().fallback}><PracticalLine heTag="בדיעבד" label={t('halacha.bedieved')} text={pr().fallback} /></Show>
             </Match>
             <Match when={pr().shape === 'taxonomy'}>
-              <div style={{ display: 'grid', 'grid-template-columns': 'auto 1fr', 'column-gap': '0.6rem', 'row-gap': '0.3rem', 'align-items': 'baseline' }}>
+              {/* Stacked case → value, NOT a 2-column grid: values can be full
+                  sentences (a side-by-side column squeezes them to one word per
+                  line in the narrow sidebar). The value sits under its case with
+                  a left accent — reads cleanly whether short (food → bracha) or
+                  a full clause. */}
+              <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.5rem' }}>
                 <For each={pr().rows}>{(row) => (
-                  <>
-                    <div style={{ 'font-size': '0.82rem', color: '#555', 'line-height': 1.4 }}><Hebraized text={row.when} capitalize /></div>
-                    <div style={{ 'font-size': '0.85rem', color: '#161616', 'font-weight': 500, 'line-height': 1.4 }}><Hebraized text={row.value} /></div>
-                  </>
+                  <div>
+                    <div style={{ 'font-size': '0.82rem', color: '#555', 'line-height': 1.4, 'margin-bottom': '0.15rem' }}><Hebraized text={row.when} capitalize /></div>
+                    <div style={{ 'font-size': '0.88rem', color: '#161616', 'font-weight': 500, 'line-height': 1.5, 'padding-left': '0.6rem', 'border-left': '2px solid #e3ddcb' }}><HebraizedWithRabbis text={row.value} /></div>
+                  </div>
                 )}</For>
               </div>
             </Match>
