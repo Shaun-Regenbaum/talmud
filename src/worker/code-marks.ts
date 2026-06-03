@@ -2700,10 +2700,12 @@ VOICE (match the rest of the app exactly):
 - Plain English is the base; Hebrew is the technical anchor — do not hebraize every common word.
 - Name rishonim/commentators in LATIN: Rashi, Tosafot, Rambam, Ramban, Rashba, Ritva, Meiri. Do NOT write their Hebrew abbreviations (no רמב"ם / רמב"ן / רשב"א): the gershayim is a straight quote that corrupts the JSON output. Same for ש"ס — write "the Talmud" or "the Bavli".
 - FORBIDDEN flourish: "lens", "captures", "embodies", "profound", "intricate", "this teaches us", "we see that", "highlights", "underscores", "to a modern ear", "reads like", "sketches a theory". No puff, no meta-commentary about what the daf "reveals".
+- NO dramatic or rhetorical CLOSERS, and NO anthropomorphizing the text. Never write lines like "the deck is stacked against X, and the gemara knows it", "make no mistake", "and that is no accident", "the tension is palpable", or "the gemara wants/knows/admits…". The text has no intentions or feelings; state what it says, or leaves unresolved, plainly. The final sentence is a plain statement of the point — not a mic-drop.
+- Write so the essay STANDS ON ITS OWN for a reader who may NOT know the speakers, the terms, or the earlier sugya, and may not have the daf open. The first time a load-bearing rabbi, term, or prior source appears, add a SHORT clause of orientation (who they are / what it means / what it established). A clause, not a paragraph — orient, then make the point.
 
 STRUCTURE (this is the whole shape):
 - "hook": ONE sentence — the teaser, specific to THIS daf, that makes a reader want to open it. Keep it tight (ideally under 25 words); do not cram the whole tidbit into it.
-- "paragraphs": THREE or FOUR paragraphs of flowing prose. The first lays out the plain reading. The next develop the turn. The last lands the point — WITHOUT any "why it matters" sign over it. No section labels, no headers. Just readable prose.
+- "paragraphs": THREE or FOUR paragraphs of flowing prose. The first orients the reader and lays out the plain reading (assume they are meeting this sugya and its figures for the first time). The next develop the turn. The last lands the point — WITHOUT any "why it matters" sign over it, and without a dramatic flourish. No section labels, no headers. Just readable prose.
 
 GROUNDING (hard):
 - Every factual claim must rest on the materials provided (the daf, its commentaries, the study context, the overview/background) or on well-established fact. Do NOT invent stories, positions, sources, manuscript variants, or a Yerushalmi/Rishon view that is not real.
@@ -2734,8 +2736,11 @@ Full daf (Gemara):
 Commentaries (Rashi / Tosafot / rishonim):
 {{commentaries}}
 
-The daf's argument sections (structure, for your orientation):
+The daf's argument sections (structure):
 {{anchors.argument}}
+
+How those sections relate (the flow graph: continues / resolves / depends-on / parallels / …):
+{{depends.argument-overview.flow}}
 
 Whole-daf orientation (what the daf is about and where it lands):
 {{depends.argument-overview.synthesis}}
@@ -2743,10 +2748,25 @@ Whole-daf orientation (what the daf is about and where it lands):
 Background concepts a reader needs going in:
 {{depends.daf-background.concepts}}
 
+Sages on this daf:
+{{anchors.rabbi}}
+
+Verses (pesukim) cited on this daf:
+{{anchors.pesukim}}
+
+Aggadic stories on this daf:
+{{anchors.aggadata}}
+
+Halachic topics on this daf:
+{{anchors.halacha}}
+
+Places on this daf:
+{{anchors.places}}
+
 Study-aid context (dafyomi.co.il Insights / Points / Halacha / Yerushalmi / Tosfos notes + Sefaria cross-references):
 {{context}}
 
-Write ONE Tidbit for this daf per the schema: the single most interesting, non-obvious thing on the page, as a hook plus three or four flowing paragraphs. Ground every claim in the materials above, and rate both confidences honestly.`;
+You now have the full picture of this daf — its text, commentaries, structure and flow, sages, verses, stories, halachic topics, places, and study aids. Use ALL of it to choose well. Write ONE Tidbit per the schema: the single most interesting, non-obvious thing on the page, as a hook plus three or four flowing paragraphs. Ground every claim in the materials above, and rate both confidences honestly.`;
 
 const TIDBIT_ESSAY_SYSTEM_PROMPT_HE = `אתה מלמד תורה חד שכותב "Tidbit" אחד לדף הזה — דבר אחד מעניין באמת שכדאי לקחת ממנו. לא סיכום, לא הרקע, ולא מתווה הטיעון. אתה בוחר את הדבר האחד הכי מעניין ולא־מובן־מאליו בדף הזה ומסביר אותו.
 
@@ -2763,10 +2783,12 @@ const TIDBIT_ESSAY_SYSTEM_PROMPT_HE = `אתה מלמד תורה חד שכותב 
 - מונחים טכניים בכתב עברי עם תרגום קצר באנגלית במידת הצורך. שמות ספרים בעברית. מראי מקום של פסוקים בעברית.
 - בראשי תיבות של ראשונים (רמב״ם, רמב״ן, רשב״א) השתמש בגרשיים העברי ״ (תו U+05F4) ולא בגרש כפול אנגלי " — גרש אנגלי משבש את פלט ה-JSON. אותו דבר לגבי ש״ס.
 - אסורה מליצה: "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק". ללא פלפול מטא על מה שהדף "מגלה".
+- ללא סיומות דרמטיות/רטוריות וללא האנשה של הטקסט. אל תכתוב "הקלפים מסודרים נגד X, והגמרא יודעת זאת", "אל תטעו", "וזה לא במקרה", "המתח מורגש", "הגמרא רוצה/יודעת/מודה…". לטקסט אין כוונות או רגשות; אמור בפשטות מה הוא אומר או משאיר ללא הכרעה. המשפט האחרון הוא אמירה פשוטה של הנקודה — לא מהלומה.
+- כתוב כך שהמאמר יעמוד בפני עצמו לקורא שאולי אינו מכיר את הדוברים, המונחים, או הסוגיה הקודמת, ואין הדף פתוח לפניו. בהופעה הראשונה של חכם/מונח/מקור נושא־משקל, הוסף משפט קצר של התמצאות (מי הוא / מה זה / מה הוא מבסס). משפט, לא פסקה — התמצא, ואז אמור את הנקודה.
 
 המבנה:
 - "hook": משפט אחד — הטיזר, ספציפי לדף הזה. קצר (פחות מ-25 מילים); אל תדחוס לתוכו את כל התובנה.
-- "paragraphs": שלוש או ארבע פסקאות של פרוזה זורמת. הראשונה — הקריאה הפשוטה. הבאות — מפתחות את התפנית. האחרונה — נוחתת על הנקודה, בלי כותרת "מדוע זה חשוב". ללא תוויות מקטעים.
+- "paragraphs": שלוש או ארבע פסקאות של פרוזה זורמת. הראשונה מתמצאת את הקורא ומציגה את הקריאה הפשוטה (הנח שהוא פוגש את הסוגיה ואת דמויותיה לראשונה). הבאות — מפתחות את התפנית. האחרונה — נוחתת על הנקודה, בלי כותרת "מדוע זה חשוב" ובלי סיומת דרמטית. ללא תוויות מקטעים.
 
 ביסוס (קשיח):
 - כל טענה עובדתית חייבת להישען על החומר שסופק או על עובדה מבוססת. אל תמציא סיפורים, עמדות, מקורות, גרסאות, או דעת ירושלמי/ראשון שאינה אמיתית.
@@ -2797,8 +2819,11 @@ const TIDBIT_ESSAY_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 מפרשים (רש"י / תוספות / ראשונים):
 {{commentaries}}
 
-מקטעי הטיעון בדף (מבנה, לכיוונך):
+מקטעי הטיעון בדף (מבנה):
 {{anchors.argument}}
+
+כיצד המקטעים קשורים (גרף הזרימה: ממשיך / מיישב / תלוי / מקביל / …):
+{{depends.argument-overview.flow}}
 
 כיוון כללי לדף (על מה הדף ולאן הוא מגיע):
 {{depends.argument-overview.synthesis}}
@@ -2806,10 +2831,25 @@ const TIDBIT_ESSAY_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 מושגי רקע שהקורא צריך:
 {{depends.daf-background.concepts}}
 
+חכמים בדף זה:
+{{anchors.rabbi}}
+
+פסוקים המצוטטים בדף זה:
+{{anchors.pesukim}}
+
+אגדות בדף זה:
+{{anchors.aggadata}}
+
+נושאי הלכה בדף זה:
+{{anchors.halacha}}
+
+מקומות בדף זה:
+{{anchors.places}}
+
 תוכן לימוד נלווה (dafyomi.co.il — תובנות / נקודות / הלכה / ירושלמי / תוספות + הפניות ספריא):
 {{context}}
 
-כתוב Tidbit אחד לדף הזה לפי הסכימה: הדבר האחד הכי מעניין ולא־מובן־מאליו בדף, כטיזר ושלוש או ארבע פסקאות זורמות. בסס כל טענה בחומר שלמעלה, ודרג את שני מדדי הביטחון בכנות.`;
+כעת יש לך תמונה מלאה של הדף — הטקסט, המפרשים, המבנה והזרימה, החכמים, הפסוקים, האגדות, נושאי ההלכה, המקומות, ותוכן הלימוד. השתמש בכל זה כדי לבחור היטב. כתוב Tidbit אחד לפי הסכימה: הדבר האחד הכי מעניין ולא־מובן־מאליו בדף, כטיזר ושלוש או ארבע פסקאות זורמות. בסס כל טענה בחומר שלמעלה, ודרג את שני מדדי הביטחון בכנות.`;
 
 CODE_ENRICHMENTS.push(
   makeEnrichment(
@@ -2818,18 +2858,30 @@ CODE_ENRICHMENTS.push(
     TIDBIT_ESSAY_SYSTEM_PROMPT, TIDBIT_ESSAY_USER_TEMPLATE, TIDBIT_ESSAY_OUTPUT_SCHEMA,
     {
       mode: 'aggregate', scope: 'local',
-      // A generous context bundle so the model truly understands the daf before
-      // choosing: full text + Rashi/Tosafot + the argument structure + the
-      // whole-daf orientation + the background concepts + dafyomi study aids.
+      // The WHOLE daf, fully understood, before choosing. This deliberately
+      // depends on nearly everything the app extracts/enriches for the daf so
+      // the tidbit (a) has the richest possible picture and (b) is computed
+      // LAST: dependency resolution runs (or cache-reads) every one of these
+      // before the tidbit LLM call, so the essay is never generated ahead of the
+      // material it should be drawing on. Full text + Rashi/Tosafot + study aids
+      // + the argument structure & flow + the whole-daf orientation + the
+      // background concepts + every anchored layer (sages, verses, stories,
+      // halacha topics, places).
       dependencies: [
         'gemara',
         'commentaries',
         'context',
         { mark: 'argument' },
+        { mark: 'rabbi' },
+        { mark: 'pesukim' },
+        { mark: 'aggadata' },
+        { mark: 'halacha' },
+        { mark: 'places' },
+        { enrichment: 'argument-overview.flow' },
         { enrichment: 'argument-overview.synthesis' },
         { enrichment: 'daf-background.concepts' },
       ],
-      defHash: 'tidbit.essay-v1', cacheVersion: '2', // v2: Latin rishonim names (gershayim broke JSON) + tighter hook
+      defHash: 'tidbit.essay-v1', cacheVersion: '3', // v3: no dramatic closers + more orientation; full-daf context bundle (all marks + flow); generated last
       // Pro model: finding the non-obvious reading needs the stronger model.
       // Thinking stays OFF (no reasoningEffort) — the context bundle is large,
       // like daf-background.concepts, and a thinking pass on top risks the
