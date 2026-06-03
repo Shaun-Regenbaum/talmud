@@ -1190,14 +1190,21 @@ function TidbitEssayView(parsed: Record<string, unknown>): JSX.Element {
         </p>
       )}</For>
       <Show when={sources.length > 0}>
-        <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.35rem', 'margin-top': '0.75rem' }}>
-          <For each={sources}>{(s) => (
-            <span title={str(s.note)} style={{
-              'font-size': '0.7rem', 'font-family': 'ui-monospace, monospace',
-              background: '#f1ece0', border: '1px solid #e0d4ba', 'border-radius': '5px',
-              padding: '0.1rem 0.45rem', color: '#574e45',
-            }}>{str(s.ref)}</span>
-          )}</For>
+        <div style={{ 'margin-top': '0.9rem' }}>
+          <div style={{
+            'font-size': '0.62rem', 'letter-spacing': '0.1em', 'text-transform': 'uppercase',
+            color: '#a99c83', 'margin-bottom': '0.4rem',
+          }}>{t('tidbit.sources')}</div>
+          <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.3rem 0.4rem', 'align-items': 'baseline' }}>
+            <For each={sources}>{(s) => (
+              <span title={str(s.note)} style={{
+                'font-size': '0.72rem', color: '#6b6256',
+                'border-bottom': '1px dotted #c9bb9e', cursor: 'default',
+                'white-space': 'nowrap', 'max-width': '100%',
+                overflow: 'hidden', 'text-overflow': 'ellipsis',
+              }}>{str(s.ref)}</span>
+            )}</For>
+          </div>
         </div>
       </Show>
       <Show when={textConf || readingConf}>
