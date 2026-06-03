@@ -18,7 +18,7 @@ exports[`CODE_ENRICHMENTS cache identity > per-enrichment fingerprint is stable 
   "argument.narrative@3 mode=augment-content scope=local mark=argument schema=argument_narrative[summary,actors,beats] deps=[gemara|m:argument-move|m:rabbi]",
   "argument.synthesis@12 mode=aggregate scope=local mark=argument schema=argument_synthesis[synthesis] deps=[gemara|commentaries|mishna|e:argument.voices|e:argument.background|m:rabbi|m:argument-move|e:daf-background.concepts]",
   "argument.voices@6 mode=augment-content scope=local mark=argument schema=argument_voices[voices,edges] deps=[gemara|m:argument-move|m:rabbi]",
-  "biyun.essay@2 mode=aggregate scope=local mark=biyun schema=biyun_essay[hook,paragraphs,sources,textConfidence,readingConfidence] deps=[gemara|commentaries|context|m:argument|m:rishonim|m:pesukim|e:argument-overview.synthesis|e:daf-background.concepts|e*:rishonim.synthesis|e*:argument.synthesis|e*:pesukim.synthesis|e*:halacha.synthesis]",
+  "biyun.essay@3 mode=aggregate scope=local mark=biyun schema=biyun_essay[hook,paragraphs,sources,textConfidence,readingConfidence] deps=[gemara|commentaries|context|m:argument|m:rishonim|m:pesukim|e:argument-overview.synthesis|e:daf-background.concepts|e*:rishonim.synthesis|e*:argument.synthesis|e*:pesukim.synthesis|e*:halacha.synthesis]",
   "daf-background.concepts@5 mode=augment-content scope=local mark=daf-background schema=daf_background_concepts[groups] deps=[gemara|context|m:argument]",
   "daf-background.synthesis@6 mode=aggregate scope=local mark=daf-background schema=daf_background_synthesis[synthesis] deps=[gemara|context|e:daf-background.concepts]",
   "halacha.codification@4 mode=augment-content scope=local mark=halacha schema=halacha_codification[mishnehTorah,tur,shulchanAruch,rema,prose] deps=[gemara|halacha-refs]",
@@ -48,6 +48,6 @@ exports[`CODE_ENRICHMENTS cache identity > per-enrichment fingerprint is stable 
   "rabbi.relationships@6 mode=augment-content scope=global mark=rabbi schema=rabbi_relationships[teachers,students,debatePartners,family,prose] deps=[]",
   "rabbi.synthesis@12 mode=aggregate scope=local mark=rabbi schema=rabbi_synthesis[synthesis] deps=[gemara|e:rabbi.bio|e:rabbi.philosophy|e:rabbi.relationships|e:rabbi.classification|e:rabbi.geography|e:rabbi.relationships.evidence|e:rabbi.geography.evidence|e:rabbi.location|e:rabbi.identity|m:rabbi|e:daf-background.concepts]",
   "rishonim.synthesis@4 mode=aggregate scope=local mark=rishonim schema=rishonim_synthesis[synthesis] deps=[gemara|m:rishonim]",
-  "tidbit.essay@10 mode=aggregate scope=local mark=tidbit schema=tidbit_essay[flavor,hook,paragraphs,sources,textConfidence,readingConfidence] deps=[gemara|context|m:argument|m:rabbi|m:pesukim|m:aggadata|m:halacha|m:places|e:argument-overview.synthesis|e:daf-background.concepts]",
+  "tidbit.essay@11 mode=aggregate scope=local mark=tidbit schema=tidbit_essay[flavor,hook,paragraphs,sources,textConfidence,readingConfidence] deps=[gemara|context|m:argument|m:rabbi|m:pesukim|m:aggadata|m:halacha|m:places|e:argument-overview.synthesis|e:daf-background.concepts]",
 ]
 `;

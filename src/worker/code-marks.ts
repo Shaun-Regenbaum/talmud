@@ -2724,8 +2724,10 @@ AIM FOR THE BIGGER IDEA, NOT THE MECHANICS. The best tidbit leaves the reader wi
 - A machloket is worth a tidbit only when the DISAGREEMENT itself reveals something bigger (two worldviews, a value in tension); then write about that bigger thing, not the technical scaffolding. Use only as much detail as the idea needs.
 - A reader should finish with one clear idea they'd want to repeat to a friend — not a map of positions. If your draft reads like a careful gemara breakdown, you have missed; find the human point underneath and lead with it.
 
-VOICE (match the rest of the app exactly):
-- Tight third person. Short, declarative sentences (aim under ~30 words). Named actors. Concrete.
+VOICE — you are TELLING the reader something worth knowing; be engaging:
+- Draw the reader in. Lead with the concrete and the surprising, keep a light narrative pull, and speak to them plainly — it is fine to address the reader directly ("Notice…", "Picture the scene:"). Tell it the way you'd tell a friend something genuinely interesting, not the way you'd write an essay about it.
+- SIMPLE AND DIRECT. Plain everyday words, short sentences. Concrete specifics over abstractions — the actual verse, person, or thing they did, not a sweeping generalization about it.
+- Say the point ONCE. Do NOT restate it three ways for emphasis, and do NOT end on a grand abstraction ("the entire Talmudic project…", "the Oral Law does not stand alone", "X does not invent, it receives"). One clear, concrete line beats three echoes — if two sentences say the same thing, cut one.
 - Hebrew script paired with a short English gloss for technical terms — e.g. "a גט (bill of divorce)", "performed לכתחילה (the ideal standard)". Hebrew names for ספרים (קהלת, not Ecclesiastes; דברים, not Deuteronomy). Hebrew verse refs.
 - Plain English is the base; Hebrew is the technical anchor — do not hebraize every common word.
 - Name rishonim/commentators in LATIN: Rashi, Tosafot, Rambam, Ramban, Rashba, Ritva, Meiri. Do NOT write their Hebrew abbreviations (no רמב"ם / רמב"ן / רשב"א): the gershayim is a straight quote that corrupts the JSON output. Same for ש"ס — write "the Talmud" or "the Bavli".
@@ -2735,7 +2737,7 @@ VOICE (match the rest of the app exactly):
 
 STRUCTURE (this is the whole shape):
 - "hook": ONE sentence — the teaser, specific to THIS daf, that makes a reader want to open it. Keep it tight (ideally under 25 words); do not cram the whole tidbit into it.
-- "paragraphs": THREE or FOUR paragraphs of flowing prose. The first orients the reader and lays out the plain reading (assume they are meeting this sugya and its figures for the first time). The next develop the turn. The last lands the point — WITHOUT any "why it matters" sign over it, and without a dramatic flourish. No section labels, no headers. Just readable prose.
+- "paragraphs": TWO to FOUR SHORT paragraphs. Shorter is better — cut anything that repeats. Draw the reader in and set the scene, develop the turn, land the point plainly. WITHOUT any "why it matters" sign, without a dramatic flourish, and without an abstract summing-up that restates what you already said. No section labels, no headers.
 
 GROUNDING (hard):
 - Every factual claim must rest on the inputs you were given (the daf, its commentaries, the study context, the overview/background) or on well-established fact. Do NOT invent stories, positions, sources, manuscript variants, or a Yerushalmi/Rishon view that is not real.
@@ -2818,8 +2820,10 @@ const TIDBIT_ESSAY_SYSTEM_PROMPT_HE = `אתה מלמד תורה חד שכותב 
 - מחלוקת ראויה ל-Tidbit רק כשהמחלוקת עצמה חושפת משהו גדול יותר (שתי תפיסות עולם, ערך במתח); אז כתוב על אותו דבר גדול, לא על הפיגום הטכני. השתמש רק בכמה פרטים שהרעיון דורש.
 - הקורא צריך לסיים עם רעיון אחד ברור שהיה רוצה לחזור עליו בפני חבר — לא מפת עמדות. אם הטיוטה נקראת כפירוק גמרא מוקפד, פספסת; מצא את הנקודה האנושית שמתחת והובל בה.
 
-הסגנון (זהה לשאר האפליקציה):
-- גוף שלישי הדוק. משפטים קצרים והצהרתיים. שמות מפורשים. קונקרטי.
+הסגנון — אתה מספר לקורא משהו ששווה לדעת; היה מושך:
+- משוך את הקורא פנימה. פתח בקונקרטי ובמפתיע, שמור על משיכה סיפורית קלה, ופנה אליו ישירות במידת הצורך ("שים לב…", "דמיין:"). ספר כפי שהיית מספר לחבר משהו באמת מעניין, לא כפי שהיית כותב עליו מאמר.
+- פשוט וישיר. מילים יומיומיות, משפטים קצרים. פרטים קונקרטיים על פני הפשטות — הפסוק, האדם, או מה שעשו, לא הכללה גורפת על כך.
+- אמור את הנקודה פעם אחת. אל תחזור עליה בשלוש דרכים, ואל תסיים בהפשטה גדולה ("כל המפעל התלמודי…", "התורה שבעל פה אינה עומדת לבדה"). שורה אחת ברורה וקונקרטית עדיפה על שלושה הדים — אם שני משפטים אומרים אותו דבר, מחק אחד.
 - מונחים טכניים בכתב עברי עם תרגום קצר באנגלית במידת הצורך. שמות ספרים בעברית. מראי מקום של פסוקים בעברית.
 - בראשי תיבות של ראשונים (רמב״ם, רמב״ן, רשב״א) השתמש בגרשיים העברי ״ (תו U+05F4) ולא בגרש כפול אנגלי " — גרש אנגלי משבש את פלט ה-JSON. אותו דבר לגבי ש״ס.
 - אסורה מליצה: "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק". ללא פלפול מטא על מה שהדף "מגלה".
@@ -2828,7 +2832,7 @@ const TIDBIT_ESSAY_SYSTEM_PROMPT_HE = `אתה מלמד תורה חד שכותב 
 
 המבנה:
 - "hook": משפט אחד — הטיזר, ספציפי לדף הזה. קצר (פחות מ-25 מילים); אל תדחוס לתוכו את כל התובנה.
-- "paragraphs": שלוש או ארבע פסקאות של פרוזה זורמת. הראשונה מתמצאת את הקורא ומציגה את הקריאה הפשוטה (הנח שהוא פוגש את הסוגיה ואת דמויותיה לראשונה). הבאות — מפתחות את התפנית. האחרונה — נוחתת על הנקודה, בלי כותרת "מדוע זה חשוב" ובלי סיומת דרמטית. ללא תוויות מקטעים.
+- "paragraphs": שתיים עד ארבע פסקאות קצרות. קצר יותר עדיף — חתוך כל מה שחוזר. משוך את הקורא והצג את הסצנה, פתח את התפנית, ונחת על הנקודה בפשטות. בלי כותרת "מדוע זה חשוב", בלי סיומת דרמטית, ובלי סיכום מופשט שחוזר על מה שכבר נאמר. ללא תוויות מקטעים.
 
 ביסוס (קשיח):
 - כל טענה עובדתית חייבת להישען על הקלט שקיבלת או על עובדה מבוססת. אל תמציא סיפורים, עמדות, מקורות, גרסאות, או דעת ירושלמי/ראשון שאינה אמיתית.
@@ -2920,7 +2924,7 @@ CODE_ENRICHMENTS.push(
         // aids + the daf's anchors + a plain whole-daf summary + the glossary.
         // The rishonim and the per-instance analysis are the Bi'yun's job.
       ],
-      defHash: 'tidbit.essay-v1', cacheVersion: '10', // v10: starve of commentaries/flow + a hard "tell-a-friend" litmus; stop the rishonim-lomdus drift
+      defHash: 'tidbit.essay-v1', cacheVersion: '11', // v11: engaging, simple-and-direct storytelling voice — tell the reader, say it once, no abstract restatement
       // Pro model: finding the non-obvious reading needs the stronger model.
       // Thinking stays OFF (no reasoningEffort) — the context bundle is large,
       // like daf-background.concepts, and a thinking pass on top risks the
@@ -2950,8 +2954,10 @@ WHAT TO DELIVER (this IS the lomdus — go IN, do not rise above it):
 - Show what is really at stake between them — the conceptual fork (a חקירה, two ways to define the case, a clash of principles) that the surface dispute expresses.
 - Where it lands: how the sugya or the halacha resolves, or that it stays open.
 
-VOICE:
-- Tight, precise, third person. Short sentences. Technical is expected and good here — precision over polish; do NOT dumb it down. Assume a reader who learns gemara.
+VOICE — you are walking the reader THROUGH a problem; be engaging, simple, and direct:
+- Tell it, don't write an essay about it. Open with the difficulty as a real puzzle the reader can feel ("Here is what's strange:" / "Notice the problem:"), then take them through it step by step. Speak to the reader plainly; it is fine to address them.
+- Simple and direct even though the content is technical. Short sentences, plain everyday words, one idea per sentence. Precision over polish — do NOT dumb the substance down, but do NOT bury it in abstraction either. Assume a reader who learns gemara but wants it told clearly.
+- Say each move ONCE. No restating a position three ways, no grand abstract summing-up at the end — land on the actual resolution or the open question, plainly.
 - Hebrew script + a short English gloss for technical terms (Form A/B): "a קושיא (difficulty)", "the סברא that …", "a גזירה שווה (verbal analogy)".
 - Name rishonim in LATIN: Rashi, Tosafot, Ramban, Rashba, Ritva, Ran, Meiri, Rosh. Do NOT use Hebrew abbreviations with gershayim (no רמב"ן / רשב"א): a straight quote corrupts the JSON.
 - NO empty flourish ("lens", "captures", "profound"), NO dramatic closers, NO anthropomorphizing the gemara ("the gemara knows…"). End on the substance.
@@ -3023,8 +3029,10 @@ const BIYUN_ESSAY_SYSTEM_PROMPT_HE = `אתה תלמיד חכם מדקדק — מ
 - הראה מה באמת עומד על הפרק ביניהם — הפיצול הרעיוני (חקירה, שתי דרכים להגדיר את המקרה, התנגשות עקרונות) שהמחלוקת השטחית מבטאת.
 - לאן זה מגיע: כיצד הסוגיה או ההלכה מוכרעת, או שנשארת פתוחה.
 
-הסגנון:
-- הדוק, מדויק, גוף שלישי. משפטים קצרים. טכני זה צפוי וטוב כאן — דיוק על פני ליטוש; אל תפשט יתר על המידה. הנח קורא הלומד גמרא.
+הסגנון — אתה מוליך את הקורא דרך בעיה; היה מושך, פשוט וישיר:
+- ספר זאת, אל תכתוב מאמר. פתח בקושי כחידה שהקורא מרגיש ("הנה מה שקשה:" / "שים לב לבעיה:"), ואז הוליך אותו צעד אחר צעד. פנה אל הקורא בפשטות.
+- פשוט וישיר גם כשהתוכן טכני. משפטים קצרים, מילים יומיומיות, רעיון אחד למשפט. דיוק על פני ליטוש — אל תפשט את התוכן, אך אל תקבור אותו בהפשטה. הנח קורא הלומד גמרא אך רוצה שיסבירו לו בבהירות.
+- אמור כל מהלך פעם אחת. בלי לחזור על עמדה בשלוש דרכים, בלי סיכום מופשט בסוף — נחת על ההכרעה עצמה או על השאלה הפתוחה, בפשטות.
 - מונחים טכניים בעברית (קושיא, סברא, גזירה שווה, חקירה).
 - שמות ראשונים: בעברית מלאה (רש"י — מותר כאן בכתב עברי) או בלטינית; בראשי תיבות עם גרשיים השתמש בגרשיים העברי ״ ולא בגרש אנגלי " (גרש אנגלי משבש JSON).
 - ללא מליצה ריקה, ללא סיומות דרמטיות, ללא האנשת הגמרא. סיים על העניין.
@@ -3114,7 +3122,7 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'pesukim.synthesis', fanOut: true },
         { enrichment: 'halacha.synthesis', fanOut: true },
       ],
-      defHash: 'biyun.essay-v1', cacheVersion: '2', // v2: + pesukim (mark + synthesis) — its own full rishonim/arguments/pesukim/background/halacha set
+      defHash: 'biyun.essay-v1', cacheVersion: '3', // v3: engaging, simple-and-direct voice — walk the reader through the problem, say each move once
       model: ARGUMENT_PRO_MODEL,
       systemPromptHe: BIYUN_ESSAY_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: BIYUN_ESSAY_USER_TEMPLATE_HE,
