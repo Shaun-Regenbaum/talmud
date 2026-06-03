@@ -10,7 +10,7 @@
  * handler enforces single-open by setting a module-level signal).
  */
 
-import { For, Show, type JSX } from 'solid-js';
+import { For, Show, createSignal, type JSX } from 'solid-js';
 
 interface EnrichmentDef {
   id: string;
@@ -68,6 +68,9 @@ export default function InstanceInspectorShelf(props: Props) {
     props.currentRun.kind === 'ok' ? props.currentRun.result : null;
   const errorMsg = (): string | null =>
     props.currentRun.kind === 'error' ? props.currentRun.error : null;
+
+  // Which source chip's text is expanded (one at a time, like a tab strip).
+  const [openSource, setOpenSource] = createSignal<string | null>(null);
 
   // Compact one-line telemetry — everything tied to this single run, so it
   // sits with the generation instead of behind a separate tab. On a cache
@@ -179,30 +182,6 @@ export default function InstanceInspectorShelf(props: Props) {
           </details>
         )}</Show>
 
-        {/* source TEXTS fed into the prompt — the daf gemara, commentaries,
-            mishna, halacha refs, Yerushalmi, and aggregated external context
-            that grounded this generation. Fetched on demand (/api/run-sources)
-            so the reader hot path never carries them. Collapsed; each source
-            nested so a large context blob doesn't flood the drawer. The full
-            text went to the LLM; content here is a length-capped preview. */}
-        <Show when={props.sources && Object.keys(props.sources).length > 0 ? props.sources : null}>{(sources) => (
-          <details style={{ 'margin-bottom': '0.5rem' }}>
-            <summary style={{ color: '#666', cursor: 'pointer', 'font-size': '0.78rem' }}>
-              {`sources (texts) — ${Object.keys(sources()).join(', ')}`}
-            </summary>
-            <For each={Object.entries(sources())}>{([name, src]) => (
-              <details style={{ 'margin-top': '0.35rem' }}>
-                <summary style={{ color: '#777', cursor: 'pointer', 'font-size': '0.74rem' }}>
-                  {`${name} · ${src.chars.toLocaleString()} chars`}
-                </summary>
-                <pre style={{ 'white-space': 'pre-wrap', 'font-family': 'ui-monospace, Menlo, monospace', 'font-size': '12px', margin: '0.3rem 0 0', background: '#f8f8f8', padding: '0.6rem', 'border-radius': '3px', 'max-height': '40vh', 'overflow-y': 'auto' }}>
-                  {src.content}
-                </pre>
-              </details>
-            )}</For>
-          </details>
-        )}</Show>
-
         <Show when={props.depBadges.length > 0}>
           <div style={{
             display: 'flex', gap: '0.3rem', 'align-items': 'center',
@@ -226,6 +205,42 @@ export default function InstanceInspectorShelf(props: Props) {
             )}</For>
           </div>
         </Show>
+
+        {/* source TEXTS that grounded this generation — the daf gemara,
+            commentaries, mishna, halacha refs, Yerushalmi, and aggregated
+            external context (gathered transitively through the dep tree).
+            Styled like "built from": a chip per source; click one to read its
+            text (length-capped preview; the full text went to the LLM). Fetched
+            on demand (/api/run-sources) so the reader hot path never carries it. */}
+        <Show when={props.sources && Object.keys(props.sources).length > 0 ? props.sources : null}>{(sources) => (
+          <div style={{ 'margin-bottom': '0.6rem' }}>
+            <div style={{
+              display: 'flex', gap: '0.3rem', 'align-items': 'center', 'flex-wrap': 'wrap',
+            }}>
+              <span style={{ 'font-size': '0.7rem', color: '#888' }}>sources</span>
+              <For each={Object.entries(sources())}>{([name, src]) => (
+                <button
+                  onClick={() => setOpenSource(openSource() === name ? null : name)}
+                  title={`${src.chars.toLocaleString()} chars`}
+                  style={{
+                    padding: '2px 9px', 'font-size': '0.72rem', cursor: 'pointer',
+                    background: openSource() === name ? '#000' : '#f0f0f0',
+                    color: openSource() === name ? '#fff' : '#444',
+                    border: '1px solid #ddd', 'border-radius': '10px',
+                    'font-family': 'inherit',
+                  }}
+                >
+                  {name}
+                </button>
+              )}</For>
+            </div>
+            <Show when={openSource() && sources()[openSource()!] ? sources()[openSource()!] : null}>{(src) => (
+              <pre style={{ 'white-space': 'pre-wrap', 'font-family': 'ui-monospace, Menlo, monospace', 'font-size': '12px', margin: '0.4rem 0 0', background: '#f8f8f8', padding: '0.6rem', 'border-radius': '3px', 'max-height': '40vh', 'overflow-y': 'auto' }}>
+                {src().content}
+              </pre>
+            )}</Show>
+          </div>
+        )}</Show>
 
         {/* prompt sent to the model — collapsed by default */}
         <Show when={result()?.resolved}>{(resolved) => (

@@ -1488,11 +1488,13 @@ async function resolveDependencies(
   markInput: unknown,
   bypassCache: boolean,
   parentChain: ReadonlySet<string>,
-  /** When true, resolve ONLY the deterministic source-text deps (gemara /
+  /** When true, resolve ONLY the deterministic source TEXTS (gemara /
    *  commentaries / mishna / halacha-refs / yerushalmi-text / context — all
-   *  cached KV reads, no LLM) and skip the `{enrichment}` / `{mark}` deps that
-   *  would trigger generation. Used by the read-only /api/run-sources inspector
-   *  endpoint so opening the dev inspector never re-runs a model. */
+   *  cached KV reads, no LLM). Instead of RUNNING the `{enrichment}` / `{mark}`
+   *  deps (which would generate), it recurses into them to gather their
+   *  transitive source closure — so an aggregate surfaces every text feeding its
+   *  whole tree. Used by the read-only /api/run-sources inspector endpoint, so
+   *  opening the dev inspector never re-runs a model. */
   sourcesOnly = false,
 ): Promise<ResolvedInputs> {
   const out: ResolvedInputs = { vars: {}, depends: {}, anchors: {}, sources: {} };
@@ -1585,9 +1587,29 @@ async function resolveDependencies(
       return;
     }
     if (typeof dep === 'object' && dep !== null) {
-      // Inspector source-only pass: skip enrichment/mark deps (they'd trigger
-      // generation); we only want the source TEXTS this producer pulls.
-      if (sourcesOnly) return;
+      // Inspector source-only pass: don't RUN enrichment/mark deps (that's
+      // generation) — recurse to collect their TRANSITIVE source closure, since
+      // an aggregate's source texts are pulled by its children, not by itself
+      // (e.g. a synthesis whose deps are all sub-enrichments). sourcesOnly stays
+      // true at every level, so no model ever runs; parentChain guards cycles.
+      if (sourcesOnly) {
+        const childKey = 'enrichment' in dep ? dep.enrichment
+          : 'mark' in dep ? `mark:${dep.mark}` : null;
+        if (!childKey || parentChain.has(childKey)) return;
+        const childDef = 'enrichment' in dep
+          ? await loadEnrichmentDef(rc.env, dep.enrichment)
+          : await loadMarkDef(rc.env, (dep as { mark: string }).mark);
+        if (!childDef) return;
+        const chain = new Set(parentChain); chain.add(childKey);
+        // Enrichment children inherit the parent's markInput (mirrors the real
+        // run); mark children take none (extractors ignore markInput).
+        const childInput = 'enrichment' in dep ? markInput : undefined;
+        const sub = await resolveDependencies(
+          rc, childDef.dependencies, tractate, page, childInput, bypassCache, chain, true,
+        );
+        Object.assign(out.sources, sub.sources);
+        return;
+      }
       if ('enrichment' in dep) {
         const depId = dep.enrichment;
         if (parentChain.has(depId)) {
