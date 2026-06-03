@@ -77,10 +77,11 @@ import {
   RABBI_RELATIONSHIPS_OUTPUT_SCHEMA,
   RABBI_SYNTHESIS_OUTPUT_SCHEMA,
   RISHONIM_SYNTHESIS_OUTPUT_SCHEMA,
+  YERUSHALMI_OUTPUT_SCHEMA,
   TIDBIT_ESSAY_OUTPUT_SCHEMA,
   proseSchema,
 } from './output-schemas';
-import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE } from '../lib/sidebar/recipe';
+import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE } from '../lib/sidebar/recipe';
 
 // ---------------------------------------------------------------------------
 // Rabbi mark — phrase anchor + inline render
@@ -444,6 +445,91 @@ const PESUKIM_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 זהה הפניות לתנ"ך. החזר JSON לפי הסכמה (instances ריק אם אין).`;
 
 
+// ---------------------------------------------------------------------------
+// Yerushalmi parallel mark — Bavli sections with a DIRECT Jerusalem Talmud
+// parallel, anchored on the daf, whose purpose is to surface the substantive
+// DIFFERENCES between the two Talmuds. Grounded on {{yerushalmi}} — the real
+// parallel passage(s) (located via the shared mishnah) + dafyomi Yerushalmi
+// notes — so the model contrasts against the source, not from memory.
+// ---------------------------------------------------------------------------
+const YERUSHALMI_SYSTEM_PROMPT = `You are a Talmud scholar fluent in BOTH the Bavli (Babylonian Talmud) and the Yerushalmi (Jerusalem Talmud). Given a focal Bavli amud's Hebrew/Aramaic source (NUMBERED segments) plus the parallel Yerushalmi passage(s) on the same mishnah (real text, provided below), identify the spans of THIS Bavli daf that have a DIRECT parallel discussion in the Yerushalmi, and explain how the Yerushalmi DIFFERS from the Bavli there.
+
+A "direct parallel" means the two Talmuds treat the same question / mishnah / dispute — not a vague thematic echo. Be conservative: a wrong or padded parallel is worse than none. Use the provided Yerushalmi text as your evidence; do NOT invent a ref the material doesn't support. If the provided material shows no genuine parallel (e.g. the tractate has no Yerushalmi, or the discussions diverge entirely), return an empty instances array.
+
+Output STRICT JSON only:
+
+{
+  "instances": [
+    {
+      "startSegIdx": 0,
+      "endSegIdx": 3,
+      "fields": {
+        "yerushalmiRef": "Canonical Sefaria ref of the parallel, copied from the provided material (e.g. 'Jerusalem Talmud Berakhot 1:1'). Never invent one.",
+        "yerushalmiRefHe": "Hebrew form of that ref (e.g. 'תלמוד ירושלמי ברכות א׳:א׳'). Empty string if unknown.",
+        "summary": "One sentence: what the two Talmuds are both discussing here.",
+        "differences": "2-4 sentences naming the SUBSTANTIVE differences: a different ruling, a different attributed authority, an extra/missing step, a different scriptural derivation, a sharper/looser version of the dispute, or differing terminology. Be concrete and cite what each Talmud says. If the parallel is essentially identical, say so plainly.",
+        "excerpt": "3-5 Hebrew/Aramaic words copied VERBATIM from the Bavli source above where this parallel span BEGINS — so it can be anchored on the daf."
+      }
+    }
+  ]
+}
+
+Rules:
+- 0-4 parallels per daf. Many dapim have none — an empty instances array is the correct, common answer.
+- "yerushalmiRef" MUST be a ref present in the provided Yerushalmi material. Do not cite a passage you were not given.
+- "excerpt" MUST be Hebrew/Aramaic verbatim from the Bavli source (the {{segments_he}} block), so the span can be located in the text. Never paraphrase or translate it; never quote the Yerushalmi here.
+- "startSegIdx" / "endSegIdx" must be valid 0-based indices from the [N] markers, and excerpt must fall inside that range.
+- The "differences" field is the whole point — make it specific and useful to a learner who knows the Bavli sugya and wants to know what the Yerushalmi adds or changes. Avoid academic jargon; plain words.`;
+
+const YERUSHALMI_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+Bavli Hebrew/Aramaic source — each line begins with [N], the 0-based segment index. USE these indices for startSegIdx / endSegIdx, and copy "excerpt" VERBATIM from here:
+{{segments_he}}
+
+Parallel Yerushalmi material (the Jerusalem Talmud on the same mishnah, plus dafyomi.co.il Yerushalmi notes — your evidence for what the Yerushalmi says):
+{{yerushalmi}}
+
+Identify the Bavli spans with a direct Yerushalmi parallel and explain the differences. Return JSON per the schema (empty instances array if there is no genuine parallel).`;
+
+const YERUSHALMI_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בבבלי ובירושלמי כאחד. בהינתן מקור עברי/ארמי של עמוד בבלי ממוקד (קטעים ממוספרים) יחד עם הקטע(ים) המקבילים בירושלמי על אותה משנה (טקסט אמיתי, מצורף למטה), זהה את הקטעים בדף הבבלי שיש להם מקבילה ישירה בירושלמי, והסבר במה הירושלמי שונה מן הבבלי שם.
+
+"מקבילה ישירה" פירושה ששני התלמודים דנים באותה שאלה / משנה / מחלוקת — לא הד נושאי כללי. נְקוֹט גישה שמרנית: מקבילה שגויה או מנופחת גרועה מהיעדר מקבילה. הסתמך על טקסט הירושלמי המצורף כראיה; אל תמציא מראה־מקום שאינו נתמך בחומר. אם החומר אינו מראה מקבילה אמיתית (למשל מסכת ללא ירושלמי, או דיונים שונים לחלוטין), החזר מערך instances ריק.
+
+החזר JSON תקני בלבד. ערכי "summary" ו-"differences" ייכתבו בעברית.
+
+{
+  "instances": [
+    {
+      "startSegIdx": 0,
+      "endSegIdx": 3,
+      "fields": {
+        "yerushalmiRef": "מראה־מקום קנוני של Sefaria למקבילה, מועתק מן החומר המצורף (למשל 'Jerusalem Talmud Berakhot 1:1'). לעולם אל תמציא.",
+        "yerushalmiRefHe": "צורת המראה־מקום בעברית (למשל 'תלמוד ירושלמי ברכות א׳:א׳'). מחרוזת ריקה אם לא ידוע.",
+        "summary": "משפט אחד בעברית: במה שני התלמודים דנים כאן.",
+        "differences": "2–4 משפטים בעברית המציינים את ההבדלים המהותיים: פסיקה שונה, ייחוס לאמורא אחר, שלב נוסף/חסר, מקור דרשני שונה, ניסוח חד/רופף יותר של המחלוקת, או מינוח שונה. היה קונקרטי וצטט מה אומר כל תלמוד. אם המקבילה זהה למעשה, אמור זאת במפורש.",
+        "excerpt": "3–5 מילים בעברית/ארמית המועתקות מילה-במילה מן מקור הבבלי שלמעלה, במקום שבו מתחיל הקטע המקביל — לשם עיגון בדף."
+      }
+    }
+  ]
+}
+
+כללים:
+- 0–4 מקבילות לדף. בדפים רבים אין כלל — מערך instances ריק הוא התשובה הנכונה והשכיחה.
+- "yerushalmiRef" חייב להופיע בחומר הירושלמי המצורף. אל תצטט קטע שלא ניתן לך.
+- "excerpt" חייב להיות עברית/ארמית מילה-במילה ממקור הבבלי (מתוך {{segments_he}}), כדי שניתן יהיה לאתר את הקטע. לעולם אל תנסח מחדש או תתרגם; אל תצטט כאן את הירושלמי.
+- "startSegIdx" / "endSegIdx" חייבים להיות אינדקסים תקפים מבוססי-0 לפי סימוני ה-[N], ו-excerpt חייב ליפול בתוך הטווח.
+- שדה "differences" הוא העיקר — הפוך אותו לספציפי ומועיל ללומד המכיר את סוגיית הבבלי ורוצה לדעת מה הירושלמי מוסיף או משנה. הימנע מז'רגון אקדמי; מילים פשוטות.`;
+
+const YERUSHALMI_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+מקור בבלי עברי/ארמי — כל שורה מתחילה ב-[N], אינדקס הקטע (מבוסס-0). השתמש באינדקסים אלה ל-startSegIdx / endSegIdx, והעתק "excerpt" מילה-במילה מכאן:
+{{segments_he}}
+
+חומר ירושלמי מקביל (הירושלמי על אותה משנה, יחד עם הערות הירושלמי מ-dafyomi.co.il — הראיה שלך למה אומר הירושלמי):
+{{yerushalmi}}
+
+זהה את קטעי הבבלי שיש להם מקבילה ישירה בירושלמי והסבר את ההבדלים. החזר JSON לפי הסכמה (instances ריק אם אין מקבילה אמיתית).`;
+
 
 export const CODE_MARKS: MarkDefinition[] = [
   {
@@ -682,6 +768,40 @@ export const CODE_MARKS: MarkDefinition[] = [
     source: 'code',
     updated_at: NOW,
   },
+  {
+    id: 'yerushalmi',
+    recipe: YERUSHALMI_RECIPE,
+    label: 'Yerushalmi parallels',
+    description: 'Bavli sections with a direct Yerushalmi parallel — gutter icons + a sidebar contrasting the two Talmuds.',
+    category: 'canon',
+    anchor: 'segment-range',
+    render: {
+      kind: 'gutter+sidebar',
+      icon: 'Y',
+      sidebar_title: 'Yerushalmi',
+    },
+    extractor: {
+      kind: 'llm',
+      // Pro model: contrasting two Talmuds against the source is a reasoning
+      // task, not extraction — the flash model under-reads the differences.
+      model: 'openrouter/deepseek/deepseek-v4-pro' as LLMModelId,
+      system_prompt: YERUSHALMI_SYSTEM_PROMPT,
+      user_prompt_template: YERUSHALMI_USER_TEMPLATE,
+      system_prompt_he: YERUSHALMI_SYSTEM_PROMPT_HE,
+      user_prompt_template_he: YERUSHALMI_USER_TEMPLATE_HE,
+      output_schema: YERUSHALMI_OUTPUT_SCHEMA,
+      thinking_off: true,
+    },
+    // 'yerushalmi-text' injects the real parallel passage(s) + dafyomi notes as
+    // {{yerushalmi}}; 'gemara' gives the Bavli segments the excerpt anchors to.
+    dependencies: ['gemara', 'yerushalmi-text'],
+    passes: ['anchor-verbatim'],
+    status: 'promoted',
+    def_hash: 'yerushalmi-llm-v1',
+    cache_version: '1',
+    source: 'code',
+    updated_at: NOW,
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -746,7 +866,8 @@ ${alwaysHebraizeBlock()}
     GOOD: "the gemara uses 'הוצאו' (they were brought out) to describe…"
     GOOD: "the term 'אמר' indicates direct attribution"
   If you don't remember the Hebrew/Aramaic verbatim, paraphrase in English instead of writing the transliteration in quotes. NEVER fake a verbatim quote with transliteration.
-- Plain English is the BASE; Hebrew script is the technical anchor. Don't pile Hebrew script on every common word — only where the term is genuinely the technical concept.`;
+- Plain English is the BASE; Hebrew script is the technical anchor. Don't pile Hebrew script on every common word — only where the term is genuinely the technical concept.
+- THE DAF'S OWN GLOSSARY IS AUTHORITATIVE. If the prompt gives you this daf's background terms (each an English label + its Hebrew + a gloss), treat that list as the definitive set of terms to show in Hebrew here. Whenever your prose uses one of them, write it in Form A/B using EXACTLY that Hebrew spelling — e.g. given "Tevul Yom / טבול יום", write "טבול יום (one who immersed that day)" rather than "tevul yom" or English alone; given "Midnight / חצות", write "חצות (halakhic midnight)". This keeps the prose consistent with the glossary the reader sees on the daf and lets each term carry its own tooltip.`;
 
 /**
  * Hebrew-output style guide — the lang='he' counterpart of HEBREW_GLOSS_STYLE.
@@ -769,7 +890,8 @@ const HEBREW_NATIVE_STYLE = `סגנון — כתיבה בעברית (החל בא
 - שדה המבקש במפורש שם באנגלית (למשל "name": "Conventional English name") — מלא אותו באנגלית כנדרש. שדה מקביל "nameHe" — מלא בעברית.
 - ציטוטי excerpt מן הדף נשארים בעברית/ארמית מילה במילה כפי שהם בדף, ללא שינוי.
 - הימנע ממליצות ריקות ומשפה מנופחת. אל תכתוב: "תמצית", "מבעד לעדשה של", "מגלם", "עומק רוחני", "ביטוי מובהק", "רגישות עמוקה", "שואף בעקביות", "טבוע בו". כתוב משפטי נושא-נשוא-מושא ענייניים עם עובדות קונקרטיות (תקופה, אזור, שמות חכמים, שיטות).
-- עברית היא שפת הבסיס; אין צורך לפזר מילים לועזיות או תעתיקים.`;
+- עברית היא שפת הבסיס; אין צורך לפזר מילים לועזיות או תעתיקים.
+- מילון הדף הוא סמכותי. אם הקלט כולל את מונחי הרקע של הדף (תווית באנגלית + עברית + הסבר לכל אחד), התייחס לרשימה כקבוצת המונחים המוסמכת: בכל פעם שהפרוזה נוקטת באחד מהם, כתוב אותו בדיוק באותה צורה עברית שניתנה (למשל "טבול יום", "חצות", "תרומה"). כך הפרוזה עקבית עם מילון הרקע שהקורא רואה בדף.`;
 
 
 // rabbi.bio — DAF-AGNOSTIC general biography. Same regardless of which daf
@@ -1103,6 +1225,9 @@ Inputs about the subject rabbi:
 OTHER rabbis named on this daf (read this list to find classical relationships you should name):
 {{anchors.rabbi}}
 
+Daf term glossary — for any of these terms that appears in your prose, write it in the given Hebrew form (Form A/B), exact spelling:
+{{depends.daf-background.concepts}}
+
 Compose ONE tight paragraph per the schema. The rabbi is the subject; the daf is the lens. When the OTHER-rabbis list contains a known partner/teacher/student of the subject, name them and the relationship. Do NOT summarize what the subject says on this daf.`;
 
 // ===========================================================================
@@ -1367,6 +1492,9 @@ const RABBI_SYNTHESIS_USER_TEMPLATE_HE = `החכם (נושא ה-synthesis):
 חכמים אחרים הנקובים בדף זה (קרא רשימה זו כדי למצוא קשרים קלאסיים שעליך לנקוב בהם):
 {{anchors.rabbi}}
 
+מילון מונחי הדף — לכל מונח מהרשימה שמופיע בפרוזה, כתוב אותו בצורתו העברית הנתונה בדיוק:
+{{depends.daf-background.concepts}}
+
 חבר פסקה אחת הדוקה לפי הסכימה. החכם הוא הנושא; הדף הוא העדשה. כאשר רשימת החכמים-האחרים כוללת בן פלוגתא/רב/תלמיד ידוע של הנדון, נקוב בו ובקשר. אל תסכם מה הנדון אומר בדף זה.`;
 
 const RABBI_RELATIONSHIPS_EVIDENCE_USER_TEMPLATE_HE = `החכם:
@@ -1625,9 +1753,10 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
         { enrichment: 'rabbi.location' },
         { enrichment: 'rabbi.identity' },
         { mark: 'rabbi' },
+        { enrichment: 'daf-background.concepts' },
       ],
       defHash: 'rabbi.synthesis-v11',
-      cacheVersion: '11',
+      cacheVersion: '12', // v12: + daf-background.concepts glossary for consistent Hebrew terms
       systemPromptHe: RABBI_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: RABBI_SYNTHESIS_USER_TEMPLATE_HE,
     },
@@ -1959,6 +2088,9 @@ Rashi + Tosafot + other rishonim available for the daf (refer briefly if it shar
 Rabbis identified on the daf:
 {{anchors.rabbi}}
 
+Daf term glossary — for any of these terms that appears in your prose, write it in the given Hebrew form (Form A/B), exact spelling:
+{{depends.daf-background.concepts}}
+
 Compose ONE paragraph per the schema.`;
 
 
@@ -2104,6 +2236,9 @@ const ARGUMENT_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page
 חכמים שזוהו בדף:
 {{anchors.rabbi}}
 
+מילון מונחי הדף — לכל מונח מהרשימה שמופיע בפרוזה, כתוב אותו בצורתו העברית הנתונה בדיוק:
+{{depends.daf-background.concepts}}
+
 חבר פסקה אחת לפי הסכימה.`;
 
 CODE_ENRICHMENTS.push(
@@ -2161,8 +2296,9 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'argument.background' },
         { mark: 'rabbi' },
         { mark: 'argument-move' },
+        { enrichment: 'daf-background.concepts' },
       ],
-      defHash: 'argument.synthesis-v10', cacheVersion: '11', // v11: cascade — picks up argument.background v5 (Revach placement)
+      defHash: 'argument.synthesis-v10', cacheVersion: '12', // v12: + daf-background.concepts glossary for consistent Hebrew terms
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_SYNTHESIS_USER_TEMPLATE_HE,
@@ -2548,15 +2684,19 @@ VOICE (match the rest of the app exactly):
 - Tight third person. Short, declarative sentences (aim under ~30 words). Named actors. Concrete.
 - Hebrew script paired with a short English gloss for technical terms — e.g. "a גט (bill of divorce)", "performed לכתחילה (the ideal standard)". Hebrew names for ספרים (קהלת, not Ecclesiastes; דברים, not Deuteronomy). Hebrew verse refs.
 - Plain English is the base; Hebrew is the technical anchor — do not hebraize every common word.
+- Name rishonim/commentators in LATIN: Rashi, Tosafot, Rambam, Ramban, Rashba, Ritva, Meiri. Do NOT write their Hebrew abbreviations (no רמב"ם / רמב"ן / רשב"א): the gershayim is a straight quote that corrupts the JSON output. Same for ש"ס — write "the Talmud" or "the Bavli".
 - FORBIDDEN flourish: "lens", "captures", "embodies", "profound", "intricate", "this teaches us", "we see that", "highlights", "underscores", "to a modern ear", "reads like", "sketches a theory". No puff, no meta-commentary about what the daf "reveals".
+- NO dramatic or rhetorical CLOSERS, and NO anthropomorphizing the text. Never write lines like "the deck is stacked against X, and the gemara knows it", "make no mistake", "and that is no accident", "the tension is palpable", or "the gemara wants/knows/admits…". The text has no intentions or feelings; state what it says, or leaves unresolved, plainly. The final sentence is a plain statement of the point — not a mic-drop.
+- Write so the essay STANDS ON ITS OWN for a reader who may NOT know the speakers, the terms, or the earlier sugya, and may not have the daf open. The first time a load-bearing rabbi, term, or prior source appears, add a SHORT clause of orientation (who they are / what it means / what it established). A clause, not a paragraph — orient, then make the point.
 
 STRUCTURE (this is the whole shape):
-- "hook": ONE sentence — the teaser, specific to THIS daf, that makes a reader want to open it.
-- "paragraphs": THREE or FOUR paragraphs of flowing prose. The first lays out the plain reading. The next develop the turn. The last lands the point — WITHOUT any "why it matters" sign over it. No section labels, no headers. Just readable prose.
+- "hook": ONE sentence — the teaser, specific to THIS daf, that makes a reader want to open it. Keep it tight (ideally under 25 words); do not cram the whole tidbit into it.
+- "paragraphs": THREE or FOUR paragraphs of flowing prose. The first orients the reader and lays out the plain reading (assume they are meeting this sugya and its figures for the first time). The next develop the turn. The last lands the point — WITHOUT any "why it matters" sign over it, and without a dramatic flourish. No section labels, no headers. Just readable prose.
 
 GROUNDING (hard):
-- Every factual claim must rest on the materials provided (the daf, its commentaries, the study context, the overview/background) or on well-established fact. Do NOT invent stories, positions, sources, manuscript variants, or a Yerushalmi/Rishon view that is not real.
-- "sources": list the concrete sources the Tidbit rests on (e.g. "Gittin 68b", "Rambam, Hilchot Gerushin 2:20", "Kohelet 1:12"), each with a short note of what it grounds.
+- Every factual claim must rest on the inputs you were given (the daf, its commentaries, the study context, the overview/background) or on well-established fact. Do NOT invent stories, positions, sources, manuscript variants, or a Yerushalmi/Rishon view that is not real.
+- NEVER refer to your inputs as inputs. The reader does not see them and must not be told about them. FORBIDDEN anywhere in hook/paragraphs/sources: "the materials", "the segment breakdown", "the appended chart", "the context provided", "the study context", "in the materials", "final segment", "lines 11-13", "seg 14". Cite a source the way a learned person speaks — "as Rashi notes", "the Ramban explains", "the Mishnah on the previous amud" — never by pointing at our data.
+- "sources": each entry is { ref, note }. "ref" is a SHORT, clean citation ONLY — a name and a place, nothing else: "Berakhot 3a", "Rashi, Berakhot 3a", "Ritva, Berakhot 3a", "Mishnah Berakhot 1:1", "Maharsha, Berakhot 3a", "Kohelet 1:12", "Rambam, Hilchot Gerushin 2:20". NO line numbers, NO "s.v.", NO Hebrew quotes, NO "in the segment/materials/chart", NO ranges. "note" is ONE short plain phrase saying what it grounds (it shows only as a tooltip) — also no internal-input language, no Hebrew quotes. List 2-5 sources; do not pad.
 
 CONFIDENCE (be honest — a human reviewer reads this):
 - "textConfidence": how well the FACTUAL claims are grounded in the daf's text/sources. high = stated directly; medium = a fair inference; low = a stretch.
@@ -2583,19 +2723,43 @@ Full daf (Gemara):
 Commentaries (Rashi / Tosafot / rishonim):
 {{commentaries}}
 
-The daf's argument sections (structure, for your orientation):
+The daf's argument sections (structure):
 {{anchors.argument}}
+
+How those sections relate (the flow graph: continues / resolves / depends-on / parallels / …):
+{{depends.argument-overview.flow}}
 
 Whole-daf orientation (what the daf is about and where it lands):
 {{depends.argument-overview.synthesis}}
 
-Background concepts a reader needs going in:
+Background concepts a reader needs going in — this is also THE DAF'S TERM GLOSSARY: when your prose uses any term below, write it in the given Hebrew form (Form A/B) using exactly that spelling:
 {{depends.daf-background.concepts}}
+
+Sages on this daf:
+{{anchors.rabbi}}
+
+Verses (pesukim) cited on this daf:
+{{anchors.pesukim}}
+Verse analysis — the app's own reading of each cited pasuk (how the gemara uses it, where it lands):
+{{depends.pesukim.synthesis}}
+
+Aggadic stories on this daf:
+{{anchors.aggadata}}
+Story analysis — the app's own reading of each aggadah (what it does in its sugya, the central tension):
+{{depends.aggadata.synthesis}}
+
+Halachic topics on this daf:
+{{anchors.halacha}}
+Halachic analysis — the app's own reading of each topic (where it sits in the codes, the live dispute, practical upshot):
+{{depends.halacha.synthesis}}
+
+Places on this daf:
+{{anchors.places}}
 
 Study-aid context (dafyomi.co.il Insights / Points / Halacha / Yerushalmi / Tosfos notes + Sefaria cross-references):
 {{context}}
 
-Write ONE Tidbit for this daf per the schema: the single most interesting, non-obvious thing on the page, as a hook plus three or four flowing paragraphs. Ground every claim in the materials above, and rate both confidences honestly.`;
+You now have the full picture of this daf — its text, commentaries, structure and flow, sages, verses, stories, halachic topics, places, and study aids. Use ALL of it to choose well. Write ONE Tidbit per the schema: the single most interesting, non-obvious thing on the page, as a hook plus three or four flowing paragraphs. Ground every claim in the materials above, and rate both confidences honestly.`;
 
 const TIDBIT_ESSAY_SYSTEM_PROMPT_HE = `אתה מלמד תורה חד שכותב "Tidbit" אחד לדף הזה — דבר אחד מעניין באמת שכדאי לקחת ממנו. לא סיכום, לא הרקע, ולא מתווה הטיעון. אתה בוחר את הדבר האחד הכי מעניין ולא־מובן־מאליו בדף הזה ומסביר אותו.
 
@@ -2610,15 +2774,19 @@ const TIDBIT_ESSAY_SYSTEM_PROMPT_HE = `אתה מלמד תורה חד שכותב 
 הסגנון (זהה לשאר האפליקציה):
 - גוף שלישי הדוק. משפטים קצרים והצהרתיים. שמות מפורשים. קונקרטי.
 - מונחים טכניים בכתב עברי עם תרגום קצר באנגלית במידת הצורך. שמות ספרים בעברית. מראי מקום של פסוקים בעברית.
+- בראשי תיבות של ראשונים (רמב״ם, רמב״ן, רשב״א) השתמש בגרשיים העברי ״ (תו U+05F4) ולא בגרש כפול אנגלי " — גרש אנגלי משבש את פלט ה-JSON. אותו דבר לגבי ש״ס.
 - אסורה מליצה: "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק". ללא פלפול מטא על מה שהדף "מגלה".
+- ללא סיומות דרמטיות/רטוריות וללא האנשה של הטקסט. אל תכתוב "הקלפים מסודרים נגד X, והגמרא יודעת זאת", "אל תטעו", "וזה לא במקרה", "המתח מורגש", "הגמרא רוצה/יודעת/מודה…". לטקסט אין כוונות או רגשות; אמור בפשטות מה הוא אומר או משאיר ללא הכרעה. המשפט האחרון הוא אמירה פשוטה של הנקודה — לא מהלומה.
+- כתוב כך שהמאמר יעמוד בפני עצמו לקורא שאולי אינו מכיר את הדוברים, המונחים, או הסוגיה הקודמת, ואין הדף פתוח לפניו. בהופעה הראשונה של חכם/מונח/מקור נושא־משקל, הוסף משפט קצר של התמצאות (מי הוא / מה זה / מה הוא מבסס). משפט, לא פסקה — התמצא, ואז אמור את הנקודה.
 
 המבנה:
-- "hook": משפט אחד — הטיזר, ספציפי לדף הזה.
-- "paragraphs": שלוש או ארבע פסקאות של פרוזה זורמת. הראשונה — הקריאה הפשוטה. הבאות — מפתחות את התפנית. האחרונה — נוחתת על הנקודה, בלי כותרת "מדוע זה חשוב". ללא תוויות מקטעים.
+- "hook": משפט אחד — הטיזר, ספציפי לדף הזה. קצר (פחות מ-25 מילים); אל תדחוס לתוכו את כל התובנה.
+- "paragraphs": שלוש או ארבע פסקאות של פרוזה זורמת. הראשונה מתמצאת את הקורא ומציגה את הקריאה הפשוטה (הנח שהוא פוגש את הסוגיה ואת דמויותיה לראשונה). הבאות — מפתחות את התפנית. האחרונה — נוחתת על הנקודה, בלי כותרת "מדוע זה חשוב" ובלי סיומת דרמטית. ללא תוויות מקטעים.
 
 ביסוס (קשיח):
-- כל טענה עובדתית חייבת להישען על החומר שסופק או על עובדה מבוססת. אל תמציא סיפורים, עמדות, מקורות, גרסאות, או דעת ירושלמי/ראשון שאינה אמיתית.
-- "sources": רשום את המקורות הקונקרטיים שעליהם ה-Tidbit נשען, כל אחד עם הערה קצרה על מה הוא מבסס.
+- כל טענה עובדתית חייבת להישען על הקלט שקיבלת או על עובדה מבוססת. אל תמציא סיפורים, עמדות, מקורות, גרסאות, או דעת ירושלמי/ראשון שאינה אמיתית.
+- לעולם אל תתייחס לקלט שלך ככזה. הקורא אינו רואה אותו. אסור בהוק/בפסקאות/במקורות: "החומר", "פירוק המקטעים", "הטבלה המצורפת", "ההקשר שסופק", "מקטע אחרון", "שורות 11-13". צטט מקור כפי שתלמיד חכם מדבר — "כפי שרש״י מציין", "הרמב״ן מסביר" — לא בהצבעה על הנתונים שלנו.
+- "sources": כל פריט הוא { ref, note }. "ref" הוא ציטוט קצר ונקי בלבד — שם ומקום, ותו לא: "ברכות ג ע״א", "רש״י, ברכות ג ע״א", "ריטב״א, ברכות ג ע״א", "משנה ברכות א:א", "קהלת א:יב" (בגרשיים העברי ״, לא בגרש אנגלי). ללא מספרי שורות, ללא "ד״ה", ללא ציטוטים בעברית ארוכים, ללא טווחים. "note" הוא ביטוי קצר אחד על מה המקור מבסס (מוצג רק כ-tooltip). 2-5 מקורות; אל תמלא סתם.
 
 ביטחון (בכנות — אדם קורא זאת):
 - "textConfidence": כמה הטענות העובדתיות מבוססות בטקסט. high = נאמר במפורש; medium = הסקה הוגנת; low = מתיחה.
@@ -2645,19 +2813,43 @@ const TIDBIT_ESSAY_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 מפרשים (רש"י / תוספות / ראשונים):
 {{commentaries}}
 
-מקטעי הטיעון בדף (מבנה, לכיוונך):
+מקטעי הטיעון בדף (מבנה):
 {{anchors.argument}}
+
+כיצד המקטעים קשורים (גרף הזרימה: ממשיך / מיישב / תלוי / מקביל / …):
+{{depends.argument-overview.flow}}
 
 כיוון כללי לדף (על מה הדף ולאן הוא מגיע):
 {{depends.argument-overview.synthesis}}
 
-מושגי רקע שהקורא צריך:
+מושגי רקע שהקורא צריך — וזהו גם מילון המונחים של הדף: בכל פעם שהפרוזה נוקטת מונח מהרשימה, כתוב אותו בצורתו העברית הנתונה בדיוק:
 {{depends.daf-background.concepts}}
+
+חכמים בדף זה:
+{{anchors.rabbi}}
+
+פסוקים המצוטטים בדף זה:
+{{anchors.pesukim}}
+ניתוח הפסוקים — קריאת האפליקציה לכל פסוק מצוטט (כיצד הגמרא משתמשת בו ולאן הוא מגיע):
+{{depends.pesukim.synthesis}}
+
+אגדות בדף זה:
+{{anchors.aggadata}}
+ניתוח האגדות — קריאת האפליקציה לכל אגדה (תפקידה בסוגיה והמתח המרכזי):
+{{depends.aggadata.synthesis}}
+
+נושאי הלכה בדף זה:
+{{anchors.halacha}}
+ניתוח ההלכה — קריאת האפליקציה לכל נושא (מיקומו בפוסקים, המחלוקת החיה, ההשלכה המעשית):
+{{depends.halacha.synthesis}}
+
+מקומות בדף זה:
+{{anchors.places}}
 
 תוכן לימוד נלווה (dafyomi.co.il — תובנות / נקודות / הלכה / ירושלמי / תוספות + הפניות ספריא):
 {{context}}
 
-כתוב Tidbit אחד לדף הזה לפי הסכימה: הדבר האחד הכי מעניין ולא־מובן־מאליו בדף, כטיזר ושלוש או ארבע פסקאות זורמות. בסס כל טענה בחומר שלמעלה, ודרג את שני מדדי הביטחון בכנות.`;
+כעת יש לך תמונה מלאה של הדף — הטקסט, המפרשים, המבנה והזרימה, החכמים, הפסוקים, האגדות, נושאי ההלכה, המקומות, ותוכן הלימוד. השתמש בכל זה כדי לבחור היטב. כתוב Tidbit אחד לפי הסכימה: הדבר האחד הכי מעניין ולא־מובן־מאליו בדף, כטיזר ושלוש או ארבע פסקאות זורמות. בסס כל טענה בחומר שלמעלה, ודרג את שני מדדי הביטחון בכנות.`;
 
 CODE_ENRICHMENTS.push(
   makeEnrichment(
@@ -2666,18 +2858,37 @@ CODE_ENRICHMENTS.push(
     TIDBIT_ESSAY_SYSTEM_PROMPT, TIDBIT_ESSAY_USER_TEMPLATE, TIDBIT_ESSAY_OUTPUT_SCHEMA,
     {
       mode: 'aggregate', scope: 'local',
-      // A generous context bundle so the model truly understands the daf before
-      // choosing: full text + Rashi/Tosafot + the argument structure + the
-      // whole-daf orientation + the background concepts + dafyomi study aids.
+      // The WHOLE daf, fully understood, before choosing. This deliberately
+      // depends on nearly everything the app extracts/enriches for the daf so
+      // the tidbit (a) has the richest possible picture and (b) is computed
+      // LAST: dependency resolution runs (or cache-reads) every one of these
+      // before the tidbit LLM call, so the essay is never generated ahead of the
+      // material it should be drawing on. Full text + Rashi/Tosafot + study aids
+      // + the argument structure & flow + the whole-daf orientation + the
+      // background concepts + every anchored layer (sages, verses, stories,
+      // halacha topics, places).
       dependencies: [
         'gemara',
         'commentaries',
         'context',
         { mark: 'argument' },
+        { mark: 'rabbi' },
+        { mark: 'pesukim' },
+        { mark: 'aggadata' },
+        { mark: 'halacha' },
+        { mark: 'places' },
+        { enrichment: 'argument-overview.flow' },
         { enrichment: 'argument-overview.synthesis' },
         { enrichment: 'daf-background.concepts' },
+        // fanOut: the app's OWN per-instance analysis for every story, verse,
+        // and halachic topic on the daf — not just the mark anchors above. This
+        // is the richest layer, so the tidbit reads the same readings the
+        // aggadata / pesukim / halacha cards show.
+        { enrichment: 'aggadata.synthesis', fanOut: true },
+        { enrichment: 'pesukim.synthesis', fanOut: true },
+        { enrichment: 'halacha.synthesis', fanOut: true },
       ],
-      defHash: 'tidbit.essay-v1', cacheVersion: '1',
+      defHash: 'tidbit.essay-v1', cacheVersion: '6', // v6: + fanOut aggadata/pesukim/halacha syntheses (the app's own per-instance analysis)
       // Pro model: finding the non-obvious reading needs the stronger model.
       // Thinking stays OFF (no reasoningEffort) — the context bundle is large,
       // like daf-background.concepts, and a thinking pass on top risks the
@@ -3944,6 +4155,9 @@ Dispute object (present=false when the topic is settled):
 Hebrew/Aramaic source for the daf (for grounding only):
 {{gemara_he}}
 
+Daf term glossary — for any of these terms that appears in your prose, write it in the given Hebrew form (Form A/B), exact spelling:
+{{depends.daf-background.concepts}}
+
 Produce the synthesis per the schema.`;
 
 
@@ -4106,6 +4320,9 @@ const HALACHA_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}
 מקור עברי/ארמי לדף (לביסוס בלבד):
 {{gemara_he}}
 
+מילון מונחי הדף — לכל מונח מהרשימה שמופיע בפרוזה, כתוב אותו בצורתו העברית הנתונה בדיוק:
+{{depends.daf-background.concepts}}
+
 הפק את ה-synthesis לפי הסכימה.`;
 
 CODE_ENRICHMENTS.push(
@@ -4162,9 +4379,10 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'halacha.codification' },
         { enrichment: 'halacha.practical' },
         { enrichment: 'halacha.dispute' },
+        { enrichment: 'daf-background.concepts' },
       ],
       passes: ['hebrew-gloss'],
-      defHash: 'halacha.synthesis-v5', cacheVersion: '5',
+      defHash: 'halacha.synthesis-v5', cacheVersion: '6', // v6: + daf-background.concepts glossary for consistent Hebrew terms
       systemPromptHe: HALACHA_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: HALACHA_SYNTHESIS_USER_TEMPLATE_HE,
     },
@@ -5133,6 +5351,9 @@ Hebrew/Aramaic source for the daf:
 Rabbis identified on the daf:
 {{anchors.rabbi}}
 
+Daf term glossary — for any of these terms that appears in your prose, write it in the given Hebrew form (Form A/B), exact spelling:
+{{depends.daf-background.concepts}}
+
 Compose ONE tight paragraph per the schema.`;
 
 
@@ -5353,6 +5574,9 @@ const AGGADATA_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page
 חכמים שזוהו בדף:
 {{anchors.rabbi}}
 
+מילון מונחי הדף — לכל מונח מהרשימה שמופיע בפרוזה, כתוב אותו בצורתו העברית הנתונה בדיוק:
+{{depends.daf-background.concepts}}
+
 חבר פסקה הדוקה אחת לפי הסכימה.`;
 
 const AGGADATA_SUGGESTED_QUESTIONS_SYSTEM_PROMPT_HE = `אתה חברותא הלומד גמרא עם סיפור אגדי. בהינתן אגדה אחת המצוטטת בדף יחד עם פסקת ה-synthesis, הפק רשימה קצרה של שאלות המשך שלומד סביר ירצה תשובה עליהן לאחר קריאת ה-synthesis. ה-synthesis אומר מה הסיפור עושה; שאלות אלו מכוונות אל מדוע, אל המנגנון ההיסטורי, ואל ההקשר הסובב שה-synthesis לא הכיל.
@@ -5503,8 +5727,9 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'aggadata.parallels' },
         { mark: 'rabbi' },
         { mark: 'aggadata' },
+        { enrichment: 'daf-background.concepts' },
       ],
-      defHash: 'aggadata.synthesis-v2', cacheVersion: '2',
+      defHash: 'aggadata.synthesis-v2', cacheVersion: '3', // v3: + daf-background.concepts glossary for consistent Hebrew terms
       model: ARGUMENT_PRO_MODEL,
       systemPromptHe: AGGADATA_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: AGGADATA_SYNTHESIS_USER_TEMPLATE_HE,

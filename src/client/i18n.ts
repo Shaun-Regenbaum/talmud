@@ -166,6 +166,7 @@ const CATALOG = {
   'sidebar.kind.argument': { en: 'Argument', he: 'סוגיה' },
   'sidebar.kind.halacha': { en: 'Practical Halacha', he: 'הלכה למעשה' },
   'sidebar.kind.aggadata': { en: 'Aggada', he: 'אגדה' },
+  'sidebar.kind.yerushalmi': { en: 'Yerushalmi', he: 'ירושלמי' },
   'sidebar.kind.pesuk': { en: 'Pasuk', he: 'פסוק' },
   'sidebar.kind.place': { en: 'Place', he: 'מקום' },
   'sidebar.kind.rishonim': { en: 'Rishonim', he: 'ראשונים' },
@@ -239,7 +240,7 @@ const CATALOG = {
   'loading.argument': { en: 'Tracing the argument…', he: 'עוקב אחר הסוגיה…' },
   'loading.move.named': { en: 'Listening to {voice}…', he: 'מקשיב ל{voice}…' },
   'loading.move': { en: 'Tracing the flow…', he: 'עוקב אחר המהלך…' },
-  'loading.tidbit': { en: 'Finding the tidbit…', he: 'מחפש את התובנה…' },
+  'loading.tidbit': { en: 'Looking for a chiddush…', he: 'מחפש חידוש…' },
   'loading.halacha.named': { en: 'Asking a Rav about {title}…', he: 'שואל רב על {title}…' },
   'loading.halacha': { en: 'Asking the Rav…', he: 'שואל את הרב…' },
   'loading.aggadata.named': { en: 'Pondering {title}…', he: 'מהרהר ב{title}…' },
@@ -568,6 +569,10 @@ const CATALOG = {
   'pasuk.mechanism': { en: 'Mechanism', he: 'מנגנון הדרשה' },
   'pasuk.landing': { en: 'Landing', he: 'מסקנה' },
 
+  // — Yerushalmi body —
+  'yerushalmi.differences': { en: 'Differences from the Yerushalmi', he: 'הבדלים מן הירושלמי' },
+  'yerushalmi.readParallel': { en: 'Read the parallel (Yerushalmi)', he: 'קרא את המקבילה (ירושלמי)' },
+
   // — Aggadata body —
   'aggadata.background': { en: 'Background', he: 'רקע' },
   'aggadata.interpretation': { en: 'Interpretation', he: 'פרשנות' },
@@ -700,11 +705,13 @@ const CATALOG = {
   'dafLoad.family.rishonim': { en: 'rishonim', he: 'ראשונים' },
   'dafLoad.family.argumentOverview': { en: 'overview', he: 'סקירה' },
   'dafLoad.family.background': { en: 'background', he: 'רקע' },
+  'dafLoad.family.tidbit': { en: 'chiddush', he: 'חידוש' },
 
   // — Gutter icon tooltips —
   'gutter.argument': { en: 'Argument structure & rabbis', he: 'מבנה הסוגיה וחכמים' },
   'gutter.halacha': { en: 'Practical halacha', he: 'הלכה למעשה' },
   'gutter.aggadata': { en: 'Aggada — narrative on this line', he: 'אגדה — סיפור בשורה זו' },
+  'gutter.yerushalmi': { en: 'Yerushalmi — parallel in the Jerusalem Talmud', he: 'ירושלמי — מקבילה בתלמוד הירושלמי' },
   'gutter.rishonim': { en: 'Rishonim on this line', he: 'ראשונים על שורה זו' },
   'gutter.pesukim': { en: 'Pasuk — Tanach citation', he: 'פסוק — ציטוט מהתנ״ך' },
 

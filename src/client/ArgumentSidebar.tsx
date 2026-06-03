@@ -1,5 +1,5 @@
 import { For, Show, Switch, Match, createEffect, createMemo, createResource, createSignal, onCleanup, type JSX } from 'solid-js';
-import type { Section, Rabbi, HalachaTopic, AggadataStory, Pasuk } from './shapes';
+import type { Section, Rabbi, HalachaTopic, AggadataStory, Pasuk, YerushalmiParallel } from './shapes';
 import { GENERATION_BY_ID, generationLabelHe, type GenerationId } from './generations';
 import type { IdentifiedRabbi } from './dafContext';
 import { Hebraized } from './Hebraized';
@@ -27,8 +27,8 @@ import { InspectDot, registerMarkRenderer } from './MarkEnrichmentCards';
 // Recipes now live in the shared lib (carried on the worker mark def too).
 // Re-exported so existing importers (CARD_DEFS, tests) keep their `from
 // './ArgumentSidebar'` path.
-import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE } from '../lib/sidebar/recipe';
-export { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE };
+import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE } from '../lib/sidebar/recipe';
+export { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE };
 
 /** Localize an era date-range ("c. 290 – 320 CE") for Hebrew display. */
 function eraLabel(era: string): string {
@@ -132,6 +132,7 @@ export type SidebarContent =
   | { kind: 'argument'; section: Section; index: number }
   | { kind: 'halacha'; topic: HalachaTopic; index: number }
   | { kind: 'aggadata'; story: AggadataStory; index: number }
+  | { kind: 'yerushalmi'; parallel: YerushalmiParallel; index: number }
   | { kind: 'pesuk'; pasuk: Pasuk; index: number }
   | { kind: 'rabbi'; rabbi: IdentifiedRabbi }
   | { kind: 'place'; place: PlaceInstance }
@@ -1180,23 +1181,30 @@ function TidbitEssayView(parsed: Record<string, unknown>): JSX.Element {
       </Show>
       <Show when={hook}>
         <p style={{ margin: '0 0 0.85rem', 'font-size': '1.02rem', 'line-height': 1.4, 'font-weight': 600, color: '#1f1b18' }}>
-          <Hebraized text={hook} />
+          <HebraizedWithRabbis text={hook} />
         </p>
       </Show>
       <For each={paragraphs}>{(p) => (
         <p style={{ margin: '0 0 0.7rem', 'font-size': '0.92rem', 'line-height': 1.62, color: '#2b2622' }}>
-          <Hebraized text={p} />
+          <HebraizedWithRabbis text={p} />
         </p>
       )}</For>
       <Show when={sources.length > 0}>
-        <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.35rem', 'margin-top': '0.75rem' }}>
-          <For each={sources}>{(s) => (
-            <span title={str(s.note)} style={{
-              'font-size': '0.7rem', 'font-family': 'ui-monospace, monospace',
-              background: '#f1ece0', border: '1px solid #e0d4ba', 'border-radius': '5px',
-              padding: '0.1rem 0.45rem', color: '#574e45',
-            }}>{str(s.ref)}</span>
-          )}</For>
+        <div style={{ 'margin-top': '0.9rem' }}>
+          <div style={{
+            'font-size': '0.62rem', 'letter-spacing': '0.1em', 'text-transform': 'uppercase',
+            color: '#a99c83', 'margin-bottom': '0.4rem',
+          }}>{t('tidbit.sources')}</div>
+          <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.3rem 0.4rem', 'align-items': 'baseline' }}>
+            <For each={sources}>{(s) => (
+              <span title={str(s.note)} style={{
+                'font-size': '0.72rem', color: '#6b6256',
+                'border-bottom': '1px dotted #c9bb9e', cursor: 'default',
+                'white-space': 'nowrap', 'max-width': '100%',
+                overflow: 'hidden', 'text-overflow': 'ellipsis',
+              }}>{str(s.ref)}</span>
+            )}</For>
+          </div>
         </div>
       </Show>
       <Show when={textConf || readingConf}>
@@ -1859,6 +1867,7 @@ function AggadataParallels(props: SpecialBlockProps): JSX.Element {
 export function instanceKeyForContent(content: SidebarContent, tractate: string, page: string): string | null {
   switch (content.kind) {
     case 'aggadata': return `${tractate}:${page}:${content.index}:${content.story.title}`;
+    case 'yerushalmi': return `${tractate}:${page}:${content.index}:${content.parallel.yerushalmiRef}`;
     case 'pesuk': return content.pasuk.verseRef;
     case 'halacha': return `${tractate}:${page}:${content.index}:${content.topic.topic}`;
     case 'rabbi': return content.rabbi.name;
@@ -1879,6 +1888,97 @@ export function aggadataInstance(story: AggadataStory): { fields: Record<string,
       excerpt: story.excerpt,
       endExcerpt: story.endExcerpt ?? '',
       theme: story.theme ?? '',
+    },
+  };
+}
+
+// ===========================================================================
+// Yerushalmi — Bavli↔Yerushalmi parallel sidebar card.
+// ---------------------------------------------------------------------------
+// The card's whole point is the DIFFERENCES between the two Talmuds. The diff
+// block leads with a one-line "what they share" summary (when present) and the
+// labeled "Differences" box; the parallel block then shows the ACTUAL Jerusalem
+// Talmud passage (fetched from the daf's cached yerushalmi bundle), collapsed by
+// default. The ref is the Panel title (English / Hebrew). No synthesis — the
+// `differences` field already IS the prose.
+// ===========================================================================
+function YerushalmiDiff(props: SpecialBlockProps): JSX.Element {
+  const summary = (): string => (typeof props.instance.fields.summary === 'string' ? props.instance.fields.summary : '');
+  const differences = (): string => (typeof props.instance.fields.differences === 'string' ? props.instance.fields.differences : '');
+  return (
+    <>
+      <Show when={summary()}>
+        <p style={{ margin: '0 0 0.7rem', color: '#555', 'line-height': 1.55, 'font-size': '0.86rem' }}>
+          <HebraizedWithRabbis text={summary()} />
+        </p>
+      </Show>
+      <Show when={differences()}>
+        <SectionCard label="yerushalmi.differences">
+          <div style={{ 'font-size': '0.88rem', color: '#222', 'line-height': 1.55 }}>
+            <HebraizedWithRabbis text={differences()} />
+          </div>
+        </SectionCard>
+      </Show>
+    </>
+  );
+}
+
+interface YerushalmiPassage { ref: string; heRef: string; hebrew: string; english: string; }
+async function fetchYerushalmiPassages(key: string): Promise<YerushalmiPassage[]> {
+  const [tractate, page] = key.split('|');
+  const res = await fetch(`/api/yerushalmi/${encodeURIComponent(tractate)}/${encodeURIComponent(page)}`);
+  if (!res.ok) return [];
+  const data = await res.json() as { parallels?: YerushalmiPassage[] };
+  return Array.isArray(data.parallels) ? data.parallels : [];
+}
+
+/** The actual Jerusalem Talmud passage this parallel points at — He + En, from
+ *  the daf's cached yerushalmi bundle (the same text the mark was grounded on).
+ *  Collapsed by default; the differences above are the headline, this is the
+ *  "show me the source" layer. One cached-KV GET per card open. */
+function YerushalmiParallel(props: SpecialBlockProps): JSX.Element {
+  const wantedRef = (): string => (typeof props.instance.fields.yerushalmiRef === 'string' ? props.instance.fields.yerushalmiRef : '');
+  const [passages] = createResource(
+    () => `${props.tractate}|${props.page}`,
+    fetchYerushalmiPassages,
+  );
+  const passage = (): YerushalmiPassage | undefined =>
+    (passages() ?? []).find((p) => p.ref === wantedRef());
+  return (
+    <Show when={passages.loading || passage()}>
+      <SectionCard label="yerushalmi.readParallel" collapsed={true}>
+        <Show when={passage()} fallback={
+          <p style={{ color: '#999', 'font-style': 'italic', margin: 0, 'font-size': '0.82rem' }}>{t('pasuk.loading')}</p>
+        }>
+          {(p) => (
+            <>
+              <HebrewProse text={p().hebrew} size="1rem" color="#222" lineHeight={1.75} margin="0 0 0.5rem" />
+              <p style={{ 'font-size': '0.84rem', color: '#475569', 'line-height': 1.55, margin: 0 }}>{p().english}</p>
+            </>
+          )}
+        </Show>
+      </SectionCard>
+    </Show>
+  );
+}
+
+export const YERUSHALMI_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
+  'yerushalmi-diff': YerushalmiDiff,
+  'yerushalmi-parallel': YerushalmiParallel,
+};
+
+/** The mark-instance shape the yerushalmi extractor emits (mark_input for the
+ *  synthesis). Seg indices feed segment-scoped enrichment context. */
+export function yerushalmiInstance(parallel: YerushalmiParallel): { fields: Record<string, unknown>; startSegIdx: number; endSegIdx: number } {
+  return {
+    startSegIdx: parallel.startSegIdx ?? 0,
+    endSegIdx: parallel.endSegIdx ?? 0,
+    fields: {
+      yerushalmiRef: parallel.yerushalmiRef,
+      yerushalmiRefHe: parallel.yerushalmiRefHe ?? '',
+      summary: parallel.summary,
+      differences: parallel.differences,
+      excerpt: parallel.excerpt,
     },
   };
 }
@@ -2046,6 +2146,11 @@ export const CARD_DEFS: Partial<Record<SidebarContent['kind'], CardDef>> = {
       const s = (c as Extract<SidebarContent, { kind: 'aggadata' }>).story;
       return `${s.title}|${s.excerpt}`;
     },
+  },
+  yerushalmi: {
+    recipe: YERUSHALMI_RECIPE,
+    blocks: YERUSHALMI_BLOCKS,
+    instance: (c) => yerushalmiInstance((c as Extract<SidebarContent, { kind: 'yerushalmi' }>).parallel),
   },
   pesuk: {
     recipe: PASUK_RECIPE,

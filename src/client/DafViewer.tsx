@@ -10,12 +10,13 @@ import type {
   HalachaResult, HalachaTopic,
   AggadataResult,
   PesukimResult,
+  YerushalmiResult,
 } from './shapes';
 import { injectRabbiUnderlines, type GenerationRabbi } from './injectRabbiUnderlines';
 import { injectSegmentMarkers } from './injectSegmentMarkers';
 import { injectHadran } from './injectHadran';
 import { ensureMasechetIncipit } from './ensureMasechetIncipit';
-import { injectAnchorMarkers, injectOpinionMarkers, injectAggadataAnchors, injectPesukimAnchors } from './anchorMarkers';
+import { injectAnchorMarkers, injectOpinionMarkers, injectAggadataAnchors, injectPesukimAnchors, injectYerushalmiAnchors } from './anchorMarkers';
 import { buildTokenRange } from './highlightRange';
 import {
   type UserHighlight,
@@ -125,7 +126,7 @@ function paintRangeOverlay(
   overlay: HTMLElement,
   origin: HTMLElement,
   ranges: Range[],
-  kind: 'section' | 'halacha' | 'aggadata' | 'pesuk' | 'rishonim' | 'move' | 'commentary' | 'commentary-active' | 'comm-anchor' | 'user',
+  kind: 'section' | 'halacha' | 'aggadata' | 'yerushalmi' | 'pesuk' | 'rishonim' | 'move' | 'commentary' | 'commentary-active' | 'comm-anchor' | 'user',
   /** Optional per-range inline background color. */
   bgFor?: (rangeIdx: number) => string | undefined,
 ): void {
@@ -269,6 +270,7 @@ const SESSION_CACHE_MAX = 32;
 const analysisSessionCache = new LruMap<string, DafAnalysis>(SESSION_CACHE_MAX);
 const halachaSessionCache = new LruMap<string, HalachaResult>(SESSION_CACHE_MAX);
 const aggadataSessionCache = new LruMap<string, AggadataResult>(SESSION_CACHE_MAX);
+const yerushalmiSessionCache = new LruMap<string, YerushalmiResult>(SESSION_CACHE_MAX);
 const pesukimSessionCache = new LruMap<string, PesukimResult>(SESSION_CACHE_MAX);
 
 const GEN_KEY = 'daf.showGenMarkers';
@@ -276,6 +278,7 @@ const COMMENTARIES_KEY = 'daf.toggle.commentaries';
 const ARGUMENTS_KEY = 'daf.toggle.arguments';
 const HALACHOT_KEY = 'daf.toggle.halachot';
 const AGGADATOT_KEY = 'daf.toggle.aggadatot';
+const YERUSHALMI_KEY = 'daf.toggle.yerushalmi';
 const PESUKIM_KEY = 'daf.toggle.pesukim';
 function loadToggle(key: string, def: boolean): boolean {
   if (typeof localStorage === 'undefined') return def;
@@ -380,6 +383,7 @@ export default function DafViewer(): JSX.Element {
   const [showArguments, setShowArguments] = createSignal(loadToggle(ARGUMENTS_KEY, false));
   const [showHalachot, setShowHalachot] = createSignal(loadToggle(HALACHOT_KEY, false));
   const [showAggadatot, setShowAggadatot] = createSignal(loadToggle(AGGADATOT_KEY, false));
+  const [showYerushalmi, setShowYerushalmi] = createSignal(loadToggle(YERUSHALMI_KEY, false));
   const [showPesukim, setShowPesukim] = createSignal(loadToggle(PESUKIM_KEY, false));
   // Dev shelf — bottom drawer with marks toggles + activity panels.
   const [devOpen, setDevOpen] = createSignal(readDevMode());
@@ -554,6 +558,45 @@ export default function DafViewer(): JSX.Element {
     pesukimSessionCache.set(`${tractate()}:${page()}:${lang()}`, adapted);
   });
 
+  // Adapter: yerushalmi mark instances → YerushalmiResult.
+  createEffect(() => {
+    const runs = markRunsByMarkId();
+    const r = runs['yerushalmi'];
+    if (!r?.parsed) return;
+    const p = r.parsed as {
+      instances?: Array<{
+        startSegIdx: number;
+        endSegIdx: number;
+        fields: {
+          yerushalmiRef?: string;
+          yerushalmiRefHe?: string;
+          summary?: string;
+          differences?: string;
+          excerpt?: string;
+        };
+      }>;
+    };
+    if (!Array.isArray(p.instances)) return;
+    // Defensive: drop exact-duplicate parallels (same ref at the same span).
+    const instances = dedupeBy(
+      p.instances,
+      (i) => `${i.fields.yerushalmiRef ?? ''}|${i.startSegIdx}|${i.endSegIdx}`,
+    );
+    const adapted: YerushalmiResult = {
+      parallels: instances.map((inst) => ({
+        yerushalmiRef: inst.fields.yerushalmiRef ?? '',
+        yerushalmiRefHe: inst.fields.yerushalmiRefHe,
+        summary: inst.fields.summary ?? '',
+        differences: inst.fields.differences ?? '',
+        excerpt: inst.fields.excerpt ?? '',
+        startSegIdx: inst.startSegIdx,
+        endSegIdx: inst.endSegIdx,
+      })),
+    };
+    setYerushalmi(adapted);
+    yerushalmiSessionCache.set(`${tractate()}:${page()}:${lang()}`, adapted);
+  });
+
   // Bridge: when a code-defined registry mark is enabled (rabbi already has
   // its own renderer; argument/halacha/aggadata/pesukim still rely on the
   // legacy createResource + sidebar code paths), flip the corresponding
@@ -570,6 +613,7 @@ export default function DafViewer(): JSX.Element {
     if (showArguments() !== want('argument')) setShowArguments(want('argument'));
     if (showHalachot() !== want('halacha')) setShowHalachot(want('halacha'));
     if (showAggadatot() !== want('aggadata')) setShowAggadatot(want('aggadata'));
+    if (showYerushalmi() !== want('yerushalmi')) setShowYerushalmi(want('yerushalmi'));
     if (showPesukim() !== want('pesukim')) setShowPesukim(want('pesukim'));
   });
 
@@ -727,6 +771,7 @@ export default function DafViewer(): JSX.Element {
   const [analysis, setAnalysis] = createSignal<DafAnalysis | null>(null);
   const [halacha, setHalacha] = createSignal<HalachaResult | null>(null);
   const [aggadata, setAggadata] = createSignal<AggadataResult | null>(null);
+  const [yerushalmi, setYerushalmi] = createSignal<YerushalmiResult | null>(null);
   const [pesukim, setPesukim] = createSignal<PesukimResult | null>(null);
 
   // Other-commentary state (Sefaria links). Driven by the picker in the
@@ -771,6 +816,7 @@ export default function DafViewer(): JSX.Element {
     if (c.kind === 'argument') return c.section.title || 'Argument';
     if (c.kind === 'halacha') return c.topic.topic || 'Halacha';
     if (c.kind === 'aggadata') return c.story.title || 'Aggada';
+    if (c.kind === 'yerushalmi') return c.parallel.yerushalmiRef || 'Yerushalmi';
     if (c.kind === 'pesuk') return c.pasuk.verseRef || 'Pasuk';
     if (c.kind === 'rabbi') return c.rabbi.name || 'Rabbi';
     if (c.kind === 'place') return c.place.fields.name || 'Place';
@@ -785,6 +831,7 @@ export default function DafViewer(): JSX.Element {
     if (c.kind === 'argument') return `argument:${c.section.startSegIdx}-${c.section.endSegIdx}`;
     if (c.kind === 'halacha') return `halacha:${c.topic.topic}`;
     if (c.kind === 'aggadata') return `aggadata:${c.story.title}`;
+    if (c.kind === 'yerushalmi') return `yerushalmi:${c.parallel.yerushalmiRef}`;
     if (c.kind === 'pesuk') return `pesuk:${c.pasuk.verseRef}`;
     if (c.kind === 'rabbi') return `rabbi:${c.rabbi.slug ?? c.rabbi.name}`;
     if (c.kind === 'place') return `place:${c.place.fields.name}`;
@@ -1028,6 +1075,10 @@ export default function DafViewer(): JSX.Element {
   });
   createEffect(() => {
     if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(YERUSHALMI_KEY, String(showYerushalmi()));
+  });
+  createEffect(() => {
+    if (typeof localStorage === 'undefined') return;
     localStorage.setItem(PESUKIM_KEY, String(showPesukim()));
   });
 
@@ -1047,6 +1098,11 @@ export default function DafViewer(): JSX.Element {
   });
   createEffect(() => {
     if (!showAggadatot() && sidebar()?.kind === 'aggadata') {
+      setSidebar(null);
+    }
+  });
+  createEffect(() => {
+    if (!showYerushalmi() && sidebar()?.kind === 'yerushalmi') {
       setSidebar(null);
     }
   });
@@ -1124,6 +1180,7 @@ export default function DafViewer(): JSX.Element {
     setAnalysis(analysisSessionCache.get(key) ?? null);
     setHalacha(halachaSessionCache.get(key) ?? null);
     setAggadata(aggadataSessionCache.get(key) ?? null);
+    setYerushalmi(yerushalmiSessionCache.get(key) ?? null);
     setPesukim(pesukimSessionCache.get(key) ?? null);
   });
 
@@ -1278,6 +1335,7 @@ export default function DafViewer(): JSX.Element {
     const sectionRanges: Range[] = [];
     const halachaRanges: Range[] = [];
     const aggadataRanges: Range[] = [];
+    const yerushalmiRanges: Range[] = [];
     const pesukRanges: Range[] = [];
     const rishonimRanges: Range[] = [];
     const moveRanges: Range[] = [];
@@ -1288,11 +1346,12 @@ export default function DafViewer(): JSX.Element {
      *  commAnchorActive.direction === 'from-piece'. */
     const commAnchorRanges: Range[] = [];
 
-    const collectRange = (range: Range, bucket: 'section' | 'halacha' | 'aggadata' | 'pesuk' | 'rishonim') => {
+    const collectRange = (range: Range, bucket: 'section' | 'halacha' | 'aggadata' | 'yerushalmi' | 'pesuk' | 'rishonim') => {
       if (range.collapsed) return;
       if (bucket === 'section') sectionRanges.push(range);
       else if (bucket === 'halacha') halachaRanges.push(range);
       else if (bucket === 'aggadata') aggadataRanges.push(range);
+      else if (bucket === 'yerushalmi') yerushalmiRanges.push(range);
       else if (bucket === 'pesuk') pesukRanges.push(range);
       else rishonimRanges.push(range);
     };
@@ -1441,6 +1500,26 @@ export default function DafViewer(): JSX.Element {
             else range.setEndAfter(mainText);
           }
           collectRange(range, 'aggadata');
+        }
+      }
+    }
+
+    // Yerushalmi: highlight the Bavli span that has the open Yerushalmi
+    // parallel. The mark carries explicit segment bounds, so paint the whole
+    // startSegIdx→endSegIdx range (first word of the start seg → last word of
+    // the end seg) rather than just the anchor word.
+    if (s?.kind === 'yerushalmi') {
+      const par = s.parallel;
+      const mainText = dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
+      if (mainText && typeof par.startSegIdx === 'number') {
+        const endSeg = typeof par.endSegIdx === 'number' ? par.endSegIdx : par.startSegIdx;
+        const startWords = mainText.querySelectorAll<HTMLElement>(`.daf-word[data-seg="${par.startSegIdx}"]`);
+        const endWords = mainText.querySelectorAll<HTMLElement>(`.daf-word[data-seg="${endSeg}"]`);
+        if (startWords.length > 0 && endWords.length > 0) {
+          const range = document.createRange();
+          range.setStartBefore(startWords[0]);
+          range.setEndAfter(endWords[endWords.length - 1]);
+          collectRange(range, 'yerushalmi');
         }
       }
     }
@@ -1630,6 +1709,7 @@ export default function DafViewer(): JSX.Element {
     paintRangeOverlay(overlay, dafRootDiv, sectionRanges, 'section');
     paintRangeOverlay(overlay, dafRootDiv, halachaRanges, 'halacha');
     paintRangeOverlay(overlay, dafRootDiv, aggadataRanges, 'aggadata');
+    paintRangeOverlay(overlay, dafRootDiv, yerushalmiRanges, 'yerushalmi');
     paintRangeOverlay(overlay, dafRootDiv, pesukRanges, 'pesuk');
     paintRangeOverlay(overlay, dafRootDiv, rishonimRanges, 'rishonim');
     paintRangeOverlay(overlay, dafRootDiv, moveRanges, 'move');
@@ -1703,7 +1783,7 @@ export default function DafViewer(): JSX.Element {
       // Scroll to the topmost *selection* band only (ignore the ambient
       // commentary tint, which can sit higher up the daf).
       const bands = overlay.querySelectorAll<HTMLElement>(
-        '.daf-range-highlight-section, .daf-range-highlight-halacha, .daf-range-highlight-aggadata, .daf-range-highlight-pesuk, .daf-range-highlight-move',
+        '.daf-range-highlight-section, .daf-range-highlight-halacha, .daf-range-highlight-aggadata, .daf-range-highlight-yerushalmi, .daf-range-highlight-pesuk, .daf-range-highlight-move',
       );
       let topY = Infinity;
       bands.forEach((el) => {
@@ -1910,6 +1990,16 @@ export default function DafViewer(): JSX.Element {
       if (anchors.length > 0) main = injectPesukimAnchors(main, anchors, ctx);
     }
 
+    // Yerushalmi anchors: one start anchor per parallel, where the gutter icon
+    // sits. The parallel's extent lives in the sidebar, so no end anchor.
+    const ye = yerushalmi();
+    if (ye && showYerushalmi()) {
+      const anchors = ye.parallels
+        .map((y, i) => ({ excerpt: y.excerpt ?? '', index: i, startSegIdx: y.startSegIdx, endSegIdx: y.endSegIdx }))
+        .filter((x) => x.excerpt.length > 0 || x.startSegIdx != null);
+      if (anchors.length > 0) main = injectYerushalmiAnchors(main, anchors, ctx);
+    }
+
     return { main, inner, outer, placeMatches };
   });
 
@@ -1925,7 +2015,7 @@ export default function DafViewer(): JSX.Element {
   const gutterKey = createMemo(() => {
     const t = tokenized();
     if (!t) return '';
-    return `${tractate()}:${page()}:${t.main.length}:${analysis()?.sections.length ?? 0}:${halacha()?.topics.length ?? 0}:${aggadata()?.stories.length ?? 0}:${pesukim()?.pesukim.length ?? 0}`;
+    return `${tractate()}:${page()}:${t.main.length}:${analysis()?.sections.length ?? 0}:${halacha()?.topics.length ?? 0}:${aggadata()?.stories.length ?? 0}:${yerushalmi()?.parallels.length ?? 0}:${pesukim()?.pesukim.length ?? 0}`;
   });
 
   // Mutual exclusion: opening anything in the argument/rabbi/aggadata sidebar
@@ -1983,6 +2073,15 @@ export default function DafViewer(): JSX.Element {
     setLastInteractedCard('argument');
   };
 
+  const openYerushalmi = (index: number) => {
+    const list = yerushalmi()?.parallels;
+    if (!list || !list[index]) return;
+    clearCommentarySelection();
+    setActiveRabbi(null);
+    setSidebar({ kind: 'yerushalmi', parallel: list[index], index });
+    setLastInteractedCard('argument');
+  };
+
   const onGutterClick = (kind: GutterKind, index: number) => {
     // Toggle: clicking the already-active gutter icon closes the sidebar and
     // clears the span highlight.
@@ -1996,6 +2095,7 @@ export default function DafViewer(): JSX.Element {
     if (kind === 'argument') openArgument(index);
     else if (kind === 'halacha') openHalacha(index);
     else if (kind === 'aggadata') openStory(index);
+    else if (kind === 'yerushalmi') openYerushalmi(index);
     else if (kind === 'pesuk') openPasuk(index);
     else if (kind === 'rishonim') openRishonim(index);
   };
@@ -2930,6 +3030,15 @@ export default function DafViewer(): JSX.Element {
                   triggerKey={gutterKey()}
                   onClick={onGutterClick}
                   kind="aggadata"
+                  activeKey={sidebarActiveKey()}
+                />
+              </Show>
+              <Show when={showYerushalmi()}>
+                <GutterIcons
+                  containerRef={dafRootEl}
+                  triggerKey={gutterKey()}
+                  onClick={onGutterClick}
+                  kind="yerushalmi"
                   activeKey={sidebarActiveKey()}
                 />
               </Show>

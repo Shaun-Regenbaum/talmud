@@ -27,11 +27,12 @@ import {
   type SaCommentaryBundle,
   type SefariaTopicBundle,
   type MishnaBundle,
+  type YerushalmiBundle,
 } from '../lib/sefref';
 import type { DafyomiDaf } from '../lib/sefref/dafyomi/schema';
 import {
   keyForDafyomi, keyForHebrewBooks, keyForSefariaBundle, keyForSefariaSegments,
-  keyForRishonim, keyForHalachaRefs, keyForCodeSources, keyForDafTopics, keyForMishnaBundle, keyForSaCommentary,
+  keyForRishonim, keyForHalachaRefs, keyForCodeSources, keyForDafTopics, keyForMishnaBundle, keyForYerushalmi, keyForSaCommentary,
 } from './cache-keys';
 import { scrapeDafyomiLive } from './dafyomi-live';
 
@@ -240,6 +241,30 @@ export async function getMishnaBundleCached(
   if (hit) return hit;
   try {
     const data = await sefariaAPI.fetchMishnaForDaf(tractate, page);
+    await writeCache(cache, key, data);
+    return data;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Cache the Jerusalem Talmud passages parallel to this gemara daf (located via
+ * the shared mishnah; see sefariaAPI.fetchYerushalmiForDaf). One getRelated plus
+ * one getText per parallel halacha; daf-keyed since the mapping doesn't vary by
+ * argument. 30-day TTL like the other source bundles. Tractates with no
+ * Yerushalmi cache an empty array.
+ */
+export async function getYerushalmiCached(
+  cache: KVNamespace | undefined,
+  tractate: string,
+  page: string,
+): Promise<YerushalmiBundle> {
+  const key = keyForYerushalmi(tractate, page);
+  const hit = await readCache<YerushalmiBundle>(cache, key);
+  if (hit) return hit;
+  try {
+    const data = await sefariaAPI.fetchYerushalmiForDaf(tractate, page);
     await writeCache(cache, key, data);
     return data;
   } catch {

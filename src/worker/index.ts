@@ -9,6 +9,7 @@ import {
 } from '../lib/sefref';
 import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
 import { collectContext } from './context-providers';
+import { fromDafyomi } from '../lib/context/fromDafyomi';
 import { placeRevachWithAi } from './revach-ai-place';
 import { formatContextForPrompt, contextForAnchor, segsFromMarkInput } from '../lib/context/select';
 import { continuationLink, type FlowEdge } from '../lib/context/link';
@@ -27,6 +28,7 @@ import {
   getSaCommentaryCached,
   getDafTopicsCached,
   getMishnaBundleCached,
+  getYerushalmiCached,
   getSefariaSegmentsCached,
   getDafyomiContentCached,
   type CacheTrack,
@@ -1234,6 +1236,53 @@ function commentariesSliceToString(s: CommentariesSlice): string {
   }).join('\n\n---\n\n');
 }
 
+/** Cap a long passage so the prompt stays bounded — a whole Yerushalmi halacha
+ *  can run thousands of words; we only need enough to compare against the daf. */
+function truncateForPrompt(s: string, max: number): string {
+  const clean = s.trim();
+  return clean.length > max ? `${clean.slice(0, max).trimEnd()} …` : clean;
+}
+
+/**
+ * Format the grounded Yerushalmi context for the {{yerushalmi}} placeholder:
+ * the parallel Jerusalem Talmud passage(s) located via the shared mishnah (real
+ * Hebrew + English, HTML stripped, length-capped), then the dafyomi.co.il
+ * Yerushalmi study notes for the daf when present. Returns a clear "none"
+ * sentinel when the daf has no Yerushalmi parallel (most of Kodashim/Taharot),
+ * so the producer knows the absence is real rather than a fetch gap.
+ */
+function formatYerushalmiForPrompt(
+  bundle: Awaited<ReturnType<typeof getYerushalmiCached>>,
+  notes: ReturnType<typeof fromDafyomi>,
+): string {
+  const blocks = bundle.map((y) => {
+    const he = truncateForPrompt(stripHtmlServer(y.hebrew), 1400);
+    const en = truncateForPrompt(stripHtmlServer(y.english), 1800);
+    const range = y.anchorStartSeg === y.anchorEndSeg
+      ? `Bavli segment ${y.anchorStartSeg}`
+      : `Bavli segments ${y.anchorStartSeg}-${y.anchorEndSeg}`;
+    return `[${y.ref}] (parallels ${range}, via ${y.mishnahRef})\nHE: ${he}\nEN: ${en}`.trim();
+  });
+  const noteLines: string[] = [];
+  for (const n of notes) {
+    const title = n.title?.en || n.title?.he || '';
+    const body = stripHtmlServer(n.body?.en || n.body?.he || '');
+    const line = truncateForPrompt([title, body].filter(Boolean).join(' — '), 600);
+    if (line) noteLines.push(`- ${line}`);
+  }
+  // Precision over recall: a real Sefaria-fetched parallel passage is the only
+  // thing that grounds a citable ref. The dafyomi notes are supplementary color
+  // (they carry no Sefaria ref), so they must NOT, on their own, license a
+  // parallel claim — without a fetched passage we report "none" even if notes
+  // exist, so the producer can't fabricate a ref from a bare note.
+  if (blocks.length === 0) {
+    return '(no Yerushalmi parallel found for this daf)';
+  }
+  const out: string[] = [blocks.join('\n\n---\n\n')];
+  if (noteLines.length) out.push(`Dafyomi.co.il Yerushalmi notes (supplementary context):\n${noteLines.join('\n')}`);
+  return out.join('\n\n===\n\n');
+}
+
 /**
  * Substitute {{placeholders}} in a prompt template with values from `vars`.
  * Missing placeholders render as empty strings (per shared template
@@ -1413,6 +1462,19 @@ async function resolveDependencies(
       out.vars.halacha_refs = formatGroundedRefsForPrompt(bundle);
       return;
     }
+    if (dep === 'yerushalmi-text') {
+      // The Jerusalem Talmud parallel(s) on the same mishnah (real text, located
+      // via fetchYerushalmiForDaf) plus the dafyomi.co.il Yerushalmi study notes
+      // — so a producer contrasts Bavli vs Yerushalmi against the source rather
+      // than from memory. Each source that fails contributes nothing.
+      const [bundle, daf] = await Promise.all([
+        getYerushalmiCached(rc.env.CACHE, tractate, page),
+        getDafyomiContentCached(rc.env.CACHE, rc.env.ASSETS, tractate, page, {}).catch(() => null),
+      ]);
+      const notes = daf ? fromDafyomi(daf).filter((i) => i.source === 'dafyomi:yerushalmi') : [];
+      out.vars.yerushalmi = formatYerushalmiForPrompt(bundle, notes);
+      return;
+    }
     if (dep === 'context') {
       // Aggregated external context (dafyomi Points/Halacha/Charts + Sefaria
       // Rishonim/halacha/topics), SCOPED to the instance's segments: a section
@@ -1447,6 +1509,32 @@ async function resolveDependencies(
         const depDef = await loadEnrichmentDef(rc.env, depId);
         if (!depDef) {
           out.depends[depId] = { error: 'not found' };
+          return;
+        }
+        // fanOut: run this per-instance enrichment for EVERY instance of its
+        // target mark and expose the array. Lets a whole-daf consumer (the
+        // tidbit) pull in every story's / verse's / topic's analysis. Each
+        // instance run resolves its own deps + scopes its context, and is
+        // cache-keyed per instance — so on a warmed daf these are all hits.
+        if ((dep as { fanOut?: boolean }).fanOut) {
+          const markDef = await loadMarkDef(rc.env, depDef.mark);
+          if (!markDef) { out.depends[depId] = { error: `mark ${depDef.mark} not found` }; return; }
+          let instances: unknown[] = [];
+          try {
+            const markRes = await runMarkOnce(rc, markDef, tractate, page, bypassCache);
+            const parsed = markRes.parsed as { instances?: unknown[] } | null;
+            instances = Array.isArray(parsed?.instances) ? parsed.instances : [];
+          } catch (err) {
+            out.depends[depId] = { error: String((err as Error)?.message ?? err) };
+            return;
+          }
+          const results = await Promise.all(instances.map(async (inst) => {
+            try {
+              const r = await runEnrichmentOnce(rc, depDef, tractate, page, inst, bypassCache, undefined, parentChain);
+              return r.parsed ?? r.content;
+            } catch { return null; }
+          }));
+          out.depends[depId] = results.filter((x) => x != null);
           return;
         }
         try {
@@ -6791,6 +6879,29 @@ app.post('/api/admin/translate-bio', async (c) => {
 // show the full quoted verse and let the reader step ± through Tanakh.
 // Sefaria's /api/texts response carries `next` / `prev` strings — we trust
 // those over manually parsing chapter:verse so book boundaries stay correct.
+// Read-only view of the Jerusalem Talmud passages parallel to this daf — the
+// same cached bundle the `yerushalmi` mark was grounded on (mishnah-mapped, see
+// getYerushalmiCached). The reader's Yerushalmi card uses it to show the actual
+// parallel text under the differences. He/En are stripped of Sefaria's footnote
+// markup so the prose reads clean.
+app.get('/api/yerushalmi/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const clean = (s: string): string =>
+    stripHtmlServer(
+      s.replace(/<sup[^>]*>[\s\S]*?<\/sup>/g, '').replace(/<i class="footnote">[\s\S]*?<\/i>/g, ''),
+    ).trim();
+  const bundle = await getYerushalmiCached(c.env.CACHE, tractate, page);
+  return c.json({
+    parallels: bundle.map((y) => ({
+      ref: y.ref,
+      heRef: y.heRef,
+      hebrew: clean(y.hebrew),
+      english: clean(y.english),
+    })),
+  });
+});
+
 app.get('/api/pasuk', async (c) => {
   const ref = c.req.query('ref') ?? '';
   if (!ref || ref.length > 100) return c.json({ error: 'missing or invalid ref' }, 400);

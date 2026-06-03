@@ -331,6 +331,12 @@ export type Extractor = LLMExtractor | SefariaExtractor | ComputedExtractor | Ma
 //                          grouped plain text via collectContext)
 //   'halacha-refs'       → {{halacha_refs}}  (grounded Mishneh Torah / Tur /
 //                          Shulchan Aruch refs + text Sefaria links to this daf)
+//   'yerushalmi-text'    → {{yerushalmi}}  (the parallel Jerusalem Talmud
+//                          passages on the same mishnah + dafyomi.co.il
+//                          Yerushalmi study notes for this daf — real text, so
+//                          a producer contrasts Bavli vs Yerushalmi against the
+//                          source rather than recalling it. The token is
+//                          distinct from the `yerushalmi` mark id on purpose.)
 //   { enrichment: id }   → {{depends.<id>}}    (recursively resolved)
 //   { mark: id }         → {{anchors.<id>}}    (mark extractor for same daf)
 //
@@ -338,7 +344,7 @@ export type Extractor = LLMExtractor | SefariaExtractor | ComputedExtractor | Ma
 // but not on enrichments. Enrichments may depend on anything.
 // ===========================================================================
 
-export type MarkDependency = 'gemara' | 'commentaries' | { mark: string };
+export type MarkDependency = 'gemara' | 'commentaries' | 'yerushalmi-text' | { mark: string };
 
 export type EnrichmentDependency =
   | 'gemara'
@@ -346,7 +352,13 @@ export type EnrichmentDependency =
   | 'mishna'
   | 'context'
   | 'halacha-refs'
-  | { enrichment: string }
+  | 'yerushalmi-text'
+  // `{ enrichment: id }` resolves the dep for the CONSUMER's own instance.
+  // `fanOut: true` instead runs a PER-INSTANCE enrichment for EVERY instance of
+  // its target mark on the daf and exposes the array under {{depends.<id>}} —
+  // the way a whole-daf consumer (e.g. the tidbit) pulls in every story's /
+  // verse's / topic's analysis, not just one.
+  | { enrichment: string; fanOut?: boolean }
   | { mark: string };
 
 // ===========================================================================

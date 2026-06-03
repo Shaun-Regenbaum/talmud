@@ -22,12 +22,12 @@ import { instanceIdOf } from './cache-keys';
 import type { JobMessage } from './index';
 
 const SEFARIA_CALENDAR_URL = 'https://www.sefaria.org/api/calendars';
-const WARM_MARKS = ['rabbi', 'argument', 'halacha', 'aggadata', 'pesukim'] as const;
+const WARM_MARKS = ['rabbi', 'argument', 'halacha', 'aggadata', 'yerushalmi', 'pesukim'] as const;
 // Marks that carry a Hebrew prompt variant get a second warm pass under
 // lang=he so Hebrew readers don't hit a cold structural extraction. Marks
 // without a *_he prompt (rabbi) emit identical English structure either way,
 // so warming them under :he would just duplicate the cache for no gain.
-const WARM_MARKS_HE = ['argument', 'halacha', 'aggadata', 'pesukim'] as const;
+const WARM_MARKS_HE = ['argument', 'halacha', 'aggadata', 'yerushalmi', 'pesukim'] as const;
 
 interface CalendarItem {
   title?: { en?: string };

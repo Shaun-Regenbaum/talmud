@@ -168,6 +168,7 @@ function labelForSidebar(s: SidebarContent | null): string {
     case 'argument': return 'Argument';
     case 'halacha': return 'Halacha';
     case 'aggadata': return 'Aggadata';
+    case 'yerushalmi': return 'Yerushalmi';
     case 'pesuk': return 'Pasuk';
     case 'rabbi': return 'Rabbi';
     case 'place': return 'Place';

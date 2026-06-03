@@ -19,6 +19,7 @@
  * consumers re-tokenize when the daf's background terms load async.
  */
 import { For, Show, createContext, createMemo, createSignal, useContext, type Accessor, type JSX } from 'solid-js';
+import { Portal } from 'solid-js/web';
 import { Hebraized } from './Hebraized';
 
 export interface ConceptTerm {
@@ -136,10 +137,10 @@ const termStyle: JSX.CSSProperties = {
 };
 
 const tooltipStyle: JSX.CSSProperties = {
-  position: 'absolute',
-  'z-index': 50,
-  top: '1.5em',
-  left: 0,
+  // Fixed + portaled to <body> so the sidebar's `overflow: auto` (.daf-aside)
+  // can't clip it; left/top are set dynamically and clamped to the viewport.
+  position: 'fixed',
+  'z-index': 1000,
   'max-width': '20rem',
   'min-width': '12rem',
   width: 'max-content',
@@ -156,29 +157,65 @@ const tooltipStyle: JSX.CSSProperties = {
 };
 
 /** A single background-term mention: dotted-underlined, with a gloss tooltip on
- *  hover/focus. The matched text stays in the document flow (copyable). */
+ *  hover/focus. The matched text stays in the document flow (copyable).
+ *
+ *  The tooltip is rendered through a Portal (to <body>) and positioned `fixed`
+ *  against the term's live bounding rect. That escapes the sidebar's scroll
+ *  clip (`.daf-aside { overflow: auto }`) which was cutting it off; once its
+ *  size is known (ref callback at mount) we clamp it inside the viewport and
+ *  flip above the term when there isn't room below. */
 function ConceptMention(props: { value: string; term: ConceptTerm }): JSX.Element {
   const [open, setOpen] = createSignal(false);
+  const [pos, setPos] = createSignal<{ left: number; top: number }>({ left: 0, top: 0 });
+  let termRef: HTMLSpanElement | undefined;
+
+  const openTip = (): void => {
+    if (termRef) {
+      const a = termRef.getBoundingClientRect();
+      setPos({ left: a.left, top: a.bottom + 6 }); // initial; place() refines on mount
+    }
+    setOpen(true);
+  };
+
+  // Clamp the tooltip inside the viewport once its size is known. Re-reads the
+  // term rect so the vertical flip uses live geometry.
+  const place = (el: HTMLSpanElement): void => {
+    if (!termRef) return;
+    const margin = 8;
+    const gap = 6;
+    const a = termRef.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    let left = a.left;
+    if (left + r.width > window.innerWidth - margin) left = window.innerWidth - margin - r.width;
+    if (left < margin) left = margin;
+    const below = a.bottom + gap;
+    const flipUp = below + r.height > window.innerHeight - margin && a.top - gap - r.height > margin;
+    setPos({ left, top: flipUp ? a.top - gap - r.height : below });
+  };
+
   return (
     <span
+      ref={termRef}
       style={termStyle}
       tabindex={0}
       role="button"
       aria-label={`${props.term.term}: ${props.term.gloss}`}
-      onMouseEnter={() => setOpen(true)}
+      onMouseEnter={openTip}
       onMouseLeave={() => setOpen(false)}
-      onFocus={() => setOpen(true)}
+      onFocus={openTip}
       onBlur={() => setOpen(false)}
     >
       {props.value}
       <Show when={open()}>
-        <span style={tooltipStyle} dir="ltr" onClick={(e) => e.stopPropagation()}>
-          <span style={{ 'font-weight': 600 }}>{props.term.term}</span>
-          <Show when={props.term.termHe}>
-            <span dir="rtl" style={{ 'margin-left': '0.35rem', color: '#cbd5e1' }}>{props.term.termHe}</span>
-          </Show>
-          <span style={{ display: 'block', 'margin-top': '0.25rem', color: '#e5e7eb' }}>{props.term.gloss}</span>
-        </span>
+        <Portal>
+          <span ref={place} style={{ ...tooltipStyle, left: `${pos().left}px`, top: `${pos().top}px` }} dir="ltr" onClick={(e) => e.stopPropagation()}>
+            <span style={{ 'font-weight': 600 }}>{props.term.term}</span>
+            <Show when={props.term.termHe}>
+              <span dir="rtl" style={{ 'margin-left': '0.35rem', color: '#cbd5e1' }}>{props.term.termHe}</span>
+            </Show>
+            <span style={{ display: 'block', 'margin-top': '0.25rem', color: '#e5e7eb' }}>{props.term.gloss}</span>
+          </span>
+        </Portal>
       </Show>
     </span>
   );
