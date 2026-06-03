@@ -2548,10 +2548,11 @@ VOICE (match the rest of the app exactly):
 - Tight third person. Short, declarative sentences (aim under ~30 words). Named actors. Concrete.
 - Hebrew script paired with a short English gloss for technical terms — e.g. "a גט (bill of divorce)", "performed לכתחילה (the ideal standard)". Hebrew names for ספרים (קהלת, not Ecclesiastes; דברים, not Deuteronomy). Hebrew verse refs.
 - Plain English is the base; Hebrew is the technical anchor — do not hebraize every common word.
+- Name rishonim/commentators in LATIN: Rashi, Tosafot, Rambam, Ramban, Rashba, Ritva, Meiri. Do NOT write their Hebrew abbreviations (no רמב"ם / רמב"ן / רשב"א): the gershayim is a straight quote that corrupts the JSON output. Same for ש"ס — write "the Talmud" or "the Bavli".
 - FORBIDDEN flourish: "lens", "captures", "embodies", "profound", "intricate", "this teaches us", "we see that", "highlights", "underscores", "to a modern ear", "reads like", "sketches a theory". No puff, no meta-commentary about what the daf "reveals".
 
 STRUCTURE (this is the whole shape):
-- "hook": ONE sentence — the teaser, specific to THIS daf, that makes a reader want to open it.
+- "hook": ONE sentence — the teaser, specific to THIS daf, that makes a reader want to open it. Keep it tight (ideally under 25 words); do not cram the whole tidbit into it.
 - "paragraphs": THREE or FOUR paragraphs of flowing prose. The first lays out the plain reading. The next develop the turn. The last lands the point — WITHOUT any "why it matters" sign over it. No section labels, no headers. Just readable prose.
 
 GROUNDING (hard):
@@ -2610,10 +2611,11 @@ const TIDBIT_ESSAY_SYSTEM_PROMPT_HE = `אתה מלמד תורה חד שכותב 
 הסגנון (זהה לשאר האפליקציה):
 - גוף שלישי הדוק. משפטים קצרים והצהרתיים. שמות מפורשים. קונקרטי.
 - מונחים טכניים בכתב עברי עם תרגום קצר באנגלית במידת הצורך. שמות ספרים בעברית. מראי מקום של פסוקים בעברית.
+- בראשי תיבות של ראשונים (רמב״ם, רמב״ן, רשב״א) השתמש בגרשיים העברי ״ (תו U+05F4) ולא בגרש כפול אנגלי " — גרש אנגלי משבש את פלט ה-JSON. אותו דבר לגבי ש״ס.
 - אסורה מליצה: "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק". ללא פלפול מטא על מה שהדף "מגלה".
 
 המבנה:
-- "hook": משפט אחד — הטיזר, ספציפי לדף הזה.
+- "hook": משפט אחד — הטיזר, ספציפי לדף הזה. קצר (פחות מ-25 מילים); אל תדחוס לתוכו את כל התובנה.
 - "paragraphs": שלוש או ארבע פסקאות של פרוזה זורמת. הראשונה — הקריאה הפשוטה. הבאות — מפתחות את התפנית. האחרונה — נוחתת על הנקודה, בלי כותרת "מדוע זה חשוב". ללא תוויות מקטעים.
 
 ביסוס (קשיח):
@@ -2677,7 +2679,7 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'argument-overview.synthesis' },
         { enrichment: 'daf-background.concepts' },
       ],
-      defHash: 'tidbit.essay-v1', cacheVersion: '1',
+      defHash: 'tidbit.essay-v1', cacheVersion: '2', // v2: Latin rishonim names (gershayim broke JSON) + tighter hook
       // Pro model: finding the non-obvious reading needs the stronger model.
       // Thinking stays OFF (no reasoningEffort) — the context bundle is large,
       // like daf-background.concepts, and a thinking pass on top risks the
