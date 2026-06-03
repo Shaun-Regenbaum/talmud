@@ -1584,7 +1584,24 @@ async function resolveDependencies(
       await placeRevachWithAi(rc.env, tractate, page, items, sourcesOnly);
       const scoped = contextForAnchor(items, segsFromMarkInput(markInput));
       out.vars.context = formatContextForPrompt(scoped);
-      recordSource(out, 'context', out.vars.context);
+      // Break the aggregated context into its constituent study-aids for the
+      // inspector instead of one opaque blob: group the scoped items by their
+      // `source` (sefaria-rashi / sefaria-rishonim / sefaria-topic / dafyomi:* /
+      // …) and record each part, rendered with the same formatter the prompt
+      // uses so every part is faithful to that source's contribution. Key as
+      // `context-<kind>` (provider prefix stripped) so chips read cleanly
+      // ("Context rashi", "Context points", "Context revach"). `out.vars.context`
+      // (above) stays the combined string the prompt actually consumes.
+      const byContextSource = new Map<string, typeof scoped>();
+      for (const it of scoped) {
+        const group = byContextSource.get(it.source) ?? [];
+        group.push(it);
+        byContextSource.set(it.source, group);
+      }
+      for (const [src, group] of byContextSource) {
+        const kind = src.replace(/^sefaria-/, '').replace(/^dafyomi:/, '');
+        recordSource(out, `context-${kind}`, formatContextForPrompt(group));
+      }
       return;
     }
     if (typeof dep === 'object' && dep !== null) {
