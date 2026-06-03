@@ -905,7 +905,8 @@ ${alwaysHebraizeBlock()}
     GOOD: "the term 'אמר' indicates direct attribution"
   If you don't remember the Hebrew/Aramaic verbatim, paraphrase in English instead of writing the transliteration in quotes. NEVER fake a verbatim quote with transliteration.
 - Plain English is the BASE; Hebrew script is the technical anchor. Don't pile Hebrew script on every common word — only where the term is genuinely the technical concept.
-- THE DAF'S OWN GLOSSARY IS AUTHORITATIVE. If the prompt gives you this daf's background terms (each an English label + its Hebrew + a gloss), treat that list as the definitive set of terms to show in Hebrew here. Whenever your prose uses one of them, write it in Form A/B using EXACTLY that Hebrew spelling — e.g. given "Tevul Yom / טבול יום", write "טבול יום (one who immersed that day)" rather than "tevul yom" or English alone; given "Midnight / חצות", write "חצות (halakhic midnight)". This keeps the prose consistent with the glossary the reader sees on the daf and lets each term carry its own tooltip.`;
+- THE DAF'S OWN GLOSSARY IS AUTHORITATIVE. If the prompt gives you this daf's background terms (each an English label + its Hebrew + a gloss), treat that list as the definitive set of terms to show in Hebrew here. Whenever your prose uses one of them, write it in Form A/B using EXACTLY that Hebrew spelling — e.g. given "Tevul Yom / טבול יום", write "טבול יום (one who immersed that day)" rather than "tevul yom" or English alone; given "Midnight / חצות", write "חצות (halakhic midnight)". This keeps the prose consistent with the glossary the reader sees on the daf and lets each term carry its own tooltip.
+- SCRIPT HYGIENE: write ONLY in English, with Hebrew/Aramaic script for terms and quotes. Never emit any other language or writing system — no Korean, Cyrillic, Arabic, CJK, Devanagari, emoji, etc. Every character must be plain Latin or Hebrew script (plus ordinary punctuation). If you reach for a non-English word, use its plain English equivalent instead.`;
 
 /**
  * Hebrew-output style guide — the lang='he' counterpart of HEBREW_GLOSS_STYLE.
@@ -929,7 +930,8 @@ const HEBREW_NATIVE_STYLE = `סגנון — כתיבה בעברית (החל בא
 - ציטוטי excerpt מן הדף נשארים בעברית/ארמית מילה במילה כפי שהם בדף, ללא שינוי.
 - הימנע ממליצות ריקות ומשפה מנופחת. אל תכתוב: "תמצית", "מבעד לעדשה של", "מגלם", "עומק רוחני", "ביטוי מובהק", "רגישות עמוקה", "שואף בעקביות", "טבוע בו". כתוב משפטי נושא-נשוא-מושא ענייניים עם עובדות קונקרטיות (תקופה, אזור, שמות חכמים, שיטות).
 - עברית היא שפת הבסיס; אין צורך לפזר מילים לועזיות או תעתיקים.
-- מילון הדף הוא סמכותי. אם הקלט כולל את מונחי הרקע של הדף (תווית באנגלית + עברית + הסבר לכל אחד), התייחס לרשימה כקבוצת המונחים המוסמכת: בכל פעם שהפרוזה נוקטת באחד מהם, כתוב אותו בדיוק באותה צורה עברית שניתנה (למשל "טבול יום", "חצות", "תרומה"). כך הפרוזה עקבית עם מילון הרקע שהקורא רואה בדף.`;
+- מילון הדף הוא סמכותי. אם הקלט כולל את מונחי הרקע של הדף (תווית באנגלית + עברית + הסבר לכל אחד), התייחס לרשימה כקבוצת המונחים המוסמכת: בכל פעם שהפרוזה נוקטת באחד מהם, כתוב אותו בדיוק באותה צורה עברית שניתנה (למשל "טבול יום", "חצות", "תרומה"). כך הפרוזה עקבית עם מילון הרקע שהקורא רואה בדף.
+- ניקיון כתב: כתוב אך ורק בעברית (ובכתב עברי/ארמי למונחים וציטוטים). לעולם אל תפלוט שפה או מערכת כתב אחרת — לא קוריאנית, קירילית, ערבית, סינית/יפנית, אימוג'י וכו'. כל תו חייב להיות עברי או לטיני בסיסי (בתוספת פיסוק רגיל).`;
 
 
 // rabbi.bio — DAF-AGNOSTIC general biography. Same regardless of which daf
@@ -2953,7 +2955,7 @@ CODE_ENRICHMENTS.push(
         // aids + the daf's anchors + a plain whole-daf summary + the glossary.
         // The rishonim and the per-instance analysis are the Bi'yun's job.
       ],
-      defHash: 'tidbit.essay-v1', cacheVersion: '14', // v14: idea-first structure (idea -> how the gemara teaches it -> a step further) + context-light (drop the rashi/tosafot/rishonim/halacha that leaked via 'context')
+      defHash: 'tidbit.essay-v1', cacheVersion: '15', // v15: + shared script-hygiene guard (English + Hebrew script only; no stray foreign-script tokens)
       // Pro model + a reasoning pass. Thinking is ON now (reasoningEffort) —
       // the move to 'context-light' shrank the prompt enough that a thinking
       // pass no longer risks the OpenRouter cap, and the tidbit genuinely needs
@@ -3153,7 +3155,7 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'pesukim.synthesis', fanOut: true },
         { enrichment: 'halacha.synthesis', fanOut: true },
       ],
-      defHash: 'biyun.essay-v1', cacheVersion: '3', // v3: engaging, simple-and-direct voice — walk the reader through the problem, say each move once
+      defHash: 'biyun.essay-v1', cacheVersion: '4', // v4: + shared script-hygiene guard (English + Hebrew script only)
       model: ARGUMENT_PRO_MODEL,
       systemPromptHe: BIYUN_ESSAY_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: BIYUN_ESSAY_USER_TEMPLATE_HE,
