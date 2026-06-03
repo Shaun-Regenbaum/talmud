@@ -19,6 +19,10 @@ Principles: deterministic rules grow over time but **AI keeps final say**; conte
 
 Cross-cutting always: typed piece bodies, resilient anchors, provenance/confidence, eval-gated producer promotion.
 
+### Open problem — place/era granularity (future)
+
+`rabbi.location` infers **one place per rabbi per daf**, and the `RabbiPlacesTimeline` "you are here" marker shows that single daf-level verdict (deduped to one row in PR #180). But a daf is not one place — **and neither is a sugya**: sugyot routinely span generations and locales, quoting tannaim and amoraim across centuries and academies. So "where (place) and when (era/generation)" is properly a property of an individual **statement / voice anchored to a text range**, not of a daf or even a sugya. The same coarseness affects generation *coloring* (a daf/sugya can legitimately contain reds and blues at once). The real fix makes location + era per-statement and anchored — aligned with the smart-notes anchor model above — and is a benchmark-gated producer change. Fine to leave daf-scoped for now; revisit when the anchor model reaches entity/voice pieces.
+
 - `pnpm test` — Vitest unit suite. `pnpm test:int` — integration (hits a running worker).
 - `pnpm typecheck` — `tsc --noEmit`. Run it plus `pnpm test` before any PR.
 - `pnpm ship` — `vite build && wrangler deploy`. Production is the custom domain **talmud.shaunregenbaum.com**. wrangler is authenticated in this environment.
