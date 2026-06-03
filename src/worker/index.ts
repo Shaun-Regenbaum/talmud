@@ -3736,6 +3736,19 @@ function percentile(sorted: number[], p: number): number {
 
 app.get('/api/usage', async (c) => {
   const cache = c.env.CACHE;
+  // Assembling this payload reads several full KV prefixes — the usage rollups
+  // and the three observed-entity backlogs each fetch EVERY key's value across
+  // the warmed Shas — so a cold build runs ~10s. The dashboard polls every 30s
+  // and a few seconds of staleness is harmless, so serve a cached payload and
+  // refresh it in the background (stale-while-revalidate): every load after the
+  // first is instant. A best-effort refresh lock (below) collapses the common
+  // case of one viewer polling — or several at once — into a single rebuild per
+  // window instead of one rebuild per stale request.
+  const PAYLOAD_KEY = 'usage-payload:v1';
+  const REFRESH_LOCK_KEY = 'usage-payload:refreshing';
+  const PAYLOAD_FRESH_MS = 30_000;
+
+  const computeUsagePayload = async () => {
 
   // External analytics, cached 5 min so the 30s dashboard refresh doesn't
   // hammer the CF analytics API. Closures so they participate in the single
@@ -3856,7 +3869,7 @@ app.get('/api/usage', async (c) => {
   let jobErrors: RecentJobError[] = [];
   if (jeRaw) { try { jobErrors = (JSON.parse(jeRaw) as RecentJobError[]).slice(-30).reverse(); } catch { jobErrors = []; } }
 
-  return c.json({
+  return {
     telemetry: { perEndpoint, perMark, perEnrichment, recentErrors, totalCount: telemetry.length },
     cost: { selfTracked, aiGateway },
     activity,
@@ -3864,7 +3877,49 @@ app.get('/api/usage', async (c) => {
     jobErrors,
     lintFailures,
     reports: [...reports].reverse(),
-  });
+    generatedAt: new Date().toISOString(),
+  };
+  };
+
+  // --- Stale-while-revalidate dispatch ------------------------------------
+  if (cache) {
+    const cachedRaw = await cache.get(PAYLOAD_KEY);
+    if (cachedRaw) {
+      let parsed: (Record<string, unknown> & { generatedAt?: string }) | null = null;
+      try { parsed = JSON.parse(cachedRaw); } catch { parsed = null; }
+      if (parsed) {
+        const age = Date.now() - Date.parse(parsed.generatedAt ?? '');
+        const fresh = Number.isFinite(age) && age >= 0 && age < PAYLOAD_FRESH_MS;
+        if (!fresh) {
+          // Best-effort singleflight: skip the rebuild if another request is
+          // already refreshing. The lock self-expires (60s) so a crashed build
+          // can't wedge it, and it's cleared on completion. KV is eventually
+          // consistent, so this isn't a hard mutex — it just keeps a burst of
+          // stale hits from each kicking off their own ~10s rebuild.
+          const refreshing = await cache.get(REFRESH_LOCK_KEY);
+          if (!refreshing) {
+            c.executionCtx.waitUntil((async () => {
+              try {
+                await cache.put(REFRESH_LOCK_KEY, '1', { expirationTtl: 60 });
+                const next = await computeUsagePayload();
+                await cache.put(PAYLOAD_KEY, JSON.stringify(next), { expirationTtl: 600 });
+              } catch (err) {
+                // eslint-disable-next-line no-console
+                console.warn('[usage] background refresh failed:', err);
+              } finally {
+                await cache.delete(REFRESH_LOCK_KEY).catch(() => {});
+              }
+            })());
+          }
+        }
+        return c.json(parsed);
+      }
+    }
+  }
+  // Cold miss (no cached payload): build synchronously, then cache it.
+  const payload = await computeUsagePayload();
+  if (cache) c.executionCtx.waitUntil(cache.put(PAYLOAD_KEY, JSON.stringify(payload), { expirationTtl: 600 }));
+  return c.json(payload);
 });
 
 // --- Commentaries list --------------------------------------------------
