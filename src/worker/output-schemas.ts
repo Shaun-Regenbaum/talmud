@@ -194,9 +194,18 @@ export const HALACHA_DISPUTES_OUTPUT_SCHEMA = responseFormat('halacha_disputes',
     settled: z.string(),
   })),
 }));
+// Shape-aware practical "what to do": the render is chosen by `shape`.
+//   best-fallback → best (לכתחילה) + fallback (בדיעבד) lines (timing/measure rules)
+//   statement     → one plain line (a prohibition, action, or requirement)
+//   taxonomy      → a case→value map (e.g. food → bracha)
+// `note` is an optional single plain-language heads-up (retires the pill lists).
 export const HALACHA_PRACTICAL_OUTPUT_SCHEMA = responseFormat('halacha_practical', z.object({
-  lechatchila: z.string(), bedieved: z.string(),
-  appliesWhen: z.array(z.string()), exceptions: z.array(z.string()), prose: z.string(),
+  shape: z.enum(['best-fallback', 'statement', 'taxonomy']),
+  best: z.string(),
+  fallback: z.string(),
+  statement: z.string(),
+  rows: z.array(z.object({ when: z.string(), value: z.string() })),
+  note: z.string(),
 }));
 export const HALACHA_SYNTHESIS_OUTPUT_SCHEMA = responseFormat('halacha_synthesis', single('synthesis'));
 

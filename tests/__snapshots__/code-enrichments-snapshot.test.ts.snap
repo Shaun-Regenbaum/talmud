@@ -22,7 +22,7 @@ exports[`CODE_ENRICHMENTS cache identity > per-enrichment fingerprint is stable 
   "daf-background.synthesis@6 mode=aggregate scope=local mark=daf-background schema=daf_background_synthesis[synthesis] deps=[gemara|context|e:daf-background.concepts]",
   "halacha.codification@4 mode=augment-content scope=local mark=halacha schema=halacha_codification[mishnehTorah,tur,shulchanAruch,rema,prose] deps=[gemara|halacha-refs]",
   "halacha.disputes@3 mode=augment-content scope=local mark=halacha schema=halacha_disputes[disputes] deps=[gemara]",
-  "halacha.practical@4 mode=augment-content scope=local mark=halacha schema=halacha_practical[lechatchila,bedieved,appliesWhen,exceptions,prose] deps=[gemara]",
+  "halacha.practical@5 mode=augment-content scope=local mark=halacha schema=halacha_practical[shape,best,fallback,statement,rows,note] deps=[gemara]",
   "halacha.synthesis@4 mode=aggregate scope=local mark=halacha schema=halacha_synthesis[synthesis] deps=[gemara|e:halacha.codification|e:halacha.practical|e:halacha.disputes]",
   "pesukim.landing@2 mode=augment-content scope=local mark=pesukim schema=pesukim_landing[landing] deps=[gemara|m:rabbi]",
   "pesukim.mechanism@2 mode=augment-content scope=local mark=pesukim schema=pesukim_mechanism[mechanism] deps=[gemara|commentaries]",

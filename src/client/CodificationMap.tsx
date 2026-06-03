@@ -42,7 +42,9 @@ const LEGEND_LABEL: Record<RelationKind, string> = {
 };
 
 const SPINE_X = 18;       // left-gutter x of the spine + dots
-const GUTTER = 22;        // right gutter width for relation lanes
+// Wide right gutter so the relation connectors have room to bow out clearly
+// (narrows the cards, which is the intent — the lines need the space).
+const GUTTER = 46;        // right gutter width for relation lanes
 const LANE_STEP = 9;      // x between parallel relation lanes
 
 export default function CodificationMap(props: Props): JSX.Element {
