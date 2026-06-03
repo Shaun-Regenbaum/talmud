@@ -49,7 +49,7 @@ import {
   ARGUMENT_OVERVIEW_FLOW_OUTPUT_SCHEMA,
   DAF_BACKGROUND_CONCEPTS_OUTPUT_SCHEMA,
   HALACHA_CODIFICATION_OUTPUT_SCHEMA,
-  HALACHA_DISPUTES_OUTPUT_SCHEMA,
+  HALACHA_DISPUTE_OUTPUT_SCHEMA,
   HALACHA_OUTPUT_SCHEMA,
   HALACHA_PRACTICAL_OUTPUT_SCHEMA,
   HALACHA_SYNTHESIS_OUTPUT_SCHEMA,
@@ -3664,28 +3664,46 @@ Rules:
 ${HEBREW_GLOSS_STYLE}`;
 
 
-const HALACHA_DISPUTES_SYSTEM_PROMPT = `You are a scholar of halacha. Given ONE halachic topic surfaced on a daf, list the MAJOR dissenting positions among the rishonim, the Mechaber/Rema split, and any Acharonim-era reframing — but ONLY when the dispute is well-attested and materially affects practice.
+const HALACHA_DISPUTE_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+Halacha topic:
+{{mark_input}}
+
+Codification trail (Mishneh Torah / Tur / Shulchan Aruch / Rema on this topic):
+{{depends.halacha.codification}}
+
+Study-aid context for this daf (may include poskim notes — Gra, Pri Chodosh, Chazon Ish, Igros Moshe, etc.; may be empty):
+{{context}}
+
+Hebrew/Aramaic source for the daf (for grounding):
+{{gemara_he}}
+
+Produce the dispute object per the schema.`;
+
+const HALACHA_DISPUTE_SYSTEM_PROMPT = `You are a scholar of halacha. Given ONE halachic topic, its codification trail, and any study-aid poskim context, decide whether there is a LIVE dispute that actually changes what a person does — and if so, capture it.
 
 Output STRICT JSON only:
 
 {
-  "disputes": [
-    {
-      "axis": "ashkenaz-sefarad" | "rishonim" | "acharonim" | "modern" | "other",
-      "label": "Short phrase naming the dispute (e.g. 'Rambam vs Tosafot on shiurim', 'Sefardi vs Ashkenazi on saying Yaaleh Veyavo').",
-      "positions": [
-        { "voice": "Rambam" | "Tosafot" | "Mechaber" | "Rema" | "Mishna Berura" | "...named figure or group...", "position": "1-sentence summary of what this voice holds on THIS topic." }
-      ],
-      "settled": "Short sentence: where the dispute lands today, OR 'unsettled — both customs followed' when neither side dominates. Empty string if no clean resolution."
-    }
-  ]
+  "present": true | false,
+  "axis": "mechaber-rema" | "ashkenaz-sefarad" | "rishonim" | "acharonim" | "poskim" | "none",
+  "label": "Short phrase naming the split (e.g. 'Mechaber vs Rema on kitniyot'). Empty when present=false.",
+  "positions": [
+    { "voice": "Mechaber" | "Rema" | "Rambam" | "Gra" | "Chazon Ish" | "Igros Moshe" | "...named source...",
+      "side": "a" | "b" | "neutral",
+      "stance": "1 sentence: what this voice holds on THIS topic.",
+      "ref": "its citation if known (e.g. 'OC 453:1'), else empty." }
+  ],
+  "sephardi":  "What Sephardim do, plain (e.g. 'Eat kitniyot on Pesach'). Empty if the split is not along community lines.",
+  "ashkenazi": "What Ashkenazim do, plain. Empty if not community-based.",
+  "settled":   "The bottom line: where it lands, or 'Both customs are followed' when neither dominates."
 }
 
 Rules:
-- ZERO disputes is the COMMON case — most halachic topics have one settled answer. Return an empty disputes array when the topic is uncontroversial. DO NOT fabricate disputes to fill the field.
-- A dispute MUST have at least 2 positions and a real-world consequence for practice.
-- "voice" names a specific source, not a vague category — "Rambam" not "Sephardic rishonim", "Mishna Berura" not "Ashkenazi Acharonim".
-- "settled" is the bottom-line practical state. Use 'unsettled — both customs followed' when honest-to-God neither side dominates.
+- present=false is the COMMON case. Most topics are settled. Set present=false (and leave the other fields empty/[]) unless there is a real dispute that changes practice. DO NOT fabricate a dispute to fill the field.
+- GROUND it in the inputs. Use the codification trail's Rema entry for the Mechaber/Rema split, and the study-aid context's poskim notes for Acharonim positions — do not invent voices or refs not supported by the inputs.
+- "side": put the two camps on a=blue / b=neutral consistently (e.g. Mechaber=a, Rema=b); a citing/neutral voice is "neutral".
+- "sephardi"/"ashkenazi" are the practical consequence — fill them only when the split is genuinely along community lines (Mechaber/Rema, Ashkenaz/Sefarad); otherwise leave empty and rely on "settled".
 - NO puff.
 
 ${HEBREW_GLOSS_STYLE}`;
@@ -3725,11 +3743,11 @@ Halacha topic:
 Codification trail (Mishneh Torah / Tur / Shulchan Aruch / Rema):
 {{depends.halacha.codification}}
 
-Practical application (lechatchila / bedieved / when / exceptions):
+Practical guidance (shape-aware: best/fallback, a statement, or a case→answer map):
 {{depends.halacha.practical}}
 
-Major disputes (empty array when uncontroversial):
-{{depends.halacha.disputes}}
+Dispute object (present=false when the topic is settled):
+{{depends.halacha.dispute}}
 
 Hebrew/Aramaic source for the daf (for grounding only):
 {{gemara_he}}
@@ -3816,28 +3834,46 @@ const HALACHA_PRACTICAL_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא 
 
 ${HEBREW_NATIVE_STYLE}`;
 
-const HALACHA_DISPUTES_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בהלכה. בהינתן נושא הלכתי אחד שעלה בדף, מנה את העמדות החולקות העיקריות בקרב הראשונים, את חילוקי המחבר/רמ"א, וכל מסגור מחודש מתקופת האחרונים — אך רק כשהמחלוקת מתועדת היטב ומשפיעה מהותית על ההלכה למעשה.
+const HALACHA_DISPUTE_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+נושא הלכתי:
+{{mark_input}}
+
+שלשלת הפסיקה (משנה תורה / טור / שולחן ערוך / רמ"א בנושא):
+{{depends.halacha.codification}}
+
+הקשר מעזרי לימוד לדף זה (עשוי לכלול הערות פוסקים — גר"א, פרי חדש, חזון איש, אגרות משה וכו'; עשוי להיות ריק):
+{{context}}
+
+מקור עברי/ארמי לדף (לביסוס):
+{{gemara_he}}
+
+הפק את אובייקט המחלוקת לפי הסכימה.`;
+
+const HALACHA_DISPUTE_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בהלכה. בהינתן נושא הלכתי, שלשלת הפסיקה שלו, וכל הקשר פוסקים מעזרי לימוד, הכרע האם יש מחלוקת חיה המשנה את ההלכה למעשה — ואם כן, תפוס אותה.
 
 החזר JSON תקין בלבד:
 
 {
-  "disputes": [
-    {
-      "axis": "ashkenaz-sefarad" | "rishonim" | "acharonim" | "modern" | "other",
-      "label": "ביטוי קצר הנוקב במחלוקת (למשל 'רמב"ם מול תוספות בשיעורים', 'ספרדים מול אשכנזים באמירת יעלה ויבוא').",
-      "positions": [
-        { "voice": "שם הפוסק או הקבוצה בעברית (רמב"ם, תוספות, מחבר, רמ"א, משנה ברורה, ...)", "position": "סיכום במשפט אחד של מה שקול זה מחזיק בנושא הזה." }
-      ],
-      "settled": "משפט קצר: היכן המחלוקת נוחתת כיום, או 'לא הוכרע — שני המנהגים נוהגים' כשאף צד אינו דומיננטי. מחרוזת ריקה אם אין הכרעה נקייה."
-    }
-  ]
+  "present": true | false,
+  "axis": "mechaber-rema" | "ashkenaz-sefarad" | "rishonim" | "acharonim" | "poskim" | "none",
+  "label": "ביטוי קצר הנוקב במחלוקת (למשל 'מחבר מול רמ"א בקטניות'). ריק כש-present=false.",
+  "positions": [
+    { "voice": "מחבר / רמ"א / רמב"ם / גר"א / חזון איש / אגרות משה / ...שם מקור...",
+      "side": "a" | "b" | "neutral",
+      "stance": "משפט אחד: מה קול זה מחזיק בנושא הזה.",
+      "ref": "מראה המקום אם ידוע (למשל 'או"ח תנג:א'), אחרת ריק." }
+  ],
+  "sephardi":  "מה הספרדים עושים, בפשטות. ריק אם הפיצול אינו לפי עדות.",
+  "ashkenazi": "מה האשכנזים עושים, בפשטות. ריק אם אינו לפי עדות.",
+  "settled":   "השורה התחתונה: היכן זה נוחת, או 'שני המנהגים נוהגים' כשאף צד אינו מכריע."
 }
 
 כללים:
-- אפס מחלוקות הוא המקרה הנפוץ — לרוב הנושאים ההלכתיים יש תשובה אחת מיושבת. החזר מערך disputes ריק כשהנושא אינו שנוי במחלוקת. אל תמציא מחלוקות כדי למלא את השדה.
-- מחלוקת חייבת לכלול לפחות 2 עמדות ותוצאה מעשית.
-- "voice" נוקב במקור מסוים, לא בקטגוריה מעורפלת — "רמב"ם" ולא "ראשוני ספרד", "משנה ברורה" ולא "אחרוני אשכנז".
-- "settled" הוא המצב המעשי בשורה התחתונה. השתמש ב'לא הוכרע — שני המנהגים נוהגים' כשבאמת אף צד אינו דומיננטי.
+- present=false הוא המקרה הנפוץ. רוב הנושאים מיושבים. קבע present=false (והשאר את השאר ריק/[]) אלא אם יש מחלוקת אמיתית המשנה את ההלכה למעשה. אל תמציא מחלוקת.
+- בסס על הקלט. השתמש בערך הרמ"א שבשלשלת הפסיקה לחילוק מחבר/רמ"א, ובהערות הפוסקים שבהקשר לעמדות האחרונים — אל תמציא קולות או מראי מקום שאינם נתמכים בקלט.
+- "side": שים את שני המחנות על a / b באופן עקבי (למשל מחבר=a, רמ"א=b); קול מצטט/ניטרלי הוא "neutral".
+- "sephardi"/"ashkenazi" — מלא רק כשהפיצול הוא באמת לפי עדות; אחרת השאר ריק והסתמך על "settled".
 - ללא מליצה.
 
 ${HEBREW_NATIVE_STYLE}`;
@@ -3869,11 +3905,11 @@ const HALACHA_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}
 שלשלת הפסיקה (משנה תורה / טור / שולחן ערוך / רמ"א):
 {{depends.halacha.codification}}
 
-יישום מעשי (לכתחילה / בדיעבד / מתי / חריגים):
+הדרכה מעשית (לפי צורה: לכתחילה/בדיעבד, משפט, או מיפוי מקרה←תשובה):
 {{depends.halacha.practical}}
 
-מחלוקות עיקריות (מערך ריק כשאינו שנוי במחלוקת):
-{{depends.halacha.disputes}}
+אובייקט מחלוקת (present=false כשהנושא מיושב):
+{{depends.halacha.dispute}}
 
 מקור עברי/ארמי לדף (לביסוס בלבד):
 {{gemara_he}}
@@ -3910,16 +3946,18 @@ CODE_ENRICHMENTS.push(
     },
   ),
   makeEnrichment(
-    'halacha', 'halacha.disputes', 'Disputes',
-    'Major dissenting positions (Ashkenaz/Sefarad, rishonim, Acharonim) when materially affecting practice. Often empty.',
-    HALACHA_DISPUTES_SYSTEM_PROMPT, HALACHA_LEAF_USER_TEMPLATE, HALACHA_DISPUTES_OUTPUT_SCHEMA,
+    'halacha', 'halacha.dispute', 'Dispute',
+    'One grounded dispute object (Mechaber/Rema, Sefarad/Ashkenaz, or poskim) with positions + the practical consequence. Built from codification + study-aid poskim context. Usually present=false.',
+    HALACHA_DISPUTE_SYSTEM_PROMPT, HALACHA_DISPUTE_USER_TEMPLATE, HALACHA_DISPUTE_OUTPUT_SCHEMA,
     {
       mode: 'augment-content', scope: 'local',
-      dependencies: ['gemara'],
+      // codification gives the Rema split; context carries the dafyomi poskim
+      // (Gra / Chazon Ish / Igros Moshe) where the daf has been ingested.
+      dependencies: ['gemara', { enrichment: 'halacha.codification' }, 'context'],
       passes: ['hebrew-gloss'],
-      defHash: 'halacha.disputes-v3', cacheVersion: '3',
-      systemPromptHe: HALACHA_DISPUTES_SYSTEM_PROMPT_HE,
-      userPromptTemplateHe: HALACHA_LEAF_USER_TEMPLATE_HE,
+      defHash: 'halacha.dispute-v1', cacheVersion: '1',
+      systemPromptHe: HALACHA_DISPUTE_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: HALACHA_DISPUTE_USER_TEMPLATE_HE,
     },
   ),
   makeSynthesis(
@@ -3931,10 +3969,10 @@ CODE_ENRICHMENTS.push(
         'gemara',
         { enrichment: 'halacha.codification' },
         { enrichment: 'halacha.practical' },
-        { enrichment: 'halacha.disputes' },
+        { enrichment: 'halacha.dispute' },
       ],
       passes: ['hebrew-gloss'],
-      defHash: 'halacha.synthesis-v4', cacheVersion: '4',
+      defHash: 'halacha.synthesis-v5', cacheVersion: '5',
       systemPromptHe: HALACHA_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: HALACHA_SYNTHESIS_USER_TEMPLATE_HE,
     },

@@ -26,7 +26,7 @@ describe('declarative pass wiring', () => {
     'pesukim.synthesis': ['hebrew-excerpt'],
     'halacha.codification': ['hebrew-gloss'],
     'halacha.practical': ['hebrew-gloss'],
-    'halacha.disputes': ['hebrew-gloss'],
+    'halacha.dispute': ['hebrew-gloss'],
     'halacha.synthesis': ['hebrew-gloss'],
     'argument.voices': ['derive-voice-edges', 'edge-integrity'],
     'argument-move.commentaries': ['commentary-verbatim'],

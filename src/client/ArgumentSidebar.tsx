@@ -11,7 +11,7 @@ import { type GeographyData, type GeographyEvidence } from './RabbiGeographyCard
 import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeline';
 import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
 import CodificationMap from './CodificationMap';
-import { codeMapFromCodification, type CodificationData } from './flow/codeMapLayout';
+import { codeMapFromCodification, SIDE_COLOR, type CodificationData } from './flow/codeMapLayout';
 import { type DerivationSource } from '../lib/halacha/codifiers';
 import ArgumentNarrative from './ArgumentNarrative';
 import { deriveVoiceEdges } from '../lib/typing/voices';
@@ -1314,14 +1314,16 @@ function normalizePractical(raw: unknown): PracticalData | undefined {
   }
   return undefined;
 }
-interface DisputePosition { voice: string; position: string; }
-interface DisputeItem {
-  axis: 'ashkenaz-sefarad' | 'rishonim' | 'acharonim' | 'modern' | 'other';
+interface DisputePosition { voice: string; side: 'a' | 'b' | 'neutral'; stance: string; ref: string }
+interface DisputeData {
+  present: boolean;
+  axis: string;
   label: string;
   positions: DisputePosition[];
+  sephardi: string;
+  ashkenazi: string;
   settled: string;
 }
-interface DisputesData { disputes: DisputeItem[]; }
 
 // Halacha codification: the codifier lineage as a CodificationMap — Gemara →
 // Rambam → Tur → Shulchan Aruch, with a present Rema folded in as the
@@ -1414,37 +1416,59 @@ function HalachaPractical(props: SpecialBlockProps): JSX.Element {
   );
 }
 
-// Halacha disputes: machlokes positions grouped per axis.
-function HalachaDisputes(props: SpecialBlockProps): JSX.Element {
-  const disputes = (): DisputeItem[] => {
-    const d = props.deps['halacha.disputes'] as DisputesData | undefined;
-    return d && Array.isArray(d.disputes) ? d.disputes : [];
+// Halacha dispute: ONE grounded dispute object — shown only when present. The
+// practical consequence (Sephardi / Ashkenazi) leads; the positions are listed
+// with a side-colour dot in the Voices palette. Built from codification + the
+// dafyomi poskim context (where the daf is ingested).
+function HalachaDispute(props: SpecialBlockProps): JSX.Element {
+  const dispute = (): DisputeData | undefined => {
+    const d = props.deps['halacha.dispute'] as DisputeData | undefined;
+    return d && d.present === true ? d : undefined;
   };
   return (
-      <Show when={disputes().length > 0}>
-        <SectionCard label="halacha.disputes" inspect={{ instanceKey: props.instanceKey, leafId: 'halacha.disputes' }}>
-          <For each={disputes()}>{(d) => (
-            <div style={{ 'margin-bottom': '0.6rem' }}>
-              <div style={{ 'font-weight': 500, color: '#333', 'font-size': '0.88rem', 'margin-bottom': '0.25rem' }}>
-                {d.label}
-                <span style={{ 'font-size': '0.65rem', color: '#999', 'margin-left': '0.4rem', 'text-transform': 'uppercase', 'letter-spacing': '0.06em' }}>
-                  {axisLabel(d.axis)}
-                </span>
-              </div>
-              <For each={d.positions}>{(p) => (
-                <div style={{ 'font-size': '0.82rem', 'line-height': 1.5, color: '#444', 'margin-bottom': '0.2rem' }}>
-                  <span style={{ 'font-weight': 600, color: '#222' }}>{p.voice}:</span> <HebraizedWithRabbis text={p.position} />
+    <Show when={dispute()}>
+      {(d) => (
+        <SectionCard label="halacha.dispute" inspect={{ instanceKey: props.instanceKey, leafId: 'halacha.dispute' }}>
+          <Show when={d().label}>
+            <div style={{ 'font-weight': 500, color: '#333', 'font-size': '0.88rem', 'margin-bottom': '0.3rem' }}>
+              {d().label}
+              <Show when={d().axis && d().axis !== 'none'}>
+                <span style={{ 'font-size': '0.65rem', color: '#999', 'margin-left': '0.4rem', 'text-transform': 'uppercase', 'letter-spacing': '0.06em' }}>{axisLabel(d().axis)}</span>
+              </Show>
+            </div>
+          </Show>
+          <Show when={d().sephardi || d().ashkenazi}>
+            <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.25rem', 'margin-bottom': '0.4rem' }}>
+              <Show when={d().sephardi}>
+                <div style={{ 'font-size': '0.84rem', 'line-height': 1.45, color: '#222' }}>
+                  <span lang="he" dir="ltr" style={{ 'font-family': '"Mekorot Vilna", serif', color: '#1a3e7e' }}>ספרד</span>
+                  <span style={{ 'font-family': 'system-ui, sans-serif', 'font-size': '0.68rem', 'font-weight': 700, color: '#1a3e7e', 'margin': '0 0.35rem' }}>SEPHARDI</span>
+                  <HebraizedWithRabbis text={d().sephardi} />
                 </div>
-              )}</For>
-              <Show when={d.settled}>
-                <div style={{ 'font-size': '0.78rem', color: '#666', 'font-style': 'italic', 'margin-top': '0.2rem' }}>
-                  <HebraizedWithRabbis text={d.settled} />
+              </Show>
+              <Show when={d().ashkenazi}>
+                <div style={{ 'font-size': '0.84rem', 'line-height': 1.45, color: '#222' }}>
+                  <span lang="he" dir="ltr" style={{ 'font-family': '"Mekorot Vilna", serif', color: '#7e1a1a' }}>אשכנז</span>
+                  <span style={{ 'font-family': 'system-ui, sans-serif', 'font-size': '0.68rem', 'font-weight': 700, color: '#7e1a1a', 'margin': '0 0.35rem' }}>ASHKENAZI</span>
+                  <HebraizedWithRabbis text={d().ashkenazi} />
                 </div>
               </Show>
             </div>
+          </Show>
+          <For each={d().positions}>{(p) => (
+            <div style={{ 'font-size': '0.82rem', 'line-height': 1.5, color: '#444', 'margin-bottom': '0.2rem', display: 'flex', gap: '0.4rem' }}>
+              <span style={{ width: '8px', height: '8px', 'border-radius': '50%', background: SIDE_COLOR[p.side], 'flex-shrink': 0, 'margin-top': '0.35rem' }} />
+              <div><span style={{ 'font-weight': 600, color: '#222' }}>{p.voice}{p.ref ? ` (${p.ref})` : ''}:</span> <HebraizedWithRabbis text={p.stance} /></div>
+            </div>
           )}</For>
+          <Show when={d().settled}>
+            <div style={{ 'font-size': '0.78rem', color: '#666', 'font-style': 'italic', 'margin-top': '0.25rem' }}>
+              <HebraizedWithRabbis text={d().settled} />
+            </div>
+          </Show>
         </SectionCard>
-      </Show>
+      )}
+    </Show>
   );
 }
 
@@ -1522,7 +1546,7 @@ export const HALACHA_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Elemen
   'halacha-codification': HalachaCodification,
   'halacha-practical': HalachaPractical,
   'halacha-derivation': HalachaDerivation,
-  'halacha-disputes': HalachaDisputes,
+  'halacha-dispute': HalachaDispute,
 };
 
 /** Sidebar panel for a cited pasuk: shows the full Hebrew Tanakh verse and,

@@ -95,6 +95,9 @@ export const HALACHA_RECIPE: SidebarRecipe = {
     // disagree edge), so the standalone disputes block is retired — the common
     // codifier dispute now lives in the map; synthesis still weaves the rest.
     { type: 'special', block: 'halacha-codification', deps: ['halacha.codification'] },
+    // One grounded dispute object (Mechaber/Rema, Sefarad/Ashkenaz, poskim),
+    // shown only when present; the practical consequence + positions.
+    { type: 'special', block: 'halacha-dispute', deps: ['halacha.dispute'] },
     { type: 'special', block: 'halacha-practical', deps: ['halacha.practical'] },
     // "Where it comes from": the gemara sources the codified law derives from
     // (deterministic reverse Sefaria, /api/derivation), reading the codifier

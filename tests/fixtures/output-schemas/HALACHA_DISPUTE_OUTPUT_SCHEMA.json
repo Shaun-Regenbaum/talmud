@@ -1,0 +1,77 @@
+{
+  "name": "halacha_dispute",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "present",
+      "axis",
+      "label",
+      "positions",
+      "sephardi",
+      "ashkenazi",
+      "settled"
+    ],
+    "properties": {
+      "present": {
+        "type": "boolean"
+      },
+      "axis": {
+        "type": "string",
+        "enum": [
+          "mechaber-rema",
+          "ashkenaz-sefarad",
+          "rishonim",
+          "acharonim",
+          "poskim",
+          "none"
+        ]
+      },
+      "label": {
+        "type": "string"
+      },
+      "positions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "voice",
+            "side",
+            "stance",
+            "ref"
+          ],
+          "properties": {
+            "voice": {
+              "type": "string"
+            },
+            "side": {
+              "type": "string",
+              "enum": [
+                "a",
+                "b",
+                "neutral"
+              ]
+            },
+            "stance": {
+              "type": "string"
+            },
+            "ref": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "sephardi": {
+        "type": "string"
+      },
+      "ashkenazi": {
+        "type": "string"
+      },
+      "settled": {
+        "type": "string"
+      }
+    }
+  }
+}
