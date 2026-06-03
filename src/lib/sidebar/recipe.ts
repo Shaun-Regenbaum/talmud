@@ -165,6 +165,43 @@ export const ARGUMENT_OVERVIEW_RECIPE: SidebarRecipe = {
   ],
 };
 
+// Whole-daf essay cards (the chip-in-header pieces). Each is just a header +
+// the synthesis — the essay body renders through the per-mark renderer seam
+// (registerMarkRenderer), not deps — so the recipe is a single synthesis
+// section. The display instance supplies the localized heading; the synthesis
+// mark_input stays the old empty `{fields:{}}` (an explicit synthInstance in
+// CARD_DEFS) so the warmed whole-daf caches still hit.
+export const TIDBIT_RECIPE: SidebarRecipe = {
+  kind: 'tidbit',
+  markId: 'tidbit',
+  titleField: 'title',
+  sections: [
+    { type: 'synthesis' },
+  ],
+};
+
+export const BIYUN_RECIPE: SidebarRecipe = {
+  kind: 'biyun',
+  markId: 'biyun',
+  titleField: 'title',
+  sections: [
+    { type: 'synthesis' },
+  ],
+};
+
+// Whole-daf background: the synthesis, then the grouped key-terms/concepts
+// (legal concepts / realia / persons / assumed-prior) from the
+// daf-background.concepts leaf — a single special block, plus an empty state.
+export const DAF_BACKGROUND_RECIPE: SidebarRecipe = {
+  kind: 'daf-background',
+  markId: 'daf-background',
+  titleField: 'title',
+  sections: [
+    { type: 'synthesis' },
+    { type: 'special', block: 'daf-background-groups', deps: ['daf-background.concepts'] },
+  ],
+};
+
 export const RABBI_RECIPE: SidebarRecipe = {
   kind: 'rabbi',
   markId: 'rabbi',
