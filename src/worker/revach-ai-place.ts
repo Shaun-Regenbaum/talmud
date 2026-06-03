@@ -61,6 +61,7 @@ async function getOrCompute(
   tractate: string,
   page: string,
   all: ContextItem[],
+  cacheOnly = false,
 ): Promise<SegMatch[] | null> {
   const cache = env.CACHE;
   const cacheKey = KEY(tractate, page);
@@ -70,6 +71,8 @@ async function getOrCompute(
       if (raw) return JSON.parse(raw) as SegMatch[];
     } catch { /* missing / corrupt → recompute */ }
   }
+  // Inspector source-preview pass: never trigger the LLM matcher on a miss.
+  if (cacheOnly) return null;
   const existing = inflight.get(cacheKey);
   if (existing) return existing;
 
@@ -95,10 +98,15 @@ export async function placeRevachWithAi(
   tractate: string,
   page: string,
   items: ContextItem[],
+  /** When true, apply ONLY already-cached AI placements and never compute fresh
+   *  matches (no LLM). Used by the read-only /api/run-sources inspector pass so a
+   *  preview reflects the real prompt's cached placements without triggering the
+   *  matcher on a cold daf. */
+  cacheOnly = false,
 ): Promise<void> {
   const all = revachItems(items);
   if (all.length === 0) return;
   if (!all.some((i) => i.segs.length === 0)) return; // nothing to fill
-  const matches = await getOrCompute(env, tractate, page, all);
+  const matches = await getOrCompute(env, tractate, page, all, cacheOnly);
   if (matches) applyAiToUnplaced(items, matches);
 }
