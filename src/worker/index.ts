@@ -7447,7 +7447,7 @@ async function deepWarmDaf(
   // argument-overview.synthesis (warmed just above) + daf-background.concepts +
   // the source bundle; listed last so its deps are warm/in-flight first (its own
   // dependency resolution still fills any gap and caches it).
-  for (const eid of ['argument-overview.flow', 'argument-overview.synthesis', 'tidbit.essay']) {
+  for (const eid of ['argument-overview.flow', 'argument-overview.synthesis', 'tidbit.essay', 'biyun.essay']) {
     if (!wanted(eid)) continue;
     try {
       const def = await loadEnrichmentDef(rc.env, eid);

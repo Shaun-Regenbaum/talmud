@@ -825,6 +825,7 @@ export default function DafViewer(): JSX.Element {
     if (c.kind === 'argument-overview') return t('overview.chip');
     if (c.kind === 'daf-background') return t('background.chip');
     if (c.kind === 'tidbit') return t('tidbit.chip');
+    if (c.kind === 'biyun') return t('biyun.chip');
     return 'Back';
   };
   const sidebarKey = (c: SidebarContent): string => {
@@ -840,6 +841,7 @@ export default function DafViewer(): JSX.Element {
     if (c.kind === 'argument-overview') return 'argument-overview';
     if (c.kind === 'daf-background') return 'daf-background';
     if (c.kind === 'tidbit') return 'tidbit';
+    if (c.kind === 'biyun') return 'biyun';
     return 'unknown';
   };
 
@@ -854,6 +856,7 @@ export default function DafViewer(): JSX.Element {
     if (id === 'argument-overview') setSidebar({ kind: 'argument-overview' });
     else if (id === 'daf-background') setSidebar({ kind: 'daf-background' });
     else if (id === 'tidbit') setSidebar({ kind: 'tidbit' });
+    else if (id === 'biyun') setSidebar({ kind: 'biyun' });
   };
   // Set by ArgumentSidebar when the user clicks an argument-move card. Paints
   // a yellow band over the move's segment range in the main daf text. When
@@ -2128,6 +2131,7 @@ export default function DafViewer(): JSX.Element {
     if (s.kind === 'argument-overview') return 'argument-overview';
     if (s.kind === 'daf-background') return 'daf-background';
     if (s.kind === 'tidbit') return 'tidbit';
+    if (s.kind === 'biyun') return 'biyun';
     return `${s.kind}:${s.index}`;
   });
 
@@ -2931,6 +2935,7 @@ export default function DafViewer(): JSX.Element {
             const label = () => m.id === 'argument-overview' ? t('overview.chip')
               : m.id === 'daf-background' ? t('background.chip')
               : m.id === 'tidbit' ? t('tidbit.chip')
+              : m.id === 'biyun' ? t('biyun.chip')
               : m.id;
             const active = () => sidebar()?.kind === m.id;
             return (

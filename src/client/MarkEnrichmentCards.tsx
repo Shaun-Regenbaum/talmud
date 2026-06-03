@@ -592,6 +592,9 @@ export default function MarkEnrichmentCards(props: Props) {
     if (props.markId === 'tidbit') {
       return t('loading.tidbit');
     }
+    if (props.markId === 'biyun') {
+      return t('loading.biyun');
+    }
     return t('loading.default');
   };
 

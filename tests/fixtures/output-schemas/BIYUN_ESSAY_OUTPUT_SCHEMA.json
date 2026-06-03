@@ -1,0 +1,61 @@
+{
+  "name": "biyun_essay",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "hook": {
+        "type": "string"
+      },
+      "paragraphs": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "sources": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "ref": {
+              "type": "string"
+            },
+            "note": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "ref",
+            "note"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "textConfidence": {
+        "type": "string",
+        "enum": [
+          "high",
+          "medium",
+          "low"
+        ]
+      },
+      "readingConfidence": {
+        "type": "string",
+        "enum": [
+          "high",
+          "medium",
+          "low"
+        ]
+      }
+    },
+    "required": [
+      "hook",
+      "paragraphs",
+      "sources",
+      "textConfidence",
+      "readingConfidence"
+    ],
+    "additionalProperties": false
+  }
+}

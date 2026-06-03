@@ -95,6 +95,7 @@ const FRIENDLY: Record<string, string> = {
   'argument-overview.synthesis': 'dafLoad.family.argumentOverview',
   'daf-background.synthesis': 'dafLoad.family.background',
   'tidbit.essay': 'dafLoad.family.tidbit',
+  'biyun.essay': 'dafLoad.family.biyun',
 };
 
 interface MarkInstance {
@@ -194,6 +195,14 @@ export function prefetchDaf(
       enrichmentId: 'tidbit.essay',
       instance: { fields: {} },
       instanceKey: 'tidbit:daf',
+    });
+    // Whole-daf Bi'yun — the deep rishonim dive. Same daf-level shape; counted
+    // in the bar. Heaviest of the chips (it fans out the per-segment rishonim
+    // analysis), so it warms last in the cohort and the bar reflects it.
+    tasks.push({
+      enrichmentId: 'biyun.essay',
+      instance: { fields: {} },
+      instanceKey: 'biyun:daf',
     });
   }
 

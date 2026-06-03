@@ -183,6 +183,7 @@ const FORCE_ON_DEFAULTS: { tag: string; ids: string[] }[] = [
   { tag: 'argument-overview-2026-05', ids: ['argument-overview'] },
   { tag: 'daf-background-2026-05', ids: ['daf-background'] },
   { tag: 'tidbit-2026-06', ids: ['tidbit'] },
+  { tag: 'biyun-2026-06', ids: ['biyun'] },
   { tag: 'yerushalmi-2026-06', ids: ['yerushalmi'] },
 ];
 

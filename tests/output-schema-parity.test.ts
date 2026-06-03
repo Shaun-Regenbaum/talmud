@@ -18,7 +18,7 @@ describe('output schema parity: zod-generated == frozen literal', () => {
     const all = schemas as Record<string, unknown>;
     const missing = files.map((f) => f.replace('.json', '')).filter((n) => !all[n]);
     expect(missing).toEqual([]);
-    expect(files.length).toBe(48);
+    expect(files.length).toBe(49);
   });
 
   for (const f of files) {
