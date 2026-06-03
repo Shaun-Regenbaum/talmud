@@ -1903,35 +1903,25 @@ async function fetchYerushalmiData(key: string): Promise<YerushalmiData> {
 function YerushalmiParallel(props: SpecialBlockProps): JSX.Element {
   const wantedRef = (): string => (typeof props.instance.fields.yerushalmiRef === 'string' ? props.instance.fields.yerushalmiRef : '');
   const [data] = createResource(() => `${props.tractate}|${props.page}`, fetchYerushalmiData);
-  const passage = (): YerushalmiPassage | undefined =>
-    (data()?.parallels ?? []).find((p) => p.ref === wantedRef());
   const curated = (): YerushalmiCurated[] => data()?.curated ?? [];
+  const sefariaUrl = (ref: string): string => `https://www.sefaria.org/${encodeURIComponent(ref.replace(/ /g, '_'))}`;
   return (
     <>
-      <Show when={data.loading || passage()}>
-        <SectionCard label="yerushalmi.readParallel" collapsed={true}>
-          <Show when={passage()} fallback={
-            <p style={{ color: '#999', 'font-style': 'italic', margin: 0, 'font-size': '0.82rem' }}>{t('pasuk.loading')}</p>
-          }>
-            {(p) => (
-              <>
-                <HebrewProse text={p().hebrew} size="1rem" color="#222" lineHeight={1.75} margin="0 0 0.5rem" />
-                <p style={{ 'font-size': '0.84rem', color: '#475569', 'line-height': 1.55, margin: 0 }}>{p().english}</p>
-              </>
-            )}
-          </Show>
-        </SectionCard>
+      {/* Link out to the full Yerushalmi — never reproduce the whole halacha
+          inline. The differences above are the content; this is the source. */}
+      <Show when={wantedRef()}>
+        <a href={sefariaUrl(wantedRef())} target="_blank" rel="noopener"
+           style={{ display: 'inline-block', margin: '0.2rem 0 0.6rem', 'font-size': '0.8rem', color: ACCENTS.yerushalmi, 'text-decoration': 'none' }}>
+          {t('yerushalmi.readOnSefaria')} ({wantedRef()}) ↗
+        </a>
       </Show>
       <Show when={curated().length > 0}>
         <SectionCard label="yerushalmi.curatedParallel" collapsed={true}>
           <For each={curated()}>{(c) => (
-            <div style={{ 'margin-bottom': '0.7rem' }}>
+            <div style={{ 'margin-bottom': '0.6rem' }}>
               <a href={c.url} target="_blank" rel="noopener" style={{ 'font-weight': 600, color: ACCENTS.yerushalmi, 'font-size': '0.9rem', 'text-decoration': 'none' }}>{c.title}</a>
               <div style={{ 'font-size': '0.7rem', color: '#888', margin: '0.1rem 0 0.3rem' }}>{c.ref}</div>
-              <p style={{ 'font-size': '0.84rem', color: '#444', 'line-height': 1.55, margin: '0 0 0.4rem' }}>{c.summary}</p>
-              <Show when={c.hebrew}>
-                <HebrewProse text={c.hebrew} size="0.95rem" color="#333" lineHeight={1.7} margin="0" />
-              </Show>
+              <p style={{ 'font-size': '0.84rem', color: '#444', 'line-height': 1.55, margin: 0 }}>{c.summary}</p>
             </div>
           )}</For>
         </SectionCard>
