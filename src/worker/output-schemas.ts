@@ -155,6 +155,19 @@ export const TIDBIT_ESSAY_OUTPUT_SCHEMA = responseFormat('tidbit_essay', z.objec
   textConfidence: z.enum(['high', 'medium', 'low']),
   readingConfidence: z.enum(['high', 'medium', 'low']),
 }));
+// Whole-daf BI'YUN (עיון): a deep dive into ONE halachic/conceptual problem on
+// the daf that the rishonim are actively wrestling with — the difficulty, the
+// competing approaches (Rashi / Tosafot / Ramban / Rashba / Ritva …), what's
+// really at stake between them. The lomdus counterpart to the tidbit: where the
+// tidbit rises ABOVE the mechanics to a human idea, the bi'yun goes INTO them.
+// Same hook + paragraphs + confidences shape (renders via the shared essay view).
+export const BIYUN_ESSAY_OUTPUT_SCHEMA = responseFormat('biyun_essay', z.object({
+  hook: z.string(),
+  paragraphs: z.array(z.string()),
+  sources: z.array(z.object({ ref: z.string(), note: z.string() })),
+  textConfidence: z.enum(['high', 'medium', 'low']),
+  readingConfidence: z.enum(['high', 'medium', 'low']),
+}));
 // Section typing (P2b): a NARRATIVE view for story-primary sections, where the
 // dispute-oriented `voices` graph is the wrong model. Actors (characters) +
 // ordered beats (what happens, step by step) instead of opposing legal positions.

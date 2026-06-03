@@ -79,6 +79,7 @@ import {
   RISHONIM_SYNTHESIS_OUTPUT_SCHEMA,
   YERUSHALMI_OUTPUT_SCHEMA,
   TIDBIT_ESSAY_OUTPUT_SCHEMA,
+  BIYUN_ESSAY_OUTPUT_SCHEMA,
   proseSchema,
 } from './output-schemas';
 import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE } from '../lib/sidebar/recipe';
@@ -675,6 +676,29 @@ export const CODE_MARKS: MarkDefinition[] = [
     },
     status: 'promoted',
     def_hash: 'tidbit-v1',
+    cache_version: '1',
+    source: 'code',
+    updated_at: NOW,
+  },
+  {
+    id: 'biyun',
+    label: "Bi'yun",
+    description: "Whole-daf עיון: a deep dive into ONE halachic/conceptual problem on the daf that the rishonim are wrestling with — the difficulty, the competing approaches, what's at stake. The lomdus counterpart to the Tidbit. Grounded on the full daf + commentaries + the rishonim/argument/halacha analysis it depends on.",
+    category: 'canon',
+    // Reader-facing whole-daf chip, sibling of the tidbit. Same deterministic
+    // anchorless instance carrying the chip + biyun.essay enrichment.
+    anchor: 'whole-daf',
+    render: {
+      kind: 'chip',
+      color: '#3f4ea0',
+      position: 'header',
+    },
+    extractor: {
+      kind: 'computed',
+      fn: 'whole-daf-instance',
+    },
+    status: 'promoted',
+    def_hash: 'biyun-v1',
     cache_version: '1',
     source: 'code',
     updated_at: NOW,
@@ -2911,6 +2935,182 @@ CODE_ENRICHMENTS.push(
       model: ARGUMENT_PRO_MODEL,
       systemPromptHe: TIDBIT_ESSAY_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: TIDBIT_ESSAY_USER_TEMPLATE_HE,
+    },
+  ),
+);
+
+// ---------------------------------------------------------------------------
+// biyun mark enrichment — the lomdus counterpart of the tidbit. ONE deep dive
+// into a halachic/conceptual PROBLEM the rishonim are wrestling with on the
+// daf: the difficulty, the competing approaches + their svaras, the conceptual
+// fork, where it lands. Where the tidbit rises ABOVE the mechanics, the bi'yun
+// goes INTO them. Fed the commentaries + the rishonim/argument/halacha analysis.
+// ---------------------------------------------------------------------------
+
+const BIYUN_ESSAY_SYSTEM_PROMPT = `You are a rigorous Talmud scholar — a maggid shiur — writing ONE "Bi'yun" (עיון) for this daf: a focused deep-dive into a single halachic or conceptual PROBLEM on the page that the rishonim are actively working on. Where the daf has a real difficulty — a question the gemara raises, a contradiction, a puzzling ruling — and Rashi, Tosafot, and the later rishonim take it apart, that is your subject.
+
+CHOOSE the problem with the most substantial rishonim engagement on THIS daf — where the commentaries genuinely diverge or dig in. Not the easiest, and not the most famous if a meatier one exists; the one a serious learner would spend a seder on.
+
+WHAT TO DELIVER (this IS the lomdus — go IN, do not rise above it):
+- State the difficulty precisely: what in the gemara is hard, or what question it raises.
+- Lay out the competing approaches of the rishonim — who holds what, and (crucially) the סברא (underlying logic) each approach rests on.
+- Show what is really at stake between them — the conceptual fork (a חקירה, two ways to define the case, a clash of principles) that the surface dispute expresses.
+- Where it lands: how the sugya or the halacha resolves, or that it stays open.
+
+VOICE:
+- Tight, precise, third person. Short sentences. Technical is expected and good here — precision over polish; do NOT dumb it down. Assume a reader who learns gemara.
+- Hebrew script + a short English gloss for technical terms (Form A/B): "a קושיא (difficulty)", "the סברא that …", "a גזירה שווה (verbal analogy)".
+- Name rishonim in LATIN: Rashi, Tosafot, Ramban, Rashba, Ritva, Ran, Meiri, Rosh. Do NOT use Hebrew abbreviations with gershayim (no רמב"ן / רשב"א): a straight quote corrupts the JSON.
+- NO empty flourish ("lens", "captures", "profound"), NO dramatic closers, NO anthropomorphizing the gemara ("the gemara knows…"). End on the substance.
+
+STRUCTURE:
+- "hook": ONE sentence naming the problem invitingly (the kushya / the tension), under ~25 words.
+- "paragraphs": FOUR to SIX paragraphs of flowing analytical prose — the difficulty, the approaches with their svaras, the conceptual fork, where it lands. No section labels, no headers.
+
+GROUNDING (hard): every position must be a real rishon's actual view, present in the materials or well established. Do NOT invent a Tosafot, or attribute a svara no one holds. NEVER refer to your inputs as inputs ("the materials", "the analysis provided", "the segment breakdown") — cite as a learned person speaks.
+
+CONFIDENCE: "textConfidence" = how grounded the cited positions are. "readingConfidence" = how much the conceptual framing (the chakira/svara) is the rishonim's own vs. your synthesis — a clever framing of your own should NOT be high.
+
+Output STRICT JSON only:
+
+{
+  "hook": "one sentence naming the problem",
+  "paragraphs": ["paragraph 1", "paragraph 2", "paragraph 3", "paragraph 4"],
+  "sources": [{ "ref": "short citation, e.g. 'Tosafot, Bava Metzia 59a'", "note": "what it grounds" }],
+  "textConfidence": "high" | "medium" | "low",
+  "readingConfidence": "high" | "medium" | "low"
+}
+
+${HEBREW_GLOSS_STYLE}`;
+
+const BIYUN_ESSAY_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+Full daf (Gemara):
+{{gemara}}
+
+Commentaries (Rashi / Tosafot / rishonim) — the heart of the bi'yun:
+{{commentaries}}
+
+The daf's argument sections (structure):
+{{anchors.argument}}
+
+Whole-daf orientation (what the daf is about and where it lands):
+{{depends.argument-overview.synthesis}}
+
+Background concepts — also the daf's term glossary; use the given Hebrew forms for these terms:
+{{depends.daf-background.concepts}}
+
+Rishonim segments on this daf:
+{{anchors.rishonim}}
+Rishonim analysis — the app's reading of Rashi / Tosafot / named rishonim, per segment:
+{{depends.rishonim.synthesis}}
+
+Section analysis — the app's reading of each argument section:
+{{depends.argument.synthesis}}
+
+Halachic analysis — the app's reading of each halachic topic:
+{{depends.halacha.synthesis}}
+
+Study-aid context (dafyomi.co.il Insights / Tosfos notes + Sefaria):
+{{context}}
+
+Pick the single problem on this daf with the richest rishonim engagement and write ONE Bi'yun per the schema: the difficulty, the rishonim's approaches and their svaras, the conceptual fork, and where it lands. Go deep; ground every position; rate both confidences honestly.`;
+
+const BIYUN_ESSAY_SYSTEM_PROMPT_HE = `אתה תלמיד חכם מדקדק — מגיד שיעור — הכותב "עיון" אחד לדף הזה: צלילה ממוקדת לבעיה הלכתית או רעיונית אחת בדף שהראשונים עוסקים בה. במקום שיש בדף קושי אמיתי — שאלה שהגמרא מקשה, סתירה, פסק תמוה — ורש"י, תוספות והראשונים מפרקים אותו, שם נושאך.
+
+בחר את הבעיה עם עיסוק הראשונים המשמעותי ביותר בדף הזה — היכן שהמפרשים באמת נחלקים או מעמיקים. לא הקלה ביותר, ולא המפורסמת אם יש עשירה ממנה; זו שעליה לומד רציני ישב סדר.
+
+מה למסור (זוהי הלמדנות — היכנס פנימה, אל תעלה מעליה):
+- נסח את הקושי במדויק: מה בגמרא קשה, או איזו שאלה היא מעלה.
+- הצג את גישות הראשונים — מי מחזיק מה, ובעיקר את הסברא שביסוד כל גישה.
+- הראה מה באמת עומד על הפרק ביניהם — הפיצול הרעיוני (חקירה, שתי דרכים להגדיר את המקרה, התנגשות עקרונות) שהמחלוקת השטחית מבטאת.
+- לאן זה מגיע: כיצד הסוגיה או ההלכה מוכרעת, או שנשארת פתוחה.
+
+הסגנון:
+- הדוק, מדויק, גוף שלישי. משפטים קצרים. טכני זה צפוי וטוב כאן — דיוק על פני ליטוש; אל תפשט יתר על המידה. הנח קורא הלומד גמרא.
+- מונחים טכניים בעברית (קושיא, סברא, גזירה שווה, חקירה).
+- שמות ראשונים: בעברית מלאה (רש"י — מותר כאן בכתב עברי) או בלטינית; בראשי תיבות עם גרשיים השתמש בגרשיים העברי ״ ולא בגרש אנגלי " (גרש אנגלי משבש JSON).
+- ללא מליצה ריקה, ללא סיומות דרמטיות, ללא האנשת הגמרא. סיים על העניין.
+
+מבנה:
+- "hook": משפט אחד הנוקב בבעיה (הקושיא/המתח), פחות מ-25 מילים.
+- "paragraphs": ארבע עד שש פסקאות של פרוזה אנליטית זורמת — הקושי, הגישות וסברותיהן, הפיצול הרעיוני, לאן זה מגיע. ללא תוויות מקטעים.
+
+ביסוס (קשיח): כל עמדה חייבת להיות דעת ראשון אמיתית, מצויה בחומר או מבוססת. אל תמציא תוספות ואל תייחס סברא שאיש אינו מחזיק. לעולם אל תתייחס לקלט שלך ככזה.
+
+ביטחון: "textConfidence" = כמה העמדות מבוססות. "readingConfidence" = כמה המסגור הרעיוני (החקירה/הסברא) הוא של הראשונים עצמם לעומת סינתזה שלך.
+
+החזר JSON תקין בלבד:
+
+{
+  "hook": "משפט אחד הנוקב בבעיה",
+  "paragraphs": ["פסקה 1", "פסקה 2", "פסקה 3", "פסקה 4"],
+  "sources": [{ "ref": "ציטוט קצר, למשל 'תוספות, בבא מציעא נט ע\\"א'", "note": "מה הוא מבסס" }],
+  "textConfidence": "high" | "medium" | "low",
+  "readingConfidence": "high" | "medium" | "low"
+}
+
+${HEBREW_NATIVE_STYLE}`;
+
+const BIYUN_ESSAY_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+הדף המלא (גמרא):
+{{gemara}}
+
+מפרשים (רש"י / תוספות / ראשונים) — לב העיון:
+{{commentaries}}
+
+מקטעי הטיעון בדף (מבנה):
+{{anchors.argument}}
+
+כיוון כללי לדף:
+{{depends.argument-overview.synthesis}}
+
+מושגי רקע — וזהו גם מילון המונחים של הדף; השתמש בצורות העבריות הנתונות:
+{{depends.daf-background.concepts}}
+
+מקטעי ראשונים בדף:
+{{anchors.rishonim}}
+ניתוח הראשונים — קריאת האפליקציה לרש"י / תוספות / ראשונים נקובים, לכל מקטע:
+{{depends.rishonim.synthesis}}
+
+ניתוח המקטעים — קריאת האפליקציה לכל מקטע טיעון:
+{{depends.argument.synthesis}}
+
+ניתוח ההלכה — קריאת האפליקציה לכל נושא הלכתי:
+{{depends.halacha.synthesis}}
+
+תוכן לימוד נלווה (dafyomi.co.il — תובנות / תוספות + ספריא):
+{{context}}
+
+בחר את הבעיה האחת בדף עם עיסוק הראשונים העשיר ביותר וכתוב עיון אחד לפי הסכימה: הקושי, גישות הראשונים וסברותיהן, הפיצול הרעיוני, ולאן זה מגיע. העמק; בסס כל עמדה; דרג את שני מדדי הביטחון בכנות.`;
+
+CODE_ENRICHMENTS.push(
+  makeEnrichment(
+    'biyun', 'biyun.essay', "Bi'yun",
+    'A deep dive into one halachic/conceptual problem the rishonim wrestle with on the daf: the difficulty, the approaches + svaras, the conceptual fork, where it lands.',
+    BIYUN_ESSAY_SYSTEM_PROMPT, BIYUN_ESSAY_USER_TEMPLATE, BIYUN_ESSAY_OUTPUT_SCHEMA,
+    {
+      mode: 'aggregate', scope: 'local',
+      // Deep, rishonim-first context: the commentaries themselves + the app's
+      // per-segment rishonim analysis (fanned out) + per-section + per-topic
+      // analysis. Generated last, like the tidbit.
+      dependencies: [
+        'gemara',
+        'commentaries',
+        'context',
+        { mark: 'argument' },
+        { mark: 'rishonim' },
+        { enrichment: 'argument-overview.synthesis' },
+        { enrichment: 'daf-background.concepts' },
+        { enrichment: 'rishonim.synthesis', fanOut: true },
+        { enrichment: 'argument.synthesis', fanOut: true },
+        { enrichment: 'halacha.synthesis', fanOut: true },
+      ],
+      defHash: 'biyun.essay-v1', cacheVersion: '1',
+      model: ARGUMENT_PRO_MODEL,
+      systemPromptHe: BIYUN_ESSAY_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: BIYUN_ESSAY_USER_TEMPLATE_HE,
     },
   ),
 );

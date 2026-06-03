@@ -18,6 +18,7 @@ exports[`CODE_ENRICHMENTS cache identity > per-enrichment fingerprint is stable 
   "argument.narrative@3 mode=augment-content scope=local mark=argument schema=argument_narrative[summary,actors,beats] deps=[gemara|m:argument-move|m:rabbi]",
   "argument.synthesis@12 mode=aggregate scope=local mark=argument schema=argument_synthesis[synthesis] deps=[gemara|commentaries|mishna|e:argument.voices|e:argument.background|m:rabbi|m:argument-move|e:daf-background.concepts]",
   "argument.voices@6 mode=augment-content scope=local mark=argument schema=argument_voices[voices,edges] deps=[gemara|m:argument-move|m:rabbi]",
+  "biyun.essay@1 mode=aggregate scope=local mark=biyun schema=biyun_essay[hook,paragraphs,sources,textConfidence,readingConfidence] deps=[gemara|commentaries|context|m:argument|m:rishonim|e:argument-overview.synthesis|e:daf-background.concepts|e*:rishonim.synthesis|e*:argument.synthesis|e*:halacha.synthesis]",
   "daf-background.concepts@5 mode=augment-content scope=local mark=daf-background schema=daf_background_concepts[groups] deps=[gemara|context|m:argument]",
   "daf-background.synthesis@6 mode=aggregate scope=local mark=daf-background schema=daf_background_synthesis[synthesis] deps=[gemara|context|e:daf-background.concepts]",
   "halacha.codification@4 mode=augment-content scope=local mark=halacha schema=halacha_codification[mishnehTorah,tur,shulchanAruch,rema,prose] deps=[gemara|halacha-refs]",

@@ -140,7 +140,8 @@ export type SidebarContent =
   | { kind: 'rishonim'; instance: RishonimInstance; index: number }
   | { kind: 'argument-overview' }
   | { kind: 'daf-background' }
-  | { kind: 'tidbit' };
+  | { kind: 'tidbit' }
+  | { kind: 'biyun' };
 
 export interface ArgumentSidebarProps {
   content: SidebarContent | null;
@@ -1225,6 +1226,9 @@ function TidbitEssayView(parsed: Record<string, unknown>): JSX.Element {
 // per-mark renderer seam in MarkEnrichmentCards (so caching/polling/telemetry
 // stay shared) rather than the deps_resolved channel.
 registerMarkRenderer('tidbit', TidbitEssayView);
+// Bi'yun reuses the same essay renderer (its output has no `flavor`, so the
+// flavor tag simply doesn't render); only the panel accent + title differ.
+registerMarkRenderer('biyun', TidbitEssayView);
 
 function TidbitBody(props: { tractate: string; page: string }): JSX.Element {
   return (
@@ -1233,6 +1237,20 @@ function TidbitBody(props: { tractate: string; page: string }): JSX.Element {
         markId="tidbit"
         instance={{ fields: {} }}
         instanceKey={`${props.tractate}/${props.page}/tidbit`}
+        tractate={props.tractate}
+        page={props.page}
+      />
+    </Panel>
+  );
+}
+
+function BiyunBody(props: { tractate: string; page: string }): JSX.Element {
+  return (
+    <Panel accent={ACCENTS.biyun} title={t('biyun.title')}>
+      <Synthesis
+        markId="biyun"
+        instance={{ fields: {} }}
+        instanceKey={`${props.tractate}/${props.page}/biyun`}
         tractate={props.tractate}
         page={props.page}
       />
@@ -2369,6 +2387,10 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
 
             <Show when={c().kind === 'tidbit'}>
               <TidbitBody tractate={props.tractate} page={props.page} />
+            </Show>
+
+            <Show when={c().kind === 'biyun'}>
+              <BiyunBody tractate={props.tractate} page={props.page} />
             </Show>
 
         </aside>

@@ -175,6 +175,7 @@ const CATALOG = {
   'sidebar.kind.argument-overview': { en: 'Overview', he: 'סקירה' },
   'sidebar.kind.daf-background': { en: 'Background', he: 'רקע' },
   'sidebar.kind.tidbit': { en: 'Tidbit', he: 'תובנה' },
+  'sidebar.kind.biyun': { en: "Bi'yun", he: 'עיון' },
 
   // — Whole-daf argument overview —
   'overview.chip': { en: 'Overview', he: 'סקירה' },
@@ -217,6 +218,9 @@ const CATALOG = {
   // — Whole-daf Tidbit (one curated "did you notice…" reading) —
   'tidbit.chip': { en: 'Tidbit', he: 'תובנה' },
   'tidbit.title': { en: 'Tidbit', he: 'תובנה' },
+  // — Whole-daf Bi'yun (deep dive into a rishonim problem) —
+  'biyun.chip': { en: "Bi'yun", he: 'עיון' },
+  'biyun.title': { en: "Bi'yun", he: 'עיון' },
   'tidbit.empty': { en: 'No tidbit for this daf yet.', he: 'אין עדיין תובנה לדף זה.' },
   'tidbit.sources': { en: 'Sources', he: 'מקורות' },
   'tidbit.flavor.aggadah': { en: 'Aggadah', he: 'אגדה' },
@@ -241,6 +245,7 @@ const CATALOG = {
   'loading.move.named': { en: 'Listening to {voice}…', he: 'מקשיב ל{voice}…' },
   'loading.move': { en: 'Tracing the flow…', he: 'עוקב אחר המהלך…' },
   'loading.tidbit': { en: 'Looking for a chiddush…', he: 'מחפש חידוש…' },
+  'loading.biyun': { en: 'Learning it through…', he: 'מעיין בסוגיה…' },
   'loading.halacha.named': { en: 'Asking a Rav about {title}…', he: 'שואל רב על {title}…' },
   'loading.halacha': { en: 'Asking the Rav…', he: 'שואל את הרב…' },
   'loading.aggadata.named': { en: 'Pondering {title}…', he: 'מהרהר ב{title}…' },
@@ -707,6 +712,7 @@ const CATALOG = {
   'dafLoad.family.argumentOverview': { en: 'overview', he: 'סקירה' },
   'dafLoad.family.background': { en: 'background', he: 'רקע' },
   'dafLoad.family.tidbit': { en: 'chiddush', he: 'חידוש' },
+  'dafLoad.family.biyun': { en: 'bi\'yun', he: 'עיון' },
 
   // — Gutter icon tooltips —
   'gutter.argument': { en: 'Argument structure & rabbis', he: 'מבנה הסוגיה וחכמים' },
