@@ -214,7 +214,7 @@ function validateEnrichmentDependencies(input: unknown): { ok: true; deps: Enric
   if (!Array.isArray(input)) return { ok: false, error: 'dependencies must be an array' };
   const out: EnrichmentDependency[] = [];
   for (const e of input) {
-    if (e === 'gemara' || e === 'commentaries' || e === 'mishna' || e === 'context' || e === 'halacha-refs' || e === 'yerushalmi-text') { out.push(e); continue; }
+    if (e === 'gemara' || e === 'commentaries' || e === 'mishna' || e === 'context' || e === 'context-light' || e === 'halacha-refs' || e === 'yerushalmi-text') { out.push(e); continue; }
     if (e && typeof e === 'object') {
       const o = e as { mark?: unknown; enrichment?: unknown };
       if (typeof o.mark === 'string') { out.push({ mark: o.mark }); continue; }

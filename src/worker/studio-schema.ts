@@ -351,6 +351,11 @@ export type EnrichmentDependency =
   | 'commentaries'
   | 'mishna'
   | 'context'
+  // Like 'context' but only the accessible, idea-rich study aids (Insights /
+  // Points / Background / Yerushalmi / Revach / Mishnah) — drops the commentary
+  // + halachic-apparatus layers. For reader-facing pieces that should not be
+  // pulled toward lomdus (the Tidbit). See LIGHT_CONTEXT_SOURCES in index.ts.
+  | 'context-light'
   | 'halacha-refs'
   | 'yerushalmi-text'
   // `{ enrichment: id }` resolves the dep for the CONSUMER's own instance.

@@ -1492,6 +1492,19 @@ function recordSource(out: ResolvedInputs, name: string, content: unknown): void
   };
 }
 
+// 'context-light' keep-list: the accessible, idea-rich study aids only. Drops
+// the commentary + halachic-apparatus layers (sefaria-rashi/tosafot/rishonim/
+// halacha/topic, dafyomi halacha/tosfos/hebcharts/review-of-mechanics) that
+// pull a reader-facing piece toward lomdus.
+const LIGHT_CONTEXT_SOURCES = new Set<string>([
+  'sefaria-mishnah',
+  'dafyomi:insights',
+  'dafyomi:points',
+  'dafyomi:background',
+  'dafyomi:yerushalmi',
+  'dafyomi:revach',
+]);
+
 async function resolveDependencies(
   rc: RunCtx,
   dependencies: ReadonlyArray<EnrichmentDependency> | ReadonlyArray<MarkDependency> | undefined,
@@ -1570,12 +1583,16 @@ async function resolveDependencies(
       recordSource(out, 'yerushalmi-text', out.vars.yerushalmi);
       return;
     }
-    if (dep === 'context') {
+    if (dep === 'context' || dep === 'context-light') {
       // Aggregated external context (dafyomi Points/Halacha/Charts + Sefaria
       // Rishonim/halacha/topics), SCOPED to the instance's segments: a section
       // enrichment gets the context grounded to its own lines; a whole-daf one
       // (no segment location) gets the full pool. Each source that fails
       // contributes nothing rather than throwing.
+      // 'context-light' drops the commentary/halachic-apparatus layers (Rashi,
+      // Tosafot, rishonim, sefaria-halacha/topic, dafyomi halacha/tosfos/charts)
+      // and keeps only the accessible, idea-rich aids — so the Tidbit isn't fed
+      // the lomdus that kept pulling it scholarly. The Bi'yun uses full 'context'.
       // This amud's argument sections let Revach summaries be placed per-section
       // (English↔English alignment, conservative); a cheap cached read.
       const sections = (await readMarkInstances(rc.env, 'argument', tractate, page))
@@ -1586,7 +1603,10 @@ async function resolveDependencies(
           title: typeof i.fields?.title === 'string' ? i.fields.title : undefined,
           summary: typeof i.fields?.summary === 'string' ? i.fields.summary : undefined,
         }));
-      const items = await collectContext(rc.env, tractate, page, { sections });
+      const allItems = await collectContext(rc.env, tractate, page, { sections });
+      const items = dep === 'context-light'
+        ? allItems.filter((it) => LIGHT_CONTEXT_SOURCES.has(it.source))
+        : allItems;
       // Back up the deterministic Revach placer with the cached AI matcher for
       // any entries it left whole-daf (once per daf; LLM-free on cache hit). In
       // the source-only inspector pass, run it cache-only so the preview still

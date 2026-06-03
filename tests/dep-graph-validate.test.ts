@@ -7,7 +7,7 @@ import { CODE_MARKS, CODE_ENRICHMENTS } from '../src/worker/code-marks';
 // 'yerushalmi-text' feeds the real parallel Jerusalem Talmud text into the
 // yerushalmi mark (named distinctly from the `yerushalmi` mark id so it reads
 // as a slice input, not a `{ mark: 'yerushalmi' }` producer reference).
-const SOURCES = new Set(['gemara', 'commentaries', 'context', 'mishna', 'halacha-refs', 'yerushalmi-text']);
+const SOURCES = new Set(['gemara', 'commentaries', 'context', 'context-light', 'mishna', 'halacha-refs', 'yerushalmi-text']);
 
 describe('validateProducerGraph — unit', () => {
   it('flags a dependency on a nonexistent producer/source as dangling', () => {
