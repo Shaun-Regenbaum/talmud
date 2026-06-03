@@ -182,6 +182,7 @@ const DEFAULTS_APPLIED_KEY = 'marks-registry:defaults-applied:v1';
 const FORCE_ON_DEFAULTS: { tag: string; ids: string[] }[] = [
   { tag: 'argument-overview-2026-05', ids: ['argument-overview'] },
   { tag: 'daf-background-2026-05', ids: ['daf-background'] },
+  { tag: 'tidbit-2026-06', ids: ['tidbit'] },
 ];
 
 function readAppliedDefaults(): Set<string> {

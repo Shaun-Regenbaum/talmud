@@ -174,5 +174,6 @@ function labelForSidebar(s: SidebarContent | null): string {
     case 'rishonim': return 'Rishonim';
     case 'argument-overview': return 'Overview';
     case 'daf-background': return 'Background';
+    case 'tidbit': return 'Tidbit';
   }
 }

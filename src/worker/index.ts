@@ -7258,7 +7258,12 @@ async function deepWarmDaf(
   // shows as its own singleton sugya. The one-time global sweep left gaps and
   // never ran for new daf-yomi dapim, so warm it here. Keyed on the canonical
   // whole-daf instance { fields: {} } to match the client.
-  for (const eid of ['argument-overview.flow', 'argument-overview.synthesis']) {
+  //
+  // tidbit.essay is the curated whole-daf "did you notice…" chip. It depends on
+  // argument-overview.synthesis (warmed just above) + daf-background.concepts +
+  // the source bundle; listed last so its deps are warm/in-flight first (its own
+  // dependency resolution still fills any gap and caches it).
+  for (const eid of ['argument-overview.flow', 'argument-overview.synthesis', 'tidbit.essay']) {
     if (!wanted(eid)) continue;
     try {
       const def = await loadEnrichmentDef(rc.env, eid);

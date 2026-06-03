@@ -277,9 +277,17 @@ interface Props {
   }) => void;
 }
 
-// Pluggable per-enrichment renderers can be registered here in the future.
-// For now we use the generic ParsedFieldView (below) which renders any
-// parsed JSON nicely by inferring field types from key names.
+// Pluggable per-mark renderers for the primary (aggregate) card body. When a
+// mark registers one, its parsed JSON is rendered by that component instead of
+// the generic ParsedFieldView — the seam for bespoke layouts (e.g. the Tidbit
+// essay) without each mark reimplementing the run/cache/poll plumbing. Bodies
+// register from their own module at import time (no circular dependency: this
+// file never imports them back).
+export type EnrichmentRenderer = (parsed: Record<string, unknown>) => JSX.Element;
+const MARK_RENDERERS: Record<string, EnrichmentRenderer> = {};
+export function registerMarkRenderer(markId: string, render: EnrichmentRenderer): void {
+  MARK_RENDERERS[markId] = render;
+}
 
 export default function MarkEnrichmentCards(props: Props) {
   const [defs] = createResource(fetchEnrichments);
@@ -581,6 +589,9 @@ export default function MarkEnrichmentCards(props: Props) {
     if (props.markId === 'rishonim') {
       return t('loading.rishonim');
     }
+    if (props.markId === 'tidbit') {
+      return t('loading.tidbit');
+    }
     return t('loading.default');
   };
 
@@ -624,7 +635,10 @@ export default function MarkEnrichmentCards(props: Props) {
     }
     const result = r.result;
     if (result.parsed && typeof result.parsed === 'object') {
-      return <ParsedFieldView parsed={result.parsed as Record<string, unknown>} />;
+      const parsed = result.parsed as Record<string, unknown>;
+      const custom = MARK_RENDERERS[props.markId];
+      if (custom) return custom(parsed);
+      return <ParsedFieldView parsed={parsed} />;
     }
     return (
       <p style={{ margin: 0, 'font-size': '0.92rem', 'line-height': 1.6, color: '#222' }}>
