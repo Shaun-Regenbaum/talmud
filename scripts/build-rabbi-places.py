@@ -217,6 +217,27 @@ def main() -> int:
         else:
             print(f'  [warn] BARE_NAME_OVERRIDES: target slug {target_slug!r} not in dataset, skipping {bare_key!r}')
 
+    # Generation overrides. Sefaria's person-topic generation property lumps
+    # some post-Talmudic figures under 'savora' (the Geonim) or leaves them
+    # null (the Rishonim), which would render them on the wrong color tier.
+    # Pin the clear-cut later authorities to their correct era so a clicked
+    # rabbi shows the right (blue-tier) generation + color.
+    GENERATION_OVERRIDES: dict[str, str] = {
+        'rav-huna-gaon': 'geonim',
+        'rav-hanina-gaon': 'geonim',
+        'rav-sheshena-gaon': 'geonim',
+        'rashi': 'rishonim',
+        'rambam': 'rishonim',
+        'ramban': 'rishonim',
+        'rashbam': 'rishonim',
+        'tosafot': 'rishonim',
+    }
+    for slug, gen in GENERATION_OVERRIDES.items():
+        if slug in entries:
+            entries[slug]['generation'] = gen
+        else:
+            print(f'  [warn] GENERATION_OVERRIDES: slug {slug!r} not in dataset, skipping')
+
     out = {
         'generatedAt': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
         'source': 'https://www.sefaria.org/api/topics?type=person',
