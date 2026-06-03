@@ -144,6 +144,35 @@ describe('revach parser', () => {
   });
 });
 
+describe('yerushalmi parser ("Yerushalmi to Match" pages)', () => {
+  it('pairs He+En and extracts the parallel Yerushalmi ref (Berakhot 2 -> JT Berakhot 1:1)', () => {
+    const r = parseDafyomiContent('yerushalmi', fixture('berachos-yerushalmi-002.htm'));
+    expect(r.parseWarnings).toEqual([]);
+    expect(r.blocks).toHaveLength(1);
+    expect(r.blocks[0].wholeDaf).toBe(true);
+    const body = r.blocks[0].body;
+    if (body.type !== 'yerushalmi') throw new Error('wrong body type');
+    expect(body.entries.length).toBeGreaterThan(0);
+    const point = body.entries[0];
+    expect(point.title?.en).toBe("THE TIME FOR KERI'AS SHMA AT NIGHT");
+    // the parallel Yerushalmi ref, captured with perek:halachah for a Sefaria map
+    expect(point.refs?.[0]).toMatchObject({ kind: 'yerushalmi', detail: '1:1', page: '1a' });
+    // first lettered child carries paired English + Hebrew
+    const child = point.children?.[0];
+    expect(child?.body.en).toContain('when do we recite');
+    expect(child?.body.he).toContain('מאימתי קורין');
+  });
+
+  it('captures CROSS-TRACTATE parallels (Bavli Chullin 76 -> Yerushalmi Terumos 4:1)', () => {
+    const r = parseDafyomiContent('yerushalmi', fixture('chulin-yerushalmi-076.htm'));
+    const body = r.blocks[0].body;
+    if (body.type !== 'yerushalmi') throw new Error('wrong body type');
+    expect(body.entries[0].refs?.[0]).toMatchObject({
+      kind: 'yerushalmi', tractate: 'Terumos', detail: '4:1', page: '18a',
+    });
+  });
+});
+
 describe('buildRevachUrl', () => {
   it('builds the memdb URL for a masechet with a known tid (no zero-padding)', () => {
     const m = getDafyomiMasechet('Chullin')!;
