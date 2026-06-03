@@ -156,9 +156,32 @@ const tooltipStyle: JSX.CSSProperties = {
 };
 
 /** A single background-term mention: dotted-underlined, with a gloss tooltip on
- *  hover/focus. The matched text stays in the document flow (copyable). */
+ *  hover/focus. The matched text stays in the document flow (copyable).
+ *
+ *  The tooltip is absolutely positioned (left: 0 under the term), so near the
+ *  right viewport edge it would overflow off-screen. On open we measure it and
+ *  shift it back inside the viewport (clamped to the left margin too); the shift
+ *  resets on close so each open re-measures from the natural position. */
 function ConceptMention(props: { value: string; term: ConceptTerm }): JSX.Element {
   const [open, setOpen] = createSignal(false);
+  const [shift, setShift] = createSignal(0);
+
+  // Measured at mount (the Show remounts the tooltip on every open, so the ref
+  // callback fires fresh) while shift is still 0, i.e. at left: 0.
+  const measure = (el: HTMLSpanElement): void => {
+    const margin = 8;
+    const rect = el.getBoundingClientRect();
+    let dx = 0;
+    if (rect.right > window.innerWidth - margin) dx = window.innerWidth - margin - rect.right;
+    if (rect.left + dx < margin) dx = margin - rect.left;
+    if (dx !== 0) setShift(dx);
+  };
+
+  const close = (): void => {
+    setOpen(false);
+    setShift(0);
+  };
+
   return (
     <span
       style={termStyle}
@@ -166,13 +189,13 @@ function ConceptMention(props: { value: string; term: ConceptTerm }): JSX.Elemen
       role="button"
       aria-label={`${props.term.term}: ${props.term.gloss}`}
       onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseLeave={close}
       onFocus={() => setOpen(true)}
-      onBlur={() => setOpen(false)}
+      onBlur={close}
     >
       {props.value}
       <Show when={open()}>
-        <span style={tooltipStyle} dir="ltr" onClick={(e) => e.stopPropagation()}>
+        <span ref={measure} style={{ ...tooltipStyle, left: `${shift()}px` }} dir="ltr" onClick={(e) => e.stopPropagation()}>
           <span style={{ 'font-weight': 600 }}>{props.term.term}</span>
           <Show when={props.term.termHe}>
             <span dir="rtl" style={{ 'margin-left': '0.35rem', color: '#cbd5e1' }}>{props.term.termHe}</span>
