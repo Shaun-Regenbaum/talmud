@@ -1,8 +1,11 @@
 /**
- * Shared renderer for a Hebrew comparison chart — a bordered RTL table whose
- * first column holds the (blue, bold) row labels, with footnotes below. Used by
- * the dafyomi context workbench (ContextSourcePanel) and the experimental
- * `chart` mark's sidebar card, so both render identically.
+ * Shared renderer for a comparison chart — a clean bordered table in the app's
+ * own palette (muted earth borders + a per-card accent for headers/row-labels),
+ * NOT the source-site yellow/blue look. Cells are language-resolved strings; the
+ * caller passes `dir`/`lang` so the same component renders Hebrew (RTL, Vilna
+ * serif) or English (LTR, system sans). Used by the dafyomi context workbench
+ * (ContextSourcePanel, HE) and the experimental `chart` mark's sidebar card
+ * (follows the reader's language).
  */
 import { For, Show, type JSX } from 'solid-js';
 
@@ -17,17 +20,51 @@ function stripTags(s: string | undefined): string {
   return (s ?? '').replace(/<[^>]*>/g, '').trim();
 }
 
-export function ChartTableView(props: { table: ChartTableShape }): JSX.Element {
-  const cell = { border: '1px solid #4b5563', padding: '0.25rem 0.45rem', 'text-align': 'center', 'vertical-align': 'middle' } as const;
+export function ChartTableView(props: {
+  table: ChartTableShape;
+  /** Reading direction of the cell text. Default 'rtl' (Hebrew). */
+  dir?: 'rtl' | 'ltr';
+  /** BCP-47 lang for the cells. Default 'he'. */
+  lang?: string;
+  /** Card accent for headers + row labels. Default the chart cyan. */
+  accent?: string;
+}): JSX.Element {
+  const dir = () => props.dir ?? 'rtl';
+  const lang = () => props.lang ?? 'he';
+  const accent = () => props.accent ?? '#0e7490';
+  const font = () => (lang() === 'he' ? '"Mekorot Vilna", serif' : 'system-ui, -apple-system, sans-serif');
+  const start = () => (dir() === 'rtl' ? 'right' : 'left');
+  const cell = (): JSX.CSSProperties => ({
+    border: '1px solid #e4e0d4',
+    padding: '0.32rem 0.5rem',
+    'vertical-align': 'top',
+    'line-height': 1.4,
+  });
   const hasHeaders = () => props.table.headers.some((h) => stripTags(h));
   return (
-    <div style={{ 'overflow-x': 'auto', 'margin-top': '0.35rem' }}>
-      <table dir="rtl" lang="he" style={{ 'border-collapse': 'collapse', 'font-family': '"Mekorot Vilna", serif', 'font-size': '0.85rem', width: '100%' }}>
+    <div style={{ 'overflow-x': 'auto', 'margin-top': '0.4rem' }}>
+      <table
+        dir={dir()}
+        lang={lang()}
+        style={{ 'border-collapse': 'collapse', 'font-family': font(), 'font-size': '0.82rem', width: '100%', 'border': '1px solid #e4e0d4' }}
+      >
         <Show when={hasHeaders()}>
           <thead>
             <tr>
               <For each={props.table.headers}>
-                {(h) => <th style={{ ...cell, background: '#fef9c3', color: '#1e3a8a', 'font-weight': 700 }}>{stripTags(h)}</th>}
+                {(h, ci) => (
+                  <th
+                    style={{
+                      ...cell(),
+                      background: '#faf9f6',
+                      color: accent(),
+                      'font-weight': 600,
+                      'text-align': ci() === 0 ? start() : 'center',
+                    }}
+                  >
+                    {stripTags(h)}
+                  </th>
+                )}
               </For>
             </tr>
           </thead>
@@ -38,7 +75,17 @@ export function ChartTableView(props: { table: ChartTableShape }): JSX.Element {
               <tr>
                 <For each={row}>
                   {(c, ci) => (
-                    <td style={{ ...cell, color: ci() === 0 ? '#1e3a8a' : '#333', 'font-weight': ci() === 0 ? 700 : 400 }}>{stripTags(c)}</td>
+                    <td
+                      style={{
+                        ...cell(),
+                        color: ci() === 0 ? accent() : '#2a2723',
+                        'font-weight': ci() === 0 ? 600 : 400,
+                        'text-align': ci() === 0 ? start() : 'center',
+                        background: ci() === 0 ? '#fcfbf8' : '#fff',
+                      }}
+                    >
+                      {stripTags(c)}
+                    </td>
                   )}
                 </For>
               </tr>
@@ -47,11 +94,12 @@ export function ChartTableView(props: { table: ChartTableShape }): JSX.Element {
         </tbody>
       </table>
       <Show when={props.table.notes?.length}>
-        <div style={{ 'margin-top': '0.35rem', 'font-size': '0.72rem', color: '#666' }}>
+        <div style={{ 'margin-top': '0.4rem', 'font-size': '0.72rem', color: '#777', display: 'flex', 'flex-direction': 'column', gap: '0.15rem' }}>
           <For each={props.table.notes}>
             {(n) => (
-              <div dir="rtl" lang="he" style={{ 'font-family': '"Mekorot Vilna", serif' }}>
-                <span style={{ color: '#0369a1', 'font-family': 'monospace' }}>{n.marker}</span> {stripTags(n.text)}
+              <div dir={dir()} lang={lang()} style={{ 'font-family': font() }}>
+                <span style={{ color: accent(), 'font-family': 'ui-monospace, monospace', 'margin-inline-end': '0.25rem' }}>{n.marker}</span>
+                {stripTags(n.text)}
               </div>
             )}
           </For>

@@ -479,14 +479,15 @@ export default function DafViewer(): JSX.Element {
     const runs = markRunsByMarkId();
     const r = runs['chart'];
     if (!r?.parsed) return;
+    type BiCell = { en: string; he: string };
     const p = r.parsed as {
       instances?: Array<{
         startSegIdx: number;
         endSegIdx: number;
         fields: {
           caption?: string; captionHe?: string;
-          headers?: string[]; rows?: string[][];
-          notes?: { marker: string; text: string }[];
+          headers?: BiCell[]; rows?: BiCell[][];
+          notes?: { marker: string; en: string; he: string }[];
           excerpt?: string; grounded?: boolean; confidence?: string;
         };
       }>;

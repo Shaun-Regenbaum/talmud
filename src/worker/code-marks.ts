@@ -302,7 +302,9 @@ const HALACHA_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
 const CHART_SYSTEM_PROMPT = `You are a Talmud scholar who builds COMPARISON TABLES that let a learner grasp a dense, tangled region of the daf at a single glance.
 
-Output STRICT JSON only — no markdown, no prose:
+Output STRICT JSON only — no markdown, no prose. EVERY table cell, header, and
+note is BILINGUAL — an object {"en": "...", "he": "..."} — so the reader sees it
+in their own language:
 
 {
   "instances": [
@@ -312,12 +314,24 @@ Output STRICT JSON only — no markdown, no prose:
       "fields": {
         "caption": "Short English title of what the table compares (e.g. 'When the evening Shema may be read, by opinion').",
         "captionHe": "Short Hebrew title (3-8 words).",
-        "headers": ["", "מפלג המנחה", "משעה שקדש היום"],
-        "rows": [
-          ["פרשה ראשונה על מטתו לרש\\"י", "לא יצא", "לא יצא"],
-          ["לרבינו תם", "יצא", "יצא"]
+        "headers": [
+          { "en": "", "he": "" },
+          { "en": "From plag haMincha", "he": "מפלג המנחה" },
+          { "en": "From when the day is sanctified", "he": "משעה שקדש היום" }
         ],
-        "notes": [{ "marker": "[1]", "text": "Short Hebrew clarification referenced from a cell." }],
+        "rows": [
+          [
+            { "en": "First paragraph at bedtime — per Rashi", "he": "פרשה ראשונה על מטתו לרש\\"י" },
+            { "en": "Not fulfilled", "he": "לא יצא" },
+            { "en": "Not fulfilled", "he": "לא יצא" }
+          ],
+          [
+            { "en": "Per Rabbeinu Tam", "he": "לרבינו תם" },
+            { "en": "Fulfilled", "he": "יצא" },
+            { "en": "Fulfilled", "he": "יצא" }
+          ]
+        ],
+        "notes": [{ "marker": "[1]", "en": "Short English clarification referenced from a cell.", "he": "Short Hebrew clarification referenced from a cell." }],
         "excerpt": "3-5 Hebrew/Aramaic words copied VERBATIM where the region begins.",
         "grounded": true,
         "confidence": "high"
@@ -334,10 +348,12 @@ WHEN to make a table — be STRICT:
 
 HOW to build it:
 - rows = the things being compared down the side (usually the opinions/views, sometimes the cases); columns = the dimension across the top (usually the cases/scenarios, sometimes the opinions). Pick whichever orientation reads most clearly.
-- The FIRST cell of every row is its row-label. headers[0] labels the row-label column and is often "". Every row MUST have exactly headers.length cells.
-- CELLS ARE HEBREW and TERSE — the ruling/value at that intersection in a few words (e.g. "יצא" / "לא יצא" / "עד חצות"), NOT full sentences. Mirror the source's wording.
-- attribute opinions in Hebrew the way the gemara/commentators do (לרש"י, לרבינו תם, לר"י, לחכמים, לרבן גמליאל).
-- notes: optional footnotes ([1], [2]) referenced inside cells for a caveat that doesn't fit a cell.
+- The FIRST cell of every row is its row-label. headers[0] labels the row-label column and is usually { "en": "", "he": "" }. Every row MUST have exactly headers.length cells.
+- EVERY cell is the object {"en","he"} and TERSE — the ruling/value at that intersection in a few words, NOT full sentences.
+  - "he" mirrors the source's own wording (e.g. "יצא" / "לא יצא" / "עד חצות"), and attributes opinions the way the gemara/commentators do (לרש"י, לרבינו תם, לר"י, לחכמים, לרבן גמליאל).
+  - "en" is a faithful, CONCISE translation using conventional English terms — NEVER a word-for-word calque of a fixed Hebrew phrase. Attribute opinions in readable English ("per Rashi", "Rabbeinu Tam", "the Sages", "Rabban Gamliel"). Keep a genuinely-technical term in transliteration where there is no clean English ("plag haMincha", "tzeit hakochavim").
+  - Both languages must say the SAME thing; the grid must read coherently top-to-bottom and side-to-side in EITHER language.
+- notes: optional footnotes ([1], [2]) referenced inside cells for a caveat that doesn't fit a cell — also bilingual.
 
 GROUNDING:
 - The context below may include a "## Charts" section — real comparison charts from Kollel Iyun HaDaf for THIS daf. If one covers your region, ADOPT its structure and values (it is authoritative); set "grounded": true.
@@ -835,8 +851,8 @@ export const CODE_MARKS: MarkDefinition[] = [
     },
     dependencies: ['gemara', 'commentaries', 'context'],
     status: 'draft',
-    def_hash: 'chart-v1',
-    cache_version: '1',
+    def_hash: 'chart-v2',
+    cache_version: '2',
     source: 'code',
     updated_at: NOW,
   },

@@ -30,10 +30,11 @@ export interface GutterItem {
   atEdge: boolean;
 }
 
-/** Per-kind side. Right gutter is busier (halacha + aggadata + rishonim);
- *  left handles argument + pesuk. The overlay uses this to bucket items. */
+/** Per-kind side. Left holds argument + pesuk + halacha; the right gutter
+ *  handles chart + aggadata + yerushalmi + rishonim. The overlay buckets items
+ *  by this. */
 export function gutterSideFor(kind: GutterKind): GutterSide {
-  return kind === 'argument' || kind === 'pesuk' ? 'left' : 'right';
+  return kind === 'argument' || kind === 'pesuk' || kind === 'halacha' ? 'left' : 'right';
 }
 
 export interface GutterIconsProps {

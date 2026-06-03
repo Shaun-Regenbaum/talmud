@@ -1694,11 +1694,27 @@ export function chartInstance(chart: ChartTable): { fields: Record<string, unkno
   };
 }
 
+type BiCell = { en?: string; he?: string };
 function ChartTableBlock(props: SpecialBlockProps): JSX.Element {
-  const f = () => props.instance.fields as { headers?: string[]; rows?: string[][]; notes?: { marker: string; text: string }[] };
+  const f = () => props.instance.fields as {
+    headers?: BiCell[]; rows?: BiCell[][];
+    notes?: { marker: string; en?: string; he?: string }[];
+  };
+  const he = () => lang() === 'he';
+  // Resolve each bilingual cell to the reader's language (fall back to the
+  // other language if one side is missing).
+  const pick = (c: BiCell | undefined): string => (he() ? (c?.he || c?.en) : (c?.en || c?.he)) ?? '';
+  const headers = () => (f().headers ?? []).map(pick);
+  const rows = () => (f().rows ?? []).map((r) => r.map(pick));
+  const notes = () => (f().notes ?? []).map((n) => ({ marker: n.marker, text: (he() ? (n.he || n.en) : (n.en || n.he)) ?? '' }));
   return (
     <Show when={(f().headers?.length ?? 0) > 0 && (f().rows?.length ?? 0) > 0}>
-      <ChartTableView table={{ headers: f().headers ?? [], rows: f().rows ?? [], notes: f().notes }} />
+      <ChartTableView
+        table={{ headers: headers(), rows: rows(), notes: notes() }}
+        dir={he() ? 'rtl' : 'ltr'}
+        lang={he() ? 'he' : 'en'}
+        accent="#0e7490"
+      />
     </Show>
   );
 }
