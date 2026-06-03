@@ -13,6 +13,7 @@ import { parseBackground } from './background.ts';
 import { parseReview } from './review.ts';
 import { parseHebCharts } from './hebcharts.ts';
 import { parseRevach } from './revach.ts';
+import { parseYerushalmi } from './yerushalmi.ts';
 import type {
   DafyomiContentType, DafyomiAmudContent, DafyomiBody, DafyomiEntry, DafyomiPointsEntry,
 } from '../schema.ts';
@@ -70,9 +71,9 @@ export function parseDafyomiContent(type: DafyomiContentType, html: string): Par
       break;
     }
     case 'yerushalmi': {
-      const { a } = parseIndentedEntries(content);
-      blocks = [mk('a', { type, entries: a }, true)];
-      if (a.length === 0) warnings.push('no yerushalmi entries parsed');
+      const entries = parseYerushalmi(content);
+      blocks = [mk('a', { type, entries }, true)];
+      if (entries.length === 0) warnings.push('no yerushalmi entries parsed');
       break;
     }
     case 'points': {

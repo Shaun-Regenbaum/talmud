@@ -22,7 +22,7 @@ export type { DafyomiContentType };
  *  Tzomes)"). Best-effort structuring; `raw` is always the verbatim text. */
 export interface DafyomiRef {
   raw: string;
-  kind?: 'gemara' | 'mishnah' | 'rashi' | 'tosfos' | 'pasuk' | 'rambam' | 'shulchanAruch' | 'rishon' | 'acharon' | 'other';
+  kind?: 'gemara' | 'mishnah' | 'rashi' | 'tosfos' | 'pasuk' | 'rambam' | 'shulchanAruch' | 'rishon' | 'acharon' | 'yerushalmi' | 'other';
   /** Resolved app tractate value when a cross-reference is recognizable. */
   tractate?: string;
   /** Resolved daf-amud (e.g. "76a") when present. */
