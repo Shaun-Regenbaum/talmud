@@ -422,45 +422,6 @@ function ArgumentMoveCard(props: {
         tractate={props.tractate}
         page={props.page}
       />
-      <Show when={f.rabbiNames.length > 0}>
-        <div style={{
-          'margin-top': '0.5rem',
-          display: 'flex', 'flex-wrap': 'wrap', gap: '0.3rem',
-        }}>
-          <For each={f.rabbiNames}>{(name) => {
-            const active = () => props.activeRabbi === name;
-            const genId = props.generationByName.get(name);
-            const genInfo = genId ? GENERATION_BY_ID[genId] : null;
-            return (
-              <button
-                onClick={() => props.onPushRabbi(name)}
-                title={t('common.open', { name })}
-                style={{
-                  border: '1px solid ' + (active() ? '#eab308' : '#d6d3d1'),
-                  background: active() ? '#fef3c7' : '#fff',
-                  color: '#333',
-                  'border-radius': '999px',
-                  padding: '0.15rem 0.55rem',
-                  'font-size': '0.72rem',
-                  cursor: 'pointer',
-                  'font-family': 'inherit',
-                  display: 'inline-flex',
-                  'align-items': 'center',
-                  gap: '0.3rem',
-                }}
-              >
-                <Show when={genInfo}>
-                  <span style={{
-                    display: 'inline-block', width: '0.5rem', height: '0.5rem',
-                    'border-radius': '50%', background: genInfo!.color,
-                  }} />
-                </Show>
-                {name}
-              </button>
-            );
-          }}</For>
-        </div>
-      </Show>
     </div>
   );
 }
