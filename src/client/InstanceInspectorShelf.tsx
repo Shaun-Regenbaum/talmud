@@ -230,7 +230,7 @@ export default function InstanceInspectorShelf(props: Props) {
                     'font-family': 'inherit',
                   }}
                 >
-                  {name}
+                  {props.prettyDepLabel(name)}
                 </button>
               )}</For>
             </div>
