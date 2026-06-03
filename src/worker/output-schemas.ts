@@ -140,6 +140,21 @@ export const DAF_BACKGROUND_CONCEPTS_OUTPUT_SCHEMA = responseFormat('daf_backgro
     })),
   })),
 }));
+// Whole-daf TIDBIT: one curated "did you notice…" essay surfacing the single
+// most interesting thing on the daf — an aggadah read against the grain, a legal
+// concept with a twist, a sharp machloket, a textual point, or a hidden point
+// inside a dry/technical daf. Output is a hook + 3-4 flowing paragraphs (no
+// section labels). Two confidences: how well the claims are grounded in the
+// daf's TEXT vs. how editorial the READING (interpretive framing) is — a bold
+// reading should carry a lower readingConfidence. Drives the whole-daf Tidbit chip.
+export const TIDBIT_ESSAY_OUTPUT_SCHEMA = responseFormat('tidbit_essay', z.object({
+  flavor: z.enum(['aggadah', 'legal-concept', 'machloket', 'textual', 'hidden-point']),
+  hook: z.string(),
+  paragraphs: z.array(z.string()),
+  sources: z.array(z.object({ ref: z.string(), note: z.string() })),
+  textConfidence: z.enum(['high', 'medium', 'low']),
+  readingConfidence: z.enum(['high', 'medium', 'low']),
+}));
 // Section typing (P2b): a NARRATIVE view for story-primary sections, where the
 // dispute-oriented `voices` graph is the wrong model. Actors (characters) +
 // ordered beats (what happens, step by step) instead of opposing legal positions.

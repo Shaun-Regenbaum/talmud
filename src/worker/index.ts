@@ -3204,7 +3204,26 @@ app.get('/api/admin/cache-stats', async (c) => {
   const cache = c.env.CACHE;
   if (!cache) return c.json({ error: 'no cache binding' }, 503);
   const cached = await readCachedCacheStats(cache);
-  if (cached && isFresh(cached)) return c.json(cached);
+  // Stale-while-revalidate: computeCacheStats scans dozens of KV prefixes and
+  // can take several seconds, so never block a page load on it once we have
+  // ANY cached copy. Serve the cached value immediately; if it's past the 60s
+  // freshness window, recompute in the background so the next load is fresh.
+  // (A cron also refreshes this, so the background recompute is just a backstop
+  // for gaps between cron runs.) Only a true cold miss blocks on the scan.
+  if (cached) {
+    if (!isFresh(cached)) {
+      c.executionCtx.waitUntil((async () => {
+        try {
+          const fresh = await computeCacheStats(cache);
+          await writeCachedCacheStats(cache, fresh);
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn('[cache-stats] background refresh failed:', err);
+        }
+      })());
+    }
+    return c.json(cached);
+  }
   const stats = await computeCacheStats(cache);
   await writeCachedCacheStats(cache, stats);
   return c.json(stats);
@@ -3779,8 +3798,61 @@ function percentile(sorted: number[], p: number): number {
 
 app.get('/api/usage', async (c) => {
   const cache = c.env.CACHE;
-  const telRaw = cache ? await cache.get('telemetry:v1:recent') : null;
-  const repRaw = cache ? await cache.get('reports:v1:recent') : null;
+  // Assembling this payload reads several full KV prefixes — the usage rollups
+  // and the three observed-entity backlogs each fetch EVERY key's value across
+  // the warmed Shas — so a cold build runs ~10s. The dashboard polls every 30s
+  // and a few seconds of staleness is harmless, so serve a cached payload and
+  // refresh it in the background (stale-while-revalidate): every load after the
+  // first is instant. A best-effort refresh lock (below) collapses the common
+  // case of one viewer polling — or several at once — into a single rebuild per
+  // window instead of one rebuild per stale request.
+  const PAYLOAD_KEY = 'usage-payload:v1';
+  const REFRESH_LOCK_KEY = 'usage-payload:refreshing';
+  const PAYLOAD_FRESH_MS = 30_000;
+
+  const computeUsagePayload = async () => {
+
+  // External analytics, cached 5 min so the 30s dashboard refresh doesn't
+  // hammer the CF analytics API. Closures so they participate in the single
+  // parallel fetch below.
+  const loadAigw = async (): Promise<Awaited<ReturnType<typeof fetchGatewayCost>>> => {
+    if (!cache) return fetchGatewayCost(c.env);
+    const raw = await cache.get('aigw-cost:v1');
+    if (raw) { try { return JSON.parse(raw) as Awaited<ReturnType<typeof fetchGatewayCost>>; } catch { /* recompute */ } }
+    const fresh = await fetchGatewayCost(c.env);
+    c.executionCtx.waitUntil(cache.put('aigw-cost:v1', JSON.stringify(fresh), { expirationTtl: 300 }));
+    return fresh;
+  };
+  const loadActivity = async (): Promise<Awaited<ReturnType<typeof fetchZoneActivity>>> => {
+    if (!cache) return fetchZoneActivity(c.env);
+    const raw = await cache.get('zone-activity:v1');
+    if (raw) { try { return JSON.parse(raw) as Awaited<ReturnType<typeof fetchZoneActivity>>; } catch { /* recompute */ } }
+    const fresh = await fetchZoneActivity(c.env);
+    c.executionCtx.waitUntil(cache.put('zone-activity:v1', JSON.stringify(fresh), { expirationTtl: 300 }));
+    return fresh;
+  };
+
+  // Every source below is independent, and several are full KV-prefix scans
+  // (telemetry, usage rollups, the three observed-entity backlogs). Fetching
+  // them serially made the page wait on the SUM of those scans; fetch them all
+  // concurrently so it waits only on the slowest.
+  const emptyUnknown = { total: 0, sightings: 0, sample: [] as never[] };
+  const [
+    telRaw, repRaw, selfTracked, aiGateway, activity,
+    unknownRabbis, observedPlaces, observedConcepts, jeRaw, lintFailures,
+  ] = await Promise.all([
+    cache ? cache.get('telemetry:v1:recent') : null,
+    cache ? cache.get('reports:v1:recent') : null,
+    cache ? readUsageSummary(cache) : null,
+    loadAigw(),
+    loadActivity(),
+    cache ? listUnknownRabbis(cache) : emptyUnknown,
+    cache ? listObservedPlaces(cache) : emptyUnknown,
+    cache ? listObservedConcepts(cache) : emptyUnknown,
+    cache ? cache.get(RECENT_ERRORS_KEY) : null,
+    readLintFailures(cache),
+  ]);
+
   const telemetry = telRaw ? (JSON.parse(telRaw) as TelemetryRecord[]) : [];
   const reports = repRaw ? (JSON.parse(repRaw) as BugReport[]) : [];
 
@@ -3855,62 +3927,11 @@ app.get('/api/usage', async (c) => {
       mark_id: r.mark_id, enrichment_id: r.enrichment_id,
     }));
 
-  // --- Cost ----------------------------------------------------------------
-  // Self-tracked lifetime totals from the persistent daily rollups, plus the
-  // authoritative AI Gateway figure (cached 5 min so the 30s dashboard refresh
-  // doesn't hammer the CF analytics API).
-  const selfTracked = cache ? await readUsageSummary(cache) : null;
-  let aiGateway: Awaited<ReturnType<typeof fetchGatewayCost>>;
-  if (cache) {
-    const cachedAigw = await cache.get('aigw-cost:v1');
-    let parsed: Awaited<ReturnType<typeof fetchGatewayCost>> | null = null;
-    if (cachedAigw) { try { parsed = JSON.parse(cachedAigw); } catch { parsed = null; } }
-    if (parsed) {
-      aiGateway = parsed;
-    } else {
-      aiGateway = await fetchGatewayCost(c.env);
-      c.executionCtx.waitUntil(cache.put('aigw-cost:v1', JSON.stringify(aiGateway), { expirationTtl: 300 }));
-    }
-  } else {
-    aiGateway = await fetchGatewayCost(c.env);
-  }
-
-  // --- Activity (CF zone analytics) ---------------------------------------
-  // Edge request + country data for the app host, cached 5 min like the AI
-  // Gateway figure so the 30s dashboard refresh doesn't hammer CF analytics.
-  let activity: Awaited<ReturnType<typeof fetchZoneActivity>>;
-  if (cache) {
-    const cachedAct = await cache.get('zone-activity:v1');
-    let parsed: Awaited<ReturnType<typeof fetchZoneActivity>> | null = null;
-    if (cachedAct) { try { parsed = JSON.parse(cachedAct); } catch { parsed = null; } }
-    if (parsed) {
-      activity = parsed;
-    } else {
-      activity = await fetchZoneActivity(c.env);
-      c.executionCtx.waitUntil(cache.put('zone-activity:v1', JSON.stringify(activity), { expirationTtl: 300 }));
-    }
-  } else {
-    activity = await fetchZoneActivity(c.env);
-  }
-
-  // --- Needs-enrichment backlog -------------------------------------------
-  const unknownRabbis = cache ? await listUnknownRabbis(cache) : { total: 0, sightings: 0, sample: [] };
-  const observedPlaces = cache ? await listObservedPlaces(cache) : { total: 0, sightings: 0, sample: [] };
-  const observedConcepts = cache ? await listObservedConcepts(cache) : { total: 0, sightings: 0, sample: [] };
-
   // --- Hard queue-job failures (separate ring buffer from telemetry) -------
   let jobErrors: RecentJobError[] = [];
-  if (cache) {
-    const jeRaw = await cache.get(RECENT_ERRORS_KEY);
-    if (jeRaw) { try { jobErrors = (JSON.parse(jeRaw) as RecentJobError[]).slice(-30).reverse(); } catch { jobErrors = []; } }
-  }
+  if (jeRaw) { try { jobErrors = (JSON.parse(jeRaw) as RecentJobError[]).slice(-30).reverse(); } catch { jobErrors = []; } }
 
-  // --- Capped lint failures (cards that hit MAX_LINT_ATTEMPTS and were pinned
-  // with gloss-style / missing-Hebrew issues still present). Surfaces the cost
-  // sink so a persistently-failing prompt is visible, not silent.
-  const lintFailures: LintFailuresSummary = await readLintFailures(cache);
-
-  return c.json({
+  return {
     telemetry: { perEndpoint, perMark, perEnrichment, recentErrors, totalCount: telemetry.length },
     cost: { selfTracked, aiGateway },
     activity,
@@ -3918,7 +3939,49 @@ app.get('/api/usage', async (c) => {
     jobErrors,
     lintFailures,
     reports: [...reports].reverse(),
-  });
+    generatedAt: new Date().toISOString(),
+  };
+  };
+
+  // --- Stale-while-revalidate dispatch ------------------------------------
+  if (cache) {
+    const cachedRaw = await cache.get(PAYLOAD_KEY);
+    if (cachedRaw) {
+      let parsed: (Record<string, unknown> & { generatedAt?: string }) | null = null;
+      try { parsed = JSON.parse(cachedRaw); } catch { parsed = null; }
+      if (parsed) {
+        const age = Date.now() - Date.parse(parsed.generatedAt ?? '');
+        const fresh = Number.isFinite(age) && age >= 0 && age < PAYLOAD_FRESH_MS;
+        if (!fresh) {
+          // Best-effort singleflight: skip the rebuild if another request is
+          // already refreshing. The lock self-expires (60s) so a crashed build
+          // can't wedge it, and it's cleared on completion. KV is eventually
+          // consistent, so this isn't a hard mutex — it just keeps a burst of
+          // stale hits from each kicking off their own ~10s rebuild.
+          const refreshing = await cache.get(REFRESH_LOCK_KEY);
+          if (!refreshing) {
+            c.executionCtx.waitUntil((async () => {
+              try {
+                await cache.put(REFRESH_LOCK_KEY, '1', { expirationTtl: 60 });
+                const next = await computeUsagePayload();
+                await cache.put(PAYLOAD_KEY, JSON.stringify(next), { expirationTtl: 600 });
+              } catch (err) {
+                // eslint-disable-next-line no-console
+                console.warn('[usage] background refresh failed:', err);
+              } finally {
+                await cache.delete(REFRESH_LOCK_KEY).catch(() => {});
+              }
+            })());
+          }
+        }
+        return c.json(parsed);
+      }
+    }
+  }
+  // Cold miss (no cached payload): build synchronously, then cache it.
+  const payload = await computeUsagePayload();
+  if (cache) c.executionCtx.waitUntil(cache.put(PAYLOAD_KEY, JSON.stringify(payload), { expirationTtl: 600 }));
+  return c.json(payload);
 });
 
 // --- Commentaries list --------------------------------------------------
@@ -7320,7 +7383,12 @@ async function deepWarmDaf(
   // shows as its own singleton sugya. The one-time global sweep left gaps and
   // never ran for new daf-yomi dapim, so warm it here. Keyed on the canonical
   // whole-daf instance { fields: {} } to match the client.
-  for (const eid of ['argument-overview.flow', 'argument-overview.synthesis']) {
+  //
+  // tidbit.essay is the curated whole-daf "did you notice…" chip. It depends on
+  // argument-overview.synthesis (warmed just above) + daf-background.concepts +
+  // the source bundle; listed last so its deps are warm/in-flight first (its own
+  // dependency resolution still fills any gap and caches it).
+  for (const eid of ['argument-overview.flow', 'argument-overview.synthesis', 'tidbit.essay']) {
     if (!wanted(eid)) continue;
     try {
       const def = await loadEnrichmentDef(rc.env, eid);

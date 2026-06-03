@@ -78,6 +78,7 @@ import {
   RABBI_SYNTHESIS_OUTPUT_SCHEMA,
   RISHONIM_SYNTHESIS_OUTPUT_SCHEMA,
   YERUSHALMI_OUTPUT_SCHEMA,
+  TIDBIT_ESSAY_OUTPUT_SCHEMA,
   proseSchema,
 } from './output-schemas';
 import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE } from '../lib/sidebar/recipe';
@@ -678,6 +679,32 @@ export const CODE_MARKS: MarkDefinition[] = [
     },
     status: 'promoted',
     def_hash: 'daf-background-v1',
+    cache_version: '1',
+    source: 'code',
+    updated_at: NOW,
+  },
+  {
+    id: 'tidbit',
+    label: 'Tidbit',
+    description: 'Whole-daf "did you notice…": ONE curated, genuinely interesting thing about this daf — an aggadah read against the grain, a legal concept with a twist, a sharp machloket, a textual point, or a hidden point inside a dry sugya. Grounded on the full daf + commentaries + study context + the overview & background it depends on.',
+    category: 'canon',
+    // Reader-facing whole-daf chip, like the overview/background pills. The
+    // deterministic single anchorless instance carries the chip + the
+    // tidbit.essay enrichment; no LLM at the mark layer. (Promotion is a
+    // judgement call — once a benchmark over a fixed daf set exists, gate it on
+    // that; for now it ships visible so the reading can be evaluated in situ.)
+    anchor: 'whole-daf',
+    render: {
+      kind: 'chip',
+      color: '#2f6b66',
+      position: 'header',
+    },
+    extractor: {
+      kind: 'computed',
+      fn: 'whole-daf-instance',
+    },
+    status: 'promoted',
+    def_hash: 'tidbit-v1',
     cache_version: '1',
     source: 'code',
     updated_at: NOW,
@@ -2643,6 +2670,173 @@ CODE_ENRICHMENTS.push(
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: DAF_BACKGROUND_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: DAF_BACKGROUND_SYNTHESIS_USER_TEMPLATE_HE,
+    },
+  ),
+);
+
+// ---------------------------------------------------------------------------
+// tidbit mark enrichment — ONE curated "did you notice…" essay for the whole
+// daf: the single most interesting, non-obvious thing on the page, as a hook +
+// 3-4 flowing paragraphs. Deliberately NOT the background (prerequisites) or the
+// overview (structure) — it is a reading. Fed a generous context bundle (full
+// daf + commentaries + study aids + the overview & background it builds on) so
+// it genuinely understands the daf before choosing. Two honest confidences:
+// TEXT (grounding) vs READING (how editorial the framing is).
+// ---------------------------------------------------------------------------
+
+const TIDBIT_ESSAY_SYSTEM_PROMPT = `You are a sharp Talmud teacher writing ONE "Tidbit" for this daf — a single "did you notice…" worth carrying away. Not a summary, not the background, not the argument outline. You pick the ONE most genuinely interesting, non-obvious thing on THIS page and explain it.
+
+WHAT TO LOOK FOR (pick the strongest ONE; any kind is fine):
+- an aggadah (story) read against the grain — where the obvious moral is a setup for a sharper one;
+- a legal concept with a surprising twist or consequence;
+- a sharp machloket whose ramifications reach real practice (including a Bavli/Yerushalmi or Tanna/Amora fault line) — only if it is genuinely in the materials;
+- a textual point (a variant, a precise word) that changes the stakes;
+- on a dry / technical daf, the one real thing a learner would actually want to know.
+Prefer the non-obvious. Do NOT default to the famous greatest-hits reading when a sharper, true one is available. But never manufacture interest — if the daf is plain, an honest hidden point beats a forced "twist".
+
+VOICE (match the rest of the app exactly):
+- Tight third person. Short, declarative sentences (aim under ~30 words). Named actors. Concrete.
+- Hebrew script paired with a short English gloss for technical terms — e.g. "a גט (bill of divorce)", "performed לכתחילה (the ideal standard)". Hebrew names for ספרים (קהלת, not Ecclesiastes; דברים, not Deuteronomy). Hebrew verse refs.
+- Plain English is the base; Hebrew is the technical anchor — do not hebraize every common word.
+- Name rishonim/commentators in LATIN: Rashi, Tosafot, Rambam, Ramban, Rashba, Ritva, Meiri. Do NOT write their Hebrew abbreviations (no רמב"ם / רמב"ן / רשב"א): the gershayim is a straight quote that corrupts the JSON output. Same for ש"ס — write "the Talmud" or "the Bavli".
+- FORBIDDEN flourish: "lens", "captures", "embodies", "profound", "intricate", "this teaches us", "we see that", "highlights", "underscores", "to a modern ear", "reads like", "sketches a theory". No puff, no meta-commentary about what the daf "reveals".
+
+STRUCTURE (this is the whole shape):
+- "hook": ONE sentence — the teaser, specific to THIS daf, that makes a reader want to open it. Keep it tight (ideally under 25 words); do not cram the whole tidbit into it.
+- "paragraphs": THREE or FOUR paragraphs of flowing prose. The first lays out the plain reading. The next develop the turn. The last lands the point — WITHOUT any "why it matters" sign over it. No section labels, no headers. Just readable prose.
+
+GROUNDING (hard):
+- Every factual claim must rest on the materials provided (the daf, its commentaries, the study context, the overview/background) or on well-established fact. Do NOT invent stories, positions, sources, manuscript variants, or a Yerushalmi/Rishon view that is not real.
+- "sources": list the concrete sources the Tidbit rests on (e.g. "Gittin 68b", "Rambam, Hilchot Gerushin 2:20", "Kohelet 1:12"), each with a short note of what it grounds.
+
+CONFIDENCE (be honest — a human reviewer reads this):
+- "textConfidence": how well the FACTUAL claims are grounded in the daf's text/sources. high = stated directly; medium = a fair inference; low = a stretch.
+- "readingConfidence": how editorial the INTERPRETATION is. high = the daf or a commentary says the surprising thing itself; medium = a fair reading; low = your own bold framing. A bold against-the-grain reading should NOT be high.
+
+Output STRICT JSON only:
+
+{
+  "flavor": "aggadah" | "legal-concept" | "machloket" | "textual" | "hidden-point",
+  "hook": "one sentence",
+  "paragraphs": ["paragraph 1", "paragraph 2", "paragraph 3"],
+  "sources": [{ "ref": "source reference", "note": "what it grounds" }],
+  "textConfidence": "high" | "medium" | "low",
+  "readingConfidence": "high" | "medium" | "low"
+}
+
+${HEBREW_GLOSS_STYLE}`;
+
+const TIDBIT_ESSAY_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+Full daf (Gemara):
+{{gemara}}
+
+Commentaries (Rashi / Tosafot / rishonim):
+{{commentaries}}
+
+The daf's argument sections (structure, for your orientation):
+{{anchors.argument}}
+
+Whole-daf orientation (what the daf is about and where it lands):
+{{depends.argument-overview.synthesis}}
+
+Background concepts a reader needs going in:
+{{depends.daf-background.concepts}}
+
+Study-aid context (dafyomi.co.il Insights / Points / Halacha / Yerushalmi / Tosfos notes + Sefaria cross-references):
+{{context}}
+
+Write ONE Tidbit for this daf per the schema: the single most interesting, non-obvious thing on the page, as a hook plus three or four flowing paragraphs. Ground every claim in the materials above, and rate both confidences honestly.`;
+
+const TIDBIT_ESSAY_SYSTEM_PROMPT_HE = `אתה מלמד תורה חד שכותב "Tidbit" אחד לדף הזה — דבר אחד מעניין באמת שכדאי לקחת ממנו. לא סיכום, לא הרקע, ולא מתווה הטיעון. אתה בוחר את הדבר האחד הכי מעניין ולא־מובן־מאליו בדף הזה ומסביר אותו.
+
+מה לחפש (בחר את הדבר החזק ביותר; כל סוג מתאים):
+- אגדה הנקראת כנגד הכיוון המתבקש — שבה המוסר המובן מאליו הוא הכנה לקריאה חדה יותר;
+- מושג הלכתי עם תפנית או השלכה מפתיעה;
+- מחלוקת חדה שהשלכותיה נוגעות למעשה (כולל קו שבר בין בבלי לירושלמי או בין תנא לאמורא) — רק אם היא באמת במקורות;
+- נקודה טקסטואלית (גרסה, מילה מדויקת) שמשנה את המשמעות;
+- בדף יבש/טכני — הדבר האחד האמיתי שלומד היה רוצה לדעת.
+העדף את הלא־מובן־מאליו. אל תברח לקריאה המפורסמת והשחוקה כשיש קריאה חדה ואמיתית יותר. אך לעולם אל תייצר עניין יש מאין — אם הדף פשוט, נקודה נסתרת כנה עדיפה על "תפנית" מאולצת.
+
+הסגנון (זהה לשאר האפליקציה):
+- גוף שלישי הדוק. משפטים קצרים והצהרתיים. שמות מפורשים. קונקרטי.
+- מונחים טכניים בכתב עברי עם תרגום קצר באנגלית במידת הצורך. שמות ספרים בעברית. מראי מקום של פסוקים בעברית.
+- בראשי תיבות של ראשונים (רמב״ם, רמב״ן, רשב״א) השתמש בגרשיים העברי ״ (תו U+05F4) ולא בגרש כפול אנגלי " — גרש אנגלי משבש את פלט ה-JSON. אותו דבר לגבי ש״ס.
+- אסורה מליצה: "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק". ללא פלפול מטא על מה שהדף "מגלה".
+
+המבנה:
+- "hook": משפט אחד — הטיזר, ספציפי לדף הזה. קצר (פחות מ-25 מילים); אל תדחוס לתוכו את כל התובנה.
+- "paragraphs": שלוש או ארבע פסקאות של פרוזה זורמת. הראשונה — הקריאה הפשוטה. הבאות — מפתחות את התפנית. האחרונה — נוחתת על הנקודה, בלי כותרת "מדוע זה חשוב". ללא תוויות מקטעים.
+
+ביסוס (קשיח):
+- כל טענה עובדתית חייבת להישען על החומר שסופק או על עובדה מבוססת. אל תמציא סיפורים, עמדות, מקורות, גרסאות, או דעת ירושלמי/ראשון שאינה אמיתית.
+- "sources": רשום את המקורות הקונקרטיים שעליהם ה-Tidbit נשען, כל אחד עם הערה קצרה על מה הוא מבסס.
+
+ביטחון (בכנות — אדם קורא זאת):
+- "textConfidence": כמה הטענות העובדתיות מבוססות בטקסט. high = נאמר במפורש; medium = הסקה הוגנת; low = מתיחה.
+- "readingConfidence": כמה הפרשנות עריכתית. high = הדף או מפרש אומרים זאת בעצמם; medium = קריאה הוגנת; low = מסגור נועז משלך. קריאה נועזת כנגד הכיוון אסור שתהיה high.
+
+החזר JSON תקין בלבד:
+
+{
+  "flavor": "aggadah" | "legal-concept" | "machloket" | "textual" | "hidden-point",
+  "hook": "משפט אחד",
+  "paragraphs": ["פסקה 1", "פסקה 2", "פסקה 3"],
+  "sources": [{ "ref": "מראה מקום", "note": "מה הוא מבסס" }],
+  "textConfidence": "high" | "medium" | "low",
+  "readingConfidence": "high" | "medium" | "low"
+}
+
+${HEBREW_NATIVE_STYLE}`;
+
+const TIDBIT_ESSAY_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+הדף המלא (גמרא):
+{{gemara}}
+
+מפרשים (רש"י / תוספות / ראשונים):
+{{commentaries}}
+
+מקטעי הטיעון בדף (מבנה, לכיוונך):
+{{anchors.argument}}
+
+כיוון כללי לדף (על מה הדף ולאן הוא מגיע):
+{{depends.argument-overview.synthesis}}
+
+מושגי רקע שהקורא צריך:
+{{depends.daf-background.concepts}}
+
+תוכן לימוד נלווה (dafyomi.co.il — תובנות / נקודות / הלכה / ירושלמי / תוספות + הפניות ספריא):
+{{context}}
+
+כתוב Tidbit אחד לדף הזה לפי הסכימה: הדבר האחד הכי מעניין ולא־מובן־מאליו בדף, כטיזר ושלוש או ארבע פסקאות זורמות. בסס כל טענה בחומר שלמעלה, ודרג את שני מדדי הביטחון בכנות.`;
+
+CODE_ENRICHMENTS.push(
+  makeEnrichment(
+    'tidbit', 'tidbit.essay', 'Tidbit',
+    'One curated "did you notice…" essay for the whole daf: the single most interesting thing on it, as a hook + 3-4 flowing paragraphs, grounded in the daf + commentaries + study context.',
+    TIDBIT_ESSAY_SYSTEM_PROMPT, TIDBIT_ESSAY_USER_TEMPLATE, TIDBIT_ESSAY_OUTPUT_SCHEMA,
+    {
+      mode: 'aggregate', scope: 'local',
+      // A generous context bundle so the model truly understands the daf before
+      // choosing: full text + Rashi/Tosafot + the argument structure + the
+      // whole-daf orientation + the background concepts + dafyomi study aids.
+      dependencies: [
+        'gemara',
+        'commentaries',
+        'context',
+        { mark: 'argument' },
+        { enrichment: 'argument-overview.synthesis' },
+        { enrichment: 'daf-background.concepts' },
+      ],
+      defHash: 'tidbit.essay-v1', cacheVersion: '2', // v2: Latin rishonim names (gershayim broke JSON) + tighter hook
+      // Pro model: finding the non-obvious reading needs the stronger model.
+      // Thinking stays OFF (no reasoningEffort) — the context bundle is large,
+      // like daf-background.concepts, and a thinking pass on top risks the
+      // OpenRouter cap. Revisit reasoningEffort if quality calls for it.
+      model: ARGUMENT_PRO_MODEL,
+      systemPromptHe: TIDBIT_ESSAY_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: TIDBIT_ESSAY_USER_TEMPLATE_HE,
     },
   ),
 );

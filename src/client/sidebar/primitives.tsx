@@ -31,6 +31,7 @@ export const ACCENTS = {
   argument: '#8a2a2b',
   'argument-overview': '#8a2a2b',
   'daf-background': '#8a6d3b',
+  tidbit: '#2f6b66',
   halacha: '#1e40af',
   aggadata: '#7c3aed',
   yerushalmi: '#0f766e',
@@ -50,6 +51,7 @@ export function kindLabelKey(kind: SidebarKind): CatalogKey {
     case 'argument': return 'sidebar.kind.argument';
     case 'argument-overview': return 'sidebar.kind.argument-overview';
     case 'daf-background': return 'sidebar.kind.daf-background';
+    case 'tidbit': return 'sidebar.kind.tidbit';
     case 'halacha': return 'sidebar.kind.halacha';
     case 'aggadata': return 'sidebar.kind.aggadata';
     case 'yerushalmi': return 'sidebar.kind.yerushalmi';

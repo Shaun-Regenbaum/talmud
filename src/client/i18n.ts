@@ -174,6 +174,7 @@ const CATALOG = {
   'sidebar.kind.rabbi': { en: 'Rabbi', he: 'חכם' },
   'sidebar.kind.argument-overview': { en: 'Overview', he: 'סקירה' },
   'sidebar.kind.daf-background': { en: 'Background', he: 'רקע' },
+  'sidebar.kind.tidbit': { en: 'Tidbit', he: 'תובנה' },
 
   // — Whole-daf argument overview —
   'overview.chip': { en: 'Overview', he: 'סקירה' },
@@ -212,6 +213,22 @@ const CATALOG = {
   'background.cat.legal-concepts': { en: 'Legal concepts', he: 'מושגים הלכתיים' },
   'background.cat.realia': { en: 'Everyday life', he: 'מציאות' },
   'background.cat.assumed-prior': { en: 'Assumed background', he: 'רקע מוקדם' },
+
+  // — Whole-daf Tidbit (one curated "did you notice…" reading) —
+  'tidbit.chip': { en: 'Tidbit', he: 'תובנה' },
+  'tidbit.title': { en: 'Tidbit', he: 'תובנה' },
+  'tidbit.empty': { en: 'No tidbit for this daf yet.', he: 'אין עדיין תובנה לדף זה.' },
+  'tidbit.sources': { en: 'Sources', he: 'מקורות' },
+  'tidbit.flavor.aggadah': { en: 'Aggadah', he: 'אגדה' },
+  'tidbit.flavor.legal-concept': { en: 'Legal concept', he: 'מושג הלכתי' },
+  'tidbit.flavor.machloket': { en: 'Machloket', he: 'מחלוקת' },
+  'tidbit.flavor.textual': { en: 'Textual', he: 'נוסח' },
+  'tidbit.flavor.hidden-point': { en: 'Hidden point', he: 'נקודה נסתרת' },
+  'tidbit.conf.text': { en: 'text', he: 'טקסט' },
+  'tidbit.conf.reading': { en: 'reading', he: 'קריאה' },
+  'tidbit.conf.high': { en: 'high', he: 'גבוה' },
+  'tidbit.conf.medium': { en: 'medium', he: 'בינוני' },
+  'tidbit.conf.low': { en: 'low', he: 'נמוך' },
   // — Common —
   'common.open': { en: 'Open {name}', he: 'פתיחת {name}' },
   'common.close': { en: 'Close', he: 'סגירה' },
@@ -223,6 +240,7 @@ const CATALOG = {
   'loading.argument': { en: 'Tracing the argument…', he: 'עוקב אחר הסוגיה…' },
   'loading.move.named': { en: 'Listening to {voice}…', he: 'מקשיב ל{voice}…' },
   'loading.move': { en: 'Tracing the flow…', he: 'עוקב אחר המהלך…' },
+  'loading.tidbit': { en: 'Looking for a chiddush…', he: 'מחפש חידוש…' },
   'loading.halacha.named': { en: 'Asking a Rav about {title}…', he: 'שואל רב על {title}…' },
   'loading.halacha': { en: 'Asking the Rav…', he: 'שואל את הרב…' },
   'loading.aggadata.named': { en: 'Pondering {title}…', he: 'מהרהר ב{title}…' },
@@ -374,6 +392,8 @@ const CATALOG = {
   'usage.title': { en: 'Usage', he: 'שימוש' },
   'usage.backToDaf': { en: '← back to daf', he: '← חזרה לדף' },
   'usage.refresh': { en: 'Refresh', he: 'רענון' },
+  'usage.refreshing': { en: 'Refreshing…', he: 'מרענן…' },
+  'usage.loading': { en: 'Loading usage data…', he: 'טוען נתוני שימוש…' },
   'usage.loadFailed': { en: 'Failed to load: {error}', he: 'הטעינה נכשלה: {error}' },
   'usage.none': { en: 'None.', he: 'אין.' },
   'usage.noDataYet': { en: 'No data yet.', he: 'אין עדיין נתונים.' },
@@ -684,6 +704,7 @@ const CATALOG = {
   'dafLoad.family.rishonim': { en: 'rishonim', he: 'ראשונים' },
   'dafLoad.family.argumentOverview': { en: 'overview', he: 'סקירה' },
   'dafLoad.family.background': { en: 'background', he: 'רקע' },
+  'dafLoad.family.tidbit': { en: 'chiddush', he: 'חידוש' },
 
   // — Gutter icon tooltips —
   'gutter.argument': { en: 'Argument structure & rabbis', he: 'מבנה הסוגיה וחכמים' },

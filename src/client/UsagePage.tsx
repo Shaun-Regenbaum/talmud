@@ -278,6 +278,20 @@ function fmtTokens(n: number | null | undefined): string {
   return `${(n / 1_000_000).toFixed(2)}M`;
 }
 
+// Small inline spinner reusing the global `daf-spin` keyframe (styles.css).
+function Spinner(props: { size?: string }): JSX.Element {
+  const s = () => props.size ?? '0.8rem';
+  return (
+    <span
+      style={{
+        display: 'inline-block', width: s(), height: s(), 'border-radius': '50%',
+        border: '2px solid #ddd', 'border-top-color': '#4b7bec',
+        animation: 'daf-spin 0.8s linear infinite', 'flex-shrink': 0,
+      }}
+    />
+  );
+}
+
 interface SectionHeadingProps {
   title: string;
   hint?: string;
@@ -987,18 +1001,36 @@ export function UsagePage(): JSX.Element {
   const interval = setInterval(() => { void refetch(); void refetchCache(); }, 30000);
   if (typeof window !== 'undefined') window.addEventListener('beforeunload', () => clearInterval(interval));
 
+  // Any in-flight fetch (initial load OR a background refetch keeping its prior
+  // value). Drives the header spinner so a slow load never looks frozen.
+  const busy = () => data.loading || cacheStats.loading;
+  // First paint: nothing has resolved yet. Show a full loading banner rather
+  // than an empty page while the (sometimes multi-second) endpoints respond.
+  const firstLoad = () => !data() && !cacheStats() && !data.error;
+
   return (
     <main class="page-shell" style={{ '--page-max': '960px', 'font-family': 'system-ui, -apple-system, sans-serif', color: '#222' }}>
       <header class="responsive-row" style={{ 'margin-bottom': '1.2rem' }}>
-        <h1 style={{ margin: 0, 'font-size': '1.4rem' }}>{t('usage.title')}</h1>
+        <h1 style={{ margin: 0, 'font-size': '1.4rem', display: 'flex', 'align-items': 'center', gap: '0.5rem' }}>
+          {t('usage.title')}
+          <Show when={busy()}><Spinner /></Show>
+        </h1>
         <a href="#daf" style={{ color: '#666', 'font-size': '0.85rem', 'text-decoration': 'none' }}>{t('usage.backToDaf')}</a>
         <button
           onClick={() => { void refetch(); void refetchCache(); }}
-          style={{ 'margin-left': 'auto', padding: '0.3rem 0.7rem', border: '1px solid #ddd', 'border-radius': '4px', background: '#fff', cursor: 'pointer', 'font-size': '0.8rem' }}
+          disabled={busy()}
+          style={{ 'margin-left': 'auto', padding: '0.3rem 0.7rem', border: '1px solid #ddd', 'border-radius': '4px', background: '#fff', cursor: busy() ? 'default' : 'pointer', 'font-size': '0.8rem', opacity: busy() ? 0.6 : 1 }}
         >
-          {t('usage.refresh')}
+          {busy() ? t('usage.refreshing') : t('usage.refresh')}
         </button>
       </header>
+
+      <Show when={firstLoad()}>
+        <div style={{ display: 'flex', 'align-items': 'center', gap: '0.6rem', color: '#888', padding: '2rem 0', 'font-size': '0.9rem' }}>
+          <Spinner size="1.1rem" />
+          {t('usage.loading')}
+        </div>
+      </Show>
 
       <Show when={data()}>
         {(d) => (
