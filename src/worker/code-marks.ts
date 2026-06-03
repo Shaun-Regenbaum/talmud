@@ -2680,6 +2680,11 @@ WHAT TO LOOK FOR (pick the strongest ONE; any kind is fine):
 - on a dry / technical daf, the one real thing a learner would actually want to know.
 Prefer the non-obvious. Do NOT default to the famous greatest-hits reading when a sharper, true one is available. But never manufacture interest — if the daf is plain, an honest hidden point beats a forced "twist".
 
+AIM FOR THE BIGGER IDEA, NOT THE MECHANICS. The best tidbit leaves the reader with a resonant, human idea — something true and a little surprising about Torah, people, law, or how a person lives — not a blow-by-blow reconstruction of who-holds-what. The rich analysis you are given is your INPUT for understanding the daf; it is NOT the thing to report back. Rise above the lomdus to the point it serves.
+- Decisive test, from a real daf about the degrees of ritual impurity: the right tidbit is "ordinary Jews chose to eat their everyday food at the Temple's level of purity, though nothing required it — holiness as something you draw nearer to by choice." The WRONG tidbit reconstructs "Ulla and Rabbah bar bar Chana dispute whether a third degree exists in such food." Same daf — one lands an idea, the other recites a machloket.
+- A machloket is worth a tidbit only when the DISAGREEMENT itself reveals something bigger (two worldviews, a value in tension); then write about that bigger thing, not the technical scaffolding. Use only as much detail as the idea needs.
+- A reader should finish with one clear idea they'd want to repeat to a friend — not a map of positions. If your draft reads like a careful gemara breakdown, you have missed; find the human point underneath and lead with it.
+
 VOICE (match the rest of the app exactly):
 - Tight third person. Short, declarative sentences (aim under ~30 words). Named actors. Concrete.
 - Hebrew script paired with a short English gloss for technical terms — e.g. "a גט (bill of divorce)", "performed לכתחילה (the ideal standard)". Hebrew names for ספרים (קהלת, not Ecclesiastes; דברים, not Deuteronomy). Hebrew verse refs.
@@ -2770,6 +2775,11 @@ const TIDBIT_ESSAY_SYSTEM_PROMPT_HE = `אתה מלמד תורה חד שכותב 
 - נקודה טקסטואלית (גרסה, מילה מדויקת) שמשנה את המשמעות;
 - בדף יבש/טכני — הדבר האחד האמיתי שלומד היה רוצה לדעת.
 העדף את הלא־מובן־מאליו. אל תברח לקריאה המפורסמת והשחוקה כשיש קריאה חדה ואמיתית יותר. אך לעולם אל תייצר עניין יש מאין — אם הדף פשוט, נקודה נסתרת כנה עדיפה על "תפנית" מאולצת.
+
+כוון לרעיון הגדול, לא למכניקה. ה-Tidbit הטוב משאיר את הקורא עם רעיון מהדהד ואנושי — משהו אמיתי ומעט מפתיע על התורה, על בני אדם, על הדין או על חיי האדם — לא שחזור צעד־אחר־צעד של מי מחזיק מה. הניתוח העשיר שניתן לך הוא הקלט שלך להבנת הדף; הוא אינו הדבר שיש לדווח עליו. עלה מעל הלמדנות אל הנקודה שהיא משרתת.
+- מבחן מכריע, מדף אמיתי על דרגות טומאה: ה-Tidbit הנכון הוא "יהודים פשוטים בחרו לאכול את מאכלם היומיומי בטהרת הקודש, אף שדבר לא חייב זאת — קדושה כדבר שמתקרבים אליו מתוך בחירה". ה-Tidbit השגוי משחזר "עולא ורבה בר בר חנה נחלקו אם יש שלישי במאכל כזה". אותו דף — האחד נוחת על רעיון, השני מדקלם מחלוקת.
+- מחלוקת ראויה ל-Tidbit רק כשהמחלוקת עצמה חושפת משהו גדול יותר (שתי תפיסות עולם, ערך במתח); אז כתוב על אותו דבר גדול, לא על הפיגום הטכני. השתמש רק בכמה פרטים שהרעיון דורש.
+- הקורא צריך לסיים עם רעיון אחד ברור שהיה רוצה לחזור עליו בפני חבר — לא מפת עמדות. אם הטיוטה נקראת כפירוק גמרא מוקפד, פספסת; מצא את הנקודה האנושית שמתחת והובל בה.
 
 הסגנון (זהה לשאר האפליקציה):
 - גוף שלישי הדוק. משפטים קצרים והצהרתיים. שמות מפורשים. קונקרטי.
@@ -2888,7 +2898,7 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'pesukim.synthesis', fanOut: true },
         { enrichment: 'halacha.synthesis', fanOut: true },
       ],
-      defHash: 'tidbit.essay-v1', cacheVersion: '6', // v6: + fanOut aggadata/pesukim/halacha syntheses (the app's own per-instance analysis)
+      defHash: 'tidbit.essay-v1', cacheVersion: '7', // v7: aim for the bigger/human idea, not a lomdus machloket reconstruction
       // Pro model: finding the non-obvious reading needs the stronger model.
       // Thinking stays OFF (no reasoningEffort) — the context bundle is large,
       // like daf-background.concepts, and a thinking pass on top risks the
