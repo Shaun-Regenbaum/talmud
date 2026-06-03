@@ -364,6 +364,12 @@ const BARE_NAMES_SWAP: Array<[string, string]> = [
   ['Rashi explains the gemara',                  'רש״י explains the gemara'],
   ['Tosafot disagree',                           'תוספות disagree'],
   ['Tosfos disagree',                            'תוספות disagree'],
+  // Compound Tosafot names — ONE author each, must swap whole (regression:
+  // a bare "Tosafot" entry alone left the second word as "תוספות HaRosh").
+  ['Tosafot HaRosh asks',                        'תוספות הרא״ש asks'],
+  ['Tosfos HaRosh asks',                         'תוספות הרא״ש asks'],
+  ['per Tosafot Rid',                            'per תוספות רי״ד'],
+  ['the Tosafot Yeshanim note',                  'the תוספות ישנים note'],
   ['the Ramban argues against',                  'the רמב״ן argues against'],
   ['Rashba and Ritva both hold',                 'רשב״א and ריטב״א both hold'],
   ['the Meiri suggests',                         'the מאירי suggests'],
@@ -388,6 +394,38 @@ describe('hebraizeBareNames — authority + work-title swap', () => {
   for (const [input, expected] of BARE_NAMES_SWAP) {
     it(`"${input}" → "${expected}"`, () => {
       expect(hebraizeBareNames(input)).toBe(expected);
+    });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// No-mixed-script invariant. A multi-word authority/work name is ONE thing;
+// hebraizing it must swap the WHOLE name, never half (regression: a bare
+// "Tosafot" entry without the compound left "Tosafot HaRosh" → "תוספות
+// HaRosh", one author rendered half Hebrew, half English). Each name below
+// must hebraize with zero Latin letters surviving in the name itself.
+// ---------------------------------------------------------------------------
+const LATIN_LETTER = /[A-Za-zÀ-ſ]/;
+const WHOLE_NAME_HEBRAIZED: string[] = [
+  'Tosafot HaRosh',
+  'Tosfos HaRosh',
+  'Tosafot Rid',
+  'Tosfos Rid',
+  'Tosafot Yeshanim',
+  'Tosfos Yeshanim',
+  'Mishneh Torah',
+  'Shulchan Aruch',
+  'Orach Chaim',
+  'Yoreh Deah',
+  'Even HaEzer',
+  'Choshen Mishpat',
+];
+
+describe('hebraizeBareNames — no half-translated (mixed-script) names', () => {
+  for (const name of WHOLE_NAME_HEBRAIZED) {
+    it(`"${name}" hebraizes whole, leaving no Latin letters`, () => {
+      const out = hebraizeBareNames(name);
+      expect(out).not.toMatch(LATIN_LETTER);
     });
   }
 });

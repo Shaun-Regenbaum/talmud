@@ -821,8 +821,13 @@ export const CODE_MARKS: MarkDefinition[] = [
     dependencies: ['gemara', 'yerushalmi-text'],
     passes: ['anchor-verbatim'],
     status: 'promoted',
+    // Dev-only for now: hidden from readers, surfaces only when dev mode is
+    // active (across the toggle list, rendering, auto-run and first-visit
+    // defaults). Still warmed by yomi-cron so dev views are instant.
+    experimental: true,
     def_hash: 'yerushalmi-llm-v1',
-    cache_version: '1',
+    // v2: grounding now also includes curated Bavli<->Yerushalmi parallels.
+    cache_version: '2',
     source: 'code',
     updated_at: NOW,
   },

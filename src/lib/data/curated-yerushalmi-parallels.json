@@ -1,0 +1,48 @@
+{
+  "source": "\"The Talmud says\": Shared Stories in the Babylonian and Jerusalem Talmuds (Sefaria editorial collection)",
+  "sourceUrl": "https://www.sefaria.org/collections/the-talmud-says-shared-stories-in-the-babylonian-and-jerusalem-talmuds",
+  "license": "Sefaria sheets — CC-BY (see Sefaria terms)",
+  "count": 5,
+  "parallels": [
+    {
+      "bavli": "Bava Metzia 59a:12-59b:7",
+      "yerushalmi": "Jerusalem Talmud Moed Katan 3:1:6-10",
+      "title": "Achnai’s Oven and “It is not in the heavens!”",
+      "summary": "Achnai’s Oven exemplifies the Talmud’s revolutionary approach to Jewish legal rulings. Those who study Achnai’s oven are most familiar with the Babylonian Talmud’s (Talmud Bavli) version, but a very different telling appears in the Jerusalem Talmud (Talmud Yerushalmi).",
+      "sheetId": 364518,
+      "url": "https://www.sefaria.org/sheets/364518"
+    },
+    {
+      "bavli": "Moed Katan 20a:10-11",
+      "yerushalmi": "Jerusalem Talmud Moed Katan 3:5:14",
+      "title": "Where does “Shiva” come From?",
+      "summary": "What is the source for the custom to mourn for seven days after burying one’s immediate relative (“shiva”)? The rabbis of the Babylonian and Jerusalem Talmuds take the learner on an adventure to find out.",
+      "sheetId": 366391,
+      "url": "https://www.sefaria.org/sheets/366391"
+    },
+    {
+      "bavli": "Rosh Hashanah 29b:10",
+      "yerushalmi": "Jerusalem Talmud Rosh Hashanah 4:1:2",
+      "title": "No Shofar on Shabbat: Two Approaches",
+      "summary": "Why do you think many communities don’t blow the shofar on Rosh Hashanah when it falls on a Shabbat? The Babylonian and Jerusalem Talmud texts in this sheet present two very different reasons.",
+      "sheetId": 366370,
+      "url": "https://www.sefaria.org/sheets/366370"
+    },
+    {
+      "bavli": "Shabbat 88a:5",
+      "yerushalmi": "Jerusalem Talmud Berakhot 9:5:16",
+      "title": "“They established that which they accepted”: Revelation and Consent",
+      "summary": "From one story in the Babylonian Talmud, the rabbis infer that God forced the Jewish people to accept the Torah. It then uses a verse from the Book of Esther to show that the Jews actually voluntarily accepted the Torah. The Jerusalem Talmud interprets the verse very differently.",
+      "sheetId": 366364,
+      "url": "https://www.sefaria.org/sheets/366364"
+    },
+    {
+      "bavli": "Sukkah 30a:3",
+      "yerushalmi": "Jerusalem Talmud Sukkah 3:1:2",
+      "title": "Who do we harm when we do mitzvot illegally?",
+      "summary": "Can mitzvot be fulfilled when doing so would require someone to transgress? If not, why not? Who do we harm? The Babylonian and Jerusalem Talmuds agree with the principle, but disagree as to who is harmed in such a situation.",
+      "sheetId": 366375,
+      "url": "https://www.sefaria.org/sheets/366375"
+    }
+  ]
+}

@@ -10,6 +10,7 @@ import {
 import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
 import { collectContext } from './context-providers';
 import { fromDafyomi } from '../lib/context/fromDafyomi';
+import { curatedParallelsForDaf, type CuratedYerushalmiParallel } from '../lib/yerushalmiParallels';
 import { placeRevachWithAi } from './revach-ai-place';
 import { formatContextForPrompt, contextForAnchor, segsFromMarkInput } from '../lib/context/select';
 import { continuationLink, type FlowEdge } from '../lib/context/link';
@@ -1251,11 +1252,52 @@ function truncateForPrompt(s: string, max: number): string {
  * sentinel when the daf has no Yerushalmi parallel (most of Kodashim/Taharot),
  * so the producer knows the absence is real rather than a fetch gap.
  */
+/** Strip Sefaria footnote markup + tags so a Yerushalmi passage reads clean. */
+function cleanYerushalmiText(s: string): string {
+  return stripHtmlServer(
+    s.replace(/<sup[^>]*>[\s\S]*?<\/sup>/g, '').replace(/<i class="footnote">[\s\S]*?<\/i>/g, ''),
+  ).trim();
+}
+
+/** A curated Bavli<->Yerushalmi parallel for a daf, with the Yerushalmi text
+ *  fetched + its editorial title/summary. The grounding-confidence tier above
+ *  the mishnah-mapping (a human curated this exact cross-reference). */
+interface CuratedYerushalmiPassage {
+  ref: string; title: string; summary: string; url: string; bavliAnchor: string;
+  hebrew: string; english: string;
+}
+
+/** Fetch the Yerushalmi text for curated parallels on a daf (few per daf, often
+ *  0-1). Each failure contributes nothing. */
+async function fetchCuratedYerushalmi(parallels: CuratedYerushalmiParallel[]): Promise<CuratedYerushalmiPassage[]> {
+  const flat = (x: unknown): string => Array.isArray(x) ? x.map(flat).join(' ') : (typeof x === 'string' ? x : '');
+  const out: CuratedYerushalmiPassage[] = [];
+  await Promise.all(parallels.map(async (p) => {
+    try {
+      const res = await sefariaAPI.getText(p.yerushalmi, { context: 0 });
+      out.push({
+        ref: p.yerushalmi, title: p.title, summary: p.summary, url: p.url, bavliAnchor: p.bavli,
+        hebrew: cleanYerushalmiText(flat(res.he)), english: cleanYerushalmiText(flat(res.text)),
+      });
+    } catch { /* skip on fetch failure */ }
+  }));
+  return out;
+}
+
 function formatYerushalmiForPrompt(
   bundle: Awaited<ReturnType<typeof getYerushalmiCached>>,
+  curated: CuratedYerushalmiPassage[],
   notes: ReturnType<typeof fromDafyomi>,
 ): string {
-  const blocks = bundle.map((y) => {
+  // Curated parallels first — a human confirmed this exact cross-reference, so
+  // it's the highest-confidence grounding (and often cross-tractate, which the
+  // mishnah-mapping can't find).
+  const curatedBlocks = curated.map((c) => {
+    const he = truncateForPrompt(c.hebrew, 1600);
+    const en = truncateForPrompt(c.english, 2000);
+    return `[${c.ref}] CONFIRMED curated parallel — "${c.title}" (anchors Bavli ${c.bavliAnchor}). Editorial note: ${c.summary}\nHE: ${he}\nEN: ${en}`.trim();
+  });
+  const mishnahBlocks = bundle.map((y) => {
     const he = truncateForPrompt(stripHtmlServer(y.hebrew), 1400);
     const en = truncateForPrompt(stripHtmlServer(y.english), 1800);
     const range = y.anchorStartSeg === y.anchorEndSeg
@@ -1263,6 +1305,7 @@ function formatYerushalmiForPrompt(
       : `Bavli segments ${y.anchorStartSeg}-${y.anchorEndSeg}`;
     return `[${y.ref}] (parallels ${range}, via ${y.mishnahRef})\nHE: ${he}\nEN: ${en}`.trim();
   });
+  const blocks = [...curatedBlocks, ...mishnahBlocks];
   const noteLines: string[] = [];
   for (const n of notes) {
     const title = n.title?.en || n.title?.he || '';
@@ -1463,16 +1506,19 @@ async function resolveDependencies(
       return;
     }
     if (dep === 'yerushalmi-text') {
-      // The Jerusalem Talmud parallel(s) on the same mishnah (real text, located
-      // via fetchYerushalmiForDaf) plus the dafyomi.co.il Yerushalmi study notes
-      // — so a producer contrasts Bavli vs Yerushalmi against the source rather
-      // than from memory. Each source that fails contributes nothing.
-      const [bundle, daf] = await Promise.all([
+      // Three grounding tiers: (1) curated Bavli<->Yerushalmi parallels a human
+      // confirmed (often cross-tractate — the mishnah-mapping can't find them),
+      // (2) the Jerusalem Talmud parallel(s) on the same mishnah (real text via
+      // fetchYerushalmiForDaf), (3) dafyomi.co.il Yerushalmi study notes — so a
+      // producer contrasts Bavli vs Yerushalmi against the source rather than
+      // from memory. Each source that fails contributes nothing.
+      const [bundle, daf, curated] = await Promise.all([
         getYerushalmiCached(rc.env.CACHE, tractate, page),
         getDafyomiContentCached(rc.env.CACHE, rc.env.ASSETS, tractate, page, {}).catch(() => null),
+        fetchCuratedYerushalmi(curatedParallelsForDaf(tractate, page)),
       ]);
       const notes = daf ? fromDafyomi(daf).filter((i) => i.source === 'dafyomi:yerushalmi') : [];
-      out.vars.yerushalmi = formatYerushalmiForPrompt(bundle, notes);
+      out.vars.yerushalmi = formatYerushalmiForPrompt(bundle, curated, notes);
       return;
     }
     if (dep === 'context') {
@@ -6887,18 +6933,21 @@ app.post('/api/admin/translate-bio', async (c) => {
 app.get('/api/yerushalmi/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
-  const clean = (s: string): string =>
-    stripHtmlServer(
-      s.replace(/<sup[^>]*>[\s\S]*?<\/sup>/g, '').replace(/<i class="footnote">[\s\S]*?<\/i>/g, ''),
-    ).trim();
-  const bundle = await getYerushalmiCached(c.env.CACHE, tractate, page);
+  const [bundle, curated] = await Promise.all([
+    getYerushalmiCached(c.env.CACHE, tractate, page),
+    fetchCuratedYerushalmi(curatedParallelsForDaf(tractate, page)),
+  ]);
   return c.json({
     parallels: bundle.map((y) => ({
       ref: y.ref,
       heRef: y.heRef,
-      hebrew: clean(y.hebrew),
-      english: clean(y.english),
+      hebrew: cleanYerushalmiText(y.hebrew),
+      english: cleanYerushalmiText(y.english),
     })),
+    // Curated Bavli<->Yerushalmi parallels whose Bavli ref covers this daf —
+    // hand-made cross-references (Sefaria "Shared Stories"), with the real
+    // Yerushalmi text + an editorial summary. Often cross-tractate.
+    curated,
   });
 });
 

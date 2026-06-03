@@ -1942,41 +1942,59 @@ function YerushalmiDiff(props: SpecialBlockProps): JSX.Element {
 }
 
 interface YerushalmiPassage { ref: string; heRef: string; hebrew: string; english: string; }
-async function fetchYerushalmiPassages(key: string): Promise<YerushalmiPassage[]> {
+interface YerushalmiCurated { ref: string; title: string; summary: string; url: string; bavliAnchor: string; hebrew: string; english: string; }
+interface YerushalmiData { parallels: YerushalmiPassage[]; curated: YerushalmiCurated[]; }
+async function fetchYerushalmiData(key: string): Promise<YerushalmiData> {
   const [tractate, page] = key.split('|');
   const res = await fetch(`/api/yerushalmi/${encodeURIComponent(tractate)}/${encodeURIComponent(page)}`);
-  if (!res.ok) return [];
-  const data = await res.json() as { parallels?: YerushalmiPassage[] };
-  return Array.isArray(data.parallels) ? data.parallels : [];
+  if (!res.ok) return { parallels: [], curated: [] };
+  const data = await res.json() as { parallels?: YerushalmiPassage[]; curated?: YerushalmiCurated[] };
+  return { parallels: Array.isArray(data.parallels) ? data.parallels : [], curated: Array.isArray(data.curated) ? data.curated : [] };
 }
 
-/** The actual Jerusalem Talmud passage this parallel points at — He + En, from
- *  the daf's cached yerushalmi bundle (the same text the mark was grounded on).
- *  Collapsed by default; the differences above are the headline, this is the
- *  "show me the source" layer. One cached-KV GET per card open. */
+/** The actual Jerusalem Talmud passage(s) for this daf — He + En, from the daf's
+ *  cached yerushalmi bundle (the same text the mark was grounded on), plus any
+ *  CURATED Bavli<->Yerushalmi parallels (hand-made cross-references, often
+ *  cross-tractate, with an editorial summary + a link to the source). Collapsed
+ *  by default; the differences above are the headline, this is the "show me the
+ *  source" layer. One cached GET per card open. */
 function YerushalmiParallel(props: SpecialBlockProps): JSX.Element {
   const wantedRef = (): string => (typeof props.instance.fields.yerushalmiRef === 'string' ? props.instance.fields.yerushalmiRef : '');
-  const [passages] = createResource(
-    () => `${props.tractate}|${props.page}`,
-    fetchYerushalmiPassages,
-  );
+  const [data] = createResource(() => `${props.tractate}|${props.page}`, fetchYerushalmiData);
   const passage = (): YerushalmiPassage | undefined =>
-    (passages() ?? []).find((p) => p.ref === wantedRef());
+    (data()?.parallels ?? []).find((p) => p.ref === wantedRef());
+  const curated = (): YerushalmiCurated[] => data()?.curated ?? [];
   return (
-    <Show when={passages.loading || passage()}>
-      <SectionCard label="yerushalmi.readParallel" collapsed={true}>
-        <Show when={passage()} fallback={
-          <p style={{ color: '#999', 'font-style': 'italic', margin: 0, 'font-size': '0.82rem' }}>{t('pasuk.loading')}</p>
-        }>
-          {(p) => (
-            <>
-              <HebrewProse text={p().hebrew} size="1rem" color="#222" lineHeight={1.75} margin="0 0 0.5rem" />
-              <p style={{ 'font-size': '0.84rem', color: '#475569', 'line-height': 1.55, margin: 0 }}>{p().english}</p>
-            </>
-          )}
-        </Show>
-      </SectionCard>
-    </Show>
+    <>
+      <Show when={data.loading || passage()}>
+        <SectionCard label="yerushalmi.readParallel" collapsed={true}>
+          <Show when={passage()} fallback={
+            <p style={{ color: '#999', 'font-style': 'italic', margin: 0, 'font-size': '0.82rem' }}>{t('pasuk.loading')}</p>
+          }>
+            {(p) => (
+              <>
+                <HebrewProse text={p().hebrew} size="1rem" color="#222" lineHeight={1.75} margin="0 0 0.5rem" />
+                <p style={{ 'font-size': '0.84rem', color: '#475569', 'line-height': 1.55, margin: 0 }}>{p().english}</p>
+              </>
+            )}
+          </Show>
+        </SectionCard>
+      </Show>
+      <Show when={curated().length > 0}>
+        <SectionCard label="yerushalmi.curatedParallel" collapsed={true}>
+          <For each={curated()}>{(c) => (
+            <div style={{ 'margin-bottom': '0.7rem' }}>
+              <a href={c.url} target="_blank" rel="noopener" style={{ 'font-weight': 600, color: ACCENTS.yerushalmi, 'font-size': '0.9rem', 'text-decoration': 'none' }}>{c.title}</a>
+              <div style={{ 'font-size': '0.7rem', color: '#888', margin: '0.1rem 0 0.3rem' }}>{c.ref}</div>
+              <p style={{ 'font-size': '0.84rem', color: '#444', 'line-height': 1.55, margin: '0 0 0.4rem' }}>{c.summary}</p>
+              <Show when={c.hebrew}>
+                <HebrewProse text={c.hebrew} size="0.95rem" color="#333" lineHeight={1.7} margin="0" />
+              </Show>
+            </div>
+          )}</For>
+        </SectionCard>
+      </Show>
+    </>
   );
 }
 
