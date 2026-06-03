@@ -125,7 +125,7 @@ function paintRangeOverlay(
   overlay: HTMLElement,
   origin: HTMLElement,
   ranges: Range[],
-  kind: 'section' | 'halacha' | 'aggadata' | 'pesuk' | 'rishonim' | 'move' | 'commentary' | 'commentary-active' | 'comm-anchor' | 'user',
+  kind: 'section' | 'halacha' | 'aggadata' | 'yerushalmi' | 'pesuk' | 'rishonim' | 'move' | 'commentary' | 'commentary-active' | 'comm-anchor' | 'user',
   /** Optional per-range inline background color. */
   bgFor?: (rangeIdx: number) => string | undefined,
 ): void {
@@ -1334,6 +1334,7 @@ export default function DafViewer(): JSX.Element {
     const sectionRanges: Range[] = [];
     const halachaRanges: Range[] = [];
     const aggadataRanges: Range[] = [];
+    const yerushalmiRanges: Range[] = [];
     const pesukRanges: Range[] = [];
     const rishonimRanges: Range[] = [];
     const moveRanges: Range[] = [];
@@ -1344,11 +1345,12 @@ export default function DafViewer(): JSX.Element {
      *  commAnchorActive.direction === 'from-piece'. */
     const commAnchorRanges: Range[] = [];
 
-    const collectRange = (range: Range, bucket: 'section' | 'halacha' | 'aggadata' | 'pesuk' | 'rishonim') => {
+    const collectRange = (range: Range, bucket: 'section' | 'halacha' | 'aggadata' | 'yerushalmi' | 'pesuk' | 'rishonim') => {
       if (range.collapsed) return;
       if (bucket === 'section') sectionRanges.push(range);
       else if (bucket === 'halacha') halachaRanges.push(range);
       else if (bucket === 'aggadata') aggadataRanges.push(range);
+      else if (bucket === 'yerushalmi') yerushalmiRanges.push(range);
       else if (bucket === 'pesuk') pesukRanges.push(range);
       else rishonimRanges.push(range);
     };
@@ -1497,6 +1499,26 @@ export default function DafViewer(): JSX.Element {
             else range.setEndAfter(mainText);
           }
           collectRange(range, 'aggadata');
+        }
+      }
+    }
+
+    // Yerushalmi: highlight the Bavli span that has the open Yerushalmi
+    // parallel. The mark carries explicit segment bounds, so paint the whole
+    // startSegIdx→endSegIdx range (first word of the start seg → last word of
+    // the end seg) rather than just the anchor word.
+    if (s?.kind === 'yerushalmi') {
+      const par = s.parallel;
+      const mainText = dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
+      if (mainText && typeof par.startSegIdx === 'number') {
+        const endSeg = typeof par.endSegIdx === 'number' ? par.endSegIdx : par.startSegIdx;
+        const startWords = mainText.querySelectorAll<HTMLElement>(`.daf-word[data-seg="${par.startSegIdx}"]`);
+        const endWords = mainText.querySelectorAll<HTMLElement>(`.daf-word[data-seg="${endSeg}"]`);
+        if (startWords.length > 0 && endWords.length > 0) {
+          const range = document.createRange();
+          range.setStartBefore(startWords[0]);
+          range.setEndAfter(endWords[endWords.length - 1]);
+          collectRange(range, 'yerushalmi');
         }
       }
     }
@@ -1686,6 +1708,7 @@ export default function DafViewer(): JSX.Element {
     paintRangeOverlay(overlay, dafRootDiv, sectionRanges, 'section');
     paintRangeOverlay(overlay, dafRootDiv, halachaRanges, 'halacha');
     paintRangeOverlay(overlay, dafRootDiv, aggadataRanges, 'aggadata');
+    paintRangeOverlay(overlay, dafRootDiv, yerushalmiRanges, 'yerushalmi');
     paintRangeOverlay(overlay, dafRootDiv, pesukRanges, 'pesuk');
     paintRangeOverlay(overlay, dafRootDiv, rishonimRanges, 'rishonim');
     paintRangeOverlay(overlay, dafRootDiv, moveRanges, 'move');
@@ -1759,7 +1782,7 @@ export default function DafViewer(): JSX.Element {
       // Scroll to the topmost *selection* band only (ignore the ambient
       // commentary tint, which can sit higher up the daf).
       const bands = overlay.querySelectorAll<HTMLElement>(
-        '.daf-range-highlight-section, .daf-range-highlight-halacha, .daf-range-highlight-aggadata, .daf-range-highlight-pesuk, .daf-range-highlight-move',
+        '.daf-range-highlight-section, .daf-range-highlight-halacha, .daf-range-highlight-aggadata, .daf-range-highlight-yerushalmi, .daf-range-highlight-pesuk, .daf-range-highlight-move',
       );
       let topY = Infinity;
       bands.forEach((el) => {

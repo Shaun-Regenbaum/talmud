@@ -276,6 +276,12 @@
 .daf-root .daf-range-highlight-aggadata {
   background-color: rgba(124, 58, 237, 0.22);
 }
+/* Yerushalmi highlight — teal tint matching the yerushalmi gutter/sidebar
+   accent (#0f766e), painted over the Bavli span that has the open Jerusalem
+   Talmud parallel. */
+.daf-root .daf-range-highlight-yerushalmi {
+  background-color: rgba(15, 118, 110, 0.18);
+}
 /* Rishonim highlight — slate tint matching the rishonim gutter/sidebar accent
    (#475569), distinct from section/halacha/aggadata/pesuk. */
 .daf-root .daf-range-highlight-rishonim {
