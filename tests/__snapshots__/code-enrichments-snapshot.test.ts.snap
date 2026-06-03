@@ -48,6 +48,6 @@ exports[`CODE_ENRICHMENTS cache identity > per-enrichment fingerprint is stable 
   "rabbi.relationships@6 mode=augment-content scope=global mark=rabbi schema=rabbi_relationships[teachers,students,debatePartners,family,prose] deps=[]",
   "rabbi.synthesis@12 mode=aggregate scope=local mark=rabbi schema=rabbi_synthesis[synthesis] deps=[gemara|e:rabbi.bio|e:rabbi.philosophy|e:rabbi.relationships|e:rabbi.classification|e:rabbi.geography|e:rabbi.relationships.evidence|e:rabbi.geography.evidence|e:rabbi.location|e:rabbi.identity|m:rabbi|e:daf-background.concepts]",
   "rishonim.synthesis@4 mode=aggregate scope=local mark=rishonim schema=rishonim_synthesis[synthesis] deps=[gemara|m:rishonim]",
-  "tidbit.essay@12 mode=aggregate scope=local mark=tidbit schema=tidbit_essay[flavor,hook,paragraphs,sources,textConfidence,readingConfidence] deps=[gemara|context|m:argument|m:rabbi|m:pesukim|m:aggadata|m:halacha|m:places|e:argument-overview.synthesis|e:daf-background.concepts]",
+  "tidbit.essay@13 mode=aggregate scope=local mark=tidbit schema=tidbit_essay[flavor,hook,paragraphs,sources,textConfidence,readingConfidence] deps=[gemara|context|m:argument|m:rabbi|m:pesukim|m:aggadata|m:halacha|m:places|e:argument-overview.synthesis|e:daf-background.concepts]",
 ]
 `;
