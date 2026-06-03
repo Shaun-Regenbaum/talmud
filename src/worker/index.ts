@@ -9,7 +9,6 @@ import {
 } from '../lib/sefref';
 import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
 import { collectContext } from './context-providers';
-import { fromDafyomi } from '../lib/context/fromDafyomi';
 import { curatedParallelsForDaf, type CuratedYerushalmiParallel } from '../lib/yerushalmiParallels';
 import { flattenYerushalmiOutline, alignOutlineToSegments } from '../lib/yerushalmiAlign';
 import { placeRevachWithAi } from './revach-ai-place';
@@ -1288,7 +1287,7 @@ async function fetchCuratedYerushalmi(parallels: CuratedYerushalmiParallel[]): P
 function formatYerushalmiForPrompt(
   bundle: Awaited<ReturnType<typeof getYerushalmiCached>>,
   curated: CuratedYerushalmiPassage[],
-  notes: ReturnType<typeof fromDafyomi>,
+  outline: Awaited<ReturnType<typeof buildYerushalmiOutline>>,
 ): string {
   // Curated parallels first — a human confirmed this exact cross-reference, so
   // it's the highest-confidence grounding (and often cross-tractate, which the
@@ -1306,24 +1305,36 @@ function formatYerushalmiForPrompt(
       : `Bavli segments ${y.anchorStartSeg}-${y.anchorEndSeg}`;
     return `[${y.ref}] (parallels ${range}, via ${y.mishnahRef})\nHE: ${he}\nEN: ${en}`.trim();
   });
-  const blocks = [...curatedBlocks, ...mishnahBlocks];
-  const noteLines: string[] = [];
-  for (const n of notes) {
-    const title = n.title?.en || n.title?.he || '';
-    const body = stripHtmlServer(n.body?.en || n.body?.he || '');
-    const line = truncateForPrompt([title, body].filter(Boolean).join(' — '), 600);
-    if (line) noteLines.push(`- ${line}`);
+  // The ALIGNED dafyomi outline — the richest grounding for stating DIFFERENCES:
+  // a clean English point-by-point summary of exactly what the Yerushalmi says,
+  // EACH POINT TAGGED with the Bavli segment [N] it parallels (or [diverges] when
+  // the Yerushalmi goes its own way). This lets the producer contrast the two
+  // part-by-part instead of in the aggregate.
+  const outlineLines: string[] = [];
+  let lastTopic: string | null = null;
+  for (const p of outline) {
+    if (!p.en) continue;
+    if (p.topic && p.topic !== lastTopic) {
+      lastTopic = p.topic;
+      outlineLines.push(`• ${p.topic}${p.yerushalmiRef ? ` (${p.yerushalmiRef})` : ''}`);
+    }
+    const where = p.segIdx != null ? `[Bavli seg ${p.segIdx}]` : `[diverges]`;
+    const he = truncateForPrompt(p.he, 240);
+    outlineLines.push(`    ${where} ${p.label ?? ''} ${truncateForPrompt(p.en, 320)}${he ? `  | HE: ${he}` : ''}`.replace(/\s+/g, ' ').trim());
   }
-  // Precision over recall: a real Sefaria-fetched parallel passage is the only
-  // thing that grounds a citable ref. The dafyomi notes are supplementary color
-  // (they carry no Sefaria ref), so they must NOT, on their own, license a
-  // parallel claim — without a fetched passage we report "none" even if notes
-  // exist, so the producer can't fabricate a ref from a bare note.
-  if (blocks.length === 0) {
+
+  if (curatedBlocks.length === 0 && mishnahBlocks.length === 0 && outlineLines.length === 0) {
     return '(no Yerushalmi parallel found for this daf)';
   }
-  const out: string[] = [blocks.join('\n\n---\n\n')];
-  if (noteLines.length) out.push(`Dafyomi.co.il Yerushalmi notes (supplementary context):\n${noteLines.join('\n')}`);
+  const out: string[] = [];
+  if (outlineLines.length) {
+    out.push(
+      'ALIGNED YERUSHALMI OUTLINE (dafyomi.co.il "Yerushalmi to Match"; each point is tagged with the Bavli segment [N] it parallels verbatim, or [diverges] where the Yerushalmi differs — USE THIS to state specific, part-by-part differences):\n' +
+      outlineLines.join('\n'),
+    );
+  }
+  const blocks = [...curatedBlocks, ...mishnahBlocks];
+  if (blocks.length) out.push(`Full parallel Yerushalmi passage(s):\n${blocks.join('\n\n---\n\n')}`);
   return out.join('\n\n===\n\n');
 }
 
@@ -1546,16 +1557,16 @@ async function resolveDependencies(
       // Three grounding tiers: (1) curated Bavli<->Yerushalmi parallels a human
       // confirmed (often cross-tractate — the mishnah-mapping can't find them),
       // (2) the Jerusalem Talmud parallel(s) on the same mishnah (real text via
-      // fetchYerushalmiForDaf), (3) dafyomi.co.il Yerushalmi study notes — so a
-      // producer contrasts Bavli vs Yerushalmi against the source rather than
-      // from memory. Each source that fails contributes nothing.
-      const [bundle, daf, curated] = await Promise.all([
+      // fetchYerushalmiForDaf), (3) the ALIGNED dafyomi "Yerushalmi to Match"
+      // outline — a structured, segment-anchored summary of exactly what the
+      // Yerushalmi says, so the producer contrasts the two PART-BY-PART rather
+      // than from memory. Each source that fails contributes nothing.
+      const [bundle, curated, outline] = await Promise.all([
         getYerushalmiCached(rc.env.CACHE, tractate, page),
-        getDafyomiContentCached(rc.env.CACHE, rc.env.ASSETS, tractate, page, {}).catch(() => null),
         fetchCuratedYerushalmi(curatedParallelsForDaf(tractate, page)),
+        buildYerushalmiOutline(rc.env, tractate, page),
       ]);
-      const notes = daf ? fromDafyomi(daf).filter((i) => i.source === 'dafyomi:yerushalmi') : [];
-      out.vars.yerushalmi = formatYerushalmiForPrompt(bundle, curated, notes);
+      out.vars.yerushalmi = formatYerushalmiForPrompt(bundle, curated, outline);
       recordSource(out, 'yerushalmi-text', out.vars.yerushalmi);
       return;
     }
