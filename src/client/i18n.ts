@@ -373,6 +373,8 @@ const CATALOG = {
   'usage.title': { en: 'Usage', he: 'שימוש' },
   'usage.backToDaf': { en: '← back to daf', he: '← חזרה לדף' },
   'usage.refresh': { en: 'Refresh', he: 'רענון' },
+  'usage.refreshing': { en: 'Refreshing…', he: 'מרענן…' },
+  'usage.loading': { en: 'Loading usage data…', he: 'טוען נתוני שימוש…' },
   'usage.loadFailed': { en: 'Failed to load: {error}', he: 'הטעינה נכשלה: {error}' },
   'usage.none': { en: 'None.', he: 'אין.' },
   'usage.noDataYet': { en: 'No data yet.', he: 'אין עדיין נתונים.' },
