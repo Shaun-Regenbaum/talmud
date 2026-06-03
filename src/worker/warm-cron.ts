@@ -14,9 +14,11 @@ import {
   getHebrewBooksDafCached,
   getSefariaPageCached,
   getSefariaSegmentsCached,
+  getDafyomiContentCached,
 } from './source-cache';
+import { listDafyomiMasechtos } from '../lib/sefref/dafyomi/masechtos';
 import { computeCacheStats, writeCachedCacheStats } from './cache-stats';
-import { keyForHebrewBooks, keyForSefariaBundle, keyForSefariaSegments } from './cache-keys';
+import { keyForHebrewBooks, keyForSefariaBundle, keyForSefariaSegments, keyForDafyomi } from './cache-keys';
 import type { JobMessage } from './index';
 
 const CURSOR_KEY = 'warm-cursor:v1';
@@ -47,7 +49,12 @@ export interface EmailBinding {
 export interface WarmEnv {
   CACHE?: KVNamespace;
   EMAIL?: EmailBinding;
+  ASSETS?: Fetcher;
   ENRICHMENT_QUEUE?: Queue<JobMessage>;
+  /** When '1', the gradual dafyomi.co.il ingestion walks all of Shas (a few
+   *  dapim per 5-min tick, polite + KV-cached forever) and emails on a full
+   *  pass. Set via wrangler.toml [vars] to start it. */
+  DAFYOMI_WARM_SHAS?: string;
   /** When '1', the Sefaria Shas walk also enqueues rabbi.observations per amud
    *  so the per-rabbi reverse index backfills across all of Shas. OFF by
    *  default: it forces every entity mark (incl. the expensive argument-move
@@ -162,6 +169,89 @@ async function runObservationsBackfill(env: WarmEnv): Promise<void> {
   console.log(`[warm-cron] rabbi.observations backfill progress: enqueued=${enqueued} cursor=${tractateIdx}:${amudIdx}`);
 }
 
+// ---------------------------------------------------------------------------
+// Dafyomi.co.il (Kollel Iyun HaDaf) gradual ingestion — gated, self-latching.
+//
+// Gated by DAFYOMI_WARM_SHAS='1'. Walks all dafyomi-mapped masechtos (Chullin +
+// Shas) at DAFYOMI_BATCH dapim per 5-min tick. Each cold daf is fetched live via
+// the HUB-DRIVEN scrapeDafyomiLive (getDafyomiContentCached allowLive) — ~9
+// sequential dafyomi.co.il requests, then KV-cached forever — so a full pass is
+// gentle (a couple dapim per tick, ~4-5 days) and re-runs are no-ops. Latches
+// { done } after a full pass and emails. To re-run, delete the cursor key.
+// dafyomi.co.il study content never changes, so once-cached is permanent.
+// ---------------------------------------------------------------------------
+const DAFYOMI_CURSOR_KEY = 'dafyomi-warm-cursor:v1';
+const DAFYOMI_BATCH = 2;              // dapim per tick (each cold daf ≈ 9 sequential fetches)
+const DAFYOMI_FETCH_SLEEP_MS = 1500;  // politeness pause between dapim
+
+interface DafyomiCursor { tractateIdx: number; daf: number; fetched: number; done?: boolean }
+
+export function dafyomiWarmTotal(): number {
+  return listDafyomiMasechtos().reduce((s, m) => s + Math.max(0, m.lastDaf - 1), 0);
+}
+
+async function sendDafyomiCompletionEmail(env: WarmEnv, fetched: number): Promise<void> {
+  const email = env.EMAIL;
+  if (!email) return;
+  try {
+    await email.send({
+      from: 'warm-cron@shaunregenbaum.com',
+      to: 'shaunregenbaum@gmail.com',
+      subject: 'Dafyomi.co.il ingestion complete',
+      text:
+        `The gradual dafyomi.co.il (Kollel Iyun HaDaf) scrape has finished a full pass over Shas.\n\n` +
+        `Dapim newly fetched this pass: ${fetched} of ${dafyomiWarmTotal()} total.\n` +
+        `Content is cached in KV — study notes + poskim now feed the halacha cards Shas-wide.\n`,
+    });
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('[warm-cron] dafyomi email failed:', err);
+  }
+}
+
+async function runDafyomiBackfill(env: WarmEnv): Promise<void> {
+  if (env.DAFYOMI_WARM_SHAS !== '1' || !env.CACHE || !env.ASSETS) return;
+  const cache = env.CACHE;
+  const masechtos = listDafyomiMasechtos();
+  const raw = await cache.get(DAFYOMI_CURSOR_KEY);
+  let cur: DafyomiCursor = { tractateIdx: 0, daf: 2, fetched: 0 };
+  if (raw) { try { cur = JSON.parse(raw) as DafyomiCursor; } catch { /* reset */ } }
+  if (cur.done) return; // self-latched after a full pass
+
+  let { tractateIdx, daf } = cur;
+  let fetched = cur.fetched ?? 0;
+  let processed = 0;
+  while (processed < DAFYOMI_BATCH) {
+    while (tractateIdx < masechtos.length && daf > masechtos[tractateIdx].lastDaf) {
+      tractateIdx++; daf = 2;
+    }
+    if (tractateIdx >= masechtos.length) {
+      await cache.put(DAFYOMI_CURSOR_KEY, JSON.stringify({ tractateIdx, daf: 2, fetched, done: true }));
+      // eslint-disable-next-line no-console
+      console.log(`[warm-cron] dafyomi ingestion COMPLETE — fetched ${fetched} this pass`);
+      await sendDafyomiCompletionEmail(env, fetched);
+      return;
+    }
+    const tractate = masechtos[tractateIdx].tractate;
+    const key = keyForDafyomi(tractate, String(daf));
+    // Skip anything already in KV — a real daf OR a negative-cache marker (so we
+    // don't re-hammer genuinely-absent pages within a pass).
+    const existing = await cache.get(key);
+    if (existing === null) {
+      // allowLive → hub-driven scrapeDafyomiLive, then KV-cached forever. Count
+      // only real ingests (null = absent/failed) so the completion email is honest.
+      const got = await getDafyomiContentCached(cache, env.ASSETS, tractate, String(daf), { allowLive: true }).catch(() => null);
+      if (got) fetched++;
+      await new Promise((r) => setTimeout(r, DAFYOMI_FETCH_SLEEP_MS));
+    }
+    daf++;
+    processed++;
+  }
+  await cache.put(DAFYOMI_CURSOR_KEY, JSON.stringify({ tractateIdx, daf, fetched }));
+  // eslint-disable-next-line no-console
+  console.log(`[warm-cron] dafyomi progress: fetched=${fetched} cursor=${tractateIdx}:${daf}`);
+}
+
 export async function runWarmCron(env: WarmEnv): Promise<void> {
   const cache = env.CACHE;
   if (!cache) return;
@@ -169,6 +259,9 @@ export async function runWarmCron(env: WarmEnv): Promise<void> {
   // One-time observations backfill (gated, self-latching). Runs independent of
   // the source-warming phases below so it isn't blocked by them.
   await runObservationsBackfill(env);
+
+  // Gradual dafyomi.co.il ingestion (gated, self-latching). Independent phase.
+  await runDafyomiBackfill(env);
 
   const cursor = await readWarmCursor(cache);
   if (!cursor.done) {

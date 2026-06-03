@@ -68,6 +68,12 @@ OPENROUTER_GATEWAY_PROVIDER = "openrouter"
 # ~$70 (entity marks only). Safe to leave at "1" — it's a no-op once latched.
 # To re-run a pass, delete the obs-backfill-cursor:v1 KV key.
 OBSERVATIONS_WARM_SHAS = "1"
+# Gradual dafyomi.co.il (Kollel Iyun HaDaf) ingestion. When "1", the warm cron
+# walks all of Shas a couple dapim per 5-min tick (hub-driven live fetch, then
+# KV-cached forever — gentle, ~4-5 days for a full pass), then latches done and
+# emails. A no-op once latched. To re-run, delete the dafyomi-warm-cursor:v1 KV
+# key. Feeds study notes + poskim into the halacha cards Shas-wide.
+DAFYOMI_WARM_SHAS = "1"
 # Zone ids for the Usage-page activity tracker. Not secret. COMMA-SEPARATED:
 # the app is served on two zones (shaunregenbaum.com + talmud.dev) and
 # src/worker/cf-zone-analytics.ts queries each, then merges the daily rows so
