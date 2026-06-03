@@ -288,6 +288,7 @@ const MARK_KINDS: { kind: GutterKind; labelKey: string; descKey: string }[] = [
   { kind: 'argument', labelKey: 'tutorial.icon.argument.label', descKey: 'tutorial.icon.argument.desc' },
   { kind: 'halacha', labelKey: 'tutorial.icon.halacha.label', descKey: 'tutorial.icon.halacha.desc' },
   { kind: 'aggadata', labelKey: 'tutorial.icon.aggadata.label', descKey: 'tutorial.icon.aggadata.desc' },
+  { kind: 'yerushalmi', labelKey: 'tutorial.icon.yerushalmi.label', descKey: 'tutorial.icon.yerushalmi.desc' },
   { kind: 'pesuk', labelKey: 'tutorial.icon.pesuk.label', descKey: 'tutorial.icon.pesuk.desc' },
   { kind: 'rishonim', labelKey: 'tutorial.icon.rishonim.label', descKey: 'tutorial.icon.rishonim.desc' },
 ];

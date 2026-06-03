@@ -792,6 +792,8 @@ const CATALOG = {
   'tutorial.icon.halacha.desc': { en: 'the practical legal ruling', he: 'הפסיקה המעשית' },
   'tutorial.icon.aggadata.label': { en: 'Aggada', he: 'אגדה' },
   'tutorial.icon.aggadata.desc': { en: 'story, ethics, and lore', he: 'סיפור, מוסר ומחשבה' },
+  'tutorial.icon.yerushalmi.label': { en: 'Yerushalmi', he: 'ירושלמי' },
+  'tutorial.icon.yerushalmi.desc': { en: 'the parallel passage in the Jerusalem Talmud', he: 'המקבילה בתלמוד הירושלמי' },
   'tutorial.icon.pesuk.label': { en: 'Verses', he: 'פסוקים' },
   'tutorial.icon.pesuk.desc': { en: 'Tanakh quoted or alluded to', he: 'מקראות שצוטטו או נרמזו' },
   'tutorial.icon.rishonim.label': { en: 'Rishonim', he: 'ראשונים' },
