@@ -502,6 +502,22 @@ class SefariaAPI {
   }
 
   /**
+   * Reverse derivation ("where it comes from"): given a CODE ref (a Mishneh
+   * Torah / Tur / Shulchan Aruch citation), return the Talmud + Tanakh sources
+   * Sefaria links it to — the gemara dapim (and biblical verses) the codified
+   * law rests on. The inverse of `fetchHalachicRefs`. Returns the raw
+   * `{ ref, category }` links; `buildDerivation` (src/lib/halacha/codifiers)
+   * classifies + dedupes them. Returns [] on any fetch error.
+   */
+  async fetchCodeSources(codeRef: string): Promise<Array<{ ref: string; category: string }>> {
+    const related = await this.getRelated(codeRef).catch(() => null);
+    if (!related) return [];
+    return related.links
+      .filter((l) => l.category === 'Talmud' || l.category === 'Tanakh')
+      .map((l) => ({ ref: l.ref, category: l.category }));
+  }
+
+  /**
    * Fetch the Mishnayot that the gemara on this daf is discussing. Sefaria's
    * /api/related surfaces these as `category: "Mishnah"` links — typically
    * 1-2 per daf, with `type: "mishnah in talmud"` marking the canonical

@@ -31,7 +31,7 @@ import {
 import type { DafyomiDaf } from '../lib/sefref/dafyomi/schema';
 import {
   keyForDafyomi, keyForHebrewBooks, keyForSefariaBundle, keyForSefariaSegments,
-  keyForRishonim, keyForHalachaRefs, keyForDafTopics, keyForMishnaBundle, keyForSaCommentary,
+  keyForRishonim, keyForHalachaRefs, keyForCodeSources, keyForDafTopics, keyForMishnaBundle, keyForSaCommentary,
 } from './cache-keys';
 import { scrapeDafyomiLive } from './dafyomi-live';
 
@@ -177,6 +177,24 @@ export async function getHalachaRefsCached(
     return data;
   } catch {
     return {};
+  }
+}
+
+/** Reverse derivation: the Talmud/Tanakh sources a code ref links back to,
+ *  cached by the raw code ref. Feeds the halacha "where it comes from" view. */
+export async function getCodeSourcesCached(
+  cache: KVNamespace | undefined,
+  codeRef: string,
+): Promise<Array<{ ref: string; category: string }>> {
+  const key = keyForCodeSources(codeRef);
+  const hit = await readCache<Array<{ ref: string; category: string }>>(cache, key);
+  if (hit) return hit;
+  try {
+    const data = await sefariaAPI.fetchCodeSources(codeRef);
+    await writeCache(cache, key, data);
+    return data;
+  } catch {
+    return [];
   }
 }
 
