@@ -48,6 +48,5 @@ exports[`CODE_ENRICHMENTS cache identity > per-enrichment fingerprint is stable 
   "rabbi.synthesis@11 mode=aggregate scope=local mark=rabbi schema=rabbi_synthesis[synthesis] deps=[gemara|e:rabbi.bio|e:rabbi.philosophy|e:rabbi.relationships|e:rabbi.classification|e:rabbi.geography|e:rabbi.relationships.evidence|e:rabbi.geography.evidence|e:rabbi.location|e:rabbi.identity|m:rabbi]",
   "rishonim.synthesis@4 mode=aggregate scope=local mark=rishonim schema=rishonim_synthesis[synthesis] deps=[gemara|m:rishonim]",
   "tidbit.essay@5 mode=aggregate scope=local mark=tidbit schema=tidbit_essay[flavor,hook,paragraphs,sources,textConfidence,readingConfidence] deps=[gemara|commentaries|context|m:argument|m:rabbi|m:pesukim|m:aggadata|m:halacha|m:places|e:argument-overview.flow|e:argument-overview.synthesis|e:daf-background.concepts]",
-  "yerushalmi.synthesis@1 mode=aggregate scope=local mark=yerushalmi schema=yerushalmi_synthesis[synthesis] deps=[gemara|yerushalmi-text|m:yerushalmi]",
 ]
 `;
