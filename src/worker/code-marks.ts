@@ -2740,12 +2740,18 @@ Sages on this daf:
 
 Verses (pesukim) cited on this daf:
 {{anchors.pesukim}}
+Verse analysis — the app's own reading of each cited pasuk (how the gemara uses it, where it lands):
+{{depends.pesukim.synthesis}}
 
 Aggadic stories on this daf:
 {{anchors.aggadata}}
+Story analysis — the app's own reading of each aggadah (what it does in its sugya, the central tension):
+{{depends.aggadata.synthesis}}
 
 Halachic topics on this daf:
 {{anchors.halacha}}
+Halachic analysis — the app's own reading of each topic (where it sits in the codes, the live dispute, practical upshot):
+{{depends.halacha.synthesis}}
 
 Places on this daf:
 {{anchors.places}}
@@ -2824,12 +2830,18 @@ const TIDBIT_ESSAY_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
 פסוקים המצוטטים בדף זה:
 {{anchors.pesukim}}
+ניתוח הפסוקים — קריאת האפליקציה לכל פסוק מצוטט (כיצד הגמרא משתמשת בו ולאן הוא מגיע):
+{{depends.pesukim.synthesis}}
 
 אגדות בדף זה:
 {{anchors.aggadata}}
+ניתוח האגדות — קריאת האפליקציה לכל אגדה (תפקידה בסוגיה והמתח המרכזי):
+{{depends.aggadata.synthesis}}
 
 נושאי הלכה בדף זה:
 {{anchors.halacha}}
+ניתוח ההלכה — קריאת האפליקציה לכל נושא (מיקומו בפוסקים, המחלוקת החיה, ההשלכה המעשית):
+{{depends.halacha.synthesis}}
 
 מקומות בדף זה:
 {{anchors.places}}
@@ -2868,8 +2880,15 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'argument-overview.flow' },
         { enrichment: 'argument-overview.synthesis' },
         { enrichment: 'daf-background.concepts' },
+        // fanOut: the app's OWN per-instance analysis for every story, verse,
+        // and halachic topic on the daf — not just the mark anchors above. This
+        // is the richest layer, so the tidbit reads the same readings the
+        // aggadata / pesukim / halacha cards show.
+        { enrichment: 'aggadata.synthesis', fanOut: true },
+        { enrichment: 'pesukim.synthesis', fanOut: true },
+        { enrichment: 'halacha.synthesis', fanOut: true },
       ],
-      defHash: 'tidbit.essay-v1', cacheVersion: '5', // v5: use the daf's background glossary as the authoritative Hebrew-term set in prose
+      defHash: 'tidbit.essay-v1', cacheVersion: '6', // v6: + fanOut aggadata/pesukim/halacha syntheses (the app's own per-instance analysis)
       // Pro model: finding the non-obvious reading needs the stronger model.
       // Thinking stays OFF (no reasoningEffort) — the context bundle is large,
       // like daf-background.concepts, and a thinking pass on top risks the

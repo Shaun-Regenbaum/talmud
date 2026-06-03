@@ -353,7 +353,12 @@ export type EnrichmentDependency =
   | 'context'
   | 'halacha-refs'
   | 'yerushalmi-text'
-  | { enrichment: string }
+  // `{ enrichment: id }` resolves the dep for the CONSUMER's own instance.
+  // `fanOut: true` instead runs a PER-INSTANCE enrichment for EVERY instance of
+  // its target mark on the daf and exposes the array under {{depends.<id>}} —
+  // the way a whole-daf consumer (e.g. the tidbit) pulls in every story's /
+  // verse's / topic's analysis, not just one.
+  | { enrichment: string; fanOut?: boolean }
   | { mark: string };
 
 // ===========================================================================
