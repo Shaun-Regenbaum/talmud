@@ -12,7 +12,7 @@ import { collectContext } from './context-providers';
 import { placeRevachWithAi } from './revach-ai-place';
 import { formatContextForPrompt, contextForAnchor, segsFromMarkInput } from '../lib/context/select';
 import { continuationLink, type FlowEdge } from '../lib/context/link';
-import { formatGroundedRefsForPrompt } from '../lib/halacha/codifiers';
+import { formatGroundedRefsForPrompt, buildDerivation } from '../lib/halacha/codifiers';
 import { dafSpine } from '../lib/context/spine';
 import { dafLinks } from '../lib/context/dafLinks';
 import { producerNodesFrom, reverseDependencyIndex, transitiveDependents } from '../lib/registry/depGraph';
@@ -23,6 +23,7 @@ import {
   getSefariaPageCached,
   getRishonimCached,
   getHalachaRefsCached,
+  getCodeSourcesCached,
   getSaCommentaryCached,
   getDafTopicsCached,
   getMishnaBundleCached,
@@ -866,6 +867,21 @@ async function readFlowConnections(env: Bindings, tractate: string, page: string
 // first real CONSUMER of src/lib/context/link.ts — assembled by the pure
 // `dafLinks`. Best-effort per source: a cold/failed source contributes nothing
 // rather than failing the whole response.
+// Halacha "where it comes from": the gemara sources a codified ruling derives
+// from. Deterministic — reverse Sefaria /api/related on the code ref, classified
+// + deduped by buildDerivation, with the current daf marked. Read-only, no LLM.
+// Accepts one or more `ref` query params (the codifier refs the card already
+// holds), merges their sources.
+app.get('/api/derivation/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const refs = c.req.queries('ref') ?? [];
+  if (refs.length === 0) return c.json({ sources: [] });
+  const linkLists = await Promise.all(refs.map((r) => getCodeSourcesCached(c.env.CACHE, r)));
+  const sources = buildDerivation(linkLists.flat(), { tractate, page });
+  return c.json({ sources });
+});
+
 app.get('/api/links/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');

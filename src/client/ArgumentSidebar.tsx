@@ -12,6 +12,7 @@ import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeli
 import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
 import CodificationMap from './CodificationMap';
 import { codeMapFromCodification, type CodificationData } from './flow/codeMapLayout';
+import { type DerivationSource } from '../lib/halacha/codifiers';
 import ArgumentNarrative from './ArgumentNarrative';
 import { deriveVoiceEdges } from '../lib/typing/voices';
 import { voicesMapEligible, voicesShowMap, voicesShowFallback } from '../lib/typing/profile';
@@ -1393,6 +1394,63 @@ function HalachaDisputes(props: SpecialBlockProps): JSX.Element {
 }
 
 /** The halacha mark-instance shape (mark_input for the leaves). */
+async function fetchDerivation(args: { tractate: string; page: string; refs: string[] }): Promise<DerivationSource[]> {
+  if (args.refs.length === 0) return [];
+  const qs = args.refs.map((r) => `ref=${encodeURIComponent(r)}`).join('&');
+  const r = await fetch(`/api/derivation/${encodeURIComponent(args.tractate)}/${encodeURIComponent(args.page)}?${qs}`);
+  if (!r.ok) return [];
+  const j = await r.json() as { sources?: DerivationSource[] };
+  return j.sources ?? [];
+}
+
+const DERIVATION_ROLE_LABEL: Record<DerivationSource['role'], string> = {
+  primary: 'primary source', related: 'related', root: 'scriptural root',
+};
+
+// Halacha "where it comes from": the gemara (+ scriptural) sources the codified
+// ruling derives from. Reads the codifier refs off the halacha.codification leaf
+// and fetches the deterministic /api/derivation (reverse Sefaria). The current
+// daf is highlighted — a card belongs to its codified law and surfaces on every
+// daf that is a source for it.
+function HalachaDerivation(props: SpecialBlockProps): JSX.Element {
+  const refs = (): string[] => {
+    const d = props.deps['halacha.codification'] as CodificationData | undefined;
+    if (!d) return [];
+    return [d.mishnehTorah?.ref, d.tur?.ref, d.shulchanAruch?.ref]
+      .filter((r): r is string => typeof r === 'string' && r.trim().length > 0);
+  };
+  const [sources] = createResource(
+    () => ({ tractate: props.tractate, page: props.page, refs: refs() }),
+    fetchDerivation,
+  );
+  return (
+    <Show when={(sources() ?? []).length > 0}>
+      <div style={{ 'margin-top': '0.9rem' }}>
+        <div style={{ 'font-size': '0.7rem', 'text-transform': 'uppercase', 'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.5rem' }}>
+          {t('halacha.derivation')}
+        </div>
+        <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.4rem' }}>
+          <For each={sources()}>{(s) => (
+            <div style={{
+              display: 'flex', 'align-items': 'baseline', gap: '0.5rem',
+              background: s.isCurrent ? '#fdf2f2' : '#fff',
+              border: s.isCurrent ? '1.5px solid #8a2a2b' : '1px solid #e4e0d4',
+              'border-radius': '8px', padding: '0.4rem 0.6rem',
+              'box-shadow': '0 1px 1.4px rgba(58,51,32,0.1)',
+            }}>
+              <span style={{ 'font-family': 'system-ui, -apple-system, sans-serif', 'font-size': '0.82rem', 'font-weight': 600, color: '#2a2723' }}>{s.ref}</span>
+              <span style={{ 'font-family': 'system-ui, -apple-system, sans-serif', 'font-size': '0.62rem', 'text-transform': 'uppercase', 'letter-spacing': '0.04em', color: '#9a958a' }}>{DERIVATION_ROLE_LABEL[s.role]}</span>
+              <Show when={s.isCurrent}>
+                <span style={{ 'margin-left': 'auto', 'font-family': 'system-ui, -apple-system, sans-serif', 'font-size': '0.58rem', 'font-weight': 700, color: '#fff', background: '#8a2a2b', 'border-radius': '3px', padding: '0.05rem 0.3rem', 'flex-shrink': 0 }}>YOU ARE HERE</span>
+              </Show>
+            </div>
+          )}</For>
+        </div>
+      </div>
+    </Show>
+  );
+}
+
 export function halachaInstance(topic: HalachaTopic): { fields: Record<string, unknown>; startSegIdx: number; endSegIdx: number } {
   return {
     startSegIdx: 0,
@@ -1408,6 +1466,7 @@ export function halachaInstance(topic: HalachaTopic): { fields: Record<string, u
 export const HALACHA_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
   'halacha-codification': HalachaCodification,
   'halacha-practical': HalachaPractical,
+  'halacha-derivation': HalachaDerivation,
   'halacha-disputes': HalachaDisputes,
 };
 

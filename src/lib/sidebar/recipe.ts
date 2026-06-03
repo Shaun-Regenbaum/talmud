@@ -96,6 +96,10 @@ export const HALACHA_RECIPE: SidebarRecipe = {
     // codifier dispute now lives in the map; synthesis still weaves the rest.
     { type: 'special', block: 'halacha-codification', deps: ['halacha.codification'] },
     { type: 'special', block: 'halacha-practical', deps: ['halacha.practical'] },
+    // "Where it comes from": the gemara sources the codified law derives from
+    // (deterministic reverse Sefaria, /api/derivation), reading the codifier
+    // refs off the codification leaf — so it depends on halacha.codification.
+    { type: 'special', block: 'halacha-derivation', deps: ['halacha.codification'] },
   ],
 };
 

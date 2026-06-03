@@ -231,6 +231,11 @@ export function keyForRishonim(tractate: string, page: string): string {
 export function keyForHalachaRefs(tractate: string, page: string): string {
   return `halacha-refs:v2:${tractate}:${page}`;
 }
+/** Reverse derivation: the Talmud/Tanakh sources a CODE ref (Mishneh Torah /
+ *  Tur / Shulchan Aruch citation) links back to. Keyed by the raw code ref. */
+export function keyForCodeSources(codeRef: string): string {
+  return `code-sources:v1:${codeRef}`;
+}
 export function keyForDafTopics(tractate: string, page: string): string {
   return `daf-topics:v1:${tractate}:${page}`;
 }
