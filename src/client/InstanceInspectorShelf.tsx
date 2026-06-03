@@ -56,6 +56,11 @@ interface Props {
   prettyDepLabel: (depId: string) => string;
   renderBody: () => JSX.Element;
   onClose: () => void;
+  /** Source TEXTS that fed the current view's prompt, fetched on demand from
+   *  /api/run-sources (gemara / commentaries / mishna / halacha-refs /
+   *  yerushalmi-text / context). Null while loading; {} when the producer pulls
+   *  no source texts. */
+  sources: Record<string, { chars: number; content: string }> | null;
 }
 
 export default function InstanceInspectorShelf(props: Props) {
@@ -171,6 +176,30 @@ export default function InstanceInspectorShelf(props: Props) {
             <pre style={{ 'white-space': 'pre-wrap', 'font-family': 'ui-monospace, Menlo, monospace', 'font-size': '12px', margin: '0.4rem 0 0', background: '#f8f8f8', padding: '0.6rem', 'border-radius': '3px' }}>
               {JSON.stringify(anchors(), null, 2)}
             </pre>
+          </details>
+        )}</Show>
+
+        {/* source TEXTS fed into the prompt — the daf gemara, commentaries,
+            mishna, halacha refs, Yerushalmi, and aggregated external context
+            that grounded this generation. Fetched on demand (/api/run-sources)
+            so the reader hot path never carries them. Collapsed; each source
+            nested so a large context blob doesn't flood the drawer. The full
+            text went to the LLM; content here is a length-capped preview. */}
+        <Show when={props.sources && Object.keys(props.sources).length > 0 ? props.sources : null}>{(sources) => (
+          <details style={{ 'margin-bottom': '0.5rem' }}>
+            <summary style={{ color: '#666', cursor: 'pointer', 'font-size': '0.78rem' }}>
+              {`sources (texts) — ${Object.keys(sources()).join(', ')}`}
+            </summary>
+            <For each={Object.entries(sources())}>{([name, src]) => (
+              <details style={{ 'margin-top': '0.35rem' }}>
+                <summary style={{ color: '#777', cursor: 'pointer', 'font-size': '0.74rem' }}>
+                  {`${name} · ${src.chars.toLocaleString()} chars`}
+                </summary>
+                <pre style={{ 'white-space': 'pre-wrap', 'font-family': 'ui-monospace, Menlo, monospace', 'font-size': '12px', margin: '0.3rem 0 0', background: '#f8f8f8', padding: '0.6rem', 'border-radius': '3px', 'max-height': '40vh', 'overflow-y': 'auto' }}>
+                  {src.content}
+                </pre>
+              </details>
+            )}</For>
           </details>
         )}</Show>
 

@@ -529,6 +529,42 @@ export default function MarkEnrichmentCards(props: Props) {
     );
   });
 
+  // Source TEXTS that fed the inspector's current view (gemara / commentaries /
+  // mishna / halacha-refs / yerushalmi-text / aggregated context). Fetched on
+  // demand from the read-only /api/run-sources companion — deliberately NOT a
+  // field on the cached RunResult, since the texts are KB-scale and only the dev
+  // inspector wants them (every reader's card fetch would otherwise carry them).
+  // Re-fetches when the focal view changes; null while loading or closed.
+  const [inspectorSources, setInspectorSources] =
+    createSignal<Record<string, { chars: number; content: string }> | null>(null);
+  createEffect(() => {
+    if (!(devModeActive() && isInspectorOpen())) { setInspectorSources(null); return; }
+    const view = currentView();
+    if (!view) { setInspectorSources(null); return; }
+    const curLang = lang();
+    const inst = props.instance;
+    const tractate = props.tractate;
+    const page = props.page;
+    setInspectorSources(null); // show "loading" on a view switch
+    const controller = new AbortController();
+    onCleanup(() => controller.abort());
+    void fetch('/api/run-sources', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enrichment_id: view.id, tractate, page, mark_input: inst, lang: curLang }),
+      signal: controller.signal,
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        if (controller.signal.aborted) return;
+        const sources = j && typeof j === 'object' && 'sources' in j
+          ? (j as { sources: Record<string, { chars: number; content: string }> }).sources
+          : {};
+        setInspectorSources(sources);
+      })
+      .catch(() => { /* inspector just shows no sources */ });
+  });
+
   // Dependencies that fed the current view. For a synthesis-style aggregate
   // the deps are the leaves it consumed (taken from deps_resolved on the
   // run); for a leaf with no upstream deps we surface its own id so the
@@ -751,6 +787,7 @@ export default function MarkEnrichmentCards(props: Props) {
             prettyDepLabel={(depId) => prettyDepLabel(depId, props.markId)}
             renderBody={renderInspectorBody}
             onClose={closeInspector}
+            sources={inspectorSources()}
           />
         </Portal>
       </Show>
