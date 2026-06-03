@@ -375,6 +375,14 @@ export type HighlightRange = { start: number; end: number; key: string; tokenSta
 
 export interface SpecialBlockProps {
   deps: Record<string, unknown>;
+  /** The synthesis aggregate's resolved ANCHOR outputs (anchors_resolved), keyed
+   *  by mark id — e.g. the argument card's `argument-move` instances. Distinct
+   *  from `deps` (leaf enrichments); empty until the synthesis resolves. */
+  anchors: Record<string, unknown>;
+  /** True once the recipe's synthesis section has resolved (cache hit or fresh).
+   *  Lets a block distinguish "still loading" from "settled, no data" — a `deps`
+   *  bag is `{}` in both states, so it can't tell them apart on its own. */
+  synthesisResolved: boolean;
   instance: { fields: Record<string, unknown> };
   tractate: string;
   page: string;
@@ -481,14 +489,19 @@ export function SidebarCardFromHint(props: {
   const fields = (): Record<string, unknown> => props.instance.fields;
   const accent = (): string => ACCENTS[props.recipe.kind as SidebarKind] ?? '#222';
   const [deps, setDeps] = createSignal<Record<string, unknown>>({});
+  // The synthesis aggregate's resolved ANCHOR outputs (anchors_resolved), keyed
+  // by mark id — distinct from `deps` (leaf enrichments). Carries e.g. the
+  // argument card's `argument-move` instances to its detail block.
+  const [anchors, setAnchors] = createSignal<Record<string, unknown>>({});
   // True once the synthesis has resolved (cache hit or fresh). A `prose` section
   // with `untilSynthesis` shows only until then — the instant `summary` field
-  // fills the slot, then the richer synthesis paragraph replaces it.
+  // fills the slot, then the richer synthesis paragraph replaces it. Also handed
+  // to special blocks so they can tell "loading" from "settled, no data".
   const [synthesisReady, setSynthesisReady] = createSignal(false);
-  // Reset captured leaves + the synthesis-ready flag when the instance changes
-  // (mirrors each old body's handleResolved reset) so a new instance doesn't
-  // show the previous one's deps or skip its placeholder.
-  createEffect(() => { void props.instanceKey; setDeps({}); setSynthesisReady(false); });
+  // Reset captured leaves/anchors + the synthesis-ready flag when the instance
+  // changes (mirrors each old body's handleResolved reset) so a new instance
+  // doesn't show the previous one's deps or skip its placeholder.
+  createEffect(() => { void props.instanceKey; setDeps({}); setAnchors({}); setSynthesisReady(false); });
 
   const renderSection = (s: SectionSpec): JSX.Element => {
     switch (s.type) {
@@ -531,7 +544,7 @@ export function SidebarCardFromHint(props: {
             instanceKey={props.instanceKey}
             tractate={props.tractate}
             page={props.page}
-            onResolved={(r) => { setDeps(r.deps_resolved ?? {}); setSynthesisReady(true); }}
+            onResolved={(r) => { setDeps(r.deps_resolved ?? {}); setAnchors(r.anchors_resolved ?? {}); setSynthesisReady(true); }}
           />
         );
       case 'explainer': {
@@ -560,6 +573,8 @@ export function SidebarCardFromHint(props: {
         return Block ? (
           <Block
             deps={deps()}
+            anchors={anchors()}
+            synthesisResolved={synthesisReady()}
             instance={props.instance}
             tractate={props.tractate}
             page={props.page}

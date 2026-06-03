@@ -82,7 +82,7 @@ import {
   BIYUN_ESSAY_OUTPUT_SCHEMA,
   proseSchema,
 } from './output-schemas';
-import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE } from '../lib/sidebar/recipe';
+import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE, ARGUMENT_RECIPE, ARGUMENT_OVERVIEW_RECIPE } from '../lib/sidebar/recipe';
 
 // ---------------------------------------------------------------------------
 // Rabbi mark — phrase anchor + inline render
@@ -573,6 +573,7 @@ export const CODE_MARKS: MarkDefinition[] = [
   // -------------------------------------------------------------------------
   {
     id: 'argument',
+    recipe: ARGUMENT_RECIPE,
     label: 'Arguments',
     description: 'Argument-section gutter icons + sidebar with per-section voices (Stam, named rabbis, Gemara moves).',
     category: 'canon',
@@ -606,6 +607,7 @@ export const CODE_MARKS: MarkDefinition[] = [
   },
   {
     id: 'argument-overview',
+    recipe: ARGUMENT_OVERVIEW_RECIPE,
     label: 'Overview',
     description: 'Whole-daf overview: the page\'s argument sections and how they relate (continues / resolves / depends-on / …), grounded on dafyomi.co.il study context.',
     category: 'canon',
