@@ -1,5 +1,6 @@
 import { createResource, createSignal, For, Show, type JSX } from 'solid-js';
 import { t } from './i18n';
+import { estimateShasCost, type ProducerCost } from '../lib/shasCost';
 
 interface PerEndpoint {
   count: number;
@@ -837,18 +838,24 @@ function CostSection(props: { cost: UsagePayload['cost']; stats: CacheStats | un
   const aigw = () => props.cost.aiGateway;
   const self = () => props.cost.selfTracked;
 
-  // Rough projection to warm the rest of the shas. Uses the most-covered mark
-  // as a proxy for "dafim run through the pipeline" and priced self-tracked
-  // spend per such daf. Only meaningful when there's priced spend.
-  const projection = () => {
+  // Per-producer estimate of the cost to warm ALL of shas at full depth. Each
+  // producer's unit cost ($/priced call) is projected across its own fire-rate
+  // over every amud, so the lightly-warmed long tail is counted honestly
+  // (rather than the old "divide recent spend by the most-covered mark", which
+  // reported ~$0 once any mark passed 100%). See src/lib/shasCost.ts.
+  const shas = () => {
     const s = self();
     const st = props.stats;
     if (!s || !st || s.totals.costUsd <= 0) return null;
-    const processed = Math.max(0, ...st.marks.map((m) => m.count));
-    if (processed <= 0) return null;
-    const perDaf = s.totals.costUsd / processed;
-    const remaining = Math.max(0, st.total - processed);
-    return { perDaf, remaining, projected: perDaf * remaining };
+    const est = estimateShasCost({
+      amudim: st.total,
+      byMark: s.byMark,
+      byEnrichment: s.byEnrichment,
+      marks: st.marks,
+      enrichments: st.enrichments,
+      gatewayByModel: aigw().byModel,
+    });
+    return est.available ? est : null;
   };
 
   return (
@@ -910,20 +917,73 @@ function CostSection(props: { cost: UsagePayload['cost']; stats: CacheStats | un
               <StatCard label={t('usage.stat.llmCalls')} value={fmtInt(s().totals.calls)} sub={t('usage.stat.errored', { count: fmtInt(s().totals.errors) })} />
               <StatCard label={t('usage.stat.tokens')} value={fmtTokens(s().totals.tokensIn + s().totals.tokensOut)} sub={t('usage.stat.tokensInOut', { in: fmtTokens(s().totals.tokensIn), out: fmtTokens(s().totals.tokensOut) })} />
             </div>
-            <Show when={projection()}>
-              {(p) => (
-                <p style={{ 'font-size': '0.82rem', color: '#555', background: '#f5f8ff', padding: '0.5rem 0.7rem', 'border-radius': '4px', border: '1px solid #e0e8f5', 'margin-bottom': '0.6rem' }}>
-                  {t('usage.projection.before', { perDaf: fmtUsd(p().perDaf), remaining: fmtInt(p().remaining) })}<b>{fmtUsd(p().projected)}</b>{t('usage.projection.after')}
-                  <span style={{ color: '#999' }}> {t('usage.projection.note')}</span>
-                </p>
-              )}
-            </Show>
             <Show when={Object.keys(s().byMark).length > 0 || Object.keys(s().byEnrichment).length > 0}>
               <CostBreakdown title={t('usage.byMark')} buckets={s().byMark} />
               <CostBreakdown title={t('usage.byEnrichment')} buckets={s().byEnrichment} />
             </Show>
           </>
         )}
+      </Show>
+
+      {/* Cost to warm all of shas (per-producer estimate) */}
+      <Show when={shas()}>
+        {(est) => <ShasEstimate est={est()} />}
+      </Show>
+    </>
+  );
+}
+
+function ShasEstimate(props: { est: ReturnType<typeof estimateShasCost> }): JSX.Element {
+  const e = () => props.est;
+  const gross = () => `${e().workersAiGrossUp.toFixed(2)}`;
+  const amudim = () => fmtInt(e().amudim);
+  // Show the cost drivers; the long tail past ~16 rows is individually tiny.
+  const TOP = 16;
+  const top = (): ProducerCost[] => e().byProducer.slice(0, TOP);
+  const more = () => Math.max(0, e().byProducer.length - TOP);
+  const numCell = { padding: '0.3rem 0.5rem', 'text-align': 'right' as const, 'font-variant-numeric': 'tabular-nums' };
+  return (
+    <>
+      <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '1.1rem 0 0.4rem' }}>
+        {t('usage.shas.title')} <span style={{ color: '#999', 'font-weight': 'normal' }}>{t('usage.shas.sub', { amudim: amudim() })}</span>
+      </h3>
+      <div style={{ display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.6rem' }}>
+        <StatCard label={t('usage.shas.full')} value={fmtUsd(e().grossed.fullShasUsd)} color="#b3541e" />
+        <StatCard label={t('usage.shas.perAmud')} value={fmtUsd(e().grossed.perAmudUsd)} color="#b3541e" />
+        <StatCard label={t('usage.shas.spent')} value={fmtUsd(e().grossed.incurredUsd)} color="#2a8a42" />
+        <StatCard label={t('usage.shas.remaining')} value={fmtUsd(e().grossed.remainingUsd)} />
+      </div>
+      <p style={{ 'font-size': '0.78rem', color: '#888', background: '#fafaf8', padding: '0.5rem 0.7rem', 'border-radius': '4px', border: '1px solid #eee', 'margin-bottom': '0.6rem' }}>
+        {t('usage.shas.note', { amudim: amudim(), gross: gross() })}
+      </p>
+      <table style={tableStyle}>
+        <thead>
+          <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
+            <th style={thStyle}>{t('usage.shas.col.producer')}</th>
+            <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.shas.col.perCall')}</th>
+            <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.shas.col.firesPerAmud')}</th>
+            <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.shas.col.spent')}</th>
+            <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.shas.col.remaining')}</th>
+            <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.shas.col.full')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <For each={top()}>
+            {(p) => (
+              <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+                <td style={{ padding: '0.3rem 0.5rem', 'font-family': 'monospace', 'font-size': '0.78rem' }}>{p.id}</td>
+                <td style={numCell}>{fmtUsd(p.unitUsd)}</td>
+                <td style={{ ...numCell, color: '#999' }}>{p.instancesPerAmud > 1.05 ? `${p.instancesPerAmud.toFixed(1)}×` : '1×'}</td>
+                <td style={{ ...numCell, color: '#2a8a42' }}>{fmtUsd(p.incurredUsd)}</td>
+                <td style={numCell}>{fmtUsd(p.remainingUsd)}</td>
+                <td style={{ ...numCell, 'font-weight': 600 }}>{fmtUsd(p.fullShasUsd)}</td>
+              </tr>
+            )}
+          </For>
+        </tbody>
+      </table>
+      <Show when={more() > 0}>
+        <div style={{ 'font-size': '0.75rem', color: '#aaa', 'margin-top': '0.3rem' }}>{t('usage.shas.more', { count: fmtInt(more()) })}</div>
       </Show>
     </>
   );
