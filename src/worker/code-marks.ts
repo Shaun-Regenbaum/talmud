@@ -2711,6 +2711,14 @@ NOT the tidbit's job — this belongs to the Bi'yun (a separate, deeper pill): r
 
 Prefer the non-obvious, but never manufacture interest — if the daf is plain, an honest small point beats a forced "twist".
 
+THE TEST — apply it to your draft before you finish: could you say this, out loud, to a curious friend who has NEVER opened a gemara, over dinner — and have them find it interesting — WITHOUT first teaching them a system? If understanding it requires knowing what "a second-degree of impurity", "a rabbinic fence vs. Torah law", "the Sages hold X", or a named rishon's reading is, you have written lomdus, not a tidbit. Strip it back to the human thing underneath.
+
+HARD BANS (all of these are lomdus → the Bi'yun pill, NEVER the tidbit):
+- Do NOT cite or reconstruct a commentator's reading. No "the Rashba notes…", "the Ramban holds…", "Tosafot asks…". A tidbit names at most the gemara/Mishnah and the people IN it.
+- Do NOT explain a law by resolving its dispute: no "the Sages actually agree", no "this is a rabbinic safeguard, not Torah law", no "X is a fence around Y", no degrees/levels/conditions of a halachic system.
+- Do NOT walk a back-and-forth (he asked, he answered, he objected). That is the argument, owned by other pills.
+When the daf gives you a STORY (sons coming home late and still told to act; a sage's remark; an incident), the whole tidbit is usually just the story plus its plain human point — tell it, land it, and STOP. Resist analyzing it.
+
 AIM FOR THE BIGGER IDEA, NOT THE MECHANICS. The best tidbit leaves the reader with a resonant, human idea — something true and a little surprising about Torah, people, law, or how a person lives — not a blow-by-blow reconstruction of who-holds-what. The rich analysis you are given is your INPUT for understanding the daf; it is NOT the thing to report back. Rise above the lomdus to the point it serves.
 - Decisive test, from a real daf about the degrees of ritual impurity: the right tidbit is "ordinary Jews chose to eat their everyday food at the Temple's level of purity, though nothing required it — holiness as something you draw nearer to by choice." The WRONG tidbit reconstructs "Ulla and Rabbah bar bar Chana dispute whether a third degree exists in such food." Same daf — one lands an idea, the other recites a machloket.
 - A machloket is worth a tidbit only when the DISAGREEMENT itself reveals something bigger (two worldviews, a value in tension); then write about that bigger thing, not the technical scaffolding. Use only as much detail as the idea needs.
@@ -2756,14 +2764,8 @@ const TIDBIT_ESSAY_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 Full daf (Gemara):
 {{gemara}}
 
-Commentaries (Rashi / Tosafot / rishonim):
-{{commentaries}}
-
 The daf's argument sections (structure):
 {{anchors.argument}}
-
-How those sections relate (the flow graph: continues / resolves / depends-on / parallels / …):
-{{depends.argument-overview.flow}}
 
 Whole-daf orientation (what the daf is about and where it lands):
 {{depends.argument-overview.synthesis}}
@@ -2802,6 +2804,14 @@ const TIDBIT_ESSAY_SYSTEM_PROMPT_HE = `אתה מלמד תורה חד שכותב 
 לא תפקיד ה-tidbit — זה שייך ל"עיון" (פיל נפרד ועמוק): שחזור מחלוקת, פריסת סברות הראשונים, מי־מחזיק־מה, הפיצול הרעיוני בין אמוראים. אם הטיוטה מהלכת דרך מחלוקת בין חכמים או מפרשים, אתה כותב עיון — עצור, צא, ומצא את הרעיון האנושי. הלכה למעשה רצויה; למדנות לא.
 
 העדף את הלא־מובן־מאליו, אך לעולם אל תייצר עניין יש מאין — אם הדף פשוט, נקודה קטנה כנה עדיפה על "תפנית" מאולצת.
+
+המבחן — החל אותו על הטיוטה לפני הסיום: האם תוכל לומר זאת בקול לחבר סקרן שמעולם לא פתח גמרא, בארוחת ערב, ושהוא ימצא זאת מעניין — בלי ללמד אותו קודם שיטה שלמה? אם ההבנה דורשת לדעת מהו "שני לטומאה", "גזירה דרבנן מול דין תורה", "הסברא של הרשב\\"א", או קריאת ראשון מסוים — כתבת למדנות, לא tidbit. קלף עד לדבר האנושי שמתחת.
+
+איסורים מוחלטים (כל אלה למדנות → פיל ה"עיון", לעולם לא ה-tidbit):
+- אל תצטט או תשחזר קריאת מפרש. בלי "הרשב\\"א מעיר…", "הרמב\\"ן סובר…", "תוספות מקשה…". ה-tidbit נוקב לכל היותר בגמרא/משנה ובדמויות שבה.
+- אל תסביר דין על ידי הכרעת מחלוקתו: בלי "חכמים בעצם מסכימים", בלי "זו גזירה דרבנן ולא דין תורה", בלי "סייג סביב X", בלי דרגות/תנאים של מערכת הלכתית.
+- אל תהלך אחר משא־ומתן (הקשה, תירץ, הקשה). זה הטיעון, שייך לפילים אחרים.
+כשהדף נותן לך סיפור (בנים ששבו מאוחר ועדיין נצטוו לפעול; אמירה של חכם; מעשה), ה-tidbit הוא בדרך כלל פשוט הסיפור והנקודה האנושית שלו — ספר אותו, נחת עליו, ועצור. אל תנתח אותו.
 
 כוון לרעיון הגדול, לא למכניקה. ה-Tidbit הטוב משאיר את הקורא עם רעיון מהדהד ואנושי — משהו אמיתי ומעט מפתיע על התורה, על בני אדם, על הדין או על חיי האדם — לא שחזור צעד־אחר־צעד של מי מחזיק מה. הניתוח העשיר שניתן לך הוא הקלט שלך להבנת הדף; הוא אינו הדבר שיש לדווח עליו. עלה מעל הלמדנות אל הנקודה שהיא משרתת.
 - מבחן מכריע, מדף אמיתי על דרגות טומאה: ה-Tidbit הנכון הוא "יהודים פשוטים בחרו לאכול את מאכלם היומיומי בטהרת הקודש, אף שדבר לא חייב זאת — קדושה כדבר שמתקרבים אליו מתוך בחירה". ה-Tidbit השגוי משחזר "עולא ורבה בר בר חנה נחלקו אם יש שלישי במאכל כזה". אותו דף — האחד נוחת על רעיון, השני מדקלם מחלוקת.
@@ -2847,14 +2857,8 @@ const TIDBIT_ESSAY_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 הדף המלא (גמרא):
 {{gemara}}
 
-מפרשים (רש"י / תוספות / ראשונים):
-{{commentaries}}
-
 מקטעי הטיעון בדף (מבנה):
 {{anchors.argument}}
-
-כיצד המקטעים קשורים (גרף הזרימה: ממשיך / מיישב / תלוי / מקביל / …):
-{{depends.argument-overview.flow}}
 
 כיוון כללי לדף (על מה הדף ולאן הוא מגיע):
 {{depends.argument-overview.synthesis}}
@@ -2900,7 +2904,6 @@ CODE_ENRICHMENTS.push(
       // halacha topics, places).
       dependencies: [
         'gemara',
-        'commentaries',
         'context',
         { mark: 'argument' },
         { mark: 'rabbi' },
@@ -2908,15 +2911,16 @@ CODE_ENRICHMENTS.push(
         { mark: 'aggadata' },
         { mark: 'halacha' },
         { mark: 'places' },
-        { enrichment: 'argument-overview.flow' },
         { enrichment: 'argument-overview.synthesis' },
         { enrichment: 'daf-background.concepts' },
-        // NOTE: deliberately NOT the per-instance lomdus (aggadata/pesukim/
-        // halacha syntheses). Feeding those made the tidbit dive into the
-        // mechanics; the tidbit is the bigger idea, lightly grounded. The deep
-        // per-instance analysis is the Bi'yun's job, not the tidbit's.
+        // Deliberately STARVED of lomdus fuel: NO raw commentaries (Rashi/
+        // Tosafot/rishonim) and NO flow graph. Feeding the tidbit the rishonim
+        // made it keep reaching for them (citing the Rashba, reconstructing
+        // "fence vs Torah law"). The tidbit gets the gemara + accessible study
+        // aids + the daf's anchors + a plain whole-daf summary + the glossary.
+        // The rishonim and the per-instance analysis are the Bi'yun's job.
       ],
-      defHash: 'tidbit.essay-v1', cacheVersion: '9', // v9: ranked WHAT-TO-LOOK-FOR — prefer story/human/idea, practical halacha welcome, but machloket/svara reconstruction belongs to the Bi'yun (less halachic)
+      defHash: 'tidbit.essay-v1', cacheVersion: '10', // v10: starve of commentaries/flow + a hard "tell-a-friend" litmus; stop the rishonim-lomdus drift
       // Pro model: finding the non-obvious reading needs the stronger model.
       // Thinking stays OFF (no reasoningEffort) — the context bundle is large,
       // like daf-background.concepts, and a thinking pass on top risks the
