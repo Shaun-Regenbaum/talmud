@@ -2708,8 +2708,9 @@ STRUCTURE (this is the whole shape):
 - "paragraphs": THREE or FOUR paragraphs of flowing prose. The first orients the reader and lays out the plain reading (assume they are meeting this sugya and its figures for the first time). The next develop the turn. The last lands the point — WITHOUT any "why it matters" sign over it, and without a dramatic flourish. No section labels, no headers. Just readable prose.
 
 GROUNDING (hard):
-- Every factual claim must rest on the materials provided (the daf, its commentaries, the study context, the overview/background) or on well-established fact. Do NOT invent stories, positions, sources, manuscript variants, or a Yerushalmi/Rishon view that is not real.
-- "sources": list the concrete sources the Tidbit rests on (e.g. "Gittin 68b", "Rambam, Hilchot Gerushin 2:20", "Kohelet 1:12"), each with a short note of what it grounds.
+- Every factual claim must rest on the inputs you were given (the daf, its commentaries, the study context, the overview/background) or on well-established fact. Do NOT invent stories, positions, sources, manuscript variants, or a Yerushalmi/Rishon view that is not real.
+- NEVER refer to your inputs as inputs. The reader does not see them and must not be told about them. FORBIDDEN anywhere in hook/paragraphs/sources: "the materials", "the segment breakdown", "the appended chart", "the context provided", "the study context", "in the materials", "final segment", "lines 11-13", "seg 14". Cite a source the way a learned person speaks — "as Rashi notes", "the Ramban explains", "the Mishnah on the previous amud" — never by pointing at our data.
+- "sources": each entry is { ref, note }. "ref" is a SHORT, clean citation ONLY — a name and a place, nothing else: "Berakhot 3a", "Rashi, Berakhot 3a", "Ritva, Berakhot 3a", "Mishnah Berakhot 1:1", "Maharsha, Berakhot 3a", "Kohelet 1:12", "Rambam, Hilchot Gerushin 2:20". NO line numbers, NO "s.v.", NO Hebrew quotes, NO "in the segment/materials/chart", NO ranges. "note" is ONE short plain phrase saying what it grounds (it shows only as a tooltip) — also no internal-input language, no Hebrew quotes. List 2-5 sources; do not pad.
 
 CONFIDENCE (be honest — a human reviewer reads this):
 - "textConfidence": how well the FACTUAL claims are grounded in the daf's text/sources. high = stated directly; medium = a fair inference; low = a stretch.
@@ -2791,8 +2792,9 @@ const TIDBIT_ESSAY_SYSTEM_PROMPT_HE = `אתה מלמד תורה חד שכותב 
 - "paragraphs": שלוש או ארבע פסקאות של פרוזה זורמת. הראשונה מתמצאת את הקורא ומציגה את הקריאה הפשוטה (הנח שהוא פוגש את הסוגיה ואת דמויותיה לראשונה). הבאות — מפתחות את התפנית. האחרונה — נוחתת על הנקודה, בלי כותרת "מדוע זה חשוב" ובלי סיומת דרמטית. ללא תוויות מקטעים.
 
 ביסוס (קשיח):
-- כל טענה עובדתית חייבת להישען על החומר שסופק או על עובדה מבוססת. אל תמציא סיפורים, עמדות, מקורות, גרסאות, או דעת ירושלמי/ראשון שאינה אמיתית.
-- "sources": רשום את המקורות הקונקרטיים שעליהם ה-Tidbit נשען, כל אחד עם הערה קצרה על מה הוא מבסס.
+- כל טענה עובדתית חייבת להישען על הקלט שקיבלת או על עובדה מבוססת. אל תמציא סיפורים, עמדות, מקורות, גרסאות, או דעת ירושלמי/ראשון שאינה אמיתית.
+- לעולם אל תתייחס לקלט שלך ככזה. הקורא אינו רואה אותו. אסור בהוק/בפסקאות/במקורות: "החומר", "פירוק המקטעים", "הטבלה המצורפת", "ההקשר שסופק", "מקטע אחרון", "שורות 11-13". צטט מקור כפי שתלמיד חכם מדבר — "כפי שרש״י מציין", "הרמב״ן מסביר" — לא בהצבעה על הנתונים שלנו.
+- "sources": כל פריט הוא { ref, note }. "ref" הוא ציטוט קצר ונקי בלבד — שם ומקום, ותו לא: "ברכות ג ע״א", "רש״י, ברכות ג ע״א", "ריטב״א, ברכות ג ע״א", "משנה ברכות א:א", "קהלת א:יב" (בגרשיים העברי ״, לא בגרש אנגלי). ללא מספרי שורות, ללא "ד״ה", ללא ציטוטים בעברית ארוכים, ללא טווחים. "note" הוא ביטוי קצר אחד על מה המקור מבסס (מוצג רק כ-tooltip). 2-5 מקורות; אל תמלא סתם.
 
 ביטחון (בכנות — אדם קורא זאת):
 - "textConfidence": כמה הטענות העובדתיות מבוססות בטקסט. high = נאמר במפורש; medium = הסקה הוגנת; low = מתיחה.
@@ -2881,7 +2883,7 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'argument-overview.synthesis' },
         { enrichment: 'daf-background.concepts' },
       ],
-      defHash: 'tidbit.essay-v1', cacheVersion: '3', // v3: no dramatic closers + more orientation; full-daf context bundle (all marks + flow); generated last
+      defHash: 'tidbit.essay-v1', cacheVersion: '4', // v4: short clean source refs (name+place only) + ban internal-input language ("the materials", "segment breakdown", line numbers)
       // Pro model: finding the non-obvious reading needs the stronger model.
       // Thinking stays OFF (no reasoningEffort) — the context bundle is large,
       // like daf-background.concepts, and a thinking pass on top risks the
