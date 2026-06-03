@@ -23,7 +23,7 @@ import { dafRefHe, pageLabelHe } from '../lib/sefref/tractates';
 import { selectSectionMoves } from '../lib/argumentMoves';
 import { t, lang } from './i18n';
 import { ACCENTS, HE_FONT, HebrewProse, Panel, QASection, SectionCard, Synthesis, SidebarPanelFromHint, SidebarCardFromHint, setActiveCard, kindLabelKey, type SidebarHint, type SidebarRecipe, type SpecialBlockProps } from './sidebar/primitives';
-import { InspectDot } from './MarkEnrichmentCards';
+import { InspectDot, registerMarkRenderer } from './MarkEnrichmentCards';
 // Recipes now live in the shared lib (carried on the worker mark def too).
 // Re-exported so existing importers (CARD_DEFS, tests) keep their `from
 // './ArgumentSidebar'` path.
@@ -138,7 +138,8 @@ export type SidebarContent =
   | { kind: 'voice-group'; group: { name: string; nameHe: string; bio: string } }
   | { kind: 'rishonim'; instance: RishonimInstance; index: number }
   | { kind: 'argument-overview' }
-  | { kind: 'daf-background' };
+  | { kind: 'daf-background' }
+  | { kind: 'tidbit' };
 
 export interface ArgumentSidebarProps {
   content: SidebarContent | null;
@@ -1106,6 +1107,127 @@ function DafBackgroundBody(props: { tractate: string; page: string }): JSX.Eleme
           {t('background.empty')}
         </HebrewProse>
       </Show>
+    </Panel>
+  );
+}
+
+// ===========================================================================
+// Tidbit body
+// -----------
+// The whole-daf "did you notice…" chip. One curated reading: a hook + 3-4
+// flowing paragraphs, a flavor tag, the sources it rests on, and two honest
+// confidence dots (TEXT grounding vs. how editorial the READING is). The essay
+// is the tidbit.essay aggregate's OWN parsed output, so it renders via the
+// registered mark renderer (registerMarkRenderer below) rather than the deps
+// channel the other *Body components use.
+// ===========================================================================
+
+const TIDBIT_FLAVOR_KEY = {
+  aggadah: 'tidbit.flavor.aggadah',
+  'legal-concept': 'tidbit.flavor.legal-concept',
+  machloket: 'tidbit.flavor.machloket',
+  textual: 'tidbit.flavor.textual',
+  'hidden-point': 'tidbit.flavor.hidden-point',
+} as const;
+
+const TIDBIT_CONF_KEY = {
+  high: 'tidbit.conf.high',
+  medium: 'tidbit.conf.medium',
+  low: 'tidbit.conf.low',
+} as const;
+
+type TidbitConfLevel = keyof typeof TIDBIT_CONF_KEY;
+
+function tidbitConfColor(level: TidbitConfLevel): string {
+  return level === 'high' ? '#3f6b3a' : level === 'medium' ? '#a9802f' : '#9c4a1f';
+}
+
+function TidbitConf(props: { label: string; level: string }): JSX.Element {
+  const lvl = (): TidbitConfLevel =>
+    props.level === 'high' || props.level === 'medium' ? props.level : 'low';
+  return (
+    <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.3rem' }}>
+      <span>{props.label}</span>
+      <span style={{
+        display: 'inline-block', width: '0.5rem', height: '0.5rem',
+        'border-radius': '50%', 'background-color': tidbitConfColor(lvl()),
+      }} />
+      <span>{t(TIDBIT_CONF_KEY[lvl()])}</span>
+    </span>
+  );
+}
+
+interface TidbitSource { ref?: string; note?: string }
+
+function TidbitEssayView(parsed: Record<string, unknown>): JSX.Element {
+  const str = (v: unknown): string => (typeof v === 'string' ? v : '');
+  const flavor = str(parsed.flavor);
+  const hook = str(parsed.hook);
+  const paragraphs = Array.isArray(parsed.paragraphs)
+    ? (parsed.paragraphs as unknown[]).filter((p): p is string => typeof p === 'string')
+    : [];
+  const sources = Array.isArray(parsed.sources) ? (parsed.sources as TidbitSource[]) : [];
+  const textConf = str(parsed.textConfidence);
+  const readingConf = str(parsed.readingConfidence);
+  const flavorKey = TIDBIT_FLAVOR_KEY[flavor as keyof typeof TIDBIT_FLAVOR_KEY];
+  return (
+    <div>
+      <Show when={flavorKey}>
+        <div style={{
+          'font-size': '0.66rem', 'letter-spacing': '0.12em', 'text-transform': 'uppercase',
+          'font-weight': 700, color: ACCENTS.tidbit, 'margin-bottom': '0.5rem',
+        }}>{t(flavorKey!)}</div>
+      </Show>
+      <Show when={hook}>
+        <p style={{ margin: '0 0 0.85rem', 'font-size': '1.02rem', 'line-height': 1.4, 'font-weight': 600, color: '#1f1b18' }}>
+          <Hebraized text={hook} />
+        </p>
+      </Show>
+      <For each={paragraphs}>{(p) => (
+        <p style={{ margin: '0 0 0.7rem', 'font-size': '0.92rem', 'line-height': 1.62, color: '#2b2622' }}>
+          <Hebraized text={p} />
+        </p>
+      )}</For>
+      <Show when={sources.length > 0}>
+        <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.35rem', 'margin-top': '0.75rem' }}>
+          <For each={sources}>{(s) => (
+            <span title={str(s.note)} style={{
+              'font-size': '0.7rem', 'font-family': 'ui-monospace, monospace',
+              background: '#f1ece0', border: '1px solid #e0d4ba', 'border-radius': '5px',
+              padding: '0.1rem 0.45rem', color: '#574e45',
+            }}>{str(s.ref)}</span>
+          )}</For>
+        </div>
+      </Show>
+      <Show when={textConf || readingConf}>
+        <div style={{
+          display: 'flex', 'flex-wrap': 'wrap', gap: '1.1rem', 'margin-top': '0.75rem',
+          'padding-top': '0.55rem', 'border-top': '1px solid #eee',
+          'font-size': '0.66rem', 'font-family': 'ui-monospace, monospace', color: '#9a8d76',
+        }}>
+          <Show when={textConf}><TidbitConf label={t('tidbit.conf.text')} level={textConf} /></Show>
+          <Show when={readingConf}><TidbitConf label={t('tidbit.conf.reading')} level={readingConf} /></Show>
+        </div>
+      </Show>
+    </div>
+  );
+}
+
+// The essay is the tidbit.essay aggregate's own output → render it via the
+// per-mark renderer seam in MarkEnrichmentCards (so caching/polling/telemetry
+// stay shared) rather than the deps_resolved channel.
+registerMarkRenderer('tidbit', TidbitEssayView);
+
+function TidbitBody(props: { tractate: string; page: string }): JSX.Element {
+  return (
+    <Panel accent={ACCENTS.tidbit} title={t('tidbit.title')}>
+      <Synthesis
+        markId="tidbit"
+        instance={{ fields: {} }}
+        instanceKey={`${props.tractate}/${props.page}/tidbit`}
+        tractate={props.tractate}
+        page={props.page}
+      />
     </Panel>
   );
 }
@@ -2120,6 +2242,10 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
 
             <Show when={c().kind === 'daf-background'}>
               <DafBackgroundBody tractate={props.tractate} page={props.page} />
+            </Show>
+
+            <Show when={c().kind === 'tidbit'}>
+              <TidbitBody tractate={props.tractate} page={props.page} />
             </Show>
 
         </aside>
