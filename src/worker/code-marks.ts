@@ -82,7 +82,7 @@ import {
   BIYUN_ESSAY_OUTPUT_SCHEMA,
   proseSchema,
 } from './output-schemas';
-import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE, ARGUMENT_RECIPE, ARGUMENT_OVERVIEW_RECIPE } from '../lib/sidebar/recipe';
+import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE, ARGUMENT_RECIPE, ARGUMENT_OVERVIEW_RECIPE, TIDBIT_RECIPE, BIYUN_RECIPE, DAF_BACKGROUND_RECIPE } from '../lib/sidebar/recipe';
 
 // ---------------------------------------------------------------------------
 // Rabbi mark — phrase anchor + inline render
@@ -634,6 +634,7 @@ export const CODE_MARKS: MarkDefinition[] = [
   },
   {
     id: 'daf-background',
+    recipe: DAF_BACKGROUND_RECIPE,
     label: 'Background',
     description: 'Whole-daf background: the key terms/concepts a reader needs to follow the daf, grouped into legal concepts / realia / persons / assumed-prior sugyot, grounded on the dafyomi.co.il glossary.',
     category: 'canon',
@@ -658,6 +659,7 @@ export const CODE_MARKS: MarkDefinition[] = [
   },
   {
     id: 'tidbit',
+    recipe: TIDBIT_RECIPE,
     label: 'Tidbit',
     description: 'Whole-daf "did you notice…": ONE curated, genuinely interesting thing about this daf — an aggadah read against the grain, a legal concept with a twist, a sharp machloket, a textual point, or a hidden point inside a dry sugya. Grounded on the full daf + commentaries + study context + the overview & background it depends on.',
     category: 'canon',
@@ -684,6 +686,7 @@ export const CODE_MARKS: MarkDefinition[] = [
   },
   {
     id: 'biyun',
+    recipe: BIYUN_RECIPE,
     label: "Bi'yun",
     description: "Whole-daf עיון: a deep dive into ONE halachic/conceptual problem on the daf that the rishonim are wrestling with — the difficulty, the competing approaches, what's at stake. The lomdus counterpart to the Tidbit. Grounded on the full daf + commentaries + the rishonim/argument/halacha analysis it depends on.",
     category: 'canon',

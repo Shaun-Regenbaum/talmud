@@ -27,8 +27,8 @@ import { InspectDot, registerMarkRenderer } from './MarkEnrichmentCards';
 // Recipes now live in the shared lib (carried on the worker mark def too).
 // Re-exported so existing importers (CARD_DEFS, tests) keep their `from
 // './ArgumentSidebar'` path.
-import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE, ARGUMENT_RECIPE, ARGUMENT_OVERVIEW_RECIPE } from '../lib/sidebar/recipe';
-export { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE, ARGUMENT_RECIPE, ARGUMENT_OVERVIEW_RECIPE };
+import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE, ARGUMENT_RECIPE, ARGUMENT_OVERVIEW_RECIPE, TIDBIT_RECIPE, BIYUN_RECIPE, DAF_BACKGROUND_RECIPE } from '../lib/sidebar/recipe';
+export { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE, ARGUMENT_RECIPE, ARGUMENT_OVERVIEW_RECIPE, TIDBIT_RECIPE, BIYUN_RECIPE, DAF_BACKGROUND_RECIPE };
 
 /** Localize an era date-range ("c. 290 – 320 CE") for Hebrew display. */
 function eraLabel(era: string): string {
@@ -1044,43 +1044,31 @@ function BackgroundGroups(props: { groups: BackgroundGroup[] }): JSX.Element {
   );
 }
 
-function DafBackgroundBody(props: { tractate: string; page: string }): JSX.Element {
-  const [groups, setGroups] = createSignal<BackgroundGroup[]>([]);
-  const [resolved, setResolved] = createSignal(false);
-
-  createEffect(() => {
-    void `${props.tractate}/${props.page}`;
-    setGroups([]);
-    setResolved(false);
+/** The grouped key-terms/concepts under the daf-background synthesis — read from
+ *  the daf-background.concepts leaf, ordered, with an empty state once the
+ *  synthesis settles with no groups. */
+function DafBackgroundGroups(props: SpecialBlockProps): JSX.Element {
+  const groups = createMemo<BackgroundGroup[]>(() => {
+    const concepts = props.deps['daf-background.concepts'] as { groups?: BackgroundGroup[] } | undefined;
+    return orderBackgroundGroups(concepts?.groups);
   });
-
-  const handleResolved = (r: { deps_resolved?: Record<string, unknown> }) => {
-    const concepts = r.deps_resolved?.['daf-background.concepts'] as { groups?: BackgroundGroup[] } | undefined;
-    setGroups(orderBackgroundGroups(concepts?.groups));
-    setResolved(true);
-  };
-
   return (
-    <Panel accent={ACCENTS['daf-background']} title={t('background.title')}>
-      <Synthesis
-        markId="daf-background"
-        instance={{ fields: {} }}
-        instanceKey={`${props.tractate}/${props.page}/background`}
-        tractate={props.tractate}
-        page={props.page}
-        onResolved={handleResolved}
-      />
+    <>
       <Show when={groups().length > 0}>
         <BackgroundGroups groups={groups()} />
       </Show>
-      <Show when={resolved() && groups().length === 0}>
+      <Show when={props.synthesisResolved && groups().length === 0}>
         <HebrewProse size="0.85rem" color="#999" margin="0.6rem 0 0">
           {t('background.empty')}
         </HebrewProse>
       </Show>
-    </Panel>
+    </>
   );
 }
+
+export const DAF_BACKGROUND_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
+  'daf-background-groups': DafBackgroundGroups,
+};
 
 // ===========================================================================
 // Tidbit body
@@ -1198,34 +1186,8 @@ registerMarkRenderer('tidbit', TidbitEssayView);
 // Bi'yun reuses the same essay renderer (its output has no `flavor`, so the
 // flavor tag simply doesn't render); only the panel accent + title differ.
 registerMarkRenderer('biyun', TidbitEssayView);
-
-function TidbitBody(props: { tractate: string; page: string }): JSX.Element {
-  return (
-    <Panel accent={ACCENTS.tidbit} title={t('tidbit.title')}>
-      <Synthesis
-        markId="tidbit"
-        instance={{ fields: {} }}
-        instanceKey={`${props.tractate}/${props.page}/tidbit`}
-        tractate={props.tractate}
-        page={props.page}
-      />
-    </Panel>
-  );
-}
-
-function BiyunBody(props: { tractate: string; page: string }): JSX.Element {
-  return (
-    <Panel accent={ACCENTS.biyun} title={t('biyun.title')}>
-      <Synthesis
-        markId="biyun"
-        instance={{ fields: {} }}
-        instanceKey={`${props.tractate}/${props.page}/biyun`}
-        tractate={props.tractate}
-        page={props.page}
-      />
-    </Panel>
-  );
-}
+// tidbit + biyun are recipe-driven (TIDBIT_RECIPE / BIYUN_RECIPE → CARD_DEFS):
+// header + synthesis, the essay rendering through the seam registered above.
 
 interface PasukDetail {
   ref: string;
@@ -1857,6 +1819,10 @@ export function instanceKeyForContent(content: SidebarContent, tractate: string,
     // run cache stays warm across this conversion.
     case 'argument': return `${content.section.startSegIdx}-${content.section.endSegIdx}-${content.section.title}`;
     case 'argument-overview': return `${tractate}/${page}/overview`;
+    // Whole-daf essay/background cards — match the old *Body instanceKeys.
+    case 'tidbit': return `${tractate}/${page}/tidbit`;
+    case 'biyun': return `${tractate}/${page}/biyun`;
+    case 'daf-background': return `${tractate}/${page}/background`;
     case 'aggadata': return `${tractate}:${page}:${content.index}:${content.story.title}`;
     case 'yerushalmi': return `${tractate}:${page}:${content.index}:${content.parallel.yerushalmiRef}`;
     case 'pesuk': return content.pasuk.verseRef;
@@ -2238,6 +2204,28 @@ export const CARD_DEFS: Partial<Record<SidebarContent['kind'], CardDef>> = {
     forwardHighlight: true,
     extras: (ctx) => ({ sections: ctx.dafSections, onPushRabbi: ctx.onPushRabbi, onOpenArgument: ctx.onOpenArgument }),
   },
+  // Whole-daf essay cards: header + synthesis only (the essay renders through
+  // the registerMarkRenderer seam). Display instance carries the localized
+  // heading; synthInstance keeps the old `{fields:{}}` mark_input so the warmed
+  // whole-daf caches still hit.
+  tidbit: {
+    recipe: TIDBIT_RECIPE,
+    blocks: {},
+    instance: () => ({ fields: { title: t('tidbit.title') } }),
+    synthInstance: () => ({ fields: {} }),
+  },
+  biyun: {
+    recipe: BIYUN_RECIPE,
+    blocks: {},
+    instance: () => ({ fields: { title: t('biyun.title') } }),
+    synthInstance: () => ({ fields: {} }),
+  },
+  'daf-background': {
+    recipe: DAF_BACKGROUND_RECIPE,
+    blocks: DAF_BACKGROUND_BLOCKS,
+    instance: () => ({ fields: { title: t('background.title') } }),
+    synthInstance: () => ({ fields: {} }),
+  },
   aggadata: {
     recipe: AGGADATA_RECIPE,
     blocks: AGGADATA_BLOCKS,
@@ -2425,18 +2413,6 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                 page={props.page}
                 chips={<PlaceChips place={(c() as Extract<SidebarContent, { kind: 'place' }>).place} />}
               />
-            </Show>
-
-            <Show when={c().kind === 'daf-background'}>
-              <DafBackgroundBody tractate={props.tractate} page={props.page} />
-            </Show>
-
-            <Show when={c().kind === 'tidbit'}>
-              <TidbitBody tractate={props.tractate} page={props.page} />
-            </Show>
-
-            <Show when={c().kind === 'biyun'}>
-              <BiyunBody tractate={props.tractate} page={props.page} />
             </Show>
 
         </aside>

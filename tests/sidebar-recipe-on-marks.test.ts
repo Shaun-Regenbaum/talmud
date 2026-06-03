@@ -2,14 +2,14 @@ import { describe, it, expect } from 'vitest';
 import { CODE_MARKS } from '../src/worker/code-marks';
 import {
   AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE,
-  ARGUMENT_RECIPE, ARGUMENT_OVERVIEW_RECIPE,
+  ARGUMENT_RECIPE, ARGUMENT_OVERVIEW_RECIPE, TIDBIT_RECIPE, BIYUN_RECIPE, DAF_BACKGROUND_RECIPE,
   type SidebarRecipe,
 } from '../src/lib/sidebar/recipe';
 import { t, setLang } from '../src/client/i18n';
 
 const RECIPES: SidebarRecipe[] = [
   AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE,
-  ARGUMENT_RECIPE, ARGUMENT_OVERVIEW_RECIPE,
+  ARGUMENT_RECIPE, ARGUMENT_OVERVIEW_RECIPE, TIDBIT_RECIPE, BIYUN_RECIPE, DAF_BACKGROUND_RECIPE,
 ];
 
 describe('sidebar recipes carried on mark definitions', () => {
