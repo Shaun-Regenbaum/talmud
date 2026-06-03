@@ -167,6 +167,7 @@ function labelForSidebar(s: SidebarContent | null): string {
   switch (s.kind) {
     case 'argument': return 'Argument';
     case 'halacha': return 'Halacha';
+    case 'chart': return 'Chart';
     case 'aggadata': return 'Aggadata';
     case 'yerushalmi': return 'Yerushalmi';
     case 'pesuk': return 'Pasuk';

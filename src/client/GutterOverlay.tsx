@@ -90,7 +90,7 @@ function clustersFromEntries(entries: Partial<Record<GutterKind, GutterStackEntr
   // Within a cluster, give the icons a stable order so collisions don't
   // shuffle visually on every measurement. Sort by kind priority — argument
   // first on left, halacha first on right (matches user mental model).
-  const KIND_ORDER: GutterKind[] = ['argument', 'pesuk', 'halacha', 'aggadata', 'yerushalmi', 'rishonim'];
+  const KIND_ORDER: GutterKind[] = ['argument', 'pesuk', 'halacha', 'chart', 'aggadata', 'yerushalmi', 'rishonim'];
   for (const c of out) {
     c.items.sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind));
   }

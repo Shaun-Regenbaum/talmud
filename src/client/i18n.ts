@@ -165,6 +165,7 @@ const CATALOG = {
   // — Sidebar kind titles —
   'sidebar.kind.argument': { en: 'Argument', he: 'סוגיה' },
   'sidebar.kind.halacha': { en: 'Practical Halacha', he: 'הלכה למעשה' },
+  'sidebar.kind.chart': { en: 'Chart', he: 'טבלה' },
   'sidebar.kind.aggadata': { en: 'Aggada', he: 'אגדה' },
   'sidebar.kind.yerushalmi': { en: 'Yerushalmi', he: 'ירושלמי' },
   'sidebar.kind.pesuk': { en: 'Pasuk', he: 'פסוק' },
@@ -717,6 +718,7 @@ const CATALOG = {
   // — Gutter icon tooltips —
   'gutter.argument': { en: 'Argument structure & rabbis', he: 'מבנה הסוגיה וחכמים' },
   'gutter.halacha': { en: 'Practical halacha', he: 'הלכה למעשה' },
+  'gutter.chart': { en: 'Comparison chart for this region', he: 'טבלת השוואה לקטע זה' },
   'gutter.aggadata': { en: 'Aggada — narrative on this line', he: 'אגדה — סיפור בשורה זו' },
   'gutter.yerushalmi': { en: 'Yerushalmi — parallel in the Jerusalem Talmud', he: 'ירושלמי — מקבילה בתלמוד הירושלמי' },
   'gutter.rishonim': { en: 'Rishonim on this line', he: 'ראשונים על שורה זו' },

@@ -15,7 +15,7 @@ describe('CARD_DEFS registry', () => {
 
   it('covers exactly the recipe-driven kinds', () => {
     expect(Object.keys(CARD_DEFS).sort()).toEqual(
-      ['aggadata', 'argument', 'argument-overview', 'biyun', 'daf-background', 'halacha', 'pesuk', 'rabbi', 'rishonim', 'tidbit', 'yerushalmi'].sort(),
+      ['aggadata', 'argument', 'argument-overview', 'biyun', 'chart', 'daf-background', 'halacha', 'pesuk', 'rabbi', 'rishonim', 'tidbit', 'yerushalmi'].sort(),
     );
   });
 });

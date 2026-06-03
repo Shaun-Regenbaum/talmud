@@ -34,6 +34,7 @@ export const ACCENTS = {
   tidbit: '#2f6b66',
   biyun: '#3f4ea0',
   halacha: '#1e40af',
+  chart: '#0e7490',
   aggadata: '#7c3aed',
   yerushalmi: '#0f766e',
   pesuk: '#9a3412',
@@ -55,6 +56,7 @@ export function kindLabelKey(kind: SidebarKind): CatalogKey {
     case 'tidbit': return 'sidebar.kind.tidbit';
     case 'biyun': return 'sidebar.kind.biyun';
     case 'halacha': return 'sidebar.kind.halacha';
+    case 'chart': return 'sidebar.kind.chart';
     case 'aggadata': return 'sidebar.kind.aggadata';
     case 'yerushalmi': return 'sidebar.kind.yerushalmi';
     case 'pesuk': return 'sidebar.kind.pesuk';

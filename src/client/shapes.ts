@@ -67,6 +67,32 @@ export interface HalachaResult {
 }
 
 // ===========================================================================
+// Charts (mark id: 'chart') — EXPERIMENTAL. Comparison tables for dense,
+// multi-opinion regions; cells are Hebrew (like the dafyomi.co.il source
+// charts). The first cell of each row is its row-label.
+// ===========================================================================
+
+export interface ChartTable {
+  caption?: string;
+  captionHe?: string;
+  headers: string[];
+  rows: string[][];
+  notes?: { marker: string; text: string }[];
+  excerpt?: string;
+  grounded?: boolean;
+  confidence?: string;
+  startSegIdx?: number;
+  endSegIdx?: number;
+}
+
+export interface ChartResult {
+  charts: ChartTable[];
+  _cached?: boolean;
+  _model?: string;
+  error?: string;
+}
+
+// ===========================================================================
 // Aggadata stories (mark id: 'aggadata')
 // ===========================================================================
 

@@ -8,6 +8,7 @@ import { HighlightNotePopover, NotesPanel } from './UserHighlightUI';
 import type {
   DafAnalysis, Section,
   HalachaResult, HalachaTopic,
+  ChartResult, ChartTable,
   AggadataResult,
   PesukimResult,
   YerushalmiResult,
@@ -126,7 +127,7 @@ function paintRangeOverlay(
   overlay: HTMLElement,
   origin: HTMLElement,
   ranges: Range[],
-  kind: 'section' | 'halacha' | 'aggadata' | 'yerushalmi' | 'pesuk' | 'rishonim' | 'move' | 'commentary' | 'commentary-active' | 'comm-anchor' | 'user',
+  kind: 'section' | 'halacha' | 'chart' | 'aggadata' | 'yerushalmi' | 'pesuk' | 'rishonim' | 'move' | 'commentary' | 'commentary-active' | 'comm-anchor' | 'user',
   /** Optional per-range inline background color. */
   bgFor?: (rangeIdx: number) => string | undefined,
 ): void {
@@ -269,6 +270,7 @@ import { LruMap } from '../lib/lruMap';
 const SESSION_CACHE_MAX = 32;
 const analysisSessionCache = new LruMap<string, DafAnalysis>(SESSION_CACHE_MAX);
 const halachaSessionCache = new LruMap<string, HalachaResult>(SESSION_CACHE_MAX);
+const chartSessionCache = new LruMap<string, ChartResult>(SESSION_CACHE_MAX);
 const aggadataSessionCache = new LruMap<string, AggadataResult>(SESSION_CACHE_MAX);
 const yerushalmiSessionCache = new LruMap<string, YerushalmiResult>(SESSION_CACHE_MAX);
 const pesukimSessionCache = new LruMap<string, PesukimResult>(SESSION_CACHE_MAX);
@@ -277,6 +279,7 @@ const GEN_KEY = 'daf.showGenMarkers';
 const COMMENTARIES_KEY = 'daf.toggle.commentaries';
 const ARGUMENTS_KEY = 'daf.toggle.arguments';
 const HALACHOT_KEY = 'daf.toggle.halachot';
+const CHART_KEY = 'daf.toggle.chart';
 const AGGADATOT_KEY = 'daf.toggle.aggadatot';
 const YERUSHALMI_KEY = 'daf.toggle.yerushalmi';
 const PESUKIM_KEY = 'daf.toggle.pesukim';
@@ -382,6 +385,7 @@ export default function DafViewer(): JSX.Element {
   const [showCommentaries, setShowCommentaries] = createSignal(loadToggle(COMMENTARIES_KEY, false));
   const [showArguments, setShowArguments] = createSignal(loadToggle(ARGUMENTS_KEY, false));
   const [showHalachot, setShowHalachot] = createSignal(loadToggle(HALACHOT_KEY, false));
+  const [showChart, setShowChart] = createSignal(loadToggle(CHART_KEY, false));
   const [showAggadatot, setShowAggadatot] = createSignal(loadToggle(AGGADATOT_KEY, false));
   const [showYerushalmi, setShowYerushalmi] = createSignal(loadToggle(YERUSHALMI_KEY, false));
   const [showPesukim, setShowPesukim] = createSignal(loadToggle(PESUKIM_KEY, false));
@@ -467,6 +471,45 @@ export default function DafViewer(): JSX.Element {
     };
     setHalacha(adapted);
     halachaSessionCache.set(`${tractate()}:${page()}:${lang()}`, adapted);
+  });
+
+  // Adapter: chart mark instances → ChartResult (experimental). Each instance's
+  // fields ARE the comparison table.
+  createEffect(() => {
+    const runs = markRunsByMarkId();
+    const r = runs['chart'];
+    if (!r?.parsed) return;
+    const p = r.parsed as {
+      instances?: Array<{
+        startSegIdx: number;
+        endSegIdx: number;
+        fields: {
+          caption?: string; captionHe?: string;
+          headers?: string[]; rows?: string[][];
+          notes?: { marker: string; text: string }[];
+          excerpt?: string; grounded?: boolean; confidence?: string;
+        };
+      }>;
+    };
+    if (!Array.isArray(p.instances)) return;
+    const adapted: ChartResult = {
+      charts: p.instances
+        .filter((inst) => Array.isArray(inst.fields.headers) && Array.isArray(inst.fields.rows) && inst.fields.rows.length > 0)
+        .map((inst) => ({
+          caption: inst.fields.caption,
+          captionHe: inst.fields.captionHe,
+          headers: inst.fields.headers ?? [],
+          rows: inst.fields.rows ?? [],
+          notes: inst.fields.notes,
+          excerpt: inst.fields.excerpt,
+          grounded: inst.fields.grounded,
+          confidence: inst.fields.confidence,
+          startSegIdx: inst.startSegIdx,
+          endSegIdx: inst.endSegIdx,
+        })),
+    };
+    setChart(adapted);
+    chartSessionCache.set(`${tractate()}:${page()}:${lang()}`, adapted);
   });
 
   // Adapter: aggadata mark instances → AggadataResult.
@@ -612,6 +655,7 @@ export default function DafViewer(): JSX.Element {
     if (showGenMarkers() !== want('rabbi')) setShowGenMarkers(want('rabbi'));
     if (showArguments() !== want('argument')) setShowArguments(want('argument'));
     if (showHalachot() !== want('halacha')) setShowHalachot(want('halacha'));
+    if (showChart() !== want('chart')) setShowChart(want('chart'));
     if (showAggadatot() !== want('aggadata')) setShowAggadatot(want('aggadata'));
     if (showYerushalmi() !== want('yerushalmi')) setShowYerushalmi(want('yerushalmi'));
     if (showPesukim() !== want('pesukim')) setShowPesukim(want('pesukim'));
@@ -770,6 +814,7 @@ export default function DafViewer(): JSX.Element {
   // error states are surfaced via `markStatuses()` from the registry.
   const [analysis, setAnalysis] = createSignal<DafAnalysis | null>(null);
   const [halacha, setHalacha] = createSignal<HalachaResult | null>(null);
+  const [chart, setChart] = createSignal<ChartResult | null>(null);
   const [aggadata, setAggadata] = createSignal<AggadataResult | null>(null);
   const [yerushalmi, setYerushalmi] = createSignal<YerushalmiResult | null>(null);
   const [pesukim, setPesukim] = createSignal<PesukimResult | null>(null);
@@ -815,6 +860,7 @@ export default function DafViewer(): JSX.Element {
   const sidebarLabel = (c: SidebarContent): string => {
     if (c.kind === 'argument') return c.section.title || 'Argument';
     if (c.kind === 'halacha') return c.topic.topic || 'Halacha';
+    if (c.kind === 'chart') return c.chart.caption || 'Chart';
     if (c.kind === 'aggadata') return c.story.title || 'Aggada';
     if (c.kind === 'yerushalmi') return c.parallel.yerushalmiRef || 'Yerushalmi';
     if (c.kind === 'pesuk') return c.pasuk.verseRef || 'Pasuk';
@@ -831,6 +877,7 @@ export default function DafViewer(): JSX.Element {
   const sidebarKey = (c: SidebarContent): string => {
     if (c.kind === 'argument') return `argument:${c.section.startSegIdx}-${c.section.endSegIdx}`;
     if (c.kind === 'halacha') return `halacha:${c.topic.topic}`;
+    if (c.kind === 'chart') return `chart:${c.index}:${c.chart.caption ?? c.chart.excerpt ?? ''}`;
     if (c.kind === 'aggadata') return `aggadata:${c.story.title}`;
     if (c.kind === 'yerushalmi') return `yerushalmi:${c.parallel.yerushalmiRef}`;
     if (c.kind === 'pesuk') return `pesuk:${c.pasuk.verseRef}`;
@@ -1074,6 +1121,10 @@ export default function DafViewer(): JSX.Element {
   });
   createEffect(() => {
     if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(CHART_KEY, String(showChart()));
+  });
+  createEffect(() => {
+    if (typeof localStorage === 'undefined') return;
     localStorage.setItem(AGGADATOT_KEY, String(showAggadatot()));
   });
   createEffect(() => {
@@ -1095,6 +1146,12 @@ export default function DafViewer(): JSX.Element {
   });
   createEffect(() => {
     if (!showHalachot() && sidebar()?.kind === 'halacha') {
+      setSidebar(null);
+      setActiveRabbi(null);
+    }
+  });
+  createEffect(() => {
+    if (!showChart() && sidebar()?.kind === 'chart') {
       setSidebar(null);
       setActiveRabbi(null);
     }
@@ -1182,6 +1239,7 @@ export default function DafViewer(): JSX.Element {
     const key = `${t}:${p}:${l}`;
     setAnalysis(analysisSessionCache.get(key) ?? null);
     setHalacha(halachaSessionCache.get(key) ?? null);
+    setChart(chartSessionCache.get(key) ?? null);
     setAggadata(aggadataSessionCache.get(key) ?? null);
     setYerushalmi(yerushalmiSessionCache.get(key) ?? null);
     setPesukim(pesukimSessionCache.get(key) ?? null);
@@ -1337,6 +1395,7 @@ export default function DafViewer(): JSX.Element {
 
     const sectionRanges: Range[] = [];
     const halachaRanges: Range[] = [];
+    const chartRanges: Range[] = [];
     const aggadataRanges: Range[] = [];
     const yerushalmiRanges: Range[] = [];
     const pesukRanges: Range[] = [];
@@ -1349,10 +1408,11 @@ export default function DafViewer(): JSX.Element {
      *  commAnchorActive.direction === 'from-piece'. */
     const commAnchorRanges: Range[] = [];
 
-    const collectRange = (range: Range, bucket: 'section' | 'halacha' | 'aggadata' | 'yerushalmi' | 'pesuk' | 'rishonim') => {
+    const collectRange = (range: Range, bucket: 'section' | 'halacha' | 'chart' | 'aggadata' | 'yerushalmi' | 'pesuk' | 'rishonim') => {
       if (range.collapsed) return;
       if (bucket === 'section') sectionRanges.push(range);
       else if (bucket === 'halacha') halachaRanges.push(range);
+      else if (bucket === 'chart') chartRanges.push(range);
       else if (bucket === 'aggadata') aggadataRanges.push(range);
       else if (bucket === 'yerushalmi') yerushalmiRanges.push(range);
       else if (bucket === 'pesuk') pesukRanges.push(range);
@@ -1464,6 +1524,28 @@ export default function DafViewer(): JSX.Element {
           range.setStartBefore(target[0]);
           range.setEndAfter(target[target.length - 1]);
           collectRange(range, 'halacha');
+        }
+      }
+    }
+
+    // Chart (experimental): the excerpt anchored by the injected marker.
+    if (s?.kind === 'chart') {
+      const anchor = dafRootDiv.querySelector<HTMLElement>(
+        `.daf-chart-anchor[data-idx="${s.index}"]`,
+      );
+      const len = Number(anchor?.getAttribute('data-excerpt-len') ?? 0);
+      const mainText = dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
+      if (anchor && len > 0 && mainText) {
+        const words = Array.from(mainText.querySelectorAll<HTMLElement>('.daf-word'));
+        const after = words.filter(
+          (w) => !!(anchor.compareDocumentPosition(w) & Node.DOCUMENT_POSITION_FOLLOWING),
+        );
+        const target = after.slice(0, len);
+        if (target.length > 0) {
+          const range = document.createRange();
+          range.setStartBefore(target[0]);
+          range.setEndAfter(target[target.length - 1]);
+          collectRange(range, 'chart');
         }
       }
     }
@@ -1711,6 +1793,7 @@ export default function DafViewer(): JSX.Element {
     paintRangeOverlay(overlay, dafRootDiv, commentaryActiveRanges, 'commentary-active');
     paintRangeOverlay(overlay, dafRootDiv, sectionRanges, 'section');
     paintRangeOverlay(overlay, dafRootDiv, halachaRanges, 'halacha');
+    paintRangeOverlay(overlay, dafRootDiv, chartRanges, 'chart');
     paintRangeOverlay(overlay, dafRootDiv, aggadataRanges, 'aggadata');
     paintRangeOverlay(overlay, dafRootDiv, yerushalmiRanges, 'yerushalmi');
     paintRangeOverlay(overlay, dafRootDiv, pesukRanges, 'pesuk');
@@ -1786,7 +1869,7 @@ export default function DafViewer(): JSX.Element {
       // Scroll to the topmost *selection* band only (ignore the ambient
       // commentary tint, which can sit higher up the daf).
       const bands = overlay.querySelectorAll<HTMLElement>(
-        '.daf-range-highlight-section, .daf-range-highlight-halacha, .daf-range-highlight-aggadata, .daf-range-highlight-yerushalmi, .daf-range-highlight-pesuk, .daf-range-highlight-move',
+        '.daf-range-highlight-section, .daf-range-highlight-halacha, .daf-range-highlight-chart, .daf-range-highlight-aggadata, .daf-range-highlight-yerushalmi, .daf-range-highlight-pesuk, .daf-range-highlight-move',
       );
       let topY = Infinity;
       bands.forEach((el) => {
@@ -1972,6 +2055,15 @@ export default function DafViewer(): JSX.Element {
       if (anchors.length > 0) main = injectAnchorMarkers(main, anchors, 'daf-halacha-anchor', ctx);
     }
 
+    // Chart anchors (experimental): one per chart at its region's start.
+    const ch = chart();
+    if (ch && showChart()) {
+      const anchors = ch.charts
+        .map((c, i) => ({ excerpt: c.excerpt ?? '', index: i, startSegIdx: c.startSegIdx }))
+        .filter((x) => x.excerpt.length > 0 || x.startSegIdx != null);
+      if (anchors.length > 0) main = injectAnchorMarkers(main, anchors, 'daf-chart-anchor', ctx);
+    }
+
     // Aggadata anchors: one start + one end per story so the highlight spans
     // from the opening phrase to the closing phrase, rather than bleeding
     // into the next topic.
@@ -2018,7 +2110,7 @@ export default function DafViewer(): JSX.Element {
   const gutterKey = createMemo(() => {
     const t = tokenized();
     if (!t) return '';
-    return `${tractate()}:${page()}:${t.main.length}:${analysis()?.sections.length ?? 0}:${halacha()?.topics.length ?? 0}:${aggadata()?.stories.length ?? 0}:${yerushalmi()?.parallels.length ?? 0}:${pesukim()?.pesukim.length ?? 0}`;
+    return `${tractate()}:${page()}:${t.main.length}:${analysis()?.sections.length ?? 0}:${halacha()?.topics.length ?? 0}:${chart()?.charts.length ?? 0}:${aggadata()?.stories.length ?? 0}:${yerushalmi()?.parallels.length ?? 0}:${pesukim()?.pesukim.length ?? 0}`;
   });
 
   // Mutual exclusion: opening anything in the argument/rabbi/aggadata sidebar
@@ -2049,6 +2141,15 @@ export default function DafViewer(): JSX.Element {
     clearCommentarySelection();
     setActiveRabbi(null);
     setSidebar({ kind: 'halacha', topic: h.topics[index], index });
+    setLastInteractedCard('argument');
+  };
+
+  const openChart = (index: number) => {
+    const ch = chart();
+    if (!ch || !ch.charts[index]) return;
+    clearCommentarySelection();
+    setActiveRabbi(null);
+    setSidebar({ kind: 'chart', chart: ch.charts[index], index });
     setLastInteractedCard('argument');
   };
 
@@ -2097,6 +2198,7 @@ export default function DafViewer(): JSX.Element {
     }
     if (kind === 'argument') openArgument(index);
     else if (kind === 'halacha') openHalacha(index);
+    else if (kind === 'chart') openChart(index);
     else if (kind === 'aggadata') openStory(index);
     else if (kind === 'yerushalmi') openYerushalmi(index);
     else if (kind === 'pesuk') openPasuk(index);
@@ -3026,6 +3128,15 @@ export default function DafViewer(): JSX.Element {
                   triggerKey={gutterKey()}
                   onClick={onGutterClick}
                   kind="halacha"
+                  activeKey={sidebarActiveKey()}
+                />
+              </Show>
+              <Show when={showChart()}>
+                <GutterIcons
+                  containerRef={dafRootEl}
+                  triggerKey={gutterKey()}
+                  onClick={onGutterClick}
+                  kind="chart"
                   activeKey={sidebarActiveKey()}
                 />
               </Show>
