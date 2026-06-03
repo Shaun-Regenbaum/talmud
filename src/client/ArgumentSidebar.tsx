@@ -1882,34 +1882,16 @@ function YerushalmiDiff(props: SpecialBlockProps): JSX.Element {
 
 interface YerushalmiPassage { ref: string; heRef: string; hebrew: string; english: string; }
 interface YerushalmiCurated { ref: string; title: string; summary: string; url: string; bavliAnchor: string; hebrew: string; english: string; }
-interface YerushalmiOutlinePoint {
-  topic: string; yerushalmiRef?: string; refRaw?: string;
-  marker?: string; label?: string; he: string; en: string;
-  segIdx?: number; excerpt?: string; score?: number;
-}
-interface YerushalmiData { parallels: YerushalmiPassage[]; curated: YerushalmiCurated[]; outline: YerushalmiOutlinePoint[]; }
+interface YerushalmiData { parallels: YerushalmiPassage[]; curated: YerushalmiCurated[]; }
 async function fetchYerushalmiData(key: string): Promise<YerushalmiData> {
   const [tractate, page] = key.split('|');
   const res = await fetch(`/api/yerushalmi/${encodeURIComponent(tractate)}/${encodeURIComponent(page)}`);
-  if (!res.ok) return { parallels: [], curated: [], outline: [] };
-  const data = await res.json() as { parallels?: YerushalmiPassage[]; curated?: YerushalmiCurated[]; outline?: YerushalmiOutlinePoint[] };
+  if (!res.ok) return { parallels: [], curated: [] };
+  const data = await res.json() as { parallels?: YerushalmiPassage[]; curated?: YerushalmiCurated[] };
   return {
     parallels: Array.isArray(data.parallels) ? data.parallels : [],
     curated: Array.isArray(data.curated) ? data.curated : [],
-    outline: Array.isArray(data.outline) ? data.outline : [],
   };
-}
-
-/** Group the flat aligned outline into topic sections (consecutive points share
- *  a topic + Yerushalmi ref). The Sefaria deep-link comes from the first point. */
-function groupYerushalmiOutline(points: YerushalmiOutlinePoint[]): Array<{ topic: string; ref?: string; points: YerushalmiOutlinePoint[] }> {
-  const groups: Array<{ topic: string; ref?: string; points: YerushalmiOutlinePoint[] }> = [];
-  for (const p of points) {
-    const last = groups[groups.length - 1];
-    if (last && last.topic === p.topic) last.points.push(p);
-    else groups.push({ topic: p.topic, ref: p.yerushalmiRef, points: [p] });
-  }
-  return groups;
 }
 
 /** The actual Jerusalem Talmud passage(s) for this daf — He + En, from the daf's
@@ -1924,43 +1906,8 @@ function YerushalmiParallel(props: SpecialBlockProps): JSX.Element {
   const passage = (): YerushalmiPassage | undefined =>
     (data()?.parallels ?? []).find((p) => p.ref === wantedRef());
   const curated = (): YerushalmiCurated[] => data()?.curated ?? [];
-  const outlineGroups = () => groupYerushalmiOutline(data()?.outline ?? []);
   return (
     <>
-      {/* The dafyomi "Yerushalmi to Match" outline — the digestible parallel.
-          Each point is tagged with the Bavli segment it parallels (§N) so the
-          reader sees WHICH PART has a parallel; unanchored points are the
-          divergent Yerushalmi gemara. */}
-      <Show when={outlineGroups().length > 0}>
-        <SectionCard label="yerushalmi.outline">
-          <For each={outlineGroups()}>{(g) => (
-            <div style={{ 'margin-bottom': '0.7rem' }}>
-              <div style={{ display: 'flex', 'align-items': 'baseline', gap: '0.4rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.25rem' }}>
-                <span style={{ 'font-weight': 600, color: ACCENTS.yerushalmi, 'font-size': '0.84rem' }}>{g.topic}</span>
-                <Show when={g.ref}>
-                  <a href={`https://www.sefaria.org/${encodeURIComponent(g.ref!.replace(/ /g, '_'))}`} target="_blank" rel="noopener"
-                     style={{ 'font-size': '0.68rem', color: '#888', 'text-decoration': 'none' }}>{g.ref} ↗</a>
-                </Show>
-              </div>
-              <For each={g.points}>{(p) => (
-                <Show when={p.en}>
-                  <div style={{ display: 'flex', gap: '0.4rem', 'margin-bottom': '0.2rem', 'align-items': 'baseline' }}>
-                    <Show when={p.segIdx != null} fallback={<span style={{ width: '1.6rem', 'flex-shrink': 0 }} />}>
-                      <span title={p.excerpt} style={{
-                        'flex-shrink': 0, 'font-size': '0.6rem', 'font-weight': 600, padding: '0.05rem 0.3rem',
-                        background: 'rgba(15,118,110,.12)', color: ACCENTS.yerushalmi, 'border-radius': '3px', 'white-space': 'nowrap',
-                      }}>§{(p.segIdx ?? 0) + 1}</span>
-                    </Show>
-                    <span style={{ 'font-size': '0.82rem', color: '#333', 'line-height': 1.5 }}>
-                      <Show when={p.label}><b style={{ color: '#555' }}>{p.label} </b></Show>{p.en}
-                    </span>
-                  </div>
-                </Show>
-              )}</For>
-            </div>
-          )}</For>
-        </SectionCard>
-      </Show>
       <Show when={data.loading || passage()}>
         <SectionCard label="yerushalmi.readParallel" collapsed={true}>
           <Show when={passage()} fallback={
