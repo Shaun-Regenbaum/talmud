@@ -1,4 +1,4 @@
-import type { GenerationId } from './generations';
+import { colorForGeneration, type GenerationId } from './generations';
 
 export interface GenerationRabbi {
   name: string;
@@ -189,7 +189,11 @@ export function injectRabbiUnderlines(html: string, rabbis: GenerationRabbi[]): 
     if (!parent) continue;
 
     const wrapperEl = doc.createElement('span');
+    // Keep the rabbi-gen-<id> class for hover/highlight targeting, but drive
+    // the underline color from the computed generation spectrum inline so the
+    // CSS doesn't carry a parallel (drift-prone) per-id color table.
     wrapperEl.className = `rabbi-underline rabbi-gen-${w.generation}`;
+    wrapperEl.style.borderBottomColor = colorForGeneration(w.generation);
     wrapperEl.setAttribute('data-rabbi', w.rabbiName);
 
     // Move first..last (inclusive) + any whitespace/text nodes between them

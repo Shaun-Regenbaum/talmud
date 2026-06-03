@@ -30,6 +30,10 @@ describe('deriveRegionFromGeneration — every generation ID', () => {
     'amora-bavel-8':  'bavel',
     // Savoraim are the Babylonian post-Talmudic editors.
     'savora':         'bavel',
+    // Post-Talmudic eras aren't pinned to a Talmudic region — leave null.
+    'geonim':         null,
+    'rishonim':       null,
+    'achronim':       null,
     // Unknown falls through to null — downstream code can leave the rabbi on
     // the "other" bucket rather than forcing a region.
     'unknown':        null,

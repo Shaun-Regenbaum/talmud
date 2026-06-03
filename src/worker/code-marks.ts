@@ -104,7 +104,7 @@ Output STRICT JSON only (no markdown, no prose):
       "fields": {
         "name": "Rabbi's conventional English name (e.g. 'Rabbi Eliezer')",
         "nameHe": "Same Hebrew name as excerpt — duplicated for clarity downstream.",
-        "generation": "one of the IDs above (zugim, tanna-1...tanna-6, amora-ey-1...amora-ey-5, amora-bavel-1...amora-bavel-8, savora, unknown)"
+        "generation": "one of the IDs above (zugim, tanna-1...tanna-6, amora-ey-1...amora-ey-5, amora-bavel-1...amora-bavel-8, savora, geonim, rishonim, achronim, unknown). geonim/rishonim/achronim are RARE in the Bavli text — use only when a post-Talmudic authority is explicitly named (e.g. in a quoted commentary)."
       }
     }
   ]

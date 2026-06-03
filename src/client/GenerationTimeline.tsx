@@ -1,5 +1,5 @@
 import { createMemo, For, Show, type JSX } from 'solid-js';
-import { GENERATIONS, type GenerationGroup, type GenerationId } from './generations';
+import { GENERATIONS, GENERATION_BY_ID, type GenerationGroup, type GenerationId } from './generations';
 import type { GenerationRabbi } from './injectRabbiUnderlines';
 
 export interface GenerationTimelineProps {
@@ -37,15 +37,17 @@ interface AmoraSlot {
   era: string;
 }
 
+// Colors come from the computed generation spectrum (keyed by primaryId) so
+// the timeline can't drift from the underline palette.
 const AMORA_SLOTS: AmoraSlot[] = [
-  { primaryId: 'amora-bavel-1', ids: ['amora-ey-1', 'amora-bavel-1'], color: '#7c2d12', label: 'Amora (1)', era: 'c. 220 – 250 CE' },
-  { primaryId: 'amora-bavel-2', ids: ['amora-ey-2', 'amora-bavel-2'], color: '#9a3412', label: 'Amora (2)', era: 'c. 250 – 290 CE' },
-  { primaryId: 'amora-bavel-3', ids: ['amora-ey-3', 'amora-bavel-3'], color: '#c2410c', label: 'Amora (3)', era: 'c. 290 – 320 CE' },
-  { primaryId: 'amora-bavel-4', ids: ['amora-ey-4', 'amora-bavel-4'], color: '#ea580c', label: 'Amora (4)', era: 'c. 320 – 350 CE' },
-  { primaryId: 'amora-bavel-5', ids: ['amora-ey-5', 'amora-bavel-5'], color: '#f97316', label: 'Amora (5)', era: 'c. 350 – 400 CE' },
-  { primaryId: 'amora-bavel-6', ids: ['amora-bavel-6'],                color: '#fb923c', label: 'Amora (6)', era: 'c. 375 – 427 CE' },
-  { primaryId: 'amora-bavel-7', ids: ['amora-bavel-7'],                color: '#fdba74', label: 'Amora (7)', era: 'c. 427 – 460 CE' },
-  { primaryId: 'amora-bavel-8', ids: ['amora-bavel-8'],                color: '#fed7aa', label: 'Amora (8)', era: 'c. 460 – 500 CE' },
+  { primaryId: 'amora-bavel-1', ids: ['amora-ey-1', 'amora-bavel-1'], color: GENERATION_BY_ID['amora-bavel-1'].color, label: 'Amora (1)', era: 'c. 220 – 250 CE' },
+  { primaryId: 'amora-bavel-2', ids: ['amora-ey-2', 'amora-bavel-2'], color: GENERATION_BY_ID['amora-bavel-2'].color, label: 'Amora (2)', era: 'c. 250 – 290 CE' },
+  { primaryId: 'amora-bavel-3', ids: ['amora-ey-3', 'amora-bavel-3'], color: GENERATION_BY_ID['amora-bavel-3'].color, label: 'Amora (3)', era: 'c. 290 – 320 CE' },
+  { primaryId: 'amora-bavel-4', ids: ['amora-ey-4', 'amora-bavel-4'], color: GENERATION_BY_ID['amora-bavel-4'].color, label: 'Amora (4)', era: 'c. 320 – 350 CE' },
+  { primaryId: 'amora-bavel-5', ids: ['amora-ey-5', 'amora-bavel-5'], color: GENERATION_BY_ID['amora-bavel-5'].color, label: 'Amora (5)', era: 'c. 350 – 400 CE' },
+  { primaryId: 'amora-bavel-6', ids: ['amora-bavel-6'],                color: GENERATION_BY_ID['amora-bavel-6'].color, label: 'Amora (6)', era: 'c. 375 – 427 CE' },
+  { primaryId: 'amora-bavel-7', ids: ['amora-bavel-7'],                color: GENERATION_BY_ID['amora-bavel-7'].color, label: 'Amora (7)', era: 'c. 427 – 460 CE' },
+  { primaryId: 'amora-bavel-8', ids: ['amora-bavel-8'],                color: GENERATION_BY_ID['amora-bavel-8'].color, label: 'Amora (8)', era: 'c. 460 – 500 CE' },
 ];
 
 function gensByGroup(group: GenerationGroup) {
@@ -203,7 +205,7 @@ export function GenerationTimeline(props: GenerationTimelineProps): JSX.Element 
             <span style={{
               display: 'inline-block', width: '0.65rem', height: '0.65rem',
               'border-radius': '50%',
-              border: '2px solid #d6d3d1', 'border-top-color': '#7c2d12',
+              border: '2px solid #d6d3d1', 'border-top-color': GENERATION_BY_ID['zugim'].color,
               animation: 'daf-spin 0.8s linear infinite',
               'flex-shrink': 0,
             }} />
