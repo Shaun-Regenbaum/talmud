@@ -1,28 +1,36 @@
 /**
  * App activity (accesses + geography) from Cloudflare's zone HTTP analytics.
- * Every request to the shaunregenbaum.com zone is seen at the CF edge, so its
- * daily-rollup dataset (`httpRequests1dGroups`) gives a true picture of how
- * often the app is hit and from where — without the app logging anything.
+ * Every request to a zone is seen at the CF edge, so its daily-rollup dataset
+ * (`httpRequests1dGroups`) gives a true picture of how often the app is hit and
+ * from where — without the app logging anything.
  *
- * Scope note: the dataset is whole-zone (it has no per-host filter), but
- * talmud.shaunregenbaum.com is ~98% of the zone's traffic, so the figures are
- * effectively the app. `uniques` (deduped daily visitors) is the human-facing
- * "accesses" signal; `requests` is total edge volume and includes bots,
- * crawlers, and assets.
+ * The app is served on two hosts in two zones: talmud.shaunregenbaum.com (the
+ * shaunregenbaum.com zone, where the app is ~98% of traffic) and talmud.dev
+ * (a dedicated zone). CF_ZONE_TAG is a COMMA-SEPARATED list of zone ids; each
+ * is queried independently and the daily rows are merged by date so the Usage
+ * page shows combined app traffic across both domains. (One visitor hitting
+ * both hosts is counted in each zone's `uniques`, so merged "visits" can
+ * slightly double-count cross-domain visitors — acceptable for a traffic gauge;
+ * `requests` is an exact sum.)
  *
- * Requires a Cloudflare API token with "Zone Analytics: Read" on the
- * shaunregenbaum.com zone. The account-scoped CF_ANALYTICS_TOKEN used for AI
- * Gateway cost is NOT enough (it has no zone access). Set a dedicated token:
+ * Requires a Cloudflare API token with "Zone Analytics: Read" on EVERY zone in
+ * CF_ZONE_TAG. The account-scoped CF_ANALYTICS_TOKEN used for AI Gateway cost is
+ * NOT enough (it has no zone access). Set a dedicated token:
  *   wrangler secret put CF_ZONE_ANALYTICS_TOKEN
- * and the zone id (not secret) as a var:  CF_ZONE_TAG = "..."   in wrangler.toml
- * (If you instead broaden CF_ANALYTICS_TOKEN to include Zone Analytics: Read,
- * leave CF_ZONE_ANALYTICS_TOKEN unset — this falls back to it.)
+ * and the zone ids (not secret) as a var:  CF_ZONE_TAG = "id1,id2"  in
+ * wrangler.toml. (If you instead broaden CF_ANALYTICS_TOKEN to include Zone
+ * Analytics: Read on those zones, leave CF_ZONE_ANALYTICS_TOKEN unset — this
+ * falls back to it.)
  *
- * Degrades gracefully exactly like aigw-analytics.ts: a missing token/zone or a
- * failed query returns a { configured/ok: false, error } shape so the dashboard
- * states the problem plainly instead of inventing numbers. The GraphQL field
- * names follow CF's documented zone analytics schema; if one is wrong the query
- * errors and the dashboard surfaces that string verbatim for diagnosis.
+ * Per-zone DEGRADATION: zones are fetched independently, so a zone the token
+ * isn't authorized for (or that errors) is dropped from the merge while the
+ * others still report — the overall result is `ok` as long as at least one zone
+ * succeeds. A combined query (`zoneTag_in`) is deliberately NOT used because CF
+ * fails the WHOLE query if the token lacks any one zone. When some zones fail
+ * the `error` field names them (the dashboard hides it while `ok`, but it's in
+ * the raw payload for diagnosis). A missing token/tag, or ALL zones failing,
+ * returns the { configured/ok: false, error } shape like aigw-analytics.ts so
+ * the dashboard states the problem plainly instead of inventing numbers.
  *
  * NOTE: httpRequests1dGroups is the aggregated (unsampled) daily dataset — no
  * sampleInterval weighting needed. We use it rather than the adaptive dataset
@@ -100,11 +108,48 @@ function ymd(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
+// One zone's daily rows over [start, end]. Returns the raw groups so the caller
+// can merge across zones; an error string (instead of throwing) keeps one
+// zone's failure from sinking the others.
+interface ZoneResult {
+  zoneTag: string;
+  ok: boolean;
+  error?: string;
+  groups: DailyGroup[];
+}
+
+async function fetchOneZone(token: string, zoneTag: string, start: string, end: string): Promise<ZoneResult> {
+  try {
+    const res = await fetch(GRAPHQL_URL, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
+      body: JSON.stringify({ query: QUERY, variables: { zoneTag, start, end } }),
+    });
+    if (!res.ok) {
+      return { zoneTag, ok: false, error: `HTTP ${res.status}`, groups: [] };
+    }
+    const json = (await res.json()) as {
+      data?: { viewer?: { zones?: Array<{ httpRequests1dGroups?: DailyGroup[] }> } };
+      errors?: Array<{ message?: string }>;
+    };
+    if (json.errors && json.errors.length > 0) {
+      return { zoneTag, ok: false, error: json.errors.map((e) => e.message).filter(Boolean).join('; ').slice(0, 300), groups: [] };
+    }
+    const zone = json.data?.viewer?.zones?.[0];
+    if (!zone) {
+      return { zoneTag, ok: false, error: 'zone not found (check CF_ZONE_TAG and token zone scope)', groups: [] };
+    }
+    return { zoneTag, ok: true, groups: zone.httpRequests1dGroups ?? [] };
+  } catch (err) {
+    return { zoneTag, ok: false, error: String((err as Error)?.message ?? err).slice(0, 300), groups: [] };
+  }
+}
+
 export async function fetchZoneActivity(env: ZoneEnv, days = 30): Promise<ZoneActivity> {
   const token = env.CF_ZONE_ANALYTICS_TOKEN || env.CF_ANALYTICS_TOKEN;
-  const zoneTag = env.CF_ZONE_TAG;
-  if (!token || !zoneTag) {
-    const missing = [!token && 'CF_ZONE_ANALYTICS_TOKEN', !zoneTag && 'CF_ZONE_TAG']
+  const zoneTags = (env.CF_ZONE_TAG ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+  if (!token || zoneTags.length === 0) {
+    const missing = [!token && 'CF_ZONE_ANALYTICS_TOKEN', zoneTags.length === 0 && 'CF_ZONE_TAG']
       .filter(Boolean)
       .join(', ');
     return { configured: false, ok: false, error: `not configured (missing: ${missing})` };
@@ -112,63 +157,59 @@ export async function fetchZoneActivity(env: ZoneEnv, days = 30): Promise<ZoneAc
 
   const end = new Date();
   const start = new Date(end.getTime() - days * 24 * 60 * 60 * 1000);
-  const variables = { zoneTag, start: ymd(start), end: ymd(end) };
+  const windowStart = ymd(start);
+  const windowEnd = ymd(end);
 
-  try {
-    const res = await fetch(GRAPHQL_URL, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
-      body: JSON.stringify({ query: QUERY, variables }),
-    });
-    if (!res.ok) {
-      return { configured: true, ok: false, error: `HTTP ${res.status}` };
-    }
-    const json = (await res.json()) as {
-      data?: { viewer?: { zones?: Array<{ httpRequests1dGroups?: DailyGroup[] }> } };
-      errors?: Array<{ message?: string }>;
-    };
-    if (json.errors && json.errors.length > 0) {
-      return { configured: true, ok: false, error: json.errors.map((e) => e.message).filter(Boolean).join('; ').slice(0, 300) };
-    }
-    const zone = json.data?.viewer?.zones?.[0];
-    if (!zone) {
-      return { configured: true, ok: false, error: 'zone not found (check CF_ZONE_TAG and token zone scope)' };
-    }
+  // Query each zone independently so an unauthorized/failing zone is dropped
+  // rather than failing the whole request (see header note on per-zone scope).
+  const results = await Promise.all(zoneTags.map((tag) => fetchOneZone(token, tag, windowStart, windowEnd)));
+  const okResults = results.filter((r) => r.ok);
+  const failed = results.filter((r) => !r.ok);
 
-    const groups = zone.httpRequests1dGroups ?? [];
-    const byDay: ZoneDayRow[] = groups.map((g) => ({
-      date: g.dimensions?.date ?? '',
-      requests: g.sum?.requests ?? 0,
-      visits: g.uniq?.uniques ?? 0,
-    }));
+  if (okResults.length === 0) {
+    const err = failed.map((r) => `${r.zoneTag}: ${r.error}`).join('; ').slice(0, 300) || 'all zones failed';
+    return { configured: true, ok: false, error: err };
+  }
 
-    // "From where" aggregates each day's countryMap across the whole window.
-    const countryReq = new Map<string, number>();
-    for (const g of groups) {
+  // Merge daily rows across zones by date (sum requests + visits).
+  const dayReq = new Map<string, number>();
+  const dayVis = new Map<string, number>();
+  const countryReq = new Map<string, number>();
+  for (const r of okResults) {
+    for (const g of r.groups) {
+      const date = g.dimensions?.date ?? '';
+      dayReq.set(date, (dayReq.get(date) ?? 0) + (g.sum?.requests ?? 0));
+      dayVis.set(date, (dayVis.get(date) ?? 0) + (g.uniq?.uniques ?? 0));
       for (const c of g.sum?.countryMap ?? []) {
         const name = c.clientCountryName || '';
         countryReq.set(name, (countryReq.get(name) ?? 0) + (c.requests ?? 0));
       }
     }
-    const byCountry: ZoneCountryRow[] = [...countryReq.entries()]
-      .map(([country, requests]) => ({ country, requests }))
-      .sort((a, b) => b.requests - a.requests)
-      .slice(0, 20);
-
-    return {
-      configured: true,
-      ok: true,
-      windowStart: variables.start,
-      windowEnd: variables.end,
-      byDay,
-      byCountry,
-      totals: {
-        day: summarize(byDay, 1),
-        week: summarize(byDay, 7),
-        month: summarize(byDay, days),
-      },
-    };
-  } catch (err) {
-    return { configured: true, ok: false, error: String((err as Error)?.message ?? err).slice(0, 300) };
   }
+
+  const byDay: ZoneDayRow[] = [...dayReq.keys()]
+    .sort()
+    .map((date) => ({ date, requests: dayReq.get(date) ?? 0, visits: dayVis.get(date) ?? 0 }));
+
+  const byCountry: ZoneCountryRow[] = [...countryReq.entries()]
+    .map(([country, requests]) => ({ country, requests }))
+    .sort((a, b) => b.requests - a.requests)
+    .slice(0, 20);
+
+  return {
+    configured: true,
+    ok: true,
+    // Surface partial failures in the payload for diagnosis (the dashboard hides
+    // `error` while `ok`, but it's visible in the raw JSON / logs).
+    error: failed.length > 0 ? failed.map((r) => `${r.zoneTag}: ${r.error}`).join('; ').slice(0, 300) : undefined,
+    windowStart,
+    windowEnd,
+    byDay,
+    byCountry,
+    totals: {
+      day: summarize(byDay, 1),
+      week: summarize(byDay, 7),
+      month: summarize(byDay, days),
+    },
+  };
 }

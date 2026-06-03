@@ -12,10 +12,11 @@ worker_loaders = [{ binding = "LOADER" }]
 # Custom production domains. Both zones must be active on the same Cloudflare
 # account (PropheX) that `wrangler whoami` reports. talmud.dev and
 # talmud.shaunregenbaum.com point at this same worker — identical backend,
-# KV cache, queues, and crons (one deployment, two hostnames).
+# KV cache, queues, and crons (one deployment, three hostnames).
 routes = [
   { pattern = "talmud.shaunregenbaum.com", custom_domain = true },
-  { pattern = "talmud.dev", custom_domain = true }
+  { pattern = "talmud.dev", custom_domain = true },
+  { pattern = "www.talmud.dev", custom_domain = true }
 ]
 
 [assets]
@@ -67,13 +68,18 @@ OPENROUTER_GATEWAY_PROVIDER = "openrouter"
 # ~$70 (entity marks only). Safe to leave at "1" — it's a no-op once latched.
 # To re-run a pass, delete the obs-backfill-cursor:v1 KV key.
 OBSERVATIONS_WARM_SHAS = "1"
-# Zone (shaunregenbaum.com) id for the Usage-page activity tracker. Not secret.
-# Used by src/worker/cf-zone-analytics.ts to query CF zone HTTP analytics
-# (httpRequests1dGroups) for app accesses + country breakdown. The query also
-# needs a token with "Zone Analytics: Read" set as the CF_ZONE_ANALYTICS_TOKEN
-# secret (`wrangler secret put CF_ZONE_ANALYTICS_TOKEN`); it falls back to
-# CF_ANALYTICS_TOKEN if that one is broadened to include zone analytics.
-CF_ZONE_TAG = "4808b439c50e3a42494ae7e0b2fa1bec"
+# Zone ids for the Usage-page activity tracker. Not secret. COMMA-SEPARATED:
+# the app is served on two zones (shaunregenbaum.com + talmud.dev) and
+# src/worker/cf-zone-analytics.ts queries each, then merges the daily rows so
+# Usage shows combined traffic across both domains. Order is
+# shaunregenbaum.com, talmud.dev. Used to query CF zone HTTP analytics
+# (httpRequests1dGroups) for app accesses + country breakdown. The query needs
+# a token with "Zone Analytics: Read" on EVERY listed zone, set as the
+# CF_ZONE_ANALYTICS_TOKEN secret (`wrangler secret put CF_ZONE_ANALYTICS_TOKEN`);
+# it falls back to CF_ANALYTICS_TOKEN if that one is broadened to include zone
+# analytics. A zone the token can't read is dropped from the merge (the others
+# still report); it does not break the page.
+CF_ZONE_TAG = "4808b439c50e3a42494ae7e0b2fa1bec,af7b181368ea154cd40b55404b47d818"
 # LLM spend budget (USD), enforced by src/worker/budget.ts at the runLLM
 # chokepoint. DAILY_BUDGET_USD is a hard ceiling on ALL spend per UTC day (the
 # guard latches a pause at 95% of this to leave headroom for in-flight jobs);
