@@ -576,7 +576,7 @@ const CATALOG = {
 
   // — Yerushalmi body —
   'yerushalmi.differences': { en: 'Differences from the Yerushalmi', he: 'הבדלים מן הירושלמי' },
-  'yerushalmi.readParallel': { en: 'Read the parallel (Yerushalmi)', he: 'קרא את המקבילה (ירושלמי)' },
+  'yerushalmi.readOnSefaria': { en: 'Read the full Yerushalmi on Sefaria', he: 'קרא את הירושלמי המלא בספריא' },
   'yerushalmi.curatedParallel': { en: 'Curated parallel (Sefaria)', he: 'מקבילה נבחרת (ספריא)' },
 
   // — Aggadata body —
