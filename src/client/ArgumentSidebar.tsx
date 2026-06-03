@@ -12,7 +12,7 @@ import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeli
 import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
 import CodificationMap from './CodificationMap';
 import { codeMapFromCodification, SIDE_COLOR, type CodificationData } from './flow/codeMapLayout';
-import { type DerivationSource } from '../lib/halacha/codifiers';
+import { type DerivationSource, parseBavliRef } from '../lib/halacha/codifiers';
 import ArgumentNarrative from './ArgumentNarrative';
 import { deriveVoiceEdges } from '../lib/typing/voices';
 import { voicesMapEligible, voicesShowMap, voicesShowFallback } from '../lib/typing/profile';
@@ -1486,6 +1486,24 @@ const DERIVATION_ROLE_LABEL: Record<DerivationSource['role'], string> = {
   primary: 'primary source', related: 'related', root: 'scriptural root',
 };
 
+// `parseBavliRef` (imported from lib/halacha/codifiers) turns a Bavli source
+// ref into the tractate + page this reader navigates by. Tanakh roots and
+// Yerushalmi refs return null — not dapim here — so they stay non-clickable.
+
+// Same `?tractate=&page=` URL contract the overview cross-references use. The
+// href is real (middle-click / open-in-new-tab work); onClick keeps the SPA
+// navigation in the common case.
+function dafHref(target: { tractate: string; page: string }): string {
+  const u = new URL(window.location.href);
+  u.searchParams.set('tractate', target.tractate);
+  u.searchParams.set('page', target.page);
+  u.hash = '';
+  return u.pathname + u.search;
+}
+function navigateToDaf(target: { tractate: string; page: string }): void {
+  window.location.href = dafHref(target);
+}
+
 // Halacha "where it comes from": the gemara (+ scriptural) sources the codified
 // ruling derives from. Reads the codifier refs off the halacha.codification leaf
 // and fetches the deterministic /api/derivation (reverse Sefaria). The current
@@ -1509,21 +1527,42 @@ function HalachaDerivation(props: SpecialBlockProps): JSX.Element {
           {t('halacha.derivation')}
         </div>
         <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.4rem' }}>
-          <For each={sources()}>{(s) => (
-            <div style={{
+          <For each={sources()}>{(s) => {
+            // Bavli sources (other than the current daf) navigate to that daf.
+            const target = s.kind === 'bavli' && !s.isCurrent ? parseBavliRef(s.ref) : null;
+            const rowStyle: JSX.CSSProperties = {
               display: 'flex', 'align-items': 'baseline', gap: '0.5rem',
               background: s.isCurrent ? '#fdf2f2' : '#fff',
               border: s.isCurrent ? '1.5px solid #8a2a2b' : '1px solid #e4e0d4',
               'border-radius': '8px', padding: '0.4rem 0.6rem',
               'box-shadow': '0 1px 1.4px rgba(58,51,32,0.1)',
-            }}>
-              <span style={{ 'font-family': 'system-ui, -apple-system, sans-serif', 'font-size': '0.82rem', 'font-weight': 600, color: '#2a2723' }}>{s.ref}</span>
-              <span style={{ 'font-family': 'system-ui, -apple-system, sans-serif', 'font-size': '0.62rem', 'text-transform': 'uppercase', 'letter-spacing': '0.04em', color: '#9a958a' }}>{DERIVATION_ROLE_LABEL[s.role]}</span>
-              <Show when={s.isCurrent}>
-                <span style={{ 'margin-left': 'auto', 'font-family': 'system-ui, -apple-system, sans-serif', 'font-size': '0.58rem', 'font-weight': 700, color: '#fff', background: '#8a2a2b', 'border-radius': '3px', padding: '0.05rem 0.3rem', 'flex-shrink': 0 }}>YOU ARE HERE</span>
+              'text-decoration': 'none', cursor: target ? 'pointer' : 'default',
+            };
+            const inner = (
+              <>
+                <span style={{ 'font-family': 'system-ui, -apple-system, sans-serif', 'font-size': '0.82rem', 'font-weight': 600, color: '#2a2723' }}>{s.ref}</span>
+                <span style={{ 'font-family': 'system-ui, -apple-system, sans-serif', 'font-size': '0.62rem', 'text-transform': 'uppercase', 'letter-spacing': '0.04em', color: '#9a958a' }}>{DERIVATION_ROLE_LABEL[s.role]}</span>
+                <Show when={s.isCurrent}>
+                  <span style={{ 'margin-left': 'auto', 'font-family': 'system-ui, -apple-system, sans-serif', 'font-size': '0.58rem', 'font-weight': 700, color: '#fff', background: '#8a2a2b', 'border-radius': '3px', padding: '0.05rem 0.3rem', 'flex-shrink': 0 }}>YOU ARE HERE</span>
+                </Show>
+                <Show when={target}>
+                  <span aria-hidden="true" style={{ 'margin-left': 'auto', color: '#b8b2a4', 'font-size': '0.95rem', 'line-height': 1, 'flex-shrink': 0 }}>›</span>
+                </Show>
+              </>
+            );
+            return (
+              <Show when={target} fallback={<div style={rowStyle}>{inner}</div>}>
+                <a
+                  href={dafHref(target!)}
+                  onClick={(e) => { e.preventDefault(); navigateToDaf(target!); }}
+                  title={t('overview.goToDaf', { daf: s.ref })}
+                  style={rowStyle}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#8a2a2b'; e.currentTarget.style.background = '#fbf6f6'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e4e0d4'; e.currentTarget.style.background = '#fff'; }}
+                >{inner}</a>
               </Show>
-            </div>
-          )}</For>
+            );
+          }}</For>
         </div>
       </div>
     </Show>

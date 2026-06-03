@@ -186,6 +186,26 @@ export function baseDafRef(ref: string): string {
   return m ? m[1] : r.replace(/:\d+(?:-\d+)?$/, '');
 }
 
+/**
+ * Inverse of `baseDafRef`: split a Bavli base ref ("Berakhot 31a", "Bava Metzia
+ * 59b") into the tractate + page the in-app reader navigates by. The tractate
+ * may be several words (Rosh Hashanah, Moed Katan, Avodah Zarah), so the daf
+ * (\d+[ab]) is the anchor and everything before it is the tractate, VERBATIM.
+ *
+ * Deliberately does NO spelling normalization: the tractate is whatever the
+ * source ref spelled. Callers navigate only when that string matches an app
+ * tractate slug (the Sefaria-derived refs match for all of Shas today). If a
+ * future source spells a tractate differently, this is the seam where a
+ * normalization map would slot in — see tests/halacha-codifiers.test.ts.
+ *
+ * Returns null for anything that isn't a "<words> <daf>" Bavli ref (Tanakh
+ * verses, Yerushalmi chapter:halacha refs), which aren't dapim in this reader.
+ */
+export function parseBavliRef(ref: string): { tractate: string; page: string } | null {
+  const m = (ref ?? '').trim().match(/^(.+?)\s+(\d+[ab])$/);
+  return m ? { tractate: m[1], page: m[2] } : null;
+}
+
 export type DerivationRole = 'primary' | 'related' | 'root';
 
 export interface DerivationSource {
