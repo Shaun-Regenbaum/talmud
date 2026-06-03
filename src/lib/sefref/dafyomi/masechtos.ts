@@ -223,6 +223,13 @@ export function getDafyomiMasechet(tractate: string): DafyomiMasechet | null {
   return { ...seed, lastDaf, verified: seed.verified ?? false };
 }
 
+/** Every dafyomi.co.il-mapped masechet with resolvable daf bounds, in SEED
+ *  order (Chullin first, then Shas order). Used by the gradual ingestion cron to
+ *  walk all of Shas. */
+export function listDafyomiMasechtos(): DafyomiMasechet[] {
+  return SEED.map((s) => getDafyomiMasechet(s.tractate)).filter((m): m is DafyomiMasechet => m != null);
+}
+
 /** Daf number -> zero-padded 3-digit string. Throws outside 1..999. */
 export function dafToNNN(daf: number): string {
   if (!Number.isInteger(daf) || daf < 1 || daf > 999) {
