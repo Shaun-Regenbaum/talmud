@@ -60,15 +60,17 @@ export const HALACHA_OUTPUT_SCHEMA = responseFormat('halacha_topics',
   segInstances({ topic: z.string(), topicHe: z.string(), summary: z.string(), excerpt: z.string() }));
 
 // Chart (experimental): comparison tables for dense multi-opinion regions.
-// Cells are Hebrew (like the dafyomi.co.il charts this grounds on); the first
-// cell of every row is its row-label. `grounded` = a dafyomi chart anchored it.
+// Every cell is BILINGUAL ({en, he}) so the table renders in the reader's
+// language; the first cell of every row is its row-label. `grounded` = a
+// dafyomi chart anchored it.
+const CHART_CELL = z.object({ en: z.string(), he: z.string() });
 export const CHART_OUTPUT_SCHEMA = responseFormat('chart_tables',
   segInstances({
     caption: z.string(),
     captionHe: z.string(),
-    headers: z.array(z.string()),
-    rows: z.array(z.array(z.string())),
-    notes: z.array(z.object({ marker: z.string(), text: z.string() })),
+    headers: z.array(CHART_CELL),
+    rows: z.array(z.array(CHART_CELL)),
+    notes: z.array(z.object({ marker: z.string(), en: z.string(), he: z.string() })),
     excerpt: z.string(),
     grounded: z.boolean(),
     confidence: z.enum(['high', 'medium', 'low']),
