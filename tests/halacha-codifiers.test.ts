@@ -2,9 +2,10 @@ import { describe, it, expect } from 'vitest';
 import {
   classifyCodifier, buildCodificationChain, hasCodification, CODIFIERS,
   classifyShasSource, baseDafRef, buildDerivation, formatGroundedRefsForPrompt,
-  type RelatedLink,
+  parseBavliRef, type RelatedLink,
 } from '../src/lib/halacha/codifiers';
 import type { HalachicRefBundle } from '../src/lib/sefref/sefaria/client';
+import { TRACTATE_OPTIONS } from '../src/lib/sefref/tractates';
 
 // Fixtures below are the SHAPES observed live from Sefaria (/api/related):
 // index_titles like "Mishneh Torah, Reading the Shema", "Tur, Orach Chayim",
@@ -159,5 +160,57 @@ describe('buildDerivation', () => {
     const d = buildDerivation(links);
     expect(d.some((s) => s.ref.startsWith('Rashi'))).toBe(false);
     expect(d.every((s) => !s.isCurrent)).toBe(true);
+  });
+});
+
+describe('parseBavliRef — derivation refs → in-app navigation', () => {
+  it('splits single- and multi-word tractates off the daf', () => {
+    expect(parseBavliRef('Berakhot 31a')).toEqual({ tractate: 'Berakhot', page: '31a' });
+    expect(parseBavliRef('Niddah 66a')).toEqual({ tractate: 'Niddah', page: '66a' });
+    // The daf (\d+[ab]) is the anchor, so multi-word tractates stay intact.
+    expect(parseBavliRef('Bava Metzia 59b')).toEqual({ tractate: 'Bava Metzia', page: '59b' });
+    expect(parseBavliRef('Rosh Hashanah 16a')).toEqual({ tractate: 'Rosh Hashanah', page: '16a' });
+    expect(parseBavliRef('Avodah Zarah 18a')).toEqual({ tractate: 'Avodah Zarah', page: '18a' });
+    expect(parseBavliRef('Moed Katan 28a')).toEqual({ tractate: 'Moed Katan', page: '28a' });
+  });
+
+  it('returns null for non-Bavli refs (Tanakh roots, Yerushalmi, junk)', () => {
+    expect(parseBavliRef('Leviticus 19:5')).toBeNull();
+    expect(parseBavliRef('Jerusalem Talmud Berakhot 1:1:1')).toBeNull();
+    expect(parseBavliRef('Berakhot 2a:3')).toBeNull(); // segment-precise, not a base daf
+    expect(parseBavliRef('')).toBeNull();
+  });
+
+  // The claim under test: a derivation ref navigates cleanly only when its
+  // tractate spelling matches an app URL slug. Today every Bavli tractate the
+  // app serves is spelled the same way Sefaria spells it, so a "<slug> <daf>"
+  // ref round-trips straight back to a navigable slug — no normalization map
+  // needed.
+  const APP_SLUGS = new Set(TRACTATE_OPTIONS.map((o) => o.value));
+
+  it('round-trips every app tractate slug to a navigable target', () => {
+    for (const slug of APP_SLUGS) {
+      const parsed = parseBavliRef(`${slug} 5b`);
+      expect(parsed).toEqual({ tractate: slug, page: '5b' });
+      // The parsed tractate is a real app slug → goToDaf lands on a real page.
+      expect(APP_SLUGS.has(parsed!.tractate)).toBe(true);
+    }
+  });
+
+  it('does NOT normalize spelling — a variant tractate parses but is not navigable', () => {
+    // If a future source spelled a tractate differently than the app slug
+    // (these are NOT in TRACTATE_OPTIONS), parseBavliRef still returns the
+    // tractate VERBATIM — and that verbatim string is not a known slug, so
+    // navigation would miss. This is exactly the seam a normalization map fills.
+    for (const variant of ['Avoda Zara 18a', 'Rosh HaShana 16a', 'Beitza 4a', 'Eiruvin 13b']) {
+      const parsed = parseBavliRef(variant)!;
+      expect(parsed).not.toBeNull();
+      expect(APP_SLUGS.has(parsed.tractate)).toBe(false); // would 404 until normalized
+    }
+    // Sanity: the canonical spellings these mimic ARE valid slugs.
+    expect(APP_SLUGS.has('Avodah Zarah')).toBe(true);
+    expect(APP_SLUGS.has('Rosh Hashanah')).toBe(true);
+    expect(APP_SLUGS.has('Beitzah')).toBe(true);
+    expect(APP_SLUGS.has('Eruvin')).toBe(true);
   });
 });

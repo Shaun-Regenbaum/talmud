@@ -3702,7 +3702,7 @@ Output STRICT JSON only:
 Rules:
 - present=false is the COMMON case. Most topics are settled. Set present=false (and leave the other fields empty/[]) unless there is a real dispute that changes practice. DO NOT fabricate a dispute to fill the field.
 - GROUND it in the inputs. Use the codification trail's Rema entry for the Mechaber/Rema split, and the study-aid context's poskim notes for Acharonim positions — do not invent voices or refs not supported by the inputs.
-- "side": put the two camps on a=blue / b=neutral consistently (e.g. Mechaber=a, Rema=b); a citing/neutral voice is "neutral".
+- "side": put the two opposing camps on "a" vs "b" consistently (e.g. Mechaber=a, Rema=b); a citing or background voice is "neutral".
 - "sephardi"/"ashkenazi" are the practical consequence — fill them only when the split is genuinely along community lines (Mechaber/Rema, Ashkenaz/Sefarad); otherwise leave empty and rely on "settled".
 - NO puff.
 
@@ -3872,7 +3872,7 @@ const HALACHA_DISPUTE_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא ב
 כללים:
 - present=false הוא המקרה הנפוץ. רוב הנושאים מיושבים. קבע present=false (והשאר את השאר ריק/[]) אלא אם יש מחלוקת אמיתית המשנה את ההלכה למעשה. אל תמציא מחלוקת.
 - בסס על הקלט. השתמש בערך הרמ"א שבשלשלת הפסיקה לחילוק מחבר/רמ"א, ובהערות הפוסקים שבהקשר לעמדות האחרונים — אל תמציא קולות או מראי מקום שאינם נתמכים בקלט.
-- "side": שים את שני המחנות על a / b באופן עקבי (למשל מחבר=a, רמ"א=b); קול מצטט/ניטרלי הוא "neutral".
+- "side": שים את שני המחנות החולקים על "a" מול "b" באופן עקבי (למשל מחבר=a, רמ"א=b); קול מצטט או רקע הוא "neutral".
 - "sephardi"/"ashkenazi" — מלא רק כשהפיצול הוא באמת לפי עדות; אחרת השאר ריק והסתמך על "settled".
 - ללא מליצה.
 
