@@ -95,7 +95,7 @@ export function flattenYerushalmiOutline(entries: DafyomiEntry[], dafMasechet: s
 
 /** Longest common contiguous run of equal tokens between a and b.
  *  Returns its length and the start index in b (the Bavli segment). */
-function longestCommonRun(a: string[], b: string[]): { len: number; bStart: number } {
+export function longestCommonRun(a: string[], b: string[]): { len: number; bStart: number } {
   let best = 0;
   let bStart = -1;
   // rolling DP over b for each position in a: prev[j] = run ending at a[i-1], b[j-1]

@@ -32,6 +32,7 @@ import {
 } from '../lib/context/fromSefaria';
 import { matchTosfos } from '../lib/context/anchor/tosfos';
 import { matchBackgroundTerms } from '../lib/context/anchor/bg-term';
+import { matchYerushalmiToSegments } from '../lib/context/anchor/yerushalmi';
 import { matchRevach, type SectionForMatch } from '../lib/context/anchor/revach';
 import { applyMatches } from '../lib/context/match';
 import type { ContextItem } from '../lib/context/types';
@@ -90,6 +91,10 @@ export async function collectContext(
     matchTosfos(dy, sefariaPage?.tosafot);
     // Place Background glossary/girsa terms onto the segment(s) that quote them.
     matchBackgroundTerms(dy, segments?.he);
+    // Place dafyomi "Yerushalmi to Match" items onto the Bavli segment(s) they
+    // share a verbatim phrase with (the shared Mishnah/baraita layer). Divergent
+    // Yerushalmi gemara shares no long phrase and stays unplaced (left for AI).
+    matchYerushalmiToSegments(dy, segments?.he);
     // Place whole-daf Revach summaries onto the argument section each describes
     // (conservative; unmatched entries are left whole-daf). LLM-free.
     if (opts.sections?.length) applyMatches(dy, matchRevach(dy, opts.sections));
