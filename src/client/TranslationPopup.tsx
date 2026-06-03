@@ -1,5 +1,5 @@
 import { createSignal, createEffect, onCleanup, Show, For, type JSX } from 'solid-js';
-import { t } from './i18n';
+import { t, lang } from './i18n';
 import { HIGHLIGHT_COLORS } from './userHighlights';
 
 export interface TranslationPopupProps {
@@ -40,8 +40,10 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
     for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) >>> 0;
     return h.toString(36);
   };
+  // Key by target language too — an English and a Hebrew gloss of the same word
+  // are distinct cached answers (mirrors the server's per-lang cache key).
   const cacheKey = () =>
-    `${props.tractate}:${props.page}:${props.word}:${ctxHash((props.hebrewBefore ?? '') + '|' + (props.hebrewAfter ?? ''))}`;
+    `${lang()}:${props.tractate}:${props.page}:${props.word}:${ctxHash((props.hebrewBefore ?? '') + '|' + (props.hebrewAfter ?? ''))}`;
 
   createEffect(() => {
     const key = cacheKey();
@@ -66,6 +68,7 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
         hebrewBefore: props.hebrewBefore,
         hebrewAfter: props.hebrewAfter,
         segIdx: props.segIdx,
+        lang: lang(),
       }),
     })
       .then((r) => r.json() as Promise<{ translation: string; cached?: boolean; error?: string }>)
