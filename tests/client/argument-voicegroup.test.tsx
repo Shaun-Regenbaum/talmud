@@ -2,7 +2,8 @@
 import { render } from '@solidjs/testing-library';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Section } from '../../src/client/shapes';
-import { ArgumentBody, VoiceGroupBody } from '../../src/client/ArgumentSidebar';
+import { CARD_DEFS, instanceKeyForContent, VoiceGroupBody, type SidebarContent } from '../../src/client/ArgumentSidebar';
+import { SidebarCardFromHint } from '../../src/client/sidebar/primitives';
 import { setLang } from '../../src/client/i18n';
 
 beforeEach(() => {
@@ -25,19 +26,22 @@ const section: Section = {
 
 const noop = () => {};
 
-describe('ArgumentBody', () => {
-  it('renders the accent title and the Hebrew section excerpt', () => {
+// The argument card now renders through the recipe (CARD_DEFS.argument +
+// SidebarCardFromHint), so we drive it the same way the sidebar dispatch does.
+describe('argument card (recipe)', () => {
+  it('renders the section title heading and the Hebrew excerpt block', () => {
+    const content: SidebarContent = { kind: 'argument', section, index: 0 };
+    const def = CARD_DEFS.argument!;
     const { container } = render(() => (
-      <ArgumentBody
-        section={section}
+      <SidebarCardFromHint
+        recipe={def.recipe}
+        instance={def.instance(content)}
+        synthInstance={def.synthInstance?.(content)}
+        instanceKey={instanceKeyForContent(content, 'Shabbat', '125b')!}
         tractate="Shabbat"
         page="125b"
-        activeRabbi={null}
-        onHighlightRabbi={noop}
-        onPushRabbi={noop}
-        dafRabbis={[]}
-        onHighlightRange={noop}
-        generationByName={new Map()}
+        specialBlocks={def.blocks}
+        extras={def.extras?.({ content, generationByName: new Map(), onPushRabbi: noop, dafSections: [], onOpenArgument: undefined })}
       />
     ));
     expect(container.querySelector('h3')!.textContent).toBe('Dispute over the requirement of an action');

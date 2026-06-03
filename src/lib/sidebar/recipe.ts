@@ -133,6 +133,38 @@ export const RISHONIM_RECIPE: SidebarRecipe = {
   ],
 };
 
+export const ARGUMENT_RECIPE: SidebarRecipe = {
+  kind: 'argument',
+  markId: 'argument',
+  // Title is the section's English heading (the display instance supplies it).
+  titleField: 'title',
+  sections: [
+    // The Hebrew section excerpt (RTL) — its own block, not the English `prose`
+    // type, since it leads with the source text before the synthesis paragraph.
+    { type: 'special', block: 'argument-excerpt' },
+    { type: 'synthesis' },
+    // Everything below the synthesis: the voice-dispute map, the dialectic /
+    // narrative fallback, and the per-move cards. One block because they share
+    // local state (the highlighted move, the section-typing gate) and read both
+    // the `argument.voices` leaf and the `argument-move` anchors.
+    { type: 'special', block: 'argument-detail', deps: ['argument.voices'] },
+  ],
+};
+
+export const ARGUMENT_OVERVIEW_RECIPE: SidebarRecipe = {
+  kind: 'argument-overview',
+  markId: 'argument-overview',
+  // The display instance supplies the localized "Overview" heading as `title`.
+  titleField: 'title',
+  sections: [
+    { type: 'synthesis' },
+    // The whole-daf maps region: one flow-graph per sugya (from the flow leaf's
+    // connections), cross-page continuation captions, drill-into per-section
+    // voices, the unified cross-reference links, and the hand-off button.
+    { type: 'special', block: 'argument-overview-maps', deps: ['argument-overview.flow'] },
+  ],
+};
+
 export const RABBI_RECIPE: SidebarRecipe = {
   kind: 'rabbi',
   markId: 'rabbi',
