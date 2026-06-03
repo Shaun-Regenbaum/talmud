@@ -32,7 +32,7 @@ import { Hebraized } from './Hebraized';
 import { hebraize } from './hebraize';
 import { trackAI } from './aiActivity';
 import { lang, t } from './i18n';
-import { PAUSED_ERROR, isPausedBody, isPausedError } from './enrichmentQueue';
+import { PAUSED_ERROR, isPausedBody, isPausedError, isServiceUnavailableError } from './enrichmentQueue';
 
 export interface QAPanelProps {
   /** Mark id — drives which `<mark>.suggested-questions` + `<mark>.qa`
@@ -301,7 +301,11 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
         }).catch(() => { /* swallow */ });
       }
     } catch (err) {
-      const msg = isPausedError(err) ? t('qa.error.paused') : String((err as Error)?.message ?? err);
+      const msg = isPausedError(err)
+        ? t('qa.error.paused')
+        : isServiceUnavailableError(err)
+          ? t('enrich.error.unavailable')
+          : String((err as Error)?.message ?? err);
       setOpenAnswers((m) => ({ ...m, [key]: { state: 'error', error: msg } }));
     }
   };
@@ -320,7 +324,9 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
         ? t('qa.error.paused')
         : reply.rateLimited
           ? t('qa.error.rateLimit')
-          : reply.error);
+          : isServiceUnavailableError(reply.error)
+            ? t('enrich.error.unavailable')
+            : reply.error);
       return;
     }
     // Optimistically prepend to registry so it appears immediately, then

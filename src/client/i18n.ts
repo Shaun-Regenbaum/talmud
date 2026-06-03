@@ -704,6 +704,10 @@ const CATALOG = {
     en: 'AI generation is paused for now to keep this project sustainable. Please try again tomorrow.',
     he: 'יצירת התוכן בבינה מלאכותית מושהית כעת כדי לשמור על קיימות הפרויקט. נא לנסות שוב מחר.',
   },
+  'enrich.error.unavailable': {
+    en: 'AI generation is temporarily unavailable. Please try again later or tomorrow.',
+    he: 'יצירת התוכן בבינה מלאכותית אינה זמינה כרגע. נא לנסות שוב מאוחר יותר או מחר.',
+  },
 } satisfies Record<string, Entry>;
 
 /** Every known catalog key. Lets UI props (e.g. section labels) demand a real

@@ -61,6 +61,24 @@ export function isPausedError(err: unknown): boolean {
   return (err as { message?: string } | null)?.message === PAUSED_ERROR;
 }
 
+// A transient AI-provider failure (auth rejected, provider down, gateway 5xx,
+// timed-out job) — distinct from a code bug. The provider/model is unreachable,
+// so the honest, calm message is "try again later" rather than a raw stack.
+// Matches the worker's runLLM error strings (llm-error.ts) + the client's own
+// poll timeout. Deliberately narrow: a parse/schema/validation error is a real
+// bug and should still surface loudly.
+const SERVICE_UNAVAILABLE_RE =
+  /openrouter|user not found|no endpoints|HTTP\s*40[13]\b|HTTP\s*5\d\d\b|InferenceUpstreamError|timed out|fetch failed|network|temporarily unavailable|AiError|budget exhausted/i;
+
+/** True when an error string / Error signals the AI service is unavailable
+ *  (provider auth/outage/timeout) rather than a genuine bug. Excludes the
+ *  budget-pause sentinel, which has its own dedicated message. */
+export function isServiceUnavailableError(err: unknown): boolean {
+  const msg = typeof err === 'string' ? err : (err as { message?: string } | null)?.message;
+  if (!msg || msg === PAUSED_ERROR) return false;
+  return SERVICE_UNAVAILABLE_RE.test(msg);
+}
+
 // ---------------------------------------------------------------------------
 // Client-side result cache
 // ---------------------------------------------------------------------------

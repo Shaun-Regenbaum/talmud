@@ -25,7 +25,7 @@ import { trackAI } from './aiActivity';
 import InstanceInspectorShelf from './InstanceInspectorShelf';
 import {
   RequestQueue, QUEUE_PRIORITY, runResultCache, runCacheKey, isAbort,
-  PAUSED_ERROR, isPausedBody,
+  PAUSED_ERROR, isPausedBody, isServiceUnavailableError,
   type RunResult,
 } from './enrichmentQueue';
 import { lang, t } from './i18n';
@@ -608,13 +608,17 @@ export default function MarkEnrichmentCards(props: Props) {
     }
     if (r.kind === 'error') {
       const paused = r.error === PAUSED_ERROR;
+      const unavailable = !paused && isServiceUnavailableError(r.error);
+      // Both paused and provider-outage are calm, expected states — amber, plain
+      // text, localized. A genuine bug (parse/schema/unknown) stays loud (red mono).
+      const calm = paused || unavailable;
       return (
         <div style={{
-          color: paused ? '#a16207' : '#c00',
-          'font-family': paused ? 'inherit' : 'monospace',
+          color: calm ? '#a16207' : '#c00',
+          'font-family': calm ? 'inherit' : 'monospace',
           'font-size': '0.78rem', padding: '0.4rem 0',
         }}>
-          {paused ? t('qa.error.paused') : r.error}
+          {paused ? t('qa.error.paused') : unavailable ? t('enrich.error.unavailable') : r.error}
         </div>
       );
     }
