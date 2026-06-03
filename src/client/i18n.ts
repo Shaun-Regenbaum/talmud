@@ -516,8 +516,9 @@ const CATALOG = {
 
   // — Halacha body —
   'halacha.codification': { en: 'Codification', he: 'פסיקה' },
-  'halacha.derivation': { en: 'Where it comes from', he: 'מקורות בש״ס' },
+  'halacha.derivation': { en: 'Talmudic sources', he: 'מקורות בש״ס' },
   'halacha.note': { en: 'Note', he: 'הערה' },
+  'halacha.dispute': { en: 'Where practice splits', he: 'היכן ההלכה נחלקת' },
   'halacha.practical': { en: 'Practical', he: 'למעשה' },
   'halacha.disputes': { en: 'Disputes', he: 'מחלוקות' },
   // Codification source labels (the פסיקה rows).
@@ -526,9 +527,11 @@ const CATALOG = {
   'source.shulchanAruch': { en: 'Shulchan Aruch', he: 'שולחן ערוך' },
   'source.rema': { en: 'Rema', he: 'רמ״א' },
   // Dispute axis chips (מחלוקות).
+  'axis.mechaber-rema': { en: 'Mechaber–Rema', he: 'מחבר–רמ״א' },
   'axis.ashkenaz-sefarad': { en: 'Ashkenaz–Sefarad', he: 'אשכנז–ספרד' },
   'axis.rishonim': { en: 'Rishonim', he: 'ראשונים' },
   'axis.acharonim': { en: 'Acharonim', he: 'אחרונים' },
+  'axis.poskim': { en: 'Poskim', he: 'פוסקים' },
   'axis.modern': { en: 'Modern', he: 'מודרני' },
   'axis.other': { en: 'Other', he: 'אחר' },
   'halacha.lechatchila': { en: 'Lechatchila', he: 'לכתחילה' },

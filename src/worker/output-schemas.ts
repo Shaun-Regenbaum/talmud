@@ -186,13 +186,24 @@ export const HALACHA_CODIFICATION_OUTPUT_SCHEMA = responseFormat('halacha_codifi
   mishnehTorah: halachaRuling, tur: halachaRuling, shulchanAruch: halachaRuling, rema: halachaRuling,
   prose: z.string(),
 }));
-export const HALACHA_DISPUTES_OUTPUT_SCHEMA = responseFormat('halacha_disputes', z.object({
-  disputes: z.array(z.object({
-    axis: z.enum(['ashkenaz-sefarad', 'rishonim', 'acharonim', 'modern', 'other']),
-    label: z.string(),
-    positions: z.array(z.object({ voice: z.string(), position: z.string() })),
-    settled: z.string(),
+// A single richer dispute object (replaces the old multi-dispute list). Built
+// from the codification trail + the dafyomi poskim context where present
+// (Gra / Chazon Ish / Igros Moshe …). `present` is false for the common settled
+// case. `positions` carry a side (a/b/neutral) so the render can color them like
+// the Voices map; `sephardi`/`ashkenazi` are the practical consequence.
+export const HALACHA_DISPUTE_OUTPUT_SCHEMA = responseFormat('halacha_dispute', z.object({
+  present: z.boolean(),
+  axis: z.enum(['mechaber-rema', 'ashkenaz-sefarad', 'rishonim', 'acharonim', 'poskim', 'none']),
+  label: z.string(),
+  positions: z.array(z.object({
+    voice: z.string(),
+    side: z.enum(['a', 'b', 'neutral']),
+    stance: z.string(),
+    ref: z.string(),
   })),
+  sephardi: z.string(),
+  ashkenazi: z.string(),
+  settled: z.string(),
 }));
 // Shape-aware practical "what to do": the render is chosen by `shape`.
 //   best-fallback → best (לכתחילה) + fallback (בדיעבד) lines (timing/measure rules)

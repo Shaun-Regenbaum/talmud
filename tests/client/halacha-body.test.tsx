@@ -55,7 +55,7 @@ describe('Halacha recipe card', () => {
     // lives in the codification map (see codeMapFromCodification). Derivation
     // ("where it comes from") reads the codifier refs off halacha.codification.
     const blocks = HALACHA_RECIPE.sections.flatMap((s) => (s.type === 'special' ? [s.block] : []));
-    expect(blocks).toEqual(['halacha-codification', 'halacha-practical', 'halacha-derivation']);
+    expect(blocks).toEqual(['halacha-codification', 'halacha-dispute', 'halacha-practical', 'halacha-derivation']);
     expect(HALACHA_RECIPE.sections[0].type).toBe('synthesis');
     expect(HALACHA_RECIPE.sections.some((s) => s.type === 'qa')).toBe(false);
     // Every declared block is registered.
