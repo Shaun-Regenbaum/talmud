@@ -2706,7 +2706,12 @@ CODE_ENRICHMENTS.push(
 
 const TIDBIT_ESSAY_SYSTEM_PROMPT = `You are a sharp Talmud teacher writing ONE "Tidbit" for this daf — a single "did you notice…" worth carrying away. Not a summary, not the background, not the argument outline. You pick the ONE most genuinely interesting, non-obvious thing on THIS page and explain it.
 
-WHAT TO LOOK FOR — in ORDER of preference. Take the highest kind the daf genuinely offers; do not reach down a level when a higher one is sitting right there:
+FIRST, SURVEY THE WHOLE DAF AND PICK THE MOST ENGAGING THING ON IT. Read both amudim and notice EVERY candidate — each story, each striking line, each vivid image, each strange detail, each surprising law, each moment of character. There are usually several. Then choose the SINGLE one with the strongest pull: the thing most likely to make a reader stop and say "wait — really?".
+- Choose for VIVIDNESS and SURPRISE, not for structural importance. The opening Mishnah, the daf's main dispute, and the point the Overview already summarizes are the daf's SKELETON — they are almost never its most engaging moment. Do not default to them.
+- Weight the daf's STORIES and arresting statements heavily. If a vivid aggadah, an unforgettable image (a sage weeping, God roaring like a lion at each watch, a demon bending to a widow's plea), or a startling claim sits anywhere on the daf, it almost always beats a clever observation about the legal argument. Hunt for it — it is often buried past the opening sugya, not at the top.
+- Do NOT settle for the first interesting thing, and do NOT grab the famous headline and stop. If the most striking thing is also famous, find the TURN underneath it (the oven of Akhnai's famous "God smiled" hides the tragic cost that follows; do not just retell the famous beat).
+
+THEN, having chosen it, here is the ORDER of preference among KINDS (take the highest the daf genuinely offers):
 1. A story or aggadah, or a human moment — people, character, a scene, a striking thing someone said or did.
 2. A surprising idea anyone would find interesting — about people, language, values, history, or the way the law thinks. This INCLUDES practical halacha and real life: what people actually did, a stringency they took on, a custom, a ruling that changes how someone lives. On a dense halachic daf the gold is exactly this kind of human observation — e.g. on the impurity-degrees daf the tidbit is "the gemara is really describing people who held themselves to the Temple's purity standard with no obligation to — extra holiness taken on by choice," NOT the dispute about whether a third degree exists.
 3. A textual point — a variant or a precise word — that changes the stakes.
@@ -2803,7 +2808,12 @@ You now have the full picture of this daf — its text, commentaries, structure 
 
 const TIDBIT_ESSAY_SYSTEM_PROMPT_HE = `אתה מלמד תורה חד שכותב "Tidbit" אחד לדף הזה — דבר אחד מעניין באמת שכדאי לקחת ממנו. לא סיכום, לא הרקע, ולא מתווה הטיעון. אתה בוחר את הדבר האחד הכי מעניין ולא־מובן־מאליו בדף הזה ומסביר אותו.
 
-מה לחפש — לפי סדר עדיפות. קח את הסוג הגבוה ביותר שהדף באמת מציע; אל תרד דרגה כשיש דרגה גבוהה יותר ממש לפניך:
+תחילה, סרוק את כל הדף ובחר את הדבר הכי מושך שבו. קרא את שני העמודים ושים לב לכל מועמד — כל סיפור, כל שורה בולטת, כל דימוי חי, כל פרט מוזר, כל דין מפתיע, כל רגע של אופי. בדרך כלל יש כמה. ואז בחר את האחד עם המשיכה החזקה ביותר: הדבר שהכי סביר שיעצור את הקורא ויגרום לו לומר "רגע — באמת?".
+- בחר לפי חיוּת והפתעה, לא לפי חשיבות מבנית. המשנה הפותחת, מחלוקת הדף המרכזית, והנקודה שהסקירה כבר מסכמת הם השלד של הדף — וכמעט אף פעם לא הרגע הכי מושך שבו. אל תברח אליהם כברירת מחדל.
+- תן משקל רב לסיפורי הדף ולאמירות החדות. אם יש בדף אגדה חיה, דימוי בלתי נשכח (חכם בוכה, הקב"ה שואג כארי בכל אשמורה, שד הנכנע לתחינת אלמנה), או טענה מפתיעה — הם כמעט תמיד גוברים על תצפית חכמה על הטיעון ההלכתי. חפש זאת — לעיתים קרובות זה קבור מעבר לסוגיה הפותחת, לא בראש.
+- אל תסתפק בדבר המעניין הראשון, ואל תיקח את הכותרת המפורסמת ותעצור. אם הדבר הכי בולט הוא גם מפורסם, מצא את התפנית שמתחתיו (תנור של עכנאי המפורסם ב"חייך וניצחוני בני" מסתיר את המחיר הטרגי שאחריו; אל תחזור רק על הביט המפורסם).
+
+ואז, לאחר שבחרת, הנה סדר העדיפות בין הסוגים (קח את הגבוה ביותר שהדף מציע):
 1. סיפור או אגדה, או רגע אנושי — אנשים, אופי, סצנה, דבר בולט שמישהו אמר או עשה.
 2. רעיון מפתיע שכל אדם ימצא מעניין — על בני אדם, שפה, ערכים, היסטוריה, או על אופן החשיבה של ההלכה. זה כולל הלכה למעשה וחיים אמיתיים: מה אנשים באמת עשו, חומרא שקיבלו על עצמם, מנהג, פסק ששינה כיצד מישהו חי. בדף הלכתי צפוף הזהב הוא בדיוק תצפית אנושית כזו — למשל בדף על דרגות הטומאה ה-tidbit הוא "הגמרא בעצם מתארת אנשים שהחמירו על עצמם לטהרת הקודש בלי שום חובה — קדושה יתרה שנטלו מרצון", ולא המחלוקת אם קיים שלישי.
 3. נקודה טקסטואלית — גרסה או מילה מדויקת — שמשנה את המשמעות.
@@ -2931,7 +2941,7 @@ CODE_ENRICHMENTS.push(
         // aids + the daf's anchors + a plain whole-daf summary + the glossary.
         // The rishonim and the per-instance analysis are the Bi'yun's job.
       ],
-      defHash: 'tidbit.essay-v1', cacheVersion: '12', // v12: assume Overview+Background already read (no recap) + reach the deeper layered TURN (Ashmedai gold standard)
+      defHash: 'tidbit.essay-v1', cacheVersion: '13', // v13: survey-the-whole-daf-and-pick-the-MOST-engaging selection step (don't default to the structural skeleton; hunt the vivid/buried thing; find the turn under the famous beat)
       // Pro model: finding the non-obvious reading needs the stronger model.
       // Thinking stays OFF (no reasoningEffort) — the context bundle is large,
       // like daf-background.concepts, and a thinking pass on top risks the
