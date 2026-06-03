@@ -59,6 +59,21 @@ export const PLACES_OUTPUT_SCHEMA = responseFormat('places_marks',
 export const HALACHA_OUTPUT_SCHEMA = responseFormat('halacha_topics',
   segInstances({ topic: z.string(), topicHe: z.string(), summary: z.string(), excerpt: z.string() }));
 
+// Chart (experimental): comparison tables for dense multi-opinion regions.
+// Cells are Hebrew (like the dafyomi.co.il charts this grounds on); the first
+// cell of every row is its row-label. `grounded` = a dafyomi chart anchored it.
+export const CHART_OUTPUT_SCHEMA = responseFormat('chart_tables',
+  segInstances({
+    caption: z.string(),
+    captionHe: z.string(),
+    headers: z.array(z.string()),
+    rows: z.array(z.array(z.string())),
+    notes: z.array(z.object({ marker: z.string(), text: z.string() })),
+    excerpt: z.string(),
+    grounded: z.boolean(),
+    confidence: z.enum(['high', 'medium', 'low']),
+  }));
+
 export const AGGADATA_OUTPUT_SCHEMA = responseFormat('aggadata_stories',
   segInstances({
     title: z.string(), titleHe: z.string(), summary: z.string(),

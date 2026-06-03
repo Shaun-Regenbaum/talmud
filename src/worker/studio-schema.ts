@@ -340,11 +340,12 @@ export type Extractor = LLMExtractor | SefariaExtractor | ComputedExtractor | Ma
 //   { enrichment: id }   → {{depends.<id>}}    (recursively resolved)
 //   { mark: id }         → {{anchors.<id>}}    (mark extractor for same daf)
 //
-// Marks may depend on input slices and other marks (secondary anchors),
-// but not on enrichments. Enrichments may depend on anything.
+// Marks may depend on input slices, aggregated context (for grounding), and
+// other marks (secondary anchors), but not on enrichments. Enrichments may
+// depend on anything.
 // ===========================================================================
 
-export type MarkDependency = 'gemara' | 'commentaries' | 'yerushalmi-text' | { mark: string };
+export type MarkDependency = 'gemara' | 'commentaries' | 'context' | 'yerushalmi-text' | { mark: string };
 
 export type EnrichmentDependency =
   | 'gemara'
