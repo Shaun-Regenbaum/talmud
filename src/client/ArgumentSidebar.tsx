@@ -739,6 +739,17 @@ export function groupSectionsBySugya(sectionCount: number, connections: FlowConn
   return groups;
 }
 
+/** What the overview's maps region should render. A map is a flow graph whose
+ *  edges are the daf's connections; before the flow enrichment resolves there
+ *  are no connections, so rendering the maps then would show disconnected,
+ *  link-less nodes. Gate on resolution: 'loading' until the flow resolves,
+ *  'ready' after (a daf may legitimately resolve to zero edges), 'empty' when
+ *  the daf has no sections at all. Pure + exported for tests. */
+export function mapsState(sectionCount: number, flowResolved: boolean): 'empty' | 'loading' | 'ready' {
+  if (sectionCount <= 0) return 'empty';
+  return flowResolved ? 'ready' : 'loading';
+}
+
 /** A link from the unified link layer (GET /api/links). Minimal client shape. */
 interface DafLinkLite {
   via: string;
@@ -762,11 +773,16 @@ function ArgumentOverviewBody(props: {
 }): JSX.Element {
   const [connections, setConnections] = createSignal<FlowConnection[]>([]);
   const [active, setActive] = createSignal<number | null>(null);
+  // Has the daf-level flow enrichment resolved yet? Until it has, we have no
+  // connections, so the maps would render as disconnected, link-less nodes —
+  // we show a loading state instead (see `mapsState`).
+  const [flowResolved, setFlowResolved] = createSignal(false);
 
   createEffect(() => {
     void `${props.tractate}/${props.page}`;
     setConnections([]);
     setActive(null);
+    setFlowResolved(false);
     props.onHighlightRange?.(null);
   });
 
@@ -787,6 +803,9 @@ function ArgumentOverviewBody(props: {
   const handleResolved = (r: { deps_resolved?: Record<string, unknown>; anchors_resolved?: Record<string, unknown> }) => {
     const flow = r.deps_resolved?.['argument-overview.flow'] as { connections?: FlowConnection[] } | undefined;
     if (flow && Array.isArray(flow.connections)) setConnections(flow.connections);
+    // The synthesis has resolved (a daf can legitimately have zero flow edges):
+    // the maps may now render, link-less or not.
+    setFlowResolved(true);
   };
 
   // Split the daf's sections into discussion maps. With no flow yet (cold), each
@@ -906,7 +925,26 @@ function ArgumentOverviewBody(props: {
       >
         {/* One flow-graph map per discussion. Multiple maps = multiple sugyot on
             the daf; the cross-page flags show where a discussion runs past the
-            page break. */}
+            page break. Until the flow resolves we have no connections, so we
+            show a loading state rather than disconnected, link-less nodes. */}
+        <Show
+          when={mapsState(props.sections.length, flowResolved()) === 'ready'}
+          fallback={
+            <div style={{
+              display: 'flex', 'align-items': 'center', gap: '0.6rem',
+              padding: '0.7rem 0.2rem', color: '#666', 'font-size': '0.82rem',
+              'font-style': 'italic',
+            }}>
+              <span style={{
+                display: 'inline-block', width: '0.85rem', height: '0.85rem',
+                'border-radius': '50%',
+                border: '2px solid #d6d3d1', 'border-top-color': '#8a2a2b',
+                animation: 'daf-spin 0.8s linear infinite', 'flex-shrink': 0,
+              }} />
+              {t('overview.mapping')}
+            </div>
+          }
+        >
         <For each={groups()}>{(grp) => {
           const hasFirst = grp.includes(0);
           const hasLast = grp.includes(props.sections.length - 1);
@@ -937,6 +975,7 @@ function ArgumentOverviewBody(props: {
             </div>
           );
         }}</For>
+        </Show>
       </Show>
       <Show when={hasConnections()}>
         <div style={{ 'margin-top': '0.7rem', 'border-top': '1px solid #f0f0f0', 'padding-top': '0.55rem' }}>

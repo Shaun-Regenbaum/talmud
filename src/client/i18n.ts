@@ -188,6 +188,7 @@ const CATALOG = {
   'overview.crossRefs': { en: 'Cross-references', he: 'הפניות' },
   'overview.connections': { en: 'Connections', he: 'קשרים' },
   'overview.withinFlow': { en: 'within-daf flow', he: 'מהלך פנימי בדף' },
+  'overview.mapping': { en: 'Mapping the discussion…', he: 'ממפה את הסוגיה…' },
   'overview.goToDaf': { en: 'Go to {daf}', he: 'מעבר ל{daf}' },
   'overview.openArgument': { en: 'Open the full argument →', he: 'פתח את הסוגיה המלאה ←' },
   // Link-relation labels (the unified link layer, src/lib/context/link.ts).
