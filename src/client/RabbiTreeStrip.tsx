@@ -1,5 +1,5 @@
 import { createMemo, createSignal, createEffect, For, Show, onCleanup, type JSX } from 'solid-js';
-import { GENERATION_BY_ID, type GenerationId } from './generations';
+import { GENERATION_BY_ID, legibleTextColor, type GenerationId } from './generations';
 import rabbiHierarchyData from '../lib/data/rabbi-hierarchy.json';
 import { t } from './i18n';
 
@@ -88,18 +88,10 @@ function generationChronoRank(gen: string): number {
   return m ? Number(m[1]) : 0;
 }
 
-// Generation IDs whose color swatch is too pale for white text — for
-// these we render the B/E letter in dark ink instead so it stays
-// legible inside the compact collapsed block.
-const PALE_GEN_IDS: ReadonlySet<string> = new Set([
-  'tanna-6',
-  'amora-bavel-7',
-  'amora-bavel-8',
-  'unknown',
-]);
-
+// Pick dark vs white ink for the B/E letter based on the swatch's luminance,
+// so it stays legible on the pale end of the spectrum without a hand-kept list.
 function blockTextColor(gen: string): string {
-  return PALE_GEN_IDS.has(gen) ? '#1f2937' : '#fff';
+  return legibleTextColor(GENERATION_BY_ID[gen as GenerationId]?.color ?? '#888');
 }
 
 type ColumnRow =
