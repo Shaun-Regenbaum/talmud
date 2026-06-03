@@ -1,5 +1,29 @@
 import { describe, it, expect } from 'vitest';
-import { RequestQueue, QUEUE_PRIORITY, isAbort } from '../src/client/enrichmentQueue';
+import { RequestQueue, QUEUE_PRIORITY, isAbort, isServiceUnavailableError, PAUSED_ERROR } from '../src/client/enrichmentQueue';
+
+describe('isServiceUnavailableError', () => {
+  it('flags AI-provider outages / timeouts (calm "try later" states)', () => {
+    for (const m of [
+      'OpenRouter HTTP 401: {"error":{"message":"User not found.","code":401}}',
+      'OpenRouter HTTP 503',
+      'no endpoints found',
+      'job abc timed out after 90s',
+      'fetch failed',
+      'InferenceUpstreamError',
+    ]) {
+      expect(isServiceUnavailableError(m)).toBe(true);
+      expect(isServiceUnavailableError(new Error(m))).toBe(true);
+    }
+  });
+
+  it('does NOT flag real bugs or the budget-pause sentinel', () => {
+    expect(isServiceUnavailableError('schema validation failed: missing field "ref"')).toBe(false);
+    expect(isServiceUnavailableError('parse_error: unexpected token')).toBe(false);
+    expect(isServiceUnavailableError(PAUSED_ERROR)).toBe(false);
+    expect(isServiceUnavailableError('')).toBe(false);
+    expect(isServiceUnavailableError(null)).toBe(false);
+  });
+});
 
 // A manually-resolved promise so tests can control exactly when a task
 // finishes and observe queue scheduling deterministically.
