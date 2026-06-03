@@ -802,7 +802,8 @@ export const CODE_MARKS: MarkDefinition[] = [
     // defaults). Still warmed by yomi-cron so dev views are instant.
     experimental: true,
     def_hash: 'yerushalmi-llm-v1',
-    cache_version: '1',
+    // v2: grounding now also includes curated Bavli<->Yerushalmi parallels.
+    cache_version: '2',
     source: 'code',
     updated_at: NOW,
   },
