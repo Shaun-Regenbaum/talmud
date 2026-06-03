@@ -69,6 +69,21 @@ export const AGGADATA_RECIPE: SidebarRecipe = {
   ],
 };
 
+export const YERUSHALMI_RECIPE: SidebarRecipe = {
+  kind: 'yerushalmi',
+  markId: 'yerushalmi',
+  // Title is the parallel's ref (English / Hebrew "תלמוד ירושלמי …"). The diff
+  // block renders the one-line parallel summary + the substantive Bavli↔
+  // Yerushalmi differences (the card's whole reason to exist); synthesis weaves
+  // a flowing contrast below.
+  titleField: 'yerushalmiRef',
+  titleHeField: 'yerushalmiRefHe',
+  sections: [
+    { type: 'special', block: 'yerushalmi-diff' },
+    { type: 'synthesis' },
+  ],
+};
+
 export const PASUK_RECIPE: SidebarRecipe = {
   kind: 'pesuk',
   markId: 'pesukim',

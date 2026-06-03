@@ -166,6 +166,7 @@ const CATALOG = {
   'sidebar.kind.argument': { en: 'Argument', he: 'סוגיה' },
   'sidebar.kind.halacha': { en: 'Practical Halacha', he: 'הלכה למעשה' },
   'sidebar.kind.aggadata': { en: 'Aggada', he: 'אגדה' },
+  'sidebar.kind.yerushalmi': { en: 'Yerushalmi', he: 'ירושלמי' },
   'sidebar.kind.pesuk': { en: 'Pasuk', he: 'פסוק' },
   'sidebar.kind.place': { en: 'Place', he: 'מקום' },
   'sidebar.kind.rishonim': { en: 'Rishonim', he: 'ראשונים' },
@@ -548,6 +549,9 @@ const CATALOG = {
   'pasuk.mechanism': { en: 'Mechanism', he: 'מנגנון הדרשה' },
   'pasuk.landing': { en: 'Landing', he: 'מסקנה' },
 
+  // — Yerushalmi body —
+  'yerushalmi.differences': { en: 'Differences from the Yerushalmi', he: 'הבדלים מן הירושלמי' },
+
   // — Aggadata body —
   'aggadata.background': { en: 'Background', he: 'רקע' },
   'aggadata.interpretation': { en: 'Interpretation', he: 'פרשנות' },
@@ -685,6 +689,7 @@ const CATALOG = {
   'gutter.argument': { en: 'Argument structure & rabbis', he: 'מבנה הסוגיה וחכמים' },
   'gutter.halacha': { en: 'Practical halacha', he: 'הלכה למעשה' },
   'gutter.aggadata': { en: 'Aggada — narrative on this line', he: 'אגדה — סיפור בשורה זו' },
+  'gutter.yerushalmi': { en: 'Yerushalmi — parallel in the Jerusalem Talmud', he: 'ירושלמי — מקבילה בתלמוד הירושלמי' },
   'gutter.rishonim': { en: 'Rishonim on this line', he: 'ראשונים על שורה זו' },
   'gutter.pesukim': { en: 'Pasuk — Tanach citation', he: 'פסוק — ציטוט מהתנ״ך' },
 

@@ -65,6 +65,18 @@ export const AGGADATA_OUTPUT_SCHEMA = responseFormat('aggadata_stories',
     excerpt: z.string(), endExcerpt: z.string(), theme: z.string(),
   }));
 
+// Bavli sections with a DIRECT Jerusalem Talmud parallel. The mark anchors the
+// Bavli span (excerpt) and carries the parallel's ref + the substantive
+// differences between the two Talmuds — its whole reason to exist.
+export const YERUSHALMI_OUTPUT_SCHEMA = responseFormat('yerushalmi_parallels',
+  segInstances({
+    yerushalmiRef: z.string(),
+    yerushalmiRefHe: z.string(),
+    summary: z.string(),
+    differences: z.string(),
+    excerpt: z.string(),
+  }));
+
 export const PESUKIM_OUTPUT_SCHEMA = responseFormat('pesukim_refs',
   segInstances({
     verseRef: z.string(),

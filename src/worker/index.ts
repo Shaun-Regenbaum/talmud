@@ -9,6 +9,7 @@ import {
 } from '../lib/sefref';
 import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
 import { collectContext } from './context-providers';
+import { fromDafyomi } from '../lib/context/fromDafyomi';
 import { placeRevachWithAi } from './revach-ai-place';
 import { formatContextForPrompt, contextForAnchor, segsFromMarkInput } from '../lib/context/select';
 import { continuationLink, type FlowEdge } from '../lib/context/link';
@@ -27,6 +28,7 @@ import {
   getSaCommentaryCached,
   getDafTopicsCached,
   getMishnaBundleCached,
+  getYerushalmiCached,
   getSefariaSegmentsCached,
   getDafyomiContentCached,
   type CacheTrack,
@@ -1234,6 +1236,53 @@ function commentariesSliceToString(s: CommentariesSlice): string {
   }).join('\n\n---\n\n');
 }
 
+/** Cap a long passage so the prompt stays bounded — a whole Yerushalmi halacha
+ *  can run thousands of words; we only need enough to compare against the daf. */
+function truncateForPrompt(s: string, max: number): string {
+  const clean = s.trim();
+  return clean.length > max ? `${clean.slice(0, max).trimEnd()} …` : clean;
+}
+
+/**
+ * Format the grounded Yerushalmi context for the {{yerushalmi}} placeholder:
+ * the parallel Jerusalem Talmud passage(s) located via the shared mishnah (real
+ * Hebrew + English, HTML stripped, length-capped), then the dafyomi.co.il
+ * Yerushalmi study notes for the daf when present. Returns a clear "none"
+ * sentinel when the daf has no Yerushalmi parallel (most of Kodashim/Taharot),
+ * so the producer knows the absence is real rather than a fetch gap.
+ */
+function formatYerushalmiForPrompt(
+  bundle: Awaited<ReturnType<typeof getYerushalmiCached>>,
+  notes: ReturnType<typeof fromDafyomi>,
+): string {
+  const blocks = bundle.map((y) => {
+    const he = truncateForPrompt(stripHtmlServer(y.hebrew), 1400);
+    const en = truncateForPrompt(stripHtmlServer(y.english), 1800);
+    const range = y.anchorStartSeg === y.anchorEndSeg
+      ? `Bavli segment ${y.anchorStartSeg}`
+      : `Bavli segments ${y.anchorStartSeg}-${y.anchorEndSeg}`;
+    return `[${y.ref}] (parallels ${range}, via ${y.mishnahRef})\nHE: ${he}\nEN: ${en}`.trim();
+  });
+  const noteLines: string[] = [];
+  for (const n of notes) {
+    const title = n.title?.en || n.title?.he || '';
+    const body = stripHtmlServer(n.body?.en || n.body?.he || '');
+    const line = truncateForPrompt([title, body].filter(Boolean).join(' — '), 600);
+    if (line) noteLines.push(`- ${line}`);
+  }
+  // Precision over recall: a real Sefaria-fetched parallel passage is the only
+  // thing that grounds a citable ref. The dafyomi notes are supplementary color
+  // (they carry no Sefaria ref), so they must NOT, on their own, license a
+  // parallel claim — without a fetched passage we report "none" even if notes
+  // exist, so the producer can't fabricate a ref from a bare note.
+  if (blocks.length === 0) {
+    return '(no Yerushalmi parallel found for this daf)';
+  }
+  const out: string[] = [blocks.join('\n\n---\n\n')];
+  if (noteLines.length) out.push(`Dafyomi.co.il Yerushalmi notes (supplementary context):\n${noteLines.join('\n')}`);
+  return out.join('\n\n===\n\n');
+}
+
 /**
  * Substitute {{placeholders}} in a prompt template with values from `vars`.
  * Missing placeholders render as empty strings (per shared template
@@ -1411,6 +1460,19 @@ async function resolveDependencies(
       // enrichment SELECTS from real refs instead of recalling citations.
       const bundle = await getHalachaRefsCached(rc.env.CACHE, tractate, page);
       out.vars.halacha_refs = formatGroundedRefsForPrompt(bundle);
+      return;
+    }
+    if (dep === 'yerushalmi-text') {
+      // The Jerusalem Talmud parallel(s) on the same mishnah (real text, located
+      // via fetchYerushalmiForDaf) plus the dafyomi.co.il Yerushalmi study notes
+      // — so a producer contrasts Bavli vs Yerushalmi against the source rather
+      // than from memory. Each source that fails contributes nothing.
+      const [bundle, daf] = await Promise.all([
+        getYerushalmiCached(rc.env.CACHE, tractate, page),
+        getDafyomiContentCached(rc.env.CACHE, rc.env.ASSETS, tractate, page, {}).catch(() => null),
+      ]);
+      const notes = daf ? fromDafyomi(daf).filter((i) => i.source === 'dafyomi:yerushalmi') : [];
+      out.vars.yerushalmi = formatYerushalmiForPrompt(bundle, notes);
       return;
     }
     if (dep === 'context') {

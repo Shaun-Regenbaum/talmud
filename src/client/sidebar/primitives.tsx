@@ -33,6 +33,7 @@ export const ACCENTS = {
   'daf-background': '#8a6d3b',
   halacha: '#1e40af',
   aggadata: '#7c3aed',
+  yerushalmi: '#0f766e',
   pesuk: '#9a3412',
   rishonim: '#475569',
   rabbi: '#222',
@@ -51,6 +52,7 @@ export function kindLabelKey(kind: SidebarKind): CatalogKey {
     case 'daf-background': return 'sidebar.kind.daf-background';
     case 'halacha': return 'sidebar.kind.halacha';
     case 'aggadata': return 'sidebar.kind.aggadata';
+    case 'yerushalmi': return 'sidebar.kind.yerushalmi';
     case 'pesuk': return 'sidebar.kind.pesuk';
     case 'place': return 'sidebar.kind.place';
     case 'rishonim': return 'sidebar.kind.rishonim';

@@ -17,7 +17,7 @@ import { createEffect, onMount, onCleanup, type JSX } from 'solid-js';
 import { publishGutterEntry, clearGutterEntry, type GutterSide } from './gutterStack';
 import { t } from './i18n';
 
-export type GutterKind = 'argument' | 'halacha' | 'aggadata' | 'pesuk' | 'rishonim';
+export type GutterKind = 'argument' | 'halacha' | 'aggadata' | 'yerushalmi' | 'pesuk' | 'rishonim';
 
 export interface GutterItem {
   kind: GutterKind;
@@ -105,6 +105,7 @@ export function GutterIcons(props: GutterIconsProps): JSX.Element {
     const klass = props.kind === 'argument' ? '.daf-argument-anchor'
       : props.kind === 'halacha' ? '.daf-halacha-anchor'
       : props.kind === 'aggadata' ? '.daf-aggadata-anchor'
+      : props.kind === 'yerushalmi' ? '.daf-yerushalmi-anchor'
       : props.kind === 'rishonim' ? '.daf-rishonim-anchor'
       : '.daf-pesuk-anchor';
     const SLACK = 2;
@@ -178,6 +179,7 @@ export function colorForKind(kind: GutterKind): string {
   return kind === 'argument' ? '#8a2a2b'
     : kind === 'halacha' ? '#1e40af'
     : kind === 'aggadata' ? '#7c3aed'
+    : kind === 'yerushalmi' ? '#0f766e'
     : kind === 'rishonim' ? '#475569'
     : '#d97706';
 }
@@ -186,6 +188,7 @@ export function titleForKind(kind: GutterKind): string {
   return kind === 'argument' ? t('gutter.argument')
     : kind === 'halacha' ? t('gutter.halacha')
     : kind === 'aggadata' ? t('gutter.aggadata')
+    : kind === 'yerushalmi' ? t('gutter.yerushalmi')
     : kind === 'rishonim' ? t('gutter.rishonim')
     : t('gutter.pesukim');
 }
@@ -241,6 +244,19 @@ export function GutterGlyph(props: { kind: GutterKind }): JSX.Element {
       <path d="M12 7v14" />
       <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />
     </svg>
+  ) : props.kind === 'yerushalmi' ? (
+    <span
+      aria-hidden="true"
+      style={{
+        'font-family': '"Mekorot Vilna", "SBL Hebrew", "Frank Ruehl", "Times New Roman", serif',
+        'font-size': '11px',
+        'font-weight': 700,
+        'line-height': 1,
+        color: '#fff',
+      }}
+    >
+      י
+    </span>
   ) : props.kind === 'rishonim' ? (
     <span
       aria-hidden="true"
