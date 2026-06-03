@@ -5,6 +5,9 @@ export interface SefariaTextResponse {
   heRef: string;
   text: string | string[];
   he: string | string[];
+  /** Present (with a message) when the ref couldn't be resolved — e.g. a
+   *  tractate that has no Yerushalmi. Callers should treat it as "no text". */
+  error?: string;
   type?: string;
   book?: string;
   sections?: number[];
@@ -117,6 +120,25 @@ export interface MishnaSnippet {
   english: string;
 }
 export type MishnaBundle = MishnaSnippet[];
+
+/** One Jerusalem Talmud passage that parallels this gemara daf, located via the
+ *  shared mishnah (Bavli and Yerushalmi both expound the same Mishnah, so the
+ *  Yerushalmi on a daf's mishnah IS its direct parallel sugya). `anchorStartSeg`
+ *  / `anchorEndSeg` are the 0-indexed gemara segments the shared mishnah anchors
+ *  to, so a caller can line the parallel up against the daf. */
+export interface YerushalmiSnippet {
+  /** Canonical Sefaria ref, e.g. "Jerusalem Talmud Berakhot 1:1". */
+  ref: string;
+  /** Hebrew ref, e.g. "תלמוד ירושלמי ברכות א׳:א׳". */
+  heRef: string;
+  /** The Mishnah the parallel was located through, e.g. "Mishnah Berakhot 1:1". */
+  mishnahRef: string;
+  anchorStartSeg: number;
+  anchorEndSeg: number;
+  hebrew: string;
+  english: string;
+}
+export type YerushalmiBundle = YerushalmiSnippet[];
 
 /** Sefaria topic with cross-Shas sources. */
 export interface SefariaTopic {
@@ -572,6 +594,76 @@ class SefariaAPI {
           });
         } catch {
           // skip on fetch failure
+        }
+      })
+    );
+    out.sort((a, b) => a.anchorStartSeg - b.anchorStartSeg);
+    return out;
+  }
+
+  /**
+   * The Jerusalem Talmud passages that directly parallel a Bavli daf.
+   *
+   * Sefaria's /api/related does NOT carry Bavli↔Yerushalmi sugya parallels as
+   * links, so we locate them through the MISHNAH the two Talmuds share: the
+   * mishnayot anchored to this daf give us a perek:mishnah, and the Yerushalmi
+   * on that same mishnah ("Jerusalem Talmud <Tractate> <perek>:<halacha>") is
+   * the parallel discussion. We fetch its real Hebrew+English so a producer can
+   * contrast the two against the source text, not from memory.
+   *
+   * Tractates with no Yerushalmi (most of Kodashim/Taharot) simply have every
+   * getText fail → an empty bundle, which is correct (no parallel to show).
+   */
+  async fetchYerushalmiForDaf(tractate: string, page: string): Promise<YerushalmiBundle> {
+    const ref = `${tractate}.${page}`;
+    const related = await this.getRelated(ref).catch(() => null);
+    if (!related) return [];
+
+    const mishnaLinks = related.links.filter(
+      l => l.category === 'Mishnah' && l.type === 'mishnah in talmud'
+    );
+    if (mishnaLinks.length === 0) return [];
+
+    // Build the parallel Yerushalmi ref from each shared mishnah. The mishnah
+    // ref carries Sefaria's canonical tractate spelling ("Mishnah Bava Kamma
+    // 1:1"); reuse it so the Yerushalmi ref matches Sefaria's index. Dedupe by
+    // Yerushalmi ref, keeping the widest Bavli anchor range we see.
+    const byYRef = new Map<string, { mishnahRef: string; anchorStart: number; anchorEnd: number }>();
+    for (const l of mishnaLinks) {
+      const segRange = parseAnchorRefRange(l.anchorRef);
+      const m = l.ref.match(/^Mishnah (.+?) (\d+):(\d+)/);
+      if (!segRange || !m) continue;
+      const yRef = `Jerusalem Talmud ${m[1]} ${m[2]}:${m[3]}`;
+      const existing = byYRef.get(yRef);
+      if (!existing) {
+        byYRef.set(yRef, { mishnahRef: l.ref, anchorStart: segRange.start, anchorEnd: segRange.end });
+      } else {
+        if (segRange.start < existing.anchorStart) existing.anchorStart = segRange.start;
+        if (segRange.end > existing.anchorEnd) existing.anchorEnd = segRange.end;
+      }
+    }
+    if (byYRef.size === 0) return [];
+
+    const out: YerushalmiBundle = [];
+    await Promise.all(
+      Array.from(byYRef.entries()).map(async ([yRef, anchor]) => {
+        try {
+          const t = await this.getText(yRef);
+          if (t.error) return;
+          const hebrew = Array.isArray(t.he) ? t.he.join(' ') : (t.he ?? '');
+          const english = Array.isArray(t.text) ? t.text.join(' ') : (t.text ?? '');
+          if (!hebrew && !english) return;
+          out.push({
+            ref: t.ref ?? yRef,
+            heRef: t.heRef ?? '',
+            mishnahRef: anchor.mishnahRef,
+            anchorStartSeg: anchor.anchorStart - 1, // Sefaria 1-indexed → mark 0-indexed
+            anchorEndSeg: anchor.anchorEnd - 1,
+            hebrew,
+            english,
+          });
+        } catch {
+          // skip on fetch failure (e.g. a tractate with no Yerushalmi)
         }
       })
     );
