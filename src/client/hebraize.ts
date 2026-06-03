@@ -337,6 +337,17 @@ const BARE_HEBRAIZE_NAMES: Record<string, string> = {
   Rashba: 'רשב״א',
   Ritva: 'ריטב״א',
   Rashi: 'רש״י',
+  // Tosafot — compound forms listed alongside the bare word. Longest-first
+  // sort (below) makes the compounds win, so "Tosafot HaRosh" swaps whole
+  // instead of half-translating to "תוספות HaRosh" (one author rendered half
+  // Hebrew, half English). The HaRosh/Rid/Yeshanim suffixes are not bare-list
+  // entries on their own, so without these the second word leaks through.
+  'Tosafot HaRosh': 'תוספות הרא״ש',
+  'Tosfos HaRosh': 'תוספות הרא״ש',
+  'Tosafot Rid': 'תוספות רי״ד',
+  'Tosfos Rid': 'תוספות רי״ד',
+  'Tosafot Yeshanim': 'תוספות ישנים',
+  'Tosfos Yeshanim': 'תוספות ישנים',
   Tosafot: 'תוספות',
   Tosfos: 'תוספות',
   Meiri: 'מאירי',
