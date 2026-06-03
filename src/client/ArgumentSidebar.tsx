@@ -27,8 +27,8 @@ import { InspectDot, registerMarkRenderer } from './MarkEnrichmentCards';
 // Recipes now live in the shared lib (carried on the worker mark def too).
 // Re-exported so existing importers (CARD_DEFS, tests) keep their `from
 // './ArgumentSidebar'` path.
-import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE } from '../lib/sidebar/recipe';
-export { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE };
+import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE, ARGUMENT_RECIPE, ARGUMENT_OVERVIEW_RECIPE } from '../lib/sidebar/recipe';
+export { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE, ARGUMENT_RECIPE, ARGUMENT_OVERVIEW_RECIPE };
 
 /** Localize an era date-range ("c. 290 – 320 CE") for Hebrew display. */
 function eraLabel(era: string): string {
@@ -336,13 +336,8 @@ function ArgumentMoveCard(props: {
   move: ArgumentMoveInstance;
   tractate: string;
   page: string;
-  activeRabbi: string | null;
   highlightedMoveId: string | null;
-  onHighlightRabbi: (name: string | null) => void;
   onHighlightMove: (move: ArgumentMoveInstance | null) => void;
-  onPushRabbi: (name: string) => void;
-  dafRabbis: IdentifiedRabbi[];
-  generationByName: Map<string, GenerationId>;
 }): JSX.Element {
   const f = props.move.fields;
   const roleColor = () => ROLE_COLORS[f.role] ?? '#64748b';
@@ -485,86 +480,64 @@ function ArgumentMoveFlow(props: {
   );
 }
 
-export function ArgumentBody(props: {
-  section: Section;
-  tractate: string;
-  page: string;
-  activeRabbi: string | null;
-  onHighlightRabbi: (name: string | null) => void;
-  onPushRabbi: (name: string) => void;
-  dafRabbis: IdentifiedRabbi[];
-  onHighlightRange: (range: { start: number; end: number; key: string; tokenStart?: number; tokenEnd?: number } | null) => void;
-  generationByName: Map<string, GenerationId>;
-}): JSX.Element {
-  // All moves on this daf, flat. Filtered to this section by sectionStartSegIdx.
-  const [allMoves, setAllMoves] = createSignal<ArgumentMoveInstance[] | null>(null);
+// ===========================================================================
+// Argument (in-depth, per-section) card — recipe blocks.
+// ---------------------------------------------------------------------------
+// The recipe header renders the section title; the synthesis section renders the
+// orienting paragraph. These two blocks cover the rest: the Hebrew excerpt above
+// the synthesis, and below it the voice-dispute map / dialectic-or-narrative
+// fallback / per-move cards (one block because they share the highlighted-move
+// state and the section-typing gate, and read both the `argument.voices` leaf
+// and the `argument-move` anchors). The full Section + onPushRabbi arrive via
+// `extras` (the projected instance.fields can't carry the rabbis array).
+// ===========================================================================
+
+/** The Hebrew section excerpt (RTL), shown above the synthesis. */
+function ArgumentExcerpt(props: SpecialBlockProps): JSX.Element {
+  const excerpt = (): string => (typeof props.instance.fields.excerpt === 'string' ? props.instance.fields.excerpt : '');
+  return (
+    <Show when={excerpt()}>
+      <HebrewProse size="0.95rem" color="#555" margin="0 0 0.75rem">
+        {excerpt()}…
+      </HebrewProse>
+    </Show>
+  );
+}
+
+/** Everything below the synthesis: the voice-dispute map, the dialectic /
+ *  narrative fallback, and the per-move cards. */
+function ArgumentDetail(props: SpecialBlockProps): JSX.Element {
+  const section = (): Section => props.extras?.section as Section;
+  const onPushRabbi = (): ((name: string) => void) => (props.extras?.onPushRabbi as ((name: string) => void)) ?? (() => {});
   const [highlightedMoveId, setHighlightedMoveId] = createSignal<string | null>(null);
-  // argument.voices output (structured voices + edges) — resolved via the
-  // section synthesis aggregate's deps_resolved. Drives ArgumentVoiceMap.
-  const [voicesData, setVoicesData] = createSignal<ArgumentVoicesData | null>(null);
-  // True once the section synthesis has resolved (whether or not it carried a
-  // valid voices graph) — lets the gate distinguish "still loading" from
-  // "settled, no dispute" so a missing/invalid voices graph falls back cleanly.
-  const [voicesResolved, setVoicesResolved] = createSignal(false);
-  // Section-typing gate: hide the voice-dispute map on non-dispute sections (dev mode).
-  const voicesGate = useVoicesGate(() => props.tractate, () => props.page, () => props.section);
+  // Section-typing gate: hide the voice-dispute map on non-dispute sections.
+  const voicesGate = useVoicesGate(() => props.tractate, () => props.page, () => section());
 
-  // Clear stale move state when the user opens a different section. The
-  // section's synthesis run will repopulate via onResolved as soon as the
-  // section synthesis aggregate's `anchors_resolved.argument-move` arrives.
-  //
-  // Guard against `props.section` being momentarily undefined: Solid can
-  // re-evaluate this getter while the parent <Show> is mid-transition (e.g.
-  // sidebar closing or switching to a non-argument kind), and the cast in
-  // ArgumentSidebar.tsx isn't a runtime check.
-  const instanceKey = () => {
-    const s = props.section;
-    if (!s) return '';
-    return `${s.startSegIdx}-${s.endSegIdx}-${s.title}`;
-  };
-  createEffect(() => {
-    void instanceKey();
-    setAllMoves(null);
-    setHighlightedMoveId(null);
-    setVoicesData(null);
-    setVoicesResolved(false);
-    props.onHighlightRange(null);
+  // argument.voices leaf → structured voices graph. Edges may be absent on older
+  // cached entries (default []); deriveVoiceEdges repairs directions / drops
+  // malformed edges so even pre-transform cached graphs render right.
+  const voicesData = createMemo<ArgumentVoicesData | null>(() => {
+    const v = props.deps['argument.voices'] as ArgumentVoicesData | undefined;
+    if (!v || !Array.isArray(v.voices)) return null;
+    return deriveVoiceEdges({ voices: v.voices, edges: Array.isArray(v.edges) ? v.edges : [] }) as ArgumentVoicesData;
   });
 
-  const handleResolved = (r: { deps_resolved?: Record<string, unknown>; anchors_resolved?: Record<string, unknown> }) => {
-    setVoicesResolved(true);
-    const moves = r.anchors_resolved?.['argument-move'] as ArgumentMoveInstance[] | undefined;
-    if (Array.isArray(moves)) setAllMoves(moves);
-    const voices = r.deps_resolved?.['argument.voices'] as ArgumentVoicesData | undefined;
-    if (voices && Array.isArray(voices.voices)) {
-      // Edges may be absent on older cached entries — default to [].
-      // Repair edge directions / drop malformed edges deterministically, so even
-      // already-cached graphs (pre the derive-voice-edges transform) render right.
-      setVoicesData(deriveVoiceEdges({ voices: voices.voices, edges: Array.isArray(voices.edges) ? voices.edges : [] }) as ArgumentVoicesData);
-    }
-  };
-
-  const sectionMoves = createMemo(() => {
-    const all = allMoves();
-    if (!all) return null;
-    // selectSectionMoves dedupes by move id and prefers an exact parent-section
-    // match, so a stale / doubled argument-move cache (two partitions' worth of
-    // moves for the same daf — the Shabbat 126a bug) renders as one clean set
-    // instead of duplicate cards, each of which would spin its own synthesis.
-    return selectSectionMoves(all, {
-      startSegIdx: props.section.startSegIdx,
-      endSegIdx: props.section.endSegIdx,
-    });
+  // argument-move anchors → this section's moves. selectSectionMoves dedupes by
+  // move id and prefers an exact parent-section match, so a stale / doubled
+  // argument-move cache (the Shabbat 126a bug) renders as one clean set.
+  const sectionMoves = createMemo<ArgumentMoveInstance[] | null>(() => {
+    const all = props.anchors['argument-move'] as ArgumentMoveInstance[] | undefined;
+    if (!Array.isArray(all)) return null;
+    return selectSectionMoves(all, { startSegIdx: section().startSegIdx, endSegIdx: section().endSegIdx });
   });
+
+  // Clear the highlighted move + reader range when the section changes.
+  createEffect(() => { void props.instanceKey; setHighlightedMoveId(null); props.onHighlightRange?.(null); });
 
   const handleHighlightMove = (move: ArgumentMoveInstance | null) => {
-    if (!move) {
-      setHighlightedMoveId(null);
-      props.onHighlightRange(null);
-      return;
-    }
+    if (!move) { setHighlightedMoveId(null); props.onHighlightRange?.(null); return; }
     setHighlightedMoveId(move.fields.id);
-    props.onHighlightRange({
+    props.onHighlightRange?.({
       start: move.startSegIdx,
       end: move.endSegIdx,
       key: move.fields.id,
@@ -573,43 +546,19 @@ export function ArgumentBody(props: {
     });
   };
 
-  // If the parent transitioned the sidebar away from kind='argument' but the
-  // unmount hasn't flushed yet, props.section can be undefined for a tick.
-  // Bail rather than crash the whole tree.
   return (
-    <Show when={props.section}>
-    <Panel accent={ACCENTS.argument} title={props.section.title}>
-      <Show when={props.section.excerpt}>
-        <HebrewProse size="0.95rem" color="#555" margin="0 0 0.75rem">
-          {props.section.excerpt}…
-        </HebrewProse>
-      </Show>
-      <Synthesis
-        markId="argument"
-        instance={{
-          startSegIdx: props.section.startSegIdx,
-          endSegIdx: props.section.endSegIdx,
-          fields: {
-            title: props.section.title,
-            summary: props.section.summary,
-            excerpt: props.section.excerpt,
-            rabbiNames: props.section.rabbis.map((r) => r.name),
-          },
-        }}
-        instanceKey={instanceKey()}
-        tractate={props.tractate}
-        page={props.page}
-        onResolved={handleResolved}
-      />
+    <>
       <Show when={voicesGate.showVoiceMap(voicesData()) && voicesData()}>
         {(data) => (
           <div style={{ position: 'relative' }}>
-            <InspectDot instanceKey={instanceKey()} leafId="argument.voices" style={{ position: 'absolute', top: '0.2rem', right: 0, 'z-index': 2 }} />
-            <ArgumentVoiceMap data={data()} onClickVoice={props.onPushRabbi} />
+            <InspectDot instanceKey={props.instanceKey} leafId="argument.voices" style={{ position: 'absolute', top: '0.2rem', right: 0, 'z-index': 2 }} />
+            <ArgumentVoiceMap data={data()} onClickVoice={onPushRabbi()} />
           </div>
         )}
       </Show>
-      <Show when={voicesGate.showFallback(voicesData(), voicesResolved())}>
+      {/* `synthesisResolved` lets the gate tell "still loading" from "settled, no
+          dispute" so a missing/invalid voices graph falls back cleanly. */}
+      <Show when={voicesGate.showFallback(voicesData(), props.synthesisResolved)}>
         <Show
           when={voicesGate.profile()?.primary === 'aggadata'}
           fallback={
@@ -619,10 +568,10 @@ export function ArgumentBody(props: {
           }
         >
           <ArgumentNarrative
-            section={props.section}
+            section={section()}
             tractate={props.tractate}
             page={props.page}
-            onHighlight={(r) => props.onHighlightRange(r ? { start: r.start, end: r.end, key: `beat-${r.start}-${r.tokenStart ?? 0}`, tokenStart: r.tokenStart, tokenEnd: r.tokenEnd } : null)}
+            onHighlight={(r) => props.onHighlightRange?.(r ? { start: r.start, end: r.end, key: `beat-${r.start}-${r.tokenStart ?? 0}`, tokenStart: r.tokenStart, tokenEnd: r.tokenEnd } : null)}
           />
         </Show>
       </Show>
@@ -643,21 +592,49 @@ export function ArgumentBody(props: {
                 move={move}
                 tractate={props.tractate}
                 page={props.page}
-                activeRabbi={props.activeRabbi}
                 highlightedMoveId={highlightedMoveId()}
-                onHighlightRabbi={props.onHighlightRabbi}
                 onHighlightMove={handleHighlightMove}
-                onPushRabbi={props.onPushRabbi}
-                dafRabbis={props.dafRabbis}
-                generationByName={props.generationByName}
               />
             )}</For>
           </div>
         )}
       </Show>
-    </Panel>
-    </Show>
+    </>
   );
+}
+
+export const ARGUMENT_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
+  'argument-excerpt': ArgumentExcerpt,
+  'argument-detail': ArgumentDetail,
+};
+
+/** Display instance for the argument card: the section's projected fields (the
+ *  heading + excerpt block read these). The full Section (rabbis array, etc.)
+ *  travels via `extras`. */
+export function argumentDisplayInstance(section: Section): { fields: Record<string, unknown> } {
+  return {
+    fields: {
+      title: section.title,
+      summary: section.summary,
+      excerpt: section.excerpt,
+      rabbiNames: section.rabbis.map((r) => r.name),
+    },
+  };
+}
+
+/** The exact shape sent to the `argument` synthesis as mark_input — unchanged
+ *  from the old ArgumentBody so the run cache stays warm across this conversion. */
+export function argumentSynthInstance(section: Section): unknown {
+  return {
+    startSegIdx: section.startSegIdx,
+    endSegIdx: section.endSegIdx,
+    fields: {
+      title: section.title,
+      summary: section.summary,
+      excerpt: section.excerpt,
+      rabbiNames: section.rabbis.map((r) => r.name),
+    },
+  };
 }
 
 /** Drill-in: one argument section's voice map, fed by that section's
@@ -761,31 +738,35 @@ interface DafLinkLite {
   note?: string;
 }
 
-/** Whole-daf argument overview. A one-paragraph synthesis, then the daf's
- *  argument sections drawn as flow-graph MAPS — one map per discussion (sugya),
- *  split where the sections stop binding to each other. Maps whose discussion
- *  carries over from the previous daf, or continues onto the next, are flagged.
- *  Click a section node to drill into its voice map. */
-function ArgumentOverviewBody(props: {
-  tractate: string;
-  page: string;
-  sections: Section[];
-  onPushRabbi: (name: string) => void;
-  onHighlightRange?: (range: { start: number; end: number; key: string } | null) => void;
-  onOpenArgument?: (index: number) => void;
-}): JSX.Element {
-  const [connections, setConnections] = createSignal<FlowConnection[]>([]);
+// ===========================================================================
+// Whole-daf argument OVERVIEW card — recipe block.
+// ---------------------------------------------------------------------------
+// The recipe header renders the localized "Overview" title; the synthesis
+// section renders the one-paragraph daf orientation. This block renders the
+// rest: the daf's argument sections as flow-graph MAPS — one map per discussion
+// (sugya), split where the sections stop binding to each other; maps whose
+// discussion carries over from the previous daf, or continues onto the next, are
+// flagged; clicking a section node drills into its voice map. Below: the unified
+// cross-reference links and the hand-off button into the in-depth card. The daf
+// `sections`, `onPushRabbi`, and `onOpenArgument` arrive via `extras`.
+// ===========================================================================
+function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
+  const sections = (): Section[] => (props.extras?.sections as Section[]) ?? [];
+  const onPushRabbi = (): ((name: string) => void) => (props.extras?.onPushRabbi as ((name: string) => void)) ?? (() => {});
+  const onOpenArgument = (): ((index: number) => void) | undefined => props.extras?.onOpenArgument as ((index: number) => void) | undefined;
   const [active, setActive] = createSignal<number | null>(null);
-  // Has the daf-level flow enrichment resolved yet? Until it has, we have no
-  // connections, so the maps would render as disconnected, link-less nodes —
-  // we show a loading state instead (see `mapsState`).
-  const [flowResolved, setFlowResolved] = createSignal(false);
+
+  // The daf-level flow leaf's section connections. Empty until the synthesis
+  // resolves; `props.synthesisResolved` is the "flow resolved" gate (a daf can
+  // legitimately resolve to zero edges — see `mapsState`).
+  const connections = createMemo<FlowConnection[]>(() => {
+    const flow = props.deps['argument-overview.flow'] as { connections?: FlowConnection[] } | undefined;
+    return flow && Array.isArray(flow.connections) ? flow.connections : [];
+  });
 
   createEffect(() => {
-    void `${props.tractate}/${props.page}`;
-    setConnections([]);
+    void props.instanceKey;
     setActive(null);
-    setFlowResolved(false);
     props.onHighlightRange?.(null);
   });
 
@@ -795,7 +776,7 @@ function ArgumentOverviewBody(props: {
     const next = active() === i ? null : i;
     setActive(next);
     if (next === null) { props.onHighlightRange?.(null); return; }
-    const s = props.sections[i];
+    const s = sections()[i];
     if (s && s.startSegIdx != null && s.endSegIdx != null) {
       props.onHighlightRange?.({ start: s.startSegIdx, end: s.endSegIdx, key: `overview:${i}` });
     } else {
@@ -803,17 +784,9 @@ function ArgumentOverviewBody(props: {
     }
   };
 
-  const handleResolved = (r: { deps_resolved?: Record<string, unknown>; anchors_resolved?: Record<string, unknown> }) => {
-    const flow = r.deps_resolved?.['argument-overview.flow'] as { connections?: FlowConnection[] } | undefined;
-    if (flow && Array.isArray(flow.connections)) setConnections(flow.connections);
-    // The synthesis has resolved (a daf can legitimately have zero flow edges):
-    // the maps may now render, link-less or not.
-    setFlowResolved(true);
-  };
-
   // Split the daf's sections into discussion maps. With no flow yet (cold), each
   // section is its own group; once the flow loads they merge into real sugyot.
-  const groups = () => groupSectionsBySugya(props.sections.length, connections());
+  const groups = () => groupSectionsBySugya(sections().length, connections());
 
   // Cross-page continuation: does the previous daf continue INTO this one (so
   // the first map carries over), and does this daf continue onto the next (so
@@ -909,17 +882,9 @@ function ArgumentOverviewBody(props: {
   );
 
   return (
-    <Panel accent={ACCENTS.argument} title={t('overview.title')}>
-      <Synthesis
-        markId="argument-overview"
-        instance={{ fields: {} }}
-        instanceKey={`${props.tractate}/${props.page}/overview`}
-        tractate={props.tractate}
-        page={props.page}
-        onResolved={handleResolved}
-      />
+    <>
       <Show
-        when={props.sections.length > 0}
+        when={sections().length > 0}
         fallback={
           <HebrewProse size="0.85rem" color="#999" margin="0.6rem 0 0">
             {t('overview.empty')}
@@ -931,7 +896,7 @@ function ArgumentOverviewBody(props: {
             page break. Until the flow resolves we have no connections, so we
             show a loading state rather than disconnected, link-less nodes. */}
         <Show
-          when={mapsState(props.sections.length, flowResolved()) === 'ready'}
+          when={mapsState(sections().length, props.synthesisResolved) === 'ready'}
           fallback={
             <div style={{
               display: 'flex', 'align-items': 'center', gap: '0.6rem',
@@ -950,8 +915,8 @@ function ArgumentOverviewBody(props: {
         >
         <For each={groups()}>{(grp) => {
           const hasFirst = grp.includes(0);
-          const hasLast = grp.includes(props.sections.length - 1);
-          const grpNodes = grp.map((i) => ({ index: i, title: props.sections[i].title }));
+          const hasLast = grp.includes(sections().length - 1);
+          const grpNodes = grp.map((i) => ({ index: i, title: sections()[i].title }));
           const activeInGroup = () => active() !== null && grp.includes(active()!);
           return (
             <div style={{ 'margin-bottom': '0.7rem' }}>
@@ -967,12 +932,12 @@ function ArgumentOverviewBody(props: {
               <Show when={hasLast && bridge()?.toNext}>
                 {crossLabel(t('overview.continuesOnto', { page: pageRef(bridge()!.next) }))}
               </Show>
-              <Show when={activeInGroup() && props.sections[active()!]}>
+              <Show when={activeInGroup() && sections()[active()!]}>
                 <OverviewSectionVoices
-                  section={props.sections[active()!]}
+                  section={sections()[active()!]}
                   tractate={props.tractate}
                   page={props.page}
-                  onPushRabbi={props.onPushRabbi}
+                  onPushRabbi={onPushRabbi()}
                 />
               </Show>
             </div>
@@ -1017,10 +982,10 @@ function ArgumentOverviewBody(props: {
       </Show>
       {/* Hand off into the in-depth argument card. Opens the section the reader
        *  has drilled into (active), else the start of the argument. */}
-      <Show when={props.onOpenArgument && props.sections.length > 0}>
+      <Show when={onOpenArgument() && sections().length > 0}>
         <div style={{ 'margin-top': '0.8rem', 'border-top': '1px solid #f0f0f0', 'padding-top': '0.6rem' }}>
           <button
-            onClick={() => props.onOpenArgument?.(active() ?? 0)}
+            onClick={() => onOpenArgument()?.(active() ?? 0)}
             style={{
               width: '100%', 'text-align': 'center', cursor: 'pointer', 'font-family': 'inherit',
               'font-size': '0.78rem', color: '#8a2a2b', background: '#fdf3f3',
@@ -1029,9 +994,13 @@ function ArgumentOverviewBody(props: {
           >{t('overview.openArgument')}</button>
         </div>
       </Show>
-    </Panel>
+    </>
   );
 }
+
+export const ARGUMENT_OVERVIEW_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
+  'argument-overview-maps': ArgumentOverviewMaps,
+};
 
 // ---------------------------------------------------------------------------
 // Whole-daf Background: the terms/concepts a reader needs to follow the daf,
@@ -1884,6 +1853,10 @@ function AggadataParallels(props: SpecialBlockProps): JSX.Element {
  *  yet recipe-driven. */
 export function instanceKeyForContent(content: SidebarContent, tractate: string, page: string): string | null {
   switch (content.kind) {
+    // Matches the old ArgumentBody synthesis instanceKey byte-for-byte so the
+    // run cache stays warm across this conversion.
+    case 'argument': return `${content.section.startSegIdx}-${content.section.endSegIdx}-${content.section.title}`;
+    case 'argument-overview': return `${tractate}/${page}/overview`;
     case 'aggadata': return `${tractate}:${page}:${content.index}:${content.story.title}`;
     case 'yerushalmi': return `${tractate}:${page}:${content.index}:${content.parallel.yerushalmiRef}`;
     case 'pesuk': return content.pasuk.verseRef;
@@ -2208,12 +2181,25 @@ export const RISHONIM_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Eleme
 // of per-kind dispatch arms with one generic render. Each entry is the
 // client-side adapter (recipe + special blocks + how to build the display /
 // synthesis instance) — the shape the worker mark-def `recipe` field will later
-// supply directly. Place keeps the older hint adapter; the argument-family +
-// voice-group cards are bespoke views (no recipe).
+// supply directly. Place keeps the older hint adapter; the voice-group card
+// stays bespoke (no enrichments, so no recipe).
 //
 // The builders receive the (kind-narrowed) SidebarContent; CARD_DEFS is keyed by
 // kind and only invoked for its own kind, so the casts are sound.
 // ===========================================================================
+
+/** Sidebar context an `extras` builder may draw on, beyond the content itself —
+ *  the daf's rabbi generations + sections + the sidebar callbacks a special
+ *  block needs (e.g. the argument card's full Section + onPushRabbi, the
+ *  overview's daf sections + onOpenArgument). */
+interface CardExtrasCtx {
+  content: SidebarContent;
+  generationByName: Map<string, GenerationId>;
+  onPushRabbi: (name: string) => void;
+  dafSections: Section[];
+  onOpenArgument?: (index: number) => void;
+}
+
 interface CardDef {
   recipe: SidebarRecipe;
   blocks: Record<string, (p: SpecialBlockProps) => JSX.Element>;
@@ -2225,11 +2211,33 @@ interface CardDef {
   qaInstanceId?: (c: SidebarContent) => string;
   /** Forward the reader-highlight channel to the card's special blocks. */
   forwardHighlight?: boolean;
-  /** Card-specific extras for special blocks (e.g. rabbi's generationByName). */
-  extras?: (ctx: { generationByName: Map<string, GenerationId> }) => Record<string, unknown>;
+  /** Card-specific extras for special blocks (e.g. rabbi's generationByName,
+   *  the argument card's full Section). */
+  extras?: (ctx: CardExtrasCtx) => Record<string, unknown>;
 }
 
 export const CARD_DEFS: Partial<Record<SidebarContent['kind'], CardDef>> = {
+  argument: {
+    recipe: ARGUMENT_RECIPE,
+    blocks: ARGUMENT_BLOCKS,
+    instance: (c) => argumentDisplayInstance((c as Extract<SidebarContent, { kind: 'argument' }>).section),
+    synthInstance: (c) => argumentSynthInstance((c as Extract<SidebarContent, { kind: 'argument' }>).section),
+    forwardHighlight: true,
+    extras: (ctx) => ({ section: (ctx.content as Extract<SidebarContent, { kind: 'argument' }>).section, onPushRabbi: ctx.onPushRabbi }),
+  },
+  'argument-overview': {
+    recipe: ARGUMENT_OVERVIEW_RECIPE,
+    blocks: ARGUMENT_OVERVIEW_BLOCKS,
+    // Whole-daf: the only display field is the localized "Overview" heading;
+    // the daf's sections travel via extras (they aren't on the content).
+    instance: () => ({ fields: { title: t('overview.title') } }),
+    // The synthesis mark_input stays the old empty `{fields:{}}` byte-for-byte —
+    // the localized heading is display-only and must not leak into the warmed
+    // overview cache key (which would cold-miss all of Shas).
+    synthInstance: () => ({ fields: {} }),
+    forwardHighlight: true,
+    extras: (ctx) => ({ sections: ctx.dafSections, onPushRabbi: ctx.onPushRabbi, onOpenArgument: ctx.onOpenArgument }),
+  },
   aggadata: {
     recipe: AGGADATA_RECIPE,
     blocks: AGGADATA_BLOCKS,
@@ -2378,23 +2386,10 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
               >×</button>
             </header>
 
-            <Show when={c().kind === 'argument'}>
-              <ArgumentBody
-                section={(c() as Extract<SidebarContent, { kind: 'argument' }>).section}
-                tractate={props.tractate}
-                page={props.page}
-                activeRabbi={props.activeRabbi}
-                onHighlightRabbi={props.onHighlightRabbi}
-                onPushRabbi={props.onPushRabbi}
-                dafRabbis={props.dafRabbis}
-                onHighlightRange={(r) => props.onHighlightRange?.(r)}
-                generationByName={props.generationByName}
-              />
-            </Show>
-
-            {/* All recipe-driven cards (aggadata/pesuk/halacha/rishonim/rabbi)
-                render through one generic arm, keyed by CARD_DEFS. Place keeps
-                the hint adapter; the argument-family + voice-group stay bespoke. */}
+            {/* All recipe-driven cards (argument family + aggadata/pesuk/halacha/
+                rishonim/rabbi/yerushalmi) render through one generic arm, keyed
+                by CARD_DEFS. Place keeps the hint adapter; voice-group stays
+                bespoke (no enrichments). */}
             <Show when={CARD_DEFS[c().kind]}>
               {(def) => (
                 <SidebarCardFromHint
@@ -2407,7 +2402,13 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                   page={props.page}
                   specialBlocks={def().blocks}
                   onHighlightRange={def().forwardHighlight ? (r) => props.onHighlightRange?.(r) : undefined}
-                  extras={def().extras?.({ generationByName: props.generationByName })}
+                  extras={def().extras?.({
+                    content: c(),
+                    generationByName: props.generationByName,
+                    onPushRabbi: props.onPushRabbi,
+                    dafSections: props.dafSections ?? [],
+                    onOpenArgument: props.onOpenArgument,
+                  })}
                 />
               )}
             </Show>
@@ -2423,17 +2424,6 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                 tractate={props.tractate}
                 page={props.page}
                 chips={<PlaceChips place={(c() as Extract<SidebarContent, { kind: 'place' }>).place} />}
-              />
-            </Show>
-
-            <Show when={c().kind === 'argument-overview'}>
-              <ArgumentOverviewBody
-                tractate={props.tractate}
-                page={props.page}
-                sections={props.dafSections ?? []}
-                onPushRabbi={props.onPushRabbi}
-                onHighlightRange={props.onHighlightRange}
-                onOpenArgument={props.onOpenArgument}
               />
             </Show>
 

@@ -1456,6 +1456,29 @@ interface ResolvedInputs {
   depends: Record<string, unknown>;
   /** Mark instance lists keyed by dep id (returned as anchors_resolved). */
   anchors: Record<string, unknown>;
+  /** Raw source TEXTS fed into the prompt, keyed by source name (gemara,
+   *  commentaries, mishna, halacha-refs, yerushalmi-text, context). Surfaced by
+   *  the read-only /api/run-sources endpoint so the dev inspector shows not just
+   *  which enrichments/marks fed a piece but which TEXTS did — kept OFF the
+   *  cached RunResult so it never bloats the reader hot path. `chars` is the full
+   *  length; `content` is a bounded preview (the full text already went to the
+   *  LLM; only the inspector needs to eyeball it). */
+  sources: Record<string, { chars: number; content: string }>;
+}
+
+/** Bounded preview cap for a source text returned by /api/run-sources — same
+ *  posture as the 2KB resolved-prompt cap, but roomier since a dev may want to
+ *  scan the actual gemara/context that grounded a generation. Keeps a single
+ *  inspector response from shipping the full multi-KB context blob per source. */
+const SOURCE_PREVIEW_CAP = 8000;
+function recordSource(out: ResolvedInputs, name: string, content: unknown): void {
+  if (typeof content !== 'string' || content.length === 0) return;
+  out.sources[name] = {
+    chars: content.length,
+    content: content.length > SOURCE_PREVIEW_CAP
+      ? content.slice(0, SOURCE_PREVIEW_CAP) + `… [+${content.length - SOURCE_PREVIEW_CAP} chars]`
+      : content,
+  };
 }
 
 async function resolveDependencies(
@@ -1466,14 +1489,21 @@ async function resolveDependencies(
   markInput: unknown,
   bypassCache: boolean,
   parentChain: ReadonlySet<string>,
+  /** When true, resolve ONLY the deterministic source-text deps (gemara /
+   *  commentaries / mishna / halacha-refs / yerushalmi-text / context — all
+   *  cached KV reads, no LLM) and skip the `{enrichment}` / `{mark}` deps that
+   *  would trigger generation. Used by the read-only /api/run-sources inspector
+   *  endpoint so opening the dev inspector never re-runs a model. */
+  sourcesOnly = false,
 ): Promise<ResolvedInputs> {
-  const out: ResolvedInputs = { vars: {}, depends: {}, anchors: {} };
+  const out: ResolvedInputs = { vars: {}, depends: {}, anchors: {}, sources: {} };
   if (!dependencies || dependencies.length === 0) {
     // Default behavior: when no dependencies declared, hand the gemara slice
     // through (matches pre-refactor buildDafContext behavior). Removes a
     // foot-gun when porting old extractors that omitted the field.
     const slice = await getGemaraSlice(rc.env, tractate, page, bypassCache);
     Object.assign(out.vars, gemaraSliceToVars(slice));
+    recordSource(out, 'gemara', out.vars.gemara);
     return out;
   }
   // Resolve all dependencies CONCURRENTLY. They're independent (each writes a
@@ -1485,17 +1515,20 @@ async function resolveDependencies(
     if (dep === 'gemara') {
       const slice = await getGemaraSlice(rc.env, tractate, page, bypassCache);
       Object.assign(out.vars, gemaraSliceToVars(slice));
+      recordSource(out, 'gemara', out.vars.gemara);
       return;
     }
     if (dep === 'commentaries') {
       const slice = await getCommentariesSlice(rc.env, tractate, page, bypassCache);
       out.vars.commentaries = commentariesSliceToString(slice);
+      recordSource(out, 'commentaries', out.vars.commentaries);
       return;
     }
     if (dep === 'mishna') {
       const bundle = await getMishnaBundleCached(rc.env.CACHE, tractate, page);
       const filtered = selectMishnaForMark(bundle, markInput);
       out.vars.mishna = mishnaBundleToString(filtered);
+      recordSource(out, 'mishna', out.vars.mishna);
       return;
     }
     if (dep === 'halacha-refs') {
@@ -1504,6 +1537,7 @@ async function resolveDependencies(
       // enrichment SELECTS from real refs instead of recalling citations.
       const bundle = await getHalachaRefsCached(rc.env.CACHE, tractate, page);
       out.vars.halacha_refs = formatGroundedRefsForPrompt(bundle);
+      recordSource(out, 'halacha-refs', out.vars.halacha_refs);
       return;
     }
     if (dep === 'yerushalmi-text') {
@@ -1520,6 +1554,7 @@ async function resolveDependencies(
       ]);
       const notes = daf ? fromDafyomi(daf).filter((i) => i.source === 'dafyomi:yerushalmi') : [];
       out.vars.yerushalmi = formatYerushalmiForPrompt(bundle, curated, notes);
+      recordSource(out, 'yerushalmi-text', out.vars.yerushalmi);
       return;
     }
     if (dep === 'context') {
@@ -1540,13 +1575,20 @@ async function resolveDependencies(
         }));
       const items = await collectContext(rc.env, tractate, page, { sections });
       // Back up the deterministic Revach placer with the cached AI matcher for
-      // any entries it left whole-daf (once per daf; LLM-free on cache hit).
-      await placeRevachWithAi(rc.env, tractate, page, items);
+      // any entries it left whole-daf (once per daf; LLM-free on cache hit). In
+      // the source-only inspector pass, run it cache-only so the preview still
+      // reflects already-cached placements but NEVER triggers the matcher on a
+      // cold daf.
+      await placeRevachWithAi(rc.env, tractate, page, items, sourcesOnly);
       const scoped = contextForAnchor(items, segsFromMarkInput(markInput));
       out.vars.context = formatContextForPrompt(scoped);
+      recordSource(out, 'context', out.vars.context);
       return;
     }
     if (typeof dep === 'object' && dep !== null) {
+      // Inspector source-only pass: skip enrichment/mark deps (they'd trigger
+      // generation); we only want the source TEXTS this producer pulls.
+      if (sourcesOnly) return;
       if ('enrichment' in dep) {
         const depId = dep.enrichment;
         if (parentChain.has(depId)) {
@@ -2852,6 +2894,51 @@ app.post('/api/run', async (c) => {
     : await cacheKeyForRunBody(c.env, job);
   await c.env.ENRICHMENT_QUEUE.send(job);
   return c.json({ status: 'pending', runId: job.runId, cacheKey: cacheKey ?? undefined }, 202);
+});
+
+/**
+ * POST /api/run-sources — read-only companion to /api/run for the dev inspector.
+ * Given a mark/enrichment + daf (+ optional mark_input), resolves ONLY the
+ * source TEXTS that producer feeds into its prompt (gemara / commentaries /
+ * mishna / halacha-refs / yerushalmi-text / aggregated context) and returns them
+ * as `{ sources: { <name>: { chars, content } } }`.
+ *
+ * Deliberately a separate endpoint, NOT a field on the cached RunResult: the
+ * source texts are large (KB-scale each) and would bloat every reader's card
+ * fetch + KV entry for a dev-only view. Here they're computed on demand from the
+ * source slices: NO LLM (the `{enrichment}`/`{mark}` deps are skipped and the
+ * Revach AI matcher runs cache-only) and NO enrichment-result is written. It
+ * does the same deterministic source reads a normal page read does — so a cold
+ * daf populates the shared source-slice cache (gemara/commentary/etc.) on a
+ * miss, exactly as the already-public /api/run would; this is a strict subset of
+ * that endpoint's surface (no model, no studio knobs), so it needs no extra auth.
+ */
+app.post('/api/run-sources', async (c) => {
+  let raw: unknown;
+  try { raw = await c.req.json(); }
+  catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const body = raw as { mark_id?: string; enrichment_id?: string; tractate?: string; page?: string; mark_input?: unknown; lang?: string };
+  if (!body.tractate || !body.page) return c.json({ error: 'tractate and page required' }, 400);
+  if (!body.mark_id && !body.enrichment_id) return c.json({ error: 'mark_id or enrichment_id required' }, 400);
+
+  const def = body.enrichment_id
+    ? await loadEnrichmentDef(c.env, body.enrichment_id)
+    : await loadMarkDef(c.env, body.mark_id!);
+  if (!def) {
+    const what = body.enrichment_id ? `enrichment ${body.enrichment_id}` : `mark ${body.mark_id}`;
+    return c.json({ error: `${what} not found` }, 404);
+  }
+
+  const rc: RunCtx = {
+    env: c.env,
+    url: c.req.url,
+    ctx: c.executionCtx,
+    lang: body.lang === 'he' ? 'he' : 'en',
+  };
+  const inputs = await resolveDependencies(
+    rc, def.dependencies, body.tractate, body.page, body.mark_input, false, new Set(), true,
+  );
+  return c.json({ sources: inputs.sources });
 });
 
 /**
