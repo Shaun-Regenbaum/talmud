@@ -5259,7 +5259,7 @@
     "rambam": {
       "canonical": "Moses ben Maimon (Rambam)",
       "canonicalHe": "רמב\"ם",
-      "generation": "unknown",
+      "generation": "rishonim",
       "region": null,
       "hasBio": true,
       "teachers": [],
@@ -6638,7 +6638,7 @@
     "rashi": {
       "canonical": "Rashi",
       "canonicalHe": "רש״י",
-      "generation": "unknown",
+      "generation": "rishonim",
       "region": null,
       "hasBio": true,
       "teachers": [],
@@ -8269,7 +8269,7 @@
     "ramban": {
       "canonical": "Moses ben Nachman (Ramban)",
       "canonicalHe": "רמב״ן",
-      "generation": "unknown",
+      "generation": "rishonim",
       "region": null,
       "hasBio": true,
       "teachers": [],
@@ -13004,7 +13004,7 @@
     "tosafot": {
       "canonical": "Tosafot",
       "canonicalHe": "תוספות",
-      "generation": "unknown",
+      "generation": "rishonim",
       "region": "israel",
       "hasBio": true,
       "teachers": [],
@@ -15305,7 +15305,7 @@
     "rashbam": {
       "canonical": "Rashbam",
       "canonicalHe": "רשב״ם",
-      "generation": "unknown",
+      "generation": "rishonim",
       "region": null,
       "hasBio": true,
       "teachers": [],
@@ -23208,7 +23208,7 @@
     "rav-huna-gaon": {
       "canonical": "Rav Huna Gaon",
       "canonicalHe": "הונא גאון",
-      "generation": "savora",
+      "generation": "geonim",
       "region": "bavel",
       "hasBio": true,
       "teachers": [],
@@ -23240,7 +23240,7 @@
     "rav-hanina-gaon": {
       "canonical": "Rav Hanina Gaon",
       "canonicalHe": "חנינא גאון",
-      "generation": "savora",
+      "generation": "geonim",
       "region": "bavel",
       "hasBio": true,
       "teachers": [],
@@ -23425,7 +23425,7 @@
     "rav-sheshena-gaon": {
       "canonical": "Rav Sheshena Gaon",
       "canonicalHe": "ששנא גאון",
-      "generation": "savora",
+      "generation": "geonim",
       "region": "bavel",
       "hasBio": true,
       "teachers": [],

@@ -1740,7 +1740,11 @@ function postProcessRabbi(parsed: unknown, hebrewText: string): unknown {
     ...p,
     instances: augmented.map((r) => ({
       excerpt: r.nameHe,
-      fields: { name: r.name, nameHe: r.nameHe, generation: r.generation },
+      // Fill an 'unknown' generation from the registry so a model-missed or
+      // model-unsure rabbi (the deterministic safety net adds known rabbis as
+      // 'unknown') still underlines on the right tier instead of neutral gray.
+      // The model's call wins whenever it assigned a generation.
+      fields: { name: r.name, nameHe: r.nameHe, generation: resolveGeneration(r.name, r.nameHe, r.generation) },
     })),
   };
 }
@@ -4907,15 +4911,33 @@ export function deriveRegionFromGeneration(g: GenerationId): 'israel' | 'bavel' 
   return null;
 }
 
+/**
+ * Fill an 'unknown' generation from the resolved registry entry (when it's a
+ * valid id). The model's / explicit generation always wins when it's known —
+ * it disambiguates homonyms (e.g. "Rabbi Elazar", "Rav Huna") by context, which
+ * the name-keyed registry can't. We only reach for the registry when the model
+ * abstained, so a recognised later authority (Rashi, a named Gaon, …) lands on
+ * the right tier + color instead of rendering as neutral 'unknown'.
+ */
+export function resolveGeneration(name: string, nameHe: string, generation: GenerationId): GenerationId {
+  if (generation !== 'unknown') return generation;
+  const entry = resolveRabbi(name, nameHe)?.entry ?? null;
+  if (entry && typeof entry.generation === 'string' && GENERATION_ID_SET.has(entry.generation)) {
+    return entry.generation as GenerationId;
+  }
+  return 'unknown';
+}
+
 export function enrichRabbi(name: string, nameHe: string, generation: GenerationId): IdentifiedRabbi {
   const hit = resolveRabbi(name, nameHe);
   const entry = hit?.entry ?? null;
+  const finalGen = resolveGeneration(name, nameHe, generation);
   return {
     slug: hit?.slug ?? null,
     name: entry?.canonical ?? name,
     nameHe,
-    generation,
-    region: entry?.region ?? deriveRegionFromGeneration(generation),
+    generation: finalGen,
+    region: entry?.region ?? deriveRegionFromGeneration(finalGen),
     places: entry?.places ?? [],
     moved: entry?.moved ?? null,
     bio: entry?.bio ?? null,

@@ -596,23 +596,6 @@ const CATALOG = {
   'rabbi.places.confidence.medium': { en: 'medium', he: 'בינונית' },
   'rabbi.places.confidence.low': { en: 'low', he: 'נמוכה' },
 
-  // — Rabbi tree strip —
-  'rabbi.tree.title': { en: 'Chain of tradition', he: 'שלשלת הקבלה' },
-  'rabbi.tree.noEdges': { en: 'no edges', he: 'אין קשרים' },
-  'rabbi.tree.teacherStudent': { en: 'teacher → student', he: 'רב → תלמיד' },
-  'rabbi.tree.contemporary': { en: 'contemporary', he: 'בן דורו' },
-  'rabbi.tree.gen': { en: 'Gen {n}', he: 'דור {n}' },
-  'rabbi.tree.onThisDaf': { en: 'On this daf', he: 'בדף זה' },
-  'rabbi.tree.relatedRole': { en: '{role} of a rabbi on this daf', he: '{role} של חכם בדף זה' },
-  'rabbi.tree.role.teacher': { en: 'teacher', he: 'רבו' },
-  'rabbi.tree.role.student': { en: 'student', he: 'תלמידו' },
-  'rabbi.tree.role.colleague': { en: 'colleague', he: 'בן דורו' },
-  'rabbi.tree.role.related': { en: 'relative', he: 'קרוב' },
-  'rabbi.tree.era.zugim': { en: 'Zugim', he: 'זוגות' },
-  'rabbi.tree.era.tannaim': { en: 'Tannaim', he: 'תנאים' },
-  'rabbi.tree.era.amoraim': { en: 'Amoraim', he: 'אמוראים' },
-  'rabbi.tree.era.savoraim': { en: 'Savoraim', he: 'סבוראים' },
-
   // — Commentary picker / strip —
   'commentary.heading': { en: 'Commentaries on this daf', he: 'מפרשים על הדף' },
   'commentary.loading': { en: 'Loading…', he: 'טוען…' },
