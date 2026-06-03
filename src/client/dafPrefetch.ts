@@ -94,6 +94,7 @@ const FRIENDLY: Record<string, string> = {
   'rishonim.synthesis': 'dafLoad.family.rishonim',
   'argument-overview.synthesis': 'dafLoad.family.argumentOverview',
   'daf-background.synthesis': 'dafLoad.family.background',
+  'tidbit.essay': 'dafLoad.family.tidbit',
 };
 
 interface MarkInstance {
@@ -179,12 +180,20 @@ export function prefetchDaf(
     });
     // Whole-daf Background concepts (terms a reader needs) — same daf-level
     // shape as the overview; its concepts leaf rides in as a dependency, so
-    // opening the Background chip is a cache hit. Same `opts.overview` (dev)
-    // gate to avoid paying for it on every reader's daf load.
+    // opening the Background chip is a cache hit.
     tasks.push({
       enrichmentId: 'daf-background.synthesis',
       instance: { fields: {} },
       instanceKey: 'daf-background:daf',
+    });
+    // Whole-daf Tidbit — the curated "did you notice…" essay. Same daf-level
+    // shape; counted in the bar like the other two reader chips. It pulls the
+    // overview synthesis + background concepts in as dependencies, so the two
+    // tasks above warm its inputs and opening the Tidbit chip is a cache hit.
+    tasks.push({
+      enrichmentId: 'tidbit.essay',
+      instance: { fields: {} },
+      instanceKey: 'tidbit:daf',
     });
   }
 
