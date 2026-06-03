@@ -40,7 +40,7 @@ exports[`CODE_ENRICHMENTS cache identity > per-enrichment fingerprint is stable 
   "rabbi.geography.evidence@2 mode=augment-content scope=local mark=rabbi schema=rabbi_geography_evidence[evidence] deps=[gemara|e:rabbi.geography]",
   "rabbi.geography@3 mode=augment-content scope=global mark=rabbi schema=rabbi_geography[birthplace,primaryStudyPlaces,notablePlaces,movements,prose] deps=[]",
   "rabbi.identity@1 mode=augment-content scope=global mark=rabbi schema=rabbi_identity[slug,name,nameHe,generation,region,places,moved,bio,image,wiki] deps=[]",
-  "rabbi.location@2 mode=augment-content scope=local mark=rabbi schema=rabbi_location[place,region,confidence,justification] deps=[gemara|e:rabbi.geography|m:rabbi]",
+  "rabbi.location@3 mode=augment-content scope=local mark=rabbi schema=rabbi_location[place,region,confidence,justification] deps=[gemara|e:rabbi.geography|m:rabbi]",
   "rabbi.observations@1 mode=aggregate scope=local mark=rabbi schema=-[] deps=[gemara|m:rabbi|m:places|m:aggadata|m:argument-move|m:pesukim]",
   "rabbi.philosophy@4 mode=augment-content scope=global mark=rabbi schema=rabbi_philosophy[philosophy] deps=[]",
   "rabbi.relationships.evidence@2 mode=augment-content scope=local mark=rabbi schema=rabbi_relationships_evidence[evidence] deps=[gemara|e:rabbi.relationships]",

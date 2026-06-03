@@ -22,7 +22,7 @@
  * the user can scan it to form their own contextual guess.
  */
 
-import { For, Show, createSignal, type JSX } from 'solid-js';
+import { For, Show, createSignal, createMemo, type JSX } from 'solid-js';
 import type { BirthPlace, GeographyData, GeographyEvidence, Movement, NotablePlace, StudyPlace } from './RabbiGeographyCard';
 import { t } from './i18n';
 
@@ -180,6 +180,28 @@ export default function RabbiPlacesTimeline(props: Props): JSX.Element {
   const lookupEvidence = (ev: TimelineEvent): GeographyEvidence | undefined =>
     evidenceByPlace().get(`${ev.evidenceKind}:${ev.evidencePlace}`.toLowerCase());
 
+  // The "you are here" marker + justification belong to exactly ONE row.
+  // location.place can match several events (e.g. a movement TO Eretz Yisrael
+  // AND a notable event there), which previously double-rendered the badge and
+  // the whole justification. Pick a single best row: prefer the movement whose
+  // destination is the inferred place (the rabbi landed there — what the
+  // justification usually describes), else the first matching event.
+  const hereIndex = createMemo<number>(() => {
+    const place = props.location?.place?.toLowerCase();
+    if (!place) return -1;
+    const evs = events();
+    const primary = (ev: TimelineEvent) => ev.primaryPlace.toLowerCase() === place;
+    const secondary = (ev: TimelineEvent) => ev.secondaryPlace?.toLowerCase() === place;
+    // 1. A movement that LANDED here (the justification usually describes the
+    //    arrival), then 2. a non-movement event AT this place (birth/study/
+    //    notable), and only then 3. any remaining match (e.g. a movement's
+    //    origin — the rabbi LEFT here, the weakest "you are here").
+    let i = evs.findIndex((ev) => ev.kind === 'movement' && secondary(ev));
+    if (i < 0) i = evs.findIndex((ev) => ev.kind !== 'movement' && primary(ev));
+    if (i < 0) i = evs.findIndex((ev) => primary(ev) || secondary(ev));
+    return i;
+  });
+
   const clickEvent = (ev: TimelineEvent) => {
     const e = lookupEvidence(ev);
     if (!e || typeof e.startSegIdx !== 'number' || typeof e.endSegIdx !== 'number') return;
@@ -286,12 +308,12 @@ export default function RabbiPlacesTimeline(props: Props): JSX.Element {
             const e = lookupEvidence(ev);
             const hasEv = !!e;
             const key = e ? `rabbi-place-timeline:${ev.kind}:${ev.evidencePlace}:${e.startSegIdx}:${e.tokenStart ?? 0}` : '';
-            const isActive = activeEvidenceKey() === key;
+            // Functions, not plain consts: the <For> mapper runs once per row,
+            // so these must stay reactive to track activeEvidenceKey() (click)
+            // and hereIndex() (async location inference) after first render.
+            const isActive = () => activeEvidenceKey() === key;
             const color = regionColor(ev.region);
-            const isHere = !!(props.location?.place && (
-              props.location.place.toLowerCase() === ev.primaryPlace.toLowerCase()
-              || (ev.secondaryPlace && props.location.place.toLowerCase() === ev.secondaryPlace.toLowerCase())
-            ));
+            const isHere = () => idx() === hereIndex();
 
             return (
               <li style={{
@@ -309,9 +331,9 @@ export default function RabbiPlacesTimeline(props: Props): JSX.Element {
                   width: '16px',
                   height: '16px',
                   'border-radius': '50%',
-                  background: isHere ? '#0066CC' : '#fafaf7',
-                  border: '2.5px solid ' + (isHere ? '#0066CC' : color),
-                  'box-shadow': isHere ? '0 0 0 3px rgba(0,102,204,0.18)' : 'none',
+                  background: isHere() ? '#0066CC' : '#fafaf7',
+                  border: '2.5px solid ' + (isHere() ? '#0066CC' : color),
+                  'box-shadow': isHere() ? '0 0 0 3px rgba(0,102,204,0.18)' : 'none',
                   'z-index': 1,
                   'box-sizing': 'border-box',
                 }} />
@@ -330,14 +352,14 @@ export default function RabbiPlacesTimeline(props: Props): JSX.Element {
                     padding: '2px 8px 4px',
                     margin: 0,
                     border: '1px solid ' + (
-                      isActive ? EVIDENCE_BORDER
-                        : isHere ? '#0066CC'
+                      isActive() ? EVIDENCE_BORDER
+                        : isHere() ? '#0066CC'
                         : hasEv ? '#fde68a'
                         : 'transparent'
                     ),
                     background: (
-                      isActive ? EVIDENCE_BG
-                        : isHere ? '#eff6ff'
+                      isActive() ? EVIDENCE_BG
+                        : isHere() ? '#eff6ff'
                         : hasEv ? '#fefce8'
                         : 'transparent'
                     ),
@@ -370,14 +392,14 @@ export default function RabbiPlacesTimeline(props: Props): JSX.Element {
                       'text-transform': 'uppercase', 'letter-spacing': '0.07em',
                       'font-weight': 500,
                     }}>{t(`rabbi.places.kind.${ev.kind}`)}</span>
-                    <Show when={isHere}>
+                    <Show when={isHere()}>
                       <span style={{
                         color: '#0066CC', 'font-size': '0.6rem',
                         'font-weight': 700, 'margin-left': 'auto',
                         'text-transform': 'uppercase', 'letter-spacing': '0.08em',
                       }}>{t('rabbi.places.youAreHere')}{props.location?.confidence ? ` · ${t(`rabbi.places.confidence.${props.location.confidence}`)}` : ''}</span>
                     </Show>
-                    <Show when={hasEv && !isHere}>
+                    <Show when={hasEv && !isHere()}>
                       <span style={{ color: '#a16207', 'font-size': '0.6rem', 'margin-left': 'auto', 'font-weight': 600 }}>{t('rabbi.onDaf')}</span>
                     </Show>
                   </div>
@@ -388,7 +410,7 @@ export default function RabbiPlacesTimeline(props: Props): JSX.Element {
                       'line-height': 1.5,
                     }}>{ev.detail}</div>
                   </Show>
-                  <Show when={isHere && props.location?.justification}>
+                  <Show when={isHere() && props.location?.justification}>
                     <div style={{
                       'font-size': '0.74rem', color: '#1e40af',
                       'margin-top': '0.3rem',
@@ -396,8 +418,6 @@ export default function RabbiPlacesTimeline(props: Props): JSX.Element {
                     }}>{props.location!.justification}</div>
                   </Show>
                 </button>
-                {/* Silence unused index — kept for future stable keys. */}
-                <Show when={false}><span>{idx()}</span></Show>
               </li>
             );
           }}</For>
