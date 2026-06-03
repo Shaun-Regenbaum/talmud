@@ -1511,6 +1511,32 @@ async function resolveDependencies(
           out.depends[depId] = { error: 'not found' };
           return;
         }
+        // fanOut: run this per-instance enrichment for EVERY instance of its
+        // target mark and expose the array. Lets a whole-daf consumer (the
+        // tidbit) pull in every story's / verse's / topic's analysis. Each
+        // instance run resolves its own deps + scopes its context, and is
+        // cache-keyed per instance — so on a warmed daf these are all hits.
+        if ((dep as { fanOut?: boolean }).fanOut) {
+          const markDef = await loadMarkDef(rc.env, depDef.mark);
+          if (!markDef) { out.depends[depId] = { error: `mark ${depDef.mark} not found` }; return; }
+          let instances: unknown[] = [];
+          try {
+            const markRes = await runMarkOnce(rc, markDef, tractate, page, bypassCache);
+            const parsed = markRes.parsed as { instances?: unknown[] } | null;
+            instances = Array.isArray(parsed?.instances) ? parsed.instances : [];
+          } catch (err) {
+            out.depends[depId] = { error: String((err as Error)?.message ?? err) };
+            return;
+          }
+          const results = await Promise.all(instances.map(async (inst) => {
+            try {
+              const r = await runEnrichmentOnce(rc, depDef, tractate, page, inst, bypassCache, undefined, parentChain);
+              return r.parsed ?? r.content;
+            } catch { return null; }
+          }));
+          out.depends[depId] = results.filter((x) => x != null);
+          return;
+        }
         try {
           const result = await runEnrichmentOnce(rc, depDef, tractate, page, markInput, bypassCache, undefined, parentChain);
           out.depends[depId] = result.parsed ?? result.content;
