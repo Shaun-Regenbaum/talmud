@@ -5,32 +5,51 @@
     "type": "object",
     "additionalProperties": false,
     "required": [
-      "lechatchila",
-      "bedieved",
-      "appliesWhen",
-      "exceptions",
-      "prose"
+      "shape",
+      "best",
+      "fallback",
+      "statement",
+      "rows",
+      "note"
     ],
     "properties": {
-      "lechatchila": {
+      "shape": {
+        "type": "string",
+        "enum": [
+          "best-fallback",
+          "statement",
+          "taxonomy"
+        ]
+      },
+      "best": {
         "type": "string"
       },
-      "bedieved": {
+      "fallback": {
         "type": "string"
       },
-      "appliesWhen": {
+      "statement": {
+        "type": "string"
+      },
+      "rows": {
         "type": "array",
         "items": {
-          "type": "string"
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "when",
+            "value"
+          ],
+          "properties": {
+            "when": {
+              "type": "string"
+            },
+            "value": {
+              "type": "string"
+            }
+          }
         }
       },
-      "exceptions": {
-        "type": "array",
-        "items": {
-          "type": "string"
-        }
-      },
-      "prose": {
+      "note": {
         "type": "string"
       }
     }

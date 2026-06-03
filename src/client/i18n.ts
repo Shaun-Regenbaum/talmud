@@ -517,6 +517,7 @@ const CATALOG = {
   // — Halacha body —
   'halacha.codification': { en: 'Codification', he: 'פסיקה' },
   'halacha.derivation': { en: 'Where it comes from', he: 'מקורות בש״ס' },
+  'halacha.note': { en: 'Note', he: 'הערה' },
   'halacha.practical': { en: 'Practical', he: 'למעשה' },
   'halacha.disputes': { en: 'Disputes', he: 'מחלוקות' },
   // Codification source labels (the פסיקה rows).

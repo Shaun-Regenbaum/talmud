@@ -3637,24 +3637,29 @@ Rules:
 ${HEBREW_GLOSS_STYLE}`;
 
 
-const HALACHA_PRACTICAL_SYSTEM_PROMPT = `You are a scholar of halacha and practical psak. Given ONE halachic topic surfaced on a daf, describe the PRACTICAL application of the settled halacha — what someone has to actually do, when it applies, and what the common edge cases are.
+const HALACHA_PRACTICAL_SYSTEM_PROMPT = `You are a scholar of halacha and practical psak. Given ONE halachic topic surfaced on a daf, state the PRACTICAL bottom line — what a person actually does — in the SHAPE that fits the ruling. Plain English first; the Hebrew term is a tag, not the main word.
 
-Output STRICT JSON only:
+First choose the shape:
+- "best-fallback" — a timing / measure rule with a לכתחילה ideal AND a בדיעבד fallback (e.g. say the evening שמע before חצות; after the fact it still counts until dawn).
+- "statement" — a single action, prohibition, or structural requirement with NO meaningful best/fallback split (e.g. "Don't carry between domains on שבת"; "A monetary case is judged by three").
+- "taxonomy" — a mapping of case → answer (e.g. each food → its ברכה).
+
+Output STRICT JSON only — fill ONLY the fields for the chosen shape, leave the others as "" or []:
 
 {
-  "lechatchila": "1-2 sentences: how the halacha is performed lechatchila (ideal-case). What's the standard practice?",
-  "bedieved":    "1 sentence on the bedieved (after-the-fact) standard, when applicable. Empty string if no lechatchila/bedieved distinction.",
-  "appliesWhen": ["Short bullet phrases — 2-4 items — naming the situations when this halacha is triggered (e.g. 'eating bread', 'after dark', 'in a public domain')."],
-  "exceptions":  ["Short bullet phrases — 0-3 items — naming common exceptions or edge cases ('a sick person is exempt', 'on Shabbat the rule changes', etc.). Empty array if none."],
-  "prose": "ONE short paragraph (2-3 sentences) on how the rule plays out today — what the typical person does, what trips them up, any standard halachic threshold the gemara introduced that still governs practice."
+  "shape": "best-fallback" | "statement" | "taxonomy",
+  "best":      "best-fallback ONLY. ONE sentence: the ideal practice, plain words first. e.g. 'Say it before halachic midnight (חצות).'",
+  "fallback":  "best-fallback ONLY. ONE sentence: the after-the-fact standard. e.g. 'Any time until dawn (עלות השחר) still counts.' Empty if there is genuinely no fallback.",
+  "statement": "statement ONLY. ONE plain sentence of what to do / not do / the requirement.",
+  "rows":      [ { "when": "the case, plain (e.g. 'Tree fruit')", "value": "the answer (e.g. 'בורא פרי העץ')" } ],
+  "note":      "OPTIONAL single plain-language heads-up or exception (e.g. 'A sick person is exempt'). Empty when none — do NOT pad."
 }
 
 Rules:
-- The "lechatchila" field must describe the standard live practice (the לכתחילה standard), not the gemara's hypothetical. If the practice still tracks the gemara's plain conclusion, say so concretely.
-- The "bedieved" field is for the after-the-fact (בדיעבד) standard: did the act count, what do you do retroactively, etc. Empty string when there is no such distinction.
-- appliesWhen / exceptions are SHORT scannable phrases (not sentences), each STARTING WITH A CAPITAL LETTER when they begin in English ("Locking a door on שבת", "A sick person is exempt").
-- appliesWhen / exceptions follow the SAME HEBREW_GLOSS_STYLE as the prose — they are short, but they are NOT a plain-English exception. Hebraize the always-list terms here exactly as you would in prose: write "Locking a door on שבת", "Designated before שבת", "In בית דין", and Form A for any technical term with no clean English word ("A bolt never prepared is מוקצה (set aside)"). The chips must read consistently with the lechatchila / bedieved / prose fields — one convention across the whole card.
-- NO puff. NO jargon: "transmitter" not "tradent". Across ALL text fields (chips included), follow the HEBREW_GLOSS_STYLE rules below — every use of שבת / לכתחילה / בדיעבד / רוב / etc. MUST appear with the Hebrew script (Form A or Form B), never as bare transliteration or bare English.
+- Choose exactly ONE shape and fill only its fields. Do NOT invent a בדיעבד fallback to fill best-fallback — if there's no real after-the-fact distinction, use "statement".
+- "note" is ONE short plain sentence, not a list — the most important single caveat, or "" if none. (The old chip lists are retired.)
+- Plain English leads; attach the Hebrew term once, glossed, per the style below ("before halachic midnight (חצות)", not "חצות (midnight)").
+- NO puff. NO jargon: "transmitter" not "tradent".
 
 ${HEBREW_GLOSS_STYLE}`;
 
@@ -3786,22 +3791,27 @@ const HALACHA_CODIFICATION_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקי
 
 ${HEBREW_NATIVE_STYLE}`;
 
-const HALACHA_PRACTICAL_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בהלכה ובפסק מעשי. בהינתן נושא הלכתי אחד שעלה בדף, תאר את היישום המעשי של ההלכה הפסוקה — מה צריך לעשות בפועל, מתי זה חל, ומהם מקרי הקצה הנפוצים.
+const HALACHA_PRACTICAL_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בהלכה ובפסק מעשי. בהינתן נושא הלכתי אחד שעלה בדף, נסח את השורה התחתונה המעשית — מה האדם עושה בפועל — בצורה (shape) המתאימה לאופי ההלכה.
 
-החזר JSON תקין בלבד:
+תחילה בחר את הצורה:
+- "best-fallback" — דין של זמן / שיעור שיש בו לכתחילה וגם בדיעבד (למשל קריאת שמע של ערבית לכתחילה לפני חצות; בדיעבד עד עלות השחר).
+- "statement" — מעשה יחיד, איסור, או דרישה מבנית ללא חלוקת לכתחילה/בדיעבד משמעותית (למשל "אין מוציאין מרשות לרשות בשבת"; "דיני ממונות בשלשה").
+- "taxonomy" — מיפוי של מקרה ← תשובה (למשל כל מאכל ← הברכה שלו).
+
+החזר JSON תקין בלבד — מלא רק את השדות של הצורה שבחרת, השאר את האחרים כ-"" או []:
 
 {
-  "lechatchila": "1-2 משפטים: כיצד מקיימים את ההלכה לכתחילה. מהי הנהגה הסטנדרטית?",
-  "bedieved":    "משפט אחד על דין הבדיעבד, היכן שרלוונטי. מחרוזת ריקה אם אין הבחנת לכתחילה/בדיעבד.",
-  "appliesWhen": ["ביטויים קצרים — 2-4 פריטים — הנוקבים במצבים שבהם הלכה זו מופעלת (למשל 'אכילת לחם', 'לאחר רדת הלילה', 'ברשות הרבים')."],
-  "exceptions":  ["ביטויים קצרים — 0-3 פריטים — הנוקבים בחריגים נפוצים או מקרי קצה ('חולה פטור', 'בשבת הדין משתנה'). מערך ריק אם אין."],
-  "prose": "פסקה קצרה אחת (2-3 משפטים) על אופן יישום הכלל כיום — מה האדם הטיפוסי עושה, מה מכשיל אותו, וכל סף הלכתי שהגמרא הציגה ועדיין שולט בהלכה למעשה."
+  "shape": "best-fallback" | "statement" | "taxonomy",
+  "best":      "ל-best-fallback בלבד. משפט אחד: ההנהגה האידיאלית.",
+  "fallback":  "ל-best-fallback בלבד. משפט אחד: דין הבדיעבד. ריק אם אין באמת בדיעבד.",
+  "statement": "ל-statement בלבד. משפט אחד פשוט של מה לעשות / לא לעשות / הדרישה.",
+  "rows":      [ { "when": "המקרה (למשל 'פרי העץ')", "value": "התשובה (למשל 'בורא פרי העץ')" } ],
+  "note":      "אופציונלי: הערה/חריג יחיד וקצר ('חולה פטור'). ריק כשאין — אל תמלא לחינם."
 }
 
 כללים:
-- שדה "lechatchila" חייב לתאר את ההנהגה החיה הסטנדרטית (סטנדרט הלכתחילה), לא היפותזה של הגמרא. אם ההלכה למעשה עדיין הולכת אחר מסקנת הגמרא הפשוטה, אמור זאת באופן קונקרטי.
-- שדה "bedieved" הוא לדין הבדיעבד: האם המעשה נחשב, מה עושים למפרע, וכו'. מחרוזת ריקה כשאין הבחנה כזו.
-- appliesWhen / exceptions הם ביטויים קצרים, לא משפטים. המשתמש סורק אותם.
+- בחר צורה אחת בלבד ומלא רק את שדותיה. אל תמציא בדיעבד כדי למלא best-fallback — אם אין הבחנה אמיתית, השתמש ב-"statement".
+- "note" הוא משפט יחיד קצר, לא רשימה — החריג החשוב ביותר, או "". (רשימות התגיות הישנות בוטלו.)
 - ללא מליצה.
 
 ${HEBREW_NATIVE_STYLE}`;
@@ -3888,13 +3898,13 @@ CODE_ENRICHMENTS.push(
   ),
   makeEnrichment(
     'halacha', 'halacha.practical', 'Practical',
-    'Lechatchila/bedieved, when the halacha applies, common exceptions, modern practice prose.',
+    'Shape-aware "what to do": best/fallback, a single statement, or a case→answer map, plus one optional note.',
     HALACHA_PRACTICAL_SYSTEM_PROMPT, HALACHA_LEAF_USER_TEMPLATE, HALACHA_PRACTICAL_OUTPUT_SCHEMA,
     {
       mode: 'augment-content', scope: 'local',
       dependencies: ['gemara'],
       passes: ['hebrew-gloss'],
-      defHash: 'halacha.practical-v4', cacheVersion: '4',
+      defHash: 'halacha.practical-v5', cacheVersion: '5',
       systemPromptHe: HALACHA_PRACTICAL_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: HALACHA_LEAF_USER_TEMPLATE_HE,
     },

@@ -1,4 +1,4 @@
-import { For, Show, createEffect, createMemo, createResource, createSignal, onCleanup, type JSX } from 'solid-js';
+import { For, Show, Switch, Match, createEffect, createMemo, createResource, createSignal, onCleanup, type JSX } from 'solid-js';
 import type { Section, Rabbi, HalachaTopic, AggadataStory, Pasuk } from './shapes';
 import { GENERATION_BY_ID, generationLabelHe, type GenerationId } from './generations';
 import type { IdentifiedRabbi } from './dafContext';
@@ -1283,12 +1283,36 @@ export const RABBI_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element>
 //         Disputes card (rendered only when non-empty).
 // ===========================================================================
 
+interface PracticalRow { when: string; value: string }
 interface PracticalData {
-  lechatchila: string;
-  bedieved: string;
-  appliesWhen: string[];
-  exceptions: string[];
-  prose: string;
+  shape: 'best-fallback' | 'statement' | 'taxonomy';
+  best: string;
+  fallback: string;
+  statement: string;
+  rows: PracticalRow[];
+  note: string;
+}
+/** Old practical shape, still served during the cache-bump stale window
+ *  (stale-while-revalidate). Normalized into the new shape so the card renders
+ *  cleanly until the v5 value lands. */
+interface PracticalLegacy {
+  lechatchila?: string; bedieved?: string;
+  appliesWhen?: string[]; exceptions?: string[]; prose?: string;
+}
+function normalizePractical(raw: unknown): PracticalData | undefined {
+  const d = raw as Partial<PracticalData> & PracticalLegacy | undefined;
+  if (!d) return undefined;
+  if (typeof d.shape === 'string') return d as PracticalData;
+  // Legacy → best-fallback, dropping the retired appliesWhen pills; the most
+  // important old exception becomes the single note.
+  if (typeof d.prose === 'string' || typeof d.lechatchila === 'string') {
+    return {
+      shape: 'best-fallback',
+      best: d.lechatchila ?? '', fallback: d.bedieved ?? '', statement: '', rows: [],
+      note: (d.exceptions ?? []).filter(Boolean)[0] ?? '',
+    };
+  }
+  return undefined;
 }
 interface DisputePosition { voice: string; position: string; }
 interface DisputeItem {
@@ -1332,69 +1356,61 @@ function HalachaCodification(props: SpecialBlockProps): JSX.Element {
   );
 }
 
-// Halacha practical guidance: lechatchila / bedieved + applies-when / exceptions.
-function HalachaPractical(props: SpecialBlockProps): JSX.Element {
-  const practical = (): PracticalData | undefined => {
-    const d = props.deps['halacha.practical'] as PracticalData | undefined;
-    return d && typeof d.prose === 'string' ? d : undefined;
-  };
+// Shape-aware practical "what to do": best/fallback rows, a single statement
+// line, or a case→answer map — chosen by `shape`. Plain English leads, Hebrew
+// term as a tag. The old applies-when / exceptions pill lists are retired (an
+// optional single `note` carries the one key caveat).
+const PRACTICAL_LABEL_STYLE: JSX.CSSProperties = {
+  'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase',
+  'letter-spacing': '0.06em', 'margin-bottom': '0.15rem',
+};
+const PRACTICAL_TEXT_STYLE: JSX.CSSProperties = { 'font-size': '0.88rem', color: '#222', 'line-height': 1.5 };
+
+function PracticalLine(props: { heTag: string; label: string; text: string }): JSX.Element {
   return (
-      <Show when={practical()}>
-        {(pr) => (
-          <SectionCard label="halacha.practical" inspect={{ instanceKey: props.instanceKey, leafId: 'halacha.practical' }}>
-            <Show when={pr().lechatchila}>
-              <div style={{ 'margin-bottom': '0.4rem' }}>
-                <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>
-                  <span lang="he" dir="ltr" style={{ 'font-family': '"Mekorot Vilna", serif', 'font-size': '0.85rem', 'text-transform': 'none', color: '#666' }}>לכתחילה</span>
-                  <span style={{ 'margin-left': '0.35rem' }}>{t('halacha.lechatchila')}</span>
-                </div>
-                <div style={{ 'font-size': '0.88rem', color: '#222', 'line-height': 1.5 }}>
-                  <HebraizedWithRabbis text={pr().lechatchila} />
-                </div>
+    <div style={{ 'margin-bottom': '0.4rem' }}>
+      <div style={PRACTICAL_LABEL_STYLE}>
+        <span lang="he" dir="ltr" style={{ 'font-family': '"Mekorot Vilna", serif', 'font-size': '0.85rem', 'text-transform': 'none', color: '#666' }}>{props.heTag}</span>
+        <span style={{ 'margin-left': '0.35rem' }}>{props.label}</span>
+      </div>
+      <div style={PRACTICAL_TEXT_STYLE}><HebraizedWithRabbis text={props.text} /></div>
+    </div>
+  );
+}
+
+function HalachaPractical(props: SpecialBlockProps): JSX.Element {
+  const practical = (): PracticalData | undefined => normalizePractical(props.deps['halacha.practical']);
+  return (
+    <Show when={practical()}>
+      {(pr) => (
+        <SectionCard label="halacha.practical" inspect={{ instanceKey: props.instanceKey, leafId: 'halacha.practical' }}>
+          <Switch>
+            <Match when={pr().shape === 'best-fallback'}>
+              <Show when={pr().best}><PracticalLine heTag="לכתחילה" label={t('halacha.lechatchila')} text={pr().best} /></Show>
+              <Show when={pr().fallback}><PracticalLine heTag="בדיעבד" label={t('halacha.bedieved')} text={pr().fallback} /></Show>
+            </Match>
+            <Match when={pr().shape === 'taxonomy'}>
+              <div style={{ display: 'grid', 'grid-template-columns': 'auto 1fr', 'column-gap': '0.6rem', 'row-gap': '0.3rem', 'align-items': 'baseline' }}>
+                <For each={pr().rows}>{(row) => (
+                  <>
+                    <div style={{ 'font-size': '0.82rem', color: '#555', 'line-height': 1.4 }}><Hebraized text={row.when} capitalize /></div>
+                    <div style={{ 'font-size': '0.85rem', color: '#161616', 'font-weight': 500, 'line-height': 1.4 }}><Hebraized text={row.value} /></div>
+                  </>
+                )}</For>
               </div>
-            </Show>
-            <Show when={pr().bedieved}>
-              <div style={{ 'margin-bottom': '0.4rem' }}>
-                <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>
-                  <span lang="he" dir="ltr" style={{ 'font-family': '"Mekorot Vilna", serif', 'font-size': '0.85rem', 'text-transform': 'none', color: '#666' }}>בדיעבד</span>
-                  <span style={{ 'margin-left': '0.35rem' }}>{t('halacha.bedieved')}</span>
-                </div>
-                <div style={{ 'font-size': '0.88rem', color: '#222', 'line-height': 1.5 }}>
-                  <HebraizedWithRabbis text={pr().bedieved} />
-                </div>
-              </div>
-            </Show>
-            <Show when={pr().appliesWhen.length > 0}>
-              <div style={{ 'margin-bottom': '0.4rem' }}>
-                <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>{t('halacha.appliesWhen')}</div>
-                <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.3rem' }}>
-                  <For each={pr().appliesWhen}>{(item) => (
-                    <span style={{
-                      'font-size': '0.75rem', padding: '0.15rem 0.5rem',
-                      background: '#fff', border: '1px solid #e5e3dc',
-                      'border-radius': '999px', color: '#444',
-                    }}><Hebraized text={item} capitalize /></span>
-                  )}</For>
-                </div>
-              </div>
-            </Show>
-            <Show when={pr().exceptions.length > 0}>
-              <div style={{ 'margin-bottom': '0.4rem' }}>
-                <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>{t('halacha.exceptions')}</div>
-                <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.3rem' }}>
-                  <For each={pr().exceptions}>{(item) => (
-                    <span style={{
-                      'font-size': '0.75rem', padding: '0.15rem 0.5rem',
-                      background: '#fef3c7', border: '1px solid #fde68a',
-                      'border-radius': '999px', color: '#92400e',
-                    }}><Hebraized text={item} capitalize /></span>
-                  )}</For>
-                </div>
-              </div>
-            </Show>
-          </SectionCard>
-        )}
-      </Show>
+            </Match>
+            <Match when={pr().shape === 'statement'}>
+              <div style={PRACTICAL_TEXT_STYLE}><HebraizedWithRabbis text={pr().statement} /></div>
+            </Match>
+          </Switch>
+          <Show when={pr().note}>
+            <div style={{ 'margin-top': '0.5rem', 'font-size': '0.8rem', color: '#6b5e3a', background: '#fcf7ea', border: '1px solid #ecdfbe', 'border-radius': '5px', padding: '0.4rem 0.55rem', 'line-height': 1.45 }}>
+              <span style={{ 'font-weight': 600 }}>{t('halacha.note')}: </span><HebraizedWithRabbis text={pr().note} />
+            </div>
+          </Show>
+        </SectionCard>
+      )}
+    </Show>
   );
 }
 

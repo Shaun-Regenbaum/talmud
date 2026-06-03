@@ -116,16 +116,6 @@ describe('halacha.practical prompt — always-list wiring', () => {
   });
 });
 
-describe('halacha.practical prompt — chip convention (uniform Form A)', () => {
-  it('requires capitalized chip phrases', () => {
-    expect(practicalSys).toMatch(/STARTING WITH A CAPITAL LETTER/);
-  });
-  it('makes chips follow the SAME gloss style as the prose', () => {
-    expect(practicalSys).toMatch(/SAME HEBREW_GLOSS_STYLE as the prose/);
-    expect(practicalSys).toMatch(/NOT a plain-English exception/);
-  });
-  it('applies the gloss style across ALL text fields, chips included', () => {
-    expect(practicalSys).toMatch(/Across ALL text fields \(chips included\)/);
-    expect(practicalSys).toMatch(/STYLE — Hebrew \+ English mixing/);
-  });
-});
+// The applies-when / exceptions chip lists were retired in the shape-aware
+// practical reshape (best-fallback | statement | taxonomy + one optional note),
+// so the old "uniform Form A chip convention" prompt rules no longer exist.
