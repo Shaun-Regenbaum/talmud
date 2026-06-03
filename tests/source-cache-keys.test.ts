@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   keyForHebrewBooks, keyForSefariaBundle, keyForSefariaSegments, keyForRishonim,
-  keyForHalachaRefs, keyForDafTopics, keyForMishnaBundle, keyForSaCommentary,
+  keyForHalachaRefs, keyForDafTopics, keyForMishnaBundle, keyForYerushalmi, keyForSaCommentary,
   keyForRabbiEnriched, keyForRabbiWikidata, keyForRabbiWikiBio,
   keyForAnalyzeSkeleton, keyForRegion, keyForMesorah,
   keyForCommentaryWorks, keyForCommentaryText, keyForReferences, keyForBridge,
@@ -28,6 +28,7 @@ describe('source-cache keys — byte-exact contract', () => {
     expect(keyForHalachaRefs(t, p)).toBe('halacha-refs:v2:Berakhot:2a');
     expect(keyForDafTopics(t, p)).toBe('daf-topics:v1:Berakhot:2a');
     expect(keyForMishnaBundle(t, p)).toBe('mishna-bundle:v1:Berakhot:2a');
+    expect(keyForYerushalmi(t, p)).toBe('yerushalmi:v1:Berakhot:2a');
     expect(keyForSaCommentary('Mishnah_Berurah_1:1')).toBe('sa-commentary:v1:Mishnah_Berurah_1:1');
   });
   it('keeps a space/upper-case tractate in the key verbatim (the cold-miss trap)', () => {

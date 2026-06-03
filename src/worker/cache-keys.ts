@@ -242,6 +242,12 @@ export function keyForDafTopics(tractate: string, page: string): string {
 export function keyForMishnaBundle(tractate: string, page: string): string {
   return `mishna-bundle:v1:${tractate}:${page}`;
 }
+/** Parallel Jerusalem Talmud passages on the same mishnah as this gemara daf,
+ *  with their real Hebrew+English text — the grounding for the `yerushalmi`
+ *  Bavli↔Yerushalmi mark. One getRelated + a getText per parallel halacha. */
+export function keyForYerushalmi(tractate: string, page: string): string {
+  return `yerushalmi:v1:${tractate}:${page}`;
+}
 /** Shulchan Aruch commentary, keyed by an already-sanitised Sefaria ref. */
 export function keyForSaCommentary(safeKey: string): string {
   return `sa-commentary:v1:${safeKey}`;

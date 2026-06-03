@@ -77,10 +77,11 @@ import {
   RABBI_RELATIONSHIPS_OUTPUT_SCHEMA,
   RABBI_SYNTHESIS_OUTPUT_SCHEMA,
   RISHONIM_SYNTHESIS_OUTPUT_SCHEMA,
+  YERUSHALMI_OUTPUT_SCHEMA,
   TIDBIT_ESSAY_OUTPUT_SCHEMA,
   proseSchema,
 } from './output-schemas';
-import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE } from '../lib/sidebar/recipe';
+import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE } from '../lib/sidebar/recipe';
 
 // ---------------------------------------------------------------------------
 // Rabbi mark — phrase anchor + inline render
@@ -444,6 +445,121 @@ const PESUKIM_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 זהה הפניות לתנ"ך. החזר JSON לפי הסכמה (instances ריק אם אין).`;
 
 
+// ---------------------------------------------------------------------------
+// Yerushalmi parallel mark — Bavli sections with a DIRECT Jerusalem Talmud
+// parallel, anchored on the daf, whose purpose is to surface the substantive
+// DIFFERENCES between the two Talmuds. Grounded on {{yerushalmi}} — the real
+// parallel passage(s) (located via the shared mishnah) + dafyomi Yerushalmi
+// notes — so the model contrasts against the source, not from memory.
+// ---------------------------------------------------------------------------
+const YERUSHALMI_SYSTEM_PROMPT = `You are a Talmud scholar fluent in BOTH the Bavli (Babylonian Talmud) and the Yerushalmi (Jerusalem Talmud). Given a focal Bavli amud's Hebrew/Aramaic source (NUMBERED segments) plus the parallel Yerushalmi passage(s) on the same mishnah (real text, provided below), identify the spans of THIS Bavli daf that have a DIRECT parallel discussion in the Yerushalmi, and explain how the Yerushalmi DIFFERS from the Bavli there.
+
+A "direct parallel" means the two Talmuds treat the same question / mishnah / dispute — not a vague thematic echo. Be conservative: a wrong or padded parallel is worse than none. Use the provided Yerushalmi text as your evidence; do NOT invent a ref the material doesn't support. If the provided material shows no genuine parallel (e.g. the tractate has no Yerushalmi, or the discussions diverge entirely), return an empty instances array.
+
+Output STRICT JSON only:
+
+{
+  "instances": [
+    {
+      "startSegIdx": 0,
+      "endSegIdx": 3,
+      "fields": {
+        "yerushalmiRef": "Canonical Sefaria ref of the parallel, copied from the provided material (e.g. 'Jerusalem Talmud Berakhot 1:1'). Never invent one.",
+        "yerushalmiRefHe": "Hebrew form of that ref (e.g. 'תלמוד ירושלמי ברכות א׳:א׳'). Empty string if unknown.",
+        "summary": "One sentence: what the two Talmuds are both discussing here.",
+        "differences": "2-4 sentences naming the SUBSTANTIVE differences: a different ruling, a different attributed authority, an extra/missing step, a different scriptural derivation, a sharper/looser version of the dispute, or differing terminology. Be concrete and cite what each Talmud says. If the parallel is essentially identical, say so plainly.",
+        "excerpt": "3-5 Hebrew/Aramaic words copied VERBATIM from the Bavli source above where this parallel span BEGINS — so it can be anchored on the daf."
+      }
+    }
+  ]
+}
+
+Rules:
+- 0-4 parallels per daf. Many dapim have none — an empty instances array is the correct, common answer.
+- "yerushalmiRef" MUST be a ref present in the provided Yerushalmi material. Do not cite a passage you were not given.
+- "excerpt" MUST be Hebrew/Aramaic verbatim from the Bavli source (the {{segments_he}} block), so the span can be located in the text. Never paraphrase or translate it; never quote the Yerushalmi here.
+- "startSegIdx" / "endSegIdx" must be valid 0-based indices from the [N] markers, and excerpt must fall inside that range.
+- The "differences" field is the whole point — make it specific and useful to a learner who knows the Bavli sugya and wants to know what the Yerushalmi adds or changes. Avoid academic jargon; plain words.`;
+
+const YERUSHALMI_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+Bavli Hebrew/Aramaic source — each line begins with [N], the 0-based segment index. USE these indices for startSegIdx / endSegIdx, and copy "excerpt" VERBATIM from here:
+{{segments_he}}
+
+Parallel Yerushalmi material (the Jerusalem Talmud on the same mishnah, plus dafyomi.co.il Yerushalmi notes — your evidence for what the Yerushalmi says):
+{{yerushalmi}}
+
+Identify the Bavli spans with a direct Yerushalmi parallel and explain the differences. Return JSON per the schema (empty instances array if there is no genuine parallel).`;
+
+const YERUSHALMI_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בבבלי ובירושלמי כאחד. בהינתן מקור עברי/ארמי של עמוד בבלי ממוקד (קטעים ממוספרים) יחד עם הקטע(ים) המקבילים בירושלמי על אותה משנה (טקסט אמיתי, מצורף למטה), זהה את הקטעים בדף הבבלי שיש להם מקבילה ישירה בירושלמי, והסבר במה הירושלמי שונה מן הבבלי שם.
+
+"מקבילה ישירה" פירושה ששני התלמודים דנים באותה שאלה / משנה / מחלוקת — לא הד נושאי כללי. נְקוֹט גישה שמרנית: מקבילה שגויה או מנופחת גרועה מהיעדר מקבילה. הסתמך על טקסט הירושלמי המצורף כראיה; אל תמציא מראה־מקום שאינו נתמך בחומר. אם החומר אינו מראה מקבילה אמיתית (למשל מסכת ללא ירושלמי, או דיונים שונים לחלוטין), החזר מערך instances ריק.
+
+החזר JSON תקני בלבד. ערכי "summary" ו-"differences" ייכתבו בעברית.
+
+{
+  "instances": [
+    {
+      "startSegIdx": 0,
+      "endSegIdx": 3,
+      "fields": {
+        "yerushalmiRef": "מראה־מקום קנוני של Sefaria למקבילה, מועתק מן החומר המצורף (למשל 'Jerusalem Talmud Berakhot 1:1'). לעולם אל תמציא.",
+        "yerushalmiRefHe": "צורת המראה־מקום בעברית (למשל 'תלמוד ירושלמי ברכות א׳:א׳'). מחרוזת ריקה אם לא ידוע.",
+        "summary": "משפט אחד בעברית: במה שני התלמודים דנים כאן.",
+        "differences": "2–4 משפטים בעברית המציינים את ההבדלים המהותיים: פסיקה שונה, ייחוס לאמורא אחר, שלב נוסף/חסר, מקור דרשני שונה, ניסוח חד/רופף יותר של המחלוקת, או מינוח שונה. היה קונקרטי וצטט מה אומר כל תלמוד. אם המקבילה זהה למעשה, אמור זאת במפורש.",
+        "excerpt": "3–5 מילים בעברית/ארמית המועתקות מילה-במילה מן מקור הבבלי שלמעלה, במקום שבו מתחיל הקטע המקביל — לשם עיגון בדף."
+      }
+    }
+  ]
+}
+
+כללים:
+- 0–4 מקבילות לדף. בדפים רבים אין כלל — מערך instances ריק הוא התשובה הנכונה והשכיחה.
+- "yerushalmiRef" חייב להופיע בחומר הירושלמי המצורף. אל תצטט קטע שלא ניתן לך.
+- "excerpt" חייב להיות עברית/ארמית מילה-במילה ממקור הבבלי (מתוך {{segments_he}}), כדי שניתן יהיה לאתר את הקטע. לעולם אל תנסח מחדש או תתרגם; אל תצטט כאן את הירושלמי.
+- "startSegIdx" / "endSegIdx" חייבים להיות אינדקסים תקפים מבוססי-0 לפי סימוני ה-[N], ו-excerpt חייב ליפול בתוך הטווח.
+- שדה "differences" הוא העיקר — הפוך אותו לספציפי ומועיל ללומד המכיר את סוגיית הבבלי ורוצה לדעת מה הירושלמי מוסיף או משנה. הימנע מז'רגון אקדמי; מילים פשוטות.`;
+
+const YERUSHALMI_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+מקור בבלי עברי/ארמי — כל שורה מתחילה ב-[N], אינדקס הקטע (מבוסס-0). השתמש באינדקסים אלה ל-startSegIdx / endSegIdx, והעתק "excerpt" מילה-במילה מכאן:
+{{segments_he}}
+
+חומר ירושלמי מקביל (הירושלמי על אותה משנה, יחד עם הערות הירושלמי מ-dafyomi.co.il — הראיה שלך למה אומר הירושלמי):
+{{yerushalmi}}
+
+זהה את קטעי הבבלי שיש להם מקבילה ישירה בירושלמי והסבר את ההבדלים. החזר JSON לפי הסכמה (instances ריק אם אין מקבילה אמיתית).`;
+
+const YERUSHALMI_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud scholar. You are given ONE identified Bavli↔Yerushalmi parallel (the Bavli span, its Yerushalmi ref, a one-line summary, and the differences already noted) plus the real parallel Yerushalmi text. Write ONE tight paragraph (2-4 sentences) for a learner who has just read the Bavli sugya: name what the two Talmuds share, then the substantive difference(s) — a different ruling, a different attributed authority, an extra or missing step, a different derivation, or sharper/looser framing. Be concrete and grounded in the provided text; do not invent. Plain words, no academic jargon. Output STRICT JSON only: { "synthesis": "..." }.`;
+
+const YERUSHALMI_SYNTHESIS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+The identified parallel (Bavli span + Yerushalmi ref + noted differences):
+{{mark_input}}
+
+Parallel Yerushalmi material (real text):
+{{yerushalmi}}
+
+Bavli source (Hebrew/Aramaic):
+{{gemara_he}}
+
+Write the one-paragraph contrast. Return JSON: { "synthesis": "..." }.`;
+
+const YERUSHALMI_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם. ניתנה לך מקבילה אחת שזוהתה בין הבבלי לירושלמי (קטע הבבלי, מראה־מקום הירושלמי, סיכום בשורה אחת, וההבדלים שכבר צוינו) יחד עם טקסט הירושלמי המקביל האמיתי. כתוב פסקה אחת הדוקה (2–4 משפטים) ללומד שזה עתה קרא את סוגיית הבבלי: ציין מה משותף לשני התלמודים, ולאחר מכן את ההבדל(ים) המהותי(ים) — פסיקה שונה, ייחוס לאמורא אחר, שלב נוסף או חסר, דרשה שונה, או ניסוח חד/רופף יותר. היה קונקרטי ומעוגן בטקסט המצורף; אל תמציא. מילים פשוטות, ללא ז'רגון אקדמי. החזר JSON תקני בלבד: { "synthesis": "..." }.`;
+
+const YERUSHALMI_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+המקבילה שזוהתה (קטע הבבלי + מראה־מקום הירושלמי + ההבדלים שצוינו):
+{{mark_input}}
+
+חומר ירושלמי מקביל (טקסט אמיתי):
+{{yerushalmi}}
+
+מקור הבבלי (עברית/ארמית):
+{{gemara_he}}
+
+כתוב את פסקת ההשוואה. החזר JSON: { "synthesis": "..." }.`;
+
 
 export const CODE_MARKS: MarkDefinition[] = [
   {
@@ -679,6 +795,40 @@ export const CODE_MARKS: MarkDefinition[] = [
     status: 'promoted',
     def_hash: 'pesukim-llm-v4',
     cache_version: '5',
+    source: 'code',
+    updated_at: NOW,
+  },
+  {
+    id: 'yerushalmi',
+    recipe: YERUSHALMI_RECIPE,
+    label: 'Yerushalmi parallels',
+    description: 'Bavli sections with a direct Yerushalmi parallel — gutter icons + a sidebar contrasting the two Talmuds.',
+    category: 'canon',
+    anchor: 'segment-range',
+    render: {
+      kind: 'gutter+sidebar',
+      icon: 'Y',
+      sidebar_title: 'Yerushalmi',
+    },
+    extractor: {
+      kind: 'llm',
+      // Pro model: contrasting two Talmuds against the source is a reasoning
+      // task, not extraction — the flash model under-reads the differences.
+      model: 'openrouter/deepseek/deepseek-v4-pro' as LLMModelId,
+      system_prompt: YERUSHALMI_SYSTEM_PROMPT,
+      user_prompt_template: YERUSHALMI_USER_TEMPLATE,
+      system_prompt_he: YERUSHALMI_SYSTEM_PROMPT_HE,
+      user_prompt_template_he: YERUSHALMI_USER_TEMPLATE_HE,
+      output_schema: YERUSHALMI_OUTPUT_SCHEMA,
+      thinking_off: true,
+    },
+    // 'yerushalmi-text' injects the real parallel passage(s) + dafyomi notes as
+    // {{yerushalmi}}; 'gemara' gives the Bavli segments the excerpt anchors to.
+    dependencies: ['gemara', 'yerushalmi-text'],
+    passes: ['anchor-verbatim'],
+    status: 'promoted',
+    def_hash: 'yerushalmi-llm-v1',
+    cache_version: '1',
     source: 'code',
     updated_at: NOW,
   },
@@ -5600,6 +5750,21 @@ CODE_ENRICHMENTS.push(
       model: ARGUMENT_PRO_MODEL,
       systemPromptHe: AGGADATA_QA_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: AGGADATA_QA_USER_TEMPLATE_HE,
+    },
+  ),
+);
+
+CODE_ENRICHMENTS.push(
+  makeSynthesis(
+    'yerushalmi', 'yerushalmi.synthesis',
+    'One-paragraph contrast of this Bavli span with its Yerushalmi parallel — what they share and how they differ.',
+    YERUSHALMI_SYNTHESIS_SYSTEM_PROMPT, YERUSHALMI_SYNTHESIS_USER_TEMPLATE,
+    {
+      dependencies: ['gemara', 'yerushalmi-text', { mark: 'yerushalmi' }],
+      defHash: 'yerushalmi.synthesis-v1', cacheVersion: '1',
+      model: ARGUMENT_PRO_MODEL,
+      systemPromptHe: YERUSHALMI_SYNTHESIS_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: YERUSHALMI_SYNTHESIS_USER_TEMPLATE_HE,
     },
   ),
 );

@@ -277,6 +277,28 @@ export function injectPesukimAnchors(
   return injectRangeAnchors(html, pesukim, 'daf-pesuk-anchor', 'daf-pesuk-end-anchor', ctx);
 }
 
+export interface YerushalmiAnchor {
+  excerpt: string;
+  index: number;
+  startSegIdx?: number;
+  endSegIdx?: number;
+}
+
+/**
+ * Yerushalmi-parallel anchors carry only an opening phrase (excerpt) — the mark
+ * highlights the BEGINNING of the parallel span on the Bavli daf, where the
+ * gutter icon sits. Uses `.daf-yerushalmi-anchor` so the gutter measurement +
+ * range code can target it independently. (No end anchor: the parallel's extent
+ * is conveyed in the sidebar, not painted across the daf.)
+ */
+export function injectYerushalmiAnchors(
+  html: string,
+  parallels: YerushalmiAnchor[],
+  ctx?: { tractate?: string; page?: string },
+): string {
+  return injectRangeAnchors(html, parallels, 'daf-yerushalmi-anchor', 'daf-yerushalmi-end-anchor', ctx);
+}
+
 export interface OpinionSection {
   excerpt?: string;
   startSegIdx?: number;

@@ -95,6 +95,32 @@ export interface AggadataResult {
 }
 
 // ===========================================================================
+// Yerushalmi parallels (mark id: 'yerushalmi')
+// ===========================================================================
+
+export interface YerushalmiParallel {
+  /** Canonical Sefaria ref of the parallel, e.g. "Jerusalem Talmud Berakhot 1:1". */
+  yerushalmiRef: string;
+  /** Hebrew form of the ref. */
+  yerushalmiRefHe?: string;
+  /** One sentence: what the two Talmuds both discuss here. */
+  summary: string;
+  /** The substantive Bavli↔Yerushalmi differences — the card's whole point. */
+  differences: string;
+  /** Verbatim Hebrew opening phrase on the Bavli daf (the anchor). */
+  excerpt: string;
+  startSegIdx?: number;
+  endSegIdx?: number;
+}
+
+export interface YerushalmiResult {
+  parallels: YerushalmiParallel[];
+  _cached?: boolean;
+  _model?: string;
+  error?: string;
+}
+
+// ===========================================================================
 // Pesukim citations (mark id: 'pesukim')
 // ===========================================================================
 
