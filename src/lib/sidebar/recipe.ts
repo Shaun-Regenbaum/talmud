@@ -73,14 +73,15 @@ export const YERUSHALMI_RECIPE: SidebarRecipe = {
   kind: 'yerushalmi',
   markId: 'yerushalmi',
   // Title is the parallel's ref (English / Hebrew "תלמוד ירושלמי …"). The diff
-  // block renders the one-line parallel summary + the substantive Bavli↔
-  // Yerushalmi differences (the card's whole reason to exist); synthesis weaves
-  // a flowing contrast below.
+  // block leads with the substantive Bavli↔Yerushalmi differences (the card's
+  // whole reason to exist); the parallel block then shows the actual Jerusalem
+  // Talmud passage, collapsed. No synthesis — for this mark the `differences`
+  // field IS the prose, so a synthesis paragraph only restated it.
   titleField: 'yerushalmiRef',
   titleHeField: 'yerushalmiRefHe',
   sections: [
     { type: 'special', block: 'yerushalmi-diff' },
-    { type: 'synthesis' },
+    { type: 'special', block: 'yerushalmi-parallel' },
   ],
 };
 

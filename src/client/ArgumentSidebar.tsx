@@ -1895,10 +1895,12 @@ export function aggadataInstance(story: AggadataStory): { fields: Record<string,
 // ===========================================================================
 // Yerushalmi — Bavli↔Yerushalmi parallel sidebar card.
 // ---------------------------------------------------------------------------
-// The card's whole point is the DIFFERENCES between the two Talmuds, so the
-// single custom block leads with a one-line "what they share" summary, then a
-// labeled "Differences" box. The recipe's synthesis section weaves a flowing
-// contrast below. The ref is the Panel title (English / Hebrew).
+// The card's whole point is the DIFFERENCES between the two Talmuds. The diff
+// block leads with a one-line "what they share" summary (when present) and the
+// labeled "Differences" box; the parallel block then shows the ACTUAL Jerusalem
+// Talmud passage (fetched from the daf's cached yerushalmi bundle), collapsed by
+// default. The ref is the Panel title (English / Hebrew). No synthesis — the
+// `differences` field already IS the prose.
 // ===========================================================================
 function YerushalmiDiff(props: SpecialBlockProps): JSX.Element {
   const summary = (): string => (typeof props.instance.fields.summary === 'string' ? props.instance.fields.summary : '');
@@ -1906,7 +1908,7 @@ function YerushalmiDiff(props: SpecialBlockProps): JSX.Element {
   return (
     <>
       <Show when={summary()}>
-        <p style={{ margin: '0 0 0.7rem', color: '#333', 'line-height': 1.55 }}>
+        <p style={{ margin: '0 0 0.7rem', color: '#555', 'line-height': 1.55, 'font-size': '0.86rem' }}>
           <HebraizedWithRabbis text={summary()} />
         </p>
       </Show>
@@ -1921,8 +1923,48 @@ function YerushalmiDiff(props: SpecialBlockProps): JSX.Element {
   );
 }
 
+interface YerushalmiPassage { ref: string; heRef: string; hebrew: string; english: string; }
+async function fetchYerushalmiPassages(key: string): Promise<YerushalmiPassage[]> {
+  const [tractate, page] = key.split('|');
+  const res = await fetch(`/api/yerushalmi/${encodeURIComponent(tractate)}/${encodeURIComponent(page)}`);
+  if (!res.ok) return [];
+  const data = await res.json() as { parallels?: YerushalmiPassage[] };
+  return Array.isArray(data.parallels) ? data.parallels : [];
+}
+
+/** The actual Jerusalem Talmud passage this parallel points at — He + En, from
+ *  the daf's cached yerushalmi bundle (the same text the mark was grounded on).
+ *  Collapsed by default; the differences above are the headline, this is the
+ *  "show me the source" layer. One cached-KV GET per card open. */
+function YerushalmiParallel(props: SpecialBlockProps): JSX.Element {
+  const wantedRef = (): string => (typeof props.instance.fields.yerushalmiRef === 'string' ? props.instance.fields.yerushalmiRef : '');
+  const [passages] = createResource(
+    () => `${props.tractate}|${props.page}`,
+    fetchYerushalmiPassages,
+  );
+  const passage = (): YerushalmiPassage | undefined =>
+    (passages() ?? []).find((p) => p.ref === wantedRef());
+  return (
+    <Show when={passages.loading || passage()}>
+      <SectionCard label="yerushalmi.readParallel" collapsed={true}>
+        <Show when={passage()} fallback={
+          <p style={{ color: '#999', 'font-style': 'italic', margin: 0, 'font-size': '0.82rem' }}>{t('pasuk.loading')}</p>
+        }>
+          {(p) => (
+            <>
+              <HebrewProse text={p().hebrew} size="1rem" color="#222" lineHeight={1.75} margin="0 0 0.5rem" />
+              <p style={{ 'font-size': '0.84rem', color: '#475569', 'line-height': 1.55, margin: 0 }}>{p().english}</p>
+            </>
+          )}
+        </Show>
+      </SectionCard>
+    </Show>
+  );
+}
+
 export const YERUSHALMI_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
   'yerushalmi-diff': YerushalmiDiff,
+  'yerushalmi-parallel': YerushalmiParallel,
 };
 
 /** The mark-instance shape the yerushalmi extractor emits (mark_input for the

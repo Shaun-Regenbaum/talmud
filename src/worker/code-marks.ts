@@ -530,36 +530,6 @@ const YERUSHALMI_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
 זהה את קטעי הבבלי שיש להם מקבילה ישירה בירושלמי והסבר את ההבדלים. החזר JSON לפי הסכמה (instances ריק אם אין מקבילה אמיתית).`;
 
-const YERUSHALMI_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud scholar. You are given ONE identified Bavli↔Yerushalmi parallel (the Bavli span, its Yerushalmi ref, a one-line summary, and the differences already noted) plus the real parallel Yerushalmi text. Write ONE tight paragraph (2-4 sentences) for a learner who has just read the Bavli sugya: name what the two Talmuds share, then the substantive difference(s) — a different ruling, a different attributed authority, an extra or missing step, a different derivation, or sharper/looser framing. Be concrete and grounded in the provided text; do not invent. Plain words, no academic jargon. Output STRICT JSON only: { "synthesis": "..." }.`;
-
-const YERUSHALMI_SYNTHESIS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
-
-The identified parallel (Bavli span + Yerushalmi ref + noted differences):
-{{mark_input}}
-
-Parallel Yerushalmi material (real text):
-{{yerushalmi}}
-
-Bavli source (Hebrew/Aramaic):
-{{gemara_he}}
-
-Write the one-paragraph contrast. Return JSON: { "synthesis": "..." }.`;
-
-const YERUSHALMI_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם. ניתנה לך מקבילה אחת שזוהתה בין הבבלי לירושלמי (קטע הבבלי, מראה־מקום הירושלמי, סיכום בשורה אחת, וההבדלים שכבר צוינו) יחד עם טקסט הירושלמי המקביל האמיתי. כתוב פסקה אחת הדוקה (2–4 משפטים) ללומד שזה עתה קרא את סוגיית הבבלי: ציין מה משותף לשני התלמודים, ולאחר מכן את ההבדל(ים) המהותי(ים) — פסיקה שונה, ייחוס לאמורא אחר, שלב נוסף או חסר, דרשה שונה, או ניסוח חד/רופף יותר. היה קונקרטי ומעוגן בטקסט המצורף; אל תמציא. מילים פשוטות, ללא ז'רגון אקדמי. החזר JSON תקני בלבד: { "synthesis": "..." }.`;
-
-const YERUSHALMI_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
-
-המקבילה שזוהתה (קטע הבבלי + מראה־מקום הירושלמי + ההבדלים שצוינו):
-{{mark_input}}
-
-חומר ירושלמי מקביל (טקסט אמיתי):
-{{yerushalmi}}
-
-מקור הבבלי (עברית/ארמית):
-{{gemara_he}}
-
-כתוב את פסקת ההשוואה. החזר JSON: { "synthesis": "..." }.`;
-
 
 export const CODE_MARKS: MarkDefinition[] = [
   {
@@ -5754,21 +5724,6 @@ CODE_ENRICHMENTS.push(
       model: ARGUMENT_PRO_MODEL,
       systemPromptHe: AGGADATA_QA_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: AGGADATA_QA_USER_TEMPLATE_HE,
-    },
-  ),
-);
-
-CODE_ENRICHMENTS.push(
-  makeSynthesis(
-    'yerushalmi', 'yerushalmi.synthesis',
-    'One-paragraph contrast of this Bavli span with its Yerushalmi parallel — what they share and how they differ.',
-    YERUSHALMI_SYNTHESIS_SYSTEM_PROMPT, YERUSHALMI_SYNTHESIS_USER_TEMPLATE,
-    {
-      dependencies: ['gemara', 'yerushalmi-text', { mark: 'yerushalmi' }],
-      defHash: 'yerushalmi.synthesis-v1', cacheVersion: '1',
-      model: ARGUMENT_PRO_MODEL,
-      systemPromptHe: YERUSHALMI_SYNTHESIS_SYSTEM_PROMPT_HE,
-      userPromptTemplateHe: YERUSHALMI_SYNTHESIS_USER_TEMPLATE_HE,
     },
   ),
 );

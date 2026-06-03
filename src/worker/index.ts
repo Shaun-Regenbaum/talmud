@@ -6843,6 +6843,29 @@ app.post('/api/admin/translate-bio', async (c) => {
 // show the full quoted verse and let the reader step ± through Tanakh.
 // Sefaria's /api/texts response carries `next` / `prev` strings — we trust
 // those over manually parsing chapter:verse so book boundaries stay correct.
+// Read-only view of the Jerusalem Talmud passages parallel to this daf — the
+// same cached bundle the `yerushalmi` mark was grounded on (mishnah-mapped, see
+// getYerushalmiCached). The reader's Yerushalmi card uses it to show the actual
+// parallel text under the differences. He/En are stripped of Sefaria's footnote
+// markup so the prose reads clean.
+app.get('/api/yerushalmi/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const clean = (s: string): string =>
+    stripHtmlServer(
+      s.replace(/<sup[^>]*>[\s\S]*?<\/sup>/g, '').replace(/<i class="footnote">[\s\S]*?<\/i>/g, ''),
+    ).trim();
+  const bundle = await getYerushalmiCached(c.env.CACHE, tractate, page);
+  return c.json({
+    parallels: bundle.map((y) => ({
+      ref: y.ref,
+      heRef: y.heRef,
+      hebrew: clean(y.hebrew),
+      english: clean(y.english),
+    })),
+  });
+});
+
 app.get('/api/pasuk', async (c) => {
   const ref = c.req.query('ref') ?? '';
   if (!ref || ref.length > 100) return c.json({ error: 'missing or invalid ref' }, 400);
