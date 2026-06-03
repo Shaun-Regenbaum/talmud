@@ -2774,18 +2774,12 @@ Sages on this daf:
 
 Verses (pesukim) cited on this daf:
 {{anchors.pesukim}}
-Verse analysis — the app's own reading of each cited pasuk (how the gemara uses it, where it lands):
-{{depends.pesukim.synthesis}}
 
 Aggadic stories on this daf:
 {{anchors.aggadata}}
-Story analysis — the app's own reading of each aggadah (what it does in its sugya, the central tension):
-{{depends.aggadata.synthesis}}
 
 Halachic topics on this daf:
 {{anchors.halacha}}
-Halachic analysis — the app's own reading of each topic (where it sits in the codes, the live dispute, practical upshot):
-{{depends.halacha.synthesis}}
 
 Places on this daf:
 {{anchors.places}}
@@ -2869,18 +2863,12 @@ const TIDBIT_ESSAY_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
 פסוקים המצוטטים בדף זה:
 {{anchors.pesukim}}
-ניתוח הפסוקים — קריאת האפליקציה לכל פסוק מצוטט (כיצד הגמרא משתמשת בו ולאן הוא מגיע):
-{{depends.pesukim.synthesis}}
 
 אגדות בדף זה:
 {{anchors.aggadata}}
-ניתוח האגדות — קריאת האפליקציה לכל אגדה (תפקידה בסוגיה והמתח המרכזי):
-{{depends.aggadata.synthesis}}
 
 נושאי הלכה בדף זה:
 {{anchors.halacha}}
-ניתוח ההלכה — קריאת האפליקציה לכל נושא (מיקומו בפוסקים, המחלוקת החיה, ההשלכה המעשית):
-{{depends.halacha.synthesis}}
 
 מקומות בדף זה:
 {{anchors.places}}
@@ -2919,15 +2907,12 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'argument-overview.flow' },
         { enrichment: 'argument-overview.synthesis' },
         { enrichment: 'daf-background.concepts' },
-        // fanOut: the app's OWN per-instance analysis for every story, verse,
-        // and halachic topic on the daf — not just the mark anchors above. This
-        // is the richest layer, so the tidbit reads the same readings the
-        // aggadata / pesukim / halacha cards show.
-        { enrichment: 'aggadata.synthesis', fanOut: true },
-        { enrichment: 'pesukim.synthesis', fanOut: true },
-        { enrichment: 'halacha.synthesis', fanOut: true },
+        // NOTE: deliberately NOT the per-instance lomdus (aggadata/pesukim/
+        // halacha syntheses). Feeding those made the tidbit dive into the
+        // mechanics; the tidbit is the bigger idea, lightly grounded. The deep
+        // per-instance analysis is the Bi'yun's job, not the tidbit's.
       ],
-      defHash: 'tidbit.essay-v1', cacheVersion: '7', // v7: aim for the bigger/human idea, not a lomdus machloket reconstruction
+      defHash: 'tidbit.essay-v1', cacheVersion: '8', // v8: drop the per-instance lomdus fanOut — it pulled the tidbit into mechanics; back to the lean v3/v4 to-the-point read (deep analysis is the Bi'yun's job)
       // Pro model: finding the non-obvious reading needs the stronger model.
       // Thinking stays OFF (no reasoningEffort) — the context bundle is large,
       // like daf-background.concepts, and a thinking pass on top risks the
@@ -3008,6 +2993,10 @@ Rishonim analysis — the app's reading of Rashi / Tosafot / named rishonim, per
 Section analysis — the app's reading of each argument section:
 {{depends.argument.synthesis}}
 
+Verses (pesukim) cited on this daf, and the app's reading of each (how the gemara uses it):
+{{anchors.pesukim}}
+{{depends.pesukim.synthesis}}
+
 Halachic analysis — the app's reading of each halachic topic:
 {{depends.halacha.synthesis}}
 
@@ -3077,6 +3066,10 @@ const BIYUN_ESSAY_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 ניתוח המקטעים — קריאת האפליקציה לכל מקטע טיעון:
 {{depends.argument.synthesis}}
 
+פסוקים המצוטטים בדף, וקריאת האפליקציה לכל אחד (כיצד הגמרא משתמשת בו):
+{{anchors.pesukim}}
+{{depends.pesukim.synthesis}}
+
 ניתוח ההלכה — קריאת האפליקציה לכל נושא הלכתי:
 {{depends.halacha.synthesis}}
 
@@ -3095,19 +3088,25 @@ CODE_ENRICHMENTS.push(
       // Deep, rishonim-first context: the commentaries themselves + the app's
       // per-segment rishonim analysis (fanned out) + per-section + per-topic
       // analysis. Generated last, like the tidbit.
+      // Its OWN dependency set (not the tidbit's): the five layers a deep iyun
+      // leans on — rishonim, arguments, pesukim, background, halacha — with the
+      // per-instance analysis fanned out so it reads every segment's rishonim,
+      // every section, every verse, and every topic.
       dependencies: [
         'gemara',
         'commentaries',
         'context',
         { mark: 'argument' },
         { mark: 'rishonim' },
+        { mark: 'pesukim' },
         { enrichment: 'argument-overview.synthesis' },
         { enrichment: 'daf-background.concepts' },
         { enrichment: 'rishonim.synthesis', fanOut: true },
         { enrichment: 'argument.synthesis', fanOut: true },
+        { enrichment: 'pesukim.synthesis', fanOut: true },
         { enrichment: 'halacha.synthesis', fanOut: true },
       ],
-      defHash: 'biyun.essay-v1', cacheVersion: '1',
+      defHash: 'biyun.essay-v1', cacheVersion: '2', // v2: + pesukim (mark + synthesis) — its own full rishonim/arguments/pesukim/background/halacha set
       model: ARGUMENT_PRO_MODEL,
       systemPromptHe: BIYUN_ESSAY_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: BIYUN_ESSAY_USER_TEMPLATE_HE,
