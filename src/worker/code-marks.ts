@@ -1255,6 +1255,9 @@ Inputs about the subject rabbi:
 OTHER rabbis named on this daf (read this list to find classical relationships you should name):
 {{anchors.rabbi}}
 
+Daf term glossary — for any of these terms that appears in your prose, write it in the given Hebrew form (Form A/B), exact spelling:
+{{depends.daf-background.concepts}}
+
 Compose ONE tight paragraph per the schema. The rabbi is the subject; the daf is the lens. When the OTHER-rabbis list contains a known partner/teacher/student of the subject, name them and the relationship. Do NOT summarize what the subject says on this daf.`;
 
 // ===========================================================================
@@ -1519,6 +1522,9 @@ const RABBI_SYNTHESIS_USER_TEMPLATE_HE = `החכם (נושא ה-synthesis):
 חכמים אחרים הנקובים בדף זה (קרא רשימה זו כדי למצוא קשרים קלאסיים שעליך לנקוב בהם):
 {{anchors.rabbi}}
 
+מילון מונחי הדף — לכל מונח מהרשימה שמופיע בפרוזה, כתוב אותו בצורתו העברית הנתונה בדיוק:
+{{depends.daf-background.concepts}}
+
 חבר פסקה אחת הדוקה לפי הסכימה. החכם הוא הנושא; הדף הוא העדשה. כאשר רשימת החכמים-האחרים כוללת בן פלוגתא/רב/תלמיד ידוע של הנדון, נקוב בו ובקשר. אל תסכם מה הנדון אומר בדף זה.`;
 
 const RABBI_RELATIONSHIPS_EVIDENCE_USER_TEMPLATE_HE = `החכם:
@@ -1777,9 +1783,10 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
         { enrichment: 'rabbi.location' },
         { enrichment: 'rabbi.identity' },
         { mark: 'rabbi' },
+        { enrichment: 'daf-background.concepts' },
       ],
       defHash: 'rabbi.synthesis-v11',
-      cacheVersion: '11',
+      cacheVersion: '12', // v12: + daf-background.concepts glossary for consistent Hebrew terms
       systemPromptHe: RABBI_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: RABBI_SYNTHESIS_USER_TEMPLATE_HE,
     },
@@ -2111,6 +2118,9 @@ Rashi + Tosafot + other rishonim available for the daf (refer briefly if it shar
 Rabbis identified on the daf:
 {{anchors.rabbi}}
 
+Daf term glossary — for any of these terms that appears in your prose, write it in the given Hebrew form (Form A/B), exact spelling:
+{{depends.daf-background.concepts}}
+
 Compose ONE paragraph per the schema.`;
 
 
@@ -2256,6 +2266,9 @@ const ARGUMENT_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page
 חכמים שזוהו בדף:
 {{anchors.rabbi}}
 
+מילון מונחי הדף — לכל מונח מהרשימה שמופיע בפרוזה, כתוב אותו בצורתו העברית הנתונה בדיוק:
+{{depends.daf-background.concepts}}
+
 חבר פסקה אחת לפי הסכימה.`;
 
 CODE_ENRICHMENTS.push(
@@ -2313,8 +2326,9 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'argument.background' },
         { mark: 'rabbi' },
         { mark: 'argument-move' },
+        { enrichment: 'daf-background.concepts' },
       ],
-      defHash: 'argument.synthesis-v10', cacheVersion: '11', // v11: cascade — picks up argument.background v5 (Revach placement)
+      defHash: 'argument.synthesis-v10', cacheVersion: '12', // v12: + daf-background.concepts glossary for consistent Hebrew terms
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_SYNTHESIS_USER_TEMPLATE_HE,
@@ -4152,6 +4166,9 @@ Dispute object (present=false when the topic is settled):
 Hebrew/Aramaic source for the daf (for grounding only):
 {{gemara_he}}
 
+Daf term glossary — for any of these terms that appears in your prose, write it in the given Hebrew form (Form A/B), exact spelling:
+{{depends.daf-background.concepts}}
+
 Produce the synthesis per the schema.`;
 
 
@@ -4314,6 +4331,9 @@ const HALACHA_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}
 מקור עברי/ארמי לדף (לביסוס בלבד):
 {{gemara_he}}
 
+מילון מונחי הדף — לכל מונח מהרשימה שמופיע בפרוזה, כתוב אותו בצורתו העברית הנתונה בדיוק:
+{{depends.daf-background.concepts}}
+
 הפק את ה-synthesis לפי הסכימה.`;
 
 CODE_ENRICHMENTS.push(
@@ -4370,9 +4390,10 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'halacha.codification' },
         { enrichment: 'halacha.practical' },
         { enrichment: 'halacha.dispute' },
+        { enrichment: 'daf-background.concepts' },
       ],
       passes: ['hebrew-gloss'],
-      defHash: 'halacha.synthesis-v5', cacheVersion: '5',
+      defHash: 'halacha.synthesis-v5', cacheVersion: '6', // v6: + daf-background.concepts glossary for consistent Hebrew terms
       systemPromptHe: HALACHA_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: HALACHA_SYNTHESIS_USER_TEMPLATE_HE,
     },
@@ -5341,6 +5362,9 @@ Hebrew/Aramaic source for the daf:
 Rabbis identified on the daf:
 {{anchors.rabbi}}
 
+Daf term glossary — for any of these terms that appears in your prose, write it in the given Hebrew form (Form A/B), exact spelling:
+{{depends.daf-background.concepts}}
+
 Compose ONE tight paragraph per the schema.`;
 
 
@@ -5561,6 +5585,9 @@ const AGGADATA_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page
 חכמים שזוהו בדף:
 {{anchors.rabbi}}
 
+מילון מונחי הדף — לכל מונח מהרשימה שמופיע בפרוזה, כתוב אותו בצורתו העברית הנתונה בדיוק:
+{{depends.daf-background.concepts}}
+
 חבר פסקה הדוקה אחת לפי הסכימה.`;
 
 const AGGADATA_SUGGESTED_QUESTIONS_SYSTEM_PROMPT_HE = `אתה חברותא הלומד גמרא עם סיפור אגדי. בהינתן אגדה אחת המצוטטת בדף יחד עם פסקת ה-synthesis, הפק רשימה קצרה של שאלות המשך שלומד סביר ירצה תשובה עליהן לאחר קריאת ה-synthesis. ה-synthesis אומר מה הסיפור עושה; שאלות אלו מכוונות אל מדוע, אל המנגנון ההיסטורי, ואל ההקשר הסובב שה-synthesis לא הכיל.
@@ -5711,8 +5738,9 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'aggadata.parallels' },
         { mark: 'rabbi' },
         { mark: 'aggadata' },
+        { enrichment: 'daf-background.concepts' },
       ],
-      defHash: 'aggadata.synthesis-v2', cacheVersion: '2',
+      defHash: 'aggadata.synthesis-v2', cacheVersion: '3', // v3: + daf-background.concepts glossary for consistent Hebrew terms
       model: ARGUMENT_PRO_MODEL,
       systemPromptHe: AGGADATA_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: AGGADATA_SYNTHESIS_USER_TEMPLATE_HE,
