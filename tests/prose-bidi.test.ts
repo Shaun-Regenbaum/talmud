@@ -35,6 +35,45 @@ describe('bidiSegments — keep a quoted Hebrew/Aramaic citation in one bidi run
   });
 });
 
+describe('bidiSegments — boundary cases the connector-quote fix must not break', () => {
+  it('keeps a double-quote-wrapped Aramaic citation as one run, quotes outside', () => {
+    expect(heRuns('says "אמר רב יהודה" here')).toEqual(['אמר רב יהודה']);
+  });
+
+  it('keeps a single Hebrew word between opening + closing ASCII quotes intact', () => {
+    expect(heRuns('the word "שלום" means peace')).toEqual(['שלום']);
+  });
+
+  it('keeps a Hebrew term but leaves its English (gloss) paren outside — the common case', () => {
+    // The bread-and-butter Form B gloss must be untouched by the quote change:
+    // one Hebrew run, the English parenthetical stays LTR.
+    expect(heRuns('valid שחיטה (ritual slaughter) requires')).toEqual(['שחיטה']);
+  });
+
+  it('keeps a maqaf compound as one run', () => {
+    expect(heRuns('at בין־השמשות exactly')).toEqual(['בין־השמשות']);
+  });
+
+  it('keeps Hebrew names with real gershayim glyphs as one run each', () => {
+    expect(heRuns('both רש״י and תנ״ך agree')).toEqual(['רש״י', 'תנ״ך']);
+  });
+
+  it('splits two Hebrew runs separated by English into two bidi runs', () => {
+    expect(heRuns('Rabbi עקיבא told רבי טרפון')).toEqual(['עקיבא', 'רבי טרפון']);
+  });
+
+  it('keeps the citation intact in the full Berakhot 2b paragraph that broke', () => {
+    // The exact prose shape from the report: a Ritva citation wrapped in ASCII
+    // quotes with an internal ASCII gershayim, embedded in English prose. The
+    // citation must survive as ONE run; only ריטב״א and that run are Hebrew.
+    const para =
+      `The ריטב״א makes this explicit: 'בק"ש של ערבית זמנה תלוי בשכיבה', ` +
+      `in the evening Shema the obligation is not tied directly to nightfall ` +
+      `but to 'the time of lying down.'`;
+    expect(heRuns(para)).toEqual(['ריטב״א', 'בק"ש של ערבית זמנה תלוי בשכיבה']);
+  });
+});
+
 describe('stripEchoParens — drop redundant all-Hebrew gloss parentheticals', () => {
   it('drops an all-Hebrew paren right after a Hebrew term (the broken case)', () => {
     // term followed by a malformed/duplicated all-Hebrew "gloss"
