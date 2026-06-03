@@ -1181,12 +1181,12 @@ function TidbitEssayView(parsed: Record<string, unknown>): JSX.Element {
       </Show>
       <Show when={hook}>
         <p style={{ margin: '0 0 0.85rem', 'font-size': '1.02rem', 'line-height': 1.4, 'font-weight': 600, color: '#1f1b18' }}>
-          <Hebraized text={hook} />
+          <HebraizedWithRabbis text={hook} />
         </p>
       </Show>
       <For each={paragraphs}>{(p) => (
         <p style={{ margin: '0 0 0.7rem', 'font-size': '0.92rem', 'line-height': 1.62, color: '#2b2622' }}>
-          <Hebraized text={p} />
+          <HebraizedWithRabbis text={p} />
         </p>
       )}</For>
       <Show when={sources.length > 0}>
