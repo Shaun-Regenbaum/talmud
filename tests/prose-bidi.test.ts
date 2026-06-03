@@ -1,5 +1,39 @@
 import { describe, it, expect } from 'vitest';
 import { stripEchoParens } from '../src/client/hebraize';
+import { bidiSegments } from '../src/client/Hebraized';
+
+// The Hebrew/Aramaic runs that BidiText wraps in <bdi>. Wrong boundaries are
+// exactly what scrambles the visual order, so assert them directly.
+const heRuns = (s: string): string[] => bidiSegments(s).filter((p) => p.he).map((p) => p.text);
+
+describe('bidiSegments — keep a quoted Hebrew/Aramaic citation in one bidi run', () => {
+  it('keeps an internal ASCII gershayim abbreviation intact (the Ritva scramble)', () => {
+    // Before the fix, the ASCII " inside בק"ש split this into `בק` + `ש של…`,
+    // and the bidi algorithm reordered it into the broken `'בק … ),` render.
+    const para = `The ריטב״א makes this explicit: 'בק"ש של ערבית זמנה תלוי בשכיבה (in the evening Shema), the obligation`;
+    expect(heRuns(para)).toEqual(['ריטב״א', 'בק"ש של ערבית זמנה תלוי בשכיבה']);
+  });
+
+  it('keeps a geresh abbreviation (ר\' יוחנן) as one run', () => {
+    expect(heRuns("quoting ר' יוחנן on the matter")).toEqual(["ר' יוחנן"]);
+  });
+
+  it('does NOT swallow an English apostrophe-s after a Hebrew word', () => {
+    // The run must end on a Hebrew letter, so `'s` (Latin) stays outside.
+    expect(heRuns("the verse's בשכבך describes")).toEqual(['בשכבך']);
+    expect(heRuns("Rabbi עקיבא's view")).toEqual(['עקיבא']);
+  });
+
+  it('keeps a closing ASCII quote OUT of the run (it keeps its English position)', () => {
+    // A wrapped Aramaic quote: the run is the Hebrew inside, the quotes flank it.
+    expect(heRuns("It insists: 'שמע מינה שעורא דעני לחוד וקודם.' The dispute"))
+      .toEqual(['שמע מינה שעורא דעני לחוד וקודם']);
+  });
+
+  it('leaves pure-English text with no bidi runs (no spurious isolation)', () => {
+    expect(heRuns("but to 'the time of lying down.'")).toEqual([]);
+  });
+});
 
 describe('stripEchoParens — drop redundant all-Hebrew gloss parentheticals', () => {
   it('drops an all-Hebrew paren right after a Hebrew term (the broken case)', () => {
