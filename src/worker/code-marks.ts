@@ -2746,9 +2746,13 @@ VOICE — you are TELLING the reader something worth knowing; be engaging:
 - NO dramatic or rhetorical CLOSERS, and NO anthropomorphizing the text. Never write lines like "the deck is stacked against X, and the gemara knows it", "make no mistake", "and that is no accident", "the tension is palpable", or "the gemara wants/knows/admits…". The text has no intentions or feelings; state what it says, or leaves unresolved, plainly. The final sentence is a plain statement of the point — not a mic-drop.
 - ASSUME the reader JUST read the Overview (the daf's dispute + structure) and the Background (its terms) — those are separate pills, shown first. Do NOT recap the dispute, the positions, or the basic setup, and do not re-explain what the Overview already covers. Open straight on the interesting thing and spend your words on the IDEA, not on orientation. At most a few words of context for one name or term — never a setup paragraph.
 
-STRUCTURE (this is the whole shape):
-- "hook": ONE sentence — the teaser, specific to THIS daf, that makes a reader want to open it. Keep it tight (ideally under 25 words); do not cram the whole tidbit into it.
-- "paragraphs": TWO to FOUR SHORT paragraphs. Shorter is better — cut anything that repeats or recaps the Overview. Open straight on the interesting thing (NOT a setup of the daf), make the turn, then turn once more to the deeper idea and land it plainly. WITHOUT any "why it matters" sign, without a dramatic flourish, and without an abstract summing-up that restates what you already said. No section labels, no headers.
+STRUCTURE — lead with the IDEA, show it, then go a step further:
+- "hook": ONE sentence — the teaser/promise of the idea, specific to THIS daf. Tight (under ~25 words); don't cram the whole tidbit into it.
+- "paragraphs": THREE short paragraphs, in this order:
+  1) THE IDEA — state the interesting thing up front, in plain words. Don't make the reader wait through a setup; open on the insight itself.
+  2) HOW THE GEMARA TEACHES IT — the concrete scene or text that shows it, just enough to ground the idea (do NOT recap the Overview).
+  3) A STEP FURTHER — turn once more: the deeper implication or surprise that leaves the reader thinking. Land it plainly; no abstract summing-up.
+  TWO paragraphs are fine if the daf is simple; never more than four. No "why it matters" sign, no dramatic flourish, no section labels or headers.
 
 GROUNDING (hard):
 - Every factual claim must rest on the inputs you were given (the daf, its commentaries, the study context, the overview/background) or on well-established fact. Do NOT invent stories, positions, sources, manuscript variants, or a Yerushalmi/Rishon view that is not real.
@@ -2801,7 +2805,7 @@ Halachic topics on this daf:
 Places on this daf:
 {{anchors.places}}
 
-Study-aid context (dafyomi.co.il Insights / Points / Halacha / Yerushalmi / Tosfos notes + Sefaria cross-references):
+Study aids (dafyomi.co.il Insights / Points / Background / Yerushalmi / Revach — the accessible material; not the commentaries):
 {{context}}
 
 You now have the full picture of this daf — its text, commentaries, structure and flow, sages, verses, stories, halachic topics, places, and study aids. Use ALL of it to choose well. Write ONE Tidbit per the schema: the single most interesting, non-obvious thing on the page, as a hook plus three or four flowing paragraphs. Ground every claim in the materials above, and rate both confidences honestly.`;
@@ -2847,9 +2851,13 @@ const TIDBIT_ESSAY_SYSTEM_PROMPT_HE = `אתה מלמד תורה חד שכותב 
 - ללא סיומות דרמטיות/רטוריות וללא האנשה של הטקסט. אל תכתוב "הקלפים מסודרים נגד X, והגמרא יודעת זאת", "אל תטעו", "וזה לא במקרה", "המתח מורגש", "הגמרא רוצה/יודעת/מודה…". לטקסט אין כוונות או רגשות; אמור בפשטות מה הוא אומר או משאיר ללא הכרעה. המשפט האחרון הוא אמירה פשוטה של הנקודה — לא מהלומה.
 - הנח שהקורא זה עתה קרא את הסקירה (מחלוקת הדף ומבנהו) ואת הרקע (מונחיו) — אלו פילים נפרדים המוצגים לפני. אל תחזור על המחלוקת, על העמדות, או על המהלך הבסיסי, ואל תסביר מחדש מה שהסקירה כבר אומרת. פתח ישר על הדבר המעניין והשקע את המילים ברעיון, לא בהתמצאות. לכל היותר כמה מילות הקשר לשם או מונח אחד — לעולם לא פסקת הקדמה.
 
-המבנה:
-- "hook": משפט אחד — הטיזר, ספציפי לדף הזה. קצר (פחות מ-25 מילים); אל תדחוס לתוכו את כל התובנה.
-- "paragraphs": שתיים עד ארבע פסקאות קצרות. קצר יותר עדיף — חתוך כל מה שחוזר או משחזר את הסקירה. פתח ישר על הדבר המעניין (לא הקדמה של הדף), עשה את התפנית, ואז פנה עוד פעם אל הרעיון העמוק ונחת עליו בפשטות. בלי כותרת "מדוע זה חשוב", בלי סיומת דרמטית, ובלי סיכום מופשט שחוזר על מה שכבר נאמר. ללא תוויות מקטעים.
+המבנה — פתח ברעיון, הראה אותו, ואז לך צעד אחד הלאה:
+- "hook": משפט אחד — הטיזר/הבטחת הרעיון, ספציפי לדף הזה. קצר (פחות מ-25 מילים).
+- "paragraphs": שלוש פסקאות קצרות, בסדר הזה:
+  1) הרעיון — אמור את הדבר המעניין מיד, במילים פשוטות. אל תשאיר את הקורא ממתין דרך הקדמה; פתח על התובנה עצמה.
+  2) כיצד הגמרא מלמדת זאת — הסצנה או הטקסט הקונקרטי שמראה אותה, רק כדי לבסס את הרעיון (אל תחזור על הסקירה).
+  3) צעד אחד הלאה — פנה עוד פעם: ההשלכה העמוקה או ההפתעה שמשאירה את הקורא חושב. נחת בפשטות; בלי סיכום מופשט.
+  שתי פסקאות מספיקות אם הדף פשוט; לעולם לא יותר מארבע. בלי כותרת "מדוע זה חשוב", בלי סיומת דרמטית, ללא תוויות מקטעים.
 
 ביסוס (קשיח):
 - כל טענה עובדתית חייבת להישען על הקלט שקיבלת או על עובדה מבוססת. אל תמציא סיפורים, עמדות, מקורות, גרסאות, או דעת ירושלמי/ראשון שאינה אמיתית.
@@ -2902,7 +2910,7 @@ const TIDBIT_ESSAY_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 מקומות בדף זה:
 {{anchors.places}}
 
-תוכן לימוד נלווה (dafyomi.co.il — תובנות / נקודות / הלכה / ירושלמי / תוספות + הפניות ספריא):
+תוכן לימוד נלווה (dafyomi.co.il — תובנות / נקודות / רקע / ירושלמי / רווח — החומר הנגיש; לא המפרשים):
 {{context}}
 
 כעת יש לך תמונה מלאה של הדף — הטקסט, המפרשים, המבנה והזרימה, החכמים, הפסוקים, האגדות, נושאי ההלכה, המקומות, ותוכן הלימוד. השתמש בכל זה כדי לבחור היטב. כתוב Tidbit אחד לפי הסכימה: הדבר האחד הכי מעניין ולא־מובן־מאליו בדף, כטיזר ושלוש או ארבע פסקאות זורמות. בסס כל טענה בחומר שלמעלה, ודרג את שני מדדי הביטחון בכנות.`;
@@ -2925,7 +2933,7 @@ CODE_ENRICHMENTS.push(
       // halacha topics, places).
       dependencies: [
         'gemara',
-        'context',
+        'context-light', // accessible study aids only — no Rashi/Tosafot/rishonim/halacha apparatus (that fueled lomdus)
         { mark: 'argument' },
         { mark: 'rabbi' },
         { mark: 'pesukim' },
@@ -2941,12 +2949,14 @@ CODE_ENRICHMENTS.push(
         // aids + the daf's anchors + a plain whole-daf summary + the glossary.
         // The rishonim and the per-instance analysis are the Bi'yun's job.
       ],
-      defHash: 'tidbit.essay-v1', cacheVersion: '13', // v13: survey-the-whole-daf-and-pick-the-MOST-engaging selection step (don't default to the structural skeleton; hunt the vivid/buried thing; find the turn under the famous beat)
-      // Pro model: finding the non-obvious reading needs the stronger model.
-      // Thinking stays OFF (no reasoningEffort) — the context bundle is large,
-      // like daf-background.concepts, and a thinking pass on top risks the
-      // OpenRouter cap. Revisit reasoningEffort if quality calls for it.
+      defHash: 'tidbit.essay-v1', cacheVersion: '14', // v14: idea-first structure (idea -> how the gemara teaches it -> a step further) + context-light (drop the rashi/tosafot/rishonim/halacha that leaked via 'context')
+      // Pro model + a reasoning pass. Thinking is ON now (reasoningEffort) —
+      // the move to 'context-light' shrank the prompt enough that a thinking
+      // pass no longer risks the OpenRouter cap, and the tidbit genuinely needs
+      // it: surveying the whole daf to pick the MOST engaging thing, building
+      // the layered turn, and knowing what to cut so it doesn't lose itself.
       model: ARGUMENT_PRO_MODEL,
+      reasoningEffort: 'high',
       systemPromptHe: TIDBIT_ESSAY_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: TIDBIT_ESSAY_USER_TEMPLATE_HE,
     },
