@@ -50,9 +50,11 @@ describe('Halacha recipe card', () => {
     expect(buttons.some((b) => b.textContent?.includes(t('qa.questions')))).toBe(false);
   });
 
-  it('declares synthesis + the three custom blocks (codification / practical / disputes), no qa', () => {
+  it('declares synthesis + the codification (map) and practical blocks, no qa', () => {
+    // The standalone disputes block is retired — the Mechaber/Rema split now
+    // lives in the codification map (see codeMapFromCodification).
     const blocks = HALACHA_RECIPE.sections.flatMap((s) => (s.type === 'special' ? [s.block] : []));
-    expect(blocks).toEqual(['halacha-codification', 'halacha-practical', 'halacha-disputes']);
+    expect(blocks).toEqual(['halacha-codification', 'halacha-practical']);
     expect(HALACHA_RECIPE.sections[0].type).toBe('synthesis');
     expect(HALACHA_RECIPE.sections.some((s) => s.type === 'qa')).toBe(false);
     // Every declared block is registered.

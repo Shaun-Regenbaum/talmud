@@ -91,9 +91,11 @@ export const HALACHA_RECIPE: SidebarRecipe = {
   titleHeField: 'topicHe',
   sections: [
     { type: 'synthesis' },
+    // Codification renders as the CodificationMap (lineage + the Mechaber/Rema
+    // disagree edge), so the standalone disputes block is retired — the common
+    // codifier dispute now lives in the map; synthesis still weaves the rest.
     { type: 'special', block: 'halacha-codification', deps: ['halacha.codification'] },
     { type: 'special', block: 'halacha-practical', deps: ['halacha.practical'] },
-    { type: 'special', block: 'halacha-disputes', deps: ['halacha.disputes'] },
   ],
 };
 

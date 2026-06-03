@@ -129,6 +129,31 @@ export function hasCodification(bundle: HalachicRefBundle | undefined): boolean 
   return buildCodificationChain(bundle, { includeSecondary: true }).length > 0;
 }
 
+function truncate(s: string | undefined, n = 360): string {
+  const t = (s ?? '').trim();
+  return t.length > n ? `${t.slice(0, n - 1)}…` : t;
+}
+
+/**
+ * Format the grounded codifier refs (with their real Hebrew/English text) for
+ * the codification PROMPT, so the LLM SELECTS from real Sefaria refs instead of
+ * recalling citations. One block per codifier, its refs listed with capped
+ * snippets. Empty-bundle dapim get an explicit marker (the prompt then knows
+ * there is nothing to codify).
+ */
+export function formatGroundedRefsForPrompt(bundle: HalachicRefBundle | undefined): string {
+  const chain = buildCodificationChain(bundle, { includeSecondary: true });
+  if (!chain.length) return '(no codifier links found for this daf)';
+  return chain.map((node) => {
+    const refs = node.refs.map((r) => {
+      const he = truncate(r.hebrew);
+      const en = truncate(r.english);
+      return `  - ${r.ref}${he ? `\n    HE: ${he}` : ''}${en ? `\n    EN: ${en}` : ''}`;
+    }).join('\n');
+    return `${node.label}:\n${refs}`;
+  }).join('\n\n');
+}
+
 // ---------------------------------------------------------------------------
 // Derivation (reverse: code → gemara sources, "where it comes from")
 // ---------------------------------------------------------------------------

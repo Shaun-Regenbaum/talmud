@@ -10,6 +10,8 @@ import RabbiLineageTree, { type RelationshipsData, type RelationshipsEvidence } 
 import { type GeographyData, type GeographyEvidence } from './RabbiGeographyCard';
 import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeline';
 import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
+import CodificationMap from './CodificationMap';
+import { codeMapFromCodification, type CodificationData } from './flow/codeMapLayout';
 import ArgumentNarrative from './ArgumentNarrative';
 import { deriveVoiceEdges } from '../lib/typing/voices';
 import { voicesMapEligible, voicesShowMap, voicesShowFallback } from '../lib/typing/profile';
@@ -1068,71 +1070,6 @@ function DafBackgroundBody(props: { tractate: string; page: string }): JSX.Eleme
   );
 }
 
-function sefariaUrl(source: 'mishnehTorah' | 'shulchanAruch' | 'rema', ref: string): string | null {
-  const trimmed = ref.trim();
-  if (source === 'mishnehTorah') {
-    return `https://www.sefaria.org/search?q=${encodeURIComponent('Mishneh Torah ' + trimmed)}`;
-  }
-  const match = trimmed.match(/^(Orach(?:\s+)?(?:Ch|H)(?:aim|ayyim)?|Yoreh\s+De'?ah|Even\s+Ha'?Ezer|Choshen\s+Mishpat)\s+(\d+):(\d+)/i);
-  if (match) {
-    const sectionMap: Record<string, string> = {
-      orachchaim: 'Orach_Chayyim', orachchayyim: 'Orach_Chayyim', orachhaim: 'Orach_Chayyim',
-      yorehdeah: 'Yoreh_De%27ah', evenhaezer: 'Even_HaEzer', choshenmishpat: 'Choshen_Mishpat',
-    };
-    const normalized = match[1].toLowerCase().replace(/\s+/g, '').replace(/'/g, '');
-    const section = sectionMap[normalized];
-    if (section) {
-      const prefix = source === 'rema' ? 'Mappah' : 'Shulchan_Arukh';
-      return `https://www.sefaria.org/${prefix}%2C_${section}.${match[2]}.${match[3]}`;
-    }
-  }
-  return `https://www.sefaria.org/search?q=${encodeURIComponent(trimmed)}`;
-}
-
-function RulingRow(props: {
-  source: 'mishnehTorah' | 'shulchanAruch' | 'rema';
-  label: string;
-  color: string;
-  ruling?: { ref: string; summary: string };
-}): JSX.Element {
-  return (
-    <Show when={props.ruling}>
-      {(r) => {
-        const url = sefariaUrl(props.source, r().ref);
-        return (
-          <div style={{
-            padding: '0.55rem 0.7rem',
-            background: '#fafaf7',
-            border: '1px solid #eae8e0',
-            'border-radius': '4px',
-            'margin-bottom': '0.45rem',
-          }}>
-            <div style={{
-              'font-size': '0.68rem',
-              'text-transform': 'uppercase',
-              'letter-spacing': '0.06em',
-              'font-weight': 600,
-              color: props.color,
-              'margin-bottom': '0.25rem',
-            }}>
-              {props.label}
-            </div>
-            <div style={{ 'font-weight': 500, color: '#333', 'margin-bottom': '0.2rem', 'font-size': '0.85rem' }}>
-              <a href={url ?? '#'} target="_blank" rel="noopener noreferrer"
-                 style={{ color: props.color, 'text-decoration': 'none' }}>
-                {r().ref} ↗
-              </a>
-            </div>
-            <div style={{ color: '#555', 'line-height': 1.45, 'font-size': '0.85rem' }}>
-              <HebraizedWithRabbis text={r().summary} />
-            </div>
-          </div>
-        );
-      }}
-    </Show>
-  );
-}
-
 interface PasukDetail {
   ref: string;
   heRef: string | null;
@@ -1306,14 +1243,6 @@ export const RABBI_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element>
 //         Disputes card (rendered only when non-empty).
 // ===========================================================================
 
-interface CodificationRuling { ref: string; ruling: string; }
-interface CodificationData {
-  mishnehTorah: CodificationRuling | null;
-  tur: CodificationRuling | null;
-  shulchanAruch: CodificationRuling | null;
-  rema: CodificationRuling | null;
-  prose: string;
-}
 interface PracticalData {
   lechatchila: string;
   bedieved: string;
@@ -1330,61 +1259,36 @@ interface DisputeItem {
 }
 interface DisputesData { disputes: DisputeItem[]; }
 
-// Halacha codification: structured ruling rows (Mishneh Torah / Tur / Shulchan
-// Aruch / Rema). A NAMED special block reading the halacha.codification leaf.
+// Halacha codification: the codifier lineage as a CodificationMap — Gemara →
+// Rambam → Tur → Shulchan Aruch, with a present Rema folded in as the
+// Mechaber/Rema disagree edge. A NAMED special block reading the
+// halacha.codification leaf (the {mishnehTorah,tur,shulchanAruch,rema,prose}
+// shape) and mapping it via codeMapFromCodification.
 function HalachaCodification(props: SpecialBlockProps): JSX.Element {
   const codification = (): CodificationData | undefined => {
     const d = props.deps['halacha.codification'] as CodificationData | undefined;
     return d && typeof d.prose === 'string' ? d : undefined;
   };
+  const map = () => {
+    const cod = codification();
+    return cod ? codeMapFromCodification(cod, `${props.tractate} ${props.page}`) : null;
+  };
   return (
-      <Show when={codification()}>
-        {(cod) => (
-          <div style={{ 'margin-top': '0.9rem' }}>
-            <div style={{
-              'font-size': '0.7rem', 'text-transform': 'uppercase',
-              'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.5rem',
-              display: 'flex', 'align-items': 'center', gap: '0.4rem',
-            }}>
-              <span>{t('halacha.codification')}</span>
-              <InspectDot instanceKey={props.instanceKey} leafId="halacha.codification" style={{ 'margin-left': 'auto' }} />
-            </div>
-            <RulingRow
-              source="mishnehTorah" label={t('source.mishnehTorah')} color="#8a2a2b"
-              ruling={cod().mishnehTorah ? { ref: cod().mishnehTorah!.ref, summary: cod().mishnehTorah!.ruling } : undefined}
-            />
-            <Show when={cod().tur}>
-              {(tur) => (
-                <div style={{
-                  padding: '0.55rem 0.7rem', background: '#fafaf7',
-                  border: '1px solid #eae8e0', 'border-radius': '4px',
-                  'margin-bottom': '0.45rem',
-                }}>
-                  <div style={{
-                    'font-size': '0.68rem', 'text-transform': 'uppercase',
-                    'letter-spacing': '0.06em', 'font-weight': 600, color: '#a16207',
-                    'margin-bottom': '0.25rem',
-                  }}>{t('source.tur')}</div>
-                  <div style={{ 'font-weight': 500, color: '#333', 'margin-bottom': '0.2rem', 'font-size': '0.85rem' }}>
-                    {tur().ref}
-                  </div>
-                  <div style={{ color: '#555', 'line-height': 1.45, 'font-size': '0.85rem' }}>
-                    <HebraizedWithRabbis text={tur().ruling} />
-                  </div>
-                </div>
-              )}
-            </Show>
-            <RulingRow
-              source="shulchanAruch" label={t('source.shulchanAruch')} color="#1e40af"
-              ruling={cod().shulchanAruch ? { ref: cod().shulchanAruch!.ref, summary: cod().shulchanAruch!.ruling } : undefined}
-            />
-            <RulingRow
-              source="rema" label={t('source.rema')} color="#7c3aed"
-              ruling={cod().rema ? { ref: cod().rema!.ref, summary: cod().rema!.ruling } : undefined}
-            />
+    <Show when={map()}>
+      {(m) => (
+        <div style={{ 'margin-top': '0.9rem', position: 'relative' }}>
+          <div style={{
+            'font-size': '0.7rem', 'text-transform': 'uppercase',
+            'letter-spacing': '0.08em', color: '#888', 'margin-bottom': '0.5rem',
+            display: 'flex', 'align-items': 'center', gap: '0.4rem',
+          }}>
+            <span>{t('halacha.codification')}</span>
+            <InspectDot instanceKey={props.instanceKey} leafId="halacha.codification" style={{ 'margin-left': 'auto' }} />
           </div>
-        )}
-      </Show>
+          <CodificationMap nodes={m().nodes} edges={m().edges} />
+        </div>
+      )}
+    </Show>
   );
 }
 
