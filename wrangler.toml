@@ -9,10 +9,13 @@ compatibility_flags = ["nodejs_compat"]
 # /api request bridge in src/worker/mcp.ts). See @cloudflare/codemode.
 worker_loaders = [{ binding = "LOADER" }]
 
-# Custom production domain. Requires shaunregenbaum.com to be an active zone
-# on the same Cloudflare account (PropheX) that `wrangler whoami` reports.
+# Custom production domains. Both zones must be active on the same Cloudflare
+# account (PropheX) that `wrangler whoami` reports. talmud.dev and
+# talmud.shaunregenbaum.com point at this same worker — identical backend,
+# KV cache, queues, and crons (one deployment, two hostnames).
 routes = [
-  { pattern = "talmud.shaunregenbaum.com", custom_domain = true }
+  { pattern = "talmud.shaunregenbaum.com", custom_domain = true },
+  { pattern = "talmud.dev", custom_domain = true }
 ]
 
 [assets]
