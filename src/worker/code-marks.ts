@@ -896,7 +896,8 @@ ${alwaysHebraizeBlock()}
     GOOD: "the gemara uses 'הוצאו' (they were brought out) to describe…"
     GOOD: "the term 'אמר' indicates direct attribution"
   If you don't remember the Hebrew/Aramaic verbatim, paraphrase in English instead of writing the transliteration in quotes. NEVER fake a verbatim quote with transliteration.
-- Plain English is the BASE; Hebrew script is the technical anchor. Don't pile Hebrew script on every common word — only where the term is genuinely the technical concept.`;
+- Plain English is the BASE; Hebrew script is the technical anchor. Don't pile Hebrew script on every common word — only where the term is genuinely the technical concept.
+- THE DAF'S OWN GLOSSARY IS AUTHORITATIVE. If the prompt gives you this daf's background terms (each an English label + its Hebrew + a gloss), treat that list as the definitive set of terms to show in Hebrew here. Whenever your prose uses one of them, write it in Form A/B using EXACTLY that Hebrew spelling — e.g. given "Tevul Yom / טבול יום", write "טבול יום (one who immersed that day)" rather than "tevul yom" or English alone; given "Midnight / חצות", write "חצות (halakhic midnight)". This keeps the prose consistent with the glossary the reader sees on the daf and lets each term carry its own tooltip.`;
 
 /**
  * Hebrew-output style guide — the lang='he' counterpart of HEBREW_GLOSS_STYLE.
@@ -919,7 +920,8 @@ const HEBREW_NATIVE_STYLE = `סגנון — כתיבה בעברית (החל בא
 - שדה המבקש במפורש שם באנגלית (למשל "name": "Conventional English name") — מלא אותו באנגלית כנדרש. שדה מקביל "nameHe" — מלא בעברית.
 - ציטוטי excerpt מן הדף נשארים בעברית/ארמית מילה במילה כפי שהם בדף, ללא שינוי.
 - הימנע ממליצות ריקות ומשפה מנופחת. אל תכתוב: "תמצית", "מבעד לעדשה של", "מגלם", "עומק רוחני", "ביטוי מובהק", "רגישות עמוקה", "שואף בעקביות", "טבוע בו". כתוב משפטי נושא-נשוא-מושא ענייניים עם עובדות קונקרטיות (תקופה, אזור, שמות חכמים, שיטות).
-- עברית היא שפת הבסיס; אין צורך לפזר מילים לועזיות או תעתיקים.`;
+- עברית היא שפת הבסיס; אין צורך לפזר מילים לועזיות או תעתיקים.
+- מילון הדף הוא סמכותי. אם הקלט כולל את מונחי הרקע של הדף (תווית באנגלית + עברית + הסבר לכל אחד), התייחס לרשימה כקבוצת המונחים המוסמכת: בכל פעם שהפרוזה נוקטת באחד מהם, כתוב אותו בדיוק באותה צורה עברית שניתנה (למשל "טבול יום", "חצות", "תרומה"). כך הפרוזה עקבית עם מילון הרקע שהקורא רואה בדף.`;
 
 
 // rabbi.bio — DAF-AGNOSTIC general biography. Same regardless of which daf
@@ -2746,7 +2748,7 @@ How those sections relate (the flow graph: continues / resolves / depends-on / p
 Whole-daf orientation (what the daf is about and where it lands):
 {{depends.argument-overview.synthesis}}
 
-Background concepts a reader needs going in:
+Background concepts a reader needs going in — this is also THE DAF'S TERM GLOSSARY: when your prose uses any term below, write it in the given Hebrew form (Form A/B) using exactly that spelling:
 {{depends.daf-background.concepts}}
 
 Sages on this daf:
@@ -2830,7 +2832,7 @@ const TIDBIT_ESSAY_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 כיוון כללי לדף (על מה הדף ולאן הוא מגיע):
 {{depends.argument-overview.synthesis}}
 
-מושגי רקע שהקורא צריך:
+מושגי רקע שהקורא צריך — וזהו גם מילון המונחים של הדף: בכל פעם שהפרוזה נוקטת מונח מהרשימה, כתוב אותו בצורתו העברית הנתונה בדיוק:
 {{depends.daf-background.concepts}}
 
 חכמים בדף זה:
@@ -2883,7 +2885,7 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'argument-overview.synthesis' },
         { enrichment: 'daf-background.concepts' },
       ],
-      defHash: 'tidbit.essay-v1', cacheVersion: '4', // v4: short clean source refs (name+place only) + ban internal-input language ("the materials", "segment breakdown", line numbers)
+      defHash: 'tidbit.essay-v1', cacheVersion: '5', // v5: use the daf's background glossary as the authoritative Hebrew-term set in prose
       // Pro model: finding the non-obvious reading needs the stronger model.
       // Thinking stays OFF (no reasoningEffort) — the context bundle is large,
       // like daf-background.concepts, and a thinking pass on top risks the
