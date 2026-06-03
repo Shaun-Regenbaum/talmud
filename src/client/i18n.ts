@@ -578,6 +578,7 @@ const CATALOG = {
   'yerushalmi.differences': { en: 'Differences from the Yerushalmi', he: 'הבדלים מן הירושלמי' },
   'yerushalmi.readParallel': { en: 'Read the parallel (Yerushalmi)', he: 'קרא את המקבילה (ירושלמי)' },
   'yerushalmi.curatedParallel': { en: 'Curated parallel (Sefaria)', he: 'מקבילה נבחרת (ספריא)' },
+  'yerushalmi.outline': { en: 'Yerushalmi parallel (§ = aligned Bavli segment)', he: 'מקבילה בירושלמי (§ = קטע בבלי מקביל)' },
 
   // — Aggadata body —
   'aggadata.background': { en: 'Background', he: 'רקע' },

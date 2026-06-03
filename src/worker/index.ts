@@ -11,6 +11,7 @@ import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
 import { collectContext } from './context-providers';
 import { fromDafyomi } from '../lib/context/fromDafyomi';
 import { curatedParallelsForDaf, type CuratedYerushalmiParallel } from '../lib/yerushalmiParallels';
+import { flattenYerushalmiOutline, alignOutlineToSegments } from '../lib/yerushalmiAlign';
 import { placeRevachWithAi } from './revach-ai-place';
 import { formatContextForPrompt, contextForAnchor, segsFromMarkInput } from '../lib/context/select';
 import { continuationLink, type FlowEdge } from '../lib/context/link';
@@ -7039,12 +7040,29 @@ app.post('/api/admin/translate-bio', async (c) => {
 // getYerushalmiCached). The reader's Yerushalmi card uses it to show the actual
 // parallel text under the differences. He/En are stripped of Sefaria's footnote
 // markup so the prose reads clean.
+/** The dafyomi "Yerushalmi to Match" outline for a daf, aligned to the Bavli
+ *  segments: each point tagged with the Bavli `segIdx` it parallels (the shared
+ *  Mishnah / baraita layer; divergent gemara points stay unanchored). Empty
+ *  until the daf's dafyomi content has been (re)warmed with the yerushalmi
+ *  parser (GET /api/dafyomi/:t/:p?refresh=1). */
+async function buildYerushalmiOutline(env: Bindings, tractate: string, page: string) {
+  const [daf, slice] = await Promise.all([
+    getDafyomiContentCached(env.CACHE, env.ASSETS, tractate, page, {}).catch(() => null),
+    getGemaraSlice(env, tractate, page, false),
+  ]);
+  const block = daf?.amudim?.a?.yerushalmi?.body ?? daf?.amudim?.b?.yerushalmi?.body;
+  if (!block || block.type !== 'yerushalmi') return [];
+  const points = flattenYerushalmiOutline(block.entries, tractate);
+  return alignOutlineToSegments(points, slice.segments_he);
+}
+
 app.get('/api/yerushalmi/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
-  const [bundle, curated] = await Promise.all([
+  const [bundle, curated, outline] = await Promise.all([
     getYerushalmiCached(c.env.CACHE, tractate, page),
     fetchCuratedYerushalmi(curatedParallelsForDaf(tractate, page)),
+    buildYerushalmiOutline(c.env, tractate, page),
   ]);
   return c.json({
     parallels: bundle.map((y) => ({
@@ -7057,6 +7075,9 @@ app.get('/api/yerushalmi/:tractate/:page', async (c) => {
     // hand-made cross-references (Sefaria "Shared Stories"), with the real
     // Yerushalmi text + an editorial summary. Often cross-tractate.
     curated,
+    // dafyomi.co.il "Yerushalmi to Match" outline — the digestible parallel,
+    // each point aligned to the Bavli segment it parallels.
+    outline,
   });
 });
 
