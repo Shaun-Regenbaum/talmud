@@ -431,6 +431,19 @@ body.dev-shelf-open .daf-page {
        content is never occluded. 55vh matches the shelf's max-height. */
     padding-bottom: calc(0.75rem + 55vh);
   }
+  /* Header: the flat flex-wrap goes ragged on phones. Organize it into tidy
+     rows via explicit order — wordmark + utilities share the top row, the
+     tractate picker spans its own row, nav + Today's Daf share the next, and
+     the hint stays centered below. Each row reads as one intentional unit. */
+  .daf-header {
+    gap: 0.4rem 0.5rem;
+  }
+  .tb-wordmark { order: 0; font-size: 1.05rem; }
+  .tb-utils    { order: 1; }            /* auto margin keeps it top-right */
+  .tb-select   { order: 2; flex-basis: 100%; width: 100%; }
+  .tb-nav      { order: 3; }
+  .tb-primary  { order: 4; flex: 1; }   /* fills the rest of the nav row */
+  .tb-hint     { order: 5; }
   .daf-layout {
     flex-direction: column;
     gap: 0.75rem;
