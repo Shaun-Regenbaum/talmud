@@ -313,9 +313,12 @@ export function keyForCtxMatch(tractate: string, page: string, itemsHash: string
 }
 
 /** A single word's contextual translation. `ctxHash` is the caller's
- *  surrounding-text hash, already carrying its own leading separator. */
-export function keyForTranslate(tractate: string, page: string, word: string, ctxHash: string): string {
-  return `translate:v3:${tractate}:${page}:${word}${ctxHash}`;
+ *  surrounding-text hash, already carrying its own leading separator. `lang` is
+ *  the TARGET language of the translation ('en' default → English, byte-exact
+ *  with the historical key; 'he' → a `:he` suffix so Hebrew glosses never
+ *  collide with the English ones). */
+export function keyForTranslate(tractate: string, page: string, word: string, ctxHash: string, lang: 'en' | 'he' = 'en'): string {
+  return `translate:v3:${tractate}:${page}:${word}${ctxHash}${lang === 'he' ? ':he' : ''}`;
 }
 
 /** A hebraised English string, keyed by a content hash. */

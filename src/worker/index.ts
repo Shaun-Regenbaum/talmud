@@ -4534,6 +4534,10 @@ interface TranslateBody {
    *  .daf-word span). When supplied, the server skips its own fuzzy alignment
    *  and fetches the aligned Hebrew+English pair directly. */
   segIdx?: number;
+  /** Target language for the gloss — follows the reader's UI language. 'en'
+   *  (default) translates into English; 'he' translates the Aramaic/Hebrew of
+   *  the daf into modern Hebrew. */
+  lang?: 'en' | 'he';
 }
 
 
@@ -4658,6 +4662,7 @@ app.post('/api/translate', async (c) => {
   const page = (body.page ?? '').trim();
   const hebrewBefore = (body.hebrewBefore ?? '').trim();
   const hebrewAfter = (body.hebrewAfter ?? '').trim();
+  const targetLang: 'en' | 'he' = body.lang === 'he' ? 'he' : 'en';
   if (!word || !tractate || !page) {
     return c.json({ error: 'Missing word/tractate/page' }, 400);
   }
@@ -4671,7 +4676,7 @@ app.post('/api/translate', async (c) => {
   // v3: DeepSeek V4 Flash primary + hardcoded dict short-circuit +
   // morphology-aware prompt. Bumped from v2 to invalidate stale Gemma-era
   // translations (Gemma 4 26B was returning e.g. שעות → "watches").
-  const cacheKey = keyForTranslate(tractate, page, word, ctxHash);
+  const cacheKey = keyForTranslate(tractate, page, word, ctxHash, targetLang);
   const t0 = Date.now();
   if (cache) {
     const cached = await cache.get(cacheKey);
@@ -4685,7 +4690,9 @@ app.post('/api/translate', async (c) => {
   // context-free (Aramaic discourse markers, Mishnaic structural terms,
   // common Hebrew nouns small models botch the plural of). Skips the LLM
   // entirely and caches the result alongside LLM-produced ones.
-  const dictGloss = lookupGloss(word);
+  // The hardcoded dict glosses are English; only short-circuit for English
+  // targets. Hebrew targets always go through the model (no Hebrew dict).
+  const dictGloss = targetLang === 'en' ? lookupGloss(word) : undefined;
   if (dictGloss) {
     if (cache) {
       await cache.put(cacheKey, dictGloss, { expirationTtl: 60 * 60 * 24 * 30 });
@@ -4737,10 +4744,13 @@ app.post('/api/translate', async (c) => {
 
   const wordCount = word.split(/\s+/).filter(Boolean).length;
   const isPhrase = wordCount > 1;
-  const system = (isPhrase
+  const enSystem = isPhrase
     ? 'You translate short Hebrew/Aramaic phrases from the Talmud into English. Return ONLY the English translation — one concise sentence at most, faithful to the context. No quotation marks, no explanation, no prefix, no reasoning.\n\n'
-    : 'You translate single Hebrew or Aramaic words from the Talmud into English. Return ONLY the English translation — a single word or short phrase, no quotation marks, no explanation, no punctuation. If the word is a proper name (a Rabbi or place), return the conventional English rendering.\n\n'
-  ) + TRANSLATE_IDIOM_GUIDANCE;
+    : 'You translate single Hebrew or Aramaic words from the Talmud into English. Return ONLY the English translation — a single word or short phrase, no quotation marks, no explanation, no punctuation. If the word is a proper name (a Rabbi or place), return the conventional English rendering.\n\n';
+  const heSystem = isPhrase
+    ? 'You translate short Talmudic Aramaic/Hebrew phrases into clear modern Hebrew (עברית מודרנית) so an Israeli reader can understand them. Return ONLY the Hebrew translation — one concise sentence at most, faithful to the context. No quotation marks, no explanation, no prefix, no reasoning.\n\n'
+    : 'You translate single Talmudic Aramaic or Hebrew words into clear modern Hebrew (עברית מודרנית) so an Israeli reader can understand them. Return ONLY the Hebrew translation — a single word or short phrase, no quotation marks, no explanation, no punctuation. If the word is a proper name (a Rabbi or place), return its conventional Hebrew form.\n\n';
+  const system = (targetLang === 'he' ? heSystem : enSystem) + TRANSLATE_IDIOM_GUIDANCE;
 
   // DeepSeek V4 Flash primary (frontier-adjacent Hebrew morphology at
   // $0.14/$0.28 per 1M; reasoning auto-disabled in llm.ts for low latency).

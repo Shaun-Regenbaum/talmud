@@ -6,7 +6,8 @@
  * so it sits top-right in LTR and top-left in RTL (he) automatically.
  */
 import { type JSX } from 'solid-js';
-import { lang, setLang, type Lang } from './i18n';
+import { lang, setLang, t, type Lang } from './i18n';
+import { startTour } from './tutorial';
 
 export function TopBar(): JSX.Element {
   // Shares the daf header's `.tb-seg` / `.tb-seg-btn` segmented-control styling
@@ -26,19 +27,36 @@ export function TopBar(): JSX.Element {
 
   return (
     <div
-      class="tb-seg"
-      role="group"
-      aria-label="Language"
       style={{
         position: 'fixed',
         top: '8px',
         'inset-inline-end': '8px',
         'z-index': '2000',
-        'box-shadow': '0 1px 4px rgba(0,0,0,0.08)',
+        display: 'flex',
+        gap: '6px',
+        'align-items': 'center',
       }}
     >
-      {btn('en', 'EN')}
-      {btn('he', 'עב')}
+      <button
+        type="button"
+        class="tb-seg-btn"
+        title={t('tutorial.help.title')}
+        aria-label={t('tutorial.help.title')}
+        onClick={() => startTour(0)}
+        style={{ 'box-shadow': '0 1px 4px rgba(0,0,0,0.08)' }}
+      >
+        {t('tutorial.help')}
+      </button>
+      <div
+        class="tb-seg"
+        role="group"
+        aria-label="Language"
+        data-tour="lang"
+        style={{ 'box-shadow': '0 1px 4px rgba(0,0,0,0.08)' }}
+      >
+        {btn('en', 'EN')}
+        {btn('he', 'עב')}
+      </div>
     </div>
   );
 }

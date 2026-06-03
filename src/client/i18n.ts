@@ -734,6 +734,106 @@ const CATALOG = {
     en: 'AI generation is temporarily unavailable. Please try again later or tomorrow.',
     he: 'יצירת התוכן בבינה מלאכותית אינה זמינה כרגע. נא לנסות שוב מאוחר יותר או מחר.',
   },
+
+  // — First-time-user tutorial —
+  'tutorial.help': { en: 'Help', he: 'עזרה' },
+  'tutorial.help.title': { en: 'Open the tutorial', he: 'פתחו את המדריך' },
+  'tutorial.next': { en: 'Next', he: 'הבא' },
+  'tutorial.back': { en: 'Back', he: 'הקודם' },
+  'tutorial.skip': { en: 'Skip', he: 'דילוג' },
+  'tutorial.done': { en: 'Done', he: 'סיום' },
+  'tutorial.progress': { en: '{n} of {total}', he: '{n} מתוך {total}' },
+
+  'tutorial.chapter.welcome': { en: 'Welcome', he: 'ברוכים הבאים' },
+  'tutorial.chapter.reading': { en: 'Reading the page', he: 'קריאת הדף' },
+  'tutorial.chapter.marks': { en: 'Smart notes', he: 'הערות חכמות' },
+  'tutorial.chapter.done': { en: 'All set', he: 'מוכנים' },
+
+  'tutorial.welcome.title': { en: 'Welcome to talmud.dev', he: 'ברוכים הבאים ל-talmud.dev' },
+  'tutorial.welcome.body': {
+    en: 'A quick tour of how to read a daf and use the smart notes layered onto it. Takes about a minute — you can skip anytime.',
+    he: 'סיור קצר על קריאת הדף ועל השימוש בהערות החכמות שנוספו עליו. אורך כדקה — אפשר לדלג בכל רגע.',
+  },
+
+  'tutorial.lang.title': { en: 'Hebrew or English', he: 'עברית או אנגלית' },
+  'tutorial.lang.body': {
+    en: 'Switch the whole interface — and the AI explanations — between English and Hebrew here. The page itself stays in the original Aramaic and Hebrew.',
+    he: 'כאן מחליפים את כל הממשק — ואת הסברי הבינה המלאכותית — בין אנגלית לעברית. הדף עצמו נשאר בארמית ובעברית המקוריות.',
+  },
+
+  'tutorial.nav.title': { en: 'Move between pages', he: 'מעבר בין דפים' },
+  'tutorial.nav.body': {
+    en: 'Pick a tractate and page here, or step forward and back with the arrows. "Today\'s Daf" jumps to the daily Daf Yomi.',
+    he: 'בחרו מסכת ודף כאן, או דפדפו קדימה ואחורה עם החצים. "הדף היומי" מקפיץ אתכם לדף היומי של היום.',
+  },
+
+  'tutorial.translate.title': { en: 'Translate any word', he: 'תרגום כל מילה' },
+  'tutorial.translate.body': {
+    en: 'On a computer, click any word in the text to see its English translation — or select several words to translate a whole phrase. On a phone, switch the bottom bar to "Translate" and tap. You can also select a run of text to highlight and keep it.',
+    he: 'במחשב, לחצו על כל מילה בטקסט כדי לראות את תרגומה לעברית — או סמנו כמה מילים כדי לתרגם ביטוי שלם. בטלפון, העבירו את הסרגל התחתון ל"תרגום" והקישו על מילה. אפשר גם לסמן רצף טקסט כדי להדגיש ולשמור אותו.',
+  },
+  'tutorial.translate.example': { en: 'man', he: 'אִישׁ' },
+
+  'tutorial.marks.title': { en: 'Notes in the margins', he: 'הערות בשוליים' },
+  'tutorial.marks.body': {
+    en: 'The small icons in the margins mark where smart notes sit. Click one to open it — a panel slides in on a computer, or up from the bottom on a phone. Each color is a different kind of note:',
+    he: 'הסמלים הקטנים בשוליים מציינים היכן יושבות ההערות החכמות. לחצו על אחד כדי לפתוח אותו — במחשב נפתחת חלונית בצד, ובטלפון מגירה מלמטה. כל צבע הוא סוג הערה אחר:',
+  },
+  'tutorial.icon.argument.label': { en: 'Argument', he: 'מהלך הסוגיה' },
+  'tutorial.icon.argument.desc': { en: 'how the sugya builds its case, step by step', he: 'כיצד הסוגיה בונה את טיעונה, שלב אחר שלב' },
+  'tutorial.icon.halacha.label': { en: 'Halacha', he: 'הלכה' },
+  'tutorial.icon.halacha.desc': { en: 'the practical legal ruling', he: 'הפסיקה המעשית' },
+  'tutorial.icon.aggadata.label': { en: 'Aggada', he: 'אגדה' },
+  'tutorial.icon.aggadata.desc': { en: 'story, ethics, and lore', he: 'סיפור, מוסר ומחשבה' },
+  'tutorial.icon.pesuk.label': { en: 'Verses', he: 'פסוקים' },
+  'tutorial.icon.pesuk.desc': { en: 'Tanakh quoted or alluded to', he: 'מקראות שצוטטו או נרמזו' },
+  'tutorial.icon.rishonim.label': { en: 'Rishonim', he: 'ראשונים' },
+  'tutorial.icon.rishonim.desc': { en: 'medieval commentary anchored here', he: 'פירוש הראשונים על המקום' },
+
+  'tutorial.chips.title': { en: 'Notes on the whole daf', he: 'הערות על כל הדף' },
+  'tutorial.chips.body': {
+    en: 'The pills at the top open notes about the whole page rather than one spot: an Overview of the sugya, the Background you need going in, and the occasional Tidbit worth noticing.',
+    he: 'הכפתורים שלמעלה פותחים הערות על כל הדף ולא על נקודה אחת: סקירה של הסוגיה, הרקע שכדאי להכיר לפני הלימוד, ולעיתים גם תובנה ששווה לשים לב אליה.',
+  },
+
+  'tutorial.card.title': { en: 'Inside a note', he: 'בתוך הערה' },
+  'tutorial.card.body': {
+    en: "Here's a note open beside the daf — a short summary at the top, then sections you can expand: the players and sides of a dispute, key terms, sources, and more. Tap a part of a note to highlight the matching text on the page.",
+    he: 'הנה הערה פתוחה לצד הדף — סיכום קצר בראש, ואז קטעים שניתן להרחיב: הדמויות והצדדים במחלוקת, מונחי מפתח, מקורות ועוד. הקישו על חלק בהערה כדי להדגיש את הטקסט המתאים בדף.',
+  },
+
+  'tutorial.underline.title': { en: 'The colored names', he: 'השמות הצבעוניים' },
+  'tutorial.underline.body': {
+    en: 'Rabbis\' names are underlined by when they lived: a red scale for the Talmudic era (darker = earlier) and a blue scale for the Geonim onward. Dotted underlines mark key terms — hover or tap them for a short gloss.',
+    he: 'שמות החכמים מסומנים בקו תחתון לפי תקופתם: סולם אדום לתקופת התלמוד (כהה = מוקדם יותר) וסולם כחול מהגאונים ואילך. קווים מקווקווים מסמנים מונחי מפתח — רחפו או הקישו עליהם להסבר קצר.',
+  },
+  'tutorial.underline.early': { en: 'Talmudic era (earlier → later)', he: 'תקופת התלמוד (מוקדם ← מאוחר)' },
+  'tutorial.underline.late': { en: 'Geonim onward', he: 'מהגאונים ואילך' },
+  'tutorial.underline.dotted': { en: 'dotted = a key term; tap for a gloss', he: 'מקווקו = מונח מפתח; הקישו להסבר' },
+
+  'tutorial.qa.title': { en: 'Ask your own question', he: 'שאלו שאלה משלכם' },
+  'tutorial.qa.body': {
+    en: 'At the bottom of a note you can pick a suggested question or type your own about the passage — the answer is written for you and grounded in the text.',
+    he: 'בתחתית ההערה אפשר לבחור שאלה מוצעת או להקליד שאלה משלכם על הקטע — התשובה נכתבת עבורכם ומעוגנת בטקסט.',
+  },
+  'tutorial.qa.example1': { en: 'Why this order?', he: 'למה הסדר הזה?' },
+  'tutorial.qa.example2': { en: 'Who disagrees?', he: 'מי חולק?' },
+  'tutorial.qa.placeholder': { en: 'Ask about this passage…', he: 'שאלו על הקטע הזה…' },
+
+  'tutorial.finish.title': { en: "You're ready", he: 'אתם מוכנים' },
+  'tutorial.finish.body': {
+    en: 'That\'s the tour. You can reopen it anytime from the Help button, or visit the Help page for the full guide. Enjoy learning.',
+    he: 'זה הסיור. אפשר לפתוח אותו שוב בכל עת מכפתור העזרה, או לבקר בעמוד העזרה למדריך המלא. למידה נעימה.',
+  },
+
+  // — Help page (#help) —
+  'help.page.title': { en: 'Help & guide', he: 'עזרה ומדריך' },
+  'help.page.intro': {
+    en: 'Take the interactive tour to learn the basics, or read the overview below.',
+    he: 'צאו לסיור האינטראקטיבי כדי ללמוד את היסודות, או קראו את הסקירה למטה.',
+  },
+  'help.page.start': { en: 'Start the tour', he: 'התחילו את הסיור' },
+  'help.page.covers': { en: 'What the tour covers', he: 'מה כולל הסיור' },
 } satisfies Record<string, Entry>;
 
 /** Every known catalog key. Lets UI props (e.g. section labels) demand a real
