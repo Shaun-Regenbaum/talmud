@@ -17,7 +17,7 @@ import { createEffect, onMount, onCleanup, type JSX } from 'solid-js';
 import { publishGutterEntry, clearGutterEntry, type GutterSide } from './gutterStack';
 import { t } from './i18n';
 
-export type GutterKind = 'argument' | 'halacha' | 'aggadata' | 'yerushalmi' | 'pesuk' | 'rishonim';
+export type GutterKind = 'argument' | 'halacha' | 'chart' | 'aggadata' | 'yerushalmi' | 'pesuk' | 'rishonim';
 
 export interface GutterItem {
   kind: GutterKind;
@@ -104,6 +104,7 @@ export function GutterIcons(props: GutterIconsProps): JSX.Element {
 
     const klass = props.kind === 'argument' ? '.daf-argument-anchor'
       : props.kind === 'halacha' ? '.daf-halacha-anchor'
+      : props.kind === 'chart' ? '.daf-chart-anchor'
       : props.kind === 'aggadata' ? '.daf-aggadata-anchor'
       : props.kind === 'yerushalmi' ? '.daf-yerushalmi-anchor'
       : props.kind === 'rishonim' ? '.daf-rishonim-anchor'
@@ -178,6 +179,7 @@ export function GutterIcons(props: GutterIconsProps): JSX.Element {
 export function colorForKind(kind: GutterKind): string {
   return kind === 'argument' ? '#8a2a2b'
     : kind === 'halacha' ? '#1e40af'
+    : kind === 'chart' ? '#0e7490'
     : kind === 'aggadata' ? '#7c3aed'
     : kind === 'yerushalmi' ? '#0f766e'
     : kind === 'rishonim' ? '#475569'
@@ -187,6 +189,7 @@ export function colorForKind(kind: GutterKind): string {
 export function titleForKind(kind: GutterKind): string {
   return kind === 'argument' ? t('gutter.argument')
     : kind === 'halacha' ? t('gutter.halacha')
+    : kind === 'chart' ? t('gutter.chart')
     : kind === 'aggadata' ? t('gutter.aggadata')
     : kind === 'yerushalmi' ? t('gutter.yerushalmi')
     : kind === 'rishonim' ? t('gutter.rishonim')
@@ -257,6 +260,23 @@ export function GutterGlyph(props: { kind: GutterKind }): JSX.Element {
     >
       י
     </span>
+  ) : props.kind === 'chart' ? (
+    <svg
+      viewBox="0 0 24 24"
+      width="9"
+      height="9"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="3"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M3 9h18" />
+      <path d="M3 15h18" />
+      <path d="M9 3v18" />
+    </svg>
   ) : props.kind === 'rishonim' ? (
     <span
       aria-hidden="true"

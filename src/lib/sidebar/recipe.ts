@@ -122,6 +122,19 @@ export const HALACHA_RECIPE: SidebarRecipe = {
   ],
 };
 
+export const CHART_RECIPE: SidebarRecipe = {
+  kind: 'chart',
+  markId: 'chart',
+  titleField: 'caption',
+  titleHeField: 'captionHe',
+  sections: [
+    // The whole card IS the table — a custom block that renders the instance's
+    // own {headers, rows, notes} as an RTL Hebrew comparison grid (reusing the
+    // dafyomi ChartTable renderer). No enrichment deps.
+    { type: 'special', block: 'chart-table' },
+  ],
+};
+
 export const RISHONIM_RECIPE: SidebarRecipe = {
   kind: 'rishonim',
   markId: 'rishonim',

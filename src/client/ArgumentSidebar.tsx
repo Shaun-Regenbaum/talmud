@@ -1,5 +1,6 @@
 import { For, Show, Switch, Match, createEffect, createMemo, createResource, createSignal, onCleanup, type JSX } from 'solid-js';
-import type { Section, Rabbi, HalachaTopic, AggadataStory, Pasuk, YerushalmiParallel } from './shapes';
+import type { Section, Rabbi, HalachaTopic, AggadataStory, Pasuk, YerushalmiParallel, ChartTable } from './shapes';
+import { ChartTableView } from './ChartTableView';
 import { GENERATION_BY_ID, generationLabelHe, type GenerationId } from './generations';
 import type { IdentifiedRabbi } from './dafContext';
 import { Hebraized } from './Hebraized';
@@ -27,7 +28,7 @@ import { InspectDot, registerMarkRenderer } from './MarkEnrichmentCards';
 // Recipes now live in the shared lib (carried on the worker mark def too).
 // Re-exported so existing importers (CARD_DEFS, tests) keep their `from
 // './ArgumentSidebar'` path.
-import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE, ARGUMENT_RECIPE, ARGUMENT_OVERVIEW_RECIPE, TIDBIT_RECIPE, BIYUN_RECIPE, DAF_BACKGROUND_RECIPE } from '../lib/sidebar/recipe';
+import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE, ARGUMENT_RECIPE, ARGUMENT_OVERVIEW_RECIPE, TIDBIT_RECIPE, BIYUN_RECIPE, DAF_BACKGROUND_RECIPE, CHART_RECIPE } from '../lib/sidebar/recipe';
 export { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE, ARGUMENT_RECIPE, ARGUMENT_OVERVIEW_RECIPE, TIDBIT_RECIPE, BIYUN_RECIPE, DAF_BACKGROUND_RECIPE };
 
 /** Localize an era date-range ("c. 290 – 320 CE") for Hebrew display. */
@@ -131,6 +132,7 @@ function useVoicesGate(tractate: () => string, page: () => string, section: () =
 export type SidebarContent =
   | { kind: 'argument'; section: Section; index: number }
   | { kind: 'halacha'; topic: HalachaTopic; index: number }
+  | { kind: 'chart'; chart: ChartTable; index: number }
   | { kind: 'aggadata'; story: AggadataStory; index: number }
   | { kind: 'yerushalmi'; parallel: YerushalmiParallel; index: number }
   | { kind: 'pesuk'; pasuk: Pasuk; index: number }
@@ -1672,6 +1674,39 @@ export const HALACHA_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Elemen
   'halacha-dispute': HalachaDispute,
 };
 
+// ---------------------------------------------------------------------------
+// Chart (experimental) — the whole card IS the comparison table. The instance
+// fields carry {headers, rows, notes}; ChartTableView renders the RTL grid.
+// ---------------------------------------------------------------------------
+
+export function chartInstance(chart: ChartTable): { fields: Record<string, unknown>; startSegIdx: number; endSegIdx: number } {
+  return {
+    startSegIdx: chart.startSegIdx ?? 0,
+    endSegIdx: chart.endSegIdx ?? chart.startSegIdx ?? 0,
+    fields: {
+      caption: chart.caption ?? '',
+      captionHe: chart.captionHe ?? '',
+      headers: chart.headers,
+      rows: chart.rows,
+      notes: chart.notes ?? [],
+      grounded: chart.grounded ?? false,
+    },
+  };
+}
+
+function ChartTableBlock(props: SpecialBlockProps): JSX.Element {
+  const f = () => props.instance.fields as { headers?: string[]; rows?: string[][]; notes?: { marker: string; text: string }[] };
+  return (
+    <Show when={(f().headers?.length ?? 0) > 0 && (f().rows?.length ?? 0) > 0}>
+      <ChartTableView table={{ headers: f().headers ?? [], rows: f().rows ?? [], notes: f().notes }} />
+    </Show>
+  );
+}
+
+export const CHART_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
+  'chart-table': ChartTableBlock,
+};
+
 /** Sidebar panel for a cited pasuk: shows the full Hebrew Tanakh verse and,
  *  on expand, the surrounding verses inlined as one continuous Hebrew block
  *  (prev + cited + next) with the cited verse rendered dark and the others
@@ -1827,6 +1862,7 @@ export function instanceKeyForContent(content: SidebarContent, tractate: string,
     case 'yerushalmi': return `${tractate}:${page}:${content.index}:${content.parallel.yerushalmiRef}`;
     case 'pesuk': return content.pasuk.verseRef;
     case 'halacha': return `${tractate}:${page}:${content.index}:${content.topic.topic}`;
+    case 'chart': return `${tractate}:${page}:${content.index}:${content.chart.caption ?? content.chart.excerpt ?? ''}`;
     case 'rabbi': return content.rabbi.name;
     case 'rishonim': return `rishonim:${tractate}:${page}:${content.instance.segIdx}`;
     default: return null;
@@ -2186,6 +2222,11 @@ export const CARD_DEFS: Partial<Record<SidebarContent['kind'], CardDef>> = {
     recipe: HALACHA_RECIPE,
     blocks: HALACHA_BLOCKS,
     instance: (c) => halachaInstance((c as Extract<SidebarContent, { kind: 'halacha' }>).topic),
+  },
+  chart: {
+    recipe: CHART_RECIPE,
+    blocks: CHART_BLOCKS,
+    instance: (c) => chartInstance((c as Extract<SidebarContent, { kind: 'chart' }>).chart),
   },
   rishonim: {
     recipe: RISHONIM_RECIPE,

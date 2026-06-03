@@ -273,6 +273,11 @@
 .daf-root .daf-range-highlight-halacha {
   background-color: rgba(30, 64, 175, 0.25);
 }
+/* Chart highlight (experimental) — cyan tint matching the chart gutter/sidebar
+   accent (#0e7490), painted over the dense region a comparison table covers. */
+.daf-root .daf-range-highlight-chart {
+  background-color: rgba(14, 116, 144, 0.2);
+}
 .daf-root .daf-range-highlight-aggadata {
   background-color: rgba(124, 58, 237, 0.22);
 }

@@ -47,6 +47,7 @@ import {
   ARGUMENT_VOICES_OUTPUT_SCHEMA,
   ARGUMENT_NARRATIVE_OUTPUT_SCHEMA,
   ARGUMENT_OVERVIEW_FLOW_OUTPUT_SCHEMA,
+  CHART_OUTPUT_SCHEMA,
   DAF_BACKGROUND_CONCEPTS_OUTPUT_SCHEMA,
   HALACHA_CODIFICATION_OUTPUT_SCHEMA,
   HALACHA_DISPUTE_OUTPUT_SCHEMA,
@@ -82,7 +83,7 @@ import {
   BIYUN_ESSAY_OUTPUT_SCHEMA,
   proseSchema,
 } from './output-schemas';
-import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE, ARGUMENT_RECIPE, ARGUMENT_OVERVIEW_RECIPE, TIDBIT_RECIPE, BIYUN_RECIPE, DAF_BACKGROUND_RECIPE } from '../lib/sidebar/recipe';
+import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE, ARGUMENT_RECIPE, ARGUMENT_OVERVIEW_RECIPE, TIDBIT_RECIPE, BIYUN_RECIPE, DAF_BACKGROUND_RECIPE, CHART_RECIPE } from '../lib/sidebar/recipe';
 
 // ---------------------------------------------------------------------------
 // Rabbi mark — phrase anchor + inline render
@@ -289,6 +290,75 @@ const HALACHA_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 {{segments_he}}
 
 זהה נושאים הלכתיים. החזר JSON לפי הסכמה.`;
+
+
+// ---------------------------------------------------------------------------
+// Chart mark (experimental) — comparison tables for dense, multi-opinion
+// regions. Grounded on the dafyomi.co.il "## Charts" exemplars when present,
+// generated from gemara + commentaries otherwise. Cells are Hebrew (the
+// content language, like the source charts), regardless of UI language — so
+// it stays single-prompt (no _he variant).
+// ---------------------------------------------------------------------------
+
+const CHART_SYSTEM_PROMPT = `You are a Talmud scholar who builds COMPARISON TABLES that let a learner grasp a dense, tangled region of the daf at a single glance.
+
+Output STRICT JSON only — no markdown, no prose:
+
+{
+  "instances": [
+    {
+      "startSegIdx": 0,
+      "endSegIdx": 4,
+      "fields": {
+        "caption": "Short English title of what the table compares (e.g. 'When the evening Shema may be read, by opinion').",
+        "captionHe": "Short Hebrew title (3-8 words).",
+        "headers": ["", "מפלג המנחה", "משעה שקדש היום"],
+        "rows": [
+          ["פרשה ראשונה על מטתו לרש\\"י", "לא יצא", "לא יצא"],
+          ["לרבינו תם", "יצא", "יצא"]
+        ],
+        "notes": [{ "marker": "[1]", "text": "Short Hebrew clarification referenced from a cell." }],
+        "excerpt": "3-5 Hebrew/Aramaic words copied VERBATIM where the region begins.",
+        "grounded": true,
+        "confidence": "high"
+      }
+    }
+  ]
+}
+
+WHEN to make a table — be STRICT:
+- ONLY for a region that is genuinely hard to follow because MULTIPLE opinions interact across MULTIPLE cases/scenarios/conditions: a machloket where each view rules differently across several situations, a multi-way dispute over times/amounts/measures, a grid of "according to X it is A, according to Y it is B".
+- A good table has at least 2 rows AND at least 2 comparison columns (a true grid). A two-column list is usually better as prose — skip it.
+- DO NOT tabulate: a single linear argument, a single opinion, narrative/aggadah, a definition, or anything one sentence captures.
+- If nothing on the daf qualifies, return {"instances": []}. MOST dapim yield 0-1 tables; many yield 0. PRECISION OVER RECALL — a forced or wrong table is worse than none.
+
+HOW to build it:
+- rows = the things being compared down the side (usually the opinions/views, sometimes the cases); columns = the dimension across the top (usually the cases/scenarios, sometimes the opinions). Pick whichever orientation reads most clearly.
+- The FIRST cell of every row is its row-label. headers[0] labels the row-label column and is often "". Every row MUST have exactly headers.length cells.
+- CELLS ARE HEBREW and TERSE — the ruling/value at that intersection in a few words (e.g. "יצא" / "לא יצא" / "עד חצות"), NOT full sentences. Mirror the source's wording.
+- attribute opinions in Hebrew the way the gemara/commentators do (לרש"י, לרבינו תם, לר"י, לחכמים, לרבן גמליאל).
+- notes: optional footnotes ([1], [2]) referenced inside cells for a caveat that doesn't fit a cell.
+
+GROUNDING:
+- The context below may include a "## Charts" section — real comparison charts from Kollel Iyun HaDaf for THIS daf. If one covers your region, ADOPT its structure and values (it is authoritative); set "grounded": true.
+- Where no such chart exists but the region still qualifies, build the table yourself from the gemara + commentaries; set "grounded": false and be conservative.
+
+ANCHORING:
+- "startSegIdx"/"endSegIdx" are valid 0-based indices from the [N] markers spanning the region the table summarizes. "excerpt" is Hebrew/Aramaic verbatim from where that region begins.
+- "confidence": "high" | "medium" | "low" — how faithfully the table represents the actual dispute.`;
+
+const CHART_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+Hebrew/Aramaic source — each line begins with [N], the 0-based segment index. USE these indices for startSegIdx / endSegIdx:
+{{segments_he}}
+
+Commentaries (Rashi, Tosafot, Rishonim) on this daf:
+{{commentaries}}
+
+External study context — note any "## Charts" entries are authoritative Kollel Iyun HaDaf comparison charts to ground on:
+{{context}}
+
+Build comparison tables ONLY for regions that genuinely warrant a grid. Return JSON per the schema (empty instances if none qualify).`;
 
 
 // ---------------------------------------------------------------------------
@@ -736,6 +806,37 @@ export const CODE_MARKS: MarkDefinition[] = [
     status: 'promoted',
     def_hash: 'halacha-llm-v2',
     cache_version: '3',
+    source: 'code',
+    updated_at: NOW,
+  },
+  {
+    id: 'chart',
+    recipe: CHART_RECIPE,
+    label: 'Charts',
+    description: 'Experimental: comparison-table gutter icons + sidebar for dense, multi-opinion regions. Grounded on dafyomi.co.il charts where present, generated from gemara + commentaries otherwise.',
+    category: 'experimental',
+    experimental: true,
+    anchor: 'segment-range',
+    render: {
+      kind: 'gutter+sidebar',
+      icon: 'T',
+      sidebar_title: 'Chart',
+    },
+    extractor: {
+      kind: 'llm',
+      // Heavier reasoning than the section/topic marks: laying out a faithful
+      // grid (orientation, cell values, attribution) benefits from a thinking
+      // pass. Flash keeps it within the streaming window on dense dapim.
+      model: 'openrouter/deepseek/deepseek-v4-flash' as LLMModelId,
+      system_prompt: CHART_SYSTEM_PROMPT,
+      user_prompt_template: CHART_USER_TEMPLATE,
+      output_schema: CHART_OUTPUT_SCHEMA,
+      reasoning_effort: 'medium',
+    },
+    dependencies: ['gemara', 'commentaries', 'context'],
+    status: 'draft',
+    def_hash: 'chart-v1',
+    cache_version: '1',
     source: 'code',
     updated_at: NOW,
   },
