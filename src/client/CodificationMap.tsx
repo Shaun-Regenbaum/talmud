@@ -18,32 +18,10 @@
 import { For, Show, createSignal, onMount, onCleanup, type JSX } from 'solid-js';
 import {
   SIDE_COLOR, relationStyle, gutterEdgePath,
-  type NodeSide, type RelationKind,
+  type NodeSide, type RelationKind, type CodeMapNode, type CodeMapEdge,
 } from './flow/codeMapLayout';
 
-/** One node in the lineage (a codifier, or the gemara source at the top). */
-export interface CodeMapNode {
-  /** Stable id; relation edges reference these. */
-  id: string;
-  /** Authority handle shown bold (e.g. "Rambam", "Shulchan Aruch", "Gemara"). */
-  label: string;
-  /** Citation shown in link-blue next to the label (e.g. "OC 235:3"). */
-  ref?: string;
-  /** A short, plain ruling line under the heading. */
-  ruling?: string;
-  /** Small uppercase tag after the label (e.g. "source"). */
-  era?: string;
-  /** Dispute side → badge / spine-dot colour. */
-  side: NodeSide;
-  /** Optional practice chip (Sephardi / Ashkenazi / accepted-by-all). */
-  practice?: { en: string; he?: string; tone: 'sef' | 'ashk' | 'both' };
-}
-
-export interface CodeMapEdge {
-  from: string;
-  to: string;
-  kind: RelationKind;
-}
+export type { CodeMapNode, CodeMapEdge } from './flow/codeMapLayout';
 
 interface Props {
   nodes: CodeMapNode[];

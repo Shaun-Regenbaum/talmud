@@ -12,6 +12,7 @@ import { collectContext } from './context-providers';
 import { placeRevachWithAi } from './revach-ai-place';
 import { formatContextForPrompt, contextForAnchor, segsFromMarkInput } from '../lib/context/select';
 import { continuationLink, type FlowEdge } from '../lib/context/link';
+import { formatGroundedRefsForPrompt } from '../lib/halacha/codifiers';
 import { dafSpine } from '../lib/context/spine';
 import { dafLinks } from '../lib/context/dafLinks';
 import { producerNodesFrom, reverseDependencyIndex, transitiveDependents } from '../lib/registry/depGraph';
@@ -1386,6 +1387,14 @@ async function resolveDependencies(
       const bundle = await getMishnaBundleCached(rc.env.CACHE, tractate, page);
       const filtered = selectMishnaForMark(bundle, markInput);
       out.vars.mishna = mishnaBundleToString(filtered);
+      return;
+    }
+    if (dep === 'halacha-refs') {
+      // Grounded codifier refs (Mishneh Torah / Tur / Shulchan Aruch) that
+      // Sefaria links to this daf, with their real text — so the codification
+      // enrichment SELECTS from real refs instead of recalling citations.
+      const bundle = await getHalachaRefsCached(rc.env.CACHE, tractate, page);
+      out.vars.halacha_refs = formatGroundedRefsForPrompt(bundle);
       return;
     }
     if (dep === 'context') {

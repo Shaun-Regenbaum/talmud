@@ -60,3 +60,84 @@ export function gutterEdgePath(y1: number, y2: number, rightX: number, laneX: nu
     `L ${rightX} ${y2}`,
   ].join(' ');
 }
+
+// ---------------------------------------------------------------------------
+// Map model + mapper from the codification enrichment shape
+// ---------------------------------------------------------------------------
+
+/** One node in the lineage (a codifier, or the gemara source at the top). */
+export interface CodeMapNode {
+  id: string;
+  /** Authority handle shown bold (e.g. "Rambam", "Shulchan Aruch", "Gemara"). */
+  label: string;
+  /** Citation shown in link-blue (e.g. "OC 235:3"). */
+  ref?: string;
+  /** A short, plain ruling line under the heading. */
+  ruling?: string;
+  /** Small uppercase tag after the label (e.g. "source"). */
+  era?: string;
+  /** Dispute side → badge / spine-dot colour. */
+  side: NodeSide;
+  /** Optional practice chip (Sephardi / Ashkenazi / accepted-by-all). */
+  practice?: { en: string; he?: string; tone: 'sef' | 'ashk' | 'both' };
+}
+
+export interface CodeMapEdge {
+  from: string;
+  to: string;
+  kind: RelationKind;
+}
+
+/** The codification enrichment's current output shape (one ruling per codifier).
+ *  `rema` non-null encodes the Mechaber/Rema divergence. */
+export interface CodificationRuling { ref: string; ruling: string }
+export interface CodificationData {
+  mishnehTorah: CodificationRuling | null;
+  tur: CodificationRuling | null;
+  shulchanAruch: CodificationRuling | null;
+  rema: CodificationRuling | null;
+  prose: string;
+}
+
+const hasRef = (r: CodificationRuling | null | undefined): r is CodificationRuling =>
+  !!r && typeof r.ref === 'string' && r.ref.trim().length > 0;
+
+/**
+ * Build the codification map from the enrichment output: a gemara source node
+ * on top, then the present codifiers in lineage order (Rambam → Tur → Shulchan
+ * Aruch). When Rema diverges, it becomes a second side-B node bracketed to the
+ * Shulchan Aruch (side A) by a `disagrees` edge — the Mechaber/Rema split folded
+ * into the lineage. The gemara→first-codifier edge is `cites`; the rest of the
+ * spine is `transmits`.
+ */
+export function codeMapFromCodification(
+  d: CodificationData,
+  dafRef: string,
+): { nodes: CodeMapNode[]; edges: CodeMapEdge[] } {
+  const nodes: CodeMapNode[] = [{ id: 'gemara', label: 'Gemara', ref: dafRef, era: 'source', side: 'source' }];
+  const edges: CodeMapEdge[] = [];
+  // The Mechaber/Rema split only makes sense when the Shulchan Aruch is present
+  // (Rema glosses it). A Rema without an SA node has nothing to disagree with.
+  const disputed = hasRef(d.rema) && hasRef(d.shulchanAruch);
+  const spine: Array<[keyof CodificationData, string]> = [
+    ['mishnehTorah', 'Rambam'],
+    ['tur', 'Tur'],
+    ['shulchanAruch', disputed ? 'Mechaber' : 'Shulchan Aruch'],
+  ];
+  let prev = 'gemara';
+  let firstCodifier = true;
+  for (const [key, label] of spine) {
+    const r = d[key] as CodificationRuling | null;
+    if (!hasRef(r)) continue;
+    const side: NodeSide = disputed && key === 'shulchanAruch' ? 'a' : 'neutral';
+    nodes.push({ id: key, label, ref: r.ref, ruling: r.ruling, side });
+    edges.push({ from: prev, to: key, kind: firstCodifier ? 'cites' : 'transmits' });
+    prev = key;
+    firstCodifier = false;
+  }
+  if (disputed) {
+    nodes.push({ id: 'rema', label: 'Rema', ref: d.rema!.ref, ruling: d.rema!.ruling, side: 'b' });
+    edges.push({ from: 'shulchanAruch', to: 'rema', kind: 'disagrees' });
+  }
+  return { nodes, edges };
+}

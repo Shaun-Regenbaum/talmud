@@ -3593,6 +3593,26 @@ English translation:
 
 Produce the requested output per the schema.`;
 
+// Codification gets an extra GROUNDED-REFS block: the real Mishneh Torah / Tur /
+// Shulchan Aruch refs (with text) Sefaria links to this daf, so the model
+// SELECTS a real ref rather than recalling one. Separate from the shared leaf
+// template (which practical/disputes still use without the refs block).
+const HALACHA_CODIFICATION_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+Halacha topic identified on this daf:
+{{mark_input}}
+
+Grounded codifier references — real Sefaria refs (with text) that cite THIS daf. SELECT from these; do not invent refs not listed here:
+{{halacha_refs}}
+
+Hebrew/Aramaic source for the daf:
+{{gemara_he}}
+
+English translation:
+{{gemara_en}}
+
+Produce the requested output per the schema.`;
+
 const HALACHA_CODIFICATION_SYSTEM_PROMPT = `You are a scholar of halacha. Given ONE halachic topic surfaced on a daf, produce the canonical codification trail: what Mishneh Torah, Tur, Shulchan Aruch, and Rema rule on this exact topic.
 
 Output STRICT JSON only:
@@ -3606,6 +3626,8 @@ Output STRICT JSON only:
 }
 
 Rules:
+- GROUND every ref. You are given a "Grounded codifier references" block listing the real Sefaria refs (with their text) that cite this daf. For Mishneh Torah, Tur, and Shulchan Aruch: SELECT the ref from that block and base the ruling on the text shown there. If one of those three is absent from the block, return null for it — DO NOT invent or recall a ref that is not listed.
+- Rema is the EXCEPTION: Sefaria folds Rema's glosses into the Shulchan Aruch, so Rema will NOT appear as its own entry in the block. Supply Rema (using the Shulchan Aruch's siman:seif as its ref) ONLY when he explicitly disagrees with, qualifies, or adds Ashkenazi minhag to the Mechaber's ruling on THIS topic — otherwise null.
 - ref MUST be a real, citable reference (sefer + hilchot + chapter:halacha for Mishneh Torah; siman[:seif] for Tur/Shulchan Aruch/Rema). If you cannot supply a real ref with confidence, return null for that codifier — DO NOT invent references.
 - For each non-null entry, the ruling MUST genuinely match what the codifier says on THIS topic, not a general gloss.
 - Rema is only non-null when he explicitly disagrees, qualifies, or adds Ashkenazi minhag to the Mechaber's ruling. If Rema agrees silently, leave it null.
@@ -3725,6 +3747,22 @@ const HALACHA_LEAF_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
 הפק את הפלט המבוקש לפי הסכימה.`;
 
+const HALACHA_CODIFICATION_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+נושא הלכתי שזוהה בדף זה:
+{{mark_input}}
+
+מראי מקום מבוססים של הפוסקים — מראי מקום אמיתיים מספריא (עם טקסט) המפנים לדף זה. בחר מתוכם; אל תמציא מראי מקום שאינם ברשימה:
+{{halacha_refs}}
+
+מקור עברי/ארמי לדף:
+{{gemara_he}}
+
+תרגום אנגלי:
+{{gemara_en}}
+
+הפק את הפלט המבוקש לפי הסכימה.`;
+
 const HALACHA_CODIFICATION_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בהלכה. בהינתן נושא הלכתי אחד שעלה בדף, הפק את שלשלת הפסיקה הקנונית: מה משנה תורה, הטור, השולחן ערוך והרמ"א פוסקים בנושא המדויק הזה.
 
 החזר JSON תקין בלבד:
@@ -3738,6 +3776,8 @@ const HALACHA_CODIFICATION_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקי
 }
 
 כללים:
+- בסס כל מראה מקום. ניתן לך בלוק "מראי מקום מבוססים של הפוסקים" המפרט את מראי המקום האמיתיים מספריא (עם הטקסט) המפנים לדף זה. עבור משנה תורה, הטור, והשולחן ערוך: בחר את מראה המקום מתוך הבלוק הזה ובסס את הפסק על הטקסט המוצג שם. אם אחד משלושת אלה אינו מופיע בבלוק, החזר null עבורו — אל תמציא ואל תשלוף מראה מקום שאינו ברשימה.
+- הרמ"א הוא יוצא הדופן: ספריא משלבת את הגהות הרמ"א בתוך השולחן ערוך, ולכן הרמ"א לא יופיע כערך נפרד בבלוק. ספק את הרמ"א (תוך שימוש בסימן:סעיף של השולחן ערוך כמראה המקום שלו) רק כאשר הוא חולק במפורש, מסייג, או מוסיף מנהג אשכנז לפסק המחבר בנושא הזה — אחרת null.
 - ref חייב להיות מראה מקום אמיתי וניתן לציטוט (ספר + הלכות + פרק:הלכה למשנה תורה; סימן[:סעיף] לטור/שו"ע/רמ"א). אם אינך יכול לספק מראה מקום אמיתי בביטחון, החזר null לאותו פוסק — אל תמציא מראי מקום.
 - עבור כל ערך שאינו null, ה-ruling חייב להתאים באמת למה שהפוסק אומר בנושא הזה, לא להגהה כללית.
 - הרמ"א אינו null רק כשהוא חולק במפורש, מסייג, או מוסיף מנהג אשכנז לפסק המחבר. אם הרמ"א מסכים בשתיקה, השאר null.
@@ -3834,14 +3874,16 @@ CODE_ENRICHMENTS.push(
   makeEnrichment(
     'halacha', 'halacha.codification', 'Codification',
     'Mishneh Torah / Tur / Shulchan Aruch / Rema rulings on this topic, with refs and a prose trail.',
-    HALACHA_CODIFICATION_SYSTEM_PROMPT, HALACHA_LEAF_USER_TEMPLATE, HALACHA_CODIFICATION_OUTPUT_SCHEMA,
+    HALACHA_CODIFICATION_SYSTEM_PROMPT, HALACHA_CODIFICATION_USER_TEMPLATE, HALACHA_CODIFICATION_OUTPUT_SCHEMA,
     {
       mode: 'augment-content', scope: 'local',
-      dependencies: ['gemara'],
+      // 'halacha-refs' feeds the real Sefaria codifier refs (with text) into the
+      // prompt so refs are GROUNDED (selected) rather than recalled.
+      dependencies: ['gemara', 'halacha-refs'],
       passes: ['hebrew-gloss'],
-      defHash: 'halacha.codification-v3', cacheVersion: '3',
+      defHash: 'halacha.codification-v4', cacheVersion: '4',
       systemPromptHe: HALACHA_CODIFICATION_SYSTEM_PROMPT_HE,
-      userPromptTemplateHe: HALACHA_LEAF_USER_TEMPLATE_HE,
+      userPromptTemplateHe: HALACHA_CODIFICATION_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(

@@ -3,7 +3,8 @@ import { producerNodesFrom, validateProducerGraph } from '../src/lib/registry/de
 import { CODE_MARKS, CODE_ENRICHMENTS } from '../src/worker/code-marks';
 
 // Source inputs are the non-producer leaves a dependency may point at.
-const SOURCES = new Set(['gemara', 'commentaries', 'context', 'mishna']);
+// 'halacha-refs' feeds grounded codifier refs into halacha.codification.
+const SOURCES = new Set(['gemara', 'commentaries', 'context', 'mishna', 'halacha-refs']);
 
 describe('validateProducerGraph — unit', () => {
   it('flags a dependency on a nonexistent producer/source as dangling', () => {

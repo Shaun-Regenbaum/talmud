@@ -214,13 +214,13 @@ function validateEnrichmentDependencies(input: unknown): { ok: true; deps: Enric
   if (!Array.isArray(input)) return { ok: false, error: 'dependencies must be an array' };
   const out: EnrichmentDependency[] = [];
   for (const e of input) {
-    if (e === 'gemara' || e === 'commentaries') { out.push(e); continue; }
+    if (e === 'gemara' || e === 'commentaries' || e === 'mishna' || e === 'context' || e === 'halacha-refs') { out.push(e); continue; }
     if (e && typeof e === 'object') {
       const o = e as { mark?: unknown; enrichment?: unknown };
       if (typeof o.mark === 'string') { out.push({ mark: o.mark }); continue; }
       if (typeof o.enrichment === 'string') { out.push({ enrichment: o.enrichment }); continue; }
     }
-    return { ok: false, error: 'each dep must be "gemara" | "commentaries" | { mark: string } | { enrichment: string }' };
+    return { ok: false, error: 'each dep must be "gemara" | "commentaries" | "mishna" | "context" | "halacha-refs" | { mark: string } | { enrichment: string }' };
   }
   return { ok: true, deps: out };
 }

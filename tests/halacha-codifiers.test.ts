@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   classifyCodifier, buildCodificationChain, hasCodification, CODIFIERS,
-  classifyShasSource, baseDafRef, buildDerivation,
+  classifyShasSource, baseDafRef, buildDerivation, formatGroundedRefsForPrompt,
   type RelatedLink,
 } from '../src/lib/halacha/codifiers';
 import type { HalachicRefBundle } from '../src/lib/sefref/sefaria/client';
@@ -85,6 +85,30 @@ describe('buildCodificationChain', () => {
     expect(hasCodification(aggadic)).toBe(false);
     expect(hasCodification(bundle)).toBe(true);
     expect(hasCodification(undefined)).toBe(false);
+  });
+});
+
+describe('formatGroundedRefsForPrompt', () => {
+  it('lists allowlisted codifiers with their refs + capped snippets, in lineage order', () => {
+    const out = formatGroundedRefsForPrompt({
+      'Tur, Orach Chayim': [{ ref: 'Tur, Orach Chayim 235', hebrew: 'זמן קריאת שמע', english: 'The time for Shema' }],
+      'Mishneh Torah, Reading the Shema': [{ ref: 'Mishneh Torah, Reading the Shema 1:9', hebrew: 'מצאת הכוכבים', english: 'From nightfall' }],
+      'Sefer Yereim': [{ ref: 'Sefer Yereim 300:1', hebrew: 'x', english: 'y' }], // noise, dropped
+    });
+    // Mishneh Torah (order 1) precedes Tur (order 2); noise excluded.
+    expect(out.indexOf('Mishneh Torah')).toBeLessThan(out.indexOf('Tur'));
+    expect(out).not.toContain('Sefer Yereim');
+    expect(out).toContain('Mishneh Torah, Reading the Shema 1:9');
+    expect(out).toContain('HE: מצאת הכוכבים');
+    expect(out).toContain('EN: The time for Shema');
+  });
+
+  it('caps long snippets and marks an empty bundle', () => {
+    expect(formatGroundedRefsForPrompt({})).toBe('(no codifier links found for this daf)');
+    const long = 'א'.repeat(800);
+    const out = formatGroundedRefsForPrompt({ 'Shulchan Arukh, Orach Chayim': [{ ref: 'OC 235:1', hebrew: long, english: '' }] });
+    expect(out).toContain('…');
+    expect(out.length).toBeLessThan(long.length);
   });
 });
 

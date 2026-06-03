@@ -329,6 +329,8 @@ export type Extractor = LLMExtractor | SefariaExtractor | ComputedExtractor | Ma
 //   'context'            → {{context}}  (aggregated external context for the
 //                          daf: dafyomi.co.il Points/Halacha/Charts + Sefaria,
 //                          grouped plain text via collectContext)
+//   'halacha-refs'       → {{halacha_refs}}  (grounded Mishneh Torah / Tur /
+//                          Shulchan Aruch refs + text Sefaria links to this daf)
 //   { enrichment: id }   → {{depends.<id>}}    (recursively resolved)
 //   { mark: id }         → {{anchors.<id>}}    (mark extractor for same daf)
 //
@@ -343,6 +345,7 @@ export type EnrichmentDependency =
   | 'commentaries'
   | 'mishna'
   | 'context'
+  | 'halacha-refs'
   | { enrichment: string }
   | { mark: string };
 
