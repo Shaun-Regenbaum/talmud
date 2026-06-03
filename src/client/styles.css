@@ -306,13 +306,33 @@ body.dev-shelf-open .daf-page {
 .tb-primary:disabled { opacity: 0.65; cursor: wait; }
 .tb-primary.is-error { background: #b3261e; }
 
-/* Hint drops to its own centered row below the controls. */
+/* Hint flows inline on desktop, absorbing the slack between the control
+   cluster and the utilities so the bar reads as one balanced row (no dead
+   gap, no orphaned second line). On mobile it drops to its own centered row
+   below the controls — see the 767px block. */
 .tb-hint {
-  order: 2;
-  flex-basis: 100%;
+  order: 0;
+  flex: 1;
+  min-width: 0;
   text-align: center;
   color: var(--muted);
   font-size: 0.82rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Between the phone breakpoint and ~1100px the inline hint would have to
+   truncate to fit; give it its own centered row instead so it stays whole.
+   The mid-width gap is small, so this reads tidy rather than orphaned. */
+@media (min-width: 768px) and (max-width: 1100px) {
+  .tb-hint {
+    order: 2;
+    flex-basis: 100%;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
 }
 
 /* Utilities (dev + EN/HE) cluster at the inline-end of the first row. */
@@ -443,7 +463,8 @@ body.dev-shelf-open .daf-page {
   .tb-select   { order: 2; flex-basis: 100%; width: 100%; }
   .tb-nav      { order: 3; }
   .tb-primary  { order: 4; flex: 1; }   /* fills the rest of the nav row */
-  .tb-hint     { order: 5; }
+  /* Back to its own full-width centered row below the controls. */
+  .tb-hint     { order: 5; flex: 1 1 100%; white-space: normal; overflow: visible; text-overflow: clip; }
   .daf-layout {
     flex-direction: column;
     gap: 0.75rem;
