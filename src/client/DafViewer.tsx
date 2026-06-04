@@ -1359,7 +1359,6 @@ export default function DafViewer(): JSX.Element {
         if (t !== tractate() || p !== page()) return;
         setCommentaryAnchorIndex(idx);
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.warn('[commentary-anchor] failed to fetch index:', err);
       }
     })();

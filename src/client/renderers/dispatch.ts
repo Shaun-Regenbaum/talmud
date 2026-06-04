@@ -224,7 +224,6 @@ export function applyMarkRenderers(
     try {
       out = r(out, instances, def);
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.warn(`[renderer] ${def.id} (${key}) threw:`, err);
     }
   }

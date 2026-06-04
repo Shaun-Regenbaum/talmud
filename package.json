@@ -12,6 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:int": "vitest run --config vitest.integration.config.ts",
+    "lint": "biome check .",
+    "format": "biome format --write .",
     "rebuild-rabbi-places": "python3 scripts/build-rabbi-places.py",
     "rebuild-geo-shapes": "python3 scripts/gen-geo-shapes.py --israel ~/Downloads/israel.svg --bavel ~/Downloads/mYxtJ7j01.svg --israel-mode union",
     "scrape-wikipedia-rabbis": "node scripts/scrape-wikipedia-rabbis.mjs",
@@ -37,6 +39,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.16",
     "@cloudflare/vite-plugin": "^1.36.4",
     "@cloudflare/workers-types": "^4.20260511.1",
     "@solidjs/testing-library": "^0.8.10",

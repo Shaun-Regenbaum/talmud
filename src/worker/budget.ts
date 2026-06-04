@@ -177,7 +177,6 @@ async function sendBudgetAlert(env: BudgetEnv, subject: string, text: string): P
   try {
     await email.send({ from: ALERT_FROM, to: ALERT_TO, subject, text });
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.error('[budget] alert email failed:', err);
   }
 }

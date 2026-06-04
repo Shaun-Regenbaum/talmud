@@ -2928,7 +2928,6 @@ async function recordRecentJobError(
     while (arr.length > RECENT_ERRORS_CAP) arr.shift();
     await cache.put(RECENT_ERRORS_KEY, JSON.stringify(arr), { expirationTtl: RECENT_ERRORS_TTL });
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.warn('[recent-errors] KV write failed:', String(err));
   }
 }
@@ -3588,7 +3587,6 @@ app.get('/api/admin/cache-stats', async (c) => {
           const fresh = await computeCacheStats(cache);
           await writeCachedCacheStats(cache, fresh);
         } catch (err) {
-          // eslint-disable-next-line no-console
           console.warn('[cache-stats] background refresh failed:', err);
         }
       })());
@@ -3637,7 +3635,6 @@ app.post('/api/log', async (c) => {
     ...(body as Record<string, unknown>),
   };
   // Observability / wrangler tail pick this up.
-  // eslint-disable-next-line no-console
   console.warn('[client-log]', JSON.stringify(rec));
 
   const cache = c.env.CACHE;
@@ -3650,7 +3647,6 @@ app.post('/api/log', async (c) => {
       while (arr.length > 500) arr.shift();
       await cache.put(key, JSON.stringify(arr), { expirationTtl: 60 * 60 * 24 * 30 });
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.warn('[client-log] KV write failed:', String(err));
     }
   }
@@ -3913,7 +3909,6 @@ app.post('/api/qa/ask', async (c) => {
     try {
       await c.env.ENRICHMENT_QUEUE.send(job);
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.warn('[qa/ask] queue send failed:', String((err as Error)?.message ?? err));
     }
   }
@@ -4024,7 +4019,6 @@ async function logTelemetry(cache: KVNamespace | undefined, rec: TelemetryRecord
     while (arr.length > 500) arr.shift();
     await cache.put(key, JSON.stringify(arr), { expirationTtl: 60 * 60 * 24 * 30 });
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.warn('[telemetry] KV write failed:', String(err));
   }
 }
@@ -4155,11 +4149,9 @@ app.post('/api/report', async (c) => {
       while (arr.length > 200) arr.shift();
       await cache.put(key, JSON.stringify(arr), { expirationTtl: 60 * 60 * 24 * 365 });
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.warn('[report] KV write failed:', String(err));
     }
   }
-  // eslint-disable-next-line no-console
   console.warn('[bug-report]', JSON.stringify(rec));
   return c.json({ ok: true });
 });
@@ -4330,7 +4322,6 @@ async function serveUsageSection<T>(
                 const next = { ...(await build()), generatedAt: new Date().toISOString() };
                 await cache.put(key, JSON.stringify(next), { expirationTtl: 600 });
               } catch (err) {
-                // eslint-disable-next-line no-console
                 console.warn(`[usage] ${key} background refresh failed:`, err);
               } finally {
                 await cache.delete(lockKey).catch(() => {});
@@ -5205,7 +5196,6 @@ app.post('/api/translate', async (c) => {
     try {
       fallbackEnglish = await getSefariaEnglishContext(tractate, page, cache);
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.warn('[translate] fallback Sefaria context fetch failed:', err);
     }
   }
@@ -5213,7 +5203,6 @@ app.post('/api/translate', async (c) => {
   // Sefaria Lexicon — authoritative BDB/Jastrow definitions for the word.
   // Cached per-word for a year (lexicons change rarely).
   const lexiconContext = await getSefariaLexicon(word, cache).catch((err) => {
-    // eslint-disable-next-line no-console
     console.warn('[translate] lexicon fetch failed:', err);
     return '';
   });
@@ -5291,7 +5280,6 @@ app.post('/api/translate', async (c) => {
       return c.json({ translation, cached: false, _model: m.label });
     } catch (err) {
       attempts.push(`${m.label}: ${String(err).slice(0, 200)}`);
-      // eslint-disable-next-line no-console
       console.warn(`[translate] ${m.label} failed:`, err);
     }
   }
@@ -7915,12 +7903,10 @@ async function deepWarmDaf(
  * failure (max_retries=1 in wrangler.toml is the safety net).
  */
 async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: ExecutionContext): Promise<void> {
-  // eslint-disable-next-line no-console
   console.log('[queue] picked up job', job.runId, '·', job.mark_id ?? job.enrichment_id ?? 'adhoc', job.tractate, job.page);
   const wrapped = wrapEnv(env);
   const cache = wrapped.CACHE;
   if (!cache) {
-    // eslint-disable-next-line no-console
     console.error('[queue] CACHE binding missing — cannot write job result');
     return;
   }
@@ -7949,7 +7935,6 @@ async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: Executi
       if (only && job.rewarm_only) await evictCascadeEntries(rc.env, job.rewarm_only, job.tractate, job.page);
       const stats = await deepWarmDaf(rc, job.tractate, job.page, rc.lang, only);
       await writeResult({ status: 'ok', result: { kind: 'warm', ...stats, total_ms: Date.now() - t0 } });
-      // eslint-disable-next-line no-console
       console.log(`[queue] deep-warm ${job.tractate}/${job.page} lang=${rc.lang} marks=${stats.marks} enqueued=${stats.enqueued} skipped=${stats.skipped} bridges=${stats.bridges}`);
       return;
     }
@@ -8009,7 +7994,6 @@ async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: Executi
       return;
     }
     const errorMsg = String((err as Error)?.message ?? err);
-    // eslint-disable-next-line no-console
     console.error('[queue] job failed', job.runId, '·', job.mark_id ?? job.enrichment_id ?? 'adhoc', job.tractate, job.page, '·', errorMsg.slice(0, 500));
     await writeResult({
       status: 'error',
@@ -8053,7 +8037,6 @@ export default {
   // simultaneous LLM workloads; max_batch_size=1 means one job per
   // invocation (no batching), which keeps memory bounded per worker.
   queue: async (batch: MessageBatch<JobMessage>, env: Bindings, ctx: ExecutionContext): Promise<void> => {
-    // eslint-disable-next-line no-console
     console.log('[queue] batch arrived:', batch.messages.length, 'message(s)');
     for (const msg of batch.messages) {
       try {
@@ -8061,7 +8044,6 @@ export default {
         msg.ack();
       } catch (err) {
         // Network / KV blip — let the runtime retry once (max_retries=1).
-        // eslint-disable-next-line no-console
         console.error('[queue] processEnrichmentJob threw:', err);
         const body = msg.body;
         const errorMsg = String((err as Error)?.message ?? err);
