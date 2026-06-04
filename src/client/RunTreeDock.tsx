@@ -16,7 +16,7 @@
  * the COLD build cost/time, each shared node counted once. Resizable width.
  */
 
-import { createSignal, createMemo, createResource, Show, For, type JSX } from 'solid-js';
+import { createSignal, createMemo, createResource, Show, Switch, Match, For, type JSX } from 'solid-js';
 import { lang } from './i18n';
 
 interface TreeNode {
@@ -80,7 +80,7 @@ function assignLanes(edges: Array<{ from: number; to: number }>): number[] {
   return lanes;
 }
 
-interface LaidEdge { fromRow: number; toRow: number; lane: number; }
+interface LaidEdge { fromRow: number; toRow: number; lane: number; fromId: string; toId: string; }
 interface Layout {
   order: string[];
   rowOf: Map<string, number>;
@@ -112,7 +112,7 @@ function computeLayout(tree: RunTree, expanded: Set<string>): Layout {
   const laid = visEdges.map(([a, b]) => ({ from: rowOf.get(a)!, to: rowOf.get(b)! }));
   const lanes = assignLanes(laid);
   const laneCount = lanes.length ? Math.max(...lanes) + 1 : 0;
-  const edges: LaidEdge[] = laid.map((e, i) => ({ fromRow: e.from, toRow: e.to, lane: lanes[i] }));
+  const edges: LaidEdge[] = visEdges.map(([a, b], i) => ({ fromRow: rowOf.get(a)!, toRow: rowOf.get(b)!, lane: lanes[i], fromId: a, toId: b }));
   const gutter = LANE_BASE + Math.max(1, laneCount) * LANE_STEP + 10;
   return {
     order, rowOf, edges, laneCount,
@@ -141,22 +141,33 @@ function edgePath(fromRow: number, toRow: number, lane: number): string {
   ].join(' ');
 }
 
-/** source = database cylinder, generation = sparkle. Inline 18px SVG. */
-function NodeIcon(props: { kind: TreeNode['kind']; color: string }): JSX.Element {
+type IconVariant = 'source' | 'mark' | 'enrichment';
+/** source = database cylinder, MARK = stacked layers (an extracted annotation
+ *  layer), ENRICHMENT/generation = sparkle (an AI synthesis). Inline 18px SVG. */
+function NodeIcon(props: { variant: IconVariant; color: string }): JSX.Element {
   return (
     <svg width="18" height="18" viewBox="-9 -9 18 18" style={{ display: 'block', 'flex-shrink': 0 }}>
-      <Show
-        when={props.kind === 'source'}
-        fallback={<path d="M0 -6.6 L1.7 -1.7 L6.6 0 L1.7 1.7 L0 6.6 L-1.7 1.7 L-6.6 0 L-1.7 -1.7 Z" fill={props.color} />}
-      >
-        <>
+      <Switch>
+        <Match when={props.variant === 'source'}>
           <ellipse cx={0} cy={-3.6} rx={5.6} ry={2.2} fill="none" stroke={props.color} stroke-width={1.4} />
           <path d="M -5.6 -3.6 V 3.6 A 5.6 2.2 0 0 0 5.6 3.6 V -3.6" fill="none" stroke={props.color} stroke-width={1.4} />
           <path d="M -5.6 0 A 5.6 2.2 0 0 0 5.6 0" fill="none" stroke={props.color} stroke-width={1.2} />
-        </>
-      </Show>
+        </Match>
+        <Match when={props.variant === 'mark'}>
+          <path d="M0 -6.4 L6.6 -2.6 L0 1.2 L-6.6 -2.6 Z" fill={props.color} />
+          <path d="M-6.6 1.6 L0 5.4 L6.6 1.6" fill="none" stroke={props.color} stroke-width={1.3} stroke-linejoin="round" stroke-linecap="round" />
+        </Match>
+        <Match when={props.variant === 'enrichment'}>
+          <path d="M0 -6.6 L1.7 -1.7 L6.6 0 L1.7 1.7 L0 6.6 L-1.7 1.7 L-6.6 0 L-1.7 -1.7 Z" fill={props.color} />
+        </Match>
+      </Switch>
     </svg>
   );
+}
+/** node/run -> icon variant: source (no LLM), mark (extracted layer), or
+ *  enrichment (AI generation built ON marks). */
+function variantOf(n: { kind: string; producer?: string }): IconVariant {
+  return n.kind !== 'llm' ? 'source' : n.producer === 'mark' ? 'mark' : 'enrichment';
 }
 
 interface DafRun {
@@ -179,7 +190,7 @@ function RunRow(props: { run: DafRun; maxMs: number; active?: boolean; collapsed
         'border-left': `2px solid ${props.active ? ACTIVE_STROKE : 'transparent'}`,
         background: props.active ? '#fdf2f2' : 'transparent',
       }}>
-      <NodeIcon kind={isLLM() ? 'llm' : 'source'} color={color()} />
+      <NodeIcon variant={variantOf(r())} color={color()} />
       <span style={{ width: '8.5rem', 'flex-shrink': 0, 'font-size': '0.8rem', 'white-space': 'nowrap', overflow: 'hidden', 'text-overflow': 'ellipsis' }}>{r().label}</span>
       <div style={{ flex: 1, 'min-width': '20px', height: '8px', background: '#efece3', 'border-radius': '3px', overflow: 'hidden' }}>
         <div style={{ width: `${pct()}%`, height: '100%', background: !r().cached ? '#d4d4d4' : slow() ? '#fbbf24' : isLLM() ? '#86efac' : '#bae6fd' }} />
@@ -200,6 +211,7 @@ export default function RunTreeDock(props: { tractate: string; page: string; ope
   const [expanded, setExpanded] = createSignal<Set<string>>(new Set(['tidbit.essay']));
   const [selected, setSelected] = createSignal<string | null>('tidbit.essay');
   const [width, setWidth] = createSignal(Math.min(620, Math.round(window.innerWidth * 0.42)));
+  const [detailH, setDetailH] = createSignal(Math.round(window.innerHeight * 0.34));
 
   // Waterfall feed — every top-level run on this daf with cached telemetry.
   const [runs] = createResource(
@@ -232,6 +244,17 @@ export default function RunTreeDock(props: { tractate: string; page: string; ope
   const toggleExpand = (id: string) => setExpanded((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const badgeColor = (n: TreeNode) => n.kind !== 'llm' ? BADGE_SRC : (n.model?.includes('pro') ? BADGE_PRO : BADGE_LLM);
 
+  // The selected node + everything one edge away — for the focus highlight
+  // (incident edges drawn bold, the rest faded).
+  const connected = createMemo<Set<string>>(() => {
+    const sel = selected(); const lay = layout();
+    if (!sel || !lay) return new Set();
+    const set = new Set<string>([sel]);
+    for (const e of lay.edges) { if (e.fromId === sel) set.add(e.toId); if (e.toId === sel) set.add(e.fromId); }
+    return set;
+  });
+  const isIncident = (e: LaidEdge) => e.fromId === selected() || e.toId === selected();
+
   const [detail] = createResource(
     () => { const id = selected(); const n = id ? nodeOf(id) : null; return n && n.kind !== 'source' && n.producer ? { id, producer: n.producer } : null; },
     async (sel): Promise<RunResult | null> => {
@@ -249,6 +272,14 @@ export default function RunTreeDock(props: { tractate: string; page: string; ope
     ev.preventDefault();
     document.body.style.userSelect = 'none';
     const move = (e: MouseEvent) => setWidth(Math.max(380, Math.min(window.innerWidth - 120, window.innerWidth - e.clientX)));
+    const up = () => { document.body.style.userSelect = ''; document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
+    document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
+  };
+  // Drag the divider between the DAG and the node-detail pane to resize it.
+  const onDetailResizeStart = (ev: MouseEvent) => {
+    ev.preventDefault();
+    document.body.style.userSelect = 'none';
+    const move = (e: MouseEvent) => setDetailH(Math.max(110, Math.min(window.innerHeight - 160, window.innerHeight - e.clientY)));
     const up = () => { document.body.style.userSelect = ''; document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
     document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
   };
@@ -307,10 +338,19 @@ export default function RunTreeDock(props: { tractate: string; page: string; ope
               <svg width={lay().width} height={lay().height} style={{ position: 'absolute', inset: 0, 'pointer-events': 'none', overflow: 'visible' }}>
                 <defs>
                   <marker id="rt-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 z" fill="#c9b8b0" /></marker>
+                  <marker id="rt-arrow-hot" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 z" fill="#8a2a2b" /></marker>
                 </defs>
-                <For each={lay().edges}>{(e) => (
-                  <path d={edgePath(e.fromRow, e.toRow, e.lane)} fill="none" stroke="#d3c4ba" stroke-width={1.5} stroke-linecap="round" stroke-linejoin="round" marker-end="url(#rt-arrow)" />
-                )}</For>
+                <For each={lay().edges}>{(e) => {
+                  const hot = () => isIncident(e);
+                  const faded = () => !!selected() && !hot();
+                  return (
+                    <path d={edgePath(e.fromRow, e.toRow, e.lane)} fill="none"
+                      stroke={hot() ? '#8a2a2b' : '#d3c4ba'} stroke-width={hot() ? 2 : 1.5}
+                      stroke-opacity={faded() ? 0.22 : hot() ? 0.85 : 1}
+                      stroke-linecap="round" stroke-linejoin="round"
+                      marker-end={`url(#${hot() ? 'rt-arrow-hot' : 'rt-arrow'})`} />
+                  );
+                }}</For>
               </svg>
               {/* node cards */}
               <For each={lay().order}>{(id) => {
@@ -319,6 +359,7 @@ export default function RunTreeDock(props: { tractate: string; page: string; ope
                 const sel = () => selected() === id;
                 const exp = () => expanded().has(id);
                 const slow = () => (n().cold_ms ?? 0) > 10_000;
+                const dim = () => !!selected() && !connected().has(id);
                 return (
                   <div
                     onClick={() => { setSelected(id); if (hasKids(id)) toggleExpand(id); }}
@@ -328,9 +369,10 @@ export default function RunTreeDock(props: { tractate: string; page: string; ope
                       background: sel() ? '#fdf2f2' : '#fff',
                       border: `${sel() ? 1.75 : 1}px solid ${sel() ? ACTIVE_STROKE : CARD_STROKE}`,
                       'border-radius': '11px', 'box-shadow': '0 1px 2px rgba(58,51,32,0.08)',
+                      opacity: dim() ? 0.42 : 1, transition: 'opacity 0.12s',
                     }}
                   >
-                    <NodeIcon kind={n().kind} color={badgeColor(n())} />
+                    <NodeIcon variant={variantOf(n())} color={badgeColor(n())} />
                     <div style={{ flex: 1, 'min-width': 0 }}>
                       <div style={{ display: 'flex', 'align-items': 'baseline', gap: '0.4rem' }}>
                         <span style={{ 'font-weight': 600, 'font-size': '0.84rem', color: '#2a2723', 'white-space': 'nowrap', overflow: 'hidden', 'text-overflow': 'ellipsis' }}>{n().label}</span>
@@ -359,9 +401,11 @@ export default function RunTreeDock(props: { tractate: string; page: string; ope
         </div>
         </Show>
 
-        {/* node detail (bottom) — DAG mode only */}
+        {/* node detail (bottom) — DAG mode only; drag its top edge to resize */}
         <Show when={view() === 'dag'}>
-        <div style={{ 'flex-basis': '38%', 'min-height': '120px', 'border-top': '1px solid #eee', display: 'flex', 'flex-direction': 'column', overflow: 'hidden' }}>
+        <div style={{ height: `${detailH()}px`, 'flex-shrink': 0, 'border-top': '1px solid #eee', display: 'flex', 'flex-direction': 'column', overflow: 'hidden', position: 'relative' }}>
+          <div onMouseDown={onDetailResizeStart} title="drag to resize"
+            style={{ position: 'absolute', top: '-3px', left: 0, right: 0, height: '7px', cursor: 'ns-resize', 'z-index': 3 }} />
           <Show when={selected() ? nodeOf(selected()!) : null} fallback={<div style={{ padding: '0.7rem', color: '#bbb' }}>select a node</div>}>{(n) => (
             <>
               <div style={{ padding: '0.45rem 0.7rem', 'border-bottom': '1px solid #f0f0f0', display: 'flex', 'flex-wrap': 'wrap', gap: '0.35rem', 'align-items': 'center' }}>
