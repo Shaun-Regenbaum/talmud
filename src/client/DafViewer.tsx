@@ -25,7 +25,6 @@ import {
   loadUserHighlights,
   saveUserHighlights,
   highlightCoversWord,
-  buildHighlight,
   wordCoordFromTarget,
 } from './userHighlights';
 import { GutterIcons, type GutterKind } from './GutterIcons';
@@ -1011,7 +1010,6 @@ export default function DafViewer(): JSX.Element {
     setUserHighlights(next);
     saveUserHighlights(tractate(), page(), next);
   };
-  const addHighlight = (h: UserHighlight) => persistHighlights([...userHighlights(), h]);
   const deleteHighlight = (id: string) =>
     persistHighlights(userHighlights().filter((h) => h.id !== id));
   const updateHighlightNote = (id: string, note: string) =>
@@ -1023,25 +1021,6 @@ export default function DafViewer(): JSX.Element {
     if (!root) return null;
     const dafRootDiv = root.querySelector<HTMLElement>('.daf-root') ?? root;
     return dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
-  };
-
-  // Resolve the currently-active selection (from `active().els`) to a user-
-  // highlight word-range. Returns null when the selection isn't inside the
-  // main text column (e.g. a Rashi/Tosafot word) — those aren't highlightable.
-  const highlightCoordsForActive = ():
-    | { startSeg: number; startTok: number; endSeg: number; endTok: number; text: string }
-    | null => {
-    const a = active();
-    if (!a || a.els.length === 0) return null;
-    const mainCol = mainTextCol();
-    if (!mainCol) return null;
-    const first = a.els[0];
-    const last = a.els[a.els.length - 1];
-    const s = wordCoordFromTarget(first, mainCol);
-    const e = wordCoordFromTarget(last, mainCol);
-    if (!s || !e) return null;
-    const text = a.els.map((el) => el.textContent ?? '').join(' ').replace(/\s+/g, ' ').trim();
-    return { startSeg: s.seg, startTok: s.tok, endSeg: e.seg, endTok: e.tok, text };
   };
 
   // A plain click on a word already covered by a personal highlight opens that
@@ -2785,11 +2764,14 @@ export default function DafViewer(): JSX.Element {
   // main paint effect above — same continuous-band treatment as everything
   // else — rather than via a CSS outline on the wrapping .daf-comm-piece span.
 
-  // On mouseup: prefer a text selection snapped to word boundaries over a plain
-  // word click. Any .daf-word element intersecting the selection range counts
-  // as "selected", so starting a drag mid-word includes the whole word. Mobile
-  // multi-word selection uses native iOS/Android long-press-and-extend handles,
-  // which produce the same selection range this code reads.
+  // On mouseup (desktop): prefer a text selection snapped to word boundaries
+  // over a plain word click. Any .daf-word element intersecting the selection
+  // range counts as "selected", so starting a drag mid-word includes the whole
+  // word. On mobile we DON'T read native selection — Android's long-press
+  // handles are unreliable inside the CSS-scaled daf (the transform breaks the
+  // native selection UI), so multi-word translate there uses explicit
+  // tap-to-extend instead (see the mobile branch below). Native long-press
+  // still works for plain copy/paste at the browser level.
   const onMouseUpRoot = (e: MouseEvent) => {
     // Commentary anchor highlight fires alongside any other click behaviour
     // (translate popup, commentary-on-tap, etc). Runs first so it lights
@@ -2799,12 +2781,9 @@ export default function DafViewer(): JSX.Element {
 
     const sel = window.getSelection();
 
-    if (sel && !sel.isCollapsed && sel.rangeCount > 0) {
+    if (!isMobile() && sel && !sel.isCollapsed && sel.rangeCount > 0) {
       const snapped = collectSnappedWords(sel.getRangeAt(0));
       if (snapped.length >= 2 && snapped.length <= MAX_PHRASE_WORDS) {
-        // Mobile read mode opts out of translation entirely — the user is
-        // selecting for native copy/paste, not asking to translate.
-        if (isMobile() && mobileMode() === 'read') return;
         setActiveFromWordEls(snapped, e);
         return;
       }
@@ -2851,13 +2830,37 @@ export default function DafViewer(): JSX.Element {
         if (wordEl && tryOpenUserHighlight(wordEl, e)) return;
         return;
       }
-      // Translate mode: tap-to-translate, bypassing rabbi/city handlers so
-      // the drawer doesn't hijack the popup on rabbi-underlined words.
+      // Translate mode: tap a word to translate it; tap a second word to
+      // extend the selection from the first to the second and translate the
+      // whole phrase (tap-to-extend). This replaces native long-press
+      // selection, which is unreliable on Android inside the scaled daf.
+      // Bypasses rabbi/city handlers so the drawer doesn't hijack the popup
+      // on rabbi-underlined words.
       if (!wordEl) return;
       if (tryOpenUserHighlight(wordEl, e)) return;
-      if (active()?.els.includes(wordEl)) {
-        clearActive();
-        return;
+      const cur = active();
+      if (cur) {
+        if (cur.els.includes(wordEl)) {
+          // Tapped a word already inside the selection → dismiss.
+          clearActive();
+          return;
+        }
+        // Extend from the first selected word to the tapped word. The range
+        // spans either direction depending on which was tapped first.
+        const anchorEl = cur.els[0];
+        if (anchorEl && anchorEl.isConnected) {
+          const range = document.createRange();
+          const following = anchorEl.compareDocumentPosition(wordEl) & Node.DOCUMENT_POSITION_FOLLOWING;
+          range.setStartBefore(following ? anchorEl : wordEl);
+          range.setEndAfter(following ? wordEl : anchorEl);
+          const phrase = collectSnappedWords(range);
+          if (phrase.length >= 2 && phrase.length <= MAX_PHRASE_WORDS) {
+            setActiveFromWordEls(phrase, e);
+            return;
+          }
+          // Out of range (too far apart, or different text columns) → fall
+          // through and re-anchor on the freshly tapped word.
+        }
       }
       setActiveFromWordEls([wordEl], e);
       return;
@@ -3176,7 +3179,7 @@ export default function DafViewer(): JSX.Element {
                   activeKey={sidebarActiveKey()}
                 />
               </Show>
-              <GutterOverlay />
+              <GutterOverlay scale={dafScale()} />
             </div>
             </div>
           )}
@@ -3194,15 +3197,6 @@ export default function DafViewer(): JSX.Element {
             hebrewAfter={a().hebrewAfter}
             segIdx={a().segIdx}
             onClose={clearActive}
-            onHighlight={
-              highlightCoordsForActive()
-                ? (color, note) => {
-                    const c = highlightCoordsForActive();
-                    if (c) addHighlight(buildHighlight(c, { color, note }));
-                    clearActive();
-                  }
-                : undefined
-            }
           />
         )}
       </Show>
