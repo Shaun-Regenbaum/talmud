@@ -19,6 +19,7 @@
 import { createSignal, createMemo, createResource, createEffect, onCleanup, Show, Switch, Match, For, type JSX } from 'solid-js';
 import { lang } from './i18n';
 import { aiActivity } from './aiActivity';
+import { inspectRequest } from './inspectBridge';
 
 interface TreeNode {
   id: string; label: string;
@@ -271,8 +272,15 @@ export default function RunTreeDock(props: {
   });
   const openPiece = (id: string) => { setPieceId(id); setExpanded(new Set([id])); setSelected(id); setView('dag'); };
 
+  // An (i) / card affordance anywhere asked to inspect a piece — focus its DAG.
+  // (DafViewer opens the panel on the same request.)
+  createEffect(() => {
+    const req = inspectRequest();
+    if (req) { setTab('build'); openPiece(req.piece); }
+  });
+
   const [tree] = createResource(
-    () => (props.open ? `${props.tractate}|${props.page}|${pieceId()}|${lang()}` : null),
+    () => (props.open && view() === 'dag' ? `${props.tractate}|${props.page}|${pieceId()}|${lang()}` : null),
     async (): Promise<RunTree | null> => {
       const r = await fetch(`/api/run-tree/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}/${encodeURIComponent(pieceId())}?lang=${lang()}`);
       if (!r.ok) return null;
@@ -405,7 +413,7 @@ export default function RunTreeDock(props: {
           <div style={{ flex: 1, 'min-height': 0, overflow: 'auto' }}>
             <Show when={runs.loading}><div style={{ padding: '0.6rem', color: '#aaa' }}>loading…</div></Show>
             <For each={visibleRuns()}>{(r) => (
-              <RunRow run={r} maxMs={maxCold()} active={r.id === pieceId()} loading={liveLoading().has(r.id)} onInspect={() => openPiece(r.id)} />
+              <RunRow run={r} maxMs={maxCold()} active={r.id === pieceId()} loading={liveLoading().has(r.id)} onClick={() => openPiece(r.id)} onInspect={() => openPiece(r.id)} />
             )}</For>
           </div>
         </Show>
