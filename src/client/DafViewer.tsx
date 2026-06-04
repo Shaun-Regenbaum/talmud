@@ -47,6 +47,7 @@ import { fetchCommentaryAnchorIndex, type CommentaryAnchorIndex } from './commen
 import { recordStage } from './rendererActivity';
 import { applyMarkRenderers } from './renderers/dispatch';
 import DevModeShelf, { readDevMode, setDevModeActive } from './DevModeShelf';
+import RunTreeDock from './RunTreeDock';
 import ChecksPanel from './ChecksPanel';
 import TypeProfilePanel from './TypeProfilePanel';
 import type { GenerationId } from './generations';
@@ -417,6 +418,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   const [showPesukim, setShowPesukim] = createSignal(loadToggle(PESUKIM_KEY, false));
   // Dev shelf — bottom drawer with marks toggles + activity panels.
   const [devOpen, setDevOpen] = createSignal(readDevMode());
+  const [runTreeOpen, setRunTreeOpen] = createSignal(false);
 
   // Adapter: derive analysis() from the new registry-driven `argument` mark
   // run output. The new schema is { instances: [{startSegIdx, endSegIdx,
@@ -3058,6 +3060,14 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
             >
               {t('header.dev')}
             </button>
+            <button
+              class="tb-toggle"
+              classList={{ 'is-active': runTreeOpen() }}
+              onClick={() => setRunTreeOpen((v) => !v)}
+              title="Build provenance — the dependency DAG of a piece (cost / time / cache, click to expand)"
+            >
+              Build
+            </button>
           </Show>
           {/* Mobile-only "Layers" entry point. The mark toggles live in the
               desktop dev shelf (hidden on phones), so this opens a dedicated
@@ -3564,6 +3574,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           })}
         />
       </DevModeShelf>
+      <RunTreeDock tractate={tractate()} page={page()} open={runTreeOpen()} onClose={() => setRunTreeOpen(false)} />
       </Show>
 
     </main>
