@@ -160,7 +160,7 @@ export function GutterOverlay(props: GutterOverlayProps): JSX.Element {
         'pointer-events': 'none',
       }}
     >
-      <For each={clusters()}>{(c, ci) => {
+      <For each={clusters()}>{(c) => {
         const side = c.side;
         const x = side === 'left'
           ? (c.atEdge ? LEFT_EDGE_X : LEFT_X)
@@ -170,7 +170,6 @@ export function GutterOverlay(props: GutterOverlayProps): JSX.Element {
             class="gutter-cluster"
             data-side={side}
             data-count={c.items.length}
-            data-tour={ci() === 0 ? 'gutter' : undefined}
             style={{
               position: 'absolute',
               top: `${c.top}px`,
