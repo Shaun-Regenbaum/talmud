@@ -242,7 +242,7 @@ export default function RunTreeDock(props: {
   const [detailH, setDetailH] = createSignal(Math.round(window.innerHeight * 0.34));
 
   // Waterfall feed — every top-level run on this daf with cached telemetry.
-  const [runs] = createResource(
+  const [runs, { refetch: refetchRuns }] = createResource(
     () => (props.open ? `${props.tractate}|${props.page}|${lang()}` : null),
     async (): Promise<DafRun[]> => {
       const r = await fetch(`/api/daf-runs/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}?lang=${lang()}`);
@@ -263,6 +263,20 @@ export default function RunTreeDock(props: {
     }
     return out;
   });
+  // The waterfall's telemetry is a snapshot; while anything is loading, re-poll
+  // /api/daf-runs so finished pieces flip from "run" to their real hit + time +
+  // cost (instead of staying on the stale miss/0ms snapshot). Also refetch once
+  // more right after the live set empties, to capture the final state.
+  createEffect((wasLive: boolean) => {
+    const isLive = props.open && liveLoading().size > 0;
+    if (isLive) {
+      const t = setInterval(() => refetchRuns(), 2500);
+      onCleanup(() => clearInterval(t));
+    } else if (wasLive && props.open) {
+      refetchRuns();
+    }
+    return isLive;
+  }, false);
   // Waterfall rows after the type filter; actively-loading pieces float to the top.
   const visibleRuns = createMemo(() => {
     const live = liveLoading();
