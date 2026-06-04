@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveRabbi, resolveRabbiByHe, resolveRabbiByName } from '../src/worker/index';
+import { resolveRabbi, resolveRabbiByHe, resolveRabbiByName } from '../src/worker/rabbi-places';
 
 // Cases are laid out as [name, nameHe, expectedSlug, note?]. Add new ones
 // below whenever you find a case the resolver gets wrong. Empty string for
