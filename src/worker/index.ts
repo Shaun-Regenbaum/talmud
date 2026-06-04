@@ -1044,6 +1044,51 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
   });
 });
 
+// GET /api/daf-runs/:tractate/:page — the WATERFALL feed: every top-level piece
+// run on this daf (all marks + the whole-daf enrichments) with its cached
+// telemetry, read-only. The dev pipeline dock shows these as a network-style
+// waterfall; clicking one drills into its dependency DAG via /api/run-tree.
+// Whole-daf enrichments only (scope=local, not the per-section `argument`
+// enrichments and not the global rabbi/place facets) so each row is one run.
+app.get('/api/daf-runs/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
+
+  const wholeDafEnrichments = CODE_ENRICHMENTS.filter(
+    (e) => e.scope === 'local' && e.target_mark !== 'argument',
+  );
+  const producers: Array<{ id: string; label: string; isMark: boolean; ext?: { kind?: string; model?: string } }> = [
+    ...CODE_MARKS.map((m) => ({ id: m.id, label: m.label, isMark: true, ext: m.extractor as { kind?: string; model?: string } })),
+    ...wholeDafEnrichments.map((e) => ({ id: e.id, label: e.label, isMark: false, ext: e.extractor as { kind?: string; model?: string } })),
+  ];
+
+  const runs = [];
+  for (const p of producers) {
+    const isLLM = p.ext?.kind === 'llm';
+    const job = (p.isMark
+      ? { mark_id: p.id, tractate, page, lang }
+      : { enrichment_id: p.id, tractate, page, mark_input: { fields: {} }, lang }) as unknown as JobMessage;
+    const { key } = await cacheKeyForRunBody(c.env, job);
+    const res = key ? await readCachedResult(c.env, key) : null;
+    const usage = res?.usage as { cost?: number; total_tokens?: number } | undefined;
+    runs.push({
+      id: p.id,
+      label: p.label,
+      kind: isLLM ? 'llm' : 'computed',
+      producer: p.isMark ? 'mark' : 'enrichment',
+      model: isLLM ? p.ext?.model : undefined,
+      cached: !!res,
+      cold_ms: typeof res?.elapsed_ms === 'number' ? res.elapsed_ms : null,
+      cost: typeof usage?.cost === 'number' ? usage.cost : null,
+      tokens: typeof usage?.total_tokens === 'number' ? usage.total_tokens : null,
+    });
+  }
+  // longest cold runs first — the waterfall reads as "where the time went"
+  runs.sort((a, b) => (b.cold_ms ?? -1) - (a.cold_ms ?? -1));
+  return c.json({ tractate, page, lang, runs });
+});
+
 // Entity pieces (step 5): a first-class, addressable view of a "global" entity
 // (rabbi / place), assembled READ-ONLY from its already-cached global
 // enrichments. The pieces are keyed per-entity (daf-agnostic), so they're

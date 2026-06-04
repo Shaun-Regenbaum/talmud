@@ -1,31 +1,26 @@
 /**
- * RunTreeDock — dev-mode bottom dock that shows the BUILD PROVENANCE of a piece
- * on the current daf as a click-to-expand dependency DAG, backed by the
- * read-only GET /api/run-tree endpoint.
+ * RunTreeDock — dev-mode RIGHT SIDE PANEL showing the BUILD PROVENANCE of a piece
+ * on the current daf as a click-to-expand dependency DAG, backed by the read-only
+ * GET /api/run-tree endpoint.
  *
- * The DAG starts at a chosen piece (default tidbit.essay — the deepest one) and
- * shows its direct dependencies; click a node's ⊕ to expand ITS inputs, so the
- * graph reveals progressively instead of all-at-once. Shared nodes (e.g. gemara,
- * depended on across the chain) appear once with fan-in edges. Source nodes carry
- * a database icon (fetched, no cost); LLM nodes a sparkle (model + $). Selecting a
- * node loads its prompt + generation on demand via the existing /api/run (cache-
- * respecting) + /api/run-sources — kept lazy so the tree fetch stays small.
+ * Layout matches the app's argument-flow / voice maps: nodes stacked vertically
+ * (root at top, its dependencies below, expanding downward), with connectors
+ * routed through a right-side lane — orthogonal, straight runs with rounded
+ * turns, lane-assigned so parallel edges never overlap (same edgePath/assignLanes
+ * approach as ArgumentFlowGraph). Source nodes carry a database icon (fetched, no
+ * cost); LLM nodes a sparkle (model + $). Click a node to open it (lazy-loads its
+ * prompt + generation via /api/run); click its ⊕ to reveal its inputs. Shared
+ * nodes (e.g. gemara) appear once with fan-in edges.
  *
- * Styled in the app's flow/voice-map language (parchment canvas, rounded node
- * cards, the brand-red active state). The header rolls up the COLD build cost/
- * time (what a cold daf pays) — each shared node counted once.
- *
- * This is the first increment of the dev-surface consolidation: the network-style
- * activity waterfall + folding the marks/checks/sections panels into tabs here
- * (retiring the side shelf + InstanceInspectorShelf) follow.
+ * Nodes are HTML cards (rich styling) over an SVG edge layer. The header rolls up
+ * the COLD build cost/time, each shared node counted once. Resizable width.
  */
 
 import { createSignal, createMemo, createResource, Show, For, type JSX } from 'solid-js';
 import { lang } from './i18n';
 
 interface TreeNode {
-  id: string;
-  label: string;
+  id: string; label: string;
   kind: 'source' | 'llm' | 'computed';
   producer?: 'mark' | 'enrichment';
   model?: string;
@@ -35,15 +30,11 @@ interface TreeNode {
   tokens: number | null;
 }
 interface RunTree {
-  root: string;
-  tractate: string;
-  page: string;
-  lang: string;
+  root: string; tractate: string; page: string; lang: string;
   nodes: Record<string, TreeNode>;
   edges: Array<[string, string]>;
   totals: { count: number; llm: number; source: number; cached: number; cold_ms: number; cost: number };
 }
-
 interface RunResult {
   content?: string;
   model?: string;
@@ -52,12 +43,6 @@ interface RunResult {
   cache_hit?: boolean;
   resolved?: { system_prompt: string; user_prompt: string };
 }
-
-// Deep whole-daf pieces worth inspecting (the chains with the most depth).
-const COMMON_PIECES = [
-  'tidbit.essay', 'biyun.essay', 'argument-overview.synthesis',
-  'daf-background.concepts', 'daf-background.synthesis',
-];
 
 function fmtMs(ms: number | null | undefined): string {
   if (ms == null) return '—';
@@ -69,73 +54,168 @@ function fmtCost(c: number | null | undefined): string {
 }
 
 // app graph tokens (from ArgumentFlowGraph / ArgumentVoiceMap)
-const CARD = '#ffffff', CARD_STROKE = '#e4e0d4', ACTIVE_FILL = '#fdf2f2', ACTIVE_STROKE = '#8a2a2b';
+const CARD_STROKE = '#e4e0d4', ACTIVE_STROKE = '#8a2a2b';
 const CANVAS = '#fdfcf9', CANVAS_BORDER = '#ece9df';
 const BADGE_LLM = '#1d4ed8', BADGE_PRO = '#7c3aed', BADGE_SRC = '#475569';
 
-const NODE_W = 156, NODE_H = 48, COL_W = 196, ROW_H = 62, PAD_X = 18, PAD_Y = 16;
+// vertical layout — node per row, connectors in a right-side lane gutter
+const NODE_W = 290, NODE_H = 54, ROW_GAP = 12, TOP_PAD = 12, LEFT_PAD = 12;
+const ROW_H = NODE_H + ROW_GAP;
+const LANE_BASE = 14, LANE_STEP = 12, CORNER_R = 14;
 
-interface Placed { id: string; x: number; y: number; }
-interface Layout { placed: Placed[]; edges: Array<{ a: Placed; b: Placed }>; w: number; h: number; }
+/** Interval-graph lane assignment so connectors sharing vertical extent never
+ *  sit in the same lane (ported from ArgumentFlowGraph). */
+function assignLanes(edges: Array<{ from: number; to: number }>): number[] {
+  const order = edges
+    .map((c, i) => ({ i, lo: Math.min(c.from, c.to), hi: Math.max(c.from, c.to) }))
+    .sort((a, b) => a.lo - b.lo || a.hi - b.hi);
+  const laneHi: number[] = [];
+  const lanes = new Array<number>(edges.length).fill(0);
+  for (const { i, lo, hi } of order) {
+    let lane = laneHi.findIndex((h) => h < lo);
+    if (lane === -1) { lane = laneHi.length; laneHi.push(hi); }
+    else laneHi[lane] = hi;
+    lanes[i] = lane;
+  }
+  return lanes;
+}
 
-/** Layered left→right layout over the VISIBLE subgraph (root + children of
- *  expanded nodes). depth = longest path from root, so sources sink right. */
-function layoutDag(tree: RunTree, expanded: Set<string>): Layout {
+interface LaidEdge { fromRow: number; toRow: number; lane: number; }
+interface Layout {
+  order: string[];
+  rowOf: Map<string, number>;
+  edges: LaidEdge[];
+  laneCount: number;
+  width: number;
+  height: number;
+}
+
+function computeLayout(tree: RunTree, expanded: Set<string>): Layout {
   const childrenOf = (id: string) => tree.edges.filter((e) => e[0] === id).map((e) => e[1]);
   const root = tree.root;
+  // visible = root + transitive children of expanded nodes
   const vis = new Set<string>([root]);
   let changed = true;
   while (changed) {
     changed = false;
-    for (const id of [...vis]) {
-      if (expanded.has(id)) for (const c of childrenOf(id)) if (!vis.has(c)) { vis.add(c); changed = true; }
-    }
+    for (const id of [...vis]) if (expanded.has(id)) for (const c of childrenOf(id)) if (!vis.has(c)) { vis.add(c); changed = true; }
   }
   const visEdges = tree.edges.filter(([a, b]) => vis.has(a) && vis.has(b) && expanded.has(a));
+  // depth = longest path from root (so a node sits below every parent)
   const depth: Record<string, number> = { [root]: 0 };
-  for (let k = 0; k < vis.size + 2; k++) {
-    for (const [a, b] of visEdges) if (depth[a] != null) depth[b] = Math.max(depth[b] ?? 0, depth[a] + 1);
-  }
-  const cols: Record<number, string[]> = {};
-  let maxD = 0;
-  for (const id of vis) { const d = depth[id] ?? 0; (cols[d] ??= []).push(id); maxD = Math.max(maxD, d); }
-  const pos = new Map<string, Placed>();
-  for (let d = 0; d <= maxD; d++) (cols[d] ?? []).forEach((id, i) => pos.set(id, { id, x: PAD_X + d * COL_W, y: PAD_Y + i * ROW_H }));
-  const rowsMax = Math.max(1, ...Object.values(cols).map((c) => c.length));
+  for (let k = 0; k < vis.size + 2; k++) for (const [a, b] of visEdges) if (depth[a] != null) depth[b] = Math.max(depth[b] ?? 0, depth[a] + 1);
+  // discovery order (BFS) breaks ties within a depth band
+  const seenOrder: string[] = []; const q = [root]; const mark = new Set([root]);
+  while (q.length) { const id = q.shift()!; seenOrder.push(id); for (const c of childrenOf(id)) if (vis.has(c) && !mark.has(c)) { mark.add(c); q.push(c); } }
+  const order = [...vis].sort((a, b) => (depth[a] ?? 0) - (depth[b] ?? 0) || seenOrder.indexOf(a) - seenOrder.indexOf(b));
+  const rowOf = new Map(order.map((id, i) => [id, i]));
+  const laid = visEdges.map(([a, b]) => ({ from: rowOf.get(a)!, to: rowOf.get(b)! }));
+  const lanes = assignLanes(laid);
+  const laneCount = lanes.length ? Math.max(...lanes) + 1 : 0;
+  const edges: LaidEdge[] = laid.map((e, i) => ({ fromRow: e.from, toRow: e.to, lane: lanes[i] }));
+  const gutter = LANE_BASE + Math.max(1, laneCount) * LANE_STEP + 10;
   return {
-    placed: [...pos.values()],
-    edges: visEdges.map(([a, b]) => ({ a: pos.get(a)!, b: pos.get(b)! })).filter((e) => e.a && e.b),
-    w: PAD_X * 2 + maxD * COL_W + NODE_W,
-    h: Math.max(160, PAD_Y * 2 + rowsMax * ROW_H),
+    order, rowOf, edges, laneCount,
+    width: LEFT_PAD + NODE_W + gutter,
+    height: TOP_PAD * 2 + order.length * NODE_H + (order.length - 1) * ROW_GAP,
   };
 }
 
-function edgePath(a: Placed, b: Placed): string {
-  const x1 = a.x + NODE_W, y1 = a.y + NODE_H / 2, x2 = b.x, y2 = b.y + NODE_H / 2, mx = (x1 + x2) / 2;
-  return `M ${x1} ${y1} C ${mx} ${y1} ${mx} ${y2} ${x2} ${y2}`;
+/** Orthogonal connector through the right gutter: out of the source's right edge,
+ *  a rounded corner into a vertical run at the lane's x, then a rounded corner
+ *  back into the target's right edge (ported from ArgumentFlowGraph). */
+function edgePath(fromRow: number, toRow: number, lane: number): string {
+  const rightX = LEFT_PAD + NODE_W;
+  const laneX = LEFT_PAD + NODE_W + LANE_BASE + lane * LANE_STEP;
+  const y1 = TOP_PAD + fromRow * ROW_H + NODE_H / 2;
+  const y2 = TOP_PAD + toRow * ROW_H + NODE_H / 2;
+  const dir = y2 >= y1 ? 1 : -1;
+  const r = Math.min(CORNER_R, laneX - rightX, Math.abs(y2 - y1) / 2 || CORNER_R);
+  return [
+    `M ${rightX} ${y1}`,
+    `L ${laneX - r} ${y1}`,
+    `Q ${laneX} ${y1} ${laneX} ${y1 + dir * r}`,
+    `L ${laneX} ${y2 - dir * r}`,
+    `Q ${laneX} ${y2} ${laneX - r} ${y2}`,
+    `L ${rightX} ${y2}`,
+  ].join(' ');
 }
 
-/** source = database cylinder, generation = sparkle; both in the badge color. */
+/** source = database cylinder, generation = sparkle. Inline 18px SVG. */
 function NodeIcon(props: { kind: TreeNode['kind']; color: string }): JSX.Element {
   return (
-    <Show
-      when={props.kind === 'source'}
-      fallback={<path d="M0 -6.6 L1.7 -1.7 L6.6 0 L1.7 1.7 L0 6.6 L-1.7 1.7 L-6.6 0 L-1.7 -1.7 Z" fill={props.color} />}
-    >
-      <>
-        <ellipse cx={0} cy={-3.6} rx={5.6} ry={2.2} fill="none" stroke={props.color} stroke-width={1.4} />
-        <path d="M -5.6 -3.6 V 3.6 A 5.6 2.2 0 0 0 5.6 3.6 V -3.6" fill="none" stroke={props.color} stroke-width={1.4} />
-        <path d="M -5.6 0 A 5.6 2.2 0 0 0 5.6 0" fill="none" stroke={props.color} stroke-width={1.2} />
-      </>
-    </Show>
+    <svg width="18" height="18" viewBox="-9 -9 18 18" style={{ display: 'block', 'flex-shrink': 0 }}>
+      <Show
+        when={props.kind === 'source'}
+        fallback={<path d="M0 -6.6 L1.7 -1.7 L6.6 0 L1.7 1.7 L0 6.6 L-1.7 1.7 L-6.6 0 L-1.7 -1.7 Z" fill={props.color} />}
+      >
+        <>
+          <ellipse cx={0} cy={-3.6} rx={5.6} ry={2.2} fill="none" stroke={props.color} stroke-width={1.4} />
+          <path d="M -5.6 -3.6 V 3.6 A 5.6 2.2 0 0 0 5.6 3.6 V -3.6" fill="none" stroke={props.color} stroke-width={1.4} />
+          <path d="M -5.6 0 A 5.6 2.2 0 0 0 5.6 0" fill="none" stroke={props.color} stroke-width={1.2} />
+        </>
+      </Show>
+    </svg>
+  );
+}
+
+interface DafRun {
+  id: string; label: string; kind: 'llm' | 'computed'; producer: 'mark' | 'enrichment';
+  model?: string; cached: boolean; cold_ms: number | null; cost: number | null; tokens: number | null;
+}
+
+/** One waterfall row — a piece run with a cold-time bar. Used as the collapsed
+ *  header (the selected run) and as each row of the full waterfall list. */
+function RunRow(props: { run: DafRun; maxMs: number; active?: boolean; collapsed?: boolean; onClick: () => void }): JSX.Element {
+  const r = () => props.run;
+  const isLLM = () => r().kind === 'llm';
+  const slow = () => (r().cold_ms ?? 0) > 10_000;
+  const color = () => isLLM() ? (r().model?.includes('pro') ? BADGE_PRO : BADGE_LLM) : BADGE_SRC;
+  const pct = () => Math.max(2, Math.round(((r().cold_ms ?? 0) / props.maxMs) * 100));
+  return (
+    <div onClick={props.onClick} title={r().id}
+      style={{
+        display: 'flex', 'align-items': 'center', gap: '0.5rem', padding: '0.3rem 0.6rem', cursor: 'pointer',
+        'border-left': `2px solid ${props.active ? ACTIVE_STROKE : 'transparent'}`,
+        background: props.active ? '#fdf2f2' : 'transparent',
+      }}>
+      <NodeIcon kind={isLLM() ? 'llm' : 'source'} color={color()} />
+      <span style={{ width: '8.5rem', 'flex-shrink': 0, 'font-size': '0.8rem', 'white-space': 'nowrap', overflow: 'hidden', 'text-overflow': 'ellipsis' }}>{r().label}</span>
+      <div style={{ flex: 1, 'min-width': '20px', height: '8px', background: '#efece3', 'border-radius': '3px', overflow: 'hidden' }}>
+        <div style={{ width: `${pct()}%`, height: '100%', background: !r().cached ? '#d4d4d4' : slow() ? '#fbbf24' : isLLM() ? '#86efac' : '#bae6fd' }} />
+      </div>
+      <span style={{ width: '2.7rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', 'font-size': '0.72rem', color: slow() ? '#b45309' : '#888', 'flex-shrink': 0 }}>{fmtMs(r().cold_ms)}</span>
+      <span style={{ width: '3.7rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', 'font-size': '0.72rem', color: '#047857', 'flex-shrink': 0 }}>{isLLM() ? fmtCost(r().cost) : '—'}</span>
+      <span style={{ width: '1.7rem', 'text-align': 'right', 'font-size': '0.6rem', 'flex-shrink': 0 }}>
+        <Show when={r().cached} fallback={<span style={{ color: '#b45309' }}>miss</span>}><span style={{ color: '#15803d', background: '#dcfce7', 'border-radius': '3px', padding: '0 0.2rem' }}>hit</span></Show>
+      </span>
+      <Show when={props.collapsed}><span style={{ color: '#bbb', 'font-size': '0.7rem', 'flex-shrink': 0 }}>▾</span></Show>
+    </div>
   );
 }
 
 export default function RunTreeDock(props: { tractate: string; page: string; open: boolean; onClose: () => void }): JSX.Element {
+  const [view, setView] = createSignal<'waterfall' | 'dag'>('dag');
   const [pieceId, setPieceId] = createSignal('tidbit.essay');
   const [expanded, setExpanded] = createSignal<Set<string>>(new Set(['tidbit.essay']));
   const [selected, setSelected] = createSignal<string | null>('tidbit.essay');
-  const [height, setHeight] = createSignal(Math.round(window.innerHeight * 0.5));
+  const [width, setWidth] = createSignal(Math.min(620, Math.round(window.innerWidth * 0.42)));
+
+  // Waterfall feed — every top-level run on this daf with cached telemetry.
+  const [runs] = createResource(
+    () => (props.open ? `${props.tractate}|${props.page}|${lang()}` : null),
+    async (): Promise<DafRun[]> => {
+      const r = await fetch(`/api/daf-runs/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}?lang=${lang()}`);
+      if (!r.ok) return [];
+      return ((await r.json()) as { runs: DafRun[] }).runs;
+    },
+  );
+  const maxCold = createMemo(() => Math.max(1, ...(runs() ?? []).map((r) => r.cold_ms ?? 0)));
+  const dafTotals = createMemo(() => {
+    const rs = runs() ?? [];
+    return { count: rs.length, cached: rs.filter((r) => r.cached).length, cost: rs.reduce((s, r) => s + (r.cost ?? 0), 0), cold_ms: rs.reduce((s, r) => s + (r.cold_ms ?? 0), 0) };
+  });
+  const openPiece = (id: string) => { setPieceId(id); setExpanded(new Set([id])); setSelected(id); setView('dag'); };
 
   const [tree] = createResource(
     () => (props.open ? `${props.tractate}|${props.page}|${pieceId()}|${lang()}` : null),
@@ -146,17 +226,12 @@ export default function RunTreeDock(props: { tractate: string; page: string; ope
     },
   );
 
-  // Reset the expansion + selection to the new root whenever the piece changes.
-  const pickPiece = (id: string) => { setPieceId(id); setExpanded(new Set([id])); setSelected(id); };
-
-  const layout = createMemo<Layout | null>(() => { const t = tree(); return t ? layoutDag(t, expanded()) : null; });
-
+  const layout = createMemo<Layout | null>(() => { const t = tree(); return t ? computeLayout(t, expanded()) : null; });
   const nodeOf = (id: string): TreeNode | undefined => tree()?.nodes[id];
   const hasKids = (id: string): boolean => !!tree()?.edges.some((e) => e[0] === id);
   const toggleExpand = (id: string) => setExpanded((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const badgeColor = (n: TreeNode) => n.kind !== 'llm' ? BADGE_SRC : (n.model?.includes('pro') ? BADGE_PRO : BADGE_LLM);
 
-  // Node detail — lazy: load the selected producer's cached run (prompt +
-  // generation) on demand. Sources have no run.
   const [detail] = createResource(
     () => { const id = selected(); const n = id ? nodeOf(id) : null; return n && n.kind !== 'source' && n.producer ? { id, producer: n.producer } : null; },
     async (sel): Promise<RunResult | null> => {
@@ -173,126 +248,158 @@ export default function RunTreeDock(props: { tractate: string; page: string; ope
   const onResizeStart = (ev: MouseEvent) => {
     ev.preventDefault();
     document.body.style.userSelect = 'none';
-    const move = (e: MouseEvent) => setHeight(Math.max(240, Math.min(window.innerHeight - 60, window.innerHeight - e.clientY)));
+    const move = (e: MouseEvent) => setWidth(Math.max(380, Math.min(window.innerWidth - 120, window.innerWidth - e.clientX)));
     const up = () => { document.body.style.userSelect = ''; document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
     document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
   };
 
-  const badgeColor = (n: TreeNode) => n.kind !== 'llm' ? BADGE_SRC : (n.model?.includes('pro') ? BADGE_PRO : BADGE_LLM);
+  const nodeY = (id: string) => { const r = layout()!.rowOf.get(id)!; return TOP_PAD + r * ROW_H; };
 
   return (
     <Show when={props.open}>
-      <div style={{
-        position: 'fixed', left: 0, right: 0, bottom: 0, height: `${height()}px`,
-        background: '#fff', 'border-top': '2px solid #111', 'box-shadow': '0 -6px 24px rgba(0,0,0,0.13)',
+      <aside style={{
+        position: 'fixed', top: 0, right: 0, bottom: 0, width: `${width()}px`,
+        background: '#fff', 'border-left': '2px solid #111', 'box-shadow': '-6px 0 24px rgba(0,0,0,0.13)',
         'z-index': 1000, display: 'flex', 'flex-direction': 'column',
         'font-family': 'system-ui, sans-serif', 'font-size': '13px',
       }}>
-        {/* resize handle */}
+        {/* resize handle (left edge) */}
         <div onMouseDown={onResizeStart} title="drag to resize"
-          style={{ position: 'absolute', top: '-4px', left: 0, right: 0, height: '9px', cursor: 'ns-resize', 'z-index': 1002 }} />
+          style={{ position: 'absolute', top: 0, left: '-4px', bottom: 0, width: '9px', cursor: 'ew-resize', 'z-index': 1002 }} />
 
-        {/* header */}
-        <div style={{ display: 'flex', 'align-items': 'center', gap: '0.6rem', padding: '0.4rem 0.8rem', 'border-bottom': '1px solid #eee', background: '#fafafa', 'flex-shrink': 0 }}>
-          <span style={{ 'font-size': '0.72rem', 'letter-spacing': '0.06em', 'text-transform': 'uppercase', color: '#555', 'font-weight': 600 }}>Build</span>
-          <select value={pieceId()} onChange={(e) => pickPiece(e.currentTarget.value)} style={{ 'font-size': '0.78rem', padding: '2px 6px', 'font-family': 'inherit' }}>
-            <For each={COMMON_PIECES}>{(p) => <option value={p}>{p}</option>}</For>
-          </select>
-          <Show when={tree()}>{(t) => (
-            <span style={{ 'margin-left': '0.3rem', display: 'flex', gap: '0.9rem', 'font-size': '0.74rem', 'font-variant-numeric': 'tabular-nums' }}>
-              <span style={{ color: '#b45309' }}>cold {fmtMs(t().totals.cold_ms)}</span>
-              <span style={{ color: '#047857' }}>{fmtCost(t().totals.cost)}</span>
-              <span style={{ color: '#888' }}>{t().totals.llm} LLM · {t().totals.source} source · {t().totals.cached}/{t().totals.count} cached</span>
-            </span>
-          )}</Show>
+        {/* title bar */}
+        <div style={{ display: 'flex', 'align-items': 'center', gap: '0.5rem', padding: '0.4rem 0.7rem', 'border-bottom': '1px solid #eee', background: '#fafafa', 'flex-shrink': 0 }}>
+          <span style={{ 'font-size': '0.72rem', 'letter-spacing': '0.06em', 'text-transform': 'uppercase', color: '#555', 'font-weight': 600 }}>{view() === 'waterfall' ? 'Activity' : 'Build'}</span>
+          <span style={{ 'font-size': '0.72rem', color: '#999' }}>{props.tractate} {props.page}</span>
+          <Show when={view() === 'dag' && runs()}>
+            <span style={{ 'font-size': '0.7rem', color: '#bbb' }}>· {dafTotals().cached}/{dafTotals().count} pieces cached · {fmtCost(dafTotals().cost)} daf</span>
+          </Show>
           <button onClick={props.onClose} style={{ 'margin-left': 'auto', padding: '2px 10px', cursor: 'pointer', background: '#fff', border: '1px solid #ccc', 'border-radius': '4px', 'font-size': '0.74rem', color: '#555' }}>close</button>
         </div>
 
-        {/* body: DAG (left) + node detail (right) */}
-        <div style={{ flex: 1, 'min-height': 0, display: 'flex' }}>
-          <div style={{ flex: 1.6, 'min-width': 0, overflow: 'auto', background: '#fafaf7', 'border-right': '1px solid #eee' }}>
-            <div style={{ display: 'flex', 'align-items': 'center', gap: '0.5rem', padding: '0.4rem 0.7rem', 'font-size': '0.7rem', color: '#999', 'border-bottom': '1px solid #efece3', background: '#fff', position: 'sticky', top: 0 }}>
-              <b style={{ color: '#444', 'font-size': '0.78rem' }}>{pieceId()}</b><span>dependency graph</span>
-              <span style={{ 'margin-left': 'auto', 'font-size': '0.66rem', color: '#bbb' }}>click a node to open it · ⊕ to expand its inputs</span>
-            </div>
-            <Show when={tree.loading}><div style={{ padding: '1rem', color: '#aaa' }}>loading…</div></Show>
-            <Show when={tree() === null && !tree.loading}><div style={{ padding: '1rem', color: '#c00' }}>no graph (unknown piece, or run-tree unavailable)</div></Show>
-            <Show when={layout()}>{(lay) => (
-              <div style={{ padding: '0.5rem' }}>
-                <svg width={lay().w} height={lay().h} viewBox={`0 0 ${lay().w} ${lay().h}`} style={{ display: 'block', border: `1px solid ${CANVAS_BORDER}`, 'border-radius': '8px', background: CANVAS }}>
-                  <defs>
-                    <marker id="rt-arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 z" fill="#c9b8b0" /></marker>
-                    <filter id="rt-shadow" x="-20%" y="-30%" width="140%" height="160%"><feDropShadow dx="0" dy="1" stdDeviation="1.3" flood-color="#3a3320" flood-opacity="0.12" /></filter>
-                  </defs>
-                  <For each={lay().edges}>{(e) => <path d={edgePath(e.a, e.b)} fill="none" stroke="#d8c9c0" stroke-width={1.4} marker-end="url(#rt-arrow)" />}</For>
-                  <For each={lay().placed}>{(p) => {
-                    const n = () => nodeOf(p.id)!;
-                    const isLLM = () => n().kind === 'llm';
-                    const sel = () => selected() === p.id;
-                    const exp = () => expanded().has(p.id);
-                    return (
-                      <g style={{ cursor: 'pointer' }} onClick={() => { setSelected(p.id); if (hasKids(p.id)) toggleExpand(p.id); }}>
-                        <rect x={p.x} y={p.y} width={NODE_W} height={NODE_H} rx={9} fill={sel() ? ACTIVE_FILL : CARD} stroke={sel() ? ACTIVE_STROKE : CARD_STROKE} stroke-width={sel() ? 1.8 : 1} filter="url(#rt-shadow)" />
-                        <g transform={`translate(${p.x + 17},${p.y + 16})`}><NodeIcon kind={n().kind} color={badgeColor(n())} /></g>
-                        <text x={p.x + 32} y={p.y + 17} font-size="11.5" font-weight="600" font-family="system-ui" fill="#2a2723">{n().label.length > 16 ? n().label.slice(0, 15) + '…' : n().label}</text>
-                        <text x={p.x + 32} y={p.y + 33} font-size="9.5" font-family="ui-monospace, Menlo, monospace" fill={isLLM() ? '#9a8fb5' : '#9aa4ad'}>
-                          {isLLM() ? `${(n().model ?? '').split('/').pop()} · ${fmtCost(n().cost)}` : 'source · $0'}
-                        </text>
-                        <text x={p.x + NODE_W - 8} y={p.y + 15} text-anchor="end" font-size="9.5" font-family="ui-monospace, Menlo, monospace" fill={(n().cold_ms ?? 0) > 10000 ? '#b45309' : '#9a857c'}>{fmtMs(n().cold_ms)}</text>
-                        <Show when={hasKids(p.id)}>
-                          <g onClick={(ev) => { ev.stopPropagation(); setSelected(p.id); toggleExpand(p.id); }}>
-                            <circle cx={p.x + NODE_W} cy={p.y + NODE_H / 2} r={8} fill="#fff" stroke="#d8c9c0" stroke-width={1} />
-                            <text x={p.x + NODE_W} y={p.y + NODE_H / 2 + 1} text-anchor="middle" dominant-baseline="central" font-size="12" font-family="system-ui" fill="#8a7d74">{exp() ? '–' : '+'}</text>
-                          </g>
-                        </Show>
-                      </g>
-                    );
-                  }}</For>
-                </svg>
-              </div>
-            )}</Show>
+        {/* collapsed waterfall row (DAG mode) — click to expand the full waterfall */}
+        <Show when={view() === 'dag'}>
+          <div style={{ 'border-bottom': '1px solid #eee', 'flex-shrink': 0 }}>
+            <RunRow
+              run={(runs() ?? []).find((r) => r.id === pieceId()) ?? { id: pieceId(), label: pieceId(), kind: 'llm', producer: 'enrichment', cached: !!tree(), cold_ms: tree()?.totals.cold_ms ?? null, cost: tree()?.totals.cost ?? null, tokens: null }}
+              maxMs={maxCold()} collapsed active
+              onClick={() => setView('waterfall')}
+            />
           </div>
+        </Show>
 
-          {/* node detail */}
-          <div style={{ flex: 1, 'min-width': '300px', display: 'flex', 'flex-direction': 'column', overflow: 'hidden' }}>
-            <Show when={selected() ? nodeOf(selected()!) : null} fallback={<div style={{ padding: '1rem', color: '#bbb' }}>select a node</div>}>{(n) => (
-              <>
-                <div style={{ padding: '0.5rem 0.7rem', 'border-bottom': '1px solid #eee', display: 'flex', 'flex-wrap': 'wrap', gap: '0.35rem', 'align-items': 'center' }}>
-                  <span style={{ 'font-weight': 600, 'font-size': '0.84rem', 'margin-right': '0.3rem' }}>{n().label}</span>
-                  <span style={{ 'font-size': '0.68rem', background: '#f1f1f3', 'border-radius': '4px', padding: '0.05rem 0.4rem', color: '#555', 'font-family': 'ui-monospace, Menlo, monospace' }}>{n().kind === 'source' ? 'source' : (n().model ?? 'llm')}</span>
-                  <Show when={n().cold_ms != null}><span style={{ 'font-size': '0.68rem', background: '#f1f1f3', 'border-radius': '4px', padding: '0.05rem 0.4rem', color: '#555', 'font-family': 'ui-monospace, Menlo, monospace' }}>gen {fmtMs(n().cold_ms)}</span></Show>
-                  <Show when={n().kind === 'llm'}><span style={{ 'font-size': '0.68rem', background: '#ecfdf5', 'border-radius': '4px', padding: '0.05rem 0.4rem', color: '#047857', 'font-family': 'ui-monospace, Menlo, monospace' }}>{fmtCost(n().cost)}</span></Show>
-                  <span style={{ 'font-size': '0.68rem', 'border-radius': '4px', padding: '0.05rem 0.4rem', 'font-family': 'ui-monospace, Menlo, monospace', ...(n().cached ? { background: '#dcfce7', color: '#15803d' } : { background: '#fef3c7', color: '#b45309' }) }}>{n().cached ? 'cached' : 'not cached'}</span>
-                </div>
-                <div style={{ flex: 1, 'overflow-y': 'auto', padding: '0.6rem 0.7rem' }}>
-                  <Show when={n().kind === 'source'} fallback={
-                    <>
-                      <Show when={detail.loading}><div style={{ color: '#aaa', 'font-size': '0.78rem' }}>loading run…</div></Show>
-                      <Show when={detail()}>{(r) => (
-                        <>
-                          <div style={{ 'line-height': 1.55, 'font-size': '0.84rem', color: '#222', 'white-space': 'pre-wrap' }}>{(r().content ?? '').slice(0, 1400)}</div>
-                          <Show when={r().resolved}>{(res) => (
-                            <details style={{ 'margin-top': '0.7rem' }}>
-                              <summary style={{ cursor: 'pointer', 'font-size': '0.74rem', color: '#666' }}>prompt (system + user)</summary>
-                              <div style={{ 'font-size': '0.64rem', color: '#999', 'margin-top': '0.3rem' }}>system</div>
-                              <pre style={{ 'white-space': 'pre-wrap', 'font-family': 'ui-monospace, Menlo, monospace', 'font-size': '11px', margin: 0, background: '#f8f8f8', padding: '0.5rem', 'border-radius': '3px', 'max-height': '18vh', overflow: 'auto' }}>{res().system_prompt}</pre>
-                              <div style={{ 'font-size': '0.64rem', color: '#999', margin: '0.3rem 0 0' }}>user</div>
-                              <pre style={{ 'white-space': 'pre-wrap', 'font-family': 'ui-monospace, Menlo, monospace', 'font-size': '11px', margin: 0, background: '#f8f8f8', padding: '0.5rem', 'border-radius': '3px', 'max-height': '18vh', overflow: 'auto' }}>{res().user_prompt}</pre>
-                            </details>
-                          )}</Show>
-                        </>
-                      )}</Show>
-                      <Show when={!detail.loading && !detail()}><div style={{ color: '#bbb', 'font-size': '0.78rem' }}>nothing cached for this node on this daf yet.</div></Show>
-                    </>
-                  }>
-                    <div style={{ 'font-size': '0.82rem', color: '#555' }}>A <b>source</b> input — fetched/assembled, no model call (cost $0). The piece's prompt reads its text.</div>
-                  </Show>
-                </div>
-              </>
-            )}</Show>
+        {/* full waterfall (Activity mode) */}
+        <Show when={view() === 'waterfall'}>
+          <div style={{ flex: 1, 'min-height': 0, overflow: 'auto' }}>
+            <Show when={runs.loading}><div style={{ padding: '0.6rem', color: '#aaa' }}>loading…</div></Show>
+            <For each={runs() ?? []}>{(r) => <RunRow run={r} maxMs={maxCold()} active={r.id === pieceId()} onClick={() => openPiece(r.id)} />}</For>
           </div>
+        </Show>
+
+        {/* DAG (top, scrollable) */}
+        <Show when={view() === 'dag'}>
+        <div style={{ flex: 1, 'min-height': 0, overflow: 'auto', background: CANVAS, padding: '0.5rem' }}>
+          <Show when={tree.loading}><div style={{ padding: '0.5rem', color: '#aaa' }}>loading…</div></Show>
+          <Show when={tree() === null && !tree.loading}><div style={{ padding: '0.5rem', color: '#c00' }}>no graph (unknown piece, or nothing cached)</div></Show>
+          <Show when={layout()}>{(lay) => (
+            <div style={{ position: 'relative', width: `${lay().width}px`, height: `${lay().height}px`, border: `1px solid ${CANVAS_BORDER}`, 'border-radius': '8px', background: CANVAS }}>
+              {/* edge layer */}
+              <svg width={lay().width} height={lay().height} style={{ position: 'absolute', inset: 0, 'pointer-events': 'none', overflow: 'visible' }}>
+                <defs>
+                  <marker id="rt-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 z" fill="#c9b8b0" /></marker>
+                </defs>
+                <For each={lay().edges}>{(e) => (
+                  <path d={edgePath(e.fromRow, e.toRow, e.lane)} fill="none" stroke="#d3c4ba" stroke-width={1.5} stroke-linecap="round" stroke-linejoin="round" marker-end="url(#rt-arrow)" />
+                )}</For>
+              </svg>
+              {/* node cards */}
+              <For each={lay().order}>{(id) => {
+                const n = () => nodeOf(id)!;
+                const isLLM = () => n().kind === 'llm';
+                const sel = () => selected() === id;
+                const exp = () => expanded().has(id);
+                const slow = () => (n().cold_ms ?? 0) > 10_000;
+                return (
+                  <div
+                    onClick={() => { setSelected(id); if (hasKids(id)) toggleExpand(id); }}
+                    style={{
+                      position: 'absolute', left: `${LEFT_PAD}px`, top: `${nodeY(id)}px`, width: `${NODE_W}px`, height: `${NODE_H}px`,
+                      display: 'flex', 'align-items': 'center', gap: '0.5rem', padding: '0 0.6rem', cursor: 'pointer', 'box-sizing': 'border-box',
+                      background: sel() ? '#fdf2f2' : '#fff',
+                      border: `${sel() ? 1.75 : 1}px solid ${sel() ? ACTIVE_STROKE : CARD_STROKE}`,
+                      'border-radius': '11px', 'box-shadow': '0 1px 2px rgba(58,51,32,0.08)',
+                    }}
+                  >
+                    <NodeIcon kind={n().kind} color={badgeColor(n())} />
+                    <div style={{ flex: 1, 'min-width': 0 }}>
+                      <div style={{ display: 'flex', 'align-items': 'baseline', gap: '0.4rem' }}>
+                        <span style={{ 'font-weight': 600, 'font-size': '0.84rem', color: '#2a2723', 'white-space': 'nowrap', overflow: 'hidden', 'text-overflow': 'ellipsis' }}>{n().label}</span>
+                        <span style={{ 'margin-left': 'auto', 'font-size': '0.68rem', 'font-variant-numeric': 'tabular-nums', color: slow() ? '#b45309' : '#9a857c', 'flex-shrink': 0 }}>{fmtMs(n().cold_ms)}</span>
+                      </div>
+                      <div style={{ 'font-size': '0.66rem', 'font-family': 'ui-monospace, Menlo, monospace', color: isLLM() ? '#9a8fb5' : '#9aa4ad', 'white-space': 'nowrap', overflow: 'hidden', 'text-overflow': 'ellipsis' }}>
+                        {isLLM() ? `${(n().model ?? '').split('/').pop()} · ${fmtCost(n().cost)}` : 'source · $0'}
+                      </div>
+                    </div>
+                    <Show when={hasKids(id)}>
+                      <button
+                        onClick={(ev) => { ev.stopPropagation(); setSelected(id); toggleExpand(id); }}
+                        title={exp() ? 'collapse inputs' : 'expand inputs'}
+                        style={{
+                          'flex-shrink': 0, width: '18px', height: '18px', 'border-radius': '50%', border: '1px solid #d8c9c0',
+                          background: '#fff', color: '#8a7d74', cursor: 'pointer', 'font-size': '0.8rem', 'line-height': 1,
+                          display: 'inline-flex', 'align-items': 'center', 'justify-content': 'center', padding: 0,
+                        }}
+                      >{exp() ? '–' : '+'}</button>
+                    </Show>
+                  </div>
+                );
+              }}</For>
+            </div>
+          )}</Show>
         </div>
-      </div>
+        </Show>
+
+        {/* node detail (bottom) — DAG mode only */}
+        <Show when={view() === 'dag'}>
+        <div style={{ 'flex-basis': '38%', 'min-height': '120px', 'border-top': '1px solid #eee', display: 'flex', 'flex-direction': 'column', overflow: 'hidden' }}>
+          <Show when={selected() ? nodeOf(selected()!) : null} fallback={<div style={{ padding: '0.7rem', color: '#bbb' }}>select a node</div>}>{(n) => (
+            <>
+              <div style={{ padding: '0.45rem 0.7rem', 'border-bottom': '1px solid #f0f0f0', display: 'flex', 'flex-wrap': 'wrap', gap: '0.35rem', 'align-items': 'center' }}>
+                <span style={{ 'font-weight': 600, 'font-size': '0.84rem', 'margin-right': '0.2rem' }}>{n().label}</span>
+                <span style={{ 'font-size': '0.66rem', background: '#f1f1f3', 'border-radius': '4px', padding: '0.05rem 0.4rem', color: '#555', 'font-family': 'ui-monospace, Menlo, monospace' }}>{n().kind === 'source' ? 'source' : (n().model ?? 'llm')}</span>
+                <Show when={n().cold_ms != null}><span style={{ 'font-size': '0.66rem', background: '#f1f1f3', 'border-radius': '4px', padding: '0.05rem 0.4rem', color: '#555', 'font-family': 'ui-monospace, Menlo, monospace' }}>gen {fmtMs(n().cold_ms)}</span></Show>
+                <Show when={n().kind === 'llm'}><span style={{ 'font-size': '0.66rem', background: '#ecfdf5', 'border-radius': '4px', padding: '0.05rem 0.4rem', color: '#047857', 'font-family': 'ui-monospace, Menlo, monospace' }}>{fmtCost(n().cost)}</span></Show>
+                <span style={{ 'font-size': '0.66rem', 'border-radius': '4px', padding: '0.05rem 0.4rem', 'font-family': 'ui-monospace, Menlo, monospace', ...(n().cached ? { background: '#dcfce7', color: '#15803d' } : { background: '#fef3c7', color: '#b45309' }) }}>{n().cached ? 'cached' : 'not cached'}</span>
+              </div>
+              <div style={{ flex: 1, 'overflow-y': 'auto', padding: '0.6rem 0.7rem' }}>
+                <Show when={n().kind === 'source'} fallback={
+                  <>
+                    <Show when={detail.loading}><div style={{ color: '#aaa', 'font-size': '0.78rem' }}>loading run…</div></Show>
+                    <Show when={detail()}>{(r) => (
+                      <>
+                        <div style={{ 'line-height': 1.5, 'font-size': '0.82rem', color: '#222', 'white-space': 'pre-wrap' }}>{(r().content ?? '').slice(0, 1600)}</div>
+                        <Show when={r().resolved}>{(res) => (
+                          <details style={{ 'margin-top': '0.7rem' }}>
+                            <summary style={{ cursor: 'pointer', 'font-size': '0.74rem', color: '#666' }}>prompt (system + user)</summary>
+                            <div style={{ 'font-size': '0.64rem', color: '#999', 'margin-top': '0.3rem' }}>system</div>
+                            <pre style={{ 'white-space': 'pre-wrap', 'font-family': 'ui-monospace, Menlo, monospace', 'font-size': '11px', margin: 0, background: '#f8f8f8', padding: '0.5rem', 'border-radius': '3px', 'max-height': '24vh', overflow: 'auto' }}>{res().system_prompt}</pre>
+                            <div style={{ 'font-size': '0.64rem', color: '#999', margin: '0.3rem 0 0' }}>user</div>
+                            <pre style={{ 'white-space': 'pre-wrap', 'font-family': 'ui-monospace, Menlo, monospace', 'font-size': '11px', margin: 0, background: '#f8f8f8', padding: '0.5rem', 'border-radius': '3px', 'max-height': '24vh', overflow: 'auto' }}>{res().user_prompt}</pre>
+                          </details>
+                        )}</Show>
+                      </>
+                    )}</Show>
+                    <Show when={!detail.loading && !detail()}><div style={{ color: '#bbb', 'font-size': '0.78rem' }}>nothing cached for this node on this daf yet.</div></Show>
+                  </>
+                }>
+                  <div style={{ 'font-size': '0.82rem', color: '#555' }}>A <b>source</b> input — fetched/assembled, no model call (cost $0). The piece's prompt reads its text.</div>
+                </Show>
+              </div>
+            </>
+          )}</Show>
+        </div>
+        </Show>
+      </aside>
     </Show>
   );
 }
