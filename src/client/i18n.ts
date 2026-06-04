@@ -628,6 +628,12 @@ const CATALOG = {
   'usage.lintFailures.hint': { en: 'cards pinned after repeated gloss-style / Hebrew-anchor lint failures', he: 'כרטיסים שננעלו לאחר כשלים חוזרים בבדיקת סגנון/עוגן עברי' },
   'usage.bugReports.title': { en: 'Bug reports ({count})', he: 'דיווחי תקלות ({count})' },
   'usage.bugReports.empty': { en: 'Inbox empty.', he: 'תיבת הדואר ריקה.' },
+  // Actionable bug reports at the top of Backlog
+  'usage.reports.title': { en: 'User reports ({count})', he: 'דיווחי משתמשים ({count})' },
+  'usage.reports.empty': { en: 'No open reports — nicely done.', he: 'אין דיווחים פתוחים — כל הכבוד.' },
+  'usage.reports.doneTitle': { en: 'Done ({count})', he: 'טופלו ({count})' },
+  'usage.reports.markDone': { en: 'Mark done', he: 'סמן כטופל' },
+  'usage.reports.restore': { en: 'Restore', he: 'שחזר' },
   'usage.notTracked': { en: 'not tracked', he: 'לא במעקב' },
   'usage.missing': { en: '{count} missing', he: '{count} חסרים' },
   'usage.activity.title': { en: 'Activity', he: 'פעילות' },
