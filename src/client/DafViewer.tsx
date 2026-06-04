@@ -54,7 +54,7 @@ import type { GenerationId } from './generations';
 import { GENERATION_BY_ID } from './generations';
 import { resolveVoiceGroup, voiceGroupNames } from './voiceGroups';
 import { t, lang, setLang } from './i18n';
-import { hasCompletedTutorial, hasDismissedBanner, TUTORIAL_OPEN_NOTE_EVENT, TUTORIAL_CLOSE_NOTE_EVENT, TUTORIAL_HEADER_EVENT } from './tutorial';
+import { hasCompletedTutorial, hasDismissedBanner, TUTORIAL_OPEN_NOTE_EVENT, TUTORIAL_CLOSE_NOTE_EVENT, TUTORIAL_HEADER_EVENT, TUTORIAL_TRANSLATE_EVENT } from './tutorial';
 import { TutorialBanner } from './TutorialBanner';
 
 /** Normalize a rabbi name for fuzzy lookup: drop honorific prefixes, lower
@@ -2414,13 +2414,29 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       if (!isMobile()) return;
       setHeaderOpen(!!(e as CustomEvent<{ open: boolean }>).detail?.open);
     };
+    // The translate steps fire a real translation on the daf: pick a word (or a
+    // short run) about a third of the way down so it's clear of the chrome,
+    // scroll it into view, and activate it — the genuine popup then appears.
+    const onTranslate = (e: Event) => {
+      const kind = (e as CustomEvent<{ kind?: string }>).detail?.kind ?? 'word';
+      if (kind === 'clear') { clearActive(); return; }
+      const words = Array.from(document.querySelectorAll<HTMLElement>('.daf-word'));
+      if (words.length < 4) return;
+      if (isMobile()) setMobileMode('translate');
+      const start = Math.floor(words.length * 0.35);
+      const picked = kind === 'phrase' ? words.slice(start, start + 3) : [words[start]];
+      picked[0].scrollIntoView({ block: 'center', inline: 'center' });
+      setActiveFromWordEls(picked);
+    };
     window.addEventListener(TUTORIAL_OPEN_NOTE_EVENT, onOpen);
     window.addEventListener(TUTORIAL_CLOSE_NOTE_EVENT, onClose);
     window.addEventListener(TUTORIAL_HEADER_EVENT, onHeader);
+    window.addEventListener(TUTORIAL_TRANSLATE_EVENT, onTranslate);
     onCleanup(() => {
       window.removeEventListener(TUTORIAL_OPEN_NOTE_EVENT, onOpen);
       window.removeEventListener(TUTORIAL_CLOSE_NOTE_EVENT, onClose);
       window.removeEventListener(TUTORIAL_HEADER_EVENT, onHeader);
+      window.removeEventListener(TUTORIAL_TRANSLATE_EVENT, onTranslate);
     });
   });
 

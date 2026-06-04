@@ -25,6 +25,7 @@ import {
   openTutorialNote,
   closeTutorialNote,
   setTutorialHeader,
+  triggerTutorialTranslate,
   type TourSupplement,
 } from './tutorial';
 import { GutterGlyph, colorForKind, type GutterKind } from './GutterIcons';
@@ -68,6 +69,7 @@ export function TutorialCoach(): JSX.Element {
   const finish = () => {
     closeTutorialNote();
     setTutorialHeader(false);
+    triggerTutorialTranslate('clear');
     markCompleted();
     window.location.hash = 'daf';
   };
@@ -77,37 +79,57 @@ export function TutorialCoach(): JSX.Element {
   // Where the mobile sheet sits: away from what the step occupies.
   const mobileAnchor = (): 'top' | 'bottom' => (step().note ? 'top' : 'bottom');
 
-  const measure = (attempt = 0) => {
-    clearTimeout(retryTimer);
+  // Watch the spotlit element for size changes (a note panel grows as its
+  // content loads) and re-measure, so the ring waits for the panel to populate
+  // instead of locking onto its empty, pre-load size.
+  const ro = typeof ResizeObserver !== 'undefined'
+    ? new ResizeObserver(() => requestAnimationFrame(() => measure(0, true)))
+    : null;
+  let observed: Element | null = null;
+
+  const measure = (attempt = 0, fromObserver = false) => {
+    if (!fromObserver) clearTimeout(retryTimer);
     const s = step();
     const sel = s.selector ?? (s.target ? `[data-tour="${s.target}"]` : null);
     if (!sel) { setRect(null); reposition(); return; }
-    const els = document.querySelectorAll(sel);
-    if (!els.length) {
+    const all = Array.from(document.querySelectorAll<HTMLElement>(sel));
+    if (!all.length) {
       setRect(null);
       reposition();
       // Marks / notes load async — keep looking for a few seconds, then settle
       // into the centered fallback if the target genuinely never appears.
-      if (attempt < 30) retryTimer = setTimeout(() => measure(attempt + 1), 120);
+      if (!fromObserver && attempt < 30) retryTimer = setTimeout(() => measure(attempt + 1), 120);
       return;
     }
-    // Pick which match to spotlight (e.g. a rabbi name from the body, not the
-    // first one crammed against the top).
-    let idx = 0;
-    if (s.selectorIndex === 'middle') idx = Math.floor(els.length / 2);
-    else if (typeof s.selectorIndex === 'number') idx = Math.max(0, Math.min(s.selectorIndex, els.length - 1));
-    const el = els[idx];
-    // Scroll the target into the area the card won't cover.
-    const block = isMobile() && mobileAnchor() === 'bottom' ? 'start' : 'center';
-    el.scrollIntoView({ block: block as ScrollLogicalPosition, inline: 'center', behavior: 'smooth' });
-    const raw = el.getBoundingClientRect();
-    // Ring only the top of a very tall target (a note panel), so we point at the
-    // note's summary rather than appearing to highlight the whole sidebar.
-    const h = Math.min(raw.height, MAX_RING_H);
-    setRect(new DOMRect(raw.left, raw.top, raw.width, h));
+    // Which match(es) to ring: a specific index (e.g. a rabbi name from the
+    // body), else the union of all matches (e.g. every word of a phrase).
+    let targets = all;
+    if (s.selectorIndex === 'middle') targets = [all[Math.floor(all.length / 2)]];
+    else if (typeof s.selectorIndex === 'number') targets = [all[Math.max(0, Math.min(s.selectorIndex, all.length - 1))]];
+
+    const lead = targets[0];
+    // Observe the element so we re-measure when it grows (content populates).
+    if (observed !== lead) { if (observed) ro?.unobserve(observed); ro?.observe(lead); observed = lead; }
+    // Scroll the target into the area the card won't cover (skip when the
+    // re-measure was triggered by a resize, to avoid scroll fights).
+    if (!fromObserver) {
+      const block = isMobile() && mobileAnchor() === 'bottom' ? 'start' : 'center';
+      lead.scrollIntoView({ block: block as ScrollLogicalPosition, inline: 'center', behavior: 'smooth' });
+    }
+    // Union bounding box of the targets.
+    const rs = targets.map((el) => el.getBoundingClientRect());
+    const left = Math.min(...rs.map((r) => r.left));
+    const top = Math.min(...rs.map((r) => r.top));
+    const right = Math.max(...rs.map((r) => r.right));
+    let bottom = Math.max(...rs.map((r) => r.bottom));
+    // On desktop a note panel is very tall — ring only its top (title +
+    // summary) so it doesn't read as "the whole sidebar is highlighted". On
+    // mobile the note IS the drawer, so ring its full (populated) height.
+    if (!isMobile() && bottom - top > MAX_RING_H) bottom = top + MAX_RING_H;
+    setRect(new DOMRect(left, top, right - left, bottom - top));
     reposition();
   };
-  onCleanup(() => clearTimeout(retryTimer));
+  onCleanup(() => { clearTimeout(retryTimer); ro?.disconnect(); });
 
   const reposition = () => {
     if (isMobile()) { setPos(null); return; } // mobile uses fixed sheets, not side math
@@ -145,6 +167,7 @@ export function TutorialCoach(): JSX.Element {
   // Q&A step (same argument note as the previous step) doesn't remount the
   // panel and lose the expanded state we're about to spotlight.
   let prevNote: string | undefined;
+  let prevTranslate: string | undefined;
   createEffect(() => {
     const s = step();
     setTutorialHeader(!!s.header);
@@ -152,8 +175,18 @@ export function TutorialCoach(): JSX.Element {
       if (s.note) openTutorialNote(s.note); else closeTutorialNote();
       prevNote = s.note;
     }
+    // Fire (or clear) a real translation on the daf for the translate steps.
+    if (s.translate !== prevTranslate) {
+      if (s.translate) triggerTutorialTranslate(s.translate);
+      else if (prevTranslate) triggerTutorialTranslate('clear');
+      prevTranslate = s.translate;
+    }
     setPos(null);
     requestAnimationFrame(() => requestAnimationFrame(() => measure()));
+    // Content (notes, the translation popup) and any autoscroll settle async —
+    // re-measure a few times so the ring lands on the populated, settled target
+    // instead of its empty pre-load size.
+    for (const ms of [250, 600, 1200, 2200]) setTimeout(() => measure(0, true), ms);
     // Expand the in-note Q&A panel so its real suggested questions show. Runs
     // once per step entry (after the note has had a beat to render); the
     // collapsed-state guard keeps repeated measures from toggling it shut.
@@ -183,7 +216,7 @@ export function TutorialCoach(): JSX.Element {
   });
 
   // Leaving the tour: restore the reader's chrome.
-  onCleanup(() => { closeTutorialNote(); setTutorialHeader(false); });
+  onCleanup(() => { closeTutorialNote(); setTutorialHeader(false); triggerTutorialTranslate('clear'); });
 
   onMount(() => {
     const onKey = (e: KeyboardEvent) => {
