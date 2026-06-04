@@ -270,19 +270,29 @@ export default function RunTreeDock(props: {
       .filter((r) => typeFilter().has(variantOf(r)))
       .sort((a, b) => (live.has(b.id) ? 1 : 0) - (live.has(a.id) ? 1 : 0));
   });
-  const openPiece = (id: string) => { setPieceId(id); setExpanded(new Set([id])); setSelected(id); setView('dag'); };
+  // Per-instance focus (a mark_input) when an (i) inspects e.g. one section's
+  // synthesis; null = whole-daf. Cleared when navigating via the waterfall.
+  const [focusInstance, setFocusInstance] = createSignal<unknown>(null);
+  const openPiece = (id: string, instance: unknown = null) => { setPieceId(id); setFocusInstance(instance); setExpanded(new Set([id])); setSelected(id); setView('dag'); };
 
   // An (i) / card affordance anywhere asked to inspect a piece — focus its DAG.
   // (DafViewer opens the panel on the same request.)
   createEffect(() => {
     const req = inspectRequest();
-    if (req) { setTab('build'); openPiece(req.piece); }
+    if (req) { setTab('build'); openPiece(req.piece, req.instance ?? null); }
   });
 
+  // The instance query-string for the ROOT piece (omitted for whole-daf).
+  const instanceQS = (): string => {
+    const inst = focusInstance();
+    if (!inst || (typeof inst === 'object' && Object.keys(inst as object).length === 0)) return '';
+    return `&instance=${encodeURIComponent(JSON.stringify(inst))}`;
+  };
+
   const [tree] = createResource(
-    () => (props.open && view() === 'dag' ? `${props.tractate}|${props.page}|${pieceId()}|${lang()}` : null),
+    () => (props.open && view() === 'dag' ? `${props.tractate}|${props.page}|${pieceId()}|${lang()}|${instanceQS()}` : null),
     async (): Promise<RunTree | null> => {
-      const r = await fetch(`/api/run-tree/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}/${encodeURIComponent(pieceId())}?lang=${lang()}`);
+      const r = await fetch(`/api/run-tree/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}/${encodeURIComponent(pieceId())}?lang=${lang()}${instanceQS()}`);
       if (!r.ok) return null;
       return (await r.json()) as RunTree;
     },
@@ -306,11 +316,14 @@ export default function RunTreeDock(props: {
   const isIncident = (e: LaidEdge) => e.fromId === selected() || e.toId === selected();
 
   const [detail] = createResource(
-    () => { const id = selected(); const n = id ? nodeOf(id) : null; return n && n.kind !== 'source' && n.producer ? { id, producer: n.producer } : null; },
+    () => { const id = selected(); const n = id ? nodeOf(id) : null; return n && n.kind !== 'source' && n.producer ? { id, producer: n.producer, root: id === pieceId() } : null; },
     async (sel): Promise<RunResult | null> => {
+      // The clicked root resolves at its instance (so a per-section synthesis
+      // shows its real generation); other nodes at whole-daf.
+      const markInput = sel.root ? (focusInstance() ?? { fields: {} }) : { fields: {} };
       const body = sel.producer === 'mark'
         ? { mark_id: sel.id, tractate: props.tractate, page: props.page, lang: lang() }
-        : { enrichment_id: sel.id, tractate: props.tractate, page: props.page, mark_input: { fields: {} }, lang: lang() };
+        : { enrichment_id: sel.id, tractate: props.tractate, page: props.page, mark_input: markInput, lang: lang() };
       const r = await fetch('/api/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const j = await r.json() as { status?: string; result?: RunResult } | RunResult;
       if (j && typeof j === 'object' && 'status' in j) return j.status === 'ok' ? j.result ?? null : null;

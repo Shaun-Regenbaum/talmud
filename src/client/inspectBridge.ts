@@ -10,14 +10,16 @@
 
 import { createSignal } from 'solid-js';
 
-export interface InspectRequest { piece: string; nonce: number; }
+export interface InspectRequest { piece: string; instance?: unknown; nonce: number; }
 
 const [inspectRequest, setInspectRequest] = createSignal<InspectRequest | null>(null);
 let nonce = 0;
 
 export { inspectRequest };
 
-/** Ask the Inspect panel to open and focus `pieceId`'s build DAG. */
-export function requestInspect(pieceId: string): void {
-  setInspectRequest({ piece: pieceId, nonce: ++nonce });
+/** Ask the Inspect panel to open and focus `pieceId`'s build DAG. `instance`
+ *  (a mark_input) makes a per-instance piece — e.g. one section's synthesis —
+ *  resolve to its actual cached generation instead of the whole-daf default. */
+export function requestInspect(pieceId: string, instance?: unknown): void {
+  setInspectRequest({ piece: pieceId, instance, nonce: ++nonce });
 }
