@@ -256,7 +256,6 @@ export async function runLLM(env: LLMEnv, opts: LLMCallOptions): Promise<LLMResu
       // fallback hides upstream errors and a final fallback failure
       // reports only the LAST model's error, not what actually started
       // the cascade.
-      // eslint-disable-next-line no-console
       console.warn(`[runLLM] ${model} attempt ${i + 1}/${chain.length} failed: ${detail.slice(0, 300)}`);
       if (!isFallbackWorthy(err) || i === chain.length - 1) throw err;
     }

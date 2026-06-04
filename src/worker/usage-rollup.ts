@@ -119,7 +119,6 @@ async function writeUsage(cache: KVNamespace, d: UsageDelta): Promise<void> {
     }
     await cache.put(key, JSON.stringify(r), { expirationTtl: TTL_S });
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.warn('[usage-rollup] KV write failed:', String(err));
   }
 }

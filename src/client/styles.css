@@ -686,6 +686,18 @@ body.dev-shelf-open .daf-page {
 .gutter-cluster[data-count="1"] .gutter-icon {
   margin: 0 !important;
 }
+/* Touch devices: there's no hover to fan a stack out, and the icons are only
+   14px, so extend each icon's tap target with an invisible ~36px halo. The
+   glyph stays the same size; only the clickable area grows. Later-painted
+   icons sit on top, so on a stacked cluster the topmost wins the tap. */
+@media (pointer: coarse) {
+  .gutter-cluster .gutter-icon::before {
+    content: "";
+    position: absolute;
+    inset: -11px;
+    border-radius: 50%;
+  }
+}
 
 /* — #tutorial walkthrough — a single centered card on desktop; on a phone it
    fills the screen so the body scrolls and the footer stays pinned, and a tall

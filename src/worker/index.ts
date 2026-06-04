@@ -9,6 +9,7 @@ import {
 } from '../lib/sefref';
 import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
 import { collectContext } from './context-providers';
+import { readJsonBody, getRabbiEntryOr404 } from './http-helpers';
 import { curatedParallelsForDaf, type CuratedYerushalmiParallel } from '../lib/yerushalmiParallels';
 import { flattenYerushalmiOutline, alignOutlineToSegments, yerushalmiFloorGroups, type YerushalmiFloorGroup } from '../lib/yerushalmiAlign';
 import { placeRevachWithAi } from './revach-ai-place';
@@ -644,8 +645,9 @@ app.get('/api/marks/:id', async (c) => {
   return c.json({ error: 'not found' }, 404);
 });
 app.put('/api/marks/:id', async (c) => {
-  let body: unknown;
-  try { body = await c.req.json(); } catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const parsed = await readJsonBody(c);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   const v = validateMark({ ...(body as object), id: c.req.param('id') });
   if (!v.ok) return c.json({ error: v.error }, 400);
   const saved = await writeMark(c.env, v.spec);
@@ -1098,8 +1100,9 @@ app.get('/api/enrichments/:id', async (c) => {
   return c.json({ error: 'not found' }, 404);
 });
 app.put('/api/enrichments/:id', async (c) => {
-  let body: unknown;
-  try { body = await c.req.json(); } catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const parsed = await readJsonBody(c);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   const v = validateEnrichment({ ...(body as object), id: c.req.param('id') });
   if (!v.ok) return c.json({ error: v.error }, 400);
   const saved = await writeEnrichment(c.env, v.spec);
@@ -2928,7 +2931,6 @@ async function recordRecentJobError(
     while (arr.length > RECENT_ERRORS_CAP) arr.shift();
     await cache.put(RECENT_ERRORS_KEY, JSON.stringify(arr), { expirationTtl: RECENT_ERRORS_TTL });
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.warn('[recent-errors] KV write failed:', String(err));
   }
 }
@@ -2949,9 +2951,9 @@ async function recordRecentJobError(
  * result to KV under `job:{runId}` AND the canonical cache key.
  */
 app.post('/api/run', async (c) => {
-  let raw: unknown;
-  try { raw = await c.req.json(); }
-  catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const parsed = await readJsonBody(c);
+  if (!parsed.ok) return parsed.response;
+  const raw = parsed.value;
   const body = raw as Partial<JobMessage>;
   if (!body.tractate || !body.page) return c.json({ error: 'tractate and page required' }, 400);
 
@@ -3098,9 +3100,9 @@ app.post('/api/run', async (c) => {
  * that endpoint's surface (no model, no studio knobs), so it needs no extra auth.
  */
 app.post('/api/run-sources', async (c) => {
-  let raw: unknown;
-  try { raw = await c.req.json(); }
-  catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const parsed = await readJsonBody(c);
+  if (!parsed.ok) return parsed.response;
+  const raw = parsed.value;
   const body = raw as { mark_id?: string; enrichment_id?: string; tractate?: string; page?: string; mark_input?: unknown; lang?: string };
   if (!body.tractate || !body.page) return c.json({ error: 'tractate and page required' }, 400);
   if (!body.mark_id && !body.enrichment_id) return c.json({ error: 'mark_id or enrichment_id required' }, 400);
@@ -3133,9 +3135,9 @@ app.post('/api/run-sources', async (c) => {
  * on idle so forward/back navigation lands on a fully-cached page.
  */
 app.post('/api/warm-daf', async (c) => {
-  let raw: unknown;
-  try { raw = await c.req.json(); }
-  catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const parsed = await readJsonBody(c);
+  if (!parsed.ok) return parsed.response;
+  const raw = parsed.value;
   const body = raw as { tractate?: string; page?: string; lang?: string };
   if (!body.tractate || !body.page) return c.json({ error: 'tractate and page required' }, 400);
   if (!c.env.ENRICHMENT_QUEUE) return c.json({ error: 'ENRICHMENT_QUEUE binding not available' }, 503);
@@ -3588,7 +3590,6 @@ app.get('/api/admin/cache-stats', async (c) => {
           const fresh = await computeCacheStats(cache);
           await writeCachedCacheStats(cache, fresh);
         } catch (err) {
-          // eslint-disable-next-line no-console
           console.warn('[cache-stats] background refresh failed:', err);
         }
       })());
@@ -3624,12 +3625,9 @@ app.post('/api/admin/cache-gc', async (c) => {
  * unauthenticated + cheap to call.
  */
 app.post('/api/log', async (c) => {
-  let body: unknown;
-  try {
-    body = await c.req.json();
-  } catch {
-    return c.json({ ok: false, error: 'bad-json' }, 400);
-  }
+  const parsed = await readJsonBody(c, { ok: false, error: 'bad-json' });
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   const rec = {
     ts: new Date().toISOString(),
     ua: c.req.header('user-agent') ?? null,
@@ -3637,7 +3635,6 @@ app.post('/api/log', async (c) => {
     ...(body as Record<string, unknown>),
   };
   // Observability / wrangler tail pick this up.
-  // eslint-disable-next-line no-console
   console.warn('[client-log]', JSON.stringify(rec));
 
   const cache = c.env.CACHE;
@@ -3650,7 +3647,6 @@ app.post('/api/log', async (c) => {
       while (arr.length > 500) arr.shift();
       await cache.put(key, JSON.stringify(arr), { expirationTtl: 60 * 60 * 24 * 30 });
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.warn('[client-log] KV write failed:', String(err));
     }
   }
@@ -3831,9 +3827,9 @@ app.get('/api/qa/registry', async (c) => {
  * Returns: { qHash, alreadyAsked, rateLimited?, remaining }
  */
 app.post('/api/qa/ask', async (c) => {
-  let body: unknown;
-  try { body = await c.req.json(); }
-  catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const parsed = await readJsonBody(c);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   const b = body as Partial<{
     tractate: string; page: string;
     mark: string; move_id: string; instance_id: string;
@@ -3913,7 +3909,6 @@ app.post('/api/qa/ask', async (c) => {
     try {
       await c.env.ENRICHMENT_QUEUE.send(job);
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.warn('[qa/ask] queue send failed:', String((err as Error)?.message ?? err));
     }
   }
@@ -3931,9 +3926,9 @@ app.post('/api/qa/ask', async (c) => {
  * 2 questions" ranking on the panel.
  */
 app.post('/api/qa/click', async (c) => {
-  let body: unknown;
-  try { body = await c.req.json(); }
-  catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const parsed = await readJsonBody(c);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   const b = body as Partial<{
     tractate: string; page: string;
     mark: string; move_id: string; instance_id: string;
@@ -4024,7 +4019,6 @@ async function logTelemetry(cache: KVNamespace | undefined, rec: TelemetryRecord
     while (arr.length > 500) arr.shift();
     await cache.put(key, JSON.stringify(arr), { expirationTtl: 60 * 60 * 24 * 30 });
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.warn('[telemetry] KV write failed:', String(err));
   }
 }
@@ -4125,12 +4119,9 @@ interface BugReport {
 }
 
 app.post('/api/report', async (c) => {
-  let body: { tractate?: string; page?: string; description?: string };
-  try {
-    body = (await c.req.json()) as typeof body;
-  } catch {
-    return c.json({ ok: false, error: 'bad-json' }, 400);
-  }
+  const parsed = await readJsonBody<{ tractate?: string; page?: string; description?: string }>(c, { ok: false, error: 'bad-json' });
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   const tractate = (body.tractate ?? '').slice(0, 60).trim();
   const page = (body.page ?? '').slice(0, 20).trim();
   const description = (body.description ?? '').slice(0, 4000).trim();
@@ -4155,11 +4146,9 @@ app.post('/api/report', async (c) => {
       while (arr.length > 200) arr.shift();
       await cache.put(key, JSON.stringify(arr), { expirationTtl: 60 * 60 * 24 * 365 });
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.warn('[report] KV write failed:', String(err));
     }
   }
-  // eslint-disable-next-line no-console
   console.warn('[bug-report]', JSON.stringify(rec));
   return c.json({ ok: true });
 });
@@ -4330,7 +4319,6 @@ async function serveUsageSection<T>(
                 const next = { ...(await build()), generatedAt: new Date().toISOString() };
                 await cache.put(key, JSON.stringify(next), { expirationTtl: 600 });
               } catch (err) {
-                // eslint-disable-next-line no-console
                 console.warn(`[usage] ${key} background refresh failed:`, err);
               } finally {
                 await cache.delete(lockKey).catch(() => {});
@@ -4728,9 +4716,9 @@ function resolveRabbiName(raw: string): RabbiPlacesEntry | null {
 // can swap to the target rabbi's bio without a second enrichment hop. 404 if
 // the slug isn't in our rabbi dataset (biblical figures, holidays, etc.).
 app.get('/api/rabbi/:slug', (c) => {
-  const slug = c.req.param('slug');
-  const entry = RABBI_PLACES.rabbis[slug];
-  if (!entry) return c.json({ error: `unknown slug: ${slug}` }, 404);
+  const rr = getRabbiEntryOr404(c, RABBI_PLACES.rabbis);
+  if (!rr.ok) return rr.response;
+  const { slug, entry } = rr;
   const rawGen = entry.generation ?? 'unknown';
   const generation: GenerationId =
     (GENERATION_IDS as string[]).includes(rawGen) ? (rawGen as GenerationId) : 'unknown';
@@ -4860,8 +4848,9 @@ function hashMatchKeys(keys: string[]): string {
 }
 
 app.post('/api/context/match', async (c) => {
-  let body: { tractate?: string; page?: string; items?: MatchInput[] };
-  try { body = await c.req.json(); } catch { return c.json({ error: 'bad JSON body' }, 400); }
+  const parsed = await readJsonBody<{ tractate?: string; page?: string; items?: MatchInput[] }>(c, { error: 'bad JSON body' });
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   const t = body.tractate;
   const p = body.page;
   const items = Array.isArray(body.items) ? body.items.filter((i) => i && typeof i.key === 'string') : [];
@@ -5205,7 +5194,6 @@ app.post('/api/translate', async (c) => {
     try {
       fallbackEnglish = await getSefariaEnglishContext(tractate, page, cache);
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.warn('[translate] fallback Sefaria context fetch failed:', err);
     }
   }
@@ -5213,7 +5201,6 @@ app.post('/api/translate', async (c) => {
   // Sefaria Lexicon — authoritative BDB/Jastrow definitions for the word.
   // Cached per-word for a year (lexicons change rarely).
   const lexiconContext = await getSefariaLexicon(word, cache).catch((err) => {
-    // eslint-disable-next-line no-console
     console.warn('[translate] lexicon fetch failed:', err);
     return '';
   });
@@ -5291,7 +5278,6 @@ app.post('/api/translate', async (c) => {
       return c.json({ translation, cached: false, _model: m.label });
     } catch (err) {
       attempts.push(`${m.label}: ${String(err).slice(0, 200)}`);
-      // eslint-disable-next-line no-console
       console.warn(`[translate] ${m.label} failed:`, err);
     }
   }
@@ -5630,9 +5616,9 @@ app.get('/api/sages-index', (c) => {
 });
 
 app.get('/api/admin/enrich-rabbi/:slug', async (c) => {
-  const slug = c.req.param('slug');
-  const entry = RABBI_PLACES.rabbis[slug];
-  if (!entry) return c.json({ error: `unknown slug: ${slug}` }, 404);
+  const rr = getRabbiEntryOr404(c, RABBI_PLACES.rabbis);
+  if (!rr.ok) return rr.response;
+  const { slug, entry } = rr;
   if (!entry.bio) return c.json({ error: `no bio available for ${slug}` }, 422);
 
   // Cache per-slug — this Kimi-thinking call is ~30-60s and the upstream
@@ -5766,9 +5752,9 @@ function resolveRefs(names: string[], selfSlug: string): ResolvedRef[] {
 
 app.get('/api/admin/rabbi-relationships/:slug', async (c) => {
   if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-  const slug = c.req.param('slug');
-  const entry = RABBI_PLACES.rabbis[slug];
-  if (!entry) return c.json({ error: `unknown slug: ${slug}` }, 404);
+  const rr = getRabbiEntryOr404(c, RABBI_PLACES.rabbis);
+  if (!rr.ok) return rr.response;
+  const { slug, entry } = rr;
   if (!entry.bio) return c.json({ error: `no bio available for ${slug}` }, 422);
 
   const userContent = [
@@ -5896,9 +5882,9 @@ function validateFamily(x: unknown): x is FamilyResult {
 
 app.get('/api/admin/rabbi-family/:slug', async (c) => {
   if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-  const slug = c.req.param('slug');
-  const entry = RABBI_PLACES.rabbis[slug];
-  if (!entry) return c.json({ error: `unknown slug: ${slug}` }, 404);
+  const rr = getRabbiEntryOr404(c, RABBI_PLACES.rabbis);
+  if (!rr.ok) return rr.response;
+  const { slug, entry } = rr;
   if (!entry.bio) return c.json({ error: `no bio available for ${slug}` }, 422);
 
   const userContent = [
@@ -6027,9 +6013,9 @@ function validateOrientation(x: unknown): x is OrientationResult {
 
 app.get('/api/admin/rabbi-orientation/:slug', async (c) => {
   if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-  const slug = c.req.param('slug');
-  const entry = RABBI_PLACES.rabbis[slug];
-  if (!entry) return c.json({ error: `unknown slug: ${slug}` }, 404);
+  const rr = getRabbiEntryOr404(c, RABBI_PLACES.rabbis);
+  if (!rr.ok) return rr.response;
+  const { slug, entry } = rr;
   if (!entry.bio) return c.json({ error: `no bio available for ${slug}` }, 422);
 
   const userContent = [
@@ -6412,9 +6398,9 @@ export async function enrichRabbiUnified(
 
 app.get('/api/admin/rabbi-enrich-unified/:slug', async (c) => {
   if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-  const slug = c.req.param('slug');
-  const entry = RABBI_PLACES.rabbis[slug];
-  if (!entry) return c.json({ error: `unknown slug: ${slug}` }, 404);
+  const rr = getRabbiEntryOr404(c, RABBI_PLACES.rabbis);
+  if (!rr.ok) return rr.response;
+  const { slug, entry } = rr;
 
   const refresh = c.req.query('refresh') === '1';
   const cache = c.env.CACHE;
@@ -7228,9 +7214,9 @@ function validateTranslatedBio(x: unknown): x is TranslatedBio {
 
 app.post('/api/admin/translate-bio', async (c) => {
   if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-  let body: { hebrewBio?: string; nameHe?: string; nameEn?: string };
-  try { body = await c.req.json(); }
-  catch { return c.json({ error: 'invalid JSON body' }, 400); }
+  const parsed = await readJsonBody<{ hebrewBio?: string; nameHe?: string; nameEn?: string }>(c, { error: 'invalid JSON body' });
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   const hebrewBio = (body.hebrewBio ?? '').trim();
   const nameHe = (body.nameHe ?? '').trim();
   if (!hebrewBio) return c.json({ error: 'hebrewBio is required' }, 400);
@@ -7427,9 +7413,9 @@ export function splitOuterWhitespace(text: string): { leading: string; core: str
 
 app.post('/api/hebraize', async (c) => {
   if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-  let body: { text?: string };
-  try { body = await c.req.json() as { text?: string }; }
-  catch { return c.json({ error: 'bad json' }, 400); }
+  const parsed = await readJsonBody<{ text?: string }>(c, { error: 'bad json' });
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   const text = body.text ?? '';
   if (!text) return c.json({ hebraized: '', _empty: true });
   if (text.length > 8000) return c.json({ error: 'text too long (max 8000 chars)' }, 413);
@@ -7915,12 +7901,10 @@ async function deepWarmDaf(
  * failure (max_retries=1 in wrangler.toml is the safety net).
  */
 async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: ExecutionContext): Promise<void> {
-  // eslint-disable-next-line no-console
   console.log('[queue] picked up job', job.runId, '·', job.mark_id ?? job.enrichment_id ?? 'adhoc', job.tractate, job.page);
   const wrapped = wrapEnv(env);
   const cache = wrapped.CACHE;
   if (!cache) {
-    // eslint-disable-next-line no-console
     console.error('[queue] CACHE binding missing — cannot write job result');
     return;
   }
@@ -7949,7 +7933,6 @@ async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: Executi
       if (only && job.rewarm_only) await evictCascadeEntries(rc.env, job.rewarm_only, job.tractate, job.page);
       const stats = await deepWarmDaf(rc, job.tractate, job.page, rc.lang, only);
       await writeResult({ status: 'ok', result: { kind: 'warm', ...stats, total_ms: Date.now() - t0 } });
-      // eslint-disable-next-line no-console
       console.log(`[queue] deep-warm ${job.tractate}/${job.page} lang=${rc.lang} marks=${stats.marks} enqueued=${stats.enqueued} skipped=${stats.skipped} bridges=${stats.bridges}`);
       return;
     }
@@ -8009,7 +7992,6 @@ async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: Executi
       return;
     }
     const errorMsg = String((err as Error)?.message ?? err);
-    // eslint-disable-next-line no-console
     console.error('[queue] job failed', job.runId, '·', job.mark_id ?? job.enrichment_id ?? 'adhoc', job.tractate, job.page, '·', errorMsg.slice(0, 500));
     await writeResult({
       status: 'error',
@@ -8053,7 +8035,6 @@ export default {
   // simultaneous LLM workloads; max_batch_size=1 means one job per
   // invocation (no batching), which keeps memory bounded per worker.
   queue: async (batch: MessageBatch<JobMessage>, env: Bindings, ctx: ExecutionContext): Promise<void> => {
-    // eslint-disable-next-line no-console
     console.log('[queue] batch arrived:', batch.messages.length, 'message(s)');
     for (const msg of batch.messages) {
       try {
@@ -8061,7 +8042,6 @@ export default {
         msg.ack();
       } catch (err) {
         // Network / KV blip — let the runtime retry once (max_retries=1).
-        // eslint-disable-next-line no-console
         console.error('[queue] processEnrichmentJob threw:', err);
         const body = msg.body;
         const errorMsg = String((err as Error)?.message ?? err);

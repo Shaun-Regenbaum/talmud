@@ -156,9 +156,20 @@ interface UnknownSummary<T> {
   sample: T[];
 }
 
+interface AlignedSample {
+  sampled: number;
+  aligned: number;
+  pct: number;
+}
 interface CacheBucket {
   count: number;
   percent: number;
+  // Sampled "% of cached dapim that actually aligned" (see cache-stats.ts).
+  // Optional so a stale cached payload predating the field still parses.
+  aligned?: AlignedSample | null;
+  // Denominator count/percent are measured against (DafYomi is per-daf, not
+  // per-amud). Absent on older payloads → caller falls back to the daf total.
+  denom?: number;
 }
 
 interface MarkRow {
@@ -186,6 +197,16 @@ interface EnrichmentRow {
   staleCount: number;
 }
 
+type SourceOrigin = 'HB' | 'Sefaria' | 'DY';
+interface SourceRow {
+  id: string;
+  origin: SourceOrigin;
+  count: number;
+  denom: number;
+  percent: number;
+  aligned?: AlignedSample | null;
+}
+
 interface CacheStats {
   generatedAt: string;
   total: number;
@@ -193,7 +214,10 @@ interface CacheStats {
     hebrewbooks: CacheBucket;
     gemara: CacheBucket;
     commentaries: CacheBucket;
+    dafyomi?: CacheBucket; // added later; may be absent on a stale cached payload
   };
+  // Per-content-piece breakdown (v8+); absent on a stale cached payload.
+  sources?: SourceRow[];
   marks: MarkRow[];
   enrichments: EnrichmentRow[];
   rabbis: {
@@ -506,7 +530,6 @@ function AnchorRow(props: { row: MarkRow; total: number; he?: boolean }): JSX.El
           <span style={{ color: '#bbb', 'margin-right': '0.4rem', display: 'inline-block', width: '0.7rem' }}>{open() ? '▾' : '▸'}</span>
           {r().label}
           <Show when={he()}><HeTag /></Show>
-          <span style={{ color: '#888', 'font-size': '0.75rem', 'margin-left': '0.4rem' }}>({r().id} · v{r().cache_version}{he() ? ':he' : ''} · {r().source})</span>
           <Show when={staleCount() > 0}>
             <span style={{ 'font-size': '0.7rem', color: '#b58100', 'margin-left': '0.4rem', background: '#fff7e0', padding: '0.05rem 0.35rem', 'border-radius': '3px' }}>
               {t('usage.staleBadge', { count: fmtInt(staleCount()) })}
@@ -525,6 +548,7 @@ function AnchorRow(props: { row: MarkRow; total: number; he?: boolean }): JSX.El
         <tr style={{ background: '#fbfbfa' }}>
           <td colspan={4} style={{ padding: '0.3rem 0.5rem 0.6rem 1.6rem' }}>
             <div style={{ 'font-size': '0.78rem', color: '#666' }}>
+              <div style={{ 'font-family': 'monospace', color: '#999', 'margin-bottom': '0.3rem' }}>{r().id} · v{r().cache_version}{he() ? ':he' : ''} · {r().source}</div>
               <div style={{ 'margin-bottom': '0.3rem' }}>
                 <b>v{r().cache_version}{he() ? ':he' : ''}</b> {t('usage.version.current', { count: fmtInt(count()) })}
               </div>
@@ -546,78 +570,147 @@ function AnchorRow(props: { row: MarkRow; total: number; he?: boolean }): JSX.El
   );
 }
 
-// ---- Pipeline coverage: source + anchors + local enrichments -------------
-function PipelineSection(props: { stats: CacheStats }): JSX.Element {
-  const s = () => props.stats.source;
+// ---- Content-In: the daf's source material, by piece ---------------------
+// Each row is a named content piece (the cache key never shown), tagged with
+// where it comes from: HB (HebrewBooks page), Sefaria, or DY (DafYomi). "Has
+// content" is the sampled fraction of cached dapim that actually carried it.
+const ORIGIN_STYLE: Record<SourceOrigin, { fg: string; bg: string }> = {
+  HB: { fg: '#6b7280', bg: '#f3f4f6' },
+  Sefaria: { fg: '#1d4ed8', bg: '#eef2ff' },
+  DY: { fg: '#7c3aed', bg: '#f3e8ff' },
+};
+function OriginBadge(props: { origin: SourceOrigin }): JSX.Element {
+  const s = () => ORIGIN_STYLE[props.origin];
+  return (
+    <span style={{ 'font-size': '0.65rem', 'font-weight': 600, color: s().fg, background: s().bg, padding: '0.05rem 0.4rem', 'border-radius': '3px', 'margin-left': '0.4rem', 'vertical-align': 'middle' }}>
+      {props.origin}
+    </span>
+  );
+}
+
+function SourceRowView(props: { row: SourceRow }): JSX.Element {
+  const r = () => props.row;
+  const sub = () => r().id.startsWith('dy.'); // DafYomi content-type sub-row
+  const complete = () => r().percent >= 100;
+  const aligned = () => r().aligned ?? null;
+  const num = { padding: '0.45rem 0.5rem', 'text-align': 'right' as const, 'font-variant-numeric': 'tabular-nums' };
+  return (
+    <tr style={{ 'border-bottom': '1px solid #f4f4f4', background: sub() ? '#fcfcfd' : undefined }}>
+      <td style={{ padding: '0.45rem 0.5rem', 'padding-left': sub() ? '1.7rem' : '0.5rem' }}>
+        <span style={{ color: sub() ? '#555' : '#222' }}>{t(`usage.src.${r().id}`)}</span>
+        <Show when={!sub()}><OriginBadge origin={r().origin} /></Show>
+      </td>
+      <td style={num}>{fmtInt(r().count)} / {fmtInt(r().denom)}</td>
+      <td style={{ padding: '0.45rem 0.5rem', width: '26%' }}><ProgressBar percent={r().percent} /></td>
+      <td style={{ ...num, color: complete() ? '#2a8a42' : '#333', 'white-space': 'nowrap' }}>
+        {r().percent.toFixed(1)}%<Show when={complete()}><span style={{ 'margin-left': '0.3rem' }}>✓</span></Show>
+      </td>
+      <td style={{ ...num, color: '#555', 'white-space': 'nowrap' }}>
+        <Show when={aligned()} fallback={<span style={{ color: '#bbb' }}>—</span>}>
+          {(a) => <span title={t('usage.sources.alignedTitle', { aligned: fmtInt(a().aligned), sampled: fmtInt(a().sampled) })}>{a().pct.toFixed(0)}%</span>}
+        </Show>
+      </td>
+    </tr>
+  );
+}
+
+function SourcesSection(props: { stats: CacheStats }): JSX.Element {
+  // Prefer the v8 per-piece breakdown; fall back to the legacy 4-bucket shape
+  // if a stale cached payload predates it.
+  const rows = (): SourceRow[] => {
+    if (props.stats.sources && props.stats.sources.length > 0) return props.stats.sources;
+    const s = props.stats.source;
+    const total = props.stats.total;
+    const mk = (id: string, b: CacheBucket | undefined, origin: SourceOrigin): SourceRow =>
+      ({ id, origin, count: b?.count ?? 0, denom: b?.denom ?? total, percent: b?.percent ?? 0, aligned: b?.aligned ?? null });
+    return [
+      mk('hb', s.hebrewbooks, 'HB'),
+      mk('gemara', s.gemara, 'Sefaria'),
+      mk('commentaries', s.commentaries, 'Sefaria'),
+      ...(s.dafyomi ? [mk('dy', s.dafyomi, 'DY')] : []),
+    ];
+  };
+  return (
+    <table style={tableStyle}>
+      <thead>
+        <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
+          <th style={thStyle}>{t('usage.col.source')}</th>
+          <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cached')}</th>
+          <th style={thStyle} />
+          <th style={{ ...thStyle, 'text-align': 'right' }}>%</th>
+          <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.hasContent')}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <For each={rows()}>{(row) => <SourceRowView row={row} />}</For>
+      </tbody>
+    </table>
+  );
+}
+
+// ---- Content-Out: generated notes (one language slice per table) ----------
+function MarksTable(props: { marks: MarkRow[]; total: number; lang: 'en' | 'he' }): JSX.Element {
+  return (
+    <table style={tableStyle}>
+      <thead>
+        <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
+          <th style={thStyle}>{t('usage.col.anchor')}</th>
+          <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.dafim')}</th>
+          <th style={thStyle} />
+          <th style={{ ...thStyle, 'text-align': 'right' }}>%</th>
+        </tr>
+      </thead>
+      <tbody>
+        <For each={props.marks}>{(m) => <AnchorRow row={m} total={props.total} he={props.lang === 'he'} />}</For>
+      </tbody>
+    </table>
+  );
+}
+
+function NotesSection(props: { stats: CacheStats; observedPlaces: number; observedConcepts: number }): JSX.Element {
   const total = () => props.stats.total;
+  const marks = () => props.stats.marks;
+  const heMarks = () => marks().filter((m) => m.heCount > 0);
   const localEnrich = () => props.stats.enrichments.filter((e) => e.scope === 'local');
   return (
     <>
-      <table style={tableStyle}>
-        <thead>
-          <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
-            <th style={thStyle}>{t('usage.col.stage')}</th>
-            <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cached')}</th>
-            <th style={thStyle} />
-            <th style={{ ...thStyle, 'text-align': 'right' }}>%</th>
-          </tr>
-        </thead>
-        <tbody>
-          <SourceRow label={t('usage.source.hebrewbooks')} count={s().hebrewbooks.count} total={total()} percent={s().hebrewbooks.percent} />
-          <SourceRow label={t('usage.source.gemara')} count={s().gemara.count} total={total()} percent={s().gemara.percent} />
-          <SourceRow label={t('usage.source.commentaries')} count={s().commentaries.count} total={total()} percent={s().commentaries.percent} />
-        </tbody>
-      </table>
+      <SectionHeading title={t('usage.anchors.title')} hint={t('usage.anchors.hint')} />
+      <Show when={marks().length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.anchors.empty')}</p>}>
+        <div style={{ 'font-size': '0.72rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.04em', margin: '0.2rem 0 0.2rem' }}>{t('usage.lang.english')}</div>
+        <MarksTable marks={marks()} total={total()} lang="en" />
+        <Show when={heMarks().length > 0}>
+          <div style={{ 'font-size': '0.72rem', color: '#1d4ed8', 'text-transform': 'uppercase', 'letter-spacing': '0.04em', margin: '0.7rem 0 0.2rem' }}>{t('usage.lang.hebrew')}</div>
+          <MarksTable marks={heMarks()} total={total()} lang="he" />
+        </Show>
+      </Show>
 
-      <div style={{ 'margin-top': '1rem' }}>
-        <SectionHeading title={t('usage.anchors.title')} hint={t('usage.anchors.hint')} />
-        <Show when={props.stats.marks.length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.anchors.empty')}</p>}>
-          <table style={tableStyle}>
-            <thead>
-              <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
-                <th style={thStyle}>{t('usage.col.anchor')}</th>
-                <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.dafim')}</th>
-                <th style={thStyle} />
-                <th style={{ ...thStyle, 'text-align': 'right' }}>%</th>
-              </tr>
-            </thead>
-            <tbody>
-              <For each={props.stats.marks}>{(m) => (
-                <>
-                  <AnchorRow row={m} total={total()} />
-                  <Show when={m.heCount > 0}><AnchorRow row={m} total={total()} he /></Show>
-                </>
-              )}</For>
-            </tbody>
-          </table>
+      <div style={{ 'margin-top': '1.2rem' }}>
+        <SectionHeading title={t('usage.localEnrich.title')} hint={t('usage.localEnrich.hint')} />
+        <Show when={localEnrich().length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.localEnrich.empty')}</p>}>
+          <BilingualEnrichment rows={localEnrich()} />
         </Show>
       </div>
 
-      <div style={{ 'margin-top': '1rem' }}>
-        <SectionHeading title={t('usage.localEnrich.title')} hint={t('usage.localEnrich.hint')} />
-        <Show when={localEnrich().length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.localEnrich.empty')}</p>}>
-          <EnrichmentTable rows={localEnrich()} />
-        </Show>
+      <div style={{ 'margin-top': '1.4rem' }}>
+        <SectionHeading title={t('usage.globalRepo.title')} hint={t('usage.globalRepo.hint')} />
+        <GlobalRepoSection stats={props.stats} observedPlaces={props.observedPlaces} observedConcepts={props.observedConcepts} />
       </div>
     </>
   );
 }
 
-// One enrichment row, in a given language slice. `he` shows the Hebrew (:he)
-// cache as its own line. The denominator ratio is only meaningful for English
-// (instance counts are language-neutral), so it's omitted on the Hebrew row.
-function EnrichRow(props: { e: EnrichmentRow; denom: number | null; he?: boolean }): JSX.Element {
+// One enrichment row in a single language slice. The technical id/version is
+// dropped from the visible row (the Mark column + label disambiguate); the
+// denominator ratio is only meaningful for English (instance counts are
+// language-neutral), so it's omitted on the Hebrew table.
+function EnrichRow(props: { e: EnrichmentRow; denom: number | null; lang: 'en' | 'he' }): JSX.Element {
   const e = () => props.e;
-  const he = () => props.he === true;
+  const he = () => props.lang === 'he';
   const count = () => langCount(e().versions, e().cache_version, he());
   const stale = () => langStaleVersions(e().versions, e().cache_version, he()).reduce((s, [, n]) => s + n, 0);
   return (
     <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
-      <td style={{ padding: '0.4rem 0.5rem' }}>
-        {e().label}
-        <Show when={he()}><HeTag /></Show>
-        <span style={{ color: '#888', 'font-size': '0.75rem', 'margin-left': '0.4rem' }}>({e().id} · v{e().cache_version}{he() ? ':he' : ''} · {e().source})</span>
-      </td>
+      <td style={{ padding: '0.4rem 0.5rem' }}>{e().label}</td>
       <td style={{ padding: '0.4rem 0.5rem', 'font-family': 'monospace', color: '#555' }}>{e().target_mark}</td>
       <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>
         {fmtInt(count())}
@@ -632,7 +725,9 @@ function EnrichRow(props: { e: EnrichmentRow; denom: number | null; he?: boolean
   );
 }
 
-function EnrichmentTable(props: { rows: EnrichmentRow[]; denominatorFor?: (e: EnrichmentRow) => number | null }): JSX.Element {
+// Renders ONE language slice of a set of enrichments. The Hebrew table is fed
+// only the rows that actually have Hebrew entries (heCount > 0).
+function EnrichmentTable(props: { rows: EnrichmentRow[]; lang: 'en' | 'he'; denominatorFor?: (e: EnrichmentRow) => number | null }): JSX.Element {
   return (
     <table style={tableStyle}>
       <thead>
@@ -645,15 +740,26 @@ function EnrichmentTable(props: { rows: EnrichmentRow[]; denominatorFor?: (e: En
       </thead>
       <tbody>
         <For each={props.rows}>
-          {(e) => (
-            <>
-              <EnrichRow e={e} denom={props.denominatorFor?.(e) ?? null} />
-              <Show when={e.heCount > 0}><EnrichRow e={e} denom={null} he /></Show>
-            </>
-          )}
+          {(e) => <EnrichRow e={e} lang={props.lang} denom={props.lang === 'he' ? null : (props.denominatorFor?.(e) ?? null)} />}
         </For>
       </tbody>
     </table>
+  );
+}
+
+// English then Hebrew, as two labelled sub-tables. `rows` is the full set; the
+// Hebrew table is filtered to rows with Hebrew entries.
+function BilingualEnrichment(props: { rows: EnrichmentRow[]; denominatorFor?: (e: EnrichmentRow) => number | null }): JSX.Element {
+  const heRows = () => props.rows.filter((e) => e.heCount > 0);
+  return (
+    <>
+      <div style={{ 'font-size': '0.72rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.04em', margin: '0.3rem 0 0.2rem' }}>{t('usage.lang.english')}</div>
+      <EnrichmentTable rows={props.rows} lang="en" denominatorFor={props.denominatorFor} />
+      <Show when={heRows().length > 0}>
+        <div style={{ 'font-size': '0.72rem', color: '#1d4ed8', 'text-transform': 'uppercase', 'letter-spacing': '0.04em', margin: '0.7rem 0 0.2rem' }}>{t('usage.lang.hebrew')}</div>
+        <EnrichmentTable rows={heRows()} lang="he" />
+      </Show>
+    </>
   );
 }
 
@@ -723,7 +829,7 @@ function GlobalRepoSection(props: { stats: CacheStats; observedPlaces: number; o
       <div style={{ 'margin-top': '1.2rem' }}>
         <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.3rem' }}>{t('usage.globalEnrich.title')} <span style={{ color: '#999', 'font-weight': 'normal' }}>{t('usage.globalEnrich.sub')}</span></h3>
         <Show when={globalEnrich().length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.globalEnrich.empty')}</p>}>
-          <EnrichmentTable rows={globalEnrich()} denominatorFor={denom} />
+          <BilingualEnrichment rows={globalEnrich()} denominatorFor={denom} />
         </Show>
         <Show when={props.observedPlaces === 0}>
           <p style={{ 'font-size': '0.78rem', color: '#b58100', 'margin-top': '0.4rem' }}>
@@ -746,11 +852,7 @@ function BacklogSection(props: { rabbis: UnknownSummary<UnknownRabbi>; places: U
     <p style={{ 'font-size': '0.82rem', color: '#555', margin: '0 0 0.7rem' }}>
       {t('usage.backlog.combined', { count: fmtInt(combinedTotal()) })}
     </p>
-    <div style={{ display: 'flex', gap: '1.5rem', 'flex-wrap': 'wrap' }}>
-        <div style={{ flex: '1 1 320px', 'min-width': '300px' }}>
-          <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.3rem' }}>
-            {t('usage.backlog.rabbis.title')} <span style={{ color: '#c33', 'font-weight': 'normal' }}>{t('usage.backlog.distinct', { count: fmtInt(props.rabbis.total) })}</span>
-          </h3>
+        <Collapsible id="backlog.rabbis" title={t('usage.backlog.rabbis.title')} sub={t('usage.backlog.distinct', { count: fmtInt(props.rabbis.total) })}>
           <Show when={props.rabbis.sample.length > 0} fallback={<p style={{ color: '#888', 'font-size': '0.82rem' }}>{t('usage.backlog.rabbis.empty')}</p>}>
             <table style={tableStyle}>
               <thead>
@@ -776,12 +878,9 @@ function BacklogSection(props: { rabbis: UnknownSummary<UnknownRabbi>; places: U
               </tbody>
             </table>
           </Show>
-        </div>
+        </Collapsible>
 
-        <div style={{ flex: '1 1 320px', 'min-width': '300px' }}>
-          <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.3rem' }}>
-            {t('usage.backlog.places.title')} <span style={{ color: '#888', 'font-weight': 'normal' }}>{t('usage.backlog.places.distinct', { count: fmtInt(props.places.total) })}</span>
-          </h3>
+        <Collapsible id="backlog.places" title={t('usage.backlog.places.title')} sub={t('usage.backlog.places.distinct', { count: fmtInt(props.places.total) })}>
           <Show when={props.places.sample.length > 0} fallback={<p style={{ color: '#888', 'font-size': '0.82rem' }}>{t('usage.backlog.places.empty')}</p>}>
             <table style={tableStyle}>
               <thead>
@@ -807,12 +906,9 @@ function BacklogSection(props: { rabbis: UnknownSummary<UnknownRabbi>; places: U
               </tbody>
             </table>
           </Show>
-        </div>
+        </Collapsible>
 
-        <div style={{ flex: '1 1 320px', 'min-width': '300px' }}>
-          <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.3rem' }}>
-            {t('usage.backlog.concepts.title')} <span style={{ color: '#888', 'font-weight': 'normal' }}>{t('usage.backlog.concepts.distinct', { count: fmtInt(props.concepts.total) })}</span>
-          </h3>
+        <Collapsible id="backlog.concepts" title={t('usage.backlog.concepts.title')} sub={t('usage.backlog.concepts.distinct', { count: fmtInt(props.concepts.total) })}>
           <Show when={props.concepts.sample.length > 0} fallback={<p style={{ color: '#888', 'font-size': '0.82rem' }}>{t('usage.backlog.concepts.empty')}</p>}>
             <table style={tableStyle}>
               <thead>
@@ -838,8 +934,7 @@ function BacklogSection(props: { rabbis: UnknownSummary<UnknownRabbi>; places: U
               </tbody>
             </table>
           </Show>
-        </div>
-    </div>
+        </Collapsible>
     </>
   );
 }
@@ -874,10 +969,28 @@ function ActivitySection(props: { activity: ZoneActivity }): JSX.Element {
         </p>
       }
     >
+      {/* Lead with visitors (the human signal); requests + avg-per-visitor are
+          the secondary detail in the sub-line. */}
       <div style={{ display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.8rem' }}>
-        <StatCard label={t('usage.activity.today')} value={fmtInt(totals()?.day.requests ?? 0)} sub={t('usage.activity.visits', { count: fmtInt(totals()?.day.visits ?? 0) })} />
-        <StatCard label={t('usage.activity.week')} value={fmtInt(totals()?.week.requests ?? 0)} sub={t('usage.activity.visits', { count: fmtInt(totals()?.week.visits ?? 0) })} />
-        <StatCard label={t('usage.activity.month')} value={fmtInt(totals()?.month.requests ?? 0)} color="#0066CC" sub={t('usage.activity.visits', { count: fmtInt(totals()?.month.visits ?? 0) })} />
+        <For each={[
+          { label: t('usage.activity.today'), w: totals()?.day, color: undefined as string | undefined },
+          { label: t('usage.activity.week'), w: totals()?.week, color: undefined },
+          { label: t('usage.activity.month'), w: totals()?.month, color: '#0066CC' },
+        ]}>
+          {(card) => {
+            const reqs = card.w?.requests ?? 0;
+            const vis = card.w?.visits ?? 0;
+            const avg = vis > 0 ? reqs / vis : 0;
+            return (
+              <StatCard
+                label={card.label}
+                value={fmtInt(vis)}
+                color={card.color}
+                sub={t('usage.activity.reqPerVisitor', { requests: fmtInt(reqs), avg: avg.toFixed(1) })}
+              />
+            );
+          }}
+        </For>
       </div>
 
       <Show when={byDay().length > 0}>
@@ -1275,25 +1388,100 @@ function ByDafCostTable(props: { llmCost: LlmCostData | undefined }): JSX.Elemen
 }
 
 // ---- Grouped Health sections (telemetry + operational errors) ------------
-function TelemetryGroup(props: { telemetry: TelemetrySection }): JSX.Element {
+// "studio-*" telemetry endpoints are legacy stored labels; show plain names.
+function displayEndpoint(name: string): string {
+  if (name === 'studio-mark') return t('usage.run.mark');
+  if (name === 'studio-enrichment') return t('usage.run.enrichment');
+  if (name === 'studio-adhoc') return t('usage.run.adhoc');
+  return name;
+}
+
+// ---- Health: Speed -------------------------------------------------------
+function SpeedSection(props: { telemetry: TelemetrySection }): JSX.Element {
   const d = () => props.telemetry;
+  const endpointRows = () => Object.entries(d().perEndpoint)
+    .map(([k, v]) => [displayEndpoint(k), v] as [string, PerEndpoint])
+    .sort(([a], [b]) => a.localeCompare(b));
   return (
-    <>
-      <LatencyTable
-        title={t('usage.latency.byEndpoint', { count: d().totalCount })}
-        rows={Object.entries(d().perEndpoint).sort(([a], [b]) => a.localeCompare(b))}
-      />
+    <Collapsible id="health.speed" title={t('usage.health.speed')} defaultOpen>
+      <LatencyTable title={t('usage.latency.byEndpoint', { count: d().totalCount })} rows={endpointRows()} />
       <LatencyTable title={t('usage.latency.byMark')} hint={t('usage.latency.byMark.hint')} rows={Object.entries(d().perMark).sort(([a], [b]) => a.localeCompare(b))} />
       <LatencyTable title={t('usage.latency.byEnrichment')} hint={t('usage.latency.byEnrichment.hint')} rows={Object.entries(d().perEnrichment).sort(([a], [b]) => a.localeCompare(b))} />
-      <section style={{ 'margin-bottom': '1.6rem' }}>
+    </Collapsible>
+  );
+}
+
+// ---- Health: Cache efficiency --------------------------------------------
+// Is the cache doing its job — how often we serve a hit, and how much cached
+// content is stale (old cache_version, needs re-warming).
+function CacheSection(props: { telemetry: TelemetrySection; stats: CacheStats | undefined }): JSX.Element {
+  const d = () => props.telemetry;
+  const overall = () => {
+    let calls = 0, hits = 0;
+    for (const r of Object.values(d().perEndpoint)) { calls += r.count; hits += r.cacheHits; }
+    return { calls, hits, rate: calls > 0 ? hits / calls : 0 };
+  };
+  const staleTotal = () => {
+    const st = props.stats;
+    if (!st) return null;
+    let n = 0;
+    for (const m of st.marks) n += m.staleCount;
+    for (const e of st.enrichments) n += e.staleCount;
+    return n;
+  };
+  // Per-producer hit rate (marks + enrichments), busiest first.
+  const producerRows = () => [...Object.entries(d().perMark), ...Object.entries(d().perEnrichment)]
+    .filter(([, r]) => r.count > 0)
+    .sort(([, a], [, b]) => b.count - a.count);
+  return (
+    <Collapsible id="health.cache" title={t('usage.health.cache')}>
+      <div style={{ display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.6rem' }}>
+        <StatCard label={t('usage.cacheStat.hitRate')} value={`${Math.round(overall().rate * 100)}%`} color="#1d4ed8" sub={t('usage.cacheStat.hitRate.sub', { hits: fmtInt(overall().hits), calls: fmtInt(overall().calls) })} />
+        <Show when={staleTotal() != null}>
+          <StatCard label={t('usage.cacheStat.stale')} value={fmtInt(staleTotal()!)} color={staleTotal()! > 0 ? '#b58100' : '#2a8a42'} sub={t('usage.cacheStat.stale.sub')} />
+        </Show>
+      </div>
+      <Show when={producerRows().length > 0}>
+        <table style={tableStyle}>
+          <thead>
+            <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
+              <th style={thStyle}>{t('usage.col.name')}</th>
+              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.calls')}</th>
+              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cacheHit')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <For each={producerRows()}>
+              {([name, row]) => (
+                <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+                  <td style={{ padding: '0.35rem 0.5rem', 'font-family': 'monospace' }}>{name}</td>
+                  <td style={{ padding: '0.35rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>{row.count}</td>
+                  <td style={{ padding: '0.35rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>{Math.round(row.cacheHitRate * 100)}%</td>
+                </tr>
+              )}
+            </For>
+          </tbody>
+        </table>
+      </Show>
+    </Collapsible>
+  );
+}
+
+// ---- Health: Errors (recent telemetry + queue failures + lint) -----------
+function ErrorsSection(props: { recentErrors: RecentError[]; health: HealthSectionData }): JSX.Element {
+  const d = () => props.health;
+  const recentErrors = () => props.recentErrors;
+  return (
+    <Collapsible id="health.errors" title={t('usage.health.errors')} defaultOpen>
+      <section style={{ 'margin-bottom': '1.2rem' }}>
         <SectionHeading title={t('usage.recentErrors.title')} hint={t('usage.recentErrors.hint')} />
-        <Show when={d().recentErrors.length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.none')}</p>}>
+        <Show when={recentErrors().length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.none')}</p>}>
           <ul style={{ 'list-style': 'none', padding: 0, margin: 0, 'font-size': '0.8rem' }}>
-            <For each={d().recentErrors}>
+            <For each={recentErrors()}>
               {(e) => (
                 <li style={{ padding: '0.3rem 0', 'border-bottom': '1px solid #f4f4f4', display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap' }}>
                   <span style={{ color: '#999', 'white-space': 'nowrap' }}>{fmtTime(e.ts)}</span>
-                  <span style={{ 'font-family': 'monospace' }}>{e.endpoint}</span>
+                  <span style={{ 'font-family': 'monospace' }}>{displayEndpoint(e.endpoint)}</span>
                   <Show when={e.mark_id}><span style={{ 'font-family': 'monospace', color: '#555' }}>mark={e.mark_id}</span></Show>
                   <Show when={e.enrichment_id}><span style={{ 'font-family': 'monospace', color: '#555' }}>enrich={e.enrichment_id}</span></Show>
                   <Show when={e.tractate || e.page}><span style={{ color: '#666' }}>{e.tractate} {e.page}</span></Show>
@@ -1305,14 +1493,7 @@ function TelemetryGroup(props: { telemetry: TelemetrySection }): JSX.Element {
           </ul>
         </Show>
       </section>
-    </>
-  );
-}
 
-function ErrorsGroup(props: { health: HealthSectionData }): JSX.Element {
-  const d = () => props.health;
-  return (
-    <>
       <section style={{ 'margin-bottom': '1.6rem' }}>
         <SectionHeading title={t('usage.jobErrors.title', { count: d().jobErrors.length })} hint={t('usage.jobErrors.hint')} />
         <Show when={d().jobErrors.length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.none')}</p>}>
@@ -1364,35 +1545,40 @@ function ErrorsGroup(props: { health: HealthSectionData }): JSX.Element {
           </ul>
         </Show>
       </section>
+    </Collapsible>
+  );
+}
 
-      <section>
-        <SectionHeading title={t('usage.bugReports.title', { count: d().reports.length })} />
-        <Show when={d().reports.length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.bugReports.empty')}</p>}>
-          <ul style={{ 'list-style': 'none', padding: 0, margin: 0 }}>
-            <For each={d().reports}>
-              {(r) => (
-                <li style={{ padding: '0.7rem 0.8rem', margin: '0 0 0.5rem', background: '#fcfcfa', border: '1px solid #eee', 'border-radius': '4px' }}>
-                  <div style={{ 'font-size': '0.75rem', color: '#888', 'margin-bottom': '0.3rem' }}>
-                    {fmtTime(r.ts)} · <b>{r.tractate} {r.page}</b>
-                    <Show when={r.country}><span> · {r.country}</span></Show>
-                  </div>
-                  <div style={{ 'white-space': 'pre-wrap', 'font-size': '0.88rem', color: '#222', 'line-height': 1.45 }}>{r.description}</div>
-                </li>
-              )}
-            </For>
-          </ul>
-        </Show>
-      </section>
-    </>
+// ---- Health: User reports ------------------------------------------------
+function ReportsSection(props: { reports: BugReport[] }): JSX.Element {
+  return (
+    <Collapsible id="health.reports" title={t('usage.bugReports.title', { count: props.reports.length })}>
+      <Show when={props.reports.length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.bugReports.empty')}</p>}>
+        <ul style={{ 'list-style': 'none', padding: 0, margin: 0 }}>
+          <For each={props.reports}>
+            {(r) => (
+              <li style={{ padding: '0.7rem 0.8rem', margin: '0 0 0.5rem', background: '#fcfcfa', border: '1px solid #eee', 'border-radius': '4px' }}>
+                <div style={{ 'font-size': '0.75rem', color: '#888', 'margin-bottom': '0.3rem' }}>
+                  {fmtTime(r.ts)} · <b>{r.tractate} {r.page}</b>
+                  <Show when={r.country}><span> · {r.country}</span></Show>
+                </div>
+                <div style={{ 'white-space': 'pre-wrap', 'font-size': '0.88rem', color: '#222', 'line-height': 1.45 }}>{r.description}</div>
+              </li>
+            )}
+          </For>
+        </ul>
+      </Show>
+    </Collapsible>
   );
 }
 
 // ---- Tabbed dashboard ----------------------------------------------------
 const TABS: Array<{ id: string; labelKey: string }> = [
+  { id: 'traffic', labelKey: 'usage.tab.traffic' },
   { id: 'cost', labelKey: 'usage.tab.cost' },
-  { id: 'activity', labelKey: 'usage.tab.activity' },
-  { id: 'coverage', labelKey: 'usage.tab.coverage' },
   { id: 'health', labelKey: 'usage.tab.health' },
+  { id: 'contentIn', labelKey: 'usage.tab.contentIn' },
+  { id: 'contentOut', labelKey: 'usage.tab.contentOut' },
   { id: 'backlog', labelKey: 'usage.tab.backlog' },
 ];
 
@@ -1410,14 +1596,15 @@ export function UsagePage(): JSX.Element {
   // Which resources back each tab — drives both the manual refresh button and
   // the auto-refresh timer (only the visible tab revalidates).
   const tabRefetch: Record<string, () => void> = {
+    traffic: () => { activity.refetch(); },
     cost: () => { cost.refetch(); cacheStats.refetch(); llmCost.refetch(); },
-    activity: () => { activity.refetch(); },
-    coverage: () => { cacheStats.refetch(); backlog.refetch(); },
-    health: () => { telemetry.refetch(); health.refetch(); },
+    health: () => { telemetry.refetch(); health.refetch(); cacheStats.refetch(); },
+    contentIn: () => { cacheStats.refetch(); },
+    contentOut: () => { cacheStats.refetch(); backlog.refetch(); },
     backlog: () => { backlog.refetch(); },
   };
 
-  const [tab, setTab] = createSignal<string>(readStored<string>('usage.tab') ?? 'cost');
+  const [tab, setTab] = createSignal<string>(readStored<string>('usage.tab') ?? 'traffic');
   const selectTab = (id: string) => { setTab(id); writeStored('usage.tab', id); };
 
   const interval = setInterval(() => tabRefetch[tab()]?.(), 30000);
@@ -1467,6 +1654,12 @@ export function UsagePage(): JSX.Element {
         </For>
       </div>
 
+      <Show when={tab() === 'traffic'}>
+        <SectionShell section={activity} skeletonRows={4}>
+          {(a) => <ActivitySection activity={a} />}
+        </SectionShell>
+      </Show>
+
       <Show when={tab() === 'cost'}>
         <SectionShell section={cost} skeletonRows={6}>
           {(c) => <CostSection cost={c} stats={cacheStats.value()} />}
@@ -1474,33 +1667,41 @@ export function UsagePage(): JSX.Element {
         <ByDafCostTable llmCost={llmCost.value()} />
       </Show>
 
-      <Show when={tab() === 'activity'}>
-        <SectionShell section={activity} skeletonRows={4}>
-          {(a) => <ActivitySection activity={a} />}
-        </SectionShell>
-      </Show>
-
-      <Show when={tab() === 'coverage'}>
-        <SectionShell section={cacheStats} skeletonRows={8}>
-          {(cs) => (
+      <Show when={tab() === 'health'}>
+        <SectionShell section={telemetry} skeletonRows={5}>
+          {(tel) => (
             <>
-              <SectionHeading title={t('usage.pipeline.title')} hint={t('usage.pipeline.hint', { count: fmtInt(cs.total) })} />
-              <PipelineSection stats={cs} />
-              <div style={{ 'margin-top': '1.4rem' }}>
-                <SectionHeading title={t('usage.globalRepo.title')} hint={t('usage.globalRepo.hint')} />
-                <GlobalRepoSection stats={cs} observedPlaces={backlog.value()?.places.total ?? 0} observedConcepts={backlog.value()?.concepts.total ?? 0} />
-              </div>
+              <SpeedSection telemetry={tel} />
+              <CacheSection telemetry={tel} stats={cacheStats.value()} />
+            </>
+          )}
+        </SectionShell>
+        <SectionShell section={health} skeletonRows={4}>
+          {(h) => (
+            <>
+              <ErrorsSection recentErrors={telemetry.value()?.recentErrors ?? []} health={h} />
+              <ReportsSection reports={h.reports} />
             </>
           )}
         </SectionShell>
       </Show>
 
-      <Show when={tab() === 'health'}>
-        <SectionShell section={telemetry} skeletonRows={5}>
-          {(tel) => <TelemetryGroup telemetry={tel} />}
+      <Show when={tab() === 'contentIn'}>
+        <SectionShell section={cacheStats} skeletonRows={5}>
+          {(cs) => (
+            <>
+              <SectionHeading title={t('usage.sources.title')} hint={t('usage.sources.hint', { count: fmtInt(cs.total) })} />
+              <SourcesSection stats={cs} />
+            </>
+          )}
         </SectionShell>
-        <SectionShell section={health} skeletonRows={4}>
-          {(h) => <ErrorsGroup health={h} />}
+      </Show>
+
+      <Show when={tab() === 'contentOut'}>
+        <SectionShell section={cacheStats} skeletonRows={8}>
+          {(cs) => (
+            <NotesSection stats={cs} observedPlaces={backlog.value()?.places.total ?? 0} observedConcepts={backlog.value()?.concepts.total ?? 0} />
+          )}
         </SectionShell>
       </Show>
 

@@ -167,7 +167,6 @@ export function computeLayout(
 
   if (typeof window !== 'undefined') {
     const r = Math.round;
-    // eslint-disable-next-line no-console
     console.log(
       `[daf-render] w=${options.contentWidth} case=${layoutCase} exception=${exception}`,
       `inner: narrow=${r(inner.narrowUsed)} end=${r(inner.endUsed)}`,

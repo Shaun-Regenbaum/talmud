@@ -100,17 +100,14 @@ export async function runYomiWarmCron(env: YomiCronEnv): Promise<void> {
   const { year, month, day } = tomorrowUtc();
   const yomi = await fetchDafYomi(year, month, day);
   if (!yomi) {
-    // eslint-disable-next-line no-console
     console.warn(`[yomi-cron] no Daf Yomi entry for ${year}-${month}-${day}`);
     return;
   }
   const { tractate, daf } = yomi;
   if (!env.ENRICHMENT_QUEUE) {
-    // eslint-disable-next-line no-console
     console.error('[yomi-cron] ENRICHMENT_QUEUE binding not available; cannot warm');
     return;
   }
-  // eslint-disable-next-line no-console
   console.log(`[yomi-cron] warming ${tractate} ${daf} for ${year}-${month}-${day}`);
 
   const pages = [`${daf}a`, `${daf}b`];
@@ -121,10 +118,8 @@ export async function runYomiWarmCron(env: YomiCronEnv): Promise<void> {
     const job: JobMessage = { runId, mark_id: markId, tractate, page, ...(lang === 'he' ? { lang: 'he' } : {}) };
     try {
       await queue.send(job);
-      // eslint-disable-next-line no-console
       console.log(`[yomi-cron] enqueued mark=${markId} lang=${lang} ${tractate}/${page} runId=${runId}`);
     } catch (e) {
-      // eslint-disable-next-line no-console
       console.error(`[yomi-cron] enqueue mark=${markId} lang=${lang} ${tractate}/${page} failed:`, e);
     }
   };
@@ -141,11 +136,9 @@ export async function runYomiWarmCron(env: YomiCronEnv): Promise<void> {
     jobs.push(
       env.ENRICHMENT_QUEUE.send(obsJob)
         .then(() => {
-          // eslint-disable-next-line no-console
           console.log(`[yomi-cron] enqueued rabbi.observations ${tractate}/${page} runId=${obsRunId}`);
         })
         .catch((e) => {
-          // eslint-disable-next-line no-console
           console.error(`[yomi-cron] enqueue rabbi.observations ${tractate}/${page} failed:`, e);
         }),
     );
@@ -157,16 +150,13 @@ export async function runYomiWarmCron(env: YomiCronEnv): Promise<void> {
     jobs.push(
       env.ENRICHMENT_QUEUE.send({ runId: deepRunId, warm_deep: true, tractate, page })
         .then(() => {
-          // eslint-disable-next-line no-console
           console.log(`[yomi-cron] enqueued deep-warm ${tractate}/${page} runId=${deepRunId}`);
         })
         .catch((e) => {
-          // eslint-disable-next-line no-console
           console.error(`[yomi-cron] enqueue deep-warm ${tractate}/${page} failed:`, e);
         }),
     );
   }
   await Promise.allSettled(jobs);
-  // eslint-disable-next-line no-console
   console.log(`[yomi-cron] enqueued ${jobs.length} warm job(s) for ${tractate} ${daf}`);
 }

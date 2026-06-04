@@ -100,7 +100,6 @@ async function sendCompletionEmail(env: WarmEnv): Promise<void> {
         `Dashboard: https://talmud.shaunregenbaum.com/usage\n`,
     });
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.error('[warm-cron] send email failed:', err);
   }
 }
@@ -110,7 +109,6 @@ async function refreshStats(cache: KVNamespace): Promise<void> {
     const stats = await computeCacheStats(cache);
     await writeCachedCacheStats(cache, stats);
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.warn('[warm-cron] refreshStats failed:', err);
   }
 }
@@ -147,7 +145,6 @@ async function runObservationsBackfill(env: WarmEnv): Promise<void> {
     }
     if (tractateIdx >= TRACTATES.length) {
       await cache.put(OBS_BACKFILL_CURSOR_KEY, JSON.stringify({ tractateIdx, amudIdx: 0, enqueued, done: true }));
-      // eslint-disable-next-line no-console
       console.log(`[warm-cron] rabbi.observations backfill COMPLETE — enqueued ${enqueued} amudim`);
       return;
     }
@@ -157,7 +154,6 @@ async function runObservationsBackfill(env: WarmEnv): Promise<void> {
       .replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
     await env.ENRICHMENT_QUEUE.send({ runId, enrichment_id: 'rabbi.observations', mark_input: { id: 'daf' }, tractate, page: amud })
       .catch((e) => {
-        // eslint-disable-next-line no-console
         console.error(`[warm-cron] enqueue rabbi.observations ${tractate}/${amud} failed:`, e);
       });
     enqueued++;
@@ -165,7 +161,6 @@ async function runObservationsBackfill(env: WarmEnv): Promise<void> {
     processed++;
   }
   await cache.put(OBS_BACKFILL_CURSOR_KEY, JSON.stringify({ tractateIdx, amudIdx, enqueued }));
-  // eslint-disable-next-line no-console
   console.log(`[warm-cron] rabbi.observations backfill progress: enqueued=${enqueued} cursor=${tractateIdx}:${amudIdx}`);
 }
 
@@ -204,7 +199,6 @@ async function sendDafyomiCompletionEmail(env: WarmEnv, fetched: number): Promis
         `Content is cached in KV — study notes + poskim now feed the halacha cards Shas-wide.\n`,
     });
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.error('[warm-cron] dafyomi email failed:', err);
   }
 }
@@ -227,7 +221,6 @@ async function runDafyomiBackfill(env: WarmEnv): Promise<void> {
     }
     if (tractateIdx >= masechtos.length) {
       await cache.put(DAFYOMI_CURSOR_KEY, JSON.stringify({ tractateIdx, daf: 2, fetched, done: true }));
-      // eslint-disable-next-line no-console
       console.log(`[warm-cron] dafyomi ingestion COMPLETE — fetched ${fetched} this pass`);
       await sendDafyomiCompletionEmail(env, fetched);
       return;
@@ -248,7 +241,6 @@ async function runDafyomiBackfill(env: WarmEnv): Promise<void> {
     processed++;
   }
   await cache.put(DAFYOMI_CURSOR_KEY, JSON.stringify({ tractateIdx, daf, fetched }));
-  // eslint-disable-next-line no-console
   console.log(`[warm-cron] dafyomi progress: fetched=${fetched} cursor=${tractateIdx}:${daf}`);
 }
 
@@ -295,7 +287,6 @@ async function runHbPhase(env: WarmEnv, cursor: WarmCursor): Promise<void> {
         CURSOR_KEY,
         JSON.stringify({ tractateIdx: TRACTATES.length, amudIdx: 0, done: true }),
       );
-      // eslint-disable-next-line no-console
       console.log(`[warm-cron] HB complete. total=${TOTAL_AMUDIM}`);
       await refreshStats(cache);
       await sendCompletionEmail(env);
@@ -319,7 +310,6 @@ async function runHbPhase(env: WarmEnv, cursor: WarmCursor): Promise<void> {
 
   await cache.put(CURSOR_KEY, JSON.stringify({ tractateIdx, amudIdx }));
   const elapsed = Date.now() - start;
-  // eslint-disable-next-line no-console
   console.log(
     `[warm-cron] HB processed=${processed} fetched=${fetched} elapsed=${elapsed}ms cursor=${tractateIdx}:${amudIdx}`,
   );
@@ -376,7 +366,6 @@ async function runSefariaPhase(env: WarmEnv): Promise<void> {
       wraps++;
       tractateIdx = 0;
       amudIdx = 0;
-      // eslint-disable-next-line no-console
       console.log(`[warm-cron] Sefaria pass ${wraps} complete — wrapping`);
     }
 
@@ -412,7 +401,6 @@ async function runSefariaPhase(env: WarmEnv): Promise<void> {
     JSON.stringify({ tractateIdx, amudIdx, wraps }),
   );
   const elapsed = Date.now() - start;
-  // eslint-disable-next-line no-console
   console.log(
     `[warm-cron] Sefaria processed=${processed} fetched=${fetched} elapsed=${elapsed}ms cursor=${tractateIdx}:${amudIdx} wraps=${wraps}`,
   );

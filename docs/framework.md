@@ -170,6 +170,14 @@ leaves (see the worked example).
 }
 ```
 
+A producer opts into post-LLM passes via a `passes: string[]` field. Each named
+pass is registered in `src/lib/check/passes.ts` and is one of two phases: a
+**transform** (mutates/repairs the parsed output — re-anchorers, voice-edge
+derivation) or a **validate** (returns `CheckIssue[]`; `hard` issues gate the
+cache write via bounded retry; `soft` issues attach as quality signals but never
+block). `runPasses` runs all transforms (in declaration order) then all
+validators — DOM-free, unit-testable.
+
 **`dependencies`** is the composition edge — it tells the runner what to feed the
 prompt:
 
@@ -328,6 +336,7 @@ This is the template every later linked source follows: parse → map → place
 | Select + format for prompt | `src/lib/context/select.ts` |
 | Producer schema | `src/worker/studio-schema.ts` |
 | Producer registry | `src/worker/code-marks.ts` |
+| Post-LLM pass layer (transform + validate) | `src/lib/check/passes.ts` |
 | Run endpoint + SWR | `src/worker/index.ts` (`/api/run`) |
 | Cache keys + versioning + `recipeHash` | `src/worker/cache-keys.ts` |
 | Reverse-dependency index + validation | `src/lib/registry/depGraph.ts` → `GET /api/dependents/:id` |

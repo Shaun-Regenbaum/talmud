@@ -80,7 +80,6 @@ async function writeCache(
     const opts = ttl === null ? undefined : { expirationTtl: ttl };
     await cache.put(key, JSON.stringify(value), opts);
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.warn(`[source-cache] KV put failed for ${key}:`, err);
   }
 }
@@ -108,7 +107,6 @@ export async function getHebrewBooksDafCached(
     await writeCache(cache, key, data, null);
     return data;
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.warn(`[source-cache] hebrewbooks fetch failed for ${tractate} ${page}:`, err);
     await writeCache(cache, key, { __failed: true } satisfies FailedMarker, TTL_NEGATIVE);
     return null;
@@ -366,7 +364,6 @@ export async function getDafyomiContentCached(
     await writeCache(cache, key, { __failed: true } satisfies FailedMarker, TTL_NEGATIVE);
     return null;
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.warn(`[source-cache] dafyomi read failed for ${tractate} ${daf}:`, err);
     await writeCache(cache, key, { __failed: true } satisfies FailedMarker, TTL_NEGATIVE);
     return null;
