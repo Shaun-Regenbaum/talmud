@@ -21,6 +21,7 @@ import { injectHadran } from './injectHadran';
 import { injectSegmentMarkers } from './injectSegmentMarkers';
 import { injectRabbiUnderlines } from './injectRabbiUnderlines';
 import type { GenerationId } from './generations';
+import { RunTreeDag } from './RunTreeDag';
 
 interface DafResp { mainText?: { hebrew?: string }; mainSegmentsHe?: string[] }
 interface SourceTiming { fetcher: string; sources: string[]; ms: number; cache: 'hit' | 'miss' | 'mixed' | 'unknown' }
@@ -288,9 +289,13 @@ export function AlignPage(): JSX.Element {
     return `<div class="aw-list">${blocks.join('') || '<div class="aw-note">loading…</div>'}</div>`;
   }
 
+  // The mark whose generation DAG is open (detail = gen). Rendered as a real
+  // Solid component (RunTreeDag), so it lives outside the innerHTML inspector.
+  const genMark = createMemo(() => { const d = detail(); return d?.t === 'gen' ? allMarks().find((x) => x.id === d.mid) ?? null : null; });
+
   let inspEl!: HTMLDivElement;
   let spineBox!: HTMLDivElement;
-  createEffect(() => { detail(); ctx(); marksRes(); daf(); cat(); if (inspEl) inspEl.innerHTML = detail() ? detailHtml() : listHtml(); });
+  createEffect(() => { detail(); ctx(); marksRes(); daf(); cat(); if (inspEl && detail()?.t !== 'gen') inspEl.innerHTML = detail() ? detailHtml() : listHtml(); });
 
   function scrollIntoSpine(sel: string) {
     if (!spineBox) return;
@@ -418,8 +423,19 @@ export function AlignPage(): JSX.Element {
           <div class="aw-colh"><span class="aw-label">All sources</span>
             <div class="aw-cats"><For each={cats()}>{(cc) => <button class={`aw-chip${cat() === cc.id ? ' on' : ''}`} onClick={() => setCat(cc.id)}>{cc.label} <span class="aw-chipn">{cc.n}</span></button>}</For></div>
           </div>
-          <Show when={ctx.loading || marksRes.loading}><div class="aw-loadbar"><div class="aw-loadbar-fill" /></div></Show>
-          <div ref={inspEl} />
+          <Show when={detail()?.t === 'gen'} fallback={<>
+            <Show when={ctx.loading || marksRes.loading}><div class="aw-loadbar"><div class="aw-loadbar-fill" /></div></Show>
+            <div ref={inspEl} />
+          </>}>
+            <div class="aw-card">
+              <button class="aw-back" onClick={() => setDetail(null)}>← back to list</button>
+              <Show when={genMark()}>{(mm) => <>
+                <div class="aw-dtitle"><span innerHTML={markIconHtml(mm().kind, true)} /> {mm().label}
+                  <span style={{ color: '#94a3b8', 'font-weight': 400, 'font-size': '12px' }}>· build DAG ({mm().instances.length} instance{mm().instances.length > 1 ? 's' : ''})</span></div>
+                <div style={{ 'margin-top': '.6rem' }}><RunTreeDag tractate={tractate()} page={page()} pieceId={mm().id} /></div>
+              </>}</Show>
+            </div>
+          </Show>
         </div>
       </div>
     </main>
