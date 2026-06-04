@@ -300,36 +300,53 @@ export interface UnknownSummary<T> {
   sample: T[];          // top entities by sighting count
 }
 
+// Read values in bounded batches and keep only a running top-N, so memory stays
+// flat regardless of how many entities are tracked. Reading every value at once
+// (one big Promise.all) blew the 128MB worker limit once `concepts` grew into
+// the thousands and three of these run in parallel from the backlog build.
+const LIST_BATCH = 400;
+
 async function listPrefix<T extends { count: number }>(
   cache: KVNamespace,
   prefix: string,
   sample: number,
   keep?: (r: T) => boolean,
 ): Promise<UnknownSummary<T>> {
-  const names: string[] = [];
+  const byCount = (a: T, b: T) => (b.count ?? 0) - (a.count ?? 0);
+  let total = 0;
+  let sightings = 0;
+  let top: T[] = [];
+  // Cap the working set well above `sample` so the top-N is exact after a final
+  // sort, but bounded (no full-dataset retention).
+  const keepCap = Math.max(sample * 4, 200);
+
+  const ingest = async (names: string[]): Promise<void> => {
+    for (let i = 0; i < names.length; i += LIST_BATCH) {
+      const recs = await Promise.all(names.slice(i, i + LIST_BATCH).map((n) => cache.get(n)));
+      for (const raw of recs) {
+        if (!raw) continue;
+        let r: T;
+        try { r = JSON.parse(raw) as T; } catch { continue; }
+        if (keep && !keep(r)) continue;
+        total += 1;
+        sightings += r.count ?? 0;
+        top.push(r);
+      }
+      if (top.length > keepCap) { top.sort(byCount); top = top.slice(0, sample); }
+    }
+  };
+
   let cursor: string | undefined;
   for (;;) {
     const res = (await cache.list({ prefix, cursor, limit: 1000 })) as {
       keys: Array<{ name: string }>; list_complete: boolean; cursor?: string;
     };
-    for (const k of res.keys) names.push(k.name);
+    await ingest(res.keys.map((k) => k.name));
     if (res.list_complete || !res.cursor) break;
     cursor = res.cursor;
   }
-  const recs = await Promise.all(names.map((n) => cache.get(n)));
-  const parsed: T[] = [];
-  let sightings = 0;
-  for (const raw of recs) {
-    if (!raw) continue;
-    try {
-      const r = JSON.parse(raw) as T;
-      if (keep && !keep(r)) continue;
-      parsed.push(r);
-      sightings += r.count ?? 0;
-    } catch { /* skip corrupt */ }
-  }
-  parsed.sort((a, b) => (b.count ?? 0) - (a.count ?? 0));
-  return { total: parsed.length, sightings, sample: parsed.slice(0, sample) };
+  top.sort(byCount);
+  return { total, sightings, sample: top.slice(0, sample) };
 }
 
 export function listUnknownRabbis(cache: KVNamespace, sample = 50): Promise<UnknownSummary<UnknownRabbi>> {
