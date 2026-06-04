@@ -18,7 +18,7 @@ import { continuationLink, type FlowEdge } from '../lib/context/link';
 import { formatGroundedRefsForPrompt, buildDerivation } from '../lib/halacha/codifiers';
 import { dafSpine } from '../lib/context/spine';
 import { dafLinks } from '../lib/context/dafLinks';
-import { producerNodesFrom, reverseDependencyIndex, transitiveDependents } from '../lib/registry/depGraph';
+import { producerNodesFrom, reverseDependencyIndex, transitiveDependents, forwardSubgraph } from '../lib/registry/depGraph';
 import { aiMatchToSegments } from './context-match';
 import type { MatchInput } from '../lib/context/anchor/ai-prompt';
 import {
@@ -942,6 +942,106 @@ app.get('/api/dependents/:id', (c) => {
   const direct = [...(rev.get(id) ?? [])].sort();
   const transitive = [...transitiveDependents(rev, id)].sort();
   return c.json({ id, direct, transitive, count: transitive.length });
+});
+
+// Source-input dependency keys (resolved in resolveDep, not producers) — used to
+// classify a dependency id as a SOURCE leaf (fetched/assembled, no LLM) vs a
+// producer (mark/enrichment). Mirrors validateEnrichmentDependencies' allowlist.
+const SOURCE_DEP_KEYS = new Set([
+  'gemara', 'commentaries', 'mishna', 'context', 'context-light', 'halacha-refs', 'yerushalmi-text',
+]);
+
+// GET /api/run-tree/:tractate/:page/:id — the build PROVENANCE of one piece on
+// one daf, read-only. Walks the producer's forward dependency DAG (the same
+// `dependencies` the resolver follows) and, for each node, reads its ALREADY
+// CACHED RunResult to report how it was made: source vs LLM, model, cold
+// generation time, cost, tokens, and whether it's cached now. Shared nodes (e.g.
+// `gemara`, depended on across the chain) appear once with fan-in edges, and
+// their cost counts a single time in the totals. NO LLM, NO writes — a node with
+// nothing cached reports cached:false and null telemetry. The reader-facing
+// prompt + full generation per node stay lazy (the dev inspector fetches them
+// per-node via /api/run + /api/run-sources on expand), so this response is small.
+// Scope: whole-daf instances ({fields:{}}); section/global-instance trees are a
+// later extension. Public + read-only, like /api/dependents and /api/stale.
+app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const id = c.req.param('id');
+  const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
+
+  const defs = [...CODE_MARKS, ...CODE_ENRICHMENTS];
+  const byId = new Map(defs.map((d) => [d.id, d]));
+  if (!byId.has(id)) return c.json({ error: 'unknown producer (mark/enrichment id)' }, 404);
+  const markIds = new Set(CODE_MARKS.map((m) => m.id));
+
+  const { nodes: nodeIds, edges } = forwardSubgraph(producerNodesFrom(defs), id);
+
+  interface TreeNode {
+    id: string; label: string;
+    kind: 'source' | 'llm' | 'computed';
+    producer?: 'mark' | 'enrichment';
+    model?: string;
+    cached: boolean;
+    cold_ms: number | null;
+    cost: number | null;
+    tokens: number | null;
+  }
+  const out: Record<string, TreeNode> = {};
+  let totalColdMs = 0, totalCost = 0, llmCount = 0, sourceCount = 0, cachedCount = 0;
+
+  for (const nid of nodeIds) {
+    const def = byId.get(nid);
+    if (!def) {
+      // a dependency id with no producer def: a source-input leaf (gemara /
+      // context / …). SOURCE_DEP_KEYS confirms it's a known input vs a dangling
+      // ref (validateProducerGraph guards against the latter in CI).
+      out[nid] = {
+        id: nid, label: nid, kind: 'source',
+        cached: SOURCE_DEP_KEYS.has(nid), cold_ms: null, cost: null, tokens: null,
+      };
+      sourceCount++;
+      continue;
+    }
+    const isMark = markIds.has(nid);
+    const ext = (def as { extractor?: { kind?: string; model?: string } }).extractor;
+    const isLLM = ext?.kind === 'llm';
+    const job = (isMark
+      ? { mark_id: nid, tractate, page, lang }
+      : { enrichment_id: nid, tractate, page, mark_input: { fields: {} }, lang }) as unknown as JobMessage;
+    const { key } = await cacheKeyForRunBody(c.env, job);
+    const res = key ? await readCachedResult(c.env, key) : null;
+    const usage = res?.usage as { cost?: number; total_tokens?: number } | undefined;
+    const coldMs = typeof res?.elapsed_ms === 'number' ? res.elapsed_ms : null;
+    const cost = typeof usage?.cost === 'number' ? usage.cost : null;
+    if (res) cachedCount++;
+    if (isLLM && res) { totalColdMs += coldMs ?? 0; totalCost += cost ?? 0; llmCount++; }
+    else if (!isLLM) sourceCount++;
+    out[nid] = {
+      id: nid,
+      label: (def as { label?: string }).label ?? nid,
+      kind: isLLM ? 'llm' : 'computed',
+      producer: isMark ? 'mark' : 'enrichment',
+      model: isLLM ? ext?.model : undefined,
+      cached: !!res,
+      cold_ms: coldMs,
+      cost,
+      tokens: typeof usage?.total_tokens === 'number' ? usage.total_tokens : null,
+    };
+  }
+
+  return c.json({
+    root: id, tractate, page, lang,
+    nodes: out,
+    edges,
+    totals: {
+      count: nodeIds.length,
+      llm: llmCount,
+      source: sourceCount,
+      cached: cachedCount,
+      cold_ms: totalColdMs,
+      cost: Number(totalCost.toFixed(6)),
+    },
+  });
 });
 
 // Entity pieces (step 5): a first-class, addressable view of a "global" entity
