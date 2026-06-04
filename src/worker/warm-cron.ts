@@ -19,7 +19,7 @@ import {
 import { listDafyomiMasechtos } from '../lib/sefref/dafyomi/masechtos';
 import { computeCacheStats, writeCachedCacheStats } from './cache-stats';
 import { keyForHebrewBooks, keyForSefariaBundle, keyForSefariaSegments, keyForDafyomi } from './cache-keys';
-import type { JobMessage } from './index';
+import type { JobMessage } from './types';
 
 const CURSOR_KEY = 'warm-cursor:v1';
 const SEFARIA_CURSOR_KEY = 'warm-cursor-sefaria:v1';
