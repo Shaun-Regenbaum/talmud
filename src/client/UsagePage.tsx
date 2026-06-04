@@ -182,6 +182,7 @@ interface MarkRow {
   percent: number;
   versions: Record<string, number>;
   staleCount: number;
+  dependsOn?: string[]; // other marks this one depends on (v8+)
 }
 
 interface EnrichmentRow {
@@ -472,102 +473,10 @@ function ProgressBar(props: { percent: number }): JSX.Element {
   );
 }
 
-// ---- Source cache row (no versions) -------------------------------------
-function SourceRow(props: { label: string; count: number; total: number; percent: number }): JSX.Element {
-  const complete = () => props.percent >= 100;
-  return (
-    <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
-      <td style={{ padding: '0.4rem 0.5rem' }}>{props.label}</td>
-      <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>
-        {fmtInt(props.count)} / {fmtInt(props.total)}
-      </td>
-      <td style={{ padding: '0.4rem 0.5rem', width: '38%' }}><ProgressBar percent={props.percent} /></td>
-      <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', color: complete() ? '#2a8a42' : '#333', 'white-space': 'nowrap' }}>
-        {props.percent.toFixed(1)}%<Show when={complete()}><span style={{ 'margin-left': '0.3rem' }}>✓</span></Show>
-      </td>
-    </tr>
-  );
-}
-
-// Per-language slices of a row's `versions` map. The current version in lang L
-// is fresh; superseded versions in L are stale. `:he` suffix = Hebrew bucket.
+// Current-version count for a mark/enrichment in language L (`:he` suffix =
+// Hebrew bucket of the `versions` map).
 function langCount(versions: Record<string, number>, cv: string, he: boolean): number {
   return versions[he ? `${cv}:he` : cv] ?? 0;
-}
-function langStaleVersions(versions: Record<string, number>, cv: string, he: boolean): Array<[string, number]> {
-  return Object.entries(versions)
-    .filter(([v]) => {
-      const isHe = v.endsWith(':he');
-      return he ? (isHe && v !== `${cv}:he`) : (!isHe && v !== cv);
-    })
-    .sort(([a], [b]) => b.localeCompare(a));
-}
-
-// Small chip marking a Hebrew (:he) row.
-function HeTag(): JSX.Element {
-  return (
-    <span style={{ 'font-size': '0.7rem', color: '#1d4ed8', 'margin-left': '0.4rem', background: '#eef2ff', padding: '0.05rem 0.4rem', 'border-radius': '3px', 'font-weight': 600 }}>
-      {t('usage.heRow')}
-    </span>
-  );
-}
-
-// ---- Expandable anchor (mark) row with per-version breakdown -------------
-// `he` renders the Hebrew (:he) slice of the same mark as its own row.
-function AnchorRow(props: { row: MarkRow; total: number; he?: boolean }): JSX.Element {
-  const [open, setOpen] = createSignal(false);
-  const r = () => props.row;
-  const he = () => props.he === true;
-  const count = () => langCount(r().versions, r().cache_version, he());
-  const percent = () => (props.total > 0 ? (count() / props.total) * 100 : 0);
-  const otherVersions = () => langStaleVersions(r().versions, r().cache_version, he());
-  const staleCount = () => otherVersions().reduce((s, [, n]) => s + n, 0);
-  const complete = () => percent() >= 100;
-  return (
-    <>
-      <tr style={{ 'border-bottom': '1px solid #f4f4f4', cursor: 'pointer' }} onClick={() => setOpen(!open())}>
-        <td style={{ padding: '0.4rem 0.5rem' }}>
-          <span style={{ color: '#bbb', 'margin-right': '0.4rem', display: 'inline-block', width: '0.7rem' }}>{open() ? '▾' : '▸'}</span>
-          {r().label}
-          <Show when={he()}><HeTag /></Show>
-          <Show when={staleCount() > 0}>
-            <span style={{ 'font-size': '0.7rem', color: '#b58100', 'margin-left': '0.4rem', background: '#fff7e0', padding: '0.05rem 0.35rem', 'border-radius': '3px' }}>
-              {t('usage.staleBadge', { count: fmtInt(staleCount()) })}
-            </span>
-          </Show>
-        </td>
-        <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>
-          {fmtInt(count())} / {fmtInt(props.total)}
-        </td>
-        <td style={{ padding: '0.4rem 0.5rem', width: '38%' }}><ProgressBar percent={percent()} /></td>
-        <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', color: complete() ? '#2a8a42' : '#333', 'white-space': 'nowrap' }}>
-          {percent().toFixed(1)}%
-        </td>
-      </tr>
-      <Show when={open()}>
-        <tr style={{ background: '#fbfbfa' }}>
-          <td colspan={4} style={{ padding: '0.3rem 0.5rem 0.6rem 1.6rem' }}>
-            <div style={{ 'font-size': '0.78rem', color: '#666' }}>
-              <div style={{ 'font-family': 'monospace', color: '#999', 'margin-bottom': '0.3rem' }}>{r().id} · v{r().cache_version}{he() ? ':he' : ''} · {r().source}</div>
-              <div style={{ 'margin-bottom': '0.3rem' }}>
-                <b>v{r().cache_version}{he() ? ':he' : ''}</b> {t('usage.version.current', { count: fmtInt(count()) })}
-              </div>
-              <Show when={otherVersions().length > 0} fallback={<span style={{ color: '#aaa' }}>{t('usage.version.noSuperseded')}</span>}>
-                <div style={{ color: '#b58100', 'margin-bottom': '0.2rem' }}>{t('usage.version.supersededHeading')}</div>
-                <For each={otherVersions()}>
-                  {([v, n]) => (
-                    <div style={{ 'font-family': 'monospace', 'padding-left': '0.5rem' }}>
-                      mark:{r().id}:{v}: → {t('usage.version.entries', { count: fmtInt(n) })}
-                    </div>
-                  )}
-                </For>
-              </Show>
-            </div>
-          </td>
-        </tr>
-      </Show>
-    </>
-  );
 }
 
 // ---- Content-In: the daf's source material, by piece ---------------------
@@ -648,117 +557,129 @@ function SourcesSection(props: { stats: CacheStats }): JSX.Element {
   );
 }
 
-// ---- Content-Out: generated notes (one language slice per table) ----------
-function MarksTable(props: { marks: MarkRow[]; total: number; lang: 'en' | 'he' }): JSX.Element {
-  return (
-    <table style={tableStyle}>
-      <thead>
-        <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
-          <th style={thStyle}>{t('usage.col.anchor')}</th>
-          <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.dafim')}</th>
-          <th style={thStyle} />
-          <th style={{ ...thStyle, 'text-align': 'right' }}>%</th>
-        </tr>
-      </thead>
-      <tbody>
-        <For each={props.marks}>{(m) => <AnchorRow row={m} total={props.total} he={props.lang === 'he'} />}</For>
-      </tbody>
-    </table>
-  );
+// ---- Content-Out: mark-first tree ----------------------------------------
+// Each MARK is a row; expand it to see the enrichments built on top of it —
+// local ones plus global ones (🌐), and which other marks it depends on.
+function GlobeBadge(): JSX.Element {
+  return <span title={t('usage.global.title')} style={{ 'margin-left': '0.35rem', 'font-size': '0.8rem' }}>🌐</span>;
 }
 
-function NotesSection(props: { stats: CacheStats; observedPlaces: number; observedConcepts: number }): JSX.Element {
-  const total = () => props.stats.total;
-  const marks = () => props.stats.marks;
-  const heMarks = () => marks().filter((m) => m.heCount > 0);
-  const localEnrich = () => props.stats.enrichments.filter((e) => e.scope === 'local');
+function MarkTreeRow(props: { mark: MarkRow; total: number; enrichments: EnrichmentRow[]; labelOf: (id: string) => string }): JSX.Element {
+  const [open, setOpen] = createSignal(false);
+  const m = () => props.mark;
+  const percent = () => (props.total > 0 ? (m().count / props.total) * 100 : 0);
+  const complete = () => percent() >= 100;
+  // This mark's enrichments (local + global), local first then global, each
+  // alpha by label.
+  const enr = () => props.enrichments
+    .filter((e) => e.target_mark === m().id)
+    .sort((a, b) => (a.scope === b.scope ? a.label.localeCompare(b.label) : a.scope === 'local' ? -1 : 1));
+  const deps = () => m().dependsOn ?? [];
+  const num = { padding: '0.4rem 0.5rem', 'text-align': 'right' as const, 'font-variant-numeric': 'tabular-nums' };
   return (
     <>
-      <SectionHeading title={t('usage.anchors.title')} hint={t('usage.anchors.hint')} />
-      <Show when={marks().length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.anchors.empty')}</p>}>
-        <div style={{ 'font-size': '0.72rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.04em', margin: '0.2rem 0 0.2rem' }}>{t('usage.lang.english')}</div>
-        <MarksTable marks={marks()} total={total()} lang="en" />
-        <Show when={heMarks().length > 0}>
-          <div style={{ 'font-size': '0.72rem', color: '#1d4ed8', 'text-transform': 'uppercase', 'letter-spacing': '0.04em', margin: '0.7rem 0 0.2rem' }}>{t('usage.lang.hebrew')}</div>
-          <MarksTable marks={heMarks()} total={total()} lang="he" />
-        </Show>
+      <tr style={{ 'border-bottom': '1px solid #f4f4f4', cursor: 'pointer' }} onClick={() => setOpen(!open())}>
+        <td style={{ padding: '0.4rem 0.5rem' }}>
+          <span style={{ color: '#bbb', 'margin-right': '0.4rem', display: 'inline-block', width: '0.7rem' }}>{open() ? '▾' : '▸'}</span>
+          <b>{m().label}</b>
+          <Show when={enr().length > 0}><span style={{ color: '#999', 'font-size': '0.75rem', 'margin-left': '0.4rem' }}>{t('usage.tree.enrichCount', { count: fmtInt(enr().length) })}</span></Show>
+          <Show when={deps().length > 0}>
+            <For each={deps()}>
+              {(d) => <span style={{ 'font-size': '0.68rem', color: '#7c3aed', background: '#f3e8ff', 'border-radius': '3px', padding: '0.05rem 0.4rem', 'margin-left': '0.35rem' }}>↳ {props.labelOf(d)}</span>}
+            </For>
+          </Show>
+          <Show when={m().staleCount > 0}>
+            <span style={{ 'font-size': '0.7rem', color: '#b58100', 'margin-left': '0.4rem', background: '#fff7e0', padding: '0.05rem 0.35rem', 'border-radius': '3px' }}>{t('usage.staleBadge', { count: fmtInt(m().staleCount) })}</span>
+          </Show>
+        </td>
+        <td style={num}>{fmtInt(m().count)}<Show when={m().heCount > 0}><span style={{ color: '#1d4ed8' }}> · {fmtInt(m().heCount)}he</span></Show></td>
+        <td style={{ padding: '0.4rem 0.5rem', width: '26%' }}><ProgressBar percent={percent()} /></td>
+        <td style={{ ...num, color: complete() ? '#2a8a42' : '#333', 'white-space': 'nowrap' }}>{percent().toFixed(1)}%</td>
+      </tr>
+      <Show when={open()}>
+        <tr style={{ background: '#fbfbfa' }}>
+          <td colspan={4} style={{ padding: '0.2rem 0.5rem 0.7rem 1.7rem' }}>
+            <Show when={enr().length > 0} fallback={<p style={{ color: '#aaa', 'font-size': '0.8rem' }}>{t('usage.tree.noEnrich')}</p>}>
+              <table style={tableStyle}>
+                <thead>
+                  <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#888', 'font-size': '0.78rem' }}>
+                    <th style={thStyle}>{t('usage.col.enrichment')}</th>
+                    <th style={{ ...thStyle, 'text-align': 'right' }}>EN</th>
+                    <th style={{ ...thStyle, 'text-align': 'right' }}>HE</th>
+                    <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.stale')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <For each={enr()}>
+                    {(e) => (
+                      <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+                        <td style={{ padding: '0.35rem 0.5rem' }}>
+                          {e.label}
+                          <Show when={e.scope === 'global'}><GlobeBadge /></Show>
+                        </td>
+                        <td style={{ ...num }}>{fmtInt(langCount(e.versions, e.cache_version, false))}</td>
+                        <td style={{ ...num, color: e.heCount > 0 ? '#1d4ed8' : '#bbb' }}>{e.heCount > 0 ? fmtInt(langCount(e.versions, e.cache_version, true)) : '—'}</td>
+                        <td style={{ ...num, color: e.staleCount ? '#b58100' : '#bbb' }}>{e.staleCount ? fmtInt(e.staleCount) : '—'}</td>
+                      </tr>
+                    )}
+                  </For>
+                </tbody>
+              </table>
+            </Show>
+          </td>
+        </tr>
       </Show>
-
-      <div style={{ 'margin-top': '1.2rem' }}>
-        <SectionHeading title={t('usage.localEnrich.title')} hint={t('usage.localEnrich.hint')} />
-        <Show when={localEnrich().length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.localEnrich.empty')}</p>}>
-          <BilingualEnrichment rows={localEnrich()} />
-        </Show>
-      </div>
-
-      <div style={{ 'margin-top': '1.4rem' }}>
-        <SectionHeading title={t('usage.globalRepo.title')} hint={t('usage.globalRepo.hint')} />
-        <GlobalRepoSection stats={props.stats} observedPlaces={props.observedPlaces} observedConcepts={props.observedConcepts} />
-      </div>
     </>
   );
 }
 
-// One enrichment row in a single language slice. The technical id/version is
-// dropped from the visible row (the Mark column + label disambiguate); the
-// denominator ratio is only meaningful for English (instance counts are
-// language-neutral), so it's omitted on the Hebrew table.
-function EnrichRow(props: { e: EnrichmentRow; denom: number | null; lang: 'en' | 'he' }): JSX.Element {
-  const e = () => props.e;
-  const he = () => props.lang === 'he';
-  const count = () => langCount(e().versions, e().cache_version, he());
-  const stale = () => langStaleVersions(e().versions, e().cache_version, he()).reduce((s, [, n]) => s + n, 0);
-  return (
-    <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
-      <td style={{ padding: '0.4rem 0.5rem' }}>{e().label}</td>
-      <td style={{ padding: '0.4rem 0.5rem', 'font-family': 'monospace', color: '#555' }}>{e().target_mark}</td>
-      <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>
-        {fmtInt(count())}
-        <Show when={!he() && props.denom != null && props.denom > 0}>
-          <span style={{ color: '#999' }}> / {fmtInt(props.denom!)} ({((count() / props.denom!) * 100).toFixed(0)}%)</span>
-        </Show>
-      </td>
-      <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', color: stale() ? '#b58100' : '#bbb' }}>
-        {stale() ? fmtInt(stale()) : '—'}
-      </td>
-    </tr>
-  );
-}
-
-// Renders ONE language slice of a set of enrichments. The Hebrew table is fed
-// only the rows that actually have Hebrew entries (heCount > 0).
-function EnrichmentTable(props: { rows: EnrichmentRow[]; lang: 'en' | 'he'; denominatorFor?: (e: EnrichmentRow) => number | null }): JSX.Element {
-  return (
-    <table style={tableStyle}>
-      <thead>
-        <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
-          <th style={thStyle}>{t('usage.col.enrichment')}</th>
-          <th style={thStyle}>{t('usage.col.mark')}</th>
-          <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cached')}</th>
-          <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.stale')}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <For each={props.rows}>
-          {(e) => <EnrichRow e={e} lang={props.lang} denom={props.lang === 'he' ? null : (props.denominatorFor?.(e) ?? null)} />}
-        </For>
-      </tbody>
-    </table>
-  );
-}
-
-// English then Hebrew, as two labelled sub-tables. `rows` is the full set; the
-// Hebrew table is filtered to rows with Hebrew entries.
-function BilingualEnrichment(props: { rows: EnrichmentRow[]; denominatorFor?: (e: EnrichmentRow) => number | null }): JSX.Element {
-  const heRows = () => props.rows.filter((e) => e.heCount > 0);
+function NotesSection(props: { stats: CacheStats; observedConcepts: number }): JSX.Element {
+  const total = () => props.stats.total;
+  const marks = () => [...props.stats.marks].sort((a, b) => a.label.localeCompare(b.label));
+  const enrichments = () => props.stats.enrichments;
+  const labelOf = (id: string): string => props.stats.marks.find((m) => m.id === id)?.label ?? id;
+  const r = () => props.stats.rabbis;
   return (
     <>
-      <div style={{ 'font-size': '0.72rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.04em', margin: '0.3rem 0 0.2rem' }}>{t('usage.lang.english')}</div>
-      <EnrichmentTable rows={props.rows} lang="en" denominatorFor={props.denominatorFor} />
-      <Show when={heRows().length > 0}>
-        <div style={{ 'font-size': '0.72rem', color: '#1d4ed8', 'text-transform': 'uppercase', 'letter-spacing': '0.04em', margin: '0.7rem 0 0.2rem' }}>{t('usage.lang.hebrew')}</div>
-        <EnrichmentTable rows={heRows()} lang="he" />
+      <SectionHeading title={t('usage.anchors.title')} hint={t('usage.tree.hint')} />
+      <Show when={marks().length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.anchors.empty')}</p>}>
+        <table style={tableStyle}>
+          <thead>
+            <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
+              <th style={thStyle}>{t('usage.col.anchor')}</th>
+              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.dafim')}</th>
+              <th style={thStyle} />
+              <th style={{ ...thStyle, 'text-align': 'right' }}>%</th>
+            </tr>
+          </thead>
+          <tbody>
+            <For each={marks()}>{(mk) => <MarkTreeRow mark={mk} total={total()} enrichments={enrichments()} labelOf={labelOf} />}</For>
+          </tbody>
+        </table>
       </Show>
+
+      {/* Rabbi dataset — entity data enriched once, reused across every daf. */}
+      <div style={{ 'margin-top': '1.4rem' }}>
+        <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.3rem' }}>
+          {t('usage.rabbiCoverage.title')} <span style={{ color: '#999', 'font-weight': 'normal' }}>{t('usage.rabbiCoverage.sub', { count: fmtInt(r().totalRabbis) })}</span>
+        </h3>
+        <table style={tableStyle}>
+          <tbody>
+            <RabbiCoverageRow label={t('usage.rabbi.bio')} filled={r().withBio} total={r().totalRabbis} />
+            <RabbiCoverageRow label={t('usage.rabbi.sefariaBio')} filled={r().withSefariaBio} total={r().totalRabbis} hint={t('usage.rabbi.sefariaBio.hint')} />
+            <RabbiCoverageRow label={t('usage.rabbi.wiki')} filled={r().withWiki} total={r().totalRabbis} hint={t('usage.rabbi.wiki.hint')} />
+            <RabbiCoverageRow label={t('usage.rabbi.generation')} filled={r().withGeneration} total={r().totalRabbis} />
+            <RabbiCoverageRow label={t('usage.rabbi.region')} filled={r().withRegion} total={r().totalRabbis} />
+            <RabbiCoverageRow label={t('usage.rabbi.places')} filled={r().withPlaces} total={r().totalRabbis} />
+            <RabbiCoverageRow label={t('usage.rabbi.chain')} filled={r().withHierarchyEdges} total={r().totalRabbis} hint={t('usage.rabbi.chain.hint')} />
+            <RabbiCoverageRow label={t('usage.rabbi.family')} filled={r().withFamily} total={r().totalRabbis} hint={t('usage.rabbi.family.hint')} />
+            <RabbiCoverageRow label={t('usage.rabbi.orientation')} filled={r().withOrientation} total={r().totalRabbis} hint={t('usage.rabbi.orientation.hint')} />
+          </tbody>
+        </table>
+        <p style={{ 'font-size': '0.78rem', color: '#777', 'margin-top': '0.5rem' }}>
+          {t('usage.globalEnrich.concepts', { count: fmtInt(props.observedConcepts) })}
+        </p>
+      </div>
     </>
   );
 }
@@ -794,53 +715,6 @@ function RabbiCoverageRow(props: { label: string; filled: number | null; total: 
         <Show when={tracked()} fallback={<span>—</span>}>{missing() === 0 ? '—' : t('usage.missing', { count: fmtInt(missing()) })}</Show>
       </td>
     </tr>
-  );
-}
-
-function GlobalRepoSection(props: { stats: CacheStats; observedPlaces: number; observedConcepts: number }): JSX.Element {
-  const r = () => props.stats.rabbis;
-  const globalEnrich = () => props.stats.enrichments.filter((e) => e.scope === 'global');
-  // Denominator for global enrichment coverage: rabbi.* against the dataset
-  // size, places.* against distinct observed places (no gazetteer exists).
-  const denom = (e: EnrichmentRow): number | null => {
-    if (e.target_mark === 'rabbi') return r().totalRabbis;
-    if (e.target_mark === 'places') return props.observedPlaces || null;
-    return null;
-  };
-  return (
-    <>
-      <div style={{ 'font-size': '0.85rem' }}>
-        <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.3rem' }}>{t('usage.rabbiCoverage.title')} <span style={{ color: '#999', 'font-weight': 'normal' }}>{t('usage.rabbiCoverage.sub', { count: fmtInt(r().totalRabbis) })}</span></h3>
-        <table style={tableStyle}>
-          <tbody>
-            <RabbiCoverageRow label={t('usage.rabbi.bio')} filled={r().withBio} total={r().totalRabbis} />
-            <RabbiCoverageRow label={t('usage.rabbi.sefariaBio')} filled={r().withSefariaBio} total={r().totalRabbis} hint={t('usage.rabbi.sefariaBio.hint')} />
-            <RabbiCoverageRow label={t('usage.rabbi.wiki')} filled={r().withWiki} total={r().totalRabbis} hint={t('usage.rabbi.wiki.hint')} />
-            <RabbiCoverageRow label={t('usage.rabbi.generation')} filled={r().withGeneration} total={r().totalRabbis} />
-            <RabbiCoverageRow label={t('usage.rabbi.region')} filled={r().withRegion} total={r().totalRabbis} />
-            <RabbiCoverageRow label={t('usage.rabbi.places')} filled={r().withPlaces} total={r().totalRabbis} />
-            <RabbiCoverageRow label={t('usage.rabbi.chain')} filled={r().withHierarchyEdges} total={r().totalRabbis} hint={t('usage.rabbi.chain.hint')} />
-            <RabbiCoverageRow label={t('usage.rabbi.family')} filled={r().withFamily} total={r().totalRabbis} hint={t('usage.rabbi.family.hint')} />
-            <RabbiCoverageRow label={t('usage.rabbi.orientation')} filled={r().withOrientation} total={r().totalRabbis} hint={t('usage.rabbi.orientation.hint')} />
-          </tbody>
-        </table>
-      </div>
-
-      <div style={{ 'margin-top': '1.2rem' }}>
-        <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.3rem' }}>{t('usage.globalEnrich.title')} <span style={{ color: '#999', 'font-weight': 'normal' }}>{t('usage.globalEnrich.sub')}</span></h3>
-        <Show when={globalEnrich().length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.globalEnrich.empty')}</p>}>
-          <BilingualEnrichment rows={globalEnrich()} denominatorFor={denom} />
-        </Show>
-        <Show when={props.observedPlaces === 0}>
-          <p style={{ 'font-size': '0.78rem', color: '#b58100', 'margin-top': '0.4rem' }}>
-            {t('usage.globalEnrich.noGazetteer')}
-          </p>
-        </Show>
-        <p style={{ 'font-size': '0.78rem', color: '#777', 'margin-top': '0.4rem' }}>
-          {t('usage.globalEnrich.concepts', { count: fmtInt(props.observedConcepts) })}
-        </p>
-      </div>
-    </>
   );
 }
 
@@ -1700,7 +1574,7 @@ export function UsagePage(): JSX.Element {
       <Show when={tab() === 'contentOut'}>
         <SectionShell section={cacheStats} skeletonRows={8}>
           {(cs) => (
-            <NotesSection stats={cs} observedPlaces={backlog.value()?.places.total ?? 0} observedConcepts={backlog.value()?.concepts.total ?? 0} />
+            <NotesSection stats={cs} observedConcepts={backlog.value()?.concepts.total ?? 0} />
           )}
         </SectionShell>
       </Show>

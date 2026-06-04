@@ -128,6 +128,9 @@ export interface MarkCacheRow {
   percent: number;
   versions: Record<string, number>; // count per cache version present in KV (`:he` suffix = Hebrew)
   staleCount: number;     // entries at superseded (non-current) versions
+  /** Other marks this mark (or its enrichments) depends on — e.g. tidbit
+   *  depends on argument-overview. Foreign mark ids only. */
+  dependsOn: string[];
 }
 
 export interface EnrichmentCacheRow {
@@ -378,29 +381,42 @@ function pct(count: number, total: number): number {
 
 /** Merge code-defined marks/enrichments with KV-defined ones. KV wins on id
  *  collision. Mirrors the precedence used by /api/run. */
-async function mergedMarks(cache: KVNamespace): Promise<Array<{ id: string; label: string; source: 'code' | 'kv'; cache_version: string }>> {
+type MergedMark = { id: string; label: string; source: 'code' | 'kv'; cache_version: string; dependencies: unknown[] };
+async function mergedMarks(cache: KVNamespace): Promise<MergedMark[]> {
   const kv = await listMarks({ CACHE: cache });
-  const byId = new Map<string, { id: string; label: string; source: 'code' | 'kv'; cache_version: string }>();
-  for (const m of CODE_MARKS) byId.set(m.id, { id: m.id, label: m.label, source: 'code', cache_version: m.cache_version });
-  for (const m of kv) byId.set(m.id, { id: m.id, label: m.label, source: 'kv', cache_version: m.cache_version });
+  const byId = new Map<string, MergedMark>();
+  for (const m of CODE_MARKS) byId.set(m.id, { id: m.id, label: m.label, source: 'code', cache_version: m.cache_version, dependencies: (m as { dependencies?: unknown[] }).dependencies ?? [] });
+  for (const m of kv) byId.set(m.id, { id: m.id, label: m.label, source: 'kv', cache_version: m.cache_version, dependencies: (m as { dependencies?: unknown[] }).dependencies ?? [] });
   return [...byId.values()].sort((a, b) => a.id.localeCompare(b.id));
 }
 
-async function mergedEnrichments(cache: KVNamespace): Promise<Array<{
+/** The other MARK a dependency descriptor points at, if any. `{mark:X}` → X;
+ *  `{enrichment:'X.y'}` → X (the enrichment's owning mark); source-string deps
+ *  ('gemara', 'context', …) → null. Powers the per-mark "depends on" chips. */
+function foreignMarkOf(dep: unknown): string | null {
+  if (!dep || typeof dep !== 'object') return null;
+  const d = dep as { mark?: string; enrichment?: string };
+  if (typeof d.mark === 'string') return d.mark;
+  if (typeof d.enrichment === 'string') return d.enrichment.split('.')[0];
+  return null;
+}
+
+type MergedEnrichment = {
   id: string; label: string; target_mark: string; scope: 'global' | 'local';
-  source: 'code' | 'kv'; cache_version: string;
-}>> {
+  source: 'code' | 'kv'; cache_version: string; dependencies: unknown[];
+};
+async function mergedEnrichments(cache: KVNamespace): Promise<MergedEnrichment[]> {
   const kv = await listEnrichments({ CACHE: cache });
-  const byId = new Map<string, { id: string; label: string; target_mark: string; scope: 'global' | 'local'; source: 'code' | 'kv'; cache_version: string }>();
+  const byId = new Map<string, MergedEnrichment>();
   for (const e of CODE_ENRICHMENTS) byId.set(e.id, {
     id: e.id, label: e.label, target_mark: e.target_mark, scope: e.scope,
-    source: 'code', cache_version: e.cache_version,
+    source: 'code', cache_version: e.cache_version, dependencies: (e as { dependencies?: unknown[] }).dependencies ?? [],
   });
   // KV registry stores `mark` (singular) where code uses `target_mark`; map
   // both into the same shape so the row is consistent regardless of source.
   for (const e of kv) byId.set(e.id, {
     id: e.id, label: e.label, target_mark: e.mark, scope: e.scope,
-    source: 'kv', cache_version: e.cache_version,
+    source: 'kv', cache_version: e.cache_version, dependencies: (e as { dependencies?: unknown[] }).dependencies ?? [],
   });
   return [...byId.values()].sort((a, b) => a.id.localeCompare(b.id));
 }
@@ -493,6 +509,19 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     enrichDefs.map((e) => countByVersion(cache, `enrich:${e.id}:`)),
   );
 
+  // Per-mark "depends on" foreign marks (from the mark's own deps + its
+  // enrichments' deps), so Content-Out can show "tidbit depends on overview".
+  const markIds = new Set(markDefs.map((m) => m.id));
+  const dependsByMark = new Map<string, Set<string>>();
+  const addDep = (markId: string, dep: unknown): void => {
+    const f = foreignMarkOf(dep);
+    if (f && f !== markId && markIds.has(f)) {
+      (dependsByMark.get(markId) ?? dependsByMark.set(markId, new Set()).get(markId)!).add(f);
+    }
+  };
+  for (const m of markDefs) for (const dep of m.dependencies) addDep(m.id, dep);
+  for (const e of enrichDefs) for (const dep of e.dependencies) addDep(e.target_mark, dep);
+
   const marks: MarkCacheRow[] = markDefs.map((m, i) => {
     const versions = markVersions[i];
     const count = versions[m.cache_version] ?? 0;
@@ -501,6 +530,7 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
       id: m.id, label: m.label, source: m.source, cache_version: m.cache_version,
       count, heCount, percent: pct(count, total),
       versions, staleCount: staleSum(versions, m.cache_version),
+      dependsOn: [...(dependsByMark.get(m.id) ?? [])].sort(),
     };
   });
 
