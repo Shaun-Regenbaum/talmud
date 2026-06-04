@@ -61,6 +61,19 @@ export function TutorialCoach(): JSX.Element {
 
   const [rect, setRect] = createSignal<DOMRect | null>(null);
   const [pos, setPos] = createSignal<Pos | null>(null);
+  // The visible band of the (possibly pinch-zoomed / URL-bar-shifted) viewport.
+  // On mobile, `position:fixed` paints relative to the layout viewport, so when
+  // the user has zoomed or the browser chrome has slid the visual viewport, we
+  // pin the sheet to this band instead — otherwise it drifts off-screen.
+  const [vp, setVp] = createSignal({
+    top: 0,
+    height: typeof window !== 'undefined' ? window.innerHeight : 800,
+    scale: 1,
+  });
+  const readVp = () => {
+    const v = typeof window !== 'undefined' ? window.visualViewport : null;
+    setVp(v ? { top: v.offsetTop, height: v.height, scale: v.scale } : { top: 0, height: window.innerHeight, scale: 1 });
+  };
   let cardEl: HTMLDivElement | undefined;
   let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -76,6 +89,15 @@ export function TutorialCoach(): JSX.Element {
 
   // Where the mobile sheet sits: away from what the step occupies.
   const mobileAnchor = (): 'top' | 'bottom' => (step().note ? 'top' : 'bottom');
+
+  // The mobile daf keeps a sticky "Menu" handle pinned to the very top of the
+  // viewport. Anything scrolled to y=0 hides *behind* it (z-index 60) — which
+  // is exactly what buried the language toggle. This returns the viewport y
+  // below which a spotlit element is genuinely visible (handle bottom + air).
+  const mobileTopInset = () => {
+    const handle = document.querySelector<HTMLElement>('.daf-header-handle');
+    return (handle ? handle.getBoundingClientRect().bottom : 0) + GAP;
+  };
 
   // Watch the spotlit element for size changes (a note panel grows as its
   // content loads) and re-measure, so the ring waits for the panel to populate
@@ -109,10 +131,18 @@ export function TutorialCoach(): JSX.Element {
     // Observe the element so we re-measure when it grows (content populates).
     if (observed !== lead) { if (observed) ro?.unobserve(observed); ro?.observe(lead); observed = lead; }
     // Scroll the target into the area the card won't cover (skip when the
-    // re-measure was triggered by a resize, to avoid scroll fights).
+    // re-measure was triggered by a resize, to avoid scroll fights). On mobile
+    // the bottom-sheet steps must clear the sticky header handle: a naive
+    // scrollIntoView({block:'start'}) tucks the target *under* it (this is what
+    // hid the language toggle), so we scroll manually to land the target in the
+    // free strip just below the handle.
     if (!fromObserver) {
-      const block = isMobile() && mobileAnchor() === 'bottom' ? 'start' : 'center';
-      lead.scrollIntoView({ block: block as ScrollLogicalPosition, inline: 'center', behavior: 'smooth' });
+      if (isMobile() && mobileAnchor() === 'bottom') {
+        const y = window.scrollY + lead.getBoundingClientRect().top - mobileTopInset() - GAP;
+        window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+      } else {
+        lead.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
+      }
     }
     // Union bounding box of the targets — the whole note panel (it's measured
     // after the content populates, via the ResizeObserver + settle re-measures
@@ -200,14 +230,22 @@ export function TutorialCoach(): JSX.Element {
     }
   });
 
-  // Keep the cutout glued to the target through scroll / resize.
+  // Keep the cutout + sheet glued to the target through scroll / resize — and,
+  // on mobile, through pinch-zoom and the URL-bar show/hide, which fire on the
+  // visualViewport (not window) and move where "fixed" actually paints.
   createEffect(() => {
-    const onMove = () => requestAnimationFrame(() => measure());
+    const onMove = () => requestAnimationFrame(() => { readVp(); measure(); });
+    readVp();
     window.addEventListener('resize', onMove);
     window.addEventListener('scroll', onMove, true);
+    const v = typeof window !== 'undefined' ? window.visualViewport : null;
+    v?.addEventListener('resize', onMove);
+    v?.addEventListener('scroll', onMove);
     onCleanup(() => {
       window.removeEventListener('resize', onMove);
       window.removeEventListener('scroll', onMove, true);
+      v?.removeEventListener('resize', onMove);
+      v?.removeEventListener('scroll', onMove);
     });
   });
 
@@ -244,6 +282,26 @@ export function TutorialCoach(): JSX.Element {
     };
     if (isMobile()) {
       const atTop = mobileAnchor() === 'top';
+      const v = vp();
+      // When the visual viewport is zoomed or shifted away from the layout
+      // viewport, "fixed" no longer lines up with what the user sees, so pin
+      // the sheet to the visible band explicitly. Otherwise keep the simple
+      // CSS anchoring (which honours the safe-area insets).
+      const shifted = v.scale > 1.01 || Math.abs(v.top) > 1;
+      if (shifted) {
+        const maxH = `${Math.round(v.height * 0.46)}px`;
+        return {
+          ...base,
+          left: '8px',
+          right: '8px',
+          'max-height': maxH,
+          'border-radius': '12px',
+          overflow: 'hidden',
+          ...(atTop
+            ? { top: `${Math.round(v.top + 8)}px` }
+            : { top: `${Math.round(v.top + v.height - MOBILE_BAR)}px`, transform: 'translateY(-100%)' }),
+        };
+      }
       return {
         ...base,
         left: '8px',
