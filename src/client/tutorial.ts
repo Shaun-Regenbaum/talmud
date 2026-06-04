@@ -21,10 +21,14 @@
  *  and quoted verses, so every note type is represented. */
 export const FEATURED_DAF = { tractate: 'Berakhot', page: '62b' } as const;
 
-/** A small legend / illustration drawn inside the coach card to supplement a
- *  step that teaches a concept rather than a single control (the mark glyphs,
- *  the generation colour scale, the click-to-translate gesture, the Q&A box). */
-export type TourSupplement = 'icons' | 'spectrum' | 'translate' | 'qa';
+/** Which real note a step opens behind the coach. The coach asks the embedded
+ *  DafViewer to open it; the reader sees the genuine panel / drawer. */
+export type TourNote = 'overview' | 'argument' | 'halacha';
+
+/** A small legend / demo drawn inside the coach card to supplement a step that
+ *  teaches a concept rather than spotlighting a single element (the mark
+ *  glyphs, the generation colour scale, the click-to-translate gesture). */
+export type TourSupplement = 'icons' | 'spectrum' | 'translate-word' | 'translate-phrase';
 
 export interface TourStep {
   id: string;
@@ -32,25 +36,25 @@ export interface TourStep {
   chapterKey: string;
   titleKey: string;
   bodyKey: string;
-  /** `data-tour` value of a real element on the embedded daf to spotlight.
-   *  Omit for a step that teaches a concept and centres instead. */
+  /** `data-tour` value of a real element on the embedded daf to spotlight. */
   target?: string;
-  /** Open the whole-daf Overview note (real side panel / drawer) while this
-   *  step is showing, so the reader sees an actual note. */
-  note?: boolean;
+  /** Raw CSS selector to spotlight instead of a `data-tour` target (used for
+   *  generated daf content like a rabbi name). Takes precedence over `target`. */
+  selector?: string;
+  /** Open a real note (panel on desktop, drawer on mobile) for this step. */
+  note?: TourNote;
   /** Keep the mobile top header drawer (tractate / nav / language) open for
-   *  this step — its target lives inside it. On desktop the header is always
-   *  visible, so this is a no-op there. */
+   *  this step — its target lives inside it. No-op on desktop. */
   header?: boolean;
-  /** Legend drawn under the body for concept steps. */
+  /** Legend / demo drawn under the body for concept steps. */
   supplement?: TourSupplement;
 }
 
 /**
- * The ordered walk around the daf. Chrome that is always present (language,
- * page nav, the margin icons, the chip bar, an open note) is spotlighted on the
- * real element; concepts that have no single anchor (the translate gesture, the
- * name-colour scale) centre with a small legend.
+ * The ordered walk around the daf. We spotlight real chrome (language, nav, the
+ * margin icons, the chip bar), open real notes (an argument, a halacha, the
+ * whole-daf overview, the Q&A), and highlight real daf content (a rabbi name).
+ * A couple of concept steps (the translate gesture) centre with a small demo.
  */
 export const TOUR_STEPS: TourStep[] = [
   {
@@ -76,11 +80,18 @@ export const TOUR_STEPS: TourStep[] = [
     bodyKey: 'tutorial.nav.body',
   },
   {
-    id: 'translate',
+    id: 'translate-word',
     chapterKey: 'tutorial.chapter.reading',
-    titleKey: 'tutorial.translate.title',
-    bodyKey: 'tutorial.translate.body',
-    supplement: 'translate',
+    titleKey: 'tutorial.translateWord.title',
+    bodyKey: 'tutorial.translateWord.body',
+    supplement: 'translate-word',
+  },
+  {
+    id: 'translate-phrase',
+    chapterKey: 'tutorial.chapter.reading',
+    titleKey: 'tutorial.translatePhrase.title',
+    bodyKey: 'tutorial.translatePhrase.body',
+    supplement: 'translate-phrase',
   },
   {
     id: 'marks',
@@ -91,6 +102,22 @@ export const TOUR_STEPS: TourStep[] = [
     supplement: 'icons',
   },
   {
+    id: 'argument',
+    chapterKey: 'tutorial.chapter.marks',
+    target: 'note-panel',
+    note: 'argument',
+    titleKey: 'tutorial.argument.title',
+    bodyKey: 'tutorial.argument.body',
+  },
+  {
+    id: 'halacha',
+    chapterKey: 'tutorial.chapter.marks',
+    target: 'note-panel',
+    note: 'halacha',
+    titleKey: 'tutorial.halacha.title',
+    bodyKey: 'tutorial.halacha.body',
+  },
+  {
     id: 'chips',
     chapterKey: 'tutorial.chapter.marks',
     target: 'chips',
@@ -98,28 +125,35 @@ export const TOUR_STEPS: TourStep[] = [
     bodyKey: 'tutorial.chips.body',
   },
   {
-    id: 'card',
+    id: 'overview',
     chapterKey: 'tutorial.chapter.marks',
     target: 'note-panel',
-    note: true,
-    titleKey: 'tutorial.card.title',
-    bodyKey: 'tutorial.card.body',
+    note: 'overview',
+    titleKey: 'tutorial.overview.title',
+    bodyKey: 'tutorial.overview.body',
   },
   {
     id: 'qa',
     chapterKey: 'tutorial.chapter.marks',
-    target: 'note-panel',
-    note: true,
+    target: 'qa-section',
+    note: 'argument',
     titleKey: 'tutorial.qa.title',
     bodyKey: 'tutorial.qa.body',
-    supplement: 'qa',
   },
   {
     id: 'underline',
     chapterKey: 'tutorial.chapter.marks',
+    selector: 'span.rabbi-underline',
     titleKey: 'tutorial.underline.title',
     bodyKey: 'tutorial.underline.body',
     supplement: 'spectrum',
+  },
+  {
+    id: 'report',
+    chapterKey: 'tutorial.chapter.done',
+    target: 'report',
+    titleKey: 'tutorial.report.title',
+    bodyKey: 'tutorial.report.body',
   },
   {
     id: 'finish',
@@ -130,17 +164,18 @@ export const TOUR_STEPS: TourStep[] = [
 ];
 
 /** Custom events the embedded DafViewer listens for so the note steps open a
- *  real note (the whole-daf Overview) — a side panel on desktop, a drawer on
- *  mobile — and close it again when a non-note step is shown / the tour ends.
- *  The header events open/collapse the mobile top drawer (no-op on desktop). */
-export const TUTORIAL_OPEN_NOTE_EVENT = 'tutorial-open-note';
+ *  real note — an argument, a halacha, or the whole-daf overview — a side panel
+ *  on desktop, a drawer on mobile, closed again when a non-note step is shown /
+ *  the tour ends. The header events open/collapse the mobile top drawer (no-op
+ *  on desktop). */
+export const TUTORIAL_OPEN_NOTE_EVENT = 'tutorial-open-note'; // detail: { note: TourNote }
 export const TUTORIAL_CLOSE_NOTE_EVENT = 'tutorial-close-note';
 export const TUTORIAL_HEADER_EVENT = 'tutorial-header'; // detail: { open: boolean }
 
-/** Ask the embedded DafViewer to open the whole-daf Overview note. */
-export function openTutorialNote(): void {
+/** Ask the embedded DafViewer to open a real note of the given kind. */
+export function openTutorialNote(note: TourNote): void {
   if (typeof window === 'undefined') return;
-  window.dispatchEvent(new CustomEvent(TUTORIAL_OPEN_NOTE_EVENT));
+  window.dispatchEvent(new CustomEvent(TUTORIAL_OPEN_NOTE_EVENT, { detail: { note } }));
 }
 
 /** Close the note opened for the tour. */

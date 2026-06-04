@@ -77,8 +77,9 @@ export function TutorialCoach(): JSX.Element {
   const measure = (attempt = 0) => {
     clearTimeout(retryTimer);
     const s = step();
-    if (!s.target) { setRect(null); reposition(); return; }
-    const el = document.querySelector(`[data-tour="${s.target}"]`);
+    const sel = s.selector ?? (s.target ? `[data-tour="${s.target}"]` : null);
+    if (!sel) { setRect(null); reposition(); return; }
+    const el = document.querySelector(sel);
     if (!el) {
       setRect(null);
       reposition();
@@ -130,7 +131,7 @@ export function TutorialCoach(): JSX.Element {
   createEffect(() => {
     const s = step();
     setTutorialHeader(!!s.header);
-    if (s.note) openTutorialNote(); else closeTutorialNote();
+    if (s.note) openTutorialNote(s.note); else closeTutorialNote();
     setPos(null);
     requestAnimationFrame(() => requestAnimationFrame(() => measure()));
   });
@@ -202,13 +203,20 @@ export function TutorialCoach(): JSX.Element {
 
   return (
     <Portal>
+      {/* Click shield — a transparent full-viewport layer that swallows every
+          interaction with the daf during the tour, so clicking the page can't
+          start a selection or open an unrelated note. The coach drives
+          everything; the shield sits below the ring/dim (visual only) and the
+          card (which is above it and stays interactive). */}
+      <div aria-hidden="true" style={{ position: 'fixed', inset: '0', 'z-index': '5999', background: 'transparent' }} />
+
       {/* Backdrop. A target step dims everything except a ring around the real
-          element (via the ring's huge box-shadow), and the ring is
-          pointer-events:none so the control stays usable. A concept step dims
-          uniformly with a real overlay. */}
+          element (via the ring's huge box-shadow); a concept step dims
+          uniformly. Both are visual only (pointer-events:none) — the shield
+          above does the blocking. */}
       <Show
         when={hasRing()}
-        fallback={<div aria-hidden="true" style={{ position: 'fixed', inset: '0', 'z-index': '6000', background: 'rgba(17,24,39,0.55)' }} />}
+        fallback={<div aria-hidden="true" style={{ position: 'fixed', inset: '0', 'z-index': '6000', 'pointer-events': 'none', background: 'rgba(17,24,39,0.55)' }} />}
       >
         <div
           aria-hidden="true"
@@ -245,6 +253,14 @@ export function TutorialCoach(): JSX.Element {
           </div>
           <Show when={step().supplement}>
             {(kind) => <Supplement kind={kind()} />}
+          </Show>
+          <Show when={step().id === 'finish'}>
+            <div style={{ 'margin-top': '14px', 'font-size': '14px', 'line-height': 1.55, color: '#374151' }}>
+              {t('tutorial.finish.contact')}{' '}
+              <a href="mailto:shaunregenbaum@gmail.com" style={{ color: 'var(--accent, #8a2a2b)', 'font-weight': 600 }}>
+                shaunregenbaum@gmail.com
+              </a>
+            </div>
           </Show>
         </div>
 
@@ -373,34 +389,29 @@ function Supplement(props: { kind: TourSupplement }): JSX.Element {
         </div>
       </Show>
 
-      <Show when={props.kind === 'translate'}>
+      <Show when={props.kind === 'translate-word'}>
         <div style={{ display: 'flex', 'align-items': 'center', 'justify-content': 'center', gap: '10px', 'font-size': '17px' }}>
           <span style={{ 'border-bottom': '2px solid var(--accent, #8a2a2b)', 'padding-bottom': '1px' }}>גַּבְרָא</span>
           <span style={{ color: '#9ca3af' }}>→</span>
-          <span style={{ background: '#f3eceb', border: '1px solid #e3cfcf', 'border-radius': '4px', padding: '3px 12px', 'font-size': '15px', color: 'var(--accent-strong, #6f2122)' }}>{t('tutorial.translate.example')}</span>
+          <span style={transChip()}>{t('tutorial.translateWord.example')}</span>
         </div>
       </Show>
 
-      <Show when={props.kind === 'qa'}>
-        <div style={{ display: 'flex', 'flex-direction': 'column', gap: '8px' }}>
-          <div style={{ display: 'flex', gap: '6px', 'flex-wrap': 'wrap' }}>
-            <span style={pill()}>{t('tutorial.qa.example1')}</span>
-            <span style={pill()}>{t('tutorial.qa.example2')}</span>
-          </div>
-          <div style={{ display: 'flex', 'align-items': 'center', gap: '8px', border: '1px solid var(--line, #d1d5db)', 'border-radius': '4px', padding: '8px 11px', 'font-size': '13px', color: '#9ca3af', background: '#fbfaf8' }}>
-            <span style={{ flex: '1 1 auto' }}>{t('tutorial.qa.placeholder')}</span>
-            <span style={{ color: 'var(--accent, #8a2a2b)', 'font-weight': 700 }}>↵</span>
-          </div>
+      <Show when={props.kind === 'translate-phrase'}>
+        <div style={{ display: 'flex', 'align-items': 'center', 'justify-content': 'center', gap: '10px', 'font-size': '17px', 'flex-wrap': 'wrap' }}>
+          <span dir="rtl" style={{ 'border-bottom': '2px solid var(--accent, #8a2a2b)', 'padding-bottom': '1px' }}>{t('tutorial.translatePhrase.exampleHe')}</span>
+          <span style={{ color: '#9ca3af' }}>→</span>
+          <span style={transChip()}>{t('tutorial.translatePhrase.exampleEn')}</span>
         </div>
       </Show>
     </div>
   );
 }
 
-function pill(): JSX.CSSProperties {
+function transChip(): JSX.CSSProperties {
   return {
-    'font-size': '12px', background: '#f3eceb', color: 'var(--accent-strong, #6f2122)',
-    border: '1px solid #e3cfcf', 'border-radius': '999px', padding: '3px 10px', 'white-space': 'nowrap',
+    background: '#f3eceb', border: '1px solid #e3cfcf', 'border-radius': '4px',
+    padding: '3px 12px', 'font-size': '15px', color: 'var(--accent-strong, #6f2122)',
   };
 }
 function SpectrumRow(props: { labelKey: string; ids: GenerationId[] }): JSX.Element {

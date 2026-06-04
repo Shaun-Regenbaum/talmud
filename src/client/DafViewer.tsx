@@ -2398,11 +2398,16 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     go(formatPage(pageNum(), pageAmud() === 'a' ? 'b' : 'a'));
   };
 
-  // The tutorial coach's note steps open a real note (the whole-daf Overview) —
-  // a side panel on desktop, a drawer on mobile — and close it again when a
-  // non-note step is shown or the tour ends.
+  // The tutorial coach's note steps open a real note — an argument, a halacha,
+  // or the whole-daf Overview (a side panel on desktop, a drawer on mobile) —
+  // and close it again when a non-note step is shown or the tour ends.
   onMount(() => {
-    const onOpen = () => openChip('argument-overview');
+    const onOpen = (e: Event) => {
+      const note = (e as CustomEvent<{ note?: string }>).detail?.note ?? 'overview';
+      if (note === 'argument') openArgument(0);
+      else if (note === 'halacha') openHalacha(0);
+      else openChip('argument-overview');
+    };
     const onClose = () => setSidebar(null);
     const onHeader = (e: Event) => {
       if (!isMobile()) return;

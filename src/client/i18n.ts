@@ -914,12 +914,20 @@ const CATALOG = {
     he: 'בחרו מסכת ודף כאן, או דפדפו קדימה ואחורה עם החצים. "הדף היומי" מקפיץ אתכם לדף היומי של היום.',
   },
 
-  'tutorial.translate.title': { en: 'Translate any word', he: 'תרגום כל מילה' },
-  'tutorial.translate.body': {
-    en: 'On a computer, click any word in the text to see its English translation — or select several words to translate a whole phrase. On a phone, switch the bottom bar to "Translate" and tap. You can also select a run of text to highlight and keep it.',
-    he: 'במחשב, לחצו על כל מילה בטקסט כדי לראות את תרגומה לעברית — או סמנו כמה מילים כדי לתרגם ביטוי שלם. בטלפון, העבירו את הסרגל התחתון ל"תרגום" והקישו על מילה. אפשר גם לסמן רצף טקסט כדי להדגיש ולשמור אותו.',
+  'tutorial.translateWord.title': { en: 'Translate any word', he: 'תרגום כל מילה' },
+  'tutorial.translateWord.body': {
+    en: 'On a computer, click any word in the text to see its translation. On a phone, switch the bottom bar to "Translate" and tap a word.',
+    he: 'במחשב, לחצו על כל מילה בטקסט כדי לראות את תרגומה. בטלפון, העבירו את הסרגל התחתון ל"תרגום" והקישו על מילה.',
   },
-  'tutorial.translate.example': { en: 'man', he: 'אִישׁ' },
+  'tutorial.translateWord.example': { en: 'man', he: 'אִישׁ' },
+
+  'tutorial.translatePhrase.title': { en: '…or a whole phrase', he: '…או ביטוי שלם' },
+  'tutorial.translatePhrase.body': {
+    en: 'Select a run of several words and the whole phrase is translated together — handy when the sense lives in the combination, not the single word. Selecting text also lets you highlight and keep it.',
+    he: 'סמנו רצף של כמה מילים והביטוי כולו יתורגם יחד — נוח כשהמשמעות נמצאת בצירוף ולא במילה הבודדת. סימון טקסט גם מאפשר להדגיש ולשמור אותו.',
+  },
+  'tutorial.translatePhrase.exampleHe': { en: 'כָּל הָעוֹלָם כֻּלּוֹ', he: 'כָּל הָעוֹלָם כֻּלּוֹ' },
+  'tutorial.translatePhrase.exampleEn': { en: 'the whole world', he: 'כל העולם' },
 
   'tutorial.marks.title': { en: 'Notes in the margins', he: 'הערות בשוליים' },
   'tutorial.marks.body': {
@@ -945,10 +953,22 @@ const CATALOG = {
     he: 'הכפתורים שלמעלה פותחים הערות על כל הדף ולא על נקודה אחת: סקירה של הסוגיה, הרקע שכדאי להכיר לפני הלימוד, ולעיתים גם תובנה ששווה לשים לב אליה.',
   },
 
-  'tutorial.card.title': { en: 'Inside a note', he: 'בתוך הערה' },
-  'tutorial.card.body': {
-    en: "Here's a note open beside the daf — a short summary at the top, then sections you can expand: the players and sides of a dispute, key terms, sources, and more. Tap a part of a note to highlight the matching text on the page.",
-    he: 'הנה הערה פתוחה לצד הדף — סיכום קצר בראש, ואז קטעים שניתן להרחיב: הדמויות והצדדים במחלוקת, מונחי מפתח, מקורות ועוד. הקישו על חלק בהערה כדי להדגיש את הטקסט המתאים בדף.',
+  'tutorial.argument.title': { en: 'Following the argument', he: 'מעקב אחר מהלך הסוגיה' },
+  'tutorial.argument.body': {
+    en: "Here's a real argument note open beside the daf. It lays out who is speaking and the sides of the dispute — the voices — so you can see how the sugya builds its case. Tap a part of the note to highlight the matching text on the page.",
+    he: 'הנה הערת מהלך אמיתית פתוחה לצד הדף. היא מציגה מי מדבר ומהם צדדי המחלוקת — הקולות — כדי שתראו כיצד הסוגיה בונה את טיעונה. הקישו על חלק בהערה כדי להדגיש את הטקסט המתאים בדף.',
+  },
+
+  'tutorial.halacha.title': { en: 'The practical ruling', he: 'הפסיקה למעשה' },
+  'tutorial.halacha.body': {
+    en: 'A halacha note traces how the discussion settles into law — the codification, from the Gemara through the Rishonim to the Shulchan Aruch.',
+    he: 'הערת הלכה עוקבת אחר האופן שבו הדיון מתגבש לפסיקה — מהגמרא דרך הראשונים ועד השולחן ערוך.',
+  },
+
+  'tutorial.overview.title': { en: 'The whole-daf overview', he: 'סקירת כל הדף' },
+  'tutorial.overview.body': {
+    en: 'This note zooms out to the whole page: a short summary, a map of how the discussion flows, key terms, and cross-references to where the sugya continues. A good place to get your bearings before diving in.',
+    he: 'הערה זו מתרחקת אל כל הדף: סיכום קצר, מפה של מהלך הדיון, מונחי מפתח, והפניות למקום שבו הסוגיה ממשיכה. מקום טוב להתמצא בו לפני הצלילה ללימוד.',
   },
 
   'tutorial.underline.title': { en: 'The colored names', he: 'השמות הצבעוניים' },
@@ -965,14 +985,20 @@ const CATALOG = {
     en: 'At the bottom of a note you can pick a suggested question or type your own about the passage — the answer is written for you and grounded in the text.',
     he: 'בתחתית ההערה אפשר לבחור שאלה מוצעת או להקליד שאלה משלכם על הקטע — התשובה נכתבת עבורכם ומעוגנת בטקסט.',
   },
-  'tutorial.qa.example1': { en: 'Why this order?', he: 'למה הסדר הזה?' },
-  'tutorial.qa.example2': { en: 'Who disagrees?', he: 'מי חולק?' },
-  'tutorial.qa.placeholder': { en: 'Ask about this passage…', he: 'שאלו על הקטע הזה…' },
+  'tutorial.report.title': { en: 'Spot a problem?', he: 'מצאתם תקלה?' },
+  'tutorial.report.body': {
+    en: 'These notes are generated and not perfect. If something looks wrong — a mistranslation, a misplaced note, a bad reading — use "Report a problem" at the bottom of the daf to flag it. It genuinely helps.',
+    he: 'ההערות נוצרות אוטומטית ואינן מושלמות. אם משהו נראה שגוי — תרגום, מיקום הערה, או קריאה — השתמשו ב"דיווח על תקלה" בתחתית הדף כדי לסמן זאת. זה באמת עוזר.',
+  },
 
   'tutorial.finish.title': { en: "You're ready", he: 'אתם מוכנים' },
   'tutorial.finish.body': {
     en: 'That\'s the tour. You can reopen it anytime from the Help button. Enjoy learning.',
     he: 'זה הסיור. אפשר לפתוח אותו שוב בכל עת מכפתור העזרה. למידה נעימה.',
+  },
+  'tutorial.finish.contact': {
+    en: 'Questions, ideas, or feedback? Feel free to reach out:',
+    he: 'שאלות, רעיונות או משוב? אתם מוזמנים לכתוב לי:',
   },
 
   // — First-visit banner on the reader —
