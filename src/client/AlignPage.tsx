@@ -178,12 +178,15 @@ export function AlignPage(): JSX.Element {
       <span class="aw-range">${e.segs.length ? `seg ${e.segs.join(', ')}` : 'no text match'}</span></div>`;
   }
   function collectRowsHtml(range: Set<number>): string {
+    // group by the SOURCE id (not the label) so the two "Halacha" sources
+    // (sefaria-halacha vs dafyomi:halacha) stay distinct and never read as the
+    // Halacha *mark*; show the id so a context source is unambiguous.
     const groups = new Map<string, { label: string; key: string; segs: Set<number>; source: string }>();
     for (const it of onLine()) {
       if (!it.segs.some((s) => range.has(s))) continue;
-      const g = groups.get(it.sourceLabel) ?? { label: it.sourceLabel, key: it.key, segs: new Set(), source: it.source };
+      const g = groups.get(it.source) ?? { label: it.sourceLabel, key: it.key, segs: new Set(), source: it.source };
       it.segs.forEach((s) => g.segs.add(s));
-      groups.set(it.sourceLabel, g);
+      groups.set(it.source, g);
     }
     const rows = [...groups.values()];
     if (!rows.length) return '<div class="aw-note" style="margin:.2rem 0 0">whole-daf context only</div>';
@@ -192,7 +195,7 @@ export function AlignPage(): JSX.Element {
       const t = timing().find((x) => x.sources.includes(g.source));
       const ms = t?.ms ?? 0; const cache = t ? (t.cache === 'hit' ? 'cached' : t.cache === 'miss' ? 'fetched' : t.cache) : '—';
       return `<div class="aw-wfrow aw-src" data-src="${esc(g.key)}" data-hl="${[...g.segs].join(',')}">
-        <div class="aw-wflabel">${dot('#16a34a')}${esc(g.label)}</div>
+        <div class="aw-wflabel">${dot('#16a34a')}${esc(g.label)} <span class="aw-srcid">${esc(g.source)}</span></div>
         <div class="aw-wftrack"><div class="aw-wfbar src" style="width:${Math.max(4, (ms / max) * 100)}%"></div></div>
         <div class="aw-wfmeta">${fmtMs(ms)} · <span class="free">${cache}</span></div></div>`;
     }).join('');
@@ -467,6 +470,7 @@ const STYLE = `
 .aw-wfrow{display:grid;grid-template-columns:130px 1fr 92px;gap:.5rem;align-items:center;cursor:pointer;padding:2px 4px;border-radius:3px}
 .aw-wfrow:hover{background:#f1ece2}
 .aw-wflabel{font-size:11px;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:.3rem}
+.aw-srcid{font-family:ui-monospace,Menlo,monospace;font-size:9px;color:#94a3b8}
 .aw-wftrack{position:relative;height:13px;background:#efece4;border-radius:3px}
 .aw-wfbar{position:absolute;top:0;left:0;height:13px;border-radius:3px;min-width:3px}.aw-wfbar.src{background:#c2ccd6}
 .aw-wfmeta{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#64748b;text-align:right;white-space:nowrap}

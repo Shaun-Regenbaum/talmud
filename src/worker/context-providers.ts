@@ -103,10 +103,10 @@ export async function collectContext(
       (track) => getDafyomiContentCached(cache, env.ASSETS, tractate, page, { assetOrigin: opts.assetOrigin, allowLive, track })),
     rec('sefaria-page', ['sefaria-rashi', 'sefaria-tosafot'], (track) => getSefariaPageCached(cache, tractate, page, track)),
     rec('sefaria-segments', [], (track) => getSefariaSegmentsCached(cache, tractate, page, track)),
-    rec('rishonim', ['sefaria-rishonim'], () => getRishonimCached(cache, tractate, page)),
-    rec('halacha-refs', ['sefaria-halacha'], () => getHalachaRefsCached(cache, tractate, page)),
-    rec('mishna', ['sefaria-mishnah'], () => getMishnaBundleCached(cache, tractate, page)),
-    rec('topics', ['sefaria-topic'], () => getDafTopicsCached(cache, tractate, page)),
+    rec('rishonim', ['sefaria-rishonim'], (track) => getRishonimCached(cache, tractate, page, track)),
+    rec('halacha-refs', ['sefaria-halacha'], (track) => getHalachaRefsCached(cache, tractate, page, track)),
+    rec('mishna', ['sefaria-mishnah'], (track) => getMishnaBundleCached(cache, tractate, page, track)),
+    rec('topics', ['sefaria-topic'], (track) => getDafTopicsCached(cache, tractate, page, track)),
   ]);
 
   const items: ContextItem[] = [];
