@@ -404,6 +404,19 @@ function Supplement(props: { kind: TourSupplement }): JSX.Element {
           <span style={transChip()}>{t('tutorial.translatePhrase.exampleEn')}</span>
         </div>
       </Show>
+
+      <Show when={props.kind === 'qa'}>
+        <div style={{ display: 'flex', 'flex-direction': 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '6px', 'flex-wrap': 'wrap' }}>
+            <span style={qaPill()}>{t('tutorial.qa.example1')}</span>
+            <span style={qaPill()}>{t('tutorial.qa.example2')}</span>
+          </div>
+          <div style={{ display: 'flex', 'align-items': 'center', gap: '8px', border: '1px solid var(--line, #d1d5db)', 'border-radius': '4px', padding: '8px 11px', 'font-size': '13px', color: '#9ca3af', background: '#fbfaf8' }}>
+            <span style={{ flex: '1 1 auto' }}>{t('tutorial.qa.placeholder')}</span>
+            <span style={{ color: 'var(--accent, #8a2a2b)', 'font-weight': 700 }}>↵</span>
+          </div>
+        </div>
+      </Show>
     </div>
   );
 }
@@ -412,6 +425,12 @@ function transChip(): JSX.CSSProperties {
   return {
     background: '#f3eceb', border: '1px solid #e3cfcf', 'border-radius': '4px',
     padding: '3px 12px', 'font-size': '15px', color: 'var(--accent-strong, #6f2122)',
+  };
+}
+function qaPill(): JSX.CSSProperties {
+  return {
+    'font-size': '12px', background: '#f3eceb', color: 'var(--accent-strong, #6f2122)',
+    border: '1px solid #e3cfcf', 'border-radius': '999px', padding: '3px 10px', 'white-space': 'nowrap',
   };
 }
 function SpectrumRow(props: { labelKey: string; ids: GenerationId[] }): JSX.Element {
