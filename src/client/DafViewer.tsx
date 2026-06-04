@@ -47,6 +47,7 @@ import { fetchCommentaryAnchorIndex, type CommentaryAnchorIndex } from './commen
 import { recordStage } from './rendererActivity';
 import { applyMarkRenderers } from './renderers/dispatch';
 import DevModeShelf, { readDevMode, setDevModeActive } from './DevModeShelf';
+import RunTreeDock from './RunTreeDock';
 import ChecksPanel from './ChecksPanel';
 import TypeProfilePanel from './TypeProfilePanel';
 import type { GenerationId } from './generations';
@@ -417,6 +418,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   const [showPesukim, setShowPesukim] = createSignal(loadToggle(PESUKIM_KEY, false));
   // Dev shelf — bottom drawer with marks toggles + activity panels.
   const [devOpen, setDevOpen] = createSignal(readDevMode());
+  const [runTreeOpen, setRunTreeOpen] = createSignal(false);
 
   // Adapter: derive analysis() from the new registry-driven `argument` mark
   // run output. The new schema is { instances: [{startSegIdx, endSegIdx,
@@ -2398,11 +2400,16 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     go(formatPage(pageNum(), pageAmud() === 'a' ? 'b' : 'a'));
   };
 
-  // The tutorial coach's note steps open a real note (the whole-daf Overview) —
-  // a side panel on desktop, a drawer on mobile — and close it again when a
-  // non-note step is shown or the tour ends.
+  // The tutorial coach's note steps open a real note — an argument, a halacha,
+  // or the whole-daf Overview (a side panel on desktop, a drawer on mobile) —
+  // and close it again when a non-note step is shown or the tour ends.
   onMount(() => {
-    const onOpen = () => openChip('argument-overview');
+    const onOpen = (e: Event) => {
+      const note = (e as CustomEvent<{ note?: string }>).detail?.note ?? 'overview';
+      if (note === 'argument') openArgument(0);
+      else if (note === 'halacha') openHalacha(0);
+      else openChip('argument-overview');
+    };
     const onClose = () => setSidebar(null);
     const onHeader = (e: Event) => {
       if (!isMobile()) return;
@@ -3058,6 +3065,14 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
             >
               {t('header.dev')}
             </button>
+            <button
+              class="tb-toggle"
+              classList={{ 'is-active': runTreeOpen() }}
+              onClick={() => setRunTreeOpen((v) => !v)}
+              title="Build provenance — the dependency DAG of a piece (cost / time / cache, click to expand)"
+            >
+              Build
+            </button>
           </Show>
           {/* Mobile-only "Layers" entry point. The mark toggles live in the
               desktop dev shelf (hidden on phones), so this opens a dedicated
@@ -3564,6 +3579,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           })}
         />
       </DevModeShelf>
+      <RunTreeDock tractate={tractate()} page={page()} open={runTreeOpen()} onClose={() => setRunTreeOpen(false)} />
       </Show>
 
     </main>

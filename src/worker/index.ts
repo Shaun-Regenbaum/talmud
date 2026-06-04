@@ -60,7 +60,14 @@ import { gcStaleCache } from './cache-gc';
 import { runYomiWarmCron } from './yomi-cron';
 import { GENERATION_IDS, GENERATION_BY_ID, GENERATIONS_PROMPT_REFERENCE, type GenerationId } from '../client/generations';
 import { stripEchoParens } from '../client/hebraize';
-import rabbiPlacesData from '../lib/data/rabbi-places.json';
+import {
+  RABBI_PLACES,
+  resolveRabbi,
+  resolveRabbiByName,
+  resolveRabbiName,
+  type RabbiPlacesEntry,
+  type Movement,
+} from './rabbi-places';
 import type { EntityPiece } from '../lib/registry/entity';
 import { extractTalmudContent } from '../lib/sefref/alignment';
 import { fetchHebrewBooksDaf } from '../lib/sefref/hebrewbooks/client';
@@ -155,29 +162,6 @@ import {
   type ObservationSlice,
 } from './rabbi-observations';
 
-type Movement = 'bavel->israel' | 'israel->bavel' | 'both' | null;
-interface RabbiPlacesEntry {
-  canonical: string;
-  canonicalHe?: string | null;
-  aliases: string[];
-  places: string[];
-  region: 'israel' | 'bavel' | null;
-  numSources?: number | null;
-  generation?: string | null;
-  moved?: Movement;
-  bio?: string | null;
-  bioSource?: 'sefaria' | 'wikipedia' | null;
-  image?: string | null;
-  wiki?: string | null;
-}
-interface RabbiPlacesFile {
-  generatedAt: string;
-  source: string;
-  cityRegions: Record<string, 'israel' | 'bavel'>;
-  rabbis: Record<string, RabbiPlacesEntry>;
-  aliasIndex: Record<string, string>;
-}
-const RABBI_PLACES = rabbiPlacesData as unknown as RabbiPlacesFile;
 
 // `Bindings` and `JobMessage` now live in ./types (a neutral module so route
 // slices / telemetry / crons can import them without cycling through this entry
@@ -1030,6 +1014,51 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
       cost: Number(totalCost.toFixed(6)),
     },
   });
+});
+
+// GET /api/daf-runs/:tractate/:page — the WATERFALL feed: every top-level piece
+// run on this daf (all marks + the whole-daf enrichments) with its cached
+// telemetry, read-only. The dev pipeline dock shows these as a network-style
+// waterfall; clicking one drills into its dependency DAG via /api/run-tree.
+// Whole-daf enrichments only (scope=local, not the per-section `argument`
+// enrichments and not the global rabbi/place facets) so each row is one run.
+app.get('/api/daf-runs/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
+
+  const wholeDafEnrichments = CODE_ENRICHMENTS.filter(
+    (e) => e.scope === 'local' && e.target_mark !== 'argument',
+  );
+  const producers: Array<{ id: string; label: string; isMark: boolean; ext?: { kind?: string; model?: string } }> = [
+    ...CODE_MARKS.map((m) => ({ id: m.id, label: m.label, isMark: true, ext: m.extractor as { kind?: string; model?: string } })),
+    ...wholeDafEnrichments.map((e) => ({ id: e.id, label: e.label, isMark: false, ext: e.extractor as { kind?: string; model?: string } })),
+  ];
+
+  const runs = [];
+  for (const p of producers) {
+    const isLLM = p.ext?.kind === 'llm';
+    const job = (p.isMark
+      ? { mark_id: p.id, tractate, page, lang }
+      : { enrichment_id: p.id, tractate, page, mark_input: { fields: {} }, lang }) as unknown as JobMessage;
+    const { key } = await cacheKeyForRunBody(c.env, job);
+    const res = key ? await readCachedResult(c.env, key) : null;
+    const usage = res?.usage as { cost?: number; total_tokens?: number } | undefined;
+    runs.push({
+      id: p.id,
+      label: p.label,
+      kind: isLLM ? 'llm' : 'computed',
+      producer: p.isMark ? 'mark' : 'enrichment',
+      model: isLLM ? p.ext?.model : undefined,
+      cached: !!res,
+      cold_ms: typeof res?.elapsed_ms === 'number' ? res.elapsed_ms : null,
+      cost: typeof usage?.cost === 'number' ? usage.cost : null,
+      tokens: typeof usage?.total_tokens === 'number' ? usage.total_tokens : null,
+    });
+  }
+  // longest cold runs first — the waterfall reads as "where the time went"
+  runs.sort((a, b) => (b.cold_ms ?? -1) - (a.cold_ms ?? -1));
+  return c.json({ tractate, page, lang, runs });
 });
 
 // Entity pieces (step 5): a first-class, addressable view of a "global" entity
@@ -4444,96 +4473,6 @@ registerCommentaryRoutes(app);
  *   GET  /api/rabbi-places?names=Rabbi%20Akiva,Rav%20Huna
  *   POST /api/rabbi-places   { "names": ["Rabbi Akiva", "Rav Huna"] }
  */
-interface RabbiResolution { slug: string; entry: RabbiPlacesEntry }
-
-// Precomputed: normalized canonicalHe → slug. Used to resolve from the
-// Hebrew form in the daf text, which is more reliable than the model's
-// English rendering (Gemma occasionally emits "Rabbah" for Hebrew רבא = Rava).
-// Normalize a Hebrew name for resolver indexing/lookup: strip nikkud +
-// cantillation, drop parenthetical disambiguators (`רב (שם אמורא)` →
-// `רב`), strip punctuation, collapse whitespace.
-function normalizeHeForResolve(s: string): string {
-  return s
-    .replace(/[֑-ׇ]/g, '')
-    .replace(/\([^)]*\)/g, ' ')     // remove parenthetical groups entirely
-    .replace(/\[[^\]]*\]/g, ' ')    // same for square-bracket groups
-    .replace(/[.,:;?!"'״׳()[\]{}]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-const BY_CANONICAL_HE: Record<string, string> = (() => {
-  const out: Record<string, string> = {};
-  for (const [slug, r] of Object.entries(RABBI_PLACES.rabbis)) {
-    if (!r.canonicalHe) continue;
-    const key = normalizeHeForResolve(r.canonicalHe);
-    if (key && !out[key]) out[key] = slug;
-  }
-  return out;
-})();
-
-export function resolveRabbiByHe(rawHe: string): RabbiResolution | null {
-  if (!rawHe) return null;
-  const key = normalizeHeForResolve(rawHe);
-  if (!key) return null;
-  const slug = BY_CANONICAL_HE[key];
-  if (slug) {
-    const entry = RABBI_PLACES.rabbis[slug];
-    if (entry) return { slug, entry };
-  }
-  return null;
-}
-
-export function resolveRabbiByName(raw: string): RabbiResolution | null {
-  const key = raw.toLowerCase().trim();
-  if (!key) return null;
-  const direct = RABBI_PLACES.aliasIndex[key];
-  if (direct) {
-    const entry = RABBI_PLACES.rabbis[direct];
-    if (entry) return { slug: direct, entry };
-  }
-  // Patronymic fallback ("Rabbi Eliezer b. Yose" → "Rabbi Eliezer"). Risky
-  // for names like "Rabbah b. Rav Huna" that reduce to bare "Rabbah" (which
-  // the aliasIndex points at a DIFFERENT rabbi). Gate on: the stripped form
-  // must not start with a bare single-word title whose aliasIndex target
-  // canonical differs meaningfully from the input. In practice we accept the
-  // fallback ONLY when the stripped key has > 1 token after the title (e.g.
-  // "Rabbi Eliezer" — two tokens — is OK; bare "Rabbah" is not).
-  const stripped = key
-    .replace(/\s+\b(b\.|ben|bar)\s+.+$/, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  if (stripped !== key) {
-    const tokens = stripped.split(' ');
-    const isBareTitle = tokens.length < 2;
-    if (!isBareTitle) {
-      const s = RABBI_PLACES.aliasIndex[stripped];
-      if (s) {
-        const entry = RABBI_PLACES.rabbis[s];
-        if (entry) return { slug: s, entry };
-      }
-    }
-  }
-  return null;
-}
-
-/**
- * Resolve a rabbi mention to a dataset entry. Hebrew form (if provided) is
- * authoritative — it comes verbatim from the daf text. English is consulted
- * only when Hebrew gives no match.
- */
-export function resolveRabbi(name: string, nameHe?: string | null): RabbiResolution | null {
-  if (nameHe) {
-    const he = resolveRabbiByHe(nameHe);
-    if (he) return he;
-  }
-  return resolveRabbiByName(name);
-}
-
-// Back-compat shim: many call sites take just the canonical English name.
-function resolveRabbiName(raw: string): RabbiPlacesEntry | null {
-  return resolveRabbiByName(raw)?.entry ?? null;
-}
 
 // Bio-sidebar nav: given a Sefaria topic slug (as linked from the bio text),
 // return the same IdentifiedRabbi shape the dafContext uses, so the sidebar
