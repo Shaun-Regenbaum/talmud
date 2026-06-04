@@ -203,17 +203,17 @@ function RunRow(props: { run: DafRun; maxMs: number; active?: boolean; collapsed
       }}>
       <NodeIcon variant={variantOf(r())} color={color()} />
       <span style={{ width: '8.5rem', 'flex-shrink': 0, 'font-size': '0.8rem', 'white-space': 'nowrap', overflow: 'hidden', 'text-overflow': 'ellipsis' }}>{displayLabel(r().id, r().label)}</span>
-      <div style={{ flex: 1, 'min-width': '20px', height: '8px', background: '#efece3', 'border-radius': '3px', overflow: 'hidden', position: 'relative' }}>
-        <Show when={props.loading} fallback={<div style={{ width: `${pct()}%`, height: '100%', background: !r().cached ? '#d4d4d4' : slow() ? '#fbbf24' : isLLM() ? '#86efac' : '#bae6fd' }} />}>
-          <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(90deg,#fca5a5 0 8px,#fecaca 8px 16px)', animation: 'daf-pulse 1.2s ease-in-out infinite' }} />
+      <div style={{ flex: 1, 'min-width': '20px', height: '8px', background: '#eae5d8', 'border-radius': '3px', overflow: 'hidden', position: 'relative' }}>
+        <Show when={props.loading} fallback={<div style={{ width: `${pct()}%`, height: '100%', background: !r().cached ? '#ddd7c9' : slow() ? '#a8542e' : isLLM() ? '#c79a4a' : '#aab2ba' }} />}>
+          <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(90deg,#cf9b86 0 8px,#e8d3c7 8px 16px)', animation: 'daf-pulse 1.2s ease-in-out infinite' }} />
         </Show>
       </div>
-      <span style={{ width: '2.7rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', 'font-size': '0.72rem', color: slow() ? '#b45309' : '#888', 'flex-shrink': 0 }}>{props.loading ? '…' : fmtMs(r().cold_ms)}</span>
-      <span style={{ width: '3.7rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', 'font-size': '0.72rem', color: '#047857', 'flex-shrink': 0 }}>{isLLM() ? fmtCost(r().cost) : '—'}</span>
-      <span style={{ width: '1.9rem', 'text-align': 'right', 'font-size': '0.6rem', 'flex-shrink': 0 }}>
+      <span style={{ width: '2.7rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', 'font-size': '0.72rem', color: slow() ? '#9c4f29' : '#8a857c', 'flex-shrink': 0 }}>{props.loading ? '…' : fmtMs(r().cold_ms)}</span>
+      <span style={{ width: '3.7rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', 'font-size': '0.72rem', color: isLLM() ? '#4a7a5f' : '#bcae9a', 'flex-shrink': 0 }}>{isLLM() ? fmtCost(r().cost) : '—'}</span>
+      <span style={{ width: '1.9rem', 'text-align': 'right', 'font-size': '0.62rem', 'flex-shrink': 0 }}>
         <Show when={props.loading} fallback={
-          <Show when={r().cached} fallback={<span style={{ color: '#b45309' }}>miss</span>}><span style={{ color: '#15803d', background: '#dcfce7', 'border-radius': '3px', padding: '0 0.2rem' }}>hit</span></Show>
-        }><span style={{ color: '#9a3412', background: '#fef3c7', 'border-radius': '3px', padding: '0 0.2rem' }}>run</span></Show>
+          <Show when={r().cached} fallback={<span style={{ color: '#a8854a' }}>miss</span>}><span style={{ color: '#5f8a6f' }}>hit</span></Show>
+        }><span style={{ color: '#9c5a2a' }}>run</span></Show>
       </span>
       <Show when={props.collapsed}><span style={{ color: '#bbb', 'font-size': '0.7rem', 'flex-shrink': 0 }}>▾</span></Show>
       <Show when={props.onInspect}>
