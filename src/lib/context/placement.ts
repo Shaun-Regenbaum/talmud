@@ -14,10 +14,14 @@
  * (`segs`/`via`/`confidence` from the server pool + the client-resolved
  * `hbWords`/`hbVia`/`hbConfidence`) into a normalized `Placement`. Granularity
  * is DERIVED, not stored, so it can never drift from the underlying anchors.
- * Producers (the deterministic matchers, the AI placer) write the fields;
- * everyone else — the workbench panel, and downstream anchors/enrichments —
- * reads through here so "what context applies here, at what level, how sure"
- * has one answer.
+ * Producers (the deterministic matchers, the AI placer) write the fields; the
+ * alignment workbench (the source panel + the auto-grounding loop) reads through
+ * here so "what landed where, at what level, how sure" has one answer.
+ *
+ * Scope note: this is a CLIENT-side workbench helper. Downstream enrichments do
+ * NOT read placements — they consume the segment grounding (`segs`) directly via
+ * `contextForAnchor` in select.ts. So the `words` level is a debugging nicety,
+ * not a precision the rest of the app can act on; the panel renders accordingly.
  */
 
 import type { ContextItem } from './types.ts';
@@ -28,10 +32,6 @@ import { type AnchorCoord, type DafRef, isCrossDaf } from './coord.ts';
  *  "here" — hence it ranks below `daf`. Only derived when `placementOf` is
  *  given the current daf AND the item carries an off-daf `coord`. */
 export type PlacementLevel = 'cross-daf' | 'words' | 'segment' | 'amud' | 'daf';
-
-/** Coarsest→finest, for ranking "most specific grounding wins". `cross-daf`
- *  sits below everything on-daf (it isn't on this page at all). */
-export const LEVEL_RANK: Record<PlacementLevel, number> = { 'cross-daf': -1, daf: 0, amud: 1, segment: 2, words: 3 };
 
 export interface Placement {
   /** The finest granularity this grounding reached. */
@@ -104,16 +104,6 @@ export function isLocated(it: ContextItem): boolean {
   return l === 'words' || l === 'segment';
 }
 
-/** Word-precise: a real phrase/AI-quote landing, not a whole-segment fallback. */
-export function isPrecise(it: ContextItem): boolean {
-  return placementLevel(it) === 'words';
-}
-
-/** Placed at any level at all (words / segment / amud / whole-daf). */
-export function isGrounded(it: ContextItem): boolean {
-  return placementOf(it) != null;
-}
-
 /** Grounded by the AI semantic placer (so an AI pass shouldn't re-offer it). */
 export function isAiGrounded(it: ContextItem): boolean {
   return it.via === 'ai' || it.hbVia === 'ai-phrase' || it.hbVia === 'ai-segment' || it.hbVia === 'ai-daf';
@@ -127,29 +117,3 @@ export function isReferenceSource(it: ContextItem): boolean {
   return REFERENCE_SOURCES.has(it.source);
 }
 
-/** What an enrichment/anchor asks for: a specific segment, or the whole daf. */
-export type GroundingTarget = { seg: number } | { daf: true };
-
-/**
- * The context items whose grounding applies to `target`, most-specific and
- * most-confident first. For a segment target: items grounded ON that segment
- * (words/segment whose `segs` include it) plus whole-daf items (they apply
- * everywhere). For a daf target: everything that's grounded at all. Unplaced
- * items are excluded. (Amud-level items match a daf target but not a bare
- * segment target, since the seg→amud map isn't known here.)
- */
-export function contextForTarget(items: ContextItem[], target: GroundingTarget): ContextItem[] {
-  const seg = 'seg' in target ? target.seg : null;
-  const hits: { it: ContextItem; p: Placement }[] = [];
-  for (const it of items) {
-    const p = placementOf(it);
-    if (!p) continue;
-    const applies =
-      'daf' in target
-        ? true
-        : p.level === 'daf' || ((p.level === 'words' || p.level === 'segment') && seg != null && p.segs.includes(seg));
-    if (applies) hits.push({ it, p });
-  }
-  hits.sort((a, b) => LEVEL_RANK[b.p.level] - LEVEL_RANK[a.p.level] || (b.p.confidence ?? 0) - (a.p.confidence ?? 0));
-  return hits.map((h) => h.it);
-}
