@@ -76,7 +76,7 @@ export function AlignPage(): JSX.Element {
   const [tractate, setTractate] = createSignal(params.get('tractate') ?? 'Berakhot');
   const [page, setPage] = createSignal(params.get('page') ?? '2a');
   const [marksOn, setMarksOn] = createSignal(true);
-  const [filter, setFilter] = createSignal('');
+  const [cat, setCat] = createSignal('all'); // list category filter
   const [hl, setHl] = createSignal<number[]>([]);
   const [pin, setPin] = createSignal<number[]>([]);
   const [hlAdj, setHlAdj] = createSignal<'prev' | 'next' | null>(null);
@@ -137,7 +137,16 @@ export function AlignPage(): JSX.Element {
     return { declared: SOURCES.length, present: present.size, absent: SOURCES.filter((s) => !present.has(s)), unknown: [...present].filter((s) => !(s in SOURCE_META)) };
   });
   const rangeOfInst = (i: SegInst): number[] => { const o: number[] = []; for (let s = i.startSegIdx; s <= i.endSegIdx; s++) o.push(s); return o; };
-  const matches = (s: string) => { const q = filter().trim().toLowerCase(); return !q || s.toLowerCase().includes(q); };
+  // category chips for the list (only those with content)
+  const cats = createMemo(() => {
+    const c: { id: string; label: string; n: number }[] = [{ id: 'all', label: 'All', n: items().length }];
+    if (onLine().length) c.push({ id: 'line', label: 'On a line', n: onLine().length });
+    if (offLine().length) c.push({ id: 'page', label: 'Page-level', n: offLine().length });
+    const nInst = segMarks().reduce((a, m) => a + m.instances.length, 0);
+    if (nInst) c.push({ id: 'marks', label: 'Marks', n: nInst });
+    for (const m of nameMarks()) { const e = entitiesFor(m).length; if (e) c.push({ id: m.id, label: m.label, n: e }); }
+    return c;
+  });
 
   const highlightCss = createMemo(() => {
     const sel = [...new Set([...hl(), ...pin()])];
@@ -205,7 +214,7 @@ export function AlignPage(): JSX.Element {
       g.count++; if (it.amud && it.amud !== me) g.other = true;
       groups.set(it.sourceLabel, g);
     }
-    return [...groups.values()].filter((g) => matches(g.label)).sort((a, b) => Number(a.ref) - Number(b.ref)).map((g) => {
+    return [...groups.values()].sort((a, b) => Number(a.ref) - Number(b.ref)).map((g) => {
       const tag = g.other ? '<span class="aw-utag" style="color:#0e7490;background:#ecfeff;border-color:#a5f3fc">⊗ other amud</span>'
         : g.ref ? '' : '<span class="aw-utag">⊘ unaligned</span>';
       const hlAttr = g.other ? `data-adj="${siblingAdj()}"` : 'data-hl="*"';
@@ -241,21 +250,34 @@ export function AlignPage(): JSX.Element {
     return '';
   }
   function listHtml(): string {
-    const line = [...onLine()].filter((i) => matches(i.sourceLabel) || matches(i.title?.en || i.title?.he || '')).sort((a, b) => Math.min(...a.segs) - Math.min(...b.segs)).map(srcRow).join('');
-    const instances = segMarks().flatMap((m) => (m.instances as SegInst[]).map((inst, i) => ({ m, inst, i }))).filter(({ m, inst, i }) => matches(inst.label || m.label) || matches(m.label)).map(({ m, inst, i }) => instRowHtml(m, inst, i));
-    const ents = nameMarks().map((m) => {
-      const list = entitiesFor(m).filter((e) => matches(e.name) || matches(e.nameHe) || matches(e.extra));
-      return list.length ? `<div class="aw-grouph">${esc(m.label)} · ${list.length}</div>${list.map((e) => entityRow(m.kind, e)).join('')}` : '';
-    }).join('');
-    const mk = marksOn() && instances.length ? `<div class="aw-grouph">Marks · ${instances.length}</div>${instances.join('')}` : '';
-    return `<div class="aw-list">
-      <div class="aw-grouph">On a line · ${onLine().length}</div>${line || '<div class="aw-note">none</div>'}
-      <div class="aw-grouph">Page-level · ${offLine().length}</div>${scopeRowsHtml() || '<div class="aw-note">none</div>'}
-      ${mk}${marksOn() ? ents : ''}</div>`;
+    const c = cat(); const show = (g: string) => c === 'all' || c === g;
+    const blocks: string[] = [];
+    if (show('line')) {
+      const line = [...onLine()].sort((a, b) => Math.min(...a.segs) - Math.min(...b.segs)).map(srcRow).join('');
+      blocks.push(`<div class="aw-grouph">On a line · ${onLine().length}</div>${line || '<div class="aw-note">none</div>'}`);
+    }
+    if (show('page')) blocks.push(`<div class="aw-grouph">Page-level · ${offLine().length}</div>${scopeRowsHtml() || '<div class="aw-note">none</div>'}`);
+    if (show('marks')) {
+      const instances = segMarks().flatMap((m) => (m.instances as SegInst[]).map((inst, i) => instRowHtml(m, inst, i)));
+      if (instances.length) blocks.push(`<div class="aw-grouph">Marks · ${instances.length}</div>${instances.join('')}`);
+    }
+    for (const m of nameMarks()) {
+      if (!show(m.id)) continue;
+      const list = entitiesFor(m);
+      if (list.length) blocks.push(`<div class="aw-grouph">${esc(m.label)} · ${list.length}</div>${list.map((e) => entityRow(m.kind, e)).join('')}`);
+    }
+    // make the unwarmed state explicit: sources always show; marks/entities only
+    // exist once a daf has been generated (this page is read-only, never warms).
+    if ((c === 'all' || c === 'marks') && !allMarks().length) {
+      blocks.push(marksRes.loading
+        ? '<div class="aw-note">loading marks…</div>'
+        : '<div class="aw-note">No marks generated for this daf yet — the sources above are everything cached. Open it in the reader to generate.</div>');
+    }
+    return `<div class="aw-list">${blocks.join('') || '<div class="aw-note">loading…</div>'}</div>`;
   }
 
   let inspEl!: HTMLDivElement;
-  createEffect(() => { detail(); ctx(); marksRes(); marksOn(); filter(); if (inspEl) inspEl.innerHTML = detail() ? detailHtml() : listHtml(); });
+  createEffect(() => { detail(); ctx(); marksRes(); daf(); cat(); if (inspEl) inspEl.innerHTML = detail() ? detailHtml() : listHtml(); });
 
   function hoverFrom(t: HTMLElement | null) {
     if (!t) { setHl([]); setHlAdj(null); return; }
@@ -344,8 +366,11 @@ export function AlignPage(): JSX.Element {
         </div>
         <div>
           <div class="aw-colh"><span class="aw-label">All sources</span>
-            <input class="aw-filter" placeholder="filter…" value={filter()} onInput={(e) => setFilter(e.currentTarget.value)} />
-            <Show when={filter()}><button class="aw-clear" onClick={() => setFilter('')}>clear</button></Show></div>
+            <div class="aw-cats">
+              <For each={cats()}>{(cc) => <button class={`aw-chip${cat() === cc.id ? ' on' : ''}`} onClick={() => setCat(cc.id)}>{cc.label} <span class="aw-chipn">{cc.n}</span></button>}</For>
+            </div>
+          </div>
+          <Show when={ctx.loading || marksRes.loading}><div class="aw-loadbar"><div class="aw-loadbar-fill" /></div></Show>
           <div ref={inspEl} />
         </div>
       </div>
@@ -363,8 +388,14 @@ const STYLE = `
 .aw-toggle{height:2.15rem;padding:0 .65rem;border:1px solid #e5e3dc;background:#fff;color:#6b6b6b;font-family:ui-monospace,Menlo,monospace;font-size:.78rem;border-radius:6px;cursor:pointer}
 .aw-toggle.on{background:#1a1a1a;border-color:#1a1a1a;color:#fafaf7}
 .aw-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:#888;font-weight:600}
-.aw-filter{height:1.7rem;font:inherit;font-size:12px;border-radius:5px;padding:0 .5rem;border:1px solid #e5e3dc;background:#fff;color:#1a1a1a;margin-left:auto;width:9rem}
-.aw-clear{font:inherit;font-size:11px;border:none;background:transparent;color:#8a2a2b;cursor:pointer}
+.aw-cats{display:flex;gap:.35rem;flex-wrap:wrap;margin-left:auto}
+.aw-chip{font:inherit;font-size:11px;border:1px solid #cbd5e1;background:#fff;color:#475569;border-radius:999px;padding:.12rem .55rem;cursor:pointer;display:inline-flex;gap:.25rem;align-items:center}
+.aw-chip:hover{background:#f1f5f9}
+.aw-chip.on{background:#1e293b;border-color:#0f172a;color:#fff}
+.aw-chipn{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;opacity:.65}
+.aw-loadbar{height:3px;background:#eee;border-radius:2px;overflow:hidden;margin:0 0 .5rem}
+.aw-loadbar-fill{height:100%;width:35%;background:#8a2a2b;border-radius:2px;animation:awload 1.1s ease-in-out infinite}
+@keyframes awload{0%{margin-left:-35%}100%{margin-left:100%}}
 .aw-cov{display:flex;gap:.9rem;flex-wrap:wrap;align-items:baseline;font-size:11.5px;color:#6b6b6b;background:#f5f3ec;border:1px solid #e5e3dc;border-radius:6px;padding:.4rem .7rem;margin:0 0 1rem}
 .aw-cov b{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:#888}
 .aw-cov .ok{color:#166534}.aw-cov .aw-abs{color:#b45309}.aw-cov.bad{background:#fef2f2;border-color:#fecaca}
