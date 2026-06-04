@@ -615,14 +615,12 @@ export function QASection(props: {
   page: string;
 }): JSX.Element {
   return (
-    <div data-tour="qa-section">
-      <QAPanel
-        mark={props.mark}
-        instanceId={props.instanceId}
-        instance={props.instance}
-        tractate={props.tractate}
-        page={props.page}
-      />
-    </div>
+    <QAPanel
+      mark={props.mark}
+      instanceId={props.instanceId}
+      instance={props.instance}
+      tractate={props.tractate}
+      page={props.page}
+    />
   );
 }
