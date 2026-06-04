@@ -7,7 +7,6 @@
  */
 import { type JSX } from 'solid-js';
 import { lang, setLang, t, type Lang } from './i18n';
-import { startTour } from './tutorial';
 
 export function TopBar(): JSX.Element {
   // Shares the daf header's `.tb-seg` / `.tb-seg-btn` segmented-control styling
@@ -42,7 +41,7 @@ export function TopBar(): JSX.Element {
         class="tb-seg-btn"
         title={t('tutorial.help.title')}
         aria-label={t('tutorial.help.title')}
-        onClick={() => startTour(0)}
+        onClick={() => { window.location.hash = 'tutorial'; }}
         style={{ 'box-shadow': '0 1px 4px rgba(0,0,0,0.08)' }}
       >
         {t('tutorial.help')}
@@ -51,7 +50,6 @@ export function TopBar(): JSX.Element {
         class="tb-seg"
         role="group"
         aria-label="Language"
-        data-tour="lang"
         style={{ 'box-shadow': '0 1px 4px rgba(0,0,0,0.08)' }}
       >
         {btn('en', 'EN')}

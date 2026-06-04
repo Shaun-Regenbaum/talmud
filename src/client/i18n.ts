@@ -879,18 +879,28 @@ const CATALOG = {
 
   'tutorial.finish.title': { en: "You're ready", he: 'אתם מוכנים' },
   'tutorial.finish.body': {
-    en: 'That\'s the tour. You can reopen it anytime from the Help button, or visit the Help page for the full guide. Enjoy learning.',
-    he: 'זה הסיור. אפשר לפתוח אותו שוב בכל עת מכפתור העזרה, או לבקר בעמוד העזרה למדריך המלא. למידה נעימה.',
+    en: 'That\'s the tour. You can reopen it anytime from the Help button. Enjoy learning.',
+    he: 'זה הסיור. אפשר לפתוח אותו שוב בכל עת מכפתור העזרה. למידה נעימה.',
   },
 
-  // — Help page (#help) —
-  'help.page.title': { en: 'Help & guide', he: 'עזרה ומדריך' },
-  'help.page.intro': {
-    en: 'Take the interactive tour to learn the basics, or read the overview below.',
-    he: 'צאו לסיור האינטראקטיבי כדי ללמוד את היסודות, או קראו את הסקירה למטה.',
+  // Mock note card drawn in the "Inside a note" step (self-contained, no live note).
+  'tutorial.cardmock.summary.title': { en: 'What this sugya is about', he: 'במה עוסקת הסוגיה' },
+  'tutorial.cardmock.summary.body': {
+    en: 'A one- or two-line summary sits at the top of every note.',
+    he: 'סיכום בשורה או שתיים נמצא בראש כל הערה.',
   },
-  'help.page.start': { en: 'Start the tour', he: 'התחילו את הסיור' },
-  'help.page.covers': { en: 'What the tour covers', he: 'מה כולל הסיור' },
+  'tutorial.cardmock.section.players': { en: 'Players & sides', he: 'דמויות וצדדים' },
+  'tutorial.cardmock.section.terms': { en: 'Key terms', he: 'מונחי מפתח' },
+  'tutorial.cardmock.section.sources': { en: 'Sources', he: 'מקורות' },
+  'tutorial.cardmock.highlight': {
+    en: 'Tap a part to highlight the matching text on the page',
+    he: 'הקישו על חלק כדי להדגיש את הטקסט המתאים בדף',
+  },
+
+  // — First-visit banner on the reader —
+  'tutorial.banner.text': { en: 'New here? Take a quick tour.', he: 'חדשים כאן? צאו לסיור קצר.' },
+  'tutorial.banner.action': { en: 'Take the tour', he: 'צאו לסיור' },
+  'tutorial.banner.dismiss': { en: 'Dismiss', he: 'סגירה' },
 } satisfies Record<string, Entry>;
 
 /** Every known catalog key. Lets UI props (e.g. section labels) demand a real

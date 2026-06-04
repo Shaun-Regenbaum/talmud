@@ -1,8 +1,6 @@
-import { createSignal, onMount, Show } from 'solid-js';
+import { createSignal, Show } from 'solid-js';
 import { TopBar } from './TopBar';
-import { TutorialOverlay } from './TutorialOverlay';
-import { HelpPage } from './HelpPage';
-import { maybeAutoStart } from './tutorial';
+import { TutorialPage } from './TutorialPage';
 import PretextSpike from './PretextSpike';
 import Compare from './Compare';
 import DafViewer from './DafViewer';
@@ -18,7 +16,7 @@ function currentRoute() {
   // #admin-rabbis is a legacy alias — SagesPage absorbed the operator UI, so
   // old bookmarks redirect there. #experiment / #enrichment fold into the
   // daf view since the EnrichmentPage debug surface was removed alongside
-  // the legacy enrichment routes.
+  // the legacy enrichment routes. #help is now the interactive #tutorial.
   const raw = window.location.hash.replace(/^#/, '') || 'daf';
   if (raw === 'experiment' || raw === 'enrichment') {
     window.location.hash = 'daf';
@@ -28,33 +26,25 @@ function currentRoute() {
     window.location.hash = 'sages';
     return 'sages';
   }
+  if (raw === 'help') {
+    window.location.hash = 'tutorial';
+    return 'tutorial';
+  }
   if (raw === 'sages' || raw.startsWith('sages/')) return 'sages';
   return raw;
 }
 
 export default function App() {
   const [route, setRoute] = createSignal(currentRoute());
-  window.addEventListener('hashchange', () => {
-    setRoute(currentRoute());
-    // Offer the tour if a first-time user arrives at the reader. Called from a
-    // plain listener (not a reactive scope) so it never subscribes to the tour
-    // signals — otherwise ending the tour would re-trigger it.
-    if (currentRoute() === 'daf') maybeAutoStart();
-  });
-
-  // First-time-user tour auto-launches on the daf reader (its later steps point
-  // at the daf chrome). Replayable anytime from the Help button / #help.
-  onMount(() => {
-    if (route() === 'daf') maybeAutoStart();
-  });
+  window.addEventListener('hashchange', () => setRoute(currentRoute()));
 
   return (
     <>
     {/* The daf page folds the EN/HE toggle into its own header; the floating
-        overlay covers every other route. */}
-    <Show when={route() !== 'daf'}><TopBar /></Show>
-    <TutorialOverlay />
-    <Show when={route() === 'help'} fallback={
+        bar covers the other routes. #tutorial is fully self-contained (and its
+        Help button would be a no-op there), so it owns the whole viewport. */}
+    <Show when={route() !== 'daf' && route() !== 'tutorial'}><TopBar /></Show>
+    <Show when={route() === 'tutorial'} fallback={
     <Show when={route() === 'align'} fallback={
       <Show when={route() === 'usage'} fallback={
         <Show when={route() === 'compare'} fallback={
@@ -87,7 +77,7 @@ export default function App() {
       <AlignPage />
     </Show>
     }>
-      <HelpPage />
+      <TutorialPage />
     </Show>
     </>
   );
