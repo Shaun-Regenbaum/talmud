@@ -966,11 +966,15 @@ function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefin
           <>
             <div style={{ display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.6rem' }}>
               <StatCard label={t('usage.stat.costPriced')} value={fmtUsd(s().totals.costUsd)} color="#2a8a42" sub={t('usage.stat.pricedCalls', { count: fmtInt(s().totals.pricedCalls) })} />
-              <StatCard
-                label={t('usage.stat.inOut')}
-                value={`${fmtUsd(s().totals.costInUsd ?? 0)} / ${fmtUsd(s().totals.costOutUsd ?? 0)}`}
-                sub={t('usage.stat.inOut.sub')}
-              />
+              {/* Only when the in/out split has data — rollups predating PR1 carry
+                  costUsd but no split, so a $0/$0 card would misread as "no spend". */}
+              <Show when={(s().totals.costInUsd ?? 0) + (s().totals.costOutUsd ?? 0) > 0}>
+                <StatCard
+                  label={t('usage.stat.inOut')}
+                  value={`${fmtUsd(s().totals.costInUsd ?? 0)} / ${fmtUsd(s().totals.costOutUsd ?? 0)}`}
+                  sub={t('usage.stat.inOut.sub')}
+                />
+              </Show>
               <StatCard label={t('usage.stat.unpricedCalls')} value={fmtInt(s().totals.unpricedCalls)} sub={t('usage.stat.unpricedCalls.sub')} />
               <StatCard label={t('usage.stat.llmCalls')} value={fmtInt(s().totals.calls)} sub={t('usage.stat.errored', { count: fmtInt(s().totals.errors) })} />
               <StatCard label={t('usage.stat.tokens')} value={fmtTokens(s().totals.tokensIn + s().totals.tokensOut)} sub={t('usage.stat.tokensInOut', { in: fmtTokens(s().totals.tokensIn), out: fmtTokens(s().totals.tokensOut) })} />
@@ -1154,7 +1158,13 @@ function ByDafRow(props: { daf: string; bucket: DafLedgerBucket }): JSX.Element 
         <tr style={{ background: '#fbfbfa' }}>
           <td colspan={4} style={{ padding: '0.3rem 0.5rem 0.7rem 1.6rem' }}>
             <div style={{ 'font-size': '0.75rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.04em', 'margin-bottom': '0.3rem' }}>{t('usage.daf.permanentTitle')}</div>
-            <Show when={drill()} fallback={<SkeletonBlock rows={2} />}>
+            {/* Guard on resource state: reading drill() while it's errored throws,
+                so branch on state instead of accessing the value unconditionally. */}
+            <Show
+              when={drill.state !== 'errored'}
+              fallback={<p style={{ color: '#c33', 'font-size': '0.8rem' }}>{t('usage.loadFailed', { error: String(drill.error) })}</p>}
+            >
+            <Show when={drill.state === 'ready' ? drill() : undefined} fallback={<SkeletonBlock rows={2} />}>
               {(rep) => (
                 <Show when={rep().marks.length > 0} fallback={<p style={{ color: '#aaa', 'font-size': '0.8rem' }}>{t('usage.daf.empty')}</p>}>
                   <table style={tableStyle}>
@@ -1189,6 +1199,7 @@ function ByDafRow(props: { daf: string; bucket: DafLedgerBucket }): JSX.Element 
                   </table>
                 </Show>
               )}
+            </Show>
             </Show>
           </td>
         </tr>
