@@ -194,6 +194,14 @@ body.dev-shelf-open .daf-page {
   transition: padding-left 60ms linear;
 }
 
+/* The unified dev panel docks on the RIGHT; push the daf left by its width so
+   the daf stays centered in the remaining viewport. RunTreeDock sets
+   --dev-panel-width on body. */
+body.dev-panel-open .daf-page {
+  padding-right: calc(1rem + var(--dev-panel-width, 0px));
+  transition: padding-right 60ms linear;
+}
+
 /* ======================================================================
    Daf top bar — one wrapping row in three zones: brand + navigation on the
    inline-start, utilities (dev + EN/HE) auto-margined to the inline-end, and
