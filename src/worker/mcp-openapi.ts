@@ -335,8 +335,36 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
 
     '/api/usage': {
       get: {
-        summary: 'Usage + performance rollups per endpoint / mark / enrichment, plus recent errors.',
-        responses: { '200': { description: '{ perEndpoint, perMark, perEnrichment, recentErrors }' } },
+        summary: 'Full usage dashboard payload (telemetry + cost + activity + backlog + health). Section endpoints below load the same data piecemeal.',
+        responses: { '200': { description: '{ telemetry, cost, activity, unknowns, jobErrors, lintFailures, reports }' } },
+      },
+    },
+    '/api/usage/cost': {
+      get: {
+        summary: 'Cost section: self-tracked spend (per model/mark/enrichment, input-vs-output split), AI Gateway billed cost, and recent cost-avoided-by-cache.',
+        responses: { '200': { description: '{ selfTracked, aiGateway, costAvoided }' } },
+      },
+    },
+    '/api/usage/telemetry': {
+      get: { summary: 'Latency + cache-hit + error rollups per endpoint / mark / enrichment.', responses: { '200': { description: '{ perEndpoint, perMark, perEnrichment, recentErrors }' } } },
+    },
+    '/api/usage/activity': {
+      get: { summary: 'Cloudflare zone traffic (requests/visits by day + country).', responses: { '200': { description: 'zone activity' } } },
+    },
+    '/api/usage/backlog': {
+      get: { summary: 'Needs-enrichment backlog: unknown rabbis / observed places / observed concepts.', responses: { '200': { description: '{ rabbis, places, concepts }' } } },
+    },
+    '/api/usage/health': {
+      get: { summary: 'Operational health: queue-job errors, enrichment lint failures, bug reports.', responses: { '200': { description: '{ jobErrors, lintFailures, reports }' } } },
+    },
+    '/api/usage/daf/{tractate}/{page}': {
+      get: {
+        summary: 'Per-daf cost trace: each mark\'s current-version vs superseded-version generation cost, from the permanent cache-entry cost stamps.',
+        parameters: [
+          { name: 'tractate', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'page', in: 'path', required: true, schema: { type: 'string' }, description: 'e.g. "5a".' },
+        ],
+        responses: { '200': { description: '{ tractate, page, marks: [...], totals: { currentUsd, supersededUsd, totalUsd } }' } },
       },
     },
     '/api/admin/recent-errors': {
