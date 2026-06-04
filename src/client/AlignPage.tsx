@@ -273,10 +273,12 @@ export function AlignPage(): JSX.Element {
                   ${Array.from({ length: segmentCount() }).map((_, i) =>
                     `.daf-word[data-seg="${i}"] { background-color: ${segColor(i)}; border-radius: 2px; }`
                   ).join('\n')}
-                  ${(effective().words.length
-                    ? effective().words.map((w) => `.daf-word[data-word-index="${w}"] { outline: 2px solid #8a2a2b; background-color: #fde68a; }`)
-                    : effective().segs.map((s) => `.daf-word[data-seg="${s}"] { outline: 2px solid #8a2a2b; }`)
-                  ).join('\n')}
+                  ${/* Segment-first: the bordered + washed segment span is what
+                       downstream actually consumes, so it's always the headline
+                       highlight. A precise word landing (when known) is a fill
+                       INSIDE that span — visible, but subordinate to the segment. */ ''}
+                  ${effective().segs.map((s) => `.daf-word[data-seg="${s}"] { outline: 2px solid #8a2a2b; background-color: rgba(138,42,43,0.09); }`).join('\n')}
+                  ${effective().words.map((w) => `.daf-word[data-word-index="${w}"] { background-color: #fde68a; }`).join('\n')}
                 `}</style>
               </section>
 
