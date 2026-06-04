@@ -2060,6 +2060,13 @@ async function runExtractorFannedOut(
         // subcalls actually cost — not null, which would force a list-price
         // fallback and drop the prompt-cache discount. (Budget + per-call ledger
         // already saw each subcall's cost inside runLLM; this is for the stamp.)
+        // NOTE: the synthesized `model` is the LAST subcall's, so the stamp's
+        // list-price *estimate* assumes one model. That estimate is only a
+        // fallback used when billed cost is absent — and the only fanned-out
+        // models (OpenRouter deepseek) DO report billed cost (summed here, and
+        // preferred over the estimate), while Workers AI models have no list
+        // price at all. So a mixed-model fan-out never produces a wrong dollar
+        // figure in practice; billed wins.
         if (typeof r.usage.cost === 'number') usage.cost = (usage.cost ?? 0) + r.usage.cost;
       }
     }
