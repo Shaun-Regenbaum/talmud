@@ -3,12 +3,11 @@
  *
  * A SOURCES-centred debug view. The daf renders as continuous text (the same
  * tokenize -> segment-marker pipeline the reader uses), bracketed by the last
- * line of the previous amud and the first line of the next amud in gray (click to
- * expand). The right column is one filterable, scrollable list of EVERY source —
- * hovering a row highlights the segment(s) it anchors to (or the whole amud / the
- * adjacent amud for page-level + other-amud sources). Marks are listed per
- * INSTANCE (an amud can hold several arguments); name-anchored entities (rabbis,
- * places) are matched to the segments they appear in and shown with their icon.
+ * line of the previous amud and the first line of the next amud in gray. The
+ * right column is one scrollable, category-filtered list of EVERY source —
+ * hovering a row highlights what it anchors to on the spine (and scrolls it into
+ * view): a segment span for line/page sources, or just the rabbi's NAME (the
+ * `rabbi` mark's own occurrences) for name-anchored entities.
  *
  * Read-only — the page never triggers generation or LLM spend.
  */
@@ -16,7 +15,6 @@ import { createResource, createSignal, createMemo, createEffect, onMount, For, S
 import { TRACTATE_OPTIONS } from '../lib/sefref';
 import type { ContextItem } from '../lib/context/types';
 import { isReferenceSource } from '../lib/context/placement';
-import { SOURCES, SOURCE_META } from '../lib/context/sources';
 import { colorForKind } from './GutterIcons';
 import { tokenizeHebrewHtml } from './tokenize';
 import { injectHadran } from './injectHadran';
@@ -31,7 +29,7 @@ interface NameInst { name: string; nameHe: string; generation: string; excerpt: 
 interface MarkMeta { cache_hit: boolean; elapsed_ms: number; model: string; recipe_hash: string | null; cost: CostStamp | null }
 interface MarkRow { id: string; kind: string; label: string; anchorBy: 'segment' | 'name'; cached: boolean; instances: (SegInst | NameInst)[]; meta: MarkMeta | null }
 interface MarksResp { marks?: MarkRow[] }
-interface Entity { key: string; name: string; nameHe: string; extra: string; segs: number[] }
+interface Entity { key: string; name: string; nameHe: string; nameNorm: string; extra: string; segs: number[] }
 type Detail = null | { t: 'src'; key: string } | { t: 'gen'; mid: string } | { t: 'ent'; key: string };
 
 const fetchJson = async <T,>(url: string): Promise<T> => {
@@ -42,9 +40,6 @@ const fetchJson = async <T,>(url: string): Promise<T> => {
 const fmtMs = (n: number) => (n < 1000 ? `${Math.round(n)}ms` : `${(n / 1000).toFixed(1)}s`);
 const fmtUsd = (u: number | null | undefined) => (u == null ? '—' : u < 0.01 ? `$${u.toFixed(4)}` : `$${u.toFixed(3)}`);
 const esc = (s: string | undefined) => (s ?? '').replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]!));
-// Normalize Hebrew for name<->text matching: drop HTML, niqqud, geresh/quotes
-// and punctuation, then expand the standalone abbreviation ר → רבי (applied to
-// both the name and the segment text so "ר' אליעזר" matches a written "רבי אליעזר").
 const normHe = (s = '') => s.replace(/<[^>]+>/g, ' ').replace(/[֑-ׇ]/g, '').replace(/[׳״'"]/g, '').replace(/[^א-ת ]+/g, ' ').replace(/\s+/g, ' ').trim().replace(/(^| )ר( |$)/g, '$1רבי$2');
 
 function adjPage(page: string, dir: 'prev' | 'next'): string | null {
@@ -75,10 +70,11 @@ export function AlignPage(): JSX.Element {
   const params = new URLSearchParams(window.location.search);
   const [tractate, setTractate] = createSignal(params.get('tractate') ?? 'Berakhot');
   const [page, setPage] = createSignal(params.get('page') ?? '2a');
-  const [marksOn, setMarksOn] = createSignal(true);
-  const [cat, setCat] = createSignal('all'); // list category filter
-  const [hl, setHl] = createSignal<number[]>([]);
-  const [pin, setPin] = createSignal<number[]>([]);
+  const [cat, setCat] = createSignal('all');
+  const [hl, setHl] = createSignal<number[]>([]);          // segment highlight (hover)
+  const [pin, setPin] = createSignal<number[]>([]);         // segment highlight (pinned)
+  const [hlWords, setHlWords] = createSignal<number[]>([]); // word highlight (entity names)
+  const [pinWords, setPinWords] = createSignal<number[]>([]);
   const [hlAdj, setHlAdj] = createSignal<'prev' | 'next' | null>(null);
   const [prevOpen, setPrevOpen] = createSignal(false);
   const [nextOpen, setNextOpen] = createSignal(false);
@@ -112,19 +108,16 @@ export function AlignPage(): JSX.Element {
   const allSegs = () => Array.from({ length: segCount() }, (_, i) => i);
   const segNorm = createMemo(() => (daf()?.mainSegmentsHe ?? []).map(normHe));
 
-  // name-anchored entities (rabbis/places), deduped and located by matching
-  // their (niqqud-stripped) Hebrew name in each segment's text.
   const entitiesFor = (m: MarkRow): Entity[] => {
     const segs = segNorm();
     const map = new Map<string, Entity & { _s: Set<number> }>();
     for (const inst of m.instances as NameInst[]) {
-      const nh = normHe(inst.nameHe);
-      const k = nh || inst.name; if (!k) continue; // dedupe by normalized name (merges abbreviated + full forms)
-      const e = map.get(k) ?? { key: `${m.id}:${k}`, name: inst.name, nameHe: inst.nameHe, extra: inst.generation || '', segs: [], _s: new Set<number>() };
+      const nh = normHe(inst.nameHe); const k = nh || inst.name; if (!k) continue;
+      const e = map.get(k) ?? { key: `${m.id}:${k}`, name: inst.name, nameHe: inst.nameHe, nameNorm: nh, extra: inst.generation || '', segs: [], _s: new Set<number>() };
       if (nh) segs.forEach((sg, i) => { if (sg.includes(nh)) e._s.add(i); });
       map.set(k, e);
     }
-    return [...map.values()].map((e) => ({ key: e.key, name: e.name, nameHe: e.nameHe, extra: e.extra, segs: [...e._s].sort((a, b) => a - b) }));
+    return [...map.values()].map((e) => ({ key: e.key, name: e.name, nameHe: e.nameHe, nameNorm: e.nameNorm, extra: e.extra, segs: [...e._s].sort((a, b) => a - b) }));
   };
   const entityIndex = createMemo(() => { const m = new Map<string, Entity>(); for (const nm of nameMarks()) for (const e of entitiesFor(nm)) m.set(e.key, e); return m; });
 
@@ -132,12 +125,7 @@ export function AlignPage(): JSX.Element {
     const its = items(); const off = its.filter((i) => i.segs.length === 0);
     return { total: its.length, line: its.length - off.length, off: off.length, unaligned: off.filter((i) => !isReferenceSource(i)).length };
   });
-  const coverage = createMemo(() => {
-    const present = new Set(items().map((i) => i.source));
-    return { declared: SOURCES.length, present: present.size, absent: SOURCES.filter((s) => !present.has(s)), unknown: [...present].filter((s) => !(s in SOURCE_META)) };
-  });
   const rangeOfInst = (i: SegInst): number[] => { const o: number[] = []; for (let s = i.startSegIdx; s <= i.endSegIdx; s++) o.push(s); return o; };
-  // category chips for the list (only those with content)
   const cats = createMemo(() => {
     const c: { id: string; label: string; n: number }[] = [{ id: 'all', label: 'All', n: items().length }];
     if (onLine().length) c.push({ id: 'line', label: 'On a line', n: onLine().length });
@@ -148,11 +136,12 @@ export function AlignPage(): JSX.Element {
     return c;
   });
 
+  // ---- spine highlight CSS: mark underlines (always), segment + word highlight ----
   const highlightCss = createMemo(() => {
-    const sel = [...new Set([...hl(), ...pin()])];
     const rules: string[] = [];
-    if (marksOn()) for (const m of segMarks()) for (const inst of m.instances as SegInst[]) for (const s of rangeOfInst(inst)) rules.push(`.aw-daf .daf-word[data-seg="${s}"]{box-shadow:inset 0 -3px 0 ${kindColor(m.kind)}}`);
-    for (const s of sel) rules.push(`.aw-daf .daf-word[data-seg="${s}"]{background:#fde68a !important;outline:1.5px solid #8a2a2b;border-radius:2px}`);
+    for (const m of segMarks()) for (const inst of m.instances as SegInst[]) for (const s of rangeOfInst(inst)) rules.push(`.aw-daf .daf-word[data-seg="${s}"]{box-shadow:inset 0 -3px 0 ${kindColor(m.kind)}}`);
+    for (const s of [...new Set([...hl(), ...pin()])]) rules.push(`.aw-daf .daf-word[data-seg="${s}"]{background:#fde68a !important;outline:1.5px solid #8a2a2b;border-radius:2px}`);
+    for (const w of [...new Set([...hlWords(), ...pinWords()])]) rules.push(`.aw-daf .daf-word[data-word-index="${w}"]{background:#cfe3ff !important;outline:1.5px solid #0066cc;border-radius:2px}`);
     return rules.join('\n');
   });
 
@@ -165,10 +154,10 @@ export function AlignPage(): JSX.Element {
   }
   function entityRow(kind: string, e: Entity): string {
     const c = kindColor(kind);
-    return `<div class="aw-li aw-src" data-ent="${esc(e.key)}" data-hl="${e.segs.join(',')}">${markIconHtml(kind)}
+    return `<div class="aw-li aw-src" data-ent="${esc(e.key)}" data-name="${esc(e.nameNorm)}">${markIconHtml(kind)}
       <span class="aw-nm">${esc(e.name || e.nameHe)}</span><span class="aw-he2" dir="rtl">${esc(e.nameHe)}</span>
       ${e.extra ? `<span class="aw-via" style="background:${c}1a;color:${c}">${esc(e.extra)}</span>` : ''}
-      <span class="aw-range">${e.segs.length ? `×${e.segs.length} seg` : 'no text match'}</span></div>`;
+      <span class="aw-range">${e.segs.length ? `seg ${e.segs.join(', ')}` : 'no text match'}</span></div>`;
   }
   function collectRowsHtml(range: Set<number>): string {
     const groups = new Map<string, { label: string; key: string; segs: Set<number>; source: string }>();
@@ -236,7 +225,7 @@ export function AlignPage(): JSX.Element {
       return `<div class="aw-card aw-detail"><button class="aw-back" data-back>← back to list</button>
         <div class="aw-dtitle">${markIconHtml(d.key.startsWith('places') ? 'place' : 'rabbi', true)} ${esc(e.name || e.nameHe)} <span class="aw-he2" dir="rtl" style="font-size:1rem">${esc(e.nameHe)}</span></div>
         <div class="aw-dsub">${e.extra ? `<span class="aw-badge">${esc(e.extra)}</span>` : ''}<span class="aw-badge">${e.segs.length ? `appears in seg ${e.segs.join(', ')}` : 'no text match on this daf'}</span></div>
-        <div class="aw-dbody"><div class="aw-en">Located by matching the niqqud-stripped Hebrew name in the daf text. Hover the row to highlight every line it appears in.</div></div></div>`;
+        <div class="aw-dbody"><div class="aw-en">Highlights just the name occurrences in the daf text (the <b>rabbi</b> mark's own name anchors — not the rabbis cited inside argument sections).</div></div></div>`;
     }
     if (d?.t === 'gen') {
       const m = allMarks().find((x) => x.id === d.mid); if (!m || !m.meta) return '';
@@ -265,11 +254,8 @@ export function AlignPage(): JSX.Element {
       const list = entitiesFor(m);
       if (list.length) blocks.push(`<div class="aw-grouph">${esc(m.label)} · ${list.length}</div>${list.map((e) => entityRow(m.kind, e)).join('')}`);
     }
-    // make the unwarmed state explicit: sources always show; marks/entities only
-    // exist once a daf has been generated (this page is read-only, never warms).
     if ((c === 'all' || c === 'marks') && !allMarks().length) {
-      blocks.push(marksRes.loading
-        ? '<div class="aw-note">loading marks…</div>'
+      blocks.push(marksRes.loading ? '<div class="aw-note">loading marks…</div>'
         : '<div class="aw-note">No marks generated for this daf yet — the sources above are everything cached. Open it in the reader to generate.</div>');
     }
     return `<div class="aw-list">${blocks.join('') || '<div class="aw-note">loading…</div>'}</div>`;
@@ -279,7 +265,6 @@ export function AlignPage(): JSX.Element {
   let spineBox!: HTMLDivElement;
   createEffect(() => { detail(); ctx(); marksRes(); daf(); cat(); if (inspEl) inspEl.innerHTML = detail() ? detailHtml() : listHtml(); });
 
-  // Auto-scroll the spine to a hovered/clicked target when it's out of view.
   function scrollIntoSpine(sel: string) {
     if (!spineBox) return;
     const el = spineBox.querySelector(sel) as HTMLElement | null;
@@ -287,31 +272,52 @@ export function AlignPage(): JSX.Element {
     const br = spineBox.getBoundingClientRect(); const er = el.getBoundingClientRect();
     if (er.top < br.top + 8 || er.bottom > br.bottom - 8) spineBox.scrollTop += (er.top - br.top) - spineBox.clientHeight / 2 + er.height / 2;
   }
+  /** Word indices of a normalized name's occurrences in the rendered daf. */
+  function nameWordIdx(nameNorm: string): number[] {
+    if (!spineBox || !nameNorm) return [];
+    const words = [...spineBox.querySelectorAll('.aw-daf .daf-word')] as HTMLElement[];
+    const wn = words.map((w) => normHe(w.textContent || ''));
+    const toks = nameNorm.split(' ').filter(Boolean);
+    if (!toks.length) return [];
+    const out: number[] = [];
+    for (let i = 0; i + toks.length <= words.length; i++) {
+      let ok = true;
+      for (let j = 0; j < toks.length; j++) if (wn[i + j] !== toks[j]) { ok = false; break; }
+      if (ok) for (let j = 0; j < toks.length; j++) { const idx = Number(words[i + j].getAttribute('data-word-index')); if (Number.isFinite(idx)) out.push(idx); }
+    }
+    return out;
+  }
   function hoverFrom(t: HTMLElement | null) {
-    if (!t) { setHl([]); setHlAdj(null); return; }
-    if (t.dataset.adj) { setHlAdj(t.dataset.adj as 'prev' | 'next'); setHl([]); scrollIntoSpine(`.aw-adj[data-adj="${t.dataset.adj}"]`); return; }
+    if (!t) { setHl([]); setHlWords([]); setHlAdj(null); return; }
+    if (t.dataset.adj) { setHlAdj(t.dataset.adj as 'prev' | 'next'); setHl([]); setHlWords([]); scrollIntoSpine(`.aw-adj[data-adj="${t.dataset.adj}"]`); return; }
     setHlAdj(null);
+    if (t.dataset.name !== undefined) { // entity: highlight just the name words
+      const idx = nameWordIdx(t.dataset.name); setHlWords(idx); setHl([]);
+      if (idx.length) scrollIntoSpine(`.aw-daf .daf-word[data-word-index="${Math.min(...idx)}"]`);
+      return;
+    }
+    setHlWords([]);
     if (t.dataset.hl === '*') { setHl(allSegs()); return; }
     const segs = t.dataset.hl ? t.dataset.hl.split(',').filter(Boolean).map(Number) : [];
     setHl(segs);
     if (segs.length) scrollIntoSpine(`.aw-daf .daf-word[data-seg="${Math.min(...segs)}"]`);
   }
   onMount(() => {
-    inspEl.addEventListener('mouseover', (e) => hoverFrom((e.target as HTMLElement).closest('[data-hl],[data-adj]') as HTMLElement | null));
-    inspEl.addEventListener('mouseleave', () => { setHl([]); setHlAdj(null); });
+    inspEl.addEventListener('mouseover', (e) => hoverFrom((e.target as HTMLElement).closest('[data-hl],[data-adj],[data-name]') as HTMLElement | null));
+    inspEl.addEventListener('mouseleave', () => { setHl([]); setHlWords([]); setHlAdj(null); });
     inspEl.addEventListener('click', (e) => {
       const t = e.target as HTMLElement;
-      if (t.closest('[data-back]')) { setDetail(null); setPin([]); return; }
+      if (t.closest('[data-back]')) { setDetail(null); setPin([]); setPinWords([]); return; }
       const mh = t.closest('[data-mkhead]') as HTMLElement | null;
       if (mh) { mh.closest('.aw-mkrow')?.classList.toggle('open'); return; }
       const gen = t.closest('[data-gen]') as HTMLElement | null;
-      if (gen) { const m = segMarks().find((x) => x.id === gen.dataset.gen); const segs = m ? (m.instances as SegInst[]).flatMap(rangeOfInst) : []; setPin(segs); if (segs.length) scrollIntoSpine(`.aw-daf .daf-word[data-seg="${Math.min(...segs)}"]`); setDetail({ t: 'gen', mid: gen.dataset.gen! }); return; }
+      if (gen) { const m = segMarks().find((x) => x.id === gen.dataset.gen); const segs = m ? (m.instances as SegInst[]).flatMap(rangeOfInst) : []; setPinWords([]); setPin(segs); if (segs.length) scrollIntoSpine(`.aw-daf .daf-word[data-seg="${Math.min(...segs)}"]`); setDetail({ t: 'gen', mid: gen.dataset.gen! }); return; }
       const ent = t.closest('[data-ent]') as HTMLElement | null;
-      if (ent) { const e = entityIndex().get(ent.dataset.ent!); setPin(e?.segs ?? []); if (e?.segs.length) scrollIntoSpine(`.aw-daf .daf-word[data-seg="${Math.min(...e.segs)}"]`); setDetail({ t: 'ent', key: ent.dataset.ent! }); return; }
+      if (ent) { const e = entityIndex().get(ent.dataset.ent!); const idx = e ? nameWordIdx(e.nameNorm) : []; setPin([]); setPinWords(idx); if (idx.length) scrollIntoSpine(`.aw-daf .daf-word[data-word-index="${Math.min(...idx)}"]`); setDetail({ t: 'ent', key: ent.dataset.ent! }); return; }
       const adj = t.closest('[data-adj]') as HTMLElement | null;
       if (adj) { (adj.dataset.adj === 'prev' ? setPrevOpen : setNextOpen)(true); }
       const sl = t.closest('.aw-src[data-src]') as HTMLElement | null;
-      if (sl) { const it = byKey().get(sl.dataset.src!); setPin(it?.segs ?? []); if (it?.segs.length) scrollIntoSpine(`.aw-daf .daf-word[data-seg="${Math.min(...it.segs)}"]`); setDetail({ t: 'src', key: sl.dataset.src! }); return; }
+      if (sl) { const it = byKey().get(sl.dataset.src!); setPinWords([]); setPin(it?.segs ?? []); if (it?.segs.length) scrollIntoSpine(`.aw-daf .daf-word[data-seg="${Math.min(...it.segs)}"]`); setDetail({ t: 'src', key: sl.dataset.src! }); return; }
     });
   });
 
@@ -320,32 +326,26 @@ export function AlignPage(): JSX.Element {
     if (!segs.length) return '';
     return open ? segs.join(' ') : (which === 'first' ? segs[0] : segs[segs.length - 1]);
   };
+  const go = (dir: 'prev' | 'next') => { const p = adjPage(page(), dir); if (p) setPage(p); };
 
   return (
     <main class="page-shell" style={{ '--page-max': '1480px', color: '#1a1a1a' }}>
       <style>{STYLE}</style>
       <style>{highlightCss()}</style>
-      <div class="aw-top">
-        <h1>Alignment workbench <span class="aw-sub">— sources spine</span></h1>
-        <select class="aw-select" value={tractate()} onChange={(e) => setTractate(e.currentTarget.value)}>
-          <For each={TRACTATE_OPTIONS}>{(o) => <option value={o.value}>{o.value}</option>}</For>
+      <header class="daf-header aw-header">
+        <h1 class="tb-wordmark">Alignment</h1>
+        <select class="tb-select" value={tractate()} onChange={(e) => setTractate(e.currentTarget.value)}>
+          <For each={TRACTATE_OPTIONS}>{(o) => <option value={o.value}>{o.value} · {o.label}</option>}</For>
         </select>
-        <input class="aw-select" style={{ width: '4rem' }} value={page()} onChange={(e) => setPage(e.currentTarget.value)} />
-        <div class="aw-spacer" />
-        <Show when={!daf.loading}>
-          <div class="aw-tally"><span><b>{tally().total}</b> sources</span><span><b>{tally().line}</b> on a line</span><span><b>{tally().off}</b> daf-level</span><span class="warn"><b>{tally().unaligned}</b> unaligned</span></div>
-        </Show>
-        <button class={`aw-toggle${marksOn() ? ' on' : ''}`} onClick={() => setMarksOn((v) => !v)}>marks overlay</button>
-      </div>
-
-      <Show when={!ctx.loading}>
-        <div class={`aw-cov${coverage().unknown.length ? ' bad' : ''}`}>
-          <b>registry coverage</b><span>{coverage().declared} declared</span><span>{coverage().present} present on this daf</span>
-          <Show when={coverage().absent.length} fallback={<span class="ok">all declared sources present ✓</span>}>
-            <span>{coverage().absent.length} absent: <span class="aw-abs">{coverage().absent.map((s) => SOURCE_META[s].label).join(', ')}</span></span>
-          </Show>
+        <div class="tb-nav">
+          <button class="tb-navbtn" onClick={() => go('prev')} disabled={!adjPage(page(), 'prev')}>‹</button>
+          <input class="tb-daf" style={{ width: '3.2rem', 'text-align': 'center' }} value={page()} onChange={(e) => setPage(e.currentTarget.value.trim())} />
+          <button class="tb-navbtn" onClick={() => go('next')} disabled={!adjPage(page(), 'next')}>›</button>
         </div>
-      </Show>
+        <Show when={!daf.loading}>
+          <span class="aw-tally"><b>{tally().total}</b> sources · <b>{tally().line}</b> on a line · <b>{tally().off}</b> daf-level · <span class="warn"><b>{tally().unaligned}</b> unaligned</span></span>
+        </Show>
+      </header>
 
       <Show when={daf.loading}><p class="aw-note" style={{ padding: '1rem' }}>Loading…</p></Show>
       <Show when={daf.error}><p style={{ color: '#b91c1c', padding: '1rem' }}>Error: {String(daf.error)}</p></Show>
@@ -362,7 +362,7 @@ export function AlignPage(): JSX.Element {
               </div>
             </Show>
             <div class="aw-daf" dir="rtl" innerHTML={rendered()}
-              onMouseOver={(e) => { const w = (e.target as HTMLElement).closest('.daf-word') as HTMLElement | null; const s = w?.getAttribute('data-seg'); setHl(s != null ? [Number(s)] : []); }}
+              onMouseOver={(e) => { const w = (e.target as HTMLElement).closest('.daf-word') as HTMLElement | null; const s = w?.getAttribute('data-seg'); setHl(s != null ? [Number(s)] : []); setHlWords([]); }}
               onMouseLeave={() => setHl([])} />
             <Show when={adjPreview(nextDaf(), 'first', nextOpen())}>
               <div class={`aw-adj${hlAdj() === 'next' ? ' hot' : ''}`} data-adj="next" onClick={() => setNextOpen((o) => !o)}>
@@ -371,15 +371,13 @@ export function AlignPage(): JSX.Element {
               </div>
             </Show>
           </div>
-          <Show when={marksOn() && allMarks().length}>
+          <Show when={allMarks().length}>
             <div class="aw-legend"><For each={allMarks()}>{(m) => <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '.3rem' }} innerHTML={`${markIconHtml(m.kind)} ${esc(m.label)}`} />}</For></div>
           </Show>
         </div>
         <div>
           <div class="aw-colh"><span class="aw-label">All sources</span>
-            <div class="aw-cats">
-              <For each={cats()}>{(cc) => <button class={`aw-chip${cat() === cc.id ? ' on' : ''}`} onClick={() => setCat(cc.id)}>{cc.label} <span class="aw-chipn">{cc.n}</span></button>}</For>
-            </div>
+            <div class="aw-cats"><For each={cats()}>{(cc) => <button class={`aw-chip${cat() === cc.id ? ' on' : ''}`} onClick={() => setCat(cc.id)}>{cc.label} <span class="aw-chipn">{cc.n}</span></button>}</For></div>
           </div>
           <Show when={ctx.loading || marksRes.loading}><div class="aw-loadbar"><div class="aw-loadbar-fill" /></div></Show>
           <div ref={inspEl} />
@@ -390,26 +388,9 @@ export function AlignPage(): JSX.Element {
 }
 
 const STYLE = `
-.aw-top{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin:0 0 .8rem}
-.aw-top h1{font-size:1.4rem;margin:0;letter-spacing:-.01em}
-.aw-sub{color:#6b6b6b;font-size:.85rem;font-weight:400}
-.aw-select{height:2.15rem;font:inherit;font-size:.85rem;border-radius:6px;padding:0 .55rem;border:1px solid #e5e3dc;background:#fff;color:#1a1a1a;cursor:pointer}
-.aw-spacer{margin-left:auto}
-.aw-tally{display:inline-flex;gap:.9rem;font-size:.82rem;color:#6b6b6b}.aw-tally b{color:#1a1a1a}.aw-tally .warn{color:#b45309}
-.aw-toggle{height:2.15rem;padding:0 .65rem;border:1px solid #e5e3dc;background:#fff;color:#6b6b6b;font-family:ui-monospace,Menlo,monospace;font-size:.78rem;border-radius:6px;cursor:pointer}
-.aw-toggle.on{background:#1a1a1a;border-color:#1a1a1a;color:#fafaf7}
+.aw-header{margin:0 0 1rem;padding-right:7rem}
+.aw-tally{font-size:.82rem;color:#6b6b6b}.aw-tally b{color:#1a1a1a}.aw-tally .warn{color:#b45309}
 .aw-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:#888;font-weight:600}
-.aw-cats{display:flex;gap:.35rem;flex-wrap:wrap;margin-left:auto}
-.aw-chip{font:inherit;font-size:11px;border:1px solid #cbd5e1;background:#fff;color:#475569;border-radius:999px;padding:.12rem .55rem;cursor:pointer;display:inline-flex;gap:.25rem;align-items:center}
-.aw-chip:hover{background:#f1f5f9}
-.aw-chip.on{background:#1e293b;border-color:#0f172a;color:#fff}
-.aw-chipn{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;opacity:.65}
-.aw-loadbar{height:3px;background:#eee;border-radius:2px;overflow:hidden;margin:0 0 .5rem}
-.aw-loadbar-fill{height:100%;width:35%;background:#8a2a2b;border-radius:2px;animation:awload 1.1s ease-in-out infinite}
-@keyframes awload{0%{margin-left:-35%}100%{margin-left:100%}}
-.aw-cov{display:flex;gap:.9rem;flex-wrap:wrap;align-items:baseline;font-size:11.5px;color:#6b6b6b;background:#f5f3ec;border:1px solid #e5e3dc;border-radius:6px;padding:.4rem .7rem;margin:0 0 1rem}
-.aw-cov b{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:#888}
-.aw-cov .ok{color:#166534}.aw-cov .aw-abs{color:#b45309}.aw-cov.bad{background:#fef2f2;border-color:#fecaca}
 .aw-work{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(380px,1fr);gap:1.4rem;align-items:start}
 .aw-colh{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}.aw-hint{font-size:11px;color:#6b6b6b}
 .aw-spinebox{background:#fff;border:1px solid #e5e3dc;border-radius:8px;padding:.8rem 1.1rem;position:sticky;top:.5rem;max-height:calc(100vh - 120px);overflow:auto}
@@ -424,6 +405,13 @@ const STYLE = `
 .aw-ic{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;color:#fff;line-height:0;flex:none;vertical-align:middle}
 .aw-heb{font-family:"Mekorot Vilna","Times New Roman",serif;font-size:11px;font-weight:700;line-height:1;color:#fff}
 .aw-he2{font-family:"Mekorot Vilna","Frank Ruhl Libre",serif;color:#64748b;font-size:13px}
+.aw-cats{display:flex;gap:.35rem;flex-wrap:wrap;margin-left:auto}
+.aw-chip{font:inherit;font-size:11px;border:1px solid #cbd5e1;background:#fff;color:#475569;border-radius:999px;padding:.12rem .55rem;cursor:pointer;display:inline-flex;gap:.25rem;align-items:center}
+.aw-chip:hover{background:#f1f5f9}.aw-chip.on{background:#1e293b;border-color:#0f172a;color:#fff}
+.aw-chipn{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;opacity:.65}
+.aw-loadbar{height:3px;background:#eee;border-radius:2px;overflow:hidden;margin:0 0 .5rem}
+.aw-loadbar-fill{height:100%;width:35%;background:#8a2a2b;border-radius:2px;animation:awload 1.1s ease-in-out infinite}
+@keyframes awload{0%{margin-left:-35%}100%{margin-left:100%}}
 .aw-list{max-height:calc(100vh - 150px);overflow-y:auto;padding-right:.3rem}
 .aw-grouph{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:#b0aa9e;font-weight:600;margin:.9rem 0 .25rem;position:sticky;top:0;background:#fafaf7;padding:.25rem 0;z-index:1}
 .aw-grouph:first-child{margin-top:0}
@@ -462,5 +450,5 @@ const STYLE = `
 .aw-dbody{border-top:1px solid #f0eee6;padding-top:.7rem;max-height:calc(100vh - 260px);overflow:auto}
 .aw-he{font-family:"Mekorot Vilna","Frank Ruhl Libre",serif;font-size:1.15rem;line-height:1.9;color:#222}
 .aw-en{font-size:13px;line-height:1.6;color:#444;margin-top:.5rem}
-@media(max-width:880px){.aw-work{grid-template-columns:1fr}.aw-spinebox{position:static;max-height:none}}
+@media(max-width:880px){.aw-work{grid-template-columns:1fr}.aw-spinebox{position:static;max-height:none}.aw-header{padding-right:0}}
 `;
