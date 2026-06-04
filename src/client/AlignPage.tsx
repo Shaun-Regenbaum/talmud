@@ -201,7 +201,6 @@ export function AlignPage(): JSX.Element {
            <div class="aw-wfmeta">${fmtMs(m.meta.elapsed_ms)} · ${usd == null ? '<span class="free">unpriced</span>' : `<span class="cost">${fmtUsd(usd)}</span>`}</div></div>` : '';
     return `<div class="aw-li aw-mkrow" style="--mkc:${c}">
       <div class="aw-mkhead" data-mkhead data-hl="${range.join(',')}">${markIconHtml(m.kind, true)}<span class="aw-nm" style="color:${c}">${esc(title)}</span>
-        <span class="aw-mtag" style="color:${c};border-color:${c}55">${esc(m.label.replace(/s$/, ''))}</span>
         <span class="aw-range">seg ${inst.startSegIdx}${inst.endSegIdx !== inst.startSegIdx ? `–${inst.endSegIdx}` : ''}</span><span class="aw-chev">▸</span></div>
       <div class="aw-mkdetail"><span class="aw-label" style="display:block">made from — how it was built (hover to locate · click to inspect)</span>
         <div class="aw-wf"><div class="aw-wfband">collect — sources it drew on</div>${collectRowsHtml(new Set(range))}${gen}</div></div></div>`;
@@ -423,7 +422,6 @@ const STYLE = `
 .aw-dot{width:7px;height:7px;border-radius:50%;flex:none;display:inline-block}
 .aw-via{font-family:ui-monospace,Menlo,monospace;font-size:10px;padding:1px 5px;border-radius:3px;background:#eef2ff;color:#6366f1}
 .aw-conf{font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#94a3b8}
-.aw-mtag{font-size:9px;text-transform:uppercase;letter-spacing:.04em;border:1px solid;border-radius:3px;padding:0 4px;line-height:1.6;background:#fff}
 .aw-range{font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#94a3b8;margin-left:auto;white-space:nowrap}
 .aw-utag{display:inline-flex;align-items:center;gap:.2rem;font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:#b45309;background:#fff7ed;border:1px solid #fed7aa;border-radius:3px;padding:0 4px;line-height:1.6}
 .aw-note{font-size:11.5px;color:#94a3b8;padding:.3rem 0}
