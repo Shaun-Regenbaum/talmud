@@ -183,6 +183,7 @@ interface MarkRow {
   versions: Record<string, number>;
   staleCount: number;
   dependsOn?: string[]; // other marks this one depends on (v8+)
+  dependsOnSources?: string[]; // Content-In sources this one reads (v8+)
 }
 
 interface EnrichmentRow {
@@ -565,6 +566,22 @@ function GlobeBadge(): JSX.Element {
   return <span title={t('usage.global.title')} style={{ 'margin-left': '0.35rem', 'font-size': '0.8rem' }}>🌐</span>;
 }
 
+// Friendly label for a Content-In source-dependency string. Reuses the
+// Content-In source labels where they line up; the context aggregates get their
+// own wording.
+function sourceDepLabel(id: string): string {
+  const map: Record<string, string> = {
+    gemara: 'usage.src.gemara',
+    commentaries: 'usage.src.commentaries',
+    mishna: 'usage.src.mishna',
+    'halacha-refs': 'usage.src.halacha-refs',
+    'yerushalmi-text': 'usage.src.yerushalmi',
+    context: 'usage.srcdep.context',
+    'context-light': 'usage.srcdep.contextLight',
+  };
+  return map[id] ? t(map[id]) : id;
+}
+
 // One coverage bar (a language slice): count · bar · %.
 function CoverageBar(props: { label: string; count: number; percent: number; he?: boolean }): JSX.Element {
   const complete = () => props.percent >= 100;
@@ -589,6 +606,7 @@ function MarkTreeRow(props: { mark: MarkRow; total: number; enrichments: Enrichm
     .filter((e) => e.target_mark === m().id)
     .sort((a, b) => (a.scope === b.scope ? a.label.localeCompare(b.label) : a.scope === 'local' ? -1 : 1));
   const deps = () => m().dependsOn ?? [];
+  const srcDeps = () => m().dependsOnSources ?? [];
   const num = { padding: '0.4rem 0.5rem', 'text-align': 'right' as const, 'font-variant-numeric': 'tabular-nums' };
   return (
     <>
@@ -611,6 +629,11 @@ function MarkTreeRow(props: { mark: MarkRow; total: number; enrichments: Enrichm
             <Show when={deps().length > 0}>
               <div style={{ 'font-size': '0.75rem', color: '#7c3aed', 'margin-bottom': '0.35rem' }}>
                 {t('usage.tree.dependsOn')}: {deps().map((d) => props.labelOf(d)).join(' · ')}
+              </div>
+            </Show>
+            <Show when={srcDeps().length > 0}>
+              <div style={{ 'font-size': '0.75rem', color: '#1d4ed8', 'margin-bottom': '0.35rem' }}>
+                {t('usage.tree.dependsOnSources')}: {srcDeps().map((s) => sourceDepLabel(s)).join(' · ')}
               </div>
             </Show>
             <Show when={enr().length > 0} fallback={<p style={{ color: '#aaa', 'font-size': '0.8rem' }}>{t('usage.tree.noEnrich')}</p>}>

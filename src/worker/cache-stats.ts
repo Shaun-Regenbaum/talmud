@@ -131,6 +131,9 @@ export interface MarkCacheRow {
   /** Other marks this mark (or its enrichments) depends on — e.g. tidbit
    *  depends on argument-overview. Foreign mark ids only. */
   dependsOn: string[];
+  /** Content-In sources this mark (or its enrichments) pulls from — the
+   *  source-string deps (gemara, commentaries, mishna, context, …). */
+  dependsOnSources: string[];
 }
 
 export interface EnrichmentCacheRow {
@@ -394,6 +397,13 @@ async function mergedMarks(cache: KVNamespace): Promise<MergedMark[]> {
  *  `{enrichment:id}` → the enrichment's own `target_mark` (resolved via the
  *  registry, since KV enrichment ids needn't be `<mark>.*`); source-string deps
  *  ('gemara', 'context', …) → null. Powers the per-mark "depends on" chips. */
+// Source-string deps (Content-In inputs) a producer reads, as opposed to the
+// {mark}/{enrichment} graph edges. See MarkDependency/EnrichmentDependency.
+const SOURCE_DEPS = new Set(['gemara', 'commentaries', 'mishna', 'context', 'context-light', 'halacha-refs', 'yerushalmi-text']);
+function sourceDepOf(dep: unknown): string | null {
+  return typeof dep === 'string' && SOURCE_DEPS.has(dep) ? dep : null;
+}
+
 function foreignMarkOf(dep: unknown, markOfEnrichment: (id: string) => string | undefined): string | null {
   if (!dep || typeof dep !== 'object') return null;
   const d = dep as { mark?: string; enrichment?: string };
@@ -515,11 +525,14 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
   const markIds = new Set(markDefs.map((m) => m.id));
   const markOfEnrichment = new Map(enrichDefs.map((e) => [e.id, e.target_mark]));
   const dependsByMark = new Map<string, Set<string>>();
+  const sourcesByMark = new Map<string, Set<string>>();
+  const add = (map: Map<string, Set<string>>, markId: string, v: string) =>
+    (map.get(markId) ?? map.set(markId, new Set()).get(markId)!).add(v);
   const addDep = (markId: string, dep: unknown): void => {
     const f = foreignMarkOf(dep, (id) => markOfEnrichment.get(id));
-    if (f && f !== markId && markIds.has(f)) {
-      (dependsByMark.get(markId) ?? dependsByMark.set(markId, new Set()).get(markId)!).add(f);
-    }
+    if (f && f !== markId && markIds.has(f)) add(dependsByMark, markId, f);
+    const s = sourceDepOf(dep);
+    if (s) add(sourcesByMark, markId, s);
   };
   for (const m of markDefs) for (const dep of m.dependencies) addDep(m.id, dep);
   for (const e of enrichDefs) for (const dep of e.dependencies) addDep(e.target_mark, dep);
@@ -533,6 +546,7 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
       count, heCount, percent: pct(count, total),
       versions, staleCount: staleSum(versions, m.cache_version),
       dependsOn: [...(dependsByMark.get(m.id) ?? [])].sort(),
+      dependsOnSources: [...(sourcesByMark.get(m.id) ?? [])].sort(),
     };
   });
 
