@@ -591,11 +591,17 @@ app.delete('/api/marks/:id', async (c) => {
 // the cached RunResult. NO generation, NO cache write, NO LLM spend — an
 // uncached mark just reports `cached:false`. Two path params, so it never
 // collides with the single-param `/api/marks/:id` definition route above.
+// Segment-anchored gutter marks (instances carry startSegIdx/endSegIdx).
 const GUTTER_MARKS: { id: string; kind: string }[] = [
   { id: 'argument', kind: 'argument' }, { id: 'halacha', kind: 'halacha' },
   { id: 'chart', kind: 'chart' }, { id: 'aggadata', kind: 'aggadata' },
   { id: 'yerushalmi', kind: 'yerushalmi' }, { id: 'pesukim', kind: 'pesuk' },
   { id: 'rishonim', kind: 'rishonim' },
+];
+// Name/phrase-anchored marks (markInstances: { excerpt, fields:{name,nameHe,…} }).
+// No segment indices — the workbench locates them by matching nameHe in the text.
+const NAME_MARKS: { id: string; kind: string }[] = [
+  { id: 'rabbi', kind: 'rabbi' }, { id: 'places', kind: 'place' },
 ];
 function instanceLabel(fields: Record<string, unknown> | undefined): string {
   const f = fields ?? {};
@@ -605,11 +611,16 @@ function instanceLabel(fields: Record<string, unknown> | undefined): string {
   }
   return '';
 }
+const str = (v: unknown): string => (typeof v === 'string' ? v : '');
 app.get('/api/marks/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
   const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
   const marks = [] as unknown[];
+  const metaOf = (hit: RunResult | null) => hit ? {
+    cache_hit: hit.cache_hit, elapsed_ms: hit.elapsed_ms, model: hit.model,
+    recipe_hash: hit.recipe_hash ?? null, cost: hit.cost ?? null,
+  } : null;
   for (const gm of GUTTER_MARKS) {
     const def = findCodeMark(gm.id);
     if (!def) continue;
@@ -619,13 +630,18 @@ app.get('/api/marks/:tractate/:page', async (c) => {
     const instances = raw
       .filter((i) => typeof i.startSegIdx === 'number' && typeof i.endSegIdx === 'number')
       .map((i) => ({ startSegIdx: i.startSegIdx as number, endSegIdx: i.endSegIdx as number, label: instanceLabel(i.fields) }));
-    marks.push({
-      id: gm.id, kind: gm.kind, label: def.label ?? gm.id, cached: !!hit, instances,
-      meta: hit ? {
-        cache_hit: hit.cache_hit, elapsed_ms: hit.elapsed_ms, model: hit.model,
-        recipe_hash: hit.recipe_hash ?? null, cost: hit.cost ?? null,
-      } : null,
-    });
+    marks.push({ id: gm.id, kind: gm.kind, label: def.label ?? gm.id, anchorBy: 'segment', cached: !!hit, instances, meta: metaOf(hit) });
+  }
+  for (const nm of NAME_MARKS) {
+    const def = findCodeMark(nm.id);
+    if (!def) continue;
+    const hit = await readCachedResult(c.env, keyForMark(def, tractate, page, lang));
+    const parsed = hit?.parsed as { instances?: unknown } | null;
+    const raw = Array.isArray(parsed?.instances) ? (parsed!.instances as { excerpt?: unknown; fields?: Record<string, unknown> }[]) : [];
+    const instances = raw
+      .map((i) => ({ name: str(i.fields?.name), nameHe: str(i.fields?.nameHe), generation: str(i.fields?.generation), excerpt: str(i.excerpt) }))
+      .filter((x) => x.nameHe || x.name);
+    marks.push({ id: nm.id, kind: nm.kind, label: def.label ?? nm.id, anchorBy: 'name', cached: !!hit, instances, meta: metaOf(hit) });
   }
   return c.json({ tractate, page, lang, marks });
 });

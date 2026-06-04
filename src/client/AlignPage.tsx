@@ -1,28 +1,23 @@
 /**
  * Alignment workbench — the sources spine.
  *
- * A debug view centred on SOURCES: what we pull in to build a daf and feed its
- * smart notes, and where each piece attaches. The daf renders as continuous text
- * (the same tokenize -> segment-marker pipeline the reader uses), and the right
- * column is one scrollable list of EVERY source — hovering a row highlights the
- * segment(s) it anchors to, clicking it shows its content. Sources that don't
- * land on a line are grouped under "page-level", tagged `unaligned` (a placement
- * gap) vs reference-by-nature vs another amud. Marks are an optional overlay
- * (their range underlined in the text) and each is transparent about how it was
- * built — the "made from" waterfall: the sources it drew on (hover to locate,
- * click to inspect) + the generation's real cost / latency / cache.
+ * A SOURCES-centred debug view. The daf renders as continuous text (the same
+ * tokenize -> segment-marker pipeline the reader uses), bracketed by the last
+ * line of the previous amud and the first line of the next amud in gray (click to
+ * expand). The right column is one filterable, scrollable list of EVERY source —
+ * hovering a row highlights the segment(s) it anchors to (or the whole amud / the
+ * adjacent amud for page-level + other-amud sources). Marks are listed per
+ * INSTANCE (an amud can hold several arguments); name-anchored entities (rabbis,
+ * places) are matched to the segments they appear in and shown with their icon.
  *
  * Read-only — the page never triggers generation or LLM spend.
- *   GET /api/daf/:t/:p      -> mainText.hebrew + mainSegmentsHe
- *   GET /api/context/:t/:p  -> { items, timing }
- *   GET /api/marks/:t/:p    -> cached gutter marks + run metadata
  */
 import { createResource, createSignal, createMemo, createEffect, onMount, For, Show, type JSX } from 'solid-js';
 import { TRACTATE_OPTIONS } from '../lib/sefref';
 import type { ContextItem } from '../lib/context/types';
 import { isReferenceSource } from '../lib/context/placement';
 import { SOURCES, SOURCE_META } from '../lib/context/sources';
-import { colorForKind, type GutterKind } from './GutterIcons';
+import { colorForKind } from './GutterIcons';
 import { tokenizeHebrewHtml } from './tokenize';
 import { injectHadran } from './injectHadran';
 import { injectSegmentMarkers } from './injectSegmentMarkers';
@@ -31,11 +26,13 @@ interface DafResp { mainText?: { hebrew?: string }; mainSegmentsHe?: string[] }
 interface SourceTiming { fetcher: string; sources: string[]; ms: number; cache: 'hit' | 'miss' | 'mixed' | 'unknown' }
 interface CtxResp { items?: ContextItem[]; timing?: SourceTiming[] }
 interface CostStamp { billedUsd: number | null; estimatedUsd: number | null; tokensIn: number; tokensOut: number }
-interface MarkInst { startSegIdx: number; endSegIdx: number; label: string }
+interface SegInst { startSegIdx: number; endSegIdx: number; label: string }
+interface NameInst { name: string; nameHe: string; generation: string; excerpt: string }
 interface MarkMeta { cache_hit: boolean; elapsed_ms: number; model: string; recipe_hash: string | null; cost: CostStamp | null }
-interface MarkRow { id: string; kind: GutterKind; label: string; cached: boolean; instances: MarkInst[]; meta: MarkMeta | null }
+interface MarkRow { id: string; kind: string; label: string; anchorBy: 'segment' | 'name'; cached: boolean; instances: (SegInst | NameInst)[]; meta: MarkMeta | null }
 interface MarksResp { marks?: MarkRow[] }
-type Detail = null | { t: 'src'; key: string } | { t: 'gen'; mid: string };
+interface Entity { key: string; name: string; nameHe: string; extra: string; segs: number[] }
+type Detail = null | { t: 'src'; key: string } | { t: 'gen'; mid: string } | { t: 'ent'; key: string };
 
 const fetchJson = async <T,>(url: string): Promise<T> => {
   const r = await fetch(url);
@@ -45,74 +42,111 @@ const fetchJson = async <T,>(url: string): Promise<T> => {
 const fmtMs = (n: number) => (n < 1000 ? `${Math.round(n)}ms` : `${(n / 1000).toFixed(1)}s`);
 const fmtUsd = (u: number | null | undefined) => (u == null ? '—' : u < 0.01 ? `$${u.toFixed(4)}` : `$${u.toFixed(3)}`);
 const esc = (s: string | undefined) => (s ?? '').replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]!));
+// Normalize Hebrew for name<->text matching: drop HTML, niqqud, geresh/quotes
+// and punctuation, then expand the standalone abbreviation ר → רבי (applied to
+// both the name and the segment text so "ר' אליעזר" matches a written "רבי אליעזר").
+const normHe = (s = '') => s.replace(/<[^>]+>/g, ' ').replace(/[֑-ׇ]/g, '').replace(/[׳״'"]/g, '').replace(/[^א-ת ]+/g, ' ').replace(/\s+/g, ' ').trim().replace(/(^| )ר( |$)/g, '$1רבי$2');
+
+function adjPage(page: string, dir: 'prev' | 'next'): string | null {
+  const m = page.trim().match(/^(\d+)([ab])$/i);
+  if (!m) return null;
+  const n = Number(m[1]); const a = m[2].toLowerCase();
+  if (dir === 'next') return a === 'a' ? `${n}b` : `${n + 1}a`;
+  if (a === 'b') return `${n}a`;
+  return n <= 2 ? null : `${n - 1}b`;
+}
 
 const SA = 'viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"';
-const GLYPH: Record<GutterKind, string> = {
+const GLYPH: Record<string, string> = {
   argument: `<svg ${SA}><path d="M16 10a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 14.286V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/><path d="M20 9a2 2 0 0 1 2 2v10.286a.71.71 0 0 1-1.212.502l-2.202-2.202A2 2 0 0 0 17.172 19H10a2 2 0 0 1-2-2v-1"/></svg>`,
   halacha: `<svg ${SA}><path d="m14 13-8.381 8.38a1 1 0 0 1-3.001-3l8.384-8.381"/><path d="m16 16 6-6"/><path d="m21.5 10.5-8-8"/><path d="m8 8 6-6"/><path d="m8.5 7.5 8 8"/></svg>`,
   chart: `<svg ${SA}><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/></svg>`,
   aggadata: `<svg ${SA}><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>`,
+  rabbi: `<svg ${SA}><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>`,
+  place: `<svg ${SA}><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>`,
   yerushalmi: '<span class="aw-heb">י</span>', rishonim: '<span class="aw-heb">ר</span>', pesuk: '<span class="aw-heb">פ</span>',
 };
-const markIconHtml = (kind: GutterKind, ring = false) =>
-  `<span class="aw-ic" style="background:${colorForKind(kind)}${ring ? `;box-shadow:0 0 0 2px ${colorForKind(kind)}60` : ''}" title="${kind}">${GLYPH[kind]}</span>`;
+const GUTTER_KINDS = new Set(['argument', 'halacha', 'chart', 'aggadata', 'yerushalmi', 'rishonim', 'pesuk']);
+const kindColor = (k: string): string => (GUTTER_KINDS.has(k) ? colorForKind(k as Parameters<typeof colorForKind>[0]) : k === 'rabbi' ? '#0066cc' : k === 'place' ? '#9a3412' : '#222');
+const markIconHtml = (kind: string, ring = false) =>
+  `<span class="aw-ic" style="background:${kindColor(kind)}${ring ? `;box-shadow:0 0 0 2px ${kindColor(kind)}60` : ''}" title="${kind}">${GLYPH[kind] ?? ''}</span>`;
 
 export function AlignPage(): JSX.Element {
   const params = new URLSearchParams(window.location.search);
   const [tractate, setTractate] = createSignal(params.get('tractate') ?? 'Berakhot');
   const [page, setPage] = createSignal(params.get('page') ?? '2a');
   const [marksOn, setMarksOn] = createSignal(true);
-  const [hl, setHl] = createSignal<number[]>([]);   // hover highlight (transient)
-  const [pin, setPin] = createSignal<number[]>([]);  // pinned highlight (a detail is open)
+  const [filter, setFilter] = createSignal('');
+  const [hl, setHl] = createSignal<number[]>([]);
+  const [pin, setPin] = createSignal<number[]>([]);
+  const [hlAdj, setHlAdj] = createSignal<'prev' | 'next' | null>(null);
+  const [prevOpen, setPrevOpen] = createSignal(false);
+  const [nextOpen, setNextOpen] = createSignal(false);
   const [detail, setDetail] = createSignal<Detail>(null);
 
   const ref = createMemo(() => ({ t: tractate(), p: page() }));
   const [daf] = createResource(ref, (r) => fetchJson<DafResp>(`/api/daf/${encodeURIComponent(r.t)}/${r.p}`));
   const [ctx] = createResource(ref, (r) => fetchJson<CtxResp>(`/api/context/${encodeURIComponent(r.t)}/${r.p}`).catch(() => ({ items: [], timing: [] })));
   const [marksRes] = createResource(ref, (r) => fetchJson<MarksResp>(`/api/marks/${encodeURIComponent(r.t)}/${r.p}`).catch(() => ({ marks: [] })));
+  const prevRef = createMemo(() => { const p = adjPage(page(), 'prev'); return p ? { t: tractate(), p } : null; });
+  const nextRef = createMemo(() => { const p = adjPage(page(), 'next'); return p ? { t: tractate(), p } : null; });
+  const [prevDaf] = createResource(prevRef, (r) => fetchJson<DafResp>(`/api/daf/${encodeURIComponent(r.t)}/${r.p}`).catch(() => ({})));
+  const [nextDaf] = createResource(nextRef, (r) => fetchJson<DafResp>(`/api/daf/${encodeURIComponent(r.t)}/${r.p}`).catch(() => ({})));
 
   const items = () => ctx()?.items ?? [];
   const timing = () => ctx()?.timing ?? [];
-  const marks = () => (marksRes()?.marks ?? []).filter((m) => m.cached && m.instances.length > 0);
+  const allMarks = () => (marksRes()?.marks ?? []).filter((m) => m.cached && m.instances.length > 0);
+  const segMarks = () => allMarks().filter((m) => m.anchorBy === 'segment');
+  const nameMarks = () => allMarks().filter((m) => m.anchorBy === 'name');
   const onLine = () => items().filter((i) => i.segs.length > 0);
   const offLine = () => items().filter((i) => i.segs.length === 0);
   const byKey = createMemo(() => new Map(items().map((i) => [i.key, i])));
+  const meAmud = () => (/b$/i.test(page()) ? 'b' : 'a');
+  const siblingAdj = (): 'prev' | 'next' => (meAmud() === 'a' ? 'next' : 'prev');
 
   const rendered = createMemo(() => {
     const html = daf()?.mainText?.hebrew;
-    if (!html) return '';
-    return injectSegmentMarkers(injectHadran(tokenizeHebrewHtml(html)), daf()?.mainSegmentsHe ?? []).html;
+    return html ? injectSegmentMarkers(injectHadran(tokenizeHebrewHtml(html)), daf()?.mainSegmentsHe ?? []).html : '';
   });
   const segCount = () => daf()?.mainSegmentsHe?.length ?? 0;
+  const allSegs = () => Array.from({ length: segCount() }, (_, i) => i);
+  const segNorm = createMemo(() => (daf()?.mainSegmentsHe ?? []).map(normHe));
+
+  // name-anchored entities (rabbis/places), deduped and located by matching
+  // their (niqqud-stripped) Hebrew name in each segment's text.
+  const entitiesFor = (m: MarkRow): Entity[] => {
+    const segs = segNorm();
+    const map = new Map<string, Entity & { _s: Set<number> }>();
+    for (const inst of m.instances as NameInst[]) {
+      const nh = normHe(inst.nameHe);
+      const k = nh || inst.name; if (!k) continue; // dedupe by normalized name (merges abbreviated + full forms)
+      const e = map.get(k) ?? { key: `${m.id}:${k}`, name: inst.name, nameHe: inst.nameHe, extra: inst.generation || '', segs: [], _s: new Set<number>() };
+      if (nh) segs.forEach((sg, i) => { if (sg.includes(nh)) e._s.add(i); });
+      map.set(k, e);
+    }
+    return [...map.values()].map((e) => ({ key: e.key, name: e.name, nameHe: e.nameHe, extra: e.extra, segs: [...e._s].sort((a, b) => a - b) }));
+  };
+  const entityIndex = createMemo(() => { const m = new Map<string, Entity>(); for (const nm of nameMarks()) for (const e of entitiesFor(nm)) m.set(e.key, e); return m; });
 
   const tally = createMemo(() => {
-    const its = items();
-    const off = its.filter((i) => i.segs.length === 0);
+    const its = items(); const off = its.filter((i) => i.segs.length === 0);
     return { total: its.length, line: its.length - off.length, off: off.length, unaligned: off.filter((i) => !isReferenceSource(i)).length };
   });
   const coverage = createMemo(() => {
     const present = new Set(items().map((i) => i.source));
     return { declared: SOURCES.length, present: present.size, absent: SOURCES.filter((s) => !present.has(s)), unknown: [...present].filter((s) => !(s in SOURCE_META)) };
   });
+  const rangeOfInst = (i: SegInst): number[] => { const o: number[] = []; for (let s = i.startSegIdx; s <= i.endSegIdx; s++) o.push(s); return o; };
+  const matches = (s: string) => { const q = filter().trim().toLowerCase(); return !q || s.toLowerCase().includes(q); };
 
-  const rangeOf = (m: MarkRow): number[] => {
-    const set = new Set<number>();
-    for (const x of m.instances) for (let s = x.startSegIdx; s <= x.endSegIdx; s++) set.add(s);
-    return [...set].sort((a, b) => a - b);
-  };
-
-  // ---- spine highlight CSS (reacts to hover / pin / marks overlay) ----
   const highlightCss = createMemo(() => {
     const sel = [...new Set([...hl(), ...pin()])];
     const rules: string[] = [];
-    if (marksOn()) {
-      for (const m of marks()) for (const s of rangeOf(m)) rules.push(`.aw-daf .daf-word[data-seg="${s}"]{box-shadow:inset 0 -3px 0 ${colorForKind(m.kind)}}`);
-    }
+    if (marksOn()) for (const m of segMarks()) for (const inst of m.instances as SegInst[]) for (const s of rangeOfInst(inst)) rules.push(`.aw-daf .daf-word[data-seg="${s}"]{box-shadow:inset 0 -3px 0 ${kindColor(m.kind)}}`);
     for (const s of sel) rules.push(`.aw-daf .daf-word[data-seg="${s}"]{background:#fde68a !important;outline:1.5px solid #8a2a2b;border-radius:2px}`);
     return rules.join('\n');
   });
 
-  // ---- inspector (one scrollable list of everything) ----
   const dot = (c: string) => `<span class="aw-dot" style="background:${c}"></span>`;
   function srcRow(it: ContextItem): string {
     const via = it.via ? `<span class="aw-via">${esc(it.via)}</span>` : '';
@@ -120,10 +154,14 @@ export function AlignPage(): JSX.Element {
     return `<div class="aw-li aw-src" data-src="${esc(it.key)}" data-hl="${it.segs.join(',')}">${dot('#16a34a')}
       <span class="aw-nm">${esc(it.sourceLabel)}</span>${via}<span class="aw-bd">${esc(it.title?.en || it.title?.he || it.kind)}</span>${conf}</div>`;
   }
-  function collectRowsHtml(m: MarkRow): string {
-    const range = new Set(rangeOf(m));
-    // the real sources overlapping the mark's range, grouped by label — each
-    // hover-locates and click-inspects; timed by its fetcher.
+  function entityRow(kind: string, e: Entity): string {
+    const c = kindColor(kind);
+    return `<div class="aw-li aw-src" data-ent="${esc(e.key)}" data-hl="${e.segs.join(',')}">${markIconHtml(kind)}
+      <span class="aw-nm">${esc(e.name || e.nameHe)}</span><span class="aw-he2" dir="rtl">${esc(e.nameHe)}</span>
+      ${e.extra ? `<span class="aw-via" style="background:${c}1a;color:${c}">${esc(e.extra)}</span>` : ''}
+      <span class="aw-range">${e.segs.length ? `×${e.segs.length} seg` : 'no text match'}</span></div>`;
+  }
+  function collectRowsHtml(range: Set<number>): string {
     const groups = new Map<string, { label: string; key: string; segs: Set<number>; source: string }>();
     for (const it of onLine()) {
       if (!it.segs.some((s) => range.has(s))) continue;
@@ -136,102 +174,119 @@ export function AlignPage(): JSX.Element {
     const max = Math.max(...rows.map((g) => timing().find((t) => t.sources.includes(g.source))?.ms ?? 0), 1);
     return rows.map((g) => {
       const t = timing().find((x) => x.sources.includes(g.source));
-      const ms = t?.ms ?? 0;
-      const cache = t ? (t.cache === 'hit' ? 'cached' : t.cache === 'miss' ? 'fetched' : t.cache) : '—';
-      const w = Math.max(4, (ms / max) * 100);
+      const ms = t?.ms ?? 0; const cache = t ? (t.cache === 'hit' ? 'cached' : t.cache === 'miss' ? 'fetched' : t.cache) : '—';
       return `<div class="aw-wfrow aw-src" data-src="${esc(g.key)}" data-hl="${[...g.segs].join(',')}">
         <div class="aw-wflabel">${dot('#16a34a')}${esc(g.label)}</div>
-        <div class="aw-wftrack"><div class="aw-wfbar src" style="width:${w}%"></div></div>
+        <div class="aw-wftrack"><div class="aw-wfbar src" style="width:${Math.max(4, (ms / max) * 100)}%"></div></div>
         <div class="aw-wfmeta">${fmtMs(ms)} · <span class="free">${cache}</span></div></div>`;
     }).join('');
   }
-  function markRowHtml(m: MarkRow): string {
-    const hit = m.meta?.cache_hit;
+  function instRowHtml(m: MarkRow, inst: SegInst, idx: number): string {
+    const c = kindColor(m.kind); const range = rangeOfInst(inst);
     const usd = m.meta?.cost ? (m.meta.cost.billedUsd ?? m.meta.cost.estimatedUsd) : null;
-    const c = colorForKind(m.kind);
+    const title = inst.label || `${m.label} #${idx + 1}`;
     const gen = m.meta
-      ? `<div class="aw-wfband">generate — model run</div>
-         <div class="aw-wfrow" data-gen="${esc(m.id)}" data-hl="${rangeOf(m).join(',')}">
-           <div class="aw-wflabel">${markIconHtml(m.kind)}${esc(m.label)} generation</div>
+      ? `<div class="aw-wfband">generate — model run (this whole mark, ${m.instances.length} instance${m.instances.length > 1 ? 's' : ''})</div>
+         <div class="aw-wfrow" data-gen="${esc(m.id)}" data-hl="${range.join(',')}"><div class="aw-wflabel">${markIconHtml(m.kind)}${esc(m.label)} run</div>
            <div class="aw-wftrack"><div class="aw-wfbar gen" style="width:100%;background:${c}"></div></div>
-           <div class="aw-wfmeta">${m.meta ? fmtMs(m.meta.elapsed_ms) : '—'} · ${usd == null ? '<span class="free">unpriced</span>' : `<span class="cost">${fmtUsd(usd)}</span>`}</div></div>` : '';
+           <div class="aw-wfmeta">${fmtMs(m.meta.elapsed_ms)} · ${usd == null ? '<span class="free">unpriced</span>' : `<span class="cost">${fmtUsd(usd)}</span>`}</div></div>` : '';
     return `<div class="aw-li aw-mkrow" style="--mkc:${c}">
-      <div class="aw-mkhead" data-mkhead data-hl="${rangeOf(m).join(',')}">${markIconHtml(m.kind, true)}<span class="aw-nm" style="color:${c}">${esc(m.label)}</span>
-        <span class="aw-chev">▸</span><span class="aw-minimeta">${fmtUsd(usd)} · ${m.meta ? fmtMs(m.meta.elapsed_ms) : '—'} · ${hit ? 'cached' : 'miss'}</span></div>
-      <div class="aw-mkdetail">
-        <div class="aw-metarow"><span class="aw-badge ${hit ? 'hit' : 'miss'}">cache: ${hit ? 'hit' : 'miss'}</span><span class="aw-badge">${fmtUsd(usd)}</span><span class="aw-badge">${m.meta ? fmtMs(m.meta.elapsed_ms) : '—'}</span><span class="aw-badge">${esc(m.meta?.model ?? '')}</span></div>
-        <span class="aw-label" style="display:block;margin-top:.5rem">made from — how it was built (hover to locate · click to inspect)</span>
-        <div class="aw-wf"><div class="aw-wfband">collect — sources it drew on</div>${collectRowsHtml(m)}${gen}</div></div></div>`;
+      <div class="aw-mkhead" data-mkhead data-hl="${range.join(',')}">${markIconHtml(m.kind, true)}<span class="aw-nm" style="color:${c}">${esc(title)}</span>
+        <span class="aw-mtag" style="color:${c};border-color:${c}55">${esc(m.label.replace(/s$/, ''))}</span>
+        <span class="aw-range">seg ${inst.startSegIdx}${inst.endSegIdx !== inst.startSegIdx ? `–${inst.endSegIdx}` : ''}</span><span class="aw-chev">▸</span></div>
+      <div class="aw-mkdetail"><span class="aw-label" style="display:block">made from — how it was built (hover to locate · click to inspect)</span>
+        <div class="aw-wf"><div class="aw-wfband">collect — sources it drew on</div>${collectRowsHtml(new Set(range))}${gen}</div></div></div>`;
   }
   function scopeRowsHtml(): string {
-    const me = /b$/i.test(page()) ? 'b' : 'a';
+    const me = meAmud();
     const groups = new Map<string, { label: string; key: string; count: number; ref: boolean; other: boolean }>();
     for (const it of offLine()) {
       const g = groups.get(it.sourceLabel) ?? { label: it.sourceLabel, key: it.key, count: 0, ref: isReferenceSource(it), other: false };
-      g.count++;
-      if (it.amud && it.amud !== me) g.other = true;
+      g.count++; if (it.amud && it.amud !== me) g.other = true;
       groups.set(it.sourceLabel, g);
     }
-    return [...groups.values()].sort((a, b) => Number(a.ref) - Number(b.ref)).map((g) => {
+    return [...groups.values()].filter((g) => matches(g.label)).sort((a, b) => Number(a.ref) - Number(b.ref)).map((g) => {
       const tag = g.other ? '<span class="aw-utag" style="color:#0e7490;background:#ecfeff;border-color:#a5f3fc">⊗ other amud</span>'
         : g.ref ? '' : '<span class="aw-utag">⊘ unaligned</span>';
-      return `<div class="aw-li aw-src" data-src="${esc(g.key)}">${dot(g.ref ? '#16a34a' : g.other ? '#0e7490' : '#fb923c')}
+      const hlAttr = g.other ? `data-adj="${siblingAdj()}"` : 'data-hl="*"';
+      return `<div class="aw-li aw-src" data-src="${esc(g.key)}" ${hlAttr}>${dot(g.ref ? '#16a34a' : g.other ? '#0e7490' : '#fb923c')}
         <span class="aw-nm">${esc(g.label)}</span><span class="aw-x">×${g.count}</span>${tag}<span class="aw-bd">${g.ref ? 'reference' : g.other ? 'other amud' : 'no line anchor'}</span></div>`;
     }).join('');
   }
   function detailHtml(): string {
     const d = detail();
     if (d?.t === 'src') {
-      const it = byKey().get(d.key);
-      if (!it) return '';
+      const it = byKey().get(d.key); if (!it) return '';
       const t = it.title?.en || it.title?.he;
       return `<div class="aw-card aw-detail"><button class="aw-back" data-back>← back to list</button>
         <div class="aw-dtitle">${dot('#16a34a')} ${esc(it.sourceLabel)}${t ? ` — ${esc(t)}` : ''}</div>
-        <div class="aw-dsub"><span class="aw-badge">source</span><span class="aw-badge">${esc(it.source)}</span>${it.via ? `<span class="aw-via">${esc(it.via)}</span>` : ''}${it.segs.length ? `<span class="aw-badge">seg ${it.segs.join(', ')}</span>` : ''}${it.url ? `<a class="aw-badge" href="${esc(it.url)}" target="_blank" rel="noreferrer">open ↗</a>` : ''}</div>
+        <div class="aw-dsub"><span class="aw-badge">source</span><span class="aw-badge">${esc(it.source)}</span>${it.via ? `<span class="aw-via">${esc(it.via)}</span>` : ''}${it.segs.length ? `<span class="aw-badge">seg ${it.segs.join(', ')}</span>` : ''}${it.amud ? `<span class="aw-badge">amud ${it.amud}</span>` : ''}${it.url ? `<a class="aw-badge" href="${esc(it.url)}" target="_blank" rel="noreferrer">open ↗</a>` : ''}</div>
         <div class="aw-dbody">${it.body?.he ? `<div class="aw-he" dir="rtl">${esc(it.body.he)}</div>` : ''}${it.body?.en ? `<div class="aw-en">${esc(it.body.en)}</div>` : ''}${!it.body?.he && !it.body?.en ? '<div class="aw-en" style="color:#94a3b8">(no body text)</div>' : ''}</div></div>`;
     }
+    if (d?.t === 'ent') {
+      const e = entityIndex().get(d.key); if (!e) return '';
+      return `<div class="aw-card aw-detail"><button class="aw-back" data-back>← back to list</button>
+        <div class="aw-dtitle">${markIconHtml(d.key.startsWith('places') ? 'place' : 'rabbi', true)} ${esc(e.name || e.nameHe)} <span class="aw-he2" dir="rtl" style="font-size:1rem">${esc(e.nameHe)}</span></div>
+        <div class="aw-dsub">${e.extra ? `<span class="aw-badge">${esc(e.extra)}</span>` : ''}<span class="aw-badge">${e.segs.length ? `appears in seg ${e.segs.join(', ')}` : 'no text match on this daf'}</span></div>
+        <div class="aw-dbody"><div class="aw-en">Located by matching the niqqud-stripped Hebrew name in the daf text. Hover the row to highlight every line it appears in.</div></div></div>`;
+    }
     if (d?.t === 'gen') {
-      const m = marks().find((x) => x.id === d.mid);
-      if (!m || !m.meta) return '';
+      const m = allMarks().find((x) => x.id === d.mid); if (!m || !m.meta) return '';
       const usd = m.meta.cost ? (m.meta.cost.billedUsd ?? m.meta.cost.estimatedUsd) : null;
       return `<div class="aw-card aw-detail"><button class="aw-back" data-back>← back to list</button>
-        <div class="aw-dtitle">${markIconHtml(m.kind, true)} ${esc(m.label)}</div>
+        <div class="aw-dtitle">${markIconHtml(m.kind, true)} ${esc(m.label)} <span style="color:#94a3b8;font-weight:400;font-size:12px">· ${m.instances.length} instances</span></div>
         <div class="aw-dsub"><span class="aw-badge">generation</span><span class="aw-badge">${esc(m.meta.model)}</span><span class="aw-badge">${fmtUsd(usd)}</span><span class="aw-badge">${fmtMs(m.meta.elapsed_ms)}</span><span class="aw-badge ${m.meta.cache_hit ? 'hit' : 'miss'}">cache: ${m.meta.cache_hit ? 'hit' : 'miss'}</span></div>
-        <div class="aw-dbody"><div class="aw-en">${m.instances.map((i) => `<div><b>${esc(i.label || '(instance)')}</b> <span style="color:#94a3b8">seg ${i.startSegIdx}–${i.endSegIdx}</span></div>`).join('')}</div>
-          <div class="aw-en" style="color:#64748b;margin-top:.5rem">tokens ${m.meta.cost?.tokensIn ?? '?'} in / ${m.meta.cost?.tokensOut ?? '?'} out · recipe ${esc(m.meta.recipe_hash?.slice(0, 8) ?? 'n/a')}</div>
-          <div class="aw-en" style="color:#94a3b8;margin-top:.4rem">The rendered note text lives on the daf page; this view is its provenance.</div></div></div>`;
+        <div class="aw-dbody"><div class="aw-en">tokens ${m.meta.cost?.tokensIn ?? '?'} in / ${m.meta.cost?.tokensOut ?? '?'} out · recipe ${esc(m.meta.recipe_hash?.slice(0, 8) ?? 'n/a')}</div></div></div>`;
     }
     return '';
   }
   function listHtml(): string {
-    const line = [...onLine()].sort((a, b) => Math.min(...a.segs) - Math.min(...b.segs)).map(srcRow).join('');
-    const mk = marksOn() && marks().length ? `<div class="aw-grouph">Marks · ${marks().length}</div>${marks().map(markRowHtml).join('')}` : '';
+    const line = [...onLine()].filter((i) => matches(i.sourceLabel) || matches(i.title?.en || i.title?.he || '')).sort((a, b) => Math.min(...a.segs) - Math.min(...b.segs)).map(srcRow).join('');
+    const instances = segMarks().flatMap((m) => (m.instances as SegInst[]).map((inst, i) => ({ m, inst, i }))).filter(({ m, inst, i }) => matches(inst.label || m.label) || matches(m.label)).map(({ m, inst, i }) => instRowHtml(m, inst, i));
+    const ents = nameMarks().map((m) => {
+      const list = entitiesFor(m).filter((e) => matches(e.name) || matches(e.nameHe) || matches(e.extra));
+      return list.length ? `<div class="aw-grouph">${esc(m.label)} · ${list.length}</div>${list.map((e) => entityRow(m.kind, e)).join('')}` : '';
+    }).join('');
+    const mk = marksOn() && instances.length ? `<div class="aw-grouph">Marks · ${instances.length}</div>${instances.join('')}` : '';
     return `<div class="aw-list">
       <div class="aw-grouph">On a line · ${onLine().length}</div>${line || '<div class="aw-note">none</div>'}
       <div class="aw-grouph">Page-level · ${offLine().length}</div>${scopeRowsHtml() || '<div class="aw-note">none</div>'}
-      ${mk}</div>`;
+      ${mk}${marksOn() ? ents : ''}</div>`;
   }
 
   let inspEl!: HTMLDivElement;
-  createEffect(() => { detail(); ctx(); marksRes(); marksOn(); if (inspEl) inspEl.innerHTML = detail() ? detailHtml() : listHtml(); });
+  createEffect(() => { detail(); ctx(); marksRes(); marksOn(); filter(); if (inspEl) inspEl.innerHTML = detail() ? detailHtml() : listHtml(); });
 
+  function hoverFrom(t: HTMLElement | null) {
+    if (!t) { setHl([]); setHlAdj(null); return; }
+    if (t.dataset.adj) { setHlAdj(t.dataset.adj as 'prev' | 'next'); setHl([]); return; }
+    setHlAdj(null);
+    setHl(t.dataset.hl === '*' ? allSegs() : t.dataset.hl ? t.dataset.hl.split(',').filter(Boolean).map(Number) : []);
+  }
   onMount(() => {
-    inspEl.addEventListener('mouseover', (e) => {
-      const t = (e.target as HTMLElement).closest('[data-hl]') as HTMLElement | null;
-      setHl(t && t.dataset.hl ? t.dataset.hl.split(',').filter(Boolean).map(Number) : []);
-    });
-    inspEl.addEventListener('mouseleave', () => setHl([]));
+    inspEl.addEventListener('mouseover', (e) => hoverFrom((e.target as HTMLElement).closest('[data-hl],[data-adj]') as HTMLElement | null));
+    inspEl.addEventListener('mouseleave', () => { setHl([]); setHlAdj(null); });
     inspEl.addEventListener('click', (e) => {
       const t = e.target as HTMLElement;
       if (t.closest('[data-back]')) { setDetail(null); setPin([]); return; }
       const mh = t.closest('[data-mkhead]') as HTMLElement | null;
       if (mh) { mh.closest('.aw-mkrow')?.classList.toggle('open'); return; }
       const gen = t.closest('[data-gen]') as HTMLElement | null;
-      if (gen) { const m = marks().find((x) => x.id === gen.dataset.gen); setPin(m ? rangeOf(m) : []); setDetail({ t: 'gen', mid: gen.dataset.gen! }); return; }
+      if (gen) { const m = segMarks().find((x) => x.id === gen.dataset.gen); setPin(m ? (m.instances as SegInst[]).flatMap(rangeOfInst) : []); setDetail({ t: 'gen', mid: gen.dataset.gen! }); return; }
+      const ent = t.closest('[data-ent]') as HTMLElement | null;
+      if (ent) { const e = entityIndex().get(ent.dataset.ent!); setPin(e?.segs ?? []); setDetail({ t: 'ent', key: ent.dataset.ent! }); return; }
+      const adj = t.closest('[data-adj]') as HTMLElement | null;
+      if (adj) { (adj.dataset.adj === 'prev' ? setPrevOpen : setNextOpen)(true); }
       const sl = t.closest('.aw-src[data-src]') as HTMLElement | null;
       if (sl) { const it = byKey().get(sl.dataset.src!); setPin(it?.segs ?? []); setDetail({ t: 'src', key: sl.dataset.src! }); return; }
     });
   });
+
+  const adjPreview = (d: DafResp | undefined, which: 'first' | 'last', open: boolean) => {
+    const segs = d?.mainSegmentsHe ?? [];
+    if (!segs.length) return '';
+    return open ? segs.join(' ') : (which === 'first' ? segs[0] : segs[segs.length - 1]);
+  };
 
   return (
     <main class="page-shell" style={{ '--page-max': '1480px', color: '#1a1a1a' }}>
@@ -256,7 +311,6 @@ export function AlignPage(): JSX.Element {
           <Show when={coverage().absent.length} fallback={<span class="ok">all declared sources present ✓</span>}>
             <span>{coverage().absent.length} absent: <span class="aw-abs">{coverage().absent.map((s) => SOURCE_META[s].label).join(', ')}</span></span>
           </Show>
-          <Show when={coverage().unknown.length}><span class="aw-bad">UNREGISTERED: {coverage().unknown.join(', ')}</span></Show>
         </div>
       </Show>
 
@@ -266,18 +320,32 @@ export function AlignPage(): JSX.Element {
       <div class="aw-work">
         <div>
           <div class="aw-colh"><span class="aw-label">Spine · HebrewBooks</span>
-            <span class="aw-hint">hover a source on the right to locate it · marks underline their range</span></div>
+            <span class="aw-hint">hover a source to locate it · adjacent amud in gray (click to expand)</span></div>
           <div class="aw-spinebox">
+            <Show when={adjPreview(prevDaf(), 'last', prevOpen())}>
+              <div class={`aw-adj${hlAdj() === 'prev' ? ' hot' : ''}`} data-adj="prev" onClick={() => setPrevOpen((o) => !o)}>
+                <div class="aw-adjlab">‹ prev · {adjPage(page(), 'prev')} · {prevOpen() ? 'full amud (collapse)' : 'last line (expand)'}</div>
+                <div class="aw-adjtext" dir="rtl" innerHTML={adjPreview(prevDaf(), 'last', prevOpen())} />
+              </div>
+            </Show>
             <div class="aw-daf" dir="rtl" innerHTML={rendered()}
               onMouseOver={(e) => { const w = (e.target as HTMLElement).closest('.daf-word') as HTMLElement | null; const s = w?.getAttribute('data-seg'); setHl(s != null ? [Number(s)] : []); }}
               onMouseLeave={() => setHl([])} />
+            <Show when={adjPreview(nextDaf(), 'first', nextOpen())}>
+              <div class={`aw-adj${hlAdj() === 'next' ? ' hot' : ''}`} data-adj="next" onClick={() => setNextOpen((o) => !o)}>
+                <div class="aw-adjlab">› next · {adjPage(page(), 'next')} · {nextOpen() ? 'full amud (collapse)' : 'first line (expand)'}</div>
+                <div class="aw-adjtext" dir="rtl" innerHTML={adjPreview(nextDaf(), 'first', nextOpen())} />
+              </div>
+            </Show>
           </div>
-          <Show when={marksOn() && marks().length}>
-            <div class="aw-legend"><For each={marks()}>{(m) => <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '.3rem' }} innerHTML={`${markIconHtml(m.kind)} ${esc(m.label)}`} />}</For></div>
+          <Show when={marksOn() && allMarks().length}>
+            <div class="aw-legend"><For each={allMarks()}>{(m) => <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '.3rem' }} innerHTML={`${markIconHtml(m.kind)} ${esc(m.label)}`} />}</For></div>
           </Show>
         </div>
         <div>
-          <div class="aw-colh"><span class="aw-label">All sources</span><span class="aw-hint">hover to highlight · click to inspect · segment {segCount()} total</span></div>
+          <div class="aw-colh"><span class="aw-label">All sources</span>
+            <input class="aw-filter" placeholder="filter…" value={filter()} onInput={(e) => setFilter(e.currentTarget.value)} />
+            <Show when={filter()}><button class="aw-clear" onClick={() => setFilter('')}>clear</button></Show></div>
           <div ref={inspEl} />
         </div>
       </div>
@@ -295,18 +363,25 @@ const STYLE = `
 .aw-toggle{height:2.15rem;padding:0 .65rem;border:1px solid #e5e3dc;background:#fff;color:#6b6b6b;font-family:ui-monospace,Menlo,monospace;font-size:.78rem;border-radius:6px;cursor:pointer}
 .aw-toggle.on{background:#1a1a1a;border-color:#1a1a1a;color:#fafaf7}
 .aw-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:#888;font-weight:600}
+.aw-filter{height:1.7rem;font:inherit;font-size:12px;border-radius:5px;padding:0 .5rem;border:1px solid #e5e3dc;background:#fff;color:#1a1a1a;margin-left:auto;width:9rem}
+.aw-clear{font:inherit;font-size:11px;border:none;background:transparent;color:#8a2a2b;cursor:pointer}
 .aw-cov{display:flex;gap:.9rem;flex-wrap:wrap;align-items:baseline;font-size:11.5px;color:#6b6b6b;background:#f5f3ec;border:1px solid #e5e3dc;border-radius:6px;padding:.4rem .7rem;margin:0 0 1rem}
 .aw-cov b{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:#888}
-.aw-cov .ok{color:#166534}.aw-cov .aw-abs{color:#b45309}
-.aw-cov.bad{background:#fef2f2;border-color:#fecaca}.aw-cov .aw-bad{color:#b91c1c;font-weight:700}
+.aw-cov .ok{color:#166534}.aw-cov .aw-abs{color:#b45309}.aw-cov.bad{background:#fef2f2;border-color:#fecaca}
 .aw-work{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(380px,1fr);gap:1.4rem;align-items:start}
-.aw-colh{display:flex;align-items:baseline;gap:.5rem;margin-bottom:.5rem}.aw-hint{font-size:11px;color:#6b6b6b}
-.aw-spinebox{background:#fff;border:1px solid #e5e3dc;border-radius:8px;padding:1rem 1.1rem;position:sticky;top:.5rem;max-height:calc(100vh - 120px);overflow:auto}
-.aw-daf{font-family:"Mekorot Vilna","Frank Ruhl Libre","Times New Roman",serif;font-size:1.2rem;line-height:2;text-align:justify}
+.aw-colh{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}.aw-hint{font-size:11px;color:#6b6b6b}
+.aw-spinebox{background:#fff;border:1px solid #e5e3dc;border-radius:8px;padding:.8rem 1.1rem;position:sticky;top:.5rem;max-height:calc(100vh - 120px);overflow:auto}
+.aw-daf{font-family:"Mekorot Vilna","Frank Ruhl Libre","Times New Roman",serif;font-size:1.2rem;line-height:2;text-align:justify;padding:.5rem 0}
 .aw-daf .daf-word{transition:background .08s}
+.aw-adj{color:#b3ada0;cursor:pointer;border-radius:4px;padding:.3rem .4rem;border:1px solid transparent}
+.aw-adj:hover{background:#faf8f3}
+.aw-adj.hot{background:#fff1c9;border-color:#f59e0b;color:#8a7a55}
+.aw-adjlab{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:#c9c3b6;margin-bottom:.15rem}
+.aw-adjtext{font-family:"Mekorot Vilna","Frank Ruhl Libre",serif;font-size:1.02rem;line-height:1.8;text-align:justify}
 .aw-legend{display:flex;gap:1.1rem;flex-wrap:wrap;margin-top:.7rem;font-size:11px;color:#6b6b6b;align-items:center}
 .aw-ic{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;color:#fff;line-height:0;flex:none;vertical-align:middle}
 .aw-heb{font-family:"Mekorot Vilna","Times New Roman",serif;font-size:11px;font-weight:700;line-height:1;color:#fff}
+.aw-he2{font-family:"Mekorot Vilna","Frank Ruhl Libre",serif;color:#64748b;font-size:13px}
 .aw-list{max-height:calc(100vh - 150px);overflow-y:auto;padding-right:.3rem}
 .aw-grouph{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:#b0aa9e;font-weight:600;margin:.9rem 0 .25rem;position:sticky;top:0;background:#fafaf7;padding:.25rem 0;z-index:1}
 .aw-grouph:first-child{margin-top:0}
@@ -317,18 +392,17 @@ const STYLE = `
 .aw-dot{width:7px;height:7px;border-radius:50%;flex:none;display:inline-block}
 .aw-via{font-family:ui-monospace,Menlo,monospace;font-size:10px;padding:1px 5px;border-radius:3px;background:#eef2ff;color:#6366f1}
 .aw-conf{font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#94a3b8}
+.aw-mtag{font-size:9px;text-transform:uppercase;letter-spacing:.04em;border:1px solid;border-radius:3px;padding:0 4px;line-height:1.6;background:#fff}
+.aw-range{font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#94a3b8;margin-left:auto;white-space:nowrap}
 .aw-utag{display:inline-flex;align-items:center;gap:.2rem;font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:#b45309;background:#fff7ed;border:1px solid #fed7aa;border-radius:3px;padding:0 4px;line-height:1.6}
 .aw-note{font-size:11.5px;color:#94a3b8;padding:.3rem 0}
 .aw-mkrow{flex-direction:column;align-items:stretch;gap:0;border-left:3px solid var(--mkc,#999);padding:0;margin:.3rem 0;background:#faf8f3;border-radius:0 5px 5px 0;border-top:none}
 .aw-mkhead{display:flex;gap:.4rem;align-items:center;cursor:pointer;padding:.5rem .6rem}
 .aw-mkhead:hover{background:#f3eee3}.aw-mkhead .aw-nm{font-weight:700}
 .aw-chev{color:#b0aa9e;font-size:11px;transition:transform .12s}.aw-mkrow.open .aw-chev{transform:rotate(90deg)}
-.aw-minimeta{margin-left:auto;font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#94a3b8}
 .aw-mkdetail{display:none;padding:0 .6rem .6rem}.aw-mkrow.open .aw-mkdetail{display:block}
-.aw-metarow{display:flex;gap:.45rem;flex-wrap:wrap;margin-top:.45rem}
 .aw-badge{display:inline-flex;align-items:center;gap:.25rem;font-family:ui-monospace,Menlo,monospace;font-size:10px;padding:2px 6px;border-radius:3px;border:1px solid #e5e3dc;background:#fff;color:#475569;text-decoration:none}
-.aw-badge.hit{background:#dcfce7;border-color:#86efac;color:#166534}
-.aw-badge.miss{background:#fef9c3;border-color:#fde047;color:#854d0e}
+.aw-badge.hit{background:#dcfce7;border-color:#86efac;color:#166534}.aw-badge.miss{background:#fef9c3;border-color:#fde047;color:#854d0e}
 .aw-wf{margin-top:.4rem}
 .aw-wfband{font-size:8.5px;text-transform:uppercase;letter-spacing:.07em;color:#b0aa9e;margin:.45rem 0 .15rem}
 .aw-wfrow{display:grid;grid-template-columns:130px 1fr 92px;gap:.5rem;align-items:center;cursor:pointer;padding:2px 4px;border-radius:3px}
