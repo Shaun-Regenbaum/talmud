@@ -9,6 +9,7 @@ import {
 } from '../lib/sefref';
 import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
 import { collectContext } from './context-providers';
+import { readJsonBody, getRabbiEntryOr404 } from './http-helpers';
 import { curatedParallelsForDaf, type CuratedYerushalmiParallel } from '../lib/yerushalmiParallels';
 import { flattenYerushalmiOutline, alignOutlineToSegments, yerushalmiFloorGroups, type YerushalmiFloorGroup } from '../lib/yerushalmiAlign';
 import { placeRevachWithAi } from './revach-ai-place';
@@ -644,8 +645,9 @@ app.get('/api/marks/:id', async (c) => {
   return c.json({ error: 'not found' }, 404);
 });
 app.put('/api/marks/:id', async (c) => {
-  let body: unknown;
-  try { body = await c.req.json(); } catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const parsed = await readJsonBody(c);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   const v = validateMark({ ...(body as object), id: c.req.param('id') });
   if (!v.ok) return c.json({ error: v.error }, 400);
   const saved = await writeMark(c.env, v.spec);
@@ -1098,8 +1100,9 @@ app.get('/api/enrichments/:id', async (c) => {
   return c.json({ error: 'not found' }, 404);
 });
 app.put('/api/enrichments/:id', async (c) => {
-  let body: unknown;
-  try { body = await c.req.json(); } catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const parsed = await readJsonBody(c);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   const v = validateEnrichment({ ...(body as object), id: c.req.param('id') });
   if (!v.ok) return c.json({ error: v.error }, 400);
   const saved = await writeEnrichment(c.env, v.spec);
@@ -2948,9 +2951,9 @@ async function recordRecentJobError(
  * result to KV under `job:{runId}` AND the canonical cache key.
  */
 app.post('/api/run', async (c) => {
-  let raw: unknown;
-  try { raw = await c.req.json(); }
-  catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const parsed = await readJsonBody(c);
+  if (!parsed.ok) return parsed.response;
+  const raw = parsed.value;
   const body = raw as Partial<JobMessage>;
   if (!body.tractate || !body.page) return c.json({ error: 'tractate and page required' }, 400);
 
@@ -3097,9 +3100,9 @@ app.post('/api/run', async (c) => {
  * that endpoint's surface (no model, no studio knobs), so it needs no extra auth.
  */
 app.post('/api/run-sources', async (c) => {
-  let raw: unknown;
-  try { raw = await c.req.json(); }
-  catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const parsed = await readJsonBody(c);
+  if (!parsed.ok) return parsed.response;
+  const raw = parsed.value;
   const body = raw as { mark_id?: string; enrichment_id?: string; tractate?: string; page?: string; mark_input?: unknown; lang?: string };
   if (!body.tractate || !body.page) return c.json({ error: 'tractate and page required' }, 400);
   if (!body.mark_id && !body.enrichment_id) return c.json({ error: 'mark_id or enrichment_id required' }, 400);
@@ -3132,9 +3135,9 @@ app.post('/api/run-sources', async (c) => {
  * on idle so forward/back navigation lands on a fully-cached page.
  */
 app.post('/api/warm-daf', async (c) => {
-  let raw: unknown;
-  try { raw = await c.req.json(); }
-  catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const parsed = await readJsonBody(c);
+  if (!parsed.ok) return parsed.response;
+  const raw = parsed.value;
   const body = raw as { tractate?: string; page?: string; lang?: string };
   if (!body.tractate || !body.page) return c.json({ error: 'tractate and page required' }, 400);
   if (!c.env.ENRICHMENT_QUEUE) return c.json({ error: 'ENRICHMENT_QUEUE binding not available' }, 503);
@@ -3622,12 +3625,9 @@ app.post('/api/admin/cache-gc', async (c) => {
  * unauthenticated + cheap to call.
  */
 app.post('/api/log', async (c) => {
-  let body: unknown;
-  try {
-    body = await c.req.json();
-  } catch {
-    return c.json({ ok: false, error: 'bad-json' }, 400);
-  }
+  const parsed = await readJsonBody(c, { ok: false, error: 'bad-json' });
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   const rec = {
     ts: new Date().toISOString(),
     ua: c.req.header('user-agent') ?? null,
@@ -3827,9 +3827,9 @@ app.get('/api/qa/registry', async (c) => {
  * Returns: { qHash, alreadyAsked, rateLimited?, remaining }
  */
 app.post('/api/qa/ask', async (c) => {
-  let body: unknown;
-  try { body = await c.req.json(); }
-  catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const parsed = await readJsonBody(c);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   const b = body as Partial<{
     tractate: string; page: string;
     mark: string; move_id: string; instance_id: string;
@@ -3926,9 +3926,9 @@ app.post('/api/qa/ask', async (c) => {
  * 2 questions" ranking on the panel.
  */
 app.post('/api/qa/click', async (c) => {
-  let body: unknown;
-  try { body = await c.req.json(); }
-  catch { return c.json({ error: 'invalid JSON' }, 400); }
+  const parsed = await readJsonBody(c);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   const b = body as Partial<{
     tractate: string; page: string;
     mark: string; move_id: string; instance_id: string;
@@ -4119,12 +4119,9 @@ interface BugReport {
 }
 
 app.post('/api/report', async (c) => {
-  let body: { tractate?: string; page?: string; description?: string };
-  try {
-    body = (await c.req.json()) as typeof body;
-  } catch {
-    return c.json({ ok: false, error: 'bad-json' }, 400);
-  }
+  const parsed = await readJsonBody<{ tractate?: string; page?: string; description?: string }>(c, { ok: false, error: 'bad-json' });
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   const tractate = (body.tractate ?? '').slice(0, 60).trim();
   const page = (body.page ?? '').slice(0, 20).trim();
   const description = (body.description ?? '').slice(0, 4000).trim();
@@ -4719,9 +4716,9 @@ function resolveRabbiName(raw: string): RabbiPlacesEntry | null {
 // can swap to the target rabbi's bio without a second enrichment hop. 404 if
 // the slug isn't in our rabbi dataset (biblical figures, holidays, etc.).
 app.get('/api/rabbi/:slug', (c) => {
-  const slug = c.req.param('slug');
-  const entry = RABBI_PLACES.rabbis[slug];
-  if (!entry) return c.json({ error: `unknown slug: ${slug}` }, 404);
+  const rr = getRabbiEntryOr404(c, RABBI_PLACES.rabbis);
+  if (!rr.ok) return rr.response;
+  const { slug, entry } = rr;
   const rawGen = entry.generation ?? 'unknown';
   const generation: GenerationId =
     (GENERATION_IDS as string[]).includes(rawGen) ? (rawGen as GenerationId) : 'unknown';
@@ -4851,8 +4848,9 @@ function hashMatchKeys(keys: string[]): string {
 }
 
 app.post('/api/context/match', async (c) => {
-  let body: { tractate?: string; page?: string; items?: MatchInput[] };
-  try { body = await c.req.json(); } catch { return c.json({ error: 'bad JSON body' }, 400); }
+  const parsed = await readJsonBody<{ tractate?: string; page?: string; items?: MatchInput[] }>(c, { error: 'bad JSON body' });
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   const t = body.tractate;
   const p = body.page;
   const items = Array.isArray(body.items) ? body.items.filter((i) => i && typeof i.key === 'string') : [];
@@ -5618,9 +5616,9 @@ app.get('/api/sages-index', (c) => {
 });
 
 app.get('/api/admin/enrich-rabbi/:slug', async (c) => {
-  const slug = c.req.param('slug');
-  const entry = RABBI_PLACES.rabbis[slug];
-  if (!entry) return c.json({ error: `unknown slug: ${slug}` }, 404);
+  const rr = getRabbiEntryOr404(c, RABBI_PLACES.rabbis);
+  if (!rr.ok) return rr.response;
+  const { slug, entry } = rr;
   if (!entry.bio) return c.json({ error: `no bio available for ${slug}` }, 422);
 
   // Cache per-slug — this Kimi-thinking call is ~30-60s and the upstream
@@ -5754,9 +5752,9 @@ function resolveRefs(names: string[], selfSlug: string): ResolvedRef[] {
 
 app.get('/api/admin/rabbi-relationships/:slug', async (c) => {
   if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-  const slug = c.req.param('slug');
-  const entry = RABBI_PLACES.rabbis[slug];
-  if (!entry) return c.json({ error: `unknown slug: ${slug}` }, 404);
+  const rr = getRabbiEntryOr404(c, RABBI_PLACES.rabbis);
+  if (!rr.ok) return rr.response;
+  const { slug, entry } = rr;
   if (!entry.bio) return c.json({ error: `no bio available for ${slug}` }, 422);
 
   const userContent = [
@@ -5884,9 +5882,9 @@ function validateFamily(x: unknown): x is FamilyResult {
 
 app.get('/api/admin/rabbi-family/:slug', async (c) => {
   if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-  const slug = c.req.param('slug');
-  const entry = RABBI_PLACES.rabbis[slug];
-  if (!entry) return c.json({ error: `unknown slug: ${slug}` }, 404);
+  const rr = getRabbiEntryOr404(c, RABBI_PLACES.rabbis);
+  if (!rr.ok) return rr.response;
+  const { slug, entry } = rr;
   if (!entry.bio) return c.json({ error: `no bio available for ${slug}` }, 422);
 
   const userContent = [
@@ -6015,9 +6013,9 @@ function validateOrientation(x: unknown): x is OrientationResult {
 
 app.get('/api/admin/rabbi-orientation/:slug', async (c) => {
   if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-  const slug = c.req.param('slug');
-  const entry = RABBI_PLACES.rabbis[slug];
-  if (!entry) return c.json({ error: `unknown slug: ${slug}` }, 404);
+  const rr = getRabbiEntryOr404(c, RABBI_PLACES.rabbis);
+  if (!rr.ok) return rr.response;
+  const { slug, entry } = rr;
   if (!entry.bio) return c.json({ error: `no bio available for ${slug}` }, 422);
 
   const userContent = [
@@ -6400,9 +6398,9 @@ export async function enrichRabbiUnified(
 
 app.get('/api/admin/rabbi-enrich-unified/:slug', async (c) => {
   if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-  const slug = c.req.param('slug');
-  const entry = RABBI_PLACES.rabbis[slug];
-  if (!entry) return c.json({ error: `unknown slug: ${slug}` }, 404);
+  const rr = getRabbiEntryOr404(c, RABBI_PLACES.rabbis);
+  if (!rr.ok) return rr.response;
+  const { slug, entry } = rr;
 
   const refresh = c.req.query('refresh') === '1';
   const cache = c.env.CACHE;
@@ -7216,9 +7214,9 @@ function validateTranslatedBio(x: unknown): x is TranslatedBio {
 
 app.post('/api/admin/translate-bio', async (c) => {
   if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-  let body: { hebrewBio?: string; nameHe?: string; nameEn?: string };
-  try { body = await c.req.json(); }
-  catch { return c.json({ error: 'invalid JSON body' }, 400); }
+  const parsed = await readJsonBody<{ hebrewBio?: string; nameHe?: string; nameEn?: string }>(c, { error: 'invalid JSON body' });
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   const hebrewBio = (body.hebrewBio ?? '').trim();
   const nameHe = (body.nameHe ?? '').trim();
   if (!hebrewBio) return c.json({ error: 'hebrewBio is required' }, 400);
@@ -7415,9 +7413,9 @@ export function splitOuterWhitespace(text: string): { leading: string; core: str
 
 app.post('/api/hebraize', async (c) => {
   if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-  let body: { text?: string };
-  try { body = await c.req.json() as { text?: string }; }
-  catch { return c.json({ error: 'bad json' }, 400); }
+  const parsed = await readJsonBody<{ text?: string }>(c, { error: 'bad json' });
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.value;
   const text = body.text ?? '';
   if (!text) return c.json({ hebraized: '', _empty: true });
   if (text.length > 8000) return c.json({ error: 'text too long (max 8000 chars)' }, 413);
