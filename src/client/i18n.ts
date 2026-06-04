@@ -973,6 +973,10 @@ const CATALOG = {
     en: 'This note zooms out to the whole page: a short summary, a map of how the discussion flows, key terms, and cross-references to where the sugya continues. A good place to get your bearings before diving in.',
     he: 'הערה זו מתרחקת אל כל הדף: סיכום קצר, מפה של מהלך הדיון, מונחי מפתח, והפניות למקום שבו הסוגיה ממשיכה. מקום טוב להתמצא בו לפני הצלילה ללימוד.',
   },
+  'tutorial.generating.note': {
+    en: 'These notes are written by AI. The first time someone opens one it can take a minute or two to generate; after that it loads instantly for everyone.',
+    he: 'ההערות נכתבות בבינה מלאכותית. בפעם הראשונה שמישהו פותח הערה היצירה עשויה לקחת דקה-שתיים; לאחר מכן היא נטענת מיד לכולם.',
+  },
 
   'tutorial.underline.title': { en: 'The colored names', he: 'השמות הצבעוניים' },
   'tutorial.underline.body': {
