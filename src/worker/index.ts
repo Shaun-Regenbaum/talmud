@@ -52,6 +52,7 @@ import {
   isFresh,
   cacheGcTargets,
 } from './cache-stats';
+import { dafCostReport } from './daf-cost';
 import { gcStaleCache } from './cache-gc';
 import { runYomiWarmCron } from './yomi-cron';
 import { GENERATION_IDS, GENERATION_BY_ID, GENERATIONS_PROMPT_REFERENCE, type GenerationId } from '../client/generations';
@@ -4132,180 +4133,170 @@ function percentile(sorted: number[], p: number): number {
   return sorted[idx];
 }
 
-app.get('/api/usage', async (c) => {
-  const cache = c.env.CACHE;
-  // Assembling this payload reads several full KV prefixes — the usage rollups
-  // and the three observed-entity backlogs each fetch EVERY key's value across
-  // the warmed Shas — so a cold build runs ~10s. The dashboard polls every 30s
-  // and a few seconds of staleness is harmless, so serve a cached payload and
-  // refresh it in the background (stale-while-revalidate): every load after the
-  // first is instant. A best-effort refresh lock (below) collapses the common
-  // case of one viewer polling — or several at once — into a single rebuild per
-  // window instead of one rebuild per stale request.
-  const PAYLOAD_KEY = 'usage-payload:v1';
-  const REFRESH_LOCK_KEY = 'usage-payload:refreshing';
-  const PAYLOAD_FRESH_MS = 30_000;
+// ===========================================================================
+// Usage dashboard — section builders + endpoints
+//
+// The dashboard is built from independent sections (cost / activity / telemetry
+// / backlog / health). Each has a pure builder below, so the full `/api/usage`
+// payload and the per-section endpoints (`/api/usage/<section>`) share one
+// implementation. Splitting them lets the client load and render each card on
+// its own — a slow section (or the slow cache-stats scan) no longer blocks the
+// headline cost numbers. Every endpoint is stale-while-revalidate cached.
+// ===========================================================================
 
-  const computeUsagePayload = async () => {
+type UsageCtx = { env: Bindings; executionCtx: ExecutionContext };
 
-  // External analytics, cached 5 min so the 30s dashboard refresh doesn't
-  // hammer the CF analytics API. Closures so they participate in the single
-  // parallel fetch below.
-  const loadAigw = async (): Promise<Awaited<ReturnType<typeof fetchGatewayCost>>> => {
-    if (!cache) return fetchGatewayCost(c.env);
-    const raw = await cache.get('aigw-cost:v1');
-    if (raw) { try { return JSON.parse(raw) as Awaited<ReturnType<typeof fetchGatewayCost>>; } catch { /* recompute */ } }
-    const fresh = await fetchGatewayCost(c.env);
-    c.executionCtx.waitUntil(cache.put('aigw-cost:v1', JSON.stringify(fresh), { expirationTtl: 300 }));
-    return fresh;
+// External analytics, sub-cached 5 min so the dashboard refresh doesn't hammer
+// the CF analytics API.
+async function loadAigwCached(c: UsageCtx, cache?: KVNamespace): Promise<Awaited<ReturnType<typeof fetchGatewayCost>>> {
+  if (!cache) return fetchGatewayCost(c.env);
+  const raw = await cache.get('aigw-cost:v1');
+  if (raw) { try { return JSON.parse(raw) as Awaited<ReturnType<typeof fetchGatewayCost>>; } catch { /* recompute */ } }
+  const fresh = await fetchGatewayCost(c.env);
+  c.executionCtx.waitUntil(cache.put('aigw-cost:v1', JSON.stringify(fresh), { expirationTtl: 300 }));
+  return fresh;
+}
+async function loadActivityCached(c: UsageCtx, cache?: KVNamespace): Promise<Awaited<ReturnType<typeof fetchZoneActivity>>> {
+  if (!cache) return fetchZoneActivity(c.env);
+  const raw = await cache.get('zone-activity:v1');
+  if (raw) { try { return JSON.parse(raw) as Awaited<ReturnType<typeof fetchZoneActivity>>; } catch { /* recompute */ } }
+  const fresh = await fetchZoneActivity(c.env);
+  c.executionCtx.waitUntil(cache.put('zone-activity:v1', JSON.stringify(fresh), { expirationTtl: 300 }));
+  return fresh;
+}
+
+interface TelemetryRollup {
+  count: number; cacheHits: number; cacheHitRate: number;
+  p50Ms: number; p95Ms: number; errorCount: number; errorsByKind: Record<string, number>;
+}
+function rollupTelemetry(rows: TelemetryRecord[]): TelemetryRollup {
+  const sorted = rows.map((r) => r.ms).sort((a, b) => a - b);
+  const hits = rows.filter((r) => r.cache_hit).length;
+  const errors = rows.filter((r) => !r.ok);
+  const errorsByKind: Record<string, number> = {};
+  for (const e of errors) errorsByKind[e.error_kind ?? 'other'] = (errorsByKind[e.error_kind ?? 'other'] ?? 0) + 1;
+  return {
+    count: rows.length, cacheHits: hits, cacheHitRate: rows.length ? hits / rows.length : 0,
+    p50Ms: percentile(sorted, 50), p95Ms: percentile(sorted, 95),
+    errorCount: errors.length, errorsByKind,
   };
-  const loadActivity = async (): Promise<Awaited<ReturnType<typeof fetchZoneActivity>>> => {
-    if (!cache) return fetchZoneActivity(c.env);
-    const raw = await cache.get('zone-activity:v1');
-    if (raw) { try { return JSON.parse(raw) as Awaited<ReturnType<typeof fetchZoneActivity>>; } catch { /* recompute */ } }
-    const fresh = await fetchZoneActivity(c.env);
-    c.executionCtx.waitUntil(cache.put('zone-activity:v1', JSON.stringify(fresh), { expirationTtl: 300 }));
-    return fresh;
-  };
+}
 
-  // Every source below is independent, and several are full KV-prefix scans
-  // (telemetry, usage rollups, the three observed-entity backlogs). Fetching
-  // them serially made the page wait on the SUM of those scans; fetch them all
-  // concurrently so it waits only on the slowest.
-  const emptyUnknown = { total: 0, sightings: 0, sample: [] as never[] };
-  const [
-    telRaw, repRaw, selfTracked, aiGateway, activity,
-    unknownRabbis, observedPlaces, observedConcepts, jeRaw, lintFailures,
-  ] = await Promise.all([
-    cache ? cache.get('telemetry:v1:recent') : null,
-    cache ? cache.get('reports:v1:recent') : null,
+async function buildTelemetrySection(cache?: KVNamespace) {
+  const telRaw = cache ? await cache.get('telemetry:v1:recent') : null;
+  const telemetry = telRaw ? (JSON.parse(telRaw) as TelemetryRecord[]) : [];
+  // Group dynamically over whatever endpoint/mark/enrichment values appear, so
+  // the dashboard stays correct without code changes as new producers record.
+  const group = (key: (r: TelemetryRecord) => string | undefined): Record<string, TelemetryRollup> => {
+    const buckets = new Map<string, TelemetryRecord[]>();
+    for (const r of telemetry) {
+      const k = key(r);
+      if (k == null) continue;
+      const arr = buckets.get(k) ?? [];
+      arr.push(r); buckets.set(k, arr);
+    }
+    const out: Record<string, TelemetryRollup> = {};
+    for (const [k, rows] of buckets) out[k] = rollupTelemetry(rows);
+    return out;
+  };
+  const recentErrors = telemetry
+    .filter((r) => !r.ok).slice(-30).reverse()
+    .map((r) => ({
+      ts: r.ts, endpoint: r.endpoint, tractate: r.tractate, page: r.page,
+      error_kind: r.error_kind, model: r.model, mark_id: r.mark_id, enrichment_id: r.enrichment_id,
+    }));
+  return {
+    perEndpoint: group((r) => r.endpoint),
+    perMark: group((r) => r.mark_id),
+    perEnrichment: group((r) => r.enrichment_id),
+    recentErrors,
+    totalCount: telemetry.length,
+  };
+}
+
+async function buildCostSection(c: UsageCtx, cache?: KVNamespace) {
+  const [selfTracked, aiGateway, telRaw] = await Promise.all([
     cache ? readUsageSummary(cache) : null,
-    loadAigw(),
-    loadActivity(),
-    cache ? listUnknownRabbis(cache) : emptyUnknown,
-    cache ? listObservedPlaces(cache) : emptyUnknown,
-    cache ? listObservedConcepts(cache) : emptyUnknown,
+    loadAigwCached(c, cache),
+    cache ? cache.get('telemetry:v1:recent') : null,
+  ]);
+  // Cost avoided by serving cache hits, over the recent telemetry window. Each
+  // hit's telemetry record recomputes what the call WOULD have cost from the
+  // stamped usage, so this is "money the cache saved us" without re-charging.
+  const telemetry = telRaw ? (JSON.parse(telRaw) as TelemetryRecord[]) : [];
+  let avoidedUsd = 0;
+  let avoidedCalls = 0;
+  for (const r of telemetry) {
+    if (r.cache_hit && typeof r.cost_usd === 'number') { avoidedUsd += r.cost_usd; avoidedCalls += 1; }
+  }
+  return {
+    selfTracked,
+    aiGateway,
+    costAvoided: { recentUsd: Math.round(avoidedUsd * 1e6) / 1e6, recentCalls: avoidedCalls },
+  };
+}
+
+async function buildActivitySection(c: UsageCtx, cache?: KVNamespace) {
+  return loadActivityCached(c, cache);
+}
+
+async function buildBacklogSection(cache?: KVNamespace) {
+  const empty = { total: 0, sightings: 0, sample: [] as never[] };
+  const [rabbis, places, concepts] = await Promise.all([
+    cache ? listUnknownRabbis(cache) : empty,
+    cache ? listObservedPlaces(cache) : empty,
+    cache ? listObservedConcepts(cache) : empty,
+  ]);
+  return { rabbis, places, concepts };
+}
+
+async function buildHealthSection(cache?: KVNamespace) {
+  const [jeRaw, lintFailures, repRaw] = await Promise.all([
     cache ? cache.get(RECENT_ERRORS_KEY) : null,
     readLintFailures(cache),
+    cache ? cache.get('reports:v1:recent') : null,
   ]);
-
-  const telemetry = telRaw ? (JSON.parse(telRaw) as TelemetryRecord[]) : [];
-  const reports = repRaw ? (JSON.parse(repRaw) as BugReport[]) : [];
-
-  interface Rollup {
-    count: number;
-    cacheHits: number;
-    cacheHitRate: number;
-    p50Ms: number;
-    p95Ms: number;
-    errorCount: number;
-    errorsByKind: Record<string, number>;
-  }
-
-  function rollup(rows: TelemetryRecord[]): Rollup {
-    const sorted = rows.map((r) => r.ms).sort((a, b) => a - b);
-    const hits = rows.filter((r) => r.cache_hit).length;
-    const errors = rows.filter((r) => !r.ok);
-    const errorsByKind: Record<string, number> = {};
-    for (const e of errors) errorsByKind[e.error_kind ?? 'other'] = (errorsByKind[e.error_kind ?? 'other'] ?? 0) + 1;
-    return {
-      count: rows.length,
-      cacheHits: hits,
-      cacheHitRate: rows.length ? hits / rows.length : 0,
-      p50Ms: percentile(sorted, 50),
-      p95Ms: percentile(sorted, 95),
-      errorCount: errors.length,
-      errorsByKind,
-    };
-  }
-
-  // Group dynamically over whatever endpoint values appear in the ring buffer
-  // — keeps the dashboard correct without code changes when new endpoints
-  // start recording.
-  const byEndpoint = new Map<string, TelemetryRecord[]>();
-  for (const r of telemetry) {
-    const arr = byEndpoint.get(r.endpoint) ?? [];
-    arr.push(r);
-    byEndpoint.set(r.endpoint, arr);
-  }
-  const perEndpoint: Record<string, Rollup> = {};
-  for (const [ep, rows] of byEndpoint) perEndpoint[ep] = rollup(rows);
-
-  // Per-mark / per-enrichment splits for the studio-run endpoint. The UI
-  // shows these in addition to the high-level studio-mark / studio-enrichment
-  // rollup so a slow mark doesn't hide behind the aggregate.
-  const byMark = new Map<string, TelemetryRecord[]>();
-  const byEnrichment = new Map<string, TelemetryRecord[]>();
-  for (const r of telemetry) {
-    if (r.mark_id) {
-      const arr = byMark.get(r.mark_id) ?? [];
-      arr.push(r);
-      byMark.set(r.mark_id, arr);
-    }
-    if (r.enrichment_id) {
-      const arr = byEnrichment.get(r.enrichment_id) ?? [];
-      arr.push(r);
-      byEnrichment.set(r.enrichment_id, arr);
-    }
-  }
-  const perMark: Record<string, Rollup> = {};
-  for (const [id, rows] of byMark) perMark[id] = rollup(rows);
-  const perEnrichment: Record<string, Rollup> = {};
-  for (const [id, rows] of byEnrichment) perEnrichment[id] = rollup(rows);
-
-  const recentErrors = telemetry
-    .filter((r) => !r.ok)
-    .slice(-30)
-    .reverse()
-    .map((r) => ({
-      ts: r.ts, endpoint: r.endpoint, tractate: r.tractate,
-      page: r.page, error_kind: r.error_kind, model: r.model,
-      mark_id: r.mark_id, enrichment_id: r.enrichment_id,
-    }));
-
-  // --- Hard queue-job failures (separate ring buffer from telemetry) -------
   let jobErrors: RecentJobError[] = [];
   if (jeRaw) { try { jobErrors = (JSON.parse(jeRaw) as RecentJobError[]).slice(-30).reverse(); } catch { jobErrors = []; } }
+  const reports = repRaw ? [...(JSON.parse(repRaw) as BugReport[])].reverse() : [];
+  return { jobErrors, lintFailures, reports };
+}
 
-  return {
-    telemetry: { perEndpoint, perMark, perEnrichment, recentErrors, totalCount: telemetry.length },
-    cost: { selfTracked, aiGateway },
-    activity,
-    unknowns: { rabbis: unknownRabbis, places: observedPlaces, concepts: observedConcepts },
-    jobErrors,
-    lintFailures,
-    reports: [...reports].reverse(),
-    generatedAt: new Date().toISOString(),
-  };
-  };
-
-  // --- Stale-while-revalidate dispatch ------------------------------------
+/**
+ * Generic stale-while-revalidate dispatcher for a usage section. Serves the
+ * cached value instantly; once past `freshMs` it refreshes in the background
+ * (a best-effort lock collapses concurrent rebuilds). A true cold miss builds
+ * synchronously. `build` returns the section data; this stamps `generatedAt`.
+ */
+async function serveUsageSection<T>(
+  c: { env: Bindings; executionCtx: ExecutionContext; json: (v: unknown) => Response },
+  cache: KVNamespace | undefined,
+  key: string,
+  freshMs: number,
+  build: () => Promise<T>,
+): Promise<Response> {
   if (cache) {
-    const cachedRaw = await cache.get(PAYLOAD_KEY);
+    const cachedRaw = await cache.get(key);
     if (cachedRaw) {
       let parsed: (Record<string, unknown> & { generatedAt?: string }) | null = null;
       try { parsed = JSON.parse(cachedRaw); } catch { parsed = null; }
       if (parsed) {
         const age = Date.now() - Date.parse(parsed.generatedAt ?? '');
-        const fresh = Number.isFinite(age) && age >= 0 && age < PAYLOAD_FRESH_MS;
+        const fresh = Number.isFinite(age) && age >= 0 && age < freshMs;
         if (!fresh) {
-          // Best-effort singleflight: skip the rebuild if another request is
-          // already refreshing. The lock self-expires (60s) so a crashed build
-          // can't wedge it, and it's cleared on completion. KV is eventually
-          // consistent, so this isn't a hard mutex — it just keeps a burst of
-          // stale hits from each kicking off their own ~10s rebuild.
-          const refreshing = await cache.get(REFRESH_LOCK_KEY);
+          const lockKey = `${key}:refreshing`;
+          const refreshing = await cache.get(lockKey);
           if (!refreshing) {
             c.executionCtx.waitUntil((async () => {
               try {
-                await cache.put(REFRESH_LOCK_KEY, '1', { expirationTtl: 60 });
-                const next = await computeUsagePayload();
-                await cache.put(PAYLOAD_KEY, JSON.stringify(next), { expirationTtl: 600 });
+                await cache.put(lockKey, '1', { expirationTtl: 60 });
+                const next = { ...(await build()), generatedAt: new Date().toISOString() };
+                await cache.put(key, JSON.stringify(next), { expirationTtl: 600 });
               } catch (err) {
                 // eslint-disable-next-line no-console
-                console.warn('[usage] background refresh failed:', err);
+                console.warn(`[usage] ${key} background refresh failed:`, err);
               } finally {
-                await cache.delete(REFRESH_LOCK_KEY).catch(() => {});
+                await cache.delete(lockKey).catch(() => {});
               }
             })());
           }
@@ -4314,10 +4305,58 @@ app.get('/api/usage', async (c) => {
       }
     }
   }
-  // Cold miss (no cached payload): build synchronously, then cache it.
-  const payload = await computeUsagePayload();
-  if (cache) c.executionCtx.waitUntil(cache.put(PAYLOAD_KEY, JSON.stringify(payload), { expirationTtl: 600 }));
-  return c.json(payload);
+  const data = { ...(await build()), generatedAt: new Date().toISOString() };
+  if (cache) c.executionCtx.waitUntil(cache.put(key, JSON.stringify(data), { expirationTtl: 600 }));
+  return c.json(data);
+}
+
+// Full payload — back-compatible shape. Composed from the same builders; keeps
+// its own SWR so existing clients keep working unchanged.
+app.get('/api/usage', async (c) => {
+  const cache = c.env.CACHE;
+  const build = async () => {
+    const [telemetry, cost, activity, backlog, health] = await Promise.all([
+      buildTelemetrySection(cache),
+      buildCostSection(c, cache),
+      buildActivitySection(c, cache),
+      buildBacklogSection(cache),
+      buildHealthSection(cache),
+    ]);
+    return {
+      telemetry,
+      cost,
+      activity,
+      unknowns: backlog,
+      jobErrors: health.jobErrors,
+      lintFailures: health.lintFailures,
+      reports: health.reports,
+    };
+  };
+  return serveUsageSection(c, cache, 'usage-payload:v1', 30_000, build);
+});
+
+// Per-section endpoints — the client loads these independently so each card
+// renders as soon as its own data arrives.
+app.get('/api/usage/cost', (c) => serveUsageSection(c, c.env.CACHE, 'usage-cost:v1', 30_000, () => buildCostSection(c, c.env.CACHE)));
+app.get('/api/usage/telemetry', (c) => serveUsageSection(c, c.env.CACHE, 'usage-telemetry:v1', 30_000, () => buildTelemetrySection(c.env.CACHE)));
+app.get('/api/usage/activity', (c) => serveUsageSection(c, c.env.CACHE, 'usage-activity:v1', 60_000, () => buildActivitySection(c, c.env.CACHE)));
+app.get('/api/usage/backlog', (c) => serveUsageSection(c, c.env.CACHE, 'usage-backlog:v1', 60_000, () => buildBacklogSection(c.env.CACHE)));
+app.get('/api/usage/health', (c) => serveUsageSection(c, c.env.CACHE, 'usage-health:v1', 30_000, () => buildHealthSection(c.env.CACHE)));
+
+// Per-daf cost drill-down — "trace this daf". Reads the permanent per-entry
+// cost stamps for one daf across each mark's cached versions (bounded reads):
+// current-version cost vs superseded-version cost. Recent enrichment + source-
+// alignment spend for the daf lives in the per-call ledger (GET
+// /api/admin/llm-cost -> byDaf), which the UI overlays.
+app.get('/api/usage/daf/:tractate/:page', (c) => {
+  const cache = c.env.CACHE;
+  if (!cache) return c.json({ error: 'no cache binding' }, 503);
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  return serveUsageSection(c, cache, `usage-daf:v1:${tractate}:${page}`, 60_000, async () => {
+    const stats = (await readCachedCacheStats(cache)) ?? (await computeCacheStats(cache));
+    return dafCostReport(cache, stats.marks, tractate, page);
+  });
 });
 
 // --- Commentaries list --------------------------------------------------
