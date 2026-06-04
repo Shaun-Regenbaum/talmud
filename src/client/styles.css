@@ -420,6 +420,16 @@ body.dev-shelf-open .daf-page {
   min-width: 0;
 }
 
+/* The daf reading surface lays out by physical position (the Tzurat HaDaf is
+   an absolute-positioned, fit-to-width box) and the daf text carries its own
+   `--daf-direction`. When the UI language is Hebrew the page goes dir=rtl,
+   which would flip the surface's flex/overflow anchoring and shove the scaled
+   daf off-screen on mobile. Pin the surface to LTR so it positions identically
+   in both languages (matching how English mode already renders correctly). */
+.daf-surface {
+  direction: ltr;
+}
+
 /* Strips are NOT sticky — they flow with the page like the timeline and
    daf body. Only the right-side on-demand sidebar (.daf-aside) sticks. */
 .daf-strip {
