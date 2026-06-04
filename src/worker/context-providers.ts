@@ -35,13 +35,25 @@ import { matchBackgroundTerms } from '../lib/context/anchor/bg-term';
 import { matchYerushalmiToSegments } from '../lib/context/anchor/yerushalmi';
 import { matchRevach, type SectionForMatch } from '../lib/context/anchor/revach';
 import { applyMatches } from '../lib/context/match';
-import type { ContextItem } from '../lib/context/types';
+import type { ContextItem, ContextSource } from '../lib/context/types';
+import type { CacheTrack } from './source-cache';
 
 export interface ContextEnv {
   CACHE?: KVNamespace;
   ASSETS: Fetcher;
   /** Set to "0" to disable on-demand live dafyomi.co.il fetching. */
   DAFYOMI_LIVE?: string;
+}
+
+/** Per-fetcher collection timing for the alignment workbench's "collect"
+ *  waterfall. `sources` is which `ContextSource`s the fetch produces (empty for
+ *  inputs used only by matchers, e.g. the Sefaria segment text). `cache` is
+ *  reported only by fetchers that thread a `CacheTrack` (else 'unknown'). */
+export interface SourceTiming {
+  fetcher: string;
+  sources: ContextSource[];
+  ms: number;
+  cache: 'hit' | 'miss' | 'mixed' | 'unknown';
 }
 
 /**
@@ -56,6 +68,10 @@ export interface CollectContextOpts {
    *  provided, Revach entries are conservatively placed onto the section each
    *  describes; omit to skip Revach placement (e.g. the workbench). */
   sections?: SectionForMatch[];
+  /** Out-param: when provided, each fetcher's wall-clock + cache state is pushed
+   *  here (for the alignment "collect" waterfall). Leaves the return unchanged,
+   *  so enrichment callers are unaffected. */
+  timing?: SourceTiming[];
 }
 
 export async function collectContext(
@@ -66,14 +82,31 @@ export async function collectContext(
 ): Promise<ContextItem[]> {
   const cache = env.CACHE;
   const allowLive = env.DAFYOMI_LIVE !== '0';
+  const timing = opts.timing;
+  // Time each fetch and (where the fetcher threads a CacheTrack) record hit/miss.
+  // Failures fall back to `undefined` — every `from*` mapper is undefined-safe.
+  const rec = async <T>(fetcher: string, sources: ContextSource[], run: (t: CacheTrack) => Promise<T>): Promise<T | undefined> => {
+    const t0 = Date.now();
+    const states: ('hit' | 'miss')[] = [];
+    let v: T | undefined;
+    try { v = await run({ onCache: (s) => states.push(s) }); } catch { v = undefined; }
+    timing?.push({
+      fetcher, sources, ms: Date.now() - t0,
+      cache: states.length === 0 ? 'unknown'
+        : states.every((s) => s === 'hit') ? 'hit'
+        : states.every((s) => s === 'miss') ? 'miss' : 'mixed',
+    });
+    return v;
+  };
   const [dafyomi, sefariaPage, segments, rishonim, halacha, mishna, topics] = await Promise.all([
-    getDafyomiContentCached(cache, env.ASSETS, tractate, page, { assetOrigin: opts.assetOrigin, allowLive }).catch(() => null),
-    getSefariaPageCached(cache, tractate, page).catch(() => null),
-    getSefariaSegmentsCached(cache, tractate, page).catch(() => null),
-    getRishonimCached(cache, tractate, page).catch(() => []),
-    getHalachaRefsCached(cache, tractate, page).catch(() => ({})),
-    getMishnaBundleCached(cache, tractate, page).catch(() => []),
-    getDafTopicsCached(cache, tractate, page).catch(() => []),
+    rec('dafyomi', ['dafyomi:insights', 'dafyomi:background', 'dafyomi:halacha', 'dafyomi:tosfos', 'dafyomi:review', 'dafyomi:points', 'dafyomi:hebcharts', 'dafyomi:yerushalmi', 'dafyomi:revach'],
+      (track) => getDafyomiContentCached(cache, env.ASSETS, tractate, page, { assetOrigin: opts.assetOrigin, allowLive, track })),
+    rec('sefaria-page', ['sefaria-rashi', 'sefaria-tosafot'], (track) => getSefariaPageCached(cache, tractate, page, track)),
+    rec('sefaria-segments', [], (track) => getSefariaSegmentsCached(cache, tractate, page, track)),
+    rec('rishonim', ['sefaria-rishonim'], () => getRishonimCached(cache, tractate, page)),
+    rec('halacha-refs', ['sefaria-halacha'], () => getHalachaRefsCached(cache, tractate, page)),
+    rec('mishna', ['sefaria-mishnah'], () => getMishnaBundleCached(cache, tractate, page)),
+    rec('topics', ['sefaria-topic'], () => getDafTopicsCached(cache, tractate, page)),
   ]);
 
   const items: ContextItem[] = [];
