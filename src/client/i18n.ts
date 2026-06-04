@@ -444,6 +444,11 @@ const CATALOG = {
   'usage.col.source': { en: 'Source', he: 'מקור' },
   'usage.col.aligned': { en: 'Aligned', he: 'מיושר' },
   'usage.col.hasContent': { en: 'Has content', he: 'יש תוכן' },
+  // Content-Out mark-first tree
+  'usage.tree.hint': { en: 'a mark, then the notes built on it — click to expand', he: 'סימון, ואז ההערות שנבנו עליו — לחצו להרחבה' },
+  'usage.tree.enrichCount': { en: '{count} enrichments', he: '{count} העשרות' },
+  'usage.tree.noEnrich': { en: 'No enrichments on this mark.', he: 'אין העשרות על סימון זה.' },
+  'usage.global.title': { en: 'Global — enriched once, reused across every daf', he: 'גלובלי — מועשר פעם אחת, בשימוש חוזר בכל דף' },
   // Content-In per-piece labels (origin shown as a badge, not in the name)
   'usage.src.hb': { en: 'Daf page text', he: 'טקסט הדף' },
   'usage.src.gemara': { en: 'Daf text (aligned)', he: 'טקסט הדף (מיושר)' },
