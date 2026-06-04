@@ -142,6 +142,7 @@ export async function getRishonimCached(
   cache: KVNamespace | undefined,
   tractate: string,
   page: string,
+  track?: CacheTrack,
 ): Promise<RishonimBundle> {
   // v2: per-comment, segment-anchored RishonComment[] (was a whole-daf blob
   // Record<label, snippet>). v3: expanded the Rishonim allowlist (Yad Ramah,
@@ -151,6 +152,7 @@ export async function getRishonimCached(
   // Bump so cached dapim refetch with the new works.
   const key = keyForRishonim(tractate, page);
   const hit = await readCache<RishonimBundle>(cache, key);
+  track?.onCache?.(hit ? 'hit' : 'miss');
   if (hit) return hit;
   try {
     const data = await sefariaAPI.fetchRishonim(tractate, page);
@@ -165,10 +167,12 @@ export async function getHalachaRefsCached(
   cache: KVNamespace | undefined,
   tractate: string,
   page: string,
+  track?: CacheTrack,
 ): Promise<HalachicRefBundle> {
   // v2: snippets now carry segStart/segEnd (the linked daf segment).
   const key = keyForHalachaRefs(tractate, page);
   const hit = await readCache<HalachicRefBundle>(cache, key);
+  track?.onCache?.(hit ? 'hit' : 'miss');
   if (hit) return hit;
   try {
     const data = await sefariaAPI.fetchHalachicRefs(tractate, page);
@@ -211,9 +215,11 @@ export async function getDafTopicsCached(
   cache: KVNamespace | undefined,
   tractate: string,
   page: string,
+  track?: CacheTrack,
 ): Promise<SefariaTopicBundle> {
   const key = keyForDafTopics(tractate, page);
   const hit = await readCache<SefariaTopicBundle>(cache, key);
+  track?.onCache?.(hit ? 'hit' : 'miss');
   if (hit) return hit;
   try {
     const data = await sefariaAPI.fetchDafTopics(`${tractate}.${page}`);
@@ -233,9 +239,11 @@ export async function getMishnaBundleCached(
   cache: KVNamespace | undefined,
   tractate: string,
   page: string,
+  track?: CacheTrack,
 ): Promise<MishnaBundle> {
   const key = keyForMishnaBundle(tractate, page);
   const hit = await readCache<MishnaBundle>(cache, key);
+  track?.onCache?.(hit ? 'hit' : 'miss');
   if (hit) return hit;
   try {
     const data = await sefariaAPI.fetchMishnaForDaf(tractate, page);
