@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { parseDafyomiContent } from '../src/lib/sefref/dafyomi/parse/index';
 import {
   flattenYerushalmiOutline, alignOutlineToSegments, yerushalmiRefToSefaria,
+  yerushalmiFloorGroups, MIN_FLOOR_RUN,
   type YerushalmiOutlinePoint,
 } from '../src/lib/yerushalmiAlign';
 
@@ -54,5 +55,37 @@ describe('flatten + align Yerushalmi outline to Bavli segments', () => {
     const copy: YerushalmiOutlinePoint[] = points.map((p) => ({ ...p }));
     alignOutlineToSegments(copy, segs);
     expect(copy.every((p) => p.segIdx === undefined)).toBe(true);
+  });
+});
+
+describe('yerushalmiFloorGroups — guaranteed anchors from strong verbatim runs', () => {
+  const pt = (segIdx: number, score: number, ref: string, extra: Partial<YerushalmiOutlinePoint> = {}): YerushalmiOutlinePoint =>
+    ({ topic: 'T', yerushalmiRef: ref, he: 'x', en: 'x', segIdx, score, excerpt: `seg${segIdx}`, ...extra });
+
+  it('floors a span whose run meets MIN_FLOOR_RUN', () => {
+    const groups = yerushalmiFloorGroups([pt(0, MIN_FLOOR_RUN, 'JT A 1:1')]);
+    expect(groups).toHaveLength(1);
+    expect(groups[0]).toMatchObject({ startSegIdx: 0, endSegIdx: 0, yerushalmiRef: 'JT A 1:1', topScore: MIN_FLOOR_RUN });
+  });
+
+  it('drops a weak run below the floor (a stray formulaic match)', () => {
+    expect(yerushalmiFloorGroups([pt(5, MIN_FLOOR_RUN - 1, 'JT A 1:1')])).toHaveLength(0);
+  });
+
+  it('ignores unplaced points', () => {
+    expect(yerushalmiFloorGroups([{ topic: 'T', he: 'x', en: 'x' }])).toHaveLength(0);
+  });
+
+  it('merges adjacent same-ref strong points into one span, splits on a gap or a new ref', () => {
+    const groups = yerushalmiFloorGroups([
+      pt(0, 10, 'JT A 1:1'),
+      pt(1, 8, 'JT A 1:1'),   // adjacent, same ref -> merges with seg 0
+      pt(6, 9, 'JT A 1:1'),   // gap > FLOOR_MERGE_GAP -> new span
+      pt(7, 7, 'JT A 2:1'),   // adjacent but different ref -> new span
+    ]);
+    expect(groups.map((g) => [g.startSegIdx, g.endSegIdx, g.yerushalmiRef]))
+      .toEqual([[0, 1, 'JT A 1:1'], [6, 6, 'JT A 1:1'], [7, 7, 'JT A 2:1']]);
+    expect(groups[0].topScore).toBe(10);
+    expect(groups[0].points).toHaveLength(2);
   });
 });

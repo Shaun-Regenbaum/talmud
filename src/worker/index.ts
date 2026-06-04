@@ -10,7 +10,7 @@ import {
 import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
 import { collectContext } from './context-providers';
 import { curatedParallelsForDaf, type CuratedYerushalmiParallel } from '../lib/yerushalmiParallels';
-import { flattenYerushalmiOutline, alignOutlineToSegments } from '../lib/yerushalmiAlign';
+import { flattenYerushalmiOutline, alignOutlineToSegments, yerushalmiFloorGroups, type YerushalmiFloorGroup } from '../lib/yerushalmiAlign';
 import { placeRevachWithAi } from './revach-ai-place';
 import { formatContextForPrompt, contextForAnchor, segsFromMarkInput } from '../lib/context/select';
 import { continuationLink, type FlowEdge } from '../lib/context/link';
@@ -1288,6 +1288,7 @@ function formatYerushalmiForPrompt(
   bundle: Awaited<ReturnType<typeof getYerushalmiCached>>,
   curated: CuratedYerushalmiPassage[],
   outline: Awaited<ReturnType<typeof buildYerushalmiOutline>>,
+  floor: YerushalmiFloorGroup[],
 ): string {
   // Curated parallels first — a human confirmed this exact cross-reference, so
   // it's the highest-confidence grounding (and often cross-tractate, which the
@@ -1327,6 +1328,25 @@ function formatYerushalmiForPrompt(
     return '(no Yerushalmi parallel found for this daf)';
   }
   const out: string[] = [];
+  // REQUIRED ANCHORS first — the spans where a long phrase is PROVABLY shared
+  // between the two Talmuds (a shared mishnah/baraita). The model must emit one
+  // instance per anchor; the prompt rules below make this mandatory. This is what
+  // fixes the under-firing: WHERE is decided deterministically, the model only
+  // writes the differences.
+  if (floor.length) {
+    const reqLines = floor.map((g) => {
+      const span = g.startSegIdx === g.endSegIdx
+        ? `Bavli segment ${g.startSegIdx}`
+        : `Bavli segments ${g.startSegIdx}-${g.endSegIdx}`;
+      const ref = g.yerushalmiRef ? ` parallels ${g.yerushalmiRef}` : '';
+      const phrase = g.excerpt ? ` — shared verbatim phrase: "${g.excerpt}"` : '';
+      return `- ${span}${ref}${phrase}`;
+    });
+    out.push(
+      'REQUIRED ANCHORS (each is a Bavli span that shares a long verbatim phrase with the Yerushalmi — a shared mishnah/baraita, proven by alignment). You MUST return one instance for EACH, using its segment range, and write its `differences` (if the two are essentially identical there, say so plainly):\n' +
+      reqLines.join('\n'),
+    );
+  }
   if (outlineLines.length) {
     out.push(
       'ALIGNED YERUSHALMI OUTLINE (dafyomi.co.il "Yerushalmi to Match"; each point is tagged with the Bavli segment [N] it parallels verbatim, or [diverges] where the Yerushalmi differs — USE THIS to state specific, part-by-part differences):\n' +
@@ -1579,7 +1599,14 @@ async function resolveDependencies(
         fetchCuratedYerushalmi(curatedParallelsForDaf(tractate, page)),
         buildYerushalmiOutline(rc.env, tractate, page),
       ]);
-      out.vars.yerushalmi = formatYerushalmiForPrompt(bundle, curated, outline);
+      // Deterministic floor anchors — the verbatim-shared spans the mark MUST
+      // surface. Fed to the prompt (REQUIRED ANCHORS) so the model writes their
+      // differences, and stashed for the yerushalmi-floor pass, which backstops
+      // any the model still drops. The double-underscore key is internal (not a
+      // prompt placeholder).
+      const floor = yerushalmiFloorGroups(outline);
+      out.vars.yerushalmi = formatYerushalmiForPrompt(bundle, curated, outline, floor);
+      out.vars.__yerushalmiFloor = floor;
       recordSource(out, 'yerushalmi-text', out.vars.yerushalmi);
       return;
     }
@@ -2150,6 +2177,9 @@ async function runMarkOnce(
     const slice = await getGemaraSlice(rc.env, tractate, page, false);
     const checked = await runPasses(def.passes, parsed, {
       tractate, page, segmentsHe: slice.segments_he, defId: def.id, lang: rc.lang,
+      // The yerushalmi-floor transform needs the deterministic floor anchors the
+      // resolver stashed; harmless (and absent) for every other mark.
+      yerushalmiFloor: inputs.vars.__yerushalmiFloor as YerushalmiFloorGroup[] | undefined,
     });
     parsed = checked.parsed;
     // Attach all issues for observation; `hard` ones (e.g. anchor-verbatim on
