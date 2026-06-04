@@ -12,14 +12,7 @@ import type {
 } from '../sefref/dafyomi/schema.ts';
 import type { ContextItem } from './types.ts';
 import { dafCoord, type AnchorCoord } from './coord.ts';
-
-const SOURCE_LABEL: Record<DafyomiContentType, string> = {
-  // dafyomi "Tosfos" is the Kollel's explanation OF Tosafot, not Tosafot itself —
-  // label it so it reads as a companion to the Sefaria "Tosafot" source.
-  insights: 'Insights', background: 'Background', halacha: 'Halacha', tosfos: 'Tosafot explanation',
-  review: 'Review', points: 'Points', hebcharts: 'Charts', yerushalmi: 'Yerushalmi',
-  revach: 'Revach l\'Daf',
-};
+import { sourceLabel } from './sources.ts';
 
 export function fromDafyomi(daf: DafyomiDaf): ContextItem[] {
   const items: ContextItem[] = [];
@@ -40,7 +33,7 @@ function collectBlock(
   const type = block.type;
   const url = daf.source.urls[type];
   const base = (kind: string, key: string): ContextItem => ({
-    source: `dafyomi:${type}`, sourceLabel: SOURCE_LABEL[type], kind, key, url,
+    source: `dafyomi:${type}`, sourceLabel: sourceLabel(`dafyomi:${type}`), kind, key, url,
     segs: [], ...(block.wholeDaf ? {} : { amud }),
   });
 
