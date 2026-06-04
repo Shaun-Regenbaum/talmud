@@ -19,7 +19,7 @@
  */
 
 import { instanceIdOf } from './cache-keys';
-import type { JobMessage } from './index';
+import type { JobMessage } from './types';
 
 const SEFARIA_CALENDAR_URL = 'https://www.sefaria.org/api/calendars';
 const WARM_MARKS = ['rabbi', 'argument', 'halacha', 'aggadata', 'yerushalmi', 'pesukim'] as const;
