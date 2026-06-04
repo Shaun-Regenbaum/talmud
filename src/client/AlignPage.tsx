@@ -276,13 +276,25 @@ export function AlignPage(): JSX.Element {
   }
 
   let inspEl!: HTMLDivElement;
+  let spineBox!: HTMLDivElement;
   createEffect(() => { detail(); ctx(); marksRes(); daf(); cat(); if (inspEl) inspEl.innerHTML = detail() ? detailHtml() : listHtml(); });
 
+  // Auto-scroll the spine to a hovered/clicked target when it's out of view.
+  function scrollIntoSpine(sel: string) {
+    if (!spineBox) return;
+    const el = spineBox.querySelector(sel) as HTMLElement | null;
+    if (!el) return;
+    const br = spineBox.getBoundingClientRect(); const er = el.getBoundingClientRect();
+    if (er.top < br.top + 8 || er.bottom > br.bottom - 8) spineBox.scrollTop += (er.top - br.top) - spineBox.clientHeight / 2 + er.height / 2;
+  }
   function hoverFrom(t: HTMLElement | null) {
     if (!t) { setHl([]); setHlAdj(null); return; }
-    if (t.dataset.adj) { setHlAdj(t.dataset.adj as 'prev' | 'next'); setHl([]); return; }
+    if (t.dataset.adj) { setHlAdj(t.dataset.adj as 'prev' | 'next'); setHl([]); scrollIntoSpine(`.aw-adj[data-adj="${t.dataset.adj}"]`); return; }
     setHlAdj(null);
-    setHl(t.dataset.hl === '*' ? allSegs() : t.dataset.hl ? t.dataset.hl.split(',').filter(Boolean).map(Number) : []);
+    if (t.dataset.hl === '*') { setHl(allSegs()); return; }
+    const segs = t.dataset.hl ? t.dataset.hl.split(',').filter(Boolean).map(Number) : [];
+    setHl(segs);
+    if (segs.length) scrollIntoSpine(`.aw-daf .daf-word[data-seg="${Math.min(...segs)}"]`);
   }
   onMount(() => {
     inspEl.addEventListener('mouseover', (e) => hoverFrom((e.target as HTMLElement).closest('[data-hl],[data-adj]') as HTMLElement | null));
@@ -293,13 +305,13 @@ export function AlignPage(): JSX.Element {
       const mh = t.closest('[data-mkhead]') as HTMLElement | null;
       if (mh) { mh.closest('.aw-mkrow')?.classList.toggle('open'); return; }
       const gen = t.closest('[data-gen]') as HTMLElement | null;
-      if (gen) { const m = segMarks().find((x) => x.id === gen.dataset.gen); setPin(m ? (m.instances as SegInst[]).flatMap(rangeOfInst) : []); setDetail({ t: 'gen', mid: gen.dataset.gen! }); return; }
+      if (gen) { const m = segMarks().find((x) => x.id === gen.dataset.gen); const segs = m ? (m.instances as SegInst[]).flatMap(rangeOfInst) : []; setPin(segs); if (segs.length) scrollIntoSpine(`.aw-daf .daf-word[data-seg="${Math.min(...segs)}"]`); setDetail({ t: 'gen', mid: gen.dataset.gen! }); return; }
       const ent = t.closest('[data-ent]') as HTMLElement | null;
-      if (ent) { const e = entityIndex().get(ent.dataset.ent!); setPin(e?.segs ?? []); setDetail({ t: 'ent', key: ent.dataset.ent! }); return; }
+      if (ent) { const e = entityIndex().get(ent.dataset.ent!); setPin(e?.segs ?? []); if (e?.segs.length) scrollIntoSpine(`.aw-daf .daf-word[data-seg="${Math.min(...e.segs)}"]`); setDetail({ t: 'ent', key: ent.dataset.ent! }); return; }
       const adj = t.closest('[data-adj]') as HTMLElement | null;
       if (adj) { (adj.dataset.adj === 'prev' ? setPrevOpen : setNextOpen)(true); }
       const sl = t.closest('.aw-src[data-src]') as HTMLElement | null;
-      if (sl) { const it = byKey().get(sl.dataset.src!); setPin(it?.segs ?? []); setDetail({ t: 'src', key: sl.dataset.src! }); return; }
+      if (sl) { const it = byKey().get(sl.dataset.src!); setPin(it?.segs ?? []); if (it?.segs.length) scrollIntoSpine(`.aw-daf .daf-word[data-seg="${Math.min(...it.segs)}"]`); setDetail({ t: 'src', key: sl.dataset.src! }); return; }
     });
   });
 
@@ -342,7 +354,7 @@ export function AlignPage(): JSX.Element {
         <div>
           <div class="aw-colh"><span class="aw-label">Spine · HebrewBooks</span>
             <span class="aw-hint">hover a source to locate it · adjacent amud in gray (click to expand)</span></div>
-          <div class="aw-spinebox">
+          <div class="aw-spinebox" ref={spineBox}>
             <Show when={adjPreview(prevDaf(), 'last', prevOpen())}>
               <div class={`aw-adj${hlAdj() === 'prev' ? ' hot' : ''}`} data-adj="prev" onClick={() => setPrevOpen((o) => !o)}>
                 <div class="aw-adjlab">‹ prev · {adjPage(page(), 'prev')} · {prevOpen() ? 'full amud (collapse)' : 'last line (expand)'}</div>
