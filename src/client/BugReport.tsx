@@ -57,6 +57,7 @@ export function BugReport(props: BugReportProps): JSX.Element {
             when={status() === 'sent'}
             fallback={
               <button
+                data-tour="report"
                 onClick={() => setStatus('open')}
                 style={{
                   background: 'transparent',
