@@ -499,15 +499,14 @@ function OriginBadge(props: { origin: SourceOrigin }): JSX.Element {
 
 function SourceRowView(props: { row: SourceRow }): JSX.Element {
   const r = () => props.row;
-  const sub = () => r().id.startsWith('dy.'); // DafYomi content-type sub-row
   const complete = () => r().percent >= 100;
   const aligned = () => r().aligned ?? null;
   const num = { padding: '0.45rem 0.5rem', 'text-align': 'right' as const, 'font-variant-numeric': 'tabular-nums' };
   return (
-    <tr style={{ 'border-bottom': '1px solid #f4f4f4', background: sub() ? '#fcfcfd' : undefined }}>
-      <td style={{ padding: '0.45rem 0.5rem', 'padding-left': sub() ? '1.7rem' : '0.5rem' }}>
-        <span style={{ color: sub() ? '#555' : '#222' }}>{t(`usage.src.${r().id}`)}</span>
-        <Show when={!sub()}><OriginBadge origin={r().origin} /></Show>
+    <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+      <td style={{ padding: '0.45rem 0.5rem' }}>
+        <span style={{ color: '#222' }}>{t(`usage.src.${r().id}`)}</span>
+        <OriginBadge origin={r().origin} />
       </td>
       <td style={num}>{fmtInt(r().count)} / {fmtInt(r().denom)}</td>
       <td style={{ padding: '0.45rem 0.5rem', width: '26%' }}><ProgressBar percent={r().percent} /></td>
@@ -527,7 +526,9 @@ function SourcesSection(props: { stats: CacheStats }): JSX.Element {
   // Prefer the v8 per-piece breakdown; fall back to the legacy 4-bucket shape
   // if a stale cached payload predates it.
   const rows = (): SourceRow[] => {
-    if (props.stats.sources && props.stats.sources.length > 0) return props.stats.sources;
+    // Drop the DafYomi aggregate row — each content type is shown as its own
+    // primary DY row instead.
+    if (props.stats.sources && props.stats.sources.length > 0) return props.stats.sources.filter((s) => s.id !== 'dy');
     const s = props.stats.source;
     const total = props.stats.total;
     const mk = (id: string, b: CacheBucket | undefined, origin: SourceOrigin): SourceRow =>
@@ -564,11 +565,24 @@ function GlobeBadge(): JSX.Element {
   return <span title={t('usage.global.title')} style={{ 'margin-left': '0.35rem', 'font-size': '0.8rem' }}>🌐</span>;
 }
 
+// One coverage bar (a language slice): count · bar · %.
+function CoverageBar(props: { label: string; count: number; percent: number; he?: boolean }): JSX.Element {
+  const complete = () => props.percent >= 100;
+  return (
+    <div style={{ display: 'flex', 'align-items': 'center', gap: '0.5rem', margin: '0.12rem 0' }}>
+      <span style={{ 'font-size': '0.66rem', color: props.he ? '#1d4ed8' : '#aaa', width: '1.3rem', 'flex-shrink': 0 }}>{props.label}</span>
+      <span style={{ 'font-variant-numeric': 'tabular-nums', 'font-size': '0.8rem', color: '#555', width: '3.4rem', 'text-align': 'right', 'flex-shrink': 0 }}>{fmtInt(props.count)}</span>
+      <div style={{ flex: 1 }}><ProgressBar percent={props.percent} /></div>
+      <span style={{ 'font-variant-numeric': 'tabular-nums', 'font-size': '0.78rem', color: complete() ? '#2a8a42' : '#666', width: '3rem', 'text-align': 'right', 'flex-shrink': 0 }}>{props.percent.toFixed(1)}%</span>
+    </div>
+  );
+}
+
 function MarkTreeRow(props: { mark: MarkRow; total: number; enrichments: EnrichmentRow[]; labelOf: (id: string) => string }): JSX.Element {
   const [open, setOpen] = createSignal(false);
   const m = () => props.mark;
   const percent = () => (props.total > 0 ? (m().count / props.total) * 100 : 0);
-  const complete = () => percent() >= 100;
+  const hePercent = () => (props.total > 0 ? (m().heCount / props.total) * 100 : 0);
   // This mark's enrichments (local + global), local first then global, each
   // alpha by label.
   const enr = () => props.enrichments
@@ -579,26 +593,26 @@ function MarkTreeRow(props: { mark: MarkRow; total: number; enrichments: Enrichm
   return (
     <>
       <tr style={{ 'border-bottom': '1px solid #f4f4f4', cursor: 'pointer' }} onClick={() => setOpen(!open())}>
-        <td style={{ padding: '0.4rem 0.5rem' }}>
+        <td style={{ padding: '0.4rem 0.5rem', 'vertical-align': 'top' }}>
           <span style={{ color: '#bbb', 'margin-right': '0.4rem', display: 'inline-block', width: '0.7rem' }}>{open() ? '▾' : '▸'}</span>
           <b>{m().label}</b>
-          <Show when={enr().length > 0}><span style={{ color: '#999', 'font-size': '0.75rem', 'margin-left': '0.4rem' }}>{t('usage.tree.enrichCount', { count: fmtInt(enr().length) })}</span></Show>
-          <Show when={deps().length > 0}>
-            <For each={deps()}>
-              {(d) => <span style={{ 'font-size': '0.68rem', color: '#7c3aed', background: '#f3e8ff', 'border-radius': '3px', padding: '0.05rem 0.4rem', 'margin-left': '0.35rem' }}>↳ {props.labelOf(d)}</span>}
-            </For>
-          </Show>
           <Show when={m().staleCount > 0}>
-            <span style={{ 'font-size': '0.7rem', color: '#b58100', 'margin-left': '0.4rem', background: '#fff7e0', padding: '0.05rem 0.35rem', 'border-radius': '3px' }}>{t('usage.staleBadge', { count: fmtInt(m().staleCount) })}</span>
+            <span style={{ 'font-size': '0.72rem', color: '#b58100', 'margin-left': '0.5rem' }}>{t('usage.staleBadge', { count: fmtInt(m().staleCount) })}</span>
           </Show>
         </td>
-        <td style={num}>{fmtInt(m().count)}<Show when={m().heCount > 0}><span style={{ color: '#1d4ed8' }}> · {fmtInt(m().heCount)}he</span></Show></td>
-        <td style={{ padding: '0.4rem 0.5rem', width: '26%' }}><ProgressBar percent={percent()} /></td>
-        <td style={{ ...num, color: complete() ? '#2a8a42' : '#333', 'white-space': 'nowrap' }}>{percent().toFixed(1)}%</td>
+        <td style={{ padding: '0.3rem 0.5rem', width: '52%' }}>
+          <CoverageBar label="EN" count={m().count} percent={percent()} />
+          <Show when={m().heCount > 0}><CoverageBar label="HE" count={m().heCount} percent={hePercent()} he /></Show>
+        </td>
       </tr>
       <Show when={open()}>
         <tr style={{ background: '#fbfbfa' }}>
-          <td colspan={4} style={{ padding: '0.2rem 0.5rem 0.7rem 1.7rem' }}>
+          <td colspan={2} style={{ padding: '0.2rem 0.5rem 0.7rem 1.7rem' }}>
+            <Show when={deps().length > 0}>
+              <div style={{ 'font-size': '0.75rem', color: '#7c3aed', 'margin-bottom': '0.35rem' }}>
+                {t('usage.tree.dependsOn')}: {deps().map((d) => props.labelOf(d)).join(' · ')}
+              </div>
+            </Show>
             <Show when={enr().length > 0} fallback={<p style={{ color: '#aaa', 'font-size': '0.8rem' }}>{t('usage.tree.noEnrich')}</p>}>
               <table style={tableStyle}>
                 <thead>
@@ -633,12 +647,11 @@ function MarkTreeRow(props: { mark: MarkRow; total: number; enrichments: Enrichm
   );
 }
 
-function NotesSection(props: { stats: CacheStats; observedConcepts: number }): JSX.Element {
+function NotesSection(props: { stats: CacheStats }): JSX.Element {
   const total = () => props.stats.total;
   const marks = () => [...props.stats.marks].sort((a, b) => a.label.localeCompare(b.label));
   const enrichments = () => props.stats.enrichments;
   const labelOf = (id: string): string => props.stats.marks.find((m) => m.id === id)?.label ?? id;
-  const r = () => props.stats.rabbis;
   return (
     <>
       <SectionHeading title={t('usage.anchors.title')} hint={t('usage.tree.hint')} />
@@ -647,9 +660,7 @@ function NotesSection(props: { stats: CacheStats; observedConcepts: number }): J
           <thead>
             <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
               <th style={thStyle}>{t('usage.col.anchor')}</th>
-              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.dafim')}</th>
-              <th style={thStyle} />
-              <th style={{ ...thStyle, 'text-align': 'right' }}>%</th>
+              <th style={thStyle}>{t('usage.col.coverage')}</th>
             </tr>
           </thead>
           <tbody>
@@ -657,64 +668,7 @@ function NotesSection(props: { stats: CacheStats; observedConcepts: number }): J
           </tbody>
         </table>
       </Show>
-
-      {/* Rabbi dataset — entity data enriched once, reused across every daf. */}
-      <div style={{ 'margin-top': '1.4rem' }}>
-        <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.3rem' }}>
-          {t('usage.rabbiCoverage.title')} <span style={{ color: '#999', 'font-weight': 'normal' }}>{t('usage.rabbiCoverage.sub', { count: fmtInt(r().totalRabbis) })}</span>
-        </h3>
-        <table style={tableStyle}>
-          <tbody>
-            <RabbiCoverageRow label={t('usage.rabbi.bio')} filled={r().withBio} total={r().totalRabbis} />
-            <RabbiCoverageRow label={t('usage.rabbi.sefariaBio')} filled={r().withSefariaBio} total={r().totalRabbis} hint={t('usage.rabbi.sefariaBio.hint')} />
-            <RabbiCoverageRow label={t('usage.rabbi.wiki')} filled={r().withWiki} total={r().totalRabbis} hint={t('usage.rabbi.wiki.hint')} />
-            <RabbiCoverageRow label={t('usage.rabbi.generation')} filled={r().withGeneration} total={r().totalRabbis} />
-            <RabbiCoverageRow label={t('usage.rabbi.region')} filled={r().withRegion} total={r().totalRabbis} />
-            <RabbiCoverageRow label={t('usage.rabbi.places')} filled={r().withPlaces} total={r().totalRabbis} />
-            <RabbiCoverageRow label={t('usage.rabbi.chain')} filled={r().withHierarchyEdges} total={r().totalRabbis} hint={t('usage.rabbi.chain.hint')} />
-            <RabbiCoverageRow label={t('usage.rabbi.family')} filled={r().withFamily} total={r().totalRabbis} hint={t('usage.rabbi.family.hint')} />
-            <RabbiCoverageRow label={t('usage.rabbi.orientation')} filled={r().withOrientation} total={r().totalRabbis} hint={t('usage.rabbi.orientation.hint')} />
-          </tbody>
-        </table>
-        <p style={{ 'font-size': '0.78rem', color: '#777', 'margin-top': '0.5rem' }}>
-          {t('usage.globalEnrich.concepts', { count: fmtInt(props.observedConcepts) })}
-        </p>
-      </div>
     </>
-  );
-}
-
-// ---- Global repository ---------------------------------------------------
-function RabbiCoverageRow(props: { label: string; filled: number | null; total: number; hint?: string }): JSX.Element {
-  const tracked = () => props.filled !== null;
-  const filled = () => props.filled ?? 0;
-  const missing = () => Math.max(0, props.total - filled());
-  const percent = () => (props.total > 0 ? (filled() / props.total) * 100 : 0);
-  const complete = () => tracked() && percent() >= 100;
-  return (
-    <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
-      <td style={{ padding: '0.35rem 0.5rem' }}>
-        {props.label}
-        <Show when={props.hint}>
-          <span style={{ color: '#999', 'font-size': '0.72rem', 'margin-left': '0.4rem' }}>({props.hint})</span>
-        </Show>
-      </td>
-      <td style={{ padding: '0.35rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>
-        <Show when={tracked()} fallback={<span style={{ color: '#999' }}>—</span>}>
-          <span style={{ color: '#333' }}>{fmtInt(filled())}</span>
-          <span style={{ color: '#999' }}> / {fmtInt(props.total)}</span>
-        </Show>
-      </td>
-      <td style={{ padding: '0.35rem 0.5rem', width: '30%' }}>
-        <Show when={tracked()}><ProgressBar percent={percent()} /></Show>
-      </td>
-      <td style={{ padding: '0.35rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', color: complete() ? '#2a8a42' : '#333', 'white-space': 'nowrap' }}>
-        <Show when={tracked()} fallback={<span style={{ color: '#999', 'font-size': '0.78rem' }}>{t('usage.notTracked')}</span>}>{percent().toFixed(1)}%</Show>
-      </td>
-      <td style={{ padding: '0.35rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', color: missing() === 0 ? '#999' : '#c33', 'font-size': '0.78rem', 'white-space': 'nowrap' }}>
-        <Show when={tracked()} fallback={<span>—</span>}>{missing() === 0 ? '—' : t('usage.missing', { count: fmtInt(missing()) })}</Show>
-      </td>
-    </tr>
   );
 }
 
@@ -932,10 +886,31 @@ function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefin
     return est.available ? est : null;
   };
 
+  // Our daily rollups sliced into recent windows, so "what did we spend lately"
+  // is answerable next to the provider's billed total. The provider number is
+  // authoritative; our tracking adds per-producer attribution and should
+  // converge with it as model coverage grows.
+  const sumWindow = (n: number) => {
+    const series = self()?.series ?? [];
+    const w = series.slice(-n);
+    return w.reduce(
+      (a, d) => ({ costUsd: a.costUsd + d.costUsd, calls: a.calls + d.calls }),
+      { costUsd: 0, calls: 0 },
+    );
+  };
+  const last7 = () => sumWindow(7);
+  const last30 = () => sumWindow(30);
+  // How much of the provider's billed spend our 30-day tracking accounts for.
+  const converge = () => {
+    const billed = aigw().ok ? (aigw().costUsd ?? 0) : 0;
+    if (billed <= 0) return null;
+    return Math.round((last30().costUsd / billed) * 100);
+  };
+
   return (
     <>
-      {/* AI Gateway (authoritative) */}
-      <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0.2rem 0 0.4rem' }}>{t('usage.aigw.title')} <span style={{ color: '#999', 'font-weight': 'normal' }}>{t('usage.aigw.sub')}</span></h3>
+      {/* Total spent — authoritative, billed by the provider. */}
+      <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0.2rem 0 0.4rem' }}>{t('usage.cost.billed.title')} <span style={{ color: '#999', 'font-weight': 'normal' }}>{t('usage.cost.billed.sub')}</span></h3>
       <Show
         when={aigw().ok}
         fallback={
@@ -980,31 +955,35 @@ function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefin
         </Show>
       </Show>
 
-      {/* Self-tracked (per-mark/enrichment attribution) */}
+      {/* Our own tracking — per-producer attribution, sliced into windows. */}
       <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '1.1rem 0 0.4rem' }}>
-        {t('usage.selfTracked.title')} <span style={{ color: '#999', 'font-weight': 'normal' }}>{self()?.fromDate ? t('usage.selfTracked.subSince', { date: self()!.fromDate ?? '' }) : t('usage.selfTracked.sub')}</span>
+        {t('usage.cost.tracked.title')} <span style={{ color: '#999', 'font-weight': 'normal' }}>{self()?.fromDate ? t('usage.cost.tracked.subSince', { date: self()!.fromDate ?? '' }) : t('usage.cost.tracked.sub')}</span>
       </h3>
       <Show when={self()} fallback={<p style={{ color: '#888', 'font-size': '0.82rem' }}>{t('usage.selfTracked.empty')}</p>}>
         {(s) => (
           <>
+            {/* Spend by recent window — these should track the billed total above. */}
             <div style={{ display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.6rem' }}>
-              <StatCard label={t('usage.stat.costPriced')} value={fmtUsd(s().totals.costUsd)} color="#2a8a42" sub={t('usage.stat.pricedCalls', { count: fmtInt(s().totals.pricedCalls) })} />
-              {/* Only when the in/out split has data — rollups predating PR1 carry
-                  costUsd but no split, so a $0/$0 card would misread as "no spend". */}
+              <StatCard label={t('usage.cost.win7')} value={fmtUsd(last7().costUsd)} color="#2a8a42" sub={t('usage.cost.winCalls', { count: fmtInt(last7().calls) })} />
+              <StatCard label={t('usage.cost.win30')} value={fmtUsd(last30().costUsd)} color="#2a8a42" sub={t('usage.cost.winCalls', { count: fmtInt(last30().calls) })} />
+              <StatCard label={t('usage.cost.winAll')} value={fmtUsd(s().totals.costUsd)} color="#2a8a42" sub={t('usage.stat.pricedCalls', { count: fmtInt(s().totals.pricedCalls) })} />
               <Show when={(s().totals.costInUsd ?? 0) + (s().totals.costOutUsd ?? 0) > 0}>
-                <StatCard
-                  label={t('usage.stat.inOut')}
-                  value={`${fmtUsd(s().totals.costInUsd ?? 0)} / ${fmtUsd(s().totals.costOutUsd ?? 0)}`}
-                  sub={t('usage.stat.inOut.sub')}
-                />
+                <StatCard label={t('usage.stat.inOut')} value={`${fmtUsd(s().totals.costInUsd ?? 0)} / ${fmtUsd(s().totals.costOutUsd ?? 0)}`} sub={t('usage.stat.inOut.sub')} />
               </Show>
-              <StatCard label={t('usage.stat.unpricedCalls')} value={fmtInt(s().totals.unpricedCalls)} sub={t('usage.stat.unpricedCalls.sub')} />
-              <StatCard label={t('usage.stat.llmCalls')} value={fmtInt(s().totals.calls)} sub={t('usage.stat.errored', { count: fmtInt(s().totals.errors) })} />
-              <StatCard label={t('usage.stat.tokens')} value={fmtTokens(s().totals.tokensIn + s().totals.tokensOut)} sub={t('usage.stat.tokensInOut', { in: fmtTokens(s().totals.tokensIn), out: fmtTokens(s().totals.tokensOut) })} />
               <Show when={avoided() && avoided()!.recentCalls > 0}>
                 <StatCard label={t('usage.stat.costAvoided')} value={fmtUsd(avoided()!.recentUsd)} color="#1d4ed8" sub={t('usage.stat.costAvoided.sub', { count: fmtInt(avoided()!.recentCalls) })} />
               </Show>
             </div>
+            <div style={{ display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.6rem' }}>
+              <StatCard label={t('usage.stat.llmCalls')} value={fmtInt(s().totals.calls)} sub={t('usage.stat.errored', { count: fmtInt(s().totals.errors) })} />
+              <StatCard label={t('usage.stat.tokens')} value={fmtTokens(s().totals.tokensIn + s().totals.tokensOut)} sub={t('usage.stat.tokensInOut', { in: fmtTokens(s().totals.tokensIn), out: fmtTokens(s().totals.tokensOut) })} />
+              <StatCard label={t('usage.stat.unpricedCalls')} value={fmtInt(s().totals.unpricedCalls)} sub={t('usage.stat.unpricedCalls.sub')} />
+            </div>
+            <Show when={converge() != null}>
+              <p style={{ 'font-size': '0.8rem', color: '#555', background: '#f5f8ff', padding: '0.5rem 0.7rem', 'border-radius': '4px', border: '1px solid #e0e8f5', 'margin-bottom': '0.7rem' }}>
+                {t('usage.cost.converge', { pct: String(converge()), billed: fmtUsd(aigw().costUsd) })}
+              </p>
+            </Show>
             <Show when={Object.keys(s().byMark).length > 0 || Object.keys(s().byEnrichment).length > 0}>
               <CostBreakdown id="byMark" title={t('usage.byMark')} buckets={s().byMark} />
               <CostBreakdown id="byEnrichment" title={t('usage.byEnrichment')} buckets={s().byEnrichment} />
@@ -1267,6 +1246,7 @@ function displayEndpoint(name: string): string {
   if (name === 'studio-mark') return t('usage.run.mark');
   if (name === 'studio-enrichment') return t('usage.run.enrichment');
   if (name === 'studio-adhoc') return t('usage.run.adhoc');
+  if (name === 'translate') return t('usage.run.translate');
   return name;
 }
 
@@ -1574,7 +1554,7 @@ export function UsagePage(): JSX.Element {
       <Show when={tab() === 'contentOut'}>
         <SectionShell section={cacheStats} skeletonRows={8}>
           {(cs) => (
-            <NotesSection stats={cs} observedConcepts={backlog.value()?.concepts.total ?? 0} />
+            <NotesSection stats={cs} />
           )}
         </SectionShell>
       </Show>
