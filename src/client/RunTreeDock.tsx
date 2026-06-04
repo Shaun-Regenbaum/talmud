@@ -16,7 +16,7 @@
  * the COLD build cost/time, each shared node counted once. Resizable width.
  */
 
-import { createSignal, createMemo, createResource, Show, Switch, Match, For, type JSX } from 'solid-js';
+import { createSignal, createMemo, createResource, createEffect, onCleanup, Show, Switch, Match, For, type JSX } from 'solid-js';
 import { lang } from './i18n';
 
 interface TreeNode {
@@ -205,7 +205,13 @@ function RunRow(props: { run: DafRun; maxMs: number; active?: boolean; collapsed
   );
 }
 
-export default function RunTreeDock(props: { tractate: string; page: string; open: boolean; onClose: () => void }): JSX.Element {
+export default function RunTreeDock(props: {
+  tractate: string; page: string; open: boolean; onClose: () => void;
+  /** Slots for the other dev panels — rendered in their tabs, always mounted
+   *  (the marks panel's effects drive the gutter even when the panel is shut). */
+  marks?: JSX.Element; checks?: JSX.Element; sections?: JSX.Element;
+}): JSX.Element {
+  const [tab, setTab] = createSignal<'build' | 'marks' | 'checks' | 'sections'>('build');
   const [view, setView] = createSignal<'waterfall' | 'dag'>('dag');
   const [pieceId, setPieceId] = createSignal('tidbit.essay');
   const [expanded, setExpanded] = createSignal<Set<string>>(new Set(['tidbit.essay']));
@@ -286,28 +292,50 @@ export default function RunTreeDock(props: { tractate: string; page: string; ope
 
   const nodeY = (id: string) => { const r = layout()!.rowOf.get(id)!; return TOP_PAD + r * ROW_H; };
 
+  // Push the daf left by the panel width when open (mirrors the old left shelf).
+  createEffect(() => {
+    if (props.open) {
+      document.body.style.setProperty('--dev-panel-width', `${width()}px`);
+      document.body.classList.add('dev-panel-open');
+    } else {
+      document.body.classList.remove('dev-panel-open');
+      document.body.style.removeProperty('--dev-panel-width');
+    }
+  });
+  onCleanup(() => { document.body.classList.remove('dev-panel-open'); document.body.style.removeProperty('--dev-panel-width'); });
+
+  const TABS: Array<{ id: 'build' | 'marks' | 'checks' | 'sections'; label: string }> = [
+    { id: 'build', label: 'Build' }, { id: 'marks', label: 'Marks' }, { id: 'checks', label: 'Checks' }, { id: 'sections', label: 'Sections' },
+  ];
+
+  // The aside is ALWAYS rendered (display toggled) so the slotted panels — the
+  // marks panel especially — stay mounted and keep driving the gutter even when
+  // the dev panel is closed. Only visibility changes with `open`.
   return (
-    <Show when={props.open}>
-      <aside style={{
-        position: 'fixed', top: 0, right: 0, bottom: 0, width: `${width()}px`,
-        background: '#fff', 'border-left': '2px solid #111', 'box-shadow': '-6px 0 24px rgba(0,0,0,0.13)',
-        'z-index': 1000, display: 'flex', 'flex-direction': 'column',
-        'font-family': 'system-ui, sans-serif', 'font-size': '13px',
-      }}>
-        {/* resize handle (left edge) */}
-        <div onMouseDown={onResizeStart} title="drag to resize"
-          style={{ position: 'absolute', top: 0, left: '-4px', bottom: 0, width: '9px', cursor: 'ew-resize', 'z-index': 1002 }} />
+    <aside style={{
+      position: 'fixed', top: 0, right: 0, bottom: 0, width: `${width()}px`,
+      background: '#fff', 'border-left': '2px solid #111', 'box-shadow': '-6px 0 24px rgba(0,0,0,0.13)',
+      'z-index': 1000, display: props.open ? 'flex' : 'none', 'flex-direction': 'column',
+      'font-family': 'system-ui, sans-serif', 'font-size': '13px',
+    }}>
+      {/* resize handle (left edge) */}
+      <div onMouseDown={onResizeStart} title="drag to resize"
+        style={{ position: 'absolute', top: 0, left: '-4px', bottom: 0, width: '9px', cursor: 'ew-resize', 'z-index': 1002 }} />
 
-        {/* title bar */}
-        <div style={{ display: 'flex', 'align-items': 'center', gap: '0.5rem', padding: '0.4rem 0.7rem', 'border-bottom': '1px solid #eee', background: '#fafafa', 'flex-shrink': 0 }}>
-          <span style={{ 'font-size': '0.72rem', 'letter-spacing': '0.06em', 'text-transform': 'uppercase', color: '#555', 'font-weight': 600 }}>{view() === 'waterfall' ? 'Activity' : 'Build'}</span>
-          <span style={{ 'font-size': '0.72rem', color: '#999' }}>{props.tractate} {props.page}</span>
-          <Show when={view() === 'dag' && runs()}>
-            <span style={{ 'font-size': '0.7rem', color: '#bbb' }}>· {dafTotals().cached}/{dafTotals().count} pieces cached · {fmtCost(dafTotals().cost)} daf</span>
-          </Show>
-          <button onClick={props.onClose} style={{ 'margin-left': 'auto', padding: '2px 10px', cursor: 'pointer', background: '#fff', border: '1px solid #ccc', 'border-radius': '4px', 'font-size': '0.74rem', color: '#555' }}>close</button>
-        </div>
+      {/* tab bar */}
+      <div style={{ display: 'flex', 'align-items': 'center', gap: '0.15rem', padding: '0.35rem 0.6rem', 'border-bottom': '1px solid #eee', background: '#fafafa', 'flex-shrink': 0 }}>
+        <For each={TABS}>{(t) => (
+          <button onClick={() => setTab(t.id)} style={{
+            font: 'inherit', 'font-size': '0.74rem', cursor: 'pointer', border: 'none', background: tab() === t.id ? '#eef0f2' : 'transparent',
+            'border-radius': '5px', padding: '0.25rem 0.55rem', color: tab() === t.id ? '#111' : '#888', 'font-weight': tab() === t.id ? 500 : 400,
+          }}>{t.label}</button>
+        )}</For>
+        <span style={{ 'font-size': '0.7rem', color: '#bbb', 'margin-left': '0.3rem' }}>{props.tractate} {props.page}</span>
+        <button onClick={props.onClose} style={{ 'margin-left': 'auto', padding: '2px 10px', cursor: 'pointer', background: '#fff', border: '1px solid #ccc', 'border-radius': '4px', 'font-size': '0.74rem', color: '#555' }}>close</button>
+      </div>
 
+      {/* === BUILD tab === */}
+      <div style={{ display: tab() === 'build' ? 'flex' : 'none', 'flex-direction': 'column', flex: 1, 'min-height': 0 }}>
         {/* collapsed waterfall row (DAG mode) — click to expand the full waterfall */}
         <Show when={view() === 'dag'}>
           <div style={{ 'border-bottom': '1px solid #eee', 'flex-shrink': 0 }}>
@@ -443,7 +471,14 @@ export default function RunTreeDock(props: { tractate: string; page: string; ope
           )}</Show>
         </div>
         </Show>
-      </aside>
-    </Show>
+      </div>{/* end BUILD tab */}
+
+      {/* === MARKS tab === always mounted (its effects drive the gutter) === */}
+      <div style={{ display: tab() === 'marks' ? 'block' : 'none', flex: 1, 'min-height': 0, 'overflow-y': 'auto', padding: '0.5rem 0.7rem' }}>{props.marks}</div>
+      {/* === CHECKS tab === */}
+      <div style={{ display: tab() === 'checks' ? 'block' : 'none', flex: 1, 'min-height': 0, 'overflow-y': 'auto', padding: '0.5rem 0.7rem' }}>{props.checks}</div>
+      {/* === SECTIONS tab === */}
+      <div style={{ display: tab() === 'sections' ? 'block' : 'none', flex: 1, 'min-height': 0, 'overflow-y': 'auto', padding: '0.5rem 0.7rem' }}>{props.sections}</div>
+    </aside>
   );
 }
