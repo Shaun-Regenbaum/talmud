@@ -26,6 +26,7 @@ import { runWithRetry } from './ai-gateway';
 import { LLMError, isFallbackWorthy, NEITHER, TIMEOUT } from './llm-error';
 import { DEFAULT_MODEL, DEFAULT_FALLBACK_CHAIN } from './settings';
 import { checkBudget, recordSpend, BudgetPausedError, type EmailBinding } from './budget';
+import { costSplitUsd, normalizeUsage } from './pricing';
 
 export type LLMModelId = `@cf/${string}` | `openrouter/${string}`;
 
@@ -94,10 +95,45 @@ export interface LLMCallOptions {
    *  'mark:rabbi', 'enrich:rabbi.synthesis'). Lets /api/admin/llm-cost break
    *  spend down by mark/enrichment. Untagged calls still count toward totals. */
   tag?: string;
+  /** Structured cost-ledger provenance: which daf / language / producer / kind
+   *  of paid work this call was. Lets spend be traced to a daf and a producer,
+   *  not just a free-text tag. See CostAttribution. */
+  attribution?: CostAttribution;
   /** Spend classification for the budget guard (./budget). 'custom-question'
    *  counts against the hourly custom-Q&A cap AND the daily total; everything
    *  else counts only against the daily total. */
   cost_class?: 'custom-question';
+}
+
+/** Coarse category of paid work, so spend can be grouped by what it was for
+ *  even when there's no producer id (translate, hebraize, diagnostics, …). */
+export type CostKind =
+  | 'mark'
+  | 'enrichment'
+  | 'translate'
+  | 'hebraize'
+  | 'match'
+  | 'bridge'
+  | 'analyze'
+  | 'rabbi'
+  | 'adhoc'
+  | 'qa'
+  | 'other';
+
+/** Structured provenance attached to a paid LLM call. Every field is optional —
+ *  daf-bound work fills tractate/page/lang/cache_version; global work (rabbi
+ *  enrichment, diagnostics) just sets `kind`. Written verbatim into the cost
+ *  ledger so a dollar can be traced to a daf, a language, a producer version. */
+export interface CostAttribution {
+  tractate?: string;
+  page?: string;
+  lang?: 'en' | 'he';
+  /** The producer's cache_version at generation time — lets spend on a
+   *  superseded version be told apart from spend on the current one. */
+  cache_version?: string;
+  kind?: CostKind;
+  /** Mark or enrichment id (e.g. 'rabbi', 'argument.synthesis'). */
+  producerId?: string;
 }
 
 export type LLMTransport = 'workers-ai' | 'openrouter-gateway';
@@ -208,7 +244,7 @@ export async function runLLM(env: LLMEnv, opts: LLMCallOptions): Promise<LLMResu
     const model = chain[i];
     try {
       const result = await withHardTimeout(callOnce(env, model, opts), MODEL_CALL_HARD_TIMEOUT_MS, model);
-      await recordLLMCost(env, model, opts.tag, i + 1, result);
+      await recordLLMCost(env, model, i + 1, result, opts);
       // Feed the spend budget (./budget) so the next checkBudget sees this call.
       await recordSpend(env, { model: result.model, usage: result.usage, custom });
       return { ...result, attempts: i + 1 };
@@ -232,32 +268,51 @@ export async function runLLM(env: LLMEnv, opts: LLMCallOptions): Promise<LLMResu
 // concurrent queue workers never clobber each other (a single ring buffer's
 // read-modify-write would lose entries and undercount). /api/admin/llm-cost
 // sums the prefix. Best-effort + short TTL; failures never block the call.
+// Schema is additive over the original (model/tag/cost/tokens stay put), so the
+// 7-day window of pre-attribution entries still aggregates — new fields just
+// read as null on them.
 const LLM_COST_PREFIX = 'llmcost:v1:';
 const LLM_COST_TTL_S = 7 * 24 * 3600;
 
 async function recordLLMCost(
   env: LLMEnv,
   model: LLMModelId,
-  tag: string | undefined,
   attempts: number,
   result: Omit<LLMResult, 'attempts'>,
+  opts: LLMCallOptions,
 ): Promise<void> {
   const cache = env.CACHE;
   if (!cache) return;
   try {
     const u = result.usage;
-    const key = `${LLM_COST_PREFIX}${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    const a = opts.attribution;
+    const { input, output } = normalizeUsage(u);
+    // OpenRouter returns one billed `cost`; the in/out split is a list-price
+    // estimate so the dashboard can show where tokens (and dollars) went.
+    const { costInUsd, costOutUsd } = costSplitUsd(model, u);
+    const now = Date.now();
+    const key = `${LLM_COST_PREFIX}${now.toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
     const rec = {
-      ts: Date.now(),
+      ts: now,
       model,
       transport: result.transport,
-      tag: tag ?? 'untagged',
+      tag: opts.tag ?? 'untagged',
       attempts,
       ms: result.elapsed_ms,
       cost: typeof u?.cost === 'number' ? u.cost : null,
-      prompt_tokens: u?.prompt_tokens ?? null,
-      completion_tokens: u?.completion_tokens ?? null,
+      cost_in_est: costInUsd,
+      cost_out_est: costOutUsd,
+      prompt_tokens: u?.prompt_tokens ?? input ?? null,
+      completion_tokens: u?.completion_tokens ?? output ?? null,
       total_tokens: u?.total_tokens ?? null,
+      // Structured attribution — null when the caller didn't supply it.
+      kind: a?.kind ?? null,
+      producer_id: a?.producerId ?? null,
+      tractate: a?.tractate ?? null,
+      page: a?.page ?? null,
+      lang: a?.lang ?? null,
+      cache_version: a?.cache_version ?? null,
+      cost_class: opts.cost_class ?? null,
     };
     await cache.put(key, JSON.stringify(rec), { expirationTtl: LLM_COST_TTL_S });
   } catch {

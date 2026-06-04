@@ -31,6 +31,10 @@ export async function aiMatchToSegments(
   segmentsHe: string[],
   segmentsEn: string[],
   items: MatchInput[],
+  /** Daf this alignment is for — attributes the matcher's spend to a page in
+   *  the cost ledger ('source alignment' on daf X). Omitted by callers that
+   *  don't have it (spend then lands under kind='match', no daf). */
+  daf?: { tractate: string; page: string },
 ): Promise<SegMatch[]> {
   if (segmentsHe.length === 0 || items.length === 0) return [];
 
@@ -48,7 +52,7 @@ export async function aiMatchToSegments(
     for (;;) {
       const idx = next++;
       if (idx >= chunks.length) return;
-      results[idx] = await matchChunk(env, segmentsHe, segmentsEn, chunks[idx]);
+      results[idx] = await matchChunk(env, segmentsHe, segmentsEn, chunks[idx], daf);
     }
   };
   await Promise.all(
@@ -63,6 +67,7 @@ async function matchChunk(
   segmentsHe: string[],
   segmentsEn: string[],
   batch: MatchInput[],
+  daf?: { tractate: string; page: string },
 ): Promise<SegMatch[]> {
   const { system, user } = buildMatchPrompt(segmentsHe, segmentsEn, batch);
   const result = await runLLM(env, {
@@ -74,6 +79,7 @@ async function matchChunk(
     temperature: 0,
     response_format: { type: 'json_object' },
     tag: 'context-match',
+    attribution: { kind: 'match', ...(daf ? { tractate: daf.tractate, page: daf.page } : {}) },
   });
   const validKeys = new Set(batch.map((b) => b.key));
   return parseMatchResponse(result.content, validKeys, segmentsHe.length);
