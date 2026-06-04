@@ -127,7 +127,7 @@ binding = "CACHE"
 # 2026-05-04. Source-text caches (HebrewBooks, Sefaria pre-aligned bundles,
 # Rishonim, halacha refs, topics, SA commentaries) were migrated; everything
 # else (analyze:*, enrich:*, mark-defs:*, llm-settings:*) starts empty.
-# Migration script: Sandbox/2026-05-04-kv-fork/migrate.mjs
+# (One-time migration; the fork script has since been removed.)
 id = "f373689f767c477e98cf3b644a4d05bd"
 
 # Workers Observability — captures logs, errors, metrics visible in the CF
