@@ -35,6 +35,9 @@ const PAD = 12;
 const MIN_VERT = 200;
 const MIN_HORIZ = 320;
 const MOBILE_BAR = 72; // room left for the mobile mode bar at the very bottom
+// A note panel is very tall; ring only its top (title + summary) instead of the
+// whole sidebar, which reads as "everything is highlighted" and looks wrong.
+const MAX_RING_H = 240;
 
 type Pos =
   | { mode: 'center' }
@@ -79,8 +82,8 @@ export function TutorialCoach(): JSX.Element {
     const s = step();
     const sel = s.selector ?? (s.target ? `[data-tour="${s.target}"]` : null);
     if (!sel) { setRect(null); reposition(); return; }
-    const el = document.querySelector(sel);
-    if (!el) {
+    const els = document.querySelectorAll(sel);
+    if (!els.length) {
       setRect(null);
       reposition();
       // Marks / notes load async — keep looking for a few seconds, then settle
@@ -88,10 +91,20 @@ export function TutorialCoach(): JSX.Element {
       if (attempt < 30) retryTimer = setTimeout(() => measure(attempt + 1), 120);
       return;
     }
+    // Pick which match to spotlight (e.g. a rabbi name from the body, not the
+    // first one crammed against the top).
+    let idx = 0;
+    if (s.selectorIndex === 'middle') idx = Math.floor(els.length / 2);
+    else if (typeof s.selectorIndex === 'number') idx = Math.max(0, Math.min(s.selectorIndex, els.length - 1));
+    const el = els[idx];
     // Scroll the target into the area the card won't cover.
     const block = isMobile() && mobileAnchor() === 'bottom' ? 'start' : 'center';
     el.scrollIntoView({ block: block as ScrollLogicalPosition, inline: 'center', behavior: 'smooth' });
-    setRect(el.getBoundingClientRect());
+    const raw = el.getBoundingClientRect();
+    // Ring only the top of a very tall target (a note panel), so we point at the
+    // note's summary rather than appearing to highlight the whole sidebar.
+    const h = Math.min(raw.height, MAX_RING_H);
+    setRect(new DOMRect(raw.left, raw.top, raw.width, h));
     reposition();
   };
   onCleanup(() => clearTimeout(retryTimer));
@@ -134,6 +147,21 @@ export function TutorialCoach(): JSX.Element {
     if (s.note) openTutorialNote(s.note); else closeTutorialNote();
     setPos(null);
     requestAnimationFrame(() => requestAnimationFrame(() => measure()));
+    // Expand the in-note Q&A panel so its real suggested questions show. Runs
+    // once per step entry (after the note has had a beat to render); the
+    // collapsed-state guard keeps repeated measures from toggling it shut.
+    if (s.expandQa) {
+      const tryExpand = (n = 0) => {
+        const toggle = document.querySelector<HTMLButtonElement>('[data-tour="argument-qa"] button[aria-expanded]');
+        if (toggle) {
+          if (toggle.getAttribute('aria-expanded') !== 'true') toggle.click();
+          requestAnimationFrame(() => measure());
+        } else if (n < 20) {
+          setTimeout(() => tryExpand(n + 1), 150);
+        }
+      };
+      setTimeout(() => tryExpand(), 400);
+    }
   });
 
   // Keep the cutout glued to the target through scroll / resize.
@@ -253,6 +281,11 @@ export function TutorialCoach(): JSX.Element {
           </div>
           <Show when={step().supplement}>
             {(kind) => <Supplement kind={kind()} />}
+          </Show>
+          <Show when={step().note}>
+            <div style={{ 'margin-top': '12px', 'font-size': '12px', 'line-height': 1.45, color: 'var(--muted, #6b7280)', 'font-style': 'italic' }}>
+              {t('tutorial.generating.note')}
+            </div>
           </Show>
           <Show when={step().id === 'finish'}>
             <div style={{ 'margin-top': '14px', 'font-size': '14px', 'line-height': 1.55, color: '#374151' }}>

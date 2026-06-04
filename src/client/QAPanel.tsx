@@ -349,7 +349,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
   };
 
   return (
-    <div style={{
+    <div data-tour="argument-qa" style={{
       'margin-top': '0.6rem',
       'border-top': '1px solid #eee',
       'padding-top': '0.5rem',

@@ -15,11 +15,11 @@
  */
 
 /** The daf the tutorial features — pinned so the marks/notes are warm and the
- *  coach always points at the same, known content. Berakhot 62b: Bar Kappara's
- *  life-wisdom maxims (eat when hungry, drink when thirsty, and — the memorable
- *  last one — relieve yourself when you need to), woven with halacha, stories,
- *  and quoted verses, so every note type is represented. */
-export const FEATURED_DAF = { tractate: 'Berakhot', page: '62b' } as const;
+ *  coach always points at the same, known content. Berakhot 8a: a rich early
+ *  daf (the "time of favour", the worth of the synagogue, shnayim mikra) with
+ *  argument, halacha, aggada, quoted verses, and many named rabbis — so every
+ *  note type is represented. */
+export const FEATURED_DAF = { tractate: 'Berakhot', page: '8a' } as const;
 
 /** Which real note a step opens behind the coach. The coach asks the embedded
  *  DafViewer to open it; the reader sees the genuine panel / drawer. */
@@ -42,6 +42,12 @@ export interface TourStep {
   /** Raw CSS selector to spotlight instead of a `data-tour` target (used for
    *  generated daf content like a rabbi name). Takes precedence over `target`. */
   selector?: string;
+  /** Which match of `selector` to spotlight: an index, or 'middle' to pick one
+   *  in the body (so a rabbi-name highlight isn't crammed against the top). */
+  selectorIndex?: number | 'middle';
+  /** Expand the in-note Q&A panel ("ask your own question") for this step, so
+   *  the real suggested questions are visible. */
+  expandQa?: boolean;
   /** Open a real note (panel on desktop, drawer on mobile) for this step. */
   note?: TourNote;
   /** Keep the mobile top header drawer (tractate / nav / language) open for
@@ -111,6 +117,15 @@ export const TOUR_STEPS: TourStep[] = [
     bodyKey: 'tutorial.argument.body',
   },
   {
+    id: 'qa',
+    chapterKey: 'tutorial.chapter.marks',
+    target: 'argument-qa',
+    note: 'argument',
+    expandQa: true,
+    titleKey: 'tutorial.qa.title',
+    bodyKey: 'tutorial.qa.body',
+  },
+  {
     id: 'halacha',
     chapterKey: 'tutorial.chapter.marks',
     target: 'note-panel',
@@ -134,18 +149,10 @@ export const TOUR_STEPS: TourStep[] = [
     bodyKey: 'tutorial.overview.body',
   },
   {
-    id: 'qa',
-    chapterKey: 'tutorial.chapter.marks',
-    target: 'note-panel',
-    note: 'overview',
-    supplement: 'qa',
-    titleKey: 'tutorial.qa.title',
-    bodyKey: 'tutorial.qa.body',
-  },
-  {
     id: 'underline',
     chapterKey: 'tutorial.chapter.marks',
     selector: 'span.rabbi-underline',
+    selectorIndex: 'middle',
     titleKey: 'tutorial.underline.title',
     bodyKey: 'tutorial.underline.body',
     supplement: 'spectrum',
