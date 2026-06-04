@@ -48,6 +48,7 @@ import { recordStage } from './rendererActivity';
 import { applyMarkRenderers } from './renderers/dispatch';
 import { readDevMode, setDevModeActive } from './DevModeShelf';
 import RunTreeDock from './RunTreeDock';
+import { inspectRequest } from './inspectBridge';
 import ChecksPanel from './ChecksPanel';
 import TypeProfilePanel from './TypeProfilePanel';
 import type { GenerationId } from './generations';
@@ -421,6 +422,8 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // Dev tooling is desktop-only. On mobile force it off so a flag persisted from
   // a prior desktop session can't leak dev affordances (inspect dots, etc.).
   createEffect(() => { if (isMobile()) { setDevOpen(false); setDevModeActive(false); } });
+  // An inspect affordance (a sidebar card's (i)) asks to open the Inspect panel.
+  createEffect(() => { if (inspectRequest() && !isMobile()) { setDevOpen(true); setDevModeActive(true); } });
 
   // Adapter: derive analysis() from the new registry-driven `argument` mark
   // run output. The new schema is { instances: [{startSegIdx, endSegIdx,

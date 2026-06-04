@@ -18,11 +18,10 @@
  */
 
 import { createResource, createSignal, createEffect, onCleanup, untrack, For, Show, type JSX } from 'solid-js';
-import { Portal } from 'solid-js/web';
 import { HebraizedWithRabbis as Hebraized } from './rabbiLinks';
 import { devModeActive } from './DevModeShelf';
 import { trackAI } from './aiActivity';
-import InstanceInspectorShelf from './InstanceInspectorShelf';
+import { requestInspect } from './inspectBridge';
 import {
   RequestQueue, QUEUE_PRIORITY, runResultCache, runCacheKey, isAbort,
   PAUSED_ERROR, isPausedBody, isServiceUnavailableError,
@@ -39,12 +38,13 @@ const [openInspectorKey, setOpenInspectorKey] = createSignal<string | null>(null
 // drawer focused on its leaf.
 const [inspectorView, setInspectorView] = createSignal<string | null>(null);
 
-/** Open the instance inspector for `instanceKey`, optionally focused on a
- *  specific leaf enrichment id (null = the synthesis). Any section affordance
- *  can call this; the MarkEnrichmentCards with that key owns the drawer. */
+/** Open the build inspector focused on the producer that `leafId` belongs to —
+ *  the whole-daf MARK (always cached), so the Inspect panel shows a real DAG.
+ *  `instanceKey` is kept for signature compatibility with existing call sites.
+ *  Replaces the old per-instance bottom drawer: now routes to RunTreeDock. */
 export function openInstanceInspector(instanceKey: string, leafId: string | null = null): void {
-  setInspectorView(leafId);
-  setOpenInspectorKey(instanceKey);
+  const piece = leafId ? (leafId.split('.')[0] || leafId) : instanceKey;
+  requestInspect(piece);
 }
 
 /** The small circular "i" affordance. Dev-mode only. Drop next to any section
@@ -708,7 +708,8 @@ export default function MarkEnrichmentCards(props: Props) {
     // toggleHighlight wrapper). Stop propagation so the inspector affordance
     // doesn't double as a highlight toggle.
     if (e) e.stopPropagation();
-    openInstanceInspector(props.instanceKey, null);
+    // The card's own (i) inspects this card's whole-daf mark in the Inspect panel.
+    requestInspect(props.markId);
   };
 
   // Sidebar card: production view in all modes — clean synthesis output in
@@ -767,30 +768,6 @@ export default function MarkEnrichmentCards(props: Props) {
           </button>
         </Show>
       </div>
-      <Show when={devModeActive() && isInspectorOpen()}>
-        {/* Portal to document.body so the drawer escapes whatever stacking
-            context the host card lives in (e.g. .daf-aside is position:
-            sticky, which clamps a nested fixed-positioned element's
-            z-index to the sticky's context — and DevModeShelf at z 900
-            otherwise wins over an in-context z 1000). */}
-        <Portal>
-          <InstanceInspectorShelf
-            instanceLabel={instanceLabel()}
-            markId={props.markId}
-            aggregates={aggregates()}
-            leaves={leaves()}
-            selected={inspectorSelectedId()}
-            onSelect={(id) => setInspectorView(id)}
-            currentView={currentView()}
-            currentRun={currentRun()}
-            depBadges={currentDepBadges()}
-            prettyDepLabel={(depId) => prettyDepLabel(depId, props.markId)}
-            renderBody={renderInspectorBody}
-            onClose={closeInspector}
-            sources={inspectorSources()}
-          />
-        </Portal>
-      </Show>
     </>
   );
 }

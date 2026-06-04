@@ -1030,32 +1030,37 @@ app.get('/api/daf-runs/:tractate/:page', async (c) => {
   const wholeDafEnrichments = CODE_ENRICHMENTS.filter(
     (e) => e.scope === 'local' && e.target_mark !== 'argument',
   );
-  const producers: Array<{ id: string; label: string; isMark: boolean; ext?: { kind?: string; model?: string } }> = [
-    ...CODE_MARKS.map((m) => ({ id: m.id, label: m.label, isMark: true, ext: m.extractor as { kind?: string; model?: string } })),
-    ...wholeDafEnrichments.map((e) => ({ id: e.id, label: e.label, isMark: false, ext: e.extractor as { kind?: string; model?: string } })),
+  // The whole-daf instance id is the same for every enrichment ({fields:{}}),
+  // so hash it ONCE rather than per producer (cacheKeyForRunBody did it per call).
+  const iid = await instanceIdOf({ fields: {} });
+  const producers = [
+    ...CODE_MARKS.map((def) => ({ def, isMark: true as const })),
+    ...wholeDafEnrichments.map((def) => ({ def, isMark: false as const })),
   ];
 
-  const runs = [];
-  for (const p of producers) {
-    const isLLM = p.ext?.kind === 'llm';
-    const job = (p.isMark
-      ? { mark_id: p.id, tractate, page, lang }
-      : { enrichment_id: p.id, tractate, page, mark_input: { fields: {} }, lang }) as unknown as JobMessage;
-    const { key } = await cacheKeyForRunBody(c.env, job);
-    const res = key ? await readCachedResult(c.env, key) : null;
+  // Read all producers' cached results in PARALLEL — ~46 KV gets at once instead
+  // of serially (the serial loop made the waterfall take seconds on first open).
+  // Keys are computed directly from the defs we already hold (no loadDef round-trip).
+  const runs = await Promise.all(producers.map(async ({ def, isMark }) => {
+    const ext = def.extractor as { kind?: string; model?: string; system_prompt_he?: string } | undefined;
+    const isLLM = ext?.kind === 'llm';
+    const key = isMark
+      ? keyForMark(def, tractate, page, lang === 'he' && !!ext?.system_prompt_he ? 'he' : 'en')
+      : keyForEnrichment(def, iid, { tractate, page }, undefined, lang);
+    const res = await readCachedResult(c.env, key);
     const usage = res?.usage as { cost?: number; total_tokens?: number } | undefined;
-    runs.push({
-      id: p.id,
-      label: p.label,
+    return {
+      id: def.id,
+      label: def.label,
       kind: isLLM ? 'llm' : 'computed',
-      producer: p.isMark ? 'mark' : 'enrichment',
-      model: isLLM ? p.ext?.model : undefined,
+      producer: isMark ? 'mark' : 'enrichment',
+      model: isLLM ? ext?.model : undefined,
       cached: !!res,
       cold_ms: typeof res?.elapsed_ms === 'number' ? res.elapsed_ms : null,
       cost: typeof usage?.cost === 'number' ? usage.cost : null,
       tokens: typeof usage?.total_tokens === 'number' ? usage.total_tokens : null,
-    });
-  }
+    };
+  }));
   // longest cold runs first — the waterfall reads as "where the time went"
   runs.sort((a, b) => (b.cold_ms ?? -1) - (a.cold_ms ?? -1));
   return c.json({ tractate, page, lang, runs });
