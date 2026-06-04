@@ -50,6 +50,40 @@ export function producerNodesFrom(
   }));
 }
 
+/** The forward dependency subgraph reachable from a root producer: the set of
+ *  node ids (producers AND source-input leaves) and the consumer→dependency
+ *  edges between them. A node reached through several parents appears ONCE in
+ *  `nodes` with one edge per parent — so the DAG's sharing (e.g. `gemara`
+ *  depended on by many) is preserved as fan-in, not duplicated. Edges are emitted
+ *  parent→child in discovery order; cycle-safe via the visited set. Pure. */
+export interface ForwardGraph {
+  nodes: string[];
+  edges: Array<[string, string]>;
+}
+export function forwardSubgraph(
+  nodes: ReadonlyArray<ProducerNode>,
+  rootId: string,
+): ForwardGraph {
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  const seen = new Set<string>();
+  const edges: Array<[string, string]> = [];
+  // DFS; sources (ids absent from byId) are visited as childless leaves so they
+  // land in `nodes` but contribute no edges of their own.
+  const stack = [rootId];
+  while (stack.length) {
+    const id = stack.pop()!;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const node = byId.get(id);
+    if (!node) continue;
+    for (const dep of node.dependsOn) {
+      edges.push([id, dep]);
+      if (!seen.has(dep)) stack.push(dep);
+    }
+  }
+  return { nodes: [...seen], edges };
+}
+
 /** Invert the forward graph: map each id (producer OR source input) to the SET
  *  of producer ids that depend on it DIRECTLY. */
 export function reverseDependencyIndex(nodes: ReadonlyArray<ProducerNode>): Map<string, Set<string>> {
