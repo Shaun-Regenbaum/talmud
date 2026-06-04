@@ -38,13 +38,13 @@ const [openInspectorKey, setOpenInspectorKey] = createSignal<string | null>(null
 // drawer focused on its leaf.
 const [inspectorView, setInspectorView] = createSignal<string | null>(null);
 
-/** Open the build inspector focused on the producer that `leafId` belongs to —
- *  the whole-daf MARK (always cached), so the Inspect panel shows a real DAG.
- *  `instanceKey` is kept for signature compatibility with existing call sites.
- *  Replaces the old per-instance bottom drawer: now routes to RunTreeDock. */
+/** Open the build inspector focused on `leafId` — the ENRICHMENT (the
+ *  generation), e.g. 'argument.voices' / 'rabbi.relationships'. Focus that, not
+ *  its parent mark, so the DAG shows the generation + its sub-enrichments rather
+ *  than the raw source extraction. Routes to RunTreeDock (the old per-instance
+ *  bottom drawer is retired). */
 export function openInstanceInspector(instanceKey: string, leafId: string | null = null): void {
-  const piece = leafId ? (leafId.split('.')[0] || leafId) : instanceKey;
-  requestInspect(piece);
+  requestInspect(leafId ?? instanceKey);
 }
 
 /** The small circular "i" affordance. Dev-mode only. Drop next to any section
@@ -708,8 +708,10 @@ export default function MarkEnrichmentCards(props: Props) {
     // toggleHighlight wrapper). Stop propagation so the inspector affordance
     // doesn't double as a highlight toggle.
     if (e) e.stopPropagation();
-    // The card's own (i) inspects this card's whole-daf mark in the Inspect panel.
-    requestInspect(props.markId);
+    // The card's own (i) inspects this card's GENERATION — its aggregate
+    // (synthesis) enrichment, at THIS instance — so the DAG shows the synthesis
+    // breaking down into its sub-enrichments, with the real cached output.
+    requestInspect(aggregates()[0]?.id ?? props.markId, props.instance);
   };
 
   // Sidebar card: production view in all modes — clean synthesis output in

@@ -940,6 +940,11 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
   const page = c.req.param('page');
   const id = c.req.param('id');
   const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
+  // Optional instance (mark_input JSON) for a per-instance ROOT — e.g. one
+  // section's synthesis. Applied to the root only; whole-daf deps keep {fields:{}}.
+  let rootInstance: unknown = { fields: {} };
+  const instanceRaw = c.req.query('instance');
+  if (instanceRaw) { try { rootInstance = JSON.parse(instanceRaw); } catch { /* keep default */ } }
 
   const defs = [...CODE_MARKS, ...CODE_ENRICHMENTS];
   const byId = new Map(defs.map((d) => [d.id, d]));
@@ -979,7 +984,7 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
     const isLLM = ext?.kind === 'llm';
     const job = (isMark
       ? { mark_id: nid, tractate, page, lang }
-      : { enrichment_id: nid, tractate, page, mark_input: { fields: {} }, lang }) as unknown as JobMessage;
+      : { enrichment_id: nid, tractate, page, mark_input: nid === id ? rootInstance : { fields: {} }, lang }) as unknown as JobMessage;
     const { key } = await cacheKeyForRunBody(c.env, job);
     const res = key ? await readCachedResult(c.env, key) : null;
     const usage = res?.usage as { cost?: number; total_tokens?: number } | undefined;
