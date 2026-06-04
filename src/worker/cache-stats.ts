@@ -391,13 +391,14 @@ async function mergedMarks(cache: KVNamespace): Promise<MergedMark[]> {
 }
 
 /** The other MARK a dependency descriptor points at, if any. `{mark:X}` → X;
- *  `{enrichment:'X.y'}` → X (the enrichment's owning mark); source-string deps
+ *  `{enrichment:id}` → the enrichment's own `target_mark` (resolved via the
+ *  registry, since KV enrichment ids needn't be `<mark>.*`); source-string deps
  *  ('gemara', 'context', …) → null. Powers the per-mark "depends on" chips. */
-function foreignMarkOf(dep: unknown): string | null {
+function foreignMarkOf(dep: unknown, markOfEnrichment: (id: string) => string | undefined): string | null {
   if (!dep || typeof dep !== 'object') return null;
   const d = dep as { mark?: string; enrichment?: string };
   if (typeof d.mark === 'string') return d.mark;
-  if (typeof d.enrichment === 'string') return d.enrichment.split('.')[0];
+  if (typeof d.enrichment === 'string') return markOfEnrichment(d.enrichment) ?? d.enrichment.split('.')[0];
   return null;
 }
 
@@ -512,9 +513,10 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
   // Per-mark "depends on" foreign marks (from the mark's own deps + its
   // enrichments' deps), so Content-Out can show "tidbit depends on overview".
   const markIds = new Set(markDefs.map((m) => m.id));
+  const markOfEnrichment = new Map(enrichDefs.map((e) => [e.id, e.target_mark]));
   const dependsByMark = new Map<string, Set<string>>();
   const addDep = (markId: string, dep: unknown): void => {
-    const f = foreignMarkOf(dep);
+    const f = foreignMarkOf(dep, (id) => markOfEnrichment.get(id));
     if (f && f !== markId && markIds.has(f)) {
       (dependsByMark.get(markId) ?? dependsByMark.set(markId, new Set()).get(markId)!).add(f);
     }
