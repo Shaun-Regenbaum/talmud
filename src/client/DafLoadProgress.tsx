@@ -19,7 +19,14 @@ import { t } from './i18n';
 
 const COMPLETE_LINGER_MS = 700;
 
-export default function DafLoadProgress(): JSX.Element {
+interface DafLoadProgressProps {
+  /** When true, render for the mobile bottom shelf: no sticky/top pinning
+   *  (the shelf is already fixed) and tighter margins. Defaults to the
+   *  in-column sticky bar pinned above the daf. */
+  embedded?: boolean;
+}
+
+export default function DafLoadProgress(props: DafLoadProgressProps = {}): JSX.Element {
   // Anchor cohort: marks that are actually doing something (skip idle/disabled).
   const marks = createMemo(() => {
     const relevant = markStatuses().filter((m) => m.kind !== 'idle');
@@ -99,9 +106,11 @@ export default function DafLoadProgress(): JSX.Element {
           aria-live="polite"
           style={{
             display: 'flex', 'align-items': 'center', gap: '0.4rem',
-            position: 'sticky', top: 0, 'z-index': 50,
+            ...(props.embedded
+              ? { position: 'static' as const }
+              : { position: 'sticky' as const, top: 0, 'z-index': 50 }),
             width: '100%', 'box-sizing': 'border-box',
-            padding: '0.4rem 0.55rem', 'margin-bottom': '0.5rem',
+            padding: '0.4rem 0.55rem', 'margin-bottom': props.embedded ? '0' : '0.5rem',
             'border-radius': '4px',
             border: `1px solid ${kind() === 'paused' ? '#f59e0b' : '#ef4444'}`,
             background: kind() === 'paused' ? '#fffbeb' : '#fef2f2',
@@ -120,18 +129,20 @@ export default function DafLoadProgress(): JSX.Element {
         role="status"
         aria-live="polite"
         style={{
-          // Pinned directly above the daf: rendered inside the daf body
-          // column so it's exactly the daf's width, and sticky so it stays
-          // above the daf as the reader scrolls. Parchment background so daf
-          // text scrolling underneath doesn't bleed through.
-          position: 'sticky',
-          top: 0,
-          'z-index': 50,
+          // Default: pinned directly above the daf — rendered inside the daf
+          // body column so it's exactly the daf's width, and sticky so it
+          // stays above the daf as the reader scrolls. Parchment background so
+          // daf text scrolling underneath doesn't bleed through.
+          // Embedded (mobile shelf): the shelf is already fixed, so render
+          // flat with no sticky pinning and no bottom margin.
+          ...(props.embedded
+            ? { position: 'static' as const }
+            : { position: 'sticky' as const, top: 0, 'z-index': 50 }),
           width: '100%',
           'box-sizing': 'border-box',
           background: 'var(--bg)',
           padding: '0.4rem 0.25rem',
-          'margin-bottom': '0.5rem',
+          'margin-bottom': props.embedded ? '0' : '0.5rem',
           'font-family': 'system-ui, -apple-system, sans-serif',
           'font-size': '0.72rem',
           color: 'var(--muted)',

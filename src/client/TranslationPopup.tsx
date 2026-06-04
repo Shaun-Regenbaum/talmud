@@ -1,11 +1,13 @@
 import { createSignal, createEffect, onCleanup, Show, type JSX } from 'solid-js';
 import { t, lang } from './i18n';
 
+type Rect = { top: number; left: number; bottom: number; right: number };
+
 export interface TranslationPopupProps {
   word: string;
   tractate: string;
   page: string;
-  anchor: { top: number; left: number; bottom: number; right: number };
+  anchor: Rect;
   onClose: () => void;
   /** ~30 words of daf text immediately before the click, used by the server
    *  to align to a Sefaria segment and pick a contextually-correct translation. */
@@ -15,6 +17,15 @@ export interface TranslationPopupProps {
   /** Sefaria segment index resolved client-side from `data-seg` on the
    *  clicked .daf-word. The server uses it directly when provided. */
   segIdx?: number;
+  /** Mobile mode: always place the popup ABOVE the selected words (never over
+   *  them) and auto-scroll the page to make room if needed, so the reader can
+   *  always see the words and tap nearby ones to extend the selection. Also
+   *  shows the tap-to-extend hint. */
+  mobile?: boolean;
+  /** Live bounding rect of the selected word(s) in viewport coords. Used on
+   *  mobile to re-measure after an auto-scroll (the static `anchor` goes stale
+   *  once we scroll). Falls back to `anchor` when absent. */
+  getAnchorRect?: () => Rect | null;
 }
 
 // Module-level cache so reopening the popup for a word we already translated
@@ -103,7 +114,12 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
     document.removeEventListener('mousedown', onDocClick, true);
   });
 
-  // Position above the word if there's room, else below
+  const GAP = 8;        // space between popup and the selected words
+  const TOP_MARGIN = 8; // min gap from the viewport top
+
+  const liveAnchor = (): Rect => props.getAnchorRect?.() ?? props.anchor;
+
+  // — Desktop: above if there's room, else below (static, from the click anchor).
   const popupStyle = (): JSX.CSSProperties => {
     const a = props.anchor;
     const popupHeight = 80;
@@ -119,12 +135,57 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
     };
   };
 
+  // — Mobile: always above the words. If there isn't room above, scroll the
+  // page so the words drop down (revealing space), then re-measure. Keeps the
+  // selected text visible so the reader can tap adjacent words to extend.
+  const [mobilePos, setMobilePos] = createSignal<{ top: number; left: number } | null>(null);
+  const placeAbove = (allowScroll: boolean) => {
+    const a = liveAnchor();
+    const h = popupRef?.offsetHeight ?? 80;
+    const deficit = TOP_MARGIN + h + GAP - a.top;
+    if (allowScroll && deficit > 0) {
+      // Scroll up (content moves down) by the deficit, then re-measure the now
+      // lower selection on the next frame — without scrolling again.
+      window.scrollBy({ top: -deficit });
+      requestAnimationFrame(() => placeAbove(false));
+    }
+    setMobilePos({ top: Math.max(TOP_MARGIN, a.top - h - GAP), left: (a.left + a.right) / 2 });
+  };
+  // Reposition (with a scroll if needed) whenever the selection changes.
+  createEffect(() => {
+    if (!props.mobile) return;
+    void props.anchor; // re-run when the selection identity changes
+    placeAbove(true);
+  });
+  // Re-place (no scroll) when the popup's height changes as the translation
+  // text arrives, so it stays glued just above the words.
+  createEffect(() => {
+    if (!props.mobile) return;
+    void translation(); void loading(); void error();
+    placeAbove(false);
+  });
+
+  const positionStyle = (): JSX.CSSProperties => {
+    if (!props.mobile) return popupStyle();
+    const p = mobilePos();
+    const a = liveAnchor();
+    const top = p ? p.top : Math.max(TOP_MARGIN, a.top - 80 - GAP);
+    const left = p ? p.left : (a.left + a.right) / 2;
+    return {
+      position: 'fixed',
+      top: `${top}px`,
+      left: `${left}px`,
+      transform: 'translateX(-50%)',
+      'z-index': '1000',
+    };
+  };
+
   return (
     <div
       ref={popupRef}
       class="translation-popup"
       style={{
-        ...popupStyle(),
+        ...positionStyle(),
         background: '#fff',
         border: '1px solid #d0d0d0',
         'border-radius': '6px',
@@ -159,6 +220,20 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
           {translation()}
         </Show>
       </div>
+      <Show when={props.mobile}>
+        <div
+          style={{
+            'margin-top': '0.4rem',
+            'padding-top': '0.35rem',
+            'border-top': '1px solid #eee',
+            'font-size': '0.7rem',
+            color: '#999',
+            'line-height': 1.35,
+          }}
+        >
+          {t('translation.mobileHint')}
+        </div>
+      </Show>
     </div>
   );
 }

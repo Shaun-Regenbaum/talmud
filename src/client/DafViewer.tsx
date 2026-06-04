@@ -316,6 +316,22 @@ function collectSnappedWords(range: Range): HTMLElement[] {
   return out;
 }
 
+/** Live viewport-coord bounding box of a set of word elements, or null when
+ *  none are connected. Used to re-measure the translation popup's anchor after
+ *  an auto-scroll (the rect captured at click time goes stale once we scroll). */
+function unionRectOf(els: HTMLElement[]): { top: number; left: number; bottom: number; right: number } | null {
+  let top = Infinity, left = Infinity, bottom = -Infinity, right = -Infinity;
+  for (const el of els) {
+    if (!el.isConnected) continue;
+    const r = el.getBoundingClientRect();
+    top = Math.min(top, r.top);
+    left = Math.min(left, r.left);
+    bottom = Math.max(bottom, r.bottom);
+    right = Math.max(right, r.right);
+  }
+  return Number.isFinite(top) ? { top, left, bottom, right } : null;
+}
+
 export default function DafViewer(): JSX.Element {
   const params = new URLSearchParams(window.location.search);
   const [tractate, setTractate] = createSignal(params.get('tractate') ?? 'Berakhot');
@@ -958,6 +974,18 @@ export default function DafViewer(): JSX.Element {
     update();
     mq.addEventListener('change', update);
     onCleanup(() => mq.removeEventListener('change', update));
+  });
+
+  // Mobile top drawer: the daf-picker / nav header is open when you arrive,
+  // then collapses to a slim handle as soon as you start reading or interacting
+  // (scroll, or a tap on the daf). The handle stays pinned at the top so it's
+  // always one tap to bring the controls back. Desktop ignores this entirely.
+  const [headerOpen, setHeaderOpen] = createSignal(true);
+  const collapseHeader = () => { if (isMobile() && headerOpen()) setHeaderOpen(false); };
+  onMount(() => {
+    const onScroll = () => { if (window.scrollY > 16) collapseHeader(); };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onCleanup(() => window.removeEventListener('scroll', onScroll));
   });
 
   // Geography-driven highlight: when the user clicks a city/region on the
@@ -2773,6 +2801,9 @@ export default function DafViewer(): JSX.Element {
   // tap-to-extend instead (see the mobile branch below). Native long-press
   // still works for plain copy/paste at the browser level.
   const onMouseUpRoot = (e: MouseEvent) => {
+    // Any tap on the daf counts as "starting to study" — fold the mobile top
+    // drawer away so the daf gets full height.
+    collapseHeader();
     // Commentary anchor highlight fires alongside any other click behaviour
     // (translate popup, commentary-on-tap, etc). Runs first so it lights
     // up the cross-references even when the click also triggers something
@@ -2915,7 +2946,25 @@ export default function DafViewer(): JSX.Element {
 
   return (
     <main class="daf-page" classList={{ 'daf-no-rabbi-underlines': !showGenMarkers() }}>
-      <header class="daf-header">
+      {/* Mobile-only top-drawer handle. Always pinned at the top so the daf
+          picker / nav is one tap away; the drawer itself (the .daf-header
+          below) is open on arrival and collapses once you start studying. */}
+      <Show when={isMobile()}>
+        <button
+          type="button"
+          class="daf-header-handle"
+          aria-expanded={headerOpen()}
+          onClick={() => setHeaderOpen((v) => !v)}
+        >
+          <span class="daf-header-handle-ref">
+            {lang() === 'he' ? dafRefHe(tractate(), page()) : `${tractate()} ${page()}`}
+          </span>
+          <span class="daf-header-handle-chev" aria-hidden="true">
+            {headerOpen() ? t('header.drawer.collapse') : t('header.drawer.expand')}
+          </span>
+        </button>
+      </Show>
+      <header class="daf-header" classList={{ 'is-collapsed': isMobile() && !headerOpen() }}>
         <h1 class="tb-wordmark">{t('app.title')}</h1>
 
         <select
@@ -2964,14 +3013,18 @@ export default function DafViewer(): JSX.Element {
           >
             {t('tutorial.help')}
           </button>
-          <button
-            class="tb-toggle"
-            classList={{ 'is-active': devOpen() }}
-            onClick={() => { const v = !devOpen(); setDevOpen(v); setDevModeActive(v); }}
-            title={t('header.dev.title')}
-          >
-            {t('header.dev')}
-          </button>
+          {/* Dev tooling is desktop-only — the panels assume a wide viewport
+              and aren't useful on a phone, so the button is hidden on mobile. */}
+          <Show when={!isMobile()}>
+            <button
+              class="tb-toggle"
+              classList={{ 'is-active': devOpen() }}
+              onClick={() => { const v = !devOpen(); setDevOpen(v); setDevModeActive(v); }}
+              title={t('header.dev.title')}
+            >
+              {t('header.dev')}
+            </button>
+          </Show>
           {/* EN/HE language toggle, folded inline here on the daf page; the
               floating TopBar overlay covers the other routes (see App.tsx). */}
           <div class="tb-seg" role="group" aria-label="Language" data-tour="lang">
@@ -3021,10 +3074,13 @@ export default function DafViewer(): JSX.Element {
           would aggregate those per-rabbi enrichments. Until then, the
           top-bar toggle nav is empty and hidden. */}
       {/* Unified load bar — one progress indicator + status line for the whole
-          daf (anchor extraction + section prefetch). Lives inside the daf
-          body column so it's exactly the daf's width, pinned (sticky) directly
-          above the daf as the reader scrolls. */}
-      <DafLoadProgress />
+          daf (anchor extraction + section prefetch). On desktop it lives here
+          inside the daf body column, pinned (sticky) directly above the daf.
+          On mobile it moves into the bottom shelf (above Read/Translate) so it
+          never sits on top of the daf — see MobileShelf. */}
+      <Show when={!isMobile()}>
+        <DafLoadProgress />
+      </Show>
 
       {/* Whole-daf chip marks (the Overview) — shown to all readers now that the
           per-daf overview is promoted and its flow is warmed globally. */}
@@ -3179,7 +3235,7 @@ export default function DafViewer(): JSX.Element {
                   activeKey={sidebarActiveKey()}
                 />
               </Show>
-              <GutterOverlay scale={dafScale()} />
+              <GutterOverlay />
             </div>
             </div>
           )}
@@ -3197,6 +3253,8 @@ export default function DafViewer(): JSX.Element {
             hebrewAfter={a().hebrewAfter}
             segIdx={a().segIdx}
             onClose={clearActive}
+            mobile={isMobile()}
+            getAnchorRect={() => unionRectOf(a().els)}
           />
         )}
       </Show>
@@ -3376,6 +3434,7 @@ export default function DafViewer(): JSX.Element {
           onOpenArgument={openArgument}
         />
       </Show>
+      <Show when={!isMobile()}>
       <DevModeShelf open={devOpen()} onClose={() => { setDevOpen(false); setDevModeActive(false); }}>
         <ChecksPanel tractate={tractate()} page={page()} />
         <TypeProfilePanel
@@ -3396,6 +3455,7 @@ export default function DafViewer(): JSX.Element {
           })}
         />
       </DevModeShelf>
+      </Show>
 
     </main>
   );

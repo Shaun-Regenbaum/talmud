@@ -732,6 +732,14 @@ const CATALOG = {
 
   // — Translation popup —
   'translation.loading': { en: 'Translating…', he: 'מתרגם…' },
+  'translation.mobileHint': {
+    en: 'Tap another word to extend · tap again to close',
+    he: 'הקישו על מילה נוספת להרחבה · הקישו שוב לסגירה',
+  },
+
+  // — Mobile top drawer (daf picker / nav) —
+  'header.drawer.expand': { en: 'Menu ▾', he: 'תפריט ▾' },
+  'header.drawer.collapse': { en: 'Hide ▴', he: 'הסתר ▴' },
 
   // — User highlights / notes —
   'highlight.action': { en: 'Highlight:', he: 'הדגשה:' },
