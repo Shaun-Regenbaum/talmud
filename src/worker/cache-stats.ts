@@ -31,7 +31,10 @@ import type { GcTarget } from './cache-gc';
 // `staleCount`) + the `observations` bucket (rabbi.observations reverse index).
 // v6: rows also carry `heCount` and `versions` buckets Hebrew entries under
 // `<version>:he`, so the dashboard can report EN vs HE cache coverage.
-export const CACHE_STATS_KEY = 'cache-stats:v6';
+// v7: source buckets carry sampled `aligned` + a `denom` (DafYomi is per-daf,
+// not per-amud), and a fourth `dafyomi` source. Bumped so a stale v6 payload
+// (missing those fields) isn't served.
+export const CACHE_STATS_KEY = 'cache-stats:v7';
 const FRESH_MS = 60_000;
 
 export interface CacheStats {
@@ -92,6 +95,9 @@ export interface AlignedSample {
  *  cached to sample. */
 export interface SourceBucket extends CacheBucket {
   aligned: AlignedSample | null;
+  /** Denominator `count`/`percent` are measured against. Most sources are
+   *  per-amud (= the daf total); DafYomi is per-daf, so it carries its own. */
+  denom: number;
 }
 
 export interface MarkCacheRow {
@@ -183,8 +189,12 @@ const alignedCommentaries: AlignPredicate = (v) => {
 const alignedDafyomi: AlignPredicate = (v) => {
   if (!v || failed(v)) return false;
   const d = v as { amudim?: { a?: Record<string, unknown>; b?: Record<string, unknown> } };
-  const a = d.amudim?.a, b = d.amudim?.b;
-  return (!!a && Object.keys(a).length > 0) || (!!b && Object.keys(b).length > 0);
+  // An amud counts only if at least one of its content-type blocks is itself a
+  // non-empty object — a parse can leave empty {} blocks, which shouldn't read
+  // as aligned.
+  const hasContent = (amud?: Record<string, unknown>): boolean =>
+    !!amud && Object.values(amud).some((c) => !!c && typeof c === 'object' && Object.keys(c as object).length > 0);
+  return hasContent(d.amudim?.a) || hasContent(d.amudim?.b);
 };
 
 /**
@@ -330,6 +340,8 @@ export async function cacheGcTargets(cache: KVNamespace): Promise<GcTarget[]> {
 
 export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats> {
   const total = getWarmTotal();
+  // DafYomi is keyed per daf (both amudim in one entry); total is per amud.
+  const dafTotal = Math.max(1, Math.round(total / 2));
 
   const [
     hbCount, gemaraCount, commentariesCount, dafyomiCount, obsSlices, obsRabbis,
@@ -432,10 +444,12 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     generatedAt: new Date().toISOString(),
     total,
     source: {
-      hebrewbooks: { count: hbCount, percent: pct(hbCount, total), aligned: hbAligned },
-      gemara: { count: gemaraCount, percent: pct(gemaraCount, total), aligned: gemaraAligned },
-      commentaries: { count: commentariesCount, percent: pct(commentariesCount, total), aligned: commentariesAligned },
-      dafyomi: { count: dafyomiCount, percent: pct(dafyomiCount, total), aligned: dafyomiAligned },
+      hebrewbooks: { count: hbCount, percent: pct(hbCount, total), aligned: hbAligned, denom: total },
+      gemara: { count: gemaraCount, percent: pct(gemaraCount, total), aligned: gemaraAligned, denom: total },
+      commentaries: { count: commentariesCount, percent: pct(commentariesCount, total), aligned: commentariesAligned, denom: total },
+      // DafYomi keys are per-DAF (one entry covers both amudim), so its
+      // denominator is the daf count, not the per-amud total.
+      dafyomi: { count: dafyomiCount, percent: pct(dafyomiCount, dafTotal), aligned: dafyomiAligned, denom: dafTotal },
     },
     marks,
     enrichments,
