@@ -23,7 +23,7 @@ export const FEATURED_DAF = { tractate: 'Berakhot', page: '62b' } as const;
 
 /** Which real note a step opens behind the coach. The coach asks the embedded
  *  DafViewer to open it; the reader sees the genuine panel / drawer. */
-export type TourNote = 'overview' | 'argument' | 'halacha';
+export type TourNote = 'overview' | 'argument' | 'halacha' | 'aggadata';
 
 /** A small legend / demo drawn inside the coach card to supplement a step that
  *  teaches a concept rather than spotlighting a single element (the mark
@@ -136,7 +136,7 @@ export const TOUR_STEPS: TourStep[] = [
     id: 'qa',
     chapterKey: 'tutorial.chapter.marks',
     target: 'qa-section',
-    note: 'argument',
+    note: 'aggadata',
     titleKey: 'tutorial.qa.title',
     bodyKey: 'tutorial.qa.body',
   },
