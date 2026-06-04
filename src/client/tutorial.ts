@@ -1,3 +1,5 @@
+import { createSignal } from 'solid-js';
+
 /**
  * Tutorial data + persistence. The walkthrough (#tutorial) renders the REAL
  * reader pinned to a fixed daf and a coach (TutorialCoach.tsx) walks you around
@@ -92,7 +94,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'translate-word',
     chapterKey: 'tutorial.chapter.reading',
-    selector: '.daf-word-active',
+    selector: '.daf-word-active, .translation-popup',
     translate: 'word',
     titleKey: 'tutorial.translateWord.title',
     bodyKey: 'tutorial.translateWord.body',
@@ -100,7 +102,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'translate-phrase',
     chapterKey: 'tutorial.chapter.reading',
-    selector: '.daf-word-active',
+    selector: '.daf-word-active, .translation-popup',
     translate: 'phrase',
     titleKey: 'tutorial.translatePhrase.title',
     bodyKey: 'tutorial.translatePhrase.body',
@@ -211,6 +213,12 @@ export function setTutorialHeader(open: boolean): void {
   if (typeof window === 'undefined') return;
   window.dispatchEvent(new CustomEvent(TUTORIAL_HEADER_EVENT, { detail: { open } }));
 }
+
+/** While the tour is running, QAPanels pre-fetch a few of their suggested
+ *  answers in the background so the Q&A step's questions click through
+ *  instantly instead of generating on demand. The coach toggles this. */
+const [tutorialPrefetch, setTutorialPrefetch] = createSignal(false);
+export { tutorialPrefetch, setTutorialPrefetch };
 
 const COMPLETED_KEY = 'tutorial:completed';
 const BANNER_DISMISSED_KEY = 'tutorial:banner-dismissed';

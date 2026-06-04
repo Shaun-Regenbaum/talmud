@@ -2423,10 +2423,14 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     const onTranslate = (e: Event) => {
       const kind = (e as CustomEvent<{ kind?: string }>).detail?.kind ?? 'word';
       if (kind === 'clear') { clearActive(); return; }
-      const words = Array.from(document.querySelectorAll<HTMLElement>('.daf-word'));
+      // Only the main gemara text (.daf-main .daf-text) — never Rashi / Tosafot.
+      let words = Array.from(document.querySelectorAll<HTMLElement>('.daf-main .daf-text .daf-word'));
+      if (words.length < 4) words = Array.from(document.querySelectorAll<HTMLElement>('.daf-word'));
       if (words.length < 4) return;
       if (isMobile()) setMobileMode('translate');
-      const start = Math.floor(words.length * 0.35);
+      // A bit past the opening so it's clear of the chrome, but solidly inside
+      // the main column.
+      const start = Math.floor(words.length * 0.4);
       const picked = kind === 'phrase' ? words.slice(start, start + 3) : [words[start]];
       picked[0].scrollIntoView({ block: 'center', inline: 'center' });
       setActiveFromWordEls(picked);

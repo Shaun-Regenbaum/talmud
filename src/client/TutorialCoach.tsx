@@ -26,6 +26,7 @@ import {
   closeTutorialNote,
   setTutorialHeader,
   triggerTutorialTranslate,
+  setTutorialPrefetch,
   type TourSupplement,
 } from './tutorial';
 import { GutterGlyph, colorForKind, type GutterKind } from './GutterIcons';
@@ -36,9 +37,6 @@ const PAD = 12;
 const MIN_VERT = 200;
 const MIN_HORIZ = 320;
 const MOBILE_BAR = 72; // room left for the mobile mode bar at the very bottom
-// A note panel is very tall; ring only its top (title + summary) instead of the
-// whole sidebar, which reads as "everything is highlighted" and looks wrong.
-const MAX_RING_H = 240;
 
 type Pos =
   | { mode: 'center' }
@@ -116,16 +114,14 @@ export function TutorialCoach(): JSX.Element {
       const block = isMobile() && mobileAnchor() === 'bottom' ? 'start' : 'center';
       lead.scrollIntoView({ block: block as ScrollLogicalPosition, inline: 'center', behavior: 'smooth' });
     }
-    // Union bounding box of the targets.
+    // Union bounding box of the targets — the whole note panel (it's measured
+    // after the content populates, via the ResizeObserver + settle re-measures
+    // below), the rabbi name, or the word + its translation popup.
     const rs = targets.map((el) => el.getBoundingClientRect());
     const left = Math.min(...rs.map((r) => r.left));
     const top = Math.min(...rs.map((r) => r.top));
     const right = Math.max(...rs.map((r) => r.right));
-    let bottom = Math.max(...rs.map((r) => r.bottom));
-    // On desktop a note panel is very tall — ring only its top (title +
-    // summary) so it doesn't read as "the whole sidebar is highlighted". On
-    // mobile the note IS the drawer, so ring its full (populated) height.
-    if (!isMobile() && bottom - top > MAX_RING_H) bottom = top + MAX_RING_H;
+    const bottom = Math.max(...rs.map((r) => r.bottom));
     setRect(new DOMRect(left, top, right - left, bottom - top));
     reposition();
   };
@@ -216,7 +212,10 @@ export function TutorialCoach(): JSX.Element {
   });
 
   // Leaving the tour: restore the reader's chrome.
-  onCleanup(() => { closeTutorialNote(); setTutorialHeader(false); triggerTutorialTranslate('clear'); });
+  // While the tour is up, QAPanels pre-warm a few suggested answers so the Q&A
+  // step's questions click through instantly.
+  setTutorialPrefetch(true);
+  onCleanup(() => { closeTutorialNote(); setTutorialHeader(false); triggerTutorialTranslate('clear'); setTutorialPrefetch(false); });
 
   onMount(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -337,7 +336,7 @@ export function TutorialCoach(): JSX.Element {
           </Show>
         </div>
 
-        <div style={{ padding: '12px 20px 16px', 'border-top': '1px solid #f1efea', flex: '0 0 auto' }}>
+        <div style={{ padding: '14px 20px 22px', 'border-top': '1px solid #f1efea', flex: '0 0 auto' }}>
           <Dots index={i()} onJump={setI} />
           <div style={{ display: 'flex', 'align-items': 'center', 'justify-content': 'space-between', gap: '8px', 'margin-top': '12px' }}>
             <Show when={!isLast()} fallback={<span />}>
