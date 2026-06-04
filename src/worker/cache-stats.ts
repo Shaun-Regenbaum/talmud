@@ -38,9 +38,10 @@ export interface CacheStats {
   generatedAt: string;
   total: number;
   source: {
-    hebrewbooks: CacheBucket;
-    gemara: CacheBucket;
-    commentaries: CacheBucket;
+    hebrewbooks: SourceBucket;
+    gemara: SourceBucket;
+    commentaries: SourceBucket;
+    dafyomi: SourceBucket;
   };
   marks: MarkCacheRow[];
   enrichments: EnrichmentCacheRow[];
@@ -76,6 +77,21 @@ export interface CacheStats {
 interface CacheBucket {
   count: number;
   percent: number;
+}
+
+/** A sampled "% of cached entries that actually aligned" figure. Reading every
+ *  value Shas-wide is the slow scan we avoid, so this samples up to N entries
+ *  per source and extrapolates. `pct` is aligned/sampled as a 0-100 number. */
+export interface AlignedSample {
+  sampled: number;
+  aligned: number;
+  pct: number;
+}
+/** A source-spine coverage row: how many dapim are cached + (sampled) how many
+ *  of those produced a usable alignment. `aligned` is null when nothing's
+ *  cached to sample. */
+export interface SourceBucket extends CacheBucket {
+  aligned: AlignedSample | null;
 }
 
 export interface MarkCacheRow {
@@ -138,6 +154,75 @@ interface HierarchyFile {
   }>;
 }
 const HIERARCHY = rabbiHierarchyData as unknown as HierarchyFile;
+
+// ---- Per-source alignment predicates -------------------------------------
+// "Aligned" = the cached source value actually carries usable, anchored content
+// (not an empty fetch or a `{__failed:true}` negative-cache marker). Each takes
+// the parsed cached value and returns whether that daf aligned for the source.
+type AlignPredicate = (v: unknown) => boolean;
+
+function failed(v: unknown): boolean {
+  return !!v && typeof v === 'object' && (v as { __failed?: boolean }).__failed === true;
+}
+const alignedHebrewBooks: AlignPredicate = (v) => {
+  if (!v || failed(v)) return false;
+  const d = v as { main?: string; rashi?: string; tosafot?: string };
+  return !!((d.main?.length ?? 0) || (d.rashi?.length ?? 0) || (d.tosafot?.length ?? 0));
+};
+const alignedGemara: AlignPredicate = (v) => {
+  if (!v || failed(v)) return false;
+  const d = v as { segments_he?: unknown[]; segments_en?: unknown[] };
+  return (Array.isArray(d.segments_he) && d.segments_he.length > 0) ||
+    (Array.isArray(d.segments_en) && d.segments_en.length > 0);
+};
+const alignedCommentaries: AlignPredicate = (v) => {
+  if (!v || failed(v)) return false;
+  const d = v as { by_commentator?: Record<string, unknown> };
+  return !!d.by_commentator && Object.keys(d.by_commentator).length > 0;
+};
+const alignedDafyomi: AlignPredicate = (v) => {
+  if (!v || failed(v)) return false;
+  const d = v as { amudim?: { a?: Record<string, unknown>; b?: Record<string, unknown> } };
+  const a = d.amudim?.a, b = d.amudim?.b;
+  return (!!a && Object.keys(a).length > 0) || (!!b && Object.keys(b).length > 0);
+};
+
+/**
+ * Sample up to `sampleSize` cached entries under `prefix`, read their values,
+ * and report how many satisfy `isAligned`. Bounded (not a Shas-wide scan) so it
+ * stays cheap enough to run inside the cron-warmed computeCacheStats. Returns
+ * null when nothing is cached to sample.
+ */
+export async function sampleAligned(
+  cache: KVNamespace,
+  prefix: string,
+  isAligned: AlignPredicate,
+  sampleSize = 300,
+): Promise<AlignedSample | null> {
+  const keys: string[] = [];
+  let cursor: string | undefined = undefined;
+  while (keys.length < sampleSize) {
+    const res = (await cache.list({ prefix, cursor, limit: Math.min(1000, sampleSize - keys.length) })) as {
+      keys: Array<{ name: string }>; list_complete: boolean; cursor?: string;
+    };
+    for (const k of res.keys) keys.push(k.name);
+    if (res.list_complete || !res.cursor) break;
+    cursor = res.cursor;
+  }
+  if (keys.length === 0) return null;
+  const raws = await Promise.all(keys.map((k) => cache.get(k)));
+  let sampled = 0;
+  let aligned = 0;
+  for (const raw of raws) {
+    if (raw == null) continue;
+    sampled++;
+    let v: unknown;
+    try { v = JSON.parse(raw); } catch { continue; }
+    if (isAligned(v)) aligned++;
+  }
+  if (sampled === 0) return null;
+  return { sampled, aligned, pct: Math.round((aligned / sampled) * 1000) / 10 };
+}
 
 async function countPrefix(cache: KVNamespace, prefix: string): Promise<number> {
   let cursor: string | undefined = undefined;
@@ -246,13 +331,22 @@ export async function cacheGcTargets(cache: KVNamespace): Promise<GcTarget[]> {
 export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats> {
   const total = getWarmTotal();
 
-  const [hbCount, gemaraCount, commentariesCount, obsSlices, obsRabbis] = await Promise.all([
+  const [
+    hbCount, gemaraCount, commentariesCount, dafyomiCount, obsSlices, obsRabbis,
+    hbAligned, gemaraAligned, commentariesAligned, dafyomiAligned,
+  ] = await Promise.all([
     countPrefix(cache, 'hb:v2:'),
     countPrefix(cache, 'ctx:gemara:v1:'),
     countPrefix(cache, 'ctx:commentaries:v1:'),
+    countPrefix(cache, 'dafyomi:v5:'),
     // `rabbi-obs:v1:` matches slice keys only (dirty keys are `rabbi-obs-dirty:v1:`).
     countPrefix(cache, 'rabbi-obs:v1:'),
     countPrefix(cache, 'rabbi-obs-dirty:v1:'),
+    // Sampled "% aligned" per source — bounded value reads, not a full scan.
+    sampleAligned(cache, 'hb:v2:', alignedHebrewBooks),
+    sampleAligned(cache, 'ctx:gemara:v1:', alignedGemara),
+    sampleAligned(cache, 'ctx:commentaries:v1:', alignedCommentaries),
+    sampleAligned(cache, 'dafyomi:v5:', alignedDafyomi),
   ]);
 
   const markDefs = await mergedMarks(cache);
@@ -338,9 +432,10 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     generatedAt: new Date().toISOString(),
     total,
     source: {
-      hebrewbooks: { count: hbCount, percent: pct(hbCount, total) },
-      gemara: { count: gemaraCount, percent: pct(gemaraCount, total) },
-      commentaries: { count: commentariesCount, percent: pct(commentariesCount, total) },
+      hebrewbooks: { count: hbCount, percent: pct(hbCount, total), aligned: hbAligned },
+      gemara: { count: gemaraCount, percent: pct(gemaraCount, total), aligned: gemaraAligned },
+      commentaries: { count: commentariesCount, percent: pct(commentariesCount, total), aligned: commentariesAligned },
+      dafyomi: { count: dafyomiCount, percent: pct(dafyomiCount, total), aligned: dafyomiAligned },
     },
     marks,
     enrichments,
