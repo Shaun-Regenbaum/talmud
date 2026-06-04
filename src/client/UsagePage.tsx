@@ -395,6 +395,40 @@ function SectionHeading(props: SectionHeadingProps): JSX.Element {
   );
 }
 
+// A detail table that's collapsed by default behind a clickable header (the
+// long per-model / per-mark / per-daf tables push the summary cards off-screen
+// otherwise). Open/closed is remembered per id in localStorage.
+function Collapsible(props: { id: string; title: string; sub?: string; defaultOpen?: boolean; children: JSX.Element }): JSX.Element {
+  const storageKey = `usage.collapse.${props.id}`;
+  const initial = (() => {
+    if (typeof window === 'undefined') return props.defaultOpen ?? false;
+    let saved: string | null = null;
+    try { saved = window.localStorage.getItem(storageKey); } catch { /* storage disabled */ }
+    if (saved === '1') return true;
+    if (saved === '0') return false;
+    return props.defaultOpen ?? false;
+  })();
+  const [open, setOpen] = createSignal(initial);
+  const toggle = () => {
+    const next = !open();
+    setOpen(next);
+    try { window.localStorage.setItem(storageKey, next ? '1' : '0'); } catch { /* quota / disabled */ }
+  };
+  return (
+    <div style={{ 'margin-top': '0.7rem' }}>
+      <h3
+        onClick={toggle}
+        style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.4rem', cursor: 'pointer', 'user-select': 'none', display: 'flex', 'align-items': 'baseline', gap: '0.4rem' }}
+      >
+        <span style={{ color: '#bbb', 'font-size': '0.7rem', width: '0.7rem', 'flex-shrink': 0 }}>{open() ? '▾' : '▸'}</span>
+        {props.title}
+        <Show when={props.sub}><span style={{ color: '#999', 'font-weight': 'normal' }}>{props.sub}</span></Show>
+      </h3>
+      <Show when={open()}>{props.children}</Show>
+    </div>
+  );
+}
+
 const tableStyle = { width: '100%', 'border-collapse': 'collapse', 'font-size': '0.85rem' } as const;
 const thStyle = { padding: '0.4rem 0.5rem' } as const;
 
@@ -932,28 +966,30 @@ function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefin
           <StatCard label={t('usage.stat.tokensOut')} value={fmtTokens(aigw().tokensOut)} />
         </div>
         <Show when={(aigw().byModel?.length ?? 0) > 0}>
-          <table style={tableStyle}>
-            <thead>
-              <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
-                <th style={thStyle}>{t('usage.col.model')}</th>
-                <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.requests')}</th>
-                <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.tokens')}</th>
-                <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cost')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <For each={aigw().byModel}>
-                {(m) => (
-                  <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
-                    <td style={{ padding: '0.4rem 0.5rem', 'font-family': 'monospace', 'font-size': '0.8rem' }}>{m.model}</td>
-                    <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>{fmtInt(m.requests)}</td>
-                    <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>{fmtTokens(m.tokensIn + m.tokensOut)}</td>
-                    <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>{fmtUsd(m.costUsd)}</td>
-                  </tr>
-                )}
-              </For>
-            </tbody>
-          </table>
+          <Collapsible id="aigwByModel" title={t('usage.byModel')} sub={t('usage.byModel.sub', { count: fmtInt(aigw().byModel?.length ?? 0) })}>
+            <table style={tableStyle}>
+              <thead>
+                <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
+                  <th style={thStyle}>{t('usage.col.model')}</th>
+                  <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.requests')}</th>
+                  <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.tokens')}</th>
+                  <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cost')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={aigw().byModel}>
+                  {(m) => (
+                    <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+                      <td style={{ padding: '0.4rem 0.5rem', 'font-family': 'monospace', 'font-size': '0.8rem' }}>{m.model}</td>
+                      <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>{fmtInt(m.requests)}</td>
+                      <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>{fmtTokens(m.tokensIn + m.tokensOut)}</td>
+                      <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>{fmtUsd(m.costUsd)}</td>
+                    </tr>
+                  )}
+                </For>
+              </tbody>
+            </table>
+          </Collapsible>
         </Show>
       </Show>
 
@@ -983,8 +1019,8 @@ function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefin
               </Show>
             </div>
             <Show when={Object.keys(s().byMark).length > 0 || Object.keys(s().byEnrichment).length > 0}>
-              <CostBreakdown title={t('usage.byMark')} buckets={s().byMark} />
-              <CostBreakdown title={t('usage.byEnrichment')} buckets={s().byEnrichment} />
+              <CostBreakdown id="byMark" title={t('usage.byMark')} buckets={s().byMark} />
+              <CostBreakdown id="byEnrichment" title={t('usage.byEnrichment')} buckets={s().byEnrichment} />
             </Show>
           </>
         )}
@@ -1021,45 +1057,46 @@ function ShasEstimate(props: { est: ReturnType<typeof estimateShasCost> }): JSX.
       <p style={{ 'font-size': '0.78rem', color: '#888', background: '#fafaf8', padding: '0.5rem 0.7rem', 'border-radius': '4px', border: '1px solid #eee', 'margin-bottom': '0.6rem' }}>
         {t('usage.shas.note', { amudim: amudim(), gross: gross() })}
       </p>
-      <table style={tableStyle}>
-        <thead>
-          <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
-            <th style={thStyle}>{t('usage.shas.col.producer')}</th>
-            <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.shas.col.perCall')}</th>
-            <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.shas.col.firesPerAmud')}</th>
-            <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.shas.col.spent')}</th>
-            <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.shas.col.remaining')}</th>
-            <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.shas.col.full')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <For each={top()}>
-            {(p) => (
-              <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
-                <td style={{ padding: '0.3rem 0.5rem', 'font-family': 'monospace', 'font-size': '0.78rem' }}>{p.id}</td>
-                <td style={numCell}>{fmtUsd(p.unitUsd)}</td>
-                <td style={{ ...numCell, color: '#999' }}>{p.instancesPerAmud > 1.05 ? `${p.instancesPerAmud.toFixed(1)}×` : '1×'}</td>
-                <td style={{ ...numCell, color: '#2a8a42' }}>{fmtUsd(p.incurredUsd)}</td>
-                <td style={numCell}>{fmtUsd(p.remainingUsd)}</td>
-                <td style={{ ...numCell, 'font-weight': 600 }}>{fmtUsd(p.fullShasUsd)}</td>
-              </tr>
-            )}
-          </For>
-        </tbody>
-      </table>
-      <Show when={more() > 0}>
-        <div style={{ 'font-size': '0.75rem', color: '#aaa', 'margin-top': '0.3rem' }}>{t('usage.shas.more', { count: fmtInt(more()) })}</div>
-      </Show>
+      <Collapsible id="shasByProducer" title={t('usage.shas.breakdown')} sub={t('usage.byModel.sub', { count: fmtInt(e().byProducer.length) })}>
+        <table style={tableStyle}>
+          <thead>
+            <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
+              <th style={thStyle}>{t('usage.shas.col.producer')}</th>
+              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.shas.col.perCall')}</th>
+              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.shas.col.firesPerAmud')}</th>
+              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.shas.col.spent')}</th>
+              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.shas.col.remaining')}</th>
+              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.shas.col.full')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <For each={top()}>
+              {(p) => (
+                <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+                  <td style={{ padding: '0.3rem 0.5rem', 'font-family': 'monospace', 'font-size': '0.78rem' }}>{p.id}</td>
+                  <td style={numCell}>{fmtUsd(p.unitUsd)}</td>
+                  <td style={{ ...numCell, color: '#999' }}>{p.instancesPerAmud > 1.05 ? `${p.instancesPerAmud.toFixed(1)}×` : '1×'}</td>
+                  <td style={{ ...numCell, color: '#2a8a42' }}>{fmtUsd(p.incurredUsd)}</td>
+                  <td style={numCell}>{fmtUsd(p.remainingUsd)}</td>
+                  <td style={{ ...numCell, 'font-weight': 600 }}>{fmtUsd(p.fullShasUsd)}</td>
+                </tr>
+              )}
+            </For>
+          </tbody>
+        </table>
+        <Show when={more() > 0}>
+          <div style={{ 'font-size': '0.75rem', color: '#aaa', 'margin-top': '0.3rem' }}>{t('usage.shas.more', { count: fmtInt(more()) })}</div>
+        </Show>
+      </Collapsible>
     </>
   );
 }
 
-function CostBreakdown(props: { title: string; buckets: Record<string, UsageBucket> }): JSX.Element {
+function CostBreakdown(props: { id: string; title: string; buckets: Record<string, UsageBucket> }): JSX.Element {
   const rows = () => Object.entries(props.buckets).sort(([, a], [, b]) => b.costUsd - a.costUsd || b.calls - a.calls);
   return (
     <Show when={rows().length > 0}>
-      <div style={{ 'margin-top': '0.5rem' }}>
-        <div style={{ 'font-size': '0.75rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.04em', 'margin-bottom': '0.2rem' }}>{props.title}</div>
+      <Collapsible id={props.id} title={props.title} sub={t('usage.byModel.sub', { count: fmtInt(rows().length) })}>
         <table style={tableStyle}>
           <tbody>
             <For each={rows()}>
@@ -1074,7 +1111,7 @@ function CostBreakdown(props: { title: string; buckets: Record<string, UsageBuck
             </For>
           </tbody>
         </table>
-      </div>
+      </Collapsible>
     </Show>
   );
 }
@@ -1217,10 +1254,7 @@ function ByDafCostTable(props: { llmCost: LlmCostData | undefined }): JSX.Elemen
       .slice(0, TOP);
   };
   return (
-    <div style={{ 'margin-top': '1.3rem' }}>
-      <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.4rem' }}>
-        {t('usage.byDaf.title')} <span style={{ color: '#999', 'font-weight': 'normal' }}>{t('usage.byDaf.sub')}</span>
-      </h3>
+    <Collapsible id="byDaf" title={t('usage.byDaf.title')} sub={t('usage.byDaf.sub')}>
       <Show when={rows().length > 0} fallback={<p style={{ color: '#888', 'font-size': '0.82rem' }}>{t('usage.byDaf.empty')}</p>}>
         <table style={tableStyle}>
           <thead>
@@ -1236,7 +1270,7 @@ function ByDafCostTable(props: { llmCost: LlmCostData | undefined }): JSX.Elemen
           </tbody>
         </table>
       </Show>
-    </div>
+    </Collapsible>
   );
 }
 
