@@ -19,6 +19,33 @@ import type { DafyomiEntry, DafyomiRef } from './sefref/dafyomi/schema.ts';
 /** Minimum shared contiguous normalized-word run to assert a parallel anchor. */
 export const MIN_SHARED_RUN = 3;
 
+/** Minimum verbatim shared-run length for a GUARANTEED ("floor") anchor. Higher
+ *  than MIN_SHARED_RUN because a floor anchor fires even when the LLM declined to
+ *  emit one, so the shared run must be too long to be coincidental — a real
+ *  shared mishnah/baraita line, not a stray formulaic phrase (תא שמע, אמר רבא).
+ *  Empirically: shared-mishnah dapim score 8-26 here; a daf whose best run is the
+ *  3-word minimum (Sanhedrin 90a) is correctly NOT floored. */
+export const MIN_FLOOR_RUN = 6;
+
+/** Two same-ref placed points within this many segments merge into one span. */
+const FLOOR_MERGE_GAP = 2;
+
+/** A deterministic "floor" anchor: a Bavli segment span that PROVABLY shares a
+ *  long verbatim phrase with a single Yerushalmi ref. Guarantees the mark fires
+ *  on the precision-safe shared-text cases regardless of the LLM's discretion. */
+export interface YerushalmiFloorGroup {
+  startSegIdx: number;
+  endSegIdx: number;
+  /** Sefaria ref the span parallels. */
+  yerushalmiRef?: string;
+  /** Verbatim shared Bavli phrase at the span start (for the anchor excerpt). */
+  excerpt?: string;
+  /** Longest shared run in the group, in normalized words. */
+  topScore: number;
+  /** The aligned outline points in this span (for fallback differences). */
+  points: YerushalmiOutlinePoint[];
+}
+
 export interface YerushalmiOutlinePoint {
   /** The parent point's English topic heading. */
   topic: string;
@@ -143,4 +170,42 @@ export function alignOutlineToSegments(
     }
   }
   return points;
+}
+
+/**
+ * Collapse the strongly-aligned outline points (a verbatim run >= minRun, i.e. a
+ * shared mishnah/baraita line, not a coincidental phrase) into tight Bavli
+ * segment spans — the GUARANTEED anchors the mark must surface. Consecutive
+ * same-ref points within FLOOR_MERGE_GAP merge into one span; the rest stay
+ * separate. The LLM decides nothing here: a daf with a strong shared run always
+ * yields a floor anchor, fixing the ~25% LLM firing rate without sacrificing
+ * precision (weak/divergent dapim produce no floor group).
+ */
+export function yerushalmiFloorGroups(
+  points: YerushalmiOutlinePoint[],
+  minRun = MIN_FLOOR_RUN,
+): YerushalmiFloorGroup[] {
+  const strong = points
+    .filter((p) => p.segIdx != null && (p.score ?? 0) >= minRun)
+    .sort((a, b) => (a.segIdx as number) - (b.segIdx as number));
+  const groups: YerushalmiFloorGroup[] = [];
+  for (const p of strong) {
+    const seg = p.segIdx as number;
+    const last = groups[groups.length - 1];
+    if (last && last.yerushalmiRef === p.yerushalmiRef && seg - last.endSegIdx <= FLOOR_MERGE_GAP) {
+      last.endSegIdx = Math.max(last.endSegIdx, seg);
+      last.topScore = Math.max(last.topScore, p.score ?? 0);
+      last.points.push(p);
+    } else {
+      groups.push({
+        startSegIdx: seg,
+        endSegIdx: seg,
+        yerushalmiRef: p.yerushalmiRef,
+        excerpt: p.excerpt,
+        topScore: p.score ?? 0,
+        points: [p],
+      });
+    }
+  }
+  return groups;
 }

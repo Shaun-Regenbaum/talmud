@@ -1914,6 +1914,10 @@ export function aggadataInstance(story: AggadataStory): { fields: Record<string,
 function YerushalmiDiff(props: SpecialBlockProps): JSX.Element {
   const summary = (): string => (typeof props.instance.fields.summary === 'string' ? props.instance.fields.summary : '');
   const differences = (): string => (typeof props.instance.fields.differences === 'string' ? props.instance.fields.differences : '');
+  // 'aligned' = the deterministic floor backstop placed this anchor (verbatim
+  // shared text) but no written contrast was generated — flag it honestly so a
+  // reader knows the box below isn't an analyzed difference.
+  const autoAligned = (): boolean => props.instance.fields.placement === 'aligned';
   return (
     <>
       <Show when={summary()}>
@@ -1923,6 +1927,11 @@ function YerushalmiDiff(props: SpecialBlockProps): JSX.Element {
       </Show>
       <Show when={differences()}>
         <SectionCard label="yerushalmi.differences">
+          <Show when={autoAligned()}>
+            <span style={{ display: 'inline-block', margin: '0 0 0.4rem', padding: '0.08rem 0.4rem', 'border-radius': '3px', background: '#eee', color: '#777', 'font-size': '0.7rem', 'letter-spacing': '0.03em', 'text-transform': 'uppercase' }}>
+              {t('yerushalmi.autoAligned')}
+            </span>
+          </Show>
           <div style={{ 'font-size': '0.88rem', color: '#222', 'line-height': 1.55 }}>
             <HebraizedWithRabbis text={differences()} />
           </div>

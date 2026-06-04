@@ -21,6 +21,7 @@ import { lintHalachaParsed } from '../halachaLint';
 import { reanchorArgument, reanchorArgumentMove, reanchorPesukim, reanchorAggadata, reanchorRabbiEvidence, reanchorNarrative } from '../place/reanchor';
 import { normalizeHebrew, buildVerbatimGrid, findExcerpt } from '../place/verbatim';
 import { deriveVoiceEdges } from '../typing/voices';
+import type { YerushalmiFloorGroup } from '../yerushalmiAlign';
 
 export type Severity = 'hard' | 'soft';
 
@@ -42,6 +43,9 @@ export interface PassCtx {
   /** The daf's Rashi/Tosafot/rishonim Hebrew text (HTML-stripped, one entry per
    *  commentator) — for commentary-verbatim. Absent unless a check needs it. */
   commentaryHe?: string[];
+  /** Deterministic verbatim-aligned Bavli<->Yerushalmi spans (the yerushalmi-floor
+   *  transform's input). Present only when running the yerushalmi mark. */
+  yerushalmiFloor?: YerushalmiFloorGroup[];
   defId: string;
   lang?: 'en' | 'he';
 }
@@ -267,6 +271,62 @@ const anchorVerbatim: PostPass = {
   },
 };
 
+/** yerushalmi-floor — GUARANTEE the mark fires on every span that provably shares
+ *  a long verbatim phrase with the Yerushalmi (a shared mishnah/baraita), even
+ *  when the LLM declined to emit one. For each deterministic floor group not
+ *  already covered by an LLM instance (segment-range overlap), append a
+ *  fallback instance: the anchor is exact (the verbatim shared phrase), the
+ *  `differences` a short, honest note (no point-by-point contrast was generated
+ *  for it) tagged `placement: 'aligned'` so the card can label it. The LLM's own
+ *  instances — which carry the real, written differences — always win on overlap.
+ *  This converts the ~25% LLM firing rate into "fires wherever a verbatim
+ *  parallel exists" without inventing analysis or sacrificing precision. */
+function num(v: unknown): number { return typeof v === 'number' ? v : Number.NaN; }
+
+function floorFallbackInstance(g: YerushalmiFloorGroup, lang?: 'en' | 'he'): RangeInstance {
+  const topic = g.points.find((p) => p.topic)?.topic ?? '';
+  const ref = g.yerushalmiRef ?? '';
+  const he = lang === 'he';
+  const summary = he
+    ? `שני התלמודים דנים ב${topic || 'קטע זה'}.`
+    : `Both Talmuds treat ${topic || 'this passage'}.`;
+  const differences = he
+    ? `טקסט־הבסיס כאן (משנה/ברייתא) משותף מילה־במילה עם הירושלמי${ref ? ` (${ref})` : ''}. ניתוח הבדלים מפורט טרם נכתב לקטע זה — ראו בירושלמי.`
+    : `This span shares its base text (mishnah/baraita) verbatim with the Yerushalmi${ref ? ` (${ref})` : ''}. A point-by-point contrast hasn't been written for it yet — see the Yerushalmi directly.`;
+  return {
+    startSegIdx: g.startSegIdx,
+    endSegIdx: g.endSegIdx,
+    fields: {
+      yerushalmiRef: ref,
+      yerushalmiRefHe: '',
+      summary,
+      differences,
+      excerpt: g.excerpt ?? '',
+      placement: 'aligned',
+    },
+  };
+}
+
+const yerushalmiFloorPass: PostPass = {
+  id: 'yerushalmi-floor',
+  phase: 'transform',
+  run: (parsed, ctx) => {
+    const floor = ctx.yerushalmiFloor ?? [];
+    if (floor.length === 0) return { parsed };
+    const insts = instancesOf(parsed).slice();
+    const covers = (g: YerushalmiFloorGroup): boolean =>
+      insts.some((i) => {
+        const s = num(i.startSegIdx), e = num(i.endSegIdx);
+        return Number.isFinite(s) && Number.isFinite(e) && s <= g.endSegIdx && e >= g.startSegIdx;
+      });
+    for (const g of floor) {
+      if (!covers(g)) insts.push(floorFallbackInstance(g, ctx.lang));
+    }
+    insts.sort((a, b) => num(a.startSegIdx) - num(b.startSegIdx));
+    return { parsed: { ...((parsed ?? {}) as object), instances: insts } };
+  },
+};
+
 /** partition-clean — the instance ranges don't contradict themselves: no
  *  inverted range (end < start), no exact duplicate (same range + excerpt),
  *  and — for the section-level `argument` mark, whose instances must tile the
@@ -405,6 +465,7 @@ export const PASSES: Record<string, PostPass> = {
   'reanchor-rabbi-evidence': transform('reanchor-rabbi-evidence', reanchorRabbiEvidence),
   'reanchor-narrative': transform('reanchor-narrative', reanchorNarrative),
   'derive-voice-edges': { id: 'derive-voice-edges', phase: 'transform', run: (parsed) => ({ parsed: deriveVoiceEdges(parsed) }) },
+  'yerushalmi-floor': yerushalmiFloorPass,
   'hebrew-excerpt': hebrewExcerpt,
   'hebrew-gloss': hebrewGloss,
   'commentary-verbatim': commentaryVerbatim,
