@@ -264,11 +264,11 @@ interface BacklogSectionData {
   rabbis: UnknownSummary<UnknownRabbi>;
   places: UnknownSummary<ObservedPlace>;
   concepts: UnknownSummary<ObservedConcept>;
+  reports?: { active: BugReport[]; done: BugReport[] };
 }
 interface HealthSectionData {
   jobErrors: JobError[];
   lintFailures: LintFailuresSummary;
-  reports: BugReport[];
 }
 interface DafLedgerBucket { calls: number; cost: number; costInEst: number; costOutEst: number }
 interface LlmCostData {
@@ -673,10 +673,14 @@ function NotesSection(props: { stats: CacheStats }): JSX.Element {
 }
 
 // ---- Needs-enrichment backlog -------------------------------------------
-function BacklogSection(props: { rabbis: UnknownSummary<UnknownRabbi>; places: UnknownSummary<ObservedPlace>; concepts: UnknownSummary<ObservedConcept> }): JSX.Element {
+function BacklogSection(props: { rabbis: UnknownSummary<UnknownRabbi>; places: UnknownSummary<ObservedPlace>; concepts: UnknownSummary<ObservedConcept>; reports?: { active: BugReport[]; done: BugReport[] } }): JSX.Element {
   const combinedTotal = () => props.rabbis.total + props.places.total + props.concepts.total;
   return (
     <>
+    {/* User-submitted bug reports at the top — check them off as you triage. */}
+    <Show when={props.reports}>
+      {(rep) => <BacklogReports reports={rep()} />}
+    </Show>
     <p style={{ 'font-size': '0.82rem', color: '#555', margin: '0 0 0.7rem' }}>
       {t('usage.backlog.combined', { count: fmtInt(combinedTotal()) })}
     </p>
@@ -1404,25 +1408,57 @@ function ErrorsSection(props: { recentErrors: RecentError[]; health: HealthSecti
 }
 
 // ---- Health: User reports ------------------------------------------------
-function ReportsSection(props: { reports: BugReport[] }): JSX.Element {
+// One bug report, with a check-off / restore button. Checking it off moves it
+// to the collapsed "done" group (persisted server-side by report timestamp).
+function ReportItem(props: { report: BugReport; done: boolean; onToggle: () => void }): JSX.Element {
+  const r = () => props.report;
   return (
-    <Collapsible id="health.reports" title={t('usage.bugReports.title', { count: props.reports.length })}>
-      <Show when={props.reports.length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.bugReports.empty')}</p>}>
+    <li style={{ display: 'flex', gap: '0.6rem', 'align-items': 'flex-start', padding: '0.6rem 0.7rem', margin: '0 0 0.45rem', background: '#fcfcfa', border: '1px solid #eee', 'border-radius': '4px' }}>
+      <button
+        onClick={props.onToggle}
+        title={props.done ? t('usage.reports.restore') : t('usage.reports.markDone')}
+        style={{ 'flex-shrink': 0, width: '1.5rem', height: '1.5rem', 'border-radius': '4px', border: `1px solid ${props.done ? '#2a8a42' : '#ccc'}`, background: props.done ? '#2a8a42' : '#fff', color: props.done ? '#fff' : '#888', cursor: 'pointer', 'font-size': '0.85rem', 'line-height': 1 }}
+      >
+        {props.done ? '↺' : '✓'}
+      </button>
+      <div style={{ flex: 1 }}>
+        <div style={{ 'font-size': '0.75rem', color: '#888', 'margin-bottom': '0.25rem' }}>
+          {fmtTime(r().ts)} · <b>{r().tractate} {r().page}</b><Show when={r().country}><span> · {r().country}</span></Show>
+        </div>
+        <div style={{ 'white-space': 'pre-wrap', 'font-size': '0.88rem', color: props.done ? '#888' : '#222', 'line-height': 1.45, 'text-decoration': props.done ? 'line-through' : 'none' }}>{r().description}</div>
+      </div>
+    </li>
+  );
+}
+
+function BacklogReports(props: { reports: { active: BugReport[]; done: BugReport[] } }): JSX.Element {
+  // Optimistic local overrides (ts → done?) layered on the server split, so a
+  // click is instant; the POST persists it and invalidates the backlog cache.
+  const [overrides, setOverrides] = createSignal<Record<number, boolean>>({});
+  const toggle = (ts: number, done: boolean) => {
+    setOverrides((o) => ({ ...o, [ts]: done }));
+    void fetch('/api/admin/report-dismiss', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ts, done }) }).catch(() => {});
+  };
+  const all = () => [...props.reports.active, ...props.reports.done];
+  const isDone = (r: BugReport) => overrides()[r.ts] ?? props.reports.done.some((d) => d.ts === r.ts);
+  const active = () => all().filter((r) => !isDone(r));
+  const done = () => all().filter((r) => isDone(r));
+  return (
+    <div style={{ 'margin-bottom': '1.3rem' }}>
+      <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.4rem' }}>{t('usage.reports.title', { count: fmtInt(active().length) })}</h3>
+      <Show when={active().length > 0} fallback={<p style={{ color: '#888', 'font-size': '0.82rem' }}>{t('usage.reports.empty')}</p>}>
         <ul style={{ 'list-style': 'none', padding: 0, margin: 0 }}>
-          <For each={props.reports}>
-            {(r) => (
-              <li style={{ padding: '0.7rem 0.8rem', margin: '0 0 0.5rem', background: '#fcfcfa', border: '1px solid #eee', 'border-radius': '4px' }}>
-                <div style={{ 'font-size': '0.75rem', color: '#888', 'margin-bottom': '0.3rem' }}>
-                  {fmtTime(r.ts)} · <b>{r.tractate} {r.page}</b>
-                  <Show when={r.country}><span> · {r.country}</span></Show>
-                </div>
-                <div style={{ 'white-space': 'pre-wrap', 'font-size': '0.88rem', color: '#222', 'line-height': 1.45 }}>{r.description}</div>
-              </li>
-            )}
-          </For>
+          <For each={active()}>{(r) => <ReportItem report={r} done={false} onToggle={() => toggle(r.ts, true)} />}</For>
         </ul>
       </Show>
-    </Collapsible>
+      <Show when={done().length > 0}>
+        <Collapsible id="backlog.reportsDone" title={t('usage.reports.doneTitle', { count: fmtInt(done().length) })}>
+          <ul style={{ 'list-style': 'none', padding: 0, margin: 0 }}>
+            <For each={done()}>{(r) => <ReportItem report={r} done onToggle={() => toggle(r.ts, false)} />}</For>
+          </ul>
+        </Collapsible>
+      </Show>
+    </div>
   );
 }
 
@@ -1531,12 +1567,7 @@ export function UsagePage(): JSX.Element {
           )}
         </SectionShell>
         <SectionShell section={health} skeletonRows={4}>
-          {(h) => (
-            <>
-              <ErrorsSection recentErrors={telemetry.value()?.recentErrors ?? []} health={h} />
-              <ReportsSection reports={h.reports} />
-            </>
-          )}
+          {(h) => <ErrorsSection recentErrors={telemetry.value()?.recentErrors ?? []} health={h} />}
         </SectionShell>
       </Show>
 
@@ -1561,7 +1592,7 @@ export function UsagePage(): JSX.Element {
 
       <Show when={tab() === 'backlog'}>
         <SectionShell section={backlog} skeletonRows={6}>
-          {(b) => <BacklogSection rabbis={b.rabbis} places={b.places} concepts={b.concepts} />}
+          {(b) => <BacklogSection rabbis={b.rabbis} places={b.places} concepts={b.concepts} reports={b.reports} />}
         </SectionShell>
       </Show>
     </main>

@@ -4366,26 +4366,39 @@ async function buildActivitySection(c: UsageCtx, cache?: KVNamespace) {
   return loadActivityCached(c, cache);
 }
 
+const REPORTS_DISMISSED_KEY = 'reports:v1:dismissed';
+
 async function buildBacklogSection(cache?: KVNamespace) {
   const empty = { total: 0, sightings: 0, sample: [] as never[] };
-  const [rabbis, places, concepts] = await Promise.all([
+  const [rabbis, places, concepts, repRaw, disRaw] = await Promise.all([
     cache ? listUnknownRabbis(cache) : empty,
     cache ? listObservedPlaces(cache) : empty,
     cache ? listObservedConcepts(cache) : empty,
+    cache ? cache.get('reports:v1:recent') : null,
+    cache ? cache.get(REPORTS_DISMISSED_KEY) : null,
   ]);
-  return { rabbis, places, concepts };
+  // Bug reports, split into active vs. checked-off ("done"). The dismissed set
+  // is a list of report timestamps (a report's `ts` is its id).
+  let allReports: BugReport[] = [];
+  if (repRaw) { try { allReports = [...(JSON.parse(repRaw) as BugReport[])].reverse(); } catch { allReports = []; } }
+  let dismissed: number[] = [];
+  if (disRaw) { try { dismissed = JSON.parse(disRaw) as number[]; } catch { dismissed = []; } }
+  const dset = new Set(dismissed);
+  const reports = {
+    active: allReports.filter((r) => !dset.has(r.ts)),
+    done: allReports.filter((r) => dset.has(r.ts)),
+  };
+  return { rabbis, places, concepts, reports };
 }
 
 async function buildHealthSection(cache?: KVNamespace) {
-  const [jeRaw, lintFailures, repRaw] = await Promise.all([
+  const [jeRaw, lintFailures] = await Promise.all([
     cache ? cache.get(RECENT_ERRORS_KEY) : null,
     readLintFailures(cache),
-    cache ? cache.get('reports:v1:recent') : null,
   ]);
   let jobErrors: RecentJobError[] = [];
   if (jeRaw) { try { jobErrors = (JSON.parse(jeRaw) as RecentJobError[]).slice(-30).reverse(); } catch { jobErrors = []; } }
-  const reports = repRaw ? [...(JSON.parse(repRaw) as BugReport[])].reverse() : [];
-  return { jobErrors, lintFailures, reports };
+  return { jobErrors, lintFailures };
 }
 
 /**
@@ -4454,7 +4467,7 @@ app.get('/api/usage', async (c) => {
       unknowns: backlog,
       jobErrors: health.jobErrors,
       lintFailures: health.lintFailures,
-      reports: health.reports,
+      reports: backlog.reports.active, // back-compat: the legacy combined payload
     };
   };
   return serveUsageSection(c, cache, 'usage-payload:v1', 30_000, build);
@@ -4467,6 +4480,28 @@ app.get('/api/usage/telemetry', (c) => serveUsageSection(c, c.env.CACHE, 'usage-
 app.get('/api/usage/activity', (c) => serveUsageSection(c, c.env.CACHE, 'usage-activity:v1', 60_000, () => buildActivitySection(c, c.env.CACHE)));
 app.get('/api/usage/backlog', (c) => serveUsageSection(c, c.env.CACHE, 'usage-backlog:v1', 60_000, () => buildBacklogSection(c.env.CACHE)));
 app.get('/api/usage/health', (c) => serveUsageSection(c, c.env.CACHE, 'usage-health:v1', 30_000, () => buildHealthSection(c.env.CACHE)));
+
+// Check off / restore a bug report (by its timestamp id). Toggles membership in
+// the dismissed set; the backlog payload splits reports into active vs. done
+// from it. Open + reversible — it's dev triage, not destructive.
+app.post('/api/admin/report-dismiss', async (c) => {
+  const cache = c.env.CACHE;
+  if (!cache) return c.json({ error: 'no cache binding' }, 503);
+  let body: { ts?: number; done?: boolean };
+  try { body = await c.req.json(); } catch { return c.json({ error: 'bad JSON body' }, 400); }
+  if (typeof body.ts !== 'number') return c.json({ error: 'ts (number) required' }, 400);
+  const raw = await cache.get(REPORTS_DISMISSED_KEY);
+  let dismissed: number[] = [];
+  if (raw) { try { dismissed = JSON.parse(raw) as number[]; } catch { dismissed = []; } }
+  const set = new Set(dismissed);
+  if (body.done === false) set.delete(body.ts); else set.add(body.ts);
+  // Keep ~60 days, comfortably longer than the reports ring buffer's own TTL.
+  await cache.put(REPORTS_DISMISSED_KEY, JSON.stringify([...set]), { expirationTtl: 60 * 60 * 24 * 60 });
+  // Invalidate the cached backlog payload so the next load reflects the change
+  // (the client also updates optimistically).
+  c.executionCtx.waitUntil(cache.delete('usage-backlog:v1').catch(() => {}));
+  return c.json({ ok: true });
+});
 
 // Per-daf cost drill-down — "trace this daf". Reads the permanent per-entry
 // cost stamps for one daf across each mark's cached versions (bounded reads):
