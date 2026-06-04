@@ -4495,11 +4495,16 @@ app.post('/api/admin/report-dismiss', async (c) => {
   if (raw) { try { dismissed = JSON.parse(raw) as number[]; } catch { dismissed = []; } }
   const set = new Set(dismissed);
   if (body.done === false) set.delete(body.ts); else set.add(body.ts);
-  // Keep ~60 days, comfortably longer than the reports ring buffer's own TTL.
-  await cache.put(REPORTS_DISMISSED_KEY, JSON.stringify([...set]), { expirationTtl: 60 * 60 * 24 * 60 });
-  // Invalidate the cached backlog payload so the next load reflects the change
-  // (the client also updates optimistically).
-  c.executionCtx.waitUntil(cache.delete('usage-backlog:v1').catch(() => {}));
+  // Match the reports ring buffer's own 365-day TTL so a done report can't
+  // resurface as active when the dismissed entry expires first.
+  await cache.put(REPORTS_DISMISSED_KEY, JSON.stringify([...set]), { expirationTtl: 60 * 60 * 24 * 365 });
+  // Invalidate the cached backlog payload AND the legacy combined /api/usage
+  // payload (which also carries reports) so the next load reflects the change.
+  // The client also updates optimistically.
+  c.executionCtx.waitUntil(Promise.all([
+    cache.delete('usage-backlog:v1').catch(() => {}),
+    cache.delete('usage-payload:v1').catch(() => {}),
+  ]));
   return c.json({ ok: true });
 });
 
