@@ -197,6 +197,16 @@ interface EnrichmentRow {
   staleCount: number;
 }
 
+type SourceOrigin = 'HB' | 'Sefaria' | 'DY';
+interface SourceRow {
+  id: string;
+  origin: SourceOrigin;
+  count: number;
+  denom: number;
+  percent: number;
+  aligned?: AlignedSample | null;
+}
+
 interface CacheStats {
   generatedAt: string;
   total: number;
@@ -206,6 +216,8 @@ interface CacheStats {
     commentaries: CacheBucket;
     dafyomi?: CacheBucket; // added later; may be absent on a stale cached payload
   };
+  // Per-content-piece breakdown (v8+); absent on a stale cached payload.
+  sources?: SourceRow[];
   marks: MarkRow[];
   enrichments: EnrichmentRow[];
   rabbis: {
@@ -558,26 +570,40 @@ function AnchorRow(props: { row: MarkRow; total: number; he?: boolean }): JSX.El
   );
 }
 
-// ---- Content-In: the daf's raw source spines -----------------------------
-// Friendly names instead of cache keys; "% aligned" is the sampled fraction of
-// cached dapim that produced usable, anchored content (see cache-stats.ts).
-function SourceAlignRow(props: { label: string; hint: string; bucket: CacheBucket | undefined; total: number }): JSX.Element {
-  const count = () => props.bucket?.count ?? 0;
-  const percent = () => props.bucket?.percent ?? 0;
-  const denom = () => props.bucket?.denom ?? props.total;
-  const aligned = () => props.bucket?.aligned ?? null;
-  const complete = () => percent() >= 100;
+// ---- Content-In: the daf's source material, by piece ---------------------
+// Each row is a named content piece (the cache key never shown), tagged with
+// where it comes from: HB (HebrewBooks page), Sefaria, or DY (DafYomi). "Has
+// content" is the sampled fraction of cached dapim that actually carried it.
+const ORIGIN_STYLE: Record<SourceOrigin, { fg: string; bg: string }> = {
+  HB: { fg: '#6b7280', bg: '#f3f4f6' },
+  Sefaria: { fg: '#1d4ed8', bg: '#eef2ff' },
+  DY: { fg: '#7c3aed', bg: '#f3e8ff' },
+};
+function OriginBadge(props: { origin: SourceOrigin }): JSX.Element {
+  const s = () => ORIGIN_STYLE[props.origin];
+  return (
+    <span style={{ 'font-size': '0.65rem', 'font-weight': 600, color: s().fg, background: s().bg, padding: '0.05rem 0.4rem', 'border-radius': '3px', 'margin-left': '0.4rem', 'vertical-align': 'middle' }}>
+      {props.origin}
+    </span>
+  );
+}
+
+function SourceRowView(props: { row: SourceRow }): JSX.Element {
+  const r = () => props.row;
+  const sub = () => r().id.startsWith('dy.'); // DafYomi content-type sub-row
+  const complete = () => r().percent >= 100;
+  const aligned = () => r().aligned ?? null;
   const num = { padding: '0.45rem 0.5rem', 'text-align': 'right' as const, 'font-variant-numeric': 'tabular-nums' };
   return (
-    <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
-      <td style={{ padding: '0.45rem 0.5rem' }}>
-        {props.label}
-        <span style={{ color: '#999', 'font-size': '0.74rem', 'margin-left': '0.4rem' }}>{props.hint}</span>
+    <tr style={{ 'border-bottom': '1px solid #f4f4f4', background: sub() ? '#fcfcfd' : undefined }}>
+      <td style={{ padding: '0.45rem 0.5rem', 'padding-left': sub() ? '1.7rem' : '0.5rem' }}>
+        <span style={{ color: sub() ? '#555' : '#222' }}>{t(`usage.src.${r().id}`)}</span>
+        <Show when={!sub()}><OriginBadge origin={r().origin} /></Show>
       </td>
-      <td style={num}>{fmtInt(count())} / {fmtInt(denom())}</td>
-      <td style={{ padding: '0.45rem 0.5rem', width: '28%' }}><ProgressBar percent={percent()} /></td>
+      <td style={num}>{fmtInt(r().count)} / {fmtInt(r().denom)}</td>
+      <td style={{ padding: '0.45rem 0.5rem', width: '26%' }}><ProgressBar percent={r().percent} /></td>
       <td style={{ ...num, color: complete() ? '#2a8a42' : '#333', 'white-space': 'nowrap' }}>
-        {percent().toFixed(1)}%<Show when={complete()}><span style={{ 'margin-left': '0.3rem' }}>✓</span></Show>
+        {r().percent.toFixed(1)}%<Show when={complete()}><span style={{ 'margin-left': '0.3rem' }}>✓</span></Show>
       </td>
       <td style={{ ...num, color: '#555', 'white-space': 'nowrap' }}>
         <Show when={aligned()} fallback={<span style={{ color: '#bbb' }}>—</span>}>
@@ -589,8 +615,21 @@ function SourceAlignRow(props: { label: string; hint: string; bucket: CacheBucke
 }
 
 function SourcesSection(props: { stats: CacheStats }): JSX.Element {
-  const s = () => props.stats.source;
-  const total = () => props.stats.total;
+  // Prefer the v8 per-piece breakdown; fall back to the legacy 4-bucket shape
+  // if a stale cached payload predates it.
+  const rows = (): SourceRow[] => {
+    if (props.stats.sources && props.stats.sources.length > 0) return props.stats.sources;
+    const s = props.stats.source;
+    const total = props.stats.total;
+    const mk = (id: string, b: CacheBucket | undefined, origin: SourceOrigin): SourceRow =>
+      ({ id, origin, count: b?.count ?? 0, denom: b?.denom ?? total, percent: b?.percent ?? 0, aligned: b?.aligned ?? null });
+    return [
+      mk('hb', s.hebrewbooks, 'HB'),
+      mk('gemara', s.gemara, 'Sefaria'),
+      mk('commentaries', s.commentaries, 'Sefaria'),
+      ...(s.dafyomi ? [mk('dy', s.dafyomi, 'DY')] : []),
+    ];
+  };
   return (
     <table style={tableStyle}>
       <thead>
@@ -599,14 +638,11 @@ function SourcesSection(props: { stats: CacheStats }): JSX.Element {
           <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cached')}</th>
           <th style={thStyle} />
           <th style={{ ...thStyle, 'text-align': 'right' }}>%</th>
-          <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.aligned')}</th>
+          <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.hasContent')}</th>
         </tr>
       </thead>
       <tbody>
-        <SourceAlignRow label={t('usage.source.hebrewbooks')} hint={t('usage.source.hebrewbooks.hint')} bucket={s().hebrewbooks} total={total()} />
-        <SourceAlignRow label={t('usage.source.gemara')} hint={t('usage.source.gemara.hint')} bucket={s().gemara} total={total()} />
-        <SourceAlignRow label={t('usage.source.commentaries')} hint={t('usage.source.commentaries.hint')} bucket={s().commentaries} total={total()} />
-        <SourceAlignRow label={t('usage.source.dafyomi')} hint={t('usage.source.dafyomi.hint')} bucket={s().dafyomi} total={total()} />
+        <For each={rows()}>{(row) => <SourceRowView row={row} />}</For>
       </tbody>
     </table>
   );

@@ -34,8 +34,24 @@ import type { GcTarget } from './cache-gc';
 // v7: source buckets carry sampled `aligned` + a `denom` (DafYomi is per-daf,
 // not per-amud), and a fourth `dafyomi` source. Bumped so a stale v6 payload
 // (missing those fields) isn't served.
-export const CACHE_STATS_KEY = 'cache-stats:v7';
+// v8: adds `sources` — a flat, per-content-piece breakdown (each Sefaria
+// sub-source + each DafYomi content type), tagged with its origin (HB/Sefaria/
+// DY). The old 4-bucket `source` is kept for back-compat.
+export const CACHE_STATS_KEY = 'cache-stats:v8';
 const FRESH_MS = 60_000;
+
+export type SourceOrigin = 'HB' | 'Sefaria' | 'DY';
+/** One named content piece in Content-In: where it comes from, how many dapim
+ *  carry it, and (sampled) how many actually have content. `id` is stable; the
+ *  UI maps it to a friendly label. */
+export interface SourceRow {
+  id: string;
+  origin: SourceOrigin;
+  count: number;
+  denom: number;
+  percent: number;
+  aligned: AlignedSample | null;
+}
 
 export interface CacheStats {
   generatedAt: string;
@@ -46,6 +62,8 @@ export interface CacheStats {
     commentaries: SourceBucket;
     dafyomi: SourceBucket;
   };
+  /** Per-content-piece source breakdown for Content-In (HB / Sefaria / DY). */
+  sources: SourceRow[];
   marks: MarkCacheRow[];
   enrichments: EnrichmentCacheRow[];
   // rabbi.observations reverse index (collect-only). `slices` = rabbi×daf
@@ -197,6 +215,65 @@ const alignedDafyomi: AlignPredicate = (v) => {
   return hasContent(d.amudim?.a) || hasContent(d.amudim?.b);
 };
 
+// Generic "we actually got content" predicate for sources whose cached value is
+// the raw array/map (empty [] or {} means the daf has none — e.g. no mishnah, no
+// yerushalmi parallel). Distinguishes real content from an empty/failed fetch.
+const nonEmptyValue: AlignPredicate = (v) => {
+  if (!v || failed(v)) return false;
+  if (Array.isArray(v)) return v.length > 0;
+  if (typeof v === 'string') return v.trim().length > 0;
+  if (typeof v === 'object') return Object.keys(v as object).length > 0;
+  return true;
+};
+
+// DafYomi content types (Kollel Iyun HaDaf), in display order. See
+// src/lib/sefref/dafyomi/masechtos.ts (DafyomiContentType).
+const DAFYOMI_TYPES = ['insights', 'background', 'halacha', 'tosfos', 'review', 'points', 'hebcharts', 'yerushalmi', 'revach'] as const;
+
+/**
+ * Sample DafYomi entries once and tally, per content type, how many of the
+ * sampled dapim carry it (in either amud, with a non-empty block). Also reports
+ * how many had ANY content (the overall "aligned" figure). One bounded pass
+ * powers both the DafYomi overall row and its per-type breakdown.
+ */
+async function sampleDafyomiTypes(
+  cache: KVNamespace,
+  sampleSize = 300,
+): Promise<{ sampled: number; alignedAny: number; byType: Record<string, number> }> {
+  const keys: string[] = [];
+  let cursor: string | undefined = undefined;
+  while (keys.length < sampleSize) {
+    const res = (await cache.list({ prefix: 'dafyomi:v5:', cursor, limit: Math.min(1000, sampleSize - keys.length) })) as {
+      keys: Array<{ name: string }>; list_complete: boolean; cursor?: string;
+    };
+    for (const k of res.keys) keys.push(k.name);
+    if (res.list_complete || !res.cursor) break;
+    cursor = res.cursor;
+  }
+  const raws = await Promise.all(keys.map((k) => cache.get(k)));
+  const byType: Record<string, number> = {};
+  let sampled = 0;
+  let alignedAny = 0;
+  for (const raw of raws) {
+    if (raw == null) continue;
+    sampled++;
+    let v: unknown;
+    try { v = JSON.parse(raw); } catch { continue; }
+    if (failed(v)) continue;
+    const d = v as { amudim?: { a?: Record<string, unknown>; b?: Record<string, unknown> } };
+    const present = new Set<string>();
+    for (const amud of [d.amudim?.a, d.amudim?.b]) {
+      if (!amud) continue;
+      for (const [type, block] of Object.entries(amud)) {
+        if (block && typeof block === 'object' && Object.keys(block as object).length > 0) present.add(type);
+      }
+    }
+    if (present.size > 0) alignedAny++;
+    for (const t of present) byType[t] = (byType[t] ?? 0) + 1;
+  }
+  return { sampled, alignedAny, byType };
+}
+
 /**
  * Sample up to `sampleSize` cached entries under `prefix`, read their values,
  * and report how many satisfy `isAligned`. Bounded (not a Shas-wide scan) so it
@@ -345,7 +422,10 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
 
   const [
     hbCount, gemaraCount, commentariesCount, dafyomiCount, obsSlices, obsRabbis,
-    hbAligned, gemaraAligned, commentariesAligned, dafyomiAligned,
+    hbAligned, gemaraAligned, commentariesAligned,
+    rishonimCount, mishnaCount, yeruCount, halRefsCount, topicsCount,
+    rishonimAligned, mishnaAligned, yeruAligned, halRefsAligned, topicsAligned,
+    dyTypes,
   ] = await Promise.all([
     countPrefix(cache, 'hb:v2:'),
     countPrefix(cache, 'ctx:gemara:v1:'),
@@ -358,8 +438,47 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     sampleAligned(cache, 'hb:v2:', alignedHebrewBooks),
     sampleAligned(cache, 'ctx:gemara:v1:', alignedGemara),
     sampleAligned(cache, 'ctx:commentaries:v1:', alignedCommentaries),
-    sampleAligned(cache, 'dafyomi:v5:', alignedDafyomi),
+    // Extra Sefaria sub-sources (raw array/map values — nonEmptyValue = the daf
+    // actually has a mishnah / yerushalmi parallel / rishonim / refs / topics).
+    countPrefix(cache, 'rishonim:v4:'),
+    countPrefix(cache, 'mishna-bundle:v1:'),
+    countPrefix(cache, 'yerushalmi:v1:'),
+    countPrefix(cache, 'halacha-refs:v2:'),
+    countPrefix(cache, 'daf-topics:v1:'),
+    sampleAligned(cache, 'rishonim:v4:', nonEmptyValue),
+    sampleAligned(cache, 'mishna-bundle:v1:', nonEmptyValue),
+    sampleAligned(cache, 'yerushalmi:v1:', nonEmptyValue),
+    sampleAligned(cache, 'halacha-refs:v2:', nonEmptyValue),
+    sampleAligned(cache, 'daf-topics:v1:', nonEmptyValue),
+    sampleDafyomiTypes(cache),
   ]);
+  const dafyomiAligned: AlignedSample | null = dyTypes.sampled > 0
+    ? { sampled: dyTypes.sampled, aligned: dyTypes.alignedAny, pct: Math.round((dyTypes.alignedAny / dyTypes.sampled) * 1000) / 10 }
+    : null;
+
+  // Content-In: flat, per-piece source breakdown (origin-tagged).
+  const sefariaRow = (id: string, count: number, aligned: AlignedSample | null): SourceRow =>
+    ({ id, origin: 'Sefaria', count, denom: total, percent: pct(count, total), aligned });
+  const sources: SourceRow[] = [
+    { id: 'hb', origin: 'HB', count: hbCount, denom: total, percent: pct(hbCount, total), aligned: hbAligned },
+    sefariaRow('gemara', gemaraCount, gemaraAligned),
+    sefariaRow('commentaries', commentariesCount, commentariesAligned),
+    sefariaRow('rishonim', rishonimCount, rishonimAligned),
+    sefariaRow('mishna', mishnaCount, mishnaAligned),
+    sefariaRow('yerushalmi', yeruCount, yeruAligned),
+    sefariaRow('halacha-refs', halRefsCount, halRefsAligned),
+    sefariaRow('daf-topics', topicsCount, topicsAligned),
+    { id: 'dy', origin: 'DY', count: dafyomiCount, denom: dafTotal, percent: pct(dafyomiCount, dafTotal), aligned: dafyomiAligned },
+    // DafYomi content types — count extrapolated from the sample, % of cached
+    // DafYomi dapim that include the part. No separate alignment (presence is
+    // the metric).
+    ...DAFYOMI_TYPES.map((type): SourceRow => {
+      const present = dyTypes.byType[type] ?? 0;
+      const frac = dyTypes.sampled > 0 ? present / dyTypes.sampled : 0;
+      const estCount = Math.round(frac * dafyomiCount);
+      return { id: `dy.${type}`, origin: 'DY', count: estCount, denom: dafyomiCount, percent: Math.round(frac * 1000) / 10, aligned: null };
+    }),
+  ];
 
   const markDefs = await mergedMarks(cache);
   const enrichDefs = await mergedEnrichments(cache);
@@ -451,6 +570,7 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
       // denominator is the daf count, not the per-amud total.
       dafyomi: { count: dafyomiCount, percent: pct(dafyomiCount, dafTotal), aligned: dafyomiAligned, denom: dafTotal },
     },
+    sources,
     marks,
     enrichments,
     observations: { slices: obsSlices, rabbis: obsRabbis },
