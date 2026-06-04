@@ -1,5 +1,6 @@
 import { Show, type JSX } from 'solid-js';
 import DafLoadProgress from './DafLoadProgress';
+import { t } from './i18n';
 import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
 import type { ConceptTerm } from './conceptLinks';
 import type { GenerationId } from './generations';
@@ -72,9 +73,10 @@ export function MobileShelf(props: MobileShelfProps): JSX.Element {
   );
 }
 
-const MODE_BUTTONS: Array<{ id: MobileInteractionMode; label: string; hint: string }> = [
-  { id: 'read', label: 'Read', hint: 'Pan & zoom; tap icons to open' },
-  { id: 'translate', label: 'Translate', hint: 'Tap words to translate' },
+// Labels/hints resolve through t() per-render so they follow the EN/HE switch.
+const MODE_BUTTONS: Array<{ id: MobileInteractionMode; labelKey: string; hintKey: string }> = [
+  { id: 'read', labelKey: 'mobile.mode.read', hintKey: 'mobile.mode.read.hint' },
+  { id: 'translate', labelKey: 'mobile.mode.translate', hintKey: 'mobile.mode.translate.hint' },
 ];
 
 // Pinned interaction-mode pills. Stays at the bottom of the shelf regardless
@@ -94,7 +96,7 @@ function ModeBar(props: { mode: MobileInteractionMode; onModeChange: (m: MobileI
           type="button"
           onClick={() => props.onModeChange(b.id)}
           aria-pressed={props.mode === b.id}
-          title={b.hint}
+          title={t(b.hintKey)}
           style={{
             flex: 1,
             padding: '0.55rem 0.4rem',
@@ -107,7 +109,7 @@ function ModeBar(props: { mode: MobileInteractionMode; onModeChange: (m: MobileI
             'font-weight': props.mode === b.id ? 600 : 400,
           }}
         >
-          {b.label}
+          {t(b.labelKey)}
         </button>
       ))}
     </div>

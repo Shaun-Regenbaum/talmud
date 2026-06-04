@@ -26,6 +26,8 @@ export interface TranslationPopupProps {
    *  mobile to re-measure after an auto-scroll (the static `anchor` goes stale
    *  once we scroll). Falls back to `anchor` when absent. */
   getAnchorRect?: () => Rect | null;
+  /** Max words a tap-to-extend region can span (mobile hint copy). */
+  maxWords?: number;
 }
 
 // Module-level cache so reopening the popup for a word we already translated
@@ -231,7 +233,7 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
             'line-height': 1.35,
           }}
         >
-          {t('translation.mobileHint')}
+          {t('translation.mobileHint', { max: props.maxWords ?? 20 })}
         </div>
       </Show>
     </div>

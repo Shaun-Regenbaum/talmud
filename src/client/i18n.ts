@@ -758,13 +758,22 @@ const CATALOG = {
   // — Translation popup —
   'translation.loading': { en: 'Translating…', he: 'מתרגם…' },
   'translation.mobileHint': {
-    en: 'Tap another word to extend · tap again to close',
-    he: 'הקישו על מילה נוספת להרחבה · הקישו שוב לסגירה',
+    en: 'Tap another word within {max} words to translate a region · tap again to close',
+    he: 'הקישו על מילה נוספת בטווח {max} מילים לתרגום קטע · הקישו שוב לסגירה',
   },
 
   // — Mobile top drawer (daf picker / nav) —
   'header.drawer.expand': { en: 'Menu ▾', he: 'תפריט ▾' },
   'header.drawer.collapse': { en: 'Hide ▴', he: 'הסתר ▴' },
+
+  // — Mobile interaction modes + layers —
+  'mobile.mode.read': { en: 'Read', he: 'קריאה' },
+  'mobile.mode.read.hint': { en: 'Pan & zoom; tap icons to open', he: 'גלילה וזום; הקישו על סמלים לפתיחה' },
+  'mobile.mode.translate': { en: 'Translate', he: 'תרגום' },
+  'mobile.mode.translate.hint': { en: 'Tap words to translate', he: 'הקישו על מילים לתרגום' },
+  'mobile.layers': { en: 'Layers', he: 'שכבות' },
+  'mobile.layers.title': { en: 'Annotation layers', he: 'שכבות ביאור' },
+  'mobile.layers.close': { en: 'Close', he: 'סגירה' },
 
   // — User highlights / notes —
   'highlight.action': { en: 'Highlight:', he: 'הדגשה:' },

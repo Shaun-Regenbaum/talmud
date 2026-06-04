@@ -989,6 +989,12 @@ export default function DafViewer(): JSX.Element {
     onCleanup(() => window.removeEventListener('scroll', onScroll));
   });
 
+  // Mobile "Layers" sheet — the annotation-layer toggles (MarksRegistryPanel)
+  // live in the desktop dev shelf, which is hidden on mobile; without this
+  // sheet a phone user has no way to turn gutter marks on. Dev tooling stays
+  // desktop-only, but the layer switches are a normal reader feature.
+  const [layersOpen, setLayersOpen] = createSignal(false);
+
   // Geography-driven highlight: when the user clicks a city/region on the
   // GeographyMap, we highlight every rabbi in the set across the whole daf,
   // not scoped to a single argument section.
@@ -3016,6 +3022,19 @@ export default function DafViewer(): JSX.Element {
               {t('header.dev')}
             </button>
           </Show>
+          {/* Mobile-only "Layers" entry point. The mark toggles live in the
+              desktop dev shelf (hidden on phones), so this opens a dedicated
+              sheet with just the annotation layers. */}
+          <Show when={isMobile()}>
+            <button
+              class="tb-toggle"
+              classList={{ 'is-active': layersOpen() }}
+              onClick={() => setLayersOpen((v) => !v)}
+              title={t('mobile.layers.title')}
+            >
+              {t('mobile.layers')}
+            </button>
+          </Show>
           {/* EN/HE language toggle, folded inline here on the daf page; the
               floating TopBar overlay covers the other routes (see App.tsx). */}
           <div class="tb-seg" role="group" aria-label="Language">
@@ -3249,6 +3268,7 @@ export default function DafViewer(): JSX.Element {
             onClose={clearActive}
             mobile={isMobile()}
             getAnchorRect={() => unionRectOf(a().els)}
+            maxWords={MAX_PHRASE_WORDS}
           />
         )}
       </Show>
@@ -3427,6 +3447,64 @@ export default function DafViewer(): JSX.Element {
           onOpenArgument={openArgument}
         />
       </Show>
+
+      {/* Mobile "Layers" sheet. MarksRegistryPanel must stay MOUNTED for its
+          extraction effects to drive the gutter (same reason DevModeShelf keeps
+          it mounted on desktop), so visibility is a CSS `display` toggle here,
+          NOT a <Show> around the panel. The backdrop is the only part gated by
+          <Show>. */}
+      <Show when={isMobile()}>
+        <Show when={layersOpen()}>
+          <div
+            onClick={() => setLayersOpen(false)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.25)', 'z-index': 200 }}
+          />
+        </Show>
+        <div
+          style={{
+            position: 'fixed', left: 0, right: 0, bottom: 0,
+            'z-index': 201, 'max-height': '75vh',
+            background: '#fff',
+            'border-top': '1px solid #d6d3d1',
+            'border-top-left-radius': '12px',
+            'border-top-right-radius': '12px',
+            'box-shadow': '0 -6px 20px rgba(0, 0, 0, 0.14)',
+            display: layersOpen() ? 'flex' : 'none',
+            'flex-direction': 'column',
+          }}
+        >
+          <div style={{
+            display: 'flex', 'align-items': 'center', 'justify-content': 'space-between',
+            padding: '0.6rem 0.85rem', 'border-bottom': '1px solid #eee', 'flex-shrink': 0,
+          }}>
+            <span style={{ 'font-size': '0.8rem', color: '#666', 'text-transform': 'uppercase', 'letter-spacing': '0.05em' }}>
+              {t('mobile.layers.title')}
+            </span>
+            <button
+              type="button"
+              onClick={() => setLayersOpen(false)}
+              aria-label={t('mobile.layers.close')}
+              style={{ border: 'none', background: 'transparent', cursor: 'pointer', 'font-size': '1.1rem', padding: '0.25rem 0.5rem', color: '#666' }}
+            >
+              ✕
+            </button>
+          </div>
+          <div style={{ flex: 1, 'min-height': 0, overflow: 'auto', padding: '0.5rem 0.75rem' }}>
+            <MarksRegistryPanel
+              tractate={tractate()}
+              page={page()}
+              seedMarks={buildSeedMarks({
+                showGenMarkers, setShowGenMarkers,
+                showArguments, setShowArguments,
+                showHalachot, setShowHalachot,
+                showAggadatot, setShowAggadatot,
+                showPesukim, setShowPesukim,
+              })}
+            />
+          </div>
+        </div>
+      </Show>
+
       <Show when={!isMobile()}>
       <DevModeShelf open={devOpen()} onClose={() => { setDevOpen(false); setDevModeActive(false); }}>
         <ChecksPanel tractate={tractate()} page={page()} />
