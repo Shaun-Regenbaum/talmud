@@ -1,4 +1,4 @@
-import { createResource, createSignal, For, Show, type JSX } from 'solid-js';
+import { createResource, createSignal, onCleanup, For, Show, type JSX } from 'solid-js';
 import { t } from './i18n';
 import { estimateShasCost, type ProducerCost } from '../lib/shasCost';
 
@@ -64,6 +64,8 @@ interface UsageBucket {
   tokensIn: number;
   tokensOut: number;
   costUsd: number;
+  costInUsd?: number;
+  costOutUsd?: number;
   pricedCalls: number;
   unpricedCalls: number;
 }
@@ -154,29 +156,6 @@ interface UnknownSummary<T> {
   sample: T[];
 }
 
-interface UsagePayload {
-  telemetry: {
-    perEndpoint: Record<string, PerEndpoint>;
-    perMark: Record<string, PerEndpoint>;
-    perEnrichment: Record<string, PerEndpoint>;
-    recentErrors: RecentError[];
-    totalCount: number;
-  };
-  cost: {
-    selfTracked: UsageSummary | null;
-    aiGateway: AigwCost;
-  };
-  activity: ZoneActivity;
-  unknowns: {
-    rabbis: UnknownSummary<UnknownRabbi>;
-    places: UnknownSummary<ObservedPlace>;
-    concepts: UnknownSummary<ObservedConcept>;
-  };
-  jobErrors: JobError[];
-  lintFailures: LintFailuresSummary;
-  reports: BugReport[];
-}
-
 interface CacheBucket {
   count: number;
   percent: number;
@@ -239,16 +218,122 @@ interface CacheStats {
   };
 }
 
-async function fetchUsage(): Promise<UsagePayload> {
-  const res = await fetch('/api/usage');
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+// ---- Per-section data loading -------------------------------------------
+// Each dashboard section loads from its OWN endpoint so a slow one never blocks
+// the rest, and we paint the last value from localStorage instantly then
+// revalidate in the background — the page is useful on the first frame.
+
+interface TelemetrySection {
+  perEndpoint: Record<string, PerEndpoint>;
+  perMark: Record<string, PerEndpoint>;
+  perEnrichment: Record<string, PerEndpoint>;
+  recentErrors: RecentError[];
+  totalCount: number;
+}
+interface CostSectionData {
+  selfTracked: UsageSummary | null;
+  aiGateway: AigwCost;
+  costAvoided?: { recentUsd: number; recentCalls: number };
+}
+interface BacklogSectionData {
+  rabbis: UnknownSummary<UnknownRabbi>;
+  places: UnknownSummary<ObservedPlace>;
+  concepts: UnknownSummary<ObservedConcept>;
+}
+interface HealthSectionData {
+  jobErrors: JobError[];
+  lintFailures: LintFailuresSummary;
+  reports: BugReport[];
+}
+interface DafLedgerBucket { calls: number; cost: number; costInEst: number; costOutEst: number }
+interface LlmCostData {
+  totalCostUsd: number;
+  estInputCostUsd?: number;
+  estOutputCostUsd?: number;
+  byDaf?: Record<string, DafLedgerBucket>;
+  byKind?: Record<string, { calls: number; cost: number }>;
+}
+interface DafVersionCost {
+  version: string; lang: 'en' | 'he';
+  billedUsd: number | null; estimatedUsd: number | null;
+  costInUsd: number | null; costOutUsd: number | null;
+  tokensIn: number; tokensOut: number;
+}
+interface DafMarkCost { id: string; label: string; current: DafVersionCost[]; superseded: DafVersionCost[]; totalUsd: number }
+interface DafCostData {
+  tractate: string; page: string;
+  marks: DafMarkCost[];
+  totals: { currentUsd: number; supersededUsd: number; totalUsd: number };
 }
 
-async function fetchCacheStats(): Promise<CacheStats> {
-  const res = await fetch('/api/admin/cache-stats');
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+function readStored<T>(key: string): T | undefined {
+  if (typeof window === 'undefined') return undefined;
+  try { const v = window.localStorage.getItem(key); return v ? (JSON.parse(v) as T) : undefined; } catch { return undefined; }
+}
+function writeStored(key: string, v: unknown): void {
+  if (typeof window === 'undefined') return;
+  try { window.localStorage.setItem(key, JSON.stringify(v)); } catch { /* quota / disabled */ }
+}
+
+interface Section<T> {
+  value: () => T | undefined; // freshest network value, else the last stored snapshot
+  loading: () => boolean;
+  error: () => unknown;
+  refetch: () => void;
+}
+// A section's data: fetched from `url`, snapshotted to localStorage under
+// `storeKey` for instant first paint on the next visit.
+function sectionResource<T>(url: string, storeKey: string): Section<T> {
+  const [res, { refetch }] = createResource<T>(async () => {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = (await r.json()) as T;
+    writeStored(storeKey, data);
+    return data;
+  });
+  return {
+    // res() throws while pending/errored — guard on state and fall back to the
+    // stored snapshot so a slow/failed refresh still shows the last good value.
+    value: () => (res.state === 'ready' ? res() : readStored<T>(storeKey)),
+    loading: () => res.loading,
+    error: () => (res.state === 'errored' ? res.error : undefined),
+    refetch: () => { void refetch(); },
+  };
+}
+
+// Shimmer placeholder shown while a section has no value yet (reuses the
+// daf-pulse keyframe from styles.css).
+function SkeletonBlock(props: { rows?: number }): JSX.Element {
+  return (
+    <div style={{ padding: '0.4rem 0' }} aria-hidden="true">
+      <For each={Array.from({ length: props.rows ?? 3 })}>
+        {(_, i) => (
+          <div style={{
+            height: '1.1rem', 'border-radius': '4px', 'margin-bottom': '0.55rem',
+            width: i() % 3 === 2 ? '60%' : i() % 2 ? '85%' : '100%',
+            background: '#eee', animation: 'daf-pulse 1.3s ease-in-out infinite',
+          }} />
+        )}
+      </For>
+    </div>
+  );
+}
+
+// Renders a section's content once loaded; shows a skeleton while it first
+// loads and an error line only when there's no value to fall back to.
+function SectionShell<T>(props: { section: Section<T>; skeletonRows?: number; children: (v: T) => JSX.Element }): JSX.Element {
+  return (
+    <Show
+      when={props.section.value()}
+      fallback={
+        <Show when={props.section.error()} fallback={<SkeletonBlock rows={props.skeletonRows} />}>
+          <p style={{ color: '#c33', 'font-size': '0.85rem' }}>{t('usage.loadFailed', { error: String(props.section.error()) })}</p>
+        </Show>
+      }
+    >
+      {(v) => props.children(v())}
+    </Show>
+  );
 }
 
 function fmtMs(ms: number): string {
@@ -307,39 +392,6 @@ function SectionHeading(props: SectionHeadingProps): JSX.Element {
         </span>
       </Show>
     </h2>
-  );
-}
-
-// ---- Collapsible top-level section ---------------------------------------
-// Owns the <section> + clickable heading; remembers open/closed in
-// localStorage (key usage.section.<id>) so a reader's layout survives reloads
-// and the 30s auto-refresh. Wrapped blocks supply only their body — the title
-// lives here.
-function CollapsibleSection(props: { id: string; title: string; hint?: string; defaultOpen?: boolean; children: JSX.Element }): JSX.Element {
-  const storageKey = `usage.section.${props.id}`;
-  const initial = (() => {
-    if (typeof window === 'undefined') return props.defaultOpen ?? false;
-    const saved = window.localStorage.getItem(storageKey);
-    if (saved === '1') return true;
-    if (saved === '0') return false;
-    return props.defaultOpen ?? false;
-  })();
-  const [open, setOpen] = createSignal(initial);
-  const toggle = () => {
-    const next = !open();
-    setOpen(next);
-    if (typeof window !== 'undefined') window.localStorage.setItem(storageKey, next ? '1' : '0');
-  };
-  return (
-    <section style={{ 'margin-bottom': '1.6rem' }}>
-      <div onClick={toggle} style={{ cursor: 'pointer', display: 'flex', 'align-items': 'baseline', gap: '0.4rem', 'user-select': 'none' }}>
-        <span style={{ color: '#bbb', 'font-size': '0.8rem', 'line-height': 1, width: '0.8rem', 'flex-shrink': 0 }}>{open() ? '▾' : '▸'}</span>
-        <SectionHeading title={props.title} hint={props.hint} />
-      </div>
-      <Show when={open()}>
-        <div style={{ 'padding-left': '1.2rem' }}>{props.children}</div>
-      </Show>
-    </section>
   );
 }
 
@@ -834,9 +886,10 @@ function ActivitySection(props: { activity: ZoneActivity }): JSX.Element {
   );
 }
 
-function CostSection(props: { cost: UsagePayload['cost']; stats: CacheStats | undefined }): JSX.Element {
+function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefined }): JSX.Element {
   const aigw = () => props.cost.aiGateway;
   const self = () => props.cost.selfTracked;
+  const avoided = () => props.cost.costAvoided;
 
   // Per-producer estimate of the cost to warm ALL of shas at full depth. Each
   // producer's unit cost ($/priced call) is projected across its own fire-rate
@@ -913,9 +966,17 @@ function CostSection(props: { cost: UsagePayload['cost']; stats: CacheStats | un
           <>
             <div style={{ display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.6rem' }}>
               <StatCard label={t('usage.stat.costPriced')} value={fmtUsd(s().totals.costUsd)} color="#2a8a42" sub={t('usage.stat.pricedCalls', { count: fmtInt(s().totals.pricedCalls) })} />
+              <StatCard
+                label={t('usage.stat.inOut')}
+                value={`${fmtUsd(s().totals.costInUsd ?? 0)} / ${fmtUsd(s().totals.costOutUsd ?? 0)}`}
+                sub={t('usage.stat.inOut.sub')}
+              />
               <StatCard label={t('usage.stat.unpricedCalls')} value={fmtInt(s().totals.unpricedCalls)} sub={t('usage.stat.unpricedCalls.sub')} />
               <StatCard label={t('usage.stat.llmCalls')} value={fmtInt(s().totals.calls)} sub={t('usage.stat.errored', { count: fmtInt(s().totals.errors) })} />
               <StatCard label={t('usage.stat.tokens')} value={fmtTokens(s().totals.tokensIn + s().totals.tokensOut)} sub={t('usage.stat.tokensInOut', { in: fmtTokens(s().totals.tokensIn), out: fmtTokens(s().totals.tokensOut) })} />
+              <Show when={avoided() && avoided()!.recentCalls > 0}>
+                <StatCard label={t('usage.stat.costAvoided')} value={fmtUsd(avoided()!.recentUsd)} color="#1d4ed8" sub={t('usage.stat.costAvoided.sub', { count: fmtInt(avoided()!.recentCalls) })} />
+              </Show>
             </div>
             <Show when={Object.keys(s().byMark).length > 0 || Object.keys(s().byEnrichment).length > 0}>
               <CostBreakdown title={t('usage.byMark')} buckets={s().byMark} />
@@ -1055,29 +1116,282 @@ function LatencyTable(props: { title: string; hint?: string; rows: Array<[string
   );
 }
 
-export function UsagePage(): JSX.Element {
-  const [data, { refetch }] = createResource(fetchUsage);
-  const [cacheStats, { refetch: refetchCache }] = createResource(fetchCacheStats);
-  const interval = setInterval(() => { void refetch(); void refetchCache(); }, 30000);
-  if (typeof window !== 'undefined') window.addEventListener('beforeunload', () => clearInterval(interval));
+// ---- Per-daf cost drill-down ---------------------------------------------
+function bestVersionUsd(v: { billedUsd: number | null; estimatedUsd: number | null }): number {
+  return v.billedUsd ?? v.estimatedUsd ?? 0;
+}
+function sumVersions(vs: DafVersionCost[]): number {
+  return vs.reduce((s, v) => s + bestVersionUsd(v), 0);
+}
 
-  // Any in-flight fetch (initial load OR a background refetch keeping its prior
-  // value). Drives the header spinner so a slow load never looks frozen.
-  const busy = () => data.loading || cacheStats.loading;
-  // First paint: nothing has resolved yet. Show a full loading banner rather
-  // than an empty page while the (sometimes multi-second) endpoints respond.
-  const firstLoad = () => !data() && !cacheStats() && !data.error;
+// One expandable row of the by-daf cost table. The byDaf ledger row gives the
+// RECENT spend (last 7 days, all kinds incl. source alignment); expanding fetches
+// /api/usage/daf/:t/:p for the PERMANENT per-mark current-vs-superseded stamps.
+function ByDafRow(props: { daf: string; bucket: DafLedgerBucket }): JSX.Element {
+  const [open, setOpen] = createSignal(false);
+  const parts = () => { const i = props.daf.indexOf(':'); return { t: props.daf.slice(0, i), p: props.daf.slice(i + 1) }; };
+  const [drill] = createResource(
+    () => (open() ? parts() : null),
+    async (pp): Promise<DafCostData> => {
+      const r = await fetch(`/api/usage/daf/${encodeURIComponent(pp.t)}/${encodeURIComponent(pp.p)}`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    },
+  );
+  const numCell = { padding: '0.35rem 0.5rem', 'text-align': 'right' as const, 'font-variant-numeric': 'tabular-nums' };
+  return (
+    <>
+      <tr style={{ 'border-bottom': '1px solid #f4f4f4', cursor: 'pointer' }} onClick={() => setOpen(!open())}>
+        <td style={{ padding: '0.35rem 0.5rem' }}>
+          <span style={{ color: '#bbb', 'margin-right': '0.4rem', display: 'inline-block', width: '0.7rem' }}>{open() ? '▾' : '▸'}</span>
+          {parts().t} {parts().p}
+        </td>
+        <td style={{ ...numCell, color: '#888' }}>{fmtInt(props.bucket.calls)}</td>
+        <td style={{ ...numCell, color: '#888' }}>{fmtUsd(props.bucket.costInEst)} / {fmtUsd(props.bucket.costOutEst)}</td>
+        <td style={{ ...numCell, 'font-weight': 600 }}>{fmtUsd(props.bucket.cost)}</td>
+      </tr>
+      <Show when={open()}>
+        <tr style={{ background: '#fbfbfa' }}>
+          <td colspan={4} style={{ padding: '0.3rem 0.5rem 0.7rem 1.6rem' }}>
+            <div style={{ 'font-size': '0.75rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.04em', 'margin-bottom': '0.3rem' }}>{t('usage.daf.permanentTitle')}</div>
+            <Show when={drill()} fallback={<SkeletonBlock rows={2} />}>
+              {(rep) => (
+                <Show when={rep().marks.length > 0} fallback={<p style={{ color: '#aaa', 'font-size': '0.8rem' }}>{t('usage.daf.empty')}</p>}>
+                  <table style={tableStyle}>
+                    <thead>
+                      <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
+                        <th style={thStyle}>{t('usage.daf.col.mark')}</th>
+                        <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.daf.col.current')}</th>
+                        <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.daf.col.superseded')}</th>
+                        <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cost')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <For each={rep().marks}>
+                        {(m) => (
+                          <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+                            <td style={{ padding: '0.3rem 0.5rem', 'font-family': 'monospace', 'font-size': '0.78rem' }}>{m.id}</td>
+                            <td style={{ padding: '0.3rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', color: '#2a8a42' }}>{fmtUsd(sumVersions(m.current))}</td>
+                            <td style={{ padding: '0.3rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', color: m.superseded.length ? '#b58100' : '#bbb' }}>{m.superseded.length ? fmtUsd(sumVersions(m.superseded)) : '—'}</td>
+                            <td style={{ padding: '0.3rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', 'font-weight': 600 }}>{fmtUsd(m.totalUsd)}</td>
+                          </tr>
+                        )}
+                      </For>
+                    </tbody>
+                    <tfoot>
+                      <tr style={{ 'border-top': '1px solid #eee', color: '#555' }}>
+                        <td style={{ padding: '0.3rem 0.5rem' }}>{t('usage.daf.total')}</td>
+                        <td style={{ padding: '0.3rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>{fmtUsd(rep().totals.currentUsd)}</td>
+                        <td style={{ padding: '0.3rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums' }}>{fmtUsd(rep().totals.supersededUsd)}</td>
+                        <td style={{ padding: '0.3rem 0.5rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', 'font-weight': 600 }}>{fmtUsd(rep().totals.totalUsd)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </Show>
+              )}
+            </Show>
+          </td>
+        </tr>
+      </Show>
+    </>
+  );
+}
+
+function ByDafCostTable(props: { llmCost: LlmCostData | undefined }): JSX.Element {
+  const TOP = 40;
+  const rows = () => {
+    const byDaf = props.llmCost?.byDaf ?? {};
+    return Object.entries(byDaf)
+      .sort(([, a], [, b]) => b.cost - a.cost || b.calls - a.calls)
+      .slice(0, TOP);
+  };
+  return (
+    <div style={{ 'margin-top': '1.3rem' }}>
+      <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.4rem' }}>
+        {t('usage.byDaf.title')} <span style={{ color: '#999', 'font-weight': 'normal' }}>{t('usage.byDaf.sub')}</span>
+      </h3>
+      <Show when={rows().length > 0} fallback={<p style={{ color: '#888', 'font-size': '0.82rem' }}>{t('usage.byDaf.empty')}</p>}>
+        <table style={tableStyle}>
+          <thead>
+            <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
+              <th style={thStyle}>{t('usage.col.daf')}</th>
+              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.calls')}</th>
+              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.inOut')}</th>
+              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cost')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <For each={rows()}>{([daf, bucket]) => <ByDafRow daf={daf} bucket={bucket} />}</For>
+          </tbody>
+        </table>
+      </Show>
+    </div>
+  );
+}
+
+// ---- Grouped Health sections (telemetry + operational errors) ------------
+function TelemetryGroup(props: { telemetry: TelemetrySection }): JSX.Element {
+  const d = () => props.telemetry;
+  return (
+    <>
+      <LatencyTable
+        title={t('usage.latency.byEndpoint', { count: d().totalCount })}
+        rows={Object.entries(d().perEndpoint).sort(([a], [b]) => a.localeCompare(b))}
+      />
+      <LatencyTable title={t('usage.latency.byMark')} hint={t('usage.latency.byMark.hint')} rows={Object.entries(d().perMark).sort(([a], [b]) => a.localeCompare(b))} />
+      <LatencyTable title={t('usage.latency.byEnrichment')} hint={t('usage.latency.byEnrichment.hint')} rows={Object.entries(d().perEnrichment).sort(([a], [b]) => a.localeCompare(b))} />
+      <section style={{ 'margin-bottom': '1.6rem' }}>
+        <SectionHeading title={t('usage.recentErrors.title')} hint={t('usage.recentErrors.hint')} />
+        <Show when={d().recentErrors.length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.none')}</p>}>
+          <ul style={{ 'list-style': 'none', padding: 0, margin: 0, 'font-size': '0.8rem' }}>
+            <For each={d().recentErrors}>
+              {(e) => (
+                <li style={{ padding: '0.3rem 0', 'border-bottom': '1px solid #f4f4f4', display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap' }}>
+                  <span style={{ color: '#999', 'white-space': 'nowrap' }}>{fmtTime(e.ts)}</span>
+                  <span style={{ 'font-family': 'monospace' }}>{e.endpoint}</span>
+                  <Show when={e.mark_id}><span style={{ 'font-family': 'monospace', color: '#555' }}>mark={e.mark_id}</span></Show>
+                  <Show when={e.enrichment_id}><span style={{ 'font-family': 'monospace', color: '#555' }}>enrich={e.enrichment_id}</span></Show>
+                  <Show when={e.tractate || e.page}><span style={{ color: '#666' }}>{e.tractate} {e.page}</span></Show>
+                  <span style={{ color: '#c33' }}>{e.error_kind ?? t('usage.errorKind.other')}</span>
+                  <Show when={e.model}><span style={{ color: '#888', 'font-size': '0.75rem' }}>({e.model})</span></Show>
+                </li>
+              )}
+            </For>
+          </ul>
+        </Show>
+      </section>
+    </>
+  );
+}
+
+function ErrorsGroup(props: { health: HealthSectionData }): JSX.Element {
+  const d = () => props.health;
+  return (
+    <>
+      <section style={{ 'margin-bottom': '1.6rem' }}>
+        <SectionHeading title={t('usage.jobErrors.title', { count: d().jobErrors.length })} hint={t('usage.jobErrors.hint')} />
+        <Show when={d().jobErrors.length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.none')}</p>}>
+          <ul style={{ 'list-style': 'none', padding: 0, margin: 0, 'font-size': '0.8rem' }}>
+            <For each={d().jobErrors}>
+              {(e) => (
+                <li style={{ padding: '0.4rem 0', 'border-bottom': '1px solid #f4f4f4' }}>
+                  <div style={{ display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.15rem' }}>
+                    <span style={{ color: '#999', 'white-space': 'nowrap' }}>{fmtTime(e.ts)}</span>
+                    <span style={{ 'font-family': 'monospace', color: '#555' }}>{e.kind}{e.id ? `=${e.id}` : ''}</span>
+                    <span style={{ color: '#666' }}>{e.tractate} {e.page}</span>
+                  </div>
+                  <div style={{ color: '#c33', 'font-family': 'monospace', 'font-size': '0.74rem', 'white-space': 'pre-wrap' }}>{e.error}</div>
+                </li>
+              )}
+            </For>
+          </ul>
+        </Show>
+      </section>
+
+      <section style={{ 'margin-bottom': '1.6rem' }}>
+        <SectionHeading title={t('usage.lintFailures.title', { count: d().lintFailures.recent.length })} hint={t('usage.lintFailures.hint')} />
+        <Show when={Object.keys(d().lintFailures.counts).length > 0}>
+          <div style={{ display: 'flex', gap: '0.4rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.5rem' }}>
+            <For each={Object.entries(d().lintFailures.counts).sort((a, b) => b[1] - a[1])}>
+              {([id, n]) => (
+                <span style={{ 'font-size': '0.74rem', 'font-family': 'monospace', padding: '0.15rem 0.45rem', background: '#fef3c7', border: '1px solid #fde68a', 'border-radius': '999px', color: '#92400e' }}>
+                  {id} · {n}
+                </span>
+              )}
+            </For>
+          </div>
+        </Show>
+        <Show when={d().lintFailures.recent.length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.none')}</p>}>
+          <ul style={{ 'list-style': 'none', padding: 0, margin: 0, 'font-size': '0.8rem' }}>
+            <For each={d().lintFailures.recent}>
+              {(f) => (
+                <li style={{ padding: '0.4rem 0', 'border-bottom': '1px solid #f4f4f4' }}>
+                  <div style={{ display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.15rem' }}>
+                    <span style={{ color: '#999', 'white-space': 'nowrap' }}>{fmtTime(f.at)}</span>
+                    <span style={{ 'font-family': 'monospace', color: '#555' }}>{f.enrichmentId}</span>
+                    <span style={{ color: '#666' }}>{f.tractate} {f.page}{f.lang === 'he' ? ' · he' : ''}</span>
+                    <span style={{ color: '#92400e' }}>×{f.attempts}</span>
+                  </div>
+                  <div style={{ color: '#a16207', 'font-family': 'monospace', 'font-size': '0.74rem', 'white-space': 'pre-wrap' }}>{f.issues.join(' · ')}</div>
+                </li>
+              )}
+            </For>
+          </ul>
+        </Show>
+      </section>
+
+      <section>
+        <SectionHeading title={t('usage.bugReports.title', { count: d().reports.length })} />
+        <Show when={d().reports.length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.bugReports.empty')}</p>}>
+          <ul style={{ 'list-style': 'none', padding: 0, margin: 0 }}>
+            <For each={d().reports}>
+              {(r) => (
+                <li style={{ padding: '0.7rem 0.8rem', margin: '0 0 0.5rem', background: '#fcfcfa', border: '1px solid #eee', 'border-radius': '4px' }}>
+                  <div style={{ 'font-size': '0.75rem', color: '#888', 'margin-bottom': '0.3rem' }}>
+                    {fmtTime(r.ts)} · <b>{r.tractate} {r.page}</b>
+                    <Show when={r.country}><span> · {r.country}</span></Show>
+                  </div>
+                  <div style={{ 'white-space': 'pre-wrap', 'font-size': '0.88rem', color: '#222', 'line-height': 1.45 }}>{r.description}</div>
+                </li>
+              )}
+            </For>
+          </ul>
+        </Show>
+      </section>
+    </>
+  );
+}
+
+// ---- Tabbed dashboard ----------------------------------------------------
+const TABS: Array<{ id: string; labelKey: string }> = [
+  { id: 'cost', labelKey: 'usage.tab.cost' },
+  { id: 'activity', labelKey: 'usage.tab.activity' },
+  { id: 'coverage', labelKey: 'usage.tab.coverage' },
+  { id: 'health', labelKey: 'usage.tab.health' },
+  { id: 'backlog', labelKey: 'usage.tab.backlog' },
+];
+
+export function UsagePage(): JSX.Element {
+  // One resource per section, each loading from its own endpoint and snapshotted
+  // to localStorage for an instant first paint on the next visit.
+  const cost = sectionResource<CostSectionData>('/api/usage/cost', 'usage.snap.cost');
+  const activity = sectionResource<ZoneActivity>('/api/usage/activity', 'usage.snap.activity');
+  const telemetry = sectionResource<TelemetrySection>('/api/usage/telemetry', 'usage.snap.telemetry');
+  const backlog = sectionResource<BacklogSectionData>('/api/usage/backlog', 'usage.snap.backlog');
+  const health = sectionResource<HealthSectionData>('/api/usage/health', 'usage.snap.health');
+  const cacheStats = sectionResource<CacheStats>('/api/admin/cache-stats', 'usage.snap.cacheStats');
+  const llmCost = sectionResource<LlmCostData>('/api/admin/llm-cost', 'usage.snap.llmcost');
+
+  // Which resources back each tab — drives both the manual refresh button and
+  // the auto-refresh timer (only the visible tab revalidates).
+  const tabRefetch: Record<string, () => void> = {
+    cost: () => { cost.refetch(); cacheStats.refetch(); llmCost.refetch(); },
+    activity: () => { activity.refetch(); },
+    coverage: () => { cacheStats.refetch(); backlog.refetch(); },
+    health: () => { telemetry.refetch(); health.refetch(); },
+    backlog: () => { backlog.refetch(); },
+  };
+
+  const [tab, setTab] = createSignal<string>(readStored<string>('usage.tab') ?? 'cost');
+  const selectTab = (id: string) => { setTab(id); writeStored('usage.tab', id); };
+
+  const interval = setInterval(() => tabRefetch[tab()]?.(), 30000);
+  onCleanup(() => clearInterval(interval));
+
+  const busy = () =>
+    cost.loading() || activity.loading() || telemetry.loading() ||
+    backlog.loading() || health.loading() || cacheStats.loading() || llmCost.loading();
 
   return (
     <main class="page-shell" style={{ '--page-max': '960px', 'font-family': 'system-ui, -apple-system, sans-serif', color: '#222' }}>
-      <header class="responsive-row" style={{ 'margin-bottom': '1.2rem' }}>
+      <header class="responsive-row" style={{ 'margin-bottom': '1rem' }}>
         <h1 style={{ margin: 0, 'font-size': '1.4rem', display: 'flex', 'align-items': 'center', gap: '0.5rem' }}>
           {t('usage.title')}
           <Show when={busy()}><Spinner /></Show>
         </h1>
         <a href="#daf" style={{ color: '#666', 'font-size': '0.85rem', 'text-decoration': 'none' }}>{t('usage.backToDaf')}</a>
         <button
-          onClick={() => { void refetch(); void refetchCache(); }}
+          onClick={() => tabRefetch[tab()]?.()}
           disabled={busy()}
           style={{ 'margin-left': 'auto', padding: '0.3rem 0.7rem', border: '1px solid #ddd', 'border-radius': '4px', background: '#fff', cursor: busy() ? 'default' : 'pointer', 'font-size': '0.8rem', opacity: busy() ? 0.6 : 1 }}
         >
@@ -1085,158 +1399,70 @@ export function UsagePage(): JSX.Element {
         </button>
       </header>
 
-      <Show when={firstLoad()}>
-        <div style={{ display: 'flex', 'align-items': 'center', gap: '0.6rem', color: '#888', padding: '2rem 0', 'font-size': '0.9rem' }}>
-          <Spinner size="1.1rem" />
-          {t('usage.loading')}
-        </div>
+      {/* Tab bar */}
+      <div style={{ display: 'flex', gap: '0.3rem', 'flex-wrap': 'wrap', 'border-bottom': '1px solid #eee', 'margin-bottom': '1.2rem' }}>
+        <For each={TABS}>
+          {(tb) => {
+            const active = () => tab() === tb.id;
+            return (
+              <button
+                onClick={() => selectTab(tb.id)}
+                style={{
+                  padding: '0.45rem 0.9rem', border: 'none', background: 'none', cursor: 'pointer',
+                  'font-size': '0.88rem', 'font-weight': active() ? 600 : 400,
+                  color: active() ? '#1d4ed8' : '#666',
+                  'border-bottom': active() ? '2px solid #1d4ed8' : '2px solid transparent',
+                  'margin-bottom': '-1px',
+                }}
+              >
+                {t(tb.labelKey)}
+              </button>
+            );
+          }}
+        </For>
+      </div>
+
+      <Show when={tab() === 'cost'}>
+        <SectionShell section={cost} skeletonRows={6}>
+          {(c) => <CostSection cost={c} stats={cacheStats.value()} />}
+        </SectionShell>
+        <ByDafCostTable llmCost={llmCost.value()} />
       </Show>
 
-      <Show when={data()}>
-        {(d) => (
-          <>
-            <CollapsibleSection id="activity" title={t('usage.activity.title')} hint={t('usage.activity.hint')} defaultOpen>
-              <ActivitySection activity={d().activity} />
-            </CollapsibleSection>
-            <CollapsibleSection id="cost" title={t('usage.cost.title')} hint={t('usage.cost.hint')} defaultOpen>
-              <CostSection cost={d().cost} stats={cacheStats()} />
-            </CollapsibleSection>
-          </>
-        )}
+      <Show when={tab() === 'activity'}>
+        <SectionShell section={activity} skeletonRows={4}>
+          {(a) => <ActivitySection activity={a} />}
+        </SectionShell>
       </Show>
 
-      <Show when={cacheStats()}>
-        {(cs) => (
-          <>
-            <CollapsibleSection id="pipeline" title={t('usage.pipeline.title')} hint={t('usage.pipeline.hint', { count: fmtInt(cs().total) })}>
-              <PipelineSection stats={cs()} />
-            </CollapsibleSection>
-            <CollapsibleSection id="globalRepo" title={t('usage.globalRepo.title')} hint={t('usage.globalRepo.hint')}>
-              <GlobalRepoSection stats={cs()} observedPlaces={data()?.unknowns.places.total ?? 0} observedConcepts={data()?.unknowns.concepts.total ?? 0} />
-            </CollapsibleSection>
-          </>
-        )}
+      <Show when={tab() === 'coverage'}>
+        <SectionShell section={cacheStats} skeletonRows={8}>
+          {(cs) => (
+            <>
+              <SectionHeading title={t('usage.pipeline.title')} hint={t('usage.pipeline.hint', { count: fmtInt(cs.total) })} />
+              <PipelineSection stats={cs} />
+              <div style={{ 'margin-top': '1.4rem' }}>
+                <SectionHeading title={t('usage.globalRepo.title')} hint={t('usage.globalRepo.hint')} />
+                <GlobalRepoSection stats={cs} observedPlaces={backlog.value()?.places.total ?? 0} observedConcepts={backlog.value()?.concepts.total ?? 0} />
+              </div>
+            </>
+          )}
+        </SectionShell>
       </Show>
 
-      <Show when={data()}>
-        {(d) => (
-          <CollapsibleSection id="backlog" title={t('usage.backlog.title')} hint={t('usage.backlog.hint')}>
-            <BacklogSection rabbis={d().unknowns.rabbis} places={d().unknowns.places} concepts={d().unknowns.concepts} />
-          </CollapsibleSection>
-        )}
+      <Show when={tab() === 'health'}>
+        <SectionShell section={telemetry} skeletonRows={5}>
+          {(tel) => <TelemetryGroup telemetry={tel} />}
+        </SectionShell>
+        <SectionShell section={health} skeletonRows={4}>
+          {(h) => <ErrorsGroup health={h} />}
+        </SectionShell>
       </Show>
 
-      <Show when={data.error}>
-        <p style={{ color: '#c33' }}>{t('usage.loadFailed', { error: String(data.error) })}</p>
-      </Show>
-
-      <Show when={data()}>
-        {(d) => (
-          <>
-            <CollapsibleSection id="telemetry" title={t('usage.group.telemetry')} hint={t('usage.group.telemetry.hint')}>
-            <LatencyTable
-              title={t('usage.latency.byEndpoint', { count: d().telemetry.totalCount })}
-              rows={Object.entries(d().telemetry.perEndpoint).sort(([a], [b]) => a.localeCompare(b))}
-            />
-            <LatencyTable title={t('usage.latency.byMark')} hint={t('usage.latency.byMark.hint')} rows={Object.entries(d().telemetry.perMark).sort(([a], [b]) => a.localeCompare(b))} />
-            <LatencyTable title={t('usage.latency.byEnrichment')} hint={t('usage.latency.byEnrichment.hint')} rows={Object.entries(d().telemetry.perEnrichment).sort(([a], [b]) => a.localeCompare(b))} />
-
-            <section style={{ 'margin-bottom': '1.6rem' }}>
-              <SectionHeading title={t('usage.recentErrors.title')} hint={t('usage.recentErrors.hint')} />
-              <Show when={d().telemetry.recentErrors.length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.none')}</p>}>
-                <ul style={{ 'list-style': 'none', padding: 0, margin: 0, 'font-size': '0.8rem' }}>
-                  <For each={d().telemetry.recentErrors}>
-                    {(e) => (
-                      <li style={{ padding: '0.3rem 0', 'border-bottom': '1px solid #f4f4f4', display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap' }}>
-                        <span style={{ color: '#999', 'white-space': 'nowrap' }}>{fmtTime(e.ts)}</span>
-                        <span style={{ 'font-family': 'monospace' }}>{e.endpoint}</span>
-                        <Show when={e.mark_id}><span style={{ 'font-family': 'monospace', color: '#555' }}>mark={e.mark_id}</span></Show>
-                        <Show when={e.enrichment_id}><span style={{ 'font-family': 'monospace', color: '#555' }}>enrich={e.enrichment_id}</span></Show>
-                        <Show when={e.tractate || e.page}><span style={{ color: '#666' }}>{e.tractate} {e.page}</span></Show>
-                        <span style={{ color: '#c33' }}>{e.error_kind ?? t('usage.errorKind.other')}</span>
-                        <Show when={e.model}><span style={{ color: '#888', 'font-size': '0.75rem' }}>({e.model})</span></Show>
-                      </li>
-                    )}
-                  </For>
-                </ul>
-              </Show>
-            </section>
-            </CollapsibleSection>
-
-            <CollapsibleSection id="errors" title={t('usage.group.errors')} hint={t('usage.group.errors.hint')}>
-            <section style={{ 'margin-bottom': '1.6rem' }}>
-              <SectionHeading title={t('usage.jobErrors.title', { count: d().jobErrors.length })} hint={t('usage.jobErrors.hint')} />
-              <Show when={d().jobErrors.length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.none')}</p>}>
-                <ul style={{ 'list-style': 'none', padding: 0, margin: 0, 'font-size': '0.8rem' }}>
-                  <For each={d().jobErrors}>
-                    {(e) => (
-                      <li style={{ padding: '0.4rem 0', 'border-bottom': '1px solid #f4f4f4' }}>
-                        <div style={{ display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.15rem' }}>
-                          <span style={{ color: '#999', 'white-space': 'nowrap' }}>{fmtTime(e.ts)}</span>
-                          <span style={{ 'font-family': 'monospace', color: '#555' }}>{e.kind}{e.id ? `=${e.id}` : ''}</span>
-                          <span style={{ color: '#666' }}>{e.tractate} {e.page}</span>
-                        </div>
-                        <div style={{ color: '#c33', 'font-family': 'monospace', 'font-size': '0.74rem', 'white-space': 'pre-wrap' }}>{e.error}</div>
-                      </li>
-                    )}
-                  </For>
-                </ul>
-              </Show>
-            </section>
-
-            <section style={{ 'margin-bottom': '1.6rem' }}>
-              <SectionHeading title={t('usage.lintFailures.title', { count: d().lintFailures.recent.length })} hint={t('usage.lintFailures.hint')} />
-              <Show when={Object.keys(d().lintFailures.counts).length > 0}>
-                <div style={{ display: 'flex', gap: '0.4rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.5rem' }}>
-                  <For each={Object.entries(d().lintFailures.counts).sort((a, b) => b[1] - a[1])}>
-                    {([id, n]) => (
-                      <span style={{ 'font-size': '0.74rem', 'font-family': 'monospace', padding: '0.15rem 0.45rem', background: '#fef3c7', border: '1px solid #fde68a', 'border-radius': '999px', color: '#92400e' }}>
-                        {id} · {n}
-                      </span>
-                    )}
-                  </For>
-                </div>
-              </Show>
-              <Show when={d().lintFailures.recent.length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.none')}</p>}>
-                <ul style={{ 'list-style': 'none', padding: 0, margin: 0, 'font-size': '0.8rem' }}>
-                  <For each={d().lintFailures.recent}>
-                    {(f) => (
-                      <li style={{ padding: '0.4rem 0', 'border-bottom': '1px solid #f4f4f4' }}>
-                        <div style={{ display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.15rem' }}>
-                          <span style={{ color: '#999', 'white-space': 'nowrap' }}>{fmtTime(f.at)}</span>
-                          <span style={{ 'font-family': 'monospace', color: '#555' }}>{f.enrichmentId}</span>
-                          <span style={{ color: '#666' }}>{f.tractate} {f.page}{f.lang === 'he' ? ' · he' : ''}</span>
-                          <span style={{ color: '#92400e' }}>×{f.attempts}</span>
-                        </div>
-                        <div style={{ color: '#a16207', 'font-family': 'monospace', 'font-size': '0.74rem', 'white-space': 'pre-wrap' }}>{f.issues.join(' · ')}</div>
-                      </li>
-                    )}
-                  </For>
-                </ul>
-              </Show>
-            </section>
-
-            <section>
-              <SectionHeading title={t('usage.bugReports.title', { count: d().reports.length })} />
-              <Show when={d().reports.length > 0} fallback={<p style={{ color: '#888' }}>{t('usage.bugReports.empty')}</p>}>
-                <ul style={{ 'list-style': 'none', padding: 0, margin: 0 }}>
-                  <For each={d().reports}>
-                    {(r) => (
-                      <li style={{ padding: '0.7rem 0.8rem', margin: '0 0 0.5rem', background: '#fcfcfa', border: '1px solid #eee', 'border-radius': '4px' }}>
-                        <div style={{ 'font-size': '0.75rem', color: '#888', 'margin-bottom': '0.3rem' }}>
-                          {fmtTime(r.ts)} · <b>{r.tractate} {r.page}</b>
-                          <Show when={r.country}><span> · {r.country}</span></Show>
-                        </div>
-                        <div style={{ 'white-space': 'pre-wrap', 'font-size': '0.88rem', color: '#222', 'line-height': 1.45 }}>{r.description}</div>
-                      </li>
-                    )}
-                  </For>
-                </ul>
-              </Show>
-            </section>
-            </CollapsibleSection>
-          </>
-        )}
+      <Show when={tab() === 'backlog'}>
+        <SectionShell section={backlog} skeletonRows={6}>
+          {(b) => <BacklogSection rabbis={b.rabbis} places={b.places} concepts={b.concepts} />}
+        </SectionShell>
       </Show>
     </main>
   );
