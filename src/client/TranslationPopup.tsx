@@ -118,8 +118,22 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
 
   const GAP = 8;        // space between popup and the selected words
   const TOP_MARGIN = 8; // min gap from the viewport top
+  const SIDE_MARGIN = 8; // min gap from the viewport sides
 
   const liveAnchor = (): Rect => props.getAnchorRect?.() ?? props.anchor;
+
+  // Keep the popup on-screen horizontally. It's centred on the word via
+  // translateX(-50%), so a word near either edge would otherwise push half the
+  // popup off-screen (badly so for the wide Hebrew column). Clamp the centre so
+  // both edges stay inside the viewport; if the popup is wider than the
+  // viewport, just centre it.
+  const clampCenterX = (center: number): number => {
+    const w = popupRef?.offsetWidth ?? 240;
+    const vw = window.innerWidth;
+    const half = w / 2;
+    if (w + 2 * SIDE_MARGIN >= vw) return vw / 2;
+    return Math.min(Math.max(center, half + SIDE_MARGIN), vw - half - SIDE_MARGIN);
+  };
 
   // — Desktop: above if there's room, else below (static, from the click anchor).
   const popupStyle = (): JSX.CSSProperties => {
@@ -131,7 +145,7 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
     return {
       position: 'fixed',
       top: `${top}px`,
-      left: `${centerX}px`,
+      left: `${clampCenterX(centerX)}px`,
       transform: 'translateX(-50%)',
       'z-index': '1000',
     };
@@ -151,7 +165,7 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
       window.scrollBy({ top: -deficit });
       requestAnimationFrame(() => placeAbove(false));
     }
-    setMobilePos({ top: Math.max(TOP_MARGIN, a.top - h - GAP), left: (a.left + a.right) / 2 });
+    setMobilePos({ top: Math.max(TOP_MARGIN, a.top - h - GAP), left: clampCenterX((a.left + a.right) / 2) });
   };
   // Reposition (with a scroll if needed) whenever the selection changes.
   createEffect(() => {
@@ -172,7 +186,7 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
     const p = mobilePos();
     const a = liveAnchor();
     const top = p ? p.top : Math.max(TOP_MARGIN, a.top - 80 - GAP);
-    const left = p ? p.left : (a.left + a.right) / 2;
+    const left = p ? p.left : clampCenterX((a.left + a.right) / 2);
     return {
       position: 'fixed',
       top: `${top}px`,

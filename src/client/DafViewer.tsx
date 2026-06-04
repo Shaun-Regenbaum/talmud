@@ -55,7 +55,7 @@ import type { GenerationId } from './generations';
 import { GENERATION_BY_ID } from './generations';
 import { resolveVoiceGroup, voiceGroupNames } from './voiceGroups';
 import { t, lang, setLang } from './i18n';
-import { hasCompletedTutorial, hasDismissedBanner, TUTORIAL_OPEN_NOTE_EVENT, TUTORIAL_CLOSE_NOTE_EVENT, TUTORIAL_HEADER_EVENT, TUTORIAL_TRANSLATE_EVENT } from './tutorial';
+import { hasCompletedTutorial, hasDismissedBanner, tutorialNoteInteractive, TUTORIAL_OPEN_NOTE_EVENT, TUTORIAL_CLOSE_NOTE_EVENT, TUTORIAL_HEADER_EVENT, TUTORIAL_TRANSLATE_EVENT } from './tutorial';
 import { TutorialBanner } from './TutorialBanner';
 
 /** Normalize a rabbi name for fuzzy lookup: drop honorific prefixes, lower
@@ -3484,6 +3484,9 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
             'flex-direction': 'column',
             gap: '0.4rem',
             overflow: 'auto',
+            // During a tutorial note step, lift above the coach's click-shield
+            // (z 5999) so the panel stays scrollable; normal stacking otherwise.
+            'z-index': tutorialNoteInteractive() ? 6001 : undefined,
           }}
         >
           <Show when={sidebar() !== null}>

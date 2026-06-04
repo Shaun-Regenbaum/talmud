@@ -27,6 +27,7 @@ import {
   setTutorialHeader,
   triggerTutorialTranslate,
   setTutorialPrefetch,
+  setTutorialNoteInteractive,
   type TourSupplement,
 } from './tutorial';
 import { GutterGlyph, colorForKind, type GutterKind } from './GutterIcons';
@@ -37,6 +38,7 @@ const PAD = 12;
 const MIN_VERT = 200;
 const MIN_HORIZ = 320;
 const MOBILE_BAR = 72; // room left for the mobile mode bar at the very bottom
+const MOBILE_POPUP_ROOM = 150; // headroom a translation popup needs above its word
 
 type Pos =
   | { mode: 'center' }
@@ -138,7 +140,18 @@ export function TutorialCoach(): JSX.Element {
     // free strip just below the handle.
     if (!fromObserver) {
       if (isMobile() && mobileAnchor() === 'bottom') {
-        const y = window.scrollY + lead.getBoundingClientRect().top - mobileTopInset() - GAP;
+        const lr = lead.getBoundingClientRect();
+        // Translate steps are special: the translation popup renders ABOVE the
+        // word and self-scrolls to make room, so yanking the word to the top
+        // fights it and shoves the popup off-screen. Instead drop the word to
+        // the bottom of the free strip (just above the coach sheet) so the
+        // popup sits in the clear space above it and neither scroll fights.
+        let desired = mobileTopInset() + GAP;
+        if (step().translate) {
+          const sheetTop = cardEl ? cardEl.getBoundingClientRect().top : Math.round(window.innerHeight * 0.54);
+          desired = Math.max(mobileTopInset() + MOBILE_POPUP_ROOM, sheetTop - lr.height - GAP - 8);
+        }
+        const y = window.scrollY + lr.top - desired;
         window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
       } else {
         lead.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
@@ -197,6 +210,9 @@ export function TutorialCoach(): JSX.Element {
   createEffect(() => {
     const s = step();
     setTutorialHeader(!!s.header);
+    // Lift the note panel above the click-shield on note steps so the reader
+    // can scroll/explore it; non-note steps keep the shield fully blocking.
+    setTutorialNoteInteractive(!!s.note);
     if (s.note !== prevNote) {
       if (s.note) openTutorialNote(s.note); else closeTutorialNote();
       prevNote = s.note;
@@ -253,7 +269,7 @@ export function TutorialCoach(): JSX.Element {
   // While the tour is up, QAPanels pre-warm a few suggested answers so the Q&A
   // step's questions click through instantly.
   setTutorialPrefetch(true);
-  onCleanup(() => { closeTutorialNote(); setTutorialHeader(false); triggerTutorialTranslate('clear'); setTutorialPrefetch(false); });
+  onCleanup(() => { closeTutorialNote(); setTutorialHeader(false); triggerTutorialTranslate('clear'); setTutorialPrefetch(false); setTutorialNoteInteractive(false); });
 
   onMount(() => {
     const onKey = (e: KeyboardEvent) => {

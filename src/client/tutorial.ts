@@ -220,6 +220,12 @@ export function setTutorialHeader(open: boolean): void {
 const [tutorialPrefetch, setTutorialPrefetch] = createSignal(false);
 export { tutorialPrefetch, setTutorialPrefetch };
 
+/** While a note step is showing, the opened note panel / drawer is lifted above
+ *  the coach's click-shield so the reader can actually scroll and explore it
+ *  (the shield otherwise swallows all interaction). The coach toggles this. */
+const [tutorialNoteInteractive, setTutorialNoteInteractive] = createSignal(false);
+export { tutorialNoteInteractive, setTutorialNoteInteractive };
+
 const COMPLETED_KEY = 'tutorial:completed';
 const BANNER_DISMISSED_KEY = 'tutorial:banner-dismissed';
 

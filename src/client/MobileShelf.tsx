@@ -1,6 +1,7 @@
 import { Show, type JSX } from 'solid-js';
 import DafLoadProgress from './DafLoadProgress';
 import { t } from './i18n';
+import { tutorialNoteInteractive } from './tutorial';
 import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
 import type { ConceptTerm } from './conceptLinks';
 import type { GenerationId } from './generations';
@@ -54,7 +55,9 @@ export function MobileShelf(props: MobileShelfProps): JSX.Element {
         background: '#fff',
         'border-top': '1px solid #d6d3d1',
         'box-shadow': '0 -4px 12px rgba(0, 0, 0, 0.06)',
-        'z-index': 100,
+        // Normally sits under the daf chrome; during a tutorial note step it
+        // lifts above the coach's click-shield (z 5999) so it stays scrollable.
+        'z-index': tutorialNoteInteractive() ? 6001 : 100,
         'max-height': '65vh',
         display: 'flex',
         'flex-direction': 'column',
