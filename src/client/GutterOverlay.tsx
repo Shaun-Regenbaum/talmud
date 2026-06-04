@@ -99,23 +99,8 @@ function clustersFromEntries(entries: Partial<Record<GutterKind, GutterStackEntr
   return out;
 }
 
-export interface GutterOverlayProps {
-  /** Visual scale of the daf-root the overlay lives inside (mobile
-   *  fit-to-width applies `transform: scale()` < 1). The overlay's `top`
-   *  values are already in pre-scale layout coordinates, but the icons would
-   *  also shrink with the frame — at 0.5 a 14px icon renders at ~7px, too
-   *  small to tap. Counter-scaling each cluster by 1/scale keeps icons a
-   *  constant on-screen size regardless of zoom. Defaults to 1 (desktop). */
-  scale?: number;
-}
-
-export function GutterOverlay(props: GutterOverlayProps): JSX.Element {
+export function GutterOverlay(): JSX.Element {
   const clusters = createMemo(() => clustersFromEntries(gutterEntries()));
-  // Clamp so a transient 0/NaN measurement never blows the icons up.
-  const inv = () => {
-    const s = props.scale ?? 1;
-    return s > 0 && s < 1 ? 1 / s : 1;
-  };
 
   const renderItem = (item: ClusterItem, idx: number, total: number): JSX.Element => {
     const key = `${item.kind}:${item.index}`;
@@ -174,9 +159,7 @@ export function GutterOverlay(props: GutterOverlayProps): JSX.Element {
               position: 'absolute',
               top: `${c.top}px`,
               left: x,
-              // Counter-scale by 1/dafScale so icons keep a constant on-screen
-              // size (and tappable hit area) even when the daf is zoomed out.
-              transform: `translate(-50%, -50%) scale(${inv()})`,
+              transform: 'translate(-50%, -50%)',
               'pointer-events': 'auto',
             }}
           >

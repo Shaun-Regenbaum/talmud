@@ -1,4 +1,5 @@
 import { Show, type JSX } from 'solid-js';
+import DafLoadProgress from './DafLoadProgress';
 import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
 import type { ConceptTerm } from './conceptLinks';
 import type { GenerationId } from './generations';
@@ -60,6 +61,12 @@ export function MobileShelf(props: MobileShelfProps): JSX.Element {
       <Show when={props.sidebar !== null}>
         <ExpansionView {...props} />
       </Show>
+      {/* Daf-load progress lives here on mobile (above Read/Translate) so it
+          never sits on top of the daf text. Self-hides when nothing's loading,
+          so it adds no height when idle. */}
+      <div style={{ padding: '0 0.8rem', 'flex-shrink': 0 }}>
+        <DafLoadProgress embedded />
+      </div>
       <ModeBar mode={props.mode} onModeChange={props.onModeChange} />
     </div>
   );

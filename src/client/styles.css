@@ -465,6 +465,35 @@ body.dev-shelf-open .daf-page {
   .tb-primary  { order: 4; flex: 1; }   /* fills the rest of the nav row */
   /* Back to its own full-width centered row below the controls. */
   .tb-hint     { order: 5; flex: 1 1 100%; white-space: normal; overflow: visible; text-overflow: clip; }
+  /* Top drawer: the full header collapses away once the reader engages; the
+     slim handle below stays pinned to bring it back. */
+  .daf-header.is-collapsed { display: none; }
+  .daf-header-handle {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem 0.7rem;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--tb-radius);
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--fg);
+    cursor: pointer;
+  }
+  .daf-header-handle-chev {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--muted);
+  }
   .daf-layout {
     flex-direction: column;
     gap: 0.75rem;
@@ -499,8 +528,8 @@ body.dev-shelf-open .daf-page {
   /* Native pan + pinch-zoom on the daf container regardless of mode. The
      traditional Tzurat HaDaf renders at full 520px width on phones (the
      layout is sacred — see DafViewer dafWidth), so the surface scrolls
-     horizontally when the viewport is narrower. Multi-word translation
-     relies on the OS's native long-press selection handles. */
+     horizontally when the viewport is narrower. Multi-word translation uses
+     explicit tap-to-extend (Translate mode), not native selection handles. */
   .daf-surface {
     touch-action: pan-x pan-y pinch-zoom;
     overflow-x: auto;
@@ -686,19 +715,6 @@ body.dev-shelf-open .daf-page {
 .gutter-cluster[data-count="1"] .gutter-icon {
   margin: 0 !important;
 }
-/* Touch devices: there's no hover to fan a stack out, and the icons are only
-   14px, so extend each icon's tap target with an invisible ~36px halo. The
-   glyph stays the same size; only the clickable area grows. Later-painted
-   icons sit on top, so on a stacked cluster the topmost wins the tap. */
-@media (pointer: coarse) {
-  .gutter-cluster .gutter-icon::before {
-    content: "";
-    position: absolute;
-    inset: -11px;
-    border-radius: 50%;
-  }
-}
-
 /* — #tutorial walkthrough — a single centered card on desktop; on a phone it
    fills the screen so the body scrolls and the footer stays pinned, and a tall
    step can never clip. env(safe-area-inset-*) keeps controls clear of the
