@@ -8,7 +8,7 @@ import {
   type HebrewBooksDaf,
 } from '../lib/sefref';
 import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
-import { collectContext } from './context-providers';
+import { collectContext, type SourceTiming } from './context-providers';
 import { readJsonBody, getRabbiEntryOr404 } from './http-helpers';
 import type { Bindings, JobMessage } from './types';
 import { recordTelemetry, runTelemetryRec, classifyError, type TelemetryRecord } from './telemetry';
@@ -583,6 +583,51 @@ app.put('/api/marks/:id', async (c) => {
 app.delete('/api/marks/:id', async (c) => {
   await deleteMark(c.env, c.req.param('id'));
   return c.json({ ok: true });
+});
+
+// Read-only "marks anchored on this daf" for the alignment workbench. For each
+// gutter mark kind it returns the ALREADY-CACHED instances (segment anchors) +
+// the run metadata (cache_hit / elapsed_ms / cost / recipe_hash) straight off
+// the cached RunResult. NO generation, NO cache write, NO LLM spend — an
+// uncached mark just reports `cached:false`. Two path params, so it never
+// collides with the single-param `/api/marks/:id` definition route above.
+const GUTTER_MARKS: { id: string; kind: string }[] = [
+  { id: 'argument', kind: 'argument' }, { id: 'halacha', kind: 'halacha' },
+  { id: 'chart', kind: 'chart' }, { id: 'aggadata', kind: 'aggadata' },
+  { id: 'yerushalmi', kind: 'yerushalmi' }, { id: 'pesukim', kind: 'pesuk' },
+  { id: 'rishonim', kind: 'rishonim' },
+];
+function instanceLabel(fields: Record<string, unknown> | undefined): string {
+  const f = fields ?? {};
+  for (const k of ['title', 'topic', 'theme', 'caption', 'verseRef', 'summary']) {
+    const v = f[k];
+    if (typeof v === 'string' && v.trim()) return v.trim();
+  }
+  return '';
+}
+app.get('/api/marks/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
+  const marks = [] as unknown[];
+  for (const gm of GUTTER_MARKS) {
+    const def = findCodeMark(gm.id);
+    if (!def) continue;
+    const hit = await readCachedResult(c.env, keyForMark(def, tractate, page, lang));
+    const parsed = hit?.parsed as { instances?: unknown } | null;
+    const raw = Array.isArray(parsed?.instances) ? (parsed!.instances as RawInstance[]) : [];
+    const instances = raw
+      .filter((i) => typeof i.startSegIdx === 'number' && typeof i.endSegIdx === 'number')
+      .map((i) => ({ startSegIdx: i.startSegIdx as number, endSegIdx: i.endSegIdx as number, label: instanceLabel(i.fields) }));
+    marks.push({
+      id: gm.id, kind: gm.kind, label: def.label ?? gm.id, cached: !!hit, instances,
+      meta: hit ? {
+        cache_hit: hit.cache_hit, elapsed_ms: hit.elapsed_ms, model: hit.model,
+        recipe_hash: hit.recipe_hash ?? null, cost: hit.cost ?? null,
+      } : null,
+    });
+  }
+  return c.json({ tractate, page, lang, marks });
 });
 
 // Observation surface for the post-LLM check layer. Re-runs each daf-level
@@ -4592,8 +4637,9 @@ app.get('/api/context/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
   try {
-    const items = await collectContext(c.env, tractate, page, { assetOrigin: new URL(c.req.url).origin });
-    return c.json({ tractate, page, items, fetchedAt: new Date().toISOString() });
+    const timing: SourceTiming[] = [];
+    const items = await collectContext(c.env, tractate, page, { assetOrigin: new URL(c.req.url).origin, timing });
+    return c.json({ tractate, page, items, timing, fetchedAt: new Date().toISOString() });
   } catch (err) {
     return c.json({ error: String(err) }, 502);
   }
