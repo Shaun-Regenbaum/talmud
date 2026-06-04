@@ -13,7 +13,13 @@
  */
 
 const PREFIX = 'usage:daily:v1:';
-const TTL_S = 60 * 60 * 24 * 120; // keep ~4 months of daily history
+// Keep ~2 years of daily history. These per-day rollups are the durable
+// time-series record (the per-call llmcost ledger is only 7 days), so they
+// outlive a realistic full-shas warming campaign instead of rotting at 4 months.
+// Per-DAF cost is NOT kept here (it would make this doc grow unboundedly with
+// warming volume and worsen the read-modify-write raciness) — that lives on the
+// permanent cache entries' cost stamp, which is exact and non-racy.
+const TTL_S = 60 * 60 * 24 * 730;
 
 export interface UsageDelta {
   ok: boolean;
@@ -23,6 +29,11 @@ export interface UsageDelta {
   tokensOut: number;
   /** null when the model has no known list price (Workers AI etc.). */
   costUsd: number | null;
+  /** List-price estimate split (input-side / output-side dollars) so the
+   *  dashboard can show where spend went even though OpenRouter bills one
+   *  number. Null/absent for unpriced models. */
+  costInUsd?: number | null;
+  costOutUsd?: number | null;
   markId?: string;
   enrichmentId?: string;
 }
@@ -31,7 +42,9 @@ export interface UsageBucket {
   calls: number;
   tokensIn: number;
   tokensOut: number;
-  costUsd: number;       // sum of priced calls only
+  costUsd: number;       // sum of priced calls only (billed-or-est total)
+  costInUsd: number;     // est input-side dollars
+  costOutUsd: number;    // est output-side dollars
   pricedCalls: number;   // calls we could attach a $ figure to
   unpricedCalls: number; // calls whose model has no list price
 }
@@ -46,7 +59,7 @@ export interface DailyRollup extends UsageBucket {
 }
 
 function emptyBucket(): UsageBucket {
-  return { calls: 0, tokensIn: 0, tokensOut: 0, costUsd: 0, pricedCalls: 0, unpricedCalls: 0 };
+  return { calls: 0, tokensIn: 0, tokensOut: 0, costUsd: 0, costInUsd: 0, costOutUsd: 0, pricedCalls: 0, unpricedCalls: 0 };
 }
 
 function applyToBucket(b: UsageBucket, d: UsageDelta): void {
@@ -55,6 +68,8 @@ function applyToBucket(b: UsageBucket, d: UsageDelta): void {
   b.tokensOut += d.tokensOut;
   if (d.costUsd != null) {
     b.costUsd += d.costUsd;
+    b.costInUsd += d.costInUsd ?? 0;
+    b.costOutUsd += d.costOutUsd ?? 0;
     b.pricedCalls += 1;
   } else {
     b.unpricedCalls += 1;
@@ -128,6 +143,8 @@ function mergeBucketInto(into: Record<string, UsageBucket>, from: Record<string,
     t.tokensIn += b.tokensIn;
     t.tokensOut += b.tokensOut;
     t.costUsd += b.costUsd;
+    t.costInUsd += b.costInUsd ?? 0;
+    t.costOutUsd += b.costOutUsd ?? 0;
     t.pricedCalls += b.pricedCalls;
     t.unpricedCalls += b.unpricedCalls;
   }
@@ -164,6 +181,8 @@ export async function readUsageSummary(cache: KVNamespace, days = 120): Promise<
     totals.tokensIn += r.tokensIn;
     totals.tokensOut += r.tokensOut;
     totals.costUsd += r.costUsd;
+    totals.costInUsd += r.costInUsd ?? 0;
+    totals.costOutUsd += r.costOutUsd ?? 0;
     totals.pricedCalls += r.pricedCalls;
     totals.unpricedCalls += r.unpricedCalls;
     totals.errors += r.errors;

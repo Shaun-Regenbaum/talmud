@@ -63,3 +63,23 @@ export function costUsd(model: string | null | undefined, usage: TokenUsage | nu
   const { input, output } = normalizeUsage(usage);
   return (input / 1e6) * price.inputPer1M + (output / 1e6) * price.outputPer1M;
 }
+
+/**
+ * The list-price estimate split into its input-side and output-side dollars.
+ * OpenRouter only returns ONE billed `cost` number (net of prompt-cache), so an
+ * exact input-vs-output dollar decomposition isn't available — this estimate
+ * (tokens x list rate) is how the dashboard shows the in/out ratio. Both fields
+ * are null for unpriced models (Workers AI etc.).
+ */
+export function costSplitUsd(
+  model: string | null | undefined,
+  usage: TokenUsage | null | undefined,
+): { costInUsd: number | null; costOutUsd: number | null } {
+  const price = priceFor(model);
+  if (!price) return { costInUsd: null, costOutUsd: null };
+  const { input, output } = normalizeUsage(usage);
+  return {
+    costInUsd: (input / 1e6) * price.inputPer1M,
+    costOutUsd: (output / 1e6) * price.outputPer1M,
+  };
+}

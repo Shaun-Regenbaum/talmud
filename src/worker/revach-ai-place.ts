@@ -81,7 +81,7 @@ async function getOrCompute(
     if (!segs?.he?.length) return null;
     let matches: SegMatch[];
     try {
-      matches = await aiMatchToSegments(env, segs.he, segs.en ?? [], all.map(toMatchInput));
+      matches = await aiMatchToSegments(env, segs.he, segs.en ?? [], all.map(toMatchInput), { tractate, page });
     } catch {
       return null; // budget paused / LLM error → deterministic stands
     }

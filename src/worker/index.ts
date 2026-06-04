@@ -73,7 +73,7 @@ import {
   type LLMRabbiOutput,
 } from '../lib/rabbi/types';
 import { wrapEnv, gatewayStatus, gatewayActive } from './ai-gateway';
-import { runLLM, type LLMModelId, type LLMResult, type LLMUsage } from './llm';
+import { runLLM, type LLMModelId, type LLMResult, type LLMUsage, type CostAttribution } from './llm';
 import { checkBudget, isBudgetPaused, budgetStatus, clearPauses, type BudgetScope } from './budget';
 import { lookupRelationships } from './rabbi-graph';
 import { runPasses } from '../lib/check/passes';
@@ -82,7 +82,7 @@ import { findMarkers } from '../lib/typing/markers';
 import { noteLintAttempt, readLintFailures, type LintFailuresSummary } from './lint-failures';
 import { partitionSections, dedupeByRange, dedupeBy, selectSectionMoves, type MoveLike } from '../lib/argumentMoves';
 import { DEFAULT_MODEL, DEFAULT_FALLBACK_CHAIN, isLLMModelId, MODEL_PRESETS } from './settings';
-import { costUsd as priceCostUsd, normalizeUsage } from './pricing';
+import { costUsd as priceCostUsd, costSplitUsd, normalizeUsage } from './pricing';
 import { recordUsage, readUsageSummary } from './usage-rollup';
 import { recordUnknownRabbi, recordObservedPlace, recordObservedConcept, listUnknownRabbis, listObservedPlaces, listObservedConcepts } from './unknown-registry';
 import { fetchGatewayCost } from './aigw-analytics';
@@ -409,7 +409,7 @@ async function runKimiStreaming(
   modelId: string,
   messages: KimiMessage[],
   maxTokens: number,
-  opts?: { temperature?: number; chatTemplateKwargs?: { enable_thinking?: boolean }; responseFormat?: unknown },
+  opts?: { temperature?: number; chatTemplateKwargs?: { enable_thinking?: boolean }; responseFormat?: unknown; tag?: string; attribution?: CostAttribution },
 ): Promise<StreamedResult> {
   const t0 = Date.now();
   const promptChars = messages.reduce((s, m) => s + m.content.length, 0);
@@ -422,6 +422,8 @@ async function runKimiStreaming(
     thinking: typeof enableThinking === 'boolean' ? enableThinking : undefined,
     response_format: opts?.responseFormat as { type: 'json_schema'; json_schema: unknown } | undefined,
     stream: true,
+    tag: opts?.tag,
+    attribution: opts?.attribution,
   });
   return {
     content: r.content,
@@ -564,6 +566,8 @@ app.get('/api/admin/ai-gateway-test', async (c) => {
       ],
       max_tokens: 16,
       temperature: 0,
+      tag: 'gateway-test',
+      attribution: { kind: 'other', producerId: 'gateway-test' },
     });
     return c.json({
       status,
@@ -801,6 +805,7 @@ async function computeDafBridge(env: Bindings, tractate: string, page: string): 
           max_tokens: 1500, temperature: 0.2,
           response_format: { type: 'json_schema', json_schema: ARGUMENT_BRIDGE_OUTPUT_SCHEMA },
           thinking: false, tag: 'argument-overview.bridge',
+          attribution: { kind: 'bridge', producerId: 'argument-overview.bridge', tractate, page },
         });
         let verdict: { continues?: unknown; note?: unknown } = {};
         try { verdict = JSON.parse(res.content); } catch { /* fall through */ }
@@ -1784,6 +1789,53 @@ interface RunResult {
   // that the cached value predates a prompt/schema edit even when cache_version
   // wasn't bumped (GET /api/stale/...). Absent on entries written before this.
   recipe_hash?: string;
+  // What this entry cost to GENERATE, stamped at write time. The cache is
+  // permanent, so this makes it the durable per-daf / per-version cost record:
+  // "what did the current version of daf X cost" = sum over its entries' cost;
+  // "earlier versions" = sum over the superseded-version keys. Absent on
+  // computed (no-LLM) marks and on entries written before this field existed.
+  cost?: CostStamp;
+}
+
+/** Generation cost stamped onto a cache entry — the permanent per-entry ledger. */
+interface CostStamp {
+  /** OpenRouter billed USD (net of prompt-cache); null on Workers AI / unpriced. */
+  billedUsd: number | null;
+  /** List-price estimate total; null when the model has no known rate. */
+  estimatedUsd: number | null;
+  /** Estimate split so input-vs-output dollars are answerable per entry. */
+  costInUsd: number | null;
+  costOutUsd: number | null;
+  tokensIn: number;
+  tokensOut: number;
+  lang: 'en' | 'he';
+  cacheVersion: string;
+  computedAt: number;
+}
+
+/** Build the per-entry cost stamp from a completed LLM result. Reuses the same
+ *  pricing helpers as the budget guard and daily rollup so every cost figure in
+ *  the system is computed one way. */
+function costStampOf(
+  model: string | undefined,
+  usage: LLMUsage | null | undefined,
+  lang: 'en' | 'he',
+  cacheVersion: string,
+): CostStamp {
+  const { input, output } = normalizeUsage(usage as Parameters<typeof normalizeUsage>[0]);
+  const { costInUsd, costOutUsd } = costSplitUsd(model, usage as Parameters<typeof costSplitUsd>[1]);
+  const billed = usage && typeof usage.cost === 'number' ? usage.cost : null;
+  return {
+    billedUsd: billed,
+    estimatedUsd: priceCostUsd(model, usage as Parameters<typeof priceCostUsd>[1]),
+    costInUsd,
+    costOutUsd,
+    tokensIn: input,
+    tokensOut: output,
+    lang,
+    cacheVersion,
+    computedAt: Date.now(),
+  };
 }
 
 interface RunResultEnrichment extends RunResult {
@@ -2002,6 +2054,12 @@ async function runExtractorFannedOut(
         usage.prompt_tokens = (usage.prompt_tokens ?? 0) + (r.usage.prompt_tokens ?? 0);
         usage.completion_tokens = (usage.completion_tokens ?? 0) + (r.usage.completion_tokens ?? 0);
         usage.total_tokens = (usage.total_tokens ?? 0) + (r.usage.total_tokens ?? 0);
+        // Sum the billed cost too, so the synthesized result (and the cache
+        // entry's cost stamp built from it) reflects what the fanned-out
+        // subcalls actually cost — not null, which would force a list-price
+        // fallback and drop the prompt-cache discount. (Budget + per-call ledger
+        // already saw each subcall's cost inside runLLM; this is for the stamp.)
+        if (typeof r.usage.cost === 'number') usage.cost = (usage.cost ?? 0) + r.usage.cost;
       }
     }
   }
@@ -2129,6 +2187,14 @@ async function runMarkOnce(
     // Cost-ledger attribution; the fan-out path spreads llmOptsBase, so this
     // tags every argument-move sub-call too.
     tag: `mark:${def.id}`,
+    attribution: {
+      kind: 'mark' as const,
+      producerId: def.id,
+      tractate,
+      page,
+      lang: useHe ? 'he' as const : 'en' as const,
+      cache_version: def.cache_version,
+    },
   };
 
   let result: LLMResult;
@@ -2221,6 +2287,7 @@ async function runMarkOnce(
       user_prompt: userPrompt.length > 2000 ? userPrompt.slice(0, 2000) + '… [+' + (userPrompt.length - 2000) + ' chars]' : userPrompt,
     },
     cache_hit: false,
+    cost: costStampOf(result.model, result.usage, useHe ? 'he' : 'en', def.cache_version),
     ...(markCheckIssues ? { check_issues: markCheckIssues } : {}),
     ...(markHardIssues ? { lint_issues: markHardIssues } : {}),
   };
@@ -2492,6 +2559,14 @@ async function runEnrichmentOnce(
     reasoning_effort: def.reasoning_effort,
     bypass_cache: bypassCache,
     tag: `enrich:${def.id}`,
+    attribution: {
+      kind: def.id.endsWith('.qa') ? 'qa' as const : 'enrichment' as const,
+      producerId: def.id,
+      tractate,
+      page,
+      lang: useHe ? 'he' as const : 'en' as const,
+      cache_version: def.cache_version,
+    },
     // Custom Q&A enrichments (<mark>.qa) count against the hourly custom-question
     // budget; everything else only against the daily total. See ./budget.
     cost_class: def.id.endsWith('.qa') ? 'custom-question' : undefined,
@@ -2567,6 +2642,7 @@ async function runEnrichmentOnce(
     },
     cache_hit: false,
     recipe_hash,
+    cost: costStampOf(result.model, result.usage, useHe ? 'he' : 'en', def.cache_version),
     deps_resolved: Object.keys(inputs.depends).length > 0 ? inputs.depends : undefined,
     anchors_resolved: Object.keys(inputs.anchors).length > 0 ? inputs.anchors : undefined,
     ...(lint_issues ? { lint_issues } : {}),
@@ -3212,6 +3288,11 @@ interface LlmCostRec {
   ts: number; model: string; transport: string; tag: string;
   attempts: number; ms: number;
   cost: number | null; prompt_tokens: number | null; completion_tokens: number | null; total_tokens: number | null;
+  // Attribution (additive; null on entries written before it existed).
+  cost_in_est?: number | null; cost_out_est?: number | null;
+  kind?: string | null; producer_id?: string | null;
+  tractate?: string | null; page?: string | null; lang?: string | null;
+  cache_version?: string | null; cost_class?: string | null;
 }
 app.get('/api/admin/llm-cost', async (c) => {
   const cache = c.env.CACHE;
@@ -3240,6 +3321,8 @@ app.get('/api/admin/llm-cost', async (c) => {
   } while (cursor && keys.length < 10000);
 
   let totalCost = 0;
+  let totalCostInEst = 0;
+  let totalCostOutEst = 0;
   let calls = 0;
   let callsWithCost = 0;
   let promptTokens = 0;
@@ -3248,6 +3331,10 @@ app.get('/api/admin/llm-cost', async (c) => {
   let maxTs = 0;
   const byModel: Record<string, { calls: number; cost: number; promptTokens: number; completionTokens: number }> = {};
   const byTag: Record<string, { calls: number; cost: number }> = {};
+  const byKind: Record<string, { calls: number; cost: number }> = {};
+  // Per-daf recent spend (7-day ledger window). The permanent per-daf record is
+  // the cache-entry cost stamp; this is the live drill-down for what just ran.
+  const byDaf: Record<string, { calls: number; cost: number; costInEst: number; costOutEst: number }> = {};
 
   for (const key of keys) {
     const raw = await cache.get(key);
@@ -3257,6 +3344,8 @@ app.get('/api/admin/llm-cost', async (c) => {
     if (since && r.ts < since) continue;
     calls++;
     if (typeof r.cost === 'number') { totalCost += r.cost; callsWithCost++; }
+    if (typeof r.cost_in_est === 'number') totalCostInEst += r.cost_in_est;
+    if (typeof r.cost_out_est === 'number') totalCostOutEst += r.cost_out_est;
     if (typeof r.prompt_tokens === 'number') promptTokens += r.prompt_tokens;
     if (typeof r.completion_tokens === 'number') completionTokens += r.completion_tokens;
     if (r.ts < minTs) minTs = r.ts;
@@ -3265,14 +3354,26 @@ app.get('/api/admin/llm-cost', async (c) => {
     m.calls++; m.cost += r.cost ?? 0; m.promptTokens += r.prompt_tokens ?? 0; m.completionTokens += r.completion_tokens ?? 0;
     const t = (byTag[r.tag] ??= { calls: 0, cost: 0 });
     t.calls++; t.cost += r.cost ?? 0;
+    const k = (byKind[r.kind ?? 'untagged'] ??= { calls: 0, cost: 0 });
+    k.calls++; k.cost += r.cost ?? 0;
+    if (r.tractate && r.page) {
+      const d = (byDaf[`${r.tractate}:${r.page}`] ??= { calls: 0, cost: 0, costInEst: 0, costOutEst: 0 });
+      d.calls++; d.cost += r.cost ?? 0; d.costInEst += r.cost_in_est ?? 0; d.costOutEst += r.cost_out_est ?? 0;
+    }
   }
 
   const round = (n: number) => Math.round(n * 1e6) / 1e6;
   for (const m of Object.values(byModel)) m.cost = round(m.cost);
   for (const t of Object.values(byTag)) t.cost = round(t.cost);
+  for (const k of Object.values(byKind)) k.cost = round(k.cost);
+  for (const d of Object.values(byDaf)) { d.cost = round(d.cost); d.costInEst = round(d.costInEst); d.costOutEst = round(d.costOutEst); }
 
   return c.json({
     totalCostUsd: round(totalCost),
+    // List-price input/output split (est) — OpenRouter bills one number, so the
+    // in/out ratio is estimated; totalCostUsd stays billed-authoritative.
+    estInputCostUsd: round(totalCostInEst),
+    estOutputCostUsd: round(totalCostOutEst),
     calls,
     callsWithCost,
     promptTokens,
@@ -3280,6 +3381,8 @@ app.get('/api/admin/llm-cost', async (c) => {
     window: { from: calls ? minTs : null, to: calls ? maxTs : null },
     byModel,
     byTag,
+    byKind,
+    byDaf,
     truncated: keys.length >= 10000,
   });
 });
@@ -3932,6 +4035,7 @@ function captureLlmUsage(
 ): void {
   const { input, output } = normalizeUsage(args.result.usage as Parameters<typeof normalizeUsage>[0]);
   const cost = priceCostUsd(args.result.model, args.result.usage as Parameters<typeof priceCostUsd>[1]);
+  const { costInUsd, costOutUsd } = costSplitUsd(args.result.model, args.result.usage as Parameters<typeof costSplitUsd>[1]);
   recordUsage(rc.env, rc.ctx, {
     ok: !args.result.parse_error,
     cacheHit: false,
@@ -3939,6 +4043,8 @@ function captureLlmUsage(
     tokensIn: input,
     tokensOut: output,
     costUsd: cost,
+    costInUsd,
+    costOutUsd,
     markId: args.kind === 'mark' ? args.id : undefined,
     enrichmentId: args.kind === 'enrichment' ? args.id : undefined,
   });
@@ -4447,6 +4553,8 @@ app.post('/api/commentary-translate', async (c) => {
         max_tokens: 800,
         temperature: 0.2,
         thinking: false,
+        tag: 'commentary-translate',
+        attribution: { kind: 'translate', ...(body.tractate && body.page ? { tractate: body.tractate, page: body.page } : {}) },
       });
       const translation = r.content.trim().replace(/^["\']|["\']$/g, '');
       if (!translation) { attempts.push(`${m.label}: empty`); continue; }
@@ -4727,7 +4835,7 @@ app.post('/api/context/match', async (c) => {
   try {
     const segments = await getSefariaSegmentsCached(cache, t, p);
     if (!segments) return c.json({ matches: [], warning: 'no segments for daf' });
-    const matches = await aiMatchToSegments(c.env, segments.he, segments.en, items);
+    const matches = await aiMatchToSegments(c.env, segments.he, segments.en, items, { tractate: t, page: p });
     if (cache) { try { await cache.put(cacheKey, JSON.stringify(matches)); } catch { /* ignore */ } }
     return c.json({ matches });
   } catch (err) {
@@ -5121,6 +5229,8 @@ app.post('/api/translate', async (c) => {
         max_tokens: m.kimi ? 400 : isPhrase ? 120 : 30,
         temperature: 0.1,
         thinking: false,
+        tag: 'translate',
+        attribution: { kind: 'translate', tractate, page },
       });
       const translation = r.content.trim().replace(/^["']|["']$/g, '');
       if (!translation) {
@@ -5516,6 +5626,8 @@ app.get('/api/admin/enrich-rabbi/:slug', async (c) => {
       temperature: 0.1,
       thinking: false,
       response_format: { type: 'json_schema', json_schema: ENRICH_JSON_SCHEMA },
+      tag: 'rabbi-enrich',
+      attribution: { kind: 'rabbi', producerId: 'rabbi-enrich' },
     });
     const payload = r.content.trim() || extractJsonPayload({ response: r.content });
     if (!payload) return c.json({ error: 'empty payload', slug }, 502);
@@ -5638,6 +5750,7 @@ app.get('/api/admin/rabbi-relationships/:slug', async (c) => {
         { role: 'user', content: userContent },
       ],
       8192,
+      { tag: 'rabbi-relationships', attribution: { kind: 'rabbi', producerId: 'rabbi-relationships' } },
     );
   } catch (err) {
     return c.json({ error: String(err).slice(0, 300), slug }, 502);
@@ -5764,6 +5877,7 @@ app.get('/api/admin/rabbi-family/:slug', async (c) => {
         { role: 'user', content: userContent },
       ],
       8192,
+      { tag: 'rabbi-family', attribution: { kind: 'rabbi', producerId: 'rabbi-family' } },
     );
   } catch (err) {
     return c.json({ error: String(err).slice(0, 300), slug }, 502);
@@ -5894,6 +6008,7 @@ app.get('/api/admin/rabbi-orientation/:slug', async (c) => {
         { role: 'user', content: userContent },
       ],
       4096,
+      { tag: 'rabbi-orientation', attribution: { kind: 'rabbi', producerId: 'rabbi-orientation' } },
     );
   } catch (err) {
     return c.json({ error: String(err).slice(0, 300), slug }, 502);
@@ -6165,7 +6280,7 @@ export async function enrichRabbiUnified(
         { role: 'user', content: userContent },
       ],
       12288,
-      { chatTemplateKwargs: { enable_thinking: false } },
+      { chatTemplateKwargs: { enable_thinking: false }, tag: 'rabbi-enrich-sefaria', attribution: { kind: 'rabbi', producerId: 'rabbi-enrich-sefaria' } },
     );
   } catch (err) {
     return { ok: false, error: `llm: ${String(err).slice(0, 200)}`, ms: Date.now() - t0 };
@@ -7095,6 +7210,8 @@ app.post('/api/admin/translate-bio', async (c) => {
       temperature: 0.1,
       thinking: false,
       response_format: { type: 'json_schema', json_schema: TRANSLATE_BIO_JSON_SCHEMA },
+      tag: 'translate-bio',
+      attribution: { kind: 'rabbi', producerId: 'translate-bio' },
     });
     const payload = r.content.trim() || extractJsonPayload({ response: r.content });
     if (!payload) return c.json({ error: 'empty payload' }, 502);
@@ -7304,6 +7421,8 @@ app.post('/api/hebraize', async (c) => {
       ],
       max_tokens: Math.min(4096, Math.ceil(core.length * 1.5) + 256),
       temperature: 0,
+      tag: 'hebraize',
+      attribution: { kind: 'hebraize' },
     });
     // Guard the model output: collapse any `X (X)` echo the model emitted so a
     // mistranslated gloss can never reach the cache or the UI (see
@@ -7515,7 +7634,7 @@ app.post('/api/enrich-rabbi-bio/:tractate/:page/:slug', async (c) => {
         { role: 'user', content: userContent },
       ],
       4000,
-      { chatTemplateKwargs: { enable_thinking: false } },
+      { chatTemplateKwargs: { enable_thinking: false }, tag: 'rabbi-bio-daf', attribution: { kind: 'rabbi', producerId: 'rabbi-bio-daf', tractate, page } },
     );
     let payload = s.content.trim();
     const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
