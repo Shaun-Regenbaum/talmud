@@ -321,11 +321,6 @@ export function TutorialCoach(): JSX.Element {
           <Show when={step().supplement}>
             {(kind) => <Supplement kind={kind()} />}
           </Show>
-          <Show when={step().note}>
-            <div style={{ 'margin-top': '12px', 'font-size': '12px', 'line-height': 1.45, color: 'var(--muted, #6b7280)', 'font-style': 'italic' }}>
-              {t('tutorial.generating.note')}
-            </div>
-          </Show>
           <Show when={step().id === 'finish'}>
             <div style={{ 'margin-top': '14px', 'font-size': '14px', 'line-height': 1.55, color: '#374151' }}>
               {t('tutorial.finish.contact')}{' '}

@@ -2450,6 +2450,33 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     });
   });
 
+  // Tutorial only: as soon as the daf renders, pre-warm the exact word + phrase
+  // the translate steps will translate (same pick + context), so /api/translate
+  // is server-cached by the time the user reaches those steps and the popup
+  // resolves fast instead of generating live.
+  onMount(() => {
+    if (!props.embedded) return;
+    let tries = 0;
+    const prewarm = () => {
+      const words = Array.from(document.querySelectorAll<HTMLElement>('.daf-main .daf-text .daf-word'));
+      if (words.length < 4) { if (tries++ < 40) setTimeout(prewarm, 300); return; }
+      const start = Math.floor(words.length * 0.4);
+      const groups: HTMLElement[][] = [[words[start]], words.slice(start, start + 3)];
+      for (const els of groups) {
+        const word = els.map((el) => (el.textContent ?? '').trim()).filter(Boolean).join(' ');
+        const { before, after } = collectSurroundingHebrew(els);
+        const segAttr = els[0].getAttribute('data-seg');
+        const segIdx = segAttr !== null ? Number(segAttr) : undefined;
+        void fetch('/api/translate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ word, tractate: tractate(), page: page(), hebrewBefore: before, hebrewAfter: after, segIdx, lang: lang() }),
+        }).catch(() => {});
+      }
+    };
+    setTimeout(prewarm, 1500);
+  });
+
   const clearActive = () => {
     const current = active();
     if (current) current.els.forEach((el) => el.classList.remove('daf-word-active'));
