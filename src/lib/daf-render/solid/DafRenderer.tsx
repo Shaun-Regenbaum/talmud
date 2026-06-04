@@ -143,7 +143,6 @@ export function DafRenderer(props: DafRendererProps): JSX.Element {
         'inner-end': h(q('.daf-inner .daf-end')),
         'outer-end': h(q('.daf-outer .daf-end')),
       };
-      // eslint-disable-next-line no-console
       console.log('[daf-render DOM] spans:', spans, 'spacers:', spacers);
     });
   });

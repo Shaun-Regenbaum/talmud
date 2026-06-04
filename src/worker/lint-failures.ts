@@ -80,7 +80,6 @@ export async function noteLintAttempt(env: Cache, ctx: Ctx, cacheKey: string, me
     count = (cur ? parseInt(cur, 10) || 0 : 0) + 1;
     await env.CACHE.put(key, String(count), { expirationTtl: ATTEMPT_TTL_S });
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.warn('[lint-failures] attempt counter write failed:', String(err));
   }
   if (count < MAX_LINT_ATTEMPTS) return false;
@@ -115,7 +114,6 @@ export function recordLintFailure(env: Cache, ctx: Ctx, f: Omit<LintFailure, 'at
       counts[f.enrichmentId] = (counts[f.enrichmentId] ?? 0) + 1;
       await cache.put(COUNTS_KEY, JSON.stringify(counts));
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.warn('[lint-failures] ring-buffer write failed:', String(err));
     }
   })());

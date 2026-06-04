@@ -57,7 +57,6 @@ export function reanchorArgument(parsed: unknown, segmentsHe: string[]): unknown
     if (endSeg < 0) {
       cur.endSegIdx = upperBound;
       if (endEx) {
-        // eslint-disable-next-line no-console
         console.warn(`[argument] endExcerpt "${endEx}" not found in section starting at seg ${cur.startSegIdx} (search [${cur.startSegIdx},${upperBound}])`);
       }
     } else {
@@ -168,7 +167,6 @@ export function reanchorArgumentMove(parsed: unknown, segmentsHe: string[]): unk
         const wordsInLast = segWords[cur.endSegIdx]?.length ?? 0;
         cur.fields.tokenEnd = Math.max(0, wordsInLast - 1);
         if (endEx) {
-          // eslint-disable-next-line no-console
           console.warn(`[argument-move] endExcerpt "${endEx}" not found for last move in section ${sStart}-${sEnd}; defaulting to section end`);
         }
       }
@@ -222,7 +220,6 @@ export function reanchorPesukim(parsed: unknown, segmentsHe: string[]): unknown 
       inst.endSegIdx = startHit.seg;
       f.tokenEnd = startHit.tok + startHit.matchLen - 1;
       if (endExcerpt) {
-        // eslint-disable-next-line no-console
         console.warn(`[pesukim] endExcerpt "${endExcerpt}" not found in [${startHit.seg},${upperSeg}]`);
       }
     }
@@ -273,7 +270,6 @@ export function reanchorAggadata(parsed: unknown, segmentsHe: string[]): unknown
       inst.endSegIdx = startHit.seg;
       f.tokenEnd = startHit.tok + startHit.matchLen - 1;
       if (endExcerpt) {
-        // eslint-disable-next-line no-console
         console.warn(`[aggadata] endExcerpt "${endExcerpt}" not found in [${startHit.seg},${upperSeg}]`);
       }
     }

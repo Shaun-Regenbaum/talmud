@@ -127,7 +127,6 @@ async function bump<T extends { firstSeen: number; lastSeen: number; count: numb
     if (daf && !rec.dafs.includes(daf) && rec.dafs.length < MAX_DAFS) rec.dafs.push(daf);
     await cache.put(key, JSON.stringify(rec), { expirationTtl: TTL_S });
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.warn('[unknown-registry] KV write failed:', String(err));
   }
 }
@@ -214,7 +213,6 @@ async function bumpBatch<T extends { firstSeen: number; lastSeen: number; count:
       for (const d of g.dafs) if (!rec.dafs.includes(d) && rec.dafs.length < MAX_DAFS) rec.dafs.push(d);
       await cache.put(key, JSON.stringify(rec), { expirationTtl: TTL_S });
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.warn('[unknown-registry] batch write failed:', String(err));
     }
   }
