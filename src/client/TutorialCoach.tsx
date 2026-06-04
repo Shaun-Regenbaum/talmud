@@ -140,11 +140,18 @@ export function TutorialCoach(): JSX.Element {
     setPos({ mode: 'center' });
   };
 
-  // Drive the page for each step, then measure once layout settles.
+  // Drive the page for each step, then measure once layout settles. Only
+  // open/close a note when the kind actually changes between steps — so the
+  // Q&A step (same argument note as the previous step) doesn't remount the
+  // panel and lose the expanded state we're about to spotlight.
+  let prevNote: string | undefined;
   createEffect(() => {
     const s = step();
     setTutorialHeader(!!s.header);
-    if (s.note) openTutorialNote(s.note); else closeTutorialNote();
+    if (s.note !== prevNote) {
+      if (s.note) openTutorialNote(s.note); else closeTutorialNote();
+      prevNote = s.note;
+    }
     setPos(null);
     requestAnimationFrame(() => requestAnimationFrame(() => measure()));
     // Expand the in-note Q&A panel so its real suggested questions show. Runs
