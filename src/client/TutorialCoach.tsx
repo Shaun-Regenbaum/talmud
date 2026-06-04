@@ -40,15 +40,17 @@ const MIN_HORIZ = 320;
 const MOBILE_BAR = 72; // room left for the mobile mode bar at the very bottom
 const MOBILE_POPUP_ROOM = 150; // headroom a translation popup needs above its word
 
+// Steps dropped from the tour on a phone: the click-to-translate gestures (word
+// and phrase) and the ask-your-own-question step are awkward to drive on touch,
+// so mobile skips them. Desktop keeps the full walk.
+const MOBILE_SKIP_IDS = new Set<string>(['translate-word', 'translate-phrase', 'qa']);
+
 type Pos =
   | { mode: 'center' }
   | { mode: 'anchor'; top: number; left: number; maxH: number; side: 'top' | 'bottom' | 'left' | 'right' };
 
 export function TutorialCoach(): JSX.Element {
   const [i, setI] = createSignal(0);
-  const total = TOUR_STEPS.length;
-  const step = () => TOUR_STEPS[i()];
-  const isLast = () => i() >= total - 1;
 
   const [isMobile, setIsMobile] = createSignal(
     typeof window !== 'undefined' && !!window.matchMedia?.('(max-width: 767px)').matches,
@@ -59,6 +61,20 @@ export function TutorialCoach(): JSX.Element {
     const update = () => setIsMobile(mq.matches);
     mq.addEventListener('change', update);
     onCleanup(() => mq.removeEventListener('change', update));
+  });
+
+  // The steps shown for this device — the full list on desktop, minus the
+  // mobile-skipped steps on a phone. Index, dots, progress, and "last step" all
+  // derive from this, so the skipped steps never appear or count.
+  const steps = () => (isMobile() ? TOUR_STEPS.filter((s) => !MOBILE_SKIP_IDS.has(s.id)) : TOUR_STEPS);
+  const total = () => steps().length;
+  const step = () => steps()[Math.min(i(), total() - 1)] ?? TOUR_STEPS[0];
+  const isLast = () => i() >= total() - 1;
+  // If the viewport flips to mobile mid-tour and the list shrinks, keep the
+  // index in range so navigation and the spotlight stay consistent.
+  createEffect(() => {
+    const max = total() - 1;
+    if (i() > max) setI(max);
   });
 
   const [rect, setRect] = createSignal<DOMRect | null>(null);
@@ -383,7 +399,7 @@ export function TutorialCoach(): JSX.Element {
               {t(step().chapterKey)}
             </span>
             <span style={{ 'font-size': '11px', color: 'var(--muted, #6b7280)', 'white-space': 'nowrap' }}>
-              {t('tutorial.progress', { n: i() + 1, total })}
+              {t('tutorial.progress', { n: i() + 1, total: total() })}
             </span>
           </div>
           <div style={{ 'font-size': '18px', 'font-weight': 700, 'margin-bottom': '8px', color: 'var(--fg, #111827)', 'line-height': 1.25 }}>
@@ -406,7 +422,7 @@ export function TutorialCoach(): JSX.Element {
         </div>
 
         <div style={{ padding: '14px 20px 22px', 'border-top': '1px solid #f1efea', flex: '0 0 auto' }}>
-          <Dots index={i()} onJump={setI} />
+          <Dots steps={steps()} index={i()} onJump={setI} />
           <div style={{ display: 'flex', 'align-items': 'center', 'justify-content': 'space-between', gap: '8px', 'margin-top': '12px' }}>
             <Show when={!isLast()} fallback={<span />}>
               <button type="button" onClick={finish} style={linkBtn()}>{t('tutorial.skip')}</button>
@@ -426,10 +442,10 @@ export function TutorialCoach(): JSX.Element {
   );
 }
 
-function Dots(props: { index: number; onJump: (i: number) => void }): JSX.Element {
+function Dots(props: { steps: typeof TOUR_STEPS; index: number; onJump: (i: number) => void }): JSX.Element {
   return (
     <div style={{ display: 'flex', gap: '6px', 'justify-content': 'center' }}>
-      <For each={TOUR_STEPS}>
+      <For each={props.steps}>
         {(_, idx) => (
           <button
             type="button"
