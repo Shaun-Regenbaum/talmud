@@ -46,7 +46,7 @@ import { partitionSections, dedupeBy } from '../lib/argumentMoves';
 import { fetchCommentaryAnchorIndex, type CommentaryAnchorIndex } from './commentaryAnchorIndex';
 import { recordStage } from './rendererActivity';
 import { applyMarkRenderers } from './renderers/dispatch';
-import DevModeShelf, { readDevMode, setDevModeActive } from './DevModeShelf';
+import { readDevMode, setDevModeActive } from './DevModeShelf';
 import RunTreeDock from './RunTreeDock';
 import ChecksPanel from './ChecksPanel';
 import TypeProfilePanel from './TypeProfilePanel';
@@ -418,7 +418,6 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   const [showPesukim, setShowPesukim] = createSignal(loadToggle(PESUKIM_KEY, false));
   // Dev shelf — bottom drawer with marks toggles + activity panels.
   const [devOpen, setDevOpen] = createSignal(readDevMode());
-  const [runTreeOpen, setRunTreeOpen] = createSignal(false);
 
   // Adapter: derive analysis() from the new registry-driven `argument` mark
   // run output. The new schema is { instances: [{startSegIdx, endSegIdx,
@@ -3065,14 +3064,6 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
             >
               {t('header.dev')}
             </button>
-            <button
-              class="tb-toggle"
-              classList={{ 'is-active': runTreeOpen() }}
-              onClick={() => setRunTreeOpen((v) => !v)}
-              title="Build provenance — the dependency DAG of a piece (cost / time / cache, click to expand)"
-            >
-              Build
-            </button>
           </Show>
           {/* Mobile-only "Layers" entry point. The mark toggles live in the
               desktop dev shelf (hidden on phones), so this opens a dedicated
@@ -3559,27 +3550,32 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       </Show>
 
       <Show when={!isMobile()}>
-      <DevModeShelf open={devOpen()} onClose={() => { setDevOpen(false); setDevModeActive(false); }}>
-        <ChecksPanel tractate={tractate()} page={page()} />
-        <TypeProfilePanel
-          tractate={tractate()}
-          page={page()}
-          active={(() => { const h = argumentMoveHighlight(); return h && h.key.startsWith('typeprofile') ? { start: h.start, end: h.end } : null; })()}
-          onHighlight={(r) => setArgumentMoveHighlight(r ? { start: r.start, end: r.end, key: `typeprofile-${r.start}-${r.end}` } : null)}
-        />
-        <MarksRegistryPanel
-          tractate={tractate()}
-          page={page()}
-          seedMarks={buildSeedMarks({
-            showGenMarkers, setShowGenMarkers,
-            showArguments, setShowArguments,
-            showHalachot, setShowHalachot,
-            showAggadatot, setShowAggadatot,
-            showPesukim, setShowPesukim,
-          })}
-        />
-      </DevModeShelf>
-      <RunTreeDock tractate={tractate()} page={page()} open={runTreeOpen()} onClose={() => setRunTreeOpen(false)} />
+      <RunTreeDock
+        tractate={tractate()} page={page()}
+        open={devOpen()} onClose={() => { setDevOpen(false); setDevModeActive(false); }}
+        checks={<ChecksPanel tractate={tractate()} page={page()} />}
+        sections={
+          <TypeProfilePanel
+            tractate={tractate()}
+            page={page()}
+            active={(() => { const h = argumentMoveHighlight(); return h && h.key.startsWith('typeprofile') ? { start: h.start, end: h.end } : null; })()}
+            onHighlight={(r) => setArgumentMoveHighlight(r ? { start: r.start, end: r.end, key: `typeprofile-${r.start}-${r.end}` } : null)}
+          />
+        }
+        marks={
+          <MarksRegistryPanel
+            tractate={tractate()}
+            page={page()}
+            seedMarks={buildSeedMarks({
+              showGenMarkers, setShowGenMarkers,
+              showArguments, setShowArguments,
+              showHalachot, setShowHalachot,
+              showAggadatot, setShowAggadatot,
+              showPesukim, setShowPesukim,
+            })}
+          />
+        }
+      />
       </Show>
 
     </main>
