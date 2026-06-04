@@ -111,10 +111,10 @@ const CATALOG = {
   'header.todaysDaf.finding': { en: 'Finding today’s daf…', he: 'מאתר את דף היום…' },
   'header.todaysDaf.title': { en: "Jump to today's Daf Yomi", he: 'מעבר לדף היומי של היום' },
   'header.amud.title': { en: 'Toggle amud (side)', he: 'החלפת עמוד (צד)' },
-  'header.dev': { en: 'dev', he: 'פיתוח' },
+  'header.dev': { en: 'Inspect', he: 'בדיקה' },
   'header.dev.title': {
-    en: 'Toggle dev sidebar (marks + console log)',
-    he: 'פתיחת סרגל הפיתוח (סימונים + יומן)',
+    en: 'Toggle the Inspect panel (build provenance · marks · checks)',
+    he: 'פתיחת לוח הבדיקה (מקור הבנייה · סימונים · בדיקות)',
   },
   'dev.usageReports': { en: 'Usage & reports', he: 'שימוש ודוחות' },
   'dev.alignmentDebug': { en: 'Alignment debug', he: 'ניפוי יישור' },
