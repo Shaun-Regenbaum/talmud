@@ -53,7 +53,7 @@ import type { GenerationId } from './generations';
 import { GENERATION_BY_ID } from './generations';
 import { resolveVoiceGroup, voiceGroupNames } from './voiceGroups';
 import { t, lang, setLang } from './i18n';
-import { hasCompletedTutorial, hasDismissedBanner } from './tutorial';
+import { hasCompletedTutorial, hasDismissedBanner, TUTORIAL_OPEN_NOTE_EVENT, TUTORIAL_CLOSE_NOTE_EVENT, TUTORIAL_HEADER_EVENT } from './tutorial';
 import { TutorialBanner } from './TutorialBanner';
 
 /** Normalize a rabbi name for fuzzy lookup: drop honorific prefixes, lower
@@ -333,10 +333,20 @@ function unionRectOf(els: HTMLElement[]): { top: number; left: number; bottom: n
   return Number.isFinite(top) ? { top, left, bottom, right } : null;
 }
 
-export default function DafViewer(): JSX.Element {
+/** Props let the tutorial pin a fixed daf and run "embedded": the reader is
+ *  rendered inside the #tutorial page (not as the route) so the coach can walk
+ *  around it. Embedded mode initialises from the props instead of the URL and
+ *  never writes the URL, so touring doesn't disturb where the real reader sits. */
+export interface DafViewerProps {
+  initialTractate?: string;
+  initialPage?: string;
+  embedded?: boolean;
+}
+
+export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   const params = new URLSearchParams(window.location.search);
-  const [tractate, setTractate] = createSignal(params.get('tractate') ?? 'Berakhot');
-  const [page, setPage] = createSignal(params.get('page') ?? '2a');
+  const [tractate, setTractate] = createSignal(props.initialTractate ?? params.get('tractate') ?? 'Berakhot');
+  const [page, setPage] = createSignal(props.initialPage ?? params.get('page') ?? '2a');
   const [active, setActive] = createSignal<ActiveWord | null>(null);
 
   // Daf sizing. On desktop, scale down for narrow viewports; on phones the
@@ -984,6 +994,10 @@ export default function DafViewer(): JSX.Element {
   const [headerOpen, setHeaderOpen] = createSignal(true);
   const collapseHeader = () => { if (isMobile() && headerOpen()) setHeaderOpen(false); };
   onMount(() => {
+    // In the tutorial the coach fully controls the header drawer (opening it for
+    // the language / nav steps), so the scroll-to-collapse behaviour must stand
+    // down — otherwise the coach's scroll-into-view would slam it shut again.
+    if (props.embedded) return;
     const onScroll = () => { if (window.scrollY > 16) collapseHeader(); };
     window.addEventListener('scroll', onScroll, { passive: true });
     onCleanup(() => window.removeEventListener('scroll', onScroll));
@@ -2311,6 +2325,9 @@ export default function DafViewer(): JSX.Element {
   const RISHONIM_EDGE_X = 'calc(100% + 22px)';
 
   const syncUrl = () => {
+    // Embedded (tutorial) reader never touches the URL — it's pinned to a fixed
+    // daf and the real reader keeps its own place.
+    if (props.embedded) return;
     const u = new URL(window.location.href);
     u.searchParams.set('tractate', tractate());
     u.searchParams.set('page', page());
@@ -2333,7 +2350,7 @@ export default function DafViewer(): JSX.Element {
 
   // First-visit banner offering the tour. Computed once at mount; the banner
   // manages its own dismissal afterwards.
-  const showBanner = !hasCompletedTutorial() && !hasDismissedBanner();
+  const showBanner = !props.embedded && !hasCompletedTutorial() && !hasDismissedBanner();
 
   // "Today's Daf" — fetches the daily Daf Yomi from Sefaria's public
   // calendar API (same source the yomi-cron pre-warm uses) and jumps to
@@ -2380,6 +2397,26 @@ export default function DafViewer(): JSX.Element {
   const toggleAmud = () => {
     go(formatPage(pageNum(), pageAmud() === 'a' ? 'b' : 'a'));
   };
+
+  // The tutorial coach's note steps open a real note (the whole-daf Overview) —
+  // a side panel on desktop, a drawer on mobile — and close it again when a
+  // non-note step is shown or the tour ends.
+  onMount(() => {
+    const onOpen = () => openChip('argument-overview');
+    const onClose = () => setSidebar(null);
+    const onHeader = (e: Event) => {
+      if (!isMobile()) return;
+      setHeaderOpen(!!(e as CustomEvent<{ open: boolean }>).detail?.open);
+    };
+    window.addEventListener(TUTORIAL_OPEN_NOTE_EVENT, onOpen);
+    window.addEventListener(TUTORIAL_CLOSE_NOTE_EVENT, onClose);
+    window.addEventListener(TUTORIAL_HEADER_EVENT, onHeader);
+    onCleanup(() => {
+      window.removeEventListener(TUTORIAL_OPEN_NOTE_EVENT, onOpen);
+      window.removeEventListener(TUTORIAL_CLOSE_NOTE_EVENT, onClose);
+      window.removeEventListener(TUTORIAL_HEADER_EVENT, onHeader);
+    });
+  });
 
   const clearActive = () => {
     const current = active();
@@ -2976,7 +3013,7 @@ export default function DafViewer(): JSX.Element {
 
         {/* Back | daf | amud | forward share one segmented pill so the page
             reference reads as a single unit. */}
-        <div class="tb-nav">
+        <div class="tb-nav" data-tour="daf-nav">
           <button class="tb-navbtn" onClick={() => go(prevPage(page()))} title={t('header.nav.hint')}>‹</button>
           <input
             class="tb-daf"
@@ -3037,7 +3074,7 @@ export default function DafViewer(): JSX.Element {
           </Show>
           {/* EN/HE language toggle, folded inline here on the daf page; the
               floating TopBar overlay covers the other routes (see App.tsx). */}
-          <div class="tb-seg" role="group" aria-label="Language">
+          <div class="tb-seg" role="group" aria-label="Language" data-tour="lang">
             <button class="tb-seg-btn" classList={{ 'is-active': lang() === 'en' }} aria-pressed={lang() === 'en'} onClick={() => setLang('en')}>EN</button>
             <button class="tb-seg-btn" classList={{ 'is-active': lang() === 'he' }} aria-pressed={lang() === 'he'} onClick={() => setLang('he')}>עב</button>
           </div>
@@ -3098,7 +3135,7 @@ export default function DafViewer(): JSX.Element {
       {/* Whole-daf chip marks (the Overview) — shown to all readers now that the
           per-daf overview is promoted and its flow is warmed globally. */}
       <Show when={chipMarks().length > 0}>
-        <div class="daf-chip-bar" style={{ display: 'flex', 'justify-content': 'center', gap: '0.4rem', 'flex-wrap': 'wrap', margin: '0 0 0.6rem' }}>
+        <div class="daf-chip-bar" data-tour="chips" style={{ display: 'flex', 'justify-content': 'center', gap: '0.4rem', 'flex-wrap': 'wrap', margin: '0 0 0.6rem' }}>
           <For each={chipMarks()}>{(m) => {
             const color = (m.render as { color?: string }).color ?? '#8a2a2b';
             // Chip mark id == sidebar kind, so the label + active state are
@@ -3376,6 +3413,7 @@ export default function DafViewer(): JSX.Element {
       <Show when={!isMobile() && sidebar() !== null}>
         <aside
           class="daf-aside"
+          data-tour="note-panel"
           style={{
             position: 'sticky',
             top: '1rem',

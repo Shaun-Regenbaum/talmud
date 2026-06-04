@@ -955,20 +955,6 @@ const CATALOG = {
     he: 'זה הסיור. אפשר לפתוח אותו שוב בכל עת מכפתור העזרה. למידה נעימה.',
   },
 
-  // Mock note card drawn in the "Inside a note" step (self-contained, no live note).
-  'tutorial.cardmock.summary.title': { en: 'What this sugya is about', he: 'במה עוסקת הסוגיה' },
-  'tutorial.cardmock.summary.body': {
-    en: 'A one- or two-line summary sits at the top of every note.',
-    he: 'סיכום בשורה או שתיים נמצא בראש כל הערה.',
-  },
-  'tutorial.cardmock.section.players': { en: 'Players & sides', he: 'דמויות וצדדים' },
-  'tutorial.cardmock.section.terms': { en: 'Key terms', he: 'מונחי מפתח' },
-  'tutorial.cardmock.section.sources': { en: 'Sources', he: 'מקורות' },
-  'tutorial.cardmock.highlight': {
-    en: 'Tap a part to highlight the matching text on the page',
-    he: 'הקישו על חלק כדי להדגיש את הטקסט המתאים בדף',
-  },
-
   // — First-visit banner on the reader —
   'tutorial.banner.text': { en: 'New here? Take a quick tour.', he: 'חדשים כאן? צאו לסיור קצר.' },
   'tutorial.banner.action': { en: 'Take the tour', he: 'צאו לסיור' },

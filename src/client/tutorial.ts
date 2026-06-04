@@ -1,9 +1,10 @@
 /**
- * Tutorial data + persistence. The interactive walkthrough lives on its own
- * fully-controlled page (TutorialPage.tsx) at the #tutorial route, so this file
- * carries only the ordered step list (which mockup each step illustrates) and
- * two localStorage flags. The step copy lives in the i18n.ts catalog
- * (tutorial.*); the page owns its own step index locally.
+ * Tutorial data + persistence. The walkthrough (#tutorial) renders the REAL
+ * reader pinned to a fixed daf and a coach (TutorialCoach.tsx) walks you around
+ * it — spotlighting real controls, opening a real note. This file carries the
+ * featured daf, the ordered step list (which real element each step points at,
+ * whether it opens a note, what legend to add), the note-open events, and two
+ * localStorage flags. Step copy lives in the i18n.ts catalog (tutorial.*).
  *
  * Persistence:
  *  - 'tutorial:completed' is set when the tour ends (Done or Skip). It suppresses
@@ -13,9 +14,17 @@
  *    can still be (re)taken from the Help button.
  */
 
-/** Which self-contained mockup a step illustrates. Every step that teaches a
- *  piece of chrome or a gesture draws one; welcome / finish are text only. */
-export type TourMockup = 'icons' | 'spectrum' | 'translate' | 'qa' | 'lang' | 'nav' | 'chips' | 'card';
+/** The daf the tutorial features — pinned so the marks/notes are warm and the
+ *  coach always points at the same, known content. Berakhot 62b: Bar Kappara's
+ *  life-wisdom maxims (eat when hungry, drink when thirsty, and — the memorable
+ *  last one — relieve yourself when you need to), woven with halacha, stories,
+ *  and quoted verses, so every note type is represented. */
+export const FEATURED_DAF = { tractate: 'Berakhot', page: '62b' } as const;
+
+/** A small legend / illustration drawn inside the coach card to supplement a
+ *  step that teaches a concept rather than a single control (the mark glyphs,
+ *  the generation colour scale, the click-to-translate gesture, the Q&A box). */
+export type TourSupplement = 'icons' | 'spectrum' | 'translate' | 'qa';
 
 export interface TourStep {
   id: string;
@@ -23,13 +32,25 @@ export interface TourStep {
   chapterKey: string;
   titleKey: string;
   bodyKey: string;
-  /** Self-contained illustration drawn under the body. Omit for text-only steps. */
-  mockup?: TourMockup;
+  /** `data-tour` value of a real element on the embedded daf to spotlight.
+   *  Omit for a step that teaches a concept and centres instead. */
+  target?: string;
+  /** Open the whole-daf Overview note (real side panel / drawer) while this
+   *  step is showing, so the reader sees an actual note. */
+  note?: boolean;
+  /** Keep the mobile top header drawer (tractate / nav / language) open for
+   *  this step — its target lives inside it. On desktop the header is always
+   *  visible, so this is a no-op there. */
+  header?: boolean;
+  /** Legend drawn under the body for concept steps. */
+  supplement?: TourSupplement;
 }
 
 /**
- * The ordered tour. Each step draws its own static mockup, so nothing depends on
- * the live reader being mounted or laid out a particular way.
+ * The ordered walk around the daf. Chrome that is always present (language,
+ * page nav, the margin icons, the chip bar, an open note) is spotlighted on the
+ * real element; concepts that have no single anchor (the translate gesture, the
+ * name-colour scale) centre with a small legend.
  */
 export const TOUR_STEPS: TourStep[] = [
   {
@@ -41,58 +62,64 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'lang',
     chapterKey: 'tutorial.chapter.welcome',
+    target: 'lang',
+    header: true,
     titleKey: 'tutorial.lang.title',
     bodyKey: 'tutorial.lang.body',
-    mockup: 'lang',
   },
   {
     id: 'nav',
     chapterKey: 'tutorial.chapter.reading',
+    target: 'daf-nav',
+    header: true,
     titleKey: 'tutorial.nav.title',
     bodyKey: 'tutorial.nav.body',
-    mockup: 'nav',
   },
   {
     id: 'translate',
     chapterKey: 'tutorial.chapter.reading',
     titleKey: 'tutorial.translate.title',
     bodyKey: 'tutorial.translate.body',
-    mockup: 'translate',
+    supplement: 'translate',
   },
   {
     id: 'marks',
     chapterKey: 'tutorial.chapter.marks',
+    target: 'gutter',
     titleKey: 'tutorial.marks.title',
     bodyKey: 'tutorial.marks.body',
-    mockup: 'icons',
+    supplement: 'icons',
   },
   {
     id: 'chips',
     chapterKey: 'tutorial.chapter.marks',
+    target: 'chips',
     titleKey: 'tutorial.chips.title',
     bodyKey: 'tutorial.chips.body',
-    mockup: 'chips',
   },
   {
     id: 'card',
     chapterKey: 'tutorial.chapter.marks',
+    target: 'note-panel',
+    note: true,
     titleKey: 'tutorial.card.title',
     bodyKey: 'tutorial.card.body',
-    mockup: 'card',
+  },
+  {
+    id: 'qa',
+    chapterKey: 'tutorial.chapter.marks',
+    target: 'note-panel',
+    note: true,
+    titleKey: 'tutorial.qa.title',
+    bodyKey: 'tutorial.qa.body',
+    supplement: 'qa',
   },
   {
     id: 'underline',
     chapterKey: 'tutorial.chapter.marks',
     titleKey: 'tutorial.underline.title',
     bodyKey: 'tutorial.underline.body',
-    mockup: 'spectrum',
-  },
-  {
-    id: 'qa',
-    chapterKey: 'tutorial.chapter.marks',
-    titleKey: 'tutorial.qa.title',
-    bodyKey: 'tutorial.qa.body',
-    mockup: 'qa',
+    supplement: 'spectrum',
   },
   {
     id: 'finish',
@@ -101,6 +128,32 @@ export const TOUR_STEPS: TourStep[] = [
     bodyKey: 'tutorial.finish.body',
   },
 ];
+
+/** Custom events the embedded DafViewer listens for so the note steps open a
+ *  real note (the whole-daf Overview) — a side panel on desktop, a drawer on
+ *  mobile — and close it again when a non-note step is shown / the tour ends.
+ *  The header events open/collapse the mobile top drawer (no-op on desktop). */
+export const TUTORIAL_OPEN_NOTE_EVENT = 'tutorial-open-note';
+export const TUTORIAL_CLOSE_NOTE_EVENT = 'tutorial-close-note';
+export const TUTORIAL_HEADER_EVENT = 'tutorial-header'; // detail: { open: boolean }
+
+/** Ask the embedded DafViewer to open the whole-daf Overview note. */
+export function openTutorialNote(): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(TUTORIAL_OPEN_NOTE_EVENT));
+}
+
+/** Close the note opened for the tour. */
+export function closeTutorialNote(): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(TUTORIAL_CLOSE_NOTE_EVENT));
+}
+
+/** Open or collapse the mobile top header drawer (tractate / nav / language). */
+export function setTutorialHeader(open: boolean): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(TUTORIAL_HEADER_EVENT, { detail: { open } }));
+}
 
 const COMPLETED_KEY = 'tutorial:completed';
 const BANNER_DISMISSED_KEY = 'tutorial:banner-dismissed';
