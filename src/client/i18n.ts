@@ -443,6 +443,26 @@ const CATALOG = {
   'usage.sources.alignedTitle': { en: '{aligned} of {sampled} sampled cached dapim aligned', he: '{aligned} מתוך {sampled} דפים שנדגמו יושרו' },
   'usage.col.source': { en: 'Source', he: 'מקור' },
   'usage.col.aligned': { en: 'Aligned', he: 'מיושר' },
+  'usage.col.hasContent': { en: 'Has content', he: 'יש תוכן' },
+  // Content-In per-piece labels (origin shown as a badge, not in the name)
+  'usage.src.hb': { en: 'Daf page text', he: 'טקסט הדף' },
+  'usage.src.gemara': { en: 'Daf text (aligned)', he: 'טקסט הדף (מיושר)' },
+  'usage.src.commentaries': { en: 'Rashi + Tosafot', he: 'רש״י + תוספות' },
+  'usage.src.rishonim': { en: 'Rishonim', he: 'ראשונים' },
+  'usage.src.mishna': { en: 'Mishnah', he: 'משנה' },
+  'usage.src.yerushalmi': { en: 'Yerushalmi parallels', he: 'מקבילות ירושלמי' },
+  'usage.src.halacha-refs': { en: 'Halachic references', he: 'מראי מקום הלכתיים' },
+  'usage.src.daf-topics': { en: 'Daf topics', he: 'נושאי הדף' },
+  'usage.src.dy': { en: 'DafYomi notes (all)', he: 'הערות דף יומי (הכול)' },
+  'usage.src.dy.insights': { en: 'Insights', he: 'תובנות' },
+  'usage.src.dy.background': { en: 'Background', he: 'רקע' },
+  'usage.src.dy.halacha': { en: 'Halacha (brief)', he: 'הלכה (תמצית)' },
+  'usage.src.dy.tosfos': { en: 'Tosfos', he: 'תוספות' },
+  'usage.src.dy.review': { en: 'Review', he: 'חזרה' },
+  'usage.src.dy.points': { en: 'Points', he: 'נקודות' },
+  'usage.src.dy.hebcharts': { en: 'Charts', he: 'טבלאות' },
+  'usage.src.dy.yerushalmi': { en: 'Yerushalmi', he: 'ירושלמי' },
+  'usage.src.dy.revach': { en: 'Revach l\'Daf', he: 'רווח לדף' },
   'usage.source.hebrewbooks.hint': { en: 'page text', he: 'טקסט הדף' },
   'usage.source.gemara.hint': { en: 'aligned reference text', he: 'טקסט מיושר' },
   'usage.source.commentaries.hint': { en: 'aligned commentaries', he: 'מפרשים מיושרים' },
@@ -917,18 +937,28 @@ const CATALOG = {
 
   'tutorial.finish.title': { en: "You're ready", he: 'אתם מוכנים' },
   'tutorial.finish.body': {
-    en: 'That\'s the tour. You can reopen it anytime from the Help button, or visit the Help page for the full guide. Enjoy learning.',
-    he: 'זה הסיור. אפשר לפתוח אותו שוב בכל עת מכפתור העזרה, או לבקר בעמוד העזרה למדריך המלא. למידה נעימה.',
+    en: 'That\'s the tour. You can reopen it anytime from the Help button. Enjoy learning.',
+    he: 'זה הסיור. אפשר לפתוח אותו שוב בכל עת מכפתור העזרה. למידה נעימה.',
   },
 
-  // — Help page (#help) —
-  'help.page.title': { en: 'Help & guide', he: 'עזרה ומדריך' },
-  'help.page.intro': {
-    en: 'Take the interactive tour to learn the basics, or read the overview below.',
-    he: 'צאו לסיור האינטראקטיבי כדי ללמוד את היסודות, או קראו את הסקירה למטה.',
+  // Mock note card drawn in the "Inside a note" step (self-contained, no live note).
+  'tutorial.cardmock.summary.title': { en: 'What this sugya is about', he: 'במה עוסקת הסוגיה' },
+  'tutorial.cardmock.summary.body': {
+    en: 'A one- or two-line summary sits at the top of every note.',
+    he: 'סיכום בשורה או שתיים נמצא בראש כל הערה.',
   },
-  'help.page.start': { en: 'Start the tour', he: 'התחילו את הסיור' },
-  'help.page.covers': { en: 'What the tour covers', he: 'מה כולל הסיור' },
+  'tutorial.cardmock.section.players': { en: 'Players & sides', he: 'דמויות וצדדים' },
+  'tutorial.cardmock.section.terms': { en: 'Key terms', he: 'מונחי מפתח' },
+  'tutorial.cardmock.section.sources': { en: 'Sources', he: 'מקורות' },
+  'tutorial.cardmock.highlight': {
+    en: 'Tap a part to highlight the matching text on the page',
+    he: 'הקישו על חלק כדי להדגיש את הטקסט המתאים בדף',
+  },
+
+  // — First-visit banner on the reader —
+  'tutorial.banner.text': { en: 'New here? Take a quick tour.', he: 'חדשים כאן? צאו לסיור קצר.' },
+  'tutorial.banner.action': { en: 'Take the tour', he: 'צאו לסיור' },
+  'tutorial.banner.dismiss': { en: 'Dismiss', he: 'סגירה' },
 } satisfies Record<string, Entry>;
 
 /** Every known catalog key. Lets UI props (e.g. section labels) demand a real

@@ -44,7 +44,6 @@ interface MobileShelfProps {
 export function MobileShelf(props: MobileShelfProps): JSX.Element {
   return (
     <div
-      data-tour="note-panel"
       style={{
         position: 'fixed',
         left: 0,

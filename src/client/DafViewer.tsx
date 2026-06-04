@@ -53,7 +53,8 @@ import type { GenerationId } from './generations';
 import { GENERATION_BY_ID } from './generations';
 import { resolveVoiceGroup, voiceGroupNames } from './voiceGroups';
 import { t, lang, setLang } from './i18n';
-import { startTour, TUTORIAL_OPEN_NOTE_EVENT, TUTORIAL_CLOSE_NOTE_EVENT } from './tutorial';
+import { hasCompletedTutorial, hasDismissedBanner } from './tutorial';
+import { TutorialBanner } from './TutorialBanner';
 
 /** Normalize a rabbi name for fuzzy lookup: drop honorific prefixes, lower
  *  case, collapse whitespace. Mirrors rabbiLinks.normalizeRabbiName but
@@ -2324,19 +2325,9 @@ export default function DafViewer(): JSX.Element {
     syncUrl();
   };
 
-  // The tutorial's "Inside a note" step opens a real note (the whole-daf
-  // Overview) so the reader sees the actual side panel / drawer, and closes it
-  // again when the step is left or the tour ends.
-  onMount(() => {
-    const onOpen = () => openChip('argument-overview');
-    const onClose = () => setSidebar(null);
-    window.addEventListener(TUTORIAL_OPEN_NOTE_EVENT, onOpen);
-    window.addEventListener(TUTORIAL_CLOSE_NOTE_EVENT, onClose);
-    onCleanup(() => {
-      window.removeEventListener(TUTORIAL_OPEN_NOTE_EVENT, onOpen);
-      window.removeEventListener(TUTORIAL_CLOSE_NOTE_EVENT, onClose);
-    });
-  });
+  // First-visit banner offering the tour. Computed once at mount; the banner
+  // manages its own dismissal afterwards.
+  const showBanner = !hasCompletedTutorial() && !hasDismissedBanner();
 
   // "Today's Daf" — fetches the daily Daf Yomi from Sefaria's public
   // calendar API (same source the yomi-cron pre-warm uses) and jumps to
@@ -2979,7 +2970,7 @@ export default function DafViewer(): JSX.Element {
 
         {/* Back | daf | amud | forward share one segmented pill so the page
             reference reads as a single unit. */}
-        <div class="tb-nav" data-tour="daf-nav">
+        <div class="tb-nav">
           <button class="tb-navbtn" onClick={() => go(prevPage(page()))} title={t('header.nav.hint')}>‹</button>
           <input
             class="tb-daf"
@@ -3007,7 +2998,7 @@ export default function DafViewer(): JSX.Element {
         <div class="tb-utils">
           <button
             class="tb-toggle"
-            onClick={() => startTour(0)}
+            onClick={() => { window.location.hash = 'tutorial'; }}
             title={t('tutorial.help.title')}
             aria-label={t('tutorial.help.title')}
           >
@@ -3027,7 +3018,7 @@ export default function DafViewer(): JSX.Element {
           </Show>
           {/* EN/HE language toggle, folded inline here on the daf page; the
               floating TopBar overlay covers the other routes (see App.tsx). */}
-          <div class="tb-seg" role="group" aria-label="Language" data-tour="lang">
+          <div class="tb-seg" role="group" aria-label="Language">
             <button class="tb-seg-btn" classList={{ 'is-active': lang() === 'en' }} aria-pressed={lang() === 'en'} onClick={() => setLang('en')}>EN</button>
             <button class="tb-seg-btn" classList={{ 'is-active': lang() === 'he' }} aria-pressed={lang() === 'he'} onClick={() => setLang('he')}>עב</button>
           </div>
@@ -3073,6 +3064,9 @@ export default function DafViewer(): JSX.Element {
           RabbiPlacesTimeline already renders them well. A whole-daf map
           would aggregate those per-rabbi enrichments. Until then, the
           top-bar toggle nav is empty and hidden. */}
+      {/* First-visit nudge offering the guided tour (#tutorial). */}
+      <Show when={showBanner}><TutorialBanner /></Show>
+
       {/* Unified load bar — one progress indicator + status line for the whole
           daf (anchor extraction + section prefetch). On desktop it lives here
           inside the daf body column, pinned (sticky) directly above the daf.
@@ -3085,7 +3079,7 @@ export default function DafViewer(): JSX.Element {
       {/* Whole-daf chip marks (the Overview) — shown to all readers now that the
           per-daf overview is promoted and its flow is warmed globally. */}
       <Show when={chipMarks().length > 0}>
-        <div class="daf-chip-bar" data-tour="chips" style={{ display: 'flex', 'justify-content': 'center', gap: '0.4rem', 'flex-wrap': 'wrap', margin: '0 0 0.6rem' }}>
+        <div class="daf-chip-bar" style={{ display: 'flex', 'justify-content': 'center', gap: '0.4rem', 'flex-wrap': 'wrap', margin: '0 0 0.6rem' }}>
           <For each={chipMarks()}>{(m) => {
             const color = (m.render as { color?: string }).color ?? '#8a2a2b';
             // Chip mark id == sidebar kind, so the label + active state are
@@ -3362,7 +3356,6 @@ export default function DafViewer(): JSX.Element {
       <Show when={!isMobile() && sidebar() !== null}>
         <aside
           class="daf-aside"
-          data-tour="note-panel"
           style={{
             position: 'sticky',
             top: '1rem',
