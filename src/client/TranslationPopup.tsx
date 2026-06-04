@@ -1,6 +1,5 @@
-import { createSignal, createEffect, onCleanup, Show, For, type JSX } from 'solid-js';
+import { createSignal, createEffect, onCleanup, Show, type JSX } from 'solid-js';
 import { t, lang } from './i18n';
-import { HIGHLIGHT_COLORS } from './userHighlights';
 
 export interface TranslationPopupProps {
   word: string;
@@ -16,10 +15,6 @@ export interface TranslationPopupProps {
   /** Sefaria segment index resolved client-side from `data-seg` on the
    *  clicked .daf-word. The server uses it directly when provided. */
   segIdx?: number;
-  /** When set, the popup offers personal-highlight controls (a color-swatch
-   *  row + optional note) over the selected words. Called with the chosen
-   *  color key + note text; the host persists + closes. */
-  onHighlight?: (color: string, note: string) => void;
 }
 
 // Module-level cache so reopening the popup for a word we already translated
@@ -30,7 +25,6 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
   const [translation, setTranslation] = createSignal<string | null>(null);
   const [loading, setLoading] = createSignal(true);
   const [error, setError] = createSignal<string | null>(null);
-  const [noteText, setNoteText] = createSignal('');
   let popupRef: HTMLDivElement | undefined;
 
   // Cache key includes a cheap hash of the surrounding text so the same word
@@ -93,7 +87,13 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
     if (e.key === 'Escape') props.onClose();
   };
   const onDocClick = (e: MouseEvent) => {
-    if (popupRef && !popupRef.contains(e.target as Node)) props.onClose();
+    const target = e.target as HTMLElement | null;
+    if (popupRef && popupRef.contains(target)) return;
+    // A tap on another daf word should retarget/extend the selection (handled
+    // by the viewer's mouseup), not dismiss the popup — otherwise mobile
+    // tap-to-extend would clear the anchor before the second tap registers.
+    if (target?.closest('.daf-word')) return;
+    props.onClose();
   };
   window.addEventListener('keydown', onKey);
   // Use capture so we beat the viewer's own click handler on `.daf-word`
@@ -159,56 +159,6 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
           {translation()}
         </Show>
       </div>
-      <Show when={props.onHighlight}>
-        <div
-          style={{
-            'margin-top': '0.55rem',
-            'padding-top': '0.5rem',
-            'border-top': '1px solid #eee',
-          }}
-        >
-          <input
-            type="text"
-            value={noteText()}
-            onInput={(e) => setNoteText(e.currentTarget.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') props.onHighlight?.(HIGHLIGHT_COLORS[0].key, noteText().trim());
-            }}
-            placeholder={t('highlight.notePlaceholder')}
-            style={{
-              width: '100%',
-              'box-sizing': 'border-box',
-              'font-size': '0.82rem',
-              padding: '0.3rem 0.4rem',
-              border: '1px solid #ddd',
-              'border-radius': '4px',
-              'margin-bottom': '0.45rem',
-              'font-family': 'system-ui, -apple-system, sans-serif',
-            }}
-          />
-          <div style={{ display: 'flex', 'align-items': 'center', gap: '0.4rem' }}>
-            <span style={{ 'font-size': '0.72rem', color: '#888' }}>{t('highlight.action')}</span>
-            <For each={HIGHLIGHT_COLORS}>
-              {(c) => (
-                <button
-                  type="button"
-                  title={c.label}
-                  onClick={() => props.onHighlight?.(c.key, noteText().trim())}
-                  style={{
-                    width: '20px',
-                    height: '20px',
-                    'border-radius': '50%',
-                    border: '1px solid rgba(0,0,0,0.2)',
-                    background: c.swatch,
-                    cursor: 'pointer',
-                    padding: '0',
-                  }}
-                />
-              )}
-            </For>
-          </div>
-        </div>
-      </Show>
     </div>
   );
 }
