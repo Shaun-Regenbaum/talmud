@@ -27,7 +27,8 @@
  * `user_question` in the body.
  */
 
-import { createSignal, createResource, For, Show, type JSX } from 'solid-js';
+import { createSignal, createResource, onMount, For, Show, type JSX } from 'solid-js';
+import { tutorialPrefetch } from './tutorial';
 import { Hebraized } from './Hebraized';
 import { hebraize } from './hebraize';
 import { trackAI } from './aiActivity';
@@ -200,7 +201,33 @@ function pickQALoadingCopy(): string {
   return QA_LOADING_OPTIONS[Math.floor(Math.random() * QA_LOADING_OPTIONS.length)];
 }
 
+// Bounds the tutorial's background answer pre-warm: only the first couple of
+// panels, only their first few questions, deduped, so we don't fan out the
+// whole open note into a burst of LLM calls.
+const qaPrefetched = new Set<string>();
+let qaPrefetchPanels = 0;
+const MAX_QA_PREFETCH_PANELS = 2;
+const MAX_QA_PREFETCH_QUESTIONS = 3;
+
 export default function QAPanel(props: QAPanelProps): JSX.Element {
+  // During the tutorial, quietly warm a few suggested-question answers so the
+  // Q&A step's questions click through instantly instead of generating live.
+  onMount(() => {
+    if (!tutorialPrefetch()) return;
+    const key = `${props.mark}:${props.instanceId}`;
+    if (qaPrefetched.has(key) || qaPrefetchPanels >= MAX_QA_PREFETCH_PANELS) return;
+    qaPrefetched.add(key);
+    qaPrefetchPanels++;
+    void (async () => {
+      try {
+        const qs = await fetchSuggested(props.mark, props.tractate, props.page, props.instanceId, props.instance);
+        for (const q of qs.slice(0, MAX_QA_PREFETCH_QUESTIONS)) {
+          await runEnrichmentDirect(`${props.mark}.qa`, props.tractate, props.page, props.instance, q.q).catch(() => {});
+        }
+      } catch { /* best-effort cache warm */ }
+    })();
+  });
+
   const mark = (): 'argument-move' | 'pesukim' | 'aggadata' => props.mark;
   const instanceId = (): string => props.instanceId;
   const instance = (): unknown => props.instance;
