@@ -18,6 +18,7 @@
 
 import { createSignal, createMemo, createResource, createEffect, onCleanup, Show, Switch, Match, For, type JSX } from 'solid-js';
 import { lang } from './i18n';
+import { aiActivity } from './aiActivity';
 
 interface TreeNode {
   id: string; label: string;
@@ -51,6 +52,15 @@ function fmtMs(ms: number | null | undefined): string {
 }
 function fmtCost(c: number | null | undefined): string {
   return typeof c === 'number' ? `$${c.toFixed(4)}` : '$0';
+}
+function prettifyId(id: string): string {
+  return id.split(/[.\-]/).map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w)).join(' ');
+}
+/** A non-ambiguous node name. Marks/sources keep their friendly label; a
+ *  sub-enrichment (its id has a '.') shows the prettified id so a bare
+ *  "Synthesis" reads as "Rabbi Synthesis" / "Halacha Synthesis" / etc. */
+function displayLabel(id: string, label: string): string {
+  return id.includes('.') ? prettifyId(id) : label;
 }
 
 // app graph tokens (from ArgumentFlowGraph / ArgumentVoiceMap)
@@ -177,7 +187,7 @@ interface DafRun {
 
 /** One waterfall row — a piece run with a cold-time bar. Used as the collapsed
  *  header (the selected run) and as each row of the full waterfall list. */
-function RunRow(props: { run: DafRun; maxMs: number; active?: boolean; collapsed?: boolean; onClick: () => void }): JSX.Element {
+function RunRow(props: { run: DafRun; maxMs: number; active?: boolean; collapsed?: boolean; loading?: boolean; onClick?: () => void; onInspect?: () => void }): JSX.Element {
   const r = () => props.run;
   const isLLM = () => r().kind === 'llm';
   const slow = () => (r().cold_ms ?? 0) > 10_000;
@@ -186,21 +196,29 @@ function RunRow(props: { run: DafRun; maxMs: number; active?: boolean; collapsed
   return (
     <div onClick={props.onClick} title={r().id}
       style={{
-        display: 'flex', 'align-items': 'center', gap: '0.5rem', padding: '0.3rem 0.6rem', cursor: 'pointer',
+        display: 'flex', 'align-items': 'center', gap: '0.5rem', padding: '0.3rem 0.6rem', cursor: props.onClick ? 'pointer' : 'default',
         'border-left': `2px solid ${props.active ? ACTIVE_STROKE : 'transparent'}`,
         background: props.active ? '#fdf2f2' : 'transparent',
       }}>
       <NodeIcon variant={variantOf(r())} color={color()} />
-      <span style={{ width: '8.5rem', 'flex-shrink': 0, 'font-size': '0.8rem', 'white-space': 'nowrap', overflow: 'hidden', 'text-overflow': 'ellipsis' }}>{r().label}</span>
-      <div style={{ flex: 1, 'min-width': '20px', height: '8px', background: '#efece3', 'border-radius': '3px', overflow: 'hidden' }}>
-        <div style={{ width: `${pct()}%`, height: '100%', background: !r().cached ? '#d4d4d4' : slow() ? '#fbbf24' : isLLM() ? '#86efac' : '#bae6fd' }} />
+      <span style={{ width: '8.5rem', 'flex-shrink': 0, 'font-size': '0.8rem', 'white-space': 'nowrap', overflow: 'hidden', 'text-overflow': 'ellipsis' }}>{displayLabel(r().id, r().label)}</span>
+      <div style={{ flex: 1, 'min-width': '20px', height: '8px', background: '#efece3', 'border-radius': '3px', overflow: 'hidden', position: 'relative' }}>
+        <Show when={props.loading} fallback={<div style={{ width: `${pct()}%`, height: '100%', background: !r().cached ? '#d4d4d4' : slow() ? '#fbbf24' : isLLM() ? '#86efac' : '#bae6fd' }} />}>
+          <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(90deg,#fca5a5 0 8px,#fecaca 8px 16px)', animation: 'daf-pulse 1.2s ease-in-out infinite' }} />
+        </Show>
       </div>
-      <span style={{ width: '2.7rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', 'font-size': '0.72rem', color: slow() ? '#b45309' : '#888', 'flex-shrink': 0 }}>{fmtMs(r().cold_ms)}</span>
+      <span style={{ width: '2.7rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', 'font-size': '0.72rem', color: slow() ? '#b45309' : '#888', 'flex-shrink': 0 }}>{props.loading ? '…' : fmtMs(r().cold_ms)}</span>
       <span style={{ width: '3.7rem', 'text-align': 'right', 'font-variant-numeric': 'tabular-nums', 'font-size': '0.72rem', color: '#047857', 'flex-shrink': 0 }}>{isLLM() ? fmtCost(r().cost) : '—'}</span>
-      <span style={{ width: '1.7rem', 'text-align': 'right', 'font-size': '0.6rem', 'flex-shrink': 0 }}>
-        <Show when={r().cached} fallback={<span style={{ color: '#b45309' }}>miss</span>}><span style={{ color: '#15803d', background: '#dcfce7', 'border-radius': '3px', padding: '0 0.2rem' }}>hit</span></Show>
+      <span style={{ width: '1.9rem', 'text-align': 'right', 'font-size': '0.6rem', 'flex-shrink': 0 }}>
+        <Show when={props.loading} fallback={
+          <Show when={r().cached} fallback={<span style={{ color: '#b45309' }}>miss</span>}><span style={{ color: '#15803d', background: '#dcfce7', 'border-radius': '3px', padding: '0 0.2rem' }}>hit</span></Show>
+        }><span style={{ color: '#9a3412', background: '#fef3c7', 'border-radius': '3px', padding: '0 0.2rem' }}>run</span></Show>
       </span>
       <Show when={props.collapsed}><span style={{ color: '#bbb', 'font-size': '0.7rem', 'flex-shrink': 0 }}>▾</span></Show>
+      <Show when={props.onInspect}>
+        <button onClick={(ev) => { ev.stopPropagation(); props.onInspect!(); }} title="open this piece's build graph"
+          style={{ 'flex-shrink': 0, width: '17px', height: '17px', 'border-radius': '50%', border: '1px solid #d8c9c0', background: '#fff', color: '#8a7d74', cursor: 'pointer', 'font-size': '0.66rem', 'font-style': 'italic', 'font-family': 'Georgia, serif', 'line-height': 1, display: 'inline-flex', 'align-items': 'center', 'justify-content': 'center', padding: 0 }}>i</button>
+      </Show>
     </div>
   );
 }
@@ -212,7 +230,10 @@ export default function RunTreeDock(props: {
   marks?: JSX.Element; checks?: JSX.Element; sections?: JSX.Element;
 }): JSX.Element {
   const [tab, setTab] = createSignal<'build' | 'marks' | 'checks' | 'sections'>('build');
-  const [view, setView] = createSignal<'waterfall' | 'dag'>('dag');
+  // Open onto the waterfall; a row's (i) drills into that piece's DAG.
+  const [view, setView] = createSignal<'waterfall' | 'dag'>('waterfall');
+  const [typeFilter, setTypeFilter] = createSignal<Set<IconVariant>>(new Set(['source', 'mark', 'enrichment']));
+  const toggleType = (v: IconVariant) => setTypeFilter((prev) => { const n = new Set(prev); n.has(v) ? n.delete(v) : n.add(v); return n.size ? n : prev; });
   const [pieceId, setPieceId] = createSignal('tidbit.essay');
   const [expanded, setExpanded] = createSignal<Set<string>>(new Set(['tidbit.essay']));
   const [selected, setSelected] = createSignal<string | null>('tidbit.essay');
@@ -232,6 +253,21 @@ export default function RunTreeDock(props: {
   const dafTotals = createMemo(() => {
     const rs = runs() ?? [];
     return { count: rs.length, cached: rs.filter((r) => r.cached).length, cost: rs.reduce((s, r) => s + (r.cost ?? 0), 0), cold_ms: rs.reduce((s, r) => s + (r.cold_ms ?? 0), 0) };
+  });
+  // Producer ids with a live in-flight run (the activity id is `${id}:${t}:${p}:…`).
+  const liveLoading = createMemo<Set<string>>(() => {
+    const out = new Set<string>();
+    for (const e of Object.values(aiActivity())) {
+      if (e.state.kind === 'loading' || e.state.kind === 'queued') { const pid = e.id.split(':')[0]; if (pid) out.add(pid); }
+    }
+    return out;
+  });
+  // Waterfall rows after the type filter; actively-loading pieces float to the top.
+  const visibleRuns = createMemo(() => {
+    const live = liveLoading();
+    return (runs() ?? [])
+      .filter((r) => typeFilter().has(variantOf(r)))
+      .sort((a, b) => (live.has(b.id) ? 1 : 0) - (live.has(a.id) ? 1 : 0));
   });
   const openPiece = (id: string) => { setPieceId(id); setExpanded(new Set([id])); setSelected(id); setView('dag'); };
 
@@ -349,9 +385,28 @@ export default function RunTreeDock(props: {
 
         {/* full waterfall (Activity mode) */}
         <Show when={view() === 'waterfall'}>
+          {/* type filters */}
+          <div style={{ display: 'flex', 'align-items': 'center', gap: '0.35rem', padding: '0.35rem 0.6rem', 'border-bottom': '1px solid #f0f0f0', 'flex-shrink': 0 }}>
+            <For each={[{ v: 'source', l: 'sources' }, { v: 'mark', l: 'marks' }, { v: 'enrichment', l: 'generations' }] as const}>{(f) => {
+              const on = () => typeFilter().has(f.v);
+              const c = f.v === 'source' ? BADGE_SRC : f.v === 'mark' ? BADGE_LLM : BADGE_PRO;
+              return (
+                <button onClick={() => toggleType(f.v)} style={{
+                  display: 'inline-flex', 'align-items': 'center', gap: '0.3rem', cursor: 'pointer', font: 'inherit', 'font-size': '0.72rem',
+                  border: `1px solid ${on() ? c : '#e2e2e2'}`, background: on() ? `${c}14` : '#fff', color: on() ? c : '#aaa',
+                  'border-radius': '999px', padding: '0.1rem 0.5rem',
+                }}>
+                  <NodeIcon variant={f.v} color={on() ? c : '#bbb'} />{f.l}
+                </button>
+              );
+            }}</For>
+            <span style={{ 'margin-left': 'auto', 'font-size': '0.68rem', color: '#bbb' }}>{visibleRuns().length} of {(runs() ?? []).length}</span>
+          </div>
           <div style={{ flex: 1, 'min-height': 0, overflow: 'auto' }}>
             <Show when={runs.loading}><div style={{ padding: '0.6rem', color: '#aaa' }}>loading…</div></Show>
-            <For each={runs() ?? []}>{(r) => <RunRow run={r} maxMs={maxCold()} active={r.id === pieceId()} onClick={() => openPiece(r.id)} />}</For>
+            <For each={visibleRuns()}>{(r) => (
+              <RunRow run={r} maxMs={maxCold()} active={r.id === pieceId()} loading={liveLoading().has(r.id)} onInspect={() => openPiece(r.id)} />
+            )}</For>
           </div>
         </Show>
 
@@ -372,7 +427,8 @@ export default function RunTreeDock(props: {
                   const hot = () => isIncident(e);
                   const faded = () => !!selected() && !hot();
                   return (
-                    <path d={edgePath(e.fromRow, e.toRow, e.lane)} fill="none"
+                    // arrow points dependency -> consumer ("what feeds into what")
+                    <path d={edgePath(e.toRow, e.fromRow, e.lane)} fill="none"
                       stroke={hot() ? '#8a2a2b' : '#d3c4ba'} stroke-width={hot() ? 2 : 1.5}
                       stroke-opacity={faded() ? 0.22 : hot() ? 0.85 : 1}
                       stroke-linecap="round" stroke-linejoin="round"
@@ -403,7 +459,7 @@ export default function RunTreeDock(props: {
                     <NodeIcon variant={variantOf(n())} color={badgeColor(n())} />
                     <div style={{ flex: 1, 'min-width': 0 }}>
                       <div style={{ display: 'flex', 'align-items': 'baseline', gap: '0.4rem' }}>
-                        <span style={{ 'font-weight': 600, 'font-size': '0.84rem', color: '#2a2723', 'white-space': 'nowrap', overflow: 'hidden', 'text-overflow': 'ellipsis' }}>{n().label}</span>
+                        <span style={{ 'font-weight': 600, 'font-size': '0.84rem', color: '#2a2723', 'white-space': 'nowrap', overflow: 'hidden', 'text-overflow': 'ellipsis' }}>{displayLabel(n().id, n().label)}</span>
                         <span style={{ 'margin-left': 'auto', 'font-size': '0.68rem', 'font-variant-numeric': 'tabular-nums', color: slow() ? '#b45309' : '#9a857c', 'flex-shrink': 0 }}>{fmtMs(n().cold_ms)}</span>
                       </div>
                       <div style={{ 'font-size': '0.66rem', 'font-family': 'ui-monospace, Menlo, monospace', color: isLLM() ? '#9a8fb5' : '#9aa4ad', 'white-space': 'nowrap', overflow: 'hidden', 'text-overflow': 'ellipsis' }}>
@@ -437,7 +493,7 @@ export default function RunTreeDock(props: {
           <Show when={selected() ? nodeOf(selected()!) : null} fallback={<div style={{ padding: '0.7rem', color: '#bbb' }}>select a node</div>}>{(n) => (
             <>
               <div style={{ padding: '0.45rem 0.7rem', 'border-bottom': '1px solid #f0f0f0', display: 'flex', 'flex-wrap': 'wrap', gap: '0.35rem', 'align-items': 'center' }}>
-                <span style={{ 'font-weight': 600, 'font-size': '0.84rem', 'margin-right': '0.2rem' }}>{n().label}</span>
+                <span style={{ 'font-weight': 600, 'font-size': '0.84rem', 'margin-right': '0.2rem' }}>{displayLabel(n().id, n().label)}</span>
                 <span style={{ 'font-size': '0.66rem', background: '#f1f1f3', 'border-radius': '4px', padding: '0.05rem 0.4rem', color: '#555', 'font-family': 'ui-monospace, Menlo, monospace' }}>{n().kind === 'source' ? 'source' : (n().model ?? 'llm')}</span>
                 <Show when={n().cold_ms != null}><span style={{ 'font-size': '0.66rem', background: '#f1f1f3', 'border-radius': '4px', padding: '0.05rem 0.4rem', color: '#555', 'font-family': 'ui-monospace, Menlo, monospace' }}>gen {fmtMs(n().cold_ms)}</span></Show>
                 <Show when={n().kind === 'llm'}><span style={{ 'font-size': '0.66rem', background: '#ecfdf5', 'border-radius': '4px', padding: '0.05rem 0.4rem', color: '#047857', 'font-family': 'ui-monospace, Menlo, monospace' }}>{fmtCost(n().cost)}</span></Show>

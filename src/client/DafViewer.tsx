@@ -418,6 +418,9 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   const [showPesukim, setShowPesukim] = createSignal(loadToggle(PESUKIM_KEY, false));
   // Dev shelf — bottom drawer with marks toggles + activity panels.
   const [devOpen, setDevOpen] = createSignal(readDevMode());
+  // Dev tooling is desktop-only. On mobile force it off so a flag persisted from
+  // a prior desktop session can't leak dev affordances (inspect dots, etc.).
+  createEffect(() => { if (isMobile()) { setDevOpen(false); setDevModeActive(false); } });
 
   // Adapter: derive analysis() from the new registry-driven `argument` mark
   // run output. The new schema is { instances: [{startSegIdx, endSegIdx,
