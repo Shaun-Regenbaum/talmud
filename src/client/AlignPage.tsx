@@ -19,6 +19,8 @@ import { colorForKind } from './GutterIcons';
 import { tokenizeHebrewHtml } from './tokenize';
 import { injectHadran } from './injectHadran';
 import { injectSegmentMarkers } from './injectSegmentMarkers';
+import { injectRabbiUnderlines } from './injectRabbiUnderlines';
+import type { GenerationId } from './generations';
 
 interface DafResp { mainText?: { hebrew?: string }; mainSegmentsHe?: string[] }
 interface SourceTiming { fetcher: string; sources: string[]; ms: number; cache: 'hit' | 'miss' | 'mixed' | 'unknown' }
@@ -40,6 +42,7 @@ const fetchJson = async <T,>(url: string): Promise<T> => {
 const fmtMs = (n: number) => (n < 1000 ? `${Math.round(n)}ms` : `${(n / 1000).toFixed(1)}s`);
 const fmtUsd = (u: number | null | undefined) => (u == null ? '—' : u < 0.01 ? `$${u.toFixed(4)}` : `$${u.toFixed(3)}`);
 const esc = (s: string | undefined) => (s ?? '').replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]!));
+const cssEsc = (s: string) => s.replace(/["\\]/g, '\\$&');
 const normHe = (s = '') => s.replace(/<[^>]+>/g, ' ').replace(/[֑-ׇ]/g, '').replace(/[׳״'"]/g, '').replace(/[^א-ת ]+/g, ' ').replace(/\s+/g, ' ').trim().replace(/(^| )ר( |$)/g, '$1רבי$2');
 
 function adjPage(page: string, dir: 'prev' | 'next'): string | null {
@@ -73,8 +76,10 @@ export function AlignPage(): JSX.Element {
   const [cat, setCat] = createSignal('all');
   const [hl, setHl] = createSignal<number[]>([]);          // segment highlight (hover)
   const [pin, setPin] = createSignal<number[]>([]);         // segment highlight (pinned)
-  const [hlWords, setHlWords] = createSignal<number[]>([]); // word highlight (entity names)
+  const [hlWords, setHlWords] = createSignal<number[]>([]); // word highlight (place names)
   const [pinWords, setPinWords] = createSignal<number[]>([]);
+  const [hlRabbi, setHlRabbi] = createSignal<string | null>(null); // rabbi name (via injectRabbiUnderlines)
+  const [pinRabbi, setPinRabbi] = createSignal<string | null>(null);
   const [hlAdj, setHlAdj] = createSignal<'prev' | 'next' | null>(null);
   const [prevOpen, setPrevOpen] = createSignal(false);
   const [nextOpen, setNextOpen] = createSignal(false);
@@ -100,9 +105,18 @@ export function AlignPage(): JSX.Element {
   const meAmud = () => (/b$/i.test(page()) ? 'b' : 'a');
   const siblingAdj = (): 'prev' | 'next' => (meAmud() === 'a' ? 'next' : 'prev');
 
+  // the rabbi mark's name anchors, fed to the SAME matcher the reader uses
+  // (longest-name-first + claimed-word tracking ⇒ a bare רב/רבי can't grab the
+  // title word of a longer name like רב ששת). Each match carries data-rabbi.
+  const rabbiList = createMemo(() => {
+    const m = nameMarks().find((x) => x.id === 'rabbi');
+    return m ? (m.instances as NameInst[]).filter((i) => i.nameHe).map((i) => ({ name: i.name, nameHe: i.nameHe, generation: i.generation as GenerationId })) : [];
+  });
   const rendered = createMemo(() => {
     const html = daf()?.mainText?.hebrew;
-    return html ? injectSegmentMarkers(injectHadran(tokenizeHebrewHtml(html)), daf()?.mainSegmentsHe ?? []).html : '';
+    if (!html) return '';
+    const segHtml = injectSegmentMarkers(injectHadran(tokenizeHebrewHtml(html)), daf()?.mainSegmentsHe ?? []).html;
+    return injectRabbiUnderlines(segHtml, rabbiList());
   });
   const segCount = () => daf()?.mainSegmentsHe?.length ?? 0;
   const allSegs = () => Array.from({ length: segCount() }, (_, i) => i);
@@ -142,6 +156,7 @@ export function AlignPage(): JSX.Element {
     for (const m of segMarks()) for (const inst of m.instances as SegInst[]) for (const s of rangeOfInst(inst)) rules.push(`.aw-daf .daf-word[data-seg="${s}"]{box-shadow:inset 0 -3px 0 ${kindColor(m.kind)}}`);
     for (const s of [...new Set([...hl(), ...pin()])]) rules.push(`.aw-daf .daf-word[data-seg="${s}"]{background:#fde68a !important;outline:1.5px solid #8a2a2b;border-radius:2px}`);
     for (const w of [...new Set([...hlWords(), ...pinWords()])]) rules.push(`.aw-daf .daf-word[data-word-index="${w}"]{background:#cfe3ff !important;outline:1.5px solid #0066cc;border-radius:2px}`);
+    for (const nm of [hlRabbi(), pinRabbi()]) if (nm) rules.push(`.aw-daf [data-rabbi="${cssEsc(nm)}"]{background:#cfe3ff !important;outline:1.5px solid #0066cc;border-radius:3px}`);
     return rules.join('\n');
   });
 
@@ -154,7 +169,10 @@ export function AlignPage(): JSX.Element {
   }
   function entityRow(kind: string, e: Entity): string {
     const c = kindColor(kind);
-    return `<div class="aw-li aw-src" data-ent="${esc(e.key)}" data-name="${esc(e.nameNorm)}">${markIconHtml(kind)}
+    // rabbis locate via injectRabbiUnderlines' data-rabbi (robust); other
+    // entities (places) fall back to the normalized-name word match.
+    const locate = kind === 'rabbi' ? `data-rabbi-name="${esc(e.name)}"` : `data-name="${esc(e.nameNorm)}"`;
+    return `<div class="aw-li aw-src" data-ent="${esc(e.key)}" ${locate}>${markIconHtml(kind)}
       <span class="aw-nm">${esc(e.name || e.nameHe)}</span><span class="aw-he2" dir="rtl">${esc(e.nameHe)}</span>
       ${e.extra ? `<span class="aw-via" style="background:${c}1a;color:${c}">${esc(e.extra)}</span>` : ''}
       <span class="aw-range">${e.segs.length ? `seg ${e.segs.join(', ')}` : 'no text match'}</span></div>`;
@@ -287,37 +305,49 @@ export function AlignPage(): JSX.Element {
     }
     return out;
   }
+  function clearWordish() { setHlWords([]); setHlRabbi(null); }
   function hoverFrom(t: HTMLElement | null) {
-    if (!t) { setHl([]); setHlWords([]); setHlAdj(null); return; }
-    if (t.dataset.adj) { setHlAdj(t.dataset.adj as 'prev' | 'next'); setHl([]); setHlWords([]); scrollIntoSpine(`.aw-adj[data-adj="${t.dataset.adj}"]`); return; }
+    if (!t) { setHl([]); clearWordish(); setHlAdj(null); return; }
+    if (t.dataset.adj) { setHlAdj(t.dataset.adj as 'prev' | 'next'); setHl([]); clearWordish(); scrollIntoSpine(`.aw-adj[data-adj="${t.dataset.adj}"]`); return; }
     setHlAdj(null);
-    if (t.dataset.name !== undefined) { // entity: highlight just the name words
-      const idx = nameWordIdx(t.dataset.name); setHlWords(idx); setHl([]);
+    if (t.dataset.rabbiName !== undefined) { // rabbi: highlight just this rabbi's name spans
+      setHlRabbi(t.dataset.rabbiName); setHl([]); setHlWords([]);
+      scrollIntoSpine(`.aw-daf [data-rabbi="${cssEsc(t.dataset.rabbiName)}"]`);
+      return;
+    }
+    if (t.dataset.name !== undefined) { // place: normalized-name word match
+      const idx = nameWordIdx(t.dataset.name); setHlWords(idx); setHl([]); setHlRabbi(null);
       if (idx.length) scrollIntoSpine(`.aw-daf .daf-word[data-word-index="${Math.min(...idx)}"]`);
       return;
     }
-    setHlWords([]);
+    clearWordish();
     if (t.dataset.hl === '*') { setHl(allSegs()); return; }
     const segs = t.dataset.hl ? t.dataset.hl.split(',').filter(Boolean).map(Number) : [];
     setHl(segs);
     if (segs.length) scrollIntoSpine(`.aw-daf .daf-word[data-seg="${Math.min(...segs)}"]`);
   }
+  function clearPinWordish() { setPinWords([]); setPinRabbi(null); }
   onMount(() => {
-    inspEl.addEventListener('mouseover', (e) => hoverFrom((e.target as HTMLElement).closest('[data-hl],[data-adj],[data-name]') as HTMLElement | null));
-    inspEl.addEventListener('mouseleave', () => { setHl([]); setHlWords([]); setHlAdj(null); });
+    inspEl.addEventListener('mouseover', (e) => hoverFrom((e.target as HTMLElement).closest('[data-hl],[data-adj],[data-name],[data-rabbi-name]') as HTMLElement | null));
+    inspEl.addEventListener('mouseleave', () => { setHl([]); clearWordish(); setHlAdj(null); });
     inspEl.addEventListener('click', (e) => {
       const t = e.target as HTMLElement;
-      if (t.closest('[data-back]')) { setDetail(null); setPin([]); setPinWords([]); return; }
+      if (t.closest('[data-back]')) { setDetail(null); setPin([]); clearPinWordish(); return; }
       const mh = t.closest('[data-mkhead]') as HTMLElement | null;
       if (mh) { mh.closest('.aw-mkrow')?.classList.toggle('open'); return; }
       const gen = t.closest('[data-gen]') as HTMLElement | null;
-      if (gen) { const m = segMarks().find((x) => x.id === gen.dataset.gen); const segs = m ? (m.instances as SegInst[]).flatMap(rangeOfInst) : []; setPinWords([]); setPin(segs); if (segs.length) scrollIntoSpine(`.aw-daf .daf-word[data-seg="${Math.min(...segs)}"]`); setDetail({ t: 'gen', mid: gen.dataset.gen! }); return; }
+      if (gen) { const m = segMarks().find((x) => x.id === gen.dataset.gen); const segs = m ? (m.instances as SegInst[]).flatMap(rangeOfInst) : []; clearPinWordish(); setPin(segs); if (segs.length) scrollIntoSpine(`.aw-daf .daf-word[data-seg="${Math.min(...segs)}"]`); setDetail({ t: 'gen', mid: gen.dataset.gen! }); return; }
       const ent = t.closest('[data-ent]') as HTMLElement | null;
-      if (ent) { const e = entityIndex().get(ent.dataset.ent!); const idx = e ? nameWordIdx(e.nameNorm) : []; setPin([]); setPinWords(idx); if (idx.length) scrollIntoSpine(`.aw-daf .daf-word[data-word-index="${Math.min(...idx)}"]`); setDetail({ t: 'ent', key: ent.dataset.ent! }); return; }
+      if (ent) {
+        const key = ent.dataset.ent!; setPin([]); clearPinWordish();
+        if (ent.dataset.rabbiName !== undefined) { setPinRabbi(ent.dataset.rabbiName); scrollIntoSpine(`.aw-daf [data-rabbi="${cssEsc(ent.dataset.rabbiName)}"]`); }
+        else { const e = entityIndex().get(key); const idx = e ? nameWordIdx(e.nameNorm) : []; setPinWords(idx); if (idx.length) scrollIntoSpine(`.aw-daf .daf-word[data-word-index="${Math.min(...idx)}"]`); }
+        setDetail({ t: 'ent', key }); return;
+      }
       const adj = t.closest('[data-adj]') as HTMLElement | null;
       if (adj) { (adj.dataset.adj === 'prev' ? setPrevOpen : setNextOpen)(true); }
       const sl = t.closest('.aw-src[data-src]') as HTMLElement | null;
-      if (sl) { const it = byKey().get(sl.dataset.src!); setPinWords([]); setPin(it?.segs ?? []); if (it?.segs.length) scrollIntoSpine(`.aw-daf .daf-word[data-seg="${Math.min(...it.segs)}"]`); setDetail({ t: 'src', key: sl.dataset.src! }); return; }
+      if (sl) { const it = byKey().get(sl.dataset.src!); clearPinWordish(); setPin(it?.segs ?? []); if (it?.segs.length) scrollIntoSpine(`.aw-daf .daf-word[data-seg="${Math.min(...it.segs)}"]`); setDetail({ t: 'src', key: sl.dataset.src! }); return; }
     });
   });
 
@@ -362,7 +392,7 @@ export function AlignPage(): JSX.Element {
               </div>
             </Show>
             <div class="aw-daf" dir="rtl" innerHTML={rendered()}
-              onMouseOver={(e) => { const w = (e.target as HTMLElement).closest('.daf-word') as HTMLElement | null; const s = w?.getAttribute('data-seg'); setHl(s != null ? [Number(s)] : []); setHlWords([]); }}
+              onMouseOver={(e) => { const w = (e.target as HTMLElement).closest('.daf-word') as HTMLElement | null; const s = w?.getAttribute('data-seg'); setHl(s != null ? [Number(s)] : []); clearWordish(); }}
               onMouseLeave={() => setHl([])} />
             <Show when={adjPreview(nextDaf(), 'first', nextOpen())}>
               <div class={`aw-adj${hlAdj() === 'next' ? ' hot' : ''}`} data-adj="next" onClick={() => setNextOpen((o) => !o)}>
