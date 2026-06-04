@@ -141,19 +141,29 @@ function ContextCard(props: { item: ContextItem; onEnter: () => void; onLeave: (
   const level = () => place()?.level;
   const via = () => place()?.via ?? it.hbVia ?? it.via;
   const conf = () => place()?.confidence;
+  // Segment is the unit the rest of the app consumes, so the headline is the
+  // segment range for BOTH `words` and `segment` — a word landing is the same
+  // segment grounding, just tightened. The word count rides along as a muted
+  // sub-detail (see `wordDetail`) rather than the headline.
+  const located = () => level() === 'words' || level() === 'segment';
   const placeLabel = () => {
     switch (level()) {
       case 'daf': return 'whole daf';
-      case 'words': return `${it.hbWords!.length} word${it.hbWords!.length === 1 ? '' : 's'}`;
-      case 'amud': return `amud ${it.amud}`;
+      case 'words':
       case 'segment': return rangeLabel(it.segs, it.amud);
+      case 'amud': return `amud ${it.amud}`;
       // unplaced: distinguish daf-level reference context from a placement miss.
       default: return isReferenceSource(it) ? 'reference' : 'not located';
     }
   };
-  // Word-precise → green, whole-daf → violet, segment → amber, else neutral.
-  const accent = () => (level() === 'words' ? '#059669' : level() === 'daf' ? '#a78bfa' : level() === 'segment' ? '#f59e0b' : '#d1d5db');
-  const labelColor = () => (level() === 'words' ? '#059669' : level() === 'daf' ? '#7c3aed' : '#999');
+  // The precise landing, shown small and muted — visible for debugging, but it
+  // doesn't change what downstream sees (which is the segment span above).
+  const wordDetail = () =>
+    level() === 'words' && it.hbWords?.length ? `${it.hbWords.length} word${it.hbWords.length === 1 ? '' : 's'}` : '';
+  // Located on the text (words OR segment, indistinguishable downstream) → green;
+  // whole-daf → violet; else neutral.
+  const accent = () => (located() ? '#059669' : level() === 'daf' ? '#a78bfa' : '#d1d5db');
+  const labelColor = () => (located() ? '#059669' : level() === 'daf' ? '#7c3aed' : '#999');
   const bodyEn = () => stripTags(it.body?.en ?? '');
   const long = () => bodyEn().length > 280;
   const shown = () => (open() || !long() ? bodyEn() : bodyEn().slice(0, 280) + '…');
@@ -174,6 +184,11 @@ function ContextCard(props: { item: ContextItem; onEnter: () => void; onLeave: (
         <span style={{ 'font-size': '0.68rem', 'font-family': 'monospace', color: labelColor() }}>
           {placeLabel()}
         </span>
+        <Show when={wordDetail()}>
+          <span style={{ 'font-size': '0.62rem', 'font-family': 'monospace', color: '#aaa' }}>
+            {wordDetail()}
+          </span>
+        </Show>
         <Show when={via()}>
           <span style={{ 'font-size': '0.62rem', 'font-family': 'monospace', color: '#0369a1', background: '#e0f2fe', padding: '0 0.3rem', 'border-radius': '3px' }}>
             {via()}{conf() != null ? ` ${conf()!.toFixed(2)}` : ''}

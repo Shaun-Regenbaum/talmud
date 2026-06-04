@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  placementOf, placementLevel, isLocated, isPrecise, isGrounded, isAiGrounded, isReferenceSource, contextForTarget,
+  placementOf, placementLevel, isLocated, isAiGrounded, isReferenceSource,
 } from '../src/lib/context/placement';
 import type { ContextItem } from '../src/lib/context/types';
 
@@ -63,10 +63,8 @@ describe('grounding predicates', () => {
   const daf = item({ key: 'd', segs: [], via: 'ai', hbVia: 'ai-daf' });
   const none = item({ key: 'n' });
 
-  it('isLocated = words|segment; isPrecise = words; isGrounded = any level', () => {
+  it('isLocated = words|segment (the segment grounding downstream consumes)', () => {
     expect([words, seg, daf, none].map(isLocated)).toEqual([true, true, false, false]);
-    expect([words, seg, daf, none].map(isPrecise)).toEqual([true, false, false, false]);
-    expect([words, seg, daf, none].map(isGrounded)).toEqual([true, true, true, false]);
   });
 
   it('isAiGrounded flags anything the AI placer set', () => {
@@ -80,25 +78,5 @@ describe('grounding predicates', () => {
     expect(isReferenceSource(item({ key: 't', source: 'sefaria-topic' }))).toBe(true);
     expect(isReferenceSource(item({ key: 'r', source: 'sefaria-rishonim' }))).toBe(false);
     expect(isReferenceSource(item({ key: 'i', source: 'dafyomi:insights' }))).toBe(false);
-  });
-});
-
-describe('contextForTarget — the enrichment-facing query', () => {
-  const onSeg4 = item({ key: 'words4', segs: [4], hbWords: [1], hbVia: 'ai-phrase', hbConfidence: 0.9 });
-  const segOnly4 = item({ key: 'seg4', segs: [4], via: 'tosfos-dh', confidence: 0.6 });
-  const elsewhere = item({ key: 'seg9', segs: [9], via: 'mishnah' });
-  const wholeDaf = item({ key: 'daf', segs: [], via: 'ai', hbVia: 'ai-daf', hbConfidence: 0.5 });
-  const unplaced = item({ key: 'none' });
-  const all = [segOnly4, onSeg4, elsewhere, wholeDaf, unplaced];
-
-  it('segment target: items on that seg + whole-daf, finest & most-confident first', () => {
-    const got = contextForTarget(all, { seg: 4 }).map((i) => i.key);
-    // words (0.9) > segment (0.6) > daf (0.5); seg9 excluded; unplaced excluded
-    expect(got).toEqual(['words4', 'seg4', 'daf']);
-  });
-
-  it('daf target: everything grounded, unplaced excluded', () => {
-    const got = contextForTarget(all, { daf: true }).map((i) => i.key).sort();
-    expect(got).toEqual(['daf', 'seg4', 'seg9', 'words4']);
   });
 });

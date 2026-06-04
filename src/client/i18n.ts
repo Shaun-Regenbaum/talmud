@@ -612,6 +612,7 @@ const CATALOG = {
 
   // — Yerushalmi body —
   'yerushalmi.differences': { en: 'Differences from the Yerushalmi', he: 'הבדלים מן הירושלמי' },
+  'yerushalmi.autoAligned': { en: 'auto-aligned', he: 'יושר אוטומטית' },
   'yerushalmi.readOnSefaria': { en: 'Read the full Yerushalmi on Sefaria', he: 'קרא את הירושלמי המלא בספריא' },
   'yerushalmi.curatedParallel': { en: 'Curated parallel (Sefaria)', he: 'מקבילה נבחרת (ספריא)' },
 
