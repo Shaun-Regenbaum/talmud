@@ -778,8 +778,8 @@ export const CODE_MARKS: MarkDefinition[] = [
     label: "Bi'yun",
     description: "Whole-daf עיון: a deep dive into ONE halachic/conceptual problem on the daf that the rishonim are wrestling with — the difficulty, the competing approaches, what's at stake. The lomdus counterpart to the Tidbit. Grounded on the full daf + commentaries + the rishonim/argument/halacha analysis it depends on.",
     category: 'canon',
-    // Reader-facing whole-daf chip, sibling of the tidbit. Same deterministic
-    // anchorless instance carrying the chip + biyun.essay enrichment.
+    // Whole-daf chip, sibling of the tidbit. Same deterministic anchorless
+    // instance carrying the chip + biyun.essay enrichment.
     anchor: 'whole-daf',
     render: {
       kind: 'chip',
@@ -791,6 +791,11 @@ export const CODE_MARKS: MarkDefinition[] = [
       fn: 'whole-daf-instance',
     },
     status: 'promoted',
+    // Dev-only for now (sibling tidbit ships visible; the lomdus dive needs more
+    // benchmarking before it's reader-facing). Hidden from readers — surfaces
+    // only when dev mode is active, across the toggle list, rendering, auto-run
+    // and first-visit defaults. Prefetch is already gated on dev mode.
+    experimental: true,
     def_hash: 'biyun-v1',
     cache_version: '1',
     source: 'code',
