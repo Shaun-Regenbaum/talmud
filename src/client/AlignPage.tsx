@@ -161,11 +161,17 @@ export function AlignPage(): JSX.Element {
   });
 
   const dot = (c: string) => `<span class="aw-dot" style="background:${c}"></span>`;
+  const cleanRef = (s: string) => s.trim().replace(/[\s:·,–-]+$/, '');
   function srcRow(it: ContextItem): string {
+    // Show what it actually IS — the reference (Mishneh Torah …, Shulchan Arukh …)
+    // — as the primary label, with the generic source kind as a muted tag.
+    const ref = cleanRef(it.title?.en || it.title?.he || '');
+    const name = ref || it.sourceLabel;
+    const tag = ref ? `<span class="aw-srctag">${esc(it.sourceLabel)}</span>` : '';
     const via = it.via ? `<span class="aw-via">${esc(it.via)}</span>` : '';
     const conf = it.confidence != null ? `<span class="aw-conf">${it.confidence.toFixed(2)}</span>` : '';
     return `<div class="aw-li aw-src" data-src="${esc(it.key)}" data-hl="${it.segs.join(',')}">${dot('#16a34a')}
-      <span class="aw-nm">${esc(it.sourceLabel)}</span>${via}<span class="aw-bd">${esc(it.title?.en || it.title?.he || it.kind)}</span>${conf}</div>`;
+      <span class="aw-nm aw-grow">${esc(name)}</span>${tag}${via}${conf}</div>`;
   }
   function entityRow(kind: string, e: Entity): string {
     const c = kindColor(kind);
@@ -451,6 +457,8 @@ const STYLE = `
 .aw-li{display:flex;gap:.4rem;align-items:center;padding:.34rem .15rem;border-top:1px solid #f3f1e9;font-size:12.5px}
 .aw-src{cursor:pointer;border-radius:3px}.aw-src:hover{background:#f5f2ea}
 .aw-nm{font-weight:600;color:#334155}.aw-x{color:#cbd5e1;font-size:11px}
+.aw-grow{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aw-srctag{font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:#94a3b8;background:#f1efe9;border-radius:3px;padding:0 4px;line-height:1.6;flex:none}
 .aw-bd{color:#6b6b6b;font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .aw-dot{width:7px;height:7px;border-radius:50%;flex:none;display:inline-block}
 .aw-via{font-family:ui-monospace,Menlo,monospace;font-size:10px;padding:1px 5px;border-radius:3px;background:#eef2ff;color:#6366f1}
