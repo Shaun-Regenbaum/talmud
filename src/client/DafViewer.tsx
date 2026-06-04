@@ -2408,7 +2408,6 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       const note = (e as CustomEvent<{ note?: string }>).detail?.note ?? 'overview';
       if (note === 'argument') openArgument(0);
       else if (note === 'halacha') openHalacha(0);
-      else if (note === 'aggadata') openStory(0);
       else openChip('argument-overview');
     };
     const onClose = () => setSidebar(null);

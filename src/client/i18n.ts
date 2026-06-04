@@ -985,9 +985,12 @@ const CATALOG = {
 
   'tutorial.qa.title': { en: 'Ask your own question', he: 'שאלו שאלה משלכם' },
   'tutorial.qa.body': {
-    en: 'At the bottom of a note you can pick a suggested question or type your own about the passage — the answer is written for you and grounded in the text.',
-    he: 'בתחתית ההערה אפשר לבחור שאלה מוצעת או להקליד שאלה משלכם על הקטע — התשובה נכתבת עבורכם ומעוגנת בטקסט.',
+    en: 'Most notes end with a Q&A box like this. Pick a suggested question or type your own about the passage — the answer is written for you and grounded in the text.',
+    he: 'רוב ההערות מסתיימות בתיבת שאלות ותשובות כזו. בחרו שאלה מוצעת או הקלידו שאלה משלכם על הקטע — התשובה נכתבת עבורכם ומעוגנת בטקסט.',
   },
+  'tutorial.qa.example1': { en: 'Why this order?', he: 'למה הסדר הזה?' },
+  'tutorial.qa.example2': { en: 'Who disagrees?', he: 'מי חולק?' },
+  'tutorial.qa.placeholder': { en: 'Ask about this passage…', he: 'שאלו על הקטע הזה…' },
   'tutorial.report.title': { en: 'Spot a problem?', he: 'מצאתם תקלה?' },
   'tutorial.report.body': {
     en: 'These notes are generated and not perfect. If something looks wrong — a mistranslation, a misplaced note, a bad reading — use "Report a problem" at the bottom of the daf to flag it. It genuinely helps.',

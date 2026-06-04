@@ -23,12 +23,13 @@ export const FEATURED_DAF = { tractate: 'Berakhot', page: '62b' } as const;
 
 /** Which real note a step opens behind the coach. The coach asks the embedded
  *  DafViewer to open it; the reader sees the genuine panel / drawer. */
-export type TourNote = 'overview' | 'argument' | 'halacha' | 'aggadata';
+export type TourNote = 'overview' | 'argument' | 'halacha';
 
 /** A small legend / demo drawn inside the coach card to supplement a step that
  *  teaches a concept rather than spotlighting a single element (the mark
- *  glyphs, the generation colour scale, the click-to-translate gesture). */
-export type TourSupplement = 'icons' | 'spectrum' | 'translate-word' | 'translate-phrase';
+ *  glyphs, the generation colour scale, the click-to-translate gesture, the
+ *  Q&A box). */
+export type TourSupplement = 'icons' | 'spectrum' | 'translate-word' | 'translate-phrase' | 'qa';
 
 export interface TourStep {
   id: string;
@@ -135,8 +136,9 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'qa',
     chapterKey: 'tutorial.chapter.marks',
-    target: 'qa-section',
-    note: 'aggadata',
+    target: 'note-panel',
+    note: 'overview',
+    supplement: 'qa',
     titleKey: 'tutorial.qa.title',
     bodyKey: 'tutorial.qa.body',
   },
