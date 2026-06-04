@@ -50,6 +50,9 @@ export interface TourStep {
   expandQa?: boolean;
   /** Open a real note (panel on desktop, drawer on mobile) for this step. */
   note?: TourNote;
+  /** Trigger a real translation on the daf: select one word, or a short run of
+   *  words, so the genuine translation popup appears. */
+  translate?: 'word' | 'phrase';
   /** Keep the mobile top header drawer (tractate / nav / language) open for
    *  this step — its target lives inside it. No-op on desktop. */
   header?: boolean;
@@ -89,16 +92,18 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'translate-word',
     chapterKey: 'tutorial.chapter.reading',
+    selector: '.daf-word-active',
+    translate: 'word',
     titleKey: 'tutorial.translateWord.title',
     bodyKey: 'tutorial.translateWord.body',
-    supplement: 'translate-word',
   },
   {
     id: 'translate-phrase',
     chapterKey: 'tutorial.chapter.reading',
+    selector: '.daf-word-active',
+    translate: 'phrase',
     titleKey: 'tutorial.translatePhrase.title',
     bodyKey: 'tutorial.translatePhrase.body',
-    supplement: 'translate-phrase',
   },
   {
     id: 'marks',
@@ -180,6 +185,14 @@ export const TOUR_STEPS: TourStep[] = [
 export const TUTORIAL_OPEN_NOTE_EVENT = 'tutorial-open-note'; // detail: { note: TourNote }
 export const TUTORIAL_CLOSE_NOTE_EVENT = 'tutorial-close-note';
 export const TUTORIAL_HEADER_EVENT = 'tutorial-header'; // detail: { open: boolean }
+/** Ask the embedded DafViewer to actually translate a word / phrase / clear it,
+ *  so the translate steps fire the genuine translation popup on the daf. */
+export const TUTORIAL_TRANSLATE_EVENT = 'tutorial-translate'; // detail: { kind: 'word'|'phrase'|'clear' }
+
+export function triggerTutorialTranslate(kind: 'word' | 'phrase' | 'clear'): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(TUTORIAL_TRANSLATE_EVENT, { detail: { kind } }));
+}
 
 /** Ask the embedded DafViewer to open a real note of the given kind. */
 export function openTutorialNote(note: TourNote): void {
