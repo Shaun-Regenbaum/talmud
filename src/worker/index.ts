@@ -1038,6 +1038,31 @@ async function computeCrossFlow(env: Bindings, tractate: string, page: string): 
   return result;
 }
 
+// The STITCHED flow view: per-daf argument flow graphs (the same nodes +
+// connections the daf reader's ArgumentFlowGraph renders) plus each daf's
+// cross-daf edges into the next, for the whole tractate. Read-only over cached
+// pieces — nothing is computed. The client stacks these into one continuous
+// argument map down the tractate. (Hidden #spine page only.)
+app.get('/api/spine-view/:tractate', async (c) => {
+  const tractate = c.req.param('tractate');
+  if (!isKnownTractate(tractate)) return c.json({ error: `unknown tractate: ${tractate}` }, 404);
+  if (!c.env.CACHE) return c.json({ error: 'no CACHE binding in this environment' }, 503);
+  const pages = [...iterAmudim(tractate)];
+  const dapim = await mapPool(pages, 24, async (page) => {
+    const { sections } = await readSortedSections(c.env, tractate, page);
+    const flow = await readFlowConnections(c.env, tractate, page);
+    const cross = await readCachedCrossFlow(c.env, tractate, page);
+    return {
+      page,
+      sections: sections.map((s, i) => ({ index: i, title: s.title || `Section ${i + 1}` })),
+      flow,
+      cross: cross?.edges ?? [],
+    };
+  });
+  // Only dapim that actually have sections (a flow graph needs nodes).
+  return c.json({ tractate, dapim: dapim.filter((d) => d.sections.length > 0) });
+});
+
 // On-demand compute (or cache hit) of one daf's cross-daf flow, returned both as
 // the raw verdict and projected to coordinate-resolved links. Mirrors /api/bridge.
 app.get('/api/cross-flow/:tractate/:page', async (c) => {

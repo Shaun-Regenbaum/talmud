@@ -293,8 +293,10 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
         </svg>
       </div>
 
-      {/* Legend: color + dash → connection kind (only the kinds in use). */}
-      <Show when={kindsPresent().length > 0}>
+      {/* Legend: color + dash → connection kind (only the kinds in use).
+          Suppressed when the parent renders one shared legend for several
+          stacked graphs (hideLegend). */}
+      <Show when={!props.hideLegend && kindsPresent().length > 0}>
         <div style={{
           display: 'flex', 'flex-wrap': 'wrap', gap: '0.35rem 0.45rem',
           'margin-top': '0.55rem',

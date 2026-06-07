@@ -1,4 +1,5 @@
 import { createResource, createSignal, createMemo, For, Show, type JSX } from 'solid-js';
+import ArgumentFlowGraph, { FlowLegend, connectionKinds, type FlowConnection } from './ArgumentFlowGraph';
 
 /**
  * Spine coverage — a punchcard of the global spine. Rows are dapim down a
@@ -34,6 +35,14 @@ interface SpineGraph {
   byVia: Record<string, number>;
   continuityRuns: string[][];
   coverage: { dapimWithLinks: number; dapimTotal: number };
+}
+
+interface SpineViewDaf {
+  page: string;
+  nextPage: string | null;
+  sections: { index: number; title: string }[];
+  flow: FlowConnection[];
+  cross: { fromSection: number; toSection: number; relation: string; note?: string }[];
 }
 
 // coordKey "tractate:page:seg" -> compact "page §seg" ("page" when whole-daf).
@@ -91,6 +100,17 @@ async function fetchSpineGraph(tractate: string): Promise<SpineGraph> {
   return r.json();
 }
 
+async function fetchSpineView(tractate: string): Promise<{ tractate: string; dapim: SpineViewDaf[] }> {
+  const r = await fetch(`/api/spine-view/${encodeURIComponent(tractate)}`);
+  if (!r.ok) {
+    const body = await r.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `HTTP ${r.status}`);
+  }
+  return r.json();
+}
+
+const FLOW_VIEW_CAP = 40; // keep the stitched render light; note when truncated
+
 export function SpineCoveragePage(): JSX.Element {
   const [tractate, setTractate] = createSignal(routeTractate());
   window.addEventListener('hashchange', () => setTractate(routeTractate()));
@@ -100,9 +120,13 @@ export function SpineCoveragePage(): JSX.Element {
   // The assembled spine graph loads on demand (it sweeps the whole tractate).
   // A non-null trigger (the tractate) activates the resource. A third hash
   // segment (#spine/<tractate>/assemble) auto-loads it — a shareable deep link.
-  const autoAssemble = () => window.location.hash.replace(/^#/, '').split('/')[2] === 'assemble';
-  const [graphTrigger, setGraphTrigger] = createSignal<string | null>(autoAssemble() ? routeTractate() : null);
+  const thirdSeg = () => window.location.hash.replace(/^#/, '').split('/')[2];
+  const [graphTrigger, setGraphTrigger] = createSignal<string | null>(thirdSeg() === 'assemble' ? routeTractate() : null);
   const [graph] = createResource(graphTrigger, fetchSpineGraph);
+  // The stitched flow view (real per-daf flow graphs, connected by cross-daf
+  // edges). Loads on demand; #spine/<tractate>/flow auto-loads it.
+  const [viewTrigger, setViewTrigger] = createSignal<string | null>(thirdSeg() === 'flow' ? routeTractate() : null);
+  const [flowView] = createResource(viewTrigger, fetchSpineView);
 
   const go = (t: string) => {
     const slug = t.trim().toLowerCase().replace(/\s+/g, '_');
@@ -261,6 +285,61 @@ export function SpineCoveragePage(): JSX.Element {
                     </Show>
                   </div>
                 )}
+              </Show>
+            </div>
+
+            {/* stitched flow view — real per-daf flow graphs down the tractate,
+                connected by the cross-daf edges */}
+            <div style={{ margin: '0 0 1rem', padding: '10px 12px', border: '1.5px solid #333', background: '#fff' }}>
+              <div style={{ display: 'flex', 'align-items': 'center', 'justify-content': 'space-between', gap: '10px' }}>
+                <span style={{ 'font-size': '12px', 'font-weight': 700 }}>STITCHED FLOW &mdash; the argument map down the tractate</span>
+                <button
+                  onClick={() => setViewTrigger(tractate())}
+                  disabled={flowView.loading}
+                  style={{ 'font-family': MONO, 'font-size': '11px', padding: '3px 10px', border: '1.5px solid #000', background: flowView.loading ? '#eee' : '#fff', cursor: 'pointer' }}
+                >{flowView.loading ? 'loading…' : (flowView() ? 'reload' : 'load')}</button>
+              </div>
+              <Show when={flowView.error}>
+                <p style={{ 'font-size': '12px', color: '#FF3366', margin: '6px 0 0' }}>error: {String(flowView.error?.message || flowView.error)}</p>
+              </Show>
+              <Show when={flowView()}>
+                {(v) => {
+                  const shown = createMemo(() => v().dapim.filter((d) => d.flow.length > 0 || d.cross.length > 0));
+                  const capped = createMemo(() => shown().slice(0, FLOW_VIEW_CAP));
+                  const allKinds = createMemo(() => connectionKinds(capped().flatMap((d) => d.flow)));
+                  return (
+                    <div style={{ 'margin-top': '8px' }}>
+                      <div style={{ 'font-size': '11px', color: '#666', 'margin-bottom': '4px' }}>
+                        showing {capped().length} of {shown().length} dapim with flow {shown().length > FLOW_VIEW_CAP ? '(capped)' : ''}
+                      </div>
+                      <FlowLegend kinds={allKinds()} />
+                      <div style={{ 'margin-top': '8px' }}>
+                        <For each={capped()}>
+                          {(d) => (
+                            <div>
+                              <div style={{ 'font-family': MONO, 'font-size': '13px', 'font-weight': 700, color: '#333', margin: '6px 0 2px' }}>{d.page}</div>
+                              <ArgumentFlowGraph nodes={d.sections} connections={d.flow} activeIndex={null} onSelect={() => {}} hideLegend />
+                              <Show when={d.cross.length}>
+                                <div style={{ margin: '4px 0 10px', padding: '4px 0 4px 12px', 'border-left': `2px solid ${RELATION_COLOR.continues}` }}>
+                                  <For each={d.cross}>
+                                    {(e) => (
+                                      <div style={{ 'font-family': MONO, 'font-size': '11px', color: '#444' }}>
+                                        &darr; §{e.fromSection + 1}
+                                        <span style={{ color: RELATION_COLOR[e.relation] || '#666', margin: '0 5px' }}>{e.relation}</span>
+                                        {d.nextPage ?? 'next'} §{e.toSection + 1}
+                                        <Show when={e.note}><span style={{ color: '#999' }}>  {e.note}</span></Show>
+                                      </div>
+                                    )}
+                                  </For>
+                                </div>
+                              </Show>
+                            </div>
+                          )}
+                        </For>
+                      </div>
+                    </div>
+                  );
+                }}
               </Show>
             </div>
 
