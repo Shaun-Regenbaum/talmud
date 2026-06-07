@@ -639,58 +639,6 @@ export function argumentSynthInstance(section: Section): unknown {
   };
 }
 
-/** Drill-in: one argument section's voice map, fed by that section's
- *  `argument.voices` (the same per-section enrichment the section panel uses;
- *  warmed on daf load, so this is usually a cache hit). */
-function OverviewSectionVoices(props: {
-  section: Section;
-  tractate: string;
-  page: string;
-  onPushRabbi: (name: string) => void;
-}): JSX.Element {
-  const [voices, setVoices] = createSignal<ArgumentVoicesData | null>(null);
-  const [resolved, setResolved] = createSignal(false);
-  const voicesGate = useVoicesGate(() => props.tractate, () => props.page, () => props.section);
-  const instanceKey = () => `${props.section.startSegIdx}-${props.section.endSegIdx}-${props.section.title}`;
-  createEffect(() => { void instanceKey(); setVoices(null); setResolved(false); });
-  const onResolved = (r: { deps_resolved?: Record<string, unknown> }) => {
-    setResolved(true);
-    const v = r.deps_resolved?.['argument.voices'] as ArgumentVoicesData | undefined;
-    if (v && Array.isArray(v.voices)) setVoices(deriveVoiceEdges({ voices: v.voices, edges: Array.isArray(v.edges) ? v.edges : [] }) as ArgumentVoicesData);
-  };
-  return (
-    <div style={{ 'margin-top': '0.6rem', 'border-top': '1px dashed #e5e3dc', 'padding-top': '0.6rem' }}>
-      {/* The section summary was rendered here via HebrewProse (RTL/centered),
-          which mis-styles the English summary AND duplicates the synthesis prose
-          below. Dropped — the Synthesis card is the single prose source, matching
-          the main section panel. */}
-      <Synthesis
-        markId="argument"
-        instance={{
-          startSegIdx: props.section.startSegIdx,
-          endSegIdx: props.section.endSegIdx,
-          fields: {
-            title: props.section.title,
-            summary: props.section.summary,
-            excerpt: props.section.excerpt,
-            rabbiNames: props.section.rabbis.map((r) => r.name),
-          },
-        }}
-        instanceKey={instanceKey()}
-        tractate={props.tractate}
-        page={props.page}
-        onResolved={onResolved}
-      />
-      <Show when={voicesGate.showVoiceMap(voices()) && voices()}>
-        {(data) => <ArgumentVoiceMap data={data()} onClickVoice={props.onPushRabbi} />}
-      </Show>
-      <Show when={voicesGate.showFallback(voices(), resolved()) && voicesGate.profile()?.primary === 'aggadata'}>
-        <ArgumentNarrative section={props.section} tractate={props.tractate} page={props.page} />
-      </Show>
-    </div>
-  );
-}
-
 // Flow kinds that bind two sections into ONE continuous discussion (sugya).
 // The others (parallels / contrasts / generalizes / cites) are cross-references
 // between DISTINCT sugyot, so they don't merge sections into the same map.
@@ -748,15 +696,14 @@ interface DafLinkLite {
 // rest: the daf's argument sections as flow-graph MAPS — one map per discussion
 // (sugya), split where the sections stop binding to each other; maps whose
 // discussion carries over from the previous daf, or continues onto the next, are
-// flagged; clicking a section node drills into its voice map. Below: the unified
-// cross-reference links and the hand-off button into the in-depth card. The daf
-// `sections`, `onPushRabbi`, and `onOpenArgument` arrive via `extras`.
+// flagged; clicking a section node drills straight into that section's full
+// argument card (pushed onto the Overview, with a back chip returning here).
+// Below: the unified cross-reference links. The daf `sections` and
+// `onOpenArgument` arrive via `extras`.
 // ===========================================================================
 function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
   const sections = (): Section[] => (props.extras?.sections as Section[]) ?? [];
-  const onPushRabbi = (): ((name: string) => void) => (props.extras?.onPushRabbi as ((name: string) => void)) ?? (() => {});
   const onOpenArgument = (): ((index: number) => void) | undefined => props.extras?.onOpenArgument as ((index: number) => void) | undefined;
-  const [active, setActive] = createSignal<number | null>(null);
 
   // The daf-level flow leaf's section connections. Empty until the synthesis
   // resolves; `props.synthesisResolved` is the "flow resolved" gate (a daf can
@@ -766,25 +713,12 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
     return flow && Array.isArray(flow.connections) ? flow.connections : [];
   });
 
-  createEffect(() => {
-    void props.instanceKey;
-    setActive(null);
-    props.onHighlightRange?.(null);
-  });
-
-  // Clicking a section card both opens its voices and paints the section's
-  // segment range on the daf (clicking the active card again clears both).
-  const selectSection = (i: number) => {
-    const next = active() === i ? null : i;
-    setActive(next);
-    if (next === null) { props.onHighlightRange?.(null); return; }
-    const s = sections()[i];
-    if (s && s.startSegIdx != null && s.endSegIdx != null) {
-      props.onHighlightRange?.({ start: s.startSegIdx, end: s.endSegIdx, key: `overview:${i}` });
-    } else {
-      props.onHighlightRange?.(null);
-    }
-  };
+  // Clicking a section node drills straight into that section's full argument
+  // card. The card is pushed ONTO the Overview (see openArgument in DafViewer),
+  // so its back chip returns here — the Overview is the entry point and the
+  // section card the deep dive, one navigation stack. The daf's section range is
+  // painted by the argument card itself, so there's no separate highlight here.
+  const openSection = (i: number) => onOpenArgument()?.(i);
 
   // Split the daf's sections into discussion maps. With no flow yet (cold), each
   // section is its own group; once the flow loads they merge into real sugyot.
@@ -919,7 +853,6 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
           const hasFirst = grp.includes(0);
           const hasLast = grp.includes(sections().length - 1);
           const grpNodes = grp.map((i) => ({ index: i, title: sections()[i].title }));
-          const activeInGroup = () => active() !== null && grp.includes(active()!);
           return (
             <div style={{ 'margin-bottom': '0.7rem' }}>
               <Show when={hasFirst && bridge()?.fromPrev}>
@@ -928,19 +861,11 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
               <ArgumentFlowGraph
                 nodes={grpNodes}
                 connections={connections()}
-                activeIndex={active()}
-                onSelect={selectSection}
+                activeIndex={null}
+                onSelect={openSection}
               />
               <Show when={hasLast && bridge()?.toNext}>
                 {crossLabel(t('overview.continuesOnto', { page: pageRef(bridge()!.next) }))}
-              </Show>
-              <Show when={activeInGroup() && sections()[active()!]}>
-                <OverviewSectionVoices
-                  section={sections()[active()!]}
-                  tractate={props.tractate}
-                  page={props.page}
-                  onPushRabbi={onPushRabbi()}
-                />
               </Show>
             </div>
           );
@@ -980,20 +905,6 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
               {t('overview.withinFlow')}: {withinFlowCounts().map((f) => `${f.count} ${relLabel(f.relation)}`).join(' · ')}
             </div>
           </Show>
-        </div>
-      </Show>
-      {/* Hand off into the in-depth argument card. Opens the section the reader
-       *  has drilled into (active), else the start of the argument. */}
-      <Show when={onOpenArgument() && sections().length > 0}>
-        <div style={{ 'margin-top': '0.8rem', 'border-top': '1px solid #f0f0f0', 'padding-top': '0.6rem' }}>
-          <button
-            onClick={() => onOpenArgument()?.(active() ?? 0)}
-            style={{
-              width: '100%', 'text-align': 'center', cursor: 'pointer', 'font-family': 'inherit',
-              'font-size': '0.78rem', color: '#8a2a2b', background: '#fdf3f3',
-              border: '1px solid #f0dcdc', 'border-radius': '7px', padding: '0.45rem 0.6rem',
-            }}
-          >{t('overview.openArgument')}</button>
         </div>
       </Show>
     </>
@@ -2200,7 +2111,7 @@ export const CARD_DEFS: Partial<Record<SidebarContent['kind'], CardDef>> = {
     // overview cache key (which would cold-miss all of Shas).
     synthInstance: () => ({ fields: {} }),
     forwardHighlight: true,
-    extras: (ctx) => ({ sections: ctx.dafSections, onPushRabbi: ctx.onPushRabbi, onOpenArgument: ctx.onOpenArgument }),
+    extras: (ctx) => ({ sections: ctx.dafSections, onOpenArgument: ctx.onOpenArgument }),
   },
   // Whole-daf essay cards: header + synthesis only (the essay renders through
   // the registerMarkRenderer seam). Display instance carries the localized
