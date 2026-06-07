@@ -143,6 +143,84 @@ export function tokenizeConceptMentions(text: string, terms: readonly Term[]): C
   return tokenizeWithMatcher(text, buildConceptMatcher(terms));
 }
 
+// ── First-mention gloss policy ────────────────────────────────────────────────
+// A glossary term is glossed inline on its FIRST mention in a prose unit and
+// runs bare thereafter — the tooltip carries the gloss for every later mention,
+// so the repeated parenthetical is pure clutter. This makes the page consistent
+// (one gloss per term, deterministically) without the model having to remember
+// what it already defined. We only ever STRIP a repeat gloss, never invent one,
+// and only when the parenthetical restates the SAME gloss — a meaningful
+// parenthetical (a qualifier like "(according to Rashi)") is always kept.
+
+/** Normalize a gloss for comparison: lowercase, drop surrounding quotes /
+ *  trailing punctuation, strip a leading article, collapse whitespace. */
+export function glossKey(s: string): string {
+  return (s || '')
+    .toLowerCase()
+    .trim()
+    .replace(/^[('"“”‘’\s]+/, '')
+    .replace(/[)\]'"“”‘’.,;:!?\s]+$/, '')
+    .replace(/^(the|a|an)\s+/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Two glosses count as "the same" when equal, or one contains the other (the
+ *  model often writes a fuller form once, e.g. "binding law" vs the registry's
+ *  "binding law / halacha"). Containment requires ≥4 chars so short words can't
+ *  spuriously match. */
+function glossMatch(a: string, b: string): boolean {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  const [short, long] = a.length <= b.length ? [a, b] : [b, a];
+  return short.length >= 4 && long.includes(short);
+}
+
+/** If `text` opens with an inline gloss parenthetical (only whitespace/quotes
+ *  before the `(`), return its inner text plus the remainder with the
+ *  parenthetical excised and the seam tidied (no doubled space, no space before
+ *  punctuation). Null when there's no leading parenthetical. */
+function leadingGloss(text: string): { inner: string; rest: string } | null {
+  const m = /^(\s*)\(\s*([^()]+?)\s*\)/.exec(text);
+  if (!m) return null;
+  const before = m[1];
+  const after = text.slice(m[0].length);
+  const rest = (before + after)
+    .replace(/^\s+/, ' ')
+    .replace(/\s+([,.;:!?’”)])/g, '$1');
+  return { inner: m[2], rest };
+}
+
+/** Strip every-but-first inline gloss of each glossary term in one prose unit.
+ *  Pure; idempotent (a second pass finds no repeats left to strip), so it's safe
+ *  to apply at more than one layer of the prose pipeline. */
+export function firstMentionGloss(text: string, matcher: ConceptMatcher | null): string {
+  if (!text || !matcher) return text;
+  const parts = tokenizeWithMatcher(text, matcher);
+  const glossed = new Map<Term, string>(); // term -> the gloss kept on first mention
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i];
+    if (p.kind !== 'concept' || !p.term) continue;
+    const next = parts[i + 1];
+    if (!next || next.kind !== 'text') continue;
+    const lead = leadingGloss(next.value);
+    if (!lead) continue;
+    const key = glossKey(lead.inner);
+    const prior = glossed.get(p.term);
+    if (prior === undefined) {
+      // First inline gloss this term gets anywhere in the unit — keep it, and
+      // remember it (fall back to the registry gloss if the paren was empty).
+      glossed.set(p.term, key || glossKey(p.term.gloss));
+      continue;
+    }
+    // A later mention: drop the parenthetical only if it restates the gloss.
+    if (glossMatch(key, prior) || glossMatch(key, glossKey(p.term.gloss))) {
+      next.value = lead.rest;
+    }
+  }
+  return parts.map((p) => p.value).join('');
+}
+
 const termStyle: JSX.CSSProperties = {
   'text-decoration': 'underline',
   'text-decoration-style': 'dotted',
@@ -242,7 +320,12 @@ function ConceptMention(props: { value: string; term: Term }): JSX.Element {
  *  load (new matcher) re-tokenizes. The matcher is compiled once at the
  *  provider, so this is just a scan per fragment. */
 export function ConceptText(props: { text: string | undefined | null; matcher: ConceptMatcher | null }): JSX.Element {
-  const parts = createMemo(() => tokenizeWithMatcher(props.text ?? '', props.matcher));
+  // Strip every-but-first inline gloss before tokenizing, then tokenize the
+  // cleaned text so each remaining mention still gets its tooltip.
+  const parts = createMemo(() => {
+    const cleaned = firstMentionGloss(props.text ?? '', props.matcher);
+    return tokenizeWithMatcher(cleaned, props.matcher);
+  });
   return (
     <For each={parts()}>{(p) => {
       if (p.kind === 'text' || !p.term) return <Hebraized text={p.value} />;

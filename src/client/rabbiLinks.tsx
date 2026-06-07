@@ -18,7 +18,7 @@
 import { For, createContext, createMemo, useContext, type Accessor, type JSX } from 'solid-js';
 import type { IdentifiedRabbi } from './dafContext';
 import { Hebraized } from './Hebraized';
-import { ConceptAwareText } from './conceptLinks';
+import { ConceptAwareText, firstMentionGloss, useConceptLinks } from './conceptLinks';
 
 export interface RabbiLinkContextValue {
   rabbis: Accessor<IdentifiedRabbi[]>;
@@ -145,13 +145,22 @@ export function RabbiText(props: {
   onPushRabbi: (name: string) => void;
   extraNames?: string[];
 }): JSX.Element {
+  // The concept layer (if in scope) gives us the daf's glossary matcher. Apply
+  // the first-mention gloss strip to the WHOLE section string here, before it's
+  // split at rabbi names — so a term glossed in one rabbi-gap runs bare in a
+  // later one (true per-section scope, not per-fragment). ConceptText re-applies
+  // it per fragment for cards with no rabbi pool; the pass is idempotent.
+  const concept = useConceptLinks();
   // All reactive reads happen inside this memo so prop changes (e.g.
   // dafContext loading after mount, a new sidebar entry pushing) trigger
   // re-tokenization.
-  const parts = createMemo(() => tokenizeRabbiMentions(props.text ?? '', [
-    ...props.rabbis.map((r) => r.name),
-    ...(props.extraNames ?? []),
-  ]));
+  const parts = createMemo(() => {
+    const cleaned = firstMentionGloss(props.text ?? '', concept?.matcher() ?? null);
+    return tokenizeRabbiMentions(cleaned, [
+      ...props.rabbis.map((r) => r.name),
+      ...(props.extraNames ?? []),
+    ]);
+  });
 
   return (
     <For each={parts()}>{(p) => {
