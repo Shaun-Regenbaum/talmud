@@ -178,43 +178,50 @@ function isGlossRestatement(parenKey: string, glossK: string): boolean {
   return parenKey.length >= 4 && glossK.includes(parenKey);
 }
 
-// A leading parenthetical: optional whitespace, then `(...)` tolerating ONE
-// level of nested parens (registry glosses like "a shechita organ (trachea /
-// esophagus)" carry one). `len` is how much of the string it spans (ws + paren);
-// `inner` is the content without the outer parens.
-const LEADING_PAREN_RE = /^(\s*)\(((?:[^()]+|\([^()]*\))*)\)/;
+/** Match a leading parenthetical: optional whitespace, then a balanced `(...)`
+ *  tolerating nested parens (registry glosses like "a shechita organ (trachea /
+ *  esophagus)" carry one). A linear hand scan, NOT a regex — the obvious
+ *  `(?:[^()]+|\(...\))*` form catastrophically backtracks on an unterminated
+ *  `(`. `len` spans the leading whitespace + the paren; `inner` is the content
+ *  without the outer parens. Null when there's no balanced leading paren. */
 function matchLeadingParen(s: string): { len: number; inner: string } | null {
-  const m = LEADING_PAREN_RE.exec(s);
-  return m ? { len: m[0].length, inner: m[2] } : null;
+  let i = 0;
+  while (i < s.length && /\s/.test(s[i])) i++;
+  if (s[i] !== '(') return null;
+  const open = i;
+  let depth = 0;
+  for (; i < s.length; i++) {
+    if (s[i] === '(') depth++;
+    else if (s[i] === ')' && --depth === 0) {
+      return { len: i + 1, inner: s.slice(open + 1, i) };
+    }
+  }
+  return null; // unterminated
 }
 
 /** Consume the gloss parentheticals that lead `text` (the fragment right after a
  *  term mention): keep the FIRST one that restates the term's gloss (recording
  *  it in `glossed`), strip every later one. Loops so adjacent duplicates all go
  *  in a single pass (keeps the function idempotent). A non-gloss parenthetical
- *  (a real qualifier) stops the peel and is left untouched. */
+ *  (a real qualifier) stops the peel and is left untouched.
+ *
+ *  No seam cleanup is needed: `len` always covers the whitespace BEFORE the
+ *  paren too, so a stripped paren leaves the whitespace that FOLLOWED it intact
+ *  as the single separator — and text further along the fragment is never
+ *  touched. */
 function peelGlosses(text: string, term: Term, glossed: Set<Term>): string {
   const glossK = glossKey(term.gloss);
   let kept = '';
   let rest = text;
-  let stripped = false;
   for (let m = matchLeadingParen(rest); m; m = matchLeadingParen(rest)) {
     if (!isGlossRestatement(glossKey(m.inner), glossK)) break;
-    const after = rest.slice(m.len);
     if (!glossed.has(term)) {
       glossed.add(term);
       kept += rest.slice(0, m.len); // first gloss: keep verbatim, peel past it
-    } else {
-      stripped = true; // a repeat: drop it
-    }
-    rest = after;
+    } // else: a repeat — drop it (don't append)
+    rest = rest.slice(m.len);
   }
-  let out = kept + rest;
-  if (stripped) {
-    out = out.replace(/ {2,}/g, ' ').replace(/\s+([,.;:!?’”)])/g, '$1');
-    if (kept === '') out = out.replace(/^\s+/, ' '); // single space after the bare term
-  }
-  return out;
+  return kept + rest;
 }
 
 /** Strip every-but-first inline gloss of each glossary term in one prose unit:

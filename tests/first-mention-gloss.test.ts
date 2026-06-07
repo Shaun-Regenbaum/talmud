@@ -86,6 +86,19 @@ describe('firstMentionGloss', () => {
     expect(firstMentionGloss(once, g)).toBe(once);
   });
 
+  it('does not touch text further along the fragment when stripping (no global tidy)', () => {
+    // The double space inside the later quote must survive the strip.
+    const out = gloss('A Kohen (a Temple priest) serves; later Kohen (a Temple priest) quotes "A  B".');
+    expect(out).toBe('A Kohen (a Temple priest) serves; later Kohen quotes "A  B".');
+  });
+
+  it('is linear on an unterminated parenthetical (no catastrophic backtracking)', () => {
+    const input = `A Kohen (${'a'.repeat(5000)}`; // no closing paren
+    const start = Date.now();
+    expect(gloss(input)).toBe(input); // nothing to strip; returns promptly
+    expect(Date.now() - start).toBeLessThan(500);
+  });
+
   it('tidies the seam — no space left before punctuation', () => {
     const out = gloss('A Kohen (a Temple priest) serves; the Kohen (a Temple priest), too.');
     expect(out).toBe('A Kohen (a Temple priest) serves; the Kohen, too.');
