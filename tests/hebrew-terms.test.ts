@@ -77,17 +77,24 @@ describe('canonical terms resolve through hebraize() (dict side)', () => {
   }
 });
 
-describe('alwaysHebraizeBlock — renders every canonical term (prompt side)', () => {
+describe('alwaysHebraizeBlock — renders every canonical term in its display orientation', () => {
   const block = alwaysHebraizeBlock();
   for (const t of CANONICAL_HEBREW_TERMS) {
-    it(`block lists ${t.translit} → ${t.hebrew}`, () => {
-      expect(block).toContain(`${t.translit} → ${t.hebrew} (${t.gloss})`);
-    });
+    // The list now encodes the per-term display policy so it can't contradict
+    // the prompt's Form A/B rule: english-first terms read "en (hebrew)",
+    // hebrew-first terms read "translit → hebrew (gloss)".
+    if (t.display === 'english' && t.en) {
+      it(`block lists ${t.en} (${t.hebrew}) English-first`, () => {
+        expect(block).toContain(`${t.en} (${t.hebrew})`);
+        expect(block).not.toContain(`${t.translit} → ${t.hebrew}`);
+      });
+    } else {
+      it(`block lists ${t.translit} → ${t.hebrew} (Form A)`, () => {
+        expect(block).toContain(`${t.translit} → ${t.hebrew} (${t.gloss})`);
+      });
+    }
   }
-  // The display field is metadata for the gloss pass, not prompt content — the
-  // always-list block must stay byte-for-byte as it was, so adding `display`
-  // can't silently perturb generation. (Output unchanged is the PR1 contract.)
-  it('block carries no display metadata — translit → hebrew (gloss) only', () => {
+  it('block carries no raw display-enum metadata', () => {
     expect(block).not.toMatch(/hebrew-first-gloss|display/);
   });
 });
@@ -120,6 +127,26 @@ describe('halacha.practical prompt — always-list wiring', () => {
   it('embeds the single-sourced always-hebraize block', () => {
     expect(practicalSys).toContain(alwaysHebraizeBlock());
   });
+});
+
+// The HEBREW_GLOSS_STYLE block was shrunk (PR4) — collapsed the Form A/B example
+// walls and removed the model's freedom to pick a form. These guard that the
+// shrink kept every load-bearing rule, so a future trim can't silently drop one.
+describe('HEBREW_GLOSS_STYLE — hard rules survive the shrink', () => {
+  const required = [
+    'FORM A (DEFAULT)',      // Form A is the default
+    'FORM B',                // Form B reserved for english-first
+    'GLOSS ONCE',            // first-use-only gloss (pairs with the PR3 dedup pass)
+    'calque',                // no-calque rule
+    'SCRIPT HYGIENE',        // english + hebrew script only
+    'AUTHORITATIVE',         // daf glossary is authoritative
+    'transliteration',       // no-transliteration rule
+  ];
+  for (const marker of required) {
+    it(`still states: ${marker}`, () => {
+      expect(practicalSys).toContain(marker);
+    });
+  }
 });
 
 // The applies-when / exceptions chip lists were retired in the shape-aware
