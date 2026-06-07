@@ -51,11 +51,39 @@ describe('firstMentionGloss', () => {
     expect(out).toBe('A Kohen (a Temple priest) serves; כהן again.');
   });
 
-  it('matches a looser repeat via containment against the registry gloss', () => {
-    // First inline gloss is the fuller form; the repeat is a shorter restatement.
-    const t = mk({ en: 'Kohen', hebrew: 'כהן', gloss: 'priest' });
-    const out = gloss('A Kohen (a Temple priest) serves; the Kohen (priest) eats.', [t]);
+  it('strips a shorter restatement contained in the registry gloss', () => {
+    // Registry gloss is the fuller form; a later inline gloss is a shorter
+    // restatement contained in it -> recognized and stripped.
+    const out = gloss('A Kohen (a Temple priest) serves; the Kohen (priest) eats.');
     expect(out).toBe('A Kohen (a Temple priest) serves; the Kohen eats.');
+  });
+
+  // ── Regressions from the codex review of the first cut ──────────────────────
+  it('keeps a repeated QUALIFIER that is not the gloss (not "(according to Rashi)")', () => {
+    const g = buildConceptMatcher(globalTerms());
+    const input = 'הלכה (according to Rashi) is strict; later הלכה (according to Rashi) is lenient.';
+    expect(firstMentionGloss(input, g)).toBe(input);
+  });
+
+  it('keeps a qualifier that merely CONTAINS the gloss text', () => {
+    const g = buildConceptMatcher(globalTerms());
+    const input = 'הלכה (binding law) applies; later הלכה (not binding law in this case) is only custom.';
+    expect(firstMentionGloss(input, g)).toBe(input);
+  });
+
+  it('strips a repeated gloss that itself carries nested parens (סימן)', () => {
+    const out = firstMentionGloss(
+      'סימן (a shechita organ (trachea / esophagus)) is cut; another סימן (a shechita organ (trachea / esophagus)) is checked.',
+      buildConceptMatcher(globalTerms()),
+    );
+    expect(out).toBe('סימן (a shechita organ (trachea / esophagus)) is cut; another סימן is checked.');
+  });
+
+  it('is idempotent even with adjacent duplicate gloss parens', () => {
+    const g = buildConceptMatcher(globalTerms());
+    const once = firstMentionGloss('הלכה (binding law); later הלכה (binding law) (binding law).', g);
+    expect(once).toBe('הלכה (binding law); later הלכה.');
+    expect(firstMentionGloss(once, g)).toBe(once);
   });
 
   it('tidies the seam — no space left before punctuation', () => {

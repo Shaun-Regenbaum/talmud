@@ -165,58 +165,73 @@ export function glossKey(s: string): string {
     .trim();
 }
 
-/** Two glosses count as "the same" when equal, or one contains the other (the
- *  model often writes a fuller form once, e.g. "binding law" vs the registry's
- *  "binding law / halacha"). Containment requires ≥4 chars so short words can't
- *  spuriously match. */
-function glossMatch(a: string, b: string): boolean {
-  if (!a || !b) return false;
-  if (a === b) return true;
-  const [short, long] = a.length <= b.length ? [a, b] : [b, a];
-  return short.length >= 4 && long.includes(short);
+/** Whether a parenthetical's content is (a restatement of) the term's own gloss
+ *  — the ONLY thing we ever strip. Matching is DIRECTIONAL: the parenthetical
+ *  must equal the registry gloss, or be CONTAINED in it (the model's inline
+ *  gloss is often a shorter form of a longer registry gloss). We never accept
+ *  the reverse (gloss contained in the parenthetical), because a meaningful
+ *  qualifier that happens to include the gloss text — "(not binding law in this
+ *  case)" — must be kept. Containment needs ≥4 chars so a tiny word can't match. */
+function isGlossRestatement(parenKey: string, glossK: string): boolean {
+  if (!parenKey || !glossK) return false;
+  if (parenKey === glossK) return true;
+  return parenKey.length >= 4 && glossK.includes(parenKey);
 }
 
-/** If `text` opens with an inline gloss parenthetical (only whitespace/quotes
- *  before the `(`), return its inner text plus the remainder with the
- *  parenthetical excised and the seam tidied (no doubled space, no space before
- *  punctuation). Null when there's no leading parenthetical. */
-function leadingGloss(text: string): { inner: string; rest: string } | null {
-  const m = /^(\s*)\(\s*([^()]+?)\s*\)/.exec(text);
-  if (!m) return null;
-  const before = m[1];
-  const after = text.slice(m[0].length);
-  const rest = (before + after)
-    .replace(/^\s+/, ' ')
-    .replace(/\s+([,.;:!?’”)])/g, '$1');
-  return { inner: m[2], rest };
+// A leading parenthetical: optional whitespace, then `(...)` tolerating ONE
+// level of nested parens (registry glosses like "a shechita organ (trachea /
+// esophagus)" carry one). `len` is how much of the string it spans (ws + paren);
+// `inner` is the content without the outer parens.
+const LEADING_PAREN_RE = /^(\s*)\(((?:[^()]+|\([^()]*\))*)\)/;
+function matchLeadingParen(s: string): { len: number; inner: string } | null {
+  const m = LEADING_PAREN_RE.exec(s);
+  return m ? { len: m[0].length, inner: m[2] } : null;
 }
 
-/** Strip every-but-first inline gloss of each glossary term in one prose unit.
- *  Pure; idempotent (a second pass finds no repeats left to strip), so it's safe
- *  to apply at more than one layer of the prose pipeline. */
+/** Consume the gloss parentheticals that lead `text` (the fragment right after a
+ *  term mention): keep the FIRST one that restates the term's gloss (recording
+ *  it in `glossed`), strip every later one. Loops so adjacent duplicates all go
+ *  in a single pass (keeps the function idempotent). A non-gloss parenthetical
+ *  (a real qualifier) stops the peel and is left untouched. */
+function peelGlosses(text: string, term: Term, glossed: Set<Term>): string {
+  const glossK = glossKey(term.gloss);
+  let kept = '';
+  let rest = text;
+  let stripped = false;
+  for (let m = matchLeadingParen(rest); m; m = matchLeadingParen(rest)) {
+    if (!isGlossRestatement(glossKey(m.inner), glossK)) break;
+    const after = rest.slice(m.len);
+    if (!glossed.has(term)) {
+      glossed.add(term);
+      kept += rest.slice(0, m.len); // first gloss: keep verbatim, peel past it
+    } else {
+      stripped = true; // a repeat: drop it
+    }
+    rest = after;
+  }
+  let out = kept + rest;
+  if (stripped) {
+    out = out.replace(/ {2,}/g, ' ').replace(/\s+([,.;:!?’”)])/g, '$1');
+    if (kept === '') out = out.replace(/^\s+/, ' '); // single space after the bare term
+  }
+  return out;
+}
+
+/** Strip every-but-first inline gloss of each glossary term in one prose unit:
+ *  a term is glossed on first mention and runs bare after (the tooltip carries
+ *  the gloss). Only a parenthetical that restates the term's OWN gloss is ever
+ *  removed — qualifiers are always kept. Pure; idempotent, so it's safe to apply
+ *  at more than one layer of the prose pipeline. */
 export function firstMentionGloss(text: string, matcher: ConceptMatcher | null): string {
   if (!text || !matcher) return text;
   const parts = tokenizeWithMatcher(text, matcher);
-  const glossed = new Map<Term, string>(); // term -> the gloss kept on first mention
+  const glossed = new Set<Term>();
   for (let i = 0; i < parts.length; i++) {
     const p = parts[i];
     if (p.kind !== 'concept' || !p.term) continue;
     const next = parts[i + 1];
     if (!next || next.kind !== 'text') continue;
-    const lead = leadingGloss(next.value);
-    if (!lead) continue;
-    const key = glossKey(lead.inner);
-    const prior = glossed.get(p.term);
-    if (prior === undefined) {
-      // First inline gloss this term gets anywhere in the unit — keep it, and
-      // remember it (fall back to the registry gloss if the paren was empty).
-      glossed.set(p.term, key || glossKey(p.term.gloss));
-      continue;
-    }
-    // A later mention: drop the parenthetical only if it restates the gloss.
-    if (glossMatch(key, prior) || glossMatch(key, glossKey(p.term.gloss))) {
-      next.value = lead.rest;
-    }
+    next.value = peelGlosses(next.value, p.term, glossed);
   }
   return parts.map((p) => p.value).join('');
 }
