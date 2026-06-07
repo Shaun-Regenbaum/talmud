@@ -1108,7 +1108,7 @@ app.get('/api/spine-links/:tractate', async (c) => {
 // classify a dependency id as a SOURCE leaf (fetched/assembled, no LLM) vs a
 // producer (mark/enrichment). Mirrors validateEnrichmentDependencies' allowlist.
 const SOURCE_DEP_KEYS = new Set([
-  'gemara', 'commentaries', 'mishna', 'context', 'context-light', 'halacha-refs', 'yerushalmi-text',
+  'gemara', 'commentaries', 'mishna', 'context', 'context-light', 'halacha-refs', 'yerushalmi-text', 'incoming',
 ]);
 
 // GET /api/run-tree/:tractate/:page/:id — the build PROVENANCE of one piece on
@@ -1932,6 +1932,33 @@ async function resolveDependencies(
       out.vars.yerushalmi = formatYerushalmiForPrompt(bundle, curated, outline, floor);
       out.vars.__yerushalmiFloor = floor;
       recordSource(out, 'yerushalmi-text', out.vars.yerushalmi);
+      return;
+    }
+    if (dep === 'incoming') {
+      // How this daf connects to the PREVIOUS one. Read the prev->this bridge
+      // (computeDafBridge on the previous daf judges its last argument section
+      // against this daf's first). When the sugya carries over, expose its
+      // grounded note so a whole-daf overview can open with where the page comes
+      // from — never recalled from the model's memory. Empty when the daf opens
+      // fresh, the previous daf isn't warmed, or this is the tractate's first
+      // daf. In the inspector's sourcesOnly pass, read cache-only so it never
+      // triggers the bridge model. Best-effort: any failure contributes nothing.
+      try {
+        const prevPage = adjacentAmud(tractate, page, -1);
+        if (prevPage) {
+          let bridge: DafBridge | null = null;
+          if (sourcesOnly) {
+            const c = rc.env.CACHE ? await rc.env.CACHE.get(keyForBridge(tractate, prevPage)) : null;
+            if (c) { try { bridge = JSON.parse(c) as DafBridge; } catch { /* ignore */ } }
+          } else {
+            bridge = await computeDafBridge(rc.env, tractate, prevPage);
+          }
+          if (bridge?.continues && typeof bridge.note === 'string' && bridge.note.trim()) {
+            out.vars.incoming = `Continues the discussion from the previous daf (${tractate} ${prevPage}): ${bridge.note.trim()}`;
+          }
+        }
+      } catch { /* no incoming context */ }
+      recordSource(out, 'incoming', (out.vars.incoming as string) ?? '');
       return;
     }
     if (dep === 'context' || dep === 'context-light') {

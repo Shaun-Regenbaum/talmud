@@ -337,6 +337,12 @@ export type Extractor = LLMExtractor | SefariaExtractor | ComputedExtractor | Ma
 //                          a producer contrasts Bavli vs Yerushalmi against the
 //                          source rather than recalling it. The token is
 //                          distinct from the `yerushalmi` mark id on purpose.)
+//   'incoming'           → {{incoming}}  (how this daf connects to the PREVIOUS
+//                          one: the grounded cross-daf continuation note from the
+//                          cached prev→this bridge, when the sugya carries over.
+//                          Empty when the daf opens a fresh discussion. Lets a
+//                          whole-daf overview orient the reader with where the
+//                          page comes from instead of recalling it.)
 //   { enrichment: id }   → {{depends.<id>}}    (recursively resolved)
 //   { mark: id }         → {{anchors.<id>}}    (mark extractor for same daf)
 //
@@ -359,6 +365,9 @@ export type EnrichmentDependency =
   | 'context-light'
   | 'halacha-refs'
   | 'yerushalmi-text'
+  // The cross-daf continuation note from the previous daf (see {{incoming}}
+  // above). A source leaf — assembled from the cached prev→this bridge.
+  | 'incoming'
   // `{ enrichment: id }` resolves the dep for the CONSUMER's own instance.
   // `fanOut: true` instead runs a PER-INSTANCE enrichment for EVERY instance of
   // its target mark on the daf and exposes the array under {{depends.<id>}} —

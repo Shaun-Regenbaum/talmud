@@ -996,47 +996,27 @@ export const CODE_MARKS: MarkDefinition[] = [
  */
 const HEBREW_GLOSS_STYLE = `STYLE — Hebrew + English mixing (apply UNIFORMLY across all prose):
 
-FORM A — Hebrew script first, English gloss in parens. Use when the Hebrew word IS the subject of the clause OR when the Hebrew is the standard term in rabbinic discourse:
-  "performed לכתחילה (the ideal standard)"
-  "בדיעבד (after the fact) the meat is permitted"
-  "applies the rule of יצא (an excluded case)"
-  "the gemara invokes a גזירה שווה (verbal analogy from a shared word)"
-  "the principle of רוב (the majority)"
-  "from the כלל ופרט (general followed by specific)"
-  "the verse 'בשכבך ובקומך' (when you lie down and when you rise)"
+Plain English is the BASE; Hebrew script is the technical anchor — use it only where a word is genuinely the technical concept, not on every common word.
 
-FORM B — English first, Hebrew script in parens. Use when the English term flows naturally as a parenthetical aid:
-  "a leading Tanna (תנא) at Yavneh (יבנה)"
-  "the evening Shema (קריאת שמע של ערבית)"
-  "atonement (כפרה) does not delay the priest's eating"
-  "the rabbi is classified as a halachist (הלכתי)"
+FORM A (DEFAULT) — Hebrew script first, English gloss in parens. Use for technical/halachic terms and verbatim daf language:
+  "performed לכתחילה (the ideal standard)", "a גזירה שווה (verbal analogy)", "the verse 'בשכבך ובקומך' (when you lie down and when you rise)"
+
+FORM B — English first, Hebrew in parens. Use ONLY for proper nouns and standing English-first terms:
+  "Rabbi Yochanan (רבי יוחנן)", "at Yavneh (יבנה)", "court (בית דין)", "kosher (כשר)"
+
+GLOSS ONCE: gloss a term on its FIRST use only; write it bare afterwards. Every term carries a hover tooltip, so a repeated parenthetical is just clutter.
 
 HARD RULES (output is rejected if violated):
-- NEVER write a transliteration alone in parens. "(terumah)", "(gezeira shava)", "(lechatchila)" — all forbidden. Always pair Hebrew script with English meaning, not transliteration with itself.
-- NEVER use bare transliteration as a standalone term either. "Lechatchila, one may eat…" is wrong — use "לכתחילה (the ideal standard), one may eat…" OR "Performed לכתחילה, one may eat…".
-- NEVER calque-translate a fixed Hebrew/Aramaic halachic phrase into bare English. A "calque" is a word-for-word literal translation that produces grammatically marked or meaningless English. If the English would only make sense to someone who already knows the underlying Hebrew term, the term IS the technical concept and MUST appear in Hebrew script. The English is then a gloss in parens — not a replacement.
-    BAD:  "Eli's broken neck occurred without most flesh"                  (calque of רוב בשר)
-    BAD:  "the requirement of severing most of the flesh"                  (same calque, padded)
-    BAD:  "a son of his year"                                               (calque of בן שנתו)
-    BAD:  "the house of justice"                                            (calque of בית דין — use 'בית דין' or English 'court')
-    BAD:  "the sons of Noah's commandments"                                 (calque of שבע מצוות בני נח)
-    BAD:  "great in fear of Heaven"                                         (calque of גדול ביראת שמים)
-    GOOD: "Eli's broken neck occurred without רוב בשר (the majority of surrounding flesh that normally must tear with the spine)"
-    GOOD: "a בן שנתו (year-old animal)"
-    GOOD: "the שבע מצוות בני נח (Noahide laws)"
-  Heuristic: read the sentence aloud in English. If a reader who doesn't know the term has to stop and ask "wait, most WHAT?" or "year of what?", you've calqued. Restore the Hebrew.
-- Common terms to ALWAYS hebraize (any time you use them, pair with Hebrew script):
+- NEVER write a transliteration — not in parens "(terumah)", not bare "Lechatchila, one may eat…". Pair Hebrew script with an English meaning, OR lead with the Hebrew: "לכתחילה (the ideal standard), one may eat…".
+- NEVER calque a fixed Hebrew/Aramaic phrase into bare English (a word-for-word literal that only makes sense if you already know the term). Keep the term in Hebrew, gloss in parens.
+    BAD:  "without most flesh" (רוב בשר) · "a son of his year" (בן שנתו) · "the house of justice" (בית דין)
+    GOOD: "without רוב בשר (the majority of surrounding flesh)" · "a בן שנתו (year-old animal)" · "court (בית דין)"
+  Heuristic: read it aloud in English — if a reader who doesn't know the term must ask "most WHAT?", you calqued. Restore the Hebrew.
+- ALWAYS hebraize these (pair with Hebrew script whenever used):
 ${alwaysHebraizeBlock()}
-- Verbatim daf / pasuk excerpts go in Hebrew script with quote marks, optionally followed by an English gloss in parens.
-- HARD RULE — verbatim daf words in quotes ('…' or "…") MUST be Hebrew/Aramaic script, NEVER transliteration. The single-quoted form is a signal that what's inside is a direct quote from the daf, and direct quotes are by definition in the source language.
-    BAD:  "the gemara uses 'hutz'u' to describe how they were brought out"
-    BAD:  "the term 'amar' indicates direct attribution"
-    GOOD: "the gemara uses 'הוצאו' (they were brought out) to describe…"
-    GOOD: "the term 'אמר' indicates direct attribution"
-  If you don't remember the Hebrew/Aramaic verbatim, paraphrase in English instead of writing the transliteration in quotes. NEVER fake a verbatim quote with transliteration.
-- Plain English is the BASE; Hebrew script is the technical anchor. Don't pile Hebrew script on every common word — only where the term is genuinely the technical concept.
-- THE DAF'S OWN GLOSSARY IS AUTHORITATIVE. If the prompt gives you this daf's background terms (each an English label + its Hebrew + a gloss), treat that list as the definitive set of terms to show in Hebrew here. Whenever your prose uses one of them, write it in Form A/B using EXACTLY that Hebrew spelling — e.g. given "Tevul Yom / טבול יום", write "טבול יום (one who immersed that day)" rather than "tevul yom" or English alone; given "Midnight / חצות", write "חצות (halakhic midnight)". This keeps the prose consistent with the glossary the reader sees on the daf and lets each term carry its own tooltip.
-- SCRIPT HYGIENE: write ONLY in English, with Hebrew/Aramaic script for terms and quotes. Never emit any other language or writing system — no Korean, Cyrillic, Arabic, CJK, Devanagari, emoji, etc. Every character must be plain Latin or Hebrew script (plus ordinary punctuation). If you reach for a non-English word, use its plain English equivalent instead.`;
+- Verbatim daf/pasuk quotes go in Hebrew/Aramaic script inside quote marks — NEVER transliteration in quotes ('hutz'u' is wrong; 'הוצאו' is right). If you don't recall the Hebrew, paraphrase in English rather than fake a transliterated quote.
+- THE DAF'S OWN GLOSSARY IS AUTHORITATIVE: when the prompt provides this daf's background terms (English label + Hebrew + gloss), use EXACTLY that Hebrew spelling — given "Tevul Yom / טבול יום", write "טבול יום (one who immersed that day)", never "tevul yom" or English alone.
+- SCRIPT HYGIENE: emit ONLY English + Hebrew/Aramaic script (plus ordinary punctuation). No other writing system — no Korean, Cyrillic, Arabic, CJK, Devanagari, emoji. If you reach for a non-English word, use its plain English equivalent.`;
 
 /**
  * Hebrew-output style guide — the lang='he' counterpart of HEBREW_GLOSS_STYLE.
@@ -2525,16 +2505,17 @@ Ordered argument sections on this daf (index = position in this list, starting a
 
 Emit the connections BETWEEN these sections per the schema. Reason about how each sugya relates to the others (continues / resolves / depends-on / parallels / contrasts / generalizes / cites).`;
 
-const ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud scholar. You'll receive a full daf, its argument sections, the connections between those sections, and study-aid context. Compose ONE tight paragraph orienting a reader to the WHOLE page: its central question(s), the main named positions, how the sections connect, and where the daf lands.
+const ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud scholar. You'll receive a full daf, its argument sections, the connections between those sections, study-aid context, and — when the discussion carries over — a grounded note on how this daf continues the previous one. Compose ONE tight paragraph that first ORIENTS the reader to where the daf comes from, then covers the WHOLE page: its central question(s), the main named positions, how the sections connect, and where it lands.
 
 Output STRICT JSON only:
 
 {
-  "synthesis": "ONE paragraph, MAX 4 sentences. Each sentence MAX 25 words. (1) The daf's central question or topic. (2) The main named positions, one terse clause each. (3) ONE optional sentence on how the sections connect. (4) ONE closing sentence: where the daf lands (open / resolved / shifts on). Do NOT recap section by section."
+  "synthesis": "ONE paragraph, MAX 5 sentences. Each sentence MAX 25 words. (1) ENTRY FRAME — where the daf comes from: if an incoming-context note is given, say what carries over from the previous daf; else if the daf expounds a Mishnah (in the study context), name its question; else state the daf's topic. (2) The daf's central question. (3) The main named positions, one terse clause each. (4) ONE optional sentence on how the sections connect. (5) ONE closing sentence: where the daf lands (open / resolved / shifts on). Do NOT recap section by section."
 }
 
 HARD RULES:
-- MAX 4 sentences. MAX 25 words per sentence. Cut, don't pad.
+- MAX 5 sentences. MAX 25 words per sentence. Cut, don't pad. When the entry frame and the central question are the same thing, fuse them into one sentence.
+- GROUND the entry frame. State cross-daf continuation ONLY if the incoming-context note provides it; name a Mishnah ONLY if it is in the study context. NEVER recall from memory what the previous daf said.
 - Whole-daf orientation, not a section recap. Per-section detail lives in argument.synthesis.
 - NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "intricate", "profound", "lens", "captures".
 - Hebrew script (not transliteration) for technical terms in parentheses.
@@ -2542,6 +2523,9 @@ HARD RULES:
 ${HEBREW_GLOSS_STYLE}`;
 
 const ARGUMENT_OVERVIEW_SYNTHESIS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+How this daf connects to the previous one (a grounded note; empty if it opens a fresh discussion — in that case orient via the Mishnah in the study context, or the daf's topic):
+{{incoming}}
 
 Full daf:
 {{gemara}}
@@ -2552,27 +2536,31 @@ Argument sections on this daf:
 Connections between the sections (indices into the list above):
 {{depends.argument-overview.flow}}
 
-Study-aid context (dafyomi.co.il):
+Study-aid context (dafyomi.co.il) — includes the Mishnah this daf expounds when there is one:
 {{context}}
 
 Write the whole-daf overview paragraph per the schema.`;
 
-const ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. תקבל דף שלם, את מקטעי הטיעון שבו, את הקשרים בין המקטעים, ותוכן לימוד נלווה. חבר פסקה אחת הדוקה המכוונת את הקורא בדף כולו: שאלתו המרכזית, העמדות הנקובות העיקריות, כיצד המקטעים מתחברים, והיכן הדף נוחת.
+const ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. תקבל דף שלם, את מקטעי הטיעון שבו, את הקשרים בין המקטעים, תוכן לימוד נלווה, וכן — כאשר הדיון נמשך — הערה מבוססת כיצד דף זה ממשיך את הדף הקודם. חבר פסקה אחת הדוקה שתחילה מכוונת את הקורא מהיכן הדף בא, ולאחר מכן מכסה את הדף כולו: שאלתו המרכזית, העמדות הנקובות העיקריות, כיצד המקטעים מתחברים, והיכן הוא נוחת.
 
 החזר JSON תקין בלבד:
 
 {
-  "synthesis": "פסקה אחת, 4 משפטים לכל היותר. כל משפט 25 מילים לכל היותר. (1) השאלה או הנושא המרכזי של הדף. (2) העמדות הנקובות העיקריות, פסוקית תמציתית אחת לכל אחת. (3) משפט אחד אופציונלי על אופן התחברות המקטעים. (4) משפט מסכם אחד: היכן הדף נוחת (פתוח / מיושב / עובר הלאה). אל תסכם מקטע אחר מקטע."
+  "synthesis": "פסקה אחת, 5 משפטים לכל היותר. כל משפט 25 מילים לכל היותר. (1) מסגרת פתיחה — מהיכן הדף בא: אם ניתנה הערת המשכיות, ציין מה נמשך מהדף הקודם; אחרת אם הדף עוסק במשנה (בתוכן הלימוד), ציין את שאלתה; אחרת ציין את נושא הדף. (2) השאלה המרכזית של הדף. (3) העמדות הנקובות העיקריות, פסוקית תמציתית לכל אחת. (4) משפט אחד אופציונלי על אופן התחברות המקטעים. (5) משפט מסכם אחד: היכן הדף נוחת (פתוח / מיושב / עובר הלאה). אל תסכם מקטע אחר מקטע."
 }
 
 כללים נוקשים:
-- 4 משפטים לכל היותר. 25 מילים למשפט לכל היותר. קצץ, אל תמלא.
+- 5 משפטים לכל היותר. 25 מילים למשפט לכל היותר. קצץ, אל תמלא. כאשר מסגרת הפתיחה והשאלה המרכזית הן אותו דבר, מזג אותן למשפט אחד.
+- בסס את מסגרת הפתיחה. ציין המשכיות בין־דפית רק אם הערת ההמשכיות מספקת זאת; הזכר משנה רק אם היא בתוכן הלימוד. לעולם אל תשחזר מהזיכרון את שנאמר בדף הקודם.
 - כיוון לכל הדף, לא סיכום מקטע. פירוט לכל מקטע שייך ל-argument.synthesis.
 - ללא מליצה. אסור: "מכאן אנו למדים", "אנו רואים ש", "מדגיש", "מבליט", "מורכב", "עמוק", "עדשה", "לוכד".
 
 ${HEBREW_NATIVE_STYLE}`;
 
 const ARGUMENT_OVERVIEW_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+כיצד דף זה מתחבר לקודמו (הערה מבוססת; ריק אם הדף פותח דיון חדש — במקרה כזה כוון לפי המשנה שבתוכן הלימוד, או לפי נושא הדף):
+{{incoming}}
 
 הדף המלא:
 {{gemara}}
@@ -2583,7 +2571,7 @@ const ARGUMENT_OVERVIEW_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, ד
 הקשרים בין המקטעים (אינדקסים לרשימה שלמעלה):
 {{depends.argument-overview.flow}}
 
-תוכן לימוד נלווה (dafyomi.co.il):
+תוכן לימוד נלווה (dafyomi.co.il) — כולל את המשנה שהדף עוסק בה כאשר יש כזו:
 {{context}}
 
 כתוב את פסקת הסקירה של הדף כולו לפי הסכימה.`;
@@ -2609,17 +2597,22 @@ CODE_ENRICHMENTS.push(
   ),
   makeSynthesis(
     'argument-overview', 'argument-overview.synthesis',
-    'One tight paragraph orienting a reader to the whole daf: its question, the main positions, how the sections connect, where it lands.',
+    'One tight paragraph orienting a reader to the whole daf: where it comes from, its question, the main positions, how the sections connect, where it lands.',
     ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT, ARGUMENT_OVERVIEW_SYNTHESIS_USER_TEMPLATE,
     {
       dependencies: [
         'gemara',
         'context',
+        // The grounded cross-daf continuation note ({{incoming}}) so the
+        // paragraph can open with where this daf comes from instead of recalling
+        // it. Empty when the daf opens fresh — the prompt falls back to the
+        // Mishnah (in `context`) or the daf's topic.
+        'incoming',
         { enrichment: 'argument-overview.flow' },
         { mark: 'argument' },
         { mark: 'rabbi' },
       ],
-      defHash: 'argument-overview.synthesis-v2', cacheVersion: '4', // v4: native Hebrew prompt (he mode no longer falls back to English)
+      defHash: 'argument-overview.synthesis-v3', cacheVersion: '5', // v5: merged entry frame (incoming continuation + Mishnah framing); v4: native Hebrew prompt
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_OVERVIEW_SYNTHESIS_USER_TEMPLATE_HE,

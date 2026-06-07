@@ -143,6 +143,106 @@ export function tokenizeConceptMentions(text: string, terms: readonly Term[]): C
   return tokenizeWithMatcher(text, buildConceptMatcher(terms));
 }
 
+// ── First-mention gloss policy ────────────────────────────────────────────────
+// A glossary term is glossed inline on its FIRST mention in a prose unit and
+// runs bare thereafter — the tooltip carries the gloss for every later mention,
+// so the repeated parenthetical is pure clutter. This makes the page consistent
+// (one gloss per term, deterministically) without the model having to remember
+// what it already defined. We only ever STRIP a repeat gloss, never invent one,
+// and only when the parenthetical restates the SAME gloss — a meaningful
+// parenthetical (a qualifier like "(according to Rashi)") is always kept.
+
+/** Normalize a gloss for comparison: lowercase, drop surrounding quotes /
+ *  trailing punctuation, strip a leading article, collapse whitespace. */
+export function glossKey(s: string): string {
+  return (s || '')
+    .toLowerCase()
+    .trim()
+    .replace(/^[('"“”‘’\s]+/, '')
+    .replace(/[)\]'"“”‘’.,;:!?\s]+$/, '')
+    .replace(/^(the|a|an)\s+/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Whether a parenthetical's content is (a restatement of) the term's own gloss
+ *  — the ONLY thing we ever strip. Matching is DIRECTIONAL: the parenthetical
+ *  must equal the registry gloss, or be CONTAINED in it (the model's inline
+ *  gloss is often a shorter form of a longer registry gloss). We never accept
+ *  the reverse (gloss contained in the parenthetical), because a meaningful
+ *  qualifier that happens to include the gloss text — "(not binding law in this
+ *  case)" — must be kept. Containment needs ≥4 chars so a tiny word can't match. */
+function isGlossRestatement(parenKey: string, glossK: string): boolean {
+  if (!parenKey || !glossK) return false;
+  if (parenKey === glossK) return true;
+  return parenKey.length >= 4 && glossK.includes(parenKey);
+}
+
+/** Match a leading parenthetical: optional whitespace, then a balanced `(...)`
+ *  tolerating nested parens (registry glosses like "a shechita organ (trachea /
+ *  esophagus)" carry one). A linear hand scan, NOT a regex — the obvious
+ *  `(?:[^()]+|\(...\))*` form catastrophically backtracks on an unterminated
+ *  `(`. `len` spans the leading whitespace + the paren; `inner` is the content
+ *  without the outer parens. Null when there's no balanced leading paren. */
+function matchLeadingParen(s: string): { len: number; inner: string } | null {
+  let i = 0;
+  while (i < s.length && /\s/.test(s[i])) i++;
+  if (s[i] !== '(') return null;
+  const open = i;
+  let depth = 0;
+  for (; i < s.length; i++) {
+    if (s[i] === '(') depth++;
+    else if (s[i] === ')' && --depth === 0) {
+      return { len: i + 1, inner: s.slice(open + 1, i) };
+    }
+  }
+  return null; // unterminated
+}
+
+/** Consume the gloss parentheticals that lead `text` (the fragment right after a
+ *  term mention): keep the FIRST one that restates the term's gloss (recording
+ *  it in `glossed`), strip every later one. Loops so adjacent duplicates all go
+ *  in a single pass (keeps the function idempotent). A non-gloss parenthetical
+ *  (a real qualifier) stops the peel and is left untouched.
+ *
+ *  No seam cleanup is needed: `len` always covers the whitespace BEFORE the
+ *  paren too, so a stripped paren leaves the whitespace that FOLLOWED it intact
+ *  as the single separator — and text further along the fragment is never
+ *  touched. */
+function peelGlosses(text: string, term: Term, glossed: Set<Term>): string {
+  const glossK = glossKey(term.gloss);
+  let kept = '';
+  let rest = text;
+  for (let m = matchLeadingParen(rest); m; m = matchLeadingParen(rest)) {
+    if (!isGlossRestatement(glossKey(m.inner), glossK)) break;
+    if (!glossed.has(term)) {
+      glossed.add(term);
+      kept += rest.slice(0, m.len); // first gloss: keep verbatim, peel past it
+    } // else: a repeat — drop it (don't append)
+    rest = rest.slice(m.len);
+  }
+  return kept + rest;
+}
+
+/** Strip every-but-first inline gloss of each glossary term in one prose unit:
+ *  a term is glossed on first mention and runs bare after (the tooltip carries
+ *  the gloss). Only a parenthetical that restates the term's OWN gloss is ever
+ *  removed — qualifiers are always kept. Pure; idempotent, so it's safe to apply
+ *  at more than one layer of the prose pipeline. */
+export function firstMentionGloss(text: string, matcher: ConceptMatcher | null): string {
+  if (!text || !matcher) return text;
+  const parts = tokenizeWithMatcher(text, matcher);
+  const glossed = new Set<Term>();
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i];
+    if (p.kind !== 'concept' || !p.term) continue;
+    const next = parts[i + 1];
+    if (!next || next.kind !== 'text') continue;
+    next.value = peelGlosses(next.value, p.term, glossed);
+  }
+  return parts.map((p) => p.value).join('');
+}
+
 const termStyle: JSX.CSSProperties = {
   'text-decoration': 'underline',
   'text-decoration-style': 'dotted',
@@ -242,7 +342,12 @@ function ConceptMention(props: { value: string; term: Term }): JSX.Element {
  *  load (new matcher) re-tokenizes. The matcher is compiled once at the
  *  provider, so this is just a scan per fragment. */
 export function ConceptText(props: { text: string | undefined | null; matcher: ConceptMatcher | null }): JSX.Element {
-  const parts = createMemo(() => tokenizeWithMatcher(props.text ?? '', props.matcher));
+  // Strip every-but-first inline gloss before tokenizing, then tokenize the
+  // cleaned text so each remaining mention still gets its tooltip.
+  const parts = createMemo(() => {
+    const cleaned = firstMentionGloss(props.text ?? '', props.matcher);
+    return tokenizeWithMatcher(cleaned, props.matcher);
+  });
   return (
     <For each={parts()}>{(p) => {
       if (p.kind === 'text' || !p.term) return <Hebraized text={p.value} />;
