@@ -111,11 +111,19 @@ export function canonicalDictEntries(): Record<string, string> {
   return out;
 }
 
-/** Build the prompt's "ALWAYS hebraize" bullet block — one indented
- *  `translit → hebrew (gloss)` line per term. Column alignment is cosmetic and
- *  intentionally dropped; the LLM reads content, not whitespace. */
+/** Build the prompt's "ALWAYS hebraize" bullet block — one indented line per
+ *  term, rendered in the term's own display orientation so the canonical list
+ *  doesn't contradict the per-term `display` policy:
+ *    - hebrew-first (Form A): `translit → hebrew (gloss)`
+ *    - english-first (Form B): `en (hebrew)`
+ *  Column alignment is cosmetic and intentionally dropped; the LLM reads
+ *  content, not whitespace. */
 export function alwaysHebraizeBlock(): string {
   return CANONICAL_HEBREW_TERMS
-    .map((t) => `    ${t.translit} → ${t.hebrew} (${t.gloss})`)
+    .map((t) =>
+      t.display === 'english' && t.en
+        ? `    ${t.en} (${t.hebrew})`
+        : `    ${t.translit} → ${t.hebrew} (${t.gloss})`,
+    )
     .join('\n');
 }

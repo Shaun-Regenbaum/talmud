@@ -996,47 +996,27 @@ export const CODE_MARKS: MarkDefinition[] = [
  */
 const HEBREW_GLOSS_STYLE = `STYLE — Hebrew + English mixing (apply UNIFORMLY across all prose):
 
-FORM A — Hebrew script first, English gloss in parens. Use when the Hebrew word IS the subject of the clause OR when the Hebrew is the standard term in rabbinic discourse:
-  "performed לכתחילה (the ideal standard)"
-  "בדיעבד (after the fact) the meat is permitted"
-  "applies the rule of יצא (an excluded case)"
-  "the gemara invokes a גזירה שווה (verbal analogy from a shared word)"
-  "the principle of רוב (the majority)"
-  "from the כלל ופרט (general followed by specific)"
-  "the verse 'בשכבך ובקומך' (when you lie down and when you rise)"
+Plain English is the BASE; Hebrew script is the technical anchor — use it only where a word is genuinely the technical concept, not on every common word.
 
-FORM B — English first, Hebrew script in parens. Use when the English term flows naturally as a parenthetical aid:
-  "a leading Tanna (תנא) at Yavneh (יבנה)"
-  "the evening Shema (קריאת שמע של ערבית)"
-  "atonement (כפרה) does not delay the priest's eating"
-  "the rabbi is classified as a halachist (הלכתי)"
+FORM A (DEFAULT) — Hebrew script first, English gloss in parens. Use for technical/halachic terms and verbatim daf language:
+  "performed לכתחילה (the ideal standard)", "a גזירה שווה (verbal analogy)", "the verse 'בשכבך ובקומך' (when you lie down and when you rise)"
+
+FORM B — English first, Hebrew in parens. Use ONLY for proper nouns and standing English-first terms:
+  "Rabbi Yochanan (רבי יוחנן)", "at Yavneh (יבנה)", "court (בית דין)", "kosher (כשר)"
+
+GLOSS ONCE: gloss a term on its FIRST use only; write it bare afterwards. Every term carries a hover tooltip, so a repeated parenthetical is just clutter.
 
 HARD RULES (output is rejected if violated):
-- NEVER write a transliteration alone in parens. "(terumah)", "(gezeira shava)", "(lechatchila)" — all forbidden. Always pair Hebrew script with English meaning, not transliteration with itself.
-- NEVER use bare transliteration as a standalone term either. "Lechatchila, one may eat…" is wrong — use "לכתחילה (the ideal standard), one may eat…" OR "Performed לכתחילה, one may eat…".
-- NEVER calque-translate a fixed Hebrew/Aramaic halachic phrase into bare English. A "calque" is a word-for-word literal translation that produces grammatically marked or meaningless English. If the English would only make sense to someone who already knows the underlying Hebrew term, the term IS the technical concept and MUST appear in Hebrew script. The English is then a gloss in parens — not a replacement.
-    BAD:  "Eli's broken neck occurred without most flesh"                  (calque of רוב בשר)
-    BAD:  "the requirement of severing most of the flesh"                  (same calque, padded)
-    BAD:  "a son of his year"                                               (calque of בן שנתו)
-    BAD:  "the house of justice"                                            (calque of בית דין — use 'בית דין' or English 'court')
-    BAD:  "the sons of Noah's commandments"                                 (calque of שבע מצוות בני נח)
-    BAD:  "great in fear of Heaven"                                         (calque of גדול ביראת שמים)
-    GOOD: "Eli's broken neck occurred without רוב בשר (the majority of surrounding flesh that normally must tear with the spine)"
-    GOOD: "a בן שנתו (year-old animal)"
-    GOOD: "the שבע מצוות בני נח (Noahide laws)"
-  Heuristic: read the sentence aloud in English. If a reader who doesn't know the term has to stop and ask "wait, most WHAT?" or "year of what?", you've calqued. Restore the Hebrew.
-- Common terms to ALWAYS hebraize (any time you use them, pair with Hebrew script):
+- NEVER write a transliteration — not in parens "(terumah)", not bare "Lechatchila, one may eat…". Pair Hebrew script with an English meaning, OR lead with the Hebrew: "לכתחילה (the ideal standard), one may eat…".
+- NEVER calque a fixed Hebrew/Aramaic phrase into bare English (a word-for-word literal that only makes sense if you already know the term). Keep the term in Hebrew, gloss in parens.
+    BAD:  "without most flesh" (רוב בשר) · "a son of his year" (בן שנתו) · "the house of justice" (בית דין)
+    GOOD: "without רוב בשר (the majority of surrounding flesh)" · "a בן שנתו (year-old animal)" · "court (בית דין)"
+  Heuristic: read it aloud in English — if a reader who doesn't know the term must ask "most WHAT?", you calqued. Restore the Hebrew.
+- ALWAYS hebraize these (pair with Hebrew script whenever used):
 ${alwaysHebraizeBlock()}
-- Verbatim daf / pasuk excerpts go in Hebrew script with quote marks, optionally followed by an English gloss in parens.
-- HARD RULE — verbatim daf words in quotes ('…' or "…") MUST be Hebrew/Aramaic script, NEVER transliteration. The single-quoted form is a signal that what's inside is a direct quote from the daf, and direct quotes are by definition in the source language.
-    BAD:  "the gemara uses 'hutz'u' to describe how they were brought out"
-    BAD:  "the term 'amar' indicates direct attribution"
-    GOOD: "the gemara uses 'הוצאו' (they were brought out) to describe…"
-    GOOD: "the term 'אמר' indicates direct attribution"
-  If you don't remember the Hebrew/Aramaic verbatim, paraphrase in English instead of writing the transliteration in quotes. NEVER fake a verbatim quote with transliteration.
-- Plain English is the BASE; Hebrew script is the technical anchor. Don't pile Hebrew script on every common word — only where the term is genuinely the technical concept.
-- THE DAF'S OWN GLOSSARY IS AUTHORITATIVE. If the prompt gives you this daf's background terms (each an English label + its Hebrew + a gloss), treat that list as the definitive set of terms to show in Hebrew here. Whenever your prose uses one of them, write it in Form A/B using EXACTLY that Hebrew spelling — e.g. given "Tevul Yom / טבול יום", write "טבול יום (one who immersed that day)" rather than "tevul yom" or English alone; given "Midnight / חצות", write "חצות (halakhic midnight)". This keeps the prose consistent with the glossary the reader sees on the daf and lets each term carry its own tooltip.
-- SCRIPT HYGIENE: write ONLY in English, with Hebrew/Aramaic script for terms and quotes. Never emit any other language or writing system — no Korean, Cyrillic, Arabic, CJK, Devanagari, emoji, etc. Every character must be plain Latin or Hebrew script (plus ordinary punctuation). If you reach for a non-English word, use its plain English equivalent instead.`;
+- Verbatim daf/pasuk quotes go in Hebrew/Aramaic script inside quote marks — NEVER transliteration in quotes ('hutz'u' is wrong; 'הוצאו' is right). If you don't recall the Hebrew, paraphrase in English rather than fake a transliterated quote.
+- THE DAF'S OWN GLOSSARY IS AUTHORITATIVE: when the prompt provides this daf's background terms (English label + Hebrew + gloss), use EXACTLY that Hebrew spelling — given "Tevul Yom / טבול יום", write "טבול יום (one who immersed that day)", never "tevul yom" or English alone.
+- SCRIPT HYGIENE: emit ONLY English + Hebrew/Aramaic script (plus ordinary punctuation). No other writing system — no Korean, Cyrillic, Arabic, CJK, Devanagari, emoji. If you reach for a non-English word, use its plain English equivalent.`;
 
 /**
  * Hebrew-output style guide — the lang='he' counterpart of HEBREW_GLOSS_STYLE.
