@@ -1095,17 +1095,23 @@ app.get('/api/spine-view/:tractate', async (c) => {
   if (!isKnownTractate(tractate)) return c.json({ error: `unknown tractate: ${tractate}` }, 404);
   if (!c.env.CACHE) return c.json({ error: 'no CACHE binding in this environment' }, 503);
   const pages = [...iterAmudim(tractate)];
-  const dapim = await mapPool(pages, 24, async (page) => {
+  const raw = await mapPool(pages, 24, async (page) => {
     const secs = await readSectionRabbis(c.env, tractate, page);
     const flow = await readFlowConnections(c.env, tractate, page);
     const cross = await readCachedCrossFlow(c.env, tractate, page);
+    const bridge = await readCachedBridge(c.env, tractate, page);
     return {
       page,
       sections: secs.map((s, i) => ({ index: i, title: s.title || `Section ${i + 1}`, rabbis: s.rabbis })),
       flow,
       cross: cross?.edges ?? [],
+      // deterministic daf-continuity: does the sugya carry into the next daf?
+      continues: bridge?.continues === true,
     };
   });
+  // nextPage = the adjacent amud (iterAmudim order), so cross-daf + continuity
+  // edges have a target daf to point at.
+  const dapim = raw.map((d, i) => ({ ...d, nextPage: pages[i + 1] ?? null }));
   // Only dapim that actually have sections (a flow graph needs nodes).
   return c.json({ tractate, dapim: dapim.filter((d) => d.sections.length > 0) });
 });
