@@ -987,6 +987,15 @@ interface SectionRabbi { slug: string; name: string }
 async function readSectionRabbis(env: Bindings, tractate: string, page: string): Promise<{ start: number; title: string; rabbis: SectionRabbi[] }[]> {
   const insts = await readMarkInstances(env, 'argument', tractate, page).catch(() => []);
   const voicesDef = findCodeEnrichment('argument.voices');
+  // Generation hint from the daf's rabbi mark (which carries generation, voices
+  // don't): lets findSlug disambiguate short names like "Rabbi Eliezer" →
+  // "Rabbi Eliezer b. Hyrcanus" via its generation, instead of dropping them.
+  const genHint = new Map<string, { nameHe?: string; generation?: string }>();
+  for (const ri of await readMarkInstances(env, 'rabbi', tractate, page).catch(() => [])) {
+    const f = ri.fields ?? {};
+    const nm = typeof f.name === 'string' ? f.name.trim().toLowerCase() : '';
+    if (nm && !genHint.has(nm)) genHint.set(nm, { nameHe: typeof f.nameHe === 'string' ? f.nameHe : undefined, generation: typeof f.generation === 'string' ? f.generation : undefined });
+  }
   const rows: { start: number; title: string; rabbis: SectionRabbi[] }[] = [];
   for (const inst of insts) {
     if (typeof inst.startSegIdx !== 'number') continue;
@@ -1000,7 +1009,9 @@ async function readSectionRabbis(env: Bindings, tractate: string, page: string):
         for (const v of voices) {
           const name = typeof v.name === 'string' ? v.name.trim() : '';
           if (!name) continue;
-          const slug = findSlug(name, typeof v.nameHe === 'string' ? v.nameHe : undefined);
+          const hint = genHint.get(name.toLowerCase());
+          const nameHe = (typeof v.nameHe === 'string' ? v.nameHe : undefined) ?? hint?.nameHe;
+          const slug = findSlug(name, nameHe, hint?.generation);
           if (!slug || seen.has(slug)) continue; // drop unresolved + dupes
           seen.add(slug);
           rabbis.push({ slug, name: slugToName(slug) });
