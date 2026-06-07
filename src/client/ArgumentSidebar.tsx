@@ -5,7 +5,8 @@ import { GENERATION_BY_ID, generationLabelHe, type GenerationId } from './genera
 import type { IdentifiedRabbi } from './dafContext';
 import { Hebraized } from './Hebraized';
 import { RabbiText, RabbiLinkProvider, HebraizedWithRabbis } from './rabbiLinks';
-import { ConceptLinkProvider, buildConceptMatcher, type ConceptTerm } from './conceptLinks';
+import { ConceptLinkProvider, buildConceptMatcher } from './conceptLinks';
+import type { Term } from '../lib/terms/registry';
 
 import RabbiLineageTree, { type RelationshipsData, type RelationshipsEvidence } from './RabbiLineageTree';
 import { type GeographyData, type GeographyEvidence } from './RabbiGeographyCard';
@@ -168,9 +169,10 @@ export interface ArgumentSidebarProps {
    *  rabbi-places dataset has gaps). Matched in prose; routing falls
    *  through pushRabbi's name-lookup chain. */
   dafRabbiNames: string[];
-  /** This daf's background terms (daf-background.concepts, flattened across
-   *  groups). Mentions of these in any card's prose get a gloss tooltip. */
-  dafBackgroundTerms: ConceptTerm[];
+  /** The daf's glossary pool: the always-known global terms ∪ this daf's
+   *  background concepts (src/lib/terms/registry). Mentions of any of these in a
+   *  card's prose — in Hebrew or English — get a gloss tooltip. */
+  glossaryTerms: Term[];
   /** Highlights a contiguous segment range on the daf. Used when the user
    *  clicks an argument-move card so the corresponding sub-range of the
    *  section is painted. Pass null to clear. `key` is a stable id (e.g. the
@@ -2198,8 +2200,8 @@ export function VoiceGroupBody(props: { group: { name: string; nameHe: string; b
 }
 
 export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
-  // Compile the daf's background-term matcher once (not per prose fragment).
-  const conceptMatcher = createMemo(() => buildConceptMatcher(props.dafBackgroundTerms));
+  // Compile the daf's glossary matcher once (not per prose fragment).
+  const conceptMatcher = createMemo(() => buildConceptMatcher(props.glossaryTerms));
 
   const onKey = (e: KeyboardEvent) => {
     if (e.key === 'Escape') props.onClose();

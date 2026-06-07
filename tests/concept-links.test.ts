@@ -1,18 +1,30 @@
 import { describe, it, expect } from 'vitest';
-import { tokenizeConceptMentions, type ConceptTerm } from '../src/client/conceptLinks';
+import {
+  tokenizeConceptMentions,
+  surfacesOf,
+  termLabel,
+} from '../src/client/conceptLinks';
+import { globalTerms, type Term } from '../src/lib/terms/registry';
 
-// The concept-tooltip layer wraps mentions of THIS daf's background terms in
-// prose so a reader can see the gloss inline. tokenizeConceptMentions is the
-// pure splitter; these guard the matching (whole-word, case-insensitive,
-// longest-first) and the parenthetical-Hebrew case the feature targets.
+// The concept-tooltip layer wraps mentions of the daf's glossary terms in prose
+// so a reader sees the gloss inline. A term is matched by EVERY surface it can
+// appear as — its English label AND its Hebrew script — so a Hebrew technical
+// term links to its gloss just as an English one does. tokenizeConceptMentions
+// is the pure splitter; these guard matching + the Hebrew-surface behavior.
 
-const TERMS: ConceptTerm[] = [
-  { term: 'Kohen', termHe: 'כהן', gloss: 'A descendant of Aharon who serves in the Temple.' },
-  { term: 'Oral Law', termHe: 'תורה שבעל פה', gloss: 'The transmitted interpretation of the Written Torah.' },
-  { term: 'law', termHe: 'דין', gloss: 'A legal ruling.' },
+const mk = (t: Partial<Term> & Pick<Term, 'hebrew' | 'gloss'>): Term => ({
+  display: 'hebrew-first-gloss',
+  scope: 'daf',
+  ...t,
+});
+
+const TERMS: Term[] = [
+  mk({ en: 'Kohen', hebrew: 'כהן', gloss: 'A descendant of Aharon who serves in the Temple.' }),
+  mk({ en: 'Oral Law', hebrew: 'תורה שבעל פה', gloss: 'The transmitted interpretation of the Written Torah.' }),
+  mk({ en: 'law', hebrew: 'דין', gloss: 'A legal ruling.' }),
 ];
 
-describe('tokenizeConceptMentions', () => {
+describe('tokenizeConceptMentions — English surfaces', () => {
   it('wraps a known term and carries its gloss; surrounding text stays plain', () => {
     const parts = tokenizeConceptMentions('Only a Kohen may eat terumah.', TERMS);
     expect(parts).toEqual([
@@ -20,13 +32,6 @@ describe('tokenizeConceptMentions', () => {
       { kind: 'concept', value: 'Kohen', term: TERMS[0] },
       { kind: 'text', value: ' may eat terumah.' },
     ]);
-  });
-
-  it('leaves the parenthetical Hebrew as text (the English label is the match)', () => {
-    const parts = tokenizeConceptMentions('a Kohen (כהן) may not', TERMS);
-    expect(parts.map((p) => p.kind)).toEqual(['text', 'concept', 'text']);
-    expect(parts[1]).toMatchObject({ kind: 'concept', value: 'Kohen' });
-    expect(parts[2].value).toBe(' (כהן) may not'); // Hebrew + rest untouched
   });
 
   it('matches case-insensitively but preserves the matched casing verbatim', () => {
@@ -43,16 +48,13 @@ describe('tokenizeConceptMentions', () => {
 
   it('matches whole words only — never mid-word', () => {
     const parts = tokenizeConceptMentions('The lawyer outlawed it.', TERMS);
-    // "law" must not fire inside "lawyer" / "outlawed"
     expect(parts.every((p) => p.kind === 'text')).toBe(true);
   });
 
   it('handles transliteration diacritics with Unicode word boundaries', () => {
-    const terms: ConceptTerm[] = [{ term: 'ḥerem', termHe: 'חרם', gloss: 'A ban / excommunication.' }];
-    // matches as a standalone word...
+    const terms = [mk({ en: 'ḥerem', hebrew: 'חרם', gloss: 'A ban / excommunication.' })];
     const hit = tokenizeConceptMentions('They declared ḥerem on him.', terms);
     expect(hit[1]).toMatchObject({ kind: 'concept', value: 'ḥerem' });
-    // ...but not as a substring of a longer diacritic-bearing word
     const miss = tokenizeConceptMentions('the ḥeremite stayed', terms);
     expect(miss.every((p) => p.kind === 'text')).toBe(true);
   });
@@ -62,15 +64,76 @@ describe('tokenizeConceptMentions', () => {
     expect(tokenizeConceptMentions('', TERMS)).toEqual([]);
   });
 
-  it('skips 1-char labels (too noisy) and dedupes repeated surfaces', () => {
-    const noisy: ConceptTerm[] = [
-      { term: 'a', termHe: '', gloss: 'x' },
-      { term: 'Get', termHe: 'גט', gloss: 'A bill of divorce.' },
-      { term: 'Get', termHe: 'גט', gloss: 'duplicate' },
+  it('skips <2-char labels and dedupes repeated surfaces (first claimant wins)', () => {
+    const noisy = [
+      mk({ en: 'a', hebrew: '', gloss: 'x' }), // both surfaces too short -> no surface
+      mk({ en: 'Get', hebrew: 'גט', gloss: 'A bill of divorce.' }),
+      mk({ en: 'Get', hebrew: 'גט', gloss: 'duplicate' }),
     ];
     const parts = tokenizeConceptMentions('She received a Get today.', noisy);
     const concepts = parts.filter((p) => p.kind === 'concept');
     expect(concepts).toHaveLength(1);
-    expect(concepts[0].term?.gloss).toBe('A bill of divorce.'); // first claimant wins
+    expect(concepts[0].term?.gloss).toBe('A bill of divorce.');
+  });
+});
+
+// The feature this PR adds: a Hebrew technical term in prose is hoverable too.
+describe('tokenizeConceptMentions — Hebrew surfaces', () => {
+  it('matches the Hebrew script form and links it to the same gloss', () => {
+    const parts = tokenizeConceptMentions('נחלקו אם כהן רשאי לאכול.', TERMS);
+    const concepts = parts.filter((p) => p.kind === 'concept');
+    expect(concepts).toHaveLength(1);
+    expect(concepts[0]).toMatchObject({ value: 'כהן', term: TERMS[0] });
+  });
+
+  it('tags BOTH the English and the parenthetical Hebrew (Form B prose)', () => {
+    // The old behavior left the parenthetical Hebrew as plain text; now it
+    // links too, so either script a reader hovers reaches the gloss.
+    const parts = tokenizeConceptMentions('a Kohen (כהן) may not', TERMS);
+    const concepts = parts.filter((p) => p.kind === 'concept');
+    expect(concepts.map((c) => c.value)).toEqual(['Kohen', 'כהן']);
+  });
+
+  it('does not fire on a Hebrew term carrying a prefix letter (precision over recall)', () => {
+    // כהן inside הכהן ("the kohen") is preceded by a Hebrew letter, so the
+    // word-boundary lookbehind correctly declines — we accept the miss.
+    const parts = tokenizeConceptMentions('הכהן עבד במקדש.', TERMS);
+    expect(parts.every((p) => p.kind === 'text')).toBe(true);
+  });
+});
+
+// Globals are now in the pool on every daf, matched by their Hebrew surface.
+describe('global terms in the matcher pool', () => {
+  const g = globalTerms();
+  const byHe = (he: string): Term => g.find((t) => t.hebrew === he)!;
+
+  it('matches a canonical Hebrew term (הלכה) in prose', () => {
+    const parts = tokenizeConceptMentions('כאן יש הלכה ברורה.', g);
+    const concepts = parts.filter((p) => p.kind === 'concept');
+    expect(concepts.some((c) => c.value === 'הלכה')).toBe(true);
+  });
+
+  it("matches a display:'english' global by its English label (court -> בית דין)", () => {
+    const parts = tokenizeConceptMentions('The court ruled today.', g);
+    const hit = parts.find((p) => p.kind === 'concept');
+    expect(hit?.value).toBe('court');
+    expect(hit?.term?.hebrew).toBe('בית דין');
+  });
+
+  it('never matches a romanization as an English word (rov / get stay plain)', () => {
+    // 'rov' and 'get' are common English words; only their Hebrew is a surface.
+    expect(tokenizeConceptMentions('a rov of the cases', g).every((p) => p.kind === 'text')).toBe(true);
+    expect(tokenizeConceptMentions('please get the book', g).every((p) => p.kind === 'text')).toBe(true);
+  });
+
+  it('surfacesOf: Hebrew always, English label only when present; never the romanization', () => {
+    expect(surfacesOf(byHe('הלכה'))).toEqual(['הלכה']); // hebrew display, no en
+    expect(surfacesOf(byHe('בית דין'))).toEqual(['בית דין', 'court']); // english display
+  });
+
+  it('termLabel: English reading, else romanization, else Hebrew', () => {
+    expect(termLabel(byHe('בית דין'))).toBe('court'); // en
+    expect(termLabel(byHe('הלכה'))).toBe('halacha'); // translit
+    expect(termLabel(mk({ hebrew: 'פלוני', gloss: 'g' }))).toBe('פלוני'); // bare
   });
 });

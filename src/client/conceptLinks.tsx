@@ -1,14 +1,14 @@
 /**
- * Concept-link utilities: wrap mentions of the current daf's background terms
- * (the daf-background.concepts enrichment — legal-concepts / realia /
- * assumed-prior) in prose with a hover tooltip showing the term's gloss.
+ * Concept-link utilities: wrap mentions of glossary terms in prose with a hover
+ * tooltip showing the term's gloss — the reader-facing half of "if there's
+ * Hebrew, the translation is one hover away".
  *
- * This is the local, same-daf, high-precision half of the concept glossary:
- * the pool is THIS daf's curated background terms, so a match is a term the
- * daf itself defined — no cross-daf identity resolution, no anchoring. The
- * canonical cross-daf glossary (built from the observed-concept backlog) is a
- * later step; this just connects a term a reader meets in the overview/halacha
- * prose to the definition the Background card already produced.
+ * The pool is the unified term registry for the daf (src/lib/terms/registry):
+ * the always-known globals (CANONICAL_HEBREW_TERMS) ∪ THIS daf's curated
+ * background concepts, the daf's term winning on a Hebrew-key collision. A term
+ * is matched by every surface a reader might see it as — its Hebrew script (the
+ * dominant form after hebraization) AND its English label — so a Hebrew
+ * technical term in prose links to its gloss just as an English one does.
  *
  * Layering: rabbi mentions take priority (RabbiText tokenizes first, then hands
  * its plain-text parts to ConceptAwareText), so a rabbi name is never also
@@ -21,18 +21,32 @@
 import { For, Show, createContext, createMemo, createSignal, useContext, type Accessor, type JSX } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { Hebraized } from './Hebraized';
+import type { Term } from '../lib/terms/registry';
 
-export interface ConceptTerm {
-  term: string;     // English label (the match surface, e.g. "Kohen")
-  termHe: string;   // Hebrew script (shown in the tooltip)
-  gloss: string;    // 1-2 sentence explanation
-  category?: string;
+/** The surfaces a reader might actually SEE for a term in prose: the Hebrew
+ *  script (the dominant form after hebraization) and the English label, if any.
+ *  Deliberately NOT the romanization/variants — "get", "rov", "siman" etc. are
+ *  common English words and matching them would mis-fire. Hebrew script can't
+ *  collide with English, so it's the safe, high-precision surface. */
+export function surfacesOf(t: Term): string[] {
+  const out: string[] = [];
+  for (const s of [t.hebrew, t.en]) {
+    const v = (s || '').trim();
+    if (v.length >= 2) out.push(v);
+  }
+  return out;
+}
+
+/** The bold label shown atop the tooltip — the English reading when we have one,
+ *  else the romanization, else the Hebrew itself. */
+export function termLabel(t: Term): string {
+  return t.en || t.translit || t.hebrew;
 }
 
 /** A compiled term matcher: a regex over the term surfaces + a lowercased
  *  surface -> term map for gloss lookup. Built once per terms array (hoisted to
  *  the provider) rather than per prose fragment. */
-export interface ConceptMatcher { re: RegExp; bySurface: Map<string, ConceptTerm> }
+export interface ConceptMatcher { re: RegExp; bySurface: Map<string, Term> }
 
 export interface ConceptLinkContextValue {
   /** Pre-compiled matcher for this daf's terms. Null when there's nothing to
@@ -70,21 +84,23 @@ export function ConceptAwareText(props: { text: string | undefined | null }): JS
 export interface ConceptTextPart {
   kind: 'text' | 'concept';
   value: string;
-  term?: ConceptTerm;
+  term?: Term;
 }
 
 /** Compile a whole-word, case-insensitive matcher over the English term labels,
  *  longest-first so "oral law" beats "law". Word boundaries are Unicode-aware
  *  (a term may carry transliteration diacritics, e.g. "ḥerem", that ASCII `\b`
  *  splits wrongly). Null when there's nothing to match. */
-export function buildConceptMatcher(terms: ConceptTerm[]): ConceptMatcher | null {
-  const bySurface = new Map<string, ConceptTerm>();
+export function buildConceptMatcher(terms: readonly Term[]): ConceptMatcher | null {
+  const bySurface = new Map<string, Term>();
   for (const t of terms) {
-    const surface = (t.term || '').trim();
-    if (surface.length < 2) continue; // 1-char labels are too noisy to link
-    const key = surface.toLowerCase();
-    // First term to claim a surface wins (deterministic; dedupes repeats).
-    if (!bySurface.has(key)) bySurface.set(key, t);
+    // A term contributes every surface it can appear as in prose (Hebrew +
+    // English label), so a mention in either script links to the same gloss.
+    for (const surface of surfacesOf(t)) {
+      const key = surface.toLowerCase();
+      // First term to claim a surface wins (deterministic; dedupes repeats).
+      if (!bySurface.has(key)) bySurface.set(key, t);
+    }
   }
   if (bySurface.size === 0) return null;
   const surfaces = [...bySurface.keys()]
@@ -123,7 +139,7 @@ export function tokenizeWithMatcher(text: string, matcher: ConceptMatcher | null
 
 /** Convenience for callers that have terms but no compiled matcher (tests).
  *  Whole-word, case-insensitive, longest-first. Pure + exported for tests. */
-export function tokenizeConceptMentions(text: string, terms: ConceptTerm[]): ConceptTextPart[] {
+export function tokenizeConceptMentions(text: string, terms: readonly Term[]): ConceptTextPart[] {
   return tokenizeWithMatcher(text, buildConceptMatcher(terms));
 }
 
@@ -164,7 +180,7 @@ const tooltipStyle: JSX.CSSProperties = {
  *  clip (`.daf-aside { overflow: auto }`) which was cutting it off; once its
  *  size is known (ref callback at mount) we clamp it inside the viewport and
  *  flip above the term when there isn't room below. */
-function ConceptMention(props: { value: string; term: ConceptTerm }): JSX.Element {
+function ConceptMention(props: { value: string; term: Term }): JSX.Element {
   const [open, setOpen] = createSignal(false);
   const [pos, setPos] = createSignal<{ left: number; top: number }>({ left: 0, top: 0 });
   let termRef: HTMLSpanElement | undefined;
@@ -199,7 +215,7 @@ function ConceptMention(props: { value: string; term: ConceptTerm }): JSX.Elemen
       style={termStyle}
       tabindex={0}
       role="button"
-      aria-label={`${props.term.term}: ${props.term.gloss}`}
+      aria-label={`${termLabel(props.term)}: ${props.term.gloss}`}
       onMouseEnter={openTip}
       onMouseLeave={() => setOpen(false)}
       onFocus={openTip}
@@ -209,9 +225,9 @@ function ConceptMention(props: { value: string; term: ConceptTerm }): JSX.Elemen
       <Show when={open()}>
         <Portal>
           <span ref={place} style={{ ...tooltipStyle, left: `${pos().left}px`, top: `${pos().top}px` }} dir="ltr" onClick={(e) => e.stopPropagation()}>
-            <span style={{ 'font-weight': 600 }}>{props.term.term}</span>
-            <Show when={props.term.termHe}>
-              <span dir="rtl" style={{ 'margin-left': '0.35rem', color: '#cbd5e1' }}>{props.term.termHe}</span>
+            <span style={{ 'font-weight': 600 }}>{termLabel(props.term)}</span>
+            <Show when={props.term.hebrew && props.term.hebrew !== termLabel(props.term)}>
+              <span dir="rtl" style={{ 'margin-left': '0.35rem', color: '#cbd5e1' }}>{props.term.hebrew}</span>
             </Show>
             <span style={{ display: 'block', 'margin-top': '0.25rem', color: '#e5e7eb' }}>{props.term.gloss}</span>
           </span>
