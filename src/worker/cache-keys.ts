@@ -374,6 +374,14 @@ export function prefixForRabbiObs(slug: string): string {
   return `rabbi-obs:v1:${slug}:`;
 }
 
+/** The whole-tractate link graph (spineLinks aggregator), materialized on the
+ *  tractate shelf — one entry per tractate (the same tractate-only addressing as
+ *  the `spine` enrichment scope; a deterministic VIEW rather than an enrichment
+ *  producer, so it has its own key instead of routing through keyForEnrichment). */
+export function keyForSpineLinks(tractate: string): string {
+  return `spine-links:v1:${slugTractate(tractate)}`;
+}
+
 export function keyForMark(
   def: AnyMarkDefinition,
   tractate: string,

@@ -26,6 +26,27 @@ interface CoverageReport {
   summary: { computed: number; total: number; pct: number };
 }
 
+interface SpineGraph {
+  tractate: string;
+  nodes: { key: string; coord: { tractate: string; page: string; seg: number } }[];
+  edges: { source: string; target: string; relation: string; via: string }[];
+  byRelation: Record<string, number>;
+  continuityRuns: string[][];
+  coverage: { dapimWithLinks: number; dapimTotal: number };
+}
+
+// Relation -> color, mirroring the flow-graph palette intent.
+const RELATION_COLOR: Record<string, string> = {
+  continues: '#0066CC',
+  resolves: '#00A36C',
+  'depends-on': '#FF9900',
+  parallels: '#9933CC',
+  contrasts: '#FF3366',
+  generalizes: '#666666',
+  cites: '#333333',
+  glosses: '#888888',
+};
+
 // A modest set of quick-pick tractates (the full set is whatever the server
 // recognises; this is just for convenience). The page also takes free text.
 const PRESETS = ['berakhot', 'shabbat', 'eruvin', 'pesachim', 'sukkah', 'bava_metzia', 'bava_kamma', 'sanhedrin'];
@@ -52,12 +73,27 @@ async function fetchCoverage(tractate: string): Promise<CoverageReport> {
   return r.json();
 }
 
+async function fetchSpineGraph(tractate: string): Promise<SpineGraph> {
+  const r = await fetch(`/api/spine-links/${encodeURIComponent(tractate)}`);
+  if (!r.ok) {
+    const body = await r.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `HTTP ${r.status}`);
+  }
+  return r.json();
+}
+
 export function SpineCoveragePage(): JSX.Element {
   const [tractate, setTractate] = createSignal(routeTractate());
   window.addEventListener('hashchange', () => setTractate(routeTractate()));
   const [report] = createResource(tractate, fetchCoverage);
   const [expanded, setExpanded] = createSignal<string | null>(null);
   const [input, setInput] = createSignal('');
+  // The assembled spine graph loads on demand (it sweeps the whole tractate).
+  // A non-null trigger (the tractate) activates the resource. A third hash
+  // segment (#spine/<tractate>/assemble) auto-loads it — a shareable deep link.
+  const autoAssemble = () => window.location.hash.replace(/^#/, '').split('/')[2] === 'assemble';
+  const [graphTrigger, setGraphTrigger] = createSignal<string | null>(autoAssemble() ? routeTractate() : null);
+  const [graph] = createResource(graphTrigger, fetchSpineGraph);
 
   const go = (t: string) => {
     const slug = t.trim().toLowerCase().replace(/\s+/g, '_');
@@ -145,6 +181,56 @@ export function SpineCoveragePage(): JSX.Element {
               <span style={{ color: '#666' }}>
                 {r().summary.computed} / {r().summary.total} pieces &middot; {r().rows.length} dapim &times; {r().columns.length} producers &middot; to {r().endAmud}
               </span>
+            </div>
+
+            {/* assembled spine graph (loads on demand) */}
+            <div style={{ margin: '0 0 1rem', padding: '10px 12px', border: '1.5px solid #333', background: '#fff' }}>
+              <div style={{ display: 'flex', 'align-items': 'center', 'justify-content': 'space-between', gap: '10px' }}>
+                <span style={{ 'font-size': '12px', 'font-weight': 700 }}>ASSEMBLED SPINE &mdash; tractate link graph (so far)</span>
+                <button
+                  onClick={() => { setGraphTrigger(tractate()); }}
+                  disabled={graph.loading}
+                  style={{ 'font-family': MONO, 'font-size': '11px', padding: '3px 10px', border: '1.5px solid #000', background: graph.loading ? '#eee' : '#fff', cursor: 'pointer' }}
+                >{graph.loading ? 'assembling…' : (graph() ? 'rebuild' : 'assemble')}</button>
+              </div>
+              <Show when={graph.error}>
+                <p style={{ 'font-size': '12px', color: '#FF3366', margin: '6px 0 0' }}>error: {String(graph.error?.message || graph.error)}</p>
+              </Show>
+              <Show when={graph()}>
+                {(g) => (
+                  <div style={{ 'margin-top': '8px', 'font-size': '12px' }}>
+                    <div style={{ color: '#666', 'margin-bottom': '6px' }}>
+                      {g().nodes.length} nodes &middot; {g().edges.length} edges &middot; backbone from {g().coverage.dapimWithLinks} / {g().coverage.dapimTotal} dapim with links
+                    </div>
+                    {/* relation breakdown */}
+                    <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '6px', 'margin-bottom': '8px' }}>
+                      <For each={Object.entries(g().byRelation).sort((a, b) => b[1] - a[1])}>
+                        {([rel, n]) => (
+                          <span style={{ 'font-size': '11px', padding: '2px 7px', border: `1px solid ${RELATION_COLOR[rel] || '#999'}`, color: RELATION_COLOR[rel] || '#333' }}>
+                            {rel} {n}
+                          </span>
+                        )}
+                      </For>
+                    </div>
+                    {/* continuity backbone — sugya chains that carry across daf boundaries */}
+                    <Show when={g().continuityRuns.length} fallback={<div style={{ color: '#999' }}>no continuity edges cached yet (warm bridges to grow the backbone)</div>}>
+                      <div style={{ 'font-weight': 700, 'font-size': '11px', 'margin-bottom': '4px', color: RELATION_COLOR.continues }}>
+                        CONTINUITY BACKBONE &mdash; {g().continuityRuns.length} runs
+                      </div>
+                      <div style={{ 'max-height': '180px', 'overflow-y': 'auto' }}>
+                        <For each={g().continuityRuns.sort((a, b) => b.length - a.length)}>
+                          {(run) => (
+                            <div style={{ 'font-size': '12px', padding: '1px 0', color: '#333' }}>
+                              <span style={{ color: '#999' }}>{String(run.length).padStart(2)} </span>
+                              {run.join(' → ')}
+                            </div>
+                          )}
+                        </For>
+                      </div>
+                    </Show>
+                  </div>
+                )}
+              </Show>
             </div>
 
             {/* legend */}

@@ -20,7 +20,9 @@ import { formatContextForPrompt, contextForAnchor, segsFromMarkInput } from '../
 import { continuationLink, type FlowEdge } from '../lib/context/link';
 import { formatGroundedRefsForPrompt, buildDerivation } from '../lib/halacha/codifiers';
 import { dafSpine } from '../lib/context/spine';
-import { dafLinks } from '../lib/context/dafLinks';
+import { dafLinks, type DafLink } from '../lib/context/dafLinks';
+import { spineLinks } from '../lib/context/spineLinks';
+import { iterAmudim } from '../lib/sefref/amudim';
 import { producerNodesFrom, reverseDependencyIndex, transitiveDependents, forwardSubgraph } from '../lib/registry/depGraph';
 import { aiMatchToSegments } from './context-match';
 import type { MatchInput } from '../lib/context/anchor/ai-prompt';
@@ -139,6 +141,7 @@ import {
   keyForMesorah,
   keyForReferences,
   keyForBridge,
+  keyForSpineLinks,
   keyForPasuk,
   keyForCtxMatch,
   keyForTranslate,
@@ -931,6 +934,77 @@ app.get('/api/spine-coverage/:tractate', async (c) => {
   }
   const report = await computeCoverage(c.env.CACHE, tractate);
   return c.json(report);
+});
+
+// Read-only continuity verdict for a daf, or null if not yet computed. Unlike
+// computeDafBridge (which falls through to an LLM call on a cold cache), this
+// NEVER triggers compute — the spine aggregator reads across a whole tractate
+// and must not fan out 100+ LLM calls / spend. A cold bridge just leaves a gap
+// in the backbone, which fills in as bridges get warmed.
+async function readCachedBridge(env: Bindings, tractate: string, page: string): Promise<DafBridge | null> {
+  if (!env.CACHE) return null;
+  const c = await env.CACHE.get(keyForBridge(tractate, page));
+  if (!c) return null;
+  try { return JSON.parse(c) as DafBridge; } catch { return null; }
+}
+
+// One daf's links, assembled from READ-ONLY cached pieces only: argument
+// sections (for coord resolution), the cached flow graph, and the cached
+// continuity bridge. Same dafLinks() the per-daf /api/links uses, minus the
+// live context pool + commentary fetch (those aren't cached per daf, so they'd
+// turn a tractate sweep into 100+ live assemblies — deferred to the next layer).
+async function readDafSpineLinks(env: Bindings, tractate: string, page: string): Promise<DafLink[]> {
+  const sectionInstances = await readMarkInstances(env, 'argument', tractate, page).catch(() => []);
+  const sectionStartSegs = sectionInstances
+    .map((i) => i.startSegIdx)
+    .filter((s): s is number => typeof s === 'number')
+    .sort((a, b) => a - b);
+  const flowEdges = await readFlowConnections(env, tractate, page);
+  const bridge = await readCachedBridge(env, tractate, page);
+  return dafLinks(
+    { tractate, page },
+    { continuesTo: bridge?.continues ? bridge.to : null, items: [], flowEdges, sectionStartSegs, commentaryWorks: [] },
+  );
+}
+
+// Bounded-concurrency map: run `fn` over `items` with at most `limit` in flight.
+async function mapPool<T, R>(items: readonly T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const out = new Array<R>(items.length);
+  let next = 0;
+  const worker = async (): Promise<void> => {
+    while (next < items.length) {
+      const i = next++;
+      out[i] = await fn(items[i]);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return out;
+}
+
+// The whole-tractate link graph — every daf's links (continuity + argument flow)
+// lifted onto one global spine via spineLinks(). Read-only over cached pieces:
+// it reflects exactly what has been computed so far and grows as more dapim warm
+// (rebuilt idempotently, never read-modify-write). Materialized on the tractate
+// shelf (spine-links:v1:{tractate}) as a snapshot; the response is the source of
+// truth. `?cached=1` returns the last materialized snapshot if any.
+app.get('/api/spine-links/:tractate', async (c) => {
+  const tractate = c.req.param('tractate');
+  if (!isKnownTractate(tractate)) return c.json({ error: `unknown tractate: ${tractate}` }, 404);
+  if (!c.env.CACHE) return c.json({ error: 'no CACHE binding in this environment' }, 503);
+
+  const shelfKey = keyForSpineLinks(tractate);
+  if (c.req.query('cached') === '1') {
+    const snap = await c.env.CACHE.get(shelfKey);
+    if (snap) return c.json({ ...JSON.parse(snap), fromShelf: true });
+  }
+
+  const pages = [...iterAmudim(tractate)];
+  const perDaf = await mapPool(pages, 24, (page) => readDafSpineLinks(c.env, tractate, page));
+  const dapimWithLinks = perDaf.filter((l) => l.length > 0).length;
+  const graph = spineLinks(tractate, perDaf);
+  const result = { ...graph, coverage: { dapimWithLinks, dapimTotal: pages.length } };
+  try { await c.env.CACHE.put(shelfKey, JSON.stringify(result)); } catch { /* best-effort materialize */ }
+  return c.json(result);
 });
 
 // Source-input dependency keys (resolved in resolveDep, not producers) — used to
