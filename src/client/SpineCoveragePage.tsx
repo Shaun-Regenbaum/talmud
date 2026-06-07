@@ -1,5 +1,6 @@
 import { createResource, createSignal, createMemo, For, Show, type JSX } from 'solid-js';
-import ArgumentFlowGraph, { FlowLegend, connectionKinds, type FlowConnection } from './ArgumentFlowGraph';
+import { FlowLegend, connectionKinds } from './ArgumentFlowGraph';
+import SpineFlowGraph, { type SpineViewDaf } from './SpineFlowGraph';
 
 /**
  * Spine coverage — a punchcard of the global spine. Rows are dapim down a
@@ -35,14 +36,6 @@ interface SpineGraph {
   byVia: Record<string, number>;
   continuityRuns: string[][];
   coverage: { dapimWithLinks: number; dapimTotal: number };
-}
-
-interface SpineViewDaf {
-  page: string;
-  nextPage: string | null;
-  sections: { index: number; title: string }[];
-  flow: FlowConnection[];
-  cross: { fromSection: number; toSection: number; relation: string; note?: string }[];
 }
 
 // coordKey "tractate:page:seg" -> compact "page §seg" ("page" when whole-daf).
@@ -304,39 +297,25 @@ export function SpineCoveragePage(): JSX.Element {
               </Show>
               <Show when={flowView()}>
                 {(v) => {
-                  const shown = createMemo(() => v().dapim.filter((d) => d.flow.length > 0 || d.cross.length > 0));
+                  // Render dapim with flow OR the daf a cross-edge points INTO, so
+                  // both ends of every drawn cross-daf arrow are present.
+                  const shown = createMemo(() => {
+                    const keep = new Set<string>();
+                    for (const d of v().dapim) {
+                      if (d.flow.length || d.cross.length) { keep.add(d.page); if (d.cross.length && d.nextPage) keep.add(d.nextPage); }
+                    }
+                    return v().dapim.filter((d) => keep.has(d.page));
+                  });
                   const capped = createMemo(() => shown().slice(0, FLOW_VIEW_CAP));
-                  const allKinds = createMemo(() => connectionKinds(capped().flatMap((d) => d.flow)));
+                  const allKinds = createMemo(() => connectionKinds(capped().flatMap((d) => d.flow) as Parameters<typeof connectionKinds>[0]));
+                  const crossCount = createMemo(() => capped().reduce((n, d) => n + d.cross.length, 0));
                   return (
                     <div style={{ 'margin-top': '8px' }}>
                       <div style={{ 'font-size': '11px', color: '#666', 'margin-bottom': '4px' }}>
-                        showing {capped().length} of {shown().length} dapim with flow {shown().length > FLOW_VIEW_CAP ? '(capped)' : ''}
+                        showing {capped().length} of {shown().length} dapim {shown().length > FLOW_VIEW_CAP ? '(capped)' : ''} &middot; {crossCount()} cross-daf arrows (thicker lines span the page break)
                       </div>
                       <FlowLegend kinds={allKinds()} />
-                      <div style={{ 'margin-top': '8px' }}>
-                        <For each={capped()}>
-                          {(d) => (
-                            <div>
-                              <div style={{ 'font-family': MONO, 'font-size': '13px', 'font-weight': 700, color: '#333', margin: '6px 0 2px' }}>{d.page}</div>
-                              <ArgumentFlowGraph nodes={d.sections} connections={d.flow} activeIndex={null} onSelect={() => {}} hideLegend />
-                              <Show when={d.cross.length}>
-                                <div style={{ margin: '4px 0 10px', padding: '4px 0 4px 12px', 'border-left': `2px solid ${RELATION_COLOR.continues}` }}>
-                                  <For each={d.cross}>
-                                    {(e) => (
-                                      <div style={{ 'font-family': MONO, 'font-size': '11px', color: '#444' }}>
-                                        &darr; §{e.fromSection + 1}
-                                        <span style={{ color: RELATION_COLOR[e.relation] || '#666', margin: '0 5px' }}>{e.relation}</span>
-                                        {d.nextPage ?? 'next'} §{e.toSection + 1}
-                                        <Show when={e.note}><span style={{ color: '#999' }}>  {e.note}</span></Show>
-                                      </div>
-                                    )}
-                                  </For>
-                                </div>
-                              </Show>
-                            </div>
-                          )}
-                        </For>
-                      </div>
+                      <SpineFlowGraph dapim={capped() as SpineViewDaf[]} />
                     </div>
                   );
                 }}
