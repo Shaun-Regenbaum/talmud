@@ -399,7 +399,7 @@ async function mergedMarks(cache: KVNamespace): Promise<MergedMark[]> {
  *  ('gemara', 'context', …) → null. Powers the per-mark "depends on" chips. */
 // Source-string deps (Content-In inputs) a producer reads, as opposed to the
 // {mark}/{enrichment} graph edges. See MarkDependency/EnrichmentDependency.
-const SOURCE_DEPS = new Set(['gemara', 'commentaries', 'mishna', 'context', 'context-light', 'halacha-refs', 'yerushalmi-text']);
+const SOURCE_DEPS = new Set(['gemara', 'commentaries', 'mishna', 'context', 'context-light', 'halacha-refs', 'yerushalmi-text', 'incoming']);
 function sourceDepOf(dep: unknown): string | null {
   return typeof dep === 'string' && SOURCE_DEPS.has(dep) ? dep : null;
 }

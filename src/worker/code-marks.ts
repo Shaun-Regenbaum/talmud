@@ -2525,16 +2525,17 @@ Ordered argument sections on this daf (index = position in this list, starting a
 
 Emit the connections BETWEEN these sections per the schema. Reason about how each sugya relates to the others (continues / resolves / depends-on / parallels / contrasts / generalizes / cites).`;
 
-const ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud scholar. You'll receive a full daf, its argument sections, the connections between those sections, and study-aid context. Compose ONE tight paragraph orienting a reader to the WHOLE page: its central question(s), the main named positions, how the sections connect, and where the daf lands.
+const ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud scholar. You'll receive a full daf, its argument sections, the connections between those sections, study-aid context, and — when the discussion carries over — a grounded note on how this daf continues the previous one. Compose ONE tight paragraph that first ORIENTS the reader to where the daf comes from, then covers the WHOLE page: its central question(s), the main named positions, how the sections connect, and where it lands.
 
 Output STRICT JSON only:
 
 {
-  "synthesis": "ONE paragraph, MAX 4 sentences. Each sentence MAX 25 words. (1) The daf's central question or topic. (2) The main named positions, one terse clause each. (3) ONE optional sentence on how the sections connect. (4) ONE closing sentence: where the daf lands (open / resolved / shifts on). Do NOT recap section by section."
+  "synthesis": "ONE paragraph, MAX 5 sentences. Each sentence MAX 25 words. (1) ENTRY FRAME — where the daf comes from: if an incoming-context note is given, say what carries over from the previous daf; else if the daf expounds a Mishnah (in the study context), name its question; else state the daf's topic. (2) The daf's central question. (3) The main named positions, one terse clause each. (4) ONE optional sentence on how the sections connect. (5) ONE closing sentence: where the daf lands (open / resolved / shifts on). Do NOT recap section by section."
 }
 
 HARD RULES:
-- MAX 4 sentences. MAX 25 words per sentence. Cut, don't pad.
+- MAX 5 sentences. MAX 25 words per sentence. Cut, don't pad. When the entry frame and the central question are the same thing, fuse them into one sentence.
+- GROUND the entry frame. State cross-daf continuation ONLY if the incoming-context note provides it; name a Mishnah ONLY if it is in the study context. NEVER recall from memory what the previous daf said.
 - Whole-daf orientation, not a section recap. Per-section detail lives in argument.synthesis.
 - NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "intricate", "profound", "lens", "captures".
 - Hebrew script (not transliteration) for technical terms in parentheses.
@@ -2542,6 +2543,9 @@ HARD RULES:
 ${HEBREW_GLOSS_STYLE}`;
 
 const ARGUMENT_OVERVIEW_SYNTHESIS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+How this daf connects to the previous one (a grounded note; empty if it opens a fresh discussion — in that case orient via the Mishnah in the study context, or the daf's topic):
+{{incoming}}
 
 Full daf:
 {{gemara}}
@@ -2552,27 +2556,31 @@ Argument sections on this daf:
 Connections between the sections (indices into the list above):
 {{depends.argument-overview.flow}}
 
-Study-aid context (dafyomi.co.il):
+Study-aid context (dafyomi.co.il) — includes the Mishnah this daf expounds when there is one:
 {{context}}
 
 Write the whole-daf overview paragraph per the schema.`;
 
-const ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. תקבל דף שלם, את מקטעי הטיעון שבו, את הקשרים בין המקטעים, ותוכן לימוד נלווה. חבר פסקה אחת הדוקה המכוונת את הקורא בדף כולו: שאלתו המרכזית, העמדות הנקובות העיקריות, כיצד המקטעים מתחברים, והיכן הדף נוחת.
+const ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. תקבל דף שלם, את מקטעי הטיעון שבו, את הקשרים בין המקטעים, תוכן לימוד נלווה, וכן — כאשר הדיון נמשך — הערה מבוססת כיצד דף זה ממשיך את הדף הקודם. חבר פסקה אחת הדוקה שתחילה מכוונת את הקורא מהיכן הדף בא, ולאחר מכן מכסה את הדף כולו: שאלתו המרכזית, העמדות הנקובות העיקריות, כיצד המקטעים מתחברים, והיכן הוא נוחת.
 
 החזר JSON תקין בלבד:
 
 {
-  "synthesis": "פסקה אחת, 4 משפטים לכל היותר. כל משפט 25 מילים לכל היותר. (1) השאלה או הנושא המרכזי של הדף. (2) העמדות הנקובות העיקריות, פסוקית תמציתית אחת לכל אחת. (3) משפט אחד אופציונלי על אופן התחברות המקטעים. (4) משפט מסכם אחד: היכן הדף נוחת (פתוח / מיושב / עובר הלאה). אל תסכם מקטע אחר מקטע."
+  "synthesis": "פסקה אחת, 5 משפטים לכל היותר. כל משפט 25 מילים לכל היותר. (1) מסגרת פתיחה — מהיכן הדף בא: אם ניתנה הערת המשכיות, ציין מה נמשך מהדף הקודם; אחרת אם הדף עוסק במשנה (בתוכן הלימוד), ציין את שאלתה; אחרת ציין את נושא הדף. (2) השאלה המרכזית של הדף. (3) העמדות הנקובות העיקריות, פסוקית תמציתית לכל אחת. (4) משפט אחד אופציונלי על אופן התחברות המקטעים. (5) משפט מסכם אחד: היכן הדף נוחת (פתוח / מיושב / עובר הלאה). אל תסכם מקטע אחר מקטע."
 }
 
 כללים נוקשים:
-- 4 משפטים לכל היותר. 25 מילים למשפט לכל היותר. קצץ, אל תמלא.
+- 5 משפטים לכל היותר. 25 מילים למשפט לכל היותר. קצץ, אל תמלא. כאשר מסגרת הפתיחה והשאלה המרכזית הן אותו דבר, מזג אותן למשפט אחד.
+- בסס את מסגרת הפתיחה. ציין המשכיות בין־דפית רק אם הערת ההמשכיות מספקת זאת; הזכר משנה רק אם היא בתוכן הלימוד. לעולם אל תשחזר מהזיכרון את שנאמר בדף הקודם.
 - כיוון לכל הדף, לא סיכום מקטע. פירוט לכל מקטע שייך ל-argument.synthesis.
 - ללא מליצה. אסור: "מכאן אנו למדים", "אנו רואים ש", "מדגיש", "מבליט", "מורכב", "עמוק", "עדשה", "לוכד".
 
 ${HEBREW_NATIVE_STYLE}`;
 
 const ARGUMENT_OVERVIEW_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+כיצד דף זה מתחבר לקודמו (הערה מבוססת; ריק אם הדף פותח דיון חדש — במקרה כזה כוון לפי המשנה שבתוכן הלימוד, או לפי נושא הדף):
+{{incoming}}
 
 הדף המלא:
 {{gemara}}
@@ -2583,7 +2591,7 @@ const ARGUMENT_OVERVIEW_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, ד
 הקשרים בין המקטעים (אינדקסים לרשימה שלמעלה):
 {{depends.argument-overview.flow}}
 
-תוכן לימוד נלווה (dafyomi.co.il):
+תוכן לימוד נלווה (dafyomi.co.il) — כולל את המשנה שהדף עוסק בה כאשר יש כזו:
 {{context}}
 
 כתוב את פסקת הסקירה של הדף כולו לפי הסכימה.`;
@@ -2609,17 +2617,22 @@ CODE_ENRICHMENTS.push(
   ),
   makeSynthesis(
     'argument-overview', 'argument-overview.synthesis',
-    'One tight paragraph orienting a reader to the whole daf: its question, the main positions, how the sections connect, where it lands.',
+    'One tight paragraph orienting a reader to the whole daf: where it comes from, its question, the main positions, how the sections connect, where it lands.',
     ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT, ARGUMENT_OVERVIEW_SYNTHESIS_USER_TEMPLATE,
     {
       dependencies: [
         'gemara',
         'context',
+        // The grounded cross-daf continuation note ({{incoming}}) so the
+        // paragraph can open with where this daf comes from instead of recalling
+        // it. Empty when the daf opens fresh — the prompt falls back to the
+        // Mishnah (in `context`) or the daf's topic.
+        'incoming',
         { enrichment: 'argument-overview.flow' },
         { mark: 'argument' },
         { mark: 'rabbi' },
       ],
-      defHash: 'argument-overview.synthesis-v2', cacheVersion: '4', // v4: native Hebrew prompt (he mode no longer falls back to English)
+      defHash: 'argument-overview.synthesis-v3', cacheVersion: '5', // v5: merged entry frame (incoming continuation + Mishnah framing); v4: native Hebrew prompt
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_OVERVIEW_SYNTHESIS_USER_TEMPLATE_HE,
