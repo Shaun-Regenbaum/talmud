@@ -32,7 +32,7 @@ import { GutterOverlay } from './GutterOverlay';
 import { ArgumentSidebar, type SidebarContent, type PlaceInstance } from './ArgumentSidebar';
 import { enqueueEnrichmentRun } from './MarkEnrichmentCards';
 import { orderBackgroundGroups, type BackgroundGroup } from './backgroundGroups';
-import type { ConceptTerm } from './conceptLinks';
+import { conceptToTerm, glossaryForDaf, type Term } from '../lib/terms/registry';
 import { BugReport } from './BugReport';
 import { type CommentaryWork, type CommentaryComment } from './CommentaryPicker';
 import { CommentaryStrip } from './CommentaryStrip';
@@ -829,15 +829,22 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       try {
         const r = await enqueueEnrichmentRun('daf-background.synthesis', tractate(), page(), { fields: {} }, 'daf-background:daf', ac.signal);
         const concepts = r.deps_resolved?.['daf-background.concepts'] as { groups?: BackgroundGroup[] } | undefined;
-        const out: ConceptTerm[] = [];
+        const out: Term[] = [];
         for (const g of orderBackgroundGroups(concepts?.groups)) {
-          for (const tm of g.terms) out.push({ term: tm.term, termHe: tm.termHe ?? '', gloss: tm.gloss, category: g.category });
+          for (const tm of g.terms) {
+            const t = conceptToTerm({ term: tm.term, termHe: tm.termHe, gloss: tm.gloss, category: g.category });
+            if (t) out.push(t);
+          }
         }
         return out;
       } catch { return []; }
     },
   );
-  const dafBackgroundTerms = createMemo<ConceptTerm[]>(() => dafBackgroundTermsRes() ?? []);
+  // The tooltip pool: the always-known globals ∪ this daf's background concepts
+  // (daf wins on a Hebrew-key collision). Wrapping with glossaryForDaf here —
+  // not inside the resource — keeps the globals present even before the daf
+  // enrichment resolves or if it errors.
+  const glossaryTerms = createMemo<Term[]>(() => glossaryForDaf(dafBackgroundTermsRes() ?? []));
 
   // TODO(geography-rederive): the rabbiPlaces memo previously fed
   // GeographyMap from the legacy dafContext fetch. Removed pending a
@@ -3507,7 +3514,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
               onBack={popSidebar}
               dafRabbis={dafRabbis()}
               dafRabbiNames={dafRabbiNames()}
-              dafBackgroundTerms={dafBackgroundTerms()}
+              glossaryTerms={glossaryTerms()}
               onHighlightRange={setArgumentMoveHighlight}
               onOpenRabbiSlug={openRabbiSlug}
               generationByName={generationByName()}
@@ -3539,7 +3546,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           onBack={popSidebar}
           dafRabbis={dafRabbis()}
           dafRabbiNames={dafRabbiNames()}
-          dafBackgroundTerms={dafBackgroundTerms()}
+          glossaryTerms={glossaryTerms()}
           onHighlightRange={setArgumentMoveHighlight}
           onOpenRabbiSlug={openRabbiSlug}
           generationByName={generationByName()}

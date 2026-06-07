@@ -3,7 +3,7 @@ import DafLoadProgress from './DafLoadProgress';
 import { t } from './i18n';
 import { tutorialNoteInteractive } from './tutorial';
 import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
-import type { ConceptTerm } from './conceptLinks';
+import type { Term } from '../lib/terms/registry';
 import type { GenerationId } from './generations';
 import type { IdentifiedRabbi } from './dafContext';
 import type { Section } from './shapes';
@@ -29,7 +29,7 @@ interface MobileShelfProps {
   onBack: () => void;
   dafRabbis: IdentifiedRabbi[];
   dafRabbiNames: string[];
-  dafBackgroundTerms: ConceptTerm[];
+  glossaryTerms: Term[];
   onOpenRabbiSlug: (slug: string) => void;
   generationByName: Map<string, GenerationId>;
   dafSections?: Section[];
@@ -162,7 +162,7 @@ function ExpansionView(props: MobileShelfProps): JSX.Element {
           onBack={props.onBack}
           dafRabbis={props.dafRabbis}
           dafRabbiNames={props.dafRabbiNames}
-          dafBackgroundTerms={props.dafBackgroundTerms}
+          glossaryTerms={props.glossaryTerms}
           onHighlightRange={props.onHighlightRange}
           onOpenRabbiSlug={props.onOpenRabbiSlug}
           generationByName={props.generationByName}
