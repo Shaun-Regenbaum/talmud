@@ -5,7 +5,7 @@ import { createResource, createSignal, createMemo, For, Show, type JSX } from 's
  * tractate; columns are the pieces we can compute. A filled cell = a piece is
  * cached for that (daf, producer); empty = not built yet. The whole tractate
  * reads as a map that fills in as study/warming progresses. Read-only; backed by
- * GET /api/spine/coverage/:tractate (no piece is computed by opening this page).
+ * GET /api/spine-coverage/:tractate (no piece is computed by opening this page).
  */
 
 interface CoverageColumn {
@@ -44,7 +44,7 @@ function routeTractate(): string {
 }
 
 async function fetchCoverage(tractate: string): Promise<CoverageReport> {
-  const r = await fetch(`/api/spine/coverage/${encodeURIComponent(tractate)}`);
+  const r = await fetch(`/api/spine-coverage/${encodeURIComponent(tractate)}`);
   if (!r.ok) {
     const body = await r.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `HTTP ${r.status}`);

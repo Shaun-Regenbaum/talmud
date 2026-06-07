@@ -921,7 +921,7 @@ app.get('/api/dependents/:id', (c) => {
 // A read-only exploration map over the global spine: enumerates every daf of the
 // tractate and, by listing KV keys, reports which producers already have a cached
 // piece for each. Computes nothing, mutates nothing. Powers the #spine page.
-app.get('/api/spine/coverage/:tractate', async (c) => {
+app.get('/api/spine-coverage/:tractate', async (c) => {
   const tractate = c.req.param('tractate');
   if (!isKnownTractate(tractate)) {
     return c.json({ error: `unknown tractate: ${tractate}` }, 404);
