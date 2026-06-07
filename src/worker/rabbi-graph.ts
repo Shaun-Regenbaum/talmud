@@ -189,7 +189,7 @@ const INDEX = buildIndex();
 
 /** Find a node by name (English or Hebrew). When generation is supplied,
  *  prefer the slug whose generation matches. Returns slug or null. */
-function findSlug(name: string, nameHe?: string, generation?: string): string | null {
+export function findSlug(name: string, nameHe?: string, generation?: string): string | null {
   // 1. Hand-curated alias table — short-form names like "Reish Lakish".
   const norm = normalizeName(name);
   if (ALIASES[norm]) return ALIASES[norm];
@@ -225,7 +225,7 @@ function findSlug(name: string, nameHe?: string, generation?: string): string | 
 
 /** Resolve a slug to its display canonical name, falling back to the
  *  slug itself (re-humanized) when not found. */
-function slugToName(slug: string): string {
+export function slugToName(slug: string): string {
   return INDEX.slugToCanonical.get(slug) ?? slug.replace(/-/g, ' ');
 }
 

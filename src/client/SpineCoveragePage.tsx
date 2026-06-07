@@ -318,12 +318,16 @@ export function SpineCoveragePage(): JSX.Element {
                       </div>
                       <FlowLegend kinds={allKinds()} />
                       <Show when={trace()}>
-                        {(name) => {
-                          const n = name().trim().toLowerCase();
-                          const boxes = capped().reduce((acc, d) => acc + d.sections.filter((s) => s.rabbis.some((r) => r.trim().toLowerCase() === n)).length, 0);
+                        {(slug) => {
+                          let display = slug();
+                          let boxes = 0;
+                          for (const d of capped()) for (const s of d.sections) {
+                            const hit = s.rabbis.find((r) => r.slug === slug());
+                            if (hit) { boxes++; display = hit.name; }
+                          }
                           return (
                             <div style={{ margin: '6px 0', padding: '4px 10px', border: `1.5px solid ${HILITE}`, background: '#fffaf0', 'font-size': '12px', display: 'inline-block' }}>
-                              tracing <span style={{ 'font-weight': 700, color: HILITE }}>{name()}</span> &middot; {boxes} {boxes === 1 ? 'box' : 'boxes'}{' '}
+                              tracing <span style={{ 'font-weight': 700, color: HILITE }}>{display}</span> &middot; {boxes} {boxes === 1 ? 'box' : 'boxes'}{' '}
                               <button onClick={() => setTrace(null)} style={{ 'font-family': MONO, 'font-size': '11px', 'margin-left': '8px', border: '1px solid #999', background: '#fff', cursor: 'pointer' }}>clear</button>
                             </div>
                           );
@@ -332,7 +336,7 @@ export function SpineCoveragePage(): JSX.Element {
                       <SpineFlowGraph
                         dapim={capped() as SpineViewDaf[]}
                         highlight={trace()}
-                        onRabbi={(name) => setTrace((prev) => (prev && prev.trim().toLowerCase() === name.trim().toLowerCase() ? null : name))}
+                        onRabbi={(slug) => setTrace((prev) => (prev === slug ? null : slug))}
                       />
                     </div>
                   );

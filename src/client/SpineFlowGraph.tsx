@@ -17,10 +17,11 @@ import { KIND_COLOR, KIND_DASH, wrapTitle, type FlowConnection } from './Argumen
 
 type Kind = FlowConnection['kind'];
 
+export interface SectionRabbi { slug: string; name: string }
 export interface SpineViewDaf {
   page: string;
   nextPage: string | null;
-  sections: { index: number; title: string; rabbis: string[] }[];
+  sections: { index: number; title: string; rabbis: SectionRabbi[] }[];
   flow: FlowConnection[];
   cross: { fromSection: number; toSection: number; relation: string; note?: string }[];
 }
@@ -33,8 +34,6 @@ const LINE_H = 15, TITLE_CHARS = 44, TITLE_LINES = 2;
 const HILITE = '#b8860b';
 
 interface Edge { from: string; to: string; kind: Kind; cross: boolean; note?: string; fromSec: number; toSec: number; fromPage: string; toPage: string }
-
-const norm = (s: string) => s.trim().toLowerCase();
 
 function assignLanesY(spans: { lo: number; hi: number }[]): number[] {
   const order = spans.map((s, i) => ({ i, lo: s.lo, hi: s.hi })).sort((a, b) => a.lo - b.lo || a.hi - b.hi);
@@ -55,7 +54,7 @@ export default function SpineFlowGraph(props: { dapim: SpineViewDaf[]; highlight
     const nodeH = new Map<string, number>();
     const nodeTitle = new Map<string, string>();
     const nodeNum = new Map<string, number>();
-    const nodeRabbis = new Map<string, string[]>();
+    const nodeRabbis = new Map<string, SectionRabbi[]>();
     const dafHeaders: { page: string; y: number }[] = [];
     let y = TOP_PAD;
     for (const d of props.dapim) {
@@ -106,7 +105,7 @@ export default function SpineFlowGraph(props: { dapim: SpineViewDaf[]; highlight
       <div style={{ 'max-height': '78vh', 'overflow-y': 'auto', 'overflow-x': 'auto', border: '1px solid #ece9df', 'border-radius': '8px', background: '#fdfcf9', 'margin-top': '0.6rem', padding: '0.3rem' }}>
         {(() => {
           const m = model();
-          const hl = () => (props.highlight ? norm(props.highlight) : null);
+          const hl = () => props.highlight ?? null; // a rabbi slug
           return (
             <svg width={m.width} height={m.height} viewBox={`0 0 ${m.width} ${m.height}`} style={{ display: 'block' }}>
               <defs>
@@ -146,10 +145,10 @@ export default function SpineFlowGraph(props: { dapim: SpineViewDaf[]; highlight
                 const cyTitle = yTop + NODE_H / 2;
                 const lines = wrapTitle(m.nodeTitle.get(key) ?? '', TITLE_CHARS, TITLE_LINES);
                 const num = m.nodeNum.get(key) ?? 0;
-                const lit = () => hl() !== null && rabbis.some((r) => norm(r) === hl());
+                const lit = () => hl() !== null && rabbis.some((r) => r.slug === hl());
                 // lay rabbi chips left-to-right with approx text width
                 let cx = LEFT_PAD + 10;
-                const chips = rabbis.map((r) => { const x = cx; cx += r.length * 5.4 + 12; return { name: r, x }; })
+                const chips = rabbis.map((r) => { const x = cx; cx += r.name.length * 5.4 + 12; return { name: r.name, slug: r.slug, x }; })
                   .filter((c) => c.x < LEFT_PAD + NODE_W - 16);
                 return (
                   <g>
@@ -163,11 +162,11 @@ export default function SpineFlowGraph(props: { dapim: SpineViewDaf[]; highlight
                     )}</For>
                     <Show when={rabbis.length}>
                       <For each={chips}>{(c) => {
-                        const on = () => hl() === norm(c.name);
+                        const on = () => hl() === c.slug;
                         return (
                           <text x={c.x} y={yTop + h - 8} font-size="9.5" font-weight={on() ? 700 : 500}
                             font-family="system-ui, sans-serif" fill={on() ? HILITE : '#8a7a55'}
-                            style={{ cursor: 'pointer' }} onClick={() => props.onRabbi?.(c.name)}>
+                            style={{ cursor: 'pointer' }} onClick={() => props.onRabbi?.(c.slug)}>
                             <title>{`trace ${c.name} across the tractate`}</title>{c.name}
                           </text>
                         );

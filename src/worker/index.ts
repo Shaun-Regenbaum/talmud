@@ -89,7 +89,7 @@ import {
 import { wrapEnv, gatewayStatus, gatewayActive } from './ai-gateway';
 import { runLLM, type LLMModelId, type LLMResult, type LLMUsage, type CostAttribution } from './llm';
 import { checkBudget, isBudgetPaused, budgetStatus, clearPauses, type BudgetScope } from './budget';
-import { lookupRelationships } from './rabbi-graph';
+import { lookupRelationships, findSlug, slugToName } from './rabbi-graph';
 import { runPasses } from '../lib/check/passes';
 import { composeTypeProfile, sectionHasNamedSpeaker, type LayerId, type LayerInstance, type TypeProfile, type UnitRange } from '../lib/typing/profile';
 import { findMarkers } from '../lib/typing/markers';
@@ -976,33 +976,34 @@ async function readSortedSections(env: Bindings, tractate: string, page: string)
   return { startSegs: rows.map((r) => r.start), sections: rows.map((r) => ({ title: r.title, summary: r.summary })) };
 }
 
-// Voice names that aren't a single named rabbi (anonymous / collective) — not
-// "actual rabbis" to chip onto a box or trace across the tractate.
-const NON_RABBI_VOICE = new Set(['stam', 'gemara', 'sages', 'the sages', 'tanna kamma', 'tanna kama', 'rabbanan', 'chachamim', 'the tanna', 'tanna', 'baraita', 'beraita', 'mishnah', 'mishna', 'anonymous', 'the gemara', 'rabbis']);
-
-// Each argument section's named rabbis, in reading order — sourced from the
-// per-section argument.voices enrichment (the only piece that ties a rabbi to a
-// SECTION). Read-only; sections with no cached voices get an empty list.
-async function readSectionRabbis(env: Bindings, tractate: string, page: string): Promise<{ start: number; title: string; rabbis: string[] }[]> {
+// Each argument section's rabbis, in reading order — sourced from the per-section
+// argument.voices enrichment (the only piece that ties a rabbi to a SECTION),
+// then RESOLVED through the rabbi registry: a voice is kept ONLY if its name
+// resolves to a real rabbi (findSlug). This drops anonymous/collective labels
+// ("Stam", "Western sages", "First answer") AND unifies spelling variants
+// ("R. Eliezer" / "Rabbi Eliezer") onto one slug, so tracing is exact. The chip
+// shows the registry's canonical name. Read-only; cold sections get [].
+interface SectionRabbi { slug: string; name: string }
+async function readSectionRabbis(env: Bindings, tractate: string, page: string): Promise<{ start: number; title: string; rabbis: SectionRabbi[] }[]> {
   const insts = await readMarkInstances(env, 'argument', tractate, page).catch(() => []);
   const voicesDef = findCodeEnrichment('argument.voices');
-  const rows: { start: number; title: string; rabbis: string[] }[] = [];
+  const rows: { start: number; title: string; rabbis: SectionRabbi[] }[] = [];
   for (const inst of insts) {
     if (typeof inst.startSegIdx !== 'number') continue;
-    const rabbis: string[] = [];
+    const rabbis: SectionRabbi[] = [];
     if (voicesDef) {
       const iid = await instanceIdOf(inst);
       const vhit = await readCachedResult(env, keyForEnrichment(voicesDef, iid, { tractate, page }));
-      const voices = (vhit?.parsed as { voices?: { name?: unknown }[] } | null)?.voices;
+      const voices = (vhit?.parsed as { voices?: { name?: unknown; nameHe?: unknown }[] } | null)?.voices;
       if (Array.isArray(voices)) {
         const seen = new Set<string>();
         for (const v of voices) {
           const name = typeof v.name === 'string' ? v.name.trim() : '';
           if (!name) continue;
-          const norm = name.toLowerCase();
-          if (NON_RABBI_VOICE.has(norm) || seen.has(norm)) continue;
-          seen.add(norm);
-          rabbis.push(name);
+          const slug = findSlug(name, typeof v.nameHe === 'string' ? v.nameHe : undefined);
+          if (!slug || seen.has(slug)) continue; // drop unresolved + dupes
+          seen.add(slug);
+          rabbis.push({ slug, name: slugToName(slug) });
         }
       }
     }
