@@ -447,10 +447,13 @@ export type EnrichmentMode =
 /** Cacheability axis. Drives auto cache-key derivation in cache-keys.ts:
  *    global → enrich:{id}:{cache_version}:{instance_id}              (no daf)
  *    local  → enrich:{id}:{cache_version}:{instance_id}:{tractate}:{page}
+ *    spine  → enrich:{id}:{cache_version}:{instance_id}:{tractate}   (no page)
  *  Pick 'global' when the output is the same regardless of which daf you ran
  *  it from (a rabbi's biography). Pick 'local' when the output is computed
- *  in light of this daf (synthesis). Aggregate enrichments are usually local. */
-export type EnrichmentScope = 'global' | 'local';
+ *  in light of this daf (synthesis). Pick 'spine' for a piece that belongs to
+ *  the whole tractate and is filled in incrementally as its dapim are processed
+ *  (a tractate-wide link graph or map). Aggregate enrichments are usually local. */
+export type EnrichmentScope = 'global' | 'local' | 'spine';
 
 export interface EnrichmentDefinition {
   id: string;

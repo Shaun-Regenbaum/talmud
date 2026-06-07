@@ -10,6 +10,7 @@ import { SagesPage } from './SagesPage';
 import SettingsPage from './SettingsPage';
 import { AttributionsPage } from './AttributionsPage';
 import { McpPage } from './McpPage';
+import { SpineCoveragePage } from './SpineCoveragePage';
 
 function currentRoute() {
   // #sages/<slug> deep-links into SagesPage; treat the prefix as the route.
@@ -52,7 +53,11 @@ export default function App() {
             <Show when={route() === 'sages'} fallback={
               <Show when={route() === 'settings'} fallback={
                 <Show when={route() === 'about'} fallback={
-                  <Show when={route() === 'mcp'} fallback={<DafViewer />}>
+                  <Show when={route() === 'mcp'} fallback={
+                    <Show when={route() === 'spine' || route().startsWith('spine/')} fallback={<DafViewer />}>
+                      <SpineCoveragePage />
+                    </Show>
+                  }>
                     <McpPage />
                   </Show>
                 }>

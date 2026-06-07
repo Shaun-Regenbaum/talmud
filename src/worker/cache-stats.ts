@@ -26,6 +26,7 @@ import { getWarmTotal } from './warm-cron';
 import { CODE_MARKS, CODE_ENRICHMENTS } from './code-marks';
 import { listMarks, listEnrichments } from './studio-registry';
 import type { GcTarget } from './cache-gc';
+import type { EnrichmentScope } from './studio-schema';
 
 // v5: mark/enrichment rows carry a per-cache-version breakdown (`versions` +
 // `staleCount`) + the `observations` bucket (rabbi.observations reverse index).
@@ -140,7 +141,7 @@ export interface EnrichmentCacheRow {
   id: string;
   label: string;
   target_mark: string;
-  scope: 'global' | 'local';
+  scope: EnrichmentScope;
   source: 'code' | 'kv';
   cache_version: string;
   count: number;          // entries at the CURRENT cache_version (English)
@@ -413,7 +414,7 @@ function foreignMarkOf(dep: unknown, markOfEnrichment: (id: string) => string | 
 }
 
 type MergedEnrichment = {
-  id: string; label: string; target_mark: string; scope: 'global' | 'local';
+  id: string; label: string; target_mark: string; scope: EnrichmentScope;
   source: 'code' | 'kv'; cache_version: string; dependencies: unknown[];
 };
 async function mergedEnrichments(cache: KVNamespace): Promise<MergedEnrichment[]> {

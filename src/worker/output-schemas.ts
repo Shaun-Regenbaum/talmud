@@ -142,6 +142,19 @@ export const ARGUMENT_OVERVIEW_FLOW_OUTPUT_SCHEMA = responseFormat('argument_ove
     note: z.string(),
   })),
 }));
+// CROSS-DAF argument flow: how the FIRST daf's sections relate to the SECOND
+// daf's. `fromSection` indexes the first daf's ordered sections, `toSection` the
+// second's. The section-level, relation-typed successor to the boolean bridge;
+// feeds the tractate spine graph (spineLinks). Precision-first — usually few/no
+// edges.
+export const ARGUMENT_CROSS_FLOW_OUTPUT_SCHEMA = responseFormat('argument_cross_flow', z.object({
+  edges: z.array(z.object({
+    fromSection: z.number().int(),
+    toSection: z.number().int(),
+    relation: z.enum(['continues', 'resolves', 'depends-on', 'parallels', 'contrasts', 'generalizes']),
+    note: z.string(),
+  })),
+}));
 // Daf-level BACKGROUND: the terms/concepts a reader needs to understand the daf,
 // grouped into themed sections (legal concepts / realia / assumed-prior sugyot).
 // Drives the whole-daf Background panel. Grounded on the dafyomi.co.il glossary

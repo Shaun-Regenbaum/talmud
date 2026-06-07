@@ -44,7 +44,7 @@ const TOP_PAD = 10;
 const LEFT_PAD = 10;
 const CORNER_R = 18;      // rounded-corner radius on the connector's two turns
 
-const KIND_COLOR: Record<FlowConnection['kind'], string> = {
+export const KIND_COLOR: Record<FlowConnection['kind'], string> = {
   continues: '#666',
   resolves: '#15803d',
   'depends-on': '#1d4ed8',
@@ -53,7 +53,7 @@ const KIND_COLOR: Record<FlowConnection['kind'], string> = {
   generalizes: '#92400e',
   cites: '#475569',
 };
-const KIND_DASH: Partial<Record<FlowConnection['kind'], string>> = {
+export const KIND_DASH: Partial<Record<FlowConnection['kind'], string>> = {
   contrasts: '5 3',
   parallels: '2 3',
 };
@@ -115,7 +115,7 @@ const TITLE_LINES = 2;    // wrap to at most this many lines, then ellipsize
  *  any overflow on the final line. SVG can't measure text without the DOM, so we
  *  budget by character count — good enough for section titles, and keeps the
  *  whole node in (Solid-safe) SVG rather than foreignObject. */
-function wrapTitle(s: string, maxChars: number, maxLines: number): string[] {
+export function wrapTitle(s: string, maxChars: number, maxLines: number): string[] {
   const words = s.trim().split(/\s+/).filter(Boolean);
   const lines: string[] = [];
   let cur = '';
@@ -293,8 +293,10 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
         </svg>
       </div>
 
-      {/* Legend: color + dash → connection kind (only the kinds in use). */}
-      <Show when={kindsPresent().length > 0}>
+      {/* Legend: color + dash → connection kind (only the kinds in use).
+          Suppressed when the parent renders one shared legend for several
+          stacked graphs (hideLegend). */}
+      <Show when={!props.hideLegend && kindsPresent().length > 0}>
         <div style={{
           display: 'flex', 'flex-wrap': 'wrap', gap: '0.35rem 0.45rem',
           'margin-top': '0.55rem',
