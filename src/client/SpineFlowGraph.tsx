@@ -24,6 +24,8 @@ export interface SpineViewDaf {
   sections: { index: number; title: string; rabbis: SectionRabbi[] }[];
   flow: FlowConnection[];
   cross: { fromSection: number; toSection: number; relation: string; note?: string }[];
+  /** deterministic daf-continuity bridge: does the sugya carry into the next daf? */
+  continues?: boolean;
 }
 
 const NODE_W = 330, NODE_H = 44, RABBI_H = 18, ROW_GAP = 10;
@@ -81,6 +83,15 @@ export default function SpineFlowGraph(props: { dapim: SpineViewDaf[]; highlight
       if (d.nextPage) for (const e of d.cross) {
         const from = `${d.page}#${e.fromSection}`, to = `${d.nextPage}#${e.toSection}`;
         if (nodeY.has(from) && nodeY.has(to)) edges.push({ from, to, kind: e.relation as Kind, cross: true, note: e.note, fromSec: e.fromSection, toSec: e.toSection, fromPage: d.page, toPage: d.nextPage });
+      }
+      // Deterministic continuity backbone: when the sugya carries into the next
+      // daf but the AI cross-flow found no section-level edge, connect this daf's
+      // last section to the next daf's first (so continuing dapim always link;
+      // perek boundaries / new topics correctly stay unconnected).
+      if (d.continues && d.nextPage && d.cross.length === 0 && d.sections.length) {
+        const last = d.sections[d.sections.length - 1].index;
+        const from = `${d.page}#${last}`, to = `${d.nextPage}#0`;
+        if (nodeY.has(from) && nodeY.has(to)) edges.push({ from, to, kind: 'continues', cross: true, note: 'sugya continues into the next daf', fromSec: last, toSec: 0, fromPage: d.page, toPage: d.nextPage });
       }
     }
 
