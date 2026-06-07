@@ -25,6 +25,14 @@ describe('spineLinks aggregator', () => {
     expect(g.edges.length).toBe(3);
     expect(g.byRelation.resolves).toBe(2);
     expect(g.byRelation.continues).toBe(1);
+    expect(g.byVia).toEqual({ flow: 2, bridge: 1 });
+  });
+
+  it('counts cross-daf edges under byVia.cross-flow', () => {
+    const crossEdge: DafLink = { via: 'cross-flow', source: coordForSeg({ tractate: t, page: '4b' }, 3), relation: 'resolves', targets: [coordForSeg({ tractate: t, page: '5a' }, 1)] };
+    const g = spineLinks(t, [[crossEdge]]);
+    expect(g.byVia['cross-flow']).toBe(1);
+    expect(g.edges[0].source).not.toBe(g.edges[0].target); // genuinely cross-daf
   });
 
   it('node keys are stable global coordinates', () => {

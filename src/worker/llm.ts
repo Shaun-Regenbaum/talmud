@@ -114,6 +114,7 @@ export type CostKind =
   | 'hebraize'
   | 'match'
   | 'bridge'
+  | 'cross-flow'
   | 'analyze'
   | 'rabbi'
   | 'adhoc'

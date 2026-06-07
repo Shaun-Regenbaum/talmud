@@ -29,10 +29,19 @@ interface CoverageReport {
 interface SpineGraph {
   tractate: string;
   nodes: { key: string; coord: { tractate: string; page: string; seg: number } }[];
-  edges: { source: string; target: string; relation: string; via: string }[];
+  edges: { source: string; target: string; relation: string; via: string; note?: string }[];
   byRelation: Record<string, number>;
+  byVia: Record<string, number>;
   continuityRuns: string[][];
   coverage: { dapimWithLinks: number; dapimTotal: number };
+}
+
+// coordKey "tractate:page:seg" -> compact "page §seg" ("page" when whole-daf).
+function coordLabel(key: string): string {
+  const parts = key.split(':');
+  const seg = Number(parts[parts.length - 1]);
+  const page = parts[parts.length - 2];
+  return seg < 0 ? page : `${page} §${seg}`;
 }
 
 // Relation -> color, mirroring the flow-graph palette intent.
@@ -202,6 +211,10 @@ export function SpineCoveragePage(): JSX.Element {
                     <div style={{ color: '#666', 'margin-bottom': '6px' }}>
                       {g().nodes.length} nodes &middot; {g().edges.length} edges &middot; backbone from {g().coverage.dapimWithLinks} / {g().coverage.dapimTotal} dapim with links
                     </div>
+                    {/* by producer — distinguishes the deterministic layers from the AI cross-daf one */}
+                    <div style={{ 'font-size': '11px', color: '#888', 'margin-bottom': '6px' }}>
+                      by producer: {Object.entries(g().byVia).map(([v, n]) => `${v} ${n}`).join('  ·  ') || '—'}
+                    </div>
                     {/* relation breakdown */}
                     <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '6px', 'margin-bottom': '8px' }}>
                       <For each={Object.entries(g().byRelation).sort((a, b) => b[1] - a[1])}>
@@ -223,6 +236,24 @@ export function SpineCoveragePage(): JSX.Element {
                             <div style={{ 'font-size': '12px', padding: '1px 0', color: '#333' }}>
                               <span style={{ color: '#999' }}>{String(run.length).padStart(2)} </span>
                               {run.join(' → ')}
+                            </div>
+                          )}
+                        </For>
+                      </div>
+                    </Show>
+                    {/* cross-daf edges — the AI Stage 1 layer (section -> section across the page break) */}
+                    <Show when={g().edges.some((e) => e.via === 'cross-flow')}>
+                      <div style={{ 'font-weight': 700, 'font-size': '11px', margin: '10px 0 4px', color: RELATION_COLOR.parallels }}>
+                        CROSS-DAF EDGES (AI) &mdash; {g().edges.filter((e) => e.via === 'cross-flow').length}
+                      </div>
+                      <div style={{ 'max-height': '200px', 'overflow-y': 'auto' }}>
+                        <For each={g().edges.filter((e) => e.via === 'cross-flow')}>
+                          {(e) => (
+                            <div style={{ 'font-size': '12px', padding: '1px 0' }}>
+                              <span>{coordLabel(e.source)}</span>
+                              <span style={{ color: RELATION_COLOR[e.relation] || '#666', margin: '0 6px' }}>&mdash;{e.relation}&rarr;</span>
+                              <span>{coordLabel(e.target)}</span>
+                              <Show when={e.note}><span style={{ color: '#999' }}>  {e.note}</span></Show>
                             </div>
                           )}
                         </For>

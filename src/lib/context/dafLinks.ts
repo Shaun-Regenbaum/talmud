@@ -20,7 +20,7 @@ import type { ContextItem } from './types.ts';
  *  points at (`targets`). `via` records which producer it came from, for
  *  display + debugging. */
 export interface DafLink {
-  via: 'bridge' | 'context' | 'flow' | 'commentary';
+  via: 'bridge' | 'context' | 'flow' | 'commentary' | 'cross-flow';
   source: AnchorCoord;
   relation: LinkRelation;
   targets: AnchorCoord[];

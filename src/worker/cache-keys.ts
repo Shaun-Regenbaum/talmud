@@ -374,6 +374,13 @@ export function prefixForRabbiObs(slug: string): string {
   return `rabbi-obs:v1:${slug}:`;
 }
 
+/** Cross-daf argument flow for a daf: the section-level edges INTO the next daf
+ *  (the relation-typed successor to keyForBridge's boolean). Keyed per anchor
+ *  daf (forward window of 1), same raw shape family as the bridge key. */
+export function keyForCrossFlow(tractate: string, page: string): string {
+  return `cross-flow:v1:${slugDaf(tractate, page)}`;
+}
+
 /** The whole-tractate link graph (spineLinks aggregator), materialized on the
  *  tractate shelf — one entry per tractate (the same tractate-only addressing as
  *  the `spine` enrichment scope; a deterministic VIEW rather than an enrichment

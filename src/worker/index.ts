@@ -22,6 +22,7 @@ import { formatGroundedRefsForPrompt, buildDerivation } from '../lib/halacha/cod
 import { dafSpine } from '../lib/context/spine';
 import { dafLinks, type DafLink } from '../lib/context/dafLinks';
 import { spineLinks } from '../lib/context/spineLinks';
+import { buildCrossFlowPrompt, parseCrossFlowEdges, crossFlowToLinks, type CrossFlow, type CrossFlowEdge, type CrossFlowSection } from '../lib/typing/crossFlow';
 import { iterAmudim } from '../lib/sefref/amudim';
 import { producerNodesFrom, reverseDependencyIndex, transitiveDependents, forwardSubgraph } from '../lib/registry/depGraph';
 import { aiMatchToSegments } from './context-match';
@@ -113,6 +114,7 @@ import {
   ENRICH_JSON_SCHEMA,
   TRANSLATE_BIO_JSON_SCHEMA,
   ARGUMENT_BRIDGE_OUTPUT_SCHEMA,
+  ARGUMENT_CROSS_FLOW_OUTPUT_SCHEMA,
 } from './output-schemas';
 import { findHadranSegments } from '../lib/typing/markers';
 import { hadranBridge, edgeOfTractateBridge, buildBridgePrompt, llmBridge, type DafBridge, type BridgeSection } from '../lib/typing/bridge';
@@ -141,6 +143,7 @@ import {
   keyForMesorah,
   keyForReferences,
   keyForBridge,
+  keyForCrossFlow,
   keyForSpineLinks,
   keyForPasuk,
   keyForCtxMatch,
@@ -948,24 +951,104 @@ async function readCachedBridge(env: Bindings, tractate: string, page: string): 
   try { return JSON.parse(c) as DafBridge; } catch { return null; }
 }
 
-// One daf's links, assembled from READ-ONLY cached pieces only: argument
-// sections (for coord resolution), the cached flow graph, and the cached
-// continuity bridge. Same dafLinks() the per-daf /api/links uses, minus the
-// live context pool + commentary fetch (those aren't cached per daf, so they'd
-// turn a tractate sweep into 100+ live assemblies — deferred to the next layer).
-async function readDafSpineLinks(env: Bindings, tractate: string, page: string): Promise<DafLink[]> {
-  const sectionInstances = await readMarkInstances(env, 'argument', tractate, page).catch(() => []);
-  const sectionStartSegs = sectionInstances
-    .map((i) => i.startSegIdx)
-    .filter((s): s is number => typeof s === 'number')
-    .sort((a, b) => a - b);
+// Read-only cross-daf flow for a daf (the section-level edges into the next
+// daf), or null if not yet computed. Like readCachedBridge: never triggers the
+// LLM — the tractate sweep only reads what has already been computed.
+async function readCachedCrossFlow(env: Bindings, tractate: string, page: string): Promise<CrossFlow | null> {
+  if (!env.CACHE) return null;
+  const c = await env.CACHE.get(keyForCrossFlow(tractate, page));
+  if (!c) return null;
+  try { return JSON.parse(c) as CrossFlow; } catch { return null; }
+}
+
+// Argument sections of a daf in reading order, with the parallel startSegIdx
+// list (so a section index resolves to a coordinate). Read-only.
+async function readSortedSections(env: Bindings, tractate: string, page: string): Promise<{ startSegs: number[]; sections: CrossFlowSection[] }> {
+  const insts = await readMarkInstances(env, 'argument', tractate, page).catch(() => []);
+  const rows = insts
+    .filter((i) => typeof i.startSegIdx === 'number')
+    .map((i) => ({
+      start: i.startSegIdx as number,
+      title: typeof i.fields?.title === 'string' ? i.fields.title : undefined,
+      summary: typeof i.fields?.summary === 'string' ? i.fields.summary : undefined,
+    }))
+    .sort((a, b) => a.start - b.start);
+  return { startSegs: rows.map((r) => r.start), sections: rows.map((r) => ({ title: r.title, summary: r.summary })) };
+}
+
+// One daf's READ-ONLY parts for the spine sweep: the within-daf links (flow +
+// continuity bridge), its section startSegs (so cross-flow edges from the
+// PREVIOUS daf can resolve into it), and its cached cross-daf edges into the
+// next daf. No compute — same dafLinks() the per-daf /api/links uses, minus the
+// live context pool + commentary (not cached per daf; deferred).
+interface DafParts { withinLinks: DafLink[]; startSegs: number[]; crossEdges: CrossFlowEdge[] }
+async function readDafParts(env: Bindings, tractate: string, page: string): Promise<DafParts> {
+  const { startSegs } = await readSortedSections(env, tractate, page);
   const flowEdges = await readFlowConnections(env, tractate, page);
   const bridge = await readCachedBridge(env, tractate, page);
-  return dafLinks(
+  const cross = await readCachedCrossFlow(env, tractate, page);
+  const withinLinks = dafLinks(
     { tractate, page },
-    { continuesTo: bridge?.continues ? bridge.to : null, items: [], flowEdges, sectionStartSegs, commentaryWorks: [] },
+    { continuesTo: bridge?.continues ? bridge.to : null, items: [], flowEdges, sectionStartSegs: startSegs, commentaryWorks: [] },
   );
+  return { withinLinks, startSegs, crossEdges: cross?.edges ?? [] };
 }
+
+// Cross-daf argument flow producer: the section-level, relation-typed successor
+// to the boolean bridge (Stage 1 of the global spine). Bespoke (two-daf input
+// doesn't fit the single-daf dependency model — same reason computeDafBridge is
+// bespoke); should converge with the bridge into a cross-daf-aware registry
+// producer later. Budget-gated at the runLLM chokepoint; precision over recall.
+async function computeCrossFlow(env: Bindings, tractate: string, page: string): Promise<CrossFlow> {
+  const from = { tractate, page };
+  const nextPage = adjacentAmud(tractate, page, 1);
+  if (!nextPage) return { from, to: null, edges: [], via: 'edge-of-tractate' };
+  const to = { tractate, page: nextPage };
+  const key = keyForCrossFlow(tractate, page);
+  if (env.CACHE) { const c = await env.CACHE.get(key); if (c) { try { return JSON.parse(c) as CrossFlow; } catch { /* recompute */ } } }
+
+  const a = await readSortedSections(env, tractate, page);
+  const b = await readSortedSections(env, tractate, nextPage);
+  if (a.sections.length === 0 || b.sections.length === 0) {
+    return { from, to, edges: [], via: 'no-data' }; // don't pin — retry once both dapim are warmed
+  }
+
+  let via: CrossFlow['via'] = 'llm';
+  let edges: CrossFlowEdge[] = [];
+  try {
+    const res = await runLLM(env, {
+      model: 'openrouter/deepseek/deepseek-v4-flash' as LLMModelId,
+      messages: [
+        { role: 'system', content: 'You are a Talmud scholar mapping how the argument of one daf connects to the next. Precision over recall: most section pairs have no edge.' },
+        { role: 'user', content: buildCrossFlowPrompt(from, to, a.sections, b.sections) },
+      ],
+      max_tokens: 1500, temperature: 0.2,
+      response_format: { type: 'json_schema', json_schema: ARGUMENT_CROSS_FLOW_OUTPUT_SCHEMA },
+      thinking: false, tag: 'argument-overview.cross-flow',
+      attribution: { kind: 'cross-flow', producerId: 'argument-overview.cross-flow', tractate, page },
+    });
+    let parsed: unknown = {};
+    try { parsed = JSON.parse(res.content); } catch { /* leave empty */ }
+    edges = parseCrossFlowEdges(parsed, a.sections.length, b.sections.length);
+  } catch {
+    via = 'no-data';
+  }
+  const result: CrossFlow = { from, to, edges, via };
+  if (env.CACHE && via !== 'no-data') await env.CACHE.put(key, JSON.stringify(result));
+  return result;
+}
+
+// On-demand compute (or cache hit) of one daf's cross-daf flow, returned both as
+// the raw verdict and projected to coordinate-resolved links. Mirrors /api/bridge.
+app.get('/api/cross-flow/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const cf = await computeCrossFlow(c.env, tractate, page);
+  const a = await readSortedSections(c.env, tractate, page);
+  const b = cf.to ? await readSortedSections(c.env, cf.to.tractate, cf.to.page) : { startSegs: [], sections: [] };
+  const links = cf.to ? crossFlowToLinks(cf.from, cf.to, cf.edges, a.startSegs, b.startSegs) : [];
+  return c.json({ ...cf, links });
+});
 
 // Bounded-concurrency map: run `fn` over `items` with at most `limit` in flight.
 async function mapPool<T, R>(items: readonly T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
@@ -999,7 +1082,21 @@ app.get('/api/spine-links/:tractate', async (c) => {
   }
 
   const pages = [...iterAmudim(tractate)];
-  const perDaf = await mapPool(pages, 24, (page) => readDafSpineLinks(c.env, tractate, page));
+  const partsList = await mapPool(pages, 24, (page) => readDafParts(c.env, tractate, page));
+  // Assemble: within-daf links + cross-daf edges (resolved into the NEXT daf's
+  // sections, which is the adjacent page in iterAmudim order).
+  const perDaf: DafLink[][] = partsList.map((parts, i) => {
+    const links = [...parts.withinLinks];
+    const next = partsList[i + 1];
+    if (next && parts.crossEdges.length) {
+      links.push(...crossFlowToLinks(
+        { tractate, page: pages[i] },
+        { tractate, page: pages[i + 1] },
+        parts.crossEdges, parts.startSegs, next.startSegs,
+      ));
+    }
+    return links;
+  });
   const dapimWithLinks = perDaf.filter((l) => l.length > 0).length;
   const graph = spineLinks(tractate, perDaf);
   const result = { ...graph, coverage: { dapimWithLinks, dapimTotal: pages.length } };
