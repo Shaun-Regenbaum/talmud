@@ -63,6 +63,7 @@ const RELATION_COLOR: Record<string, string> = {
 const PRESETS = ['berakhot', 'shabbat', 'eruvin', 'pesachim', 'sukkah', 'bava_metzia', 'bava_kamma', 'sanhedrin'];
 
 const MONO = "'Berkeley Mono', 'SF Mono', Menlo, Monaco, Consolas, monospace";
+const HILITE = '#b8860b'; // rabbi-trace highlight (matches SpineFlowGraph)
 const KIND_COLOR: Record<string, string> = {
   source: '#666666',
   mark: '#0066CC',
@@ -120,6 +121,7 @@ export function SpineCoveragePage(): JSX.Element {
   // edges). Loads on demand; #spine/<tractate>/flow auto-loads it.
   const [viewTrigger, setViewTrigger] = createSignal<string | null>(thirdSeg() === 'flow' ? routeTractate() : null);
   const [flowView] = createResource(viewTrigger, fetchSpineView);
+  const [trace, setTrace] = createSignal<string | null>(null); // rabbi being traced across the tractate
 
   const go = (t: string) => {
     const slug = t.trim().toLowerCase().replace(/\s+/g, '_');
@@ -312,10 +314,26 @@ export function SpineCoveragePage(): JSX.Element {
                   return (
                     <div style={{ 'margin-top': '8px' }}>
                       <div style={{ 'font-size': '11px', color: '#666', 'margin-bottom': '4px' }}>
-                        showing {capped().length} of {shown().length} dapim {shown().length > FLOW_VIEW_CAP ? '(capped)' : ''} &middot; {crossCount()} cross-daf arrows (thicker lines span the page break)
+                        showing {capped().length} of {shown().length} dapim {shown().length > FLOW_VIEW_CAP ? '(capped)' : ''} &middot; {crossCount()} cross-daf arrows (thicker lines span the page break) &middot; click a rabbi to trace
                       </div>
                       <FlowLegend kinds={allKinds()} />
-                      <SpineFlowGraph dapim={capped() as SpineViewDaf[]} />
+                      <Show when={trace()}>
+                        {(name) => {
+                          const n = name().trim().toLowerCase();
+                          const boxes = capped().reduce((acc, d) => acc + d.sections.filter((s) => s.rabbis.some((r) => r.trim().toLowerCase() === n)).length, 0);
+                          return (
+                            <div style={{ margin: '6px 0', padding: '4px 10px', border: `1.5px solid ${HILITE}`, background: '#fffaf0', 'font-size': '12px', display: 'inline-block' }}>
+                              tracing <span style={{ 'font-weight': 700, color: HILITE }}>{name()}</span> &middot; {boxes} {boxes === 1 ? 'box' : 'boxes'}{' '}
+                              <button onClick={() => setTrace(null)} style={{ 'font-family': MONO, 'font-size': '11px', 'margin-left': '8px', border: '1px solid #999', background: '#fff', cursor: 'pointer' }}>clear</button>
+                            </div>
+                          );
+                        }}
+                      </Show>
+                      <SpineFlowGraph
+                        dapim={capped() as SpineViewDaf[]}
+                        highlight={trace()}
+                        onRabbi={(name) => setTrace((prev) => (prev && prev.trim().toLowerCase() === name.trim().toLowerCase() ? null : name))}
+                      />
                     </div>
                   );
                 }}

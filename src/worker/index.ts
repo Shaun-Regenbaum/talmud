@@ -976,6 +976,41 @@ async function readSortedSections(env: Bindings, tractate: string, page: string)
   return { startSegs: rows.map((r) => r.start), sections: rows.map((r) => ({ title: r.title, summary: r.summary })) };
 }
 
+// Voice names that aren't a single named rabbi (anonymous / collective) — not
+// "actual rabbis" to chip onto a box or trace across the tractate.
+const NON_RABBI_VOICE = new Set(['stam', 'gemara', 'sages', 'the sages', 'tanna kamma', 'tanna kama', 'rabbanan', 'chachamim', 'the tanna', 'tanna', 'baraita', 'beraita', 'mishnah', 'mishna', 'anonymous', 'the gemara', 'rabbis']);
+
+// Each argument section's named rabbis, in reading order — sourced from the
+// per-section argument.voices enrichment (the only piece that ties a rabbi to a
+// SECTION). Read-only; sections with no cached voices get an empty list.
+async function readSectionRabbis(env: Bindings, tractate: string, page: string): Promise<{ start: number; title: string; rabbis: string[] }[]> {
+  const insts = await readMarkInstances(env, 'argument', tractate, page).catch(() => []);
+  const voicesDef = findCodeEnrichment('argument.voices');
+  const rows: { start: number; title: string; rabbis: string[] }[] = [];
+  for (const inst of insts) {
+    if (typeof inst.startSegIdx !== 'number') continue;
+    const rabbis: string[] = [];
+    if (voicesDef) {
+      const iid = await instanceIdOf(inst);
+      const vhit = await readCachedResult(env, keyForEnrichment(voicesDef, iid, { tractate, page }));
+      const voices = (vhit?.parsed as { voices?: { name?: unknown }[] } | null)?.voices;
+      if (Array.isArray(voices)) {
+        const seen = new Set<string>();
+        for (const v of voices) {
+          const name = typeof v.name === 'string' ? v.name.trim() : '';
+          if (!name) continue;
+          const norm = name.toLowerCase();
+          if (NON_RABBI_VOICE.has(norm) || seen.has(norm)) continue;
+          seen.add(norm);
+          rabbis.push(name);
+        }
+      }
+    }
+    rows.push({ start: inst.startSegIdx as number, title: typeof inst.fields?.title === 'string' ? inst.fields.title : '', rabbis });
+  }
+  return rows.sort((a, b) => a.start - b.start);
+}
+
 // One daf's READ-ONLY parts for the spine sweep: the within-daf links (flow +
 // continuity bridge), its section startSegs (so cross-flow edges from the
 // PREVIOUS daf can resolve into it), and its cached cross-daf edges into the
@@ -1049,12 +1084,12 @@ app.get('/api/spine-view/:tractate', async (c) => {
   if (!c.env.CACHE) return c.json({ error: 'no CACHE binding in this environment' }, 503);
   const pages = [...iterAmudim(tractate)];
   const dapim = await mapPool(pages, 24, async (page) => {
-    const { sections } = await readSortedSections(c.env, tractate, page);
+    const secs = await readSectionRabbis(c.env, tractate, page);
     const flow = await readFlowConnections(c.env, tractate, page);
     const cross = await readCachedCrossFlow(c.env, tractate, page);
     return {
       page,
-      sections: sections.map((s, i) => ({ index: i, title: s.title || `Section ${i + 1}` })),
+      sections: secs.map((s, i) => ({ index: i, title: s.title || `Section ${i + 1}`, rabbis: s.rabbis })),
       flow,
       cross: cross?.edges ?? [],
     };
