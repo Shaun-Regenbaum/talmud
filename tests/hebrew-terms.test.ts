@@ -84,6 +84,12 @@ describe('alwaysHebraizeBlock — renders every canonical term (prompt side)', (
       expect(block).toContain(`${t.translit} → ${t.hebrew} (${t.gloss})`);
     });
   }
+  // The display field is metadata for the gloss pass, not prompt content — the
+  // always-list block must stay byte-for-byte as it was, so adding `display`
+  // can't silently perturb generation. (Output unchanged is the PR1 contract.)
+  it('block carries no display metadata — translit → hebrew (gloss) only', () => {
+    expect(block).not.toMatch(/hebrew-first-gloss|display/);
+  });
 });
 
 describe('canonicalDictEntries — closes the historical drift gaps', () => {
