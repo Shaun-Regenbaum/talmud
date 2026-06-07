@@ -29,11 +29,17 @@ export type AnyMarkDefinition = SchemaMarkDefinition | KvMarkDefinition;
 export type AnyEnrichmentDefinition = SchemaEnrichmentDefinition | KvEnrichmentDefinition;
 
 const TRACTATE_PAGE_RE = /[^a-zA-Z0-9.-]/g;
+/** The `{tractate}` slug that terminates spine-scoped enrichment keys and
+ *  prefixes every `{tractate}:{page}` slug. Factored out so spine-scope keys
+ *  (tractate-only) and daf-scope keys (tractate+page) share one normalization. */
+export function slugTractate(tractate: string): string {
+  return tractate.toLowerCase().replace(TRACTATE_PAGE_RE, '_');
+}
 /** The `{tractate}:{page}` slug that terminates local mark/enrichment keys.
  *  Exported so the cache backfill can build the exact inverse map
  *  (slug -> display daf) byte-for-byte rather than re-deriving the transform. */
 export function slugDaf(tractate: string, page: string): string {
-  return `${tractate.toLowerCase().replace(TRACTATE_PAGE_RE, '_')}:${page.toLowerCase().replace(TRACTATE_PAGE_RE, '_')}`;
+  return `${slugTractate(tractate)}:${page.toLowerCase().replace(TRACTATE_PAGE_RE, '_')}`;
 }
 
 /** sha256(input) → first 12 hex chars. Used for hash-based instance ids. */
@@ -403,18 +409,27 @@ export function keyForEnrichment(
   const scope = enrichmentScope(def);
   const langSeg = lang === 'he' ? ':he' : '';
   const head = `enrich:${def.id}:${def.cache_version}${langSeg}:${instance_id}`;
+  // local  → keyed by instance + the whole daf (tractate:page)
+  // spine  → keyed by instance + the tractate only (one shelf per tractate; the
+  //          page is irrelevant because the piece accumulates across the daf set)
+  // global → keyed by instance alone (same regardless of daf)
   const body = scope === 'local'
     ? (() => {
         if (!daf) throw new Error(`enrichment ${def.id} is scope=local but no daf was supplied to keyForEnrichment`);
         return `${head}:${slugDaf(daf.tractate, daf.page)}`;
       })()
-    : head;
+    : scope === 'spine'
+      ? (() => {
+          if (!daf) throw new Error(`enrichment ${def.id} is scope=spine but no daf (for the tractate) was supplied to keyForEnrichment`);
+          return `${head}:${slugTractate(daf.tractate)}`;
+        })()
+      : head;
   return qualifier ? `${body}:q_${qualifier}` : body;
 }
 
 /** Both schema-shape and KV-shape definitions carry `scope`. */
-function enrichmentScope(def: AnyEnrichmentDefinition): 'global' | 'local' {
-  return (def as { scope: 'global' | 'local' }).scope;
+function enrichmentScope(def: AnyEnrichmentDefinition): 'global' | 'local' | 'spine' {
+  return (def as { scope: 'global' | 'local' | 'spine' }).scope;
 }
 
 /** The cache key for the PREVIOUS numeric cache_version of an enrichment, given

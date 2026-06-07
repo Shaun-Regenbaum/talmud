@@ -106,6 +106,7 @@ import {
   type EnrichmentDefinition,
 } from './studio-registry';
 import { CODE_MARKS, CODE_ENRICHMENTS, findCodeMark, findCodeEnrichment } from './code-marks';
+import { computeCoverage, isKnownTractate } from './spine-coverage';
 import {
   ENRICH_JSON_SCHEMA,
   TRANSLATE_BIO_JSON_SCHEMA,
@@ -914,6 +915,22 @@ app.get('/api/dependents/:id', (c) => {
   const direct = [...(rev.get(id) ?? [])].sort();
   const transitive = [...transitiveDependents(rev, id)].sort();
   return c.json({ id, direct, transitive, count: transitive.length });
+});
+
+// Spine coverage — "which pieces of a whole tractate have been computed yet?"
+// A read-only exploration map over the global spine: enumerates every daf of the
+// tractate and, by listing KV keys, reports which producers already have a cached
+// piece for each. Computes nothing, mutates nothing. Powers the #spine page.
+app.get('/api/spine/coverage/:tractate', async (c) => {
+  const tractate = c.req.param('tractate');
+  if (!isKnownTractate(tractate)) {
+    return c.json({ error: `unknown tractate: ${tractate}` }, 404);
+  }
+  if (!c.env.CACHE) {
+    return c.json({ error: 'no CACHE binding in this environment' }, 503);
+  }
+  const report = await computeCoverage(c.env.CACHE, tractate);
+  return c.json(report);
 });
 
 // Source-input dependency keys (resolved in resolveDep, not producers) — used to
