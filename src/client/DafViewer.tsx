@@ -875,6 +875,10 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   };
   const setSidebar = (content: SidebarContent | null) => {
     setSidebarStack(content ? [content] : []);
+    // Switching the active card (or closing) clears the prior card's transient
+    // move-range band so it can't linger over an unrelated card — e.g. opening
+    // the Overview chip while an argument move was highlighted.
+    setArgumentMoveHighlight(null);
   };
   const pushSidebar = (content: SidebarContent) => {
     setSidebarStack((s) => {
@@ -888,6 +892,10 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   };
   const popSidebar = () => {
     setSidebarStack((s) => (s.length > 1 ? s.slice(0, -1) : s));
+    // A move-range band belongs to the card being popped (e.g. an argument
+    // section's sub-move); clear it so it doesn't linger over the card beneath
+    // (e.g. the Overview the reader just returned to).
+    setArgumentMoveHighlight(null);
   };
   // Short label for a stack entry — used to title the back chip so the
   // user sees what they're returning to.
@@ -2166,7 +2174,13 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     if (!a || !a.sections[index]) return;
     clearCommentarySelection();
     setActiveRabbi(null);
-    setSidebar({ kind: 'argument', section: a.sections[index], index });
+    const content = { kind: 'argument', section: a.sections[index], index } as const;
+    // Drilling in from the Overview (a flow-graph node, or a gutter click while
+    // the Overview is open) keeps the Overview underneath so the card's back
+    // chip returns to it — the two are one stack: Overview = entry point,
+    // section card = deep dive. Any other entry replaces outright.
+    if (sidebar()?.kind === 'argument-overview') pushSidebar(content);
+    else setSidebar(content);
     setLastInteractedCard('argument');
   };
 
@@ -2226,6 +2240,9 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     // clears the span highlight.
     const current = sidebar();
     if (current && current.kind === kind && 'index' in current && current.index === index) {
+      // Toggle off. If this card was pushed onto something (e.g. the Overview),
+      // pop back to it rather than closing the whole panel.
+      if (sidebarStack().length > 1) { popSidebar(); return; }
       setSidebar(null);
       setActiveRabbi(null);
       if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
