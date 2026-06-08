@@ -649,11 +649,10 @@ export const CODE_MARKS: MarkDefinition[] = [
     },
     dependencies: ['gemara'],
     status: 'promoted',
-    def_hash: 'rabbi-v3',
-    // v3: generation is grounded through the registry post-extraction
-    // (groundRabbiInstances) — authoritative era when identified, neutral
-    // 'unknown' for an unpinnable homonym instead of a freeform LLM guess.
-    cache_version: '3',
+    def_hash: 'rabbi-v4',
+    // v4: registry grounding uses exact-canonical precedence (bare 'Rav' -> the
+    // Rav node, not a minor Rav-X); fixes a benchmark-surfaced misresolution.
+    cache_version: '4',
     source: 'code',
     updated_at: NOW,
   },
