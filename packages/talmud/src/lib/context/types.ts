@@ -9,7 +9,7 @@
  */
 
 import type { DafyomiContentType, DafyomiText } from '../sefref/dafyomi/schema.ts';
-import type { AnchorCoord } from './coord.ts';
+import type { AnchorCoord } from '@corpus/core/context/coord';
 
 export type ContextSource =
   | 'sefaria-rashi'

@@ -24,7 +24,7 @@ import { dafLinks, type DafLink } from '../lib/context/dafLinks';
 import { spineLinks } from '../lib/context/spineLinks';
 import { buildCrossFlowPrompt, parseCrossFlowEdges, crossFlowToLinks, type CrossFlow, type CrossFlowEdge, type CrossFlowSection } from '../lib/typing/crossFlow';
 import { iterAmudim } from '../lib/sefref/amudim';
-import { producerNodesFrom, reverseDependencyIndex, transitiveDependents, forwardSubgraph } from '../lib/registry/depGraph';
+import { producerNodesFrom, reverseDependencyIndex, transitiveDependents, forwardSubgraph } from '@corpus/core/registry/depGraph';
 import { aiMatchToSegments } from './context-match';
 import type { MatchInput } from '../lib/context/anchor/ai-prompt';
 import {

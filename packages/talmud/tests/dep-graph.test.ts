@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   dependencyId, producerNodesFrom, reverseDependencyIndex, transitiveDependents, forwardSubgraph,
-} from '../src/lib/registry/depGraph';
+} from '@corpus/core/registry/depGraph';
 
 describe('dependencyId — normalise a raw dependency to the id it points at', () => {
   it('reads source strings and producer references; null for junk', () => {

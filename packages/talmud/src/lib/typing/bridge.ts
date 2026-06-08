@@ -15,7 +15,7 @@
  * Pure + DOM-free.
  */
 
-import type { DafRef } from '../context/coord';
+import type { DafRef } from '@corpus/core/context/coord';
 
 export type BridgeKind = 'continues' | 'perek-boundary' | 'new-topic';
 

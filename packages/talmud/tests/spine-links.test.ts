@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { spineLinks } from '../src/lib/context/spineLinks';
 import type { DafLink } from '../src/lib/context/dafLinks';
-import { dafCoord, coordForSeg, coordKey } from '../src/lib/context/coord';
+import { dafCoord, coordForSeg, coordKey } from '@corpus/core/context/coord';
 
 const t = 'berakhot';
 

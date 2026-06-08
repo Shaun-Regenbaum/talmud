@@ -40,7 +40,7 @@
  */
 
 import type { LLMModelId } from '@corpus/core/llm/llm';
-import type { SidebarRecipe } from '../lib/sidebar/recipe';
+import type { SidebarRecipe } from '@corpus/core/sidebar/recipe';
 
 // ===========================================================================
 // Anchor — where in the daf this mark's instances live.

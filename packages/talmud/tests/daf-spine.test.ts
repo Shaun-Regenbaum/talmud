@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { dafSpine } from '../src/lib/context/spine';
-import { dafCoord } from '../src/lib/context/coord';
+import { dafCoord } from '@corpus/core/context/coord';
 
 const DAF = { tractate: 'Berakhot', page: '2b' };
 

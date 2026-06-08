@@ -18,7 +18,7 @@
  * and caches; everything here is unit-testable string/array assembly.
  */
 
-import { coordForSeg, type AnchorCoord, type DafRef } from '../context/coord';
+import { coordForSeg, type AnchorCoord, type DafRef } from '@corpus/core/context/coord';
 import type { DafLink } from '../context/dafLinks';
 
 export type CrossFlowRelation = 'continues' | 'resolves' | 'depends-on' | 'parallels' | 'contrasts' | 'generalizes';

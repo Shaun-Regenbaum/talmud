@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { citationLink, continuationLink, flowLinks, glossLinks, isLinkRelation, linkLabel, type Link } from '../src/lib/context/link.ts';
-import { dafCoord, coordForSeg, spineCoord, DAF_SEG } from '../src/lib/context/coord.ts';
+import { dafCoord, coordForSeg, spineCoord, DAF_SEG } from '@corpus/core/context/coord';
 import { formatContextForPrompt } from '../src/lib/context/select.ts';
 import type { ContextItem } from '../src/lib/context/types.ts';
 

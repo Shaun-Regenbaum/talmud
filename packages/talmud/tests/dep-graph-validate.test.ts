@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { producerNodesFrom, validateProducerGraph } from '../src/lib/registry/depGraph';
+import { producerNodesFrom, validateProducerGraph } from '@corpus/core/registry/depGraph';
 import { CODE_MARKS, CODE_ENRICHMENTS } from '../src/worker/code-marks';
 
 // Source inputs are the non-producer leaves a dependency may point at.

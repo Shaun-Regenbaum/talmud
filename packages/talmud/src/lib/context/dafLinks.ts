@@ -12,7 +12,7 @@
  * layer — `GET /api/links/:tractate/:page` returns `dafLinks(...)`.
  */
 
-import { coordForSeg, dafCoord, type AnchorCoord, type DafRef } from './coord.ts';
+import { coordForSeg, dafCoord, type AnchorCoord, type DafRef } from '@corpus/core/context/coord';
 import { citationLink, continuationLink, flowLinks, glossLinks, type CommentaryWorkLike, type FlowEdge, type LinkRelation } from './link.ts';
 import type { ContextItem } from './types.ts';
 

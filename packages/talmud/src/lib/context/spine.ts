@@ -13,7 +13,7 @@
  */
 
 import { continuationLink, type Link } from './link.ts';
-import type { DafRef } from './coord.ts';
+import type { DafRef } from '@corpus/core/context/coord';
 
 /** The local neighborhood of a daf on its tractate spine. */
 export interface DafSpine {

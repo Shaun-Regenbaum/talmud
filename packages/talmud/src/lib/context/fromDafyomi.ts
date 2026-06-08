@@ -11,7 +11,7 @@ import type {
   DafyomiDaf, DafyomiContentType, DafyomiEntry, DafyomiAmudContent,
 } from '../sefref/dafyomi/schema.ts';
 import type { ContextItem } from './types.ts';
-import { dafCoord, type AnchorCoord } from './coord.ts';
+import { dafCoord, type AnchorCoord } from '@corpus/core/context/coord';
 import { sourceLabel } from './sources.ts';
 
 export function fromDafyomi(daf: DafyomiDaf): ContextItem[] {
