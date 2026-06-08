@@ -34,6 +34,8 @@ const TOP_PAD = 12, LEFT_PAD = 46;
 const LANE_BASE = 14, LANE_STEP = 12, CORNER_R = 16;
 const LINE_H = 15, TITLE_CHARS = 44, TITLE_LINES = 2;
 const HILITE = '#b8860b';
+// Overview mode: one compact node per daf so the WHOLE tractate fits a screen.
+const OV_NODE_H = 22, OV_NODE_W = 132, OV_GAP = 6, OV_TOP = 12, OV_LEFT = 10;
 
 interface Edge { from: string; to: string; kind: Kind; cross: boolean; note?: string; fromSec: number; toSec: number; fromPage: string; toPage: string }
 
@@ -50,7 +52,7 @@ function assignLanesY(spans: { lo: number; hi: number }[]): number[] {
   return lanes;
 }
 
-export default function SpineFlowGraph(props: { dapim: SpineViewDaf[]; highlight?: string | null; onRabbi?: (name: string) => void }): JSX.Element {
+export default function SpineFlowGraph(props: { dapim: SpineViewDaf[]; highlight?: string | null; onRabbi?: (name: string) => void; mode?: 'detail' | 'overview'; onPickDaf?: (page: string) => void }): JSX.Element {
   const model = createMemo(() => {
     const nodeY = new Map<string, number>();
     const nodeH = new Map<string, number>();
@@ -102,22 +104,52 @@ export default function SpineFlowGraph(props: { dapim: SpineViewDaf[]; highlight
     return { nodeY, nodeH, nodeTitle, nodeNum, nodeRabbis, dafHeaders, height, edges, lanes, width, mid };
   });
 
-  const rightX = LEFT_PAD + NODE_W;
-  const laneX = (lane: number) => rightX + LANE_BASE + lane * LANE_STEP;
-  const edgePath = (y1: number, y2: number, lane: number): string => {
-    const x = laneX(lane);
+  // Overview model: one compact node per daf (page label + section-count), with
+  // daf→nextDaf edges (one per cross-relation present, else the continuity
+  // backbone). The whole tractate's shape on one screen.
+  const overviewModel = createMemo(() => {
+    const nodeY = new Map<string, number>();
+    const meta = new Map<string, { sections: number; hasCross: boolean }>();
+    let y = OV_TOP;
+    for (const d of props.dapim) {
+      nodeY.set(d.page, y);
+      meta.set(d.page, { sections: d.sections.length, hasCross: d.cross.length > 0 });
+      y += OV_NODE_H + OV_GAP;
+    }
+    const height = y + 4;
+    const pageSet = new Set(props.dapim.map((d) => d.page));
+    const edges: { from: string; to: string; kind: Kind }[] = [];
+    for (const d of props.dapim) {
+      if (!d.nextPage || !pageSet.has(d.nextPage)) continue;
+      const kinds = new Set<Kind>();
+      for (const e of d.cross) kinds.add(e.relation as Kind);
+      if (kinds.size === 0 && d.continues) kinds.add('continues');
+      for (const k of kinds) edges.push({ from: d.page, to: d.nextPage, kind: k });
+    }
+    const mid = (p: string) => (nodeY.get(p) ?? 0) + OV_NODE_H / 2;
+    const lanes = assignLanesY(edges.map((e) => ({ lo: Math.min(mid(e.from), mid(e.to)), hi: Math.max(mid(e.from), mid(e.to)) })));
+    const laneCount = lanes.length ? Math.max(...lanes) + 1 : 0;
+    const width = OV_LEFT + OV_NODE_W + LANE_BASE + Math.max(1, laneCount) * LANE_STEP + 12;
+    return { nodeY, meta, edges, lanes, mid, height, width };
+  });
+
+  // Orthogonal connector through a right-side lane gutter. rX = node right edge.
+  const orthPath = (y1: number, y2: number, lane: number, rX: number): string => {
+    const x = rX + LANE_BASE + lane * LANE_STEP;
     const dir = y2 >= y1 ? 1 : -1;
-    const r = Math.min(CORNER_R, x - rightX, Math.abs(y2 - y1) / 2 || CORNER_R);
-    return [`M ${rightX} ${y1}`, `L ${x - r} ${y1}`, `Q ${x} ${y1} ${x} ${y1 + dir * r}`, `L ${x} ${y2 - dir * r}`, `Q ${x} ${y2} ${x - r} ${y2}`, `L ${rightX} ${y2}`].join(' ');
+    const r = Math.min(CORNER_R, x - rX, Math.abs(y2 - y1) / 2 || CORNER_R);
+    return [`M ${rX} ${y1}`, `L ${x - r} ${y1}`, `Q ${x} ${y1} ${x} ${y1 + dir * r}`, `L ${x} ${y2 - dir * r}`, `Q ${x} ${y2} ${x - r} ${y2}`, `L ${rX} ${y2}`].join(' ');
   };
+  const edgePath = (y1: number, y2: number, lane: number): string => orthPath(y1, y2, lane, LEFT_PAD + NODE_W);
 
   // Zoom lets you shrink the whole rendered map to read its shape, then scale
   // back in. The container keeps its own scrollbars for panning; ctrl/cmd+wheel
   // zooms. "fit" scales the map to the container height.
   const [zoom, setZoom] = createSignal(1);
-  const clampZoom = (z: number) => Math.max(0.15, Math.min(2, z));
+  const clampZoom = (z: number) => Math.max(0.12, Math.min(2, z));
   let boxRef: HTMLDivElement | undefined;
-  const fit = () => { const h = (boxRef?.clientHeight || 600) - 12; setZoom(clampZoom(h / model().height)); };
+  const activeHeight = () => (props.mode === 'overview' ? overviewModel().height : model().height);
+  const fit = () => { const h = (boxRef?.clientHeight || 600) - 12; setZoom(clampZoom(h / activeHeight())); };
   const onWheel = (e: WheelEvent) => { if (e.ctrlKey || e.metaKey) { e.preventDefault(); setZoom((z) => clampZoom(z * (e.deltaY < 0 ? 1.12 : 0.89))); } };
   const zbtn: JSX.CSSProperties = { font: 'inherit', 'font-size': '0.78rem', padding: '0.1rem 0.5rem', border: '1px solid var(--line)', 'border-radius': '6px', background: '#fff', cursor: 'pointer', color: 'var(--fg)' };
 
@@ -133,7 +165,7 @@ export default function SpineFlowGraph(props: { dapim: SpineViewDaf[]; highlight
         <span style={{ 'margin-left': '0.3rem' }}>ctrl/&#8984;+scroll to zoom</span>
       </div>
       <div ref={boxRef} onWheel={onWheel} style={{ 'max-height': '78vh', 'overflow-y': 'auto', 'overflow-x': 'auto', border: '1px solid #ece9df', 'border-radius': '8px', background: '#fdfcf9', 'margin-top': '0.4rem', padding: '0.3rem' }}>
-        {(() => {
+        <Show when={props.mode === 'overview'} fallback={(() => {
           const m = model();
           const hl = () => props.highlight ?? null; // a rabbi slug
           return (
@@ -207,7 +239,45 @@ export default function SpineFlowGraph(props: { dapim: SpineViewDaf[]; highlight
               }}</For>
             </svg>
           );
-        })()}
+        })()}>
+          {(() => {
+            const o = overviewModel();
+            return (
+              <svg width={o.width * zoom()} height={o.height * zoom()} viewBox={`0 0 ${o.width} ${o.height}`} style={{ display: 'block' }}>
+                <defs>
+                  <For each={Object.entries(KIND_COLOR)}>{([kind, color]) => (
+                    <marker id={`ov-arrow-${kind}`} markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                      <path d="M 0 0 L 6 3 L 0 6 z" fill={color} />
+                    </marker>
+                  )}</For>
+                </defs>
+                <For each={o.edges}>{(e, i) => (
+                  <path d={orthPath(o.mid(e.from), o.mid(e.to), o.lanes[i()], OV_LEFT + OV_NODE_W)}
+                    fill="none" stroke={KIND_COLOR[e.kind] ?? '#888'} stroke-width={1.5}
+                    stroke-linecap="round" stroke-linejoin="round" stroke-opacity={0.85}
+                    stroke-dasharray={KIND_DASH[e.kind]} marker-end={`url(#ov-arrow-${e.kind})`}>
+                    <title>{`${e.from} ${e.kind} ${e.to}`}</title>
+                  </path>
+                )}</For>
+                <For each={[...o.nodeY.keys()]}>{(page) => {
+                  const yTop = o.nodeY.get(page)!;
+                  const meta = o.meta.get(page)!;
+                  return (
+                    <g style={{ cursor: props.onPickDaf ? 'pointer' : 'default' }} onClick={() => props.onPickDaf?.(page)}>
+                      <title>{`${page} — ${meta.sections} sections${meta.hasCross ? ' · cross-daf links' : ''}`}</title>
+                      <rect x={OV_LEFT} y={yTop} width={OV_NODE_W} height={OV_NODE_H} rx={6} ry={6}
+                        fill={meta.hasCross ? '#fdf2f2' : '#ffffff'} stroke={meta.hasCross ? '#d8a3a3' : '#e4e0d4'} stroke-width={1} />
+                      <text x={OV_LEFT + 8} y={yTop + OV_NODE_H / 2} dominant-baseline="central" font-size="11" font-weight="700" font-family="system-ui, sans-serif" fill="#8a2a2b">{page}</text>
+                      <For each={Array.from({ length: Math.min(meta.sections, 8) })}>{(_item, di) => (
+                        <rect x={OV_LEFT + 44 + di() * 6} y={yTop + OV_NODE_H / 2 - 3} width={4} height={6} rx={1} fill="#9a948a" />
+                      )}</For>
+                    </g>
+                  );
+                }}</For>
+              </svg>
+            );
+          })()}
+        </Show>
       </div>
       </>
     </Show>

@@ -125,6 +125,7 @@ export function SpineCoveragePage(): JSX.Element {
   const [viewTrigger, setViewTrigger] = createSignal<string | null>(thirdSeg() === 'flow' ? routeTractate() : null);
   const [flowView] = createResource(viewTrigger, fetchSpineView);
   const [trace, setTrace] = createSignal<string | null>(null); // rabbi being traced across the tractate
+  const [flowMode, setFlowMode] = createSignal<'detail' | 'overview'>('detail');
 
   const go = (t: string) => {
     const slug = t.trim().toLowerCase().replace(/\s+/g, '_');
@@ -286,10 +287,21 @@ export function SpineCoveragePage(): JSX.Element {
                   const capped = createMemo(() => shown().slice(0, FLOW_VIEW_CAP));
                   const allKinds = createMemo(() => connectionKinds(capped().flatMap((d) => d.flow) as Parameters<typeof connectionKinds>[0]));
                   const crossCount = createMemo(() => capped().reduce((n, d) => n + d.cross.length, 0));
+                  const segChip = (active: boolean): JSX.CSSProperties => ({
+                    font: 'inherit', 'font-size': '0.78rem', padding: '0.15rem 0.6rem', cursor: 'pointer', 'border-radius': '999px',
+                    border: active ? '1px solid var(--accent)' : '1px solid var(--line)',
+                    background: active ? 'var(--accent)' : '#fff', color: active ? '#fff' : 'var(--muted)',
+                  });
                   return (
                     <div style={{ 'margin-top': '0.7rem' }}>
+                      <div style={{ display: 'flex', 'align-items': 'center', gap: '0.4rem', 'margin-bottom': '0.4rem' }}>
+                        <button style={segChip(flowMode() === 'detail')} onClick={() => setFlowMode('detail')}>detail</button>
+                        <button style={segChip(flowMode() === 'overview')} onClick={() => setFlowMode('overview')}>overview (whole tractate)</button>
+                      </div>
                       <div style={{ 'font-size': '0.8rem', color: 'var(--muted)', 'margin-bottom': '0.3rem' }}>
-                        showing {capped().length} of {shown().length} dapim {shown().length > FLOW_VIEW_CAP ? '(capped)' : ''} &middot; {crossCount()} cross-daf arrows (thicker lines span the page break) &middot; click a rabbi to trace
+                        <Show when={flowMode() === 'detail'} fallback={`whole tractate — ${v().dapim.length} dapim, one node each; tinted = has cross-daf links. Click a daf for detail.`}>
+                          showing {capped().length} of {shown().length} dapim {shown().length > FLOW_VIEW_CAP ? '(capped)' : ''} &middot; {crossCount()} cross-daf arrows (thicker lines span the page break) &middot; click a rabbi to trace
+                        </Show>
                       </div>
                       <FlowLegend kinds={allKinds()} />
                       <Show when={trace()}>
@@ -309,9 +321,11 @@ export function SpineCoveragePage(): JSX.Element {
                         }}
                       </Show>
                       <SpineFlowGraph
-                        dapim={capped() as SpineViewDaf[]}
+                        dapim={(flowMode() === 'overview' ? v().dapim : capped()) as SpineViewDaf[]}
+                        mode={flowMode()}
                         highlight={trace()}
                         onRabbi={(slug) => setTrace((prev) => (prev === slug ? null : slug))}
+                        onPickDaf={() => setFlowMode('detail')}
                       />
                     </div>
                   );
