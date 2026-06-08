@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { rabbiCandidates, resolveRabbiSlug, generationOf, groundRabbiInstances } from '../src/worker/rabbi-graph';
+import { rabbiCandidates, resolveRabbiSlug, generationOf, groundRabbiInstances, groundRabbiNames } from '../src/worker/rabbi-graph';
 import hier from '../src/lib/data/rabbi-hierarchy.json';
 
 // Registry-first rabbi resolution with relational homonym disambiguation.
@@ -124,5 +124,25 @@ describe('groundRabbiInstances — registry-grounded generation on rabbi mark in
       expect(f.genSource).toBe('relational');
       expect(f.generation).toBe(generationOf(picked.cand));
     }
+  });
+});
+
+describe('groundRabbiNames — the shared entry point for both attach paths', () => {
+  it('resolves a batch against its own cast + extra context, uniform records', () => {
+    // Rav Kahana + Rav in the batch → relational pin; an alias → unique; a
+    // non-registry name → none. One call, the contract both paths rely on.
+    const out = groundRabbiNames(
+      [{ name: 'Rav Kahana' }, { name: 'Reish Lakish' }, { name: 'Totally Made Up' }],
+      ['Rav'], // extra co-occurring context (e.g. the daf's rabbi-mark cast)
+    );
+    const byName = Object.fromEntries(out.map((g) => [g.name, g]));
+    expect(byName['Reish Lakish'].slug).toBe('rabbi-shimon-b-lakish');
+    expect(byName['Reish Lakish'].genSource).toBe('unique');
+    expect(byName['Totally Made Up'].slug).toBeNull();
+    expect(byName['Totally Made Up'].genSource).toBe('none');
+    // Rav Kahana resolves relationally off "Rav" in the context (his registry edge).
+    expect(byName['Rav Kahana'].genSource).toBe('relational');
+    expect(byName['Rav Kahana'].slug).toContain('kahana');
+    expect(byName['Rav Kahana'].generation).toBe(generationOf(byName['Rav Kahana'].slug!));
   });
 });

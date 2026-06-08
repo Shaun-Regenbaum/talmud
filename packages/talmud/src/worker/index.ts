@@ -89,7 +89,7 @@ import {
 import { wrapEnv, gatewayStatus, gatewayActive } from '@corpus/core/llm/ai-gateway';
 import { runLLM, type LLMModelId, type LLMResult, type LLMUsage, type CostAttribution } from '@corpus/core/llm/llm';
 import { checkBudget, isBudgetPaused, budgetStatus, clearPauses, type BudgetScope } from '@corpus/core/llm/budget';
-import { lookupRelationships, slugToName, resolveRabbiSlug, groundRabbiInstances } from './rabbi-graph';
+import { lookupRelationships, groundRabbiInstances, groundRabbiNames } from './rabbi-graph';
 import { runPasses } from '../lib/check/passes';
 import { composeTypeProfile, sectionHasNamedSpeaker, type LayerId, type LayerInstance, type TypeProfile, type UnitRange } from '../lib/typing/profile';
 import { findMarkers } from '../lib/typing/markers';
@@ -1011,21 +1011,18 @@ async function readSectionRabbis(env: Bindings, tractate: string, page: string):
       const vhit = await readCachedResult(env, keyForEnrichment(voicesDef, iid, { tractate, page }));
       const voices = (vhit?.parsed as { voices?: { name?: unknown; nameHe?: unknown }[] } | null)?.voices;
       if (Array.isArray(voices)) {
+        // Same registry-first + relational resolver as the direct rabbi mark,
+        // with the daf's cast as relational context (groundRabbiNames). A voice
+        // is kept only if it resolves; the chip shows the canonical name.
+        const items = voices
+          .map((v) => ({ name: typeof v.name === 'string' ? v.name.trim() : '', he: typeof v.nameHe === 'string' ? v.nameHe : undefined }))
+          .filter((v) => v.name)
+          .map((v) => ({ name: v.name, nameHe: v.he ?? genHint.get(v.name.toLowerCase())?.nameHe, generation: genHint.get(v.name.toLowerCase())?.generation }));
         const seen = new Set<string>();
-        for (const v of voices) {
-          const name = typeof v.name === 'string' ? v.name.trim() : '';
-          if (!name) continue;
-          const hint = genHint.get(name.toLowerCase());
-          const nameHe = (typeof v.nameHe === 'string' ? v.nameHe : undefined) ?? hint?.nameHe;
-          // Registry-first + relational homonym disambiguation. coRabbis = the
-          // rest of the daf's cast (this voice excluded as context for itself).
-          const { slug } = resolveRabbiSlug(name, nameHe, {
-            coRabbis: coRabbis.filter((n) => n.toLowerCase() !== name.toLowerCase()),
-            generation: hint?.generation,
-          });
-          if (!slug || seen.has(slug)) continue; // drop unresolved/ambiguous + dupes
-          seen.add(slug);
-          rabbis.push({ slug, name: slugToName(slug) });
+        for (const g of groundRabbiNames(items, coRabbis)) {
+          if (!g.slug || seen.has(g.slug)) continue; // drop unresolved/ambiguous + dupes
+          seen.add(g.slug);
+          rabbis.push({ slug: g.slug, name: g.canonical ?? g.name });
         }
       }
     }

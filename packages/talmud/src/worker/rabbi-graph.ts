@@ -188,8 +188,10 @@ function buildIndex(): IndexBuilt {
 const INDEX = buildIndex();
 
 /** Find a node by name (English or Hebrew). When generation is supplied,
- *  prefer the slug whose generation matches. Returns slug or null. */
-export function findSlug(name: string, nameHe?: string, generation?: string): string | null {
+ *  prefer the slug whose generation matches. Returns slug or null. Internal —
+ *  callers use resolveRabbiSlug / groundRabbiNames (registry-first + relational);
+ *  findSlug is the single-best context resolver those build on. */
+function findSlug(name: string, nameHe?: string, generation?: string): string | null {
   // 1. Hand-curated alias table — short-form names like "Reish Lakish".
   const norm = normalizeName(name);
   if (ALIASES[norm]) return ALIASES[norm];
@@ -316,15 +318,48 @@ export function resolveRabbiSlug(
   return { slug: null, basis: 'ambiguous' };
 }
 
+export interface GroundedRabbi {
+  name: string;
+  slug: string | null;
+  canonical: string | null;
+  generation: string | null;
+  genSource: ResolveBasis;
+}
+
 /**
- * Ground a rabbi MARK's instances' `generation` through the registry, using the
- * daf's full cast for relational homonym disambiguation (resolveRabbiSlug). The
- * mark's LLM emits a freeform per-daf generation guess; this replaces it with
- * the authoritative registry value when the rabbi is identified, and — for a
- * homonym we CANNOT pin from the daf's cast (e.g. which Rav Kahana) — sets
- * `unknown` so the era color is neutral rather than a confident-wrong red/blue.
- * A name absent from the registry keeps the LLM's guess (no registry opinion).
- * Also stamps `slug` + `canonical` + `genSource` (provenance) on each instance.
+ * THE one rabbi-resolution entry point, used by BOTH ways rabbis attach to the
+ * text — the direct rabbi mark and the through-arguments voices. Resolves each
+ * name registry-first with relational homonym disambiguation off the combined
+ * cast (the items themselves + any extra co-occurring `context`), and returns a
+ * uniform grounded record:
+ *   - slug/canonical: null when not in the registry ('none') or an unpinnable
+ *     homonym ('ambiguous') — we never invent or confidently-mis-pick a rabbi.
+ *   - generation: the authoritative registry era when resolved; 'unknown' for an
+ *     ambiguous homonym (neutral, not a confident-wrong guess); else the input.
+ *   - genSource: provenance (unique | relational | generation | ambiguous | none).
+ */
+export function groundRabbiNames(
+  items: readonly { name: string; nameHe?: string; generation?: string }[],
+  context: readonly string[] = [],
+): GroundedRabbi[] {
+  const cast = [...items.map((i) => i.name), ...context];
+  return items.map((it) => {
+    const { slug, basis } = resolveRabbiSlug(it.name, it.nameHe, {
+      coRabbis: cast.filter((n) => n.toLowerCase() !== it.name.toLowerCase()),
+      generation: it.generation,
+    });
+    const generation = slug
+      ? (generationOf(slug) ?? it.generation ?? null)
+      : (basis === 'ambiguous' ? 'unknown' : (it.generation ?? null));
+    return { name: it.name, slug, canonical: slug ? slugToName(slug) : null, generation, genSource: basis };
+  });
+}
+
+/**
+ * Ground a rabbi MARK's instances in place via groundRabbiNames (the daf's own
+ * cast is the relational context). Stamps slug + canonical + genSource and
+ * rewrites generation (authoritative registry era, or 'unknown' for an
+ * unpinnable homonym so the era color is neutral, not a confident-wrong guess).
  * Mutates and returns `parsed`.
  */
 export function groundRabbiInstances(parsed: unknown): unknown {
@@ -335,31 +370,21 @@ export function groundRabbiInstances(parsed: unknown): unknown {
     (i && typeof i === 'object' && (i as { fields?: unknown }).fields && typeof (i as { fields?: unknown }).fields === 'object'
       ? ((i as { fields: Record<string, unknown> }).fields)
       : null);
-  // The daf's full cast — relational context for homonym disambiguation.
-  const cast: string[] = [];
-  for (const i of insts) { const n = fieldsOf(i)?.name; if (typeof n === 'string' && n.trim()) cast.push(n.trim()); }
-
+  const targets: { f: Record<string, unknown>; item: { name: string; nameHe?: string; generation?: string } }[] = [];
   for (const inst of insts) {
     const f = fieldsOf(inst);
     if (!f) continue;
     const name = typeof f.name === 'string' ? f.name.trim() : '';
     if (!name) continue;
-    const nameHe = typeof f.nameHe === 'string' ? f.nameHe : undefined;
-    const llmGen = typeof f.generation === 'string' ? f.generation : undefined;
-    const { slug, basis } = resolveRabbiSlug(name, nameHe, {
-      coRabbis: cast.filter((n) => n.toLowerCase() !== name.toLowerCase()),
-      generation: llmGen,
-    });
-    f.genSource = basis;
-    if (slug) {
-      f.slug = slug;
-      f.canonical = slugToName(slug);
-      const g = generationOf(slug);
-      if (g) f.generation = g;               // authoritative registry era
-    } else if (basis === 'ambiguous') {
-      f.generation = 'unknown';              // can't pin the homonym → neutral, don't assert
-    }                                        // basis 'none' → keep the LLM generation
+    targets.push({ f, item: { name, nameHe: typeof f.nameHe === 'string' ? f.nameHe : undefined, generation: typeof f.generation === 'string' ? f.generation : undefined } });
   }
+  const grounded = groundRabbiNames(targets.map((t) => t.item));
+  grounded.forEach((g, i) => {
+    const f = targets[i].f;
+    f.genSource = g.genSource;
+    if (g.slug) { f.slug = g.slug; f.canonical = g.canonical; }
+    if (g.generation) f.generation = g.generation;
+  });
   return parsed;
 }
 
