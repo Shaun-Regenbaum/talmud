@@ -13,8 +13,8 @@
  */
 
 import { coordForSeg, dafCoord, type AnchorCoord, type DafRef } from '@corpus/core/context/coord';
-import { citationLink, continuationLink, flowLinks, glossLinks, type CommentaryWorkLike, type FlowEdge, type LinkRelation } from './link.ts';
-import type { ContextItem } from './types.ts';
+import { citationLink, continuationLink, flowLinks, glossLinks, type CommentaryWorkLike, type FlowEdge, type LinkRelation } from '@corpus/core/context/link';
+import type { ContextItem } from '@corpus/core/context/types';
 
 /** A link on a daf: where it lives (`source`), the `relation`, and what it
  *  points at (`targets`). `via` records which producer it came from, for

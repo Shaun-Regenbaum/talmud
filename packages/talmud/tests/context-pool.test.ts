@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   fromCommentaryPieces, fromRishonim, fromHalachaRefs, fromMishna, fromTopics,
 } from '../src/lib/context/fromSefaria';
-import { contextForAnchor, formatContextForPrompt, segsFromMarkInput } from '../src/lib/context/select';
-import type { ContextItem } from '../src/lib/context/types';
+import { contextForAnchor, formatContextForPrompt, segsFromMarkInput } from '@corpus/core/context/select';
+import type { ContextItem } from '@corpus/core/context/types';
 
 describe('segsFromMarkInput — instance location → target segments', () => {
   it('expands a startSegIdx..endSegIdx range', () => {

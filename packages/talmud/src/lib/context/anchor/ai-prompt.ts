@@ -8,8 +8,8 @@
  * just wires this to runLLM.
  */
 
-import type { SegMatch } from '../match.ts';
-import { segRange } from '../match.ts';
+import type { SegMatch } from '@corpus/core/context/match';
+import { segRange } from '@corpus/core/context/match';
 
 export interface MatchInput {
   key: string;

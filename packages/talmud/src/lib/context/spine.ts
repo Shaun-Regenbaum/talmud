@@ -12,7 +12,7 @@
  * replaces the client overview's bespoke pair of `/api/bridge` fetches.
  */
 
-import { continuationLink, type Link } from './link.ts';
+import { continuationLink, type Link } from '@corpus/core/context/link';
 import type { DafRef } from '@corpus/core/context/coord';
 
 /** The local neighborhood of a daf on its tractate spine. */

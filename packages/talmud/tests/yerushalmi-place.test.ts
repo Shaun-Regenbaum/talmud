@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { matchYerushalmiToSegments } from '../src/lib/context/anchor/yerushalmi';
-import type { ContextItem } from '../src/lib/context/types';
+import type { ContextItem } from '@corpus/core/context/types';
 
 function yeruItem(he: string): ContextItem {
   return { source: 'dafyomi:yerushalmi', sourceLabel: 'Yerushalmi', kind: 'yerushalmi', key: 'y:0', body: { he }, segs: [] };

@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { citationLink, continuationLink, flowLinks, glossLinks, isLinkRelation, linkLabel, type Link } from '../src/lib/context/link.ts';
+import { citationLink, continuationLink, flowLinks, glossLinks, isLinkRelation, linkLabel, type Link } from '@corpus/core/context/link';
 import { dafCoord, coordForSeg, spineCoord, DAF_SEG } from '@corpus/core/context/coord';
-import { formatContextForPrompt } from '../src/lib/context/select.ts';
-import type { ContextItem } from '../src/lib/context/types.ts';
+import { formatContextForPrompt } from '@corpus/core/context/select';
+import type { ContextItem } from '@corpus/core/context/types';
 
 describe('citationLink — refs become a Link(relation: cites)', () => {
   it('returns null for no refs', () => {

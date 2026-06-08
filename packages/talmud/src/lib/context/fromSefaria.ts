@@ -9,8 +9,8 @@
 import type {
   TalmudPageData, RishonimBundle, HalachicRefBundle, MishnaBundle, SefariaTopicBundle,
 } from '../sefref/sefaria/client.ts';
-import type { ContextItem, ContextSource } from './types.ts';
-import { sourceLabel } from './sources.ts';
+import type { ContextItem } from '@corpus/core/context/types';
+import { sourceLabel, type ContextSource } from './sources.ts';
 
 function item(source: ContextSource, label: string, kind: string, key: string, fields: Partial<ContextItem>): ContextItem {
   return { source, sourceLabel: label, kind, key, segs: [], ...fields };

@@ -2,10 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { findDafRefs } from '../src/lib/sefref/dafyomi/parse/common';
 import { resolveTractateName, resolveDafRef } from '../src/lib/sefref/dafyomi/masechtos';
 import { parseRevach } from '../src/lib/sefref/dafyomi/parse/revach';
-import { formatContextForPrompt } from '../src/lib/context/select';
+import { formatContextForPrompt } from '@corpus/core/context/select';
 import { dafCoord } from '@corpus/core/context/coord';
 import { fromDafyomi } from '../src/lib/context/fromDafyomi';
-import type { ContextItem } from '../src/lib/context/types';
+import type { ContextItem } from '@corpus/core/context/types';
 import type { DafyomiDaf } from '../src/lib/sefref/dafyomi/schema';
 
 describe('resolveTractateName — dafyomi prose spelling → canonical', () => {

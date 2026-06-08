@@ -21,8 +21,8 @@
 
 import { aiMatchToSegments } from './context-match';
 import { getSefariaSegmentsCached } from './source-cache';
-import { applyMatches, type SegMatch } from '../lib/context/match';
-import type { ContextItem } from '../lib/context/types';
+import { applyMatches, type SegMatch } from '@corpus/core/context/match';
+import type { ContextItem } from '@corpus/core/context/types';
 import type { MatchInput } from '../lib/context/anchor/ai-prompt';
 import type { LLMEnv } from '@corpus/core/llm/llm';
 

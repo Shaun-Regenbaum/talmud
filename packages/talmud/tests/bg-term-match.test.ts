@@ -6,7 +6,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { matchBackgroundTerms } from '../src/lib/context/anchor/bg-term';
-import type { ContextItem } from '../src/lib/context/types';
+import type { ContextItem } from '@corpus/core/context/types';
 
 function bg(key: string, he: string, kind = 'glossary'): ContextItem {
   return {

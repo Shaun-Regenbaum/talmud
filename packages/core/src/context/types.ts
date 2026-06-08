@@ -1,35 +1,37 @@
 /**
  * @fileoverview The one context model.
  *
- * Every external source (dafyomi.co.il content types, Sefaria commentary text,
+ * Every external source (study-aid content types, Sefaria commentary text,
  * Mishnayot, Rishonim, …) maps into a flat `ContextItem`. The only anchor is
  * `segs` — the main-text segment indices the item touches; `[]` means it's not
- * localized to a segment (whole-daf, optionally narrowed to an `amud`). A
+ * localized to a segment (whole-spine, optionally narrowed to an `amud`). A
  * matcher (deterministic or AI) "places" an item by filling in `segs`.
+ *
+ * Corpus-agnostic: `source` is a free string here; an app narrows it to its own
+ * source registry (e.g. the Talmud app's `ContextSource` union in
+ * `src/lib/context/sources.ts`).
  */
 
-import type { DafyomiContentType, DafyomiText } from '../sefref/dafyomi/schema.ts';
-import type { AnchorCoord } from '@corpus/core/context/coord';
+import type { AnchorCoord } from './coord.ts';
 
-export type ContextSource =
-  | 'sefaria-rashi'
-  | 'sefaria-tosafot'
-  | 'sefaria-rishonim'
-  | 'sefaria-halacha'
-  | 'sefaria-mishnah'
-  | 'sefaria-topic'
-  | `dafyomi:${DafyomiContentType}`;
+/** A piece of bilingual text. Either side may be absent (Hebrew-only sources
+ *  populate `he`; English prose populates `en`). */
+export interface LocalizedText {
+  he?: string;
+  en?: string;
+}
 
 export interface ContextItem {
-  source: ContextSource;
+  /** Source id. App-narrowed (the Talmud app uses its `ContextSource` union). */
+  source: string;
   /** Human-readable source label, e.g. "Insights", "Rashi". */
   sourceLabel: string;
   /** Sub-kind within the source, e.g. 'tosfos-piece', 'glossary', 'rishon'. */
   kind: string;
   /** Stable id, unique within a daf's items. */
   key: string;
-  title?: DafyomiText;
-  body?: DafyomiText;
+  title?: LocalizedText;
+  body?: LocalizedText;
   /** Source URL for attribution / click-through. */
   url?: string;
 

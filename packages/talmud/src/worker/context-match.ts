@@ -15,7 +15,7 @@
 
 import { runLLM, type LLMEnv } from '@corpus/core/llm/llm';
 import { buildMatchPrompt, parseMatchResponse, type MatchInput } from '../lib/context/anchor/ai-prompt';
-import type { SegMatch } from '../lib/context/match';
+import type { SegMatch } from '@corpus/core/context/match';
 
 /** Items per LLM call — kept small to stay in the matcher's accurate range. */
 export const MATCH_CHUNK_SIZE = 8;
