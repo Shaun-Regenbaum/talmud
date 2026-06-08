@@ -128,53 +128,7 @@ body {
   color: #a23;
 }
 
-/* ---- reading view ---- */
-.chapter-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-  margin: 36px 0 8px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--line);
-}
-.chapter-head .he {
-  font-size: 30px;
-}
-.chapter-head .en {
-  font-size: 16px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-.verses {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.verse {
-  display: grid;
-  grid-template-columns: 28px 1fr;
-  gap: 6px 12px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--line);
-}
-.verse .vnum {
-  grid-row: span 2;
-  color: var(--accent);
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-  padding-top: 6px;
-}
-.verse .he {
-  font-size: 24px;
-  line-height: 1.95;
-  text-align: right;
-}
-.verse .en {
-  font-size: 17px;
-  color: #333;
-}
+/* shared chapter-nav footer (used by the scroll caption) */
 .chapter-foot {
   display: flex;
   justify-content: space-between;
@@ -182,30 +136,35 @@ body {
   margin-top: 32px;
 }
 
-/* ---- scroll (Sefer Torah) view: dense justified columns, no ornament ---- */
+/* ---- scroll (Sefer Torah / tikun): dense justified columns, no ornament.
+   Side gutters leave room for a future side panel (like the Talmud reader). */
 .scroll-main {
-  background: var(--parchment);
-  padding: 36px 40px 28px;
+  padding: 40px clamp(20px, 7vw, 150px) 48px;
 }
 .scroll-band {
-  max-width: 1080px;
+  max-width: 1000px;
   margin: 0 auto;
-  color: var(--stam);
+  color: var(--ink);
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.6;
+  column-count: 2;
+  column-gap: 3.2rem;
+  column-rule: 1px solid var(--line);
+}
+/* Each petucha-delimited portion is its own justified paragraph: the last line
+   ends naturally (start-aligned), like the blank line-remainder in a scroll. */
+.scroll-para {
+  margin: 0 0 0.15em;
   text-align: justify;
   text-justify: inter-word;
-  column-count: 2;
-  column-gap: 3rem;
-  column-rule: 1px solid rgba(122, 92, 46, 0.14);
 }
-.scroll-band .parsha-open {
-  display: block;
-  height: 0.85em;
+.scroll-para:last-child {
+  margin-bottom: 0;
 }
-.scroll-band .parsha-closed {
+/* setuma (closed parsha): a tab/gap within the line; text continues after it. */
+.setuma {
   display: inline-block;
-  width: 2.2em;
+  width: 5ch;
 }
 .scroll-band big {
   font-size: 1.4em;
@@ -216,13 +175,14 @@ body {
   vertical-align: super;
 }
 .scroll-caption {
+  max-width: 1000px;
+  margin: 20px auto 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-top: 16px;
   padding-top: 14px;
-  border-top: 1px solid rgba(122, 92, 46, 0.2);
+  border-top: 1px solid var(--line);
 }
 .scroll-caption .he {
   font-size: 19px;
@@ -231,8 +191,18 @@ body {
 .scroll-caption .chapter-foot {
   margin-top: 0;
 }
-.scroll-caption .chapter-foot button {
-  background: transparent;
+
+@media (max-width: 768px) {
+  .scroll-main {
+    padding: 28px 18px 40px;
+  }
+  .scroll-band {
+    column-count: 1;
+    max-width: none;
+  }
+  .scroll-caption {
+    max-width: none;
+  }
 }
 
 /* ---- Mikraot Gedolot (daf-renderer) view ---- */
@@ -263,4 +233,14 @@ body {
 .app.view-mikraot {
   max-width: none;
   padding: 0 0 40px;
+}
+
+/* verse numbers in the scroll: small Hebrew numerals (א ב ג …) */
+.scroll-band .vnum {
+  font-size: 0.56em;
+  color: var(--accent);
+  vertical-align: 0.4em;
+  margin: 0 0.08em 0 0.15em;
+  font-weight: 500;
+  unicode-bidi: isolate;
 }

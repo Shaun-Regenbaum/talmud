@@ -79,9 +79,16 @@ app.get('/api/chapter/:book/:chapter', async (c) => {
 });
 
 /** Join a Sefaria he/text payload (nested per-verse arrays) into one continuous
- *  Hebrew string for daf-renderer's flowing columns. */
+ *  Hebrew string for daf-renderer's flowing columns. Parsha markers (petucha/
+ *  setuma spans + braces) are dropped — daf-renderer flows continuously, so a
+ *  literal "{ס}" would otherwise render mid-text. */
 function joinHe(v: unknown): string {
-  return flattenPieces(v).join(' ').trim();
+  return flattenPieces(v)
+    .join(' ')
+    .replace(/<span class="mam-spi-[^"]*">\{[^}]*\}<\/span>/g, '')
+    .replace(/\{[פסש]\}/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .trim();
 }
 
 // Mikraot Gedolot: the pasuk text framed by Rashi (inner) + Targum Onkelos
