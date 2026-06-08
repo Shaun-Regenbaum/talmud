@@ -246,18 +246,22 @@ const NORM_INDEX: { norm: string; slug: string }[] = Object.entries(DATA.nodes)
 export function rabbiCandidates(name: string, nameHe?: string): string[] {
   const norm = normalizeName(name);
   if (ALIASES[norm]) return [ALIASES[norm]];
-  const out = new Set<string>();
-  // exact canonical, or canonical that EXTENDS the name at a word boundary
-  // ("rav kahana" → "rav kahana (ii)" / "rav kahana of pum nahara").
+  // A name that EXACTLY equals a node's canonical names that rabbi specifically
+  // ("Rav" → the node "Rav", not every "Rav X"). Exact wins over prefix
+  // extensions — otherwise bare "Rav"/"Shmuel" become homonyms of their whole
+  // descendant family and relational scoring mis-picks a minor one.
+  const exact = new Set<string>();
+  const prefix = new Set<string>();
   for (const { norm: c, slug } of NORM_INDEX) {
-    if (c === norm || c.startsWith(norm + ' ')) out.add(slug);
+    if (c === norm) exact.add(slug);
+    else if (c.startsWith(norm + ' ')) prefix.add(slug); // short form ("Rav Kahana" → "Rav Kahana (II)")
   }
-  const exact = INDEX.nameToSlug.get(norm); if (exact) out.add(exact);
+  const ix = INDEX.nameToSlug.get(norm); if (ix) exact.add(ix);
   if (nameHe) {
     const cleanHe = nameHe.replace(/\s*\(\d+\)\s*$/, '').trim();
-    const he = INDEX.heToSlug.get(cleanHe); if (he) out.add(he);
+    const he = INDEX.heToSlug.get(cleanHe); if (he) exact.add(he);
   }
-  return [...out];
+  return exact.size ? [...exact] : [...prefix];
 }
 
 export type ResolveBasis = 'unique' | 'relational' | 'generation' | 'ambiguous' | 'none';

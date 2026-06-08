@@ -1,0 +1,2302 @@
+{
+ "2a": [
+  {
+   "name": "Rabbi Eliezer",
+   "nameHe": "ר' אליעזר",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabban Gamliel II",
+   "nameHe": "רבן גמליאל",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Eliezer b. Hyrcanus",
+   "nameHe": "רבי אליעזר",
+   "generation": "unknown"
+  }
+ ],
+ "2b": [
+  {
+   "name": "Rabba bar Rav Sheila",
+   "nameHe": "רבה בר רב שילא",
+   "generation": "amora-bavel-3"
+  },
+  {
+   "name": "Rabbi Meir",
+   "nameHe": "ר\"מ",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Eliezer",
+   "nameHe": "ר' אליעזר",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Yehoshua",
+   "nameHe": "רבי יהושע",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Meir",
+   "nameHe": "רבי מאיר",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Yehuda",
+   "nameHe": "ר' יהודה",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Hanina",
+   "nameHe": "ר' חנינא",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Ahai",
+   "nameHe": "ר' אחאי",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Aha",
+   "nameHe": "ר' אחא",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Yehuda",
+   "nameHe": "רבי יהודה",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Yosei",
+   "nameHe": "רבי יוסי",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Eliezer b. Hyrcanus",
+   "nameHe": "רבי אליעזר",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rav Shila",
+   "nameHe": "רב שילא",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbah [b. Nachmani]",
+   "nameHe": "רבה",
+   "generation": "unknown"
+  }
+ ],
+ "3a": [
+  {
+   "name": "Rabbi Meir",
+   "nameHe": "ר' מאיר",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Meir",
+   "nameHe": "דר\"מ",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Eliezer",
+   "nameHe": "ר' אליעזר",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Eliezer",
+   "nameHe": "דר' אליעזר",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Yose",
+   "nameHe": "ר' יוסי",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rav Yitzchak bar Shmuel",
+   "nameHe": "רב יצחק בר שמואל",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rav",
+   "nameHe": "דרב",
+   "generation": "amora-bavel-1"
+  },
+  {
+   "name": "Rabbi Eliezer b. Hyrcanus",
+   "nameHe": "רבי אליעזר",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Yose b. Chalafta",
+   "nameHe": "רבי יוסי",
+   "generation": "unknown"
+  }
+ ],
+ "3b": [
+  {
+   "name": "Rabbi Yehuda HaNasi",
+   "nameHe": "רבי",
+   "generation": "tanna-5"
+  },
+  {
+   "name": "Rabbi Natan",
+   "nameHe": "ר' נתן",
+   "generation": "tanna-5"
+  },
+  {
+   "name": "Rabbi Zerika",
+   "nameHe": "ר' זריקא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Ammi",
+   "nameHe": "ר' אמי",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Yehoshua ben Levi",
+   "nameHe": "ר' יהושע בן לוי",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yehoshua",
+   "nameHe": "רבי יהושע",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rav Ashi",
+   "nameHe": "רב אשי",
+   "generation": "amora-bavel-6"
+  },
+  {
+   "name": "Rabbi Abba bar Kahana",
+   "nameHe": "רבי אבא בר כהנא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rav Oshaya",
+   "nameHe": "רב אושעיא",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Acha",
+   "nameHe": "רבי אחא",
+   "generation": "amora-ey-4"
+  },
+  {
+   "name": "Rabbi Zeira",
+   "nameHe": "רבי זירא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rava",
+   "nameHe": "רבא",
+   "generation": "amora-bavel-4"
+  },
+  {
+   "name": "Rav Acha bar Bizna",
+   "nameHe": "רב אחא בר ביזנא",
+   "generation": "amora-bavel-3"
+  },
+  {
+   "name": "Rabbi Shimon Chasida",
+   "nameHe": "ר' שמעון חסידא",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rav Yosef",
+   "nameHe": "רב יוסף",
+   "generation": "amora-bavel-3"
+  },
+  {
+   "name": "Rabbi Yehoshua ben Levi",
+   "nameHe": "רבי יהושע בן לוי",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Shimon Chasida",
+   "nameHe": "רבי שמעון חסידא",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Zerika",
+   "nameHe": "רבי זריקא",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Abba",
+   "nameHe": "רבי אבא",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Natan [haBavli]",
+   "nameHe": "רבי נתן",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Ami",
+   "nameHe": "רבי אמי",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rav Aha",
+   "nameHe": "רב אחא",
+   "generation": "unknown"
+  }
+ ],
+ "4a": [
+  {
+   "name": "Rav Yitzḥak bar Adda",
+   "nameHe": "רב יצחק בר אדא",
+   "generation": "amora-bavel-3"
+  },
+  {
+   "name": "Rav Yitzḥak, son of Rav Idi",
+   "nameHe": "רב יצחק בריה דרב אידי",
+   "generation": "amora-bavel-4"
+  },
+  {
+   "name": "Rabbi Zeira",
+   "nameHe": "רבי זירא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rav Ashi",
+   "nameHe": "רב אשי",
+   "generation": "amora-bavel-6"
+  },
+  {
+   "name": "Levi",
+   "nameHe": "לוי",
+   "generation": "tanna-6"
+  },
+  {
+   "name": "Rabbi Yitzḥak",
+   "nameHe": "ר' יצחק",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rav Yehoshua, son of Rav Idi",
+   "nameHe": "ר' יהושע בריה דרב אידי",
+   "generation": "amora-bavel-4"
+  },
+  {
+   "name": "Rabbi Yoḥanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yosei",
+   "nameHe": "רבי יוסי",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Ya'akov bar Idi",
+   "nameHe": "ר' יעקב בר אידי",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Eliezer",
+   "nameHe": "רבי אליעזר",
+   "generation": "tanna-2"
+  }
+ ],
+ "4b": [
+  {
+   "name": "Rabban Gamliel",
+   "nameHe": "רבן גמליאל",
+   "generation": "tanna-1"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yehoshua ben Levi",
+   "nameHe": "רבי יהושע בן לוי",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Mar son of Ravina",
+   "nameHe": "מר בריה דרבינא",
+   "generation": "amora-bavel-7"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "רבי יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Elazar",
+   "nameHe": "רבי אלעזר",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Avina",
+   "nameHe": "ר' אבינא",
+   "generation": "amora-bavel-6"
+  },
+  {
+   "name": "Rav Nachman bar Yitzchak",
+   "nameHe": "רב נחמן בר יצחק",
+   "generation": "amora-bavel-5"
+  },
+  {
+   "name": "Rabbi Elazar bar Avina",
+   "nameHe": "ר' אלעזר בר אבינא",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Yehoshua ben Levi",
+   "nameHe": "ר' יהושע בן לוי",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yosei",
+   "nameHe": "רבי יוסי",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rav Nachman",
+   "nameHe": "רב נחמן",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rabbi Avina",
+   "nameHe": "רבי אבינא",
+   "generation": "unknown"
+  },
+  {
+   "name": "Hillel",
+   "nameHe": "הִלֵּל",
+   "generation": "unknown"
+  }
+ ],
+ "5a": [
+  {
+   "name": "Abaye",
+   "nameHe": "אביי",
+   "generation": "amora-bavel-4"
+  },
+  {
+   "name": "Rabbi Levi bar Chama",
+   "nameHe": "ר' לוי בר חמא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Shimon ben Lakish",
+   "nameHe": "ר\"ש בן לקיש",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Shimon ben Lakish",
+   "nameHe": "ר' שמעון בן לקיש",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yitzchak",
+   "nameHe": "ר' יצחק",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Mar Zutra",
+   "nameHe": "מר זוטרא",
+   "generation": "amora-bavel-6"
+  },
+  {
+   "name": "Rav Ashi",
+   "nameHe": "רב אשי",
+   "generation": "amora-bavel-6"
+  },
+  {
+   "name": "Rabbi Yitzchak",
+   "nameHe": "רבי יצחק",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Shimon ben Lakish",
+   "nameHe": "רבי שמעון בן לקיש",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "רבי יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Zeira",
+   "nameHe": "רבי זירא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Chanina bar Pappa",
+   "nameHe": "רבי חנינא בר פפא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rava",
+   "nameHe": "רבא",
+   "generation": "amora-bavel-4"
+  },
+  {
+   "name": "Rav Chisda",
+   "nameHe": "רב חסדא",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rav Sechora",
+   "nameHe": "רב סחורה",
+   "generation": "amora-bavel-3"
+  },
+  {
+   "name": "Rav Huna",
+   "nameHe": "רב הונא",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rabbi Yaakov bar Idi",
+   "nameHe": "רבי יעקב בר אידי",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Acha bar Chanina",
+   "nameHe": "רבי אחא בר חנינא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Abba son of Rabbi Chiyya bar Abba",
+   "nameHe": "רבי אבא בריה דר' חייא בר אבא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Chiyya bar Abba",
+   "nameHe": "ר' חייא בר אבא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Shimon ben Lakish",
+   "nameHe": "רשב\"ל",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Shimon ben Yochai",
+   "nameHe": "רבי שמעון בן יוחאי",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Shimon ben Lakish",
+   "nameHe": "רבי שמעון בן לקיש",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Chiyya b. Abba",
+   "nameHe": "רבי חייא בר אבא",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Chiyya",
+   "nameHe": "רבי חייא",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Abba",
+   "nameHe": "רבי אבא",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Levi",
+   "nameHe": "רבי לוי",
+   "generation": "unknown"
+  }
+ ],
+ "5b": [
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "רבי יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Shimon bar Yochai",
+   "nameHe": "ר' שמעון בן יוחאי",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "א\"ר יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Chiyya bar Abba",
+   "nameHe": "רבי חייא בר אבא",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Chanina",
+   "nameHe": "ר' חנינא",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Eliezer",
+   "nameHe": "רבי אליעזר",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Eliezer",
+   "nameHe": "ר' אליעזר",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rav Huna",
+   "nameHe": "רב הונא",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rav Yehuda, brother of Rav Sala the Pious",
+   "nameHe": "רב יהודה אחוה דרב סלא חסידא",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rav Adda bar Ahavah",
+   "nameHe": "רב אדא בר אהבה",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Abba Binyamin",
+   "nameHe": "אבא בנימין",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rav Yehuda",
+   "nameHe": "רב יהודה",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rav",
+   "nameHe": "רב",
+   "generation": "amora-bavel-1"
+  },
+  {
+   "name": "Rabbi Yehoshua ben Levi",
+   "nameHe": "ריב\"ל",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Chama, son of Rabbi Chanina",
+   "nameHe": "ר' חמא ברבי חנינא",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Yitzchak",
+   "nameHe": "רבי יצחק",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rav Nachman bar Yitzchak",
+   "nameHe": "רב נחמן בר יצחק",
+   "generation": "amora-bavel-5"
+  },
+  {
+   "name": "Rabbi Yehoshua ben Levi",
+   "nameHe": "רבי יהושע בן לוי",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Chiyya",
+   "nameHe": "רבי חייא",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rav Nachman [b. Ya'akov]",
+   "nameHe": "רב נחמן",
+   "generation": "unknown"
+  }
+ ],
+ "6a": [
+  {
+   "name": "Rabbi Yosei son of Rabbi Chanina",
+   "nameHe": "ר' יוסי ברבי חנינא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Abba Binyamin",
+   "nameHe": "אבא בנימין",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Abaye",
+   "nameHe": "אביי",
+   "generation": "amora-bavel-4"
+  },
+  {
+   "name": "Rav Huna",
+   "nameHe": "רב הונא",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rava",
+   "nameHe": "רבא",
+   "generation": "amora-bavel-4"
+  },
+  {
+   "name": "Rav Beivai bar Abaye",
+   "nameHe": "רב ביבי בר אביי",
+   "generation": "amora-bavel-5"
+  },
+  {
+   "name": "Ravin bar Rav Adda",
+   "nameHe": "רבין בר רב אדא",
+   "generation": "amora-ey-4"
+  },
+  {
+   "name": "Rabbi Yitzchak",
+   "nameHe": "ר' יצחק",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rav Ashi",
+   "nameHe": "רב אשי",
+   "generation": "amora-bavel-6"
+  },
+  {
+   "name": "Rabbi Avin bar Rav Adda",
+   "nameHe": "ר' אבין בר רב אדא",
+   "generation": "amora-ey-4"
+  },
+  {
+   "name": "Rabbi Eliezer the Great",
+   "nameHe": "ר' אליעזר הגדול",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rav Nachman bar Yitzchak",
+   "nameHe": "רב נחמן בר יצחק",
+   "generation": "amora-bavel-5"
+  },
+  {
+   "name": "Rav Chiyya bar Avin",
+   "nameHe": "רב חייא בר אבין",
+   "generation": "amora-bavel-3"
+  },
+  {
+   "name": "Rav Acha son of Rava",
+   "nameHe": "רב אחא בריה דרבא",
+   "generation": "amora-bavel-6"
+  },
+  {
+   "name": "Rabbi Eliezer b. Hyrcanus",
+   "nameHe": "רבי אליעזר",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Yose b. Chalafta",
+   "nameHe": "רבי יוסי",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Yitzhak",
+   "nameHe": "רבי יצחק",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rav Nachman [b. Ya'akov]",
+   "nameHe": "רב נחמן",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rav Bibi",
+   "nameHe": "רב ביבי",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rav Aha",
+   "nameHe": "רב אחא",
+   "generation": "unknown"
+  }
+ ],
+ "6b": [
+  {
+   "name": "Ravin bar Rav Adda",
+   "nameHe": "רבין בר רב אדא",
+   "generation": "amora-bavel-3"
+  },
+  {
+   "name": "Rabbi Yitzchak",
+   "nameHe": "רבי יצחק",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Chelbo",
+   "nameHe": "ר' חלבו",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rav Huna",
+   "nameHe": "רב הונא",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Abaye",
+   "nameHe": "אביי",
+   "generation": "amora-bavel-4"
+  },
+  {
+   "name": "Rabbi Zeira",
+   "nameHe": "רבי זירא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Tanchum",
+   "nameHe": "רבי תנחום",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Yehoshua ben Levi",
+   "nameHe": "ר' יהושע בן לוי",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Zeira",
+   "nameHe": "ר' זירא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rava",
+   "nameHe": "רבא",
+   "generation": "amora-bavel-4"
+  },
+  {
+   "name": "Rav Pappa",
+   "nameHe": "רב פפא",
+   "generation": "amora-bavel-5"
+  },
+  {
+   "name": "Mar Zutra",
+   "nameHe": "מר זוטרא",
+   "generation": "amora-bavel-6"
+  },
+  {
+   "name": "Rav Sheshet",
+   "nameHe": "רב ששת",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rav Ashi",
+   "nameHe": "רב אשי",
+   "generation": "amora-bavel-6"
+  },
+  {
+   "name": "Rav Beivai bar Abaye",
+   "nameHe": "רב ביבי בר אביי",
+   "generation": "amora-bavel-5"
+  },
+  {
+   "name": "Rav Beivai",
+   "nameHe": "רב ביבי",
+   "generation": "amora-bavel-5"
+  },
+  {
+   "name": "Rav Nachman bar Yitzchak",
+   "nameHe": "רב נחמן בר יצחק",
+   "generation": "amora-bavel-5"
+  },
+  {
+   "name": "Rabbi Elazar",
+   "nameHe": "ר' אלעזר",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rav Dimi",
+   "nameHe": "רב דימי",
+   "generation": "amora-bavel-3"
+  },
+  {
+   "name": "Rabbi Ami",
+   "nameHe": "ר' אמי",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Assi",
+   "nameHe": "ר' אסי",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Abbahu",
+   "nameHe": "רבי אבהו",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Elazar",
+   "nameHe": "ר' אלעזר",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Abba bar Kahana",
+   "nameHe": "רבי אבא בר כהנא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Shimon ben Azzai",
+   "nameHe": "ר' שמעון בן עזאי",
+   "generation": "tanna-3"
+  },
+  {
+   "name": "Rabbi Shimon ben Zoma",
+   "nameHe": "ר' שמעון בן זומא",
+   "generation": "tanna-3"
+  },
+  {
+   "name": "Rabbi Yehoshua ben Levi",
+   "nameHe": "רבי יהושע בן לוי",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Yochanan b. Napacha",
+   "nameHe": "רבי יוחנן",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Helbo",
+   "nameHe": "רבי חלבו",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rav Nachman [b. Ya'akov]",
+   "nameHe": "רב נחמן",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Abba",
+   "nameHe": "רבי אבא",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Ami",
+   "nameHe": "רבי אמי",
+   "generation": "unknown"
+  }
+ ],
+ "7a": [
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yosei",
+   "nameHe": "ר' יוסי",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rav Zutra bar Tovia",
+   "nameHe": "רב זוטרא בר טוביה",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rav",
+   "nameHe": "רב",
+   "generation": "amora-bavel-1"
+  },
+  {
+   "name": "Rabbi Yishmael ben Elisha",
+   "nameHe": "ר' ישמעאל בן אלישע",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yosei",
+   "nameHe": "ר' יוסי",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Elazar",
+   "nameHe": "ר' אלעזר",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Avin",
+   "nameHe": "ר' אבין",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Avina",
+   "nameHe": "רבי אבינא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Abaye",
+   "nameHe": "אביי",
+   "generation": "amora-bavel-4"
+  },
+  {
+   "name": "Rabbi Yehoshua ben Levi",
+   "nameHe": "ר' יהושע בן לוי",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Meir",
+   "nameHe": "ר' מאיר",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yosei",
+   "nameHe": "רבי יוסי",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Reish Lakish",
+   "nameHe": "ריש לקיש",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yosei",
+   "nameHe": "ר' יוסי",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Meir",
+   "nameHe": "ר' מאיר",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Yehoshua ben Korcha",
+   "nameHe": "ר' יהושע בן קרחה",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Shmuel bar Nachmani",
+   "nameHe": "ר' שמואל בר נחמני",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Yonatan",
+   "nameHe": "ר' יונתן",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Shmuel bar Nachmani",
+   "nameHe": "ר' שמואל בר נחמני",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Yonatan",
+   "nameHe": "ר' יונתן",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rav Chana bar Bizna",
+   "nameHe": "רב חנא בר ביזנא",
+   "generation": "amora-bavel-3"
+  },
+  {
+   "name": "Rabbi Shimon Chasida",
+   "nameHe": "ר' שמעון חסידא",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yosei",
+   "nameHe": "ר' יוסי",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rav Yosef",
+   "nameHe": "רב יוסף",
+   "generation": "amora-bavel-3"
+  },
+  {
+   "name": "Rabbi Shimon Chasida",
+   "nameHe": "רבי שמעון חסידא",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Yishmael b. Elisha",
+   "nameHe": "רבי ישמעאל",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Yochanan b. Napacha",
+   "nameHe": "רבי יוחנן",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Yonatan",
+   "nameHe": "רבי יונתן",
+   "generation": "unknown"
+  }
+ ],
+ "7b": [
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Shimon ben Yochai",
+   "nameHe": "ר\"ש בן יוחי",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rav",
+   "nameHe": "רב",
+   "generation": "amora-bavel-1"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר\"י",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Elazar",
+   "nameHe": "ר' אלעזר",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Eliezer",
+   "nameHe": "רבי אליעזר",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Shimon ben Yochai",
+   "nameHe": "רבי שמעון בן יוחי",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Shimon ben Avishalom",
+   "nameHe": "ר' שמעון בן אבישלום",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Dostai ben Rabbi Matun",
+   "nameHe": "רבי דוסתאי בר' מתון",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Yitzchak",
+   "nameHe": "ר' יצחק",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rav Huna",
+   "nameHe": "רב הונא",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rabbi Yitzchak",
+   "nameHe": "רבי יצחק",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rav Nachman",
+   "nameHe": "רב נחמן",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rabbi Yochanan b. Napacha",
+   "nameHe": "רבי יוחנן",
+   "generation": "unknown"
+  }
+ ],
+ "8a": [
+  {
+   "name": "Rabbi Yosei son of Rabbi Chanina",
+   "nameHe": "ר' יוסי ברבי חנינא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Acha son of Rabbi Chanina",
+   "nameHe": "ר' אחא ברבי חנינא",
+   "generation": "amora-ey-4"
+  },
+  {
+   "name": "Rabbi Natan",
+   "nameHe": "רבי נתן",
+   "generation": "tanna-5"
+  },
+  {
+   "name": "Reish Lakish",
+   "nameHe": "ר\"ל",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yehoshua ben Levi",
+   "nameHe": "ר' יהושע בן לוי",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rav Chisda",
+   "nameHe": "רב חסדא",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rabbi Chanina",
+   "nameHe": "ר' חנינא",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rav Nachman bar Yitzchak",
+   "nameHe": "רב נחמן בר יצחק",
+   "generation": "amora-bavel-5"
+  },
+  {
+   "name": "Rabba bar Rav Sheila",
+   "nameHe": "רבה בר רב שילא",
+   "generation": "amora-bavel-3"
+  },
+  {
+   "name": "Mar Zutra",
+   "nameHe": "מר זוטרא",
+   "generation": "amora-bavel-6"
+  },
+  {
+   "name": "Rava",
+   "nameHe": "רבא",
+   "generation": "amora-bavel-4"
+  },
+  {
+   "name": "Rafram bar Pappa",
+   "nameHe": "רפרם בר פפא",
+   "generation": "amora-bavel-5"
+  },
+  {
+   "name": "Rabbi Chiyya bar Ami",
+   "nameHe": "ר' חייא בר אמי",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Ulla",
+   "nameHe": "עולא",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Abaye",
+   "nameHe": "אביי",
+   "generation": "amora-bavel-4"
+  },
+  {
+   "name": "Rabbi Ami",
+   "nameHe": "רבי אמי",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Asi",
+   "nameHe": "רבי אסי",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rav Huna bar Yehuda",
+   "nameHe": "רב הונא בר יהודה",
+   "generation": "amora-bavel-5"
+  },
+  {
+   "name": "Rabbi Menachem",
+   "nameHe": "רבי מנחם",
+   "generation": "tanna-5"
+  },
+  {
+   "name": "Rabbi Ami",
+   "nameHe": "ר' אמי",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Abbahu",
+   "nameHe": "רבי אבהו",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rav Pappa",
+   "nameHe": "רב פפא",
+   "generation": "amora-bavel-5"
+  },
+  {
+   "name": "Rav Sheshet",
+   "nameHe": "רב ששת",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rabbi Yehoshua ben Levi",
+   "nameHe": "רבי יהושע בן לוי",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Ami and Rabbi Asi",
+   "nameHe": "רבי אמי ורבי אסי",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rav Hiyya b. Ami",
+   "nameHe": "רבי חייא בר אמי",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Yochanan b. Napacha",
+   "nameHe": "רבי יוחנן",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Yose b. Chalafta",
+   "nameHe": "רבי יוסי",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Chiyya",
+   "nameHe": "רבי חייא",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rav Nachman [b. Ya'akov]",
+   "nameHe": "רב נחמן",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rav Huna",
+   "nameHe": "רב הונא",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rav Shila",
+   "nameHe": "רב שילא",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbah [b. Nachmani]",
+   "nameHe": "רבה",
+   "generation": "unknown"
+  }
+ ],
+ "8b": [
+  {
+   "name": "Rav Beivai bar Abaye",
+   "nameHe": "רב ביבי בר אביי",
+   "generation": "amora-bavel-5"
+  },
+  {
+   "name": "Ḥiyya bar Rav of Difti",
+   "nameHe": "חייא בר רב מדפתי",
+   "generation": "amora-bavel-5"
+  },
+  {
+   "name": "Rabbi Yehoshua ben Levi",
+   "nameHe": "ר' יהושע בן לוי",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yehuda",
+   "nameHe": "רבי יהודה",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rava",
+   "nameHe": "רבא",
+   "generation": "amora-bavel-4"
+  },
+  {
+   "name": "Rav Pappa",
+   "nameHe": "רב פפא",
+   "generation": "amora-bavel-5"
+  },
+  {
+   "name": "Abaye",
+   "nameHe": "אביי",
+   "generation": "amora-bavel-4"
+  },
+  {
+   "name": "Rabbi Akiva",
+   "nameHe": "ר\"ע",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rav Adda bar Ahava",
+   "nameHe": "רב אדא בר אהבה",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rabban Gamliel",
+   "nameHe": "רבן גמליאל",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rav Yosef",
+   "nameHe": "רב יוסף",
+   "generation": "amora-bavel-3"
+  },
+  {
+   "name": "Rav Yehuda",
+   "nameHe": "רב יהודה",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Shmuel",
+   "nameHe": "שמואל",
+   "generation": "amora-bavel-1"
+  },
+  {
+   "name": "Rabban Gamliel",
+   "nameHe": "ר\"ג",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Shimon ben Yoḥai",
+   "nameHe": "ר\"ש בן יוחי",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rav Aḥa bar Ḥanina",
+   "nameHe": "רב אחא בר חנינא",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Yehoshua ben Levi",
+   "nameHe": "רבי יהושע בן לוי",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Shimon ben Yoḥai",
+   "nameHe": "רבי שמעון בן יוחי",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Akiva",
+   "nameHe": "ר' עקיבא",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Akiva",
+   "nameHe": "רבי עקיבא",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rav Bibi",
+   "nameHe": "רב ביבי",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rav Aha",
+   "nameHe": "רב אחא",
+   "generation": "unknown"
+  }
+ ],
+ "9a": [
+  {
+   "name": "Rabbi Aḥa, son of Rabbi Ḥanina",
+   "nameHe": "רבי אחא ברבי חנינא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Yehoshua ben Levi",
+   "nameHe": "רבי יהושע בן לוי",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Shimon",
+   "nameHe": "ר\"ש",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Akiva",
+   "nameHe": "רבי עקיבא",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Zeira",
+   "nameHe": "רבי זירא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rav Yitzḥak bar Yosef",
+   "nameHe": "רב יצחק בר יוסף",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rabbi Yehoshua ben Levi",
+   "nameHe": "ריב\"ל",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabban Gamliel",
+   "nameHe": "ר\"ג",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rav Yosef",
+   "nameHe": "רב יוסף",
+   "generation": "amora-bavel-3"
+  },
+  {
+   "name": "Rabbi Elazar ben Azarya",
+   "nameHe": "ר' אלעזר בן עזריה",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Akiva",
+   "nameHe": "ר' עקיבא",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Eliezer",
+   "nameHe": "ר' אליעזר",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Yehoshua",
+   "nameHe": "רבי יהושע",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Abba",
+   "nameHe": "ר' אבא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Yannai",
+   "nameHe": "ר' ינאי",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Elazar b. Azaryah",
+   "nameHe": "רבי אלעזר בן עזריה",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Eliezer b. Hyrcanus",
+   "nameHe": "רבי אליעזר",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Yannai",
+   "nameHe": "רבי ינאי",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Abba",
+   "nameHe": "רבי אבא",
+   "generation": "unknown"
+  }
+ ],
+ "9b": [
+  {
+   "name": "Rabbi Ami",
+   "nameHe": "ר' אמי",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Ami",
+   "nameHe": "ר' אמי",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Reish Lakish",
+   "nameHe": "ר\"ל",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Abbahu",
+   "nameHe": "ר' אבהו",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Eliezer",
+   "nameHe": "ר' אליעזר",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Yehoshua",
+   "nameHe": "ר' יהושע",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Meir",
+   "nameHe": "רבי מאיר",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Akiva",
+   "nameHe": "ר\"ע",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rav Huna",
+   "nameHe": "רב הונא",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Abaye",
+   "nameHe": "אביי",
+   "generation": "amora-bavel-4"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Zeira",
+   "nameHe": "ר' זירא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Yosei ben Elyakim",
+   "nameHe": "ר\"י בן אליקים",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Zeira",
+   "nameHe": "ר' זירא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi El'a",
+   "nameHe": "רבי אלעא",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Ulla",
+   "nameHe": "עולא",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rav Beruna",
+   "nameHe": "רב ברונא",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Elazar",
+   "nameHe": "ר' אלעזר",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Elazar",
+   "nameHe": "ר' אלעזר",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rav Ashi",
+   "nameHe": "רב אשי",
+   "generation": "amora-bavel-6"
+  },
+  {
+   "name": "Rabbi Yehuda, son of Rabbi Shimon ben Pazi",
+   "nameHe": "ר' יהודה בריה דר' שמעון בן פזי",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Yehuda, son of Rabbi Shimon ben Pazi",
+   "nameHe": "ר' יהודה בריה דרבי שמעון בן פזי",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Shmuel bar Nachmani",
+   "nameHe": "ר' שמואל בר נחמני",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "רבי יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Shmuel bar Nachmani",
+   "nameHe": "רבי שמואל בר נחמני",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Eliezer b. Hyrcanus",
+   "nameHe": "רבי אליעזר",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Yehudah [b. Il'ai]",
+   "nameHe": "רבי יהודה",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rebbi Samuel",
+   "nameHe": "רבי שמואל",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Zeira",
+   "nameHe": "רבי זירא",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Ami",
+   "nameHe": "רבי אמי",
+   "generation": "unknown"
+  }
+ ],
+ "10a": [
+  {
+   "name": "Rabbi Meir",
+   "nameHe": "ר\"מ",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Meir",
+   "nameHe": "ר' מאיר",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Abbahu",
+   "nameHe": "ר' אבהו",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Shimon ben Yochai",
+   "nameHe": "רבי שמעון בן יוחי",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Abbahu",
+   "nameHe": "ר' אבהו",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rav Yehuda",
+   "nameHe": "(רבי) יהודה",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rav Mattana",
+   "nameHe": "רב מתנא",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rabba bar Rav Sheila",
+   "nameHe": "רבה בר רב שילא",
+   "generation": "amora-bavel-3"
+  },
+  {
+   "name": "Rav Shimi bar Ukva",
+   "nameHe": "רב שימי בר עוקבא",
+   "generation": "amora-bavel-3"
+  },
+  {
+   "name": "Mar Ukva",
+   "nameHe": "מר עוקבא",
+   "generation": "amora-bavel-1"
+  },
+  {
+   "name": "Rabbi Shimon ben Pazi",
+   "nameHe": "ר' שמעון בן פזי",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Yehoshua ben Levi",
+   "nameHe": "ר' יהושע בן לוי",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yehuda bar Menasya",
+   "nameHe": "ר' יהודה בר מנסיא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rav Hamnuna",
+   "nameHe": "רב המנונא",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "רבי יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Eliezer",
+   "nameHe": "רבי (אליעזר)",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Meir",
+   "nameHe": "רבי מאיר",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rav Shila",
+   "nameHe": "רב שילא",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbah [b. Nachmani]",
+   "nameHe": "רבה",
+   "generation": "unknown"
+  }
+ ],
+ "10b": [
+  {
+   "name": "Rabbi Chanan",
+   "nameHe": "ר' חנן",
+   "generation": "amora-bavel-1"
+  },
+  {
+   "name": "Rabbi Shimon ben Lakish",
+   "nameHe": "רשב\"ל",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Levi",
+   "nameHe": "ר' לוי",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rav Yehuda",
+   "nameHe": "ר' יהודה",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rav",
+   "nameHe": "רב",
+   "generation": "amora-bavel-1"
+  },
+  {
+   "name": "Rabbi Levi",
+   "nameHe": "ר' לוי",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yosei ben Zimra",
+   "nameHe": "ר' יוסי בן זמרא",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Yehoshua ben Levi",
+   "nameHe": "ריב\"ל",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rav",
+   "nameHe": "רב",
+   "generation": "amora-bavel-1"
+  },
+  {
+   "name": "Shmuel",
+   "nameHe": "שמואל",
+   "generation": "amora-bavel-1"
+  },
+  {
+   "name": "Abaye",
+   "nameHe": "אביי",
+   "generation": "amora-bavel-4"
+  },
+  {
+   "name": "Rabbi Yitzchak",
+   "nameHe": "ר' יצחק",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yosei bar Chanina",
+   "nameHe": "ר' יוסי בר' חנינא",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rav",
+   "nameHe": "רב",
+   "generation": "amora-bavel-1"
+  },
+  {
+   "name": "Shmuel",
+   "nameHe": "שמואל",
+   "generation": "amora-bavel-1"
+  },
+  {
+   "name": "Rabbi Yosei bar Chanina",
+   "nameHe": "ר' יוסי בר' חנינא",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yosei bar Chanina",
+   "nameHe": "ר' יוסי בר' חנינא",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Eliezer ben Yaakov",
+   "nameHe": "רבי אליעזר בן יעקב",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Yosei bar Chanina",
+   "nameHe": "ר' יוסי בר' חנינא",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Eliezer ben Yaakov",
+   "nameHe": "ראב\"י",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Yosei bar Chanina",
+   "nameHe": "ר' יוסי בר' חנינא",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Eliezer ben Yaakov",
+   "nameHe": "ראב\"י",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Yitzchak",
+   "nameHe": "ר' יצחק",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yosei bar Chanina",
+   "nameHe": "ר' יוסי בר' חנינא",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Eliezer ben Yaakov",
+   "nameHe": "ראב\"י",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Yitzchak",
+   "nameHe": "ר' יצחק",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Yosei bar Chanina",
+   "nameHe": "ר' יוסי בר' חנינא",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rabbi Eliezer ben Yaakov",
+   "nameHe": "ראב\"י",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Yehoshua",
+   "nameHe": "ר' יהושע",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rav Yehuda",
+   "nameHe": "רב יהודה",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Shmuel",
+   "nameHe": "שמואל",
+   "generation": "amora-bavel-1"
+  },
+  {
+   "name": "Rav Chisda",
+   "nameHe": "רב חסדא",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Mar Ukva",
+   "nameHe": "מר עוקבא",
+   "generation": "amora-bavel-1"
+  },
+  {
+   "name": "Rav Chisda",
+   "nameHe": "רב חסדא",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rav Chisda",
+   "nameHe": "רב חסדא",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Mar Ukva",
+   "nameHe": "מר עוקבא",
+   "generation": "amora-bavel-1"
+  },
+  {
+   "name": "Rabbi Mani",
+   "nameHe": "ר' מני",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Tarfon",
+   "nameHe": "ר' טרפון",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Yehoshua ben Levi",
+   "nameHe": "רבי יהושע בן לוי",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Eliezer b. Hyrcanus",
+   "nameHe": "רבי אליעזר",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Yochanan b. Napacha",
+   "nameHe": "רבי יוחנן",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Yehudah [b. Il'ai]",
+   "nameHe": "רבי יהודה",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Tarfon",
+   "nameHe": "רבי טרפון",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Yose b. Chalafta",
+   "nameHe": "רבי יוסי",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Yitzhak",
+   "nameHe": "רבי יצחק",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Levi",
+   "nameHe": "רבי לוי",
+   "generation": "unknown"
+  },
+  {
+   "name": "Shammai",
+   "nameHe": "שמאי",
+   "generation": "unknown"
+  },
+  {
+   "name": "Hillel",
+   "nameHe": "הִלֵּל",
+   "generation": "unknown"
+  }
+ ],
+ "11a": [
+  {
+   "name": "Rav Pappa",
+   "nameHe": "רב פפא",
+   "generation": "amora-bavel-5"
+  },
+  {
+   "name": "Rabbi Abba bar Zavda",
+   "nameHe": "ר' אבא בר זבדא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rav",
+   "nameHe": "רב",
+   "generation": "amora-bavel-1"
+  },
+  {
+   "name": "Rabbi Yishmael",
+   "nameHe": "רבי ישמעאל",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Elazar ben Azarya",
+   "nameHe": "ר' אלעזר בן עזריה",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Yishmael",
+   "nameHe": "ר' ישמעאל",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Elazar ben Azarya",
+   "nameHe": "רבי אלעזר",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Elazar ben Azarya",
+   "nameHe": "רבי אלעזר בן עזריה",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rav Yeḥezkel",
+   "nameHe": "רב יחזקאל",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rav Yosef",
+   "nameHe": "רב יוסף",
+   "generation": "amora-bavel-3"
+  },
+  {
+   "name": "Rabbi Yochanan ben HaChoranit",
+   "nameHe": "ר' יוחנן בן החורנית",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rav Nachman bar Yitzchak",
+   "nameHe": "רב נחמן בר יצחק",
+   "generation": "amora-bavel-5"
+  },
+  {
+   "name": "Rabbi Tarfon",
+   "nameHe": "ר\"ט",
+   "generation": "tanna-2"
+  },
+  {
+   "name": "Rabbi Ya'akov",
+   "nameHe": "ר' יעקב",
+   "generation": "amora-bavel-3"
+  },
+  {
+   "name": "Rabbi Oshaya",
+   "nameHe": "ר' אושעיא",
+   "generation": "tanna-6"
+  },
+  {
+   "name": "Rabbi Abba bar Zavda",
+   "nameHe": "רבי אבא בר זבדא",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Oshaya",
+   "nameHe": "רבי אושעיא",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Yochanan b. Napacha",
+   "nameHe": "רבי יוחנן",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rav Nachman [b. Ya'akov]",
+   "nameHe": "רב נחמן",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Abba",
+   "nameHe": "רבי אבא",
+   "generation": "unknown"
+  },
+  {
+   "name": "Shammai",
+   "nameHe": "שמאי",
+   "generation": "unknown"
+  },
+  {
+   "name": "Hillel",
+   "nameHe": "הִלֵּל",
+   "generation": "unknown"
+  }
+ ],
+ "11b": [
+  {
+   "name": "Rava",
+   "nameHe": "רבא",
+   "generation": "amora-bavel-4"
+  },
+  {
+   "name": "Abaye",
+   "nameHe": "אביי",
+   "generation": "amora-bavel-4"
+  },
+  {
+   "name": "Rav Yehuda",
+   "nameHe": "רב יהודה",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Shmuel",
+   "nameHe": "שמואל",
+   "generation": "amora-bavel-1"
+  },
+  {
+   "name": "Rabbi Elazar",
+   "nameHe": "רבי אלעזר",
+   "generation": "tanna-4"
+  },
+  {
+   "name": "Rabbi Pedat",
+   "nameHe": "ר' פדת בריה",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rav Yehuda",
+   "nameHe": "א\"ר יהודה",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rav Huna",
+   "nameHe": "רב הונא",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rabbi Elazar",
+   "nameHe": "ר' אלעזר",
+   "generation": "amora-ey-2"
+  },
+  {
+   "name": "Rabbi Yochanan",
+   "nameHe": "ר' יוחנן",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rava",
+   "nameHe": "ורבא",
+   "generation": "amora-bavel-4"
+  },
+  {
+   "name": "Rav Chiyya bar Ashi",
+   "nameHe": "רב חייא בר אשי",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rav",
+   "nameHe": "דרב",
+   "generation": "amora-bavel-1"
+  },
+  {
+   "name": "Rav Hamnuna",
+   "nameHe": "ורב המנונא",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rabbi Abba",
+   "nameHe": "רבי אבא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Yosei bar Abba",
+   "nameHe": "ר' יוסי בר אבא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rav Mattana",
+   "nameHe": "רב מתנה",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rav Yehuda",
+   "nameHe": "לרב יהודה",
+   "generation": "amora-bavel-2"
+  },
+  {
+   "name": "Rabbi Zerika",
+   "nameHe": "רבי זריקא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Ami",
+   "nameHe": "רבי אמי",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Shimon ben Lakish",
+   "nameHe": "ר' שמעון בן לקיש",
+   "generation": "amora-ey-1"
+  },
+  {
+   "name": "Rav Yitzchak bar Yosef",
+   "nameHe": "רב יצחק בר יוסף",
+   "generation": "amora-bavel-3"
+  },
+  {
+   "name": "Rabbi Zerika",
+   "nameHe": "דרבי זריקא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Zerika",
+   "nameHe": "דאמר ר' זריקא",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Ami",
+   "nameHe": "א\"ר אמי",
+   "generation": "amora-ey-3"
+  },
+  {
+   "name": "Rabbi Shimon b. Lakish",
+   "nameHe": "רבי שמעון בן לקיש",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbi Yehudah [b. Il'ai]",
+   "nameHe": "רבי יהודה",
+   "generation": "unknown"
+  },
+  {
+   "name": "Rabbah [b. Nachmani]",
+   "nameHe": "רבה",
+   "generation": "unknown"
+  }
+ ]
+}
