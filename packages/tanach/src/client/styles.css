@@ -188,17 +188,16 @@ body {
   padding: 36px 40px 28px;
 }
 .scroll-band {
-  height: 76vh;
+  max-width: 1080px;
+  margin: 0 auto;
   color: var(--stam);
-  font-size: clamp(19px, 1.55vw, 24px);
-  line-height: 1.72;
+  font-size: 16px;
+  line-height: 1.5;
   text-align: justify;
   text-justify: inter-word;
-  columns: 15rem auto;
-  column-gap: 3.4rem;
-  column-fill: auto;
-  overflow-x: auto;
-  overflow-y: hidden;
+  column-count: 2;
+  column-gap: 3rem;
+  column-rule: 1px solid rgba(122, 92, 46, 0.14);
 }
 .scroll-band .parsha-open {
   display: block;
