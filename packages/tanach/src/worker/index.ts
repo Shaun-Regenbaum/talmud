@@ -10,10 +10,14 @@
 
 import { Hono } from 'hono';
 import { SefariaClient, flattenPieces } from '@corpus/core/sefaria/client';
+import type { LLMEnv } from '@corpus/core/llm/llm';
 import { isBook } from '../lib/books.ts';
+import { eventSections } from './producers/events.ts';
+import { readUsage, recordUsage } from './usage.ts';
 
-interface Env {
+interface Env extends LLMEnv {
   ASSETS: Fetcher;
+  CACHE: KVNamespace;
 }
 
 const sefaria = new SefariaClient();
@@ -133,6 +137,65 @@ app.get('/api/mikraot/:book/:chapter', async (c) => {
     prev: pasuk.prev ?? null,
   });
 });
+
+// Events anchor (first producer): short margin labels for a chapter's natural
+// narrative units ("Day One", "The Burning Bush"), pinned to the verse where
+// each begins. Cached per chapter in KV; computed once via the LLM.
+app.get('/api/events/:book/:chapter', async (c) => {
+  const book = c.req.param('book');
+  const chapter = c.req.param('chapter');
+  if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
+  if (!/^\d+$/.test(chapter)) return c.json({ error: `Bad chapter: ${chapter}` }, 400);
+
+  const key = `events:v1:${book}:${chapter}`;
+  const cached = await c.env.CACHE.get(key);
+  if (cached) return c.json(JSON.parse(cached));
+
+  const ref = `${book} ${chapter}`;
+  let text: Awaited<ReturnType<SefariaClient['getText']>>;
+  try {
+    text = await sefaria.getText(ref);
+  } catch (e) {
+    return c.json({ error: `Sefaria fetch failed: ${(e as Error).message}` }, 502);
+  }
+  if (text.error) return c.json({ error: text.error }, 404);
+
+  const he = asVerses(text.he);
+  const en = asVerses(text.text);
+  const verses = Array.from({ length: Math.max(he.length, en.length) }, (_, i) => ({
+    n: i + 1,
+    he: he[i] ?? '',
+    en: en[i] ?? '',
+  }));
+
+  let result: Awaited<ReturnType<typeof eventSections>>;
+  try {
+    result = await eventSections(c.env, ref, verses);
+  } catch (e) {
+    return c.json({ error: `Producer failed: ${(e as Error).message}` }, 502);
+  }
+
+  const payload = { book, chapter: Number(chapter), ref, sections: result.sections };
+  // Persist the result + a usage entry (best-effort; never block the response).
+  c.executionCtx.waitUntil(
+    Promise.all([
+      c.env.CACHE.put(key, JSON.stringify(payload)),
+      recordUsage(c.env.CACHE, {
+        ts: Date.now(),
+        ref,
+        producer: 'events',
+        model: result.model,
+        in: result.inTokens,
+        out: result.outTokens,
+        cost: result.costUsd,
+      }),
+    ]).then(() => undefined),
+  );
+  return c.json(payload);
+});
+
+// Self-tracked LLM usage (totals + per-producer + recent calls).
+app.get('/api/usage', async (c) => c.json(await readUsage(c.env.CACHE)));
 
 // Everything else: serve the built SPA (static assets + index.html fallback).
 app.get('*', (c) => c.env.ASSETS.fetch(c.req.raw));

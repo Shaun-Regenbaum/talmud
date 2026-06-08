@@ -1,4 +1,14 @@
-import { createMemo, createResource, createSignal, For, Show, type JSX } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+  For,
+  onCleanup,
+  onMount,
+  Show,
+  type JSX,
+} from 'solid-js';
 import { BOOKS, SECTIONS, type Section } from '../lib/books.ts';
 import { hebrewNumeral } from '../lib/hebrew.ts';
 import { MikraotGedolot } from './MikraotGedolot.tsx';
@@ -46,8 +56,21 @@ const SETUMA = '\u0002';
  *   - SETUMA (ס, "closed"): a gap of a few letters WITHIN the line, text
  *     continuing on the same line -> an inline tab.
  */
-function buildParagraphs(verses: Verse[], nikud: boolean): string[] {
-  let joined = verses.map((v) => `<span class="vnum">${hebrewNumeral(v.n)}</span> ${v.he}`).join(' ');
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function buildParagraphs(verses: Verse[], nikud: boolean, labels?: Map<number, string>): string[] {
+  let joined = verses
+    .map((v) => {
+      const label = labels?.get(v.n);
+      // A section-start verse number doubles as the margin anchor's measurable
+      // point (.evt-pt); the label itself is positioned in the margin by App.
+      const cls = label ? 'vnum evt-pt' : 'vnum';
+      const attrs = label ? ` data-v="${v.n}" data-label="${escapeHtml(label)}"` : '';
+      return `<span class="${cls}"${attrs}>${hebrewNumeral(v.n)}</span> ${v.he}`;
+    })
+    .join(' ');
   joined = joined
     .replace(/(?:&nbsp;|\s)*<span class="mam-spi-pe[^"]*">\{פ\}<\/span>/g, PETUCHA)
     .replace(/(?:&nbsp;|\s)*<span class="mam-spi-samekh[^"]*">\{ס\}<\/span>/g, SETUMA)
@@ -86,6 +109,22 @@ async function fetchChapter(loc: { book: string; chapter: number }): Promise<Cha
   return data;
 }
 
+interface EventSection {
+  verse: number;
+  label: string;
+}
+/** The event/section labels for a chapter (first producer). Best-effort: a
+ *  failure just means no margin anchors — the text still renders. */
+async function fetchEvents(loc: { book: string; chapter: number }): Promise<EventSection[]> {
+  try {
+    const res = await fetch(`/api/events/${encodeURIComponent(loc.book)}/${loc.chapter}`);
+    const data = (await res.json()) as { sections?: EventSection[] };
+    return res.ok && Array.isArray(data.sections) ? data.sections : [];
+  } catch {
+    return [];
+  }
+}
+
 export function App(): JSX.Element {
   const [loc, setLoc] = createSignal(readUrl());
 
@@ -106,6 +145,7 @@ export function App(): JSX.Element {
     equals: (a, b) => a.book === b.book && a.chapter === b.chapter,
   });
   const [data] = createResource(chapterKey, fetchChapter);
+  const [events] = createResource(chapterKey, fetchEvents);
 
   window.addEventListener('popstate', () => setLoc(readUrl()));
 
@@ -113,7 +153,49 @@ export function App(): JSX.Element {
 
   const paragraphs = createMemo(() => {
     const ch = data();
-    return ch ? buildParagraphs(ch.verses, loc().nikud) : [];
+    if (!ch) return [];
+    const labels = new Map((events() ?? []).map((s) => [s.verse, s.label] as const));
+    return buildParagraphs(ch.verses, loc().nikud, labels);
+  });
+
+  // Margin anchors: measure each section-start verse number (.evt-pt) and pin its
+  // event label in the outer margin at that vertical position, on whichever side
+  // its column faces. Re-measured on reflow (resize / font load / nikud toggle).
+  let scrollMain: HTMLElement | undefined;
+  let scrollBand: HTMLElement | undefined;
+  const [anchors, setAnchors] = createSignal<{ v: string; label: string; top: number; side: 'left' | 'right' }[]>([]);
+  const [reflow, setReflow] = createSignal(0);
+
+  const measure = () => {
+    if (loc().view !== 'scroll' || !scrollMain || !scrollBand) {
+      setAnchors([]);
+      return;
+    }
+    const m = scrollMain.getBoundingClientRect();
+    const out: { v: string; label: string; top: number; side: 'left' | 'right' }[] = [];
+    scrollBand.querySelectorAll<HTMLElement>('.evt-pt').forEach((pt) => {
+      const r = pt.getBoundingClientRect();
+      if (!r.height) return;
+      const side: 'left' | 'right' = r.left + r.width / 2 - m.left < m.width / 2 ? 'left' : 'right';
+      out.push({ v: pt.dataset.v ?? '', label: pt.dataset.label ?? '', top: r.top - m.top, side });
+    });
+    setAnchors(out);
+  };
+
+  onMount(() => {
+    const bump = () => setReflow((n) => n + 1);
+    window.addEventListener('resize', bump);
+    document.fonts?.ready.then(bump);
+    onCleanup(() => window.removeEventListener('resize', bump));
+  });
+
+  createEffect(() => {
+    // dependencies that change the layout of .evt-pt points
+    paragraphs();
+    reflow();
+    loc().view;
+    loc().nikud;
+    requestAnimationFrame(() => requestAnimationFrame(measure));
   });
 
   return (
@@ -147,6 +229,8 @@ export function App(): JSX.Element {
           </button>
         </Show>
 
+        <a class="usage-link" href="/usage" title="LLM usage">usage</a>
+
         <div class="chapter-nav">
           <button disabled={loc().chapter <= 1} onClick={() => goto(loc().book, loc().chapter - 1)}>‹</button>
           <span class="chapter-label">ch. {loc().chapter}</span>
@@ -169,10 +253,23 @@ export function App(): JSX.Element {
       {/* Scroll — Sefer Torah columns with Masoretic parsha breaks */}
       <Show when={loc().view === 'scroll' && data()}>
         {(ch) => (
-          <main class="scroll-main">
-            <div class="scroll-band" dir="rtl">
+          <main class="scroll-main" ref={(el) => (scrollMain = el)}>
+            <div class="scroll-band" dir="rtl" ref={(el) => (scrollBand = el)}>
               <For each={paragraphs()}>{(p) => <p class="scroll-para" innerHTML={p} />}</For>
             </div>
+            <For each={anchors()}>
+              {(a) => (
+                <button
+                  class="evt-margin"
+                  classList={{ 'evt-left': a.side === 'left', 'evt-right': a.side === 'right' }}
+                  style={{ top: `${a.top}px` }}
+                  data-v={a.v}
+                  title={`${a.label} (verse ${a.v})`}
+                >
+                  {a.label}
+                </button>
+              )}
+            </For>
             <div class="scroll-caption">
               <span class="he">{ch().heRef}</span>
               <ChapterFoot ch={ch()} goto={goto} />
