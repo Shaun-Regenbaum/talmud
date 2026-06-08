@@ -10,8 +10,10 @@
     "lint": "biome check .",
     "format": "biome format --write .",
     "dev": "pnpm --filter talmud dev",
+    "dev:tanach": "pnpm --filter tanach dev",
     "ship": "pnpm --filter talmud ship",
-    "ship:talmud": "pnpm --filter talmud ship"
+    "ship:talmud": "pnpm --filter talmud ship",
+    "ship:tanach": "pnpm --filter tanach ship"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.16"

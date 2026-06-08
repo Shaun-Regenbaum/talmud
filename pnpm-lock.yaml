@@ -88,6 +88,43 @@ importers:
         specifier: ^4.90.1
         version: 4.90.1(@cloudflare/workers-types@4.20260511.1)
 
+  packages/tanach:
+    dependencies:
+      '@corpus/core':
+        specifier: workspace:*
+        version: link:../core
+      hono:
+        specifier: ^4.6.0
+        version: 4.12.14
+      solid-js:
+        specifier: ^1.9.0
+        version: 1.9.12
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+    devDependencies:
+      '@cloudflare/vite-plugin':
+        specifier: ^1.36.4
+        version: 1.36.4(vite@6.4.2)(workerd@1.20260508.1)(wrangler@4.90.1(@cloudflare/workers-types@4.20260511.1))
+      '@cloudflare/workers-types':
+        specifier: ^4.20260511.1
+        version: 4.20260511.1
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.2
+      vite-plugin-solid:
+        specifier: ^2.11.0
+        version: 2.11.12(solid-js@1.9.12)(vite@6.4.2)
+      vitest:
+        specifier: ^4.1.5
+        version: 4.1.5(jsdom@29.1.1)(vite@6.4.2)
+      wrangler:
+        specifier: ^4.90.1
+        version: 4.90.1(@cloudflare/workers-types@4.20260511.1)
+
 packages:
 
   '@asamuzakjp/css-color@5.1.11':
