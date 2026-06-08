@@ -1,0 +1,403 @@
+/* Scoped daf-render styles. All state flows through instance-level CSS vars
+   on the .daf-root element (no global stylesheet mutation). */
+
+.daf-root {
+  position: relative;
+  width: var(--daf-content-width);
+  pointer-events: none;
+  box-sizing: content-box;
+}
+
+.daf-root .daf-outer,
+.daf-root .daf-inner,
+.daf-root .daf-main {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--daf-content-width);
+  pointer-events: none;
+  box-sizing: content-box;
+}
+
+/* Spacer defaults */
+.daf-root .daf-spacer {
+  pointer-events: none;
+}
+
+/* Side columns: spacers default to halfway width, mid takes remainder */
+.daf-root .daf-inner .daf-spacer,
+.daf-root .daf-outer .daf-spacer {
+  width: var(--daf-halfway-percent);
+}
+
+.daf-root .daf-inner .daf-mid,
+.daf-root .daf-outer .daf-mid {
+  width: var(--daf-remainder-percent);
+  clear: both;
+}
+
+/* Inner column floats */
+.daf-root .daf-inner .daf-spacer {
+  float: var(--daf-inner-float);
+}
+.daf-root .daf-main .daf-outer-mid {
+  float: var(--daf-inner-float);
+}
+
+/* Outer column floats */
+.daf-root .daf-outer .daf-spacer {
+  float: var(--daf-outer-float);
+}
+.daf-root .daf-main .daf-inner-mid {
+  float: var(--daf-outer-float);
+}
+
+/* Main column: full-width start spacer, side-width mid spacers */
+.daf-root .daf-main .daf-start {
+  width: var(--daf-content-width);
+}
+.daf-root .daf-main .daf-inner-mid,
+.daf-root .daf-main .daf-outer-mid {
+  width: var(--daf-side-percent);
+}
+
+/* Spacer heights driven by the layout engine */
+.daf-root .daf-start {
+  height: var(--daf-start);
+}
+.daf-root .daf-inner .daf-end {
+  height: var(--daf-inner-end);
+}
+.daf-root .daf-outer .daf-end {
+  height: var(--daf-outer-end);
+}
+.daf-root .daf-inner .daf-mid,
+.daf-root .daf-main .daf-inner-mid {
+  height: var(--daf-inner);
+}
+.daf-root .daf-outer .daf-mid,
+.daf-root .daf-main .daf-outer-mid {
+  height: var(--daf-outer);
+}
+
+/* Horizontal padding between spacers and text */
+.daf-root .daf-main .daf-inner-mid,
+.daf-root .daf-main .daf-outer-mid {
+  margin-left: calc(0.5 * var(--daf-padding-horizontal));
+  margin-right: calc(0.5 * var(--daf-padding-horizontal));
+}
+
+.daf-root .daf-end {
+  margin-left: calc(0.5 * var(--daf-padding-horizontal));
+  margin-right: calc(0.5 * var(--daf-padding-horizontal));
+}
+
+/* Main column start spacer: always full-width block with normal horizontal padding */
+.daf-root .daf-main .daf-start {
+  margin-left: calc(0.5 * var(--daf-padding-horizontal));
+  margin-right: calc(0.5 * var(--daf-padding-horizontal));
+}
+
+/* Side column start spacers: per-column overrides to support exception cases
+   (commentary too short to fill top region). Defaults give the standard
+   halfway-wide floating start. Exception overrides can set width to 0% or
+   100% and toggle the bottom gap via --daf-*-start-gap. */
+.daf-root .daf-inner .daf-start {
+  width: var(--daf-inner-start-width, var(--daf-halfway-percent));
+  margin-left: var(--daf-inner-start-pad, calc(0.5 * var(--daf-padding-horizontal)));
+  margin-right: var(--daf-inner-start-pad, calc(0.5 * var(--daf-padding-horizontal)));
+  margin-bottom: var(--daf-inner-start-gap, 0px);
+}
+
+.daf-root .daf-outer .daf-start {
+  width: var(--daf-outer-start-width, var(--daf-halfway-percent));
+  margin-left: var(--daf-outer-start-pad, calc(0.5 * var(--daf-padding-horizontal)));
+  margin-right: var(--daf-outer-start-pad, calc(0.5 * var(--daf-padding-horizontal)));
+  margin-bottom: var(--daf-outer-start-gap, 0px);
+}
+
+/* Vertical padding */
+.daf-root .daf-mid,
+.daf-root .daf-main .daf-text {
+  margin-top: var(--daf-padding-vertical);
+}
+
+.daf-root .daf-mid,
+.daf-root .daf-main .daf-inner-mid,
+.daf-root .daf-main .daf-outer-mid {
+  margin-bottom: var(--daf-padding-vertical);
+}
+
+/* Text */
+.daf-root .daf-text {
+  direction: var(--daf-direction);
+  text-align: justify;
+  text-align-last: center;
+}
+
+.daf-root .daf-text span {
+  pointer-events: auto;
+}
+
+.daf-root .daf-main .daf-text {
+  font-family: var(--daf-font-main);
+  font-size: var(--daf-font-size-main);
+  line-height: var(--daf-line-height-main);
+}
+
+.daf-root .daf-inner .daf-text,
+.daf-root .daf-outer .daf-text {
+  font-size: var(--daf-font-size-side);
+  line-height: var(--daf-line-height-side);
+}
+
+.daf-root .daf-inner .daf-text {
+  font-family: var(--daf-font-inner);
+}
+
+.daf-root .daf-outer .daf-text {
+  font-family: var(--daf-font-outer);
+}
+
+/* HebrewBooks decorative markup classes preserved in the scraped text.
+   `.gdropcap` wraps the first word of a masechet (daf 2a). Rendered as its
+   own centered block line at ~3x size so the opening word reads as an
+   incipit, matching the tradition of the printed Talmud. Scoped to
+   `.daf-main` so any same-class occurrence in commentary columns is
+   unaffected. Ensured present on 2a by src/client/DafViewer.tsx. */
+.daf-root .daf-main .daf-text .gdropcap {
+  display: block;
+  text-align: center;
+  font-size: 3em;
+  font-weight: bold;
+  line-height: 1.1;
+  margin: 0.1em 0 0.3em;
+}
+.daf-root .daf-text .shastitle7 {
+  font-weight: bold;
+}
+.daf-root .daf-text .five {
+  font-weight: bold;
+}
+
+/* Some Sefaria commentary pieces (e.g. Rashi on Eruvin 102a) embed the printed
+   page's geometric diagrams as inline base64 <img> data URIs. With no rule they
+   render baseline-aligned mid-paragraph, inflating that one line box and
+   stranding its few words in a band of whitespace. Render each as its own
+   centered block, capped to the column width, matching the printed page. */
+.daf-root .daf-text img {
+  display: block;
+  margin: 0.5em auto;
+  max-width: 100%;
+  height: auto;
+}
+
+/* HebrewBooks wraps each Tosafot/commentary section in a block-level div with
+   margin-bottom:3px. We want sections to flow inline (short sections continue
+   on the same line as the next section) rather than each taking its own line,
+   which looks unnatural at wider column widths. */
+.daf-root .daf-text div {
+  display: inline;
+}
+
+/* Invisible anchor markers — measured by GutterIcons to place clickable icons
+   in the right-side gutter alongside the daf. Zero-size, no visual. */
+.daf-root .daf-text .daf-argument-anchor,
+.daf-root .daf-text .daf-halacha-anchor,
+.daf-root .daf-text .daf-aggadata-anchor,
+.daf-root .daf-text .daf-aggadata-end-anchor,
+.daf-root .daf-text .daf-pesuk-anchor,
+.daf-root .daf-text .daf-pesuk-end-anchor,
+.daf-root .daf-text .daf-opinion-anchor {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* Persistent rabbi highlight — applied to `.rabbi-underline` wraps whose
+   data-rabbi matches the currently-selected rabbi in the sidebar. */
+.daf-root .daf-text .rabbi-underline.rabbi-highlighted {
+  background-color: rgba(234, 179, 8, 0.35);
+  border-radius: 2px;
+}
+
+/* City-name marker — injected by src/client/injectCityMarkers.ts around
+   occurrences of KNOWN_CITIES in the Hebrew text. Faint dotted underline so
+   readers know the span is clickable but it doesn't compete visually with
+   rabbi-generation underlines. `.city-highlighted` turns on when a
+   GeographyMap place-dot for that city is the active selection. */
+.daf-root .daf-text .city-marker {
+  border-bottom: 1px dotted #6b7280;
+  padding-bottom: 0;
+  cursor: pointer;
+}
+.daf-root .daf-text .city-marker > .daf-word {
+  color: inherit;
+}
+.daf-root .daf-text .city-marker.city-highlighted {
+  background-color: rgba(59, 130, 246, 0.28);
+  border-radius: 2px;
+}
+
+/* Range highlights are painted as absolute-positioned overlay divs inside
+   .daf-root, one per line of the highlighted range, sized from merged
+   Range.getClientRects(). This bridges the .daf-word padding gaps and the
+   justification whitespace that the CSS Custom Highlight API leaves unpainted.
+   Client logic lives in src/client/DafViewer.tsx (paintRangeOverlay). */
+.daf-root .daf-range-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* Sits on top of text, but with semi-transparent backgrounds so the text
+     reads through like a physical highlighter. */
+}
+.daf-root .daf-range-highlight {
+  position: absolute;
+  pointer-events: none;
+}
+/* Round only the outer corners of a multi-line stack so adjacent bands
+   (which share an edge) don't show notches at the seams. A single-band
+   highlight gets all four corners rounded via both classes. */
+.daf-root .daf-range-highlight-first {
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+}
+.daf-root .daf-range-highlight-last {
+  border-bottom-left-radius: 2px;
+  border-bottom-right-radius: 2px;
+}
+.daf-root .daf-range-highlight-section {
+  background-color: rgba(138, 42, 43, 0.18);
+}
+.daf-root .daf-range-highlight-halacha {
+  background-color: rgba(30, 64, 175, 0.25);
+}
+/* Chart highlight (experimental) — cyan tint matching the chart gutter/sidebar
+   accent (#0e7490), painted over the dense region a comparison table covers. */
+.daf-root .daf-range-highlight-chart {
+  background-color: rgba(14, 116, 144, 0.2);
+}
+.daf-root .daf-range-highlight-aggadata {
+  background-color: rgba(124, 58, 237, 0.22);
+}
+/* Yerushalmi highlight — teal tint matching the yerushalmi gutter/sidebar
+   accent (#0f766e), painted over the Bavli span that has the open Jerusalem
+   Talmud parallel. */
+.daf-root .daf-range-highlight-yerushalmi {
+  background-color: rgba(15, 118, 110, 0.18);
+}
+/* Rishonim highlight — slate tint matching the rishonim gutter/sidebar accent
+   (#475569), distinct from section/halacha/aggadata/pesuk. */
+.daf-root .daf-range-highlight-rishonim {
+  background-color: rgba(71, 85, 105, 0.18);
+}
+/* Pesuk highlight — warm amber/orange tint to match the gutter badge color
+   so a Tanach citation reads as visually distinct from sections (red-brown),
+   halacha (blue), aggadata (violet), and commentary (violet). */
+.daf-root .daf-range-highlight-pesuk {
+  background-color: rgba(217, 119, 6, 0.20);
+}
+/* Argument-move highlight — yellow band painted when the user clicks a
+   subsection card in ArgumentSidebar. Brighter than the section tint so a
+   sub-range reads as a focused selection inside the parent section. */
+.daf-root .daf-range-highlight-move {
+  background-color: rgba(234, 179, 8, 0.30);
+}
+/* Commentary highlight uses violet so it reads distinct from the red-brown
+   section/argument tint and the blue halacha tint already in play. */
+.daf-root .daf-range-highlight-commentary {
+  background-color: rgba(124, 58, 237, 0.16);
+  cursor: pointer;
+}
+.daf-root .daf-range-highlight-commentary-active {
+  background-color: rgba(124, 58, 237, 0.32);
+}
+/* Daf↔commentary anchor — clicking a Rashi/Tosafot piece paints a teal
+   band over the daf seg(s) it glosses. Hue picked to be distinct from
+   the rabbi (red), argument-move (yellow), and commentary (violet) tints
+   that might also be on screen. */
+.daf-root .daf-range-highlight-comm-anchor {
+  background-color: rgba(15, 118, 110, 0.22);
+}
+/* User pieces — personal highlights. Background is set inline per-highlight
+   (paintRangeOverlay's bgFor callback) from the chosen palette color; the
+   static rule owns only layout + the highlighter blend so the daf text reads
+   through. Pointer-events stay off so clicks fall through to the daf word
+   (the click handler opens the note popover by hit-testing coordinates). */
+.daf-root .daf-range-highlight-user {
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+/* Era stratification tints — background color is set inline per-segment
+   (paintRangeOverlay's bgFor callback) so the static rule only owns layout
+   behaviour. Pointer-events stay off so clicks fall through to the daf word. */
+.daf-root .daf-range-highlight-era-tint {
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+.daf-root .daf-range-highlight-era-hover {
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+/* Anonymous-tannaitic variant: dashed underline. Signals "Tannaitic but
+   specific generation unknown". The underline color is set inline from the
+   generation spectrum (see injectRabbiUnderlines.ts); this rule only switches
+   the stroke to dashed. */
+.daf-root .daf-text .rabbi-underline-anonymous {
+  border-bottom-style: dashed !important;
+}
+
+/* Rabbi-name underline (generation marker). Injected by
+   src/client/injectRabbiUnderlines.ts. Thin colored underline spanning the
+   rabbi's name; shade indicates generation. */
+.daf-root .daf-text .rabbi-underline {
+  border-bottom: 2px solid currentColor;
+  padding-bottom: 0;
+  color: inherit;
+}
+/* When the header "Underline Rabbis" toggle is off, hide the underline
+   styling while keeping the rabbi spans in the DOM so timeline/map clicks
+   can still paint the yellow .rabbi-highlighted background. */
+.daf-no-rabbi-underlines .daf-root .daf-text .rabbi-underline {
+  border-bottom: none;
+}
+.daf-root .daf-text .rabbi-underline > .daf-word {
+  color: inherit;
+}
+/* Per-generation underline colors are set inline by injectRabbiUnderlines.ts
+   from the computed spectrum in src/client/generations.ts (pre-Geonim = red,
+   Geonim onward = blue, dark earlier -> light later). No per-id rules here. */
+
+/* Chapter-closing formula "הדרן עלך <chapter-name>". Displayed as its own
+   block line at a slightly larger size, centered, with a touch of vertical
+   breathing room so the chapter break reads as visually distinct. */
+.daf-root .daf-text .daf-hadran {
+  display: block;
+  font-size: 1.2em;
+  text-align: center;
+  text-align-last: center;
+  margin: 0.6em 0;
+  font-weight: 600;
+}
+
+/* Per-word click target. Tokenized by src/client/tokenize.ts. */
+.daf-root .daf-text .daf-word {
+  cursor: pointer;
+  padding: 0 1px;
+  border-radius: 2px;
+  transition: background-color 120ms;
+}
+.daf-root .daf-text .daf-word:hover {
+  background-color: rgba(138, 42, 43, 0.12);
+}
+.daf-root .daf-text .daf-word.daf-word-active {
+  background-color: rgba(138, 42, 43, 0.22);
+}
+
+/* Daf↔commentary anchor highlight: both directions now paint the continuous
+   teal range-overlay band (.daf-range-highlight-comm-anchor above) — the main
+   column when a piece is clicked, and the Rashi/Tosafot piece in the
+   inner/outer column when a daf word is clicked. No per-piece CSS outline,
+   which broke into a separate box per wrapped line on multi-line pieces. */

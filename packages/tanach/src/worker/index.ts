@@ -9,7 +9,7 @@
  */
 
 import { Hono } from 'hono';
-import { SefariaClient } from '@corpus/core/sefaria/client';
+import { SefariaClient, flattenPieces } from '@corpus/core/sefaria/client';
 import { isBook } from '../lib/books.ts';
 
 interface Env {
@@ -75,6 +75,43 @@ app.get('/api/chapter/:book/:chapter', async (c) => {
     verses,
     next: data.next ?? null,
     prev: data.prev ?? null,
+  });
+});
+
+/** Join a Sefaria he/text payload (nested per-verse arrays) into one continuous
+ *  Hebrew string for daf-renderer's flowing columns. */
+function joinHe(v: unknown): string {
+  return flattenPieces(v).join(' ').trim();
+}
+
+// Mikraot Gedolot: the pasuk text framed by Rashi (inner) + Targum Onkelos
+// (outer), fed to daf-renderer on the client. Hebrew only.
+app.get('/api/mikraot/:book/:chapter', async (c) => {
+  const book = c.req.param('book');
+  const chapter = c.req.param('chapter');
+  if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
+  if (!/^\d+$/.test(chapter)) return c.json({ error: `Bad chapter: ${chapter}` }, 400);
+
+  const main = `${book} ${chapter}`;
+  const [pasuk, rashi, targum] = await Promise.all([
+    sefaria.getText(main).catch(() => null),
+    sefaria.getText(`Rashi on ${main}`).catch(() => null),
+    sefaria.getText(`Onkelos ${main}`).catch(() => null),
+  ]);
+  if (!pasuk || pasuk.error) {
+    return c.json({ error: pasuk?.error ?? 'Sefaria fetch failed' }, 502);
+  }
+
+  return c.json({
+    book,
+    chapter: Number(chapter),
+    ref: pasuk.ref ?? main,
+    heRef: pasuk.heRef ?? '',
+    main: joinHe(pasuk.he),
+    rashi: rashi && !rashi.error ? joinHe(rashi.he) : '',
+    targum: targum && !targum.error ? joinHe(targum.he) : '',
+    next: pasuk.next ?? null,
+    prev: pasuk.prev ?? null,
   });
 });
 
