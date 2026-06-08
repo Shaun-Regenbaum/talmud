@@ -1,5 +1,6 @@
 import { createMemo, createResource, createSignal, For, Show, type JSX } from 'solid-js';
 import { BOOKS, SECTIONS, type Section } from '../lib/books.ts';
+import { hebrewNumeral } from '../lib/hebrew.ts';
 import { MikraotGedolot } from './MikraotGedolot.tsx';
 
 interface Verse {
@@ -46,25 +47,7 @@ const SETUMA = '\u0002';
  *     continuing on the same line -> an inline tab.
  */
 function buildParagraphs(verses: Verse[], nikud: boolean): string[] {
-  // Verse number as a Hebrew numeral (gematria): 1->א, 15->טו, 16->טז, 119->קיט.
-  const heNum = (n: number): string => {
-    const units = ['', 'א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט'];
-    const tens = ['', 'י', 'כ', 'ל', 'מ', 'נ', 'ס', 'ע', 'פ', 'צ'];
-    const hundreds = ['', 'ק', 'ר', 'ש', 'ת'];
-    let h = Math.floor(n / 100);
-    const rem = n % 100;
-    let s = '';
-    while (h > 4) {
-      s += 'ת';
-      h -= 4;
-    }
-    s += hundreds[h];
-    const t = Math.floor(rem / 10);
-    const u = rem % 10;
-    s += t === 1 && (u === 5 || u === 6) ? (u === 5 ? 'טו' : 'טז') : tens[t] + units[u];
-    return s;
-  };
-  let joined = verses.map((v) => `<span class="vnum">${heNum(v.n)}</span> ${v.he}`).join(' ');
+  let joined = verses.map((v) => `<span class="vnum">${hebrewNumeral(v.n)}</span> ${v.he}`).join(' ');
   joined = joined
     .replace(/(?:&nbsp;|\s)*<span class="mam-spi-pe[^"]*">\{פ\}<\/span>/g, PETUCHA)
     .replace(/(?:&nbsp;|\s)*<span class="mam-spi-samekh[^"]*">\{ס\}<\/span>/g, SETUMA)

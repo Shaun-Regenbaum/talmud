@@ -99,24 +99,36 @@ app.get('/api/mikraot/:book/:chapter', async (c) => {
   if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
   if (!/^\d+$/.test(chapter)) return c.json({ error: `Bad chapter: ${chapter}` }, 400);
 
-  const main = `${book} ${chapter}`;
+  const ref = `${book} ${chapter}`;
   const [pasuk, rashi, targum] = await Promise.all([
-    sefaria.getText(main).catch(() => null),
-    sefaria.getText(`Rashi on ${main}`).catch(() => null),
-    sefaria.getText(`Onkelos ${main}`).catch(() => null),
+    sefaria.getText(ref).catch(() => null),
+    sefaria.getText(`Rashi on ${ref}`).catch(() => null),
+    sefaria.getText(`Onkelos ${ref}`).catch(() => null),
   ]);
   if (!pasuk || pasuk.error) {
     return c.json({ error: pasuk?.error ?? 'Sefaria fetch failed' }, 502);
   }
 
+  // Per-verse alignment: Sefaria returns he[] indexed by verse for all three
+  // (Rashi he[i] is the array of comments on verse i+1; Onkelos he[i] is the
+  // verse's Targum). Aligning by index lets the client number verses and
+  // cross-highlight the pasuk <-> its Rashi/Onkelos.
+  const pasukHe = Array.isArray(pasuk.he) ? pasuk.he : [pasuk.he];
+  const rashiHe = rashi && !rashi.error && Array.isArray(rashi.he) ? rashi.he : [];
+  const targumHe = targum && !targum.error && Array.isArray(targum.he) ? targum.he : [];
+  const verses = pasukHe.map((p, i) => ({
+    n: i + 1,
+    pasuk: joinHe(p),
+    rashi: joinHe(rashiHe[i]),
+    targum: joinHe(targumHe[i]),
+  }));
+
   return c.json({
     book,
     chapter: Number(chapter),
-    ref: pasuk.ref ?? main,
+    ref: pasuk.ref ?? ref,
     heRef: pasuk.heRef ?? '',
-    main: joinHe(pasuk.he),
-    rashi: rashi && !rashi.error ? joinHe(rashi.he) : '',
-    targum: targum && !targum.error ? joinHe(targum.he) : '',
+    verses,
     next: pasuk.next ?? null,
     prev: pasuk.prev ?? null,
   });
