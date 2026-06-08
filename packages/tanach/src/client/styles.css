@@ -182,51 +182,34 @@ body {
   margin-top: 32px;
 }
 
-/* ---- scroll (Sefer Torah) view ---- */
+/* ---- scroll (Sefer Torah) view: dense justified columns, no ornament ---- */
 .scroll-main {
-  background: radial-gradient(ellipse at center, #f6ecd2 0%, #e9d9b4 100%);
-  padding: 30px 24px 36px;
-}
-.scroll-roll {
-  display: flex;
-  align-items: stretch;
-  box-shadow: 0 10px 30px rgba(60, 40, 12, 0.18);
-}
-.scroll-edge {
-  flex: 0 0 20px;
-  background: linear-gradient(to bottom, #5a3c1c, #8a6536 30%, #6b4a23 70%, #4e3417);
-  box-shadow: inset 0 0 7px rgba(0, 0, 0, 0.45);
-  border-radius: 4px;
+  background: var(--parchment);
+  padding: 36px 40px 28px;
 }
 .scroll-band {
-  flex: 1 1 auto;
-  height: 74vh;
-  padding: 30px 40px;
-  background: var(--parchment);
-  border-top: 3px solid var(--parchment-edge);
-  border-bottom: 3px solid var(--parchment-edge);
+  height: 76vh;
   color: var(--stam);
-  font-size: clamp(22px, 2.1vw, 31px);
-  line-height: 2.0;
+  font-size: clamp(19px, 1.55vw, 24px);
+  line-height: 1.72;
   text-align: justify;
   text-justify: inter-word;
-  columns: 16rem auto;
-  column-gap: 2.6rem;
+  columns: 15rem auto;
+  column-gap: 3.4rem;
   column-fill: auto;
-  column-rule: 1px solid rgba(122, 92, 46, 0.14);
   overflow-x: auto;
   overflow-y: hidden;
 }
 .scroll-band .parsha-open {
   display: block;
-  height: 0.9em;
+  height: 0.85em;
 }
 .scroll-band .parsha-closed {
   display: inline-block;
-  width: 2.4em;
+  width: 2.2em;
 }
 .scroll-band big {
-  font-size: 1.5em;
+  font-size: 1.4em;
   line-height: 1;
 }
 .scroll-band small {
@@ -238,14 +221,17 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 16px 4px 0;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(122, 92, 46, 0.2);
 }
 .scroll-caption .he {
-  font-size: 21px;
+  font-size: 19px;
   color: var(--accent);
 }
 .scroll-caption .chapter-foot {
   margin-top: 0;
+}
+.scroll-caption .chapter-foot button {
+  background: transparent;
 }
