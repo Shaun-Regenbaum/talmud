@@ -89,7 +89,7 @@ import {
 import { wrapEnv, gatewayStatus, gatewayActive } from '@corpus/core/llm/ai-gateway';
 import { runLLM, type LLMModelId, type LLMResult, type LLMUsage, type CostAttribution } from '@corpus/core/llm/llm';
 import { checkBudget, isBudgetPaused, budgetStatus, clearPauses, type BudgetScope } from '@corpus/core/llm/budget';
-import { lookupRelationships, findSlug, slugToName } from './rabbi-graph';
+import { lookupRelationships, slugToName, resolveRabbiSlug } from './rabbi-graph';
 import { runPasses } from '../lib/check/passes';
 import { composeTypeProfile, sectionHasNamedSpeaker, type LayerId, type LayerInstance, type TypeProfile, type UnitRange } from '../lib/typing/profile';
 import { findMarkers } from '../lib/typing/markers';
@@ -978,23 +978,29 @@ async function readSortedSections(env: Bindings, tractate: string, page: string)
 
 // Each argument section's rabbis, in reading order — sourced from the per-section
 // argument.voices enrichment (the only piece that ties a rabbi to a SECTION),
-// then RESOLVED through the rabbi registry: a voice is kept ONLY if its name
-// resolves to a real rabbi (findSlug). This drops anonymous/collective labels
-// ("Stam", "Western sages", "First answer") AND unifies spelling variants
-// ("R. Eliezer" / "Rabbi Eliezer") onto one slug, so tracing is exact. The chip
-// shows the registry's canonical name. Read-only; cold sections get [].
+// then RESOLVED registry-first with relational homonym disambiguation
+// (resolveRabbiSlug). A voice is kept ONLY if it resolves to a real rabbi: this
+// drops anonymous/collective labels ("Stam", "Western sages", "First answer")
+// AND ambiguous homonyms we can't pin from the daf's cast (e.g. which Rav
+// Kahana), and unifies spelling variants onto one canonical slug so tracing is
+// exact. The chip shows the registry's canonical name. Read-only; cold → [].
 interface SectionRabbi { slug: string; name: string }
 async function readSectionRabbis(env: Bindings, tractate: string, page: string): Promise<{ start: number; title: string; rabbis: SectionRabbi[] }[]> {
   const insts = await readMarkInstances(env, 'argument', tractate, page).catch(() => []);
   const voicesDef = findCodeEnrichment('argument.voices');
-  // Generation hint from the daf's rabbi mark (which carries generation, voices
-  // don't): lets findSlug disambiguate short names like "Rabbi Eliezer" →
-  // "Rabbi Eliezer b. Hyrcanus" via its generation, instead of dropping them.
+  // The daf's full rabbi cast (from the rabbi mark): names supply the relational
+  // CONTEXT for homonym disambiguation (the Rav Kahana next to Rav resolves to
+  // the Kahana whose registry edges include Rav), and each carries a generation
+  // hint used only as a last-resort tiebreaker.
+  const coRabbis: string[] = [];
   const genHint = new Map<string, { nameHe?: string; generation?: string }>();
   for (const ri of await readMarkInstances(env, 'rabbi', tractate, page).catch(() => [])) {
     const f = ri.fields ?? {};
-    const nm = typeof f.name === 'string' ? f.name.trim().toLowerCase() : '';
-    if (nm && !genHint.has(nm)) genHint.set(nm, { nameHe: typeof f.nameHe === 'string' ? f.nameHe : undefined, generation: typeof f.generation === 'string' ? f.generation : undefined });
+    const nm = typeof f.name === 'string' ? f.name.trim() : '';
+    if (!nm) continue;
+    if (!coRabbis.includes(nm)) coRabbis.push(nm);
+    const key = nm.toLowerCase();
+    if (!genHint.has(key)) genHint.set(key, { nameHe: typeof f.nameHe === 'string' ? f.nameHe : undefined, generation: typeof f.generation === 'string' ? f.generation : undefined });
   }
   const rows: { start: number; title: string; rabbis: SectionRabbi[] }[] = [];
   for (const inst of insts) {
@@ -1011,8 +1017,13 @@ async function readSectionRabbis(env: Bindings, tractate: string, page: string):
           if (!name) continue;
           const hint = genHint.get(name.toLowerCase());
           const nameHe = (typeof v.nameHe === 'string' ? v.nameHe : undefined) ?? hint?.nameHe;
-          const slug = findSlug(name, nameHe, hint?.generation);
-          if (!slug || seen.has(slug)) continue; // drop unresolved + dupes
+          // Registry-first + relational homonym disambiguation. coRabbis = the
+          // rest of the daf's cast (this voice excluded as context for itself).
+          const { slug } = resolveRabbiSlug(name, nameHe, {
+            coRabbis: coRabbis.filter((n) => n.toLowerCase() !== name.toLowerCase()),
+            generation: hint?.generation,
+          });
+          if (!slug || seen.has(slug)) continue; // drop unresolved/ambiguous + dupes
           seen.add(slug);
           rabbis.push({ slug, name: slugToName(slug) });
         }
