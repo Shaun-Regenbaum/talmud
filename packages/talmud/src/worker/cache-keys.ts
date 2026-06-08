@@ -216,7 +216,9 @@ export function prefixForRabbiObs(slug: string): string {
  *  (the relation-typed successor to keyForBridge's boolean). Keyed per anchor
  *  daf (forward window of 1), same raw shape family as the bridge key. */
 export function keyForCrossFlow(tractate: string, page: string): string {
-  return `cross-flow:v1:${slugDaf(tractate, page)}`;
+  // v2: precision pass after the Berakhot audit — tighter relation defs +
+  // anti-fan-out cap (≤1 continues / ≤2 total per source) + entity guard.
+  return `cross-flow:v2:${slugDaf(tractate, page)}`;
 }
 
 /** The whole-tractate link graph (spineLinks aggregator), materialized on the

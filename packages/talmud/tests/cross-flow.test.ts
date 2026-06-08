@@ -39,6 +39,41 @@ describe('parseCrossFlowEdges', () => {
     expect(edges[0].relation).toBe('parallels');
   });
 
+  it('caps fan-out: at most ONE continues per source section (the audit fix)', () => {
+    // The classic failure: 2a§1 emits continues to 2b §3/§4/§6.
+    const edges = parseCrossFlowEdges(
+      { edges: [
+        { fromSection: 0, toSection: 0, relation: 'continues', note: 'a' },
+        { fromSection: 0, toSection: 1, relation: 'continues', note: 'b' },
+        { fromSection: 0, toSection: 2, relation: 'continues', note: 'c' },
+      ] },
+      1, 5,
+    );
+    expect(edges.length).toBe(1);
+    expect(edges[0].toSection).toBe(0); // keeps the first
+  });
+
+  it('caps total edges per source section to 2', () => {
+    const edges = parseCrossFlowEdges(
+      { edges: [
+        { fromSection: 0, toSection: 0, relation: 'continues', note: '' },
+        { fromSection: 0, toSection: 1, relation: 'contrasts', note: '' },
+        { fromSection: 0, toSection: 2, relation: 'parallels', note: '' },
+      ] },
+      1, 5,
+    );
+    expect(edges.length).toBe(2);
+    // different source sections are independent
+    const two = parseCrossFlowEdges(
+      { edges: [
+        { fromSection: 0, toSection: 0, relation: 'continues', note: '' },
+        { fromSection: 1, toSection: 1, relation: 'continues', note: '' },
+      ] },
+      2, 5,
+    );
+    expect(two.length).toBe(2);
+  });
+
   it('returns [] for malformed input', () => {
     expect(parseCrossFlowEdges(null, 2, 2)).toEqual([]);
     expect(parseCrossFlowEdges({}, 2, 2)).toEqual([]);
