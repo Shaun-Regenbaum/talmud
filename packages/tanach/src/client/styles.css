@@ -417,3 +417,31 @@ body {
   color: var(--ink);
 }
 .note-pop-body.muted { color: var(--muted); font-style: italic; }
+
+/* word/phrase translation gloss (text selection) */
+.xlate-pop {
+  position: fixed;
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  max-width: 360px;
+  padding: 7px 13px;
+  background: #2c2418;
+  color: #fdf8ee;
+  border-radius: 8px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+}
+.xlate-pop .xlate-he {
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 15px;
+  color: #e9d9b8;
+  white-space: nowrap;
+}
+.xlate-pop .xlate-en {
+  font-size: 14px;
+  line-height: 1.35;
+}
+.xlate-pop .xlate-en.muted { opacity: 0.6; }
