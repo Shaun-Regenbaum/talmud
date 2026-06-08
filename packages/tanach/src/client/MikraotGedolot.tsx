@@ -1,4 +1,4 @@
-import { createResource, Show, type JSX } from 'solid-js';
+import { createResource, createSignal, onCleanup, Show, type JSX } from 'solid-js';
 import { DafRenderer } from '../lib/daf-render/index.ts';
 
 interface MG {
@@ -26,8 +26,21 @@ const FAM = 'Frank Ruhl Libre';
 /** The Mikraot Gedolot framed view: the pasuk text (center) wrapped by Rashi
  *  (inner) and Targum Onkelos (outer), laid out by the shared daf-renderer's
  *  tzurat-hadaf engine — the same renderer the Talmud reader uses. */
+/** A wide content width that uses most of the viewport (the Mikraot Gedolot
+ *  page is a broad spread, unlike the Talmud's narrow "sacred" daf). */
+function wideWidth(): number {
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 1280;
+  return Math.min(1500, Math.max(720, vw - 48));
+}
+
 export function MikraotGedolot(props: { book: string; chapter: number }): JSX.Element {
   const [data] = createResource(() => ({ book: props.book, chapter: props.chapter }), fetchMG);
+  const [width, setWidth] = createSignal(wideWidth());
+  const onResize = () => setWidth(wideWidth());
+  if (typeof window !== 'undefined') {
+    window.addEventListener('resize', onResize);
+    onCleanup(() => window.removeEventListener('resize', onResize));
+  }
 
   return (
     <main class="mg-main">
@@ -46,11 +59,11 @@ export function MikraotGedolot(props: { book: string; chapter: number }): JSX.El
                 inner={d().rashi || ' '}
                 outer={d().targum || ' '}
                 options={{
-                  contentWidth: 860,
+                  contentWidth: width(),
                   mainWidth: 0.5,
                   fontFamily: { main: FAM, inner: FAM, outer: FAM },
-                  fontSize: { main: 21, side: 15 },
-                  lineHeight: { main: 30, side: 22 },
+                  fontSize: { main: 22, side: 16 },
+                  lineHeight: { main: 32, side: 23 },
                 }}
               />
             </div>
