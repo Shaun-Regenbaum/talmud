@@ -125,7 +125,9 @@ export function SpineCoveragePage(): JSX.Element {
   const [viewTrigger, setViewTrigger] = createSignal<string | null>(thirdSeg() === 'flow' ? routeTractate() : null);
   const [flowView] = createResource(viewTrigger, fetchSpineView);
   const [trace, setTrace] = createSignal<string | null>(null); // rabbi being traced across the tractate
-  const [flowMode, setFlowMode] = createSignal<'detail' | 'overview'>('detail');
+  // #spine/<tractate>/flow/overview deep-links straight to the overview.
+  const fourthSeg = () => window.location.hash.replace(/^#/, '').split('/')[3];
+  const [flowMode, setFlowMode] = createSignal<'detail' | 'overview'>(fourthSeg() === 'overview' ? 'overview' : 'detail');
 
   const go = (t: string) => {
     const slug = t.trim().toLowerCase().replace(/\s+/g, '_');
