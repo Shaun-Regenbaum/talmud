@@ -5,7 +5,7 @@
 
 import { Hono } from 'hono';
 import type { Bindings } from './types';
-import { runLLM, type LLMModelId } from './llm';
+import { runLLM, type LLMModelId } from '@corpus/core/llm/llm';
 import { getSefariaSegmentsCached } from './source-cache';
 import { keyForCommentaryWorks, keyForCommentaryText } from './cache-keys';
 import { recordTelemetry, classifyError } from './telemetry';

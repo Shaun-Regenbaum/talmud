@@ -8,7 +8,7 @@
 // which is core to the run engine, not telemetry.
 
 import type { Bindings } from './types';
-import { costUsd as priceCostUsd, normalizeUsage } from './pricing';
+import { costUsd as priceCostUsd, normalizeUsage } from '@corpus/core/llm/pricing';
 
 // String-typed so composed labels like `stage-a-<classifyError>` work without
 // requiring a combinatorial explosion of literal types. Classifier values are

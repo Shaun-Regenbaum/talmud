@@ -86,17 +86,17 @@ import {
   type EnrichedRabbi as EnrichedRabbiRecord,
   type LLMRabbiOutput,
 } from '../lib/rabbi/types';
-import { wrapEnv, gatewayStatus, gatewayActive } from './ai-gateway';
-import { runLLM, type LLMModelId, type LLMResult, type LLMUsage, type CostAttribution } from './llm';
-import { checkBudget, isBudgetPaused, budgetStatus, clearPauses, type BudgetScope } from './budget';
+import { wrapEnv, gatewayStatus, gatewayActive } from '@corpus/core/llm/ai-gateway';
+import { runLLM, type LLMModelId, type LLMResult, type LLMUsage, type CostAttribution } from '@corpus/core/llm/llm';
+import { checkBudget, isBudgetPaused, budgetStatus, clearPauses, type BudgetScope } from '@corpus/core/llm/budget';
 import { lookupRelationships, findSlug, slugToName } from './rabbi-graph';
 import { runPasses } from '../lib/check/passes';
 import { composeTypeProfile, sectionHasNamedSpeaker, type LayerId, type LayerInstance, type TypeProfile, type UnitRange } from '../lib/typing/profile';
 import { findMarkers } from '../lib/typing/markers';
 import { noteLintAttempt, readLintFailures, type LintFailuresSummary } from './lint-failures';
 import { partitionSections, dedupeByRange, dedupeBy, selectSectionMoves, type MoveLike } from '../lib/argumentMoves';
-import { DEFAULT_MODEL, DEFAULT_FALLBACK_CHAIN, isLLMModelId, MODEL_PRESETS } from './settings';
-import { costUsd as priceCostUsd, costSplitUsd, normalizeUsage } from './pricing';
+import { DEFAULT_MODEL, DEFAULT_FALLBACK_CHAIN, isLLMModelId, MODEL_PRESETS } from '@corpus/core/llm/settings';
+import { costUsd as priceCostUsd, costSplitUsd, normalizeUsage } from '@corpus/core/llm/pricing';
 import { recordUsage, readUsageSummary } from './usage-rollup';
 import { recordUnknownRabbi, recordObservedPlace, recordObservedConcept, listUnknownRabbis, listObservedPlaces, listObservedConcepts } from './unknown-registry';
 import { fetchGatewayCost } from './aigw-analytics';

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { resolveChain, type LLMEnv, type LLMCallOptions } from '../src/worker/llm';
-import { DEFAULT_MODEL, DEFAULT_FALLBACK_CHAIN } from '../src/worker/settings';
+import { resolveChain, type LLMEnv, type LLMCallOptions } from '@corpus/core/llm/llm';
+import { DEFAULT_MODEL, DEFAULT_FALLBACK_CHAIN } from '@corpus/core/llm/settings';
 
 // The KV settings layer was removed: the model chain is resolved purely from
 // code (DEFAULT_MODEL / DEFAULT_FALLBACK_CHAIN) + the optional DEFAULT_LLM_MODEL

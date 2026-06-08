@@ -24,7 +24,7 @@ import { getSefariaSegmentsCached } from './source-cache';
 import { applyMatches, type SegMatch } from '../lib/context/match';
 import type { ContextItem } from '../lib/context/types';
 import type { MatchInput } from '../lib/context/anchor/ai-prompt';
-import type { LLMEnv } from './llm';
+import type { LLMEnv } from '@corpus/core/llm/llm';
 
 // Bump when the Revach parser output (entry order/keys), the segment text, or
 // the matcher prompt/model changes — positional keys (`revach:a:i`) mean stale

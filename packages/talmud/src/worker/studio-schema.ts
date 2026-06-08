@@ -39,7 +39,7 @@
  *   - The inspect surface is a left-side drawer alongside the daf viewer.
  */
 
-import type { LLMModelId } from './llm';
+import type { LLMModelId } from '@corpus/core/llm/llm';
 import type { SidebarRecipe } from '../lib/sidebar/recipe';
 
 // ===========================================================================

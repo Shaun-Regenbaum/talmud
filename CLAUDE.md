@@ -1,6 +1,6 @@
 # Working in this repo
 
-Talmud study app: Hono on Cloudflare Workers (`src/worker`) + Solid.js/Vite client (`src/client`), shared logic in `src/lib`. Package manager is **pnpm**. TypeScript strict.
+Talmud study app: Hono on Cloudflare Workers + Solid.js/Vite client, in a **pnpm workspace**. The app lives in `packages/talmud` (`src/worker`, `src/client`, `src/lib`); corpus-agnostic engine code shared with sibling apps lives in `packages/core` (imported as `@corpus/core/*`). Package manager is **pnpm**. TypeScript strict. Run workspace scripts from the repo root (`pnpm typecheck`/`pnpm test` delegate via `pnpm -r`) or scope one app with `pnpm --filter talmud <script>`.
 
 ## Framework direction — read `docs/framework.md` first
 
@@ -34,7 +34,7 @@ This repo is routinely worked by several agents in parallel (it is normal to see
 Instead, for any code change:
 
 1. **Branch in a worktree first.** Create a git worktree on a new branch before touching code. Worktrees branch from `origin/master`/HEAD, so they exclude others' uncommitted work — that is the point.
-2. **Run from the worktree.** If `node_modules` is missing there, symlink it from the main tree (`ln -s <repo>/node_modules ./node_modules`) rather than reinstalling. Then `pnpm typecheck` and `pnpm test`.
+2. **Run from the worktree.** Run a real `pnpm install` in the worktree — it's fast (hardlinks from the shared store) and, unlike symlinking `node_modules` from the main tree, it creates the workspace links for `@corpus/core` that vite/vitest need to resolve cross-package imports. (Symlinking from main still works for a worktree that touches no cross-package deps, but a real install is the safe default now.) Then `pnpm typecheck` and `pnpm test`.
 3. **PR → merge.** Commit on the branch, push, open a PR (`gh pr create`), and merge it (`gh pr merge <n> --squash --admin`). GitHub blocks self-approval, so the repo owner authorizes admin-merge.
 4. **Expect master to move.** Other agents push often. If a PR won't merge, `git merge origin/master` in the worktree, resolve, push (GitHub recomputes mergeability a few seconds later).
 5. **Deploy from the worktree** with `pnpm ship` when the change should go live.

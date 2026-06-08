@@ -6,7 +6,7 @@ import {
   clearPauses,
   computeSpendUsd,
   type BudgetEnv,
-} from '../src/worker/budget';
+} from '@corpus/core/llm/budget';
 
 // Minimal in-memory KV. budget.ts only uses get / put / delete; TTLs are
 // ignored (tests model window roll-over by passing a different `now`, not by
