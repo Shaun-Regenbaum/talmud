@@ -244,3 +244,21 @@ body {
   font-weight: 500;
   unicode-bidi: isolate;
 }
+
+/* Mikraot Gedolot: verse numbers in the panim + cross-highlight by verse */
+.mg-host .vnum {
+  font-size: 0.56em;
+  color: var(--accent);
+  vertical-align: 0.4em;
+  margin: 0 0.08em 0 0.15em;
+  font-weight: 500;
+  unicode-bidi: isolate;
+}
+.mg-seg {
+  border-radius: 2px;
+  transition: background-color 0.08s ease;
+}
+.mg-seg.hl {
+  background: rgba(122, 92, 46, 0.18);
+  box-shadow: 0 0 0 2px rgba(122, 92, 46, 0.18);
+}
