@@ -25,9 +25,9 @@ import { trackAI } from './aiActivity';
 import { lang } from './i18n';
 import { devModeActive } from './DevModeShelf';
 import type { SeedMark } from './seed-marks';
-import type { SidebarRecipe } from '../lib/sidebar/recipe';
+import type { SidebarRecipe } from '@corpus/core/sidebar/recipe';
 import type { MarkDef as RendererMarkDef, MarkRunOutput as RendererMarkRunOutput } from './renderers/dispatch';
-import { producerNodesFrom, reverseDependencyIndex, type RawDependency } from '../lib/registry/depGraph';
+import { producerNodesFrom, reverseDependencyIndex, type RawDependency } from '@corpus/core/registry/depGraph';
 
 type LLMModelId = `@cf/${string}` | `openrouter/${string}`;
 

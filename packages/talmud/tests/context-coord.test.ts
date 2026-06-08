@@ -8,7 +8,7 @@ import { describe, it, expect } from 'vitest';
 import {
   coordKey, sameDaf, coordForSeg, coordsForSegs, localSeg, isCrossDaf,
   normalizeSpan, spanByDaf, coordFromTarget, spineCoord, DAF_SEG,
-} from '../src/lib/context/coord.ts';
+} from '@corpus/core/context/coord';
 import { coordLabel } from '../src/lib/context/types.ts';
 import { placementOf } from '../src/lib/context/placement.ts';
 import { applyMatches, type SegMatch } from '../src/lib/context/match.ts';

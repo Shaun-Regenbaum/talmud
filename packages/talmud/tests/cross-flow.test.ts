@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildCrossFlowPrompt, parseCrossFlowEdges, crossFlowToLinks } from '../src/lib/typing/crossFlow';
-import { coordForSeg, coordKey } from '../src/lib/context/coord';
+import { coordForSeg, coordKey } from '@corpus/core/context/coord';
 
 const from = { tractate: 'berakhot', page: '4b' };
 const to = { tractate: 'berakhot', page: '5a' };

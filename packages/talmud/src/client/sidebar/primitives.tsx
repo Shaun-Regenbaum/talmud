@@ -401,8 +401,8 @@ export type SpecialBlock = (props: SpecialBlockProps) => JSX.Element;
 // The recipe shape (SectionSpec / SidebarRecipe) now lives in src/lib/sidebar/
 // recipe.ts so the worker mark definition can carry it. Re-exported here so the
 // many `from './sidebar/primitives'` importers keep working.
-import type { SectionSpec, SidebarRecipe } from '../../lib/sidebar/recipe';
-export type { SectionSpec, SidebarRecipe } from '../../lib/sidebar/recipe';
+import type { SectionSpec, SidebarRecipe } from '@corpus/core/sidebar/recipe';
+export type { SectionSpec, SidebarRecipe } from '@corpus/core/sidebar/recipe';
 
 /** A flat, render-ready description of a recipe for the dev shelf's Recipe panel.
  *  Pure (no reactivity) so it's unit-testable and the panel needn't know the
