@@ -89,7 +89,7 @@ import {
 import { wrapEnv, gatewayStatus, gatewayActive } from '@corpus/core/llm/ai-gateway';
 import { runLLM, type LLMModelId, type LLMResult, type LLMUsage, type CostAttribution } from '@corpus/core/llm/llm';
 import { checkBudget, isBudgetPaused, budgetStatus, clearPauses, type BudgetScope } from '@corpus/core/llm/budget';
-import { lookupRelationships, slugToName, resolveRabbiSlug } from './rabbi-graph';
+import { lookupRelationships, slugToName, resolveRabbiSlug, groundRabbiInstances } from './rabbi-graph';
 import { runPasses } from '../lib/check/passes';
 import { composeTypeProfile, sectionHasNamedSpeaker, type LayerId, type LayerInstance, type TypeProfile, type UnitRange } from '../lib/typing/profile';
 import { findMarkers } from '../lib/typing/markers';
@@ -2703,6 +2703,11 @@ async function runMarkOnce(
   //   - places: a side effect (backlog logging), not a parsed-output transform.
   if (parsed && def.id === 'rabbi') {
     parsed = postProcessRabbi(parsed, stripHtmlServer(String(vars.hebrew ?? '')));
+    // Ground each rabbi's generation through the registry (relational homonym
+    // disambiguation off the daf's cast): authoritative era when identified,
+    // neutral 'unknown' for a homonym we can't pin — so the reader's era color
+    // is grounded, not a freeform per-daf guess.
+    parsed = groundRabbiInstances(parsed);
   } else if (parsed && def.id === 'places') {
     // Places have no global gazetteer — log every observed location to the
     // "needs global enrichment" backlog so we can see what to add over time.

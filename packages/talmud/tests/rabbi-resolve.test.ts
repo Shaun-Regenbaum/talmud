@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { rabbiCandidates, resolveRabbiSlug, generationOf } from '../src/worker/rabbi-graph';
+import { rabbiCandidates, resolveRabbiSlug, generationOf, groundRabbiInstances } from '../src/worker/rabbi-graph';
 import hier from '../src/lib/data/rabbi-hierarchy.json';
 
 // Registry-first rabbi resolution with relational homonym disambiguation.
@@ -66,6 +66,63 @@ describe('resolveRabbiSlug — registry-first, precision over a confident-wrong 
       const r = resolveRabbiSlug('Rav Kahana', undefined, { coRabbis: [picked.neighborName] });
       expect(r.basis).toBe('relational');
       expect(r.slug).toBe(picked.cand);
+    }
+  });
+});
+
+describe('groundRabbiInstances — registry-grounded generation on rabbi mark instances', () => {
+  const mk = (insts: { name: string; nameHe?: string; generation?: string }[]) =>
+    ({ instances: insts.map((f) => ({ excerpt: f.nameHe ?? f.name, fields: { ...f } })) });
+  const fieldsAt = (parsed: unknown, i: number) =>
+    (parsed as { instances: { fields: Record<string, unknown> }[] }).instances[i].fields;
+
+  it('grounds an unambiguous rabbi to the registry generation + slug', () => {
+    const p = mk([{ name: 'Reish Lakish', generation: 'amora-ey-9' /* wrong guess */ }]);
+    groundRabbiInstances(p);
+    const f = fieldsAt(p, 0);
+    expect(f.slug).toBe('rabbi-shimon-b-lakish');
+    expect(f.genSource).toBe('unique');
+    expect(f.generation).toBe(generationOf('rabbi-shimon-b-lakish'));
+  });
+
+  it('blanks the era of a homonym it cannot pin (Rav Kahana alone) → unknown, no slug', () => {
+    const p = mk([{ name: 'Rav Kahana', generation: 'amora-bavel-2' }]);
+    groundRabbiInstances(p);
+    const f = fieldsAt(p, 0);
+    expect(f.genSource).toBe('ambiguous');
+    expect(f.generation).toBe('unknown');   // neutral, not the freeform guess
+    expect(f.slug).toBeUndefined();
+  });
+
+  it('keeps the LLM generation for a name absent from the registry', () => {
+    const p = mk([{ name: 'Xyzzy Not-A-Rabbi', generation: 'tanna-1' }]);
+    groundRabbiInstances(p);
+    const f = fieldsAt(p, 0);
+    expect(f.genSource).toBe('none');
+    expect(f.generation).toBe('tanna-1');   // unchanged — no registry opinion
+    expect(f.slug).toBeUndefined();
+  });
+
+  it('grounds a homonym RELATIONALLY from the daf cast', () => {
+    const cands = rabbiCandidates('Rav Kahana');
+    const nodes = (hier as { nodes: Record<string, { canonical: string; teachers?: string[]; students?: string[]; colleagues?: string[] }> }).nodes;
+    const edgesOf = (slug: string) => new Set([...(nodes[slug]?.teachers ?? []), ...(nodes[slug]?.students ?? []), ...(nodes[slug]?.colleagues ?? [])]);
+    let picked: { cand: string; neighborName: string } | null = null;
+    for (const cand of cands) {
+      const others = cands.filter((c) => c !== cand);
+      for (const nb of edgesOf(cand)) {
+        if (others.some((o) => edgesOf(o).has(nb)) || !nodes[nb]?.canonical) continue;
+        picked = { cand, neighborName: nodes[nb].canonical }; break;
+      }
+      if (picked) break;
+    }
+    if (picked) {
+      const p = mk([{ name: 'Rav Kahana' }, { name: picked.neighborName }]);
+      groundRabbiInstances(p);
+      const f = fieldsAt(p, 0);
+      expect(f.slug).toBe(picked.cand);
+      expect(f.genSource).toBe('relational');
+      expect(f.generation).toBe(generationOf(picked.cand));
     }
   });
 });
