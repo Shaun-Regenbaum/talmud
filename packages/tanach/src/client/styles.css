@@ -270,23 +270,35 @@ body {
    These are the interactive attachment points for future enrichments. */
 .evt-margin {
   position: absolute;
-  width: clamp(74px, 8vw, 140px);
-  margin-top: -0.3em;
-  padding: 4px 6px 0;
-  font: 500 9px/1.35 'Frank Ruhl Libre', Georgia, serif;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  color: rgba(122, 92, 46, 0.62);
+  width: clamp(96px, 13vw, 180px);
+  margin-top: -0.55em;
+  padding: 0;
+  font: 500 10px/1.4 'Frank Ruhl Libre', Georgia, serif;
+  letter-spacing: 0.01em;
+  color: rgba(122, 92, 46, 0.7);
   background: none;
   border: 0;
-  border-top: 1px solid rgba(122, 92, 46, 0.22);
   cursor: pointer;
   unicode-bidi: isolate;
-  transition: color 0.1s ease;
+  transition: color 0.12s ease;
 }
-.evt-margin.evt-right { right: clamp(6px, 1.4vw, 36px); text-align: right; }
-.evt-margin.evt-left { left: clamp(6px, 1.4vw, 36px); text-align: left; }
-.evt-margin:hover { color: var(--accent); border-top-color: var(--accent); }
+/* a small dot at the verse line, on the text-facing (inner) edge */
+.evt-margin::before {
+  content: '';
+  position: absolute;
+  top: 0.55em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(122, 92, 46, 0.5);
+  transition: background-color 0.12s ease;
+}
+.evt-margin.evt-right { right: clamp(10px, 2vw, 48px); text-align: right; }
+.evt-margin.evt-right::before { left: 0; }
+.evt-margin.evt-left { left: clamp(10px, 2vw, 48px); text-align: left; }
+.evt-margin.evt-left::before { right: 0; }
+.evt-margin:hover { color: var(--accent); }
+.evt-margin:hover::before { background: var(--accent); }
 @media (max-width: 820px) {
   .evt-margin { display: none; }
 }
