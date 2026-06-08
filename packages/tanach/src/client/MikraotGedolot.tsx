@@ -33,7 +33,10 @@ function wideWidth(): number {
   return Math.min(1300, Math.max(680, vw - 240));
 }
 
-const FAM = 'Frank Ruhl Libre';
+// Panim (main biblical text) gets a more formal serif; the commentaries keep
+// Frank Ruhl Libre so the central column reads distinct from the margins.
+const MAIN_FAM = 'Noto Serif Hebrew';
+const SIDE_FAM = 'Frank Ruhl Libre';
 
 /** Each verse / commentary piece is tagged with its verse number so hovering one
  *  cross-highlights the pasuk and its Rashi + Onkelos together (like the daf). */
@@ -103,7 +106,7 @@ export function MikraotGedolot(props: { book: string; chapter: number }): JSX.El
                 options={{
                   contentWidth: width(),
                   mainWidth: 0.5,
-                  fontFamily: { main: FAM, inner: FAM, outer: FAM },
+                  fontFamily: { main: MAIN_FAM, inner: SIDE_FAM, outer: SIDE_FAM },
                   fontSize: { main: 22, side: 16 },
                   lineHeight: { main: 32, side: 23 },
                 }}

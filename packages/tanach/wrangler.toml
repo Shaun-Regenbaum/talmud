@@ -18,17 +18,27 @@ not_found_handling = "single-page-application"
 [observability]
 enabled = true
 
-# --- Provisioning TODO (later, when AI cards land) ---
-# The v1 reader fetches Sefaria live and uses no KV/LLM. When the producers
-# arrive, add:
-#
-# [[kv_namespaces]]            # `wrangler kv namespace create tanach-cache`
-# binding = "CACHE"
-# id = "<fill-in>"
-#
-# [vars]                       # create the `tanach` AI Gateway in the dashboard
-# AI_GATEWAY_ID = "tanach"
-# DEFAULT_LLM_MODEL = "openrouter/deepseek/deepseek-v4-pro"
-#
-# [[queues.producers]] / [[queues.consumers]]  queue = "enrichment-jobs-tanach"
-# secrets: OPENROUTER_API_KEY, STUDIO_SECRET  (`wrangler secret put …`)
+# Result cache for the producers (event labels, later synthesis/context). The
+# reader's Sefaria fetches stay un-cached for now; this is the AI-output store.
+[[kv_namespaces]]
+binding = "CACHE"
+id = "2d3ee093681441c58cf7e9f08420acc7"
+
+[vars]
+# OpenRouter calls route through a Cloudflare AI Gateway (the only path in
+# @corpus/core). We reuse the existing `talmud` gateway for now — creating a
+# dedicated `tanach` gateway needs a token with AI-Gateway scope (the MCP token
+# is KV-only). Swap to AI_GATEWAY_ID = "tanach" once it exists. Usage is tracked
+# in our own KV ledger (/api/usage), independent of the gateway.
+AI_GATEWAY_ID = "talmud"
+# Needed to build the AI Gateway URL. Not secret (it's the account id).
+CLOUDFLARE_ACCOUNT_ID = "ddf8edfc3dfd489567fe3c5b28b51aca"
+# Cheap + fast default for the producers (short structured output).
+DEFAULT_LLM_MODEL = "openrouter/deepseek/deepseek-v4-flash"
+OPENROUTER_GATEWAY_PROVIDER = "openrouter"
+# Spend caps enforced at the runLLM chokepoint (@corpus/core/llm/budget).
+DAILY_BUDGET_USD = "20"
+HOURLY_CUSTOM_BUDGET_USD = "5"
+
+# Secret (set with `wrangler secret put OPENROUTER_API_KEY`; locally via
+# packages/tanach/.dev.vars): OPENROUTER_API_KEY.
