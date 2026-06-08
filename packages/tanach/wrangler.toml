@@ -3,6 +3,11 @@ main = "src/worker/index.ts"
 compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
 
+# Custom production domain. The shaunregenbaum.com zone is on the same account
+# as the Talmud app; wrangler provisions the DNS record + cert on deploy.
+# (Top-level key — must precede any [table] header or TOML folds it into it.)
+routes = [{ pattern = "tanach.shaunregenbaum.com", custom_domain = true }]
+
 # The Solid client is built into ./dist/client and served by the Worker via the
 # ASSETS binding; unmatched routes fall through to index.html (SPA).
 [assets]
@@ -13,11 +18,9 @@ not_found_handling = "single-page-application"
 [observability]
 enabled = true
 
-# --- Provisioning TODO (added at deploy time, NOT yet live) ---
-# The v1 reader fetches Sefaria live, so none of the below is needed for local
-# `pnpm --filter tanach dev`. Before shipping to the custom domain, add:
-#
-# routes = [{ pattern = "tanach.shaunregenbaum.com", custom_domain = true }]
+# --- Provisioning TODO (later, when AI cards land) ---
+# The v1 reader fetches Sefaria live and uses no KV/LLM. When the producers
+# arrive, add:
 #
 # [[kv_namespaces]]            # `wrangler kv namespace create tanach-cache`
 # binding = "CACHE"
