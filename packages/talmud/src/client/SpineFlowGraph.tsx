@@ -12,7 +12,7 @@
  * highlighted. Reuses the daf reader's flow palette + title wrapping.
  * Hidden #spine page only.
  */
-import { For, Show, createMemo, type JSX } from 'solid-js';
+import { For, Show, createMemo, createSignal, type JSX } from 'solid-js';
 import { KIND_COLOR, KIND_DASH, wrapTitle, type FlowConnection } from './ArgumentFlowGraph';
 
 type Kind = FlowConnection['kind'];
@@ -111,14 +111,33 @@ export default function SpineFlowGraph(props: { dapim: SpineViewDaf[]; highlight
     return [`M ${rightX} ${y1}`, `L ${x - r} ${y1}`, `Q ${x} ${y1} ${x} ${y1 + dir * r}`, `L ${x} ${y2 - dir * r}`, `Q ${x} ${y2} ${x - r} ${y2}`, `L ${rightX} ${y2}`].join(' ');
   };
 
+  // Zoom lets you shrink the whole rendered map to read its shape, then scale
+  // back in. The container keeps its own scrollbars for panning; ctrl/cmd+wheel
+  // zooms. "fit" scales the map to the container height.
+  const [zoom, setZoom] = createSignal(1);
+  const clampZoom = (z: number) => Math.max(0.15, Math.min(2, z));
+  let boxRef: HTMLDivElement | undefined;
+  const fit = () => { const h = (boxRef?.clientHeight || 600) - 12; setZoom(clampZoom(h / model().height)); };
+  const onWheel = (e: WheelEvent) => { if (e.ctrlKey || e.metaKey) { e.preventDefault(); setZoom((z) => clampZoom(z * (e.deltaY < 0 ? 1.12 : 0.89))); } };
+  const zbtn: JSX.CSSProperties = { font: 'inherit', 'font-size': '0.78rem', padding: '0.1rem 0.5rem', border: '1px solid var(--line)', 'border-radius': '6px', background: '#fff', cursor: 'pointer', color: 'var(--fg)' };
+
   return (
     <Show when={props.dapim.length > 0}>
-      <div style={{ 'max-height': '78vh', 'overflow-y': 'auto', 'overflow-x': 'auto', border: '1px solid #ece9df', 'border-radius': '8px', background: '#fdfcf9', 'margin-top': '0.6rem', padding: '0.3rem' }}>
+      <>
+      <div style={{ display: 'flex', 'align-items': 'center', gap: '0.35rem', 'margin-top': '0.4rem', 'font-size': '0.78rem', color: 'var(--muted)' }}>
+        <button style={zbtn} title="zoom out" onClick={() => setZoom((z) => clampZoom(z * 0.85))}>&minus;</button>
+        <span style={{ 'min-width': '3ch', 'text-align': 'center' }}>{Math.round(zoom() * 100)}%</span>
+        <button style={zbtn} title="zoom in" onClick={() => setZoom((z) => clampZoom(z * 1.18))}>+</button>
+        <button style={zbtn} onClick={() => setZoom(1)}>1:1</button>
+        <button style={zbtn} onClick={fit}>fit height</button>
+        <span style={{ 'margin-left': '0.3rem' }}>ctrl/&#8984;+scroll to zoom</span>
+      </div>
+      <div ref={boxRef} onWheel={onWheel} style={{ 'max-height': '78vh', 'overflow-y': 'auto', 'overflow-x': 'auto', border: '1px solid #ece9df', 'border-radius': '8px', background: '#fdfcf9', 'margin-top': '0.4rem', padding: '0.3rem' }}>
         {(() => {
           const m = model();
           const hl = () => props.highlight ?? null; // a rabbi slug
           return (
-            <svg width={m.width} height={m.height} viewBox={`0 0 ${m.width} ${m.height}`} style={{ display: 'block' }}>
+            <svg width={m.width * zoom()} height={m.height * zoom()} viewBox={`0 0 ${m.width} ${m.height}`} style={{ display: 'block' }}>
               <defs>
                 <For each={Object.entries(KIND_COLOR)}>{([kind, color]) => (
                   <marker id={`spine-arrow-${kind}`} markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
@@ -133,7 +152,7 @@ export default function SpineFlowGraph(props: { dapim: SpineViewDaf[]; highlight
               <For each={m.dafHeaders}>{(h) => (
                 <>
                   <line x1={0} y1={h.y + DAF_HEADER_H - 6} x2={m.width} y2={h.y + DAF_HEADER_H - 6} stroke="#efece2" stroke-width={1} />
-                  <text x={6} y={h.y + 15} font-size="13" font-weight="700" font-family="'SF Mono', Menlo, monospace" fill="#8a2a2b">{h.page}</text>
+                  <text x={6} y={h.y + 15} font-size="13" font-weight="700" font-family="system-ui, -apple-system, sans-serif" fill="#8a2a2b">{h.page}</text>
                 </>
               )}</For>
 
@@ -190,6 +209,7 @@ export default function SpineFlowGraph(props: { dapim: SpineViewDaf[]; highlight
           );
         })()}
       </div>
+      </>
     </Show>
   );
 }
