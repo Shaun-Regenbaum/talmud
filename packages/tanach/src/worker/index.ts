@@ -14,6 +14,7 @@ import type { LLMEnv } from '@corpus/core/llm/llm';
 import { isBook } from '../lib/books.ts';
 import { eventSections } from './producers/events.ts';
 import { sectionNote } from './producers/note.ts';
+import { translateHebrew } from './producers/translate.ts';
 import { readUsage, recordUsage } from './usage.ts';
 
 interface Env extends LLMEnv {
@@ -285,6 +286,46 @@ app.get('/api/note/:book/:chapter/:start', async (c) => {
     ]).then(() => undefined),
   );
   return c.json(payload);
+});
+
+// Word / phrase translation: the reader selects Hebrew and gets an English
+// gloss (in the sense it carries in the given verse context). Cached per
+// normalized selection.
+app.get('/api/translate', async (c) => {
+  const q = (c.req.query('q') ?? '').trim();
+  const ctx = (c.req.query('ctx') ?? '').trim().slice(0, 400);
+  if (!q) return c.json({ error: 'Missing q' }, 400);
+  if (q.length > 120) return c.json({ error: 'Selection too long' }, 400);
+
+  // Cache key ignores niqqud/cantillation so vocalized + bare forms share a hit.
+  const norm = q.replace(/[֑-ׇ]/g, '').replace(/\s+/g, ' ').trim();
+  const key = `translate:v1:${norm}`;
+  const cached = await c.env.CACHE.get(key);
+  if (cached !== null) return c.json({ q, translation: cached, cached: true });
+
+  let result: Awaited<ReturnType<typeof translateHebrew>>;
+  try {
+    result = await translateHebrew(c.env, q, ctx);
+  } catch (e) {
+    return c.json({ error: `Translate failed: ${(e as Error).message}` }, 502);
+  }
+  if (!result.translation) return c.json({ error: 'No translation' }, 502);
+
+  c.executionCtx.waitUntil(
+    Promise.all([
+      c.env.CACHE.put(key, result.translation, { expirationTtl: 60 * 60 * 24 * 30 }),
+      recordUsage(c.env.CACHE, {
+        ts: Date.now(),
+        ref: norm.slice(0, 40),
+        producer: 'translate',
+        model: result.model,
+        in: result.inTokens,
+        out: result.outTokens,
+        cost: result.costUsd,
+      }),
+    ]).then(() => undefined),
+  );
+  return c.json({ q, translation: result.translation });
 });
 
 // Self-tracked LLM usage (totals + per-producer + recent calls).

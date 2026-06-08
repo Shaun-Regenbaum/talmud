@@ -278,6 +278,31 @@ export function App(): JSX.Element {
     setSelected(null);
   });
 
+  // Word / phrase translation: select Hebrew in the text (double-click a word or
+  // drag a phrase) -> an English gloss popup at the selection.
+  const [wordSel, setWordSel] = createSignal<{ he: string; ctx: string; x: number; y: number } | null>(null);
+  const [translation] = createResource(wordSel, async (w) => {
+    const res = await fetch(`/api/translate?q=${encodeURIComponent(w.he)}&ctx=${encodeURIComponent(w.ctx)}`);
+    return res.ok ? (((await res.json()) as { translation?: string }).translation ?? null) : null;
+  });
+  const onTextSelect = () => {
+    const g = window.getSelection();
+    const text = g?.toString().trim() ?? '';
+    if (!g || g.rangeCount === 0 || !text || text.length > 80 || !/[א-ת]/.test(text)) return;
+    const r = g.getRangeAt(0).getBoundingClientRect();
+    const ctx = (g.anchorNode?.parentElement?.textContent ?? '').replace(/\s+/g, ' ').trim();
+    setWordSel({ he: text, ctx, x: r.left + r.width / 2, y: r.bottom });
+  };
+  onMount(() => {
+    const clear = () => setWordSel(null);
+    window.addEventListener('scroll', clear, { passive: true });
+    onCleanup(() => window.removeEventListener('scroll', clear));
+  });
+  createEffect(() => {
+    chapterKey();
+    setWordSel(null);
+  });
+
   return (
     <div class="app" classList={{ 'view-scroll': loc().view === 'scroll', 'view-mikraot': loc().view === 'mikraot' }}>
       <header class="topbar">
@@ -353,7 +378,7 @@ export function App(): JSX.Element {
       <Show when={loc().view === 'scroll' && data()}>
         {(ch) => (
           <main class="scroll-main" ref={(el) => (scrollMain = el)}>
-            <div class="scroll-band" dir="rtl" ref={(el) => (scrollBand = el)}>
+            <div class="scroll-band" dir="rtl" ref={(el) => (scrollBand = el)} onMouseUp={onTextSelect}>
               <For each={paragraphs()}>{(p) => <p class="scroll-para" innerHTML={p} />}</For>
             </div>
             <For each={anchors()}>
@@ -403,6 +428,21 @@ export function App(): JSX.Element {
               <ChapterFoot ch={ch()} goto={goto} lang={loc().lang} />
             </div>
           </main>
+        )}
+      </Show>
+
+      {/* Word/phrase translation gloss, pinned at the selection */}
+      <Show when={wordSel()}>
+        {(w) => (
+          <div class="xlate-pop" style={{ left: `${w().x}px`, top: `${w().y + 8}px` }}>
+            <span class="xlate-he" dir="rtl">{w().he}</span>
+            <Show when={translation.loading}>
+              <span class="xlate-en muted">…</span>
+            </Show>
+            <Show when={!translation.loading}>
+              <span class="xlate-en">{translation() ?? '—'}</span>
+            </Show>
+          </div>
         )}
       </Show>
     </div>
