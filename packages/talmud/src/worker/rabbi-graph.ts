@@ -229,6 +229,89 @@ export function slugToName(slug: string): string {
   return INDEX.slugToCanonical.get(slug) ?? slug.replace(/-/g, ' ');
 }
 
+export function generationOf(slug: string): string | null {
+  return DATA.nodes[slug]?.generation ?? null;
+}
+
+// Every (normalizedCanonical, slug) pair, built once — for enumerating ALL
+// registry nodes a name could refer to (homonym candidate set), not just the
+// first match findSlug returns.
+const NORM_INDEX: { norm: string; slug: string }[] = Object.entries(DATA.nodes)
+  .map(([slug, n]) => ({ norm: normalizeName(n.canonical), slug }));
+
+/** ALL registry nodes a name could denote. For a homonym like "Rav Kahana"
+ *  this returns every Kahana node (Rav Kahana (II), Rav Kahana of Pum Nahara,
+ *  …); for an unambiguous name, one. An alias short-form pins its one canonical
+ *  target (aliases encode the intended default). Empty = not in the registry. */
+export function rabbiCandidates(name: string, nameHe?: string): string[] {
+  const norm = normalizeName(name);
+  if (ALIASES[norm]) return [ALIASES[norm]];
+  const out = new Set<string>();
+  // exact canonical, or canonical that EXTENDS the name at a word boundary
+  // ("rav kahana" → "rav kahana (ii)" / "rav kahana of pum nahara").
+  for (const { norm: c, slug } of NORM_INDEX) {
+    if (c === norm || c.startsWith(norm + ' ')) out.add(slug);
+  }
+  const exact = INDEX.nameToSlug.get(norm); if (exact) out.add(exact);
+  if (nameHe) {
+    const cleanHe = nameHe.replace(/\s*\(\d+\)\s*$/, '').trim();
+    const he = INDEX.heToSlug.get(cleanHe); if (he) out.add(he);
+  }
+  return [...out];
+}
+
+export type ResolveBasis = 'unique' | 'relational' | 'generation' | 'ambiguous' | 'none';
+export interface ResolvedRabbi { slug: string | null; basis: ResolveBasis }
+
+/**
+ * Registry-FIRST rabbi resolution with relational homonym disambiguation.
+ *
+ *  - 0 registry candidates → null ('none'): we don't invent a rabbi.
+ *  - 1 candidate          → it ('unique').
+ *  - >1 (a homonym)       → disambiguate by DAF EVIDENCE: score each candidate
+ *    by how many of the co-occurring rabbis on the daf sit in its registry
+ *    teacher/student/colleague edges, and pick the unique best ('relational').
+ *    e.g. the Rav Kahana who sits next to Rav resolves to the Kahana whose
+ *    edges include Rav. If relational gives no clear winner, fall back to a
+ *    generation match ONLY if it singles out one candidate; otherwise return
+ *    null ('ambiguous') rather than guess. Precision over a confident-wrong id.
+ */
+export function resolveRabbiSlug(
+  name: string,
+  nameHe?: string,
+  opts?: { coRabbis?: readonly string[]; generation?: string },
+): ResolvedRabbi {
+  const cands = rabbiCandidates(name, nameHe);
+  if (cands.length === 0) return { slug: null, basis: 'none' };
+  if (cands.length === 1) return { slug: cands[0], basis: 'unique' };
+
+  const candSet = new Set(cands);
+  const coSlugs = new Set<string>();
+  for (const co of opts?.coRabbis ?? []) {
+    const s = findSlug(co);                       // single best for context names
+    if (s && !candSet.has(s)) coSlugs.add(s);
+  }
+  let best: string | null = null;
+  let bestScore = 0;
+  let tie = false;
+  for (const slug of cands) {
+    const node = DATA.nodes[slug];
+    if (!node) continue;
+    const nbrs = new Set<string>([...(node.teachers ?? []), ...(node.students ?? []), ...(node.colleagues ?? [])]);
+    let score = 0;
+    for (const cs of coSlugs) if (nbrs.has(cs)) score++;
+    if (score > bestScore) { bestScore = score; best = slug; tie = false; }
+    else if (score === bestScore && score > 0) tie = true;
+  }
+  if (best && bestScore > 0 && !tie) return { slug: best, basis: 'relational' };
+
+  if (opts?.generation) {
+    const genMatch = cands.filter((s) => DATA.nodes[s]?.generation === opts.generation);
+    if (genMatch.length === 1) return { slug: genMatch[0], basis: 'generation' };
+  }
+  return { slug: null, basis: 'ambiguous' };
+}
+
 /** Build family entries from the rabbi's name patronymic. The graph
  *  doesn't carry family data; the patronymic is direct nominal evidence
  *  of the parent. */
