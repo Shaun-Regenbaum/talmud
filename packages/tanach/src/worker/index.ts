@@ -147,7 +147,7 @@ app.get('/api/events/:book/:chapter', async (c) => {
   if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
   if (!/^\d+$/.test(chapter)) return c.json({ error: `Bad chapter: ${chapter}` }, 400);
 
-  const key = `events:v1:${book}:${chapter}`;
+  const key = `events:v2:${book}:${chapter}`;
   const cached = await c.env.CACHE.get(key);
   if (cached) return c.json(JSON.parse(cached));
 
@@ -191,6 +191,37 @@ app.get('/api/events/:book/:chapter', async (c) => {
       }),
     ]).then(() => undefined),
   );
+  return c.json(payload);
+});
+
+// This week's Torah portion (parashat hashavua), from Sefaria's calendar.
+// Returns the parsha name + the book/chapter it starts at, so the reader can
+// jump straight there. Cached ~6h (it only changes on Shabbat).
+app.get('/api/parsha', async (c) => {
+  const cacheKey = 'parsha:current';
+  const cached = await c.env.CACHE.get(cacheKey);
+  if (cached) return c.json(JSON.parse(cached));
+
+  let cal: { calendar_items?: Array<{ title?: { en?: string }; displayValue?: { en?: string; he?: string }; ref?: string }> };
+  try {
+    const r = await fetch('https://www.sefaria.org/api/calendars');
+    cal = (await r.json()) as typeof cal;
+  } catch (e) {
+    return c.json({ error: `Calendar fetch failed: ${(e as Error).message}` }, 502);
+  }
+  const parsha = (cal.calendar_items ?? []).find((it) => it?.title?.en === 'Parashat Hashavua');
+  const m = parsha?.ref?.match(/^(.+?)\s+(\d+):/);
+  if (!parsha || !m || !isBook(m[1])) {
+    return c.json({ error: `No addressable parsha (ref: ${parsha?.ref ?? 'none'})` }, 502);
+  }
+  const payload = {
+    name: parsha.displayValue?.en ?? parsha.title?.en ?? 'Parsha',
+    heName: parsha.displayValue?.he ?? '',
+    ref: parsha.ref,
+    book: m[1],
+    chapter: Number(m[2]),
+  };
+  c.executionCtx.waitUntil(c.env.CACHE.put(cacheKey, JSON.stringify(payload), { expirationTtl: 6 * 3600 }));
   return c.json(payload);
 });
 
