@@ -91,6 +91,7 @@ interface Loc {
   chapter: number;
   view: View;
   nikud: boolean;
+  lang: 'en' | 'he';
 }
 
 function readUrl(): Loc {
@@ -99,7 +100,8 @@ function readUrl(): Loc {
   const chapter = Number(p.get('chapter') ?? '1') || 1;
   const view: View = p.get('view') === 'mikraot' ? 'mikraot' : 'scroll';
   const nikud = p.get('nikud') !== '0';
-  return { book: BOOKS.some((b) => b.name === book) ? book : 'Genesis', chapter, view, nikud };
+  const lang: 'en' | 'he' = p.get('lang') === 'he' ? 'he' : 'en';
+  return { book: BOOKS.some((b) => b.name === book) ? book : 'Genesis', chapter, view, nikud, lang };
 }
 
 async function fetchChapter(loc: { book: string; chapter: number }): Promise<Chapter> {
@@ -111,7 +113,23 @@ async function fetchChapter(loc: { book: string; chapter: number }): Promise<Cha
 
 interface EventSection {
   verse: number;
-  label: string;
+  en: string;
+  he: string;
+}
+interface Parsha {
+  name: string;
+  heName: string;
+  ref: string;
+  book: string;
+  chapter: number;
+}
+async function fetchParsha(): Promise<Parsha | null> {
+  try {
+    const res = await fetch('/api/parsha');
+    return res.ok ? ((await res.json()) as Parsha) : null;
+  } catch {
+    return null;
+  }
 }
 /** The event/section labels for a chapter (first producer). Best-effort: a
  *  failure just means no margin anchors — the text still renders. */
@@ -132,6 +150,7 @@ export function App(): JSX.Element {
     const p = new URLSearchParams({ book: l.book, chapter: String(l.chapter) });
     if (l.view === 'mikraot') p.set('view', 'mikraot');
     if (!l.nikud) p.set('nikud', '0');
+    if (l.lang === 'he') p.set('lang', 'he');
     window.history.pushState(null, '', `?${p.toString()}`);
   };
   const update = (patch: Partial<Loc>, scroll = false) => {
@@ -146,6 +165,7 @@ export function App(): JSX.Element {
   });
   const [data] = createResource(chapterKey, fetchChapter);
   const [events] = createResource(chapterKey, fetchEvents);
+  const [parsha] = createResource(fetchParsha);
 
   window.addEventListener('popstate', () => setLoc(readUrl()));
 
@@ -154,7 +174,10 @@ export function App(): JSX.Element {
   const paragraphs = createMemo(() => {
     const ch = data();
     if (!ch) return [];
-    const labels = new Map((events() ?? []).map((s) => [s.verse, s.label] as const));
+    const he = loc().lang === 'he';
+    const labels = new Map(
+      (events() ?? []).map((s) => [s.verse, (he ? s.he : s.en) || s.en || s.he] as const),
+    );
     return buildParagraphs(ch.verses, loc().nikud, labels);
   });
 
@@ -214,6 +237,18 @@ export function App(): JSX.Element {
           </For>
         </select>
 
+        <Show when={parsha()}>
+          {(p) => (
+            <button
+              class="parsha-btn"
+              onClick={() => goto(p().book, p().chapter)}
+              title={`This week's parsha — ${p().name} (${p().ref})`}
+            >
+              {loc().lang === 'he' ? p().heName || p().name : p().name}
+            </button>
+          )}
+        </Show>
+
         <div class="view-toggle" role="group" aria-label="View">
           <button classList={{ active: loc().view === 'scroll' }} onClick={() => update({ view: 'scroll' })}>
             Scroll
@@ -228,6 +263,11 @@ export function App(): JSX.Element {
             {loc().nikud ? 'נִקּוּד' : 'נקוד'}
           </button>
         </Show>
+
+        <div class="lang-toggle" role="group" aria-label="Language">
+          <button classList={{ active: loc().lang === 'en' }} onClick={() => update({ lang: 'en' })}>EN</button>
+          <button classList={{ active: loc().lang === 'he' }} onClick={() => update({ lang: 'he' })}>עב</button>
+        </div>
 
         <a class="usage-link" href="/usage" title="LLM usage">usage</a>
 
