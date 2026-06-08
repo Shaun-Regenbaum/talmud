@@ -171,11 +171,7 @@ export function App(): JSX.Element {
       <Show when={loc().view === 'scroll' && data()}>
         {(ch) => (
           <main class="scroll-main">
-            <div class="scroll-roll">
-              <div class="scroll-edge" />
-              <div class="scroll-band" dir="rtl" innerHTML={scrollHtml()} />
-              <div class="scroll-edge" />
-            </div>
+            <div class="scroll-band" dir="rtl" innerHTML={scrollHtml()} />
             <div class="scroll-caption">
               <span class="he">{ch().heRef}</span>
               <ChapterFoot ch={ch()} goto={goto} />
