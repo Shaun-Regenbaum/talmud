@@ -1,0 +1,29 @@
+{
+  "//": "Shared compiler options for every workspace package. Each package's own tsconfig.json extends this and supplies its own `include`. The @corpus/core/* path alias lets tsc resolve the shared package's TS sources directly (it ships raw .ts; both apps bundle via Vite with moduleResolution: bundler). TS 5.x resolves `paths` relative to THIS file's location, so the targets are repo-root-relative.",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["@cloudflare/workers-types", "vite/client"],
+
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+
+    "strict": true,
+    "noImplicitOverride": true,
+
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+
+    "paths": {
+      "@corpus/core/*": ["./packages/core/src/*"]
+    }
+  }
+}
