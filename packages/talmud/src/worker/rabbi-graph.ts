@@ -312,6 +312,53 @@ export function resolveRabbiSlug(
   return { slug: null, basis: 'ambiguous' };
 }
 
+/**
+ * Ground a rabbi MARK's instances' `generation` through the registry, using the
+ * daf's full cast for relational homonym disambiguation (resolveRabbiSlug). The
+ * mark's LLM emits a freeform per-daf generation guess; this replaces it with
+ * the authoritative registry value when the rabbi is identified, and — for a
+ * homonym we CANNOT pin from the daf's cast (e.g. which Rav Kahana) — sets
+ * `unknown` so the era color is neutral rather than a confident-wrong red/blue.
+ * A name absent from the registry keeps the LLM's guess (no registry opinion).
+ * Also stamps `slug` + `canonical` + `genSource` (provenance) on each instance.
+ * Mutates and returns `parsed`.
+ */
+export function groundRabbiInstances(parsed: unknown): unknown {
+  if (!parsed || typeof parsed !== 'object') return parsed;
+  const insts = (parsed as { instances?: unknown }).instances;
+  if (!Array.isArray(insts)) return parsed;
+  const fieldsOf = (i: unknown): Record<string, unknown> | null =>
+    (i && typeof i === 'object' && (i as { fields?: unknown }).fields && typeof (i as { fields?: unknown }).fields === 'object'
+      ? ((i as { fields: Record<string, unknown> }).fields)
+      : null);
+  // The daf's full cast — relational context for homonym disambiguation.
+  const cast: string[] = [];
+  for (const i of insts) { const n = fieldsOf(i)?.name; if (typeof n === 'string' && n.trim()) cast.push(n.trim()); }
+
+  for (const inst of insts) {
+    const f = fieldsOf(inst);
+    if (!f) continue;
+    const name = typeof f.name === 'string' ? f.name.trim() : '';
+    if (!name) continue;
+    const nameHe = typeof f.nameHe === 'string' ? f.nameHe : undefined;
+    const llmGen = typeof f.generation === 'string' ? f.generation : undefined;
+    const { slug, basis } = resolveRabbiSlug(name, nameHe, {
+      coRabbis: cast.filter((n) => n.toLowerCase() !== name.toLowerCase()),
+      generation: llmGen,
+    });
+    f.genSource = basis;
+    if (slug) {
+      f.slug = slug;
+      f.canonical = slugToName(slug);
+      const g = generationOf(slug);
+      if (g) f.generation = g;               // authoritative registry era
+    } else if (basis === 'ambiguous') {
+      f.generation = 'unknown';              // can't pin the homonym → neutral, don't assert
+    }                                        // basis 'none' → keep the LLM generation
+  }
+  return parsed;
+}
+
 /** Build family entries from the rabbi's name patronymic. The graph
  *  doesn't carry family data; the patronymic is direct nominal evidence
  *  of the parent. */

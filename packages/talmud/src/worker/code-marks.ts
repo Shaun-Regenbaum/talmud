@@ -649,8 +649,11 @@ export const CODE_MARKS: MarkDefinition[] = [
     },
     dependencies: ['gemara'],
     status: 'promoted',
-    def_hash: 'rabbi-v2',
-    cache_version: '2',
+    def_hash: 'rabbi-v3',
+    // v3: generation is grounded through the registry post-extraction
+    // (groundRabbiInstances) — authoritative era when identified, neutral
+    // 'unknown' for an unpinnable homonym instead of a freeform LLM guess.
+    cache_version: '3',
     source: 'code',
     updated_at: NOW,
   },
