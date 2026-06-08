@@ -1,5 +1,6 @@
 import { createMemo, createResource, createSignal, For, Show, type JSX } from 'solid-js';
 import { BOOKS, SECTIONS, type Section } from '../lib/books.ts';
+import { MikraotGedolot } from './MikraotGedolot.tsx';
 
 interface Verse {
   n: number;
@@ -17,7 +18,7 @@ interface Chapter {
   error?: string;
 }
 
-type View = 'reading' | 'scroll';
+type View = 'reading' | 'scroll' | 'mikraot';
 
 /** Parse a Sefaria section ref ("Genesis 2", "I Samuel 3") into book + chapter. */
 function parseRef(ref: string): { book: string; chapter: number } | null {
@@ -51,7 +52,8 @@ function readUrl(): Loc {
   const p = new URLSearchParams(window.location.search);
   const book = p.get('book') ?? 'Genesis';
   const chapter = Number(p.get('chapter') ?? '1') || 1;
-  const view: View = p.get('view') === 'scroll' ? 'scroll' : 'reading';
+  const vp = p.get('view');
+  const view: View = vp === 'scroll' ? 'scroll' : vp === 'mikraot' ? 'mikraot' : 'reading';
   const nikud = p.get('nikud') !== '0';
   return { book: BOOKS.some((b) => b.name === book) ? book : 'Genesis', chapter, view, nikud };
 }
@@ -68,7 +70,7 @@ export function App(): JSX.Element {
 
   const writeUrl = (l: Loc) => {
     const p = new URLSearchParams({ book: l.book, chapter: String(l.chapter) });
-    if (l.view === 'scroll') p.set('view', 'scroll');
+    if (l.view !== 'reading') p.set('view', l.view);
     if (!l.nikud) p.set('nikud', '0');
     window.history.pushState(null, '', `?${p.toString()}`);
   };
@@ -99,7 +101,7 @@ export function App(): JSX.Element {
   });
 
   return (
-    <div class="app" classList={{ 'view-scroll': loc().view === 'scroll' }}>
+    <div class="app" classList={{ 'view-scroll': loc().view === 'scroll', 'view-mikraot': loc().view === 'mikraot' }}>
       <header class="topbar">
         <span class="brand">Tanach</span>
         <select class="book-select" value={loc().book} onChange={(e) => goto(e.currentTarget.value, 1)}>
@@ -120,6 +122,9 @@ export function App(): JSX.Element {
           </button>
           <button classList={{ active: loc().view === 'scroll' }} onClick={() => update({ view: 'scroll' })}>
             Scroll
+          </button>
+          <button classList={{ active: loc().view === 'mikraot' }} onClick={() => update({ view: 'mikraot' })}>
+            Mikraot Gedolot
           </button>
         </div>
 
@@ -165,6 +170,11 @@ export function App(): JSX.Element {
             <ChapterFoot ch={ch()} goto={goto} />
           </main>
         )}
+      </Show>
+
+      {/* Mikraot Gedolot — pasuk framed by Rashi + Onkelos (daf-renderer) */}
+      <Show when={loc().view === 'mikraot'}>
+        <MikraotGedolot book={loc().book} chapter={loc().chapter} />
       </Show>
 
       {/* Scroll view — Sefer Torah band */}
