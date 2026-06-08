@@ -26,11 +26,11 @@ const FAM = 'Frank Ruhl Libre';
 /** The Mikraot Gedolot framed view: the pasuk text (center) wrapped by Rashi
  *  (inner) and Targum Onkelos (outer), laid out by the shared daf-renderer's
  *  tzurat-hadaf engine — the same renderer the Talmud reader uses. */
-/** A wide content width that uses most of the viewport (the Mikraot Gedolot
- *  page is a broad spread, unlike the Talmud's narrow "sacred" daf). */
+/** A wide content width — broad like a Mikraot Gedolot spread, but leaving side
+ *  gutters so a side panel can sit alongside it (like the Talmud reader). */
 function wideWidth(): number {
   const vw = typeof window !== 'undefined' ? window.innerWidth : 1280;
-  return Math.min(1500, Math.max(720, vw - 48));
+  return Math.min(1300, Math.max(680, vw - 240));
 }
 
 export function MikraotGedolot(props: { book: string; chapter: number }): JSX.Element {

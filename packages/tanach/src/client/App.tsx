@@ -18,7 +18,7 @@ interface Chapter {
   error?: string;
 }
 
-type View = 'reading' | 'scroll' | 'mikraot';
+type View = 'scroll' | 'mikraot';
 
 /** Parse a Sefaria section ref ("Genesis 2", "I Samuel 3") into book + chapter. */
 function parseRef(ref: string): { book: string; chapter: number } | null {
@@ -27,18 +27,57 @@ function parseRef(ref: string): { book: string; chapter: number } | null {
   return { book: m[1], chapter: Number(m[2]) };
 }
 
-/** Drop niqqud + cantillation (te'amim) for the bare-consonant ktav-STAM look.
- *  Maqaf (U+05BE) becomes a space so joined words separate; other points/accents
- *  are removed. Letters (U+05D0–U+05EA) and HTML tags are left intact. */
+/** Drop niqqud + cantillation for the bare ktav-STAM look. Maqaf -> space. */
 function stripNikud(html: string): string {
   return html.replace(/־/g, ' ').replace(/[֑-ֽֿ-ׇ]/g, '');
 }
 
-/** Turn Sefaria's parsha markers into block/inline breaks for the scroll. */
-function renderParshiyot(html: string): string {
-  return html
-    .replace(/\{[פש]\}/g, '<span class="parsha-open"></span>')
-    .replace(/\{ס\}/g, '<span class="parsha-closed"></span>');
+const PETUCHA = '\u0001';
+const SETUMA = '\u0002';
+
+/**
+ * Build the scroll's paragraphs from a chapter's verses, honouring the Masoretic
+ * parsha breaks exactly as a Torah scroll lays them out (Sefaria marks them with
+ * `mam-spi-pe` / `mam-spi-samekh` spans, also matched bare as a fallback):
+ *   - PETUCHA (פ, "open"): the line ends and the next portion starts on a NEW
+ *     line -> a paragraph boundary (justify leaves the last line short, like the
+ *     scroll's blank line-remainder).
+ *   - SETUMA (ס, "closed"): a gap of a few letters WITHIN the line, text
+ *     continuing on the same line -> an inline tab.
+ */
+function buildParagraphs(verses: Verse[], nikud: boolean): string[] {
+  // Verse number as a Hebrew numeral (gematria): 1->א, 15->טו, 16->טז, 119->קיט.
+  const heNum = (n: number): string => {
+    const units = ['', 'א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט'];
+    const tens = ['', 'י', 'כ', 'ל', 'מ', 'נ', 'ס', 'ע', 'פ', 'צ'];
+    const hundreds = ['', 'ק', 'ר', 'ש', 'ת'];
+    let h = Math.floor(n / 100);
+    const rem = n % 100;
+    let s = '';
+    while (h > 4) {
+      s += 'ת';
+      h -= 4;
+    }
+    s += hundreds[h];
+    const t = Math.floor(rem / 10);
+    const u = rem % 10;
+    s += t === 1 && (u === 5 || u === 6) ? (u === 5 ? 'טו' : 'טז') : tens[t] + units[u];
+    return s;
+  };
+  let joined = verses.map((v) => `<span class="vnum">${heNum(v.n)}</span> ${v.he}`).join(' ');
+  joined = joined
+    .replace(/(?:&nbsp;|\s)*<span class="mam-spi-pe[^"]*">\{פ\}<\/span>/g, PETUCHA)
+    .replace(/(?:&nbsp;|\s)*<span class="mam-spi-samekh[^"]*">\{ס\}<\/span>/g, SETUMA)
+    .replace(/(?:&nbsp;|\s)*\{פ\}/g, PETUCHA)
+    .replace(/(?:&nbsp;|\s)*\{[סש]\}/g, SETUMA)
+    .replace(/&nbsp;/g, ' ')
+    .replace(new RegExp(SETUMA, 'g'), '<span class="setuma"></span>');
+  let paras = joined
+    .split(PETUCHA)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (!nikud) paras = paras.map(stripNikud);
+  return paras;
 }
 
 interface Loc {
@@ -52,8 +91,7 @@ function readUrl(): Loc {
   const p = new URLSearchParams(window.location.search);
   const book = p.get('book') ?? 'Genesis';
   const chapter = Number(p.get('chapter') ?? '1') || 1;
-  const vp = p.get('view');
-  const view: View = vp === 'scroll' ? 'scroll' : vp === 'mikraot' ? 'mikraot' : 'reading';
+  const view: View = p.get('view') === 'mikraot' ? 'mikraot' : 'scroll';
   const nikud = p.get('nikud') !== '0';
   return { book: BOOKS.some((b) => b.name === book) ? book : 'Genesis', chapter, view, nikud };
 }
@@ -70,7 +108,7 @@ export function App(): JSX.Element {
 
   const writeUrl = (l: Loc) => {
     const p = new URLSearchParams({ book: l.book, chapter: String(l.chapter) });
-    if (l.view !== 'reading') p.set('view', l.view);
+    if (l.view === 'mikraot') p.set('view', 'mikraot');
     if (!l.nikud) p.set('nikud', '0');
     window.history.pushState(null, '', `?${p.toString()}`);
   };
@@ -81,7 +119,6 @@ export function App(): JSX.Element {
     if (scroll) window.scrollTo(0, 0);
   };
 
-  // Re-fetch only when book/chapter change (view/nikud are render-only).
   const chapterKey = createMemo(() => ({ book: loc().book, chapter: loc().chapter }), undefined, {
     equals: (a, b) => a.book === b.book && a.chapter === b.chapter,
   });
@@ -89,15 +126,11 @@ export function App(): JSX.Element {
 
   window.addEventListener('popstate', () => setLoc(readUrl()));
 
-  const heName = (name: string) => BOOKS.find((b) => b.name === name)?.he ?? name;
   const goto = (book: string, chapter: number) => update({ book, chapter }, true);
 
-  const scrollHtml = createMemo(() => {
+  const paragraphs = createMemo(() => {
     const ch = data();
-    if (!ch) return '';
-    const joined = ch.verses.map((v) => v.he).join(' ');
-    const withParsha = renderParshiyot(joined);
-    return loc().nikud ? withParsha : stripNikud(withParsha);
+    return ch ? buildParagraphs(ch.verses, loc().nikud) : [];
   });
 
   return (
@@ -117,9 +150,6 @@ export function App(): JSX.Element {
         </select>
 
         <div class="view-toggle" role="group" aria-label="View">
-          <button classList={{ active: loc().view === 'reading' }} onClick={() => update({ view: 'reading' })}>
-            Reading
-          </button>
           <button classList={{ active: loc().view === 'scroll' }} onClick={() => update({ view: 'scroll' })}>
             Scroll
           </button>
@@ -148,40 +178,18 @@ export function App(): JSX.Element {
         <p class="status error">{(data.error as Error)?.message}</p>
       </Show>
 
-      {/* Reading view — verses with translation */}
-      <Show when={loc().view === 'reading' && data()}>
-        {(ch) => (
-          <main class="reader">
-            <h1 class="chapter-head">
-              <span class="he" dir="rtl">{heName(loc().book)} {loc().chapter}</span>
-              <span class="en">{loc().book} {loc().chapter}</span>
-            </h1>
-            <ol class="verses">
-              <For each={ch().verses}>
-                {(v) => (
-                  <li class="verse">
-                    <span class="vnum">{v.n}</span>
-                    <span class="he" dir="rtl" innerHTML={v.he} />
-                    <span class="en" innerHTML={v.en} />
-                  </li>
-                )}
-              </For>
-            </ol>
-            <ChapterFoot ch={ch()} goto={goto} />
-          </main>
-        )}
-      </Show>
-
       {/* Mikraot Gedolot — pasuk framed by Rashi + Onkelos (daf-renderer) */}
       <Show when={loc().view === 'mikraot'}>
         <MikraotGedolot book={loc().book} chapter={loc().chapter} />
       </Show>
 
-      {/* Scroll view — Sefer Torah band */}
+      {/* Scroll — Sefer Torah columns with Masoretic parsha breaks */}
       <Show when={loc().view === 'scroll' && data()}>
         {(ch) => (
           <main class="scroll-main">
-            <div class="scroll-band" dir="rtl" innerHTML={scrollHtml()} />
+            <div class="scroll-band" dir="rtl">
+              <For each={paragraphs()}>{(p) => <p class="scroll-para" innerHTML={p} />}</For>
+            </div>
             <div class="scroll-caption">
               <span class="he">{ch().heRef}</span>
               <ChapterFoot ch={ch()} goto={goto} />
