@@ -7,6 +7,14 @@ settings:
 importers:
 
   .:
+    devDependencies:
+      '@biomejs/biome':
+        specifier: ^2.4.16
+        version: 2.4.16
+
+  packages/core: {}
+
+  packages/talmud:
     dependencies:
       '@cfworker/json-schema':
         specifier: ^4.1.1
@@ -17,6 +25,9 @@ importers:
       '@cloudflare/codemode':
         specifier: ^0.3.8
         version: 0.3.8(@modelcontextprotocol/sdk@1.29.0(@cfworker/json-schema@4.1.1)(zod@4.4.3))(zod@4.4.3)
+      '@corpus/core':
+        specifier: workspace:*
+        version: link:../core
       '@hono/mcp':
         specifier: ^0.3.0
         version: 0.3.0(@modelcontextprotocol/sdk@1.29.0(@cfworker/json-schema@4.1.1)(zod@4.4.3))(hono-rate-limiter@0.5.3(hono@4.12.14))(hono@4.12.14)(zod@4.4.3)
@@ -42,9 +53,6 @@ importers:
         specifier: ^4.4.3
         version: 4.4.3
     devDependencies:
-      '@biomejs/biome':
-        specifier: ^2.4.16
-        version: 2.4.16
       '@cloudflare/vite-plugin':
         specifier: ^1.36.4
         version: 1.36.4(vite@6.4.2)(workerd@1.20260508.1)(wrangler@4.90.1(@cloudflare/workers-types@4.20260511.1))
