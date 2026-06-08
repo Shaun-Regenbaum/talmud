@@ -25,7 +25,7 @@ import type {
   EnrichmentDependency,
   EnrichmentScope,
 } from './studio-schema';
-import type { LLMModelId } from './llm';
+import type { LLMModelId } from '@corpus/core/llm/llm';
 import { GENERATIONS_PROMPT_REFERENCE, GENERATION_IDS } from '../client/generations';
 import { alwaysHebraizeBlock } from '../lib/hebrewTerms';
 import {

@@ -6,8 +6,8 @@ import {
   classifyStatus,
   NEITHER,
   TIMEOUT,
-} from '../src/worker/llm-error';
-import { runWithRetry } from '../src/worker/ai-gateway';
+} from '@corpus/core/llm/llm-error';
+import { runWithRetry } from '@corpus/core/llm/ai-gateway';
 
 // ---------------------------------------------------------------------------
 // Typed error classification replaces the old stringly-typed RETRYABLE /

@@ -18,7 +18,7 @@
  * (both). Old v1 entries are unreachable on purpose.
  */
 
-import type { LLMModelId } from './llm';
+import type { LLMModelId } from '@corpus/core/llm/llm';
 import type {
   EnrichmentScope,
   MarkDependency,

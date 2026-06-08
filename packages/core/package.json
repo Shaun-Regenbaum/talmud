@@ -3,7 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "//": "Corpus-agnostic engine shared by the talmud and tanach apps: coordinate/anchor model, KV cache key builders + freshness, LLM/budget plumbing, producer-registry grammar, dependency graph, and the recipe-based sidebar DSL. Ships raw .ts sources (no build step) — consumers bundle via Vite with moduleResolution: bundler, and tsc resolves the @corpus/core/* path alias from tsconfig.base.json. Subpaths are populated incrementally as modules are extracted out of packages/talmud (see plan PR-3..6).",
+  "//": "Corpus-agnostic engine shared by the talmud and tanach apps: LLM/budget plumbing (./llm), and incrementally the coordinate/anchor model, KV cache key builders + freshness, producer-registry grammar, dependency graph, and recipe-based sidebar DSL. Ships raw .ts sources (no build step) — consumers bundle via Vite with moduleResolution: bundler, and tsc resolves the @corpus/core/* path alias from tsconfig.base.json. Subpaths are populated as modules are extracted out of packages/talmud (see plan PR-3..6).",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
   "exports": {
     "./context/*": "./src/context/*.ts",
     "./registry/*": "./src/registry/*.ts",
@@ -11,5 +14,9 @@
     "./llm/*": "./src/llm/*.ts",
     "./studio/*": "./src/studio/*.ts",
     "./cache/*": "./src/cache/*.ts"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260511.1",
+    "typescript": "^5.7.0"
   }
 }

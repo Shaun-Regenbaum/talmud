@@ -14,7 +14,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // Capture every runLLM call and answer per-chunk: place each item on a segment
 // derived from its key (so we can assert every item is covered, across chunks).
 const runLLM = vi.fn();
-vi.mock('../src/worker/llm', () => ({ runLLM: (...args: unknown[]) => runLLM(...args) }));
+vi.mock('@corpus/core/llm/llm', () => ({ runLLM: (...args: unknown[]) => runLLM(...args) }));
 
 import { aiMatchToSegments, MATCH_CHUNK_SIZE, MAX_ITEMS } from '../src/worker/context-match';
 

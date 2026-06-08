@@ -13,7 +13,7 @@
  * truncate. Chunking keeps each call in the quality sweet spot; results merge.
  */
 
-import { runLLM, type LLMEnv } from './llm';
+import { runLLM, type LLMEnv } from '@corpus/core/llm/llm';
 import { buildMatchPrompt, parseMatchResponse, type MatchInput } from '../lib/context/anchor/ai-prompt';
 import type { SegMatch } from '../lib/context/match';
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { costUsd, costSplitUsd, normalizeUsage } from '../src/worker/pricing';
+import { costUsd, costSplitUsd, normalizeUsage } from '@corpus/core/llm/pricing';
 
 // deepseek-v4-flash is list-priced in MODEL_PRESETS (input 0.14, output 0.28
 // per 1M tokens). These tests pin the input-vs-output dollar split that the
