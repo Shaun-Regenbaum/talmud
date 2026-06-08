@@ -3,12 +3,12 @@
   "files": {
     "includes": [
       "**",
-      "!dist",
-      "!.wrangler",
-      "!node_modules",
-      "!static",
+      "!**/dist",
+      "!**/.wrangler",
+      "!**/node_modules",
+      "!**/static",
       "!Sandbox",
-      "!scripts/out"
+      "!**/scripts/out"
     ]
   },
   "formatter": {
