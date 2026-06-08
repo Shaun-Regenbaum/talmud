@@ -46,6 +46,11 @@ function stripNikud(html: string): string {
 const PETUCHA = '\u0001';
 const SETUMA = '\u0002';
 
+/** Margin-anchor box width + gap from the text band (used both to place the
+ *  label and to decide whether it fits in the margin). */
+const ANCHOR_W = 150;
+const ANCHOR_GAP = 12;
+
 /**
  * Build the scroll's paragraphs from a chapter's verses, honouring the Masoretic
  * parsha breaks exactly as a Torah scroll lays them out (Sefaria marks them with
@@ -123,13 +128,33 @@ interface Parsha {
   book: string;
   chapter: number;
 }
+/** The Hebrew name of a book, for the Hebrew-mode chapter refs. */
+function heBook(name: string): string {
+  return BOOKS.find((b) => b.name === name)?.he ?? name;
+}
+
+/** Israel and the Diaspora occasionally read different weekly portions; pick by
+ *  the browser's time zone (Asia/Jerusalem => Israel). */
+function inIsrael(): boolean {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone === 'Asia/Jerusalem';
+  } catch {
+    return false;
+  }
+}
+
 async function fetchParsha(): Promise<Parsha | null> {
   try {
-    const res = await fetch('/api/parsha');
+    const res = await fetch(`/api/parsha?loc=${inIsrael() ? 'israel' : 'diaspora'}`);
     return res.ok ? ((await res.json()) as Parsha) : null;
   } catch {
     return null;
   }
+}
+
+interface SectionNote {
+  en: string;
+  he: string;
 }
 /** The event/section labels for a chapter (first producer). Best-effort: a
  *  failure just means no margin anchors — the text still renders. */
@@ -186,7 +211,9 @@ export function App(): JSX.Element {
   // its column faces. Re-measured on reflow (resize / font load / nikud toggle).
   let scrollMain: HTMLElement | undefined;
   let scrollBand: HTMLElement | undefined;
-  const [anchors, setAnchors] = createSignal<{ v: string; label: string; top: number; side: 'left' | 'right' }[]>([]);
+  const [anchors, setAnchors] = createSignal<
+    { v: string; label: string; top: number; left: number; side: 'left' | 'right' }[]
+  >([]);
   const [reflow, setReflow] = createSignal(0);
 
   const measure = () => {
@@ -195,12 +222,19 @@ export function App(): JSX.Element {
       return;
     }
     const m = scrollMain.getBoundingClientRect();
-    const out: { v: string; label: string; top: number; side: 'left' | 'right' }[] = [];
+    const b = scrollBand.getBoundingClientRect();
+    const out: { v: string; label: string; top: number; left: number; side: 'left' | 'right' }[] = [];
     scrollBand.querySelectorAll<HTMLElement>('.evt-pt').forEach((pt) => {
       const r = pt.getBoundingClientRect();
       if (!r.height) return;
-      const side: 'left' | 'right' = r.left + r.width / 2 - m.left < m.width / 2 ? 'left' : 'right';
-      out.push({ v: pt.dataset.v ?? '', label: pt.dataset.label ?? '', top: r.top - m.top, side });
+      // Side = which half of the band the verse sits in. Position the label just
+      // OUTSIDE the band on that side; skip it when the margin can't hold it (so
+      // it never overlaps the text — at narrow widths the layout drops to one
+      // column, which widens the margins and brings the anchors back).
+      const side: 'left' | 'right' = r.left + r.width / 2 < m.left + m.width / 2 ? 'left' : 'right';
+      const left = side === 'right' ? b.right - m.left + ANCHOR_GAP : b.left - m.left - ANCHOR_W - ANCHOR_GAP;
+      if (left < 4 || left + ANCHOR_W > m.width - 4) return;
+      out.push({ v: pt.dataset.v ?? '', label: pt.dataset.label ?? '', top: r.top - m.top, left, side });
     });
     setAnchors(out);
   };
@@ -219,6 +253,29 @@ export function App(): JSX.Element {
     loc().view;
     loc().nikud;
     requestAnimationFrame(() => requestAnimationFrame(measure));
+  });
+
+  // Section note popover: clicking a margin anchor opens a short p'shat note for
+  // that section's verse range (start..next section - 1).
+  const [selected, setSelected] = createSignal<
+    { start: number; end: number; label: string; top: number; side: 'left' | 'right' } | null
+  >(null);
+  const openAnchor = (a: { v: string; label: string; top: number; side: 'left' | 'right' }) => {
+    const start = Number(a.v);
+    const secs = (events() ?? []).slice().sort((x, y) => x.verse - y.verse);
+    const idx = secs.findIndex((s) => s.verse === start);
+    const end = idx >= 0 && idx + 1 < secs.length ? secs[idx + 1].verse - 1 : (data()?.verses.length ?? start);
+    setSelected({ start, end, label: a.label, top: a.top, side: a.side });
+  };
+  const [note] = createResource(selected, async (sel) => {
+    const l = loc();
+    const url = `/api/note/${encodeURIComponent(l.book)}/${l.chapter}/${sel.start}?end=${sel.end}&label=${encodeURIComponent(sel.label)}`;
+    const res = await fetch(url);
+    return res.ok ? ((await res.json()) as SectionNote) : null;
+  });
+  createEffect(() => {
+    chapterKey();
+    setSelected(null);
   });
 
   return (
@@ -273,7 +330,9 @@ export function App(): JSX.Element {
 
         <div class="chapter-nav">
           <button disabled={loc().chapter <= 1} onClick={() => goto(loc().book, loc().chapter - 1)}>‹</button>
-          <span class="chapter-label">ch. {loc().chapter}</span>
+          <span class="chapter-label">
+            {loc().lang === 'he' ? hebrewNumeral(loc().chapter) : `ch. ${loc().chapter}`}
+          </span>
           <button onClick={() => goto(loc().book, loc().chapter + 1)}>›</button>
         </div>
       </header>
@@ -301,18 +360,47 @@ export function App(): JSX.Element {
               {(a) => (
                 <button
                   class="evt-margin"
-                  classList={{ 'evt-left': a.side === 'left', 'evt-right': a.side === 'right' }}
-                  style={{ top: `${a.top}px` }}
+                  classList={{
+                    'evt-left': a.side === 'left',
+                    'evt-right': a.side === 'right',
+                    active: selected()?.start === Number(a.v),
+                  }}
+                  style={{ top: `${a.top}px`, left: `${a.left}px`, width: `${ANCHOR_W}px` }}
                   data-v={a.v}
                   title={`${a.label} (verse ${a.v})`}
+                  onClick={() => openAnchor(a)}
                 >
                   {a.label}
                 </button>
               )}
             </For>
+            <Show when={selected()}>
+              {(sel) => (
+                <div
+                  class="note-pop"
+                  classList={{ 'note-left': sel().side === 'left', 'note-right': sel().side === 'right' }}
+                  style={{ top: `${sel().top}px` }}
+                >
+                  <button class="note-close" onClick={() => setSelected(null)} aria-label="Close">
+                    ×
+                  </button>
+                  <div class="note-pop-label">{sel().label}</div>
+                  <Show when={note.loading}>
+                    <p class="note-pop-body muted">Reading the section…</p>
+                  </Show>
+                  <Show when={note()}>
+                    {(n) => (
+                      <p class="note-pop-body" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
+                        {loc().lang === 'he' ? n().he || n().en : n().en || n().he}
+                      </p>
+                    )}
+                  </Show>
+                </div>
+              )}
+            </Show>
             <div class="scroll-caption">
               <span class="he">{ch().heRef}</span>
-              <ChapterFoot ch={ch()} goto={goto} />
+              <ChapterFoot ch={ch()} goto={goto} lang={loc().lang} />
             </div>
           </main>
         )}
@@ -321,19 +409,27 @@ export function App(): JSX.Element {
   );
 }
 
-function ChapterFoot(props: { ch: Chapter; goto: (b: string, c: number) => void }): JSX.Element {
-  const nav = (ref: string | null, label: (r: string) => string) => (
+function ChapterFoot(props: { ch: Chapter; goto: (b: string, c: number) => void; lang: 'en' | 'he' }): JSX.Element {
+  const fmt = (book: string, chapter: number) =>
+    props.lang === 'he' ? `${heBook(book)} ${hebrewNumeral(chapter)}` : `${book} ${chapter}`;
+  const nav = (ref: string | null, dir: 'prev' | 'next') => (
     <Show when={ref} fallback={<span />}>
       {(r) => {
         const p = parseRef(r());
-        return p ? <button onClick={() => props.goto(p.book, p.chapter)}>{label(r())}</button> : <span />;
+        if (!p) return <span />;
+        const txt = fmt(p.book, p.chapter);
+        return (
+          <button onClick={() => props.goto(p.book, p.chapter)}>
+            {dir === 'prev' ? `‹ ${txt}` : `${txt} ›`}
+          </button>
+        );
       }}
     </Show>
   );
   return (
     <nav class="chapter-foot">
-      {nav(props.ch.prev, (r) => `‹ ${r}`)}
-      {nav(props.ch.next, (r) => `${r} ›`)}
+      {nav(props.ch.prev, 'prev')}
+      {nav(props.ch.next, 'next')}
     </nav>
   );
 }
