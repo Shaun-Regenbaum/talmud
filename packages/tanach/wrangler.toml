@@ -1,0 +1,31 @@
+name = "tanach"
+main = "src/worker/index.ts"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+# The Solid client is built into ./dist/client and served by the Worker via the
+# ASSETS binding; unmatched routes fall through to index.html (SPA).
+[assets]
+directory = "./dist/client"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[observability]
+enabled = true
+
+# --- Provisioning TODO (added at deploy time, NOT yet live) ---
+# The v1 reader fetches Sefaria live, so none of the below is needed for local
+# `pnpm --filter tanach dev`. Before shipping to the custom domain, add:
+#
+# routes = [{ pattern = "tanach.shaunregenbaum.com", custom_domain = true }]
+#
+# [[kv_namespaces]]            # `wrangler kv namespace create tanach-cache`
+# binding = "CACHE"
+# id = "<fill-in>"
+#
+# [vars]                       # create the `tanach` AI Gateway in the dashboard
+# AI_GATEWAY_ID = "tanach"
+# DEFAULT_LLM_MODEL = "openrouter/deepseek/deepseek-v4-pro"
+#
+# [[queues.producers]] / [[queues.consumers]]  queue = "enrichment-jobs-tanach"
+# secrets: OPENROUTER_API_KEY, STUDIO_SECRET  (`wrangler secret put …`)
