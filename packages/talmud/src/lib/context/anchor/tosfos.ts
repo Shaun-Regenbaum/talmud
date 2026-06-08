@@ -7,7 +7,7 @@
  * piece -> segment places the item. Unmatched items are left unplaced.
  */
 
-import type { ContextItem } from '../types.ts';
+import type { ContextItem } from '@corpus/core/context/types';
 
 export interface TosafotPieces {
   pieces?: string[];

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { applyAiToUnplaced } from '../src/worker/revach-ai-place';
-import type { ContextItem } from '../src/lib/context/types';
-import type { SegMatch } from '../src/lib/context/match';
+import type { ContextItem } from '@corpus/core/context/types';
+import type { SegMatch } from '@corpus/core/context/match';
 
 const rev = (key: string, segs: number[], via?: string): ContextItem => ({
   source: 'dafyomi:revach', sourceLabel: "Revach l'Daf", kind: 'revach', key,

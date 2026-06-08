@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { matchRevach, type SectionForMatch } from '../src/lib/context/anchor/revach';
-import type { ContextItem } from '../src/lib/context/types';
+import type { ContextItem } from '@corpus/core/context/types';
 
 const sections: SectionForMatch[] = [
   { startSegIdx: 0, endSegIdx: 4, title: 'Opening Mishnah: Time for Evening Shema',

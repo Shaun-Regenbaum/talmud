@@ -13,8 +13,8 @@
  */
 import { createResource, createSignal, createMemo, createEffect, onMount, For, Show, type JSX } from 'solid-js';
 import { TRACTATE_OPTIONS } from '../lib/sefref';
-import type { ContextItem } from '../lib/context/types';
-import { isReferenceSource } from '../lib/context/placement';
+import type { ContextItem } from '@corpus/core/context/types';
+import { isReferenceSource } from '@corpus/core/context/placement';
 import { colorForKind } from './GutterIcons';
 import { tokenizeHebrewHtml } from './tokenize';
 import { injectHadran } from './injectHadran';

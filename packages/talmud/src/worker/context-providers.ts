@@ -34,8 +34,9 @@ import { matchTosfos } from '../lib/context/anchor/tosfos';
 import { matchBackgroundTerms } from '../lib/context/anchor/bg-term';
 import { matchYerushalmiToSegments } from '../lib/context/anchor/yerushalmi';
 import { matchRevach, type SectionForMatch } from '../lib/context/anchor/revach';
-import { applyMatches } from '../lib/context/match';
-import type { ContextItem, ContextSource } from '../lib/context/types';
+import { applyMatches } from '@corpus/core/context/match';
+import type { ContextItem } from '@corpus/core/context/types';
+import type { ContextSource } from '../lib/context/sources';
 import type { CacheTrack } from './source-cache';
 
 export interface ContextEnv {

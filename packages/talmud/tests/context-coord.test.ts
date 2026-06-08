@@ -9,10 +9,10 @@ import {
   coordKey, sameDaf, coordForSeg, coordsForSegs, localSeg, isCrossDaf,
   normalizeSpan, spanByDaf, coordFromTarget, spineCoord, DAF_SEG,
 } from '@corpus/core/context/coord';
-import { coordLabel } from '../src/lib/context/types.ts';
-import { placementOf } from '../src/lib/context/placement.ts';
-import { applyMatches, type SegMatch } from '../src/lib/context/match.ts';
-import type { ContextItem } from '../src/lib/context/types.ts';
+import { coordLabel } from '@corpus/core/context/types';
+import { placementOf } from '@corpus/core/context/placement';
+import { applyMatches, type SegMatch } from '@corpus/core/context/match';
+import type { ContextItem } from '@corpus/core/context/types';
 
 const G68 = { tractate: 'Gittin', page: '68a' };
 const G67 = { tractate: 'Gittin', page: '67b' };

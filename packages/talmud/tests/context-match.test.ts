@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { applyMatches, segRange, type SegMatch } from '../src/lib/context/match';
+import { applyMatches, segRange, type SegMatch } from '@corpus/core/context/match';
 import { buildMatchPrompt, parseMatchResponse } from '../src/lib/context/anchor/ai-prompt';
-import type { ContextItem } from '../src/lib/context/types';
+import type { ContextItem } from '@corpus/core/context/types';
 
 function wholeDafItem(key: string): ContextItem {
   return {

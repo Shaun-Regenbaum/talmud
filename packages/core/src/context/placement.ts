@@ -25,7 +25,7 @@
  */
 
 import type { ContextItem } from './types.ts';
-import { type AnchorCoord, type DafRef, isCrossDaf } from '@corpus/core/context/coord';
+import { type AnchorCoord, type DafRef, isCrossDaf } from './coord.ts';
 
 /** `cross-daf` is orthogonal to the in-daf granularities: the item's home is a
  *  segment on ANOTHER page, so relative to the daf in view it is the least

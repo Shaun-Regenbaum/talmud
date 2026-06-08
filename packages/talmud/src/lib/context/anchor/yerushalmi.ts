@@ -12,7 +12,7 @@
  * Mirrors the bg-term / Tosfos-DH deterministic placers: free, instant, and it
  * funnels its writes through the same `item.segs` / `item.via` contract.
  */
-import type { ContextItem } from '../types.ts';
+import type { ContextItem } from '@corpus/core/context/types';
 import { normalizeHebrew } from '../../place/verbatim.ts';
 import { longestCommonRun } from '../../yerushalmiAlign.ts';
 

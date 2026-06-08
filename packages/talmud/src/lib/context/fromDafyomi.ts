@@ -10,7 +10,7 @@
 import type {
   DafyomiDaf, DafyomiContentType, DafyomiEntry, DafyomiAmudContent,
 } from '../sefref/dafyomi/schema.ts';
-import type { ContextItem } from './types.ts';
+import type { ContextItem } from '@corpus/core/context/types';
 import { dafCoord, type AnchorCoord } from '@corpus/core/context/coord';
 import { sourceLabel } from './sources.ts';
 

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { dafLinks } from '../src/lib/context/dafLinks';
 import { dafCoord, coordForSeg, spineCoord } from '@corpus/core/context/coord';
-import type { ContextItem } from '../src/lib/context/types';
+import type { ContextItem } from '@corpus/core/context/types';
 
 const DAF = { tractate: 'Shabbat', page: '125b' };
 const item = (over: Partial<ContextItem>): ContextItem => ({

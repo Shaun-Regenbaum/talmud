@@ -19,7 +19,19 @@
  * `anchor/` and the grounding levels in `placement.ts`.
  */
 
-import type { ContextSource } from './types.ts';
+import type { DafyomiContentType } from '../sefref/dafyomi/schema.ts';
+
+/** Every external source the Talmud context pool can contain. The Talmud-side
+ *  narrowing of the corpus-agnostic `ContextItem.source` string. `SOURCE_META`
+ *  below is exhaustive over this union, so the registry can never drift. */
+export type ContextSource =
+  | 'sefaria-rashi'
+  | 'sefaria-tosafot'
+  | 'sefaria-rishonim'
+  | 'sefaria-halacha'
+  | 'sefaria-mishnah'
+  | 'sefaria-topic'
+  | `dafyomi:${DafyomiContentType}`;
 
 /** How a source is anchored onto the text. Mirrors the `via` values the
  *  deterministic + AI matchers write. `none` = placed only by the AI placer. */

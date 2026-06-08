@@ -16,7 +16,7 @@
  * many segments are left unplaced rather than smeared across the daf.
  */
 
-import type { ContextItem } from '../types.ts';
+import type { ContextItem } from '@corpus/core/context/types';
 
 const NIQQUD = /[֑-ׇ]/g;
 /** Mirror of the other matchers' Hebrew normalization: strip niqqud,

@@ -17,7 +17,7 @@
  * bespoke encoding.
  */
 
-import { dafCoord, spineCoord, coordForSeg, type AnchorCoord, type DafRef } from '@corpus/core/context/coord';
+import { dafCoord, spineCoord, coordForSeg, type AnchorCoord, type DafRef } from './coord.ts';
 import { coordLabel } from './types.ts';
 
 /** The kinds of link the system models. This is the SAME relation set the

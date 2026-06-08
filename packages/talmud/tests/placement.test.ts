@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   placementOf, placementLevel, isLocated, isAiGrounded, isReferenceSource,
-} from '../src/lib/context/placement';
-import type { ContextItem } from '../src/lib/context/types';
+} from '@corpus/core/context/placement';
+import type { ContextItem } from '@corpus/core/context/types';
 
 /** Minimal ContextItem with the placement-relevant fields overridden. */
 function item(over: Partial<ContextItem> & { key: string }): ContextItem {

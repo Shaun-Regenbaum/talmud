@@ -16,8 +16,8 @@
  * good match here; it gets placed when that amud's context is built.
  */
 
-import type { ContextItem } from '../types.ts';
-import { segRange, type SegMatch } from '../match.ts';
+import type { ContextItem } from '@corpus/core/context/types';
+import { segRange, type SegMatch } from '@corpus/core/context/match';
 
 /** The bits of an `argument` section this matcher needs. */
 export interface SectionForMatch {
