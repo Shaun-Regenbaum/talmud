@@ -17,7 +17,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: 'Frank Ruhl Libre', Georgia, 'Times New Roman', serif;
+  font-family: 'Spectral', 'Frank Ruhl Libre', Georgia, serif;
   line-height: 1.6;
 }
 
@@ -140,17 +140,27 @@ body {
    Side gutters leave room for a future side panel (like the Talmud reader). */
 .scroll-main {
   position: relative;
-  padding: 40px clamp(20px, 11vw, 200px) 48px;
+  padding: 40px 28px 48px;
 }
 .scroll-band {
-  max-width: 1000px;
+  max-width: 900px;
   margin: 0 auto;
   color: var(--ink);
+  font-family: 'Frank Ruhl Libre', serif;
   font-size: 16px;
   line-height: 1.6;
   column-count: 2;
   column-gap: 3.2rem;
   column-rule: 1px solid var(--line);
+}
+/* If two columns + their anchor margins can't fit, drop to one column (which
+   widens the margins, so the anchors reappear). */
+@media (max-width: 1240px) {
+  .scroll-band {
+    column-count: 1;
+    max-width: 620px;
+    column-rule: none;
+  }
 }
 /* Each petucha-delimited portion is its own justified paragraph: the last line
    ends naturally (start-aligned), like the blank line-remainder in a scroll. */
@@ -270,10 +280,11 @@ body {
    These are the interactive attachment points for future enrichments. */
 .evt-margin {
   position: absolute;
-  width: clamp(96px, 13vw, 180px);
   margin-top: -0.55em;
   padding: 0;
-  font: 500 10px/1.4 'Frank Ruhl Libre', Georgia, serif;
+  font-weight: 500;
+  font-size: 10.5px;
+  line-height: 1.4;
   letter-spacing: 0.01em;
   color: rgba(122, 92, 46, 0.7);
   background: none;
@@ -293,12 +304,14 @@ body {
   background: rgba(122, 92, 46, 0.5);
   transition: background-color 0.12s ease;
 }
-.evt-margin.evt-right { right: clamp(10px, 2vw, 48px); text-align: right; }
+.evt-margin.evt-right { text-align: left; }
 .evt-margin.evt-right::before { left: 0; }
-.evt-margin.evt-left { left: clamp(10px, 2vw, 48px); text-align: left; }
+.evt-margin.evt-left { text-align: right; }
 .evt-margin.evt-left::before { right: 0; }
-.evt-margin:hover { color: var(--accent); }
-.evt-margin:hover::before { background: var(--accent); }
+.evt-margin:hover,
+.evt-margin.active { color: var(--accent); }
+.evt-margin:hover::before,
+.evt-margin.active::before { background: var(--accent); }
 @media (max-width: 820px) {
   .evt-margin { display: none; }
 }
@@ -361,3 +374,46 @@ body {
   cursor: pointer;
 }
 .lang-toggle button.active { background: var(--accent); color: #fff; }
+
+
+/* section-note popover (clicking a margin anchor) */
+.note-pop {
+  position: absolute;
+  width: clamp(240px, 26vw, 350px);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 10px 34px rgba(60, 40, 12, 0.18);
+  padding: 15px 18px 17px;
+  z-index: 20;
+}
+.note-pop.note-right { right: clamp(10px, 2vw, 48px); }
+.note-pop.note-left { left: clamp(10px, 2vw, 48px); }
+.note-close {
+  position: absolute;
+  top: 6px;
+  right: 9px;
+  border: 0;
+  background: none;
+  font-size: 19px;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+}
+.note-close:hover { color: var(--ink); }
+.note-pop-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 8px;
+  padding-right: 16px;
+}
+.note-pop-body {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.note-pop-body.muted { color: var(--muted); font-style: italic; }

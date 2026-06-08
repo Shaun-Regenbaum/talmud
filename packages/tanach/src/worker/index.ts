@@ -13,6 +13,7 @@ import { SefariaClient, flattenPieces } from '@corpus/core/sefaria/client';
 import type { LLMEnv } from '@corpus/core/llm/llm';
 import { isBook } from '../lib/books.ts';
 import { eventSections } from './producers/events.ts';
+import { sectionNote } from './producers/note.ts';
 import { readUsage, recordUsage } from './usage.ts';
 
 interface Env extends LLMEnv {
@@ -198,13 +199,17 @@ app.get('/api/events/:book/:chapter', async (c) => {
 // Returns the parsha name + the book/chapter it starts at, so the reader can
 // jump straight there. Cached ~6h (it only changes on Shabbat).
 app.get('/api/parsha', async (c) => {
-  const cacheKey = 'parsha:current';
+  // The weekly reading desyncs between Israel and the Diaspora for a few weeks a
+  // year (when a yom tov falls on Shabbat outside Israel). Sefaria's calendar
+  // takes diaspora=1 (default) / diaspora=0 (Israel).
+  const israel = c.req.query('loc') === 'israel';
+  const cacheKey = `parsha:current:${israel ? 'il' : 'gola'}`;
   const cached = await c.env.CACHE.get(cacheKey);
   if (cached) return c.json(JSON.parse(cached));
 
   let cal: { calendar_items?: Array<{ title?: { en?: string }; displayValue?: { en?: string; he?: string }; ref?: string }> };
   try {
-    const r = await fetch('https://www.sefaria.org/api/calendars');
+    const r = await fetch(`https://www.sefaria.org/api/calendars?diaspora=${israel ? 0 : 1}`);
     cal = (await r.json()) as typeof cal;
   } catch (e) {
     return c.json({ error: `Calendar fetch failed: ${(e as Error).message}` }, 502);
@@ -222,6 +227,63 @@ app.get('/api/parsha', async (c) => {
     chapter: Number(m[2]),
   };
   c.executionCtx.waitUntil(c.env.CACHE.put(cacheKey, JSON.stringify(payload), { expirationTtl: 6 * 3600 }));
+  return c.json(payload);
+});
+
+// Section note (second producer, composes on events): a short bilingual p'shat
+// note for the verse range [start..end] of a chapter. Triggered when the reader
+// clicks a margin anchor. Cached per range.
+app.get('/api/note/:book/:chapter/:start', async (c) => {
+  const book = c.req.param('book');
+  const chapter = c.req.param('chapter');
+  const start = Number(c.req.param('start'));
+  const end = Number(c.req.query('end')) || start;
+  const label = c.req.query('label') ?? '';
+  if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
+  if (!/^\d+$/.test(chapter) || !start) return c.json({ error: 'Bad chapter/verse' }, 400);
+
+  const key = `note:v1:${book}:${chapter}:${start}-${end}`;
+  const cached = await c.env.CACHE.get(key);
+  if (cached) return c.json(JSON.parse(cached));
+
+  let text: Awaited<ReturnType<SefariaClient['getText']>>;
+  try {
+    text = await sefaria.getText(`${book} ${chapter}`);
+  } catch (e) {
+    return c.json({ error: `Sefaria fetch failed: ${(e as Error).message}` }, 502);
+  }
+  if (text.error) return c.json({ error: text.error }, 404);
+
+  const en = asVerses(text.text);
+  const last = Math.min(end, en.length);
+  const slice: string[] = [];
+  for (let n = start; n <= last; n++) {
+    slice.push(`${n}. ${(en[n - 1] ?? '').replace(/<[^>]+>/g, '').trim()}`);
+  }
+  const ref = end > start ? `${book} ${chapter}:${start}-${end}` : `${book} ${chapter}:${start}`;
+
+  let result: Awaited<ReturnType<typeof sectionNote>>;
+  try {
+    result = await sectionNote(c.env, ref, label, slice.join('\n'));
+  } catch (e) {
+    return c.json({ error: `Producer failed: ${(e as Error).message}` }, 502);
+  }
+
+  const payload = { book, chapter: Number(chapter), start, end, en: result.en, he: result.he };
+  c.executionCtx.waitUntil(
+    Promise.all([
+      c.env.CACHE.put(key, JSON.stringify(payload)),
+      recordUsage(c.env.CACHE, {
+        ts: Date.now(),
+        ref,
+        producer: 'note',
+        model: result.model,
+        in: result.inTokens,
+        out: result.outTokens,
+        cost: result.costUsd,
+      }),
+    ]).then(() => undefined),
+  );
   return c.json(payload);
 });
 
