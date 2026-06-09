@@ -301,6 +301,17 @@ export function App(): JSX.Element {
       if (left < 4 || left + ANCHOR_W > m.width - 4) return;
       out.push({ v: pt.dataset.v ?? '', label: pt.dataset.label ?? '', top: r.top - m.top, left, side });
     });
+    // De-collide labels per side: nudge a label down when it would overlap the
+    // one above (height estimated from text length wrapped to ANCHOR_W), like
+    // the Talmud gutter stack.
+    const estH = (label: string) => Math.max(1, Math.ceil(label.length / 20)) * 14 + 8;
+    for (const sd of ['left', 'right'] as const) {
+      let prevBottom = -Infinity;
+      for (const a of out.filter((x) => x.side === sd).sort((x, y) => x.top - y.top)) {
+        if (a.top < prevBottom + 4) a.top = prevBottom + 4;
+        prevBottom = a.top + estH(a.label);
+      }
+    }
     setAnchors(out);
 
     // Source icons (ר/ג/מ) stacked at the band edge, for verses the index flags.
