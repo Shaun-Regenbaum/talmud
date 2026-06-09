@@ -48,10 +48,14 @@ const SETUMA = '\u0002';
 
 /** Margin-anchor box width + gap from the text band (used both to place the
  *  label and to decide whether it fits in the margin). */
-const ANCHOR_W = 150;
+const ANCHOR_W = 140;
 // Gap from the text band to the dot (the verse tick sits close to the text); the
 // label itself is pushed further into the margin by .evt-margin padding.
-const ANCHOR_GAP = 6;
+const ANCHOR_GAP = 24;
+// Source icons (rishonim, ...) live in a thin lane right at the band edge,
+// inside the event-anchor labels.
+const ICON_SIZE = 16;
+const ICON_GAP = 4;
 
 /**
  * Build the scroll's paragraphs from a chapter's verses, honouring the Masoretic
@@ -67,12 +71,7 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function buildParagraphs(
-  verses: Verse[],
-  nikud: boolean,
-  labels?: Map<number, string>,
-  rich?: Set<number>,
-): string[] {
+function buildParagraphs(verses: Verse[], nikud: boolean, labels?: Map<number, string>): string[] {
   let joined = verses
     .map((v) => {
       const label = labels?.get(v.n);
@@ -80,12 +79,7 @@ function buildParagraphs(
       // point (.evt-pt); the label itself is positioned in the margin by App.
       const cls = label ? 'vnum evt-pt' : 'vnum';
       const attrs = label ? ` data-v="${v.n}" data-label="${escapeHtml(label)}"` : '';
-      // a "rishonim" icon on verses where many comment (the source index marks
-      // these "rich"); clicking it opens the commentary drawer.
-      const mark = rich?.has(v.n)
-        ? `<button class="vmark vmark-rishonim" data-v="${v.n}" title="Commentary">\u05e8</button>`
-        : '';
-      return `<span class="vtext" data-vn="${v.n}"><span class="${cls}"${attrs}>${hebrewNumeral(v.n)}</span>${mark} ${v.he}</span>`;
+      return `<span class="vtext" data-vn="${v.n}"><span class="${cls}"${attrs}>${hebrewNumeral(v.n)}</span> ${v.he}</span>`;
     })
     .join(' ');
   joined = joined
@@ -242,7 +236,7 @@ export function App(): JSX.Element {
     const labels = new Map(
       (events() ?? []).map((s) => [s.verse, (he ? s.he : s.en) || s.en || s.he] as const),
     );
-    return buildParagraphs(ch.verses, loc().nikud, labels, richSet());
+    return buildParagraphs(ch.verses, loc().nikud, labels);
   });
 
   // Margin anchors: measure each section-start verse number (.evt-pt) and pin its
@@ -253,11 +247,15 @@ export function App(): JSX.Element {
   const [anchors, setAnchors] = createSignal<
     { v: string; label: string; top: number; left: number; side: 'left' | 'right' }[]
   >([]);
+  const [verseIcons, setVerseIcons] = createSignal<
+    { v: number; top: number; left: number; side: 'left' | 'right' }[]
+  >([]);
   const [reflow, setReflow] = createSignal(0);
 
   const measure = () => {
     if (loc().view !== 'scroll' || !scrollMain || !scrollBand) {
       setAnchors([]);
+      setVerseIcons([]);
       return;
     }
     const m = scrollMain.getBoundingClientRect();
@@ -276,6 +274,23 @@ export function App(): JSX.Element {
       out.push({ v: pt.dataset.v ?? '', label: pt.dataset.label ?? '', top: r.top - m.top, left, side });
     });
     setAnchors(out);
+
+    // Source icons at the band edge, for the verses the index marks "rich".
+    const rich = richSet();
+    const icons: { v: number; top: number; left: number; side: 'left' | 'right' }[] = [];
+    if (rich.size) {
+      scrollBand.querySelectorAll<HTMLElement>('.vtext').forEach((vt) => {
+        const vn = Number(vt.dataset.vn);
+        if (!rich.has(vn)) return;
+        const r = vt.getBoundingClientRect();
+        if (!r.height) return;
+        const side: 'left' | 'right' = r.left + r.width / 2 < m.left + m.width / 2 ? 'left' : 'right';
+        const left = side === 'right' ? b.right - m.left + ICON_GAP : b.left - m.left - ICON_SIZE - ICON_GAP;
+        if (left < 2 || left + ICON_SIZE > m.width - 2) return;
+        icons.push({ v: vn, top: r.top - m.top, left, side });
+      });
+    }
+    setVerseIcons(icons);
   };
 
   onMount(() => {
@@ -291,6 +306,7 @@ export function App(): JSX.Element {
     reflow();
     loc().view;
     loc().nikud;
+    richSet();
     requestAnimationFrame(() => requestAnimationFrame(measure));
   });
 
@@ -493,6 +509,19 @@ export function App(): JSX.Element {
                   onClick={() => openAnchor(a)}
                 >
                   {a.label}
+                </button>
+              )}
+            </For>
+            <For each={verseIcons()}>
+              {(ic) => (
+                <button
+                  class="vgutter vgutter-rishonim"
+                  classList={{ active: commentaryVerse() === ic.v }}
+                  style={{ top: `${ic.top}px`, left: `${ic.left}px`, width: `${ICON_SIZE}px`, height: `${ICON_SIZE}px` }}
+                  title={`Commentary (verse ${ic.v})`}
+                  onClick={() => setCommentaryVerse(ic.v)}
+                >
+                  ר
                 </button>
               )}
             </For>
