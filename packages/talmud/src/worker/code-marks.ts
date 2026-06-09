@@ -848,19 +848,24 @@ export const CODE_MARKS: MarkDefinition[] = [
     },
     extractor: {
       kind: 'llm',
-      // Heavier reasoning than the section/topic marks: laying out a faithful
-      // grid (orientation, cell values, attribution) benefits from a thinking
-      // pass. Flash keeps it within the streaming window on dense dapim.
-      model: 'openrouter/deepseek/deepseek-v4-flash' as LLMModelId,
+      // Pro + a high reasoning pass, matching the tidbit's tier: laying out a
+      // faithful grid (orientation, competing opinions, cell values,
+      // attribution) is exactly the careful cross-opinion reasoning the Pro
+      // model + a thinking pass does best. Chart is experimental/dev-only and
+      // its output is a bounded table, so the heavier model still fits the
+      // streaming window even on dense dapim. (Literal slug, not
+      // ARGUMENT_PRO_MODEL — that const is declared further down the file, after
+      // this mark, so referencing it here would hit its temporal dead zone.)
+      model: 'openrouter/deepseek/deepseek-v4-pro' as LLMModelId,
       system_prompt: CHART_SYSTEM_PROMPT,
       user_prompt_template: CHART_USER_TEMPLATE,
       output_schema: CHART_OUTPUT_SCHEMA,
-      reasoning_effort: 'medium',
+      reasoning_effort: 'high',
     },
     dependencies: ['gemara', 'commentaries', 'context'],
     status: 'draft',
-    def_hash: 'chart-v2',
-    cache_version: '2',
+    def_hash: 'chart-v3',
+    cache_version: '3',
     source: 'code',
     updated_at: NOW,
   },
@@ -3273,8 +3278,15 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'pesukim.synthesis', fanOut: true },
         { enrichment: 'halacha.synthesis', fanOut: true },
       ],
-      defHash: 'biyun.essay-v1', cacheVersion: '4', // v4: + shared script-hygiene guard (English + Hebrew script only)
+      defHash: 'biyun.essay-v1', cacheVersion: '5', // v5: + reasoning pass, matching the tidbit's deliberate-reasoning tier
       model: ARGUMENT_PRO_MODEL,
+      // Thinking ON, like the tidbit (its essay counterpart). 'medium', not the
+      // tidbit's 'high': the bi'yun keeps its heavy rishonim context —
+      // commentaries + four fanned per-instance syntheses + per-section/topic —
+      // so it has less OpenRouter streaming-cap headroom than the tidbit, which
+      // shrank to 'context-light' to afford 'high'. Raise to 'high' only behind
+      // a context diet if the output warrants it.
+      reasoningEffort: 'medium',
       systemPromptHe: BIYUN_ESSAY_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: BIYUN_ESSAY_USER_TEMPLATE_HE,
     },
