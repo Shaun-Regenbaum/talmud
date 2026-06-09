@@ -596,3 +596,14 @@ body {
 
 /* midrash section in the verse drawer (synthesis + capped sources) */
 .comm-midrash { padding: 14px 0 4px; border-top: 1px solid var(--line); margin-top: 6px; }
+
+/* focused source drawer: kind label in the header */
+.comm-head { justify-content: flex-start; gap: 10px; }
+.comm-kind {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  font-weight: 600;
+}
+.comm-close { margin-inline-start: auto; }
