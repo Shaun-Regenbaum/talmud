@@ -49,7 +49,9 @@ const SETUMA = '\u0002';
 /** Margin-anchor box width + gap from the text band (used both to place the
  *  label and to decide whether it fits in the margin). */
 const ANCHOR_W = 150;
-const ANCHOR_GAP = 12;
+// Gap from the text band to the dot (the verse tick sits close to the text); the
+// label itself is pushed further into the margin by .evt-margin padding.
+const ANCHOR_GAP = 6;
 
 /**
  * Build the scroll's paragraphs from a chapter's verses, honouring the Masoretic
