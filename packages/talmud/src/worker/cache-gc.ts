@@ -66,7 +66,13 @@ export async function gcPrefix(
   target: GcTarget,
   opts: { dryRun: boolean; maxDeletes: number },
 ): Promise<GcResult> {
-  const out: GcResult = { prefix: target.prefix, scanned: 0, stale: 0, deleted: 0, sampleStaleKeys: [] };
+  const out: GcResult = {
+    prefix: target.prefix,
+    scanned: 0,
+    stale: 0,
+    deleted: 0,
+    sampleStaleKeys: [],
+  };
   let cursor: string | undefined;
   for (;;) {
     const res = await cache.list({ prefix: target.prefix, cursor, limit: 1000 });

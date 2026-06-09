@@ -92,7 +92,10 @@ function findNeedle(
       for (let w = 0; w + needle.length <= words.length; w++) {
         let ok = true;
         for (let k = 0; k < needle.length; k++) {
-          if (words[w + k] !== needle[k]) { ok = false; break; }
+          if (words[w + k] !== needle[k]) {
+            ok = false;
+            break;
+          }
         }
         if (ok) return { seg: i, tok: w };
       }
@@ -110,7 +113,10 @@ function findNeedle(
     for (let w = 0; w + needle.length <= words.length; w++) {
       let ok = true;
       for (let k = 0; k < needle.length; k++) {
-        if (words[w + k] !== needle[k]) { ok = false; break; }
+        if (words[w + k] !== needle[k]) {
+          ok = false;
+          break;
+        }
       }
       if (ok) segHit = { seg: i, tok: w };
     }

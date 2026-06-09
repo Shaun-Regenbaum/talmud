@@ -1,14 +1,22 @@
 // @vitest-environment jsdom
 import { render } from '@solidjs/testing-library';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Section } from '../../src/client/shapes';
-import { CARD_DEFS, instanceKeyForContent, VoiceGroupBody, type SidebarContent } from '../../src/client/ArgumentSidebar';
-import { SidebarCardFromHint } from '../../src/client/sidebar/primitives';
+import {
+  CARD_DEFS,
+  instanceKeyForContent,
+  type SidebarContent,
+  VoiceGroupBody,
+} from '../../src/client/ArgumentSidebar';
 import { setLang } from '../../src/client/i18n';
+import type { Section } from '../../src/client/shapes';
+import { SidebarCardFromHint } from '../../src/client/sidebar/primitives';
 
 beforeEach(() => {
   setLang('en');
-  vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => [] }) as unknown as Response));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => ({ ok: true, json: async () => [] }) as unknown as Response),
+  );
 });
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -41,10 +49,18 @@ describe('argument card (recipe)', () => {
         tractate="Shabbat"
         page="125b"
         specialBlocks={def.blocks}
-        extras={def.extras?.({ content, generationByName: new Map(), onPushRabbi: noop, dafSections: [], onOpenArgument: undefined })}
+        extras={def.extras?.({
+          content,
+          generationByName: new Map(),
+          onPushRabbi: noop,
+          dafSections: [],
+          onOpenArgument: undefined,
+        })}
       />
     ));
-    expect(container.querySelector('h3')!.textContent).toBe('Dispute over the requirement of an action');
+    expect(container.querySelector('h3')!.textContent).toBe(
+      'Dispute over the requirement of an action',
+    );
     const excerpt = container.querySelector('p[dir="rtl"]')!;
     expect(excerpt.getAttribute('lang')).toBe('he');
     expect(excerpt.textContent).toContain('בְּמַאי קָמִיפַּלְגִי');
@@ -54,7 +70,9 @@ describe('argument card (recipe)', () => {
 describe('VoiceGroupBody', () => {
   it('renders the collective name, Hebrew twin, and bio', () => {
     const { container } = render(() => (
-      <VoiceGroupBody group={{ name: 'The Stam', nameHe: 'הסתם', bio: 'The anonymous voice of the Gemara.' }} />
+      <VoiceGroupBody
+        group={{ name: 'The Stam', nameHe: 'הסתם', bio: 'The anonymous voice of the Gemara.' }}
+      />
     ));
     expect(container.querySelector('h3')!.textContent).toBe('The Stam');
     expect(container.querySelector('p[dir="rtl"]')!.textContent).toContain('הסתם');

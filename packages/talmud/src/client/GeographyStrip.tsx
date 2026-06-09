@@ -1,4 +1,4 @@
-import { type JSX } from 'solid-js';
+import type { JSX } from 'solid-js';
 import { GeographyMap, type GeographyMapProps } from './GeographyMap';
 
 // Thin wrapper for v1: the right strip is narrower than the original aside

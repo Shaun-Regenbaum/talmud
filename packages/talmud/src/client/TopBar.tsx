@@ -5,8 +5,8 @@
  * folded into a unified header later. Positioned with logical `inset-inline-end`
  * so it sits top-right in LTR and top-left in RTL (he) automatically.
  */
-import { type JSX } from 'solid-js';
-import { lang, setLang, t, type Lang } from './i18n';
+import type { JSX } from 'solid-js';
+import { type Lang, lang, setLang, t } from './i18n';
 
 export function TopBar(): JSX.Element {
   // Shares the daf header's `.tb-seg` / `.tb-seg-btn` segmented-control styling
@@ -41,7 +41,9 @@ export function TopBar(): JSX.Element {
         class="tb-seg-btn"
         title={t('tutorial.help.title')}
         aria-label={t('tutorial.help.title')}
-        onClick={() => { window.location.hash = 'tutorial'; }}
+        onClick={() => {
+          window.location.hash = 'tutorial';
+        }}
         style={{ 'box-shadow': '0 1px 4px rgba(0,0,0,0.08)' }}
       >
         {t('tutorial.help')}

@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { postJson, BASE_URL } from './helpers';
+import { describe, expect, it } from 'vitest';
+import { BASE_URL, postJson } from './helpers';
 
 /**
  * Word-sense disambiguation tests. Each case supplies a word + Hebrew context
@@ -69,7 +69,7 @@ const CASES: Case[] = [
     page: '2a',
     hebrewBefore: 'אומר עד שיעלה',
     hebrewAfter: 'השחר',
-    acceptable: /column|pillar|rise|dawn|break/i,  // "column of dawn" or "daybreak" both fine
+    acceptable: /column|pillar|rise|dawn|break/i, // "column of dawn" or "daybreak" both fine
   },
 
   // --- Name-preservation: rabbinic names should not be "translated" ---
@@ -106,10 +106,7 @@ describe(`integration: translate (against ${BASE_URL})`, () => {
         hebrewBefore: c.hebrewBefore ?? '',
         hebrewAfter: c.hebrewAfter ?? '',
       };
-      const res = await postJson<{ translation?: string; error?: string }>(
-        '/api/translate',
-        body,
-      );
+      const res = await postJson<{ translation?: string; error?: string }>('/api/translate', body);
       expect(res.error, `translate error: ${res.error}`).toBeUndefined();
       expect(res.translation, 'empty translation').toBeTruthy();
       const t = String(res.translation);

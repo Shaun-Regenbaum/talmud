@@ -156,7 +156,11 @@ export function estimateShasCost(input: ShasCostInput): ShasCostEstimate {
   const frontier = Math.max(1, Math.min(amudim || 1, maxMarkCoverage || amudim || 1));
 
   // Distinct amudim a producer has been warmed on (see the module doc).
-  const warmedAmudimFor = (kind: 'mark' | 'enrichment', count: number, row?: CoverageRowLike): number => {
+  const warmedAmudimFor = (
+    kind: 'mark' | 'enrichment',
+    count: number,
+    row?: CoverageRowLike,
+  ): number => {
     if (count <= 0) return 0;
     if (kind === 'mark' || count <= frontier) return Math.min(count, frontier); // once-per-amud reading
     // count > frontier => provably a fan-out. Use its target_mark coverage as
@@ -168,7 +172,11 @@ export function estimateShasCost(input: ShasCostInput): ShasCostEstimate {
   };
 
   const rows: ProducerCost[] = [];
-  const build = (map: Record<string, CostBucketLike>, kind: 'mark' | 'enrichment', cov: (id: string) => CoverageRowLike | undefined): void => {
+  const build = (
+    map: Record<string, CostBucketLike>,
+    kind: 'mark' | 'enrichment',
+    cov: (id: string) => CoverageRowLike | undefined,
+  ): void => {
     for (const [id, b] of Object.entries(map)) {
       if (!b || b.pricedCalls <= 0) continue; // no priced calls -> no unit cost
       const unitUsd = b.costUsd / b.pricedCalls;
@@ -180,10 +188,22 @@ export function estimateShasCost(input: ShasCostInput): ShasCostEstimate {
       const fullShasUsd = unitUsd * instancesPerAmud * amudim;
       const incurredUsd = unitUsd * count;
       const remainingUsd = Math.max(0, fullShasUsd - incurredUsd);
-      rows.push({ id, kind, unitUsd, instancesPerAmud, coverageCount: count, fullShasUsd, incurredUsd, remainingUsd });
+      rows.push({
+        id,
+        kind,
+        unitUsd,
+        instancesPerAmud,
+        coverageCount: count,
+        fullShasUsd,
+        incurredUsd,
+        remainingUsd,
+      });
     }
   };
-  build(input.byMark, 'mark', (id) => { const c = markCov.get(id); return c === undefined ? undefined : { id, count: c }; });
+  build(input.byMark, 'mark', (id) => {
+    const c = markCov.get(id);
+    return c === undefined ? undefined : { id, count: c };
+  });
   build(input.byEnrichment, 'enrichment', (id) => enrichCov.get(id));
   rows.sort((a, b) => b.fullShasUsd - a.fullShasUsd);
 

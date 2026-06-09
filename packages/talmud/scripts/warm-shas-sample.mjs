@@ -33,7 +33,12 @@ const SEED = arg('--seed', new Date().toISOString().slice(0, 10));
 const WORKER = arg('--worker', 'https://talmud.shaunregenbaum.com');
 const TRACTATE_FILTER = (() => {
   const v = arg('--tractates', null);
-  return v ? v.split(',').map((s) => s.trim()).filter(Boolean) : null;
+  return v
+    ? v
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : null;
 })();
 const DRY_RUN = args.includes('--dry-run');
 const INCLUDE_QUESTIONS = !args.includes('--no-questions');
@@ -97,8 +102,9 @@ function fnv1a(str) {
 }
 function mulberry32(seed) {
   let a = seed >>> 0;
-  return function () {
-    a |= 0; a = (a + 0x6D2B79F5) | 0;
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
     let t = a;
     t = Math.imul(t ^ (t >>> 15), t | 1);
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
@@ -140,7 +146,9 @@ sample.sort((a, b) => {
   return parseInt(pa, 10) - parseInt(pb, 10);
 });
 
-console.log(`[warm-shas-sample] seed=${SEED} pct=${PCT}% total-amud-a=${allPages.length} sampled=${sample.length}`);
+console.log(
+  `[warm-shas-sample] seed=${SEED} pct=${PCT}% total-amud-a=${allPages.length} sampled=${sample.length}`,
+);
 console.log(`[warm-shas-sample] worker=${WORKER} include-questions=${INCLUDE_QUESTIONS}`);
 
 if (DRY_RUN) {
@@ -150,8 +158,10 @@ if (DRY_RUN) {
 
 const childArgs = [
   path.join(__dirname, 'warm-pages.mjs'),
-  '--worker', WORKER,
-  '--pages', sample.join(','),
+  '--worker',
+  WORKER,
+  '--pages',
+  sample.join(','),
 ];
 if (INCLUDE_QUESTIONS) childArgs.push('--include-questions');
 

@@ -10,7 +10,7 @@
  * The synthesize step re-fires whenever the include set changes; only the
  * sources currently toggled on contribute to the rewritten prose.
  */
-import { Show, type JSX } from 'solid-js';
+import { type JSX, Show } from 'solid-js';
 
 export interface EnrichmentToggleProps {
   id: string;
@@ -38,7 +38,7 @@ export function EnrichmentToggle(props: EnrichmentToggleProps): JSX.Element {
       title={props.desc}
     >
       <span class="toggle-mark">
-        {props.running ? '…' : (props.included ? '✓' : (props.cached ? '○' : '+'))}
+        {props.running ? '…' : props.included ? '✓' : props.cached ? '○' : '+'}
       </span>
       <span class="toggle-label">{props.label}</span>
       <Show when={props.error}>

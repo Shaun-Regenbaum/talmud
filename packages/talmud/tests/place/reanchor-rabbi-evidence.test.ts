@@ -7,16 +7,17 @@
  * (start === end), 1-word excerpts left unanchored, and non-matching entries
  * preserved untouched.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { reanchorRabbiEvidence } from '../../src/lib/place/reanchor';
 
 const SEGS = [
-  'אמר רבא אמר רב נחמן',          // seg 0 (5 words)
-  'תנו רבנן המביא גט ממדינת הים',  // seg 1 (6 words)
-  'רבי יוחנן ורבי שמעון בן לקיש',  // seg 2 (6 words)
+  'אמר רבא אמר רב נחמן', // seg 0 (5 words)
+  'תנו רבנן המביא גט ממדינת הים', // seg 1 (6 words)
+  'רבי יוחנן ורבי שמעון בן לקיש', // seg 2 (6 words)
 ];
 
-const run = (evidence: unknown[]) => reanchorRabbiEvidence({ evidence }, SEGS) as { evidence: Record<string, unknown>[] };
+const run = (evidence: unknown[]) =>
+  reanchorRabbiEvidence({ evidence }, SEGS) as { evidence: Record<string, unknown>[] };
 
 describe('reanchorRabbiEvidence', () => {
   it('anchors a word-aligned excerpt at the start of a segment', () => {

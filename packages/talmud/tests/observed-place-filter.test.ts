@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { isRealPlace } from '../src/worker/unknown-registry';
 
 // Regression guard for the `places` mark over-extracting people/peoples as

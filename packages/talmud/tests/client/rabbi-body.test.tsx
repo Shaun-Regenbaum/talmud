@@ -1,14 +1,22 @@
 // @vitest-environment jsdom
 import { render } from '@solidjs/testing-library';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  RABBI_BLOCKS,
+  RABBI_RECIPE,
+  rabbiDisplayInstance,
+  rabbiSynthInstance,
+} from '../../src/client/ArgumentSidebar';
 import type { IdentifiedRabbi } from '../../src/client/dafContext';
-import { RABBI_RECIPE, RABBI_BLOCKS, rabbiDisplayInstance, rabbiSynthInstance } from '../../src/client/ArgumentSidebar';
-import { SidebarCardFromHint } from '../../src/client/sidebar/primitives';
 import { setLang } from '../../src/client/i18n';
+import { SidebarCardFromHint } from '../../src/client/sidebar/primitives';
 
 beforeEach(() => {
   setLang('en');
-  vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => [] }) as unknown as Response));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => ({ ok: true, json: async () => [] }) as unknown as Response),
+  );
 });
 afterEach(() => {
   vi.unstubAllGlobals();

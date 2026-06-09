@@ -8,8 +8,8 @@
  * numbered footnotes. Right-to-left Hebrew throughout.
  */
 
-import { elementChildren, text, collapse, type HTMLElement } from './common.ts';
 import type { DafyomiTable, DafyomiText } from '../schema.ts';
+import { collapse, elementChildren, type HTMLElement, text } from './common.ts';
 
 export interface SplitTables {
   a: DafyomiTable[];
@@ -50,7 +50,6 @@ export function parseHebCharts(content: HTMLElement): SplitTables {
       const t = text(el);
       const m = t.match(/^\[?(\d+)\]?\s*(.*)$/);
       if (m) notes.push({ marker: `[${m[1]}]`, text: { he: m[2] || t } });
-      continue;
     }
   }
 

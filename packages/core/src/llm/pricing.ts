@@ -45,7 +45,10 @@ export function priceFor(model: string | null | undefined): ModelPrice | null {
   return PRICES.get(model) ?? null;
 }
 
-export function normalizeUsage(u: TokenUsage | null | undefined): { input: number; output: number } {
+export function normalizeUsage(u: TokenUsage | null | undefined): {
+  input: number;
+  output: number;
+} {
   if (!u) return { input: 0, output: 0 };
   const input = u.prompt_tokens ?? u.input_tokens ?? 0;
   const output = u.completion_tokens ?? u.output_tokens ?? 0;
@@ -57,7 +60,10 @@ export function normalizeUsage(u: TokenUsage | null | undefined): { input: numbe
  * list price (so callers can render "unpriced" rather than $0.00, which would
  * understate real spend on Workers AI models).
  */
-export function costUsd(model: string | null | undefined, usage: TokenUsage | null | undefined): number | null {
+export function costUsd(
+  model: string | null | undefined,
+  usage: TokenUsage | null | undefined,
+): number | null {
   const price = priceFor(model);
   if (!price) return null;
   const { input, output } = normalizeUsage(usage);

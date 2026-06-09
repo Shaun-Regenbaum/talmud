@@ -4,10 +4,7 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "summary",
-      "instances"
-    ],
+    "required": ["summary", "instances"],
     "properties": {
       "summary": {
         "type": "string"
@@ -17,11 +14,7 @@
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "startSegIdx",
-            "endSegIdx",
-            "fields"
-          ],
+          "required": ["startSegIdx", "endSegIdx", "fields"],
           "properties": {
             "startSegIdx": {
               "type": "integer",
@@ -34,13 +27,7 @@
             "fields": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "title",
-                "summary",
-                "excerpt",
-                "endExcerpt",
-                "rabbiNames"
-              ],
+              "required": ["title", "summary", "excerpt", "endExcerpt", "rabbiNames"],
               "properties": {
                 "title": {
                   "type": "string"

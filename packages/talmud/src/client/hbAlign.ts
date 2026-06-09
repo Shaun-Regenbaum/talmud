@@ -44,7 +44,10 @@ export interface Located {
 export function normHe(s: string): string {
   return s
     .replace(/[֑-ׇ]/g, '')
-    .replace(/[ךםןףץ]/g, (c) => ({ ך: 'כ', ם: 'מ', ן: 'נ', ף: 'פ', ץ: 'צ' } as Record<string, string>)[c] ?? c)
+    .replace(
+      /[ךםןףץ]/g,
+      (c) => (({ ך: 'כ', ם: 'מ', ן: 'נ', ף: 'פ', ץ: 'צ' }) as Record<string, string>)[c] ?? c,
+    )
     .replace(/<[^>]+>/g, ' ')
     .replace(/[.,:;?!"'״׳`()[\]{}־–—]/g, '')
     .replace(/\s+/g, ' ')
@@ -82,8 +85,9 @@ function findExact(norm: string[], needle: string[], start: number, end: number)
   const hi = Math.min(end, norm.length - 1) - (n - 1);
   outer: for (let i = Math.max(0, start); i <= hi; i++) {
     for (let j = 0; j < n; j++) {
-      if (j === n - 1) { if (!norm[i + j].startsWith(needle[j])) continue outer; }
-      else if (norm[i + j] !== needle[j]) continue outer;
+      if (j === n - 1) {
+        if (!norm[i + j].startsWith(needle[j])) continue outer;
+      } else if (norm[i + j] !== needle[j]) continue outer;
     }
     return i;
   }
@@ -129,7 +133,13 @@ export interface LocateQuery {
 export function locateInHb(hb: HbWords, q: LocateQuery): Located | null {
   if (hb.norm.length === 0) return null;
   const win = q.segs && q.segs.length ? segWindow(hb, q.segs) : null;
-  const rawTokens = q.phrase ? q.phrase.replace(/<[^>]+>/g, ' ').trim().split(/\s+/).filter(Boolean) : [];
+  const rawTokens = q.phrase
+    ? q.phrase
+        .replace(/<[^>]+>/g, ' ')
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+    : [];
   const normTokens = rawTokens.map(normHe).filter(Boolean);
   const multi = normTokens.length >= 2;
   const single = normTokens.length === 1;
@@ -139,17 +149,20 @@ export function locateInHb(hb: HbWords, q: LocateQuery): Located | null {
     // 1. exact, inside the segment window.
     if (win) {
       const at = findExact(hb.norm, normTokens, win.first, win.last);
-      if (at >= 0) return mk(hb, at, normTokens.length, 'phrase-in-seg', conf(normTokens.length, true, false));
+      if (at >= 0)
+        return mk(hb, at, normTokens.length, 'phrase-in-seg', conf(normTokens.length, true, false));
     }
     // 2. exact, anywhere (multi-word only — single words are too common).
     if (multi) {
       const at = findExact(hb.norm, normTokens, 0, lastWord);
-      if (at >= 0) return mk(hb, at, normTokens.length, 'phrase', conf(normTokens.length, false, false));
+      if (at >= 0)
+        return mk(hb, at, normTokens.length, 'phrase', conf(normTokens.length, false, false));
     }
     // 3. fuzzy, inside the window (abbreviation-tolerant; scoped to stay safe).
     if (win) {
       const at = findFuzzy(hb.raw, rawTokens, win.first, win.last);
-      if (at >= 0) return mk(hb, at, rawTokens.length, 'phrase-fuzzy', conf(normTokens.length, true, true));
+      if (at >= 0)
+        return mk(hb, at, rawTokens.length, 'phrase-fuzzy', conf(normTokens.length, true, true));
     }
     // 3b. fuzzy, ANYWHERE — only for a distinctive (>=3-token) phrase with no
     //     window, so an unsegmented Rishon's dibur-ha'maschil still lands
@@ -157,7 +170,8 @@ export function locateInHb(hb: HbWords, q: LocateQuery): Located | null {
     //     tokens keeps false hits unlikely.
     if (!win && normTokens.length >= 3) {
       const at = findFuzzy(hb.raw, rawTokens, 0, lastWord);
-      if (at >= 0) return mk(hb, at, rawTokens.length, 'phrase-fuzzy', conf(normTokens.length, false, true));
+      if (at >= 0)
+        return mk(hb, at, rawTokens.length, 'phrase-fuzzy', conf(normTokens.length, false, true));
     }
   }
 

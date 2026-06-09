@@ -33,7 +33,10 @@ export interface RabbiPlacesFile {
 
 export const RABBI_PLACES = rabbiPlacesData as unknown as RabbiPlacesFile;
 
-export interface RabbiResolution { slug: string; entry: RabbiPlacesEntry }
+export interface RabbiResolution {
+  slug: string;
+  entry: RabbiPlacesEntry;
+}
 
 // Normalize a Hebrew name for resolver indexing/lookup: strip nikkud +
 // cantillation, drop parenthetical disambiguators (`רב (שם אמורא)` ->
@@ -41,8 +44,8 @@ export interface RabbiResolution { slug: string; entry: RabbiPlacesEntry }
 function normalizeHeForResolve(s: string): string {
   return s
     .replace(/[֑-ׇ]/g, '')
-    .replace(/\([^)]*\)/g, ' ')     // remove parenthetical groups entirely
-    .replace(/\[[^\]]*\]/g, ' ')    // same for square-bracket groups
+    .replace(/\([^)]*\)/g, ' ') // remove parenthetical groups entirely
+    .replace(/\[[^\]]*\]/g, ' ') // same for square-bracket groups
     .replace(/[.,:;?!"'״׳()[\]{}]/g, '')
     .replace(/\s+/g, ' ')
     .trim();

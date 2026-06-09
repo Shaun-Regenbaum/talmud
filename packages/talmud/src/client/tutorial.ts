@@ -218,13 +218,15 @@ export function setTutorialHeader(open: boolean): void {
  *  answers in the background so the Q&A step's questions click through
  *  instantly instead of generating on demand. The coach toggles this. */
 const [tutorialPrefetch, setTutorialPrefetch] = createSignal(false);
-export { tutorialPrefetch, setTutorialPrefetch };
+
+export { setTutorialPrefetch, tutorialPrefetch };
 
 /** While a note step is showing, the opened note panel / drawer is lifted above
  *  the coach's click-shield so the reader can actually scroll and explore it
  *  (the shield otherwise swallows all interaction). The coach toggles this. */
 const [tutorialNoteInteractive, setTutorialNoteInteractive] = createSignal(false);
-export { tutorialNoteInteractive, setTutorialNoteInteractive };
+
+export { setTutorialNoteInteractive, tutorialNoteInteractive };
 
 const COMPLETED_KEY = 'tutorial:completed';
 const BANNER_DISMISSED_KEY = 'tutorial:banner-dismissed';

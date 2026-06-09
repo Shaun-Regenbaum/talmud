@@ -127,7 +127,9 @@ function rangeSegs(start: number, end: number): number[] {
 }
 
 /** A minimal voices-graph shape (argument.voices output) for the dispute test. */
-export interface VoicesGraph { edges?: { kind?: string }[] }
+export interface VoicesGraph {
+  edges?: { kind?: string }[];
+}
 
 /** True when the voices graph carries a real opposition (an `opposes` edge). */
 export function hasOpposingVoices(voices?: VoicesGraph | null): boolean {
@@ -146,7 +148,11 @@ export function hasOpposingVoices(voices?: VoicesGraph | null): boolean {
 export function composeTypeProfile(
   unit: UnitRange,
   instances: readonly LayerInstance[],
-  opts: { voices?: VoicesGraph | null; mishnaSegs?: ReadonlySet<number>; hasNamedSpeaker?: boolean } = {},
+  opts: {
+    voices?: VoicesGraph | null;
+    mishnaSegs?: ReadonlySet<number>;
+    hasNamedSpeaker?: boolean;
+  } = {},
 ): TypeProfile {
   const unitSegs = rangeSegs(unit.startSegIdx, unit.endSegIdx);
   const unitSet = new Set(unitSegs);
@@ -173,7 +179,10 @@ export function composeTypeProfile(
   for (const c of claims) {
     if (!OVERLAYS.has(c.layer) || c.coverage < PRIMARY_FLOOR) continue;
     const score = c.coverage * (c.confidence ?? 1) * LAYER_PRIORITY[c.layer as OverlayLayer];
-    if (score > bestScore) { bestScore = score; primary = c.layer as OverlayLayer; }
+    if (score > bestScore) {
+      bestScore = score;
+      primary = c.layer as OverlayLayer;
+    }
   }
 
   const hasNamedSpeaker = opts.hasNamedSpeaker ?? true; // unknown → permissive
@@ -202,14 +211,21 @@ export interface MoveLike {
  *  "a real מחלוקת is possible here" signal that feeds `TypeProfile.hasNamedSpeaker`
  *  — the anti-hallucination guard (an `opposes` edge on an all-anonymous section
  *  is a fabrication). */
-export function sectionHasNamedSpeaker(moves: readonly MoveLike[], startSegIdx: number, endSegIdx: number): boolean {
+export function sectionHasNamedSpeaker(
+  moves: readonly MoveLike[],
+  startSegIdx: number,
+  endSegIdx: number,
+): boolean {
   for (const m of moves) {
     const f = m.fields ?? {};
     const names = Array.isArray(f.rabbiNames) ? f.rabbiNames : [];
     if (names.length === 0) continue;
     const sectionMatch = f.sectionStartSegIdx === startSegIdx && f.sectionEndSegIdx === endSegIdx;
-    const withinSection = typeof m.startSegIdx === 'number' && typeof m.endSegIdx === 'number'
-      && m.startSegIdx >= startSegIdx && m.endSegIdx <= endSegIdx;
+    const withinSection =
+      typeof m.startSegIdx === 'number' &&
+      typeof m.endSegIdx === 'number' &&
+      m.startSegIdx >= startSegIdx &&
+      m.endSegIdx <= endSegIdx;
     if (sectionMatch || withinSection) return true;
   }
   return false;
@@ -217,7 +233,10 @@ export function sectionHasNamedSpeaker(moves: readonly MoveLike[], startSegIdx: 
 
 /** The profile fields the voice-dispute-map render gate reads. A subset of
  *  `TypeProfile`; `undefined` means the profile is unknown/uncomputed. */
-export interface GateProfile { primary: string; hasNamedSpeaker?: boolean }
+export interface GateProfile {
+  primary: string;
+  hasNamedSpeaker?: boolean;
+}
 
 /** Deterministic precheck — could this section EVER show the voice-dispute map?
  *  Yes unless the profile positively says it's an aggadata story or has no named
@@ -232,7 +251,10 @@ export function voicesMapEligible(profile: GateProfile | undefined): boolean {
  *  graph carries real opposition. Reading the live graph — not the profile's
  *  cached `isDispute` — is what dodges the warming race that hid real disputes
  *  on cold dapim. `null` voices (still loading) → false. */
-export function voicesShowMap(profile: GateProfile | undefined, voices: VoicesGraph | null): boolean {
+export function voicesShowMap(
+  profile: GateProfile | undefined,
+  voices: VoicesGraph | null,
+): boolean {
   return voicesMapEligible(profile) && hasOpposingVoices(voices);
 }
 
@@ -242,7 +264,11 @@ export function voicesShowMap(profile: GateProfile | undefined, voices: VoicesGr
  *  — is the "settled" signal, so a synthesis that resolves with missing/malformed
  *  voices still falls back instead of rendering bare. Mutually exclusive with
  *  `voicesShowMap`. */
-export function voicesShowFallback(profile: GateProfile | undefined, voices: VoicesGraph | null, resolved: boolean): boolean {
+export function voicesShowFallback(
+  profile: GateProfile | undefined,
+  voices: VoicesGraph | null,
+  resolved: boolean,
+): boolean {
   return !voicesMapEligible(profile) || (resolved && !hasOpposingVoices(voices));
 }
 
@@ -253,7 +279,10 @@ export function voicesShowFallback(profile: GateProfile | undefined, voices: Voi
  * type. Used by the coverage audit to measure how much of a daf is bare שקלא
  * וטריא vs. content-covered.
  */
-export function overlayUncoveredSegs(unit: UnitRange, instances: readonly LayerInstance[]): number[] {
+export function overlayUncoveredSegs(
+  unit: UnitRange,
+  instances: readonly LayerInstance[],
+): number[] {
   const unitSegs = rangeSegs(unit.startSegIdx, unit.endSegIdx);
   const coveredByOverlay = new Set<number>();
   for (const inst of instances) {

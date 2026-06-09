@@ -1,46 +1,46 @@
 {
- "tractate": "Gittin",
- "page": "68a",
- "mark": "rabbi",
- "cache_hit": true,
- "raw": {
-  "instances": [
-   {
-    "excerpt": "רב חסדא",
-    "fields": {
-     "name": "Rav Chisda",
-     "nameHe": "רב חסדא",
-     "generation": "amora-bavel-2"
-    }
-   },
-   {
-    "excerpt": "רבי יוחנן",
-    "fields": {
-     "name": "Rabbi Yochanan",
-     "nameHe": "רבי יוחנן",
-     "generation": "amora-ey-1"
-    }
-   }
-  ]
- },
- "expected": {
-  "instances": [
-   {
-    "excerpt": "רב חסדא",
-    "fields": {
-     "name": "Rav Chisda",
-     "nameHe": "רב חסדא",
-     "generation": "amora-bavel-2"
-    }
-   },
-   {
-    "excerpt": "רבי יוחנן",
-    "fields": {
-     "name": "Rabbi Yochanan",
-     "nameHe": "רבי יוחנן",
-     "generation": "amora-ey-1"
-    }
-   }
-  ]
- }
+  "tractate": "Gittin",
+  "page": "68a",
+  "mark": "rabbi",
+  "cache_hit": true,
+  "raw": {
+    "instances": [
+      {
+        "excerpt": "רב חסדא",
+        "fields": {
+          "name": "Rav Chisda",
+          "nameHe": "רב חסדא",
+          "generation": "amora-bavel-2"
+        }
+      },
+      {
+        "excerpt": "רבי יוחנן",
+        "fields": {
+          "name": "Rabbi Yochanan",
+          "nameHe": "רבי יוחנן",
+          "generation": "amora-ey-1"
+        }
+      }
+    ]
+  },
+  "expected": {
+    "instances": [
+      {
+        "excerpt": "רב חסדא",
+        "fields": {
+          "name": "Rav Chisda",
+          "nameHe": "רב חסדא",
+          "generation": "amora-bavel-2"
+        }
+      },
+      {
+        "excerpt": "רבי יוחנן",
+        "fields": {
+          "name": "Rabbi Yochanan",
+          "nameHe": "רבי יוחנן",
+          "generation": "amora-ey-1"
+        }
+      }
+    ]
+  }
 }

@@ -1,62 +1,93 @@
-import { createResource, createSignal, createEffect, createMemo, onMount, onCleanup, For, Show, type JSX } from 'solid-js';
-import type { TalmudPageData } from '../lib/sefref';
-import { TRACTATE_OPTIONS, dafRefHe } from '../lib/sefref';
-import { DafRenderer } from '../lib/daf-render';
-import { tokenizeHebrewHtml } from './tokenize';
-import { TranslationPopup } from './TranslationPopup';
-import { HighlightNotePopover, NotesPanel } from './UserHighlightUI';
-import type {
-  DafAnalysis, Section,
-  HalachaResult, HalachaTopic,
-  ChartResult, ChartTable,
-  AggadataResult,
-  PesukimResult,
-  YerushalmiResult,
-} from './shapes';
-import { injectRabbiUnderlines, type GenerationRabbi } from './injectRabbiUnderlines';
-import { injectSegmentMarkers } from './injectSegmentMarkers';
-import { injectHadran } from './injectHadran';
-import { ensureMasechetIncipit } from './ensureMasechetIncipit';
-import { injectAnchorMarkers, injectOpinionMarkers, injectAggadataAnchors, injectPesukimAnchors, injectYerushalmiAnchors } from './anchorMarkers';
-import { buildTokenRange } from './highlightRange';
 import {
-  type UserHighlight,
-  bgForColor,
-  loadUserHighlights,
-  saveUserHighlights,
-  highlightCoversWord,
-  wordCoordFromTarget,
-} from './userHighlights';
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+  For,
+  type JSX,
+  onCleanup,
+  onMount,
+  Show,
+} from 'solid-js';
+import { dedupeBy, partitionSections } from '../lib/argumentMoves';
+import { DafRenderer } from '../lib/daf-render';
+import type { TalmudPageData } from '../lib/sefref';
+import { dafRefHe, TRACTATE_OPTIONS } from '../lib/sefref';
+import { conceptToTerm, glossaryForDaf, type Term } from '../lib/terms/registry';
+import { ArgumentSidebar, type PlaceInstance, type SidebarContent } from './ArgumentSidebar';
+import {
+  injectAggadataAnchors,
+  injectAnchorMarkers,
+  injectOpinionMarkers,
+  injectPesukimAnchors,
+  injectYerushalmiAnchors,
+} from './anchorMarkers';
+import { BugReport } from './BugReport';
+import { type BackgroundGroup, orderBackgroundGroups } from './backgroundGroups';
+import ChecksPanel from './ChecksPanel';
+import type { CommentaryComment, CommentaryWork } from './CommentaryPicker';
+import { CommentaryStrip } from './CommentaryStrip';
+import { type CommentaryAnchorIndex, fetchCommentaryAnchorIndex } from './commentaryAnchorIndex';
+import DafLoadProgress from './DafLoadProgress';
+import { readDevMode, setDevModeActive } from './DevModeShelf';
+import { cancelPrefetch, prefetchDaf } from './dafPrefetch';
+import { ensureMasechetIncipit } from './ensureMasechetIncipit';
 import { GutterIcons, type GutterKind } from './GutterIcons';
 import { GutterOverlay } from './GutterOverlay';
-import { ArgumentSidebar, type SidebarContent, type PlaceInstance } from './ArgumentSidebar';
-import { enqueueEnrichmentRun } from './MarkEnrichmentCards';
-import { orderBackgroundGroups, type BackgroundGroup } from './backgroundGroups';
-import { conceptToTerm, glossaryForDaf, type Term } from '../lib/terms/registry';
-import { BugReport } from './BugReport';
-import { type CommentaryWork, type CommentaryComment } from './CommentaryPicker';
-import { CommentaryStrip } from './CommentaryStrip';
-// GeographyStrip removed pending rederivation — see TODO(geography-rederive).
-import { MobileShelf, type MobileInteractionMode } from './MobileShelf';
-import MarksRegistryPanel, { enabledMarkDefs, markRunsByMarkId, markStatuses } from './MarksRegistryPanel';
-import DafLoadProgress from './DafLoadProgress';
-import { prefetchDaf, cancelPrefetch } from './dafPrefetch';
-import { buildSeedMarks } from './seed-marks';
-import { partitionSections, dedupeBy } from '../lib/argumentMoves';
-import { fetchCommentaryAnchorIndex, type CommentaryAnchorIndex } from './commentaryAnchorIndex';
-import { recordStage } from './rendererActivity';
-import { applyMarkRenderers } from './renderers/dispatch';
-import { readDevMode, setDevModeActive } from './DevModeShelf';
-import RunTreeDock from './RunTreeDock';
-import { inspectRequest } from './inspectBridge';
-import ChecksPanel from './ChecksPanel';
-import TypeProfilePanel from './TypeProfilePanel';
 import type { GenerationId } from './generations';
 import { GENERATION_BY_ID } from './generations';
-import { resolveVoiceGroup, voiceGroupNames } from './voiceGroups';
-import { t, lang, setLang } from './i18n';
-import { hasCompletedTutorial, hasDismissedBanner, tutorialNoteInteractive, TUTORIAL_OPEN_NOTE_EVENT, TUTORIAL_CLOSE_NOTE_EVENT, TUTORIAL_HEADER_EVENT, TUTORIAL_TRANSLATE_EVENT } from './tutorial';
+import { buildTokenRange } from './highlightRange';
+import { lang, setLang, t } from './i18n';
+import { injectHadran } from './injectHadran';
+import { type GenerationRabbi, injectRabbiUnderlines } from './injectRabbiUnderlines';
+import { injectSegmentMarkers } from './injectSegmentMarkers';
+import { inspectRequest } from './inspectBridge';
+import { enqueueEnrichmentRun } from './MarkEnrichmentCards';
+import MarksRegistryPanel, {
+  enabledMarkDefs,
+  markRunsByMarkId,
+  markStatuses,
+} from './MarksRegistryPanel';
+// GeographyStrip removed pending rederivation — see TODO(geography-rederive).
+import { type MobileInteractionMode, MobileShelf } from './MobileShelf';
+import RunTreeDock from './RunTreeDock';
+import { recordStage } from './rendererActivity';
+import { applyMarkRenderers } from './renderers/dispatch';
+import { buildSeedMarks } from './seed-marks';
+import type {
+  AggadataResult,
+  ChartResult,
+  ChartTable,
+  DafAnalysis,
+  HalachaResult,
+  HalachaTopic,
+  PesukimResult,
+  Section,
+  YerushalmiResult,
+} from './shapes';
+import { TranslationPopup } from './TranslationPopup';
 import { TutorialBanner } from './TutorialBanner';
+import TypeProfilePanel from './TypeProfilePanel';
+import { tokenizeHebrewHtml } from './tokenize';
+import {
+  hasCompletedTutorial,
+  hasDismissedBanner,
+  TUTORIAL_CLOSE_NOTE_EVENT,
+  TUTORIAL_HEADER_EVENT,
+  TUTORIAL_OPEN_NOTE_EVENT,
+  TUTORIAL_TRANSLATE_EVENT,
+  tutorialNoteInteractive,
+} from './tutorial';
+import { HighlightNotePopover, NotesPanel } from './UserHighlightUI';
+import {
+  bgForColor,
+  highlightCoversWord,
+  loadUserHighlights,
+  saveUserHighlights,
+  type UserHighlight,
+  wordCoordFromTarget,
+} from './userHighlights';
+import { resolveVoiceGroup, voiceGroupNames } from './voiceGroups';
 
 /** Normalize a rabbi name for fuzzy lookup: drop honorific prefixes, lower
  *  case, collapse whitespace. Mirrors rabbiLinks.normalizeRabbiName but
@@ -77,7 +108,7 @@ interface Ref {
 function parsePage(raw: string): { num: number; amud: 'a' | 'b' } {
   const m = raw.match(/^(\d+)([ab])$/i);
   if (!m) return { num: 2, amud: 'a' };
-  return { num: parseInt(m[1], 10), amud: (m[2].toLowerCase() as 'a' | 'b') };
+  return { num: parseInt(m[1], 10), amud: m[2].toLowerCase() as 'a' | 'b' };
 }
 
 function formatPage(num: number, amud: 'a' | 'b'): string {
@@ -99,7 +130,7 @@ async function fetchDaf(ref: Ref): Promise<TalmudPageData> {
   const t0 = performance.now();
   const res = await fetch(`/api/daf/${encodeURIComponent(ref.tractate)}/${ref.page}`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const json = await res.json() as TalmudPageData & { _source?: string };
+  const json = (await res.json()) as TalmudPageData & { _source?: string };
   const ms = Math.round(performance.now() - t0);
   // The worker emits x-cache: hit|miss|partial reflecting KV state across
   // the three slice reads. 'partial' (some hit, some miss) renders as
@@ -129,7 +160,19 @@ function paintRangeOverlay(
   overlay: HTMLElement,
   origin: HTMLElement,
   ranges: Range[],
-  kind: 'section' | 'halacha' | 'chart' | 'aggadata' | 'yerushalmi' | 'pesuk' | 'rishonim' | 'move' | 'commentary' | 'commentary-active' | 'comm-anchor' | 'user',
+  kind:
+    | 'section'
+    | 'halacha'
+    | 'chart'
+    | 'aggadata'
+    | 'yerushalmi'
+    | 'pesuk'
+    | 'rishonim'
+    | 'move'
+    | 'commentary'
+    | 'commentary-active'
+    | 'comm-anchor'
+    | 'user',
   /** Optional per-range inline background color. */
   bgFor?: (rangeIdx: number) => string | undefined,
 ): void {
@@ -199,7 +242,7 @@ const CONTEXT_WINDOW_WORDS = 30;
  *  against the rendered HebrewBooks Rashi/Tosafot column. Strips nikkud,
  *  Hebrew gereshim, final-letter variants, and all punctuation — same
  *  shape as the alignment module's `normalizeHebrew`. */
-const SIDE_FINAL_MAP: Record<string, string> = { 'ך': 'כ', 'ם': 'מ', 'ן': 'נ', 'ף': 'פ', 'ץ': 'צ' };
+const SIDE_FINAL_MAP: Record<string, string> = { ך: 'כ', ם: 'מ', ן: 'נ', ף: 'פ', ץ: 'צ' };
 function sideColumnNormalize(s: string): string {
   return s
     .replace(/<[^>]+>/g, ' ')
@@ -226,7 +269,10 @@ function findCommentRangeInColumn(
   for (let i = Math.max(0, searchFrom); i <= colNorm.length - probeLen; i++) {
     let ok = true;
     for (let k = 0; k < probeLen; k++) {
-      if (colNorm[i + k] !== commentWords[k]) { ok = false; break; }
+      if (colNorm[i + k] !== commentWords[k]) {
+        ok = false;
+        break;
+      }
     }
     if (!ok) continue;
     // Greedily extend the match; stop at first word that drifts.
@@ -234,7 +280,8 @@ function findCommentRangeInColumn(
     let cj = probeLen;
     while (end < colNorm.length && cj < commentWords.length) {
       if (colNorm[end] !== commentWords[cj]) break;
-      end++; cj++;
+      end++;
+      cj++;
     }
     const range = document.createRange();
     range.setStartBefore(spans[i]);
@@ -247,7 +294,10 @@ function findCommentRangeInColumn(
 /** Walk the daf text and collect up to N .daf-word text contents immediately
  *  before the first selected element, and N immediately after the last selected
  *  element. Scoped to the main column (ignores Rashi / Tosafot neighbors). */
-function collectSurroundingHebrew(els: HTMLElement[], windowSize = CONTEXT_WINDOW_WORDS): { before: string; after: string } {
+function collectSurroundingHebrew(
+  els: HTMLElement[],
+  windowSize = CONTEXT_WINDOW_WORDS,
+): { before: string; after: string } {
   if (els.length === 0) return { before: '', after: '' };
   const mainRoot = els[0].closest('.daf-main .daf-text');
   if (!mainRoot) return { before: '', after: '' };
@@ -255,19 +305,23 @@ function collectSurroundingHebrew(els: HTMLElement[], windowSize = CONTEXT_WINDO
   const first = all.indexOf(els[0]);
   const last = all.indexOf(els[els.length - 1]);
   if (first < 0 || last < 0) return { before: '', after: '' };
-  const pick = (range: HTMLElement[]) => range.map((e) => (e.textContent ?? '').trim()).filter(Boolean).join(' ');
+  const pick = (range: HTMLElement[]) =>
+    range
+      .map((e) => (e.textContent ?? '').trim())
+      .filter(Boolean)
+      .join(' ');
   return {
     before: pick(all.slice(Math.max(0, first - windowSize), first)),
     after: pick(all.slice(last + 1, last + 1 + windowSize)),
   };
 }
 
+import { LruMap } from '../lib/lruMap';
 // Module-level session caches shared across remounts. Bounded with LRU
 // eviction so they restore instantly on back-nav / language flip but don't
 // grow without limit over a long session (one entry per daf × lang). ~16 dapim
 // per language is far more than any realistic back-nav window.
 import type { IdentifiedRabbi } from './dafContext';
-import { LruMap } from '../lib/lruMap';
 
 const SESSION_CACHE_MAX = 32;
 const analysisSessionCache = new LruMap<string, DafAnalysis>(SESSION_CACHE_MAX);
@@ -293,7 +347,11 @@ function loadToggle(key: string, def: boolean): boolean {
 
 /** Pill-shaped toggle switch for the daf picker. Persistence is handled by
  *  the caller via createEffect + localStorage. */
-function ToggleSwitch(props: { label: string; value: boolean; onChange: (next: boolean) => void }): JSX.Element {
+function ToggleSwitch(props: {
+  label: string;
+  value: boolean;
+  onChange: (next: boolean) => void;
+}): JSX.Element {
   return (
     <label class="daf-toggle" data-on={props.value ? 'true' : 'false'} title={props.label}>
       <input
@@ -322,8 +380,13 @@ function collectSnappedWords(range: Range): HTMLElement[] {
 /** Live viewport-coord bounding box of a set of word elements, or null when
  *  none are connected. Used to re-measure the translation popup's anchor after
  *  an auto-scroll (the rect captured at click time goes stale once we scroll). */
-function unionRectOf(els: HTMLElement[]): { top: number; left: number; bottom: number; right: number } | null {
-  let top = Infinity, left = Infinity, bottom = -Infinity, right = -Infinity;
+function unionRectOf(
+  els: HTMLElement[],
+): { top: number; left: number; bottom: number; right: number } | null {
+  let top = Infinity,
+    left = Infinity,
+    bottom = -Infinity,
+    right = -Infinity;
   for (const el of els) {
     if (!el.isConnected) continue;
     const r = el.getBoundingClientRect();
@@ -347,7 +410,9 @@ export interface DafViewerProps {
 
 export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   const params = new URLSearchParams(window.location.search);
-  const [tractate, setTractate] = createSignal(props.initialTractate ?? params.get('tractate') ?? 'Berakhot');
+  const [tractate, setTractate] = createSignal(
+    props.initialTractate ?? params.get('tractate') ?? 'Berakhot',
+  );
   const [page, setPage] = createSignal(props.initialPage ?? params.get('page') ?? '2a');
   const [active, setActive] = createSignal<ActiveWord | null>(null);
 
@@ -421,9 +486,19 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   const [devOpen, setDevOpen] = createSignal(readDevMode());
   // Dev tooling is desktop-only. On mobile force it off so a flag persisted from
   // a prior desktop session can't leak dev affordances (inspect dots, etc.).
-  createEffect(() => { if (isMobile()) { setDevOpen(false); setDevModeActive(false); } });
+  createEffect(() => {
+    if (isMobile()) {
+      setDevOpen(false);
+      setDevModeActive(false);
+    }
+  });
   // An inspect affordance (a sidebar card's (i)) asks to open the Inspect panel.
-  createEffect(() => { if (inspectRequest() && !isMobile()) { setDevOpen(true); setDevModeActive(true); } });
+  createEffect(() => {
+    if (inspectRequest() && !isMobile()) {
+      setDevOpen(true);
+      setDevModeActive(true);
+    }
+  });
 
   // Adapter: derive analysis() from the new registry-driven `argument` mark
   // run output. The new schema is { instances: [{startSegIdx, endSegIdx,
@@ -518,17 +593,26 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
         startSegIdx: number;
         endSegIdx: number;
         fields: {
-          caption?: string; captionHe?: string;
-          headers?: BiCell[]; rows?: BiCell[][];
+          caption?: string;
+          captionHe?: string;
+          headers?: BiCell[];
+          rows?: BiCell[][];
           notes?: { marker: string; en: string; he: string }[];
-          excerpt?: string; grounded?: boolean; confidence?: string;
+          excerpt?: string;
+          grounded?: boolean;
+          confidence?: string;
         };
       }>;
     };
     if (!Array.isArray(p.instances)) return;
     const adapted: ChartResult = {
       charts: p.instances
-        .filter((inst) => Array.isArray(inst.fields.headers) && Array.isArray(inst.fields.rows) && inst.fields.rows.length > 0)
+        .filter(
+          (inst) =>
+            Array.isArray(inst.fields.headers) &&
+            Array.isArray(inst.fields.rows) &&
+            inst.fields.rows.length > 0,
+        )
         .map((inst) => ({
           caption: inst.fields.caption,
           captionHe: inst.fields.captionHe,
@@ -721,15 +805,20 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     const p = page();
     const statuses = markStatuses();
     const relevant = statuses.filter((s) => s.kind !== 'idle');
-    if (relevant.length === 0) return;             // no marks enabled / loaded yet
+    if (relevant.length === 0) return; // no marks enabled / loaded yet
     if (relevant.some((s) => s.kind === 'loading')) return; // anchors not done
     const runs = markRunsByMarkId();
     // The Overview is promoted to readers, so warm its flow on every daf load
     // (cache-respecting — a hit on already-warmed dapim costs nothing).
-    const sig = `${t}:${p}:ov|` + Object.entries(runs)
-      .map(([m, r]) => `${m}=${(r?.parsed as { instances?: unknown[] } | undefined)?.instances?.length ?? 0}`)
-      .sort()
-      .join(',');
+    const sig =
+      `${t}:${p}:ov|` +
+      Object.entries(runs)
+        .map(
+          ([m, r]) =>
+            `${m}=${(r?.parsed as { instances?: unknown[] } | undefined)?.instances?.length ?? 0}`,
+        )
+        .sort()
+        .join(',');
     if (sig === lastPrefetchSig) return;
     lastPrefetchSig = sig;
     prefetchDaf(t, p, runs, { overview: true });
@@ -750,7 +839,9 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     const timer = setTimeout(() => {
       for (const np of [nextPage(p), prevPage(p)]) {
         // Prime the assembled-daf cache (zero LLM cost) for instant render.
-        void fetch(`/api/daf/${encodeURIComponent(t)}/${np}`, { signal: controller.signal }).catch(() => {});
+        void fetch(`/api/daf/${encodeURIComponent(t)}/${np}`, { signal: controller.signal }).catch(
+          () => {},
+        );
         // Deep-warm marks + enrichments (cache-respecting — a settled neighbour
         // is just KV reads).
         void fetch('/api/warm-daf', {
@@ -761,15 +852,23 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
         }).catch(() => {});
       }
     }, 2500);
-    onCleanup(() => { clearTimeout(timer); controller.abort(); });
+    onCleanup(() => {
+      clearTimeout(timer);
+      controller.abort();
+    });
   });
 
   // The `rabbi` mark run (post-augmentWithKnownRabbis) is the single source of
   // identified rabbis on the daf.
   const rabbiMarkInstances = createMemo(() => {
-    const parsed = markRunsByMarkId()['rabbi']?.parsed as {
-      instances?: Array<{ excerpt?: string; fields?: { name?: string; nameHe?: string; generation?: GenerationId } }>;
-    } | undefined;
+    const parsed = markRunsByMarkId()['rabbi']?.parsed as
+      | {
+          instances?: Array<{
+            excerpt?: string;
+            fields?: { name?: string; nameHe?: string; generation?: GenerationId };
+          }>;
+        }
+      | undefined;
     return parsed?.instances ?? [];
   });
 
@@ -801,9 +900,16 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       if (!dedupKey || seen.has(dedupKey)) continue;
       seen.add(dedupKey);
       out.push({
-        slug: null, name, nameHe,
+        slug: null,
+        name,
+        nameHe,
         generation: (i.fields?.generation ?? 'unknown') as GenerationId,
-        region: null, places: [], moved: null, bio: null, image: null, wiki: null,
+        region: null,
+        places: [],
+        moved: null,
+        bio: null,
+        image: null,
+        wiki: null,
       });
     }
     return out;
@@ -827,17 +933,33 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       const ac = new AbortController();
       bgTermsAbort = ac;
       try {
-        const r = await enqueueEnrichmentRun('daf-background.synthesis', tractate(), page(), { fields: {} }, 'daf-background:daf', ac.signal);
-        const concepts = r.deps_resolved?.['daf-background.concepts'] as { groups?: BackgroundGroup[] } | undefined;
+        const r = await enqueueEnrichmentRun(
+          'daf-background.synthesis',
+          tractate(),
+          page(),
+          { fields: {} },
+          'daf-background:daf',
+          ac.signal,
+        );
+        const concepts = r.deps_resolved?.['daf-background.concepts'] as
+          | { groups?: BackgroundGroup[] }
+          | undefined;
         const out: Term[] = [];
         for (const g of orderBackgroundGroups(concepts?.groups)) {
           for (const tm of g.terms) {
-            const t = conceptToTerm({ term: tm.term, termHe: tm.termHe, gloss: tm.gloss, category: g.category });
+            const t = conceptToTerm({
+              term: tm.term,
+              termHe: tm.termHe,
+              gloss: tm.gloss,
+              category: g.category,
+            });
             if (t) out.push(t);
           }
         }
         return out;
-      } catch { return []; }
+      } catch {
+        return [];
+      }
     },
   );
   // The tooltip pool: the always-known globals ∪ this daf's background concepts
@@ -961,8 +1083,11 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // (see postProcessArgumentMove in the worker). Cleared on daf change
   // and on sidebar close.
   const [argumentMoveHighlight, setArgumentMoveHighlight] = createSignal<{
-    start: number; end: number; key: string;
-    tokenStart?: number; tokenEnd?: number;
+    start: number;
+    end: number;
+    key: string;
+    tokenStart?: number;
+    tokenEnd?: number;
   } | null>(null);
   const [activeRabbi, setActiveRabbi] = createSignal<string | null>(null);
 
@@ -970,7 +1095,8 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // Rashi/Tosafot pieces glossing that segment; clicking a Rashi/Tosafot
   // piece lights up the matching daf segment(s). Sourced from Sefaria's
   // link API via commentaryAnchorIndex.ts. Cleared on daf change.
-  const [commentaryAnchorIndex, setCommentaryAnchorIndex] = createSignal<CommentaryAnchorIndex | null>(null);
+  const [commentaryAnchorIndex, setCommentaryAnchorIndex] =
+    createSignal<CommentaryAnchorIndex | null>(null);
   const [commAnchorActive, setCommAnchorActive] = createSignal<{
     /** Which side initiated the click. Determines which surface gets the
      *  highlight:
@@ -985,12 +1111,13 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     pieces: Array<{ comm: 'rashi' | 'tosafot'; key: string }>;
   } | null>(null);
 
-
   // Commentary and argument previously shared an aside-reorder signal; now
   // they live in separate regions (commentary = left strip, argument =
   // right aside) so no reordering is needed. Kept as a no-op to minimize
   // churn in the setters that still reference it.
-  const setLastInteractedCard = (_v: 'argument' | 'commentary' | null): void => { /* no-op after layout split */ };
+  const setLastInteractedCard = (_v: 'argument' | 'commentary' | null): void => {
+    /* no-op after layout split */
+  };
 
   // Mobile-only viewport detection + interaction mode. Default `read` is a
   // quiet survey posture: pan/zoom freely, tap-and-hold for copy/paste, and
@@ -1014,13 +1141,17 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // (scroll, or a tap on the daf). The handle stays pinned at the top so it's
   // always one tap to bring the controls back. Desktop ignores this entirely.
   const [headerOpen, setHeaderOpen] = createSignal(true);
-  const collapseHeader = () => { if (isMobile() && headerOpen()) setHeaderOpen(false); };
+  const collapseHeader = () => {
+    if (isMobile() && headerOpen()) setHeaderOpen(false);
+  };
   onMount(() => {
     // In the tutorial the coach fully controls the header drawer (opening it for
     // the language / nav steps), so the scroll-to-collapse behaviour must stand
     // down — otherwise the coach's scroll-into-view would slam it shut again.
     if (props.embedded) return;
-    const onScroll = () => { if (window.scrollY > 16) collapseHeader(); };
+    const onScroll = () => {
+      if (window.scrollY > 16) collapseHeader();
+    };
     window.addEventListener('scroll', onScroll, { passive: true });
     onCleanup(() => window.removeEventListener('scroll', onScroll));
   });
@@ -1072,7 +1203,10 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     setUserHighlights(loadUserHighlights(t, p));
     setOpenHighlight(null);
     setShowNotesList(false);
-    if (jumpTimer) { clearTimeout(jumpTimer); jumpTimer = undefined; }
+    if (jumpTimer) {
+      clearTimeout(jumpTimer);
+      jumpTimer = undefined;
+    }
   });
 
   // Persist on every mutation (untrack the daf identity — the load effect owns
@@ -1107,7 +1241,10 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     const list = userHighlights();
     let hit: UserHighlight | undefined;
     for (let i = list.length - 1; i >= 0; i--) {
-      if (highlightCoversWord(list[i], wc.seg, wc.tok)) { hit = list[i]; break; }
+      if (highlightCoversWord(list[i], wc.seg, wc.tok)) {
+        hit = list[i];
+        break;
+      }
     }
     if (!hit) return false;
     const r = wordEl.getBoundingClientRect();
@@ -1259,7 +1396,10 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       try {
         const cached = await fetchOne(true);
         if (t !== tractate() || p !== page()) return;
-        if (cached) { setData(cached); return; }
+        if (cached) {
+          setData(cached);
+          return;
+        }
         setLoading(true);
         const fresh = await fetchOne(false);
         if (t !== tractate() || p !== page()) return;
@@ -1275,7 +1415,6 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     void go();
     return () => controller.abort();
   };
-
 
   // analysis()/halacha()/aggadata()/pesukim() are now hydrated entirely by
   // the registry-mark adapter effects above (search "Adapter:"). On daf change
@@ -1307,7 +1446,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     setCommentariesLoading(true);
     const controller = new AbortController();
     fetch(`/api/commentaries/${encodeURIComponent(t)}/${p}`, { signal: controller.signal })
-      .then(async (res) => (res.ok ? (await res.json()) as { works?: CommentaryWork[] } : null))
+      .then(async (res) => (res.ok ? ((await res.json()) as { works?: CommentaryWork[] }) : null))
       .then((d) => {
         if (t !== tractate() || p !== page()) return;
         setCommentaryWorks(d?.works ?? []);
@@ -1337,21 +1476,27 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       if (r.name) names.add(r.name);
     }
     const runs = markRunsByMarkId();
-    const argParsed = runs['argument']?.parsed as {
-      instances?: Array<{ fields?: { rabbiNames?: string[] } }>;
-    } | undefined;
+    const argParsed = runs['argument']?.parsed as
+      | {
+          instances?: Array<{ fields?: { rabbiNames?: string[] } }>;
+        }
+      | undefined;
     for (const inst of argParsed?.instances ?? []) {
       for (const n of inst.fields?.rabbiNames ?? []) if (n) names.add(n);
     }
-    const moveParsed = runs['argument-move']?.parsed as {
-      instances?: Array<{ fields?: { rabbiNames?: string[]; voice?: string } }>;
-    } | undefined;
+    const moveParsed = runs['argument-move']?.parsed as
+      | {
+          instances?: Array<{ fields?: { rabbiNames?: string[]; voice?: string } }>;
+        }
+      | undefined;
     for (const inst of moveParsed?.instances ?? []) {
       for (const n of inst.fields?.rabbiNames ?? []) if (n) names.add(n);
     }
-    const rabbiParsed = runs['rabbi']?.parsed as {
-      instances?: Array<{ fields?: { name?: string } }>;
-    } | undefined;
+    const rabbiParsed = runs['rabbi']?.parsed as
+      | {
+          instances?: Array<{ fields?: { name?: string } }>;
+        }
+      | undefined;
     for (const inst of rabbiParsed?.instances ?? []) {
       if (inst.fields?.name) names.add(inst.fields.name);
     }
@@ -1365,7 +1510,8 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
 
   // Reset sidebar state on daf change.
   createEffect(() => {
-    void tractate(); void page();
+    void tractate();
+    void page();
     // Abort the previous daf's section-prefetch cohort so its queued/polling
     // tasks free the shared enrichment-queue slots immediately; the
     // prefetch-trigger effect re-arms a fresh cohort once the new daf's marks
@@ -1388,7 +1534,10 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   let langInited = false;
   createEffect(() => {
     void lang();
-    if (!langInited) { langInited = true; return; }
+    if (!langInited) {
+      langInited = true;
+      return;
+    }
     setSidebar(null);
     setArgumentMoveHighlight(null);
   });
@@ -1435,13 +1584,13 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     const dafRootDiv = root.querySelector<HTMLElement>('.daf-root') ?? root;
 
     // Clear prior rabbi-name highlights.
-    dafRootDiv.querySelectorAll('.rabbi-underline.rabbi-highlighted').forEach((el) =>
-      el.classList.remove('rabbi-highlighted'),
-    );
+    dafRootDiv
+      .querySelectorAll('.rabbi-underline.rabbi-highlighted')
+      .forEach((el) => el.classList.remove('rabbi-highlighted'));
     // Clear prior city-name highlights.
-    dafRootDiv.querySelectorAll('.city-marker.city-highlighted').forEach((el) =>
-      el.classList.remove('city-highlighted'),
-    );
+    dafRootDiv
+      .querySelectorAll('.city-marker.city-highlighted')
+      .forEach((el) => el.classList.remove('city-highlighted'));
 
     const sectionRanges: Range[] = [];
     const halachaRanges: Range[] = [];
@@ -1458,7 +1607,10 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
      *  commAnchorActive.direction === 'from-piece'. */
     const commAnchorRanges: Range[] = [];
 
-    const collectRange = (range: Range, bucket: 'section' | 'halacha' | 'chart' | 'aggadata' | 'yerushalmi' | 'pesuk' | 'rishonim') => {
+    const collectRange = (
+      range: Range,
+      bucket: 'section' | 'halacha' | 'chart' | 'aggadata' | 'yerushalmi' | 'pesuk' | 'rishonim',
+    ) => {
       if (range.collapsed) return;
       if (bucket === 'section') sectionRanges.push(range);
       else if (bucket === 'halacha') halachaRanges.push(range);
@@ -1512,7 +1664,8 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
 
       const startSeg = section?.startSegIdx;
       const endSeg = section?.endSegIdx;
-      const hasRange = section && mainCol && typeof startSeg === 'number' && typeof endSeg === 'number';
+      const hasRange =
+        section && mainCol && typeof startSeg === 'number' && typeof endSeg === 'number';
 
       if (hasRange && name) {
         // Per-rabbi sub-section paint. Per-opinion anchors still drive this
@@ -1542,7 +1695,10 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           if (op.getAttribute('data-rabbi') !== name) continue;
           const next = sectionOpinions[i + 1] ?? null;
           const range = rangeBetween(op, next);
-          if (range) { collectRange(range, 'section'); painted++; }
+          if (range) {
+            collectRange(range, 'section');
+            painted++;
+          }
         }
         // No opinion anchors hit — fall back to the whole section.
         if (painted === 0) {
@@ -1603,12 +1759,21 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     if (s?.kind === 'aggadata') {
       const story = s.story;
       const mainText = dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
-      const hasTokens = typeof story.tokenStart === 'number' && typeof story.tokenEnd === 'number'
-        && typeof story.startSegIdx === 'number' && typeof story.endSegIdx === 'number';
+      const hasTokens =
+        typeof story.tokenStart === 'number' &&
+        typeof story.tokenEnd === 'number' &&
+        typeof story.startSegIdx === 'number' &&
+        typeof story.endSegIdx === 'number';
       if (hasTokens && mainText) {
         // Worker post-processor resolved both anchors to (seg, tok) — paint
         // exactly that span, ignoring the injected anchor markers entirely.
-        const r = buildTokenRange(mainText, story.startSegIdx!, story.endSegIdx!, story.tokenStart, story.tokenEnd);
+        const r = buildTokenRange(
+          mainText,
+          story.startSegIdx!,
+          story.endSegIdx!,
+          story.tokenStart,
+          story.tokenEnd,
+        );
         if (r) collectRange(r, 'aggadata');
       } else {
         const anchor = dafRootDiv.querySelector<HTMLElement>(
@@ -1628,9 +1793,13 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           } else {
             const allStoryAnchors = Array.from(
               dafRootDiv.querySelectorAll<HTMLElement>('.daf-aggadata-anchor'),
-            ).sort((a, b) => Number(a.getAttribute('data-idx') ?? 0) - Number(b.getAttribute('data-idx') ?? 0));
+            ).sort(
+              (a, b) =>
+                Number(a.getAttribute('data-idx') ?? 0) - Number(b.getAttribute('data-idx') ?? 0),
+            );
             const pos = allStoryAnchors.findIndex((el) => el === anchor);
-            const next = pos >= 0 && pos + 1 < allStoryAnchors.length ? allStoryAnchors[pos + 1] : null;
+            const next =
+              pos >= 0 && pos + 1 < allStoryAnchors.length ? allStoryAnchors[pos + 1] : null;
             if (next) range.setEndBefore(next);
             else range.setEndAfter(mainText);
           }
@@ -1648,7 +1817,9 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       const mainText = dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
       if (mainText && typeof par.startSegIdx === 'number') {
         const endSeg = typeof par.endSegIdx === 'number' ? par.endSegIdx : par.startSegIdx;
-        const startWords = mainText.querySelectorAll<HTMLElement>(`.daf-word[data-seg="${par.startSegIdx}"]`);
+        const startWords = mainText.querySelectorAll<HTMLElement>(
+          `.daf-word[data-seg="${par.startSegIdx}"]`,
+        );
         const endWords = mainText.querySelectorAll<HTMLElement>(`.daf-word[data-seg="${endSeg}"]`);
         if (startWords.length > 0 && endWords.length > 0) {
           const range = document.createRange();
@@ -1667,14 +1838,26 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     //   2. Explicit .daf-pesuk-end-anchor (legacy /api/pesukim).
     //   3. Bound by endSegIdx alone (anchor → end of segment).
     //   4. Fall through to the next pesuk anchor (wide upper bound).
-    const sidebarPasuk = sidebar()?.kind === 'pesuk' ? sidebar() as Extract<SidebarContent, { kind: 'pesuk' }> : null;
+    const sidebarPasuk =
+      sidebar()?.kind === 'pesuk'
+        ? (sidebar() as Extract<SidebarContent, { kind: 'pesuk' }>)
+        : null;
     if (sidebarPasuk) {
       const mainText = dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
       const pasuk = sidebarPasuk.pasuk;
-      const hasTokens = typeof pasuk.tokenStart === 'number' && typeof pasuk.tokenEnd === 'number'
-        && typeof pasuk.startSegIdx === 'number' && typeof pasuk.endSegIdx === 'number';
+      const hasTokens =
+        typeof pasuk.tokenStart === 'number' &&
+        typeof pasuk.tokenEnd === 'number' &&
+        typeof pasuk.startSegIdx === 'number' &&
+        typeof pasuk.endSegIdx === 'number';
       if (hasTokens && mainText) {
-        const r = buildTokenRange(mainText, pasuk.startSegIdx!, pasuk.endSegIdx!, pasuk.tokenStart, pasuk.tokenEnd);
+        const r = buildTokenRange(
+          mainText,
+          pasuk.startSegIdx!,
+          pasuk.endSegIdx!,
+          pasuk.tokenStart,
+          pasuk.tokenEnd,
+        );
         if (r) collectRange(r, 'pesuk');
       } else {
         const anchor = dafRootDiv.querySelector<HTMLElement>(
@@ -1699,18 +1882,26 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
             } else {
               const allPesukAnchors = Array.from(
                 dafRootDiv.querySelectorAll<HTMLElement>('.daf-pesuk-anchor'),
-              ).sort((a, b) => Number(a.getAttribute('data-idx') ?? 0) - Number(b.getAttribute('data-idx') ?? 0));
+              ).sort(
+                (a, b) =>
+                  Number(a.getAttribute('data-idx') ?? 0) - Number(b.getAttribute('data-idx') ?? 0),
+              );
               const pos = allPesukAnchors.findIndex((el) => el === anchor);
-              const next = pos >= 0 && pos + 1 < allPesukAnchors.length ? allPesukAnchors[pos + 1] : null;
+              const next =
+                pos >= 0 && pos + 1 < allPesukAnchors.length ? allPesukAnchors[pos + 1] : null;
               if (next) range.setEndBefore(next);
               else range.setEndAfter(mainText);
             }
           } else {
             const allPesukAnchors = Array.from(
               dafRootDiv.querySelectorAll<HTMLElement>('.daf-pesuk-anchor'),
-            ).sort((a, b) => Number(a.getAttribute('data-idx') ?? 0) - Number(b.getAttribute('data-idx') ?? 0));
+            ).sort(
+              (a, b) =>
+                Number(a.getAttribute('data-idx') ?? 0) - Number(b.getAttribute('data-idx') ?? 0),
+            );
             const pos = allPesukAnchors.findIndex((el) => el === anchor);
-            const next = pos >= 0 && pos + 1 < allPesukAnchors.length ? allPesukAnchors[pos + 1] : null;
+            const next =
+              pos >= 0 && pos + 1 < allPesukAnchors.length ? allPesukAnchors[pos + 1] : null;
             if (next) range.setEndBefore(next);
             else range.setEndAfter(mainText);
           }
@@ -1740,7 +1931,13 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     if (moveHL) {
       const mainCol = dafRootDiv.querySelector<HTMLElement>('.daf-main .daf-text');
       if (mainCol) {
-        const r = buildTokenRange(mainCol, moveHL.start, moveHL.end, moveHL.tokenStart, moveHL.tokenEnd);
+        const r = buildTokenRange(
+          mainCol,
+          moveHL.start,
+          moveHL.end,
+          moveHL.tokenStart,
+          moveHL.tokenEnd,
+        );
         if (r) moveRanges.push(r);
       }
     }
@@ -1808,9 +2005,12 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       // Side-column painting for Rashi/Tosafot: the open segment's comments
       // are located by substring-matching each comment's Hebrew text against
       // the normalized .daf-word stream of the right column.
-      const colSel = activeWork.title === 'Rashi'   ? '.daf-inner .daf-text'
-                   : activeWork.title === 'Tosafot' ? '.daf-outer .daf-text'
-                   : null;
+      const colSel =
+        activeWork.title === 'Rashi'
+          ? '.daf-inner .daf-text'
+          : activeWork.title === 'Tosafot'
+            ? '.daf-outer .daf-text'
+            : null;
       if (colSel && openCommentSegIdx !== null && openComments.length > 0) {
         const colRoot = dafRootDiv.querySelector<HTMLElement>(colSel);
         if (colRoot) {
@@ -1937,7 +2137,10 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
 
   createEffect(() => {
     // Re-run when any of these change.
-    void tokenized(); void sidebar(); void activeRabbi(); void activeLocationRabbis();
+    void tokenized();
+    void sidebar();
+    void activeRabbi();
+    void activeLocationRabbis();
     void hoveredRabbi();
     void activeCommentaryWork();
     void activeCommentarySegIdx();
@@ -1968,14 +2171,15 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     ro.observe(dafRootDiv);
     const fonts = (document as Document & { fonts?: { ready?: Promise<unknown> } }).fonts;
     let cancelled = false;
-    fonts?.ready?.then(() => { if (!cancelled) schedule(); });
+    fonts?.ready?.then(() => {
+      if (!cancelled) schedule();
+    });
     onCleanup(() => {
       cancelled = true;
       ro.disconnect();
       if (rafId) cancelAnimationFrame(rafId);
     });
   });
-
 
   const tokenized = createMemo(() => {
     // createResource keeps the previous resolved value during a refetch (default
@@ -2009,8 +2213,12 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
         })
         .join(' ');
     };
-    let inner = d.rashi ? wrapPieces(d.rashi.pieces, d.rashi.pieceKeys, d.rashi.hebrew, 'rashi') : '';
-    let outer = d.tosafot ? wrapPieces(d.tosafot.pieces, d.tosafot.pieceKeys, d.tosafot.hebrew, 'tosafot') : '';
+    let inner = d.rashi
+      ? wrapPieces(d.rashi.pieces, d.rashi.pieceKeys, d.rashi.hebrew, 'rashi')
+      : '';
+    let outer = d.tosafot
+      ? wrapPieces(d.tosafot.pieces, d.tosafot.pieceKeys, d.tosafot.hebrew, 'tosafot')
+      : '';
 
     // First word of the masechet (always daf 2a) renders as a centered block
     // incipit. Source HTML from HebrewBooks inconsistently marks this word
@@ -2120,7 +2328,13 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     const ag = aggadata();
     if (ag && showAggadatot()) {
       const anchors = ag.stories
-        .map((s, i) => ({ excerpt: s.excerpt ?? '', endExcerpt: s.endExcerpt, index: i, startSegIdx: s.startSegIdx, endSegIdx: s.endSegIdx }))
+        .map((s, i) => ({
+          excerpt: s.excerpt ?? '',
+          endExcerpt: s.endExcerpt,
+          index: i,
+          startSegIdx: s.startSegIdx,
+          endSegIdx: s.endSegIdx,
+        }))
         .filter((x) => x.excerpt.length > 0 || x.startSegIdx != null);
       if (anchors.length > 0) main = injectAggadataAnchors(main, anchors, ctx);
     }
@@ -2130,7 +2344,13 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     const pe = pesukim();
     if (pe && showPesukim()) {
       const anchors = pe.pesukim
-        .map((p, i) => ({ excerpt: p.excerpt ?? '', endExcerpt: p.endExcerpt, index: i, startSegIdx: p.startSegIdx, endSegIdx: p.endSegIdx }))
+        .map((p, i) => ({
+          excerpt: p.excerpt ?? '',
+          endExcerpt: p.endExcerpt,
+          index: i,
+          startSegIdx: p.startSegIdx,
+          endSegIdx: p.endSegIdx,
+        }))
         .filter((x) => x.excerpt.length > 0 || x.startSegIdx != null);
       if (anchors.length > 0) main = injectPesukimAnchors(main, anchors, ctx);
     }
@@ -2140,7 +2360,12 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     const ye = yerushalmi();
     if (ye && showYerushalmi()) {
       const anchors = ye.parallels
-        .map((y, i) => ({ excerpt: y.excerpt ?? '', index: i, startSegIdx: y.startSegIdx, endSegIdx: y.endSegIdx }))
+        .map((y, i) => ({
+          excerpt: y.excerpt ?? '',
+          index: i,
+          startSegIdx: y.startSegIdx,
+          endSegIdx: y.endSegIdx,
+        }))
         .filter((x) => x.excerpt.length > 0 || x.startSegIdx != null);
       if (anchors.length > 0) main = injectYerushalmiAnchors(main, anchors, ctx);
     }
@@ -2249,7 +2474,10 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     if (current && current.kind === kind && 'index' in current && current.index === index) {
       // Toggle off. If this card was pushed onto something (e.g. the Overview),
       // pop back to it rather than closing the whole panel.
-      if (sidebarStack().length > 1) { popSidebar(); return; }
+      if (sidebarStack().length > 1) {
+        popSidebar();
+        return;
+      }
       setSidebar(null);
       setActiveRabbi(null);
       if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
@@ -2269,8 +2497,9 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // 'rishonim' SidebarContent so the existing right-aside renders it.
   const openRishonim = (segIdx: number) => {
     const run = markRunsByMarkId()['rishonim'];
-    const inst = (run?.parsed?.instances as Array<{ segIdx: number; fields: unknown }> | undefined)
-      ?.find((i) => i.segIdx === segIdx);
+    const inst = (
+      run?.parsed?.instances as Array<{ segIdx: number; fields: unknown }> | undefined
+    )?.find((i) => i.segIdx === segIdx);
     if (!inst) return;
     clearArgumentSidebar();
     setActiveRabbi(null);
@@ -2397,8 +2626,12 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       const url = `https://www.sefaria.org/api/calendars?year=${now.getFullYear()}&month=${now.getMonth() + 1}&day=${now.getDate()}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`Sefaria ${res.status}`);
-      const data = await res.json() as {
-        calendar_items?: Array<{ title?: { en?: string }; displayValue?: { en?: string }; category?: string }>;
+      const data = (await res.json()) as {
+        calendar_items?: Array<{
+          title?: { en?: string };
+          displayValue?: { en?: string };
+          category?: string;
+        }>;
       };
       const item = data.calendar_items?.find(
         (ci) => ci.title?.en === 'Daf Yomi' && ci.category === 'Talmud',
@@ -2449,9 +2682,14 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     // scroll it into view, and activate it — the genuine popup then appears.
     const onTranslate = (e: Event) => {
       const kind = (e as CustomEvent<{ kind?: string }>).detail?.kind ?? 'word';
-      if (kind === 'clear') { clearActive(); return; }
+      if (kind === 'clear') {
+        clearActive();
+        return;
+      }
       // Only the main gemara text (.daf-main .daf-text) — never Rashi / Tosafot.
-      let words = Array.from(document.querySelectorAll<HTMLElement>('.daf-main .daf-text .daf-word'));
+      let words = Array.from(
+        document.querySelectorAll<HTMLElement>('.daf-main .daf-text .daf-word'),
+      );
       if (words.length < 4) words = Array.from(document.querySelectorAll<HTMLElement>('.daf-word'));
       if (words.length < 4) return;
       if (isMobile()) setMobileMode('translate');
@@ -2482,19 +2720,35 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     if (!props.embedded) return;
     let tries = 0;
     const prewarm = () => {
-      const words = Array.from(document.querySelectorAll<HTMLElement>('.daf-main .daf-text .daf-word'));
-      if (words.length < 4) { if (tries++ < 40) setTimeout(prewarm, 300); return; }
+      const words = Array.from(
+        document.querySelectorAll<HTMLElement>('.daf-main .daf-text .daf-word'),
+      );
+      if (words.length < 4) {
+        if (tries++ < 40) setTimeout(prewarm, 300);
+        return;
+      }
       const start = Math.floor(words.length * 0.4);
       const groups: HTMLElement[][] = [[words[start]], words.slice(start, start + 3)];
       for (const els of groups) {
-        const word = els.map((el) => (el.textContent ?? '').trim()).filter(Boolean).join(' ');
+        const word = els
+          .map((el) => (el.textContent ?? '').trim())
+          .filter(Boolean)
+          .join(' ');
         const { before, after } = collectSurroundingHebrew(els);
         const segAttr = els[0].getAttribute('data-seg');
         const segIdx = segAttr !== null ? Number(segAttr) : undefined;
         void fetch('/api/translate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ word, tractate: tractate(), page: page(), hebrewBefore: before, hebrewAfter: after, segIdx, lang: lang() }),
+          body: JSON.stringify({
+            word,
+            tractate: tractate(),
+            page: page(),
+            hebrewBefore: before,
+            hebrewAfter: after,
+            segIdx,
+            lang: lang(),
+          }),
         }).catch(() => {});
       }
     };
@@ -2521,7 +2775,10 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       sel.removeAllRanges();
       sel.addRange(range);
       const r = range.getBoundingClientRect();
-      const word = els.map((el) => (el.textContent ?? '').trim()).filter(Boolean).join(' ');
+      const word = els
+        .map((el) => (el.textContent ?? '').trim())
+        .filter(Boolean)
+        .join(' ');
       const { before, after } = collectSurroundingHebrew(els);
       const segAttr = els[0].getAttribute('data-seg');
       const segIdx = segAttr !== null ? Number(segAttr) : undefined;
@@ -2546,8 +2803,11 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     let r: IdentifiedRabbi | null = dafRabbis().find((x) => x.name === name) ?? null;
     if (!r) {
       const argRun = markRunsByMarkId()['rabbi'];
-      const inst = (argRun?.parsed as { instances?: Array<{ excerpt?: string; fields: Record<string, unknown> }> } | undefined)
-        ?.instances?.find((i) => i.fields?.name === name);
+      const inst = (
+        argRun?.parsed as
+          | { instances?: Array<{ excerpt?: string; fields: Record<string, unknown> }> }
+          | undefined
+      )?.instances?.find((i) => i.fields?.name === name);
       if (inst) {
         r = {
           slug: null,
@@ -2643,8 +2903,11 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     // 4. rabbi mark
     if (!r) {
       const argRun = markRunsByMarkId()['rabbi'];
-      const inst = (argRun?.parsed as { instances?: Array<{ excerpt?: string; fields: Record<string, unknown> }> } | undefined)
-        ?.instances?.find((i) => i.fields?.name === name);
+      const inst = (
+        argRun?.parsed as
+          | { instances?: Array<{ excerpt?: string; fields: Record<string, unknown> }> }
+          | undefined
+      )?.instances?.find((i) => i.fields?.name === name);
       if (inst) {
         r = {
           slug: null,
@@ -2706,17 +2969,22 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     // enrichment now), so this won't match by slug — fall through to the
     // standalone /api/rabbi/:slug fetch, which resolves the dataset entry.
     const inCtx = dafRabbis().find((x) => x.slug === slug);
-    if (inCtx) { pushRabbi(inCtx.name); return; }
+    if (inCtx) {
+      pushRabbi(inCtx.name);
+      return;
+    }
     try {
       const res = await fetch(`/api/rabbi/${encodeURIComponent(slug)}`);
       if (!res.ok) return;
-      const body = await res.json() as { rabbi?: IdentifiedRabbi };
+      const body = (await res.json()) as { rabbi?: IdentifiedRabbi };
       if (!body.rabbi) return;
       setActiveRabbi(null);
       setActivePlace(null);
       pushSidebar({ kind: 'rabbi', rabbi: body.rabbi });
       setLastInteractedCard('argument');
-    } catch { /* silent — link falls back to no-op */ }
+    } catch {
+      /* silent — link falls back to no-op */
+    }
   };
 
   // Active commentary → Map<segIdx, Comment[]> for fast click lookup
@@ -2828,15 +3096,21 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
         return false;
       }
       const cur = commAnchorActive();
-      const sameClick = cur && cur.direction === 'from-piece'
-        && cur.pieces.length === 1
-        && cur.pieces[0].comm === comm
-        && cur.pieces[0].key === pieceKey;
-      setCommAnchorActive(sameClick ? null : {
-        direction: 'from-piece',
-        segs,
-        pieces: [{ comm, key: pieceKey }],
-      });
+      const sameClick =
+        cur &&
+        cur.direction === 'from-piece' &&
+        cur.pieces.length === 1 &&
+        cur.pieces[0].comm === comm &&
+        cur.pieces[0].key === pieceKey;
+      setCommAnchorActive(
+        sameClick
+          ? null
+          : {
+              direction: 'from-piece',
+              segs,
+              pieces: [{ comm, key: pieceKey }],
+            },
+      );
       return true;
     }
 
@@ -2866,13 +3140,17 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       ...bucket.tosafot.map((k) => ({ comm: 'tosafot' as const, key: k })),
     ];
     const cur = commAnchorActive();
-    const sameClick = cur && cur.direction === 'from-main'
-      && cur.segs.length === 1 && cur.segs[0] === seg;
-    setCommAnchorActive(sameClick ? null : {
-      direction: 'from-main',
-      segs: [seg],
-      pieces,
-    });
+    const sameClick =
+      cur && cur.direction === 'from-main' && cur.segs.length === 1 && cur.segs[0] === seg;
+    setCommAnchorActive(
+      sameClick
+        ? null
+        : {
+            direction: 'from-main',
+            segs: [seg],
+            pieces,
+          },
+    );
     return true;
   };
 
@@ -2966,12 +3244,18 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
         const rabbiEl = target.closest('.rabbi-underline') as HTMLElement | null;
         if (rabbiEl) {
           const rabbiName = rabbiEl.getAttribute('data-rabbi');
-          if (rabbiName) { openRabbi(rabbiName); return; }
+          if (rabbiName) {
+            openRabbi(rabbiName);
+            return;
+          }
         }
         const cityEl = target.closest('.city-marker') as HTMLElement | null;
         if (cityEl) {
           const cityName = cityEl.getAttribute('data-city');
-          if (cityName) { openPlace(cityName); return; }
+          if (cityName) {
+            openPlace(cityName);
+            return;
+          }
         }
         // A tap on a personal highlight opens its note (long-press selection
         // produced a non-collapsed range handled earlier, so this is a tap).
@@ -2998,7 +3282,8 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
         const anchorEl = cur.els[0];
         if (anchorEl && anchorEl.isConnected) {
           const range = document.createRange();
-          const following = anchorEl.compareDocumentPosition(wordEl) & Node.DOCUMENT_POSITION_FOLLOWING;
+          const following =
+            anchorEl.compareDocumentPosition(wordEl) & Node.DOCUMENT_POSITION_FOLLOWING;
           range.setStartBefore(following ? anchorEl : wordEl);
           range.setEndAfter(following ? wordEl : anchorEl);
           const phrase = collectSnappedWords(range);
@@ -3019,14 +3304,20 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     const rabbiEl = target.closest('.rabbi-underline') as HTMLElement | null;
     if (rabbiEl) {
       const rabbiName = rabbiEl.getAttribute('data-rabbi');
-      if (rabbiName) { openRabbi(rabbiName); return; }
+      if (rabbiName) {
+        openRabbi(rabbiName);
+        return;
+      }
     }
     // Click on a city marker → highlight every mention of that city across
     // the daf AND open the place card (profile/significance/figures synthesis).
     const cityEl = target.closest('.city-marker') as HTMLElement | null;
     if (cityEl) {
       const cityName = cityEl.getAttribute('data-city');
-      if (cityName) { openPlace(cityName); return; }
+      if (cityName) {
+        openPlace(cityName);
+        return;
+      }
     }
     const wordEl = target.closest('.daf-word') as HTMLElement | null;
     if (!wordEl) return;
@@ -3054,8 +3345,13 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === 'SELECT' || t.tagName === 'INPUT' || t.isContentEditable)) return;
-      if (e.key === 'ArrowLeft') { e.preventDefault(); go(prevPage(page())); }
-      else if (e.key === 'ArrowRight') { e.preventDefault(); go(nextPage(page())); }
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        go(prevPage(page()));
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        go(nextPage(page()));
+      }
     };
     window.addEventListener('keydown', onKey);
     onCleanup(() => window.removeEventListener('keydown', onKey));
@@ -3090,14 +3386,24 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           onChange={(e) => setTractateAndSync(e.currentTarget.value)}
         >
           <For each={TRACTATE_OPTIONS}>
-            {(opt) => <option value={opt.value}>{opt.value} · {opt.label}</option>}
+            {(opt) => (
+              <option value={opt.value}>
+                {opt.value} · {opt.label}
+              </option>
+            )}
           </For>
         </select>
 
         {/* Back | daf | amud | forward share one segmented pill so the page
             reference reads as a single unit. */}
         <div class="tb-nav" data-tour="daf-nav">
-          <button class="tb-navbtn" onClick={() => go(prevPage(page()))} title={t('header.nav.hint')}>‹</button>
+          <button
+            class="tb-navbtn"
+            onClick={() => go(prevPage(page()))}
+            title={t('header.nav.hint')}
+          >
+            ‹
+          </button>
           <input
             class="tb-daf"
             type="number"
@@ -3108,7 +3414,13 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           <button class="tb-amud" onClick={toggleAmud} title={t('header.amud.title')}>
             {pageAmud()}
           </button>
-          <button class="tb-navbtn" onClick={() => go(nextPage(page()))} title={t('header.nav.hint')}>›</button>
+          <button
+            class="tb-navbtn"
+            onClick={() => go(nextPage(page()))}
+            title={t('header.nav.hint')}
+          >
+            ›
+          </button>
         </div>
 
         <button
@@ -3124,7 +3436,9 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
         <div class="tb-utils">
           <button
             class="tb-toggle"
-            onClick={() => { window.location.hash = 'tutorial'; }}
+            onClick={() => {
+              window.location.hash = 'tutorial';
+            }}
             title={t('tutorial.help.title')}
             aria-label={t('tutorial.help.title')}
           >
@@ -3136,7 +3450,11 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
             <button
               class="tb-toggle"
               classList={{ 'is-active': devOpen() }}
-              onClick={() => { const v = !devOpen(); setDevOpen(v); setDevModeActive(v); }}
+              onClick={() => {
+                const v = !devOpen();
+                setDevOpen(v);
+                setDevModeActive(v);
+              }}
               title={t('header.dev.title')}
             >
               {t('header.dev')}
@@ -3158,13 +3476,28 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           {/* EN/HE language toggle, folded inline here on the daf page; the
               floating TopBar overlay covers the other routes (see App.tsx). */}
           <div class="tb-seg" role="group" aria-label="Language" data-tour="lang">
-            <button class="tb-seg-btn" classList={{ 'is-active': lang() === 'en' }} aria-pressed={lang() === 'en'} onClick={() => setLang('en')}>EN</button>
-            <button class="tb-seg-btn" classList={{ 'is-active': lang() === 'he' }} aria-pressed={lang() === 'he'} onClick={() => setLang('he')}>עב</button>
+            <button
+              class="tb-seg-btn"
+              classList={{ 'is-active': lang() === 'en' }}
+              aria-pressed={lang() === 'en'}
+              onClick={() => setLang('en')}
+            >
+              EN
+            </button>
+            <button
+              class="tb-seg-btn"
+              classList={{ 'is-active': lang() === 'he' }}
+              aria-pressed={lang() === 'he'}
+              onClick={() => setLang('he')}
+            >
+              עב
+            </button>
           </div>
         </div>
 
         <span class="tb-hint">
-          {lang() === 'he' ? dafRefHe(tractate(), page()) : `${tractate()} ${page()}`} · {t('header.nav.hint')}
+          {lang() === 'he' ? dafRefHe(tractate(), page()) : `${tractate()} ${page()}`} ·{' '}
+          {t('header.nav.hint')}
         </span>
       </header>
 
@@ -3186,16 +3519,20 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
             color: '#c33',
           }}
         >
-          <For each={markStatuses().filter((s) => s.kind === 'error')}>{(s) => (
-            <span>{s.label || s.id}: {s.error}</span>
-          )}</For>
+          <For each={markStatuses().filter((s) => s.kind === 'error')}>
+            {(s) => (
+              <span>
+                {s.label || s.id}: {s.error}
+              </span>
+            )}
+          </For>
         </section>
       </Show>
 
       <div class="daf-layout">
-      <div class="daf-cluster">
-      <section class="daf-body-col">
-      {/* TODO(geography-rederive): the right-side Geography panel + its
+        <div class="daf-cluster">
+          <section class="daf-body-col">
+            {/* TODO(geography-rederive): the right-side Geography panel + its
           "Map" pill were removed because their data source (legacy
           /api/daf-context fetch returning rabbiPlaces) hangs or 1031s.
           Rederive the panel from registry data — per-rabbi places live in
@@ -3203,344 +3540,400 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           RabbiPlacesTimeline already renders them well. A whole-daf map
           would aggregate those per-rabbi enrichments. Until then, the
           top-bar toggle nav is empty and hidden. */}
-      {/* First-visit nudge offering the guided tour (#tutorial). */}
-      <Show when={showBanner}><TutorialBanner /></Show>
+            {/* First-visit nudge offering the guided tour (#tutorial). */}
+            <Show when={showBanner}>
+              <TutorialBanner />
+            </Show>
 
-      {/* Unified load bar — one progress indicator + status line for the whole
+            {/* Unified load bar — one progress indicator + status line for the whole
           daf (anchor extraction + section prefetch). On desktop it lives here
           inside the daf body column, pinned (sticky) directly above the daf.
           On mobile it moves into the bottom shelf (above Read/Translate) so it
           never sits on top of the daf — see MobileShelf. */}
-      <Show when={!isMobile()}>
-        <DafLoadProgress />
-      </Show>
+            <Show when={!isMobile()}>
+              <DafLoadProgress />
+            </Show>
 
-      {/* Whole-daf chip marks (the Overview) — shown to all readers now that the
+            {/* Whole-daf chip marks (the Overview) — shown to all readers now that the
           per-daf overview is promoted and its flow is warmed globally. */}
-      <Show when={chipMarks().length > 0}>
-        <div class="daf-chip-bar" data-tour="chips" style={{ display: 'flex', 'justify-content': 'center', gap: '0.4rem', 'flex-wrap': 'wrap', margin: '0 0 0.6rem' }}>
-          <For each={chipMarks()}>{(m) => {
-            const color = (m.render as { color?: string }).color ?? '#8a2a2b';
-            // Chip mark id == sidebar kind, so the label + active state are
-            // generic over the registry (no per-mark branching here). label() is
-            // an accessor (not a captured const) so it re-evaluates t() when the
-            // language flips — otherwise the chip keeps the label of whichever
-            // language it first rendered in.
-            const label = () => m.id === 'argument-overview' ? t('overview.chip')
-              : m.id === 'daf-background' ? t('background.chip')
-              : m.id === 'tidbit' ? t('tidbit.chip')
-              : m.id === 'biyun' ? t('biyun.chip')
-              : m.id;
-            const active = () => sidebar()?.kind === m.id;
-            return (
-              <button
-                type="button"
-                onClick={() => openChip(m.id)}
-                title={label()}
+            <Show when={chipMarks().length > 0}>
+              <div
+                class="daf-chip-bar"
+                data-tour="chips"
                 style={{
-                  'font-size': '0.75rem',
-                  'font-weight': 600,
-                  padding: '0.25rem 0.7rem',
-                  'border-radius': '999px',
-                  border: `1px solid ${color}`,
-                  color: active() ? '#fff' : color,
-                  background: active() ? color : '#fff',
-                  cursor: 'pointer',
-                  'font-family': 'system-ui, -apple-system, sans-serif',
+                  display: 'flex',
+                  'justify-content': 'center',
+                  gap: '0.4rem',
+                  'flex-wrap': 'wrap',
+                  margin: '0 0 0.6rem',
                 }}
-              >{label()}</button>
-            );
-          }}</For>
-        </div>
-      </Show>
+              >
+                <For each={chipMarks()}>
+                  {(m) => {
+                    const color = (m.render as { color?: string }).color ?? '#8a2a2b';
+                    // Chip mark id == sidebar kind, so the label + active state are
+                    // generic over the registry (no per-mark branching here). label() is
+                    // an accessor (not a captured const) so it re-evaluates t() when the
+                    // language flips — otherwise the chip keeps the label of whichever
+                    // language it first rendered in.
+                    const label = () =>
+                      m.id === 'argument-overview'
+                        ? t('overview.chip')
+                        : m.id === 'daf-background'
+                          ? t('background.chip')
+                          : m.id === 'tidbit'
+                            ? t('tidbit.chip')
+                            : m.id === 'biyun'
+                              ? t('biyun.chip')
+                              : m.id;
+                    const active = () => sidebar()?.kind === m.id;
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => openChip(m.id)}
+                        title={label()}
+                        style={{
+                          'font-size': '0.75rem',
+                          'font-weight': 600,
+                          padding: '0.25rem 0.7rem',
+                          'border-radius': '999px',
+                          border: `1px solid ${color}`,
+                          color: active() ? '#fff' : color,
+                          background: active() ? color : '#fff',
+                          cursor: 'pointer',
+                          'font-family': 'system-ui, -apple-system, sans-serif',
+                        }}
+                      >
+                        {label()}
+                      </button>
+                    );
+                  }}
+                </For>
+              </div>
+            </Show>
 
-      <div ref={surfaceEl} class="daf-surface" onMouseUp={onMouseUpRoot} style={{ display: 'flex', 'justify-content': 'center' }}>
-        <Show
-          when={!daf.loading && tokenized()}
-          fallback={
-            <p style={{ color: '#888', 'font-style': 'italic' }}>
-              {daf.error ? `Error: ${String(daf.error)}` : 'Opening the daf…'}
-            </p>
-          }
-          keyed
-        >
-          {(t) => (
             <div
-              class="daf-scale-wrap"
-              style={dafScale() < 1
-                ? {
-                    width: `${Math.round(520 * dafScale())}px`,
-                    height: dafNaturalH() > 0 ? `${Math.round(dafNaturalH() * dafScale())}px` : undefined,
-                  }
-                : {}}
+              ref={surfaceEl}
+              class="daf-surface"
+              onMouseUp={onMouseUpRoot}
+              style={{ display: 'flex', 'justify-content': 'center' }}
             >
-            <div
-              ref={setDafRootEl as (el: HTMLDivElement) => void}
-              style={dafScale() < 1
-                ? {
-                    position: 'relative',
-                    width: '520px',
-                    transform: `scale(${dafScale()})`,
-                    'transform-origin': 'top left',
-                  }
-                : { position: 'relative' }}
-            >
-              <DafRenderer
-                main={t.main}
-                inner={t.inner}
-                outer={t.outer}
-                amud={pageAmud()}
-                options={{ contentWidth: dafWidth(), mainWidth: 0.48 }}
-                onLayout={(r) => {
-                  // Surface layout/spacer computation timing in the dev
-                  // renderer panel. The layout case + exception come from
-                  // the spacer engine; useful for debugging the rare
-                  // pages that hit a non-default layout case.
-                  recordStage('layout-spacers', 'Layout / spacers', Math.round(r.computeMs), {
-                    detail: `case=${r.spacers.layoutCase} · exc=${r.spacers.exception} · h=${Math.round(r.totalHeight)}px`,
-                  });
-                }}
-              />
-              {/* Per-kind measurement instances — each publishes its anchor
+              <Show
+                when={!daf.loading && tokenized()}
+                fallback={
+                  <p style={{ color: '#888', 'font-style': 'italic' }}>
+                    {daf.error ? `Error: ${String(daf.error)}` : 'Opening the daf…'}
+                  </p>
+                }
+                keyed
+              >
+                {(t) => (
+                  <div
+                    class="daf-scale-wrap"
+                    style={
+                      dafScale() < 1
+                        ? {
+                            width: `${Math.round(520 * dafScale())}px`,
+                            height:
+                              dafNaturalH() > 0
+                                ? `${Math.round(dafNaturalH() * dafScale())}px`
+                                : undefined,
+                          }
+                        : {}
+                    }
+                  >
+                    <div
+                      ref={setDafRootEl as (el: HTMLDivElement) => void}
+                      style={
+                        dafScale() < 1
+                          ? {
+                              position: 'relative',
+                              width: '520px',
+                              transform: `scale(${dafScale()})`,
+                              'transform-origin': 'top left',
+                            }
+                          : { position: 'relative' }
+                      }
+                    >
+                      <DafRenderer
+                        main={t.main}
+                        inner={t.inner}
+                        outer={t.outer}
+                        amud={pageAmud()}
+                        options={{ contentWidth: dafWidth(), mainWidth: 0.48 }}
+                        onLayout={(r) => {
+                          // Surface layout/spacer computation timing in the dev
+                          // renderer panel. The layout case + exception come from
+                          // the spacer engine; useful for debugging the rare
+                          // pages that hit a non-default layout case.
+                          recordStage(
+                            'layout-spacers',
+                            'Layout / spacers',
+                            Math.round(r.computeMs),
+                            {
+                              detail: `case=${r.spacers.layoutCase} · exc=${r.spacers.exception} · h=${Math.round(r.totalHeight)}px`,
+                            },
+                          );
+                        }}
+                      />
+                      {/* Per-kind measurement instances — each publishes its anchor
                   positions to the shared gutterStack. The single
                   GutterOverlay below renders all clusters with collision-
                   aware stacking + hover-expand. */}
-              <Show when={showArguments()}>
-                <GutterIcons
-                  containerRef={dafRootEl}
-                  triggerKey={gutterKey()}
-                  onClick={onGutterClick}
-                  kind="argument"
-                  activeKey={sidebarActiveKey()}
-                />
+                      <Show when={showArguments()}>
+                        <GutterIcons
+                          containerRef={dafRootEl}
+                          triggerKey={gutterKey()}
+                          onClick={onGutterClick}
+                          kind="argument"
+                          activeKey={sidebarActiveKey()}
+                        />
+                      </Show>
+                      <Show when={showHalachot()}>
+                        <GutterIcons
+                          containerRef={dafRootEl}
+                          triggerKey={gutterKey()}
+                          onClick={onGutterClick}
+                          kind="halacha"
+                          activeKey={sidebarActiveKey()}
+                        />
+                      </Show>
+                      <Show when={showChart()}>
+                        <GutterIcons
+                          containerRef={dafRootEl}
+                          triggerKey={gutterKey()}
+                          onClick={onGutterClick}
+                          kind="chart"
+                          activeKey={sidebarActiveKey()}
+                        />
+                      </Show>
+                      <Show when={showAggadatot()}>
+                        <GutterIcons
+                          containerRef={dafRootEl}
+                          triggerKey={gutterKey()}
+                          onClick={onGutterClick}
+                          kind="aggadata"
+                          activeKey={sidebarActiveKey()}
+                        />
+                      </Show>
+                      <Show when={showYerushalmi()}>
+                        <GutterIcons
+                          containerRef={dafRootEl}
+                          triggerKey={gutterKey()}
+                          onClick={onGutterClick}
+                          kind="yerushalmi"
+                          activeKey={sidebarActiveKey()}
+                        />
+                      </Show>
+                      <Show when={showPesukim()}>
+                        <GutterIcons
+                          containerRef={dafRootEl}
+                          triggerKey={gutterKey()}
+                          onClick={onGutterClick}
+                          kind="pesuk"
+                          activeKey={sidebarActiveKey()}
+                        />
+                      </Show>
+                      <Show when={enabledMarkDefs().some((m) => m.id === 'rishonim')}>
+                        <GutterIcons
+                          containerRef={dafRootEl}
+                          triggerKey={gutterKey()}
+                          onClick={onGutterClick}
+                          kind="rishonim"
+                          activeKey={sidebarActiveKey()}
+                        />
+                      </Show>
+                      <GutterOverlay />
+                    </div>
+                  </div>
+                )}
               </Show>
-              <Show when={showHalachot()}>
-                <GutterIcons
-                  containerRef={dafRootEl}
-                  triggerKey={gutterKey()}
-                  onClick={onGutterClick}
-                  kind="halacha"
-                  activeKey={sidebarActiveKey()}
-                />
-              </Show>
-              <Show when={showChart()}>
-                <GutterIcons
-                  containerRef={dafRootEl}
-                  triggerKey={gutterKey()}
-                  onClick={onGutterClick}
-                  kind="chart"
-                  activeKey={sidebarActiveKey()}
-                />
-              </Show>
-              <Show when={showAggadatot()}>
-                <GutterIcons
-                  containerRef={dafRootEl}
-                  triggerKey={gutterKey()}
-                  onClick={onGutterClick}
-                  kind="aggadata"
-                  activeKey={sidebarActiveKey()}
-                />
-              </Show>
-              <Show when={showYerushalmi()}>
-                <GutterIcons
-                  containerRef={dafRootEl}
-                  triggerKey={gutterKey()}
-                  onClick={onGutterClick}
-                  kind="yerushalmi"
-                  activeKey={sidebarActiveKey()}
-                />
-              </Show>
-              <Show when={showPesukim()}>
-                <GutterIcons
-                  containerRef={dafRootEl}
-                  triggerKey={gutterKey()}
-                  onClick={onGutterClick}
-                  kind="pesuk"
-                  activeKey={sidebarActiveKey()}
-                />
-              </Show>
-              <Show when={enabledMarkDefs().some((m) => m.id === 'rishonim')}>
-                <GutterIcons
-                  containerRef={dafRootEl}
-                  triggerKey={gutterKey()}
-                  onClick={onGutterClick}
-                  kind="rishonim"
-                  activeKey={sidebarActiveKey()}
-                />
-              </Show>
-              <GutterOverlay />
             </div>
-            </div>
-          )}
-        </Show>
-      </div>
 
-      <Show when={active()}>
-        {(a) => (
-          <TranslationPopup
-            word={a().word}
-            tractate={tractate()}
-            page={page()}
-            anchor={a().anchor}
-            hebrewBefore={a().hebrewBefore}
-            hebrewAfter={a().hebrewAfter}
-            segIdx={a().segIdx}
-            onClose={clearActive}
-            mobile={isMobile()}
-            getAnchorRect={() => unionRectOf(a().els)}
-            maxWords={MAX_PHRASE_WORDS}
-          />
-        )}
-      </Show>
-
-      <Show when={openHighlight()}>
-        {(oh) => {
-          const hl = () => userHighlights().find((h) => h.id === oh().id);
-          return (
-            <Show when={hl()}>
-              {(h) => (
-                <HighlightNotePopover
-                  highlight={h()}
-                  anchor={oh().rect}
-                  onSave={(note) => updateHighlightNote(h().id, note)}
-                  onDelete={() => {
-                    deleteHighlight(h().id);
-                    setOpenHighlight(null);
-                  }}
-                  onClose={() => setOpenHighlight(null)}
+            <Show when={active()}>
+              {(a) => (
+                <TranslationPopup
+                  word={a().word}
+                  tractate={tractate()}
+                  page={page()}
+                  anchor={a().anchor}
+                  hebrewBefore={a().hebrewBefore}
+                  hebrewAfter={a().hebrewAfter}
+                  segIdx={a().segIdx}
+                  onClose={clearActive}
+                  mobile={isMobile()}
+                  getAnchorRect={() => unionRectOf(a().els)}
+                  maxWords={MAX_PHRASE_WORDS}
                 />
               )}
             </Show>
-          );
-        }}
-      </Show>
 
-      <Show when={!isMobile() && userHighlights().length > 0}>
-        <button
-          type="button"
-          onClick={() => setShowNotesList((v) => !v)}
-          title={t('highlight.notesTitle')}
-          style={{
-            position: 'fixed',
-            right: '1rem',
-            bottom: '1rem',
-            'z-index': '1000',
-            padding: '0.4rem 0.8rem',
-            'border-radius': '999px',
-            border: '1px solid #d0d0d0',
-            background: '#fff',
-            'box-shadow': '0 2px 8px rgba(0,0,0,0.12)',
-            cursor: 'pointer',
-            'font-size': '0.8rem',
-            'font-weight': 600,
-            'font-family': 'system-ui, -apple-system, sans-serif',
-            color: '#444',
-          }}
-        >
-          {t('highlight.notesToggle')} ({userHighlights().length})
-        </button>
-      </Show>
+            <Show when={openHighlight()}>
+              {(oh) => {
+                const hl = () => userHighlights().find((h) => h.id === oh().id);
+                return (
+                  <Show when={hl()}>
+                    {(h) => (
+                      <HighlightNotePopover
+                        highlight={h()}
+                        anchor={oh().rect}
+                        onSave={(note) => updateHighlightNote(h().id, note)}
+                        onDelete={() => {
+                          deleteHighlight(h().id);
+                          setOpenHighlight(null);
+                        }}
+                        onClose={() => setOpenHighlight(null)}
+                      />
+                    )}
+                  </Show>
+                );
+              }}
+            </Show>
 
-      <Show when={!isMobile() && showNotesList()}>
-        <NotesPanel
-          highlights={userHighlights()}
-          onJump={jumpToHighlight}
-          onDelete={deleteHighlight}
-          onClose={() => setShowNotesList(false)}
-        />
-      </Show>
+            <Show when={!isMobile() && userHighlights().length > 0}>
+              <button
+                type="button"
+                onClick={() => setShowNotesList((v) => !v)}
+                title={t('highlight.notesTitle')}
+                style={{
+                  position: 'fixed',
+                  right: '1rem',
+                  bottom: '1rem',
+                  'z-index': '1000',
+                  padding: '0.4rem 0.8rem',
+                  'border-radius': '999px',
+                  border: '1px solid #d0d0d0',
+                  background: '#fff',
+                  'box-shadow': '0 2px 8px rgba(0,0,0,0.12)',
+                  cursor: 'pointer',
+                  'font-size': '0.8rem',
+                  'font-weight': 600,
+                  'font-family': 'system-ui, -apple-system, sans-serif',
+                  color: '#444',
+                }}
+              >
+                {t('highlight.notesToggle')} ({userHighlights().length})
+              </button>
+            </Show>
 
-      <BugReport tractate={tractate()} page={page()} />
+            <Show when={!isMobile() && showNotesList()}>
+              <NotesPanel
+                highlights={userHighlights()}
+                onJump={jumpToHighlight}
+                onDelete={deleteHighlight}
+                onClose={() => setShowNotesList(false)}
+              />
+            </Show>
 
-      <footer style={{
-        'margin-top': '0.5rem',
-        'text-align': 'center',
-        'font-size': '0.7rem',
-        color: '#aaa',
-      }}>
-        <a
-          href="#usage"
-          style={{ color: 'inherit', 'text-decoration': 'none', 'border-bottom': '1px dotted #bbb' }}
-        >
-          {t('dev.usageReports')}
-        </a>
-        {' · '}
-        <a
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            const u = new URL(window.location.href);
-            u.searchParams.set('tractate', tractate());
-            u.searchParams.set('page', page());
-            u.hash = 'align';
-            window.location.href = u.toString();
-          }}
-          style={{ color: 'inherit', 'text-decoration': 'none', 'border-bottom': '1px dotted #bbb' }}
-        >
-          {t('dev.alignmentDebug')}
-        </a>
-        {' · '}
-        <a
-          href="#mcp"
-          style={{ color: 'inherit', 'text-decoration': 'none', 'border-bottom': '1px dotted #bbb' }}
-        >
-          {t('dev.mcpGuide')}
-        </a>
-      </footer>
-      </section>
-      </div>
+            <BugReport tractate={tractate()} page={page()} />
 
-      {/* Right-side aside — currently only ArgumentSidebar mounts here.
+            <footer
+              style={{
+                'margin-top': '0.5rem',
+                'text-align': 'center',
+                'font-size': '0.7rem',
+                color: '#aaa',
+              }}
+            >
+              <a
+                href="#usage"
+                style={{
+                  color: 'inherit',
+                  'text-decoration': 'none',
+                  'border-bottom': '1px dotted #bbb',
+                }}
+              >
+                {t('dev.usageReports')}
+              </a>
+              {' · '}
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  const u = new URL(window.location.href);
+                  u.searchParams.set('tractate', tractate());
+                  u.searchParams.set('page', page());
+                  u.hash = 'align';
+                  window.location.href = u.toString();
+                }}
+                style={{
+                  color: 'inherit',
+                  'text-decoration': 'none',
+                  'border-bottom': '1px dotted #bbb',
+                }}
+              >
+                {t('dev.alignmentDebug')}
+              </a>
+              {' · '}
+              <a
+                href="#mcp"
+                style={{
+                  color: 'inherit',
+                  'text-decoration': 'none',
+                  'border-bottom': '1px dotted #bbb',
+                }}
+              >
+                {t('dev.mcpGuide')}
+              </a>
+            </footer>
+          </section>
+        </div>
+
+        {/* Right-side aside — currently only ArgumentSidebar mounts here.
           GeographyStrip was removed pending rederivation from registry
           data; see the TODO(geography-rederive) note above. */}
-      <Show when={!isMobile() && sidebar() !== null}>
-        <aside
-          class="daf-aside"
-          data-tour="note-panel"
-          style={{
-            position: 'sticky',
-            top: '1rem',
-            'align-self': 'flex-start',
-            'max-height': 'calc(100vh - 2rem)',
-            width: '420px',
-            'flex-shrink': 0,
-            display: 'flex',
-            'flex-direction': 'column',
-            gap: '0.4rem',
-            overflow: 'auto',
-            // During a tutorial note step, lift above the coach's click-shield
-            // (z 5999) so the panel stays scrollable; normal stacking otherwise.
-            'z-index': tutorialNoteInteractive() ? 6001 : undefined,
-          }}
-        >
-          <Show when={sidebar() !== null}>
-            <ArgumentSidebar
-              content={sidebar()}
-              tractate={tractate()}
-              page={page()}
-              activeRabbi={activeRabbi()}
-              onClose={() => {
-                setSidebar(null);
-                setActiveRabbi(null);
-                setArgumentMoveHighlight(null);
-                if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
-              }}
-              onHighlightRabbi={(name) => (name ? openRabbi(name) : setActiveRabbi(null))}
-              onPushRabbi={pushRabbi}
-              previousLabel={sidebarStack().length > 1 ? sidebarLabel(sidebarStack()[sidebarStack().length - 2]) : null}
-              onBack={popSidebar}
-              dafRabbis={dafRabbis()}
-              dafRabbiNames={dafRabbiNames()}
-              glossaryTerms={glossaryTerms()}
-              onHighlightRange={setArgumentMoveHighlight}
-              onOpenRabbiSlug={openRabbiSlug}
-              generationByName={generationByName()}
-              dafSections={analysis()?.sections ?? []}
-              onOpenArgument={openArgument}
-            />
-          </Show>
-        </aside>
-      </Show>
+        <Show when={!isMobile() && sidebar() !== null}>
+          <aside
+            class="daf-aside"
+            data-tour="note-panel"
+            style={{
+              position: 'sticky',
+              top: '1rem',
+              'align-self': 'flex-start',
+              'max-height': 'calc(100vh - 2rem)',
+              width: '420px',
+              'flex-shrink': 0,
+              display: 'flex',
+              'flex-direction': 'column',
+              gap: '0.4rem',
+              overflow: 'auto',
+              // During a tutorial note step, lift above the coach's click-shield
+              // (z 5999) so the panel stays scrollable; normal stacking otherwise.
+              'z-index': tutorialNoteInteractive() ? 6001 : undefined,
+            }}
+          >
+            <Show when={sidebar() !== null}>
+              <ArgumentSidebar
+                content={sidebar()}
+                tractate={tractate()}
+                page={page()}
+                activeRabbi={activeRabbi()}
+                onClose={() => {
+                  setSidebar(null);
+                  setActiveRabbi(null);
+                  setArgumentMoveHighlight(null);
+                  if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
+                }}
+                onHighlightRabbi={(name) => (name ? openRabbi(name) : setActiveRabbi(null))}
+                onPushRabbi={pushRabbi}
+                previousLabel={
+                  sidebarStack().length > 1
+                    ? sidebarLabel(sidebarStack()[sidebarStack().length - 2])
+                    : null
+                }
+                onBack={popSidebar}
+                dafRabbis={dafRabbis()}
+                dafRabbiNames={dafRabbiNames()}
+                glossaryTerms={glossaryTerms()}
+                onHighlightRange={setArgumentMoveHighlight}
+                onOpenRabbiSlug={openRabbiSlug}
+                generationByName={generationByName()}
+                dafSections={analysis()?.sections ?? []}
+                onOpenArgument={openArgument}
+              />
+            </Show>
+          </aside>
+        </Show>
       </div>
 
       <Show when={isMobile()}>
@@ -3559,7 +3952,11 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           activeRabbi={activeRabbi()}
           onHighlightRabbi={(name) => (name ? openRabbi(name) : setActiveRabbi(null))}
           onPushRabbi={pushRabbi}
-          previousLabel={sidebarStack().length > 1 ? sidebarLabel(sidebarStack()[sidebarStack().length - 2]) : null}
+          previousLabel={
+            sidebarStack().length > 1
+              ? sidebarLabel(sidebarStack()[sidebarStack().length - 2])
+              : null
+          }
           onBack={popSidebar}
           dafRabbis={dafRabbis()}
           dafRabbiNames={dafRabbiNames()}
@@ -3586,8 +3983,12 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
         </Show>
         <div
           style={{
-            position: 'fixed', left: 0, right: 0, bottom: 0,
-            'z-index': 201, 'max-height': '75vh',
+            position: 'fixed',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            'z-index': 201,
+            'max-height': '75vh',
             background: '#fff',
             'border-top': '1px solid #d6d3d1',
             'border-top-left-radius': '12px',
@@ -3597,18 +3998,38 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
             'flex-direction': 'column',
           }}
         >
-          <div style={{
-            display: 'flex', 'align-items': 'center', 'justify-content': 'space-between',
-            padding: '0.6rem 0.85rem', 'border-bottom': '1px solid #eee', 'flex-shrink': 0,
-          }}>
-            <span style={{ 'font-size': '0.8rem', color: '#666', 'text-transform': 'uppercase', 'letter-spacing': '0.05em' }}>
+          <div
+            style={{
+              display: 'flex',
+              'align-items': 'center',
+              'justify-content': 'space-between',
+              padding: '0.6rem 0.85rem',
+              'border-bottom': '1px solid #eee',
+              'flex-shrink': 0,
+            }}
+          >
+            <span
+              style={{
+                'font-size': '0.8rem',
+                color: '#666',
+                'text-transform': 'uppercase',
+                'letter-spacing': '0.05em',
+              }}
+            >
               {t('mobile.layers.title')}
             </span>
             <button
               type="button"
               onClick={() => setLayersOpen(false)}
               aria-label={t('mobile.layers.close')}
-              style={{ border: 'none', background: 'transparent', cursor: 'pointer', 'font-size': '1.1rem', padding: '0.25rem 0.5rem', color: '#666' }}
+              style={{
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                'font-size': '1.1rem',
+                padding: '0.25rem 0.5rem',
+                color: '#666',
+              }}
             >
               ✕
             </button>
@@ -3618,11 +4039,16 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
               tractate={tractate()}
               page={page()}
               seedMarks={buildSeedMarks({
-                showGenMarkers, setShowGenMarkers,
-                showArguments, setShowArguments,
-                showHalachot, setShowHalachot,
-                showAggadatot, setShowAggadatot,
-                showPesukim, setShowPesukim,
+                showGenMarkers,
+                setShowGenMarkers,
+                showArguments,
+                setShowArguments,
+                showHalachot,
+                setShowHalachot,
+                showAggadatot,
+                setShowAggadatot,
+                showPesukim,
+                setShowPesukim,
               })}
             />
           </div>
@@ -3630,34 +4056,50 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       </Show>
 
       <Show when={!isMobile()}>
-      <RunTreeDock
-        tractate={tractate()} page={page()}
-        open={devOpen()} onClose={() => { setDevOpen(false); setDevModeActive(false); }}
-        checks={<ChecksPanel tractate={tractate()} page={page()} />}
-        sections={
-          <TypeProfilePanel
-            tractate={tractate()}
-            page={page()}
-            active={(() => { const h = argumentMoveHighlight(); return h && h.key.startsWith('typeprofile') ? { start: h.start, end: h.end } : null; })()}
-            onHighlight={(r) => setArgumentMoveHighlight(r ? { start: r.start, end: r.end, key: `typeprofile-${r.start}-${r.end}` } : null)}
-          />
-        }
-        marks={
-          <MarksRegistryPanel
-            tractate={tractate()}
-            page={page()}
-            seedMarks={buildSeedMarks({
-              showGenMarkers, setShowGenMarkers,
-              showArguments, setShowArguments,
-              showHalachot, setShowHalachot,
-              showAggadatot, setShowAggadatot,
-              showPesukim, setShowPesukim,
-            })}
-          />
-        }
-      />
+        <RunTreeDock
+          tractate={tractate()}
+          page={page()}
+          open={devOpen()}
+          onClose={() => {
+            setDevOpen(false);
+            setDevModeActive(false);
+          }}
+          checks={<ChecksPanel tractate={tractate()} page={page()} />}
+          sections={
+            <TypeProfilePanel
+              tractate={tractate()}
+              page={page()}
+              active={(() => {
+                const h = argumentMoveHighlight();
+                return h && h.key.startsWith('typeprofile') ? { start: h.start, end: h.end } : null;
+              })()}
+              onHighlight={(r) =>
+                setArgumentMoveHighlight(
+                  r ? { start: r.start, end: r.end, key: `typeprofile-${r.start}-${r.end}` } : null,
+                )
+              }
+            />
+          }
+          marks={
+            <MarksRegistryPanel
+              tractate={tractate()}
+              page={page()}
+              seedMarks={buildSeedMarks({
+                showGenMarkers,
+                setShowGenMarkers,
+                showArguments,
+                setShowArguments,
+                showHalachot,
+                setShowHalachot,
+                showAggadatot,
+                setShowAggadatot,
+                showPesukim,
+                setShowPesukim,
+              })}
+            />
+          }
+        />
       </Show>
-
     </main>
   );
 }

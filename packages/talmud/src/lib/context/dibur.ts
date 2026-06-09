@@ -8,7 +8,12 @@
 
 /** Drop HTML markup (Sefaria text carries <b>/<strong>/<i>/<big>) for display. */
 export function stripTags(s: string | undefined): string {
-  return s ? s.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim() : '';
+  return s
+    ? s
+        .replace(/<[^>]+>/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+    : '';
 }
 
 /** First `n` whitespace words of a Hebrew string, or undefined. */
@@ -28,6 +33,8 @@ export function leadingWords(s: string | undefined, n: number): string | undefin
 export function diburHaMaschil(he: string | undefined): string | undefined {
   if (!he) return undefined;
   const bold = /^\s*<(b|strong)>([\s\S]*?)<\/\1>/i.exec(he);
-  const lemma = bold ? stripTags(bold[2]) : stripTags(he).split(/\s[-־–—]\s|\.\s|:\s|\s?[וב]?כו['׳]/)[0];
+  const lemma = bold
+    ? stripTags(bold[2])
+    : stripTags(he).split(/\s[-־–—]\s|\.\s|:\s|\s?[וב]?כו['׳]/)[0];
   return leadingWords(lemma, 6);
 }

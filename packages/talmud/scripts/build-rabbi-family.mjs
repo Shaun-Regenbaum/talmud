@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 // scripts/build-rabbi-family.mjs
 //
 // Fork of build-rabbi-hierarchy.mjs. For every bio-bearing rabbi, fires
@@ -17,10 +18,10 @@
 //   node scripts/build-rabbi-family.mjs --dry-run
 //   node scripts/build-rabbi-family.mjs --limit 50
 
-import { readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RABBIS_PATH = join(__dirname, '..', 'src', 'lib', 'data', 'rabbi-places.json');
@@ -43,8 +44,11 @@ const LIMIT = getArg('--limit', null);
 async function fetchJson(url) {
   const res = await fetch(url);
   const text = await res.text();
-  try { return { status: res.status, json: JSON.parse(text) }; }
-  catch { return { status: res.status, json: { error: text.slice(0, 300) } }; }
+  try {
+    return { status: res.status, json: JSON.parse(text) };
+  } catch {
+    return { status: res.status, json: { error: text.slice(0, 300) } };
+  }
 }
 
 async function loadExistingOutput() {
@@ -79,7 +83,7 @@ async function main() {
       canonicalHe: entry.canonicalHe ?? null,
       generation: entry.generation ?? 'unknown',
       hasBio: Boolean(entry.bio),
-      family: [],                 // [{ name, relation, slug|null }]
+      family: [], // [{ name, relation, slug|null }]
       processed: false,
     };
   }
@@ -93,7 +97,9 @@ async function main() {
     }
     const before = slugs.length;
     slugs = slugs.filter((s) => !nodes[s]?.processed);
-    console.log(`[family] --resume: ${before - slugs.length} already processed, ${slugs.length} remain`);
+    console.log(
+      `[family] --resume: ${before - slugs.length} already processed, ${slugs.length} remain`,
+    );
   }
 
   console.log(`[family] ${slugs.length} slugs to process (concurrency=${CONCURRENCY})`);
@@ -104,44 +110,56 @@ async function main() {
   const t0 = Date.now();
   const work = [...slugs];
 
-  const workers = Array.from({ length: CONCURRENCY }, () => (async () => {
-    while (work.length > 0) {
-      const slug = work.shift();
-      if (!slug) return;
-      const { status, json } = await fetchJson(`${URL}/api/admin/rabbi-family/${encodeURIComponent(slug)}`);
-      done++;
-      if (status !== 200) {
-        errors.push({ slug, status, error: json.error ?? json });
+  const workers = Array.from({ length: CONCURRENCY }, () =>
+    (async () => {
+      while (work.length > 0) {
+        const slug = work.shift();
+        if (!slug) return;
+        const { status, json } = await fetchJson(
+          `${URL}/api/admin/rabbi-family/${encodeURIComponent(slug)}`,
+        );
+        done++;
+        if (status !== 200) {
+          errors.push({ slug, status, error: json.error ?? json });
+          const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+          console.error(
+            `[${done}/${total}] ${elapsed}s FAIL ${slug} status=${status} err=${JSON.stringify(json).slice(0, 160)}`,
+          );
+          continue;
+        }
+        const node = nodes[slug];
+        if (!node) continue;
+        node.family = (json.family ?? []).map((e) => ({
+          name: e.name,
+          relation: e.relation,
+          slug: e.slug ?? null,
+        }));
+        node.processed = true;
+
         const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-        console.error(`[${done}/${total}] ${elapsed}s FAIL ${slug} status=${status} err=${JSON.stringify(json).slice(0, 160)}`);
-        continue;
-      }
-      const node = nodes[slug];
-      if (!node) continue;
-      node.family = (json.family ?? []).map((e) => ({
-        name: e.name, relation: e.relation, slug: e.slug ?? null,
-      }));
-      node.processed = true;
+        console.log(
+          `[${done}/${total}] ${elapsed}s  ${slug.padEnd(40)} family=${node.family.length}`,
+        );
 
-      const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-      console.log(`[${done}/${total}] ${elapsed}s  ${slug.padEnd(40)} family=${node.family.length}`);
-
-      if (!DRY_RUN && done % 25 === 0) {
-        const processedSoFar = Object.values(nodes).filter((n) => n.processed).length;
-        const nodesWithFamily = Object.values(nodes).filter((n) => n.family.length > 0).length;
-        const checkpoint = {
-          generatedAt: new Date().toISOString(),
-          source: `${URL}/api/admin/rabbi-family`,
-          totalNodes: Object.keys(nodes).length,
-          processedNodes: processedSoFar,
-          nodesWithFamily,
-          nodes,
-        };
-        await writeFile(OUT_PATH, JSON.stringify(checkpoint, null, 2) + '\n', 'utf-8');
-        console.log(`[family] checkpoint: ${processedSoFar} processed, ${nodesWithFamily} with family`);
+        if (!DRY_RUN && done % 25 === 0) {
+          const processedSoFar = Object.values(nodes).filter((n) => n.processed).length;
+          const nodesWithFamily = Object.values(nodes).filter((n) => n.family.length > 0).length;
+          const checkpoint = {
+            generatedAt: new Date().toISOString(),
+            source: `${URL}/api/admin/rabbi-family`,
+            totalNodes: Object.keys(nodes).length,
+            processedNodes: processedSoFar,
+            nodesWithFamily,
+            nodes,
+          };
+          await writeFile(OUT_PATH, JSON.stringify(checkpoint, null, 2) + '\n', 'utf-8');
+          console.log(
+            `[family] checkpoint: ${processedSoFar} processed, ${nodesWithFamily} with family`,
+          );
+        }
       }
-    }
-  })());
+    })(),
+  );
 
   await Promise.all(workers);
 

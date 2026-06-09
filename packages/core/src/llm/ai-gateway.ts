@@ -65,7 +65,7 @@ export function gatewayStatus(env: AiGatewayEnv): GatewayStatus {
 }
 
 function backoffMs(attempt: number): number {
-  return 1000 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 500);
+  return 1000 * 2 ** (attempt - 1) + Math.floor(Math.random() * 500);
 }
 
 // Interruptible delay: resolves after `ms`, or rejects immediately if `signal`
@@ -74,8 +74,14 @@ function backoffMs(attempt: number): number {
 // already fired) — wasting up to a full backoff interval before noticing.
 function delay(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (signal?.aborted) { reject(new DOMException('Aborted', 'AbortError')); return; }
-    const onAbort = () => { clearTimeout(timer); reject(new DOMException('Aborted', 'AbortError')); };
+    if (signal?.aborted) {
+      reject(new DOMException('Aborted', 'AbortError'));
+      return;
+    }
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(new DOMException('Aborted', 'AbortError'));
+    };
     const timer = setTimeout(() => {
       signal?.removeEventListener('abort', onAbort);
       resolve();

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * Batch-warm /api/analyze for every amud of Berakhot.
  *
@@ -15,10 +16,10 @@
  *               is a reasonable balance between throughput and upstream load)
  */
 
+import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { spawn } from 'node:child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -63,14 +64,20 @@ function curlGet(url, maxSeconds) {
     const t0 = Date.now();
     const proc = spawn('curl', [
       '-sS',
-      '-w', '\n__STATUS__:%{http_code}',
-      '--max-time', String(maxSeconds),
+      '-w',
+      '\n__STATUS__:%{http_code}',
+      '--max-time',
+      String(maxSeconds),
       url,
     ]);
     let out = '';
     let errBuf = '';
-    proc.stdout.on('data', (d) => { out += d.toString(); });
-    proc.stderr.on('data', (d) => { errBuf += d.toString(); });
+    proc.stdout.on('data', (d) => {
+      out += d.toString();
+    });
+    proc.stderr.on('data', (d) => {
+      errBuf += d.toString();
+    });
     proc.on('close', (code) => {
       const ms = Date.now() - t0;
       if (code !== 0) {
@@ -81,7 +88,11 @@ function curlGet(url, maxSeconds) {
       const status = m ? parseInt(m[1], 10) : 0;
       const bodyStr = m ? out.slice(0, m.index) : out;
       let body = null;
-      try { body = JSON.parse(bodyStr); } catch { /* non-JSON */ }
+      try {
+        body = JSON.parse(bodyStr);
+      } catch {
+        /* non-JSON */
+      }
       resolve({ status, body, error: null, ms });
     });
   });
@@ -121,7 +132,10 @@ async function runWithConcurrency(items, limit, worker) {
   async function spawn() {
     while (queue.length) {
       const item = queue.shift();
-      const p = worker(item).then(r => { running.delete(p); results.push(r); });
+      const p = worker(item).then((r) => {
+        running.delete(p);
+        results.push(r);
+      });
       running.add(p);
       if (running.size >= limit) await Promise.race(running);
     }
@@ -132,10 +146,12 @@ async function runWithConcurrency(items, limit, worker) {
 }
 
 function summarize(results) {
-  const ok = results.filter(r => r.status === 200 && !r.error);
-  const failed = results.filter(r => r.status !== 200 || r.error);
-  const validationFailed = results.filter(r => Array.isArray(r.validationErrors) && r.validationErrors.length > 0);
-  const times = ok.map(r => r.ms).sort((a, b) => a - b);
+  const ok = results.filter((r) => r.status === 200 && !r.error);
+  const failed = results.filter((r) => r.status !== 200 || r.error);
+  const validationFailed = results.filter(
+    (r) => Array.isArray(r.validationErrors) && r.validationErrors.length > 0,
+  );
+  const times = ok.map((r) => r.ms).sort((a, b) => a - b);
   const median = times.length ? times[Math.floor(times.length / 2)] : null;
   const p95 = times.length ? times[Math.floor(times.length * 0.95)] : null;
   return {
@@ -151,15 +167,21 @@ function summarize(results) {
 
 async function main() {
   const amudim = iterAmudim();
-  console.log(`[warm] ${TRACTATE}: ${amudim.length} amudim, concurrency=${CONCURRENCY}, refresh=${REFRESH}, dryRun=${DRY_RUN}`);
+  console.log(
+    `[warm] ${TRACTATE}: ${amudim.length} amudim, concurrency=${CONCURRENCY}, refresh=${REFRESH}, dryRun=${DRY_RUN}`,
+  );
   console.log(`[warm] target: ${WORKER_URL}`);
 
   const started = new Date();
   const results = await runWithConcurrency(amudim, CONCURRENCY, async (daf) => {
     const r = await warmOne(daf);
     const badge = r.error ? 'ERR' : r.cached ? 'HIT' : 'GEN';
-    const detail = r.error ? `err=${String(r.error).slice(0, 80)}` : `model=${r.model ?? '?'} sections=${r.sections ?? '?'} warns=${r.warnings ?? 0}`;
-    console.log(`[${badge}] ${daf.padEnd(4)} ${String(r.status).padStart(3)} ${String(r.ms).padStart(6)}ms ${detail}`);
+    const detail = r.error
+      ? `err=${String(r.error).slice(0, 80)}`
+      : `model=${r.model ?? '?'} sections=${r.sections ?? '?'} warns=${r.warnings ?? 0}`;
+    console.log(
+      `[${badge}] ${daf.padEnd(4)} ${String(r.status).padStart(3)} ${String(r.ms).padStart(6)}ms ${detail}`,
+    );
     return r;
   });
 
@@ -170,20 +192,30 @@ async function main() {
   fs.mkdirSync(outDir, { recursive: true });
   const stamp = started.toISOString().replace(/[:.]/g, '-');
   const outPath = path.join(outDir, `${TRACTATE}-run-${stamp}.json`);
-  fs.writeFileSync(outPath, JSON.stringify({
-    tractate: TRACTATE,
-    startedAt: started.toISOString(),
-    finishedAt: new Date().toISOString(),
-    workerUrl: WORKER_URL,
-    refresh: REFRESH,
-    dryRun: DRY_RUN,
-    concurrency: CONCURRENCY,
-    summary,
-    results: results.sort((a, b) => a.daf.localeCompare(b.daf, 'en', { numeric: true })),
-  }, null, 2));
+  fs.writeFileSync(
+    outPath,
+    JSON.stringify(
+      {
+        tractate: TRACTATE,
+        startedAt: started.toISOString(),
+        finishedAt: new Date().toISOString(),
+        workerUrl: WORKER_URL,
+        refresh: REFRESH,
+        dryRun: DRY_RUN,
+        concurrency: CONCURRENCY,
+        summary,
+        results: results.sort((a, b) => a.daf.localeCompare(b.daf, 'en', { numeric: true })),
+      },
+      null,
+      2,
+    ),
+  );
   console.log(`[warm] audit written to ${outPath}`);
 
   if (summary.failed > 0 || summary.validationFailed > 0) process.exit(1);
 }
 
-main().catch(err => { console.error(err); process.exit(1); });
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

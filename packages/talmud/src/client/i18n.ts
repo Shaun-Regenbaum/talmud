@@ -29,7 +29,11 @@ function initialLang(): Lang {
   const urlLang = new URLSearchParams(window.location.search).get('lang');
   if (urlLang === 'he' || urlLang === 'en') {
     // Make the shared link's choice sticky for this browser too.
-    try { window.localStorage.setItem(STORAGE_KEY, urlLang); } catch { /* ignore */ }
+    try {
+      window.localStorage.setItem(STORAGE_KEY, urlLang);
+    } catch {
+      /* ignore */
+    }
     return urlLang;
   }
   const stored = window.localStorage.getItem(STORAGE_KEY);
@@ -57,7 +61,9 @@ function applyLangToUrl(l: Lang): void {
     if (url.searchParams.get('lang') === l) return;
     url.searchParams.set('lang', l);
     window.history.replaceState(window.history.state, '', url.toString());
-  } catch { /* non-browser / malformed URL — localStorage still carries it */ }
+  } catch {
+    /* non-browser / malformed URL — localStorage still carries it */
+  }
 }
 
 // Apply once at module load so the very first paint has the right dir, and the
@@ -159,7 +165,10 @@ const CATALOG = {
   'move.kind.shift': { en: 'shift', he: 'מעבר' },
   'move.kind.other': { en: 'other', he: 'אחר' },
   'move.highlighted': { en: 'highlighted', he: 'מודגש' },
-  'move.highlight.set': { en: 'Click to highlight this move on the daf', he: 'לחצו להדגשת המהלך בדף' },
+  'move.highlight.set': {
+    en: 'Click to highlight this move on the daf',
+    he: 'לחצו להדגשת המהלך בדף',
+  },
   'move.highlight.clear': { en: 'Click to clear highlight', he: 'לחצו לניקוי ההדגשה' },
 
   // — Sidebar kind titles —
@@ -240,7 +249,10 @@ const CATALOG = {
   // — Enrichment loading copy (evocative; streamed while a card generates) —
   'loading.rabbi.named': { en: 'Interviewing {name}…', he: 'מראיין את {name}…' },
   'loading.rabbi': { en: 'Interviewing the Rabbi…', he: 'מראיין את החכם…' },
-  'loading.argument.named': { en: 'Tracing the argument: {title}…', he: 'עוקב אחר הסוגיה: {title}…' },
+  'loading.argument.named': {
+    en: 'Tracing the argument: {title}…',
+    he: 'עוקב אחר הסוגיה: {title}…',
+  },
   'loading.argument': { en: 'Tracing the argument…', he: 'עוקב אחר הסוגיה…' },
   'loading.move.named': { en: 'Listening to {voice}…', he: 'מקשיב ל{voice}…' },
   'loading.move': { en: 'Tracing the flow…', he: 'עוקב אחר המהלך…' },
@@ -260,8 +272,14 @@ const CATALOG = {
 
   // — Questions (Q&A) panel —
   'qa.questions': { en: 'Questions', he: 'שאלות' },
-  'qa.empty': { en: 'No questions yet. Ask your own below.', he: 'אין עדיין שאלות. שאלו את שלכם למטה.' },
-  'qa.placeholder': { en: 'Ask your own question about this move…', he: 'שאלו שאלה משלכם על המהלך…' },
+  'qa.empty': {
+    en: 'No questions yet. Ask your own below.',
+    he: 'אין עדיין שאלות. שאלו את שלכם למטה.',
+  },
+  'qa.placeholder': {
+    en: 'Ask your own question about this move…',
+    he: 'שאלו שאלה משלכם על המהלך…',
+  },
   'qa.submit': { en: 'Submit', he: 'שליחה' },
   'qa.cancel': { en: 'Cancel', he: 'ביטול' },
   'qa.askYourOwn': { en: 'Ask your own question', he: 'שאלו שאלה משלכם' },
@@ -291,16 +309,31 @@ const CATALOG = {
   'sages.compile.cohort': { en: 'cohort', he: 'דור' },
   'sages.compile.places': { en: 'places', he: 'מקומות' },
   'sages.compile.academies': { en: 'academies', he: 'ישיבות' },
-  'sages.compile.graph.desc': { en: 'Bidirectional teacher↔student + family inversion across all enriched sages.', he: 'היפוך דו-כיווני רב↔תלמיד + משפחה על פני כל החכמים המועשרים.' },
-  'sages.compile.cohort.desc': { en: 'Group sages by generation; emit slug→contemporaries.', he: 'קיבוץ חכמים לפי דור; הפקת מזהה→בני דור.' },
-  'sages.compile.places.desc': { en: 'Invert sage.places[] into place→sages.', he: 'היפוך places[] של חכם ל-מקום→חכמים.' },
-  'sages.compile.academies.desc': { en: 'Invert sage.academy into academy→sages.', he: 'היפוך academy של חכם ל-ישיבה→חכמים.' },
+  'sages.compile.graph.desc': {
+    en: 'Bidirectional teacher↔student + family inversion across all enriched sages.',
+    he: 'היפוך דו-כיווני רב↔תלמיד + משפחה על פני כל החכמים המועשרים.',
+  },
+  'sages.compile.cohort.desc': {
+    en: 'Group sages by generation; emit slug→contemporaries.',
+    he: 'קיבוץ חכמים לפי דור; הפקת מזהה→בני דור.',
+  },
+  'sages.compile.places.desc': {
+    en: 'Invert sage.places[] into place→sages.',
+    he: 'היפוך places[] של חכם ל-מקום→חכמים.',
+  },
+  'sages.compile.academies.desc': {
+    en: 'Invert sage.academy into academy→sages.',
+    he: 'היפוך academy של חכם ל-ישיבה→חכמים.',
+  },
   'sages.compile.title': { en: '{desc}\nlast: {last}', he: '{desc}\nאחרון: {last}' },
   'sages.compile.never': { en: 'never', he: 'מעולם' },
   'sages.compile.running': { en: '{name}…', he: '{name}…' },
   'sages.compile.action': { en: 'compile {name}', he: 'הידור {name}' },
   'sages.compile.err': { en: 'err', he: 'שגיאה' },
-  'sages.search.placeholder': { en: 'search by name, slug, alias, or Hebrew…', he: 'חיפוש לפי שם, מזהה, כינוי או עברית…' },
+  'sages.search.placeholder': {
+    en: 'search by name, slug, alias, or Hebrew…',
+    he: 'חיפוש לפי שם, מזהה, כינוי או עברית…',
+  },
   'sages.filter.region': { en: 'region', he: 'אזור' },
   'sages.filter.gen': { en: 'gen', he: 'דור' },
   'sages.filter.all': { en: 'all', he: 'הכול' },
@@ -310,10 +343,16 @@ const CATALOG = {
   'sages.list.noMatches': { en: 'no matches', he: 'אין תוצאות' },
   'sages.list.cap': { en: '+{count} more — refine search', he: 'עוד {count} — צמצמו את החיפוש' },
   'sages.meta.gen': { en: 'gen {gen}', he: 'דור {gen}' },
-  'sages.detail.pickPrompt': { en: 'Pick a sage on the left to see everything we have on file.', he: 'בחרו חכם מימין כדי לראות את כל המידע שברשותנו.' },
+  'sages.detail.pickPrompt': {
+    en: 'Pick a sage on the left to see everything we have on file.',
+    he: 'בחרו חכם מימין כדי לראות את כל המידע שברשותנו.',
+  },
   'sages.detail.clearSelection': { en: 'Clear selection', he: 'ניקוי הבחירה' },
   'sages.detail.loadingSage': { en: 'loading sage…', he: 'טוען חכם…' },
-  'sages.detail.noUnified': { en: 'No unified record cached for this sage yet.', he: 'אין עדיין רשומה מאוחדת שמורה לחכם זה.' },
+  'sages.detail.noUnified': {
+    en: 'No unified record cached for this sage yet.',
+    he: 'אין עדיין רשומה מאוחדת שמורה לחכם זה.',
+  },
   'sages.detail.runUnified': { en: 'Run unified enrichment', he: 'הרצת העשרה מאוחדת' },
   'sages.meta.genLabel': { en: 'gen', he: 'דור' },
   'sages.meta.region': { en: 'region', he: 'אזור' },
@@ -321,7 +360,10 @@ const CATALOG = {
   'sages.meta.prominence': { en: 'prominence', he: 'בולטות' },
   'sages.section.aliases': { en: 'aliases', he: 'כינויים' },
   'sages.section.bio': { en: 'Bio', he: 'ביוגרפיה' },
-  'sages.bio.empty': { en: 'No bio in the unified record. Hit Refresh to re-run.', he: 'אין ביוגרפיה ברשומה המאוחדת. לחצו רענון כדי להריץ מחדש.' },
+  'sages.bio.empty': {
+    en: 'No bio in the unified record. Hit Refresh to re-run.',
+    he: 'אין ביוגרפיה ברשומה המאוחדת. לחצו רענון כדי להריץ מחדש.',
+  },
   'sages.section.characteristics': { en: 'Characteristics', he: 'מאפיינים' },
   'sages.section.places': { en: 'Places', he: 'מקומות' },
   'sages.section.relationships': { en: 'Relationships', he: 'קשרים' },
@@ -336,14 +378,26 @@ const CATALOG = {
   'sages.section.academyOf': { en: 'Academy of {name}', he: 'ישיבת {name}' },
   'sages.section.placeMates': { en: 'Place-mates', he: 'בני אותו מקום' },
   'sages.section.events': { en: 'Events', he: 'אירועים' },
-  'sages.section.contemporariesRecord': { en: 'Contemporaries (per record)', he: 'בני דורו (לפי הרשומה)' },
+  'sages.section.contemporariesRecord': {
+    en: 'Contemporaries (per record)',
+    he: 'בני דורו (לפי הרשומה)',
+  },
   'sages.section.wikipedia': { en: 'Wikipedia', he: 'ויקיפדיה' },
-  'sages.wiki.noExtract': { en: 'No Wikipedia extract cached. Run to fetch.', he: 'אין תקציר ויקיפדיה שמור. הריצו כדי להביא.' },
-  'sages.wiki.noPage': { en: 'No Wikipedia page found for this sage.', he: 'לא נמצא ערך ויקיפדיה לחכם זה.' },
+  'sages.wiki.noExtract': {
+    en: 'No Wikipedia extract cached. Run to fetch.',
+    he: 'אין תקציר ויקיפדיה שמור. הריצו כדי להביא.',
+  },
+  'sages.wiki.noPage': {
+    en: 'No Wikipedia page found for this sage.',
+    he: 'לא נמצא ערך ויקיפדיה לחכם זה.',
+  },
   'sages.wiki.enPrefix': { en: 'en:', he: 'אנגלית:' },
   'sages.wiki.hePrefix': { en: 'he:', he: 'עברית:' },
   'sages.section.wikidata': { en: 'Wikidata', he: 'ויקינתונים' },
-  'sages.wikidata.noRecord': { en: 'No Wikidata record cached. Run to fetch family/teacher/student QIDs.', he: 'אין רשומת ויקינתונים שמורה. הריצו כדי להביא מזהי QID של משפחה/רב/תלמיד.' },
+  'sages.wikidata.noRecord': {
+    en: 'No Wikidata record cached. Run to fetch family/teacher/student QIDs.',
+    he: 'אין רשומת ויקינתונים שמורה. הריצו כדי להביא מזהי QID של משפחה/רב/תלמיד.',
+  },
   'sages.wd.father': { en: 'father', he: 'אב' },
   'sages.wd.mother': { en: 'mother', he: 'אם' },
   'sages.wd.spouses': { en: 'spouses', he: 'בני זוג' },
@@ -362,17 +416,38 @@ const CATALOG = {
   'sages.stage.running': { en: 'Running…', he: 'רץ…' },
   'sages.stage.refresh': { en: 'Refresh', he: 'רענון' },
   'sages.stage.refreshing': { en: 'Refreshing…', he: 'מרענן…' },
-  'sages.stage.refreshTitle': { en: 'Force refresh, bypass cache', he: 'רענון מאולץ, עקיפת המטמון' },
-  'sages.stage.unified.desc': { en: 'Sefaria + LLM combined biographical record.', he: 'רשומה ביוגרפית משולבת של ספריא + מודל שפה.' },
-  'sages.stage.wikidata.desc': { en: 'Family/teacher/student QIDs + birth/death years from Wikidata (no AI).', he: 'מזהי QID של משפחה/רב/תלמיד + שנות לידה/פטירה מוויקינתונים (ללא בינה מלאכותית).' },
-  'sages.stage.wikiBio.desc': { en: 'Full Wikipedia (en/he) page extracts via MediaWiki (no AI).', he: 'תקצירי ערכי ויקיפדיה מלאים (אנגלית/עברית) דרך MediaWiki (ללא בינה מלאכותית).' },
+  'sages.stage.refreshTitle': {
+    en: 'Force refresh, bypass cache',
+    he: 'רענון מאולץ, עקיפת המטמון',
+  },
+  'sages.stage.unified.desc': {
+    en: 'Sefaria + LLM combined biographical record.',
+    he: 'רשומה ביוגרפית משולבת של ספריא + מודל שפה.',
+  },
+  'sages.stage.wikidata.desc': {
+    en: 'Family/teacher/student QIDs + birth/death years from Wikidata (no AI).',
+    he: 'מזהי QID של משפחה/רב/תלמיד + שנות לידה/פטירה מוויקינתונים (ללא בינה מלאכותית).',
+  },
+  'sages.stage.wikiBio.desc': {
+    en: 'Full Wikipedia (en/he) page extracts via MediaWiki (no AI).',
+    he: 'תקצירי ערכי ויקיפדיה מלאים (אנגלית/עברית) דרך MediaWiki (ללא בינה מלאכותית).',
+  },
   'sages.edge.source': { en: 'source: {source}', he: 'מקור: {source}' },
-  'sages.edge.sourceWeight': { en: 'source: {source} · weight {weight}', he: 'מקור: {source} · משקל {weight}' },
+  'sages.edge.sourceWeight': {
+    en: 'source: {source} · weight {weight}',
+    he: 'מקור: {source} · משקל {weight}',
+  },
 
   // — Settings page —
   'settings.title': { en: 'LLM Settings', he: 'הגדרות מודל שפה' },
-  'settings.intro.before': { en: 'Effective default model + fallback chain. Code-configured (settings.ts, optionally the DEFAULT_LLM_MODEL env var) — this view is read-only. Most calls pin their own model per task. Per-call ', he: 'מודל ברירת המחדל ושרשרת הגיבוי בפועל. מוגדרים בקוד (settings.ts, ואופציונלית משתנה הסביבה DEFAULT_LLM_MODEL) — תצוגה זו לקריאה בלבד. רוב הקריאות נועלות מודל משלהן לכל משימה. דריסות ' },
-  'settings.intro.after': { en: ' overrides on enrichment endpoints still win over these defaults.', he: ' פר-קריאה בנקודות הקצה של ההעשרה עדיין גוברות על ברירות המחדל האלה.' },
+  'settings.intro.before': {
+    en: 'Effective default model + fallback chain. Code-configured (settings.ts, optionally the DEFAULT_LLM_MODEL env var) — this view is read-only. Most calls pin their own model per task. Per-call ',
+    he: 'מודל ברירת המחדל ושרשרת הגיבוי בפועל. מוגדרים בקוד (settings.ts, ואופציונלית משתנה הסביבה DEFAULT_LLM_MODEL) — תצוגה זו לקריאה בלבד. רוב הקריאות נועלות מודל משלהן לכל משימה. דריסות ',
+  },
+  'settings.intro.after': {
+    en: ' overrides on enrichment endpoints still win over these defaults.',
+    he: ' פר-קריאה בנקודות הקצה של ההעשרה עדיין גוברות על ברירות המחדל האלה.',
+  },
   'settings.source': { en: 'source: {source}', he: 'מקור: {source}' },
   'settings.section.catalog': { en: 'Model catalog', he: 'קטלוג מודלים' },
   'settings.section.defaultModel': { en: 'Default model', he: 'מודל ברירת מחדל' },
@@ -383,15 +458,24 @@ const CATALOG = {
   'settings.remove': { en: 'remove', he: 'הסרה' },
   'settings.moveUp': { en: 'Move up', he: 'הזזה למעלה' },
   'settings.moveDown': { en: 'Move down', he: 'הזזה למטה' },
-  'settings.fallbackChain.hint': { en: 'Tried in order if the default model returns a retryable failure (HTTP 5xx, 429, 1031, 3046, network).', he: 'מנוסים לפי הסדר אם מודל ברירת המחדל מחזיר כשל הניתן לניסיון חוזר (HTTP 5xx, 429, 1031, 3046, רשת).' },
+  'settings.fallbackChain.hint': {
+    en: 'Tried in order if the default model returns a retryable failure (HTTP 5xx, 429, 1031, 3046, network).',
+    he: 'מנוסים לפי הסדר אם מודל ברירת המחדל מחזיר כשל הניתן לניסיון חוזר (HTTP 5xx, 429, 1031, 3046, רשת).',
+  },
   'settings.fallbackChain.empty': { en: '(empty — no fallback)', he: '(ריק — ללא גיבוי)' },
   'settings.addToChain': { en: '+ add to fallback chain…', he: '+ הוספה לשרשרת הגיבוי…' },
   'settings.saving': { en: 'saving…', he: 'שומר…' },
   'settings.save': { en: 'save', he: 'שמירה' },
   'settings.savedAt': { en: 'saved {time}', he: 'נשמר {time}' },
   'settings.errorPrefix': { en: 'error: {msg}', he: 'שגיאה: {msg}' },
-  'settings.lastSavedAtServer': { en: 'Last saved at server: {time}', he: 'נשמר לאחרונה בשרת: {time}' },
-  'settings.loadFailed': { en: 'Failed to load settings: {error}', he: 'טעינת ההגדרות נכשלה: {error}' },
+  'settings.lastSavedAtServer': {
+    en: 'Last saved at server: {time}',
+    he: 'נשמר לאחרונה בשרת: {time}',
+  },
+  'settings.loadFailed': {
+    en: 'Failed to load settings: {error}',
+    he: 'טעינת ההגדרות נכשלה: {error}',
+  },
 
   // — Usage page —
   'usage.title': { en: 'Usage', he: 'שימוש' },
@@ -435,16 +519,28 @@ const CATALOG = {
   'usage.tab.contentIn': { en: 'Content-In', he: 'מקורות' },
   'usage.tab.contentOut': { en: 'Content-Out', he: 'תוצרים' },
   // Traffic
-  'usage.activity.reqPerVisitor': { en: '{requests} requests · {avg}/visitor', he: '{requests} בקשות · {avg}/מבקר' },
+  'usage.activity.reqPerVisitor': {
+    en: '{requests} requests · {avg}/visitor',
+    he: '{requests} בקשות · {avg}/מבקר',
+  },
   // Content-In: sources (friendly names, dropping the cache key)
   'usage.sources.title': { en: 'Source material per daf', he: 'חומר מקור לכל דף' },
-  'usage.sources.hint': { en: 'what we fetched + how well it aligned, of {count} dafim', he: 'מה נאסף + כמה יושר, מתוך {count} דפים' },
-  'usage.sources.alignedTitle': { en: '{aligned} of {sampled} sampled cached dapim aligned', he: '{aligned} מתוך {sampled} דפים שנדגמו יושרו' },
+  'usage.sources.hint': {
+    en: 'what we fetched + how well it aligned, of {count} dafim',
+    he: 'מה נאסף + כמה יושר, מתוך {count} דפים',
+  },
+  'usage.sources.alignedTitle': {
+    en: '{aligned} of {sampled} sampled cached dapim aligned',
+    he: '{aligned} מתוך {sampled} דפים שנדגמו יושרו',
+  },
   'usage.col.source': { en: 'Source', he: 'מקור' },
   'usage.col.aligned': { en: 'Aligned', he: 'מיושר' },
   'usage.col.hasContent': { en: 'Has content', he: 'יש תוכן' },
   // Content-Out mark-first tree
-  'usage.tree.hint': { en: 'a mark, then the notes built on it — click to expand', he: 'סימון, ואז ההערות שנבנו עליו — לחצו להרחבה' },
+  'usage.tree.hint': {
+    en: 'a mark, then the notes built on it — click to expand',
+    he: 'סימון, ואז ההערות שנבנו עליו — לחצו להרחבה',
+  },
   'usage.tree.enrichCount': { en: '{count} enrichments', he: '{count} העשרות' },
   'usage.tree.dependsOn': { en: 'Depends on', he: 'תלוי ב' },
   'usage.tree.dependsOnSources': { en: 'Sources', he: 'מקורות' },
@@ -452,7 +548,10 @@ const CATALOG = {
   'usage.srcdep.contextLight': { en: 'Context (light)', he: 'הקשר (מצומצם)' },
   'usage.col.coverage': { en: 'Coverage', he: 'כיסוי' },
   'usage.tree.noEnrich': { en: 'No enrichments on this mark.', he: 'אין העשרות על סימון זה.' },
-  'usage.global.title': { en: 'Global — enriched once, reused across every daf', he: 'גלובלי — מועשר פעם אחת, בשימוש חוזר בכל דף' },
+  'usage.global.title': {
+    en: 'Global — enriched once, reused across every daf',
+    he: 'גלובלי — מועשר פעם אחת, בשימוש חוזר בכל דף',
+  },
   // Content-In per-piece labels (origin shown as a badge, not in the name)
   'usage.src.hb': { en: 'Daf page text', he: 'טקסט הדף' },
   'usage.src.gemara': { en: 'Daf text (aligned)', he: 'טקסט הדף (מיושר)' },
@@ -471,7 +570,7 @@ const CATALOG = {
   'usage.src.dy.points': { en: 'Points', he: 'נקודות' },
   'usage.src.dy.hebcharts': { en: 'Charts', he: 'טבלאות' },
   'usage.src.dy.yerushalmi': { en: 'Yerushalmi', he: 'ירושלמי' },
-  'usage.src.dy.revach': { en: 'Revach l\'Daf', he: 'רווח לדף' },
+  'usage.src.dy.revach': { en: "Revach l'Daf", he: 'רווח לדף' },
   'usage.source.hebrewbooks.hint': { en: 'page text', he: 'טקסט הדף' },
   'usage.source.gemara.hint': { en: 'aligned reference text', he: 'טקסט מיושר' },
   'usage.source.commentaries.hint': { en: 'aligned commentaries', he: 'מפרשים מיושרים' },
@@ -489,20 +588,38 @@ const CATALOG = {
   'usage.run.adhoc': { en: 'Ad-hoc', he: 'אד-הוק' },
   'usage.run.translate': { en: 'Translations', he: 'תרגומים' },
   'usage.cacheStat.hitRate': { en: 'Cache hit rate', he: 'שיעור פגיעות מטמון' },
-  'usage.cacheStat.hitRate.sub': { en: '{hits} of {calls} served from cache', he: '{hits} מתוך {calls} הוגשו מהמטמון' },
+  'usage.cacheStat.hitRate.sub': {
+    en: '{hits} of {calls} served from cache',
+    he: '{hits} מתוך {calls} הוגשו מהמטמון',
+  },
   'usage.cacheStat.stale': { en: 'Stale entries', he: 'רשומות מיושנות' },
   'usage.cacheStat.stale.sub': { en: 'on a superseded version', he: 'בגרסה שהוחלפה' },
   // Cost: input/output split + cache savings
   'usage.stat.inOut': { en: 'Input / Output $', he: 'קלט / פלט $' },
   'usage.stat.inOut.sub': { en: 'est. list-price split', he: 'פיצול לפי מחירון (אומדן)' },
   'usage.stat.costAvoided': { en: 'Saved by cache', he: 'נחסך ע״י מטמון' },
-  'usage.stat.costAvoided.sub': { en: '{count} recent cache hits', he: '{count} פגיעות מטמון אחרונות' },
+  'usage.stat.costAvoided.sub': {
+    en: '{count} recent cache hits',
+    he: '{count} פגיעות מטמון אחרונות',
+  },
   // By-daf cost table + per-daf drill-down
   'usage.byDaf.title': { en: 'Cost by daf', he: 'עלות לפי דף' },
-  'usage.byDaf.sub': { en: 'recent spend (last 7 days) — click a daf to trace it', he: 'הוצאה אחרונה (7 ימים) — לחצו על דף למעקב' },
-  'usage.byDaf.empty': { en: 'No per-daf spend recorded in the recent window yet.', he: 'לא נרשמה הוצאה לפי דף בחלון האחרון.' },
-  'usage.daf.permanentTitle': { en: 'Generation cost by mark (from the permanent cache)', he: 'עלות יצירה לפי סימון (מהמטמון הקבוע)' },
-  'usage.daf.empty': { en: 'No stamped mark costs cached for this daf.', he: 'אין עלויות סימון מוטבעות במטמון לדף זה.' },
+  'usage.byDaf.sub': {
+    en: 'recent spend (last 7 days) — click a daf to trace it',
+    he: 'הוצאה אחרונה (7 ימים) — לחצו על דף למעקב',
+  },
+  'usage.byDaf.empty': {
+    en: 'No per-daf spend recorded in the recent window yet.',
+    he: 'לא נרשמה הוצאה לפי דף בחלון האחרון.',
+  },
+  'usage.daf.permanentTitle': {
+    en: 'Generation cost by mark (from the permanent cache)',
+    he: 'עלות יצירה לפי סימון (מהמטמון הקבוע)',
+  },
+  'usage.daf.empty': {
+    en: 'No stamped mark costs cached for this daf.',
+    he: 'אין עלויות סימון מוטבעות במטמון לדף זה.',
+  },
   'usage.daf.col.mark': { en: 'Mark', he: 'סימון' },
   'usage.daf.col.current': { en: 'Current ver.', he: 'גרסה נוכחית' },
   'usage.daf.col.superseded': { en: 'Old vers.', he: 'גרסאות ישנות' },
@@ -513,25 +630,49 @@ const CATALOG = {
   'usage.source.gemara': { en: 'Daf Source 2', he: 'מקור דף 2' },
   'usage.source.commentaries': { en: 'Rashi + Tosafot', he: 'רש״י + תוספות' },
   'usage.anchors.title': { en: 'Anchors per daf', he: 'עוגנים לכל דף' },
-  'usage.anchors.hint': { en: 'click a row to see cache versions', he: 'לחצו על שורה לצפייה בגרסאות המטמון' },
+  'usage.anchors.hint': {
+    en: 'click a row to see cache versions',
+    he: 'לחצו על שורה לצפייה בגרסאות המטמון',
+  },
   'usage.anchors.empty': { en: 'No marks registered.', he: 'אין סימונים רשומים.' },
   'usage.localEnrich.title': { en: 'Local enrichments', he: 'העשרות מקומיות' },
-  'usage.localEnrich.hint': { en: 'per mark-instance, per daf — depth on top of anchors', he: 'לכל מופע סימון, לכל דף — עומק מעל העוגנים' },
-  'usage.localEnrich.empty': { en: 'No local enrichments registered.', he: 'אין העשרות מקומיות רשומות.' },
+  'usage.localEnrich.hint': {
+    en: 'per mark-instance, per daf — depth on top of anchors',
+    he: 'לכל מופע סימון, לכל דף — עומק מעל העוגנים',
+  },
+  'usage.localEnrich.empty': {
+    en: 'No local enrichments registered.',
+    he: 'אין העשרות מקומיות רשומות.',
+  },
   'usage.staleBadge': { en: '{count} stale', he: '{count} מיושנים' },
   'usage.heBadge': { en: '{count} he', he: '{count} עברית' },
   'usage.heRow': { en: 'Hebrew', he: 'עברית' },
   'usage.version.current': { en: '(current) — {count} dafim', he: '(נוכחי) — {count} דפים' },
-  'usage.version.noSuperseded': { en: 'No superseded versions in cache.', he: 'אין גרסאות מוחלפות במטמון.' },
-  'usage.version.supersededHeading': { en: 'Superseded versions still in KV (orphaned — safe to purge):', he: 'גרסאות מוחלפות שעדיין ב-KV (יתומות — ניתן למחוק בבטחה):' },
+  'usage.version.noSuperseded': {
+    en: 'No superseded versions in cache.',
+    he: 'אין גרסאות מוחלפות במטמון.',
+  },
+  'usage.version.supersededHeading': {
+    en: 'Superseded versions still in KV (orphaned — safe to purge):',
+    he: 'גרסאות מוחלפות שעדיין ב-KV (יתומות — ניתן למחוק בבטחה):',
+  },
   'usage.version.entries': { en: '{count} entries', he: '{count} רשומות' },
   'usage.globalRepo.title': { en: 'Global repository', he: 'מאגר גלובלי' },
-  'usage.globalRepo.hint': { en: 'enriched once, reused across every daf', he: 'מועשר פעם אחת, נעשה בו שימוש חוזר בכל דף' },
+  'usage.globalRepo.hint': {
+    en: 'enriched once, reused across every daf',
+    he: 'מועשר פעם אחת, נעשה בו שימוש חוזר בכל דף',
+  },
   'usage.rabbiCoverage.title': { en: 'Rabbi dataset coverage', he: 'כיסוי מאגר החכמים' },
-  'usage.rabbiCoverage.sub': { en: '· bundled JSON, {count} rabbis', he: '· JSON מצורף, {count} חכמים' },
+  'usage.rabbiCoverage.sub': {
+    en: '· bundled JSON, {count} rabbis',
+    he: '· JSON מצורף, {count} חכמים',
+  },
   'usage.rabbi.bio': { en: 'Bio (any source)', he: 'ביוגרפיה (כל מקור)' },
   'usage.rabbi.sefariaBio': { en: 'Sefaria bio', he: 'ביוגרפיה מספריא' },
-  'usage.rabbi.sefariaBio.hint': { en: 'from Sefaria PersonTopic API', he: 'מ-API של ספריא (PersonTopic)' },
+  'usage.rabbi.sefariaBio.hint': {
+    en: 'from Sefaria PersonTopic API',
+    he: 'מ-API של ספריא (PersonTopic)',
+  },
   'usage.rabbi.wiki': { en: 'Hebrew Wikipedia', he: 'ויקיפדיה העברית' },
   'usage.rabbi.wiki.hint': { en: 'Hebrew Wikipedia page linked', he: 'קושר לדף בויקיפדיה העברית' },
   'usage.rabbi.generation': { en: 'Generation identified', he: 'דור מזוהה' },
@@ -540,67 +681,142 @@ const CATALOG = {
   'usage.rabbi.chain': { en: 'Chain of tradition', he: 'שלשלת המסורה' },
   'usage.rabbi.chain.hint': { en: 'teacher / student / contemporary', he: 'רב / תלמיד / בן דור' },
   'usage.rabbi.family': { en: 'Familial relations', he: 'קשרי משפחה' },
-  'usage.rabbi.family.hint': { en: 'father / mother / spouse / child / sibling', he: 'אב / אם / בן זוג / ילד / אח' },
+  'usage.rabbi.family.hint': {
+    en: 'father / mother / spouse / child / sibling',
+    he: 'אב / אם / בן זוג / ילד / אח',
+  },
   'usage.rabbi.orientation': { en: 'Orientation', he: 'נטייה' },
-  'usage.rabbi.orientation.hint': { en: 'mystical / practical / mixed', he: 'מיסטית / מעשית / מעורבת' },
+  'usage.rabbi.orientation.hint': {
+    en: 'mystical / practical / mixed',
+    he: 'מיסטית / מעשית / מעורבת',
+  },
   'usage.globalEnrich.title': { en: 'Global enrichments cached', he: 'העשרות גלובליות במטמון' },
-  'usage.globalEnrich.sub': { en: '· the pool of pre-generated context to pull from', he: '· מאגר ההקשר שנוצר מראש לשליפה' },
-  'usage.globalEnrich.empty': { en: 'No global enrichments registered.', he: 'אין העשרות גלובליות רשומות.' },
-  'usage.globalEnrich.noGazetteer': { en: 'Note: there is no global places gazetteer yet — place enrichments are LLM-inferred per sighting. The backlog below is the seed for one.', he: 'הערה: אין עדיין מאגר מקומות גלובלי — העשרות המקומות מוסקות על ידי המודל לכל אזכור. המצבור שלהלן הוא הזרע למאגר כזה.' },
-  'usage.globalEnrich.concepts': { en: 'Concepts: {count} distinct background terms observed · no canonical glossary yet (the backlog below is the seed for one).', he: 'מונחים: {count} מונחי רקע ייחודיים שנצפו · אין עדיין מילון מונחים קנוני (המצבור שלהלן הוא הזרע למאגר כזה).' },
+  'usage.globalEnrich.sub': {
+    en: '· the pool of pre-generated context to pull from',
+    he: '· מאגר ההקשר שנוצר מראש לשליפה',
+  },
+  'usage.globalEnrich.empty': {
+    en: 'No global enrichments registered.',
+    he: 'אין העשרות גלובליות רשומות.',
+  },
+  'usage.globalEnrich.noGazetteer': {
+    en: 'Note: there is no global places gazetteer yet — place enrichments are LLM-inferred per sighting. The backlog below is the seed for one.',
+    he: 'הערה: אין עדיין מאגר מקומות גלובלי — העשרות המקומות מוסקות על ידי המודל לכל אזכור. המצבור שלהלן הוא הזרע למאגר כזה.',
+  },
+  'usage.globalEnrich.concepts': {
+    en: 'Concepts: {count} distinct background terms observed · no canonical glossary yet (the backlog below is the seed for one).',
+    he: 'מונחים: {count} מונחי רקע ייחודיים שנצפו · אין עדיין מילון מונחים קנוני (המצבור שלהלן הוא הזרע למאגר כזה).',
+  },
   'usage.backlog.title': { en: 'Needs global enrichment', he: 'דרושה העשרה גלובלית' },
-  'usage.backlog.hint': { en: 'entities seen in the app that have no global record yet — grows as users explore', he: 'ישויות שנצפו באפליקציה ואין להן עדיין רשומה גלובלית — גדל ככל שמשתמשים מתעמקים' },
-  'usage.backlog.combined': { en: '{count} distinct entities awaiting global context (rabbis + places + concepts).', he: '{count} ישויות ייחודיות הממתינות להקשר גלובלי (חכמים + מקומות + מונחים).' },
+  'usage.backlog.hint': {
+    en: 'entities seen in the app that have no global record yet — grows as users explore',
+    he: 'ישויות שנצפו באפליקציה ואין להן עדיין רשומה גלובלית — גדל ככל שמשתמשים מתעמקים',
+  },
+  'usage.backlog.combined': {
+    en: '{count} distinct entities awaiting global context (rabbis + places + concepts).',
+    he: '{count} ישויות ייחודיות הממתינות להקשר גלובלי (חכמים + מקומות + מונחים).',
+  },
   'usage.backlog.rabbis.title': { en: 'Rabbis not in dataset', he: 'חכמים שאינם במאגר' },
   'usage.backlog.distinct': { en: '· {count} distinct', he: '· {count} ייחודיים' },
-  'usage.backlog.rabbis.empty': { en: 'None yet — every rabbi seen so far resolved to the dataset.', he: 'אין עדיין — כל חכם שנצפה עד כה זוהה במאגר.' },
+  'usage.backlog.rabbis.empty': {
+    en: 'None yet — every rabbi seen so far resolved to the dataset.',
+    he: 'אין עדיין — כל חכם שנצפה עד כה זוהה במאגר.',
+  },
   'usage.backlog.places.title': { en: 'Places observed', he: 'מקומות שנצפו' },
-  'usage.backlog.places.distinct': { en: '· {count} distinct (no gazetteer)', he: '· {count} ייחודיים (ללא מאגר מקומות)' },
+  'usage.backlog.places.distinct': {
+    en: '· {count} distinct (no gazetteer)',
+    he: '· {count} ייחודיים (ללא מאגר מקומות)',
+  },
   'usage.backlog.places.empty': { en: 'No places observed yet.', he: 'לא נצפו עדיין מקומות.' },
   'usage.backlog.concepts.title': { en: 'Concepts observed', he: 'מונחים שנצפו' },
-  'usage.backlog.concepts.distinct': { en: '· {count} distinct (no glossary)', he: '· {count} ייחודיים (ללא מילון מונחים)' },
+  'usage.backlog.concepts.distinct': {
+    en: '· {count} distinct (no glossary)',
+    he: '· {count} ייחודיים (ללא מילון מונחים)',
+  },
   'usage.backlog.concepts.empty': { en: 'No concepts observed yet.', he: 'לא נצפו עדיין מונחים.' },
   'usage.cost.title': { en: 'Cost', he: 'עלות' },
-  'usage.cost.hint': { en: 'two sources — AI Gateway is authoritative; self-tracked attributes spend per mark/enrichment', he: 'שני מקורות — AI Gateway הוא המקור הסמכותי; המעקב העצמי מייחס הוצאה לכל סימון/העשרה' },
+  'usage.cost.hint': {
+    en: 'two sources — AI Gateway is authoritative; self-tracked attributes spend per mark/enrichment',
+    he: 'שני מקורות — AI Gateway הוא המקור הסמכותי; המעקב העצמי מייחס הוצאה לכל סימון/העשרה',
+  },
   'usage.aigw.title': { en: 'AI Gateway', he: 'AI Gateway' },
-  'usage.aigw.sub': { en: '· provider-reported, last 30d', he: '· מדווח על ידי הספק, 30 הימים האחרונים' },
+  'usage.aigw.sub': {
+    en: '· provider-reported, last 30d',
+    he: '· מדווח על ידי הספק, 30 הימים האחרונים',
+  },
   // Reframed cost view: a billed total + our own windowed tracking.
   'usage.cost.billed.title': { en: 'Total spent', he: 'סך ההוצאה' },
-  'usage.cost.billed.sub': { en: 'billed by the provider · last 30 days', he: 'מחויב על ידי הספק · 30 הימים האחרונים' },
+  'usage.cost.billed.sub': {
+    en: 'billed by the provider · last 30 days',
+    he: 'מחויב על ידי הספק · 30 הימים האחרונים',
+  },
   'usage.cost.tracked.title': { en: 'Our tracking', he: 'המעקב שלנו' },
-  'usage.cost.tracked.sub': { en: 'priced models · per producer', he: 'מודלים מתומחרים · לכל מפיק' },
-  'usage.cost.tracked.subSince': { en: 'priced models · since {date}', he: 'מודלים מתומחרים · מאז {date}' },
+  'usage.cost.tracked.sub': {
+    en: 'priced models · per producer',
+    he: 'מודלים מתומחרים · לכל מפיק',
+  },
+  'usage.cost.tracked.subSince': {
+    en: 'priced models · since {date}',
+    he: 'מודלים מתומחרים · מאז {date}',
+  },
   'usage.cost.win7': { en: 'Last 7 days', he: '7 ימים אחרונים' },
   'usage.cost.win30': { en: 'Last 30 days', he: '30 ימים אחרונים' },
   'usage.cost.winAll': { en: 'All time', he: 'מאז ומתמיד' },
   'usage.cost.winCalls': { en: '{count} calls', he: '{count} קריאות' },
-  'usage.cost.converge': { en: 'Our 30-day tracking is {pct}% of the {billed} billed — the gap is Workers AI and other models the provider bills but we can\'t yet price per producer. The two should converge.', he: 'המעקב שלנו ל-30 יום הוא {pct}% מתוך {billed} שחויבו — הפער הוא Workers AI ומודלים נוספים שהספק מחייב אך איננו מתמחרים לכל מפיק. השניים אמורים להתכנס.' },
-  'usage.aigw.queryFailed': { en: 'AI Gateway query failed: {error}', he: 'שאילתת AI Gateway נכשלה: {error}' },
-  'usage.aigw.notConfigured.before': { en: 'Not configured. Set a Cloudflare API token (Account Analytics: Read) via ', he: 'לא הוגדר. הגדירו טוקן API של Cloudflare (Account Analytics: Read) באמצעות ' },
-  'usage.aigw.notConfigured.after': { en: ' to pull authoritative spend. ({error})', he: ' כדי למשוך נתוני הוצאה סמכותיים. ({error})' },
+  'usage.cost.converge': {
+    en: "Our 30-day tracking is {pct}% of the {billed} billed — the gap is Workers AI and other models the provider bills but we can't yet price per producer. The two should converge.",
+    he: 'המעקב שלנו ל-30 יום הוא {pct}% מתוך {billed} שחויבו — הפער הוא Workers AI ומודלים נוספים שהספק מחייב אך איננו מתמחרים לכל מפיק. השניים אמורים להתכנס.',
+  },
+  'usage.aigw.queryFailed': {
+    en: 'AI Gateway query failed: {error}',
+    he: 'שאילתת AI Gateway נכשלה: {error}',
+  },
+  'usage.aigw.notConfigured.before': {
+    en: 'Not configured. Set a Cloudflare API token (Account Analytics: Read) via ',
+    he: 'לא הוגדר. הגדירו טוקן API של Cloudflare (Account Analytics: Read) באמצעות ',
+  },
+  'usage.aigw.notConfigured.after': {
+    en: ' to pull authoritative spend. ({error})',
+    he: ' כדי למשוך נתוני הוצאה סמכותיים. ({error})',
+  },
   'usage.stat.totalCost': { en: 'Total cost', he: 'עלות כוללת' },
   'usage.stat.requests': { en: 'Requests', he: 'בקשות' },
   'usage.stat.tokensIn': { en: 'Tokens in', he: 'טוקנים נכנסים' },
   'usage.stat.tokensOut': { en: 'Tokens out', he: 'טוקנים יוצאים' },
   'usage.selfTracked.title': { en: 'Self-tracked', he: 'מעקב עצמי' },
-  'usage.selfTracked.sub': { en: '· daily rollups, priced models only', he: '· סיכומים יומיים, מודלים מתומחרים בלבד' },
-  'usage.selfTracked.subSince': { en: '· daily rollups, priced models only · since {date}', he: '· סיכומים יומיים, מודלים מתומחרים בלבד · מאז {date}' },
+  'usage.selfTracked.sub': {
+    en: '· daily rollups, priced models only',
+    he: '· סיכומים יומיים, מודלים מתומחרים בלבד',
+  },
+  'usage.selfTracked.subSince': {
+    en: '· daily rollups, priced models only · since {date}',
+    he: '· סיכומים יומיים, מודלים מתומחרים בלבד · מאז {date}',
+  },
   'usage.selfTracked.empty': { en: 'No usage recorded yet.', he: 'לא נרשם עדיין שימוש.' },
   'usage.stat.costPriced': { en: 'Cost (priced)', he: 'עלות (מתומחר)' },
   'usage.stat.pricedCalls': { en: '{count} priced calls', he: '{count} קריאות מתומחרות' },
   'usage.stat.unpricedCalls': { en: 'Unpriced calls', he: 'קריאות לא מתומחרות' },
-  'usage.stat.unpricedCalls.sub': { en: 'Workers AI — in the billed total', he: 'Workers AI — כלול בסך המחויב' },
+  'usage.stat.unpricedCalls.sub': {
+    en: 'Workers AI — in the billed total',
+    he: 'Workers AI — כלול בסך המחויב',
+  },
   'usage.stat.llmCalls': { en: 'LLM calls', he: 'קריאות למודל' },
   'usage.stat.errored': { en: '{count} errored', he: '{count} נכשלו' },
   'usage.stat.tokens': { en: 'Tokens', he: 'טוקנים' },
   'usage.stat.tokensInOut': { en: '{in} in / {out} out', he: '{in} נכנסים / {out} יוצאים' },
   'usage.shas.title': { en: 'Cost to warm all of shas', he: 'עלות חימום כל הש״ס' },
-  'usage.shas.sub': { en: '· estimate · every producer × {amudim} amudim', he: '· אומדן · כל מפיק × {amudim} עמודים' },
+  'usage.shas.sub': {
+    en: '· estimate · every producer × {amudim} amudim',
+    he: '· אומדן · כל מפיק × {amudim} עמודים',
+  },
   'usage.shas.full': { en: 'Full-depth shas', he: 'ש״ס מלא' },
   'usage.shas.perAmud': { en: 'Avg / amud', he: 'ממוצע / עמוד' },
   'usage.shas.spent': { en: 'Spent so far', he: 'הוצא עד כה' },
   'usage.shas.remaining': { en: 'Remaining', he: 'נותר' },
-  'usage.shas.note': { en: 'Estimate: each producer’s avg $/priced call × how often it fires per amud × {amudim} amudim, grossed up ×{gross} for Workers AI (billed but unpriced per-producer). Coverage is uneven, so most of the remaining cost is the lightly-warmed long tail. The billed total above is authoritative for money actually spent.', he: 'אומדן: עלות ממוצעת לקריאה מתומחרת לכל מפיק × תדירות ההפעלה לעמוד × {amudim} עמודים, מוגדל פי {gross} עבור Workers AI (מחויב אך לא מתומחר ברמת המפיק). הכיסוי אינו אחיד, ולכן רוב העלות שנותרה היא הזנב הארוך שחומם מעט. הסכום המחויב למעלה הוא המקור הסמכותי להוצאה בפועל.' },
+  'usage.shas.note': {
+    en: 'Estimate: each producer’s avg $/priced call × how often it fires per amud × {amudim} amudim, grossed up ×{gross} for Workers AI (billed but unpriced per-producer). Coverage is uneven, so most of the remaining cost is the lightly-warmed long tail. The billed total above is authoritative for money actually spent.',
+    he: 'אומדן: עלות ממוצעת לקריאה מתומחרת לכל מפיק × תדירות ההפעלה לעמוד × {amudim} עמודים, מוגדל פי {gross} עבור Workers AI (מחויב אך לא מתומחר ברמת המפיק). הכיסוי אינו אחיד, ולכן רוב העלות שנותרה היא הזנב הארוך שחומם מעט. הסכום המחויב למעלה הוא המקור הסמכותי להוצאה בפועל.',
+  },
   'usage.shas.col.producer': { en: 'Producer', he: 'מפיק' },
   'usage.shas.col.perCall': { en: '$/call', he: '$/קריאה' },
   'usage.shas.col.firesPerAmud': { en: '/amud', he: '/עמוד' },
@@ -608,7 +824,10 @@ const CATALOG = {
   'usage.shas.col.remaining': { en: 'Remaining', he: 'נותר' },
   'usage.shas.col.full': { en: 'Full shas', he: 'ש״ס מלא' },
   'usage.shas.more': { en: '+{count} more producers', he: '+{count} מפיקים נוספים' },
-  'usage.shas.empty': { en: 'Not enough data yet — needs priced spend and cache coverage.', he: 'אין עדיין מספיק נתונים — נדרשת הוצאה מתומחרת וכיסוי מטמון.' },
+  'usage.shas.empty': {
+    en: 'Not enough data yet — needs priced spend and cache coverage.',
+    he: 'אין עדיין מספיק נתונים — נדרשת הוצאה מתומחרת וכיסוי מטמון.',
+  },
   'usage.byMark': { en: 'By mark', he: 'לפי סימון' },
   'usage.byEnrichment': { en: 'By enrichment', he: 'לפי העשרה' },
   'usage.byModel': { en: 'By model', he: 'לפי מודל' },
@@ -616,30 +835,48 @@ const CATALOG = {
   'usage.shas.breakdown': { en: 'Per-producer breakdown', he: 'פירוט לפי מפיק' },
   'usage.callsCount': { en: '{count} calls', he: '{count} קריאות' },
   'usage.unpriced': { en: 'unpriced', he: 'לא מתומחר' },
-  'usage.latency.byEndpoint': { en: 'By type · {count} recent calls', he: 'לפי סוג · {count} קריאות אחרונות' },
+  'usage.latency.byEndpoint': {
+    en: 'By type · {count} recent calls',
+    he: 'לפי סוג · {count} קריאות אחרונות',
+  },
   'usage.latency.byMark': { en: 'Marks', he: 'סימונים' },
   'usage.latency.byMark.hint': { en: 'per mark, across all runs', he: 'לכל סימון, בכל ההרצות' },
   'usage.latency.byEnrichment': { en: 'Enrichments', he: 'העשרות' },
-  'usage.latency.byEnrichment.hint': { en: 'per enrichment, across all runs', he: 'לכל העשרה, בכל ההרצות' },
+  'usage.latency.byEnrichment.hint': {
+    en: 'per enrichment, across all runs',
+    he: 'לכל העשרה, בכל ההרצות',
+  },
   'usage.recentErrors.title': { en: 'Recent errors', he: 'שגיאות אחרונות' },
   'usage.recentErrors.hint': { en: 'from request telemetry', he: 'מתוך טלמטריית הבקשות' },
   'usage.errorKind.other': { en: 'other', he: 'אחר' },
   'usage.jobErrors.title': { en: 'Queue job failures ({count})', he: 'כשלי משימות בתור ({count})' },
-  'usage.jobErrors.hint': { en: 'hard exceptions in the enrichment queue consumer', he: 'חריגות קשות בצרכן תור ההעשרה' },
+  'usage.jobErrors.hint': {
+    en: 'hard exceptions in the enrichment queue consumer',
+    he: 'חריגות קשות בצרכן תור ההעשרה',
+  },
   'usage.lintFailures.title': { en: 'Lint failures ({count})', he: 'כשלי בדיקת סגנון ({count})' },
-  'usage.lintFailures.hint': { en: 'cards pinned after repeated gloss-style / Hebrew-anchor lint failures', he: 'כרטיסים שננעלו לאחר כשלים חוזרים בבדיקת סגנון/עוגן עברי' },
+  'usage.lintFailures.hint': {
+    en: 'cards pinned after repeated gloss-style / Hebrew-anchor lint failures',
+    he: 'כרטיסים שננעלו לאחר כשלים חוזרים בבדיקת סגנון/עוגן עברי',
+  },
   'usage.bugReports.title': { en: 'Bug reports ({count})', he: 'דיווחי תקלות ({count})' },
   'usage.bugReports.empty': { en: 'Inbox empty.', he: 'תיבת הדואר ריקה.' },
   // Actionable bug reports at the top of Backlog
   'usage.reports.title': { en: 'User reports ({count})', he: 'דיווחי משתמשים ({count})' },
-  'usage.reports.empty': { en: 'No open reports — nicely done.', he: 'אין דיווחים פתוחים — כל הכבוד.' },
+  'usage.reports.empty': {
+    en: 'No open reports — nicely done.',
+    he: 'אין דיווחים פתוחים — כל הכבוד.',
+  },
   'usage.reports.doneTitle': { en: 'Done ({count})', he: 'טופלו ({count})' },
   'usage.reports.markDone': { en: 'Mark done', he: 'סמן כטופל' },
   'usage.reports.restore': { en: 'Restore', he: 'שחזר' },
   'usage.notTracked': { en: 'not tracked', he: 'לא במעקב' },
   'usage.missing': { en: '{count} missing', he: '{count} חסרים' },
   'usage.activity.title': { en: 'Activity', he: 'פעילות' },
-  'usage.activity.hint': { en: 'Cloudflare edge requests — whole zone (≈the app); requests include bots & crawlers, visitors are deduped', he: 'בקשות מקצה Cloudflare — כל האזור (בקירוב האפליקציה); בקשות כוללות בוטים וזחלנים, מבקרים ללא כפילויות' },
+  'usage.activity.hint': {
+    en: 'Cloudflare edge requests — whole zone (≈the app); requests include bots & crawlers, visitors are deduped',
+    he: 'בקשות מקצה Cloudflare — כל האזור (בקירוב האפליקציה); בקשות כוללות בוטים וזחלנים, מבקרים ללא כפילויות',
+  },
   'usage.activity.today': { en: 'Today', he: 'היום' },
   'usage.activity.week': { en: 'Last 7 days', he: '7 ימים אחרונים' },
   'usage.activity.month': { en: 'Last 30 days', he: '30 ימים אחרונים' },
@@ -648,13 +885,28 @@ const CATALOG = {
   'usage.activity.trend': { en: 'Daily requests', he: 'בקשות יומיות' },
   'usage.activity.fromWhere': { en: 'From where', he: 'מאיפה' },
   'usage.activity.unknownCountry': { en: 'Unknown', he: 'לא ידוע' },
-  'usage.activity.queryFailed': { en: 'Activity query failed: {error}', he: 'שאילתת הפעילות נכשלה: {error}' },
-  'usage.activity.notConfigured.before': { en: 'Not configured. Set a Cloudflare API token (Zone Analytics: Read) via ', he: 'לא הוגדר. הגדירו טוקן API של Cloudflare (Zone Analytics: Read) באמצעות ' },
-  'usage.activity.notConfigured.after': { en: ' plus CF_ZONE_TAG to see app traffic. ({error})', he: ' ובנוסף CF_ZONE_TAG כדי לראות את תנועת האפליקציה. ({error})' },
+  'usage.activity.queryFailed': {
+    en: 'Activity query failed: {error}',
+    he: 'שאילתת הפעילות נכשלה: {error}',
+  },
+  'usage.activity.notConfigured.before': {
+    en: 'Not configured. Set a Cloudflare API token (Zone Analytics: Read) via ',
+    he: 'לא הוגדר. הגדירו טוקן API של Cloudflare (Zone Analytics: Read) באמצעות ',
+  },
+  'usage.activity.notConfigured.after': {
+    en: ' plus CF_ZONE_TAG to see app traffic. ({error})',
+    he: ' ובנוסף CF_ZONE_TAG כדי לראות את תנועת האפליקציה. ({error})',
+  },
   'usage.group.telemetry': { en: 'Telemetry & latency', he: 'טלמטריה וזמני תגובה' },
-  'usage.group.telemetry.hint': { en: 'recent request timing & errors', he: 'תזמון ושגיאות של בקשות אחרונות' },
+  'usage.group.telemetry.hint': {
+    en: 'recent request timing & errors',
+    he: 'תזמון ושגיאות של בקשות אחרונות',
+  },
   'usage.group.errors': { en: 'Errors & reports', he: 'שגיאות ודיווחים' },
-  'usage.group.errors.hint': { en: 'queue failures & user bug reports', he: 'כשלי תור ודיווחי תקלות ממשתמשים' },
+  'usage.group.errors.hint': {
+    en: 'queue failures & user bug reports',
+    he: 'כשלי תור ודיווחי תקלות ממשתמשים',
+  },
 
   // — Halacha body —
   'halacha.codification': { en: 'Codification', he: 'פסיקה' },
@@ -693,7 +945,10 @@ const CATALOG = {
   // — Yerushalmi body —
   'yerushalmi.differences': { en: 'Differences from the Yerushalmi', he: 'הבדלים מן הירושלמי' },
   'yerushalmi.autoAligned': { en: 'auto-aligned', he: 'יושר אוטומטית' },
-  'yerushalmi.readOnSefaria': { en: 'Read the full Yerushalmi on Sefaria', he: 'קרא את הירושלמי המלא בספריא' },
+  'yerushalmi.readOnSefaria': {
+    en: 'Read the full Yerushalmi on Sefaria',
+    he: 'קרא את הירושלמי המלא בספריא',
+  },
   'yerushalmi.curatedParallel': { en: 'Curated parallel (Sefaria)', he: 'מקבילה נבחרת (ספריא)' },
 
   // — Aggadata body —
@@ -755,9 +1010,18 @@ const CATALOG = {
   'commentary.loading': { en: 'Loading…', he: 'טוען…' },
   'commentary.empty': { en: 'No commentary links on this daf.', he: 'אין מפרשים על דף זה.' },
   'commentary.choose': { en: '— choose a commentary —', he: '— בחרו מפרש —' },
-  'commentary.clickHint': { en: 'Click any highlighted span on the daf to open the specific comment.', he: 'לחצו על קטע מודגש בדף לפתיחת הפירוש הספציפי.' },
-  'commentary.segmentCount.one': { en: '{count} comment on segment #{seg}', he: 'פירוש אחד על קטע #{seg}' },
-  'commentary.segmentCount.other': { en: '{count} comments on segment #{seg}', he: '{count} פירושים על קטע #{seg}' },
+  'commentary.clickHint': {
+    en: 'Click any highlighted span on the daf to open the specific comment.',
+    he: 'לחצו על קטע מודגש בדף לפתיחת הפירוש הספציפי.',
+  },
+  'commentary.segmentCount.one': {
+    en: '{count} comment on segment #{seg}',
+    he: 'פירוש אחד על קטע #{seg}',
+  },
+  'commentary.segmentCount.other': {
+    en: '{count} comments on segment #{seg}',
+    he: '{count} פירושים על קטע #{seg}',
+  },
   'commentary.closeSegment': { en: 'Close segment', he: 'סגירת הקטע' },
   'commentary.autoTranslated': { en: 'auto-translated', he: 'תורגם אוטומטית' },
   'commentary.translating': { en: 'Translating…', he: 'מתרגם…' },
@@ -765,13 +1029,22 @@ const CATALOG = {
   'commentary.noText': { en: '(No text available)', he: '(אין טקסט זמין)' },
 
   // — Geography map —
-  'geography.heading': { en: 'Geography · click a dot to highlight', he: 'גאוגרפיה · לחצו על נקודה להדגשה' },
+  'geography.heading': {
+    en: 'Geography · click a dot to highlight',
+    he: 'גאוגרפיה · לחצו על נקודה להדגשה',
+  },
   'geography.mapping': { en: 'Mapping rabbi geography…', he: 'ממפה את גאוגרפיית החכמים…' },
   'geography.mentionedInDaf': { en: 'mentioned in daf', he: 'מוזכר בדף' },
   'geography.eretzYisrael': { en: 'Eretz Yisrael', he: 'ארץ ישראל' },
-  'geography.eretzYisrael.aria': { en: 'Eretz Yisrael — rabbi geographic origins', he: 'ארץ ישראל — מוצא גאוגרפי של החכמים' },
+  'geography.eretzYisrael.aria': {
+    en: 'Eretz Yisrael — rabbi geographic origins',
+    he: 'ארץ ישראל — מוצא גאוגרפי של החכמים',
+  },
   'geography.bavel': { en: 'Bavel', he: 'בבל' },
-  'geography.bavel.aria': { en: 'Bavel — rabbi geographic origins', he: 'בבל — מוצא גאוגרפי של החכמים' },
+  'geography.bavel.aria': {
+    en: 'Bavel — rabbi geographic origins',
+    he: 'בבל — מוצא גאוגרפי של החכמים',
+  },
   'geography.euphrates': { en: 'Euphrates', he: 'פרת' },
   'geography.tigris': { en: 'Tigris', he: 'חידקל' },
   'geography.placesMentioned': { en: 'Places mentioned', he: 'מקומות מוזכרים' },
@@ -790,7 +1063,10 @@ const CATALOG = {
 
   // — Mobile interaction modes + layers —
   'mobile.mode.read': { en: 'Read', he: 'קריאה' },
-  'mobile.mode.read.hint': { en: 'Pan & zoom; tap icons to open', he: 'גלילה וזום; הקישו על סמלים לפתיחה' },
+  'mobile.mode.read.hint': {
+    en: 'Pan & zoom; tap icons to open',
+    he: 'גלילה וזום; הקישו על סמלים לפתיחה',
+  },
   'mobile.mode.translate': { en: 'Translate', he: 'תרגום' },
   'mobile.mode.translate.hint': { en: 'Tap words to translate', he: 'הקישו על מילים לתרגום' },
   'mobile.layers': { en: 'Layers', he: 'שכבות' },
@@ -810,16 +1086,28 @@ const CATALOG = {
   // — Bug report —
   'bugreport.open': { en: 'Report a problem', he: 'דיווח על תקלה' },
   'bugreport.sent': { en: 'Thanks — report sent for {daf}.', he: 'תודה — הדיווח נשלח עבור {daf}.' },
-  'bugreport.prompt': { en: 'Reporting a problem with {daf} — what went wrong?', he: 'דיווח על תקלה ב{daf} — מה השתבש?' },
-  'bugreport.placeholder': { en: "e.g. Rabbi Yochanan wasn't underlined in this passage, or the translation for this word was wrong.", he: 'לדוגמה: רבי יוחנן לא סומן בקטע זה, או שתרגום המילה היה שגוי.' },
+  'bugreport.prompt': {
+    en: 'Reporting a problem with {daf} — what went wrong?',
+    he: 'דיווח על תקלה ב{daf} — מה השתבש?',
+  },
+  'bugreport.placeholder': {
+    en: "e.g. Rabbi Yochanan wasn't underlined in this passage, or the translation for this word was wrong.",
+    he: 'לדוגמה: רבי יוחנן לא סומן בקטע זה, או שתרגום המילה היה שגוי.',
+  },
   'bugreport.cancel': { en: 'Cancel', he: 'ביטול' },
   'bugreport.submit': { en: 'Submit', he: 'שליחה' },
   'bugreport.sending': { en: 'Sending…', he: 'שולח…' },
   'bugreport.sendError': { en: "Couldn't send: {error}", he: 'השליחה נכשלה: {error}' },
 
   // — Daf load progress —
-  'dafLoad.analyzing': { en: 'Analyzing daf — {done} of {total} anchors', he: 'מנתח את הדף — {done} מתוך {total} עוגנים' },
-  'dafLoad.loadingSections': { en: 'Loading {section} — {done} of {total}', he: 'טוען {section} — {done} מתוך {total}' },
+  'dafLoad.analyzing': {
+    en: 'Analyzing daf — {done} of {total} anchors',
+    he: 'מנתח את הדף — {done} מתוך {total} עוגנים',
+  },
+  'dafLoad.loadingSections': {
+    en: 'Loading {section} — {done} of {total}',
+    he: 'טוען {section} — {done} מתוך {total}',
+  },
   'dafLoad.sections': { en: 'sections', he: 'מקטעים' },
   'dafLoad.upToDate': { en: 'Up to date', he: 'מעודכן' },
   'dafLoad.paused': {
@@ -846,14 +1134,17 @@ const CATALOG = {
   'dafLoad.family.argumentOverview': { en: 'overview', he: 'סקירה' },
   'dafLoad.family.background': { en: 'background', he: 'רקע' },
   'dafLoad.family.tidbit': { en: 'chiddush', he: 'חידוש' },
-  'dafLoad.family.biyun': { en: 'bi\'yun', he: 'עיון' },
+  'dafLoad.family.biyun': { en: "bi'yun", he: 'עיון' },
 
   // — Gutter icon tooltips —
   'gutter.argument': { en: 'Argument structure & rabbis', he: 'מבנה הסוגיה וחכמים' },
   'gutter.halacha': { en: 'Practical halacha', he: 'הלכה למעשה' },
   'gutter.chart': { en: 'Comparison chart for this region', he: 'טבלת השוואה לקטע זה' },
   'gutter.aggadata': { en: 'Aggada — narrative on this line', he: 'אגדה — סיפור בשורה זו' },
-  'gutter.yerushalmi': { en: 'Yerushalmi — parallel in the Jerusalem Talmud', he: 'ירושלמי — מקבילה בתלמוד הירושלמי' },
+  'gutter.yerushalmi': {
+    en: 'Yerushalmi — parallel in the Jerusalem Talmud',
+    he: 'ירושלמי — מקבילה בתלמוד הירושלמי',
+  },
   'gutter.rishonim': { en: 'Rishonim on this line', he: 'ראשונים על שורה זו' },
   'gutter.pesukim': { en: 'Pasuk — Tanach citation', he: 'פסוק — ציטוט מהתנ״ך' },
 
@@ -937,17 +1228,26 @@ const CATALOG = {
     he: 'הסמלים הקטנים בשוליים מציינים היכן יושבות ההערות החכמות. לחצו על אחד כדי לפתוח אותו — במחשב נפתחת חלונית בצד, ובטלפון מגירה מלמטה. כל צבע הוא סוג הערה אחר:',
   },
   'tutorial.icon.argument.label': { en: 'Argument', he: 'מהלך הסוגיה' },
-  'tutorial.icon.argument.desc': { en: 'how the sugya builds its case, step by step', he: 'כיצד הסוגיה בונה את טיעונה, שלב אחר שלב' },
+  'tutorial.icon.argument.desc': {
+    en: 'how the sugya builds its case, step by step',
+    he: 'כיצד הסוגיה בונה את טיעונה, שלב אחר שלב',
+  },
   'tutorial.icon.halacha.label': { en: 'Halacha', he: 'הלכה' },
   'tutorial.icon.halacha.desc': { en: 'the practical legal ruling', he: 'הפסיקה המעשית' },
   'tutorial.icon.aggadata.label': { en: 'Aggada', he: 'אגדה' },
   'tutorial.icon.aggadata.desc': { en: 'story, ethics, and lore', he: 'סיפור, מוסר ומחשבה' },
   'tutorial.icon.yerushalmi.label': { en: 'Yerushalmi', he: 'ירושלמי' },
-  'tutorial.icon.yerushalmi.desc': { en: 'the parallel passage in the Jerusalem Talmud', he: 'המקבילה בתלמוד הירושלמי' },
+  'tutorial.icon.yerushalmi.desc': {
+    en: 'the parallel passage in the Jerusalem Talmud',
+    he: 'המקבילה בתלמוד הירושלמי',
+  },
   'tutorial.icon.pesuk.label': { en: 'Verses', he: 'פסוקים' },
   'tutorial.icon.pesuk.desc': { en: 'Tanakh quoted or alluded to', he: 'מקראות שצוטטו או נרמזו' },
   'tutorial.icon.rishonim.label': { en: 'Rishonim', he: 'ראשונים' },
-  'tutorial.icon.rishonim.desc': { en: 'medieval commentary anchored here', he: 'פירוש הראשונים על המקום' },
+  'tutorial.icon.rishonim.desc': {
+    en: 'medieval commentary anchored here',
+    he: 'פירוש הראשונים על המקום',
+  },
 
   'tutorial.chips.title': { en: 'Notes on the whole daf', he: 'הערות על כל הדף' },
   'tutorial.chips.body': {
@@ -975,12 +1275,18 @@ const CATALOG = {
 
   'tutorial.underline.title': { en: 'The colored names', he: 'השמות הצבעוניים' },
   'tutorial.underline.body': {
-    en: 'Rabbis\' names are underlined by when they lived: a red scale for the Talmudic era (darker = earlier) and a blue scale for the Geonim onward. Dotted underlines mark key terms — hover or tap them for a short gloss.',
+    en: "Rabbis' names are underlined by when they lived: a red scale for the Talmudic era (darker = earlier) and a blue scale for the Geonim onward. Dotted underlines mark key terms — hover or tap them for a short gloss.",
     he: 'שמות החכמים מסומנים בקו תחתון לפי תקופתם: סולם אדום לתקופת התלמוד (כהה = מוקדם יותר) וסולם כחול מהגאונים ואילך. קווים מקווקווים מסמנים מונחי מפתח — רחפו או הקישו עליהם להסבר קצר.',
   },
-  'tutorial.underline.early': { en: 'Talmudic era (earlier → later)', he: 'תקופת התלמוד (מוקדם ← מאוחר)' },
+  'tutorial.underline.early': {
+    en: 'Talmudic era (earlier → later)',
+    he: 'תקופת התלמוד (מוקדם ← מאוחר)',
+  },
   'tutorial.underline.late': { en: 'Geonim onward', he: 'מהגאונים ואילך' },
-  'tutorial.underline.dotted': { en: 'dotted = a key term; tap for a gloss', he: 'מקווקו = מונח מפתח; הקישו להסבר' },
+  'tutorial.underline.dotted': {
+    en: 'dotted = a key term; tap for a gloss',
+    he: 'מקווקו = מונח מפתח; הקישו להסבר',
+  },
 
   'tutorial.qa.title': { en: 'Ask your own question', he: 'שאלו שאלה משלכם' },
   'tutorial.qa.body': {
@@ -998,7 +1304,7 @@ const CATALOG = {
 
   'tutorial.finish.title': { en: "You're ready", he: 'אתם מוכנים' },
   'tutorial.finish.body': {
-    en: 'That\'s the tour. You can reopen it anytime from the Help button. Enjoy learning.',
+    en: "That's the tour. You can reopen it anytime from the Help button. Enjoy learning.",
     he: 'זה הסיור. אפשר לפתוח אותו שוב בכל עת מכפתור העזרה. למידה נעימה.',
   },
   'tutorial.finish.contact': {

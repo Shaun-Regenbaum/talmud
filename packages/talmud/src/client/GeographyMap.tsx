@@ -24,9 +24,9 @@
  * Until then: this file lives but is not imported anywhere.
  */
 
-import { createMemo, createSignal, For, Show, type JSX } from 'solid-js';
-import { ISRAEL_SHAPE, BAVEL_SHAPE } from './geoShapes';
+import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 import { GENERATION_BY_ID, type GenerationId } from './generations';
+import { BAVEL_SHAPE, ISRAEL_SHAPE } from './geoShapes';
 import { t } from './i18n';
 
 export type Region = 'israel' | 'bavel' | 'other';
@@ -53,43 +53,246 @@ export const KNOWN_CITIES: KnownCity[] = [
   // at 67 wide × 180 tall. Cities positioned to roughly match real
   // geography: Galilee cluster top (~y=15-35), coastal plain west
   // (x=10-20), Judean hills center (x=28-40, y=60-85), Negev south.
-  { name: 'Tyre',         nameHe: 'צור',       aliases: ['tyre', 'tzor', 'sor'],                                                                region: 'israel', x: ISRAEL_X_OFFSET + 63, y: ISRAEL_Y_OFFSET + 3 },
-  { name: 'Gush Halav',   nameHe: 'גוש חלב',  aliases: ['gush halav', 'gush chalav', 'giscala', 'gischala'],                                    region: 'israel', x: ISRAEL_X_OFFSET + 52, y: ISRAEL_Y_OFFSET + 14 },
-  { name: "Peki'in",      nameHe: 'פקיעין',   aliases: ['pekiin', "peki'in"],                                                                   region: 'israel', x: ISRAEL_X_OFFSET + 42, y: ISRAEL_Y_OFFSET + 20 },
-  { name: 'Tiberias',     nameHe: 'טבריה',    aliases: ['tiberias', 'teveria'],                                                                 region: 'israel', x: ISRAEL_X_OFFSET + 50, y: ISRAEL_Y_OFFSET + 27 },
-  { name: 'Arbel',        nameHe: 'ארבל',     aliases: ['arbel'],                                                                               region: 'israel', x: ISRAEL_X_OFFSET + 44, y: ISRAEL_Y_OFFSET + 26 },
-  { name: 'Sikhnin',      nameHe: 'סכנין',    aliases: ['sikhnin', 'sogane'],                                                                   region: 'israel', x: ISRAEL_X_OFFSET + 35, y: ISRAEL_Y_OFFSET + 28 },
-  { name: 'Tzipori',      nameHe: 'ציפורי',   aliases: ['tzipori', 'sepphoris', 'zippori', 'sippori'],                                          region: 'israel', x: ISRAEL_X_OFFSET + 38, y: ISRAEL_Y_OFFSET + 36 },
-  { name: 'Usha',         nameHe: 'אושא',     aliases: ['usha'],                                                                                region: 'israel', x: ISRAEL_X_OFFSET + 30, y: ISRAEL_Y_OFFSET + 32 },
-  { name: "Beit She'an",  nameHe: 'בית שאן', aliases: ["beit she'an", 'beit shean', 'beit shan', 'beth shan', 'scythopolis'],                   region: 'israel', x: ISRAEL_X_OFFSET + 48, y: ISRAEL_Y_OFFSET + 46 },
-  { name: 'Caesarea',     nameHe: 'קיסריה',   aliases: ['caesarea', 'kisrin', 'kisarya'],                                                       region: 'israel', x: ISRAEL_X_OFFSET + 25, y: ISRAEL_Y_OFFSET + 52 },
-  { name: 'Shechem',      nameHe: 'שכם',      aliases: ['shechem', 'nablus'],                                                                   region: 'israel', x: ISRAEL_X_OFFSET + 40, y: ISRAEL_Y_OFFSET + 65 },
-  { name: 'Bnei Brak',    nameHe: 'בני ברק', aliases: ['bnei brak', 'bene berak', 'benei berak'],                                               region: 'israel', x: ISRAEL_X_OFFSET + 19, y: ISRAEL_Y_OFFSET + 72 },
-  { name: 'Lod',          nameHe: 'לוד',      aliases: ['lod', 'lydda', 'lud'],                                                                 region: 'israel', x: ISRAEL_X_OFFSET + 22, y: ISRAEL_Y_OFFSET + 76 },
-  { name: 'Yavneh',       nameHe: 'יבנה',    aliases: ['yavneh', 'jamnia', 'yavne', 'jabneh'],                                                  region: 'israel', x: ISRAEL_X_OFFSET + 14, y: ISRAEL_Y_OFFSET + 82 },
-  { name: 'Jerusalem',    nameHe: 'ירושלים', aliases: ['jerusalem', 'yerushalayim', 'yerushalaim'],                                             region: 'israel', x: ISRAEL_X_OFFSET + 34, y: ISRAEL_Y_OFFSET + 80 },
-  { name: 'Tekoa',        nameHe: 'תקוע',     aliases: ['tekoa'],                                                                               region: 'israel', x: ISRAEL_X_OFFSET + 38, y: ISRAEL_Y_OFFSET + 92 },
+  {
+    name: 'Tyre',
+    nameHe: 'צור',
+    aliases: ['tyre', 'tzor', 'sor'],
+    region: 'israel',
+    x: ISRAEL_X_OFFSET + 63,
+    y: ISRAEL_Y_OFFSET + 3,
+  },
+  {
+    name: 'Gush Halav',
+    nameHe: 'גוש חלב',
+    aliases: ['gush halav', 'gush chalav', 'giscala', 'gischala'],
+    region: 'israel',
+    x: ISRAEL_X_OFFSET + 52,
+    y: ISRAEL_Y_OFFSET + 14,
+  },
+  {
+    name: "Peki'in",
+    nameHe: 'פקיעין',
+    aliases: ['pekiin', "peki'in"],
+    region: 'israel',
+    x: ISRAEL_X_OFFSET + 42,
+    y: ISRAEL_Y_OFFSET + 20,
+  },
+  {
+    name: 'Tiberias',
+    nameHe: 'טבריה',
+    aliases: ['tiberias', 'teveria'],
+    region: 'israel',
+    x: ISRAEL_X_OFFSET + 50,
+    y: ISRAEL_Y_OFFSET + 27,
+  },
+  {
+    name: 'Arbel',
+    nameHe: 'ארבל',
+    aliases: ['arbel'],
+    region: 'israel',
+    x: ISRAEL_X_OFFSET + 44,
+    y: ISRAEL_Y_OFFSET + 26,
+  },
+  {
+    name: 'Sikhnin',
+    nameHe: 'סכנין',
+    aliases: ['sikhnin', 'sogane'],
+    region: 'israel',
+    x: ISRAEL_X_OFFSET + 35,
+    y: ISRAEL_Y_OFFSET + 28,
+  },
+  {
+    name: 'Tzipori',
+    nameHe: 'ציפורי',
+    aliases: ['tzipori', 'sepphoris', 'zippori', 'sippori'],
+    region: 'israel',
+    x: ISRAEL_X_OFFSET + 38,
+    y: ISRAEL_Y_OFFSET + 36,
+  },
+  {
+    name: 'Usha',
+    nameHe: 'אושא',
+    aliases: ['usha'],
+    region: 'israel',
+    x: ISRAEL_X_OFFSET + 30,
+    y: ISRAEL_Y_OFFSET + 32,
+  },
+  {
+    name: "Beit She'an",
+    nameHe: 'בית שאן',
+    aliases: ["beit she'an", 'beit shean', 'beit shan', 'beth shan', 'scythopolis'],
+    region: 'israel',
+    x: ISRAEL_X_OFFSET + 48,
+    y: ISRAEL_Y_OFFSET + 46,
+  },
+  {
+    name: 'Caesarea',
+    nameHe: 'קיסריה',
+    aliases: ['caesarea', 'kisrin', 'kisarya'],
+    region: 'israel',
+    x: ISRAEL_X_OFFSET + 25,
+    y: ISRAEL_Y_OFFSET + 52,
+  },
+  {
+    name: 'Shechem',
+    nameHe: 'שכם',
+    aliases: ['shechem', 'nablus'],
+    region: 'israel',
+    x: ISRAEL_X_OFFSET + 40,
+    y: ISRAEL_Y_OFFSET + 65,
+  },
+  {
+    name: 'Bnei Brak',
+    nameHe: 'בני ברק',
+    aliases: ['bnei brak', 'bene berak', 'benei berak'],
+    region: 'israel',
+    x: ISRAEL_X_OFFSET + 19,
+    y: ISRAEL_Y_OFFSET + 72,
+  },
+  {
+    name: 'Lod',
+    nameHe: 'לוד',
+    aliases: ['lod', 'lydda', 'lud'],
+    region: 'israel',
+    x: ISRAEL_X_OFFSET + 22,
+    y: ISRAEL_Y_OFFSET + 76,
+  },
+  {
+    name: 'Yavneh',
+    nameHe: 'יבנה',
+    aliases: ['yavneh', 'jamnia', 'yavne', 'jabneh'],
+    region: 'israel',
+    x: ISRAEL_X_OFFSET + 14,
+    y: ISRAEL_Y_OFFSET + 82,
+  },
+  {
+    name: 'Jerusalem',
+    nameHe: 'ירושלים',
+    aliases: ['jerusalem', 'yerushalayim', 'yerushalaim'],
+    region: 'israel',
+    x: ISRAEL_X_OFFSET + 34,
+    y: ISRAEL_Y_OFFSET + 80,
+  },
+  {
+    name: 'Tekoa',
+    nameHe: 'תקוע',
+    aliases: ['tekoa'],
+    region: 'israel',
+    x: ISRAEL_X_OFFSET + 38,
+    y: ISRAEL_Y_OFFSET + 92,
+  },
 
   // Bavel — shape ~182 wide x 180 tall. Western cluster along the Euphrates
   // (Pumbedita → Nehardea → Sura → Naresh); Tigris cluster east (Ctesiphon,
   // Mehoza near Baghdad).
-  { name: 'Nisibis',      nameHe: 'נציבין',    aliases: ['nisibis', 'netzivin'],                                                                region: 'bavel', x: BAVEL_X_OFFSET + 82,  y: BAVEL_Y_OFFSET + 8 },
-  { name: 'Pumbedita',    nameHe: 'פומבדיתא',  aliases: ['pumbedita', 'pumbeditha', 'pumbedisa'],                                              region: 'bavel', x: BAVEL_X_OFFSET + 52,  y: BAVEL_Y_OFFSET + 38 },
-  { name: 'Pum Nahara',   nameHe: 'פום נהרא', aliases: ['pum nahara', 'pum nehara'],                                                           region: 'bavel', x: BAVEL_X_OFFSET + 50,  y: BAVEL_Y_OFFSET + 58 },
-  { name: 'Nehardea',     nameHe: 'נהרדעא',    aliases: ['nehardea', 'nehardeah', "neharde'a"],                                                region: 'bavel', x: BAVEL_X_OFFSET + 58,  y: BAVEL_Y_OFFSET + 70 },
-  { name: 'Hini',         nameHe: 'היני',      aliases: ['hini', 'hene'],                                                                       region: 'bavel', x: BAVEL_X_OFFSET + 76,  y: BAVEL_Y_OFFSET + 85 },
-  { name: 'Sichra',       nameHe: 'שיכרא',     aliases: ['sichra', 'sikra', 'shikra'],                                                          region: 'bavel', x: BAVEL_X_OFFSET + 90,  y: BAVEL_Y_OFFSET + 92 },
-  { name: 'Ctesiphon',    nameHe: 'קטספון',    aliases: ['ctesiphon', 'qtesiphon'],                                                             region: 'bavel', x: BAVEL_X_OFFSET + 105, y: BAVEL_Y_OFFSET + 100 },
-  { name: 'Mehoza',       nameHe: 'מחוזא',     aliases: ['mehoza', 'mahoza', 'machuza', 'maḥoza'],                                              region: 'bavel', x: BAVEL_X_OFFSET + 108, y: BAVEL_Y_OFFSET + 110 },
-  { name: 'Sura',         nameHe: 'סורא',      aliases: ['sura'],                                                                              region: 'bavel', x: BAVEL_X_OFFSET + 72,  y: BAVEL_Y_OFFSET + 135 },
-  { name: 'Mata Mehasya', nameHe: 'מתא מחסיא', aliases: ['mata mehasya', 'mata mahasya', 'mata meḥasya'],                                       region: 'bavel', x: BAVEL_X_OFFSET + 72,  y: BAVEL_Y_OFFSET + 148 },
-  { name: 'Naresh',       nameHe: 'נרש',       aliases: ['naresh', 'narash'],                                                                  region: 'bavel', x: BAVEL_X_OFFSET + 95,  y: BAVEL_Y_OFFSET + 158 },
-  { name: 'Kafri',        nameHe: 'כפרי',      aliases: ['kafri', 'kufri'],                                                                     region: 'bavel', x: BAVEL_X_OFFSET + 104, y: BAVEL_Y_OFFSET + 160 },
-  { name: 'Shekanziv',    nameHe: 'שקנציב',    aliases: ['shekanziv', 'shikanzib'],                                                             region: 'bavel', x: BAVEL_X_OFFSET + 105, y: BAVEL_Y_OFFSET + 140 },
+  {
+    name: 'Nisibis',
+    nameHe: 'נציבין',
+    aliases: ['nisibis', 'netzivin'],
+    region: 'bavel',
+    x: BAVEL_X_OFFSET + 82,
+    y: BAVEL_Y_OFFSET + 8,
+  },
+  {
+    name: 'Pumbedita',
+    nameHe: 'פומבדיתא',
+    aliases: ['pumbedita', 'pumbeditha', 'pumbedisa'],
+    region: 'bavel',
+    x: BAVEL_X_OFFSET + 52,
+    y: BAVEL_Y_OFFSET + 38,
+  },
+  {
+    name: 'Pum Nahara',
+    nameHe: 'פום נהרא',
+    aliases: ['pum nahara', 'pum nehara'],
+    region: 'bavel',
+    x: BAVEL_X_OFFSET + 50,
+    y: BAVEL_Y_OFFSET + 58,
+  },
+  {
+    name: 'Nehardea',
+    nameHe: 'נהרדעא',
+    aliases: ['nehardea', 'nehardeah', "neharde'a"],
+    region: 'bavel',
+    x: BAVEL_X_OFFSET + 58,
+    y: BAVEL_Y_OFFSET + 70,
+  },
+  {
+    name: 'Hini',
+    nameHe: 'היני',
+    aliases: ['hini', 'hene'],
+    region: 'bavel',
+    x: BAVEL_X_OFFSET + 76,
+    y: BAVEL_Y_OFFSET + 85,
+  },
+  {
+    name: 'Sichra',
+    nameHe: 'שיכרא',
+    aliases: ['sichra', 'sikra', 'shikra'],
+    region: 'bavel',
+    x: BAVEL_X_OFFSET + 90,
+    y: BAVEL_Y_OFFSET + 92,
+  },
+  {
+    name: 'Ctesiphon',
+    nameHe: 'קטספון',
+    aliases: ['ctesiphon', 'qtesiphon'],
+    region: 'bavel',
+    x: BAVEL_X_OFFSET + 105,
+    y: BAVEL_Y_OFFSET + 100,
+  },
+  {
+    name: 'Mehoza',
+    nameHe: 'מחוזא',
+    aliases: ['mehoza', 'mahoza', 'machuza', 'maḥoza'],
+    region: 'bavel',
+    x: BAVEL_X_OFFSET + 108,
+    y: BAVEL_Y_OFFSET + 110,
+  },
+  {
+    name: 'Sura',
+    nameHe: 'סורא',
+    aliases: ['sura'],
+    region: 'bavel',
+    x: BAVEL_X_OFFSET + 72,
+    y: BAVEL_Y_OFFSET + 135,
+  },
+  {
+    name: 'Mata Mehasya',
+    nameHe: 'מתא מחסיא',
+    aliases: ['mata mehasya', 'mata mahasya', 'mata meḥasya'],
+    region: 'bavel',
+    x: BAVEL_X_OFFSET + 72,
+    y: BAVEL_Y_OFFSET + 148,
+  },
+  {
+    name: 'Naresh',
+    nameHe: 'נרש',
+    aliases: ['naresh', 'narash'],
+    region: 'bavel',
+    x: BAVEL_X_OFFSET + 95,
+    y: BAVEL_Y_OFFSET + 158,
+  },
+  {
+    name: 'Kafri',
+    nameHe: 'כפרי',
+    aliases: ['kafri', 'kufri'],
+    region: 'bavel',
+    x: BAVEL_X_OFFSET + 104,
+    y: BAVEL_Y_OFFSET + 160,
+  },
+  {
+    name: 'Shekanziv',
+    nameHe: 'שקנציב',
+    aliases: ['shekanziv', 'shikanzib'],
+    region: 'bavel',
+    x: BAVEL_X_OFFSET + 105,
+    y: BAVEL_Y_OFFSET + 140,
+  },
 ];
 
 export interface RabbiPlaceEnrichment {
-  places: string[];                       // city names (matching KNOWN_CITIES)
+  places: string[]; // city names (matching KNOWN_CITIES)
   region: 'israel' | 'bavel' | null;
   canonical: string;
   bio?: string | null;
@@ -153,7 +356,10 @@ function clusterOffsets(n: number, cx: number, cy: number): Array<{ x: number; y
   const GOLDEN = Math.PI * (3 - Math.sqrt(5));
   const scale = 2.8; // base radius unit in shape coords
   for (let i = 0; i < n; i++) {
-    if (i === 0) { out.push({ x: cx, y: cy }); continue; }
+    if (i === 0) {
+      out.push({ x: cx, y: cy });
+      continue;
+    }
     const r = scale * Math.sqrt(i);
     const theta = i * GOLDEN;
     out.push({ x: cx + r * Math.cos(theta), y: cy + r * Math.sin(theta) });
@@ -223,10 +429,18 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
       count: v.rabbis.size,
     }));
     if (unknownIsrael.size > 0) {
-      dots.push({ city: UNSPECIFIED_ISRAEL, rabbis: Array.from(unknownIsrael), count: unknownIsrael.size });
+      dots.push({
+        city: UNSPECIFIED_ISRAEL,
+        rabbis: Array.from(unknownIsrael),
+        count: unknownIsrael.size,
+      });
     }
     if (unknownBavel.size > 0) {
-      dots.push({ city: UNSPECIFIED_BAVEL, rabbis: Array.from(unknownBavel), count: unknownBavel.size });
+      dots.push({
+        city: UNSPECIFIED_BAVEL,
+        rabbis: Array.from(unknownBavel),
+        count: unknownBavel.size,
+      });
     }
 
     // Place-only dots: a city mentioned by name in the daf text but not
@@ -258,7 +472,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
     const buckets: Record<Direction, string[]> = {
       'bavel->israel': [],
       'israel->bavel': [],
-      'both':          [],
+      both: [],
     };
     if (enrich) {
       const seenMover = new Set<string>();
@@ -330,9 +544,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
 
   const onRegionClick = (region: 'israel' | 'bavel') => {
     const d = data();
-    const list = d.dots
-      .filter((x) => x.city.region === region)
-      .flatMap((x) => x.rabbis);
+    const list = d.dots.filter((x) => x.city.region === region).flatMap((x) => x.rabbis);
     const key = region === 'israel' ? '_Israel' : '_Bavel';
     const isActive = props.activeLocation === key;
     props.onHighlightLocation(isActive ? null : key, list);
@@ -372,26 +584,55 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
         color: '#555',
       }}
     >
-      <div style={{ color: '#999', 'font-size': '0.72rem', 'margin-bottom': '0.35rem', 'text-transform': 'uppercase', 'letter-spacing': '0.06em' }}>
+      <div
+        style={{
+          color: '#999',
+          'font-size': '0.72rem',
+          'margin-bottom': '0.35rem',
+          'text-transform': 'uppercase',
+          'letter-spacing': '0.06em',
+        }}
+      >
         {t('geography.heading')}
       </div>
 
       <Show
         when={props.rabbiPlaces}
         fallback={
-          <p style={{ color: '#888', margin: 0, 'font-size': '0.75rem', display: 'inline-flex', 'align-items': 'center', gap: '0.4rem' }}>
-            <span style={{
-              display: 'inline-block', width: '0.75rem', height: '0.75rem',
-              'border-radius': '50%',
-              border: '2px solid #d6d3d1', 'border-top-color': '#92400e',
-              animation: 'daf-spin 0.8s linear infinite',
-              'flex-shrink': 0,
-            }} />
+          <p
+            style={{
+              color: '#888',
+              margin: 0,
+              'font-size': '0.75rem',
+              display: 'inline-flex',
+              'align-items': 'center',
+              gap: '0.4rem',
+            }}
+          >
+            <span
+              style={{
+                display: 'inline-block',
+                width: '0.75rem',
+                height: '0.75rem',
+                'border-radius': '50%',
+                border: '2px solid #d6d3d1',
+                'border-top-color': '#92400e',
+                animation: 'daf-spin 0.8s linear infinite',
+                'flex-shrink': 0,
+              }}
+            />
             {t('geography.mapping')}
           </p>
         }
       >
-        <div style={{ display: 'flex', 'flex-direction': props.layout === 'column' ? 'column' : 'row', gap: '0.5rem', 'align-items': 'stretch' }}>
+        <div
+          style={{
+            display: 'flex',
+            'flex-direction': props.layout === 'column' ? 'column' : 'row',
+            gap: '0.5rem',
+            'align-items': 'stretch',
+          }}
+        >
           {/* ========== Eretz Yisrael card ========== */}
           <div
             style={{
@@ -405,7 +646,14 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
               'align-items': 'center',
             }}
           >
-            <div style={{ 'font-size': '0.8rem', 'font-weight': 600, color: '#1f2937', 'margin-bottom': '0.3rem' }}>
+            <div
+              style={{
+                'font-size': '0.8rem',
+                'font-weight': 600,
+                color: '#1f2937',
+                'margin-bottom': '0.3rem',
+              }}
+            >
               {t('geography.eretzYisrael')}
             </div>
             <svg
@@ -447,7 +695,14 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
               'align-items': 'center',
             }}
           >
-            <div style={{ 'font-size': '0.8rem', 'font-weight': 600, color: '#1e40af', 'margin-bottom': '0.3rem' }}>
+            <div
+              style={{
+                'font-size': '0.8rem',
+                'font-weight': 600,
+                color: '#1e40af',
+                'margin-bottom': '0.3rem',
+              }}
+            >
               {t('geography.bavel')}
             </div>
             <svg
@@ -459,7 +714,10 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
             >
               {/* Invisible hit-box so clicks anywhere inside the region fire onRegionClick */}
               <rect
-                x="30" y="-10" width="82" height="195"
+                x="30"
+                y="-10"
+                width="82"
+                height="195"
                 fill="transparent"
                 style={{ cursor: 'pointer' }}
                 onClick={() => onRegionClick('bavel')}
@@ -486,10 +744,28 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
                 stroke-linejoin="round"
                 opacity="0.8"
               />
-              <text x="50" y="-3" text-anchor="middle" font-family="Georgia,serif" font-size="7" font-style="italic" fill="#1e40af" opacity="0.85">
+              <text
+                x="50"
+                y="-3"
+                text-anchor="middle"
+                font-family="Georgia,serif"
+                font-size="7"
+                font-style="italic"
+                fill="#1e40af"
+                opacity="0.85"
+              >
                 {t('geography.euphrates')}
               </text>
-              <text x="100" y="7" text-anchor="middle" font-family="Georgia,serif" font-size="7" font-style="italic" fill="#1e40af" opacity="0.85">
+              <text
+                x="100"
+                y="7"
+                text-anchor="middle"
+                font-family="Georgia,serif"
+                font-size="7"
+                font-style="italic"
+                fill="#1e40af"
+                opacity="0.85"
+              >
                 {t('geography.tigris')}
               </text>
               <circle cx="96" cy="174" r="1.5" fill="#2563eb" opacity="0.8" />
@@ -514,13 +790,17 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
           }}
         >
           <span>
-            {t('geography.eretzYisrael')}: <strong style={{ color: '#1f2937' }}>{data().israelCount}</strong>
+            {t('geography.eretzYisrael')}:{' '}
+            <strong style={{ color: '#1f2937' }}>{data().israelCount}</strong>
           </span>
           <Show when={data().placeDots.length > 0}>
-            <span style={{ color: '#888' }}>{t('geography.placesMentioned')}: {data().placeDots.length}</span>
+            <span style={{ color: '#888' }}>
+              {t('geography.placesMentioned')}: {data().placeDots.length}
+            </span>
           </Show>
           <span>
-            {t('geography.bavel')}: <strong style={{ color: '#92400e' }}>{data().bavelCount}</strong>
+            {t('geography.bavel')}:{' '}
+            <strong style={{ color: '#92400e' }}>{data().bavelCount}</strong>
           </span>
         </div>
 
@@ -537,24 +817,38 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
               gap: '0.15rem',
             }}
           >
-            <div style={{ color: '#6b7280', 'font-size': '0.64rem', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.15rem' }}>
+            <div
+              style={{
+                color: '#6b7280',
+                'font-size': '0.64rem',
+                'text-transform': 'uppercase',
+                'letter-spacing': '0.06em',
+                'margin-bottom': '0.15rem',
+              }}
+            >
               {t('geography.migration')}
             </div>
             <For each={data().moverRows}>
               {(row) => {
                 const hovered = () => hoveredMoverRow() === row.name;
-                const onEnter = () => { setHoveredMoverRow(row.name); props.onHoverRabbi?.(row.name); };
-                const onLeave = () => { setHoveredMoverRow(null); props.onHoverRabbi?.(null); };
+                const onEnter = () => {
+                  setHoveredMoverRow(row.name);
+                  props.onHoverRabbi?.(row.name);
+                };
+                const onLeave = () => {
+                  setHoveredMoverRow(null);
+                  props.onHoverRabbi?.(null);
+                };
                 // Single-letter region tags so the whole row fits on one
                 // line in a ~220px strip. "B" = Bavel (amber), "E" = Eretz
                 // Yisrael (gray). Full name stays in title attribute.
                 const fromB = row.direction === 'bavel->israel';
                 const fromLabel = fromB ? 'B' : 'E';
-                const toLabel   = fromB ? 'E' : 'B';
+                const toLabel = fromB ? 'E' : 'B';
                 const fromColor = fromB ? '#92400e' : '#1f2937';
-                const toColor   = fromB ? '#1f2937' : '#92400e';
-                const fromFull  = fromB ? t('geography.bavel') : t('geography.eretzYisrael');
-                const toFull    = fromB ? t('geography.eretzYisrael') : t('geography.bavel');
+                const toColor = fromB ? '#1f2937' : '#92400e';
+                const fromFull = fromB ? t('geography.bavel') : t('geography.eretzYisrael');
+                const toFull = fromB ? t('geography.eretzYisrael') : t('geography.bavel');
                 const arrow = row.direction === 'both' ? '↔' : '→';
                 return (
                   <div
@@ -584,12 +878,25 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
                       overflow: 'hidden',
                     }}
                   >
-                    <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.15rem', 'font-family': 'ui-monospace, SFMono-Regular, monospace', 'font-size': '0.7rem', 'flex-shrink': 0 }}>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        'align-items': 'center',
+                        gap: '0.15rem',
+                        'font-family': 'ui-monospace, SFMono-Regular, monospace',
+                        'font-size': '0.7rem',
+                        'flex-shrink': 0,
+                      }}
+                    >
                       <span style={{ color: fromColor, 'font-weight': 700 }}>{fromLabel}</span>
                       <span style={{ color: '#111' }}>{arrow}</span>
                       <span style={{ color: toColor, 'font-weight': 700 }}>{toLabel}</span>
                     </span>
-                    <span style={{ color: '#333', overflow: 'hidden', 'text-overflow': 'ellipsis' }}>{row.name}</span>
+                    <span
+                      style={{ color: '#333', overflow: 'hidden', 'text-overflow': 'ellipsis' }}
+                    >
+                      {row.name}
+                    </span>
                   </div>
                 );
               }}

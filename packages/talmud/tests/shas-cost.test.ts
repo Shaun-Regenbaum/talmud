@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { estimateShasCost, workersAiGrossUp, type ShasCostInput } from '../src/lib/shasCost';
+import { describe, expect, it } from 'vitest';
+import { estimateShasCost, type ShasCostInput, workersAiGrossUp } from '../src/lib/shasCost';
 
 // A once-per-amud producer (`argument`) and a per-section fan-out producer
 // (`argument-move.commentaries`) over a tiny 100-amud "shas".
@@ -75,10 +75,15 @@ describe('estimateShasCost', () => {
     // only half done.
     const input = baseInput({
       byEnrichment: { 'argument-move.commentaries': { costUsd: 1.5, pricedCalls: 150 } }, // $0.01/call
-      marks: [{ id: 'argument', count: 100 }, { id: 'argument-move', count: 50 }],
+      marks: [
+        { id: 'argument', count: 100 },
+        { id: 'argument-move', count: 50 },
+      ],
       enrichments: [{ id: 'argument-move.commentaries', count: 150, target_mark: 'argument-move' }],
     });
-    const com = estimateShasCost(input).byProducer.find((p) => p.id === 'argument-move.commentaries')!;
+    const com = estimateShasCost(input).byProducer.find(
+      (p) => p.id === 'argument-move.commentaries',
+    )!;
     expect(com.instancesPerAmud).toBeCloseTo(3); // 150 / min(50, frontier 100)
     expect(com.fullShasUsd).toBeCloseTo(3); // 0.01 * 3 * 100
     expect(com.incurredUsd).toBeCloseTo(1.5); // 0.01 * 150
@@ -91,7 +96,10 @@ describe('estimateShasCost', () => {
     // read as once-per-amud, NOT 80/5 = 16x.
     const input = baseInput({
       byEnrichment: { 'argument-overview.flow': { costUsd: 0.8, pricedCalls: 80 } }, // $0.01/call
-      marks: [{ id: 'argument', count: 100 }, { id: 'argument-overview', count: 5 }],
+      marks: [
+        { id: 'argument', count: 100 },
+        { id: 'argument-overview', count: 5 },
+      ],
       enrichments: [{ id: 'argument-overview.flow', count: 80, target_mark: 'argument-overview' }],
     });
     const flow = estimateShasCost(input).byProducer.find((p) => p.id === 'argument-overview.flow')!;
@@ -120,7 +128,10 @@ describe('estimateShasCost', () => {
         argument: { costUsd: 1, pricedCalls: 100 },
         places: { costUsd: 0, pricedCalls: 0 }, // unpriced -> excluded from rows
       },
-      marks: [{ id: 'argument', count: 100 }, { id: 'places', count: 100 }],
+      marks: [
+        { id: 'argument', count: 100 },
+        { id: 'places', count: 100 },
+      ],
     });
     const est = estimateShasCost(input);
     expect(est.byProducer.some((p) => p.id === 'places')).toBe(false);

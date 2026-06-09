@@ -17,7 +17,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: 'Spectral', 'Frank Ruhl Libre', Georgia, serif;
+  font-family: "Spectral", "Frank Ruhl Libre", Georgia, serif;
   line-height: 1.6;
 }
 
@@ -146,7 +146,7 @@ body {
   max-width: 900px;
   margin: 0 auto;
   color: var(--ink);
-  font-family: 'Frank Ruhl Libre', serif;
+  font-family: "Frank Ruhl Libre", serif;
   font-size: 16px;
   line-height: 1.6;
   column-count: 2;
@@ -294,12 +294,22 @@ body {
   unicode-bidi: isolate;
   transition: color 0.12s ease;
 }
-.evt-margin.evt-right { text-align: left; padding-left: 6px; }
-.evt-margin.evt-left { text-align: right; padding-right: 6px; }
+.evt-margin.evt-right {
+  text-align: left;
+  padding-left: 6px;
+}
+.evt-margin.evt-left {
+  text-align: right;
+  padding-right: 6px;
+}
 .evt-margin:hover,
-.evt-margin.active { color: var(--accent); }
+.evt-margin.active {
+  color: var(--accent);
+}
 @media (max-width: 820px) {
-  .evt-margin { display: none; }
+  .evt-margin {
+    display: none;
+  }
 }
 
 /* usage link + page */
@@ -309,27 +319,89 @@ body {
   text-decoration: none;
   border-bottom: 1px dotted var(--line);
 }
-.usage-link:hover { color: var(--accent); }
+.usage-link:hover {
+  color: var(--accent);
+}
 
 .usage {
   max-width: 920px;
   margin: 0 auto;
   padding: 28px 28px 80px;
 }
-.usage-top { display: flex; align-items: baseline; gap: 16px; }
-.usage-back { color: var(--muted); text-decoration: none; font-size: 14px; }
-.usage-back:hover { color: var(--accent); }
-.usage h1 { font-size: 24px; margin: 0; }
-.usage h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-top: 34px; }
-.usage-cards { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 18px; }
-.usage-card { border: 1px solid var(--line); border-radius: 8px; padding: 14px 22px; min-width: 130px; }
-.usage-card .k { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
-.usage-card .v { display: block; font-size: 25px; font-weight: 600; color: var(--ink); margin-top: 4px; font-variant-numeric: tabular-nums; }
-.usage-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
-.usage-table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); border-bottom: 2px solid var(--line); padding: 7px 10px; }
-.usage-table td { padding: 7px 10px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
-.usage-table .muted { color: var(--muted); }
-
+.usage-top {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+.usage-back {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 14px;
+}
+.usage-back:hover {
+  color: var(--accent);
+}
+.usage h1 {
+  font-size: 24px;
+  margin: 0;
+}
+.usage h2 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-top: 34px;
+}
+.usage-cards {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+.usage-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 22px;
+  min-width: 130px;
+}
+.usage-card .k {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.usage-card .v {
+  display: block;
+  font-size: 25px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.usage-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-top: 8px;
+}
+.usage-table th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  border-bottom: 2px solid var(--line);
+  padding: 7px 10px;
+}
+.usage-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+}
+.usage-table .muted {
+  color: var(--muted);
+}
 
 /* this-week's-parsha button + EN/HE language toggle (like the Talmud reader) */
 .parsha-btn {
@@ -343,7 +415,10 @@ body {
   cursor: pointer;
   white-space: nowrap;
 }
-.parsha-btn:hover { background: var(--accent); color: #fff; }
+.parsha-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
 .lang-toggle {
   display: inline-flex;
   border: 1px solid var(--line);
@@ -359,8 +434,10 @@ body {
   color: var(--muted);
   cursor: pointer;
 }
-.lang-toggle button.active { background: var(--accent); color: #fff; }
-
+.lang-toggle button.active {
+  background: var(--accent);
+  color: #fff;
+}
 
 /* section-note popover (clicking a margin anchor) */
 .note-pop {
@@ -373,8 +450,12 @@ body {
   padding: 15px 18px 17px;
   z-index: 20;
 }
-.note-pop.note-right { right: clamp(10px, 2vw, 48px); }
-.note-pop.note-left { left: clamp(10px, 2vw, 48px); }
+.note-pop.note-right {
+  right: clamp(10px, 2vw, 48px);
+}
+.note-pop.note-left {
+  left: clamp(10px, 2vw, 48px);
+}
 .note-close {
   position: absolute;
   top: 6px;
@@ -386,7 +467,9 @@ body {
   color: var(--muted);
   cursor: pointer;
 }
-.note-close:hover { color: var(--ink); }
+.note-close:hover {
+  color: var(--ink);
+}
 .note-pop-label {
   font-size: 11px;
   text-transform: uppercase;
@@ -402,7 +485,10 @@ body {
   line-height: 1.6;
   color: var(--ink);
 }
-.note-pop-body.muted { color: var(--muted); font-style: italic; }
+.note-pop-body.muted {
+  color: var(--muted);
+  font-style: italic;
+}
 
 /* word/phrase translation gloss (text selection) */
 .xlate-pop {
@@ -421,7 +507,7 @@ body {
   pointer-events: none;
 }
 .xlate-pop .xlate-he {
-  font-family: 'Frank Ruhl Libre', serif;
+  font-family: "Frank Ruhl Libre", serif;
   font-size: 15px;
   color: #e9d9b8;
   white-space: nowrap;
@@ -430,7 +516,9 @@ body {
   font-size: 14px;
   line-height: 1.35;
 }
-.xlate-pop .xlate-en.muted { opacity: 0.6; }
+.xlate-pop .xlate-en.muted {
+  opacity: 0.6;
+}
 
 /* highlight the verses of a clicked section anchor */
 .vtext.hl {
@@ -443,8 +531,13 @@ body {
 }
 
 /* verse numbers are clickable -> commentary */
-.scroll-band .vnum { cursor: pointer; transition: color 0.1s ease; }
-.scroll-band .vnum:hover { color: var(--accent); }
+.scroll-band .vnum {
+  cursor: pointer;
+  transition: color 0.1s ease;
+}
+.scroll-band .vnum:hover {
+  color: var(--accent);
+}
 
 /* classic-commentary drawer */
 .comm-drawer {
@@ -468,7 +561,11 @@ body {
   border-bottom: 1px solid var(--line);
   flex: none;
 }
-.comm-ref { font-size: 17px; font-weight: 600; color: var(--ink); }
+.comm-ref {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink);
+}
 .comm-close {
   border: 0;
   background: none;
@@ -477,10 +574,20 @@ body {
   color: var(--muted);
   cursor: pointer;
 }
-.comm-close:hover { color: var(--ink); }
-.comm-body { overflow-y: auto; padding: 6px 18px 32px; }
-.comm-entry { padding: 14px 0; border-bottom: 1px solid var(--line); }
-.comm-entry:last-child { border-bottom: 0; }
+.comm-close:hover {
+  color: var(--ink);
+}
+.comm-body {
+  overflow-y: auto;
+  padding: 6px 18px 32px;
+}
+.comm-entry {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.comm-entry:last-child {
+  border-bottom: 0;
+}
 .comm-name {
   margin: 0 0 6px;
   font-size: 12px;
@@ -495,8 +602,15 @@ body {
   line-height: 1.65;
   color: var(--ink);
 }
-.comm-text[dir='rtl'] { font-family: 'Frank Ruhl Libre', serif; font-size: 16px; }
-.comm-muted { color: var(--muted); font-style: italic; padding: 14px 0; }
+.comm-text[dir="rtl"] {
+  font-family: "Frank Ruhl Libre", serif;
+  font-size: 16px;
+}
+.comm-muted {
+  color: var(--muted);
+  font-style: italic;
+  padding: 14px 0;
+}
 
 /* rishonim icon (verses where many comment) */
 .vmark {
@@ -511,7 +625,7 @@ body {
   border-radius: 50%;
   background: var(--accent);
   color: #fff;
-  font-family: 'Frank Ruhl Libre', serif;
+  font-family: "Frank Ruhl Libre", serif;
   font-size: 10px;
   font-weight: 700;
   line-height: 1;
@@ -520,7 +634,9 @@ body {
   transition: background-color 0.1s ease;
   unicode-bidi: isolate;
 }
-.vmark:hover { background: var(--ink); }
+.vmark:hover {
+  background: var(--ink);
+}
 
 /* synthesis block at the top of the commentary drawer */
 .comm-synth {
@@ -538,8 +654,16 @@ body {
   color: var(--accent);
   font-weight: 700;
 }
-.comm-synth-text { margin: 0; font-size: 15px; line-height: 1.6; color: var(--ink); }
-.comm-synth-text[dir='rtl'] { font-family: 'Frank Ruhl Libre', serif; font-size: 16px; }
+.comm-synth-text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.comm-synth-text[dir="rtl"] {
+  font-family: "Frank Ruhl Libre", serif;
+  font-size: 16px;
+}
 
 /* source icons in the band-edge gutter (positioned by App, like the anchors) */
 /* Collapsed vertical "deck" of source icons: they overlap so a sliver of each
@@ -554,7 +678,9 @@ body {
   z-index: 5;
 }
 .vgutter-stack:hover,
-.vgutter-stack:focus-within { z-index: 20; }
+.vgutter-stack:focus-within {
+  z-index: 20;
+}
 .vgutter {
   display: flex;
   align-items: center;
@@ -563,7 +689,7 @@ body {
   border: 1px solid #fbf8f1;
   border-radius: 50%;
   color: #fff;
-  font-family: 'Frank Ruhl Libre', serif;
+  font-family: "Frank Ruhl Libre", serif;
   font-size: 9px;
   font-weight: 700;
   line-height: 1;
@@ -571,23 +697,48 @@ body {
   position: relative;
   box-sizing: border-box;
   margin-top: -10px;
-  transition: margin-top 140ms ease, transform 80ms ease;
+  transition:
+    margin-top 140ms ease,
+    transform 80ms ease;
 }
-.vgutter-stack .vgutter:first-child { margin-top: 0; }
+.vgutter-stack .vgutter:first-child {
+  margin-top: 0;
+}
 .vgutter-stack:hover .vgutter,
-.vgutter-stack:focus-within .vgutter { margin-top: 4px; }
+.vgutter-stack:focus-within .vgutter {
+  margin-top: 4px;
+}
 .vgutter-stack:hover .vgutter:first-child,
-.vgutter-stack:focus-within .vgutter:first-child { margin-top: 0; }
-.vgutter-rishonim { background: var(--accent); }
-.vgutter-gemara { background: #5d6b7d; }
-.vgutter-midrash { background: #9a7b3e; }
+.vgutter-stack:focus-within .vgutter:first-child {
+  margin-top: 0;
+}
+.vgutter-rishonim {
+  background: var(--accent);
+}
+.vgutter-gemara {
+  background: #5d6b7d;
+}
+.vgutter-midrash {
+  background: #9a7b3e;
+}
 .vgutter:hover,
-.vgutter.active { transform: scale(1.16); z-index: 1; }
+.vgutter.active {
+  transform: scale(1.16);
+  z-index: 1;
+}
 
 /* "In the Talmud" section (reverse Gemara lookup) in the verse drawer */
-.comm-gemara { padding: 14px 0 4px; border-top: 1px solid var(--line); margin-top: 6px; }
-.gem-entry { padding: 8px 0; }
-.gem-entry + .gem-entry { border-top: 1px dashed var(--line); }
+.comm-gemara {
+  padding: 14px 0 4px;
+  border-top: 1px solid var(--line);
+  margin-top: 6px;
+}
+.gem-entry {
+  padding: 8px 0;
+}
+.gem-entry + .gem-entry {
+  border-top: 1px dashed var(--line);
+}
 .gem-ref {
   display: inline-block;
   font-size: 13px;
@@ -596,21 +747,32 @@ body {
   text-decoration: none;
   margin-bottom: 3px;
 }
-.gem-ref:hover { text-decoration: underline; }
+.gem-ref:hover {
+  text-decoration: underline;
+}
 .gem-text {
   margin: 0;
   font-size: 13.5px;
   line-height: 1.55;
   color: var(--muted);
 }
-.gem-text[dir='rtl'] { font-family: 'Frank Ruhl Libre', serif; font-size: 15px; }
-
+.gem-text[dir="rtl"] {
+  font-family: "Frank Ruhl Libre", serif;
+  font-size: 15px;
+}
 
 /* midrash section in the verse drawer (synthesis + capped sources) */
-.comm-midrash { padding: 14px 0 4px; border-top: 1px solid var(--line); margin-top: 6px; }
+.comm-midrash {
+  padding: 14px 0 4px;
+  border-top: 1px solid var(--line);
+  margin-top: 6px;
+}
 
 /* focused source drawer: kind label in the header */
-.comm-head { justify-content: flex-start; gap: 10px; }
+.comm-head {
+  justify-content: flex-start;
+  gap: 10px;
+}
 .comm-kind {
   font-size: 11px;
   text-transform: uppercase;
@@ -618,12 +780,24 @@ body {
   color: var(--accent);
   font-weight: 600;
 }
-.comm-close { margin-inline-start: auto; }
+.comm-close {
+  margin-inline-start: auto;
+}
 
 /* Mikraot Gedolot gutter anchors + icons (positioned by MikraotGedolot) */
-.mg-main { position: relative; }
-.mg-anchor { left: 6px; width: clamp(74px, 8vw, 120px); }
-.mg-icons { right: 6px; left: auto; }
+.mg-main {
+  position: relative;
+}
+.mg-anchor {
+  left: 6px;
+  width: clamp(74px, 8vw, 120px);
+}
+.mg-icons {
+  right: 6px;
+  left: auto;
+}
 @media (max-width: 820px) {
-  .mg-anchor { display: none; }
+  .mg-anchor {
+    display: none;
+  }
 }

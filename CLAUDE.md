@@ -25,7 +25,7 @@ Cross-cutting always: typed piece bodies, resilient anchors, provenance/confiden
 
 - `pnpm test` — Vitest unit suite. `pnpm test:int` — integration (hits a running worker).
 - `pnpm typecheck` — `tsc --noEmit`. Run it plus `pnpm test` before any PR.
-- `pnpm ship` — `vite build && wrangler deploy`. Production is the custom domain **talmud.shaunregenbaum.com**. wrangler is authenticated in this environment.
+- `pnpm ship` — `vite build && wrangler deploy`, behind `scripts/ship-guard.sh`: it refuses to deploy unless the tracked tree is clean and HEAD's content matches `origin/master` (so prod can't silently diverge from master; a later deploy from another agent once clobbered shipped-but-unmerged work). Merge first, then ship. `SHIP_FORCE=1 pnpm ship` overrides when a divergent deploy is deliberate. Production is the custom domain **talmud.shaunregenbaum.com**. wrangler is authenticated in this environment.
 
 ## Multiple agents work this repo at once — isolate in a worktree
 
@@ -33,12 +33,12 @@ This repo is routinely worked by several agents in parallel (it is normal to see
 
 Instead, for any code change:
 
-1. **Branch in a worktree first.** Create a git worktree on a new branch before touching code. Worktrees branch from `origin/master`/HEAD, so they exclude others' uncommitted work — that is the point.
-2. **Run from the worktree.** Run a real `pnpm install` in the worktree — it's fast (hardlinks from the shared store) and, unlike symlinking `node_modules` from the main tree, it creates the workspace links for `@corpus/core` that vite/vitest need to resolve cross-package imports. (Symlinking from main still works for a worktree that touches no cross-package deps, but a real install is the safe default now.) Then `pnpm typecheck` and `pnpm test`.
+1. **Branch in a worktree first.** Run `scripts/worktree-new.sh <branch>` — it creates the worktree under `.claude/worktrees/<branch>` branched from `origin/master` (excluding others' uncommitted work — that is the point) and runs `pnpm install` there (fast — hardlinks from the shared store — and, unlike symlinking `node_modules` from the main tree, it creates the workspace links for `@corpus/core` that vite/vitest need).
+2. **Run from the worktree.** `pnpm typecheck` and `pnpm test` before any PR; `pnpm lint` too — CI gates on Biome (`biome ci .`).
 3. **PR → merge.** Commit on the branch, push, open a PR (`gh pr create`), and merge it (`gh pr merge <n> --squash --admin`). GitHub blocks self-approval, so the repo owner authorizes admin-merge.
 4. **Expect master to move.** Other agents push often. If a PR won't merge, `git merge origin/master` in the worktree, resolve, push (GitHub recomputes mergeability a few seconds later).
 5. **Deploy from the worktree** with `pnpm ship` when the change should go live.
-6. **Clean up.** Delete the remote branch and remove the worktree + local branch (the work lives on master via the squash).
+6. **Clean up.** Run `scripts/worktree-done.sh <branch>` from the main checkout — it verifies the PR merged, then deletes the remote branch, removes the worktree, and deletes the local branch (the work lives on master via the squash).
 
 ## Commit / PR text
 

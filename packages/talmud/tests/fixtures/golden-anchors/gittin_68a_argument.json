@@ -1,196 +1,148 @@
 {
- "tractate": "Gittin",
- "page": "68a",
- "mark": "argument",
- "cache_hit": true,
- "raw": {
-  "summary": "This daf recounts the story of King Solomon's capture of Ashmedai, king of demons, to obtain the shamir worm for building the Temple, and includes a discussion of demons and their nature.",
-  "instances": [
-   {
-    "startSegIdx": 0,
-    "endSegIdx": 3,
-    "fields": {
-     "title": "The silver cup incident and Rav Chisda's escape",
-     "summary": "Rav Chisda is tricked by demons who steal his silver cup, but he discovers it wrapped in his cloak. He insists he will eat the food offered, tasting a white substance, and instructs them to check the place, citing Rav Chisda's principle about black on white being a sign of leprosy. As he leaves, they dig a pit and cover it with a mat, but Rav Chisda is warned by a child's verse and his servant's observation, and he avoids the trap. Afterwards, he explains how he knew of the plot.",
-     "excerpt": "אִיגְּנִיב לַן כָּסָא דְכַסְפָּא",
-     "endExcerpt": "דַּחֲשִׁידִי עַבְדֵי דְּלָא מְעַלּוּ",
-     "rabbiNames": [
-      "Rav Chisda",
-      "Demons",
-      "Child",
-      "Servant"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 4,
-    "endSegIdx": 5,
-    "fields": {
-     "title": "Interpretation of 'shidah veshidot' and Rabbi Yochanan's statement",
-     "summary": "The Gemara interprets the verse 'I made for myself male and female singers, and the delights of the sons of man, shidah veshidot' from Ecclesiastes. It explains 'sharim vesharon' as types of music, 'ta'anugot' as pools and bathhouses, and 'shidah veshidot' as male and female demons. In the West they say 'shidta'. Rabbi Yochanan then states that there were three hundred types of demons in Shichin, but he does not know what a female demon herself is.",
-     "excerpt": "עָשִׂיתִי לִי שָׁרִים וְשָׁרוֹת",
-     "endExcerpt": "וְשֵׁידָה עַצְמָהּ אֵינִי יוֹדֵעַ מָה הִיא",
-     "rabbiNames": [
-      "Gemara's interpretation",
-      "Rabbi Yochanan"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 6,
-    "endSegIdx": 7,
-    "fields": {
-     "title": "Solomon's inquiry about the shamir and the advice to capture demons",
-     "summary": "The Gemara asks why Solomon needed male and female demons, and explains that when building the Temple, he asked the Sages how to cut the stones without iron. They told him about the shamir worm that Moses used for the stones of the ephod. When he asked where to find it, they advised him to bring male and female demons and subdue them together, as they might know and reveal the location. The demons said they did not know, but suggested that Ashmedai, the king of demons, might know.",
-     "excerpt": "אָמַר מָר, הָכָא תַּרְגִּימוּ: שֵׁידָא וְשֵׁידְתִין",
-     "endExcerpt": "דִּילְמָא אַשְׁמְדַאי – מַלְכָּא דְשֵׁידֵי, יָדַע",
-     "rabbiNames": [
-      "Gemara's question",
-      "Solomon",
-      "Sages",
-      "Demons"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 8,
-    "endSegIdx": 9,
-    "fields": {
-     "title": "Ashmedai's location and Benaiah's preparation",
-     "summary": "The demons tell Solomon that Ashmedai is on a certain mountain, where he has dug a pit, filled it with water, covered it with a rock, and sealed it with his seal. Every day he ascends to heaven to study, descends to earth to study, then returns to check his seal, drink, and reseal it. Solomon sends Benaiah ben Yehoyada with a chain engraved with the Name, a ring engraved with the Name, tufts of wool, and skins of wine. Benaiah digs a pit below, drains the water, plugs it with wool, digs a pit above, pours in wine, and covers it, then sits in a tree.",
-     "excerpt": "אֲמַר לְהוּ: הֵיכָא אִיתֵיהּ?",
-     "endExcerpt": "סְלֵיק יְתֵיב בְּאִילָנָא",
-     "rabbiNames": [
-      "Solomon",
-      "Demons",
-      "Benaiah ben Yehoyada"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 10,
-    "endSegIdx": 11,
-    "fields": {
-     "title": "Ashmedai's capture",
-     "summary": "Ashmedai comes, finds wine instead of water, quotes verses against wine, but eventually drinks due to thirst, becomes drunk, and falls asleep. Benaiah descends, puts the chain on him, and seals it. When Ashmedai awakens and struggles, Benaiah tells him the Name of his Master is upon him.",
-     "excerpt": "כִּי אֲתָא סַיְירֵיהּ לְגוּשְׁפַּנְקָא",
-     "endExcerpt": "שְׁמָא דְּמָרָךְ עֲלָךְ",
-     "rabbiNames": [
-      "Ashmedai",
-      "Benaiah ben Yehoyada"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 12,
-    "endSegIdx": 12,
-    "fields": {
-     "title": "Ashmedai's violent journey",
-     "summary": "As Benaiah leads Ashmedai, the demon violently uproots a palm tree, destroys a house, and when they reach a certain widow's hut, she comes out and begs him not to destroy it.",
-     "excerpt": "כִּי נָקֵיט לֵיהּ וְאָתֵי",
-     "endExcerpt": "נְפַקָא",
-     "rabbiNames": [
-      "Ashmedai",
-      "Benaiah ben Yehoyada",
-      "Widow"
-     ]
-    }
-   }
-  ]
- },
- "expected": {
-  "summary": "This daf recounts the story of King Solomon's capture of Ashmedai, king of demons, to obtain the shamir worm for building the Temple, and includes a discussion of demons and their nature.",
-  "instances": [
-   {
-    "startSegIdx": 0,
-    "endSegIdx": 3,
-    "fields": {
-     "title": "The silver cup incident and Rav Chisda's escape",
-     "summary": "Rav Chisda is tricked by demons who steal his silver cup, but he discovers it wrapped in his cloak. He insists he will eat the food offered, tasting a white substance, and instructs them to check the place, citing Rav Chisda's principle about black on white being a sign of leprosy. As he leaves, they dig a pit and cover it with a mat, but Rav Chisda is warned by a child's verse and his servant's observation, and he avoids the trap. Afterwards, he explains how he knew of the plot.",
-     "excerpt": "אִיגְּנִיב לַן כָּסָא דְכַסְפָּא",
-     "endExcerpt": "דַּחֲשִׁידִי עַבְדֵי דְּלָא מְעַלּוּ",
-     "rabbiNames": [
-      "Rav Chisda",
-      "Demons",
-      "Child",
-      "Servant"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 4,
-    "endSegIdx": 5,
-    "fields": {
-     "title": "Interpretation of 'shidah veshidot' and Rabbi Yochanan's statement",
-     "summary": "The Gemara interprets the verse 'I made for myself male and female singers, and the delights of the sons of man, shidah veshidot' from Ecclesiastes. It explains 'sharim vesharon' as types of music, 'ta'anugot' as pools and bathhouses, and 'shidah veshidot' as male and female demons. In the West they say 'shidta'. Rabbi Yochanan then states that there were three hundred types of demons in Shichin, but he does not know what a female demon herself is.",
-     "excerpt": "עָשִׂיתִי לִי שָׁרִים וְשָׁרוֹת",
-     "endExcerpt": "וְשֵׁידָה עַצְמָהּ אֵינִי יוֹדֵעַ מָה הִיא",
-     "rabbiNames": [
-      "Gemara's interpretation",
-      "Rabbi Yochanan"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 6,
-    "endSegIdx": 7,
-    "fields": {
-     "title": "Solomon's inquiry about the shamir and the advice to capture demons",
-     "summary": "The Gemara asks why Solomon needed male and female demons, and explains that when building the Temple, he asked the Sages how to cut the stones without iron. They told him about the shamir worm that Moses used for the stones of the ephod. When he asked where to find it, they advised him to bring male and female demons and subdue them together, as they might know and reveal the location. The demons said they did not know, but suggested that Ashmedai, the king of demons, might know.",
-     "excerpt": "אָמַר מָר, הָכָא תַּרְגִּימוּ: שֵׁידָא וְשֵׁידְתִין",
-     "endExcerpt": "דִּילְמָא אַשְׁמְדַאי – מַלְכָּא דְשֵׁידֵי, יָדַע",
-     "rabbiNames": [
-      "Gemara's question",
-      "Solomon",
-      "Sages",
-      "Demons"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 8,
-    "endSegIdx": 9,
-    "fields": {
-     "title": "Ashmedai's location and Benaiah's preparation",
-     "summary": "The demons tell Solomon that Ashmedai is on a certain mountain, where he has dug a pit, filled it with water, covered it with a rock, and sealed it with his seal. Every day he ascends to heaven to study, descends to earth to study, then returns to check his seal, drink, and reseal it. Solomon sends Benaiah ben Yehoyada with a chain engraved with the Name, a ring engraved with the Name, tufts of wool, and skins of wine. Benaiah digs a pit below, drains the water, plugs it with wool, digs a pit above, pours in wine, and covers it, then sits in a tree.",
-     "excerpt": "אֲמַר לְהוּ: הֵיכָא אִיתֵיהּ?",
-     "endExcerpt": "סְלֵיק יְתֵיב בְּאִילָנָא",
-     "rabbiNames": [
-      "Solomon",
-      "Demons",
-      "Benaiah ben Yehoyada"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 10,
-    "endSegIdx": 11,
-    "fields": {
-     "title": "Ashmedai's capture",
-     "summary": "Ashmedai comes, finds wine instead of water, quotes verses against wine, but eventually drinks due to thirst, becomes drunk, and falls asleep. Benaiah descends, puts the chain on him, and seals it. When Ashmedai awakens and struggles, Benaiah tells him the Name of his Master is upon him.",
-     "excerpt": "כִּי אֲתָא סַיְירֵיהּ לְגוּשְׁפַּנְקָא",
-     "endExcerpt": "שְׁמָא דְּמָרָךְ עֲלָךְ",
-     "rabbiNames": [
-      "Ashmedai",
-      "Benaiah ben Yehoyada"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 12,
-    "endSegIdx": 12,
-    "fields": {
-     "title": "Ashmedai's violent journey",
-     "summary": "As Benaiah leads Ashmedai, the demon violently uproots a palm tree, destroys a house, and when they reach a certain widow's hut, she comes out and begs him not to destroy it.",
-     "excerpt": "כִּי נָקֵיט לֵיהּ וְאָתֵי",
-     "endExcerpt": "נְפַקָא",
-     "rabbiNames": [
-      "Ashmedai",
-      "Benaiah ben Yehoyada",
-      "Widow"
-     ]
-    }
-   }
-  ]
- }
+  "tractate": "Gittin",
+  "page": "68a",
+  "mark": "argument",
+  "cache_hit": true,
+  "raw": {
+    "summary": "This daf recounts the story of King Solomon's capture of Ashmedai, king of demons, to obtain the shamir worm for building the Temple, and includes a discussion of demons and their nature.",
+    "instances": [
+      {
+        "startSegIdx": 0,
+        "endSegIdx": 3,
+        "fields": {
+          "title": "The silver cup incident and Rav Chisda's escape",
+          "summary": "Rav Chisda is tricked by demons who steal his silver cup, but he discovers it wrapped in his cloak. He insists he will eat the food offered, tasting a white substance, and instructs them to check the place, citing Rav Chisda's principle about black on white being a sign of leprosy. As he leaves, they dig a pit and cover it with a mat, but Rav Chisda is warned by a child's verse and his servant's observation, and he avoids the trap. Afterwards, he explains how he knew of the plot.",
+          "excerpt": "אִיגְּנִיב לַן כָּסָא דְכַסְפָּא",
+          "endExcerpt": "דַּחֲשִׁידִי עַבְדֵי דְּלָא מְעַלּוּ",
+          "rabbiNames": ["Rav Chisda", "Demons", "Child", "Servant"]
+        }
+      },
+      {
+        "startSegIdx": 4,
+        "endSegIdx": 5,
+        "fields": {
+          "title": "Interpretation of 'shidah veshidot' and Rabbi Yochanan's statement",
+          "summary": "The Gemara interprets the verse 'I made for myself male and female singers, and the delights of the sons of man, shidah veshidot' from Ecclesiastes. It explains 'sharim vesharon' as types of music, 'ta'anugot' as pools and bathhouses, and 'shidah veshidot' as male and female demons. In the West they say 'shidta'. Rabbi Yochanan then states that there were three hundred types of demons in Shichin, but he does not know what a female demon herself is.",
+          "excerpt": "עָשִׂיתִי לִי שָׁרִים וְשָׁרוֹת",
+          "endExcerpt": "וְשֵׁידָה עַצְמָהּ אֵינִי יוֹדֵעַ מָה הִיא",
+          "rabbiNames": ["Gemara's interpretation", "Rabbi Yochanan"]
+        }
+      },
+      {
+        "startSegIdx": 6,
+        "endSegIdx": 7,
+        "fields": {
+          "title": "Solomon's inquiry about the shamir and the advice to capture demons",
+          "summary": "The Gemara asks why Solomon needed male and female demons, and explains that when building the Temple, he asked the Sages how to cut the stones without iron. They told him about the shamir worm that Moses used for the stones of the ephod. When he asked where to find it, they advised him to bring male and female demons and subdue them together, as they might know and reveal the location. The demons said they did not know, but suggested that Ashmedai, the king of demons, might know.",
+          "excerpt": "אָמַר מָר, הָכָא תַּרְגִּימוּ: שֵׁידָא וְשֵׁידְתִין",
+          "endExcerpt": "דִּילְמָא אַשְׁמְדַאי – מַלְכָּא דְשֵׁידֵי, יָדַע",
+          "rabbiNames": ["Gemara's question", "Solomon", "Sages", "Demons"]
+        }
+      },
+      {
+        "startSegIdx": 8,
+        "endSegIdx": 9,
+        "fields": {
+          "title": "Ashmedai's location and Benaiah's preparation",
+          "summary": "The demons tell Solomon that Ashmedai is on a certain mountain, where he has dug a pit, filled it with water, covered it with a rock, and sealed it with his seal. Every day he ascends to heaven to study, descends to earth to study, then returns to check his seal, drink, and reseal it. Solomon sends Benaiah ben Yehoyada with a chain engraved with the Name, a ring engraved with the Name, tufts of wool, and skins of wine. Benaiah digs a pit below, drains the water, plugs it with wool, digs a pit above, pours in wine, and covers it, then sits in a tree.",
+          "excerpt": "אֲמַר לְהוּ: הֵיכָא אִיתֵיהּ?",
+          "endExcerpt": "סְלֵיק יְתֵיב בְּאִילָנָא",
+          "rabbiNames": ["Solomon", "Demons", "Benaiah ben Yehoyada"]
+        }
+      },
+      {
+        "startSegIdx": 10,
+        "endSegIdx": 11,
+        "fields": {
+          "title": "Ashmedai's capture",
+          "summary": "Ashmedai comes, finds wine instead of water, quotes verses against wine, but eventually drinks due to thirst, becomes drunk, and falls asleep. Benaiah descends, puts the chain on him, and seals it. When Ashmedai awakens and struggles, Benaiah tells him the Name of his Master is upon him.",
+          "excerpt": "כִּי אֲתָא סַיְירֵיהּ לְגוּשְׁפַּנְקָא",
+          "endExcerpt": "שְׁמָא דְּמָרָךְ עֲלָךְ",
+          "rabbiNames": ["Ashmedai", "Benaiah ben Yehoyada"]
+        }
+      },
+      {
+        "startSegIdx": 12,
+        "endSegIdx": 12,
+        "fields": {
+          "title": "Ashmedai's violent journey",
+          "summary": "As Benaiah leads Ashmedai, the demon violently uproots a palm tree, destroys a house, and when they reach a certain widow's hut, she comes out and begs him not to destroy it.",
+          "excerpt": "כִּי נָקֵיט לֵיהּ וְאָתֵי",
+          "endExcerpt": "נְפַקָא",
+          "rabbiNames": ["Ashmedai", "Benaiah ben Yehoyada", "Widow"]
+        }
+      }
+    ]
+  },
+  "expected": {
+    "summary": "This daf recounts the story of King Solomon's capture of Ashmedai, king of demons, to obtain the shamir worm for building the Temple, and includes a discussion of demons and their nature.",
+    "instances": [
+      {
+        "startSegIdx": 0,
+        "endSegIdx": 3,
+        "fields": {
+          "title": "The silver cup incident and Rav Chisda's escape",
+          "summary": "Rav Chisda is tricked by demons who steal his silver cup, but he discovers it wrapped in his cloak. He insists he will eat the food offered, tasting a white substance, and instructs them to check the place, citing Rav Chisda's principle about black on white being a sign of leprosy. As he leaves, they dig a pit and cover it with a mat, but Rav Chisda is warned by a child's verse and his servant's observation, and he avoids the trap. Afterwards, he explains how he knew of the plot.",
+          "excerpt": "אִיגְּנִיב לַן כָּסָא דְכַסְפָּא",
+          "endExcerpt": "דַּחֲשִׁידִי עַבְדֵי דְּלָא מְעַלּוּ",
+          "rabbiNames": ["Rav Chisda", "Demons", "Child", "Servant"]
+        }
+      },
+      {
+        "startSegIdx": 4,
+        "endSegIdx": 5,
+        "fields": {
+          "title": "Interpretation of 'shidah veshidot' and Rabbi Yochanan's statement",
+          "summary": "The Gemara interprets the verse 'I made for myself male and female singers, and the delights of the sons of man, shidah veshidot' from Ecclesiastes. It explains 'sharim vesharon' as types of music, 'ta'anugot' as pools and bathhouses, and 'shidah veshidot' as male and female demons. In the West they say 'shidta'. Rabbi Yochanan then states that there were three hundred types of demons in Shichin, but he does not know what a female demon herself is.",
+          "excerpt": "עָשִׂיתִי לִי שָׁרִים וְשָׁרוֹת",
+          "endExcerpt": "וְשֵׁידָה עַצְמָהּ אֵינִי יוֹדֵעַ מָה הִיא",
+          "rabbiNames": ["Gemara's interpretation", "Rabbi Yochanan"]
+        }
+      },
+      {
+        "startSegIdx": 6,
+        "endSegIdx": 7,
+        "fields": {
+          "title": "Solomon's inquiry about the shamir and the advice to capture demons",
+          "summary": "The Gemara asks why Solomon needed male and female demons, and explains that when building the Temple, he asked the Sages how to cut the stones without iron. They told him about the shamir worm that Moses used for the stones of the ephod. When he asked where to find it, they advised him to bring male and female demons and subdue them together, as they might know and reveal the location. The demons said they did not know, but suggested that Ashmedai, the king of demons, might know.",
+          "excerpt": "אָמַר מָר, הָכָא תַּרְגִּימוּ: שֵׁידָא וְשֵׁידְתִין",
+          "endExcerpt": "דִּילְמָא אַשְׁמְדַאי – מַלְכָּא דְשֵׁידֵי, יָדַע",
+          "rabbiNames": ["Gemara's question", "Solomon", "Sages", "Demons"]
+        }
+      },
+      {
+        "startSegIdx": 8,
+        "endSegIdx": 9,
+        "fields": {
+          "title": "Ashmedai's location and Benaiah's preparation",
+          "summary": "The demons tell Solomon that Ashmedai is on a certain mountain, where he has dug a pit, filled it with water, covered it with a rock, and sealed it with his seal. Every day he ascends to heaven to study, descends to earth to study, then returns to check his seal, drink, and reseal it. Solomon sends Benaiah ben Yehoyada with a chain engraved with the Name, a ring engraved with the Name, tufts of wool, and skins of wine. Benaiah digs a pit below, drains the water, plugs it with wool, digs a pit above, pours in wine, and covers it, then sits in a tree.",
+          "excerpt": "אֲמַר לְהוּ: הֵיכָא אִיתֵיהּ?",
+          "endExcerpt": "סְלֵיק יְתֵיב בְּאִילָנָא",
+          "rabbiNames": ["Solomon", "Demons", "Benaiah ben Yehoyada"]
+        }
+      },
+      {
+        "startSegIdx": 10,
+        "endSegIdx": 11,
+        "fields": {
+          "title": "Ashmedai's capture",
+          "summary": "Ashmedai comes, finds wine instead of water, quotes verses against wine, but eventually drinks due to thirst, becomes drunk, and falls asleep. Benaiah descends, puts the chain on him, and seals it. When Ashmedai awakens and struggles, Benaiah tells him the Name of his Master is upon him.",
+          "excerpt": "כִּי אֲתָא סַיְירֵיהּ לְגוּשְׁפַּנְקָא",
+          "endExcerpt": "שְׁמָא דְּמָרָךְ עֲלָךְ",
+          "rabbiNames": ["Ashmedai", "Benaiah ben Yehoyada"]
+        }
+      },
+      {
+        "startSegIdx": 12,
+        "endSegIdx": 12,
+        "fields": {
+          "title": "Ashmedai's violent journey",
+          "summary": "As Benaiah leads Ashmedai, the demon violently uproots a palm tree, destroys a house, and when they reach a certain widow's hut, she comes out and begs him not to destroy it.",
+          "excerpt": "כִּי נָקֵיט לֵיהּ וְאָתֵי",
+          "endExcerpt": "נְפַקָא",
+          "rabbiNames": ["Ashmedai", "Benaiah ben Yehoyada", "Widow"]
+        }
+      }
+    ]
+  }
 }

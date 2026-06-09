@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { LruMap } from '../src/lib/lruMap';
 
 describe('LruMap', () => {
@@ -26,8 +26,8 @@ describe('LruMap', () => {
     const m = new LruMap<string, number>(2);
     m.set('a', 1);
     m.set('b', 2);
-    m.get('a');     // 'a' is now most-recently-used
-    m.set('c', 3);  // 'b' is now the LRU → evicted, 'a' survives
+    m.get('a'); // 'a' is now most-recently-used
+    m.set('c', 3); // 'b' is now the LRU → evicted, 'a' survives
     expect(m.has('a')).toBe(true);
     expect(m.has('b')).toBe(false);
     expect(m.has('c')).toBe(true);
@@ -38,7 +38,7 @@ describe('LruMap', () => {
     m.set('a', 1);
     m.set('b', 2);
     m.set('a', 11); // update + bump
-    m.set('c', 3);  // 'b' evicted, not 'a'
+    m.set('c', 3); // 'b' evicted, not 'a'
     expect(m.get('a')).toBe(11);
     expect(m.has('b')).toBe(false);
     expect(m.has('c')).toBe(true);

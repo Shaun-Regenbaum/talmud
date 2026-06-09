@@ -4,14 +4,20 @@ import {
   createResource,
   createSignal,
   For,
+  type JSX,
   onCleanup,
   onMount,
   Show,
-  type JSX,
 } from 'solid-js';
 import { BOOKS, SECTIONS, type Section } from '../lib/books.ts';
 import { hebrewNumeral } from '../lib/hebrew.ts';
-import { KIND_GLYPH, MIDRASH_MIN, type SourceKind, type SourceVerse, verseKinds } from '../lib/sources.ts';
+import {
+  KIND_GLYPH,
+  MIDRASH_MIN,
+  type SourceKind,
+  type SourceVerse,
+  verseKinds,
+} from '../lib/sources.ts';
 import { MikraotGedolot } from './MikraotGedolot.tsx';
 
 interface Verse {
@@ -114,7 +120,13 @@ function readUrl(): Loc {
   const view: View = 'scroll';
   const nikud = p.get('nikud') !== '0';
   const lang: 'en' | 'he' = p.get('lang') === 'he' ? 'he' : 'en';
-  return { book: BOOKS.some((b) => b.name === book) ? book : 'Genesis', chapter, view, nikud, lang };
+  return {
+    book: BOOKS.some((b) => b.name === book) ? book : 'Genesis',
+    chapter,
+    view,
+    nikud,
+    lang,
+  };
 }
 
 async function fetchChapter(loc: { book: string; chapter: number }): Promise<Chapter> {
@@ -271,7 +283,8 @@ export function App(): JSX.Element {
     }
     const m = scrollMain.getBoundingClientRect();
     const b = scrollBand.getBoundingClientRect();
-    const out: { v: string; label: string; top: number; left: number; side: 'left' | 'right' }[] = [];
+    const out: { v: string; label: string; top: number; left: number; side: 'left' | 'right' }[] =
+      [];
     scrollBand.querySelectorAll<HTMLElement>('.evt-pt').forEach((pt) => {
       const r = pt.getBoundingClientRect();
       if (!r.height) return;
@@ -280,9 +293,16 @@ export function App(): JSX.Element {
       // it never overlaps the text — at narrow widths the layout drops to one
       // column, which widens the margins and brings the anchors back).
       const side: 'left' | 'right' = r.left + r.width / 2 < m.left + m.width / 2 ? 'left' : 'right';
-      const left = side === 'right' ? b.right - m.left + ANCHOR_GAP : b.left - m.left - ANCHOR_W - ANCHOR_GAP;
+      const left =
+        side === 'right' ? b.right - m.left + ANCHOR_GAP : b.left - m.left - ANCHOR_W - ANCHOR_GAP;
       if (left < 4 || left + ANCHOR_W > m.width - 4) return;
-      out.push({ v: pt.dataset.v ?? '', label: pt.dataset.label ?? '', top: r.top - m.top, left, side });
+      out.push({
+        v: pt.dataset.v ?? '',
+        label: pt.dataset.label ?? '',
+        top: r.top - m.top,
+        left,
+        side,
+      });
     });
     // De-collide labels per side: nudge a label down when it would overlap the
     // one above (height estimated from text length wrapped to ANCHOR_W), like
@@ -305,7 +325,13 @@ export function App(): JSX.Element {
       const k = verseKinds(v);
       if (k.length) kindsByVerse.set(v.verse, k);
     }
-    const icons: { v: number; top: number; left: number; side: 'left' | 'right'; kinds: SourceKind[] }[] = [];
+    const icons: {
+      v: number;
+      top: number;
+      left: number;
+      side: 'left' | 'right';
+      kinds: SourceKind[];
+    }[] = [];
     if (kindsByVerse.size) {
       scrollBand.querySelectorAll<HTMLElement>('.vtext').forEach((vt) => {
         const vn = Number(vt.dataset.vn);
@@ -315,8 +341,10 @@ export function App(): JSX.Element {
         if (!r.height) return;
         // One-icon-wide lane: the stack is a collapsed vertical deck (icons
         // overlap, a sliver of each shows) that fans out on hover.
-        const side: 'left' | 'right' = r.left + r.width / 2 < m.left + m.width / 2 ? 'left' : 'right';
-        const left = side === 'right' ? b.right - m.left + ICON_GAP : b.left - m.left - ICON_SIZE - ICON_GAP;
+        const side: 'left' | 'right' =
+          r.left + r.width / 2 < m.left + m.width / 2 ? 'left' : 'right';
+        const left =
+          side === 'right' ? b.right - m.left + ICON_GAP : b.left - m.left - ICON_SIZE - ICON_GAP;
         if (left < 2 || left + ICON_SIZE > m.width - 2) return;
         icons.push({ v: vn, top: r.top - m.top, left, side, kinds });
       });
@@ -344,14 +372,21 @@ export function App(): JSX.Element {
 
   // Section note popover: clicking a margin anchor opens a short p'shat note for
   // that section's verse range (start..next section - 1).
-  const [selected, setSelected] = createSignal<
-    { start: number; end: number; label: string; top: number; side: 'left' | 'right' } | null
-  >(null);
+  const [selected, setSelected] = createSignal<{
+    start: number;
+    end: number;
+    label: string;
+    top: number;
+    side: 'left' | 'right';
+  } | null>(null);
   const openAnchor = (a: { v: string; label: string; top: number; side: 'left' | 'right' }) => {
     const start = Number(a.v);
     const secs = (events() ?? []).slice().sort((x, y) => x.verse - y.verse);
     const idx = secs.findIndex((s) => s.verse === start);
-    const end = idx >= 0 && idx + 1 < secs.length ? secs[idx + 1].verse - 1 : (data()?.verses.length ?? start);
+    const end =
+      idx >= 0 && idx + 1 < secs.length
+        ? secs[idx + 1].verse - 1
+        : (data()?.verses.length ?? start);
     setSelected({ start, end, label: a.label, top: a.top, side: a.side });
   };
   const [note] = createResource(selected, async (sel) => {
@@ -367,9 +402,16 @@ export function App(): JSX.Element {
 
   // Word / phrase translation: select Hebrew in the text (double-click a word or
   // drag a phrase) -> an English gloss popup at the selection.
-  const [wordSel, setWordSel] = createSignal<{ he: string; ctx: string; x: number; y: number } | null>(null);
+  const [wordSel, setWordSel] = createSignal<{
+    he: string;
+    ctx: string;
+    x: number;
+    y: number;
+  } | null>(null);
   const [translation] = createResource(wordSel, async (w) => {
-    const res = await fetch(`/api/translate?q=${encodeURIComponent(w.he)}&ctx=${encodeURIComponent(w.ctx)}`);
+    const res = await fetch(
+      `/api/translate?q=${encodeURIComponent(w.he)}&ctx=${encodeURIComponent(w.ctx)}`,
+    );
     return res.ok ? (((await res.json()) as { translation?: string }).translation ?? null) : null;
   });
   const onTextSelect = () => {
@@ -428,10 +470,14 @@ export function App(): JSX.Element {
   // A resource source that only resolves when the drawer is showing `kind`.
   const whenKind = (kind: SourceKind) => () => {
     const s = source();
-    return s && s.kind === kind ? { book: loc().book, chapter: loc().chapter, verse: s.verse } : null;
+    return s && s.kind === kind
+      ? { book: loc().book, chapter: loc().chapter, verse: s.verse }
+      : null;
   };
   const [commentary] = createResource(whenKind('rishonim'), async (k) => {
-    const res = await fetch(`/api/commentary/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`);
+    const res = await fetch(
+      `/api/commentary/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`,
+    );
     return res.ok ? ((await res.json()) as CommentaryResponse) : null;
   });
   const [synthesis] = createResource(
@@ -442,7 +488,9 @@ export function App(): JSX.Element {
         : null;
     },
     async (k) => {
-      const res = await fetch(`/api/synthesis/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`);
+      const res = await fetch(
+        `/api/synthesis/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`,
+      );
       return res.ok ? ((await res.json()) as SectionNote) : null;
     },
   );
@@ -462,7 +510,9 @@ export function App(): JSX.Element {
         : null;
     },
     async (k) => {
-      const res = await fetch(`/api/midrash-synthesis/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`);
+      const res = await fetch(
+        `/api/midrash-synthesis/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`,
+      );
       return res.ok ? ((await res.json()) as SectionNote) : null;
     },
   );
@@ -472,15 +522,29 @@ export function App(): JSX.Element {
   });
 
   return (
-    <div class="app" classList={{ 'view-scroll': loc().view === 'scroll', 'view-mikraot': loc().view === 'mikraot' }}>
+    <div
+      class="app"
+      classList={{
+        'view-scroll': loc().view === 'scroll',
+        'view-mikraot': loc().view === 'mikraot',
+      }}
+    >
       <header class="topbar">
         <span class="brand">Tanach</span>
-        <select class="book-select" value={loc().book} onChange={(e) => goto(e.currentTarget.value, 1)}>
+        <select
+          class="book-select"
+          value={loc().book}
+          onChange={(e) => goto(e.currentTarget.value, 1)}
+        >
           <For each={SECTIONS}>
             {(section: Section) => (
               <optgroup label={section}>
                 <For each={BOOKS.filter((b) => b.section === section)}>
-                  {(b) => <option value={b.name}>{b.name} · {b.he}</option>}
+                  {(b) => (
+                    <option value={b.name}>
+                      {b.name} · {b.he}
+                    </option>
+                  )}
                 </For>
               </optgroup>
             )}
@@ -508,14 +572,28 @@ export function App(): JSX.Element {
         </Show>
 
         <div class="lang-toggle" role="group" aria-label="Language">
-          <button classList={{ active: loc().lang === 'en' }} onClick={() => update({ lang: 'en' })}>EN</button>
-          <button classList={{ active: loc().lang === 'he' }} onClick={() => update({ lang: 'he' })}>עב</button>
+          <button
+            classList={{ active: loc().lang === 'en' }}
+            onClick={() => update({ lang: 'en' })}
+          >
+            EN
+          </button>
+          <button
+            classList={{ active: loc().lang === 'he' }}
+            onClick={() => update({ lang: 'he' })}
+          >
+            עב
+          </button>
         </div>
 
-        <a class="usage-link" href="/usage" title="LLM usage">usage</a>
+        <a class="usage-link" href="/usage" title="LLM usage">
+          usage
+        </a>
 
         <div class="chapter-nav">
-          <button disabled={loc().chapter <= 1} onClick={() => goto(loc().book, loc().chapter - 1)}>‹</button>
+          <button disabled={loc().chapter <= 1} onClick={() => goto(loc().book, loc().chapter - 1)}>
+            ‹
+          </button>
           <span class="chapter-label">
             {loc().lang === 'he' ? hebrewNumeral(loc().chapter) : `ch. ${loc().chapter}`}
           </span>
@@ -598,7 +676,10 @@ export function App(): JSX.Element {
               {(sel) => (
                 <div
                   class="note-pop"
-                  classList={{ 'note-left': sel().side === 'left', 'note-right': sel().side === 'right' }}
+                  classList={{
+                    'note-left': sel().side === 'left',
+                    'note-right': sel().side === 'right',
+                  }}
                   style={{ top: `${sel().top}px` }}
                 >
                   <button class="note-close" onClick={() => setSelected(null)} aria-label="Close">
@@ -630,7 +711,9 @@ export function App(): JSX.Element {
       <Show when={wordSel()}>
         {(w) => (
           <div class="xlate-pop" style={{ left: `${w().x}px`, top: `${w().y + 8}px` }}>
-            <span class="xlate-he" dir="rtl">{w().he}</span>
+            <span class="xlate-he" dir="rtl">
+              {w().he}
+            </span>
             <Show when={translation.loading}>
               <span class="xlate-en muted">…</span>
             </Show>
@@ -678,14 +761,19 @@ export function App(): JSX.Element {
                 </Show>
                 <Show when={commentary()}>
                   {(d) => (
-                    <For each={d().commentaries} fallback={<p class="comm-muted">No commentary on this verse.</p>}>
+                    <For
+                      each={d().commentaries}
+                      fallback={<p class="comm-muted">No commentary on this verse.</p>}
+                    >
                       {(cm) => {
                         const useEn = loc().lang === 'en' && cm.enText.length > 0;
                         return (
                           <section class="comm-entry">
                             <h4 class="comm-name">{loc().lang === 'he' ? cm.heName : cm.en}</h4>
                             <For each={useEn ? cm.enText : cm.he}>
-                              {(seg) => <p class="comm-text" dir={useEn ? 'ltr' : 'rtl'} innerHTML={seg} />}
+                              {(seg) => (
+                                <p class="comm-text" dir={useEn ? 'ltr' : 'rtl'} innerHTML={seg} />
+                              )}
                             </For>
                           </section>
                         );
@@ -700,7 +788,13 @@ export function App(): JSX.Element {
                   <p class="comm-muted">Finding Talmud passages…</p>
                 </Show>
                 <Show when={gemara()}>
-                  {(g) => <PassageList passages={g().passages} lang={loc().lang} empty="Not cited in the Talmud." />}
+                  {(g) => (
+                    <PassageList
+                      passages={g().passages}
+                      lang={loc().lang}
+                      empty="Not cited in the Talmud."
+                    />
+                  )}
                 </Show>
               </Show>
 
@@ -724,7 +818,13 @@ export function App(): JSX.Element {
                   <p class="comm-muted">Loading midrash…</p>
                 </Show>
                 <Show when={midrash()}>
-                  {(md) => <PassageList passages={md().passages} lang={loc().lang} empty="No midrash on this verse." />}
+                  {(md) => (
+                    <PassageList
+                      passages={md().passages}
+                      lang={loc().lang}
+                      empty="No midrash on this verse."
+                    />
+                  )}
                 </Show>
               </Show>
             </div>
@@ -767,7 +867,11 @@ function PassageList(props: {
   );
 }
 
-function ChapterFoot(props: { ch: Chapter; goto: (b: string, c: number) => void; lang: 'en' | 'he' }): JSX.Element {
+function ChapterFoot(props: {
+  ch: Chapter;
+  goto: (b: string, c: number) => void;
+  lang: 'en' | 'he';
+}): JSX.Element {
   const fmt = (book: string, chapter: number) =>
     props.lang === 'he' ? `${heBook(book)} ${hebrewNumeral(chapter)}` : `${book} ${chapter}`;
   const nav = (ref: string | null, dir: 'prev' | 'next') => (

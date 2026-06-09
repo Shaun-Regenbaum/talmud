@@ -17,17 +17,32 @@
  * falls back to a generic key/value dump of the parsed JSON.
  */
 
-import { createResource, createSignal, createEffect, onCleanup, untrack, For, Show, type JSX } from 'solid-js';
-import { HebraizedWithRabbis as Hebraized } from './rabbiLinks';
-import { devModeActive } from './DevModeShelf';
-import { trackAI } from './aiActivity';
-import { requestInspect } from './inspectBridge';
 import {
-  RequestQueue, QUEUE_PRIORITY, runResultCache, runCacheKey, isAbort,
-  PAUSED_ERROR, isPausedBody, isServiceUnavailableError,
+  createEffect,
+  createResource,
+  createSignal,
+  For,
+  type JSX,
+  onCleanup,
+  Show,
+  untrack,
+} from 'solid-js';
+import { trackAI } from './aiActivity';
+import { devModeActive } from './DevModeShelf';
+import {
+  isAbort,
+  isPausedBody,
+  isServiceUnavailableError,
+  PAUSED_ERROR,
+  QUEUE_PRIORITY,
+  RequestQueue,
   type RunResult,
+  runCacheKey,
+  runResultCache,
 } from './enrichmentQueue';
 import { lang, t } from './i18n';
+import { requestInspect } from './inspectBridge';
+import { HebraizedWithRabbis as Hebraized } from './rabbiLinks';
 
 // Single global "which card has the inspector open?" signal — keyed by the
 // card's instanceKey. Only one drawer at a time across the whole page.
@@ -50,23 +65,39 @@ export function openInstanceInspector(instanceKey: string, leafId: string | null
 /** The small circular "i" affordance. Dev-mode only. Drop next to any section
  *  (a SectionCard label, a viz header) to open the inspector focused on that
  *  section's leaf. Highlights when its target is the one currently shown. */
-export function InspectDot(props: { instanceKey: string; leafId?: string | null; title?: string; style?: JSX.CSSProperties }): JSX.Element {
+export function InspectDot(props: {
+  instanceKey: string;
+  leafId?: string | null;
+  title?: string;
+  style?: JSX.CSSProperties;
+}): JSX.Element {
   const active = () =>
-    openInspectorKey() === props.instanceKey && (inspectorView() ?? null) === (props.leafId ?? null);
+    openInspectorKey() === props.instanceKey &&
+    (inspectorView() ?? null) === (props.leafId ?? null);
   return (
     <Show when={devModeActive()}>
       <button
         type="button"
-        onClick={(e) => { e.stopPropagation(); openInstanceInspector(props.instanceKey, props.leafId ?? null); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          openInstanceInspector(props.instanceKey, props.leafId ?? null);
+        }}
         title={props.title ?? 'Inspect this section'}
         aria-label={props.title ?? 'Inspect this section'}
         style={{
-          width: '1.25rem', height: '1.25rem', padding: 0, cursor: 'pointer',
+          width: '1.25rem',
+          height: '1.25rem',
+          padding: 0,
+          cursor: 'pointer',
           background: active() ? '#000' : 'transparent',
           color: active() ? '#fff' : '#aaa',
-          border: '1px solid #ddd', 'border-radius': '50%',
-          'font-size': '0.62rem', 'font-family': 'ui-serif, Georgia, serif',
-          'font-style': 'italic', 'line-height': 1, 'flex-shrink': 0,
+          border: '1px solid #ddd',
+          'border-radius': '50%',
+          'font-size': '0.62rem',
+          'font-family': 'ui-serif, Georgia, serif',
+          'font-style': 'italic',
+          'line-height': 1,
+          'flex-shrink': 0,
           ...(props.style ?? {}),
         }}
       >
@@ -89,7 +120,6 @@ interface EnrichmentDef {
   source: 'kv' | 'code';
 }
 
-
 type RunState =
   | { kind: 'idle' }
   | { kind: 'loading'; stamp: string }
@@ -99,7 +129,7 @@ type RunState =
 async function fetchEnrichments(): Promise<EnrichmentDef[]> {
   const r = await fetch('/api/enrichments');
   if (!r.ok) return [];
-  const j = await r.json() as { enrichments: EnrichmentDef[] };
+  const j = (await r.json()) as { enrichments: EnrichmentDef[] };
   return j.enrichments;
 }
 
@@ -135,10 +165,16 @@ async function runEnrichmentImpl(
   const r = await fetch('/api/run', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ enrichment_id: enrichmentId, tractate, page, mark_input: markInput, lang: lang() }),
+    body: JSON.stringify({
+      enrichment_id: enrichmentId,
+      tractate,
+      page,
+      mark_input: markInput,
+      lang: lang(),
+    }),
     signal,
   });
-  const j = await r.json() as RunResponse | { error?: string };
+  const j = (await r.json()) as RunResponse | { error?: string };
   if (isPausedBody(j)) throw new Error(PAUSED_ERROR);
   if (!r.ok && r.status !== 202) {
     throw new Error((j as { error?: string }).error ?? `HTTP ${r.status}`);
@@ -163,16 +199,17 @@ function enrichmentActivityKey(
   markInput: unknown,
   instanceKey: string,
 ): { id: string; label: string } {
-  const inst = markInput as
-    | { name?: string; fields?: { id?: string; name?: string; verseRef?: string; topic?: string } }
-    | null;
+  const inst = markInput as {
+    name?: string;
+    fields?: { id?: string; name?: string; verseRef?: string; topic?: string };
+  } | null;
   const instanceTag =
-    inst?.fields?.id
-    ?? inst?.fields?.name
-    ?? inst?.fields?.verseRef
-    ?? inst?.fields?.topic
-    ?? inst?.name
-    ?? '';
+    inst?.fields?.id ??
+    inst?.fields?.name ??
+    inst?.fields?.verseRef ??
+    inst?.fields?.topic ??
+    inst?.name ??
+    '';
   const id = `${enrichmentId}:${tractate}:${page}:${instanceKey}`;
   const label = instanceTag
     ? `${enrichmentId} · ${instanceTag} · ${tractate} ${page}`
@@ -198,7 +235,9 @@ async function runEnrichment(
   signal?: AbortSignal,
 ): Promise<RunResult> {
   const { id, label } = enrichmentActivityKey(enrichmentId, tractate, page, markInput, instanceKey);
-  return trackAI(id, label, () => runEnrichmentImpl(enrichmentId, tractate, page, markInput, signal));
+  return trackAI(id, label, () =>
+    runEnrichmentImpl(enrichmentId, tractate, page, markInput, signal),
+  );
 }
 
 async function pollJob(runId: string, cacheKey?: string, signal?: AbortSignal): Promise<RunResult> {
@@ -208,7 +247,7 @@ async function pollJob(runId: string, cacheKey?: string, signal?: AbortSignal): 
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
     if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
     const r = await fetch(`/api/run-status/${encodeURIComponent(runId)}${qs}`, { signal });
-    const j = await r.json() as RunResponse | { status: 'pending' };
+    const j = (await r.json()) as RunResponse | { status: 'pending' };
     if (isPausedBody(j)) throw new Error(PAUSED_ERROR);
     if ('status' in j) {
       if (j.status === 'ok') return (j as { result: RunResult }).result;
@@ -249,8 +288,10 @@ export function enqueueEnrichmentRun(
   signal?: AbortSignal,
 ): Promise<RunResult> {
   const { id, label } = enrichmentActivityKey(enrichmentId, tractate, page, instance, instanceKey);
-  return enrichmentQueue.enqueue(id, label, (sig) =>
-    runEnrichment(enrichmentId, tractate, page, instance, instanceKey, sig),
+  return enrichmentQueue.enqueue(
+    id,
+    label,
+    (sig) => runEnrichment(enrichmentId, tractate, page, instance, instanceKey, sig),
     signal,
     QUEUE_PRIORITY.low,
   );
@@ -293,8 +334,7 @@ export default function MarkEnrichmentCards(props: Props) {
   const [defs] = createResource(fetchEnrichments);
   const [runs, setRuns] = createSignal<Record<string, RunState>>({});
 
-  const setRun = (id: string, state: RunState) =>
-    setRuns((cur) => ({ ...cur, [id]: state }));
+  const setRun = (id: string, state: RunState) => setRuns((cur) => ({ ...cur, [id]: state }));
 
   // Is THIS instance's inspector open, and which leaf is it focused on? Reads
   // the module-level signals so section cards (which live outside this
@@ -303,7 +343,8 @@ export default function MarkEnrichmentCards(props: Props) {
   const isInspectorOpen = () => openInspectorKey() === props.instanceKey;
   const inspectorSelectedId = () => (isInspectorOpen() ? inspectorView() : null);
 
-  const allMatching = () => (defs() ?? []).filter((d) => d.mark === props.markId && d.status !== 'draft');
+  const allMatching = () =>
+    (defs() ?? []).filter((d) => d.mark === props.markId && d.status !== 'draft');
   // The user-facing card is the aggregate (synthesis). Leaves only render
   // when dev mode is on AND the user picks one from the dropdown.
   const aggregates = () => allMatching().filter((d) => d.mode === 'aggregate');
@@ -378,7 +419,8 @@ export default function MarkEnrichmentCards(props: Props) {
   // mounts 15-40 of them, scroll-deferred, so they're NORMAL (still above
   // prefetch, but they don't starve the primary synthesis or another anchor
   // the user opens next).
-  const cardPriority = props.markId === 'argument-move' ? QUEUE_PRIORITY.normal : QUEUE_PRIORITY.high;
+  const cardPriority =
+    props.markId === 'argument-move' ? QUEUE_PRIORITY.normal : QUEUE_PRIORITY.high;
 
   // Stale-while-revalidate follow-up. The server serves the PREVIOUS
   // cache_version (tagged `refreshing`) on a version-bump miss while the new one
@@ -390,7 +432,11 @@ export default function MarkEnrichmentCards(props: Props) {
   // to the effect's AbortController so a daf/anchor change cancels them.
   const REFRESH_BACKOFF_MS = [4000, 8000, 16000];
   const scheduleRefresh = (
-    d: EnrichmentDef, s: string, curLang: string, controller: AbortController, attempt: number,
+    d: EnrichmentDef,
+    s: string,
+    curLang: string,
+    controller: AbortController,
+    attempt: number,
   ) => {
     if (attempt >= REFRESH_BACKOFF_MS.length) return;
     if (controller.signal.aborted || stamp() !== s) return;
@@ -400,22 +446,37 @@ export default function MarkEnrichmentCards(props: Props) {
       controller.signal.removeEventListener('abort', onAbort);
       if (controller.signal.aborted || stamp() !== s) return;
       const { id: actId, label: actLabel } = enrichmentActivityKey(
-        d.id, props.tractate, props.page, props.instance, props.instanceKey,
+        d.id,
+        props.tractate,
+        props.page,
+        props.instance,
+        props.instanceKey,
       );
-      void enrichmentQueue.enqueue(actId, actLabel, (sig) =>
-        runEnrichment(d.id, props.tractate, props.page, props.instance, props.instanceKey, sig),
-        controller.signal,
-        cardPriority,
-      ).then(
-        (result) => {
-          if (stamp() !== s) return;
-          if (result.refreshing) { scheduleRefresh(d, s, curLang, controller, attempt + 1); return; }
-          runResultCache.set(runCacheKey(d.id, props.tractate, props.page, props.instanceKey, curLang), result);
-          applyResult(d, s, result);
-        },
-        // Aborted / superseded / transient error — keep the stale value visible.
-        () => {},
-      );
+      void enrichmentQueue
+        .enqueue(
+          actId,
+          actLabel,
+          (sig) =>
+            runEnrichment(d.id, props.tractate, props.page, props.instance, props.instanceKey, sig),
+          controller.signal,
+          cardPriority,
+        )
+        .then(
+          (result) => {
+            if (stamp() !== s) return;
+            if (result.refreshing) {
+              scheduleRefresh(d, s, curLang, controller, attempt + 1);
+              return;
+            }
+            runResultCache.set(
+              runCacheKey(d.id, props.tractate, props.page, props.instanceKey, curLang),
+              result,
+            );
+            applyResult(d, s, result);
+          },
+          // Aborted / superseded / transient error — keep the stale value visible.
+          () => {},
+        );
     }, REFRESH_BACKOFF_MS[attempt]);
     controller.signal.addEventListener('abort', onAbort, { once: true });
   };
@@ -432,38 +493,66 @@ export default function MarkEnrichmentCards(props: Props) {
     onCleanup(() => controller.abort());
     untrack(() => {
       for (const d of list) {
-        const cached = runResultCache.get(runCacheKey(d.id, props.tractate, props.page, props.instanceKey, curLang));
-        if (cached) { applyResult(d, s, cached); continue; }
+        const cached = runResultCache.get(
+          runCacheKey(d.id, props.tractate, props.page, props.instanceKey, curLang),
+        );
+        if (cached) {
+          applyResult(d, s, cached);
+          continue;
+        }
         const cur = runs()[d.id];
         if (cur && cur.kind !== 'idle' && cur.stamp === s) continue;
         setRun(d.id, { kind: 'loading', stamp: s });
         const { id: actId, label: actLabel } = enrichmentActivityKey(
-          d.id, props.tractate, props.page, props.instance, props.instanceKey,
+          d.id,
+          props.tractate,
+          props.page,
+          props.instance,
+          props.instanceKey,
         );
-        void enrichmentQueue.enqueue(actId, actLabel, (sig) =>
-          runEnrichment(d.id, props.tractate, props.page, props.instance, props.instanceKey, sig),
-          controller.signal,
-          cardPriority,
-        ).then(
-          (result) => {
-            // A `refreshing` result is the stale previous version (SWR). Show it,
-            // but don't persist it (it would pin the stale value in the run
-            // cache); instead re-fetch shortly to pick up the fresh version.
-            if (result.refreshing) {
+        void enrichmentQueue
+          .enqueue(
+            actId,
+            actLabel,
+            (sig) =>
+              runEnrichment(
+                d.id,
+                props.tractate,
+                props.page,
+                props.instance,
+                props.instanceKey,
+                sig,
+              ),
+            controller.signal,
+            cardPriority,
+          )
+          .then(
+            (result) => {
+              // A `refreshing` result is the stale previous version (SWR). Show it,
+              // but don't persist it (it would pin the stale value in the run
+              // cache); instead re-fetch shortly to pick up the fresh version.
+              if (result.refreshing) {
+                applyResult(d, s, result);
+                scheduleRefresh(d, s, curLang, controller, 0);
+                return;
+              }
+              runResultCache.set(
+                runCacheKey(d.id, props.tractate, props.page, props.instanceKey, curLang),
+                result,
+              );
               applyResult(d, s, result);
-              scheduleRefresh(d, s, curLang, controller, 0);
-              return;
-            }
-            runResultCache.set(runCacheKey(d.id, props.tractate, props.page, props.instanceKey, curLang), result);
-            applyResult(d, s, result);
-          },
-          (err) => {
-            // Aborted (sidebar closed / anchor switched) or superseded — leave
-            // the run state alone; a fresh effect run owns the current stamp.
-            if (isAbort(err) || stamp() !== s) return;
-            setRun(d.id, { kind: 'error', stamp: s, error: String((err as Error)?.message ?? err) });
-          },
-        );
+            },
+            (err) => {
+              // Aborted (sidebar closed / anchor switched) or superseded — leave
+              // the run state alone; a fresh effect run owns the current stamp.
+              if (isAbort(err) || stamp() !== s) return;
+              setRun(d.id, {
+                kind: 'error',
+                stamp: s,
+                error: String((err as Error)?.message ?? err),
+              });
+            },
+          );
       }
     });
   });
@@ -489,8 +578,7 @@ export default function MarkEnrichmentCards(props: Props) {
     if (sel) return allMatching().find((d) => d.id === sel) ?? null;
     return primaryView();
   };
-  const currentRun = (): RunState =>
-    runs()[currentView()?.id ?? ''] ?? { kind: 'idle' };
+  const currentRun = (): RunState => runs()[currentView()?.id ?? ''] ?? { kind: 'idle' };
 
   // When a leaf is selected in the inspector, make sure we have its FULL run
   // (prompt + telemetry). Leaves fanned out from the aggregate's deps_resolved
@@ -511,22 +599,38 @@ export default function MarkEnrichmentCards(props: Props) {
     const controller = new AbortController();
     onCleanup(() => controller.abort());
     const { id: actId, label: actLabel } = enrichmentActivityKey(
-      id, props.tractate, props.page, props.instance, props.instanceKey,
+      id,
+      props.tractate,
+      props.page,
+      props.instance,
+      props.instanceKey,
     );
-    void enrichmentQueue.enqueue(actId, actLabel, (sig) =>
-      runEnrichment(id, props.tractate, props.page, props.instance, props.instanceKey, sig),
-      controller.signal,
-      QUEUE_PRIORITY.high,
-    ).then(
-      (result) => {
-        // Don't pin a stale SWR value in the cache (see the auto-fire path).
-        if (!result.refreshing) {
-          runResultCache.set(runCacheKey(id, props.tractate, props.page, props.instanceKey, curLang), result);
-        }
-        if (stamp() === s) setRun(id, { kind: 'ok', stamp: s, result });
-      },
-      (err) => { if (!isAbort(err) && stamp() === s) { /* keep synthetic content; inspection just lacks prompts */ } },
-    );
+    void enrichmentQueue
+      .enqueue(
+        actId,
+        actLabel,
+        (sig) =>
+          runEnrichment(id, props.tractate, props.page, props.instance, props.instanceKey, sig),
+        controller.signal,
+        QUEUE_PRIORITY.high,
+      )
+      .then(
+        (result) => {
+          // Don't pin a stale SWR value in the cache (see the auto-fire path).
+          if (!result.refreshing) {
+            runResultCache.set(
+              runCacheKey(id, props.tractate, props.page, props.instanceKey, curLang),
+              result,
+            );
+          }
+          if (stamp() === s) setRun(id, { kind: 'ok', stamp: s, result });
+        },
+        (err) => {
+          if (!isAbort(err) && stamp() === s) {
+            /* keep synthetic content; inspection just lacks prompts */
+          }
+        },
+      );
   });
 
   // Source TEXTS that fed the inspector's current view (gemara / commentaries /
@@ -535,12 +639,20 @@ export default function MarkEnrichmentCards(props: Props) {
   // field on the cached RunResult, since the texts are KB-scale and only the dev
   // inspector wants them (every reader's card fetch would otherwise carry them).
   // Re-fetches when the focal view changes; null while loading or closed.
-  const [inspectorSources, setInspectorSources] =
-    createSignal<Record<string, { chars: number; content: string }> | null>(null);
+  const [inspectorSources, setInspectorSources] = createSignal<Record<
+    string,
+    { chars: number; content: string }
+  > | null>(null);
   createEffect(() => {
-    if (!(devModeActive() && isInspectorOpen())) { setInspectorSources(null); return; }
+    if (!(devModeActive() && isInspectorOpen())) {
+      setInspectorSources(null);
+      return;
+    }
     const view = currentView();
-    if (!view) { setInspectorSources(null); return; }
+    if (!view) {
+      setInspectorSources(null);
+      return;
+    }
     const curLang = lang();
     const inst = props.instance;
     const tractate = props.tractate;
@@ -551,18 +663,27 @@ export default function MarkEnrichmentCards(props: Props) {
     void fetch('/api/run-sources', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ enrichment_id: view.id, tractate, page, mark_input: inst, lang: curLang }),
+      body: JSON.stringify({
+        enrichment_id: view.id,
+        tractate,
+        page,
+        mark_input: inst,
+        lang: curLang,
+      }),
       signal: controller.signal,
     })
       .then((r) => (r.ok ? r.json() : null))
       .then((j) => {
         if (controller.signal.aborted) return;
-        const sources = j && typeof j === 'object' && 'sources' in j
-          ? (j as { sources: Record<string, { chars: number; content: string }> }).sources
-          : {};
+        const sources =
+          j && typeof j === 'object' && 'sources' in j
+            ? (j as { sources: Record<string, { chars: number; content: string }> }).sources
+            : {};
         setInspectorSources(sources);
       })
-      .catch(() => { /* inspector just shows no sources */ });
+      .catch(() => {
+        /* inspector just shows no sources */
+      });
   });
 
   // Dependencies that fed the current view. For a synthesis-style aggregate
@@ -580,7 +701,11 @@ export default function MarkEnrichmentCards(props: Props) {
     // (also covers source-tag deps and mark deps, but those don't render as
     // leaf badges).
     const enrichmentDeps = (v.dependencies ?? [])
-      .map((d) => (d && typeof d === 'object' && 'enrichment' in d) ? (d as { enrichment: string }).enrichment : null)
+      .map((d) =>
+        d && typeof d === 'object' && 'enrichment' in d
+          ? (d as { enrichment: string }).enrichment
+          : null,
+      )
       .filter((s): s is string => !!s);
     if (enrichmentDeps.length > 0) return enrichmentDeps;
     return [v.id];
@@ -640,18 +765,29 @@ export default function MarkEnrichmentCards(props: Props) {
   const renderRunBody = (r: RunState): JSX.Element => {
     if (r.kind === 'loading' || r.kind === 'idle') {
       return (
-        <div style={{
-          display: 'flex', 'align-items': 'center', gap: '0.6rem',
-          padding: '0.7rem 0.2rem', color: '#666', 'font-size': '0.88rem',
-          'font-style': 'italic',
-        }}>
-          <span style={{
-            display: 'inline-block', width: '0.85rem', height: '0.85rem',
-            'border-radius': '50%',
-            border: '2px solid #d6d3d1', 'border-top-color': '#8a2a2b',
-            animation: 'daf-spin 0.8s linear infinite',
-            'flex-shrink': 0,
-          }} />
+        <div
+          style={{
+            display: 'flex',
+            'align-items': 'center',
+            gap: '0.6rem',
+            padding: '0.7rem 0.2rem',
+            color: '#666',
+            'font-size': '0.88rem',
+            'font-style': 'italic',
+          }}
+        >
+          <span
+            style={{
+              display: 'inline-block',
+              width: '0.85rem',
+              height: '0.85rem',
+              'border-radius': '50%',
+              border: '2px solid #d6d3d1',
+              'border-top-color': '#8a2a2b',
+              animation: 'daf-spin 0.8s linear infinite',
+              'flex-shrink': 0,
+            }}
+          />
           {loadingCopy()}
         </div>
       );
@@ -663,11 +799,14 @@ export default function MarkEnrichmentCards(props: Props) {
       // text, localized. A genuine bug (parse/schema/unknown) stays loud (red mono).
       const calm = paused || unavailable;
       return (
-        <div style={{
-          color: calm ? '#a16207' : '#c00',
-          'font-family': calm ? 'inherit' : 'monospace',
-          'font-size': '0.78rem', padding: '0.4rem 0',
-        }}>
+        <div
+          style={{
+            color: calm ? '#a16207' : '#c00',
+            'font-family': calm ? 'inherit' : 'monospace',
+            'font-size': '0.78rem',
+            padding: '0.4rem 0',
+          }}
+        >
           {paused ? t('qa.error.paused') : unavailable ? t('enrich.error.unavailable') : r.error}
         </div>
       );
@@ -690,19 +829,25 @@ export default function MarkEnrichmentCards(props: Props) {
 
   // Human-friendly label for the instance (used in the inspector header).
   const instanceLabel = (): string => {
-    const inst = props.instance as { name?: string; fields?: { title?: string; verseRef?: string; topic?: string; name?: string; id?: string } } | null;
+    const inst = props.instance as {
+      name?: string;
+      fields?: { title?: string; verseRef?: string; topic?: string; name?: string; id?: string };
+    } | null;
     return (
-      inst?.fields?.title
-      ?? inst?.fields?.verseRef
-      ?? inst?.fields?.topic
-      ?? inst?.fields?.name
-      ?? inst?.name
-      ?? inst?.fields?.id
-      ?? props.instanceKey
+      inst?.fields?.title ??
+      inst?.fields?.verseRef ??
+      inst?.fields?.topic ??
+      inst?.fields?.name ??
+      inst?.name ??
+      inst?.fields?.id ??
+      props.instanceKey
     );
   };
 
-  const closeInspector = () => { setOpenInspectorKey(null); setInspectorView(null); };
+  const closeInspector = () => {
+    setOpenInspectorKey(null);
+    setInspectorView(null);
+  };
   const openInspector = (e?: MouseEvent) => {
     // Cards may live inside an outer click-target (e.g. ArgumentMoveCard's
     // toggleHighlight wrapper). Stop propagation so the inspector affordance
@@ -720,28 +865,47 @@ export default function MarkEnrichmentCards(props: Props) {
   // controls, prompts, and telemetry.
   return (
     <>
-      <div style={{
-        position: 'relative',
-        background: '#fafafa',
-        border: '1px solid #eee',
-        'border-radius': '6px',
-        padding: '0.85rem 1rem',
-      }}>
+      <div
+        style={{
+          position: 'relative',
+          background: '#fafafa',
+          border: '1px solid #eee',
+          'border-radius': '6px',
+          padding: '0.85rem 1rem',
+        }}
+      >
         {renderCardBody()}
-        <Show when={(() => { const r = primaryRun(); return r.kind === 'ok' && r.result.refreshing; })()}>
+        <Show
+          when={(() => {
+            const r = primaryRun();
+            return r.kind === 'ok' && r.result.refreshing;
+          })()}
+        >
           {/* Stale-while-revalidate: the value above is the previous version,
               served while the new one recomputes. scheduleRefresh swaps it in. */}
-          <div style={{
-            display: 'flex', 'align-items': 'center', gap: '0.4rem',
-            'margin-top': '0.5rem', color: '#a16207', 'font-size': '0.72rem',
-            'font-style': 'italic',
-          }}>
-            <span style={{
-              display: 'inline-block', width: '0.6rem', height: '0.6rem',
-              'border-radius': '50%',
-              border: '2px solid #e7d9b0', 'border-top-color': '#a16207',
-              animation: 'daf-spin 0.8s linear infinite', 'flex-shrink': 0,
-            }} />
+          <div
+            style={{
+              display: 'flex',
+              'align-items': 'center',
+              gap: '0.4rem',
+              'margin-top': '0.5rem',
+              color: '#a16207',
+              'font-size': '0.72rem',
+              'font-style': 'italic',
+            }}
+          >
+            <span
+              style={{
+                display: 'inline-block',
+                width: '0.6rem',
+                height: '0.6rem',
+                'border-radius': '50%',
+                border: '2px solid #e7d9b0',
+                'border-top-color': '#a16207',
+                animation: 'daf-spin 0.8s linear infinite',
+                'flex-shrink': 0,
+              }}
+            />
             {t('enrichment.updating')}
           </div>
         </Show>
@@ -752,12 +916,15 @@ export default function MarkEnrichmentCards(props: Props) {
             aria-label="Inspect this synthesis"
             style={{
               position: 'absolute',
-              top: '0.35rem', right: '0.35rem',
-              width: '1.4rem', height: '1.4rem',
+              top: '0.35rem',
+              right: '0.35rem',
+              width: '1.4rem',
+              height: '1.4rem',
               padding: 0,
               cursor: 'pointer',
-              background: (isInspectorOpen() && inspectorSelectedId() === null) ? '#000' : 'transparent',
-              color: (isInspectorOpen() && inspectorSelectedId() === null) ? '#fff' : '#888',
+              background:
+                isInspectorOpen() && inspectorSelectedId() === null ? '#000' : 'transparent',
+              color: isInspectorOpen() && inspectorSelectedId() === null ? '#fff' : '#888',
               border: '1px solid #ddd',
               'border-radius': '50%',
               'font-size': '0.7rem',
@@ -802,7 +969,9 @@ function ArrayItem(props: { item: unknown }) {
   // {excerpt, refStub, etc.}; the excerpt is the only field worth seeing
   // first.
   const HEAD_KEYS = ['name', 'place', 'title', 'label', 'excerpt', 'id'];
-  const headKey = HEAD_KEYS.find((k) => typeof obj[k] === 'string' && (obj[k] as string).length > 0);
+  const headKey = HEAD_KEYS.find(
+    (k) => typeof obj[k] === 'string' && (obj[k] as string).length > 0,
+  );
   const head = headKey ? (obj[headKey] as string) : null;
   const restEntries = Object.entries(obj).filter(([k, val]) => {
     if (k === headKey) return false;
@@ -814,8 +983,17 @@ function ArrayItem(props: { item: unknown }) {
   return (
     <span>
       <Show when={head}>
-        <Show when={headKey === 'excerpt'} fallback={<span style={{ 'font-weight': 500 }}><Hebraized text={head as string} /></span>}>
-          <span dir="rtl" lang="he" style={{ 'font-family': '"Mekorot Vilna", serif' }}>{head}</span>
+        <Show
+          when={headKey === 'excerpt'}
+          fallback={
+            <span style={{ 'font-weight': 500 }}>
+              <Hebraized text={head as string} />
+            </span>
+          }
+        >
+          <span dir="rtl" lang="he" style={{ 'font-family': '"Mekorot Vilna", serif' }}>
+            {head}
+          </span>
         </Show>
       </Show>
       <Show when={restEntries.length > 0}>
@@ -839,8 +1017,10 @@ function ArrayItem(props: { item: unknown }) {
 }
 
 function ParsedFieldView(props: { parsed: Record<string, unknown> }) {
-  const entries = () => Object.entries(props.parsed)
-    .filter(([, v]) => v !== null && v !== '' && !(Array.isArray(v) && v.length === 0));
+  const entries = () =>
+    Object.entries(props.parsed).filter(
+      ([, v]) => v !== null && v !== '' && !(Array.isArray(v) && v.length === 0),
+    );
   // When the schema has only ONE string field (e.g. rabbi.bio's `bio`), drop
   // the section header and render the text as a clean paragraph. Multi-field
   // schemas keep the per-field labels for clarity.
@@ -850,43 +1030,82 @@ function ParsedFieldView(props: { parsed: Record<string, unknown> }) {
   };
 
   return (
-    <Show when={isSingleString()} fallback={
-      <div style={{ 'font-size': '0.88rem', 'line-height': 1.55, color: '#222' }}>
-        <For each={entries()}>{([key, value]) => {
-          const isHe = key.endsWith('_he') || key.includes('quote_he');
-          const label = key.replace(/_/g, ' ').replace(/\b\w/, (m) => m.toUpperCase());
-          if (typeof value === 'string') {
-            return (
-              <div style={{ 'margin-bottom': '0.7rem' }}>
-                <div style={{ 'font-size': '0.7rem', color: '#888', 'margin-bottom': '0.15rem', 'font-weight': 500 }}>
-                  {label}
-                </div>
-                <Show when={isHe} fallback={
-                  <p style={{ margin: 0 }}><Hebraized text={value} /></p>
-                }>
-                  <p dir="rtl" lang="he" style={{ margin: 0, 'font-family': '"Mekorot Vilna", serif', 'font-size': '1rem', color: '#222' }}>
-                    {value}
-                  </p>
-                </Show>
-              </div>
-            );
-          }
-          if (Array.isArray(value)) {
-            return (
-              <div style={{ 'margin-bottom': '0.7rem' }}>
-                <div style={{ 'font-size': '0.7rem', color: '#888', 'margin-bottom': '0.15rem', 'font-weight': 500 }}>
-                  {label}
-                </div>
-                <ul style={{ margin: 0, 'padding-left': '1rem' }}>
-                  <For each={value}>{(v) => <li><ArrayItem item={v} /></li>}</For>
-                </ul>
-              </div>
-            );
-          }
-          return null;
-        }}</For>
-      </div>
-    }>
+    <Show
+      when={isSingleString()}
+      fallback={
+        <div style={{ 'font-size': '0.88rem', 'line-height': 1.55, color: '#222' }}>
+          <For each={entries()}>
+            {([key, value]) => {
+              const isHe = key.endsWith('_he') || key.includes('quote_he');
+              const label = key.replace(/_/g, ' ').replace(/\b\w/, (m) => m.toUpperCase());
+              if (typeof value === 'string') {
+                return (
+                  <div style={{ 'margin-bottom': '0.7rem' }}>
+                    <div
+                      style={{
+                        'font-size': '0.7rem',
+                        color: '#888',
+                        'margin-bottom': '0.15rem',
+                        'font-weight': 500,
+                      }}
+                    >
+                      {label}
+                    </div>
+                    <Show
+                      when={isHe}
+                      fallback={
+                        <p style={{ margin: 0 }}>
+                          <Hebraized text={value} />
+                        </p>
+                      }
+                    >
+                      <p
+                        dir="rtl"
+                        lang="he"
+                        style={{
+                          margin: 0,
+                          'font-family': '"Mekorot Vilna", serif',
+                          'font-size': '1rem',
+                          color: '#222',
+                        }}
+                      >
+                        {value}
+                      </p>
+                    </Show>
+                  </div>
+                );
+              }
+              if (Array.isArray(value)) {
+                return (
+                  <div style={{ 'margin-bottom': '0.7rem' }}>
+                    <div
+                      style={{
+                        'font-size': '0.7rem',
+                        color: '#888',
+                        'margin-bottom': '0.15rem',
+                        'font-weight': 500,
+                      }}
+                    >
+                      {label}
+                    </div>
+                    <ul style={{ margin: 0, 'padding-left': '1rem' }}>
+                      <For each={value}>
+                        {(v) => (
+                          <li>
+                            <ArrayItem item={v} />
+                          </li>
+                        )}
+                      </For>
+                    </ul>
+                  </div>
+                );
+              }
+              return null;
+            }}
+          </For>
+        </div>
+      }
+    >
       <p style={{ margin: 0, 'font-size': '0.92rem', 'line-height': 1.6, color: '#222' }}>
         <Hebraized text={String(entries()[0][1])} />
       </p>

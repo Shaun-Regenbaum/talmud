@@ -1,59 +1,124 @@
-import { describe, it, expect } from 'vitest';
-import { dafLinks } from '../src/lib/context/dafLinks';
-import { dafCoord, coordForSeg, spineCoord } from '@corpus/core/context/coord';
+import { coordForSeg, dafCoord, spineCoord } from '@corpus/core/context/coord';
 import type { ContextItem } from '@corpus/core/context/types';
+import { describe, expect, it } from 'vitest';
+import { dafLinks } from '../src/lib/context/dafLinks';
 
 const DAF = { tractate: 'Shabbat', page: '125b' };
 const item = (over: Partial<ContextItem>): ContextItem => ({
-  source: 'dafyomi:revach', sourceLabel: "Revach l'Daf", kind: 'revach', key: 'k', segs: [], ...over,
+  source: 'dafyomi:revach',
+  sourceLabel: "Revach l'Daf",
+  kind: 'revach',
+  key: 'k',
+  segs: [],
+  ...over,
 });
 
 describe('dafLinks — the unified link layer of a daf', () => {
   it('is empty when there is nothing to link', () => {
-    expect(dafLinks(DAF, { continuesTo: null, items: [], flowEdges: [], sectionStartSegs: [] })).toEqual([]);
+    expect(
+      dafLinks(DAF, { continuesTo: null, items: [], flowEdges: [], sectionStartSegs: [] }),
+    ).toEqual([]);
   });
 
   it('emits a bridge link (continues) sourced at the whole daf', () => {
-    const out = dafLinks(DAF, { continuesTo: { tractate: 'Shabbat', page: '126a' }, items: [], flowEdges: [], sectionStartSegs: [] });
+    const out = dafLinks(DAF, {
+      continuesTo: { tractate: 'Shabbat', page: '126a' },
+      items: [],
+      flowEdges: [],
+      sectionStartSegs: [],
+    });
     expect(out).toEqual([
-      { via: 'bridge', source: dafCoord(DAF), relation: 'continues', targets: [dafCoord({ tractate: 'Shabbat', page: '126a' })] },
+      {
+        via: 'bridge',
+        source: dafCoord(DAF),
+        relation: 'continues',
+        targets: [dafCoord({ tractate: 'Shabbat', page: '126a' })],
+      },
     ]);
   });
 
   it('emits a cites link per context item with refs, sourced at its first seg (else whole-daf)', () => {
-    const placed = item({ key: 'a', segs: [7, 3], refs: [dafCoord({ tractate: 'Pesachim', page: '50a' })] });
-    const unplaced = item({ key: 'b', segs: [], refs: [dafCoord({ tractate: 'Gittin', page: '6a' })] });
+    const placed = item({
+      key: 'a',
+      segs: [7, 3],
+      refs: [dafCoord({ tractate: 'Pesachim', page: '50a' })],
+    });
+    const unplaced = item({
+      key: 'b',
+      segs: [],
+      refs: [dafCoord({ tractate: 'Gittin', page: '6a' })],
+    });
     const noRefs = item({ key: 'c', segs: [2] });
-    const out = dafLinks(DAF, { continuesTo: null, items: [placed, unplaced, noRefs], flowEdges: [], sectionStartSegs: [] });
+    const out = dafLinks(DAF, {
+      continuesTo: null,
+      items: [placed, unplaced, noRefs],
+      flowEdges: [],
+      sectionStartSegs: [],
+    });
     expect(out).toEqual([
-      { via: 'context', source: coordForSeg(DAF, 7), relation: 'cites', targets: [dafCoord({ tractate: 'Pesachim', page: '50a' })], note: "Revach l'Daf" },
-      { via: 'context', source: dafCoord(DAF), relation: 'cites', targets: [dafCoord({ tractate: 'Gittin', page: '6a' })], note: "Revach l'Daf" },
+      {
+        via: 'context',
+        source: coordForSeg(DAF, 7),
+        relation: 'cites',
+        targets: [dafCoord({ tractate: 'Pesachim', page: '50a' })],
+        note: "Revach l'Daf",
+      },
+      {
+        via: 'context',
+        source: dafCoord(DAF),
+        relation: 'cites',
+        targets: [dafCoord({ tractate: 'Gittin', page: '6a' })],
+        note: "Revach l'Daf",
+      },
     ]);
   });
 
   it('emits flow links by resolving section indices through sectionStartSegs', () => {
     // sections 0,1,2 start at segs 0, 5, 9. Edge 0->2 (depends-on), 1->2 (resolves).
     const out = dafLinks(DAF, {
-      continuesTo: null, items: [],
-      flowEdges: [{ from: 0, to: 2, kind: 'depends-on' }, { from: 1, to: 2, kind: 'resolves' }],
+      continuesTo: null,
+      items: [],
+      flowEdges: [
+        { from: 0, to: 2, kind: 'depends-on' },
+        { from: 1, to: 2, kind: 'resolves' },
+      ],
       sectionStartSegs: [0, 5, 9],
     });
     expect(out).toEqual([
-      { via: 'flow', source: coordForSeg(DAF, 0), relation: 'depends-on', targets: [coordForSeg(DAF, 9)] },
-      { via: 'flow', source: coordForSeg(DAF, 5), relation: 'resolves', targets: [coordForSeg(DAF, 9)] },
+      {
+        via: 'flow',
+        source: coordForSeg(DAF, 0),
+        relation: 'depends-on',
+        targets: [coordForSeg(DAF, 9)],
+      },
+      {
+        via: 'flow',
+        source: coordForSeg(DAF, 5),
+        relation: 'resolves',
+        targets: [coordForSeg(DAF, 9)],
+      },
     ]);
   });
 
   it('emits a commentary gloss link per work, sourced on its spine, targeting the daf segs it glosses', () => {
     const out = dafLinks(DAF, {
-      continuesTo: null, items: [], flowEdges: [], sectionStartSegs: [],
+      continuesTo: null,
+      items: [],
+      flowEdges: [],
+      sectionStartSegs: [],
       commentaryWorks: [
         { title: 'Rashi', comments: [{ anchorSegIdx: 2 }, { anchorSegIdx: 0 }] },
         { title: 'Tosafot', comments: [{ anchorSegIdx: -1 }] }, // no resolvable anchor → dropped
       ],
     });
     expect(out).toEqual([
-      { via: 'commentary', source: spineCoord('Rashi', DAF), relation: 'glosses', targets: [coordForSeg(DAF, 0), coordForSeg(DAF, 2)], note: 'Rashi' },
+      {
+        via: 'commentary',
+        source: spineCoord('Rashi', DAF),
+        relation: 'glosses',
+        targets: [coordForSeg(DAF, 0), coordForSeg(DAF, 2)],
+        note: 'Rashi',
+      },
     ]);
   });
 

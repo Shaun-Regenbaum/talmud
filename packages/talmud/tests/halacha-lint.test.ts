@@ -1,10 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  lintTransliterationInParens,
-  lintBareTransliteration,
-  lintHalachaText,
-  lintHalachaParsed,
   type GlossIssue,
+  lintBareTransliteration,
+  lintHalachaParsed,
+  lintHalachaText,
+  lintTransliterationInParens,
 } from '../src/lib/halachaLint';
 
 // ---------------------------------------------------------------------------
@@ -15,15 +15,15 @@ import {
 
 describe('lintTransliterationInParens — flags romanization-only parens', () => {
   const FLAG: Array<[string, string]> = [
-    ['performed (lechatchila) one may eat',        'לכתחילה'],
-    ['the (bedieved) status is permitted',         'בדיעבד'],
-    ['below the (rov basar) threshold',            'רוב בשר'],
-    ['set aside as (terumah)',                     'תרומה'],
-    ['the (kiddushin) is valid',                   'קידושין'],
+    ['performed (lechatchila) one may eat', 'לכתחילה'],
+    ['the (bedieved) status is permitted', 'בדיעבד'],
+    ['below the (rov basar) threshold', 'רוב בשר'],
+    ['set aside as (terumah)', 'תרומה'],
+    ['the (kiddushin) is valid', 'קידושין'],
     // Hyphenated variant normalizes to the same term.
-    ['performed (le-chatchila) at the outset',     'לכתחילה'],
+    ['performed (le-chatchila) at the outset', 'לכתחילה'],
     // Capitalized romanization still matches.
-    ['the (Bedieved) ruling',                      'בדיעבד'],
+    ['the (Bedieved) ruling', 'בדיעבד'],
   ];
   for (const [input, hebrew] of FLAG) {
     it(`flags "${input}"`, () => {
@@ -66,13 +66,13 @@ describe('lintTransliterationInParens — leaves valid / unrelated parens alone'
 
 describe('lintBareTransliteration — flags stranded technical romanizations', () => {
   const FLAG: Array<[string, string]> = [
-    ['lechatchila one may lock the door',          'לכתחילה'],
-    ['the meat is permitted bedieved',             'בדיעבד'],
-    ['this falls below the rov basar line',        'רוב בשר'],
+    ['lechatchila one may lock the door', 'לכתחילה'],
+    ['the meat is permitted bedieved', 'בדיעבד'],
+    ['this falls below the rov basar line', 'רוב בשר'],
     ['pidyon haben is performed on the firstborn', 'פדיון הבן'],
-    ['the ben shnato requirement',                 'בן שנתו'],
-    ['set aside as terumah for the kohen',         'תרומה'],
-    ['relies on a chazaka here',                    'חזקה'],
+    ['the ben shnato requirement', 'בן שנתו'],
+    ['set aside as terumah for the kohen', 'תרומה'],
+    ['relies on a chazaka here', 'חזקה'],
   ];
   for (const [input, hebrew] of FLAG) {
     it(`flags "${input}"`, () => {
@@ -116,12 +116,13 @@ describe('lintBareTransliteration — no false positives', () => {
 
 describe('lintHalachaText — composes parens + bare + calques', () => {
   it('returns [] for clean, compliant prose', () => {
-    const clean = 'A bolt may be used on שבת to lock a door לכתחילה (the ideal standard) if it was prepared before שבת. A bolt never prepared is מוקצה (set aside).';
+    const clean =
+      'A bolt may be used on שבת to lock a door לכתחילה (the ideal standard) if it was prepared before שבת. A bolt never prepared is מוקצה (set aside).';
     expect(lintHalachaText(clean)).toEqual([]);
   });
 
   it('catches a calque (delegated to lintCalques)', () => {
-    const issues = lintHalachaText("the seven commandments of the sons of Noah bind all");
+    const issues = lintHalachaText('the seven commandments of the sons of Noah bind all');
     expect(issues.some((i) => i.kind === 'calque')).toBe(true);
   });
 
@@ -166,7 +167,9 @@ describe('lintHalachaParsed — lints prose fields and chip arrays', () => {
       prose: '',
     };
     const issues = lintHalachaParsed(bad);
-    expect(issues.some((i) => i.kind === 'bare-transliteration' && i.hebrew === 'בדיעבד')).toBe(true);
+    expect(issues.some((i) => i.kind === 'bare-transliteration' && i.hebrew === 'בדיעבד')).toBe(
+      true,
+    );
   });
 
   it('flags a calque in a prose field', () => {

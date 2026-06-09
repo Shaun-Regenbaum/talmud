@@ -19,7 +19,10 @@ export function normalizeHebrew(s: string): string {
 }
 
 export function stripHtml(s: string): string {
-  return s.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  return s
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 export async function getJson<T = unknown>(path: string): Promise<T> {

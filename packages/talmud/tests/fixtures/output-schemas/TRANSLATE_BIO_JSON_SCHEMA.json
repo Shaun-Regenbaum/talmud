@@ -4,11 +4,7 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "canonicalEn",
-      "bioEn",
-      "aliases"
-    ],
+    "required": ["canonicalEn", "bioEn", "aliases"],
     "properties": {
       "canonicalEn": {
         "type": "string"

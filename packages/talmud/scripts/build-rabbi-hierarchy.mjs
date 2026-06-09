@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 // scripts/build-rabbi-hierarchy.mjs
 //
 // For every rabbinic entry in src/lib/data/rabbi-places.json that has a bio,
@@ -17,10 +18,10 @@
 //   node scripts/build-rabbi-hierarchy.mjs --dry-run           (don't write output)
 //   node scripts/build-rabbi-hierarchy.mjs --limit 50          (first N slugs — for smoke test)
 
-import { readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RABBIS_PATH = join(__dirname, '..', 'src', 'lib', 'data', 'rabbi-places.json');
@@ -43,8 +44,11 @@ const LIMIT = getArg('--limit', null);
 async function fetchJson(url) {
   const res = await fetch(url);
   const text = await res.text();
-  try { return { status: res.status, json: JSON.parse(text) }; }
-  catch { return { status: res.status, json: { error: text.slice(0, 300) } }; }
+  try {
+    return { status: res.status, json: JSON.parse(text) };
+  } catch {
+    return { status: res.status, json: { error: text.slice(0, 300) } };
+  }
 }
 
 async function loadExistingOutput() {
@@ -117,7 +121,9 @@ async function main() {
     }
     const before = slugs.length;
     slugs = slugs.filter((s) => !nodes[s]?.processed);
-    console.log(`[hierarchy] --resume: ${before - slugs.length} slugs already processed, ${slugs.length} remain`);
+    console.log(
+      `[hierarchy] --resume: ${before - slugs.length} slugs already processed, ${slugs.length} remain`,
+    );
   }
 
   console.log(`[hierarchy] ${slugs.length} slugs to process (concurrency=${CONCURRENCY})`);
@@ -128,78 +134,88 @@ async function main() {
   const t0 = Date.now();
   const work = [...slugs];
 
-  const workers = Array.from({ length: CONCURRENCY }, () => (async () => {
-    while (work.length > 0) {
-      const slug = work.shift();
-      if (!slug) return;
-      const { status, json } = await fetchJson(`${URL}/api/admin/rabbi-relationships/${encodeURIComponent(slug)}`);
-      done++;
-      if (status !== 200) {
-        errors.push({ slug, status, error: json.error ?? json });
-        const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-        console.error(`[${done}/${total}] ${elapsed}s FAIL ${slug} status=${status} err=${JSON.stringify(json).slice(0, 160)}`);
-        continue;
-      }
-      const node = nodes[slug];
-      if (!node) continue;
+  const workers = Array.from({ length: CONCURRENCY }, () =>
+    (async () => {
+      while (work.length > 0) {
+        const slug = work.shift();
+        if (!slug) return;
+        const { status, json } = await fetchJson(
+          `${URL}/api/admin/rabbi-relationships/${encodeURIComponent(slug)}`,
+        );
+        done++;
+        if (status !== 200) {
+          errors.push({ slug, status, error: json.error ?? json });
+          const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+          console.error(
+            `[${done}/${total}] ${elapsed}s FAIL ${slug} status=${status} err=${JSON.stringify(json).slice(0, 160)}`,
+          );
+          continue;
+        }
+        const node = nodes[slug];
+        if (!node) continue;
 
-      // Apply the subject's own edges.
-      for (const kind of ['teachers', 'students', 'colleagues']) {
-        for (const ref of json[kind] ?? []) {
-          if (ref.slug) addEdge(nodes, slug, ref.slug, kind);
-          else node.unresolved[kind].push(ref.name);
+        // Apply the subject's own edges.
+        for (const kind of ['teachers', 'students', 'colleagues']) {
+          for (const ref of json[kind] ?? []) {
+            if (ref.slug) addEdge(nodes, slug, ref.slug, kind);
+            else node.unresolved[kind].push(ref.name);
+          }
+        }
+
+        // Bidirectional mirror. A's teacher B → B's students ∋ A.
+        //                       A's student B → B's teachers ∋ A.
+        //                       A's colleague B → B's colleagues ∋ A.
+        for (const ref of json.teachers ?? []) {
+          if (ref.slug && nodes[ref.slug]) addEdge(nodes, ref.slug, slug, 'students');
+        }
+        for (const ref of json.students ?? []) {
+          if (ref.slug && nodes[ref.slug]) addEdge(nodes, ref.slug, slug, 'teachers');
+        }
+        for (const ref of json.colleagues ?? []) {
+          if (ref.slug && nodes[ref.slug]) addEdge(nodes, ref.slug, slug, 'colleagues');
+        }
+
+        node.processed = true;
+
+        const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+        const tCount = (json.teachers ?? []).length;
+        const sCount = (json.students ?? []).length;
+        const cCount = (json.colleagues ?? []).length;
+        console.log(
+          `[${done}/${total}] ${elapsed}s  ${slug.padEnd(40)} T=${tCount} S=${sCount} C=${cCount}`,
+        );
+
+        // Checkpoint write every 25 completed slugs so long runs survive
+        // interruption (crash / Ctrl-C) and --resume can pick up where we
+        // left off rather than re-processing everything from scratch.
+        if (!DRY_RUN && done % 25 === 0) {
+          const processedSoFar = Object.values(nodes).filter((n) => n.processed).length;
+          const withEdgesSoFar = Object.values(nodes).filter(
+            (n) => n.teachers.length || n.students.length || n.colleagues.length,
+          ).length;
+          const checkpoint = {
+            generatedAt: new Date().toISOString(),
+            source: `${URL}/api/admin/rabbi-relationships`,
+            totalNodes: Object.keys(nodes).length,
+            processedNodes: processedSoFar,
+            nodesWithEdges: withEdgesSoFar,
+            nodes,
+          };
+          await writeFile(OUT_PATH, JSON.stringify(checkpoint, null, 2) + '\n', 'utf-8');
+          console.log(
+            `[hierarchy] checkpoint: ${processedSoFar} processed, ${withEdgesSoFar} with edges`,
+          );
         }
       }
-
-      // Bidirectional mirror. A's teacher B → B's students ∋ A.
-      //                       A's student B → B's teachers ∋ A.
-      //                       A's colleague B → B's colleagues ∋ A.
-      for (const ref of json.teachers ?? []) {
-        if (ref.slug && nodes[ref.slug]) addEdge(nodes, ref.slug, slug, 'students');
-      }
-      for (const ref of json.students ?? []) {
-        if (ref.slug && nodes[ref.slug]) addEdge(nodes, ref.slug, slug, 'teachers');
-      }
-      for (const ref of json.colleagues ?? []) {
-        if (ref.slug && nodes[ref.slug]) addEdge(nodes, ref.slug, slug, 'colleagues');
-      }
-
-      node.processed = true;
-
-      const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-      const tCount = (json.teachers ?? []).length;
-      const sCount = (json.students ?? []).length;
-      const cCount = (json.colleagues ?? []).length;
-      console.log(`[${done}/${total}] ${elapsed}s  ${slug.padEnd(40)} T=${tCount} S=${sCount} C=${cCount}`);
-
-      // Checkpoint write every 25 completed slugs so long runs survive
-      // interruption (crash / Ctrl-C) and --resume can pick up where we
-      // left off rather than re-processing everything from scratch.
-      if (!DRY_RUN && done % 25 === 0) {
-        const processedSoFar = Object.values(nodes).filter((n) => n.processed).length;
-        const withEdgesSoFar = Object.values(nodes).filter((n) =>
-          n.teachers.length || n.students.length || n.colleagues.length
-        ).length;
-        const checkpoint = {
-          generatedAt: new Date().toISOString(),
-          source: `${URL}/api/admin/rabbi-relationships`,
-          totalNodes: Object.keys(nodes).length,
-          processedNodes: processedSoFar,
-          nodesWithEdges: withEdgesSoFar,
-          nodes,
-        };
-        await writeFile(OUT_PATH, JSON.stringify(checkpoint, null, 2) + '\n', 'utf-8');
-        console.log(`[hierarchy] checkpoint: ${processedSoFar} processed, ${withEdgesSoFar} with edges`);
-      }
-    }
-  })());
+    })(),
+  );
 
   await Promise.all(workers);
 
   const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
   const processedCount = Object.values(nodes).filter((n) => n.processed).length;
-  const withEdges = Object.values(nodes).filter((n) =>
-    n.teachers.length || n.students.length || n.colleagues.length
+  const withEdges = Object.values(nodes).filter(
+    (n) => n.teachers.length || n.students.length || n.colleagues.length,
   ).length;
   console.log(`\n[hierarchy] complete in ${elapsed}s`);
   console.log(`[hierarchy]   processed: ${processedCount} / ${Object.keys(nodes).length}`);

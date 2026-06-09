@@ -53,7 +53,9 @@ function dafOrd(daf: string): number | null {
  *   "Moed Katan 20a:10-11"     -> { tractate: 'Moed Katan', start: '20a', end: '20a' }
  * Returns null if no daf token is present.
  */
-export function parseBavliRef(ref: string): { tractate: string; start: string; end: string } | null {
+export function parseBavliRef(
+  ref: string,
+): { tractate: string; start: string; end: string } | null {
   const m = ref.match(/^(.+?)\s+(\d.*)$/);
   if (!m) return null;
   const tractate = m[1].trim();
@@ -64,7 +66,10 @@ export function parseBavliRef(ref: string): { tractate: string; start: string; e
 
 /** Curated parallels whose Bavli ref covers (tractate, page). Tractate must
  *  match exactly (Sefaria spelling, which the reader also uses). */
-export function curatedParallelsForDaf(tractate: string, page: string): CuratedYerushalmiParallel[] {
+export function curatedParallelsForDaf(
+  tractate: string,
+  page: string,
+): CuratedYerushalmiParallel[] {
   const want = dafOrd(page);
   if (want == null) return [];
   return DATASET.parallels.filter((p) => {

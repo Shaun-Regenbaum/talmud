@@ -1,8 +1,14 @@
 // @vitest-environment jsdom
 import { render } from '@solidjs/testing-library';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { ACCENTS, HebrewProse, Panel, SectionCard, kindLabelKey } from '../../src/client/sidebar/primitives';
 import { setLang, t } from '../../src/client/i18n';
+import {
+  ACCENTS,
+  HebrewProse,
+  kindLabelKey,
+  Panel,
+  SectionCard,
+} from '../../src/client/sidebar/primitives';
 
 beforeEach(() => setLang('en'));
 afterEach(() => setLang('en'));
@@ -21,7 +27,9 @@ describe('Section', () => {
 
   it('defaults to the tight label gap and honours loose', () => {
     const tight = render(() => <SectionCard label="aggadata.background" text="x" />);
-    const loose = render(() => <SectionCard label="aggadata.background" spacing="loose" text="x" />);
+    const loose = render(() => (
+      <SectionCard label="aggadata.background" spacing="loose" text="x" />
+    ));
     // box = first div in the container; label = box's first child div.
     const labelOf = (c: HTMLElement) => c.firstElementChild!.firstElementChild as HTMLElement;
     expect(labelOf(tight.container).style.getPropertyValue('margin-bottom')).toBe('0.4rem');
@@ -35,7 +43,9 @@ describe('Section', () => {
     expect(proseBody.textContent).toContain('bodytext');
 
     const custom = render(() => (
-      <SectionCard label="aggadata.parallels"><span data-testid="custom">x</span></SectionCard>
+      <SectionCard label="aggadata.parallels">
+        <span data-testid="custom">x</span>
+      </SectionCard>
     ));
     expect(custom.getByTestId('custom')).toBeTruthy();
   });
@@ -80,13 +90,17 @@ describe('Panel', () => {
     expect(container.querySelector('[data-testid="body"]')).toBeTruthy();
   });
 
-  it("rabbi flip leads with the Latin name in en and the Hebrew name in he", () => {
-    const en = render(() => <Panel accent={ACCENTS.rabbi} flip="rabbi" title="R. Yochanan" titleHe="ר׳ יוחנן" />);
+  it('rabbi flip leads with the Latin name in en and the Hebrew name in he', () => {
+    const en = render(() => (
+      <Panel accent={ACCENTS.rabbi} flip="rabbi" title="R. Yochanan" titleHe="ר׳ יוחנן" />
+    ));
     expect(en.container.querySelector('h3')!.textContent).toBe('R. Yochanan');
     expect(en.container.querySelector('h3')!.getAttribute('dir')).toBeNull();
 
     setLang('he');
-    const he = render(() => <Panel accent={ACCENTS.rabbi} flip="rabbi" title="R. Yochanan" titleHe="ר׳ יוחנן" />);
+    const he = render(() => (
+      <Panel accent={ACCENTS.rabbi} flip="rabbi" title="R. Yochanan" titleHe="ר׳ יוחנן" />
+    ));
     const h3 = he.container.querySelector('h3')!;
     expect(h3.textContent).toBe('ר׳ יוחנן');
     expect(h3.getAttribute('dir')).toBe('rtl');
@@ -104,13 +118,17 @@ describe('Panel', () => {
 
 describe('SectionCard collapse', () => {
   it('omitting `collapsed` keeps the body always rendered (no toggle)', () => {
-    const { container } = render(() => <SectionCard label="aggadata.background" text="body-text" />);
+    const { container } = render(() => (
+      <SectionCard label="aggadata.background" text="body-text" />
+    ));
     expect(container.textContent).toContain('body-text');
     expect(container.querySelector('[role="button"]')).toBeNull();
   });
 
   it('`collapsed` hides the body until the label is clicked', () => {
-    const { container } = render(() => <SectionCard label="aggadata.background" text="hidden-body" collapsed />);
+    const { container } = render(() => (
+      <SectionCard label="aggadata.background" text="hidden-body" collapsed />
+    ));
     expect(container.textContent).not.toContain('hidden-body');
     const toggle = container.querySelector('[role="button"]') as HTMLElement;
     expect(toggle).toBeTruthy();
@@ -119,7 +137,9 @@ describe('SectionCard collapse', () => {
   });
 
   it('`collapsed={false}` starts open but stays toggleable', () => {
-    const { container } = render(() => <SectionCard label="aggadata.background" text="shown-body" collapsed={false} />);
+    const { container } = render(() => (
+      <SectionCard label="aggadata.background" text="shown-body" collapsed={false} />
+    ));
     expect(container.textContent).toContain('shown-body');
     const toggle = container.querySelector('[role="button"]') as HTMLElement;
     toggle.click();

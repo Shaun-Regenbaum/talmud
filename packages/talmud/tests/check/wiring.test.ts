@@ -10,10 +10,10 @@
  *   2. `passes` is NOT part of any cache key — toggling it must never bust the
  *      LLM cache (a full-shas re-warm is ~$1000).
  */
-import { describe, it, expect } from 'vitest';
-import { CODE_MARKS, CODE_ENRICHMENTS } from '../../src/worker/code-marks';
+import { describe, expect, it } from 'vitest';
 import { PASSES } from '../../src/lib/check/passes';
-import { keyForMark, keyForEnrichment } from '../../src/worker/cache-keys';
+import { keyForEnrichment, keyForMark } from '../../src/worker/cache-keys';
+import { CODE_ENRICHMENTS, CODE_MARKS } from '../../src/worker/code-marks';
 
 describe('declarative pass wiring', () => {
   const markChecks: Record<string, string[]> = {
@@ -63,14 +63,22 @@ describe('declarative pass wiring', () => {
 describe('passes do not affect cache keys', () => {
   it('keyForMark is identical with and without passes', () => {
     const base = { id: 'argument', cache_version: '4' } as Parameters<typeof keyForMark>[0];
-    const withChecks = { ...base, passes: ['reanchor-argument'] } as Parameters<typeof keyForMark>[0];
+    const withChecks = { ...base, passes: ['reanchor-argument'] } as Parameters<
+      typeof keyForMark
+    >[0];
     expect(keyForMark(withChecks, 'Gittin', '67b')).toBe(keyForMark(base, 'Gittin', '67b'));
-    expect(keyForMark(withChecks, 'Gittin', '67b', 'he')).toBe(keyForMark(base, 'Gittin', '67b', 'he'));
+    expect(keyForMark(withChecks, 'Gittin', '67b', 'he')).toBe(
+      keyForMark(base, 'Gittin', '67b', 'he'),
+    );
   });
 
   it('keyForEnrichment is identical with and without passes', () => {
-    const base = { id: 'pesukim.synthesis', cache_version: '11', scope: 'local' } as Parameters<typeof keyForEnrichment>[0];
-    const withChecks = { ...base, passes: ['hebrew-excerpt'] } as Parameters<typeof keyForEnrichment>[0];
+    const base = { id: 'pesukim.synthesis', cache_version: '11', scope: 'local' } as Parameters<
+      typeof keyForEnrichment
+    >[0];
+    const withChecks = { ...base, passes: ['hebrew-excerpt'] } as Parameters<
+      typeof keyForEnrichment
+    >[0];
     const daf = { tractate: 'Gittin', page: '67b' };
     expect(keyForEnrichment(withChecks, 'inst', daf)).toBe(keyForEnrichment(base, 'inst', daf));
   });

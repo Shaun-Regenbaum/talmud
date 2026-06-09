@@ -1,20 +1,31 @@
-import { describe, it, expect } from 'vitest';
 import {
-  placementOf, placementLevel, isLocated, isAiGrounded, isReferenceSource,
+  isAiGrounded,
+  isLocated,
+  isReferenceSource,
+  placementLevel,
+  placementOf,
 } from '@corpus/core/context/placement';
 import type { ContextItem } from '@corpus/core/context/types';
+import { describe, expect, it } from 'vitest';
 
 /** Minimal ContextItem with the placement-relevant fields overridden. */
 function item(over: Partial<ContextItem> & { key: string }): ContextItem {
   return {
-    source: 'dafyomi:insights', sourceLabel: 'Insights', kind: 'insights',
-    title: { en: over.key }, body: { en: 'x' }, segs: [], ...over,
+    source: 'dafyomi:insights',
+    sourceLabel: 'Insights',
+    kind: 'insights',
+    title: { en: over.key },
+    body: { en: 'x' },
+    segs: [],
+    ...over,
   };
 }
 
 describe('placementOf — derives the finest justified level', () => {
   it('words: a tight phrase/AI-quote landing', () => {
-    const p = placementOf(item({ key: 'a', segs: [4], hbWords: [10, 11, 12], hbVia: 'ai-phrase', hbConfidence: 0.95 }))!;
+    const p = placementOf(
+      item({ key: 'a', segs: [4], hbWords: [10, 11, 12], hbVia: 'ai-phrase', hbConfidence: 0.95 }),
+    )!;
     expect(p.level).toBe('words');
     expect(p.words).toEqual([10, 11, 12]);
     expect(p.segs).toEqual([4]);
@@ -23,10 +34,20 @@ describe('placementOf — derives the finest justified level', () => {
   });
 
   it('segment: a whole-segment span (ai-segment / coarse fallback) is NOT word-precise', () => {
-    const aiSeg = placementOf(item({ key: 'b', segs: [4], hbWords: [10, 11, 12, 13], hbVia: 'ai-segment', hbConfidence: 0.8 }))!;
+    const aiSeg = placementOf(
+      item({
+        key: 'b',
+        segs: [4],
+        hbWords: [10, 11, 12, 13],
+        hbVia: 'ai-segment',
+        hbConfidence: 0.8,
+      }),
+    )!;
     expect(aiSeg.level).toBe('segment');
     expect(aiSeg.confidence).toBe(0.8);
-    const fallback = placementOf(item({ key: 'b2', segs: [4], hbWords: [10, 11], hbVia: 'segment', hbConfidence: 0.3 }))!;
+    const fallback = placementOf(
+      item({ key: 'b2', segs: [4], hbWords: [10, 11], hbVia: 'segment', hbConfidence: 0.3 }),
+    )!;
     expect(fallback.level).toBe('segment');
   });
 
@@ -38,8 +59,13 @@ describe('placementOf — derives the finest justified level', () => {
   });
 
   it('daf: an explicit whole-daf AI grounding (client-resolved or raw)', () => {
-    expect(placementOf(item({ key: 'd', segs: [], via: 'ai', hbVia: 'ai-daf', hbConfidence: 0.8 }))!.level).toBe('daf');
-    expect(placementOf(item({ key: 'd2', segs: [], via: 'ai', confidence: 0.7 }))!.level).toBe('daf');
+    expect(
+      placementOf(item({ key: 'd', segs: [], via: 'ai', hbVia: 'ai-daf', hbConfidence: 0.8 }))!
+        .level,
+    ).toBe('daf');
+    expect(placementOf(item({ key: 'd2', segs: [], via: 'ai', confidence: 0.7 }))!.level).toBe(
+      'daf',
+    );
   });
 
   it('amud: a known side with nothing finer', () => {
@@ -48,7 +74,9 @@ describe('placementOf — derives the finest justified level', () => {
     expect(p.amud).toBe('b');
     // AI returned whole-daf, but a known amud is more specific — keep it as amud,
     // not a whole-daf collapse (avoids clutter when bulk auto-grounding).
-    expect(placementLevel(item({ key: 'e2', segs: [], via: 'ai', amud: 'a', confidence: 0.5 }))).toBe('amud');
+    expect(
+      placementLevel(item({ key: 'e2', segs: [], via: 'ai', amud: 'a', confidence: 0.5 })),
+    ).toBe('amud');
   });
 
   it('null: nothing grounded at all', () => {
@@ -69,7 +97,9 @@ describe('grounding predicates', () => {
 
   it('isAiGrounded flags anything the AI placer set', () => {
     expect(isAiGrounded(daf)).toBe(true);
-    expect(isAiGrounded(item({ key: 'x', segs: [4], hbVia: 'ai-segment', hbWords: [1] }))).toBe(true);
+    expect(isAiGrounded(item({ key: 'x', segs: [4], hbVia: 'ai-segment', hbWords: [1] }))).toBe(
+      true,
+    );
     expect(isAiGrounded(seg)).toBe(false); // deterministic 'mishnah'
   });
 

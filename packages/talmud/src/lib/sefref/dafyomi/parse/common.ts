@@ -8,9 +8,9 @@
  * the primitives here.
  */
 
-import { parse, HTMLElement, type Node } from 'node-html-parser';
-import type { DafyomiRef, DafyomiText } from '../schema.ts';
+import { HTMLElement, type Node, parse } from 'node-html-parser';
 import { resolveDafRef } from '../masechtos.ts';
+import type { DafyomiRef, DafyomiText } from '../schema.ts';
 
 export { HTMLElement };
 
@@ -129,7 +129,11 @@ export function extractRefs(el: HTMLElement): DafyomiRef[] {
   const paren = t.match(/\(([^()]{2,80})\)/g) ?? [];
   for (const p of paren) {
     const inner = p.slice(1, -1);
-    if (/\b(DH|Rashi|Tosfos|Tosafos|Rambam|Rosh|Rif|Ramban|Shulchan|YD|OC|EH|CM|\d+[ab])\b/i.test(inner)) {
+    if (
+      /\b(DH|Rashi|Tosfos|Tosafos|Rambam|Rosh|Rif|Ramban|Shulchan|YD|OC|EH|CM|\d+[ab])\b/i.test(
+        inner,
+      )
+    ) {
       push(inner);
     }
   }

@@ -18,10 +18,19 @@
  * The context value uses ACCESSORS (functions) so Solid tracks reads and
  * consumers re-tokenize when the daf's background terms load async.
  */
-import { For, Show, createContext, createMemo, createSignal, useContext, type Accessor, type JSX } from 'solid-js';
+import {
+  type Accessor,
+  createContext,
+  createMemo,
+  createSignal,
+  For,
+  type JSX,
+  Show,
+  useContext,
+} from 'solid-js';
 import { Portal } from 'solid-js/web';
-import { Hebraized } from './Hebraized';
 import type { Term } from '../lib/terms/registry';
+import { Hebraized } from './Hebraized';
 
 /** The surfaces a reader might actually SEE for a term in prose: the Hebrew
  *  script (the dominant form after hebraization) and the English label, if any.
@@ -46,7 +55,10 @@ export function termLabel(t: Term): string {
 /** A compiled term matcher: a regex over the term surfaces + a lowercased
  *  surface -> term map for gloss lookup. Built once per terms array (hoisted to
  *  the provider) rather than per prose fragment. */
-export interface ConceptMatcher { re: RegExp; bySurface: Map<string, Term> }
+export interface ConceptMatcher {
+  re: RegExp;
+  bySurface: Map<string, Term>;
+}
 
 export interface ConceptLinkContextValue {
   /** Pre-compiled matcher for this daf's terms. Null when there's nothing to
@@ -61,9 +73,7 @@ export function ConceptLinkProvider(props: {
   children: JSX.Element;
 }): JSX.Element {
   return (
-    <ConceptLinkContext.Provider value={props.value}>
-      {props.children}
-    </ConceptLinkContext.Provider>
+    <ConceptLinkContext.Provider value={props.value}>{props.children}</ConceptLinkContext.Provider>
   );
 }
 
@@ -119,7 +129,10 @@ export function buildConceptMatcher(terms: readonly Term[]): ConceptMatcher | nu
  *  Each matched term yields a 'concept' part whose `value` is the matched text
  *  verbatim (so a linkified term is never rendered empty) and whose `term`
  *  carries the gloss. Pure. */
-export function tokenizeWithMatcher(text: string, matcher: ConceptMatcher | null): ConceptTextPart[] {
+export function tokenizeWithMatcher(
+  text: string,
+  matcher: ConceptMatcher | null,
+): ConceptTextPart[] {
   if (!text) return [];
   if (!matcher) return [{ kind: 'text', value: text }];
   const { re, bySurface } = matcher;
@@ -305,7 +318,8 @@ function ConceptMention(props: { value: string; term: Term }): JSX.Element {
     if (left + r.width > window.innerWidth - margin) left = window.innerWidth - margin - r.width;
     if (left < margin) left = margin;
     const below = a.bottom + gap;
-    const flipUp = below + r.height > window.innerHeight - margin && a.top - gap - r.height > margin;
+    const flipUp =
+      below + r.height > window.innerHeight - margin && a.top - gap - r.height > margin;
     setPos({ left, top: flipUp ? a.top - gap - r.height : below });
   };
 
@@ -324,12 +338,21 @@ function ConceptMention(props: { value: string; term: Term }): JSX.Element {
       {props.value}
       <Show when={open()}>
         <Portal>
-          <span ref={place} style={{ ...tooltipStyle, left: `${pos().left}px`, top: `${pos().top}px` }} dir="ltr" onClick={(e) => e.stopPropagation()}>
+          <span
+            ref={place}
+            style={{ ...tooltipStyle, left: `${pos().left}px`, top: `${pos().top}px` }}
+            dir="ltr"
+            onClick={(e) => e.stopPropagation()}
+          >
             <span style={{ 'font-weight': 600 }}>{termLabel(props.term)}</span>
             <Show when={props.term.hebrew && props.term.hebrew !== termLabel(props.term)}>
-              <span dir="rtl" style={{ 'margin-left': '0.35rem', color: '#cbd5e1' }}>{props.term.hebrew}</span>
+              <span dir="rtl" style={{ 'margin-left': '0.35rem', color: '#cbd5e1' }}>
+                {props.term.hebrew}
+              </span>
             </Show>
-            <span style={{ display: 'block', 'margin-top': '0.25rem', color: '#e5e7eb' }}>{props.term.gloss}</span>
+            <span style={{ display: 'block', 'margin-top': '0.25rem', color: '#e5e7eb' }}>
+              {props.term.gloss}
+            </span>
           </span>
         </Portal>
       </Show>
@@ -341,7 +364,10 @@ function ConceptMention(props: { value: string; term: Term }): JSX.Element {
  *  gloss-tooltip mention. Reads `props` inside a memo so a late daf background
  *  load (new matcher) re-tokenizes. The matcher is compiled once at the
  *  provider, so this is just a scan per fragment. */
-export function ConceptText(props: { text: string | undefined | null; matcher: ConceptMatcher | null }): JSX.Element {
+export function ConceptText(props: {
+  text: string | undefined | null;
+  matcher: ConceptMatcher | null;
+}): JSX.Element {
   // Strip every-but-first inline gloss before tokenizing, then tokenize the
   // cleaned text so each remaining mention still gets its tooltip.
   const parts = createMemo(() => {
@@ -349,9 +375,11 @@ export function ConceptText(props: { text: string | undefined | null; matcher: C
     return tokenizeWithMatcher(cleaned, props.matcher);
   });
   return (
-    <For each={parts()}>{(p) => {
-      if (p.kind === 'text' || !p.term) return <Hebraized text={p.value} />;
-      return <ConceptMention value={p.value} term={p.term} />;
-    }}</For>
+    <For each={parts()}>
+      {(p) => {
+        if (p.kind === 'text' || !p.term) return <Hebraized text={p.value} />;
+        return <ConceptMention value={p.value} term={p.term} />;
+      }}
+    </For>
   );
 }

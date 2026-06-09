@@ -6,13 +6,23 @@
  * (`segs: []`).
  */
 
-import type {
-  TalmudPageData, RishonimBundle, HalachicRefBundle, MishnaBundle, SefariaTopicBundle,
-} from '../sefref/sefaria/client.ts';
 import type { ContextItem } from '@corpus/core/context/types';
-import { sourceLabel, type ContextSource } from './sources.ts';
+import type {
+  HalachicRefBundle,
+  MishnaBundle,
+  RishonimBundle,
+  SefariaTopicBundle,
+  TalmudPageData,
+} from '../sefref/sefaria/client.ts';
+import { type ContextSource, sourceLabel } from './sources.ts';
 
-function item(source: ContextSource, label: string, kind: string, key: string, fields: Partial<ContextItem>): ContextItem {
+function item(
+  source: ContextSource,
+  label: string,
+  kind: string,
+  key: string,
+  fields: Partial<ContextItem>,
+): ContextItem {
   return { source, sourceLabel: label, kind, key, segs: [], ...fields };
 }
 
@@ -61,8 +71,11 @@ export function fromRishonim(bundle: RishonimBundle | undefined): ContextItem[] 
   return bundle.map((c, i) => {
     const segs = segArr(c.segStart, c.segEnd);
     return item('sefaria-rishonim', c.label, 'rishon', `rishon:${c.ref || i}`, {
-      title: { en: c.label }, body: { he: c.hebrew, en: c.english }, url: refUrl(c.ref),
-      segs, via: segs.length ? 'sefaria-link' : undefined,
+      title: { en: c.label },
+      body: { he: c.hebrew, en: c.english },
+      url: refUrl(c.ref),
+      segs,
+      via: segs.length ? 'sefaria-link' : undefined,
     });
   });
 }
@@ -75,10 +88,21 @@ export function fromHalachaRefs(bundle: HalachicRefBundle | undefined): ContextI
   for (const [book, snips] of Object.entries(bundle)) {
     snips.forEach((s, i) => {
       const segs = s.segStart != null && s.segEnd != null ? segArr(s.segStart, s.segEnd) : [];
-      out.push(item('sefaria-halacha', sourceLabel('sefaria-halacha'), 'halachaRef', `halacha:${s.ref || `${book}:${i}`}`, {
-        title: { en: s.ref || book }, body: { he: s.hebrew, en: s.english }, url: refUrl(s.ref),
-        segs, via: segs.length ? 'sefaria-link' : undefined,
-      }));
+      out.push(
+        item(
+          'sefaria-halacha',
+          sourceLabel('sefaria-halacha'),
+          'halachaRef',
+          `halacha:${s.ref || `${book}:${i}`}`,
+          {
+            title: { en: s.ref || book },
+            body: { he: s.hebrew, en: s.english },
+            url: refUrl(s.ref),
+            segs,
+            via: segs.length ? 'sefaria-link' : undefined,
+          },
+        ),
+      );
     });
   }
   return out;
@@ -90,10 +114,19 @@ export function fromMishna(bundle: MishnaBundle | undefined): ContextItem[] {
   return bundle.map((m, i) => {
     const segs: number[] = [];
     for (let s = m.anchorStartSeg; s <= m.anchorEndSeg; s++) segs.push(s);
-    return item('sefaria-mishnah', sourceLabel('sefaria-mishnah'), 'mishnah', `mishnah:${m.ref ?? i}`, {
-      title: { en: m.ref }, body: { he: m.hebrew, en: m.english }, url: refUrl(m.ref),
-      segs, via: 'mishnah',
-    });
+    return item(
+      'sefaria-mishnah',
+      sourceLabel('sefaria-mishnah'),
+      'mishnah',
+      `mishnah:${m.ref ?? i}`,
+      {
+        title: { en: m.ref },
+        body: { he: m.hebrew, en: m.english },
+        url: refUrl(m.ref),
+        segs,
+        via: 'mishnah',
+      },
+    );
   });
 }
 
@@ -101,7 +134,10 @@ export function fromMishna(bundle: MishnaBundle | undefined): ContextItem[] {
 export function fromTopics(bundle: SefariaTopicBundle | undefined): ContextItem[] {
   if (!bundle) return [];
   return bundle.map((t) => {
-    const sources = t.sources?.slice(0, 8).map((s) => s.ref).join(', ');
+    const sources = t.sources
+      ?.slice(0, 8)
+      .map((s) => s.ref)
+      .join(', ');
     const en = [t.description, sources && `Sources: ${sources}`].filter(Boolean).join('\n');
     return item('sefaria-topic', sourceLabel('sefaria-topic'), 'topic', `topic:${t.slug}`, {
       title: { en: t.titleEn ?? t.slug, he: t.titleHe },

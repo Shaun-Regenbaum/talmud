@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { render } from '@solidjs/testing-library';
-import { describe, expect, it } from 'vitest';
 import { createSignal } from 'solid-js';
+import { describe, expect, it } from 'vitest';
 import { setLang, t } from '../../src/client/i18n';
 
 describe('render harness', () => {

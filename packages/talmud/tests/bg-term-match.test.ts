@@ -4,24 +4,29 @@
  * that quote their Hebrew term verbatim.
  */
 
-import { describe, it, expect } from 'vitest';
-import { matchBackgroundTerms } from '../src/lib/context/anchor/bg-term';
 import type { ContextItem } from '@corpus/core/context/types';
+import { describe, expect, it } from 'vitest';
+import { matchBackgroundTerms } from '../src/lib/context/anchor/bg-term';
 
 function bg(key: string, he: string, kind = 'glossary'): ContextItem {
   return {
-    source: 'dafyomi:background', sourceLabel: 'Background', kind, key,
-    title: { he, en: key }, body: { en: 'def' }, segs: [],
+    source: 'dafyomi:background',
+    sourceLabel: 'Background',
+    kind,
+    key,
+    title: { he, en: key },
+    body: { en: 'def' },
+    segs: [],
   };
 }
 
 // A small daf: niqqud + maqaf in seg 2 to exercise normalization.
 const SEGS = [
-  'אמר רב יהודה',                       // 0
-  'תנו רבנן בהמה בחייה',                  // 1
-  'מִן הָאַרְכּוּבָה וּלְמַטָּה כָּשֵׁר',  // 2 (the term, vocalized)
-  'דאגרמא ולבר',                         // 3
-  'אמר רב יהודה שוב',                     // 4 (repeats "אמר רב יהודה")
+  'אמר רב יהודה', // 0
+  'תנו רבנן בהמה בחייה', // 1
+  'מִן הָאַרְכּוּבָה וּלְמַטָּה כָּשֵׁר', // 2 (the term, vocalized)
+  'דאגרמא ולבר', // 3
+  'אמר רב יהודה שוב', // 4 (repeats "אמר רב יהודה")
 ];
 
 describe('matchBackgroundTerms', () => {
@@ -62,14 +67,20 @@ describe('matchBackgroundTerms', () => {
 
   it('only touches Background glossary/girsa items, and not already-placed ones', () => {
     const other: ContextItem = {
-      source: 'dafyomi:insights', sourceLabel: 'Insights', kind: 'insights', key: 'x',
-      title: { he: 'ארכובה' }, body: {}, segs: [],
+      source: 'dafyomi:insights',
+      sourceLabel: 'Insights',
+      kind: 'insights',
+      key: 'x',
+      title: { he: 'ארכובה' },
+      body: {},
+      segs: [],
     };
     const already = bg('placed', 'ארכובה');
-    already.segs = [1]; already.via = 'ai';
+    already.segs = [1];
+    already.via = 'ai';
     matchBackgroundTerms([other, already], SEGS);
-    expect(other.segs).toEqual([]);          // wrong source -> untouched
-    expect(already.segs).toEqual([1]);       // already placed -> untouched
+    expect(other.segs).toEqual([]); // wrong source -> untouched
+    expect(already.segs).toEqual([1]); // already placed -> untouched
     expect(already.via).toBe('ai');
   });
 

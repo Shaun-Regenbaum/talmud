@@ -11,10 +11,10 @@
  */
 
 interface MissRecord {
-  ts: number;              // unix ms
+  ts: number; // unix ms
   tractate?: string;
   page?: string;
-  category: string;        // 'geography' | 'anchor' | 'opinion' | ...
+  category: string; // 'geography' | 'anchor' | 'opinion' | ...
   details: Record<string, unknown>;
 }
 

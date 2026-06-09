@@ -4,34 +4,21 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "parallels",
-      "prose"
-    ],
+    "required": ["parallels", "prose"],
     "properties": {
       "parallels": {
         "type": "array",
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "ref",
-            "kind",
-            "note",
-            "excerpt"
-          ],
+          "required": ["ref", "kind", "note", "excerpt"],
           "properties": {
             "ref": {
               "type": "string"
             },
             "kind": {
               "type": "string",
-              "enum": [
-                "same-story",
-                "same-actors",
-                "same-motif",
-                "tanach-source"
-              ]
+              "enum": ["same-story", "same-actors", "same-motif", "tanach-source"]
             },
             "note": {
               "type": "string"

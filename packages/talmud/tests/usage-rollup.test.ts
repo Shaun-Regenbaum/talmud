@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { recordUsage, readUsageSummary, type UsageDelta } from '../src/worker/usage-rollup';
+import { describe, expect, it } from 'vitest';
+import { readUsageSummary, recordUsage, type UsageDelta } from '../src/worker/usage-rollup';
 
 // Prefix-aware in-memory KV — usage-rollup lists `usage:daily:v1:*` and does a
 // read-modify-write per record, so the fake must support get/put + prefix list.
@@ -7,8 +7,12 @@ function makeFakeKV() {
   const store = new Map<string, string>();
   const kv = {
     get: async (k: string) => store.get(k) ?? null,
-    put: async (k: string, v: string) => { store.set(k, v); },
-    delete: async (k: string) => { store.delete(k); },
+    put: async (k: string, v: string) => {
+      store.set(k, v);
+    },
+    delete: async (k: string) => {
+      store.delete(k);
+    },
     list: async ({ prefix = '' }: { prefix?: string; cursor?: string; limit?: number } = {}) => ({
       keys: [...store.keys()].filter((k) => k.startsWith(prefix)).map((name) => ({ name })),
       list_complete: true,
@@ -27,14 +31,28 @@ function makeFakeKV() {
 async function record(env: { CACHE: KVNamespace }, deltas: UsageDelta[]) {
   for (const d of deltas) {
     let captured: Promise<unknown> = Promise.resolve();
-    recordUsage(env, { waitUntil: (p: Promise<unknown>) => { captured = p; } }, d);
+    recordUsage(
+      env,
+      {
+        waitUntil: (p: Promise<unknown>) => {
+          captured = p;
+        },
+      },
+      d,
+    );
     await captured;
   }
 }
 
 const priced = (over: Partial<UsageDelta> = {}): UsageDelta => ({
-  ok: true, cacheHit: false, model: 'openrouter/deepseek/deepseek-v4-flash',
-  tokensIn: 1000, tokensOut: 500, costUsd: 0.001, costInUsd: 0.0007, costOutUsd: 0.0003,
+  ok: true,
+  cacheHit: false,
+  model: 'openrouter/deepseek/deepseek-v4-flash',
+  tokensIn: 1000,
+  tokensOut: 500,
+  costUsd: 0.001,
+  costInUsd: 0.0007,
+  costOutUsd: 0.0003,
   ...over,
 });
 
@@ -44,7 +62,14 @@ describe('usage-rollup with cost split', () => {
     const env = { CACHE: kv };
     await record(env, [
       priced({ markId: 'rabbi' }),
-      priced({ markId: 'rabbi', tokensIn: 2000, tokensOut: 1000, costUsd: 0.002, costInUsd: 0.0014, costOutUsd: 0.0006 }),
+      priced({
+        markId: 'rabbi',
+        tokensIn: 2000,
+        tokensOut: 1000,
+        costUsd: 0.002,
+        costInUsd: 0.0014,
+        costOutUsd: 0.0006,
+      }),
     ]);
     const s = await readUsageSummary(kv);
     expect(s.totals.calls).toBe(2);
@@ -61,10 +86,7 @@ describe('usage-rollup with cost split', () => {
   it('splits across model / mark / enrichment buckets', async () => {
     const { kv } = makeFakeKV();
     const env = { CACHE: kv };
-    await record(env, [
-      priced({ markId: 'rabbi' }),
-      priced({ enrichmentId: 'rabbi.synthesis' }),
-    ]);
+    await record(env, [priced({ markId: 'rabbi' }), priced({ enrichmentId: 'rabbi.synthesis' })]);
     const s = await readUsageSummary(kv);
     expect(s.byModel['openrouter/deepseek/deepseek-v4-flash'].calls).toBe(2);
     expect(s.byMark.rabbi.calls).toBe(1);
@@ -76,8 +98,22 @@ describe('usage-rollup with cost split', () => {
     const env = { CACHE: kv };
     await record(env, [
       priced(),
-      { ok: false, cacheHit: false, model: '@cf/moonshotai/kimi-k2.5', tokensIn: 10, tokensOut: 5, costUsd: null },
-      { ok: true, cacheHit: true, model: 'openrouter/deepseek/deepseek-v4-flash', tokensIn: 0, tokensOut: 0, costUsd: 0 },
+      {
+        ok: false,
+        cacheHit: false,
+        model: '@cf/moonshotai/kimi-k2.5',
+        tokensIn: 10,
+        tokensOut: 5,
+        costUsd: null,
+      },
+      {
+        ok: true,
+        cacheHit: true,
+        model: 'openrouter/deepseek/deepseek-v4-flash',
+        tokensIn: 0,
+        tokensOut: 0,
+        costUsd: 0,
+      },
     ]);
     const s = await readUsageSummary(kv);
     expect(s.totals.calls).toBe(3);

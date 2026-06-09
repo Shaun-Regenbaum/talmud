@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeAll } from 'vitest';
-import { getJson, getFocalHebrewNormalized, normalizeHebrew, BASE_URL } from './helpers';
+import { beforeAll, describe, expect, it } from 'vitest';
+import { BASE_URL, getFocalHebrewNormalized, getJson, normalizeHebrew } from './helpers';
 
 /**
  * /api/halacha structural + anchor-point tests.
@@ -12,7 +12,10 @@ import { getJson, getFocalHebrewNormalized, normalizeHebrew, BASE_URL } from './
  * evening timing, Shulchan Aruch OC 235 territory).
  */
 
-interface Ruling { ref: string; summary: string }
+interface Ruling {
+  ref: string;
+  summary: string;
+}
 interface Topic {
   topic: string;
   topicHe?: string;
@@ -55,10 +58,9 @@ describe(`integration: halacha Berakhot 2a (against ${BASE_URL})`, () => {
     // Berakhot 2a is the gemara source for OC 235 (evening Shema) and for
     // Rambam's Hilchot Kriat Shema chapter 1 — a halacha response without
     // either is almost certainly wrong.
-    const refs = h.topics.flatMap((t) => [
-      t.rulings.mishnehTorah?.ref ?? '',
-      t.rulings.shulchanAruch?.ref ?? '',
-    ].filter(Boolean));
+    const refs = h.topics.flatMap((t) =>
+      [t.rulings.mishnehTorah?.ref ?? '', t.rulings.shulchanAruch?.ref ?? ''].filter(Boolean),
+    );
     const any235 = refs.some((r) => /235|orach\s+chayim|orah\s+hayyim/i.test(r));
     const anyKriat = refs.some((r) => /kri.?at shema|hilchot.*shema|mishneh torah.*shema/i.test(r));
     expect(any235 || anyKriat, `found refs: ${refs.join(' | ')}`).toBe(true);
@@ -73,8 +75,10 @@ describe(`integration: halacha Berakhot 2a (against ${BASE_URL})`, () => {
         missing.push(`topic "${t.topic}" excerpt "${t.excerpt.slice(0, 40)}"`);
       }
     }
-    expect(missing, `unanchored excerpts (icons will not render): ${missing.join(' | ')}`)
-      .toHaveLength(0);
+    expect(
+      missing,
+      `unanchored excerpts (icons will not render): ${missing.join(' | ')}`,
+    ).toHaveLength(0);
   });
 
   it('each ruling has both ref and summary populated', () => {

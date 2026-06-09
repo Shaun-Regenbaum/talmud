@@ -24,6 +24,7 @@
  *     [--per-fetch-timeout-ms 15000]      # AbortController cap per POST
  */
 import dns from 'node:dns';
+
 dns.setServers(['1.1.1.1', '1.0.0.1', '8.8.8.8']);
 
 const args = process.argv.slice(2);
@@ -33,34 +34,80 @@ const arg = (k, def) => {
 };
 
 const WORKER = arg('--worker', 'https://talmud.shaunregenbaum.com');
-const SIDES = arg('--sides', 'a');  // 'a' | 'b' | 'both'
+const SIDES = arg('--sides', 'a'); // 'a' | 'b' | 'both'
 const CONCURRENCY = Math.max(1, parseInt(arg('--concurrency', '20'), 10));
 const DRY_RUN = args.includes('--dry-run');
 const FETCH_TIMEOUT_MS = Math.max(1000, parseInt(arg('--per-fetch-timeout-ms', '15000'), 10));
 const TRACTATE_FILTER = (() => {
   const v = arg('--tractates', null);
-  return v ? v.split(',').map((s) => s.trim()).filter(Boolean) : null;
+  return v
+    ? v
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : null;
 })();
 const MARKS_FILTER = (() => {
   const v = arg('--marks', null);
-  return v ? v.split(',').map((s) => s.trim()).filter(Boolean) : null;
+  return v
+    ? v
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : null;
 })();
 
-const ALL_MARKS = ['rabbi', 'argument', 'argument-move', 'halacha', 'pesukim', 'places', 'rishonim', 'aggadata'];
+const ALL_MARKS = [
+  'rabbi',
+  'argument',
+  'argument-move',
+  'halacha',
+  'pesukim',
+  'places',
+  'rishonim',
+  'aggadata',
+];
 const MARKS = MARKS_FILTER ?? ALL_MARKS;
 
 // Kept in sync with scripts/warm-skeleton-shas.mjs and warm-shas-sample.mjs.
 const TRACTATES = {
-  Berakhot: '64a', Shabbat: '157b', Eruvin: '105a', Pesachim: '121b',
-  Shekalim: '22b', Yoma: '88a', Sukkah: '56b', Beitzah: '40b',
-  'Rosh Hashanah': '35a', Taanit: '31a', Megillah: '32a', 'Moed Katan': '29a',
-  Chagigah: '27a', Yevamot: '122b', Ketubot: '112b', Nedarim: '91b',
-  Nazir: '66b', Sotah: '49b', Gittin: '90b', Kiddushin: '82b',
-  'Bava Kamma': '119b', 'Bava Metzia': '119a', 'Bava Batra': '176b',
-  Sanhedrin: '113b', Makkot: '24b', Shevuot: '49b', 'Avodah Zarah': '76b',
-  Horayot: '14a', Zevachim: '120b', Menachot: '110a', Chullin: '142a',
-  Bekhorot: '61a', Arakhin: '34a', Temurah: '34a', Keritot: '28b',
-  Meilah: '22a', Niddah: '73a',
+  Berakhot: '64a',
+  Shabbat: '157b',
+  Eruvin: '105a',
+  Pesachim: '121b',
+  Shekalim: '22b',
+  Yoma: '88a',
+  Sukkah: '56b',
+  Beitzah: '40b',
+  'Rosh Hashanah': '35a',
+  Taanit: '31a',
+  Megillah: '32a',
+  'Moed Katan': '29a',
+  Chagigah: '27a',
+  Yevamot: '122b',
+  Ketubot: '112b',
+  Nedarim: '91b',
+  Nazir: '66b',
+  Sotah: '49b',
+  Gittin: '90b',
+  Kiddushin: '82b',
+  'Bava Kamma': '119b',
+  'Bava Metzia': '119a',
+  'Bava Batra': '176b',
+  Sanhedrin: '113b',
+  Makkot: '24b',
+  Shevuot: '49b',
+  'Avodah Zarah': '76b',
+  Horayot: '14a',
+  Zevachim: '120b',
+  Menachot: '110a',
+  Chullin: '142a',
+  Bekhorot: '61a',
+  Arakhin: '34a',
+  Temurah: '34a',
+  Keritot: '28b',
+  Meilah: '22a',
+  Niddah: '73a',
 };
 
 function amudToNumber(amud) {
@@ -69,7 +116,7 @@ function amudToNumber(amud) {
   return parseInt(m[1], 10) * 2 + (m[2] === 'a' ? -1 : 0);
 }
 
-const jobs = [];  // { tractate, page, mark }
+const jobs = []; // { tractate, page, mark }
 for (const [tractate, endAmud] of Object.entries(TRACTATES)) {
   if (TRACTATE_FILTER && !TRACTATE_FILTER.includes(tractate)) continue;
   const end = amudToNumber(endAmud);
@@ -83,7 +130,9 @@ for (const [tractate, endAmud] of Object.entries(TRACTATES)) {
   }
 }
 
-console.log(`[warm-anchors] worker=${WORKER} sides=${SIDES} marks=${MARKS.join(',')} concurrency=${CONCURRENCY}`);
+console.log(
+  `[warm-anchors] worker=${WORKER} sides=${SIDES} marks=${MARKS.join(',')} concurrency=${CONCURRENCY}`,
+);
 console.log(`[warm-anchors] tractates=${TRACTATE_FILTER ? TRACTATE_FILTER.join(',') : 'ALL'}`);
 console.log(`[warm-anchors] total jobs to enqueue: ${jobs.length}`);
 
@@ -139,7 +188,9 @@ async function runPool(items, limit, worker) {
         const elapsed = Math.round((Date.now() - t0) / 1000);
         const rate = elapsed > 0 ? Math.round(done / elapsed) : 0;
         const eta = rate > 0 ? Math.round((items.length - done) / rate) : 0;
-        console.log(`[${done}/${items.length}] elapsed=${elapsed}s rate=${rate}/s eta=${eta}s · cached=${counters.cached} queued=${counters.queued} bad=${counters.badStatus} net-err=${counters.networkErr} timeout=${counters.timeout}`);
+        console.log(
+          `[${done}/${items.length}] elapsed=${elapsed}s rate=${rate}/s eta=${eta}s · cached=${counters.cached} queued=${counters.queued} bad=${counters.badStatus} net-err=${counters.networkErr} timeout=${counters.timeout}`,
+        );
         lastLog = Date.now();
       }
     }
@@ -156,5 +207,7 @@ console.log(`  queued (202, runId):      ${counters.queued}`);
 console.log(`  bad-status (non-200/202): ${counters.badStatus}`);
 console.log(`  network errors:           ${counters.networkErr}`);
 console.log(`  fetch timeouts (${FETCH_TIMEOUT_MS}ms): ${counters.timeout}`);
-console.log(`\nQueued jobs drain in the background via the worker's enrichment-jobs queue (concurrency=10).`);
+console.log(
+  `\nQueued jobs drain in the background via the worker's enrichment-jobs queue (concurrency=10).`,
+);
 console.log(`Monitor backlog via /api/admin/cache-stats or the Cloudflare Queues dashboard.`);

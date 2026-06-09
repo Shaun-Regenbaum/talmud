@@ -1,6 +1,12 @@
-import { describe, it, expect } from 'vitest';
-import { rabbiCandidates, resolveRabbiSlug, generationOf, groundRabbiInstances, groundRabbiNames } from '../src/worker/rabbi-graph';
+import { describe, expect, it } from 'vitest';
 import hier from '../src/lib/data/rabbi-hierarchy.json';
+import {
+  generationOf,
+  groundRabbiInstances,
+  groundRabbiNames,
+  rabbiCandidates,
+  resolveRabbiSlug,
+} from '../src/worker/rabbi-graph';
 
 // Registry-first rabbi resolution with relational homonym disambiguation.
 // Tests run against the real rabbi-hierarchy registry.
@@ -47,8 +53,20 @@ describe('resolveRabbiSlug — registry-first, precision over a confident-wrong 
     // Pick a Kahana candidate that has a registry edge, and use that neighbor —
     // unique to this candidate among the candidates — as the co-occurring rabbi.
     const cands = rabbiCandidates('Rav Kahana');
-    const nodes = (hier as { nodes: Record<string, { canonical: string; teachers?: string[]; students?: string[]; colleagues?: string[] }> }).nodes;
-    const edgesOf = (slug: string) => new Set([...(nodes[slug]?.teachers ?? []), ...(nodes[slug]?.students ?? []), ...(nodes[slug]?.colleagues ?? [])]);
+    const nodes = (
+      hier as {
+        nodes: Record<
+          string,
+          { canonical: string; teachers?: string[]; students?: string[]; colleagues?: string[] }
+        >;
+      }
+    ).nodes;
+    const edgesOf = (slug: string) =>
+      new Set([
+        ...(nodes[slug]?.teachers ?? []),
+        ...(nodes[slug]?.students ?? []),
+        ...(nodes[slug]?.colleagues ?? []),
+      ]);
     let picked: { cand: string; neighborName: string } | null = null;
     for (const cand of cands) {
       const others = cands.filter((c) => c !== cand);
@@ -71,8 +89,9 @@ describe('resolveRabbiSlug — registry-first, precision over a confident-wrong 
 });
 
 describe('groundRabbiInstances — registry-grounded generation on rabbi mark instances', () => {
-  const mk = (insts: { name: string; nameHe?: string; generation?: string }[]) =>
-    ({ instances: insts.map((f) => ({ excerpt: f.nameHe ?? f.name, fields: { ...f } })) });
+  const mk = (insts: { name: string; nameHe?: string; generation?: string }[]) => ({
+    instances: insts.map((f) => ({ excerpt: f.nameHe ?? f.name, fields: { ...f } })),
+  });
   const fieldsAt = (parsed: unknown, i: number) =>
     (parsed as { instances: { fields: Record<string, unknown> }[] }).instances[i].fields;
 
@@ -90,7 +109,7 @@ describe('groundRabbiInstances — registry-grounded generation on rabbi mark in
     groundRabbiInstances(p);
     const f = fieldsAt(p, 0);
     expect(f.genSource).toBe('ambiguous');
-    expect(f.generation).toBe('unknown');   // neutral, not the freeform guess
+    expect(f.generation).toBe('unknown'); // neutral, not the freeform guess
     expect(f.slug).toBeUndefined();
   });
 
@@ -99,20 +118,33 @@ describe('groundRabbiInstances — registry-grounded generation on rabbi mark in
     groundRabbiInstances(p);
     const f = fieldsAt(p, 0);
     expect(f.genSource).toBe('none');
-    expect(f.generation).toBe('tanna-1');   // unchanged — no registry opinion
+    expect(f.generation).toBe('tanna-1'); // unchanged — no registry opinion
     expect(f.slug).toBeUndefined();
   });
 
   it('grounds a homonym RELATIONALLY from the daf cast', () => {
     const cands = rabbiCandidates('Rav Kahana');
-    const nodes = (hier as { nodes: Record<string, { canonical: string; teachers?: string[]; students?: string[]; colleagues?: string[] }> }).nodes;
-    const edgesOf = (slug: string) => new Set([...(nodes[slug]?.teachers ?? []), ...(nodes[slug]?.students ?? []), ...(nodes[slug]?.colleagues ?? [])]);
+    const nodes = (
+      hier as {
+        nodes: Record<
+          string,
+          { canonical: string; teachers?: string[]; students?: string[]; colleagues?: string[] }
+        >;
+      }
+    ).nodes;
+    const edgesOf = (slug: string) =>
+      new Set([
+        ...(nodes[slug]?.teachers ?? []),
+        ...(nodes[slug]?.students ?? []),
+        ...(nodes[slug]?.colleagues ?? []),
+      ]);
     let picked: { cand: string; neighborName: string } | null = null;
     for (const cand of cands) {
       const others = cands.filter((c) => c !== cand);
       for (const nb of edgesOf(cand)) {
         if (others.some((o) => edgesOf(o).has(nb)) || !nodes[nb]?.canonical) continue;
-        picked = { cand, neighborName: nodes[nb].canonical }; break;
+        picked = { cand, neighborName: nodes[nb].canonical };
+        break;
       }
       if (picked) break;
     }

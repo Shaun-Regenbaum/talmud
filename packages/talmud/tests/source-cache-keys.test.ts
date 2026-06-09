@@ -1,14 +1,37 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  keyForHebrewBooks, keyForSefariaBundle, keyForSefariaSegments, keyForRishonim,
-  keyForHalachaRefs, keyForDafTopics, keyForMishnaBundle, keyForYerushalmi, keyForSaCommentary,
-  keyForRabbiEnriched, keyForRabbiWikidata, keyForRabbiWikiBio,
-  keyForAnalyzeSkeleton, keyForRegion, keyForMesorah,
-  keyForCommentaryWorks, keyForCommentaryText, keyForReferences, keyForBridge,
-  keyForPasuk, keyForCtxMatch, keyForTranslate, keyForHebraize,
-  keyForRabbiBioBySlug, keyForRabbiBioOnDaf,
-  keyForRabbiGraph, keyForRabbiCohort, keyForRabbiPlacesIndex, keyForRabbiAcademyRoster,
-  keyForRabbiObs, keyForRabbiObsDirty, prefixForRabbiObs,
+  keyForAnalyzeSkeleton,
+  keyForBridge,
+  keyForCommentaryText,
+  keyForCommentaryWorks,
+  keyForCtxMatch,
+  keyForDafTopics,
+  keyForHalachaRefs,
+  keyForHebraize,
+  keyForHebrewBooks,
+  keyForMesorah,
+  keyForMishnaBundle,
+  keyForPasuk,
+  keyForRabbiAcademyRoster,
+  keyForRabbiBioBySlug,
+  keyForRabbiBioOnDaf,
+  keyForRabbiCohort,
+  keyForRabbiEnriched,
+  keyForRabbiGraph,
+  keyForRabbiObs,
+  keyForRabbiObsDirty,
+  keyForRabbiPlacesIndex,
+  keyForRabbiWikiBio,
+  keyForRabbiWikidata,
+  keyForReferences,
+  keyForRegion,
+  keyForRishonim,
+  keyForSaCommentary,
+  keyForSefariaBundle,
+  keyForSefariaSegments,
+  keyForTranslate,
+  keyForYerushalmi,
+  prefixForRabbiObs,
 } from '../src/worker/cache-keys';
 
 // These keys address a TTL-bounded but huge KV namespace already populated across
@@ -19,7 +42,8 @@ import {
 // silent regression. (Centralising these also fixed warm-cron.ts, which had
 // drifted to probing sefaria-bundle:v2 while the reader moved to v5.)
 describe('source-cache keys — byte-exact contract', () => {
-  const t = 'Berakhot', p = '2a';
+  const t = 'Berakhot',
+    p = '2a';
   it('reproduces every key exactly, raw tractate:page (no slug)', () => {
     expect(keyForHebrewBooks(t, p)).toBe('hb:v2:Berakhot:2a');
     expect(keyForSefariaBundle(t, p)).toBe('sefaria-bundle:v5:Berakhot:2a');
@@ -59,7 +83,9 @@ describe('commentary-spine + bridge keys — byte-exact contract', () => {
   it('commentary/refs use raw tractate:page; commentary-text uses the raw sourceRef', () => {
     expect(keyForCommentaryWorks('Berakhot', '2a')).toBe('commentaries:v1:Berakhot:2a');
     expect(keyForReferences('Berakhot', '2a')).toBe('refs:v1:Berakhot:2a');
-    expect(keyForCommentaryText('Rashi on Berakhot 2a:1')).toBe('commentary-tx:v1:Rashi on Berakhot 2a:1');
+    expect(keyForCommentaryText('Rashi on Berakhot 2a:1')).toBe(
+      'commentary-tx:v1:Rashi on Berakhot 2a:1',
+    );
   });
   it('the bridge key slug-normalises tractate AND page (lowercase, non-alnum -> _)', () => {
     expect(keyForBridge('Berakhot', '2a')).toBe('bridge:v1:berakhot:2a');
@@ -74,15 +100,20 @@ describe('content + rabbi caches — byte-exact contract', () => {
     expect(keyForPasuk('Genesis 1:1')).toBe('pasuk:v4:Genesis 1:1');
     expect(keyForCtxMatch('Berakhot', '2a', 'abc123')).toBe('ctx-match:v2:Berakhot:2a:abc123');
     // translate: ctxHash already carries its own leading separator.
-    expect(keyForTranslate('Berakhot', '2a', 'שלום', ':deadbeef')).toBe('translate:v3:Berakhot:2a:שלום:deadbeef');
+    expect(keyForTranslate('Berakhot', '2a', 'שלום', ':deadbeef')).toBe(
+      'translate:v3:Berakhot:2a:שלום:deadbeef',
+    );
     expect(keyForHebraize('ff00aa')).toBe('hebraize:v2:ff00aa');
   });
   it('rabbi-bio: the slug-only and per-daf shapes (incl. the i= include segment)', () => {
     expect(keyForRabbiBioBySlug('abaye')).toBe('rabbi-bio:v1:abaye');
     expect(keyForRabbiBioOnDaf('Berakhot', '2a', 'abaye')).toBe('rabbi-bio:v1:Berakhot:2a:abaye');
-    expect(keyForRabbiBioOnDaf('Berakhot', '2a', 'abaye', '')).toBe('rabbi-bio:v1:Berakhot:2a:abaye');
-    expect(keyForRabbiBioOnDaf('Berakhot', '2a', 'abaye', 'mesorah,region'))
-      .toBe('rabbi-bio:v1:i=mesorah,region:Berakhot:2a:abaye');
+    expect(keyForRabbiBioOnDaf('Berakhot', '2a', 'abaye', '')).toBe(
+      'rabbi-bio:v1:Berakhot:2a:abaye',
+    );
+    expect(keyForRabbiBioOnDaf('Berakhot', '2a', 'abaye', 'mesorah,region')).toBe(
+      'rabbi-bio:v1:i=mesorah,region:Berakhot:2a:abaye',
+    );
   });
   it('rabbi aggregate blobs: fixed keys, no params', () => {
     expect(keyForRabbiGraph()).toBe('rabbi-graph:v1');

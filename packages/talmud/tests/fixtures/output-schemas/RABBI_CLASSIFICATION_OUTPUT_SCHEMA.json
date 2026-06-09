@@ -4,18 +4,11 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "category",
-      "justification"
-    ],
+    "required": ["category", "justification"],
     "properties": {
       "category": {
         "type": "string",
-        "enum": [
-          "aggadist",
-          "halachist",
-          "exegetist"
-        ]
+        "enum": ["aggadist", "halachist", "exegetist"]
       },
       "justification": {
         "type": "string"

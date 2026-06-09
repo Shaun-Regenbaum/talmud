@@ -119,7 +119,17 @@ export function injectAnchorMarkers(
       searchStart = Math.max(searchStart, seg.first + 1);
       // Still log — a recovered anchor means the excerpt didn't quote the
       // gemara verbatim, which is useful signal for tightening the prompt.
-      logMiss('anchor', { markerClass, index: a.index, excerpt: a.excerpt, recovered: 'seg', startSegIdx: a.startSegIdx }, ctx);
+      logMiss(
+        'anchor',
+        {
+          markerClass,
+          index: a.index,
+          excerpt: a.excerpt,
+          recovered: 'seg',
+          startSegIdx: a.startSegIdx,
+        },
+        ctx,
+      );
       continue;
     }
 
@@ -194,19 +204,42 @@ function injectRangeAnchors(
     }
     if (startIdx < 0) {
       if (startTokens.length > 0) {
-        logMiss('anchor', { markerClass: startClass, index: item.index, excerpt: item.excerpt }, ctx);
+        logMiss(
+          'anchor',
+          { markerClass: startClass, index: item.index, excerpt: item.excerpt },
+          ctx,
+        );
       }
       continue;
     }
 
-    insertMarker(doc, words[startIdx], startClass, item.index, startTokens.length, startViaSeg ? 'seg' : undefined);
+    insertMarker(
+      doc,
+      words[startIdx],
+      startClass,
+      item.index,
+      startTokens.length,
+      startViaSeg ? 'seg' : undefined,
+    );
     if (startViaSeg) {
-      logMiss('anchor', { markerClass: startClass, index: item.index, excerpt: item.excerpt, recovered: 'seg', startSegIdx: item.startSegIdx }, ctx);
+      logMiss(
+        'anchor',
+        {
+          markerClass: startClass,
+          index: item.index,
+          excerpt: item.excerpt,
+          recovered: 'seg',
+          startSegIdx: item.startSegIdx,
+        },
+        ctx,
+      );
     }
 
     let advancedTo = startViaSeg ? startIdx + 1 : startIdx + startTokens.length;
 
-    const endTokens = item.endExcerpt ? normalizeHebrew(item.endExcerpt).split(' ').filter(Boolean) : [];
+    const endTokens = item.endExcerpt
+      ? normalizeHebrew(item.endExcerpt).split(' ').filter(Boolean)
+      : [];
     if (endTokens.length > 0 || item.endSegIdx != null) {
       // Search the end phrase from (at minimum) the start of this item so a
       // single-sentence story can overlap its own start excerpt.
@@ -235,10 +268,24 @@ function injectRangeAnchors(
         lastWord.parentNode?.insertBefore(endMarker, lastWord.nextSibling);
         advancedTo = Math.max(advancedTo, endLastIdx + 1);
         if (endViaSeg && endTokens.length > 0) {
-          logMiss('anchor', { markerClass: endClass, index: item.index, excerpt: item.endExcerpt, recovered: 'seg', endSegIdx: item.endSegIdx }, ctx);
+          logMiss(
+            'anchor',
+            {
+              markerClass: endClass,
+              index: item.index,
+              excerpt: item.endExcerpt,
+              recovered: 'seg',
+              endSegIdx: item.endSegIdx,
+            },
+            ctx,
+          );
         }
       } else if (endTokens.length > 0) {
-        logMiss('anchor', { markerClass: endClass, index: item.index, excerpt: item.endExcerpt }, ctx);
+        logMiss(
+          'anchor',
+          { markerClass: endClass, index: item.index, excerpt: item.endExcerpt },
+          ctx,
+        );
       }
     }
 
@@ -296,7 +343,13 @@ export function injectYerushalmiAnchors(
   parallels: YerushalmiAnchor[],
   ctx?: { tractate?: string; page?: string },
 ): string {
-  return injectRangeAnchors(html, parallels, 'daf-yerushalmi-anchor', 'daf-yerushalmi-end-anchor', ctx);
+  return injectRangeAnchors(
+    html,
+    parallels,
+    'daf-yerushalmi-anchor',
+    'daf-yerushalmi-end-anchor',
+    ctx,
+  );
 }
 
 export interface OpinionSection {
@@ -365,7 +418,12 @@ export function injectOpinionMarkers(
       if (idx < 0 || idx + rtokens.length > sectionEnd) {
         logMiss(
           'opinion',
-          { rabbi: rabbi.name, section: sIdx, opinionStart: rabbi.opinionStart, reason: idx < 0 ? 'no match' : 'past section end' },
+          {
+            rabbi: rabbi.name,
+            section: sIdx,
+            opinionStart: rabbi.opinionStart,
+            reason: idx < 0 ? 'no match' : 'past section end',
+          },
           ctx,
         );
         continue;

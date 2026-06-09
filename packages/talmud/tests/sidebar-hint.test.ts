@@ -1,15 +1,21 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { resolveSidebarHint, type SidebarHint } from '../src/client/sidebar/primitives';
 
 // The render-hint vocabulary: a hint + an instance's fields resolve to concrete
 // display props. Locks the mapping the generic sidebar depends on as more marks
 // move from bespoke *Body components onto hints.
 describe('resolveSidebarHint', () => {
-  const PLACE: SidebarHint = { kind: 'place', markId: 'places', titleField: 'name', titleHeField: 'nameHe', instanceKeyField: 'name' };
+  const PLACE: SidebarHint = {
+    kind: 'place',
+    markId: 'places',
+    titleField: 'name',
+    titleHeField: 'nameHe',
+    instanceKeyField: 'name',
+  };
 
   it('maps title/titleHe/markId and builds instanceKey as `${markId}:${keyVal}`', () => {
     expect(resolveSidebarHint(PLACE, { name: 'Tiberias', nameHe: 'טבריה' })).toEqual({
-      accent: '#222',          // ACCENTS.place
+      accent: '#222', // ACCENTS.place
       title: 'Tiberias',
       titleHe: 'טבריה',
       markId: 'places',

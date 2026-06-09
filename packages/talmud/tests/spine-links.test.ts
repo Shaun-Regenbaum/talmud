@@ -1,25 +1,37 @@
-import { describe, it, expect } from 'vitest';
-import { spineLinks } from '../src/lib/context/spineLinks';
+import { coordForSeg, coordKey, dafCoord } from '@corpus/core/context/coord';
+import { describe, expect, it } from 'vitest';
 import type { DafLink } from '../src/lib/context/dafLinks';
-import { dafCoord, coordForSeg, coordKey } from '@corpus/core/context/coord';
+import { spineLinks } from '../src/lib/context/spineLinks';
 
 const t = 'berakhot';
 
 // continuity edge: this daf → next daf (whole-daf coords)
 function continues(page: string, next: string): DafLink {
-  return { via: 'bridge', source: dafCoord({ tractate: t, page }), relation: 'continues', targets: [dafCoord({ tractate: t, page: next })] };
+  return {
+    via: 'bridge',
+    source: dafCoord({ tractate: t, page }),
+    relation: 'continues',
+    targets: [dafCoord({ tractate: t, page: next })],
+  };
 }
 // flow edge: section seg a → section seg b on the same daf
-function flow(page: string, a: number, b: number, relation: DafLink['relation'] = 'resolves'): DafLink {
-  return { via: 'flow', source: coordForSeg({ tractate: t, page }, a), relation, targets: [coordForSeg({ tractate: t, page }, b)] };
+function flow(
+  page: string,
+  a: number,
+  b: number,
+  relation: DafLink['relation'] = 'resolves',
+): DafLink {
+  return {
+    via: 'flow',
+    source: coordForSeg({ tractate: t, page }, a),
+    relation,
+    targets: [coordForSeg({ tractate: t, page }, b)],
+  };
 }
 
 describe('spineLinks aggregator', () => {
   it('unions per-daf links into one global graph with deduped nodes', () => {
-    const g = spineLinks(t, [
-      [flow('2a', 0, 3), continues('2a', '2b')],
-      [flow('2b', 1, 4)],
-    ]);
+    const g = spineLinks(t, [[flow('2a', 0, 3), continues('2a', '2b')], [flow('2b', 1, 4)]]);
     // nodes: 2a:0, 2a:3, 2a(daf), 2b(daf), 2b:1, 2b:4 = 6 unique
     expect(g.nodes.length).toBe(6);
     expect(g.edges.length).toBe(3);
@@ -29,7 +41,12 @@ describe('spineLinks aggregator', () => {
   });
 
   it('counts cross-daf edges under byVia.cross-flow', () => {
-    const crossEdge: DafLink = { via: 'cross-flow', source: coordForSeg({ tractate: t, page: '4b' }, 3), relation: 'resolves', targets: [coordForSeg({ tractate: t, page: '5a' }, 1)] };
+    const crossEdge: DafLink = {
+      via: 'cross-flow',
+      source: coordForSeg({ tractate: t, page: '4b' }, 3),
+      relation: 'resolves',
+      targets: [coordForSeg({ tractate: t, page: '5a' }, 1)],
+    };
     const g = spineLinks(t, [[crossEdge]]);
     expect(g.byVia['cross-flow']).toBe(1);
     expect(g.edges[0].source).not.toBe(g.edges[0].target); // genuinely cross-daf
@@ -57,11 +74,13 @@ describe('spineLinks aggregator', () => {
   it('backbone uses only bridge continuity, not the flow graph\'s intra-daf "continues"', () => {
     // A flow edge can carry kind 'continues' between two sections of the SAME
     // daf — that must NOT be mistaken for the daf->daf backbone.
-    const flowContinues: DafLink = { via: 'flow', source: coordForSeg({ tractate: t, page: '2a' }, 0), relation: 'continues', targets: [coordForSeg({ tractate: t, page: '2a' }, 5)] };
-    const g = spineLinks(t, [
-      [flowContinues, continues('2a', '2b')],
-      [continues('2b', '3a')],
-    ]);
+    const flowContinues: DafLink = {
+      via: 'flow',
+      source: coordForSeg({ tractate: t, page: '2a' }, 0),
+      relation: 'continues',
+      targets: [coordForSeg({ tractate: t, page: '2a' }, 5)],
+    };
+    const g = spineLinks(t, [[flowContinues, continues('2a', '2b')], [continues('2b', '3a')]]);
     expect(g.byRelation.continues).toBe(3); // 1 flow + 2 bridge, all counted as edges
     // but only the bridge chain forms the backbone:
     expect(g.continuityRuns.map((r) => r.join('->'))).toEqual(['2a->2b->3a']);

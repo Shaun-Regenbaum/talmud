@@ -79,23 +79,25 @@ export interface RelationshipsData {
  *  "bereih d'", "brei d'rav", "breih d'") to a single canonical "bar"
  *  token. Idempotent — repeated calls yield the same result. */
 function normalizeName(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[\[\]]/g, '')           // strip square brackets used as disambiguators
-    .replace(/\s+son\s+of\s+/g, ' bar ')
-    .replace(/\s+bereih\s+d'?/g, ' bar ')
-    .replace(/\s+breih\s+d'?(rav\s+)?/g, ' bar ')
-    .replace(/\s+brei\s+d'?(rav\s+)?/g, ' bar ')
-    .replace(/\s+b\.\s+/g, ' bar ')
-    .replace(/\s+ben\s+/g, ' bar ')
-    .replace(/[.,'"`’]/g, '')
-    .replace(/\s+/g, ' ')
-    // Collapse the chet/heh transliteration variants: "ch" → "h". Graph
-    // uses "Nahman" / "Yitzhak" / "Hiyya"; LLM emits "Nachman" / "Yitzchak"
-    // / "Chiyya". Both refer to the same ח-spelled name. Done last so it
-    // doesn't interfere with the patronymic markers above.
-    .replace(/ch/g, 'h')
-    .trim();
+  return (
+    name
+      .toLowerCase()
+      .replace(/[[\]]/g, '') // strip square brackets used as disambiguators
+      .replace(/\s+son\s+of\s+/g, ' bar ')
+      .replace(/\s+bereih\s+d'?/g, ' bar ')
+      .replace(/\s+breih\s+d'?(rav\s+)?/g, ' bar ')
+      .replace(/\s+brei\s+d'?(rav\s+)?/g, ' bar ')
+      .replace(/\s+b\.\s+/g, ' bar ')
+      .replace(/\s+ben\s+/g, ' bar ')
+      .replace(/[.,'"`’]/g, '')
+      .replace(/\s+/g, ' ')
+      // Collapse the chet/heh transliteration variants: "ch" → "h". Graph
+      // uses "Nahman" / "Yitzhak" / "Hiyya"; LLM emits "Nachman" / "Yitzchak"
+      // / "Chiyya". Both refer to the same ח-spelled name. Done last so it
+      // doesn't interfere with the patronymic markers above.
+      .replace(/ch/g, 'h')
+      .trim()
+  );
 }
 
 /** Known aliases / stage names → canonical slug. Hand-curated for the
@@ -107,11 +109,11 @@ const ALIASES: Record<string, string> = {
   'resh lakish': 'rabbi-shimon-b-lakish',
   'rabbi yohanan': 'rabbi-yochanan-b-napacha',
   'rabbi yohanan bar nappaha': 'rabbi-yochanan-b-napacha',
-  'rabbah': 'rabbah-b-nachmani',
+  rabbah: 'rabbah-b-nachmani',
   'rabbah bar nahmani': 'rabbah-b-nachmani',
   'rav nahman': 'rav-nachman-b-yaakov',
   'rav nahman bar yaakov': 'rav-nachman-b-yaakov',
-  'rebbi': 'rabbi-yehudah-hanasi',
+  rebbi: 'rabbi-yehudah-hanasi',
   'rabbi yehuda hanasi': 'rabbi-yehudah-hanasi',
   'rabbi yehudah ha nasi': 'rabbi-yehudah-hanasi',
 };
@@ -160,9 +162,9 @@ function extractPatronymic(name: string): string | null {
 // the slug; multiple forms can point to the same slug (canonical, Hebrew,
 // normalized canonical).
 interface IndexBuilt {
-  nameToSlug: Map<string, string>;       // normalized name → slug
-  heToSlug: Map<string, string>;         // Hebrew name → slug
-  slugToCanonical: Map<string, string>;  // slug → canonical name (display)
+  nameToSlug: Map<string, string>; // normalized name → slug
+  heToSlug: Map<string, string>; // Hebrew name → slug
+  slugToCanonical: Map<string, string>; // slug → canonical name (display)
 }
 
 function buildIndex(): IndexBuilt {
@@ -238,8 +240,9 @@ export function generationOf(slug: string): string | null {
 // Every (normalizedCanonical, slug) pair, built once — for enumerating ALL
 // registry nodes a name could refer to (homonym candidate set), not just the
 // first match findSlug returns.
-const NORM_INDEX: { norm: string; slug: string }[] = Object.entries(DATA.nodes)
-  .map(([slug, n]) => ({ norm: normalizeName(n.canonical), slug }));
+const NORM_INDEX: { norm: string; slug: string }[] = Object.entries(DATA.nodes).map(
+  ([slug, n]) => ({ norm: normalizeName(n.canonical), slug }),
+);
 
 /** ALL registry nodes a name could denote. For a homonym like "Rav Kahana"
  *  this returns every Kahana node (Rav Kahana (II), Rav Kahana of Pum Nahara,
@@ -258,16 +261,21 @@ export function rabbiCandidates(name: string, nameHe?: string): string[] {
     if (c === norm) exact.add(slug);
     else if (c.startsWith(norm + ' ')) prefix.add(slug); // short form ("Rav Kahana" → "Rav Kahana (II)")
   }
-  const ix = INDEX.nameToSlug.get(norm); if (ix) exact.add(ix);
+  const ix = INDEX.nameToSlug.get(norm);
+  if (ix) exact.add(ix);
   if (nameHe) {
     const cleanHe = nameHe.replace(/\s*\(\d+\)\s*$/, '').trim();
-    const he = INDEX.heToSlug.get(cleanHe); if (he) exact.add(he);
+    const he = INDEX.heToSlug.get(cleanHe);
+    if (he) exact.add(he);
   }
   return exact.size ? [...exact] : [...prefix];
 }
 
 export type ResolveBasis = 'unique' | 'relational' | 'generation' | 'ambiguous' | 'none';
-export interface ResolvedRabbi { slug: string | null; basis: ResolveBasis }
+export interface ResolvedRabbi {
+  slug: string | null;
+  basis: ResolveBasis;
+}
 
 /**
  * Registry-FIRST rabbi resolution with relational homonym disambiguation.
@@ -294,7 +302,7 @@ export function resolveRabbiSlug(
   const candSet = new Set(cands);
   const coSlugs = new Set<string>();
   for (const co of opts?.coRabbis ?? []) {
-    const s = findSlug(co);                       // single best for context names
+    const s = findSlug(co); // single best for context names
     if (s && !candSet.has(s)) coSlugs.add(s);
   }
   let best: string | null = null;
@@ -303,11 +311,18 @@ export function resolveRabbiSlug(
   for (const slug of cands) {
     const node = DATA.nodes[slug];
     if (!node) continue;
-    const nbrs = new Set<string>([...(node.teachers ?? []), ...(node.students ?? []), ...(node.colleagues ?? [])]);
+    const nbrs = new Set<string>([
+      ...(node.teachers ?? []),
+      ...(node.students ?? []),
+      ...(node.colleagues ?? []),
+    ]);
     let score = 0;
     for (const cs of coSlugs) if (nbrs.has(cs)) score++;
-    if (score > bestScore) { bestScore = score; best = slug; tie = false; }
-    else if (score === bestScore && score > 0) tie = true;
+    if (score > bestScore) {
+      bestScore = score;
+      best = slug;
+      tie = false;
+    } else if (score === bestScore && score > 0) tie = true;
   }
   if (best && bestScore > 0 && !tie) return { slug: best, basis: 'relational' };
 
@@ -350,8 +365,16 @@ export function groundRabbiNames(
     });
     const generation = slug
       ? (generationOf(slug) ?? it.generation ?? null)
-      : (basis === 'ambiguous' ? 'unknown' : (it.generation ?? null));
-    return { name: it.name, slug, canonical: slug ? slugToName(slug) : null, generation, genSource: basis };
+      : basis === 'ambiguous'
+        ? 'unknown'
+        : (it.generation ?? null);
+    return {
+      name: it.name,
+      slug,
+      canonical: slug ? slugToName(slug) : null,
+      generation,
+      genSource: basis,
+    };
   });
 }
 
@@ -367,22 +390,38 @@ export function groundRabbiInstances(parsed: unknown): unknown {
   const insts = (parsed as { instances?: unknown }).instances;
   if (!Array.isArray(insts)) return parsed;
   const fieldsOf = (i: unknown): Record<string, unknown> | null =>
-    (i && typeof i === 'object' && (i as { fields?: unknown }).fields && typeof (i as { fields?: unknown }).fields === 'object'
-      ? ((i as { fields: Record<string, unknown> }).fields)
-      : null);
-  const targets: { f: Record<string, unknown>; item: { name: string; nameHe?: string; generation?: string } }[] = [];
+    i &&
+    typeof i === 'object' &&
+    (i as { fields?: unknown }).fields &&
+    typeof (i as { fields?: unknown }).fields === 'object'
+      ? (i as { fields: Record<string, unknown> }).fields
+      : null;
+  const targets: {
+    f: Record<string, unknown>;
+    item: { name: string; nameHe?: string; generation?: string };
+  }[] = [];
   for (const inst of insts) {
     const f = fieldsOf(inst);
     if (!f) continue;
     const name = typeof f.name === 'string' ? f.name.trim() : '';
     if (!name) continue;
-    targets.push({ f, item: { name, nameHe: typeof f.nameHe === 'string' ? f.nameHe : undefined, generation: typeof f.generation === 'string' ? f.generation : undefined } });
+    targets.push({
+      f,
+      item: {
+        name,
+        nameHe: typeof f.nameHe === 'string' ? f.nameHe : undefined,
+        generation: typeof f.generation === 'string' ? f.generation : undefined,
+      },
+    });
   }
   const grounded = groundRabbiNames(targets.map((t) => t.item));
   grounded.forEach((g, i) => {
     const f = targets[i].f;
     f.genSource = g.genSource;
-    if (g.slug) { f.slug = g.slug; f.canonical = g.canonical; }
+    if (g.slug) {
+      f.slug = g.slug;
+      f.canonical = g.canonical;
+    }
     if (g.generation) f.generation = g.generation;
   });
   return parsed;
@@ -399,18 +438,33 @@ function deriveFamily(name: string): FamilyMember[] {
 
 /** Build prose summary describing the relationships, in the same style
  *  the LLM was emitting. Synthesis consumes this string. */
-function buildProse(node: HierarchyNode, teachers: RelationshipPerson[], students: RelationshipPerson[], debatePartners: DebatePartner[], family: FamilyMember[]): string {
+function buildProse(
+  node: HierarchyNode,
+  teachers: RelationshipPerson[],
+  students: RelationshipPerson[],
+  debatePartners: DebatePartner[],
+  family: FamilyMember[],
+): string {
   const parts: string[] = [];
   if (teachers.length > 0) {
-    const tNames = teachers.slice(0, 3).map((t) => t.name).join(', ');
+    const tNames = teachers
+      .slice(0, 3)
+      .map((t) => t.name)
+      .join(', ');
     parts.push(`Studied under ${tNames}`);
   }
   if (students.length > 0) {
-    const sNames = students.slice(0, 3).map((s) => s.name).join(', ');
+    const sNames = students
+      .slice(0, 3)
+      .map((s) => s.name)
+      .join(', ');
     parts.push(`taught ${sNames}`);
   }
   if (debatePartners.length > 0) {
-    const cNames = debatePartners.slice(0, 2).map((c) => c.name).join(', ');
+    const cNames = debatePartners
+      .slice(0, 2)
+      .map((c) => c.name)
+      .join(', ');
     parts.push(`frequently paired with ${cNames}`);
   }
   if (family.length > 0) {
@@ -519,7 +573,11 @@ export function lookupRelationships(
 }
 
 /** Diagnostic — coverage stats for the loaded graph. */
-export function graphStats(): { totalNodes: number; nodesWithEdges: number; processedNodes: number } {
+export function graphStats(): {
+  totalNodes: number;
+  nodesWithEdges: number;
+  processedNodes: number;
+} {
   return {
     totalNodes: DATA.totalNodes ?? Object.keys(DATA.nodes).length,
     nodesWithEdges: DATA.nodesWithEdges ?? 0,

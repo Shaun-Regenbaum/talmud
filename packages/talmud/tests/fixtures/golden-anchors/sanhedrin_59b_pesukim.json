@@ -1,374 +1,374 @@
 {
- "tractate": "Sanhedrin",
- "page": "59b",
- "mark": "pesukim",
- "cache_hit": true,
- "raw": {
-  "instances": [
-   {
-    "startSegIdx": 0,
-    "endSegIdx": 0,
-    "fields": {
-     "verseRef": "Genesis 17:9",
-     "citationStyle": "explicit",
-     "excerpt": "וְאַתָּה אֶת בְּרִיתִי תִשְׁמֹר",
-     "endExcerpt": "תִשְׁמֹר",
-     "summary": "Introduced by 'דִּכְתִיב', this verse is cited as the original command of circumcision given to Noahides (Abraham and his descendants)."
-    }
-   },
-   {
-    "startSegIdx": 0,
-    "endSegIdx": 0,
-    "fields": {
-     "verseRef": "Leviticus 12:3",
-     "citationStyle": "explicit",
-     "excerpt": "וּבַיּוֹם הַשְּׁמִינִי יִמּוֹל",
-     "endExcerpt": "יִמּוֹל",
-     "summary": "Introduced as repeated at Sinai, this verse is used to argue that circumcision was given only to Israel, not to Noahides."
-    }
-   },
-   {
-    "startSegIdx": 2,
-    "endSegIdx": 2,
-    "fields": {
-     "verseRef": "Genesis 9:7",
-     "citationStyle": "explicit",
-     "excerpt": "וְאַתֶּם פְּרוּ וּרְבוּ",
-     "endExcerpt": "וּרְבוּ",
-     "summary": "Introduced by 'דִּכְתִיב', this verse is cited as the original command of procreation given to Noahides."
-    }
-   },
-   {
-    "startSegIdx": 2,
-    "endSegIdx": 2,
-    "fields": {
-     "verseRef": "Deuteronomy 5:27",
-     "citationStyle": "explicit",
-     "excerpt": "לֵךְ אֱמֹר לָהֶם שׁוּבוּ לָכֶם לְאׇהֳלֵיכֶם",
-     "endExcerpt": "לְאׇהֳלֵיכֶם",
-     "summary": "Introduced as repeated at Sinai, this verse is used to argue that the command of procreation was given only to Israel, not to Noahides."
-    }
-   },
-   {
-    "startSegIdx": 8,
-    "endSegIdx": 8,
-    "fields": {
-     "verseRef": "Genesis 17:9",
-     "citationStyle": "explicit",
-     "excerpt": "וְאַתָּה אֶת בְּרִיתִי תִשְׁמֹר אַתָּה וְזַרְעֲךָ אַחֲרֶיךָ לְדֹרֹתָם",
-     "endExcerpt": "לְדֹרֹתָם",
-     "summary": "This verse is cited to show that circumcision was commanded only to Abraham and his seed, not to others."
-    }
-   },
-   {
-    "startSegIdx": 9,
-    "endSegIdx": 9,
-    "fields": {
-     "verseRef": "Genesis 21:12",
-     "citationStyle": "explicit",
-     "excerpt": "כִּי בְיִצְחָק יִקָּרֵא לְךָ זָרַע",
-     "endExcerpt": "זָרַע",
-     "summary": "This verse is used to exclude Ishmael's descendants from the obligation of circumcision, as only Isaac is considered Abraham's seed."
-    }
-   },
-   {
-    "startSegIdx": 10,
-    "endSegIdx": 10,
-    "fields": {
-     "verseRef": "Genesis 21:12",
-     "citationStyle": "paraphrase",
-     "excerpt": "בְּיִצְחָק – וְלֹא כׇּל יִצְחָק",
-     "endExcerpt": "כׇּל יִצְחָק",
-     "summary": "This is a rabbinic interpretation of the verse, excluding Esau's descendants from the covenant."
-    }
-   },
-   {
-    "startSegIdx": 11,
-    "endSegIdx": 11,
-    "fields": {
-     "verseRef": "Genesis 17:14",
-     "citationStyle": "explicit",
-     "excerpt": "אֶת בְּרִיתִי הֵפַר",
-     "endExcerpt": "הֵפַר",
-     "summary": "This verse is cited to include the descendants of Keturah in the obligation of circumcision."
-    }
-   },
-   {
-    "startSegIdx": 12,
-    "endSegIdx": 12,
-    "fields": {
-     "verseRef": "Genesis 1:29",
-     "citationStyle": "explicit",
-     "excerpt": "לָכֶם יִהְיֶה לְאׇכְלָה וּלְכׇל חַיַּת הָאָרֶץ",
-     "endExcerpt": "הָאָרֶץ",
-     "summary": "This verse is cited to prove that Adam was not permitted to eat meat, as the verse gives plants for food to both humans and animals."
-    }
-   },
-   {
-    "startSegIdx": 13,
-    "endSegIdx": 13,
-    "fields": {
-     "verseRef": "Genesis 9:3",
-     "citationStyle": "explicit",
-     "excerpt": "כְּיֶרֶק עֵשֶׂב נָתַתִּי לָכֶם אֶת כֹּל",
-     "endExcerpt": "כֹּל",
-     "summary": "This verse is cited to show that meat was permitted to Noahides after the flood."
-    }
-   },
-   {
-    "startSegIdx": 13,
-    "endSegIdx": 13,
-    "fields": {
-     "verseRef": "Genesis 9:4",
-     "citationStyle": "explicit",
-     "excerpt": "אַךְ בָּשָׂר בְּנַפְשׁוֹ דָמוֹ לֹא תֹאכֵלוּ",
-     "endExcerpt": "תֹאכֵלוּ",
-     "summary": "This verse is cited to derive the prohibition of eating a limb from a living animal (eiver min hachai)."
-    }
-   },
-   {
-    "startSegIdx": 15,
-    "endSegIdx": 15,
-    "fields": {
-     "verseRef": "Genesis 1:28",
-     "citationStyle": "explicit",
-     "excerpt": "וּרְדוּ בִּדְגַת הַיָּם",
-     "endExcerpt": "הַיָּם",
-     "summary": "This verse is cited in a challenge to prove that dominion over fish was for eating, but the response is that it was for labor."
-    }
-   },
-   {
-    "startSegIdx": 17,
-    "endSegIdx": 17,
-    "fields": {
-     "verseRef": "Genesis 1:28",
-     "citationStyle": "explicit",
-     "excerpt": "וּבְעוֹף הַשָּׁמַיִם",
-     "endExcerpt": "הַשָּׁמַיִם",
-     "summary": "This verse is cited similarly to the fish, to argue that dominion over birds was for eating, but the response is for labor."
-    }
-   },
-   {
-    "startSegIdx": 19,
-    "endSegIdx": 19,
-    "fields": {
-     "verseRef": "Genesis 1:28",
-     "citationStyle": "explicit",
-     "excerpt": "וּבְכׇל חַיָּה הָרֹמֶשֶׂת עַל הָאָרֶץ",
-     "endExcerpt": "הָאָרֶץ",
-     "summary": "This verse is cited to include the serpent in the dominion, but the Gemara explains it comes to teach about the serpent's role."
-    }
-   },
-   {
-    "startSegIdx": 22,
-    "endSegIdx": 22,
-    "fields": {
-     "verseRef": "Psalms 104:21",
-     "citationStyle": "explicit",
-     "excerpt": "הַכְּפִירִים שֹׁאֲגִים לַטָּרֶף",
-     "endExcerpt": "לַטָּרֶף",
-     "summary": "This verse is cited by Rabbi Shimon ben Chalafta when lions roared at him, and meat descended from heaven in response."
-    }
-   }
-  ]
- },
- "expected": {
-  "instances": [
-   {
-    "startSegIdx": 0,
-    "endSegIdx": 0,
-    "fields": {
-     "verseRef": "Genesis 17:9",
-     "citationStyle": "explicit",
-     "excerpt": "וְאַתָּה אֶת בְּרִיתִי תִשְׁמֹר",
-     "endExcerpt": "תִשְׁמֹר",
-     "summary": "Introduced by 'דִּכְתִיב', this verse is cited as the original command of circumcision given to Noahides (Abraham and his descendants).",
-     "tokenStart": 6,
-     "tokenEnd": 9
-    }
-   },
-   {
-    "startSegIdx": 0,
-    "endSegIdx": 0,
-    "fields": {
-     "verseRef": "Leviticus 12:3",
-     "citationStyle": "explicit",
-     "excerpt": "וּבַיּוֹם הַשְּׁמִינִי יִמּוֹל",
-     "endExcerpt": "יִמּוֹל",
-     "summary": "Introduced as repeated at Sinai, this verse is used to argue that circumcision was given only to Israel, not to Noahides.",
-     "tokenStart": 12,
-     "tokenEnd": 14
-    }
-   },
-   {
-    "startSegIdx": 2,
-    "endSegIdx": 2,
-    "fields": {
-     "verseRef": "Genesis 9:7",
-     "citationStyle": "explicit",
-     "excerpt": "וְאַתֶּם פְּרוּ וּרְבוּ",
-     "endExcerpt": "וּרְבוּ",
-     "summary": "Introduced by 'דִּכְתִיב', this verse is cited as the original command of procreation given to Noahides.",
-     "tokenStart": 7,
-     "tokenEnd": 9
-    }
-   },
-   {
-    "startSegIdx": 2,
-    "endSegIdx": 2,
-    "fields": {
-     "verseRef": "Deuteronomy 5:27",
-     "citationStyle": "explicit",
-     "excerpt": "לֵךְ אֱמֹר לָהֶם שׁוּבוּ לָכֶם לְאׇהֳלֵיכֶם",
-     "endExcerpt": "לְאׇהֳלֵיכֶם",
-     "summary": "Introduced as repeated at Sinai, this verse is used to argue that the command of procreation was given only to Israel, not to Noahides.",
-     "tokenStart": 12,
-     "tokenEnd": 17
-    }
-   },
-   {
-    "startSegIdx": 8,
-    "endSegIdx": 8,
-    "fields": {
-     "verseRef": "Genesis 17:9",
-     "citationStyle": "explicit",
-     "excerpt": "וְאַתָּה אֶת בְּרִיתִי תִשְׁמֹר אַתָּה וְזַרְעֲךָ אַחֲרֶיךָ לְדֹרֹתָם",
-     "endExcerpt": "לְדֹרֹתָם",
-     "summary": "This verse is cited to show that circumcision was commanded only to Abraham and his seed, not to others.",
-     "tokenStart": 11,
-     "tokenEnd": 18
-    }
-   },
-   {
-    "startSegIdx": 9,
-    "endSegIdx": 9,
-    "fields": {
-     "verseRef": "Genesis 21:12",
-     "citationStyle": "explicit",
-     "excerpt": "כִּי בְיִצְחָק יִקָּרֵא לְךָ זָרַע",
-     "endExcerpt": "זָרַע",
-     "summary": "This verse is used to exclude Ishmael's descendants from the obligation of circumcision, as only Isaac is considered Abraham's seed.",
-     "tokenStart": 5,
-     "tokenEnd": 9
-    }
-   },
-   {
-    "startSegIdx": 10,
-    "endSegIdx": 10,
-    "fields": {
-     "verseRef": "Genesis 21:12",
-     "citationStyle": "paraphrase",
-     "excerpt": "בְּיִצְחָק – וְלֹא כׇּל יִצְחָק",
-     "endExcerpt": "כׇּל יִצְחָק",
-     "summary": "This is a rabbinic interpretation of the verse, excluding Esau's descendants from the covenant.",
-     "tokenStart": 3,
-     "tokenEnd": 6
-    }
-   },
-   {
-    "startSegIdx": 11,
-    "endSegIdx": 11,
-    "fields": {
-     "verseRef": "Genesis 17:14",
-     "citationStyle": "explicit",
-     "excerpt": "אֶת בְּרִיתִי הֵפַר",
-     "endExcerpt": "הֵפַר",
-     "summary": "This verse is cited to include the descendants of Keturah in the obligation of circumcision.",
-     "tokenStart": 20,
-     "tokenEnd": 22
-    }
-   },
-   {
-    "startSegIdx": 12,
-    "endSegIdx": 12,
-    "fields": {
-     "verseRef": "Genesis 1:29",
-     "citationStyle": "explicit",
-     "excerpt": "לָכֶם יִהְיֶה לְאׇכְלָה וּלְכׇל חַיַּת הָאָרֶץ",
-     "endExcerpt": "הָאָרֶץ",
-     "summary": "This verse is cited to prove that Adam was not permitted to eat meat, as the verse gives plants for food to both humans and animals.",
-     "tokenStart": 13,
-     "tokenEnd": 18
-    }
-   },
-   {
-    "startSegIdx": 13,
-    "endSegIdx": 13,
-    "fields": {
-     "verseRef": "Genesis 9:3",
-     "citationStyle": "explicit",
-     "excerpt": "כְּיֶרֶק עֵשֶׂב נָתַתִּי לָכֶם אֶת כֹּל",
-     "endExcerpt": "כֹּל",
-     "summary": "This verse is cited to show that meat was permitted to Noahides after the flood.",
-     "tokenStart": 6,
-     "tokenEnd": 11
-    }
-   },
-   {
-    "startSegIdx": 13,
-    "endSegIdx": 13,
-    "fields": {
-     "verseRef": "Genesis 9:4",
-     "citationStyle": "explicit",
-     "excerpt": "אַךְ בָּשָׂר בְּנַפְשׁוֹ דָמוֹ לֹא תֹאכֵלוּ",
-     "endExcerpt": "תֹאכֵלוּ",
-     "summary": "This verse is cited to derive the prohibition of eating a limb from a living animal (eiver min hachai).",
-     "tokenStart": 22,
-     "tokenEnd": 27
-    }
-   },
-   {
-    "startSegIdx": 15,
-    "endSegIdx": 15,
-    "fields": {
-     "verseRef": "Genesis 1:28",
-     "citationStyle": "explicit",
-     "excerpt": "וּרְדוּ בִּדְגַת הַיָּם",
-     "endExcerpt": "הַיָּם",
-     "summary": "This verse is cited in a challenge to prove that dominion over fish was for eating, but the response is that it was for labor.",
-     "tokenStart": 1,
-     "tokenEnd": 3
-    }
-   },
-   {
-    "startSegIdx": 17,
-    "endSegIdx": 17,
-    "fields": {
-     "verseRef": "Genesis 1:28",
-     "citationStyle": "explicit",
-     "excerpt": "וּבְעוֹף הַשָּׁמַיִם",
-     "endExcerpt": "הַשָּׁמַיִם",
-     "summary": "This verse is cited similarly to the fish, to argue that dominion over birds was for eating, but the response is for labor.",
-     "tokenStart": 2,
-     "tokenEnd": 3
-    }
-   },
-   {
-    "startSegIdx": 19,
-    "endSegIdx": 19,
-    "fields": {
-     "verseRef": "Genesis 1:28",
-     "citationStyle": "explicit",
-     "excerpt": "וּבְכׇל חַיָּה הָרֹמֶשֶׂת עַל הָאָרֶץ",
-     "endExcerpt": "הָאָרֶץ",
-     "summary": "This verse is cited to include the serpent in the dominion, but the Gemara explains it comes to teach about the serpent's role.",
-     "tokenStart": 2,
-     "tokenEnd": 6
-    }
-   },
-   {
-    "startSegIdx": 22,
-    "endSegIdx": 22,
-    "fields": {
-     "verseRef": "Psalms 104:21",
-     "citationStyle": "explicit",
-     "excerpt": "הַכְּפִירִים שֹׁאֲגִים לַטָּרֶף",
-     "endExcerpt": "לַטָּרֶף",
-     "summary": "This verse is cited by Rabbi Shimon ben Chalafta when lions roared at him, and meat descended from heaven in response.",
-     "tokenStart": 25,
-     "tokenEnd": 27
-    }
-   }
-  ]
- }
+  "tractate": "Sanhedrin",
+  "page": "59b",
+  "mark": "pesukim",
+  "cache_hit": true,
+  "raw": {
+    "instances": [
+      {
+        "startSegIdx": 0,
+        "endSegIdx": 0,
+        "fields": {
+          "verseRef": "Genesis 17:9",
+          "citationStyle": "explicit",
+          "excerpt": "וְאַתָּה אֶת בְּרִיתִי תִשְׁמֹר",
+          "endExcerpt": "תִשְׁמֹר",
+          "summary": "Introduced by 'דִּכְתִיב', this verse is cited as the original command of circumcision given to Noahides (Abraham and his descendants)."
+        }
+      },
+      {
+        "startSegIdx": 0,
+        "endSegIdx": 0,
+        "fields": {
+          "verseRef": "Leviticus 12:3",
+          "citationStyle": "explicit",
+          "excerpt": "וּבַיּוֹם הַשְּׁמִינִי יִמּוֹל",
+          "endExcerpt": "יִמּוֹל",
+          "summary": "Introduced as repeated at Sinai, this verse is used to argue that circumcision was given only to Israel, not to Noahides."
+        }
+      },
+      {
+        "startSegIdx": 2,
+        "endSegIdx": 2,
+        "fields": {
+          "verseRef": "Genesis 9:7",
+          "citationStyle": "explicit",
+          "excerpt": "וְאַתֶּם פְּרוּ וּרְבוּ",
+          "endExcerpt": "וּרְבוּ",
+          "summary": "Introduced by 'דִּכְתִיב', this verse is cited as the original command of procreation given to Noahides."
+        }
+      },
+      {
+        "startSegIdx": 2,
+        "endSegIdx": 2,
+        "fields": {
+          "verseRef": "Deuteronomy 5:27",
+          "citationStyle": "explicit",
+          "excerpt": "לֵךְ אֱמֹר לָהֶם שׁוּבוּ לָכֶם לְאׇהֳלֵיכֶם",
+          "endExcerpt": "לְאׇהֳלֵיכֶם",
+          "summary": "Introduced as repeated at Sinai, this verse is used to argue that the command of procreation was given only to Israel, not to Noahides."
+        }
+      },
+      {
+        "startSegIdx": 8,
+        "endSegIdx": 8,
+        "fields": {
+          "verseRef": "Genesis 17:9",
+          "citationStyle": "explicit",
+          "excerpt": "וְאַתָּה אֶת בְּרִיתִי תִשְׁמֹר אַתָּה וְזַרְעֲךָ אַחֲרֶיךָ לְדֹרֹתָם",
+          "endExcerpt": "לְדֹרֹתָם",
+          "summary": "This verse is cited to show that circumcision was commanded only to Abraham and his seed, not to others."
+        }
+      },
+      {
+        "startSegIdx": 9,
+        "endSegIdx": 9,
+        "fields": {
+          "verseRef": "Genesis 21:12",
+          "citationStyle": "explicit",
+          "excerpt": "כִּי בְיִצְחָק יִקָּרֵא לְךָ זָרַע",
+          "endExcerpt": "זָרַע",
+          "summary": "This verse is used to exclude Ishmael's descendants from the obligation of circumcision, as only Isaac is considered Abraham's seed."
+        }
+      },
+      {
+        "startSegIdx": 10,
+        "endSegIdx": 10,
+        "fields": {
+          "verseRef": "Genesis 21:12",
+          "citationStyle": "paraphrase",
+          "excerpt": "בְּיִצְחָק – וְלֹא כׇּל יִצְחָק",
+          "endExcerpt": "כׇּל יִצְחָק",
+          "summary": "This is a rabbinic interpretation of the verse, excluding Esau's descendants from the covenant."
+        }
+      },
+      {
+        "startSegIdx": 11,
+        "endSegIdx": 11,
+        "fields": {
+          "verseRef": "Genesis 17:14",
+          "citationStyle": "explicit",
+          "excerpt": "אֶת בְּרִיתִי הֵפַר",
+          "endExcerpt": "הֵפַר",
+          "summary": "This verse is cited to include the descendants of Keturah in the obligation of circumcision."
+        }
+      },
+      {
+        "startSegIdx": 12,
+        "endSegIdx": 12,
+        "fields": {
+          "verseRef": "Genesis 1:29",
+          "citationStyle": "explicit",
+          "excerpt": "לָכֶם יִהְיֶה לְאׇכְלָה וּלְכׇל חַיַּת הָאָרֶץ",
+          "endExcerpt": "הָאָרֶץ",
+          "summary": "This verse is cited to prove that Adam was not permitted to eat meat, as the verse gives plants for food to both humans and animals."
+        }
+      },
+      {
+        "startSegIdx": 13,
+        "endSegIdx": 13,
+        "fields": {
+          "verseRef": "Genesis 9:3",
+          "citationStyle": "explicit",
+          "excerpt": "כְּיֶרֶק עֵשֶׂב נָתַתִּי לָכֶם אֶת כֹּל",
+          "endExcerpt": "כֹּל",
+          "summary": "This verse is cited to show that meat was permitted to Noahides after the flood."
+        }
+      },
+      {
+        "startSegIdx": 13,
+        "endSegIdx": 13,
+        "fields": {
+          "verseRef": "Genesis 9:4",
+          "citationStyle": "explicit",
+          "excerpt": "אַךְ בָּשָׂר בְּנַפְשׁוֹ דָמוֹ לֹא תֹאכֵלוּ",
+          "endExcerpt": "תֹאכֵלוּ",
+          "summary": "This verse is cited to derive the prohibition of eating a limb from a living animal (eiver min hachai)."
+        }
+      },
+      {
+        "startSegIdx": 15,
+        "endSegIdx": 15,
+        "fields": {
+          "verseRef": "Genesis 1:28",
+          "citationStyle": "explicit",
+          "excerpt": "וּרְדוּ בִּדְגַת הַיָּם",
+          "endExcerpt": "הַיָּם",
+          "summary": "This verse is cited in a challenge to prove that dominion over fish was for eating, but the response is that it was for labor."
+        }
+      },
+      {
+        "startSegIdx": 17,
+        "endSegIdx": 17,
+        "fields": {
+          "verseRef": "Genesis 1:28",
+          "citationStyle": "explicit",
+          "excerpt": "וּבְעוֹף הַשָּׁמַיִם",
+          "endExcerpt": "הַשָּׁמַיִם",
+          "summary": "This verse is cited similarly to the fish, to argue that dominion over birds was for eating, but the response is for labor."
+        }
+      },
+      {
+        "startSegIdx": 19,
+        "endSegIdx": 19,
+        "fields": {
+          "verseRef": "Genesis 1:28",
+          "citationStyle": "explicit",
+          "excerpt": "וּבְכׇל חַיָּה הָרֹמֶשֶׂת עַל הָאָרֶץ",
+          "endExcerpt": "הָאָרֶץ",
+          "summary": "This verse is cited to include the serpent in the dominion, but the Gemara explains it comes to teach about the serpent's role."
+        }
+      },
+      {
+        "startSegIdx": 22,
+        "endSegIdx": 22,
+        "fields": {
+          "verseRef": "Psalms 104:21",
+          "citationStyle": "explicit",
+          "excerpt": "הַכְּפִירִים שֹׁאֲגִים לַטָּרֶף",
+          "endExcerpt": "לַטָּרֶף",
+          "summary": "This verse is cited by Rabbi Shimon ben Chalafta when lions roared at him, and meat descended from heaven in response."
+        }
+      }
+    ]
+  },
+  "expected": {
+    "instances": [
+      {
+        "startSegIdx": 0,
+        "endSegIdx": 0,
+        "fields": {
+          "verseRef": "Genesis 17:9",
+          "citationStyle": "explicit",
+          "excerpt": "וְאַתָּה אֶת בְּרִיתִי תִשְׁמֹר",
+          "endExcerpt": "תִשְׁמֹר",
+          "summary": "Introduced by 'דִּכְתִיב', this verse is cited as the original command of circumcision given to Noahides (Abraham and his descendants).",
+          "tokenStart": 6,
+          "tokenEnd": 9
+        }
+      },
+      {
+        "startSegIdx": 0,
+        "endSegIdx": 0,
+        "fields": {
+          "verseRef": "Leviticus 12:3",
+          "citationStyle": "explicit",
+          "excerpt": "וּבַיּוֹם הַשְּׁמִינִי יִמּוֹל",
+          "endExcerpt": "יִמּוֹל",
+          "summary": "Introduced as repeated at Sinai, this verse is used to argue that circumcision was given only to Israel, not to Noahides.",
+          "tokenStart": 12,
+          "tokenEnd": 14
+        }
+      },
+      {
+        "startSegIdx": 2,
+        "endSegIdx": 2,
+        "fields": {
+          "verseRef": "Genesis 9:7",
+          "citationStyle": "explicit",
+          "excerpt": "וְאַתֶּם פְּרוּ וּרְבוּ",
+          "endExcerpt": "וּרְבוּ",
+          "summary": "Introduced by 'דִּכְתִיב', this verse is cited as the original command of procreation given to Noahides.",
+          "tokenStart": 7,
+          "tokenEnd": 9
+        }
+      },
+      {
+        "startSegIdx": 2,
+        "endSegIdx": 2,
+        "fields": {
+          "verseRef": "Deuteronomy 5:27",
+          "citationStyle": "explicit",
+          "excerpt": "לֵךְ אֱמֹר לָהֶם שׁוּבוּ לָכֶם לְאׇהֳלֵיכֶם",
+          "endExcerpt": "לְאׇהֳלֵיכֶם",
+          "summary": "Introduced as repeated at Sinai, this verse is used to argue that the command of procreation was given only to Israel, not to Noahides.",
+          "tokenStart": 12,
+          "tokenEnd": 17
+        }
+      },
+      {
+        "startSegIdx": 8,
+        "endSegIdx": 8,
+        "fields": {
+          "verseRef": "Genesis 17:9",
+          "citationStyle": "explicit",
+          "excerpt": "וְאַתָּה אֶת בְּרִיתִי תִשְׁמֹר אַתָּה וְזַרְעֲךָ אַחֲרֶיךָ לְדֹרֹתָם",
+          "endExcerpt": "לְדֹרֹתָם",
+          "summary": "This verse is cited to show that circumcision was commanded only to Abraham and his seed, not to others.",
+          "tokenStart": 11,
+          "tokenEnd": 18
+        }
+      },
+      {
+        "startSegIdx": 9,
+        "endSegIdx": 9,
+        "fields": {
+          "verseRef": "Genesis 21:12",
+          "citationStyle": "explicit",
+          "excerpt": "כִּי בְיִצְחָק יִקָּרֵא לְךָ זָרַע",
+          "endExcerpt": "זָרַע",
+          "summary": "This verse is used to exclude Ishmael's descendants from the obligation of circumcision, as only Isaac is considered Abraham's seed.",
+          "tokenStart": 5,
+          "tokenEnd": 9
+        }
+      },
+      {
+        "startSegIdx": 10,
+        "endSegIdx": 10,
+        "fields": {
+          "verseRef": "Genesis 21:12",
+          "citationStyle": "paraphrase",
+          "excerpt": "בְּיִצְחָק – וְלֹא כׇּל יִצְחָק",
+          "endExcerpt": "כׇּל יִצְחָק",
+          "summary": "This is a rabbinic interpretation of the verse, excluding Esau's descendants from the covenant.",
+          "tokenStart": 3,
+          "tokenEnd": 6
+        }
+      },
+      {
+        "startSegIdx": 11,
+        "endSegIdx": 11,
+        "fields": {
+          "verseRef": "Genesis 17:14",
+          "citationStyle": "explicit",
+          "excerpt": "אֶת בְּרִיתִי הֵפַר",
+          "endExcerpt": "הֵפַר",
+          "summary": "This verse is cited to include the descendants of Keturah in the obligation of circumcision.",
+          "tokenStart": 20,
+          "tokenEnd": 22
+        }
+      },
+      {
+        "startSegIdx": 12,
+        "endSegIdx": 12,
+        "fields": {
+          "verseRef": "Genesis 1:29",
+          "citationStyle": "explicit",
+          "excerpt": "לָכֶם יִהְיֶה לְאׇכְלָה וּלְכׇל חַיַּת הָאָרֶץ",
+          "endExcerpt": "הָאָרֶץ",
+          "summary": "This verse is cited to prove that Adam was not permitted to eat meat, as the verse gives plants for food to both humans and animals.",
+          "tokenStart": 13,
+          "tokenEnd": 18
+        }
+      },
+      {
+        "startSegIdx": 13,
+        "endSegIdx": 13,
+        "fields": {
+          "verseRef": "Genesis 9:3",
+          "citationStyle": "explicit",
+          "excerpt": "כְּיֶרֶק עֵשֶׂב נָתַתִּי לָכֶם אֶת כֹּל",
+          "endExcerpt": "כֹּל",
+          "summary": "This verse is cited to show that meat was permitted to Noahides after the flood.",
+          "tokenStart": 6,
+          "tokenEnd": 11
+        }
+      },
+      {
+        "startSegIdx": 13,
+        "endSegIdx": 13,
+        "fields": {
+          "verseRef": "Genesis 9:4",
+          "citationStyle": "explicit",
+          "excerpt": "אַךְ בָּשָׂר בְּנַפְשׁוֹ דָמוֹ לֹא תֹאכֵלוּ",
+          "endExcerpt": "תֹאכֵלוּ",
+          "summary": "This verse is cited to derive the prohibition of eating a limb from a living animal (eiver min hachai).",
+          "tokenStart": 22,
+          "tokenEnd": 27
+        }
+      },
+      {
+        "startSegIdx": 15,
+        "endSegIdx": 15,
+        "fields": {
+          "verseRef": "Genesis 1:28",
+          "citationStyle": "explicit",
+          "excerpt": "וּרְדוּ בִּדְגַת הַיָּם",
+          "endExcerpt": "הַיָּם",
+          "summary": "This verse is cited in a challenge to prove that dominion over fish was for eating, but the response is that it was for labor.",
+          "tokenStart": 1,
+          "tokenEnd": 3
+        }
+      },
+      {
+        "startSegIdx": 17,
+        "endSegIdx": 17,
+        "fields": {
+          "verseRef": "Genesis 1:28",
+          "citationStyle": "explicit",
+          "excerpt": "וּבְעוֹף הַשָּׁמַיִם",
+          "endExcerpt": "הַשָּׁמַיִם",
+          "summary": "This verse is cited similarly to the fish, to argue that dominion over birds was for eating, but the response is for labor.",
+          "tokenStart": 2,
+          "tokenEnd": 3
+        }
+      },
+      {
+        "startSegIdx": 19,
+        "endSegIdx": 19,
+        "fields": {
+          "verseRef": "Genesis 1:28",
+          "citationStyle": "explicit",
+          "excerpt": "וּבְכׇל חַיָּה הָרֹמֶשֶׂת עַל הָאָרֶץ",
+          "endExcerpt": "הָאָרֶץ",
+          "summary": "This verse is cited to include the serpent in the dominion, but the Gemara explains it comes to teach about the serpent's role.",
+          "tokenStart": 2,
+          "tokenEnd": 6
+        }
+      },
+      {
+        "startSegIdx": 22,
+        "endSegIdx": 22,
+        "fields": {
+          "verseRef": "Psalms 104:21",
+          "citationStyle": "explicit",
+          "excerpt": "הַכְּפִירִים שֹׁאֲגִים לַטָּרֶף",
+          "endExcerpt": "לַטָּרֶף",
+          "summary": "This verse is cited by Rabbi Shimon ben Chalafta when lions roared at him, and meat descended from heaven in response.",
+          "tokenStart": 25,
+          "tokenEnd": 27
+        }
+      }
+    ]
+  }
 }

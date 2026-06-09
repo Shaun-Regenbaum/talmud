@@ -1,14 +1,16 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   buildObservationSlices,
-  resolveSegIdxs,
-  normalizeForMatch,
   type JoinInput,
-  type ResolvedRabbi,
+  normalizeForMatch,
   type RangeItem,
+  type ResolvedRabbi,
+  resolveSegIdxs,
 } from '../src/worker/rabbi-observations';
 
-function rabbi(p: Partial<ResolvedRabbi> & Pick<ResolvedRabbi, 'slug' | 'name' | 'segIdxs'>): ResolvedRabbi {
+function rabbi(
+  p: Partial<ResolvedRabbi> & Pick<ResolvedRabbi, 'slug' | 'name' | 'segIdxs'>,
+): ResolvedRabbi {
   return { nameHe: '', generation: 'unknown', location: null, ...p };
 }
 function range(startSegIdx: number, endSegIdx: number, fields: Record<string, unknown>): RangeItem {
@@ -16,15 +18,24 @@ function range(startSegIdx: number, endSegIdx: number, fields: Record<string, un
 }
 function base(over: Partial<JoinInput>): JoinInput {
   return {
-    tractate: 'Berakhot', page: '2a', defHash: '1', computedAt: '2026-01-01T00:00:00Z',
-    rabbis: [], places: [], moves: [], aggadata: [], pesukim: [],
+    tractate: 'Berakhot',
+    page: '2a',
+    defHash: '1',
+    computedAt: '2026-01-01T00:00:00Z',
+    rabbis: [],
+    places: [],
+    moves: [],
+    aggadata: [],
+    pesukim: [],
     ...over,
   };
 }
 
 describe('resolveSegIdxs', () => {
   it('returns every segment whose normalized Hebrew contains the needle', () => {
-    const segs = ['shalom aleichem', 'rabbi eliezer omer', 'rabbi eliezer shuv'].map(normalizeForMatch);
+    const segs = ['shalom aleichem', 'rabbi eliezer omer', 'rabbi eliezer shuv'].map(
+      normalizeForMatch,
+    );
     expect(resolveSegIdxs('eliezer', segs)).toEqual([1, 2]);
     expect(resolveSegIdxs('shalom', segs)).toEqual([0]);
     expect(resolveSegIdxs('nobody', segs)).toEqual([]);
@@ -39,7 +50,13 @@ describe('resolveSegIdxs', () => {
 });
 
 describe('buildObservationSlices — attribution + confidence', () => {
-  const R1 = rabbi({ slug: 'eliezer', name: 'Rabbi Eliezer', nameHe: 'אליעזר', segIdxs: [2], location: { place: 'Lod' } });
+  const R1 = rabbi({
+    slug: 'eliezer',
+    name: 'Rabbi Eliezer',
+    nameHe: 'אליעזר',
+    segIdxs: [2],
+    location: { place: 'Lod' },
+  });
   const R2 = rabbi({ slug: 'yehoshua', name: 'Rabbi Yehoshua', nameHe: 'יהושע', segIdxs: [5] });
   const R_NOSLUG = rabbi({ slug: '', name: 'Unknown', segIdxs: [2] });
 
@@ -50,7 +67,12 @@ describe('buildObservationSlices — attribution + confidence', () => {
       { name: 'Yavne', nameHe: 'יבנה', segIdxs: [9] },
     ],
     moves: [
-      range(1, 3, { id: 'm1', role: 'question', summary: 's1', rabbiNames: ['Rabbi Eliezer', 'Rabbi Yehoshua'] }),
+      range(1, 3, {
+        id: 'm1',
+        role: 'question',
+        summary: 's1',
+        rabbiNames: ['Rabbi Eliezer', 'Rabbi Yehoshua'],
+      }),
       range(4, 6, { id: 'm2', role: 'answer', summary: 's2', rabbiNames: [] }),
     ],
     aggadata: [range(1, 3, { title: 'A story', theme: 'humility' })],
@@ -65,7 +87,9 @@ describe('buildObservationSlices — attribution + confidence', () => {
   });
 
   it('emits a high-confidence place from rabbi.location and dedups the same place from the places mark', () => {
-    const lod = byslug('eliezer').observations.filter((o) => o.type === 'place' && (o.payload as { place?: string }).place === 'Lod');
+    const lod = byslug('eliezer').observations.filter(
+      (o) => o.type === 'place' && (o.payload as { place?: string }).place === 'Lod',
+    );
     // Lod arrives both from rabbi.location (high) and the places mark (would be
     // medium, sharing move M1's range); dedup keeps a single high entry.
     expect(lod).toHaveLength(1);
@@ -74,7 +98,9 @@ describe('buildObservationSlices — attribution + confidence', () => {
   });
 
   it('emits low-confidence place for a place that shares no range with the rabbi', () => {
-    const yavne = byslug('eliezer').observations.find((o) => o.type === 'place' && (o.payload as { name?: string }).name === 'Yavne');
+    const yavne = byslug('eliezer').observations.find(
+      (o) => o.type === 'place' && (o.payload as { name?: string }).name === 'Yavne',
+    );
     expect(yavne?.confidence).toBe('low');
   });
 
@@ -109,11 +135,17 @@ describe('buildObservationSlices — lineage noise control', () => {
   it('does NOT record lineage for rabbis that only share the daf (no shared range, not co-named)', () => {
     const A = rabbi({ slug: 'a', name: 'Rabbi A', segIdxs: [0] });
     const B = rabbi({ slug: 'b', name: 'Rabbi B', segIdxs: [20] });
-    const slices = buildObservationSlices(base({
-      rabbis: [A, B],
-      moves: [range(0, 1, { id: 'm', rabbiNames: ['Rabbi A'] })], // only A is near/named
-    }));
-    expect(slices.find((s) => s.slug === 'a')!.observations.some((o) => o.type === 'lineage')).toBe(false);
-    expect(slices.find((s) => s.slug === 'b')!.observations.some((o) => o.type === 'lineage')).toBe(false);
+    const slices = buildObservationSlices(
+      base({
+        rabbis: [A, B],
+        moves: [range(0, 1, { id: 'm', rabbiNames: ['Rabbi A'] })], // only A is near/named
+      }),
+    );
+    expect(slices.find((s) => s.slug === 'a')!.observations.some((o) => o.type === 'lineage')).toBe(
+      false,
+    );
+    expect(slices.find((s) => s.slug === 'b')!.observations.some((o) => o.type === 'lineage')).toBe(
+      false,
+    );
   });
 });

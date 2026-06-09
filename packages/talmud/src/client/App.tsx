@@ -1,16 +1,16 @@
 import { createSignal, Show } from 'solid-js';
-import { TopBar } from './TopBar';
-import { TutorialPage } from './TutorialPage';
-import PretextSpike from './PretextSpike';
+import { AlignPage } from './AlignPage';
+import { AttributionsPage } from './AttributionsPage';
 import Compare from './Compare';
 import DafViewer from './DafViewer';
-import { UsagePage } from './UsagePage';
-import { AlignPage } from './AlignPage';
+import { McpPage } from './McpPage';
+import PretextSpike from './PretextSpike';
 import { SagesPage } from './SagesPage';
 import SettingsPage from './SettingsPage';
-import { AttributionsPage } from './AttributionsPage';
-import { McpPage } from './McpPage';
 import { SpineCoveragePage } from './SpineCoveragePage';
+import { TopBar } from './TopBar';
+import { TutorialPage } from './TutorialPage';
+import { UsagePage } from './UsagePage';
 
 function currentRoute() {
   // #sages/<slug> deep-links into SagesPage; treat the prefix as the route.
@@ -41,49 +41,83 @@ export default function App() {
 
   return (
     <>
-    {/* The daf page folds the EN/HE toggle into its own header; the floating
+      {/* The daf page folds the EN/HE toggle into its own header; the floating
         bar covers the other routes. #tutorial is fully self-contained (and its
         Help button would be a no-op there), so it owns the whole viewport. */}
-    <Show when={route() !== 'daf' && route() !== 'tutorial'}><TopBar /></Show>
-    <Show when={route() === 'tutorial'} fallback={
-    <Show when={route() === 'align'} fallback={
-      <Show when={route() === 'usage'} fallback={
-        <Show when={route() === 'compare'} fallback={
-          <Show when={route() === 'spike'} fallback={
-            <Show when={route() === 'sages'} fallback={
-              <Show when={route() === 'settings'} fallback={
-                <Show when={route() === 'about'} fallback={
-                  <Show when={route() === 'mcp'} fallback={
-                    <Show when={route() === 'spine' || route().startsWith('spine/')} fallback={<DafViewer />}>
-                      <SpineCoveragePage />
-                    </Show>
-                  }>
-                    <McpPage />
-                  </Show>
-                }>
-                  <AttributionsPage />
-                </Show>
-              }>
-                <SettingsPage />
-              </Show>
-            }>
-              <SagesPage />
-            </Show>
-          }>
-            <PretextSpike />
-          </Show>
-        }>
-          <Compare />
-        </Show>
-      }>
-        <UsagePage />
+      <Show when={route() !== 'daf' && route() !== 'tutorial'}>
+        <TopBar />
       </Show>
-    }>
-      <AlignPage />
-    </Show>
-    }>
-      <TutorialPage />
-    </Show>
+      <Show
+        when={route() === 'tutorial'}
+        fallback={
+          <Show
+            when={route() === 'align'}
+            fallback={
+              <Show
+                when={route() === 'usage'}
+                fallback={
+                  <Show
+                    when={route() === 'compare'}
+                    fallback={
+                      <Show
+                        when={route() === 'spike'}
+                        fallback={
+                          <Show
+                            when={route() === 'sages'}
+                            fallback={
+                              <Show
+                                when={route() === 'settings'}
+                                fallback={
+                                  <Show
+                                    when={route() === 'about'}
+                                    fallback={
+                                      <Show
+                                        when={route() === 'mcp'}
+                                        fallback={
+                                          <Show
+                                            when={
+                                              route() === 'spine' || route().startsWith('spine/')
+                                            }
+                                            fallback={<DafViewer />}
+                                          >
+                                            <SpineCoveragePage />
+                                          </Show>
+                                        }
+                                      >
+                                        <McpPage />
+                                      </Show>
+                                    }
+                                  >
+                                    <AttributionsPage />
+                                  </Show>
+                                }
+                              >
+                                <SettingsPage />
+                              </Show>
+                            }
+                          >
+                            <SagesPage />
+                          </Show>
+                        }
+                      >
+                        <PretextSpike />
+                      </Show>
+                    }
+                  >
+                    <Compare />
+                  </Show>
+                }
+              >
+                <UsagePage />
+              </Show>
+            }
+          >
+            <AlignPage />
+          </Show>
+        }
+      >
+        <TutorialPage />
+      </Show>
     </>
   );
 }

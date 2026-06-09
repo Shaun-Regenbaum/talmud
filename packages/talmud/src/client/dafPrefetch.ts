@@ -21,8 +21,8 @@
  */
 
 import { createSignal } from 'solid-js';
+import { isAbort, isPausedError } from './enrichmentQueue';
 import { enqueueEnrichmentRun } from './MarkEnrichmentCards';
-import { isPausedError, isAbort } from './enrichmentQueue';
 
 export interface PrefetchProgress {
   /** `${tractate}:${page}` this cohort belongs to. */
@@ -126,11 +126,16 @@ let activeController: AbortController | null = null;
 /** Abort the in-flight prefetch cohort and clear the progress bar. Called on
  *  daf navigation so stale section-warming work is dropped immediately. */
 export function cancelPrefetch(): void {
-  if (activeController) { activeController.abort(); activeController = null; }
+  if (activeController) {
+    activeController.abort();
+    activeController = null;
+  }
   setProgress({ dafKey: '', total: 0, done: 0, currentLabel: null, paused: false, failed: 0 });
 }
 
-interface MarkRun { parsed?: unknown }
+interface MarkRun {
+  parsed?: unknown;
+}
 
 /**
  * Build the section-level plan from loaded mark instances and warm it. Safe to
@@ -151,7 +156,11 @@ export function prefetchDaf(
   const controller = new AbortController();
   activeController = controller;
 
-  interface Task { enrichmentId: string; instance: unknown; instanceKey: string }
+  interface Task {
+    enrichmentId: string;
+    instance: unknown;
+    instanceKey: string;
+  }
   const tasks: Task[] = [];
   for (const [markId, enrichmentIds] of Object.entries(SECTION_PREFETCH)) {
     const parsed = marks[markId]?.parsed as { instances?: MarkInstance[] } | undefined;
@@ -172,7 +181,8 @@ export function prefetchDaf(
   // mode) — the chip is dev-only/experimental, so we don't pay the reasoning
   // pass on every daf load for users who can't open it. Only when the daf
   // actually has argument sections to relate.
-  const argInstances = (marks['argument']?.parsed as { instances?: MarkInstance[] } | undefined)?.instances;
+  const argInstances = (marks['argument']?.parsed as { instances?: MarkInstance[] } | undefined)
+    ?.instances;
   if (opts?.overview && Array.isArray(argInstances) && argInstances.length > 0) {
     tasks.push({
       enrichmentId: 'argument-overview.synthesis',
@@ -220,8 +230,18 @@ export function prefetchDaf(
     // Resolve with the error (or null) so we can classify the outcome — a card
     // still generates on open, but a budget pause or a wave of failures should
     // surface in the bar instead of filling silently.
-    void enqueueEnrichmentRun(t.enrichmentId, tractate, page, t.instance, t.instanceKey, controller.signal)
-      .then(() => null, (err: unknown) => err)
+    void enqueueEnrichmentRun(
+      t.enrichmentId,
+      tractate,
+      page,
+      t.instance,
+      t.instanceKey,
+      controller.signal,
+    )
+      .then(
+        () => null,
+        (err: unknown) => err,
+      )
       .then((err: unknown) => {
         if (myGen !== gen || controller.signal.aborted || isAbort(err)) return; // superseded / navigated away
         const paused = isPausedError(err);
@@ -252,7 +272,13 @@ export function prefetchDaf(
   // daf-level cache key with the cron path. Only when the daf has rabbis.
   const rabbiParsed = marks['rabbi']?.parsed as { instances?: MarkInstance[] } | undefined;
   if (Array.isArray(rabbiParsed?.instances) && rabbiParsed.instances.length > 0) {
-    void enqueueEnrichmentRun('rabbi.observations', tractate, page, { id: 'daf' }, 'rabbi.observations:daf', controller.signal)
-      .catch(() => undefined);
+    void enqueueEnrichmentRun(
+      'rabbi.observations',
+      tractate,
+      page,
+      { id: 'daf' },
+      'rabbi.observations:daf',
+      controller.signal,
+    ).catch(() => undefined);
   }
 }

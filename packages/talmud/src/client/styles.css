@@ -1,22 +1,22 @@
 @font-face {
-  font-family: 'Mekorot Vilna';
-  src: url('/fonts/Mekorot-Vilna.ttf') format('truetype');
+  font-family: "Mekorot Vilna";
+  src: url("/fonts/Mekorot-Vilna.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Mekorot Vilna';
-  src: url('/fonts/Mekorot-Vilna-Bold.ttf') format('truetype');
+  font-family: "Mekorot Vilna";
+  src: url("/fonts/Mekorot-Vilna-Bold.ttf") format("truetype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Mekorot Rashi';
-  src: url('/fonts/Mekorot-Rashi.ttf') format('truetype');
+  font-family: "Mekorot Rashi";
+  src: url("/fonts/Mekorot-Rashi.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -31,9 +31,12 @@
   --line: #e5e3dc;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   background: var(--bg);
@@ -154,13 +157,13 @@ section h2 {
 }
 
 .hebrew {
-  font-family: 'Mekorot Vilna', serif;
+  font-family: "Mekorot Vilna", serif;
   font-size: 1.4rem;
   line-height: 1.9;
 }
 
 .rashi-script {
-  font-family: 'Mekorot Rashi', 'Mekorot Vilna', serif;
+  font-family: "Mekorot Rashi", "Mekorot Vilna", serif;
   font-size: 1.25rem;
 }
 
@@ -175,10 +178,19 @@ section h2 {
   font-style: italic;
 }
 
-@keyframes daf-spin { to { transform: rotate(360deg); } }
+@keyframes daf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 @keyframes daf-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.45; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
 }
 
 .daf-page {
@@ -211,7 +223,7 @@ body.dev-panel-open .daf-page {
    (--fg); everything else lives on neutrals. JSX in DafViewer.tsx header.
    ====================================================================== */
 :root {
-  --tb-h: 2.15rem;        /* shared control height */
+  --tb-h: 2.15rem; /* shared control height */
   --tb-radius: 6px;
   --tb-surface: #fff;
 }
@@ -252,7 +264,9 @@ body.dev-panel-open .daf-page {
   color: var(--fg);
   cursor: pointer;
 }
-.tb-select:hover { border-color: var(--muted); }
+.tb-select:hover {
+  border-color: var(--muted);
+}
 
 /* Segmented navigation pill: ‹ | daf | amud | › share one bordered
    container with hairline dividers so they read as a single unit. */
@@ -274,7 +288,9 @@ body.dev-panel-open .daf-page {
   line-height: 1;
   cursor: pointer;
 }
-.tb-navbtn:hover { background: var(--line); }
+.tb-navbtn:hover {
+  background: var(--line);
+}
 .tb-daf {
   width: 3.2rem;
   height: 100%;
@@ -288,7 +304,10 @@ body.dev-panel-open .daf-page {
   -moz-appearance: textfield;
 }
 .tb-daf::-webkit-outer-spin-button,
-.tb-daf::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.tb-daf::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
 .tb-amud {
   height: 100%;
   min-width: 1.9rem;
@@ -299,7 +318,9 @@ body.dev-panel-open .daf-page {
   font-size: 0.9rem;
   cursor: pointer;
 }
-.tb-amud:hover { background: var(--line); }
+.tb-amud:hover {
+  background: var(--line);
+}
 
 /* Primary action — the only maroon in the bar. */
 .tb-primary {
@@ -310,9 +331,16 @@ body.dev-panel-open .daf-page {
   font-weight: 600;
   cursor: pointer;
 }
-.tb-primary:hover:not(:disabled) { background: var(--accent-strong); }
-.tb-primary:disabled { opacity: 0.65; cursor: wait; }
-.tb-primary.is-error { background: #b3261e; }
+.tb-primary:hover:not(:disabled) {
+  background: var(--accent-strong);
+}
+.tb-primary:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+.tb-primary.is-error {
+  background: #b3261e;
+}
 
 /* Hint flows inline on desktop, absorbing the slack between the control
    cluster and the utilities so the bar reads as one balanced row (no dead
@@ -361,7 +389,10 @@ body.dev-panel-open .daf-page {
   font-size: 0.78rem;
   cursor: pointer;
 }
-.tb-toggle:hover { border-color: var(--muted); color: var(--fg); }
+.tb-toggle:hover {
+  border-color: var(--muted);
+  color: var(--fg);
+}
 .tb-toggle.is-active {
   background: var(--fg);
   border-color: var(--fg);
@@ -389,7 +420,9 @@ body.dev-panel-open .daf-page {
   line-height: 1;
   cursor: pointer;
 }
-.tb-seg-btn:hover { color: var(--fg); }
+.tb-seg-btn:hover {
+  color: var(--fg);
+}
 .tb-seg-btn.is-active {
   background: var(--fg);
   color: var(--bg);
@@ -476,16 +509,38 @@ body.dev-panel-open .daf-page {
   .daf-header {
     gap: 0.4rem 0.5rem;
   }
-  .tb-wordmark { order: 0; font-size: 1.05rem; }
-  .tb-utils    { order: 1; }            /* auto margin keeps it top-right */
-  .tb-select   { order: 2; flex-basis: 100%; width: 100%; }
-  .tb-nav      { order: 3; }
-  .tb-primary  { order: 4; flex: 1; }   /* fills the rest of the nav row */
+  .tb-wordmark {
+    order: 0;
+    font-size: 1.05rem;
+  }
+  .tb-utils {
+    order: 1;
+  } /* auto margin keeps it top-right */
+  .tb-select {
+    order: 2;
+    flex-basis: 100%;
+    width: 100%;
+  }
+  .tb-nav {
+    order: 3;
+  }
+  .tb-primary {
+    order: 4;
+    flex: 1;
+  } /* fills the rest of the nav row */
   /* Back to its own full-width centered row below the controls. */
-  .tb-hint     { order: 5; flex: 1 1 100%; white-space: normal; overflow: visible; text-overflow: clip; }
+  .tb-hint {
+    order: 5;
+    flex: 1 1 100%;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
   /* Top drawer: the full header collapses away once the reader engages; the
      slim handle below stays pinned to bring it back. */
-  .daf-header.is-collapsed { display: none; }
+  .daf-header.is-collapsed {
+    display: none;
+  }
   .daf-header-handle {
     position: sticky;
     top: 0;
@@ -588,10 +643,12 @@ body.dev-panel-open .daf-page {
   text-align: center;
 }
 
-.daf-toggles-summary::-webkit-details-marker { display: none; }
+.daf-toggles-summary::-webkit-details-marker {
+  display: none;
+}
 
 .daf-toggles-summary::before {
-  content: '▸ ';
+  content: "▸ ";
   display: inline-block;
   transition: transform 0.15s ease;
 }
@@ -705,7 +762,10 @@ body.dev-panel-open .daf-page {
      is what stays visible. */
   margin-top: -11px;
   position: relative;
-  transition: margin-top 140ms ease, transform 80ms linear, box-shadow 80ms linear;
+  transition:
+    margin-top 140ms ease,
+    transform 80ms linear,
+    box-shadow 80ms linear;
 }
 .gutter-cluster .gutter-icon:first-child {
   margin-top: 0;

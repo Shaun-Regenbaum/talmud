@@ -6,14 +6,15 @@
  *
  * Runs over the captured golden fixtures (resolved production output).
  */
-import { describe, it, expect } from 'vitest';
-import { readFileSync, readdirSync } from 'node:fs';
+
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { describe, expect, it } from 'vitest';
 import {
+  reanchorAggadata,
   reanchorArgument,
   reanchorArgumentMove,
   reanchorPesukim,
-  reanchorAggadata,
 } from '../../src/lib/place/reanchor';
 
 const FIX_DIR = join(__dirname, '..', 'fixtures', 'golden-anchors');
@@ -24,11 +25,22 @@ const REANCHOR: Record<string, (p: unknown, s: string[]) => unknown> = {
   aggadata: reanchorAggadata,
 };
 
-interface Inst { startSegIdx?: number; endSegIdx?: number; fields?: Record<string, unknown> }
-interface Fixture { tractate: string; page: string; mark: string; expected: { instances?: Inst[] } }
+interface Inst {
+  startSegIdx?: number;
+  endSegIdx?: number;
+  fields?: Record<string, unknown>;
+}
+interface Fixture {
+  tractate: string;
+  page: string;
+  mark: string;
+  expected: { instances?: Inst[] };
+}
 
 function segsFor(tractate: string, page: string): string[] {
-  const s = JSON.parse(readFileSync(join(FIX_DIR, `gemara_${tractate.toLowerCase()}_${page}.json`), 'utf8'));
+  const s = JSON.parse(
+    readFileSync(join(FIX_DIR, `gemara_${tractate.toLowerCase()}_${page}.json`), 'utf8'),
+  );
   return s.segments_he ?? [];
 }
 
@@ -94,7 +106,11 @@ describe('re-anchor structural invariants', () => {
       it(`${fx.tractate} ${fx.page} · ${fx.mark}: token offsets are ordered when present`, () => {
         for (const inst of insts) {
           const f = inst.fields ?? {};
-          if (typeof f.tokenStart === 'number' && typeof f.tokenEnd === 'number' && inst.startSegIdx === inst.endSegIdx) {
+          if (
+            typeof f.tokenStart === 'number' &&
+            typeof f.tokenEnd === 'number' &&
+            inst.startSegIdx === inst.endSegIdx
+          ) {
             expect(f.tokenEnd as number).toBeGreaterThanOrEqual(f.tokenStart as number);
           }
         }

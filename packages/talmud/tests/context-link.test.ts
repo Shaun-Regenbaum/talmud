@@ -1,8 +1,16 @@
-import { describe, it, expect } from 'vitest';
-import { citationLink, continuationLink, flowLinks, glossLinks, isLinkRelation, linkLabel, type Link } from '@corpus/core/context/link';
-import { dafCoord, coordForSeg, spineCoord, DAF_SEG } from '@corpus/core/context/coord';
+import { coordForSeg, DAF_SEG, dafCoord, spineCoord } from '@corpus/core/context/coord';
+import {
+  citationLink,
+  continuationLink,
+  flowLinks,
+  glossLinks,
+  isLinkRelation,
+  type Link,
+  linkLabel,
+} from '@corpus/core/context/link';
 import { formatContextForPrompt } from '@corpus/core/context/select';
 import type { ContextItem } from '@corpus/core/context/types';
+import { describe, expect, it } from 'vitest';
 
 describe('citationLink — refs become a Link(relation: cites)', () => {
   it('returns null for no refs', () => {
@@ -22,14 +30,26 @@ describe('continuationLink — the tractate-continuity edge', () => {
   });
   it('targets the next daf at whole-daf level (seg = DAF_SEG)', () => {
     const link = continuationLink({ tractate: 'Shabbat', page: '126a' });
-    expect(link).toEqual({ relation: 'continues', targets: [{ tractate: 'Shabbat', page: '126a', seg: DAF_SEG }] });
+    expect(link).toEqual({
+      relation: 'continues',
+      targets: [{ tractate: 'Shabbat', page: '126a', seg: DAF_SEG }],
+    });
     expect(linkLabel(link)).toBe('Shabbat 126a'); // daf-level coordLabel, no seg suffix
   });
 });
 
 describe('isLinkRelation — guards an untyped kind string', () => {
   it('accepts the modelled relations, rejects others', () => {
-    for (const k of ['cites', 'continues', 'resolves', 'depends-on', 'parallels', 'contrasts', 'generalizes', 'glosses']) {
+    for (const k of [
+      'cites',
+      'continues',
+      'resolves',
+      'depends-on',
+      'parallels',
+      'contrasts',
+      'generalizes',
+      'glosses',
+    ]) {
       expect(isLinkRelation(k)).toBe(true);
     }
     expect(isLinkRelation('elaborates')).toBe(false);
@@ -46,8 +66,14 @@ describe('glossLinks — commentary spines as cross-spine Links', () => {
       { title: 'Tosafot', comments: [{ anchorSegIdx: 4 }] },
     ];
     expect(glossLinks(DAF, works)).toEqual([
-      { source: spineCoord('Rashi', DAF), link: { relation: 'glosses', targets: [coordForSeg(DAF, 0), coordForSeg(DAF, 1)] } },
-      { source: spineCoord('Tosafot', DAF), link: { relation: 'glosses', targets: [coordForSeg(DAF, 4)] } },
+      {
+        source: spineCoord('Rashi', DAF),
+        link: { relation: 'glosses', targets: [coordForSeg(DAF, 0), coordForSeg(DAF, 1)] },
+      },
+      {
+        source: spineCoord('Tosafot', DAF),
+        link: { relation: 'glosses', targets: [coordForSeg(DAF, 4)] },
+      },
     ]);
   });
 
@@ -57,8 +83,9 @@ describe('glossLinks — commentary spines as cross-spine Links', () => {
   });
 
   it('a gloss link labels its source with the spine name', () => {
-    expect(linkLabel({ relation: 'glosses', targets: [spineCoord('Rashi', DAF, 3)] }))
-      .toBe('Rashi · Berakhot 2a:3');
+    expect(linkLabel({ relation: 'glosses', targets: [spineCoord('Rashi', DAF, 3)] })).toBe(
+      'Rashi · Berakhot 2a:3',
+    );
   });
 });
 
@@ -69,7 +96,13 @@ describe('flowLinks — the argument flow graph as Links', () => {
     i >= 0 && i < 5 ? coordForSeg(G, i) : null;
 
   it('maps each edge to {source, link} in the shared vocabulary', () => {
-    const out = flowLinks([{ from: 0, to: 1, kind: 'continues' }, { from: 1, to: 3, kind: 'resolves' }], coordOf);
+    const out = flowLinks(
+      [
+        { from: 0, to: 1, kind: 'continues' },
+        { from: 1, to: 3, kind: 'resolves' },
+      ],
+      coordOf,
+    );
     expect(out).toEqual([
       { source: coordForSeg(G, 0), link: { relation: 'continues', targets: [coordForSeg(G, 1)] } },
       { source: coordForSeg(G, 1), link: { relation: 'resolves', targets: [coordForSeg(G, 3)] } },
@@ -80,13 +113,15 @@ describe('flowLinks — the argument flow graph as Links', () => {
     const out = flowLinks(
       [
         { from: 0, to: 1, kind: 'elaborates' }, // unknown relation
-        { from: 2, to: 2, kind: 'continues' },  // self-loop
+        { from: 2, to: 2, kind: 'continues' }, // self-loop
         { from: 0, to: 9, kind: 'depends-on' }, // target out of range -> no coord
-        { from: 3, to: 4, kind: 'parallels' },  // valid
+        { from: 3, to: 4, kind: 'parallels' }, // valid
       ],
       coordOf,
     );
-    expect(out).toEqual([{ source: coordForSeg(G, 3), link: { relation: 'parallels', targets: [coordForSeg(G, 4)] } }]);
+    expect(out).toEqual([
+      { source: coordForSeg(G, 3), link: { relation: 'parallels', targets: [coordForSeg(G, 4)] } },
+    ]);
   });
 });
 
@@ -98,7 +133,10 @@ describe('linkLabel — compact deduped targets, no relation word', () => {
   it('daf-level and segment-level coords render distinctly', () => {
     const link: Link = {
       relation: 'cites',
-      targets: [dafCoord({ tractate: 'Pesachim', page: '50a' }), coordForSeg({ tractate: 'Shabbat', page: '2a' }, 7)],
+      targets: [
+        dafCoord({ tractate: 'Pesachim', page: '50a' }),
+        coordForSeg({ tractate: 'Shabbat', page: '2a' }, 7),
+      ],
     };
     expect(linkLabel(link)).toBe('Pesachim 50a, Shabbat 2a:7');
   });
@@ -111,11 +149,17 @@ describe('linkLabel — compact deduped targets, no relation word', () => {
 describe('formatContextForPrompt — citation fragment is byte-stable through the Link path', () => {
   it('renders "(cites Pesachim 50a)" exactly (the prompt the LLM sees)', () => {
     const item: ContextItem = {
-      source: 'dafyomi:revach', sourceLabel: "Revach l'Daf", kind: 'revach', key: 'revach:a:1',
-      title: { en: 'A contradiction is raised' }, body: { en: 'See the Gemara.' },
-      segs: [], refs: [dafCoord({ tractate: 'Pesachim', page: '50a' })],
+      source: 'dafyomi:revach',
+      sourceLabel: "Revach l'Daf",
+      kind: 'revach',
+      key: 'revach:a:1',
+      title: { en: 'A contradiction is raised' },
+      body: { en: 'See the Gemara.' },
+      segs: [],
+      refs: [dafCoord({ tractate: 'Pesachim', page: '50a' })],
     };
-    expect(formatContextForPrompt([item]))
-      .toBe("## Revach l'Daf\n- [whole daf] A contradiction is raised: See the Gemara. (cites Pesachim 50a)");
+    expect(formatContextForPrompt([item])).toBe(
+      "## Revach l'Daf\n- [whole daf] A contradiction is raised: See the Gemara. (cites Pesachim 50a)",
+    );
   });
 });

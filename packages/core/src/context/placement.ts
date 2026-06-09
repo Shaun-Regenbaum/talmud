@@ -24,8 +24,8 @@
  * not a precision the rest of the app can act on; the panel renders accordingly.
  */
 
-import type { ContextItem } from './types.ts';
 import { type AnchorCoord, type DafRef, isCrossDaf } from './coord.ts';
+import type { ContextItem } from './types.ts';
 
 /** `cross-daf` is orthogonal to the in-daf granularities: the item's home is a
  *  segment on ANOTHER page, so relative to the daf in view it is the least
@@ -73,7 +73,10 @@ export function placementOf(it: ContextItem, currentDaf?: DafRef): Placement | n
   // but only when nothing finer is known. `ai-daf` is the client-resolved
   // marker; `via:'ai' + no anchors` is the same decision before HB resolution.
   // A known amud is more specific, so don't collapse those to whole-daf.
-  if (it.hbVia === 'ai-daf' || (it.via === 'ai' && it.segs.length === 0 && !it.hbWords?.length && !it.amud)) {
+  if (
+    it.hbVia === 'ai-daf' ||
+    (it.via === 'ai' && it.segs.length === 0 && !it.hbWords?.length && !it.amud)
+  ) {
     return { level: 'daf', segs: [], via, confidence };
   }
 
@@ -106,7 +109,12 @@ export function isLocated(it: ContextItem): boolean {
 
 /** Grounded by the AI semantic placer (so an AI pass shouldn't re-offer it). */
 export function isAiGrounded(it: ContextItem): boolean {
-  return it.via === 'ai' || it.hbVia === 'ai-phrase' || it.hbVia === 'ai-segment' || it.hbVia === 'ai-daf';
+  return (
+    it.via === 'ai' ||
+    it.hbVia === 'ai-phrase' ||
+    it.hbVia === 'ai-segment' ||
+    it.hbVia === 'ai-daf'
+  );
 }
 
 /** Sources that are daf-level REFERENCE context by nature (halachic cross-refs,
@@ -116,4 +124,3 @@ export const REFERENCE_SOURCES: ReadonlySet<string> = new Set(['sefaria-halacha'
 export function isReferenceSource(it: ContextItem): boolean {
   return REFERENCE_SOURCES.has(it.source);
 }
-

@@ -12,10 +12,10 @@
  * cache hits) it barely flickers; on a cold daf it tracks the real work.
  */
 
-import { createMemo, createEffect, createSignal, onCleanup, Show, type JSX } from 'solid-js';
-import { markStatuses } from './MarksRegistryPanel';
-import { prefetchProgress, loadNotice } from './dafPrefetch';
+import { createEffect, createMemo, createSignal, type JSX, onCleanup, Show } from 'solid-js';
+import { loadNotice, prefetchProgress } from './dafPrefetch';
 import { t } from './i18n';
+import { markStatuses } from './MarksRegistryPanel';
 
 const COMPLETE_LINGER_MS = 700;
 
@@ -82,7 +82,10 @@ export default function DafLoadProgress(props: DafLoadProgressProps = {}): JSX.E
     const c = combined();
     const incomplete = c.marksLoading || c.prefetchActive;
     if (incomplete) {
-      if (hideTimer) { clearTimeout(hideTimer); hideTimer = undefined; }
+      if (hideTimer) {
+        clearTimeout(hideTimer);
+        hideTimer = undefined;
+      }
       setVisible(true);
     } else if (visible()) {
       // All done — linger then hide.
@@ -90,7 +93,9 @@ export default function DafLoadProgress(props: DafLoadProgressProps = {}): JSX.E
       hideTimer = setTimeout(() => setVisible(false), COMPLETE_LINGER_MS);
     }
   });
-  onCleanup(() => { if (hideTimer) clearTimeout(hideTimer); });
+  onCleanup(() => {
+    if (hideTimer) clearTimeout(hideTimer);
+  });
 
   // Top-level notice: a budget pause or a wave of failures, so generation
   // problems don't read as a silently-stuck bar. Persists (independent of the
@@ -99,87 +104,121 @@ export default function DafLoadProgress(props: DafLoadProgressProps = {}): JSX.E
 
   return (
     <>
-    <Show when={notice()}>
-      {(kind) => (
+      <Show when={notice()}>
+        {(kind) => (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              display: 'flex',
+              'align-items': 'center',
+              gap: '0.4rem',
+              ...(props.embedded
+                ? { position: 'static' as const }
+                : { position: 'sticky' as const, top: 0, 'z-index': 50 }),
+              width: '100%',
+              'box-sizing': 'border-box',
+              padding: '0.4rem 0.55rem',
+              'margin-bottom': props.embedded ? '0' : '0.5rem',
+              'border-radius': '4px',
+              border: `1px solid ${kind() === 'paused' ? '#f59e0b' : '#ef4444'}`,
+              background: kind() === 'paused' ? '#fffbeb' : '#fef2f2',
+              color: kind() === 'paused' ? '#92400e' : '#b91c1c',
+              'font-family': 'system-ui, -apple-system, sans-serif',
+              'font-size': '0.72rem',
+              'line-height': 1.4,
+            }}
+          >
+            <span aria-hidden="true">{kind() === 'paused' ? '⏸' : '⚠'}</span>
+            <span>{kind() === 'paused' ? t('dafLoad.paused') : t('dafLoad.failed')}</span>
+          </div>
+        )}
+      </Show>
+      <Show when={visible() && !notice()}>
         <div
           role="status"
           aria-live="polite"
           style={{
-            display: 'flex', 'align-items': 'center', gap: '0.4rem',
+            // Default: pinned directly above the daf — rendered inside the daf
+            // body column so it's exactly the daf's width, and sticky so it
+            // stays above the daf as the reader scrolls. Parchment background so
+            // daf text scrolling underneath doesn't bleed through.
+            // Embedded (mobile shelf): the shelf is already fixed, so render
+            // flat with no sticky pinning and no bottom margin.
             ...(props.embedded
               ? { position: 'static' as const }
               : { position: 'sticky' as const, top: 0, 'z-index': 50 }),
-            width: '100%', 'box-sizing': 'border-box',
-            padding: '0.4rem 0.55rem', 'margin-bottom': props.embedded ? '0' : '0.5rem',
-            'border-radius': '4px',
-            border: `1px solid ${kind() === 'paused' ? '#f59e0b' : '#ef4444'}`,
-            background: kind() === 'paused' ? '#fffbeb' : '#fef2f2',
-            color: kind() === 'paused' ? '#92400e' : '#b91c1c',
+            width: '100%',
+            'box-sizing': 'border-box',
+            background: 'var(--bg)',
+            padding: '0.4rem 0.25rem',
+            'margin-bottom': props.embedded ? '0' : '0.5rem',
             'font-family': 'system-ui, -apple-system, sans-serif',
-            'font-size': '0.72rem', 'line-height': 1.4,
+            'font-size': '0.72rem',
+            color: 'var(--muted)',
           }}
         >
-          <span aria-hidden="true">{kind() === 'paused' ? '⏸' : '⚠'}</span>
-          <span>{kind() === 'paused' ? t('dafLoad.paused') : t('dafLoad.failed')}</span>
-        </div>
-      )}
-    </Show>
-    <Show when={visible() && !notice()}>
-      <div
-        role="status"
-        aria-live="polite"
-        style={{
-          // Default: pinned directly above the daf — rendered inside the daf
-          // body column so it's exactly the daf's width, and sticky so it
-          // stays above the daf as the reader scrolls. Parchment background so
-          // daf text scrolling underneath doesn't bleed through.
-          // Embedded (mobile shelf): the shelf is already fixed, so render
-          // flat with no sticky pinning and no bottom margin.
-          ...(props.embedded
-            ? { position: 'static' as const }
-            : { position: 'sticky' as const, top: 0, 'z-index': 50 }),
-          width: '100%',
-          'box-sizing': 'border-box',
-          background: 'var(--bg)',
-          padding: '0.4rem 0.25rem',
-          'margin-bottom': props.embedded ? '0' : '0.5rem',
-          'font-family': 'system-ui, -apple-system, sans-serif',
-          'font-size': '0.72rem',
-          color: 'var(--muted)',
-        }}
-      >
-        <div style={{ display: 'flex', 'align-items': 'center', gap: '0.45rem', 'margin-bottom': '0.3rem' }}>
-          <span
-            style={{
-              display: 'inline-block', width: '0.6rem', height: '0.6rem',
-              'border-radius': '50%',
-              border: '2px solid var(--line)', 'border-top-color': 'var(--accent)',
-              animation: 'daf-spin 0.8s linear infinite',
-              'flex-shrink': 0,
-            }}
-          />
-          <span style={{ flex: 1, 'min-width': 0, 'white-space': 'nowrap', overflow: 'hidden', 'text-overflow': 'ellipsis', 'letter-spacing': '0.01em' }}>
-            {label()}
-          </span>
-          <span style={{ 'font-variant-numeric': 'tabular-nums', color: '#a39a8c', 'flex-shrink': 0 }} aria-hidden="true">
-            {percent()}%
-          </span>
-        </div>
-        {/* track — thin parchment rule that fills with the accent */}
-        <div style={{ height: '2px', background: 'var(--line)', 'border-radius': '1px', overflow: 'hidden' }}>
           <div
             style={{
-              height: '100%',
-              width: `${percent()}%`,
-              background: 'var(--accent)',
-              'border-radius': '1px',
-              transition: 'width 0.4s ease',
-              opacity: 0.8,
+              display: 'flex',
+              'align-items': 'center',
+              gap: '0.45rem',
+              'margin-bottom': '0.3rem',
             }}
-          />
+          >
+            <span
+              style={{
+                display: 'inline-block',
+                width: '0.6rem',
+                height: '0.6rem',
+                'border-radius': '50%',
+                border: '2px solid var(--line)',
+                'border-top-color': 'var(--accent)',
+                animation: 'daf-spin 0.8s linear infinite',
+                'flex-shrink': 0,
+              }}
+            />
+            <span
+              style={{
+                flex: 1,
+                'min-width': 0,
+                'white-space': 'nowrap',
+                overflow: 'hidden',
+                'text-overflow': 'ellipsis',
+                'letter-spacing': '0.01em',
+              }}
+            >
+              {label()}
+            </span>
+            <span
+              style={{ 'font-variant-numeric': 'tabular-nums', color: '#a39a8c', 'flex-shrink': 0 }}
+              aria-hidden="true"
+            >
+              {percent()}%
+            </span>
+          </div>
+          {/* track — thin parchment rule that fills with the accent */}
+          <div
+            style={{
+              height: '2px',
+              background: 'var(--line)',
+              'border-radius': '1px',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                height: '100%',
+                width: `${percent()}%`,
+                background: 'var(--accent)',
+                'border-radius': '1px',
+                transition: 'width 0.4s ease',
+                opacity: 0.8,
+              }}
+            />
+          </div>
         </div>
-      </div>
-    </Show>
+      </Show>
     </>
   );
 }

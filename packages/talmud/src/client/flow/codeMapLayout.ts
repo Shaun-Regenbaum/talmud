@@ -16,9 +16,9 @@
 export type NodeSide = 'source' | 'a' | 'b' | 'neutral';
 
 export const SIDE_COLOR: Record<NodeSide, string> = {
-  source: '#3f6212',  // gemara — green
-  a: '#1d4ed8',       // position A — blue   (matches ArgumentVoiceMap COLOR_A)
-  b: '#b91c1c',       // position B — red    (matches ArgumentVoiceMap COLOR_B)
+  source: '#3f6212', // gemara — green
+  a: '#1d4ed8', // position A — blue   (matches ArgumentVoiceMap COLOR_A)
+  b: '#b91c1c', // position B — red    (matches ArgumentVoiceMap COLOR_B)
   neutral: '#475569', // undisputed codifier — slate
 };
 
@@ -27,9 +27,9 @@ export type RelationKind = 'transmits' | 'agrees' | 'disagrees' | 'cites';
 
 const REL_COLOR: Record<RelationKind, string> = {
   transmits: '#cfc9bb', // the lineage spine — warm grey
-  agrees: '#15803d',    // green   (ArgumentVoiceMap EDGE_SUPPORT)
+  agrees: '#15803d', // green   (ArgumentVoiceMap EDGE_SUPPORT)
   disagrees: '#b91c1c', // red     (ArgumentVoiceMap EDGE_OPPOSE)
-  cites: '#475569',     // slate   (ArgumentFlowGraph cites)
+  cites: '#475569', // slate   (ArgumentFlowGraph cites)
 };
 
 /** Stroke colour + dash for a relation edge. Only `disagrees` is dashed,
@@ -90,7 +90,10 @@ export interface CodeMapEdge {
 
 /** The codification enrichment's current output shape (one ruling per codifier).
  *  `rema` non-null encodes the Mechaber/Rema divergence. */
-export interface CodificationRuling { ref: string; ruling: string }
+export interface CodificationRuling {
+  ref: string;
+  ruling: string;
+}
 export interface CodificationData {
   mishnehTorah: CodificationRuling | null;
   tur: CodificationRuling | null;
@@ -114,7 +117,9 @@ export function codeMapFromCodification(
   d: CodificationData,
   dafRef: string,
 ): { nodes: CodeMapNode[]; edges: CodeMapEdge[] } {
-  const nodes: CodeMapNode[] = [{ id: 'gemara', label: 'Gemara', ref: dafRef, era: 'source', side: 'source' }];
+  const nodes: CodeMapNode[] = [
+    { id: 'gemara', label: 'Gemara', ref: dafRef, era: 'source', side: 'source' },
+  ];
   const edges: CodeMapEdge[] = [];
   // The Mechaber/Rema split only makes sense when the Shulchan Aruch is present
   // (Rema glosses it). A Rema without an SA node has nothing to disagree with.

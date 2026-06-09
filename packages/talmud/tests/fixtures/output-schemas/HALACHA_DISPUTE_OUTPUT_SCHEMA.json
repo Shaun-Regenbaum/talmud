@@ -4,29 +4,14 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "present",
-      "axis",
-      "label",
-      "positions",
-      "sephardi",
-      "ashkenazi",
-      "settled"
-    ],
+    "required": ["present", "axis", "label", "positions", "sephardi", "ashkenazi", "settled"],
     "properties": {
       "present": {
         "type": "boolean"
       },
       "axis": {
         "type": "string",
-        "enum": [
-          "mechaber-rema",
-          "ashkenaz-sefarad",
-          "rishonim",
-          "acharonim",
-          "poskim",
-          "none"
-        ]
+        "enum": ["mechaber-rema", "ashkenaz-sefarad", "rishonim", "acharonim", "poskim", "none"]
       },
       "label": {
         "type": "string"
@@ -36,23 +21,14 @@
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "voice",
-            "side",
-            "stance",
-            "ref"
-          ],
+          "required": ["voice", "side", "stance", "ref"],
           "properties": {
             "voice": {
               "type": "string"
             },
             "side": {
               "type": "string",
-              "enum": [
-                "a",
-                "b",
-                "neutral"
-              ]
+              "enum": ["a", "b", "neutral"]
             },
             "stance": {
               "type": "string"

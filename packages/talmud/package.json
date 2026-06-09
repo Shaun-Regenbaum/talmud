@@ -7,7 +7,7 @@
     "dev": "[ \"$SKIP_WRANGLER_CHECK\" = \"1\" ] || node scripts/check-wrangler-login.mjs && vite",
     "build": "vite build",
     "preview": "vite preview",
-    "ship": "vite build && wrangler deploy",
+    "ship": "bash ../../scripts/ship-guard.sh && vite build && wrangler deploy",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -1,8 +1,15 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  classifyCodifier, buildCodificationChain, hasCodification, CODIFIERS,
-  classifyShasSource, baseDafRef, buildDerivation, formatGroundedRefsForPrompt,
-  parseBavliRef, type RelatedLink,
+  baseDafRef,
+  buildCodificationChain,
+  buildDerivation,
+  CODIFIERS,
+  classifyCodifier,
+  classifyShasSource,
+  formatGroundedRefsForPrompt,
+  hasCodification,
+  parseBavliRef,
+  type RelatedLink,
 } from '../src/lib/halacha/codifiers';
 import type { HalachicRefBundle } from '../src/lib/sefref/sefaria/client';
 import { TRACTATE_OPTIONS } from '../src/lib/sefref/tractates';
@@ -49,11 +56,19 @@ describe('buildCodificationChain', () => {
   // Berakhot 2a (evening Shema) as the bundle arrives today: a mix of canonical
   // codifiers (under several MT sub-books) and noise.
   const bundle: HalachicRefBundle = {
-    'Mishneh Torah, Reading the Shema': [{ ref: 'Mishneh Torah, Reading the Shema 1:9', hebrew: 'he', english: 'en' }],
-    'Mishneh Torah, Heave Offerings': [{ ref: 'Mishneh Torah, Heave Offerings 7:2', hebrew: 'he', english: 'en' }],
+    'Mishneh Torah, Reading the Shema': [
+      { ref: 'Mishneh Torah, Reading the Shema 1:9', hebrew: 'he', english: 'en' },
+    ],
+    'Mishneh Torah, Heave Offerings': [
+      { ref: 'Mishneh Torah, Heave Offerings 7:2', hebrew: 'he', english: 'en' },
+    ],
     'Tur, Orach Chayim': [{ ref: 'Tur, Orach Chayim 235', hebrew: 'he', english: 'en' }],
-    'Shulchan Arukh, Orach Chayim': [{ ref: 'Shulchan Arukh, Orach Chayim 235:1', hebrew: 'he', english: 'en' }],
-    'Sefer Mitzvot Gadol, Positive Commandments': [{ ref: 'Sefer Mitzvot Gadol, Positive Commandments 18', hebrew: 'he', english: 'en' }],
+    'Shulchan Arukh, Orach Chayim': [
+      { ref: 'Shulchan Arukh, Orach Chayim 235:1', hebrew: 'he', english: 'en' },
+    ],
+    'Sefer Mitzvot Gadol, Positive Commandments': [
+      { ref: 'Sefer Mitzvot Gadol, Positive Commandments 18', hebrew: 'he', english: 'en' },
+    ],
     'Mishnah Berurah': [{ ref: 'Mishnah Berurah 235:1', hebrew: 'he', english: 'en' }],
   };
 
@@ -74,7 +89,12 @@ describe('buildCodificationChain', () => {
 
   it('adds the secondary glosses only when asked', () => {
     const chain = buildCodificationChain(bundle, { includeSecondary: true });
-    expect(chain.map((n) => n.id)).toEqual(['mishneh-torah', 'tur', 'shulchan-aruch', 'mishnah-berurah']);
+    expect(chain.map((n) => n.id)).toEqual([
+      'mishneh-torah',
+      'tur',
+      'shulchan-aruch',
+      'mishnah-berurah',
+    ]);
   });
 
   it('returns empty for a bundle with no codifiers (the aggadah case)', () => {
@@ -92,8 +112,16 @@ describe('buildCodificationChain', () => {
 describe('formatGroundedRefsForPrompt', () => {
   it('lists allowlisted codifiers with their refs + capped snippets, in lineage order', () => {
     const out = formatGroundedRefsForPrompt({
-      'Tur, Orach Chayim': [{ ref: 'Tur, Orach Chayim 235', hebrew: 'זמן קריאת שמע', english: 'The time for Shema' }],
-      'Mishneh Torah, Reading the Shema': [{ ref: 'Mishneh Torah, Reading the Shema 1:9', hebrew: 'מצאת הכוכבים', english: 'From nightfall' }],
+      'Tur, Orach Chayim': [
+        { ref: 'Tur, Orach Chayim 235', hebrew: 'זמן קריאת שמע', english: 'The time for Shema' },
+      ],
+      'Mishneh Torah, Reading the Shema': [
+        {
+          ref: 'Mishneh Torah, Reading the Shema 1:9',
+          hebrew: 'מצאת הכוכבים',
+          english: 'From nightfall',
+        },
+      ],
       'Sefer Yereim': [{ ref: 'Sefer Yereim 300:1', hebrew: 'x', english: 'y' }], // noise, dropped
     });
     // Mishneh Torah (order 1) precedes Tur (order 2); noise excluded.
@@ -107,7 +135,9 @@ describe('formatGroundedRefsForPrompt', () => {
   it('caps long snippets and marks an empty bundle', () => {
     expect(formatGroundedRefsForPrompt({})).toBe('(no codifier links found for this daf)');
     const long = 'א'.repeat(800);
-    const out = formatGroundedRefsForPrompt({ 'Shulchan Arukh, Orach Chayim': [{ ref: 'OC 235:1', hebrew: long, english: '' }] });
+    const out = formatGroundedRefsForPrompt({
+      'Shulchan Arukh, Orach Chayim': [{ ref: 'OC 235:1', hebrew: long, english: '' }],
+    });
     expect(out).toContain('…');
     expect(out.length).toBeLessThan(long.length);
   });
@@ -144,14 +174,19 @@ describe('buildDerivation', () => {
   it('dedupes to base dapim, marks the current daf, orders primary→related→root', () => {
     const d = buildDerivation(links, { tractate: 'Berakhot', page: '2a' });
     expect(d.map((s) => s.ref)).toEqual([
-      'Berakhot 2a',                  // primary + current → first
-      'Pesachim 94a',                 // primary
-      'Shabbat 34b',                  // primary
+      'Berakhot 2a', // primary + current → first
+      'Pesachim 94a', // primary
+      'Shabbat 34b', // primary
       'Jerusalem Talmud Berakhot 1:1:1', // related (yerushalmi)
-      'Leviticus 19:5',               // root (tanakh)
+      'Leviticus 19:5', // root (tanakh)
     ]);
     const current = d.find((s) => s.isCurrent)!;
-    expect(current).toMatchObject({ ref: 'Berakhot 2a', kind: 'bavli', role: 'primary', isCurrent: true });
+    expect(current).toMatchObject({
+      ref: 'Berakhot 2a',
+      kind: 'bavli',
+      role: 'primary',
+      isCurrent: true,
+    });
     expect(d.filter((s) => s.isCurrent)).toHaveLength(1);
     expect(d.find((s) => s.kind === 'tanakh')!.role).toBe('root');
   });

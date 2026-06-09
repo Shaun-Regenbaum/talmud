@@ -3,17 +3,17 @@
 // route-slice: registerCommentaryRoutes(app) wires the two endpoints, and
 // fetchCommentaryWorks is re-exported for the other in-file callers.
 
-import { Hono } from 'hono';
-import type { Bindings } from './types';
-import { runLLM, type LLMModelId } from '@corpus/core/llm/llm';
+import { type LLMModelId, runLLM } from '@corpus/core/llm/llm';
+import type { Hono } from 'hono';
+import { keyForCommentaryText, keyForCommentaryWorks } from './cache-keys';
 import { getSefariaSegmentsCached } from './source-cache';
-import { keyForCommentaryWorks, keyForCommentaryText } from './cache-keys';
-import { recordTelemetry, classifyError } from './telemetry';
+import { classifyError, recordTelemetry } from './telemetry';
+import type { Bindings } from './types';
 
 interface CommentaryComment {
-  anchorRef: string;                // e.g. "Berakhot 5a:3" or "Berakhot 5a:3:1-4"
-  anchorSegIdx: number;             // zero-based index into Sefaria segments
-  sourceRef: string;                // commentary's own ref, e.g. "Ramban on Berakhot 5a:3:1"
+  anchorRef: string; // e.g. "Berakhot 5a:3" or "Berakhot 5a:3:1-4"
+  anchorSegIdx: number; // zero-based index into Sefaria segments
+  sourceRef: string; // commentary's own ref, e.g. "Ramban on Berakhot 5a:3:1"
   textHe: string;
   textEn: string;
 }
@@ -47,14 +47,24 @@ export async function fetchCommentaryWorks(
   tractate: string,
   page: string,
   bypassCache = false,
-): Promise<{ works: CommentaryWork[]; tractate: string; page: string; fetchedAt: string } | { error: string }> {
+): Promise<
+  { works: CommentaryWork[]; tractate: string; page: string; fetchedAt: string } | { error: string }
+> {
   const cache = env.CACHE;
   const cacheKey = keyForCommentaryWorks(tractate, page);
   if (cache && !bypassCache) {
     const hit = await cache.get(cacheKey);
     if (hit !== null) {
-      try { return JSON.parse(hit) as { works: CommentaryWork[]; tractate: string; page: string; fetchedAt: string }; }
-      catch { /* fall through to refetch */ }
+      try {
+        return JSON.parse(hit) as {
+          works: CommentaryWork[];
+          tractate: string;
+          page: string;
+          fetchedAt: string;
+        };
+      } catch {
+        /* fall through to refetch */
+      }
     }
   }
   const ref = `${tractate} ${page}`;
@@ -80,7 +90,11 @@ export async function fetchCommentaryWorks(
 
   const joinText = (x: string | string[] | undefined): string => {
     if (!x) return '';
-    if (Array.isArray(x)) return x.map((t) => String(t ?? '')).join(' ').trim();
+    if (Array.isArray(x))
+      return x
+        .map((t) => String(t ?? ''))
+        .join(' ')
+        .trim();
     return String(x).trim();
   };
 
@@ -150,8 +164,11 @@ export function registerCommentaryRoutes(app: Hono<{ Bindings: Bindings }>): voi
 
   app.post('/api/commentary-translate', async (c) => {
     let body: CommentaryTranslateBody;
-    try { body = await c.req.json<CommentaryTranslateBody>(); }
-    catch { return c.json({ error: 'Invalid JSON body' }, 400); }
+    try {
+      body = await c.req.json<CommentaryTranslateBody>();
+    } catch {
+      return c.json({ error: 'Invalid JSON body' }, 400);
+    }
 
     const sourceRef = (body.sourceRef ?? '').trim();
     const textHe = (body.textHe ?? '').trim();
@@ -180,21 +197,24 @@ export function registerCommentaryRoutes(app: Hono<{ Bindings: Bindings }>): voi
     }
 
     // Strip HTML from the commentary text (Sefaria sometimes embeds <b>/<i>).
-    const cleanHe = textHe.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    const cleanHe = textHe
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
 
     const userParts: string[] = [];
     if (segHe) {
       userParts.push(
         `Daf segment this commentary anchors to:\nHebrew/Aramaic: ${segHe}` +
-        (segEn ? `\nEnglish: ${segEn}` : ''),
+          (segEn ? `\nEnglish: ${segEn}` : ''),
       );
     }
     userParts.push(`Commentary source: ${sourceRef}`);
     userParts.push(`Commentary text (translate this):\n${cleanHe}`);
 
     const models: Array<{ id: LLMModelId; label: string }> = [
-      { id: '@cf/moonshotai/kimi-k2.5',        label: 'kimi-k2.5'   },
-      { id: '@cf/google/gemma-4-26b-a4b-it',   label: 'gemma-4-26b' },
+      { id: '@cf/moonshotai/kimi-k2.5', label: 'kimi-k2.5' },
+      { id: '@cf/google/gemma-4-26b-a4b-it', label: 'gemma-4-26b' },
     ];
 
     const attempts: string[] = [];
@@ -210,20 +230,42 @@ export function registerCommentaryRoutes(app: Hono<{ Bindings: Bindings }>): voi
           temperature: 0.2,
           thinking: false,
           tag: 'commentary-translate',
-          attribution: { kind: 'translate', ...(body.tractate && body.page ? { tractate: body.tractate, page: body.page } : {}) },
+          attribution: {
+            kind: 'translate',
+            ...(body.tractate && body.page ? { tractate: body.tractate, page: body.page } : {}),
+          },
         });
-        const translation = r.content.trim().replace(/^["\']|["\']$/g, '');
-        if (!translation) { attempts.push(`${m.label}: empty`); continue; }
+        const translation = r.content.trim().replace(/^["']|["']$/g, '');
+        if (!translation) {
+          attempts.push(`${m.label}: empty`);
+          continue;
+        }
         if (cache) {
           await cache.put(cacheKey, translation, { expirationTtl: 60 * 60 * 24 * 365 });
         }
-        recordTelemetry(c, { endpoint: 'translate', tractate: body.tractate, page: body.page, cache_hit: false, model: m.label, ms: Date.now() - t0, ok: true });
+        recordTelemetry(c, {
+          endpoint: 'translate',
+          tractate: body.tractate,
+          page: body.page,
+          cache_hit: false,
+          model: m.label,
+          ms: Date.now() - t0,
+          ok: true,
+        });
         return c.json({ translation, cached: false, _model: m.label });
       } catch (err) {
         attempts.push(`${m.label}: ${String(err).slice(0, 200)}`);
       }
     }
-    recordTelemetry(c, { endpoint: 'translate', tractate: body.tractate, page: body.page, cache_hit: false, ms: Date.now() - t0, ok: false, error_kind: classifyError(attempts.join(' ')) });
+    recordTelemetry(c, {
+      endpoint: 'translate',
+      tractate: body.tractate,
+      page: body.page,
+      cache_hit: false,
+      ms: Date.now() - t0,
+      ok: false,
+      error_kind: classifyError(attempts.join(' ')),
+    });
     return c.json({ error: 'All translation models failed', attempts }, 502);
   });
 }

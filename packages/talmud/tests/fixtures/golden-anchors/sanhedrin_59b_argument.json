@@ -1,274 +1,242 @@
 {
- "tractate": "Sanhedrin",
- "page": "59b",
- "mark": "argument",
- "cache_hit": true,
- "raw": {
-  "summary": "The daf discusses whether commandments given to Noahides were reaffirmed at Sinai for Israel alone, and explores the permissibility of meat consumption for Adam and Noahides, including the prohibition of eating a limb from a living animal.",
-  "instances": [
-   {
-    "startSegIdx": 0,
-    "endSegIdx": 1,
-    "fields": {
-     "title": "Circumcision: reaffirmed at Sinai for Israel only",
-     "summary": "The Gemara raises an objection: circumcision was commanded to Noahides (Abraham) and repeated at Sinai, yet it applies only to Israel, not Noahides. The answer is that the Sinai verse comes to permit circumcision on Shabbat.",
-     "excerpt": "וַהֲרֵי מִילָה, שֶׁנֶּאֶמְרָה לִבְנֵי נֹחַ",
-     "endExcerpt": "וַאֲפִילּוּ בְּשַׁבָּת",
-     "rabbiNames": [
-      "Gemara's question",
-      "Gemara's answer"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 2,
-    "endSegIdx": 3,
-    "fields": {
-     "title": "Procreation: reaffirmed at Sinai for Israel only",
-     "summary": "Another objection: procreation was commanded to Noahides and repeated at Sinai, yet it applies only to Israel. The answer is that the Sinai verse comes to teach that a matter requiring a count needs another count to permit it (i.e., the prohibition of marital relations during the giving of the Torah).",
-     "excerpt": "וַהֲרֵי פְּרִיָּה וּרְבִיָּה, שֶׁנֶּאֶמְרָה לִבְנֵי נֹחַ",
-     "endExcerpt": "צָרִיךְ מִנְיָן אַחֵר לְהַתִּירוֹ הוּא דַּאֲתָא",
-     "rabbiNames": [
-      "Gemara's question",
-      "Gemara's answer"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 4,
-    "endSegIdx": 7,
-    "fields": {
-     "title": "Challenge: why not say every repetition is for a specific purpose?",
-     "summary": "The Gemara challenges: if so, we could say every repeated commandment is for a specific purpose. The answer is that the question is about the warning (azhara) itself being repeated—why is that necessary? The conclusion is that only the prohibition of the sciatic nerve (gid hanasheh) was given to Noahides and not repeated, according to Rabbi Yehuda; the other commandments were repeated for a specific purpose, but otherwise they would not apply to Noahides at all.",
-     "excerpt": "אִי הָכִי, כֹּל חֲדָא וַחֲדָא נָמֵי נֵימָא מִשּׁוּם מִילְּתָא אִיתְּנַי",
-     "endExcerpt": "הָא לָא אִיתְּנַי כְּלָל",
-     "rabbiNames": [
-      "Gemara's question",
-      "Gemara's answer",
-      "Gemara's conclusion"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 8,
-    "endSegIdx": 11,
-    "fields": {
-     "title": "Circumcision originally commanded to Abraham and his descendants",
-     "summary": "An alternative explanation: circumcision was originally commanded only to Abraham and his seed, not to all Noahides. The Gemara then discusses who is included: Ishmael is excluded by 'for in Isaac shall your seed be called', and Esau is excluded by 'in Isaac' but not all Isaac. Rabbi Oshaya objects: what about the children of Keturah? Rabbi Yosei bar Avin cites a verse to include them.",
-     "excerpt": "אִי בָּעֵית אֵימָא: מִילָה מֵעִיקָּרָא לְאַבְרָהָם הוּא דְּקָא מַזְהַר לֵיהּ רַחֲמָנָא",
-     "endExcerpt": "לְרַבּוֹת בְּנֵי קְטוּרָה",
-     "rabbiNames": [
-      "Gemara's alternative answer",
-      "Gemara's question",
-      "Gemara's answer",
-      "Gemara's question",
-      "Gemara's answer",
-      "Rabbi Oshaya",
-      "Rabbi Yosei bar Avin"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 12,
-    "endSegIdx": 14,
-    "fields": {
-     "title": "Permission to eat meat given to Noahides",
-     "summary": "Rav Yehuda said in the name of Rav: Adam was not permitted to eat meat; only vegetation. When the Noahides came, meat was permitted, as it says 'like the green herb I have given you everything'. One might think that eating a limb from a living animal (eiver min hachai) is permitted, but the verse says 'but flesh with its life, its blood, you shall not eat'. Rav Huna explains that this applies only to animals whose blood is distinct from their flesh, excluding insects.",
-     "excerpt": "אָמַר רַב יְהוּדָה אָמַר רַב: אָדָם הָרִאשׁוֹן לֹא הוּתַּר לוֹ בָּשָׂר לַאֲכִילָה",
-     "endExcerpt": "יָצְאוּ שְׁרָצִים שֶׁאֵין דָּמָם חָלוּק מִבְּשֶׁרָם",
-     "rabbiNames": [
-      "Rav Yehuda",
-      "Rav",
-      "Rav Huna"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 15,
-    "endSegIdx": 20,
-    "fields": {
-     "title": "Objections from verses about dominion over fish, birds, and animals",
-     "summary": "The Gemara raises objections from verses that say 'have dominion over the fish of the sea' and 'over the birds of the heavens'—perhaps these were for food? The answers are that they were for labor, not food. Fish and birds can be used for work, as illustrated by questions from Racha and Rabba bar Rav Huna. The verse about 'every creeping thing' comes to include the serpent, as per Rabbi Shimon ben Menasya's teaching about the serpent's potential usefulness.",
-     "excerpt": "מֵיתִיבִי: ״וּרְדוּ בִּדְגַת הַיָּם״, מַאי לָאו, לַאֲכִילָה",
-     "endExcerpt": "וּמוֹצִיא בָּהּ עָפָר לְגִנָּתוֹ וּלְחוּרְבָּתוֹ",
-     "rabbiNames": [
-      "Gemara's objection",
-      "Gemara's answer",
-      "Racha",
-      "Gemara's objection",
-      "Gemara's answer",
-      "Rabba bar Rav Huna",
-      "Gemara's objection",
-      "Gemara's answer",
-      "Rabbi Shimon ben Menasya"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 21,
-    "endSegIdx": 23,
-    "fields": {
-     "title": "Rabbi Yehuda ben Teima: Adam ate meat from heaven",
-     "summary": "An objection from Rabbi Yehuda ben Teima: Adam reclined in the Garden of Eden and ministering angels roasted meat and strained wine for him. The Gemara answers that this was meat that descended from heaven. The Gemara then discusses whether impure meat can descend from heaven, citing a story about Rabbi Shimon ben Chalafta and lions, and a question from Rabbi Zeira to Rabbi Avahu about a donkey-shaped object descending.",
-     "excerpt": "מֵיתִיבִי, הָיָה רַבִּי יְהוּדָה בֶּן תֵּימָא אוֹמֵר: אָדָם הָרִאשׁוֹן מֵיסֵב בְּגַן עֵדֶן הָיָה",
-     "endExcerpt": "אֵין דָּבָר טָמֵא יוֹרֵד מִן הַשָּׁמַיִם",
-     "rabbiNames": [
-      "Gemara's objection",
-      "Rabbi Yehuda ben Teima",
-      "Gemara's answer",
-      "Rabbi Shimon ben Chalafta",
-      "Rabbi Zeira",
-      "Rabbi Avahu"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 24,
-    "endSegIdx": 24,
-    "fields": {
-     "title": "Rabbi Shimon: even sorcery is prohibited to Noahides",
-     "summary": "Rabbi Shimon says that sorcery is also prohibited to Noahides. The Gemara begins to explain his reasoning, citing a verse.",
-     "excerpt": "רַבִּי שִׁמְעוֹן אוֹמֵר: אַף עַל הַכִּישּׁוּף",
-     "endExcerpt": "רַבִּי שִׁמְעוֹן אוֹמֵר: אַף עַל הַכִּישּׁוּף",
-     "rabbiNames": [
-      "Rabbi Shimon"
-     ]
-    }
-   }
-  ]
- },
- "expected": {
-  "summary": "The daf discusses whether commandments given to Noahides were reaffirmed at Sinai for Israel alone, and explores the permissibility of meat consumption for Adam and Noahides, including the prohibition of eating a limb from a living animal.",
-  "instances": [
-   {
-    "startSegIdx": 0,
-    "endSegIdx": 1,
-    "fields": {
-     "title": "Circumcision: reaffirmed at Sinai for Israel only",
-     "summary": "The Gemara raises an objection: circumcision was commanded to Noahides (Abraham) and repeated at Sinai, yet it applies only to Israel, not Noahides. The answer is that the Sinai verse comes to permit circumcision on Shabbat.",
-     "excerpt": "וַהֲרֵי מִילָה, שֶׁנֶּאֶמְרָה לִבְנֵי נֹחַ",
-     "endExcerpt": "וַאֲפִילּוּ בְּשַׁבָּת",
-     "rabbiNames": [
-      "Gemara's question",
-      "Gemara's answer"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 2,
-    "endSegIdx": 3,
-    "fields": {
-     "title": "Procreation: reaffirmed at Sinai for Israel only",
-     "summary": "Another objection: procreation was commanded to Noahides and repeated at Sinai, yet it applies only to Israel. The answer is that the Sinai verse comes to teach that a matter requiring a count needs another count to permit it (i.e., the prohibition of marital relations during the giving of the Torah).",
-     "excerpt": "וַהֲרֵי פְּרִיָּה וּרְבִיָּה, שֶׁנֶּאֶמְרָה לִבְנֵי נֹחַ",
-     "endExcerpt": "צָרִיךְ מִנְיָן אַחֵר לְהַתִּירוֹ הוּא דַּאֲתָא",
-     "rabbiNames": [
-      "Gemara's question",
-      "Gemara's answer"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 4,
-    "endSegIdx": 7,
-    "fields": {
-     "title": "Challenge: why not say every repetition is for a specific purpose?",
-     "summary": "The Gemara challenges: if so, we could say every repeated commandment is for a specific purpose. The answer is that the question is about the warning (azhara) itself being repeated—why is that necessary? The conclusion is that only the prohibition of the sciatic nerve (gid hanasheh) was given to Noahides and not repeated, according to Rabbi Yehuda; the other commandments were repeated for a specific purpose, but otherwise they would not apply to Noahides at all.",
-     "excerpt": "אִי הָכִי, כֹּל חֲדָא וַחֲדָא נָמֵי נֵימָא מִשּׁוּם מִילְּתָא אִיתְּנַי",
-     "endExcerpt": "הָא לָא אִיתְּנַי כְּלָל",
-     "rabbiNames": [
-      "Gemara's question",
-      "Gemara's answer",
-      "Gemara's conclusion"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 8,
-    "endSegIdx": 11,
-    "fields": {
-     "title": "Circumcision originally commanded to Abraham and his descendants",
-     "summary": "An alternative explanation: circumcision was originally commanded only to Abraham and his seed, not to all Noahides. The Gemara then discusses who is included: Ishmael is excluded by 'for in Isaac shall your seed be called', and Esau is excluded by 'in Isaac' but not all Isaac. Rabbi Oshaya objects: what about the children of Keturah? Rabbi Yosei bar Avin cites a verse to include them.",
-     "excerpt": "אִי בָּעֵית אֵימָא: מִילָה מֵעִיקָּרָא לְאַבְרָהָם הוּא דְּקָא מַזְהַר לֵיהּ רַחֲמָנָא",
-     "endExcerpt": "לְרַבּוֹת בְּנֵי קְטוּרָה",
-     "rabbiNames": [
-      "Gemara's alternative answer",
-      "Gemara's question",
-      "Gemara's answer",
-      "Gemara's question",
-      "Gemara's answer",
-      "Rabbi Oshaya",
-      "Rabbi Yosei bar Avin"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 12,
-    "endSegIdx": 14,
-    "fields": {
-     "title": "Permission to eat meat given to Noahides",
-     "summary": "Rav Yehuda said in the name of Rav: Adam was not permitted to eat meat; only vegetation. When the Noahides came, meat was permitted, as it says 'like the green herb I have given you everything'. One might think that eating a limb from a living animal (eiver min hachai) is permitted, but the verse says 'but flesh with its life, its blood, you shall not eat'. Rav Huna explains that this applies only to animals whose blood is distinct from their flesh, excluding insects.",
-     "excerpt": "אָמַר רַב יְהוּדָה אָמַר רַב: אָדָם הָרִאשׁוֹן לֹא הוּתַּר לוֹ בָּשָׂר לַאֲכִילָה",
-     "endExcerpt": "יָצְאוּ שְׁרָצִים שֶׁאֵין דָּמָם חָלוּק מִבְּשֶׁרָם",
-     "rabbiNames": [
-      "Rav Yehuda",
-      "Rav",
-      "Rav Huna"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 15,
-    "endSegIdx": 20,
-    "fields": {
-     "title": "Objections from verses about dominion over fish, birds, and animals",
-     "summary": "The Gemara raises objections from verses that say 'have dominion over the fish of the sea' and 'over the birds of the heavens'—perhaps these were for food? The answers are that they were for labor, not food. Fish and birds can be used for work, as illustrated by questions from Racha and Rabba bar Rav Huna. The verse about 'every creeping thing' comes to include the serpent, as per Rabbi Shimon ben Menasya's teaching about the serpent's potential usefulness.",
-     "excerpt": "מֵיתִיבִי: ״וּרְדוּ בִּדְגַת הַיָּם״, מַאי לָאו, לַאֲכִילָה",
-     "endExcerpt": "וּמוֹצִיא בָּהּ עָפָר לְגִנָּתוֹ וּלְחוּרְבָּתוֹ",
-     "rabbiNames": [
-      "Gemara's objection",
-      "Gemara's answer",
-      "Racha",
-      "Gemara's objection",
-      "Gemara's answer",
-      "Rabba bar Rav Huna",
-      "Gemara's objection",
-      "Gemara's answer",
-      "Rabbi Shimon ben Menasya"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 21,
-    "endSegIdx": 22,
-    "fields": {
-     "title": "Rabbi Yehuda ben Teima: Adam ate meat from heaven",
-     "summary": "An objection from Rabbi Yehuda ben Teima: Adam reclined in the Garden of Eden and ministering angels roasted meat and strained wine for him. The Gemara answers that this was meat that descended from heaven. The Gemara then discusses whether impure meat can descend from heaven, citing a story about Rabbi Shimon ben Chalafta and lions, and a question from Rabbi Zeira to Rabbi Avahu about a donkey-shaped object descending.",
-     "excerpt": "מֵיתִיבִי, הָיָה רַבִּי יְהוּדָה בֶּן תֵּימָא אוֹמֵר: אָדָם הָרִאשׁוֹן מֵיסֵב בְּגַן עֵדֶן הָיָה",
-     "endExcerpt": "אֵין דָּבָר טָמֵא יוֹרֵד מִן הַשָּׁמַיִם",
-     "rabbiNames": [
-      "Gemara's objection",
-      "Rabbi Yehuda ben Teima",
-      "Gemara's answer",
-      "Rabbi Shimon ben Chalafta",
-      "Rabbi Zeira",
-      "Rabbi Avahu"
-     ]
-    }
-   },
-   {
-    "startSegIdx": 23,
-    "endSegIdx": 24,
-    "fields": {
-     "title": "Rabbi Shimon: even sorcery is prohibited to Noahides",
-     "summary": "Rabbi Shimon says that sorcery is also prohibited to Noahides. The Gemara begins to explain his reasoning, citing a verse.",
-     "excerpt": "רַבִּי שִׁמְעוֹן אוֹמֵר: אַף עַל הַכִּישּׁוּף",
-     "endExcerpt": "רַבִּי שִׁמְעוֹן אוֹמֵר: אַף עַל הַכִּישּׁוּף",
-     "rabbiNames": [
-      "Rabbi Shimon"
-     ]
-    }
-   }
-  ]
- }
+  "tractate": "Sanhedrin",
+  "page": "59b",
+  "mark": "argument",
+  "cache_hit": true,
+  "raw": {
+    "summary": "The daf discusses whether commandments given to Noahides were reaffirmed at Sinai for Israel alone, and explores the permissibility of meat consumption for Adam and Noahides, including the prohibition of eating a limb from a living animal.",
+    "instances": [
+      {
+        "startSegIdx": 0,
+        "endSegIdx": 1,
+        "fields": {
+          "title": "Circumcision: reaffirmed at Sinai for Israel only",
+          "summary": "The Gemara raises an objection: circumcision was commanded to Noahides (Abraham) and repeated at Sinai, yet it applies only to Israel, not Noahides. The answer is that the Sinai verse comes to permit circumcision on Shabbat.",
+          "excerpt": "וַהֲרֵי מִילָה, שֶׁנֶּאֶמְרָה לִבְנֵי נֹחַ",
+          "endExcerpt": "וַאֲפִילּוּ בְּשַׁבָּת",
+          "rabbiNames": ["Gemara's question", "Gemara's answer"]
+        }
+      },
+      {
+        "startSegIdx": 2,
+        "endSegIdx": 3,
+        "fields": {
+          "title": "Procreation: reaffirmed at Sinai for Israel only",
+          "summary": "Another objection: procreation was commanded to Noahides and repeated at Sinai, yet it applies only to Israel. The answer is that the Sinai verse comes to teach that a matter requiring a count needs another count to permit it (i.e., the prohibition of marital relations during the giving of the Torah).",
+          "excerpt": "וַהֲרֵי פְּרִיָּה וּרְבִיָּה, שֶׁנֶּאֶמְרָה לִבְנֵי נֹחַ",
+          "endExcerpt": "צָרִיךְ מִנְיָן אַחֵר לְהַתִּירוֹ הוּא דַּאֲתָא",
+          "rabbiNames": ["Gemara's question", "Gemara's answer"]
+        }
+      },
+      {
+        "startSegIdx": 4,
+        "endSegIdx": 7,
+        "fields": {
+          "title": "Challenge: why not say every repetition is for a specific purpose?",
+          "summary": "The Gemara challenges: if so, we could say every repeated commandment is for a specific purpose. The answer is that the question is about the warning (azhara) itself being repeated—why is that necessary? The conclusion is that only the prohibition of the sciatic nerve (gid hanasheh) was given to Noahides and not repeated, according to Rabbi Yehuda; the other commandments were repeated for a specific purpose, but otherwise they would not apply to Noahides at all.",
+          "excerpt": "אִי הָכִי, כֹּל חֲדָא וַחֲדָא נָמֵי נֵימָא מִשּׁוּם מִילְּתָא אִיתְּנַי",
+          "endExcerpt": "הָא לָא אִיתְּנַי כְּלָל",
+          "rabbiNames": ["Gemara's question", "Gemara's answer", "Gemara's conclusion"]
+        }
+      },
+      {
+        "startSegIdx": 8,
+        "endSegIdx": 11,
+        "fields": {
+          "title": "Circumcision originally commanded to Abraham and his descendants",
+          "summary": "An alternative explanation: circumcision was originally commanded only to Abraham and his seed, not to all Noahides. The Gemara then discusses who is included: Ishmael is excluded by 'for in Isaac shall your seed be called', and Esau is excluded by 'in Isaac' but not all Isaac. Rabbi Oshaya objects: what about the children of Keturah? Rabbi Yosei bar Avin cites a verse to include them.",
+          "excerpt": "אִי בָּעֵית אֵימָא: מִילָה מֵעִיקָּרָא לְאַבְרָהָם הוּא דְּקָא מַזְהַר לֵיהּ רַחֲמָנָא",
+          "endExcerpt": "לְרַבּוֹת בְּנֵי קְטוּרָה",
+          "rabbiNames": [
+            "Gemara's alternative answer",
+            "Gemara's question",
+            "Gemara's answer",
+            "Gemara's question",
+            "Gemara's answer",
+            "Rabbi Oshaya",
+            "Rabbi Yosei bar Avin"
+          ]
+        }
+      },
+      {
+        "startSegIdx": 12,
+        "endSegIdx": 14,
+        "fields": {
+          "title": "Permission to eat meat given to Noahides",
+          "summary": "Rav Yehuda said in the name of Rav: Adam was not permitted to eat meat; only vegetation. When the Noahides came, meat was permitted, as it says 'like the green herb I have given you everything'. One might think that eating a limb from a living animal (eiver min hachai) is permitted, but the verse says 'but flesh with its life, its blood, you shall not eat'. Rav Huna explains that this applies only to animals whose blood is distinct from their flesh, excluding insects.",
+          "excerpt": "אָמַר רַב יְהוּדָה אָמַר רַב: אָדָם הָרִאשׁוֹן לֹא הוּתַּר לוֹ בָּשָׂר לַאֲכִילָה",
+          "endExcerpt": "יָצְאוּ שְׁרָצִים שֶׁאֵין דָּמָם חָלוּק מִבְּשֶׁרָם",
+          "rabbiNames": ["Rav Yehuda", "Rav", "Rav Huna"]
+        }
+      },
+      {
+        "startSegIdx": 15,
+        "endSegIdx": 20,
+        "fields": {
+          "title": "Objections from verses about dominion over fish, birds, and animals",
+          "summary": "The Gemara raises objections from verses that say 'have dominion over the fish of the sea' and 'over the birds of the heavens'—perhaps these were for food? The answers are that they were for labor, not food. Fish and birds can be used for work, as illustrated by questions from Racha and Rabba bar Rav Huna. The verse about 'every creeping thing' comes to include the serpent, as per Rabbi Shimon ben Menasya's teaching about the serpent's potential usefulness.",
+          "excerpt": "מֵיתִיבִי: ״וּרְדוּ בִּדְגַת הַיָּם״, מַאי לָאו, לַאֲכִילָה",
+          "endExcerpt": "וּמוֹצִיא בָּהּ עָפָר לְגִנָּתוֹ וּלְחוּרְבָּתוֹ",
+          "rabbiNames": [
+            "Gemara's objection",
+            "Gemara's answer",
+            "Racha",
+            "Gemara's objection",
+            "Gemara's answer",
+            "Rabba bar Rav Huna",
+            "Gemara's objection",
+            "Gemara's answer",
+            "Rabbi Shimon ben Menasya"
+          ]
+        }
+      },
+      {
+        "startSegIdx": 21,
+        "endSegIdx": 23,
+        "fields": {
+          "title": "Rabbi Yehuda ben Teima: Adam ate meat from heaven",
+          "summary": "An objection from Rabbi Yehuda ben Teima: Adam reclined in the Garden of Eden and ministering angels roasted meat and strained wine for him. The Gemara answers that this was meat that descended from heaven. The Gemara then discusses whether impure meat can descend from heaven, citing a story about Rabbi Shimon ben Chalafta and lions, and a question from Rabbi Zeira to Rabbi Avahu about a donkey-shaped object descending.",
+          "excerpt": "מֵיתִיבִי, הָיָה רַבִּי יְהוּדָה בֶּן תֵּימָא אוֹמֵר: אָדָם הָרִאשׁוֹן מֵיסֵב בְּגַן עֵדֶן הָיָה",
+          "endExcerpt": "אֵין דָּבָר טָמֵא יוֹרֵד מִן הַשָּׁמַיִם",
+          "rabbiNames": [
+            "Gemara's objection",
+            "Rabbi Yehuda ben Teima",
+            "Gemara's answer",
+            "Rabbi Shimon ben Chalafta",
+            "Rabbi Zeira",
+            "Rabbi Avahu"
+          ]
+        }
+      },
+      {
+        "startSegIdx": 24,
+        "endSegIdx": 24,
+        "fields": {
+          "title": "Rabbi Shimon: even sorcery is prohibited to Noahides",
+          "summary": "Rabbi Shimon says that sorcery is also prohibited to Noahides. The Gemara begins to explain his reasoning, citing a verse.",
+          "excerpt": "רַבִּי שִׁמְעוֹן אוֹמֵר: אַף עַל הַכִּישּׁוּף",
+          "endExcerpt": "רַבִּי שִׁמְעוֹן אוֹמֵר: אַף עַל הַכִּישּׁוּף",
+          "rabbiNames": ["Rabbi Shimon"]
+        }
+      }
+    ]
+  },
+  "expected": {
+    "summary": "The daf discusses whether commandments given to Noahides were reaffirmed at Sinai for Israel alone, and explores the permissibility of meat consumption for Adam and Noahides, including the prohibition of eating a limb from a living animal.",
+    "instances": [
+      {
+        "startSegIdx": 0,
+        "endSegIdx": 1,
+        "fields": {
+          "title": "Circumcision: reaffirmed at Sinai for Israel only",
+          "summary": "The Gemara raises an objection: circumcision was commanded to Noahides (Abraham) and repeated at Sinai, yet it applies only to Israel, not Noahides. The answer is that the Sinai verse comes to permit circumcision on Shabbat.",
+          "excerpt": "וַהֲרֵי מִילָה, שֶׁנֶּאֶמְרָה לִבְנֵי נֹחַ",
+          "endExcerpt": "וַאֲפִילּוּ בְּשַׁבָּת",
+          "rabbiNames": ["Gemara's question", "Gemara's answer"]
+        }
+      },
+      {
+        "startSegIdx": 2,
+        "endSegIdx": 3,
+        "fields": {
+          "title": "Procreation: reaffirmed at Sinai for Israel only",
+          "summary": "Another objection: procreation was commanded to Noahides and repeated at Sinai, yet it applies only to Israel. The answer is that the Sinai verse comes to teach that a matter requiring a count needs another count to permit it (i.e., the prohibition of marital relations during the giving of the Torah).",
+          "excerpt": "וַהֲרֵי פְּרִיָּה וּרְבִיָּה, שֶׁנֶּאֶמְרָה לִבְנֵי נֹחַ",
+          "endExcerpt": "צָרִיךְ מִנְיָן אַחֵר לְהַתִּירוֹ הוּא דַּאֲתָא",
+          "rabbiNames": ["Gemara's question", "Gemara's answer"]
+        }
+      },
+      {
+        "startSegIdx": 4,
+        "endSegIdx": 7,
+        "fields": {
+          "title": "Challenge: why not say every repetition is for a specific purpose?",
+          "summary": "The Gemara challenges: if so, we could say every repeated commandment is for a specific purpose. The answer is that the question is about the warning (azhara) itself being repeated—why is that necessary? The conclusion is that only the prohibition of the sciatic nerve (gid hanasheh) was given to Noahides and not repeated, according to Rabbi Yehuda; the other commandments were repeated for a specific purpose, but otherwise they would not apply to Noahides at all.",
+          "excerpt": "אִי הָכִי, כֹּל חֲדָא וַחֲדָא נָמֵי נֵימָא מִשּׁוּם מִילְּתָא אִיתְּנַי",
+          "endExcerpt": "הָא לָא אִיתְּנַי כְּלָל",
+          "rabbiNames": ["Gemara's question", "Gemara's answer", "Gemara's conclusion"]
+        }
+      },
+      {
+        "startSegIdx": 8,
+        "endSegIdx": 11,
+        "fields": {
+          "title": "Circumcision originally commanded to Abraham and his descendants",
+          "summary": "An alternative explanation: circumcision was originally commanded only to Abraham and his seed, not to all Noahides. The Gemara then discusses who is included: Ishmael is excluded by 'for in Isaac shall your seed be called', and Esau is excluded by 'in Isaac' but not all Isaac. Rabbi Oshaya objects: what about the children of Keturah? Rabbi Yosei bar Avin cites a verse to include them.",
+          "excerpt": "אִי בָּעֵית אֵימָא: מִילָה מֵעִיקָּרָא לְאַבְרָהָם הוּא דְּקָא מַזְהַר לֵיהּ רַחֲמָנָא",
+          "endExcerpt": "לְרַבּוֹת בְּנֵי קְטוּרָה",
+          "rabbiNames": [
+            "Gemara's alternative answer",
+            "Gemara's question",
+            "Gemara's answer",
+            "Gemara's question",
+            "Gemara's answer",
+            "Rabbi Oshaya",
+            "Rabbi Yosei bar Avin"
+          ]
+        }
+      },
+      {
+        "startSegIdx": 12,
+        "endSegIdx": 14,
+        "fields": {
+          "title": "Permission to eat meat given to Noahides",
+          "summary": "Rav Yehuda said in the name of Rav: Adam was not permitted to eat meat; only vegetation. When the Noahides came, meat was permitted, as it says 'like the green herb I have given you everything'. One might think that eating a limb from a living animal (eiver min hachai) is permitted, but the verse says 'but flesh with its life, its blood, you shall not eat'. Rav Huna explains that this applies only to animals whose blood is distinct from their flesh, excluding insects.",
+          "excerpt": "אָמַר רַב יְהוּדָה אָמַר רַב: אָדָם הָרִאשׁוֹן לֹא הוּתַּר לוֹ בָּשָׂר לַאֲכִילָה",
+          "endExcerpt": "יָצְאוּ שְׁרָצִים שֶׁאֵין דָּמָם חָלוּק מִבְּשֶׁרָם",
+          "rabbiNames": ["Rav Yehuda", "Rav", "Rav Huna"]
+        }
+      },
+      {
+        "startSegIdx": 15,
+        "endSegIdx": 20,
+        "fields": {
+          "title": "Objections from verses about dominion over fish, birds, and animals",
+          "summary": "The Gemara raises objections from verses that say 'have dominion over the fish of the sea' and 'over the birds of the heavens'—perhaps these were for food? The answers are that they were for labor, not food. Fish and birds can be used for work, as illustrated by questions from Racha and Rabba bar Rav Huna. The verse about 'every creeping thing' comes to include the serpent, as per Rabbi Shimon ben Menasya's teaching about the serpent's potential usefulness.",
+          "excerpt": "מֵיתִיבִי: ״וּרְדוּ בִּדְגַת הַיָּם״, מַאי לָאו, לַאֲכִילָה",
+          "endExcerpt": "וּמוֹצִיא בָּהּ עָפָר לְגִנָּתוֹ וּלְחוּרְבָּתוֹ",
+          "rabbiNames": [
+            "Gemara's objection",
+            "Gemara's answer",
+            "Racha",
+            "Gemara's objection",
+            "Gemara's answer",
+            "Rabba bar Rav Huna",
+            "Gemara's objection",
+            "Gemara's answer",
+            "Rabbi Shimon ben Menasya"
+          ]
+        }
+      },
+      {
+        "startSegIdx": 21,
+        "endSegIdx": 22,
+        "fields": {
+          "title": "Rabbi Yehuda ben Teima: Adam ate meat from heaven",
+          "summary": "An objection from Rabbi Yehuda ben Teima: Adam reclined in the Garden of Eden and ministering angels roasted meat and strained wine for him. The Gemara answers that this was meat that descended from heaven. The Gemara then discusses whether impure meat can descend from heaven, citing a story about Rabbi Shimon ben Chalafta and lions, and a question from Rabbi Zeira to Rabbi Avahu about a donkey-shaped object descending.",
+          "excerpt": "מֵיתִיבִי, הָיָה רַבִּי יְהוּדָה בֶּן תֵּימָא אוֹמֵר: אָדָם הָרִאשׁוֹן מֵיסֵב בְּגַן עֵדֶן הָיָה",
+          "endExcerpt": "אֵין דָּבָר טָמֵא יוֹרֵד מִן הַשָּׁמַיִם",
+          "rabbiNames": [
+            "Gemara's objection",
+            "Rabbi Yehuda ben Teima",
+            "Gemara's answer",
+            "Rabbi Shimon ben Chalafta",
+            "Rabbi Zeira",
+            "Rabbi Avahu"
+          ]
+        }
+      },
+      {
+        "startSegIdx": 23,
+        "endSegIdx": 24,
+        "fields": {
+          "title": "Rabbi Shimon: even sorcery is prohibited to Noahides",
+          "summary": "Rabbi Shimon says that sorcery is also prohibited to Noahides. The Gemara begins to explain his reasoning, citing a verse.",
+          "excerpt": "רַבִּי שִׁמְעוֹן אוֹמֵר: אַף עַל הַכִּישּׁוּף",
+          "endExcerpt": "רַבִּי שִׁמְעוֹן אוֹמֵר: אַף עַל הַכִּישּׁוּף",
+          "rabbiNames": ["Rabbi Shimon"]
+        }
+      }
+    ]
+  }
 }

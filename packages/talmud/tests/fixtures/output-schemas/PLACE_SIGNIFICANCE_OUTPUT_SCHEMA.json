@@ -4,9 +4,7 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "significance"
-    ],
+    "required": ["significance"],
     "properties": {
       "significance": {
         "type": "string"

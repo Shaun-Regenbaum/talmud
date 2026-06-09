@@ -4,7 +4,7 @@
  * the structured field) above it, so the reader can audit each rendered
  * sentence against its source enrichment.
  */
-import { For, Show, type JSX } from 'solid-js';
+import { For, type JSX, Show } from 'solid-js';
 
 export function ProvenanceBadge(props: {
   strategies: string[];
@@ -21,12 +21,16 @@ export function ProvenanceBadge(props: {
         <Show when={props.firstPass && list().length === 0}>
           <span class="prov-strat prov-strat-stage1">{props.firstPass}</span>
         </Show>
-        <For each={list()}>{(s, i) => (
-          <>
-            <Show when={i() > 0}><span class="prov-sep">·</span></Show>
-            <span class="prov-strat">{s}</span>
-          </>
-        )}</For>
+        <For each={list()}>
+          {(s, i) => (
+            <>
+              <Show when={i() > 0}>
+                <span class="prov-sep">·</span>
+              </Show>
+              <span class="prov-strat">{s}</span>
+            </>
+          )}
+        </For>
       </span>
     </Show>
   );

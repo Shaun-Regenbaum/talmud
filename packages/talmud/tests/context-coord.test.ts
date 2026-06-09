@@ -4,15 +4,25 @@
  * applyMatches carrying `coord`). The in-daf behavior must be unchanged: every
  * existing single-arg placementOf call still resolves exactly as before.
  */
-import { describe, it, expect } from 'vitest';
+
 import {
-  coordKey, sameDaf, coordForSeg, coordsForSegs, localSeg, isCrossDaf,
-  normalizeSpan, spanByDaf, coordFromTarget, spineCoord, DAF_SEG,
+  coordForSeg,
+  coordFromTarget,
+  coordKey,
+  coordsForSegs,
+  DAF_SEG,
+  isCrossDaf,
+  localSeg,
+  normalizeSpan,
+  sameDaf,
+  spanByDaf,
+  spineCoord,
 } from '@corpus/core/context/coord';
-import { coordLabel } from '@corpus/core/context/types';
-import { placementOf } from '@corpus/core/context/placement';
 import { applyMatches, type SegMatch } from '@corpus/core/context/match';
+import { placementOf } from '@corpus/core/context/placement';
 import type { ContextItem } from '@corpus/core/context/types';
+import { coordLabel } from '@corpus/core/context/types';
+import { describe, expect, it } from 'vitest';
 
 const G68 = { tractate: 'Gittin', page: '68a' };
 const G67 = { tractate: 'Gittin', page: '67b' };
@@ -32,7 +42,12 @@ describe('coord helpers', () => {
     expect(coordKey(coordForSeg(daf, 3))).toBe('Berakhot:2a:3');
     // A spine coord defaults to whole-daf-of-the-work and keys distinctly so it
     // never collides with the Gemara segment at the same (tractate, page, seg).
-    expect(spineCoord('Rashi', daf)).toEqual({ spine: 'Rashi', tractate: 'Berakhot', page: '2a', seg: DAF_SEG });
+    expect(spineCoord('Rashi', daf)).toEqual({
+      spine: 'Rashi',
+      tractate: 'Berakhot',
+      page: '2a',
+      seg: DAF_SEG,
+    });
     expect(coordKey(spineCoord('Rashi', daf, 3))).toBe('Rashi::Berakhot:2a:3');
     expect(coordKey(spineCoord('Rashi', daf, 3))).not.toBe(coordKey(coordForSeg(daf, 3)));
     expect(coordLabel(spineCoord('Rashi', daf, 3))).toBe('Rashi · Berakhot 2a:3');
@@ -45,7 +60,11 @@ describe('coord helpers', () => {
     const span = [spineCoord('Tosafot', daf, 3), coordForSeg(daf, 3), spineCoord('Rashi', daf, 3)];
     // All three survive dedup (distinct keys) and sort deterministically by
     // seg then spine ('' < 'Rashi' < 'Tosafot').
-    expect(normalizeSpan(span).map(coordKey)).toEqual(['Berakhot:2a:3', 'Rashi::Berakhot:2a:3', 'Tosafot::Berakhot:2a:3']);
+    expect(normalizeSpan(span).map(coordKey)).toEqual([
+      'Berakhot:2a:3',
+      'Rashi::Berakhot:2a:3',
+      'Tosafot::Berakhot:2a:3',
+    ]);
     // spanByDaf collapses spine + dedupes the segment (no duplicate seg 3).
     expect(spanByDaf(span)).toEqual([{ tractate: 'Berakhot', page: '2a', segs: [3] }]);
   });
@@ -66,7 +85,12 @@ describe('coord helpers', () => {
   });
 
   it('normalizeSpan dedupes and orders by (tractate, page, seg)', () => {
-    const span = [coordForSeg(G68, 3), coordForSeg(G67, 5), coordForSeg(G68, 1), coordForSeg(G68, 3)];
+    const span = [
+      coordForSeg(G68, 3),
+      coordForSeg(G67, 5),
+      coordForSeg(G68, 1),
+      coordForSeg(G68, 3),
+    ];
     expect(normalizeSpan(span)).toEqual([
       { tractate: 'Gittin', page: '67b', seg: 5 },
       { tractate: 'Gittin', page: '68a', seg: 1 },
@@ -83,20 +107,44 @@ describe('coord helpers', () => {
   });
 
   it('coordFromTarget bridges the CrossDafAnchor target shape (segIdx default 0)', () => {
-    expect(coordFromTarget({ tractate: 'Bava Metzia', page: '59b', segIdx: 2 })).toEqual({ tractate: 'Bava Metzia', page: '59b', seg: 2 });
-    expect(coordFromTarget({ tractate: 'Bava Metzia', page: '59b' })).toEqual({ tractate: 'Bava Metzia', page: '59b', seg: 0 });
+    expect(coordFromTarget({ tractate: 'Bava Metzia', page: '59b', segIdx: 2 })).toEqual({
+      tractate: 'Bava Metzia',
+      page: '59b',
+      seg: 2,
+    });
+    expect(coordFromTarget({ tractate: 'Bava Metzia', page: '59b' })).toEqual({
+      tractate: 'Bava Metzia',
+      page: '59b',
+      seg: 0,
+    });
   });
 });
 
 const item = (over: Partial<ContextItem>): ContextItem => ({
-  source: 'sefaria-rashi', sourceLabel: 'Rashi', kind: 'rishon', key: 'k', segs: [], ...over,
+  source: 'sefaria-rashi',
+  sourceLabel: 'Rashi',
+  kind: 'rishon',
+  key: 'k',
+  segs: [],
+  ...over,
 });
 
 describe('placementOf cross-daf derivation', () => {
   it('derives cross-daf only when a current daf is supplied and the coord is off it', () => {
-    const it = item({ segs: [], coord: coordForSeg(G67, 4), via: 'parallel-sugya', confidence: 0.9 });
+    const it = item({
+      segs: [],
+      coord: coordForSeg(G67, 4),
+      via: 'parallel-sugya',
+      confidence: 0.9,
+    });
     const p = placementOf(it, G68);
-    expect(p).toEqual({ level: 'cross-daf', segs: [], coord: coordForSeg(G67, 4), via: 'parallel-sugya', confidence: 0.9 });
+    expect(p).toEqual({
+      level: 'cross-daf',
+      segs: [],
+      coord: coordForSeg(G67, 4),
+      via: 'parallel-sugya',
+      confidence: 0.9,
+    });
   });
 
   it('does not derive cross-daf without a current daf (existing single-arg callers unchanged)', () => {
@@ -118,7 +166,9 @@ describe('placementOf cross-daf derivation', () => {
 describe('applyMatches carries a cross-daf coord', () => {
   it('places an item with an empty local segs but a coord (no longer a no-op)', () => {
     const items = [item({ key: 'x', segs: [] })];
-    const matches: SegMatch[] = [{ key: 'x', segs: [], via: 'parallel-sugya', coord: coordForSeg(G67, 4) }];
+    const matches: SegMatch[] = [
+      { key: 'x', segs: [], via: 'parallel-sugya', coord: coordForSeg(G67, 4) },
+    ];
     const changed = applyMatches(items, matches);
     expect(changed).toBe(1);
     expect(items[0].coord).toEqual(coordForSeg(G67, 4));
@@ -137,7 +187,9 @@ describe('applyMatches carries a cross-daf coord', () => {
     // An item placed in-daf that ALSO anchors cross-daf (a parallel sugya). The
     // two anchors are orthogonal; applyMatches must persist both.
     const items = [item({ key: 'z', segs: [] })];
-    const changed = applyMatches(items, [{ key: 'z', segs: [3, 1, 3], via: 'ai', confidence: 0.7, coord: coordForSeg(G67, 9) }]);
+    const changed = applyMatches(items, [
+      { key: 'z', segs: [3, 1, 3], via: 'ai', confidence: 0.7, coord: coordForSeg(G67, 9) },
+    ]);
     expect(changed).toBe(1);
     expect(items[0].segs).toEqual([1, 3]); // deduped + sorted
     expect(items[0].coord).toEqual(coordForSeg(G67, 9));
@@ -145,7 +197,9 @@ describe('applyMatches carries a cross-daf coord', () => {
 
   it('a wholeDaf match clears segs yet still carries a coord', () => {
     const items = [item({ key: 'w', segs: [4] })];
-    const changed = applyMatches(items, [{ key: 'w', segs: [], via: 'ai', wholeDaf: true, coord: coordForSeg(G67, 2) }]);
+    const changed = applyMatches(items, [
+      { key: 'w', segs: [], via: 'ai', wholeDaf: true, coord: coordForSeg(G67, 2) },
+    ]);
     expect(changed).toBe(1);
     expect(items[0].segs).toEqual([]);
     expect(items[0].coord).toEqual(coordForSeg(G67, 2));
@@ -162,12 +216,25 @@ describe('placementOf cross-daf — precedence guards', () => {
     // segs[2] would resolve 'segment' single-arg, but the cross-daf branch is
     // evaluated first, so an off-daf coord + currentDaf takes precedence today.
     const it = item({ segs: [2], coord: coordForSeg(G67, 4), via: 'parallel-sugya' });
-    expect(placementOf(it, G68)).toEqual({ level: 'cross-daf', segs: [], coord: coordForSeg(G67, 4), via: 'parallel-sugya', confidence: undefined });
+    expect(placementOf(it, G68)).toEqual({
+      level: 'cross-daf',
+      segs: [],
+      coord: coordForSeg(G67, 4),
+      via: 'parallel-sugya',
+      confidence: undefined,
+    });
   });
 
   it('the cross-daf placement reports hbVia/hbConfidence over via/confidence', () => {
     // placementOf prefers the client-resolved HB provenance (hbVia ?? via).
-    const it = item({ segs: [], coord: coordForSeg(G67, 4), via: 'ai', confidence: 0.4, hbVia: 'ai-phrase', hbConfidence: 0.95 });
+    const it = item({
+      segs: [],
+      coord: coordForSeg(G67, 4),
+      via: 'ai',
+      confidence: 0.4,
+      hbVia: 'ai-phrase',
+      hbConfidence: 0.95,
+    });
     const p = placementOf(it, G68);
     expect(p?.via).toBe('ai-phrase');
     expect(p?.confidence).toBe(0.95);

@@ -4,9 +4,7 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "why_here"
-    ],
+    "required": ["why_here"],
     "properties": {
       "why_here": {
         "type": "string"

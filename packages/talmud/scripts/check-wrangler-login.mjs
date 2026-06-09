@@ -51,7 +51,9 @@ const result = spawnSync('npx', ['wrangler', 'whoami'], {
 
 if (result.error) {
   // wrangler not installed, or some unrelated failure — soft warn and proceed.
-  console.warn(`${DIM}[dev-precheck] wrangler whoami failed: ${result.error.message}; continuing${RESET}`);
+  console.warn(
+    `${DIM}[dev-precheck] wrangler whoami failed: ${result.error.message}; continuing${RESET}`,
+  );
   process.exit(0);
 }
 
@@ -82,5 +84,10 @@ if (notLoggedIn) {
 // Capture the account line so it's visible at boot — both confirms the
 // check ran AND helps the user notice if they're logged into the wrong CF
 // account (deploys would land in the wrong place).
-const accountLine = out.split('\n').find((l) => /Account|Email/i.test(l))?.trim();
-console.log(`${GREEN}✓${RESET} wrangler login OK${accountLine ? ` ${DIM}(${accountLine})${RESET}` : ''}`);
+const accountLine = out
+  .split('\n')
+  .find((l) => /Account|Email/i.test(l))
+  ?.trim();
+console.log(
+  `${GREEN}✓${RESET} wrangler login OK${accountLine ? ` ${DIM}(${accountLine})${RESET}` : ''}`,
+);

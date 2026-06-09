@@ -7,7 +7,7 @@
  * (ContextSourcePanel, HE) and the experimental `chart` mark's sidebar card
  * (follows the reader's language).
  */
-import { For, Show, type JSX } from 'solid-js';
+import { For, type JSX, Show } from 'solid-js';
 
 export interface ChartTableShape {
   headers: string[];
@@ -32,7 +32,8 @@ export function ChartTableView(props: {
   const dir = () => props.dir ?? 'rtl';
   const lang = () => props.lang ?? 'he';
   const accent = () => props.accent ?? '#0e7490';
-  const font = () => (lang() === 'he' ? '"Mekorot Vilna", serif' : 'system-ui, -apple-system, sans-serif');
+  const font = () =>
+    lang() === 'he' ? '"Mekorot Vilna", serif' : 'system-ui, -apple-system, sans-serif';
   const start = () => (dir() === 'rtl' ? 'right' : 'left');
   const cell = (): JSX.CSSProperties => ({
     border: '1px solid #e4e0d4',
@@ -46,7 +47,13 @@ export function ChartTableView(props: {
       <table
         dir={dir()}
         lang={lang()}
-        style={{ 'border-collapse': 'collapse', 'font-family': font(), 'font-size': '0.82rem', width: '100%', 'border': '1px solid #e4e0d4' }}
+        style={{
+          'border-collapse': 'collapse',
+          'font-family': font(),
+          'font-size': '0.82rem',
+          width: '100%',
+          border: '1px solid #e4e0d4',
+        }}
       >
         <Show when={hasHeaders()}>
           <thead>
@@ -94,11 +101,28 @@ export function ChartTableView(props: {
         </tbody>
       </table>
       <Show when={props.table.notes?.length}>
-        <div style={{ 'margin-top': '0.4rem', 'font-size': '0.72rem', color: '#777', display: 'flex', 'flex-direction': 'column', gap: '0.15rem' }}>
+        <div
+          style={{
+            'margin-top': '0.4rem',
+            'font-size': '0.72rem',
+            color: '#777',
+            display: 'flex',
+            'flex-direction': 'column',
+            gap: '0.15rem',
+          }}
+        >
           <For each={props.table.notes}>
             {(n) => (
               <div dir={dir()} lang={lang()} style={{ 'font-family': font() }}>
-                <span style={{ color: accent(), 'font-family': 'ui-monospace, monospace', 'margin-inline-end': '0.25rem' }}>{n.marker}</span>
+                <span
+                  style={{
+                    color: accent(),
+                    'font-family': 'ui-monospace, monospace',
+                    'margin-inline-end': '0.25rem',
+                  }}
+                >
+                  {n.marker}
+                </span>
                 {stripTags(n.text)}
               </div>
             )}

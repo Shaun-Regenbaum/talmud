@@ -15,10 +15,10 @@
  * tracks reads inside JSX/memos and consumers re-evaluate when daf-level
  * state changes (e.g. dafContext loads async after the sidebar mounts).
  */
-import { For, createContext, createMemo, useContext, type Accessor, type JSX } from 'solid-js';
+import { type Accessor, createContext, createMemo, For, type JSX, useContext } from 'solid-js';
+import { ConceptAwareText, firstMentionGloss, useConceptLinks } from './conceptLinks';
 import type { IdentifiedRabbi } from './dafContext';
 import { Hebraized } from './Hebraized';
-import { ConceptAwareText, firstMentionGloss, useConceptLinks } from './conceptLinks';
 
 export interface RabbiLinkContextValue {
   rabbis: Accessor<IdentifiedRabbi[]>;
@@ -33,9 +33,7 @@ export function RabbiLinkProvider(props: {
   children: JSX.Element;
 }): JSX.Element {
   return (
-    <RabbiLinkContext.Provider value={props.value}>
-      {props.children}
-    </RabbiLinkContext.Provider>
+    <RabbiLinkContext.Provider value={props.value}>{props.children}</RabbiLinkContext.Provider>
   );
 }
 
@@ -74,10 +72,7 @@ function normalizeRabbiName(s: string): string {
 
 /** Return the rabbi from `rabbis` whose name matches `query`, or null.
  *  Tries direct equality first, then normalized form. */
-export function resolveRabbi(
-  query: string,
-  rabbis: IdentifiedRabbi[],
-): IdentifiedRabbi | null {
+export function resolveRabbi(query: string, rabbis: IdentifiedRabbi[]): IdentifiedRabbi | null {
   if (!query || rabbis.length === 0) return null;
   const direct = rabbis.find((r) => r.name === query);
   if (direct) return direct;
@@ -98,7 +93,10 @@ function buildNameRegex(names: string[]): RegExp | null {
   return new RegExp(`\\b(${cleaned.join('|')})\\b`, 'g');
 }
 
-export interface RabbiTextPart { kind: 'text' | 'link'; value: string; }
+export interface RabbiTextPart {
+  kind: 'text' | 'link';
+  value: string;
+}
 
 /** Split prose into plain-text and rabbi-link parts. Every matched name yields
  *  a 'link' part whose `value` is the matched name verbatim — so a linkified
@@ -163,33 +161,44 @@ export function RabbiText(props: {
   });
 
   return (
-    <For each={parts()}>{(p) => {
-      // Concept tooltips layer UNDER rabbi links: a name matched as a rabbi is
-      // already a 'link' part, so only the non-rabbi text is scanned for terms.
-      if (p.kind === 'text') return <ConceptAwareText text={p.value} />;
-      // For routing: try slug resolution against rabbis; if missing,
-      // still emit a link button — pushRabbi handles unresolved names by
-      // building a stub from the rabbi mark or just highlighting on the
-      // daf.
-      const resolved = resolveRabbi(p.value, props.rabbis);
-      const targetName = resolved ? resolved.name : p.value;
-      // Inline <span role="link">, NOT <button> — a <button>'s text is atomic
-      // and gets dropped when the user selects/copies the surrounding prose, so
-      // copying a paragraph silently lost every rabbi name. A span keeps the
-      // name in the document text flow (copyable) while staying clickable +
-      // keyboard-accessible.
-      return (
-        <span
-          role="link"
-          tabindex={0}
-          onClick={(e) => { e.stopPropagation(); props.onPushRabbi(targetName); }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); props.onPushRabbi(targetName); }
-          }}
-          style={linkStyle}
-          title={`Open ${targetName}`}
-        >{p.value}</span>
-      );
-    }}</For>
+    <For each={parts()}>
+      {(p) => {
+        // Concept tooltips layer UNDER rabbi links: a name matched as a rabbi is
+        // already a 'link' part, so only the non-rabbi text is scanned for terms.
+        if (p.kind === 'text') return <ConceptAwareText text={p.value} />;
+        // For routing: try slug resolution against rabbis; if missing,
+        // still emit a link button — pushRabbi handles unresolved names by
+        // building a stub from the rabbi mark or just highlighting on the
+        // daf.
+        const resolved = resolveRabbi(p.value, props.rabbis);
+        const targetName = resolved ? resolved.name : p.value;
+        // Inline <span role="link">, NOT <button> — a <button>'s text is atomic
+        // and gets dropped when the user selects/copies the surrounding prose, so
+        // copying a paragraph silently lost every rabbi name. A span keeps the
+        // name in the document text flow (copyable) while staying clickable +
+        // keyboard-accessible.
+        return (
+          <span
+            role="link"
+            tabindex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              props.onPushRabbi(targetName);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                e.stopPropagation();
+                props.onPushRabbi(targetName);
+              }
+            }}
+            style={linkStyle}
+            title={`Open ${targetName}`}
+          >
+            {p.value}
+          </span>
+        );
+      }}
+    </For>
   );
 }

@@ -36,7 +36,11 @@ export interface DafMarker {
 /** All structural markers on the daf, as marker spans (currently just the
  *  Hadran). Shape mirrors a mark instance so renderers can treat it uniformly. */
 export function findMarkers(segmentsHe: string[]): DafMarker[] {
-  return findHadranSegments(segmentsHe).map((seg) => ({ startSegIdx: seg, endSegIdx: seg, kind: 'hadran' as const }));
+  return findHadranSegments(segmentsHe).map((seg) => ({
+    startSegIdx: seg,
+    endSegIdx: seg,
+    kind: 'hadran' as const,
+  }));
 }
 
 /** Split a daf's segment count into perek runs at the Hadran boundaries — each

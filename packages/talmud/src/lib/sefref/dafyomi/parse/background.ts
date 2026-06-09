@@ -11,10 +11,8 @@
  *    are `p.def.inyan1` with `span.nm` "(a)".
  */
 
-import {
-  elementChildren, text, collapse, extractRefs, txt, type HTMLElement,
-} from './common.ts';
 import type { DafyomiEntry } from '../schema.ts';
+import { collapse, elementChildren, extractRefs, type HTMLElement, text, txt } from './common.ts';
 
 export interface BackgroundResult {
   girsa: DafyomiEntry[];
@@ -32,7 +30,10 @@ export function parseBackground(content: HTMLElement): BackgroundResult {
   for (const el of elementChildren(content)) {
     const cls = el.getAttribute('class') ?? '';
 
-    if (/\blinecount\b/.test(cls)) { lineCounts = text(el).replace(/^\[|\]$/g, ''); continue; }
+    if (/\blinecount\b/.test(cls)) {
+      lineCounts = text(el).replace(/^\[|\]$/g, '');
+      continue;
+    }
     if (/\b(girsasep|girsatext)\b/.test(cls)) continue; // separators / section preamble
 
     // Classify by the element's OWN class, not a stateful girsa->glossary flip
@@ -42,7 +43,9 @@ export function parseBackground(content: HTMLElement): BackgroundResult {
     // girsa; a plain `def` is a glossary entry — order matters since girsa
     // elements also carry the `def` class.
     if (/\bgirsaloc\b/.test(cls)) {
-      const term = collapse((el.querySelector('.girsalocheb') ?? el.querySelector('.defheb'))?.text ?? '');
+      const term = collapse(
+        (el.querySelector('.girsalocheb') ?? el.querySelector('.defheb'))?.text ?? '',
+      );
       const entry: DafyomiEntry = {
         marker: collapse(el.querySelector('.nm')?.text ?? '') || undefined,
         level: 0,
@@ -58,7 +61,8 @@ export function parseBackground(content: HTMLElement): BackgroundResult {
     }
     if (/\bgirsa\b/.test(cls)) {
       const body = text(el);
-      if (lastGirsa && body) lastGirsa.body.en = lastGirsa.body.en ? `${lastGirsa.body.en}\n${body}` : body;
+      if (lastGirsa && body)
+        lastGirsa.body.en = lastGirsa.body.en ? `${lastGirsa.body.en}\n${body}` : body;
       continue;
     }
 
@@ -106,7 +110,11 @@ function glossaryBody(el: HTMLElement): string {
   const translit = collapse(el.querySelector('.deftext')?.text ?? '');
   if (translit) {
     const idx = full.indexOf(translit);
-    if (idx >= 0) return full.slice(idx + translit.length).replace(/^[\s-]+/, '').trim();
+    if (idx >= 0)
+      return full
+        .slice(idx + translit.length)
+        .replace(/^[\s-]+/, '')
+        .trim();
   }
   return full;
 }

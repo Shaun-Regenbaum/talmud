@@ -28,8 +28,8 @@ export interface AigwModelRow {
 }
 
 export interface AigwCost {
-  configured: boolean;        // do we have a token + account/gateway ids
-  ok: boolean;                // did the query succeed
+  configured: boolean; // do we have a token + account/gateway ids
+  ok: boolean; // did the query succeed
   error?: string;
   windowStart?: string;
   windowEnd?: string;
@@ -83,7 +83,11 @@ export async function fetchGatewayCost(env: AigwEnv, days = 30): Promise<AigwCos
   const gateway = env.AI_GATEWAY_ID;
   const token = env.CF_ANALYTICS_TOKEN;
   if (!token || !account || !gateway) {
-    const missing = [!token && 'CF_ANALYTICS_TOKEN', !account && 'CLOUDFLARE_ACCOUNT_ID', !gateway && 'AI_GATEWAY_ID']
+    const missing = [
+      !token && 'CF_ANALYTICS_TOKEN',
+      !account && 'CLOUDFLARE_ACCOUNT_ID',
+      !gateway && 'AI_GATEWAY_ID',
+    ]
       .filter(Boolean)
       .join(', ');
     return { configured: false, ok: false, error: `not configured (missing: ${missing})` };
@@ -108,11 +112,21 @@ export async function fetchGatewayCost(env: AigwEnv, days = 30): Promise<AigwCos
       return { configured: true, ok: false, error: `HTTP ${res.status}` };
     }
     const json = (await res.json()) as {
-      data?: { viewer?: { accounts?: Array<{ aiGatewayRequestsAdaptiveGroups?: GraphQLGroup[] }> } };
+      data?: {
+        viewer?: { accounts?: Array<{ aiGatewayRequestsAdaptiveGroups?: GraphQLGroup[] }> };
+      };
       errors?: Array<{ message?: string }>;
     };
     if (json.errors && json.errors.length > 0) {
-      return { configured: true, ok: false, error: json.errors.map((e) => e.message).filter(Boolean).join('; ').slice(0, 300) };
+      return {
+        configured: true,
+        ok: false,
+        error: json.errors
+          .map((e) => e.message)
+          .filter(Boolean)
+          .join('; ')
+          .slice(0, 300),
+      };
     }
     const groups = json.data?.viewer?.accounts?.[0]?.aiGatewayRequestsAdaptiveGroups ?? [];
     let requests = 0;
@@ -130,7 +144,14 @@ export async function fetchGatewayCost(env: AigwEnv, days = 30): Promise<AigwCos
       tokensIn += tin;
       tokensOut += tout;
       const model = g.dimensions?.model ?? '(unknown)';
-      const row = byModelMap.get(model) ?? { model, provider: g.dimensions?.provider, requests: 0, costUsd: 0, tokensIn: 0, tokensOut: 0 };
+      const row = byModelMap.get(model) ?? {
+        model,
+        provider: g.dimensions?.provider,
+        requests: 0,
+        costUsd: 0,
+        tokensIn: 0,
+        tokensOut: 0,
+      };
       row.requests += c;
       row.costUsd += cost;
       row.tokensIn += tin;
@@ -150,6 +171,10 @@ export async function fetchGatewayCost(env: AigwEnv, days = 30): Promise<AigwCos
       byModel,
     };
   } catch (err) {
-    return { configured: true, ok: false, error: String((err as Error)?.message ?? err).slice(0, 300) };
+    return {
+      configured: true,
+      ok: false,
+      error: String((err as Error)?.message ?? err).slice(0, 300),
+    };
   }
 }

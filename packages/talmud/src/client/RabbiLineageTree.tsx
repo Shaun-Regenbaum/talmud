@@ -15,10 +15,15 @@
  * Hebrew/Aramaic span on the daf via onHighlightRange.
  */
 
-import { For, Show, createSignal, type JSX } from 'solid-js';
-import { GENERATION_BY_ID, GENERATION_IDS, generationLabelHe, type GenerationId } from './generations';
-import { t, lang } from './i18n';
-import { orthogonalEdgePath, type EdgeRect } from './flow/orthogonalEdge';
+import { createSignal, For, type JSX, Show } from 'solid-js';
+import { type EdgeRect, orthogonalEdgePath } from './flow/orthogonalEdge';
+import {
+  GENERATION_BY_ID,
+  GENERATION_IDS,
+  type GenerationId,
+  generationLabelHe,
+} from './generations';
+import { lang, t } from './i18n';
 
 /** Generation label in the active language. */
 function genLabel(id: GenerationId): string {
@@ -75,18 +80,26 @@ interface Props {
    *  a sensible default based on relationship role (teacher = one earlier,
    *  student = one later, partner = same, family = derived from relation). */
   generationByName: Map<string, GenerationId>;
-  onHighlightRange?: (range: { start: number; end: number; key: string; tokenStart?: number; tokenEnd?: number } | null) => void;
+  onHighlightRange?: (
+    range: {
+      start: number;
+      end: number;
+      key: string;
+      tokenStart?: number;
+      tokenEnd?: number;
+    } | null,
+  ) => void;
 }
 
 // Layout constants. The SVG width is fixed (~620px to fit a 640px sidebar
 // with small horizontal padding); height is computed from the number of
 // generation rows the visible set spans.
-const AXIS_WIDTH = 96;          // generation labels column
+const AXIS_WIDTH = 96; // generation labels column
 const NODE_W = 152;
 const NODE_H = 40;
 const ROW_H = 82;
 const COL_GAP = 22;
-const NODE_GAP = 12;            // gap between adjacent nodes in the same row
+const NODE_GAP = 12; // gap between adjacent nodes in the same row
 const TOP_PADDING = 20;
 const BOTTOM_PADDING = 22;
 /** Max character count we'll let render before truncating with ellipsis.
@@ -248,7 +261,9 @@ function buildLayout(
   for (const f of visibleFamily) {
     const id = generationByName.get(f.name);
     const fallbackOffset = familyGenerationOffset(f.relation);
-    const genIdx = id ? genIndex(id) : Math.max(0, Math.min(GENERATION_IDS.length - 1, subjectIdx + fallbackOffset));
+    const genIdx = id
+      ? genIndex(id)
+      : Math.max(0, Math.min(GENERATION_IDS.length - 1, subjectIdx + fallbackOffset));
     pre.push({
       key: `family:${f.name}`,
       name: f.name,
@@ -378,19 +393,20 @@ export default function RabbiLineageTree(props: Props): JSX.Element {
     return m;
   };
 
-  const layout = () => buildLayout(
-    props.subjectName,
-    props.subjectGeneration,
-    props.data,
-    props.generationByName,
-    expanded(),
-  );
+  const layout = () =>
+    buildLayout(
+      props.subjectName,
+      props.subjectGeneration,
+      props.data,
+      props.generationByName,
+      expanded(),
+    );
 
   const hasOverflow = () =>
-    props.data.teachers.some((t) => !t.primary)
-    || props.data.students.some((t) => !t.primary)
-    || props.data.debatePartners.length > 2
-    || props.data.family.length > 0;
+    props.data.teachers.some((t) => !t.primary) ||
+    props.data.students.some((t) => !t.primary) ||
+    props.data.debatePartners.length > 2 ||
+    props.data.family.length > 0;
 
   // Map role → evidence kind for evidence lookup.
   const roleToEvidenceKind: Record<Role, RelationshipsEvidence['kind'] | null> = {
@@ -447,37 +463,46 @@ export default function RabbiLineageTree(props: Props): JSX.Element {
   };
 
   return (
-    <div style={{
-      border: '1px solid #eae8e0',
-      'border-radius': '6px',
-      background: '#fafaf7',
-      padding: '0.7rem 0.85rem',
-      'margin-top': '0.9rem',
-    }}>
-      <div style={{
-        'font-size': '0.7rem',
-        'text-transform': 'uppercase',
-        'letter-spacing': '0.08em',
-        color: '#888',
-        'margin-bottom': '0.5rem',
-        display: 'flex',
-        'align-items': 'center',
-        'justify-content': 'space-between',
-      }}>
+    <div
+      style={{
+        border: '1px solid #eae8e0',
+        'border-radius': '6px',
+        background: '#fafaf7',
+        padding: '0.7rem 0.85rem',
+        'margin-top': '0.9rem',
+      }}
+    >
+      <div
+        style={{
+          'font-size': '0.7rem',
+          'text-transform': 'uppercase',
+          'letter-spacing': '0.08em',
+          color: '#888',
+          'margin-bottom': '0.5rem',
+          display: 'flex',
+          'align-items': 'center',
+          'justify-content': 'space-between',
+        }}
+      >
         <span>{t('rabbi.lineage.title')}</span>
         <Show when={hasOverflow()}>
           <button
             type="button"
             onClick={() => setExpanded(!expanded())}
             style={{
-              background: 'none', border: 'none', padding: 0,
-              color: '#666', cursor: 'pointer',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              color: '#666',
+              cursor: 'pointer',
               'font-size': '0.65rem',
               'font-family': 'inherit',
               'text-transform': 'uppercase',
               'letter-spacing': '0.06em',
             }}
-          >{expanded() ? t('common.collapse') : t('common.showAll')}</button>
+          >
+            {expanded() ? t('common.collapse') : t('common.showAll')}
+          </button>
         </Show>
       </div>
 
@@ -485,19 +510,21 @@ export default function RabbiLineageTree(props: Props): JSX.Element {
           slot, scroll in both axes. SVG renders at natural size — no
           max-width:100% which would scale-fit and crush the layout.
           min-width:0 lets the wrapper shrink inside flex parents. */}
-      <div style={{
-        width: '100%',
-        'min-width': 0,
-        'max-height': '480px',
-        'overflow-x': 'auto',
-        'overflow-y': 'auto',
-        // Inherently LTR diagram — pin scroll direction so the page-level
-        // dir=rtl (Hebrew) doesn't push the right-hand generations off-screen.
-        direction: 'ltr',
-        border: '1px solid #f0eee6',
-        'border-radius': '4px',
-        background: '#fff',
-      }}>
+      <div
+        style={{
+          width: '100%',
+          'min-width': 0,
+          'max-height': '480px',
+          'overflow-x': 'auto',
+          'overflow-y': 'auto',
+          // Inherently LTR diagram — pin scroll direction so the page-level
+          // dir=rtl (Hebrew) doesn't push the right-hand generations off-screen.
+          direction: 'ltr',
+          border: '1px solid #f0eee6',
+          'border-radius': '4px',
+          background: '#fff',
+        }}
+      >
         <svg
           width={layout().width}
           height={layout().height}
@@ -506,34 +533,38 @@ export default function RabbiLineageTree(props: Props): JSX.Element {
         >
           {/* Generation axis: vertical column on the left with horizontal
               divider lines + small color swatch + generation label. */}
-          <For each={axisRows()}>{(row) => (
-            <>
-              <line
-                x1={AXIS_WIDTH - 2}
-                y1={row.y}
-                x2={AXIS_WIDTH + 6}
-                y2={row.y}
-                stroke="#999"
-                stroke-width={1.5}
-              />
-              <circle
-                cx={AXIS_WIDTH - 10}
-                cy={row.y}
-                r={4}
-                fill={row.color}
-                stroke="#fff"
-                stroke-width={1}
-              />
-              <text
-                x={AXIS_WIDTH - 18}
-                y={row.y + 4}
-                text-anchor="end"
-                font-size="10"
-                font-family="system-ui, -apple-system, sans-serif"
-                fill="#555"
-              >{row.label}</text>
-            </>
-          )}</For>
+          <For each={axisRows()}>
+            {(row) => (
+              <>
+                <line
+                  x1={AXIS_WIDTH - 2}
+                  y1={row.y}
+                  x2={AXIS_WIDTH + 6}
+                  y2={row.y}
+                  stroke="#999"
+                  stroke-width={1.5}
+                />
+                <circle
+                  cx={AXIS_WIDTH - 10}
+                  cy={row.y}
+                  r={4}
+                  fill={row.color}
+                  stroke="#fff"
+                  stroke-width={1}
+                />
+                <text
+                  x={AXIS_WIDTH - 18}
+                  y={row.y + 4}
+                  text-anchor="end"
+                  font-size="10"
+                  font-family="system-ui, -apple-system, sans-serif"
+                  fill="#555"
+                >
+                  {row.label}
+                </text>
+              </>
+            )}
+          </For>
 
           {/* Vertical timeline spine */}
           <line
@@ -547,108 +578,132 @@ export default function RabbiLineageTree(props: Props): JSX.Element {
 
           {/* Edges: solid for parent (teacher→student), dashed for partner.
               Drawn before nodes so nodes paint over the line ends. */}
-          <For each={layout().edges}>{(e) => (
-            <path
-              d={e.kind === 'parent' ? parentPath(e.from, e.to) : partnerPath(e.from, e.to)}
-              fill="none"
-              stroke={e.kind === 'parent' ? '#666' : '#999'}
-              stroke-width={1.5}
-              stroke-dasharray={e.kind === 'partner' ? '4 3' : undefined}
-            />
-          )}</For>
+          <For each={layout().edges}>
+            {(e) => (
+              <path
+                d={e.kind === 'parent' ? parentPath(e.from, e.to) : partnerPath(e.from, e.to)}
+                fill="none"
+                stroke={e.kind === 'parent' ? '#666' : '#999'}
+                stroke-width={1.5}
+                stroke-dasharray={e.kind === 'partner' ? '4 3' : undefined}
+              />
+            )}
+          </For>
 
           {/* Nodes */}
-          <For each={layout().nodes}>{(n) => {
-            const gen = GENERATION_BY_ID[n.generationId];
-            const ev = evidenceFor(n);
-            const hasEv = !!ev;
-            const isActive = activeEvidenceKey() === (ev ? `rabbi-evidence:${n.role}:${n.name}:${ev.startSegIdx}:${ev.tokenStart ?? 0}` : '');
-            const borderColor = isActive ? EVIDENCE_BORDER : (gen?.color ?? '#999');
-            const bgColor = isActive ? EVIDENCE_BG : (hasEv ? '#fefce8' : (n.role === 'subject' ? '#fff' : '#fff'));
-            const labelColor = n.role === 'subject' ? PRIMARY_COLOR : '#222';
-            const borderWidth = n.role === 'subject' ? 2 : (n.primary ? 1.75 : 1.25);
+          <For each={layout().nodes}>
+            {(n) => {
+              const gen = GENERATION_BY_ID[n.generationId];
+              const ev = evidenceFor(n);
+              const hasEv = !!ev;
+              const isActive =
+                activeEvidenceKey() ===
+                (ev
+                  ? `rabbi-evidence:${n.role}:${n.name}:${ev.startSegIdx}:${ev.tokenStart ?? 0}`
+                  : '');
+              const borderColor = isActive ? EVIDENCE_BORDER : (gen?.color ?? '#999');
+              const bgColor = isActive
+                ? EVIDENCE_BG
+                : hasEv
+                  ? '#fefce8'
+                  : n.role === 'subject'
+                    ? '#fff'
+                    : '#fff';
+              const labelColor = n.role === 'subject' ? PRIMARY_COLOR : '#222';
+              const borderWidth = n.role === 'subject' ? 2 : n.primary ? 1.75 : 1.25;
 
-            return (
-              <g
-                style={{ cursor: hasEv ? 'pointer' : 'default' }}
-                onClick={() => hasEv && clickNode(n)}
-              >
-                <title>{
-                  ev ? `${n.name}\n${t('rabbi.onThisDaf', { text: ev.note || ev.excerpt })}`
-                    : `${n.name}${n.familyRelation ? ` — ${n.familyRelation}` : ''}${gen ? ` · ${genLabel(n.generationId)}` : ''}`
-                }</title>
-                <rect
-                  x={n.x}
-                  y={n.y}
-                  width={NODE_W}
-                  height={NODE_H}
-                  rx={6}
-                  ry={6}
-                  fill={bgColor}
-                  stroke={borderColor}
-                  stroke-width={borderWidth}
-                />
-                {/* Generation color stripe on the left edge of each node */}
-                <rect
-                  x={n.x}
-                  y={n.y}
-                  width={4}
-                  height={NODE_H}
-                  rx={2}
-                  ry={2}
-                  fill={gen?.color ?? '#999'}
-                />
-                {/* Family relation tag (small, above name) */}
-                <Show when={n.familyRelation}>
-                  <text
-                    x={n.x + NODE_W / 2}
-                    y={n.y + 11}
-                    text-anchor="middle"
-                    font-size="8"
-                    font-family="system-ui, -apple-system, sans-serif"
-                    fill="#888"
-                  >{n.familyRelation}</text>
-                </Show>
-                {/* Person name. Subject prefers full form but falls back to
+              return (
+                <g
+                  style={{ cursor: hasEv ? 'pointer' : 'default' }}
+                  onClick={() => hasEv && clickNode(n)}
+                >
+                  <title>
+                    {ev
+                      ? `${n.name}\n${t('rabbi.onThisDaf', { text: ev.note || ev.excerpt })}`
+                      : `${n.name}${n.familyRelation ? ` — ${n.familyRelation}` : ''}${gen ? ` · ${genLabel(n.generationId)}` : ''}`}
+                  </title>
+                  <rect
+                    x={n.x}
+                    y={n.y}
+                    width={NODE_W}
+                    height={NODE_H}
+                    rx={6}
+                    ry={6}
+                    fill={bgColor}
+                    stroke={borderColor}
+                    stroke-width={borderWidth}
+                  />
+                  {/* Generation color stripe on the left edge of each node */}
+                  <rect
+                    x={n.x}
+                    y={n.y}
+                    width={4}
+                    height={NODE_H}
+                    rx={2}
+                    ry={2}
+                    fill={gen?.color ?? '#999'}
+                  />
+                  {/* Family relation tag (small, above name) */}
+                  <Show when={n.familyRelation}>
+                    <text
+                      x={n.x + NODE_W / 2}
+                      y={n.y + 11}
+                      text-anchor="middle"
+                      font-size="8"
+                      font-family="system-ui, -apple-system, sans-serif"
+                      fill="#888"
+                    >
+                      {n.familyRelation}
+                    </text>
+                  </Show>
+                  {/* Person name. Subject prefers full form but falls back to
                     compaction/ellipsis when too long; other nodes always get
                     "Rabbi" → "R." compaction + ellipsis truncation so long
                     names like "Rabbi Shimon bar Yochai" don't overflow
                     the card. Full name is in the <title> tooltip. */}
-                <text
-                  x={n.x + NODE_W / 2}
-                  y={n.familyRelation ? n.y + 26 : n.y + 23}
-                  text-anchor="middle"
-                  font-size={n.role === 'subject' ? '13' : '11'}
-                  font-weight={n.role === 'subject' || n.primary ? 600 : 500}
-                  font-family="system-ui, -apple-system, sans-serif"
-                  fill={labelColor}
-                >{n.role === 'subject' ? fitSubjectName(n.name) : compactRabbiName(n.name)}</text>
-                {/* Evidence dot in the top-right corner */}
-                <Show when={hasEv}>
-                  <circle
-                    cx={n.x + NODE_W - 6}
-                    cy={n.y + 6}
-                    r={3.5}
-                    fill={EVIDENCE_BORDER}
-                  />
-                </Show>
-              </g>
-            );
-          }}</For>
+                  <text
+                    x={n.x + NODE_W / 2}
+                    y={n.familyRelation ? n.y + 26 : n.y + 23}
+                    text-anchor="middle"
+                    font-size={n.role === 'subject' ? '13' : '11'}
+                    font-weight={n.role === 'subject' || n.primary ? 600 : 500}
+                    font-family="system-ui, -apple-system, sans-serif"
+                    fill={labelColor}
+                  >
+                    {n.role === 'subject' ? fitSubjectName(n.name) : compactRabbiName(n.name)}
+                  </text>
+                  {/* Evidence dot in the top-right corner */}
+                  <Show when={hasEv}>
+                    <circle cx={n.x + NODE_W - 6} cy={n.y + 6} r={3.5} fill={EVIDENCE_BORDER} />
+                  </Show>
+                </g>
+              );
+            }}
+          </For>
         </svg>
       </div>
 
       <Show when={props.data.debatePartners.length > 0}>
-        <div style={{
-          'font-size': '0.65rem', color: '#999',
-          'text-transform': 'uppercase', 'letter-spacing': '0.06em',
-          'margin-top': '0.5rem',
-          display: 'flex', 'align-items': 'center', gap: '0.5rem',
-        }}>
-          <span style={{
-            display: 'inline-block', width: '12px', height: '1.5px',
-            'border-top': '1.5px dashed #999',
-          }} />
+        <div
+          style={{
+            'font-size': '0.65rem',
+            color: '#999',
+            'text-transform': 'uppercase',
+            'letter-spacing': '0.06em',
+            'margin-top': '0.5rem',
+            display: 'flex',
+            'align-items': 'center',
+            gap: '0.5rem',
+          }}
+        >
+          <span
+            style={{
+              display: 'inline-block',
+              width: '12px',
+              height: '1.5px',
+              'border-top': '1.5px dashed #999',
+            }}
+          />
           <span>{t('rabbi.lineage.debatePartners')}</span>
         </div>
       </Show>

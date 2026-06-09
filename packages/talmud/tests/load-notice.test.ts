@@ -1,8 +1,13 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { loadNotice, type PrefetchProgress } from '../src/client/dafPrefetch';
 
 const base: PrefetchProgress = {
-  dafKey: 'Shabbat:126a', total: 10, done: 0, currentLabel: null, paused: false, failed: 0,
+  dafKey: 'Shabbat:126a',
+  total: 10,
+  done: 0,
+  currentLabel: null,
+  paused: false,
+  failed: 0,
 };
 
 describe('loadNotice — daf-load bar notice', () => {

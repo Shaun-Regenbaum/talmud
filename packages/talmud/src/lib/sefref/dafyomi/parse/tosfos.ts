@@ -8,11 +8,16 @@
  * anchor key for matching to Sefaria's tosafot pieces.
  */
 
+import type { DafyomiRef, DafyomiTosfosPiece } from '../schema.ts';
 import {
-  elementChildren, isAmudBreak, text, collapse, normalizeHe,
-  extractRefs, type HTMLElement,
+  collapse,
+  elementChildren,
+  extractRefs,
+  type HTMLElement,
+  isAmudBreak,
+  normalizeHe,
+  text,
 } from './common.ts';
-import type { DafyomiTosfosPiece, DafyomiRef } from '../schema.ts';
 
 export interface SplitTosfos {
   a: DafyomiTosfosPiece[];
@@ -48,7 +53,11 @@ export function parseTosfos(content: HTMLElement): SplitTosfos {
   };
 
   for (const el of elementChildren(content)) {
-    if (isAmudBreak(el)) { amud = 'b'; split = true; continue; }
+    if (isAmudBreak(el)) {
+      amud = 'b';
+      split = true;
+      continue;
+    }
     const cls = el.getAttribute('class') ?? '';
 
     if (/\bsubject\b/.test(cls) && !/\bsubjectheb\b/.test(cls)) {
@@ -69,7 +78,10 @@ export function parseTosfos(content: HTMLElement): SplitTosfos {
       continue;
     }
     if (/\bsummary\b/.test(cls)) {
-      const s = text(el).replace(/^\(?\s*SUMMARY:\s*/i, '').replace(/\)$/, '').trim();
+      const s = text(el)
+        .replace(/^\(?\s*SUMMARY:\s*/i, '')
+        .replace(/\)$/, '')
+        .trim();
       if (s) enParts.push(`SUMMARY: ${s}`);
       continue;
     }
@@ -82,7 +94,6 @@ export function parseTosfos(content: HTMLElement): SplitTosfos {
       const t = text(el).replace(/^\([a-z]\)\s*/i, '');
       if (t) enParts.push(t);
       for (const r of extractRefs(el)) refs.push(r);
-      continue;
     }
   }
   flush();

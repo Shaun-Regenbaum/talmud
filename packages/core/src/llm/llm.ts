@@ -23,10 +23,10 @@
  */
 
 import { runWithRetry } from './ai-gateway';
-import { LLMError, isFallbackWorthy, NEITHER, TIMEOUT } from './llm-error';
-import { DEFAULT_MODEL, DEFAULT_FALLBACK_CHAIN } from './settings';
-import { checkBudget, recordSpend, BudgetPausedError, type EmailBinding } from './budget';
+import { BudgetPausedError, checkBudget, type EmailBinding, recordSpend } from './budget';
+import { isFallbackWorthy, LLMError, NEITHER, TIMEOUT } from './llm-error';
 import { costSplitUsd, normalizeUsage } from './pricing';
+import { DEFAULT_FALLBACK_CHAIN, DEFAULT_MODEL } from './settings';
 
 export type LLMModelId = `@cf/${string}` | `openrouter/${string}`;
 
@@ -67,9 +67,7 @@ export interface LLMCallOptions {
   messages: LLMMessage[];
   max_tokens: number;
   temperature?: number;
-  response_format?:
-    | { type: 'json_object' }
-    | { type: 'json_schema'; json_schema: unknown };
+  response_format?: { type: 'json_object' } | { type: 'json_schema'; json_schema: unknown };
   reasoning_effort?: 'low' | 'medium' | 'high';
   /**
    * Maps to chat_template_kwargs.enable_thinking on Workers AI Kimi-style
@@ -222,9 +220,10 @@ function withHardTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T
 export function resolveChain(env: LLMEnv, opts: LLMCallOptions): LLMModelId[] {
   if (opts.model) return [opts.model, ...(opts.fallback ?? [])];
   const fromEnv = env.DEFAULT_LLM_MODEL;
-  const base: LLMModelId = (typeof fromEnv === 'string' && (fromEnv.startsWith('@cf/') || fromEnv.startsWith('openrouter/')))
-    ? fromEnv as LLMModelId
-    : DEFAULT_MODEL;
+  const base: LLMModelId =
+    typeof fromEnv === 'string' && (fromEnv.startsWith('@cf/') || fromEnv.startsWith('openrouter/'))
+      ? (fromEnv as LLMModelId)
+      : DEFAULT_MODEL;
   return [base, ...(opts.fallback ?? DEFAULT_FALLBACK_CHAIN)];
 }
 
@@ -250,7 +249,11 @@ export async function runLLM(env: LLMEnv, opts: LLMCallOptions): Promise<LLMResu
   for (let i = 0; i < chain.length; i++) {
     const model = chain[i];
     try {
-      const result = await withHardTimeout(callOnce(env, model, opts), MODEL_CALL_HARD_TIMEOUT_MS, model);
+      const result = await withHardTimeout(
+        callOnce(env, model, opts),
+        MODEL_CALL_HARD_TIMEOUT_MS,
+        model,
+      );
       await recordLLMCost(env, model, i + 1, result, opts);
       // Feed the spend budget (./budget) so the next checkBudget sees this call.
       await recordSpend(env, { model: result.model, usage: result.usage, custom });
@@ -263,7 +266,9 @@ export async function runLLM(env: LLMEnv, opts: LLMCallOptions): Promise<LLMResu
       // fallback hides upstream errors and a final fallback failure
       // reports only the LAST model's error, not what actually started
       // the cascade.
-      console.warn(`[runLLM] ${model} attempt ${i + 1}/${chain.length} failed: ${detail.slice(0, 300)}`);
+      console.warn(
+        `[runLLM] ${model} attempt ${i + 1}/${chain.length} failed: ${detail.slice(0, 300)}`,
+      );
       if (!isFallbackWorthy(err) || i === chain.length - 1) throw err;
     }
   }
@@ -326,7 +331,11 @@ async function recordLLMCost(
   }
 }
 
-async function callOnce(env: LLMEnv, model: LLMModelId, opts: LLMCallOptions): Promise<Omit<LLMResult, 'attempts'>> {
+async function callOnce(
+  env: LLMEnv,
+  model: LLMModelId,
+  opts: LLMCallOptions,
+): Promise<Omit<LLMResult, 'attempts'>> {
   if (model.startsWith('@cf/')) return callWorkersAI(env, model, opts);
   if (model.startsWith('openrouter/')) return callOpenRouterGateway(env, model, opts);
   throw new LLMError(400, `Unknown model prefix: ${model}`);
@@ -336,7 +345,11 @@ async function callOnce(env: LLMEnv, model: LLMModelId, opts: LLMCallOptions): P
 // Transport: Workers AI (env.AI.run)
 // ---------------------------------------------------------------------------
 
-async function callWorkersAI(env: LLMEnv, model: LLMModelId, opts: LLMCallOptions): Promise<Omit<LLMResult, 'attempts'>> {
+async function callWorkersAI(
+  env: LLMEnv,
+  model: LLMModelId,
+  opts: LLMCallOptions,
+): Promise<Omit<LLMResult, 'attempts'>> {
   if (!env.AI) throw new LLMError(503, 'AI binding not available', { cls: NEITHER });
   const promptChars = opts.messages.reduce((s, m) => s + m.content.length, 0);
   const t0 = Date.now();
@@ -379,10 +392,7 @@ async function callWorkersAI(env: LLMEnv, model: LLMModelId, opts: LLMCallOption
     }>;
     usage?: LLMUsage;
   };
-  const content =
-    r.choices?.[0]?.message?.content ??
-    r.response ??
-    '';
+  const content = r.choices?.[0]?.message?.content ?? r.response ?? '';
   const reasoning = r.choices?.[0]?.message?.reasoning_content ?? '';
   const finish = r.choices?.[0]?.finish_reason ?? null;
   return {
@@ -405,13 +415,28 @@ function openRouterGatewayUrl(env: LLMEnv): string {
   const account = env.CLOUDFLARE_ACCOUNT_ID;
   const gateway = env.AI_GATEWAY_ID;
   const provider = env.OPENROUTER_GATEWAY_PROVIDER ?? 'openrouter';
-  if (!account) throw new LLMError(500, 'CLOUDFLARE_ACCOUNT_ID not set; required for OpenRouter routing via AI Gateway', { cls: NEITHER });
-  if (!gateway) throw new LLMError(500, 'AI_GATEWAY_ID not set; required for OpenRouter routing via AI Gateway', { cls: NEITHER });
+  if (!account)
+    throw new LLMError(
+      500,
+      'CLOUDFLARE_ACCOUNT_ID not set; required for OpenRouter routing via AI Gateway',
+      { cls: NEITHER },
+    );
+  if (!gateway)
+    throw new LLMError(
+      500,
+      'AI_GATEWAY_ID not set; required for OpenRouter routing via AI Gateway',
+      { cls: NEITHER },
+    );
   return `https://gateway.ai.cloudflare.com/v1/${account}/${gateway}/${provider}/v1/chat/completions`;
 }
 
-async function callOpenRouterGateway(env: LLMEnv, model: LLMModelId, opts: LLMCallOptions): Promise<Omit<LLMResult, 'attempts'>> {
-  if (!env.OPENROUTER_API_KEY) throw new LLMError(503, 'OPENROUTER_API_KEY not set', { cls: NEITHER });
+async function callOpenRouterGateway(
+  env: LLMEnv,
+  model: LLMModelId,
+  opts: LLMCallOptions,
+): Promise<Omit<LLMResult, 'attempts'>> {
+  if (!env.OPENROUTER_API_KEY)
+    throw new LLMError(503, 'OPENROUTER_API_KEY not set', { cls: NEITHER });
   const promptChars = opts.messages.reduce((s, m) => s + m.content.length, 0);
   const t0 = Date.now();
   const orSlug = model.replace(/^openrouter\//, '');
@@ -497,7 +522,11 @@ async function callOpenRouterGateway(env: LLMEnv, model: LLMModelId, opts: LLMCa
         // authoritative signal that WE aborted (not some other transport
         // failure that happens to share an error class).
         if (controller.signal.aborted || (err as Error)?.name === 'AbortError') {
-          throw new LLMError(408, `OpenRouter call aborted after ${OPENROUTER_CALL_TIMEOUT_MS}ms (hard timeout)`, { cls: TIMEOUT });
+          throw new LLMError(
+            408,
+            `OpenRouter call aborted after ${OPENROUTER_CALL_TIMEOUT_MS}ms (hard timeout)`,
+            { cls: TIMEOUT },
+          );
         }
         throw err;
       }
@@ -509,7 +538,8 @@ async function callOpenRouterGateway(env: LLMEnv, model: LLMModelId, opts: LLMCa
     }, controller.signal);
 
     if (opts.stream) {
-      if (!resp.body) throw new LLMError(500, 'OpenRouter stream returned empty body', { cls: NEITHER });
+      if (!resp.body)
+        throw new LLMError(500, 'OpenRouter stream returned empty body', { cls: NEITHER });
       try {
         const parsed = await parseOpenAIStream(resp.body);
         return {
@@ -527,15 +557,19 @@ async function callOpenRouterGateway(env: LLMEnv, model: LLMModelId, opts: LLMCa
         // authoritative signal that WE aborted (not some other transport
         // failure that happens to share an error class).
         if (controller.signal.aborted || (err as Error)?.name === 'AbortError') {
-          throw new LLMError(408, `OpenRouter stream aborted after ${OPENROUTER_CALL_TIMEOUT_MS}ms (hard timeout)`, { cls: TIMEOUT });
+          throw new LLMError(
+            408,
+            `OpenRouter stream aborted after ${OPENROUTER_CALL_TIMEOUT_MS}ms (hard timeout)`,
+            { cls: TIMEOUT },
+          );
         }
         throw err;
       }
     }
 
     // resp.json() reads the body stream — if the abort fires mid-read the
-     // stream errors out, surface as a typed 408 (fail over) rather than
-     // letting the raw "operation aborted" error escape unwrapped.
+    // stream errors out, surface as a typed 408 (fail over) rather than
+    // letting the raw "operation aborted" error escape unwrapped.
     let json: {
       choices?: Array<{
         message?: { content?: string; reasoning?: string; reasoning_content?: string };
@@ -547,15 +581,17 @@ async function callOpenRouterGateway(env: LLMEnv, model: LLMModelId, opts: LLMCa
       json = (await resp.json()) as typeof json;
     } catch (err) {
       if (controller.signal.aborted || (err as Error)?.name === 'AbortError') {
-        throw new LLMError(408, `OpenRouter body read aborted after ${OPENROUTER_CALL_TIMEOUT_MS}ms (hard timeout)`, { cls: TIMEOUT });
+        throw new LLMError(
+          408,
+          `OpenRouter body read aborted after ${OPENROUTER_CALL_TIMEOUT_MS}ms (hard timeout)`,
+          { cls: TIMEOUT },
+        );
       }
       throw err;
     }
     const content = json.choices?.[0]?.message?.content ?? '';
     const reasoning =
-      json.choices?.[0]?.message?.reasoning_content ??
-      json.choices?.[0]?.message?.reasoning ??
-      '';
+      json.choices?.[0]?.message?.reasoning_content ?? json.choices?.[0]?.message?.reasoning ?? '';
     const finish = json.choices?.[0]?.finish_reason ?? null;
     return {
       content,
@@ -639,7 +675,11 @@ export async function parseOpenAIStream(stream: ReadableStream<Uint8Array>): Pro
       }
     }
   } finally {
-    try { await reader.cancel(); } catch { /* already closed */ }
+    try {
+      await reader.cancel();
+    } catch {
+      /* already closed */
+    }
   }
 
   return { content, reasoning_content: reasoning, finish_reason: finish, usage };

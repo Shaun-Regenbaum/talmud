@@ -296,13 +296,13 @@
    so a Tanach citation reads as visually distinct from sections (red-brown),
    halacha (blue), aggadata (violet), and commentary (violet). */
 .daf-root .daf-range-highlight-pesuk {
-  background-color: rgba(217, 119, 6, 0.20);
+  background-color: rgba(217, 119, 6, 0.2);
 }
 /* Argument-move highlight — yellow band painted when the user clicks a
    subsection card in ArgumentSidebar. Brighter than the section tint so a
    sub-range reads as a focused selection inside the parent section. */
 .daf-root .daf-range-highlight-move {
-  background-color: rgba(234, 179, 8, 0.30);
+  background-color: rgba(234, 179, 8, 0.3);
 }
 /* Commentary highlight uses violet so it reads distinct from the red-brown
    section/argument tint and the blue halacha tint already in play. */

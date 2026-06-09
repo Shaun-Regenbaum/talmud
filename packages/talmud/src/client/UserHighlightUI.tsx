@@ -1,6 +1,6 @@
-import { createSignal, onCleanup, For, Show, type JSX } from 'solid-js';
+import { createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 import { t } from './i18n';
-import { type UserHighlight, HIGHLIGHT_COLORS } from './userHighlights';
+import { HIGHLIGHT_COLORS, type UserHighlight } from './userHighlights';
 
 /** View / edit / delete a single personal highlight, anchored near the word
  *  the user clicked. */
@@ -171,7 +171,13 @@ export function NotesPanel(props: {
           type="button"
           onClick={() => props.onClose()}
           aria-label="Close"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', 'font-size': '1rem', color: '#888' }}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            'font-size': '1rem',
+            color: '#888',
+          }}
         >
           ×
         </button>
@@ -179,7 +185,14 @@ export function NotesPanel(props: {
       <Show
         when={props.highlights.length > 0}
         fallback={
-          <p style={{ padding: '0.8rem', color: '#999', 'font-size': '0.82rem', 'font-style': 'italic' }}>
+          <p
+            style={{
+              padding: '0.8rem',
+              color: '#999',
+              'font-size': '0.82rem',
+              'font-style': 'italic',
+            }}
+          >
             {t('highlight.notesEmpty')}
           </p>
         }

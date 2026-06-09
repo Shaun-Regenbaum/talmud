@@ -68,11 +68,12 @@ export function finishActivity(id: string, label: string, ok: boolean, error?: s
   setActivities((cur) => {
     const prev = cur[id];
     const prevState = prev?.state;
-    const startedAt = prevState?.kind === 'loading'
-      ? prevState.startedAt
-      : prevState?.kind === 'ok' || prevState?.kind === 'error'
+    const startedAt =
+      prevState?.kind === 'loading'
         ? prevState.startedAt
-        : Date.now();
+        : prevState?.kind === 'ok' || prevState?.kind === 'error'
+          ? prevState.startedAt
+          : Date.now();
     const state: ActivityState = ok
       ? { kind: 'ok', startedAt, finishedAt: Date.now() }
       : { kind: 'error', startedAt, finishedAt: Date.now(), error: error ?? 'failed' };
@@ -99,11 +100,7 @@ export function finishActivity(id: string, label: string, ok: boolean, error?: s
  *
  * The lifecycle is surfaced live by `AIActivityPanel` in the dev shelf.
  */
-export async function trackAI<T>(
-  id: string,
-  label: string,
-  work: () => Promise<T>,
-): Promise<T> {
+export async function trackAI<T>(id: string, label: string, work: () => Promise<T>): Promise<T> {
   startActivity(id, label);
   try {
     const result = await work();

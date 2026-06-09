@@ -12,7 +12,7 @@ export interface GenerationRabbi {
  */
 export function normalizeHebrew(s: string): string {
   return s
-    .replace(/[֑-ׇ]/g, '')      // nikkud + cantillation
+    .replace(/[֑-ׇ]/g, '') // nikkud + cantillation
     .replace(/[.,:;?!"'״׳]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
@@ -54,8 +54,8 @@ export function injectRabbiUnderlines(html: string, rabbis: GenerationRabbi[]): 
     tokens: string[];
     generation: GenerationId;
     rabbiName: string;
-    underlineStart?: number;  // default 0
-    underlineEnd?: number;    // default tokens.length - 1
+    underlineStart?: number; // default 0
+    underlineEnd?: number; // default tokens.length - 1
   };
   const TITLE_PREFIXES = new Set(['רבי', 'ר', 'רב']);
   const HEBREW_PARTICLES = ['ו', 'ד', 'ל', 'כ', 'ש'];
@@ -63,11 +63,11 @@ export function injectRabbiUnderlines(html: string, rabbis: GenerationRabbi[]): 
   // canonical token sequence — if the name contains that sequence, add a
   // single-word candidate so `אר"י` / `ריב"ל` / `רשב"י` underline correctly.
   const ABBREV_TOKENS: Array<{ abbrev: string; canonicalTokens: string[] }> = [
-    { abbrev: 'ארי',   canonicalTokens: ['רבי', 'יוחנן'] },
-    { abbrev: 'ארל',   canonicalTokens: ['ריש', 'לקיש'] },
-    { abbrev: 'ארז',   canonicalTokens: ['רבי', 'זירא'] },
-    { abbrev: 'ריבל',  canonicalTokens: ['רבי', 'יהושע', 'בן', 'לוי'] },
-    { abbrev: 'רשבי',  canonicalTokens: ['רבי', 'שמעון', 'בר', 'יוחאי'] },
+    { abbrev: 'ארי', canonicalTokens: ['רבי', 'יוחנן'] },
+    { abbrev: 'ארל', canonicalTokens: ['ריש', 'לקיש'] },
+    { abbrev: 'ארז', canonicalTokens: ['רבי', 'זירא'] },
+    { abbrev: 'ריבל', canonicalTokens: ['רבי', 'יהושע', 'בן', 'לוי'] },
+    { abbrev: 'רשבי', canonicalTokens: ['רבי', 'שמעון', 'בר', 'יוחאי'] },
   ];
   // Context-dependent abbreviations. The abbreviation by itself (e.g. `ר"מ`
   // → `רמ`) is ambiguous; we only underline it when the surrounding tokens
@@ -80,20 +80,23 @@ export function injectRabbiUnderlines(html: string, rabbis: GenerationRabbi[]): 
     underlineIndex: number;
   }> = [
     // Rabbi Meir — `ר"מ` disambiguated by classic Mishna attribution phrases.
-    { canonicalTokens: ['רבי', 'מאיר'], contextTokens: ['דברי', 'רמ'],       underlineIndex: 1 },
-    { canonicalTokens: ['רבי', 'מאיר'], contextTokens: ['לדברי', 'רמ'],      underlineIndex: 1 },
-    { canonicalTokens: ['רבי', 'מאיר'], contextTokens: ['כדברי', 'רמ'],      underlineIndex: 1 },
-    { canonicalTokens: ['רבי', 'מאיר'], contextTokens: ['אמר', 'רמ'],        underlineIndex: 1 },
-    { canonicalTokens: ['רבי', 'מאיר'], contextTokens: ['ואמר', 'רמ'],       underlineIndex: 1 },
-    { canonicalTokens: ['רבי', 'מאיר'], contextTokens: ['רמ', 'וחכמים'],     underlineIndex: 0 },
-    { canonicalTokens: ['רבי', 'מאיר'], contextTokens: ['רמ', 'אומר'],       underlineIndex: 0 },
+    { canonicalTokens: ['רבי', 'מאיר'], contextTokens: ['דברי', 'רמ'], underlineIndex: 1 },
+    { canonicalTokens: ['רבי', 'מאיר'], contextTokens: ['לדברי', 'רמ'], underlineIndex: 1 },
+    { canonicalTokens: ['רבי', 'מאיר'], contextTokens: ['כדברי', 'רמ'], underlineIndex: 1 },
+    { canonicalTokens: ['רבי', 'מאיר'], contextTokens: ['אמר', 'רמ'], underlineIndex: 1 },
+    { canonicalTokens: ['רבי', 'מאיר'], contextTokens: ['ואמר', 'רמ'], underlineIndex: 1 },
+    { canonicalTokens: ['רבי', 'מאיר'], contextTokens: ['רמ', 'וחכמים'], underlineIndex: 0 },
+    { canonicalTokens: ['רבי', 'מאיר'], contextTokens: ['רמ', 'אומר'], underlineIndex: 0 },
   ];
   const tokensContainSequence = (tokens: string[], seq: string[]): boolean => {
     if (seq.length === 0 || seq.length > tokens.length) return false;
     for (let i = 0; i <= tokens.length - seq.length; i++) {
       let ok = true;
       for (let j = 0; j < seq.length; j++) {
-        if (tokens[i + j] !== seq[j]) { ok = false; break; }
+        if (tokens[i + j] !== seq[j]) {
+          ok = false;
+          break;
+        }
       }
       if (ok) return true;
     }
@@ -149,7 +152,12 @@ export function injectRabbiUnderlines(html: string, rabbis: GenerationRabbi[]): 
 
   // Group consecutive wrapped words by (generation, occurrence) so we wrap
   // once per match, not per word.
-  interface Wrap { start: number; end: number; generation: GenerationId; rabbiName: string }
+  interface Wrap {
+    start: number;
+    end: number;
+    generation: GenerationId;
+    rabbiName: string;
+  }
   const wraps: Wrap[] = [];
 
   for (const c of candidates) {
@@ -162,18 +170,29 @@ export function injectRabbiUnderlines(html: string, rabbis: GenerationRabbi[]): 
       // free, since we don't wrap them. Check the underline window only.
       let clear = true;
       for (let j = uStart; j <= uEnd; j++) {
-        if (wrapped[i + j]) { clear = false; break; }
+        if (wrapped[i + j]) {
+          clear = false;
+          break;
+        }
       }
       if (!clear) continue;
 
       let match = true;
       for (let j = 0; j < n; j++) {
-        if (normed[i + j] !== c.tokens[j]) { match = false; break; }
+        if (normed[i + j] !== c.tokens[j]) {
+          match = false;
+          break;
+        }
       }
       if (!match) continue;
 
       // Record the wrap over the underline range and mark those indices only.
-      wraps.push({ start: i + uStart, end: i + uEnd, generation: c.generation, rabbiName: c.rabbiName });
+      wraps.push({
+        start: i + uStart,
+        end: i + uEnd,
+        generation: c.generation,
+        rabbiName: c.rabbiName,
+      });
       for (let j = uStart; j <= uEnd; j++) wrapped[i + j] = 1;
     }
   }

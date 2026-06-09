@@ -13,8 +13,8 @@
  * `<br>`-delimited line, so they don't false-trigger a new item.
  */
 
-import { parseHtml, collapse, findDafRefs, HTMLElement } from './common.ts';
 import type { DafyomiEntry } from '../schema.ts';
+import { collapse, findDafRefs, type HTMLElement, parseHtml } from './common.ts';
 
 export interface ParsedRevach {
   entries: DafyomiEntry[];

@@ -7,12 +7,12 @@
 // N's match), start/end range placement, and the per-section opinion bounds.
 // The seg-fallback path is covered separately in
 // anchor-markers-seg-fallback.test.ts.
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  injectAnchorMarkers,
   injectAggadataAnchors,
-  injectPesukimAnchors,
+  injectAnchorMarkers,
   injectOpinionMarkers,
+  injectPesukimAnchors,
 } from '../src/client/anchorMarkers';
 
 function daf(words: Array<[string, number?]>): string {
@@ -32,7 +32,11 @@ function parse(html: string): Document {
 describe('injectAnchorMarkers — verbatim contract', () => {
   it('anchors a single verbatim excerpt and records its token length', () => {
     const html = daf([['אמר'], ['רבי'], ['יוחנן'], ['הלכה'], ['כמותו']]);
-    const out = injectAnchorMarkers(html, [{ excerpt: 'רבי יוחנן', index: 0 }], 'daf-argument-anchor');
+    const out = injectAnchorMarkers(
+      html,
+      [{ excerpt: 'רבי יוחנן', index: 0 }],
+      'daf-argument-anchor',
+    );
     const doc = parse(out);
     const m = doc.querySelector('.daf-argument-anchor')!;
     expect(m).not.toBeNull();
@@ -45,10 +49,7 @@ describe('injectAnchorMarkers — verbatim contract', () => {
   it('advances the cursor so a repeated phrase anchors to successive occurrences', () => {
     // "שלום עולם" appears twice; two anchors must land on the two distinct
     // occurrences, not both on the first.
-    const html = daf([
-      ['שלום'], ['עולם'], ['גדול'],
-      ['שלום'], ['עולם'], ['קטן'],
-    ]);
+    const html = daf([['שלום'], ['עולם'], ['גדול'], ['שלום'], ['עולם'], ['קטן']]);
     const out = injectAnchorMarkers(
       html,
       [
@@ -89,7 +90,9 @@ describe('injectAnchorMarkers — verbatim contract', () => {
 
   it('returns the html untouched when there are no daf-word spans', () => {
     const html = '<p>no words here</p>';
-    expect(injectAnchorMarkers(html, [{ excerpt: 'משהו', index: 0 }], 'daf-argument-anchor')).toBe(html);
+    expect(injectAnchorMarkers(html, [{ excerpt: 'משהו', index: 0 }], 'daf-argument-anchor')).toBe(
+      html,
+    );
   });
 
   it('returns the html untouched when given no anchors', () => {
@@ -100,9 +103,15 @@ describe('injectAnchorMarkers — verbatim contract', () => {
 
 describe('range anchors — verbatim contract', () => {
   const STORY = daf([
-    ['היה'], ['מעשה'], ['בחסיד'], ['אחד'],
-    ['והלך'], ['לביתו'],
-    ['ומת'], ['בשלום'], ['גדול'],
+    ['היה'],
+    ['מעשה'],
+    ['בחסיד'],
+    ['אחד'],
+    ['והלך'],
+    ['לביתו'],
+    ['ומת'],
+    ['בשלום'],
+    ['גדול'],
   ]);
 
   it('places start before the opening phrase and end after the closing phrase', () => {
@@ -148,8 +157,16 @@ describe('range anchors — verbatim contract', () => {
 describe('injectOpinionMarkers — bounds contract', () => {
   // seg0: indices 0-4, seg1: indices 5-9
   const HTML = daf([
-    ['פתח', 0], ['רבי', 0], ['מאיר', 0], ['אומר', 0], ['אלף', 0],
-    ['ואז', 1], ['רבי', 1], ['יהודה', 1], ['אומר', 1], ['בית', 1],
+    ['פתח', 0],
+    ['רבי', 0],
+    ['מאיר', 0],
+    ['אומר', 0],
+    ['אלף', 0],
+    ['ואז', 1],
+    ['רבי', 1],
+    ['יהודה', 1],
+    ['אומר', 1],
+    ['בית', 1],
   ]);
 
   it('anchors a rabbi opinion that falls inside its section', () => {

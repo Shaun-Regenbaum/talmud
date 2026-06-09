@@ -1,10 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { capitalizeFirst, hebraize } from '../src/client/hebraize';
 import {
+  alwaysHebraizeBlock,
   CANONICAL_HEBREW_TERMS,
   canonicalDictEntries,
-  alwaysHebraizeBlock,
 } from '../src/lib/hebrewTerms';
-import { hebraize, capitalizeFirst } from '../src/client/hebraize';
 import { CODE_ENRICHMENTS } from '../src/worker/code-marks';
 
 // ---------------------------------------------------------------------------
@@ -15,21 +15,21 @@ import { CODE_ENRICHMENTS } from '../src/worker/code-marks';
 
 const CAPITALIZE: Array<[string, string]> = [
   // The exact chips from the reported bug.
-  ['locking a door on Shabbat',          'Locking a door on Shabbat'],
-  ['using a detached bolt or rod',       'Using a detached bolt or rod'],
+  ['locking a door on Shabbat', 'Locking a door on Shabbat'],
+  ['using a detached bolt or rod', 'Using a detached bolt or rod'],
   ['the bolt was designated for locking', 'The bolt was designated for locking'],
-  ['a bolt that was never prepared',     'A bolt that was never prepared'],
-  ['in the Temple, a dragging bolt',     'In the Temple, a dragging bolt'],
+  ['a bolt that was never prepared', 'A bolt that was never prepared'],
+  ['in the Temple, a dragging bolt', 'In the Temple, a dragging bolt'],
   // Already capitalized — unchanged.
-  ['A sick person is exempt',            'A sick person is exempt'],
+  ['A sick person is exempt', 'A sick person is exempt'],
   // Leading opener punctuation is skipped, then the letter is capitalized.
-  ['(an aside) matters',                 '(An aside) matters'],
-  ["'bishochbecha' marks the time",      "'Bishochbecha' marks the time"],
+  ['(an aside) matters', '(An aside) matters'],
+  ["'bishochbecha' marks the time", "'Bishochbecha' marks the time"],
   // Hebrew-script lead — no case to change, returned as-is.
-  ['מוקצה applies here',                  'מוקצה applies here'],
-  ['שבת locking is the case',            'שבת locking is the case'],
+  ['מוקצה applies here', 'מוקצה applies here'],
+  ['שבת locking is the case', 'שבת locking is the case'],
   // A leading Hebrew quote stays untouched too.
-  ["'בשכבך' marks the time",             "'בשכבך' marks the time"],
+  ["'בשכבך' marks the time", "'בשכבך' marks the time"],
   // Degenerate inputs.
   ['', ''],
   ['   ', '   '],
@@ -48,13 +48,15 @@ describe('capitalizeFirst', () => {
 // otherwise the leading word lands lowercase. This locks the ordering in.
 describe('capitalizeFirst composes after hebraize for chips', () => {
   it('capitalizes the English gloss the inverted pass surfaces', () => {
-    expect(capitalizeFirst(hebraize('muktzeh (set aside) may not be handled')))
-      .toBe('Set aside (מוקצה) may not be handled');
+    expect(capitalizeFirst(hebraize('muktzeh (set aside) may not be handled'))).toBe(
+      'Set aside (מוקצה) may not be handled',
+    );
   });
   it('leaves a Form-A chip Hebrew-first and uncapitalized at the Hebrew', () => {
     // Hebrew already leads — capitalization is a no-op, Hebrew preserved.
-    expect(capitalizeFirst(hebraize('מוקצה (set aside) may not be handled')))
-      .toBe('מוקצה (set aside) may not be handled');
+    expect(capitalizeFirst(hebraize('מוקצה (set aside) may not be handled'))).toBe(
+      'מוקצה (set aside) may not be handled',
+    );
   });
 });
 
@@ -120,8 +122,9 @@ describe('canonicalDictEntries — closes the historical drift gaps', () => {
 // ---------------------------------------------------------------------------
 
 type Enrichment = { id: string; extractor: { system_prompt?: string } };
-const practicalSys = (CODE_ENRICHMENTS as unknown as Enrichment[])
-  .find((e) => e.id === 'halacha.practical')?.extractor.system_prompt ?? '';
+const practicalSys =
+  (CODE_ENRICHMENTS as unknown as Enrichment[]).find((e) => e.id === 'halacha.practical')?.extractor
+    .system_prompt ?? '';
 
 describe('halacha.practical prompt — always-list wiring', () => {
   it('embeds the single-sourced always-hebraize block', () => {
@@ -134,13 +137,13 @@ describe('halacha.practical prompt — always-list wiring', () => {
 // shrink kept every load-bearing rule, so a future trim can't silently drop one.
 describe('HEBREW_GLOSS_STYLE — hard rules survive the shrink', () => {
   const required = [
-    'FORM A (DEFAULT)',      // Form A is the default
-    'FORM B',                // Form B reserved for english-first
-    'GLOSS ONCE',            // first-use-only gloss (pairs with the PR3 dedup pass)
-    'calque',                // no-calque rule
-    'SCRIPT HYGIENE',        // english + hebrew script only
-    'AUTHORITATIVE',         // daf glossary is authoritative
-    'transliteration',       // no-transliteration rule
+    'FORM A (DEFAULT)', // Form A is the default
+    'FORM B', // Form B reserved for english-first
+    'GLOSS ONCE', // first-use-only gloss (pairs with the PR3 dedup pass)
+    'calque', // no-calque rule
+    'SCRIPT HYGIENE', // english + hebrew script only
+    'AUTHORITATIVE', // daf glossary is authoritative
+    'transliteration', // no-transliteration rule
   ];
   for (const marker of required) {
     it(`still states: ${marker}`, () => {

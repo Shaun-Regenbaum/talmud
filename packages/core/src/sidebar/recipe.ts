@@ -62,8 +62,18 @@ export const AGGADATA_RECIPE: SidebarRecipe = {
     // `{ type: 'tags', fields: ['theme'] }` section here to bring it back.
     { type: 'prose', field: 'summary', untilSynthesis: true },
     { type: 'synthesis' },
-    { type: 'explainer', dep: 'aggadata.background', textField: 'background', labelKey: 'aggadata.background' },
-    { type: 'explainer', dep: 'aggadata.interpretation', textField: 'interpretation', labelKey: 'aggadata.interpretation' },
+    {
+      type: 'explainer',
+      dep: 'aggadata.background',
+      textField: 'background',
+      labelKey: 'aggadata.background',
+    },
+    {
+      type: 'explainer',
+      dep: 'aggadata.interpretation',
+      textField: 'interpretation',
+      labelKey: 'aggadata.interpretation',
+    },
     { type: 'special', block: 'aggadata-parallels', deps: ['aggadata.parallels'] },
     { type: 'qa' },
   ],
@@ -92,9 +102,24 @@ export const PASUK_RECIPE: SidebarRecipe = {
   sections: [
     { type: 'special', block: 'pasuk-verse' },
     { type: 'synthesis' },
-    { type: 'explainer', dep: 'pesukim.tanach-context', textField: 'context', labelKey: 'pasuk.tanachContext' },
-    { type: 'explainer', dep: 'pesukim.why-here', textField: 'why_here', labelKey: 'pasuk.whyHere' },
-    { type: 'explainer', dep: 'pesukim.mechanism', textField: 'mechanism', labelKey: 'pasuk.mechanism' },
+    {
+      type: 'explainer',
+      dep: 'pesukim.tanach-context',
+      textField: 'context',
+      labelKey: 'pasuk.tanachContext',
+    },
+    {
+      type: 'explainer',
+      dep: 'pesukim.why-here',
+      textField: 'why_here',
+      labelKey: 'pasuk.whyHere',
+    },
+    {
+      type: 'explainer',
+      dep: 'pesukim.mechanism',
+      textField: 'mechanism',
+      labelKey: 'pasuk.mechanism',
+    },
     { type: 'explainer', dep: 'pesukim.landing', textField: 'landing', labelKey: 'pasuk.landing' },
     { type: 'qa' },
   ],
@@ -188,18 +213,14 @@ export const TIDBIT_RECIPE: SidebarRecipe = {
   kind: 'tidbit',
   markId: 'tidbit',
   titleField: 'title',
-  sections: [
-    { type: 'synthesis' },
-  ],
+  sections: [{ type: 'synthesis' }],
 };
 
 export const BIYUN_RECIPE: SidebarRecipe = {
   kind: 'biyun',
   markId: 'biyun',
   titleField: 'title',
-  sections: [
-    { type: 'synthesis' },
-  ],
+  sections: [{ type: 'synthesis' }],
 };
 
 // Whole-daf background: the synthesis, then the grouped key-terms/concepts
@@ -224,7 +245,15 @@ export const RABBI_RECIPE: SidebarRecipe = {
   sections: [
     { type: 'special', block: 'rabbi-meta', deps: ['rabbi.identity'] },
     { type: 'synthesis' },
-    { type: 'special', block: 'rabbi-lineage', deps: ['rabbi.relationships', 'rabbi.relationships.evidence'] },
-    { type: 'special', block: 'rabbi-geography', deps: ['rabbi.geography', 'rabbi.geography.evidence', 'rabbi.location'] },
+    {
+      type: 'special',
+      block: 'rabbi-lineage',
+      deps: ['rabbi.relationships', 'rabbi.relationships.evidence'],
+    },
+    {
+      type: 'special',
+      block: 'rabbi-geography',
+      deps: ['rabbi.geography', 'rabbi.geography.evidence', 'rabbi.location'],
+    },
   ],
 };

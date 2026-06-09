@@ -25,7 +25,11 @@ export interface ProducerNode {
 /** A raw dependency as declared on a mark/enrichment definition:
  *  a source-input string ('gemara', 'commentaries', …) or a producer reference
  *  ({ enrichment: id } / { mark: id }). */
-export type RawDependency = string | { enrichment: string } | { mark: string } | Record<string, unknown>;
+export type RawDependency =
+  | string
+  | { enrichment: string }
+  | { mark: string }
+  | Record<string, unknown>;
 
 /** The id a dependency points at: the string itself for a source input, or the
  *  referenced producer id for `{ enrichment }` / `{ mark }`. Null for an
@@ -60,10 +64,7 @@ export interface ForwardGraph {
   nodes: string[];
   edges: Array<[string, string]>;
 }
-export function forwardSubgraph(
-  nodes: ReadonlyArray<ProducerNode>,
-  rootId: string,
-): ForwardGraph {
+export function forwardSubgraph(nodes: ReadonlyArray<ProducerNode>, rootId: string): ForwardGraph {
   const byId = new Map(nodes.map((n) => [n.id, n]));
   const seen = new Set<string>();
   const edges: Array<[string, string]> = [];
@@ -86,12 +87,17 @@ export function forwardSubgraph(
 
 /** Invert the forward graph: map each id (producer OR source input) to the SET
  *  of producer ids that depend on it DIRECTLY. */
-export function reverseDependencyIndex(nodes: ReadonlyArray<ProducerNode>): Map<string, Set<string>> {
+export function reverseDependencyIndex(
+  nodes: ReadonlyArray<ProducerNode>,
+): Map<string, Set<string>> {
   const rev = new Map<string, Set<string>>();
   for (const node of nodes) {
     for (const dep of node.dependsOn) {
       let set = rev.get(dep);
-      if (!set) { set = new Set(); rev.set(dep, set); }
+      if (!set) {
+        set = new Set();
+        rev.set(dep, set);
+      }
       set.add(node.id);
     }
   }

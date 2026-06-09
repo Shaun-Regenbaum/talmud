@@ -1,11 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  sectionHasNamedSpeaker,
-  voicesMapEligible,
-  voicesShowMap,
-  voicesShowFallback,
   type GateProfile,
   type MoveLike,
+  sectionHasNamedSpeaker,
+  voicesMapEligible,
+  voicesShowFallback,
+  voicesShowMap,
 } from '../../src/lib/typing/profile';
 
 /**
@@ -25,7 +25,12 @@ const OPPOSES = { edges: [{ kind: 'opposes' }] };
 const NO_OPPOSITION = { edges: [{ kind: 'responds-to' }, { kind: 'supports' }] };
 
 describe('sectionHasNamedSpeaker (anti-hallucination signal)', () => {
-  const move = (start: number, end: number, rabbiNames: string[], section?: [number, number]): MoveLike => ({
+  const move = (
+    start: number,
+    end: number,
+    rabbiNames: string[],
+    section?: [number, number],
+  ): MoveLike => ({
     startSegIdx: start,
     endSegIdx: end,
     fields: {
@@ -110,8 +115,12 @@ describe('voicesShowFallback', () => {
   const eligible: GateProfile = { primary: 'halacha', hasNamedSpeaker: true };
 
   it('shows immediately for an ineligible section (aggadata / anonymous)', () => {
-    expect(voicesShowFallback({ primary: 'aggadata', hasNamedSpeaker: true }, null, false)).toBe(true);
-    expect(voicesShowFallback({ primary: 'halacha', hasNamedSpeaker: false }, null, false)).toBe(true);
+    expect(voicesShowFallback({ primary: 'aggadata', hasNamedSpeaker: true }, null, false)).toBe(
+      true,
+    );
+    expect(voicesShowFallback({ primary: 'halacha', hasNamedSpeaker: false }, null, false)).toBe(
+      true,
+    );
   });
 
   it('shows once resolved without opposition', () => {
@@ -146,7 +155,10 @@ describe('map and fallback are mutually exclusive', () => {
       for (const g of graphs) {
         for (const resolved of [true, false]) {
           const both = voicesShowMap(p, g) && voicesShowFallback(p, g, resolved);
-          expect(both, `profile=${JSON.stringify(p)} graph=${JSON.stringify(g)} resolved=${resolved}`).toBe(false);
+          expect(
+            both,
+            `profile=${JSON.stringify(p)} graph=${JSON.stringify(g)} resolved=${resolved}`,
+          ).toBe(false);
         }
       }
     }

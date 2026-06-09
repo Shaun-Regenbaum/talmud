@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { lookupGloss } from '../src/worker/word-glosses';
 
 // ---------------------------------------------------------------------------
@@ -15,11 +15,11 @@ describe('lookupGloss — known-good entries', () => {
   });
 
   it.each([
-    ['שעה',       'hour'],
-    ['ימים',      'days'],
-    ['לילות',     'nights'],
-    ['בתים',      'houses'],
-    ['נשים',      'women'],
+    ['שעה', 'hour'],
+    ['ימים', 'days'],
+    ['לילות', 'nights'],
+    ['בתים', 'houses'],
+    ['נשים', 'women'],
   ])('Hebrew plural %s → %s', (word, gloss) => {
     expect(lookupGloss(word)).toBe(gloss);
   });
@@ -27,38 +27,38 @@ describe('lookupGloss — known-good entries', () => {
   it.each([
     ['רישא', 'first clause'],
     ['סיפא', 'last clause'],
-    ['קמא',  'the first [view]'],
+    ['קמא', 'the first [view]'],
     ['בתרא', 'the later [view]'],
   ])('Mishnaic structural %s → %s', (word, gloss) => {
     expect(lookupGloss(word)).toBe(gloss);
   });
 
   it.each([
-    ['מאי',     'what'],
-    ['אלא',     'rather'],
-    ['ליה',     'to him'],
-    ['דאמר',    'who said'],
-    ['תניא',    'it was taught (baraita)'],
-    ['בשלמא',   'granted'],
+    ['מאי', 'what'],
+    ['אלא', 'rather'],
+    ['ליה', 'to him'],
+    ['דאמר', 'who said'],
+    ['תניא', 'it was taught (baraita)'],
+    ['בשלמא', 'granted'],
   ])('Aramaic discourse marker %s → %s', (word, gloss) => {
     expect(lookupGloss(word)).toBe(gloss);
   });
 
   it.each([
-    ['ת"ר',  'our Rabbis taught'],
+    ['ת"ר', 'our Rabbis taught'],
     ['קמ"ל', 'it teaches us'],
-    ['ש"מ',  'learn from this'],
-    ['ק"ו',  'a fortiori'],
+    ['ש"מ', 'learn from this'],
+    ['ק"ו', 'a fortiori'],
   ])('acronym with gershayim %s → %s', (word, gloss) => {
     expect(lookupGloss(word)).toBe(gloss);
   });
 
   it.each([
-    ['תנו רבנן',    'our Rabbis taught'],
-    ['תא שמע',      'come and hear'],
-    ['קל וחומר',    'a fortiori'],
-    ['בני אדם',     'people'],
-    ['היכי דמי',    'what are the circumstances'],
+    ['תנו רבנן', 'our Rabbis taught'],
+    ['תא שמע', 'come and hear'],
+    ['קל וחומר', 'a fortiori'],
+    ['בני אדם', 'people'],
+    ['היכי דמי', 'what are the circumstances'],
   ])('multi-word entry %s → %s', (phrase, gloss) => {
     expect(lookupGloss(phrase)).toBe(gloss);
   });

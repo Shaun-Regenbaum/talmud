@@ -21,11 +21,16 @@
  * live-recorded daf bumps its count again, but `dafs` dedupes so the visible
  * sample stays correct. Enable once, let it converge, leave it deleted.
  */
-import { TRACTATE_IDS } from '../lib/sefref/hebrewbooks/client';
+
 import { iterAmudim } from '../lib/sefref/amudim';
+import { TRACTATE_IDS } from '../lib/sefref/hebrewbooks/client';
 import { slugDaf } from './cache-keys';
-import { CODE_MARKS, CODE_ENRICHMENTS } from './code-marks';
-import { putObservedConceptsBatch, putObservedPlacesBatch, putUnknownRabbisBatch } from './unknown-registry';
+import { CODE_ENRICHMENTS, CODE_MARKS } from './code-marks';
+import {
+  putObservedConceptsBatch,
+  putObservedPlacesBatch,
+  putUnknownRabbisBatch,
+} from './unknown-registry';
 
 export const BACKFILL_STATE_KEY = 'backfill-backlog:state';
 
@@ -39,10 +44,15 @@ export type BackfillSource = (typeof BACKFILL_SOURCES)[number];
 // until TTL, and reading them would seed the backlog with terms/entities the
 // current recipe no longer produces. The `:he:` namespace still passes the
 // prefix (langSeg follows the version) and is filtered in dafFromCacheKey.
-function markVersion(id: string): string { return CODE_MARKS.find((m) => m.id === id)?.cache_version ?? ''; }
-function enrichVersion(id: string): string { return CODE_ENRICHMENTS.find((e) => e.id === id)?.cache_version ?? ''; }
+function markVersion(id: string): string {
+  return CODE_MARKS.find((m) => m.id === id)?.cache_version ?? '';
+}
+function enrichVersion(id: string): string {
+  return CODE_ENRICHMENTS.find((e) => e.id === id)?.cache_version ?? '';
+}
 function sourcePrefix(source: BackfillSource): string {
-  if (source === 'concepts') return `enrich:daf-background.concepts:${enrichVersion('daf-background.concepts')}:`;
+  if (source === 'concepts')
+    return `enrich:daf-background.concepts:${enrichVersion('daf-background.concepts')}:`;
   const id = source === 'places' ? 'places' : 'rabbi';
   return `mark:${id}:${markVersion(id)}:`;
 }
@@ -55,9 +65,14 @@ function sourcePrefix(source: BackfillSource): string {
 // distinct places; rabbi unknowns are rare; concepts tiny).
 const LIST_LIMIT = 400;
 
-export interface BackfillState { source: BackfillSource; cursor?: string }
+export interface BackfillState {
+  source: BackfillSource;
+  cursor?: string;
+}
 
-interface BackfillEnv { CACHE?: KVNamespace }
+interface BackfillEnv {
+  CACHE?: KVNamespace;
+}
 type EnrichRabbiFn = (name: string, nameHe: string, generation: string) => { slug: string | null };
 
 let SLUG_TO_DAF: Map<string, { tractate: string; page: string }> | null = null;
@@ -88,39 +103,107 @@ export function dafFromCacheKey(key: string): { tractate: string; page: string }
 }
 
 function parsedOf(raw: string): unknown {
-  try { return (JSON.parse(raw) as { parsed?: unknown }).parsed ?? null; } catch { return null; }
+  try {
+    return (JSON.parse(raw) as { parsed?: unknown }).parsed ?? null;
+  } catch {
+    return null;
+  }
 }
 
 interface PageItems {
-  concepts: Array<{ term?: string; termHe?: string; gloss?: string; category?: string; tractate: string; page: string }>;
-  places: Array<{ name?: string; nameHe?: string; kind?: string; region?: string; tractate: string; page: string }>;
-  rabbis: Array<{ name?: string; nameHe?: string; generation?: string; tractate: string; page: string }>;
+  concepts: Array<{
+    term?: string;
+    termHe?: string;
+    gloss?: string;
+    category?: string;
+    tractate: string;
+    page: string;
+  }>;
+  places: Array<{
+    name?: string;
+    nameHe?: string;
+    kind?: string;
+    region?: string;
+    tractate: string;
+    page: string;
+  }>;
+  rabbis: Array<{
+    name?: string;
+    nameHe?: string;
+    generation?: string;
+    tractate: string;
+    page: string;
+  }>;
 }
 
-function collectConcepts(out: PageItems, parsed: unknown, daf: { tractate: string; page: string }): void {
-  const groups = (parsed as { groups?: Array<{ category?: string; terms?: Array<{ term?: string; termHe?: string; gloss?: string }> }> } | null)?.groups;
+function collectConcepts(
+  out: PageItems,
+  parsed: unknown,
+  daf: { tractate: string; page: string },
+): void {
+  const groups = (
+    parsed as {
+      groups?: Array<{
+        category?: string;
+        terms?: Array<{ term?: string; termHe?: string; gloss?: string }>;
+      }>;
+    } | null
+  )?.groups;
   if (!Array.isArray(groups)) return;
   for (const g of groups) {
     if (!Array.isArray(g?.terms)) continue;
     for (const t of g.terms) {
       if (!t || (!t.term && !t.termHe)) continue;
-      out.concepts.push({ term: t.term, termHe: t.termHe, gloss: t.gloss, category: g.category, tractate: daf.tractate, page: daf.page });
+      out.concepts.push({
+        term: t.term,
+        termHe: t.termHe,
+        gloss: t.gloss,
+        category: g.category,
+        tractate: daf.tractate,
+        page: daf.page,
+      });
     }
   }
 }
 
-function collectPlaces(out: PageItems, parsed: unknown, daf: { tractate: string; page: string }): void {
-  const instances = (parsed as { instances?: Array<{ fields?: { name?: string; nameHe?: string; kind?: string; region?: string } }> } | null)?.instances;
+function collectPlaces(
+  out: PageItems,
+  parsed: unknown,
+  daf: { tractate: string; page: string },
+): void {
+  const instances = (
+    parsed as {
+      instances?: Array<{
+        fields?: { name?: string; nameHe?: string; kind?: string; region?: string };
+      }>;
+    } | null
+  )?.instances;
   if (!Array.isArray(instances)) return;
   for (const inst of instances) {
     const f = inst?.fields;
     if (!f || (!f.name && !f.nameHe)) continue;
-    out.places.push({ name: f.name, nameHe: f.nameHe, kind: f.kind, region: f.region, tractate: daf.tractate, page: daf.page });
+    out.places.push({
+      name: f.name,
+      nameHe: f.nameHe,
+      kind: f.kind,
+      region: f.region,
+      tractate: daf.tractate,
+      page: daf.page,
+    });
   }
 }
 
-function collectRabbis(out: PageItems, parsed: unknown, daf: { tractate: string; page: string }, enrichRabbi: EnrichRabbiFn): void {
-  const instances = (parsed as { instances?: Array<{ fields?: { name?: string; nameHe?: string; generation?: string } }> } | null)?.instances;
+function collectRabbis(
+  out: PageItems,
+  parsed: unknown,
+  daf: { tractate: string; page: string },
+  enrichRabbi: EnrichRabbiFn,
+): void {
+  const instances = (
+    parsed as {
+      instances?: Array<{ fields?: { name?: string; nameHe?: string; generation?: string } }>;
+    } | null
+  )?.instances;
   if (!Array.isArray(instances)) return;
   for (const inst of instances) {
     const f = inst?.fields;
@@ -129,7 +212,13 @@ function collectRabbis(out: PageItems, parsed: unknown, daf: { tractate: string;
     // same condition recordUnknownRabbi uses on the live rabbi.identity path.
     // enrichRabbi is an in-memory lookup (no subrequest).
     if (enrichRabbi(f.name ?? '', f.nameHe ?? '', f.generation ?? 'unknown').slug) continue;
-    out.rabbis.push({ name: f.name, nameHe: f.nameHe, generation: f.generation, tractate: daf.tractate, page: daf.page });
+    out.rabbis.push({
+      name: f.name,
+      nameHe: f.nameHe,
+      generation: f.generation,
+      tractate: daf.tractate,
+      page: daf.page,
+    });
   }
 }
 
@@ -140,17 +229,32 @@ function collectRabbis(out: PageItems, parsed: unknown, daf: { tractate: string;
  *  inflation), then checkpoint the cursor. Checkpointing after the single page
  *  means a failed tick replays at most that one page. When a source's list is
  *  exhausted, advance to the next; when all are done, delete the state key. */
-export async function runBacklogBackfill(env: BackfillEnv, enrichRabbi: EnrichRabbiFn): Promise<{ source: BackfillSource; processed: number; done: boolean } | null> {
+export async function runBacklogBackfill(
+  env: BackfillEnv,
+  enrichRabbi: EnrichRabbiFn,
+): Promise<{ source: BackfillSource; processed: number; done: boolean } | null> {
   const cache = env.CACHE;
   if (!cache) return null;
   const raw = await cache.get(BACKFILL_STATE_KEY);
   if (!raw) return null;
 
   let state: BackfillState;
-  try { state = JSON.parse(raw) as BackfillState; } catch { await cache.delete(BACKFILL_STATE_KEY); return null; }
-  if (!BACKFILL_SOURCES.includes(state.source)) { await cache.delete(BACKFILL_STATE_KEY); return null; }
+  try {
+    state = JSON.parse(raw) as BackfillState;
+  } catch {
+    await cache.delete(BACKFILL_STATE_KEY);
+    return null;
+  }
+  if (!BACKFILL_SOURCES.includes(state.source)) {
+    await cache.delete(BACKFILL_STATE_KEY);
+    return null;
+  }
 
-  const res = await cache.list({ prefix: sourcePrefix(state.source), cursor: state.cursor, limit: LIST_LIMIT });
+  const res = await cache.list({
+    prefix: sourcePrefix(state.source),
+    cursor: state.cursor,
+    limit: LIST_LIMIT,
+  });
   const items: PageItems = { concepts: [], places: [], rabbis: [] };
   let processed = 0;
   for (const k of res.keys) {
@@ -174,12 +278,16 @@ export async function runBacklogBackfill(env: BackfillEnv, enrichRabbi: EnrichRa
 
   const cursor = res.list_complete ? undefined : res.cursor;
   if (cursor) {
-    await cache.put(BACKFILL_STATE_KEY, JSON.stringify({ source: state.source, cursor } satisfies BackfillState));
+    await cache.put(
+      BACKFILL_STATE_KEY,
+      JSON.stringify({ source: state.source, cursor } satisfies BackfillState),
+    );
     return { source: state.source, processed, done: false };
   }
   // Source complete — advance to the next, or finish (delete => warm resumes).
   const next = BACKFILL_SOURCES[BACKFILL_SOURCES.indexOf(state.source) + 1];
-  if (next) await cache.put(BACKFILL_STATE_KEY, JSON.stringify({ source: next } satisfies BackfillState));
+  if (next)
+    await cache.put(BACKFILL_STATE_KEY, JSON.stringify({ source: next } satisfies BackfillState));
   else await cache.delete(BACKFILL_STATE_KEY);
   return { source: state.source, processed, done: !next };
 }

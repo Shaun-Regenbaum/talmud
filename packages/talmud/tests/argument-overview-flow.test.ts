@@ -1,8 +1,13 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { assignLanes, type FlowConnection } from '../src/client/ArgumentFlowGraph';
 import { tokenizeRabbiMentions } from '../src/client/rabbiLinks';
 
-const conn = (from: number, to: number): FlowConnection => ({ from, to, kind: 'continues', note: '' });
+const conn = (from: number, to: number): FlowConnection => ({
+  from,
+  to,
+  kind: 'continues',
+  note: '',
+});
 
 describe('assignLanes — connectors that overlap vertically get different lanes', () => {
   it('puts non-overlapping (sequential) connectors in the same lane', () => {
@@ -27,10 +32,10 @@ describe('assignLanes — connectors that overlap vertically get different lanes
 
 describe('tokenizeRabbiMentions — guards the blank-name regression', () => {
   it('every matched name yields a NON-EMPTY link part', () => {
-    const parts = tokenizeRabbiMentions(
-      'Rabbi Yochanan rules like Rabban Shimon ben Gamliel.',
-      ['Rabbi Yochanan', 'Rabban Shimon ben Gamliel'],
-    );
+    const parts = tokenizeRabbiMentions('Rabbi Yochanan rules like Rabban Shimon ben Gamliel.', [
+      'Rabbi Yochanan',
+      'Rabban Shimon ben Gamliel',
+    ]);
     const links = parts.filter((p) => p.kind === 'link');
     expect(links).toHaveLength(2);
     expect(links.every((l) => l.value.trim().length > 0)).toBe(true);
@@ -42,14 +47,16 @@ describe('tokenizeRabbiMentions — guards the blank-name regression', () => {
     expect(link?.value).toBe('Rabbi Eliezer');
   });
   it('prefers the longest matching name (no truncated/blank link)', () => {
-    const parts = tokenizeRabbiMentions(
-      'Rabbi Yochanan ben Zakkai taught',
-      ['Rabbi Yochanan', 'Rabbi Yochanan ben Zakkai'],
-    );
+    const parts = tokenizeRabbiMentions('Rabbi Yochanan ben Zakkai taught', [
+      'Rabbi Yochanan',
+      'Rabbi Yochanan ben Zakkai',
+    ]);
     const link = parts.find((p) => p.kind === 'link');
     expect(link?.value).toBe('Rabbi Yochanan ben Zakkai');
   });
   it('passes unmatched prose through as a single text part', () => {
-    expect(tokenizeRabbiMentions('no names here', ['Rava'])).toEqual([{ kind: 'text', value: 'no names here' }]);
+    expect(tokenizeRabbiMentions('no names here', ['Rava'])).toEqual([
+      { kind: 'text', value: 'no names here' },
+    ]);
   });
 });

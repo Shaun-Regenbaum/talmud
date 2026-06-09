@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   flattenPieces,
   flattenTalmudCommentaryPieces,
@@ -36,7 +36,9 @@ describe('rishonLabel', () => {
     expect(rishonLabel('Penei Yehoshua on Ketubot', 'Ketubot')).toBe('Penei Yehoshua');
     expect(rishonLabel('Ben Yehoyada on Sanhedrin', 'Sanhedrin')).toBe('Ben Yehoyada');
     expect(rishonLabel('Chidushei Chatam Sofer on Bava Batra', 'Bava Batra')).toBe('Chatam Sofer');
-    expect(rishonLabel('Chiddushei Rabbi Akiva Eiger on Berakhot', 'Berakhot')).toBe('Rabbi Akiva Eiger');
+    expect(rishonLabel('Chiddushei Rabbi Akiva Eiger on Berakhot', 'Berakhot')).toBe(
+      'Rabbi Akiva Eiger',
+    );
   });
   it('excludes Rashi/Tosafot/Steinsaltz and unknown books', () => {
     expect(rishonLabel('Rashi on Eruvin', 'Eruvin')).toBeNull();
@@ -105,13 +107,7 @@ describe('flattenTalmudCommentaryPieces', () => {
     // segment 3 has 1, segment 5 has multiple. Keys must match Sefaria's
     // ref convention so they line up with related-links refs like
     // "Rashi on Berakhot 2a:1:1" / ":3:1" / ":5:2".
-    const text = [
-      ['p1a', 'p1b'],
-      [],
-      ['p3a'],
-      [],
-      ['p5a', 'p5b'],
-    ];
+    const text = [['p1a', 'p1b'], [], ['p3a'], [], ['p5a', 'p5b']];
     const { pieces, keys } = flattenTalmudCommentaryPieces(text);
     expect(pieces).toEqual(['p1a', 'p1b', 'p3a', 'p5a', 'p5b']);
     expect(keys).toEqual(['1:1', '1:2', '3:1', '5:1', '5:2']);
@@ -242,9 +238,7 @@ describe('getTalmudPageWithCommentaries', () => {
       if (url.includes('/api/v3/texts/') && url.includes('Tosafot%20on%20Berakhot%202a')) {
         return jsonResponse({
           ref: 'Tosafot on Berakhot 2a',
-          versions: [
-            { actualLanguage: 'he', text: [['tos-0a'], [], ['tos-2a', 'tos-2b']] },
-          ],
+          versions: [{ actualLanguage: 'he', text: [['tos-0a'], [], ['tos-2a', 'tos-2b']] }],
         });
       }
       throw new Error(`unexpected fetch: ${url}`);
@@ -289,13 +283,12 @@ describe('getTalmudPageWithCommentaries', () => {
     const calls = fetchSpy.mock.calls.map((c) =>
       typeof c[0] === 'string' ? c[0] : c[0].toString(),
     );
-    expect(calls.some((u) => u.includes('/api/v3/texts/') && u.includes('Rashi')))
-      .toBe(true);
-    expect(calls.some((u) => u.includes('/api/v3/texts/') && u.includes('Tosafot')))
-      .toBe(true);
+    expect(calls.some((u) => u.includes('/api/v3/texts/') && u.includes('Rashi'))).toBe(true);
+    expect(calls.some((u) => u.includes('/api/v3/texts/') && u.includes('Tosafot'))).toBe(true);
     // Specifically: no v3 URL carries the ":N:N" segment suffix.
-    expect(calls.find((u) => u.includes('/api/v3/texts/') && /%3A\d+%3A\d+/.test(u)))
-      .toBeUndefined();
+    expect(
+      calls.find((u) => u.includes('/api/v3/texts/') && /%3A\d+%3A\d+/.test(u)),
+    ).toBeUndefined();
   });
 
   it('omits commentary entries when Sefaria has no link for them', async () => {

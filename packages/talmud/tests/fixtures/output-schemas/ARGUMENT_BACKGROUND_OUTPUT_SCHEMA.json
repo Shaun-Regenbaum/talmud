@@ -4,9 +4,7 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "background"
-    ],
+    "required": ["background"],
     "properties": {
       "background": {
         "type": "string"

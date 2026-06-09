@@ -10,7 +10,7 @@
  * state across reloads.
  */
 
-import { createSignal, createEffect, onCleanup, Show, type JSX } from 'solid-js';
+import { createEffect, createSignal, type JSX, onCleanup, Show } from 'solid-js';
 import AIActivityPanel from './AIActivityPanel';
 import PipelinePanel from './PipelinePanel';
 import RecipePanel from './RecipePanel';
@@ -21,17 +21,25 @@ const SHELF_WIDTH_KEY = 'dev-mode:shelf-width:v1';
 export function readDevMode(): boolean {
   try {
     return localStorage.getItem(DEV_MODE_KEY) === 'true';
-  } catch { return false; }
+  } catch {
+    return false;
+  }
 }
 
 export function writeDevMode(v: boolean) {
-  try { localStorage.setItem(DEV_MODE_KEY, v ? 'true' : 'false'); } catch { /* ignore */ }
+  try {
+    localStorage.setItem(DEV_MODE_KEY, v ? 'true' : 'false');
+  } catch {
+    /* ignore */
+  }
 }
 
 // Shared reactive flag — anything that wants to gate UI on "dev mode"
 // reads this. Single source of truth: the dev sidebar open/closed.
 const [globalDevActive, setGlobalDevActive] = createSignal(readDevMode());
-export function devModeActive(): boolean { return globalDevActive(); }
+export function devModeActive(): boolean {
+  return globalDevActive();
+}
 export function setDevModeActive(v: boolean) {
   setGlobalDevActive(v);
   writeDevMode(v);
@@ -49,7 +57,9 @@ export default function DevModeShelf(props: Props) {
     try {
       const v = parseInt(localStorage.getItem(SHELF_WIDTH_KEY) ?? '0', 10);
       return v > 200 ? v : 380;
-    } catch { return 380; }
+    } catch {
+      return 380;
+    }
   })();
   const [width, setWidth] = createSignal<number>(initialWidth);
   let dragStartX = 0;
@@ -69,7 +79,11 @@ export default function DevModeShelf(props: Props) {
       document.body.style.userSelect = '';
       document.removeEventListener('mousemove', move);
       document.removeEventListener('mouseup', up);
-      try { localStorage.setItem(SHELF_WIDTH_KEY, String(width())); } catch { /* ignore */ }
+      try {
+        localStorage.setItem(SHELF_WIDTH_KEY, String(width()));
+      } catch {
+        /* ignore */
+      }
     };
     document.addEventListener('mousemove', move);
     document.addEventListener('mouseup', up);
@@ -98,27 +112,33 @@ export default function DevModeShelf(props: Props) {
   // even when the shelf is collapsed. If we used <Show> the panel
   // would unmount and the rabbi extraction would never start.
   return (
-    <aside style={{
-      position: 'fixed',
-      top: 0, left: 0, bottom: 0,
-      width: `${width()}px`,
-      background: '#fff',
-      'border-right': '1px solid #ddd',
-      'box-shadow': '4px 0 16px rgba(0,0,0,0.08)',
-      'z-index': 900,
-      display: props.open ? 'flex' : 'none',
-      'flex-direction': 'column',
-      'font-family': 'system-ui, sans-serif',
-      'font-size': '13px',
-      'box-sizing': 'border-box',
-      overflow: 'hidden',
-    }}>
+    <aside
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        bottom: 0,
+        width: `${width()}px`,
+        background: '#fff',
+        'border-right': '1px solid #ddd',
+        'box-shadow': '4px 0 16px rgba(0,0,0,0.08)',
+        'z-index': 900,
+        display: props.open ? 'flex' : 'none',
+        'flex-direction': 'column',
+        'font-family': 'system-ui, sans-serif',
+        'font-size': '13px',
+        'box-sizing': 'border-box',
+        overflow: 'hidden',
+      }}
+    >
       {/* Drag handle on the right edge */}
       <div
         onMouseDown={onDragStart}
         style={{
           position: 'absolute',
-          top: 0, right: 0, bottom: 0,
+          top: 0,
+          right: 0,
+          bottom: 0,
           width: '6px',
           cursor: 'ew-resize',
           background: 'transparent',
@@ -129,18 +149,37 @@ export default function DevModeShelf(props: Props) {
       />
 
       {/* Header */}
-      <div style={{
-        display: 'flex',
-        'align-items': 'center',
-        gap: '0.6rem',
-        padding: '0.4rem 0.75rem',
-        'border-bottom': '1px solid #eee',
-        background: '#fafafa',
-      }}>
-        <strong style={{ 'font-size': '0.8rem', 'letter-spacing': '0.04em', 'text-transform': 'uppercase', color: '#444' }}>Dev</strong>
+      <div
+        style={{
+          display: 'flex',
+          'align-items': 'center',
+          gap: '0.6rem',
+          padding: '0.4rem 0.75rem',
+          'border-bottom': '1px solid #eee',
+          background: '#fafafa',
+        }}
+      >
+        <strong
+          style={{
+            'font-size': '0.8rem',
+            'letter-spacing': '0.04em',
+            'text-transform': 'uppercase',
+            color: '#444',
+          }}
+        >
+          Dev
+        </strong>
         <button
           onClick={props.onClose}
-          style={{ 'margin-left': 'auto', padding: '2px 10px', cursor: 'pointer', background: 'transparent', border: '1px solid #ccc', 'border-radius': '3px', 'font-size': '0.75rem' }}
+          style={{
+            'margin-left': 'auto',
+            padding: '2px 10px',
+            cursor: 'pointer',
+            background: 'transparent',
+            border: '1px solid #ccc',
+            'border-radius': '3px',
+            'font-size': '0.75rem',
+          }}
         >
           close
         </button>
@@ -149,17 +188,27 @@ export default function DevModeShelf(props: Props) {
       {/* Scrollable body: activity panels + marks share ONE scroll region so a
           long activity list (e.g. a full prefetch cohort) or a long marks list
           is always reachable instead of being clipped by the shelf. */}
-      <div style={{
-        flex: 1,
-        'overflow-y': 'auto',
-        'min-height': 0,
-        display: 'flex',
-        'flex-direction': 'column',
-      }}>
+      <div
+        style={{
+          flex: 1,
+          'overflow-y': 'auto',
+          'min-height': 0,
+          display: 'flex',
+          'flex-direction': 'column',
+        }}
+      >
         {/* Activity panels — live spinners for AI runs + last apply per
             renderer. Both self-hide when empty. */}
         <Show when={props.open}>
-          <div style={{ padding: '0.5rem 0.75rem 0', display: 'flex', 'flex-direction': 'column', gap: '0.5rem', 'flex-shrink': 0 }}>
+          <div
+            style={{
+              padding: '0.5rem 0.75rem 0',
+              display: 'flex',
+              'flex-direction': 'column',
+              gap: '0.5rem',
+              'flex-shrink': 0,
+            }}
+          >
             <AIActivityPanel />
             <PipelinePanel />
             <RecipePanel />
@@ -167,9 +216,7 @@ export default function DevModeShelf(props: Props) {
         </Show>
 
         {/* Marks slot */}
-        <div style={{ padding: '0.5rem 0.75rem' }}>
-          {props.children}
-        </div>
+        <div style={{ padding: '0.5rem 0.75rem' }}>{props.children}</div>
       </div>
     </aside>
   );

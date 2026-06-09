@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { CODE_ENRICHMENTS, CODE_MARKS } from '../src/worker/code-marks';
 
 /**
@@ -53,9 +53,9 @@ const sorted = (s: Set<string>): string[] => [...s].sort();
 // Cover both the prose enrichments (CODE_ENRICHMENTS) and the structural
 // extraction marks (CODE_MARKS) — both flow through the same runner, which
 // picks system_prompt_he when lang=he, so both need EN/HE parity guarded.
-const llmEnrichments = (
-  [...CODE_ENRICHMENTS, ...CODE_MARKS] as unknown as LlmEnrichment[]
-).filter((e) => e.extractor?.kind === 'llm');
+const llmEnrichments = ([...CODE_ENRICHMENTS, ...CODE_MARKS] as unknown as LlmEnrichment[]).filter(
+  (e) => e.extractor?.kind === 'llm',
+);
 
 const withHebrew = llmEnrichments.filter((e) => e.extractor.system_prompt_he);
 

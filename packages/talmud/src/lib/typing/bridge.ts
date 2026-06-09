@@ -30,7 +30,11 @@ export interface DafBridge {
   note?: string;
 }
 
-export interface BridgeSection { title?: string; summary?: string; excerpt?: string }
+export interface BridgeSection {
+  title?: string;
+  summary?: string;
+  excerpt?: string;
+}
 
 /** No next daf (tractate end) → no bridge. */
 export function edgeOfTractateBridge(from: DafRef): DafBridge {
@@ -40,9 +44,20 @@ export function edgeOfTractateBridge(from: DafRef): DafBridge {
 /** Deterministic short-circuit: a Hadran ending the from-daf closes the perek,
  *  so the sugya does NOT continue — skip the LLM. Returns null when there's no
  *  Hadran (caller falls through to the LLM judgement). */
-export function hadranBridge(from: DafRef, to: DafRef, fromEndsWithHadran: boolean): DafBridge | null {
+export function hadranBridge(
+  from: DafRef,
+  to: DafRef,
+  fromEndsWithHadran: boolean,
+): DafBridge | null {
   if (!fromEndsWithHadran) return null;
-  return { from, to, continues: false, kind: 'perek-boundary', via: 'hadran', note: 'Hadran — perek boundary' };
+  return {
+    from,
+    to,
+    continues: false,
+    kind: 'perek-boundary',
+    via: 'hadran',
+    note: 'Hadran — perek boundary',
+  };
 }
 
 /** The LLM prompt judging whether the boundary continues. Pure string assembly
@@ -59,15 +74,21 @@ export function buildBridgePrompt(prev: BridgeSection, next: BridgeSection): str
     next.summary ?? '',
     `opening text: ${next.excerpt ?? ''}`,
     '',
-    'Set continues=true ONLY if daf 2 directly carries forward daf 1\'s same discussion / sugya thread (not merely the same tractate or a loosely related theme). Answer per the schema.',
+    "Set continues=true ONLY if daf 2 directly carries forward daf 1's same discussion / sugya thread (not merely the same tractate or a loosely related theme). Answer per the schema.",
   ].join('\n');
 }
 
 /** Build a DafBridge from the LLM verdict. */
-export function llmBridge(from: DafRef, to: DafRef, verdict: { continues?: unknown; note?: unknown }): DafBridge {
+export function llmBridge(
+  from: DafRef,
+  to: DafRef,
+  verdict: { continues?: unknown; note?: unknown },
+): DafBridge {
   const continues = verdict?.continues === true;
   return {
-    from, to, continues,
+    from,
+    to,
+    continues,
     kind: continues ? 'continues' : 'new-topic',
     via: 'llm',
     note: typeof verdict?.note === 'string' ? verdict.note : undefined,

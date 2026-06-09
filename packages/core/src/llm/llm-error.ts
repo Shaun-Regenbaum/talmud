@@ -60,7 +60,8 @@ export function classifyStatus(status: number): FailureClass {
 // InferenceUpstreamError inside the message; fetch surfaces "fetch failed" /
 // network. Mirrors the semantics of the old exported RETRYABLE / FALLBACK_WORTHY
 // regexes, now confined to errors whose shape we don't own.
-const FOREIGN_RETRYABLE = /1031|InferenceUpstreamError|3046|AiError 3046|HTTP 5\d\d|HTTP 429|fetch failed|network/i;
+const FOREIGN_RETRYABLE =
+  /1031|InferenceUpstreamError|3046|AiError 3046|HTTP 5\d\d|HTTP 429|fetch failed|network/i;
 const FOREIGN_TIMEOUT = /aborted|timed-out|timed out|timeout/i;
 
 export function classifyForeignError(err: unknown): FailureClass {

@@ -1,9 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import {
-  tokenizeConceptMentions,
-  surfacesOf,
-  termLabel,
-} from '../src/client/conceptLinks';
+import { describe, expect, it } from 'vitest';
+import { surfacesOf, termLabel, tokenizeConceptMentions } from '../src/client/conceptLinks';
 import { globalTerms, type Term } from '../src/lib/terms/registry';
 
 // The concept-tooltip layer wraps mentions of the daf's glossary terms in prose
@@ -20,7 +16,11 @@ const mk = (t: Partial<Term> & Pick<Term, 'hebrew' | 'gloss'>): Term => ({
 
 const TERMS: Term[] = [
   mk({ en: 'Kohen', hebrew: 'כהן', gloss: 'A descendant of Aharon who serves in the Temple.' }),
-  mk({ en: 'Oral Law', hebrew: 'תורה שבעל פה', gloss: 'The transmitted interpretation of the Written Torah.' }),
+  mk({
+    en: 'Oral Law',
+    hebrew: 'תורה שבעל פה',
+    gloss: 'The transmitted interpretation of the Written Torah.',
+  }),
   mk({ en: 'law', hebrew: 'דין', gloss: 'A legal ruling.' }),
 ];
 
@@ -60,7 +60,9 @@ describe('tokenizeConceptMentions — English surfaces', () => {
   });
 
   it('returns a single text part when nothing matches, and [] for empty input', () => {
-    expect(tokenizeConceptMentions('nothing here', TERMS)).toEqual([{ kind: 'text', value: 'nothing here' }]);
+    expect(tokenizeConceptMentions('nothing here', TERMS)).toEqual([
+      { kind: 'text', value: 'nothing here' },
+    ]);
     expect(tokenizeConceptMentions('', TERMS)).toEqual([]);
   });
 
@@ -122,8 +124,12 @@ describe('global terms in the matcher pool', () => {
 
   it('never matches a romanization as an English word (rov / get stay plain)', () => {
     // 'rov' and 'get' are common English words; only their Hebrew is a surface.
-    expect(tokenizeConceptMentions('a rov of the cases', g).every((p) => p.kind === 'text')).toBe(true);
-    expect(tokenizeConceptMentions('please get the book', g).every((p) => p.kind === 'text')).toBe(true);
+    expect(tokenizeConceptMentions('a rov of the cases', g).every((p) => p.kind === 'text')).toBe(
+      true,
+    );
+    expect(tokenizeConceptMentions('please get the book', g).every((p) => p.kind === 'text')).toBe(
+      true,
+    );
   });
 
   it('surfacesOf: Hebrew always, English label only when present; never the romanization', () => {

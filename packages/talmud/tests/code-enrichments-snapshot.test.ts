@@ -13,12 +13,19 @@ import { CODE_ENRICHMENTS } from '../src/worker/code-marks';
  *  (schema name + required keys). Prompt bodies are guarded separately by
  *  tests/prompt-parity. */
 function fingerprint(e: (typeof CODE_ENRICHMENTS)[number]): string {
-  const schema = (e.extractor as { output_schema?: { name?: string; schema?: { required?: string[] } } })
-    .output_schema;
+  const schema = (
+    e.extractor as { output_schema?: { name?: string; schema?: { required?: string[] } } }
+  ).output_schema;
   const name = schema?.name ?? '-';
   const required = (schema?.schema?.required ?? []).join(',');
   const deps = (e.dependencies ?? [])
-    .map((d) => (typeof d === 'string' ? d : 'enrichment' in d ? `${(d as { fanOut?: boolean }).fanOut ? 'e*' : 'e'}:${d.enrichment}` : `m:${d.mark}`))
+    .map((d) =>
+      typeof d === 'string'
+        ? d
+        : 'enrichment' in d
+          ? `${(d as { fanOut?: boolean }).fanOut ? 'e*' : 'e'}:${d.enrichment}`
+          : `m:${d.mark}`,
+    )
     .join('|');
   return `${e.id}@${e.cache_version} mode=${e.mode} scope=${e.scope} mark=${e.target_mark} schema=${name}[${required}] deps=[${deps}]`;
 }

@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@9.12.1",
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks || true",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
     "build": "pnpm -r build",

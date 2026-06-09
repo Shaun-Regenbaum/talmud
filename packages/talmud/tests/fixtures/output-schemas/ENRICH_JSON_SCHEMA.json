@@ -4,12 +4,7 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "generation",
-      "region",
-      "places",
-      "moved"
-    ],
+    "required": ["generation", "region", "places", "moved"],
     "properties": {
       "generation": {
         "type": "string",
@@ -42,15 +37,8 @@
         ]
       },
       "region": {
-        "type": [
-          "string",
-          "null"
-        ],
-        "enum": [
-          "israel",
-          "bavel",
-          null
-        ]
+        "type": ["string", "null"],
+        "enum": ["israel", "bavel", null]
       },
       "places": {
         "type": "array",
@@ -59,16 +47,8 @@
         }
       },
       "moved": {
-        "type": [
-          "string",
-          "null"
-        ],
-        "enum": [
-          null,
-          "bavel->israel",
-          "israel->bavel",
-          "both"
-        ]
+        "type": ["string", "null"],
+        "enum": [null, "bavel->israel", "israel->bavel", "both"]
       }
     }
   }

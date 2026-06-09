@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { recipeHash } from '../src/worker/cache-keys';
 
 // A producer's "recipe" is what determines its output: the extractor
@@ -53,7 +53,10 @@ describe('recipeHash — content hash of a producer recipe', () => {
 
   it('MOVES when the output schema changes', async () => {
     const m = baseMark();
-    m.extractor.output_schema = { type: 'object', properties: { names: { type: 'array' }, count: { type: 'number' } } };
+    m.extractor.output_schema = {
+      type: 'object',
+      properties: { names: { type: 'array' }, count: { type: 'number' } },
+    };
     expect(await recipeHash(m)).not.toBe(await recipeHash(baseMark()));
   });
 
@@ -71,9 +74,14 @@ describe('recipeHash — content hash of a producer recipe', () => {
 
   it('does NOT move for passes / dependencies / version / bookkeeping changes', async () => {
     const base = await recipeHash(baseMark());
-    const passes = baseMark(); passes.passes = ['no-empty', 'in-range'];
-    const deps = baseMark(); deps.dependencies = ['gemara', 'commentaries'];
-    const ver = baseMark(); ver.cache_version = '9'; ver.def_hash = 'rabbi-v9'; ver.updated_at = '2030-01-01';
+    const passes = baseMark();
+    passes.passes = ['no-empty', 'in-range'];
+    const deps = baseMark();
+    deps.dependencies = ['gemara', 'commentaries'];
+    const ver = baseMark();
+    ver.cache_version = '9';
+    ver.def_hash = 'rabbi-v9';
+    ver.updated_at = '2030-01-01';
     expect(await recipeHash(passes)).toBe(base);
     expect(await recipeHash(deps)).toBe(base);
     expect(await recipeHash(ver)).toBe(base);
@@ -83,6 +91,8 @@ describe('recipeHash — content hash of a producer recipe', () => {
     const enrich = { id: 'rabbi.bio', extractor: { kind: 'llm', system_prompt: 'Write a bio.' } };
     expect(await recipeHash(enrich)).toBe(await recipeHash({ ...enrich }));
     // Adding a render field to the same extractor must change the hash (marks vs enrichments differ).
-    expect(await recipeHash({ ...enrich, render: { kind: 'chip' } })).not.toBe(await recipeHash(enrich));
+    expect(await recipeHash({ ...enrich, render: { kind: 'chip' } })).not.toBe(
+      await recipeHash(enrich),
+    );
   });
 });

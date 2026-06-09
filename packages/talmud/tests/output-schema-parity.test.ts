@@ -1,9 +1,9 @@
-import { describe, it, expect } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { canonicalizeSchema } from '../src/worker/schema-util';
+import { describe, expect, it } from 'vitest';
 import * as schemas from '../src/worker/output-schemas';
+import { canonicalizeSchema } from '../src/worker/schema-util';
 
 // Golden fixtures are the hand-written JSON-Schema literals as they stood
 // before the zod conversion (the production model contract). This asserts each
@@ -24,8 +24,14 @@ describe('output schema parity: zod-generated == frozen literal', () => {
   for (const f of files) {
     const name = f.replace('.json', '');
     it(name, () => {
-      const golden = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')) as { name: string; strict: boolean; schema: unknown };
-      const gen = (schemas as Record<string, { name: string; strict: boolean; schema: unknown }>)[name];
+      const golden = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')) as {
+        name: string;
+        strict: boolean;
+        schema: unknown;
+      };
+      const gen = (schemas as Record<string, { name: string; strict: boolean; schema: unknown }>)[
+        name
+      ];
       expect(gen.name).toBe(golden.name);
       expect(gen.strict).toBe(true);
       expect(canonicalizeSchema(gen.schema)).toEqual(canonicalizeSchema(golden.schema));

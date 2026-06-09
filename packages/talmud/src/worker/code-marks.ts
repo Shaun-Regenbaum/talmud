@@ -19,14 +19,22 @@
  *   - def_hash (placeholder; computed at runtime)
  */
 
-import type {
-  MarkDefinition,
-  EnrichmentDefinition,
-  EnrichmentDependency,
-  EnrichmentScope,
-} from './studio-schema';
 import type { LLMModelId } from '@corpus/core/llm/llm';
-import { GENERATIONS_PROMPT_REFERENCE, GENERATION_IDS } from '../client/generations';
+import {
+  AGGADATA_RECIPE,
+  ARGUMENT_OVERVIEW_RECIPE,
+  ARGUMENT_RECIPE,
+  BIYUN_RECIPE,
+  CHART_RECIPE,
+  DAF_BACKGROUND_RECIPE,
+  HALACHA_RECIPE,
+  PASUK_RECIPE,
+  RABBI_RECIPE,
+  RISHONIM_RECIPE,
+  TIDBIT_RECIPE,
+  YERUSHALMI_RECIPE,
+} from '@corpus/core/sidebar/recipe';
+import { GENERATION_IDS, GENERATIONS_PROMPT_REFERENCE } from '../client/generations';
 import { alwaysHebraizeBlock } from '../lib/hebrewTerms';
 import {
   AGGADATA_BACKGROUND_OUTPUT_SCHEMA,
@@ -42,11 +50,12 @@ import {
   ARGUMENT_MOVE_QA_OUTPUT_SCHEMA,
   ARGUMENT_MOVE_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA,
   ARGUMENT_MOVE_SYNTHESIS_OUTPUT_SCHEMA,
+  ARGUMENT_NARRATIVE_OUTPUT_SCHEMA,
   ARGUMENT_OUTPUT_SCHEMA,
+  ARGUMENT_OVERVIEW_FLOW_OUTPUT_SCHEMA,
   ARGUMENT_SYNTHESIS_OUTPUT_SCHEMA,
   ARGUMENT_VOICES_OUTPUT_SCHEMA,
-  ARGUMENT_NARRATIVE_OUTPUT_SCHEMA,
-  ARGUMENT_OVERVIEW_FLOW_OUTPUT_SCHEMA,
+  BIYUN_ESSAY_OUTPUT_SCHEMA,
   CHART_OUTPUT_SCHEMA,
   DAF_BACKGROUND_CONCEPTS_OUTPUT_SCHEMA,
   HALACHA_CODIFICATION_OUTPUT_SCHEMA,
@@ -62,11 +71,12 @@ import {
   PESUKIM_SYNTHESIS_OUTPUT_SCHEMA,
   PESUKIM_TANACH_CONTEXT_OUTPUT_SCHEMA,
   PESUKIM_WHY_HERE_OUTPUT_SCHEMA,
-  PLACES_OUTPUT_SCHEMA,
-  PLACES_SYNTHESIS_OUTPUT_SCHEMA,
   PLACE_FIGURES_OUTPUT_SCHEMA,
   PLACE_PROFILE_OUTPUT_SCHEMA,
   PLACE_SIGNIFICANCE_OUTPUT_SCHEMA,
+  PLACES_OUTPUT_SCHEMA,
+  PLACES_SYNTHESIS_OUTPUT_SCHEMA,
+  proseSchema,
   RABBI_BIO_OUTPUT_SCHEMA,
   RABBI_CLASSIFICATION_OUTPUT_SCHEMA,
   RABBI_GEOGRAPHY_EVIDENCE_OUTPUT_SCHEMA,
@@ -78,12 +88,15 @@ import {
   RABBI_RELATIONSHIPS_OUTPUT_SCHEMA,
   RABBI_SYNTHESIS_OUTPUT_SCHEMA,
   RISHONIM_SYNTHESIS_OUTPUT_SCHEMA,
-  YERUSHALMI_OUTPUT_SCHEMA,
   TIDBIT_ESSAY_OUTPUT_SCHEMA,
-  BIYUN_ESSAY_OUTPUT_SCHEMA,
-  proseSchema,
+  YERUSHALMI_OUTPUT_SCHEMA,
 } from './output-schemas';
-import { AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE, YERUSHALMI_RECIPE, ARGUMENT_RECIPE, ARGUMENT_OVERVIEW_RECIPE, TIDBIT_RECIPE, BIYUN_RECIPE, DAF_BACKGROUND_RECIPE, CHART_RECIPE } from '@corpus/core/sidebar/recipe';
+import type {
+  EnrichmentDefinition,
+  EnrichmentDependency,
+  EnrichmentScope,
+  MarkDefinition,
+} from './studio-schema';
 
 // ---------------------------------------------------------------------------
 // Rabbi mark — phrase anchor + inline render
@@ -120,7 +133,6 @@ Rules:
 - If a rabbi moved (e.g. Rabbi Zeira from Bavel to Eretz Yisrael), use the generation of their PRIMARY teaching location. For Rabbi Zeira specifically, use amora-ey-3.
 - If the text has anonymous attributions like "Tanna" (תנא) or "the Sages" (חכמים) — DO NOT include them.
 - No duplicates (same exact excerpt).`;
-
 
 const RABBI_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
@@ -288,7 +300,6 @@ const HALACHA_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
 זהה נושאים הלכתיים. החזר JSON לפי הסכמה.`;
 
-
 // ---------------------------------------------------------------------------
 // Chart mark (experimental) — comparison tables for dense, multi-opinion
 // regions. Grounded on the dafyomi.co.il "## Charts" exemplars when present,
@@ -373,7 +384,6 @@ External study context — note any "## Charts" entries are authoritative Kollel
 
 Build comparison tables ONLY for regions that genuinely warrant a grid. Return JSON per the schema (empty instances if none qualify).`;
 
-
 // ---------------------------------------------------------------------------
 // Aggadata mark — narrative units (stories, parables, ethical maxims).
 // ---------------------------------------------------------------------------
@@ -450,7 +460,6 @@ const AGGADATA_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
 זהה יחידות אגדה. החזר JSON לפי הסכמה (מערך instances ריק אם אין).`;
 
-
 // ---------------------------------------------------------------------------
 // Pesukim mark — biblical citations / allusions.
 // ---------------------------------------------------------------------------
@@ -468,7 +477,7 @@ Output STRICT JSON only:
         "verseRef": "Sefaria-style canonical reference, e.g. 'Psalms 4:5', 'Genesis 24:63', 'Isaiah 6:3'.",
         "citationStyle": "'explicit' | 'allusion' | 'paraphrase'",
         "excerpt": "The Hebrew/Aramaic words from the daf that quote or allude to this verse — copied VERBATIM from the source. This is the START of the citation phrase.",
-        "endExcerpt": "Last 3-5 Hebrew/Aramaic words of the citation phrase, copied VERBATIM. For a one-line / short citation this can equal the tail of \"excerpt\"; for a longer citation that spans multiple words or includes interpolation, this marks where the verse-quote ENDS on the daf. Empty string is NOT acceptable when the citation is more than 5 words long.",
+        "endExcerpt": "Last 3-5 Hebrew/Aramaic words of the citation phrase, copied VERBATIM. For a one-line / short citation this can equal the tail of "excerpt"; for a longer citation that spans multiple words or includes interpolation, this marks where the verse-quote ENDS on the daf. Empty string is NOT acceptable when the citation is more than 5 words long.",
         "summary": "1-2 sentences in English explaining how the verse is being used in this context (proof, prooftext, contrast, exegetical hook)."
       }
     }
@@ -504,7 +513,7 @@ const PESUKIM_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בתנ"ך 
         "verseRef": "הפניה קנונית בסגנון Sefaria באנגלית, למשל 'Psalms 4:5', 'Genesis 24:63', 'Isaiah 6:3'.",
         "citationStyle": "'explicit' | 'allusion' | 'paraphrase'",
         "excerpt": "המילים בעברית/ארמית מן הדף המצטטות או רומזות לפסוק — מועתקות מילה-במילה מן המקור. זו תחילת ביטוי הציטוט.",
-        "endExcerpt": "3-5 המילים האחרונות של ביטוי הציטוט, מועתקות מילה-במילה. לציטוט קצר/בן שורה זה יכול להיות סוף \"excerpt\"; לציטוט ארוך יותר זה מסמן היכן מסתיים ציטוט-הפסוק בדף. מחרוזת ריקה אינה קבילה כשהציטוט ארוך מ-5 מילים.",
+        "endExcerpt": "3-5 המילים האחרונות של ביטוי הציטוט, מועתקות מילה-במילה. לציטוט קצר/בן שורה זה יכול להיות סוף "excerpt"; לציטוט ארוך יותר זה מסמן היכן מסתיים ציטוט-הפסוק בדף. מחרוזת ריקה אינה קבילה כשהציטוט ארוך מ-5 מילים.",
         "summary": "1–2 משפטים בעברית המסבירים כיצד הפסוק משמש בהקשר זה (ראיה, אסמכתא, ניגוד, עוגן דרשני)."
       }
     }
@@ -527,7 +536,6 @@ const PESUKIM_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 {{segments_he}}
 
 זהה הפניות לתנ"ך. החזר JSON לפי הסכמה (instances ריק אם אין).`;
-
 
 // ---------------------------------------------------------------------------
 // Yerushalmi parallel mark — Bavli sections with a DIRECT Jerusalem Talmud
@@ -620,13 +628,13 @@ const YERUSHALMI_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
 זהה את קטעי הבבלי שיש להם מקבילה ישירה בירושלמי והסבר את ההבדלים קטע-אחר-קטע (לפי תיוגי ה-[Bavli seg N] שבמתאר). החזר JSON לפי הסכמה (instances ריק אם אין מקבילה אמיתית).`;
 
-
 export const CODE_MARKS: MarkDefinition[] = [
   {
     id: 'rabbi',
     recipe: RABBI_RECIPE,
     label: 'Rabbis',
-    description: 'Inline underline of rabbi names with generation coloring; click for relationship card.',
+    description:
+      'Inline underline of rabbi names with generation coloring; click for relationship card.',
     category: 'canon',
     anchor: 'phrase',
     render: {
@@ -666,7 +674,8 @@ export const CODE_MARKS: MarkDefinition[] = [
     id: 'argument',
     recipe: ARGUMENT_RECIPE,
     label: 'Arguments',
-    description: 'Argument-section gutter icons + sidebar with per-section voices (Stam, named rabbis, Gemara moves).',
+    description:
+      'Argument-section gutter icons + sidebar with per-section voices (Stam, named rabbis, Gemara moves).',
     category: 'canon',
     anchor: 'segment-range',
     render: {
@@ -700,7 +709,8 @@ export const CODE_MARKS: MarkDefinition[] = [
     id: 'argument-overview',
     recipe: ARGUMENT_OVERVIEW_RECIPE,
     label: 'Overview',
-    description: 'Whole-daf overview: the page\'s argument sections and how they relate (continues / resolves / depends-on / …), grounded on dafyomi.co.il study context.',
+    description:
+      "Whole-daf overview: the page's argument sections and how they relate (continues / resolves / depends-on / …), grounded on dafyomi.co.il study context.",
     category: 'canon',
     // Promoted to readers. The per-daf overview (sections + their flow) is solid
     // and warmed globally; cross-daf / sugya-spanning ranges are a later layer
@@ -727,7 +737,8 @@ export const CODE_MARKS: MarkDefinition[] = [
     id: 'daf-background',
     recipe: DAF_BACKGROUND_RECIPE,
     label: 'Background',
-    description: 'Whole-daf background: the key terms/concepts a reader needs to follow the daf, grouped into legal concepts / realia / persons / assumed-prior sugyot, grounded on the dafyomi.co.il glossary.',
+    description:
+      'Whole-daf background: the key terms/concepts a reader needs to follow the daf, grouped into legal concepts / realia / persons / assumed-prior sugyot, grounded on the dafyomi.co.il glossary.',
     category: 'canon',
     // Reader-facing (non-experimental), like the overview chip. The deterministic
     // single anchorless instance carries the chip + daf-level enrichments; no LLM
@@ -752,7 +763,8 @@ export const CODE_MARKS: MarkDefinition[] = [
     id: 'tidbit',
     recipe: TIDBIT_RECIPE,
     label: 'Tidbit',
-    description: 'Whole-daf "did you notice…": ONE curated, genuinely interesting thing about this daf — an aggadah read against the grain, a legal concept with a twist, a sharp machloket, a textual point, or a hidden point inside a dry sugya. Grounded on the full daf + commentaries + study context + the overview & background it depends on.',
+    description:
+      'Whole-daf "did you notice…": ONE curated, genuinely interesting thing about this daf — an aggadah read against the grain, a legal concept with a twist, a sharp machloket, a textual point, or a hidden point inside a dry sugya. Grounded on the full daf + commentaries + study context + the overview & background it depends on.',
     category: 'canon',
     // Reader-facing whole-daf chip, like the overview/background pills. The
     // deterministic single anchorless instance carries the chip + the
@@ -779,7 +791,8 @@ export const CODE_MARKS: MarkDefinition[] = [
     id: 'biyun',
     recipe: BIYUN_RECIPE,
     label: "Bi'yun",
-    description: "Whole-daf עיון: a deep dive into ONE halachic/conceptual problem on the daf that the rishonim are wrestling with — the difficulty, the competing approaches, what's at stake. The lomdus counterpart to the Tidbit. Grounded on the full daf + commentaries + the rishonim/argument/halacha analysis it depends on.",
+    description:
+      "Whole-daf עיון: a deep dive into ONE halachic/conceptual problem on the daf that the rishonim are wrestling with — the difficulty, the competing approaches, what's at stake. The lomdus counterpart to the Tidbit. Grounded on the full daf + commentaries + the rishonim/argument/halacha analysis it depends on.",
     category: 'canon',
     // Whole-daf chip, sibling of the tidbit. Same deterministic anchorless
     // instance carrying the chip + biyun.essay enrichment.
@@ -837,7 +850,8 @@ export const CODE_MARKS: MarkDefinition[] = [
     id: 'chart',
     recipe: CHART_RECIPE,
     label: 'Charts',
-    description: 'Experimental: comparison-table gutter icons + sidebar for dense, multi-opinion regions. Grounded on dafyomi.co.il charts where present, generated from gemara + commentaries otherwise.',
+    description:
+      'Experimental: comparison-table gutter icons + sidebar for dense, multi-opinion regions. Grounded on dafyomi.co.il charts where present, generated from gemara + commentaries otherwise.',
     category: 'experimental',
     experimental: true,
     anchor: 'segment-range',
@@ -933,7 +947,8 @@ export const CODE_MARKS: MarkDefinition[] = [
     id: 'yerushalmi',
     recipe: YERUSHALMI_RECIPE,
     label: 'Yerushalmi parallels',
-    description: 'Bavli sections with a direct Yerushalmi parallel — gutter icons + a sidebar contrasting the two Talmuds.',
+    description:
+      'Bavli sections with a direct Yerushalmi parallel — gutter icons + a sidebar contrasting the two Talmuds.',
     category: 'canon',
     anchor: 'segment-range',
     render: {
@@ -1046,7 +1061,6 @@ const HEBREW_NATIVE_STYLE = `סגנון — כתיבה בעברית (החל בא
 - עברית היא שפת הבסיס; אין צורך לפזר מילים לועזיות או תעתיקים.
 - מילון הדף הוא סמכותי. אם הקלט כולל את מונחי הרקע של הדף (תווית באנגלית + עברית + הסבר לכל אחד), התייחס לרשימה כקבוצת המונחים המוסמכת: בכל פעם שהפרוזה נוקטת באחד מהם, כתוב אותו בדיוק באותה צורה עברית שניתנה (למשל "טבול יום", "חצות", "תרומה"). כך הפרוזה עקבית עם מילון הרקע שהקורא רואה בדף.
 - ניקיון כתב: כתוב אך ורק בעברית (ובכתב עברי/ארמי למונחים וציטוטים). לעולם אל תפלוט שפה או מערכת כתב אחרת — לא קוריאנית, קירילית, ערבית, סינית/יפנית, אימוג'י וכו'. כל תו חייב להיות עברי או לטיני בסיסי (בתוספת פיסוק רגיל).`;
-
 
 // rabbi.bio — DAF-AGNOSTIC general biography. Same regardless of which daf
 // triggered the click. The daf is NOT the subject; the rabbi is.
@@ -1181,7 +1195,6 @@ Rules:
 
 ${HEBREW_GLOSS_STYLE}`;
 
-
 // rabbi.relationships.evidence — find excerpts in THIS daf that reference
 // the rabbi's known relationships, so the lineage tree can highlight the
 // entries that the daf itself supports + jump to the relevant text.
@@ -1208,7 +1221,6 @@ Rules:
 
 ${HEBREW_GLOSS_STYLE}`;
 
-
 // rabbi.geography.evidence — same idea for places + movements.
 const RABBI_GEOGRAPHY_EVIDENCE_SYSTEM_PROMPT = `You are a Talmud scholar. Given a rabbi's known geography (from rabbi.geography) and the source text of the current daf, find every Hebrew/Aramaic excerpt that references one of the rabbi's known places, academies, or attested movements. Empty array if none.
 
@@ -1231,7 +1243,6 @@ Rules:
 - Empty evidence array is fine.
 
 ${HEBREW_GLOSS_STYLE}`;
-
 
 const RABBI_RELATIONSHIPS_EVIDENCE_USER_TEMPLATE = `Rabbi:
 {{mark_input}}
@@ -1288,7 +1299,6 @@ Rules:
 - justification must cite SPECIFIC daf evidence (named rabbi, place phrase, sugya context) — not generic biographical statements. Keep it terse (aim under ~18 words); do NOT embed long Hebrew quotations or a "the daf states that…" preamble.
 
 ${HEBREW_GLOSS_STYLE}`;
-
 
 const RABBI_LOCATION_USER_TEMPLATE = `Rabbi:
 {{mark_input}}
@@ -1689,7 +1699,6 @@ const RABBI_LOCATION_USER_TEMPLATE_HE = `החכם:
 
 הסק את המקום הסביר ביותר לפי הסכימה.`;
 
-
 function makeEnrichment(
   targetMark: string,
   id: string,
@@ -1766,7 +1775,17 @@ const makeRabbiEnrichment = (
     systemPromptHe?: string;
     userPromptTemplateHe?: string;
   },
-): EnrichmentDefinition => makeEnrichment('rabbi', id, label, description, systemPrompt, userPromptTemplate, outputSchema, opts);
+): EnrichmentDefinition =>
+  makeEnrichment(
+    'rabbi',
+    id,
+    label,
+    description,
+    systemPrompt,
+    userPromptTemplate,
+    outputSchema,
+    opts,
+  );
 
 /** Every synthesis aggregate is the same shape: label "Synthesis", mode
  *  'aggregate', scope 'local', and a single-`synthesis`-string output whose
@@ -1791,8 +1810,12 @@ function makeSynthesis(
   },
 ): EnrichmentDefinition {
   return makeEnrichment(
-    targetMark, id, 'Synthesis', description,
-    systemPrompt, userPromptTemplate,
+    targetMark,
+    id,
+    'Synthesis',
+    description,
+    systemPrompt,
+    userPromptTemplate,
     proseSchema(id.replace(/[.-]/g, '_'), 'synthesis'),
     {
       mode: 'aggregate',
@@ -1816,39 +1839,84 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
   // Scope: 'global' for daf-agnostic facets (bio/philosophy/relationships).
   // Synthesis is 'local' since it's framed by the current daf.
   makeRabbiEnrichment(
-    'rabbi.bio', 'Bio (general)',
+    'rabbi.bio',
+    'Bio (general)',
     'Daf-agnostic biographical sketch — era, region, teachers, signature.',
-    RABBI_BIO_SYSTEM_PROMPT, RABBI_LEAF_USER_TEMPLATE, RABBI_BIO_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.bio-v5', cacheVersion: '5',
-      systemPromptHe: RABBI_BIO_SYSTEM_PROMPT_HE, userPromptTemplateHe: RABBI_LEAF_USER_TEMPLATE_HE },
+    RABBI_BIO_SYSTEM_PROMPT,
+    RABBI_LEAF_USER_TEMPLATE,
+    RABBI_BIO_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content',
+      scope: 'global',
+      defHash: 'rabbi.bio-v5',
+      cacheVersion: '5',
+      systemPromptHe: RABBI_BIO_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: RABBI_LEAF_USER_TEMPLATE_HE,
+    },
   ),
   makeRabbiEnrichment(
-    'rabbi.philosophy', 'Philosophy',
+    'rabbi.philosophy',
+    'Philosophy',
     'Cross-Gemara stance + recurring exegetical method. Daf-agnostic.',
-    RABBI_PHILOSOPHY_SYSTEM_PROMPT, RABBI_LEAF_USER_TEMPLATE, RABBI_PHILOSOPHY_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.philosophy-v4', cacheVersion: '4',
-      systemPromptHe: RABBI_PHILOSOPHY_SYSTEM_PROMPT_HE, userPromptTemplateHe: RABBI_LEAF_USER_TEMPLATE_HE },
+    RABBI_PHILOSOPHY_SYSTEM_PROMPT,
+    RABBI_LEAF_USER_TEMPLATE,
+    RABBI_PHILOSOPHY_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content',
+      scope: 'global',
+      defHash: 'rabbi.philosophy-v4',
+      cacheVersion: '4',
+      systemPromptHe: RABBI_PHILOSOPHY_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: RABBI_LEAF_USER_TEMPLATE_HE,
+    },
   ),
   makeRabbiEnrichment(
-    'rabbi.relationships', 'Relationships',
+    'rabbi.relationships',
+    'Relationships',
     'Teachers, students, frequent debate partners, family — structured lists + prose summary. Daf-agnostic.',
-    RABBI_RELATIONSHIPS_SYSTEM_PROMPT, RABBI_LEAF_USER_TEMPLATE, RABBI_RELATIONSHIPS_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.relationships-v6', cacheVersion: '6',
-      systemPromptHe: RABBI_RELATIONSHIPS_SYSTEM_PROMPT_HE, userPromptTemplateHe: RABBI_LEAF_USER_TEMPLATE_HE },
+    RABBI_RELATIONSHIPS_SYSTEM_PROMPT,
+    RABBI_LEAF_USER_TEMPLATE,
+    RABBI_RELATIONSHIPS_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content',
+      scope: 'global',
+      defHash: 'rabbi.relationships-v6',
+      cacheVersion: '6',
+      systemPromptHe: RABBI_RELATIONSHIPS_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: RABBI_LEAF_USER_TEMPLATE_HE,
+    },
   ),
   makeRabbiEnrichment(
-    'rabbi.classification', 'Classification',
+    'rabbi.classification',
+    'Classification',
     'Aggadist / halachist / exegetist — primary mode of activity in classical sources.',
-    RABBI_CLASSIFICATION_SYSTEM_PROMPT, RABBI_LEAF_USER_TEMPLATE, RABBI_CLASSIFICATION_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.classification-v2', cacheVersion: '2',
-      systemPromptHe: RABBI_CLASSIFICATION_SYSTEM_PROMPT_HE, userPromptTemplateHe: RABBI_LEAF_USER_TEMPLATE_HE },
+    RABBI_CLASSIFICATION_SYSTEM_PROMPT,
+    RABBI_LEAF_USER_TEMPLATE,
+    RABBI_CLASSIFICATION_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content',
+      scope: 'global',
+      defHash: 'rabbi.classification-v2',
+      cacheVersion: '2',
+      systemPromptHe: RABBI_CLASSIFICATION_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: RABBI_LEAF_USER_TEMPLATE_HE,
+    },
   ),
   makeRabbiEnrichment(
-    'rabbi.geography', 'Geography',
+    'rabbi.geography',
+    'Geography',
     'Birthplace + primary study places + notable places + Bavel↔Israel movements. Daf-agnostic.',
-    RABBI_GEOGRAPHY_SYSTEM_PROMPT, RABBI_LEAF_USER_TEMPLATE, RABBI_GEOGRAPHY_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'rabbi.geography-v3', cacheVersion: '3',
-      systemPromptHe: RABBI_GEOGRAPHY_SYSTEM_PROMPT_HE, userPromptTemplateHe: RABBI_LEAF_USER_TEMPLATE_HE },
+    RABBI_GEOGRAPHY_SYSTEM_PROMPT,
+    RABBI_LEAF_USER_TEMPLATE,
+    RABBI_GEOGRAPHY_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content',
+      scope: 'global',
+      defHash: 'rabbi.geography-v3',
+      cacheVersion: '3',
+      systemPromptHe: RABBI_GEOGRAPHY_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: RABBI_LEAF_USER_TEMPLATE_HE,
+    },
   ),
   // rabbi.identity — DETERMINISTIC. Resolved server-side from rabbi-places.json
   // via enrichRabbi (see the short-circuit in runEnrichmentOnce); the LLM
@@ -1856,7 +1924,8 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
   // timeline + bio sidebar need (slug, region, places, moved, image, wiki) —
   // the role the legacy /api/daf-context filled. Daf-agnostic, so 'global'.
   makeRabbiEnrichment(
-    'rabbi.identity', 'Identity',
+    'rabbi.identity',
+    'Identity',
     'Canonical identity from rabbi-places.json: Sefaria slug, region, places, Bavel↔Israel movement, image, wiki. Deterministic — no LLM.',
     '(deterministic: resolved from rabbi-places.json; this prompt is never executed)',
     '(deterministic lookup for {{mark_input.name}})',
@@ -1866,7 +1935,18 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
       schema: {
         type: 'object',
         additionalProperties: false,
-        required: ['slug', 'name', 'nameHe', 'generation', 'region', 'places', 'moved', 'bio', 'image', 'wiki'],
+        required: [
+          'slug',
+          'name',
+          'nameHe',
+          'generation',
+          'region',
+          'places',
+          'moved',
+          'bio',
+          'image',
+          'wiki',
+        ],
         properties: {
           slug: { type: ['string', 'null'] },
           name: { type: 'string' },
@@ -1887,9 +1967,11 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
   // gemara text and the full rabbi instance list (so the prompt can name
   // OTHER rabbis on the same daf).
   makeSynthesis(
-    'rabbi', 'rabbi.synthesis',
+    'rabbi',
+    'rabbi.synthesis',
     'One tight paragraph about the rabbi as a person, with this daf as the lens. Synthesizes bio + philosophy + relationships + classification + geography.',
-    RABBI_SYNTHESIS_SYSTEM_PROMPT, RABBI_SYNTHESIS_USER_TEMPLATE,
+    RABBI_SYNTHESIS_SYSTEM_PROMPT,
+    RABBI_SYNTHESIS_USER_TEMPLATE,
     {
       dependencies: [
         'gemara',
@@ -1916,39 +1998,54 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
   // adds tokenStart/tokenEnd so the sidebar can paint click-to-highlight
   // on the daf at sub-segment precision.
   makeRabbiEnrichment(
-    'rabbi.relationships.evidence', 'Relationships evidence',
-    'Hebrew/Aramaic excerpts on THIS daf that mention the rabbi\'s known teachers/students/partners/family. Drives the highlight-when-on-daf affordance on the lineage tree.',
-    RABBI_RELATIONSHIPS_EVIDENCE_SYSTEM_PROMPT, RABBI_RELATIONSHIPS_EVIDENCE_USER_TEMPLATE, RABBI_RELATIONSHIPS_EVIDENCE_OUTPUT_SCHEMA,
+    'rabbi.relationships.evidence',
+    'Relationships evidence',
+    "Hebrew/Aramaic excerpts on THIS daf that mention the rabbi's known teachers/students/partners/family. Drives the highlight-when-on-daf affordance on the lineage tree.",
+    RABBI_RELATIONSHIPS_EVIDENCE_SYSTEM_PROMPT,
+    RABBI_RELATIONSHIPS_EVIDENCE_USER_TEMPLATE,
+    RABBI_RELATIONSHIPS_EVIDENCE_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
+      mode: 'augment-content',
+      scope: 'local',
       dependencies: ['gemara', { enrichment: 'rabbi.relationships' }],
       passes: ['reanchor-rabbi-evidence'],
-      defHash: 'rabbi.relationships.evidence-v2', cacheVersion: '2',
+      defHash: 'rabbi.relationships.evidence-v2',
+      cacheVersion: '2',
       systemPromptHe: RABBI_RELATIONSHIPS_EVIDENCE_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: RABBI_RELATIONSHIPS_EVIDENCE_USER_TEMPLATE_HE,
     },
   ),
   makeRabbiEnrichment(
-    'rabbi.geography.evidence', 'Geography evidence',
-    'Hebrew/Aramaic excerpts on THIS daf that reference the rabbi\'s known places or movements. Drives the highlight-when-on-daf affordance on the geography card.',
-    RABBI_GEOGRAPHY_EVIDENCE_SYSTEM_PROMPT, RABBI_GEOGRAPHY_EVIDENCE_USER_TEMPLATE, RABBI_GEOGRAPHY_EVIDENCE_OUTPUT_SCHEMA,
+    'rabbi.geography.evidence',
+    'Geography evidence',
+    "Hebrew/Aramaic excerpts on THIS daf that reference the rabbi's known places or movements. Drives the highlight-when-on-daf affordance on the geography card.",
+    RABBI_GEOGRAPHY_EVIDENCE_SYSTEM_PROMPT,
+    RABBI_GEOGRAPHY_EVIDENCE_USER_TEMPLATE,
+    RABBI_GEOGRAPHY_EVIDENCE_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
+      mode: 'augment-content',
+      scope: 'local',
       dependencies: ['gemara', { enrichment: 'rabbi.geography' }],
       passes: ['reanchor-rabbi-evidence'],
-      defHash: 'rabbi.geography.evidence-v2', cacheVersion: '2',
+      defHash: 'rabbi.geography.evidence-v2',
+      cacheVersion: '2',
       systemPromptHe: RABBI_GEOGRAPHY_EVIDENCE_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: RABBI_GEOGRAPHY_EVIDENCE_USER_TEMPLATE_HE,
     },
   ),
   makeRabbiEnrichment(
-    'rabbi.location', 'Location (in this sugya)',
+    'rabbi.location',
+    'Location (in this sugya)',
     'Per-daf inference of WHERE the rabbi was when the teaching on this daf occurred. Drives the "you are here" marker on the places timeline.',
-    RABBI_LOCATION_SYSTEM_PROMPT, RABBI_LOCATION_USER_TEMPLATE, RABBI_LOCATION_OUTPUT_SCHEMA,
+    RABBI_LOCATION_SYSTEM_PROMPT,
+    RABBI_LOCATION_USER_TEMPLATE,
+    RABBI_LOCATION_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
+      mode: 'augment-content',
+      scope: 'local',
       dependencies: ['gemara', { enrichment: 'rabbi.geography' }, { mark: 'rabbi' }],
-      defHash: 'rabbi.location-v3', cacheVersion: '3',
+      defHash: 'rabbi.location-v3',
+      cacheVersion: '3',
       systemPromptHe: RABBI_LOCATION_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: RABBI_LOCATION_USER_TEMPLATE_HE,
     },
@@ -1966,7 +2063,8 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
   {
     id: 'rabbi.observations',
     label: 'Observations (accumulate)',
-    description: 'Deterministic reverse-index capture: per-rabbi place/opinion/story/exegesis/lineage observations for this daf, written to rabbi-obs:v1. No LLM, no card.',
+    description:
+      'Deterministic reverse-index capture: per-rabbi place/opinion/story/exegesis/lineage observations for this daf, written to rabbi-obs:v1. No LLM, no card.',
     category: 'internal',
     target_mark: 'rabbi',
     mode: 'aggregate',
@@ -2005,8 +2103,16 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
 // ---------------------------------------------------------------------------
 
 const ARGUMENT_ROLE_ENUM = [
-  'opening', 'question', 'answer', 'objection', 'rejection',
-  'supporting-evidence', 'resolution', 'digression', 'shift', 'other',
+  'opening',
+  'question',
+  'answer',
+  'objection',
+  'rejection',
+  'supporting-evidence',
+  'resolution',
+  'digression',
+  'shift',
+  'other',
 ] as const;
 
 const ARGUMENT_FLASH_MODEL = 'openrouter/deepseek/deepseek-v4-flash' as LLMModelId;
@@ -2084,7 +2190,6 @@ Rabbis identified on this daf (with generation):
 
 For each NAMED rabbi appearing in this section's moves, describe their argumentative role per the schema.`;
 
-
 // ---------------- argument.narrative (section typing P2b) ----------------
 // Story view for NARRATIVE-primary sections, where the dispute-oriented voices
 // graph is the wrong model (a maaseh/aggadah is not a מחלוקת). Actors + ordered
@@ -2155,7 +2260,6 @@ const ARGUMENT_NARRATIVE_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page
 
 ספר מחדש מקטע זה כסיפור לפי הסכימה: מנה את ה-actors, ואז את ה-beats המסודרים.`;
 
-
 // ---------------- argument.background (kept) ----------------
 
 const ARGUMENT_BACKGROUND_SYSTEM_PROMPT = `You are a Talmud scholar. Given one section of a daf and its Rashi/Tosafot context, write the background a reader needs to follow this section — concepts, prior sugyot, mishnaic backdrop.
@@ -2190,7 +2294,6 @@ Study-aid context grounded to THIS section (dafyomi.co.il outline/background/hal
 {{context}}
 
 Write the background per the schema. Use the study-aid context to name prerequisite concepts and terms precisely. When the section directly elaborates one of the mishnayot above, name it explicitly (e.g. "Builds on Mishnah Berakhot 1:1").`;
-
 
 // ---------------- argument.synthesis (tightened, drops subsection/commentary/flow leaves) ----------------
 
@@ -2242,7 +2345,6 @@ Daf term glossary — for any of these terms that appears in your prose, write i
 {{depends.daf-background.concepts}}
 
 Compose ONE paragraph per the schema.`;
-
 
 // ---------------- Hebrew-output parallels (argument section level) ----------------
 
@@ -2393,50 +2495,70 @@ const ARGUMENT_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page
 
 CODE_ENRICHMENTS.push(
   makeEnrichment(
-    'argument', 'argument.voices', 'Voices',
+    'argument',
+    'argument.voices',
+    'Voices',
     'Per-rabbi argumentative role within this section.',
-    ARGUMENT_VOICES_SYSTEM_PROMPT, ARGUMENT_VOICES_USER_TEMPLATE, ARGUMENT_VOICES_OUTPUT_SCHEMA,
+    ARGUMENT_VOICES_SYSTEM_PROMPT,
+    ARGUMENT_VOICES_USER_TEMPLATE,
+    ARGUMENT_VOICES_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
+      mode: 'augment-content',
+      scope: 'local',
       dependencies: ['gemara', { mark: 'argument-move' }, { mark: 'rabbi' }],
       passes: ['derive-voice-edges', 'edge-integrity'],
-      defHash: 'argument.voices-v6', cacheVersion: '6',
+      defHash: 'argument.voices-v6',
+      cacheVersion: '6',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_VOICES_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_VOICES_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
-    'argument', 'argument.narrative', 'Narrative',
+    'argument',
+    'argument.narrative',
+    'Narrative',
     'Story view for narrative-primary sections: actors + ordered beats, instead of the dispute voice graph (section typing).',
-    ARGUMENT_NARRATIVE_SYSTEM_PROMPT, ARGUMENT_NARRATIVE_USER_TEMPLATE, ARGUMENT_NARRATIVE_OUTPUT_SCHEMA,
+    ARGUMENT_NARRATIVE_SYSTEM_PROMPT,
+    ARGUMENT_NARRATIVE_USER_TEMPLATE,
+    ARGUMENT_NARRATIVE_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
+      mode: 'augment-content',
+      scope: 'local',
       dependencies: ['gemara', { mark: 'argument-move' }, { mark: 'rabbi' }],
       passes: ['reanchor-narrative'],
-      defHash: 'argument.narrative-v2', cacheVersion: '3', // v3: native Hebrew prompt
+      defHash: 'argument.narrative-v2',
+      cacheVersion: '3', // v3: native Hebrew prompt
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_NARRATIVE_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_NARRATIVE_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
-    'argument', 'argument.background', 'Background',
+    'argument',
+    'argument.background',
+    'Background',
     'Prerequisite knowledge a reader needs to follow this section.',
-    ARGUMENT_BACKGROUND_SYSTEM_PROMPT, ARGUMENT_BACKGROUND_USER_TEMPLATE, ARGUMENT_BACKGROUND_OUTPUT_SCHEMA,
+    ARGUMENT_BACKGROUND_SYSTEM_PROMPT,
+    ARGUMENT_BACKGROUND_USER_TEMPLATE,
+    ARGUMENT_BACKGROUND_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
+      mode: 'augment-content',
+      scope: 'local',
       dependencies: ['gemara', 'commentaries', 'mishna', 'context'],
-      defHash: 'argument.background-v4', cacheVersion: '5', // v5: per-section Revach placement now reaches this
+      defHash: 'argument.background-v4',
+      cacheVersion: '5', // v5: per-section Revach placement now reaches this
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_BACKGROUND_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_BACKGROUND_USER_TEMPLATE_HE,
     },
   ),
   makeSynthesis(
-    'argument', 'argument.synthesis',
+    'argument',
+    'argument.synthesis',
     'One tight paragraph: what this section argues, who pushes what, where it lands.',
-    ARGUMENT_SYNTHESIS_SYSTEM_PROMPT, ARGUMENT_SYNTHESIS_USER_TEMPLATE,
+    ARGUMENT_SYNTHESIS_SYSTEM_PROMPT,
+    ARGUMENT_SYNTHESIS_USER_TEMPLATE,
     {
       dependencies: [
         'gemara',
@@ -2448,7 +2570,8 @@ CODE_ENRICHMENTS.push(
         { mark: 'argument-move' },
         { enrichment: 'daf-background.concepts' },
       ],
-      defHash: 'argument.synthesis-v10', cacheVersion: '12', // v12: + daf-background.concepts glossary for consistent Hebrew terms
+      defHash: 'argument.synthesis-v10',
+      cacheVersion: '12', // v12: + daf-background.concepts glossary for consistent Hebrew terms
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_SYNTHESIS_USER_TEMPLATE_HE,
@@ -2578,11 +2701,16 @@ const ARGUMENT_OVERVIEW_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, ד
 
 CODE_ENRICHMENTS.push(
   makeEnrichment(
-    'argument-overview', 'argument-overview.flow', 'Argument flow',
-    'How the daf\'s argument sections relate to each other (continues / resolves / depends-on / parallels / ...).',
-    ARGUMENT_OVERVIEW_FLOW_SYSTEM_PROMPT, ARGUMENT_OVERVIEW_FLOW_USER_TEMPLATE, ARGUMENT_OVERVIEW_FLOW_OUTPUT_SCHEMA,
+    'argument-overview',
+    'argument-overview.flow',
+    'Argument flow',
+    "How the daf's argument sections relate to each other (continues / resolves / depends-on / parallels / ...).",
+    ARGUMENT_OVERVIEW_FLOW_SYSTEM_PROMPT,
+    ARGUMENT_OVERVIEW_FLOW_USER_TEMPLATE,
+    ARGUMENT_OVERVIEW_FLOW_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
+      mode: 'augment-content',
+      scope: 'local',
       // Relate sections from their OWN summaries only — not the full daf +
       // dafyomi context. The big prompt + reasoning model timed out at the 240s
       // OpenRouter hard cap on most dapim, so flow never cached and the sugya
@@ -2591,14 +2719,17 @@ CODE_ENRICHMENTS.push(
       // voices, which is all the relating needs. Fast model, no thinking →
       // lands in seconds, so every daf actually gets a flow.
       dependencies: [{ mark: 'argument' }],
-      defHash: 'argument-overview.flow-v1', cacheVersion: '1',
+      defHash: 'argument-overview.flow-v1',
+      cacheVersion: '1',
       model: ARGUMENT_FLASH_MODEL,
     },
   ),
   makeSynthesis(
-    'argument-overview', 'argument-overview.synthesis',
+    'argument-overview',
+    'argument-overview.synthesis',
     'One tight paragraph orienting a reader to the whole daf: where it comes from, its question, the main positions, how the sections connect, where it lands.',
-    ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT, ARGUMENT_OVERVIEW_SYNTHESIS_USER_TEMPLATE,
+    ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT,
+    ARGUMENT_OVERVIEW_SYNTHESIS_USER_TEMPLATE,
     {
       dependencies: [
         'gemara',
@@ -2612,7 +2743,8 @@ CODE_ENRICHMENTS.push(
         { mark: 'argument' },
         { mark: 'rabbi' },
       ],
-      defHash: 'argument-overview.synthesis-v3', cacheVersion: '5', // v5: merged entry frame (incoming continuation + Mishnah framing); v4: native Hebrew prompt
+      defHash: 'argument-overview.synthesis-v3',
+      cacheVersion: '5', // v5: merged entry frame (incoming continuation + Mishnah framing); v4: native Hebrew prompt
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_OVERVIEW_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_OVERVIEW_SYNTHESIS_USER_TEMPLATE_HE,
@@ -2789,13 +2921,19 @@ const DAF_BACKGROUND_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף 
 
 CODE_ENRICHMENTS.push(
   makeEnrichment(
-    'daf-background', 'daf-background.concepts', 'Background concepts',
+    'daf-background',
+    'daf-background.concepts',
+    'Background concepts',
     'The terms/concepts a reader needs to follow the daf, grouped into legal concepts / realia / assumed-prior sugyot.',
-    DAF_BACKGROUND_CONCEPTS_SYSTEM_PROMPT, DAF_BACKGROUND_CONCEPTS_USER_TEMPLATE, DAF_BACKGROUND_CONCEPTS_OUTPUT_SCHEMA,
+    DAF_BACKGROUND_CONCEPTS_SYSTEM_PROMPT,
+    DAF_BACKGROUND_CONCEPTS_USER_TEMPLATE,
+    DAF_BACKGROUND_CONCEPTS_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
+      mode: 'augment-content',
+      scope: 'local',
       dependencies: ['gemara', 'context', { mark: 'argument' }],
-      defHash: 'daf-background.concepts-v1', cacheVersion: '5', // v5: native Hebrew prompt (gloss prose no longer falls back to English)
+      defHash: 'daf-background.concepts-v1',
+      cacheVersion: '5', // v5: native Hebrew prompt (gloss prose no longer falls back to English)
       // Pro (vs flash) follows the "background, not summary" rule far better —
       // flash kept leaking "the Gemara debates…" and naming disputants. Thinking
       // stays off (no reasoningEffort) so the big gemara+context prompt lands
@@ -2806,16 +2944,15 @@ CODE_ENRICHMENTS.push(
     },
   ),
   makeSynthesis(
-    'daf-background', 'daf-background.synthesis',
+    'daf-background',
+    'daf-background.synthesis',
     'One short sentence orienting a reader to the background this daf assumes.',
-    DAF_BACKGROUND_SYNTHESIS_SYSTEM_PROMPT, DAF_BACKGROUND_SYNTHESIS_USER_TEMPLATE,
+    DAF_BACKGROUND_SYNTHESIS_SYSTEM_PROMPT,
+    DAF_BACKGROUND_SYNTHESIS_USER_TEMPLATE,
     {
-      dependencies: [
-        'gemara',
-        'context',
-        { enrichment: 'daf-background.concepts' },
-      ],
-      defHash: 'daf-background.synthesis-v1', cacheVersion: '6', // v6: drop "realia" from the example + ban the word in the synthesis sentence
+      dependencies: ['gemara', 'context', { enrichment: 'daf-background.concepts' }],
+      defHash: 'daf-background.synthesis-v1',
+      cacheVersion: '6', // v6: drop "realia" from the example + ban the word in the synthesis sentence
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: DAF_BACKGROUND_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: DAF_BACKGROUND_SYNTHESIS_USER_TEMPLATE_HE,
@@ -3046,11 +3183,16 @@ const TIDBIT_ESSAY_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
 CODE_ENRICHMENTS.push(
   makeEnrichment(
-    'tidbit', 'tidbit.essay', 'Tidbit',
+    'tidbit',
+    'tidbit.essay',
+    'Tidbit',
     'One curated "did you notice…" essay for the whole daf: the single most interesting thing on it, as a hook + 3-4 flowing paragraphs, grounded in the daf + commentaries + study context.',
-    TIDBIT_ESSAY_SYSTEM_PROMPT, TIDBIT_ESSAY_USER_TEMPLATE, TIDBIT_ESSAY_OUTPUT_SCHEMA,
+    TIDBIT_ESSAY_SYSTEM_PROMPT,
+    TIDBIT_ESSAY_USER_TEMPLATE,
+    TIDBIT_ESSAY_OUTPUT_SCHEMA,
     {
-      mode: 'aggregate', scope: 'local',
+      mode: 'aggregate',
+      scope: 'local',
       // The WHOLE daf, fully understood, before choosing. This deliberately
       // depends on nearly everything the app extracts/enriches for the daf so
       // the tidbit (a) has the richest possible picture and (b) is computed
@@ -3078,7 +3220,8 @@ CODE_ENRICHMENTS.push(
         // aids + the daf's anchors + a plain whole-daf summary + the glossary.
         // The rishonim and the per-instance analysis are the Bi'yun's job.
       ],
-      defHash: 'tidbit.essay-v1', cacheVersion: '15', // v15: + shared script-hygiene guard (English + Hebrew script only; no stray foreign-script tokens)
+      defHash: 'tidbit.essay-v1',
+      cacheVersion: '15', // v15: + shared script-hygiene guard (English + Hebrew script only; no stray foreign-script tokens)
       // Pro model + a reasoning pass. Thinking is ON now (reasoningEffort) —
       // the move to 'context-light' shrank the prompt enough that a thinking
       // pass no longer risks the OpenRouter cap, and the tidbit genuinely needs
@@ -3252,11 +3395,16 @@ const BIYUN_ESSAY_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
 CODE_ENRICHMENTS.push(
   makeEnrichment(
-    'biyun', 'biyun.essay', "Bi'yun",
+    'biyun',
+    'biyun.essay',
+    "Bi'yun",
     'A deep dive into one halachic/conceptual problem the rishonim wrestle with on the daf: the difficulty, the approaches + svaras, the conceptual fork, where it lands.',
-    BIYUN_ESSAY_SYSTEM_PROMPT, BIYUN_ESSAY_USER_TEMPLATE, BIYUN_ESSAY_OUTPUT_SCHEMA,
+    BIYUN_ESSAY_SYSTEM_PROMPT,
+    BIYUN_ESSAY_USER_TEMPLATE,
+    BIYUN_ESSAY_OUTPUT_SCHEMA,
     {
-      mode: 'aggregate', scope: 'local',
+      mode: 'aggregate',
+      scope: 'local',
       // Deep, rishonim-first context: the commentaries themselves + the app's
       // per-segment rishonim analysis (fanned out) + per-section + per-topic
       // analysis. Generated last, like the tidbit.
@@ -3278,7 +3426,8 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'pesukim.synthesis', fanOut: true },
         { enrichment: 'halacha.synthesis', fanOut: true },
       ],
-      defHash: 'biyun.essay-v1', cacheVersion: '5', // v5: + reasoning pass, matching the tidbit's deliberate-reasoning tier
+      defHash: 'biyun.essay-v1',
+      cacheVersion: '5', // v5: + reasoning pass, matching the tidbit's deliberate-reasoning tier
       model: ARGUMENT_PRO_MODEL,
       // Thinking ON, like the tidbit (its essay counterpart). 'medium', not the
       // tidbit's 'high': the bi'yun keeps its heavy rishonim context —
@@ -3399,11 +3548,11 @@ const ARGUMENT_MOVE_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
 פרק כל חטיבה למהלכים. החזר את רשימת ה-instances השטוחה לפי הסכמה.`;
 
-
 CODE_MARKS.push({
   id: 'argument-move',
   label: 'Argument moves',
-  description: 'Sub-anchors within each argument section: one instance per question / answer / objection / etc. Drives the per-move sidebar pills.',
+  description:
+    'Sub-anchors within each argument section: one instance per question / answer / objection / etc. Drives the per-move sidebar pills.',
   category: 'canon',
   parent_mark: 'argument',
   anchor: 'segment-range',
@@ -3474,7 +3623,6 @@ Rashi + Tosafot + other rishonim:
 
 Produce the commentary digest for THIS move per the schema.`;
 
-
 const ARGUMENT_MOVE_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud scholar. Given ONE argumentative move on a daf (a question / answer / objection / etc.) along with the surrounding gemara, the full move list for this daf, and the available commentaries, compose a tight paragraph about THIS specific move.
 
 Output STRICT JSON only:
@@ -3512,7 +3660,6 @@ Rabbis identified on the daf:
 {{anchors.rabbi}}
 
 Compose ONE tight paragraph about THIS move per the schema.`;
-
 
 // ---------------------------------------------------------------------------
 // argument-move.suggested-questions
@@ -3565,7 +3712,6 @@ Existing per-move synthesis (so you can target what the synthesis SKIPS):
 {{depends.argument-move.synthesis}}
 
 Generate the suggested-questions list per the schema.`;
-
 
 // ---------------------------------------------------------------------------
 // argument-move.qa
@@ -3637,7 +3783,6 @@ Hebrew source for the daf:
 {{gemara_he}}
 
 Answer the learner's question per the schema.`;
-
 
 // ---------------- Hebrew-output parallels (argument-move level) ----------------
 
@@ -3804,23 +3949,31 @@ const ARGUMENT_MOVE_QA_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}
 
 CODE_ENRICHMENTS.push(
   makeEnrichment(
-    'argument-move', 'argument-move.commentaries', 'Commentaries',
+    'argument-move',
+    'argument-move.commentaries',
+    'Commentaries',
     'Rashi / Tosafot / other rishonim digest for THIS move only.',
-    ARGUMENT_MOVE_COMMENTARIES_SYSTEM_PROMPT, ARGUMENT_MOVE_COMMENTARIES_USER_TEMPLATE, ARGUMENT_MOVE_COMMENTARIES_OUTPUT_SCHEMA,
+    ARGUMENT_MOVE_COMMENTARIES_SYSTEM_PROMPT,
+    ARGUMENT_MOVE_COMMENTARIES_USER_TEMPLATE,
+    ARGUMENT_MOVE_COMMENTARIES_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
+      mode: 'augment-content',
+      scope: 'local',
       dependencies: ['gemara', 'commentaries'],
       passes: ['commentary-verbatim'],
-      defHash: 'argument-move.commentaries-v2', cacheVersion: '2',
+      defHash: 'argument-move.commentaries-v2',
+      cacheVersion: '2',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_MOVE_COMMENTARIES_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_MOVE_COMMENTARIES_USER_TEMPLATE_HE,
     },
   ),
   makeSynthesis(
-    'argument-move', 'argument-move.synthesis',
+    'argument-move',
+    'argument-move.synthesis',
     'Tight per-move paragraph: who, what, what it responds to, brief commentary touch.',
-    ARGUMENT_MOVE_SYNTHESIS_SYSTEM_PROMPT, ARGUMENT_MOVE_SYNTHESIS_USER_TEMPLATE,
+    ARGUMENT_MOVE_SYNTHESIS_SYSTEM_PROMPT,
+    ARGUMENT_MOVE_SYNTHESIS_USER_TEMPLATE,
     {
       dependencies: [
         'gemara',
@@ -3828,7 +3981,8 @@ CODE_ENRICHMENTS.push(
         { mark: 'argument-move' },
         { mark: 'rabbi' },
       ],
-      defHash: 'argument-move.synthesis-v5', cacheVersion: '5',
+      defHash: 'argument-move.synthesis-v5',
+      cacheVersion: '5',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_MOVE_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_MOVE_SYNTHESIS_USER_TEMPLATE_HE,
@@ -3840,35 +3994,47 @@ CODE_ENRICHMENTS.push(
   // /api/run, on demand, so we don't fan out per-move LLM calls for
   // moves nobody opens.
   makeEnrichment(
-    'argument-move', 'argument-move.suggested-questions', 'Questions',
-    'Curated follow-up questions the synthesis doesn\'t answer. Powers the Explore-deeper panel.',
-    ARGUMENT_MOVE_SUGGESTED_QUESTIONS_SYSTEM_PROMPT, ARGUMENT_MOVE_SUGGESTED_QUESTIONS_USER_TEMPLATE, ARGUMENT_MOVE_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA,
+    'argument-move',
+    'argument-move.suggested-questions',
+    'Questions',
+    "Curated follow-up questions the synthesis doesn't answer. Powers the Explore-deeper panel.",
+    ARGUMENT_MOVE_SUGGESTED_QUESTIONS_SYSTEM_PROMPT,
+    ARGUMENT_MOVE_SUGGESTED_QUESTIONS_USER_TEMPLATE,
+    ARGUMENT_MOVE_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
+      mode: 'augment-content',
+      scope: 'local',
       dependencies: [
         'gemara',
         { mark: 'argument-move' },
         { enrichment: 'argument-move.synthesis' },
       ],
-      defHash: 'argument-move.suggested-questions-v3', cacheVersion: '3',
+      defHash: 'argument-move.suggested-questions-v3',
+      cacheVersion: '3',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: ARGUMENT_MOVE_SUGGESTED_QUESTIONS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_MOVE_SUGGESTED_QUESTIONS_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
-    'argument-move', 'argument-move.qa', 'Answers',
+    'argument-move',
+    'argument-move.qa',
+    'Answers',
     'Answer one learner-supplied question about THIS move. Cache keyed per (move, normalized question).',
-    ARGUMENT_MOVE_QA_SYSTEM_PROMPT, ARGUMENT_MOVE_QA_USER_TEMPLATE, ARGUMENT_MOVE_QA_OUTPUT_SCHEMA,
+    ARGUMENT_MOVE_QA_SYSTEM_PROMPT,
+    ARGUMENT_MOVE_QA_USER_TEMPLATE,
+    ARGUMENT_MOVE_QA_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
+      mode: 'augment-content',
+      scope: 'local',
       dependencies: [
         'gemara',
         { enrichment: 'argument-move.synthesis' },
         { enrichment: 'argument-move.commentaries' },
         { mark: 'argument-move' },
       ],
-      defHash: 'argument-move.qa-v5', cacheVersion: '5',
+      defHash: 'argument-move.qa-v5',
+      cacheVersion: '5',
       model: ARGUMENT_PRO_MODEL,
       systemPromptHe: ARGUMENT_MOVE_QA_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: ARGUMENT_MOVE_QA_USER_TEMPLATE_HE,
@@ -3929,11 +4095,11 @@ Hebrew/Aramaic source (copy excerpts VERBATIM from here):
 
 Identify every geographic reference. Return JSON per the schema.`;
 
-
 CODE_MARKS.push({
   id: 'places',
   label: 'Places',
-  description: 'Geographic references on the daf (cities, academies, lands). Drives inline city-marker wraps and the per-place synthesis card.',
+  description:
+    'Geographic references on the daf (cities, academies, lands). Drives inline city-marker wraps and the per-place synthesis card.',
   category: 'canon',
   anchor: 'phrase',
   // The render dispatch keys off `def.id === 'places'` to wrap matched
@@ -3987,7 +4153,17 @@ const makePlaceEnrichment = (
     systemPromptHe?: string;
     userPromptTemplateHe?: string;
   },
-): EnrichmentDefinition => makeEnrichment('places', id, label, description, systemPrompt, userPromptTemplate, outputSchema, opts);
+): EnrichmentDefinition =>
+  makeEnrichment(
+    'places',
+    id,
+    label,
+    description,
+    systemPrompt,
+    userPromptTemplate,
+    outputSchema,
+    opts,
+  );
 
 // Leaves are daf-agnostic: the prompt sees ONLY the place identity (name,
 // kind, region) — never a specific daf's gemara — so the globally-cached
@@ -4102,28 +4278,54 @@ const PLACE_FIGURES_SYSTEM_PROMPT_HE = `אתה היסטוריון של הש"ס. 
 
 ${HEBREW_NATIVE_STYLE}`;
 
-
 CODE_ENRICHMENTS.push(
   makePlaceEnrichment(
-    'places.profile', 'Profile',
+    'places.profile',
+    'Profile',
     'Daf-agnostic profile: what/where the place is, its era of prominence, and geography that matters.',
-    PLACE_PROFILE_SYSTEM_PROMPT, PLACE_LEAF_USER_TEMPLATE, PLACE_PROFILE_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'places.profile-v1', cacheVersion: '1',
-      systemPromptHe: PLACE_PROFILE_SYSTEM_PROMPT_HE, userPromptTemplateHe: PLACE_LEAF_USER_TEMPLATE_HE },
+    PLACE_PROFILE_SYSTEM_PROMPT,
+    PLACE_LEAF_USER_TEMPLATE,
+    PLACE_PROFILE_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content',
+      scope: 'global',
+      defHash: 'places.profile-v1',
+      cacheVersion: '1',
+      systemPromptHe: PLACE_PROFILE_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: PLACE_LEAF_USER_TEMPLATE_HE,
+    },
   ),
   makePlaceEnrichment(
-    'places.significance', 'Significance',
+    'places.significance',
+    'Significance',
     'Daf-agnostic role in the Talmudic world: academy/court seat, halachic category, trade/cultural center.',
-    PLACE_SIGNIFICANCE_SYSTEM_PROMPT, PLACE_LEAF_USER_TEMPLATE, PLACE_SIGNIFICANCE_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'places.significance-v1', cacheVersion: '1',
-      systemPromptHe: PLACE_SIGNIFICANCE_SYSTEM_PROMPT_HE, userPromptTemplateHe: PLACE_LEAF_USER_TEMPLATE_HE },
+    PLACE_SIGNIFICANCE_SYSTEM_PROMPT,
+    PLACE_LEAF_USER_TEMPLATE,
+    PLACE_SIGNIFICANCE_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content',
+      scope: 'global',
+      defHash: 'places.significance-v1',
+      cacheVersion: '1',
+      systemPromptHe: PLACE_SIGNIFICANCE_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: PLACE_LEAF_USER_TEMPLATE_HE,
+    },
   ),
   makePlaceEnrichment(
-    'places.figures', 'Figures',
+    'places.figures',
+    'Figures',
     'Daf-agnostic: the sages most associated with the place and how.',
-    PLACE_FIGURES_SYSTEM_PROMPT, PLACE_LEAF_USER_TEMPLATE, PLACE_FIGURES_OUTPUT_SCHEMA,
-    { mode: 'augment-content', scope: 'global', defHash: 'places.figures-v1', cacheVersion: '1',
-      systemPromptHe: PLACE_FIGURES_SYSTEM_PROMPT_HE, userPromptTemplateHe: PLACE_LEAF_USER_TEMPLATE_HE },
+    PLACE_FIGURES_SYSTEM_PROMPT,
+    PLACE_LEAF_USER_TEMPLATE,
+    PLACE_FIGURES_OUTPUT_SCHEMA,
+    {
+      mode: 'augment-content',
+      scope: 'global',
+      defHash: 'places.figures-v1',
+      cacheVersion: '1',
+      systemPromptHe: PLACE_FIGURES_SYSTEM_PROMPT_HE,
+      userPromptTemplateHe: PLACE_LEAF_USER_TEMPLATE_HE,
+    },
   ),
 );
 
@@ -4171,7 +4373,6 @@ Rabbis identified on the daf (for context on who's teaching where):
 
 Compose ONE tight paragraph about THIS place per the schema. Lead with what the place is and why it matters (drawing on the background), then pivot to how THIS daf uses it. Do NOT merely repeat the background verbatim.`;
 
-
 const PLACES_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה גיאוגרף הש"ס. בהינתן רפרנס גיאוגרפי אחד שזוהה בדף והגמרא הסובבת, חבר פסקה הדוקה על המקום המסוים הזה בהקשר של הדף הזה.
 
 החזר JSON תקין בלבד:
@@ -4217,9 +4418,11 @@ const PLACES_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}
 
 CODE_ENRICHMENTS.push(
   makeSynthesis(
-    'places', 'places.synthesis',
+    'places',
+    'places.synthesis',
     'Tight per-place paragraph: what it is, why it matters at the time of this daf, how the gemara uses it.',
-    PLACES_SYNTHESIS_SYSTEM_PROMPT, PLACES_SYNTHESIS_USER_TEMPLATE,
+    PLACES_SYNTHESIS_SYSTEM_PROMPT,
+    PLACES_SYNTHESIS_USER_TEMPLATE,
     {
       dependencies: [
         'gemara',
@@ -4229,7 +4432,8 @@ CODE_ENRICHMENTS.push(
         { mark: 'places' },
         { mark: 'rabbi' },
       ],
-      defHash: 'places.synthesis-v3', cacheVersion: '3',
+      defHash: 'places.synthesis-v3',
+      cacheVersion: '3',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: PLACES_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: PLACES_SYNTHESIS_USER_TEMPLATE_HE,
@@ -4259,7 +4463,8 @@ CODE_MARKS.push({
   id: 'rishonim',
   recipe: RISHONIM_RECIPE,
   label: 'Rishonim',
-  description: 'Per-segment rishonim indicator (Rashi, Tosafot, Ramban, …). Gutter icon next to each commented segment; click for the per-segment synthesis.',
+  description:
+    'Per-segment rishonim indicator (Rashi, Tosafot, Ramban, …). Gutter icon next to each commented segment; click for the per-segment synthesis.',
   category: 'canon',
   anchor: 'segment',
   render: {
@@ -4313,7 +4518,6 @@ English translation:
 
 Compose ONE tight paragraph weaving the rishonim's reading of THIS segment per the schema.`;
 
-
 const RISHONIM_SYNTHESIS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בש"ס. בהינתן מקטע אחד של גמרא והראשונים שפירשו את המקטע הזה (רש"י, תוספות, רמב"ן, רשב"א, מאירי, ריטב"א, ר"ן וכו'), חבר פסקה הדוקה השוזרת את קולותיהם לכדי קריאה אחת.
 
 החזר JSON תקין בלבד:
@@ -4347,12 +4551,15 @@ const RISHONIM_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page
 
 CODE_ENRICHMENTS.push(
   makeSynthesis(
-    'rishonim', 'rishonim.synthesis',
+    'rishonim',
+    'rishonim.synthesis',
     'Tight per-segment paragraph weaving Rashi + Tosafot + named rishonim into a single reading.',
-    RISHONIM_SYNTHESIS_SYSTEM_PROMPT, RISHONIM_SYNTHESIS_USER_TEMPLATE,
+    RISHONIM_SYNTHESIS_SYSTEM_PROMPT,
+    RISHONIM_SYNTHESIS_USER_TEMPLATE,
     {
       dependencies: ['gemara', { mark: 'rishonim' }],
-      defHash: 'rishonim.synthesis-v4', cacheVersion: '4',
+      defHash: 'rishonim.synthesis-v4',
+      cacheVersion: '4',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: RISHONIM_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: RISHONIM_SYNTHESIS_USER_TEMPLATE_HE,
@@ -4429,7 +4636,6 @@ Rules:
 
 ${HEBREW_GLOSS_STYLE}`;
 
-
 const HALACHA_PRACTICAL_SYSTEM_PROMPT = `You are a scholar of halacha and practical psak. Given ONE halachic topic surfaced on a daf, state the PRACTICAL bottom line — what a person actually does — in the SHAPE that fits the ruling. Plain English first; the Hebrew term is a tag, not the main word.
 
 First choose the shape:
@@ -4455,7 +4661,6 @@ Rules:
 - NO puff. NO jargon: "transmitter" not "tradent".
 
 ${HEBREW_GLOSS_STYLE}`;
-
 
 const HALACHA_DISPUTE_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
@@ -4500,7 +4705,6 @@ Rules:
 - NO puff.
 
 ${HEBREW_GLOSS_STYLE}`;
-
 
 export const HALACHA_SYNTHESIS_SYSTEM_PROMPT = `You are a scholar of halacha. Given ONE halachic topic surfaced on a daf plus the codification trail, practical application, and any major disputes, compose a tight paragraph framed as a modern-day halacha exploration — what the practicing Jew does, where it sits in the codes, and where the live tensions are.
 
@@ -4549,7 +4753,6 @@ Daf term glossary — for any of these terms that appears in your prose, write i
 {{depends.daf-background.concepts}}
 
 Produce the synthesis per the schema.`;
-
 
 // ---------------- Hebrew-output parallels (halacha) ----------------
 
@@ -4717,52 +4920,72 @@ const HALACHA_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}
 
 CODE_ENRICHMENTS.push(
   makeEnrichment(
-    'halacha', 'halacha.codification', 'Codification',
+    'halacha',
+    'halacha.codification',
+    'Codification',
     'Mishneh Torah / Tur / Shulchan Aruch / Rema rulings on this topic, with refs and a prose trail.',
-    HALACHA_CODIFICATION_SYSTEM_PROMPT, HALACHA_CODIFICATION_USER_TEMPLATE, HALACHA_CODIFICATION_OUTPUT_SCHEMA,
+    HALACHA_CODIFICATION_SYSTEM_PROMPT,
+    HALACHA_CODIFICATION_USER_TEMPLATE,
+    HALACHA_CODIFICATION_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
+      mode: 'augment-content',
+      scope: 'local',
       // 'halacha-refs' feeds the real Sefaria codifier refs (with text) into the
       // prompt so refs are GROUNDED (selected) rather than recalled.
       dependencies: ['gemara', 'halacha-refs'],
       passes: ['hebrew-gloss'],
-      defHash: 'halacha.codification-v4', cacheVersion: '4',
+      defHash: 'halacha.codification-v4',
+      cacheVersion: '4',
       systemPromptHe: HALACHA_CODIFICATION_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: HALACHA_CODIFICATION_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
-    'halacha', 'halacha.practical', 'Practical',
+    'halacha',
+    'halacha.practical',
+    'Practical',
     'Shape-aware "what to do": best/fallback, a single statement, or a case→answer map, plus one optional note.',
-    HALACHA_PRACTICAL_SYSTEM_PROMPT, HALACHA_LEAF_USER_TEMPLATE, HALACHA_PRACTICAL_OUTPUT_SCHEMA,
+    HALACHA_PRACTICAL_SYSTEM_PROMPT,
+    HALACHA_LEAF_USER_TEMPLATE,
+    HALACHA_PRACTICAL_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
+      mode: 'augment-content',
+      scope: 'local',
       dependencies: ['gemara'],
       passes: ['hebrew-gloss'],
-      defHash: 'halacha.practical-v5', cacheVersion: '5',
+      defHash: 'halacha.practical-v5',
+      cacheVersion: '5',
       systemPromptHe: HALACHA_PRACTICAL_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: HALACHA_LEAF_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
-    'halacha', 'halacha.dispute', 'Dispute',
+    'halacha',
+    'halacha.dispute',
+    'Dispute',
     'One grounded dispute object (Mechaber/Rema, Sefarad/Ashkenaz, or poskim) with positions + the practical consequence. Built from codification + study-aid poskim context. Usually present=false.',
-    HALACHA_DISPUTE_SYSTEM_PROMPT, HALACHA_DISPUTE_USER_TEMPLATE, HALACHA_DISPUTE_OUTPUT_SCHEMA,
+    HALACHA_DISPUTE_SYSTEM_PROMPT,
+    HALACHA_DISPUTE_USER_TEMPLATE,
+    HALACHA_DISPUTE_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
+      mode: 'augment-content',
+      scope: 'local',
       // codification gives the Rema split; context carries the dafyomi poskim
       // (Gra / Chazon Ish / Igros Moshe) where the daf has been ingested.
       dependencies: ['gemara', { enrichment: 'halacha.codification' }, 'context'],
       passes: ['hebrew-gloss'],
-      defHash: 'halacha.dispute-v1', cacheVersion: '1',
+      defHash: 'halacha.dispute-v1',
+      cacheVersion: '1',
       systemPromptHe: HALACHA_DISPUTE_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: HALACHA_DISPUTE_USER_TEMPLATE_HE,
     },
   ),
   makeSynthesis(
-    'halacha', 'halacha.synthesis',
+    'halacha',
+    'halacha.synthesis',
     'One tight paragraph weaving codification, dispute, and (optionally) gemara source — short orientation, then the narrative thread the structured cards cannot give.',
-    HALACHA_SYNTHESIS_SYSTEM_PROMPT, HALACHA_SYNTHESIS_USER_TEMPLATE,
+    HALACHA_SYNTHESIS_SYSTEM_PROMPT,
+    HALACHA_SYNTHESIS_USER_TEMPLATE,
     {
       dependencies: [
         'gemara',
@@ -4772,7 +4995,8 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'daf-background.concepts' },
       ],
       passes: ['hebrew-gloss'],
-      defHash: 'halacha.synthesis-v5', cacheVersion: '6', // v6: + daf-background.concepts glossary for consistent Hebrew terms
+      defHash: 'halacha.synthesis-v5',
+      cacheVersion: '6', // v6: + daf-background.concepts glossary for consistent Hebrew terms
       systemPromptHe: HALACHA_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: HALACHA_SYNTHESIS_USER_TEMPLATE_HE,
     },
@@ -4863,7 +5087,6 @@ Focal pasuk — Hebrew verbatim text (quote from THIS when citing the verse):
 {{pasuk_he}}
 
 Write the Tanach-context summary per the schema. The mark_input contains verseRef (e.g. 'Deuteronomy 6:7'), the Hebrew excerpt as it appears in the gemara, and citationStyle. Use the verseRef as authoritative; the excerpt is just the snippet the gemara quoted.`;
-
 
 // Shared leaf user template for the daf-local pesukim leaves (why-here,
 // mechanism). Mirrors HALACHA_LEAF_USER_TEMPLATE — one template feeds every
@@ -4965,9 +5188,6 @@ Rabbis identified on the daf:
 
 State the halacha or claim this citation establishes, per the schema.`;
 
-
-
-
 // Synthesis aggregate — mirrors halacha.synthesis: one tight prose paragraph
 // that weaves the section leaves (Tanach context / why here / mechanism /
 // landing) into a single narrative thread. Each section also renders as its
@@ -5029,7 +5249,6 @@ Rabbis identified on the daf:
 
 Weave these into ONE tight paragraph per the schema.`;
 
-
 // ---------------------------------------------------------------------------
 // pesukim.suggested-questions — mirrors argument-move.suggested-questions but
 // targets a pasuk citation. Generates 4-5 follow-up questions a learner might
@@ -5079,7 +5298,6 @@ Existing synthesis (so you can target what the synthesis SKIPS):
 {{depends.pesukim.synthesis}}
 
 Generate the suggested-questions list per the schema.`;
-
 
 // ---------------------------------------------------------------------------
 // pesukim.qa — parameterized by `user_question`. Mirrors argument-move.qa:
@@ -5153,7 +5371,6 @@ Rashi + Tosafot + other rishonim available for the daf:
 {{commentaries}}
 
 Answer the learner's question per the schema.`;
-
 
 // ---------------- Hebrew-output parallels (pesukim) ----------------
 
@@ -5451,13 +5668,19 @@ const PESUKIM_QA_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
 CODE_ENRICHMENTS.push(
   makeEnrichment(
-    'pesukim', 'pesukim.tanach-context', 'Tanach context',
-    'The verse\'s plain meaning in its own scriptural context. Daf-agnostic; cached by verseRef.',
-    PESUKIM_TANACH_CONTEXT_SYSTEM_PROMPT, PESUKIM_TANACH_CONTEXT_USER_TEMPLATE, PESUKIM_TANACH_CONTEXT_OUTPUT_SCHEMA,
+    'pesukim',
+    'pesukim.tanach-context',
+    'Tanach context',
+    "The verse's plain meaning in its own scriptural context. Daf-agnostic; cached by verseRef.",
+    PESUKIM_TANACH_CONTEXT_SYSTEM_PROMPT,
+    PESUKIM_TANACH_CONTEXT_USER_TEMPLATE,
+    PESUKIM_TANACH_CONTEXT_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'global',
+      mode: 'augment-content',
+      scope: 'global',
       dependencies: [],
-      defHash: 'pesukim.tanach-context-v7', cacheVersion: '7',
+      defHash: 'pesukim.tanach-context-v7',
+      cacheVersion: '7',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: PESUKIM_TANACH_CONTEXT_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: PESUKIM_TANACH_CONTEXT_USER_TEMPLATE_HE,
@@ -5468,48 +5691,68 @@ CODE_ENRICHMENTS.push(
   // synthesis aggregate depends on all three (+ tanach-context) so they
   // resolve in one run and surface via deps_resolved → onResolved.
   makeEnrichment(
-    'pesukim', 'pesukim.why-here', 'Why here',
+    'pesukim',
+    'pesukim.why-here',
+    'Why here',
     'The concrete local question on this daf that drives the gemara to cite this verse.',
-    PESUKIM_WHY_HERE_SYSTEM_PROMPT, PESUKIM_LEAF_USER_TEMPLATE, PESUKIM_WHY_HERE_OUTPUT_SCHEMA,
+    PESUKIM_WHY_HERE_SYSTEM_PROMPT,
+    PESUKIM_LEAF_USER_TEMPLATE,
+    PESUKIM_WHY_HERE_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
+      mode: 'augment-content',
+      scope: 'local',
       dependencies: ['gemara', 'commentaries'],
-      defHash: 'pesukim.why-here-v2', cacheVersion: '2',
+      defHash: 'pesukim.why-here-v2',
+      cacheVersion: '2',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: PESUKIM_WHY_HERE_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: PESUKIM_LEAF_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
-    'pesukim', 'pesukim.mechanism', 'Mechanism',
+    'pesukim',
+    'pesukim.mechanism',
+    'Mechanism',
     'The exact exegetical / rhetorical move the gemara makes with this verse — the midah, or plain proof.',
-    PESUKIM_MECHANISM_SYSTEM_PROMPT, PESUKIM_LEAF_USER_TEMPLATE, PESUKIM_MECHANISM_OUTPUT_SCHEMA,
+    PESUKIM_MECHANISM_SYSTEM_PROMPT,
+    PESUKIM_LEAF_USER_TEMPLATE,
+    PESUKIM_MECHANISM_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
+      mode: 'augment-content',
+      scope: 'local',
       dependencies: ['gemara', 'commentaries'],
-      defHash: 'pesukim.mechanism-v2', cacheVersion: '2',
+      defHash: 'pesukim.mechanism-v2',
+      cacheVersion: '2',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: PESUKIM_MECHANISM_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: PESUKIM_LEAF_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
-    'pesukim', 'pesukim.landing', 'Landing',
+    'pesukim',
+    'pesukim.landing',
+    'Landing',
     'The concrete halacha or claim this citation establishes on the daf.',
-    PESUKIM_LANDING_SYSTEM_PROMPT, PESUKIM_LANDING_USER_TEMPLATE, PESUKIM_LANDING_OUTPUT_SCHEMA,
+    PESUKIM_LANDING_SYSTEM_PROMPT,
+    PESUKIM_LANDING_USER_TEMPLATE,
+    PESUKIM_LANDING_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
+      mode: 'augment-content',
+      scope: 'local',
       dependencies: ['gemara', { mark: 'rabbi' }],
-      defHash: 'pesukim.landing-v2', cacheVersion: '2',
+      defHash: 'pesukim.landing-v2',
+      cacheVersion: '2',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: PESUKIM_LANDING_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: PESUKIM_LANDING_USER_TEMPLATE_HE,
     },
   ),
   makeSynthesis(
-    'pesukim', 'pesukim.synthesis',
+    'pesukim',
+    'pesukim.synthesis',
     'Tight paragraph weaving the four section leaves into a single narrative thread.',
-    PESUKIM_SYNTHESIS_SYSTEM_PROMPT, PESUKIM_SYNTHESIS_USER_TEMPLATE,
+    PESUKIM_SYNTHESIS_SYSTEM_PROMPT,
+    PESUKIM_SYNTHESIS_USER_TEMPLATE,
     {
       dependencies: [
         'gemara',
@@ -5521,7 +5764,8 @@ CODE_ENRICHMENTS.push(
         { mark: 'pesukim' },
       ],
       passes: ['hebrew-excerpt'],
-      defHash: 'pesukim.synthesis-v12', cacheVersion: '12',
+      defHash: 'pesukim.synthesis-v12',
+      cacheVersion: '12',
       // Pro instead of Flash: the synthesis must follow the 3-4 sentence
       // structure and avoid the explicit banned-phrase list. Flash skims
       // multi-rule prompts (the same reason argument-move.qa runs on Pro).
@@ -5533,28 +5777,35 @@ CODE_ENRICHMENTS.push(
   // Mirror of argument-move.suggested-questions / argument-move.qa: powers the
   // QAPanel "Questions" expander attached to each pasuk card.
   makeEnrichment(
-    'pesukim', 'pesukim.suggested-questions', 'Questions',
-    'Curated follow-up questions the synthesis doesn\'t answer. Powers the Questions panel on each pasuk card.',
-    PESUKIM_SUGGESTED_QUESTIONS_SYSTEM_PROMPT, PESUKIM_SUGGESTED_QUESTIONS_USER_TEMPLATE, PESUKIM_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA,
+    'pesukim',
+    'pesukim.suggested-questions',
+    'Questions',
+    "Curated follow-up questions the synthesis doesn't answer. Powers the Questions panel on each pasuk card.",
+    PESUKIM_SUGGESTED_QUESTIONS_SYSTEM_PROMPT,
+    PESUKIM_SUGGESTED_QUESTIONS_USER_TEMPLATE,
+    PESUKIM_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
-      dependencies: [
-        'gemara',
-        { mark: 'pesukim' },
-        { enrichment: 'pesukim.synthesis' },
-      ],
-      defHash: 'pesukim.suggested-questions-v3', cacheVersion: '3',
+      mode: 'augment-content',
+      scope: 'local',
+      dependencies: ['gemara', { mark: 'pesukim' }, { enrichment: 'pesukim.synthesis' }],
+      defHash: 'pesukim.suggested-questions-v3',
+      cacheVersion: '3',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: PESUKIM_SUGGESTED_QUESTIONS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: PESUKIM_SUGGESTED_QUESTIONS_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
-    'pesukim', 'pesukim.qa', 'Answers',
+    'pesukim',
+    'pesukim.qa',
+    'Answers',
     'Answer one learner-supplied question about THIS pasuk citation. Cache keyed per (verse, normalized question).',
-    PESUKIM_QA_SYSTEM_PROMPT, PESUKIM_QA_USER_TEMPLATE, PESUKIM_QA_OUTPUT_SCHEMA,
+    PESUKIM_QA_SYSTEM_PROMPT,
+    PESUKIM_QA_USER_TEMPLATE,
+    PESUKIM_QA_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
+      mode: 'augment-content',
+      scope: 'local',
       dependencies: [
         'gemara',
         'commentaries',
@@ -5564,7 +5815,8 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'pesukim.synthesis' },
         { mark: 'pesukim' },
       ],
-      defHash: 'pesukim.qa-v3', cacheVersion: '3',
+      defHash: 'pesukim.qa-v3',
+      cacheVersion: '3',
       model: ARGUMENT_PRO_MODEL,
       systemPromptHe: PESUKIM_QA_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: PESUKIM_QA_USER_TEMPLATE_HE,
@@ -5612,7 +5864,6 @@ Rules:
 - NO academic register, NO filler. Banned words: "realia", "milieu", "this teaches us", "we see that", "highlights", "underscores", "profoundly", "captures", "embodies".
 
 ${HEBREW_GLOSS_STYLE}`;
-
 
 // Interpretation gets the daf's rishonim (Rashi/Tosafot/…) — its OWN template,
 // because the shared leaf template omits {{commentaries}} (background/parallels
@@ -5669,7 +5920,6 @@ Rules:
 
 ${HEBREW_GLOSS_STYLE}`;
 
-
 const AGGADATA_PARALLELS_SYSTEM_PROMPT = `You are a scholar of rabbinic literature. Given ONE aggadic story (title, Hebrew label, summary) and the daf's Hebrew/Aramaic source, identify other places in classical Jewish literature where the SAME story, the same actors in a similar incident, or the same motif appears — Bavli, Yerushalmi, Midrash, Tanach analogues. The parallel REFS may come from anywhere; each parallel's excerpt, however, is the verbatim phrase from THIS daf it draws from. Often empty.
 
 Output STRICT JSON only:
@@ -5695,7 +5945,6 @@ Rules:
 - NO puff. NO 'this teaches us'.
 
 ${HEBREW_GLOSS_STYLE}`;
-
 
 const AGGADATA_SYNTHESIS_SYSTEM_PROMPT = `You are a Talmud scholar reading an aggadic story in its sugya. Given ONE story plus the background, interpretation, and parallels enrichments, compose a tight paragraph that orients the user — who and where, what the story does HERE, where else it lives — in the voice of a chavruta walking the reader through the page.
 
@@ -5746,7 +5995,6 @@ Daf term glossary — for any of these terms that appears in your prose, write i
 
 Compose ONE tight paragraph per the schema.`;
 
-
 const AGGADATA_SUGGESTED_QUESTIONS_SYSTEM_PROMPT = `You are a chavruta studying gemara with an aggadic story. Given ONE aggadah cited on a daf plus the synthesis paragraph, produce a SHORT list of follow-up questions a learner is likely to want answered AFTER reading the synthesis. The synthesis says WHAT the story does; these questions should target WHY, the historical mechanism, and the surrounding context that the synthesis didn't fit.
 
 Output STRICT JSON only:
@@ -5785,7 +6033,6 @@ Existing synthesis (so you can target what the synthesis SKIPS):
 {{depends.aggadata.synthesis}}
 
 Generate the suggested-questions list per the schema.`;
-
 
 const AGGADATA_QA_SYSTEM_PROMPT = `You are a Talmud chavruta answering a learner's specific question about ONE aggadic story on the daf. The learner has already read the synthesis paragraph; they want depth, not a restatement. Assume the learner is intelligent but does NOT already know how rabbinic-historical context works — so treat the answer as teaching, not just describing.
 
@@ -5843,7 +6090,6 @@ Rashi + Tosafot + other rishonim available for the daf:
 {{commentaries}}
 
 Answer the learner's question per the schema.`;
-
 
 // ---------------- Hebrew-output parallels (aggadata) ----------------
 
@@ -6064,51 +6310,71 @@ const AGGADATA_QA_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
 CODE_ENRICHMENTS.push(
   makeEnrichment(
-    'aggadata', 'aggadata.background', 'Background',
+    'aggadata',
+    'aggadata.background',
+    'Background',
     'Who the actors are, where/when the story is set, what cultural-historical realia a reader of the time would have known. Daf-agnostic.',
-    AGGADATA_BACKGROUND_SYSTEM_PROMPT, AGGADATA_LEAF_USER_TEMPLATE, AGGADATA_BACKGROUND_OUTPUT_SCHEMA,
+    AGGADATA_BACKGROUND_SYSTEM_PROMPT,
+    AGGADATA_LEAF_USER_TEMPLATE,
+    AGGADATA_BACKGROUND_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'global',
+      mode: 'augment-content',
+      scope: 'global',
       dependencies: [],
-      defHash: 'aggadata.background-v4', cacheVersion: '4',
+      defHash: 'aggadata.background-v4',
+      cacheVersion: '4',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: AGGADATA_BACKGROUND_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: AGGADATA_LEAF_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
-    'aggadata', 'aggadata.interpretation', 'Interpretation',
+    'aggadata',
+    'aggadata.interpretation',
+    'Interpretation',
     'What the story does in THIS sugya — local function, central tension, classical rishon-reading.',
-    AGGADATA_INTERPRETATION_SYSTEM_PROMPT, AGGADATA_INTERPRETATION_USER_TEMPLATE, AGGADATA_INTERPRETATION_OUTPUT_SCHEMA,
+    AGGADATA_INTERPRETATION_SYSTEM_PROMPT,
+    AGGADATA_INTERPRETATION_USER_TEMPLATE,
+    AGGADATA_INTERPRETATION_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
+      mode: 'augment-content',
+      scope: 'local',
       dependencies: ['gemara', 'commentaries'],
-      defHash: 'aggadata.interpretation-v2', cacheVersion: '2',
+      defHash: 'aggadata.interpretation-v2',
+      cacheVersion: '2',
       model: ARGUMENT_PRO_MODEL,
       systemPromptHe: AGGADATA_INTERPRETATION_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: AGGADATA_INTERPRETATION_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
-    'aggadata', 'aggadata.parallels', 'Parallels',
+    'aggadata',
+    'aggadata.parallels',
+    'Parallels',
     'Other places the same story / actors / motif appears — Bavli, Yerushalmi, Midrash, Tanach. Often empty.',
-    AGGADATA_PARALLELS_SYSTEM_PROMPT, AGGADATA_LEAF_USER_TEMPLATE, AGGADATA_PARALLELS_OUTPUT_SCHEMA,
+    AGGADATA_PARALLELS_SYSTEM_PROMPT,
+    AGGADATA_LEAF_USER_TEMPLATE,
+    AGGADATA_PARALLELS_OUTPUT_SCHEMA,
     {
       // scope:'local' (was global): the parallel *refs* are cross-text, but each
       // now carries a daf-LOCAL `excerpt`, so the output must be cached per-daf.
       // A global key (story-title only) could serve one daf's excerpt to another.
-      mode: 'augment-content', scope: 'local',
+      mode: 'augment-content',
+      scope: 'local',
       dependencies: [],
-      defHash: 'aggadata.parallels-v2', cacheVersion: '2',
+      defHash: 'aggadata.parallels-v2',
+      cacheVersion: '2',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: AGGADATA_PARALLELS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: AGGADATA_LEAF_USER_TEMPLATE_HE,
     },
   ),
   makeSynthesis(
-    'aggadata', 'aggadata.synthesis',
+    'aggadata',
+    'aggadata.synthesis',
     'Tight paragraph weaving background, local interpretation, and parallels into one read.',
-    AGGADATA_SYNTHESIS_SYSTEM_PROMPT, AGGADATA_SYNTHESIS_USER_TEMPLATE,
+    AGGADATA_SYNTHESIS_SYSTEM_PROMPT,
+    AGGADATA_SYNTHESIS_USER_TEMPLATE,
     {
       dependencies: [
         'gemara',
@@ -6119,35 +6385,43 @@ CODE_ENRICHMENTS.push(
         { mark: 'aggadata' },
         { enrichment: 'daf-background.concepts' },
       ],
-      defHash: 'aggadata.synthesis-v2', cacheVersion: '3', // v3: + daf-background.concepts glossary for consistent Hebrew terms
+      defHash: 'aggadata.synthesis-v2',
+      cacheVersion: '3', // v3: + daf-background.concepts glossary for consistent Hebrew terms
       model: ARGUMENT_PRO_MODEL,
       systemPromptHe: AGGADATA_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: AGGADATA_SYNTHESIS_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
-    'aggadata', 'aggadata.suggested-questions', 'Questions',
-    'Curated follow-up questions the synthesis doesn\'t answer. Powers the Questions panel on each aggadah card.',
-    AGGADATA_SUGGESTED_QUESTIONS_SYSTEM_PROMPT, AGGADATA_SUGGESTED_QUESTIONS_USER_TEMPLATE, AGGADATA_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA,
+    'aggadata',
+    'aggadata.suggested-questions',
+    'Questions',
+    "Curated follow-up questions the synthesis doesn't answer. Powers the Questions panel on each aggadah card.",
+    AGGADATA_SUGGESTED_QUESTIONS_SYSTEM_PROMPT,
+    AGGADATA_SUGGESTED_QUESTIONS_USER_TEMPLATE,
+    AGGADATA_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
-      dependencies: [
-        'gemara',
-        { mark: 'aggadata' },
-        { enrichment: 'aggadata.synthesis' },
-      ],
-      defHash: 'aggadata.suggested-questions-v1', cacheVersion: '1',
+      mode: 'augment-content',
+      scope: 'local',
+      dependencies: ['gemara', { mark: 'aggadata' }, { enrichment: 'aggadata.synthesis' }],
+      defHash: 'aggadata.suggested-questions-v1',
+      cacheVersion: '1',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: AGGADATA_SUGGESTED_QUESTIONS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: AGGADATA_SUGGESTED_QUESTIONS_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
-    'aggadata', 'aggadata.qa', 'Answers',
+    'aggadata',
+    'aggadata.qa',
+    'Answers',
     'Answer one learner-supplied question about THIS aggadic story. Cache keyed per (story, normalized question).',
-    AGGADATA_QA_SYSTEM_PROMPT, AGGADATA_QA_USER_TEMPLATE, AGGADATA_QA_OUTPUT_SCHEMA,
+    AGGADATA_QA_SYSTEM_PROMPT,
+    AGGADATA_QA_USER_TEMPLATE,
+    AGGADATA_QA_OUTPUT_SCHEMA,
     {
-      mode: 'augment-content', scope: 'local',
+      mode: 'augment-content',
+      scope: 'local',
       dependencies: [
         'gemara',
         'commentaries',
@@ -6157,7 +6431,8 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'aggadata.synthesis' },
         { mark: 'aggadata' },
       ],
-      defHash: 'aggadata.qa-v1', cacheVersion: '1',
+      defHash: 'aggadata.qa-v1',
+      cacheVersion: '1',
       model: ARGUMENT_PRO_MODEL,
       systemPromptHe: AGGADATA_QA_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: AGGADATA_QA_USER_TEMPLATE_HE,

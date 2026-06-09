@@ -4,19 +4,14 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "instances"
-    ],
+    "required": ["instances"],
     "properties": {
       "instances": {
         "type": "array",
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "excerpt",
-            "fields"
-          ],
+          "required": ["excerpt", "fields"],
           "properties": {
             "excerpt": {
               "type": "string"
@@ -24,13 +19,7 @@
             "fields": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "name",
-                "nameHe",
-                "kind",
-                "region",
-                "knownAs"
-              ],
+              "required": ["name", "nameHe", "kind", "region", "knownAs"],
               "properties": {
                 "name": {
                   "type": "string"
@@ -40,20 +29,11 @@
                 },
                 "kind": {
                   "type": "string",
-                  "enum": [
-                    "city",
-                    "academy",
-                    "land",
-                    "region"
-                  ]
+                  "enum": ["city", "academy", "land", "region"]
                 },
                 "region": {
                   "type": "string",
-                  "enum": [
-                    "israel",
-                    "bavel",
-                    "other"
-                  ]
+                  "enum": ["israel", "bavel", "other"]
                 },
                 "knownAs": {
                   "type": "array",

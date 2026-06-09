@@ -8,8 +8,8 @@
  * the reusable primitives.
  */
 
-import { queueActivity } from './aiActivity';
 import { LruMap } from '../lib/lruMap';
+import { queueActivity } from './aiActivity';
 
 export interface RunResult {
   content: string;
@@ -17,7 +17,12 @@ export interface RunResult {
   parse_error: string | null;
   model: string;
   total_ms: number;
-  usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number; cost?: number } | null;
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+    cost?: number;
+  } | null;
   transport?: string;
   attempts?: number;
   elapsed_ms?: number;
@@ -96,7 +101,13 @@ export function isServiceUnavailableError(err: unknown): boolean {
 // evicted entry just re-fetches (usually a fast server cache hit).
 export const runResultCache = new LruMap<string, RunResult>(1000);
 
-export function runCacheKey(enrichmentId: string, tractate: string, page: string, instanceKey: string, lang: string): string {
+export function runCacheKey(
+  enrichmentId: string,
+  tractate: string,
+  page: string,
+  instanceKey: string,
+  lang: string,
+): string {
   return `${enrichmentId}:${tractate}:${page}:${instanceKey}:${lang}`;
 }
 
@@ -136,13 +147,21 @@ export type QueuePriority = (typeof QUEUE_PRIORITY)[keyof typeof QUEUE_PRIORITY]
 //     WAITING tasks and can't preempt an in-flight cold generation, so without
 //     the reservation a burst of cold LOW prefetch fills every slot and a
 //     user's HIGH click still stalls ~60s waiting for one to finish.
-interface QueueItem { run: () => void; priority: number; seq: number; isLow: boolean }
+interface QueueItem {
+  run: () => void;
+  priority: number;
+  seq: number;
+  isLow: boolean;
+}
 export class RequestQueue {
   private queue: QueueItem[] = [];
   private active = 0;
   private activeLow = 0;
   private seq = 0;
-  constructor(private readonly concurrency: number, private readonly reserve = 1) {}
+  constructor(
+    private readonly concurrency: number,
+    private readonly reserve = 1,
+  ) {}
   // `activityId` + `activityLabel` are reported to the shared activity
   // store as a `queued` entry the instant the task is pushed onto the
   // queue. When pump() finally invokes the task, trackAI() inside the work
@@ -164,13 +183,26 @@ export class RequestQueue {
         // Dropped while still waiting for a slot (sidebar closed, anchor
         // switched, daf changed). Reject without burning a concurrency slot
         // so the queue keeps draining for the current daf.
-        if (signal?.aborted) { reject(new DOMException('Aborted', 'AbortError')); return; }
+        if (signal?.aborted) {
+          reject(new DOMException('Aborted', 'AbortError'));
+          return;
+        }
         this.active++;
         if (isLow) this.activeLow++;
-        const done = () => { this.active--; if (isLow) this.activeLow--; this.pump(); };
+        const done = () => {
+          this.active--;
+          if (isLow) this.activeLow--;
+          this.pump();
+        };
         task(signal ?? new AbortController().signal).then(
-          (v) => { done(); resolve(v); },
-          (e) => { done(); reject(e); },
+          (v) => {
+            done();
+            resolve(v);
+          },
+          (e) => {
+            done();
+            reject(e);
+          },
         );
       };
       this.queue.push({ run, priority, seq: this.seq++, isLow });
@@ -188,7 +220,11 @@ export class RequestQueue {
         const item = this.queue[i];
         if (item.isLow && this.activeLow >= lowCap) continue;
         const best = bestIdx === -1 ? null : this.queue[bestIdx];
-        if (!best || item.priority < best.priority || (item.priority === best.priority && item.seq < best.seq)) {
+        if (
+          !best ||
+          item.priority < best.priority ||
+          (item.priority === best.priority && item.seq < best.seq)
+        ) {
           bestIdx = i;
         }
       }

@@ -1,16 +1,19 @@
 // @vitest-environment jsdom
 import { render } from '@solidjs/testing-library';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Pasuk } from '../../src/client/shapes';
-import { PASUK_RECIPE, PASUK_BLOCKS, pasukInstance } from '../../src/client/ArgumentSidebar';
-import { SidebarCardFromHint } from '../../src/client/sidebar/primitives';
+import { PASUK_BLOCKS, PASUK_RECIPE, pasukInstance } from '../../src/client/ArgumentSidebar';
 import { setLang, t } from '../../src/client/i18n';
+import type { Pasuk } from '../../src/client/shapes';
+import { SidebarCardFromHint } from '../../src/client/sidebar/primitives';
 
 beforeEach(() => {
   setLang('en');
   // Verse + enrichment fetches both go through fetch; an empty payload lets
   // the card mount and fall back to the verseRef as the heading.
-  vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({}) }) as unknown as Response));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => ({ ok: true, json: async () => ({}) }) as unknown as Response),
+  );
 });
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -61,7 +64,10 @@ describe('Pasuk recipe card', () => {
   it('declares the four explainer leaves + Q&A in order', () => {
     const ids = PASUK_RECIPE.sections.flatMap((s) => (s.type === 'explainer' ? [s.dep] : []));
     expect(ids).toEqual([
-      'pesukim.tanach-context', 'pesukim.why-here', 'pesukim.mechanism', 'pesukim.landing',
+      'pesukim.tanach-context',
+      'pesukim.why-here',
+      'pesukim.mechanism',
+      'pesukim.landing',
     ]);
     expect(PASUK_RECIPE.sections.some((s) => s.type === 'qa')).toBe(true);
     expect(PASUK_RECIPE.titleField).toBeUndefined(); // header is the custom verse block

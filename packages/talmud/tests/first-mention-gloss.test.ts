@@ -1,9 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import {
-  firstMentionGloss,
-  buildConceptMatcher,
-  glossKey,
-} from '../src/client/conceptLinks';
+import { describe, expect, it } from 'vitest';
+import { buildConceptMatcher, firstMentionGloss, glossKey } from '../src/client/conceptLinks';
 import { globalTerms, type Term } from '../src/lib/terms/registry';
 
 // A glossary term is glossed inline on its FIRST mention in a prose unit and
@@ -61,13 +57,15 @@ describe('firstMentionGloss', () => {
   // ── Regressions from the codex review of the first cut ──────────────────────
   it('keeps a repeated QUALIFIER that is not the gloss (not "(according to Rashi)")', () => {
     const g = buildConceptMatcher(globalTerms());
-    const input = 'הלכה (according to Rashi) is strict; later הלכה (according to Rashi) is lenient.';
+    const input =
+      'הלכה (according to Rashi) is strict; later הלכה (according to Rashi) is lenient.';
     expect(firstMentionGloss(input, g)).toBe(input);
   });
 
   it('keeps a qualifier that merely CONTAINS the gloss text', () => {
     const g = buildConceptMatcher(globalTerms());
-    const input = 'הלכה (binding law) applies; later הלכה (not binding law in this case) is only custom.';
+    const input =
+      'הלכה (binding law) applies; later הלכה (not binding law in this case) is only custom.';
     expect(firstMentionGloss(input, g)).toBe(input);
   });
 
@@ -76,19 +74,26 @@ describe('firstMentionGloss', () => {
       'סימן (a shechita organ (trachea / esophagus)) is cut; another סימן (a shechita organ (trachea / esophagus)) is checked.',
       buildConceptMatcher(globalTerms()),
     );
-    expect(out).toBe('סימן (a shechita organ (trachea / esophagus)) is cut; another סימן is checked.');
+    expect(out).toBe(
+      'סימן (a shechita organ (trachea / esophagus)) is cut; another סימן is checked.',
+    );
   });
 
   it('is idempotent even with adjacent duplicate gloss parens', () => {
     const g = buildConceptMatcher(globalTerms());
-    const once = firstMentionGloss('הלכה (binding law); later הלכה (binding law) (binding law).', g);
+    const once = firstMentionGloss(
+      'הלכה (binding law); later הלכה (binding law) (binding law).',
+      g,
+    );
     expect(once).toBe('הלכה (binding law); later הלכה.');
     expect(firstMentionGloss(once, g)).toBe(once);
   });
 
   it('does not touch text further along the fragment when stripping (no global tidy)', () => {
     // The double space inside the later quote must survive the strip.
-    const out = gloss('A Kohen (a Temple priest) serves; later Kohen (a Temple priest) quotes "A  B".');
+    const out = gloss(
+      'A Kohen (a Temple priest) serves; later Kohen (a Temple priest) quotes "A  B".',
+    );
     expect(out).toBe('A Kohen (a Temple priest) serves; later Kohen quotes "A  B".');
   });
 
@@ -105,14 +110,17 @@ describe('firstMentionGloss', () => {
   });
 
   it('is idempotent', () => {
-    const once = gloss('A Kohen (a Temple priest); the Kohen (a Temple priest); a Kohen (a Temple priest).');
+    const once = gloss(
+      'A Kohen (a Temple priest); the Kohen (a Temple priest); a Kohen (a Temple priest).',
+    );
     expect(gloss(once)).toBe(once);
     expect(once).toBe('A Kohen (a Temple priest); the Kohen; a Kohen.');
   });
 
   it('returns input unchanged with no matcher or no terms', () => {
-    expect(firstMentionGloss('A Kohen (a Temple priest) again Kohen (a Temple priest).', null))
-      .toBe('A Kohen (a Temple priest) again Kohen (a Temple priest).');
+    expect(
+      firstMentionGloss('A Kohen (a Temple priest) again Kohen (a Temple priest).', null),
+    ).toBe('A Kohen (a Temple priest) again Kohen (a Temple priest).');
     expect(gloss('Plain text, nothing to do.')).toBe('Plain text, nothing to do.');
   });
 

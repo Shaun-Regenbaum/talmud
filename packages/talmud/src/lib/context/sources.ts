@@ -36,16 +36,16 @@ export type ContextSource =
 /** How a source is anchored onto the text. Mirrors the `via` values the
  *  deterministic + AI matchers write. `none` = placed only by the AI placer. */
 export type AnchorStrategy =
-  | 'pieceKeys'        // parallel Sefaria "S:P" piece segmentation (Rashi/Tosafot)
-  | 'sefaria-link'     // Sefaria's own link to the daf segment(s)
-  | 'mishnah'          // Mishnah anchor range
-  | 'tosfos-dh'        // dibur-hamaschil matched to a Sefaria tosafot pieceKey
-  | 'bg-term'          // background girsa/glossary term quoted in a segment
-  | 'yerushalmi-text'  // verbatim phrase shared with a Bavli segment
-  | 'section'          // conservative English↔English section alignment (Revach)
-  | 'reference'        // daf-level by nature (cross-refs, topic tags)
-  | 'ai'               // placed by the AI semantic placer
-  | 'none';            // unplaced until the AI placer runs
+  | 'pieceKeys' // parallel Sefaria "S:P" piece segmentation (Rashi/Tosafot)
+  | 'sefaria-link' // Sefaria's own link to the daf segment(s)
+  | 'mishnah' // Mishnah anchor range
+  | 'tosfos-dh' // dibur-hamaschil matched to a Sefaria tosafot pieceKey
+  | 'bg-term' // background girsa/glossary term quoted in a segment
+  | 'yerushalmi-text' // verbatim phrase shared with a Bavli segment
+  | 'section' // conservative English↔English section alignment (Revach)
+  | 'reference' // daf-level by nature (cross-refs, topic tags)
+  | 'ai' // placed by the AI semantic placer
+  | 'none'; // unplaced until the AI placer runs
 
 /** The coarsest grounding a source reaches before per-item matchers refine it. */
 export type DefaultLevel = 'segment' | 'amud' | 'daf';
@@ -68,63 +68,114 @@ export interface SourceMeta {
 /** EXHAUSTIVE over `ContextSource`. TypeScript enforces one entry per source. */
 export const SOURCE_META: Record<ContextSource, SourceMeta> = {
   'sefaria-rashi': {
-    label: 'Rashi', origin: 'sefaria', anchor: 'pieceKeys', defaultLevel: 'segment',
-    notes: "Rashi commentary text, one item per piece, placed on its segment via Sefaria's pieceKeys.",
+    label: 'Rashi',
+    origin: 'sefaria',
+    anchor: 'pieceKeys',
+    defaultLevel: 'segment',
+    notes:
+      "Rashi commentary text, one item per piece, placed on its segment via Sefaria's pieceKeys.",
   },
   'sefaria-tosafot': {
-    label: 'Tosafot', origin: 'sefaria', anchor: 'pieceKeys', defaultLevel: 'segment',
+    label: 'Tosafot',
+    origin: 'sefaria',
+    anchor: 'pieceKeys',
+    defaultLevel: 'segment',
     notes: 'Tosafot commentary text, one item per piece, placed on its segment via pieceKeys.',
   },
   'sefaria-rishonim': {
-    label: 'Rishonim', origin: 'sefaria', anchor: 'sefaria-link', defaultLevel: 'segment',
+    label: 'Rishonim',
+    origin: 'sefaria',
+    anchor: 'sefaria-link',
+    defaultLevel: 'segment',
     notes: "Other rishonim (Rashba, Ritva, Rosh, …); per-item label is the rishon's name.",
   },
   'sefaria-halacha': {
-    label: 'Halacha', origin: 'sefaria', anchor: 'reference', defaultLevel: 'daf', cites: true,
+    label: 'Halacha',
+    origin: 'sefaria',
+    anchor: 'reference',
+    defaultLevel: 'daf',
+    cites: true,
     notes: 'Halachic codifications (Mishneh Torah, Shulchan Aruch, …) linked to this daf.',
   },
   'sefaria-mishnah': {
-    label: 'Mishnah', origin: 'sefaria', anchor: 'mishnah', defaultLevel: 'segment',
+    label: 'Mishnah',
+    origin: 'sefaria',
+    anchor: 'mishnah',
+    defaultLevel: 'segment',
     notes: 'Mishnayot anchored to the daf on a segment range.',
   },
   'sefaria-topic': {
-    label: 'Topic', origin: 'sefaria', anchor: 'reference', defaultLevel: 'daf', cites: true,
+    label: 'Topic',
+    origin: 'sefaria',
+    anchor: 'reference',
+    defaultLevel: 'daf',
+    cites: true,
     notes: 'Sefaria topic tags + their cross-Shas sources — whole-daf reference.',
   },
   'dafyomi:insights': {
-    label: 'Insights', origin: 'dafyomi', anchor: 'ai', defaultLevel: 'daf',
+    label: 'Insights',
+    origin: 'dafyomi',
+    anchor: 'ai',
+    defaultLevel: 'daf',
     notes: 'Kollel Iyun HaDaf insights — placed by the AI placer.',
   },
   'dafyomi:background': {
-    label: 'Background', origin: 'dafyomi', anchor: 'bg-term', defaultLevel: 'daf',
+    label: 'Background',
+    origin: 'dafyomi',
+    anchor: 'bg-term',
+    defaultLevel: 'daf',
     notes: 'Girsa variants + glossary terms; placed onto the segment that quotes the term.',
   },
   'dafyomi:halacha': {
-    label: 'Halacha', origin: 'dafyomi', anchor: 'ai', defaultLevel: 'daf', cites: true,
+    label: 'Halacha',
+    origin: 'dafyomi',
+    anchor: 'ai',
+    defaultLevel: 'daf',
+    cites: true,
     notes: 'Practical halachic rules (Gemara/Rishonim/Poskim).',
   },
   'dafyomi:tosfos': {
-    label: 'Tosafot explanation', origin: 'dafyomi', anchor: 'tosfos-dh', defaultLevel: 'amud',
-    notes: "The Kollel's explanation OF Tosafot; placed via the dibur-hamaschil → Sefaria pieceKey.",
+    label: 'Tosafot explanation',
+    origin: 'dafyomi',
+    anchor: 'tosfos-dh',
+    defaultLevel: 'amud',
+    notes:
+      "The Kollel's explanation OF Tosafot; placed via the dibur-hamaschil → Sefaria pieceKey.",
   },
   'dafyomi:review': {
-    label: 'Review', origin: 'dafyomi', anchor: 'ai', defaultLevel: 'amud',
+    label: 'Review',
+    origin: 'dafyomi',
+    anchor: 'ai',
+    defaultLevel: 'amud',
     notes: 'Review questions for the amud.',
   },
   'dafyomi:points': {
-    label: 'Points', origin: 'dafyomi', anchor: 'ai', defaultLevel: 'amud',
+    label: 'Points',
+    origin: 'dafyomi',
+    anchor: 'ai',
+    defaultLevel: 'amud',
     notes: 'Key conceptual points for the amud.',
   },
   'dafyomi:hebcharts': {
-    label: 'Charts', origin: 'dafyomi', anchor: 'ai', defaultLevel: 'amud',
+    label: 'Charts',
+    origin: 'dafyomi',
+    anchor: 'ai',
+    defaultLevel: 'amud',
     notes: 'Hebrew comparison tables; kept structured so the card renders a real table.',
   },
   'dafyomi:yerushalmi': {
-    label: 'Yerushalmi', origin: 'dafyomi', anchor: 'yerushalmi-text', defaultLevel: 'daf',
+    label: 'Yerushalmi',
+    origin: 'dafyomi',
+    anchor: 'yerushalmi-text',
+    defaultLevel: 'daf',
     notes: 'Yerushalmi parallels; placed onto the Bavli segment sharing a verbatim phrase.',
   },
   'dafyomi:revach': {
-    label: "Revach l'Daf", origin: 'dafyomi', anchor: 'section', defaultLevel: 'daf', cites: true,
+    label: "Revach l'Daf",
+    origin: 'dafyomi',
+    anchor: 'section',
+    defaultLevel: 'daf',
+    cites: true,
     notes: "Revach l'Daf brief per-daf highlights; conservatively aligned to argument sections.",
   },
 };

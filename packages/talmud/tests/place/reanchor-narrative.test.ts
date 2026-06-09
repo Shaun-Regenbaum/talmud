@@ -3,7 +3,7 @@
  * verbatim `excerpt`, making the story beats a clickable narrative move layer.
  * Same single-segment, whole-daf resolution as rabbi-evidence.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { reanchorNarrative } from '../../src/lib/place/reanchor';
 
 const SEGS = [
@@ -11,7 +11,10 @@ const SEGS = [
   'תנו רבנן המביא גט ממדינת הים',
   'רבי יוחנן ורבי שמעון בן לקיש',
 ];
-const run = (beats: unknown[]) => reanchorNarrative({ summary: 's', actors: [], beats }, SEGS) as { beats: Record<string, unknown>[] };
+const run = (beats: unknown[]) =>
+  reanchorNarrative({ summary: 's', actors: [], beats }, SEGS) as {
+    beats: Record<string, unknown>[];
+  };
 
 describe('reanchorNarrative', () => {
   it('anchors each beat to the segment of its verbatim excerpt', () => {
@@ -24,14 +27,16 @@ describe('reanchorNarrative', () => {
   });
 
   it('ignores nikud/punctuation and a non-zero token offset', () => {
-    const { beats } = run([{ n: 1, kind: 'turn', actor: 'A', action: 'x', excerpt: 'אָמַר, רַב נַחְמָן' }]);
+    const { beats } = run([
+      { n: 1, kind: 'turn', actor: 'A', action: 'x', excerpt: 'אָמַר, רַב נַחְמָן' },
+    ]);
     expect(beats[0]).toMatchObject({ startSegIdx: 0, tokenStart: 2 }); // "אמר רב נחמן" at words 2..4
   });
 
   it('leaves a beat with no/short/unmatched excerpt unanchored', () => {
     const { beats } = run([
-      { n: 1, kind: 'scene', actor: 'A', action: 'x' },                       // no excerpt
-      { n: 2, kind: 'action', actor: 'A', action: 'y', excerpt: 'רבנן' },     // 1 word
+      { n: 1, kind: 'scene', actor: 'A', action: 'x' }, // no excerpt
+      { n: 2, kind: 'action', actor: 'A', action: 'y', excerpt: 'רבנן' }, // 1 word
       { n: 3, kind: 'action', actor: 'A', action: 'z', excerpt: 'מילה שאיננה' }, // no match
     ]);
     for (const b of beats) expect(b.startSegIdx).toBeUndefined();

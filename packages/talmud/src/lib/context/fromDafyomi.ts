@@ -7,11 +7,14 @@
  * deterministically, AI for the rest).
  */
 
-import type {
-  DafyomiDaf, DafyomiContentType, DafyomiEntry, DafyomiAmudContent,
-} from '../sefref/dafyomi/schema.ts';
+import { type AnchorCoord, dafCoord } from '@corpus/core/context/coord';
 import type { ContextItem } from '@corpus/core/context/types';
-import { dafCoord, type AnchorCoord } from '@corpus/core/context/coord';
+import type {
+  DafyomiAmudContent,
+  DafyomiContentType,
+  DafyomiDaf,
+  DafyomiEntry,
+} from '../sefref/dafyomi/schema.ts';
 import { sourceLabel } from './sources.ts';
 
 export function fromDafyomi(daf: DafyomiDaf): ContextItem[] {
@@ -28,36 +31,58 @@ export function fromDafyomi(daf: DafyomiDaf): ContextItem[] {
 }
 
 function collectBlock(
-  daf: DafyomiDaf, amud: 'a' | 'b', block: DafyomiAmudContent, out: ContextItem[],
+  daf: DafyomiDaf,
+  amud: 'a' | 'b',
+  block: DafyomiAmudContent,
+  out: ContextItem[],
 ): void {
   const type = block.type;
   const url = daf.source.urls[type];
   const base = (kind: string, key: string): ContextItem => ({
-    source: `dafyomi:${type}`, sourceLabel: sourceLabel(`dafyomi:${type}`), kind, key, url,
-    segs: [], ...(block.wholeDaf ? {} : { amud }),
+    source: `dafyomi:${type}`,
+    sourceLabel: sourceLabel(`dafyomi:${type}`),
+    kind,
+    key,
+    url,
+    segs: [],
+    ...(block.wholeDaf ? {} : { amud }),
   });
 
   const b = block.body;
   switch (b.type) {
     case 'tosfos':
-      b.pieces.forEach((p, i) => out.push({
-        ...base('tosfos-piece', `${type}:${amud}:${i}`),
-        title: { he: p.dhHe, en: p.dhTranslit },
-        body: p.body,
-        dhNormalized: p.dhNormalized,
-      }));
+      b.pieces.forEach((p, i) =>
+        out.push({
+          ...base('tosfos-piece', `${type}:${amud}:${i}`),
+          title: { he: p.dhHe, en: p.dhTranslit },
+          body: p.body,
+          dhNormalized: p.dhNormalized,
+        }),
+      );
       break;
     case 'background':
-      b.girsa.forEach((e, i) => out.push({ ...base('girsa', `${type}:girsa:${i}`), ...entryCard(e) }));
-      b.glossary.forEach((e, i) => out.push({ ...base('glossary', `${type}:gloss:${i}`), ...entryCard(e) }));
+      b.girsa.forEach((e, i) =>
+        out.push({ ...base('girsa', `${type}:girsa:${i}`), ...entryCard(e) }),
+      );
+      b.glossary.forEach((e, i) =>
+        out.push({ ...base('glossary', `${type}:gloss:${i}`), ...entryCard(e) }),
+      );
       break;
     case 'halacha': {
-      const groups: [string, DafyomiEntry[]][] = [['Gemara', b.gemara], ['Rishonim', b.rishonim], ['Poskim', b.poskim]];
+      const groups: [string, DafyomiEntry[]][] = [
+        ['Gemara', b.gemara],
+        ['Rishonim', b.rishonim],
+        ['Poskim', b.poskim],
+      ];
       let i = 0;
       for (const [label, entries] of groups) {
         for (const e of entries) {
           const card = entryCard(e);
-          out.push({ ...base('halacha', `${type}:${amud}:${i++}`), title: card.title ?? { en: `${label}: ${b.question?.en ?? ''}` }, body: card.body });
+          out.push({
+            ...base('halacha', `${type}:${amud}:${i++}`),
+            title: card.title ?? { en: `${label}: ${b.question?.en ?? ''}` },
+            body: card.body,
+          });
         }
       }
       break;
@@ -67,7 +92,9 @@ function collectBlock(
     case 'points':
     case 'yerushalmi':
     case 'revach':
-      b.entries.forEach((e, i) => out.push({ ...base(b.type, `${type}:${amud}:${i}`), ...entryCard(e), ...entryRefs(e) }));
+      b.entries.forEach((e, i) =>
+        out.push({ ...base(b.type, `${type}:${amud}:${i}`), ...entryCard(e), ...entryRefs(e) }),
+      );
       break;
     case 'hebcharts':
       b.tables.forEach((t, i) => {
@@ -101,7 +128,7 @@ function entryRefs(e: DafyomiEntry): { refs?: AnchorCoord[] } {
 }
 
 function entryCard(e: DafyomiEntry): { title?: ContextItem['title']; body?: ContextItem['body'] } {
-  const title = e.title?.en || e.title?.he ? e.title : (e.label ? { en: e.label } : undefined);
+  const title = e.title?.en || e.title?.he ? e.title : e.label ? { en: e.label } : undefined;
   return { title, body: { en: collectEn(e), he: collectHe(e) } };
 }
 
@@ -109,14 +136,20 @@ function collectEn(e: DafyomiEntry, depth = 0): string {
   const pad = '  '.repeat(depth);
   const head = [e.marker, e.label, e.body.en].filter(Boolean).join(' ');
   const lines = head ? [pad + head] : [];
-  for (const c of e.children ?? []) { const s = collectEn(c, depth + 1); if (s) lines.push(s); }
+  for (const c of e.children ?? []) {
+    const s = collectEn(c, depth + 1);
+    if (s) lines.push(s);
+  }
   return lines.join('\n').trim();
 }
 
 function collectHe(e: DafyomiEntry): string {
   const parts: string[] = [];
   if (e.body.he) parts.push(e.body.he);
-  for (const c of e.children ?? []) { const s = collectHe(c); if (s) parts.push(s); }
+  for (const c of e.children ?? []) {
+    const s = collectHe(c);
+    if (s) parts.push(s);
+  }
   return parts.join(' ').trim();
 }
 

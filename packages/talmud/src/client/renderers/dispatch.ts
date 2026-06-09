@@ -18,8 +18,12 @@
  * register it in the RENDERERS table.
  */
 
-import { injectRabbiUnderlines, type GenerationRabbi, normalizeHebrew } from '../injectRabbiUnderlines';
 import type { GenerationId } from '../generations';
+import {
+  type GenerationRabbi,
+  injectRabbiUnderlines,
+  normalizeHebrew,
+} from '../injectRabbiUnderlines';
 
 export interface MarkInstance {
   excerpt?: string;
@@ -37,7 +41,14 @@ export interface MarkRunOutput {
 
 export interface MarkDef {
   id: string;
-  anchor: 'segment' | 'segment-range' | 'phrase' | 'multi-anchor' | 'cross-daf' | 'external' | 'whole-daf';
+  anchor:
+    | 'segment'
+    | 'segment-range'
+    | 'phrase'
+    | 'multi-anchor'
+    | 'cross-daf'
+    | 'external'
+    | 'whole-daf';
   render: { kind: string; [key: string]: unknown };
 }
 
@@ -88,7 +99,10 @@ function injectPlaceMarkers(html: string, places: Array<{ name: string; nameHe: 
   const normed = words.map((el) => normalizeHebrew(el.textContent ?? ''));
   const HEBREW_PARTICLES = ['ב', 'מ', 'ל', 'כ', 'ש', 'ו'];
 
-  interface Candidate { tokens: string[]; name: string }
+  interface Candidate {
+    tokens: string[];
+    name: string;
+  }
   const candidates: Candidate[] = [];
   const seen = new Set<string>();
   for (const p of places) {
@@ -105,16 +119,30 @@ function injectPlaceMarkers(html: string, places: Array<{ name: string; nameHe: 
   candidates.sort((a, b) => b.tokens.length - a.tokens.length);
 
   const wrapped = new Uint8Array(words.length);
-  interface Wrap { start: number; end: number; name: string }
+  interface Wrap {
+    start: number;
+    end: number;
+    name: string;
+  }
   const wraps: Wrap[] = [];
   for (const c of candidates) {
     const n = c.tokens.length;
     for (let i = 0; i <= words.length - n; i++) {
       let clear = true;
-      for (let j = 0; j < n; j++) { if (wrapped[i + j]) { clear = false; break; } }
+      for (let j = 0; j < n; j++) {
+        if (wrapped[i + j]) {
+          clear = false;
+          break;
+        }
+      }
       if (!clear) continue;
       let ok = true;
-      for (let j = 0; j < n; j++) { if (normed[i + j] !== c.tokens[j]) { ok = false; break; } }
+      for (let j = 0; j < n; j++) {
+        if (normed[i + j] !== c.tokens[j]) {
+          ok = false;
+          break;
+        }
+      }
       if (!ok) continue;
       wraps.push({ start: i, end: i + n - 1, name: c.name });
       for (let j = 0; j < n; j++) wrapped[i + j] = 1;
@@ -133,7 +161,11 @@ function injectPlaceMarkers(html: string, places: Array<{ name: string; nameHe: 
     parent.insertBefore(wrapper, first);
     const nodes: Node[] = [];
     let cur: Node | null = first;
-    while (cur) { nodes.push(cur); if (cur === last) break; cur = cur.nextSibling; }
+    while (cur) {
+      nodes.push(cur);
+      if (cur === last) break;
+      cur = cur.nextSibling;
+    }
     for (const node of nodes) wrapper.appendChild(node);
   }
   return doc.body.innerHTML;

@@ -9,7 +9,7 @@
  */
 
 import { parseDafyomiContent } from './parse/index.ts';
-import type { DafyomiContentType, DafyomiDaf, DafyomiAmudContent } from './schema.ts';
+import type { DafyomiAmudContent, DafyomiContentType, DafyomiDaf } from './schema.ts';
 
 export interface FetchedType {
   type: DafyomiContentType;
@@ -36,10 +36,16 @@ export function assembleDaf(
   const warnings: AssembleResult['warnings'] = [];
 
   for (const f of fetched) {
-    if (f.html == null) { absent.push(f.type); continue; }
+    if (f.html == null) {
+      absent.push(f.type);
+      continue;
+    }
     const parsed = parseDafyomiContent(f.type, f.html);
     for (const w of parsed.parseWarnings) warnings.push({ type: f.type, warning: w });
-    if (parsed.blocks.length === 0) { absent.push(f.type); continue; }
+    if (parsed.blocks.length === 0) {
+      absent.push(f.type);
+      continue;
+    }
 
     urls[f.type] = f.url;
     for (const blk of parsed.blocks) {

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { abbreviationMatches } from '../src/client/injectSegmentMarkers';
 
 // abbreviationMatches(hbRaw, sefWords, sj) returns how many Sefaria words at
@@ -75,16 +75,16 @@ describe('abbreviationMatches — gematria numerals', () => {
 });
 
 describe('abbreviationMatches — existing expansions still work', () => {
-  it('ר\' → רבי (1 word)', () => {
+  it("ר' → רבי (1 word)", () => {
     expect(abbreviationMatches("ר'", ['רבי', 'יהודה'], 0)).toBe(1);
   });
   it('א"ר → אמר רבי (2 words)', () => {
     expect(abbreviationMatches('א"ר', ['אמר', 'רבי'], 0)).toBe(2);
   });
-  it('גמ\' → גמרא (1 word)', () => {
+  it("גמ' → גמרא (1 word)", () => {
     expect(abbreviationMatches("גמ'", ['גמרא'], 0)).toBe(1);
   });
-  it('מתני\' → מתני (Sefaria\'s מַתְנִי׳ form, 1 word)', () => {
+  it("מתני' → מתני (Sefaria's מַתְנִי׳ form, 1 word)", () => {
     expect(abbreviationMatches("מתני'", ['מַתְנִי׳'], 0)).toBe(1);
   });
   it('a plain non-abbreviation token returns 0', () => {

@@ -1,13 +1,13 @@
-import { describe, it, expect } from 'vitest';
+import { runWithRetry } from '@corpus/core/llm/ai-gateway';
 import {
-  LLMError,
-  isRetryable,
-  isFallbackWorthy,
   classifyStatus,
+  isFallbackWorthy,
+  isRetryable,
+  LLMError,
   NEITHER,
   TIMEOUT,
 } from '@corpus/core/llm/llm-error';
-import { runWithRetry } from '@corpus/core/llm/ai-gateway';
+import { describe, expect, it } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Typed error classification replaces the old stringly-typed RETRYABLE /

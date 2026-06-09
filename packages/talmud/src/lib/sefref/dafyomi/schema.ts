@@ -22,7 +22,18 @@ export type { DafyomiContentType };
  *  Tzomes)"). Best-effort structuring; `raw` is always the verbatim text. */
 export interface DafyomiRef {
   raw: string;
-  kind?: 'gemara' | 'mishnah' | 'rashi' | 'tosfos' | 'pasuk' | 'rambam' | 'shulchanAruch' | 'rishon' | 'acharon' | 'yerushalmi' | 'other';
+  kind?:
+    | 'gemara'
+    | 'mishnah'
+    | 'rashi'
+    | 'tosfos'
+    | 'pasuk'
+    | 'rambam'
+    | 'shulchanAruch'
+    | 'rishon'
+    | 'acharon'
+    | 'yerushalmi'
+    | 'other';
   /** Resolved app tractate value when a cross-reference is recognizable. */
   tractate?: string;
   /** Resolved daf-amud (e.g. "76a") when present. */
@@ -85,17 +96,23 @@ export interface DafyomiTable {
 }
 
 export type DafyomiBody =
-  | { type: 'insights';   entries: DafyomiEntry[] }
+  | { type: 'insights'; entries: DafyomiEntry[] }
   | { type: 'background'; girsa: DafyomiEntry[]; glossary: DafyomiEntry[] }
-  | { type: 'halacha';    question?: DafyomiText; gemara: DafyomiEntry[]; rishonim: DafyomiEntry[]; poskim: DafyomiEntry[] }
-  | { type: 'tosfos';     pieces: DafyomiTosfosPiece[] }
-  | { type: 'review';     entries: DafyomiEntry[] }
-  | { type: 'points';     entries: DafyomiPointsEntry[] }
-  | { type: 'hebcharts';  tables: DafyomiTable[] }
+  | {
+      type: 'halacha';
+      question?: DafyomiText;
+      gemara: DafyomiEntry[];
+      rishonim: DafyomiEntry[];
+      poskim: DafyomiEntry[];
+    }
+  | { type: 'tosfos'; pieces: DafyomiTosfosPiece[] }
+  | { type: 'review'; entries: DafyomiEntry[] }
+  | { type: 'points'; entries: DafyomiPointsEntry[] }
+  | { type: 'hebcharts'; tables: DafyomiTable[] }
   | { type: 'yerushalmi'; entries: DafyomiEntry[] }
   // Revach l'Daf: each entry pairs a brief SUMMARY highlight (entry.title) with
   // its "A BIT MORE" elaboration (entry.body), keyed by the printed number.
-  | { type: 'revach';     entries: DafyomiEntry[] };
+  | { type: 'revach'; entries: DafyomiEntry[] };
 
 /** One content type's parsed result, scoped to one amud. Content types that
  *  don't subdivide by amud on the site report a single `amud: 'a'` block whose

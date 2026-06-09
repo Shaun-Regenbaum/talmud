@@ -18,15 +18,16 @@
  * result under CACHE_STATS_KEY and the /api/admin/cache-stats endpoint
  * short-circuits on `generatedAt < 60s ago`.
  */
-import rabbiPlacesData from '../lib/data/rabbi-places.json';
-import rabbiHierarchyData from '../lib/data/rabbi-hierarchy.json';
+
 import rabbiFamilyData from '../lib/data/rabbi-family.json';
+import rabbiHierarchyData from '../lib/data/rabbi-hierarchy.json';
 import rabbiOrientationData from '../lib/data/rabbi-orientation.json';
-import { getWarmTotal } from './warm-cron';
-import { CODE_MARKS, CODE_ENRICHMENTS } from './code-marks';
-import { listMarks, listEnrichments } from './studio-registry';
+import rabbiPlacesData from '../lib/data/rabbi-places.json';
 import type { GcTarget } from './cache-gc';
+import { CODE_ENRICHMENTS, CODE_MARKS } from './code-marks';
+import { listEnrichments, listMarks } from './studio-registry';
 import type { EnrichmentScope } from './studio-schema';
+import { getWarmTotal } from './warm-cron';
 
 // v5: mark/enrichment rows carry a per-cache-version breakdown (`versions` +
 // `staleCount`) + the `observations` bucket (rabbi.observations reverse index).
@@ -76,15 +77,15 @@ export interface CacheStats {
   };
   rabbis: {
     totalRabbis: number;
-    withBio: number;                      // any bio text
-    withSefariaBio: number | null;        // bio sourced from Sefaria; null when provenance isn't tracked yet
-    withWiki: number;                     // Hebrew Wikipedia link
-    withGeneration: number;               // generation set and not 'unknown'
-    withRegion: number;                   // region is 'israel' | 'bavel'
-    withPlaces: number;                   // non-empty places array
-    withHierarchyEdges: number;           // at least one teacher/student/contemporary edge
-    withFamily: number;                   // at least one familial relation in rabbi-family.json
-    withOrientation: number;              // orientation (mystical / practical) classified in rabbi-orientation.json
+    withBio: number; // any bio text
+    withSefariaBio: number | null; // bio sourced from Sefaria; null when provenance isn't tracked yet
+    withWiki: number; // Hebrew Wikipedia link
+    withGeneration: number; // generation set and not 'unknown'
+    withRegion: number; // region is 'israel' | 'bavel'
+    withPlaces: number; // non-empty places array
+    withHierarchyEdges: number; // at least one teacher/student/contemporary edge
+    withFamily: number; // at least one familial relation in rabbi-family.json
+    withOrientation: number; // orientation (mystical / practical) classified in rabbi-orientation.json
     unknownRabbis: null;
   };
   hierarchy: {
@@ -124,11 +125,11 @@ export interface MarkCacheRow {
   label: string;
   source: 'code' | 'kv';
   cache_version: string;
-  count: number;          // entries at the CURRENT cache_version (English)
-  heCount: number;        // entries at the CURRENT cache_version, Hebrew (:he)
+  count: number; // entries at the CURRENT cache_version (English)
+  heCount: number; // entries at the CURRENT cache_version, Hebrew (:he)
   percent: number;
   versions: Record<string, number>; // count per cache version present in KV (`:he` suffix = Hebrew)
-  staleCount: number;     // entries at superseded (non-current) versions
+  staleCount: number; // entries at superseded (non-current) versions
   /** Other marks this mark (or its enrichments) depends on — e.g. tidbit
    *  depends on argument-overview. Foreign mark ids only. */
   dependsOn: string[];
@@ -144,22 +145,25 @@ export interface EnrichmentCacheRow {
   scope: EnrichmentScope;
   source: 'code' | 'kv';
   cache_version: string;
-  count: number;          // entries at the CURRENT cache_version (English)
-  heCount: number;        // entries at the CURRENT cache_version, Hebrew (:he)
+  count: number; // entries at the CURRENT cache_version (English)
+  heCount: number; // entries at the CURRENT cache_version, Hebrew (:he)
   versions: Record<string, number>;
   staleCount: number;
 }
 
 interface RabbisFile {
-  rabbis: Record<string, {
-    bio?: string | null;
-    wiki?: string | null;
-    bioSource?: 'sefaria' | 'wikipedia' | 'both' | null;  // future provenance flag
-    numSources?: number | null;
-    generation?: string | null;
-    region?: 'israel' | 'bavel' | null;
-    places?: string[];
-  }>;
+  rabbis: Record<
+    string,
+    {
+      bio?: string | null;
+      wiki?: string | null;
+      bioSource?: 'sefaria' | 'wikipedia' | 'both' | null; // future provenance flag
+      numSources?: number | null;
+      generation?: string | null;
+      region?: 'israel' | 'bavel' | null;
+      places?: string[];
+    }
+  >;
 }
 const RABBIS = rabbiPlacesData as unknown as RabbisFile;
 
@@ -178,11 +182,14 @@ interface HierarchyFile {
   totalNodes: number;
   processedNodes: number;
   nodesWithEdges: number;
-  nodes: Record<string, {
-    teachers: string[];
-    students: string[];
-    colleagues: string[];
-  }>;
+  nodes: Record<
+    string,
+    {
+      teachers: string[];
+      students: string[];
+      colleagues: string[];
+    }
+  >;
 }
 const HIERARCHY = rabbiHierarchyData as unknown as HierarchyFile;
 
@@ -203,8 +210,10 @@ const alignedHebrewBooks: AlignPredicate = (v) => {
 const alignedGemara: AlignPredicate = (v) => {
   if (!v || failed(v)) return false;
   const d = v as { segments_he?: unknown[]; segments_en?: unknown[] };
-  return (Array.isArray(d.segments_he) && d.segments_he.length > 0) ||
-    (Array.isArray(d.segments_en) && d.segments_en.length > 0);
+  return (
+    (Array.isArray(d.segments_he) && d.segments_he.length > 0) ||
+    (Array.isArray(d.segments_en) && d.segments_en.length > 0)
+  );
 };
 const alignedCommentaries: AlignPredicate = (v) => {
   if (!v || failed(v)) return false;
@@ -218,7 +227,10 @@ const alignedDafyomi: AlignPredicate = (v) => {
   // non-empty object — a parse can leave empty {} blocks, which shouldn't read
   // as aligned.
   const hasContent = (amud?: Record<string, unknown>): boolean =>
-    !!amud && Object.values(amud).some((c) => !!c && typeof c === 'object' && Object.keys(c as object).length > 0);
+    !!amud &&
+    Object.values(amud).some(
+      (c) => !!c && typeof c === 'object' && Object.keys(c as object).length > 0,
+    );
   return hasContent(d.amudim?.a) || hasContent(d.amudim?.b);
 };
 
@@ -235,7 +247,17 @@ const nonEmptyValue: AlignPredicate = (v) => {
 
 // DafYomi content types (Kollel Iyun HaDaf), in display order. See
 // src/lib/sefref/dafyomi/masechtos.ts (DafyomiContentType).
-const DAFYOMI_TYPES = ['insights', 'background', 'halacha', 'tosfos', 'review', 'points', 'hebcharts', 'yerushalmi', 'revach'] as const;
+const DAFYOMI_TYPES = [
+  'insights',
+  'background',
+  'halacha',
+  'tosfos',
+  'review',
+  'points',
+  'hebcharts',
+  'yerushalmi',
+  'revach',
+] as const;
 
 /**
  * Sample DafYomi entries once and tally, per content type, how many of the
@@ -248,10 +270,16 @@ async function sampleDafyomiTypes(
   sampleSize = 300,
 ): Promise<{ sampled: number; alignedAny: number; byType: Record<string, number> }> {
   const keys: string[] = [];
-  let cursor: string | undefined = undefined;
+  let cursor: string | undefined;
   while (keys.length < sampleSize) {
-    const res = (await cache.list({ prefix: 'dafyomi:v5:', cursor, limit: Math.min(1000, sampleSize - keys.length) })) as {
-      keys: Array<{ name: string }>; list_complete: boolean; cursor?: string;
+    const res = (await cache.list({
+      prefix: 'dafyomi:v5:',
+      cursor,
+      limit: Math.min(1000, sampleSize - keys.length),
+    })) as {
+      keys: Array<{ name: string }>;
+      list_complete: boolean;
+      cursor?: string;
     };
     for (const k of res.keys) keys.push(k.name);
     if (res.list_complete || !res.cursor) break;
@@ -265,14 +293,19 @@ async function sampleDafyomiTypes(
     if (raw == null) continue;
     sampled++;
     let v: unknown;
-    try { v = JSON.parse(raw); } catch { continue; }
+    try {
+      v = JSON.parse(raw);
+    } catch {
+      continue;
+    }
     if (failed(v)) continue;
     const d = v as { amudim?: { a?: Record<string, unknown>; b?: Record<string, unknown> } };
     const present = new Set<string>();
     for (const amud of [d.amudim?.a, d.amudim?.b]) {
       if (!amud) continue;
       for (const [type, block] of Object.entries(amud)) {
-        if (block && typeof block === 'object' && Object.keys(block as object).length > 0) present.add(type);
+        if (block && typeof block === 'object' && Object.keys(block as object).length > 0)
+          present.add(type);
       }
     }
     if (present.size > 0) alignedAny++;
@@ -294,10 +327,16 @@ export async function sampleAligned(
   sampleSize = 300,
 ): Promise<AlignedSample | null> {
   const keys: string[] = [];
-  let cursor: string | undefined = undefined;
+  let cursor: string | undefined;
   while (keys.length < sampleSize) {
-    const res = (await cache.list({ prefix, cursor, limit: Math.min(1000, sampleSize - keys.length) })) as {
-      keys: Array<{ name: string }>; list_complete: boolean; cursor?: string;
+    const res = (await cache.list({
+      prefix,
+      cursor,
+      limit: Math.min(1000, sampleSize - keys.length),
+    })) as {
+      keys: Array<{ name: string }>;
+      list_complete: boolean;
+      cursor?: string;
     };
     for (const k of res.keys) keys.push(k.name);
     if (res.list_complete || !res.cursor) break;
@@ -311,7 +350,11 @@ export async function sampleAligned(
     if (raw == null) continue;
     sampled++;
     let v: unknown;
-    try { v = JSON.parse(raw); } catch { continue; }
+    try {
+      v = JSON.parse(raw);
+    } catch {
+      continue;
+    }
     if (isAligned(v)) aligned++;
   }
   if (sampled === 0) return null;
@@ -319,7 +362,7 @@ export async function sampleAligned(
 }
 
 async function countPrefix(cache: KVNamespace, prefix: string): Promise<number> {
-  let cursor: string | undefined = undefined;
+  let cursor: string | undefined;
   let count = 0;
   for (;;) {
     const res = (await cache.list({ prefix, cursor, limit: 1000 })) as {
@@ -345,7 +388,7 @@ async function countPrefix(cache: KVNamespace, prefix: string): Promise<number> 
  */
 async function countByVersion(cache: KVNamespace, prefix: string): Promise<Record<string, number>> {
   const counts: Record<string, number> = {};
-  let cursor: string | undefined = undefined;
+  let cursor: string | undefined;
   for (;;) {
     const res = (await cache.list({ prefix, cursor, limit: 1000 })) as {
       keys: Array<{ name: string }>;
@@ -385,12 +428,32 @@ function pct(count: number, total: number): number {
 
 /** Merge code-defined marks/enrichments with KV-defined ones. KV wins on id
  *  collision. Mirrors the precedence used by /api/run. */
-type MergedMark = { id: string; label: string; source: 'code' | 'kv'; cache_version: string; dependencies: unknown[] };
+type MergedMark = {
+  id: string;
+  label: string;
+  source: 'code' | 'kv';
+  cache_version: string;
+  dependencies: unknown[];
+};
 async function mergedMarks(cache: KVNamespace): Promise<MergedMark[]> {
   const kv = await listMarks({ CACHE: cache });
   const byId = new Map<string, MergedMark>();
-  for (const m of CODE_MARKS) byId.set(m.id, { id: m.id, label: m.label, source: 'code', cache_version: m.cache_version, dependencies: (m as { dependencies?: unknown[] }).dependencies ?? [] });
-  for (const m of kv) byId.set(m.id, { id: m.id, label: m.label, source: 'kv', cache_version: m.cache_version, dependencies: (m as { dependencies?: unknown[] }).dependencies ?? [] });
+  for (const m of CODE_MARKS)
+    byId.set(m.id, {
+      id: m.id,
+      label: m.label,
+      source: 'code',
+      cache_version: m.cache_version,
+      dependencies: (m as { dependencies?: unknown[] }).dependencies ?? [],
+    });
+  for (const m of kv)
+    byId.set(m.id, {
+      id: m.id,
+      label: m.label,
+      source: 'kv',
+      cache_version: m.cache_version,
+      dependencies: (m as { dependencies?: unknown[] }).dependencies ?? [],
+    });
   return [...byId.values()].sort((a, b) => a.id.localeCompare(b.id));
 }
 
@@ -400,36 +463,66 @@ async function mergedMarks(cache: KVNamespace): Promise<MergedMark[]> {
  *  ('gemara', 'context', …) → null. Powers the per-mark "depends on" chips. */
 // Source-string deps (Content-In inputs) a producer reads, as opposed to the
 // {mark}/{enrichment} graph edges. See MarkDependency/EnrichmentDependency.
-const SOURCE_DEPS = new Set(['gemara', 'commentaries', 'mishna', 'context', 'context-light', 'halacha-refs', 'yerushalmi-text', 'incoming']);
+const SOURCE_DEPS = new Set([
+  'gemara',
+  'commentaries',
+  'mishna',
+  'context',
+  'context-light',
+  'halacha-refs',
+  'yerushalmi-text',
+  'incoming',
+]);
 function sourceDepOf(dep: unknown): string | null {
   return typeof dep === 'string' && SOURCE_DEPS.has(dep) ? dep : null;
 }
 
-function foreignMarkOf(dep: unknown, markOfEnrichment: (id: string) => string | undefined): string | null {
+function foreignMarkOf(
+  dep: unknown,
+  markOfEnrichment: (id: string) => string | undefined,
+): string | null {
   if (!dep || typeof dep !== 'object') return null;
   const d = dep as { mark?: string; enrichment?: string };
   if (typeof d.mark === 'string') return d.mark;
-  if (typeof d.enrichment === 'string') return markOfEnrichment(d.enrichment) ?? d.enrichment.split('.')[0];
+  if (typeof d.enrichment === 'string')
+    return markOfEnrichment(d.enrichment) ?? d.enrichment.split('.')[0];
   return null;
 }
 
 type MergedEnrichment = {
-  id: string; label: string; target_mark: string; scope: EnrichmentScope;
-  source: 'code' | 'kv'; cache_version: string; dependencies: unknown[];
+  id: string;
+  label: string;
+  target_mark: string;
+  scope: EnrichmentScope;
+  source: 'code' | 'kv';
+  cache_version: string;
+  dependencies: unknown[];
 };
 async function mergedEnrichments(cache: KVNamespace): Promise<MergedEnrichment[]> {
   const kv = await listEnrichments({ CACHE: cache });
   const byId = new Map<string, MergedEnrichment>();
-  for (const e of CODE_ENRICHMENTS) byId.set(e.id, {
-    id: e.id, label: e.label, target_mark: e.target_mark, scope: e.scope,
-    source: 'code', cache_version: e.cache_version, dependencies: (e as { dependencies?: unknown[] }).dependencies ?? [],
-  });
+  for (const e of CODE_ENRICHMENTS)
+    byId.set(e.id, {
+      id: e.id,
+      label: e.label,
+      target_mark: e.target_mark,
+      scope: e.scope,
+      source: 'code',
+      cache_version: e.cache_version,
+      dependencies: (e as { dependencies?: unknown[] }).dependencies ?? [],
+    });
   // KV registry stores `mark` (singular) where code uses `target_mark`; map
   // both into the same shape so the row is consistent regardless of source.
-  for (const e of kv) byId.set(e.id, {
-    id: e.id, label: e.label, target_mark: e.mark, scope: e.scope,
-    source: 'kv', cache_version: e.cache_version, dependencies: (e as { dependencies?: unknown[] }).dependencies ?? [],
-  });
+  for (const e of kv)
+    byId.set(e.id, {
+      id: e.id,
+      label: e.label,
+      target_mark: e.mark,
+      scope: e.scope,
+      source: 'kv',
+      cache_version: e.cache_version,
+      dependencies: (e as { dependencies?: unknown[] }).dependencies ?? [],
+    });
   return [...byId.values()].sort((a, b) => a.id.localeCompare(b.id));
 }
 
@@ -449,10 +542,25 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
   const dafTotal = Math.max(1, Math.round(total / 2));
 
   const [
-    hbCount, gemaraCount, commentariesCount, dafyomiCount, obsSlices, obsRabbis,
-    hbAligned, gemaraAligned, commentariesAligned,
-    rishonimCount, mishnaCount, yeruCount, halRefsCount, topicsCount,
-    rishonimAligned, mishnaAligned, yeruAligned, halRefsAligned, topicsAligned,
+    hbCount,
+    gemaraCount,
+    commentariesCount,
+    dafyomiCount,
+    obsSlices,
+    obsRabbis,
+    hbAligned,
+    gemaraAligned,
+    commentariesAligned,
+    rishonimCount,
+    mishnaCount,
+    yeruCount,
+    halRefsCount,
+    topicsCount,
+    rishonimAligned,
+    mishnaAligned,
+    yeruAligned,
+    halRefsAligned,
+    topicsAligned,
     dyTypes,
   ] = await Promise.all([
     countPrefix(cache, 'hb:v2:'),
@@ -480,15 +588,33 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     sampleAligned(cache, 'daf-topics:v1:', nonEmptyValue),
     sampleDafyomiTypes(cache),
   ]);
-  const dafyomiAligned: AlignedSample | null = dyTypes.sampled > 0
-    ? { sampled: dyTypes.sampled, aligned: dyTypes.alignedAny, pct: Math.round((dyTypes.alignedAny / dyTypes.sampled) * 1000) / 10 }
-    : null;
+  const dafyomiAligned: AlignedSample | null =
+    dyTypes.sampled > 0
+      ? {
+          sampled: dyTypes.sampled,
+          aligned: dyTypes.alignedAny,
+          pct: Math.round((dyTypes.alignedAny / dyTypes.sampled) * 1000) / 10,
+        }
+      : null;
 
   // Content-In: flat, per-piece source breakdown (origin-tagged).
-  const sefariaRow = (id: string, count: number, aligned: AlignedSample | null): SourceRow =>
-    ({ id, origin: 'Sefaria', count, denom: total, percent: pct(count, total), aligned });
+  const sefariaRow = (id: string, count: number, aligned: AlignedSample | null): SourceRow => ({
+    id,
+    origin: 'Sefaria',
+    count,
+    denom: total,
+    percent: pct(count, total),
+    aligned,
+  });
   const sources: SourceRow[] = [
-    { id: 'hb', origin: 'HB', count: hbCount, denom: total, percent: pct(hbCount, total), aligned: hbAligned },
+    {
+      id: 'hb',
+      origin: 'HB',
+      count: hbCount,
+      denom: total,
+      percent: pct(hbCount, total),
+      aligned: hbAligned,
+    },
     sefariaRow('gemara', gemaraCount, gemaraAligned),
     sefariaRow('commentaries', commentariesCount, commentariesAligned),
     sefariaRow('rishonim', rishonimCount, rishonimAligned),
@@ -496,7 +622,14 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     sefariaRow('yerushalmi', yeruCount, yeruAligned),
     sefariaRow('halacha-refs', halRefsCount, halRefsAligned),
     sefariaRow('daf-topics', topicsCount, topicsAligned),
-    { id: 'dy', origin: 'DY', count: dafyomiCount, denom: dafTotal, percent: pct(dafyomiCount, dafTotal), aligned: dafyomiAligned },
+    {
+      id: 'dy',
+      origin: 'DY',
+      count: dafyomiCount,
+      denom: dafTotal,
+      percent: pct(dafyomiCount, dafTotal),
+      aligned: dafyomiAligned,
+    },
     // DafYomi content types — count extrapolated from the sample, % of cached
     // DafYomi dapim that include the part. No separate alignment (presence is
     // the metric).
@@ -504,7 +637,14 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
       const present = dyTypes.byType[type] ?? 0;
       const frac = dyTypes.sampled > 0 ? present / dyTypes.sampled : 0;
       const estCount = Math.round(frac * dafyomiCount);
-      return { id: `dy.${type}`, origin: 'DY', count: estCount, denom: dafyomiCount, percent: Math.round(frac * 1000) / 10, aligned: null };
+      return {
+        id: `dy.${type}`,
+        origin: 'DY',
+        count: estCount,
+        denom: dafyomiCount,
+        percent: Math.round(frac * 1000) / 10,
+        aligned: null,
+      };
     }),
   ];
 
@@ -543,9 +683,15 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     const count = versions[m.cache_version] ?? 0;
     const heCount = versions[`${m.cache_version}:he`] ?? 0;
     return {
-      id: m.id, label: m.label, source: m.source, cache_version: m.cache_version,
-      count, heCount, percent: pct(count, total),
-      versions, staleCount: staleSum(versions, m.cache_version),
+      id: m.id,
+      label: m.label,
+      source: m.source,
+      cache_version: m.cache_version,
+      count,
+      heCount,
+      percent: pct(count, total),
+      versions,
+      staleCount: staleSum(versions, m.cache_version),
       dependsOn: [...(dependsByMark.get(m.id) ?? [])].sort(),
       dependsOnSources: [...(sourcesByMark.get(m.id) ?? [])].sort(),
     };
@@ -556,9 +702,16 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     const count = versions[e.cache_version] ?? 0;
     const heCount = versions[`${e.cache_version}:he`] ?? 0;
     return {
-      id: e.id, label: e.label, target_mark: e.target_mark, scope: e.scope,
-      source: e.source, cache_version: e.cache_version, count, heCount,
-      versions, staleCount: staleSum(versions, e.cache_version),
+      id: e.id,
+      label: e.label,
+      target_mark: e.target_mark,
+      scope: e.scope,
+      source: e.source,
+      cache_version: e.cache_version,
+      count,
+      heCount,
+      versions,
+      staleCount: staleSum(versions, e.cache_version),
     };
   });
 
@@ -568,8 +721,8 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
   let withGeneration = 0;
   let withRegion = 0;
   let withPlaces = 0;
-  let bioSourceTracked = 0;     // how many entries HAVE a bioSource field set
-  let withSefariaBioCount = 0;  // entries where bioSource === 'sefaria' or 'both'
+  let bioSourceTracked = 0; // how many entries HAVE a bioSource field set
+  let withSefariaBioCount = 0; // entries where bioSource === 'sefaria' or 'both'
   for (const [slug, r] of Object.entries(RABBIS.rabbis)) {
     totalRabbis++;
     if (r.bio) withBio++;
@@ -600,7 +753,8 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
   let totalEdges = 0;
   let withHierarchyEdges = 0;
   for (const n of Object.values(HIERARCHY.nodes ?? {})) {
-    const edgeCount = (n.teachers?.length ?? 0) + (n.students?.length ?? 0) + (n.colleagues?.length ?? 0);
+    const edgeCount =
+      (n.teachers?.length ?? 0) + (n.students?.length ?? 0) + (n.colleagues?.length ?? 0);
     totalEdges += edgeCount;
     if (edgeCount > 0) withHierarchyEdges++;
   }
@@ -610,21 +764,48 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     generatedAt: new Date().toISOString(),
     total,
     source: {
-      hebrewbooks: { count: hbCount, percent: pct(hbCount, total), aligned: hbAligned, denom: total },
-      gemara: { count: gemaraCount, percent: pct(gemaraCount, total), aligned: gemaraAligned, denom: total },
-      commentaries: { count: commentariesCount, percent: pct(commentariesCount, total), aligned: commentariesAligned, denom: total },
+      hebrewbooks: {
+        count: hbCount,
+        percent: pct(hbCount, total),
+        aligned: hbAligned,
+        denom: total,
+      },
+      gemara: {
+        count: gemaraCount,
+        percent: pct(gemaraCount, total),
+        aligned: gemaraAligned,
+        denom: total,
+      },
+      commentaries: {
+        count: commentariesCount,
+        percent: pct(commentariesCount, total),
+        aligned: commentariesAligned,
+        denom: total,
+      },
       // DafYomi keys are per-DAF (one entry covers both amudim), so its
       // denominator is the daf count, not the per-amud total.
-      dafyomi: { count: dafyomiCount, percent: pct(dafyomiCount, dafTotal), aligned: dafyomiAligned, denom: dafTotal },
+      dafyomi: {
+        count: dafyomiCount,
+        percent: pct(dafyomiCount, dafTotal),
+        aligned: dafyomiAligned,
+        denom: dafTotal,
+      },
     },
     sources,
     marks,
     enrichments,
     observations: { slices: obsSlices, rabbis: obsRabbis },
     rabbis: {
-      totalRabbis, withBio, withSefariaBio, withWiki,
-      withGeneration, withRegion, withPlaces,
-      withHierarchyEdges, withFamily, withOrientation,
+      totalRabbis,
+      withBio,
+      withSefariaBio,
+      withWiki,
+      withGeneration,
+      withRegion,
+      withPlaces,
+      withHierarchyEdges,
+      withFamily,
+      withOrientation,
       unknownRabbis: null,
     },
     hierarchy: {
@@ -653,9 +834,6 @@ export function isFresh(stats: CacheStats): boolean {
   return Date.now() - t < FRESH_MS;
 }
 
-export async function writeCachedCacheStats(
-  cache: KVNamespace,
-  stats: CacheStats,
-): Promise<void> {
+export async function writeCachedCacheStats(cache: KVNamespace, stats: CacheStats): Promise<void> {
   await cache.put(CACHE_STATS_KEY, JSON.stringify(stats));
 }

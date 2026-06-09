@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { diburHaMaschil, leadingWords, stripTags } from '../src/lib/context/dibur';
 
 describe('stripTags', () => {
@@ -20,14 +20,16 @@ describe('diburHaMaschil', () => {
   it('takes the bolded lemma when the comment bolds it (Rishonim / Sefaria)', () => {
     // The exact bug fixed in #23: stripping tags first lost the </b> boundary
     // and ran the lemma into the comment ("…במקדש פיר"), so it never matched.
-    expect(diburHaMaschil('<b>נגר הנגרר נועלין בו במקדש</b> פיר נגר שאין בראשו'))
-      .toBe('נגר הנגרר נועלין בו במקדש');
+    expect(diburHaMaschil('<b>נגר הנגרר נועלין בו במקדש</b> פיר נגר שאין בראשו')).toBe(
+      'נגר הנגרר נועלין בו במקדש',
+    );
     expect(diburHaMaschil('<strong>ההוא שריתא</strong> דהוה ביה')).toBe('ההוא שריתא');
   });
 
   it('splits on a sentence period when there is no bold (some Rishonim)', () => {
-    expect(diburHaMaschil('המונח כאן וכאן אסור. פירש רש"י ז"ל: בשתוקעו'))
-      .toBe('המונח כאן וכאן אסור');
+    expect(diburHaMaschil('המונח כאן וכאן אסור. פירש רש"י ז"ל: בשתוקעו')).toBe(
+      'המונח כאן וכאן אסור',
+    );
   });
 
   it('splits on the " - " dash (Rashi/Tosafot lemma)', () => {

@@ -104,7 +104,10 @@ export function normalizeSpan(span: AnchorSpan): AnchorSpan {
   const out: AnchorCoord[] = [];
   for (const c of span) {
     const k = coordKey(c);
-    if (!seen.has(k)) { seen.add(k); out.push(c); }
+    if (!seen.has(k)) {
+      seen.add(k);
+      out.push(c);
+    }
   }
   return out.sort(
     (a, b) =>
@@ -121,11 +124,22 @@ export function normalizeSpan(span: AnchorSpan): AnchorSpan {
  *  map addresses Gemara segments); segs are deduped so mixed-spine coords at the
  *  same (tractate, page, seg) don't emit a duplicate segment. */
 export function spanByDaf(span: AnchorSpan): { tractate: string; page: string; segs: number[] }[] {
-  const groups = new Map<string, { tractate: string; page: string; segs: number[]; seen: Set<number> }>();
+  const groups = new Map<
+    string,
+    { tractate: string; page: string; segs: number[]; seen: Set<number> }
+  >();
   for (const c of normalizeSpan(span)) {
     const dk = `${c.tractate}:${c.page}`;
-    const g = groups.get(dk) ?? { tractate: c.tractate, page: c.page, segs: [], seen: new Set<number>() };
-    if (!g.seen.has(c.seg)) { g.seen.add(c.seg); g.segs.push(c.seg); }
+    const g = groups.get(dk) ?? {
+      tractate: c.tractate,
+      page: c.page,
+      segs: [],
+      seen: new Set<number>(),
+    };
+    if (!g.seen.has(c.seg)) {
+      g.seen.add(c.seg);
+      g.segs.push(c.seg);
+    }
     groups.set(dk, g);
   }
   return [...groups.values()].map(({ tractate, page, segs }) => ({ tractate, page, segs }));
@@ -134,6 +148,10 @@ export function spanByDaf(span: AnchorSpan): { tractate: string; page: string; s
 /** Bridge from the existing CrossDafAnchor target shape
  *  ({ tractate, page, segIdx? }) to an AnchorCoord. A missing segIdx means the
  *  target is the whole daf; we anchor it to seg 0 so it still has a coordinate. */
-export function coordFromTarget(target: { tractate: string; page: string; segIdx?: number }): AnchorCoord {
+export function coordFromTarget(target: {
+  tractate: string;
+  page: string;
+  segIdx?: number;
+}): AnchorCoord {
   return { tractate: target.tractate, page: target.page, seg: target.segIdx ?? 0 };
 }

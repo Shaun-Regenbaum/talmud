@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { sanitizeHebraizeOutput } from '../src/worker/index';
 
 // ---------------------------------------------------------------------------
@@ -27,8 +27,7 @@ describe('sanitizeHebraizeOutput — collapses model-emitted echoes', () => {
   });
 
   it('cleans the synthesis-slice echo (מעשה (מעשה))', () => {
-    const badModelOutput =
-      'requires a concrete מעשה (מעשה) or mere mental calculation';
+    const badModelOutput = 'requires a concrete מעשה (מעשה) or mere mental calculation';
     expect(sanitizeHebraizeOutput(badModelOutput)).toBe(
       'requires a concrete מעשה or mere mental calculation',
     );

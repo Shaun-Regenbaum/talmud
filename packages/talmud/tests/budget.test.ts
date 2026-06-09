@@ -1,12 +1,12 @@
-import { describe, it, expect } from 'vitest';
 import {
-  recordSpend,
-  checkBudget,
+  type BudgetEnv,
   budgetStatus,
+  checkBudget,
   clearPauses,
   computeSpendUsd,
-  type BudgetEnv,
+  recordSpend,
 } from '@corpus/core/llm/budget';
+import { describe, expect, it } from 'vitest';
 
 // Minimal in-memory KV. budget.ts only uses get / put / delete; TTLs are
 // ignored (tests model window roll-over by passing a different `now`, not by
@@ -15,8 +15,12 @@ function makeFakeKV(initial: Record<string, string> = {}) {
   const store = new Map(Object.entries(initial));
   const kv = {
     get: async (k: string) => store.get(k) ?? null,
-    put: async (k: string, v: string) => { store.set(k, v); },
-    delete: async (k: string) => { store.delete(k); },
+    put: async (k: string, v: string) => {
+      store.set(k, v);
+    },
+    delete: async (k: string) => {
+      store.delete(k);
+    },
     list: async () => ({ keys: [], list_complete: true, cursor: '' }),
     getWithMetadata: async () => ({ value: null, metadata: null }),
   };
@@ -26,7 +30,12 @@ function makeFakeKV(initial: Record<string, string> = {}) {
 // Fake send_email binding that captures every message it's asked to send.
 function makeFakeEmail() {
   const sent: Array<{ to: string; from: string; subject: string; text?: string }> = [];
-  const email = { send: async (m: { to: string; from: string; subject: string; text?: string }) => { sent.push(m); return { messageId: `m${sent.length}` }; } };
+  const email = {
+    send: async (m: { to: string; from: string; subject: string; text?: string }) => {
+      sent.push(m);
+      return { messageId: `m${sent.length}` };
+    },
+  };
   return { email, sent };
 }
 
@@ -37,14 +46,30 @@ const HOUR = '2026052719';
 
 describe('computeSpendUsd', () => {
   it('prefers the billed cost when present', () => {
-    expect(computeSpendUsd('openrouter/deepseek/deepseek-v4-flash', { cost: 0.42, prompt_tokens: 1000, completion_tokens: 1000 })).toBe(0.42);
+    expect(
+      computeSpendUsd('openrouter/deepseek/deepseek-v4-flash', {
+        cost: 0.42,
+        prompt_tokens: 1000,
+        completion_tokens: 1000,
+      }),
+    ).toBe(0.42);
   });
   it('falls back to list-price estimation for priced models', () => {
     // flash = $0.14 / $0.28 per 1M; 1M in + 1M out = 0.42
-    expect(computeSpendUsd('openrouter/deepseek/deepseek-v4-flash', { prompt_tokens: 1_000_000, completion_tokens: 1_000_000 })).toBeCloseTo(0.42, 6);
+    expect(
+      computeSpendUsd('openrouter/deepseek/deepseek-v4-flash', {
+        prompt_tokens: 1_000_000,
+        completion_tokens: 1_000_000,
+      }),
+    ).toBeCloseTo(0.42, 6);
   });
   it('returns 0 for unpriced (@cf/*) models with no billed cost', () => {
-    expect(computeSpendUsd('@cf/google/gemma-4-26b-a4b-it', { prompt_tokens: 1000, completion_tokens: 1000 })).toBe(0);
+    expect(
+      computeSpendUsd('@cf/google/gemma-4-26b-a4b-it', {
+        prompt_tokens: 1000,
+        completion_tokens: 1000,
+      }),
+    ).toBe(0);
   });
 });
 
@@ -58,14 +83,22 @@ describe('daily total cap', () => {
   it('does not pause while under the trip point', async () => {
     const { kv } = makeFakeKV();
     const env: BudgetEnv = { CACHE: kv, DAILY_BUDGET_USD: '10' }; // trip = 9.5
-    await recordSpend(env, { model: 'openrouter/deepseek/deepseek-v4-pro', usage: { cost: 5 }, custom: false }, T);
+    await recordSpend(
+      env,
+      { model: 'openrouter/deepseek/deepseek-v4-pro', usage: { cost: 5 }, custom: false },
+      T,
+    );
     expect((await checkBudget(env, { custom: false }, T)).ok).toBe(true);
   });
 
   it('latches an all-scope pause once the trip point is reached, blocking even non-custom calls', async () => {
     const { kv } = makeFakeKV();
     const env: BudgetEnv = { CACHE: kv, DAILY_BUDGET_USD: '10' }; // trip = 9.5
-    await recordSpend(env, { model: 'openrouter/deepseek/deepseek-v4-pro', usage: { cost: 9.6 }, custom: false }, T);
+    await recordSpend(
+      env,
+      { model: 'openrouter/deepseek/deepseek-v4-pro', usage: { cost: 9.6 }, custom: false },
+      T,
+    );
     const decision = await checkBudget(env, { custom: false }, T);
     expect(decision.ok).toBe(false);
     expect(decision.scope).toBe('all');
@@ -76,7 +109,11 @@ describe('daily total cap', () => {
   it('exposes a human-readable reason on a pause (so the UI can tell the user why)', async () => {
     const { kv } = makeFakeKV();
     const env: BudgetEnv = { CACHE: kv, DAILY_BUDGET_USD: '10' };
-    await recordSpend(env, { model: 'openrouter/deepseek/deepseek-v4-pro', usage: { cost: 9.6 }, custom: false }, T);
+    await recordSpend(
+      env,
+      { model: 'openrouter/deepseek/deepseek-v4-pro', usage: { cost: 9.6 }, custom: false },
+      T,
+    );
     const decision = await checkBudget(env, { custom: false }, T);
     expect(decision.ok).toBe(false);
     expect(typeof decision.reason).toBe('string');
@@ -135,7 +172,11 @@ describe('unpriced calls', () => {
   it('do not move the counters', async () => {
     const { kv, store } = makeFakeKV();
     const env: BudgetEnv = { CACHE: kv };
-    await recordSpend(env, { model: '@cf/google/gemma-4-26b-a4b-it', usage: { prompt_tokens: 9999 }, custom: true }, T);
+    await recordSpend(
+      env,
+      { model: '@cf/google/gemma-4-26b-a4b-it', usage: { prompt_tokens: 9999 }, custom: true },
+      T,
+    );
     expect(store.has(`budget:v1:total:${DAY}`)).toBe(false);
     expect(store.has(`budget:v1:custom:${HOUR}`)).toBe(false);
   });
@@ -158,7 +199,12 @@ describe('spend alert emails', () => {
   it('emails when the hourly custom cap trips', async () => {
     const { kv } = makeFakeKV();
     const { email, sent } = makeFakeEmail();
-    const env: BudgetEnv = { CACHE: kv, HOURLY_CUSTOM_BUDGET_USD: '0.5', DAILY_BUDGET_USD: '1000', EMAIL: email };
+    const env: BudgetEnv = {
+      CACHE: kv,
+      HOURLY_CUSTOM_BUDGET_USD: '0.5',
+      DAILY_BUDGET_USD: '1000',
+      EMAIL: email,
+    };
     await recordSpend(env, { model: 'x', usage: { cost: 0.6 }, custom: true }, T);
     expect(sent).toHaveLength(1);
     expect(sent[0].subject).toContain('custom-question spend cap');

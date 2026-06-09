@@ -6,13 +6,7 @@
     "properties": {
       "flavor": {
         "type": "string",
-        "enum": [
-          "aggadah",
-          "legal-concept",
-          "machloket",
-          "textual",
-          "hidden-point"
-        ]
+        "enum": ["aggadah", "legal-concept", "machloket", "textual", "hidden-point"]
       },
       "hook": {
         "type": "string"
@@ -35,38 +29,20 @@
               "type": "string"
             }
           },
-          "required": [
-            "ref",
-            "note"
-          ],
+          "required": ["ref", "note"],
           "additionalProperties": false
         }
       },
       "textConfidence": {
         "type": "string",
-        "enum": [
-          "high",
-          "medium",
-          "low"
-        ]
+        "enum": ["high", "medium", "low"]
       },
       "readingConfidence": {
         "type": "string",
-        "enum": [
-          "high",
-          "medium",
-          "low"
-        ]
+        "enum": ["high", "medium", "low"]
       }
     },
-    "required": [
-      "flavor",
-      "hook",
-      "paragraphs",
-      "sources",
-      "textConfidence",
-      "readingConfidence"
-    ],
+    "required": ["flavor", "hook", "paragraphs", "sources", "textConfidence", "readingConfidence"],
     "additionalProperties": false
   }
 }

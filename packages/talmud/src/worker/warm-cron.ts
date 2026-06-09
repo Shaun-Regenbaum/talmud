@@ -8,17 +8,23 @@
  * To force a re-walk (e.g. after changing fetch format), bump the key
  * version to v2.
  */
-import { TRACTATE_IDS } from '../lib/sefref/hebrewbooks/client';
+
 import { iterAmudim } from '../lib/sefref/amudim';
+import { listDafyomiMasechtos } from '../lib/sefref/dafyomi/masechtos';
+import { TRACTATE_IDS } from '../lib/sefref/hebrewbooks/client';
 import {
+  keyForDafyomi,
+  keyForHebrewBooks,
+  keyForSefariaBundle,
+  keyForSefariaSegments,
+} from './cache-keys';
+import { computeCacheStats, writeCachedCacheStats } from './cache-stats';
+import {
+  getDafyomiContentCached,
   getHebrewBooksDafCached,
   getSefariaPageCached,
   getSefariaSegmentsCached,
-  getDafyomiContentCached,
 } from './source-cache';
-import { listDafyomiMasechtos } from '../lib/sefref/dafyomi/masechtos';
-import { computeCacheStats, writeCachedCacheStats } from './cache-stats';
-import { keyForHebrewBooks, keyForSefariaBundle, keyForSefariaSegments, keyForDafyomi } from './cache-keys';
 import type { JobMessage } from './types';
 
 const CURSOR_KEY = 'warm-cursor:v1';
@@ -126,14 +132,25 @@ async function refreshStats(cache: KVNamespace): Promise<void> {
 const OBS_BACKFILL_CURSOR_KEY = 'obs-backfill-cursor:v1';
 const OBS_BACKFILL_BATCH = 20;
 
-interface ObsBackfillCursor { tractateIdx: number; amudIdx: number; enqueued: number; done?: boolean }
+interface ObsBackfillCursor {
+  tractateIdx: number;
+  amudIdx: number;
+  enqueued: number;
+  done?: boolean;
+}
 
 async function runObservationsBackfill(env: WarmEnv): Promise<void> {
   if (env.OBSERVATIONS_WARM_SHAS !== '1' || !env.ENRICHMENT_QUEUE || !env.CACHE) return;
   const cache = env.CACHE;
   const raw = await cache.get(OBS_BACKFILL_CURSOR_KEY);
   let cur: ObsBackfillCursor = { tractateIdx: 0, amudIdx: 0, enqueued: 0 };
-  if (raw) { try { cur = JSON.parse(raw) as ObsBackfillCursor; } catch { /* reset */ } }
+  if (raw) {
+    try {
+      cur = JSON.parse(raw) as ObsBackfillCursor;
+    } catch {
+      /* reset */
+    }
+  }
   if (cur.done) return; // one-time: latched after a full pass
 
   let { tractateIdx, amudIdx } = cur;
@@ -141,27 +158,40 @@ async function runObservationsBackfill(env: WarmEnv): Promise<void> {
   let processed = 0;
   while (processed < OBS_BACKFILL_BATCH) {
     while (tractateIdx < TRACTATES.length && amudIdx >= AMUDIM_BY_TRACTATE[tractateIdx].length) {
-      tractateIdx++; amudIdx = 0;
+      tractateIdx++;
+      amudIdx = 0;
     }
     if (tractateIdx >= TRACTATES.length) {
-      await cache.put(OBS_BACKFILL_CURSOR_KEY, JSON.stringify({ tractateIdx, amudIdx: 0, enqueued, done: true }));
+      await cache.put(
+        OBS_BACKFILL_CURSOR_KEY,
+        JSON.stringify({ tractateIdx, amudIdx: 0, enqueued, done: true }),
+      );
       console.log(`[warm-cron] rabbi.observations backfill COMPLETE — enqueued ${enqueued} amudim`);
       return;
     }
     const tractate = TRACTATES[tractateIdx];
     const amud = AMUDIM_BY_TRACTATE[tractateIdx][amudIdx];
-    const runId = `rabbi.observations:${tractate}:${amud}:daf:noq:cached:${Math.floor(Date.now() / 1000)}`
-      .replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
-    await env.ENRICHMENT_QUEUE.send({ runId, enrichment_id: 'rabbi.observations', mark_input: { id: 'daf' }, tractate, page: amud })
-      .catch((e) => {
-        console.error(`[warm-cron] enqueue rabbi.observations ${tractate}/${amud} failed:`, e);
-      });
+    const runId =
+      `rabbi.observations:${tractate}:${amud}:daf:noq:cached:${Math.floor(Date.now() / 1000)}`
+        .replace(/[^a-zA-Z0-9._:-]+/g, '_')
+        .slice(0, 200);
+    await env.ENRICHMENT_QUEUE.send({
+      runId,
+      enrichment_id: 'rabbi.observations',
+      mark_input: { id: 'daf' },
+      tractate,
+      page: amud,
+    }).catch((e) => {
+      console.error(`[warm-cron] enqueue rabbi.observations ${tractate}/${amud} failed:`, e);
+    });
     enqueued++;
     amudIdx++;
     processed++;
   }
   await cache.put(OBS_BACKFILL_CURSOR_KEY, JSON.stringify({ tractateIdx, amudIdx, enqueued }));
-  console.log(`[warm-cron] rabbi.observations backfill progress: enqueued=${enqueued} cursor=${tractateIdx}:${amudIdx}`);
+  console.log(
+    `[warm-cron] rabbi.observations backfill progress: enqueued=${enqueued} cursor=${tractateIdx}:${amudIdx}`,
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -176,10 +206,15 @@ async function runObservationsBackfill(env: WarmEnv): Promise<void> {
 // dafyomi.co.il study content never changes, so once-cached is permanent.
 // ---------------------------------------------------------------------------
 const DAFYOMI_CURSOR_KEY = 'dafyomi-warm-cursor:v1';
-const DAFYOMI_BATCH = 2;              // dapim per tick (each cold daf ≈ 9 sequential fetches)
-const DAFYOMI_FETCH_SLEEP_MS = 1500;  // politeness pause between dapim
+const DAFYOMI_BATCH = 2; // dapim per tick (each cold daf ≈ 9 sequential fetches)
+const DAFYOMI_FETCH_SLEEP_MS = 1500; // politeness pause between dapim
 
-interface DafyomiCursor { tractateIdx: number; daf: number; fetched: number; done?: boolean }
+interface DafyomiCursor {
+  tractateIdx: number;
+  daf: number;
+  fetched: number;
+  done?: boolean;
+}
 
 export function dafyomiWarmTotal(): number {
   return listDafyomiMasechtos().reduce((s, m) => s + Math.max(0, m.lastDaf - 1), 0);
@@ -209,7 +244,13 @@ async function runDafyomiBackfill(env: WarmEnv): Promise<void> {
   const masechtos = listDafyomiMasechtos();
   const raw = await cache.get(DAFYOMI_CURSOR_KEY);
   let cur: DafyomiCursor = { tractateIdx: 0, daf: 2, fetched: 0 };
-  if (raw) { try { cur = JSON.parse(raw) as DafyomiCursor; } catch { /* reset */ } }
+  if (raw) {
+    try {
+      cur = JSON.parse(raw) as DafyomiCursor;
+    } catch {
+      /* reset */
+    }
+  }
   if (cur.done) return; // self-latched after a full pass
 
   let { tractateIdx, daf } = cur;
@@ -217,10 +258,14 @@ async function runDafyomiBackfill(env: WarmEnv): Promise<void> {
   let processed = 0;
   while (processed < DAFYOMI_BATCH) {
     while (tractateIdx < masechtos.length && daf > masechtos[tractateIdx].lastDaf) {
-      tractateIdx++; daf = 2;
+      tractateIdx++;
+      daf = 2;
     }
     if (tractateIdx >= masechtos.length) {
-      await cache.put(DAFYOMI_CURSOR_KEY, JSON.stringify({ tractateIdx, daf: 2, fetched, done: true }));
+      await cache.put(
+        DAFYOMI_CURSOR_KEY,
+        JSON.stringify({ tractateIdx, daf: 2, fetched, done: true }),
+      );
       console.log(`[warm-cron] dafyomi ingestion COMPLETE — fetched ${fetched} this pass`);
       await sendDafyomiCompletionEmail(env, fetched);
       return;
@@ -233,7 +278,9 @@ async function runDafyomiBackfill(env: WarmEnv): Promise<void> {
     if (existing === null) {
       // allowLive → hub-driven scrapeDafyomiLive, then KV-cached forever. Count
       // only real ingests (null = absent/failed) so the completion email is honest.
-      const got = await getDafyomiContentCached(cache, env.ASSETS, tractate, String(daf), { allowLive: true }).catch(() => null);
+      const got = await getDafyomiContentCached(cache, env.ASSETS, tractate, String(daf), {
+        allowLive: true,
+      }).catch(() => null);
       if (got) fetched++;
       await new Promise((r) => setTimeout(r, DAFYOMI_FETCH_SLEEP_MS));
     }
@@ -275,10 +322,7 @@ async function runHbPhase(env: WarmEnv, cursor: WarmCursor): Promise<void> {
   const start = Date.now();
 
   while (processed < BATCH_SIZE) {
-    while (
-      tractateIdx < TRACTATES.length &&
-      amudIdx >= AMUDIM_BY_TRACTATE[tractateIdx].length
-    ) {
+    while (tractateIdx < TRACTATES.length && amudIdx >= AMUDIM_BY_TRACTATE[tractateIdx].length) {
       tractateIdx++;
       amudIdx = 0;
     }
@@ -328,8 +372,11 @@ interface SefariaWarmCursor {
 async function readSefariaCursor(cache: KVNamespace): Promise<SefariaWarmCursor> {
   const raw = await cache.get(SEFARIA_CURSOR_KEY);
   if (!raw) return { tractateIdx: 0, amudIdx: 0, wraps: 0 };
-  try { return JSON.parse(raw) as SefariaWarmCursor; }
-  catch { return { tractateIdx: 0, amudIdx: 0, wraps: 0 }; }
+  try {
+    return JSON.parse(raw) as SefariaWarmCursor;
+  } catch {
+    return { tractateIdx: 0, amudIdx: 0, wraps: 0 };
+  }
 }
 
 export async function readSefariaWarmCursor(cache: KVNamespace): Promise<SefariaWarmCursor> {
@@ -354,10 +401,7 @@ async function runSefariaPhase(env: WarmEnv): Promise<void> {
   const start = Date.now();
 
   while (processed < BATCH_SIZE) {
-    while (
-      tractateIdx < TRACTATES.length &&
-      amudIdx >= AMUDIM_BY_TRACTATE[tractateIdx].length
-    ) {
+    while (tractateIdx < TRACTATES.length && amudIdx >= AMUDIM_BY_TRACTATE[tractateIdx].length) {
       tractateIdx++;
       amudIdx = 0;
     }
@@ -373,10 +417,7 @@ async function runSefariaPhase(env: WarmEnv): Promise<void> {
     const amud = AMUDIM_BY_TRACTATE[tractateIdx][amudIdx];
     const bundleKey = keyForSefariaBundle(tractate, amud); // was sefaria-bundle:v2 — drifted from the reader's v5
     const segKey = keyForSefariaSegments(tractate, amud);
-    const [bundleHit, segHit] = await Promise.all([
-      cache.get(bundleKey),
-      cache.get(segKey),
-    ]);
+    const [bundleHit, segHit] = await Promise.all([cache.get(bundleKey), cache.get(segKey)]);
 
     let didFetch = false;
     if (bundleHit === null) {
@@ -396,10 +437,7 @@ async function runSefariaPhase(env: WarmEnv): Promise<void> {
     processed++;
   }
 
-  await cache.put(
-    SEFARIA_CURSOR_KEY,
-    JSON.stringify({ tractateIdx, amudIdx, wraps }),
-  );
+  await cache.put(SEFARIA_CURSOR_KEY, JSON.stringify({ tractateIdx, amudIdx, wraps }));
   const elapsed = Date.now() - start;
   console.log(
     `[warm-cron] Sefaria processed=${processed} fetched=${fetched} elapsed=${elapsed}ms cursor=${tractateIdx}:${amudIdx} wraps=${wraps}`,

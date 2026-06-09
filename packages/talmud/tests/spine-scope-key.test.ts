@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { keyForEnrichment, slugTractate, slugDaf } from '../src/worker/cache-keys';
+import { describe, expect, it } from 'vitest';
+import { keyForEnrichment, slugDaf, slugTractate } from '../src/worker/cache-keys';
 
 // The 'spine' scope is the foundation for tractate-wide pieces that fill in
 // incrementally: one shelf per tractate, keyed by tractate only (no page).
@@ -31,8 +31,9 @@ describe('spine-scope cache key', () => {
   });
 
   it('leaves local + global key shapes unchanged', () => {
-    expect(keyForEnrichment(LOCAL, 'ovw', { tractate: 'Berakhot', page: '3b' }))
-      .toBe('enrich:argument-overview.flow:1:ovw:berakhot:3b');
+    expect(keyForEnrichment(LOCAL, 'ovw', { tractate: 'Berakhot', page: '3b' })).toBe(
+      'enrich:argument-overview.flow:1:ovw:berakhot:3b',
+    );
     expect(keyForEnrichment(GLOBAL, 'abaye')).toBe('enrich:rabbi.bio:4:abaye');
   });
 

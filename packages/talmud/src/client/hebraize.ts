@@ -444,24 +444,59 @@ export function hebraizeBareNames(text: string): string {
  *  — keep, because parens correctly hold the Hebrew gloss for "procedure". */
 const PAREN_STRIP_STOPWORDS = [
   // Articles
-  'the', 'a', 'an',
+  'the',
+  'a',
+  'an',
   // Possessive determiners — behave like articles before a noun.
-  'his', 'her', 'its', 'their', 'our', 'my', 'your',
+  'his',
+  'her',
+  'its',
+  'their',
+  'our',
+  'my',
+  'your',
   // Demonstratives
-  'this', 'that', 'these', 'those',
+  'this',
+  'that',
+  'these',
+  'those',
   // Prepositions
-  'of', 'in', 'on', 'at', 'by', 'for', 'with', 'to', 'from', 'as',
-  'into', 'onto', 'upon', 'against', 'between', 'among', 'through',
-  'over', 'under', 'before', 'after', 'about',
+  'of',
+  'in',
+  'on',
+  'at',
+  'by',
+  'for',
+  'with',
+  'to',
+  'from',
+  'as',
+  'into',
+  'onto',
+  'upon',
+  'against',
+  'between',
+  'among',
+  'through',
+  'over',
+  'under',
+  'before',
+  'after',
+  'about',
   // Conjunctions
-  'and', 'or', 'but', 'nor', 'so', 'yet',
+  'and',
+  'or',
+  'but',
+  'nor',
+  'so',
+  'yet',
 ];
 
 /** Match: `<stopword><space>(Hebrew content)` — and strip just the parens.
  *  Hebrew content can include nikud, gershayim, and basic Hebrew-adjacent
  *  punctuation (commas, periods, colons used in verse refs). */
 const STOPWORD_HEB_PAREN_RE = new RegExp(
-  `(\\b(?:${PAREN_STRIP_STOPWORDS.join('|')})\\s+)\\(([֐-׿][֐-׿װ-״\\s'\".,:;-]*)\\)`,
+  `(\\b(?:${PAREN_STRIP_STOPWORDS.join('|')})\\s+)\\(([֐-׿][֐-׿װ-״\\s'".,:;-]*)\\)`,
   'gi',
 );
 
@@ -564,7 +599,7 @@ export function hasEmptyParens(text: string): boolean {
 
 export function capitalizeFirst(text: string): string {
   if (!text) return text;
-  const i = text.search(/[^\s'"“”‘’(\[]/);
+  const i = text.search(/[^\s'"“”‘’([]/);
   if (i < 0) return text;
   return text.slice(0, i) + text.charAt(i).toUpperCase() + text.slice(i + 1);
 }
@@ -612,7 +647,10 @@ export function hebraizeWithFlag(text: string): { text: string; replaced: number
   if (!text) return { text, replaced };
   const out = text.replace(PAREN_RE, (full, inner: string) => {
     const heb = NORMALIZED_DICT[normalizeKey(inner)];
-    if (heb) { replaced++; return `(${heb})`; }
+    if (heb) {
+      replaced++;
+      return `(${heb})`;
+    }
     return full;
   });
   return { text: out, replaced };
@@ -646,7 +684,7 @@ export async function hebraizeLLM(text: string): Promise<string> {
       body: JSON.stringify({ text }),
     });
     if (!res.ok) return text;
-    const body = await res.json() as { hebraized?: string; error?: string };
+    const body = (await res.json()) as { hebraized?: string; error?: string };
     return body.hebraized ?? text;
   } catch {
     return text;

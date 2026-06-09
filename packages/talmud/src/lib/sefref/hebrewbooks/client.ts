@@ -16,49 +16,49 @@ export interface HebrewBooksParams {
 }
 
 export const TRACTATE_IDS: Record<string, number> = {
-  'Berakhot': 1,
-  'Shabbat': 2,
-  'Eruvin': 3,
-  'Pesachim': 4,
-  'Shekalim': 5,
-  'Yoma': 6,
-  'Sukkah': 7,
-  'Beitzah': 8,
+  Berakhot: 1,
+  Shabbat: 2,
+  Eruvin: 3,
+  Pesachim: 4,
+  Shekalim: 5,
+  Yoma: 6,
+  Sukkah: 7,
+  Beitzah: 8,
   'Rosh Hashanah': 9,
-  'Taanit': 10,
-  'Megillah': 11,
+  Taanit: 10,
+  Megillah: 11,
   'Moed Katan': 12,
-  'Chagigah': 13,
-  'Yevamot': 14,
-  'Ketubot': 15,
-  'Nedarim': 16,
-  'Nazir': 17,
-  'Sotah': 18,
-  'Gittin': 19,
-  'Kiddushin': 20,
+  Chagigah: 13,
+  Yevamot: 14,
+  Ketubot: 15,
+  Nedarim: 16,
+  Nazir: 17,
+  Sotah: 18,
+  Gittin: 19,
+  Kiddushin: 20,
   'Bava Kamma': 21,
   'Bava Metzia': 22,
   'Bava Batra': 23,
-  'Sanhedrin': 24,
-  'Makkot': 25,
-  'Shevuot': 26,
+  Sanhedrin: 24,
+  Makkot: 25,
+  Shevuot: 26,
   'Avodah Zarah': 27,
-  'Horayot': 28,
-  'Zevachim': 29,
-  'Menachot': 30,
-  'Chullin': 31,
-  'Bekhorot': 32,
-  'Arakhin': 33,
-  'Temurah': 34,
-  'Keritot': 35,
-  'Meilah': 36,
-  'Niddah': 37,
+  Horayot: 28,
+  Zevachim: 29,
+  Menachot: 30,
+  Chullin: 31,
+  Bekhorot: 32,
+  Arakhin: 33,
+  Temurah: 34,
+  Keritot: 35,
+  Meilah: 36,
+  Niddah: 37,
 };
 
 export function convertDafToHebrewBooksFormat(daf: string): string {
   const pageNum = parseInt(daf.replace(/[ab]/, ''));
   const amud = daf.includes('b') ? 'b' : 'a';
-  const dafSupplierNum = amud === 'a' ? (pageNum * 2) : (pageNum * 2 + 1);
+  const dafSupplierNum = amud === 'a' ? pageNum * 2 : pageNum * 2 + 1;
   return dafSupplierNum.toString();
 }
 
@@ -94,8 +94,9 @@ async function fetchHebrewBooksDafOnce(
 ): Promise<HebrewBooksDaf> {
   const res = await fetchImpl(url, {
     headers: {
-      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Accept': 'text/html,application/xhtml+xml',
+      'User-Agent':
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      Accept: 'text/html,application/xhtml+xml',
       'Accept-Language': 'he,en;q=0.8',
     },
     signal: AbortSignal.timeout(5000),

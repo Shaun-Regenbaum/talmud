@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { orthogonalEdgePath, type EdgeRect } from '../src/client/flow/orthogonalEdge';
+import { describe, expect, it } from 'vitest';
+import { type EdgeRect, orthogonalEdgePath } from '../src/client/flow/orthogonalEdge';
 
 /** Parse an SVG path of only M/L commands into its ordered points. */
 function points(path: string): Array<[number, number]> {
@@ -18,7 +18,10 @@ function assertOrthogonal(path: string): void {
     const [ax, ay] = pts[i - 1];
     const [bx, by] = pts[i];
     const aligned = Math.abs(ax - bx) < 1e-9 || Math.abs(ay - by) < 1e-9;
-    expect(aligned, `segment ${JSON.stringify(pts[i - 1])}->${JSON.stringify(pts[i])} in "${path}" is diagonal`).toBe(true);
+    expect(
+      aligned,
+      `segment ${JSON.stringify(pts[i - 1])}->${JSON.stringify(pts[i])} in "${path}" is diagonal`,
+    ).toBe(true);
   }
 }
 

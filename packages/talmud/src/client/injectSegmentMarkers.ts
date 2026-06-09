@@ -19,7 +19,7 @@
  *     tolerant of gaps on either side.
  */
 
-import { normalizeHebrew, wordsMatchFuzzy, extractTalmudContent } from '../lib/sefref/alignment';
+import { extractTalmudContent, normalizeHebrew, wordsMatchFuzzy } from '../lib/sefref/alignment';
 
 export interface SegmentStats {
   totalSegments: number;
@@ -51,19 +51,22 @@ export function abbreviationMatches(hbRaw: string, sefWords: string[], sj: numbe
   // ר"X / ר״X  →  רבי X  (2 Sefaria words; X is the next expanded letter/name)
   let m = s.match(/^ר[״"״](.+)$/);
   if (m) {
-    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'רבי') && startsWith(sefWords[sj + 1], m[1])) return 2;
+    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'רבי') && startsWith(sefWords[sj + 1], m[1]))
+      return 2;
     return 0;
   }
 
   // א"ר  →  אמר רבי
   if (/^א[״"״]ר$/.test(s)) {
-    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'אמר') && eq(sefWords[sj + 1], 'רבי')) return 2;
+    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'אמר') && eq(sefWords[sj + 1], 'רבי'))
+      return 2;
     return 0;
   }
 
   // וא"ר  →  ואמר רבי
   if (/^וא[״"״]ר$/.test(s)) {
-    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'ואמר') && eq(sefWords[sj + 1], 'רבי')) return 2;
+    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'ואמר') && eq(sefWords[sj + 1], 'רבי'))
+      return 2;
     return 0;
   }
 
@@ -74,13 +77,15 @@ export function abbreviationMatches(hbRaw: string, sefWords: string[], sj: numbe
   m = s.match(/^(ו?)חכ[״"״]א$/);
   if (m) {
     const first = m[1] ? 'וחכמים' : 'חכמים';
-    if (sj + 1 < sefWords.length && eq(sefWords[sj], first) && eq(sefWords[sj + 1], 'אומרים')) return 2;
+    if (sj + 1 < sefWords.length && eq(sefWords[sj], first) && eq(sefWords[sj + 1], 'אומרים'))
+      return 2;
     return 0;
   }
 
   // ת"ר  →  תנו רבנן
   if (/^ת[״"״]ר$/.test(s)) {
-    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'תנו') && eq(sefWords[sj + 1], 'רבנן')) return 2;
+    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'תנו') && eq(sefWords[sj + 1], 'רבנן'))
+      return 2;
     return 0;
   }
 
@@ -92,83 +97,124 @@ export function abbreviationMatches(hbRaw: string, sefWords: string[], sj: numbe
 
   // ק"ו  →  קל וחומר
   if (/^ק[״"״]ו$/.test(s)) {
-    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'קל') && eq(sefWords[sj + 1], 'וחומר')) return 2;
+    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'קל') && eq(sefWords[sj + 1], 'וחומר'))
+      return 2;
     return 0;
   }
 
   // ק"ש  →  קריאת שמע
   if (/^ק[״"״]ש$/.test(s)) {
-    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'קריאת') && eq(sefWords[sj + 1], 'שמע')) return 2;
+    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'קריאת') && eq(sefWords[sj + 1], 'שמע'))
+      return 2;
     return 0;
   }
 
   // ד"א  →  דבר אחר
   if (/^ד[״"״]א$/.test(s)) {
-    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'דבר') && eq(sefWords[sj + 1], 'אחר')) return 2;
+    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'דבר') && eq(sefWords[sj + 1], 'אחר'))
+      return 2;
     return 0;
   }
 
   // ב"ד  →  בית דין
   if (/^ב[״"״]ד$/.test(s)) {
-    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'בית') && eq(sefWords[sj + 1], 'דין')) return 2;
+    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'בית') && eq(sefWords[sj + 1], 'דין'))
+      return 2;
     return 0;
   }
 
   // ב"ה  →  בית הלל  (in context — also "blessed is He" but rare as a standalone word)
   if (/^ב[״"״]ה$/.test(s)) {
-    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'בית') && eq(sefWords[sj + 1], 'הלל')) return 2;
+    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'בית') && eq(sefWords[sj + 1], 'הלל'))
+      return 2;
     return 0;
   }
 
   // ב"ש  →  בית שמאי
   if (/^ב[״"״]ש$/.test(s)) {
-    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'בית') && eq(sefWords[sj + 1], 'שמאי')) return 2;
+    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'בית') && eq(sefWords[sj + 1], 'שמאי'))
+      return 2;
     return 0;
   }
 
   // מ"מ  →  מכל מקום
   if (/^מ[״"״]מ$/.test(s)) {
-    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'מכל') && eq(sefWords[sj + 1], 'מקום')) return 2;
+    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'מכל') && eq(sefWords[sj + 1], 'מקום'))
+      return 2;
     return 0;
   }
 
   // קמ"ל  →  קא משמע לן  (3)
   if (/^קמ[״"״]ל$/.test(s)) {
-    if (sj + 2 < sefWords.length && eq(sefWords[sj], 'קא') && eq(sefWords[sj + 1], 'משמע') && eq(sefWords[sj + 2], 'לן')) return 3;
+    if (
+      sj + 2 < sefWords.length &&
+      eq(sefWords[sj], 'קא') &&
+      eq(sefWords[sj + 1], 'משמע') &&
+      eq(sefWords[sj + 2], 'לן')
+    )
+      return 3;
     return 0;
   }
 
   // הקב"ה  →  הקדוש ברוך הוא (3)
   if (/^הקב[״"״]ה$/.test(s)) {
-    if (sj + 2 < sefWords.length && eq(sefWords[sj], 'הקדוש') && eq(sefWords[sj + 1], 'ברוך') && eq(sefWords[sj + 2], 'הוא')) return 3;
+    if (
+      sj + 2 < sefWords.length &&
+      eq(sefWords[sj], 'הקדוש') &&
+      eq(sefWords[sj + 1], 'ברוך') &&
+      eq(sefWords[sj + 2], 'הוא')
+    )
+      return 3;
     return 0;
   }
 
   // אע"פ  →  אף על פי  (3)
   if (/^אע[״"״]פ$/.test(s)) {
-    if (sj + 2 < sefWords.length && eq(sefWords[sj], 'אף') && eq(sefWords[sj + 1], 'על') && eq(sefWords[sj + 2], 'פי')) return 3;
+    if (
+      sj + 2 < sefWords.length &&
+      eq(sefWords[sj], 'אף') &&
+      eq(sefWords[sj + 1], 'על') &&
+      eq(sefWords[sj + 2], 'פי')
+    )
+      return 3;
     return 0;
   }
 
   // ואע"ג  →  ואף על גב  (3)
   if (/^ואע[״"״]ג$/.test(s)) {
-    if (sj + 2 < sefWords.length && eq(sefWords[sj], 'ואף') && eq(sefWords[sj + 1], 'על') && eq(sefWords[sj + 2], 'גב')) return 3;
+    if (
+      sj + 2 < sefWords.length &&
+      eq(sefWords[sj], 'ואף') &&
+      eq(sefWords[sj + 1], 'על') &&
+      eq(sefWords[sj + 2], 'גב')
+    )
+      return 3;
     return 0;
   }
 
   // רשב"י  →  רבי שמעון בן יוחאי  (4)
   if (/^רשב[״"״]י$/.test(s)) {
-    if (sj + 3 < sefWords.length
-        && eq(sefWords[sj], 'רבי') && eq(sefWords[sj + 1], 'שמעון')
-        && eq(sefWords[sj + 2], 'בן') && eq(sefWords[sj + 3], 'יוחאי')) return 4;
+    if (
+      sj + 3 < sefWords.length &&
+      eq(sefWords[sj], 'רבי') &&
+      eq(sefWords[sj + 1], 'שמעון') &&
+      eq(sefWords[sj + 2], 'בן') &&
+      eq(sefWords[sj + 3], 'יוחאי')
+    )
+      return 4;
     return 0;
   }
 
   // רשב"ל  →  רבי שמעון בן לקיש  (4)
   if (/^רשב[״"״]ל$/.test(s)) {
-    if (sj + 3 < sefWords.length
-        && eq(sefWords[sj], 'רבי') && eq(sefWords[sj + 1], 'שמעון')
-        && eq(sefWords[sj + 2], 'בן') && eq(sefWords[sj + 3], 'לקיש')) return 4;
+    if (
+      sj + 3 < sefWords.length &&
+      eq(sefWords[sj], 'רבי') &&
+      eq(sefWords[sj + 1], 'שמעון') &&
+      eq(sefWords[sj + 2], 'בן') &&
+      eq(sefWords[sj + 3], 'לקיש')
+    )
+      return 4;
     return 0;
   }
 
@@ -217,14 +263,33 @@ export function abbreviationMatches(hbRaw: string, sefWords: string[], sj: numbe
   return genericAcronymMatch(hbRaw, sefWords, sj);
 }
 
-const FINAL_MAP: Record<string, string> = { 'ך': 'כ', 'ם': 'מ', 'ן': 'נ', 'ף': 'פ', 'ץ': 'צ' };
+const FINAL_MAP: Record<string, string> = { ך: 'כ', ם: 'מ', ן: 'נ', ף: 'פ', ץ: 'צ' };
 
 // Hebrew letter → gematria value (regular letters only; final forms never
 // stand alone as a numeral).
 const GEMATRIA: Record<string, number> = {
-  'א': 1, 'ב': 2, 'ג': 3, 'ד': 4, 'ה': 5, 'ו': 6, 'ז': 7, 'ח': 8, 'ט': 9,
-  'י': 10, 'כ': 20, 'ל': 30, 'מ': 40, 'נ': 50, 'ס': 60, 'ע': 70, 'פ': 80, 'צ': 90,
-  'ק': 100, 'ר': 200, 'ש': 300, 'ת': 400,
+  א: 1,
+  ב: 2,
+  ג: 3,
+  ד: 4,
+  ה: 5,
+  ו: 6,
+  ז: 7,
+  ח: 8,
+  ט: 9,
+  י: 10,
+  כ: 20,
+  ל: 30,
+  מ: 40,
+  נ: 50,
+  ס: 60,
+  ע: 70,
+  פ: 80,
+  צ: 90,
+  ק: 100,
+  ר: 200,
+  ש: 300,
+  ת: 400,
 };
 
 // Gematria value → accepted spelled-out cardinal forms (any gender, absolute
@@ -261,9 +326,7 @@ function genericAcronymMatch(hbRaw: string, sefWords: string[], sj: number): num
   // substring rule, not here.
   if (!/[״"]/.test(hbRaw)) return 0;
 
-  let letters = hbRaw
-    .replace(/[֑-ׇ]/g, '')
-    .replace(/[^א-ת]/g, '');
+  let letters = hbRaw.replace(/[֑-ׇ]/g, '').replace(/[^א-ת]/g, '');
   letters = letters.replace(/[ךםןףץ]/g, (m) => FINAL_MAP[m] ?? m);
   if (letters.length < 2 || letters.length > 6) return 0;
 
@@ -306,15 +369,34 @@ function singleWordMatch(hbRaw: string, sefWord: string): boolean {
   return wordsMatchFuzzy(n1, n2);
 }
 
-export function injectSegmentMarkers(html: string, segmentsHe: string[]): { html: string; stats: SegmentStats } {
+export function injectSegmentMarkers(
+  html: string,
+  segmentsHe: string[],
+): { html: string; stats: SegmentStats } {
   if (!html || typeof document === 'undefined' || segmentsHe.length === 0) {
-    return { html, stats: { totalSegments: segmentsHe.length, alignedSegments: 0, totalWords: 0, alignedWords: 0 } };
+    return {
+      html,
+      stats: {
+        totalSegments: segmentsHe.length,
+        alignedSegments: 0,
+        totalWords: 0,
+        alignedWords: 0,
+      },
+    };
   }
 
   const doc = new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html');
   const words = Array.from(doc.body.querySelectorAll<HTMLSpanElement>('.daf-word'));
   if (words.length === 0) {
-    return { html, stats: { totalSegments: segmentsHe.length, alignedSegments: 0, totalWords: 0, alignedWords: 0 } };
+    return {
+      html,
+      stats: {
+        totalSegments: segmentsHe.length,
+        alignedSegments: 0,
+        totalWords: 0,
+        alignedWords: 0,
+      },
+    };
   }
 
   // Raw text per rendered daf-word (preserves punctuation so abbreviation
@@ -353,13 +435,27 @@ export function injectSegmentMarkers(html: string, segmentsHe: string[]): { html
       let sj = 0;
       while (sj < needed && hb < words.length) {
         const raw = wordRaw[hb];
-        if (!normalizeHebrew(raw)) { hb++; continue; }
+        if (!normalizeHebrew(raw)) {
+          hb++;
+          continue;
+        }
         const abbrev = abbreviationMatches(raw, segWords, sj);
-        if (abbrev > 0) { hb++; sj += abbrev; continue; }
-        if (singleWordMatch(raw, segWords[sj])) { hb++; sj++; continue; }
+        if (abbrev > 0) {
+          hb++;
+          sj += abbrev;
+          continue;
+        }
+        if (singleWordMatch(raw, segWords[sj])) {
+          hb++;
+          sj++;
+          continue;
+        }
         break;
       }
-      if (sj >= needed) { segStart = i; break; }
+      if (sj >= needed) {
+        segStart = i;
+        break;
+      }
     }
 
     if (segStart < 0) continue;
@@ -372,16 +468,23 @@ export function injectSegmentMarkers(html: string, segmentsHe: string[]): { html
     let i = segStart;
     while (sj < segWords.length && i < words.length) {
       const raw = wordRaw[i];
-      if (!normalizeHebrew(raw)) { i++; continue; }
+      if (!normalizeHebrew(raw)) {
+        i++;
+        continue;
+      }
       const abbrev = abbreviationMatches(raw, segWords, sj);
       if (abbrev > 0) {
         words[i].setAttribute('data-seg', String(segIdx));
-        i++; sj += abbrev; alignedWords++;
+        i++;
+        sj += abbrev;
+        alignedWords++;
         continue;
       }
       if (singleWordMatch(raw, segWords[sj])) {
         words[i].setAttribute('data-seg', String(segIdx));
-        i++; sj++; alignedWords++;
+        i++;
+        sj++;
+        alignedWords++;
         continue;
       }
       // No direct match. Try a 1-word lookahead on either side.
@@ -390,14 +493,24 @@ export function injectSegmentMarkers(html: string, segmentsHe: string[]): { html
         // Skip one HB word (insertion in HB).
         if (i + look < words.length) {
           const ahead = wordRaw[i + look];
-          if (normalizeHebrew(ahead) && (abbreviationMatches(ahead, segWords, sj) > 0 || singleWordMatch(ahead, segWords[sj]))) {
-            i += look; recovered = true; break;
+          if (
+            normalizeHebrew(ahead) &&
+            (abbreviationMatches(ahead, segWords, sj) > 0 || singleWordMatch(ahead, segWords[sj]))
+          ) {
+            i += look;
+            recovered = true;
+            break;
           }
         }
         // Skip one Sefaria word (deletion in HB).
         if (sj + look < segWords.length) {
-          if (abbreviationMatches(raw, segWords, sj + look) > 0 || singleWordMatch(raw, segWords[sj + look])) {
-            sj += look; recovered = true; break;
+          if (
+            abbreviationMatches(raw, segWords, sj + look) > 0 ||
+            singleWordMatch(raw, segWords[sj + look])
+          ) {
+            sj += look;
+            recovered = true;
+            break;
           }
         }
       }

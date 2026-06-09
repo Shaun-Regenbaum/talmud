@@ -21,9 +21,7 @@ export const defaultOptions: DafOptions = {
 };
 
 export type PartialDafOptions = {
-  [K in keyof DafOptions]?: DafOptions[K] extends object
-    ? Partial<DafOptions[K]>
-    : DafOptions[K];
+  [K in keyof DafOptions]?: DafOptions[K] extends object ? Partial<DafOptions[K]> : DafOptions[K];
 };
 
 export function resolveOptions(user?: PartialDafOptions): DafOptions {

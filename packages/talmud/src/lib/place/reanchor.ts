@@ -9,8 +9,8 @@
  * slice and delegate here. Behavior must stay byte-identical — pinned by golden.
  */
 
-import { buildVerbatimGrid, findExcerpt, type VerbatimGrid } from './verbatim';
 import { partitionSections } from '../argumentMoves';
+import { buildVerbatimGrid, findExcerpt, type VerbatimGrid } from './verbatim';
 
 // ---------------------------------------------------------------------------
 // argument (section start/end + clean partition)
@@ -26,7 +26,11 @@ export function reanchorArgument(parsed: unknown, segmentsHe: string[]): unknown
   const findExcerptSeg = (excerpt: string, fromIdx: number, toIdx: number): number =>
     findExcerpt(grid, excerpt, fromIdx, toIdx)?.seg ?? -1;
 
-  type Section = { startSegIdx: number; endSegIdx: number; fields: { excerpt: string; endExcerpt?: string; [k: string]: unknown } };
+  type Section = {
+    startSegIdx: number;
+    endSegIdx: number;
+    fields: { excerpt: string; endExcerpt?: string; [k: string]: unknown };
+  };
   const instances = obj.instances as Section[];
   const lastSeg = segmentsHe.length - 1;
 
@@ -57,7 +61,9 @@ export function reanchorArgument(parsed: unknown, segmentsHe: string[]): unknown
     if (endSeg < 0) {
       cur.endSegIdx = upperBound;
       if (endEx) {
-        console.warn(`[argument] endExcerpt "${endEx}" not found in section starting at seg ${cur.startSegIdx} (search [${cur.startSegIdx},${upperBound}])`);
+        console.warn(
+          `[argument] endExcerpt "${endEx}" not found in section starting at seg ${cur.startSegIdx} (search [${cur.startSegIdx},${upperBound}])`,
+        );
       }
     } else {
       cur.endSegIdx = endSeg;
@@ -83,12 +89,31 @@ export function reanchorArgumentMove(parsed: unknown, segmentsHe: string[]): unk
   const grid: VerbatimGrid = buildVerbatimGrid(segmentsHe);
   const { segNorms, segWords } = grid;
 
-  const find = (excerpt: string, fromIdx: number, toIdx: number): { seg: number; tokenStart: number; matchLen: number } => {
+  const find = (
+    excerpt: string,
+    fromIdx: number,
+    toIdx: number,
+  ): { seg: number; tokenStart: number; matchLen: number } => {
     const h = findExcerpt(grid, excerpt, fromIdx, toIdx, { fullMatchLen: true });
-    return h ? { seg: h.seg, tokenStart: h.tok, matchLen: h.matchLen } : { seg: -1, tokenStart: -1, matchLen: 0 };
+    return h
+      ? { seg: h.seg, tokenStart: h.tok, matchLen: h.matchLen }
+      : { seg: -1, tokenStart: -1, matchLen: 0 };
   };
 
-  type Move = { startSegIdx: number; endSegIdx: number; fields: { sectionStartSegIdx: number; sectionEndSegIdx: number; moveOrder: number; excerpt: string; endExcerpt?: string; tokenStart?: number; tokenEnd?: number; [k: string]: unknown } };
+  type Move = {
+    startSegIdx: number;
+    endSegIdx: number;
+    fields: {
+      sectionStartSegIdx: number;
+      sectionEndSegIdx: number;
+      moveOrder: number;
+      excerpt: string;
+      endExcerpt?: string;
+      tokenStart?: number;
+      tokenEnd?: number;
+      [k: string]: unknown;
+    };
+  };
   const instances = obj.instances as Move[];
 
   // Pass 1: locate each move's startSegIdx + tokenStart by excerpt search.
@@ -127,12 +152,19 @@ export function reanchorArgumentMove(parsed: unknown, segmentsHe: string[]): unk
   for (let i = 0; i < instances.length; i++) {
     const cur = instances[i];
     if (!cur) continue;
-    const sStart = typeof cur.fields?.sectionStartSegIdx === 'number' ? cur.fields.sectionStartSegIdx : cur.startSegIdx;
-    const sEnd = typeof cur.fields?.sectionEndSegIdx === 'number' ? cur.fields.sectionEndSegIdx : cur.startSegIdx;
+    const sStart =
+      typeof cur.fields?.sectionStartSegIdx === 'number'
+        ? cur.fields.sectionStartSegIdx
+        : cur.startSegIdx;
+    const sEnd =
+      typeof cur.fields?.sectionEndSegIdx === 'number'
+        ? cur.fields.sectionEndSegIdx
+        : cur.startSegIdx;
     if (cur.startSegIdx < sStart) cur.startSegIdx = sStart;
     if (cur.startSegIdx > sEnd) cur.startSegIdx = sEnd;
     const next = instances[i + 1];
-    const nextInSameSection = next && next.fields?.sectionStartSegIdx === cur.fields?.sectionStartSegIdx;
+    const nextInSameSection =
+      next && next.fields?.sectionStartSegIdx === cur.fields?.sectionStartSegIdx;
     const curTokStart = typeof cur.fields?.tokenStart === 'number' ? cur.fields.tokenStart : 0;
 
     const endEx = typeof cur.fields?.endExcerpt === 'string' ? cur.fields.endExcerpt : '';
@@ -156,7 +188,10 @@ export function reanchorArgumentMove(parsed: unknown, segmentsHe: string[]): unk
     if (!resolved) {
       if (nextInSameSection && next.startSegIdx === cur.startSegIdx) {
         cur.endSegIdx = cur.startSegIdx;
-        const nextTok = typeof next.fields?.tokenStart === 'number' ? next.fields.tokenStart : segWords[cur.startSegIdx].length;
+        const nextTok =
+          typeof next.fields?.tokenStart === 'number'
+            ? next.fields.tokenStart
+            : segWords[cur.startSegIdx].length;
         cur.fields.tokenEnd = Math.max(curTokStart, nextTok - 1);
       } else if (nextInSameSection) {
         cur.endSegIdx = Math.max(cur.startSegIdx, next.startSegIdx - 1);
@@ -167,7 +202,9 @@ export function reanchorArgumentMove(parsed: unknown, segmentsHe: string[]): unk
         const wordsInLast = segWords[cur.endSegIdx]?.length ?? 0;
         cur.fields.tokenEnd = Math.max(0, wordsInLast - 1);
         if (endEx) {
-          console.warn(`[argument-move] endExcerpt "${endEx}" not found for last move in section ${sStart}-${sEnd}; defaulting to section end`);
+          console.warn(
+            `[argument-move] endExcerpt "${endEx}" not found for last move in section ${sStart}-${sEnd}; defaulting to section end`,
+          );
         }
       }
     }
@@ -190,7 +227,17 @@ export function reanchorPesukim(parsed: unknown, segmentsHe: string[]): unknown 
   const grid = buildVerbatimGrid(segmentsHe);
   const { segNorms, segWords } = grid;
 
-  type Pasuk = { startSegIdx: number; endSegIdx: number; fields: { excerpt?: string; endExcerpt?: string; tokenStart?: number; tokenEnd?: number; [k: string]: unknown } };
+  type Pasuk = {
+    startSegIdx: number;
+    endSegIdx: number;
+    fields: {
+      excerpt?: string;
+      endExcerpt?: string;
+      tokenStart?: number;
+      tokenEnd?: number;
+      [k: string]: unknown;
+    };
+  };
   const instances = obj.instances as Pasuk[];
 
   for (const inst of instances) {
@@ -200,15 +247,22 @@ export function reanchorPesukim(parsed: unknown, segmentsHe: string[]): unknown 
     const endExcerpt = typeof f.endExcerpt === 'string' ? f.endExcerpt : '';
 
     const startHit = findExcerpt(grid, startExcerpt, 0, segNorms.length - 1);
-    if (!startHit) { inst.fields = f; continue; }
+    if (!startHit) {
+      inst.fields = f;
+      continue;
+    }
     inst.startSegIdx = startHit.seg;
     f.tokenStart = startHit.tok;
 
-    const llmEndSeg = typeof inst.endSegIdx === 'number' && inst.endSegIdx >= startHit.seg ? inst.endSegIdx : startHit.seg;
+    const llmEndSeg =
+      typeof inst.endSegIdx === 'number' && inst.endSegIdx >= startHit.seg
+        ? inst.endSegIdx
+        : startHit.seg;
     const upperSeg = Math.min(segNorms.length - 1, llmEndSeg + 1);
     let endHit = endExcerpt ? findExcerpt(grid, endExcerpt, startHit.seg, upperSeg) : null;
     if (endHit) {
-      const beforeStart = endHit.seg < startHit.seg || (endHit.seg === startHit.seg && endHit.tok < startHit.tok);
+      const beforeStart =
+        endHit.seg < startHit.seg || (endHit.seg === startHit.seg && endHit.tok < startHit.tok);
       if (beforeStart) endHit = null;
     }
 
@@ -220,7 +274,9 @@ export function reanchorPesukim(parsed: unknown, segmentsHe: string[]): unknown 
       inst.endSegIdx = startHit.seg;
       f.tokenEnd = startHit.tok + startHit.matchLen - 1;
       if (endExcerpt) {
-        console.warn(`[pesukim] endExcerpt "${endExcerpt}" not found in [${startHit.seg},${upperSeg}]`);
+        console.warn(
+          `[pesukim] endExcerpt "${endExcerpt}" not found in [${startHit.seg},${upperSeg}]`,
+        );
       }
     }
     inst.fields = f;
@@ -240,7 +296,17 @@ export function reanchorAggadata(parsed: unknown, segmentsHe: string[]): unknown
   const grid = buildVerbatimGrid(segmentsHe);
   const { segNorms, segWords } = grid;
 
-  type Story = { startSegIdx?: number; endSegIdx?: number; fields: { excerpt?: string; endExcerpt?: string; tokenStart?: number; tokenEnd?: number; [k: string]: unknown } };
+  type Story = {
+    startSegIdx?: number;
+    endSegIdx?: number;
+    fields: {
+      excerpt?: string;
+      endExcerpt?: string;
+      tokenStart?: number;
+      tokenEnd?: number;
+      [k: string]: unknown;
+    };
+  };
   const instances = obj.instances as Story[];
 
   for (const inst of instances) {
@@ -250,15 +316,24 @@ export function reanchorAggadata(parsed: unknown, segmentsHe: string[]): unknown
     const endExcerpt = typeof f.endExcerpt === 'string' ? f.endExcerpt : '';
 
     const startHit = findExcerpt(grid, startExcerpt, 0, segNorms.length - 1);
-    if (!startHit) { inst.fields = f; continue; }
+    if (!startHit) {
+      inst.fields = f;
+      continue;
+    }
     inst.startSegIdx = startHit.seg;
     f.tokenStart = startHit.tok;
 
-    const llmEndSeg = typeof inst.endSegIdx === 'number' && inst.endSegIdx >= startHit.seg ? inst.endSegIdx : startHit.seg;
+    const llmEndSeg =
+      typeof inst.endSegIdx === 'number' && inst.endSegIdx >= startHit.seg
+        ? inst.endSegIdx
+        : startHit.seg;
     const upperSeg = Math.min(segNorms.length - 1, llmEndSeg + 2);
-    let endHit = endExcerpt ? findExcerpt(grid, endExcerpt, startHit.seg, upperSeg, { last: true }) : null;
+    let endHit = endExcerpt
+      ? findExcerpt(grid, endExcerpt, startHit.seg, upperSeg, { last: true })
+      : null;
     if (endHit) {
-      const beforeStart = endHit.seg < startHit.seg || (endHit.seg === startHit.seg && endHit.tok < startHit.tok);
+      const beforeStart =
+        endHit.seg < startHit.seg || (endHit.seg === startHit.seg && endHit.tok < startHit.tok);
       if (beforeStart) endHit = null;
     }
 
@@ -270,7 +345,9 @@ export function reanchorAggadata(parsed: unknown, segmentsHe: string[]): unknown
       inst.endSegIdx = startHit.seg;
       f.tokenEnd = startHit.tok + startHit.matchLen - 1;
       if (endExcerpt) {
-        console.warn(`[aggadata] endExcerpt "${endExcerpt}" not found in [${startHit.seg},${upperSeg}]`);
+        console.warn(
+          `[aggadata] endExcerpt "${endExcerpt}" not found in [${startHit.seg},${upperSeg}]`,
+        );
       }
     }
     inst.fields = f;
@@ -299,7 +376,14 @@ export function reanchorRabbiEvidence(parsed: unknown, segmentsHe: string[]): un
   if (segmentsHe.length === 0) return parsed;
   const grid = buildVerbatimGrid(segmentsHe);
 
-  type Evidence = { excerpt?: string; startSegIdx?: number; endSegIdx?: number; tokenStart?: number; tokenEnd?: number; [k: string]: unknown };
+  type Evidence = {
+    excerpt?: string;
+    startSegIdx?: number;
+    endSegIdx?: number;
+    tokenStart?: number;
+    tokenEnd?: number;
+    [k: string]: unknown;
+  };
   for (const e of obj.evidence as Evidence[]) {
     if (!e || typeof e !== 'object') continue;
     const ex = typeof e.excerpt === 'string' ? e.excerpt : '';
@@ -334,7 +418,14 @@ export function reanchorNarrative(parsed: unknown, segmentsHe: string[]): unknow
   if (segmentsHe.length === 0) return parsed;
   const grid = buildVerbatimGrid(segmentsHe);
 
-  type Beat = { excerpt?: string; startSegIdx?: number; endSegIdx?: number; tokenStart?: number; tokenEnd?: number; [k: string]: unknown };
+  type Beat = {
+    excerpt?: string;
+    startSegIdx?: number;
+    endSegIdx?: number;
+    tokenStart?: number;
+    tokenEnd?: number;
+    [k: string]: unknown;
+  };
   for (const b of obj.beats as Beat[]) {
     if (!b || typeof b !== 'object') continue;
     const ex = typeof b.excerpt === 'string' ? b.excerpt : '';

@@ -4,22 +4,11 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "shape",
-      "best",
-      "fallback",
-      "statement",
-      "rows",
-      "note"
-    ],
+    "required": ["shape", "best", "fallback", "statement", "rows", "note"],
     "properties": {
       "shape": {
         "type": "string",
-        "enum": [
-          "best-fallback",
-          "statement",
-          "taxonomy"
-        ]
+        "enum": ["best-fallback", "statement", "taxonomy"]
       },
       "best": {
         "type": "string"
@@ -35,10 +24,7 @@
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "when",
-            "value"
-          ],
+          "required": ["when", "value"],
           "properties": {
             "when": {
               "type": "string"

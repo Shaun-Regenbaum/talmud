@@ -99,9 +99,10 @@ function canonicalJSON(value: unknown): string {
  * entry permanently in the TTL-less KV.
  */
 export async function recipeHash(def: { extractor: unknown; render?: unknown }): Promise<string> {
-  const recipe = def.render !== undefined
-    ? { extractor: def.extractor, render: def.render }
-    : { extractor: def.extractor };
+  const recipe =
+    def.render !== undefined
+      ? { extractor: def.extractor, render: def.render }
+      : { extractor: def.extractor };
   return shortHash(canonicalJSON(recipe));
 }
 
@@ -141,8 +142,16 @@ export async function instanceIdOf(markInput: unknown): Promise<string> {
     // {excerpt, fields:{name,...}} shape (warmers + mark anchors). Both must
     // agree so the same rabbi shares a cache key across surfaces.
     const labels: unknown[] = [
-      o.id, o.name, o.topic, o.title, o.verseRef,
-      fields?.id, fields?.name, fields?.topic, fields?.title, fields?.verseRef,
+      o.id,
+      o.name,
+      o.topic,
+      o.title,
+      o.verseRef,
+      fields?.id,
+      fields?.name,
+      fields?.topic,
+      fields?.title,
+      fields?.verseRef,
     ];
     for (const label of labels) {
       if (typeof label !== 'string' || !label) continue;
@@ -166,7 +175,10 @@ export async function instanceIdOf(markInput: unknown): Promise<string> {
 }
 
 function slugId(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9._-]+/g, '_').slice(0, 80);
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, '_')
+    .slice(0, 80);
 }
 
 function pickStable(o: Record<string, unknown>): Record<string, unknown> {
@@ -240,17 +252,24 @@ export function keyForEnrichment(
   // spine  → keyed by instance + the tractate only (one shelf per tractate; the
   //          page is irrelevant because the piece accumulates across the daf set)
   // global → keyed by instance alone (same regardless of daf)
-  const body = scope === 'local'
-    ? (() => {
-        if (!daf) throw new Error(`enrichment ${def.id} is scope=local but no daf was supplied to keyForEnrichment`);
-        return `${head}:${slugDaf(daf.tractate, daf.page)}`;
-      })()
-    : scope === 'spine'
+  const body =
+    scope === 'local'
       ? (() => {
-          if (!daf) throw new Error(`enrichment ${def.id} is scope=spine but no daf (for the tractate) was supplied to keyForEnrichment`);
-          return `${head}:${slugTractate(daf.tractate)}`;
+          if (!daf)
+            throw new Error(
+              `enrichment ${def.id} is scope=local but no daf was supplied to keyForEnrichment`,
+            );
+          return `${head}:${slugDaf(daf.tractate, daf.page)}`;
         })()
-      : head;
+      : scope === 'spine'
+        ? (() => {
+            if (!daf)
+              throw new Error(
+                `enrichment ${def.id} is scope=spine but no daf (for the tractate) was supplied to keyForEnrichment`,
+              );
+            return `${head}:${slugTractate(daf.tractate)}`;
+          })()
+        : head;
   return qualifier ? `${body}:q_${qualifier}` : body;
 }
 

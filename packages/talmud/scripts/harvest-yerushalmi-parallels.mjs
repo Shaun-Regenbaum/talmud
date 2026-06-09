@@ -18,13 +18,24 @@
  * Writes src/lib/data/curated-yerushalmi-parallels.json.
  */
 import { writeFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const COLLECTION_SLUG = 'the-talmud-says-shared-stories-in-the-babylonian-and-jerusalem-talmuds';
-const OUT = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'lib', 'data', 'curated-yerushalmi-parallels.json');
+const OUT = join(
+  dirname(fileURLToPath(import.meta.url)),
+  '..',
+  'src',
+  'lib',
+  'data',
+  'curated-yerushalmi-parallels.json',
+);
 
-const strip = (s) => (s ?? '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+const strip = (s) =>
+  (s ?? '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 const isYerushalmi = (r) => r.startsWith('Jerusalem Talmud') || r.includes('Yerushalmi');
 
 async function getJson(url) {
@@ -58,7 +69,8 @@ async function main() {
   }
   parallels.sort((a, b) => a.bavli.localeCompare(b.bavli));
   const out = {
-    source: '"The Talmud says": Shared Stories in the Babylonian and Jerusalem Talmuds (Sefaria editorial collection)',
+    source:
+      '"The Talmud says": Shared Stories in the Babylonian and Jerusalem Talmuds (Sefaria editorial collection)',
     sourceUrl: `https://www.sefaria.org/collections/${COLLECTION_SLUG}`,
     license: 'Sefaria sheets — CC-BY (see Sefaria terms)',
     count: parallels.length,
@@ -68,4 +80,7 @@ async function main() {
   console.log(`\nwrote ${parallels.length} parallels -> ${OUT}`);
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

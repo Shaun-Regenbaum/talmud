@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /**
  * Sequential first-pass skeleton generation across all 37 tractates of Shas.
  *
@@ -20,10 +21,10 @@
  * and a rollup at scripts/out/skeleton-shas-<stamp>.json.
  */
 
+import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { spawn } from 'node:child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -38,7 +39,13 @@ const REFRESH = args.includes('--refresh');
 const cIdx = args.indexOf('--concurrency');
 const CONCURRENCY = cIdx >= 0 ? Math.max(1, parseInt(args[cIdx + 1], 10) || 1) : 1;
 const tIdx = args.indexOf('--tractates');
-const TRACTATE_FILTER = tIdx >= 0 ? (args[tIdx + 1] || '').split(',').map(s => s.trim()).filter(Boolean) : null;
+const TRACTATE_FILTER =
+  tIdx >= 0
+    ? (args[tIdx + 1] || '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : null;
 
 // Every tractate of the Bavli. Values are end amud (Sefaria 1-indexed amud
 // address converted back to daf-side notation). Sourced from
@@ -109,14 +116,20 @@ function curlGet(url, maxSeconds) {
     const t0 = Date.now();
     const proc = spawn('curl', [
       '-sS',
-      '-w', '\n__STATUS__:%{http_code}',
-      '--max-time', String(maxSeconds),
+      '-w',
+      '\n__STATUS__:%{http_code}',
+      '--max-time',
+      String(maxSeconds),
       url,
     ]);
     let out = '';
     let errBuf = '';
-    proc.stdout.on('data', (d) => { out += d.toString(); });
-    proc.stderr.on('data', (d) => { errBuf += d.toString(); });
+    proc.stdout.on('data', (d) => {
+      out += d.toString();
+    });
+    proc.stderr.on('data', (d) => {
+      errBuf += d.toString();
+    });
     proc.on('close', (code) => {
       const ms = Date.now() - t0;
       if (code !== 0) {
@@ -127,7 +140,11 @@ function curlGet(url, maxSeconds) {
       const status = m ? parseInt(m[1], 10) : 0;
       const bodyStr = m ? out.slice(0, m.index) : out;
       let body = null;
-      try { body = JSON.parse(bodyStr); } catch { /* */ }
+      try {
+        body = JSON.parse(bodyStr);
+      } catch {
+        /* */
+      }
       resolve({ status, body, error: null, ms });
     });
   });
@@ -143,7 +160,11 @@ async function warmOne(tractate, daf) {
   const { status, body, error, ms } = await curlGet(url, 360);
   const cached = !!body?._cached;
   return {
-    tractate, daf, status, ms, cached,
+    tractate,
+    daf,
+    status,
+    ms,
+    cached,
     sections: Array.isArray(body?.sections) ? body.sections.length : null,
     error: error ?? (status !== 200 ? (body?.error ?? `HTTP ${status}`) : null),
   };
@@ -156,7 +177,10 @@ async function runWithConcurrency(items, limit, worker) {
   async function spawnNext() {
     while (queue.length) {
       const item = queue.shift();
-      const p = worker(item).then(r => { running.delete(p); results.push(r); });
+      const p = worker(item).then((r) => {
+        running.delete(p);
+        results.push(r);
+      });
       running.add(p);
       if (running.size >= limit) await Promise.race(running);
     }
@@ -171,27 +195,48 @@ async function processTractate(tractate, endAmud, outDir, stamp) {
   console.log(`\n[${tractate}] ${amudim.length} amudim starting...`);
   const started = new Date();
 
-  let hits = 0; let gens = 0; let errs = 0; let idx = 0;
+  let hits = 0;
+  let gens = 0;
+  let errs = 0;
+  let idx = 0;
   const results = await runWithConcurrency(amudim, CONCURRENCY, async (daf) => {
     const r = await warmOne(tractate, daf);
     idx++;
-    if (r.error) { errs++; }
-    else if (r.cached) { hits++; }
-    else { gens++; }
+    if (r.error) {
+      errs++;
+    } else if (r.cached) {
+      hits++;
+    } else {
+      gens++;
+    }
     const badge = r.error ? 'ERR' : r.cached ? 'HIT' : 'GEN';
-    const detail = r.error ? `err=${String(r.error).slice(0, 80)}` : `sections=${r.sections ?? '?'}`;
-    console.log(`  [${badge}] ${tractate} ${daf.padEnd(5)} ${String(r.status).padStart(3)} ${String(r.ms).padStart(6)}ms ${detail}  (${idx}/${amudim.length})`);
+    const detail = r.error
+      ? `err=${String(r.error).slice(0, 80)}`
+      : `sections=${r.sections ?? '?'}`;
+    console.log(
+      `  [${badge}] ${tractate} ${daf.padEnd(5)} ${String(r.status).padStart(3)} ${String(r.ms).padStart(6)}ms ${detail}  (${idx}/${amudim.length})`,
+    );
     return r;
   });
 
   const tractateOut = path.join(outDir, `skeleton-${tractate.replace(/\s+/g, '-')}-${stamp}.json`);
-  fs.writeFileSync(tractateOut, JSON.stringify({
-    tractate, amudim_count: amudim.length,
-    hits, gens, errs,
-    startedAt: started.toISOString(),
-    finishedAt: new Date().toISOString(),
-    results: results.sort((a, b) => a.daf.localeCompare(b.daf, 'en', { numeric: true })),
-  }, null, 2));
+  fs.writeFileSync(
+    tractateOut,
+    JSON.stringify(
+      {
+        tractate,
+        amudim_count: amudim.length,
+        hits,
+        gens,
+        errs,
+        startedAt: started.toISOString(),
+        finishedAt: new Date().toISOString(),
+        results: results.sort((a, b) => a.daf.localeCompare(b.daf, 'en', { numeric: true })),
+      },
+      null,
+      2,
+    ),
+  );
 
   console.log(`[${tractate}] done: ${hits} hit, ${gens} gen, ${errs} err. Audit at ${tractateOut}`);
   return { tractate, hits, gens, errs, amudim_count: amudim.length };
@@ -202,7 +247,9 @@ async function main() {
     ([t]) => !TRACTATE_FILTER || TRACTATE_FILTER.includes(t),
   );
 
-  console.log(`[warm:skeleton:shas] ${tractates.length} tractates, concurrency=${CONCURRENCY}, refresh=${REFRESH}`);
+  console.log(
+    `[warm:skeleton:shas] ${tractates.length} tractates, concurrency=${CONCURRENCY}, refresh=${REFRESH}`,
+  );
   console.log(`[warm:skeleton:shas] target: ${WORKER_URL}`);
 
   const outDir = path.join(__dirname, 'out');
@@ -224,20 +271,33 @@ async function main() {
   console.log(`  tractates: ${tractateSummaries.length}`);
   console.log(`  amudim total: ${totalAmudim}`);
   console.log(`  hits: ${totalHits}, gens: ${totalGens}, errs: ${totalErrs}`);
-  console.log(`  success rate: ${((totalHits + totalGens) / totalAmudim * 100).toFixed(1)}%`);
+  console.log(`  success rate: ${(((totalHits + totalGens) / totalAmudim) * 100).toFixed(1)}%`);
 
   const rollupPath = path.join(outDir, `skeleton-shas-${stamp}.json`);
-  fs.writeFileSync(rollupPath, JSON.stringify({
-    startedAt: stamp,
-    finishedAt: new Date().toISOString(),
-    concurrency: CONCURRENCY,
-    refresh: REFRESH,
-    totalAmudim, totalHits, totalGens, totalErrs,
-    tractates: tractateSummaries,
-  }, null, 2));
+  fs.writeFileSync(
+    rollupPath,
+    JSON.stringify(
+      {
+        startedAt: stamp,
+        finishedAt: new Date().toISOString(),
+        concurrency: CONCURRENCY,
+        refresh: REFRESH,
+        totalAmudim,
+        totalHits,
+        totalGens,
+        totalErrs,
+        tractates: tractateSummaries,
+      },
+      null,
+      2,
+    ),
+  );
   console.log(`[warm:skeleton:shas] rollup: ${rollupPath}`);
 
   if (totalErrs > 0) process.exit(1);
 }
 
-main().catch(err => { console.error(err); process.exit(1); });
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

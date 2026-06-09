@@ -111,7 +111,8 @@ export class SefariaClient {
     const params = new URLSearchParams();
     if (options?.lang) params.append('lang', options.lang);
     if (options?.version) params.append('version', options.version);
-    if (options?.commentary !== undefined) params.append('commentary', options.commentary ? '1' : '0');
+    if (options?.commentary !== undefined)
+      params.append('commentary', options.commentary ? '1' : '0');
     if (options?.context !== undefined) params.append('context', options.context.toString());
     const queryString = params.toString();
     const url = `${SEFARIA_API_BASE}/texts/${ref}${queryString ? '?' + queryString : ''}`;

@@ -11,18 +11,29 @@
  * never fabricated.
  */
 
-import { getDafyomiMasechet, buildRevachUrl, type DafyomiContentType } from '../lib/sefref/dafyomi/masechtos';
 import { assembleDaf, type FetchedType } from '../lib/sefref/dafyomi/assemble';
 import { decodeDafyomiHtml } from '../lib/sefref/dafyomi/decode';
+import {
+  buildRevachUrl,
+  type DafyomiContentType,
+  getDafyomiMasechet,
+} from '../lib/sefref/dafyomi/masechtos';
 import type { DafyomiDaf } from '../lib/sefref/dafyomi/schema';
 
 const ORIGIN = 'https://www.dafyomi.co.il';
-const USER_AGENT = 'talmud-viewer/0.1 (+https://github.com/shaunregenbaum/talmud; study-context ingestion)';
+const USER_AGENT =
+  'talmud-viewer/0.1 (+https://github.com/shaunregenbaum/talmud; study-context ingestion)';
 
 /** dafyomi.co.il folder name -> our content type. */
 const FOLDER_TO_TYPE: Record<string, DafyomiContentType> = {
-  insites: 'insights', backgrnd: 'background', halachah: 'halacha', tosfos: 'tosfos',
-  review: 'review', points: 'points', hebcharts: 'hebcharts', yerushalmi: 'yerushalmi',
+  insites: 'insights',
+  backgrnd: 'background',
+  halachah: 'halacha',
+  tosfos: 'tosfos',
+  review: 'review',
+  points: 'points',
+  hebcharts: 'hebcharts',
+  yerushalmi: 'yerushalmi',
 };
 
 /** Fetch a page, retrying once on a transient failure. `requiredMarker` is a
@@ -52,7 +63,8 @@ async function fetchText(url: string, requiredMarker: string | null): Promise<st
 
 /** Parse the hub page's hrefs into one URL per content type present. */
 function urlsFromHub(hubHtml: string): Map<DafyomiContentType, string> {
-  const re = /href="([a-z0-9]+\/(insites|backgrnd|halachah|tosfos|review|points|hebcharts|yerushalmi)\/[a-z0-9]+-[a-z]{2}-\d+\.htm)"/gi;
+  const re =
+    /href="([a-z0-9]+\/(insites|backgrnd|halachah|tosfos|review|points|hebcharts|yerushalmi)\/[a-z0-9]+-[a-z]{2}-\d+\.htm)"/gi;
   const out = new Map<DafyomiContentType, string>();
   let m: RegExpExecArray | null;
   while ((m = re.exec(hubHtml)) !== null) {
@@ -88,6 +100,7 @@ export async function scrapeDafyomiLive(tractate: string, daf: number): Promise<
   }
 
   const { daf: dafObj } = assembleDaf(tractate, daf, fetched);
-  const present = Object.keys(dafObj.amudim.a ?? {}).length + Object.keys(dafObj.amudim.b ?? {}).length;
+  const present =
+    Object.keys(dafObj.amudim.a ?? {}).length + Object.keys(dafObj.amudim.b ?? {}).length;
   return present > 0 ? dafObj : null;
 }

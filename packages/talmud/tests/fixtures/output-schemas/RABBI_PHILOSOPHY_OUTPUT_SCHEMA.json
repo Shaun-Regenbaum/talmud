@@ -4,9 +4,7 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "philosophy"
-    ],
+    "required": ["philosophy"],
     "properties": {
       "philosophy": {
         "type": "string"

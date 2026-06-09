@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { instanceIdOf, keyForEnrichment } from '../src/worker/cache-keys';
 import { findCodeEnrichment } from '../src/worker/code-marks';
 
@@ -7,8 +7,11 @@ import { findCodeEnrichment } from '../src/worker/code-marks';
 // cache key — all Hebrew argument cards rendered the same section. instanceIdOf
 // must fall back to a structural (range-aware) hash when a label degenerates.
 
-const section = (startSegIdx: number, endSegIdx: number, title: string, excerpt = '') =>
-  ({ startSegIdx, endSegIdx, fields: { title, excerpt } });
+const section = (startSegIdx: number, endSegIdx: number, title: string, excerpt = '') => ({
+  startSegIdx,
+  endSegIdx,
+  fields: { title, excerpt },
+});
 
 describe('instanceIdOf — Hebrew title collision', () => {
   it('English section titles still key by their slug', async () => {
@@ -35,7 +38,10 @@ describe('instanceIdOf — Hebrew title collision', () => {
 
   it('keeps rabbi cross-surface keying by English name', async () => {
     const flat = await instanceIdOf({ name: 'Rabbi Yochanan', nameHe: 'רבי יוחנן' });
-    const anchor = await instanceIdOf({ excerpt: 'רבי יוחנן', fields: { name: 'Rabbi Yochanan', nameHe: 'רבי יוחנן' } });
+    const anchor = await instanceIdOf({
+      excerpt: 'רבי יוחנן',
+      fields: { name: 'Rabbi Yochanan', nameHe: 'רבי יוחנן' },
+    });
     expect(flat).toBe('rabbi_yochanan');
     expect(anchor).toBe('rabbi_yochanan');
   });
@@ -51,18 +57,55 @@ describe('instanceIdOf — Hebrew title collision', () => {
 // chametz synthesis from a poisoned entry the correct source couldn't evict).
 // The id must now move with the comment content so a corrected source regenerates.
 describe('instanceIdOf — rishonim comment content sensitivity', () => {
-  const rishonim = (segIdx: number, comments: Array<{ work: string; sourceRef: string; textHe: string; textEn: string }>) =>
-    ({ segIdx, fields: { works: [...new Set(comments.map((c) => c.work))], commentCount: comments.length, comments } });
+  const rishonim = (
+    segIdx: number,
+    comments: Array<{ work: string; sourceRef: string; textHe: string; textEn: string }>,
+  ) => ({
+    segIdx,
+    fields: {
+      works: [...new Set(comments.map((c) => c.work))],
+      commentCount: comments.length,
+      comments,
+    },
+  });
 
   it('gives DISTINCT ids to the same segment with different comments', async () => {
-    const shema = rishonim(0, [{ work: 'Rashi', sourceRef: 'Rashi on Berakhot 2a:1:1', textHe: 'מאימתי קורין את שמע', textEn: 'From what time' }]);
-    const chametz = rishonim(0, [{ work: 'Rashi', sourceRef: 'Rashi on Pesachim 2a:1:1', textHe: 'אור לארבעה עשר בודקין את החמץ', textEn: 'On the eve of the 14th' }]);
+    const shema = rishonim(0, [
+      {
+        work: 'Rashi',
+        sourceRef: 'Rashi on Berakhot 2a:1:1',
+        textHe: 'מאימתי קורין את שמע',
+        textEn: 'From what time',
+      },
+    ]);
+    const chametz = rishonim(0, [
+      {
+        work: 'Rashi',
+        sourceRef: 'Rashi on Pesachim 2a:1:1',
+        textHe: 'אור לארבעה עשר בודקין את החמץ',
+        textEn: 'On the eve of the 14th',
+      },
+    ]);
     expect(await instanceIdOf(shema)).not.toBe(await instanceIdOf(chametz));
   });
 
   it('is stable for identical comment content', async () => {
-    const a = rishonim(0, [{ work: 'Rashi', sourceRef: 'Rashi on Berakhot 2a:1:1', textHe: 'מאימתי', textEn: 'From when' }]);
-    const b = rishonim(0, [{ work: 'Rashi', sourceRef: 'Rashi on Berakhot 2a:1:1', textHe: 'מאימתי', textEn: 'From when' }]);
+    const a = rishonim(0, [
+      {
+        work: 'Rashi',
+        sourceRef: 'Rashi on Berakhot 2a:1:1',
+        textHe: 'מאימתי',
+        textEn: 'From when',
+      },
+    ]);
+    const b = rishonim(0, [
+      {
+        work: 'Rashi',
+        sourceRef: 'Rashi on Berakhot 2a:1:1',
+        textHe: 'מאימתי',
+        textEn: 'From when',
+      },
+    ]);
     expect(await instanceIdOf(a)).toBe(await instanceIdOf(b));
   });
 
@@ -70,15 +113,31 @@ describe('instanceIdOf — rishonim comment content sensitivity', () => {
   // ONLY the comment text differs. The synthesis is a function of that text, so the
   // id must still diverge — otherwise the wrong synthesis cache-hits.
   it('diverges when only the comment text differs (same works/count/seg)', async () => {
-    const one = rishonim(0, [{ work: 'Rashi', sourceRef: 'Rashi on Berakhot 2a:1:1', textHe: 'גרסה ראשונה', textEn: 'First reading' }]);
-    const two = rishonim(0, [{ work: 'Rashi', sourceRef: 'Rashi on Berakhot 2a:1:1', textHe: 'גרסה שנייה', textEn: 'Second reading' }]);
+    const one = rishonim(0, [
+      {
+        work: 'Rashi',
+        sourceRef: 'Rashi on Berakhot 2a:1:1',
+        textHe: 'גרסה ראשונה',
+        textEn: 'First reading',
+      },
+    ]);
+    const two = rishonim(0, [
+      {
+        work: 'Rashi',
+        sourceRef: 'Rashi on Berakhot 2a:1:1',
+        textHe: 'גרסה שנייה',
+        textEn: 'Second reading',
+      },
+    ]);
     expect(await instanceIdOf(one)).not.toBe(await instanceIdOf(two));
   });
 
   // Guard the actual failure surface: instanceIdOf must NOT collapse to the bare
   // {segIdx} hash that made the synthesis key content-blind in the first place.
   it('does not collapse to the content-blind {segIdx} hash', async () => {
-    const withComments = rishonim(0, [{ work: 'Rashi', sourceRef: 'Rashi on Berakhot 2a:1:1', textHe: 'טקסט', textEn: 'text' }]);
+    const withComments = rishonim(0, [
+      { work: 'Rashi', sourceRef: 'Rashi on Berakhot 2a:1:1', textHe: 'טקסט', textEn: 'text' },
+    ]);
     const segIdxOnly = await instanceIdOf({ segIdx: 0 });
     expect(await instanceIdOf(withComments)).not.toBe(segIdxOnly);
   });
@@ -93,8 +152,16 @@ describe('instanceIdOf — rishonim comment content sensitivity', () => {
 describe('rishonim.synthesis cache key — content sensitivity end-to-end', () => {
   const def = findCodeEnrichment('rishonim.synthesis');
   const daf = { tractate: 'Berakhot', page: '2a' };
-  const rishonim = (segIdx: number, textHe: string, textEn: string) =>
-    ({ segIdx, fields: { works: ['Rashi'], commentCount: 1, comments: [{ work: 'Rashi', workHe: 'רש"י', sourceRef: 'Rashi on Berakhot 2a:1:1', textHe, textEn }] } });
+  const rishonim = (segIdx: number, textHe: string, textEn: string) => ({
+    segIdx,
+    fields: {
+      works: ['Rashi'],
+      commentCount: 1,
+      comments: [
+        { work: 'Rashi', workHe: 'רש"י', sourceRef: 'Rashi on Berakhot 2a:1:1', textHe, textEn },
+      ],
+    },
+  });
 
   it('registers as a local-scope enrichment (daf belongs in the key)', () => {
     expect(def).not.toBeNull();

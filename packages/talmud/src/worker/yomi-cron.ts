@@ -77,7 +77,12 @@ async function fetchDafYomi(
  * polling and the postmortem ring buffer's `:{unixSeconds}` suffix parse the
  * same way.
  */
-async function warmRunId(markId: string, tractate: string, page: string, lang: 'en' | 'he' = 'en'): Promise<string> {
+async function warmRunId(
+  markId: string,
+  tractate: string,
+  page: string,
+  lang: 'en' | 'he' = 'en',
+): Promise<string> {
   const parts = [
     markId,
     tractate,
@@ -88,7 +93,10 @@ async function warmRunId(markId: string, tractate: string, page: string, lang: '
     'cached',
     String(Math.floor(Date.now() / 1000)),
   ];
-  return parts.join(':').replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
+  return parts
+    .join(':')
+    .replace(/[^a-zA-Z0-9._:-]+/g, '_')
+    .slice(0, 200);
 }
 
 interface YomiCronEnv {
@@ -115,12 +123,23 @@ export async function runYomiWarmCron(env: YomiCronEnv): Promise<void> {
   const queue = env.ENRICHMENT_QUEUE;
   const enqueue = async (markId: string, page: string, lang: 'en' | 'he'): Promise<void> => {
     const runId = await warmRunId(markId, tractate, page, lang);
-    const job: JobMessage = { runId, mark_id: markId, tractate, page, ...(lang === 'he' ? { lang: 'he' } : {}) };
+    const job: JobMessage = {
+      runId,
+      mark_id: markId,
+      tractate,
+      page,
+      ...(lang === 'he' ? { lang: 'he' } : {}),
+    };
     try {
       await queue.send(job);
-      console.log(`[yomi-cron] enqueued mark=${markId} lang=${lang} ${tractate}/${page} runId=${runId}`);
+      console.log(
+        `[yomi-cron] enqueued mark=${markId} lang=${lang} ${tractate}/${page} runId=${runId}`,
+      );
     } catch (e) {
-      console.error(`[yomi-cron] enqueue mark=${markId} lang=${lang} ${tractate}/${page} failed:`, e);
+      console.error(
+        `[yomi-cron] enqueue mark=${markId} lang=${lang} ${tractate}/${page} failed:`,
+        e,
+      );
     }
   };
   for (const page of pages) {
@@ -132,11 +151,19 @@ export async function runYomiWarmCron(env: YomiCronEnv): Promise<void> {
     // resolution, so it runs only once they've landed. mark_input { id: 'daf' }
     // keys the canonical daf-level cache the browse-path prefetch shares.
     const obsRunId = await warmRunId('rabbi.observations', tractate, page);
-    const obsJob: JobMessage = { runId: obsRunId, enrichment_id: 'rabbi.observations', mark_input: { id: 'daf' }, tractate, page };
+    const obsJob: JobMessage = {
+      runId: obsRunId,
+      enrichment_id: 'rabbi.observations',
+      mark_input: { id: 'daf' },
+      tractate,
+      page,
+    };
     jobs.push(
       env.ENRICHMENT_QUEUE.send(obsJob)
         .then(() => {
-          console.log(`[yomi-cron] enqueued rabbi.observations ${tractate}/${page} runId=${obsRunId}`);
+          console.log(
+            `[yomi-cron] enqueued rabbi.observations ${tractate}/${page} runId=${obsRunId}`,
+          );
         })
         .catch((e) => {
           console.error(`[yomi-cron] enqueue rabbi.observations ${tractate}/${page} failed:`, e);
@@ -146,7 +173,9 @@ export async function runYomiWarmCron(env: YomiCronEnv): Promise<void> {
     // crowd — notably argument.narrative on story sections, which the deep-warm
     // path pre-warms only for narrative-primary sections (cache-respecting, so
     // the marks above are reused, not re-paid). One full deep-warm per daily daf.
-    const deepRunId = (await warmRunId('warm-deep', tractate, page)).replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
+    const deepRunId = (await warmRunId('warm-deep', tractate, page))
+      .replace(/[^a-zA-Z0-9._:-]+/g, '_')
+      .slice(0, 200);
     jobs.push(
       env.ENRICHMENT_QUEUE.send({ runId: deepRunId, warm_deep: true, tractate, page })
         .then(() => {

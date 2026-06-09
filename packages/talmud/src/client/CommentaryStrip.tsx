@@ -1,6 +1,6 @@
-import { type JSX } from 'solid-js';
+import type { JSX } from 'solid-js';
+import type { CommentaryComment, CommentaryWork } from './CommentaryPicker';
 import { CommentaryPicker } from './CommentaryPicker';
-import type { CommentaryWork, CommentaryComment } from './CommentaryPicker';
 
 interface CommentaryStripProps {
   works: CommentaryWork[] | null;

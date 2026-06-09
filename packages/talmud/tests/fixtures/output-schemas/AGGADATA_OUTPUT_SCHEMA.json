@@ -4,20 +4,14 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "instances"
-    ],
+    "required": ["instances"],
     "properties": {
       "instances": {
         "type": "array",
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "startSegIdx",
-            "endSegIdx",
-            "fields"
-          ],
+          "required": ["startSegIdx", "endSegIdx", "fields"],
           "properties": {
             "startSegIdx": {
               "type": "integer",
@@ -30,14 +24,7 @@
             "fields": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "title",
-                "titleHe",
-                "summary",
-                "excerpt",
-                "endExcerpt",
-                "theme"
-              ],
+              "required": ["title", "titleHe", "summary", "excerpt", "endExcerpt", "theme"],
               "properties": {
                 "title": {
                   "type": "string"

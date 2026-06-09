@@ -1,13 +1,22 @@
-import { describe, it, expect } from 'vitest';
 import { producerNodesFrom, validateProducerGraph } from '@corpus/core/registry/depGraph';
-import { CODE_MARKS, CODE_ENRICHMENTS } from '../src/worker/code-marks';
+import { describe, expect, it } from 'vitest';
+import { CODE_ENRICHMENTS, CODE_MARKS } from '../src/worker/code-marks';
 
 // Source inputs are the non-producer leaves a dependency may point at.
 // 'halacha-refs' feeds grounded codifier refs into halacha.codification;
 // 'yerushalmi-text' feeds the real parallel Jerusalem Talmud text into the
 // yerushalmi mark (named distinctly from the `yerushalmi` mark id so it reads
 // as a slice input, not a `{ mark: 'yerushalmi' }` producer reference).
-const SOURCES = new Set(['gemara', 'commentaries', 'context', 'context-light', 'mishna', 'halacha-refs', 'yerushalmi-text', 'incoming']);
+const SOURCES = new Set([
+  'gemara',
+  'commentaries',
+  'context',
+  'context-light',
+  'mishna',
+  'halacha-refs',
+  'yerushalmi-text',
+  'incoming',
+]);
 
 describe('validateProducerGraph — unit', () => {
   it('flags a dependency on a nonexistent producer/source as dangling', () => {

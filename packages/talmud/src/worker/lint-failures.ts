@@ -71,7 +71,12 @@ function summarizeIssue(i: unknown): string {
  * Records the failure to the ring buffer + counts exactly once, on the attempt
  * that crosses the cap, so bypass re-runs don't double-count.
  */
-export async function noteLintAttempt(env: Cache, ctx: Ctx, cacheKey: string, meta: LintAttemptMeta): Promise<boolean> {
+export async function noteLintAttempt(
+  env: Cache,
+  ctx: Ctx,
+  cacheKey: string,
+  meta: LintAttemptMeta,
+): Promise<boolean> {
   if (!env.CACHE) return false;
   const key = ATTEMPT_PREFIX + cacheKey;
   let count = 1;
@@ -102,21 +107,25 @@ export async function noteLintAttempt(env: Cache, ctx: Ctx, cacheKey: string, me
 export function recordLintFailure(env: Cache, ctx: Ctx, f: Omit<LintFailure, 'at'>): void {
   if (!env.CACHE) return;
   const cache = env.CACHE;
-  ctx.waitUntil((async () => {
-    try {
-      const raw = await cache.get(RECENT_KEY);
-      const arr: LintFailure[] = raw ? (JSON.parse(raw) as LintFailure[]) : [];
-      arr.unshift({ at: Date.now(), ...f });
-      await cache.put(RECENT_KEY, JSON.stringify(arr.slice(0, RECENT_CAP)));
+  ctx.waitUntil(
+    (async () => {
+      try {
+        const raw = await cache.get(RECENT_KEY);
+        const arr: LintFailure[] = raw ? (JSON.parse(raw) as LintFailure[]) : [];
+        arr.unshift({ at: Date.now(), ...f });
+        await cache.put(RECENT_KEY, JSON.stringify(arr.slice(0, RECENT_CAP)));
 
-      const craw = await cache.get(COUNTS_KEY);
-      const counts: Record<string, number> = craw ? (JSON.parse(craw) as Record<string, number>) : {};
-      counts[f.enrichmentId] = (counts[f.enrichmentId] ?? 0) + 1;
-      await cache.put(COUNTS_KEY, JSON.stringify(counts));
-    } catch (err) {
-      console.warn('[lint-failures] ring-buffer write failed:', String(err));
-    }
-  })());
+        const craw = await cache.get(COUNTS_KEY);
+        const counts: Record<string, number> = craw
+          ? (JSON.parse(craw) as Record<string, number>)
+          : {};
+        counts[f.enrichmentId] = (counts[f.enrichmentId] ?? 0) + 1;
+        await cache.put(COUNTS_KEY, JSON.stringify(counts));
+      } catch (err) {
+        console.warn('[lint-failures] ring-buffer write failed:', String(err));
+      }
+    })(),
+  );
 }
 
 export interface LintFailuresSummary {

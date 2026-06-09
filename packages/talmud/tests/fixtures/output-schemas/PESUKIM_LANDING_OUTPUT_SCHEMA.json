@@ -4,9 +4,7 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "landing"
-    ],
+    "required": ["landing"],
     "properties": {
       "landing": {
         "type": "string"

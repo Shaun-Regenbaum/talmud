@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 // scripts/annotate-bio-provenance.mjs
 //
 // Git-archaeology one-shot: read src/lib/data/rabbi-places.json at the
@@ -18,10 +19,10 @@
 //   node scripts/annotate-bio-provenance.mjs --dry-run
 //   node scripts/annotate-bio-provenance.mjs --base <commit>   (default ce23b22^)
 
-import { readFile, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_PATH = join(__dirname, '..', 'src', 'lib', 'data', 'rabbi-places.json');
@@ -50,7 +51,10 @@ async function main() {
   console.log(`[provenance] reading pre-scrape snapshot at ${BASE}`);
   const pre = readPreScrape();
 
-  let sefaria = 0, wiki = 0, both = 0, changed = 0;
+  let sefaria = 0,
+    wiki = 0,
+    both = 0,
+    changed = 0;
   for (const [slug, entry] of Object.entries(current.rabbis)) {
     const prev = pre.rabbis?.[slug];
     let source;

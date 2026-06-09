@@ -1,7 +1,7 @@
-import { createSignal, createEffect, onCleanup, For, Show } from 'solid-js';
-import { fixtures, fixtureById } from '../fixtures';
-import { DafRenderer } from '../lib/daf-render';
+import { createEffect, createSignal, For, onCleanup, Show } from 'solid-js';
+import { fixtureById, fixtures } from '../fixtures';
 import type { LayoutResult } from '../lib/daf-render';
+import { DafRenderer } from '../lib/daf-render';
 import { DafRendererNpm, type NpmSpacerReport } from './DafRendererNpm';
 
 // Fixed typography — the slider changes ONLY contentWidth, not fonts, so
@@ -9,33 +9,40 @@ import { DafRendererNpm, type NpmSpacerReport } from './DafRendererNpm';
 const FONT_SIZE = { main: 15, side: 10.5 };
 const LINE_HEIGHT = { main: 17, side: 14 };
 
-function MeasurementTable(props: {
-  ours: LayoutResult | null;
-  theirs: NpmSpacerReport | null;
-}) {
+function MeasurementTable(props: { ours: LayoutResult | null; theirs: NpmSpacerReport | null }) {
   const rows = () => {
     const o = props.ours;
     const t = props.theirs;
     return [
-      ['case',         o?.spacers.layoutCase ?? '—', '—'],
-      ['exception',    o?.spacers.exception ?? 0,     t?.exception ?? 0],
-      ['start',        o ? Math.round(o.spacers.start) : '—', t ? Math.round(t.start) : '—'],
-      ['inner (mid)',  o ? Math.round(o.spacers.inner) : '—', t ? Math.round(t.inner) : '—'],
-      ['outer (mid)',  o ? Math.round(o.spacers.outer) : '—', t ? Math.round(t.outer) : '—'],
-      ['inner end',    o ? Math.round(o.spacers.innerEnd) : '—', '—'],
-      ['outer end',    o ? Math.round(o.spacers.outerEnd) : '—', '—'],
+      ['case', o?.spacers.layoutCase ?? '—', '—'],
+      ['exception', o?.spacers.exception ?? 0, t?.exception ?? 0],
+      ['start', o ? Math.round(o.spacers.start) : '—', t ? Math.round(t.start) : '—'],
+      ['inner (mid)', o ? Math.round(o.spacers.inner) : '—', t ? Math.round(t.inner) : '—'],
+      ['outer (mid)', o ? Math.round(o.spacers.outer) : '—', t ? Math.round(t.outer) : '—'],
+      ['inner end', o ? Math.round(o.spacers.innerEnd) : '—', '—'],
+      ['outer end', o ? Math.round(o.spacers.outerEnd) : '—', '—'],
       ['end (shared)', '—', t ? Math.round(t.end) : '—'],
       ['total height', o ? Math.round(o.totalHeight) : '—', '—'],
     ];
   };
 
   return (
-    <table style={{ 'border-collapse': 'collapse', 'font-family': 'ui-monospace, SFMono-Regular, Menlo, monospace', 'font-size': '0.78rem' }}>
+    <table
+      style={{
+        'border-collapse': 'collapse',
+        'font-family': 'ui-monospace, SFMono-Regular, Menlo, monospace',
+        'font-size': '0.78rem',
+      }}
+    >
       <thead>
         <tr style={{ 'border-bottom': '1px solid #ccc' }}>
           <th style={{ 'text-align': 'left', padding: '0.25rem 0.5rem', color: '#666' }}></th>
-          <th style={{ 'text-align': 'right', padding: '0.25rem 0.5rem', color: '#8a2a2b' }}>ours</th>
-          <th style={{ 'text-align': 'right', padding: '0.25rem 0.5rem', color: '#0066cc' }}>npm</th>
+          <th style={{ 'text-align': 'right', padding: '0.25rem 0.5rem', color: '#8a2a2b' }}>
+            ours
+          </th>
+          <th style={{ 'text-align': 'right', padding: '0.25rem 0.5rem', color: '#0066cc' }}>
+            npm
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -72,7 +79,8 @@ export default function Compare() {
 
   const selectFixture = (id: string) => {
     setFixtureId(id);
-    setOurs(null); setTheirs(null);
+    setOurs(null);
+    setTheirs(null);
     updateUrl();
   };
 
@@ -91,8 +99,13 @@ export default function Compare() {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === 'SELECT' || t.tagName === 'INPUT' || t.isContentEditable)) return;
-      if (e.key === 'ArrowLeft') { e.preventDefault(); goPrev(); }
-      else if (e.key === 'ArrowRight') { e.preventDefault(); goNext(); }
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goPrev();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        goNext();
+      }
     };
     window.addEventListener('keydown', onKey);
     onCleanup(() => window.removeEventListener('keydown', onKey));
@@ -103,22 +116,59 @@ export default function Compare() {
       <header style={{ 'margin-bottom': '0.75rem' }}>
         <h1 style={{ margin: 0, 'font-size': '1.25rem' }}>Daf Renderer Compare</h1>
         <p style={{ margin: '0.15rem 0 0', color: '#6b6b6b', 'font-size': '0.85rem' }}>
-          Ours (left) · daf-renderer npm (right) · HebrewBooks PDF (external) · <kbd>←</kbd> / <kbd>→</kbd> to cycle fixtures
+          Ours (left) · daf-renderer npm (right) · HebrewBooks PDF (external) · <kbd>←</kbd> /{' '}
+          <kbd>→</kbd> to cycle fixtures
         </p>
       </header>
 
-      <section style={{ display: 'flex', gap: '1rem', 'align-items': 'center', 'margin-bottom': '0.75rem', 'flex-wrap': 'wrap' }}>
-        <button onClick={goPrev} style={{ padding: '0.35rem 0.6rem', cursor: 'pointer' }}>←</button>
-        <label style={{ display: 'flex', gap: '0.4rem', 'align-items': 'center', 'min-width': 0, 'max-width': '100%', flex: '1 1 18rem' }}>
-          <select value={fixtureId()} onChange={(e) => selectFixture(e.currentTarget.value)}
-                  style={{ padding: '0.35rem 0.5rem', 'font-size': '0.9rem', 'min-width': 0, 'max-width': '100%', flex: '1 1 18rem' }}>
+      <section
+        style={{
+          display: 'flex',
+          gap: '1rem',
+          'align-items': 'center',
+          'margin-bottom': '0.75rem',
+          'flex-wrap': 'wrap',
+        }}
+      >
+        <button onClick={goPrev} style={{ padding: '0.35rem 0.6rem', cursor: 'pointer' }}>
+          ←
+        </button>
+        <label
+          style={{
+            display: 'flex',
+            gap: '0.4rem',
+            'align-items': 'center',
+            'min-width': 0,
+            'max-width': '100%',
+            flex: '1 1 18rem',
+          }}
+        >
+          <select
+            value={fixtureId()}
+            onChange={(e) => selectFixture(e.currentTarget.value)}
+            style={{
+              padding: '0.35rem 0.5rem',
+              'font-size': '0.9rem',
+              'min-width': 0,
+              'max-width': '100%',
+              flex: '1 1 18rem',
+            }}
+          >
             <For each={fixtures}>
-              {(f) => <option value={f.id}>{f.label} — {f.hint}</option>}
+              {(f) => (
+                <option value={f.id}>
+                  {f.label} — {f.hint}
+                </option>
+              )}
             </For>
           </select>
-          <span style={{ color: '#888', 'font-size': '0.8rem' }}>{currentIdx() + 1}/{fixtures.length}</span>
+          <span style={{ color: '#888', 'font-size': '0.8rem' }}>
+            {currentIdx() + 1}/{fixtures.length}
+          </span>
         </label>
-        <button onClick={goNext} style={{ padding: '0.35rem 0.6rem', cursor: 'pointer' }}>→</button>
+        <button onClick={goNext} style={{ padding: '0.35rem 0.6rem', cursor: 'pointer' }}>
+          →
+        </button>
 
         <label style={{ display: 'flex', gap: '0.4rem', 'align-items': 'center' }}>
           <span style={{ 'font-size': '0.85rem', color: '#333' }}>Width:</span>
@@ -128,27 +178,57 @@ export default function Compare() {
             max={1200}
             step={10}
             value={contentWidth()}
-            onInput={(e) => { setContentWidth(Number(e.currentTarget.value)); updateUrl(); }}
+            onInput={(e) => {
+              setContentWidth(Number(e.currentTarget.value));
+              updateUrl();
+            }}
             style={{ width: '12rem' }}
           />
-          <span style={{ 'font-family': 'ui-monospace, monospace', 'font-size': '0.85rem', color: '#555', 'min-width': '3.5rem' }}>
+          <span
+            style={{
+              'font-family': 'ui-monospace, monospace',
+              'font-size': '0.85rem',
+              color: '#555',
+              'min-width': '3.5rem',
+            }}
+          >
             {contentWidth()}px
           </span>
         </label>
 
-        <a href={current().hebrewBooksUrl} target="_blank" rel="noopener noreferrer"
-           style={{ 'font-size': '0.85rem', color: '#0066cc' }}>
+        <a
+          href={current().hebrewBooksUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ 'font-size': '0.85rem', color: '#0066cc' }}
+        >
           HebrewBooks PDF ↗
         </a>
       </section>
 
-      <section style={{ 'margin-bottom': '0.75rem', padding: '0.5rem 0.75rem', background: '#fafafa', border: '1px solid #eee', display: 'inline-block' }}>
+      <section
+        style={{
+          'margin-bottom': '0.75rem',
+          padding: '0.5rem 0.75rem',
+          background: '#fafafa',
+          border: '1px solid #eee',
+          display: 'inline-block',
+        }}
+      >
         <MeasurementTable ours={ours()} theirs={theirs()} />
       </section>
 
       <div class="compare-grid">
         <section style={{ 'min-width': 0 }}>
-          <h2 style={{ 'font-size': '0.85rem', 'text-transform': 'uppercase', 'letter-spacing': '0.08em', color: '#8a2a2b', 'margin-bottom': '0.4rem' }}>
+          <h2
+            style={{
+              'font-size': '0.85rem',
+              'text-transform': 'uppercase',
+              'letter-spacing': '0.08em',
+              color: '#8a2a2b',
+              'margin-bottom': '0.4rem',
+            }}
+          >
             Ours
           </h2>
           <div style={{ border: '1px dashed #ccc', padding: '0.5rem', overflow: 'auto' }}>
@@ -173,7 +253,15 @@ export default function Compare() {
         </section>
 
         <section style={{ 'min-width': 0 }}>
-          <h2 style={{ 'font-size': '0.85rem', 'text-transform': 'uppercase', 'letter-spacing': '0.08em', color: '#0066cc', 'margin-bottom': '0.4rem' }}>
+          <h2
+            style={{
+              'font-size': '0.85rem',
+              'text-transform': 'uppercase',
+              'letter-spacing': '0.08em',
+              color: '#0066cc',
+              'margin-bottom': '0.4rem',
+            }}
+          >
             daf-renderer npm
           </h2>
           <div style={{ border: '1px dashed #ccc', padding: '0.5rem', overflow: 'auto' }}>

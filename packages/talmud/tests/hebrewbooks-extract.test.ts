@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { extractShastext } from '../src/lib/sefref/hebrewbooks/client';
 
 // HebrewBooks wraps each column in <fieldset><legend>…</legend><div

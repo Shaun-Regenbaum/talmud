@@ -17,9 +17,20 @@
  * at the client render path (fixes already-cached graphs without a re-warm).
  */
 
-interface Voice { name?: unknown }
-interface VoiceEdge { from?: unknown; to?: unknown; kind?: unknown; [k: string]: unknown }
-interface VoicesGraph { voices?: unknown; edges?: unknown; [k: string]: unknown }
+interface Voice {
+  name?: unknown;
+}
+interface VoiceEdge {
+  from?: unknown;
+  to?: unknown;
+  kind?: unknown;
+  [k: string]: unknown;
+}
+interface VoicesGraph {
+  voices?: unknown;
+  edges?: unknown;
+  [k: string]: unknown;
+}
 
 /** Repair the edge directions + drop malformed edges. Mutates + returns the
  *  graph (matches the other transform passes' contract). Non-graph input and a
@@ -43,8 +54,9 @@ export function deriveVoiceEdges(parsed: unknown): unknown {
     const from = typeof e?.from === 'string' ? e.from : '';
     const to = typeof e?.to === 'string' ? e.to : '';
     if (!order.has(from) || !order.has(to)) continue; // phantom-voice edge → drop
-    if (from === to) continue;                         // self-loop → drop
-    const fi = order.get(from)!, ti = order.get(to)!;
+    if (from === to) continue; // self-loop → drop
+    const fi = order.get(from)!,
+      ti = order.get(to)!;
     // The actor (from) reacts to the target (to), so it must be the later voice.
     out.push(fi < ti ? { ...e, from: to, to: from } : e);
   }

@@ -1,5 +1,10 @@
-import { describe, it, expect } from 'vitest';
-import { tractateLabelHe, pageLabelHe, dafRefHe, toHebrewNumeral } from '../src/lib/sefref/tractates';
+import { describe, expect, it } from 'vitest';
+import {
+  dafRefHe,
+  pageLabelHe,
+  toHebrewNumeral,
+  tractateLabelHe,
+} from '../src/lib/sefref/tractates';
 
 describe('toHebrewNumeral — gematria across the daf range', () => {
   it('ones, tens, and the טו/טז exceptions', () => {

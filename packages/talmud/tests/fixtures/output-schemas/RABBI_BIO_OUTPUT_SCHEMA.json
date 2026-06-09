@@ -4,9 +4,7 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "bio"
-    ],
+    "required": ["bio"],
     "properties": {
       "bio": {
         "type": "string"

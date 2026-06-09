@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
 import { Hono } from 'hono';
-import { readJsonBody, getRabbiEntryOr404 } from '../src/worker/http-helpers';
+import { describe, expect, it } from 'vitest';
+import { getRabbiEntryOr404, readJsonBody } from '../src/worker/http-helpers';
 
 // These helpers replace boilerplate that appeared verbatim across ~18 route
 // bodies in index.ts. The tests pin the contract those call sites relied on:
