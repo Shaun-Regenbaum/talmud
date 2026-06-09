@@ -52,10 +52,10 @@ const SETUMA = '\u0002';
 const ANCHOR_W = 140;
 // Gap from the text band to the dot (the verse tick sits close to the text); the
 // label itself is pushed further into the margin by .evt-margin padding.
-const ANCHOR_GAP = 64;
+const ANCHOR_GAP = 26;
 // Source icons (rishonim, ...) live in a thin lane right at the band edge,
 // inside the event-anchor labels.
-const ICON_SIZE = 16;
+const ICON_SIZE = 14;
 const ICON_GAP = 4;
 
 /**
@@ -313,10 +313,11 @@ export function App(): JSX.Element {
         if (!kinds) return;
         const r = vt.getBoundingClientRect();
         if (!r.height) return;
-        const rowW = kinds.length * ICON_SIZE + (kinds.length - 1) * 3;
+        // One-icon-wide lane: the stack is a collapsed vertical deck (icons
+        // overlap, a sliver of each shows) that fans out on hover.
         const side: 'left' | 'right' = r.left + r.width / 2 < m.left + m.width / 2 ? 'left' : 'right';
-        const left = side === 'right' ? b.right - m.left + ICON_GAP : b.left - m.left - rowW - ICON_GAP;
-        if (left < 2 || left + rowW > m.width - 2) return;
+        const left = side === 'right' ? b.right - m.left + ICON_GAP : b.left - m.left - ICON_SIZE - ICON_GAP;
+        if (left < 2 || left + ICON_SIZE > m.width - 2) return;
         icons.push({ v: vn, top: r.top - m.top, left, side, kinds });
       });
     }
