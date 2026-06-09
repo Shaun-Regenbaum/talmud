@@ -512,3 +512,46 @@ body {
 }
 .comm-text[dir='rtl'] { font-family: 'Frank Ruhl Libre', serif; font-size: 16px; }
 .comm-muted { color: var(--muted); font-style: italic; padding: 14px 0; }
+
+/* rishonim icon (verses where many comment) */
+.vmark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  margin: 0 1px 0 3px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-family: 'Frank Ruhl Libre', serif;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: background-color 0.1s ease;
+  unicode-bidi: isolate;
+}
+.vmark:hover { background: var(--ink); }
+
+/* synthesis block at the top of the commentary drawer */
+.comm-synth {
+  background: rgba(122, 92, 46, 0.08);
+  border: 1px solid rgba(122, 92, 46, 0.18);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 8px 0 6px;
+}
+.comm-synth-name {
+  margin: 0 0 6px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  font-weight: 700;
+}
+.comm-synth-text { margin: 0; font-size: 15px; line-height: 1.6; color: var(--ink); }
+.comm-synth-text[dir='rtl'] { font-family: 'Frank Ruhl Libre', serif; font-size: 16px; }
