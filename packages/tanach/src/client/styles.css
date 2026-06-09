@@ -607,3 +607,11 @@ body {
   font-weight: 600;
 }
 .comm-close { margin-inline-start: auto; }
+
+/* Mikraot Gedolot gutter anchors + icons (positioned by MikraotGedolot) */
+.mg-main { position: relative; }
+.mg-anchor { left: 6px; width: clamp(74px, 8vw, 120px); }
+.mg-icons { right: 6px; left: auto; }
+@media (max-width: 820px) {
+  .mg-anchor { display: none; }
+}

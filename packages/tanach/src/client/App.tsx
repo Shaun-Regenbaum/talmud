@@ -11,6 +11,7 @@ import {
 } from 'solid-js';
 import { BOOKS, SECTIONS, type Section } from '../lib/books.ts';
 import { hebrewNumeral } from '../lib/hebrew.ts';
+import { KIND_GLYPH, MIDRASH_MIN, type SourceKind, type SourceVerse, verseKinds } from '../lib/sources.ts';
 import { MikraotGedolot } from './MikraotGedolot.tsx';
 
 interface Verse {
@@ -175,13 +176,6 @@ interface CommentaryResponse {
   verse: number;
   commentaries: CommentaryEntry[];
 }
-interface SourceVerse {
-  verse: number;
-  rishonim: number;
-  rich: boolean;
-  gemara: number;
-  midrash: number;
-}
 interface SourceIdx {
   verses: SourceVerse[];
 }
@@ -189,18 +183,6 @@ interface GemaraResp {
   count: number;
   passages: { ref: string; he: string; en: string }[];
 }
-type SourceKind = 'rishonim' | 'gemara' | 'midrash';
-const GEMARA_MIN = 2;
-const MIDRASH_MIN = 5;
-/** Which gutter icons a verse gets, in display order. */
-function verseKinds(v: SourceVerse): SourceKind[] {
-  const k: SourceKind[] = [];
-  if (v.rich) k.push('rishonim');
-  if (v.gemara >= GEMARA_MIN) k.push('gemara');
-  if (v.midrash >= MIDRASH_MIN) k.push('midrash');
-  return k;
-}
-const KIND_GLYPH: Record<SourceKind, string> = { rishonim: 'ר', gemara: 'ג', midrash: 'מ' };
 const SECTION_TITLE: Record<SourceKind, string> = {
   rishonim: 'Commentary',
   gemara: 'In the Talmud',
@@ -553,7 +535,16 @@ export function App(): JSX.Element {
 
       {/* Mikraot Gedolot — pasuk framed by Rashi + Onkelos (daf-renderer) */}
       <Show when={loc().view === 'mikraot'}>
-        <MikraotGedolot book={loc().book} chapter={loc().chapter} />
+        <MikraotGedolot
+          book={loc().book}
+          chapter={loc().chapter}
+          lang={loc().lang}
+          sections={events() ?? []}
+          sources={sourcesIndex()?.verses ?? []}
+          activeVerse={source()?.verse ?? null}
+          onAnchor={(verse) => openSource(verse, 'rishonim')}
+          onSource={openSource}
+        />
       </Show>
 
       {/* Scroll — Sefer Torah columns with Masoretic parsha breaks */}
