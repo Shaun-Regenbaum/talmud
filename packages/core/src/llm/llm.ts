@@ -78,12 +78,18 @@ export interface LLMCallOptions {
   thinking?: boolean;
   stream?: boolean;
   /**
-   * OpenRouter provider routing. Default for `openrouter/deepseek/*` models is
-   * `{ order: ['DeepSeek'], allow_fallbacks: false }` so we always hit
-   * DeepSeek's own promo-priced endpoint. Pass `null` to opt out.
-   * Ignored for `@cf/*` models.
+   * OpenRouter provider routing. When unset, `openrouter/deepseek/*` models
+   * default to `{ sort: 'price', allow_fallbacks: true, require_parameters: true }`
+   * — cheapest qualifying endpoint first (see the routing block in
+   * callOpenRouterGateway). Pass an explicit object to override, or `null` to
+   * opt out and take OpenRouter's default load-balancer. Ignored for `@cf/*`.
    */
-  provider?: { order?: string[]; allow_fallbacks?: boolean } | null;
+  provider?: {
+    order?: string[];
+    allow_fallbacks?: boolean;
+    sort?: 'price' | 'throughput' | 'latency';
+    require_parameters?: boolean;
+  } | null;
   /**
    * Skip the Cloudflare AI Gateway's prompt cache for this request. Sends
    * `cf-aig-skip-cache: true` on the OpenRouter Universal Endpoint call. Use
@@ -434,14 +440,25 @@ async function callOpenRouterGateway(env: LLMEnv, model: LLMModelId, opts: LLMCa
     body.stream = true;
     body.stream_options = { include_usage: true };
   }
-  // Auto provider-pinning was removed: pinning DeepSeek's own endpoint is
-  // cheap when it's healthy, but during congestion the cascade lands on
-  // rate-limited providers and worsens latency. OpenRouter's default routing
-  // picks the lowest-latency healthy provider. Re-enable on a per-call basis
-  // via opts.provider when explicitly choosing cost-over-speed.
+  // Provider routing. An explicit opts.provider always wins; pass `null` to
+  // opt out and take OpenRouter's default load-balancer. Otherwise, for any
+  // DeepSeek slug we route cheapest-endpoint-first:
+  //   - V4 Pro: DeepSeek's own endpoint is the cheapest ($0.435/$0.87), so
+  //     price-sorting keeps Pro on first-party.
+  //   - V4 Flash: third-party providers (Baidu / DeepInfra / Cloudflare,
+  //     ~$0.10/$0.20) undercut DeepSeek's own Flash ($0.14/$0.28) by ~30-40%,
+  //     so price-sorting moves Flash to the cheaper endpoint.
+  // `require_parameters` keeps routing to providers that honor everything we
+  // send (response_format / json_schema / reasoning) so structured-output
+  // marks never land on an endpoint that silently drops the schema — if no
+  // cheaper provider qualifies it just falls back to DeepSeek, costing nothing.
+  // `allow_fallbacks` preserves availability under congestion (the reason
+  // hard-pinning was originally removed).
   const explicitProvider = (opts as { provider?: unknown }).provider;
-  if (explicitProvider) {
-    body.provider = explicitProvider;
+  if (explicitProvider !== undefined) {
+    if (explicitProvider !== null) body.provider = explicitProvider;
+  } else if (orSlug.startsWith('deepseek/')) {
+    body.provider = { sort: 'price', allow_fallbacks: true, require_parameters: true };
   }
 
   const url = openRouterGatewayUrl(env);

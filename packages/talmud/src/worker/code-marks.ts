@@ -127,9 +127,6 @@ const RABBI_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 Hebrew/Aramaic source (copy excerpt VERBATIM from here):
 {{hebrew}}
 
-English translation (for rabbi identification, do not copy):
-{{english}}
-
 Identify every distinct rabbi named. Return JSON per the schema.`;
 
 const NOW = '2026-05-04T00:00:00.000Z';
@@ -150,7 +147,7 @@ const NOW = '2026-05-04T00:00:00.000Z';
 // instance — V4 doesn't reliably produce deep nested JSON in one shot, so we
 // split structural extraction from rabbi enrichment the same way the legacy
 // pipeline did.
-const ARGUMENT_SYSTEM_PROMPT = `You are a scholar of Talmud. Given a focal amud's Hebrew/Aramaic source split into NUMBERED segments and its English translation (same numbering), identify the argument structure as discrete sections.
+const ARGUMENT_SYSTEM_PROMPT = `You are a scholar of Talmud. Given a focal amud's Hebrew/Aramaic source split into NUMBERED segments, identify the argument structure as discrete sections.
 
 Output STRICT JSON only — no markdown, no prose:
 
@@ -226,7 +223,7 @@ const ARGUMENT_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 // Halacha mark — topics + start/end segment indices.
 // ---------------------------------------------------------------------------
 
-const HALACHA_SYSTEM_PROMPT = `You are a scholar of Jewish law (halacha). Given a focal amud's Hebrew/Aramaic source split into NUMBERED segments and its English translation (same numbering), identify the main PRACTICAL halachic topics discussed on the page.
+const HALACHA_SYSTEM_PROMPT = `You are a scholar of Jewish law (halacha). Given a focal amud's Hebrew/Aramaic source split into NUMBERED segments, identify the main PRACTICAL halachic topics discussed on the page.
 
 Output STRICT JSON only:
 
@@ -381,7 +378,7 @@ Build comparison tables ONLY for regions that genuinely warrant a grid. Return J
 // Aggadata mark — narrative units (stories, parables, ethical maxims).
 // ---------------------------------------------------------------------------
 
-const AGGADATA_SYSTEM_PROMPT = `You are a Talmud scholar. Given a focal amud's Hebrew/Aramaic source (NUMBERED segments) and its English translation (same numbering), identify every aggadic unit — narrative stories, biographical anecdotes, parables (mashalim), dream/miracle reports, and ethical maxims embedded in narrative. Skip purely halachic exposition.
+const AGGADATA_SYSTEM_PROMPT = `You are a Talmud scholar. Given a focal amud's Hebrew/Aramaic source (NUMBERED segments), identify every aggadic unit — narrative stories, biographical anecdotes, parables (mashalim), dream/miracle reports, and ethical maxims embedded in narrative. Skip purely halachic exposition.
 
 Output STRICT JSON only:
 
@@ -458,7 +455,7 @@ const AGGADATA_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 // Pesukim mark — biblical citations / allusions.
 // ---------------------------------------------------------------------------
 
-const PESUKIM_SYSTEM_PROMPT = `You are a scholar of Tanach and Talmud. Given a focal amud's Hebrew/Aramaic source (NUMBERED segments) and its English translation (same numbering), identify every reference to a Tanach verse on the page — explicit citations, allusions, and paraphrases.
+const PESUKIM_SYSTEM_PROMPT = `You are a scholar of Tanach and Talmud. Given a focal amud's Hebrew/Aramaic source (NUMBERED segments), identify every reference to a Tanach verse on the page — explicit citations, allusions, and paraphrases.
 
 Output STRICT JSON only:
 
@@ -1343,15 +1340,16 @@ Rules:
 
 ${HEBREW_GLOSS_STYLE}`;
 
-// Shared user prompt template for the four leaf rabbi enrichments. The
+// Shared user prompt template for the five leaf rabbi enrichments. The
 // synthesis has its own template that consumes depends.
+// Daf-agnostic leaves (bio / philosophy / relationships / classification /
+// geography). The output is biographical and does NOT depend on the focal
+// daf, so the daf's Hebrew is deliberately NOT injected — it would be ~daf-
+// worth of input tokens per leaf per rabbi for zero effect on the answer.
+// (The per-daf .evidence enrichments, which DO need the daf, use their own
+// templates.)
 const RABBI_LEAF_USER_TEMPLATE = `Rabbi:
 {{mark_input}}
-
-Tractate: {{tractate}}, page {{page}}.
-
-Focal Hebrew of the daf:
-{{hebrew}}
 
 Return JSON per the schema.`;
 
@@ -1614,11 +1612,6 @@ ${HEBREW_NATIVE_STYLE}`;
 // Hebrew user templates — same template variables as the English versions.
 const RABBI_LEAF_USER_TEMPLATE_HE = `החכם:
 {{mark_input}}
-
-מסכת: {{tractate}}, דף {{page}}.
-
-עברית מוקד של הדף:
-{{hebrew}}
 
 החזר JSON לפי הסכימה.`;
 
@@ -3921,9 +3914,6 @@ const PLACES_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
 Hebrew/Aramaic source (copy excerpts VERBATIM from here):
 {{hebrew}}
-
-English translation (for context only):
-{{english}}
 
 Identify every geographic reference. Return JSON per the schema.`;
 
