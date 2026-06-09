@@ -75,7 +75,7 @@ function buildParagraphs(verses: Verse[], nikud: boolean, labels?: Map<number, s
       // point (.evt-pt); the label itself is positioned in the margin by App.
       const cls = label ? 'vnum evt-pt' : 'vnum';
       const attrs = label ? ` data-v="${v.n}" data-label="${escapeHtml(label)}"` : '';
-      return `<span class="${cls}"${attrs}>${hebrewNumeral(v.n)}</span> ${v.he}`;
+      return `<span class="vtext" data-vn="${v.n}"><span class="${cls}"${attrs}>${hebrewNumeral(v.n)}</span> ${v.he}</span>`;
     })
     .join(' ');
   joined = joined
@@ -303,6 +303,21 @@ export function App(): JSX.Element {
   createEffect(() => {
     chapterKey();
     setWordSel(null);
+  });
+
+  // Highlight the selected section's verses in the text (clicking an anchor).
+  createEffect(() => {
+    const sel = selected();
+    paragraphs();
+    requestAnimationFrame(() => {
+      if (!scrollBand) return;
+      scrollBand.querySelectorAll('.vtext.hl').forEach((e) => e.classList.remove('hl'));
+      if (!sel) return;
+      scrollBand.querySelectorAll<HTMLElement>('.vtext').forEach((e) => {
+        const vn = Number(e.dataset.vn);
+        if (vn >= sel.start && vn <= sel.end) e.classList.add('hl');
+      });
+    });
   });
 
   return (
