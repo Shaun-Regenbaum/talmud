@@ -2429,8 +2429,27 @@ async function runExtractorFannedOut(
     ? dedupeByRange(rawInstances as Array<Partial<{ startSegIdx: number; endSegIdx: number }>>)
     : rawInstances;
 
-  const renderAndCall = async (anchorsOverride: Record<string, unknown>, maxTokens: number) => {
-    const callVars = { ...baseVars, anchors: anchorsOverride };
+  const renderAndCall = async (
+    anchorsOverride: Record<string, unknown>,
+    maxTokens: number,
+    segRange?: { start: number; end: number },
+  ) => {
+    const callVars: Record<string, unknown> = { ...baseVars, anchors: anchorsOverride };
+    // Fan-out scoping: when this call covers a single section, send only that
+    // section's Hebrew segments instead of the whole amud. Pre-number the lines
+    // with their GLOBAL segment index (the exact [N] labels renderTemplate emits
+    // for the full array) so excerpt anchoring and the section-range move ids
+    // stay valid; passing a string makes renderTemplate skip its array path and
+    // emit it verbatim. Cuts (sections-1)x the amud's Hebrew per daf — the
+    // section text is the only large payload that was duplicated across calls.
+    if (segRange && Array.isArray(baseVars.segments_he)) {
+      const full = baseVars.segments_he as string[];
+      const sliced = full.map((s, i) => `[${i}] ${s}`).slice(segRange.start, segRange.end + 1);
+      // Only narrow when the range actually selects segments. An out-of-range
+      // section (data drift between the parent mark and the slice) falls back
+      // to the full amud rather than sending an empty source.
+      if (sliced.length > 0) callVars.segments_he = sliced.join('\n');
+    }
     const systemPrompt = renderTemplate(ext.system_prompt, callVars);
     const userPrompt = renderTemplate(ext.user_prompt_template, callVars);
     const r = await runLLM(rc.env, {
@@ -2464,7 +2483,23 @@ async function runExtractorFannedOut(
   for (let i = 0; i < instances.length; i += FAN_OUT_CONCURRENCY) {
     const wave = instances.slice(i, i + FAN_OUT_CONCURRENCY);
     const settled = await Promise.all(
-      wave.map((inst) => renderAndCall({ ...anchors, [fanOutMarkId]: [inst] }, 8000)),
+      wave.map((inst) => {
+        // Type-check BEFORE any coercion: Number(null) / Number('') === 0, which
+        // would turn a malformed section into a bogus 0-0 range and silently
+        // send only segment 0. A non-number index falls back to full-daf text.
+        const rawStart = (inst as { startSegIdx?: unknown }).startSegIdx;
+        const rawEnd = (inst as { endSegIdx?: unknown }).endSegIdx;
+        const segRange =
+          typeof rawStart === 'number' &&
+          Number.isInteger(rawStart) &&
+          typeof rawEnd === 'number' &&
+          Number.isInteger(rawEnd) &&
+          rawStart >= 0 &&
+          rawEnd >= rawStart
+            ? { start: rawStart, end: rawEnd }
+            : undefined;
+        return renderAndCall({ ...anchors, [fanOutMarkId]: [inst] }, 8000, segRange);
+      }),
     );
     for (const { r, systemPrompt, userPrompt } of settled) {
       if (!sysSample) { sysSample = systemPrompt; userSample = userPrompt; }
