@@ -318,17 +318,21 @@ export function App(): JSX.Element {
         icons.push({ v: vn, top: r.top - m.top, left, side, kinds });
       });
     }
-    // De-collide the icon stacks per side so they form a clean rail (like the
-    // Talmud gutter) instead of overlapping when verses sit close together.
+    // Collapse the icon rail: keep each stack at its verse, but DROP a stack
+    // that would overlap the one above (Genesis 1 has sources on every verse —
+    // pushing them down would pile ~84 icons far past the text). Greedy
+    // top-to-bottom, so the rail stays aligned to verses and never overflows.
     const stackH = (n: number) => n * (ICON_SIZE + 3) + 6;
+    const kept: typeof icons = [];
     for (const sd of ['left', 'right'] as const) {
       let prevBottom = -Infinity;
       for (const a of icons.filter((x) => x.side === sd).sort((x, y) => x.top - y.top)) {
-        if (a.top < prevBottom + 2) a.top = prevBottom + 2;
-        prevBottom = a.top + stackH(a.kinds.length);
+        if (a.top < prevBottom) continue;
+        kept.push(a);
+        prevBottom = a.top + stackH(a.kinds.length) + 4;
       }
     }
-    setVerseIcons(icons);
+    setVerseIcons(kept);
   };
 
   onMount(() => {
