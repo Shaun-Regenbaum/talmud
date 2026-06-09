@@ -9,9 +9,10 @@
  */
 
 import { Hono } from 'hono';
-import { SefariaClient, flattenPieces } from '@corpus/core/sefaria/client';
+import { SefariaClient, flattenPieces, pickV3Version } from '@corpus/core/sefaria/client';
 import type { LLMEnv } from '@corpus/core/llm/llm';
 import { isBook } from '../lib/books.ts';
+import { COMMENTATORS } from '../lib/commentators.ts';
 import { eventSections } from './producers/events.ts';
 import { sectionNote } from './producers/note.ts';
 import { translateHebrew } from './producers/translate.ts';
@@ -326,6 +327,40 @@ app.get('/api/translate', async (c) => {
     ]).then(() => undefined),
   );
   return c.json({ q, translation: result.translation });
+});
+
+// Classic commentary for a single verse: fetch each commentator's note from
+// Sefaria (Hebrew + English), skip the ones with nothing on this verse. Cached
+// per verse. No AI — raw Rishonim.
+app.get('/api/commentary/:book/:chapter/:verse', async (c) => {
+  const book = c.req.param('book');
+  const chapter = c.req.param('chapter');
+  const verse = c.req.param('verse');
+  if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
+  if (!/^\d+$/.test(chapter) || !/^\d+$/.test(verse)) return c.json({ error: 'Bad chapter/verse' }, 400);
+
+  const key = `commentary:v1:${book}:${chapter}:${verse}`;
+  const cached = await c.env.CACHE.get(key);
+  if (cached) return c.json(JSON.parse(cached));
+
+  const results = await Promise.all(
+    COMMENTATORS.map(async (cm) => {
+      const ref = `${cm.title} on ${book} ${chapter}:${verse}`;
+      try {
+        const v3 = await sefaria.getTextV3(ref);
+        const he = flattenPieces(pickV3Version(v3.versions, 'he')).filter((s) => s.trim());
+        const en = flattenPieces(pickV3Version(v3.versions, 'en')).filter((s) => s.trim());
+        if (!he.length && !en.length) return null;
+        return { key: cm.key, en: cm.en, heName: cm.he, he, enText: en };
+      } catch {
+        return null;
+      }
+    }),
+  );
+  const commentaries = results.filter((r): r is NonNullable<typeof r> => r !== null);
+  const payload = { book, chapter: Number(chapter), verse: Number(verse), commentaries };
+  c.executionCtx.waitUntil(c.env.CACHE.put(key, JSON.stringify(payload)).then(() => undefined));
+  return c.json(payload);
 });
 
 // Self-tracked LLM usage (totals + per-producer + recent calls).
