@@ -175,13 +175,32 @@ interface CommentaryResponse {
   verse: number;
   commentaries: CommentaryEntry[];
 }
+interface SourceVerse {
+  verse: number;
+  rishonim: number;
+  rich: boolean;
+  gemara: number;
+  midrash: number;
+}
 interface SourceIdx {
-  verses: { verse: number; rishonim: number; rich: boolean }[];
+  verses: SourceVerse[];
 }
 interface GemaraResp {
   count: number;
   passages: { ref: string; he: string; en: string }[];
 }
+type SourceKind = 'rishonim' | 'gemara' | 'midrash';
+const GEMARA_MIN = 2;
+const MIDRASH_MIN = 5;
+/** Which gutter icons a verse gets, in display order. */
+function verseKinds(v: SourceVerse): SourceKind[] {
+  const k: SourceKind[] = [];
+  if (v.rich) k.push('rishonim');
+  if (v.gemara >= GEMARA_MIN) k.push('gemara');
+  if (v.midrash >= MIDRASH_MIN) k.push('midrash');
+  return k;
+}
+const KIND_GLYPH: Record<SourceKind, string> = { rishonim: 'ר', gemara: 'ג', midrash: 'מ' };
 /** The event/section labels for a chapter (first producer). Best-effort: a
  *  failure just means no margin anchors — the text still renders. */
 async function fetchEvents(loc: { book: string; chapter: number }): Promise<EventSection[]> {
@@ -252,7 +271,7 @@ export function App(): JSX.Element {
     { v: string; label: string; top: number; left: number; side: 'left' | 'right' }[]
   >([]);
   const [verseIcons, setVerseIcons] = createSignal<
-    { v: number; top: number; left: number; side: 'left' | 'right' }[]
+    { v: number; top: number; left: number; side: 'left' | 'right'; kinds: SourceKind[] }[]
   >([]);
   const [reflow, setReflow] = createSignal(0);
 
@@ -279,19 +298,25 @@ export function App(): JSX.Element {
     });
     setAnchors(out);
 
-    // Source icons at the band edge, for the verses the index marks "rich".
-    const rich = richSet();
-    const icons: { v: number; top: number; left: number; side: 'left' | 'right' }[] = [];
-    if (rich.size) {
+    // Source icons (ר/ג/מ) stacked at the band edge, for verses the index flags.
+    const kindsByVerse = new Map<number, SourceKind[]>();
+    for (const v of sourcesIndex()?.verses ?? []) {
+      const k = verseKinds(v);
+      if (k.length) kindsByVerse.set(v.verse, k);
+    }
+    const icons: { v: number; top: number; left: number; side: 'left' | 'right'; kinds: SourceKind[] }[] = [];
+    if (kindsByVerse.size) {
       scrollBand.querySelectorAll<HTMLElement>('.vtext').forEach((vt) => {
         const vn = Number(vt.dataset.vn);
-        if (!rich.has(vn)) return;
+        const kinds = kindsByVerse.get(vn);
+        if (!kinds) return;
         const r = vt.getBoundingClientRect();
         if (!r.height) return;
+        // icons stack vertically -> the lane stays one icon wide
         const side: 'left' | 'right' = r.left + r.width / 2 < m.left + m.width / 2 ? 'left' : 'right';
         const left = side === 'right' ? b.right - m.left + ICON_GAP : b.left - m.left - ICON_SIZE - ICON_GAP;
         if (left < 2 || left + ICON_SIZE > m.width - 2) return;
-        icons.push({ v: vn, top: r.top - m.top, left, side });
+        icons.push({ v: vn, top: r.top - m.top, left, side, kinds });
       });
     }
     setVerseIcons(icons);
@@ -311,6 +336,7 @@ export function App(): JSX.Element {
     loc().view;
     loc().nikud;
     richSet();
+    sourcesIndex();
     requestAnimationFrame(() => requestAnimationFrame(measure));
   });
 
@@ -421,6 +447,54 @@ export function App(): JSX.Element {
       return res.ok ? ((await res.json()) as GemaraResp) : null;
     },
   );
+  // Midrash: the source list + an AI synthesis (only where there's substantial
+  // midrash, since a verse can have dozens).
+  const idxByVerse = createMemo(() => {
+    const map = new Map<number, SourceVerse>();
+    for (const v of sourcesIndex()?.verses ?? []) map.set(v.verse, v);
+    return map;
+  });
+  const [midrash] = createResource(
+    () => {
+      const v = commentaryVerse();
+      return v && (idxByVerse().get(v)?.midrash ?? 1) > 0 ? { book: loc().book, chapter: loc().chapter, verse: v } : null;
+    },
+    async (k) => {
+      const res = await fetch(`/api/midrash/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`);
+      return res.ok ? ((await res.json()) as GemaraResp) : null;
+    },
+  );
+  const [midrashSynth] = createResource(
+    () => {
+      const v = commentaryVerse();
+      return v && (idxByVerse().get(v)?.midrash ?? 0) >= MIDRASH_MIN
+        ? { book: loc().book, chapter: loc().chapter, verse: v }
+        : null;
+    },
+    async (k) => {
+      const res = await fetch(`/api/midrash-synthesis/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`);
+      return res.ok ? ((await res.json()) as SectionNote) : null;
+    },
+  );
+  // Scroll the drawer to the section whose icon was clicked.
+  const [focusSection, setFocusSection] = createSignal<SourceKind | null>(null);
+  const openSource = (v: number, kind: SourceKind) => {
+    setFocusSection(kind);
+    setCommentaryVerse(v);
+  };
+  createEffect(() => {
+    const fs = focusSection();
+    commentaryVerse();
+    if (fs === 'gemara') gemara();
+    if (fs === 'midrash') midrash();
+    if (!fs || fs === 'rishonim') return;
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        const sel = fs === 'gemara' ? '.comm-gemara' : '.comm-midrash';
+        document.querySelector(sel)?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      }),
+    );
+  });
   createEffect(() => {
     chapterKey();
     setCommentaryVerse(null);
@@ -530,15 +604,21 @@ export function App(): JSX.Element {
             </For>
             <For each={verseIcons()}>
               {(ic) => (
-                <button
-                  class="vgutter vgutter-rishonim"
-                  classList={{ active: commentaryVerse() === ic.v }}
-                  style={{ top: `${ic.top}px`, left: `${ic.left}px`, width: `${ICON_SIZE}px`, height: `${ICON_SIZE}px` }}
-                  title={`Commentary (verse ${ic.v})`}
-                  onClick={() => setCommentaryVerse(ic.v)}
-                >
-                  ר
-                </button>
+                <div class="vgutter-stack" style={{ top: `${ic.top}px`, left: `${ic.left}px` }}>
+                  <For each={ic.kinds}>
+                    {(k) => (
+                      <button
+                        class={`vgutter vgutter-${k}`}
+                        classList={{ active: commentaryVerse() === ic.v }}
+                        style={{ width: `${ICON_SIZE}px`, height: `${ICON_SIZE}px` }}
+                        title={`${k} · verse ${ic.v}`}
+                        onClick={() => openSource(ic.v, k)}
+                      >
+                        {KIND_GLYPH[k]}
+                      </button>
+                    )}
+                  </For>
+                </div>
               )}
             </For>
             <Show when={selected()}>
@@ -648,6 +728,49 @@ export function App(): JSX.Element {
                         In the Talmud{g.count > g.passages.length ? ` · ${g.count}` : ''}
                       </h4>
                       <For each={g.passages}>
+                        {(p) => {
+                          const text = loc().lang === 'en' ? p.en || p.he : p.he || p.en;
+                          const ltr = loc().lang === 'en' && !!p.en;
+                          return (
+                            <div class="gem-entry">
+                              <a
+                                class="gem-ref"
+                                href={`https://www.sefaria.org/${p.ref.replace(/ /g, '.').replace(/:/g, '.')}`}
+                                target="_blank"
+                                rel="noopener"
+                              >
+                                {p.ref}
+                              </a>
+                              <Show when={text}>
+                                <p class="gem-text" dir={ltr ? 'ltr' : 'rtl'}>
+                                  {text}…
+                                </p>
+                              </Show>
+                            </div>
+                          );
+                        }}
+                      </For>
+                    </section>
+                  );
+                }}
+              </Show>
+              <Show when={midrash() && midrash()!.passages.length > 0}>
+                {(_ok) => {
+                  const md = midrash() as GemaraResp;
+                  return (
+                    <section class="comm-midrash">
+                      <h4 class="comm-name">Midrash{md.count > md.passages.length ? ` · ${md.count}` : ''}</h4>
+                      <Show when={midrashSynth.loading}>
+                        <p class="comm-muted">Synthesizing the midrashim…</p>
+                      </Show>
+                      <Show when={midrashSynth()}>
+                        {(sy) => (
+                          <p class="comm-synth-text" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
+                            {loc().lang === 'he' ? sy().he || sy().en : sy().en || sy().he}
+                          </p>
+                        )}
+                      </Show>
+                      <For each={md.passages}>
                         {(p) => {
                           const text = loc().lang === 'en' ? p.en || p.he : p.he || p.en;
                           const ltr = loc().lang === 'en' && !!p.en;

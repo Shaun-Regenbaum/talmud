@@ -542,26 +542,35 @@ body {
 .comm-synth-text[dir='rtl'] { font-family: 'Frank Ruhl Libre', serif; font-size: 16px; }
 
 /* source icons in the band-edge gutter (positioned by App, like the anchors) */
-.vgutter {
+.vgutter-stack {
   position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  margin-top: -0.15em;
+  z-index: 5;
+}
+.vgutter {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: var(--accent);
   color: #fff;
   font-family: 'Frank Ruhl Libre', serif;
   font-size: 10px;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
-  z-index: 5;
-  transition: background-color 0.1s ease, transform 0.1s ease;
+  transition: transform 0.1s ease, filter 0.1s ease;
 }
+.vgutter-rishonim { background: var(--accent); }
+.vgutter-gemara { background: #5d6b7d; }
+.vgutter-midrash { background: #9a7b3e; }
 .vgutter:hover,
-.vgutter.active { background: var(--ink); transform: scale(1.12); }
+.vgutter.active { transform: scale(1.14); filter: brightness(0.86); }
 
 /* "In the Talmud" section (reverse Gemara lookup) in the verse drawer */
 .comm-gemara { padding: 14px 0 4px; border-top: 1px solid var(--line); margin-top: 6px; }
@@ -583,3 +592,7 @@ body {
   color: var(--muted);
 }
 .gem-text[dir='rtl'] { font-family: 'Frank Ruhl Libre', serif; font-size: 15px; }
+
+
+/* midrash section in the verse drawer (synthesis + capped sources) */
+.comm-midrash { padding: 14px 0 4px; border-top: 1px solid var(--line); margin-top: 6px; }
