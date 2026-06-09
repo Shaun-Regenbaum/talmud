@@ -3404,6 +3404,29 @@ async function recordRecentJobError(
 }
 
 /**
+ * Experimental cards (biyun, chart) must never lazy-warm. A cold-miss /api/run
+ * for an experimental, LLM-backed producer is skipped unless the caller
+ * explicitly opts in to a warm — so a reader, or a dev merely viewing the card,
+ * never triggers its paid Pro-tier generation. Free (computed) producers — the
+ * biyun whole-daf chip instance, deterministic enrichments — are never gated;
+ * only paid LLM warms are. The experimental cards are code-defined, so the code
+ * registry is the source of truth for the flag.
+ */
+export function isExperimentalLlmWarm(job: { mark_id?: string; enrichment_id?: string }): boolean {
+  if (job.mark_id) {
+    const m = findCodeMark(job.mark_id);
+    return !!m && m.experimental === true && m.extractor.kind === 'llm';
+  }
+  if (job.enrichment_id) {
+    const e = findCodeEnrichment(job.enrichment_id);
+    if (!e || e.extractor.kind !== 'llm' || !e.target_mark) return false;
+    const m = findCodeMark(e.target_mark);
+    return !!m && m.experimental === true;
+  }
+  return false;
+}
+
+/**
  * POST /api/run — async producer.
  *
  * 1. Validate body.
@@ -3486,6 +3509,16 @@ app.post('/api/run', async (c) => {
     }
   }
 
+  // Experimental cards (biyun, chart) never lazy-warm: only an explicit, trusted
+  // warm enqueues their paid Pro-tier LLM job. A reader — or a dev merely
+  // viewing the card — gets cache-only. Cache hits above still serve, so already-
+  // warmed experimental content keeps rendering; this gates only the WARM.
+  // Explicit warm = a trusted bypass_cache (e.g. the studio re-run) or a trusted
+  // warm_experimental flag.
+  const rawWarmExperimental = (raw as { warm_experimental?: unknown }).warm_experimental === true;
+  const explicitWarm = job.bypass_cache || (trusted && rawWarmExperimental);
+  const skipExperimentalWarm = !explicitWarm && isExperimentalLlmWarm(job);
+
   // Stale-while-revalidate: on a version-bump miss, serve the PREVIOUS version's
   // cached value (tagged refreshing) while the new one recomputes in the
   // background — so bumping a cache_version never makes readers wait. (No
@@ -3505,18 +3538,32 @@ app.post('/api/run', async (c) => {
           const sectionRange = sectionRangeOf(def, job.mark_input);
           if (!sectionRange || result.section_range === sectionRange) {
             // Enqueue the recompute only when budget allows (else just serve
-            // stale; the warm path will fill the new version when budget frees).
+            // stale; the warm path will fill the new version when budget frees)
+            // and only when not gated as an experimental warm. `refreshing`
+            // reflects whether a recompute was ACTUALLY queued — otherwise the
+            // client polls a run that will never start and keeps the updating
+            // marker up (experimental cards stay stale until explicitly warmed;
+            // budget-paused stays stale until budget frees).
             const customRun = !!(job.enrichment_id.endsWith('.qa') && job.user_question);
-            if ((await checkBudget(c.env, { custom: customRun })).ok) {
+            let refreshing = false;
+            if (!skipExperimentalWarm && (await checkBudget(c.env, { custom: customRun })).ok) {
               job.runId = await makeRunId(job);
               await c.env.ENRICHMENT_QUEUE.send(job);
+              refreshing = true;
             }
             recordTelemetry(c, runTelemetryRec(job, { ...result, cache_hit: true }, 0));
-            return c.json({ status: 'ok', result: { ...result, cache_hit: true, total_ms: 0, stale: true, refreshing: true } });
+            return c.json({ status: 'ok', result: { ...result, cache_hit: true, total_ms: 0, stale: true, refreshing } });
           }
         } catch { /* corrupt prev value; fall through to a normal enqueue */ }
       }
     }
+  }
+
+  // Cold miss on an experimental card without an explicit warm: do NOT enqueue
+  // the paid job. Return a clear, non-pending signal so the client shows
+  // "not generated" rather than polling a run that will never start.
+  if (skipExperimentalWarm) {
+    return c.json({ status: 'skipped', reason: 'experimental', experimental: true, warmed: false });
   }
 
   if (!c.env.ENRICHMENT_QUEUE) {
