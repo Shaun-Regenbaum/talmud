@@ -1,11 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  partitionSections,
-  dedupeByRange,
   dedupeBy,
-  selectSectionMoves,
+  dedupeByRange,
   type MoveLike,
+  partitionSections,
   type SectionRange,
+  selectSectionMoves,
 } from '../src/lib/argumentMoves';
 
 // These guard the Shabbat 126a regression: the `argument` extractor sometimes
@@ -15,7 +15,10 @@ import {
 // synthesis forever. partitionSections + dedupeByRange clean that at the source;
 // selectSectionMoves keeps already-cached doubled blobs from reaching the UI.
 
-const section = (startSegIdx: number, endSegIdx: number): SectionRange => ({ startSegIdx, endSegIdx });
+const section = (startSegIdx: number, endSegIdx: number): SectionRange => ({
+  startSegIdx,
+  endSegIdx,
+});
 
 /** Assert a section list is a clean, ordered, non-overlapping partition. */
 function assertCleanPartition(sections: SectionRange[]): void {
@@ -32,19 +35,32 @@ describe('partitionSections', () => {
       6,
     );
     expect(out.map((s) => [s.startSegIdx, s.endSegIdx])).toEqual([
-      [0, 0], [1, 3], [4, 4], [5, 5], [6, 6],
+      [0, 0],
+      [1, 3],
+      [4, 4],
+      [5, 5],
+      [6, 6],
     ]);
     assertCleanPartition(out);
   });
 
   it('collapses a partition emitted twice (same split)', () => {
     const doubled = [
-      section(0, 0), section(1, 1), section(2, 2), section(3, 3),
-      section(0, 0), section(1, 1), section(2, 2), section(3, 3),
+      section(0, 0),
+      section(1, 1),
+      section(2, 2),
+      section(3, 3),
+      section(0, 0),
+      section(1, 1),
+      section(2, 2),
+      section(3, 3),
     ];
     const out = partitionSections(doubled, 3);
     expect(out.map((s) => [s.startSegIdx, s.endSegIdx])).toEqual([
-      [0, 0], [1, 1], [2, 2], [3, 3],
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
     ]);
     assertCleanPartition(out);
   });
@@ -53,22 +69,36 @@ describe('partitionSections', () => {
     // The exact Shabbat 126a shape: segs 1–3 as one section AND as 1,2,3.
     const mixed = [
       section(0, 0),
-      section(1, 3),            // coarse
-      section(1, 1), section(2, 2), section(3, 3),  // fine
-      section(4, 4), section(5, 5), section(6, 6),
+      section(1, 3), // coarse
+      section(1, 1),
+      section(2, 2),
+      section(3, 3), // fine
+      section(4, 4),
+      section(5, 5),
+      section(6, 6),
     ];
     const out = partitionSections(mixed, 6);
     assertCleanPartition(out);
     // Finer split wins the 1–3 span; no segment is double-covered.
     expect(out.map((s) => [s.startSegIdx, s.endSegIdx])).toEqual([
-      [0, 0], [1, 1], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6],
+      [0, 0],
+      [1, 1],
+      [2, 2],
+      [3, 3],
+      [4, 4],
+      [5, 5],
+      [6, 6],
     ]);
   });
 
   it('closes a gap left by a dropped/absent section', () => {
     const out = partitionSections([section(0, 0), section(1, 1), section(3, 3)], 3);
     // seg 2 had no section; the next section's start is pushed back to fill it.
-    expect(out.map((s) => [s.startSegIdx, s.endSegIdx])).toEqual([[0, 0], [1, 1], [2, 3]]);
+    expect(out.map((s) => [s.startSegIdx, s.endSegIdx])).toEqual([
+      [0, 0],
+      [1, 1],
+      [2, 3],
+    ]);
     assertCleanPartition(out);
   });
 
@@ -79,7 +109,11 @@ describe('partitionSections', () => {
 
   it('handles an unsorted input', () => {
     const out = partitionSections([section(4, 4), section(0, 0), section(1, 3)], 4);
-    expect(out.map((s) => [s.startSegIdx, s.endSegIdx])).toEqual([[0, 0], [1, 3], [4, 4]]);
+    expect(out.map((s) => [s.startSegIdx, s.endSegIdx])).toEqual([
+      [0, 0],
+      [1, 3],
+      [4, 4],
+    ]);
     assertCleanPartition(out);
   });
 });
@@ -124,10 +158,15 @@ describe('dedupeBy', () => {
 // same move id.
 function shabbat126aDoubledMoves(): MoveLike[] {
   const mk = (
-    id: string, secStart: number, secEnd: number, order: number,
-    start: number, end: number,
+    id: string,
+    secStart: number,
+    secEnd: number,
+    order: number,
+    start: number,
+    end: number,
   ): MoveLike => ({
-    startSegIdx: start, endSegIdx: end,
+    startSegIdx: start,
+    endSegIdx: end,
     fields: { id, sectionStartSegIdx: secStart, sectionEndSegIdx: secEnd, moveOrder: order },
   });
   return [
@@ -175,9 +214,21 @@ describe('selectSectionMoves', () => {
   it('orders by moveOrder', () => {
     const moves = selectSectionMoves(
       [
-        { startSegIdx: 1, endSegIdx: 1, fields: { id: 'b', sectionStartSegIdx: 1, sectionEndSegIdx: 1, moveOrder: 2 } },
-        { startSegIdx: 1, endSegIdx: 1, fields: { id: 'a', sectionStartSegIdx: 1, sectionEndSegIdx: 1, moveOrder: 0 } },
-        { startSegIdx: 1, endSegIdx: 1, fields: { id: 'c', sectionStartSegIdx: 1, sectionEndSegIdx: 1, moveOrder: 1 } },
+        {
+          startSegIdx: 1,
+          endSegIdx: 1,
+          fields: { id: 'b', sectionStartSegIdx: 1, sectionEndSegIdx: 1, moveOrder: 2 },
+        },
+        {
+          startSegIdx: 1,
+          endSegIdx: 1,
+          fields: { id: 'a', sectionStartSegIdx: 1, sectionEndSegIdx: 1, moveOrder: 0 },
+        },
+        {
+          startSegIdx: 1,
+          endSegIdx: 1,
+          fields: { id: 'c', sectionStartSegIdx: 1, sectionEndSegIdx: 1, moveOrder: 1 },
+        },
       ],
       section(1, 1),
     );

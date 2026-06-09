@@ -22,9 +22,16 @@
  * the user can scan it to form their own contextual guess.
  */
 
-import { For, Show, createSignal, createMemo, type JSX } from 'solid-js';
-import type { BirthPlace, GeographyData, GeographyEvidence, Movement, NotablePlace, StudyPlace } from './RabbiGeographyCard';
+import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 import { t } from './i18n';
+import type {
+  BirthPlace,
+  GeographyData,
+  GeographyEvidence,
+  Movement,
+  NotablePlace,
+  StudyPlace,
+} from './RabbiGeographyCard';
 
 export interface LocationInference {
   place: string;
@@ -41,7 +48,15 @@ interface Props {
    *  justification text rendered inline. Pulled from rabbi.location
    *  enrichment in the synthesis's deps_resolved. */
   location?: LocationInference | null;
-  onHighlightRange?: (range: { start: number; end: number; key: string; tokenStart?: number; tokenEnd?: number } | null) => void;
+  onHighlightRange?: (
+    range: {
+      start: number;
+      end: number;
+      key: string;
+      tokenStart?: number;
+      tokenEnd?: number;
+    } | null,
+  ) => void;
 }
 
 const ISRAEL_COLOR = '#1d4ed8';
@@ -61,8 +76,8 @@ interface TimelineEvent {
   primaryPlace: string;
   secondaryPlace?: string; // movement destination
   secondaryRegion?: Region; // movement destination region
-  label: string;          // small uppercase tag (e.g. "BIRTH", "STUDY")
-  detail: string;         // 1-line context (academy/period/event/reason)
+  label: string; // small uppercase tag (e.g. "BIRTH", "STUDY")
+  detail: string; // 1-line context (academy/period/event/reason)
   /** Which kind to look up in the evidence map for this row. */
   evidenceKind: GeographyEvidence['kind'];
   /** Place name to look up evidence by. For movement rows, prefer the
@@ -74,7 +89,12 @@ interface TimelineEvent {
 function inferRegion(place: string): Region {
   const p = place.toLowerCase();
   if (/bavel|babylonia|sura|pumbedita|nehardea|machoza|mata mehasya/.test(p)) return 'bavel';
-  if (/eretz yisrael|israel|tiberias|tiberya|sepphoris|tzipori|yavneh|caesarea|lod|jerusalem|usha|bnei brak/.test(p)) return 'israel';
+  if (
+    /eretz yisrael|israel|tiberias|tiberya|sepphoris|tzipori|yavneh|caesarea|lod|jerusalem|usha|bnei brak/.test(
+      p,
+    )
+  )
+    return 'israel';
   return 'other';
 }
 
@@ -236,44 +256,61 @@ export default function RabbiPlacesTimeline(props: Props): JSX.Element {
 
   return (
     <Show when={events().length > 0}>
-      <div style={{
-        border: '1px solid #eae8e0',
-        'border-radius': '6px',
-        background: '#fafaf7',
-        padding: '0.75rem 0.95rem 0.85rem',
-        'margin-top': '0.7rem',
-      }}>
+      <div
+        style={{
+          border: '1px solid #eae8e0',
+          'border-radius': '6px',
+          background: '#fafaf7',
+          padding: '0.75rem 0.95rem 0.85rem',
+          'margin-top': '0.7rem',
+        }}
+      >
         {/* Header — title on the left, mini region legend on the right */}
-        <div style={{
-          display: 'flex',
-          'align-items': 'center',
-          'justify-content': 'space-between',
-          gap: '0.5rem',
-          'margin-bottom': '0.7rem',
-        }}>
-          <span style={{
-            'font-size': '0.7rem',
-            'text-transform': 'uppercase',
-            'letter-spacing': '0.08em',
-            color: '#888',
-          }}>{t('rabbi.places.title')}</span>
+        <div
+          style={{
+            display: 'flex',
+            'align-items': 'center',
+            'justify-content': 'space-between',
+            gap: '0.5rem',
+            'margin-bottom': '0.7rem',
+          }}
+        >
+          <span
+            style={{
+              'font-size': '0.7rem',
+              'text-transform': 'uppercase',
+              'letter-spacing': '0.08em',
+              color: '#888',
+            }}
+          >
+            {t('rabbi.places.title')}
+          </span>
           <Show when={regionsPresent().length > 0}>
-            <span style={{
-              display: 'inline-flex', 'align-items': 'center',
-              gap: '0.6rem',
-              'font-size': '0.62rem', color: '#999',
-            }}>
-              <For each={regionsPresent()}>{(r) => (
-                <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.25rem' }}>
-                  <span style={{
-                    display: 'inline-block',
-                    width: '7px', height: '7px',
-                    'border-radius': '50%',
-                    background: regionColor(r),
-                  }} />
-                  {regionLabel(r)}
-                </span>
-              )}</For>
+            <span
+              style={{
+                display: 'inline-flex',
+                'align-items': 'center',
+                gap: '0.6rem',
+                'font-size': '0.62rem',
+                color: '#999',
+              }}
+            >
+              <For each={regionsPresent()}>
+                {(r) => (
+                  <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.25rem' }}>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        width: '7px',
+                        height: '7px',
+                        'border-radius': '50%',
+                        background: regionColor(r),
+                      }}
+                    />
+                    {regionLabel(r)}
+                  </span>
+                )}
+              </For>
             </span>
           </Show>
         </div>
@@ -285,142 +322,221 @@ export default function RabbiPlacesTimeline(props: Props): JSX.Element {
             so it ALWAYS sits exactly on the spine regardless of how tall
             the row's content is. Content is left-padded to clear the
             marker. No flex shenanigans → no alignment drift. */}
-        <ol style={{
-          position: 'relative',
-          'list-style': 'none',
-          padding: '4px 0 4px 0',
-          margin: 0,
-        }}>
+        <ol
+          style={{
+            position: 'relative',
+            'list-style': 'none',
+            padding: '4px 0 4px 0',
+            margin: 0,
+          }}
+        >
           {/* Spine — fixed column at left:11px (centered under the
               16px-wide marker positioned at left:3px). Runs the full
               inner height of the <ol>. */}
-          <div style={{
-            position: 'absolute',
-            left: '11px',
-            top: '6px',
-            bottom: '6px',
-            width: '2px',
-            background: '#e5e3dc',
-            'pointer-events': 'none',
-          }} />
+          <div
+            style={{
+              position: 'absolute',
+              left: '11px',
+              top: '6px',
+              bottom: '6px',
+              width: '2px',
+              background: '#e5e3dc',
+              'pointer-events': 'none',
+            }}
+          />
 
-          <For each={events()}>{(ev, idx) => {
-            const e = lookupEvidence(ev);
-            const hasEv = !!e;
-            const key = e ? `rabbi-place-timeline:${ev.kind}:${ev.evidencePlace}:${e.startSegIdx}:${e.tokenStart ?? 0}` : '';
-            // Functions, not plain consts: the <For> mapper runs once per row,
-            // so these must stay reactive to track activeEvidenceKey() (click)
-            // and hereIndex() (async location inference) after first render.
-            const isActive = () => activeEvidenceKey() === key;
-            const color = regionColor(ev.region);
-            const isHere = () => idx() === hereIndex();
+          <For each={events()}>
+            {(ev, idx) => {
+              const e = lookupEvidence(ev);
+              const hasEv = !!e;
+              const key = e
+                ? `rabbi-place-timeline:${ev.kind}:${ev.evidencePlace}:${e.startSegIdx}:${e.tokenStart ?? 0}`
+                : '';
+              // Functions, not plain consts: the <For> mapper runs once per row,
+              // so these must stay reactive to track activeEvidenceKey() (click)
+              // and hereIndex() (async location inference) after first render.
+              const isActive = () => activeEvidenceKey() === key;
+              const color = regionColor(ev.region);
+              const isHere = () => idx() === hereIndex();
 
-            return (
-              <li style={{
-                position: 'relative',
-                'min-height': '24px',
-                padding: '0 0 14px 32px',
-                margin: 0,
-              }}>
-                {/* Marker — absolutely positioned in the spine column.
-                    Always at left:3px, top:4px regardless of content. */}
-                <span style={{
-                  position: 'absolute',
-                  left: '3px',
-                  top: '4px',
-                  width: '16px',
-                  height: '16px',
-                  'border-radius': '50%',
-                  background: isHere() ? '#0066CC' : '#fafaf7',
-                  border: '2.5px solid ' + (isHere() ? '#0066CC' : color),
-                  'box-shadow': isHere() ? '0 0 0 3px rgba(0,102,204,0.18)' : 'none',
-                  'z-index': 1,
-                  'box-sizing': 'border-box',
-                }} />
-
-                {/* Content button — clickable when evidence exists.
-                    Padding/border applied to the button itself so the
-                    marker stays fixed on the spine. */}
-                <button
-                  type="button"
-                  onClick={() => hasEv && clickEvent(ev)}
-                  disabled={!hasEv}
-                  title={e ? t('rabbi.onThisDaf', { text: e.note || e.excerpt }) : undefined}
+              return (
+                <li
                   style={{
-                    display: 'block',
-                    width: '100%',
-                    padding: '2px 8px 4px',
+                    position: 'relative',
+                    'min-height': '24px',
+                    padding: '0 0 14px 32px',
                     margin: 0,
-                    border: '1px solid ' + (
-                      isActive() ? EVIDENCE_BORDER
-                        : isHere() ? '#0066CC'
-                        : hasEv ? '#fde68a'
-                        : 'transparent'
-                    ),
-                    background: (
-                      isActive() ? EVIDENCE_BG
-                        : isHere() ? '#eff6ff'
-                        : hasEv ? '#fefce8'
-                        : 'transparent'
-                    ),
-                    'border-radius': '4px',
-                    cursor: hasEv ? 'pointer' : 'default',
-                    'font-family': 'inherit',
-                    'text-align': 'left',
-                    'box-sizing': 'border-box',
                   }}
                 >
-                  <div style={{
-                    display: 'flex',
-                    'align-items': 'baseline',
-                    gap: '0.45rem',
-                    'flex-wrap': 'wrap',
-                  }}>
-                    <Show when={ev.kind === 'movement' && ev.secondaryPlace} fallback={
-                      <span style={{ 'font-weight': 600, color: '#222', 'font-size': '0.92rem' }}>
-                        {ev.primaryPlace}
+                  {/* Marker — absolutely positioned in the spine column.
+                    Always at left:3px, top:4px regardless of content. */}
+                  <span
+                    style={{
+                      position: 'absolute',
+                      left: '3px',
+                      top: '4px',
+                      width: '16px',
+                      height: '16px',
+                      'border-radius': '50%',
+                      background: isHere() ? '#0066CC' : '#fafaf7',
+                      border: '2.5px solid ' + (isHere() ? '#0066CC' : color),
+                      'box-shadow': isHere() ? '0 0 0 3px rgba(0,102,204,0.18)' : 'none',
+                      'z-index': 1,
+                      'box-sizing': 'border-box',
+                    }}
+                  />
+
+                  {/* Content button — clickable when evidence exists.
+                    Padding/border applied to the button itself so the
+                    marker stays fixed on the spine. */}
+                  <button
+                    type="button"
+                    onClick={() => hasEv && clickEvent(ev)}
+                    disabled={!hasEv}
+                    title={e ? t('rabbi.onThisDaf', { text: e.note || e.excerpt }) : undefined}
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      padding: '2px 8px 4px',
+                      margin: 0,
+                      border:
+                        '1px solid ' +
+                        (isActive()
+                          ? EVIDENCE_BORDER
+                          : isHere()
+                            ? '#0066CC'
+                            : hasEv
+                              ? '#fde68a'
+                              : 'transparent'),
+                      background: isActive()
+                        ? EVIDENCE_BG
+                        : isHere()
+                          ? '#eff6ff'
+                          : hasEv
+                            ? '#fefce8'
+                            : 'transparent',
+                      'border-radius': '4px',
+                      cursor: hasEv ? 'pointer' : 'default',
+                      'font-family': 'inherit',
+                      'text-align': 'left',
+                      'box-sizing': 'border-box',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        'align-items': 'baseline',
+                        gap: '0.45rem',
+                        'flex-wrap': 'wrap',
+                      }}
+                    >
+                      <Show
+                        when={ev.kind === 'movement' && ev.secondaryPlace}
+                        fallback={
+                          <span
+                            style={{ 'font-weight': 600, color: '#222', 'font-size': '0.92rem' }}
+                          >
+                            {ev.primaryPlace}
+                          </span>
+                        }
+                      >
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            'align-items': 'baseline',
+                            gap: '0.3rem',
+                            'flex-wrap': 'wrap',
+                          }}
+                        >
+                          <span
+                            style={{ color: color, 'font-weight': 600, 'font-size': '0.92rem' }}
+                          >
+                            {ev.primaryPlace}
+                          </span>
+                          <span style={{ color: '#bbb' }}>→</span>
+                          <span
+                            style={{
+                              color: ev.secondaryRegion
+                                ? regionColor(ev.secondaryRegion)
+                                : OTHER_COLOR,
+                              'font-weight': 600,
+                              'font-size': '0.92rem',
+                            }}
+                          >
+                            {ev.secondaryPlace}
+                          </span>
+                        </span>
+                      </Show>
+                      <span
+                        style={{
+                          'font-size': '0.6rem',
+                          color: '#999',
+                          'text-transform': 'uppercase',
+                          'letter-spacing': '0.07em',
+                          'font-weight': 500,
+                        }}
+                      >
+                        {t(`rabbi.places.kind.${ev.kind}`)}
                       </span>
-                    }>
-                      <span style={{ display: 'inline-flex', 'align-items': 'baseline', gap: '0.3rem', 'flex-wrap': 'wrap' }}>
-                        <span style={{ color: color, 'font-weight': 600, 'font-size': '0.92rem' }}>{ev.primaryPlace}</span>
-                        <span style={{ color: '#bbb' }}>→</span>
-                        <span style={{ color: ev.secondaryRegion ? regionColor(ev.secondaryRegion) : OTHER_COLOR, 'font-weight': 600, 'font-size': '0.92rem' }}>{ev.secondaryPlace}</span>
-                      </span>
+                      <Show when={isHere()}>
+                        <span
+                          style={{
+                            color: '#0066CC',
+                            'font-size': '0.6rem',
+                            'font-weight': 700,
+                            'margin-left': 'auto',
+                            'text-transform': 'uppercase',
+                            'letter-spacing': '0.08em',
+                          }}
+                        >
+                          {t('rabbi.places.youAreHere')}
+                          {props.location?.confidence
+                            ? ` · ${t(`rabbi.places.confidence.${props.location.confidence}`)}`
+                            : ''}
+                        </span>
+                      </Show>
+                      <Show when={hasEv && !isHere()}>
+                        <span
+                          style={{
+                            color: '#a16207',
+                            'font-size': '0.6rem',
+                            'margin-left': 'auto',
+                            'font-weight': 600,
+                          }}
+                        >
+                          {t('rabbi.onDaf')}
+                        </span>
+                      </Show>
+                    </div>
+                    <Show when={ev.detail}>
+                      <div
+                        style={{
+                          'font-size': '0.76rem',
+                          color: '#666',
+                          'margin-top': '0.15rem',
+                          'line-height': 1.5,
+                        }}
+                      >
+                        {ev.detail}
+                      </div>
                     </Show>
-                    <span style={{
-                      'font-size': '0.6rem', color: '#999',
-                      'text-transform': 'uppercase', 'letter-spacing': '0.07em',
-                      'font-weight': 500,
-                    }}>{t(`rabbi.places.kind.${ev.kind}`)}</span>
-                    <Show when={isHere()}>
-                      <span style={{
-                        color: '#0066CC', 'font-size': '0.6rem',
-                        'font-weight': 700, 'margin-left': 'auto',
-                        'text-transform': 'uppercase', 'letter-spacing': '0.08em',
-                      }}>{t('rabbi.places.youAreHere')}{props.location?.confidence ? ` · ${t(`rabbi.places.confidence.${props.location.confidence}`)}` : ''}</span>
+                    <Show when={isHere() && props.location?.justification}>
+                      <div
+                        style={{
+                          'font-size': '0.74rem',
+                          color: '#1e40af',
+                          'margin-top': '0.3rem',
+                          'line-height': 1.5,
+                        }}
+                      >
+                        {props.location!.justification}
+                      </div>
                     </Show>
-                    <Show when={hasEv && !isHere()}>
-                      <span style={{ color: '#a16207', 'font-size': '0.6rem', 'margin-left': 'auto', 'font-weight': 600 }}>{t('rabbi.onDaf')}</span>
-                    </Show>
-                  </div>
-                  <Show when={ev.detail}>
-                    <div style={{
-                      'font-size': '0.76rem', color: '#666',
-                      'margin-top': '0.15rem',
-                      'line-height': 1.5,
-                    }}>{ev.detail}</div>
-                  </Show>
-                  <Show when={isHere() && props.location?.justification}>
-                    <div style={{
-                      'font-size': '0.74rem', color: '#1e40af',
-                      'margin-top': '0.3rem',
-                      'line-height': 1.5,
-                    }}>{props.location!.justification}</div>
-                  </Show>
-                </button>
-              </li>
-            );
-          }}</For>
+                  </button>
+                </li>
+              );
+            }}
+          </For>
         </ol>
       </div>
     </Show>

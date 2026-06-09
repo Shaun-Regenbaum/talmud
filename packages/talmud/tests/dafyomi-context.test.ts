@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import type { DafyomiDaf } from '../src/lib/sefref/dafyomi/schema';
-import { fromDafyomi } from '../src/lib/context/fromDafyomi';
+import { describe, expect, it } from 'vitest';
 import { matchTosfos } from '../src/lib/context/anchor/tosfos';
+import { fromDafyomi } from '../src/lib/context/fromDafyomi';
+import type { DafyomiDaf } from '../src/lib/sefref/dafyomi/schema';
 
 const corpus = (): DafyomiDaf =>
   JSON.parse(readFileSync(new URL('../static/dafyomi/Chullin/76.json', import.meta.url), 'utf-8'));
@@ -11,7 +11,17 @@ describe('fromDafyomi', () => {
   const items = fromDafyomi(corpus());
   it('produces items for every present content type', () => {
     const sources = new Set(items.map((i) => i.source));
-    for (const t of ['insights', 'background', 'halacha', 'tosfos', 'review', 'points', 'hebcharts', 'yerushalmi', 'revach']) {
+    for (const t of [
+      'insights',
+      'background',
+      'halacha',
+      'tosfos',
+      'review',
+      'points',
+      'hebcharts',
+      'yerushalmi',
+      'revach',
+    ]) {
       expect(sources.has(`dafyomi:${t}`)).toBe(true);
     }
   });
@@ -53,7 +63,10 @@ describe('fromDafyomi', () => {
 describe('matchTosfos', () => {
   it('places DH-matched Tosfos items onto segments via pieceKeys', () => {
     const items = fromDafyomi(corpus()).filter((i) => i.kind === 'tosfos-piece');
-    const tosafot = { pieces: ['אלא תימה דלמא סובר', 'הכא נמי דאמרינן'], pieceKeys: ['3:1', '7:2'] };
+    const tosafot = {
+      pieces: ['אלא תימה דלמא סובר', 'הכא נמי דאמרינן'],
+      pieceKeys: ['3:1', '7:2'],
+    };
     const placed = matchTosfos(items, tosafot);
     expect(placed).toBe(2);
     const ela = items.find((i) => i.dhNormalized === 'אלא')!;

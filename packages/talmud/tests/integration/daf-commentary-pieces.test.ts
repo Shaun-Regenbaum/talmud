@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { BASE_URL, getJson } from './helpers';
 
 /**
@@ -26,9 +26,9 @@ describe(`integration: /api/daf commentary pieces (against ${BASE_URL})`, () => 
   // Berakhot 2a and Shabbat 2a are high-traffic openings with dense
   // commentary, so they're sensitive to upstream Sefaria shape changes.
   const cases: Array<{ tractate: string; page: string; minRashi: number; minTosafot: number }> = [
-    { tractate: 'Chullin',  page: '21a', minRashi: 10, minTosafot: 3 },
-    { tractate: 'Berakhot', page: '2a',  minRashi: 10, minTosafot: 3 },
-    { tractate: 'Shabbat',  page: '2a',  minRashi: 10, minTosafot: 3 },
+    { tractate: 'Chullin', page: '21a', minRashi: 10, minTosafot: 3 },
+    { tractate: 'Berakhot', page: '2a', minRashi: 10, minTosafot: 3 },
+    { tractate: 'Shabbat', page: '2a', minRashi: 10, minTosafot: 3 },
   ];
 
   for (const { tractate, page, minRashi, minTosafot } of cases) {

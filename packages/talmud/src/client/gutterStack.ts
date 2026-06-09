@@ -14,7 +14,7 @@
  */
 
 import { createSignal } from 'solid-js';
-import type { GutterKind, GutterItem } from './GutterIcons';
+import type { GutterItem, GutterKind } from './GutterIcons';
 
 export type GutterSide = 'left' | 'right';
 

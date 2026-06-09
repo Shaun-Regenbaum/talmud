@@ -10,7 +10,7 @@
  * the daf via onHighlightRange.
  */
 
-import { For, Show, createSignal, type JSX } from 'solid-js';
+import { createSignal, For, type JSX, Show } from 'solid-js';
 import { t } from './i18n';
 
 export interface BirthPlace {
@@ -58,7 +58,15 @@ export interface GeographyEvidence {
 interface Props {
   data: GeographyData;
   evidence: GeographyEvidence[];
-  onHighlightRange?: (range: { start: number; end: number; key: string; tokenStart?: number; tokenEnd?: number } | null) => void;
+  onHighlightRange?: (
+    range: {
+      start: number;
+      end: number;
+      key: string;
+      tokenStart?: number;
+      tokenEnd?: number;
+    } | null,
+  ) => void;
 }
 
 const ISRAEL_COLOR = '#1d4ed8';
@@ -94,8 +102,10 @@ export default function RabbiGeographyCard(props: Props): JSX.Element {
     return m;
   };
 
-  const lookupEvidence = (kind: GeographyEvidence['kind'], place: string): GeographyEvidence | undefined =>
-    evidenceByPlace().get(`${kind}:${place}`.toLowerCase());
+  const lookupEvidence = (
+    kind: GeographyEvidence['kind'],
+    place: string,
+  ): GeographyEvidence | undefined => evidenceByPlace().get(`${kind}:${place}`.toLowerCase());
 
   const clickEvidence = (ev: GeographyEvidence | undefined) => {
     if (!ev || typeof ev.startSegIdx !== 'number' || typeof ev.endSegIdx !== 'number') return;
@@ -115,17 +125,27 @@ export default function RabbiGeographyCard(props: Props): JSX.Element {
     }
   };
 
-  const PlaceRow = (rp: { kind: GeographyEvidence['kind']; label: string; sublabel?: string; tone?: string }) => {
+  const PlaceRow = (rp: {
+    kind: GeographyEvidence['kind'];
+    label: string;
+    sublabel?: string;
+    tone?: string;
+  }) => {
     const ev = () => lookupEvidence(rp.kind, rp.label);
     const hasEv = () => !!ev();
-    const key = () => ev() ? `rabbi-geo-evidence:${ev()!.kind}:${ev()!.place}:${ev()!.startSegIdx}:${ev()!.tokenStart ?? 0}` : '';
+    const key = () =>
+      ev()
+        ? `rabbi-geo-evidence:${ev()!.kind}:${ev()!.place}:${ev()!.startSegIdx}:${ev()!.tokenStart ?? 0}`
+        : '';
     const isActive = () => activeEvidenceKey() === key();
     return (
       <button
         type="button"
         onClick={() => hasEv() && clickEvidence(ev())}
         disabled={!hasEv()}
-        title={ev() ? t('rabbi.onThisDaf', { text: ev()!.note || ev()!.excerpt }) : rp.sublabel || ''}
+        title={
+          ev() ? t('rabbi.onThisDaf', { text: ev()!.note || ev()!.excerpt }) : rp.sublabel || ''
+        }
         style={{
           display: 'inline-flex',
           'align-items': 'center',
@@ -141,19 +161,24 @@ export default function RabbiGeographyCard(props: Props): JSX.Element {
           'text-align': 'left',
         }}
       >
-        <span style={{
-          display: 'inline-block',
-          width: '0.55rem', height: '0.55rem',
-          'border-radius': '50%',
-          background: rp.tone ?? OTHER_COLOR,
-          'flex-shrink': 0,
-        }} />
+        <span
+          style={{
+            display: 'inline-block',
+            width: '0.55rem',
+            height: '0.55rem',
+            'border-radius': '50%',
+            background: rp.tone ?? OTHER_COLOR,
+            'flex-shrink': 0,
+          }}
+        />
         <span style={{ 'font-weight': 500 }}>{rp.label}</span>
         <Show when={rp.sublabel}>
           <span style={{ color: '#888', 'font-size': '0.72rem' }}>· {rp.sublabel}</span>
         </Show>
         <Show when={hasEv()}>
-          <span style={{ color: '#a16207', 'font-size': '0.62rem', 'margin-left': '0.2rem' }}>● {t('rabbi.onDaf')}</span>
+          <span style={{ color: '#a16207', 'font-size': '0.62rem', 'margin-left': '0.2rem' }}>
+            ● {t('rabbi.onDaf')}
+          </span>
         </Show>
       </button>
     );
@@ -162,18 +187,31 @@ export default function RabbiGeographyCard(props: Props): JSX.Element {
   const Movement = (mv: { m: Movement; idx: number }) => {
     const ev = () => lookupEvidence('movement', mv.m.to) ?? lookupEvidence('movement', mv.m.from);
     const hasEv = () => !!ev();
-    const key = () => ev() ? `rabbi-geo-evidence:movement:${ev()!.place}:${ev()!.startSegIdx}:${ev()!.tokenStart ?? 0}` : '';
+    const key = () =>
+      ev()
+        ? `rabbi-geo-evidence:movement:${ev()!.place}:${ev()!.startSegIdx}:${ev()!.tokenStart ?? 0}`
+        : '';
     const isActive = () => activeEvidenceKey() === key();
-    const fromIsBavel = () => mv.m.from.toLowerCase().includes('bavel') || mv.m.from.toLowerCase().includes('pumbedita') || mv.m.from.toLowerCase().includes('sura') || mv.m.from.toLowerCase().includes('nehardea');
-    const toIsBavel = () => mv.m.to.toLowerCase().includes('bavel') || mv.m.to.toLowerCase().includes('pumbedita') || mv.m.to.toLowerCase().includes('sura') || mv.m.to.toLowerCase().includes('nehardea');
-    const fromColor = () => fromIsBavel() ? BAVEL_COLOR : ISRAEL_COLOR;
-    const toColor = () => toIsBavel() ? BAVEL_COLOR : ISRAEL_COLOR;
+    const fromIsBavel = () =>
+      mv.m.from.toLowerCase().includes('bavel') ||
+      mv.m.from.toLowerCase().includes('pumbedita') ||
+      mv.m.from.toLowerCase().includes('sura') ||
+      mv.m.from.toLowerCase().includes('nehardea');
+    const toIsBavel = () =>
+      mv.m.to.toLowerCase().includes('bavel') ||
+      mv.m.to.toLowerCase().includes('pumbedita') ||
+      mv.m.to.toLowerCase().includes('sura') ||
+      mv.m.to.toLowerCase().includes('nehardea');
+    const fromColor = () => (fromIsBavel() ? BAVEL_COLOR : ISRAEL_COLOR);
+    const toColor = () => (toIsBavel() ? BAVEL_COLOR : ISRAEL_COLOR);
     return (
       <button
         type="button"
         onClick={() => hasEv() && clickEvidence(ev())}
         disabled={!hasEv()}
-        title={ev() ? t('rabbi.onThisDaf', { text: ev()!.note || ev()!.excerpt }) : (mv.m.reason || '')}
+        title={
+          ev() ? t('rabbi.onThisDaf', { text: ev()!.note || ev()!.excerpt }) : mv.m.reason || ''
+        }
         style={{
           width: '100%',
           display: 'flex',
@@ -189,56 +227,102 @@ export default function RabbiGeographyCard(props: Props): JSX.Element {
           'text-align': 'left',
         }}
       >
-        <div style={{ display: 'flex', 'align-items': 'center', gap: '0.4rem', 'font-size': '0.82rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            'align-items': 'center',
+            gap: '0.4rem',
+            'font-size': '0.82rem',
+          }}
+        >
           <span style={{ color: fromColor(), 'font-weight': 600 }}>{mv.m.from}</span>
           <span style={{ color: '#999' }}>→</span>
           <span style={{ color: toColor(), 'font-weight': 600 }}>{mv.m.to}</span>
           <Show when={hasEv()}>
-            <span style={{ color: '#a16207', 'font-size': '0.62rem', 'margin-left': 'auto' }}>● {t('rabbi.onDaf')}</span>
+            <span style={{ color: '#a16207', 'font-size': '0.62rem', 'margin-left': 'auto' }}>
+              ● {t('rabbi.onDaf')}
+            </span>
           </Show>
         </div>
         <Show when={mv.m.approximateWhen}>
-          <div style={{ 'font-size': '0.72rem', color: '#666', 'margin-top': '0.15rem' }}>{mv.m.approximateWhen}</div>
+          <div style={{ 'font-size': '0.72rem', color: '#666', 'margin-top': '0.15rem' }}>
+            {mv.m.approximateWhen}
+          </div>
         </Show>
         <Show when={mv.m.reason}>
-          <div style={{ 'font-size': '0.72rem', color: '#888', 'margin-top': '0.05rem', 'font-style': 'italic' }}>{mv.m.reason}</div>
+          <div
+            style={{
+              'font-size': '0.72rem',
+              color: '#888',
+              'margin-top': '0.05rem',
+              'font-style': 'italic',
+            }}
+          >
+            {mv.m.reason}
+          </div>
         </Show>
       </button>
     );
   };
 
   const hasAny = () =>
-    props.data.birthplace?.place
-    || props.data.primaryStudyPlaces.length > 0
-    || props.data.notablePlaces.length > 0
-    || props.data.movements.length > 0;
+    props.data.birthplace?.place ||
+    props.data.primaryStudyPlaces.length > 0 ||
+    props.data.notablePlaces.length > 0 ||
+    props.data.movements.length > 0;
 
   return (
     <Show when={hasAny()}>
-      <div style={{
-        border: '1px solid #eae8e0',
-        'border-radius': '6px',
-        background: '#fafaf7',
-        padding: '0.7rem 0.85rem',
-        'margin-top': '0.7rem',
-      }}>
-        <div style={{
-          'font-size': '0.7rem',
-          'text-transform': 'uppercase',
-          'letter-spacing': '0.08em',
-          color: '#888',
-          'margin-bottom': '0.5rem',
-        }}>{t('rabbi.geography.title')}</div>
+      <div
+        style={{
+          border: '1px solid #eae8e0',
+          'border-radius': '6px',
+          background: '#fafaf7',
+          padding: '0.7rem 0.85rem',
+          'margin-top': '0.7rem',
+        }}
+      >
+        <div
+          style={{
+            'font-size': '0.7rem',
+            'text-transform': 'uppercase',
+            'letter-spacing': '0.08em',
+            color: '#888',
+            'margin-bottom': '0.5rem',
+          }}
+        >
+          {t('rabbi.geography.title')}
+        </div>
 
         <Show when={props.data.movements.length > 0}>
-          <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.3rem' }}>{t('rabbi.geography.movements')}</div>
+          <div
+            style={{
+              'font-size': '0.65rem',
+              color: '#999',
+              'text-transform': 'uppercase',
+              'letter-spacing': '0.06em',
+              'margin-bottom': '0.3rem',
+            }}
+          >
+            {t('rabbi.geography.movements')}
+          </div>
           <div style={{ 'margin-bottom': '0.6rem' }}>
             <For each={props.data.movements}>{(m, i) => <Movement m={m} idx={i()} />}</For>
           </div>
         </Show>
 
         <Show when={props.data.birthplace?.place}>
-          <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.3rem' }}>{t('rabbi.geography.birthplace')}</div>
+          <div
+            style={{
+              'font-size': '0.65rem',
+              color: '#999',
+              'text-transform': 'uppercase',
+              'letter-spacing': '0.06em',
+              'margin-bottom': '0.3rem',
+            }}
+          >
+            {t('rabbi.geography.birthplace')}
+          </div>
           <div style={{ 'margin-bottom': '0.5rem' }}>
             <PlaceRow
               kind="birthplace"
@@ -250,24 +334,53 @@ export default function RabbiGeographyCard(props: Props): JSX.Element {
         </Show>
 
         <Show when={props.data.primaryStudyPlaces.length > 0}>
-          <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.3rem' }}>{t('rabbi.geography.studiedAt')}</div>
-          <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.35rem', 'margin-bottom': '0.5rem' }}>
-            <For each={props.data.primaryStudyPlaces}>{(s) => (
-              <PlaceRow
-                kind="study"
-                label={s.place}
-                sublabel={[s.academy, s.period].filter(Boolean).join(' · ')}
-              />
-            )}</For>
+          <div
+            style={{
+              'font-size': '0.65rem',
+              color: '#999',
+              'text-transform': 'uppercase',
+              'letter-spacing': '0.06em',
+              'margin-bottom': '0.3rem',
+            }}
+          >
+            {t('rabbi.geography.studiedAt')}
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              'flex-wrap': 'wrap',
+              gap: '0.35rem',
+              'margin-bottom': '0.5rem',
+            }}
+          >
+            <For each={props.data.primaryStudyPlaces}>
+              {(s) => (
+                <PlaceRow
+                  kind="study"
+                  label={s.place}
+                  sublabel={[s.academy, s.period].filter(Boolean).join(' · ')}
+                />
+              )}
+            </For>
           </div>
         </Show>
 
         <Show when={props.data.notablePlaces.length > 0}>
-          <div style={{ 'font-size': '0.65rem', color: '#999', 'text-transform': 'uppercase', 'letter-spacing': '0.06em', 'margin-bottom': '0.3rem' }}>{t('rabbi.geography.notablePlaces')}</div>
+          <div
+            style={{
+              'font-size': '0.65rem',
+              color: '#999',
+              'text-transform': 'uppercase',
+              'letter-spacing': '0.06em',
+              'margin-bottom': '0.3rem',
+            }}
+          >
+            {t('rabbi.geography.notablePlaces')}
+          </div>
           <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.25rem' }}>
-            <For each={props.data.notablePlaces}>{(n) => (
-              <PlaceRow kind="notable" label={n.place} sublabel={n.event} />
-            )}</For>
+            <For each={props.data.notablePlaces}>
+              {(n) => <PlaceRow kind="notable" label={n.place} sublabel={n.event} />}
+            </For>
           </div>
         </Show>
       </div>

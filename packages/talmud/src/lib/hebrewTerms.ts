@@ -54,23 +54,84 @@ export interface CanonicalHebrewTerm {
 /** Ordered exactly as the prompt presents them, so the generated bullet list
  *  reads in the same sequence a human author would expect. */
 export const CANONICAL_HEBREW_TERMS: readonly CanonicalHebrewTerm[] = [
-  { translit: 'lechatchila', hebrew: 'לכתחילה', gloss: 'the ideal standard / a-priori', variants: ['le-chatchila'], display: 'hebrew' },
-  { translit: 'bedieved', hebrew: 'בדיעבד', gloss: 'after the fact', variants: ['bediavad', 'be-dieved'], display: 'hebrew' },
+  {
+    translit: 'lechatchila',
+    hebrew: 'לכתחילה',
+    gloss: 'the ideal standard / a-priori',
+    variants: ['le-chatchila'],
+    display: 'hebrew',
+  },
+  {
+    translit: 'bedieved',
+    hebrew: 'בדיעבד',
+    gloss: 'after the fact',
+    variants: ['bediavad', 'be-dieved'],
+    display: 'hebrew',
+  },
   { translit: 'mitzvah', hebrew: 'מצוה', gloss: 'commandment', display: 'hebrew' },
-  { translit: 'halacha', hebrew: 'הלכה', gloss: 'binding law', variants: ['halakhah'], display: 'hebrew' },
-  { translit: 'sugya', hebrew: 'סוגיא', gloss: 'Talmudic discussion', variants: ['sugiya'], display: 'hebrew' },
+  {
+    translit: 'halacha',
+    hebrew: 'הלכה',
+    gloss: 'binding law',
+    variants: ['halakhah'],
+    display: 'hebrew',
+  },
+  {
+    translit: 'sugya',
+    hebrew: 'סוגיא',
+    gloss: 'Talmudic discussion',
+    variants: ['sugiya'],
+    display: 'hebrew',
+  },
   { translit: 'psak', hebrew: 'פסק', gloss: 'ruling', variants: ['pesak'], display: 'hebrew' },
   { translit: 'rov', hebrew: 'רוב', gloss: 'majority principle', display: 'hebrew' },
-  { translit: 'chazaka', hebrew: 'חזקה', gloss: 'presumption', variants: ['chazakah'], display: 'hebrew' },
+  {
+    translit: 'chazaka',
+    hebrew: 'חזקה',
+    gloss: 'presumption',
+    variants: ['chazakah'],
+    display: 'hebrew',
+  },
   { translit: 'safek', hebrew: 'ספק', gloss: 'doubt', display: 'hebrew' },
   { translit: "tum'ah", hebrew: 'טומאה', gloss: 'ritual impurity', display: 'hebrew' },
-  { translit: 'tahara', hebrew: 'טהרה', gloss: 'ritual purity', variants: ['taharah'], display: 'hebrew' },
-  { translit: 'terumah', hebrew: 'תרומה', gloss: 'priestly portion', variants: ['teruma'], display: 'hebrew' },
+  {
+    translit: 'tahara',
+    hebrew: 'טהרה',
+    gloss: 'ritual purity',
+    variants: ['taharah'],
+    display: 'hebrew',
+  },
+  {
+    translit: 'terumah',
+    hebrew: 'תרומה',
+    gloss: 'priestly portion',
+    variants: ['teruma'],
+    display: 'hebrew',
+  },
   { translit: 'maaser', hebrew: 'מעשר', gloss: 'tithe', variants: ["ma'aser"], display: 'hebrew' },
   { translit: 'chametz', hebrew: 'חמץ', gloss: 'leaven', variants: ['hametz'], display: 'hebrew' },
-  { translit: 'matzah', hebrew: 'מצה', gloss: 'unleavened bread', variants: ['matza'], display: 'hebrew' },
-  { translit: 'treif', hebrew: 'טריפה', gloss: 'ritually unfit', variants: ['trefah'], display: 'hebrew' },
-  { translit: 'kosher', hebrew: 'כשר', gloss: 'ritually fit', variants: ['kasher'], display: 'english', en: 'kosher' },
+  {
+    translit: 'matzah',
+    hebrew: 'מצה',
+    gloss: 'unleavened bread',
+    variants: ['matza'],
+    display: 'hebrew',
+  },
+  {
+    translit: 'treif',
+    hebrew: 'טריפה',
+    gloss: 'ritually unfit',
+    variants: ['trefah'],
+    display: 'hebrew',
+  },
+  {
+    translit: 'kosher',
+    hebrew: 'כשר',
+    gloss: 'ritually fit',
+    variants: ['kasher'],
+    display: 'english',
+    en: 'kosher',
+  },
   { translit: 'pesach', hebrew: 'פסח', gloss: 'Passover', display: 'hebrew' },
   { translit: 'shabbat', hebrew: 'שבת', gloss: 'Sabbath', display: 'hebrew' },
   { translit: 'yom tov', hebrew: 'יום טוב', gloss: 'festival day', display: 'hebrew' },
@@ -78,7 +139,14 @@ export const CANONICAL_HEBREW_TERMS: readonly CanonicalHebrewTerm[] = [
   { translit: 'tefillah', hebrew: 'תפילה', gloss: 'prayer', display: 'hebrew' },
   { translit: 'tzitzit', hebrew: 'ציצית', gloss: 'ritual fringes', display: 'hebrew' },
   { translit: 'tefillin', hebrew: 'תפילין', gloss: 'phylacteries', display: 'hebrew' },
-  { translit: 'bet din', hebrew: 'בית דין', gloss: 'court', variants: ['beit din'], display: 'english', en: 'court' },
+  {
+    translit: 'bet din',
+    hebrew: 'בית דין',
+    gloss: 'court',
+    variants: ['beit din'],
+    display: 'english',
+    en: 'court',
+  },
   { translit: 'eved', hebrew: 'עבד', gloss: 'slave', display: 'english', en: 'slave' },
   { translit: 'get', hebrew: 'גט', gloss: 'bill of divorce', display: 'hebrew' },
   { translit: 'kiddushin', hebrew: 'קידושין', gloss: 'betrothal', display: 'hebrew' },
@@ -86,17 +154,67 @@ export const CANONICAL_HEBREW_TERMS: readonly CanonicalHebrewTerm[] = [
   { translit: 'patur', hebrew: 'פטור', gloss: 'exempt', display: 'hebrew' },
   { translit: 'asur', hebrew: 'אסור', gloss: 'forbidden', display: 'hebrew' },
   { translit: 'mutar', hebrew: 'מותר', gloss: 'permitted', display: 'hebrew' },
-  { translit: 'rov basar', hebrew: 'רוב בשר', gloss: 'majority of surrounding flesh — shechita / neveila threshold', variants: ['rov besar'], display: 'hebrew' },
-  { translit: 'mafreket', hebrew: 'מפרקת', gloss: 'spinal column / nape — neveila context', display: 'hebrew' },
-  { translit: 'siman', hebrew: 'סימן', gloss: 'a shechita organ (trachea / esophagus)', display: 'hebrew' },
-  { translit: 'simanim', hebrew: 'סימנים', gloss: 'the shechita organs (trachea + esophagus)', display: 'hebrew' },
+  {
+    translit: 'rov basar',
+    hebrew: 'רוב בשר',
+    gloss: 'majority of surrounding flesh — shechita / neveila threshold',
+    variants: ['rov besar'],
+    display: 'hebrew',
+  },
+  {
+    translit: 'mafreket',
+    hebrew: 'מפרקת',
+    gloss: 'spinal column / nape — neveila context',
+    display: 'hebrew',
+  },
+  {
+    translit: 'siman',
+    hebrew: 'סימן',
+    gloss: 'a shechita organ (trachea / esophagus)',
+    display: 'hebrew',
+  },
+  {
+    translit: 'simanim',
+    hebrew: 'סימנים',
+    gloss: 'the shechita organs (trachea + esophagus)',
+    display: 'hebrew',
+  },
   { translit: 'veshet', hebrew: 'ושט', gloss: 'esophagus', display: 'hebrew' },
   { translit: 'kaneh', hebrew: 'קנה', gloss: 'trachea / windpipe', display: 'hebrew' },
-  { translit: 'bnei Noach', hebrew: 'בני נח', gloss: 'Noahides — NEVER "sons of Noah"', variants: ['bnei noah'], display: 'hebrew' },
-  { translit: 'sheva mitzvot bnei Noach', hebrew: 'שבע מצוות בני נח', gloss: 'Noahide laws — NEVER "seven commandments of the sons of Noah"', variants: ['sheva mitzvot bnei noah'], display: 'hebrew' },
-  { translit: 'ben shnato', hebrew: 'בן שנתו', gloss: 'a one-year-old [animal] — NEVER "son of his year"', variants: ['ben shenato'], display: 'hebrew' },
-  { translit: 'bekhor', hebrew: 'בכור', gloss: 'firstborn', variants: ['bechor'], display: 'hebrew' },
-  { translit: 'pidyon haben', hebrew: 'פדיון הבן', gloss: 'redemption of the firstborn son', display: 'hebrew' },
+  {
+    translit: 'bnei Noach',
+    hebrew: 'בני נח',
+    gloss: 'Noahides — NEVER "sons of Noah"',
+    variants: ['bnei noah'],
+    display: 'hebrew',
+  },
+  {
+    translit: 'sheva mitzvot bnei Noach',
+    hebrew: 'שבע מצוות בני נח',
+    gloss: 'Noahide laws — NEVER "seven commandments of the sons of Noah"',
+    variants: ['sheva mitzvot bnei noah'],
+    display: 'hebrew',
+  },
+  {
+    translit: 'ben shnato',
+    hebrew: 'בן שנתו',
+    gloss: 'a one-year-old [animal] — NEVER "son of his year"',
+    variants: ['ben shenato'],
+    display: 'hebrew',
+  },
+  {
+    translit: 'bekhor',
+    hebrew: 'בכור',
+    gloss: 'firstborn',
+    variants: ['bechor'],
+    display: 'hebrew',
+  },
+  {
+    translit: 'pidyon haben',
+    hebrew: 'פדיון הבן',
+    gloss: 'redemption of the firstborn son',
+    display: 'hebrew',
+  },
 ];
 
 /** Flatten to the translit→Hebrew pairs the client dict spreads in. Keys are
@@ -119,11 +237,9 @@ export function canonicalDictEntries(): Record<string, string> {
  *  Column alignment is cosmetic and intentionally dropped; the LLM reads
  *  content, not whitespace. */
 export function alwaysHebraizeBlock(): string {
-  return CANONICAL_HEBREW_TERMS
-    .map((t) =>
-      t.display === 'english' && t.en
-        ? `    ${t.en} (${t.hebrew})`
-        : `    ${t.translit} → ${t.hebrew} (${t.gloss})`,
-    )
-    .join('\n');
+  return CANONICAL_HEBREW_TERMS.map((t) =>
+    t.display === 'english' && t.en
+      ? `    ${t.en} (${t.hebrew})`
+      : `    ${t.translit} → ${t.hebrew} (${t.gloss})`,
+  ).join('\n');
 }

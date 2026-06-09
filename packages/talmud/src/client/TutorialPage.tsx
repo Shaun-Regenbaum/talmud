@@ -11,11 +11,11 @@
  * shows real content instead of "Learning…". (Per-question answers still
  * generate on click; the coach's note steps say so.)
  */
-import { onMount, type JSX } from 'solid-js';
+import { type JSX, onMount } from 'solid-js';
 import DafViewer from './DafViewer';
+import { lang } from './i18n';
 import { TutorialCoach } from './TutorialCoach';
 import { FEATURED_DAF } from './tutorial';
-import { lang } from './i18n';
 
 export function TutorialPage(): JSX.Element {
   onMount(() => {
@@ -24,7 +24,11 @@ export function TutorialPage(): JSX.Element {
       void fetch('/api/warm-daf', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ tractate: FEATURED_DAF.tractate, page: FEATURED_DAF.page, lang: lang() }),
+        body: JSON.stringify({
+          tractate: FEATURED_DAF.tractate,
+          page: FEATURED_DAF.page,
+          lang: lang(),
+        }),
       }).catch(() => {});
     } catch {
       /* warming is best-effort */

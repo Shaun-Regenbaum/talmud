@@ -20,14 +20,32 @@
  * renderers that decorate the daf in place.
  */
 
-import { createResource, createSignal, createEffect, createMemo, onMount, onCleanup, untrack, For, Show, type JSX } from 'solid-js';
-import { trackAI } from './aiActivity';
-import { lang } from './i18n';
-import { devModeActive } from './DevModeShelf';
-import type { SeedMark } from './seed-marks';
+import {
+  producerNodesFrom,
+  type RawDependency,
+  reverseDependencyIndex,
+} from '@corpus/core/registry/depGraph';
 import type { SidebarRecipe } from '@corpus/core/sidebar/recipe';
-import type { MarkDef as RendererMarkDef, MarkRunOutput as RendererMarkRunOutput } from './renderers/dispatch';
-import { producerNodesFrom, reverseDependencyIndex, type RawDependency } from '@corpus/core/registry/depGraph';
+import {
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+  For,
+  type JSX,
+  onCleanup,
+  onMount,
+  Show,
+  untrack,
+} from 'solid-js';
+import { trackAI } from './aiActivity';
+import { devModeActive } from './DevModeShelf';
+import { lang } from './i18n';
+import type {
+  MarkDef as RendererMarkDef,
+  MarkRunOutput as RendererMarkRunOutput,
+} from './renderers/dispatch';
+import type { SeedMark } from './seed-marks';
 
 type LLMModelId = `@cf/${string}` | `openrouter/${string}`;
 
@@ -65,7 +83,14 @@ export interface WorkerMarkDefinition {
   dependencies?: RawDependency[];
   /** Experimental feature flag — hidden from readers; only surfaces in dev mode. */
   experimental?: boolean;
-  anchor: 'segment' | 'segment-range' | 'phrase' | 'multi-anchor' | 'cross-daf' | 'external' | 'whole-daf';
+  anchor:
+    | 'segment'
+    | 'segment-range'
+    | 'phrase'
+    | 'multi-anchor'
+    | 'cross-daf'
+    | 'external'
+    | 'whole-daf';
   render: { kind: string; [k: string]: unknown };
   /** Declarative sidebar-card recipe, when the mark's card is recipe-driven. */
   recipe?: SidebarRecipe;
@@ -96,15 +121,21 @@ type Row =
 // apply renderers in its tokenized() pipeline.
 // ---------------------------------------------------------------------------
 
-const [globalMarkRuns, setGlobalMarkRuns] = createSignal<Record<string, RendererMarkRunOutput | undefined>>({});
+const [globalMarkRuns, setGlobalMarkRuns] = createSignal<
+  Record<string, RendererMarkRunOutput | undefined>
+>({});
 const [globalEnabledMarks, setGlobalEnabledMarks] = createSignal<RendererMarkDef[]>([]);
 
 /** Accessor for DafViewer: which marks (with their anchor/render config) are
  *  currently enabled. Renderer dispatcher uses this to know what to apply. */
-export function enabledMarkDefs() { return globalEnabledMarks(); }
+export function enabledMarkDefs() {
+  return globalEnabledMarks();
+}
 
 /** Accessor for DafViewer: the most recent run output per mark id. */
-export function markRunsByMarkId() { return globalMarkRuns(); }
+export function markRunsByMarkId() {
+  return globalMarkRuns();
+}
 
 /** Lightweight per-mark status (idle/loading/ok/error + label) so the
  *  daf-page can show inline loading/error indicators without needing the
@@ -118,7 +149,9 @@ export interface MarkStatusEntry {
 }
 
 const [globalMarkStatuses, setGlobalMarkStatuses] = createSignal<MarkStatusEntry[]>([]);
-export function markStatuses() { return globalMarkStatuses(); }
+export function markStatuses() {
+  return globalMarkStatuses();
+}
 
 export interface RunResult {
   content: string;
@@ -156,7 +189,11 @@ const ENABLED_KEY = 'marks-registry:enabled:v1';
  *  After any user toggle writes the key, this flag flips off so the
  *  user's explicit choice is respected (including "all off"). */
 function hasEverSavedEnabled(): boolean {
-  try { return localStorage.getItem(ENABLED_KEY) !== null; } catch { return true; }
+  try {
+    return localStorage.getItem(ENABLED_KEY) !== null;
+  } catch {
+    return true;
+  }
 }
 
 function readEnabled(): Set<string> {
@@ -164,13 +201,20 @@ function readEnabled(): Set<string> {
     const raw = localStorage.getItem(ENABLED_KEY);
     if (!raw) return new Set();
     const parsed = JSON.parse(raw) as unknown;
-    if (Array.isArray(parsed)) return new Set(parsed.filter((s): s is string => typeof s === 'string'));
-  } catch { /* ignore */ }
+    if (Array.isArray(parsed))
+      return new Set(parsed.filter((s): s is string => typeof s === 'string'));
+  } catch {
+    /* ignore */
+  }
   return new Set();
 }
 
 function writeEnabled(s: Set<string>) {
-  try { localStorage.setItem(ENABLED_KEY, JSON.stringify([...s])); } catch { /* ignore */ }
+  try {
+    localStorage.setItem(ENABLED_KEY, JSON.stringify([...s]));
+  } catch {
+    /* ignore */
+  }
 }
 
 // Marks introduced after the "enable all on first visit" default should still
@@ -192,24 +236,34 @@ function readAppliedDefaults(): Set<string> {
     const raw = localStorage.getItem(DEFAULTS_APPLIED_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as unknown;
-      if (Array.isArray(parsed)) return new Set(parsed.filter((s): s is string => typeof s === 'string'));
+      if (Array.isArray(parsed))
+        return new Set(parsed.filter((s): s is string => typeof s === 'string'));
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return new Set();
 }
 
 function writeAppliedDefaults(tags: Iterable<string>) {
-  try { localStorage.setItem(DEFAULTS_APPLIED_KEY, JSON.stringify([...tags])); } catch { /* ignore */ }
+  try {
+    localStorage.setItem(DEFAULTS_APPLIED_KEY, JSON.stringify([...tags]));
+  } catch {
+    /* ignore */
+  }
 }
 
-async function fetchAll(): Promise<{ marks: WorkerMarkDefinition[]; enrichments: EnrichmentDefinition[] }> {
+async function fetchAll(): Promise<{
+  marks: WorkerMarkDefinition[];
+  enrichments: EnrichmentDefinition[];
+}> {
   const [m, e] = await Promise.all([
-    fetch('/api/marks').then((r) => r.ok ? r.json() : { marks: [] }),
-    fetch('/api/enrichments').then((r) => r.ok ? r.json() : { enrichments: [] }),
+    fetch('/api/marks').then((r) => (r.ok ? r.json() : { marks: [] })),
+    fetch('/api/enrichments').then((r) => (r.ok ? r.json() : { enrichments: [] })),
   ]);
   return {
-    marks: ((m as { marks?: WorkerMarkDefinition[] }).marks) ?? [],
-    enrichments: ((e as { enrichments?: EnrichmentDefinition[] }).enrichments) ?? [],
+    marks: (m as { marks?: WorkerMarkDefinition[] }).marks ?? [],
+    enrichments: (e as { enrichments?: EnrichmentDefinition[] }).enrichments ?? [],
   };
 }
 
@@ -249,7 +303,7 @@ async function postAndAwait(body: unknown): Promise<RunResult> {
     headers: { 'Content-Type': 'application/json', ...studioHeaders() },
     body: JSON.stringify(body),
   });
-  const j = await r.json() as RunResponse | { error?: string };
+  const j = (await r.json()) as RunResponse | { error?: string };
   if (!r.ok && r.status !== 202) {
     throw new Error((j as { error?: string }).error ?? `HTTP ${r.status}`);
   }
@@ -268,7 +322,7 @@ async function pollJob(runId: string, cacheKey?: string): Promise<RunResult> {
   while (Date.now() - start < POLL_TIMEOUT_MS) {
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
     const r = await fetch(`/api/run-status/${encodeURIComponent(runId)}${qs}`);
-    const j = await r.json() as RunResponse;
+    const j = (await r.json()) as RunResponse;
     if ('status' in j) {
       if (j.status === 'ok') return (j as { result: RunResult }).result;
       if (j.status === 'error') throw new Error((j as { error: string }).error);
@@ -281,18 +335,32 @@ async function pollJob(runId: string, cacheKey?: string): Promise<RunResult> {
 // Output language threads into every run. The worker namespaces the :he cache
 // + selects the *_he prompt variant; the lang also tags the activityId so the
 // client-side run cache + trackAI dedup don't serve an EN result for HE.
-async function runMark(id: string, tractate: string, page: string, bypassCache = false): Promise<RunResult> {
+async function runMark(
+  id: string,
+  tractate: string,
+  page: string,
+  bypassCache = false,
+): Promise<RunResult> {
   const l = lang();
   const activityId = `mark:${id}:${tractate}:${page}:${l}${bypassCache ? ':fresh' : ''}`;
   const label = `${id} · ${tractate} ${page}`;
-  return trackAI(activityId, label, () => postAndAwait({ mark_id: id, tractate, page, bypass_cache: bypassCache, lang: l }));
+  return trackAI(activityId, label, () =>
+    postAndAwait({ mark_id: id, tractate, page, bypass_cache: bypassCache, lang: l }),
+  );
 }
 
-async function runEnrichment(id: string, tractate: string, page: string, bypassCache = false): Promise<RunResult> {
+async function runEnrichment(
+  id: string,
+  tractate: string,
+  page: string,
+  bypassCache = false,
+): Promise<RunResult> {
   const l = lang();
   const activityId = `enrichment:${id}:${tractate}:${page}:${l}${bypassCache ? ':fresh' : ''}`;
   const label = `${id} · ${tractate} ${page}`;
-  return trackAI(activityId, label, () => postAndAwait({ enrichment_id: id, tractate, page, bypass_cache: bypassCache, lang: l }));
+  return trackAI(activityId, label, () =>
+    postAndAwait({ enrichment_id: id, tractate, page, bypass_cache: bypassCache, lang: l }),
+  );
 }
 
 interface Props {
@@ -307,7 +375,9 @@ export default function MarksRegistryPanel(props: Props) {
   // and only surface in dev mode — across the toggle list, rendering, status,
   // the auto-run loop, and first-visit default-on. devModeActive() is reactive,
   // so flipping dev mode shows/hides them live without a reload.
-  const visibleMarks = (reg: { marks: WorkerMarkDefinition[] } | undefined): WorkerMarkDefinition[] =>
+  const visibleMarks = (
+    reg: { marks: WorkerMarkDefinition[] } | undefined,
+  ): WorkerMarkDefinition[] =>
     reg ? reg.marks.filter((m) => !m.experimental || devModeActive()) : [];
   // An enrichment is hidden when its parent mark is experimental and dev is off
   // — so a hidden mark's enrichments neither show in the panel nor auto-run.
@@ -331,8 +401,7 @@ export default function MarksRegistryPanel(props: Props) {
     });
   };
 
-  const setRun = (id: string, state: RunState) =>
-    setRuns((prev) => ({ ...prev, [id]: state }));
+  const setRun = (id: string, state: RunState) => setRuns((prev) => ({ ...prev, [id]: state }));
 
   // External invalidation: settings page (or anywhere else that mutates the
   // model registry / settings KV) dispatches `marks-runs-invalidate` after
@@ -353,7 +422,9 @@ export default function MarksRegistryPanel(props: Props) {
   createEffect(() => {
     const reg = registry();
     if (!reg) return;
-    const promoted = visibleMarks(reg).filter((m) => m.status !== 'draft').map((m) => m.id);
+    const promoted = visibleMarks(reg)
+      .filter((m) => m.status !== 'draft')
+      .map((m) => m.id);
     if (promoted.length === 0) return;
 
     if (!hasEverSavedEnabled()) {
@@ -495,8 +566,19 @@ export default function MarksRegistryPanel(props: Props) {
         if (cur && cur.kind !== 'idle' && cur.stamp === stamp) continue;
         setRun(m.id, { kind: 'loading', stamp });
         void runMark(m.id, props.tractate, props.page).then(
-          (result) => { if (currentStamp() === stamp) setRun(m.id, { kind: 'ok', stamp, at: Date.now(), result }); },
-          (err) => { if (currentStamp() === stamp) setRun(m.id, { kind: 'error', stamp, at: Date.now(), error: String((err as Error)?.message ?? err) }); },
+          (result) => {
+            if (currentStamp() === stamp)
+              setRun(m.id, { kind: 'ok', stamp, at: Date.now(), result });
+          },
+          (err) => {
+            if (currentStamp() === stamp)
+              setRun(m.id, {
+                kind: 'error',
+                stamp,
+                at: Date.now(),
+                error: String((err as Error)?.message ?? err),
+              });
+          },
         );
       }
       for (const e of reg.enrichments) {
@@ -507,8 +589,19 @@ export default function MarksRegistryPanel(props: Props) {
         if (cur && cur.kind !== 'idle' && cur.stamp === stamp) continue;
         setRun(e.id, { kind: 'loading', stamp });
         void runEnrichment(e.id, props.tractate, props.page).then(
-          (result) => { if (currentStamp() === stamp) setRun(e.id, { kind: 'ok', stamp, at: Date.now(), result }); },
-          (err) => { if (currentStamp() === stamp) setRun(e.id, { kind: 'error', stamp, at: Date.now(), error: String((err as Error)?.message ?? err) }); },
+          (result) => {
+            if (currentStamp() === stamp)
+              setRun(e.id, { kind: 'ok', stamp, at: Date.now(), result });
+          },
+          (err) => {
+            if (currentStamp() === stamp)
+              setRun(e.id, {
+                kind: 'error',
+                stamp,
+                at: Date.now(),
+                error: String((err as Error)?.message ?? err),
+              });
+          },
         );
       }
     });
@@ -541,9 +634,7 @@ export default function MarksRegistryPanel(props: Props) {
    *    - `childrenByMark`: enrichments keyed by their target mark id.
    *      Orphan enrichments (no matching mark) fall under '__orphan__'.
    */
-  type TopRow =
-    | { source: 'seed'; seed: SeedMark }
-    | { source: 'mark'; def: WorkerMarkDefinition };
+  type TopRow = { source: 'seed'; seed: SeedMark } | { source: 'mark'; def: WorkerMarkDefinition };
   const grouped = (): {
     top: TopRow[];
     subMarksByParent: Map<string, WorkerMarkDefinition[]>;
@@ -581,7 +672,9 @@ export default function MarksRegistryPanel(props: Props) {
    *  enrichments — for the "X done · Y pending" badge on the collapsed
    *  mark row. Recurses through one level of nesting (parent → sub-mark
    *  → its enrichments). */
-  const childRunSummary = (markId: string): { loading: number; ok: number; error: number; total: number } => {
+  const childRunSummary = (
+    markId: string,
+  ): { loading: number; ok: number; error: number; total: number } => {
     const g = grouped();
     const kids: { id: string }[] = [...(g.childrenByMark.get(markId) ?? [])];
     for (const sub of g.subMarksByParent.get(markId) ?? []) {
@@ -615,28 +708,45 @@ export default function MarksRegistryPanel(props: Props) {
   return (
     <>
       <div class="marks-registry-panel" style={{ 'margin-top': '0.5rem', 'font-size': '0.85rem' }}>
-        <div style={{ display: 'flex', 'align-items': 'center', 'justify-content': 'space-between', 'margin-bottom': '0.5rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            'align-items': 'center',
+            'justify-content': 'space-between',
+            'margin-bottom': '0.5rem',
+          }}
+        >
           <strong style={{ 'font-size': '0.9rem', color: '#222' }}>
             Marks
-            <span style={{ color: '#888', 'margin-left': '0.5rem', 'font-size': '0.8rem', 'font-weight': 'normal' }}>
+            <span
+              style={{
+                color: '#888',
+                'margin-left': '0.5rem',
+                'font-size': '0.8rem',
+                'font-weight': 'normal',
+              }}
+            >
               ({rows().length}, {enabledCount()} on)
             </span>
           </strong>
         </div>
 
-        <Show when={registry.error}>{(err) => (
-          <div style={{ color: '#c00', 'font-family': 'monospace', 'font-size': '12px' }}>
-            failed to load registry: {String(err())}
-          </div>
-        )}</Show>
+        <Show when={registry.error}>
+          {(err) => (
+            <div style={{ color: '#c00', 'font-family': 'monospace', 'font-size': '12px' }}>
+              failed to load registry: {String(err())}
+            </div>
+          )}
+        </Show>
 
         {/* Render a single Row (mark / seed / enrichment) with the
             on/off switch, status, re-run, etc. Used for both top-level marks
             and the nested enrichments. */}
         {(() => {
           const renderRow = (row: Row, nested: boolean): JSX.Element => {
-            const id = () => row.source === 'seed' ? row.seed.id : row.def.id;
-            const label = () => row.source === 'seed' ? row.seed.label : (row.def.label || row.def.id);
+            const id = () => (row.source === 'seed' ? row.seed.id : row.def.id);
+            const label = () =>
+              row.source === 'seed' ? row.seed.label : row.def.label || row.def.id;
             const anchor = () => {
               if (row.source === 'seed') return row.seed.anchor;
               if (row.source === 'mark') return row.def.anchor;
@@ -686,27 +796,43 @@ export default function MarksRegistryPanel(props: Props) {
             };
             const isExpandable = () => row.source === 'mark' && childCount() > 0;
             const isExpanded = () => row.source === 'mark' && expandedMarks().has(row.def.id);
-            const summary = () => row.source === 'mark' ? childRunSummary(row.def.id) : null;
+            const summary = () => (row.source === 'mark' ? childRunSummary(row.def.id) : null);
             return (
-              <li style={{
-                'border-left': isFail() ? '2px solid #c00' : isDraft() ? '2px solid #fa0' : '2px solid transparent',
-                'padding-left': nested ? '1.5rem' : '0.4rem',
-              }}>
+              <li
+                style={{
+                  'border-left': isFail()
+                    ? '2px solid #c00'
+                    : isDraft()
+                      ? '2px solid #fa0'
+                      : '2px solid transparent',
+                  'padding-left': nested ? '1.5rem' : '0.4rem',
+                }}
+              >
                 <div style={{ display: 'flex', 'align-items': 'center', gap: '0.4rem' }}>
-                  <Show when={isExpandable()} fallback={
-                    <span style={{ display: 'inline-block', width: '0.9rem' }} />
-                  }>
+                  <Show
+                    when={isExpandable()}
+                    fallback={<span style={{ display: 'inline-block', width: '0.9rem' }} />}
+                  >
                     <button
                       type="button"
                       onClick={() => row.source === 'mark' && toggleExpanded(row.def.id)}
                       title={isExpanded() ? 'Collapse enrichments' : 'Expand enrichments'}
                       style={{
-                        background: 'transparent', border: 'none', cursor: 'pointer',
-                        padding: 0, width: '0.9rem', height: '0.9rem',
-                        color: '#888', 'font-size': '0.7rem',
-                        display: 'inline-flex', 'align-items': 'center', 'justify-content': 'center',
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 0,
+                        width: '0.9rem',
+                        height: '0.9rem',
+                        color: '#888',
+                        'font-size': '0.7rem',
+                        display: 'inline-flex',
+                        'align-items': 'center',
+                        'justify-content': 'center',
                       }}
-                    >{isExpanded() ? '▾' : '▸'}</button>
+                    >
+                      {isExpanded() ? '▾' : '▸'}
+                    </button>
                   </Show>
                   <Show
                     when={!isDepFed()}
@@ -717,11 +843,18 @@ export default function MarksRegistryPanel(props: Props) {
                         aria-hidden="true"
                         title={`derived from the "${parentLabel()}" card (a synthesis consumes it) — not an independent toggle`}
                         style={{
-                          width: '0.9rem', 'flex-shrink': 0, 'text-align': 'center',
-                          color: '#cfcfcf', 'font-size': '0.7rem', 'line-height': 1,
-                          cursor: 'default', 'user-select': 'none',
+                          width: '0.9rem',
+                          'flex-shrink': 0,
+                          'text-align': 'center',
+                          color: '#cfcfcf',
+                          'font-size': '0.7rem',
+                          'line-height': 1,
+                          cursor: 'default',
+                          'user-select': 'none',
                         }}
-                      >·</span>
+                      >
+                        ·
+                      </span>
                     }
                   >
                     <button
@@ -731,42 +864,99 @@ export default function MarksRegistryPanel(props: Props) {
                       onClick={() => setOn(!isOn())}
                       title={isOn() ? 'turn off' : 'turn on'}
                       style={{
-                        background: 'transparent', border: 'none', cursor: 'pointer',
-                        padding: 0, width: '0.9rem', 'flex-shrink': 0,
-                        color: isOn() ? '#15803d' : '#ccc', 'font-size': '0.7rem',
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 0,
+                        width: '0.9rem',
+                        'flex-shrink': 0,
+                        color: isOn() ? '#15803d' : '#ccc',
+                        'font-size': '0.7rem',
                         'line-height': 1,
                       }}
-                    >{isOn() ? '●' : '○'}</button>
+                    >
+                      {isOn() ? '●' : '○'}
+                    </button>
                   </Show>
-                  <span style={{
-                    'font-weight': nested ? 400 : 500, 'font-size': nested ? '0.8rem' : '0.85rem',
-                    // Truncate on one line instead of wrapping: a long label that
-                    // wraps flips between 1 and 2 lines as the status badge's width
-                    // changes (spinner → "✓ 1234ms"), which reads as row jitter.
-                    flex: 1, 'min-width': 0, 'white-space': 'nowrap', overflow: 'hidden', 'text-overflow': 'ellipsis',
-                  }} title={label()}>
+                  <span
+                    style={{
+                      'font-weight': nested ? 400 : 500,
+                      'font-size': nested ? '0.8rem' : '0.85rem',
+                      // Truncate on one line instead of wrapping: a long label that
+                      // wraps flips between 1 and 2 lines as the status badge's width
+                      // changes (spinner → "✓ 1234ms"), which reads as row jitter.
+                      flex: 1,
+                      'min-width': 0,
+                      'white-space': 'nowrap',
+                      overflow: 'hidden',
+                      'text-overflow': 'ellipsis',
+                    }}
+                    title={label()}
+                  >
                     {label()}
                   </span>
-                  <span title={`anchored on ${anchor()} · rendered ${render()}`} style={{ color: '#aaa', 'font-size': '0.7rem', 'font-family': 'monospace', 'flex-shrink': 0 }}>
+                  <span
+                    title={`anchored on ${anchor()} · rendered ${render()}`}
+                    style={{
+                      color: '#aaa',
+                      'font-size': '0.7rem',
+                      'font-family': 'monospace',
+                      'flex-shrink': 0,
+                    }}
+                  >
                     {anchor()[0]}/{String(render())[0]}
                   </span>
                   <Show when={row.source !== 'seed' && isOn() && !isDepFed()}>
-                    <span style={{ 'font-size': '0.7rem', display: 'inline-flex', 'align-items': 'center', gap: '0.3rem', 'flex-shrink': 0, color: state().kind === 'error' ? '#c00' : state().kind === 'loading' ? '#888' : state().kind === 'ok' ? '#15803d' : '#aaa' }}>
+                    <span
+                      style={{
+                        'font-size': '0.7rem',
+                        display: 'inline-flex',
+                        'align-items': 'center',
+                        gap: '0.3rem',
+                        'flex-shrink': 0,
+                        color:
+                          state().kind === 'error'
+                            ? '#c00'
+                            : state().kind === 'loading'
+                              ? '#888'
+                              : state().kind === 'ok'
+                                ? '#15803d'
+                                : '#aaa',
+                      }}
+                    >
                       <Show when={state().kind === 'loading'}>
-                        <span style={{
-                          display: 'inline-block', width: '0.65rem', height: '0.65rem',
-                          'border-radius': '50%',
-                          border: '2px solid #d6d3d1', 'border-top-color': '#8a2a2b',
-                          animation: 'daf-spin 0.8s linear infinite',
-                          'flex-shrink': 0,
-                        }} />
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            width: '0.65rem',
+                            height: '0.65rem',
+                            'border-radius': '50%',
+                            border: '2px solid #d6d3d1',
+                            'border-top-color': '#8a2a2b',
+                            animation: 'daf-spin 0.8s linear infinite',
+                            'flex-shrink': 0,
+                          }}
+                        />
                       </Show>
                       <Show when={state().kind === 'ok'}>
                         {(() => {
                           const res = () => (state() as Extract<RunState, { kind: 'ok' }>).result;
                           return (
-                            <Show when={res().cache_hit} fallback={<span>✓ {res().elapsed_ms}ms</span>}>
-                              <span style={{ 'font-size': '0.62rem', color: '#15803d', background: '#dcfce7', padding: '0 0.3rem', 'border-radius': '3px' }}>cached</span>
+                            <Show
+                              when={res().cache_hit}
+                              fallback={<span>✓ {res().elapsed_ms}ms</span>}
+                            >
+                              <span
+                                style={{
+                                  'font-size': '0.62rem',
+                                  color: '#15803d',
+                                  background: '#dcfce7',
+                                  padding: '0 0.3rem',
+                                  'border-radius': '3px',
+                                }}
+                              >
+                                cached
+                              </span>
                               <span style={{ color: '#888' }}>{res().elapsed_ms}ms</span>
                             </Show>
                           );
@@ -779,7 +969,15 @@ export default function MarksRegistryPanel(props: Props) {
                   </Show>
                   {/* Summary badge on collapsed mark rows showing enrichment progress */}
                   <Show when={row.source === 'mark' && !isExpanded() && childCount() > 0}>
-                    <span style={{ 'font-size': '0.68rem', color: '#aaa', 'margin-left': '0.1rem', 'flex-shrink': 0, 'white-space': 'nowrap' }}>
+                    <span
+                      style={{
+                        'font-size': '0.68rem',
+                        color: '#aaa',
+                        'margin-left': '0.1rem',
+                        'flex-shrink': 0,
+                        'white-space': 'nowrap',
+                      }}
+                    >
                       {childCount()} enrich{childCount() === 1 ? '' : 'ments'}
                       <Show when={summary()!.loading > 0}> · {summary()!.loading}…</Show>
                       <Show when={summary()!.ok > 0}> · {summary()!.ok} done</Show>
@@ -795,13 +993,33 @@ export default function MarksRegistryPanel(props: Props) {
                         setRun(mid, { kind: 'loading', stamp });
                         const fn = row.source === 'mark' ? runMark : runEnrichment;
                         fn(mid, props.tractate, props.page, true).then(
-                          (result) => { if (currentStamp() === stamp) setRun(mid, { kind: 'ok', stamp, at: Date.now(), result }); },
-                          (err) => { if (currentStamp() === stamp) setRun(mid, { kind: 'error', stamp, at: Date.now(), error: String((err as Error)?.message ?? err) }); },
+                          (result) => {
+                            if (currentStamp() === stamp)
+                              setRun(mid, { kind: 'ok', stamp, at: Date.now(), result });
+                          },
+                          (err) => {
+                            if (currentStamp() === stamp)
+                              setRun(mid, {
+                                kind: 'error',
+                                stamp,
+                                at: Date.now(),
+                                error: String((err as Error)?.message ?? err),
+                              });
+                          },
                         );
                       }}
                       title="Re-run (skip Gateway cache)"
                       disabled={state().kind === 'loading'}
-                      style={{ 'margin-left': 'auto', padding: '1px 6px', 'font-size': '0.7rem', cursor: state().kind === 'loading' ? 'wait' : 'pointer', background: 'transparent', color: '#888', border: '1px solid #ddd', 'border-radius': '3px' }}
+                      style={{
+                        'margin-left': 'auto',
+                        padding: '1px 6px',
+                        'font-size': '0.7rem',
+                        cursor: state().kind === 'loading' ? 'wait' : 'pointer',
+                        background: 'transparent',
+                        color: '#888',
+                        border: '1px solid #ddd',
+                        'border-radius': '3px',
+                      }}
                     >
                       ↻
                     </button>
@@ -812,65 +1030,108 @@ export default function MarksRegistryPanel(props: Props) {
           };
 
           return (
-            <ul style={{ 'list-style': 'none', padding: 0, margin: 0, display: 'flex', 'flex-direction': 'column', gap: '0.25rem' }}>
-              <For each={grouped().top}>{(top) => {
-                const topRow: Row = top.source === 'mark'
-                  ? { source: 'mark', def: top.def }
-                  : { source: 'seed', seed: top.seed };
-                const markId = top.source === 'mark' ? top.def.id : null;
-                const ownEnrichments = markId ? (grouped().childrenByMark.get(markId) ?? []) : [];
-                const subMarks = markId ? (grouped().subMarksByParent.get(markId) ?? []) : [];
-                const showKids = () => markId !== null && expandedMarks().has(markId);
-                return (
-                  <>
-                    {renderRow(topRow, false)}
-                    <Show when={showKids()}>
-                      <For each={ownEnrichments}>{(e) => renderRow({ source: 'enrichment', def: e }, true)}</For>
-                      <For each={subMarks}>{(sub) => {
-                        const subEnrichments = grouped().childrenByMark.get(sub.id) ?? [];
-                        // Gate the sub-mark's enrichments on the sub-mark's OWN
-                        // chevron, not just the parent's. Without this the
-                        // sub-mark chevron is a no-op (its enrichments showed
-                        // unconditionally whenever the parent was expanded).
-                        const showSubKids = () => expandedMarks().has(sub.id);
-                        return (
-                          <>
-                            {renderRow({ source: 'mark', def: sub }, true)}
-                            <Show when={showSubKids()}>
-                              <For each={subEnrichments}>{(e) => renderRow({ source: 'enrichment', def: e }, true)}</For>
-                            </Show>
-                          </>
-                        );
-                      }}</For>
-                    </Show>
-                  </>
-                );
-              }}</For>
+            <ul
+              style={{
+                'list-style': 'none',
+                padding: 0,
+                margin: 0,
+                display: 'flex',
+                'flex-direction': 'column',
+                gap: '0.25rem',
+              }}
+            >
+              <For each={grouped().top}>
+                {(top) => {
+                  const topRow: Row =
+                    top.source === 'mark'
+                      ? { source: 'mark', def: top.def }
+                      : { source: 'seed', seed: top.seed };
+                  const markId = top.source === 'mark' ? top.def.id : null;
+                  const ownEnrichments = markId ? (grouped().childrenByMark.get(markId) ?? []) : [];
+                  const subMarks = markId ? (grouped().subMarksByParent.get(markId) ?? []) : [];
+                  const showKids = () => markId !== null && expandedMarks().has(markId);
+                  return (
+                    <>
+                      {renderRow(topRow, false)}
+                      <Show when={showKids()}>
+                        <For each={ownEnrichments}>
+                          {(e) => renderRow({ source: 'enrichment', def: e }, true)}
+                        </For>
+                        <For each={subMarks}>
+                          {(sub) => {
+                            const subEnrichments = grouped().childrenByMark.get(sub.id) ?? [];
+                            // Gate the sub-mark's enrichments on the sub-mark's OWN
+                            // chevron, not just the parent's. Without this the
+                            // sub-mark chevron is a no-op (its enrichments showed
+                            // unconditionally whenever the parent was expanded).
+                            const showSubKids = () => expandedMarks().has(sub.id);
+                            return (
+                              <>
+                                {renderRow({ source: 'mark', def: sub }, true)}
+                                <Show when={showSubKids()}>
+                                  <For each={subEnrichments}>
+                                    {(e) => renderRow({ source: 'enrichment', def: e }, true)}
+                                  </For>
+                                </Show>
+                              </>
+                            );
+                          }}
+                        </For>
+                      </Show>
+                    </>
+                  );
+                }}
+              </For>
               {/* Orphan enrichments (target_mark not in registry) — rare. */}
               <Show when={(grouped().childrenByMark.get('__orphan__') ?? []).length > 0}>
-                <li style={{ 'font-size': '0.7rem', color: '#aaa', 'padding-left': '0.4rem', 'margin-top': '0.4rem' }}>
+                <li
+                  style={{
+                    'font-size': '0.7rem',
+                    color: '#aaa',
+                    'padding-left': '0.4rem',
+                    'margin-top': '0.4rem',
+                  }}
+                >
                   Orphan enrichments (no matching mark in registry):
                 </li>
-                <For each={grouped().childrenByMark.get('__orphan__') ?? []}>{(e) =>
-                  renderRow({ source: 'enrichment', def: e }, true)
-                }</For>
+                <For each={grouped().childrenByMark.get('__orphan__') ?? []}>
+                  {(e) => renderRow({ source: 'enrichment', def: e }, true)}
+                </For>
               </Show>
             </ul>
           );
         })()}
 
-        <div style={{ display: 'flex', gap: '0.4rem', 'margin-top': '0.4rem', 'flex-wrap': 'wrap' }}>
+        <div
+          style={{ display: 'flex', gap: '0.4rem', 'margin-top': '0.4rem', 'flex-wrap': 'wrap' }}
+        >
           <button
             onClick={() => refetchDefs()}
             title="Re-fetch the mark/enrichment definitions from the server (use after editing a def). Does not re-run anything."
-            style={{ padding: '2px 8px', 'font-size': '0.7rem', cursor: 'pointer', background: 'transparent', border: '1px solid #ddd', 'border-radius': '3px', color: '#888' }}
+            style={{
+              padding: '2px 8px',
+              'font-size': '0.7rem',
+              cursor: 'pointer',
+              background: 'transparent',
+              border: '1px solid #ddd',
+              'border-radius': '3px',
+              color: '#888',
+            }}
           >
             reload defs
           </button>
           <button
             onClick={() => setRuns({})}
             title="Clear cached results so every mark re-fetches for this daf (cache-respecting). For a true bypass-cache re-run of one mark, use its ↻."
-            style={{ padding: '2px 8px', 'font-size': '0.7rem', cursor: 'pointer', background: 'transparent', border: '1px solid #ddd', 'border-radius': '3px', color: '#888' }}
+            style={{
+              padding: '2px 8px',
+              'font-size': '0.7rem',
+              cursor: 'pointer',
+              background: 'transparent',
+              border: '1px solid #ddd',
+              'border-radius': '3px',
+              color: '#888',
+            }}
           >
             refresh results
           </button>

@@ -1,206 +1,206 @@
 {
- "tractate": "Gittin",
- "page": "67b",
- "mark": "rabbi",
- "cache_hit": true,
- "raw": {
-  "instances": [
-   {
-    "excerpt": "רב הונא",
-    "fields": {
-     "name": "Rav Huna",
-     "nameHe": "רב הונא",
-     "generation": "amora-bavel-2"
-    }
-   },
-   {
-    "excerpt": "ר' יוחנן",
-    "fields": {
-     "name": "Rabbi Yochanan",
-     "nameHe": "ר' יוחנן",
-     "generation": "amora-ey-1"
-    }
-   },
-   {
-    "excerpt": "ר' אלעזר דמן רומה",
-    "fields": {
-     "name": "Rabbi Elazar of Rome",
-     "nameHe": "ר' אלעזר דמן רומה",
-     "generation": "tanna-4"
-    }
-   },
-   {
-    "excerpt": "רב פפא",
-    "fields": {
-     "name": "Rav Pappa",
-     "nameHe": "רב פפא",
-     "generation": "amora-bavel-5"
-    }
-   },
-   {
-    "excerpt": "רב יהודה",
-    "fields": {
-     "name": "Rav Yehuda",
-     "nameHe": "רב יהודה",
-     "generation": "amora-bavel-2"
-    }
-   },
-   {
-    "excerpt": "רבא",
-    "fields": {
-     "name": "Rava",
-     "nameHe": "רבא",
-     "generation": "amora-bavel-4"
-    }
-   },
-   {
-    "excerpt": "שמואל",
-    "fields": {
-     "name": "Shmuel",
-     "nameHe": "שמואל",
-     "generation": "amora-bavel-1"
-    }
-   },
-   {
-    "excerpt": "אביי",
-    "fields": {
-     "name": "Abaye",
-     "nameHe": "אביי",
-     "generation": "amora-bavel-4"
-    }
-   },
-   {
-    "excerpt": "רב עמרם חסידא",
-    "fields": {
-     "name": "Rav Amram the Pious",
-     "nameHe": "רב עמרם חסידא",
-     "generation": "amora-bavel-3"
-    }
-   },
-   {
-    "excerpt": "רב יוסף",
-    "fields": {
-     "name": "Rav Yosef",
-     "nameHe": "רב יוסף",
-     "generation": "amora-bavel-3"
-    }
-   },
-   {
-    "excerpt": "רב ששת",
-    "fields": {
-     "name": "Rav Sheshet",
-     "nameHe": "רב ששת",
-     "generation": "amora-bavel-2"
-    }
-   }
-  ]
- },
- "expected": {
-  "instances": [
-   {
-    "excerpt": "רב הונא",
-    "fields": {
-     "name": "Rav Huna",
-     "nameHe": "רב הונא",
-     "generation": "amora-bavel-2"
-    }
-   },
-   {
-    "excerpt": "ר' יוחנן",
-    "fields": {
-     "name": "Rabbi Yochanan",
-     "nameHe": "ר' יוחנן",
-     "generation": "amora-ey-1"
-    }
-   },
-   {
-    "excerpt": "ר' אלעזר דמן רומה",
-    "fields": {
-     "name": "Rabbi Elazar of Rome",
-     "nameHe": "ר' אלעזר דמן רומה",
-     "generation": "tanna-4"
-    }
-   },
-   {
-    "excerpt": "רב פפא",
-    "fields": {
-     "name": "Rav Pappa",
-     "nameHe": "רב פפא",
-     "generation": "amora-bavel-5"
-    }
-   },
-   {
-    "excerpt": "רב יהודה",
-    "fields": {
-     "name": "Rav Yehuda",
-     "nameHe": "רב יהודה",
-     "generation": "amora-bavel-2"
-    }
-   },
-   {
-    "excerpt": "רבא",
-    "fields": {
-     "name": "Rava",
-     "nameHe": "רבא",
-     "generation": "amora-bavel-4"
-    }
-   },
-   {
-    "excerpt": "שמואל",
-    "fields": {
-     "name": "Shmuel",
-     "nameHe": "שמואל",
-     "generation": "amora-bavel-1"
-    }
-   },
-   {
-    "excerpt": "אביי",
-    "fields": {
-     "name": "Abaye",
-     "nameHe": "אביי",
-     "generation": "amora-bavel-4"
-    }
-   },
-   {
-    "excerpt": "רב עמרם חסידא",
-    "fields": {
-     "name": "Rav Amram the Pious",
-     "nameHe": "רב עמרם חסידא",
-     "generation": "amora-bavel-3"
-    }
-   },
-   {
-    "excerpt": "רב יוסף",
-    "fields": {
-     "name": "Rav Yosef",
-     "nameHe": "רב יוסף",
-     "generation": "amora-bavel-3"
-    }
-   },
-   {
-    "excerpt": "רב ששת",
-    "fields": {
-     "name": "Rav Sheshet",
-     "nameHe": "רב ששת",
-     "generation": "amora-bavel-2"
-    }
-   },
-   {
-    "excerpt": "רבי יוחנן",
-    "fields": {
-     "name": "Rabbi Yochanan b. Napacha",
-     "nameHe": "רבי יוחנן",
-     "generation": "unknown"
-    }
-   },
-   {
-    "excerpt": "רב עמרם",
-    "fields": {
-     "name": "Rav Amram",
-     "nameHe": "רב עמרם",
-     "generation": "unknown"
-    }
-   }
-  ]
- }
+  "tractate": "Gittin",
+  "page": "67b",
+  "mark": "rabbi",
+  "cache_hit": true,
+  "raw": {
+    "instances": [
+      {
+        "excerpt": "רב הונא",
+        "fields": {
+          "name": "Rav Huna",
+          "nameHe": "רב הונא",
+          "generation": "amora-bavel-2"
+        }
+      },
+      {
+        "excerpt": "ר' יוחנן",
+        "fields": {
+          "name": "Rabbi Yochanan",
+          "nameHe": "ר' יוחנן",
+          "generation": "amora-ey-1"
+        }
+      },
+      {
+        "excerpt": "ר' אלעזר דמן רומה",
+        "fields": {
+          "name": "Rabbi Elazar of Rome",
+          "nameHe": "ר' אלעזר דמן רומה",
+          "generation": "tanna-4"
+        }
+      },
+      {
+        "excerpt": "רב פפא",
+        "fields": {
+          "name": "Rav Pappa",
+          "nameHe": "רב פפא",
+          "generation": "amora-bavel-5"
+        }
+      },
+      {
+        "excerpt": "רב יהודה",
+        "fields": {
+          "name": "Rav Yehuda",
+          "nameHe": "רב יהודה",
+          "generation": "amora-bavel-2"
+        }
+      },
+      {
+        "excerpt": "רבא",
+        "fields": {
+          "name": "Rava",
+          "nameHe": "רבא",
+          "generation": "amora-bavel-4"
+        }
+      },
+      {
+        "excerpt": "שמואל",
+        "fields": {
+          "name": "Shmuel",
+          "nameHe": "שמואל",
+          "generation": "amora-bavel-1"
+        }
+      },
+      {
+        "excerpt": "אביי",
+        "fields": {
+          "name": "Abaye",
+          "nameHe": "אביי",
+          "generation": "amora-bavel-4"
+        }
+      },
+      {
+        "excerpt": "רב עמרם חסידא",
+        "fields": {
+          "name": "Rav Amram the Pious",
+          "nameHe": "רב עמרם חסידא",
+          "generation": "amora-bavel-3"
+        }
+      },
+      {
+        "excerpt": "רב יוסף",
+        "fields": {
+          "name": "Rav Yosef",
+          "nameHe": "רב יוסף",
+          "generation": "amora-bavel-3"
+        }
+      },
+      {
+        "excerpt": "רב ששת",
+        "fields": {
+          "name": "Rav Sheshet",
+          "nameHe": "רב ששת",
+          "generation": "amora-bavel-2"
+        }
+      }
+    ]
+  },
+  "expected": {
+    "instances": [
+      {
+        "excerpt": "רב הונא",
+        "fields": {
+          "name": "Rav Huna",
+          "nameHe": "רב הונא",
+          "generation": "amora-bavel-2"
+        }
+      },
+      {
+        "excerpt": "ר' יוחנן",
+        "fields": {
+          "name": "Rabbi Yochanan",
+          "nameHe": "ר' יוחנן",
+          "generation": "amora-ey-1"
+        }
+      },
+      {
+        "excerpt": "ר' אלעזר דמן רומה",
+        "fields": {
+          "name": "Rabbi Elazar of Rome",
+          "nameHe": "ר' אלעזר דמן רומה",
+          "generation": "tanna-4"
+        }
+      },
+      {
+        "excerpt": "רב פפא",
+        "fields": {
+          "name": "Rav Pappa",
+          "nameHe": "רב פפא",
+          "generation": "amora-bavel-5"
+        }
+      },
+      {
+        "excerpt": "רב יהודה",
+        "fields": {
+          "name": "Rav Yehuda",
+          "nameHe": "רב יהודה",
+          "generation": "amora-bavel-2"
+        }
+      },
+      {
+        "excerpt": "רבא",
+        "fields": {
+          "name": "Rava",
+          "nameHe": "רבא",
+          "generation": "amora-bavel-4"
+        }
+      },
+      {
+        "excerpt": "שמואל",
+        "fields": {
+          "name": "Shmuel",
+          "nameHe": "שמואל",
+          "generation": "amora-bavel-1"
+        }
+      },
+      {
+        "excerpt": "אביי",
+        "fields": {
+          "name": "Abaye",
+          "nameHe": "אביי",
+          "generation": "amora-bavel-4"
+        }
+      },
+      {
+        "excerpt": "רב עמרם חסידא",
+        "fields": {
+          "name": "Rav Amram the Pious",
+          "nameHe": "רב עמרם חסידא",
+          "generation": "amora-bavel-3"
+        }
+      },
+      {
+        "excerpt": "רב יוסף",
+        "fields": {
+          "name": "Rav Yosef",
+          "nameHe": "רב יוסף",
+          "generation": "amora-bavel-3"
+        }
+      },
+      {
+        "excerpt": "רב ששת",
+        "fields": {
+          "name": "Rav Sheshet",
+          "nameHe": "רב ששת",
+          "generation": "amora-bavel-2"
+        }
+      },
+      {
+        "excerpt": "רבי יוחנן",
+        "fields": {
+          "name": "Rabbi Yochanan b. Napacha",
+          "nameHe": "רבי יוחנן",
+          "generation": "unknown"
+        }
+      },
+      {
+        "excerpt": "רב עמרם",
+        "fields": {
+          "name": "Rav Amram",
+          "nameHe": "רב עמרם",
+          "generation": "unknown"
+        }
+      }
+    ]
+  }
 }

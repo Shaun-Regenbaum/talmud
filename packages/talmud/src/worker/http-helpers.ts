@@ -43,10 +43,7 @@ export type RabbiEntryResult<E> =
  * Resolve the route's `:slug` param against a rabbi map, returning a 404
  * Response (`{ error: 'unknown slug: <slug>' }`) when the slug is absent.
  */
-export function getRabbiEntryOr404<E>(
-  c: Context,
-  rabbis: Record<string, E>,
-): RabbiEntryResult<E> {
+export function getRabbiEntryOr404<E>(c: Context, rabbis: Record<string, E>): RabbiEntryResult<E> {
   const slug = c.req.param('slug') ?? '';
   const entry = rabbis[slug];
   if (!entry) return { ok: false, response: c.json({ error: `unknown slug: ${slug}` }, 404) };

@@ -1,4 +1,13 @@
-import { createEffect, createMemo, createResource, createSignal, For, onCleanup, Show, type JSX } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+  For,
+  type JSX,
+  onCleanup,
+  Show,
+} from 'solid-js';
 import { DafRenderer } from '../lib/daf-render/index.ts';
 import { hebrewNumeral } from '../lib/hebrew.ts';
 import { KIND_GLYPH, type SourceKind, type SourceVerse, verseKinds } from '../lib/sources.ts';
@@ -80,17 +89,29 @@ export function MikraotGedolot(props: {
   const main = createMemo(() => {
     const d = data();
     if (!d) return ' ';
-    return d.verses.map((v) => seg(v.n, v.pasuk, `<span class="vnum">${hebrewNumeral(v.n)}</span> `)).join(' ');
+    return d.verses
+      .map((v) => seg(v.n, v.pasuk, `<span class="vnum">${hebrewNumeral(v.n)}</span> `))
+      .join(' ');
   });
   const inner = createMemo(() => {
     const d = data();
     if (!d) return ' ';
-    return d.verses.filter((v) => v.rashi).map((v) => seg(v.n, v.rashi)).join(' ') || ' ';
+    return (
+      d.verses
+        .filter((v) => v.rashi)
+        .map((v) => seg(v.n, v.rashi))
+        .join(' ') || ' '
+    );
   });
   const outer = createMemo(() => {
     const d = data();
     if (!d) return ' ';
-    return d.verses.filter((v) => v.targum).map((v) => seg(v.n, v.targum)).join(' ') || ' ';
+    return (
+      d.verses
+        .filter((v) => v.targum)
+        .map((v) => seg(v.n, v.targum))
+        .join(' ') || ' '
+    );
   });
 
   let mainEl: HTMLElement | undefined;
@@ -146,7 +167,11 @@ export function MikraotGedolot(props: {
     for (const s of props.sections) {
       const t = segTop.get(s.verse);
       if (t == null) continue;
-      an.push({ verse: s.verse, label: (props.lang === 'he' ? s.he : s.en) || s.en || s.he, top: t });
+      an.push({
+        verse: s.verse,
+        label: (props.lang === 'he' ? s.he : s.en) || s.en || s.he,
+        top: t,
+      });
     }
     // de-collide labels (estimate height from text wrapped to the gutter width)
     an.sort((a, b) => a.top - b.top);
@@ -179,9 +204,7 @@ export function MikraotGedolot(props: {
     props.sections;
     props.sources;
     props.lang;
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => requestAnimationFrame(measure)),
-    );
+    requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(measure)));
   });
   // Persist-highlight the verse whose drawer is open.
   createEffect(() => {
@@ -200,7 +223,12 @@ export function MikraotGedolot(props: {
       <Show when={data()}>
         {(d) => (
           <>
-            <div class="mg-host" ref={host} onMouseOver={onOver} onMouseLeave={() => highlight(null)}>
+            <div
+              class="mg-host"
+              ref={host}
+              onMouseOver={onOver}
+              onMouseLeave={() => highlight(null)}
+            >
               <DafRenderer
                 main={main()}
                 inner={inner()}

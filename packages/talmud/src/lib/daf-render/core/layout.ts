@@ -1,11 +1,11 @@
-import type { DafOptions } from './options';
-import type { DafTexts, SpacerHeights, ColumnGeometry, LayoutCase, Amud } from './types';
 import {
+  type CommentaryException,
+  type CommentaryMeasure,
   measureCommentary,
   measureMainBottom,
-  type CommentaryMeasure,
-  type CommentaryException,
 } from './measure';
+import type { DafOptions } from './options';
+import type { Amud, ColumnGeometry, DafTexts, LayoutCase, SpacerHeights } from './types';
 
 export interface DafGeometry extends ColumnGeometry {
   topWidth: number;
@@ -43,16 +43,28 @@ export function computeLayout(
   // text should flow from y=0 at full content width. Keep the normal top
   // region whenever at least one commentary is present so the surviving
   // commentary can anchor it in 'other' mode.
-  const startHeight = (hasInner || hasOuter) ? 4.3 * options.lineHeight.side : 0;
+  const startHeight = hasInner || hasOuter ? 4.3 * options.lineHeight.side : 0;
 
   // --- Pass 1a: default naturals (no exception) ------------------------------
   const innerNat0 = measureCommentary({
-    which: 'inner', html: texts.inner, options, amud, startHeight,
-    narrowBudget: Infinity, endBudget: 0, exception: 'none',
+    which: 'inner',
+    html: texts.inner,
+    options,
+    amud,
+    startHeight,
+    narrowBudget: Infinity,
+    endBudget: 0,
+    exception: 'none',
   });
   const outerNat0 = measureCommentary({
-    which: 'outer', html: texts.outer, options, amud, startHeight,
-    narrowBudget: Infinity, endBudget: 0, exception: 'none',
+    which: 'outer',
+    html: texts.outer,
+    options,
+    amud,
+    startHeight,
+    narrowBudget: Infinity,
+    endBudget: 0,
+    exception: 'none',
   });
 
   // --- Detect exception ------------------------------------------------------
@@ -66,33 +78,59 @@ export function computeLayout(
   let innerExc: CommentaryException = 'none';
   let outerExc: CommentaryException = 'none';
   if (!hasInner && hasOuter) {
-    exception = 1; innerExc = 'short'; outerExc = 'other';
+    exception = 1;
+    innerExc = 'short';
+    outerExc = 'other';
   } else if (!hasOuter && hasInner) {
-    exception = 2; innerExc = 'other'; outerExc = 'short';
+    exception = 2;
+    innerExc = 'other';
+    outerExc = 'short';
   } else if (hasInner && hasOuter) {
     const innerTooShort = innerNat0.totalHeight <= startHeight;
     const outerTooShort = outerNat0.totalHeight <= startHeight;
     if (innerTooShort && !outerTooShort) {
-      exception = 1; innerExc = 'short'; outerExc = 'other';
+      exception = 1;
+      innerExc = 'short';
+      outerExc = 'other';
     } else if (outerTooShort && !innerTooShort) {
-      exception = 2; innerExc = 'other'; outerExc = 'short';
+      exception = 2;
+      innerExc = 'other';
+      outerExc = 'short';
     }
   }
 
   // --- Pass 1b (if exception): re-measure naturals with exception layout -----
-  const innerNatural = exception ? measureCommentary({
-    which: 'inner', html: texts.inner, options, amud, startHeight,
-    narrowBudget: Infinity, endBudget: 0, exception: innerExc,
-  }) : innerNat0;
-  const outerNatural = exception ? measureCommentary({
-    which: 'outer', html: texts.outer, options, amud, startHeight,
-    narrowBudget: Infinity, endBudget: 0, exception: outerExc,
-  }) : outerNat0;
+  const innerNatural = exception
+    ? measureCommentary({
+        which: 'inner',
+        html: texts.inner,
+        options,
+        amud,
+        startHeight,
+        narrowBudget: Infinity,
+        endBudget: 0,
+        exception: innerExc,
+      })
+    : innerNat0;
+  const outerNatural = exception
+    ? measureCommentary({
+        which: 'outer',
+        html: texts.outer,
+        options,
+        amud,
+        startHeight,
+        narrowBudget: Infinity,
+        endBudget: 0,
+        exception: outerExc,
+      })
+    : outerNat0;
 
   // --- Pass 2: main bottom ---------------------------------------------------
   const mainBottom = measureMainBottom({
     html: texts.main,
-    options, amud, startHeight,
+    options,
+    amud,
+    startHeight,
     innerBottom: innerNatural.totalHeight,
     outerBottom: outerNatural.totalHeight,
   });
@@ -101,9 +139,7 @@ export function computeLayout(
   const minComm = Math.min(innerNatural.totalHeight, outerNatural.totalHeight);
   const maxComm = Math.max(innerNatural.totalHeight, outerNatural.totalHeight);
   const layoutCase: LayoutCase =
-    mainBottom <= minComm ? 'double-wrap'
-    : mainBottom < maxComm ? 'stairs'
-    : 'double-extend';
+    mainBottom <= minComm ? 'double-wrap' : mainBottom < maxComm ? 'stairs' : 'double-extend';
 
   const widenBudget = Math.max(0, mainBottom - startHeight);
 
@@ -117,7 +153,16 @@ export function computeLayout(
     endBudget: number,
   ): CommentaryMeasure => {
     if (natural.totalHeight <= mainBottom) return natural;
-    return measureCommentary({ which, html, options, amud, startHeight, narrowBudget, endBudget, exception: exc });
+    return measureCommentary({
+      which,
+      html,
+      options,
+      amud,
+      startHeight,
+      narrowBudget,
+      endBudget,
+      exception: exc,
+    });
   };
 
   let inner: CommentaryMeasure = innerNatural;
@@ -129,21 +174,45 @@ export function computeLayout(
   } else if (layoutCase === 'double-wrap') {
     // Shared end = shorter commentary's halfway overflow
     const innerHalf = measureCommentary({
-      which: 'inner', html: texts.inner, options, amud, startHeight,
-      narrowBudget: widenBudget, endBudget: Infinity, exception: innerExc,
+      which: 'inner',
+      html: texts.inner,
+      options,
+      amud,
+      startHeight,
+      narrowBudget: widenBudget,
+      endBudget: Infinity,
+      exception: innerExc,
     });
     const outerHalf = measureCommentary({
-      which: 'outer', html: texts.outer, options, amud, startHeight,
-      narrowBudget: widenBudget, endBudget: Infinity, exception: outerExc,
+      which: 'outer',
+      html: texts.outer,
+      options,
+      amud,
+      startHeight,
+      narrowBudget: widenBudget,
+      endBudget: Infinity,
+      exception: outerExc,
     });
     const sharedEnd = Math.min(innerHalf.endUsed, outerHalf.endUsed);
     inner = measureCommentary({
-      which: 'inner', html: texts.inner, options, amud, startHeight,
-      narrowBudget: widenBudget, endBudget: sharedEnd, exception: innerExc,
+      which: 'inner',
+      html: texts.inner,
+      options,
+      amud,
+      startHeight,
+      narrowBudget: widenBudget,
+      endBudget: sharedEnd,
+      exception: innerExc,
     });
     outer = measureCommentary({
-      which: 'outer', html: texts.outer, options, amud, startHeight,
-      narrowBudget: widenBudget, endBudget: sharedEnd, exception: outerExc,
+      which: 'outer',
+      html: texts.outer,
+      options,
+      amud,
+      startHeight,
+      narrowBudget: widenBudget,
+      endBudget: sharedEnd,
+      exception: outerExc,
     });
   }
 

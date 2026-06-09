@@ -1,174 +1,250 @@
+import { continuationLink, type FlowEdge } from '@corpus/core/context/link';
+import {
+  contextForAnchor,
+  formatContextForPrompt,
+  segsFromMarkInput,
+} from '@corpus/core/context/select';
+import { gatewayActive, gatewayStatus, wrapEnv } from '@corpus/core/llm/ai-gateway';
+import {
+  type BudgetScope,
+  budgetStatus,
+  checkBudget,
+  clearPauses,
+  isBudgetPaused,
+} from '@corpus/core/llm/budget';
+import {
+  type CostAttribution,
+  type LLMModelId,
+  type LLMResult,
+  type LLMUsage,
+  runLLM,
+} from '@corpus/core/llm/llm';
+import { costSplitUsd, normalizeUsage, costUsd as priceCostUsd } from '@corpus/core/llm/pricing';
+import {
+  DEFAULT_FALLBACK_CHAIN,
+  DEFAULT_MODEL,
+  isLLMModelId,
+  MODEL_PRESETS,
+} from '@corpus/core/llm/settings';
+import {
+  forwardSubgraph,
+  producerNodesFrom,
+  reverseDependencyIndex,
+  transitiveDependents,
+} from '@corpus/core/registry/depGraph';
 import { Hono } from 'hono';
 import {
-  sefariaAPI,
-  adjacentAmud,
-  type TalmudPageData,
-  type RishonimBundle,
-  type HalachicRefBundle,
-  type HebrewBooksDaf,
-} from '../lib/sefref';
-import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
-import { collectContext, type SourceTiming } from './context-providers';
-import { readJsonBody, getRabbiEntryOr404 } from './http-helpers';
-import type { Bindings, JobMessage } from './types';
-import { recordTelemetry, runTelemetryRec, classifyError, type TelemetryRecord } from './telemetry';
-import { fetchCommentaryWorks, registerCommentaryRoutes } from './commentary';
-import { curatedParallelsForDaf, type CuratedYerushalmiParallel } from '../lib/yerushalmiParallels';
-import { flattenYerushalmiOutline, alignOutlineToSegments, yerushalmiFloorGroups, type YerushalmiFloorGroup } from '../lib/yerushalmiAlign';
-import { placeRevachWithAi } from './revach-ai-place';
-import { formatContextForPrompt, contextForAnchor, segsFromMarkInput } from '@corpus/core/context/select';
-import { continuationLink, type FlowEdge } from '@corpus/core/context/link';
-import { formatGroundedRefsForPrompt, buildDerivation } from '../lib/halacha/codifiers';
-import { dafSpine } from '../lib/context/spine';
-import { dafLinks, type DafLink } from '../lib/context/dafLinks';
-import { spineLinks } from '../lib/context/spineLinks';
-import { buildCrossFlowPrompt, parseCrossFlowEdges, crossFlowToLinks, type CrossFlow, type CrossFlowEdge, type CrossFlowSection } from '../lib/typing/crossFlow';
-import { iterAmudim } from '../lib/sefref/amudim';
-import { producerNodesFrom, reverseDependencyIndex, transitiveDependents, forwardSubgraph } from '@corpus/core/registry/depGraph';
-import { aiMatchToSegments } from './context-match';
-import type { MatchInput } from '../lib/context/anchor/ai-prompt';
-import {
-  getHebrewBooksDafCached,
-  getSefariaPageCached,
-  getRishonimCached,
-  getHalachaRefsCached,
-  getCodeSourcesCached,
-  getSaCommentaryCached,
-  getDafTopicsCached,
-  getMishnaBundleCached,
-  getYerushalmiCached,
-  getSefariaSegmentsCached,
-  getDafyomiContentCached,
-  type CacheTrack,
-  type SefariaSegments,
-} from './source-cache';
-import {
-  runWarmCron,
-  readWarmCursor,
-  warmProgressProcessed,
-  getWarmTotal,
-  readSefariaWarmCursor,
-  sefariaWarmProgressProcessed,
-} from './warm-cron';
-import { runBacklogBackfill } from './backfill-backlog';
-import {
-  computeCacheStats,
-  readCachedCacheStats,
-  writeCachedCacheStats,
-  isFresh,
-  cacheGcTargets,
-} from './cache-stats';
-import { dafCostReport } from './daf-cost';
-import { gcStaleCache } from './cache-gc';
-import { runYomiWarmCron } from './yomi-cron';
-import { GENERATION_IDS, GENERATION_BY_ID, GENERATIONS_PROMPT_REFERENCE, type GenerationId } from '../client/generations';
+  GENERATION_BY_ID,
+  GENERATION_IDS,
+  GENERATIONS_PROMPT_REFERENCE,
+  type GenerationId,
+} from '../client/generations';
 import { stripEchoParens } from '../client/hebraize';
 import {
-  RABBI_PLACES,
-  resolveRabbi,
-  resolveRabbiByName,
-  resolveRabbiName,
-  type RabbiPlacesEntry,
-  type Movement,
-} from './rabbi-places';
-import type { EntityPiece } from '../lib/registry/entity';
-import { extractTalmudContent } from '../lib/sefref/alignment';
-import { fetchHebrewBooksDaf } from '../lib/sefref/hebrewbooks/client';
+  dedupeBy,
+  dedupeByRange,
+  type MoveLike,
+  partitionSections,
+  selectSectionMoves,
+} from '../lib/argumentMoves';
+import { runPasses } from '../lib/check/passes';
+import type { MatchInput } from '../lib/context/anchor/ai-prompt';
+import { type DafLink, dafLinks } from '../lib/context/dafLinks';
+import { dafSpine } from '../lib/context/spine';
+import { spineLinks } from '../lib/context/spineLinks';
+import { buildDerivation, formatGroundedRefsForPrompt } from '../lib/halacha/codifiers';
 import {
-  RABBI_ENRICH_SYSTEM_PROMPT,
   buildRabbiEnrichUserMessage,
   type LocalRabbiInput,
+  RABBI_ENRICH_SYSTEM_PROMPT,
   type SefariaInput,
 } from '../lib/rabbi/prompt';
 import {
-  SCHEMA_VERSION as RABBI_SCHEMA_VERSION,
-  validateLLMRabbiOutput,
   type EnrichedRabbi as EnrichedRabbiRecord,
   type LLMRabbiOutput,
+  SCHEMA_VERSION as RABBI_SCHEMA_VERSION,
+  validateLLMRabbiOutput,
 } from '../lib/rabbi/types';
-import { wrapEnv, gatewayStatus, gatewayActive } from '@corpus/core/llm/ai-gateway';
-import { runLLM, type LLMModelId, type LLMResult, type LLMUsage, type CostAttribution } from '@corpus/core/llm/llm';
-import { checkBudget, isBudgetPaused, budgetStatus, clearPauses, type BudgetScope } from '@corpus/core/llm/budget';
-import { lookupRelationships, groundRabbiInstances, groundRabbiNames } from './rabbi-graph';
-import { runPasses } from '../lib/check/passes';
-import { composeTypeProfile, sectionHasNamedSpeaker, type LayerId, type LayerInstance, type TypeProfile, type UnitRange } from '../lib/typing/profile';
-import { findMarkers } from '../lib/typing/markers';
-import { noteLintAttempt, readLintFailures, type LintFailuresSummary } from './lint-failures';
-import { partitionSections, dedupeByRange, dedupeBy, selectSectionMoves, type MoveLike } from '../lib/argumentMoves';
-import { DEFAULT_MODEL, DEFAULT_FALLBACK_CHAIN, isLLMModelId, MODEL_PRESETS } from '@corpus/core/llm/settings';
-import { costUsd as priceCostUsd, costSplitUsd, normalizeUsage } from '@corpus/core/llm/pricing';
-import { recordUsage, readUsageSummary } from './usage-rollup';
-import { recordUnknownRabbi, recordObservedPlace, recordObservedConcept, listUnknownRabbis, listObservedPlaces, listObservedConcepts } from './unknown-registry';
+import type { EntityPiece } from '../lib/registry/entity';
+import {
+  adjacentAmud,
+  type HalachicRefBundle,
+  type HebrewBooksDaf,
+  type RishonimBundle,
+  sefariaAPI,
+  type TalmudPageData,
+} from '../lib/sefref';
+import { extractTalmudContent } from '../lib/sefref/alignment';
+import { iterAmudim } from '../lib/sefref/amudim';
+import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
+import { fetchHebrewBooksDaf } from '../lib/sefref/hebrewbooks/client';
+import {
+  type BridgeSection,
+  buildBridgePrompt,
+  type DafBridge,
+  edgeOfTractateBridge,
+  hadranBridge,
+  llmBridge,
+} from '../lib/typing/bridge';
+import {
+  buildCrossFlowPrompt,
+  type CrossFlow,
+  type CrossFlowEdge,
+  type CrossFlowSection,
+  crossFlowToLinks,
+  parseCrossFlowEdges,
+} from '../lib/typing/crossFlow';
+import { findHadranSegments, findMarkers } from '../lib/typing/markers';
+import {
+  composeTypeProfile,
+  type LayerId,
+  type LayerInstance,
+  sectionHasNamedSpeaker,
+  type TypeProfile,
+  type UnitRange,
+} from '../lib/typing/profile';
+import {
+  alignOutlineToSegments,
+  flattenYerushalmiOutline,
+  type YerushalmiFloorGroup,
+  yerushalmiFloorGroups,
+} from '../lib/yerushalmiAlign';
+import { type CuratedYerushalmiParallel, curatedParallelsForDaf } from '../lib/yerushalmiParallels';
 import { fetchGatewayCost } from './aigw-analytics';
-import { fetchZoneActivity } from './cf-zone-analytics';
-import { lookupGloss } from './word-glosses';
+import { runBacklogBackfill } from './backfill-backlog';
+import { gcStaleCache } from './cache-gc';
 import {
-  readMark, listMarks, writeMark, deleteMark, validateMark,
-  readEnrichment, listEnrichments, writeEnrichment, deleteEnrichment, validateEnrichment,
-  type MarkDefinition as KvMarkDefinition,
-  type EnrichmentDefinition,
-} from './studio-registry';
-import { CODE_MARKS, CODE_ENRICHMENTS, findCodeMark, findCodeEnrichment } from './code-marks';
-import { computeCoverage, isKnownTractate } from './spine-coverage';
-import {
-  ENRICH_JSON_SCHEMA,
-  TRANSLATE_BIO_JSON_SCHEMA,
-  ARGUMENT_BRIDGE_OUTPUT_SCHEMA,
-  ARGUMENT_CROSS_FLOW_OUTPUT_SCHEMA,
-} from './output-schemas';
-import { findHadranSegments } from '../lib/typing/markers';
-import { hadranBridge, edgeOfTractateBridge, buildBridgePrompt, llmBridge, type DafBridge, type BridgeSection } from '../lib/typing/bridge';
-import type {
-  MarkDefinition as SchemaMarkDefinition,
-  EnrichmentDefinition as SchemaEnrichmentDefinition,
-  EnrichmentDependency,
-  MarkDependency,
-  LLMExtractor,
-} from './studio-schema';
-import {
-  keyForMark,
+  instanceIdOf,
+  keyForAnalyzeSkeleton,
+  keyForBridge,
+  keyForCommentaries,
+  keyForCrossFlow,
+  keyForCtxMatch,
   keyForEnrichment,
   keyForGemara,
-  keyForCommentaries,
-  instanceIdOf,
-  qualifierHash,
-  normalizeQualifier,
-  previousVersionKey,
-  recipeHash,
-  keyForRabbiEnriched,
-  keyForRabbiWikidata,
-  keyForRabbiWikiBio,
-  keyForAnalyzeSkeleton,
-  keyForRegion,
-  keyForMesorah,
-  keyForReferences,
-  keyForBridge,
-  keyForCrossFlow,
-  keyForSpineLinks,
-  keyForPasuk,
-  keyForCtxMatch,
-  keyForTranslate,
   keyForHebraize,
+  keyForMark,
+  keyForMesorah,
+  keyForPasuk,
+  keyForRabbiAcademyRoster,
   keyForRabbiBioBySlug,
   keyForRabbiBioOnDaf,
-  keyForRabbiGraph,
   keyForRabbiCohort,
-  keyForRabbiPlacesIndex,
-  keyForRabbiAcademyRoster,
+  keyForRabbiEnriched,
+  keyForRabbiGraph,
   keyForRabbiObs,
   keyForRabbiObsDirty,
+  keyForRabbiPlacesIndex,
+  keyForRabbiWikiBio,
+  keyForRabbiWikidata,
+  keyForReferences,
+  keyForRegion,
+  keyForSpineLinks,
+  keyForTranslate,
+  normalizeQualifier,
   prefixForRabbiObs,
+  previousVersionKey,
+  qualifierHash,
+  recipeHash,
 } from './cache-keys';
 import {
+  cacheGcTargets,
+  computeCacheStats,
+  isFresh,
+  readCachedCacheStats,
+  writeCachedCacheStats,
+} from './cache-stats';
+import { fetchZoneActivity } from './cf-zone-analytics';
+import { CODE_ENRICHMENTS, CODE_MARKS, findCodeEnrichment, findCodeMark } from './code-marks';
+import { fetchCommentaryWorks, registerCommentaryRoutes } from './commentary';
+import { aiMatchToSegments } from './context-match';
+import { collectContext, type SourceTiming } from './context-providers';
+import { dafCostReport } from './daf-cost';
+import { getRabbiEntryOr404, readJsonBody } from './http-helpers';
+import { type LintFailuresSummary, noteLintAttempt, readLintFailures } from './lint-failures';
+import {
+  ARGUMENT_BRIDGE_OUTPUT_SCHEMA,
+  ARGUMENT_CROSS_FLOW_OUTPUT_SCHEMA,
+  ENRICH_JSON_SCHEMA,
+  TRANSLATE_BIO_JSON_SCHEMA,
+} from './output-schemas';
+import { groundRabbiInstances, groundRabbiNames, lookupRelationships } from './rabbi-graph';
+import {
   buildObservationSlices,
-  resolveSegIdxs,
   normalizeForMatch,
-  type ResolvedRabbi,
-  type ResolvedPlace,
-  type RangeItem,
   type ObservationSlice,
+  type RangeItem,
+  type ResolvedPlace,
+  type ResolvedRabbi,
+  resolveSegIdxs,
 } from './rabbi-observations';
-
+import {
+  type Movement,
+  RABBI_PLACES,
+  type RabbiPlacesEntry,
+  resolveRabbi,
+  resolveRabbiByName,
+  resolveRabbiName,
+} from './rabbi-places';
+import { placeRevachWithAi } from './revach-ai-place';
+import {
+  type CacheTrack,
+  getCodeSourcesCached,
+  getDafTopicsCached,
+  getDafyomiContentCached,
+  getHalachaRefsCached,
+  getHebrewBooksDafCached,
+  getMishnaBundleCached,
+  getRishonimCached,
+  getSaCommentaryCached,
+  getSefariaPageCached,
+  getSefariaSegmentsCached,
+  getYerushalmiCached,
+  type SefariaSegments,
+} from './source-cache';
+import { computeCoverage, isKnownTractate } from './spine-coverage';
+import {
+  deleteEnrichment,
+  deleteMark,
+  type EnrichmentDefinition,
+  type MarkDefinition as KvMarkDefinition,
+  listEnrichments,
+  listMarks,
+  readEnrichment,
+  readMark,
+  validateEnrichment,
+  validateMark,
+  writeEnrichment,
+  writeMark,
+} from './studio-registry';
+import type {
+  EnrichmentDependency,
+  LLMExtractor,
+  MarkDependency,
+  EnrichmentDefinition as SchemaEnrichmentDefinition,
+  MarkDefinition as SchemaMarkDefinition,
+} from './studio-schema';
+import { classifyError, recordTelemetry, runTelemetryRec, type TelemetryRecord } from './telemetry';
+import type { Bindings, JobMessage } from './types';
+import {
+  listObservedConcepts,
+  listObservedPlaces,
+  listUnknownRabbis,
+  recordObservedConcept,
+  recordObservedPlace,
+  recordUnknownRabbi,
+} from './unknown-registry';
+import { readUsageSummary, recordUsage } from './usage-rollup';
+import {
+  getWarmTotal,
+  readSefariaWarmCursor,
+  readWarmCursor,
+  runWarmCron,
+  sefariaWarmProgressProcessed,
+  warmProgressProcessed,
+} from './warm-cron';
+import { lookupGloss } from './word-glosses';
+import { runYomiWarmCron } from './yomi-cron';
 
 // `Bindings` and `JobMessage` now live in ./types (a neutral module so route
 // slices / telemetry / crons can import them without cycling through this entry
@@ -195,7 +271,10 @@ function timingSafeEqualStr(a: string, b: string): boolean {
  * provisions the secret. The public daf app never needs these, so locking them
  * by default doesn't degrade it.
  */
-function isTrustedRequest(c: { req: { header: (k: string) => string | undefined }; env: Bindings }): boolean {
+function isTrustedRequest(c: {
+  req: { header: (k: string) => string | undefined };
+  env: Bindings;
+}): boolean {
   const secret = c.env.STUDIO_SECRET;
   if (!secret) return false;
   const presented =
@@ -220,7 +299,10 @@ function pauseErrorMessage(scope?: BudgetScope): string {
 }
 
 function stripHtmlServer(html: string): string {
-  return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  return html
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 // Used by /api/pasuk: Sefaria's Tanakh text comes with HTML entities (thinsp,
@@ -267,7 +349,9 @@ async function fetchPasukHebrewForPrompt(env: Bindings, ref: string): Promise<st
       try {
         const parsed = JSON.parse(hit) as { he?: string };
         if (parsed.he) return parsed.he;
-      } catch { /* fall through to live fetch */ }
+      } catch {
+        /* fall through to live fetch */
+      }
     }
   }
   try {
@@ -287,7 +371,15 @@ async function fetchPasukHebrewForPrompt(env: Bindings, ref: string): Promise<st
         if (verse > 1) prevRef = `${book} ${chap}:${verse - 1}`;
         nextRef = `${book} ${chap}:${verse + 1}`;
       }
-      const cached = { ref: canonical, heRef: res.heRef ?? null, he, en, prevRef, nextRef, book: res.book ?? null };
+      const cached = {
+        ref: canonical,
+        heRef: res.heRef ?? null,
+        he,
+        en,
+        prevRef,
+        nextRef,
+        book: res.book ?? null,
+      };
       await cache.put(key, JSON.stringify(cached), { expirationTtl: 60 * 60 * 24 * 365 });
     }
     return he;
@@ -304,7 +396,12 @@ async function fetchPasukHebrewForPrompt(env: Bindings, ref: string): Promise<st
 interface StreamedResult {
   content: string;
   reasoning_content: string;
-  usage: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number; cost?: number } | null;
+  usage: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+    cost?: number;
+  } | null;
   finish_reason: string | null;
   prompt_chars: number;
   content_chars: number;
@@ -322,14 +419,23 @@ function extractJsonPayload(resp: unknown): string {
   return '';
 }
 
-interface KimiMessage { role: 'system' | 'user' | 'assistant'; content: string }
+interface KimiMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
 
 async function runKimiStreaming(
   env: Bindings,
   modelId: string,
   messages: KimiMessage[],
   maxTokens: number,
-  opts?: { temperature?: number; chatTemplateKwargs?: { enable_thinking?: boolean }; responseFormat?: unknown; tag?: string; attribution?: CostAttribution },
+  opts?: {
+    temperature?: number;
+    chatTemplateKwargs?: { enable_thinking?: boolean };
+    responseFormat?: unknown;
+    tag?: string;
+    attribution?: CostAttribution;
+  },
 ): Promise<StreamedResult> {
   const t0 = Date.now();
   const promptChars = messages.reduce((s, m) => s + m.content.length, 0);
@@ -340,7 +446,9 @@ async function runKimiStreaming(
     max_tokens: maxTokens,
     temperature: opts?.temperature ?? 0.1,
     thinking: typeof enableThinking === 'boolean' ? enableThinking : undefined,
-    response_format: opts?.responseFormat as { type: 'json_schema'; json_schema: unknown } | undefined,
+    response_format: opts?.responseFormat as
+      | { type: 'json_schema'; json_schema: unknown }
+      | undefined,
     stream: true,
     tag: opts?.tag,
     attribution: opts?.attribution,
@@ -394,18 +502,22 @@ function rishonimBlock(bundle: RishonimBundle, perCommentatorCap = 2500): string
   const parts = entries.map(([label, snip]) => {
     const he = sliceStr(snip.hebrew, perCommentatorCap);
     const en = sliceStr(snip.english, perCommentatorCap);
-    const body = [
-      he && `<hebrew>${he}</hebrew>`,
-      en && `<english>${en}</english>`,
-    ].filter(Boolean).join('\n');
+    const body = [he && `<hebrew>${he}</hebrew>`, en && `<english>${en}</english>`]
+      .filter(Boolean)
+      .join('\n');
     return `<commentator name="${label}" ref="${snip.ref}">\n${body}\n</commentator>`;
   });
   return `<rishonim_commentary>\n${parts.join('\n')}\n</rishonim_commentary>`;
 }
 
 const STRATEGY_NAMES = [
-  'rabbis', 'references', 'parallels', 'commentaries',
-  'bigger-picture', 'background', 'synthesize',
+  'rabbis',
+  'references',
+  'parallels',
+  'commentaries',
+  'bigger-picture',
+  'background',
+  'synthesize',
 ] as const;
 
 const app = new Hono<{ Bindings: Bindings }>();
@@ -450,11 +562,19 @@ app.all('/mcp', async (c) => {
       try {
         const res = await app.request(
           u.pathname + u.search,
-          { method, headers, body: body == null || method === 'GET' ? undefined : JSON.stringify(body) },
+          {
+            method,
+            headers,
+            body: body == null || method === 'GET' ? undefined : JSON.stringify(body),
+          },
           c.env,
         );
         const text = await res.text();
-        try { return JSON.parse(text); } catch { return text; }
+        try {
+          return JSON.parse(text);
+        } catch {
+          return text;
+        }
       } catch (err) {
         return { error: err instanceof Error ? err.message : String(err) };
       }
@@ -526,7 +646,9 @@ app.get('/api/admin/llm-settings', (c) => {
     settings: {
       defaultModel,
       fallbackChain: DEFAULT_FALLBACK_CHAIN,
-      source: isLLMModelId(fromEnv) ? 'env (wrangler.toml DEFAULT_LLM_MODEL)' : 'code (settings.ts)',
+      source: isLLMModelId(fromEnv)
+        ? 'env (wrangler.toml DEFAULT_LLM_MODEL)'
+        : 'code (settings.ts)',
       editable: false,
     },
     presets: MODEL_PRESETS,
@@ -548,10 +670,7 @@ app.get('/api/marks', async (c) => {
   // (a saved KV definition overrides a built-in with the same id).
   const kv = await listMarks(c.env);
   const kvIds = new Set(kv.map((m) => m.id));
-  const merged = [
-    ...CODE_MARKS.filter((m) => !kvIds.has(m.id)),
-    ...kv,
-  ];
+  const merged = [...CODE_MARKS.filter((m) => !kvIds.has(m.id)), ...kv];
   return c.json({ marks: merged });
 });
 app.get('/api/marks/:id', async (c) => {
@@ -584,15 +703,19 @@ app.delete('/api/marks/:id', async (c) => {
 // collides with the single-param `/api/marks/:id` definition route above.
 // Segment-anchored gutter marks (instances carry startSegIdx/endSegIdx).
 const GUTTER_MARKS: { id: string; kind: string }[] = [
-  { id: 'argument', kind: 'argument' }, { id: 'halacha', kind: 'halacha' },
-  { id: 'chart', kind: 'chart' }, { id: 'aggadata', kind: 'aggadata' },
-  { id: 'yerushalmi', kind: 'yerushalmi' }, { id: 'pesukim', kind: 'pesuk' },
+  { id: 'argument', kind: 'argument' },
+  { id: 'halacha', kind: 'halacha' },
+  { id: 'chart', kind: 'chart' },
+  { id: 'aggadata', kind: 'aggadata' },
+  { id: 'yerushalmi', kind: 'yerushalmi' },
+  { id: 'pesukim', kind: 'pesuk' },
   { id: 'rishonim', kind: 'rishonim' },
 ];
 // Name/phrase-anchored marks (markInstances: { excerpt, fields:{name,nameHe,…} }).
 // No segment indices — the workbench locates them by matching nameHe in the text.
 const NAME_MARKS: { id: string; kind: string }[] = [
-  { id: 'rabbi', kind: 'rabbi' }, { id: 'places', kind: 'place' },
+  { id: 'rabbi', kind: 'rabbi' },
+  { id: 'places', kind: 'place' },
 ];
 function instanceLabel(fields: Record<string, unknown> | undefined): string {
   const f = fields ?? {};
@@ -608,10 +731,16 @@ app.get('/api/marks/:tractate/:page', async (c) => {
   const page = c.req.param('page');
   const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
   const marks = [] as unknown[];
-  const metaOf = (hit: RunResult | null) => hit ? {
-    cache_hit: hit.cache_hit, elapsed_ms: hit.elapsed_ms, model: hit.model,
-    recipe_hash: hit.recipe_hash ?? null, cost: hit.cost ?? null,
-  } : null;
+  const metaOf = (hit: RunResult | null) =>
+    hit
+      ? {
+          cache_hit: hit.cache_hit,
+          elapsed_ms: hit.elapsed_ms,
+          model: hit.model,
+          recipe_hash: hit.recipe_hash ?? null,
+          cost: hit.cost ?? null,
+        }
+      : null;
   for (const gm of GUTTER_MARKS) {
     const def = findCodeMark(gm.id);
     if (!def) continue;
@@ -620,19 +749,46 @@ app.get('/api/marks/:tractate/:page', async (c) => {
     const raw = Array.isArray(parsed?.instances) ? (parsed!.instances as RawInstance[]) : [];
     const instances = raw
       .filter((i) => typeof i.startSegIdx === 'number' && typeof i.endSegIdx === 'number')
-      .map((i) => ({ startSegIdx: i.startSegIdx as number, endSegIdx: i.endSegIdx as number, label: instanceLabel(i.fields) }));
-    marks.push({ id: gm.id, kind: gm.kind, label: def.label ?? gm.id, anchorBy: 'segment', cached: !!hit, instances, meta: metaOf(hit) });
+      .map((i) => ({
+        startSegIdx: i.startSegIdx as number,
+        endSegIdx: i.endSegIdx as number,
+        label: instanceLabel(i.fields),
+      }));
+    marks.push({
+      id: gm.id,
+      kind: gm.kind,
+      label: def.label ?? gm.id,
+      anchorBy: 'segment',
+      cached: !!hit,
+      instances,
+      meta: metaOf(hit),
+    });
   }
   for (const nm of NAME_MARKS) {
     const def = findCodeMark(nm.id);
     if (!def) continue;
     const hit = await readCachedResult(c.env, keyForMark(def, tractate, page, lang));
     const parsed = hit?.parsed as { instances?: unknown } | null;
-    const raw = Array.isArray(parsed?.instances) ? (parsed!.instances as { excerpt?: unknown; fields?: Record<string, unknown> }[]) : [];
+    const raw = Array.isArray(parsed?.instances)
+      ? (parsed!.instances as { excerpt?: unknown; fields?: Record<string, unknown> }[])
+      : [];
     const instances = raw
-      .map((i) => ({ name: str(i.fields?.name), nameHe: str(i.fields?.nameHe), generation: str(i.fields?.generation), excerpt: str(i.excerpt) }))
+      .map((i) => ({
+        name: str(i.fields?.name),
+        nameHe: str(i.fields?.nameHe),
+        generation: str(i.fields?.generation),
+        excerpt: str(i.excerpt),
+      }))
       .filter((x) => x.nameHe || x.name);
-    marks.push({ id: nm.id, kind: nm.kind, label: def.label ?? nm.id, anchorBy: 'name', cached: !!hit, instances, meta: metaOf(hit) });
+    marks.push({
+      id: nm.id,
+      kind: nm.kind,
+      label: def.label ?? nm.id,
+      anchorBy: 'name',
+      cached: !!hit,
+      instances,
+      meta: metaOf(hit),
+    });
   }
   return c.json({ tractate, page, lang, marks });
 });
@@ -656,10 +812,17 @@ app.get('/api/checks/:tractate/:page', async (c) => {
   let total = 0;
   for (const def of marks) {
     const hit = await readCachedResult(c.env, keyForMark(def, tractate, page, lang));
-    if (!hit || hit.parsed == null) { results.push({ mark_id: def.id, cached: false, issues: [] }); continue; }
+    if (!hit || hit.parsed == null) {
+      results.push({ mark_id: def.id, cached: false, issues: [] });
+      continue;
+    }
     // Clone so the idempotent transform re-runs don't mutate the cached object.
     const { issues } = await runPasses(def.passes ?? [], structuredClone(hit.parsed), {
-      tractate, page, segmentsHe: slice.segments_he, defId: def.id, lang,
+      tractate,
+      page,
+      segmentsHe: slice.segments_he,
+      defId: def.id,
+      lang,
     });
     total += issues.length;
     results.push({ mark_id: def.id, cached: true, issues });
@@ -681,7 +844,12 @@ app.get('/api/checks/:tractate/:page', async (c) => {
 // section typing — it shows, on real content, that e.g. the Ashmedai story is
 // narrative-primary (not a voice dispute). Gating + new enrichments build on it.
 type RawInstance = { startSegIdx?: unknown; endSegIdx?: unknown; fields?: Record<string, unknown> };
-async function readMarkInstances(env: Bindings, markId: string, tractate: string, page: string): Promise<RawInstance[]> {
+async function readMarkInstances(
+  env: Bindings,
+  markId: string,
+  tractate: string,
+  page: string,
+): Promise<RawInstance[]> {
   const def = findCodeMark(markId);
   if (!def) return [];
   const hit = await readCachedResult(env, keyForMark(def, tractate, page, 'en'));
@@ -693,13 +861,21 @@ function toLayerInstances(layer: LayerId, insts: RawInstance[]): LayerInstance[]
   insts.forEach((i, idx) => {
     if (typeof i.startSegIdx !== 'number' || typeof i.endSegIdx !== 'number') return;
     const f = i.fields ?? {};
-    const id = (typeof f.title === 'string' && f.title) || (typeof f.topic === 'string' && f.topic)
-      || (typeof f.theme === 'string' && f.theme) || (typeof f.excerpt === 'string' && f.excerpt) || String(idx);
+    const id =
+      (typeof f.title === 'string' && f.title) ||
+      (typeof f.topic === 'string' && f.topic) ||
+      (typeof f.theme === 'string' && f.theme) ||
+      (typeof f.excerpt === 'string' && f.excerpt) ||
+      String(idx);
     out.push({ layer, instanceId: id, startSegIdx: i.startSegIdx, endSegIdx: i.endSegIdx });
   });
   return out;
 }
-async function buildDafTypeProfiles(env: Bindings, tractate: string, page: string): Promise<(TypeProfile & { title?: string })[]> {
+async function buildDafTypeProfiles(
+  env: Bindings,
+  tractate: string,
+  page: string,
+): Promise<(TypeProfile & { title?: string })[]> {
   const sections = await readMarkInstances(env, 'argument', tractate, page);
   const moves = await readMarkInstances(env, 'argument-move', tractate, page);
   const overlays: LayerInstance[] = [
@@ -713,16 +889,25 @@ async function buildDafTypeProfiles(env: Bindings, tractate: string, page: strin
   // `register: mishnah`, else `gemara`.
   const mishnaBundle = await getMishnaBundleCached(env.CACHE, tractate, page);
   const mishnaSegs = new Set<number>();
-  for (const m of mishnaBundle) for (let s = m.anchorStartSeg; s <= m.anchorEndSeg; s++) mishnaSegs.add(s);
+  for (const m of mishnaBundle)
+    for (let s = m.anchorStartSeg; s <= m.anchorEndSeg; s++) mishnaSegs.add(s);
   const voicesDef = findCodeEnrichment('argument.voices');
   const profiles: (TypeProfile & { title?: string })[] = [];
   for (const sec of sections) {
     if (typeof sec.startSegIdx !== 'number' || typeof sec.endSegIdx !== 'number') continue;
-    const unit: UnitRange = { tractate, page, startSegIdx: sec.startSegIdx, endSegIdx: sec.endSegIdx };
+    const unit: UnitRange = {
+      tractate,
+      page,
+      startSegIdx: sec.startSegIdx,
+      endSegIdx: sec.endSegIdx,
+    };
     let voices: { edges?: { kind?: string }[] } | null = null;
     if (voicesDef) {
       const iid = await instanceIdOf(sec);
-      const vhit = await readCachedResult(env, keyForEnrichment(voicesDef, iid, { tractate, page }));
+      const vhit = await readCachedResult(
+        env,
+        keyForEnrichment(voicesDef, iid, { tractate, page }),
+      );
       voices = (vhit?.parsed as { edges?: { kind?: string }[] }) ?? null;
     }
     // When the move mark isn't cached yet (`moves` empty), we can't tell named
@@ -730,8 +915,12 @@ async function buildDafTypeProfiles(env: Bindings, tractate: string, page: strin
     // (unknown → not suppressed) rather than mislabel a cold daf's real dispute
     // as anonymous. Only with moves actually loaded does an empty section mean
     // "no named speaker".
-    const hasNamedSpeaker = moves.length > 0 ? sectionHasNamedSpeaker(moves, sec.startSegIdx, sec.endSegIdx) : undefined;
-    profiles.push({ ...composeTypeProfile(unit, overlays, { voices, mishnaSegs, hasNamedSpeaker }), title: typeof sec.fields?.title === 'string' ? sec.fields.title : undefined });
+    const hasNamedSpeaker =
+      moves.length > 0 ? sectionHasNamedSpeaker(moves, sec.startSegIdx, sec.endSegIdx) : undefined;
+    profiles.push({
+      ...composeTypeProfile(unit, overlays, { voices, mishnaSegs, hasNamedSpeaker }),
+      title: typeof sec.fields?.title === 'string' ? sec.fields.title : undefined,
+    });
   }
   return profiles;
 }
@@ -757,43 +946,89 @@ async function computeDafBridge(env: Bindings, tractate: string, page: string): 
   const to = { tractate, page: nextPage };
   const cache = env.CACHE;
   const key = keyForBridge(tractate, page);
-  if (cache) { const c = await cache.get(key); if (c) { try { return JSON.parse(c) as DafBridge; } catch { /* recompute */ } } }
+  if (cache) {
+    const c = await cache.get(key);
+    if (c) {
+      try {
+        return JSON.parse(c) as DafBridge;
+      } catch {
+        /* recompute */
+      }
+    }
+  }
 
   // Deterministic: a Hadran in the daf's final segment(s) closes the perek.
   const slice = await getGemaraSlice(env, tractate, page, false);
   const hadran = findHadranSegments(slice.segments_he);
-  const endsWithHadran = hadran.length > 0 && hadran[hadran.length - 1] >= slice.segments_he.length - 2;
+  const endsWithHadran =
+    hadran.length > 0 && hadran[hadran.length - 1] >= slice.segments_he.length - 2;
   let bridge = hadranBridge(from, to, endsWithHadran);
 
   if (!bridge) {
     const str = (v: unknown): string => (typeof v === 'string' ? v : '');
     const numSeg = (i: RawInstance) => (typeof i.startSegIdx === 'number' ? i.startSegIdx : -1);
-    const prev = (await readMarkInstances(env, 'argument', tractate, page)).filter((i) => numSeg(i) >= 0);
-    const next = (await readMarkInstances(env, 'argument', tractate, nextPage)).filter((i) => numSeg(i) >= 0);
+    const prev = (await readMarkInstances(env, 'argument', tractate, page)).filter(
+      (i) => numSeg(i) >= 0,
+    );
+    const next = (await readMarkInstances(env, 'argument', tractate, nextPage)).filter(
+      (i) => numSeg(i) >= 0,
+    );
     const prevLast = prev.length ? prev.reduce((a, b) => (numSeg(b) > numSeg(a) ? b : a)) : null;
     const nextFirst = next.length ? next.reduce((a, b) => (numSeg(b) < numSeg(a) ? b : a)) : null;
     if (!prevLast || !nextFirst) {
-      bridge = { from, to, continues: false, kind: 'new-topic', via: 'no-data', note: 'argument sections not warmed for both dapim' };
+      bridge = {
+        from,
+        to,
+        continues: false,
+        kind: 'new-topic',
+        via: 'no-data',
+        note: 'argument sections not warmed for both dapim',
+      };
     } else {
-      const prevSec: BridgeSection = { title: str(prevLast.fields?.title), summary: str(prevLast.fields?.summary), excerpt: str(prevLast.fields?.endExcerpt) || str(prevLast.fields?.excerpt) };
-      const nextSec: BridgeSection = { title: str(nextFirst.fields?.title), summary: str(nextFirst.fields?.summary), excerpt: str(nextFirst.fields?.excerpt) };
+      const prevSec: BridgeSection = {
+        title: str(prevLast.fields?.title),
+        summary: str(prevLast.fields?.summary),
+        excerpt: str(prevLast.fields?.endExcerpt) || str(prevLast.fields?.excerpt),
+      };
+      const nextSec: BridgeSection = {
+        title: str(nextFirst.fields?.title),
+        summary: str(nextFirst.fields?.summary),
+        excerpt: str(nextFirst.fields?.excerpt),
+      };
       try {
         const res = await runLLM(env, {
           model: 'openrouter/deepseek/deepseek-v4-flash' as LLMModelId,
           messages: [
-            { role: 'system', content: 'You are a Talmud scholar judging whether a sugya continues across a daf boundary.' },
+            {
+              role: 'system',
+              content:
+                'You are a Talmud scholar judging whether a sugya continues across a daf boundary.',
+            },
             { role: 'user', content: buildBridgePrompt(prevSec, nextSec) },
           ],
-          max_tokens: 1500, temperature: 0.2,
+          max_tokens: 1500,
+          temperature: 0.2,
           response_format: { type: 'json_schema', json_schema: ARGUMENT_BRIDGE_OUTPUT_SCHEMA },
-          thinking: false, tag: 'argument-overview.bridge',
+          thinking: false,
+          tag: 'argument-overview.bridge',
           attribution: { kind: 'bridge', producerId: 'argument-overview.bridge', tractate, page },
         });
         let verdict: { continues?: unknown; note?: unknown } = {};
-        try { verdict = JSON.parse(res.content); } catch { /* fall through */ }
+        try {
+          verdict = JSON.parse(res.content);
+        } catch {
+          /* fall through */
+        }
         bridge = llmBridge(from, to, verdict);
       } catch {
-        bridge = { from, to, continues: false, kind: 'new-topic', via: 'no-data', note: 'bridge LLM unavailable' };
+        bridge = {
+          from,
+          to,
+          continues: false,
+          kind: 'new-topic',
+          via: 'no-data',
+          note: 'bridge LLM unavailable',
+        };
       }
     }
   }
@@ -838,7 +1073,11 @@ app.get('/api/spine/:tractate/:page', async (c) => {
 
 // Read the cached argument-overview.flow connections (section-index edges).
 // Empty when the daf hasn't been warmed — best-effort, never throws.
-async function readFlowConnections(env: Bindings, tractate: string, page: string): Promise<FlowEdge[]> {
+async function readFlowConnections(
+  env: Bindings,
+  tractate: string,
+  page: string,
+): Promise<FlowEdge[]> {
   try {
     const def = await loadEnrichmentDef(env, 'argument-overview.flow');
     if (!def) return [];
@@ -847,9 +1086,13 @@ async function readFlowConnections(env: Bindings, tractate: string, page: string
     const conns = (hit?.parsed as { connections?: unknown } | null)?.connections;
     if (!Array.isArray(conns)) return [];
     return (conns as Array<Record<string, unknown>>)
-      .filter((c) => typeof c.from === 'number' && typeof c.to === 'number' && typeof c.kind === 'string')
+      .filter(
+        (c) => typeof c.from === 'number' && typeof c.to === 'number' && typeof c.kind === 'string',
+      )
       .map((c) => ({ from: c.from as number, to: c.to as number, kind: c.kind as string }));
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 // The unified link layer for a daf: tractate-continuity (bridge), citations
@@ -880,7 +1123,9 @@ app.get('/api/links/:tractate/:page', async (c) => {
   // Argument sections, read once: their ranges place Revach refs (so 'cites'
   // links get a real segment source, not whole-daf), and their startSegIdx (in
   // reading order) resolves a flow edge's section index to a coordinate.
-  const sectionInstances = await readMarkInstances(c.env, 'argument', tractate, page).catch(() => []);
+  const sectionInstances = await readMarkInstances(c.env, 'argument', tractate, page).catch(
+    () => [],
+  );
   const sections = sectionInstances
     .filter((i) => typeof i.startSegIdx === 'number' && typeof i.endSegIdx === 'number')
     .map((i) => ({
@@ -944,26 +1189,46 @@ app.get('/api/spine-coverage/:tractate', async (c) => {
 // NEVER triggers compute — the spine aggregator reads across a whole tractate
 // and must not fan out 100+ LLM calls / spend. A cold bridge just leaves a gap
 // in the backbone, which fills in as bridges get warmed.
-async function readCachedBridge(env: Bindings, tractate: string, page: string): Promise<DafBridge | null> {
+async function readCachedBridge(
+  env: Bindings,
+  tractate: string,
+  page: string,
+): Promise<DafBridge | null> {
   if (!env.CACHE) return null;
   const c = await env.CACHE.get(keyForBridge(tractate, page));
   if (!c) return null;
-  try { return JSON.parse(c) as DafBridge; } catch { return null; }
+  try {
+    return JSON.parse(c) as DafBridge;
+  } catch {
+    return null;
+  }
 }
 
 // Read-only cross-daf flow for a daf (the section-level edges into the next
 // daf), or null if not yet computed. Like readCachedBridge: never triggers the
 // LLM — the tractate sweep only reads what has already been computed.
-async function readCachedCrossFlow(env: Bindings, tractate: string, page: string): Promise<CrossFlow | null> {
+async function readCachedCrossFlow(
+  env: Bindings,
+  tractate: string,
+  page: string,
+): Promise<CrossFlow | null> {
   if (!env.CACHE) return null;
   const c = await env.CACHE.get(keyForCrossFlow(tractate, page));
   if (!c) return null;
-  try { return JSON.parse(c) as CrossFlow; } catch { return null; }
+  try {
+    return JSON.parse(c) as CrossFlow;
+  } catch {
+    return null;
+  }
 }
 
 // Argument sections of a daf in reading order, with the parallel startSegIdx
 // list (so a section index resolves to a coordinate). Read-only.
-async function readSortedSections(env: Bindings, tractate: string, page: string): Promise<{ startSegs: number[]; sections: CrossFlowSection[] }> {
+async function readSortedSections(
+  env: Bindings,
+  tractate: string,
+  page: string,
+): Promise<{ startSegs: number[]; sections: CrossFlowSection[] }> {
   const insts = await readMarkInstances(env, 'argument', tractate, page).catch(() => []);
   const rows = insts
     .filter((i) => typeof i.startSegIdx === 'number')
@@ -973,7 +1238,10 @@ async function readSortedSections(env: Bindings, tractate: string, page: string)
       summary: typeof i.fields?.summary === 'string' ? i.fields.summary : undefined,
     }))
     .sort((a, b) => a.start - b.start);
-  return { startSegs: rows.map((r) => r.start), sections: rows.map((r) => ({ title: r.title, summary: r.summary })) };
+  return {
+    startSegs: rows.map((r) => r.start),
+    sections: rows.map((r) => ({ title: r.title, summary: r.summary })),
+  };
 }
 
 // Each argument section's rabbis, in reading order — sourced from the per-section
@@ -984,8 +1252,15 @@ async function readSortedSections(env: Bindings, tractate: string, page: string)
 // AND ambiguous homonyms we can't pin from the daf's cast (e.g. which Rav
 // Kahana), and unifies spelling variants onto one canonical slug so tracing is
 // exact. The chip shows the registry's canonical name. Read-only; cold → [].
-interface SectionRabbi { slug: string; name: string }
-async function readSectionRabbis(env: Bindings, tractate: string, page: string): Promise<{ start: number; title: string; rabbis: SectionRabbi[] }[]> {
+interface SectionRabbi {
+  slug: string;
+  name: string;
+}
+async function readSectionRabbis(
+  env: Bindings,
+  tractate: string,
+  page: string,
+): Promise<{ start: number; title: string; rabbis: SectionRabbi[] }[]> {
   const insts = await readMarkInstances(env, 'argument', tractate, page).catch(() => []);
   const voicesDef = findCodeEnrichment('argument.voices');
   // The daf's full rabbi cast (from the rabbi mark): names supply the relational
@@ -1000,7 +1275,11 @@ async function readSectionRabbis(env: Bindings, tractate: string, page: string):
     if (!nm) continue;
     if (!coRabbis.includes(nm)) coRabbis.push(nm);
     const key = nm.toLowerCase();
-    if (!genHint.has(key)) genHint.set(key, { nameHe: typeof f.nameHe === 'string' ? f.nameHe : undefined, generation: typeof f.generation === 'string' ? f.generation : undefined });
+    if (!genHint.has(key))
+      genHint.set(key, {
+        nameHe: typeof f.nameHe === 'string' ? f.nameHe : undefined,
+        generation: typeof f.generation === 'string' ? f.generation : undefined,
+      });
   }
   const rows: { start: number; title: string; rabbis: SectionRabbi[] }[] = [];
   for (const inst of insts) {
@@ -1008,16 +1287,27 @@ async function readSectionRabbis(env: Bindings, tractate: string, page: string):
     const rabbis: SectionRabbi[] = [];
     if (voicesDef) {
       const iid = await instanceIdOf(inst);
-      const vhit = await readCachedResult(env, keyForEnrichment(voicesDef, iid, { tractate, page }));
-      const voices = (vhit?.parsed as { voices?: { name?: unknown; nameHe?: unknown }[] } | null)?.voices;
+      const vhit = await readCachedResult(
+        env,
+        keyForEnrichment(voicesDef, iid, { tractate, page }),
+      );
+      const voices = (vhit?.parsed as { voices?: { name?: unknown; nameHe?: unknown }[] } | null)
+        ?.voices;
       if (Array.isArray(voices)) {
         // Same registry-first + relational resolver as the direct rabbi mark,
         // with the daf's cast as relational context (groundRabbiNames). A voice
         // is kept only if it resolves; the chip shows the canonical name.
         const items = voices
-          .map((v) => ({ name: typeof v.name === 'string' ? v.name.trim() : '', he: typeof v.nameHe === 'string' ? v.nameHe : undefined }))
+          .map((v) => ({
+            name: typeof v.name === 'string' ? v.name.trim() : '',
+            he: typeof v.nameHe === 'string' ? v.nameHe : undefined,
+          }))
           .filter((v) => v.name)
-          .map((v) => ({ name: v.name, nameHe: v.he ?? genHint.get(v.name.toLowerCase())?.nameHe, generation: genHint.get(v.name.toLowerCase())?.generation }));
+          .map((v) => ({
+            name: v.name,
+            nameHe: v.he ?? genHint.get(v.name.toLowerCase())?.nameHe,
+            generation: genHint.get(v.name.toLowerCase())?.generation,
+          }));
         const seen = new Set<string>();
         for (const g of groundRabbiNames(items, coRabbis)) {
           if (!g.slug || seen.has(g.slug)) continue; // drop unresolved/ambiguous + dupes
@@ -1026,7 +1316,11 @@ async function readSectionRabbis(env: Bindings, tractate: string, page: string):
         }
       }
     }
-    rows.push({ start: inst.startSegIdx as number, title: typeof inst.fields?.title === 'string' ? inst.fields.title : '', rabbis });
+    rows.push({
+      start: inst.startSegIdx as number,
+      title: typeof inst.fields?.title === 'string' ? inst.fields.title : '',
+      rabbis,
+    });
   }
   return rows.sort((a, b) => a.start - b.start);
 }
@@ -1036,7 +1330,11 @@ async function readSectionRabbis(env: Bindings, tractate: string, page: string):
 // PREVIOUS daf can resolve into it), and its cached cross-daf edges into the
 // next daf. No compute — same dafLinks() the per-daf /api/links uses, minus the
 // live context pool + commentary (not cached per daf; deferred).
-interface DafParts { withinLinks: DafLink[]; startSegs: number[]; crossEdges: CrossFlowEdge[] }
+interface DafParts {
+  withinLinks: DafLink[];
+  startSegs: number[];
+  crossEdges: CrossFlowEdge[];
+}
 async function readDafParts(env: Bindings, tractate: string, page: string): Promise<DafParts> {
   const { startSegs } = await readSortedSections(env, tractate, page);
   const flowEdges = await readFlowConnections(env, tractate, page);
@@ -1044,7 +1342,13 @@ async function readDafParts(env: Bindings, tractate: string, page: string): Prom
   const cross = await readCachedCrossFlow(env, tractate, page);
   const withinLinks = dafLinks(
     { tractate, page },
-    { continuesTo: bridge?.continues ? bridge.to : null, items: [], flowEdges, sectionStartSegs: startSegs, commentaryWorks: [] },
+    {
+      continuesTo: bridge?.continues ? bridge.to : null,
+      items: [],
+      flowEdges,
+      sectionStartSegs: startSegs,
+      commentaryWorks: [],
+    },
   );
   return { withinLinks, startSegs, crossEdges: cross?.edges ?? [] };
 }
@@ -1060,7 +1364,16 @@ async function computeCrossFlow(env: Bindings, tractate: string, page: string): 
   if (!nextPage) return { from, to: null, edges: [], via: 'edge-of-tractate' };
   const to = { tractate, page: nextPage };
   const key = keyForCrossFlow(tractate, page);
-  if (env.CACHE) { const c = await env.CACHE.get(key); if (c) { try { return JSON.parse(c) as CrossFlow; } catch { /* recompute */ } } }
+  if (env.CACHE) {
+    const c = await env.CACHE.get(key);
+    if (c) {
+      try {
+        return JSON.parse(c) as CrossFlow;
+      } catch {
+        /* recompute */
+      }
+    }
+  }
 
   const a = await readSortedSections(env, tractate, page);
   const b = await readSortedSections(env, tractate, nextPage);
@@ -1074,16 +1387,31 @@ async function computeCrossFlow(env: Bindings, tractate: string, page: string): 
     const res = await runLLM(env, {
       model: 'openrouter/deepseek/deepseek-v4-flash' as LLMModelId,
       messages: [
-        { role: 'system', content: 'You are a Talmud scholar mapping how the argument of one daf connects to the next. Precision over recall: most section pairs have no edge.' },
+        {
+          role: 'system',
+          content:
+            'You are a Talmud scholar mapping how the argument of one daf connects to the next. Precision over recall: most section pairs have no edge.',
+        },
         { role: 'user', content: buildCrossFlowPrompt(from, to, a.sections, b.sections) },
       ],
-      max_tokens: 1500, temperature: 0.2,
+      max_tokens: 1500,
+      temperature: 0.2,
       response_format: { type: 'json_schema', json_schema: ARGUMENT_CROSS_FLOW_OUTPUT_SCHEMA },
-      thinking: false, tag: 'argument-overview.cross-flow',
-      attribution: { kind: 'cross-flow', producerId: 'argument-overview.cross-flow', tractate, page },
+      thinking: false,
+      tag: 'argument-overview.cross-flow',
+      attribution: {
+        kind: 'cross-flow',
+        producerId: 'argument-overview.cross-flow',
+        tractate,
+        page,
+      },
     });
     let parsed: unknown = {};
-    try { parsed = JSON.parse(res.content); } catch { /* leave empty */ }
+    try {
+      parsed = JSON.parse(res.content);
+    } catch {
+      /* leave empty */
+    }
     edges = parseCrossFlowEdges(parsed, a.sections.length, b.sections.length);
   } catch {
     via = 'no-data';
@@ -1110,7 +1438,11 @@ app.get('/api/spine-view/:tractate', async (c) => {
     const bridge = await readCachedBridge(c.env, tractate, page);
     return {
       page,
-      sections: secs.map((s, i) => ({ index: i, title: s.title || `Section ${i + 1}`, rabbis: s.rabbis })),
+      sections: secs.map((s, i) => ({
+        index: i,
+        title: s.title || `Section ${i + 1}`,
+        rabbis: s.rabbis,
+      })),
       flow,
       cross: cross?.edges ?? [],
       // deterministic daf-continuity: does the sugya carry into the next daf?
@@ -1131,13 +1463,19 @@ app.get('/api/cross-flow/:tractate/:page', async (c) => {
   const page = c.req.param('page');
   const cf = await computeCrossFlow(c.env, tractate, page);
   const a = await readSortedSections(c.env, tractate, page);
-  const b = cf.to ? await readSortedSections(c.env, cf.to.tractate, cf.to.page) : { startSegs: [], sections: [] };
+  const b = cf.to
+    ? await readSortedSections(c.env, cf.to.tractate, cf.to.page)
+    : { startSegs: [], sections: [] };
   const links = cf.to ? crossFlowToLinks(cf.from, cf.to, cf.edges, a.startSegs, b.startSegs) : [];
   return c.json({ ...cf, links });
 });
 
 // Bounded-concurrency map: run `fn` over `items` with at most `limit` in flight.
-async function mapPool<T, R>(items: readonly T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+async function mapPool<T, R>(
+  items: readonly T[],
+  limit: number,
+  fn: (item: T) => Promise<R>,
+): Promise<R[]> {
   const out = new Array<R>(items.length);
   let next = 0;
   const worker = async (): Promise<void> => {
@@ -1175,18 +1513,26 @@ app.get('/api/spine-links/:tractate', async (c) => {
     const links = [...parts.withinLinks];
     const next = partsList[i + 1];
     if (next && parts.crossEdges.length) {
-      links.push(...crossFlowToLinks(
-        { tractate, page: pages[i] },
-        { tractate, page: pages[i + 1] },
-        parts.crossEdges, parts.startSegs, next.startSegs,
-      ));
+      links.push(
+        ...crossFlowToLinks(
+          { tractate, page: pages[i] },
+          { tractate, page: pages[i + 1] },
+          parts.crossEdges,
+          parts.startSegs,
+          next.startSegs,
+        ),
+      );
     }
     return links;
   });
   const dapimWithLinks = perDaf.filter((l) => l.length > 0).length;
   const graph = spineLinks(tractate, perDaf);
   const result = { ...graph, coverage: { dapimWithLinks, dapimTotal: pages.length } };
-  try { await c.env.CACHE.put(shelfKey, JSON.stringify(result)); } catch { /* best-effort materialize */ }
+  try {
+    await c.env.CACHE.put(shelfKey, JSON.stringify(result));
+  } catch {
+    /* best-effort materialize */
+  }
   return c.json(result);
 });
 
@@ -1194,7 +1540,14 @@ app.get('/api/spine-links/:tractate', async (c) => {
 // classify a dependency id as a SOURCE leaf (fetched/assembled, no LLM) vs a
 // producer (mark/enrichment). Mirrors validateEnrichmentDependencies' allowlist.
 const SOURCE_DEP_KEYS = new Set([
-  'gemara', 'commentaries', 'mishna', 'context', 'context-light', 'halacha-refs', 'yerushalmi-text', 'incoming',
+  'gemara',
+  'commentaries',
+  'mishna',
+  'context',
+  'context-light',
+  'halacha-refs',
+  'yerushalmi-text',
+  'incoming',
 ]);
 
 // GET /api/run-tree/:tractate/:page/:id — the build PROVENANCE of one piece on
@@ -1218,7 +1571,13 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
   // section's synthesis. Applied to the root only; whole-daf deps keep {fields:{}}.
   let rootInstance: unknown = { fields: {} };
   const instanceRaw = c.req.query('instance');
-  if (instanceRaw) { try { rootInstance = JSON.parse(instanceRaw); } catch { /* keep default */ } }
+  if (instanceRaw) {
+    try {
+      rootInstance = JSON.parse(instanceRaw);
+    } catch {
+      /* keep default */
+    }
+  }
 
   const defs = [...CODE_MARKS, ...CODE_ENRICHMENTS];
   const byId = new Map(defs.map((d) => [d.id, d]));
@@ -1228,7 +1587,8 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
   const { nodes: nodeIds, edges } = forwardSubgraph(producerNodesFrom(defs), id);
 
   interface TreeNode {
-    id: string; label: string;
+    id: string;
+    label: string;
     kind: 'source' | 'llm' | 'computed';
     producer?: 'mark' | 'enrichment';
     model?: string;
@@ -1238,7 +1598,11 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
     tokens: number | null;
   }
   const out: Record<string, TreeNode> = {};
-  let totalColdMs = 0, totalCost = 0, llmCount = 0, sourceCount = 0, cachedCount = 0;
+  let totalColdMs = 0,
+    totalCost = 0,
+    llmCount = 0,
+    sourceCount = 0,
+    cachedCount = 0;
 
   for (const nid of nodeIds) {
     const def = byId.get(nid);
@@ -1247,8 +1611,13 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
       // context / …). SOURCE_DEP_KEYS confirms it's a known input vs a dangling
       // ref (validateProducerGraph guards against the latter in CI).
       out[nid] = {
-        id: nid, label: nid, kind: 'source',
-        cached: SOURCE_DEP_KEYS.has(nid), cold_ms: null, cost: null, tokens: null,
+        id: nid,
+        label: nid,
+        kind: 'source',
+        cached: SOURCE_DEP_KEYS.has(nid),
+        cold_ms: null,
+        cost: null,
+        tokens: null,
       };
       sourceCount++;
       continue;
@@ -1258,15 +1627,24 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
     const isLLM = ext?.kind === 'llm';
     const job = (isMark
       ? { mark_id: nid, tractate, page, lang }
-      : { enrichment_id: nid, tractate, page, mark_input: nid === id ? rootInstance : { fields: {} }, lang }) as unknown as JobMessage;
+      : {
+          enrichment_id: nid,
+          tractate,
+          page,
+          mark_input: nid === id ? rootInstance : { fields: {} },
+          lang,
+        }) as unknown as JobMessage;
     const { key } = await cacheKeyForRunBody(c.env, job);
     const res = key ? await readCachedResult(c.env, key) : null;
     const usage = res?.usage as { cost?: number; total_tokens?: number } | undefined;
     const coldMs = typeof res?.elapsed_ms === 'number' ? res.elapsed_ms : null;
     const cost = typeof usage?.cost === 'number' ? usage.cost : null;
     if (res) cachedCount++;
-    if (isLLM && res) { totalColdMs += coldMs ?? 0; totalCost += cost ?? 0; llmCount++; }
-    else if (!isLLM) sourceCount++;
+    if (isLLM && res) {
+      totalColdMs += coldMs ?? 0;
+      totalCost += cost ?? 0;
+      llmCount++;
+    } else if (!isLLM) sourceCount++;
     out[nid] = {
       id: nid,
       label: (def as { label?: string }).label ?? nid,
@@ -1281,7 +1659,10 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
   }
 
   return c.json({
-    root: id, tractate, page, lang,
+    root: id,
+    tractate,
+    page,
+    lang,
     nodes: out,
     edges,
     totals: {
@@ -1320,26 +1701,30 @@ app.get('/api/daf-runs/:tractate/:page', async (c) => {
   // Read all producers' cached results in PARALLEL — ~46 KV gets at once instead
   // of serially (the serial loop made the waterfall take seconds on first open).
   // Keys are computed directly from the defs we already hold (no loadDef round-trip).
-  const runs = await Promise.all(producers.map(async ({ def, isMark }) => {
-    const ext = def.extractor as { kind?: string; model?: string; system_prompt_he?: string } | undefined;
-    const isLLM = ext?.kind === 'llm';
-    const key = isMark
-      ? keyForMark(def, tractate, page, lang === 'he' && !!ext?.system_prompt_he ? 'he' : 'en')
-      : keyForEnrichment(def, iid, { tractate, page }, undefined, lang);
-    const res = await readCachedResult(c.env, key);
-    const usage = res?.usage as { cost?: number; total_tokens?: number } | undefined;
-    return {
-      id: def.id,
-      label: def.label,
-      kind: isLLM ? 'llm' : 'computed',
-      producer: isMark ? 'mark' : 'enrichment',
-      model: isLLM ? ext?.model : undefined,
-      cached: !!res,
-      cold_ms: typeof res?.elapsed_ms === 'number' ? res.elapsed_ms : null,
-      cost: typeof usage?.cost === 'number' ? usage.cost : null,
-      tokens: typeof usage?.total_tokens === 'number' ? usage.total_tokens : null,
-    };
-  }));
+  const runs = await Promise.all(
+    producers.map(async ({ def, isMark }) => {
+      const ext = def.extractor as
+        | { kind?: string; model?: string; system_prompt_he?: string }
+        | undefined;
+      const isLLM = ext?.kind === 'llm';
+      const key = isMark
+        ? keyForMark(def, tractate, page, lang === 'he' && ext?.system_prompt_he ? 'he' : 'en')
+        : keyForEnrichment(def, iid, { tractate, page }, undefined, lang);
+      const res = await readCachedResult(c.env, key);
+      const usage = res?.usage as { cost?: number; total_tokens?: number } | undefined;
+      return {
+        id: def.id,
+        label: def.label,
+        kind: isLLM ? 'llm' : 'computed',
+        producer: isMark ? 'mark' : 'enrichment',
+        model: isLLM ? ext?.model : undefined,
+        cached: !!res,
+        cold_ms: typeof res?.elapsed_ms === 'number' ? res.elapsed_ms : null,
+        cost: typeof usage?.cost === 'number' ? usage.cost : null,
+        tokens: typeof usage?.total_tokens === 'number' ? usage.total_tokens : null,
+      };
+    }),
+  );
   // longest cold runs first — the waterfall reads as "where the time went"
   runs.sort((a, b) => (b.cold_ms ?? -1) - (a.cold_ms ?? -1));
   return c.json({ tractate, page, lang, runs });
@@ -1354,7 +1739,11 @@ app.get('/api/daf-runs/:tractate/:page', async (c) => {
 // loadEnrichmentDef (code-fallback, not KV-only) + instanceIdOf(markInput)
 // (which slug-ifies the name, e.g. 'Abaye' → 'abaye') + the daf-less global key.
 // Pass the same markInput shape the card/warmer uses so the instance_id matches.
-async function readGlobalPiece(env: Bindings, enrichmentId: string, markInput: unknown): Promise<unknown> {
+async function readGlobalPiece(
+  env: Bindings,
+  enrichmentId: string,
+  markInput: unknown,
+): Promise<unknown> {
   const def = await loadEnrichmentDef(env, enrichmentId);
   if (!def) return null;
   const instanceId = await instanceIdOf(markInput);
@@ -1371,14 +1760,21 @@ app.get('/api/entity/rabbi/:slug', async (c) => {
   // identity is the deterministic rabbi-places lookup (always available); the
   // others are the same global enrichments the card reads — keyed by the rabbi
   // instance the card passes (flat {name,...}), so instanceIdOf matches.
-  const identity = enrichRabbi(name, nameHe, (entry.generation as GenerationId | undefined) ?? 'unknown');
+  const identity = enrichRabbi(
+    name,
+    nameHe,
+    (entry.generation as GenerationId | undefined) ?? 'unknown',
+  );
   const markInput = { name, nameHe };
   const [relationships, geography] = await Promise.all([
     readGlobalPiece(c.env, 'rabbi.relationships', markInput),
     readGlobalPiece(c.env, 'rabbi.geography', markInput),
   ]);
   const piece: EntityPiece = {
-    type: 'rabbi', id: slug, name, nameHe: nameHe || undefined,
+    type: 'rabbi',
+    id: slug,
+    name,
+    nameHe: nameHe || undefined,
     pieces: { identity, relationships, geography },
   };
   return c.json(piece);
@@ -1393,9 +1789,12 @@ app.get('/api/entity/place/:name', async (c) => {
     readGlobalPiece(c.env, 'places.significance', markInput),
     readGlobalPiece(c.env, 'places.figures', markInput),
   ]);
-  if (!profile && !significance && !figures) return c.json({ error: 'not found (no cached pieces)' }, 404);
+  if (!profile && !significance && !figures)
+    return c.json({ error: 'not found (no cached pieces)' }, 404);
   const piece: EntityPiece = {
-    type: 'place', id: name, name,
+    type: 'place',
+    id: name,
+    name,
     pieces: { profile, significance, figures },
   };
   return c.json(piece);
@@ -1422,11 +1821,25 @@ app.get('/api/stale/:id/:tractate/:page', async (c) => {
   // right per-lang KEY to read the entry.
   const current = await recipeHash(enrichmentRecipe(def));
   const iid = await instanceIdOf({ fields: {} });
-  const key = keyForEnrichment(def, iid, def.scope === 'local' ? { tractate, page } : undefined, undefined, lang);
+  const key = keyForEnrichment(
+    def,
+    iid,
+    def.scope === 'local' ? { tractate, page } : undefined,
+    undefined,
+    lang,
+  );
   const hit = (await readCachedResult(c.env, key)) as RunResultEnrichment | null;
   const cached = hit?.recipe_hash ?? null;
   const status = !hit ? 'miss' : !cached ? 'unknown' : cached === current ? 'fresh' : 'stale';
-  return c.json({ id, tractate, page, lang, status, cached_recipe: cached, current_recipe: current });
+  return c.json({
+    id,
+    tractate,
+    page,
+    lang,
+    status,
+    cached_recipe: cached,
+    current_recipe: current,
+  });
 });
 
 // Close the freshness loop: re-warm a changed producer + its full transitive
@@ -1441,13 +1854,20 @@ app.get('/api/stale/:id/:tractate/:page', async (c) => {
 // `/api/stale` shows `stale` → call this → the cascade regenerates.
 app.post('/api/admin/rewarm/:id/:tractate/:page', async (c) => {
   if (!isTrustedRequest(c)) return c.json({ error: 'studio auth required' }, 403);
-  if (!c.env.ENRICHMENT_QUEUE) return c.json({ error: 'ENRICHMENT_QUEUE binding not available' }, 503);
+  if (!c.env.ENRICHMENT_QUEUE)
+    return c.json({ error: 'ENRICHMENT_QUEUE binding not available' }, 503);
   const gate = await checkBudget(c.env, { custom: false });
   if (!gate.ok) {
-    return c.json({
-      status: 'error', error: pauseErrorMessage(gate.scope),
-      paused: true, scope: gate.scope, retryAfter: pauseRetryAfterSec(gate.until),
-    }, 429);
+    return c.json(
+      {
+        status: 'error',
+        error: pauseErrorMessage(gate.scope),
+        paused: true,
+        scope: gate.scope,
+        retryAfter: pauseRetryAfterSec(gate.until),
+      },
+      429,
+    );
   }
   const id = c.req.param('id');
   const tractate = c.req.param('tractate');
@@ -1456,9 +1876,15 @@ app.post('/api/admin/rewarm/:id/:tractate/:page', async (c) => {
   const rev = reverseDependencyIndex(producerNodesFrom([...CODE_MARKS, ...CODE_ENRICHMENTS]));
   const cascade = [id, ...transitiveDependents(rev, id)];
   const runId = `rewarm:${id}:${tractate}:${page}:${lang}:${Math.floor(Date.now() / 1000)}`
-    .replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
+    .replace(/[^a-zA-Z0-9._:-]+/g, '_')
+    .slice(0, 200);
   await c.env.ENRICHMENT_QUEUE.send({
-    runId, warm_deep: true, rewarm_only: cascade, tractate, page, ...(lang === 'he' ? { lang } : {}),
+    runId,
+    warm_deep: true,
+    rewarm_only: cascade,
+    tractate,
+    page,
+    ...(lang === 'he' ? { lang } : {}),
   });
   return c.json({ status: 'pending', runId, id, tractate, page, lang, cascade });
 });
@@ -1469,8 +1895,9 @@ app.get('/api/enrichments', async (c) => {
   // `target_mark`) so the client gets one consistent shape.
   const kv = await listEnrichments(c.env);
   const kvIds = new Set(kv.map((e) => e.id));
-  const codeFlat: Array<EnrichmentDefinition & { mode?: string }> = CODE_ENRICHMENTS
-    .filter((e) => !kvIds.has(e.id))
+  const codeFlat: Array<EnrichmentDefinition & { mode?: string }> = CODE_ENRICHMENTS.filter(
+    (e) => !kvIds.has(e.id),
+  )
     .filter((e) => e.extractor.kind === 'llm')
     .map((e) => ({
       id: e.id,
@@ -1481,11 +1908,13 @@ app.get('/api/enrichments', async (c) => {
       scope: e.scope,
       dependencies: e.dependencies,
       system_prompt: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).system_prompt,
-      user_prompt_template: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).user_prompt_template,
+      user_prompt_template: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>)
+        .user_prompt_template,
       model: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).model,
       output_schema: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).output_schema,
       thinking_off: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).thinking_off,
-      reasoning_effort: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).reasoning_effort,
+      reasoning_effort: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>)
+        .reasoning_effort,
       cache_version: e.cache_version,
       source: 'code',
       updated_at: e.updated_at,
@@ -1532,13 +1961,22 @@ interface GemaraSlice {
 
 const SLICE_TTL_S = 30 * 24 * 3600;
 
-async function getGemaraSlice(env: Bindings, tractate: string, page: string, bypass: boolean): Promise<GemaraSlice> {
+async function getGemaraSlice(
+  env: Bindings,
+  tractate: string,
+  page: string,
+  bypass: boolean,
+): Promise<GemaraSlice> {
   const cache = env.CACHE;
   const key = keyForGemara(tractate, page);
   if (cache && !bypass) {
     const cached = await cache.get(key);
     if (cached) {
-      try { return JSON.parse(cached) as GemaraSlice; } catch { /* fall through */ }
+      try {
+        return JSON.parse(cached) as GemaraSlice;
+      } catch {
+        /* fall through */
+      }
     }
   }
   const [hb, sef, segs] = await Promise.all([
@@ -1547,7 +1985,8 @@ async function getGemaraSlice(env: Bindings, tractate: string, page: string, byp
     getSefariaSegmentsCached(cache, tractate, page),
   ]);
   const slice: GemaraSlice = {
-    tractate, page,
+    tractate,
+    page,
     hebrew: hb?.main ?? sef?.mainText.hebrew ?? '',
     english: sef?.mainText.english ?? '',
     segments_he: (segs?.he ?? []).map(stripHtmlServer),
@@ -1565,13 +2004,22 @@ interface CommentariesSlice {
   by_commentator: Record<string, { hebrew: string; english: string; ref: string }>;
 }
 
-async function getCommentariesSlice(env: Bindings, tractate: string, page: string, bypass: boolean): Promise<CommentariesSlice> {
+async function getCommentariesSlice(
+  env: Bindings,
+  tractate: string,
+  page: string,
+  bypass: boolean,
+): Promise<CommentariesSlice> {
   const cache = env.CACHE;
   const key = keyForCommentaries(tractate, page);
   if (cache && !bypass) {
     const cached = await cache.get(key);
     if (cached) {
-      try { return JSON.parse(cached) as CommentariesSlice; } catch { /* fall through */ }
+      try {
+        return JSON.parse(cached) as CommentariesSlice;
+      } catch {
+        /* fall through */
+      }
     }
   }
   // Rishonim now arrive as per-comment, segment-anchored entries; collapse them
@@ -1621,30 +2069,39 @@ function selectMishnaForMark(
   markInput: unknown,
 ): typeof bundle {
   if (!bundle.length) return bundle;
-  const m = (markInput && typeof markInput === 'object') ? markInput as Record<string, unknown> : null;
-  const endSeg = m && typeof m.endSegIdx === 'number' ? m.endSegIdx
-    : m && typeof m.startSegIdx === 'number' ? m.startSegIdx
-    : null;
+  const m =
+    markInput && typeof markInput === 'object' ? (markInput as Record<string, unknown>) : null;
+  const endSeg =
+    m && typeof m.endSegIdx === 'number'
+      ? m.endSegIdx
+      : m && typeof m.startSegIdx === 'number'
+        ? m.startSegIdx
+        : null;
   if (endSeg === null) return bundle;
-  return bundle.filter(x => x.anchorStartSeg <= endSeg);
+  return bundle.filter((x) => x.anchorStartSeg <= endSeg);
 }
 
 function mishnaBundleToString(bundle: Awaited<ReturnType<typeof getMishnaBundleCached>>): string {
   if (!bundle.length) return '(no mishnah anchored to this daf)';
-  return bundle.map(m => {
-    const range = m.anchorStartSeg === m.anchorEndSeg
-      ? `segment ${m.anchorStartSeg}`
-      : `segments ${m.anchorStartSeg}-${m.anchorEndSeg}`;
-    return `[${m.ref}] (anchors gemara ${range})\nHE: ${m.hebrew}\nEN: ${m.english}`.trim();
-  }).join('\n\n---\n\n');
+  return bundle
+    .map((m) => {
+      const range =
+        m.anchorStartSeg === m.anchorEndSeg
+          ? `segment ${m.anchorStartSeg}`
+          : `segments ${m.anchorStartSeg}-${m.anchorEndSeg}`;
+      return `[${m.ref}] (anchors gemara ${range})\nHE: ${m.hebrew}\nEN: ${m.english}`.trim();
+    })
+    .join('\n\n---\n\n');
 }
 
 function commentariesSliceToString(s: CommentariesSlice): string {
   const names = Object.keys(s.by_commentator).sort();
-  return names.map((n) => {
-    const row = s.by_commentator[n];
-    return `[${n}]\n${row.hebrew}\n${row.english}`.trim();
-  }).join('\n\n---\n\n');
+  return names
+    .map((n) => {
+      const row = s.by_commentator[n];
+      return `[${n}]\n${row.hebrew}\n${row.english}`.trim();
+    })
+    .join('\n\n---\n\n');
 }
 
 /** Cap a long passage so the prompt stays bounded — a whole Yerushalmi halacha
@@ -1673,24 +2130,41 @@ function cleanYerushalmiText(s: string): string {
  *  fetched + its editorial title/summary. The grounding-confidence tier above
  *  the mishnah-mapping (a human curated this exact cross-reference). */
 interface CuratedYerushalmiPassage {
-  ref: string; title: string; summary: string; url: string; bavliAnchor: string;
-  hebrew: string; english: string;
+  ref: string;
+  title: string;
+  summary: string;
+  url: string;
+  bavliAnchor: string;
+  hebrew: string;
+  english: string;
 }
 
 /** Fetch the Yerushalmi text for curated parallels on a daf (few per daf, often
  *  0-1). Each failure contributes nothing. */
-async function fetchCuratedYerushalmi(parallels: CuratedYerushalmiParallel[]): Promise<CuratedYerushalmiPassage[]> {
-  const flat = (x: unknown): string => Array.isArray(x) ? x.map(flat).join(' ') : (typeof x === 'string' ? x : '');
+async function fetchCuratedYerushalmi(
+  parallels: CuratedYerushalmiParallel[],
+): Promise<CuratedYerushalmiPassage[]> {
+  const flat = (x: unknown): string =>
+    Array.isArray(x) ? x.map(flat).join(' ') : typeof x === 'string' ? x : '';
   const out: CuratedYerushalmiPassage[] = [];
-  await Promise.all(parallels.map(async (p) => {
-    try {
-      const res = await sefariaAPI.getText(p.yerushalmi, { context: 0 });
-      out.push({
-        ref: p.yerushalmi, title: p.title, summary: p.summary, url: p.url, bavliAnchor: p.bavli,
-        hebrew: cleanYerushalmiText(flat(res.he)), english: cleanYerushalmiText(flat(res.text)),
-      });
-    } catch { /* skip on fetch failure */ }
-  }));
+  await Promise.all(
+    parallels.map(async (p) => {
+      try {
+        const res = await sefariaAPI.getText(p.yerushalmi, { context: 0 });
+        out.push({
+          ref: p.yerushalmi,
+          title: p.title,
+          summary: p.summary,
+          url: p.url,
+          bavliAnchor: p.bavli,
+          hebrew: cleanYerushalmiText(flat(res.he)),
+          english: cleanYerushalmiText(flat(res.text)),
+        });
+      } catch {
+        /* skip on fetch failure */
+      }
+    }),
+  );
   return out;
 }
 
@@ -1711,9 +2185,10 @@ function formatYerushalmiForPrompt(
   const mishnahBlocks = bundle.map((y) => {
     const he = truncateForPrompt(stripHtmlServer(y.hebrew), 1400);
     const en = truncateForPrompt(stripHtmlServer(y.english), 1800);
-    const range = y.anchorStartSeg === y.anchorEndSeg
-      ? `Bavli segment ${y.anchorStartSeg}`
-      : `Bavli segments ${y.anchorStartSeg}-${y.anchorEndSeg}`;
+    const range =
+      y.anchorStartSeg === y.anchorEndSeg
+        ? `Bavli segment ${y.anchorStartSeg}`
+        : `Bavli segments ${y.anchorStartSeg}-${y.anchorEndSeg}`;
     return `[${y.ref}] (parallels ${range}, via ${y.mishnahRef})\nHE: ${he}\nEN: ${en}`.trim();
   });
   // The ALIGNED dafyomi outline — the richest grounding for stating DIFFERENCES:
@@ -1731,7 +2206,11 @@ function formatYerushalmiForPrompt(
     }
     const where = p.segIdx != null ? `[Bavli seg ${p.segIdx}]` : `[diverges]`;
     const he = truncateForPrompt(p.he, 240);
-    outlineLines.push(`    ${where} ${p.label ?? ''} ${truncateForPrompt(p.en, 320)}${he ? `  | HE: ${he}` : ''}`.replace(/\s+/g, ' ').trim());
+    outlineLines.push(
+      `    ${where} ${p.label ?? ''} ${truncateForPrompt(p.en, 320)}${he ? `  | HE: ${he}` : ''}`
+        .replace(/\s+/g, ' ')
+        .trim(),
+    );
   }
 
   if (curatedBlocks.length === 0 && mishnahBlocks.length === 0 && outlineLines.length === 0) {
@@ -1745,26 +2224,28 @@ function formatYerushalmiForPrompt(
   // writes the differences.
   if (floor.length) {
     const reqLines = floor.map((g) => {
-      const span = g.startSegIdx === g.endSegIdx
-        ? `Bavli segment ${g.startSegIdx}`
-        : `Bavli segments ${g.startSegIdx}-${g.endSegIdx}`;
+      const span =
+        g.startSegIdx === g.endSegIdx
+          ? `Bavli segment ${g.startSegIdx}`
+          : `Bavli segments ${g.startSegIdx}-${g.endSegIdx}`;
       const ref = g.yerushalmiRef ? ` parallels ${g.yerushalmiRef}` : '';
       const phrase = g.excerpt ? ` — shared verbatim phrase: "${g.excerpt}"` : '';
       return `- ${span}${ref}${phrase}`;
     });
     out.push(
       'REQUIRED ANCHORS (each is a Bavli span that shares a long verbatim phrase with the Yerushalmi — a shared mishnah/baraita, proven by alignment). You MUST return one instance for EACH, using its segment range, and write its `differences` (if the two are essentially identical there, say so plainly):\n' +
-      reqLines.join('\n'),
+        reqLines.join('\n'),
     );
   }
   if (outlineLines.length) {
     out.push(
       'ALIGNED YERUSHALMI OUTLINE (dafyomi.co.il "Yerushalmi to Match"; each point is tagged with the Bavli segment [N] it parallels verbatim, or [diverges] where the Yerushalmi differs — USE THIS to state specific, part-by-part differences):\n' +
-      outlineLines.join('\n'),
+        outlineLines.join('\n'),
     );
   }
   const blocks = [...curatedBlocks, ...mishnahBlocks];
-  if (blocks.length) out.push(`Full parallel Yerushalmi passage(s):\n${blocks.join('\n\n---\n\n')}`);
+  if (blocks.length)
+    out.push(`Full parallel Yerushalmi passage(s):\n${blocks.join('\n\n---\n\n')}`);
   return out.join('\n\n===\n\n');
 }
 
@@ -1791,13 +2272,13 @@ function renderTemplate(tpl: string, vars: Record<string, unknown>): string {
       const id = key.slice('depends.'.length);
       const deps = (vars.depends ?? {}) as Record<string, unknown>;
       const v = deps[id];
-      return v === undefined ? '' : (typeof v === 'string' ? v : JSON.stringify(v, null, 2));
+      return v === undefined ? '' : typeof v === 'string' ? v : JSON.stringify(v, null, 2);
     }
     if (key.startsWith('anchors.')) {
       const id = key.slice('anchors.'.length);
       const a = (vars.anchors ?? {}) as Record<string, unknown>;
       const v = a[id];
-      return v === undefined ? '' : (typeof v === 'string' ? v : JSON.stringify(v, null, 2));
+      return v === undefined ? '' : typeof v === 'string' ? v : JSON.stringify(v, null, 2);
     }
     const v = vars[key];
     if (v === undefined || v === null) return '';
@@ -1916,9 +2397,10 @@ function recordSource(out: ResolvedInputs, name: string, content: unknown): void
   if (typeof content !== 'string' || content.length === 0) return;
   out.sources[name] = {
     chars: content.length,
-    content: content.length > SOURCE_PREVIEW_CAP
-      ? content.slice(0, SOURCE_PREVIEW_CAP) + `… [+${content.length - SOURCE_PREVIEW_CAP} chars]`
-      : content,
+    content:
+      content.length > SOURCE_PREVIEW_CAP
+        ? content.slice(0, SOURCE_PREVIEW_CAP) + `… [+${content.length - SOURCE_PREVIEW_CAP} chars]`
+        : content,
   };
 }
 
@@ -1967,227 +2449,276 @@ async function resolveDependencies(
   // depend on several LLM enrichments (voices, background) plus sub-marks —
   // serial resolution stacked their latencies. Promise.all overlaps them; the
   // queue consumer's max_concurrency still caps total simultaneous LLM load.
-  await Promise.all(dependencies.map(async (dep) => {
-    if (dep === 'gemara') {
-      const slice = await getGemaraSlice(rc.env, tractate, page, bypassCache);
-      Object.assign(out.vars, gemaraSliceToVars(slice));
-      recordSource(out, 'gemara', out.vars.gemara);
-      return;
-    }
-    if (dep === 'commentaries') {
-      const slice = await getCommentariesSlice(rc.env, tractate, page, bypassCache);
-      out.vars.commentaries = commentariesSliceToString(slice);
-      recordSource(out, 'commentaries', out.vars.commentaries);
-      return;
-    }
-    if (dep === 'mishna') {
-      const bundle = await getMishnaBundleCached(rc.env.CACHE, tractate, page);
-      const filtered = selectMishnaForMark(bundle, markInput);
-      out.vars.mishna = mishnaBundleToString(filtered);
-      recordSource(out, 'mishna', out.vars.mishna);
-      return;
-    }
-    if (dep === 'halacha-refs') {
-      // Grounded codifier refs (Mishneh Torah / Tur / Shulchan Aruch) that
-      // Sefaria links to this daf, with their real text — so the codification
-      // enrichment SELECTS from real refs instead of recalling citations.
-      const bundle = await getHalachaRefsCached(rc.env.CACHE, tractate, page);
-      out.vars.halacha_refs = formatGroundedRefsForPrompt(bundle);
-      recordSource(out, 'halacha-refs', out.vars.halacha_refs);
-      return;
-    }
-    if (dep === 'yerushalmi-text') {
-      // Three grounding tiers: (1) curated Bavli<->Yerushalmi parallels a human
-      // confirmed (often cross-tractate — the mishnah-mapping can't find them),
-      // (2) the Jerusalem Talmud parallel(s) on the same mishnah (real text via
-      // fetchYerushalmiForDaf), (3) the ALIGNED dafyomi "Yerushalmi to Match"
-      // outline — a structured, segment-anchored summary of exactly what the
-      // Yerushalmi says, so the producer contrasts the two PART-BY-PART rather
-      // than from memory. Each source that fails contributes nothing.
-      const [bundle, curated, outline] = await Promise.all([
-        getYerushalmiCached(rc.env.CACHE, tractate, page),
-        fetchCuratedYerushalmi(curatedParallelsForDaf(tractate, page)),
-        buildYerushalmiOutline(rc.env, tractate, page),
-      ]);
-      // Deterministic floor anchors — the verbatim-shared spans the mark MUST
-      // surface. Fed to the prompt (REQUIRED ANCHORS) so the model writes their
-      // differences, and stashed for the yerushalmi-floor pass, which backstops
-      // any the model still drops. The double-underscore key is internal (not a
-      // prompt placeholder).
-      const floor = yerushalmiFloorGroups(outline);
-      out.vars.yerushalmi = formatYerushalmiForPrompt(bundle, curated, outline, floor);
-      out.vars.__yerushalmiFloor = floor;
-      recordSource(out, 'yerushalmi-text', out.vars.yerushalmi);
-      return;
-    }
-    if (dep === 'incoming') {
-      // How this daf connects to the PREVIOUS one. Read the prev->this bridge
-      // (computeDafBridge on the previous daf judges its last argument section
-      // against this daf's first). When the sugya carries over, expose its
-      // grounded note so a whole-daf overview can open with where the page comes
-      // from — never recalled from the model's memory. Empty when the daf opens
-      // fresh, the previous daf isn't warmed, or this is the tractate's first
-      // daf. In the inspector's sourcesOnly pass, read cache-only so it never
-      // triggers the bridge model. Best-effort: any failure contributes nothing.
-      try {
-        const prevPage = adjacentAmud(tractate, page, -1);
-        if (prevPage) {
-          let bridge: DafBridge | null = null;
-          if (sourcesOnly) {
-            const c = rc.env.CACHE ? await rc.env.CACHE.get(keyForBridge(tractate, prevPage)) : null;
-            if (c) { try { bridge = JSON.parse(c) as DafBridge; } catch { /* ignore */ } }
-          } else {
-            bridge = await computeDafBridge(rc.env, tractate, prevPage);
-          }
-          if (bridge?.continues && typeof bridge.note === 'string' && bridge.note.trim()) {
-            out.vars.incoming = `Continues the discussion from the previous daf (${tractate} ${prevPage}): ${bridge.note.trim()}`;
-          }
-        }
-      } catch { /* no incoming context */ }
-      recordSource(out, 'incoming', (out.vars.incoming as string) ?? '');
-      return;
-    }
-    if (dep === 'context' || dep === 'context-light') {
-      // Aggregated external context (dafyomi Points/Halacha/Charts + Sefaria
-      // Rishonim/halacha/topics), SCOPED to the instance's segments: a section
-      // enrichment gets the context grounded to its own lines; a whole-daf one
-      // (no segment location) gets the full pool. Each source that fails
-      // contributes nothing rather than throwing.
-      // 'context-light' drops the commentary/halachic-apparatus layers (Rashi,
-      // Tosafot, rishonim, sefaria-halacha/topic, dafyomi halacha/tosfos/charts)
-      // and keeps only the accessible, idea-rich aids — so the Tidbit isn't fed
-      // the lomdus that kept pulling it scholarly. The Bi'yun uses full 'context'.
-      // This amud's argument sections let Revach summaries be placed per-section
-      // (English↔English alignment, conservative); a cheap cached read.
-      const sections = (await readMarkInstances(rc.env, 'argument', tractate, page))
-        .filter((i) => typeof i.startSegIdx === 'number' && typeof i.endSegIdx === 'number')
-        .map((i) => ({
-          startSegIdx: i.startSegIdx as number,
-          endSegIdx: i.endSegIdx as number,
-          title: typeof i.fields?.title === 'string' ? i.fields.title : undefined,
-          summary: typeof i.fields?.summary === 'string' ? i.fields.summary : undefined,
-        }));
-      const allItems = await collectContext(rc.env, tractate, page, { sections });
-      const items = dep === 'context-light'
-        ? allItems.filter((it) => LIGHT_CONTEXT_SOURCES.has(it.source))
-        : allItems;
-      // Back up the deterministic Revach placer with the cached AI matcher for
-      // any entries it left whole-daf (once per daf; LLM-free on cache hit). In
-      // the source-only inspector pass, run it cache-only so the preview still
-      // reflects already-cached placements but NEVER triggers the matcher on a
-      // cold daf.
-      await placeRevachWithAi(rc.env, tractate, page, items, sourcesOnly);
-      const scoped = contextForAnchor(items, segsFromMarkInput(markInput));
-      out.vars.context = formatContextForPrompt(scoped);
-      // Break the aggregated context into its constituent study-aids for the
-      // inspector instead of one opaque blob: group the scoped items by their
-      // `source` (sefaria-rashi / sefaria-rishonim / sefaria-topic / dafyomi:* /
-      // …) and record each part, rendered with the same formatter the prompt
-      // uses so every part is faithful to that source's contribution. Key as
-      // `context-<kind>` (provider prefix stripped) so chips read cleanly
-      // ("Context rashi", "Context points", "Context revach"). `out.vars.context`
-      // (above) stays the combined string the prompt actually consumes.
-      const byContextSource = new Map<string, typeof scoped>();
-      for (const it of scoped) {
-        const group = byContextSource.get(it.source) ?? [];
-        group.push(it);
-        byContextSource.set(it.source, group);
-      }
-      for (const [src, group] of byContextSource) {
-        const kind = src.replace(/^sefaria-/, '').replace(/^dafyomi:/, '');
-        recordSource(out, `context-${kind}`, formatContextForPrompt(group));
-      }
-      return;
-    }
-    if (typeof dep === 'object' && dep !== null) {
-      // Inspector source-only pass: don't RUN enrichment/mark deps (that's
-      // generation) — recurse to collect their TRANSITIVE source closure, since
-      // an aggregate's source texts are pulled by its children, not by itself
-      // (e.g. a synthesis whose deps are all sub-enrichments). sourcesOnly stays
-      // true at every level, so no model ever runs; parentChain guards cycles.
-      if (sourcesOnly) {
-        const childKey = 'enrichment' in dep ? dep.enrichment
-          : 'mark' in dep ? `mark:${dep.mark}` : null;
-        if (!childKey || parentChain.has(childKey)) return;
-        const childDef = 'enrichment' in dep
-          ? await loadEnrichmentDef(rc.env, dep.enrichment)
-          : await loadMarkDef(rc.env, (dep as { mark: string }).mark);
-        if (!childDef) return;
-        const chain = new Set(parentChain); chain.add(childKey);
-        // Enrichment children inherit the parent's markInput (mirrors the real
-        // run); mark children take none (extractors ignore markInput).
-        const childInput = 'enrichment' in dep ? markInput : undefined;
-        const sub = await resolveDependencies(
-          rc, childDef.dependencies, tractate, page, childInput, bypassCache, chain, true,
-        );
-        Object.assign(out.sources, sub.sources);
+  await Promise.all(
+    dependencies.map(async (dep) => {
+      if (dep === 'gemara') {
+        const slice = await getGemaraSlice(rc.env, tractate, page, bypassCache);
+        Object.assign(out.vars, gemaraSliceToVars(slice));
+        recordSource(out, 'gemara', out.vars.gemara);
         return;
       }
-      if ('enrichment' in dep) {
-        const depId = dep.enrichment;
-        if (parentChain.has(depId)) {
-          out.depends[depId] = { error: `cycle detected (${[...parentChain].join(' → ')} → ${depId})` };
+      if (dep === 'commentaries') {
+        const slice = await getCommentariesSlice(rc.env, tractate, page, bypassCache);
+        out.vars.commentaries = commentariesSliceToString(slice);
+        recordSource(out, 'commentaries', out.vars.commentaries);
+        return;
+      }
+      if (dep === 'mishna') {
+        const bundle = await getMishnaBundleCached(rc.env.CACHE, tractate, page);
+        const filtered = selectMishnaForMark(bundle, markInput);
+        out.vars.mishna = mishnaBundleToString(filtered);
+        recordSource(out, 'mishna', out.vars.mishna);
+        return;
+      }
+      if (dep === 'halacha-refs') {
+        // Grounded codifier refs (Mishneh Torah / Tur / Shulchan Aruch) that
+        // Sefaria links to this daf, with their real text — so the codification
+        // enrichment SELECTS from real refs instead of recalling citations.
+        const bundle = await getHalachaRefsCached(rc.env.CACHE, tractate, page);
+        out.vars.halacha_refs = formatGroundedRefsForPrompt(bundle);
+        recordSource(out, 'halacha-refs', out.vars.halacha_refs);
+        return;
+      }
+      if (dep === 'yerushalmi-text') {
+        // Three grounding tiers: (1) curated Bavli<->Yerushalmi parallels a human
+        // confirmed (often cross-tractate — the mishnah-mapping can't find them),
+        // (2) the Jerusalem Talmud parallel(s) on the same mishnah (real text via
+        // fetchYerushalmiForDaf), (3) the ALIGNED dafyomi "Yerushalmi to Match"
+        // outline — a structured, segment-anchored summary of exactly what the
+        // Yerushalmi says, so the producer contrasts the two PART-BY-PART rather
+        // than from memory. Each source that fails contributes nothing.
+        const [bundle, curated, outline] = await Promise.all([
+          getYerushalmiCached(rc.env.CACHE, tractate, page),
+          fetchCuratedYerushalmi(curatedParallelsForDaf(tractate, page)),
+          buildYerushalmiOutline(rc.env, tractate, page),
+        ]);
+        // Deterministic floor anchors — the verbatim-shared spans the mark MUST
+        // surface. Fed to the prompt (REQUIRED ANCHORS) so the model writes their
+        // differences, and stashed for the yerushalmi-floor pass, which backstops
+        // any the model still drops. The double-underscore key is internal (not a
+        // prompt placeholder).
+        const floor = yerushalmiFloorGroups(outline);
+        out.vars.yerushalmi = formatYerushalmiForPrompt(bundle, curated, outline, floor);
+        out.vars.__yerushalmiFloor = floor;
+        recordSource(out, 'yerushalmi-text', out.vars.yerushalmi);
+        return;
+      }
+      if (dep === 'incoming') {
+        // How this daf connects to the PREVIOUS one. Read the prev->this bridge
+        // (computeDafBridge on the previous daf judges its last argument section
+        // against this daf's first). When the sugya carries over, expose its
+        // grounded note so a whole-daf overview can open with where the page comes
+        // from — never recalled from the model's memory. Empty when the daf opens
+        // fresh, the previous daf isn't warmed, or this is the tractate's first
+        // daf. In the inspector's sourcesOnly pass, read cache-only so it never
+        // triggers the bridge model. Best-effort: any failure contributes nothing.
+        try {
+          const prevPage = adjacentAmud(tractate, page, -1);
+          if (prevPage) {
+            let bridge: DafBridge | null = null;
+            if (sourcesOnly) {
+              const c = rc.env.CACHE
+                ? await rc.env.CACHE.get(keyForBridge(tractate, prevPage))
+                : null;
+              if (c) {
+                try {
+                  bridge = JSON.parse(c) as DafBridge;
+                } catch {
+                  /* ignore */
+                }
+              }
+            } else {
+              bridge = await computeDafBridge(rc.env, tractate, prevPage);
+            }
+            if (bridge?.continues && typeof bridge.note === 'string' && bridge.note.trim()) {
+              out.vars.incoming = `Continues the discussion from the previous daf (${tractate} ${prevPage}): ${bridge.note.trim()}`;
+            }
+          }
+        } catch {
+          /* no incoming context */
+        }
+        recordSource(out, 'incoming', (out.vars.incoming as string) ?? '');
+        return;
+      }
+      if (dep === 'context' || dep === 'context-light') {
+        // Aggregated external context (dafyomi Points/Halacha/Charts + Sefaria
+        // Rishonim/halacha/topics), SCOPED to the instance's segments: a section
+        // enrichment gets the context grounded to its own lines; a whole-daf one
+        // (no segment location) gets the full pool. Each source that fails
+        // contributes nothing rather than throwing.
+        // 'context-light' drops the commentary/halachic-apparatus layers (Rashi,
+        // Tosafot, rishonim, sefaria-halacha/topic, dafyomi halacha/tosfos/charts)
+        // and keeps only the accessible, idea-rich aids — so the Tidbit isn't fed
+        // the lomdus that kept pulling it scholarly. The Bi'yun uses full 'context'.
+        // This amud's argument sections let Revach summaries be placed per-section
+        // (English↔English alignment, conservative); a cheap cached read.
+        const sections = (await readMarkInstances(rc.env, 'argument', tractate, page))
+          .filter((i) => typeof i.startSegIdx === 'number' && typeof i.endSegIdx === 'number')
+          .map((i) => ({
+            startSegIdx: i.startSegIdx as number,
+            endSegIdx: i.endSegIdx as number,
+            title: typeof i.fields?.title === 'string' ? i.fields.title : undefined,
+            summary: typeof i.fields?.summary === 'string' ? i.fields.summary : undefined,
+          }));
+        const allItems = await collectContext(rc.env, tractate, page, { sections });
+        const items =
+          dep === 'context-light'
+            ? allItems.filter((it) => LIGHT_CONTEXT_SOURCES.has(it.source))
+            : allItems;
+        // Back up the deterministic Revach placer with the cached AI matcher for
+        // any entries it left whole-daf (once per daf; LLM-free on cache hit). In
+        // the source-only inspector pass, run it cache-only so the preview still
+        // reflects already-cached placements but NEVER triggers the matcher on a
+        // cold daf.
+        await placeRevachWithAi(rc.env, tractate, page, items, sourcesOnly);
+        const scoped = contextForAnchor(items, segsFromMarkInput(markInput));
+        out.vars.context = formatContextForPrompt(scoped);
+        // Break the aggregated context into its constituent study-aids for the
+        // inspector instead of one opaque blob: group the scoped items by their
+        // `source` (sefaria-rashi / sefaria-rishonim / sefaria-topic / dafyomi:* /
+        // …) and record each part, rendered with the same formatter the prompt
+        // uses so every part is faithful to that source's contribution. Key as
+        // `context-<kind>` (provider prefix stripped) so chips read cleanly
+        // ("Context rashi", "Context points", "Context revach"). `out.vars.context`
+        // (above) stays the combined string the prompt actually consumes.
+        const byContextSource = new Map<string, typeof scoped>();
+        for (const it of scoped) {
+          const group = byContextSource.get(it.source) ?? [];
+          group.push(it);
+          byContextSource.set(it.source, group);
+        }
+        for (const [src, group] of byContextSource) {
+          const kind = src.replace(/^sefaria-/, '').replace(/^dafyomi:/, '');
+          recordSource(out, `context-${kind}`, formatContextForPrompt(group));
+        }
+        return;
+      }
+      if (typeof dep === 'object' && dep !== null) {
+        // Inspector source-only pass: don't RUN enrichment/mark deps (that's
+        // generation) — recurse to collect their TRANSITIVE source closure, since
+        // an aggregate's source texts are pulled by its children, not by itself
+        // (e.g. a synthesis whose deps are all sub-enrichments). sourcesOnly stays
+        // true at every level, so no model ever runs; parentChain guards cycles.
+        if (sourcesOnly) {
+          const childKey =
+            'enrichment' in dep ? dep.enrichment : 'mark' in dep ? `mark:${dep.mark}` : null;
+          if (!childKey || parentChain.has(childKey)) return;
+          const childDef =
+            'enrichment' in dep
+              ? await loadEnrichmentDef(rc.env, dep.enrichment)
+              : await loadMarkDef(rc.env, (dep as { mark: string }).mark);
+          if (!childDef) return;
+          const chain = new Set(parentChain);
+          chain.add(childKey);
+          // Enrichment children inherit the parent's markInput (mirrors the real
+          // run); mark children take none (extractors ignore markInput).
+          const childInput = 'enrichment' in dep ? markInput : undefined;
+          const sub = await resolveDependencies(
+            rc,
+            childDef.dependencies,
+            tractate,
+            page,
+            childInput,
+            bypassCache,
+            chain,
+            true,
+          );
+          Object.assign(out.sources, sub.sources);
           return;
         }
-        const depDef = await loadEnrichmentDef(rc.env, depId);
-        if (!depDef) {
-          out.depends[depId] = { error: 'not found' };
-          return;
-        }
-        // fanOut: run this per-instance enrichment for EVERY instance of its
-        // target mark and expose the array. Lets a whole-daf consumer (the
-        // tidbit) pull in every story's / verse's / topic's analysis. Each
-        // instance run resolves its own deps + scopes its context, and is
-        // cache-keyed per instance — so on a warmed daf these are all hits.
-        if ((dep as { fanOut?: boolean }).fanOut) {
-          const markDef = await loadMarkDef(rc.env, depDef.mark);
-          if (!markDef) { out.depends[depId] = { error: `mark ${depDef.mark} not found` }; return; }
-          let instances: unknown[] = [];
-          try {
-            const markRes = await runMarkOnce(rc, markDef, tractate, page, bypassCache);
-            const parsed = markRes.parsed as { instances?: unknown[] } | null;
-            instances = Array.isArray(parsed?.instances) ? parsed.instances : [];
-          } catch (err) {
-            out.depends[depId] = { error: String((err as Error)?.message ?? err) };
+        if ('enrichment' in dep) {
+          const depId = dep.enrichment;
+          if (parentChain.has(depId)) {
+            out.depends[depId] = {
+              error: `cycle detected (${[...parentChain].join(' → ')} → ${depId})`,
+            };
             return;
           }
-          const results = await Promise.all(instances.map(async (inst) => {
+          const depDef = await loadEnrichmentDef(rc.env, depId);
+          if (!depDef) {
+            out.depends[depId] = { error: 'not found' };
+            return;
+          }
+          // fanOut: run this per-instance enrichment for EVERY instance of its
+          // target mark and expose the array. Lets a whole-daf consumer (the
+          // tidbit) pull in every story's / verse's / topic's analysis. Each
+          // instance run resolves its own deps + scopes its context, and is
+          // cache-keyed per instance — so on a warmed daf these are all hits.
+          if ((dep as { fanOut?: boolean }).fanOut) {
+            const markDef = await loadMarkDef(rc.env, depDef.mark);
+            if (!markDef) {
+              out.depends[depId] = { error: `mark ${depDef.mark} not found` };
+              return;
+            }
+            let instances: unknown[] = [];
             try {
-              const r = await runEnrichmentOnce(rc, depDef, tractate, page, inst, bypassCache, undefined, parentChain);
-              return r.parsed ?? r.content;
-            } catch { return null; }
-          }));
-          out.depends[depId] = results.filter((x) => x != null);
+              const markRes = await runMarkOnce(rc, markDef, tractate, page, bypassCache);
+              const parsed = markRes.parsed as { instances?: unknown[] } | null;
+              instances = Array.isArray(parsed?.instances) ? parsed.instances : [];
+            } catch (err) {
+              out.depends[depId] = { error: String((err as Error)?.message ?? err) };
+              return;
+            }
+            const results = await Promise.all(
+              instances.map(async (inst) => {
+                try {
+                  const r = await runEnrichmentOnce(
+                    rc,
+                    depDef,
+                    tractate,
+                    page,
+                    inst,
+                    bypassCache,
+                    undefined,
+                    parentChain,
+                  );
+                  return r.parsed ?? r.content;
+                } catch {
+                  return null;
+                }
+              }),
+            );
+            out.depends[depId] = results.filter((x) => x != null);
+            return;
+          }
+          try {
+            const result = await runEnrichmentOnce(
+              rc,
+              depDef,
+              tractate,
+              page,
+              markInput,
+              bypassCache,
+              undefined,
+              parentChain,
+            );
+            out.depends[depId] = result.parsed ?? result.content;
+          } catch (err) {
+            out.depends[depId] = { error: String((err as Error)?.message ?? err) };
+          }
           return;
         }
-        try {
-          const result = await runEnrichmentOnce(rc, depDef, tractate, page, markInput, bypassCache, undefined, parentChain);
-          out.depends[depId] = result.parsed ?? result.content;
-        } catch (err) {
-          out.depends[depId] = { error: String((err as Error)?.message ?? err) };
-        }
-        return;
-      }
-      if ('mark' in dep) {
-        const markId = dep.mark;
-        const markDef = await loadMarkDef(rc.env, markId);
-        if (!markDef) {
-          out.anchors[markId] = { error: 'not found' };
+        if ('mark' in dep) {
+          const markId = dep.mark;
+          const markDef = await loadMarkDef(rc.env, markId);
+          if (!markDef) {
+            out.anchors[markId] = { error: 'not found' };
+            return;
+          }
+          try {
+            const result = await runMarkOnce(rc, markDef, tractate, page, bypassCache);
+            // Surface only the parsed instances list — extractors all emit
+            // `{ instances: [...] }`. If the parse failed, expose the raw text.
+            const parsed = result.parsed as { instances?: unknown } | null;
+            out.anchors[markId] = parsed?.instances ?? result.content;
+          } catch (err) {
+            out.anchors[markId] = { error: String((err as Error)?.message ?? err) };
+          }
           return;
         }
-        try {
-          const result = await runMarkOnce(rc, markDef, tractate, page, bypassCache);
-          // Surface only the parsed instances list — extractors all emit
-          // `{ instances: [...] }`. If the parse failed, expose the raw text.
-          const parsed = result.parsed as { instances?: unknown } | null;
-          out.anchors[markId] = parsed?.instances ?? result.content;
-        } catch (err) {
-          out.anchors[markId] = { error: String((err as Error)?.message ?? err) };
-        }
-        return;
       }
-    }
-  }));
+    }),
+  );
   return out;
 }
 
@@ -2255,7 +2786,10 @@ function costStampOf(
   cacheVersion: string,
 ): CostStamp {
   const { input, output } = normalizeUsage(usage as Parameters<typeof normalizeUsage>[0]);
-  const { costInUsd, costOutUsd } = costSplitUsd(model, usage as Parameters<typeof costSplitUsd>[1]);
+  const { costInUsd, costOutUsd } = costSplitUsd(
+    model,
+    usage as Parameters<typeof costSplitUsd>[1],
+  );
   const billed = usage && typeof usage.cost === 'number' ? usage.cost : null;
   return {
     billedUsd: billed,
@@ -2286,7 +2820,11 @@ async function readCachedResult(env: Bindings, key: string): Promise<RunResult |
   if (!env.CACHE) return null;
   const raw = await env.CACHE.get(key);
   if (!raw) return null;
-  try { return JSON.parse(raw) as RunResult; } catch { return null; }
+  try {
+    return JSON.parse(raw) as RunResult;
+  } catch {
+    return null;
+  }
 }
 
 async function writeCachedResult(env: Bindings, key: string, result: RunResult): Promise<void> {
@@ -2303,7 +2841,11 @@ async function writeCachedResult(env: Bindings, key: string, result: RunResult):
 /** Computed-mark function signature. Receives env + (tractate, page) and
  *  returns the parsed mark output. Used for marks whose data comes from a
  *  deterministic source (e.g. Sefaria) rather than an LLM. */
-type ComputedMarkFn = (env: Bindings, tractate: string, page: string) => Promise<{ instances: unknown[] }>;
+type ComputedMarkFn = (
+  env: Bindings,
+  tractate: string,
+  page: string,
+) => Promise<{ instances: unknown[] }>;
 
 /** Rishonim allowlist for the `rishonim` mark. Sefaria's
  *  `category: 'Commentary'` sweeps in acharonim + modern works too — we
@@ -2369,12 +2911,21 @@ const COMPUTED_FNS: Record<string, ComputedMarkFn> = {
     // Regroup by segment, filtering to the rishonim allowlist. Each instance
     // = one commented segment with the per-rishon comment payloads attached
     // for downstream synthesis.
-    const bySeg = new Map<number, Array<{ work: string; workHe: string; textHe: string; textEn: string; sourceRef: string }>>();
+    const bySeg = new Map<
+      number,
+      Array<{ work: string; workHe: string; textHe: string; textEn: string; sourceRef: string }>
+    >();
     for (const work of result.works) {
       if (!isRishonTitle(work.title)) continue;
       for (const c of work.comments) {
         const list = bySeg.get(c.anchorSegIdx) ?? [];
-        list.push({ work: work.title, workHe: work.titleHe, textHe: c.textHe, textEn: c.textEn, sourceRef: c.sourceRef });
+        list.push({
+          work: work.title,
+          workHe: work.titleHe,
+          textHe: c.textHe,
+          textEn: c.textEn,
+          sourceRef: c.sourceRef,
+        });
         bySeg.set(c.anchorSegIdx, list);
       }
     }
@@ -2502,14 +3053,19 @@ async function runExtractorFannedOut(
       }),
     );
     for (const { r, systemPrompt, userPrompt } of settled) {
-      if (!sysSample) { sysSample = systemPrompt; userSample = userPrompt; }
+      if (!sysSample) {
+        sysSample = systemPrompt;
+        userSample = userPrompt;
+      }
       // A section whose JSON won't parse is a hard failure — throw so the daf
       // isn't cached with a section's moves silently missing.
       let p: { instances?: unknown[] };
       try {
         p = JSON.parse(r.content) as { instances?: unknown[] };
       } catch (err) {
-        throw new Error(`fan-out ${fanOutMarkId}: section JSON parse failed: ${String(err).slice(0, 120)}`);
+        throw new Error(
+          `fan-out ${fanOutMarkId}: section JSON parse failed: ${String(err).slice(0, 120)}`,
+        );
       }
       if (Array.isArray(p.instances)) mergedInstances.push(...p.instances);
       promptChars += r.prompt_chars;
@@ -2559,7 +3115,9 @@ async function runExtractorFannedOut(
 // rabbis — `excerpt` is non-load-bearing for the rabbi mark (the renderer and
 // sidebar key off fields.nameHe), so mirroring it from nameHe is safe.
 function postProcessRabbi(parsed: unknown, hebrewText: string): unknown {
-  const p = parsed as { instances?: Array<{ fields?: { name?: string; nameHe?: string; generation?: string } }> } | null;
+  const p = parsed as {
+    instances?: Array<{ fields?: { name?: string; nameHe?: string; generation?: string } }>;
+  } | null;
   if (!p || !Array.isArray(p.instances)) return parsed;
   const modelRabbis = p.instances.map((i) => ({
     name: String(i.fields?.name ?? ''),
@@ -2575,7 +3133,11 @@ function postProcessRabbi(parsed: unknown, hebrewText: string): unknown {
       // model-unsure rabbi (the deterministic safety net adds known rabbis as
       // 'unknown') still underlines on the right tier instead of neutral gray.
       // The model's call wins whenever it assigned a generation.
-      fields: { name: r.name, nameHe: r.nameHe, generation: resolveGeneration(r.name, r.nameHe, r.generation) },
+      fields: {
+        name: r.name,
+        nameHe: r.nameHe,
+        generation: resolveGeneration(r.name, r.nameHe, r.generation),
+      },
     })),
   };
 }
@@ -2641,7 +3203,15 @@ async function runMarkOnce(
     if (hit) return { ...hit, cache_hit: true };
   }
 
-  const inputs = await resolveDependencies(rc, def.dependencies, tractate, page, undefined, bypassCache, new Set());
+  const inputs = await resolveDependencies(
+    rc,
+    def.dependencies,
+    tractate,
+    page,
+    undefined,
+    bypassCache,
+    new Set(),
+  );
   const vars: Record<string, unknown> = {
     ...inputs.vars,
     depends: inputs.depends,
@@ -2666,7 +3236,7 @@ async function runMarkOnce(
       producerId: def.id,
       tractate,
       page,
-      lang: useHe ? 'he' as const : 'en' as const,
+      lang: useHe ? ('he' as const) : ('en' as const),
       cache_version: def.cache_version,
     },
   };
@@ -2677,9 +3247,16 @@ async function runMarkOnce(
   // Hebrew mode selects the *_he prompt variant when the mark defines one
   // (mirrors runEnrichmentOnce). Falls back to English when absent.
   const sysTpl = useHe && ext.system_prompt_he ? ext.system_prompt_he : ext.system_prompt;
-  const usrTpl = useHe && ext.user_prompt_template_he ? ext.user_prompt_template_he : ext.user_prompt_template;
+  const usrTpl =
+    useHe && ext.user_prompt_template_he ? ext.user_prompt_template_he : ext.user_prompt_template;
   if (ext.fan_out_over) {
-    const fanned = await runExtractorFannedOut(rc, { ...ext, system_prompt: sysTpl, user_prompt_template: usrTpl }, vars, ext.fan_out_over, llmOptsBase);
+    const fanned = await runExtractorFannedOut(
+      rc,
+      { ...ext, system_prompt: sysTpl, user_prompt_template: usrTpl },
+      vars,
+      ext.fan_out_over,
+      llmOptsBase,
+    );
     result = fanned.result;
     systemPrompt = fanned.systemPromptSample;
     userPrompt = fanned.userPromptSample;
@@ -2699,8 +3276,11 @@ async function runMarkOnce(
   let parsed: unknown = null;
   let parse_error: string | null = null;
   if (ext.output_schema) {
-    try { parsed = JSON.parse(result.content); }
-    catch (err) { parse_error = String(err).slice(0, 200); }
+    try {
+      parsed = JSON.parse(result.content);
+    } catch (err) {
+      parse_error = String(err).slice(0, 200);
+    }
   }
   // Per-mark post-processing via the declarative check layer
   // (src/lib/check/passes.ts). Some extractors (notably argument-move) can't
@@ -2716,7 +3296,11 @@ async function runMarkOnce(
   if (parsed && def.passes && def.passes.length > 0) {
     const slice = await getGemaraSlice(rc.env, tractate, page, false);
     const checked = await runPasses(def.passes, parsed, {
-      tractate, page, segmentsHe: slice.segments_he, defId: def.id, lang: rc.lang,
+      tractate,
+      page,
+      segmentsHe: slice.segments_he,
+      defId: def.id,
+      lang: rc.lang,
       // The yerushalmi-floor transform needs the deterministic floor anchors the
       // resolver stashed; harmless (and absent) for every other mark.
       yerushalmiFloor: inputs.vars.__yerushalmiFloor as YerushalmiFloorGroup[] | undefined,
@@ -2746,7 +3330,11 @@ async function runMarkOnce(
     recordObservedPlacesFromMark(rc, parsed, tractate, page);
   }
   // Attribute this fresh LLM call's tokens + cost to the daily rollup.
-  captureLlmUsage(rc, { kind: 'mark', id: def.id, result: { model: result.model, usage: result.usage, parse_error } });
+  captureLlmUsage(rc, {
+    kind: 'mark',
+    id: def.id,
+    result: { model: result.model, usage: result.usage, parse_error },
+  });
   const out: RunResult = {
     content: result.content,
     reasoning: result.reasoning_content || undefined,
@@ -2762,8 +3350,14 @@ async function runMarkOnce(
     // responses don't balloon. The full prompt was already sent to the LLM —
     // we don't need to ship it back through workerd just for the dev tray.
     resolved: {
-      system_prompt: systemPrompt.length > 2000 ? systemPrompt.slice(0, 2000) + '… [+' + (systemPrompt.length - 2000) + ' chars]' : systemPrompt,
-      user_prompt: userPrompt.length > 2000 ? userPrompt.slice(0, 2000) + '… [+' + (userPrompt.length - 2000) + ' chars]' : userPrompt,
+      system_prompt:
+        systemPrompt.length > 2000
+          ? systemPrompt.slice(0, 2000) + '… [+' + (systemPrompt.length - 2000) + ' chars]'
+          : systemPrompt,
+      user_prompt:
+        userPrompt.length > 2000
+          ? userPrompt.slice(0, 2000) + '… [+' + (userPrompt.length - 2000) + ' chars]'
+          : userPrompt,
     },
     cache_hit: false,
     cost: costStampOf(result.model, result.usage, useHe ? 'he' : 'en', def.cache_version),
@@ -2778,9 +3372,15 @@ async function runMarkOnce(
   if (!parse_error) {
     if (!markHardIssues) {
       await writeCachedResult(rc.env, cacheKey, out);
-    } else if (await noteLintAttempt(rc.env, rc.ctx, cacheKey, {
-      enrichmentId: def.id, tractate, page, lang: rc.lang, issues: markHardIssues,
-    })) {
+    } else if (
+      await noteLintAttempt(rc.env, rc.ctx, cacheKey, {
+        enrichmentId: def.id,
+        tractate,
+        page,
+        lang: rc.lang,
+        issues: markHardIssues,
+      })
+    ) {
       await writeCachedResult(rc.env, cacheKey, out);
     }
   }
@@ -2842,17 +3442,23 @@ async function runEnrichmentOnce(
   const instance_id = await instanceIdOf(markInput);
   const qHash = userQuestion ? await qualifierHash(userQuestion) : undefined;
   const cacheKey = modelOverride
-    // Per-call model overrides skip the canonical cache to avoid polluting
-    // the default-traffic key. Re-running with the same override hits the
-    // gateway prompt cache but not KV — consistent with bypass behavior.
-    ? null
-    : keyForEnrichment(def, instance_id, def.scope === 'local' ? { tractate, page } : undefined, qHash, rc.lang);
+    ? // Per-call model overrides skip the canonical cache to avoid polluting
+      // the default-traffic key. Re-running with the same override hits the
+      // gateway prompt cache but not KV — consistent with bypass behavior.
+      null
+    : keyForEnrichment(
+        def,
+        instance_id,
+        def.scope === 'local' ? { tractate, page } : undefined,
+        qHash,
+        rc.lang,
+      );
   // Section enrichments key by title (see instanceIdOf); guard against a
   // drifted title serving another section's cache by validating the stamped
   // range. Null for non-section enrichments (no guard).
   const sectionRange = sectionRangeOf(def, markInput);
   if (cacheKey && !bypassCache) {
-    const hit = await readCachedResult(rc.env, cacheKey) as RunResultEnrichment | null;
+    const hit = (await readCachedResult(rc.env, cacheKey)) as RunResultEnrichment | null;
     // Reject a hit whose stamped range doesn't match the requested section
     // (covers both a drifted title AND legacy entries with no stamp) so it
     // recomputes for the correct range instead of returning stale content.
@@ -2915,7 +3521,13 @@ async function runEnrichmentOnce(
     // Rabbi not in the bundled dataset → add to the "needs global enrichment"
     // backlog so we can track who to add a base bio for as usage grows.
     if (!ident.slug && (inst?.name || inst?.nameHe)) {
-      recordUnknownRabbi(rc.env, rc.ctx, { name: inst?.name, nameHe: inst?.nameHe, generation: inst?.generation, tractate, page });
+      recordUnknownRabbi(rc.env, rc.ctx, {
+        name: inst?.name,
+        nameHe: inst?.nameHe,
+        generation: inst?.generation,
+        tractate,
+        page,
+      });
     }
     const out: RunResultEnrichment = {
       content: JSON.stringify(ident),
@@ -2940,7 +3552,15 @@ async function runEnrichmentOnce(
 
   const nextChain = new Set(parentChain);
   nextChain.add(def.id);
-  const inputs = await resolveDependencies(rc, def.dependencies, tractate, page, markInput, bypassCache, nextChain);
+  const inputs = await resolveDependencies(
+    rc,
+    def.dependencies,
+    tractate,
+    page,
+    markInput,
+    bypassCache,
+    nextChain,
+  );
 
   // Deterministic accumulation step — runs LAST (its mark deps are resolved
   // above) and writes per-rabbi observation slices to KV as a side effect.
@@ -2965,7 +3585,9 @@ async function runEnrichmentOnce(
     // the daf, so the LLM can quote cross-references (e.g. Tehillim 119:148
     // when the focal is 119:62) without reconstructing from training memory.
     if (def.id === 'pesukim.synthesis') {
-      const pesukimAnchors = inputs.anchors.pesukim as { fields?: { verseRef?: string } }[] | undefined;
+      const pesukimAnchors = inputs.anchors.pesukim as
+        | { fields?: { verseRef?: string } }[]
+        | undefined;
       if (Array.isArray(pesukimAnchors) && pesukimAnchors.length > 0) {
         const seen = new Set<string>([focalRef]);
         const lines: string[] = [];
@@ -2992,11 +3614,16 @@ async function runEnrichmentOnce(
   if (def.mark === 'argument') {
     const mi = markInput as { startSegIdx?: number; endSegIdx?: number } | null;
     const all = inputs.anchors['argument-move'];
-    if (mi && typeof mi.startSegIdx === 'number' && typeof mi.endSegIdx === 'number' && Array.isArray(all)) {
-      inputs.anchors['argument-move'] = selectSectionMoves(
-        all as MoveLike[],
-        { startSegIdx: mi.startSegIdx, endSegIdx: mi.endSegIdx },
-      );
+    if (
+      mi &&
+      typeof mi.startSegIdx === 'number' &&
+      typeof mi.endSegIdx === 'number' &&
+      Array.isArray(all)
+    ) {
+      inputs.anchors['argument-move'] = selectSectionMoves(all as MoveLike[], {
+        startSegIdx: mi.startSegIdx,
+        endSegIdx: mi.endSegIdx,
+      });
     }
   }
 
@@ -3018,7 +3645,8 @@ async function runEnrichmentOnce(
   // mode — it just produces English prose until its Hebrew prompt is authored.
   const useHe = rc.lang === 'he';
   const systemPromptTpl = useHe && def.system_prompt_he ? def.system_prompt_he : def.system_prompt;
-  const userPromptTpl = useHe && def.user_prompt_template_he ? def.user_prompt_template_he : def.user_prompt_template;
+  const userPromptTpl =
+    useHe && def.user_prompt_template_he ? def.user_prompt_template_he : def.user_prompt_template;
   const systemPrompt = renderTemplate(systemPromptTpl, vars);
   const userPrompt = renderTemplate(userPromptTpl, vars);
 
@@ -3039,11 +3667,11 @@ async function runEnrichmentOnce(
     bypass_cache: bypassCache,
     tag: `enrich:${def.id}`,
     attribution: {
-      kind: def.id.endsWith('.qa') ? 'qa' as const : 'enrichment' as const,
+      kind: def.id.endsWith('.qa') ? ('qa' as const) : ('enrichment' as const),
       producerId: def.id,
       tractate,
       page,
-      lang: useHe ? 'he' as const : 'en' as const,
+      lang: useHe ? ('he' as const) : ('en' as const),
       cache_version: def.cache_version,
     },
     // Custom Q&A enrichments (<mark>.qa) count against the hourly custom-question
@@ -3054,8 +3682,11 @@ async function runEnrichmentOnce(
   let parsed: unknown = null;
   let parse_error: string | null = null;
   if (def.output_schema) {
-    try { parsed = JSON.parse(result.content); }
-    catch (err) { parse_error = String(err).slice(0, 200); }
+    try {
+      parsed = JSON.parse(result.content);
+    } catch (err) {
+      parse_error = String(err).slice(0, 200);
+    }
   }
   // Post-generation processing via the standardized check layer
   // (src/lib/check/passes.ts). An enrichment opts in through `passes: []` in
@@ -3072,8 +3703,8 @@ async function runEnrichmentOnce(
   // Issues are attached to the result (visible in dev tray / cache) but never
   // reject the run; only `hard` issues gate the cache write below. The transforms
   // need the segment grid, so fetch the gemara slice once when any check runs.
-  let lint_issues: unknown[] | undefined;   // hard subset → gating + /api/usage path
-  let check_issues: unknown[] | undefined;  // all severities → observation
+  let lint_issues: unknown[] | undefined; // hard subset → gating + /api/usage path
+  let check_issues: unknown[] | undefined; // all severities → observation
   let hardIssueCount = 0;
   if (parsed && !parse_error && def.passes && def.passes.length > 0) {
     const slice = await getGemaraSlice(rc.env, tractate, page, false);
@@ -3082,10 +3713,17 @@ async function runEnrichmentOnce(
     let commentaryHe: string[] | undefined;
     if (def.passes.includes('commentary-verbatim')) {
       const com = await getCommentariesSlice(rc.env, tractate, page, false);
-      commentaryHe = Object.values(com.by_commentator).map((c) => stripHtmlServer(c.hebrew)).filter(Boolean);
+      commentaryHe = Object.values(com.by_commentator)
+        .map((c) => stripHtmlServer(c.hebrew))
+        .filter(Boolean);
     }
     const checked = await runPasses(def.passes, parsed, {
-      tractate, page, segmentsHe: slice.segments_he, commentaryHe, defId: def.id, lang: rc.lang,
+      tractate,
+      page,
+      segmentsHe: slice.segments_he,
+      commentaryHe,
+      defId: def.id,
+      lang: rc.lang,
     });
     parsed = checked.parsed;
     if (checked.issues.length > 0) {
@@ -3116,8 +3754,14 @@ async function runEnrichmentOnce(
     // responses don't balloon. The full prompt was already sent to the LLM —
     // we don't need to ship it back through workerd just for the dev tray.
     resolved: {
-      system_prompt: systemPrompt.length > 2000 ? systemPrompt.slice(0, 2000) + '… [+' + (systemPrompt.length - 2000) + ' chars]' : systemPrompt,
-      user_prompt: userPrompt.length > 2000 ? userPrompt.slice(0, 2000) + '… [+' + (userPrompt.length - 2000) + ' chars]' : userPrompt,
+      system_prompt:
+        systemPrompt.length > 2000
+          ? systemPrompt.slice(0, 2000) + '… [+' + (systemPrompt.length - 2000) + ' chars]'
+          : systemPrompt,
+      user_prompt:
+        userPrompt.length > 2000
+          ? userPrompt.slice(0, 2000) + '… [+' + (userPrompt.length - 2000) + ' chars]'
+          : userPrompt,
     },
     cache_hit: false,
     recipe_hash,
@@ -3139,14 +3783,24 @@ async function runEnrichmentOnce(
   if (cacheKey && !parse_error) {
     if (hardIssueCount === 0) {
       await writeCachedResult(rc.env, cacheKey, out);
-    } else if (await noteLintAttempt(rc.env, rc.ctx, cacheKey, {
-      enrichmentId: def.id, tractate, page, lang: rc.lang, issues: lint_issues ?? [],
-    })) {
+    } else if (
+      await noteLintAttempt(rc.env, rc.ctx, cacheKey, {
+        enrichmentId: def.id,
+        tractate,
+        page,
+        lang: rc.lang,
+        issues: lint_issues ?? [],
+      })
+    ) {
       await writeCachedResult(rc.env, cacheKey, out);
     }
   }
   // Attribute this fresh LLM call's tokens + cost to the daily rollup.
-  captureLlmUsage(rc, { kind: 'enrichment', id: def.id, result: { model: result.model, usage: result.usage, parse_error } });
+  captureLlmUsage(rc, {
+    kind: 'enrichment',
+    id: def.id,
+    result: { model: result.model, usage: result.usage, parse_error },
+  });
   return out;
 }
 
@@ -3170,7 +3824,10 @@ export function obsDafSlug(tractate: string, page: string): string {
   return `${clean(tractate)}:${clean(page)}`;
 }
 function obsSlugId(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9._-]+/g, '_').slice(0, 80);
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, '_')
+    .slice(0, 80);
 }
 
 function asInstances(v: unknown): Array<Record<string, unknown>> {
@@ -3202,9 +3859,8 @@ async function runRabbiObservations(
   const placeInsts = asInstances(inputs.anchors.places);
   // Dedupe by move id: a doubled argument-move cache would otherwise
   // double-count every per-move observation in the reverse index.
-  const moves = dedupeBy(
-    rangeItemsOf(inputs.anchors['argument-move']),
-    (m) => String((m.fields as { id?: unknown })?.id ?? `${m.startSegIdx}-${m.endSegIdx}`),
+  const moves = dedupeBy(rangeItemsOf(inputs.anchors['argument-move']), (m) =>
+    String((m.fields as { id?: unknown })?.id ?? `${m.startSegIdx}-${m.endSegIdx}`),
   );
   const aggadata = rangeItemsOf(inputs.anchors.aggadata);
   const pesukim = rangeItemsOf(inputs.anchors.pesukim);
@@ -3230,10 +3886,15 @@ async function runRabbiObservations(
     if (locDef) {
       try {
         const iid = await instanceIdOf(inst);
-        const hit = await readCachedResult(rc.env, keyForEnrichment(locDef, iid, { tractate, page }));
+        const hit = await readCachedResult(
+          rc.env,
+          keyForEnrichment(locDef, iid, { tractate, page }),
+        );
         const place = (hit?.parsed as { place?: string } | null)?.place;
         if (typeof place === 'string' && place.trim()) location = { place: place.trim() };
-      } catch { /* best-effort; high tier is optional */ }
+      } catch {
+        /* best-effort; high tier is optional */
+      }
     }
 
     resolvedRabbis.push({ slug, name: name || nameHe, nameHe, generation, segIdxs, location });
@@ -3253,8 +3914,15 @@ async function runRabbiObservations(
     .filter((p) => p.name || p.nameHe);
 
   const slices = buildObservationSlices({
-    tractate, page, defHash: def.cache_version, computedAt,
-    rabbis: resolvedRabbis, places: resolvedPlaces, moves, aggadata, pesukim,
+    tractate,
+    page,
+    defHash: def.cache_version,
+    computedAt,
+    rabbis: resolvedRabbis,
+    places: resolvedPlaces,
+    moves,
+    aggadata,
+    pesukim,
   });
 
   // Persist: one idempotent slice per (rabbi, daf), keyed by canonical slug.
@@ -3273,7 +3941,14 @@ async function runRabbiObservations(
     }
   }
 
-  const summary = { tractate, page, rabbis: slices.length, observations: totalObs, byType, computedAt };
+  const summary = {
+    tractate,
+    page,
+    rabbis: slices.length,
+    observations: totalObs,
+    byType,
+    computedAt,
+  };
   return {
     content: JSON.stringify(summary),
     parsed: summary,
@@ -3309,7 +3984,10 @@ async function runRabbiObservations(
  * no id). Used both in the producer (cache check before enqueuing) and the
  * consumer (write-through after running).
  */
-async function cacheKeyForRunBody(env: Bindings, body: JobMessage): Promise<{
+async function cacheKeyForRunBody(
+  env: Bindings,
+  body: JobMessage,
+): Promise<{
   key: string | null;
   defKind: 'mark' | 'enrichment' | null;
 }> {
@@ -3327,9 +4005,13 @@ async function cacheKeyForRunBody(env: Bindings, body: JobMessage): Promise<{
     const def = await loadEnrichmentDef(env, body.enrichment_id);
     if (!def) return { key: null, defKind: null };
     const instance_id = await instanceIdOf(body.mark_input);
-    const dafForKey = def.scope === 'local' ? { tractate: body.tractate, page: body.page } : undefined;
+    const dafForKey =
+      def.scope === 'local' ? { tractate: body.tractate, page: body.page } : undefined;
     const qHash = body.user_question ? await qualifierHash(body.user_question) : undefined;
-    return { key: keyForEnrichment(def, instance_id, dafForKey, qHash, body.lang ?? 'en'), defKind: 'enrichment' };
+    return {
+      key: keyForEnrichment(def, instance_id, dafForKey, qHash, body.lang ?? 'en'),
+      defKind: 'enrichment',
+    };
   }
   // ad_hoc has no canonical key
   return { key: null, defKind: null };
@@ -3344,14 +4026,18 @@ async function cacheKeyForRunBody(env: Bindings, body: JobMessage): Promise<{
 async function makeRunId(body: JobMessage): Promise<string> {
   const parts = [
     body.mark_id ?? body.enrichment_id ?? 'adhoc',
-    body.tractate, body.page,
+    body.tractate,
+    body.page,
     await instanceIdOf(body.mark_input),
     body.user_question ? `q_${await qualifierHash(body.user_question)}` : 'noq',
     body.lang === 'he' ? 'he' : 'en',
     body.bypass_cache ? 'fresh' : 'cached',
     String(Math.floor(Date.now() / 1000)),
   ];
-  return parts.join(':').replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
+  return parts
+    .join(':')
+    .replace(/[^a-zA-Z0-9._:-]+/g, '_')
+    .slice(0, 200);
 }
 
 /**
@@ -3386,10 +4072,7 @@ function enqueueTsFromRunId(runId: string): number | undefined {
   return m ? parseInt(m[1], 10) * 1000 : undefined;
 }
 
-async function recordRecentJobError(
-  env: Bindings,
-  rec: Omit<RecentJobError, 'ts'>,
-): Promise<void> {
+async function recordRecentJobError(env: Bindings, rec: Omit<RecentJobError, 'ts'>): Promise<void> {
   const cache = env.CACHE;
   if (!cache) return;
   try {
@@ -3456,7 +4139,8 @@ app.post('/api/run', async (c) => {
   const trusted = isTrustedRequest(c);
   if (!trusted) {
     if (body.ad_hoc !== undefined) return c.json({ error: 'ad_hoc runs require studio auth' }, 403);
-    if (body.model_override !== undefined) return c.json({ error: 'model_override requires studio auth' }, 403);
+    if (body.model_override !== undefined)
+      return c.json({ error: 'model_override requires studio auth' }, 403);
   }
 
   if (body.model_override && !isLLMModelId(body.model_override)) {
@@ -3466,7 +4150,7 @@ app.post('/api/run', async (c) => {
     return c.json({ error: 'mark_id, enrichment_id, or ad_hoc required' }, 400);
   }
   const job: JobMessage = {
-    runId: '',  // assigned below
+    runId: '', // assigned below
     mark_id: body.mark_id,
     enrichment_id: body.enrichment_id,
     ad_hoc: trusted ? body.ad_hoc : undefined,
@@ -3476,8 +4160,10 @@ app.post('/api/run', async (c) => {
     mark_input: body.mark_input,
     // Public callers can't force a fresh paid run; downgrade to cache-respecting.
     bypass_cache: trusted ? body.bypass_cache === true : false,
-    user_question: typeof body.user_question === 'string' && body.user_question.trim().length > 0
-      ? body.user_question : undefined,
+    user_question:
+      typeof body.user_question === 'string' && body.user_question.trim().length > 0
+        ? body.user_question
+        : undefined,
     lang: body.lang === 'he' ? 'he' : undefined,
   };
 
@@ -3504,7 +4190,9 @@ app.post('/api/run', async (c) => {
             // run badge and shows "undefinedms" otherwise.
             return c.json({ status: 'ok', result: { ...result, cache_hit: true, total_ms: 0 } });
           }
-        } catch { /* corrupt cache; fall through to enqueue */ }
+        } catch {
+          /* corrupt cache; fall through to enqueue */
+        }
       }
     }
   }
@@ -3552,9 +4240,14 @@ app.post('/api/run', async (c) => {
               refreshing = true;
             }
             recordTelemetry(c, runTelemetryRec(job, { ...result, cache_hit: true }, 0));
-            return c.json({ status: 'ok', result: { ...result, cache_hit: true, total_ms: 0, stale: true, refreshing } });
+            return c.json({
+              status: 'ok',
+              result: { ...result, cache_hit: true, total_ms: 0, stale: true, refreshing },
+            });
           }
-        } catch { /* corrupt prev value; fall through to a normal enqueue */ }
+        } catch {
+          /* corrupt prev value; fall through to a normal enqueue */
+        }
       }
     }
   }
@@ -3575,13 +4268,16 @@ app.post('/api/run', async (c) => {
   const customRun = !!(job.enrichment_id && job.enrichment_id.endsWith('.qa') && job.user_question);
   const gate = await checkBudget(c.env, { custom: customRun });
   if (!gate.ok) {
-    return c.json({
-      status: 'error',
-      error: pauseErrorMessage(gate.scope),
-      paused: true,
-      scope: gate.scope,
-      retryAfter: pauseRetryAfterSec(gate.until),
-    }, 429);
+    return c.json(
+      {
+        status: 'error',
+        error: pauseErrorMessage(gate.scope),
+        paused: true,
+        scope: gate.scope,
+        retryAfter: pauseRetryAfterSec(gate.until),
+      },
+      429,
+    );
   }
   job.runId = await makeRunId(job);
   // Compute the canonical cache key up-front so the client can use it as a
@@ -3618,9 +4314,17 @@ app.post('/api/run-sources', async (c) => {
   const parsed = await readJsonBody(c);
   if (!parsed.ok) return parsed.response;
   const raw = parsed.value;
-  const body = raw as { mark_id?: string; enrichment_id?: string; tractate?: string; page?: string; mark_input?: unknown; lang?: string };
+  const body = raw as {
+    mark_id?: string;
+    enrichment_id?: string;
+    tractate?: string;
+    page?: string;
+    mark_input?: unknown;
+    lang?: string;
+  };
   if (!body.tractate || !body.page) return c.json({ error: 'tractate and page required' }, 400);
-  if (!body.mark_id && !body.enrichment_id) return c.json({ error: 'mark_id or enrichment_id required' }, 400);
+  if (!body.mark_id && !body.enrichment_id)
+    return c.json({ error: 'mark_id or enrichment_id required' }, 400);
 
   const def = body.enrichment_id
     ? await loadEnrichmentDef(c.env, body.enrichment_id)
@@ -3637,7 +4341,14 @@ app.post('/api/run-sources', async (c) => {
     lang: body.lang === 'he' ? 'he' : 'en',
   };
   const inputs = await resolveDependencies(
-    rc, def.dependencies, body.tractate, body.page, body.mark_input, false, new Set(), true,
+    rc,
+    def.dependencies,
+    body.tractate,
+    body.page,
+    body.mark_input,
+    false,
+    new Set(),
+    true,
   );
   return c.json({ sources: inputs.sources });
 });
@@ -3655,20 +4366,32 @@ app.post('/api/warm-daf', async (c) => {
   const raw = parsed.value;
   const body = raw as { tractate?: string; page?: string; lang?: string };
   if (!body.tractate || !body.page) return c.json({ error: 'tractate and page required' }, 400);
-  if (!c.env.ENRICHMENT_QUEUE) return c.json({ error: 'ENRICHMENT_QUEUE binding not available' }, 503);
+  if (!c.env.ENRICHMENT_QUEUE)
+    return c.json({ error: 'ENRICHMENT_QUEUE binding not available' }, 503);
   // Don't fan out a deep-warm storm once the daily budget is paused.
   const gate = await checkBudget(c.env, { custom: false });
   if (!gate.ok) {
-    return c.json({
-      status: 'error', error: pauseErrorMessage(gate.scope),
-      paused: true, scope: gate.scope, retryAfter: pauseRetryAfterSec(gate.until),
-    }, 429);
+    return c.json(
+      {
+        status: 'error',
+        error: pauseErrorMessage(gate.scope),
+        paused: true,
+        scope: gate.scope,
+        retryAfter: pauseRetryAfterSec(gate.until),
+      },
+      429,
+    );
   }
   const lang: 'en' | 'he' = body.lang === 'he' ? 'he' : 'en';
   const runId = `warm-deep:${body.tractate}:${body.page}:${lang}:${Math.floor(Date.now() / 1000)}`
-    .replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
+    .replace(/[^a-zA-Z0-9._:-]+/g, '_')
+    .slice(0, 200);
   await c.env.ENRICHMENT_QUEUE.send({
-    runId, warm_deep: true, tractate: body.tractate, page: body.page, ...(lang === 'he' ? { lang } : {}),
+    runId,
+    warm_deep: true,
+    tractate: body.tractate,
+    page: body.page,
+    ...(lang === 'he' ? { lang } : {}),
   });
   return c.json({ status: 'pending', runId }, 202);
 });
@@ -3701,7 +4424,9 @@ app.get('/api/run-status/:runId', async (c) => {
       try {
         const result = JSON.parse(cached) as RunResult;
         return c.json({ status: 'ok', result: { ...result, cache_hit: true, total_ms: 0 } });
-      } catch { /* corrupt canonical entry — fall through to pending */ }
+      } catch {
+        /* corrupt canonical entry — fall through to pending */
+      }
     }
   }
   return c.json({ status: 'pending' }, 202);
@@ -3719,8 +4444,11 @@ app.get('/api/admin/recent-errors', async (c) => {
   const raw = await cache.get(RECENT_ERRORS_KEY);
   let arr: RecentJobError[] = [];
   if (raw) {
-    try { arr = JSON.parse(raw) as RecentJobError[]; }
-    catch { return c.json({ error: 'corrupt buffer' }, 500); }
+    try {
+      arr = JSON.parse(raw) as RecentJobError[];
+    } catch {
+      return c.json({ error: 'corrupt buffer' }, 500);
+    }
   }
   const idFilter = c.req.query('id');
   const tractateFilter = c.req.query('tractate');
@@ -3759,7 +4487,11 @@ app.get('/api/rabbi-observations/:slug', async (c) => {
   for (const key of keys) {
     const raw = await cache.get(key);
     if (!raw) continue;
-    try { slices.push(JSON.parse(raw) as ObservationSlice); } catch { /* skip corrupt slice */ }
+    try {
+      slices.push(JSON.parse(raw) as ObservationSlice);
+    } catch {
+      /* skip corrupt slice */
+    }
   }
 
   const typeFilter = c.req.query('type');
@@ -3769,7 +4501,10 @@ app.get('/api/rabbi-observations/:slug', async (c) => {
   const byType: Record<string, number> = {};
   // Frequency across dafs, keyed by observation hash (same place/move/verse on
   // N dafs => dafs:N) — the signal a future "notable places" ranking needs.
-  const freq = new Map<string, { type: string; payload: unknown; dafs: number; confidence: string }>();
+  const freq = new Map<
+    string,
+    { type: string; payload: unknown; dafs: number; confidence: string }
+  >();
   const observations: Array<Record<string, unknown>> = [];
   for (const s of slices) {
     for (const o of s.observations) {
@@ -3777,7 +4512,8 @@ app.get('/api/rabbi-observations/:slug', async (c) => {
       const prev = freq.get(o.hash);
       if (prev) {
         prev.dafs += 1;
-        if ((RANK[o.confidence] ?? 0) > (RANK[prev.confidence] ?? 0)) prev.confidence = o.confidence;
+        if ((RANK[o.confidence] ?? 0) > (RANK[prev.confidence] ?? 0))
+          prev.confidence = o.confidence;
       } else {
         freq.set(o.hash, { type: o.type, payload: o.payload, dafs: 1, confidence: o.confidence });
       }
@@ -3810,14 +4546,26 @@ app.get('/api/rabbi-observations/:slug', async (c) => {
  *   ?clear=1          delete the ledger (reset before a measurement window)
  */
 interface LlmCostRec {
-  ts: number; model: string; transport: string; tag: string;
-  attempts: number; ms: number;
-  cost: number | null; prompt_tokens: number | null; completion_tokens: number | null; total_tokens: number | null;
+  ts: number;
+  model: string;
+  transport: string;
+  tag: string;
+  attempts: number;
+  ms: number;
+  cost: number | null;
+  prompt_tokens: number | null;
+  completion_tokens: number | null;
+  total_tokens: number | null;
   // Attribution (additive; null on entries written before it existed).
-  cost_in_est?: number | null; cost_out_est?: number | null;
-  kind?: string | null; producer_id?: string | null;
-  tractate?: string | null; page?: string | null; lang?: string | null;
-  cache_version?: string | null; cost_class?: string | null;
+  cost_in_est?: number | null;
+  cost_out_est?: number | null;
+  kind?: string | null;
+  producer_id?: string | null;
+  tractate?: string | null;
+  page?: string | null;
+  lang?: string | null;
+  cache_version?: string | null;
+  cost_class?: string | null;
 }
 app.get('/api/admin/llm-cost', async (c) => {
   const cache = c.env.CACHE;
@@ -3825,12 +4573,16 @@ app.get('/api/admin/llm-cost', async (c) => {
   const prefix = 'llmcost:v1:';
 
   if (c.req.query('clear') === '1') {
-    if (!isTrustedRequest(c)) return c.json({ error: 'clearing the cost ledger requires studio auth' }, 403);
+    if (!isTrustedRequest(c))
+      return c.json({ error: 'clearing the cost ledger requires studio auth' }, 403);
     let cursor: string | undefined;
     let deleted = 0;
     do {
       const res = await cache.list({ prefix, cursor, limit: 1000 });
-      for (const k of res.keys) { await cache.delete(k.name); deleted++; }
+      for (const k of res.keys) {
+        await cache.delete(k.name);
+        deleted++;
+      }
       cursor = res.list_complete ? undefined : res.cursor;
     } while (cursor && deleted < 50000);
     return c.json({ cleared: deleted });
@@ -3854,21 +4606,34 @@ app.get('/api/admin/llm-cost', async (c) => {
   let completionTokens = 0;
   let minTs = Number.POSITIVE_INFINITY;
   let maxTs = 0;
-  const byModel: Record<string, { calls: number; cost: number; promptTokens: number; completionTokens: number }> = {};
+  const byModel: Record<
+    string,
+    { calls: number; cost: number; promptTokens: number; completionTokens: number }
+  > = {};
   const byTag: Record<string, { calls: number; cost: number }> = {};
   const byKind: Record<string, { calls: number; cost: number }> = {};
   // Per-daf recent spend (7-day ledger window). The permanent per-daf record is
   // the cache-entry cost stamp; this is the live drill-down for what just ran.
-  const byDaf: Record<string, { calls: number; cost: number; costInEst: number; costOutEst: number }> = {};
+  const byDaf: Record<
+    string,
+    { calls: number; cost: number; costInEst: number; costOutEst: number }
+  > = {};
 
   for (const key of keys) {
     const raw = await cache.get(key);
     if (!raw) continue;
     let r: LlmCostRec;
-    try { r = JSON.parse(raw) as LlmCostRec; } catch { continue; }
+    try {
+      r = JSON.parse(raw) as LlmCostRec;
+    } catch {
+      continue;
+    }
     if (since && r.ts < since) continue;
     calls++;
-    if (typeof r.cost === 'number') { totalCost += r.cost; callsWithCost++; }
+    if (typeof r.cost === 'number') {
+      totalCost += r.cost;
+      callsWithCost++;
+    }
     if (typeof r.cost_in_est === 'number') totalCostInEst += r.cost_in_est;
     if (typeof r.cost_out_est === 'number') totalCostOutEst += r.cost_out_est;
     if (typeof r.prompt_tokens === 'number') promptTokens += r.prompt_tokens;
@@ -3876,14 +4641,27 @@ app.get('/api/admin/llm-cost', async (c) => {
     if (r.ts < minTs) minTs = r.ts;
     if (r.ts > maxTs) maxTs = r.ts;
     const m = (byModel[r.model] ??= { calls: 0, cost: 0, promptTokens: 0, completionTokens: 0 });
-    m.calls++; m.cost += r.cost ?? 0; m.promptTokens += r.prompt_tokens ?? 0; m.completionTokens += r.completion_tokens ?? 0;
+    m.calls++;
+    m.cost += r.cost ?? 0;
+    m.promptTokens += r.prompt_tokens ?? 0;
+    m.completionTokens += r.completion_tokens ?? 0;
     const t = (byTag[r.tag] ??= { calls: 0, cost: 0 });
-    t.calls++; t.cost += r.cost ?? 0;
+    t.calls++;
+    t.cost += r.cost ?? 0;
     const k = (byKind[r.kind ?? 'untagged'] ??= { calls: 0, cost: 0 });
-    k.calls++; k.cost += r.cost ?? 0;
+    k.calls++;
+    k.cost += r.cost ?? 0;
     if (r.tractate && r.page) {
-      const d = (byDaf[`${r.tractate}:${r.page}`] ??= { calls: 0, cost: 0, costInEst: 0, costOutEst: 0 });
-      d.calls++; d.cost += r.cost ?? 0; d.costInEst += r.cost_in_est ?? 0; d.costOutEst += r.cost_out_est ?? 0;
+      const d = (byDaf[`${r.tractate}:${r.page}`] ??= {
+        calls: 0,
+        cost: 0,
+        costInEst: 0,
+        costOutEst: 0,
+      });
+      d.calls++;
+      d.cost += r.cost ?? 0;
+      d.costInEst += r.cost_in_est ?? 0;
+      d.costOutEst += r.cost_out_est ?? 0;
     }
   }
 
@@ -3891,7 +4669,11 @@ app.get('/api/admin/llm-cost', async (c) => {
   for (const m of Object.values(byModel)) m.cost = round(m.cost);
   for (const t of Object.values(byTag)) t.cost = round(t.cost);
   for (const k of Object.values(byKind)) k.cost = round(k.cost);
-  for (const d of Object.values(byDaf)) { d.cost = round(d.cost); d.costInEst = round(d.costInEst); d.costOutEst = round(d.costOutEst); }
+  for (const d of Object.values(byDaf)) {
+    d.cost = round(d.cost);
+    d.costInEst = round(d.costInEst);
+    d.costOutEst = round(d.costOutEst);
+  }
 
   return c.json({
     totalCostUsd: round(totalCost),
@@ -3943,25 +4725,51 @@ app.post('/api/admin/budget/reset', async (c) => {
  */
 app.get('/api/admin/hb-probe', async (c) => {
   const tractate = c.req.query('tractate') ?? 'Berakhot';
-  const pages = (c.req.query('pages') ?? '2a,5a,10a,15b,20a').split(',').map((s) => s.trim()).filter(Boolean);
+  const pages = (c.req.query('pages') ?? '2a,5a,10a,15b,20a')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
   const concurrent = c.req.query('concurrent') === '1';
 
   const probeOne = async (page: string) => {
     const t0 = Date.now();
     try {
       const d = await fetchHebrewBooksDaf(tractate, page);
-      return { page, ok: true, ms: Date.now() - t0, mainLen: d.main.length, rashiLen: d.rashi.length, tosafotLen: d.tosafot.length };
+      return {
+        page,
+        ok: true,
+        ms: Date.now() - t0,
+        mainLen: d.main.length,
+        rashiLen: d.rashi.length,
+        tosafotLen: d.tosafot.length,
+      };
     } catch (e) {
-      return { page, ok: false, ms: Date.now() - t0, error: String((e as Error)?.message ?? e).slice(0, 300) };
+      return {
+        page,
+        ok: false,
+        ms: Date.now() - t0,
+        error: String((e as Error)?.message ?? e).slice(0, 300),
+      };
     }
   };
 
   const results = concurrent
     ? await Promise.all(pages.map(probeOne))
-    : await (async () => { const out = []; for (const p of pages) out.push(await probeOne(p)); return out; })();
+    : await (async () => {
+        const out = [];
+        for (const p of pages) out.push(await probeOne(p));
+        return out;
+      })();
 
   const ok = results.filter((r) => r.ok).length;
-  return c.json({ tractate, mode: concurrent ? 'concurrent' : 'sequential', attempted: results.length, ok, failed: results.length - ok, results });
+  return c.json({
+    tractate,
+    mode: concurrent ? 'concurrent' : 'sequential',
+    attempted: results.length,
+    ok,
+    failed: results.length - ok,
+    results,
+  });
 });
 
 // Spot-check the Revach placer for one daf: how each whole-daf Revach entry got
@@ -3986,17 +4794,23 @@ app.get('/api/admin/revach-check/:tractate/:page', async (c) => {
   if (c.req.query('ai') === '1') await placeRevachWithAi(c.env, tractate, page, items);
   const sectionTitleForSeg = (seg: number) =>
     sections.find((s) => seg >= s.startSegIdx && seg <= s.endSegIdx)?.title ?? null;
-  const revach = items.filter((it) => it.source === 'dafyomi:revach').map((it) => ({
-    entry: (it.title?.en ?? it.body?.en ?? '').slice(0, 80),
-    placed: it.segs.length ? `${it.segs[0]}-${it.segs[it.segs.length - 1]}` : null,
-    section: it.segs.length ? sectionTitleForSeg(it.segs[0]) : null,
-    via: it.via ?? null,
-    confidence: it.confidence ?? null,
-    refs: (it.refs ?? []).map((r) => `${r.tractate} ${r.page}`),
-  }));
+  const revach = items
+    .filter((it) => it.source === 'dafyomi:revach')
+    .map((it) => ({
+      entry: (it.title?.en ?? it.body?.en ?? '').slice(0, 80),
+      placed: it.segs.length ? `${it.segs[0]}-${it.segs[it.segs.length - 1]}` : null,
+      section: it.segs.length ? sectionTitleForSeg(it.segs[0]) : null,
+      via: it.via ?? null,
+      confidence: it.confidence ?? null,
+      refs: (it.refs ?? []).map((r) => `${r.tractate} ${r.page}`),
+    }));
   return c.json({
-    tractate, page, sections: sections.length, revachEntries: revach.length,
-    placed: revach.filter((r) => r.placed).length, items: revach,
+    tractate,
+    page,
+    sections: sections.length,
+    revachEntries: revach.length,
+    placed: revach.filter((r) => r.placed).length,
+    items: revach,
   });
 });
 
@@ -4064,16 +4878,18 @@ app.post('/api/admin/strip-ttl', async (c) => {
   const GROUP = 25;
   for (let i = 0; i < withTtl.length; i += GROUP) {
     const slice = withTtl.slice(i, i + GROUP);
-    await Promise.all(slice.map(async (k) => {
-      try {
-        const v = await cache.get(k.name);
-        if (v === null) return;  // gone between list and get
-        await cache.put(k.name, v);  // no expirationTtl → infinite
-        rewritten++;
-      } catch (err) {
-        errors.push(`${k.name}: ${String((err as Error)?.message ?? err).slice(0, 80)}`);
-      }
-    }));
+    await Promise.all(
+      slice.map(async (k) => {
+        try {
+          const v = await cache.get(k.name);
+          if (v === null) return; // gone between list and get
+          await cache.put(k.name, v); // no expirationTtl → infinite
+          rewritten++;
+        } catch (err) {
+          errors.push(`${k.name}: ${String((err as Error)?.message ?? err).slice(0, 80)}`);
+        }
+      }),
+    );
   }
 
   return c.json({
@@ -4100,14 +4916,16 @@ app.get('/api/admin/cache-stats', async (c) => {
   // for gaps between cron runs.) Only a true cold miss blocks on the scan.
   if (cached) {
     if (!isFresh(cached)) {
-      c.executionCtx.waitUntil((async () => {
-        try {
-          const fresh = await computeCacheStats(cache);
-          await writeCachedCacheStats(cache, fresh);
-        } catch (err) {
-          console.warn('[cache-stats] background refresh failed:', err);
-        }
-      })());
+      c.executionCtx.waitUntil(
+        (async () => {
+          try {
+            const fresh = await computeCacheStats(cache);
+            await writeCachedCacheStats(cache, fresh);
+          } catch (err) {
+            console.warn('[cache-stats] background refresh failed:', err);
+          }
+        })(),
+      );
     }
     return c.json(cached);
   }
@@ -4124,7 +4942,8 @@ app.post('/api/admin/cache-gc', async (c) => {
   const cache = c.env.CACHE;
   if (!cache) return c.json({ error: 'no cache binding' }, 503);
   const apply = c.req.query('apply') === '1';
-  if (apply && !isTrustedRequest(c)) return c.json({ error: 'deletion requires studio auth (?apply=1)' }, 403);
+  if (apply && !isTrustedRequest(c))
+    return c.json({ error: 'deletion requires studio auth (?apply=1)' }, 403);
   const maxDeletes = Math.min(Number(c.req.query('maxDeletes')) || 2000, 20000);
   const targets = await cacheGcTargets(cache);
   const summary = await gcStaleCache(cache, targets, { dryRun: !apply, maxDeletes });
@@ -4229,11 +5048,21 @@ interface QaRegistry {
 function qaRegistryKey(mark: string, tractate: string, page: string, instanceId: string): string {
   // Mirror the cache-keys.ts sanitization so registry keys can't carry
   // colons or slashes that would collide across instances.
-  const safe = (s: string) => s.toLowerCase().replace(/[^a-z0-9._-]+/g, '_').slice(0, 80);
+  const safe = (s: string) =>
+    s
+      .toLowerCase()
+      .replace(/[^a-z0-9._-]+/g, '_')
+      .slice(0, 80);
   return `qa-registry:${safe(mark)}:v1:${safe(instanceId)}:${safe(tractate)}:${safe(page)}`;
 }
 
-async function readQaRegistry(env: Bindings, mark: string, tractate: string, page: string, instanceId: string): Promise<QaRegistry> {
+async function readQaRegistry(
+  env: Bindings,
+  mark: string,
+  tractate: string,
+  page: string,
+  instanceId: string,
+): Promise<QaRegistry> {
   if (!env.CACHE) return { community: [] };
   try {
     const raw = await env.CACHE.get(qaRegistryKey(mark, tractate, page, instanceId));
@@ -4246,7 +5075,14 @@ async function readQaRegistry(env: Bindings, mark: string, tractate: string, pag
   }
 }
 
-async function writeQaRegistry(env: Bindings, mark: string, tractate: string, page: string, instanceId: string, reg: QaRegistry): Promise<void> {
+async function writeQaRegistry(
+  env: Bindings,
+  mark: string,
+  tractate: string,
+  page: string,
+  instanceId: string,
+  reg: QaRegistry,
+): Promise<void> {
   if (!env.CACHE) return;
   await env.CACHE.put(qaRegistryKey(mark, tractate, page, instanceId), JSON.stringify(reg));
 }
@@ -4255,7 +5091,9 @@ async function writeQaRegistry(env: Bindings, mark: string, tractate: string, pa
 // `move_id`/(no mark, defaults to argument-move) and the generalized
 // `instance_id`+`mark` forms.
 function resolveQaScope(input: {
-  mark?: string; move_id?: string; instance_id?: string;
+  mark?: string;
+  move_id?: string;
+  instance_id?: string;
 }): { mark: string; instanceId: string } | null {
   const mark = input.mark ?? QA_DEFAULT_MARK;
   if (!QA_ALLOWED_MARKS.has(mark)) return null;
@@ -4269,14 +5107,18 @@ function clientIp(c: { req: { header: (k: string) => string | undefined; raw: un
   // for local dev. Keep this as a single concatenated id rather than IP-only
   // so two-cookie / two-mobile scenarios still share a counter.
   return (
-    c.req.header('cf-connecting-ip')
-    ?? c.req.header('x-forwarded-for')?.split(',')[0]?.trim()
-    ?? c.req.header('x-real-ip')
-    ?? 'unknown'
+    c.req.header('cf-connecting-ip') ??
+    c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ??
+    c.req.header('x-real-ip') ??
+    'unknown'
   );
 }
 
-async function tickRateLimit(env: Bindings, scope: string, who: string): Promise<{ ok: boolean; remaining: number }> {
+async function tickRateLimit(
+  env: Bindings,
+  scope: string,
+  who: string,
+): Promise<{ ok: boolean; remaining: number }> {
   if (!env.CACHE) return { ok: true, remaining: QA_ASK_RATE_LIMIT_MAX };
   const key = `ratelimit:${scope}:${who}`;
   const raw = await env.CACHE.get(key);
@@ -4290,13 +5132,18 @@ async function tickRateLimit(env: Bindings, scope: string, who: string): Promise
         count = parsed.count;
         windowStart = parsed.windowStart;
       }
-    } catch { /* ignore corrupt */ }
+    } catch {
+      /* ignore corrupt */
+    }
   }
   count += 1;
   await env.CACHE.put(key, JSON.stringify({ count, windowStart }), {
     expirationTtl: QA_ASK_RATE_LIMIT_WINDOW_SEC,
   });
-  return { ok: count <= QA_ASK_RATE_LIMIT_MAX, remaining: Math.max(0, QA_ASK_RATE_LIMIT_MAX - count) };
+  return {
+    ok: count <= QA_ASK_RATE_LIMIT_MAX,
+    remaining: Math.max(0, QA_ASK_RATE_LIMIT_MAX - count),
+  };
 }
 
 /**
@@ -4320,7 +5167,13 @@ app.get('/api/qa/registry', async (c) => {
     instance_id: c.req.query('instance_id'),
   });
   if (!scope) {
-    return c.json({ error: 'mark must be one of argument-move|pesukim|aggadata and instance_id (or move_id) is required' }, 400);
+    return c.json(
+      {
+        error:
+          'mark must be one of argument-move|pesukim|aggadata and instance_id (or move_id) is required',
+      },
+      400,
+    );
   }
   const reg = await readQaRegistry(c.env, scope.mark, tractate, page, scope.instanceId);
   return c.json(reg);
@@ -4346,9 +5199,13 @@ app.post('/api/qa/ask', async (c) => {
   if (!parsed.ok) return parsed.response;
   const body = parsed.value;
   const b = body as Partial<{
-    tractate: string; page: string;
-    mark: string; move_id: string; instance_id: string;
-    question: string; mark_input: unknown;
+    tractate: string;
+    page: string;
+    mark: string;
+    move_id: string;
+    instance_id: string;
+    question: string;
+    mark_input: unknown;
     lang: 'en' | 'he';
   }>;
   if (!b.tractate || !b.page || !b.question) {
@@ -4356,7 +5213,13 @@ app.post('/api/qa/ask', async (c) => {
   }
   const scope = resolveQaScope({ mark: b.mark, move_id: b.move_id, instance_id: b.instance_id });
   if (!scope) {
-    return c.json({ error: 'mark must be one of argument-move|pesukim|aggadata and instance_id (or move_id) is required' }, 400);
+    return c.json(
+      {
+        error:
+          'mark must be one of argument-move|pesukim|aggadata and instance_id (or move_id) is required',
+      },
+      400,
+    );
   }
   const trimmed = b.question.trim();
   if (trimmed.length === 0) return c.json({ error: 'question is empty' }, 400);
@@ -4382,12 +5245,15 @@ app.post('/api/qa/ask', async (c) => {
   // paused request doesn't burn the user's quota.
   const gate = await checkBudget(c.env, { custom: true });
   if (!gate.ok) {
-    return c.json({
-      error: pauseErrorMessage(gate.scope),
-      paused: true,
-      scope: gate.scope,
-      retryAfter: pauseRetryAfterSec(gate.until),
-    }, 429);
+    return c.json(
+      {
+        error: pauseErrorMessage(gate.scope),
+        paused: true,
+        scope: gate.scope,
+        retryAfter: pauseRetryAfterSec(gate.until),
+      },
+      429,
+    );
   }
 
   // Novel question — gate behind the per-IP rate limit because this will
@@ -4445,8 +5311,11 @@ app.post('/api/qa/click', async (c) => {
   if (!parsed.ok) return parsed.response;
   const body = parsed.value;
   const b = body as Partial<{
-    tractate: string; page: string;
-    mark: string; move_id: string; instance_id: string;
+    tractate: string;
+    page: string;
+    mark: string;
+    move_id: string;
+    instance_id: string;
     qHash: string;
   }>;
   if (!b.tractate || !b.page || !b.qHash) {
@@ -4454,7 +5323,13 @@ app.post('/api/qa/click', async (c) => {
   }
   const scope = resolveQaScope({ mark: b.mark, move_id: b.move_id, instance_id: b.instance_id });
   if (!scope) {
-    return c.json({ error: 'mark must be one of argument-move|pesukim|aggadata and instance_id (or move_id) is required' }, 400);
+    return c.json(
+      {
+        error:
+          'mark must be one of argument-move|pesukim|aggadata and instance_id (or move_id) is required',
+      },
+      400,
+    );
   }
   const reg = await readQaRegistry(c.env, scope.mark, b.tractate, b.page, scope.instanceId);
   const entry = reg.community.find((e) => e.qHash === b.qHash);
@@ -4489,11 +5364,23 @@ app.post('/api/qa/click', async (c) => {
  */
 function captureLlmUsage(
   rc: RunCtx,
-  args: { kind: 'mark' | 'enrichment'; id: string; result: { model?: string; usage?: LLMUsage | null; parse_error?: string | null } },
+  args: {
+    kind: 'mark' | 'enrichment';
+    id: string;
+    result: { model?: string; usage?: LLMUsage | null; parse_error?: string | null };
+  },
 ): void {
-  const { input, output } = normalizeUsage(args.result.usage as Parameters<typeof normalizeUsage>[0]);
-  const cost = priceCostUsd(args.result.model, args.result.usage as Parameters<typeof priceCostUsd>[1]);
-  const { costInUsd, costOutUsd } = costSplitUsd(args.result.model, args.result.usage as Parameters<typeof costSplitUsd>[1]);
+  const { input, output } = normalizeUsage(
+    args.result.usage as Parameters<typeof normalizeUsage>[0],
+  );
+  const cost = priceCostUsd(
+    args.result.model,
+    args.result.usage as Parameters<typeof priceCostUsd>[1],
+  );
+  const { costInUsd, costOutUsd } = costSplitUsd(
+    args.result.model,
+    args.result.usage as Parameters<typeof costSplitUsd>[1],
+  );
   recordUsage(rc.env, rc.ctx, {
     ok: !args.result.parse_error,
     cacheHit: false,
@@ -4511,27 +5398,60 @@ function captureLlmUsage(
 /** Record every place instance the `places` mark emitted into the observed-place
  *  backlog (there is no global places gazetteer, so all of them are candidates
  *  for global enrichment). */
-function recordObservedPlacesFromMark(rc: RunCtx, parsed: unknown, tractate: string, page: string): void {
-  const p = parsed as { instances?: Array<{ fields?: { name?: string; nameHe?: string; kind?: string; region?: string } }> } | null;
+function recordObservedPlacesFromMark(
+  rc: RunCtx,
+  parsed: unknown,
+  tractate: string,
+  page: string,
+): void {
+  const p = parsed as {
+    instances?: Array<{
+      fields?: { name?: string; nameHe?: string; kind?: string; region?: string };
+    }>;
+  } | null;
   if (!p || !Array.isArray(p.instances)) return;
   for (const inst of p.instances) {
     const f = inst?.fields;
     if (!f || (!f.name && !f.nameHe)) continue;
-    recordObservedPlace(rc.env, rc.ctx, { name: f.name, nameHe: f.nameHe, kind: f.kind, region: f.region, tractate, page });
+    recordObservedPlace(rc.env, rc.ctx, {
+      name: f.name,
+      nameHe: f.nameHe,
+      kind: f.kind,
+      region: f.region,
+      tractate,
+      page,
+    });
   }
 }
 
 /** Record every term the `daf-background.concepts` enrichment emitted into the
  *  observed-concept backlog. There is no global glossary yet, so all of them are
  *  candidates for a future canonical concept registry. */
-function recordObservedConceptsFromEnrichment(rc: RunCtx, parsed: unknown, tractate: string, page: string): void {
-  const p = parsed as { groups?: Array<{ category?: string; terms?: Array<{ term?: string; termHe?: string; gloss?: string }> }> } | null;
+function recordObservedConceptsFromEnrichment(
+  rc: RunCtx,
+  parsed: unknown,
+  tractate: string,
+  page: string,
+): void {
+  const p = parsed as {
+    groups?: Array<{
+      category?: string;
+      terms?: Array<{ term?: string; termHe?: string; gloss?: string }>;
+    }>;
+  } | null;
   if (!p || !Array.isArray(p.groups)) return;
   for (const g of p.groups) {
     if (!Array.isArray(g?.terms)) continue;
     for (const t of g.terms) {
       if (!t || (!t.term && !t.termHe)) continue;
-      recordObservedConcept(rc.env, rc.ctx, { term: t.term, termHe: t.termHe, gloss: t.gloss, category: g.category, tractate, page });
+      recordObservedConcept(rc.env, rc.ctx, {
+        term: t.term,
+        termHe: t.termHe,
+        gloss: t.gloss,
+        category: g.category,
+        tractate,
+        page,
+      });
     }
   }
 }
@@ -4546,7 +5466,10 @@ interface BugReport {
 }
 
 app.post('/api/report', async (c) => {
-  const parsed = await readJsonBody<{ tractate?: string; page?: string; description?: string }>(c, { ok: false, error: 'bad-json' });
+  const parsed = await readJsonBody<{ tractate?: string; page?: string; description?: string }>(c, {
+    ok: false,
+    error: 'bad-json',
+  });
   if (!parsed.ok) return parsed.response;
   const body = parsed.value;
   const tractate = (body.tractate ?? '').slice(0, 60).trim();
@@ -4601,37 +5524,69 @@ type UsageCtx = { env: Bindings; executionCtx: ExecutionContext };
 
 // External analytics, sub-cached 5 min so the dashboard refresh doesn't hammer
 // the CF analytics API.
-async function loadAigwCached(c: UsageCtx, cache?: KVNamespace): Promise<Awaited<ReturnType<typeof fetchGatewayCost>>> {
+async function loadAigwCached(
+  c: UsageCtx,
+  cache?: KVNamespace,
+): Promise<Awaited<ReturnType<typeof fetchGatewayCost>>> {
   if (!cache) return fetchGatewayCost(c.env);
   const raw = await cache.get('aigw-cost:v1');
-  if (raw) { try { return JSON.parse(raw) as Awaited<ReturnType<typeof fetchGatewayCost>>; } catch { /* recompute */ } }
+  if (raw) {
+    try {
+      return JSON.parse(raw) as Awaited<ReturnType<typeof fetchGatewayCost>>;
+    } catch {
+      /* recompute */
+    }
+  }
   const fresh = await fetchGatewayCost(c.env);
-  c.executionCtx.waitUntil(cache.put('aigw-cost:v1', JSON.stringify(fresh), { expirationTtl: 300 }));
+  c.executionCtx.waitUntil(
+    cache.put('aigw-cost:v1', JSON.stringify(fresh), { expirationTtl: 300 }),
+  );
   return fresh;
 }
-async function loadActivityCached(c: UsageCtx, cache?: KVNamespace): Promise<Awaited<ReturnType<typeof fetchZoneActivity>>> {
+async function loadActivityCached(
+  c: UsageCtx,
+  cache?: KVNamespace,
+): Promise<Awaited<ReturnType<typeof fetchZoneActivity>>> {
   if (!cache) return fetchZoneActivity(c.env);
   const raw = await cache.get('zone-activity:v1');
-  if (raw) { try { return JSON.parse(raw) as Awaited<ReturnType<typeof fetchZoneActivity>>; } catch { /* recompute */ } }
+  if (raw) {
+    try {
+      return JSON.parse(raw) as Awaited<ReturnType<typeof fetchZoneActivity>>;
+    } catch {
+      /* recompute */
+    }
+  }
   const fresh = await fetchZoneActivity(c.env);
-  c.executionCtx.waitUntil(cache.put('zone-activity:v1', JSON.stringify(fresh), { expirationTtl: 300 }));
+  c.executionCtx.waitUntil(
+    cache.put('zone-activity:v1', JSON.stringify(fresh), { expirationTtl: 300 }),
+  );
   return fresh;
 }
 
 interface TelemetryRollup {
-  count: number; cacheHits: number; cacheHitRate: number;
-  p50Ms: number; p95Ms: number; errorCount: number; errorsByKind: Record<string, number>;
+  count: number;
+  cacheHits: number;
+  cacheHitRate: number;
+  p50Ms: number;
+  p95Ms: number;
+  errorCount: number;
+  errorsByKind: Record<string, number>;
 }
 function rollupTelemetry(rows: TelemetryRecord[]): TelemetryRollup {
   const sorted = rows.map((r) => r.ms).sort((a, b) => a - b);
   const hits = rows.filter((r) => r.cache_hit).length;
   const errors = rows.filter((r) => !r.ok);
   const errorsByKind: Record<string, number> = {};
-  for (const e of errors) errorsByKind[e.error_kind ?? 'other'] = (errorsByKind[e.error_kind ?? 'other'] ?? 0) + 1;
+  for (const e of errors)
+    errorsByKind[e.error_kind ?? 'other'] = (errorsByKind[e.error_kind ?? 'other'] ?? 0) + 1;
   return {
-    count: rows.length, cacheHits: hits, cacheHitRate: rows.length ? hits / rows.length : 0,
-    p50Ms: percentile(sorted, 50), p95Ms: percentile(sorted, 95),
-    errorCount: errors.length, errorsByKind,
+    count: rows.length,
+    cacheHits: hits,
+    cacheHitRate: rows.length ? hits / rows.length : 0,
+    p50Ms: percentile(sorted, 50),
+    p95Ms: percentile(sorted, 95),
+    errorCount: errors.length,
+    errorsByKind,
   };
 }
 
@@ -4640,23 +5595,34 @@ async function buildTelemetrySection(cache?: KVNamespace) {
   const telemetry = telRaw ? (JSON.parse(telRaw) as TelemetryRecord[]) : [];
   // Group dynamically over whatever endpoint/mark/enrichment values appear, so
   // the dashboard stays correct without code changes as new producers record.
-  const group = (key: (r: TelemetryRecord) => string | undefined): Record<string, TelemetryRollup> => {
+  const group = (
+    key: (r: TelemetryRecord) => string | undefined,
+  ): Record<string, TelemetryRollup> => {
     const buckets = new Map<string, TelemetryRecord[]>();
     for (const r of telemetry) {
       const k = key(r);
       if (k == null) continue;
       const arr = buckets.get(k) ?? [];
-      arr.push(r); buckets.set(k, arr);
+      arr.push(r);
+      buckets.set(k, arr);
     }
     const out: Record<string, TelemetryRollup> = {};
     for (const [k, rows] of buckets) out[k] = rollupTelemetry(rows);
     return out;
   };
   const recentErrors = telemetry
-    .filter((r) => !r.ok).slice(-30).reverse()
+    .filter((r) => !r.ok)
+    .slice(-30)
+    .reverse()
     .map((r) => ({
-      ts: r.ts, endpoint: r.endpoint, tractate: r.tractate, page: r.page,
-      error_kind: r.error_kind, model: r.model, mark_id: r.mark_id, enrichment_id: r.enrichment_id,
+      ts: r.ts,
+      endpoint: r.endpoint,
+      tractate: r.tractate,
+      page: r.page,
+      error_kind: r.error_kind,
+      model: r.model,
+      mark_id: r.mark_id,
+      enrichment_id: r.enrichment_id,
     }));
   return {
     perEndpoint: group((r) => r.endpoint),
@@ -4680,7 +5646,10 @@ async function buildCostSection(c: UsageCtx, cache?: KVNamespace) {
   let avoidedUsd = 0;
   let avoidedCalls = 0;
   for (const r of telemetry) {
-    if (r.cache_hit && typeof r.cost_usd === 'number') { avoidedUsd += r.cost_usd; avoidedCalls += 1; }
+    if (r.cache_hit && typeof r.cost_usd === 'number') {
+      avoidedUsd += r.cost_usd;
+      avoidedCalls += 1;
+    }
   }
   return {
     selfTracked,
@@ -4707,9 +5676,21 @@ async function buildBacklogSection(cache?: KVNamespace) {
   // Bug reports, split into active vs. checked-off ("done"). The dismissed set
   // is a list of report timestamps (a report's `ts` is its id).
   let allReports: BugReport[] = [];
-  if (repRaw) { try { allReports = [...(JSON.parse(repRaw) as BugReport[])].reverse(); } catch { allReports = []; } }
+  if (repRaw) {
+    try {
+      allReports = [...(JSON.parse(repRaw) as BugReport[])].reverse();
+    } catch {
+      allReports = [];
+    }
+  }
   let dismissed: number[] = [];
-  if (disRaw) { try { dismissed = JSON.parse(disRaw) as number[]; } catch { dismissed = []; } }
+  if (disRaw) {
+    try {
+      dismissed = JSON.parse(disRaw) as number[];
+    } catch {
+      dismissed = [];
+    }
+  }
   const dset = new Set(dismissed);
   const reports = {
     active: allReports.filter((r) => !dset.has(r.ts)),
@@ -4724,7 +5705,13 @@ async function buildHealthSection(cache?: KVNamespace) {
     readLintFailures(cache),
   ]);
   let jobErrors: RecentJobError[] = [];
-  if (jeRaw) { try { jobErrors = (JSON.parse(jeRaw) as RecentJobError[]).slice(-30).reverse(); } catch { jobErrors = []; } }
+  if (jeRaw) {
+    try {
+      jobErrors = (JSON.parse(jeRaw) as RecentJobError[]).slice(-30).reverse();
+    } catch {
+      jobErrors = [];
+    }
+  }
   return { jobErrors, lintFailures };
 }
 
@@ -4745,7 +5732,11 @@ async function serveUsageSection<T>(
     const cachedRaw = await cache.get(key);
     if (cachedRaw) {
       let parsed: (Record<string, unknown> & { generatedAt?: string }) | null = null;
-      try { parsed = JSON.parse(cachedRaw); } catch { parsed = null; }
+      try {
+        parsed = JSON.parse(cachedRaw);
+      } catch {
+        parsed = null;
+      }
       if (parsed) {
         const age = Date.now() - Date.parse(parsed.generatedAt ?? '');
         const fresh = Number.isFinite(age) && age >= 0 && age < freshMs;
@@ -4753,17 +5744,19 @@ async function serveUsageSection<T>(
           const lockKey = `${key}:refreshing`;
           const refreshing = await cache.get(lockKey);
           if (!refreshing) {
-            c.executionCtx.waitUntil((async () => {
-              try {
-                await cache.put(lockKey, '1', { expirationTtl: 60 });
-                const next = { ...(await build()), generatedAt: new Date().toISOString() };
-                await cache.put(key, JSON.stringify(next), { expirationTtl: 600 });
-              } catch (err) {
-                console.warn(`[usage] ${key} background refresh failed:`, err);
-              } finally {
-                await cache.delete(lockKey).catch(() => {});
-              }
-            })());
+            c.executionCtx.waitUntil(
+              (async () => {
+                try {
+                  await cache.put(lockKey, '1', { expirationTtl: 60 });
+                  const next = { ...(await build()), generatedAt: new Date().toISOString() };
+                  await cache.put(key, JSON.stringify(next), { expirationTtl: 600 });
+                } catch (err) {
+                  console.warn(`[usage] ${key} background refresh failed:`, err);
+                } finally {
+                  await cache.delete(lockKey).catch(() => {});
+                }
+              })(),
+            );
           }
         }
         return c.json(parsed);
@@ -4802,11 +5795,31 @@ app.get('/api/usage', async (c) => {
 
 // Per-section endpoints — the client loads these independently so each card
 // renders as soon as its own data arrives.
-app.get('/api/usage/cost', (c) => serveUsageSection(c, c.env.CACHE, 'usage-cost:v1', 30_000, () => buildCostSection(c, c.env.CACHE)));
-app.get('/api/usage/telemetry', (c) => serveUsageSection(c, c.env.CACHE, 'usage-telemetry:v1', 30_000, () => buildTelemetrySection(c.env.CACHE)));
-app.get('/api/usage/activity', (c) => serveUsageSection(c, c.env.CACHE, 'usage-activity:v1', 60_000, () => buildActivitySection(c, c.env.CACHE)));
-app.get('/api/usage/backlog', (c) => serveUsageSection(c, c.env.CACHE, 'usage-backlog:v1', 60_000, () => buildBacklogSection(c.env.CACHE)));
-app.get('/api/usage/health', (c) => serveUsageSection(c, c.env.CACHE, 'usage-health:v1', 30_000, () => buildHealthSection(c.env.CACHE)));
+app.get('/api/usage/cost', (c) =>
+  serveUsageSection(c, c.env.CACHE, 'usage-cost:v1', 30_000, () =>
+    buildCostSection(c, c.env.CACHE),
+  ),
+);
+app.get('/api/usage/telemetry', (c) =>
+  serveUsageSection(c, c.env.CACHE, 'usage-telemetry:v1', 30_000, () =>
+    buildTelemetrySection(c.env.CACHE),
+  ),
+);
+app.get('/api/usage/activity', (c) =>
+  serveUsageSection(c, c.env.CACHE, 'usage-activity:v1', 60_000, () =>
+    buildActivitySection(c, c.env.CACHE),
+  ),
+);
+app.get('/api/usage/backlog', (c) =>
+  serveUsageSection(c, c.env.CACHE, 'usage-backlog:v1', 60_000, () =>
+    buildBacklogSection(c.env.CACHE),
+  ),
+);
+app.get('/api/usage/health', (c) =>
+  serveUsageSection(c, c.env.CACHE, 'usage-health:v1', 30_000, () =>
+    buildHealthSection(c.env.CACHE),
+  ),
+);
 
 // Check off / restore a bug report (by its timestamp id). Toggles membership in
 // the dismissed set; the backlog payload splits reports into active vs. done
@@ -4815,23 +5828,38 @@ app.post('/api/admin/report-dismiss', async (c) => {
   const cache = c.env.CACHE;
   if (!cache) return c.json({ error: 'no cache binding' }, 503);
   let body: { ts?: number; done?: boolean };
-  try { body = await c.req.json(); } catch { return c.json({ error: 'bad JSON body' }, 400); }
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: 'bad JSON body' }, 400);
+  }
   if (typeof body.ts !== 'number') return c.json({ error: 'ts (number) required' }, 400);
   const raw = await cache.get(REPORTS_DISMISSED_KEY);
   let dismissed: number[] = [];
-  if (raw) { try { dismissed = JSON.parse(raw) as number[]; } catch { dismissed = []; } }
+  if (raw) {
+    try {
+      dismissed = JSON.parse(raw) as number[];
+    } catch {
+      dismissed = [];
+    }
+  }
   const set = new Set(dismissed);
-  if (body.done === false) set.delete(body.ts); else set.add(body.ts);
+  if (body.done === false) set.delete(body.ts);
+  else set.add(body.ts);
   // Match the reports ring buffer's own 365-day TTL so a done report can't
   // resurface as active when the dismissed entry expires first.
-  await cache.put(REPORTS_DISMISSED_KEY, JSON.stringify([...set]), { expirationTtl: 60 * 60 * 24 * 365 });
+  await cache.put(REPORTS_DISMISSED_KEY, JSON.stringify([...set]), {
+    expirationTtl: 60 * 60 * 24 * 365,
+  });
   // Invalidate the cached backlog payload AND the legacy combined /api/usage
   // payload (which also carries reports) so the next load reflects the change.
   // The client also updates optimistically.
-  c.executionCtx.waitUntil(Promise.all([
-    cache.delete('usage-backlog:v1').catch(() => {}),
-    cache.delete('usage-payload:v1').catch(() => {}),
-  ]));
+  c.executionCtx.waitUntil(
+    Promise.all([
+      cache.delete('usage-backlog:v1').catch(() => {}),
+      cache.delete('usage-payload:v1').catch(() => {}),
+    ]),
+  );
   return c.json({ ok: true });
 });
 
@@ -4881,8 +5909,9 @@ app.get('/api/rabbi/:slug', (c) => {
   if (!rr.ok) return rr.response;
   const { slug, entry } = rr;
   const rawGen = entry.generation ?? 'unknown';
-  const generation: GenerationId =
-    (GENERATION_IDS as string[]).includes(rawGen) ? (rawGen as GenerationId) : 'unknown';
+  const generation: GenerationId = (GENERATION_IDS as string[]).includes(rawGen)
+    ? (rawGen as GenerationId)
+    : 'unknown';
   const rabbi: IdentifiedRabbi = {
     slug,
     name: entry.canonical,
@@ -4925,10 +5954,7 @@ app.get('/api/references/:tractate/:page', async (c) => {
     }>;
 
     // Group by source work (index_title), track how many refs each has.
-    const byWork = new Map<
-      string,
-      { title: string; category: string; refs: string[] }
-    >();
+    const byWork = new Map<string, { title: string; category: string; refs: string[] }>();
     for (const l of raw) {
       const title = l.collectiveTitle?.en ?? l.index_title ?? 'Unknown';
       const category = l.category ?? 'Other';
@@ -4991,7 +6017,10 @@ app.get('/api/context/:tractate/:page', async (c) => {
   const page = c.req.param('page');
   try {
     const timing: SourceTiming[] = [];
-    const items = await collectContext(c.env, tractate, page, { assetOrigin: new URL(c.req.url).origin, timing });
+    const items = await collectContext(c.env, tractate, page, {
+      assetOrigin: new URL(c.req.url).origin,
+      timing,
+    });
     return c.json({ tractate, page, items, timing, fetchedAt: new Date().toISOString() });
   } catch (err) {
     return c.json({ error: String(err) }, 502);
@@ -5005,18 +6034,26 @@ app.get('/api/context/:tractate/:page', async (c) => {
 function hashMatchKeys(keys: string[]): string {
   const s = [...keys].sort().join('|');
   let h = 2166136261 >>> 0;
-  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
   return h.toString(36);
 }
 
 app.post('/api/context/match', async (c) => {
-  const parsed = await readJsonBody<{ tractate?: string; page?: string; items?: MatchInput[] }>(c, { error: 'bad JSON body' });
+  const parsed = await readJsonBody<{ tractate?: string; page?: string; items?: MatchInput[] }>(c, {
+    error: 'bad JSON body',
+  });
   if (!parsed.ok) return parsed.response;
   const body = parsed.value;
   const t = body.tractate;
   const p = body.page;
-  const items = Array.isArray(body.items) ? body.items.filter((i) => i && typeof i.key === 'string') : [];
-  if (!t || !p || items.length === 0) return c.json({ error: 'tractate, page, and items[] required' }, 400);
+  const items = Array.isArray(body.items)
+    ? body.items.filter((i) => i && typeof i.key === 'string')
+    : [];
+  if (!t || !p || items.length === 0)
+    return c.json({ error: 'tractate, page, and items[] required' }, 400);
   const cache = c.env.CACHE;
   // The AI placement for a fixed (daf, item-set) is stable, and auto-grounding
   // re-requests it on every visit — so cache it forever (bump the version to
@@ -5026,14 +6063,27 @@ app.post('/api/context/match', async (c) => {
   if (cache) {
     const hit = await cache.get(cacheKey);
     if (hit !== null) {
-      try { return c.json({ matches: JSON.parse(hit), cached: true }); } catch { /* fall through */ }
+      try {
+        return c.json({ matches: JSON.parse(hit), cached: true });
+      } catch {
+        /* fall through */
+      }
     }
   }
   try {
     const segments = await getSefariaSegmentsCached(cache, t, p);
     if (!segments) return c.json({ matches: [], warning: 'no segments for daf' });
-    const matches = await aiMatchToSegments(c.env, segments.he, segments.en, items, { tractate: t, page: p });
-    if (cache) { try { await cache.put(cacheKey, JSON.stringify(matches)); } catch { /* ignore */ } }
+    const matches = await aiMatchToSegments(c.env, segments.he, segments.en, items, {
+      tractate: t,
+      page: p,
+    });
+    if (cache) {
+      try {
+        await cache.put(cacheKey, JSON.stringify(matches));
+      } catch {
+        /* ignore */
+      }
+    }
     return c.json({ matches });
   } catch (err) {
     return c.json({ error: String(err) }, 502);
@@ -5055,7 +6105,10 @@ app.get('/api/daf/:tractate/:page', async (c) => {
   const states: Array<'hit' | 'miss'> = [];
   const track: CacheTrack = { onCache: (s) => states.push(s) };
   const setCacheHeader = () => {
-    if (states.length === 0) { c.header('x-cache', 'miss'); return; }
+    if (states.length === 0) {
+      c.header('x-cache', 'miss');
+      return;
+    }
     const hits = states.filter((s) => s === 'hit').length;
     c.header('x-cache', hits === states.length ? 'hit' : hits === 0 ? 'miss' : 'partial');
   };
@@ -5078,18 +6131,22 @@ app.get('/api/daf/:tractate/:page', async (c) => {
     if (hb) {
       const data: TalmudPageData = {
         mainText: { hebrew: hb.main, english: '' },
-        rashi: hb.rashi ? {
-          hebrew: hb.rashi,
-          english: '',
-          pieces: sefariaBundle?.rashi?.pieces,
-          pieceKeys: sefariaBundle?.rashi?.pieceKeys,
-        } : undefined,
-        tosafot: hb.tosafot ? {
-          hebrew: hb.tosafot,
-          english: '',
-          pieces: sefariaBundle?.tosafot?.pieces,
-          pieceKeys: sefariaBundle?.tosafot?.pieceKeys,
-        } : undefined,
+        rashi: hb.rashi
+          ? {
+              hebrew: hb.rashi,
+              english: '',
+              pieces: sefariaBundle?.rashi?.pieces,
+              pieceKeys: sefariaBundle?.rashi?.pieceKeys,
+            }
+          : undefined,
+        tosafot: hb.tosafot
+          ? {
+              hebrew: hb.tosafot,
+              english: '',
+              pieces: sefariaBundle?.tosafot?.pieces,
+              pieceKeys: sefariaBundle?.tosafot?.pieceKeys,
+            }
+          : undefined,
       };
       setCacheHeader();
       return c.json({
@@ -5135,11 +6192,7 @@ async function getSefariaEnglishContext(
   }
   const data = await getSefariaPageCached(cache, tractate, page);
   if (!data) return '';
-  const text = [
-    data.mainText.english,
-    data.rashi?.english ?? '',
-    data.tosafot?.english ?? '',
-  ]
+  const text = [data.mainText.english, data.rashi?.english ?? '', data.tosafot?.english ?? '']
     .filter(Boolean)
     .join('\n\n')
     .slice(0, 4000);
@@ -5167,14 +6220,13 @@ interface TranslateBody {
   lang?: 'en' | 'he';
 }
 
-
 // Aggressive Hebrew normalizer for substring alignment — strips nikkud,
 // cantillation, geresh/gershayim, all punctuation, and collapses whitespace.
 function normalizeHeForMatch(s: string): string {
   return s
-    .replace(/<[^>]+>/g, ' ')                 // strip HTML tags
-    .replace(/[֑-ׇ]/g, '')          // nikkud + cantillation
-    .replace(/[^֐-׿\s]/g, ' ')      // keep only Hebrew letters + whitespace
+    .replace(/<[^>]+>/g, ' ') // strip HTML tags
+    .replace(/[֑-ׇ]/g, '') // nikkud + cantillation
+    .replace(/[^֐-׿\s]/g, ' ') // keep only Hebrew letters + whitespace
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -5240,7 +6292,11 @@ async function getSefariaLexicon(word: string, cache: KVNamespace | undefined): 
       const dict = e.parent_lexicon ?? 'lexicon';
       const head = e.headword ?? w;
       const senses = (e.content?.senses ?? []).map((s) => s.definition ?? '').filter(Boolean);
-      const clean = senses.map((s) => stripHtmlServer(s)).filter(Boolean).slice(0, 2).join(' | ');
+      const clean = senses
+        .map((s) => stripHtmlServer(s))
+        .filter(Boolean)
+        .slice(0, 2)
+        .join(' | ');
       if (clean) summaries.push(`[${dict}] ${head}: ${clean}`);
     }
     const out = summaries.join('\n').slice(0, 900);
@@ -5297,9 +6353,8 @@ app.post('/api/translate', async (c) => {
   const cache = c.env.CACHE;
   // Context-aware cache key: identical word in two different passages now gets
   // two different cached answers (previously they collided).
-  const ctxHash = (hebrewBefore || hebrewAfter)
-    ? `:${shortHash(hebrewBefore + '' + hebrewAfter)}`
-    : '';
+  const ctxHash =
+    hebrewBefore || hebrewAfter ? `:${shortHash(hebrewBefore + '' + hebrewAfter)}` : '';
   // v3: DeepSeek V4 Flash primary + hardcoded dict short-circuit +
   // morphology-aware prompt. Bumped from v2 to invalidate stale Gemma-era
   // translations (Gemma 4 26B was returning e.g. שעות → "watches").
@@ -5308,7 +6363,14 @@ app.post('/api/translate', async (c) => {
   if (cache) {
     const cached = await cache.get(cacheKey);
     if (cached !== null) {
-      recordTelemetry(c, { endpoint: 'translate', tractate, page, cache_hit: true, ms: Date.now() - t0, ok: true });
+      recordTelemetry(c, {
+        endpoint: 'translate',
+        tractate,
+        page,
+        cache_hit: true,
+        ms: Date.now() - t0,
+        ok: true,
+      });
       return c.json({ translation: cached, cached: true });
     }
   }
@@ -5324,7 +6386,15 @@ app.post('/api/translate', async (c) => {
     if (cache) {
       await cache.put(cacheKey, dictGloss, { expirationTtl: 60 * 60 * 24 * 30 });
     }
-    recordTelemetry(c, { endpoint: 'translate', tractate, page, cache_hit: false, model: 'dict', ms: Date.now() - t0, ok: true });
+    recordTelemetry(c, {
+      endpoint: 'translate',
+      tractate,
+      page,
+      cache_hit: false,
+      model: 'dict',
+      ms: Date.now() - t0,
+      ok: true,
+    });
     return c.json({ translation: dictGloss, cached: false, _model: 'dict' });
   }
 
@@ -5382,7 +6452,7 @@ app.post('/api/translate', async (c) => {
   // Kimi K2.5 thinking fallback when DeepSeek returns empty or errors.
   const translateModels: Array<{ id: LLMModelId; label: string; kimi?: boolean }> = [
     { id: 'openrouter/deepseek/deepseek-v4-flash', label: 'deepseek-v4-flash' },
-    { id: '@cf/moonshotai/kimi-k2.5',              label: 'kimi-k2.5', kimi: true },
+    { id: '@cf/moonshotai/kimi-k2.5', label: 'kimi-k2.5', kimi: true },
   ];
 
   const attempts: string[] = [];
@@ -5396,7 +6466,9 @@ app.post('/api/translate', async (c) => {
           `Aligned Sefaria segment (the block of the daf this ${isPhrase ? 'phrase' : 'word'} sits in):\nHebrew/Aramaic: ${alignedHe}\nEnglish:        ${alignedEn}`,
         );
       } else if (fallbackEnglish) {
-        userParts.push(`Passage context (English translation of the surrounding daf):\n${fallbackEnglish}`);
+        userParts.push(
+          `Passage context (English translation of the surrounding daf):\n${fallbackEnglish}`,
+        );
       }
 
       // 2. Surrounding rendered-daf text — ±N words around the user's selection.
@@ -5409,7 +6481,9 @@ app.post('/api/translate', async (c) => {
 
       // 3. Lexicon (authoritative dictionary entries).
       if (lexiconContext) {
-        userParts.push(`Lexicon definitions (from Sefaria's BDB/Jastrow/Klein):\n${lexiconContext}`);
+        userParts.push(
+          `Lexicon definitions (from Sefaria's BDB/Jastrow/Klein):\n${lexiconContext}`,
+        );
       }
 
       // 4. The target.
@@ -5436,7 +6510,15 @@ app.post('/api/translate', async (c) => {
       if (cache) {
         await cache.put(cacheKey, translation, { expirationTtl: 60 * 60 * 24 * 30 });
       }
-      recordTelemetry(c, { endpoint: 'translate', tractate, page, cache_hit: false, model: m.label, ms: Date.now() - t0, ok: true });
+      recordTelemetry(c, {
+        endpoint: 'translate',
+        tractate,
+        page,
+        cache_hit: false,
+        model: m.label,
+        ms: Date.now() - t0,
+        ok: true,
+      });
       return c.json({ translation, cached: false, _model: m.label });
     } catch (err) {
       attempts.push(`${m.label}: ${String(err).slice(0, 200)}`);
@@ -5444,7 +6526,15 @@ app.post('/api/translate', async (c) => {
     }
   }
 
-  recordTelemetry(c, { endpoint: 'translate', tractate, page, cache_hit: false, ms: Date.now() - t0, ok: false, error_kind: classifyError(attempts.join(' ')) });
+  recordTelemetry(c, {
+    endpoint: 'translate',
+    tractate,
+    page,
+    cache_hit: false,
+    ms: Date.now() - t0,
+    ok: false,
+    error_kind: classifyError(attempts.join(' ')),
+  });
   return c.json({ error: 'All translation models failed', attempts }, 502);
 });
 
@@ -5488,22 +6578,23 @@ function normalizeHe(s: string): string {
 export function expandAbbreviations(s: string): string {
   // Use explicit whitespace/edge lookarounds — JS `\b` does not treat Hebrew
   // letters as word characters, so it misbehaves around Hebrew text.
-  const edge = (lhs: RegExp) =>
-    new RegExp(`(^|\\s)${lhs.source}(?=\\s|$)`, 'g');
-  return s
-    // Contextual Rabbi Meir first — must run before the generic ר' rewrite so
-    // that phrases like "דברי ר' מ" stay untouched if they somehow appear.
-    .replace(/(^|\s)(דברי|לדברי|כדברי|אמר|ואמר)\s+ר["״]מ(?=\s|$)/g, '$1$2 רבי מאיר')
-    .replace(/(^|\s)ר["״]מ\s+(וחכמים|אומר)(?=\s|$)/g, '$1רבי מאיר $2')
-    // Unambiguous collapsed-abbreviation forms.
-    .replace(edge(/אר["״]י/),  (_m, p) => `${p}אמר רבי יוחנן`)
-    .replace(edge(/אר["״]ל/),  (_m, p) => `${p}אמר ריש לקיש`)
-    .replace(edge(/אר["״]ז/),  (_m, p) => `${p}אמר רבי זירא`)
-    .replace(edge(/ריב["״]ל/), (_m, p) => `${p}רבי יהושע בן לוי`)
-    .replace(edge(/רשב["״]י/), (_m, p) => `${p}רבי שמעון בר יוחאי`)
-    // Generic title expansions.
-    .replace(/א["״]ר(?=\s)/g, 'רבי')
-    .replace(/(^|\s)ר['׳](?=\s)/g, '$1רבי');
+  const edge = (lhs: RegExp) => new RegExp(`(^|\\s)${lhs.source}(?=\\s|$)`, 'g');
+  return (
+    s
+      // Contextual Rabbi Meir first — must run before the generic ר' rewrite so
+      // that phrases like "דברי ר' מ" stay untouched if they somehow appear.
+      .replace(/(^|\s)(דברי|לדברי|כדברי|אמר|ואמר)\s+ר["״]מ(?=\s|$)/g, '$1$2 רבי מאיר')
+      .replace(/(^|\s)ר["״]מ\s+(וחכמים|אומר)(?=\s|$)/g, '$1רבי מאיר $2')
+      // Unambiguous collapsed-abbreviation forms.
+      .replace(edge(/אר["״]י/), (_m, p) => `${p}אמר רבי יוחנן`)
+      .replace(edge(/אר["״]ל/), (_m, p) => `${p}אמר ריש לקיש`)
+      .replace(edge(/אר["״]ז/), (_m, p) => `${p}אמר רבי זירא`)
+      .replace(edge(/ריב["״]ל/), (_m, p) => `${p}רבי יהושע בן לוי`)
+      .replace(edge(/רשב["״]י/), (_m, p) => `${p}רבי שמעון בר יוחאי`)
+      // Generic title expansions.
+      .replace(/א["״]ר(?=\s)/g, 'רבי')
+      .replace(/(^|\s)ר['׳](?=\s)/g, '$1רבי')
+  );
 }
 
 // Precompute: canonicalHe → { name, slug } for every rabbi in the Sefaria-
@@ -5513,12 +6604,27 @@ export function expandAbbreviations(s: string): string {
 // standalone Amoraic names. Anything else risks false-positive underlines.
 const RABBI_HE_TITLE_RE = /^(רבי|רב|ר'|מר|רבן|רבה|רבא|רבינא)\s/;
 const RABBI_HE_STANDALONE = new Set([
-  'רבא', 'רבינא', 'אבא', 'רבה', 'רב', 'מר',
-  'שמואל', 'הלל', 'שמאי', 'עולא', 'זעירי',
-  'אביי', 'רבינא השני',
+  'רבא',
+  'רבינא',
+  'אבא',
+  'רבה',
+  'רב',
+  'מר',
+  'שמואל',
+  'הלל',
+  'שמאי',
+  'עולא',
+  'זעירי',
+  'אביי',
+  'רבינא השני',
 ]);
 
-interface KnownRabbi { slug: string; name: string; nameHe: string; nameHeNorm: string }
+interface KnownRabbi {
+  slug: string;
+  name: string;
+  nameHe: string;
+  nameHeNorm: string;
+}
 const KNOWN_RABBIS_HE: KnownRabbi[] = (() => {
   const out: KnownRabbi[] = [];
   for (const [slug, r] of Object.entries(RABBI_PLACES.rabbis)) {
@@ -5561,13 +6667,38 @@ function hasHebrewWordBoundaryMatch(haystack: string, needle: string): boolean {
 // truncating at the first occurrence leaves only the name itself.
 const NAMEHE_STOP_TOKENS: ReadonlySet<string> = new Set([
   // Attribution verbs
-  'אמר', 'אמרה', 'אמרו', 'אומר', 'אומרת', 'אומרים', 'מתני', 'דרש', 'דריש',
+  'אמר',
+  'אמרה',
+  'אמרו',
+  'אומר',
+  'אומרת',
+  'אומרים',
+  'מתני',
+  'דרש',
+  'דריש',
   // Stative / motion / perception
-  'קאי', 'קם', 'יתיב', 'הוה', 'הווה',
-  'פתח', 'חזא', 'אזל', 'אתא', 'שמע', 'אשכח', 'אקלע', 'מטא',
-  'בעי', 'בעא', 'סבר',
+  'קאי',
+  'קם',
+  'יתיב',
+  'הוה',
+  'הווה',
+  'פתח',
+  'חזא',
+  'אזל',
+  'אתא',
+  'שמע',
+  'אשכח',
+  'אקלע',
+  'מטא',
+  'בעי',
+  'בעא',
+  'סבר',
   // Pronouns / prepositions that never belong in a name
-  'בתר', 'קמיה', 'עליה', 'עלה', 'להו',
+  'בתר',
+  'קמיה',
+  'עליה',
+  'עלה',
+  'להו',
 ]);
 
 // Truncate nameHe at the first clear stop-token so downstream matching (and
@@ -5643,7 +6774,11 @@ export function deriveRegionFromGeneration(g: GenerationId): 'israel' | 'bavel' 
  * abstained, so a recognised later authority (Rashi, a named Gaon, …) lands on
  * the right tier + color instead of rendering as neutral 'unknown'.
  */
-export function resolveGeneration(name: string, nameHe: string, generation: GenerationId): GenerationId {
+export function resolveGeneration(
+  name: string,
+  nameHe: string,
+  generation: GenerationId,
+): GenerationId {
   if (generation !== 'unknown') return generation;
   const entry = resolveRabbi(name, nameHe)?.entry ?? null;
   if (entry && typeof entry.generation === 'string' && GENERATION_ID_SET.has(entry.generation)) {
@@ -5652,7 +6787,11 @@ export function resolveGeneration(name: string, nameHe: string, generation: Gene
   return 'unknown';
 }
 
-export function enrichRabbi(name: string, nameHe: string, generation: GenerationId): IdentifiedRabbi {
+export function enrichRabbi(
+  name: string,
+  nameHe: string,
+  generation: GenerationId,
+): IdentifiedRabbi {
   const hit = resolveRabbi(name, nameHe);
   const entry = hit?.entry ?? null;
   const finalGen = resolveGeneration(name, nameHe, generation);
@@ -5675,9 +6814,11 @@ export function enrichRabbi(name: string, nameHe: string, generation: Generation
 // don't resolve to a slug are kept as-is (no cross-collapse risk).
 function mergeDuplicate(a: IdentifiedRabbi, b: IdentifiedRabbi): IdentifiedRabbi {
   const knownGen = (g: GenerationId) => g !== 'unknown';
-  const pickGen = knownGen(a.generation) ? a.generation
-                : knownGen(b.generation) ? b.generation
-                : a.generation;
+  const pickGen = knownGen(a.generation)
+    ? a.generation
+    : knownGen(b.generation)
+      ? b.generation
+      : a.generation;
   const pickNameHe = a.nameHe.length >= b.nameHe.length ? a.nameHe : b.nameHe;
   return { ...a, generation: pickGen, nameHe: pickNameHe };
 }
@@ -5687,7 +6828,10 @@ export function enrichAll(rabbis: GenerationsResult['rabbis']): IdentifiedRabbi[
   const bySlug = new Map<string, IdentifiedRabbi>();
   const unslugged: IdentifiedRabbi[] = [];
   for (const r of enriched) {
-    if (!r.slug) { unslugged.push(r); continue; }
+    if (!r.slug) {
+      unslugged.push(r);
+      continue;
+    }
     const prior = bySlug.get(r.slug);
     bySlug.set(r.slug, prior ? mergeDuplicate(prior, r) : r);
   }
@@ -5740,7 +6884,6 @@ function validateEnriched(x: unknown): x is EnrichedRabbi {
   return true;
 }
 
-
 // Sage filter: only entries whose canonicalHe starts with a rabbinic title
 // (or is a standalone sage name) are worth enriching. Biblical figures and
 // concept nouns don't participate in rabbi identification at runtime.
@@ -5792,8 +6935,11 @@ app.get('/api/admin/enrich-rabbi/:slug', async (c) => {
   if (cache && !bypass) {
     const hit = await cache.get(cacheKey);
     if (hit) {
-      try { return c.json({ ...JSON.parse(hit), _cached: true }); }
-      catch { /* fall through */ }
+      try {
+        return c.json({ ...JSON.parse(hit), _cached: true });
+      } catch {
+        /* fall through */
+      }
     }
   }
 
@@ -5826,8 +6972,14 @@ app.get('/api/admin/enrich-rabbi/:slug', async (c) => {
     const payload = r.content.trim() || extractJsonPayload({ response: r.content });
     if (!payload) return c.json({ error: 'empty payload', slug }, 502);
     let parsed: unknown;
-    try { parsed = JSON.parse(payload); }
-    catch (err) { return c.json({ error: `non-JSON: ${String(err).slice(0, 200)}`, slug, raw: payload.slice(0, 500) }, 502); }
+    try {
+      parsed = JSON.parse(payload);
+    } catch (err) {
+      return c.json(
+        { error: `non-JSON: ${String(err).slice(0, 200)}`, slug, raw: payload.slice(0, 500) },
+        502,
+      );
+    }
     if (!validateEnriched(parsed)) {
       return c.json({ error: 'schema mismatch', slug, got: parsed }, 502);
     }
@@ -5838,7 +6990,9 @@ app.get('/api/admin/enrich-rabbi/:slug', async (c) => {
       _ms: Date.now() - t0,
     };
     if (cache) {
-      c.executionCtx.waitUntil(cache.put(cacheKey, JSON.stringify(result), { expirationTtl: 60 * 60 * 24 * 365 }));
+      c.executionCtx.waitUntil(
+        cache.put(cacheKey, JSON.stringify(result), { expirationTtl: 60 * 60 * 24 * 365 }),
+      );
     }
     return c.json(result);
   } catch (err) {
@@ -5893,7 +7047,10 @@ function validateRelationships(x: unknown): x is RelationshipsResult {
   return true;
 }
 
-interface ResolvedRef { name: string; slug: string | null }
+interface ResolvedRef {
+  name: string;
+  slug: string | null;
+}
 
 function resolveRefs(names: string[], selfSlug: string): ResolvedRef[] {
   const out: ResolvedRef[] = [];
@@ -5944,7 +7101,10 @@ app.get('/api/admin/rabbi-relationships/:slug', async (c) => {
         { role: 'user', content: userContent },
       ],
       8192,
-      { tag: 'rabbi-relationships', attribution: { kind: 'rabbi', producerId: 'rabbi-relationships' } },
+      {
+        tag: 'rabbi-relationships',
+        attribution: { kind: 'rabbi', producerId: 'rabbi-relationships' },
+      },
     );
   } catch (err) {
     return c.json({ error: String(err).slice(0, 300), slug }, 502);
@@ -5960,11 +7120,18 @@ app.get('/api/admin/rabbi-relationships/:slug', async (c) => {
   if (fenced) payload = fenced[1].trim();
   if (!payload) return c.json({ error: 'empty payload', slug, _ms: streamed.elapsed_ms }, 502);
   let parsed: unknown;
-  try { parsed = JSON.parse(payload); }
-  catch (err) {
+  try {
+    parsed = JSON.parse(payload);
+  } catch (err) {
     const repaired = payload.replace(/,(\s*[}\]])/g, '$1').replace(/\r/g, '');
-    try { parsed = JSON.parse(repaired); }
-    catch { return c.json({ error: `non-JSON: ${String(err).slice(0, 200)}`, slug, raw: payload.slice(0, 500) }, 502); }
+    try {
+      parsed = JSON.parse(repaired);
+    } catch {
+      return c.json(
+        { error: `non-JSON: ${String(err).slice(0, 200)}`, slug, raw: payload.slice(0, 500) },
+        502,
+      );
+    }
   }
   if (!validateRelationships(parsed)) {
     return c.json({ error: 'schema mismatch', slug, got: parsed }, 502);
@@ -5991,13 +7158,31 @@ app.get('/api/admin/rabbi-relationships/:slug', async (c) => {
 // who was *also* a teacher — they should surface in both places.
 
 const FAMILY_RELATION_TYPES = [
-  'father','mother','spouse','son','daughter','brother','sister',
-  'uncle','aunt','nephew','niece',
-  'grandfather','grandmother','grandson','granddaughter',
-  'father-in-law','mother-in-law','son-in-law','daughter-in-law','brother-in-law','sister-in-law',
-  'cousin','other',
+  'father',
+  'mother',
+  'spouse',
+  'son',
+  'daughter',
+  'brother',
+  'sister',
+  'uncle',
+  'aunt',
+  'nephew',
+  'niece',
+  'grandfather',
+  'grandmother',
+  'grandson',
+  'granddaughter',
+  'father-in-law',
+  'mother-in-law',
+  'son-in-law',
+  'daughter-in-law',
+  'brother-in-law',
+  'sister-in-law',
+  'cousin',
+  'other',
 ] as const;
-type FamilyRelation = typeof FAMILY_RELATION_TYPES[number];
+type FamilyRelation = (typeof FAMILY_RELATION_TYPES)[number];
 const FAMILY_RELATION_SET = new Set<string>(FAMILY_RELATION_TYPES);
 
 const FAMILY_SYSTEM_PROMPT = `You are a scholar of Talmudic history. You will receive ONE rabbi's canonical name, Hebrew name, generation, and an English bio. Extract the rabbi's FAMILIAL relationships — blood ties, marriage, and in-laws — with OTHER named people (rabbis, biblical figures, or otherwise).
@@ -6027,8 +7212,13 @@ Rules:
 - Names in English, ASCII, Sefaria-style spellings ('b.' for 'ben'). The subject must NOT appear in its own family list.
 - Cap at 20 entries total. Empty array is fine if no family is attested.`;
 
-interface FamilyEntry { name: string; relation: FamilyRelation }
-interface FamilyResult { family: FamilyEntry[] }
+interface FamilyEntry {
+  name: string;
+  relation: FamilyRelation;
+}
+interface FamilyResult {
+  family: FamilyEntry[];
+}
 
 function validateFamily(x: unknown): x is FamilyResult {
   if (!x || typeof x !== 'object') return false;
@@ -6085,11 +7275,18 @@ app.get('/api/admin/rabbi-family/:slug', async (c) => {
   if (fenced) payload = fenced[1].trim();
   if (!payload) return c.json({ error: 'empty payload', slug, _ms: streamed.elapsed_ms }, 502);
   let parsed: unknown;
-  try { parsed = JSON.parse(payload); }
-  catch (err) {
+  try {
+    parsed = JSON.parse(payload);
+  } catch (err) {
     const repaired = payload.replace(/,(\s*[}\]])/g, '$1').replace(/\r/g, '');
-    try { parsed = JSON.parse(repaired); }
-    catch { return c.json({ error: `non-JSON: ${String(err).slice(0, 200)}`, slug, raw: payload.slice(0, 500) }, 502); }
+    try {
+      parsed = JSON.parse(repaired);
+    } catch {
+      return c.json(
+        { error: `non-JSON: ${String(err).slice(0, 200)}`, slug, raw: payload.slice(0, 500) },
+        502,
+      );
+    }
   }
   if (!validateFamily(parsed)) {
     return c.json({ error: 'schema mismatch', slug, got: parsed }, 502);
@@ -6117,8 +7314,19 @@ app.get('/api/admin/rabbi-family/:slug', async (c) => {
 //                Bnei Brak, Lod, Jerusalem, other), cap 4.
 
 const ACADEMY_VOCAB = [
-  'Sura','Pumbedita','Nehardea','Mehoza','Tiberias','Tzippori','Caesarea',
-  'Yavneh','Usha','Bnei Brak','Lod','Jerusalem','other',
+  'Sura',
+  'Pumbedita',
+  'Nehardea',
+  'Mehoza',
+  'Tiberias',
+  'Tzippori',
+  'Caesarea',
+  'Yavneh',
+  'Usha',
+  'Bnei Brak',
+  'Lod',
+  'Jerusalem',
+  'other',
 ] as const;
 
 const ORIENTATION_SYSTEM_PROMPT = `You are a scholar of Talmudic history. Given a rabbi's canonical name, Hebrew name, generation, region, and English bio, classify THREE things about them.
@@ -6216,11 +7424,18 @@ app.get('/api/admin/rabbi-orientation/:slug', async (c) => {
   if (fenced) payload = fenced[1].trim();
   if (!payload) return c.json({ error: 'empty payload', slug, _ms: streamed.elapsed_ms }, 502);
   let parsed: unknown;
-  try { parsed = JSON.parse(payload); }
-  catch (err) {
+  try {
+    parsed = JSON.parse(payload);
+  } catch (err) {
     const repaired = payload.replace(/,(\s*[}\]])/g, '$1').replace(/\r/g, '');
-    try { parsed = JSON.parse(repaired); }
-    catch { return c.json({ error: `non-JSON: ${String(err).slice(0, 200)}`, slug, raw: payload.slice(0, 500) }, 502); }
+    try {
+      parsed = JSON.parse(repaired);
+    } catch {
+      return c.json(
+        { error: `non-JSON: ${String(err).slice(0, 200)}`, slug, raw: payload.slice(0, 500) },
+        502,
+      );
+    }
   }
   if (!validateOrientation(parsed)) {
     return c.json({ error: 'schema mismatch', slug, got: parsed }, 502);
@@ -6257,15 +7472,18 @@ interface SefariaRawTopic {
   description?: { en?: string; he?: string };
   numSources?: number;
   image?: { image_uri?: string; image_caption?: { en?: string } };
-  links?: Record<string, {
-    title?: unknown;
-    links?: Array<{
-      topic?: string;
-      order?: { tfidf?: number; linksInCommon?: number };
-      isInverse?: boolean;
-      dataSource?: string;
-    }>;
-  }>;
+  links?: Record<
+    string,
+    {
+      title?: unknown;
+      links?: Array<{
+        topic?: string;
+        order?: { tfidf?: number; linksInCommon?: number };
+        isInverse?: boolean;
+        dataSource?: string;
+      }>;
+    }
+  >;
 }
 
 async function fetchSefariaTopicCached(
@@ -6274,14 +7492,14 @@ async function fetchSefariaTopicCached(
 ): Promise<SefariaRawTopic | null> {
   const key = `sefaria:topic:v${SEFARIA_TOPIC_VERSION}:${slug}`;
   if (cache) {
-    const hit = await cache.get(key, 'json') as SefariaRawTopic | null;
+    const hit = (await cache.get(key, 'json')) as SefariaRawTopic | null;
     if (hit) return hit;
   }
   const url = `https://www.sefaria.org/api/topics/${encodeURIComponent(slug)}?with_links=1&with_refs=0`;
   const res = await fetch(url, { headers: { accept: 'application/json' } });
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`sefaria topic ${slug}: HTTP ${res.status}`);
-  const data = await res.json() as SefariaRawTopic;
+  const data = (await res.json()) as SefariaRawTopic;
   if (cache) {
     await cache.put(key, JSON.stringify(data), { expirationTtl: SEFARIA_TOPIC_TTL_S });
   }
@@ -6300,7 +7518,10 @@ function unwrapPropertyValue(p: unknown): string | undefined {
 function mapSefariaToInput(raw: SefariaRawTopic | null): SefariaInput | null {
   if (!raw) return null;
   const titles = (raw.titles ?? [])
-    .filter((t): t is { text: string; lang: string } => typeof t.text === 'string' && (t.lang === 'en' || t.lang === 'he'))
+    .filter(
+      (t): t is { text: string; lang: string } =>
+        typeof t.text === 'string' && (t.lang === 'en' || t.lang === 'he'),
+    )
     .map((t) => ({ text: t.text, lang: t.lang as 'en' | 'he' }));
 
   const refs: SefariaInput['refs'] = {};
@@ -6319,7 +7540,9 @@ function mapSefariaToInput(raw: SefariaRawTopic | null): SefariaInput | null {
 
   const bucket = (predicate: string) =>
     (raw.links?.[predicate]?.links ?? [])
-      .filter((l): l is { topic: string; order?: { tfidf?: number } } => typeof l.topic === 'string')
+      .filter(
+        (l): l is { topic: string; order?: { tfidf?: number } } => typeof l.topic === 'string',
+      )
       .map((l) => ({ topic: l.topic, weight: l.order?.tfidf ?? null }));
 
   const familyPredicates: Array<[string, string]> = [
@@ -6425,13 +7648,9 @@ function topSlugByWeight(
  * scale comparable to LLM-added edges.
  */
 function normalizeEdgeWeights(out: LLMRabbiOutput): void {
-  const buckets: Array<{ slug: string | null; name: string; weight: number | null; source: 'sefaria' | 'llm' }[]> = [
-    out.teachers,
-    out.students,
-    out.family,
-    out.opposed,
-    out.influences,
-  ];
+  const buckets: Array<
+    { slug: string | null; name: string; weight: number | null; source: 'sefaria' | 'llm' }[]
+  > = [out.teachers, out.students, out.family, out.opposed, out.influences];
   for (const bucket of buckets) {
     let max = 0;
     for (const e of bucket) {
@@ -6451,8 +7670,16 @@ export async function enrichRabbiUnified(
   entry: RabbiPlacesEntry,
   env: Bindings,
   cache: KVNamespace | undefined,
-): Promise<{ ok: true; record: EnrichedRabbiRecord; ms: number; promptChars: number; usage: StreamedResult['usage'] }
-        | { ok: false; error: string; raw?: string; ms: number }> {
+): Promise<
+  | {
+      ok: true;
+      record: EnrichedRabbiRecord;
+      ms: number;
+      promptChars: number;
+      usage: StreamedResult['usage'];
+    }
+  | { ok: false; error: string; raw?: string; ms: number }
+> {
   const t0 = Date.now();
   const local = buildLocalRabbiInput(slug, entry);
   let sefariaRaw: SefariaRawTopic | null = null;
@@ -6474,7 +7701,11 @@ export async function enrichRabbiUnified(
         { role: 'user', content: userContent },
       ],
       12288,
-      { chatTemplateKwargs: { enable_thinking: false }, tag: 'rabbi-enrich-sefaria', attribution: { kind: 'rabbi', producerId: 'rabbi-enrich-sefaria' } },
+      {
+        chatTemplateKwargs: { enable_thinking: false },
+        tag: 'rabbi-enrich-sefaria',
+        attribution: { kind: 'rabbi', producerId: 'rabbi-enrich-sefaria' },
+      },
     );
   } catch (err) {
     return { ok: false, error: `llm: ${String(err).slice(0, 200)}`, ms: Date.now() - t0 };
@@ -6619,10 +7850,7 @@ interface WikiBioStageRecord {
   fetchedAt: string;
 }
 
-async function readEnriched(
-  cache: KVNamespace,
-  slug: string,
-): Promise<EnrichedRabbiRecord | null> {
+async function readEnriched(cache: KVNamespace, slug: string): Promise<EnrichedRabbiRecord | null> {
   const hit = await cache.get(keyForRabbiEnriched(slug));
   if (!hit) return null;
   try {
@@ -6644,12 +7872,18 @@ async function fetchWikidataEntity(qid: string): Promise<WikidataStageRecord | n
   const url = `https://www.wikidata.org/wiki/Special:EntityData/${encodeURIComponent(qid)}.json`;
   const res = await fetch(url, { headers: { accept: 'application/json' } });
   if (!res.ok) return null;
-  const data = await res.json() as {
-    entities?: Record<string, {
-      claims?: Record<string, Array<{
-        mainsnak?: { datavalue?: { value?: { id?: string; time?: string } } };
-      }>>;
-    }>;
+  const data = (await res.json()) as {
+    entities?: Record<
+      string,
+      {
+        claims?: Record<
+          string,
+          Array<{
+            mainsnak?: { datavalue?: { value?: { id?: string; time?: string } } };
+          }>
+        >;
+      }
+    >;
   };
   const entity = data.entities?.[qid];
   if (!entity || !entity.claims) return null;
@@ -6726,7 +7960,7 @@ async function fetchWikipediaExtract(
   const apiUrl = `https://${lang}.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&explaintext=1&exintro=0&redirects=1&titles=${encodeURIComponent(title)}&origin=*`;
   const res = await fetch(apiUrl, { headers: { accept: 'application/json' } });
   if (!res.ok) return null;
-  const data = await res.json() as {
+  const data = (await res.json()) as {
     query?: { pages?: Record<string, { title?: string; extract?: string; missing?: '' }> };
   };
   const pages = data.query?.pages ?? {};
@@ -6783,7 +8017,13 @@ interface RabbiGraphNode {
   primaryStudent: string | null;
   teachers: Array<{ slug: string | null; name: string; weight: number | null; source: string }>;
   students: Array<{ slug: string | null; name: string; weight: number | null; source: string }>;
-  family: Array<{ slug: string | null; name: string; relation: string; weight: number | null; source: string }>;
+  family: Array<{
+    slug: string | null;
+    name: string;
+    relation: string;
+    weight: number | null;
+    source: string;
+  }>;
   opposed: Array<{ slug: string | null; name: string; weight: number | null; source: string }>;
 }
 
@@ -6864,10 +8104,31 @@ app.post('/api/admin/rabbi-compile/graph', async (c) => {
       academy: r.academy,
       primaryTeacher: r.primaryTeacher,
       primaryStudent: r.primaryStudent,
-      teachers: r.teachers.map((e) => ({ slug: e.slug, name: e.name, weight: e.weight, source: e.source })),
-      students: r.students.map((e) => ({ slug: e.slug, name: e.name, weight: e.weight, source: e.source })),
-      family: r.family.map((e) => ({ slug: e.slug, name: e.name, relation: e.relation, weight: e.weight, source: e.source })),
-      opposed: r.opposed.map((e) => ({ slug: e.slug, name: e.name, weight: e.weight, source: e.source })),
+      teachers: r.teachers.map((e) => ({
+        slug: e.slug,
+        name: e.name,
+        weight: e.weight,
+        source: e.source,
+      })),
+      students: r.students.map((e) => ({
+        slug: e.slug,
+        name: e.name,
+        weight: e.weight,
+        source: e.source,
+      })),
+      family: r.family.map((e) => ({
+        slug: e.slug,
+        name: e.name,
+        relation: e.relation,
+        weight: e.weight,
+        source: e.source,
+      })),
+      opposed: r.opposed.map((e) => ({
+        slug: e.slug,
+        name: e.name,
+        weight: e.weight,
+        source: e.source,
+      })),
     };
   }
 
@@ -6887,13 +8148,23 @@ app.post('/api/admin/rabbi-compile/graph', async (c) => {
       if (!t.slug) continue;
       const other = nodes[t.slug];
       if (!other) continue;
-      ensureEdge(other.students, { slug: node.slug, name: node.canonical, weight: t.weight, source: t.source });
+      ensureEdge(other.students, {
+        slug: node.slug,
+        name: node.canonical,
+        weight: t.weight,
+        source: t.source,
+      });
     }
     for (const s of node.students) {
       if (!s.slug) continue;
       const other = nodes[s.slug];
       if (!other) continue;
-      ensureEdge(other.teachers, { slug: node.slug, name: node.canonical, weight: s.weight, source: s.source });
+      ensureEdge(other.teachers, {
+        slug: node.slug,
+        name: node.canonical,
+        weight: s.weight,
+        source: s.source,
+      });
     }
     for (const f of node.family) {
       if (!f.slug) continue;
@@ -6901,13 +8172,24 @@ app.post('/api/admin/rabbi-compile/graph', async (c) => {
       if (!other) continue;
       const inv = FAMILY_INVERSE[f.relation] ?? 'other';
       if (other.family.some((e) => e.slug === node.slug && e.relation === inv)) continue;
-      other.family.push({ slug: node.slug, name: node.canonical, relation: inv, weight: f.weight, source: f.source });
+      other.family.push({
+        slug: node.slug,
+        name: node.canonical,
+        relation: inv,
+        weight: f.weight,
+        source: f.source,
+      });
     }
     for (const o of node.opposed) {
       if (!o.slug) continue;
       const other = nodes[o.slug];
       if (!other) continue;
-      ensureEdge(other.opposed, { slug: node.slug, name: node.canonical, weight: o.weight, source: o.source });
+      ensureEdge(other.opposed, {
+        slug: node.slug,
+        name: node.canonical,
+        weight: o.weight,
+        source: o.source,
+      });
     }
   }
 
@@ -6952,7 +8234,12 @@ app.post('/api/admin/rabbi-compile/cohort', async (c) => {
     bySage,
   };
   await cache.put(keyForRabbiCohort(), JSON.stringify(blob), { expirationTtl: RABBI_STAGE_TTL_S });
-  return c.json({ ok: true, generations: Object.keys(byGeneration).length, sages: Object.keys(bySage).length, _ms: Date.now() - t0 });
+  return c.json({
+    ok: true,
+    generations: Object.keys(byGeneration).length,
+    sages: Object.keys(bySage).length,
+    _ms: Date.now() - t0,
+  });
 });
 
 interface RabbiPlacesIndexBlob {
@@ -6980,7 +8267,9 @@ app.post('/api/admin/rabbi-compile/places-index', async (c) => {
     generatedAt: new Date().toISOString(),
     byPlace,
   };
-  await cache.put(keyForRabbiPlacesIndex(), JSON.stringify(blob), { expirationTtl: RABBI_STAGE_TTL_S });
+  await cache.put(keyForRabbiPlacesIndex(), JSON.stringify(blob), {
+    expirationTtl: RABBI_STAGE_TTL_S,
+  });
   return c.json({ ok: true, places: Object.keys(byPlace).length, _ms: Date.now() - t0 });
 });
 
@@ -7006,7 +8295,9 @@ app.post('/api/admin/rabbi-compile/academy-roster', async (c) => {
     generatedAt: new Date().toISOString(),
     byAcademy,
   };
-  await cache.put(keyForRabbiAcademyRoster(), JSON.stringify(blob), { expirationTtl: RABBI_STAGE_TTL_S });
+  await cache.put(keyForRabbiAcademyRoster(), JSON.stringify(blob), {
+    expirationTtl: RABBI_STAGE_TTL_S,
+  });
   return c.json({ ok: true, academies: Object.keys(byAcademy).length, _ms: Date.now() - t0 });
 });
 
@@ -7068,10 +8359,22 @@ app.get('/api/admin/rabbi-cache-stats', async (c) => {
     }
   };
 
-  const totalSlugs = Object.entries(RABBI_PLACES.rabbis).filter(([, r]) => isRabbinicEntry(r)).length;
+  const totalSlugs = Object.entries(RABBI_PLACES.rabbis).filter(([, r]) =>
+    isRabbinicEntry(r),
+  ).length;
 
-  const [unified, wikidata, wikiBio, influences, appearances, keyDafim,
-         graphAt, cohortAt, placesAt, academyAt] = await Promise.all([
+  const [
+    unified,
+    wikidata,
+    wikiBio,
+    influences,
+    appearances,
+    keyDafim,
+    graphAt,
+    cohortAt,
+    placesAt,
+    academyAt,
+  ] = await Promise.all([
     countPrefix('rabbi-enriched:v1:'),
     countPrefix('rabbi-wikidata:v1:'),
     countPrefix('rabbi-wiki-bio:v1:'),
@@ -7140,9 +8443,12 @@ app.get('/api/region/:tractate/:page', async (c) => {
   // Pull skeleton (Stage A) — required input.
   const skelRaw = await cache.get(keyForAnalyzeSkeleton(tractate, page));
   if (!skelRaw) {
-    return c.json({
-      error: 'No cached skeleton; run /api/analyze/.../?skeleton_only=1 first',
-    }, 412);
+    return c.json(
+      {
+        error: 'No cached skeleton; run /api/analyze/.../?skeleton_only=1 first',
+      },
+      412,
+    );
   }
   const skeleton = JSON.parse(skelRaw) as DafSkeleton;
 
@@ -7208,11 +8514,27 @@ app.get('/api/region/:tractate/:page', async (c) => {
 // Knowingly conservative: places like "Tiberias" + "Sura" are clear yes; a
 // single ambiguous place like "Eretz Yisrael" doesn't trigger.
 const ISRAEL_PLACES = new Set([
-  'Tiberias', 'Sepphoris', 'Tzipori', 'Caesarea', 'Yavneh', 'Usha', 'Lod', 'Bnei Brak',
-  'Jerusalem', 'Eretz Yisrael', 'Galilee', 'Judea',
+  'Tiberias',
+  'Sepphoris',
+  'Tzipori',
+  'Caesarea',
+  'Yavneh',
+  'Usha',
+  'Lod',
+  'Bnei Brak',
+  'Jerusalem',
+  'Eretz Yisrael',
+  'Galilee',
+  'Judea',
 ]);
 const BAVEL_PLACES = new Set([
-  'Sura', 'Pumbedita', 'Nehardea', 'Mehoza', 'Naresh', 'Mata Mehasya', 'Babylonia',
+  'Sura',
+  'Pumbedita',
+  'Nehardea',
+  'Mehoza',
+  'Naresh',
+  'Mata Mehasya',
+  'Babylonia',
   'Pum Nahara',
 ]);
 
@@ -7230,7 +8552,12 @@ function inferMigration(places: string[]): boolean {
 // First-pass walks rabbi-graph:v1's primaryTeacher up to depth N for every
 // sage on the daf. Cached at mesorah:v1:{tractate}:{page}.
 
-interface MesorahChainStep { slug: string; canonical: string; canonicalHe: string; generation: string | null }
+interface MesorahChainStep {
+  slug: string;
+  canonical: string;
+  canonicalHe: string;
+  generation: string | null;
+}
 interface MesorahFirstPass {
   generatedAt: string;
   depth: number;
@@ -7252,7 +8579,8 @@ app.get('/api/mesorah/:tractate/:page', async (c) => {
 
   const refresh = c.req.query('refresh') === '1';
   const depthQ = parseInt(c.req.query('depth') ?? '', 10);
-  const depth = Number.isFinite(depthQ) && depthQ > 0 && depthQ <= 10 ? depthQ : DEFAULT_MESORAH_DEPTH;
+  const depth =
+    Number.isFinite(depthQ) && depthQ > 0 && depthQ <= 10 ? depthQ : DEFAULT_MESORAH_DEPTH;
 
   const cacheKey = keyForMesorah(tractate, page);
   if (!refresh) {
@@ -7262,16 +8590,23 @@ app.get('/api/mesorah/:tractate/:page', async (c) => {
 
   const skelRaw = await cache.get(keyForAnalyzeSkeleton(tractate, page));
   if (!skelRaw) {
-    return c.json({
-      error: 'No cached skeleton; run /api/analyze/.../?skeleton_only=1 first',
-    }, 412);
+    return c.json(
+      {
+        error: 'No cached skeleton; run /api/analyze/.../?skeleton_only=1 first',
+      },
+      412,
+    );
   }
   const skeleton = JSON.parse(skelRaw) as DafSkeleton;
 
   const graphRaw = await cache.get(keyForRabbiGraph());
   let graph: RabbiGraphBlob | null = null;
   if (graphRaw) {
-    try { graph = JSON.parse(graphRaw) as RabbiGraphBlob; } catch { graph = null; }
+    try {
+      graph = JSON.parse(graphRaw) as RabbiGraphBlob;
+    } catch {
+      graph = null;
+    }
   }
 
   const t0 = Date.now();
@@ -7373,10 +8708,11 @@ function validateTranslatedBio(x: unknown): x is TranslatedBio {
   return true;
 }
 
-
 app.post('/api/admin/translate-bio', async (c) => {
   if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-  const parsed = await readJsonBody<{ hebrewBio?: string; nameHe?: string; nameEn?: string }>(c, { error: 'invalid JSON body' });
+  const parsed = await readJsonBody<{ hebrewBio?: string; nameHe?: string; nameEn?: string }>(c, {
+    error: 'invalid JSON body',
+  });
   if (!parsed.ok) return parsed.response;
   const body = parsed.value;
   const hebrewBio = (body.hebrewBio ?? '').trim();
@@ -7390,7 +8726,9 @@ app.post('/api/admin/translate-bio', async (c) => {
     '',
     'Hebrew passage:',
     hebrewBio.slice(0, 6000),
-  ].filter(Boolean).join('\n');
+  ]
+    .filter(Boolean)
+    .join('\n');
 
   const t0 = Date.now();
   try {
@@ -7410,9 +8748,16 @@ app.post('/api/admin/translate-bio', async (c) => {
     const payload = r.content.trim() || extractJsonPayload({ response: r.content });
     if (!payload) return c.json({ error: 'empty payload' }, 502);
     let parsed: unknown;
-    try { parsed = JSON.parse(payload); }
-    catch (err) { return c.json({ error: `non-JSON: ${String(err).slice(0, 200)}`, raw: payload.slice(0, 500) }, 502); }
-    if (!validateTranslatedBio(parsed)) return c.json({ error: 'schema mismatch', got: parsed }, 502);
+    try {
+      parsed = JSON.parse(payload);
+    } catch (err) {
+      return c.json(
+        { error: `non-JSON: ${String(err).slice(0, 200)}`, raw: payload.slice(0, 500) },
+        502,
+      );
+    }
+    if (!validateTranslatedBio(parsed))
+      return c.json({ error: 'schema mismatch', got: parsed }, 502);
     return c.json({ ...parsed, _ms: Date.now() - t0 });
   } catch (err) {
     return c.json({ error: String(err).slice(0, 300) }, 502);
@@ -7559,7 +8904,11 @@ export function sanitizeHebraizeOutput(text: string): string {
   return stripEchoParens(text);
 }
 
-export function splitOuterWhitespace(text: string): { leading: string; core: string; trailing: string } {
+export function splitOuterWhitespace(text: string): {
+  leading: string;
+  core: string;
+  trailing: string;
+} {
   if (!text) return { leading: '', core: '', trailing: '' };
   const leading = /^\s*/.exec(text)?.[0] ?? '';
   if (leading.length === text.length) {
@@ -7591,7 +8940,9 @@ app.post('/api/hebraize', async (c) => {
   // whitespace share a cache entry. Surrounding whitespace is reattached on
   // every return path below.
   const hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(core));
-  const hash = Array.from(new Uint8Array(hashBuf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+  const hash = Array.from(new Uint8Array(hashBuf))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
   // v2: bumped when the primary model switched Gemma -> DeepSeek and the
   // echo-strip guard was added. Old v1 entries (which can hold Gemma echoes)
   // are abandoned rather than re-cleaned.
@@ -7677,7 +9028,12 @@ app.post('/api/enrich-rabbi-bio/:tractate/:page/:slug', async (c) => {
   const refresh = c.req.query('refresh') === '1';
   const includeRawBio = c.req.query('include') ?? '';
   const includeNormBio = includeRawBio
-    ? includeRawBio.split(',').map((s) => s.trim()).filter(Boolean).sort().join(',')
+    ? includeRawBio
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .sort()
+        .join(',')
     : '';
   const cacheKey = keyForRabbiBioOnDaf(tractate, page, slug, includeNormBio);
   const includeSetBio = new Set(includeNormBio ? includeNormBio.split(',') : []);
@@ -7693,27 +9049,53 @@ app.post('/api/enrich-rabbi-bio/:tractate/:page/:slug', async (c) => {
   // mesorah first-pass (for chain context).
   const needsUnifiedForRegion = wantBio('region');
   const needsGraphForMesorah = wantBio('mesorah');
-  const [unifiedRaw, wikidataRaw, wikiBioRaw, graphRaw, skelRaw, regionDafRaw, mesorahDafRaw] = await Promise.all([
-    (wantBio('unified') || needsUnifiedForRegion) ? cache.get(keyForRabbiEnriched(slug)) : Promise.resolve(null),
-    wantBio('wikidata')     ? cache.get(keyForRabbiWikidata(slug))         : Promise.resolve(null),
-    wantBio('wiki-bio')     ? cache.get(keyForRabbiWikiBio(slug))         : Promise.resolve(null),
-    (wantBio('rabbi-graph') || needsGraphForMesorah) ? cache.get(keyForRabbiGraph()) : Promise.resolve(null),
-    wantBio('daf-role')     ? cache.get(keyForAnalyzeSkeleton(tractate, page)) : Promise.resolve(null),
-    wantBio('region')       ? cache.get(keyForRegion(tractate, page))    : Promise.resolve(null),
-    wantBio('mesorah')      ? cache.get(keyForMesorah(tractate, page))   : Promise.resolve(null),
-  ]);
+  const [unifiedRaw, wikidataRaw, wikiBioRaw, graphRaw, skelRaw, regionDafRaw, mesorahDafRaw] =
+    await Promise.all([
+      wantBio('unified') || needsUnifiedForRegion
+        ? cache.get(keyForRabbiEnriched(slug))
+        : Promise.resolve(null),
+      wantBio('wikidata') ? cache.get(keyForRabbiWikidata(slug)) : Promise.resolve(null),
+      wantBio('wiki-bio') ? cache.get(keyForRabbiWikiBio(slug)) : Promise.resolve(null),
+      wantBio('rabbi-graph') || needsGraphForMesorah
+        ? cache.get(keyForRabbiGraph())
+        : Promise.resolve(null),
+      wantBio('daf-role')
+        ? cache.get(keyForAnalyzeSkeleton(tractate, page))
+        : Promise.resolve(null),
+      wantBio('region') ? cache.get(keyForRegion(tractate, page)) : Promise.resolve(null),
+      wantBio('mesorah') ? cache.get(keyForMesorah(tractate, page)) : Promise.resolve(null),
+    ]);
 
   const tryParse = <T>(raw: string | null): T | null => {
     if (!raw) return null;
-    try { return JSON.parse(raw) as T; } catch { return null; }
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return null;
+    }
   };
   const unified = tryParse<EnrichedRabbiRecord>(unifiedRaw);
   const wikidata = tryParse<Record<string, unknown>>(wikidataRaw);
   const wikiBio = tryParse<Record<string, unknown>>(wikiBioRaw);
-  const graph = tryParse<{ nodes: Record<string, { primaryTeacher?: string | null; canonical?: string }> }>(graphRaw);
+  const graph = tryParse<{
+    nodes: Record<string, { primaryTeacher?: string | null; canonical?: string }>;
+  }>(graphRaw);
   const skel = tryParse<DafSkeleton>(skelRaw);
-  const regionDaf = tryParse<{ sections?: Array<{ title: string; sages?: Array<{ slug: string | null; region?: string | null; places?: string[]; migrated?: boolean }> }>; migrated?: Array<{ slug: string }> }>(regionDafRaw);
-  const mesorahDaf = tryParse<{ chains?: Record<string, Array<{ canonical: string; generation: string | null }>> }>(mesorahDafRaw);
+  const regionDaf = tryParse<{
+    sections?: Array<{
+      title: string;
+      sages?: Array<{
+        slug: string | null;
+        region?: string | null;
+        places?: string[];
+        migrated?: boolean;
+      }>;
+    }>;
+    migrated?: Array<{ slug: string }>;
+  }>(regionDafRaw);
+  const mesorahDaf = tryParse<{
+    chains?: Record<string, Array<{ canonical: string; generation: string | null }>>;
+  }>(mesorahDafRaw);
 
   // Find this sage's role on the daf — which sections name them, and the
   // names of the OTHER voices in those sections (so the LLM can mention
@@ -7753,7 +9135,10 @@ app.post('/api/enrich-rabbi-bio/:tractate/:page/:slug', async (c) => {
         .filter((sec) => (sec.sages ?? []).some((s) => s.slug === slug))
         .map((sec) => ({
           title: sec.title,
-          coRegions: (sec.sages ?? []).filter((s) => s.slug !== slug).map((s) => s.region).filter(Boolean),
+          coRegions: (sec.sages ?? [])
+            .filter((s) => s.slug !== slug)
+            .map((s) => s.region)
+            .filter(Boolean),
         }));
       if (dafSections.length > 0) regionEntries.dafSectionsRegions = dafSections;
       const migrated = (regionDaf.migrated ?? []).find((m) => m.slug === slug);
@@ -7790,21 +9175,40 @@ app.post('/api/enrich-rabbi-bio/:tractate/:page/:slug', async (c) => {
   }
 
   const inputBlocks: string[] = [];
-  if (unified && wantBio('unified')) inputBlocks.push(`<unified>\n${JSON.stringify({
-    canonical: unified.canonical, aliases: unified.aliases, generation: unified.generation,
-    region: unified.region, academy: unified.academy, places: unified.places,
-    bio: unified.bio.en, orientation: unified.orientation, characteristics: unified.characteristics,
-    primaryTeacher: unified.primaryTeacher, primaryStudent: unified.primaryStudent,
-  }, null, 2)}\n</unified>`);
+  if (unified && wantBio('unified'))
+    inputBlocks.push(
+      `<unified>\n${JSON.stringify(
+        {
+          canonical: unified.canonical,
+          aliases: unified.aliases,
+          generation: unified.generation,
+          region: unified.region,
+          academy: unified.academy,
+          places: unified.places,
+          bio: unified.bio.en,
+          orientation: unified.orientation,
+          characteristics: unified.characteristics,
+          primaryTeacher: unified.primaryTeacher,
+          primaryStudent: unified.primaryStudent,
+        },
+        null,
+        2,
+      )}\n</unified>`,
+    );
   if (wikidata) inputBlocks.push(`<wikidata>\n${JSON.stringify(wikidata, null, 2)}\n</wikidata>`);
   if (wikiBio) inputBlocks.push(`<wiki_bio>\n${JSON.stringify(wikiBio, null, 2)}\n</wiki_bio>`);
-  if (myGraphNode && wantBio('rabbi-graph')) inputBlocks.push(`<rabbi_graph>\n${JSON.stringify(myGraphNode, null, 2)}\n</rabbi_graph>`);
+  if (myGraphNode && wantBio('rabbi-graph'))
+    inputBlocks.push(`<rabbi_graph>\n${JSON.stringify(myGraphNode, null, 2)}\n</rabbi_graph>`);
   if (dafRole) inputBlocks.push(`<daf_role>\n${JSON.stringify(dafRole, null, 2)}\n</daf_role>`);
   if (regionSlice) inputBlocks.push(`<region>\n${JSON.stringify(regionSlice, null, 2)}\n</region>`);
-  if (mesorahSlice) inputBlocks.push(`<mesorah>\n${JSON.stringify(mesorahSlice, null, 2)}\n</mesorah>`);
+  if (mesorahSlice)
+    inputBlocks.push(`<mesorah>\n${JSON.stringify(mesorahSlice, null, 2)}\n</mesorah>`);
 
   if (inputBlocks.length === 0) {
-    return c.json({ error: 'no rabbi enrichments cached for this slug yet — run unified first' }, 412);
+    return c.json(
+      { error: 'no rabbi enrichments cached for this slug yet — run unified first' },
+      412,
+    );
   }
 
   const userContent = [
@@ -7822,13 +9226,18 @@ app.post('/api/enrich-rabbi-bio/:tractate/:page/:slug', async (c) => {
   let parsed: { explanation?: string; groundedIn?: string[] } = {};
   try {
     const s = await runKimiStreaming(
-      c.env, '@cf/moonshotai/kimi-k2.5',
+      c.env,
+      '@cf/moonshotai/kimi-k2.5',
       [
         { role: 'system', content: RABBI_BIO_DAF_PROMPT },
         { role: 'user', content: userContent },
       ],
       4000,
-      { chatTemplateKwargs: { enable_thinking: false }, tag: 'rabbi-bio-daf', attribution: { kind: 'rabbi', producerId: 'rabbi-bio-daf', tractate, page } },
+      {
+        chatTemplateKwargs: { enable_thinking: false },
+        tag: 'rabbi-bio-daf',
+        attribution: { kind: 'rabbi', producerId: 'rabbi-bio-daf', tractate, page },
+      },
     );
     let payload = s.content.trim();
     const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
@@ -7839,7 +9248,9 @@ app.post('/api/enrich-rabbi-bio/:tractate/:page/:slug', async (c) => {
   }
 
   const out = {
-    tractate, page, slug,
+    tractate,
+    page,
+    slug,
     explanation: parsed.explanation ?? '',
     groundedIn: parsed.groundedIn ?? [],
     generatedAt: new Date().toISOString(),
@@ -7898,7 +9309,12 @@ const DEEP_WARM_PLAN: Record<string, string[]> = {
  * Run from the queue consumer (not a request); even so, keep cascades bounded —
  * a queue handler is still a Worker invocation with operation limits.
  */
-async function evictCascadeEntries(env: Bindings, ids: readonly string[], tractate: string, page: string): Promise<number> {
+async function evictCascadeEntries(
+  env: Bindings,
+  ids: readonly string[],
+  tractate: string,
+  page: string,
+): Promise<number> {
   const cache = env.CACHE;
   if (!cache) return 0;
   let evicted = 0;
@@ -7910,13 +9326,19 @@ async function evictCascadeEntries(env: Bindings, ids: readonly string[], tracta
     // Whole-daf instance ({fields:{}}) — id is lang-safe, so evict both langs.
     for (const lang of ['en', 'he'] as const) {
       const key = keyForEnrichment(def, wholeIid, daf, undefined, lang);
-      if (key) { await cache.delete(key); evicted++; }
+      if (key) {
+        await cache.delete(key);
+        evicted++;
+      }
     }
     // Per-section/entity instances — EN only (the HE id derives from the Hebrew
     // title we can't enumerate here; see the doc above).
     for (const inst of await readMarkInstances(env, def.mark, tractate, page).catch(() => [])) {
       const key = keyForEnrichment(def, await instanceIdOf(inst), daf, undefined, 'en');
-      if (key) { await cache.delete(key); evicted++; }
+      if (key) {
+        await cache.delete(key);
+        evicted++;
+      }
     }
   }
   return evicted;
@@ -7946,7 +9368,9 @@ async function deepWarmDaf(
   const queue = rc.env.ENRICHMENT_QUEUE;
   const cache = rc.env.CACHE;
   if (!queue) return { marks: 0, enqueued: 0, skipped: 0, bridges: 0 };
-  let marks = 0, enqueued = 0, skipped = 0;
+  let marks = 0,
+    enqueued = 0,
+    skipped = 0;
   const wanted = (eid: string): boolean => !only || only.has(eid);
 
   for (const [markId, enrichmentIds] of Object.entries(DEEP_WARM_PLAN)) {
@@ -7959,7 +9383,9 @@ async function deepWarmDaf(
       marks++;
       const parsed = res.parsed as { instances?: unknown[] } | null;
       instances = Array.isArray(parsed?.instances) ? parsed.instances : [];
-    } catch { continue; }
+    } catch {
+      continue;
+    }
 
     for (const inst of instances) {
       for (const enrichmentId of enrichmentIds) {
@@ -7967,14 +9393,34 @@ async function deepWarmDaf(
         const def = await loadEnrichmentDef(rc.env, enrichmentId);
         if (!def) continue;
         const iid = await instanceIdOf(inst);
-        const key = keyForEnrichment(def, iid, def.scope === 'local' ? { tractate, page } : undefined, undefined, lang);
-        if (key && cache && (await cache.get(key))) { skipped++; continue; }
-        const runId = `warm:${enrichmentId}:${tractate}:${page}:${iid}:${lang}:${Math.floor(Date.now() / 1000)}`
-          .replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
+        const key = keyForEnrichment(
+          def,
+          iid,
+          def.scope === 'local' ? { tractate, page } : undefined,
+          undefined,
+          lang,
+        );
+        if (key && cache && (await cache.get(key))) {
+          skipped++;
+          continue;
+        }
+        const runId =
+          `warm:${enrichmentId}:${tractate}:${page}:${iid}:${lang}:${Math.floor(Date.now() / 1000)}`
+            .replace(/[^a-zA-Z0-9._:-]+/g, '_')
+            .slice(0, 200);
         try {
-          await queue.send({ runId, enrichment_id: enrichmentId, tractate, page, mark_input: inst, ...(lang === 'he' ? { lang } : {}) });
+          await queue.send({
+            runId,
+            enrichment_id: enrichmentId,
+            tractate,
+            page,
+            mark_input: inst,
+            ...(lang === 'he' ? { lang } : {}),
+          });
           enqueued++;
-        } catch { /* best-effort warm */ }
+        } catch {
+          /* best-effort warm */
+        }
       }
     }
   }
@@ -7985,26 +9431,46 @@ async function deepWarmDaf(
   // a reader is the first to trigger argument.narrative on a story section (cold
   // generation); with it, the story view is usually a cache hit.
   try {
-    const narrativeDef = wanted('argument.narrative') ? await loadEnrichmentDef(rc.env, 'argument.narrative') : null;
+    const narrativeDef = wanted('argument.narrative')
+      ? await loadEnrichmentDef(rc.env, 'argument.narrative')
+      : null;
     if (narrativeDef) {
       const profiles = await buildDafTypeProfiles(rc.env, tractate, page);
       const sections = await readMarkInstances(rc.env, 'argument', tractate, page);
       for (const prof of profiles) {
         if (prof.primary !== 'aggadata') continue;
-        const sec = sections.find((s) => s.startSegIdx === prof.unit.startSegIdx && s.endSegIdx === prof.unit.endSegIdx);
+        const sec = sections.find(
+          (s) => s.startSegIdx === prof.unit.startSegIdx && s.endSegIdx === prof.unit.endSegIdx,
+        );
         if (!sec) continue;
         const iid = await instanceIdOf(sec);
         const key = keyForEnrichment(narrativeDef, iid, { tractate, page }, undefined, lang);
-        if (key && cache && (await cache.get(key))) { skipped++; continue; }
-        const runId = `warm:argument.narrative:${tractate}:${page}:${iid}:${lang}:${Math.floor(Date.now() / 1000)}`
-          .replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
+        if (key && cache && (await cache.get(key))) {
+          skipped++;
+          continue;
+        }
+        const runId =
+          `warm:argument.narrative:${tractate}:${page}:${iid}:${lang}:${Math.floor(Date.now() / 1000)}`
+            .replace(/[^a-zA-Z0-9._:-]+/g, '_')
+            .slice(0, 200);
         try {
-          await queue.send({ runId, enrichment_id: 'argument.narrative', tractate, page, mark_input: sec, ...(lang === 'he' ? { lang } : {}) });
+          await queue.send({
+            runId,
+            enrichment_id: 'argument.narrative',
+            tractate,
+            page,
+            mark_input: sec,
+            ...(lang === 'he' ? { lang } : {}),
+          });
           enqueued++;
-        } catch { /* best-effort warm */ }
+        } catch {
+          /* best-effort warm */
+        }
       }
     }
-  } catch { /* profile composition is best-effort; never block the deep-warm */ }
+  } catch {
+    /* profile composition is best-effort; never block the deep-warm */
+  }
 
   // Whole-daf Overview: warm argument-overview.flow (the section-to-section
   // connections) and .synthesis (the daf summary). The flow is what the reader
@@ -8017,19 +9483,37 @@ async function deepWarmDaf(
   // argument-overview.synthesis (warmed just above) + daf-background.concepts +
   // the source bundle; listed last so its deps are warm/in-flight first (its own
   // dependency resolution still fills any gap and caches it).
-  for (const eid of ['argument-overview.flow', 'argument-overview.synthesis', 'tidbit.essay', 'biyun.essay']) {
+  for (const eid of [
+    'argument-overview.flow',
+    'argument-overview.synthesis',
+    'tidbit.essay',
+    'biyun.essay',
+  ]) {
     if (!wanted(eid)) continue;
     try {
       const def = await loadEnrichmentDef(rc.env, eid);
       if (!def) continue;
       const iid = await instanceIdOf({ fields: {} });
       const key = keyForEnrichment(def, iid, { tractate, page }, undefined, lang);
-      if (key && cache && (await cache.get(key))) { skipped++; continue; }
+      if (key && cache && (await cache.get(key))) {
+        skipped++;
+        continue;
+      }
       const runId = `warm:${eid}:${tractate}:${page}:${lang}:${Math.floor(Date.now() / 1000)}`
-        .replace(/[^a-zA-Z0-9._:-]+/g, '_').slice(0, 200);
-      await queue.send({ runId, enrichment_id: eid, tractate, page, mark_input: { fields: {} }, ...(lang === 'he' ? { lang } : {}) });
+        .replace(/[^a-zA-Z0-9._:-]+/g, '_')
+        .slice(0, 200);
+      await queue.send({
+        runId,
+        enrichment_id: eid,
+        tractate,
+        page,
+        mark_input: { fields: {} },
+        ...(lang === 'he' ? { lang } : {}),
+      });
       enqueued++;
-    } catch { /* best-effort warm */ }
+    } catch {
+      /* best-effort warm */
+    }
   }
 
   // Cross-daf bridges (the reader Overview's sugya map): compute + pin this
@@ -8046,7 +9530,9 @@ async function deepWarmDaf(
       const back = await computeDafBridge(rc.env, tractate, prev);
       if (back.via !== 'no-data') bridges++;
     }
-  } catch { /* bridges are best-effort */ }
+  } catch {
+    /* bridges are best-effort */
+  }
 
   return { marks, enqueued, skipped, bridges };
 }
@@ -8062,8 +9548,19 @@ async function deepWarmDaf(
  * than rethrown — we don't want the queue to retry indefinitely on a real
  * failure (max_retries=1 in wrangler.toml is the safety net).
  */
-async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: ExecutionContext): Promise<void> {
-  console.log('[queue] picked up job', job.runId, '·', job.mark_id ?? job.enrichment_id ?? 'adhoc', job.tractate, job.page);
+async function processEnrichmentJob(
+  env: Bindings,
+  job: JobMessage,
+  ctx: ExecutionContext,
+): Promise<void> {
+  console.log(
+    '[queue] picked up job',
+    job.runId,
+    '·',
+    job.mark_id ?? job.enrichment_id ?? 'adhoc',
+    job.tractate,
+    job.page,
+  );
   const wrapped = wrapEnv(env);
   const cache = wrapped.CACHE;
   if (!cache) {
@@ -8092,10 +9589,16 @@ async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: Executi
       // then warm — deepWarmDaf regenerates the deep-warm surface, whose
       // dependency resolution pulls the evicted lower members fresh; the rest
       // regenerate on their next read. Unchanged (non-cascade) deps cache-hit.
-      if (only && job.rewarm_only) await evictCascadeEntries(rc.env, job.rewarm_only, job.tractate, job.page);
+      if (only && job.rewarm_only)
+        await evictCascadeEntries(rc.env, job.rewarm_only, job.tractate, job.page);
       const stats = await deepWarmDaf(rc, job.tractate, job.page, rc.lang, only);
-      await writeResult({ status: 'ok', result: { kind: 'warm', ...stats, total_ms: Date.now() - t0 } });
-      console.log(`[queue] deep-warm ${job.tractate}/${job.page} lang=${rc.lang} marks=${stats.marks} enqueued=${stats.enqueued} skipped=${stats.skipped} bridges=${stats.bridges}`);
+      await writeResult({
+        status: 'ok',
+        result: { kind: 'warm', ...stats, total_ms: Date.now() - t0 },
+      });
+      console.log(
+        `[queue] deep-warm ${job.tractate}/${job.page} lang=${rc.lang} marks=${stats.marks} enqueued=${stats.enqueued} skipped=${stats.skipped} bridges=${stats.bridges}`,
+      );
       return;
     }
     if (job.mark_id) {
@@ -8109,7 +9612,10 @@ async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: Executi
         status: 'ok',
         result: { kind: 'mark', ...result, definition: def, total_ms: Date.now() - t0 },
       });
-      recordTelemetry({ env: wrapped, executionCtx: ctx }, runTelemetryRec(job, result, Date.now() - t0));
+      recordTelemetry(
+        { env: wrapped, executionCtx: ctx },
+        runTelemetryRec(job, result, Date.now() - t0),
+      );
       return;
     }
     let def: EnrichmentDefinition | null = null;
@@ -8131,7 +9637,11 @@ async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: Executi
       return;
     }
     const result = await runEnrichmentOnce(
-      rc, def, job.tractate, job.page, job.mark_input,
+      rc,
+      def,
+      job.tractate,
+      job.page,
+      job.mark_input,
       job.bypass_cache === true,
       job.model_override as LLMModelId | undefined,
       undefined,
@@ -8141,7 +9651,10 @@ async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: Executi
       status: 'ok',
       result: { kind: 'enrichment', ...result, definition: def, total_ms: Date.now() - t0 },
     });
-    recordTelemetry({ env: wrapped, executionCtx: ctx }, runTelemetryRec(job, result, Date.now() - t0));
+    recordTelemetry(
+      { env: wrapped, executionCtx: ctx },
+      runTelemetryRec(job, result, Date.now() - t0),
+    );
   } catch (err) {
     const totalMs = Date.now() - t0;
     // A budget pause is an expected back-pressure outcome, not a failure: write
@@ -8150,11 +9663,26 @@ async function processEnrichmentJob(env: Bindings, job: JobMessage, ctx: Executi
     const paused = isBudgetPaused(err);
     if (paused) {
       const scope = (err as { scope?: BudgetScope }).scope;
-      await writeResult({ status: 'error', error: pauseErrorMessage(scope), paused: true, scope, total_ms: totalMs });
+      await writeResult({
+        status: 'error',
+        error: pauseErrorMessage(scope),
+        paused: true,
+        scope,
+        total_ms: totalMs,
+      });
       return;
     }
     const errorMsg = String((err as Error)?.message ?? err);
-    console.error('[queue] job failed', job.runId, '·', job.mark_id ?? job.enrichment_id ?? 'adhoc', job.tractate, job.page, '·', errorMsg.slice(0, 500));
+    console.error(
+      '[queue] job failed',
+      job.runId,
+      '·',
+      job.mark_id ?? job.enrichment_id ?? 'adhoc',
+      job.tractate,
+      job.page,
+      '·',
+      errorMsg.slice(0, 500),
+    );
     await writeResult({
       status: 'error',
       error: errorMsg,
@@ -8187,8 +9715,9 @@ export default {
       // deletes its state key. The check is a single cache.get, so it adds
       // ~nothing when disabled (the common case).
       ctx.waitUntil(
-        runBacklogBackfill(wrapped, (n, nHe, g) => enrichRabbi(n, nHe, g as GenerationId))
-          .then((r) => (r ? undefined : runWarmCron(wrapped))),
+        runBacklogBackfill(wrapped, (n, nHe, g) => enrichRabbi(n, nHe, g as GenerationId)).then(
+          (r) => (r ? undefined : runWarmCron(wrapped)),
+        ),
       );
     }
   },
@@ -8196,7 +9725,11 @@ export default {
   // export. Each message is one /api/run job. max_concurrency=2 caps
   // simultaneous LLM workloads; max_batch_size=1 means one job per
   // invocation (no batching), which keeps memory bounded per worker.
-  queue: async (batch: MessageBatch<JobMessage>, env: Bindings, ctx: ExecutionContext): Promise<void> => {
+  queue: async (
+    batch: MessageBatch<JobMessage>,
+    env: Bindings,
+    ctx: ExecutionContext,
+  ): Promise<void> => {
     console.log('[queue] batch arrived:', batch.messages.length, 'message(s)');
     for (const msg of batch.messages) {
       try {

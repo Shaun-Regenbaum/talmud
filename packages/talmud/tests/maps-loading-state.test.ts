@@ -5,7 +5,7 @@
  * "map without its links". The gate shows a loading state instead. This locks
  * that gate against regression.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { mapsState } from '../src/client/ArgumentSidebar';
 
 describe('mapsState — maps wait for the flow to resolve', () => {

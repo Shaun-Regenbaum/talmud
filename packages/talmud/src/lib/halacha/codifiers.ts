@@ -65,11 +65,46 @@ export interface CodifierMeta {
  * classification — see the redesign notes.
  */
 export const CODIFIERS: readonly CodifierMeta[] = [
-  { id: 'mishneh-torah', label: 'Mishneh Torah', short: 'Rambam', order: 1, tier: 'primary', prefix: /^Mishneh Torah\b/ },
-  { id: 'tur', label: 'Tur', short: 'Tur', order: 2, tier: 'primary', prefix: /^(?:Tur\b|Arba'ah Turim\b)/ },
-  { id: 'shulchan-aruch', label: 'Shulchan Aruch', short: 'Mechaber', order: 3, tier: 'primary', prefix: /^Shulchan Aru[ck]h\b/ },
-  { id: 'mishnah-berurah', label: 'Mishnah Berurah', short: 'Mishnah Berurah', order: 4, tier: 'secondary', prefix: /^Mishnah Berurah\b/ },
-  { id: 'arukh-hashulchan', label: 'Arukh HaShulchan', short: 'Arukh HaShulchan', order: 5, tier: 'secondary', prefix: /^Arukh HaShulchan\b/ },
+  {
+    id: 'mishneh-torah',
+    label: 'Mishneh Torah',
+    short: 'Rambam',
+    order: 1,
+    tier: 'primary',
+    prefix: /^Mishneh Torah\b/,
+  },
+  {
+    id: 'tur',
+    label: 'Tur',
+    short: 'Tur',
+    order: 2,
+    tier: 'primary',
+    prefix: /^(?:Tur\b|Arba'ah Turim\b)/,
+  },
+  {
+    id: 'shulchan-aruch',
+    label: 'Shulchan Aruch',
+    short: 'Mechaber',
+    order: 3,
+    tier: 'primary',
+    prefix: /^Shulchan Aru[ck]h\b/,
+  },
+  {
+    id: 'mishnah-berurah',
+    label: 'Mishnah Berurah',
+    short: 'Mishnah Berurah',
+    order: 4,
+    tier: 'secondary',
+    prefix: /^Mishnah Berurah\b/,
+  },
+  {
+    id: 'arukh-hashulchan',
+    label: 'Arukh HaShulchan',
+    short: 'Arukh HaShulchan',
+    order: 5,
+    tier: 'secondary',
+    prefix: /^Arukh HaShulchan\b/,
+  },
 ];
 
 /** Classify a Sefaria `index_title` to a canonical codifier, or null when it is
@@ -112,7 +147,14 @@ export function buildCodificationChain(
     if (meta.tier === 'secondary' && !opts.includeSecondary) continue;
     let node = byId.get(meta.id);
     if (!node) {
-      node = { id: meta.id, label: meta.label, short: meta.short, order: meta.order, tier: meta.tier, refs: [] };
+      node = {
+        id: meta.id,
+        label: meta.label,
+        short: meta.short,
+        order: meta.order,
+        tier: meta.tier,
+        refs: [],
+      };
       byId.set(meta.id, node);
     }
     for (const s of snippets) {
@@ -144,14 +186,18 @@ function truncate(s: string | undefined, n = 360): string {
 export function formatGroundedRefsForPrompt(bundle: HalachicRefBundle | undefined): string {
   const chain = buildCodificationChain(bundle, { includeSecondary: true });
   if (!chain.length) return '(no codifier links found for this daf)';
-  return chain.map((node) => {
-    const refs = node.refs.map((r) => {
-      const he = truncate(r.hebrew);
-      const en = truncate(r.english);
-      return `  - ${r.ref}${he ? `\n    HE: ${he}` : ''}${en ? `\n    EN: ${en}` : ''}`;
-    }).join('\n');
-    return `${node.label}:\n${refs}`;
-  }).join('\n\n');
+  return chain
+    .map((node) => {
+      const refs = node.refs
+        .map((r) => {
+          const he = truncate(r.hebrew);
+          const en = truncate(r.english);
+          return `  - ${r.ref}${he ? `\n    HE: ${he}` : ''}${en ? `\n    EN: ${en}` : ''}`;
+        })
+        .join('\n');
+      return `${node.label}:\n${refs}`;
+    })
+    .join('\n\n');
 }
 
 // ---------------------------------------------------------------------------

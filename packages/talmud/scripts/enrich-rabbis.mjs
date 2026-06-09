@@ -15,8 +15,8 @@
 //   node scripts/enrich-rabbis.mjs --only rav-zera     (single slug, for debug)
 
 import { readFile, writeFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_PATH = join(__dirname, '..', 'src', 'lib', 'data', 'rabbi-places.json');
@@ -37,8 +37,11 @@ const ONLY = getArg('--only', null);
 async function fetchJson(url) {
   const res = await fetch(url);
   const text = await res.text();
-  try { return { status: res.status, json: JSON.parse(text) }; }
-  catch { return { status: res.status, json: { error: text.slice(0, 300) } }; }
+  try {
+    return { status: res.status, json: JSON.parse(text) };
+  } catch {
+    return { status: res.status, json: { error: text.slice(0, 300) } };
+  }
 }
 
 async function main() {
@@ -62,27 +65,37 @@ async function main() {
   const total = slugs.length;
   const t0 = Date.now();
 
-  const workers = Array.from({ length: CONCURRENCY }, () => (async () => {
-    while (slugs.length > 0) {
-      const slug = slugs.shift();
-      if (!slug) return;
-      const { status, json } = await fetchJson(`${URL}/api/admin/enrich-rabbi/${encodeURIComponent(slug)}`);
-      done++;
-      if (status === 200) {
-        results.set(slug, json);
-        const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-        console.log(`[${done}/${total}] ${elapsed}s  ${slug.padEnd(35)} gen=${json.generation} region=${json.region ?? 'null'} moved=${json.moved ?? 'null'} places=[${(json.places || []).join(',')}]`);
-      } else {
-        errors.push({ slug, status, error: json.error ?? json });
-        console.error(`[${done}/${total}] FAIL ${slug} status=${status} err=${JSON.stringify(json).slice(0, 200)}`);
+  const workers = Array.from({ length: CONCURRENCY }, () =>
+    (async () => {
+      while (slugs.length > 0) {
+        const slug = slugs.shift();
+        if (!slug) return;
+        const { status, json } = await fetchJson(
+          `${URL}/api/admin/enrich-rabbi/${encodeURIComponent(slug)}`,
+        );
+        done++;
+        if (status === 200) {
+          results.set(slug, json);
+          const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+          console.log(
+            `[${done}/${total}] ${elapsed}s  ${slug.padEnd(35)} gen=${json.generation} region=${json.region ?? 'null'} moved=${json.moved ?? 'null'} places=[${(json.places || []).join(',')}]`,
+          );
+        } else {
+          errors.push({ slug, status, error: json.error ?? json });
+          console.error(
+            `[${done}/${total}] FAIL ${slug} status=${status} err=${JSON.stringify(json).slice(0, 200)}`,
+          );
+        }
       }
-    }
-  })());
+    })(),
+  );
 
   await Promise.all(workers);
 
   const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-  console.log(`\n[enrich] complete in ${elapsed}s — ${results.size} succeeded, ${errors.length} failed`);
+  console.log(
+    `\n[enrich] complete in ${elapsed}s — ${results.size} succeeded, ${errors.length} failed`,
+  );
 
   if (errors.length) {
     console.log('\n[enrich] errors:');
@@ -95,9 +108,18 @@ async function main() {
     const entry = data.rabbis[slug];
     if (!entry) continue;
     // generation: always apply (field was 100% null before).
-    if (FORCE || entry.generation == null) { entry.generation = e.generation; mergedFields++; }
-    if (FORCE || entry.region == null)     { entry.region = e.region;         mergedFields++; }
-    if (FORCE || !(entry.places ?? []).length) { entry.places = e.places;     mergedFields++; }
+    if (FORCE || entry.generation == null) {
+      entry.generation = e.generation;
+      mergedFields++;
+    }
+    if (FORCE || entry.region == null) {
+      entry.region = e.region;
+      mergedFields++;
+    }
+    if (FORCE || !(entry.places ?? []).length) {
+      entry.places = e.places;
+      mergedFields++;
+    }
     // moved is new — always apply.
     entry.moved = e.moved;
     mergedFields++;

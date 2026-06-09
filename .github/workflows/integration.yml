@@ -1,0 +1,34 @@
+name: Integration
+
+# Runs the talmud integration suite against a live worker (prod by default).
+# Manual-dispatch only for now: some integration paths can trigger LLM
+# generation on cache misses, so this is not on a cron. To make it nightly,
+# add a `schedule:` trigger here.
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Worker URL to test against
+        required: false
+        default: https://talmud.shaunregenbaum.com
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter talmud test:int
+        env:
+          TALMUD_URL: ${{ inputs.url || 'https://talmud.shaunregenbaum.com' }}

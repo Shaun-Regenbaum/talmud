@@ -4,19 +4,14 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "questions"
-    ],
+    "required": ["questions"],
     "properties": {
       "questions": {
         "type": "array",
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "q",
-            "why_useful"
-          ],
+          "required": ["q", "why_useful"],
           "properties": {
             "q": {
               "type": "string"

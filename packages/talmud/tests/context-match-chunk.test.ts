@@ -9,7 +9,7 @@
  * chunking contract without hitting the network.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Capture every runLLM call and answer per-chunk: place each item on a segment
 // derived from its key (so we can assert every item is covered, across chunks).
@@ -21,7 +21,12 @@ import { aiMatchToSegments, MATCH_CHUNK_SIZE, MAX_ITEMS } from '../src/worker/co
 const segHe = Array.from({ length: 20 }, (_, i) => `seg ${i}`);
 const segEn = segHe.map((s) => `en ${s}`);
 const items = (n: number) =>
-  Array.from({ length: n }, (_, i) => ({ key: `k${i}`, label: 'Insights', title: `t${i}`, text: 'x' }));
+  Array.from({ length: n }, (_, i) => ({
+    key: `k${i}`,
+    label: 'Insights',
+    title: `t${i}`,
+    text: 'x',
+  }));
 
 beforeEach(() => {
   runLLM.mockReset();

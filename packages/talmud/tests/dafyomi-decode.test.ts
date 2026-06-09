@@ -5,7 +5,7 @@
  * U+FFFD — the "????" the user saw in the alignment cards.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { decodeDafyomiHtml } from '../src/lib/sefref/dafyomi/decode';
 
 const REPLACEMENT = '�';
@@ -20,14 +20,14 @@ describe('decodeDafyomiHtml', () => {
 
   it('decodes windows-1255 Hebrew without mojibake (e.g. the Berachos pages)', () => {
     // windows-1255: 0xE0..0xFA map to Hebrew Alef..Tav. אבת = E0 E1 FA.
-    const win1255 = new Uint8Array([0x3C, 0x70, 0x3E, 0xE0, 0xE1, 0xFA, 0x3C, 0x2F, 0x70, 0x3E]); // <p>אבת</p>
+    const win1255 = new Uint8Array([0x3c, 0x70, 0x3e, 0xe0, 0xe1, 0xfa, 0x3c, 0x2f, 0x70, 0x3e]); // <p>אבת</p>
     const s = decodeDafyomiHtml(win1255);
     expect(s).toBe('<p>אבת</p>');
     expect(s).not.toContain(REPLACEMENT);
   });
 
   it('the same windows-1255 bytes decoded as UTF-8 WOULD mojibake (guards the regression)', () => {
-    const win1255 = new Uint8Array([0xE0, 0xE1, 0xFA]);
+    const win1255 = new Uint8Array([0xe0, 0xe1, 0xfa]);
     // Non-fatal UTF-8 (what res.text() effectively does) produces replacement chars.
     expect(new TextDecoder('utf-8').decode(win1255)).toContain(REPLACEMENT);
     // The sniffing decoder recovers the Hebrew instead.

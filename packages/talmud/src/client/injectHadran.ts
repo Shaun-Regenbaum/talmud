@@ -9,7 +9,7 @@
 
 function normalize(s: string): string {
   return s
-    .replace(/[֑-ׇ]/g, '')        // nikkud + cantillation
+    .replace(/[֑-ׇ]/g, '') // nikkud + cantillation
     .replace(/[.,:;?!"'״׳]/g, '') // common Hebrew punctuation
     .trim();
 }

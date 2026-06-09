@@ -1,6 +1,11 @@
-import { describe, it, expect } from 'vitest';
-import { augmentWithKnownRabbis, enrichAll, enrichRabbi, sanitizeNameHe } from '../src/worker/index';
+import { describe, expect, it } from 'vitest';
 import type { GenerationId } from '../src/client/generations';
+import {
+  augmentWithKnownRabbis,
+  enrichAll,
+  enrichRabbi,
+  sanitizeNameHe,
+} from '../src/worker/index';
 
 // Helper — the enrichAll input shape.
 type InputRabbi = { name: string; nameHe: string; generation: GenerationId };
@@ -34,8 +39,8 @@ describe('enrichAll — slug-based dedupe', () => {
   it('collapses two mentions of the same rabbi to one entry', () => {
     // Two Hebrew forms of Rabbi Eliezer b. Hyrcanus on the same daf.
     const input: InputRabbi[] = [
-      { name: 'Rabbi Eliezer',              nameHe: 'ר\' אליעזר',  generation: 'tanna-2'  },
-      { name: 'Rabbi Eliezer b. Hyrcanus',  nameHe: 'רבי אליעזר',  generation: 'unknown'  },
+      { name: 'Rabbi Eliezer', nameHe: "ר' אליעזר", generation: 'tanna-2' },
+      { name: 'Rabbi Eliezer b. Hyrcanus', nameHe: 'רבי אליעזר', generation: 'unknown' },
     ];
     const out = enrichAll(input);
     expect(out.length).toBe(1);
@@ -48,7 +53,7 @@ describe('enrichAll — slug-based dedupe', () => {
   it('keeps genuinely different rabbis separate (different slugs)', () => {
     const input: InputRabbi[] = [
       { name: 'Rabbi Eliezer b. Hyrcanus', nameHe: 'רבי אליעזר', generation: 'tanna-2' },
-      { name: 'Rabbi Elazar b. Pedat',     nameHe: 'רבי אלעזר',  generation: 'amora-ey-2' },
+      { name: 'Rabbi Elazar b. Pedat', nameHe: 'רבי אלעזר', generation: 'amora-ey-2' },
     ];
     const out = enrichAll(input);
     expect(out.length).toBe(2);
@@ -58,7 +63,7 @@ describe('enrichAll — slug-based dedupe', () => {
 
   it('does NOT cross-merge Rava and Rabbah b. Nachmani (α vs ה)', () => {
     const input: InputRabbi[] = [
-      { name: 'Rava',                 nameHe: 'רבא', generation: 'amora-bavel-4' },
+      { name: 'Rava', nameHe: 'רבא', generation: 'amora-bavel-4' },
       { name: 'Rabbah [b. Nachmani]', nameHe: 'רבה', generation: 'amora-bavel-3' },
     ];
     const out = enrichAll(input);
@@ -69,8 +74,8 @@ describe('enrichAll — slug-based dedupe', () => {
 
   it('preserves unslugged entries (no dataset match) as-is', () => {
     const input: InputRabbi[] = [
-      { name: 'Hillel',          nameHe: 'הלל',     generation: 'zugim' },
-      { name: 'Someone Unknown', nameHe: 'פלוני',   generation: 'unknown' },
+      { name: 'Hillel', nameHe: 'הלל', generation: 'zugim' },
+      { name: 'Someone Unknown', nameHe: 'פלוני', generation: 'unknown' },
     ];
     const out = enrichAll(input);
     expect(out.length).toBe(2);
@@ -97,7 +102,11 @@ describe('sanitizeNameHe — trim trailing context words', () => {
 
   it('augmentWithKnownRabbis uses sanitized nameHe in its output', () => {
     const input = [
-      { name: 'Rabbi Alexandri', nameHe: "ר' אלכסנדרי בתר צלותיה", generation: 'amora-ey-2' as GenerationId },
+      {
+        name: 'Rabbi Alexandri',
+        nameHe: "ר' אלכסנדרי בתר צלותיה",
+        generation: 'amora-ey-2' as GenerationId,
+      },
     ];
     const out = augmentWithKnownRabbis(input, "ר' אלכסנדרי בתר צלותיה קאמר הכי");
     const model = out.find((r) => r.name === 'Rabbi Alexandri');

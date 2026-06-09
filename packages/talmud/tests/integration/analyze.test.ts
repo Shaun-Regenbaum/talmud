@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeAll } from 'vitest';
-import { getJson, getFocalHebrewNormalized, normalizeHebrew, BASE_URL } from './helpers';
+import { beforeAll, describe, expect, it } from 'vitest';
+import { BASE_URL, getFocalHebrewNormalized, getJson, normalizeHebrew } from './helpers';
 
 /**
  * /api/analyze structural + anchor-point tests.
@@ -78,29 +78,33 @@ describe(`integration: analyze Berakhot 2a (against ${BASE_URL})`, () => {
   it('every section.excerpt appears verbatim in the focal Hebrew', () => {
     const missing: string[] = [];
     for (const s of analysis.sections) {
-      if (!s.excerpt) continue;                     // excerpts are optional
+      if (!s.excerpt) continue; // excerpts are optional
       const needle = normalizeHebrew(s.excerpt);
       if (!focalHe.includes(needle)) {
         missing.push(`section "${s.title}" excerpt "${s.excerpt.slice(0, 40)}"`);
       }
     }
-    expect(missing, `these excerpts were NOT found in the daf: ${missing.join(' | ')}`)
-      .toHaveLength(0);
+    expect(
+      missing,
+      `these excerpts were NOT found in the daf: ${missing.join(' | ')}`,
+    ).toHaveLength(0);
   });
 
   it('every rabbi.opinionStart appears verbatim in the focal Hebrew', () => {
     const missing: string[] = [];
     for (const s of analysis.sections) {
       for (const r of s.rabbis) {
-        if (!r.opinionStart) continue;              // opinionStart is optional
+        if (!r.opinionStart) continue; // opinionStart is optional
         const needle = normalizeHebrew(r.opinionStart);
         if (!focalHe.includes(needle)) {
           missing.push(`[${s.title}] ${r.name} opinionStart "${r.opinionStart.slice(0, 40)}"`);
         }
       }
     }
-    expect(missing, `these opinionStarts were NOT found in the daf: ${missing.join(' | ')}`)
-      .toHaveLength(0);
+    expect(
+      missing,
+      `these opinionStarts were NOT found in the daf: ${missing.join(' | ')}`,
+    ).toHaveLength(0);
   });
 
   it('does not surface anchor-missing validation warnings', () => {

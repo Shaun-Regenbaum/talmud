@@ -17,7 +17,7 @@
  * main daf column. The callback receives the section excerpt (verbatim
  * Hebrew) which the daf renderer can use as a search anchor.
  */
-import { createSignal, For, Show, type JSX } from 'solid-js';
+import { createSignal, For, type JSX, Show } from 'solid-js';
 import { Hebraized } from './Hebraized';
 
 export interface BiblicalRef {
@@ -25,7 +25,10 @@ export interface BiblicalRef {
   hebrewRef?: string;
   hebrewQuote?: string;
 }
-export interface DifficultyRating { score: 1 | 2 | 3 | 4 | 5; reason: string; }
+export interface DifficultyRating {
+  score: 1 | 2 | 3 | 4 | 5;
+  reason: string;
+}
 export interface Rabbi {
   name: string;
   nameHe?: string;
@@ -77,16 +80,16 @@ export function ArgumentFlowSidebar(props: ArgumentFlowSidebarProps): JSX.Elemen
       </header>
 
       <Show when={a().summary}>
-        <p class="flow-daf-summary"><Hebraized text={a().summary} /></p>
+        <p class="flow-daf-summary">
+          <Hebraized text={a().summary} />
+        </p>
       </Show>
 
-      <For each={a().sections}>{(sec, idx) => (
-        <ArgumentSection
-          sec={sec}
-          idx={idx()}
-          onAnchorClick={props.onAnchorClick}
-        />
-      )}</For>
+      <For each={a().sections}>
+        {(sec, idx) => (
+          <ArgumentSection sec={sec} idx={idx()} onAnchorClick={props.onAnchorClick} />
+        )}
+      </For>
     </aside>
   );
 }
@@ -98,11 +101,12 @@ function ArgumentSection(props: {
 }): JSX.Element {
   const [open, setOpen] = createSignal(false);
   const sec = () => props.sec;
-  const hasSectionDetail = () => !!(
-    (sec().references && sec().references!.length > 0)
-    || (sec().parallels && sec().parallels!.length > 0)
-    || sec().difficulty
-  );
+  const hasSectionDetail = () =>
+    !!(
+      (sec().references && sec().references!.length > 0) ||
+      (sec().parallels && sec().parallels!.length > 0) ||
+      sec().difficulty
+    );
   const clickHead = () => {
     if (props.onAnchorClick && sec().excerpt) {
       props.onAnchorClick(sec().excerpt!, props.idx);
@@ -120,7 +124,9 @@ function ArgumentSection(props: {
         <span class="flow-section-title">{sec().title}</span>
       </h3>
       <Show when={sec().summary}>
-        <p class="flow-section-summary"><Hebraized text={sec().summary} /></p>
+        <p class="flow-section-summary">
+          <Hebraized text={sec().summary} />
+        </p>
       </Show>
 
       <Show when={sec().rabbis && sec().rabbis.length > 0}>
@@ -131,11 +137,9 @@ function ArgumentSection(props: {
 
       <Show when={hasSectionDetail()}>
         <div class="flow-section-more">
-          <button
-            class="flow-more-btn"
-            onClick={() => setOpen(!open())}
-            aria-expanded={open()}
-          >{open() ? '−' : '…'}</button>
+          <button class="flow-more-btn" onClick={() => setOpen(!open())} aria-expanded={open()}>
+            {open() ? '−' : '…'}
+          </button>
         </div>
 
         <Show when={open()}>
@@ -144,11 +148,13 @@ function ArgumentSection(props: {
               <div class="flow-d-row">
                 <span class="flow-d-label">Pesukim</span>
                 <div class="flow-d-body flow-d-wrap">
-                  <For each={sec().references!}>{(ref) => (
-                    <span class="flow-d-ref" title={ref.hebrewQuote || ref.ref}>
-                      {ref.hebrewRef || ref.ref}
-                    </span>
-                  )}</For>
+                  <For each={sec().references!}>
+                    {(ref) => (
+                      <span class="flow-d-ref" title={ref.hebrewQuote || ref.ref}>
+                        {ref.hebrewRef || ref.ref}
+                      </span>
+                    )}
+                  </For>
                 </div>
               </div>
             </Show>
@@ -156,7 +162,9 @@ function ArgumentSection(props: {
               <div class="flow-d-row">
                 <span class="flow-d-label">See also</span>
                 <div class="flow-d-body flow-d-wrap">
-                  <For each={sec().parallels!}>{(p) => <span class="flow-d-parallel">{p}</span>}</For>
+                  <For each={sec().parallels!}>
+                    {(p) => <span class="flow-d-parallel">{p}</span>}
+                  </For>
                 </div>
               </div>
             </Show>
@@ -164,7 +172,10 @@ function ArgumentSection(props: {
               <div class="flow-d-row">
                 <span class="flow-d-label">Difficulty</span>
                 <div class="flow-d-body">
-                  <span class="flow-d-stars">{'★'.repeat(sec().difficulty!.score)}{'☆'.repeat(5 - sec().difficulty!.score)}</span>
+                  <span class="flow-d-stars">
+                    {'★'.repeat(sec().difficulty!.score)}
+                    {'☆'.repeat(5 - sec().difficulty!.score)}
+                  </span>
                   <span class="flow-d-diff-reason"> {sec().difficulty!.reason}</span>
                 </div>
               </div>
@@ -179,23 +190,29 @@ function ArgumentSection(props: {
 function RabbiCard(props: { rabbi: Rabbi }): JSX.Element {
   const [open, setOpen] = createSignal(false);
   const r = () => props.rabbi;
-  const hasDetail = () => !!(
-    r().opinionStart || r().opinionEnd
-    || (r().agreesWith && r().agreesWith!.length > 0)
-    || (r().disagreesWith && r().disagreesWith!.length > 0)
-    || r().location
-  );
+  const hasDetail = () =>
+    !!(
+      r().opinionStart ||
+      r().opinionEnd ||
+      (r().agreesWith && r().agreesWith!.length > 0) ||
+      (r().disagreesWith && r().disagreesWith!.length > 0) ||
+      r().location
+    );
   return (
     <div class="flow-rabbi">
       <div class="flow-rabbi-name">
         <span class="flow-rabbi-name-en">{r().name}</span>
-        <Show when={r().nameHe}><span class="flow-rabbi-he"> · {r().nameHe}</span></Show>
+        <Show when={r().nameHe}>
+          <span class="flow-rabbi-he"> · {r().nameHe}</span>
+        </Show>
         <Show when={r().period}>
           <span class="flow-rabbi-era">{r().period!.replace(/,.*$/, '')}</span>
         </Show>
       </div>
       <Show when={r().role}>
-        <div class="flow-rabbi-role"><Hebraized text={r().role} /></div>
+        <div class="flow-rabbi-role">
+          <Hebraized text={r().role} />
+        </div>
       </Show>
 
       <Show when={hasDetail()}>
@@ -204,29 +221,37 @@ function RabbiCard(props: { rabbi: Rabbi }): JSX.Element {
           onClick={() => setOpen(!open())}
           aria-expanded={open()}
           aria-label={open() ? 'hide details' : 'show details'}
-        >{open() ? '−' : '…'}</button>
+        >
+          {open() ? '−' : '…'}
+        </button>
 
         <Show when={open()}>
           <div class="flow-rabbi-detail">
             <Show when={r().opinionStart || r().opinionEnd}>
               <div class="flow-rabbi-span">
-                <Show when={r().opinionStart}><span>{r().opinionStart}</span></Show>
+                <Show when={r().opinionStart}>
+                  <span>{r().opinionStart}</span>
+                </Show>
                 <Show when={r().opinionStart && r().opinionEnd}>
                   <span class="flow-rabbi-span-gap">&nbsp;…&nbsp;</span>
                 </Show>
-                <Show when={r().opinionEnd}><span>{r().opinionEnd}</span></Show>
+                <Show when={r().opinionEnd}>
+                  <span>{r().opinionEnd}</span>
+                </Show>
               </div>
             </Show>
             <Show when={r().agreesWith && r().agreesWith!.length > 0}>
               <div class="flow-rabbi-rel">
                 <span class="flow-d-plus">+</span>
-                <span class="flow-d-prep"> with </span>{r().agreesWith!.join(', ')}
+                <span class="flow-d-prep"> with </span>
+                {r().agreesWith!.join(', ')}
               </div>
             </Show>
             <Show when={r().disagreesWith && r().disagreesWith!.length > 0}>
               <div class="flow-rabbi-rel">
                 <span class="flow-d-minus">−</span>
-                <span class="flow-d-prep"> vs </span>{r().disagreesWith!.join(', ')}
+                <span class="flow-d-prep"> vs </span>
+                {r().disagreesWith!.join(', ')}
               </div>
             </Show>
             <Show when={r().location}>

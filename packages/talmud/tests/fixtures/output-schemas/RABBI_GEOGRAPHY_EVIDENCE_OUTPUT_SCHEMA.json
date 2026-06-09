@@ -4,30 +4,18 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "evidence"
-    ],
+    "required": ["evidence"],
     "properties": {
       "evidence": {
         "type": "array",
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "kind",
-            "place",
-            "excerpt",
-            "note"
-          ],
+          "required": ["kind", "place", "excerpt", "note"],
           "properties": {
             "kind": {
               "type": "string",
-              "enum": [
-                "birthplace",
-                "study",
-                "notable",
-                "movement"
-              ]
+              "enum": ["birthplace", "study", "notable", "movement"]
             },
             "place": {
               "type": "string"

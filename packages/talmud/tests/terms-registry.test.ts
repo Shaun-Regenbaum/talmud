@@ -1,11 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { CANONICAL_HEBREW_TERMS } from '../src/lib/hebrewTerms';
-import {
-  globalTerms,
-  conceptToTerm,
-  glossaryForDaf,
-  type Term,
-} from '../src/lib/terms/registry';
+import { conceptToTerm, globalTerms, glossaryForDaf, type Term } from '../src/lib/terms/registry';
 
 // ---------------------------------------------------------------------------
 // display policy — every global carries an explicit, valid verdict, and the
@@ -58,7 +53,12 @@ describe('globalTerms', () => {
 describe('conceptToTerm', () => {
   it('normalizes a concept with Hebrew to a daf-scoped Term', () => {
     expect(
-      conceptToTerm({ term: 'Twilight', termHe: 'בין השמשות', gloss: 'the dusk window', category: 'realia' }),
+      conceptToTerm({
+        term: 'Twilight',
+        termHe: 'בין השמשות',
+        gloss: 'the dusk window',
+        category: 'realia',
+      }),
     ).toEqual<Term>({
       hebrew: 'בין השמשות',
       en: 'Twilight',

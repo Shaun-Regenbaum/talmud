@@ -1,7 +1,11 @@
-import { describe, it, expect } from 'vitest';
 import {
-  dependencyId, producerNodesFrom, reverseDependencyIndex, transitiveDependents, forwardSubgraph,
+  dependencyId,
+  forwardSubgraph,
+  producerNodesFrom,
+  reverseDependencyIndex,
+  transitiveDependents,
 } from '@corpus/core/registry/depGraph';
+import { describe, expect, it } from 'vitest';
 
 describe('dependencyId — normalise a raw dependency to the id it points at', () => {
   it('reads source strings and producer references; null for junk', () => {
@@ -15,7 +19,10 @@ describe('dependencyId — normalise a raw dependency to the id it points at', (
 describe('producerNodesFrom — registry defs -> producer nodes', () => {
   it('flattens dependencies to ids and tolerates a missing dependencies field', () => {
     const nodes = producerNodesFrom([
-      { id: 'argument.synthesis', dependencies: ['gemara', { enrichment: 'argument.background' }, { mark: 'rabbi' }] },
+      {
+        id: 'argument.synthesis',
+        dependencies: ['gemara', { enrichment: 'argument.background' }, { mark: 'rabbi' }],
+      },
       { id: 'rabbi' }, // no dependencies
     ]);
     expect(nodes).toEqual([
@@ -37,12 +44,18 @@ describe('reverse-dependency index + transitive dependents (the re-warm cascade)
 
   it('maps an input to its DIRECT dependents', () => {
     expect([...(rev.get('argument.background') ?? [])]).toEqual(['argument.synthesis']);
-    expect([...(rev.get('gemara') ?? [])].sort()).toEqual(['argument', 'argument.background', 'argument.synthesis']);
+    expect([...(rev.get('gemara') ?? [])].sort()).toEqual([
+      'argument',
+      'argument.background',
+      'argument.synthesis',
+    ]);
   });
 
   it('computes the FULL re-warm set transitively (background -> synthesis -> overview)', () => {
-    expect([...transitiveDependents(rev, 'argument.background')].sort())
-      .toEqual(['argument-overview.synthesis', 'argument.synthesis']);
+    expect([...transitiveDependents(rev, 'argument.background')].sort()).toEqual([
+      'argument-overview.synthesis',
+      'argument.synthesis',
+    ]);
   });
 
   it('returns empty for an id nothing depends on', () => {
@@ -75,16 +88,28 @@ describe('forwardSubgraph — the build-provenance DAG reachable from a root', (
   it('keeps a shared node single with one edge PER parent (fan-in, not duplication)', () => {
     const { edges } = forwardSubgraph(nodes, 'tidbit');
     // gemara is depended on by tidbit, overview, and argument — three edges, one node.
-    const gemaraEdges = edges.filter(([, b]) => b === 'gemara').map(([a]) => a).sort();
+    const gemaraEdges = edges
+      .filter(([, b]) => b === 'gemara')
+      .map(([a]) => a)
+      .sort();
     expect(gemaraEdges).toEqual(['argument', 'overview', 'tidbit']);
     // argument is shared by tidbit + overview.
-    const argEdges = edges.filter(([, b]) => b === 'argument').map(([a]) => a).sort();
+    const argEdges = edges
+      .filter(([, b]) => b === 'argument')
+      .map(([a]) => a)
+      .sort();
     expect(argEdges).toEqual(['overview', 'tidbit']);
   });
 
   it('is cycle-safe and returns just the root when it has no dependencies', () => {
-    const cyc = producerNodesFrom([{ id: 'a', dependencies: [{ mark: 'b' }] }, { id: 'b', dependencies: [{ mark: 'a' }] }]);
+    const cyc = producerNodesFrom([
+      { id: 'a', dependencies: [{ mark: 'b' }] },
+      { id: 'b', dependencies: [{ mark: 'a' }] },
+    ]);
     expect(forwardSubgraph(cyc, 'a').nodes.sort()).toEqual(['a', 'b']);
-    expect(forwardSubgraph([{ id: 'leaf', dependsOn: [] }], 'leaf')).toEqual({ nodes: ['leaf'], edges: [] });
+    expect(forwardSubgraph([{ id: 'leaf', dependsOn: [] }], 'leaf')).toEqual({
+      nodes: ['leaf'],
+      edges: [],
+    });
   });
 });

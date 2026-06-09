@@ -12,8 +12,16 @@
  * layer — `GET /api/links/:tractate/:page` returns `dafLinks(...)`.
  */
 
-import { coordForSeg, dafCoord, type AnchorCoord, type DafRef } from '@corpus/core/context/coord';
-import { citationLink, continuationLink, flowLinks, glossLinks, type CommentaryWorkLike, type FlowEdge, type LinkRelation } from '@corpus/core/context/link';
+import { type AnchorCoord, coordForSeg, type DafRef, dafCoord } from '@corpus/core/context/coord';
+import {
+  type CommentaryWorkLike,
+  citationLink,
+  continuationLink,
+  type FlowEdge,
+  flowLinks,
+  glossLinks,
+  type LinkRelation,
+} from '@corpus/core/context/link';
 import type { ContextItem } from '@corpus/core/context/types';
 
 /** A link on a daf: where it lives (`source`), the `relation`, and what it
@@ -48,7 +56,13 @@ export function dafLinks(daf: DafRef, input: DafLinkInputs): DafLink[] {
 
   // 1) Tractate-continuity: the cross-daf bridge.
   const cont = continuationLink(input.continuesTo);
-  if (cont) out.push({ via: 'bridge', source: dafCoord(daf), relation: cont.relation, targets: cont.targets });
+  if (cont)
+    out.push({
+      via: 'bridge',
+      source: dafCoord(daf),
+      relation: cont.relation,
+      targets: cont.targets,
+    });
 
   // 2) Citations: each context item's external refs, sourced where the item sits
   //    (its first placed segment, else whole-daf).
@@ -56,19 +70,38 @@ export function dafLinks(daf: DafRef, input: DafLinkInputs): DafLink[] {
     const cite = citationLink(it.refs);
     if (!cite) continue;
     const source = it.segs.length ? coordForSeg(daf, it.segs[0]) : dafCoord(daf);
-    out.push({ via: 'context', source, relation: cite.relation, targets: cite.targets, note: it.sourceLabel });
+    out.push({
+      via: 'context',
+      source,
+      relation: cite.relation,
+      targets: cite.targets,
+      note: it.sourceLabel,
+    });
   }
 
   // 3) Argument flow: section→section edges, resolved to coordinates.
   const coordOf = (i: number): AnchorCoord | null =>
-    i >= 0 && i < input.sectionStartSegs.length ? coordForSeg(daf, input.sectionStartSegs[i]) : null;
+    i >= 0 && i < input.sectionStartSegs.length
+      ? coordForSeg(daf, input.sectionStartSegs[i])
+      : null;
   for (const fl of flowLinks(input.flowEdges, coordOf)) {
-    out.push({ via: 'flow', source: fl.source, relation: fl.link.relation, targets: fl.link.targets });
+    out.push({
+      via: 'flow',
+      source: fl.source,
+      relation: fl.link.relation,
+      targets: fl.link.targets,
+    });
   }
 
   // 4) Commentary spines: each work glosses the daf segments it sits over.
   for (const gl of glossLinks(daf, input.commentaryWorks ?? [])) {
-    out.push({ via: 'commentary', source: gl.source, relation: gl.link.relation, targets: gl.link.targets, note: gl.source.spine });
+    out.push({
+      via: 'commentary',
+      source: gl.source,
+      relation: gl.link.relation,
+      targets: gl.link.targets,
+      note: gl.source.spine,
+    });
   }
 
   return out;

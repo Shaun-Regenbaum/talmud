@@ -13,11 +13,18 @@
  * topmost would be clickable.
  */
 
-import { createEffect, onMount, onCleanup, type JSX } from 'solid-js';
-import { publishGutterEntry, clearGutterEntry, type GutterSide } from './gutterStack';
+import { createEffect, type JSX, onCleanup, onMount } from 'solid-js';
+import { clearGutterEntry, type GutterSide, publishGutterEntry } from './gutterStack';
 import { t } from './i18n';
 
-export type GutterKind = 'argument' | 'halacha' | 'chart' | 'aggadata' | 'yerushalmi' | 'pesuk' | 'rishonim';
+export type GutterKind =
+  | 'argument'
+  | 'halacha'
+  | 'chart'
+  | 'aggadata'
+  | 'yerushalmi'
+  | 'pesuk'
+  | 'rishonim';
 
 export interface GutterItem {
   kind: GutterKind;
@@ -53,7 +60,10 @@ export interface GutterIconsProps {
 export function GutterIcons(props: GutterIconsProps): JSX.Element {
   const measure = () => {
     const root = props.containerRef();
-    if (!root) { clearGutterEntry(props.kind); return; }
+    if (!root) {
+      clearGutterEntry(props.kind);
+      return;
+    }
     const rootRect = root.getBoundingClientRect();
     const rootTop = rootRect.top;
     // When the daf is CSS-transformed (mobile fit-to-width) getBoundingClientRect
@@ -77,9 +87,8 @@ export function GutterIcons(props: GutterIconsProps): JSX.Element {
     const side = gutterSideFor(props.kind);
     // The icon's normal x in viewport coordinates — matches the column edge
     // GutterOverlay places clusters at.
-    const iconViewportX = side === 'left'
-      ? rootRect.left + sideWidth + 8
-      : rootRect.right - sideWidth - 8;
+    const iconViewportX =
+      side === 'left' ? rootRect.left + sideWidth + 8 : rootRect.right - sideWidth - 8;
 
     const wordRects: DOMRect[] = [];
     if (dafMain) {
@@ -103,13 +112,20 @@ export function GutterIcons(props: GutterIconsProps): JSX.Element {
       return { left, right };
     };
 
-    const klass = props.kind === 'argument' ? '.daf-argument-anchor'
-      : props.kind === 'halacha' ? '.daf-halacha-anchor'
-      : props.kind === 'chart' ? '.daf-chart-anchor'
-      : props.kind === 'aggadata' ? '.daf-aggadata-anchor'
-      : props.kind === 'yerushalmi' ? '.daf-yerushalmi-anchor'
-      : props.kind === 'rishonim' ? '.daf-rishonim-anchor'
-      : '.daf-pesuk-anchor';
+    const klass =
+      props.kind === 'argument'
+        ? '.daf-argument-anchor'
+        : props.kind === 'halacha'
+          ? '.daf-halacha-anchor'
+          : props.kind === 'chart'
+            ? '.daf-chart-anchor'
+            : props.kind === 'aggadata'
+              ? '.daf-aggadata-anchor'
+              : props.kind === 'yerushalmi'
+                ? '.daf-yerushalmi-anchor'
+                : props.kind === 'rishonim'
+                  ? '.daf-rishonim-anchor'
+                  : '.daf-pesuk-anchor';
     const SLACK = 2;
     const out: GutterItem[] = [];
     for (const el of Array.from(root.querySelectorAll<HTMLElement>(klass))) {
@@ -118,9 +134,10 @@ export function GutterIcons(props: GutterIconsProps): JSX.Element {
       const extent = lineExtentAtY(centerViewportY);
       let atEdge = false;
       if (extent) {
-        atEdge = side === 'left'
-          ? extent.left < iconViewportX - SLACK
-          : extent.right > iconViewportX + SLACK;
+        atEdge =
+          side === 'left'
+            ? extent.left < iconViewportX - SLACK
+            : extent.right > iconViewportX + SLACK;
       }
       out.push({
         kind: props.kind,
@@ -150,7 +167,10 @@ export function GutterIcons(props: GutterIconsProps): JSX.Element {
     let rafId = 0;
     const schedule = () => {
       if (rafId) return;
-      rafId = requestAnimationFrame(() => { rafId = 0; measure(); });
+      rafId = requestAnimationFrame(() => {
+        rafId = 0;
+        measure();
+      });
     };
     window.addEventListener('resize', schedule);
     const root = props.containerRef();
@@ -178,23 +198,35 @@ export function GutterIcons(props: GutterIconsProps): JSX.Element {
 // (and any future consumers) render consistently with what GutterIcons
 // publishes to the shared store.
 export function colorForKind(kind: GutterKind): string {
-  return kind === 'argument' ? '#8a2a2b'
-    : kind === 'halacha' ? '#1e40af'
-    : kind === 'chart' ? '#0e7490'
-    : kind === 'aggadata' ? '#7c3aed'
-    : kind === 'yerushalmi' ? '#0f766e'
-    : kind === 'rishonim' ? '#475569'
-    : '#d97706';
+  return kind === 'argument'
+    ? '#8a2a2b'
+    : kind === 'halacha'
+      ? '#1e40af'
+      : kind === 'chart'
+        ? '#0e7490'
+        : kind === 'aggadata'
+          ? '#7c3aed'
+          : kind === 'yerushalmi'
+            ? '#0f766e'
+            : kind === 'rishonim'
+              ? '#475569'
+              : '#d97706';
 }
 
 export function titleForKind(kind: GutterKind): string {
-  return kind === 'argument' ? t('gutter.argument')
-    : kind === 'halacha' ? t('gutter.halacha')
-    : kind === 'chart' ? t('gutter.chart')
-    : kind === 'aggadata' ? t('gutter.aggadata')
-    : kind === 'yerushalmi' ? t('gutter.yerushalmi')
-    : kind === 'rishonim' ? t('gutter.rishonim')
-    : t('gutter.pesukim');
+  return kind === 'argument'
+    ? t('gutter.argument')
+    : kind === 'halacha'
+      ? t('gutter.halacha')
+      : kind === 'chart'
+        ? t('gutter.chart')
+        : kind === 'aggadata'
+          ? t('gutter.aggadata')
+          : kind === 'yerushalmi'
+            ? t('gutter.yerushalmi')
+            : kind === 'rishonim'
+              ? t('gutter.rishonim')
+              : t('gutter.pesukim');
 }
 
 /** SVG/glyph for an icon, sized to the 14×14 button. Stroke-based Lucide

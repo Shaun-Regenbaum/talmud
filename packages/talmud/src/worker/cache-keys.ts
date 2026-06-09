@@ -18,15 +18,15 @@
 import { slugDaf, slugTractate } from '@corpus/core/cache/keys';
 
 export {
-  slugTractate,
-  slugDaf,
-  keyForMark,
-  keyForEnrichment,
-  previousVersionKey,
   instanceIdOf,
-  recipeHash,
-  qualifierHash,
+  keyForEnrichment,
+  keyForMark,
   normalizeQualifier,
+  previousVersionKey,
+  qualifierHash,
+  recipeHash,
+  slugDaf,
+  slugTractate,
 } from '@corpus/core/cache/keys';
 
 export function keyForGemara(tractate: string, page: string): string {
@@ -167,7 +167,13 @@ export function keyForCtxMatch(tractate: string, page: string, itemsHash: string
  *  the TARGET language of the translation ('en' default → English, byte-exact
  *  with the historical key; 'he' → a `:he` suffix so Hebrew glosses never
  *  collide with the English ones). */
-export function keyForTranslate(tractate: string, page: string, word: string, ctxHash: string, lang: 'en' | 'he' = 'en'): string {
+export function keyForTranslate(
+  tractate: string,
+  page: string,
+  word: string,
+  ctxHash: string,
+  lang: 'en' | 'he' = 'en',
+): string {
   return `translate:v3:${tractate}:${page}:${word}${ctxHash}${lang === 'he' ? ':he' : ''}`;
 }
 
@@ -184,7 +190,12 @@ export function keyForRabbiBioBySlug(slug: string): string {
 /** A rabbi's per-daf bio synthesis. When `include` (the normalised, sorted,
  *  comma-joined section list) is non-empty it is embedded as an `i=` segment;
  *  an empty `include` yields the plain (tractate, page, slug) shape. */
-export function keyForRabbiBioOnDaf(tractate: string, page: string, slug: string, include = ''): string {
+export function keyForRabbiBioOnDaf(
+  tractate: string,
+  page: string,
+  slug: string,
+  include = '',
+): string {
   return include
     ? `rabbi-bio:v1:i=${include}:${tractate}:${page}:${slug}`
     : `rabbi-bio:v1:${tractate}:${page}:${slug}`;
@@ -194,10 +205,18 @@ export function keyForRabbiBioOnDaf(tractate: string, page: string, slug: string
 // admin stages and read by the bio synthesiser. Built as raw literals at many
 // call sites (put + several gets + readGeneratedAt); centralised so a typo in
 // one can't silently miss the compiled blob.
-export function keyForRabbiGraph(): string { return 'rabbi-graph:v1'; }
-export function keyForRabbiCohort(): string { return 'rabbi-cohort:v1'; }
-export function keyForRabbiPlacesIndex(): string { return 'rabbi-places-index:v1'; }
-export function keyForRabbiAcademyRoster(): string { return 'rabbi-academy-roster:v1'; }
+export function keyForRabbiGraph(): string {
+  return 'rabbi-graph:v1';
+}
+export function keyForRabbiCohort(): string {
+  return 'rabbi-cohort:v1';
+}
+export function keyForRabbiPlacesIndex(): string {
+  return 'rabbi-places-index:v1';
+}
+export function keyForRabbiAcademyRoster(): string {
+  return 'rabbi-academy-roster:v1';
+}
 
 // Rabbi-observations reverse index — one slice per (rabbi, daf), plus a
 // per-rabbi dirty marker. `dafSlug` is the caller's obsDafSlug(tractate, page).
@@ -228,4 +247,3 @@ export function keyForCrossFlow(tractate: string, page: string): string {
 export function keyForSpineLinks(tractate: string): string {
   return `spine-links:v1:${slugTractate(tractate)}`;
 }
-

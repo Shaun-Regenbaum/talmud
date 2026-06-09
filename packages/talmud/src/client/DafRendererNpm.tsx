@@ -1,6 +1,6 @@
-import { createEffect, onCleanup, type JSX } from 'solid-js';
 // @ts-expect-error - daf-renderer ships without types
 import Daf from 'daf-renderer';
+import { createEffect, type JSX, onCleanup } from 'solid-js';
 
 export interface NpmSpacerReport {
   start: number;
@@ -24,10 +24,19 @@ export interface DafRendererNpmProps {
 
 export function DafRendererNpm(props: DafRendererNpmProps): JSX.Element {
   let host: HTMLDivElement | undefined;
-  let instance: {
-    render: (main: string, inner: string, outer: string, amud: string, linebreak?: undefined, cb?: () => void) => void;
-    spacerHeights: NpmSpacerReport;
-  } | undefined;
+  let instance:
+    | {
+        render: (
+          main: string,
+          inner: string,
+          outer: string,
+          amud: string,
+          linebreak?: undefined,
+          cb?: () => void,
+        ) => void;
+        spacerHeights: NpmSpacerReport;
+      }
+    | undefined;
 
   // Recreate the daf-renderer instance whenever its construction-time options
   // (width, font sizes) change. Text-only changes reuse the same instance.
@@ -47,16 +56,9 @@ export function DafRendererNpm(props: DafRendererNpmProps): JSX.Element {
       lineHeight: { main: `${lh.main}px`, side: `${lh.side}px` },
       fontFamily: { main: 'Mekorot Vilna', inner: 'Mekorot Rashi', outer: 'Mekorot Rashi' },
     });
-    instance!.render(
-      props.main,
-      props.inner,
-      props.outer,
-      props.amud ?? 'a',
-      undefined,
-      () => {
-        if (props.onSpacers && instance) props.onSpacers({ ...instance.spacerHeights });
-      },
-    );
+    instance!.render(props.main, props.inner, props.outer, props.amud ?? 'a', undefined, () => {
+      if (props.onSpacers && instance) props.onSpacers({ ...instance.spacerHeights });
+    });
   });
 
   // Text-only updates — re-render without recreating instance
@@ -64,16 +66,9 @@ export function DafRendererNpm(props: DafRendererNpmProps): JSX.Element {
     const _triggers = [props.main, props.inner, props.outer, props.amud];
     void _triggers;
     if (instance) {
-      instance.render(
-        props.main,
-        props.inner,
-        props.outer,
-        props.amud ?? 'a',
-        undefined,
-        () => {
-          if (props.onSpacers && instance) props.onSpacers({ ...instance.spacerHeights });
-        },
-      );
+      instance.render(props.main, props.inner, props.outer, props.amud ?? 'a', undefined, () => {
+        if (props.onSpacers && instance) props.onSpacers({ ...instance.spacerHeights });
+      });
     }
   });
 

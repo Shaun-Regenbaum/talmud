@@ -4,32 +4,18 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "place",
-      "region",
-      "confidence",
-      "justification"
-    ],
+    "required": ["place", "region", "confidence", "justification"],
     "properties": {
       "place": {
         "type": "string"
       },
       "region": {
         "type": "string",
-        "enum": [
-          "israel",
-          "bavel",
-          "other",
-          "unknown"
-        ]
+        "enum": ["israel", "bavel", "other", "unknown"]
       },
       "confidence": {
         "type": "string",
-        "enum": [
-          "high",
-          "medium",
-          "low"
-        ]
+        "enum": ["high", "medium", "low"]
       },
       "justification": {
         "type": "string"

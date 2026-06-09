@@ -18,13 +18,29 @@
  * and caches; everything here is unit-testable string/array assembly.
  */
 
-import { coordForSeg, type AnchorCoord, type DafRef } from '@corpus/core/context/coord';
+import { type AnchorCoord, coordForSeg, type DafRef } from '@corpus/core/context/coord';
 import type { DafLink } from '../context/dafLinks';
 
-export type CrossFlowRelation = 'continues' | 'resolves' | 'depends-on' | 'parallels' | 'contrasts' | 'generalizes';
-const CROSS_FLOW_RELATIONS: readonly CrossFlowRelation[] = ['continues', 'resolves', 'depends-on', 'parallels', 'contrasts', 'generalizes'];
+export type CrossFlowRelation =
+  | 'continues'
+  | 'resolves'
+  | 'depends-on'
+  | 'parallels'
+  | 'contrasts'
+  | 'generalizes';
+const CROSS_FLOW_RELATIONS: readonly CrossFlowRelation[] = [
+  'continues',
+  'resolves',
+  'depends-on',
+  'parallels',
+  'contrasts',
+  'generalizes',
+];
 
-export interface CrossFlowSection { title?: string; summary?: string }
+export interface CrossFlowSection {
+  title?: string;
+  summary?: string;
+}
 
 export interface CrossFlowEdge {
   /** 0-based index into the FROM-daf's ordered sections. */
@@ -91,13 +107,17 @@ export function buildCrossFlowPrompt(
  *   - at most MAX_PER_SOURCE edges total per source section.
  *  These cap the model even when the prompt's "few edges" instruction is ignored. */
 const MAX_PER_SOURCE = 2;
-export function parseCrossFlowEdges(raw: unknown, fromCount: number, toCount: number): CrossFlowEdge[] {
-  const arr = (raw && typeof raw === 'object' ? (raw as { edges?: unknown }).edges : null);
+export function parseCrossFlowEdges(
+  raw: unknown,
+  fromCount: number,
+  toCount: number,
+): CrossFlowEdge[] {
+  const arr = raw && typeof raw === 'object' ? (raw as { edges?: unknown }).edges : null;
   if (!Array.isArray(arr)) return [];
   const out: CrossFlowEdge[] = [];
   const seen = new Set<string>();
-  const continuesFrom = new Set<number>();        // source sections that already have a 'continues'
-  const totalFrom = new Map<number, number>();    // edges kept per source section
+  const continuesFrom = new Set<number>(); // source sections that already have a 'continues'
+  const totalFrom = new Map<number, number>(); // edges kept per source section
   for (const e of arr) {
     if (!e || typeof e !== 'object') continue;
     const o = e as Record<string, unknown>;
@@ -105,12 +125,17 @@ export function parseCrossFlowEdges(raw: unknown, fromCount: number, toCount: nu
     const toSection = o.toSection;
     const relation = o.relation;
     if (typeof fromSection !== 'number' || typeof toSection !== 'number') continue;
-    if (fromSection < 0 || fromSection >= fromCount || toSection < 0 || toSection >= toCount) continue;
-    if (typeof relation !== 'string' || !CROSS_FLOW_RELATIONS.includes(relation as CrossFlowRelation)) continue;
+    if (fromSection < 0 || fromSection >= fromCount || toSection < 0 || toSection >= toCount)
+      continue;
+    if (
+      typeof relation !== 'string' ||
+      !CROSS_FLOW_RELATIONS.includes(relation as CrossFlowRelation)
+    )
+      continue;
     const dedup = `${fromSection} ${toSection} ${relation}`;
     if (seen.has(dedup)) continue;
     if (relation === 'continues' && continuesFrom.has(fromSection)) continue; // ≤1 continues per source
-    if ((totalFrom.get(fromSection) ?? 0) >= MAX_PER_SOURCE) continue;        // cap fan-out per source
+    if ((totalFrom.get(fromSection) ?? 0) >= MAX_PER_SOURCE) continue; // cap fan-out per source
     seen.add(dedup);
     if (relation === 'continues') continuesFrom.add(fromSection);
     totalFrom.set(fromSection, (totalFrom.get(fromSection) ?? 0) + 1);

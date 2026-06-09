@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { resolveRabbiSlug, rabbiCandidates, generationOf } from '../src/worker/rabbi-graph';
+import { describe, expect, it } from 'vitest';
+import { generationOf, rabbiCandidates, resolveRabbiSlug } from '../src/worker/rabbi-graph';
 import casts from './fixtures/berakhot-rabbi-casts.json';
 
 /**
@@ -16,12 +16,18 @@ type Cast = Record<string, { name: string; nameHe?: string; generation?: string 
 const CASTS = casts as Cast;
 
 function benchmark() {
-  const basis: Record<string, number> = { unique: 0, relational: 0, generation: 0, ambiguous: 0, none: 0 };
+  const basis: Record<string, number> = {
+    unique: 0,
+    relational: 0,
+    generation: 0,
+    ambiguous: 0,
+    none: 0,
+  };
   let total = 0;
   let resolved = 0;
-  let homonyms = 0;            // names with >1 registry candidate
+  let homonyms = 0; // names with >1 registry candidate
   let homonymsResolved = 0;
-  let genOverridden = 0;       // grounded generation differs from the LLM's guess
+  let genOverridden = 0; // grounded generation differs from the LLM's guess
   const homonymExamples: string[] = [];
 
   for (const [, cast] of Object.entries(CASTS)) {
@@ -38,7 +44,11 @@ function benchmark() {
       basis[res.basis] = (basis[res.basis] ?? 0) + 1;
       if (res.slug) {
         resolved++;
-        if (isHomonym) { homonymsResolved++; if (homonymExamples.length < 12) homonymExamples.push(`${r.name} → ${res.slug} (${res.basis})`); }
+        if (isHomonym) {
+          homonymsResolved++;
+          if (homonymExamples.length < 12)
+            homonymExamples.push(`${r.name} → ${res.slug} (${res.basis})`);
+        }
         const g = generationOf(res.slug);
         if (g && r.generation && g !== r.generation) genOverridden++;
       }
@@ -74,6 +84,7 @@ describe('rabbi resolution benchmark (Berakhot 2a–11b fixture)', () => {
     const line = `BENCH total=${b.total} resolved=${b.resolved} (${rate}%) basis=${JSON.stringify(b.basis)} homonyms=${b.homonyms}/${b.homonymsResolved}resolved genOverridden=${b.genOverridden}`;
     expect(line).toContain('BENCH');
     // surfaced for the report via an intentional non-match if SHOW_BENCH is set
-    if (process.env.SHOW_BENCH) expect(`${line} | homonyms: ${b.homonymExamples.join(' ; ')}`).toBe('SHOW');
+    if (process.env.SHOW_BENCH)
+      expect(`${line} | homonyms: ${b.homonymExamples.join(' ; ')}`).toBe('SHOW');
   });
 });

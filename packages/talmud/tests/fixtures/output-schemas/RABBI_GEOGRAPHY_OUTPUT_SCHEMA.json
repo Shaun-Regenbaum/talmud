@@ -4,33 +4,19 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "birthplace",
-      "primaryStudyPlaces",
-      "notablePlaces",
-      "movements",
-      "prose"
-    ],
+    "required": ["birthplace", "primaryStudyPlaces", "notablePlaces", "movements", "prose"],
     "properties": {
       "birthplace": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "place",
-          "region"
-        ],
+        "required": ["place", "region"],
         "properties": {
           "place": {
             "type": "string"
           },
           "region": {
             "type": "string",
-            "enum": [
-              "israel",
-              "bavel",
-              "other",
-              "unknown"
-            ]
+            "enum": ["israel", "bavel", "other", "unknown"]
           }
         }
       },
@@ -39,11 +25,7 @@
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "place",
-            "academy",
-            "period"
-          ],
+          "required": ["place", "academy", "period"],
           "properties": {
             "place": {
               "type": "string"
@@ -62,10 +44,7 @@
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "place",
-            "event"
-          ],
+          "required": ["place", "event"],
           "properties": {
             "place": {
               "type": "string"
@@ -81,12 +60,7 @@
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "from",
-            "to",
-            "approximateWhen",
-            "reason"
-          ],
+          "required": ["from", "to", "approximateWhen", "reason"],
           "properties": {
             "from": {
               "type": "string"

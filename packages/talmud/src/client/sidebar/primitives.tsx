@@ -19,11 +19,11 @@
  * already shared there. `Panel` owns only the per-type title block, which is
  * what was duplicated/divergent across the bodies.
  */
-import { Show, For, createSignal, createEffect, type JSX } from 'solid-js';
-import { lang, t, type CatalogKey } from '../i18n';
-import { HebraizedWithRabbis } from '../rabbiLinks';
+import { createEffect, createSignal, For, type JSX, Show } from 'solid-js';
+import { type CatalogKey, lang, t } from '../i18n';
 import MarkEnrichmentCards, { InspectDot } from '../MarkEnrichmentCards';
 import QAPanel from '../QAPanel';
+import { HebraizedWithRabbis } from '../rabbiLinks';
 
 /** Per-type accent (the title color). Bodies pass `accent={ACCENTS.x}` so the
  *  six hardcoded hex values stop drifting. */
@@ -50,20 +50,34 @@ export type SidebarKind = keyof typeof ACCENTS;
  *  the long ternary in the container header. */
 export function kindLabelKey(kind: SidebarKind): CatalogKey {
   switch (kind) {
-    case 'argument': return 'sidebar.kind.argument';
-    case 'argument-overview': return 'sidebar.kind.argument-overview';
-    case 'daf-background': return 'sidebar.kind.daf-background';
-    case 'tidbit': return 'sidebar.kind.tidbit';
-    case 'biyun': return 'sidebar.kind.biyun';
-    case 'halacha': return 'sidebar.kind.halacha';
-    case 'chart': return 'sidebar.kind.chart';
-    case 'aggadata': return 'sidebar.kind.aggadata';
-    case 'yerushalmi': return 'sidebar.kind.yerushalmi';
-    case 'pesuk': return 'sidebar.kind.pesuk';
-    case 'place': return 'sidebar.kind.place';
-    case 'rishonim': return 'sidebar.kind.rishonim';
-    case 'voice-group': return 'sidebar.kind.voice-group';
-    case 'rabbi': return 'sidebar.kind.rabbi';
+    case 'argument':
+      return 'sidebar.kind.argument';
+    case 'argument-overview':
+      return 'sidebar.kind.argument-overview';
+    case 'daf-background':
+      return 'sidebar.kind.daf-background';
+    case 'tidbit':
+      return 'sidebar.kind.tidbit';
+    case 'biyun':
+      return 'sidebar.kind.biyun';
+    case 'halacha':
+      return 'sidebar.kind.halacha';
+    case 'chart':
+      return 'sidebar.kind.chart';
+    case 'aggadata':
+      return 'sidebar.kind.aggadata';
+    case 'yerushalmi':
+      return 'sidebar.kind.yerushalmi';
+    case 'pesuk':
+      return 'sidebar.kind.pesuk';
+    case 'place':
+      return 'sidebar.kind.place';
+    case 'rishonim':
+      return 'sidebar.kind.rishonim';
+    case 'voice-group':
+      return 'sidebar.kind.voice-group';
+    case 'rabbi':
+      return 'sidebar.kind.rabbi';
   }
 }
 
@@ -155,17 +169,38 @@ export function SectionCard(props: {
   const collapsible = (): boolean => props.collapsed != null;
   const [open, setOpen] = createSignal(props.collapsed !== true);
   const labelRow = (): JSX.Element => (
-    <div style={{
-      ...SECTION_LABEL,
-      'margin-bottom': open() ? (props.spacing === 'loose' ? '0.5rem' : '0.4rem') : 0,
-      display: 'flex', 'align-items': 'center', gap: '0.4rem',
-    }}>
+    <div
+      style={{
+        ...SECTION_LABEL,
+        'margin-bottom': open() ? (props.spacing === 'loose' ? '0.5rem' : '0.4rem') : 0,
+        display: 'flex',
+        'align-items': 'center',
+        gap: '0.4rem',
+      }}
+    >
       <Show when={collapsible()}>
-        <span style={{ color: '#bbb', 'font-size': '0.7rem', width: '0.7rem', display: 'inline-block', transform: open() ? 'rotate(90deg)' : 'none', transition: 'transform 0.12s' }}>▸</span>
+        <span
+          style={{
+            color: '#bbb',
+            'font-size': '0.7rem',
+            width: '0.7rem',
+            display: 'inline-block',
+            transform: open() ? 'rotate(90deg)' : 'none',
+            transition: 'transform 0.12s',
+          }}
+        >
+          ▸
+        </span>
       </Show>
       <span>{t(props.label)}</span>
       <Show when={props.inspect}>
-        {(ins) => <InspectDot instanceKey={ins().instanceKey} leafId={ins().leafId} style={{ 'margin-left': 'auto' }} />}
+        {(ins) => (
+          <InspectDot
+            instanceKey={ins().instanceKey}
+            leafId={ins().leafId}
+            style={{ 'margin-left': 'auto' }}
+          />
+        )}
       </Show>
     </div>
   );
@@ -180,7 +215,12 @@ export function SectionCard(props: {
     <div style={SECTION_BOX}>
       <Show
         when={collapsible()}
-        fallback={<>{labelRow()}{body()}</>}
+        fallback={
+          <>
+            {labelRow()}
+            {body()}
+          </>
+        }
       >
         {/* clickable label toggles; the inspect 'i' inside stops propagation */}
         <div
@@ -192,7 +232,10 @@ export function SectionCard(props: {
             // Only the wrapper itself toggles — a keydown bubbled up from the
             // focused inspect 'i' button must not also flip the fold.
             if (e.currentTarget !== e.target) return;
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen((v) => !v); }
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setOpen((v) => !v);
+            }
           }}
           style={{ cursor: 'pointer', 'user-select': 'none' }}
         >
@@ -244,7 +287,12 @@ export function Panel(props: {
           <h3
             dir="rtl"
             lang="he"
-            style={{ margin: '0 0 0.3rem', 'font-size': '1.05rem', color: props.accent, 'font-family': HE_FONT }}
+            style={{
+              margin: '0 0 0.3rem',
+              'font-size': '1.05rem',
+              color: props.accent,
+              'font-family': HE_FONT,
+            }}
           >
             {primary()}
           </h3>
@@ -254,7 +302,9 @@ export function Panel(props: {
         <Show
           when={secondaryIsHe()}
           fallback={
-            <p style={{ margin: '0 0 0.5rem', 'font-size': '0.95rem', color: '#666' }}>{secondary()}</p>
+            <p style={{ margin: '0 0 0.5rem', 'font-size': '0.95rem', color: '#666' }}>
+              {secondary()}
+            </p>
           }
         >
           <HebrewProse>{secondary()}</HebrewProse>
@@ -277,7 +327,10 @@ export function Synthesis(props: {
   instanceKey: string;
   tractate: string;
   page: string;
-  onResolved?: (r: { deps_resolved?: Record<string, unknown>; anchors_resolved?: Record<string, unknown> }) => void;
+  onResolved?: (r: {
+    deps_resolved?: Record<string, unknown>;
+    anchors_resolved?: Record<string, unknown>;
+  }) => void;
 }): JSX.Element {
   return (
     <MarkEnrichmentCards
@@ -321,7 +374,10 @@ export interface ResolvedSidebarHint {
 
 /** Resolve a hint against an instance's fields into concrete display props. Pure
  *  (no DOM) so the render-hint vocabulary is unit-testable. */
-export function resolveSidebarHint(hint: SidebarHint, fields: Record<string, unknown>): ResolvedSidebarHint {
+export function resolveSidebarHint(
+  hint: SidebarHint,
+  fields: Record<string, unknown>,
+): ResolvedSidebarHint {
   const str = (v: unknown): string => (typeof v === 'string' ? v : '');
   const titleHe = hint.titleHeField ? str(fields[hint.titleHeField]) : '';
   const keyVal = str(fields[hint.instanceKeyField ?? hint.titleField]);
@@ -373,7 +429,13 @@ export function SidebarPanelFromHint(props: {
  *  aggregate's resolved leaf outputs (deps_resolved), keyed by enrichment id. */
 /** A reader-text highlight request, threaded sidebar → reader (the same shape
  *  argument-move / rabbi cards use). */
-export type HighlightRange = { start: number; end: number; key: string; tokenStart?: number; tokenEnd?: number };
+export type HighlightRange = {
+  start: number;
+  end: number;
+  key: string;
+  tokenStart?: number;
+  tokenEnd?: number;
+};
 
 export interface SpecialBlockProps {
   deps: Record<string, unknown>;
@@ -402,6 +464,7 @@ export type SpecialBlock = (props: SpecialBlockProps) => JSX.Element;
 // recipe.ts so the worker mark definition can carry it. Re-exported here so the
 // many `from './sidebar/primitives'` importers keep working.
 import type { SectionSpec, SidebarRecipe } from '@corpus/core/sidebar/recipe';
+
 export type { SectionSpec, SidebarRecipe } from '@corpus/core/sidebar/recipe';
 
 /** A flat, render-ready description of a recipe for the dev shelf's Recipe panel.
@@ -430,23 +493,40 @@ export interface RecipeInfo {
 }
 export function describeRecipe(recipe: SidebarRecipe): RecipeInfo {
   const header = recipe.titleField
-    ? (recipe.titleHeField ? `${recipe.titleField} / ${recipe.titleHeField}` : recipe.titleField)
+    ? recipe.titleHeField
+      ? `${recipe.titleField} / ${recipe.titleHeField}`
+      : recipe.titleField
     : '(custom header)';
   const sections = recipe.sections.map((s, i): RecipeSectionInfo => {
     const n = i + 1;
     // tags/prose render fields off the mark instance → their provenance is the
     // extraction, surfaced as the synthesis/instance view (leafId null).
     switch (s.type) {
-      case 'tags': return { n, type: s.type, target: s.fields.join(', '), inspect: { leafId: null }, custom: false };
-      case 'prose': return { n, type: s.type, target: s.field, inspect: { leafId: null }, custom: false };
-      case 'synthesis': return { n, type: s.type, target: null, inspect: { leafId: null }, custom: false };
-      case 'explainer': return { n, type: s.type, target: s.dep, inspect: { leafId: s.dep }, custom: false };
-      case 'qa': return { n, type: s.type, target: null, inspect: null, custom: false };
-      case 'special': return {
-        n, type: s.type, target: s.block, inputs: s.deps,
-        inspect: s.deps && s.deps.length > 0 ? { leafId: s.deps[0] } : { leafId: null },
-        custom: true,
-      };
+      case 'tags':
+        return {
+          n,
+          type: s.type,
+          target: s.fields.join(', '),
+          inspect: { leafId: null },
+          custom: false,
+        };
+      case 'prose':
+        return { n, type: s.type, target: s.field, inspect: { leafId: null }, custom: false };
+      case 'synthesis':
+        return { n, type: s.type, target: null, inspect: { leafId: null }, custom: false };
+      case 'explainer':
+        return { n, type: s.type, target: s.dep, inspect: { leafId: s.dep }, custom: false };
+      case 'qa':
+        return { n, type: s.type, target: null, inspect: null, custom: false };
+      case 'special':
+        return {
+          n,
+          type: s.type,
+          target: s.block,
+          inputs: s.deps,
+          inspect: s.deps && s.deps.length > 0 ? { leafId: s.deps[0] } : { leafId: null },
+          custom: true,
+        };
     }
   });
   return { kind: recipe.kind, markId: recipe.markId, header, sections };
@@ -457,10 +537,17 @@ export function describeRecipe(recipe: SidebarRecipe): RecipeInfo {
  *  drawer for this exact instance). null when no card is open OR the open card is
  *  still a bespoke (un-converted) *Body — so the panel doubles as a conversion
  *  scoreboard. ArgumentSidebar's dispatch is the single writer (CARD_DEFS). */
-export interface ActiveCard { recipe: SidebarRecipe; instanceKey: string; }
+export interface ActiveCard {
+  recipe: SidebarRecipe;
+  instanceKey: string;
+}
 const [activeCardSig, setActiveCardSig] = createSignal<ActiveCard | null>(null);
-export function activeCard(): ActiveCard | null { return activeCardSig(); }
-export function setActiveCard(c: ActiveCard | null): void { setActiveCardSig(c); }
+export function activeCard(): ActiveCard | null {
+  return activeCardSig();
+}
+export function setActiveCard(c: ActiveCard | null): void {
+  setActiveCardSig(c);
+}
 
 /**
  * Render a card from its recipe. Draws the Panel header, holds one shared `deps`
@@ -503,29 +590,51 @@ export function SidebarCardFromHint(props: {
   // Reset captured leaves/anchors + the synthesis-ready flag when the instance
   // changes (mirrors each old body's handleResolved reset) so a new instance
   // doesn't show the previous one's deps or skip its placeholder.
-  createEffect(() => { void props.instanceKey; setDeps({}); setAnchors({}); setSynthesisReady(false); });
+  createEffect(() => {
+    void props.instanceKey;
+    setDeps({});
+    setAnchors({});
+    setSynthesisReady(false);
+  });
 
   const renderSection = (s: SectionSpec): JSX.Element => {
     switch (s.type) {
       case 'tags': {
         const dropped = new Set((s.drop ?? []).map((d) => d.toLowerCase()));
-        const vals = (): string[] => s.fields
-          .map((f) => str(fields()[f]))
-          .filter((v) => v && !dropped.has(v.toLowerCase()));
+        const vals = (): string[] =>
+          s.fields.map((f) => str(fields()[f])).filter((v) => v && !dropped.has(v.toLowerCase()));
         return (
           <Show when={vals().length > 0}>
-            <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.3rem', 'margin-bottom': '0.7rem' }}>
-              <For each={vals()}>{(v) => (
-                // Neutral & quiet: a theme tag is a coarse, not-fully-trusted
-                // label, so it stays unobtrusive — muted gray, faint fill,
-                // hairline border. Title-case so single-word themes read cleanly.
-                <span style={{
-                  display: 'inline-block', padding: '0.1rem 0.5rem', 'font-size': '0.7rem',
-                  'text-transform': 'capitalize', 'letter-spacing': '0.02em',
-                  color: '#777', background: '#f5f5f4', border: '1px solid #e8e8e6',
-                  'border-radius': '3px',
-                }}>{v}</span>
-              )}</For>
+            <div
+              style={{
+                display: 'flex',
+                'flex-wrap': 'wrap',
+                gap: '0.3rem',
+                'margin-bottom': '0.7rem',
+              }}
+            >
+              <For each={vals()}>
+                {(v) => (
+                  // Neutral & quiet: a theme tag is a coarse, not-fully-trusted
+                  // label, so it stays unobtrusive — muted gray, faint fill,
+                  // hairline border. Title-case so single-word themes read cleanly.
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      padding: '0.1rem 0.5rem',
+                      'font-size': '0.7rem',
+                      'text-transform': 'capitalize',
+                      'letter-spacing': '0.02em',
+                      color: '#777',
+                      background: '#f5f5f4',
+                      border: '1px solid #e8e8e6',
+                      'border-radius': '3px',
+                    }}
+                  >
+                    {v}
+                  </span>
+                )}
+              </For>
             </div>
           </Show>
         );
@@ -546,7 +655,11 @@ export function SidebarCardFromHint(props: {
             instanceKey={props.instanceKey}
             tractate={props.tractate}
             page={props.page}
-            onResolved={(r) => { setDeps(r.deps_resolved ?? {}); setAnchors(r.anchors_resolved ?? {}); setSynthesisReady(true); }}
+            onResolved={(r) => {
+              setDeps(r.deps_resolved ?? {});
+              setAnchors(r.anchors_resolved ?? {});
+              setSynthesisReady(true);
+            }}
           />
         );
       case 'explainer': {
@@ -556,7 +669,12 @@ export function SidebarCardFromHint(props: {
         };
         return (
           <Show when={text()}>
-            <SectionCard label={s.labelKey} text={text()} inspect={{ instanceKey: props.instanceKey, leafId: s.dep }} collapsed={!s.defaultOpen} />
+            <SectionCard
+              label={s.labelKey}
+              text={text()}
+              inspect={{ instanceKey: props.instanceKey, leafId: s.dep }}
+              collapsed={!s.defaultOpen}
+            />
           </Show>
         );
       }
@@ -593,7 +711,11 @@ export function SidebarCardFromHint(props: {
     <Panel
       accent={accent()}
       title={props.recipe.titleField ? str(fields()[props.recipe.titleField]) : ''}
-      titleHe={props.recipe.titleHeField ? str(fields()[props.recipe.titleHeField]) || undefined : undefined}
+      titleHe={
+        props.recipe.titleHeField
+          ? str(fields()[props.recipe.titleHeField]) || undefined
+          : undefined
+      }
       titleLang={props.recipe.titleLang}
       flip={props.recipe.flip}
       meta={props.meta}

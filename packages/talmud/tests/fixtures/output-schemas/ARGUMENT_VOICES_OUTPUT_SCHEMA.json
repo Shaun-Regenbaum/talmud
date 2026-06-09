@@ -4,24 +4,14 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "voices",
-      "edges"
-    ],
+    "required": ["voices", "edges"],
     "properties": {
       "voices": {
         "type": "array",
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "name",
-            "nameHe",
-            "role",
-            "side",
-            "stance",
-            "opinionStart"
-          ],
+          "required": ["name", "nameHe", "role", "side", "stance", "opinionStart"],
           "properties": {
             "name": {
               "type": "string"
@@ -58,12 +48,7 @@
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "from",
-            "to",
-            "kind",
-            "note"
-          ],
+          "required": ["from", "to", "kind", "note"],
           "properties": {
             "from": {
               "type": "string"
@@ -73,13 +58,7 @@
             },
             "kind": {
               "type": "string",
-              "enum": [
-                "opposes",
-                "supports",
-                "responds-to",
-                "cites",
-                "resolves"
-              ]
+              "enum": ["opposes", "supports", "responds-to", "cites", "resolves"]
             },
             "note": {
               "type": "string"

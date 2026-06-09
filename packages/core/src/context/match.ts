@@ -7,8 +7,8 @@
  * enrichment path treat all matchers alike.
  */
 
-import type { ContextItem } from './types.ts';
 import type { AnchorCoord } from './coord.ts';
+import type { ContextItem } from './types.ts';
 
 export interface SegMatch {
   /** ContextItem.key this placement applies to. */

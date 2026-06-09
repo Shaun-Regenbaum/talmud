@@ -1,5 +1,5 @@
-import { createSignal, createEffect, onCleanup, Show, type JSX } from 'solid-js';
-import { t, lang } from './i18n';
+import { createEffect, createSignal, type JSX, onCleanup, Show } from 'solid-js';
+import { lang, t } from './i18n';
 
 type Rect = { top: number; left: number; bottom: number; right: number };
 
@@ -116,7 +116,7 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
     document.removeEventListener('mousedown', onDocClick, true);
   });
 
-  const GAP = 8;        // space between popup and the selected words
+  const GAP = 8; // space between popup and the selected words
   const TOP_MARGIN = 8; // min gap from the viewport top
   const SIDE_MARGIN = 8; // min gap from the viewport sides
 
@@ -165,7 +165,10 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
       window.scrollBy({ top: -deficit });
       requestAnimationFrame(() => placeAbove(false));
     }
-    setMobilePos({ top: Math.max(TOP_MARGIN, a.top - h - GAP), left: clampCenterX((a.left + a.right) / 2) });
+    setMobilePos({
+      top: Math.max(TOP_MARGIN, a.top - h - GAP),
+      left: clampCenterX((a.left + a.right) / 2),
+    });
   };
   // Reposition (with a scroll if needed) whenever the selection changes.
   createEffect(() => {
@@ -177,7 +180,9 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
   // text arrives, so it stays glued just above the words.
   createEffect(() => {
     if (!props.mobile) return;
-    void translation(); void loading(); void error();
+    void translation();
+    void loading();
+    void error();
     placeAbove(false);
   });
 
@@ -232,9 +237,7 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
         <Show when={error()}>
           <span style={{ color: '#c33' }}>{error()}</span>
         </Show>
-        <Show when={!loading() && !error() && translation()}>
-          {translation()}
-        </Show>
+        <Show when={!loading() && !error() && translation()}>{translation()}</Show>
       </div>
       <Show when={props.mobile}>
         <div

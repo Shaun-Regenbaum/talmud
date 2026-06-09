@@ -15,7 +15,9 @@ function col(): HTMLElement {
   return d;
 }
 
-afterEach(() => { document.body.innerHTML = ''; });
+afterEach(() => {
+  document.body.innerHTML = '';
+});
 
 describe('buildTokenRange', () => {
   it('same-segment (start == end) covers just that segment — the rishonim highlight case', () => {

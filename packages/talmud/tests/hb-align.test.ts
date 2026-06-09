@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { describe, it, expect } from 'vitest';
-import { buildHbWords, locateInHb, normHe, type HbWords } from '../src/client/hbAlign';
+import { describe, expect, it } from 'vitest';
+import { buildHbWords, type HbWords, locateInHb, normHe } from '../src/client/hbAlign';
 
 describe('normHe', () => {
   it('strips niqqud, folds final letters, drops punctuation', () => {
@@ -30,10 +30,17 @@ describe('buildHbWords (jsdom)', () => {
 
 // Hand-built word stream so locateInHb is tested without a DOM.
 function mkHb(words: string[], segs: number[]): HbWords {
-  const hb: HbWords = { raw: words, norm: words.map(normHe), wordIndex: words.map((_, i) => i), seg: segs, segRange: new Map() };
+  const hb: HbWords = {
+    raw: words,
+    norm: words.map(normHe),
+    wordIndex: words.map((_, i) => i),
+    seg: segs,
+    segRange: new Map(),
+  };
   segs.forEach((s, pos) => {
     const e = hb.segRange.get(s);
-    if (e) e.last = pos; else hb.segRange.set(s, { first: pos, last: pos });
+    if (e) e.last = pos;
+    else hb.segRange.set(s, { first: pos, last: pos });
   });
   return hb;
 }

@@ -8,9 +8,9 @@
  * node by marker, so each item reads "Q … / ANSWER: …".
  */
 
-import { elementChildren, collapse, type HTMLElement } from './common.ts';
-import { parseIndentedEntries } from './entries.ts';
 import type { DafyomiEntry } from '../schema.ts';
+import { collapse, elementChildren, type HTMLElement } from './common.ts';
+import { parseIndentedEntries } from './entries.ts';
 
 export function parseReview(content: HTMLElement): DafyomiEntry[] {
   const questions = new Map<string, DafyomiEntry[]>();
@@ -57,7 +57,8 @@ function mergeAnswers(qNodes: DafyomiEntry[], aNodes: DafyomiEntry[]): void {
   for (const q of qNodes) {
     const a = aByMarker.get(normMarker(q.marker));
     if (!a) continue;
-    if (a.body.en) q.body.en = q.body.en ? `${q.body.en}\nANSWER: ${a.body.en}` : `ANSWER: ${a.body.en}`;
+    if (a.body.en)
+      q.body.en = q.body.en ? `${q.body.en}\nANSWER: ${a.body.en}` : `ANSWER: ${a.body.en}`;
     if (q.children?.length && a.children?.length) mergeAnswers(q.children, a.children);
     else if (a.children?.length) q.children = a.children;
   }

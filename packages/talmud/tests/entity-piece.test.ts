@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import rabbiPlaces from '../src/lib/data/rabbi-places.json';
 import type { EntityPiece } from '../src/lib/registry/entity';
 
@@ -6,7 +6,9 @@ import type { EntityPiece } from '../src/lib/registry/entity';
 // slug-keyed, each entry carries a canonical name (used to read the per-name
 // global enrichment cache keys).
 describe('entity piece — rabbi slug resolution', () => {
-  const data = rabbiPlaces as unknown as { rabbis: Record<string, { canonical: string; canonicalHe?: string | null }> };
+  const data = rabbiPlaces as unknown as {
+    rabbis: Record<string, { canonical: string; canonicalHe?: string | null }>;
+  };
 
   it('rabbis is a non-empty slug → entry map with canonical names', () => {
     const slugs = Object.keys(data.rabbis);
@@ -23,7 +25,9 @@ describe('entity piece — rabbi slug resolution', () => {
     expect(entry.canonical).toContain('Yochanan');
     // The EntityPiece the endpoint would build for it.
     const piece: EntityPiece = {
-      type: 'rabbi', id: 'rabbi-yochanan-b-napacha', name: entry.canonical,
+      type: 'rabbi',
+      id: 'rabbi-yochanan-b-napacha',
+      name: entry.canonical,
       nameHe: entry.canonicalHe ?? undefined,
       pieces: { identity: null, relationships: null, geography: null },
     };

@@ -1,15 +1,15 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  GENERATIONS,
+  colorForGeneration,
   GENERATION_BY_ID,
   GENERATION_IDS,
-  colorForGeneration,
-  legibleTextColor,
+  GENERATIONS,
   type GenerationId,
+  legibleTextColor,
 } from '../src/client/generations';
-import { enrichRabbi, resolveGeneration } from '../src/worker/index';
-import placesData from '../src/lib/data/rabbi-places.json';
 import hierarchyData from '../src/lib/data/rabbi-hierarchy.json';
+import placesData from '../src/lib/data/rabbi-places.json';
+import { enrichRabbi, resolveGeneration } from '../src/worker/index';
 
 function rgb(hex: string): [number, number, number] {
   const n = parseInt(hex.slice(1), 16);
@@ -49,11 +49,19 @@ describe('generation color spectrum — two tiers', () => {
 
   it('runs dark (earlier) -> light (later) within each tier', () => {
     // Pre-Geonim: Zugim darkest, Savora lightest.
-    expect(lum(GENERATION_BY_ID['zugim'].color)).toBeLessThan(lum(GENERATION_BY_ID['savora'].color));
-    expect(lum(GENERATION_BY_ID['tanna-1'].color)).toBeLessThan(lum(GENERATION_BY_ID['tanna-6'].color));
+    expect(lum(GENERATION_BY_ID['zugim'].color)).toBeLessThan(
+      lum(GENERATION_BY_ID['savora'].color),
+    );
+    expect(lum(GENERATION_BY_ID['tanna-1'].color)).toBeLessThan(
+      lum(GENERATION_BY_ID['tanna-6'].color),
+    );
     // Geonim onward: Geonim darkest, Achronim lightest.
-    expect(lum(GENERATION_BY_ID['geonim'].color)).toBeLessThan(lum(GENERATION_BY_ID['rishonim'].color));
-    expect(lum(GENERATION_BY_ID['rishonim'].color)).toBeLessThan(lum(GENERATION_BY_ID['achronim'].color));
+    expect(lum(GENERATION_BY_ID['geonim'].color)).toBeLessThan(
+      lum(GENERATION_BY_ID['rishonim'].color),
+    );
+    expect(lum(GENERATION_BY_ID['rishonim'].color)).toBeLessThan(
+      lum(GENERATION_BY_ID['achronim'].color),
+    );
   });
 
   it('tiers partition every generation (unknown is neutral)', () => {
@@ -121,8 +129,14 @@ describe('rabbi-hierarchy.json generations', () => {
 
   it('pins the same later authorities to the blue tier as rabbi-places', () => {
     const expected: Record<string, GenerationId> = {
-      'rav-huna-gaon': 'geonim', 'rav-hanina-gaon': 'geonim', 'rav-sheshena-gaon': 'geonim',
-      rashi: 'rishonim', rambam: 'rishonim', ramban: 'rishonim', rashbam: 'rishonim', tosafot: 'rishonim',
+      'rav-huna-gaon': 'geonim',
+      'rav-hanina-gaon': 'geonim',
+      'rav-sheshena-gaon': 'geonim',
+      rashi: 'rishonim',
+      rambam: 'rishonim',
+      ramban: 'rishonim',
+      rashbam: 'rishonim',
+      tosafot: 'rishonim',
     };
     for (const [slug, gen] of Object.entries(expected)) {
       expect(nodes[slug]?.generation, slug).toBe(gen);

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, beforeAll } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { RunResult } from '../src/client/enrichmentQueue';
 import type { LruMap } from '../src/lib/lruMap';
 
@@ -39,24 +39,25 @@ describe('runCacheKey', () => {
     const keys = new Set([
       runCacheKey('rabbi.synthesis', 'Berakhot', '2a', 'Rabbi Eliezer', 'en'),
       runCacheKey('rabbi.relationships', 'Berakhot', '2a', 'Rabbi Eliezer', 'en'), // enrichment
-      runCacheKey('rabbi.synthesis', 'Shabbat', '2a', 'Rabbi Eliezer', 'en'),       // tractate
-      runCacheKey('rabbi.synthesis', 'Berakhot', '2b', 'Rabbi Eliezer', 'en'),      // page
-      runCacheKey('rabbi.synthesis', 'Berakhot', '2a', 'Rabbi Akiva', 'en'),        // instance
-      runCacheKey('rabbi.synthesis', 'Berakhot', '2a', 'Rabbi Eliezer', 'he'),      // lang
+      runCacheKey('rabbi.synthesis', 'Shabbat', '2a', 'Rabbi Eliezer', 'en'), // tractate
+      runCacheKey('rabbi.synthesis', 'Berakhot', '2b', 'Rabbi Eliezer', 'en'), // page
+      runCacheKey('rabbi.synthesis', 'Berakhot', '2a', 'Rabbi Akiva', 'en'), // instance
+      runCacheKey('rabbi.synthesis', 'Berakhot', '2a', 'Rabbi Eliezer', 'he'), // lang
     ]);
     expect(keys.size).toBe(6);
   });
 
   it('separates English and Hebrew so a lang switch never reads the other lang', () => {
-    expect(runCacheKey('argument.synthesis', 'Shabbat', '126a', '0-0-Opening', 'en'))
-      .not.toBe(runCacheKey('argument.synthesis', 'Shabbat', '126a', '0-0-Opening', 'he'));
+    expect(runCacheKey('argument.synthesis', 'Shabbat', '126a', '0-0-Opening', 'en')).not.toBe(
+      runCacheKey('argument.synthesis', 'Shabbat', '126a', '0-0-Opening', 'he'),
+    );
   });
 });
 
 describe('runResultCache — store / retrieve', () => {
   it('round-trips a result under its key (a re-click hits the memo)', () => {
     const key = runCacheKey('pesukim.synthesis', 'Berakhot', '2a', 'Deuteronomy 6:7', 'en');
-    expect(runResultCache.has(key)).toBe(false);     // cold: first open misses
+    expect(runResultCache.has(key)).toBe(false); // cold: first open misses
     runResultCache.set(key, fakeResult('verse synthesis'));
     expect(runResultCache.get(key)?.content).toBe('verse synthesis'); // warm: re-click hits
   });
@@ -69,7 +70,9 @@ describe('runResultCache — store / retrieve', () => {
     expect(runResultCache.get(k1)?.content).toBe('deut');
     expect(runResultCache.get(k2)?.content).toBe('lev');
     // A third, never-stored instance is a miss (would trigger a fetch).
-    expect(runResultCache.has(runCacheKey('pesukim.synthesis', 'Berakhot', '2a', 'Genesis 1:5', 'en'))).toBe(false);
+    expect(
+      runResultCache.has(runCacheKey('pesukim.synthesis', 'Berakhot', '2a', 'Genesis 1:5', 'en')),
+    ).toBe(false);
   });
 });
 
@@ -83,7 +86,10 @@ describe('cache invalidation', () => {
   });
 
   it('a `marks-runs-invalidate` event clears the memo (model/prompt change)', () => {
-    runResultCache.set(runCacheKey('rabbi.synthesis', 'B', '2a', 'Hillel', 'en'), fakeResult('bio'));
+    runResultCache.set(
+      runCacheKey('rabbi.synthesis', 'B', '2a', 'Hillel', 'en'),
+      fakeResult('bio'),
+    );
     expect(runResultCache.size).toBe(1);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (globalThis as any).window.dispatchEvent(new Event('marks-runs-invalidate'));

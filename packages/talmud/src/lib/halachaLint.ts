@@ -34,7 +34,7 @@
  */
 
 import { CANONICAL_HEBREW_TERMS } from './hebrewTerms';
-import { lintCalques, type CalqueIssue } from './synthesisLint';
+import { type CalqueIssue, lintCalques } from './synthesisLint';
 
 export interface GlossIssue {
   kind: 'bare-transliteration' | 'transliteration-in-parens';
@@ -60,15 +60,19 @@ const esc = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const norm = (s: string): string => s.trim().toLowerCase().replace(/\s+/g, ' ');
 
 /** All romanization forms (primary + variants) paired with their Hebrew. */
-const ALL_FORMS: ReadonlyArray<{ form: string; hebrew: string }> = CANONICAL_HEBREW_TERMS
-  .flatMap((t) => [t.translit, ...(t.variants ?? [])].map((form) => ({ form, hebrew: t.hebrew })));
+const ALL_FORMS: ReadonlyArray<{ form: string; hebrew: string }> = CANONICAL_HEBREW_TERMS.flatMap(
+  (t) => [t.translit, ...(t.variants ?? [])].map((form) => ({ form, hebrew: t.hebrew })),
+);
 
 // ── transliteration-in-parens ─────────────────────────────────────────────
 // Exclude only pure English homographs, where "(get)" / "(kosher)" could be a
 // legitimate English parenthetical rather than a stranded romanization.
 const PARENS_EXCLUDE = new Set(['get', 'kosher', 'kasher']);
 const PARENS_LOOKUP: ReadonlyMap<string, string> = new Map(
-  ALL_FORMS.filter(({ form }) => !PARENS_EXCLUDE.has(norm(form))).map(({ form, hebrew }) => [norm(form), hebrew]),
+  ALL_FORMS.filter(({ form }) => !PARENS_EXCLUDE.has(norm(form))).map(({ form, hebrew }) => [
+    norm(form),
+    hebrew,
+  ]),
 );
 const PARENS_RE = /\(([^()]{1,80})\)/g;
 
@@ -96,18 +100,42 @@ export function lintTransliterationInParens(text: string): GlossIssue[] {
 // and accepted (so flagging it would be noise), plus short homographs that risk
 // matching ordinary English ("get", "rov").
 const BARE_EXCLUDE = new Set([
-  'get', 'kosher', 'kasher', 'rov', 'shabbat', 'mitzvah', 'matzah', 'matza',
-  'chametz', 'hametz', 'pesach', 'halacha', 'halakhah', 'bracha', 'tzitzit',
-  'tefillin', 'treif', 'trefah', 'sugya', 'sugiya', 'psak', 'pesak',
-  'bet din', 'beit din', 'yom tov',
+  'get',
+  'kosher',
+  'kasher',
+  'rov',
+  'shabbat',
+  'mitzvah',
+  'matzah',
+  'matza',
+  'chametz',
+  'hametz',
+  'pesach',
+  'halacha',
+  'halakhah',
+  'bracha',
+  'tzitzit',
+  'tefillin',
+  'treif',
+  'trefah',
+  'sugya',
+  'sugiya',
+  'psak',
+  'pesak',
+  'bet din',
+  'beit din',
+  'yom tov',
 ]);
-const BARE_FORMS: ReadonlyArray<{ form: string; hebrew: string }> = ALL_FORMS
-  .filter(({ form }) => !BARE_EXCLUDE.has(norm(form)))
+const BARE_FORMS: ReadonlyArray<{ form: string; hebrew: string }> = ALL_FORMS.filter(
+  ({ form }) => !BARE_EXCLUDE.has(norm(form)),
+)
   // Longest first so multi-word forms win over any single-word substring.
   .slice()
   .sort((a, b) => b.form.length - a.form.length);
 
-const BARE_LOOKUP: ReadonlyMap<string, string> = new Map(BARE_FORMS.map(({ form, hebrew }) => [norm(form), hebrew]));
+const BARE_LOOKUP: ReadonlyMap<string, string> = new Map(
+  BARE_FORMS.map(({ form, hebrew }) => [norm(form), hebrew]),
+);
 const BARE_RE = new RegExp(`\\b(${BARE_FORMS.map(({ form }) => esc(form)).join('|')})\\b`, 'gi');
 
 export function lintBareTransliteration(text: string): GlossIssue[] {

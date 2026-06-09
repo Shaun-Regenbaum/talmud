@@ -19,20 +19,29 @@
 
 import {
   fetchHebrewBooksDaf,
-  sefariaAPI,
-  type HebrewBooksDaf,
-  type TalmudPageData,
-  type RishonimBundle,
   type HalachicRefBundle,
+  type HebrewBooksDaf,
+  type MishnaBundle,
+  type RishonimBundle,
   type SaCommentaryBundle,
   type SefariaTopicBundle,
-  type MishnaBundle,
+  sefariaAPI,
+  type TalmudPageData,
   type YerushalmiBundle,
 } from '../lib/sefref';
 import type { DafyomiDaf } from '../lib/sefref/dafyomi/schema';
 import {
-  keyForDafyomi, keyForHebrewBooks, keyForSefariaBundle, keyForSefariaSegments,
-  keyForRishonim, keyForHalachaRefs, keyForCodeSources, keyForDafTopics, keyForMishnaBundle, keyForYerushalmi, keyForSaCommentary,
+  keyForCodeSources,
+  keyForDafTopics,
+  keyForDafyomi,
+  keyForHalachaRefs,
+  keyForHebrewBooks,
+  keyForMishnaBundle,
+  keyForRishonim,
+  keyForSaCommentary,
+  keyForSefariaBundle,
+  keyForSefariaSegments,
+  keyForYerushalmi,
 } from './cache-keys';
 import { scrapeDafyomiLive } from './dafyomi-live';
 
@@ -55,10 +64,7 @@ export interface SefariaSegments {
   en: string[];
 }
 
-async function readCache<T>(
-  cache: KVNamespace | undefined,
-  key: string,
-): Promise<T | undefined> {
+async function readCache<T>(cache: KVNamespace | undefined, key: string): Promise<T | undefined> {
   if (!cache) return undefined;
   const raw = await cache.get(key);
   if (raw === null) return undefined;
@@ -403,7 +409,11 @@ export async function getSefariaSegmentsCached(
     const cached = await cache.get(cacheKey);
     track?.onCache?.(cached !== null ? 'hit' : 'miss');
     if (cached !== null) {
-      try { return JSON.parse(cached) as SefariaSegments; } catch { /* fall through */ }
+      try {
+        return JSON.parse(cached) as SefariaSegments;
+      } catch {
+        /* fall through */
+      }
     }
   } else {
     track?.onCache?.('miss');
@@ -413,7 +423,9 @@ export async function getSefariaSegmentsCached(
     const url = `https://www.sefaria.org/api/v3/texts/${encodeURIComponent(ref)}?version=hebrew&version=english`;
     const res = await fetch(url, { headers: { accept: 'application/json' } });
     if (!res.ok) return null;
-    const j = (await res.json()) as { versions?: Array<{ actualLanguage?: string; language?: string; text?: unknown }> };
+    const j = (await res.json()) as {
+      versions?: Array<{ actualLanguage?: string; language?: string; text?: unknown }>;
+    };
     const vs = j.versions ?? [];
     const pick = (lang: string): string[] => {
       const v = vs.find((x) => (x.actualLanguage ?? x.language) === lang);

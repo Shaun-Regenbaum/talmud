@@ -1,17 +1,24 @@
 // @vitest-environment jsdom
 import { render } from '@solidjs/testing-library';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AggadataStory } from '../../src/client/shapes';
-import { AGGADATA_RECIPE, AGGADATA_BLOCKS, aggadataInstance } from '../../src/client/ArgumentSidebar';
-import { SidebarCardFromHint } from '../../src/client/sidebar/primitives';
+import {
+  AGGADATA_BLOCKS,
+  AGGADATA_RECIPE,
+  aggadataInstance,
+} from '../../src/client/ArgumentSidebar';
 import { setLang, t } from '../../src/client/i18n';
+import type { AggadataStory } from '../../src/client/shapes';
+import { SidebarCardFromHint } from '../../src/client/sidebar/primitives';
 
 // MarkEnrichmentCards fetches /api/enrichments on mount; stub it so the card
 // mounts cleanly and we can assert its synchronous structure (the leaf
 // SectionCards arrive later via onResolved and are covered elsewhere).
 beforeEach(() => {
   setLang('en');
-  vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => [] }) as unknown as Response));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => ({ ok: true, json: async () => [] }) as unknown as Response),
+  );
 });
 afterEach(() => {
   vi.unstubAllGlobals();

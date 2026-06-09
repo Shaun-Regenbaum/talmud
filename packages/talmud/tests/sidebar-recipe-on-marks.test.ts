@@ -1,15 +1,31 @@
-import { describe, it, expect } from 'vitest';
-import { CODE_MARKS } from '../src/worker/code-marks';
 import {
-  AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE,
-  ARGUMENT_RECIPE, ARGUMENT_OVERVIEW_RECIPE, TIDBIT_RECIPE, BIYUN_RECIPE, DAF_BACKGROUND_RECIPE,
+  AGGADATA_RECIPE,
+  ARGUMENT_OVERVIEW_RECIPE,
+  ARGUMENT_RECIPE,
+  BIYUN_RECIPE,
+  DAF_BACKGROUND_RECIPE,
+  HALACHA_RECIPE,
+  PASUK_RECIPE,
+  RABBI_RECIPE,
+  RISHONIM_RECIPE,
   type SidebarRecipe,
+  TIDBIT_RECIPE,
 } from '@corpus/core/sidebar/recipe';
-import { t, setLang } from '../src/client/i18n';
+import { describe, expect, it } from 'vitest';
+import { setLang, t } from '../src/client/i18n';
+import { CODE_MARKS } from '../src/worker/code-marks';
 
 const RECIPES: SidebarRecipe[] = [
-  AGGADATA_RECIPE, PASUK_RECIPE, HALACHA_RECIPE, RISHONIM_RECIPE, RABBI_RECIPE,
-  ARGUMENT_RECIPE, ARGUMENT_OVERVIEW_RECIPE, TIDBIT_RECIPE, BIYUN_RECIPE, DAF_BACKGROUND_RECIPE,
+  AGGADATA_RECIPE,
+  PASUK_RECIPE,
+  HALACHA_RECIPE,
+  RISHONIM_RECIPE,
+  RABBI_RECIPE,
+  ARGUMENT_RECIPE,
+  ARGUMENT_OVERVIEW_RECIPE,
+  TIDBIT_RECIPE,
+  BIYUN_RECIPE,
+  DAF_BACKGROUND_RECIPE,
 ];
 
 describe('sidebar recipes carried on mark definitions', () => {
@@ -29,7 +45,9 @@ describe('sidebar recipes carried on mark definitions', () => {
         // t() returns the key itself for unknown keys; a real key resolves to
         // something different. Guards against a typo'd labelKey now that the
         // shared type widened CatalogKey to string.
-        expect(t(s.labelKey as never), `labelKey '${s.labelKey}' doesn't resolve`).not.toBe(s.labelKey);
+        expect(t(s.labelKey as never), `labelKey '${s.labelKey}' doesn't resolve`).not.toBe(
+          s.labelKey,
+        );
       }
     }
   });
@@ -38,7 +56,9 @@ describe('sidebar recipes carried on mark definitions', () => {
     for (const recipe of RECIPES) {
       const specials = recipe.sections.filter((s) => s.type === 'special');
       for (const s of specials) expect((s as { block: string }).block).toMatch(/^[a-z][a-z-]*$/);
-      const hasInspectable = recipe.sections.some((s) => s.type === 'explainer' || s.type === 'special');
+      const hasInspectable = recipe.sections.some(
+        (s) => s.type === 'explainer' || s.type === 'special',
+      );
       if (hasInspectable) expect(recipe.sections.some((s) => s.type === 'synthesis')).toBe(true);
     }
   });

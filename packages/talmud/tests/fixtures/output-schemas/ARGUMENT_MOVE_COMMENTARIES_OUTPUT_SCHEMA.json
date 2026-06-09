@@ -4,12 +4,7 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "rashi",
-      "tosafot",
-      "other",
-      "note"
-    ],
+    "required": ["rashi", "tosafot", "other", "note"],
     "properties": {
       "rashi": {
         "type": "string"

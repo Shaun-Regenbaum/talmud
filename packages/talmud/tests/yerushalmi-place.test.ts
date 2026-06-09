@@ -1,9 +1,16 @@
-import { describe, it, expect } from 'vitest';
-import { matchYerushalmiToSegments } from '../src/lib/context/anchor/yerushalmi';
 import type { ContextItem } from '@corpus/core/context/types';
+import { describe, expect, it } from 'vitest';
+import { matchYerushalmiToSegments } from '../src/lib/context/anchor/yerushalmi';
 
 function yeruItem(he: string): ContextItem {
-  return { source: 'dafyomi:yerushalmi', sourceLabel: 'Yerushalmi', kind: 'yerushalmi', key: 'y:0', body: { he }, segs: [] };
+  return {
+    source: 'dafyomi:yerushalmi',
+    sourceLabel: 'Yerushalmi',
+    kind: 'yerushalmi',
+    key: 'y:0',
+    body: { he },
+    segs: [],
+  };
 }
 
 describe('matchYerushalmiToSegments', () => {
@@ -31,7 +38,14 @@ describe('matchYerushalmiToSegments', () => {
   });
 
   it('ignores non-yerushalmi items and already-placed items', () => {
-    const other: ContextItem = { source: 'dafyomi:background', sourceLabel: 'Background', kind: 'glossary', key: 'b:0', body: { he: 'מאימתי קורין את שמע בערבין' }, segs: [] };
+    const other: ContextItem = {
+      source: 'dafyomi:background',
+      sourceLabel: 'Background',
+      kind: 'glossary',
+      key: 'b:0',
+      body: { he: 'מאימתי קורין את שמע בערבין' },
+      segs: [],
+    };
     const already = yeruItem('מאימתי קורין את שמע בערבין משעה שהכהנים');
     already.segs = [2];
     expect(matchYerushalmiToSegments([other, already], segs)).toBe(0);

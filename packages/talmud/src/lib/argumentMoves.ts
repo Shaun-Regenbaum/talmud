@@ -154,12 +154,16 @@ export function selectSectionMoves<T extends MoveLike>(
   const exact = unique.filter(
     (m) => m.fields?.sectionStartSegIdx === sStart && m.fields?.sectionEndSegIdx === sEnd,
   );
-  const chosen = exact.length > 0
-    ? exact
-    : unique.filter(
-        (m) => typeof sStart === 'number' && typeof sEnd === 'number'
-          && m.startSegIdx >= sStart && m.endSegIdx <= sEnd,
-      );
+  const chosen =
+    exact.length > 0
+      ? exact
+      : unique.filter(
+          (m) =>
+            typeof sStart === 'number' &&
+            typeof sEnd === 'number' &&
+            m.startSegIdx >= sStart &&
+            m.endSegIdx <= sEnd,
+        );
 
   return chosen.slice().sort((a, b) => (a.fields?.moveOrder ?? 0) - (b.fields?.moveOrder ?? 0));
 }

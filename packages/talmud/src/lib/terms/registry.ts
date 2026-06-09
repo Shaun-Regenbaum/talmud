@@ -14,11 +14,7 @@
  * Identity is the Hebrew surface (`hebrew`): the per-daf list overrides a global
  * of the same Hebrew so a daf can sharpen a generic gloss for its own context.
  */
-import {
-  CANONICAL_HEBREW_TERMS,
-  type TermCategory,
-  type TermDisplay,
-} from '../hebrewTerms';
+import { CANONICAL_HEBREW_TERMS, type TermCategory, type TermDisplay } from '../hebrewTerms';
 
 export type { TermCategory, TermDisplay } from '../hebrewTerms';
 

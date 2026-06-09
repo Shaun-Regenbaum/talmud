@@ -7,7 +7,7 @@
  * Composes on the commentary fetch: its input is the per-verse Rishonim.
  */
 
-import { runLLM, type LLMEnv } from '@corpus/core/llm/llm';
+import { type LLMEnv, runLLM } from '@corpus/core/llm/llm';
 import { costUsd } from '@corpus/core/llm/pricing';
 
 export interface SynthesisResult {
@@ -23,7 +23,7 @@ const SYSTEM = [
   'You summarize how the classic Jewish commentators read a verse of the Hebrew',
   'Bible, for a reader deciding what to dig into.',
   '',
-  'You are given the verse and several commentators\' notes. Write a short',
+  "You are given the verse and several commentators' notes. Write a short",
   'overview of the MAIN lines of interpretation: what they broadly agree on, and',
   'where — and how — they differ.',
   '',
@@ -46,7 +46,12 @@ const SCHEMA = {
   },
 };
 
-export async function synthesize(env: LLMEnv, ref: string, verseText: string, commentatorsText: string): Promise<SynthesisResult> {
+export async function synthesize(
+  env: LLMEnv,
+  ref: string,
+  verseText: string,
+  commentatorsText: string,
+): Promise<SynthesisResult> {
   const res = await runLLM(env, {
     messages: [
       { role: 'system', content: SYSTEM },

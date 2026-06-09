@@ -4,9 +4,7 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "mechanism"
-    ],
+    "required": ["mechanism"],
     "properties": {
       "mechanism": {
         "type": "string"

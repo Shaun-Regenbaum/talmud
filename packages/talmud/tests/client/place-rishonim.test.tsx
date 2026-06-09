@@ -1,13 +1,25 @@
 // @vitest-environment jsdom
 import { render } from '@solidjs/testing-library';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { PLACES_HINT, PlaceChips, RISHONIM_RECIPE, RISHONIM_BLOCKS, rishonimDisplayInstance, rishonimSynthInstance, type PlaceInstance, type RishonimInstance } from '../../src/client/ArgumentSidebar';
-import { SidebarPanelFromHint, SidebarCardFromHint } from '../../src/client/sidebar/primitives';
+import {
+  PLACES_HINT,
+  PlaceChips,
+  type PlaceInstance,
+  RISHONIM_BLOCKS,
+  RISHONIM_RECIPE,
+  type RishonimInstance,
+  rishonimDisplayInstance,
+  rishonimSynthInstance,
+} from '../../src/client/ArgumentSidebar';
 import { setLang, t } from '../../src/client/i18n';
+import { SidebarCardFromHint, SidebarPanelFromHint } from '../../src/client/sidebar/primitives';
 
 beforeEach(() => {
   setLang('en');
-  vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => [] }) as unknown as Response));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => ({ ok: true, json: async () => [] }) as unknown as Response),
+  );
 });
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -16,11 +28,23 @@ afterEach(() => {
 
 describe('place panel (generic hint adapter + place chips)', () => {
   const place: PlaceInstance = {
-    fields: { name: 'Tiberias', nameHe: 'טבריה', kind: 'city', region: 'israel', knownAs: ['Tveria'] },
+    fields: {
+      name: 'Tiberias',
+      nameHe: 'טבריה',
+      kind: 'city',
+      region: 'israel',
+      knownAs: ['Tveria'],
+    },
   };
   it('renders the accent title, Hebrew twin, and region/kind chips via SidebarPanelFromHint', () => {
     const { container } = render(() => (
-      <SidebarPanelFromHint hint={PLACES_HINT} instance={place} tractate="Shabbat" page="125b" chips={<PlaceChips place={place} />} />
+      <SidebarPanelFromHint
+        hint={PLACES_HINT}
+        instance={place}
+        tractate="Shabbat"
+        page="125b"
+        chips={<PlaceChips place={place} />}
+      />
     ));
     expect(container.querySelector('h3')!.textContent).toBe('Tiberias');
     const sub = container.querySelector('p[dir="rtl"]')!;

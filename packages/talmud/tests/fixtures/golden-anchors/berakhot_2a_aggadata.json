@@ -1,40 +1,40 @@
 {
- "tractate": "Berakhot",
- "page": "2a",
- "mark": "aggadata",
- "cache_hit": true,
- "raw": {
-  "instances": [
-   {
-    "startSegIdx": 3,
-    "endSegIdx": 3,
-    "fields": {
-     "title": "Rabban Gamliel and his sons",
-     "titleHe": "מעשה בבני רבן גמליאל",
-     "summary": "Rabban Gamliel's sons return late from a wedding feast and have not yet recited the Shema. He tells them that if dawn has not yet broken, they are still obligated to recite it, teaching that the mitzvah extends until dawn.",
-     "excerpt": "מַעֲשֶׂה וּבָאוּ בָנָיו מִבֵּית הַמִּשְׁתֶּה",
-     "endExcerpt": "חַיָּיבִין אַתֶּם לִקְרוֹת",
-     "theme": "biography"
-    }
-   }
-  ]
- },
- "expected": {
-  "instances": [
-   {
-    "startSegIdx": 3,
-    "endSegIdx": 3,
-    "fields": {
-     "title": "Rabban Gamliel and his sons",
-     "titleHe": "מעשה בבני רבן גמליאל",
-     "summary": "Rabban Gamliel's sons return late from a wedding feast and have not yet recited the Shema. He tells them that if dawn has not yet broken, they are still obligated to recite it, teaching that the mitzvah extends until dawn.",
-     "excerpt": "מַעֲשֶׂה וּבָאוּ בָנָיו מִבֵּית הַמִּשְׁתֶּה",
-     "endExcerpt": "חַיָּיבִין אַתֶּם לִקְרוֹת",
-     "theme": "biography",
-     "tokenStart": 0,
-     "tokenEnd": 20
-    }
-   }
-  ]
- }
+  "tractate": "Berakhot",
+  "page": "2a",
+  "mark": "aggadata",
+  "cache_hit": true,
+  "raw": {
+    "instances": [
+      {
+        "startSegIdx": 3,
+        "endSegIdx": 3,
+        "fields": {
+          "title": "Rabban Gamliel and his sons",
+          "titleHe": "מעשה בבני רבן גמליאל",
+          "summary": "Rabban Gamliel's sons return late from a wedding feast and have not yet recited the Shema. He tells them that if dawn has not yet broken, they are still obligated to recite it, teaching that the mitzvah extends until dawn.",
+          "excerpt": "מַעֲשֶׂה וּבָאוּ בָנָיו מִבֵּית הַמִּשְׁתֶּה",
+          "endExcerpt": "חַיָּיבִין אַתֶּם לִקְרוֹת",
+          "theme": "biography"
+        }
+      }
+    ]
+  },
+  "expected": {
+    "instances": [
+      {
+        "startSegIdx": 3,
+        "endSegIdx": 3,
+        "fields": {
+          "title": "Rabban Gamliel and his sons",
+          "titleHe": "מעשה בבני רבן גמליאל",
+          "summary": "Rabban Gamliel's sons return late from a wedding feast and have not yet recited the Shema. He tells them that if dawn has not yet broken, they are still obligated to recite it, teaching that the mitzvah extends until dawn.",
+          "excerpt": "מַעֲשֶׂה וּבָאוּ בָנָיו מִבֵּית הַמִּשְׁתֶּה",
+          "endExcerpt": "חַיָּיבִין אַתֶּם לִקְרוֹת",
+          "theme": "biography",
+          "tokenStart": 0,
+          "tokenEnd": 20
+        }
+      }
+    ]
+  }
 }

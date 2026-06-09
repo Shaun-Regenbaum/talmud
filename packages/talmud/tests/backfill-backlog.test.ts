@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { dafFromCacheKey } from '../src/worker/backfill-backlog';
 import { slugDaf } from '../src/worker/cache-keys';
 

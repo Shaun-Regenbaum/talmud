@@ -1,18 +1,20 @@
-import { describe, it, expect } from 'vitest';
-import {
-  noteLintAttempt,
-  readLintFailures,
-  MAX_LINT_ATTEMPTS,
-} from '../src/worker/lint-failures';
+import { describe, expect, it } from 'vitest';
+import { MAX_LINT_ATTEMPTS, noteLintAttempt, readLintFailures } from '../src/worker/lint-failures';
 
 // Minimal in-memory KV stub — get/put/delete are all this module touches.
 function fakeKV() {
   const store = new Map<string, string>();
   const kv = {
     store,
-    async get(k: string): Promise<string | null> { return store.has(k) ? store.get(k)! : null; },
-    async put(k: string, v: string): Promise<void> { store.set(k, v); },
-    async delete(k: string): Promise<void> { store.delete(k); },
+    async get(k: string): Promise<string | null> {
+      return store.has(k) ? store.get(k)! : null;
+    },
+    async put(k: string, v: string): Promise<void> {
+      store.set(k, v);
+    },
+    async delete(k: string): Promise<void> {
+      store.delete(k);
+    },
   };
   return kv as typeof kv & KVNamespace;
 }
@@ -21,12 +23,24 @@ function fakeKV() {
 function fakeCtx() {
   const tasks: Promise<unknown>[] = [];
   return {
-    waitUntil(p: Promise<unknown>) { tasks.push(p); },
-    flush() { return Promise.all(tasks); },
+    waitUntil(p: Promise<unknown>) {
+      tasks.push(p);
+    },
+    flush() {
+      return Promise.all(tasks);
+    },
   };
 }
 
-const meta = (over: Partial<{ enrichmentId: string; tractate: string; page: string; lang: 'en' | 'he'; issues: unknown[] }> = {}) => ({
+const meta = (
+  over: Partial<{
+    enrichmentId: string;
+    tractate: string;
+    page: string;
+    lang: 'en' | 'he';
+    issues: unknown[];
+  }> = {},
+) => ({
   enrichmentId: 'halacha.practical',
   tractate: 'Shabbat',
   page: '101b',
@@ -73,10 +87,17 @@ describe('noteLintAttempt — bounded retry then pin', () => {
     const env = { CACHE: fakeKV() };
     const ctx = fakeCtx();
     for (let i = 0; i < MAX_LINT_ATTEMPTS; i++) {
-      await noteLintAttempt(env, ctx, 'k', meta({ issues: [
-        { kind: 'bare-transliteration', translit: 'bedieved', hebrew: 'בדיעבד' },
-        { kind: 'calque', match: 'house of justice', hebrew: 'בית דין' },
-      ] }));
+      await noteLintAttempt(
+        env,
+        ctx,
+        'k',
+        meta({
+          issues: [
+            { kind: 'bare-transliteration', translit: 'bedieved', hebrew: 'בדיעבד' },
+            { kind: 'calque', match: 'house of justice', hebrew: 'בית דין' },
+          ],
+        }),
+      );
     }
     await ctx.flush();
     const { recent } = await readLintFailures(env.CACHE);
@@ -98,7 +119,16 @@ describe('noteLintAttempt — bounded retry then pin', () => {
     const env = { CACHE: fakeKV() };
     const ctx = fakeCtx();
     for (let i = 0; i < MAX_LINT_ATTEMPTS; i++) await noteLintAttempt(env, ctx, 'cardA', meta());
-    for (let i = 0; i < MAX_LINT_ATTEMPTS; i++) await noteLintAttempt(env, ctx, 'cardB', meta({ enrichmentId: 'pesukim.synthesis', issues: [{ kind: 'missing-hebrew-excerpt', book: 'Tehillim', chapter: 119, verse: 62 }] }));
+    for (let i = 0; i < MAX_LINT_ATTEMPTS; i++)
+      await noteLintAttempt(
+        env,
+        ctx,
+        'cardB',
+        meta({
+          enrichmentId: 'pesukim.synthesis',
+          issues: [{ kind: 'missing-hebrew-excerpt', book: 'Tehillim', chapter: 119, verse: 62 }],
+        }),
+      );
     await ctx.flush();
     const { counts, recent } = await readLintFailures(env.CACHE);
     expect(counts['halacha.practical']).toBe(1);

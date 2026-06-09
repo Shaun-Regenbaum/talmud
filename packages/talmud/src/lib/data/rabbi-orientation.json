@@ -10,9 +10,7 @@
       "hasBio": true,
       "orientation": "mixed",
       "domain": "both",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-yehudah-b-ilai": {
@@ -21,9 +19,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Usha"
-      ],
+      "academies": ["Usha"],
       "processed": true
     },
     "rava": {
@@ -32,10 +28,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Mehoza",
-        "Pumbedita"
-      ],
+      "academies": ["Mehoza", "Pumbedita"],
       "processed": true
     },
     "rav": {
@@ -44,9 +37,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rabbi-yose-b-chalafta": {
@@ -55,9 +46,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Tzippori"
-      ],
+      "academies": ["Tzippori"],
       "processed": true
     },
     "rabbi-meir": {
@@ -66,9 +55,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Usha"
-      ],
+      "academies": ["Usha"],
       "processed": true
     },
     "shimon-bar-yochai": {
@@ -77,9 +64,7 @@
       "hasBio": true,
       "orientation": "mystical",
       "domain": "both",
-      "academies": [
-        "Usha"
-      ],
+      "academies": ["Usha"],
       "processed": true
     },
     "shmuel-(amora)": {
@@ -97,9 +82,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rabbi-eliezer-b-hyrcanus": {
@@ -108,9 +91,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Lod"
-      ],
+      "academies": ["Lod"],
       "processed": true
     },
     "rabbi-akiva": {
@@ -119,10 +100,7 @@
       "hasBio": true,
       "orientation": "mystical",
       "domain": "halakhist",
-      "academies": [
-        "Bnei Brak",
-        "Lod"
-      ],
+      "academies": ["Bnei Brak", "Lod"],
       "processed": true
     },
     "rabi": {
@@ -131,10 +109,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tzippori",
-        "Tiberias"
-      ],
+      "academies": ["Tzippori", "Tiberias"],
       "processed": true
     },
     "rabbi-shimon-b-lakish": {
@@ -143,9 +118,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rav-yehudah-b-yechezkel": {
@@ -154,9 +127,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "jewish-people": {
@@ -174,9 +145,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Nehardea"
-      ],
+      "academies": ["Nehardea"],
       "processed": true
     },
     "beit-shammai": {
@@ -194,9 +163,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rav-zera": {
@@ -205,9 +172,7 @@
       "hasBio": true,
       "orientation": "mixed",
       "domain": "both",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "moses": {
@@ -225,9 +190,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "other"
-      ],
+      "academies": ["other"],
       "processed": true
     },
     "rav-huna": {
@@ -236,9 +199,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rav-chisda": {
@@ -247,10 +208,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura",
-        "other"
-      ],
+      "academies": ["Sura", "other"],
       "processed": true
     },
     "beit-hillel": {
@@ -277,9 +235,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Yavneh"
-      ],
+      "academies": ["Yavneh"],
       "processed": true
     },
     "rabbah-b-nachmani": {
@@ -288,9 +244,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "israel": {
@@ -308,9 +262,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "the-tetragrammaton": {
@@ -328,9 +280,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "king-david": {
@@ -357,9 +307,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-yehoshua-b-levi": {
@@ -368,9 +316,7 @@
       "hasBio": true,
       "orientation": "mystical",
       "domain": "both",
-      "academies": [
-        "Lod"
-      ],
+      "academies": ["Lod"],
       "processed": true
     },
     "rav-sheshet": {
@@ -397,10 +343,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias",
-        "Pumbedita"
-      ],
+      "academies": ["Tiberias", "Pumbedita"],
       "processed": true
     },
     "abraham": {
@@ -427,9 +370,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-yitzhak": {
@@ -456,9 +397,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "prayer": {
@@ -476,9 +415,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Caesarea"
-      ],
+      "academies": ["Caesarea"],
       "processed": true
     },
     "level": {
@@ -505,9 +442,7 @@
       "hasBio": true,
       "orientation": "mixed",
       "domain": "both",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-yannai": {
@@ -516,9 +451,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "aggadist",
-      "academies": [
-        "Tzippori"
-      ],
+      "academies": ["Tzippori"],
       "processed": true
     },
     "torah": {
@@ -590,9 +523,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Tzippori"
-      ],
+      "academies": ["Tzippori"],
       "processed": true
     },
     "rabbi-tarfon": {
@@ -601,10 +532,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Yavneh",
-        "Lod"
-      ],
+      "academies": ["Yavneh", "Lod"],
       "processed": true
     },
     "rav-aha": {
@@ -613,10 +541,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "unknown",
-      "academies": [
-        "Lod",
-        "Jerusalem"
-      ],
+      "academies": ["Lod", "Jerusalem"],
       "processed": true
     },
     "king-solomon": {
@@ -634,9 +559,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-yose-hagelili": {
@@ -654,9 +577,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "learning": {
@@ -701,9 +622,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Usha"
-      ],
+      "academies": ["Usha"],
       "processed": true
     },
     "rabbi-elazar-b-azaryah": {
@@ -712,9 +631,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Yavneh"
-      ],
+      "academies": ["Yavneh"],
       "processed": true
     },
     "rabbi-ilai-(ii)": {
@@ -723,9 +640,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Usha"
-      ],
+      "academies": ["Usha"],
       "processed": true
     },
     "shabbat": {
@@ -743,9 +658,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Bnei Brak"
-      ],
+      "academies": ["Bnei Brak"],
       "processed": true
     },
     "rabbi-elazar-b-shimon": {
@@ -772,9 +685,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Tzippori"
-      ],
+      "academies": ["Tzippori"],
       "processed": true
     },
     "rabbi-avin-(ravin)": {
@@ -783,9 +694,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "both",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "kabbalah": {
@@ -803,9 +712,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "aggadist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "nukba": {
@@ -850,9 +757,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "noah": {
@@ -924,9 +829,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Yavneh"
-      ],
+      "academies": ["Yavneh"],
       "processed": true
     },
     "rabban-yochanan-b-zakkai": {
@@ -935,10 +838,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Yavneh",
-        "Jerusalem"
-      ],
+      "academies": ["Yavneh", "Jerusalem"],
       "processed": true
     },
     "esther": {
@@ -1028,9 +928,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "esau": {
@@ -1057,9 +955,7 @@
       "hasBio": true,
       "orientation": "mixed",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "sacrifices": {
@@ -1149,9 +1045,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "other"
-      ],
+      "academies": ["other"],
       "processed": true
     },
     "tsaddik": {
@@ -1259,9 +1153,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "aggadist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "hezekiah": {
@@ -1306,9 +1198,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Jerusalem"
-      ],
+      "academies": ["Jerusalem"],
       "processed": true
     },
     "sumkhos": {
@@ -1380,9 +1270,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "torah-study": {
@@ -1463,9 +1351,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rabbi-yishmael-b-yose": {
@@ -1501,9 +1387,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "tiferet1": {
@@ -1638,9 +1522,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "aggadist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "shekhinah": {
@@ -1703,9 +1585,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Usha"
-      ],
+      "academies": ["Usha"],
       "processed": true
     },
     "joy": {
@@ -1723,9 +1603,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "both",
-      "academies": [
-        "Caesarea"
-      ],
+      "academies": ["Caesarea"],
       "processed": true
     },
     "elisha": {
@@ -1761,10 +1639,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura",
-        "Tiberias"
-      ],
+      "academies": ["Sura", "Tiberias"],
       "processed": true
     },
     "shemitah": {
@@ -1836,9 +1711,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Yavneh"
-      ],
+      "academies": ["Yavneh"],
       "processed": true
     },
     "the-book-of-esther": {
@@ -1883,9 +1756,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "unknown",
-      "academies": [
-        "Usha"
-      ],
+      "academies": ["Usha"],
       "processed": true
     },
     "ruth": {
@@ -2047,9 +1918,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "aggadist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "yesod1": {
@@ -2085,9 +1954,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "unknown",
-      "academies": [
-        "Tzippori"
-      ],
+      "academies": ["Tzippori"],
       "processed": true
     },
     "tisha-bav": {
@@ -2150,10 +2017,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Caesarea",
-        "Sura"
-      ],
+      "academies": ["Caesarea", "Sura"],
       "processed": true
     },
     "kindness": {
@@ -2432,9 +2296,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Jerusalem"
-      ],
+      "academies": ["Jerusalem"],
       "processed": true
     },
     "haftarah": {
@@ -2497,9 +2359,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "poverty": {
@@ -2535,10 +2395,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "aggadist",
-      "academies": [
-        "Tiberias",
-        "Tzippori"
-      ],
+      "academies": ["Tiberias", "Tzippori"],
       "processed": true
     },
     "parashat-bereshit": {
@@ -2601,9 +2458,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Usha"
-      ],
+      "academies": ["Usha"],
       "processed": true
     },
     "parashat-shemini": {
@@ -2711,9 +2566,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Tzippori"
-      ],
+      "academies": ["Tzippori"],
       "processed": true
     },
     "rebbi-samuel": {
@@ -2722,9 +2575,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "aggadist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "the-patriarchs": {
@@ -2769,9 +2620,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Caesarea"
-      ],
+      "academies": ["Caesarea"],
       "processed": true
     },
     "parashat-lech-lecha": {
@@ -3140,9 +2989,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "unknown",
-      "academies": [
-        "Usha"
-      ],
+      "academies": ["Usha"],
       "processed": true
     },
     "rabbi-hanina-b-pappa": {
@@ -3151,9 +2998,7 @@
       "hasBio": true,
       "orientation": "mystical",
       "domain": "both",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "parashat-shelach": {
@@ -3333,9 +3178,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "honoring-parents": {
@@ -3425,9 +3268,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "other"
-      ],
+      "academies": ["other"],
       "processed": true
     },
     "taharah": {
@@ -3913,9 +3754,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "sotah": {
@@ -4023,9 +3862,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "parashat-vayikra": {
@@ -4169,9 +4006,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Jerusalem"
-      ],
+      "academies": ["Jerusalem"],
       "processed": true
     },
     "dogs": {
@@ -4468,10 +4303,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Jerusalem",
-        "Yavneh"
-      ],
+      "academies": ["Jerusalem", "Yavneh"],
       "processed": true
     },
     "hope": {
@@ -4489,9 +4321,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tzippori"
-      ],
+      "academies": ["Tzippori"],
       "processed": true
     },
     "music": {
@@ -4797,9 +4627,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "aggadist",
-      "academies": [
-        "Caesarea"
-      ],
+      "academies": ["Caesarea"],
       "processed": true
     },
     "social-justice": {
@@ -4880,9 +4708,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "unknown",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "kush": {
@@ -5350,9 +5176,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "aggadist",
-      "academies": [
-        "Tzippori"
-      ],
+      "academies": ["Tzippori"],
       "processed": true
     },
     "micah": {
@@ -5451,9 +5275,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Yavneh"
-      ],
+      "academies": ["Yavneh"],
       "processed": true
     },
     "rabbi-yose-b-kippar": {
@@ -5624,9 +5446,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "other"
-      ],
+      "academies": ["other"],
       "processed": true
     },
     "mother": {
@@ -5725,9 +5545,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "hasmoneans": {
@@ -5754,9 +5572,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Jerusalem"
-      ],
+      "academies": ["Jerusalem"],
       "processed": true
     },
     "naaman": {
@@ -5774,9 +5590,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "aggadist",
-      "academies": [
-        "Caesarea"
-      ],
+      "academies": ["Caesarea"],
       "processed": true
     },
     "adar": {
@@ -5875,9 +5689,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "unknown",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "parashat-terumah": {
@@ -6039,9 +5851,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "yehudah-b-tema": {
@@ -6959,9 +6769,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "unknown",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "jewish-identity": {
@@ -7942,9 +7750,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "syria": {
@@ -8349,9 +8155,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "nun": {
@@ -8405,9 +8209,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "other"
-      ],
+      "academies": ["other"],
       "processed": true
     },
     "maharal": {
@@ -8596,9 +8398,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "other"
-      ],
+      "academies": ["other"],
       "processed": true
     },
     "ushpizin": {
@@ -8760,10 +8560,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Usha",
-        "Yavneh"
-      ],
+      "academies": ["Usha", "Yavneh"],
       "processed": true
     },
     "tuesday": {
@@ -8799,9 +8596,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "nahum-of-gamzo": {
@@ -8864,9 +8659,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-elazar-b-parta": {
@@ -8875,9 +8668,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "unknown",
-      "academies": [
-        "Yavneh"
-      ],
+      "academies": ["Yavneh"],
       "processed": true
     },
     "rabbi-admon-b-gedai": {
@@ -8904,9 +8695,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Yavneh"
-      ],
+      "academies": ["Yavneh"],
       "processed": true
     },
     "rabbi-elazar-b-hananiah": {
@@ -8996,9 +8785,7 @@
       "hasBio": true,
       "orientation": "mixed",
       "domain": "halakhist",
-      "academies": [
-        "Jerusalem"
-      ],
+      "academies": ["Jerusalem"],
       "processed": true
     },
     "rabbi-nahum-ha-lavlar": {
@@ -9034,9 +8821,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Yavneh"
-      ],
+      "academies": ["Yavneh"],
       "processed": true
     },
     "rabbi-shimon-b-hillel": {
@@ -9054,9 +8839,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "unknown",
-      "academies": [
-        "Jerusalem"
-      ],
+      "academies": ["Jerusalem"],
       "processed": true
     },
     "rabbi-zechariah-b-avkulos": {
@@ -9065,9 +8848,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "aggadist",
-      "academies": [
-        "Jerusalem"
-      ],
+      "academies": ["Jerusalem"],
       "processed": true
     },
     "rabbi-yochanan-b-gudgada": {
@@ -9094,10 +8875,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Yavneh",
-        "other"
-      ],
+      "academies": ["Yavneh", "other"],
       "processed": true
     },
     "rabbi-yosei-ha-kohen": {
@@ -9106,9 +8884,7 @@
       "hasBio": true,
       "orientation": "mystical",
       "domain": "aggadist",
-      "academies": [
-        "Yavneh"
-      ],
+      "academies": ["Yavneh"],
       "processed": true
     },
     "rabbi-nehemiah-ha-amsoni": {
@@ -9126,9 +8902,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "unknown",
-      "academies": [
-        "Yavneh"
-      ],
+      "academies": ["Yavneh"],
       "processed": true
     },
     "rabbi-nechunya-b-hakana": {
@@ -9146,9 +8920,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Yavneh"
-      ],
+      "academies": ["Yavneh"],
       "processed": true
     },
     "rabbi-shimon-b-hasgan": {
@@ -9157,9 +8929,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Yavneh"
-      ],
+      "academies": ["Yavneh"],
       "processed": true
     },
     "rabbi-shimon-ha-pakoli": {
@@ -9195,10 +8965,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Yavneh",
-        "Lod"
-      ],
+      "academies": ["Yavneh", "Lod"],
       "processed": true
     },
     "rabbi-elazar-b-matya": {
@@ -9207,9 +8974,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Yavneh"
-      ],
+      "academies": ["Yavneh"],
       "processed": true
     },
     "rabbi-elazar-ha-moda-i": {
@@ -9263,9 +9028,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tzippori"
-      ],
+      "academies": ["Tzippori"],
       "processed": true
     },
     "rabbi-chanina-b-gamliel": {
@@ -9274,9 +9037,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Yavneh"
-      ],
+      "academies": ["Yavneh"],
       "processed": true
     },
     "rabbi-chanina-b-antigonus": {
@@ -9348,9 +9109,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "other"
-      ],
+      "academies": ["other"],
       "processed": true
     },
     "rabbi-yochanan-b-torta": {
@@ -9395,9 +9154,7 @@
       "hasBio": true,
       "orientation": "mystical",
       "domain": "aggadist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-matya-b-charash": {
@@ -9406,9 +9163,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "other"
-      ],
+      "academies": ["other"],
       "processed": true
     },
     "rabbi-shimon-b-nanas": {
@@ -9471,9 +9226,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "aggadist",
-      "academies": [
-        "Usha"
-      ],
+      "academies": ["Usha"],
       "processed": true
     },
     "rabbi-yehoshua-b-korcha": {
@@ -9482,9 +9235,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Usha"
-      ],
+      "academies": ["Usha"],
       "processed": true
     },
     "rabbi-yehoshua-ha-garsi": {
@@ -9538,9 +9289,7 @@
       "hasBio": true,
       "orientation": "mystical",
       "domain": "aggadist",
-      "academies": [
-        "Lod"
-      ],
+      "academies": ["Lod"],
       "processed": true
     },
     "rabbi-shimon-shezuri": {
@@ -9567,9 +9316,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "unknown",
-      "academies": [
-        "Usha"
-      ],
+      "academies": ["Usha"],
       "processed": true
     },
     "rabbi-elazar-b-rabbi-shimon": {
@@ -9587,9 +9334,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "both",
-      "academies": [
-        "Lod"
-      ],
+      "academies": ["Lod"],
       "processed": true
     },
     "rabbi-achi-b-rabbi-yoshiah": {
@@ -9688,10 +9433,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias",
-        "Tzippori"
-      ],
+      "academies": ["Tiberias", "Tzippori"],
       "processed": true
     },
     "rabbi-plimo": {
@@ -9727,9 +9469,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tzippori"
-      ],
+      "academies": ["Tzippori"],
       "processed": true
     },
     "rabbi-efes": {
@@ -9738,9 +9478,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Lod"
-      ],
+      "academies": ["Lod"],
       "processed": true
     },
     "rabbi-zakkai-of-kabul": {
@@ -9749,9 +9487,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "other"
-      ],
+      "academies": ["other"],
       "processed": true
     },
     "rabbi-yehuda-b-kenusa": {
@@ -9769,9 +9505,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "unknown",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-yonatan-b-elazar": {
@@ -9807,9 +9541,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "aggadist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-yitzchak-of-magdala": {
@@ -9827,9 +9559,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-abba-bar-avina": {
@@ -9892,9 +9622,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-avdimi-of-haifa": {
@@ -9921,9 +9649,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-hanina-turtaya": {
@@ -9950,9 +9676,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-alexandri": {
@@ -9970,9 +9694,7 @@
       "hasBio": true,
       "orientation": "mixed",
       "domain": "both",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-yehuda-nesiah-ii": {
@@ -9981,9 +9703,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-yehudah-bar-peda": {
@@ -10001,9 +9721,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "aggadist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-yochanan-dekatzion": {
@@ -10048,9 +9766,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "both",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-shimon-b-pazzi-2": {
@@ -10059,9 +9775,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "aggadist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-shimon-bar-abba": {
@@ -10070,9 +9784,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-mani-bar-patish": {
@@ -10081,9 +9793,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tzippori"
-      ],
+      "academies": ["Tzippori"],
       "processed": true
     },
     "rabbi-tanhum": {
@@ -10128,9 +9838,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-abba-b-pappa": {
@@ -10148,9 +9856,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "aggadist",
-      "academies": [
-        "Caesarea"
-      ],
+      "academies": ["Caesarea"],
       "processed": true
     },
     "rabbi-tanchum-bar-chanilai": {
@@ -10186,9 +9892,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "aggadist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-aibu": {
@@ -10197,9 +9901,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "aggadist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-ami": {
@@ -10208,9 +9910,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-assi-2": {
@@ -10219,9 +9919,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-ila": {
@@ -10230,9 +9928,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "both",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-binyamin-b-yefet": {
@@ -10241,9 +9937,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "aggadist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-ami-of-vardina": {
@@ -10279,9 +9973,7 @@
       "hasBio": true,
       "orientation": "mystical",
       "domain": "aggadist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rav-chaga": {
@@ -10290,9 +9982,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-yudan-b-yishmael": {
@@ -10319,9 +10009,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rabbi-yosei-ha-glila": {
@@ -10348,9 +10036,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-yitzchak-atushia": {
@@ -10359,9 +10045,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-perida": {
@@ -10370,9 +10054,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "aggadist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-anani-b-sasson": {
@@ -10426,9 +10108,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "aggadist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-abba-b-kahana": {
@@ -10437,9 +10117,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "aggadist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-tachlifa-bar-ma-arava": {
@@ -10448,9 +10126,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-pharnakh": {
@@ -10486,9 +10162,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "aggadist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-abba-oshaya-ish-turya": {
@@ -10569,9 +10243,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rav-huna-son-of-rav-ika": {
@@ -10634,9 +10306,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "unknown",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-yusta-bar-shunem": {
@@ -10717,9 +10387,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-yosei-bar-zevida": {
@@ -10728,9 +10396,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rabbi-hananiah": {
@@ -10739,9 +10405,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Tzippori"
-      ],
+      "academies": ["Tzippori"],
       "processed": true
     },
     "rav-karna": {
@@ -10759,9 +10423,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tzippori"
-      ],
+      "academies": ["Tzippori"],
       "processed": true
     },
     "rav-yechezkel": {
@@ -10779,9 +10441,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Nehardea"
-      ],
+      "academies": ["Nehardea"],
       "processed": true
     },
     "rav-avimi": {
@@ -10799,10 +10459,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura",
-        "Bnei Brak"
-      ],
+      "academies": ["Sura", "Bnei Brak"],
       "processed": true
     },
     "rav-avin-naggara": {
@@ -10820,9 +10477,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rav-ashian-b-nadvach": {
@@ -10858,9 +10513,7 @@
       "hasBio": true,
       "orientation": "mystical",
       "domain": "aggadist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rav-hamnuna": {
@@ -10869,9 +10522,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rav-hana-b-bizna": {
@@ -10880,9 +10531,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "aggadist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rav-hilkiah-b-tovi": {
@@ -10909,9 +10558,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rav-hanan-bar-ami": {
@@ -10929,9 +10576,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rav-hana-bar-hanilai": {
@@ -10976,9 +10621,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rav-yechiel": {
@@ -10996,9 +10639,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rav-yeva-the-father-in-law-of-ashian-b-nadvach": {
@@ -11016,9 +10657,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rav-eina": {
@@ -11027,9 +10666,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rav-amram": {
@@ -11092,10 +10729,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Nehardea",
-        "Mehoza"
-      ],
+      "academies": ["Nehardea", "Mehoza"],
       "processed": true
     },
     "rav-rami-b-yechezkel": {
@@ -11131,9 +10765,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rav-dimi-b-yosef": {
@@ -11151,9 +10783,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rav-acha-b-ada": {
@@ -11171,9 +10801,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rav-hiyya-b-ami": {
@@ -11182,9 +10810,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Nehardea"
-      ],
+      "academies": ["Nehardea"],
       "processed": true
     },
     "rav-yitzchak-b-ashian": {
@@ -11220,9 +10846,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Mehoza"
-      ],
+      "academies": ["Mehoza"],
       "processed": true
     },
     "rav-mari-b-rachel": {
@@ -11231,9 +10855,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Mehoza"
-      ],
+      "academies": ["Mehoza"],
       "processed": true
     },
     "rav-sechora": {
@@ -11260,9 +10882,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rav-kahana-of-pum-nahara": {
@@ -11271,9 +10891,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "other"
-      ],
+      "academies": ["other"],
       "processed": true
     },
     "rava-b-machsiya": {
@@ -11291,9 +10909,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "ravin-b-rav-ada": {
@@ -11356,9 +10972,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rav-abba-b-marta": {
@@ -11385,9 +10999,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rav-bibi": {
@@ -11405,9 +11017,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Mehoza"
-      ],
+      "academies": ["Mehoza"],
       "processed": true
     },
     "rav-acha-bar-huna": {
@@ -11416,9 +11026,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Mehoza"
-      ],
+      "academies": ["Mehoza"],
       "processed": true
     },
     "rav-zevid": {
@@ -11427,9 +11035,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rav-zevid-of-nehardea": {
@@ -11438,9 +11044,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Nehardea"
-      ],
+      "academies": ["Nehardea"],
       "processed": true
     },
     "rav-yehuda-brother-of-rav-sela-the-hasid": {
@@ -11467,9 +11071,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rav-huna-b-yehuda": {
@@ -11487,9 +11089,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "mar-bereih-deravna": {
@@ -11552,9 +11152,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "aggadist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rav-sa-uram": {
@@ -11590,9 +11188,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Mehoza"
-      ],
+      "academies": ["Mehoza"],
       "processed": true
     },
     "rav-rami-bar-hama": {
@@ -11619,9 +11215,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Mehoza"
-      ],
+      "academies": ["Mehoza"],
       "processed": true
     },
     "rav-acha-b-rav-ika": {
@@ -11639,9 +11233,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "both",
-      "academies": [
-        "Nehardea"
-      ],
+      "academies": ["Nehardea"],
       "processed": true
     },
     "rav-hama": {
@@ -11650,9 +11242,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Nehardea"
-      ],
+      "academies": ["Nehardea"],
       "processed": true
     },
     "rav-amemar": {
@@ -11670,9 +11260,7 @@
       "hasBio": true,
       "orientation": "mixed",
       "domain": "both",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rav-huna-b-rav-yehoshua": {
@@ -11681,10 +11269,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita",
-        "other"
-      ],
+      "academies": ["Pumbedita", "other"],
       "processed": true
     },
     "rav-yosef-b-ami": {
@@ -11738,9 +11323,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Mehoza"
-      ],
+      "academies": ["Mehoza"],
       "processed": true
     },
     "rav-papi": {
@@ -11803,9 +11386,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rav-acha-b-abaye": {
@@ -11832,9 +11413,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rav-chavivi-of-mechoza": {
@@ -11843,9 +11422,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "unknown",
-      "academies": [
-        "Mehoza"
-      ],
+      "academies": ["Mehoza"],
       "processed": true
     },
     "mar-zutra": {
@@ -11854,9 +11431,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rav-yeimar": {
@@ -11865,9 +11440,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rav-huna-b-manoach": {
@@ -11885,9 +11458,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rav-nehemiah-b-rav-yosef": {
@@ -11896,9 +11467,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rav-rafram": {
@@ -11925,9 +11494,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rav-avahu": {
@@ -11936,9 +11503,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rav-hanina-of-sura": {
@@ -11947,9 +11512,7 @@
       "hasBio": true,
       "orientation": "unknown",
       "domain": "unknown",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rav-aha-b-rava": {
@@ -11958,9 +11521,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rav-amemar-b-mar-yanuka": {
@@ -11978,9 +11539,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rav-rechumi-ii": {
@@ -11989,9 +11548,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "mar-b-rav-ashi": {
@@ -12000,9 +11557,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rav-sama-b-rava": {
@@ -12011,9 +11566,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rav-achai": {
@@ -12031,9 +11584,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "other"
-      ],
+      "academies": ["other"],
       "processed": true
     },
     "rav-huna-gaon": {
@@ -12051,9 +11602,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Tiberias"
-      ],
+      "academies": ["Tiberias"],
       "processed": true
     },
     "rav-hanina-gaon": {
@@ -12071,9 +11620,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rav-yitzchak-of-peroz-shapur": {
@@ -12082,9 +11629,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "other"
-      ],
+      "academies": ["other"],
       "processed": true
     },
     "rav-hanan-of-ishkiya": {
@@ -12102,9 +11647,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Sura"
-      ],
+      "academies": ["Sura"],
       "processed": true
     },
     "rabbah-yosei": {
@@ -12113,9 +11656,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rav-simuna": {
@@ -12124,9 +11665,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rav-ravai-of-rov": {
@@ -12144,9 +11683,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     },
     "rav-shmuel-b-rav-avahu": {
@@ -12173,9 +11710,7 @@
       "hasBio": true,
       "orientation": "practical",
       "domain": "halakhist",
-      "academies": [
-        "Pumbedita"
-      ],
+      "academies": ["Pumbedita"],
       "processed": true
     }
   }

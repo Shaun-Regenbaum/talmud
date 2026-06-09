@@ -16,32 +16,32 @@ export interface VoiceGroup {
 }
 
 export const VOICE_GROUPS: Record<string, VoiceGroup> = {
-  'sages': {
+  sages: {
     name: 'The Sages (Chakhamim)',
     nameHe: 'חכמים',
     bio: "The collective rabbinic majority. In Mishnaic disputes, the Sages (חכמים) typically denote the position that disagrees with the named Tanna; halacha usually follows them unless the dispute is explicitly settled otherwise. The label refers to no single person — it's the consensus voice of the tannaitic generation in question.",
   },
-  'chakhamim': {
+  chakhamim: {
     name: 'The Sages (Chakhamim)',
     nameHe: 'חכמים',
-    bio: "The collective rabbinic majority. In Mishnaic disputes, the Sages (חכמים) typically denote the position that disagrees with the named Tanna; halacha usually follows them unless the dispute is explicitly settled otherwise.",
+    bio: 'The collective rabbinic majority. In Mishnaic disputes, the Sages (חכמים) typically denote the position that disagrees with the named Tanna; halacha usually follows them unless the dispute is explicitly settled otherwise.',
   },
   'tanna kamma': {
     name: 'Tanna Kamma',
     nameHe: 'תנא קמא',
     bio: "Tanna Kamma (תנא קמא, 'the first Tanna') — the anonymous opening voice of a Mishnah, whose view is presumed normative and majority unless a named dissenter is explicitly upheld. Often functionally identical with the Sages later in the same Mishnah.",
   },
-  'rabbanan': {
+  rabbanan: {
     name: 'Rabbanan (the Rabbis)',
     nameHe: 'רבנן',
     bio: "Rabbanan (רבנן) — the Aramaic collective for 'the Rabbis', the majority rabbinic voice in baraitot and amoraic discourse. Like Chakhamim, denotes the consensus position rather than any single named authority.",
   },
-  'rabbis': {
+  rabbis: {
     name: 'The Rabbis',
     nameHe: 'רבנן',
-    bio: "The collective rabbinic voice — the majority position in tannaitic and amoraic disputes when no single authority is named.",
+    bio: 'The collective rabbinic voice — the majority position in tannaitic and amoraic disputes when no single authority is named.',
   },
-  'stam': {
+  stam: {
     name: 'Stam (anonymous Gemara)',
     nameHe: 'סתם',
     bio: "Stam (סתם) — the anonymous editorial voice of the Gemara, attributed to the redactors (savora'im / late amora'im) who shaped the sugya's argument structure. The Stam asks questions, raises objections, frames answers, and resolves disputes without naming itself; modern Talmud scholarship reads it as a distinct compositional layer above the named tannaitic and amoraic dicta.",
@@ -51,30 +51,30 @@ export const VOICE_GROUPS: Record<string, VoiceGroup> = {
     nameHe: 'קושיית הגמרא',
     bio: "An anonymous question raised by the Stam (the Gemara's editorial voice). Not attributed to any named sage — it functions as a structural pivot that opens the sugya's discussion or interrogates a position before the next move answers it.",
   },
-  'gemara': {
+  gemara: {
     name: 'The Gemara (Stam)',
     nameHe: 'גמרא',
-    bio: "The anonymous editorial voice of the Talmud — see Stam.",
+    bio: 'The anonymous editorial voice of the Talmud — see Stam.',
   },
   'beit hillel': {
     name: 'Beit Hillel',
     nameHe: 'בית הלל',
-    bio: "Beit Hillel (בית הלל) — the school of Hillel, the dominant tannaitic legal school in late Second Temple and early post-Destruction halacha. Almost always followed in practice against Beit Shammai.",
+    bio: 'Beit Hillel (בית הלל) — the school of Hillel, the dominant tannaitic legal school in late Second Temple and early post-Destruction halacha. Almost always followed in practice against Beit Shammai.',
   },
   'beit shammai': {
     name: 'Beit Shammai',
     nameHe: 'בית שמאי',
-    bio: "Beit Shammai (בית שמאי) — the school of Shammai, generally the stricter halachic school, contemporaneous with Beit Hillel. Their position is recorded but almost always overruled in practice.",
+    bio: 'Beit Shammai (בית שמאי) — the school of Shammai, generally the stricter halachic school, contemporaneous with Beit Hillel. Their position is recorded but almost always overruled in practice.',
   },
 };
 
 const ALIAS_KEYS: Record<string, string> = {
-  'sage': 'sages',
+  sage: 'sages',
   'the sages': 'sages',
-  'chachamim': 'chakhamim',
-  'hakhamim': 'chakhamim',
+  chachamim: 'chakhamim',
+  hakhamim: 'chakhamim',
   'first tanna': 'tanna kamma',
-  'tk': 'tanna kamma',
+  tk: 'tanna kamma',
   'gemara questions': "gemara's question",
   'gemara asks': "gemara's question",
   'the gemara': 'gemara',

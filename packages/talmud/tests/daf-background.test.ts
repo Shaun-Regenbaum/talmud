@@ -1,6 +1,10 @@
-import { describe, it, expect } from 'vitest';
-import { orderBackgroundGroups, BACKGROUND_CATEGORY_ORDER, type BackgroundGroup } from '../src/client/backgroundGroups';
-import { CODE_MARKS, CODE_ENRICHMENTS } from '../src/worker/code-marks';
+import { describe, expect, it } from 'vitest';
+import {
+  BACKGROUND_CATEGORY_ORDER,
+  type BackgroundGroup,
+  orderBackgroundGroups,
+} from '../src/client/backgroundGroups';
+import { CODE_ENRICHMENTS, CODE_MARKS } from '../src/worker/code-marks';
 import { DAF_BACKGROUND_CONCEPTS_OUTPUT_SCHEMA } from '../src/worker/output-schemas';
 
 const term = (t: string, gloss = 'a gloss') => ({ term: t, termHe: '', gloss });
@@ -12,8 +16,11 @@ describe('orderBackgroundGroups — normalize the daf-background.concepts output
       { category: 'realia', terms: [term('maneh')] },
       { category: 'legal-concepts', terms: [term('shemira')] },
     ];
-    expect(orderBackgroundGroups(input).map((g) => g.category))
-      .toEqual(['legal-concepts', 'realia', 'assumed-prior']);
+    expect(orderBackgroundGroups(input).map((g) => g.category)).toEqual([
+      'legal-concepts',
+      'realia',
+      'assumed-prior',
+    ]);
   });
 
   it('drops groups with no usable terms (empty array stays out)', () => {
@@ -26,7 +33,14 @@ describe('orderBackgroundGroups — normalize the daf-background.concepts output
 
   it('drops terms missing a label or a gloss', () => {
     const input: BackgroundGroup[] = [
-      { category: 'realia', terms: [term('maneh'), { term: '', termHe: '', gloss: 'x' }, { term: 'ox', termHe: '', gloss: '' }] },
+      {
+        category: 'realia',
+        terms: [
+          term('maneh'),
+          { term: '', termHe: '', gloss: 'x' },
+          { term: 'ox', termHe: '', gloss: '' },
+        ],
+      },
     ];
     const out = orderBackgroundGroups(input);
     expect(out).toHaveLength(1);
@@ -73,10 +87,13 @@ describe('daf-background registry wiring', () => {
   const synthesis = CODE_ENRICHMENTS.find((e) => e.id === 'daf-background.synthesis');
 
   const depKey = (d: unknown): string =>
-    typeof d === 'string' ? d
-      : d && typeof d === 'object' && 'enrichment' in d ? `e:${(d as { enrichment: string }).enrichment}`
-      : d && typeof d === 'object' && 'mark' in d ? `m:${(d as { mark: string }).mark}`
-      : '?';
+    typeof d === 'string'
+      ? d
+      : d && typeof d === 'object' && 'enrichment' in d
+        ? `e:${(d as { enrichment: string }).enrichment}`
+        : d && typeof d === 'object' && 'mark' in d
+          ? `m:${(d as { mark: string }).mark}`
+          : '?';
 
   it('the mark exists, is reader-visible (not experimental), and renders as a chip', () => {
     expect(mark).toBeTruthy();

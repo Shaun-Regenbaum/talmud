@@ -21,8 +21,8 @@
  */
 
 import { iterAmudim, TRACTATE_END_AMUD } from '../lib/sefref/amudim';
-import { CODE_MARKS, CODE_ENRICHMENTS } from './code-marks';
-import { keyForGemara, slugTractate, slugDaf } from './cache-keys';
+import { keyForGemara, slugDaf, slugTractate } from './cache-keys';
+import { CODE_ENRICHMENTS, CODE_MARKS } from './code-marks';
 
 export interface CoverageColumn {
   id: string;
@@ -96,7 +96,9 @@ function pageSlugsFrom(keys: string[], tractateSlug: string): Set<string> {
   return present;
 }
 
-function resolveColumns(): (CoverageColumn & { prefix: (tractateSlug: string) => string | null })[] {
+function resolveColumns(): (CoverageColumn & {
+  prefix: (tractateSlug: string) => string | null;
+})[] {
   return COLUMNS.map((col) => {
     if (col.kind === 'source') {
       return { ...col, version: 'v1', prefix: (ts: string) => `ctx:gemara:v1:${ts}:` };
@@ -123,10 +125,13 @@ function resolveColumns(): (CoverageColumn & { prefix: (tractateSlug: string) =>
 }
 
 export function isKnownTractate(tractate: string): boolean {
-  return Object.prototype.hasOwnProperty.call(TRACTATE_END_AMUD, tractate.toLowerCase());
+  return Object.hasOwn(TRACTATE_END_AMUD, tractate.toLowerCase());
 }
 
-export async function computeCoverage(kv: KVNamespace, tractateRaw: string): Promise<CoverageReport> {
+export async function computeCoverage(
+  kv: KVNamespace,
+  tractateRaw: string,
+): Promise<CoverageReport> {
   const tractate = tractateRaw.toLowerCase();
   const tractateSlug = slugTractate(tractate);
   const columns = resolveColumns();

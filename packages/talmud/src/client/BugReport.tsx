@@ -1,4 +1,4 @@
-import { createSignal, Show, type JSX } from 'solid-js';
+import { createSignal, type JSX, Show } from 'solid-js';
 import { t } from './i18n';
 
 export interface BugReportProps {
@@ -80,7 +80,15 @@ export function BugReport(props: BugReportProps): JSX.Element {
           </Show>
         }
       >
-        <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.4rem', 'align-items': 'stretch', 'text-align': 'left' }}>
+        <div
+          style={{
+            display: 'flex',
+            'flex-direction': 'column',
+            gap: '0.4rem',
+            'align-items': 'stretch',
+            'text-align': 'left',
+          }}
+        >
           <div style={{ color: '#666', 'font-size': '0.72rem' }}>
             {t('bugreport.prompt', { daf: `${props.tractate} ${props.page}` })}
           </div>
@@ -104,7 +112,11 @@ export function BugReport(props: BugReportProps): JSX.Element {
           />
           <div style={{ display: 'flex', gap: '0.5rem', 'justify-content': 'flex-end' }}>
             <button
-              onClick={() => { setStatus('idle'); setText(''); setErrorMsg(null); }}
+              onClick={() => {
+                setStatus('idle');
+                setText('');
+                setErrorMsg(null);
+              }}
               disabled={status() === 'submitting'}
               style={{
                 background: 'transparent',

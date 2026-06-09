@@ -16,7 +16,13 @@
  */
 
 export type SeedAnchor = 'phrase' | 'segment-range' | 'segment' | 'whole-daf';
-export type SeedRender = 'inline' | 'gutter+sidebar' | 'row-tag' | 'meta-component' | 'visualization' | 'side-panel';
+export type SeedRender =
+  | 'inline'
+  | 'gutter+sidebar'
+  | 'row-tag'
+  | 'meta-component'
+  | 'visualization'
+  | 'side-panel';
 
 export interface SeedMark {
   id: string;
@@ -31,11 +37,16 @@ export interface SeedMark {
 }
 
 export interface SeedMarkInputs {
-  showGenMarkers:       () => boolean; setShowGenMarkers:       (v: boolean) => void; // dormant — rabbi is ported to the worker registry
-  showArguments:        () => boolean; setShowArguments:        (v: boolean) => void;
-  showHalachot:         () => boolean; setShowHalachot:         (v: boolean) => void;
-  showAggadatot:        () => boolean; setShowAggadatot:        (v: boolean) => void;
-  showPesukim:          () => boolean; setShowPesukim:          (v: boolean) => void;
+  showGenMarkers: () => boolean;
+  setShowGenMarkers: (v: boolean) => void; // dormant — rabbi is ported to the worker registry
+  showArguments: () => boolean;
+  setShowArguments: (v: boolean) => void;
+  showHalachot: () => boolean;
+  setShowHalachot: (v: boolean) => void;
+  showAggadatot: () => boolean;
+  setShowAggadatot: (v: boolean) => void;
+  showPesukim: () => boolean;
+  setShowPesukim: (v: boolean) => void;
 }
 
 /**

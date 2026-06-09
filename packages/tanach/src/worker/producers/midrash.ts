@@ -7,7 +7,7 @@
  * Composes on the midrash fetch (the Midrash-category links for the verse).
  */
 
-import { runLLM, type LLMEnv } from '@corpus/core/llm/llm';
+import { type LLMEnv, runLLM } from '@corpus/core/llm/llm';
 import { costUsd } from '@corpus/core/llm/pricing';
 
 export interface MidrashSynthResult {
@@ -30,7 +30,7 @@ const SYSTEM = [
   'Rules:',
   '- 2 to 4 sentences. Group by theme rather than listing each midrash.',
   '- Only summarize what the given excerpts say; invent nothing.',
-  '- This is aggada — narrative/homiletic. Do not present it as plain p\'shat or',
+  "- This is aggada — narrative/homiletic. Do not present it as plain p'shat or",
   '  as halacha.',
   '- Give it in BOTH English ("en") and natural, fluent Hebrew ("he").',
 ].join('\n');
@@ -46,7 +46,12 @@ const SCHEMA = {
   },
 };
 
-export async function midrashSynthesis(env: LLMEnv, ref: string, verseText: string, midrashText: string): Promise<MidrashSynthResult> {
+export async function midrashSynthesis(
+  env: LLMEnv,
+  ref: string,
+  verseText: string,
+  midrashText: string,
+): Promise<MidrashSynthResult> {
   const res = await runLLM(env, {
     messages: [
       { role: 'system', content: SYSTEM },

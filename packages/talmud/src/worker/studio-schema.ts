@@ -47,13 +47,13 @@ import type { SidebarRecipe } from '@corpus/core/sidebar/recipe';
 // ===========================================================================
 
 export type AnchorKind =
-  | 'segment'        // single Sefaria segment (used for per-segment classifications: era, language, speech-act)
-  | 'segment-range'  // span of consecutive segments (argument, halacha topic, aggadata story)
-  | 'phrase'         // word(s) within a segment (rabbi name, place name, plant)
-  | 'multi-anchor'   // paired non-adjacent spans (echo, inclusio, dispute pair)
-  | 'cross-daf'      // anchor here, target on another daf (parallel sugya, citation)
-  | 'external'       // anchor here, target off-daf (image, audio, wiki)
-  | 'whole-daf';     // no specific anchor; whole-daf concept (theme, difficulty, prerequisites)
+  | 'segment' // single Sefaria segment (used for per-segment classifications: era, language, speech-act)
+  | 'segment-range' // span of consecutive segments (argument, halacha topic, aggadata story)
+  | 'phrase' // word(s) within a segment (rabbi name, place name, plant)
+  | 'multi-anchor' // paired non-adjacent spans (echo, inclusio, dispute pair)
+  | 'cross-daf' // anchor here, target on another daf (parallel sugya, citation)
+  | 'external' // anchor here, target off-daf (image, audio, wiki)
+  | 'whole-daf'; // no specific anchor; whole-daf concept (theme, difficulty, prerequisites)
 
 /** Output shape: a single-segment instance. */
 export interface SegmentAnchor {
@@ -117,14 +117,14 @@ export type AnchorOutput =
 // ===========================================================================
 
 export type RenderKind =
-  | 'inline'           // decoration on the phrase/segment text itself
-  | 'gutter+sidebar'   // icon in margin + content in sidebar (current section pattern)
-  | 'row-tag'          // small label aligned to a segment row
-  | 'meta-component'   // named TS component triggered by click (rabbi-tree, geography-strip)
-  | 'overlay'          // re-renders the daf rendering (interlinear translation, vocalization)
-  | 'visualization'    // chart/map/network as the primary content
-  | 'connection'       // line/arrow between two anchors (multi-anchor only)
-  | 'chip';            // top-of-page badge (whole-daf only)
+  | 'inline' // decoration on the phrase/segment text itself
+  | 'gutter+sidebar' // icon in margin + content in sidebar (current section pattern)
+  | 'row-tag' // small label aligned to a segment row
+  | 'meta-component' // named TS component triggered by click (rabbi-tree, geography-strip)
+  | 'overlay' // re-renders the daf rendering (interlinear translation, vocalization)
+  | 'visualization' // chart/map/network as the primary content
+  | 'connection' // line/arrow between two anchors (multi-anchor only)
+  | 'chip'; // top-of-page badge (whole-daf only)
 
 export type InlineStyle = 'underline' | 'highlight' | 'border' | 'badge';
 
@@ -213,13 +213,13 @@ export type RenderConfig =
  *  this matrix opens a new combination; the corresponding renderer must
  *  handle it. */
 export const COMPATIBLE: Readonly<Record<AnchorKind, RenderKind[]>> = {
-  'segment':       ['row-tag', 'inline'],
+  segment: ['row-tag', 'inline'],
   'segment-range': ['gutter+sidebar', 'inline'],
-  'phrase':        ['inline', 'meta-component'],
-  'multi-anchor':  ['connection', 'gutter+sidebar'],
-  'cross-daf':     ['inline', 'meta-component'],
-  'external':      ['inline', 'meta-component'],
-  'whole-daf':     ['chip', 'visualization'],
+  phrase: ['inline', 'meta-component'],
+  'multi-anchor': ['connection', 'gutter+sidebar'],
+  'cross-daf': ['inline', 'meta-component'],
+  external: ['inline', 'meta-component'],
+  'whole-daf': ['chip', 'visualization'],
 };
 
 // ===========================================================================
@@ -314,7 +314,12 @@ export interface ManualExtractor {
   seed_instances?: MarkInstance[];
 }
 
-export type Extractor = LLMExtractor | SefariaExtractor | ComputedExtractor | ManualExtractor | LegacyEndpointExtractor;
+export type Extractor =
+  | LLMExtractor
+  | SefariaExtractor
+  | ComputedExtractor
+  | ManualExtractor
+  | LegacyEndpointExtractor;
 
 // ===========================================================================
 // Dependency types — declared inputs for marks (anchors) and enrichments.
@@ -351,7 +356,12 @@ export type Extractor = LLMExtractor | SefariaExtractor | ComputedExtractor | Ma
 // depend on anything.
 // ===========================================================================
 
-export type MarkDependency = 'gemara' | 'commentaries' | 'context' | 'yerushalmi-text' | { mark: string };
+export type MarkDependency =
+  | 'gemara'
+  | 'commentaries'
+  | 'context'
+  | 'yerushalmi-text'
+  | { mark: string };
 
 export type EnrichmentDependency =
   | 'gemara'
@@ -440,9 +450,9 @@ export interface MarkDefinition {
 // ===========================================================================
 
 export type EnrichmentMode =
-  | 'augment-content'   // adds text/data per instance (rabbi.bio)
-  | 'refine-anchors'    // produces a refined set of instances (e.g. better rabbi-detector)
-  | 'aggregate';        // produces daf-level synthesis from all instances
+  | 'augment-content' // adds text/data per instance (rabbi.bio)
+  | 'refine-anchors' // produces a refined set of instances (e.g. better rabbi-detector)
+  | 'aggregate'; // produces daf-level synthesis from all instances
 
 /** Cacheability axis. Drives auto cache-key derivation in cache-keys.ts:
  *    global → enrich:{id}:{cache_version}:{instance_id}              (no daf)

@@ -4,9 +4,7 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "figures"
-    ],
+    "required": ["figures"],
     "properties": {
       "figures": {
         "type": "string"

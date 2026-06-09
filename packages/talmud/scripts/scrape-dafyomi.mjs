@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 // scripts/scrape-dafyomi.mjs
 //
 // Ingests per-daf study content from dafyomi.co.il (Kollel Iyun HaDaf) into a
@@ -20,16 +21,19 @@
 //   node scripts/scrape-dafyomi.mjs --tractate Chullin --daf 76 --dry-run   # parse from cache, write nothing
 //   node scripts/scrape-dafyomi.mjs --tractate Chullin --refetch            # ignore HTML cache
 
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-
-import {
-  getDafyomiMasechet, DAFYOMI_CONTENT_TYPES, buildDafyomiUrl, buildRevachUrl, dafToNNN,
-} from '../src/lib/sefref/dafyomi/masechtos.ts';
+import { fileURLToPath } from 'node:url';
 import { assembleDaf } from '../src/lib/sefref/dafyomi/assemble.ts';
 import { decodeDafyomiHtml } from '../src/lib/sefref/dafyomi/decode.ts';
+import {
+  buildDafyomiUrl,
+  buildRevachUrl,
+  DAFYOMI_CONTENT_TYPES,
+  dafToNNN,
+  getDafyomiMasechet,
+} from '../src/lib/sefref/dafyomi/masechtos.ts';
 
 // Revach l'Daf lives in the memdb app (revdaf.php?tid=&id=), not the
 // {dir}/{folder}/{prefix}-{typecode}-{NNN}.htm tree, so it has no
@@ -51,33 +55,56 @@ function markerFor(spec) {
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CACHE_DIR = join(__dirname, '.cache', 'dafyomi');
 const OUT_DIR = join(__dirname, '..', 'static', 'dafyomi');
-const USER_AGENT = 'talmud-viewer/0.1 (https://github.com/shaunregenbaum/talmud; shaunregenbaum@gmail.com)';
+const USER_AGENT =
+  'talmud-viewer/0.1 (https://github.com/shaunregenbaum/talmud; shaunregenbaum@gmail.com)';
 const MIN_DELAY_MS = 30_000;
 
 // --- args ----------------------------------------------------------------
 const argv = process.argv.slice(2);
 const has = (n) => argv.includes(n);
-const val = (n, d) => { const i = argv.indexOf(n); return i >= 0 && argv[i + 1] ? argv[i + 1] : d; };
+const val = (n, d) => {
+  const i = argv.indexOf(n);
+  return i >= 0 && argv[i + 1] ? argv[i + 1] : d;
+};
 
 const TRACTATE = val('--tractate', null);
 const ONE_DAF = val('--daf', null);
 const FROM = parseInt(val('--from', '2'), 10);
 const TO = val('--to', null);
-const TYPES = val('--types', null)?.split(',').map((s) => s.trim()).filter(Boolean) ?? null;
-const DELAY = Math.max(parseInt(val('--delay', String(MIN_DELAY_MS)), 10) || MIN_DELAY_MS, has('--force-fast') ? 0 : MIN_DELAY_MS);
+const TYPES =
+  val('--types', null)
+    ?.split(',')
+    .map((s) => s.trim())
+    .filter(Boolean) ?? null;
+const DELAY = Math.max(
+  parseInt(val('--delay', String(MIN_DELAY_MS)), 10) || MIN_DELAY_MS,
+  has('--force-fast') ? 0 : MIN_DELAY_MS,
+);
 const DRY_RUN = has('--dry-run');
 const REFETCH = has('--refetch');
 
-if (!TRACTATE) { console.error('error: --tractate <AppTractateValue> is required (e.g. --tractate Chullin)'); process.exit(1); }
+if (!TRACTATE) {
+  console.error('error: --tractate <AppTractateValue> is required (e.g. --tractate Chullin)');
+  process.exit(1);
+}
 
 const masechet = getDafyomiMasechet(TRACTATE);
-if (!masechet) { console.error(`error: tractate "${TRACTATE}" is not mapped in masechtos.ts (or has no daf bounds)`); process.exit(1); }
-if (!masechet.verified) console.warn(`[warn] masechet "${TRACTATE}" (dir=${masechet.dir} prefix=${masechet.prefix}) is UNVERIFIED — wrong dir/prefix will show as all-absent dafim`);
+if (!masechet) {
+  console.error(
+    `error: tractate "${TRACTATE}" is not mapped in masechtos.ts (or has no daf bounds)`,
+  );
+  process.exit(1);
+}
+if (!masechet.verified)
+  console.warn(
+    `[warn] masechet "${TRACTATE}" (dir=${masechet.dir} prefix=${masechet.prefix}) is UNVERIFIED — wrong dir/prefix will show as all-absent dafim`,
+  );
 
-const specs = TYPES
-  ? ALL_SPECS.filter((s) => TYPES.includes(s.type))
-  : ALL_SPECS;
-if (specs.length === 0) { console.error(`error: no content types match --types ${TYPES}`); process.exit(1); }
+const specs = TYPES ? ALL_SPECS.filter((s) => TYPES.includes(s.type)) : ALL_SPECS;
+if (specs.length === 0) {
+  console.error(`error: no content types match --types ${TYPES}`);
+  process.exit(1);
+}
 
 const dafs = ONE_DAF
   ? [parseInt(ONE_DAF, 10)]
@@ -128,22 +155,33 @@ async function getHtml(spec, daf) {
   if (!url) return { absent: true }; // e.g. Revach with no known tid for this masechet
   const result = await fetchWithRetry(url, markerFor(spec));
   await mkdir(dirname(htmlPath), { recursive: true });
-  if (result.absent) { await writeFile(absPath, '', 'utf-8'); return { absent: true }; }
+  if (result.absent) {
+    await writeFile(absPath, '', 'utf-8');
+    return { absent: true };
+  }
   await writeFile(htmlPath, result.html, 'utf-8');
   return { html: result.html };
 }
 
 // --- main -----------------------------------------------------------------
 let interrupted = false;
-process.on('SIGINT', () => { console.log('\n[dafyomi] SIGINT — stopping after current daf'); interrupted = true; });
+process.on('SIGINT', () => {
+  console.log('\n[dafyomi] SIGINT — stopping after current daf');
+  interrupted = true;
+});
 
 async function main() {
-  console.log(`[dafyomi] ${TRACTATE} (dir=${masechet.dir} prefix=${masechet.prefix} lastDaf=${masechet.lastDaf})`);
-  console.log(`[dafyomi] dafim=${dafs[0]}..${dafs[dafs.length - 1]} types=${specs.map((s) => s.type).join(',')} delay=${DELAY}ms${DRY_RUN ? ' [dry-run]' : ''}${REFETCH ? ' [refetch]' : ''}\n`);
+  console.log(
+    `[dafyomi] ${TRACTATE} (dir=${masechet.dir} prefix=${masechet.prefix} lastDaf=${masechet.lastDaf})`,
+  );
+  console.log(
+    `[dafyomi] dafim=${dafs[0]}..${dafs[dafs.length - 1]} types=${specs.map((s) => s.type).join(',')} delay=${DELAY}ms${DRY_RUN ? ' [dry-run]' : ''}${REFETCH ? ' [refetch]' : ''}\n`,
+  );
 
   const allWarnings = [];
   const allAbsentDafim = [];
-  let written = 0, fetchedCount = 0;
+  let written = 0,
+    fetchedCount = 0;
 
   for (const daf of dafs) {
     if (interrupted) break;
@@ -151,10 +189,18 @@ async function main() {
     for (const spec of specs) {
       if (interrupted) break;
       let r;
-      try { r = await getHtml(spec, daf); }
-      catch (err) { console.error(`  [err] ${TRACTATE} ${daf} ${spec.type}: ${err.message}`); r = { absent: true }; }
+      try {
+        r = await getHtml(spec, daf);
+      } catch (err) {
+        console.error(`  [err] ${TRACTATE} ${daf} ${spec.type}: ${err.message}`);
+        r = { absent: true };
+      }
       if (!r.cached && (r.html || r.absent)) fetchedCount++;
-      fetched.push({ type: spec.type, url: urlFor(masechet, spec, daf) ?? '', html: r.absent ? null : r.html });
+      fetched.push({
+        type: spec.type,
+        url: urlFor(masechet, spec, daf) ?? '',
+        html: r.absent ? null : r.html,
+      });
     }
 
     const { daf: dafObj, warnings } = assembleDaf(TRACTATE, daf, fetched);
@@ -163,7 +209,9 @@ async function main() {
     const present = specs.length - dafObj.absent.length;
     if (present === 0) allAbsentDafim.push(daf);
     const flag = present === 0 ? ' !! ALL ABSENT' : '';
-    console.log(`  daf ${String(daf).padStart(3)}: ${present}/${specs.length} present; absent=[${dafObj.absent.join(',')}]${flag}`);
+    console.log(
+      `  daf ${String(daf).padStart(3)}: ${present}/${specs.length} present; absent=[${dafObj.absent.join(',')}]${flag}`,
+    );
 
     if (!DRY_RUN) {
       const outPath = join(OUT_DIR, TRACTATE, `${daf}.json`);
@@ -174,7 +222,8 @@ async function main() {
   }
 
   console.log(`\n[dafyomi] done — ${written} files written, ${fetchedCount} network fetches`);
-  if (allAbsentDafim.length) console.warn(`[dafyomi] WARNING all-absent dafim (mapping bug?): ${allAbsentDafim.join(', ')}`);
+  if (allAbsentDafim.length)
+    console.warn(`[dafyomi] WARNING all-absent dafim (mapping bug?): ${allAbsentDafim.join(', ')}`);
   if (allWarnings.length) {
     console.log(`[dafyomi] ${allWarnings.length} parse warnings:`);
     for (const w of allWarnings.slice(0, 40)) console.log(`  - ${w}`);
@@ -182,6 +231,13 @@ async function main() {
   }
 }
 
-function range(a, b) { const out = []; for (let i = a; i <= b; i++) out.push(i); return out; }
+function range(a, b) {
+  const out = [];
+  for (let i = a; i <= b; i++) out.push(i);
+  return out;
+}
 
-main().catch((err) => { console.error('[dafyomi] fatal:', err); process.exit(1); });
+main().catch((err) => {
+  console.error('[dafyomi] fatal:', err);
+  process.exit(1);
+});

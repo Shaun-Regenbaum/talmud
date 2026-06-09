@@ -15,8 +15,8 @@
 //   node scripts/merge-wiki-dupes.mjs --dry-run # preview only
 
 import { readFile, writeFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_PATH = join(__dirname, '..', 'src', 'lib', 'data', 'rabbi-places.json');
@@ -33,10 +33,10 @@ const DRY_RUN = process.argv.includes('--dry-run');
 const MERGES = [
   // Wikipedia-scraped duplicates caused by the scraper treating `ר' X`
   // (normalized `ר X`) as distinct from `רבי X`. Same rabbi in each case.
-  { from: 'rabbi-abbahu',             into: 'rabbi-abahu'              },
-  { from: 'rabbi-yosei-b-hanina',     into: 'rabbi-yose-b-chanina'     },
-  { from: 'rabbi-yosei-hagelili',     into: 'rabbi-yose-hagelili'      },
-  { from: 'rabbi-yochanan-hasandlar', into: 'rabbi-yohanan-hasandlar'  },
+  { from: 'rabbi-abbahu', into: 'rabbi-abahu' },
+  { from: 'rabbi-yosei-b-hanina', into: 'rabbi-yose-b-chanina' },
+  { from: 'rabbi-yosei-hagelili', into: 'rabbi-yose-hagelili' },
+  { from: 'rabbi-yochanan-hasandlar', into: 'rabbi-yohanan-hasandlar' },
 ];
 
 const raw = await readFile(DATA_PATH, 'utf-8');
@@ -45,8 +45,14 @@ const rabbis = data.rabbis;
 
 const merges = [];
 for (const { from, into } of MERGES) {
-  if (!rabbis[from]) { console.log(`[merge] skip: ${from} not found`); continue; }
-  if (!rabbis[into]) { console.log(`[merge] skip: ${into} not found`); continue; }
+  if (!rabbis[from]) {
+    console.log(`[merge] skip: ${from} not found`);
+    continue;
+  }
+  if (!rabbis[into]) {
+    console.log(`[merge] skip: ${into} not found`);
+    continue;
+  }
   merges.push({ newSlug: from, oldSlug: into });
 }
 
@@ -57,8 +63,11 @@ if (!merges.length) {
 
 console.log(`[merge] ${merges.length} duplicate pair(s) found:`);
 for (const { newSlug, oldSlug } of merges) {
-  const n = rabbis[newSlug], o = rabbis[oldSlug];
-  console.log(`  ${oldSlug.padEnd(40)} ← ${newSlug.padEnd(40)} (${n.canonicalHe} ≈ ${o.canonicalHe})`);
+  const n = rabbis[newSlug],
+    o = rabbis[oldSlug];
+  console.log(
+    `  ${oldSlug.padEnd(40)} ← ${newSlug.padEnd(40)} (${n.canonicalHe} ≈ ${o.canonicalHe})`,
+  );
 }
 
 if (DRY_RUN) {
@@ -70,9 +79,9 @@ for (const { newSlug, oldSlug } of merges) {
   const newE = rabbis[newSlug];
   const oldE = rabbis[oldSlug];
   // Transfer Wikipedia fields into the pre-existing slug.
-  if (!oldE.wiki)        oldE.wiki = newE.wiki;
-  if (!oldE.generation)  oldE.generation = newE.generation;
-  if (!oldE.region)      oldE.region = newE.region;
+  if (!oldE.wiki) oldE.wiki = newE.wiki;
+  if (!oldE.generation) oldE.generation = newE.generation;
+  if (!oldE.region) oldE.region = newE.region;
   if (!oldE.bio || oldE.bio.length < 50) oldE.bio = newE.bio;
   // Merge aliases (old canonical + new aliases + new canonical).
   const merged = new Set([...(oldE.aliases ?? []), newE.canonical, ...(newE.aliases ?? [])]);

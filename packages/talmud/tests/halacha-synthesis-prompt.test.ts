@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { HALACHA_SYNTHESIS_SYSTEM_PROMPT } from '../src/worker/code-marks';
 
 /**

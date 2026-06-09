@@ -1,12 +1,17 @@
-import { describe, it, expect } from 'vitest';
-import { applyMatches, segRange, type SegMatch } from '@corpus/core/context/match';
-import { buildMatchPrompt, parseMatchResponse } from '../src/lib/context/anchor/ai-prompt';
+import { applyMatches, type SegMatch, segRange } from '@corpus/core/context/match';
 import type { ContextItem } from '@corpus/core/context/types';
+import { describe, expect, it } from 'vitest';
+import { buildMatchPrompt, parseMatchResponse } from '../src/lib/context/anchor/ai-prompt';
 
 function wholeDafItem(key: string): ContextItem {
   return {
-    source: 'dafyomi:insights', sourceLabel: 'Insights', kind: 'insights', key,
-    title: { en: key }, body: { en: 'text' }, segs: [],
+    source: 'dafyomi:insights',
+    sourceLabel: 'Insights',
+    kind: 'insights',
+    key,
+    title: { en: key },
+    body: { en: 'text' },
+    segs: [],
   };
 }
 
@@ -56,7 +61,11 @@ describe('AI match prompt + parse', () => {
   });
 
   it('captures an optional Hebrew quote', () => {
-    const content = JSON.stringify({ matches: [{ key: 'ins:0', segStart: 1, segEnd: 1, confidence: 0.7, quote: 'מן הארכובה ולמטה' }] });
+    const content = JSON.stringify({
+      matches: [
+        { key: 'ins:0', segStart: 1, segEnd: 1, confidence: 0.7, quote: 'מן הארכובה ולמטה' },
+      ],
+    });
     const m = parseMatchResponse(content, new Set(['ins:0']), 5);
     expect(m[0].quote).toBe('מן הארכובה ולמטה');
   });
@@ -66,16 +75,22 @@ describe('AI match prompt + parse', () => {
       matches: [
         { key: 'ins:0', segStart: 3, segEnd: 3, confidence: 0.8 },
         { key: 'ins:1', segStart: 2, segEnd: 4, confidence: 0.5 },
-        { key: 'ins:2', segStart: null, confidence: 0.1 },     // whole-daf -> kept
-        { key: 'ghost', segStart: 1, confidence: 0.9 },         // unknown key -> dropped
-        { key: 'ins:3', segStart: 99, confidence: 0.9 },        // out of range -> dropped
+        { key: 'ins:2', segStart: null, confidence: 0.1 }, // whole-daf -> kept
+        { key: 'ghost', segStart: 1, confidence: 0.9 }, // unknown key -> dropped
+        { key: 'ins:3', segStart: 99, confidence: 0.9 }, // out of range -> dropped
       ],
     });
     const matches = parseMatchResponse(content, new Set(['ins:0', 'ins:1', 'ins:2', 'ins:3']), 10);
     expect(matches).toHaveLength(3);
     expect(matches[0]).toEqual({ key: 'ins:0', segs: [3], via: 'ai', confidence: 0.8 });
     expect(matches[1].segs).toEqual([2, 3, 4]);
-    expect(matches[2]).toEqual({ key: 'ins:2', segs: [], via: 'ai', wholeDaf: true, confidence: 0.1 });
+    expect(matches[2]).toEqual({
+      key: 'ins:2',
+      segs: [],
+      via: 'ai',
+      wholeDaf: true,
+      confidence: 0.1,
+    });
   });
 
   it('returns [] on non-JSON', () => {

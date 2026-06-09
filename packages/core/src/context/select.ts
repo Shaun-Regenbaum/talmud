@@ -8,9 +8,9 @@
  * `contextForAnchor` with the instance's segments, and injects `{{context}}`.
  */
 
+import { citationLink, linkLabel } from './link.ts';
 import type { ContextItem } from './types.ts';
 import { rangeLabel } from './types.ts';
-import { citationLink, linkLabel } from './link.ts';
 
 export interface ContextSelectOpts {
   /** Restrict to these sources. Default: all. */
@@ -25,12 +25,21 @@ export interface ContextSelectOpts {
  *  location (a whole-daf instance) — which `contextForAnchor` treats as "all".
  *  So a section enrichment gets its own slice; a whole-daf one gets everything. */
 export function segsFromMarkInput(markInput: unknown): number[] {
-  const m = markInput && typeof markInput === 'object' ? (markInput as Record<string, unknown>) : null;
+  const m =
+    markInput && typeof markInput === 'object' ? (markInput as Record<string, unknown>) : null;
   if (!m) return [];
-  const start = typeof m.startSegIdx === 'number' ? m.startSegIdx
-    : typeof m.endSegIdx === 'number' ? m.endSegIdx : null;
-  const end = typeof m.endSegIdx === 'number' ? m.endSegIdx
-    : typeof m.startSegIdx === 'number' ? m.startSegIdx : null;
+  const start =
+    typeof m.startSegIdx === 'number'
+      ? m.startSegIdx
+      : typeof m.endSegIdx === 'number'
+        ? m.endSegIdx
+        : null;
+  const end =
+    typeof m.endSegIdx === 'number'
+      ? m.endSegIdx
+      : typeof m.startSegIdx === 'number'
+        ? m.startSegIdx
+        : null;
   if (start === null || end === null) return [];
   const out: number[] = [];
   for (let s = Math.max(0, Math.min(start, end)); s <= Math.max(start, end); s++) out.push(s);
@@ -50,7 +59,7 @@ export function contextForAnchor(
   return items.filter((it) => {
     if (sources && !sources.includes(it.source)) return false;
     if (it.segs.length === 0) return includeWholeDaf; // whole-daf item
-    if (!want) return true;                           // whole-daf target wants all
+    if (!want) return true; // whole-daf target wants all
     return it.segs.some((s) => want.has(s));
   });
 }

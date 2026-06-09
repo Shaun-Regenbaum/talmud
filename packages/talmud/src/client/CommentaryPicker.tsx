@@ -1,4 +1,4 @@
-import { For, Show, createSignal, createEffect, type JSX } from 'solid-js';
+import { createEffect, createSignal, For, type JSX, Show } from 'solid-js';
 import { t } from './i18n';
 
 export interface CommentaryComment {
@@ -58,7 +58,8 @@ async function fetchTranslation(
         body: JSON.stringify({
           sourceRef: comment.sourceRef,
           textHe: comment.textHe,
-          tractate, page,
+          tractate,
+          page,
           anchorSegIdx: comment.anchorSegIdx,
         }),
       });
@@ -278,7 +279,9 @@ export function CommentaryPicker(props: CommentaryPickerProps): JSX.Element {
                       'border-radius': '4px',
                     }}
                   >
-                    <div style={{ 'font-size': '0.7rem', color: '#999', 'margin-bottom': '0.3rem' }}>
+                    <div
+                      style={{ 'font-size': '0.7rem', color: '#999', 'margin-bottom': '0.3rem' }}
+                    >
                       #{i() + 1} · {comment.sourceRef}
                     </div>
                     <Show when={comment.textHe}>
@@ -307,7 +310,14 @@ export function CommentaryPicker(props: CommentaryPickerProps): JSX.Element {
                             innerHTML={pair().text}
                           />
                           <Show when={pair().kind === 'kimi'}>
-                            <div style={{ 'margin-top': '0.3rem', 'font-size': '0.65rem', color: '#999', 'font-style': 'italic' }}>
+                            <div
+                              style={{
+                                'margin-top': '0.3rem',
+                                'font-size': '0.65rem',
+                                color: '#999',
+                                'font-style': 'italic',
+                              }}
+                            >
                               {t('commentary.autoTranslated')}
                             </div>
                           </Show>
@@ -315,7 +325,9 @@ export function CommentaryPicker(props: CommentaryPickerProps): JSX.Element {
                       )}
                     </Show>
                     <Show when={!comment.textEn && tx()?.state === 'loading'}>
-                      <div style={{ color: '#888', 'font-style': 'italic', 'font-size': '0.78rem' }}>
+                      <div
+                        style={{ color: '#888', 'font-style': 'italic', 'font-size': '0.78rem' }}
+                      >
                         {t('commentary.translating')}
                       </div>
                     </Show>
@@ -327,7 +339,9 @@ export function CommentaryPicker(props: CommentaryPickerProps): JSX.Element {
                       </div>
                     </Show>
                     <Show when={!comment.textHe && !englishPair()}>
-                      <div style={{ color: '#999', 'font-style': 'italic', 'font-size': '0.78rem' }}>
+                      <div
+                        style={{ color: '#999', 'font-style': 'italic', 'font-size': '0.78rem' }}
+                      >
                         {t('commentary.noText')}
                       </div>
                     </Show>

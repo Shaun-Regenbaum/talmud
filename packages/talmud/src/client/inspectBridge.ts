@@ -10,7 +10,11 @@
 
 import { createSignal } from 'solid-js';
 
-export interface InspectRequest { piece: string; instance?: unknown; nonce: number; }
+export interface InspectRequest {
+  piece: string;
+  instance?: unknown;
+  nonce: number;
+}
 
 const [inspectRequest, setInspectRequest] = createSignal<InspectRequest | null>(null);
 let nonce = 0;

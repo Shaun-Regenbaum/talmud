@@ -17,7 +17,7 @@
  * bespoke encoding.
  */
 
-import { dafCoord, spineCoord, coordForSeg, type AnchorCoord, type DafRef } from './coord.ts';
+import { type AnchorCoord, coordForSeg, type DafRef, dafCoord, spineCoord } from './coord.ts';
 import { coordLabel } from './types.ts';
 
 /** The kinds of link the system models. This is the SAME relation set the
@@ -40,7 +40,14 @@ export type LinkRelation =
 /** Runtime membership test for the LinkRelation union (for validating an
  *  untyped `kind` string from an enrichment's JSON output). */
 const LINK_RELATIONS: ReadonlySet<string> = new Set<LinkRelation>([
-  'cites', 'continues', 'resolves', 'depends-on', 'parallels', 'contrasts', 'generalizes', 'glosses',
+  'cites',
+  'continues',
+  'resolves',
+  'depends-on',
+  'parallels',
+  'contrasts',
+  'generalizes',
+  'glosses',
 ]);
 export function isLinkRelation(kind: string): kind is LinkRelation {
   return LINK_RELATIONS.has(kind);
@@ -51,7 +58,12 @@ export function isLinkRelation(kind: string): kind is LinkRelation {
  *  cross-spine commentary edge) so `flowLinks` can't promote either to a
  *  `via: 'flow'` link from stray cached flow data. */
 const FLOW_RELATIONS: ReadonlySet<string> = new Set<LinkRelation>([
-  'continues', 'resolves', 'depends-on', 'parallels', 'contrasts', 'generalizes',
+  'continues',
+  'resolves',
+  'depends-on',
+  'parallels',
+  'contrasts',
+  'generalizes',
 ]);
 function isFlowRelation(kind: string): kind is LinkRelation {
   return FLOW_RELATIONS.has(kind);

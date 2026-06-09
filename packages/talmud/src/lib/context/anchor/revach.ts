@@ -16,8 +16,8 @@
  * good match here; it gets placed when that amud's context is built.
  */
 
+import { type SegMatch, segRange } from '@corpus/core/context/match';
 import type { ContextItem } from '@corpus/core/context/types';
-import { segRange, type SegMatch } from '@corpus/core/context/match';
 
 /** The bits of an `argument` section this matcher needs. */
 export interface SectionForMatch {
@@ -34,22 +34,96 @@ export interface SectionForMatch {
 // almost every section and so don't discriminate between them.
 const STOP = new Set([
   // generic
-  'that', 'this', 'with', 'from', 'they', 'them', 'their', 'have', 'here', 'into',
-  'which', 'when', 'where', 'while', 'until', 'after', 'before', 'about', 'would',
-  'should', 'could', 'because', 'there', 'these', 'those', 'then', 'than', 'also',
-  'both', 'each', 'such', 'only', 'other', 'same', 'more', 'most', 'some', 'must',
-  'first', 'second', 'third', 'case', 'cases', 'reason', 'order', 'time',
+  'that',
+  'this',
+  'with',
+  'from',
+  'they',
+  'them',
+  'their',
+  'have',
+  'here',
+  'into',
+  'which',
+  'when',
+  'where',
+  'while',
+  'until',
+  'after',
+  'before',
+  'about',
+  'would',
+  'should',
+  'could',
+  'because',
+  'there',
+  'these',
+  'those',
+  'then',
+  'than',
+  'also',
+  'both',
+  'each',
+  'such',
+  'only',
+  'other',
+  'same',
+  'more',
+  'most',
+  'some',
+  'must',
+  'first',
+  'second',
+  'third',
+  'case',
+  'cases',
+  'reason',
+  'order',
+  'time',
   // Talmud scaffold (ubiquitous → non-discriminating)
-  'mishnah', 'mishna', 'gemara', 'gemora', 'tanna', 'tanno', 'baraisa', 'baraita',
-  'beraisa', 'rabbi', 'rebbi', 'raban', 'rabban', 'says', 'said', 'asks', 'asked',
-  'answer', 'answers', 'question', 'questions', 'verse', 'verses', 'opinion',
-  'opinions', 'holds', 'rules', 'ruling', 'teaches', 'learns', 'explains',
-  'explained', 'discusses', 'states', 'halacha', 'halachah', 'amud', 'sugya',
+  'mishnah',
+  'mishna',
+  'gemara',
+  'gemora',
+  'tanna',
+  'tanno',
+  'baraisa',
+  'baraita',
+  'beraisa',
+  'rabbi',
+  'rebbi',
+  'raban',
+  'rabban',
+  'says',
+  'said',
+  'asks',
+  'asked',
+  'answer',
+  'answers',
+  'question',
+  'questions',
+  'verse',
+  'verses',
+  'opinion',
+  'opinions',
+  'holds',
+  'rules',
+  'ruling',
+  'teaches',
+  'learns',
+  'explains',
+  'explained',
+  'discusses',
+  'states',
+  'halacha',
+  'halachah',
+  'amud',
+  'sugya',
 ]);
 
 function tokenSet(text: string): Set<string> {
   const out = new Set<string>();
-  for (const w of (text.toLowerCase().match(/[a-z']{4,}/g) ?? [])) {
+  for (const w of text.toLowerCase().match(/[a-z']{4,}/g) ?? []) {
     const t = w.replace(/'/g, '');
     if (t.length >= 4 && !STOP.has(t)) out.add(t);
   }
@@ -66,11 +140,15 @@ function overlap(a: Set<string>, b: Set<string>): { score: number; inter: number
 }
 
 // Tunable conservative thresholds (verified against a daf sample before rollout).
-const MIN_SCORE = 0.16;   // best section must share enough distinctive words
-const MIN_MARGIN = 0.06;  // …and clearly beat the runner-up
-const MIN_OVERLAP = 3;    // …with at least this many real shared words
+const MIN_SCORE = 0.16; // best section must share enough distinctive words
+const MIN_MARGIN = 0.06; // …and clearly beat the runner-up
+const MIN_OVERLAP = 3; // …with at least this many real shared words
 
-interface Cand { key: string; sec: number; score: number }
+interface Cand {
+  key: string;
+  sec: number;
+  score: number;
+}
 
 /** Keep the max-total-score subset of candidates whose section indices are
  *  non-decreasing in entry order (weighted longest non-decreasing subsequence).
@@ -110,13 +188,26 @@ export function matchRevach(items: ContextItem[], sections: SectionForMatch[]): 
     if (item.source !== 'dafyomi:revach') continue;
     const et = tokenSet(`${item.title?.en ?? ''} ${item.body?.en ?? ''}`);
     if (et.size < 3) continue;
-    let best = -1, bestScore = 0, second = 0, bestInter = 0;
+    let best = -1,
+      bestScore = 0,
+      second = 0,
+      bestInter = 0;
     secs.forEach((_s, idx) => {
       const { score, inter } = overlap(et, secTokens[idx]);
-      if (score > bestScore) { second = bestScore; bestScore = score; best = idx; bestInter = inter; }
-      else if (score > second) second = score;
+      if (score > bestScore) {
+        second = bestScore;
+        bestScore = score;
+        best = idx;
+        bestInter = inter;
+      } else if (score > second) second = score;
     });
-    if (best < 0 || bestScore < MIN_SCORE || bestScore - second < MIN_MARGIN || bestInter < MIN_OVERLAP) continue;
+    if (
+      best < 0 ||
+      bestScore < MIN_SCORE ||
+      bestScore - second < MIN_MARGIN ||
+      bestInter < MIN_OVERLAP
+    )
+      continue;
     cands.push({ key: item.key, sec: best, score: bestScore });
   }
 

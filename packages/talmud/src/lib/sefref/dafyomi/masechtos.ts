@@ -14,7 +14,7 @@
  * (daf 76 -> "076"); every content type for a daf uses the same number.
  */
 
-import { TRACTATE_END_AMUD, amudToNumber } from '../amudim.ts';
+import { amudToNumber, TRACTATE_END_AMUD } from '../amudim.ts';
 
 export type DafyomiContentType =
   | 'insights'
@@ -46,13 +46,13 @@ export interface DafyomiContentTypeSpec {
 /** The eight per-daf content types we ingest. galei (different numbering) and
  *  yosef-daas (Hebrew PDF) are intentionally out of v1 scope. */
 export const DAFYOMI_CONTENT_TYPES: DafyomiContentTypeSpec[] = [
-  { type: 'insights',   folder: 'insites',    typecode: 'dt' },
-  { type: 'background', folder: 'backgrnd',   typecode: 'in' },
-  { type: 'halacha',    folder: 'halachah',   typecode: 'hl' },
-  { type: 'tosfos',     folder: 'tosfos',     typecode: 'ts' },
-  { type: 'review',     folder: 'review',     typecode: 'rg', query: '?q=1' },
-  { type: 'points',     folder: 'points',     typecode: 'ps' },
-  { type: 'hebcharts',  folder: 'hebcharts',  typecode: 'tl', hebrew: true },
+  { type: 'insights', folder: 'insites', typecode: 'dt' },
+  { type: 'background', folder: 'backgrnd', typecode: 'in' },
+  { type: 'halacha', folder: 'halachah', typecode: 'hl' },
+  { type: 'tosfos', folder: 'tosfos', typecode: 'ts' },
+  { type: 'review', folder: 'review', typecode: 'rg', query: '?q=1' },
+  { type: 'points', folder: 'points', typecode: 'ps' },
+  { type: 'hebcharts', folder: 'hebcharts', typecode: 'tl', hebrew: true },
   { type: 'yerushalmi', folder: 'yerushalmi', typecode: 'yr', hebrew: true },
 ];
 
@@ -88,44 +88,44 @@ const SEED: DafyomiMasechetSeed[] = [
   // revdaf.php?tid=N page's <title> (the masechet it names). Revach's live
   // fetch needs only `tid`, so it works on every tractate. `dir`/`prefix`/`gid`
   // (the 8 folder content types) remain UNVERIFIED — TODO before scraping those.
-  { tractate: 'Berakhot',     dir: 'berachos',   prefix: 'br', gid: 1,  tid: 1 },
-  { tractate: 'Shabbat',      dir: 'shabbos',    prefix: 'sh', gid: 2,  tid: 2 },
-  { tractate: 'Eruvin',       dir: 'eruvin',     prefix: 'er', gid: 3,  tid: 3 },
-  { tractate: 'Pesachim',     dir: 'pesachim',   prefix: 'ps', gid: 4,  tid: 4 },
-  { tractate: 'Shekalim',     dir: 'shekalim',   prefix: 'sk', gid: 5,  tid: 5 },
-  { tractate: 'Yoma',         dir: 'yoma',       prefix: 'yo', gid: 6,  tid: 6 },
-  { tractate: 'Sukkah',       dir: 'sukah',      prefix: 'su', gid: 7,  tid: 7 },
-  { tractate: 'Beitzah',      dir: 'beitzah',    prefix: 'bt', gid: 8,  tid: 8 },
-  { tractate: 'Rosh Hashanah',dir: 'roshhashanah',prefix:'rh', gid: 9,  tid: 9 },
-  { tractate: 'Taanit',       dir: 'taanis',     prefix: 'tn', gid: 10, tid: 10 },
-  { tractate: 'Megillah',     dir: 'megilah',    prefix: 'mg', gid: 11, tid: 11 },
-  { tractate: 'Moed Katan',   dir: 'moedkatan',  prefix: 'mo', gid: 12, tid: 12 },
-  { tractate: 'Chagigah',     dir: 'chagigah',   prefix: 'cg', gid: 13, tid: 13 },
-  { tractate: 'Yevamot',      dir: 'yevamos',    prefix: 'ye', gid: 14, tid: 14 },
-  { tractate: 'Ketubot',      dir: 'kesuvos',    prefix: 'ks', gid: 15, tid: 15 },
-  { tractate: 'Nedarim',      dir: 'nedarim',    prefix: 'nd', gid: 16, tid: 16 },
-  { tractate: 'Nazir',        dir: 'nazir',      prefix: 'nz', gid: 17, tid: 17 },
-  { tractate: 'Sotah',        dir: 'sotah',      prefix: 'so', gid: 18, tid: 18 },
-  { tractate: 'Gittin',       dir: 'gitin',      prefix: 'gi', gid: 19, tid: 19 },
-  { tractate: 'Kiddushin',    dir: 'kidushin',   prefix: 'kd', gid: 20, tid: 20 },
-  { tractate: 'Bava Kamma',   dir: 'bkama',      prefix: 'bk', gid: 21, tid: 21 },
-  { tractate: 'Bava Metzia',  dir: 'bmetzia',    prefix: 'bm', gid: 22, tid: 22 },
-  { tractate: 'Bava Batra',   dir: 'bavabasra',  prefix: 'bb', gid: 23, tid: 23 },
-  { tractate: 'Sanhedrin',    dir: 'sanhedrin',  prefix: 'sn', gid: 24, tid: 24 },
-  { tractate: 'Makkot',       dir: 'makos',      prefix: 'ma', gid: 25, tid: 25 },
-  { tractate: 'Shevuot',      dir: 'shevuos',    prefix: 'sv', gid: 26, tid: 26 },
-  { tractate: 'Avodah Zarah', dir: 'avodahzarah',prefix: 'az', gid: 27, tid: 27 },
+  { tractate: 'Berakhot', dir: 'berachos', prefix: 'br', gid: 1, tid: 1 },
+  { tractate: 'Shabbat', dir: 'shabbos', prefix: 'sh', gid: 2, tid: 2 },
+  { tractate: 'Eruvin', dir: 'eruvin', prefix: 'er', gid: 3, tid: 3 },
+  { tractate: 'Pesachim', dir: 'pesachim', prefix: 'ps', gid: 4, tid: 4 },
+  { tractate: 'Shekalim', dir: 'shekalim', prefix: 'sk', gid: 5, tid: 5 },
+  { tractate: 'Yoma', dir: 'yoma', prefix: 'yo', gid: 6, tid: 6 },
+  { tractate: 'Sukkah', dir: 'sukah', prefix: 'su', gid: 7, tid: 7 },
+  { tractate: 'Beitzah', dir: 'beitzah', prefix: 'bt', gid: 8, tid: 8 },
+  { tractate: 'Rosh Hashanah', dir: 'roshhashanah', prefix: 'rh', gid: 9, tid: 9 },
+  { tractate: 'Taanit', dir: 'taanis', prefix: 'tn', gid: 10, tid: 10 },
+  { tractate: 'Megillah', dir: 'megilah', prefix: 'mg', gid: 11, tid: 11 },
+  { tractate: 'Moed Katan', dir: 'moedkatan', prefix: 'mo', gid: 12, tid: 12 },
+  { tractate: 'Chagigah', dir: 'chagigah', prefix: 'cg', gid: 13, tid: 13 },
+  { tractate: 'Yevamot', dir: 'yevamos', prefix: 'ye', gid: 14, tid: 14 },
+  { tractate: 'Ketubot', dir: 'kesuvos', prefix: 'ks', gid: 15, tid: 15 },
+  { tractate: 'Nedarim', dir: 'nedarim', prefix: 'nd', gid: 16, tid: 16 },
+  { tractate: 'Nazir', dir: 'nazir', prefix: 'nz', gid: 17, tid: 17 },
+  { tractate: 'Sotah', dir: 'sotah', prefix: 'so', gid: 18, tid: 18 },
+  { tractate: 'Gittin', dir: 'gitin', prefix: 'gi', gid: 19, tid: 19 },
+  { tractate: 'Kiddushin', dir: 'kidushin', prefix: 'kd', gid: 20, tid: 20 },
+  { tractate: 'Bava Kamma', dir: 'bkama', prefix: 'bk', gid: 21, tid: 21 },
+  { tractate: 'Bava Metzia', dir: 'bmetzia', prefix: 'bm', gid: 22, tid: 22 },
+  { tractate: 'Bava Batra', dir: 'bavabasra', prefix: 'bb', gid: 23, tid: 23 },
+  { tractate: 'Sanhedrin', dir: 'sanhedrin', prefix: 'sn', gid: 24, tid: 24 },
+  { tractate: 'Makkot', dir: 'makos', prefix: 'ma', gid: 25, tid: 25 },
+  { tractate: 'Shevuot', dir: 'shevuos', prefix: 'sv', gid: 26, tid: 26 },
+  { tractate: 'Avodah Zarah', dir: 'avodahzarah', prefix: 'az', gid: 27, tid: 27 },
   // gid skips 28/29 (Eduyos/Avos, not learned); tid stays contiguous, so they diverge here.
-  { tractate: 'Horayot',      dir: 'horayos',    prefix: 'ho', gid: 30, tid: 28 },
-  { tractate: 'Zevachim',     dir: 'zevachim',   prefix: 'zv', gid: 31, tid: 29 },
-  { tractate: 'Menachot',     dir: 'menachos',   prefix: 'mn', gid: 32, tid: 30 },
-  { tractate: 'Bekhorot',     dir: 'bechoros',   prefix: 'be', gid: 34, tid: 32 },
-  { tractate: 'Arakhin',      dir: 'erchin',     prefix: 'er', gid: 35, tid: 33 },
-  { tractate: 'Temurah',      dir: 'temurah',    prefix: 'tm', gid: 36, tid: 34 },
-  { tractate: 'Keritot',      dir: 'kerisus',    prefix: 'kr', gid: 37, tid: 35 },
-  { tractate: 'Meilah',       dir: 'meilah',     prefix: 'ml', gid: 38, tid: 36 },
+  { tractate: 'Horayot', dir: 'horayos', prefix: 'ho', gid: 30, tid: 28 },
+  { tractate: 'Zevachim', dir: 'zevachim', prefix: 'zv', gid: 31, tid: 29 },
+  { tractate: 'Menachot', dir: 'menachos', prefix: 'mn', gid: 32, tid: 30 },
+  { tractate: 'Bekhorot', dir: 'bechoros', prefix: 'be', gid: 34, tid: 32 },
+  { tractate: 'Arakhin', dir: 'erchin', prefix: 'er', gid: 35, tid: 33 },
+  { tractate: 'Temurah', dir: 'temurah', prefix: 'tm', gid: 36, tid: 34 },
+  { tractate: 'Keritot', dir: 'kerisus', prefix: 'kr', gid: 37, tid: 35 },
+  { tractate: 'Meilah', dir: 'meilah', prefix: 'ml', gid: 38, tid: 36 },
   // tid 37/38/39 = Tamid/Kinim/Midos (not in this list); Niddah is tid 40.
-  { tractate: 'Niddah',       dir: 'nidah',      prefix: 'ni', gid: 42, tid: 40 },
+  { tractate: 'Niddah', dir: 'nidah', prefix: 'ni', gid: 42, tid: 40 },
 ];
 
 export interface DafyomiMasechet {
@@ -160,15 +160,34 @@ const nameKey = (s: string): string => s.toLowerCase().replace(/[^a-z]/g, '');
 // guess a tractate).
 const NAME_TO_TRACTATE: Map<string, string> = (() => {
   const m = new Map<string, string>();
-  for (const s of SEED) { m.set(nameKey(s.tractate), s.tractate); m.set(nameKey(s.dir), s.tractate); }
+  for (const s of SEED) {
+    m.set(nameKey(s.tractate), s.tractate);
+    m.set(nameKey(s.dir), s.tractate);
+  }
   const aliases: Record<string, string> = {
-    bavakama: 'Bava Kamma', bavakamma: 'Bava Kamma', babakama: 'Bava Kamma',
-    bavametzia: 'Bava Metzia', babametzia: 'Bava Metzia',
-    bavabasra: 'Bava Batra', bavabatra: 'Bava Batra', bababasra: 'Bava Batra',
-    roshhashana: 'Rosh Hashanah', avodahzara: 'Avodah Zarah', avodazara: 'Avodah Zarah',
-    arachin: 'Arakhin', kesubos: 'Ketubot', berochos: 'Berakhot', makkos: 'Makkot',
-    kerisos: 'Keritot', chagiga: 'Chagigah', megila: 'Megillah', megilla: 'Megillah',
-    sukah: 'Sukkah', taanis: 'Taanit', sanhedrin: 'Sanhedrin', shevuos: 'Shevuot',
+    bavakama: 'Bava Kamma',
+    bavakamma: 'Bava Kamma',
+    babakama: 'Bava Kamma',
+    bavametzia: 'Bava Metzia',
+    babametzia: 'Bava Metzia',
+    bavabasra: 'Bava Batra',
+    bavabatra: 'Bava Batra',
+    bababasra: 'Bava Batra',
+    roshhashana: 'Rosh Hashanah',
+    avodahzara: 'Avodah Zarah',
+    avodazara: 'Avodah Zarah',
+    arachin: 'Arakhin',
+    kesubos: 'Ketubot',
+    berochos: 'Berakhot',
+    makkos: 'Makkot',
+    kerisos: 'Keritot',
+    chagiga: 'Chagigah',
+    megila: 'Megillah',
+    megilla: 'Megillah',
+    sukah: 'Sukkah',
+    taanis: 'Taanit',
+    sanhedrin: 'Sanhedrin',
+    shevuos: 'Shevuot',
   };
   for (const [k, v] of Object.entries(aliases)) m.set(nameKey(k), v);
   return m;
@@ -180,7 +199,10 @@ const NAME_TO_TRACTATE: Map<string, string> = (() => {
 export function resolveTractateName(name: string): string | null {
   const direct = NAME_TO_TRACTATE.get(nameKey(name));
   if (direct) return direct;
-  const words = name.trim().split(/\s+/).filter((w) => !REF_QUALIFIER.test(w));
+  const words = name
+    .trim()
+    .split(/\s+/)
+    .filter((w) => !REF_QUALIFIER.test(w));
   for (let i = 0; i < words.length; i++) {
     const hit = NAME_TO_TRACTATE.get(nameKey(words.slice(i).join('')));
     if (hit) return hit;
@@ -188,12 +210,16 @@ export function resolveTractateName(name: string): string | null {
   return null;
 }
 
-const REF_QUALIFIER = /^(maseches|mesechta|mishnah|mishna|gemara|gemora|daf|perek|tractate|the|in|of|see|cf)$/i;
+const REF_QUALIFIER =
+  /^(maseches|mesechta|mishnah|mishna|gemara|gemora|daf|perek|tractate|the|in|of|see|cf)$/i;
 
 /** Resolve a prose cross-reference (name + daf) to a real {tractate, page}, or
  *  null. Rejects out-of-range dapim (e.g. "Pesachim 999a") so a resolved name
  *  alone can't manufacture a bogus coordinate. */
-export function resolveDafRef(name: string, page: string): { tractate: string; page: string } | null {
+export function resolveDafRef(
+  name: string,
+  page: string,
+): { tractate: string; page: string } | null {
   const tractate = resolveTractateName(name);
   if (!tractate) return null;
   const p = page.toLowerCase();
@@ -227,7 +253,9 @@ export function getDafyomiMasechet(tractate: string): DafyomiMasechet | null {
  *  order (Chullin first, then Shas order). Used by the gradual ingestion cron to
  *  walk all of Shas. */
 export function listDafyomiMasechtos(): DafyomiMasechet[] {
-  return SEED.map((s) => getDafyomiMasechet(s.tractate)).filter((m): m is DafyomiMasechet => m != null);
+  return SEED.map((s) => getDafyomiMasechet(s.tractate)).filter(
+    (m): m is DafyomiMasechet => m != null,
+  );
 }
 
 /** Daf number -> zero-padded 3-digit string. Throws outside 1..999. */

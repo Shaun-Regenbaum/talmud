@@ -12,8 +12,8 @@
  * replaces the client overview's bespoke pair of `/api/bridge` fetches.
  */
 
-import { continuationLink, type Link } from '@corpus/core/context/link';
 import type { DafRef } from '@corpus/core/context/coord';
+import { continuationLink, type Link } from '@corpus/core/context/link';
 
 /** The local neighborhood of a daf on its tractate spine. */
 export interface DafSpine {
@@ -45,7 +45,9 @@ export function dafSpine(daf: DafRef, input: DafSpineInputs): DafSpine {
   // real next page. continuationLink keeps the 'continues' edge in the shared
   // vocabulary (same as /api/bridge + /api/links surface it).
   const link =
-    input.toNext && input.next ? continuationLink({ tractate: daf.tractate, page: input.next }) : null;
+    input.toNext && input.next
+      ? continuationLink({ tractate: daf.tractate, page: input.next })
+      : null;
   return {
     tractate: daf.tractate,
     page: daf.page,

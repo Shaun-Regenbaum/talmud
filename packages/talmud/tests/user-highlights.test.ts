@@ -1,15 +1,15 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
+  bgForColor,
+  buildHighlight,
+  HIGHLIGHT_COLORS,
+  highlightCoversWord,
   loadUserHighlights,
   saveUserHighlights,
   selectionToTokenRange,
-  highlightCoversWord,
-  buildHighlight,
-  wordCoordFromTarget,
-  bgForColor,
-  HIGHLIGHT_COLORS,
   type UserHighlight,
+  wordCoordFromTarget,
 } from '../src/client/userHighlights';
 
 function buildDaf(): HTMLElement {
@@ -121,7 +121,9 @@ describe('persistence (localStorage round-trip)', () => {
   beforeEach(() => localStorage.clear());
 
   it('saves and loads per (tractate, page)', () => {
-    const list = [buildHighlight({ startSeg: 0, startTok: 0, endSeg: 0, endTok: 1, text: 'aleph bet' })];
+    const list = [
+      buildHighlight({ startSeg: 0, startTok: 0, endSeg: 0, endTok: 1, text: 'aleph bet' }),
+    ];
     saveUserHighlights('Berakhot', '2a', list);
     const back = loadUserHighlights('Berakhot', '2a');
     expect(back).toHaveLength(1);
@@ -131,7 +133,9 @@ describe('persistence (localStorage round-trip)', () => {
   });
 
   it('removes the key when the list is emptied', () => {
-    saveUserHighlights('Shabbat', '5a', [buildHighlight({ startSeg: 0, startTok: 0, endSeg: 0, endTok: 0, text: 'x' })]);
+    saveUserHighlights('Shabbat', '5a', [
+      buildHighlight({ startSeg: 0, startTok: 0, endSeg: 0, endTok: 0, text: 'x' }),
+    ]);
     saveUserHighlights('Shabbat', '5a', []);
     expect(loadUserHighlights('Shabbat', '5a')).toEqual([]);
   });
@@ -164,7 +168,10 @@ describe('buildHighlight + palette', () => {
   });
 
   it('honours explicit color + note', () => {
-    const h = buildHighlight({ startSeg: 0, startTok: 0, endSeg: 0, endTok: 0, text: 'x' }, { color: 'blue', note: 'a thought' });
+    const h = buildHighlight(
+      { startSeg: 0, startTok: 0, endSeg: 0, endTok: 0, text: 'x' },
+      { color: 'blue', note: 'a thought' },
+    );
     expect(h.color).toBe('blue');
     expect(h.note).toBe('a thought');
   });

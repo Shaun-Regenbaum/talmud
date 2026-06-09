@@ -1,10 +1,15 @@
-import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { parseDafyomiContent } from '../src/lib/sefref/dafyomi/parse/index';
+import { describe, expect, it } from 'vitest';
 import { assembleDaf } from '../src/lib/sefref/dafyomi/assemble';
 import {
-  getDafyomiMasechet, dafToNNN, buildDafyomiUrl, buildRevachUrl, getContentTypeSpec, DAFYOMI_CONTENT_TYPES,
+  buildDafyomiUrl,
+  buildRevachUrl,
+  DAFYOMI_CONTENT_TYPES,
+  dafToNNN,
+  getContentTypeSpec,
+  getDafyomiMasechet,
 } from '../src/lib/sefref/dafyomi/masechtos';
+import { parseDafyomiContent } from '../src/lib/sefref/dafyomi/parse/index';
 
 const fixture = (name: string) =>
   readFileSync(new URL(`./fixtures/dafyomi/${name}`, import.meta.url), 'utf-8');
@@ -30,18 +35,28 @@ describe('masechtos mapping', () => {
 
   it('builds the live URL with no daf-number offset', () => {
     const m = getDafyomiMasechet('Chullin')!;
-    expect(buildDafyomiUrl(m, getContentTypeSpec('insights'), 76))
-      .toBe('https://www.dafyomi.co.il/chulin/insites/ch-dt-076.htm');
-    expect(buildDafyomiUrl(m, getContentTypeSpec('review'), 76))
-      .toBe('https://www.dafyomi.co.il/chulin/review/ch-rg-076.htm?q=1');
-    expect(buildDafyomiUrl(m, getContentTypeSpec('yerushalmi'), 76))
-      .toBe('https://www.dafyomi.co.il/chulin/yerushalmi/ch-yr-076.htm');
+    expect(buildDafyomiUrl(m, getContentTypeSpec('insights'), 76)).toBe(
+      'https://www.dafyomi.co.il/chulin/insites/ch-dt-076.htm',
+    );
+    expect(buildDafyomiUrl(m, getContentTypeSpec('review'), 76)).toBe(
+      'https://www.dafyomi.co.il/chulin/review/ch-rg-076.htm?q=1',
+    );
+    expect(buildDafyomiUrl(m, getContentTypeSpec('yerushalmi'), 76)).toBe(
+      'https://www.dafyomi.co.il/chulin/yerushalmi/ch-yr-076.htm',
+    );
   });
 
   it('covers exactly the eight v1 content types', () => {
-    expect(DAFYOMI_CONTENT_TYPES.map((s) => s.type).sort()).toEqual(
-      ['background', 'halacha', 'hebcharts', 'insights', 'points', 'review', 'tosfos', 'yerushalmi'],
-    );
+    expect(DAFYOMI_CONTENT_TYPES.map((s) => s.type).sort()).toEqual([
+      'background',
+      'halacha',
+      'hebcharts',
+      'insights',
+      'points',
+      'review',
+      'tosfos',
+      'yerushalmi',
+    ]);
   });
 });
 
@@ -60,7 +75,7 @@ describe('insights parser', () => {
     const first = body.entries[0];
     expect(first.marker).toBe('1)');
     expect(first.title?.en).toContain('TZOMES');
-    expect((first.children?.length ?? 0)).toBeGreaterThanOrEqual(2);
+    expect(first.children?.length ?? 0).toBeGreaterThanOrEqual(2);
     expect(first.children?.[0].body.en?.length ?? 0).toBeGreaterThan(20);
   });
 });
@@ -137,7 +152,9 @@ describe('revach parser', () => {
     expect(body.entries).toHaveLength(5);
     const first = body.entries[0];
     expect(first.marker).toBe('1.');
-    expect(first.title?.en).toBe('The Gemara explains that Rav did not really maintain that it is forbidden to eat udders.');
+    expect(first.title?.en).toBe(
+      'The Gemara explains that Rav did not really maintain that it is forbidden to eat udders.',
+    );
     expect(first.body.en).toContain('Tatalfush');
     // numbers embedded in prose ("Pesachim (50a)") must NOT start a new item
     expect(body.entries[2].body.en).toContain('Pesachim (50a)');
@@ -168,7 +185,10 @@ describe('yerushalmi parser ("Yerushalmi to Match" pages)', () => {
     const body = r.blocks[0].body;
     if (body.type !== 'yerushalmi') throw new Error('wrong body type');
     expect(body.entries[0].refs?.[0]).toMatchObject({
-      kind: 'yerushalmi', tractate: 'Terumos', detail: '4:1', page: '18a',
+      kind: 'yerushalmi',
+      tractate: 'Terumos',
+      detail: '4:1',
+      page: '18a',
     });
   });
 });
@@ -180,9 +200,15 @@ describe('buildRevachUrl', () => {
   });
   it('uses the right tid where Revach tid diverges from gid', () => {
     // gid skips 28/29 (Eduyos/Avos), so from Horayot on, tid < gid.
-    expect(buildRevachUrl(getDafyomiMasechet('Berakhot')!, 2)).toBe('https://www.dafyomi.co.il/memdb/revdaf.php?tid=1&id=2');
-    expect(buildRevachUrl(getDafyomiMasechet('Horayot')!, 2)).toBe('https://www.dafyomi.co.il/memdb/revdaf.php?tid=28&id=2');
-    expect(buildRevachUrl(getDafyomiMasechet('Niddah')!, 2)).toBe('https://www.dafyomi.co.il/memdb/revdaf.php?tid=40&id=2');
+    expect(buildRevachUrl(getDafyomiMasechet('Berakhot')!, 2)).toBe(
+      'https://www.dafyomi.co.il/memdb/revdaf.php?tid=1&id=2',
+    );
+    expect(buildRevachUrl(getDafyomiMasechet('Horayot')!, 2)).toBe(
+      'https://www.dafyomi.co.il/memdb/revdaf.php?tid=28&id=2',
+    );
+    expect(buildRevachUrl(getDafyomiMasechet('Niddah')!, 2)).toBe(
+      'https://www.dafyomi.co.il/memdb/revdaf.php?tid=40&id=2',
+    );
   });
   it('returns null when the masechet has no known Revach tid', () => {
     // No SEED row omits tid anymore, so synthesize one to cover the guard.
@@ -198,21 +224,66 @@ describe('buildRevachUrl', () => {
 
 /** Every app tractate that should now resolve a Revach tid. */
 const TRACTATES_WITH_REVACH = [
-  'Berakhot', 'Shabbat', 'Eruvin', 'Pesachim', 'Shekalim', 'Yoma', 'Sukkah', 'Beitzah',
-  'Rosh Hashanah', 'Taanit', 'Megillah', 'Moed Katan', 'Chagigah', 'Yevamot', 'Ketubot',
-  'Nedarim', 'Nazir', 'Sotah', 'Gittin', 'Kiddushin', 'Bava Kamma', 'Bava Metzia', 'Bava Batra',
-  'Sanhedrin', 'Makkot', 'Shevuot', 'Avodah Zarah', 'Horayot', 'Zevachim', 'Menachot',
-  'Chullin', 'Bekhorot', 'Arakhin', 'Temurah', 'Keritot', 'Meilah', 'Niddah',
+  'Berakhot',
+  'Shabbat',
+  'Eruvin',
+  'Pesachim',
+  'Shekalim',
+  'Yoma',
+  'Sukkah',
+  'Beitzah',
+  'Rosh Hashanah',
+  'Taanit',
+  'Megillah',
+  'Moed Katan',
+  'Chagigah',
+  'Yevamot',
+  'Ketubot',
+  'Nedarim',
+  'Nazir',
+  'Sotah',
+  'Gittin',
+  'Kiddushin',
+  'Bava Kamma',
+  'Bava Metzia',
+  'Bava Batra',
+  'Sanhedrin',
+  'Makkot',
+  'Shevuot',
+  'Avodah Zarah',
+  'Horayot',
+  'Zevachim',
+  'Menachot',
+  'Chullin',
+  'Bekhorot',
+  'Arakhin',
+  'Temurah',
+  'Keritot',
+  'Meilah',
+  'Niddah',
 ];
 
 describe('assembleDaf', () => {
   it('files blocks per amud, records source URLs, and lists absent types', () => {
     const m = getDafyomiMasechet('Chullin')!;
-    const { daf, warnings } = assembleDaf('Chullin', 76, [
-      { type: 'insights', url: buildDafyomiUrl(m, getContentTypeSpec('insights'), 76), html: fixture('chulin-insites-076.htm') },
-      { type: 'tosfos', url: buildDafyomiUrl(m, getContentTypeSpec('tosfos'), 76), html: fixture('chulin-tosfos-076.htm') },
-      { type: 'halacha', url: buildDafyomiUrl(m, getContentTypeSpec('halacha'), 76), html: null },
-    ], '2026-01-01T00:00:00.000Z');
+    const { daf, warnings } = assembleDaf(
+      'Chullin',
+      76,
+      [
+        {
+          type: 'insights',
+          url: buildDafyomiUrl(m, getContentTypeSpec('insights'), 76),
+          html: fixture('chulin-insites-076.htm'),
+        },
+        {
+          type: 'tosfos',
+          url: buildDafyomiUrl(m, getContentTypeSpec('tosfos'), 76),
+          html: fixture('chulin-tosfos-076.htm'),
+        },
+        { type: 'halacha', url: buildDafyomiUrl(m, getContentTypeSpec('halacha'), 76), html: null },
+      ],
+      '2026-01-01T00:00:00.000Z',
+    );
 
     expect(daf.schemaVersion).toBe(1);
     expect(daf.tractate).toBe('Chullin');

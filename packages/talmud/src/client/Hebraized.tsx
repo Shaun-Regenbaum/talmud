@@ -9,8 +9,15 @@
  * fire-and-forget — render never blocks on it; on completion the text just
  * swaps in place. On any LLM error, the dict-pass result stays.
  */
-import { createResource, createMemo, For, type JSX } from 'solid-js';
-import { hebraize, unresolvedParens, hebraizeLLM, capitalizeFirst, stripEchoParens, hasEmptyParens } from './hebraize';
+import { createMemo, createResource, For, type JSX } from 'solid-js';
+import {
+  capitalizeFirst,
+  hasEmptyParens,
+  hebraize,
+  hebraizeLLM,
+  stripEchoParens,
+  unresolvedParens,
+} from './hebraize';
 
 // A maximal run of Hebrew/Aramaic — letters plus internal spaces, geresh/
 // gershayim, maqaf — starting and ending on a Hebrew character. We isolate each
@@ -31,7 +38,8 @@ import { hebraize, unresolvedParens, hebraizeLLM, capitalizeFirst, stripEchoPare
 // only, never the boundary classes, so a run still has to END on a Hebrew
 // letter / geresh / gershayim \u2014 a trailing/closing quote and an English `'s`
 // after a Hebrew word both stay OUT, keeping their English position.
-const HE_RUN = /([\u0590-\u05FF\uFB1D-\uFB4F](?:[\u0590-\u05FF\uFB1D-\uFB4F\u05BE\u05F3\u05F4'" -]*[\u0590-\u05FF\uFB1D-\uFB4F\u05F3\u05F4])?)/g;
+const HE_RUN =
+  /([\u0590-\u05FF\uFB1D-\uFB4F](?:[\u0590-\u05FF\uFB1D-\uFB4F\u05BE\u05F3\u05F4'" -]*[\u0590-\u05FF\uFB1D-\uFB4F\u05F3\u05F4])?)/g;
 const isHe = (s: string): boolean => /[\u0590-\u05FF\uFB1D-\uFB4F]/.test(s);
 
 /** Split mixed Hebrew/English text into alternating runs, flagging which are
@@ -50,10 +58,15 @@ export function bidiSegments(text: string): { text: string; he: boolean }[] {
  *  surrounding English punctuation doesn't get reordered into a scramble. */
 export function BidiText(props: { text: string }): JSX.Element {
   const parts = createMemo(() => bidiSegments(props.text));
-  return <For each={parts()}>{(part) => (part.he ? <bdi>{part.text}</bdi> : <>{part.text}</>)}</For>;
+  return (
+    <For each={parts()}>{(part) => (part.he ? <bdi>{part.text}</bdi> : <>{part.text}</>)}</For>
+  );
 }
 
-export function Hebraized(props: { text: string | undefined | null; capitalize?: boolean }): JSX.Element {
+export function Hebraized(props: {
+  text: string | undefined | null;
+  capitalize?: boolean;
+}): JSX.Element {
   const dictPass = createMemo(() => hebraize(props.text ?? ''));
   // Only fire the LLM pass when the dict pass has unresolved parens. The
   // resource source returns null otherwise, which short-circuits the fetch.

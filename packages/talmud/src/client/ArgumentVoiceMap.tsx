@@ -20,9 +20,9 @@
  *   - The leftmost axis column carries the side label.
  */
 
-import { For, Show, type JSX } from 'solid-js';
-import { t, lang } from './i18n';
+import { For, type JSX, Show } from 'solid-js';
 import { orthogonalEdgePath } from './flow/orthogonalEdge';
+import { lang, t } from './i18n';
 
 /** Translate an argument-taxonomy role to the active language, falling back to
  *  the raw role string when the catalog has no entry for it. */
@@ -81,14 +81,14 @@ const NODE_GAP = 16;
 const TOP_PADDING = 22;
 const BOTTOM_PADDING = 24;
 const NAME_MAX_CHARS = 22;
-const VERT_LANE_STEP = 8;   // x offset between parallel vertical connectors
+const VERT_LANE_STEP = 8; // x offset between parallel vertical connectors
 
-const COLOR_A = '#1d4ed8';        // Position A — primary blue
-const COLOR_B = '#b91c1c';        // Position B — primary red
-const COLOR_C = '#7c3aed';        // Position C — purple
-const COLOR_STAM = '#475569';     // Stam — slate
-const COLOR_SUPPORT = '#15803d';  // Support voices — green
-const COLOR_UNALIGNED = '#92400e';// Unaligned (questioners, transmitters) — amber
+const COLOR_A = '#1d4ed8'; // Position A — primary blue
+const COLOR_B = '#b91c1c'; // Position B — primary red
+const COLOR_C = '#7c3aed'; // Position C — purple
+const COLOR_STAM = '#475569'; // Stam — slate
+const COLOR_SUPPORT = '#15803d'; // Support voices — green
+const COLOR_UNALIGNED = '#92400e'; // Unaligned (questioners, transmitters) — amber
 const EDGE_SUPPORT = '#15803d';
 const EDGE_OPPOSE = '#b91c1c';
 const EDGE_NEUTRAL = '#666';
@@ -104,7 +104,8 @@ function sideMeta(side: string): { rowOrder: number; label: string; color: strin
   if (s === 'support-b') return { rowOrder: 3, label: t('voices.supportsB'), color: COLOR_SUPPORT };
   if (s === 'b') return { rowOrder: 4, label: t('voices.position.b'), color: COLOR_B };
   if (s === 'c') return { rowOrder: 5, label: t('voices.position.c'), color: COLOR_C };
-  if (s === 'unaligned') return { rowOrder: 6, label: t('voices.unaligned'), color: COLOR_UNALIGNED };
+  if (s === 'unaligned')
+    return { rowOrder: 6, label: t('voices.unaligned'), color: COLOR_UNALIGNED };
   // Unknown side: place at the bottom under its own label.
   return { rowOrder: 7, label: side || t('voices.other'), color: COLOR_UNALIGNED };
 }
@@ -150,7 +151,13 @@ interface LaidEdge {
   offset: number;
 }
 
-function buildLayout(data: ArgumentVoicesData): { nodes: LaidNode[]; edges: LaidEdge[]; rows: { y: number; label: string; color: string }[]; width: number; height: number } {
+function buildLayout(data: ArgumentVoicesData): {
+  nodes: LaidNode[];
+  edges: LaidEdge[];
+  rows: { y: number; label: string; color: string }[];
+  width: number;
+  height: number;
+} {
   const byRow = new Map<number, ArgumentVoice[]>();
   const rowAttrs = new Map<number, { label: string; color: string }>();
 
@@ -159,13 +166,19 @@ function buildLayout(data: ArgumentVoicesData): { nodes: LaidNode[]; edges: Laid
     const list = byRow.get(meta.rowOrder) ?? [];
     list.push(v);
     byRow.set(meta.rowOrder, list);
-    if (!rowAttrs.has(meta.rowOrder)) rowAttrs.set(meta.rowOrder, { label: meta.label, color: meta.color });
+    if (!rowAttrs.has(meta.rowOrder))
+      rowAttrs.set(meta.rowOrder, { label: meta.label, color: meta.color });
   }
 
   // Sort each row: originator → respondent → objector → others.
   const rolePriority: Record<string, number> = {
-    originator: 0, questioner: 1, respondent: 2, objector: 3,
-    supporter: 4, 'cited-authority': 5, transmitter: 6,
+    originator: 0,
+    questioner: 1,
+    respondent: 2,
+    objector: 3,
+    supporter: 4,
+    'cited-authority': 5,
+    transmitter: 6,
   };
   for (const list of byRow.values()) {
     list.sort((a, b) => {
@@ -242,8 +255,10 @@ function buildLayout(data: ArgumentVoicesData): { nodes: LaidNode[]; edges: Laid
     const laneOf = new Map<LaidEdge, number>();
     for (const it of items) {
       let lane = laneHi.findIndex((h) => h <= it.lo); // touching segments share
-      if (lane === -1) { lane = laneHi.length; laneHi.push(it.hi); }
-      else laneHi[lane] = it.hi;
+      if (lane === -1) {
+        lane = laneHi.length;
+        laneHi.push(it.hi);
+      } else laneHi[lane] = it.hi;
       laneOf.set(it.e, lane);
     }
     const laneCount = laneHi.length;
@@ -296,42 +311,50 @@ export default function ArgumentVoiceMap(props: Props): JSX.Element {
 
   return (
     <Show when={hasContent()}>
-      <div style={{
-        border: '1px solid #eae8e0',
-        'border-radius': '6px',
-        background: '#fafaf7',
-        padding: '0.7rem 0.85rem',
-        'margin-top': '0.9rem',
-      }}>
-        <div style={{
-          'font-size': '0.7rem',
-          'text-transform': 'uppercase',
-          'letter-spacing': '0.08em',
-          color: '#888',
-          'margin-bottom': '0.5rem',
-        }}>{t('voices.title')}</div>
+      <div
+        style={{
+          border: '1px solid #eae8e0',
+          'border-radius': '6px',
+          background: '#fafaf7',
+          padding: '0.7rem 0.85rem',
+          'margin-top': '0.9rem',
+        }}
+      >
+        <div
+          style={{
+            'font-size': '0.7rem',
+            'text-transform': 'uppercase',
+            'letter-spacing': '0.08em',
+            color: '#888',
+            'margin-bottom': '0.5rem',
+          }}
+        >
+          {t('voices.title')}
+        </div>
 
         {/* Pannable canvas: when the SVG is wider/taller than the sidebar
             slot, the wrapper scrolls in both axes. SVG renders at its
             natural width — no max-width:100% (which would scale-fit and
             crush the layout). The wrapper has min-width:0 so it shrinks
             inside flex parents instead of stretching them. */}
-        <div style={{
-          width: '100%',
-          'min-width': 0,
-          'max-height': '480px',
-          'overflow-x': 'auto',
-          'overflow-y': 'auto',
-          // The diagram is an inherently left-to-right tree (axis on the left,
-          // rows flowing right). Pin the scroll container to LTR so that under
-          // a page-level dir=rtl (Hebrew) the scroll origin stays on the left
-          // and the right-hand columns aren't hidden off-screen.
-          direction: 'ltr',
-          border: '1px solid #ece9df',
-          'border-radius': '8px',
-          background: '#fdfcf9',
-          padding: '0.35rem 0.2rem',
-        }}>
+        <div
+          style={{
+            width: '100%',
+            'min-width': 0,
+            'max-height': '480px',
+            'overflow-x': 'auto',
+            'overflow-y': 'auto',
+            // The diagram is an inherently left-to-right tree (axis on the left,
+            // rows flowing right). Pin the scroll container to LTR so that under
+            // a page-level dir=rtl (Hebrew) the scroll origin stays on the left
+            // and the right-hand columns aren't hidden off-screen.
+            direction: 'ltr',
+            border: '1px solid #ece9df',
+            'border-radius': '8px',
+            background: '#fdfcf9',
+            padding: '0.35rem 0.2rem',
+          }}
+        >
           <svg
             width={layout().width}
             height={layout().height}
@@ -340,7 +363,13 @@ export default function ArgumentVoiceMap(props: Props): JSX.Element {
           >
             <defs>
               <filter id="voice-card-shadow" x="-10%" y="-20%" width="120%" height="150%">
-                <feDropShadow dx="0" dy="1" stdDeviation="1.4" flood-color="#3a3320" flood-opacity="0.12" />
+                <feDropShadow
+                  dx="0"
+                  dy="1"
+                  stdDeviation="1.4"
+                  flood-color="#3a3320"
+                  flood-opacity="0.12"
+                />
               </filter>
             </defs>
 
@@ -357,136 +386,190 @@ export default function ArgumentVoiceMap(props: Props): JSX.Element {
             />
 
             {/* Side axis: label · node-dot on the spine · connector to the card. */}
-            <For each={layout().rows}>{(row) => (
-              <>
-                <line
-                  x1={AXIS_WIDTH}
-                  y1={row.y}
-                  x2={AXIS_WIDTH + COL_GAP}
-                  y2={row.y}
-                  stroke="#e4e0d4"
-                  stroke-width={1.5}
-                  stroke-linecap="round"
-                />
-                {/* White halo (canvas colour) lets the dot punch cleanly
+            <For each={layout().rows}>
+              {(row) => (
+                <>
+                  <line
+                    x1={AXIS_WIDTH}
+                    y1={row.y}
+                    x2={AXIS_WIDTH + COL_GAP}
+                    y2={row.y}
+                    stroke="#e4e0d4"
+                    stroke-width={1.5}
+                    stroke-linecap="round"
+                  />
+                  {/* White halo (canvas colour) lets the dot punch cleanly
                     through the spine + connector. */}
-                <circle cx={AXIS_WIDTH} cy={row.y} r={5} fill={row.color} stroke="#fdfcf9" stroke-width={2} />
-                <text
-                  x={AXIS_WIDTH - 16}
-                  y={row.y}
-                  text-anchor="end"
-                  dominant-baseline="central"
-                  font-size="10"
-                  font-weight="500"
-                  font-family="system-ui, -apple-system, sans-serif"
-                  fill="#6b6661"
-                >
-                  {row.label}
-                </text>
-              </>
-            )}</For>
+                  <circle
+                    cx={AXIS_WIDTH}
+                    cy={row.y}
+                    r={5}
+                    fill={row.color}
+                    stroke="#fdfcf9"
+                    stroke-width={2}
+                  />
+                  <text
+                    x={AXIS_WIDTH - 16}
+                    y={row.y}
+                    text-anchor="end"
+                    dominant-baseline="central"
+                    font-size="10"
+                    font-weight="500"
+                    font-family="system-ui, -apple-system, sans-serif"
+                    fill="#6b6661"
+                  >
+                    {row.label}
+                  </text>
+                </>
+              )}
+            </For>
 
             {/* Edges, behind nodes. Note text lives in a <title> hover
                 tooltip rather than inline — when many edges share the same
                 pair of rows, inline pill labels stacked on top of each
                 other and read as visual noise. Color + dash already convey
                 the edge kind; hovering reveals the per-edge note. */}
-            <For each={layout().edges}>{(e) => {
-              const stroke = edgeColor(e.kind);
-              const dash = edgeDash(e.kind);
-              const titleText = e.note && e.note.trim().length > 0
-                ? `${e.from.name} ${e.kind} ${e.to.name} — ${e.note}`
-                : `${e.from.name} ${e.kind} ${e.to.name}`;
-              return (
-                <path
-                  d={edgePath(e)}
-                  fill="none"
-                  stroke={stroke}
-                  stroke-width={1.5}
-                  stroke-linecap="round"
-                  stroke-opacity={0.8}
-                  stroke-dasharray={dash}
-                >
-                  <title>{titleText}</title>
-                </path>
-              );
-            }}</For>
+            <For each={layout().edges}>
+              {(e) => {
+                const stroke = edgeColor(e.kind);
+                const dash = edgeDash(e.kind);
+                const titleText =
+                  e.note && e.note.trim().length > 0
+                    ? `${e.from.name} ${e.kind} ${e.to.name} — ${e.note}`
+                    : `${e.from.name} ${e.kind} ${e.to.name}`;
+                return (
+                  <path
+                    d={edgePath(e)}
+                    fill="none"
+                    stroke={stroke}
+                    stroke-width={1.5}
+                    stroke-linecap="round"
+                    stroke-opacity={0.8}
+                    stroke-dasharray={dash}
+                  >
+                    <title>{titleText}</title>
+                  </path>
+                );
+              }}
+            </For>
 
             {/* Nodes */}
-            <For each={layout().nodes}>{(n) => {
-              const clickable = props.onClickVoice && isClickableVoiceName(n.name);
-              const titleText = n.stance ? `${n.name} (${n.role})\n${n.stance}` : `${n.name} (${n.role})`;
-              return (
-                <g
-                  onClick={clickable ? () => props.onClickVoice!(n.name) : undefined}
-                  style={clickable ? { cursor: 'pointer' } : undefined}
-                >
-                  <title>{clickable ? `${titleText}\n— click to open` : titleText}</title>
-                  <rect
-                    x={n.x}
-                    y={n.y}
-                    width={NODE_W}
-                    height={NODE_H}
-                    rx={10}
-                    ry={10}
-                    fill="#ffffff"
-                    stroke="#e4e0d4"
-                    stroke-width={1}
-                    filter="url(#voice-card-shadow)"
-                  />
-                  {/* Side-colour badge (replaces the old left accent bar, which
+            <For each={layout().nodes}>
+              {(n) => {
+                const clickable = props.onClickVoice && isClickableVoiceName(n.name);
+                const titleText = n.stance
+                  ? `${n.name} (${n.role})\n${n.stance}`
+                  : `${n.name} (${n.role})`;
+                return (
+                  <g
+                    onClick={clickable ? () => props.onClickVoice!(n.name) : undefined}
+                    style={clickable ? { cursor: 'pointer' } : undefined}
+                  >
+                    <title>{clickable ? `${titleText}\n— click to open` : titleText}</title>
+                    <rect
+                      x={n.x}
+                      y={n.y}
+                      width={NODE_W}
+                      height={NODE_H}
+                      rx={10}
+                      ry={10}
+                      fill="#ffffff"
+                      stroke="#e4e0d4"
+                      stroke-width={1}
+                      filter="url(#voice-card-shadow)"
+                    />
+                    {/* Side-colour badge (replaces the old left accent bar, which
                       overlapped the rounded border and read as a blob). */}
-                  <circle cx={n.x + 19} cy={n.y + NODE_H / 2} r={9} fill={n.color} />
-                  {/* Left-align both lines at n.x+36 (right of the badge) in BOTH
+                    <circle cx={n.x + 19} cy={n.y + NODE_H / 2} r={9} fill={n.color} />
+                    {/* Left-align both lines at n.x+36 (right of the badge) in BOTH
                       languages. text-anchor is direction-relative: with
                       direction=rtl, anchor="start" pins the text's RIGHT edge to
                       n.x+36 so the Hebrew name flows left over the colour badge.
                       anchor="end" pins the LEFT edge there instead. */}
-                  <text
-                    x={n.x + 36}
-                    y={n.y + NODE_H / 2 - 6}
-                    text-anchor={lang() === 'he' ? 'end' : 'start'}
-                    dominant-baseline="central"
-                    font-size="11.5"
-                    font-weight="600"
-                    font-family="system-ui, -apple-system, sans-serif"
-                    fill="#2a2723"
-                    direction={lang() === 'he' ? 'rtl' : 'ltr'}
-                    style={clickable ? { 'text-decoration': 'underline', 'text-decoration-style': 'dotted', 'text-underline-offset': '2px' } : undefined}
-                  >{compactName(voiceDisplayName(n))}</text>
-                  <text
-                    x={n.x + 36}
-                    y={n.y + NODE_H / 2 + 10}
-                    text-anchor={lang() === 'he' ? 'end' : 'start'}
-                    dominant-baseline="central"
-                    font-size="9.5"
-                    font-family="system-ui, -apple-system, sans-serif"
-                    fill="#8a857c"
-                    direction={lang() === 'he' ? 'rtl' : 'ltr'}
-                  >{roleLabel(n.role)}</text>
-                </g>
-              );
-            }}</For>
+                    <text
+                      x={n.x + 36}
+                      y={n.y + NODE_H / 2 - 6}
+                      text-anchor={lang() === 'he' ? 'end' : 'start'}
+                      dominant-baseline="central"
+                      font-size="11.5"
+                      font-weight="600"
+                      font-family="system-ui, -apple-system, sans-serif"
+                      fill="#2a2723"
+                      direction={lang() === 'he' ? 'rtl' : 'ltr'}
+                      style={
+                        clickable
+                          ? {
+                              'text-decoration': 'underline',
+                              'text-decoration-style': 'dotted',
+                              'text-underline-offset': '2px',
+                            }
+                          : undefined
+                      }
+                    >
+                      {compactName(voiceDisplayName(n))}
+                    </text>
+                    <text
+                      x={n.x + 36}
+                      y={n.y + NODE_H / 2 + 10}
+                      text-anchor={lang() === 'he' ? 'end' : 'start'}
+                      dominant-baseline="central"
+                      font-size="9.5"
+                      font-family="system-ui, -apple-system, sans-serif"
+                      fill="#8a857c"
+                      direction={lang() === 'he' ? 'rtl' : 'ltr'}
+                    >
+                      {roleLabel(n.role)}
+                    </text>
+                  </g>
+                );
+              }}
+            </For>
           </svg>
         </div>
 
         {/* Legend */}
-        <div style={{
-          display: 'flex', 'align-items': 'center', gap: '0.85rem',
-          'margin-top': '0.6rem',
-          'font-size': '0.65rem', color: '#888',
-          'flex-wrap': 'wrap',
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            'align-items': 'center',
+            gap: '0.85rem',
+            'margin-top': '0.6rem',
+            'font-size': '0.65rem',
+            color: '#888',
+            'flex-wrap': 'wrap',
+          }}
+        >
           <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.3rem' }}>
-            <span style={{ display: 'inline-block', width: '14px', height: '0', 'border-top': `1.5px solid ${EDGE_SUPPORT}` }} />
+            <span
+              style={{
+                display: 'inline-block',
+                width: '14px',
+                height: '0',
+                'border-top': `1.5px solid ${EDGE_SUPPORT}`,
+              }}
+            />
             {t('voices.legend.supports')}
           </span>
           <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.3rem' }}>
-            <span style={{ display: 'inline-block', width: '14px', height: '0', 'border-top': `1.5px dashed ${EDGE_OPPOSE}` }} />
+            <span
+              style={{
+                display: 'inline-block',
+                width: '14px',
+                height: '0',
+                'border-top': `1.5px dashed ${EDGE_OPPOSE}`,
+              }}
+            />
             {t('voices.legend.opposes')}
           </span>
           <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.3rem' }}>
-            <span style={{ display: 'inline-block', width: '14px', height: '0', 'border-top': `1.5px solid ${EDGE_NEUTRAL}` }} />
+            <span
+              style={{
+                display: 'inline-block',
+                width: '14px',
+                height: '0',
+                'border-top': `1.5px solid ${EDGE_NEUTRAL}`,
+              }}
+            />
             {t('voices.legend.cites')}
           </span>
         </div>

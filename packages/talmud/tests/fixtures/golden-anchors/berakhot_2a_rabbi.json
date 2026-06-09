@@ -1,54 +1,54 @@
 {
- "tractate": "Berakhot",
- "page": "2a",
- "mark": "rabbi",
- "cache_hit": true,
- "raw": {
-  "instances": [
-   {
-    "excerpt": "ר' אליעזר",
-    "fields": {
-     "generation": "tanna-2",
-     "name": "Rabbi Eliezer",
-     "nameHe": "ר' אליעזר"
-    }
-   },
-   {
-    "excerpt": "רבן גמליאל",
-    "fields": {
-     "generation": "tanna-2",
-     "name": "Rabban Gamliel II",
-     "nameHe": "רבן גמליאל"
-    }
-   }
-  ]
- },
- "expected": {
-  "instances": [
-   {
-    "excerpt": "ר' אליעזר",
-    "fields": {
-     "name": "Rabbi Eliezer",
-     "nameHe": "ר' אליעזר",
-     "generation": "tanna-2"
-    }
-   },
-   {
-    "excerpt": "רבן גמליאל",
-    "fields": {
-     "name": "Rabban Gamliel II",
-     "nameHe": "רבן גמליאל",
-     "generation": "tanna-2"
-    }
-   },
-   {
-    "excerpt": "רבי אליעזר",
-    "fields": {
-     "name": "Rabbi Eliezer b. Hyrcanus",
-     "nameHe": "רבי אליעזר",
-     "generation": "unknown"
-    }
-   }
-  ]
- }
+  "tractate": "Berakhot",
+  "page": "2a",
+  "mark": "rabbi",
+  "cache_hit": true,
+  "raw": {
+    "instances": [
+      {
+        "excerpt": "ר' אליעזר",
+        "fields": {
+          "generation": "tanna-2",
+          "name": "Rabbi Eliezer",
+          "nameHe": "ר' אליעזר"
+        }
+      },
+      {
+        "excerpt": "רבן גמליאל",
+        "fields": {
+          "generation": "tanna-2",
+          "name": "Rabban Gamliel II",
+          "nameHe": "רבן גמליאל"
+        }
+      }
+    ]
+  },
+  "expected": {
+    "instances": [
+      {
+        "excerpt": "ר' אליעזר",
+        "fields": {
+          "name": "Rabbi Eliezer",
+          "nameHe": "ר' אליעזר",
+          "generation": "tanna-2"
+        }
+      },
+      {
+        "excerpt": "רבן גמליאל",
+        "fields": {
+          "name": "Rabban Gamliel II",
+          "nameHe": "רבן גמליאל",
+          "generation": "tanna-2"
+        }
+      },
+      {
+        "excerpt": "רבי אליעזר",
+        "fields": {
+          "name": "Rabbi Eliezer b. Hyrcanus",
+          "nameHe": "רבי אליעזר",
+          "generation": "unknown"
+        }
+      }
+    ]
+  }
 }

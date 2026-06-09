@@ -42,10 +42,10 @@ export interface UsageBucket {
   calls: number;
   tokensIn: number;
   tokensOut: number;
-  costUsd: number;       // sum of priced calls only (billed-or-est total)
-  costInUsd: number;     // est input-side dollars
-  costOutUsd: number;    // est output-side dollars
-  pricedCalls: number;   // calls we could attach a $ figure to
+  costUsd: number; // sum of priced calls only (billed-or-est total)
+  costInUsd: number; // est input-side dollars
+  costOutUsd: number; // est output-side dollars
+  pricedCalls: number; // calls we could attach a $ figure to
   unpricedCalls: number; // calls whose model has no list price
 }
 
@@ -59,7 +59,16 @@ export interface DailyRollup extends UsageBucket {
 }
 
 function emptyBucket(): UsageBucket {
-  return { calls: 0, tokensIn: 0, tokensOut: 0, costUsd: 0, costInUsd: 0, costOutUsd: 0, pricedCalls: 0, unpricedCalls: 0 };
+  return {
+    calls: 0,
+    tokensIn: 0,
+    tokensOut: 0,
+    costUsd: 0,
+    costInUsd: 0,
+    costOutUsd: 0,
+    pricedCalls: 0,
+    unpricedCalls: 0,
+  };
 }
 
 function applyToBucket(b: UsageBucket, d: UsageDelta): void {
@@ -81,7 +90,15 @@ export function todayUtc(now: number = Date.now()): string {
 }
 
 function emptyRollup(date: string): DailyRollup {
-  return { date, errors: 0, cacheHits: 0, byModel: {}, byMark: {}, byEnrichment: {}, ...emptyBucket() };
+  return {
+    date,
+    errors: 0,
+    cacheHits: 0,
+    byModel: {},
+    byMark: {},
+    byEnrichment: {},
+    ...emptyBucket(),
+  };
 }
 
 /** Fire-and-forget: increments today's bucket. Pass ctx so it survives the response. */
@@ -135,7 +152,10 @@ export interface UsageSummary {
   toDate: string | null;
 }
 
-function mergeBucketInto(into: Record<string, UsageBucket>, from: Record<string, UsageBucket>): void {
+function mergeBucketInto(
+  into: Record<string, UsageBucket>,
+  from: Record<string, UsageBucket>,
+): void {
   for (const [k, b] of Object.entries(from)) {
     const t = (into[k] ??= emptyBucket());
     t.calls += b.calls;
@@ -155,7 +175,9 @@ export async function readUsageSummary(cache: KVNamespace, days = 120): Promise<
   let cursor: string | undefined;
   for (;;) {
     const res = (await cache.list({ prefix: PREFIX, cursor, limit: 1000 })) as {
-      keys: Array<{ name: string }>; list_complete: boolean; cursor?: string;
+      keys: Array<{ name: string }>;
+      list_complete: boolean;
+      cursor?: string;
     };
     for (const k of res.keys) keys.push(k.name);
     if (res.list_complete || !res.cursor) break;
@@ -174,7 +196,11 @@ export async function readUsageSummary(cache: KVNamespace, days = 120): Promise<
   for (const raw of rollups) {
     if (!raw) continue;
     let r: DailyRollup;
-    try { r = JSON.parse(raw) as DailyRollup; } catch { continue; }
+    try {
+      r = JSON.parse(raw) as DailyRollup;
+    } catch {
+      continue;
+    }
     series.push(r);
     totals.calls += r.calls;
     totals.tokensIn += r.tokensIn;

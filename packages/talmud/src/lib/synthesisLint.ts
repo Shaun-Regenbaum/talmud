@@ -32,24 +32,55 @@ export interface PasukCitationIssue {
 // would be a separate, naming-style violation — out of scope for this lint.
 const TANACH_BOOKS = [
   // Chumash
-  'Bereishit', 'Shemot', 'Vayikra', 'Bamidbar', 'Devarim',
+  'Bereishit',
+  'Shemot',
+  'Vayikra',
+  'Bamidbar',
+  'Devarim',
   // Nevi'im
-  'Yehoshua', 'Shoftim',
-  'Shmuel Aleph', 'Shmuel Bet', 'Shmuel',
-  'Melachim Aleph', 'Melachim Bet', 'Melachim',
-  'Yeshayahu', 'Yirmiyahu', 'Yechezkel',
-  'Hoshea', 'Yoel', 'Amos', 'Ovadiah', 'Yonah', 'Michah',
-  'Nachum', 'Chavakuk', 'Tzefaniah', 'Chaggai', 'Zechariah', 'Malachi',
+  'Yehoshua',
+  'Shoftim',
+  'Shmuel Aleph',
+  'Shmuel Bet',
+  'Shmuel',
+  'Melachim Aleph',
+  'Melachim Bet',
+  'Melachim',
+  'Yeshayahu',
+  'Yirmiyahu',
+  'Yechezkel',
+  'Hoshea',
+  'Yoel',
+  'Amos',
+  'Ovadiah',
+  'Yonah',
+  'Michah',
+  'Nachum',
+  'Chavakuk',
+  'Tzefaniah',
+  'Chaggai',
+  'Zechariah',
+  'Malachi',
   // Ketuvim
-  'Tehillim', 'Mishlei', 'Iyov', 'Shir HaShirim', 'Rut', 'Eichah',
-  'Kohelet', 'Esther', 'Daniel', 'Ezra', 'Nechemiah',
-  'Divrei HaYamim Aleph', 'Divrei HaYamim Bet', 'Divrei HaYamim',
+  'Tehillim',
+  'Mishlei',
+  'Iyov',
+  'Shir HaShirim',
+  'Rut',
+  'Eichah',
+  'Kohelet',
+  'Esther',
+  'Daniel',
+  'Ezra',
+  'Nechemiah',
+  'Divrei HaYamim Aleph',
+  'Divrei HaYamim Bet',
+  'Divrei HaYamim',
 ];
 
 // Sort longest first so "Shmuel Aleph" wins over "Shmuel" when both are
 // candidates. Regex alternation otherwise picks the first match.
-const BOOK_ALT = TANACH_BOOKS
-  .slice()
+const BOOK_ALT = TANACH_BOOKS.slice()
   .sort((a, b) => b.length - a.length)
   .map((b) => b.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
   .join('|');

@@ -25,37 +25,20 @@
               "type": "string"
             }
           },
-          "required": [
-            "ref",
-            "note"
-          ],
+          "required": ["ref", "note"],
           "additionalProperties": false
         }
       },
       "textConfidence": {
         "type": "string",
-        "enum": [
-          "high",
-          "medium",
-          "low"
-        ]
+        "enum": ["high", "medium", "low"]
       },
       "readingConfidence": {
         "type": "string",
-        "enum": [
-          "high",
-          "medium",
-          "low"
-        ]
+        "enum": ["high", "medium", "low"]
       }
     },
-    "required": [
-      "hook",
-      "paragraphs",
-      "sources",
-      "textConfidence",
-      "readingConfidence"
-    ],
+    "required": ["hook", "paragraphs", "sources", "textConfidence", "readingConfidence"],
     "additionalProperties": false
   }
 }

@@ -8,9 +8,9 @@
  * arrives with caching + the producers.
  */
 
-import { Hono } from 'hono';
-import { SefariaClient, flattenPieces, pickV3Version } from '@corpus/core/sefaria/client';
 import type { LLMEnv } from '@corpus/core/llm/llm';
+import { flattenPieces, pickV3Version, SefariaClient } from '@corpus/core/sefaria/client';
+import { Hono } from 'hono';
 import { isBook } from '../lib/books.ts';
 import { COMMENTATORS } from '../lib/commentators.ts';
 import { eventSections } from './producers/events.ts';
@@ -211,7 +211,13 @@ app.get('/api/parsha', async (c) => {
   const cached = await c.env.CACHE.get(cacheKey);
   if (cached) return c.json(JSON.parse(cached));
 
-  let cal: { calendar_items?: Array<{ title?: { en?: string }; displayValue?: { en?: string; he?: string }; ref?: string }> };
+  let cal: {
+    calendar_items?: Array<{
+      title?: { en?: string };
+      displayValue?: { en?: string; he?: string };
+      ref?: string;
+    }>;
+  };
   try {
     const r = await fetch(`https://www.sefaria.org/api/calendars?diaspora=${israel ? 0 : 1}`);
     cal = (await r.json()) as typeof cal;
@@ -230,7 +236,9 @@ app.get('/api/parsha', async (c) => {
     book: m[1],
     chapter: Number(m[2]),
   };
-  c.executionCtx.waitUntil(c.env.CACHE.put(cacheKey, JSON.stringify(payload), { expirationTtl: 6 * 3600 }));
+  c.executionCtx.waitUntil(
+    c.env.CACHE.put(cacheKey, JSON.stringify(payload), { expirationTtl: 6 * 3600 }),
+  );
   return c.json(payload);
 });
 
@@ -341,7 +349,11 @@ interface VerseCommentary {
 
 /** Fetch each curated commentator's note on a verse from Sefaria (he+en), drop
  *  the empties. Shared by the commentary drawer and the synthesis producer. */
-async function fetchVerseCommentaries(book: string, chapter: string, verse: string): Promise<VerseCommentary[]> {
+async function fetchVerseCommentaries(
+  book: string,
+  chapter: string,
+  verse: string,
+): Promise<VerseCommentary[]> {
   const results = await Promise.all(
     COMMENTATORS.map(async (cm) => {
       const ref = `${cm.title} on ${book} ${chapter}:${verse}`;
@@ -366,7 +378,8 @@ app.get('/api/commentary/:book/:chapter/:verse', async (c) => {
   const chapter = c.req.param('chapter');
   const verse = c.req.param('verse');
   if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
-  if (!/^\d+$/.test(chapter) || !/^\d+$/.test(verse)) return c.json({ error: 'Bad chapter/verse' }, 400);
+  if (!/^\d+$/.test(chapter) || !/^\d+$/.test(verse))
+    return c.json({ error: 'Bad chapter/verse' }, 400);
 
   const key = `commentary:v1:${book}:${chapter}:${verse}`;
   const cached = await c.env.CACHE.get(key);
@@ -386,7 +399,8 @@ app.get('/api/synthesis/:book/:chapter/:verse', async (c) => {
   const chapter = c.req.param('chapter');
   const verse = c.req.param('verse');
   if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
-  if (!/^\d+$/.test(chapter) || !/^\d+$/.test(verse)) return c.json({ error: 'Bad chapter/verse' }, 400);
+  if (!/^\d+$/.test(chapter) || !/^\d+$/.test(verse))
+    return c.json({ error: 'Bad chapter/verse' }, 400);
 
   const key = `synthesis:v1:${book}:${chapter}:${verse}`;
   const cached = await c.env.CACHE.get(key);
@@ -408,7 +422,13 @@ app.get('/api/synthesis/:book/:chapter/:verse', async (c) => {
     /* verse text is optional context */
   }
   const ctext = commentaries
-    .map((cm) => `${cm.en}: ${cm.he.join(' ').replace(/<[^>]+>/g, '').slice(0, 600)}`)
+    .map(
+      (cm) =>
+        `${cm.en}: ${cm.he
+          .join(' ')
+          .replace(/<[^>]+>/g, '')
+          .slice(0, 600)}`,
+    )
     .join('\n\n');
 
   let result: Awaited<ReturnType<typeof synthesize>>;
@@ -418,7 +438,13 @@ app.get('/api/synthesis/:book/:chapter/:verse', async (c) => {
     return c.json({ error: `Producer failed: ${(e as Error).message}` }, 502);
   }
 
-  const payload = { book, chapter: Number(chapter), verse: Number(verse), en: result.en, he: result.he };
+  const payload = {
+    book,
+    chapter: Number(chapter),
+    verse: Number(verse),
+    en: result.en,
+    he: result.he,
+  };
   c.executionCtx.waitUntil(
     Promise.all([
       c.env.CACHE.put(key, JSON.stringify(payload)),
@@ -560,14 +586,26 @@ async function fetchPassages(
     picked.push({ ref: sref, title: l.index_title ?? '' });
   }
   if (bavliFirst) {
-    picked.sort((a, b) => Number(/^(Jerusalem|Tractate)/.test(a.title)) - Number(/^(Jerusalem|Tractate)/.test(b.title)));
+    picked.sort(
+      (a, b) =>
+        Number(/^(Jerusalem|Tractate)/.test(a.title)) -
+        Number(/^(Jerusalem|Tractate)/.test(b.title)),
+    );
   }
   const passages = await Promise.all(
     picked.slice(0, cap).map(async (p) => {
       try {
         const v3 = await sefaria.getTextV3(p.ref);
-        const he = flattenPieces(pickV3Version(v3.versions, 'he')).join(' ').replace(/<[^>]+>/g, '').trim().slice(0, 420);
-        const en = flattenPieces(pickV3Version(v3.versions, 'en')).join(' ').replace(/<[^>]+>/g, '').trim().slice(0, 420);
+        const he = flattenPieces(pickV3Version(v3.versions, 'he'))
+          .join(' ')
+          .replace(/<[^>]+>/g, '')
+          .trim()
+          .slice(0, 420);
+        const en = flattenPieces(pickV3Version(v3.versions, 'en'))
+          .join(' ')
+          .replace(/<[^>]+>/g, '')
+          .trim()
+          .slice(0, 420);
         return { ref: p.ref, he, en };
       } catch {
         return { ref: p.ref, he: '', en: '' };
@@ -584,7 +622,8 @@ app.get('/api/gemara/:book/:chapter/:verse', async (c) => {
   const chapter = c.req.param('chapter');
   const verse = c.req.param('verse');
   if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
-  if (!/^\d+$/.test(chapter) || !/^\d+$/.test(verse)) return c.json({ error: 'Bad chapter/verse' }, 400);
+  if (!/^\d+$/.test(chapter) || !/^\d+$/.test(verse))
+    return c.json({ error: 'Bad chapter/verse' }, 400);
 
   const key = `gemara:v1:${book}:${chapter}:${verse}`;
   const cached = await c.env.CACHE.get(key);
@@ -596,7 +635,13 @@ app.get('/api/gemara/:book/:chapter/:verse', async (c) => {
   } catch (e) {
     return c.json({ error: `Links fetch failed: ${(e as Error).message}` }, 502);
   }
-  const payload = { book, chapter: Number(chapter), verse: Number(verse), count: res.count, passages: res.passages };
+  const payload = {
+    book,
+    chapter: Number(chapter),
+    verse: Number(verse),
+    count: res.count,
+    passages: res.passages,
+  };
   c.executionCtx.waitUntil(c.env.CACHE.put(key, JSON.stringify(payload)).then(() => undefined));
   return c.json(payload);
 });
@@ -608,7 +653,8 @@ app.get('/api/midrash/:book/:chapter/:verse', async (c) => {
   const chapter = c.req.param('chapter');
   const verse = c.req.param('verse');
   if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
-  if (!/^\d+$/.test(chapter) || !/^\d+$/.test(verse)) return c.json({ error: 'Bad chapter/verse' }, 400);
+  if (!/^\d+$/.test(chapter) || !/^\d+$/.test(verse))
+    return c.json({ error: 'Bad chapter/verse' }, 400);
 
   const key = `midrash:v1:${book}:${chapter}:${verse}`;
   const cached = await c.env.CACHE.get(key);
@@ -620,7 +666,13 @@ app.get('/api/midrash/:book/:chapter/:verse', async (c) => {
   } catch (e) {
     return c.json({ error: `Links fetch failed: ${(e as Error).message}` }, 502);
   }
-  const payload = { book, chapter: Number(chapter), verse: Number(verse), count: res.count, passages: res.passages };
+  const payload = {
+    book,
+    chapter: Number(chapter),
+    verse: Number(verse),
+    count: res.count,
+    passages: res.passages,
+  };
   c.executionCtx.waitUntil(c.env.CACHE.put(key, JSON.stringify(payload)).then(() => undefined));
   return c.json(payload);
 });
@@ -632,7 +684,8 @@ app.get('/api/midrash-synthesis/:book/:chapter/:verse', async (c) => {
   const chapter = c.req.param('chapter');
   const verse = c.req.param('verse');
   if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
-  if (!/^\d+$/.test(chapter) || !/^\d+$/.test(verse)) return c.json({ error: 'Bad chapter/verse' }, 400);
+  if (!/^\d+$/.test(chapter) || !/^\d+$/.test(verse))
+    return c.json({ error: 'Bad chapter/verse' }, 400);
 
   const key = `midrash-synth:v1:${book}:${chapter}:${verse}`;
   const cached = await c.env.CACHE.get(key);
@@ -658,7 +711,10 @@ app.get('/api/midrash-synthesis/:book/:chapter/:verse', async (c) => {
   } catch {
     /* optional */
   }
-  const mtext = passages.map((p) => p.he || p.en).filter(Boolean).join('\n\n');
+  const mtext = passages
+    .map((p) => p.he || p.en)
+    .filter(Boolean)
+    .join('\n\n');
 
   let result: Awaited<ReturnType<typeof midrashSynthesis>>;
   try {
@@ -666,7 +722,13 @@ app.get('/api/midrash-synthesis/:book/:chapter/:verse', async (c) => {
   } catch (e) {
     return c.json({ error: `Producer failed: ${(e as Error).message}` }, 502);
   }
-  const payload = { book, chapter: Number(chapter), verse: Number(verse), en: result.en, he: result.he };
+  const payload = {
+    book,
+    chapter: Number(chapter),
+    verse: Number(verse),
+    en: result.en,
+    he: result.he,
+  };
   c.executionCtx.waitUntil(
     Promise.all([
       c.env.CACHE.put(key, JSON.stringify(payload)),

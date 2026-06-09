@@ -7,8 +7,8 @@
 // captureLlmUsage / recordObserved* stay in index.ts: they depend on RunCtx,
 // which is core to the run engine, not telemetry.
 
+import { normalizeUsage, costUsd as priceCostUsd } from '@corpus/core/llm/pricing';
 import type { Bindings } from './types';
-import { costUsd as priceCostUsd, normalizeUsage } from '@corpus/core/llm/pricing';
 
 // String-typed so composed labels like `stage-a-<classifyError>` work without
 // requiring a combinatorial explosion of literal types. Classifier values are

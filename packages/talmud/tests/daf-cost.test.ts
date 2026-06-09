@@ -1,19 +1,31 @@
-import { describe, it, expect } from 'vitest';
-import { dafMarkCost, dafCostReport, bestStampUsd, type MarkRowLite } from '../src/worker/daf-cost';
+import { describe, expect, it } from 'vitest';
 import { keyForMark } from '../src/worker/cache-keys';
+import { bestStampUsd, dafCostReport, dafMarkCost, type MarkRowLite } from '../src/worker/daf-cost';
 
 // Build a mark cache key the same way the worker does, so the fake KV is seeded
 // at the exact keys dafMarkCost reconstructs.
-function markKey(id: string, version: string, tractate: string, page: string, lang: 'en' | 'he' = 'en'): string {
+function markKey(
+  id: string,
+  version: string,
+  tractate: string,
+  page: string,
+  lang: 'en' | 'he' = 'en',
+): string {
   return keyForMark({ id, cache_version: version } as never, tractate, page, lang);
 }
 
 function makeKV(entries: Record<string, unknown>) {
-  const store = new Map<string, string>(Object.entries(entries).map(([k, v]) => [k, JSON.stringify(v)]));
+  const store = new Map<string, string>(
+    Object.entries(entries).map(([k, v]) => [k, JSON.stringify(v)]),
+  );
   return {
     get: async (k: string) => store.get(k) ?? null,
-    put: async (k: string, v: string) => { store.set(k, v); },
-    delete: async (k: string) => { store.delete(k); },
+    put: async (k: string, v: string) => {
+      store.set(k, v);
+    },
+    delete: async (k: string) => {
+      store.delete(k);
+    },
     list: async () => ({ keys: [], list_complete: true, cursor: '' }),
     getWithMetadata: async () => ({ value: null, metadata: null }),
   } as unknown as KVNamespace;
@@ -21,8 +33,15 @@ function makeKV(entries: Record<string, unknown>) {
 
 const stamp = (over: Record<string, unknown> = {}) => ({
   cost: {
-    billedUsd: 0.01, estimatedUsd: 0.012, costInUsd: 0.004, costOutUsd: 0.006,
-    tokensIn: 1000, tokensOut: 500, lang: 'en', cacheVersion: '5', computedAt: 1,
+    billedUsd: 0.01,
+    estimatedUsd: 0.012,
+    costInUsd: 0.004,
+    costOutUsd: 0.006,
+    tokensIn: 1000,
+    tokensOut: 500,
+    lang: 'en',
+    cacheVersion: '5',
+    computedAt: 1,
     ...over,
   },
 });
@@ -38,15 +57,21 @@ describe('bestStampUsd', () => {
 
 describe('dafMarkCost', () => {
   it('splits current-version from superseded-version entries for one daf', async () => {
-    const T = 'Berakhot', P = '5a';
+    const T = 'Berakhot',
+      P = '5a';
     const kv = makeKV({
-      [markKey('rabbi', '5', T, P)]: stamp({ billedUsd: 0.02 }),           // current EN
-      [markKey('rabbi', '5', T, P, 'he')]: stamp({ billedUsd: 0.03 }),     // current HE
-      [markKey('rabbi', '4', T, P)]: stamp({ billedUsd: 0.01 }),           // superseded
+      [markKey('rabbi', '5', T, P)]: stamp({ billedUsd: 0.02 }), // current EN
+      [markKey('rabbi', '5', T, P, 'he')]: stamp({ billedUsd: 0.03 }), // current HE
+      [markKey('rabbi', '4', T, P)]: stamp({ billedUsd: 0.01 }), // superseded
       // a different daf must NOT leak in
       [markKey('rabbi', '5', T, '7b')]: stamp({ billedUsd: 0.99 }),
     });
-    const mark: MarkRowLite = { id: 'rabbi', label: 'Rabbi', cache_version: '5', versions: { '5': 1, '5:he': 1, '4': 1 } };
+    const mark: MarkRowLite = {
+      id: 'rabbi',
+      label: 'Rabbi',
+      cache_version: '5',
+      versions: { '5': 1, '5:he': 1, '4': 1 },
+    };
     const r = await dafMarkCost(kv, mark, T, P);
     expect(r.current.map((c) => c.version).sort()).toEqual(['5', '5:he']);
     expect(r.superseded.map((c) => c.version)).toEqual(['4']);
@@ -54,11 +79,17 @@ describe('dafMarkCost', () => {
   });
 
   it('ignores versions with no cached entry and entries with no stamp', async () => {
-    const T = 'Berakhot', P = '5a';
+    const T = 'Berakhot',
+      P = '5a';
     const kv = makeKV({
       [markKey('argument', '3', T, P)]: { content: '{}' }, // entry exists but no cost stamp (legacy)
     });
-    const mark: MarkRowLite = { id: 'argument', label: 'Argument', cache_version: '3', versions: { '3': 1, '2': 1 } };
+    const mark: MarkRowLite = {
+      id: 'argument',
+      label: 'Argument',
+      cache_version: '3',
+      versions: { '3': 1, '2': 1 },
+    };
     const r = await dafMarkCost(kv, mark, T, P);
     expect(r.current).toEqual([]);
     expect(r.superseded).toEqual([]);
@@ -68,11 +99,12 @@ describe('dafMarkCost', () => {
 
 describe('dafCostReport', () => {
   it('aggregates current vs superseded totals across marks, sorted by spend', async () => {
-    const T = 'Berakhot', P = '5a';
+    const T = 'Berakhot',
+      P = '5a';
     const kv = makeKV({
       [markKey('rabbi', '5', T, P)]: stamp({ billedUsd: 0.02 }),
       [markKey('rabbi', '4', T, P)]: stamp({ billedUsd: 0.01 }),
-      [markKey('argument', '2', T, P)]: stamp({ billedUsd: 0.10 }),
+      [markKey('argument', '2', T, P)]: stamp({ billedUsd: 0.1 }),
     });
     const marks: MarkRowLite[] = [
       { id: 'rabbi', label: 'Rabbi', cache_version: '5', versions: { '5': 1, '4': 1 } },

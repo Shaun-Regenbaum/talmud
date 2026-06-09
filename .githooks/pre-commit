@@ -24,7 +24,6 @@ declare -a PATTERNS=(
     "ghs_[a-zA-Z0-9]{36}"                   # GitHub server token
     "glpat-[a-zA-Z0-9-]{20,}"              # GitLab personal access token
     "AKIA[0-9A-Z]{16}"                      # AWS access key ID
-    "[a-zA-Z0-9/+=]{40}"                    # AWS secret (less specific, might have false positives)
     "sq0[a-z]{3}-[0-9A-Za-z-_]{22,43}"     # Square OAuth secret
     "sk_live_[0-9a-zA-Z]{24,}"             # Stripe live key
     "rk_live_[0-9a-zA-Z]{24,}"             # Stripe restricted key

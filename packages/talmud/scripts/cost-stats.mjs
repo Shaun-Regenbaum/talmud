@@ -21,7 +21,7 @@
  * model, created_at, success. Cached requests are billed as $0 (cache hit
  * = no upstream call).
  */
-import { readFileSync, existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
 const ACCOUNT_DEFAULT = 'ddf8edfc3dfd489567fe3c5b28b51aca';
 const GATEWAY_DEFAULT = 'talmud';
@@ -148,7 +148,9 @@ const fmtN = (n) => n.toLocaleString();
 
 console.log(`Logs:        ${fmtN(logs.length)}`);
 console.log(`Successful:  ${fmtN(totalSuccess)}`);
-console.log(`Cached:      ${fmtN(totalCached)} (${(totalCached / logs.length * 100).toFixed(1)}%)`);
+console.log(
+  `Cached:      ${fmtN(totalCached)} (${((totalCached / logs.length) * 100).toFixed(1)}%)`,
+);
 console.log(`Tokens in:   ${fmtN(totalTokensIn)}`);
 console.log(`Tokens out:  ${fmtN(totalTokensOut)}`);
 console.log(`Total cost:  ${fmt$2(totalCost)}`);
@@ -157,7 +159,9 @@ console.log(`Per request: ${fmt$(totalCost / Math.max(1, logs.length))}`);
 if (byModel) {
   console.log('\nBy model:');
   for (const [m, s] of [...byMod.entries()].sort((a, b) => b[1].cost - a[1].cost)) {
-    console.log(`  ${m.padEnd(48)} ${s.count.toString().padStart(6)} req  ${fmt$2(s.cost).padStart(10)}  in:${fmtN(s.tin)} out:${fmtN(s.tout)}`);
+    console.log(
+      `  ${m.padEnd(48)} ${s.count.toString().padStart(6)} req  ${fmt$2(s.cost).padStart(10)}  in:${fmtN(s.tin)} out:${fmtN(s.tout)}`,
+    );
   }
 }
 

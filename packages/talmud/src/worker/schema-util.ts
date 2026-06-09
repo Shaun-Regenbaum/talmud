@@ -58,7 +58,10 @@ export function canonicalizeSchema(node: unknown): unknown {
   // Unify nullable via `type: [T, 'null']` (+ null in enum).
   if (Array.isArray(n.type) && (n.type as unknown[]).includes('null')) {
     const baseTypes = (n.type as string[]).filter((t) => t !== 'null');
-    const base: Record<string, unknown> = { ...n, type: baseTypes.length === 1 ? baseTypes[0] : baseTypes };
+    const base: Record<string, unknown> = {
+      ...n,
+      type: baseTypes.length === 1 ? baseTypes[0] : baseTypes,
+    };
     if (Array.isArray(base.enum)) base.enum = (base.enum as unknown[]).filter((v) => v !== null);
     return { __nullable: canonicalizeSchema(base) };
   }
@@ -75,12 +78,14 @@ export function canonicalizeSchema(node: unknown): unknown {
 
   if (n.properties && typeof n.properties === 'object') {
     const props: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(n.properties as Record<string, unknown>)) props[k] = canonicalizeSchema(v);
+    for (const [k, v] of Object.entries(n.properties as Record<string, unknown>))
+      props[k] = canonicalizeSchema(v);
     n.properties = props;
   }
   if (n.items) n.items = canonicalizeSchema(n.items);
   if (Array.isArray(n.required)) n.required = [...(n.required as string[])].sort();
-  if (Array.isArray(n.enum)) n.enum = [...(n.enum as unknown[])].map((x) => JSON.stringify(x)).sort();
+  if (Array.isArray(n.enum))
+    n.enum = [...(n.enum as unknown[])].map((x) => JSON.stringify(x)).sort();
   return n;
 }
 

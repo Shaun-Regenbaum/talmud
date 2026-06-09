@@ -5,13 +5,18 @@
  * argument / argument-move, which still flag occasionally (boundary-spanning
  * excerpts) — observe-only there.
  */
-import { describe, it, expect } from 'vitest';
-import { runPasses, type PassCtx } from '../../src/lib/check/passes';
+import { describe, expect, it } from 'vitest';
+import { type PassCtx, runPasses } from '../../src/lib/check/passes';
 
 // seg 0 has the text; the instance claims its excerpt is in seg 1 (it isn't) → flagged.
 const segs = ['תנו רבנן המביא גט', 'אמר רבא הלכה כרבי'];
 const flagged = { instances: [{ startSegIdx: 0, fields: { excerpt: 'מילים שאינן שם' } }] };
-const ctx = (defId: string): PassCtx => ({ tractate: 'Gittin', page: '67b', segmentsHe: segs, defId });
+const ctx = (defId: string): PassCtx => ({
+  tractate: 'Gittin',
+  page: '67b',
+  segmentsHe: segs,
+  defId,
+});
 
 describe('anchor-verbatim per-mark severity', () => {
   it('is HARD on pesukim and aggadata', async () => {

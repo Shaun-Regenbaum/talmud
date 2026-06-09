@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 // Stub the upstream-fetch surfaces so the miss-path of each wrapper doesn't
 // reach out to the live HebrewBooks / Sefaria APIs during unit tests. We
@@ -17,10 +17,7 @@ vi.mock('../src/lib/sefref', () => ({
   },
 }));
 
-import {
-  getHebrewBooksDafCached,
-  getSefariaPageCached,
-} from '../src/worker/source-cache';
+import { getHebrewBooksDafCached, getSefariaPageCached } from '../src/worker/source-cache';
 
 function makeFakeKV(initial: Record<string, string> = {}): KVNamespace {
   const store = new Map(Object.entries(initial));
@@ -92,9 +89,9 @@ describe('source-cache CacheTrack', () => {
       const kv = makeFakeKV({
         'hb:v2:Berakhot:2a': JSON.stringify({ main: 'm' }),
       });
-      await expect(
-        getHebrewBooksDafCached(kv, 'Berakhot', '2a'),
-      ).resolves.toMatchObject({ main: 'm' });
+      await expect(getHebrewBooksDafCached(kv, 'Berakhot', '2a')).resolves.toMatchObject({
+        main: 'm',
+      });
     });
   });
 

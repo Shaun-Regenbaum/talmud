@@ -274,9 +274,7 @@ export function flattenPieces(text: unknown): string[] {
  *
  * @internal Exported for unit tests.
  */
-export function flattenTalmudCommentaryPieces(
-  text: unknown,
-): { pieces: string[]; keys: string[] } {
+export function flattenTalmudCommentaryPieces(text: unknown): { pieces: string[]; keys: string[] } {
   const pieces: string[] = [];
   const keys: string[] = [];
   if (!Array.isArray(text)) return { pieces, keys };
@@ -317,17 +315,21 @@ export function pickV3Version(versions: SefariaV3Response['versions'], lang: 'he
 }
 
 class SefariaAPI {
-  async getText(ref: string, options?: {
-    lang?: string;
-    version?: string;
-    commentary?: boolean;
-    context?: number;
-  }): Promise<SefariaTextResponse> {
+  async getText(
+    ref: string,
+    options?: {
+      lang?: string;
+      version?: string;
+      commentary?: boolean;
+      context?: number;
+    },
+  ): Promise<SefariaTextResponse> {
     const params = new URLSearchParams();
 
     if (options?.lang) params.append('lang', options.lang);
     if (options?.version) params.append('version', options.version);
-    if (options?.commentary !== undefined) params.append('commentary', options.commentary ? '1' : '0');
+    if (options?.commentary !== undefined)
+      params.append('commentary', options.commentary ? '1' : '0');
     if (options?.context !== undefined) params.append('context', options.context.toString());
 
     const queryString = params.toString();
@@ -371,14 +373,12 @@ class SefariaAPI {
     const mainTextResponse = await this.getText(mainRef);
     const relatedResponse = await this.getRelated(mainRef);
 
-    const rashiLink = relatedResponse.links.find(link =>
-      link.index_title === `Rashi on ${tractate}` &&
-      link.type === 'commentary'
+    const rashiLink = relatedResponse.links.find(
+      (link) => link.index_title === `Rashi on ${tractate}` && link.type === 'commentary',
     );
 
-    const tosafotLink = relatedResponse.links.find(link =>
-      link.index_title === `Tosafot on ${tractate}` &&
-      link.type === 'commentary'
+    const tosafotLink = relatedResponse.links.find(
+      (link) => link.index_title === `Tosafot on ${tractate}` && link.type === 'commentary',
     );
 
     // Talmud commentary lives at depth-2 (`he: string[][]`); v1 only returns
@@ -394,14 +394,18 @@ class SefariaAPI {
     const rashiRef = `Rashi on ${tractate} ${page}`;
     const tosafotRef = `Tosafot on ${tractate} ${page}`;
     const [rashiV3, tosafotV3] = await Promise.all([
-      rashiLink ? this.getTextV3(rashiRef).catch((e) => {
-        console.warn('Failed to fetch Rashi:', e);
-        return null;
-      }) : Promise.resolve(null),
-      tosafotLink ? this.getTextV3(tosafotRef).catch((e) => {
-        console.warn('Failed to fetch Tosafot:', e);
-        return null;
-      }) : Promise.resolve(null),
+      rashiLink
+        ? this.getTextV3(rashiRef).catch((e) => {
+            console.warn('Failed to fetch Rashi:', e);
+            return null;
+          })
+        : Promise.resolve(null),
+      tosafotLink
+        ? this.getTextV3(tosafotRef).catch((e) => {
+            console.warn('Failed to fetch Tosafot:', e);
+            return null;
+          })
+        : Promise.resolve(null),
     ]);
 
     const formatText = (text: string | string[]): string => {
@@ -423,7 +427,7 @@ class SefariaAPI {
     return {
       mainText: {
         hebrew: formatText(mainTextResponse.he),
-        english: formatText(mainTextResponse.text)
+        english: formatText(mainTextResponse.text),
       },
       rashi: buildCommentary(rashiV3),
       tosafot: buildCommentary(tosafotV3),
@@ -443,7 +447,11 @@ class SefariaAPI {
    * chapter-structured books like the Rosh anchor correctly instead of
    * resolving to the wrong sugya.
    */
-  async fetchRishonim(tractate: string, page: string, opts: { maxPerBook?: number } = {}): Promise<RishonimBundle> {
+  async fetchRishonim(
+    tractate: string,
+    page: string,
+    opts: { maxPerBook?: number } = {},
+  ): Promise<RishonimBundle> {
     const maxPerBook = opts.maxPerBook ?? 12;
     const ref = `${tractate}.${page}`;
     const related = await this.getRelated(ref).catch(() => null);
@@ -454,7 +462,8 @@ class SefariaAPI {
       const label = rishonLabel(l.index_title, tractate);
       if (!label) continue;
       const arr = byBook.get(label) ?? [];
-      if (arr.length < maxPerBook && !arr.some((x) => x.ref === l.ref)) arr.push({ ref: l.ref, anchorRef: l.anchorRef });
+      if (arr.length < maxPerBook && !arr.some((x) => x.ref === l.ref))
+        arr.push({ ref: l.ref, anchorRef: l.anchorRef });
       byBook.set(label, arr);
     }
     const out: RishonComment[] = [];
@@ -468,7 +477,14 @@ class SefariaAPI {
           const hebrew = Array.isArray(t.he) ? t.he.join(' ') : (t.he ?? '');
           const english = Array.isArray(t.text) ? t.text.join(' ') : (t.text ?? '');
           if (hebrew || english) {
-            out.push({ label, ref: cref, hebrew, english, segStart: range.start - 1, segEnd: range.end - 1 });
+            out.push({
+              label,
+              ref: cref,
+              hebrew,
+              english,
+              segStart: range.start - 1,
+              segEnd: range.end - 1,
+            });
           }
         }),
       ),
@@ -485,19 +501,20 @@ class SefariaAPI {
   async fetchHalachicRefs(
     tractate: string,
     page: string,
-    opts: { maxPerBook?: number } = {}
+    opts: { maxPerBook?: number } = {},
   ): Promise<HalachicRefBundle> {
     const maxPerBook = opts.maxPerBook ?? 6;
     const ref = `${tractate}.${page}`;
     const related = await this.getRelated(ref).catch(() => null);
     if (!related) return {};
-    const halakhahLinks = related.links.filter(l => l.category === 'Halakhah');
+    const halakhahLinks = related.links.filter((l) => l.category === 'Halakhah');
     // Keep each ref's anchorRef so the snippet can anchor to its daf segment.
     const grouped = new Map<string, { ref: string; anchorRef: string }[]>();
     for (const link of halakhahLinks) {
       const book = link.index_title;
       const refs = grouped.get(book) ?? [];
-      if (!refs.some((r) => r.ref === link.ref)) refs.push({ ref: link.ref, anchorRef: link.anchorRef });
+      if (!refs.some((r) => r.ref === link.ref))
+        refs.push({ ref: link.ref, anchorRef: link.anchorRef });
       grouped.set(book, refs);
     }
     const out: HalachicRefBundle = {};
@@ -505,7 +522,7 @@ class SefariaAPI {
       Array.from(grouped.entries()).map(async ([book, refs]) => {
         const capped = refs.slice(0, maxPerBook);
         const texts = await Promise.all(
-          capped.map(async (r) => ({ link: r, t: await this.getText(r.ref).catch(() => null) }))
+          capped.map(async (r) => ({ link: r, t: await this.getText(r.ref).catch(() => null) })),
         );
         const snippets: HalachicSnippet[] = [];
         for (const { link, t } of texts) {
@@ -514,11 +531,17 @@ class SefariaAPI {
           const english = Array.isArray(t.text) ? t.text.join(' ') : (t.text ?? '');
           const range = parseAnchorRefRange(link.anchorRef);
           if (hebrew || english) {
-            snippets.push({ ref: t.ref, hebrew, english, segStart: range ? range.start - 1 : undefined, segEnd: range ? range.end - 1 : undefined });
+            snippets.push({
+              ref: t.ref,
+              hebrew,
+              english,
+              segStart: range ? range.start - 1 : undefined,
+              segEnd: range ? range.end - 1 : undefined,
+            });
           }
         }
         if (snippets.length) out[book] = snippets;
-      })
+      }),
     );
     return out;
   }
@@ -556,7 +579,7 @@ class SefariaAPI {
     if (!related) return [];
 
     const mishnaLinks = related.links.filter(
-      l => l.category === 'Mishnah' && l.type === 'mishnah in talmud'
+      (l) => l.category === 'Mishnah' && l.type === 'mishnah in talmud',
     );
     if (mishnaLinks.length === 0) return [];
 
@@ -569,7 +592,11 @@ class SefariaAPI {
       if (!range) continue;
       const existing = byRef.get(l.ref);
       if (!existing) {
-        byRef.set(l.ref, { anchorStart: range.start, anchorEnd: range.end, anchorRef: l.anchorRef });
+        byRef.set(l.ref, {
+          anchorStart: range.start,
+          anchorEnd: range.end,
+          anchorRef: l.anchorRef,
+        });
       } else {
         if (range.start < existing.anchorStart) existing.anchorStart = range.start;
         if (range.end > existing.anchorEnd) existing.anchorEnd = range.end;
@@ -595,7 +622,7 @@ class SefariaAPI {
         } catch {
           // skip on fetch failure
         }
-      })
+      }),
     );
     out.sort((a, b) => a.anchorStartSeg - b.anchorStartSeg);
     return out;
@@ -620,7 +647,7 @@ class SefariaAPI {
     if (!related) return [];
 
     const mishnaLinks = related.links.filter(
-      l => l.category === 'Mishnah' && l.type === 'mishnah in talmud'
+      (l) => l.category === 'Mishnah' && l.type === 'mishnah in talmud',
     );
     if (mishnaLinks.length === 0) return [];
 
@@ -628,7 +655,10 @@ class SefariaAPI {
     // ref carries Sefaria's canonical tractate spelling ("Mishnah Bava Kamma
     // 1:1"); reuse it so the Yerushalmi ref matches Sefaria's index. Dedupe by
     // Yerushalmi ref, keeping the widest Bavli anchor range we see.
-    const byYRef = new Map<string, { mishnahRef: string; anchorStart: number; anchorEnd: number }>();
+    const byYRef = new Map<
+      string,
+      { mishnahRef: string; anchorStart: number; anchorEnd: number }
+    >();
     for (const l of mishnaLinks) {
       const segRange = parseAnchorRefRange(l.anchorRef);
       const m = l.ref.match(/^Mishnah (.+?) (\d+):(\d+)/);
@@ -636,7 +666,11 @@ class SefariaAPI {
       const yRef = `Jerusalem Talmud ${m[1]} ${m[2]}:${m[3]}`;
       const existing = byYRef.get(yRef);
       if (!existing) {
-        byYRef.set(yRef, { mishnahRef: l.ref, anchorStart: segRange.start, anchorEnd: segRange.end });
+        byYRef.set(yRef, {
+          mishnahRef: l.ref,
+          anchorStart: segRange.start,
+          anchorEnd: segRange.end,
+        });
       } else {
         if (segRange.start < existing.anchorStart) existing.anchorStart = segRange.start;
         if (segRange.end > existing.anchorEnd) existing.anchorEnd = segRange.end;
@@ -665,7 +699,7 @@ class SefariaAPI {
         } catch {
           // skip on fetch failure (e.g. a tractate with no Yerushalmi)
         }
-      })
+      }),
     );
     out.sort((a, b) => a.anchorStartSeg - b.anchorStartSeg);
     return out;
@@ -687,7 +721,7 @@ class SefariaAPI {
    */
   async fetchSaCommentary(
     saRef: string,
-    opts: { maxPerBook?: number } = {}
+    opts: { maxPerBook?: number } = {},
   ): Promise<SaCommentaryBundle> {
     const maxPerBook = opts.maxPerBook ?? 4;
     const related = await this.getRelated(saRef).catch(() => null);
@@ -731,9 +765,7 @@ class SefariaAPI {
     await Promise.all(
       Array.from(byBook.entries()).map(async ([book, refs]) => {
         const capped = refs.slice(0, maxPerBook);
-        const texts = await Promise.all(
-          capped.map(r => this.getText(r).catch(() => null))
-        );
+        const texts = await Promise.all(capped.map((r) => this.getText(r).catch(() => null)));
         const hebrewParts: string[] = [];
         const englishParts: string[] = [];
         const refParts: string[] = [];
@@ -752,14 +784,11 @@ class SefariaAPI {
             ref: refParts.join(' | '),
           };
         }
-      })
+      }),
     );
     return out;
   }
-  async fetchDafTopics(
-    ref: string,
-    maxSourcesPerTopic = 10,
-  ): Promise<SefariaTopicBundle> {
+  async fetchDafTopics(ref: string, maxSourcesPerTopic = 10): Promise<SefariaTopicBundle> {
     // 1. Use /api/related/{ref}?lang=en which returns a `topics` array with
     //    full topic metadata (slug, title, description, tfidf, anchorRef).
     //    /api/ref-topic-links requires a specific `?lang=` and is redundant.
@@ -781,12 +810,16 @@ class SefariaAPI {
 
     // Dedupe by slug, keep highest-ranked entry. Rank by tfidf primarily,
     // then by curatedPrimacy as a tiebreaker. Keep top 8.
-    const bySlug = new Map<string, typeof topicLinks[number]>();
+    const bySlug = new Map<string, (typeof topicLinks)[number]>();
     for (const t of topicLinks) {
       const existing = bySlug.get(t.topic);
-      if (!existing) { bySlug.set(t.topic, t); continue; }
+      if (!existing) {
+        bySlug.set(t.topic, t);
+        continue;
+      }
       const curScore = (t.order?.tfidf ?? 0) + (t.order?.curatedPrimacy?.en ?? 0) * 0.1;
-      const oldScore = (existing.order?.tfidf ?? 0) + (existing.order?.curatedPrimacy?.en ?? 0) * 0.1;
+      const oldScore =
+        (existing.order?.tfidf ?? 0) + (existing.order?.curatedPrimacy?.en ?? 0) * 0.1;
       if (curScore > oldScore) bySlug.set(t.topic, t);
     }
     const ranked = Array.from(bySlug.values())
@@ -824,8 +857,9 @@ class SefariaAPI {
               const old = byRef.get(r.ref)?.order?.tfidf ?? 0;
               if (!byRef.has(r.ref) || cur > old) byRef.set(r.ref, r);
             }
-            const ranked = Array.from(byRef.values())
-              .sort((a, b) => (b.order?.tfidf ?? 0) - (a.order?.tfidf ?? 0));
+            const ranked = Array.from(byRef.values()).sort(
+              (a, b) => (b.order?.tfidf ?? 0) - (a.order?.tfidf ?? 0),
+            );
             for (const r of ranked) {
               if (seen.has(r.ref)) continue;
               seen.add(r.ref);
@@ -841,13 +875,14 @@ class SefariaAPI {
             slug: body.slug ?? lnk.topic,
             titleEn: lnk.descriptions?.en?.title ?? lnk.title?.en ?? body.primaryTitle?.en,
             titleHe: lnk.title?.he ?? body.primaryTitle?.he,
-            description: lnk.descriptions?.en?.prompt ?? lnk.description?.en ?? body.description?.en,
+            description:
+              lnk.descriptions?.en?.prompt ?? lnk.description?.en ?? body.description?.en,
             sources: capped,
           });
         } catch {
           // skip on error
         }
-      })
+      }),
     );
     return out;
   }

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { splitOuterWhitespace } from '../src/worker/index';
 
 // ---------------------------------------------------------------------------
@@ -24,11 +24,19 @@ describe('splitOuterWhitespace', () => {
   });
 
   it('captures a single leading space', () => {
-    expect(splitOuterWhitespace(' reciting')).toEqual({ leading: ' ', core: 'reciting', trailing: '' });
+    expect(splitOuterWhitespace(' reciting')).toEqual({
+      leading: ' ',
+      core: 'reciting',
+      trailing: '',
+    });
   });
 
   it('captures a single trailing space', () => {
-    expect(splitOuterWhitespace('explains that ')).toEqual({ leading: '', core: 'explains that', trailing: ' ' });
+    expect(splitOuterWhitespace('explains that ')).toEqual({
+      leading: '',
+      core: 'explains that',
+      trailing: ' ',
+    });
   });
 
   it('captures whitespace on both sides', () => {
@@ -67,7 +75,7 @@ describe('splitOuterWhitespace', () => {
       ' both sides ',
       '   triple-leading',
       'triple-trailing   ',
-      'Rabbi Ami reciting Ze\'eiri\'s ruling',
+      "Rabbi Ami reciting Ze'eiri's ruling",
       ' Rashi (רש״י) explains that ',
       '\n  newline-leading',
       'newline-trailing\n',
@@ -93,7 +101,8 @@ describe('splitOuterWhitespace', () => {
 
 describe('splitOuterWhitespace — RabbiText slice regression', () => {
   it('keeps the spaces adjacent to rabbi-link buttons', () => {
-    const slice = " reciting Ze'eiri's ruling that one pinches a bird by cutting the spine and neck without (רוב בשר) (the majority of surrounding flesh), and challenged him: how can one pinch a bird that is already dead? (רש״י) explains that ";
+    const slice =
+      " reciting Ze'eiri's ruling that one pinches a bird by cutting the spine and neck without (רוב בשר) (the majority of surrounding flesh), and challenged him: how can one pinch a bird that is already dead? (רש״י) explains that ";
     const { leading, core, trailing } = splitOuterWhitespace(slice);
     expect(leading).toBe(' ');
     expect(trailing).toBe(' ');

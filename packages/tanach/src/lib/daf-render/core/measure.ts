@@ -142,15 +142,16 @@ export function measureCommentary(params: {
     return { totalHeight: 0, narrowUsed: 0, endUsed: 0 };
   }
 
-  const midHeight = Number.isFinite(params.narrowBudget)
-    ? Math.max(0, params.narrowBudget)
-    : 99999;
-  const endHeight = Number.isFinite(params.endBudget)
-    ? Math.max(0, params.endBudget)
-    : 99999;
+  const midHeight = Number.isFinite(params.narrowBudget) ? Math.max(0, params.narrowBudget) : 99999;
+  const endHeight = Number.isFinite(params.endBudget) ? Math.max(0, params.endBudget) : 99999;
 
   const exception = params.exception ?? 'none';
-  const startWidth = exception === 'short' ? '100%' : exception === 'other' ? '0%' : `${params.options.halfway * 100}%`;
+  const startWidth =
+    exception === 'short'
+      ? '100%'
+      : exception === 'other'
+        ? '0%'
+        : `${params.options.halfway * 100}%`;
   const startPad = exception === 'none' ? `${params.options.padding.horizontal / 2}px` : '0px';
   const startGap = exception === 'short' ? `${params.options.padding.vertical}px` : '0px';
 

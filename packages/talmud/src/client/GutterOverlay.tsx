@@ -18,8 +18,14 @@
  */
 
 import { createMemo, For, type JSX } from 'solid-js';
-import { gutterEntries, type GutterStackEntry, type GutterSide } from './gutterStack';
-import { GutterGlyph, colorForKind, titleForKind, type GutterItem, type GutterKind } from './GutterIcons';
+import {
+  colorForKind,
+  GutterGlyph,
+  type GutterItem,
+  type GutterKind,
+  titleForKind,
+} from './GutterIcons';
+import { type GutterSide, type GutterStackEntry, gutterEntries } from './gutterStack';
 
 interface ClusterItem {
   kind: GutterKind;
@@ -50,7 +56,8 @@ function clustersFromEntries(entries: Partial<Record<GutterKind, GutterStackEntr
   const bySide: Record<GutterSide, ClusterItem[][]> = { left: [], right: [] };
   // Flatten + sort by y so bucketing is stable.
   const allBySide: Record<GutterSide, Array<{ item: GutterItem; entry: GutterStackEntry }>> = {
-    left: [], right: [],
+    left: [],
+    right: [],
   };
   for (const entry of Object.values(entries)) {
     if (!entry) continue;
@@ -78,7 +85,10 @@ function clustersFromEntries(entries: Partial<Record<GutterKind, GutterStackEntr
       bucket = [];
     };
     for (const entry of flat) {
-      if (bucket.length === 0 || Math.abs(entry.item.top - bucket[bucket.length - 1].item.top) <= Y_BUCKET) {
+      if (
+        bucket.length === 0 ||
+        Math.abs(entry.item.top - bucket[bucket.length - 1].item.top) <= Y_BUCKET
+      ) {
         bucket.push(entry);
       } else {
         flushBucket();
@@ -90,7 +100,15 @@ function clustersFromEntries(entries: Partial<Record<GutterKind, GutterStackEntr
   // Within a cluster, give the icons a stable order so collisions don't
   // shuffle visually on every measurement. Sort by kind priority — argument
   // first on left, halacha first on right (matches user mental model).
-  const KIND_ORDER: GutterKind[] = ['argument', 'pesuk', 'halacha', 'chart', 'aggadata', 'yerushalmi', 'rishonim'];
+  const KIND_ORDER: GutterKind[] = [
+    'argument',
+    'pesuk',
+    'halacha',
+    'chart',
+    'aggadata',
+    'yerushalmi',
+    'rishonim',
+  ];
   for (const c of out) {
     c.items.sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind));
   }
@@ -145,29 +163,30 @@ export function GutterOverlay(): JSX.Element {
         'pointer-events': 'none',
       }}
     >
-      <For each={clusters()}>{(c, ci) => {
-        const side = c.side;
-        const x = side === 'left'
-          ? (c.atEdge ? LEFT_EDGE_X : LEFT_X)
-          : (c.atEdge ? RIGHT_EDGE_X : RIGHT_X);
-        return (
-          <div
-            class="gutter-cluster"
-            data-side={side}
-            data-count={c.items.length}
-            data-tour={ci() === 0 ? 'gutter' : undefined}
-            style={{
-              position: 'absolute',
-              top: `${c.top}px`,
-              left: x,
-              transform: 'translate(-50%, -50%)',
-              'pointer-events': 'auto',
-            }}
-          >
-            <For each={c.items}>{(item, i) => renderItem(item, i(), c.items.length)}</For>
-          </div>
-        );
-      }}</For>
+      <For each={clusters()}>
+        {(c, ci) => {
+          const side = c.side;
+          const x =
+            side === 'left' ? (c.atEdge ? LEFT_EDGE_X : LEFT_X) : c.atEdge ? RIGHT_EDGE_X : RIGHT_X;
+          return (
+            <div
+              class="gutter-cluster"
+              data-side={side}
+              data-count={c.items.length}
+              data-tour={ci() === 0 ? 'gutter' : undefined}
+              style={{
+                position: 'absolute',
+                top: `${c.top}px`,
+                left: x,
+                transform: 'translate(-50%, -50%)',
+                'pointer-events': 'auto',
+              }}
+            >
+              <For each={c.items}>{(item, i) => renderItem(item, i(), c.items.length)}</For>
+            </div>
+          );
+        }}
+      </For>
     </div>
   );
 }

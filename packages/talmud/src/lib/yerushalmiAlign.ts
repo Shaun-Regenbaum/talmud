@@ -13,7 +13,7 @@
  * The matcher is the n-gram / longest-common-run local alignment the research
  * recommended, run point↔segment over normalized Hebrew (nikud/punct stripped).
  */
-import { normalizeHebrew, buildVerbatimGrid } from './place/verbatim.ts';
+import { buildVerbatimGrid, normalizeHebrew } from './place/verbatim.ts';
 import type { DafyomiEntry, DafyomiRef } from './sefref/dafyomi/schema.ts';
 
 /** Minimum shared contiguous normalized-word run to assert a parallel anchor. */
@@ -70,9 +70,18 @@ export interface YerushalmiOutlinePoint {
 // cross-tractate refs (e.g. Bavli Chullin -> Yerushalmi Terumot). Same-tractate
 // refs use the daf's own masechet, which already matches Sefaria.
 const YERU_TRACTATE_ALIAS: Record<string, string> = {
-  Terumos: 'Terumot', Maasros: 'Maasrot', "Maaser": 'Maaser Sheni', Sheviis: 'Sheviit',
-  Bikurim: 'Bikkurim', Challah: 'Challah', Orlah: 'Orlah', Demai: 'Demai', Peah: 'Peah',
-  Shabbos: 'Shabbat', Beitzah: 'Beitzah', Pesachim: 'Pesachim',
+  Terumos: 'Terumot',
+  Maasros: 'Maasrot',
+  Maaser: 'Maaser Sheni',
+  Sheviis: 'Sheviit',
+  Bikurim: 'Bikkurim',
+  Challah: 'Challah',
+  Orlah: 'Orlah',
+  Demai: 'Demai',
+  Peah: 'Peah',
+  Shabbos: 'Shabbat',
+  Beitzah: 'Beitzah',
+  Pesachim: 'Pesachim',
 };
 
 /** Build the Sefaria "Jerusalem Talmud <Tractate> <perek>:<halachah>" ref from a
@@ -94,7 +103,10 @@ function firstYerushalmiRef(refs?: DafyomiRef[]): DafyomiRef | undefined {
  * point's nearest ancestor topic + Yerushalmi ref. A "leaf" is any entry with
  * Hebrew body text (the granular Yerushalmi unit).
  */
-export function flattenYerushalmiOutline(entries: DafyomiEntry[], dafMasechet: string): YerushalmiOutlinePoint[] {
+export function flattenYerushalmiOutline(
+  entries: DafyomiEntry[],
+  dafMasechet: string,
+): YerushalmiOutlinePoint[] {
   const out: YerushalmiOutlinePoint[] = [];
   const walk = (e: DafyomiEntry, topic: string, ref: DafyomiRef | undefined) => {
     // A top-level subject sets the topic + ref for everything beneath it.
@@ -132,7 +144,10 @@ export function longestCommonRun(a: string[], b: string[]): { len: number; bStar
     for (let j = 1; j <= b.length; j++) {
       if (a[i - 1] === b[j - 1]) {
         cur[j] = prev[j - 1] + 1;
-        if (cur[j] > best) { best = cur[j]; bStart = j - cur[j]; }
+        if (cur[j] > best) {
+          best = cur[j];
+          bStart = j - cur[j];
+        }
       }
     }
     prev = cur;
@@ -152,14 +167,22 @@ export function alignOutlineToSegments(
 ): YerushalmiOutlinePoint[] {
   const grid = buildVerbatimGrid(segmentsHe);
   // Original (whitespace-split) words per segment, to recover a readable excerpt.
-  const segOrigWords = segmentsHe.map((s) => normalizeHebrew(s).length ? s.split(/\s+/).filter(Boolean) : []);
+  const segOrigWords = segmentsHe.map((s) =>
+    normalizeHebrew(s).length ? s.split(/\s+/).filter(Boolean) : [],
+  );
   for (const p of points) {
     const pWords = normalizeHebrew(p.he).split(' ').filter(Boolean);
     if (pWords.length < MIN_SHARED_RUN) continue;
-    let bestSeg = -1, bestLen = 0, bestStart = -1;
+    let bestSeg = -1,
+      bestLen = 0,
+      bestStart = -1;
     for (let s = 0; s < grid.segWords.length; s++) {
       const { len, bStart } = longestCommonRun(pWords, grid.segWords[s]);
-      if (len > bestLen) { bestLen = len; bestSeg = s; bestStart = bStart; }
+      if (len > bestLen) {
+        bestLen = len;
+        bestSeg = s;
+        bestStart = bStart;
+      }
     }
     if (bestLen >= MIN_SHARED_RUN && bestSeg >= 0) {
       p.segIdx = bestSeg;

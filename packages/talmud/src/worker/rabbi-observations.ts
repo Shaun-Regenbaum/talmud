@@ -188,27 +188,50 @@ export function buildObservationSlices(input: JoinInput): ObservationSlice[] {
       payload: Record<string, unknown>,
       idKey: string,
     ) => {
-      candidates.push({ type, segIdx, confidence, source, payload, hash: stableHash(`${type}|${idKey}`) });
+      candidates.push({
+        type,
+        segIdx,
+        confidence,
+        source,
+        payload,
+        hash: stableHash(`${type}|${idKey}`),
+      });
     };
 
     // -- places ----------------------------------------------------------
     // high: explicit rabbi.location inference for this daf.
     if (rabbi.location?.place) {
-      add('place', repSeg, 'high', 'rabbi.location', { place: rabbi.location.place }, `place:${normalizeForMatch(rabbi.location.place)}`);
+      add(
+        'place',
+        repSeg,
+        'high',
+        'rabbi.location',
+        { place: rabbi.location.place },
+        `place:${normalizeForMatch(rabbi.location.place)}`,
+      );
     }
     // medium: a place that shares a move/story range with the rabbi.
     // low: a place anywhere on a daf the rabbi appears on.
     for (const p of places) {
       const shared = shareRange(storyAndMoveRanges, rabbi.segIdxs, p.segIdxs);
       const seg = p.segIdxs[0] ?? repSeg;
-      add('place', seg, shared ? 'medium' : 'low', 'places', { name: p.name, nameHe: p.nameHe, kind: p.kind, region: p.region }, `place:${normalizeForMatch(p.name)}`);
+      add(
+        'place',
+        seg,
+        shared ? 'medium' : 'low',
+        'places',
+        { name: p.name, nameHe: p.nameHe, kind: p.kind, region: p.region },
+        `place:${normalizeForMatch(p.name)}`,
+      );
     }
 
     // -- opinions (argument moves) ---------------------------------------
     // high: the move explicitly lists this rabbi among its voices.
     // medium: the rabbi's segment falls inside the move's range.
     for (const m of moves) {
-      const named = rabbiNamesOf(m.fields).some((rn) => namesMatch(rn, rabbi.name) || namesMatch(rn, rabbi.nameHe));
+      const named = rabbiNamesOf(m.fields).some(
+        (rn) => namesMatch(rn, rabbi.name) || namesMatch(rn, rabbi.nameHe),
+      );
       const contained = containsAny(m, rabbi.segIdxs);
       if (!named && !contained) continue;
       add(
@@ -216,7 +239,13 @@ export function buildObservationSlices(input: JoinInput): ObservationSlice[] {
         m.startSegIdx,
         named ? 'high' : 'medium',
         'argument-move',
-        { role: m.fields.role, voice: m.fields.voice, summary: m.fields.summary, startSegIdx: m.startSegIdx, endSegIdx: m.endSegIdx },
+        {
+          role: m.fields.role,
+          voice: m.fields.voice,
+          summary: m.fields.summary,
+          startSegIdx: m.startSegIdx,
+          endSegIdx: m.endSegIdx,
+        },
         `opinion:${m.fields.id ?? `${m.startSegIdx}-${m.endSegIdx}`}`,
       );
     }
@@ -225,15 +254,44 @@ export function buildObservationSlices(input: JoinInput): ObservationSlice[] {
     // medium: the rabbi appears within the story's segment range.
     for (const a of aggadata) {
       if (!containsAny(a, rabbi.segIdxs)) continue;
-      add('story', a.startSegIdx, 'medium', 'aggadata', { title: a.fields.title, titleHe: a.fields.titleHe, theme: a.fields.theme, summary: a.fields.summary, startSegIdx: a.startSegIdx, endSegIdx: a.endSegIdx }, `story:${a.startSegIdx}-${a.endSegIdx}`);
+      add(
+        'story',
+        a.startSegIdx,
+        'medium',
+        'aggadata',
+        {
+          title: a.fields.title,
+          titleHe: a.fields.titleHe,
+          theme: a.fields.theme,
+          summary: a.fields.summary,
+          startSegIdx: a.startSegIdx,
+          endSegIdx: a.endSegIdx,
+        },
+        `story:${a.startSegIdx}-${a.endSegIdx}`,
+      );
     }
 
     // -- exegesis (pesukim) ----------------------------------------------
     // medium: the rabbi appears within the citation's segment range.
     for (const pk of pesukim) {
       if (!containsAny(pk, rabbi.segIdxs)) continue;
-      const ref = typeof pk.fields.verseRef === 'string' ? pk.fields.verseRef : `${pk.startSegIdx}-${pk.endSegIdx}`;
-      add('exegesis', pk.startSegIdx, 'medium', 'pesukim', { verseRef: pk.fields.verseRef, summary: pk.fields.summary, startSegIdx: pk.startSegIdx, endSegIdx: pk.endSegIdx }, `exegesis:${ref}`);
+      const ref =
+        typeof pk.fields.verseRef === 'string'
+          ? pk.fields.verseRef
+          : `${pk.startSegIdx}-${pk.endSegIdx}`;
+      add(
+        'exegesis',
+        pk.startSegIdx,
+        'medium',
+        'pesukim',
+        {
+          verseRef: pk.fields.verseRef,
+          summary: pk.fields.summary,
+          startSegIdx: pk.startSegIdx,
+          endSegIdx: pk.endSegIdx,
+        },
+        `exegesis:${ref}`,
+      );
     }
 
     // -- lineage (co-occurrence) -----------------------------------------
@@ -246,12 +304,21 @@ export function buildObservationSlices(input: JoinInput): ObservationSlice[] {
       if (other.slug === rabbi.slug || !other.slug) continue;
       const coNamed = moves.some((m) => {
         const names = rabbiNamesOf(m.fields);
-        return names.some((rn) => namesMatch(rn, rabbi.name) || namesMatch(rn, rabbi.nameHe))
-          && names.some((rn) => namesMatch(rn, other.name) || namesMatch(rn, other.nameHe));
+        return (
+          names.some((rn) => namesMatch(rn, rabbi.name) || namesMatch(rn, rabbi.nameHe)) &&
+          names.some((rn) => namesMatch(rn, other.name) || namesMatch(rn, other.nameHe))
+        );
       });
       const coRange = shareRange(storyAndMoveRanges, rabbi.segIdxs, other.segIdxs);
       if (!coNamed && !coRange) continue;
-      add('lineage', repSeg, coNamed ? 'high' : 'medium', 'co-occurrence', { slug: other.slug, name: other.name }, `lineage:${other.slug}`);
+      add(
+        'lineage',
+        repSeg,
+        coNamed ? 'high' : 'medium',
+        'co-occurrence',
+        { slug: other.slug, name: other.name },
+        `lineage:${other.slug}`,
+      );
     }
 
     // Dedup by hash, keeping the highest-confidence instance of each.

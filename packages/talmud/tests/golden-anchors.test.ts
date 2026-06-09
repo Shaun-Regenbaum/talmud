@@ -9,14 +9,15 @@
  * tests/fixtures/golden-anchors/: <tractate>_<page>_<mark>.json = { raw,
  * expected }, plus gemara_<tractate>_<page>.json = the GemaraSlice.
  */
-import { describe, it, expect } from 'vitest';
-import { readFileSync, readdirSync } from 'node:fs';
+
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { describe, expect, it } from 'vitest';
 import {
+  reanchorAggadata,
   reanchorArgument,
   reanchorArgumentMove,
   reanchorPesukim,
-  reanchorAggadata,
 } from '../src/lib/place/reanchor';
 
 const FIX_DIR = join(__dirname, 'fixtures', 'golden-anchors');

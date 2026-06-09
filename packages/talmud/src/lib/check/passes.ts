@@ -16,10 +16,17 @@
  * DOM-free / env-free so it lives in src/lib and is unit-testable.
  */
 
-import { lintSynthesis } from '../synthesisLint';
 import { lintHalachaParsed } from '../halachaLint';
-import { reanchorArgument, reanchorArgumentMove, reanchorPesukim, reanchorAggadata, reanchorRabbiEvidence, reanchorNarrative } from '../place/reanchor';
-import { normalizeHebrew, buildVerbatimGrid, findExcerpt } from '../place/verbatim';
+import {
+  reanchorAggadata,
+  reanchorArgument,
+  reanchorArgumentMove,
+  reanchorNarrative,
+  reanchorPesukim,
+  reanchorRabbiEvidence,
+} from '../place/reanchor';
+import { buildVerbatimGrid, findExcerpt, normalizeHebrew } from '../place/verbatim';
+import { lintSynthesis } from '../synthesisLint';
 import { deriveVoiceEdges } from '../typing/voices';
 import type { YerushalmiFloorGroup } from '../yerushalmiAlign';
 
@@ -71,11 +78,15 @@ const transform = (id: string, fn: (p: unknown, segs: string[]) => unknown): Pos
 /** Pull the synthesis prose out of a parsed enrichment payload, tolerating the
  *  older 4-field shape (mirrors the extraction in runEnrichmentOnce). */
 function synthesisText(parsed: unknown): string {
-  const p = (parsed ?? {}) as Partial<Record<'synthesis' | 'tanach_context' | 'why_here' | 'mechanism' | 'landing', string>>;
-  return p.synthesis
-    ?? [p.tanach_context, p.why_here, p.mechanism, p.landing]
+  const p = (parsed ?? {}) as Partial<
+    Record<'synthesis' | 'tanach_context' | 'why_here' | 'mechanism' | 'landing', string>
+  >;
+  return (
+    p.synthesis ??
+    [p.tanach_context, p.why_here, p.mechanism, p.landing]
       .filter((s): s is string => typeof s === 'string' && s.length > 0)
-      .join('\n\n');
+      .join('\n\n')
+  );
 }
 
 const hebrewExcerpt: PostPass = {
@@ -145,7 +156,12 @@ function severityOf(kind: string, defId: string): Severity {
   return KIND_SEVERITY[kind] ?? 'soft';
 }
 
-interface RangeInstance { startSegIdx?: unknown; endSegIdx?: unknown; fields?: { excerpt?: unknown; [k: string]: unknown }; [k: string]: unknown }
+interface RangeInstance {
+  startSegIdx?: unknown;
+  endSegIdx?: unknown;
+  fields?: { excerpt?: unknown; [k: string]: unknown };
+  [k: string]: unknown;
+}
 
 function instancesOf(parsed: unknown): RangeInstance[] {
   const arr = (parsed as { instances?: unknown })?.instances;
@@ -191,7 +207,8 @@ function instancesOf(parsed: unknown): RangeInstance[] {
  *  rather than a full DP table. */
 function withinEdits(a: string, b: string, max: number): boolean {
   if (a === b) return true;
-  const la = a.length, lb = b.length;
+  const la = a.length,
+    lb = b.length;
   if (Math.abs(la - lb) > max) return false;
   if (la === lb) {
     let diff = 0;
@@ -200,10 +217,14 @@ function withinEdits(a: string, b: string, max: number): boolean {
   }
   // lengths differ by one: is the shorter the longer with a single deletion?
   const [short, long] = la < lb ? [a, b] : [b, a];
-  let i = 0, j = 0, skips = 0;
+  let i = 0,
+    j = 0,
+    skips = 0;
   while (i < short.length && j < long.length) {
-    if (short[i] === long[j]) { i++; j++; }
-    else if (++skips > max) return false;
+    if (short[i] === long[j]) {
+      i++;
+      j++;
+    } else if (++skips > max) return false;
     else j++;
   }
   return true;
@@ -221,7 +242,9 @@ export const FUZZY_PRESENCE_FLOOR = 0.6;
  *  alignment — not bag-of-words — so a scattered/reordered handful of common
  *  words can't pass. Only ever used to suppress a SOFT flag (see call site). */
 function fuzzyPresent(excerpt: string, segWords: string[]): boolean {
-  const exWords = normalizeHebrew(excerpt).split(' ').filter((w) => w.length >= 2);
+  const exWords = normalizeHebrew(excerpt)
+    .split(' ')
+    .filter((w) => w.length >= 2);
   if (exWords.length === 0) return false;
   const need = Math.ceil(exWords.length * FUZZY_PRESENCE_FLOOR);
   for (let start = 0; start < segWords.length; start++) {
@@ -252,7 +275,12 @@ const anchorVerbatim: PostPass = {
       if (normalizeHebrew(excerpt).split(' ').filter(Boolean).length < 2) continue;
       const seg = inst.startSegIdx;
       if (typeof seg !== 'number' || seg < 0 || seg >= segs.length) {
-        issues.push({ kind: 'anchor-out-of-range', severity: severityOf('anchor-out-of-range', ctx.defId), match: excerpt, index: typeof seg === 'number' ? seg : -1 });
+        issues.push({
+          kind: 'anchor-out-of-range',
+          severity: severityOf('anchor-out-of-range', ctx.defId),
+          match: excerpt,
+          index: typeof seg === 'number' ? seg : -1,
+        });
         continue;
       }
       // Confine the search to the single anchored segment: an exact prefix hit
@@ -261,8 +289,9 @@ const anchorVerbatim: PostPass = {
       // for SOFT flags; the hard pesukim/aggadata path stays exact so a genuine
       // mis-anchor still gates the cache.
       const sev = severityOf('excerpt-not-in-segment', ctx.defId);
-      const present = !!findExcerpt(grid, excerpt, seg, seg)
-        || (sev === 'soft' && fuzzyPresent(excerpt, grid.segWords[seg]));
+      const present =
+        !!findExcerpt(grid, excerpt, seg, seg) ||
+        (sev === 'soft' && fuzzyPresent(excerpt, grid.segWords[seg]));
       if (!present) {
         issues.push({ kind: 'excerpt-not-in-segment', severity: sev, match: excerpt, index: seg });
       }
@@ -281,7 +310,9 @@ const anchorVerbatim: PostPass = {
  *  instances — which carry the real, written differences — always win on overlap.
  *  This converts the ~25% LLM firing rate into "fires wherever a verbatim
  *  parallel exists" without inventing analysis or sacrificing precision. */
-function num(v: unknown): number { return typeof v === 'number' ? v : Number.NaN; }
+function num(v: unknown): number {
+  return typeof v === 'number' ? v : Number.NaN;
+}
 
 function floorFallbackInstance(g: YerushalmiFloorGroup, lang?: 'en' | 'he'): RangeInstance {
   const topic = g.points.find((p) => p.topic)?.topic ?? '';
@@ -316,7 +347,8 @@ const yerushalmiFloorPass: PostPass = {
     const insts = instancesOf(parsed).slice();
     const covers = (g: YerushalmiFloorGroup): boolean =>
       insts.some((i) => {
-        const s = num(i.startSegIdx), e = num(i.endSegIdx);
+        const s = num(i.startSegIdx),
+          e = num(i.endSegIdx);
         return Number.isFinite(s) && Number.isFinite(e) && s <= g.endSegIdx && e >= g.startSegIdx;
       });
     for (const g of floor) {
@@ -341,20 +373,34 @@ const partitionClean: PostPass = {
     const insts = instancesOf(parsed);
     const seen = new Set<string>();
     for (const inst of insts) {
-      const s = inst.startSegIdx, e = inst.endSegIdx;
+      const s = inst.startSegIdx,
+        e = inst.endSegIdx;
       if (typeof s === 'number' && typeof e === 'number' && e < s) {
-        issues.push({ kind: 'inverted-range', severity: severityOf('inverted-range', ctx.defId), index: s, detail: `${s}-${e}` });
+        issues.push({
+          kind: 'inverted-range',
+          severity: severityOf('inverted-range', ctx.defId),
+          index: s,
+          detail: `${s}-${e}`,
+        });
       }
       // True-duplicate identity, not just range+opener: two legitimate moves can
       // share a segment and a formulaic opening (תא שמע / אמר רבא) yet differ in
       // their deterministic id, end anchor, or order. Keying on those avoids
       // hard-blocking a correct output while still catching a genuinely emitted-
       // twice instance (same id ⇒ same move slot).
-      const ex = typeof inst.fields?.excerpt === 'string' ? normalizeHebrew(inst.fields.excerpt) : '';
-      const endEx = typeof inst.fields?.endExcerpt === 'string' ? normalizeHebrew(inst.fields.endExcerpt) : '';
+      const ex =
+        typeof inst.fields?.excerpt === 'string' ? normalizeHebrew(inst.fields.excerpt) : '';
+      const endEx =
+        typeof inst.fields?.endExcerpt === 'string' ? normalizeHebrew(inst.fields.endExcerpt) : '';
       const id = typeof inst.fields?.id === 'string' ? inst.fields.id : '';
       const key = `${id}|${s}|${e}|${ex}|${endEx}`;
-      if (seen.has(key)) issues.push({ kind: 'duplicate-instance', severity: severityOf('duplicate-instance', ctx.defId), match: ex || undefined, index: typeof s === 'number' ? s : -1 });
+      if (seen.has(key))
+        issues.push({
+          kind: 'duplicate-instance',
+          severity: severityOf('duplicate-instance', ctx.defId),
+          match: ex || undefined,
+          index: typeof s === 'number' ? s : -1,
+        });
       else seen.add(key);
     }
     if (ctx.defId === 'argument') {
@@ -364,7 +410,12 @@ const partitionClean: PostPass = {
         .sort((a, b) => a.s - b.s);
       for (let i = 1; i < ranges.length; i++) {
         if (ranges[i].s <= ranges[i - 1].e) {
-          issues.push({ kind: 'section-overlap', severity: severityOf('section-overlap', ctx.defId), index: ranges[i].s, detail: `${ranges[i - 1].s}-${ranges[i - 1].e} ∩ ${ranges[i].s}-${ranges[i].e}` });
+          issues.push({
+            kind: 'section-overlap',
+            severity: severityOf('section-overlap', ctx.defId),
+            index: ranges[i].s,
+            detail: `${ranges[i - 1].s}-${ranges[i - 1].e} ∩ ${ranges[i].s}-${ranges[i].e}`,
+          });
         }
       }
     }
@@ -395,9 +446,22 @@ const edgeIntegrity: PostPass = {
       const from = typeof edge.from === 'string' ? edge.from : '';
       const to = typeof edge.to === 'string' ? edge.to : '';
       const kind = typeof edge.kind === 'string' ? edge.kind : '';
-      if (!names.has(from)) issues.push({ kind: 'edge-unknown-voice', severity: sev('edge-unknown-voice'), match: from, detail: `from -> ${to}` });
-      if (!names.has(to)) issues.push({ kind: 'edge-unknown-voice', severity: sev('edge-unknown-voice'), match: to, detail: `${from} -> to` });
-      if (from && to && from === to) issues.push({ kind: 'edge-self-loop', severity: sev('edge-self-loop'), match: from });
+      if (!names.has(from))
+        issues.push({
+          kind: 'edge-unknown-voice',
+          severity: sev('edge-unknown-voice'),
+          match: from,
+          detail: `from -> ${to}`,
+        });
+      if (!names.has(to))
+        issues.push({
+          kind: 'edge-unknown-voice',
+          severity: sev('edge-unknown-voice'),
+          match: to,
+          detail: `${from} -> to`,
+        });
+      if (from && to && from === to)
+        issues.push({ kind: 'edge-self-loop', severity: sev('edge-self-loop'), match: from });
       if (from && to && (kind === 'opposes' || kind === 'supports')) {
         const pk = [from, to].sort().join(' ↔ ');
         const set = pairKinds.get(pk) ?? new Set<string>();
@@ -407,7 +471,11 @@ const edgeIntegrity: PostPass = {
     }
     for (const [pair, kinds] of pairKinds) {
       if (kinds.has('opposes') && kinds.has('supports')) {
-        issues.push({ kind: 'edge-contradiction', severity: sev('edge-contradiction'), match: pair });
+        issues.push({
+          kind: 'edge-contradiction',
+          severity: sev('edge-contradiction'),
+          match: pair,
+        });
       }
     }
     return { issues };
@@ -449,7 +517,12 @@ const commentaryVerbatim: PostPass = {
       for (const run of hebrewRuns(prose, 3)) {
         if (normalizeHebrew(run).split(' ').filter(Boolean).length < 2) continue;
         if (!findExcerpt(grid, run, 0, com.length - 1)) {
-          issues.push({ kind: 'invented-commentary-quote', severity: 'soft', match: run, detail: field });
+          issues.push({
+            kind: 'invented-commentary-quote',
+            severity: 'soft',
+            match: run,
+            detail: field,
+          });
         }
       }
     }
@@ -464,7 +537,11 @@ export const PASSES: Record<string, PostPass> = {
   'reanchor-aggadata': transform('reanchor-aggadata', reanchorAggadata),
   'reanchor-rabbi-evidence': transform('reanchor-rabbi-evidence', reanchorRabbiEvidence),
   'reanchor-narrative': transform('reanchor-narrative', reanchorNarrative),
-  'derive-voice-edges': { id: 'derive-voice-edges', phase: 'transform', run: (parsed) => ({ parsed: deriveVoiceEdges(parsed) }) },
+  'derive-voice-edges': {
+    id: 'derive-voice-edges',
+    phase: 'transform',
+    run: (parsed) => ({ parsed: deriveVoiceEdges(parsed) }),
+  },
   'yerushalmi-floor': yerushalmiFloorPass,
   'hebrew-excerpt': hebrewExcerpt,
   'hebrew-gloss': hebrewGloss,

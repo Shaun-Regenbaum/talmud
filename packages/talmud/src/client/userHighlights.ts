@@ -32,7 +32,12 @@ export interface UserHighlight {
 
 /** Highlighter palette. `key` is stored; `bg` is the painted (translucent)
  *  fill; `swatch` is the opaque toolbar chip. */
-export const HIGHLIGHT_COLORS: ReadonlyArray<{ key: string; label: string; bg: string; swatch: string }> = [
+export const HIGHLIGHT_COLORS: ReadonlyArray<{
+  key: string;
+  label: string;
+  bg: string;
+  swatch: string;
+}> = [
   { key: 'yellow', label: 'Yellow', bg: 'rgba(250, 204, 21, 0.40)', swatch: '#facc15' },
   { key: 'green', label: 'Green', bg: 'rgba(74, 222, 128, 0.38)', swatch: '#4ade80' },
   { key: 'blue', label: 'Blue', bg: 'rgba(96, 165, 250, 0.38)', swatch: '#60a5fa' },
@@ -221,11 +226,7 @@ export function wordCoordFromTarget(
   // A click target is usually the `.daf-word` element; a selection boundary is
   // usually a text node inside one — resolve both to the enclosing element.
   const el =
-    target instanceof Element
-      ? target
-      : target instanceof Node
-        ? target.parentElement
-        : null;
+    target instanceof Element ? target : target instanceof Node ? target.parentElement : null;
   if (!el) return null;
   const word = el.closest<HTMLElement>('.daf-word');
   if (!word || !mainCol.contains(word)) return null;

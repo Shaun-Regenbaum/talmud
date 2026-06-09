@@ -2,13 +2,13 @@
  * Hadran / perek-boundary markers (src/lib/typing/markers.ts): deterministic
  * detection of the closing formula + splitting the daf into perek runs.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { findHadranSegments, findMarkers, perekRuns } from '../../src/lib/typing/markers';
 
 const segs = [
   'תנו רבנן המביא גט',
   'אמר רבא הלכה כרבי',
-  'הדרן עלך פרק קמא וסליקא לה מסכתא',   // perek boundary
+  'הדרן עלך פרק קמא וסליקא לה מסכתא', // perek boundary
   'מתני׳ בשלמא',
   'גמרא מאי טעמא',
 ];
@@ -33,7 +33,10 @@ describe('findMarkers', () => {
 
 describe('perekRuns', () => {
   it('splits the daf at the Hadran (run ends on the boundary segment)', () => {
-    expect(perekRuns(segs)).toEqual([{ start: 0, end: 2 }, { start: 3, end: 4 }]);
+    expect(perekRuns(segs)).toEqual([
+      { start: 0, end: 2 },
+      { start: 3, end: 4 },
+    ]);
   });
   it('a daf with no Hadran is one run', () => {
     expect(perekRuns(['a', 'b', 'c'])).toEqual([{ start: 0, end: 2 }]);

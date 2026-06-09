@@ -1,9 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import {
-  keyForEnrichment,
-  qualifierHash,
-  normalizeQualifier,
-} from '../src/worker/cache-keys';
+import { describe, expect, it } from 'vitest';
+import { keyForEnrichment, normalizeQualifier, qualifierHash } from '../src/worker/cache-keys';
 
 const ENRICHMENT_LOCAL = {
   id: 'argument-move.qa',
@@ -19,11 +15,7 @@ const ENRICHMENT_GLOBAL = {
 
 describe('keyForEnrichment qualifier dimension', () => {
   it('produces the legacy key shape when no qualifier is supplied', () => {
-    const k = keyForEnrichment(
-      ENRICHMENT_LOCAL,
-      'move_42',
-      { tractate: 'Berakhot', page: '3b' },
-    );
+    const k = keyForEnrichment(ENRICHMENT_LOCAL, 'move_42', { tractate: 'Berakhot', page: '3b' });
     expect(k).toBe('enrich:argument-move.qa:1:move_42:berakhot:3b');
   });
 

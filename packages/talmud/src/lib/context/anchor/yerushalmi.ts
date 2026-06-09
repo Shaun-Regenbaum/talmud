@@ -27,7 +27,10 @@ const MAX_HIT_SEGS = 4;
  * Place each dafyomi-yerushalmi context item on the Bavli segment(s) it shares
  * a long verbatim phrase with. Returns the number placed.
  */
-export function matchYerushalmiToSegments(items: ContextItem[], segmentsHe: string[] | undefined): number {
+export function matchYerushalmiToSegments(
+  items: ContextItem[],
+  segmentsHe: string[] | undefined,
+): number {
   if (!segmentsHe || segmentsHe.length === 0) return 0;
   const segWords = segmentsHe.map((h) => normalizeHebrew(h).split(' ').filter(Boolean));
 
@@ -35,7 +38,9 @@ export function matchYerushalmiToSegments(items: ContextItem[], segmentsHe: stri
   for (const item of items) {
     if (item.source !== 'dafyomi:yerushalmi') continue;
     if (item.segs.length > 0) continue;
-    const pWords = normalizeHebrew(item.body?.he ?? '').split(' ').filter(Boolean);
+    const pWords = normalizeHebrew(item.body?.he ?? '')
+      .split(' ')
+      .filter(Boolean);
     if (pWords.length < MIN_PLACE_RUN) continue;
 
     const runs = segWords.map((sw) => longestCommonRun(pWords, sw).len);

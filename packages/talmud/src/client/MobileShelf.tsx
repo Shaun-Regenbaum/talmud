@@ -1,12 +1,12 @@
-import { Show, type JSX } from 'solid-js';
-import DafLoadProgress from './DafLoadProgress';
-import { t } from './i18n';
-import { tutorialNoteInteractive } from './tutorial';
-import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
+import { type JSX, Show } from 'solid-js';
 import type { Term } from '../lib/terms/registry';
-import type { GenerationId } from './generations';
+import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
+import DafLoadProgress from './DafLoadProgress';
 import type { IdentifiedRabbi } from './dafContext';
+import type { GenerationId } from './generations';
+import { t } from './i18n';
 import type { Section } from './shapes';
+import { tutorialNoteInteractive } from './tutorial';
 
 export type MobileInteractionMode = 'read' | 'translate';
 
@@ -35,7 +35,13 @@ interface MobileShelfProps {
   dafSections?: Section[];
   onOpenArgument?: (index: number) => void;
   onHighlightRange?: (
-    range: { start: number; end: number; key: string; tokenStart?: number; tokenEnd?: number } | null,
+    range: {
+      start: number;
+      end: number;
+      key: string;
+      tokenStart?: number;
+      tokenEnd?: number;
+    } | null,
   ) => void;
 }
 
@@ -85,16 +91,21 @@ const MODE_BUTTONS: Array<{ id: MobileInteractionMode; labelKey: string; hintKey
 
 // Pinned interaction-mode pills. Stays at the bottom of the shelf regardless
 // of whether a drawer is open, so mode is always switchable and visible.
-function ModeBar(props: { mode: MobileInteractionMode; onModeChange: (m: MobileInteractionMode) => void }): JSX.Element {
+function ModeBar(props: {
+  mode: MobileInteractionMode;
+  onModeChange: (m: MobileInteractionMode) => void;
+}): JSX.Element {
   return (
-    <div style={{
-      padding: '0.6rem 0.8rem',
-      display: 'flex',
-      gap: '0.5rem',
-      'border-top': '1px solid #eee',
-      'flex-shrink': 0,
-      background: '#fff',
-    }}>
+    <div
+      style={{
+        padding: '0.6rem 0.8rem',
+        display: 'flex',
+        gap: '0.5rem',
+        'border-top': '1px solid #eee',
+        'flex-shrink': 0,
+        background: '#fff',
+      }}
+    >
       {MODE_BUTTONS.map((b) => (
         <button
           type="button"
@@ -123,14 +134,23 @@ function ModeBar(props: { mode: MobileInteractionMode; onModeChange: (m: MobileI
 function ExpansionView(props: MobileShelfProps): JSX.Element {
   return (
     <div style={{ display: 'flex', 'flex-direction': 'column', flex: 1, 'min-height': 0 }}>
-      <div style={{
-        display: 'flex',
-        'align-items': 'center',
-        'justify-content': 'space-between',
-        padding: '0.5rem 0.75rem',
-        'border-bottom': '1px solid #eee',
-      }}>
-        <span style={{ 'font-size': '0.8rem', color: '#666', 'text-transform': 'uppercase', 'letter-spacing': '0.05em' }}>
+      <div
+        style={{
+          display: 'flex',
+          'align-items': 'center',
+          'justify-content': 'space-between',
+          padding: '0.5rem 0.75rem',
+          'border-bottom': '1px solid #eee',
+        }}
+      >
+        <span
+          style={{
+            'font-size': '0.8rem',
+            color: '#666',
+            'text-transform': 'uppercase',
+            'letter-spacing': '0.05em',
+          }}
+        >
           {labelForSidebar(props.sidebar)}
         </span>
         <button
@@ -177,19 +197,33 @@ function ExpansionView(props: MobileShelfProps): JSX.Element {
 function labelForSidebar(s: SidebarContent | null): string {
   if (!s) return '';
   switch (s.kind) {
-    case 'argument': return 'Argument';
-    case 'halacha': return 'Halacha';
-    case 'chart': return 'Chart';
-    case 'aggadata': return 'Aggadata';
-    case 'yerushalmi': return 'Yerushalmi';
-    case 'pesuk': return 'Pasuk';
-    case 'rabbi': return 'Rabbi';
-    case 'place': return 'Place';
-    case 'voice-group': return 'Voice';
-    case 'rishonim': return 'Rishonim';
-    case 'argument-overview': return 'Overview';
-    case 'daf-background': return 'Background';
-    case 'tidbit': return 'Tidbit';
-    case 'biyun': return "Bi'yun";
+    case 'argument':
+      return 'Argument';
+    case 'halacha':
+      return 'Halacha';
+    case 'chart':
+      return 'Chart';
+    case 'aggadata':
+      return 'Aggadata';
+    case 'yerushalmi':
+      return 'Yerushalmi';
+    case 'pesuk':
+      return 'Pasuk';
+    case 'rabbi':
+      return 'Rabbi';
+    case 'place':
+      return 'Place';
+    case 'voice-group':
+      return 'Voice';
+    case 'rishonim':
+      return 'Rishonim';
+    case 'argument-overview':
+      return 'Overview';
+    case 'daf-background':
+      return 'Background';
+    case 'tidbit':
+      return 'Tidbit';
+    case 'biyun':
+      return "Bi'yun";
   }
 }

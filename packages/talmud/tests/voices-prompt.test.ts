@@ -1,5 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { ARGUMENT_VOICES_SYSTEM_PROMPT, ARGUMENT_VOICES_SYSTEM_PROMPT_HE } from '../src/worker/code-marks';
+import { describe, expect, it } from 'vitest';
+import {
+  ARGUMENT_VOICES_SYSTEM_PROMPT,
+  ARGUMENT_VOICES_SYSTEM_PROMPT_HE,
+} from '../src/worker/code-marks';
 
 /**
  * Regression guards for the argument.voices prompt (the per-section dispute map).
@@ -41,9 +44,9 @@ describe('ARGUMENT_VOICES_SYSTEM_PROMPT_HE (Hebrew parity)', () => {
   const p = ARGUMENT_VOICES_SYSTEM_PROMPT_HE;
 
   it('carries the same four rules (roles / sides / opposition / names)', () => {
-    expect(p).toMatch(/objector ולא respondent/);       // role reservation
-    expect(p).toMatch(/שמור על מספר side מינימלי/);       // minimal sides
-    expect(p).toMatch(/מחלוקת ממשית/);                    // opposes = real dispute
-    expect(p).toMatch(/תווית דובר נקייה/);                // clean speaker label
+    expect(p).toMatch(/objector ולא respondent/); // role reservation
+    expect(p).toMatch(/שמור על מספר side מינימלי/); // minimal sides
+    expect(p).toMatch(/מחלוקת ממשית/); // opposes = real dispute
+    expect(p).toMatch(/תווית דובר נקייה/); // clean speaker label
   });
 });

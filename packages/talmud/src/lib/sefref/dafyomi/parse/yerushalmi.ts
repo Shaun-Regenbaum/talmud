@@ -15,11 +15,19 @@
  * This dedicated parser pairs the He/En and captures the ref into `entry.refs`.
  */
 
-import {
-  elementChildren, isAmudBreak, levelOfClass, markerOf, labelOf,
-  bodyText, text, txt, collapse, type HTMLElement,
-} from './common.ts';
 import type { DafyomiEntry, DafyomiRef } from '../schema.ts';
+import {
+  bodyText,
+  collapse,
+  elementChildren,
+  type HTMLElement,
+  isAmudBreak,
+  labelOf,
+  levelOfClass,
+  markerOf,
+  text,
+  txt,
+} from './common.ts';
 
 // Hebrew source divs on the yerushalmi page (interleaved before each English
 // entry). `ptshebtext`/`subjectheb` are kept for parity with the generic idiom.
@@ -87,8 +95,18 @@ export function parseYerushalmi(content: HTMLElement): DafyomiEntry[] {
       const srcEl = el.querySelector('.source');
       const ref = srcEl ? parseYerushalmiRef(text(srcEl)) : null;
       let title = bodyText(el, marker);
-      if (srcEl) title = title.replace(text(srcEl), '').replace(/\s*\(\s*\)\s*$/, '').trim();
-      curTop = { marker, level: 0, title: txt(title, pendingHe ?? undefined), body: {}, children: [] };
+      if (srcEl)
+        title = title
+          .replace(text(srcEl), '')
+          .replace(/\s*\(\s*\)\s*$/, '')
+          .trim();
+      curTop = {
+        marker,
+        level: 0,
+        title: txt(title, pendingHe ?? undefined),
+        body: {},
+        children: [],
+      };
       if (ref) curTop.refs = [ref];
       pendingHe = null;
       top.push(curTop);

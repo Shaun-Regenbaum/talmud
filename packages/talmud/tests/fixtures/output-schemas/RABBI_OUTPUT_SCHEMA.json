@@ -4,19 +4,14 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "instances"
-    ],
+    "required": ["instances"],
     "properties": {
       "instances": {
         "type": "array",
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "excerpt",
-            "fields"
-          ],
+          "required": ["excerpt", "fields"],
           "properties": {
             "excerpt": {
               "type": "string"
@@ -24,11 +19,7 @@
             "fields": {
               "type": "object",
               "additionalProperties": false,
-              "required": [
-                "name",
-                "nameHe",
-                "generation"
-              ],
+              "required": ["name", "nameHe", "generation"],
               "properties": {
                 "name": {
                   "type": "string"

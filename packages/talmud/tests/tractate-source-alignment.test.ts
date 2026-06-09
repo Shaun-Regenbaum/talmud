@@ -1,12 +1,17 @@
-import { describe, it, expect } from 'vitest';
-import { TRACTATE_OPTIONS } from '../src/lib/sefref/tractates';
-import { TRACTATE_IDS, sefariaPageToHebrewBooksDaf } from '../src/lib/sefref/hebrewbooks/client';
-import {
-  getDafyomiMasechet, resolveTractateName, resolveDafRef,
-  buildDafyomiUrl, buildRevachUrl, getContentTypeSpec, dafToNNN,
-} from '../src/lib/sefref/dafyomi/masechtos';
+import { describe, expect, it } from 'vitest';
 import { TRACTATE_END_AMUD } from '../src/lib/sefref/amudim';
-import { keyForSefariaBundle, keyForHebrewBooks } from '../src/worker/cache-keys';
+import {
+  buildDafyomiUrl,
+  buildRevachUrl,
+  dafToNNN,
+  getContentTypeSpec,
+  getDafyomiMasechet,
+  resolveDafRef,
+  resolveTractateName,
+} from '../src/lib/sefref/dafyomi/masechtos';
+import { sefariaPageToHebrewBooksDaf, TRACTATE_IDS } from '../src/lib/sefref/hebrewbooks/client';
+import { TRACTATE_OPTIONS } from '../src/lib/sefref/tractates';
+import { keyForHebrewBooks, keyForSefariaBundle } from '../src/worker/cache-keys';
 
 /**
  * Cross-source tractate-naming alignment.
@@ -87,7 +92,8 @@ describe('tractate naming — every source resolves every canonical slug', () =>
 describe('tractate naming — a (tractate, daf) lands on the SAME daf everywhere', () => {
   // Daf number a source ultimately addresses, from each layer's page encoding.
   const sefariaDaf = (page: string): number => parseInt(page.replace(/[ab]$/i, ''), 10);
-  const hbDaf = (page: string): number => parseInt(sefariaPageToHebrewBooksDaf(page).replace(/b$/i, ''), 10);
+  const hbDaf = (page: string): number =>
+    parseInt(sefariaPageToHebrewBooksDaf(page).replace(/b$/i, ''), 10);
 
   // Exercise every tractate at a shared coordinate that is in-range for all of
   // Shas (daf 2 exists in every tractate; "5b" is well within the shortest).

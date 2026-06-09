@@ -208,10 +208,7 @@ function appendEdges(out: string[], label: string, edges: SefariaEdgeInput[]): v
   }
 }
 
-function appendFamily(
-  out: string[],
-  edges: Array<SefariaEdgeInput & { relation: string }>,
-): void {
+function appendFamily(out: string[], edges: Array<SefariaEdgeInput & { relation: string }>): void {
   if (!edges.length) {
     out.push('family: (none)');
     return;

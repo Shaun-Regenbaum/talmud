@@ -1,4 +1,4 @@
-import { createSignal, For, Show, type JSX } from 'solid-js';
+import { createSignal, For, type JSX, Show } from 'solid-js';
 
 /**
  * Guide for connecting an MCP client (Claude Code / Desktop, etc.) to this app's
@@ -52,15 +52,23 @@ function CopyButton(props: { text: string }): JSX.Element {
       type="button"
       onClick={() => {
         navigator.clipboard?.writeText(props.text).then(
-          () => { setCopied(true); setTimeout(() => setCopied(false), 1500); },
+          () => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1500);
+          },
           () => {},
         );
       }}
       style={{
-        position: 'absolute', top: '0.5rem', right: '0.5rem',
-        'font-size': '0.7rem', padding: '0.15rem 0.5rem',
-        border: '1px solid #ccc', 'border-radius': '5px',
-        background: copied() ? '#2f7d32' : '#fff', color: copied() ? '#fff' : '#555',
+        position: 'absolute',
+        top: '0.5rem',
+        right: '0.5rem',
+        'font-size': '0.7rem',
+        padding: '0.15rem 0.5rem',
+        border: '1px solid #ccc',
+        'border-radius': '5px',
+        background: copied() ? '#2f7d32' : '#fff',
+        color: copied() ? '#fff' : '#555',
         cursor: 'pointer',
       }}
     >
@@ -73,12 +81,20 @@ function Code(props: { children: string }): JSX.Element {
   return (
     <div style={{ position: 'relative', margin: '0.6rem 0 1.2rem' }}>
       <CopyButton text={props.children} />
-      <pre style={{
-        margin: 0, padding: '0.9rem 1rem', 'padding-right': '3.5rem',
-        background: '#1e1e22', color: '#e6e6e6', 'border-radius': '8px',
-        overflow: 'auto', 'font-size': '0.8rem', 'line-height': 1.5,
-        'font-family': 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-      }}>
+      <pre
+        style={{
+          margin: 0,
+          padding: '0.9rem 1rem',
+          'padding-right': '3.5rem',
+          background: '#1e1e22',
+          color: '#e6e6e6',
+          'border-radius': '8px',
+          overflow: 'auto',
+          'font-size': '0.8rem',
+          'line-height': 1.5,
+          'font-family': 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+        }}
+      >
         <code>{props.children}</code>
       </pre>
     </div>
@@ -88,20 +104,33 @@ function Code(props: { children: string }): JSX.Element {
 const TOOLS = [
   {
     name: 'search',
-    blurb: 'Query the OpenAPI spec to discover endpoints — call codemode.spec() and filter it in code. No request leaves the sandbox.',
+    blurb:
+      'Query the OpenAPI spec to discover endpoints — call codemode.spec() and filter it in code. No request leaves the sandbox.',
   },
   {
     name: 'execute',
-    blurb: 'Run an async arrow function that calls codemode.request({ method, path, query, body }). Chain calls and poll inside one function; only the returned value comes back.',
+    blurb:
+      'Run an async arrow function that calls codemode.request({ method, path, query, body }). Chain calls and poll inside one function; only the returned value comes back.',
   },
 ];
 
 export function McpPage(): JSX.Element {
   return (
-    <main class="page-shell" style={{ '--page-max': '780px', 'font-family': 'system-ui, -apple-system, sans-serif', color: '#222' } as JSX.CSSProperties}>
+    <main
+      class="page-shell"
+      style={
+        {
+          '--page-max': '780px',
+          'font-family': 'system-ui, -apple-system, sans-serif',
+          color: '#222',
+        } as JSX.CSSProperties
+      }
+    >
       <header style={{ 'margin-bottom': '1.25rem' }}>
         <h1 style={{ margin: 0, 'font-size': '1.5rem' }}>Connect via MCP</h1>
-        <a href="#daf" style={{ color: '#666', 'font-size': '0.85rem', 'text-decoration': 'none' }}>← back to daf</a>
+        <a href="#daf" style={{ color: '#666', 'font-size': '0.85rem', 'text-decoration': 'none' }}>
+          ← back to daf
+        </a>
       </header>
 
       <p style={{ color: '#444', 'line-height': 1.6, 'margin-bottom': '1.25rem' }}>
@@ -119,7 +148,9 @@ export function McpPage(): JSX.Element {
       <h2 style={{ 'font-size': '1.05rem', 'margin-bottom': '0.4rem' }}>Add it to Claude Code</h2>
       <Code>{CLAUDE_CODE_CMD}</Code>
 
-      <h2 style={{ 'font-size': '1.05rem', 'margin-bottom': '0.4rem' }}>Or add it to any MCP client (JSON config)</h2>
+      <h2 style={{ 'font-size': '1.05rem', 'margin-bottom': '0.4rem' }}>
+        Or add it to any MCP client (JSON config)
+      </h2>
       <p style={{ color: '#555', 'font-size': '0.88rem', margin: '0 0 0.2rem' }}>
         For Claude Desktop and other clients that take a streamable-HTTP server by URL:
       </p>
@@ -129,23 +160,34 @@ export function McpPage(): JSX.Element {
       <For each={TOOLS}>
         {(tool) => (
           <p style={{ margin: '0 0 0.6rem', 'line-height': 1.55 }}>
-            <code style={{ background: '#f0f0f2', padding: '0.05rem 0.35rem', 'border-radius': '4px' }}>{tool.name}</code>
+            <code
+              style={{ background: '#f0f0f2', padding: '0.05rem 0.35rem', 'border-radius': '4px' }}
+            >
+              {tool.name}
+            </code>
             <span style={{ color: '#444', 'font-size': '0.9rem' }}> — {tool.blurb}</span>
           </p>
         )}
       </For>
 
-      <h2 style={{ 'font-size': '1.05rem', 'margin': '1rem 0 0.4rem' }}>Worked example</h2>
+      <h2 style={{ 'font-size': '1.05rem', margin: '1rem 0 0.4rem' }}>Worked example</h2>
       <p style={{ color: '#555', 'font-size': '0.88rem', margin: '0 0 0.2rem' }}>
-        A daf page is text plus <em>marks</em> (structural extractors whose <code>excerpt</code>s are
-        the anchors) and <em>enrichments</em> (LLM passes on a mark instance). Marks/enrichments run
-        through <code>POST /api/run</code>, which is async — poll{' '}
+        A daf page is text plus <em>marks</em> (structural extractors whose <code>excerpt</code>s
+        are the anchors) and <em>enrichments</em> (LLM passes on a mark instance). Marks/enrichments
+        run through <code>POST /api/run</code>, which is async — poll{' '}
         <code>/api/run-status/&#123;runId&#125;</code> until it is done:
       </p>
       <Code>{WORKED_EXAMPLE}</Code>
 
       <h2 style={{ 'font-size': '1.05rem', 'margin-bottom': '0.4rem' }}>Access</h2>
-      <p style={{ color: '#444', 'font-size': '0.9rem', 'line-height': 1.55, 'margin-bottom': '2rem' }}>
+      <p
+        style={{
+          color: '#444',
+          'font-size': '0.9rem',
+          'line-height': 1.55,
+          'margin-bottom': '2rem',
+        }}
+      >
         The endpoint is open and read-focused — connect and start pulling daf data right away.
         Everything in the examples above works on the public endpoint. A few advanced operations are
         reserved for the maintainer and will return an authorization error if called.

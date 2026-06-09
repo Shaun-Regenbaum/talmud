@@ -6,17 +6,21 @@
  * any non-fatal parse warnings. The scraper assembles these into a `DafyomiDaf`.
  */
 
+import type {
+  DafyomiAmudContent,
+  DafyomiBody,
+  DafyomiContentType,
+  DafyomiEntry,
+  DafyomiPointsEntry,
+} from '../schema.ts';
+import { parseBackground } from './background.ts';
 import { contentRoot, titleLine } from './common.ts';
 import { parseIndentedEntries } from './entries.ts';
-import { parseTosfos } from './tosfos.ts';
-import { parseBackground } from './background.ts';
-import { parseReview } from './review.ts';
 import { parseHebCharts } from './hebcharts.ts';
 import { parseRevach } from './revach.ts';
+import { parseReview } from './review.ts';
+import { parseTosfos } from './tosfos.ts';
 import { parseYerushalmi } from './yerushalmi.ts';
-import type {
-  DafyomiContentType, DafyomiAmudContent, DafyomiBody, DafyomiEntry, DafyomiPointsEntry,
-} from '../schema.ts';
 
 export interface ParsedContent {
   type: DafyomiContentType;
@@ -37,7 +41,9 @@ export function parseDafyomiContent(type: DafyomiContentType, html: string): Par
     return {
       type,
       titleLine: title,
-      blocks: entries.length ? [{ type, amud: 'a', wholeDaf: true, titleLine: title, body: { type, entries } }] : [],
+      blocks: entries.length
+        ? [{ type, amud: 'a', wholeDaf: true, titleLine: title, body: { type, entries } }]
+        : [],
       parseWarnings: warnings,
     };
   }
@@ -49,7 +55,11 @@ export function parseDafyomiContent(type: DafyomiContentType, html: string): Par
   }
 
   const mk = (amud: 'a' | 'b', body: DafyomiBody, wholeDaf?: boolean): DafyomiAmudContent => ({
-    type, amud, wholeDaf, titleLine: title, body,
+    type,
+    amud,
+    wholeDaf,
+    titleLine: title,
+    body,
   });
 
   let blocks: DafyomiAmudContent[] = [];
@@ -120,7 +130,10 @@ export function parseDafyomiContent(type: DafyomiContentType, html: string): Par
  *  the halacha body shape. Falls back to bucketing everything under gemara. */
 function toHalacha(entries: DafyomiEntry[]): Extract<DafyomiBody, { type: 'halacha' }> {
   const body: Extract<DafyomiBody, { type: 'halacha' }> = {
-    type: 'halacha', gemara: [], rishonim: [], poskim: [],
+    type: 'halacha',
+    gemara: [],
+    rishonim: [],
+    poskim: [],
   };
   const q = entries[0];
   if (!q) return body;

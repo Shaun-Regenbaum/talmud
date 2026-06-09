@@ -28,8 +28,11 @@
     "enabled": true,
     "rules": {
       "recommended": true,
+      "a11y": "warn",
       "suspicious": {
-        "noConsole": "off"
+        "noConsole": "off",
+        "useIterableCallbackReturn": "warn",
+        "noAssignInExpressions": "warn"
       }
     }
   }

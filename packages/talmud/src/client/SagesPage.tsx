@@ -5,7 +5,7 @@
  * exposes Run / Re-run / Refresh per stage. Top bar shows global coverage
  * and lets you compile graph / cohort / places-index / academy-roster.
  */
-import { createMemo, createResource, createSignal, For, Show, type JSX } from 'solid-js';
+import { createMemo, createResource, createSignal, For, type JSX, Show } from 'solid-js';
 import { t } from './i18n';
 
 interface IndexRow {
@@ -17,7 +17,10 @@ interface IndexRow {
   region: 'israel' | 'bavel' | null;
 }
 
-interface IndexResp { rows: IndexRow[]; count: number }
+interface IndexResp {
+  rows: IndexRow[];
+  count: number;
+}
 
 interface RabbiEdge {
   slug: string | null;
@@ -25,7 +28,9 @@ interface RabbiEdge {
   weight: number | null;
   source: 'sefaria' | 'llm';
 }
-interface FamilyEdge extends RabbiEdge { relation: string }
+interface FamilyEdge extends RabbiEdge {
+  relation: string;
+}
 
 interface UnifiedRecord {
   slug: string;
@@ -104,10 +109,14 @@ interface CacheStats {
 }
 
 const COMPILES = [
-  { id: 'graph',          labelKey: 'sages.compile.graph',     descKey: 'sages.compile.graph.desc' },
-  { id: 'cohort',         labelKey: 'sages.compile.cohort',    descKey: 'sages.compile.cohort.desc' },
-  { id: 'places-index',   labelKey: 'sages.compile.places',    descKey: 'sages.compile.places.desc' },
-  { id: 'academy-roster', labelKey: 'sages.compile.academies', descKey: 'sages.compile.academies.desc' },
+  { id: 'graph', labelKey: 'sages.compile.graph', descKey: 'sages.compile.graph.desc' },
+  { id: 'cohort', labelKey: 'sages.compile.cohort', descKey: 'sages.compile.cohort.desc' },
+  { id: 'places-index', labelKey: 'sages.compile.places', descKey: 'sages.compile.places.desc' },
+  {
+    id: 'academy-roster',
+    labelKey: 'sages.compile.academies',
+    descKey: 'sages.compile.academies.desc',
+  },
 ] as const;
 
 const STAGE_PATHS = {
@@ -127,12 +136,19 @@ async function getJSON<T>(url: string): Promise<T | null> {
 
 // Lowercases ASCII and strips common punctuation. Hebrew is preserved as-is.
 const normalize = (s: string): string =>
-  s.toLowerCase().replace(/[.,;:'"`()[\]{}]/g, '').replace(/\s+/g, ' ').trim();
+  s
+    .toLowerCase()
+    .replace(/[.,;:'"`()[\]{}]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 // Returns true if `q` chars appear in order anywhere in `s` (subsequence).
 const subseq = (q: string, s: string): boolean => {
   let i = 0;
-  for (const ch of s) { if (ch === q[i]) i += 1; if (i === q.length) return true; }
+  for (const ch of s) {
+    if (ch === q[i]) i += 1;
+    if (i === q.length) return true;
+  }
   return i === q.length;
 };
 
@@ -180,10 +196,18 @@ export function SagesPage(): JSX.Element {
     const r = await getJSON<IndexResp>('/api/sages-index');
     return r ?? { rows: [], count: 0 };
   });
-  const [cohort, { refetch: refetchCohort }] = createResource(async () => getJSON<CohortBlob>('/api/admin/rabbi-cohort'));
-  const [places, { refetch: refetchPlaces }] = createResource(async () => getJSON<PlacesBlob>('/api/admin/rabbi-places-index'));
-  const [academy, { refetch: refetchAcademy }] = createResource(async () => getJSON<AcademyRosterBlob>('/api/admin/rabbi-academy-roster'));
-  const [stats, { refetch: refetchStats }] = createResource(async () => getJSON<CacheStats>('/api/admin/rabbi-cache-stats'));
+  const [cohort, { refetch: refetchCohort }] = createResource(async () =>
+    getJSON<CohortBlob>('/api/admin/rabbi-cohort'),
+  );
+  const [places, { refetch: refetchPlaces }] = createResource(async () =>
+    getJSON<PlacesBlob>('/api/admin/rabbi-places-index'),
+  );
+  const [academy, { refetch: refetchAcademy }] = createResource(async () =>
+    getJSON<AcademyRosterBlob>('/api/admin/rabbi-academy-roster'),
+  );
+  const [stats, { refetch: refetchStats }] = createResource(async () =>
+    getJSON<CacheStats>('/api/admin/rabbi-cache-stats'),
+  );
 
   const [filter, setFilter] = createSignal('');
   const [region, setRegion] = createSignal<'all' | 'israel' | 'bavel'>('all');
@@ -250,16 +274,12 @@ export function SagesPage(): JSX.Element {
     }
     if (isHebrewQuery(q)) {
       const qHe = q;
-      const scored = filtered
-        .map((r) => ({ r, s: scoreRow('', qHe, r) }))
-        .filter((x) => x.s > 0);
+      const scored = filtered.map((r) => ({ r, s: scoreRow('', qHe, r) })).filter((x) => x.s > 0);
       scored.sort((a, b) => b.s - a.s || a.r.canonical.localeCompare(b.r.canonical));
       return scored.map((x) => x.r);
     }
     const qNorm = normalize(q);
-    const scored = filtered
-      .map((r) => ({ r, s: scoreRow(qNorm, null, r) }))
-      .filter((x) => x.s > 0);
+    const scored = filtered.map((r) => ({ r, s: scoreRow(qNorm, null, r) })).filter((x) => x.s > 0);
     scored.sort((a, b) => b.s - a.s || a.r.canonical.localeCompare(b.r.canonical));
     return scored.map((x) => x.r);
   });
@@ -283,36 +303,57 @@ export function SagesPage(): JSX.Element {
         </div>
 
         <div class="sages-stats">
-          <Show when={stats.loading && !stats()}><span class="sages-stats-loading">{t('sages.stats.loading')}</span></Show>
+          <Show when={stats.loading && !stats()}>
+            <span class="sages-stats-loading">{t('sages.stats.loading')}</span>
+          </Show>
           <Show when={stats()}>
             {(s) => (
               <>
-                <span class="stats-cell">{t('sages.stats.unified')} <b>{s().perSage.unified}</b><span class="stats-tot">/{s().totalSlugs}</span></span>
-                <span class="stats-cell">{t('sages.stats.wikidata')} <b>{s().perSage.wikidata}</b></span>
-                <span class="stats-cell">{t('sages.stats.wikiBio')} <b>{s().perSage.wikiBio}</b></span>
+                <span class="stats-cell">
+                  {t('sages.stats.unified')} <b>{s().perSage.unified}</b>
+                  <span class="stats-tot">/{s().totalSlugs}</span>
+                </span>
+                <span class="stats-cell">
+                  {t('sages.stats.wikidata')} <b>{s().perSage.wikidata}</b>
+                </span>
+                <span class="stats-cell">
+                  {t('sages.stats.wikiBio')} <b>{s().perSage.wikiBio}</b>
+                </span>
                 <span class="stats-divider">·</span>
-                <For each={COMPILES}>{(c) => {
-                  const ts =
-                    c.id === 'graph' ? s().globals.graph
-                    : c.id === 'cohort' ? s().globals.cohort
-                    : c.id === 'places-index' ? s().globals.placesIndex
-                    : s().globals.academyRoster;
-                  return (
-                    <button
-                      class="compile-btn"
-                      classList={{ 'compile-btn-fresh': !!ts }}
-                      disabled={!!compiling()[c.id]}
-                      onClick={() => runCompile(c.id)}
-                      title={t('sages.compile.title', { desc: t(c.descKey), last: ts ? new Date(ts).toLocaleString() : t('sages.compile.never') })}
-                    >
-                      {compiling()[c.id]
-                        ? t('sages.compile.running', { name: t(c.labelKey) })
-                        : t('sages.compile.action', { name: t(c.labelKey) })}
-                      <Show when={ts}><span class="compile-btn-ts">{fmtDate(ts as string)}</span></Show>
-                      <Show when={compileErr()[c.id]}><span class="compile-btn-err">{t('sages.compile.err')}</span></Show>
-                    </button>
-                  );
-                }}</For>
+                <For each={COMPILES}>
+                  {(c) => {
+                    const ts =
+                      c.id === 'graph'
+                        ? s().globals.graph
+                        : c.id === 'cohort'
+                          ? s().globals.cohort
+                          : c.id === 'places-index'
+                            ? s().globals.placesIndex
+                            : s().globals.academyRoster;
+                    return (
+                      <button
+                        class="compile-btn"
+                        classList={{ 'compile-btn-fresh': !!ts }}
+                        disabled={!!compiling()[c.id]}
+                        onClick={() => runCompile(c.id)}
+                        title={t('sages.compile.title', {
+                          desc: t(c.descKey),
+                          last: ts ? new Date(ts).toLocaleString() : t('sages.compile.never'),
+                        })}
+                      >
+                        {compiling()[c.id]
+                          ? t('sages.compile.running', { name: t(c.labelKey) })
+                          : t('sages.compile.action', { name: t(c.labelKey) })}
+                        <Show when={ts}>
+                          <span class="compile-btn-ts">{fmtDate(ts as string)}</span>
+                        </Show>
+                        <Show when={compileErr()[c.id]}>
+                          <span class="compile-btn-err">{t('sages.compile.err')}</span>
+                        </Show>
+                      </button>
+                    );
+                  }}
+                </For>
               </>
             )}
           </Show>
@@ -328,14 +369,36 @@ export function SagesPage(): JSX.Element {
           />
           <div class="sages-chips">
             <span class="chip-label">{t('sages.filter.region')}</span>
-            <button class="chip" classList={{ 'chip-active': region() === 'all' }} onClick={() => setRegion('all')}>{t('sages.filter.all')}</button>
-            <button class="chip" classList={{ 'chip-active': region() === 'israel' }} onClick={() => setRegion('israel')}>{t('sages.region.israel')}</button>
-            <button class="chip" classList={{ 'chip-active': region() === 'bavel' }} onClick={() => setRegion('bavel')}>{t('sages.region.bavel')}</button>
+            <button
+              class="chip"
+              classList={{ 'chip-active': region() === 'all' }}
+              onClick={() => setRegion('all')}
+            >
+              {t('sages.filter.all')}
+            </button>
+            <button
+              class="chip"
+              classList={{ 'chip-active': region() === 'israel' }}
+              onClick={() => setRegion('israel')}
+            >
+              {t('sages.region.israel')}
+            </button>
+            <button
+              class="chip"
+              classList={{ 'chip-active': region() === 'bavel' }}
+              onClick={() => setRegion('bavel')}
+            >
+              {t('sages.region.bavel')}
+            </button>
           </div>
           <Show when={generations().length > 0}>
             <div class="sages-chips">
               <span class="chip-label">{t('sages.filter.gen')}</span>
-              <select class="sages-gen-select" value={generation()} onChange={(e) => setGeneration(e.currentTarget.value)}>
+              <select
+                class="sages-gen-select"
+                value={generation()}
+                onChange={(e) => setGeneration(e.currentTarget.value)}
+              >
                 <option value="all">{t('sages.filter.all')}</option>
                 <For each={generations()}>{(g) => <option value={g}>{g}</option>}</For>
               </select>
@@ -346,28 +409,38 @@ export function SagesPage(): JSX.Element {
 
       <div class="sages-grid">
         <aside class="sages-list panel">
-          <Show when={index.loading}><div class="sages-empty">{t('sages.list.loading')}</div></Show>
+          <Show when={index.loading}>
+            <div class="sages-empty">{t('sages.list.loading')}</div>
+          </Show>
           <Show when={!index.loading && ranked().length === 0}>
             <div class="sages-empty">{t('sages.list.noMatches')}</div>
           </Show>
-          <For each={ranked().slice(0, 300)}>{(row) => (
-            <button
-              class="sages-list-item"
-              classList={{ 'sages-list-item-active': selected() === row.slug }}
-              onClick={() => select(row.slug)}
-            >
-              <span class="sages-list-name">{row.canonical}</span>
-              <Show when={row.canonicalHe}>
-                <span class="sages-list-name-he">{row.canonicalHe}</span>
-              </Show>
-              <span class="sages-list-meta">
-                <Show when={row.generation}><span>{t('sages.meta.gen', { gen: row.generation as string })}</span></Show>
-                <Show when={row.region}><span class="sages-list-region">{row.region}</span></Show>
-              </span>
-            </button>
-          )}</For>
+          <For each={ranked().slice(0, 300)}>
+            {(row) => (
+              <button
+                class="sages-list-item"
+                classList={{ 'sages-list-item-active': selected() === row.slug }}
+                onClick={() => select(row.slug)}
+              >
+                <span class="sages-list-name">{row.canonical}</span>
+                <Show when={row.canonicalHe}>
+                  <span class="sages-list-name-he">{row.canonicalHe}</span>
+                </Show>
+                <span class="sages-list-meta">
+                  <Show when={row.generation}>
+                    <span>{t('sages.meta.gen', { gen: row.generation as string })}</span>
+                  </Show>
+                  <Show when={row.region}>
+                    <span class="sages-list-region">{row.region}</span>
+                  </Show>
+                </span>
+              </button>
+            )}
+          </For>
           <Show when={ranked().length > 300}>
-            <div class="sages-list-cap">{t('sages.list.cap', { count: ranked().length - 300 })}</div>
+            <div class="sages-list-cap">
+              {t('sages.list.cap', { count: ranked().length - 300 })}
+            </div>
           </Show>
         </aside>
 
@@ -375,9 +448,7 @@ export function SagesPage(): JSX.Element {
           <Show
             when={selected()}
             fallback={
-              <div class="sages-empty sages-empty-large">
-                {t('sages.detail.pickPrompt')}
-              </div>
+              <div class="sages-empty sages-empty-large">{t('sages.detail.pickPrompt')}</div>
             }
           >
             {(slug) => (
@@ -409,18 +480,33 @@ function SageDetail(props: {
   onClose: () => void;
   onStageRan: () => void;
 }): JSX.Element {
-  const [unified, { refetch: refetchUnified }] = createResource(() => props.slug, async (slug) => {
-    const r = await getJSON<{ record: UnifiedRecord | null }>(`/api/admin/rabbi-enriched/${encodeURIComponent(slug)}`);
-    return r?.record ?? null;
-  });
-  const [wikidata, { refetch: refetchWikidata }] = createResource(() => props.slug, async (slug) => {
-    const r = await getJSON<{ record: WikidataRecord | null }>(`/api/admin/rabbi-wikidata/${encodeURIComponent(slug)}`);
-    return r?.record ?? null;
-  });
-  const [wikiBio, { refetch: refetchWikiBio }] = createResource(() => props.slug, async (slug) => {
-    const r = await getJSON<{ record: WikiBioRecord | null }>(`/api/admin/rabbi-wiki-bio/${encodeURIComponent(slug)}`);
-    return r?.record ?? null;
-  });
+  const [unified, { refetch: refetchUnified }] = createResource(
+    () => props.slug,
+    async (slug) => {
+      const r = await getJSON<{ record: UnifiedRecord | null }>(
+        `/api/admin/rabbi-enriched/${encodeURIComponent(slug)}`,
+      );
+      return r?.record ?? null;
+    },
+  );
+  const [wikidata, { refetch: refetchWikidata }] = createResource(
+    () => props.slug,
+    async (slug) => {
+      const r = await getJSON<{ record: WikidataRecord | null }>(
+        `/api/admin/rabbi-wikidata/${encodeURIComponent(slug)}`,
+      );
+      return r?.record ?? null;
+    },
+  );
+  const [wikiBio, { refetch: refetchWikiBio }] = createResource(
+    () => props.slug,
+    async (slug) => {
+      const r = await getJSON<{ record: WikiBioRecord | null }>(
+        `/api/admin/rabbi-wiki-bio/${encodeURIComponent(slug)}`,
+      );
+      return r?.record ?? null;
+    },
+  );
 
   // Per-stage Run/Refresh state, keyed by stage id.
   const [stageRunning, setStageRunning] = createSignal<Partial<Record<StageId, boolean>>>({});
@@ -433,7 +519,7 @@ function SageDetail(props: {
       const url = `/api/admin/${STAGE_PATHS[stage].run}/${encodeURIComponent(props.slug)}${refresh ? '?refresh=1' : ''}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.text()).slice(0, 160)}`);
-      const body = await res.json() as { error?: string };
+      const body = (await res.json()) as { error?: string };
       if (body.error) throw new Error(body.error);
       if (stage === 'unified') refetchUnified();
       else if (stage === 'wikidata') refetchWikidata();
@@ -456,7 +542,10 @@ function SageDetail(props: {
     const u = unified();
     if (!u?.places || !props.places) return [];
     return u.places
-      .map((p) => ({ place: p, sages: (props.places!.byPlace[p] ?? []).filter((s) => s !== props.slug) }))
+      .map((p) => ({
+        place: p,
+        sages: (props.places!.byPlace[p] ?? []).filter((s) => s !== props.slug),
+      }))
       .filter((x) => x.sages.length > 0);
   };
 
@@ -476,7 +565,9 @@ function SageDetail(props: {
           </Show>
           <code class="sage-slug">{props.slug}</code>
         </div>
-        <button class="sage-close" onClick={props.onClose} title={t('sages.detail.clearSelection')}>×</button>
+        <button class="sage-close" onClick={props.onClose} title={t('sages.detail.clearSelection')}>
+          ×
+        </button>
       </header>
 
       <Show when={unified.loading && !unified()}>
@@ -494,7 +585,9 @@ function SageDetail(props: {
           >
             {stageRunning().unified ? t('sages.stage.running') : t('sages.detail.runUnified')}
           </button>
-          <Show when={stageError().unified}><span class="stage-err">{stageError().unified}</span></Show>
+          <Show when={stageError().unified}>
+            <span class="stage-err">{stageError().unified}</span>
+          </Show>
         </div>
       </Show>
 
@@ -503,17 +596,33 @@ function SageDetail(props: {
           <>
             {/* Identity strip. */}
             <div class="sage-meta-strip">
-              <Show when={u().generation}><span class="meta-pill">{t('sages.meta.genLabel')} <b>{u().generation}</b></span></Show>
-              <Show when={u().region}><span class="meta-pill">{t('sages.meta.region')} <b>{u().region}</b></span></Show>
-              <Show when={u().academy}><span class="meta-pill">{t('sages.meta.academy')} <b>{u().academy}</b></span></Show>
+              <Show when={u().generation}>
+                <span class="meta-pill">
+                  {t('sages.meta.genLabel')} <b>{u().generation}</b>
+                </span>
+              </Show>
+              <Show when={u().region}>
+                <span class="meta-pill">
+                  {t('sages.meta.region')} <b>{u().region}</b>
+                </span>
+              </Show>
+              <Show when={u().academy}>
+                <span class="meta-pill">
+                  {t('sages.meta.academy')} <b>{u().academy}</b>
+                </span>
+              </Show>
               <Show when={u().birthYear || u().deathYear}>
-                <span class="meta-pill">{u().birthYear ?? '?'}–{u().deathYear ?? '?'}</span>
+                <span class="meta-pill">
+                  {u().birthYear ?? '?'}–{u().deathYear ?? '?'}
+                </span>
               </Show>
               <Show when={u().orientation && u().orientation !== 'unknown'}>
                 <span class="meta-pill orientation-{u().orientation}">{u().orientation}</span>
               </Show>
               <Show when={u().prominence != null}>
-                <span class="meta-pill">{t('sages.meta.prominence')} <b>{u().prominence}</b></span>
+                <span class="meta-pill">
+                  {t('sages.meta.prominence')} <b>{u().prominence}</b>
+                </span>
               </Show>
             </div>
 
@@ -545,9 +654,13 @@ function SageDetail(props: {
                 />
               }
             >
-              <Show when={u().bio.en}><p class="sage-prose">{u().bio.en}</p></Show>
+              <Show when={u().bio.en}>
+                <p class="sage-prose">{u().bio.en}</p>
+              </Show>
               <Show when={u().bio.he}>
-                <p class="sage-prose" dir="rtl" lang="he">{u().bio.he}</p>
+                <p class="sage-prose" dir="rtl" lang="he">
+                  {u().bio.he}
+                </p>
               </Show>
               <Show when={!u().bio.en && !u().bio.he}>
                 <p class="sage-empty-inline">{t('sages.bio.empty')}</p>
@@ -575,14 +688,20 @@ function SageDetail(props: {
                 <Show when={u().primaryTeacher || u().primaryStudent}>
                   <div class="rel-primaries">
                     <Show when={u().primaryTeacher}>
-                      <button class="rel-primary-btn" onClick={() => props.onSelect(u().primaryTeacher!)}>
+                      <button
+                        class="rel-primary-btn"
+                        onClick={() => props.onSelect(u().primaryTeacher!)}
+                      >
                         <span class="rel-arrow">↑</span>
                         <span class="rel-primary-label">{t('sages.rel.primaryTeacher')}</span>
                         <span class="rel-primary-slug">{u().primaryTeacher}</span>
                       </button>
                     </Show>
                     <Show when={u().primaryStudent}>
-                      <button class="rel-primary-btn" onClick={() => props.onSelect(u().primaryStudent!)}>
+                      <button
+                        class="rel-primary-btn"
+                        onClick={() => props.onSelect(u().primaryStudent!)}
+                      >
                         <span class="rel-arrow">↓</span>
                         <span class="rel-primary-label">{t('sages.rel.primaryStudent')}</span>
                         <span class="rel-primary-slug">{u().primaryStudent}</span>
@@ -590,20 +709,40 @@ function SageDetail(props: {
                     </Show>
                   </div>
                 </Show>
-                <EdgeBucket label={t('sages.rel.teachers')} edges={u().teachers} onSelect={props.onSelect} />
-                <EdgeBucket label={t('sages.rel.students')} edges={u().students} onSelect={props.onSelect} />
+                <EdgeBucket
+                  label={t('sages.rel.teachers')}
+                  edges={u().teachers}
+                  onSelect={props.onSelect}
+                />
+                <EdgeBucket
+                  label={t('sages.rel.students')}
+                  edges={u().students}
+                  onSelect={props.onSelect}
+                />
                 <FamilyBucket family={u().family} onSelect={props.onSelect} />
-                <EdgeBucket label={t('sages.rel.opposed')} edges={u().opposed} onSelect={props.onSelect} />
-                <EdgeBucket label={t('sages.rel.influences')} edges={u().influences} onSelect={props.onSelect} />
+                <EdgeBucket
+                  label={t('sages.rel.opposed')}
+                  edges={u().opposed}
+                  onSelect={props.onSelect}
+                />
+                <EdgeBucket
+                  label={t('sages.rel.influences')}
+                  edges={u().influences}
+                  onSelect={props.onSelect}
+                />
               </Section>
             </Show>
 
             <Show when={contemporaries().length > 0}>
               <Section label={t('sages.section.contemporaries', { gen: u().generation as string })}>
                 <div class="slug-row">
-                  <For each={contemporaries()}>{(s) => (
-                    <button class="slug-tag" onClick={() => props.onSelect(s)}>{s}</button>
-                  )}</For>
+                  <For each={contemporaries()}>
+                    {(s) => (
+                      <button class="slug-tag" onClick={() => props.onSelect(s)}>
+                        {s}
+                      </button>
+                    )}
+                  </For>
                 </div>
               </Section>
             </Show>
@@ -611,25 +750,35 @@ function SageDetail(props: {
             <Show when={academyMates().length > 0}>
               <Section label={t('sages.section.academyOf', { name: u().academy as string })}>
                 <div class="slug-row">
-                  <For each={academyMates()}>{(s) => (
-                    <button class="slug-tag" onClick={() => props.onSelect(s)}>{s}</button>
-                  )}</For>
+                  <For each={academyMates()}>
+                    {(s) => (
+                      <button class="slug-tag" onClick={() => props.onSelect(s)}>
+                        {s}
+                      </button>
+                    )}
+                  </For>
                 </div>
               </Section>
             </Show>
 
             <Show when={placeMates().length > 0}>
               <Section label={t('sages.section.placeMates')}>
-                <For each={placeMates()}>{(pm) => (
-                  <div class="place-mates-row">
-                    <span class="place-mates-place">{pm.place}</span>
-                    <div class="slug-row">
-                      <For each={pm.sages}>{(s) => (
-                        <button class="slug-tag" onClick={() => props.onSelect(s)}>{s}</button>
-                      )}</For>
+                <For each={placeMates()}>
+                  {(pm) => (
+                    <div class="place-mates-row">
+                      <span class="place-mates-place">{pm.place}</span>
+                      <div class="slug-row">
+                        <For each={pm.sages}>
+                          {(s) => (
+                            <button class="slug-tag" onClick={() => props.onSelect(s)}>
+                              {s}
+                            </button>
+                          )}
+                        </For>
+                      </div>
                     </div>
-                  </div>
-                )}</For>
+                  )}
+                </For>
               </Section>
             </Show>
 
@@ -644,9 +793,13 @@ function SageDetail(props: {
             <Show when={u().contemporaries?.length > 0 && contemporaries().length === 0}>
               <Section label={t('sages.section.contemporariesRecord')}>
                 <div class="slug-row">
-                  <For each={u().contemporaries}>{(s) => (
-                    <button class="slug-tag" onClick={() => props.onSelect(s)}>{s}</button>
-                  )}</For>
+                  <For each={u().contemporaries}>
+                    {(s) => (
+                      <button class="slug-tag" onClick={() => props.onSelect(s)}>
+                        {s}
+                      </button>
+                    )}
+                  </For>
                 </div>
               </Section>
             </Show>
@@ -667,13 +820,21 @@ function SageDetail(props: {
           />
         }
       >
-        <Show when={wikiBio()} fallback={<p class="sage-empty-inline">{t('sages.wiki.noExtract')}</p>}>
+        <Show
+          when={wikiBio()}
+          fallback={<p class="sage-empty-inline">{t('sages.wiki.noExtract')}</p>}
+        >
           {(w) => (
-            <Show when={w().enWiki || w().heWiki} fallback={<p class="sage-empty-inline">{t('sages.wiki.noPage')}</p>}>
+            <Show
+              when={w().enWiki || w().heWiki}
+              fallback={<p class="sage-empty-inline">{t('sages.wiki.noPage')}</p>}
+            >
               <Show when={w().enWiki}>
                 {(p) => (
                   <div class="wiki-block">
-                    <a class="wiki-link" href={p().url} target="_blank" rel="noopener noreferrer">{t('sages.wiki.enPrefix')} {p().title}</a>
+                    <a class="wiki-link" href={p().url} target="_blank" rel="noopener noreferrer">
+                      {t('sages.wiki.enPrefix')} {p().title}
+                    </a>
                     <p class="wiki-extract">{p().extract}</p>
                   </div>
                 )}
@@ -681,8 +842,12 @@ function SageDetail(props: {
               <Show when={w().heWiki}>
                 {(p) => (
                   <div class="wiki-block">
-                    <a class="wiki-link" href={p().url} target="_blank" rel="noopener noreferrer">{t('sages.wiki.hePrefix')} {p().title}</a>
-                    <p class="wiki-extract" dir="rtl" lang="he">{p().extract}</p>
+                    <a class="wiki-link" href={p().url} target="_blank" rel="noopener noreferrer">
+                      {t('sages.wiki.hePrefix')} {p().title}
+                    </a>
+                    <p class="wiki-extract" dir="rtl" lang="he">
+                      {p().extract}
+                    </p>
                   </div>
                 )}
               </Show>
@@ -704,16 +869,28 @@ function SageDetail(props: {
           />
         }
       >
-        <Show when={wikidata()} fallback={<p class="sage-empty-inline">{t('sages.wikidata.noRecord')}</p>}>
+        <Show
+          when={wikidata()}
+          fallback={<p class="sage-empty-inline">{t('sages.wikidata.noRecord')}</p>}
+        >
           {(w) => (
             <>
-            <div class="wd-head">
-              <a class="wd-qid" href={`https://www.wikidata.org/wiki/${w().qid}`} target="_blank" rel="noopener noreferrer">{w().qid}</a>
-              <Show when={w().birthYear || w().deathYear}>
-                <span class="wd-years">{w().birthYear ?? '?'}–{w().deathYear ?? '?'}</span>
-              </Show>
-            </div>
-            <WikidataEdges rec={w()} />
+              <div class="wd-head">
+                <a
+                  class="wd-qid"
+                  href={`https://www.wikidata.org/wiki/${w().qid}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {w().qid}
+                </a>
+                <Show when={w().birthYear || w().deathYear}>
+                  <span class="wd-years">
+                    {w().birthYear ?? '?'}–{w().deathYear ?? '?'}
+                  </span>
+                </Show>
+              </div>
+              <WikidataEdges rec={w()} />
             </>
           )}
         </Show>
@@ -724,19 +901,34 @@ function SageDetail(props: {
         <Section label={t('sages.section.externalRefs')}>
           <div class="ref-row">
             <Show when={refs().sefariaSlug}>
-              <a class="ref-link" href={`https://www.sefaria.org/topics/${refs().sefariaSlug}`} target="_blank" rel="noopener noreferrer">{t('sages.refs.sefaria')}</a>
+              <a
+                class="ref-link"
+                href={`https://www.sefaria.org/topics/${refs().sefariaSlug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t('sages.refs.sefaria')}
+              </a>
             </Show>
             <Show when={refs().enWiki}>
-              <a class="ref-link" href={refs().enWiki} target="_blank" rel="noopener noreferrer">{t('sages.refs.wikipediaEn')}</a>
+              <a class="ref-link" href={refs().enWiki} target="_blank" rel="noopener noreferrer">
+                {t('sages.refs.wikipediaEn')}
+              </a>
             </Show>
             <Show when={refs().heWiki}>
-              <a class="ref-link" href={refs().heWiki} target="_blank" rel="noopener noreferrer">{t('sages.refs.wikipediaHe')}</a>
+              <a class="ref-link" href={refs().heWiki} target="_blank" rel="noopener noreferrer">
+                {t('sages.refs.wikipediaHe')}
+              </a>
             </Show>
             <Show when={refs().je}>
-              <a class="ref-link" href={refs().je} target="_blank" rel="noopener noreferrer">{t('sages.refs.jewishEncyclopedia')}</a>
+              <a class="ref-link" href={refs().je} target="_blank" rel="noopener noreferrer">
+                {t('sages.refs.jewishEncyclopedia')}
+              </a>
             </Show>
             <Show when={refs().wikidata}>
-              <a class="ref-link" href={refs().wikidata} target="_blank" rel="noopener noreferrer">{t('sages.refs.wikidata')}</a>
+              <a class="ref-link" href={refs().wikidata} target="_blank" rel="noopener noreferrer">
+                {t('sages.refs.wikidata')}
+              </a>
             </Show>
           </div>
         </Section>
@@ -747,7 +939,9 @@ function SageDetail(props: {
           <footer class="sage-foot">
             <span>{t('sages.foot.enriched', { date: fmtDate(u().enrichedAt) })}</span>
             <Show when={u().sources.length > 0}>
-              <span class="sage-foot-sources">{t('sages.foot.sources', { sources: u().sources.join(', ') })}</span>
+              <span class="sage-foot-sources">
+                {t('sages.foot.sources', { sources: u().sources.join(', ') })}
+              </span>
             </Show>
           </footer>
         )}
@@ -756,7 +950,11 @@ function SageDetail(props: {
   );
 }
 
-function Section(props: { label: string; actions?: JSX.Element; children: JSX.Element }): JSX.Element {
+function Section(props: {
+  label: string;
+  actions?: JSX.Element;
+  children: JSX.Element;
+}): JSX.Element {
   return (
     <section class="sage-section">
       <div class="sage-section-head">
@@ -799,37 +997,47 @@ function StageActions(props: {
           {props.running ? t('sages.stage.refreshing') : t('sages.stage.refresh')}
         </button>
       </Show>
-      <Show when={props.error}><span class="stage-err">{props.error}</span></Show>
+      <Show when={props.error}>
+        <span class="stage-err">{props.error}</span>
+      </Show>
     </>
   );
 }
 
-function EdgeBucket(props: { label: string; edges: RabbiEdge[]; onSelect: (s: string) => void }): JSX.Element {
+function EdgeBucket(props: {
+  label: string;
+  edges: RabbiEdge[];
+  onSelect: (s: string) => void;
+}): JSX.Element {
   return (
     <Show when={props.edges.length > 0}>
       <div class="rel-bucket">
         <span class="rel-bucket-label">{props.label}</span>
         <div class="rel-edges">
-          <For each={props.edges}>{(e) => (
-            <Show
-              when={e.slug}
-              fallback={<span class="rel-edge rel-edge-noslug">{e.name}</span>}
-            >
-              <button
-                class="rel-edge"
-                classList={{ 'rel-edge-sefaria': e.source === 'sefaria' }}
-                onClick={() => props.onSelect(e.slug!)}
-                title={e.weight != null
-                  ? t('sages.edge.sourceWeight', { source: e.source, weight: e.weight.toFixed(2) })
-                  : t('sages.edge.source', { source: e.source })}
-              >
-                {e.slug}
-                <Show when={e.weight != null}>
-                  <span class="rel-edge-weight">{(e.weight as number).toFixed(2)}</span>
-                </Show>
-              </button>
-            </Show>
-          )}</For>
+          <For each={props.edges}>
+            {(e) => (
+              <Show when={e.slug} fallback={<span class="rel-edge rel-edge-noslug">{e.name}</span>}>
+                <button
+                  class="rel-edge"
+                  classList={{ 'rel-edge-sefaria': e.source === 'sefaria' }}
+                  onClick={() => props.onSelect(e.slug!)}
+                  title={
+                    e.weight != null
+                      ? t('sages.edge.sourceWeight', {
+                          source: e.source,
+                          weight: e.weight.toFixed(2),
+                        })
+                      : t('sages.edge.source', { source: e.source })
+                  }
+                >
+                  {e.slug}
+                  <Show when={e.weight != null}>
+                    <span class="rel-edge-weight">{(e.weight as number).toFixed(2)}</span>
+                  </Show>
+                </button>
+              </Show>
+            )}
+          </For>
         </div>
       </div>
     </Show>
@@ -842,25 +1050,29 @@ function FamilyBucket(props: { family: FamilyEdge[]; onSelect: (s: string) => vo
       <div class="rel-bucket">
         <span class="rel-bucket-label">{t('sages.rel.family')}</span>
         <div class="rel-edges">
-          <For each={props.family}>{(e) => (
-            <Show
-              when={e.slug}
-              fallback={
-                <span class="rel-edge rel-edge-noslug">
-                  <span class="rel-relation">{e.relation}</span>{e.name}
-                </span>
-              }
-            >
-              <button
-                class="rel-edge"
-                classList={{ 'rel-edge-sefaria': e.source === 'sefaria' }}
-                onClick={() => props.onSelect(e.slug!)}
-                title={t('sages.edge.source', { source: e.source })}
+          <For each={props.family}>
+            {(e) => (
+              <Show
+                when={e.slug}
+                fallback={
+                  <span class="rel-edge rel-edge-noslug">
+                    <span class="rel-relation">{e.relation}</span>
+                    {e.name}
+                  </span>
+                }
               >
-                <span class="rel-relation">{e.relation}</span>{e.slug}
-              </button>
-            </Show>
-          )}</For>
+                <button
+                  class="rel-edge"
+                  classList={{ 'rel-edge-sefaria': e.source === 'sefaria' }}
+                  onClick={() => props.onSelect(e.slug!)}
+                  title={t('sages.edge.source', { source: e.source })}
+                >
+                  <span class="rel-relation">{e.relation}</span>
+                  {e.slug}
+                </button>
+              </Show>
+            )}
+          </For>
         </div>
       </div>
     </Show>
@@ -882,30 +1094,51 @@ function WikidataEdges(props: { rec: WikidataRecord }): JSX.Element {
   return (
     <Show when={rows().length > 0}>
       <div class="wd-edges">
-        <For each={rows()}>{(row) => (
-          <div class="wd-edge-row">
-            <span class="rel-relation">{row.label}</span>
-            <For each={row.ids}>{(id) => (
-              <a class="wd-ref" href={`https://www.wikidata.org/wiki/${id}`} target="_blank" rel="noopener noreferrer">{id}</a>
-            )}</For>
-          </div>
-        )}</For>
+        <For each={rows()}>
+          {(row) => (
+            <div class="wd-edge-row">
+              <span class="rel-relation">{row.label}</span>
+              <For each={row.ids}>
+                {(id) => (
+                  <a
+                    class="wd-ref"
+                    href={`https://www.wikidata.org/wiki/${id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {id}
+                  </a>
+                )}
+              </For>
+            </div>
+          )}
+        </For>
       </div>
     </Show>
   );
 }
 
 function hasAnyRelations(u: UnifiedRecord): boolean {
-  return !!(u.primaryTeacher || u.primaryStudent
-    || u.teachers.length || u.students.length
-    || u.family.length || u.opposed.length || u.influences.length);
+  return !!(
+    u.primaryTeacher ||
+    u.primaryStudent ||
+    u.teachers.length ||
+    u.students.length ||
+    u.family.length ||
+    u.opposed.length ||
+    u.influences.length
+  );
 }
 function hasAnyRefs(r: UnifiedRecord['refs']): boolean {
   return !!(r.sefariaSlug || r.enWiki || r.heWiki || r.je || r.wikidata);
 }
 function fmtDate(s: string): string {
   if (!s) return '?';
-  try { return new Date(s).toLocaleDateString(); } catch { return s; }
+  try {
+    return new Date(s).toLocaleDateString();
+  } catch {
+    return s;
+  }
 }
 
 const SAGES_CSS = `

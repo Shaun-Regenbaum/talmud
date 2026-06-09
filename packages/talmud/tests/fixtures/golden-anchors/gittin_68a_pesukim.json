@@ -1,134 +1,134 @@
 {
- "tractate": "Gittin",
- "page": "68a",
- "mark": "pesukim",
- "cache_hit": true,
- "raw": {
-  "instances": [
-   {
-    "startSegIdx": 2,
-    "endSegIdx": 2,
-    "fields": {
-     "verseRef": "Genesis 24:49",
-     "citationStyle": "allusion",
-     "excerpt": "נְטֵה לְךָ עַל יְמִינְךָ אוֹ עַל שְׂמֹאלֶךָ",
-     "endExcerpt": "עַל שְׂמֹאלֶךָ",
-     "summary": "The child quotes this verse as a prooftext, implying that the path is clear and safe, similar to the servant's request for guidance."
-    }
-   },
-   {
-    "startSegIdx": 4,
-    "endSegIdx": 4,
-    "fields": {
-     "verseRef": "Ecclesiastes 2:8",
-     "citationStyle": "explicit",
-     "excerpt": "עָשִׂיתִי לִי שָׁרִים וְשָׁרוֹת וְתַעֲנוּגוֹת בְּנֵי הָאָדָם, שִׁדָּה וְשִׁדּוֹת",
-     "endExcerpt": "שִׁדָּה וְשִׁדּוֹת",
-     "summary": "The verse is cited and then interpreted phrase by phrase: 'sharim v'sharot' as musical instruments, 'ta'anugot bnei ha'adam' as baths and pools, and 'shidah v'shidot' as female and male demons."
-    }
-   },
-   {
-    "startSegIdx": 6,
-    "endSegIdx": 6,
-    "fields": {
-     "verseRef": "1 Kings 6:7",
-     "citationStyle": "explicit",
-     "excerpt": "וְהַבַּיִת בְּהִבָּנוֹתוֹ אֶבֶן שְׁלֵמָה מַסָּע נִבְנָה",
-     "endExcerpt": "מַסָּע נִבְנָה",
-     "summary": "The verse is cited to explain the need for the shamir worm, as the Temple was built without iron tools, requiring a miraculous substance to cut the stones."
-    }
-   },
-   {
-    "startSegIdx": 10,
-    "endSegIdx": 10,
-    "fields": {
-     "verseRef": "Proverbs 20:1",
-     "citationStyle": "explicit",
-     "excerpt": "לֵץ הַיַּיִן הוֹמֶה שֵׁכָר, וְכׇל שׁוֹגֶה בּוֹ לֹא יֶחְכָּם",
-     "endExcerpt": "לֹא יֶחְכָּם",
-     "summary": "Ashmedai quotes this verse to justify his refusal to drink the wine, as it warns against the folly of drunkenness."
-    }
-   },
-   {
-    "startSegIdx": 10,
-    "endSegIdx": 10,
-    "fields": {
-     "verseRef": "Hosea 4:11",
-     "citationStyle": "explicit",
-     "excerpt": "זְנוּת וְיַיִן וְתִירוֹשׁ יִקַּח לֵב",
-     "endExcerpt": "יִקַּח לֵב",
-     "summary": "Ashmedai also cites this verse to reinforce the danger of wine, which leads to moral corruption and loss of understanding."
-    }
-   }
-  ]
- },
- "expected": {
-  "instances": [
-   {
-    "startSegIdx": 2,
-    "endSegIdx": 2,
-    "fields": {
-     "verseRef": "Genesis 24:49",
-     "citationStyle": "allusion",
-     "excerpt": "נְטֵה לְךָ עַל יְמִינְךָ אוֹ עַל שְׂמֹאלֶךָ",
-     "endExcerpt": "עַל שְׂמֹאלֶךָ",
-     "summary": "The child quotes this verse as a prooftext, implying that the path is clear and safe, similar to the servant's request for guidance.",
-     "tokenStart": 28,
-     "tokenEnd": 34
-    }
-   },
-   {
-    "startSegIdx": 4,
-    "endSegIdx": 4,
-    "fields": {
-     "verseRef": "Ecclesiastes 2:8",
-     "citationStyle": "explicit",
-     "excerpt": "עָשִׂיתִי לִי שָׁרִים וְשָׁרוֹת וְתַעֲנוּגוֹת בְּנֵי הָאָדָם, שִׁדָּה וְשִׁדּוֹת",
-     "endExcerpt": "שִׁדָּה וְשִׁדּוֹת",
-     "summary": "The verse is cited and then interpreted phrase by phrase: 'sharim v'sharot' as musical instruments, 'ta'anugot bnei ha'adam' as baths and pools, and 'shidah v'shidot' as female and male demons.",
-     "tokenStart": 0,
-     "tokenEnd": 8
-    }
-   },
-   {
-    "startSegIdx": 6,
-    "endSegIdx": 6,
-    "fields": {
-     "verseRef": "1 Kings 6:7",
-     "citationStyle": "explicit",
-     "excerpt": "וְהַבַּיִת בְּהִבָּנוֹתוֹ אֶבֶן שְׁלֵמָה מַסָּע נִבְנָה",
-     "endExcerpt": "מַסָּע נִבְנָה",
-     "summary": "The verse is cited to explain the need for the shamir worm, as the Temple was built without iron tools, requiring a miraculous substance to cut the stones.",
-     "tokenStart": 12,
-     "tokenEnd": 17
-    }
-   },
-   {
-    "startSegIdx": 10,
-    "endSegIdx": 10,
-    "fields": {
-     "verseRef": "Proverbs 20:1",
-     "citationStyle": "explicit",
-     "excerpt": "לֵץ הַיַּיִן הוֹמֶה שֵׁכָר, וְכׇל שׁוֹגֶה בּוֹ לֹא יֶחְכָּם",
-     "endExcerpt": "לֹא יֶחְכָּם",
-     "summary": "Ashmedai quotes this verse to justify his refusal to drink the wine, as it warns against the folly of drunkenness.",
-     "tokenStart": 9,
-     "tokenEnd": 17
-    }
-   },
-   {
-    "startSegIdx": 10,
-    "endSegIdx": 10,
-    "fields": {
-     "verseRef": "Hosea 4:11",
-     "citationStyle": "explicit",
-     "excerpt": "זְנוּת וְיַיִן וְתִירוֹשׁ יִקַּח לֵב",
-     "endExcerpt": "יִקַּח לֵב",
-     "summary": "Ashmedai also cites this verse to reinforce the danger of wine, which leads to moral corruption and loss of understanding.",
-     "tokenStart": 19,
-     "tokenEnd": 23
-    }
-   }
-  ]
- }
+  "tractate": "Gittin",
+  "page": "68a",
+  "mark": "pesukim",
+  "cache_hit": true,
+  "raw": {
+    "instances": [
+      {
+        "startSegIdx": 2,
+        "endSegIdx": 2,
+        "fields": {
+          "verseRef": "Genesis 24:49",
+          "citationStyle": "allusion",
+          "excerpt": "נְטֵה לְךָ עַל יְמִינְךָ אוֹ עַל שְׂמֹאלֶךָ",
+          "endExcerpt": "עַל שְׂמֹאלֶךָ",
+          "summary": "The child quotes this verse as a prooftext, implying that the path is clear and safe, similar to the servant's request for guidance."
+        }
+      },
+      {
+        "startSegIdx": 4,
+        "endSegIdx": 4,
+        "fields": {
+          "verseRef": "Ecclesiastes 2:8",
+          "citationStyle": "explicit",
+          "excerpt": "עָשִׂיתִי לִי שָׁרִים וְשָׁרוֹת וְתַעֲנוּגוֹת בְּנֵי הָאָדָם, שִׁדָּה וְשִׁדּוֹת",
+          "endExcerpt": "שִׁדָּה וְשִׁדּוֹת",
+          "summary": "The verse is cited and then interpreted phrase by phrase: 'sharim v'sharot' as musical instruments, 'ta'anugot bnei ha'adam' as baths and pools, and 'shidah v'shidot' as female and male demons."
+        }
+      },
+      {
+        "startSegIdx": 6,
+        "endSegIdx": 6,
+        "fields": {
+          "verseRef": "1 Kings 6:7",
+          "citationStyle": "explicit",
+          "excerpt": "וְהַבַּיִת בְּהִבָּנוֹתוֹ אֶבֶן שְׁלֵמָה מַסָּע נִבְנָה",
+          "endExcerpt": "מַסָּע נִבְנָה",
+          "summary": "The verse is cited to explain the need for the shamir worm, as the Temple was built without iron tools, requiring a miraculous substance to cut the stones."
+        }
+      },
+      {
+        "startSegIdx": 10,
+        "endSegIdx": 10,
+        "fields": {
+          "verseRef": "Proverbs 20:1",
+          "citationStyle": "explicit",
+          "excerpt": "לֵץ הַיַּיִן הוֹמֶה שֵׁכָר, וְכׇל שׁוֹגֶה בּוֹ לֹא יֶחְכָּם",
+          "endExcerpt": "לֹא יֶחְכָּם",
+          "summary": "Ashmedai quotes this verse to justify his refusal to drink the wine, as it warns against the folly of drunkenness."
+        }
+      },
+      {
+        "startSegIdx": 10,
+        "endSegIdx": 10,
+        "fields": {
+          "verseRef": "Hosea 4:11",
+          "citationStyle": "explicit",
+          "excerpt": "זְנוּת וְיַיִן וְתִירוֹשׁ יִקַּח לֵב",
+          "endExcerpt": "יִקַּח לֵב",
+          "summary": "Ashmedai also cites this verse to reinforce the danger of wine, which leads to moral corruption and loss of understanding."
+        }
+      }
+    ]
+  },
+  "expected": {
+    "instances": [
+      {
+        "startSegIdx": 2,
+        "endSegIdx": 2,
+        "fields": {
+          "verseRef": "Genesis 24:49",
+          "citationStyle": "allusion",
+          "excerpt": "נְטֵה לְךָ עַל יְמִינְךָ אוֹ עַל שְׂמֹאלֶךָ",
+          "endExcerpt": "עַל שְׂמֹאלֶךָ",
+          "summary": "The child quotes this verse as a prooftext, implying that the path is clear and safe, similar to the servant's request for guidance.",
+          "tokenStart": 28,
+          "tokenEnd": 34
+        }
+      },
+      {
+        "startSegIdx": 4,
+        "endSegIdx": 4,
+        "fields": {
+          "verseRef": "Ecclesiastes 2:8",
+          "citationStyle": "explicit",
+          "excerpt": "עָשִׂיתִי לִי שָׁרִים וְשָׁרוֹת וְתַעֲנוּגוֹת בְּנֵי הָאָדָם, שִׁדָּה וְשִׁדּוֹת",
+          "endExcerpt": "שִׁדָּה וְשִׁדּוֹת",
+          "summary": "The verse is cited and then interpreted phrase by phrase: 'sharim v'sharot' as musical instruments, 'ta'anugot bnei ha'adam' as baths and pools, and 'shidah v'shidot' as female and male demons.",
+          "tokenStart": 0,
+          "tokenEnd": 8
+        }
+      },
+      {
+        "startSegIdx": 6,
+        "endSegIdx": 6,
+        "fields": {
+          "verseRef": "1 Kings 6:7",
+          "citationStyle": "explicit",
+          "excerpt": "וְהַבַּיִת בְּהִבָּנוֹתוֹ אֶבֶן שְׁלֵמָה מַסָּע נִבְנָה",
+          "endExcerpt": "מַסָּע נִבְנָה",
+          "summary": "The verse is cited to explain the need for the shamir worm, as the Temple was built without iron tools, requiring a miraculous substance to cut the stones.",
+          "tokenStart": 12,
+          "tokenEnd": 17
+        }
+      },
+      {
+        "startSegIdx": 10,
+        "endSegIdx": 10,
+        "fields": {
+          "verseRef": "Proverbs 20:1",
+          "citationStyle": "explicit",
+          "excerpt": "לֵץ הַיַּיִן הוֹמֶה שֵׁכָר, וְכׇל שׁוֹגֶה בּוֹ לֹא יֶחְכָּם",
+          "endExcerpt": "לֹא יֶחְכָּם",
+          "summary": "Ashmedai quotes this verse to justify his refusal to drink the wine, as it warns against the folly of drunkenness.",
+          "tokenStart": 9,
+          "tokenEnd": 17
+        }
+      },
+      {
+        "startSegIdx": 10,
+        "endSegIdx": 10,
+        "fields": {
+          "verseRef": "Hosea 4:11",
+          "citationStyle": "explicit",
+          "excerpt": "זְנוּת וְיַיִן וְתִירוֹשׁ יִקַּח לֵב",
+          "endExcerpt": "יִקַּח לֵב",
+          "summary": "Ashmedai also cites this verse to reinforce the danger of wine, which leads to moral corruption and loss of understanding.",
+          "tokenStart": 19,
+          "tokenEnd": 23
+        }
+      }
+    ]
+  }
 }

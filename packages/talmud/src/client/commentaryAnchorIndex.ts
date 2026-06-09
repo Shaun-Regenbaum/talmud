@@ -103,7 +103,11 @@ function buildIndex(links: SefariaLink[]): CommentaryAnchorIndex {
     bucket.rashi.sort(cmpKey);
     bucket.tosafot.sort(cmpKey);
   }
-  for (const [k, v] of pieceToSegs) pieceToSegs.set(k, v.sort((a, b) => a - b));
+  for (const [k, v] of pieceToSegs)
+    pieceToSegs.set(
+      k,
+      v.sort((a, b) => a - b),
+    );
 
   return { segToPieces, pieceToSegs };
 }

@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { render } from '@solidjs/testing-library';
 import { describe, expect, it, vi } from 'vitest';
-import { RabbiText } from '../../src/client/rabbiLinks';
 import type { IdentifiedRabbi } from '../../src/client/dafContext';
+import { RabbiText } from '../../src/client/rabbiLinks';
 
 const RABBIS: IdentifiedRabbi[] = [
   { name: 'Rabban Gamliel', nameHe: 'רבן גמליאל', mentions: [] } as unknown as IdentifiedRabbi,

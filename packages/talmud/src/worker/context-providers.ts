@@ -17,27 +17,31 @@
  * `contextForAnchor` / `formatContextForPrompt` in src/lib/context/select).
  */
 
-import {
-  getDafyomiContentCached,
-  getSefariaPageCached,
-  getSefariaSegmentsCached,
-  getRishonimCached,
-  getHalachaRefsCached,
-  getMishnaBundleCached,
-  getDafTopicsCached,
-} from './source-cache';
-import { fromDafyomi } from '../lib/context/fromDafyomi';
-import {
-  fromCommentaryPieces, fromRishonim, fromHalachaRefs, fromMishna, fromTopics,
-} from '../lib/context/fromSefaria';
-import { matchTosfos } from '../lib/context/anchor/tosfos';
-import { matchBackgroundTerms } from '../lib/context/anchor/bg-term';
-import { matchYerushalmiToSegments } from '../lib/context/anchor/yerushalmi';
-import { matchRevach, type SectionForMatch } from '../lib/context/anchor/revach';
 import { applyMatches } from '@corpus/core/context/match';
 import type { ContextItem } from '@corpus/core/context/types';
+import { matchBackgroundTerms } from '../lib/context/anchor/bg-term';
+import { matchRevach, type SectionForMatch } from '../lib/context/anchor/revach';
+import { matchTosfos } from '../lib/context/anchor/tosfos';
+import { matchYerushalmiToSegments } from '../lib/context/anchor/yerushalmi';
+import { fromDafyomi } from '../lib/context/fromDafyomi';
+import {
+  fromCommentaryPieces,
+  fromHalachaRefs,
+  fromMishna,
+  fromRishonim,
+  fromTopics,
+} from '../lib/context/fromSefaria';
 import type { ContextSource } from '../lib/context/sources';
 import type { CacheTrack } from './source-cache';
+import {
+  getDafTopicsCached,
+  getDafyomiContentCached,
+  getHalachaRefsCached,
+  getMishnaBundleCached,
+  getRishonimCached,
+  getSefariaPageCached,
+  getSefariaSegmentsCached,
+} from './source-cache';
 
 export interface ContextEnv {
   CACHE?: KVNamespace;
@@ -86,27 +90,68 @@ export async function collectContext(
   const timing = opts.timing;
   // Time each fetch and (where the fetcher threads a CacheTrack) record hit/miss.
   // Failures fall back to `undefined` — every `from*` mapper is undefined-safe.
-  const rec = async <T>(fetcher: string, sources: ContextSource[], run: (t: CacheTrack) => Promise<T>): Promise<T | undefined> => {
+  const rec = async <T>(
+    fetcher: string,
+    sources: ContextSource[],
+    run: (t: CacheTrack) => Promise<T>,
+  ): Promise<T | undefined> => {
     const t0 = Date.now();
     const states: ('hit' | 'miss')[] = [];
     let v: T | undefined;
-    try { v = await run({ onCache: (s) => states.push(s) }); } catch { v = undefined; }
+    try {
+      v = await run({ onCache: (s) => states.push(s) });
+    } catch {
+      v = undefined;
+    }
     timing?.push({
-      fetcher, sources, ms: Date.now() - t0,
-      cache: states.length === 0 ? 'unknown'
-        : states.every((s) => s === 'hit') ? 'hit'
-        : states.every((s) => s === 'miss') ? 'miss' : 'mixed',
+      fetcher,
+      sources,
+      ms: Date.now() - t0,
+      cache:
+        states.length === 0
+          ? 'unknown'
+          : states.every((s) => s === 'hit')
+            ? 'hit'
+            : states.every((s) => s === 'miss')
+              ? 'miss'
+              : 'mixed',
     });
     return v;
   };
   const [dafyomi, sefariaPage, segments, rishonim, halacha, mishna, topics] = await Promise.all([
-    rec('dafyomi', ['dafyomi:insights', 'dafyomi:background', 'dafyomi:halacha', 'dafyomi:tosfos', 'dafyomi:review', 'dafyomi:points', 'dafyomi:hebcharts', 'dafyomi:yerushalmi', 'dafyomi:revach'],
-      (track) => getDafyomiContentCached(cache, env.ASSETS, tractate, page, { assetOrigin: opts.assetOrigin, allowLive, track })),
-    rec('sefaria-page', ['sefaria-rashi', 'sefaria-tosafot'], (track) => getSefariaPageCached(cache, tractate, page, track)),
+    rec(
+      'dafyomi',
+      [
+        'dafyomi:insights',
+        'dafyomi:background',
+        'dafyomi:halacha',
+        'dafyomi:tosfos',
+        'dafyomi:review',
+        'dafyomi:points',
+        'dafyomi:hebcharts',
+        'dafyomi:yerushalmi',
+        'dafyomi:revach',
+      ],
+      (track) =>
+        getDafyomiContentCached(cache, env.ASSETS, tractate, page, {
+          assetOrigin: opts.assetOrigin,
+          allowLive,
+          track,
+        }),
+    ),
+    rec('sefaria-page', ['sefaria-rashi', 'sefaria-tosafot'], (track) =>
+      getSefariaPageCached(cache, tractate, page, track),
+    ),
     rec('sefaria-segments', [], (track) => getSefariaSegmentsCached(cache, tractate, page, track)),
-    rec('rishonim', ['sefaria-rishonim'], (track) => getRishonimCached(cache, tractate, page, track)),
-    rec('halacha-refs', ['sefaria-halacha'], (track) => getHalachaRefsCached(cache, tractate, page, track)),
-    rec('mishna', ['sefaria-mishnah'], (track) => getMishnaBundleCached(cache, tractate, page, track)),
+    rec('rishonim', ['sefaria-rishonim'], (track) =>
+      getRishonimCached(cache, tractate, page, track),
+    ),
+    rec('halacha-refs', ['sefaria-halacha'], (track) =>
+      getHalachaRefsCached(cache, tractate, page, track),
+    ),
+    rec('mishna', ['sefaria-mishnah'], (track) =>
+      getMishnaBundleCached(cache, tractate, page, track),
+    ),
     rec('topics', ['sefaria-topic'], (track) => getDafTopicsCached(cache, tractate, page, track)),
   ]);
 

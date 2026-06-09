@@ -34,7 +34,11 @@ export function matchTosfos(items: ContextItem[], tosafot: TosafotPieces | undef
   const keys = tosafot?.pieceKeys ?? [];
   if (pieces.length === 0 || keys.length !== pieces.length) return 0;
 
-  const norm = pieces.map((p, i) => ({ head: firstWords(normHe(p), 6), seg: segOf(keys[i]), used: false }));
+  const norm = pieces.map((p, i) => ({
+    head: firstWords(normHe(p), 6),
+    seg: segOf(keys[i]),
+    used: false,
+  }));
   let placed = 0;
   for (const item of items) {
     if (item.kind !== 'tosfos-piece' || !item.dhNormalized) continue;
@@ -57,5 +61,8 @@ function segOf(key: string | undefined): number | null {
 
 function headsMatch(pieceHead: string, dhHead: string): boolean {
   if (!pieceHead || !dhHead) return false;
-  return pieceHead.startsWith(dhHead) || dhHead.startsWith(firstWords(pieceHead, dhHead.split(' ').length));
+  return (
+    pieceHead.startsWith(dhHead) ||
+    dhHead.startsWith(firstWords(pieceHead, dhHead.split(' ').length))
+  );
 }

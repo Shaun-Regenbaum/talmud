@@ -5,7 +5,7 @@
  * here. Cached per normalized selection.
  */
 
-import { runLLM, type LLMEnv } from '@corpus/core/llm/llm';
+import { type LLMEnv, runLLM } from '@corpus/core/llm/llm';
 import { costUsd } from '@corpus/core/llm/pricing';
 
 export interface TranslateResult {
@@ -36,7 +36,11 @@ const SCHEMA = {
   },
 };
 
-export async function translateHebrew(env: LLMEnv, q: string, context: string): Promise<TranslateResult> {
+export async function translateHebrew(
+  env: LLMEnv,
+  q: string,
+  context: string,
+): Promise<TranslateResult> {
   const res = await runLLM(env, {
     messages: [
       { role: 'system', content: SYSTEM },
@@ -50,7 +54,9 @@ export async function translateHebrew(env: LLMEnv, q: string, context: string): 
 
   let translation = '';
   try {
-    translation = String((JSON.parse(res.content) as { translation?: string }).translation ?? '').trim();
+    translation = String(
+      (JSON.parse(res.content) as { translation?: string }).translation ?? '',
+    ).trim();
   } catch {
     /* leave empty */
   }

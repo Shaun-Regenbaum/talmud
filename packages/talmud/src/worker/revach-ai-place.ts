@@ -19,12 +19,12 @@
  * Improve over time by feeding confident AI placements back as rule examples.
  */
 
-import { aiMatchToSegments } from './context-match';
-import { getSefariaSegmentsCached } from './source-cache';
 import { applyMatches, type SegMatch } from '@corpus/core/context/match';
 import type { ContextItem } from '@corpus/core/context/types';
-import type { MatchInput } from '../lib/context/anchor/ai-prompt';
 import type { LLMEnv } from '@corpus/core/llm/llm';
+import type { MatchInput } from '../lib/context/anchor/ai-prompt';
+import { aiMatchToSegments } from './context-match';
+import { getSefariaSegmentsCached } from './source-cache';
 
 // Bump when the Revach parser output (entry order/keys), the segment text, or
 // the matcher prompt/model changes — positional keys (`revach:a:i`) mean stale
@@ -40,14 +40,23 @@ function revachItems(items: ContextItem[]): ContextItem[] {
 }
 
 function toMatchInput(it: ContextItem): MatchInput {
-  return { key: it.key, label: "Revach l'Daf", title: it.title?.en, text: (it.body?.en ?? '').slice(0, 400) };
+  return {
+    key: it.key,
+    label: "Revach l'Daf",
+    title: it.title?.en,
+    text: (it.body?.en ?? '').slice(0, 400),
+  };
 }
 
 /** Apply AI matches ONLY to items the deterministic pass left unplaced, and only
  *  above the confidence floor, so a deterministic (or strong) placement is never
  *  overridden and weak guesses don't smear context. Pure + exported for tests. */
 export function applyAiToUnplaced(items: ContextItem[], matches: SegMatch[]): number {
-  const gaps = new Set(revachItems(items).filter((i) => i.segs.length === 0).map((i) => i.key));
+  const gaps = new Set(
+    revachItems(items)
+      .filter((i) => i.segs.length === 0)
+      .map((i) => i.key),
+  );
   const good = matches.filter((m) => gaps.has(m.key) && (m.confidence ?? 0) >= MIN_AI_CONF);
   return applyMatches(items, good);
 }
@@ -69,7 +78,9 @@ async function getOrCompute(
     try {
       const raw = await cache.get(cacheKey);
       if (raw) return JSON.parse(raw) as SegMatch[];
-    } catch { /* missing / corrupt → recompute */ }
+    } catch {
+      /* missing / corrupt → recompute */
+    }
   }
   // Inspector source-preview pass: never trigger the LLM matcher on a miss.
   if (cacheOnly) return null;
@@ -81,15 +92,28 @@ async function getOrCompute(
     if (!segs?.he?.length) return null;
     let matches: SegMatch[];
     try {
-      matches = await aiMatchToSegments(env, segs.he, segs.en ?? [], all.map(toMatchInput), { tractate, page });
+      matches = await aiMatchToSegments(env, segs.he, segs.en ?? [], all.map(toMatchInput), {
+        tractate,
+        page,
+      });
     } catch {
       return null; // budget paused / LLM error → deterministic stands
     }
-    if (cache) { try { await cache.put(cacheKey, JSON.stringify(matches)); } catch { /* best-effort */ } }
+    if (cache) {
+      try {
+        await cache.put(cacheKey, JSON.stringify(matches));
+      } catch {
+        /* best-effort */
+      }
+    }
     return matches;
   })();
   inflight.set(cacheKey, job);
-  try { return await job; } finally { inflight.delete(cacheKey); }
+  try {
+    return await job;
+  } finally {
+    inflight.delete(cacheKey);
+  }
 }
 
 /** Place still-unplaced Revach items via the cached AI matcher (mutates `items`). */

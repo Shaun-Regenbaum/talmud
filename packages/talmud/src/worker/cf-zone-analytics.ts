@@ -38,28 +38,28 @@
  */
 
 export interface ZoneDayRow {
-  date: string;       // YYYY-MM-DD (UTC)
-  requests: number;   // total edge requests that day
-  visits: number;     // unique visitors that day (uniq.uniques)
+  date: string; // YYYY-MM-DD (UTC)
+  requests: number; // total edge requests that day
+  visits: number; // unique visitors that day (uniq.uniques)
 }
 
 export interface ZoneCountryRow {
-  country: string;    // ISO country name from countryMap ("" -> unknown)
-  requests: number;   // edge requests over the window
+  country: string; // ISO country name from countryMap ("" -> unknown)
+  requests: number; // edge requests over the window
 }
 
 export interface ZoneWindow {
   requests: number;
-  visits: number;     // summed daily uniques (visitor-days) over the window
+  visits: number; // summed daily uniques (visitor-days) over the window
 }
 
 export interface ZoneActivity {
-  configured: boolean;        // do we have a token + zone tag
-  ok: boolean;                // did the query succeed
+  configured: boolean; // do we have a token + zone tag
+  ok: boolean; // did the query succeed
   error?: string;
   windowStart?: string;
   windowEnd?: string;
-  byDay?: ZoneDayRow[];       // ascending by date, up to `days` entries
+  byDay?: ZoneDayRow[]; // ascending by date, up to `days` entries
   byCountry?: ZoneCountryRow[];
   totals?: { day: ZoneWindow; week: ZoneWindow; month: ZoneWindow };
 }
@@ -91,7 +91,10 @@ query ZoneActivity($zoneTag: string!, $start: Date!, $end: Date!) {
 
 interface DailyGroup {
   dimensions?: { date?: string };
-  sum?: { requests?: number; countryMap?: Array<{ clientCountryName?: string; requests?: number }> };
+  sum?: {
+    requests?: number;
+    countryMap?: Array<{ clientCountryName?: string; requests?: number }>;
+  };
   uniq?: { uniques?: number };
 }
 
@@ -118,7 +121,12 @@ interface ZoneResult {
   groups: DailyGroup[];
 }
 
-async function fetchOneZone(token: string, zoneTag: string, start: string, end: string): Promise<ZoneResult> {
+async function fetchOneZone(
+  token: string,
+  zoneTag: string,
+  start: string,
+  end: string,
+): Promise<ZoneResult> {
   try {
     const res = await fetch(GRAPHQL_URL, {
       method: 'POST',
@@ -133,21 +141,43 @@ async function fetchOneZone(token: string, zoneTag: string, start: string, end: 
       errors?: Array<{ message?: string }>;
     };
     if (json.errors && json.errors.length > 0) {
-      return { zoneTag, ok: false, error: json.errors.map((e) => e.message).filter(Boolean).join('; ').slice(0, 300), groups: [] };
+      return {
+        zoneTag,
+        ok: false,
+        error: json.errors
+          .map((e) => e.message)
+          .filter(Boolean)
+          .join('; ')
+          .slice(0, 300),
+        groups: [],
+      };
     }
     const zone = json.data?.viewer?.zones?.[0];
     if (!zone) {
-      return { zoneTag, ok: false, error: 'zone not found (check CF_ZONE_TAG and token zone scope)', groups: [] };
+      return {
+        zoneTag,
+        ok: false,
+        error: 'zone not found (check CF_ZONE_TAG and token zone scope)',
+        groups: [],
+      };
     }
     return { zoneTag, ok: true, groups: zone.httpRequests1dGroups ?? [] };
   } catch (err) {
-    return { zoneTag, ok: false, error: String((err as Error)?.message ?? err).slice(0, 300), groups: [] };
+    return {
+      zoneTag,
+      ok: false,
+      error: String((err as Error)?.message ?? err).slice(0, 300),
+      groups: [],
+    };
   }
 }
 
 export async function fetchZoneActivity(env: ZoneEnv, days = 30): Promise<ZoneActivity> {
   const token = env.CF_ZONE_ANALYTICS_TOKEN || env.CF_ANALYTICS_TOKEN;
-  const zoneTags = (env.CF_ZONE_TAG ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+  const zoneTags = (env.CF_ZONE_TAG ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
   if (!token || zoneTags.length === 0) {
     const missing = [!token && 'CF_ZONE_ANALYTICS_TOKEN', zoneTags.length === 0 && 'CF_ZONE_TAG']
       .filter(Boolean)
@@ -162,12 +192,18 @@ export async function fetchZoneActivity(env: ZoneEnv, days = 30): Promise<ZoneAc
 
   // Query each zone independently so an unauthorized/failing zone is dropped
   // rather than failing the whole request (see header note on per-zone scope).
-  const results = await Promise.all(zoneTags.map((tag) => fetchOneZone(token, tag, windowStart, windowEnd)));
+  const results = await Promise.all(
+    zoneTags.map((tag) => fetchOneZone(token, tag, windowStart, windowEnd)),
+  );
   const okResults = results.filter((r) => r.ok);
   const failed = results.filter((r) => !r.ok);
 
   if (okResults.length === 0) {
-    const err = failed.map((r) => `${r.zoneTag}: ${r.error}`).join('; ').slice(0, 300) || 'all zones failed';
+    const err =
+      failed
+        .map((r) => `${r.zoneTag}: ${r.error}`)
+        .join('; ')
+        .slice(0, 300) || 'all zones failed';
     return { configured: true, ok: false, error: err };
   }
 
@@ -201,7 +237,13 @@ export async function fetchZoneActivity(env: ZoneEnv, days = 30): Promise<ZoneAc
     ok: true,
     // Surface partial failures in the payload for diagnosis (the dashboard hides
     // `error` while `ok`, but it's visible in the raw JSON / logs).
-    error: failed.length > 0 ? failed.map((r) => `${r.zoneTag}: ${r.error}`).join('; ').slice(0, 300) : undefined,
+    error:
+      failed.length > 0
+        ? failed
+            .map((r) => `${r.zoneTag}: ${r.error}`)
+            .join('; ')
+            .slice(0, 300)
+        : undefined,
     windowStart,
     windowEnd,
     byDay,

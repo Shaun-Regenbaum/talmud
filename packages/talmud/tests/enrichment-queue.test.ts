@@ -1,5 +1,11 @@
-import { describe, it, expect } from 'vitest';
-import { RequestQueue, QUEUE_PRIORITY, isAbort, isServiceUnavailableError, PAUSED_ERROR } from '../src/client/enrichmentQueue';
+import { describe, expect, it } from 'vitest';
+import {
+  isAbort,
+  isServiceUnavailableError,
+  PAUSED_ERROR,
+  QUEUE_PRIORITY,
+  RequestQueue,
+} from '../src/client/enrichmentQueue';
 
 describe('isServiceUnavailableError', () => {
   it('flags AI-provider outages / timeouts (calm "try later" states)', () => {
@@ -30,7 +36,10 @@ describe('isServiceUnavailableError', () => {
 function defer<T = unknown>() {
   let resolve!: (v: T) => void;
   let reject!: (e: unknown) => void;
-  const promise = new Promise<T>((res, rej) => { resolve = res; reject = rej; });
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
   return { promise, resolve, reject };
 }
 
@@ -44,7 +53,10 @@ describe('RequestQueue — concurrency', () => {
     const started: number[] = [];
     const blockers = [defer(), defer(), defer(), defer()];
     for (let i = 0; i < 4; i++) {
-      void q.enqueue(`t${i}`, 'l', () => { started.push(i); return blockers[i].promise; });
+      void q.enqueue(`t${i}`, 'l', () => {
+        started.push(i);
+        return blockers[i].promise;
+      });
     }
     // Two slots → exactly two tasks have started; the other two wait.
     expect(started).toEqual([0, 1]);
@@ -65,10 +77,40 @@ describe('RequestQueue — priority', () => {
     const order: string[] = [];
     const block = defer();
     // Occupy the only slot, then enqueue out of priority order.
-    void q.enqueue('block', 'l', () => { order.push('block'); return block.promise; });
-    void q.enqueue('low', 'l', () => { order.push('low'); return Promise.resolve('x'); }, undefined, QUEUE_PRIORITY.low);
-    void q.enqueue('high', 'l', () => { order.push('high'); return Promise.resolve('x'); }, undefined, QUEUE_PRIORITY.high);
-    void q.enqueue('normal', 'l', () => { order.push('normal'); return Promise.resolve('x'); }, undefined, QUEUE_PRIORITY.normal);
+    void q.enqueue('block', 'l', () => {
+      order.push('block');
+      return block.promise;
+    });
+    void q.enqueue(
+      'low',
+      'l',
+      () => {
+        order.push('low');
+        return Promise.resolve('x');
+      },
+      undefined,
+      QUEUE_PRIORITY.low,
+    );
+    void q.enqueue(
+      'high',
+      'l',
+      () => {
+        order.push('high');
+        return Promise.resolve('x');
+      },
+      undefined,
+      QUEUE_PRIORITY.high,
+    );
+    void q.enqueue(
+      'normal',
+      'l',
+      () => {
+        order.push('normal');
+        return Promise.resolve('x');
+      },
+      undefined,
+      QUEUE_PRIORITY.normal,
+    );
 
     block.resolve('x');
     await flush();
@@ -80,9 +122,21 @@ describe('RequestQueue — priority', () => {
     const q = new RequestQueue(1);
     const order: string[] = [];
     const block = defer();
-    void q.enqueue('block', 'l', () => { order.push('block'); return block.promise; });
+    void q.enqueue('block', 'l', () => {
+      order.push('block');
+      return block.promise;
+    });
     for (const id of ['a', 'b', 'c']) {
-      void q.enqueue(id, 'l', () => { order.push(id); return Promise.resolve('x'); }, undefined, QUEUE_PRIORITY.normal);
+      void q.enqueue(
+        id,
+        'l',
+        () => {
+          order.push(id);
+          return Promise.resolve('x');
+        },
+        undefined,
+        QUEUE_PRIORITY.normal,
+      );
     }
     block.resolve('x');
     await flush();
@@ -93,13 +147,34 @@ describe('RequestQueue — priority', () => {
     const q = new RequestQueue(1, 0); // reserve 0: isolate priority from the slot reservation
     const order: string[] = [];
     const block = defer();
-    void q.enqueue('block', 'l', () => { order.push('block'); return block.promise; });
+    void q.enqueue('block', 'l', () => {
+      order.push('block');
+      return block.promise;
+    });
     // Simulate a backlog of prefetch tasks (LOW)...
     for (let i = 0; i < 5; i++) {
-      void q.enqueue(`pf${i}`, 'l', () => { order.push(`pf${i}`); return Promise.resolve('x'); }, undefined, QUEUE_PRIORITY.low);
+      void q.enqueue(
+        `pf${i}`,
+        'l',
+        () => {
+          order.push(`pf${i}`);
+          return Promise.resolve('x');
+        },
+        undefined,
+        QUEUE_PRIORITY.low,
+      );
     }
     // ...then the user opens an anchor (HIGH) after the backlog is queued.
-    void q.enqueue('click', 'l', () => { order.push('click'); return Promise.resolve('x'); }, undefined, QUEUE_PRIORITY.high);
+    void q.enqueue(
+      'click',
+      'l',
+      () => {
+        order.push('click');
+        return Promise.resolve('x');
+      },
+      undefined,
+      QUEUE_PRIORITY.high,
+    );
 
     block.resolve('x');
     await flush();
@@ -114,7 +189,16 @@ describe('RequestQueue — foreground slot reservation', () => {
     const started: string[] = [];
     const blockers = [defer(), defer(), defer()];
     for (let i = 0; i < 3; i++) {
-      void q.enqueue(`low${i}`, 'l', () => { started.push(`low${i}`); return blockers[i].promise; }, undefined, QUEUE_PRIORITY.low);
+      void q.enqueue(
+        `low${i}`,
+        'l',
+        () => {
+          started.push(`low${i}`);
+          return blockers[i].promise;
+        },
+        undefined,
+        QUEUE_PRIORITY.low,
+      );
     }
     // Only one LOW runs; the second slot stays reserved for foreground.
     expect(started).toEqual(['low0']);
@@ -122,7 +206,16 @@ describe('RequestQueue — foreground slot reservation', () => {
     // A foreground click (HIGH) takes the reserved slot immediately — it does
     // NOT wait behind the in-flight LOW prefetch.
     const hi = defer();
-    void q.enqueue('click', 'l', () => { started.push('click'); return hi.promise; }, undefined, QUEUE_PRIORITY.high);
+    void q.enqueue(
+      'click',
+      'l',
+      () => {
+        started.push('click');
+        return hi.promise;
+      },
+      undefined,
+      QUEUE_PRIORITY.high,
+    );
     expect(started).toEqual(['low0', 'click']);
 
     // When the running LOW finishes, the next LOW may use its (non-reserved) slot.
@@ -136,8 +229,26 @@ describe('RequestQueue — foreground slot reservation', () => {
     const started: string[] = [];
     const b = [defer(), defer()];
     // Two NORMAL tasks may use both slots — the reserve only restrains LOW.
-    void q.enqueue('n0', 'l', () => { started.push('n0'); return b[0].promise; }, undefined, QUEUE_PRIORITY.normal);
-    void q.enqueue('n1', 'l', () => { started.push('n1'); return b[1].promise; }, undefined, QUEUE_PRIORITY.normal);
+    void q.enqueue(
+      'n0',
+      'l',
+      () => {
+        started.push('n0');
+        return b[0].promise;
+      },
+      undefined,
+      QUEUE_PRIORITY.normal,
+    );
+    void q.enqueue(
+      'n1',
+      'l',
+      () => {
+        started.push('n1');
+        return b[1].promise;
+      },
+      undefined,
+      QUEUE_PRIORITY.normal,
+    );
     expect(started).toEqual(['n0', 'n1']);
   });
 });
@@ -149,21 +260,38 @@ describe('RequestQueue — abort', () => {
     ac.abort();
     let ran = false;
     let err: unknown;
-    await q.enqueue('aborted', 'l', () => { ran = true; return Promise.resolve('x'); }, ac.signal)
-      .catch((e) => { err = e; });
+    await q
+      .enqueue(
+        'aborted',
+        'l',
+        () => {
+          ran = true;
+          return Promise.resolve('x');
+        },
+        ac.signal,
+      )
+      .catch((e) => {
+        err = e;
+      });
     expect(ran).toBe(false);
     expect(isAbort(err)).toBe(true);
 
     // The slot was not leaked — a subsequent task still runs.
     let ranNext = false;
-    await q.enqueue('next', 'l', () => { ranNext = true; return Promise.resolve('y'); });
+    await q.enqueue('next', 'l', () => {
+      ranNext = true;
+      return Promise.resolve('y');
+    });
     expect(ranNext).toBe(true);
   });
 
   it('passes a real AbortSignal into the running task', async () => {
     const q = new RequestQueue(1);
     let received: AbortSignal | undefined;
-    await q.enqueue('s', 'l', (signal) => { received = signal; return Promise.resolve('x'); });
+    await q.enqueue('s', 'l', (signal) => {
+      received = signal;
+      return Promise.resolve('x');
+    });
     expect(received).toBeInstanceOf(AbortSignal);
     expect(received!.aborted).toBe(false);
   });
@@ -174,11 +302,27 @@ describe('RequestQueue — abort', () => {
     const block = defer();
     const ac = new AbortController();
     ac.abort();
-    void q.enqueue('block', 'l', () => { order.push('block'); return block.promise; });
+    void q.enqueue('block', 'l', () => {
+      order.push('block');
+      return block.promise;
+    });
     // Aborted task waiting in the queue.
-    void q.enqueue('dead', 'l', () => { order.push('dead'); return Promise.resolve('x'); }, ac.signal).catch(() => {});
+    void q
+      .enqueue(
+        'dead',
+        'l',
+        () => {
+          order.push('dead');
+          return Promise.resolve('x');
+        },
+        ac.signal,
+      )
+      .catch(() => {});
     // Live task behind it.
-    void q.enqueue('live', 'l', () => { order.push('live'); return Promise.resolve('x'); });
+    void q.enqueue('live', 'l', () => {
+      order.push('live');
+      return Promise.resolve('x');
+    });
 
     block.resolve('x');
     await flush();

@@ -13,9 +13,13 @@
  * truncate. Chunking keeps each call in the quality sweet spot; results merge.
  */
 
-import { runLLM, type LLMEnv } from '@corpus/core/llm/llm';
-import { buildMatchPrompt, parseMatchResponse, type MatchInput } from '../lib/context/anchor/ai-prompt';
 import type { SegMatch } from '@corpus/core/context/match';
+import { type LLMEnv, runLLM } from '@corpus/core/llm/llm';
+import {
+  buildMatchPrompt,
+  type MatchInput,
+  parseMatchResponse,
+} from '../lib/context/anchor/ai-prompt';
 
 /** Items per LLM call — kept small to stay in the matcher's accurate range. */
 export const MATCH_CHUNK_SIZE = 8;
@@ -55,9 +59,7 @@ export async function aiMatchToSegments(
       results[idx] = await matchChunk(env, segmentsHe, segmentsEn, chunks[idx], daf);
     }
   };
-  await Promise.all(
-    Array.from({ length: Math.min(CHUNK_CONCURRENCY, chunks.length) }, worker),
-  );
+  await Promise.all(Array.from({ length: Math.min(CHUNK_CONCURRENCY, chunks.length) }, worker));
   return results.flat();
 }
 

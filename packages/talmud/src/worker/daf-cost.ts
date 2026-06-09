@@ -64,7 +64,9 @@ export interface DafMarkCost {
 
 /** billed cost wins (authoritative, net of prompt-cache); else the list-price
  *  estimate; else 0. Mirrors computeSpendUsd in budget.ts. */
-export function bestStampUsd(s: Pick<CostStampLite, 'billedUsd' | 'estimatedUsd'> | null | undefined): number {
+export function bestStampUsd(
+  s: Pick<CostStampLite, 'billedUsd' | 'estimatedUsd'> | null | undefined,
+): number {
   if (!s) return 0;
   if (typeof s.billedUsd === 'number') return s.billedUsd;
   if (typeof s.estimatedUsd === 'number') return s.estimatedUsd;
@@ -74,7 +76,8 @@ export function bestStampUsd(s: Pick<CostStampLite, 'billedUsd' | 'estimatedUsd'
 function toVersionCost(version: string, s: CostStampLite): DafVersionCost {
   const lang: 'en' | 'he' = version.endsWith(':he') ? 'he' : 'en';
   return {
-    version, lang,
+    version,
+    lang,
     billedUsd: s.billedUsd ?? null,
     estimatedUsd: s.estimatedUsd ?? null,
     costInUsd: s.costInUsd ?? null,
@@ -106,12 +109,18 @@ export async function dafMarkCost(
       const baseVer = he ? verKey.slice(0, -3) : verKey;
       const key = keyForMark(
         { id: mark.id, cache_version: baseVer } as unknown as Parameters<typeof keyForMark>[0],
-        tractate, page, he ? 'he' : 'en',
+        tractate,
+        page,
+        he ? 'he' : 'en',
       );
       const raw = await cache.get(key);
       if (!raw) return;
       let entry: { cost?: CostStampLite };
-      try { entry = JSON.parse(raw) as { cost?: CostStampLite }; } catch { return; }
+      try {
+        entry = JSON.parse(raw) as { cost?: CostStampLite };
+      } catch {
+        return;
+      }
       if (!entry.cost) return;
       const vc = toVersionCost(verKey, entry.cost);
       totalUsd += bestStampUsd(entry.cost);
@@ -149,7 +158,9 @@ export async function dafCostReport(
   }
   withCost.sort((a, b) => b.totalUsd - a.totalUsd);
   return {
-    tractate, page, marks: withCost,
+    tractate,
+    page,
+    marks: withCost,
     totals: { currentUsd, supersededUsd, totalUsd: currentUsd + supersededUsd },
   };
 }

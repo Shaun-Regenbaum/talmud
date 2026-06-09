@@ -28,6 +28,7 @@
 // ETIMEDOUT. Force Node to use Cloudflare's public DNS (1.1.1.1) so the
 // run is decoupled from the local resolver's stability.
 import dns from 'node:dns';
+
 dns.setServers(['1.1.1.1', '1.0.0.1', '8.8.8.8']);
 
 const args = process.argv.slice(2);
@@ -44,11 +45,14 @@ if (!PAGES_RAW) {
   console.error('Usage: --pages "Tractate:page,Tractate:page,..." [--include-questions]');
   process.exit(1);
 }
-const PAGES = PAGES_RAW.split(',').map((s) => s.trim()).filter(Boolean).map((s) => {
-  const [tractate, page] = s.split(':');
-  if (!tractate || !page) throw new Error(`bad page spec: ${s}`);
-  return { tractate, page };
-});
+const PAGES = PAGES_RAW.split(',')
+  .map((s) => s.trim())
+  .filter(Boolean)
+  .map((s) => {
+    const [tractate, page] = s.split(':');
+    if (!tractate || !page) throw new Error(`bad page spec: ${s}`);
+    return { tractate, page };
+  });
 
 // Marks → their synthesis enrichment (the aggregate that fans out to
 // every leaf via dependencies). Skip any mark whose synthesis hasn't been
@@ -57,7 +61,7 @@ const PAGES = PAGES_RAW.split(',').map((s) => s.trim()).filter(Boolean).map((s) 
 const MARK_SYNTHESIS = {
   rabbi: 'rabbi.synthesis',
   argument: 'argument.synthesis',
-  'argument-move': 'argument-move.synthesis',  // per-move commentaries + synthesis
+  'argument-move': 'argument-move.synthesis', // per-move commentaries + synthesis
   halacha: 'halacha.synthesis',
   pesukim: 'pesukim.synthesis',
   places: 'places.synthesis',
@@ -90,13 +94,17 @@ async function postRun(body) {
         body: JSON.stringify(body),
       });
       let j = null;
-      try { j = await r.json(); } catch { /* ignore */ }
+      try {
+        j = await r.json();
+      } catch {
+        /* ignore */
+      }
       return { status: r.status, body: j };
     } catch (e) {
       if (attempt === 3) {
         return { status: 0, body: { error: `network: ${(e && e.message) || e}` } };
       }
-      await sleep(500 * Math.pow(2, attempt));
+      await sleep(500 * 2 ** attempt);
     }
   }
   return { status: 0, body: null };
@@ -110,7 +118,11 @@ async function pollUntilDone(runId, timeoutS) {
     try {
       const r = await fetch(`${WORKER}/api/run-status/${encodeURIComponent(runId)}`);
       let j = null;
-      try { j = await r.json(); } catch { return null; }
+      try {
+        j = await r.json();
+      } catch {
+        return null;
+      }
       if (j && j.status === 'ok') return j;
       if (j && j.status === 'error') return j;
       consecutiveNetworkErrs = 0;
@@ -172,7 +184,9 @@ async function warmAuxiliaryEndpoints(tractate, page) {
       const timer = setTimeout(() => controller.abort(), 30000);
       await fetch(`${WORKER}${path}`, { signal: controller.signal });
       clearTimeout(timer);
-    } catch { /* ignore — tolerate one slow aux fetch per page */ }
+    } catch {
+      /* ignore — tolerate one slow aux fetch per page */
+    }
   }
 }
 
@@ -188,9 +202,13 @@ async function warmPasukim(tractate, page, pesukimResult) {
     try {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 12000);
-      await fetch(`${WORKER}/api/pasuk?ref=${encodeURIComponent(ref)}`, { signal: controller.signal });
+      await fetch(`${WORKER}/api/pasuk?ref=${encodeURIComponent(ref)}`, {
+        signal: controller.signal,
+      });
       clearTimeout(timer);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 }
 
@@ -225,7 +243,7 @@ async function awaitNetworkHealthy() {
     } catch {
       consecutiveFails++;
     }
-    const wait = Math.min(60_000, 1000 * Math.pow(2, Math.min(consecutiveFails, 6)));
+    const wait = Math.min(60_000, 1000 * 2 ** Math.min(consecutiveFails, 6));
     if (consecutiveFails <= 2 || consecutiveFails % 5 === 0) {
       console.warn(`[health] unreachable, sleeping ${wait / 1000}s (fail ${consecutiveFails})`);
     }
@@ -315,7 +333,7 @@ for (const { tractate, page } of PAGES) {
         console.error(
           `[fake-done] ${tractate}/${page} · all marks failed ${MAX_PAGE_RETRIES + 1}× · skipping`,
         );
-        pagesDone++;  // accept the skip and move on
+        pagesDone++; // accept the skip and move on
         break;
       }
       continue;
@@ -330,5 +348,9 @@ for (const { tractate, page } of PAGES) {
 
 const totalElapsed = Math.round((Date.now() - t0) / 1000);
 console.log('');
-console.log(`Done. pages=${PAGES.length} syntheses-fired=${syntheses}${INCLUDE_QUESTIONS ? ` questions-fired=${questionsFired}` : ''} mark-errors=${markErrors} retries=${pagesRetried} fake-done=${pagesFakeDone} · ${totalElapsed}s`);
-console.log('Synthesis enrichments fire-and-forget — they fan out the full leaf set via deps, drained by the queue (concurrency=2). The KV will become fully hot as they complete in the background.');
+console.log(
+  `Done. pages=${PAGES.length} syntheses-fired=${syntheses}${INCLUDE_QUESTIONS ? ` questions-fired=${questionsFired}` : ''} mark-errors=${markErrors} retries=${pagesRetried} fake-done=${pagesFakeDone} · ${totalElapsed}s`,
+);
+console.log(
+  'Synthesis enrichments fire-and-forget — they fan out the full leaf set via deps, drained by the queue (concurrency=2). The KV will become fully hot as they complete in the background.',
+);

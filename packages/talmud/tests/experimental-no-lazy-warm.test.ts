@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { isExperimentalLlmWarm } from '../src/worker/index';
 
 // The /api/run gate: experimental, LLM-backed cards must never lazy-warm. Only

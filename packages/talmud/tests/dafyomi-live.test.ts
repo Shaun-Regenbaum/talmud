@@ -10,10 +10,10 @@
  *   - Revach uses the "A BIT MORE" presence marker, not `id="content"`.
  */
 
-import { describe, it, expect, vi, afterEach } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { scrapeDafyomiLive } from '../src/worker/dafyomi-live';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { keyForDafyomi } from '../src/worker/cache-keys';
+import { scrapeDafyomiLive } from '../src/worker/dafyomi-live';
 
 const revachHtml = readFileSync(
   new URL('./fixtures/dafyomi/chulin-revach-110.htm', import.meta.url),
@@ -40,12 +40,17 @@ function res(body: string, status = 200) {
 
 /** Install a fetch stub driven by a (url) -> Response map function. Records the
  *  URLs requested so tests can assert exactly what was hit. */
-function stubFetch(route: (url: string) => { ok: boolean; status: number; text: () => Promise<string> }) {
+function stubFetch(
+  route: (url: string) => { ok: boolean; status: number; text: () => Promise<string> },
+) {
   const calls: string[] = [];
-  vi.stubGlobal('fetch', vi.fn(async (url: string) => {
-    calls.push(String(url));
-    return route(String(url));
-  }));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string) => {
+      calls.push(String(url));
+      return route(String(url));
+    }),
+  );
   return calls;
 }
 
@@ -67,7 +72,9 @@ describe('scrapeDafyomiLive — Revach', () => {
     expect(revach?.body.type).toBe('revach');
     if (revach?.body.type !== 'revach') throw new Error('unreachable');
     expect(revach.body.entries.length).toBe(5);
-    expect(daf!.source.urls.revach).toBe('https://www.dafyomi.co.il/memdb/revdaf.php?tid=31&id=110');
+    expect(daf!.source.urls.revach).toBe(
+      'https://www.dafyomi.co.il/memdb/revdaf.php?tid=31&id=110',
+    );
 
     // It was fetched at the verified Chullin tid (31), id = plain daf (no padding).
     expect(calls.some((u) => u.includes('memdb/revdaf.php?tid=31&id=110'))).toBe(true);

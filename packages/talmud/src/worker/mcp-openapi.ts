@@ -42,7 +42,8 @@ const slug = {
   in: 'path',
   required: true,
   schema: { type: 'string' },
-  description: 'Rabbi slug (kebab-case canonical id, e.g. "rabbi-akiva"). Use /api/sages-index to discover slugs.',
+  description:
+    'Rabbi slug (kebab-case canonical id, e.g. "rabbi-akiva"). Use /api/sages-index to discover slugs.',
 } as const;
 
 export const TALMUD_OPENAPI: Record<string, unknown> = {
@@ -117,7 +118,7 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
         description:
           'Returns a DafyomiDaf: { tractate, daf, source{urls,fetchedAt}, amudim{a,b}, absent[] }. ' +
           'amudim hold per-amud, per-type blocks across nine content types: insights, background, ' +
-          'halacha, tosfos, review, points, hebcharts, yerushalmi, and revach (Revach l\'Daf — brief ' +
+          "halacha, tosfos, review, points, hebcharts, yerushalmi, and revach (Revach l'Daf — brief " +
           'SUMMARY + "A BIT MORE" highlights). Daf 76 of Chullin is committed; every other daf is ' +
           'fetched live then cached. Pass refresh=1 to bypass the cache and re-fetch.',
         parameters: [tractate, page, refresh],
@@ -127,7 +128,8 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
 
     '/api/context/{tractate}/{page}': {
       get: {
-        summary: 'Unified alignment/context pool: every external source normalized to anchored ContextItems.',
+        summary:
+          'Unified alignment/context pool: every external source normalized to anchored ContextItems.',
         description:
           'Returns { tractate, page, items: ContextItem[], fetchedAt }. items pools ALL external sources for the daf: ' +
           'Sefaria Rashi/Tosafot piece text, Mishnayot, Rishonim, Shulchan Aruch/halacha, topics, AND the nine ' +
@@ -159,7 +161,10 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
                   items: {
                     type: 'array',
                     description: 'Context items (from /api/context) to anchor to segments.',
-                    items: { type: 'object', properties: { key: { type: 'string' }, type: { type: 'string' } } },
+                    items: {
+                      type: 'object',
+                      properties: { key: { type: 'string' }, type: { type: 'string' } },
+                    },
                   },
                 },
               },
@@ -195,8 +200,19 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
     '/api/marks/{id}': {
       get: {
         summary: 'Get one mark definition by id.',
-        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' }, description: 'Mark id, e.g. "argument-move".' }],
-        responses: { '200': { description: '{ mark: MarkDefinition }' }, '404': { description: 'unknown mark' } },
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+            description: 'Mark id, e.g. "argument-move".',
+          },
+        ],
+        responses: {
+          '200': { description: '{ mark: MarkDefinition }' },
+          '404': { description: 'unknown mark' },
+        },
       },
     },
 
@@ -210,13 +226,17 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
       get: {
         summary: 'Get one enrichment definition by id.',
         parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-        responses: { '200': { description: '{ enrichment: EnrichmentDefinition }' }, '404': { description: 'unknown enrichment' } },
+        responses: {
+          '200': { description: '{ enrichment: EnrichmentDefinition }' },
+          '404': { description: 'unknown enrichment' },
+        },
       },
     },
 
     '/api/run': {
       post: {
-        summary: 'Run a mark or enrichment for a daf. Async: cache hit => 200 result; else 202 { runId, cacheKey } to poll.',
+        summary:
+          'Run a mark or enrichment for a daf. Async: cache hit => 200 result; else 202 { runId, cacheKey } to poll.',
         description:
           'Provide mark_id OR enrichment_id. For an enrichment, pass mark_input = ' +
           'the specific mark instance to run it on. ad_hoc / model_override / ' +
@@ -232,10 +252,23 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
                   tractate: { type: 'string' },
                   page: { type: 'string' },
                   mark_id: { type: 'string', description: 'Run a mark, e.g. "argument-move".' },
-                  enrichment_id: { type: 'string', description: 'Run an enrichment (usually with mark_input).' },
-                  mark_input: { type: 'object', description: 'The mark instance to enrich (from a prior mark run).' },
-                  user_question: { type: 'string', description: 'Free-text question for Q&A-style enrichments.' },
-                  lang: { type: 'string', enum: ['en', 'he'], description: 'Output language (default en).' },
+                  enrichment_id: {
+                    type: 'string',
+                    description: 'Run an enrichment (usually with mark_input).',
+                  },
+                  mark_input: {
+                    type: 'object',
+                    description: 'The mark instance to enrich (from a prior mark run).',
+                  },
+                  user_question: {
+                    type: 'string',
+                    description: 'Free-text question for Q&A-style enrichments.',
+                  },
+                  lang: {
+                    type: 'string',
+                    enum: ['en', 'he'],
+                    description: 'Output language (default en).',
+                  },
                 },
               },
             },
@@ -249,17 +282,36 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
     },
     '/api/run-status/{runId}': {
       get: {
-        summary: 'Poll a queued run. 202 { status: "pending" } while running; 200 { status: "ok", result } when done.',
+        summary:
+          'Poll a queued run. 202 { status: "pending" } while running; 200 { status: "ok", result } when done.',
         parameters: [
-          { name: 'runId', in: 'path', required: true, schema: { type: 'string' }, description: 'runId from POST /api/run.' },
-          { name: 'k', in: 'query', required: false, schema: { type: 'string' }, description: 'cacheKey fallback returned by POST /api/run.' },
+          {
+            name: 'runId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+            description: 'runId from POST /api/run.',
+          },
+          {
+            name: 'k',
+            in: 'query',
+            required: false,
+            schema: { type: 'string' },
+            description: 'cacheKey fallback returned by POST /api/run.',
+          },
         ],
-        responses: { '200': { description: '{ status: "ok", result }' }, '202': { description: '{ status: "pending" }' } },
+        responses: {
+          '200': { description: '{ status: "ok", result }' },
+          '202': { description: '{ status: "pending" }' },
+        },
       },
     },
 
     '/api/sages-index': {
-      get: { summary: 'Index of all sages: { sages: [{ slug, name, nameHe, aliases }] }.', responses: { '200': { description: 'sages index' } } },
+      get: {
+        summary: 'Index of all sages: { sages: [{ slug, name, nameHe, aliases }] }.',
+        responses: { '200': { description: 'sages index' } },
+      },
     },
     '/api/rabbi/{slug}': {
       get: {
@@ -273,8 +325,21 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
         summary: 'Reverse index of every daf where this rabbi appears, by observation type.',
         parameters: [
           slug,
-          { name: 'type', in: 'query', required: false, schema: { type: 'string' }, description: 'Filter to one observation type (place, opinion, story, exegesis, lineage).' },
-          { name: 'min', in: 'query', required: false, schema: { type: 'integer' }, description: 'Minimum daf count to include an aggregated observation.' },
+          {
+            name: 'type',
+            in: 'query',
+            required: false,
+            schema: { type: 'string' },
+            description:
+              'Filter to one observation type (place, opinion, story, exegesis, lineage).',
+          },
+          {
+            name: 'min',
+            in: 'query',
+            required: false,
+            schema: { type: 'integer' },
+            description: 'Minimum daf count to include an aggregated observation.',
+          },
         ],
         responses: { '200': { description: '{ observations, aggregated, byType }' } },
       },
@@ -287,7 +352,13 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
           tractate,
           page,
           refresh,
-          { name: 'depth', in: 'query', required: false, schema: { type: 'integer', minimum: 1, maximum: 10 }, description: 'Walk depth (default 3).' },
+          {
+            name: 'depth',
+            in: 'query',
+            required: false,
+            schema: { type: 'integer', minimum: 1, maximum: 10 },
+            description: 'Walk depth (default 3).',
+          },
         ],
         responses: { '200': { description: '{ chains: {...} }' } },
       },
@@ -314,7 +385,10 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
                   word: { type: 'string' },
                   tractate: { type: 'string' },
                   page: { type: 'string' },
-                  hebrewBefore: { type: 'string', description: 'Preceding context for disambiguation.' },
+                  hebrewBefore: {
+                    type: 'string',
+                    description: 'Preceding context for disambiguation.',
+                  },
                   hebrewAfter: { type: 'string', description: 'Following context.' },
                   segIdx: { type: 'integer' },
                 },
@@ -328,50 +402,97 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
     '/api/pasuk': {
       get: {
         summary: 'Fetch a single Tanakh verse (Hebrew + English).',
-        parameters: [{ name: 'ref', in: 'query', required: true, schema: { type: 'string' }, description: 'Sefaria-style ref, e.g. "Genesis 1:1".' }],
+        parameters: [
+          {
+            name: 'ref',
+            in: 'query',
+            required: true,
+            schema: { type: 'string' },
+            description: 'Sefaria-style ref, e.g. "Genesis 1:1".',
+          },
+        ],
         responses: { '200': { description: '{ ref, he, en, ... }' } },
       },
     },
 
     '/api/usage': {
       get: {
-        summary: 'Full usage dashboard payload (telemetry + cost + activity + backlog + health). Section endpoints below load the same data piecemeal.',
-        responses: { '200': { description: '{ telemetry, cost, activity, unknowns, jobErrors, lintFailures, reports }' } },
+        summary:
+          'Full usage dashboard payload (telemetry + cost + activity + backlog + health). Section endpoints below load the same data piecemeal.',
+        responses: {
+          '200': {
+            description:
+              '{ telemetry, cost, activity, unknowns, jobErrors, lintFailures, reports }',
+          },
+        },
       },
     },
     '/api/usage/cost': {
       get: {
-        summary: 'Cost section: self-tracked spend (per model/mark/enrichment, input-vs-output split), AI Gateway billed cost, and recent cost-avoided-by-cache.',
+        summary:
+          'Cost section: self-tracked spend (per model/mark/enrichment, input-vs-output split), AI Gateway billed cost, and recent cost-avoided-by-cache.',
         responses: { '200': { description: '{ selfTracked, aiGateway, costAvoided }' } },
       },
     },
     '/api/usage/telemetry': {
-      get: { summary: 'Latency + cache-hit + error rollups per endpoint / mark / enrichment.', responses: { '200': { description: '{ perEndpoint, perMark, perEnrichment, recentErrors }' } } },
+      get: {
+        summary: 'Latency + cache-hit + error rollups per endpoint / mark / enrichment.',
+        responses: {
+          '200': { description: '{ perEndpoint, perMark, perEnrichment, recentErrors }' },
+        },
+      },
     },
     '/api/usage/activity': {
-      get: { summary: 'Cloudflare zone traffic (requests/visits by day + country).', responses: { '200': { description: 'zone activity' } } },
+      get: {
+        summary: 'Cloudflare zone traffic (requests/visits by day + country).',
+        responses: { '200': { description: 'zone activity' } },
+      },
     },
     '/api/usage/backlog': {
-      get: { summary: 'Needs-enrichment backlog: unknown rabbis / observed places / observed concepts.', responses: { '200': { description: '{ rabbis, places, concepts }' } } },
+      get: {
+        summary: 'Needs-enrichment backlog: unknown rabbis / observed places / observed concepts.',
+        responses: { '200': { description: '{ rabbis, places, concepts }' } },
+      },
     },
     '/api/usage/health': {
-      get: { summary: 'Operational health: queue-job errors, enrichment lint failures, bug reports.', responses: { '200': { description: '{ jobErrors, lintFailures, reports }' } } },
+      get: {
+        summary: 'Operational health: queue-job errors, enrichment lint failures, bug reports.',
+        responses: { '200': { description: '{ jobErrors, lintFailures, reports }' } },
+      },
     },
     '/api/usage/daf/{tractate}/{page}': {
       get: {
-        summary: 'Per-daf cost trace: each mark\'s current-version vs superseded-version generation cost, from the permanent cache-entry cost stamps.',
+        summary:
+          "Per-daf cost trace: each mark's current-version vs superseded-version generation cost, from the permanent cache-entry cost stamps.",
         parameters: [
           { name: 'tractate', in: 'path', required: true, schema: { type: 'string' } },
-          { name: 'page', in: 'path', required: true, schema: { type: 'string' }, description: 'e.g. "5a".' },
+          {
+            name: 'page',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+            description: 'e.g. "5a".',
+          },
         ],
-        responses: { '200': { description: '{ tractate, page, marks: [...], totals: { currentUsd, supersededUsd, totalUsd } }' } },
+        responses: {
+          '200': {
+            description:
+              '{ tractate, page, marks: [...], totals: { currentUsd, supersededUsd, totalUsd } }',
+          },
+        },
       },
     },
     '/api/admin/recent-errors': {
       get: {
         summary: 'Recent queue-job failures (marks/enrichments that errored). Read-only, public.',
         parameters: [
-          { name: 'id', in: 'query', required: false, schema: { type: 'string' }, description: 'Filter by mark/enrichment id.' },
+          {
+            name: 'id',
+            in: 'query',
+            required: false,
+            schema: { type: 'string' },
+            description: 'Filter by mark/enrichment id.',
+          },
           { name: 'tractate', in: 'query', required: false, schema: { type: 'string' } },
           { name: 'limit', in: 'query', required: false, schema: { type: 'integer' } },
         ],
@@ -379,10 +500,16 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
       },
     },
     '/api/admin/cache-stats': {
-      get: { summary: 'KV cache hit/miss rates across buckets.', responses: { '200': { description: 'cache stats' } } },
+      get: {
+        summary: 'KV cache hit/miss rates across buckets.',
+        responses: { '200': { description: 'cache stats' } },
+      },
     },
     '/api/log/recent': {
-      get: { summary: 'Recent client-side log records (last ~500).', responses: { '200': { description: '{ logs: [...] }' } } },
+      get: {
+        summary: 'Recent client-side log records (last ~500).',
+        responses: { '200': { description: '{ logs: [...] }' } },
+      },
     },
   },
 };

@@ -12,7 +12,7 @@
  * risk — only the labelling is the model's job.
  */
 
-import { runLLM, type LLMEnv } from '@corpus/core/llm/llm';
+import { type LLMEnv, runLLM } from '@corpus/core/llm/llm';
 import { costUsd } from '@corpus/core/llm/pricing';
 
 export interface EventSection {
@@ -90,7 +90,10 @@ export async function eventSections(
   const res = await runLLM(env, {
     messages: [
       { role: 'system', content: SYSTEM },
-      { role: 'user', content: `Chapter: ${ref} (${maxVerse} verses)\n\n${versesForPrompt(verses)}` },
+      {
+        role: 'user',
+        content: `Chapter: ${ref} (${maxVerse} verses)\n\n${versesForPrompt(verses)}`,
+      },
     ],
     max_tokens: 900,
     temperature: 0.2,
@@ -107,8 +110,12 @@ export async function eventSections(
       )
       .map((s) => ({
         verse: s.verse,
-        en: String(s.en ?? '').trim().slice(0, 40),
-        he: String(s.he ?? '').trim().slice(0, 40),
+        en: String(s.en ?? '')
+          .trim()
+          .slice(0, 40),
+        he: String(s.he ?? '')
+          .trim()
+          .slice(0, 40),
       }))
       .sort((a, b) => a.verse - b.verse);
   } catch {

@@ -38,7 +38,8 @@ const PREFIX = /^[ובהכלמשד]{1,2}$/;
  *  segment word is the term word carrying a leading Hebrew prefix. */
 function wordEq(segWord: string, termWord: string, allowPrefix: boolean): boolean {
   if (segWord === termWord) return true;
-  if (!allowPrefix || segWord.length <= termWord.length || !segWord.endsWith(termWord)) return false;
+  if (!allowPrefix || segWord.length <= termWord.length || !segWord.endsWith(termWord))
+    return false;
   return PREFIX.test(segWord.slice(0, segWord.length - termWord.length));
 }
 
@@ -50,7 +51,10 @@ function wordsContain(seg: string[], term: string[]): boolean {
     if (!wordEq(seg[i], term[0], true)) continue;
     let ok = true;
     for (let j = 1; j < term.length; j++) {
-      if (seg[i + j] !== term[j]) { ok = false; break; }
+      if (seg[i + j] !== term[j]) {
+        ok = false;
+        break;
+      }
     }
     if (ok) return true;
   }
@@ -66,7 +70,10 @@ const MAX_HIT_SEGS = 3;
 /** Place dafyomi Background glossary/girsa items onto the segment(s) whose
  *  Hebrew contains their term. Mutates matched items (sets `segs`/`via`/
  *  `confidence`). Returns the count placed. */
-export function matchBackgroundTerms(items: ContextItem[], segmentsHe: string[] | undefined): number {
+export function matchBackgroundTerms(
+  items: ContextItem[],
+  segmentsHe: string[] | undefined,
+): number {
   if (!segmentsHe || segmentsHe.length === 0) return 0;
   const segWords = segmentsHe.map((h) => normHe(h).split(' ').filter(Boolean));
 
@@ -75,11 +82,15 @@ export function matchBackgroundTerms(items: ContextItem[], segmentsHe: string[] 
     if (item.source !== 'dafyomi:background') continue;
     if (item.kind !== 'glossary' && item.kind !== 'girsa') continue;
     if (item.segs.length > 0) continue; // already placed
-    const termWords = normHe(item.title?.he ?? '').split(' ').filter(Boolean);
+    const termWords = normHe(item.title?.he ?? '')
+      .split(' ')
+      .filter(Boolean);
     if (termWords.join('').length < MIN_TERM_CHARS) continue;
 
     const hits: number[] = [];
-    segWords.forEach((seg, i) => { if (wordsContain(seg, termWords)) hits.push(i); });
+    segWords.forEach((seg, i) => {
+      if (wordsContain(seg, termWords)) hits.push(i);
+    });
     if (hits.length === 0 || hits.length > MAX_HIT_SEGS) continue;
 
     item.segs = hits;

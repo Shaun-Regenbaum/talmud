@@ -27,13 +27,18 @@
  * `user_question` in the body.
  */
 
-import { createSignal, createResource, onMount, For, Show, type JSX } from 'solid-js';
-import { tutorialPrefetch } from './tutorial';
+import { createResource, createSignal, For, type JSX, onMount, Show } from 'solid-js';
+import { trackAI } from './aiActivity';
+import {
+  isPausedBody,
+  isPausedError,
+  isServiceUnavailableError,
+  PAUSED_ERROR,
+} from './enrichmentQueue';
 import { Hebraized } from './Hebraized';
 import { hebraize } from './hebraize';
-import { trackAI } from './aiActivity';
 import { lang, t } from './i18n';
-import { PAUSED_ERROR, isPausedBody, isPausedError, isServiceUnavailableError } from './enrichmentQueue';
+import { tutorialPrefetch } from './tutorial';
 
 export interface QAPanelProps {
   /** Mark id — drives which `<mark>.suggested-questions` + `<mark>.qa`
@@ -49,13 +54,28 @@ export interface QAPanelProps {
   page: string;
 }
 
-interface SuggestedQuestion { q: string; why_useful: string; }
-interface SuggestedQuestionsPayload { questions: SuggestedQuestion[]; }
+interface SuggestedQuestion {
+  q: string;
+  why_useful: string;
+}
+interface SuggestedQuestionsPayload {
+  questions: SuggestedQuestion[];
+}
 
-interface CommunityQuestion { q: string; qHash: string; askedAt: number; clickCount: number; }
-interface RegistryPayload { community: CommunityQuestion[]; }
+interface CommunityQuestion {
+  q: string;
+  qHash: string;
+  askedAt: number;
+  clickCount: number;
+}
+interface RegistryPayload {
+  community: CommunityQuestion[];
+}
 
-interface QAAnswer { answer: string; confidence: 'high' | 'medium' | 'low'; }
+interface QAAnswer {
+  answer: string;
+  confidence: 'high' | 'medium' | 'low';
+}
 
 interface RunResultLike {
   parsed: unknown;
@@ -78,7 +98,8 @@ async function runEnrichmentDirect(
 ): Promise<RunResultLike> {
   const body: Record<string, unknown> = {
     enrichment_id: enrichmentId,
-    tractate, page,
+    tractate,
+    page,
     mark_input: markInput,
     lang: lang(),
   };
@@ -88,7 +109,7 @@ async function runEnrichmentDirect(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-  const j = await r.json() as RunResponse | { error?: string };
+  const j = (await r.json()) as RunResponse | { error?: string };
   if (isPausedBody(j)) throw new Error(PAUSED_ERROR);
   if (!r.ok && r.status !== 202) {
     throw new Error((j as { error?: string }).error ?? `HTTP ${r.status}`);
@@ -107,7 +128,7 @@ async function pollJob(runId: string, cacheKey?: string): Promise<RunResultLike>
   while (Date.now() - start < POLL_TIMEOUT_MS) {
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
     const r = await fetch(`/api/run-status/${encodeURIComponent(runId)}${qs}`);
-    const j = await r.json() as RunResponse | { status: 'pending' };
+    const j = (await r.json()) as RunResponse | { status: 'pending' };
     if (isPausedBody(j)) throw new Error(PAUSED_ERROR);
     if ('status' in j) {
       if (j.status === 'ok') return (j as { result: RunResultLike }).result;
@@ -117,7 +138,13 @@ async function pollJob(runId: string, cacheKey?: string): Promise<RunResultLike>
   throw new Error(`qa job ${runId} timed out`);
 }
 
-async function fetchSuggested(mark: string, tractate: string, page: string, instanceId: string, instance: unknown): Promise<SuggestedQuestion[]> {
+async function fetchSuggested(
+  mark: string,
+  tractate: string,
+  page: string,
+  instanceId: string,
+  instance: unknown,
+): Promise<SuggestedQuestion[]> {
   const enrichmentId = `${mark}.suggested-questions`;
   const result = await trackAI(
     `${enrichmentId}:${tractate}:${page}:${instanceId}`,
@@ -128,15 +155,27 @@ async function fetchSuggested(mark: string, tractate: string, page: string, inst
   return Array.isArray(parsed?.questions) ? parsed!.questions : [];
 }
 
-async function fetchRegistry(mark: string, tractate: string, page: string, instanceId: string): Promise<CommunityQuestion[]> {
+async function fetchRegistry(
+  mark: string,
+  tractate: string,
+  page: string,
+  instanceId: string,
+): Promise<CommunityQuestion[]> {
   const q = new URLSearchParams({ tractate, page, mark, instance_id: instanceId });
   const r = await fetch(`/api/qa/registry?${q.toString()}`);
   if (!r.ok) return [];
-  const j = await r.json() as RegistryPayload;
+  const j = (await r.json()) as RegistryPayload;
   return Array.isArray(j.community) ? j.community : [];
 }
 
-async function fetchAnswer(mark: string, tractate: string, page: string, instanceId: string, instance: unknown, question: string): Promise<QAAnswer | null> {
+async function fetchAnswer(
+  mark: string,
+  tractate: string,
+  page: string,
+  instanceId: string,
+  instance: unknown,
+  question: string,
+): Promise<QAAnswer | null> {
   const enrichmentId = `${mark}.qa`;
   const result = await trackAI(
     `${enrichmentId}:${tractate}:${page}:${instanceId}:${question.slice(0, 40)}`,
@@ -148,7 +187,14 @@ async function fetchAnswer(mark: string, tractate: string, page: string, instanc
   return null;
 }
 
-async function postAsk(mark: string, tractate: string, page: string, instanceId: string, instance: unknown, question: string): Promise<{
+async function postAsk(
+  mark: string,
+  tractate: string,
+  page: string,
+  instanceId: string,
+  instance: unknown,
+  question: string,
+): Promise<{
   qHash: string;
   alreadyAsked: boolean;
   rateLimited?: boolean;
@@ -159,7 +205,8 @@ async function postAsk(mark: string, tractate: string, page: string, instanceId:
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      tractate, page,
+      tractate,
+      page,
       mark,
       instance_id: instanceId,
       mark_input: instance,
@@ -167,10 +214,17 @@ async function postAsk(mark: string, tractate: string, page: string, instanceId:
       lang: lang(),
     }),
   });
-  const j = await r.json() as { qHash?: string; alreadyAsked?: boolean; rateLimited?: boolean; paused?: boolean; error?: string };
+  const j = (await r.json()) as {
+    qHash?: string;
+    alreadyAsked?: boolean;
+    rateLimited?: boolean;
+    paused?: boolean;
+    error?: string;
+  };
   if (!r.ok) {
     return {
-      qHash: '', alreadyAsked: false,
+      qHash: '',
+      alreadyAsked: false,
       rateLimited: r.status === 429 && !j.paused,
       paused: j.paused === true,
       error: j.error ?? `HTTP ${r.status}`,
@@ -220,11 +274,25 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
     qaPrefetchPanels++;
     void (async () => {
       try {
-        const qs = await fetchSuggested(props.mark, props.tractate, props.page, props.instanceId, props.instance);
+        const qs = await fetchSuggested(
+          props.mark,
+          props.tractate,
+          props.page,
+          props.instanceId,
+          props.instance,
+        );
         for (const q of qs.slice(0, MAX_QA_PREFETCH_QUESTIONS)) {
-          await runEnrichmentDirect(`${props.mark}.qa`, props.tractate, props.page, props.instance, q.q).catch(() => {});
+          await runEnrichmentDirect(
+            `${props.mark}.qa`,
+            props.tractate,
+            props.page,
+            props.instance,
+            q.q,
+          ).catch(() => {});
         }
-      } catch { /* best-effort cache warm */ }
+      } catch {
+        /* best-effort cache warm */
+      }
     })();
   });
 
@@ -237,14 +305,19 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
   const [askingOpen, setAskingOpen] = createSignal(false);
   const [askText, setAskText] = createSignal('');
   const [askError, setAskError] = createSignal<string | null>(null);
-  const [openAnswers, setOpenAnswers] = createSignal<Record<string, {
-    state: 'loading' | 'ok' | 'error';
-    data?: QAAnswer;
-    error?: string;
-    /** Loading flavor copy. Picked once at the loading-state transition so
-     *  it doesn't shuffle on every re-render. */
-    loadingCopy?: string;
-  }>>({});
+  const [openAnswers, setOpenAnswers] = createSignal<
+    Record<
+      string,
+      {
+        state: 'loading' | 'ok' | 'error';
+        data?: QAAnswer;
+        error?: string;
+        /** Loading flavor copy. Picked once at the loading-state transition so
+         *  it doesn't shuffle on every re-render. */
+        loadingCopy?: string;
+      }
+    >
+  >({});
 
   // Two parallel resources, both gated on `expanded` so we don't pay
   // anything until the user opens the panel for the first time.
@@ -252,18 +325,37 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
   // suggested questions under the new lang (they're LLM-generated, so they
   // differ EN↔HE) instead of leaving the old language's list shown until reload.
   const [suggested, { mutate: setSuggested }] = createResource(
-    () => (expanded() ? { mk: mark(), t: props.tractate, p: props.page, m: instanceId(), i: instance(), l: lang() } : null),
+    () =>
+      expanded()
+        ? {
+            mk: mark(),
+            t: props.tractate,
+            p: props.page,
+            m: instanceId(),
+            i: instance(),
+            l: lang(),
+          }
+        : null,
     (k) => fetchSuggested(k.mk, k.t, k.p, k.m, k.i),
   );
   const [registry, { refetch: refetchRegistry, mutate: setRegistry }] = createResource(
-    () => (expanded() ? { mk: mark(), t: props.tractate, p: props.page, m: instanceId(), l: lang() } : null),
+    () =>
+      expanded()
+        ? { mk: mark(), t: props.tractate, p: props.page, m: instanceId(), l: lang() }
+        : null,
     (k) => fetchRegistry(k.mk, k.t, k.p, k.m),
   );
 
   // Combined, ordered list of questions. Curated first (in their generated
   // order), then community sorted by clickCount desc. Each entry knows its
   // origin so we can render a small badge.
-  type CombinedQuestion = { q: string; why?: string; origin: 'curated' | 'community'; clickCount?: number; qHash?: string };
+  type CombinedQuestion = {
+    q: string;
+    why?: string;
+    origin: 'curated' | 'community';
+    clickCount?: number;
+    qHash?: string;
+  };
   const combined = (): CombinedQuestion[] => {
     const out: CombinedQuestion[] = [];
     const sList = suggested() ?? [];
@@ -310,9 +402,19 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
       });
       return;
     }
-    setOpenAnswers((m) => ({ ...m, [key]: { state: 'loading', loadingCopy: pickQALoadingCopy() } }));
+    setOpenAnswers((m) => ({
+      ...m,
+      [key]: { state: 'loading', loadingCopy: pickQALoadingCopy() },
+    }));
     try {
-      const ans = await fetchAnswer(mark(), props.tractate, props.page, instanceId(), instance(), q);
+      const ans = await fetchAnswer(
+        mark(),
+        props.tractate,
+        props.page,
+        instanceId(),
+        instance(),
+        q,
+      );
       if (!ans) throw new Error('empty answer');
       setOpenAnswers((m) => ({ ...m, [key]: { state: 'ok', data: ans } }));
       // Best-effort click bump for community questions.
@@ -322,10 +424,15 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            tractate: props.tractate, page: props.page,
-            mark: mark(), instance_id: instanceId(), qHash: ce.qHash,
+            tractate: props.tractate,
+            page: props.page,
+            mark: mark(),
+            instance_id: instanceId(),
+            qHash: ce.qHash,
           }),
-        }).catch(() => { /* swallow */ });
+        }).catch(() => {
+          /* swallow */
+        });
       }
     } catch (err) {
       const msg = isPausedError(err)
@@ -347,13 +454,15 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
     setAskError(null);
     const reply = await postAsk(mark(), props.tractate, props.page, instanceId(), instance(), q);
     if (reply.error) {
-      setAskError(reply.paused
-        ? t('qa.error.paused')
-        : reply.rateLimited
-          ? t('qa.error.rateLimit')
-          : isServiceUnavailableError(reply.error)
-            ? t('enrich.error.unavailable')
-            : reply.error);
+      setAskError(
+        reply.paused
+          ? t('qa.error.paused')
+          : reply.rateLimited
+            ? t('qa.error.rateLimit')
+            : isServiceUnavailableError(reply.error)
+              ? t('enrich.error.unavailable')
+              : reply.error,
+      );
       return;
     }
     // Optimistically prepend to registry so it appears immediately, then
@@ -376,11 +485,14 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
   };
 
   return (
-    <div data-tour="argument-qa" style={{
-      'margin-top': '0.6rem',
-      'border-top': '1px solid #eee',
-      'padding-top': '0.5rem',
-    }}>
+    <div
+      data-tour="argument-qa"
+      style={{
+        'margin-top': '0.6rem',
+        'border-top': '1px solid #eee',
+        'padding-top': '0.5rem',
+      }}
+    >
       <button
         type="button"
         onClick={() => setExpanded(!expanded())}
@@ -410,93 +522,108 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
             </div>
           </Show>
 
-          <For each={visibleList()}>{(item) => {
-            const key = normalizeQ(item.q);
-            const ans = () => openAnswers()[key];
-            return (
-              <div style={{ 'margin-bottom': '0.4rem' }}>
-                <button
-                  type="button"
-                  onClick={() => handleQuestionClick(item.q)}
-                  // Title is an HTML attribute — can't host a JSX component,
-                  // so we run the why_useful hint through the synchronous
-                  // dict pass directly. Async LLM upgrade isn't worth it for
-                  // hover text that vanishes the moment the user moves on.
-                  title={item.why ? hebraize(item.why) : ''}
-                  style={{
-                    all: 'unset',
-                    display: 'block',
-                    width: '100%',
-                    cursor: 'pointer',
-                    'box-sizing': 'border-box',
-                    padding: '0.4rem 0.55rem',
-                    background: ans() ? '#fefce8' : '#fafaf7',
-                    border: '1px solid ' + (ans() ? '#eab308' : '#eae8e0'),
-                    'border-radius': '4px',
-                    'font-size': '0.84rem',
-                    color: '#222',
-                    'line-height': 1.4,
-                  }}
-                >
-                  <span style={{ color: '#999', 'margin-right': '0.3rem' }}>›</span>
-                  <Hebraized text={item.q} />
-                  <Show when={item.origin === 'community'}>
-                    <span style={{
-                      'margin-left': '0.4rem',
-                      'font-size': '0.62rem',
-                      color: '#999',
-                      'text-transform': 'uppercase',
-                      'letter-spacing': '0.05em',
-                    }}>
-                      {t('qa.community')}
-                      <Show when={typeof item.clickCount === 'number' && item.clickCount! > 1}>
-                        {' '}· {t('qa.askedCount', { count: item.clickCount! })}
-                      </Show>
-                    </span>
-                  </Show>
-                </button>
-                <Show when={ans()}>
-                  {(state) => (
-                    <div style={{
-                      'margin-top': '0.3rem',
-                      padding: '0.5rem 0.65rem',
-                      background: '#fff',
-                      border: '1px solid #f1ecd9',
+          <For each={visibleList()}>
+            {(item) => {
+              const key = normalizeQ(item.q);
+              const ans = () => openAnswers()[key];
+              return (
+                <div style={{ 'margin-bottom': '0.4rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleQuestionClick(item.q)}
+                    // Title is an HTML attribute — can't host a JSX component,
+                    // so we run the why_useful hint through the synchronous
+                    // dict pass directly. Async LLM upgrade isn't worth it for
+                    // hover text that vanishes the moment the user moves on.
+                    title={item.why ? hebraize(item.why) : ''}
+                    style={{
+                      all: 'unset',
+                      display: 'block',
+                      width: '100%',
+                      cursor: 'pointer',
+                      'box-sizing': 'border-box',
+                      padding: '0.4rem 0.55rem',
+                      background: ans() ? '#fefce8' : '#fafaf7',
+                      border: '1px solid ' + (ans() ? '#eab308' : '#eae8e0'),
                       'border-radius': '4px',
-                      'font-size': '0.85rem',
+                      'font-size': '0.84rem',
                       color: '#222',
-                      'line-height': 1.55,
-                    }}>
-                      <Show when={state().state === 'loading'}>
-                        <span style={{ color: '#888', 'font-style': 'italic' }}>
-                          {state().loadingCopy ?? 'Asking the Rabbis…'}
-                        </span>
-                      </Show>
-                      <Show when={state().state === 'error'}>
-                        <span style={{ color: '#c00', 'font-family': 'monospace', 'font-size': '0.78rem' }}>
-                          {state().error}
-                        </span>
-                      </Show>
-                      <Show when={state().state === 'ok' && state().data}>
-                        <p style={{ margin: 0 }}>
-                          <Hebraized text={state().data!.answer} />
-                        </p>
-                        <Show when={state().data!.confidence === 'low'}>
-                          <div style={{
-                            'margin-top': '0.35rem',
-                            'font-size': '0.7rem',
-                            color: '#a16207',
-                          }}>
-                            {t('qa.lowConfidence')}
-                          </div>
+                      'line-height': 1.4,
+                    }}
+                  >
+                    <span style={{ color: '#999', 'margin-right': '0.3rem' }}>›</span>
+                    <Hebraized text={item.q} />
+                    <Show when={item.origin === 'community'}>
+                      <span
+                        style={{
+                          'margin-left': '0.4rem',
+                          'font-size': '0.62rem',
+                          color: '#999',
+                          'text-transform': 'uppercase',
+                          'letter-spacing': '0.05em',
+                        }}
+                      >
+                        {t('qa.community')}
+                        <Show when={typeof item.clickCount === 'number' && item.clickCount! > 1}>
+                          {' '}
+                          · {t('qa.askedCount', { count: item.clickCount! })}
                         </Show>
-                      </Show>
-                    </div>
-                  )}
-                </Show>
-              </div>
-            );
-          }}</For>
+                      </span>
+                    </Show>
+                  </button>
+                  <Show when={ans()}>
+                    {(state) => (
+                      <div
+                        style={{
+                          'margin-top': '0.3rem',
+                          padding: '0.5rem 0.65rem',
+                          background: '#fff',
+                          border: '1px solid #f1ecd9',
+                          'border-radius': '4px',
+                          'font-size': '0.85rem',
+                          color: '#222',
+                          'line-height': 1.55,
+                        }}
+                      >
+                        <Show when={state().state === 'loading'}>
+                          <span style={{ color: '#888', 'font-style': 'italic' }}>
+                            {state().loadingCopy ?? 'Asking the Rabbis…'}
+                          </span>
+                        </Show>
+                        <Show when={state().state === 'error'}>
+                          <span
+                            style={{
+                              color: '#c00',
+                              'font-family': 'monospace',
+                              'font-size': '0.78rem',
+                            }}
+                          >
+                            {state().error}
+                          </span>
+                        </Show>
+                        <Show when={state().state === 'ok' && state().data}>
+                          <p style={{ margin: 0 }}>
+                            <Hebraized text={state().data!.answer} />
+                          </p>
+                          <Show when={state().data!.confidence === 'low'}>
+                            <div
+                              style={{
+                                'margin-top': '0.35rem',
+                                'font-size': '0.7rem',
+                                color: '#a16207',
+                              }}
+                            >
+                              {t('qa.lowConfidence')}
+                            </div>
+                          </Show>
+                        </Show>
+                      </div>
+                    )}
+                  </Show>
+                </div>
+              );
+            }}
+          </For>
 
           <Show when={!suggested.loading && !registry.loading && combined().length === 0}>
             <div style={{ color: '#888', 'font-size': '0.78rem', 'font-style': 'italic' }}>
@@ -537,79 +664,96 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
 
           {/* Custom-question affordance */}
           <div style={{ 'margin-top': '0.55rem' }}>
-            <Show when={!askingOpen()} fallback={
-              <div>
-                <textarea
-                  value={askText()}
-                  onInput={(e) => setAskText((e.currentTarget as HTMLTextAreaElement).value)}
-                  placeholder={t('qa.placeholder')}
-                  rows={3}
-                  style={{
-                    width: '100%',
-                    'box-sizing': 'border-box',
-                    padding: '0.45rem 0.55rem',
-                    border: '1px solid #d6d3d1',
-                    'border-radius': '4px',
-                    'font-family': 'inherit',
-                    'font-size': '0.85rem',
-                    'line-height': 1.45,
-                    color: '#222',
-                    resize: 'vertical',
-                  }}
-                />
-                <Show when={askError()}>
-                  <div style={{
-                    'margin-top': '0.3rem',
-                    'font-size': '0.75rem',
-                    color: '#c00',
-                  }}>{askError()}</div>
-                </Show>
-                <div style={{
-                  display: 'flex',
-                  gap: '0.4rem',
-                  'margin-top': '0.4rem',
-                }}>
-                  <button
-                    type="button"
-                    onClick={() => { void submitAsk(); }}
-                    disabled={askText().trim().length === 0}
+            <Show
+              when={!askingOpen()}
+              fallback={
+                <div>
+                  <textarea
+                    value={askText()}
+                    onInput={(e) => setAskText((e.currentTarget as HTMLTextAreaElement).value)}
+                    placeholder={t('qa.placeholder')}
+                    rows={3}
                     style={{
-                      all: 'unset',
-                      cursor: askText().trim().length === 0 ? 'not-allowed' : 'pointer',
-                      padding: '0.35rem 0.7rem',
-                      background: askText().trim().length === 0 ? '#e7e5e0' : '#1e293b',
-                      color: askText().trim().length === 0 ? '#999' : '#fff',
+                      width: '100%',
+                      'box-sizing': 'border-box',
+                      padding: '0.45rem 0.55rem',
+                      border: '1px solid #d6d3d1',
                       'border-radius': '4px',
-                      'font-size': '0.78rem',
+                      'font-family': 'inherit',
+                      'font-size': '0.85rem',
+                      'line-height': 1.45,
+                      color: '#222',
+                      resize: 'vertical',
                     }}
-                  >
-                    {t('qa.submit')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setAskingOpen(false); setAskText(''); setAskError(null); }}
+                  />
+                  <Show when={askError()}>
+                    <div
+                      style={{
+                        'margin-top': '0.3rem',
+                        'font-size': '0.75rem',
+                        color: '#c00',
+                      }}
+                    >
+                      {askError()}
+                    </div>
+                  </Show>
+                  <div
                     style={{
-                      all: 'unset',
-                      cursor: 'pointer',
-                      padding: '0.35rem 0.7rem',
-                      color: '#666',
-                      'font-size': '0.78rem',
+                      display: 'flex',
+                      gap: '0.4rem',
+                      'margin-top': '0.4rem',
                     }}
                   >
-                    {t('qa.cancel')}
-                  </button>
-                </div>
-                <Show when={suggested() || registry()}>
-                  <div style={{
-                    'margin-top': '0.4rem',
-                    'font-size': '0.7rem',
-                    color: '#999',
-                  }}>
-                    {t('qa.privacy')}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void submitAsk();
+                      }}
+                      disabled={askText().trim().length === 0}
+                      style={{
+                        all: 'unset',
+                        cursor: askText().trim().length === 0 ? 'not-allowed' : 'pointer',
+                        padding: '0.35rem 0.7rem',
+                        background: askText().trim().length === 0 ? '#e7e5e0' : '#1e293b',
+                        color: askText().trim().length === 0 ? '#999' : '#fff',
+                        'border-radius': '4px',
+                        'font-size': '0.78rem',
+                      }}
+                    >
+                      {t('qa.submit')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAskingOpen(false);
+                        setAskText('');
+                        setAskError(null);
+                      }}
+                      style={{
+                        all: 'unset',
+                        cursor: 'pointer',
+                        padding: '0.35rem 0.7rem',
+                        color: '#666',
+                        'font-size': '0.78rem',
+                      }}
+                    >
+                      {t('qa.cancel')}
+                    </button>
                   </div>
-                </Show>
-              </div>
-            }>
+                  <Show when={suggested() || registry()}>
+                    <div
+                      style={{
+                        'margin-top': '0.4rem',
+                        'font-size': '0.7rem',
+                        color: '#999',
+                      }}
+                    >
+                      {t('qa.privacy')}
+                    </div>
+                  </Show>
+                </div>
+              }
+            >
               <button
                 type="button"
                 onClick={() => setAskingOpen(true)}

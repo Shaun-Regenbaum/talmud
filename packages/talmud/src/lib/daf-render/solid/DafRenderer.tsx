@@ -1,6 +1,6 @@
-import { createMemo, createSignal, createEffect, Show, type JSX } from 'solid-js';
+import { createEffect, createMemo, createSignal, type JSX, Show } from 'solid-js';
 import { computeLayout, type LayoutResult } from '../core/layout';
-import { resolveOptions, type PartialDafOptions } from '../core/options';
+import { type PartialDafOptions, resolveOptions } from '../core/options';
 import type { Amud } from '../core/types';
 
 import '../styles.css';
@@ -128,7 +128,8 @@ export function DafRenderer(props: DafRendererProps): JSX.Element {
     queueMicrotask(() => {
       if (!rootRef) return;
       const q = (sel: string) => rootRef!.querySelector(sel) as HTMLElement | null;
-      const h = (el: HTMLElement | null) => el ? Math.round(el.getBoundingClientRect().height) : 0;
+      const h = (el: HTMLElement | null) =>
+        el ? Math.round(el.getBoundingClientRect().height) : 0;
       const spans = {
         main: h(q('.daf-main .daf-text span')),
         inner: h(q('.daf-inner .daf-text span')),
@@ -150,9 +151,7 @@ export function DafRenderer(props: DafRendererProps): JSX.Element {
   return (
     <div class="daf-root" style={rootStyle()} ref={rootRef}>
       <Show when={!fontsReady()}>
-        <div style={{ padding: '1rem', color: '#888', 'font-style': 'italic' }}>
-          Loading fonts…
-        </div>
+        <div style={{ padding: '1rem', color: '#888', 'font-style': 'italic' }}>Loading fonts…</div>
       </Show>
 
       <div class="daf-outer">

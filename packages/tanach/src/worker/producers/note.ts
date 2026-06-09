@@ -7,7 +7,7 @@
  * margin anchor. Strictly plain sense — no midrash, no homily.
  */
 
-import { runLLM, type LLMEnv } from '@corpus/core/llm/llm';
+import { type LLMEnv, runLLM } from '@corpus/core/llm/llm';
 import { costUsd } from '@corpus/core/llm/pricing';
 
 export interface NoteResult {
@@ -21,13 +21,13 @@ export interface NoteResult {
 
 const SYSTEM = [
   'You write a short note explaining what happens in a passage of the Hebrew',
-  'Bible, on the p\'shat (plain, contextual) level — for a reader who just',
+  "Bible, on the p'shat (plain, contextual) level — for a reader who just",
   'arrived at this section.',
   '',
   'Rules:',
   '- 2 to 3 sentences. Plain and concrete: what plainly happens, and what the',
   '  text means in its own context.',
-  '- Strictly p\'shat. No midrash, no homily, no theology, no commentary debates,',
+  "- Strictly p'shat. No midrash, no homily, no theology, no commentary debates,",
   '  no quoting commentators.',
   '- Do not just restate the verses — orient and explain plainly.',
   '- Give the note in BOTH English ("en") and natural, fluent Hebrew ("he").',

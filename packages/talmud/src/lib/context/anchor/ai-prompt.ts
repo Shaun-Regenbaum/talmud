@@ -42,8 +42,16 @@ export function buildMatchPrompt(
 ): { system: string; user: string } {
   const { maxSegChars = 220, maxItemChars = 400 } = opts;
   const segLines = segmentsHe.map((he, i) => {
-    const en = (segmentsEn[i] ?? '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, maxSegChars);
-    const h = he.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, maxSegChars);
+    const en = (segmentsEn[i] ?? '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, maxSegChars);
+    const h = he
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, maxSegChars);
     return `[${i}] ${h}${en ? `\n     EN: ${en}` : ''}`;
   });
   const itemLines = items.map((it) => {
@@ -55,15 +63,29 @@ export function buildMatchPrompt(
   return { system: SYS, user };
 }
 
-interface RawMatch { key?: unknown; segStart?: unknown; segEnd?: unknown; confidence?: unknown; quote?: unknown }
+interface RawMatch {
+  key?: unknown;
+  segStart?: unknown;
+  segEnd?: unknown;
+  confidence?: unknown;
+  quote?: unknown;
+}
 
 /** Parse the model's JSON into validated SegMatches. Drops unknown keys and
  *  out-of-range segments. An explicit null `segStart` is a deliberate whole-daf
  *  placement (kept, marked `wholeDaf`); a non-null but out-of-range index is junk
  *  (dropped). */
-export function parseMatchResponse(content: string, validKeys: Set<string>, segCount: number): SegMatch[] {
+export function parseMatchResponse(
+  content: string,
+  validKeys: Set<string>,
+  segCount: number,
+): SegMatch[] {
   let parsed: { matches?: RawMatch[] };
-  try { parsed = JSON.parse(content); } catch { return []; }
+  try {
+    parsed = JSON.parse(content);
+  } catch {
+    return [];
+  }
   const matches = Array.isArray(parsed.matches) ? parsed.matches : [];
   const out: SegMatch[] = [];
   for (const m of matches) {
@@ -78,7 +100,13 @@ export function parseMatchResponse(content: string, validKeys: Set<string>, segC
     if (start == null) continue; // a number but out of range → junk
     const end = toSeg(m.segEnd, segCount);
     const quote = typeof m.quote === 'string' && m.quote.trim() ? m.quote.trim() : undefined;
-    out.push({ key: m.key, segs: segRange(start, end != null && end >= start ? end : start), via: 'ai', confidence, quote });
+    out.push({
+      key: m.key,
+      segs: segRange(start, end != null && end >= start ? end : start),
+      via: 'ai',
+      confidence,
+      quote,
+    });
   }
   return out;
 }
@@ -88,4 +116,6 @@ function toSeg(v: unknown, segCount: number): number | null {
   if (v < 0 || v >= segCount) return null;
   return v;
 }
-function clamp01(n: number): number { return Math.max(0, Math.min(1, n)); }
+function clamp01(n: number): number {
+  return Math.max(0, Math.min(1, n));
+}

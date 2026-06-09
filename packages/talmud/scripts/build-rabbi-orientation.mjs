@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 // scripts/build-rabbi-orientation.mjs
 //
 // For every bio-bearing rabbi, fires `/api/admin/rabbi-orientation/:slug`
@@ -8,10 +9,10 @@
 // Usage matches build-rabbi-family.mjs (--url, --concurrency, --only,
 // --resume, --dry-run, --limit).
 
-import { readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RABBIS_PATH = join(__dirname, '..', 'src', 'lib', 'data', 'rabbi-places.json');
@@ -34,13 +35,20 @@ const LIMIT = getArg('--limit', null);
 async function fetchJson(url) {
   const res = await fetch(url);
   const text = await res.text();
-  try { return { status: res.status, json: JSON.parse(text) }; }
-  catch { return { status: res.status, json: { error: text.slice(0, 300) } }; }
+  try {
+    return { status: res.status, json: JSON.parse(text) };
+  } catch {
+    return { status: res.status, json: { error: text.slice(0, 300) } };
+  }
 }
 
 async function loadExistingOutput() {
   if (!existsSync(OUT_PATH)) return null;
-  try { return JSON.parse(await readFile(OUT_PATH, 'utf-8')); } catch { return null; }
+  try {
+    return JSON.parse(await readFile(OUT_PATH, 'utf-8'));
+  } catch {
+    return null;
+  }
 }
 
 async function main() {
@@ -81,7 +89,9 @@ async function main() {
     }
     const before = slugs.length;
     slugs = slugs.filter((s) => !nodes[s]?.processed);
-    console.log(`[orientation] --resume: ${before - slugs.length} already processed, ${slugs.length} remain`);
+    console.log(
+      `[orientation] --resume: ${before - slugs.length} already processed, ${slugs.length} remain`,
+    );
   }
 
   console.log(`[orientation] ${slugs.length} slugs to process (concurrency=${CONCURRENCY})`);
@@ -92,42 +102,50 @@ async function main() {
   const t0 = Date.now();
   const work = [...slugs];
 
-  const workers = Array.from({ length: CONCURRENCY }, () => (async () => {
-    while (work.length > 0) {
-      const slug = work.shift();
-      if (!slug) return;
-      const { status, json } = await fetchJson(`${URL}/api/admin/rabbi-orientation/${encodeURIComponent(slug)}`);
-      done++;
-      if (status !== 200) {
-        errors.push({ slug, status, error: json.error ?? json });
+  const workers = Array.from({ length: CONCURRENCY }, () =>
+    (async () => {
+      while (work.length > 0) {
+        const slug = work.shift();
+        if (!slug) return;
+        const { status, json } = await fetchJson(
+          `${URL}/api/admin/rabbi-orientation/${encodeURIComponent(slug)}`,
+        );
+        done++;
+        if (status !== 200) {
+          errors.push({ slug, status, error: json.error ?? json });
+          const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+          console.error(
+            `[${done}/${total}] ${elapsed}s FAIL ${slug} status=${status} err=${JSON.stringify(json).slice(0, 160)}`,
+          );
+          continue;
+        }
+        const node = nodes[slug];
+        if (!node) continue;
+        node.orientation = json.orientation;
+        node.domain = json.domain;
+        node.academies = json.academies ?? [];
+        node.processed = true;
+
         const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-        console.error(`[${done}/${total}] ${elapsed}s FAIL ${slug} status=${status} err=${JSON.stringify(json).slice(0, 160)}`);
-        continue;
-      }
-      const node = nodes[slug];
-      if (!node) continue;
-      node.orientation = json.orientation;
-      node.domain = json.domain;
-      node.academies = json.academies ?? [];
-      node.processed = true;
+        console.log(
+          `[${done}/${total}] ${elapsed}s  ${slug.padEnd(40)} ${node.orientation}/${node.domain} @${node.academies.join(',')}`,
+        );
 
-      const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-      console.log(`[${done}/${total}] ${elapsed}s  ${slug.padEnd(40)} ${node.orientation}/${node.domain} @${node.academies.join(',')}`);
-
-      if (!DRY_RUN && done % 25 === 0) {
-        const processedSoFar = Object.values(nodes).filter((n) => n.processed).length;
-        const checkpoint = {
-          generatedAt: new Date().toISOString(),
-          source: `${URL}/api/admin/rabbi-orientation`,
-          totalNodes: Object.keys(nodes).length,
-          processedNodes: processedSoFar,
-          nodes,
-        };
-        await writeFile(OUT_PATH, JSON.stringify(checkpoint, null, 2) + '\n', 'utf-8');
-        console.log(`[orientation] checkpoint: ${processedSoFar} processed`);
+        if (!DRY_RUN && done % 25 === 0) {
+          const processedSoFar = Object.values(nodes).filter((n) => n.processed).length;
+          const checkpoint = {
+            generatedAt: new Date().toISOString(),
+            source: `${URL}/api/admin/rabbi-orientation`,
+            totalNodes: Object.keys(nodes).length,
+            processedNodes: processedSoFar,
+            nodes,
+          };
+          await writeFile(OUT_PATH, JSON.stringify(checkpoint, null, 2) + '\n', 'utf-8');
+          console.log(`[orientation] checkpoint: ${processedSoFar} processed`);
+        }
       }
-    }
-  })());
+    })(),
+  );
 
   await Promise.all(workers);
 

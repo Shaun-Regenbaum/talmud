@@ -31,14 +31,22 @@ export function buildTokenRange(
   let endSpans: NodeListOf<HTMLElement> | null = null;
   for (let s = endSegRequested; s >= startSeg; s--) {
     const found = mainCol.querySelectorAll<HTMLElement>(`.daf-word[data-seg="${s}"]`);
-    if (found.length > 0) { endSeg = s; endSpans = found; break; }
+    if (found.length > 0) {
+      endSeg = s;
+      endSpans = found;
+      break;
+    }
   }
   if (!endSpans) return null;
 
-  const tokStart = typeof tokenStart === 'number' && tokenStart >= 0 && tokenStart < firstSpans.length
-    ? tokenStart : 0;
-  const tokEnd = typeof tokenEnd === 'number' && tokenEnd >= 0 && tokenEnd < endSpans.length
-    ? tokenEnd : endSpans.length - 1;
+  const tokStart =
+    typeof tokenStart === 'number' && tokenStart >= 0 && tokenStart < firstSpans.length
+      ? tokenStart
+      : 0;
+  const tokEnd =
+    typeof tokenEnd === 'number' && tokenEnd >= 0 && tokenEnd < endSpans.length
+      ? tokenEnd
+      : endSpans.length - 1;
 
   const range = document.createRange();
   range.setStartBefore(firstSpans[tokStart]);

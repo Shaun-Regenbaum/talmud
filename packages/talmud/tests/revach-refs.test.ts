@@ -1,11 +1,11 @@
-import { describe, it, expect } from 'vitest';
-import { findDafRefs } from '../src/lib/sefref/dafyomi/parse/common';
-import { resolveTractateName, resolveDafRef } from '../src/lib/sefref/dafyomi/masechtos';
-import { parseRevach } from '../src/lib/sefref/dafyomi/parse/revach';
-import { formatContextForPrompt } from '@corpus/core/context/select';
 import { dafCoord } from '@corpus/core/context/coord';
-import { fromDafyomi } from '../src/lib/context/fromDafyomi';
+import { formatContextForPrompt } from '@corpus/core/context/select';
 import type { ContextItem } from '@corpus/core/context/types';
+import { describe, expect, it } from 'vitest';
+import { fromDafyomi } from '../src/lib/context/fromDafyomi';
+import { resolveDafRef, resolveTractateName } from '../src/lib/sefref/dafyomi/masechtos';
+import { findDafRefs } from '../src/lib/sefref/dafyomi/parse/common';
+import { parseRevach } from '../src/lib/sefref/dafyomi/parse/revach';
 import type { DafyomiDaf } from '../src/lib/sefref/dafyomi/schema';
 
 describe('resolveTractateName — dafyomi prose spelling → canonical', () => {
@@ -72,17 +72,31 @@ describe('fromDafyomi — carries entry.refs onto ContextItem.refs (daf-level co
   it('maps resolved refs to daf-level coordinates, drops unresolved ones', () => {
     const daf = {
       source: { urls: {} },
-      amudim: { a: { revach: {
-        type: 'revach', amud: 'a', wholeDaf: true,
-        body: { type: 'revach', entries: [
-          { marker: '1.', level: 0, title: { en: 'cites' }, body: { en: 'see Pesachim 50a' },
-            refs: [
-              { raw: 'Pesachim 50a', kind: 'gemara', tractate: 'Pesachim', page: '50a' },
-              { raw: 'Rashi DH', kind: 'rashi' }, // no tractate/page → dropped
-            ] },
-          { marker: '2.', level: 0, title: { en: 'no refs' }, body: { en: 'plain' } },
-        ] },
-      } } },
+      amudim: {
+        a: {
+          revach: {
+            type: 'revach',
+            amud: 'a',
+            wholeDaf: true,
+            body: {
+              type: 'revach',
+              entries: [
+                {
+                  marker: '1.',
+                  level: 0,
+                  title: { en: 'cites' },
+                  body: { en: 'see Pesachim 50a' },
+                  refs: [
+                    { raw: 'Pesachim 50a', kind: 'gemara', tractate: 'Pesachim', page: '50a' },
+                    { raw: 'Rashi DH', kind: 'rashi' }, // no tractate/page → dropped
+                  ],
+                },
+                { marker: '2.', level: 0, title: { en: 'no refs' }, body: { en: 'plain' } },
+              ],
+            },
+          },
+        },
+      },
     } as unknown as DafyomiDaf;
     const items = fromDafyomi(daf).filter((i) => i.source === 'dafyomi:revach');
     expect(items[0].refs).toEqual([{ tractate: 'Pesachim', page: '50a', seg: -1 }]);
@@ -93,9 +107,14 @@ describe('fromDafyomi — carries entry.refs onto ContextItem.refs (daf-level co
 describe('formatContextForPrompt — renders refs as "cites", placement unchanged', () => {
   it('appends cites for a whole-daf Revach item with daf-level refs', () => {
     const item: ContextItem = {
-      source: 'dafyomi:revach', sourceLabel: "Revach l'Daf", kind: 'revach', key: 'revach:a:1',
-      title: { en: 'A contradiction is raised' }, body: { en: 'See the Gemara.' },
-      segs: [], refs: [dafCoord({ tractate: 'Pesachim', page: '50a' })],
+      source: 'dafyomi:revach',
+      sourceLabel: "Revach l'Daf",
+      kind: 'revach',
+      key: 'revach:a:1',
+      title: { en: 'A contradiction is raised' },
+      body: { en: 'See the Gemara.' },
+      segs: [],
+      refs: [dafCoord({ tractate: 'Pesachim', page: '50a' })],
     };
     const out = formatContextForPrompt([item]);
     expect(out).toContain('[whole daf] A contradiction is raised');

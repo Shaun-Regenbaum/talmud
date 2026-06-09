@@ -30,13 +30,20 @@
  * (qa/ask, run, warm-daf) pre-check too, purely for instant UI feedback
  * and to avoid pointless queue churn.
  */
-import { costUsd, type TokenUsage } from './pricing';
+
 import { LLMError, NEITHER } from './llm-error';
+import { costUsd, type TokenUsage } from './pricing';
 
 /** Minimal Cloudflare Email-send binding (send_email). Structurally compatible
  *  with the one in warm-cron.ts and the EMAIL binding in wrangler.toml. */
 export interface EmailBinding {
-  send(message: { to: string; from: string; subject: string; html?: string; text?: string }): Promise<{ messageId: string }>;
+  send(message: {
+    to: string;
+    from: string;
+    subject: string;
+    html?: string;
+    text?: string;
+  }): Promise<{ messageId: string }>;
 }
 
 /** Env surface budget functions need. Bindings / LLMEnv both satisfy this. */
@@ -142,7 +149,12 @@ async function readCounter(cache: KVNamespace, key: string): Promise<number> {
   return Number.isFinite(n) ? n : 0;
 }
 
-async function bumpCounter(cache: KVNamespace, key: string, delta: number, ttlS: number): Promise<number> {
+async function bumpCounter(
+  cache: KVNamespace,
+  key: string,
+  delta: number,
+  ttlS: number,
+): Promise<number> {
   // Best-effort read-add-write. Under concurrency a lost write undercounts,
   // delaying (never falsely tripping) the pause -- checkBudget's defensive
   // re-derivation closes that gap before the next call spends.
@@ -164,7 +176,12 @@ async function readLatch(cache: KVNamespace, key: string, now: number): Promise<
   return null;
 }
 
-async function armLatch(cache: KVNamespace, key: string, latch: PauseLatch, now: number): Promise<void> {
+async function armLatch(
+  cache: KVNamespace,
+  key: string,
+  latch: PauseLatch,
+  now: number,
+): Promise<void> {
   const ttl = Math.max(60, Math.ceil((latch.until - now) / 1000));
   await cache.put(key, JSON.stringify(latch), { expirationTtl: ttl });
 }
@@ -185,7 +202,12 @@ async function sendBudgetAlert(env: BudgetEnv, subject: string, text: string): P
  *  sending so a concurrent crosser skips; under KV's ~60s consistency a burst
  *  may still emit a couple duplicate alerts, which is acceptable. */
 async function alertOnce(
-  cache: KVNamespace, flagKey: string, ttlS: number, env: BudgetEnv, subject: string, text: string,
+  cache: KVNamespace,
+  flagKey: string,
+  ttlS: number,
+  env: BudgetEnv,
+  subject: string,
+  text: string,
 ): Promise<void> {
   if (await cache.get(flagKey)) return;
   await cache.put(flagKey, '1', { expirationTtl: ttlS });
@@ -211,34 +233,55 @@ export async function recordSpend(
     const total = await bumpCounter(cache, `${TOTAL_BUCKET}${dayBucket(now)}`, usd, TOTAL_TTL_S);
     if (total >= dailyTrip(env)) {
       const until = nextUtcMidnight(now);
-      await armLatch(cache, PAUSE_ALL, {
-        until,
-        reason: `daily spend $${total.toFixed(2)} reached trip $${dailyTrip(env).toFixed(2)} (cap $${dailyCap(env)})`,
-        spentUsd: total,
-      }, now);
+      await armLatch(
+        cache,
+        PAUSE_ALL,
+        {
+          until,
+          reason: `daily spend $${total.toFixed(2)} reached trip $${dailyTrip(env).toFixed(2)} (cap $${dailyCap(env)})`,
+          spentUsd: total,
+        },
+        now,
+      );
       await alertOnce(
-        cache, `${ALERTED_DAILY}${dayBucket(now)}`, Math.max(60, Math.ceil((until - now) / 1000) + 300), env,
+        cache,
+        `${ALERTED_DAILY}${dayBucket(now)}`,
+        Math.max(60, Math.ceil((until - now) / 1000) + 300),
+        env,
         `[talmud] Daily LLM spend paused — $${total.toFixed(2)}`,
         `Daily LLM spend reached $${total.toFixed(2)} (trip $${dailyTrip(env).toFixed(2)}, hard cap $${dailyCap(env)}).\n` +
-        `ALL AI generation is now paused until the next UTC midnight (${new Date(until).toISOString()}).\n\n` +
-        `If this is unexpected, check for runaway/abusive usage.\n\n` +
-        `Budget status: ${APP_URL}/api/admin/budget\nUsage dashboard: ${APP_URL}/usage\n`,
+          `ALL AI generation is now paused until the next UTC midnight (${new Date(until).toISOString()}).\n\n` +
+          `If this is unexpected, check for runaway/abusive usage.\n\n` +
+          `Budget status: ${APP_URL}/api/admin/budget\nUsage dashboard: ${APP_URL}/usage\n`,
       );
     }
     if (args.custom) {
-      const spent = await bumpCounter(cache, `${CUSTOM_BUCKET}${hourBucket(now)}`, usd, CUSTOM_TTL_S);
+      const spent = await bumpCounter(
+        cache,
+        `${CUSTOM_BUCKET}${hourBucket(now)}`,
+        usd,
+        CUSTOM_TTL_S,
+      );
       if (spent >= hourlyCustomCap(env)) {
-        await armLatch(cache, PAUSE_CUSTOM, {
-          until: now + HOUR_MS,
-          reason: `custom-question spend $${spent.toFixed(2)} reached cap $${hourlyCustomCap(env)} this hour`,
-          spentUsd: spent,
-        }, now);
+        await armLatch(
+          cache,
+          PAUSE_CUSTOM,
+          {
+            until: now + HOUR_MS,
+            reason: `custom-question spend $${spent.toFixed(2)} reached cap $${hourlyCustomCap(env)} this hour`,
+            spentUsd: spent,
+          },
+          now,
+        );
         await alertOnce(
-          cache, `${ALERTED_CUSTOM}${hourBucket(now)}`, 3600 + 300, env,
+          cache,
+          `${ALERTED_CUSTOM}${hourBucket(now)}`,
+          3600 + 300,
+          env,
           `[talmud] Hourly custom-question spend cap hit — $${spent.toFixed(2)}`,
           `Custom-question spend hit $${spent.toFixed(2)} (cap $${hourlyCustomCap(env)}) within the hour ${hourBucket(now)} UTC.\n` +
-          `Custom Q&A is paused for the rest of the hour. A sudden hit here often means someone is hammering custom questions to use the LLM.\n\n` +
-          `Budget status: ${APP_URL}/api/admin/budget\nUsage dashboard: ${APP_URL}/usage\n`,
+            `Custom Q&A is paused for the rest of the hour. A sudden hit here often means someone is hammering custom questions to use the LLM.\n\n` +
+            `Budget status: ${APP_URL}/api/admin/budget\nUsage dashboard: ${APP_URL}/usage\n`,
         );
       }
     }
@@ -299,11 +342,17 @@ export async function checkBudget(
 }
 
 /** Read-only snapshot for /api/admin/budget. */
-export async function budgetStatus(env: BudgetEnv, now: number = Date.now()): Promise<{
+export async function budgetStatus(
+  env: BudgetEnv,
+  now: number = Date.now(),
+): Promise<{
   now: number;
   daily: { spentUsd: number; capUsd: number; tripUsd: number; bucket: string };
   customHourly: { spentUsd: number; capUsd: number; bucket: string };
-  pause: { all: { until: number; reason: string } | null; custom: { until: number; reason: string } | null };
+  pause: {
+    all: { until: number; reason: string } | null;
+    custom: { until: number; reason: string } | null;
+  };
 }> {
   const cache = env.CACHE;
   const total = cache ? await readCounter(cache, `${TOTAL_BUCKET}${dayBucket(now)}`) : 0;
@@ -312,8 +361,17 @@ export async function budgetStatus(env: BudgetEnv, now: number = Date.now()): Pr
   const pauseCustom = cache ? await readLatch(cache, PAUSE_CUSTOM, now) : null;
   return {
     now,
-    daily: { spentUsd: round(total), capUsd: dailyCap(env), tripUsd: round(dailyTrip(env)), bucket: dayBucket(now) },
-    customHourly: { spentUsd: round(customHour), capUsd: hourlyCustomCap(env), bucket: hourBucket(now) },
+    daily: {
+      spentUsd: round(total),
+      capUsd: dailyCap(env),
+      tripUsd: round(dailyTrip(env)),
+      bucket: dayBucket(now),
+    },
+    customHourly: {
+      spentUsd: round(customHour),
+      capUsd: hourlyCustomCap(env),
+      bucket: hourBucket(now),
+    },
     pause: {
       all: pauseAll ? { until: pauseAll.until, reason: pauseAll.reason } : null,
       custom: pauseCustom ? { until: pauseCustom.until, reason: pauseCustom.reason } : null,

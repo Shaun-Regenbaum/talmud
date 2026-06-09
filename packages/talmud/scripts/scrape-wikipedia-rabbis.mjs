@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 // scripts/scrape-wikipedia-rabbis.mjs
 //
 // Crawls Hebrew Wikipedia's Tanna/Amora generation categories, fetches the
@@ -19,64 +20,65 @@
 // Raw MediaWiki responses are cached under scripts/.cache/wikipedia/ so
 // re-runs are cheap and idempotent.
 
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_PATH = join(__dirname, '..', 'src', 'lib', 'data', 'rabbi-places.json');
 const CACHE_DIR = join(__dirname, '.cache', 'wikipedia');
 
-const USER_AGENT = 'talmud-viewer/0.1 (https://github.com/shaunregenbaum/talmud; shaunregenbaum@gmail.com)';
+const USER_AGENT =
+  'talmud-viewer/0.1 (https://github.com/shaunregenbaum/talmud; shaunregenbaum@gmail.com)';
 const WIKI_API = 'https://he.wikipedia.org/w/api.php';
 
 // Generation categories — Hebrew Wikipedia's titles map 1:1 to our generation
 // IDs. Order matters: when a rabbi appears in multiple categories, the FIRST
 // one wins (earliest generation). So keep tanna-1 before tanna-2, etc.
 const GENERATION_CATEGORIES = {
-  'זוגות':                             'zugim',
-  'הדור הראשון לתנאים':                'tanna-1',
-  'הדור השני לתנאים':                  'tanna-2',
-  'הדור השלישי לתנאים':                'tanna-3',
-  'הדור הרביעי לתנאים':                'tanna-4',
-  'הדור החמישי לתנאים':                'tanna-5',
-  'הדור השישי לתנאים':                 'tanna-6',
-  'הדור הראשון לאמוראי ארץ ישראל':     'amora-ey-1',
-  'הדור השני לאמוראי ארץ ישראל':       'amora-ey-2',
-  'הדור השלישי לאמוראי ארץ ישראל':     'amora-ey-3',
-  'הדור הרביעי לאמוראי ארץ ישראל':     'amora-ey-4',
-  'הדור החמישי לאמוראי ארץ ישראל':     'amora-ey-5',
-  'הדור הראשון לאמוראי בבל':           'amora-bavel-1',
-  'הדור השני לאמוראי בבל':             'amora-bavel-2',
-  'הדור השלישי לאמוראי בבל':           'amora-bavel-3',
-  'הדור הרביעי לאמוראי בבל':           'amora-bavel-4',
-  'הדור החמישי לאמוראי בבל':           'amora-bavel-5',
-  'הדור השישי לאמוראי בבל':            'amora-bavel-6',
-  'הדור השביעי לאמוראי בבל':           'amora-bavel-7',
-  'הדור השמיני לאמוראי בבל':           'amora-bavel-8',
-  'סבוראים':                           'savora',
+  זוגות: 'zugim',
+  'הדור הראשון לתנאים': 'tanna-1',
+  'הדור השני לתנאים': 'tanna-2',
+  'הדור השלישי לתנאים': 'tanna-3',
+  'הדור הרביעי לתנאים': 'tanna-4',
+  'הדור החמישי לתנאים': 'tanna-5',
+  'הדור השישי לתנאים': 'tanna-6',
+  'הדור הראשון לאמוראי ארץ ישראל': 'amora-ey-1',
+  'הדור השני לאמוראי ארץ ישראל': 'amora-ey-2',
+  'הדור השלישי לאמוראי ארץ ישראל': 'amora-ey-3',
+  'הדור הרביעי לאמוראי ארץ ישראל': 'amora-ey-4',
+  'הדור החמישי לאמוראי ארץ ישראל': 'amora-ey-5',
+  'הדור הראשון לאמוראי בבל': 'amora-bavel-1',
+  'הדור השני לאמוראי בבל': 'amora-bavel-2',
+  'הדור השלישי לאמוראי בבל': 'amora-bavel-3',
+  'הדור הרביעי לאמוראי בבל': 'amora-bavel-4',
+  'הדור החמישי לאמוראי בבל': 'amora-bavel-5',
+  'הדור השישי לאמוראי בבל': 'amora-bavel-6',
+  'הדור השביעי לאמוראי בבל': 'amora-bavel-7',
+  'הדור השמיני לאמוראי בבל': 'amora-bavel-8',
+  סבוראים: 'savora',
 };
 
 // Non-article pages that leak into category listings.
 const SKIP_TITLE_PREFIXES = ['קטגוריה:', 'תבנית:', 'פורטל:', 'ויקיפדיה:', 'מיון:'];
-const SKIP_TITLE_CONTAINS  = ['רשימת '];
+const SKIP_TITLE_CONTAINS = ['רשימת '];
 
 // --- args ---------------------------------------------------------------
 
 const args = process.argv.slice(2);
 const getFlag = (name) => args.includes(name);
-const getArg  = (name, def) => {
+const getArg = (name, def) => {
   const i = args.indexOf(name);
   return i >= 0 && args[i + 1] ? args[i + 1] : def;
 };
 
-const URL_BASE    = getArg('--url', 'http://localhost:5173');
-const ONLY_CAT    = getArg('--category', null);
-const LIMIT       = parseInt(getArg('--limit', '0'), 10) || 0;
+const URL_BASE = getArg('--url', 'http://localhost:5173');
+const ONLY_CAT = getArg('--category', null);
+const LIMIT = parseInt(getArg('--limit', '0'), 10) || 0;
 const CONCURRENCY = parseInt(getArg('--concurrency', '6'), 10);
-const DRY_RUN     = getFlag('--dry-run');
-const FORCE       = getFlag('--force');
+const DRY_RUN = getFlag('--dry-run');
+const FORCE = getFlag('--force');
 
 // --- helpers ------------------------------------------------------------
 
@@ -107,8 +109,11 @@ function cacheKey(title) {
 async function readCache(name) {
   const path = join(CACHE_DIR, name);
   if (!existsSync(path)) return null;
-  try { return JSON.parse(await readFile(path, 'utf-8')); }
-  catch { return null; }
+  try {
+    return JSON.parse(await readFile(path, 'utf-8'));
+  } catch {
+    return null;
+  }
 }
 
 async function writeCache(name, value) {
@@ -123,7 +128,9 @@ async function wikiApi(params, cacheName) {
   }
   const qs = new URLSearchParams({ ...params, format: 'json', formatversion: '2' });
   const url = `${WIKI_API}?${qs.toString()}`;
-  const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT, 'Accept': 'application/json' } });
+  const res = await fetch(url, {
+    headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
+  });
   if (!res.ok) throw new Error(`wiki ${res.status}: ${url}`);
   const json = await res.json();
   if (cacheName) await writeCache(cacheName, json);
@@ -176,7 +183,9 @@ async function fetchExtract(title) {
   return {
     title: page.title,
     extract: page.extract ?? '',
-    url: page.fullurl ?? `https://he.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`,
+    url:
+      page.fullurl ??
+      `https://he.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`,
   };
 }
 
@@ -188,8 +197,11 @@ async function translateBio({ hebrewBio, nameHe, nameEn }) {
   });
   const text = await res.text();
   let json;
-  try { json = JSON.parse(text); }
-  catch { return { ok: false, error: `non-JSON response (${res.status}): ${text.slice(0, 200)}` }; }
+  try {
+    json = JSON.parse(text);
+  } catch {
+    return { ok: false, error: `non-JSON response (${res.status}): ${text.slice(0, 200)}` };
+  }
   if (res.status !== 200) return { ok: false, error: json.error ?? `status ${res.status}` };
   return { ok: true, data: json };
 }
@@ -203,7 +215,9 @@ function pickUniqueSlug(base, existing) {
   throw new Error(`cannot find unique slug for ${base}`);
 }
 
-function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
 
 // --- main ---------------------------------------------------------------
 
@@ -227,7 +241,9 @@ async function main() {
     : GENERATION_CATEGORIES;
 
   if (ONLY_CAT && !GENERATION_CATEGORIES[ONLY_CAT]) {
-    console.warn(`[wiki] warning: category "${ONLY_CAT}" is not in the generation map; generation will be 'unknown'`);
+    console.warn(
+      `[wiki] warning: category "${ONLY_CAT}" is not in the generation map; generation will be 'unknown'`,
+    );
   }
 
   // Collect (title, generation) pairs. First-seen generation wins (earliest
@@ -235,8 +251,12 @@ async function main() {
   const pageToGen = new Map();
   for (const [category, gen] of Object.entries(categories)) {
     let titles;
-    try { titles = await listCategoryMembers(category); }
-    catch (err) { console.warn(`[wiki] skip category ${category}: ${err.message}`); continue; }
+    try {
+      titles = await listCategoryMembers(category);
+    } catch (err) {
+      console.warn(`[wiki] skip category ${category}: ${err.message}`);
+      continue;
+    }
     console.log(`[wiki] ${category.padEnd(40)} → ${gen.padEnd(14)} (${titles.length} pages)`);
     for (const t of titles) {
       if (!pageToGen.has(t)) pageToGen.set(t, { generation: gen, category });
@@ -248,7 +268,11 @@ async function main() {
   const total = queue.length;
   console.log(`[wiki] ${total} unique pages to process (concurrency=${CONCURRENCY})\n`);
 
-  let added = 0, updated = 0, skipped = 0, failed = 0, done = 0;
+  let added = 0,
+    updated = 0,
+    skipped = 0,
+    failed = 0,
+    done = 0;
   const newEntries = [];
   const updates = [];
   const t0 = Date.now();
@@ -268,7 +292,11 @@ async function main() {
     const heNorm = normalizeHeForResolve(he);
     const matchedSlug = byHe.get(heNorm) ?? null;
 
-    const t = await translateBio({ hebrewBio: page.extract, nameHe: he, nameEn: matchedSlug ? data.rabbis[matchedSlug].canonical : undefined });
+    const t = await translateBio({
+      hebrewBio: page.extract,
+      nameHe: he,
+      nameEn: matchedSlug ? data.rabbis[matchedSlug].canonical : undefined,
+    });
     if (!t.ok) {
       failed++;
       console.log(`${progress} FAIL ${title}: ${t.error}`);
@@ -307,17 +335,17 @@ async function main() {
       existingSlugs.add(slug);
       const region = deriveRegionFromGeneration(generation);
       const newEntry = {
-        canonical:    canonicalEn,
-        canonicalHe:  he,
-        aliases:      Array.from(new Set(aliases.filter((a) => a && a !== canonicalEn))).slice(0, 10),
-        places:       [],
-        region:       region,
-        numSources:   null,
-        generation:   generation,
-        moved:        null,
-        bio:          bioEn.slice(0, 800),
-        image:        null,
-        wiki:         page.url,
+        canonical: canonicalEn,
+        canonicalHe: he,
+        aliases: Array.from(new Set(aliases.filter((a) => a && a !== canonicalEn))).slice(0, 10),
+        places: [],
+        region: region,
+        numSources: null,
+        generation: generation,
+        moved: null,
+        bio: bioEn.slice(0, 800),
+        image: null,
+        wiki: page.url,
       };
       data.rabbis[slug] = newEntry;
       byHe.set(heNorm, slug);
@@ -344,26 +372,33 @@ async function main() {
       try {
         await writeFile(DATA_PATH, JSON.stringify(data, null, 2) + '\n', 'utf-8');
         console.log(`[wiki] wrote partial: ${added} added, ${updated} updated`);
-      } catch (err) { console.error('[wiki] partial write failed:', err); }
+      } catch (err) {
+        console.error('[wiki] partial write failed:', err);
+      }
     }
     process.exit(130);
   });
 
-  const workers = Array.from({ length: CONCURRENCY }, () => (async () => {
-    while (queue.length > 0 && !interrupted) {
-      const item = queue.shift();
-      if (!item) return;
-      try { await processOne(item); }
-      catch (err) {
-        failed++;
-        console.error(`[err] ${item.title}: ${err.message}`);
+  const workers = Array.from({ length: CONCURRENCY }, () =>
+    (async () => {
+      while (queue.length > 0 && !interrupted) {
+        const item = queue.shift();
+        if (!item) return;
+        try {
+          await processOne(item);
+        } catch (err) {
+          failed++;
+          console.error(`[err] ${item.title}: ${err.message}`);
+        }
       }
-    }
-  })());
+    })(),
+  );
   await Promise.all(workers);
 
   const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-  console.log(`\n[wiki] done in ${elapsed}s — ${added} added, ${updated} updated, ${skipped} skipped, ${failed} failed`);
+  console.log(
+    `\n[wiki] done in ${elapsed}s — ${added} added, ${updated} updated, ${skipped} skipped, ${failed} failed`,
+  );
 
   if (newEntries.length > 0) {
     console.log('\n[wiki] new rabbis:');

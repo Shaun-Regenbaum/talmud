@@ -1,5 +1,5 @@
-import { createResource, createSignal, createEffect, Show, For } from 'solid-js';
-import { prepareWithSegments, layoutWithLines } from '@chenglou/pretext';
+import { layoutWithLines, prepareWithSegments } from '@chenglou/pretext';
+import { createEffect, createResource, createSignal, For, Show } from 'solid-js';
 import type { TalmudPageData } from '../lib/sefref';
 
 const WIDTH = 300;
@@ -30,7 +30,11 @@ function measureBrowser(el: HTMLElement): BrowserMeasure {
   const range = document.createRange();
   range.selectNodeContents(el);
   const rects = Array.from(range.getClientRects()).map((r) => ({
-    top: r.top, right: r.right, bottom: r.bottom, left: r.left, width: r.width,
+    top: r.top,
+    right: r.right,
+    bottom: r.bottom,
+    left: r.left,
+    width: r.width,
   }));
   return {
     lineCount: rects.length,
@@ -83,19 +87,24 @@ export default function PretextSpike() {
       <header style={{ 'margin-bottom': '2rem' }}>
         <h1 style={{ margin: 0 }}>Pretext Spike</h1>
         <p style={{ margin: '0.25rem 0', color: '#6b6b6b', 'font-size': '0.9rem' }}>
-          Width <code>{WIDTH}px</code> · Font <code>{FONT}</code> · Line height <code>{LINE_HEIGHT}px</code>
+          Width <code>{WIDTH}px</code> · Font <code>{FONT}</code> · Line height{' '}
+          <code>{LINE_HEIGHT}px</code>
         </p>
         <p style={{ margin: '0.25rem 0', color: '#6b6b6b', 'font-size': '0.9rem' }}>
           Fonts ready: {fontsReady() ? 'yes' : 'loading…'}
         </p>
-        <button onClick={run} style={{ 'margin-top': '0.5rem' }}>Re-measure</button>
+        <button onClick={run} style={{ 'margin-top': '0.5rem' }}>
+          Re-measure
+        </button>
       </header>
 
       <Show when={daf()} fallback={<p>Loading daf…</p>}>
         {(data) => (
           <div style={{ display: 'grid', 'grid-template-columns': '1fr 1fr', gap: '1.5rem' }}>
             <section>
-              <h2 style={{ 'font-size': '0.85rem', 'text-transform': 'uppercase', color: '#6b6b6b' }}>
+              <h2
+                style={{ 'font-size': '0.85rem', 'text-transform': 'uppercase', color: '#6b6b6b' }}
+              >
                 Browser rendering
               </h2>
               <div
@@ -117,7 +126,9 @@ export default function PretextSpike() {
             </section>
 
             <section>
-              <h2 style={{ 'font-size': '0.85rem', 'text-transform': 'uppercase', color: '#6b6b6b' }}>
+              <h2
+                style={{ 'font-size': '0.85rem', 'text-transform': 'uppercase', color: '#6b6b6b' }}
+              >
                 Measurements
               </h2>
               <Show when={browser() && pretext()} fallback={<p>Measuring…</p>}>
@@ -132,13 +143,21 @@ export default function PretextSpike() {
                   <tbody>
                     <tr>
                       <td style={{ padding: '0.5rem' }}>Browser (Range.getClientRects)</td>
-                      <td style={{ 'text-align': 'right', padding: '0.5rem' }}>{browser()!.lineCount}</td>
-                      <td style={{ 'text-align': 'right', padding: '0.5rem' }}>{browser()!.height.toFixed(2)}</td>
+                      <td style={{ 'text-align': 'right', padding: '0.5rem' }}>
+                        {browser()!.lineCount}
+                      </td>
+                      <td style={{ 'text-align': 'right', padding: '0.5rem' }}>
+                        {browser()!.height.toFixed(2)}
+                      </td>
                     </tr>
                     <tr>
                       <td style={{ padding: '0.5rem' }}>Pretext (layoutWithLines)</td>
-                      <td style={{ 'text-align': 'right', padding: '0.5rem' }}>{pretext()!.lineCount}</td>
-                      <td style={{ 'text-align': 'right', padding: '0.5rem' }}>{pretext()!.height.toFixed(2)}</td>
+                      <td style={{ 'text-align': 'right', padding: '0.5rem' }}>
+                        {pretext()!.lineCount}
+                      </td>
+                      <td style={{ 'text-align': 'right', padding: '0.5rem' }}>
+                        {pretext()!.height.toFixed(2)}
+                      </td>
                     </tr>
                     <tr style={{ 'border-top': '1px solid #ccc', 'font-weight': 600 }}>
                       <td style={{ padding: '0.5rem' }}>Δ</td>
@@ -155,16 +174,30 @@ export default function PretextSpike() {
             </section>
 
             <section style={{ 'grid-column': '1 / -1' }}>
-              <h2 style={{ 'font-size': '0.85rem', 'text-transform': 'uppercase', color: '#6b6b6b' }}>
+              <h2
+                style={{ 'font-size': '0.85rem', 'text-transform': 'uppercase', color: '#6b6b6b' }}
+              >
                 Per-line widths
               </h2>
               <Show when={browser() && pretext()}>
-                <div style={{ display: 'grid', 'grid-template-columns': '4rem 1fr 1fr 4rem', gap: '0.25rem 0.75rem', 'font-size': '0.85rem', 'font-family': 'monospace' }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    'grid-template-columns': '4rem 1fr 1fr 4rem',
+                    gap: '0.25rem 0.75rem',
+                    'font-size': '0.85rem',
+                    'font-family': 'monospace',
+                  }}
+                >
                   <div style={{ 'font-weight': 600 }}>Line</div>
                   <div style={{ 'font-weight': 600 }}>Browser width</div>
                   <div style={{ 'font-weight': 600 }}>Pretext width</div>
                   <div style={{ 'font-weight': 600 }}>Δ</div>
-                  <For each={Array.from({ length: Math.max(browser()!.rects.length, pretext()!.lines.length) })}>
+                  <For
+                    each={Array.from({
+                      length: Math.max(browser()!.rects.length, pretext()!.lines.length),
+                    })}
+                  >
                     {(_, i) => {
                       const bw = browser()!.rects[i()]?.width;
                       const pw = pretext()!.lines[i()]?.width;
@@ -173,7 +206,9 @@ export default function PretextSpike() {
                           <div>{i() + 1}</div>
                           <div>{bw !== undefined ? bw.toFixed(2) : '—'}</div>
                           <div>{pw !== undefined ? pw.toFixed(2) : '—'}</div>
-                          <div>{bw !== undefined && pw !== undefined ? (pw - bw).toFixed(2) : '—'}</div>
+                          <div>
+                            {bw !== undefined && pw !== undefined ? (pw - bw).toFixed(2) : '—'}
+                          </div>
                         </>
                       );
                     }}

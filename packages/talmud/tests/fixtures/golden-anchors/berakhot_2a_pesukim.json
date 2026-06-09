@@ -1,86 +1,86 @@
 {
- "tractate": "Berakhot",
- "page": "2a",
- "mark": "pesukim",
- "cache_hit": true,
- "raw": {
-  "instances": [
-   {
-    "startSegIdx": 7,
-    "endSegIdx": 7,
-    "fields": {
-     "verseRef": "Deuteronomy 6:7",
-     "citationStyle": "explicit",
-     "excerpt": "בְּשָׁכְבְּךָ וּבְקוּמֶךָ",
-     "endExcerpt": "בְּשָׁכְבְּךָ וּבְקוּמֶךָ",
-     "summary": "The verse is cited as the source for the obligation to recite the Shema at night (when lying down) and in the morning (when rising), establishing the order of the Mishnah."
-    }
-   },
-   {
-    "startSegIdx": 8,
-    "endSegIdx": 8,
-    "fields": {
-     "verseRef": "Genesis 1:5",
-     "citationStyle": "explicit",
-     "excerpt": "וַיְהִי עֶרֶב וַיְהִי בֹקֶר יוֹם אֶחָד",
-     "endExcerpt": "וַיְהִי עֶרֶב וַיְהִי בֹקֶר יוֹם אֶחָד",
-     "summary": "The verse is used as an alternative proof that evening precedes morning in the order of creation, justifying why the Mishnah discusses the evening Shema first."
-    }
-   },
-   {
-    "startSegIdx": 12,
-    "endSegIdx": 12,
-    "fields": {
-     "verseRef": "Leviticus 22:7",
-     "citationStyle": "explicit",
-     "excerpt": "וּבָא הַשֶּׁמֶשׁ וְטָהֵר",
-     "endExcerpt": "וּבָא הַשֶּׁמֶשׁ וְטָהֵר",
-     "summary": "The verse is cited to teach that sunset (the coming of the sun) permits a priest to eat terumah, and that atonement (bringing a sacrifice) is not a prerequisite."
-    }
-   }
-  ]
- },
- "expected": {
-  "instances": [
-   {
-    "startSegIdx": 7,
-    "endSegIdx": 7,
-    "fields": {
-     "verseRef": "Deuteronomy 6:7",
-     "citationStyle": "explicit",
-     "excerpt": "בְּשָׁכְבְּךָ וּבְקוּמֶךָ",
-     "endExcerpt": "בְּשָׁכְבְּךָ וּבְקוּמֶךָ",
-     "summary": "The verse is cited as the source for the obligation to recite the Shema at night (when lying down) and in the morning (when rising), establishing the order of the Mishnah.",
-     "tokenStart": 4,
-     "tokenEnd": 5
-    }
-   },
-   {
-    "startSegIdx": 8,
-    "endSegIdx": 8,
-    "fields": {
-     "verseRef": "Genesis 1:5",
-     "citationStyle": "explicit",
-     "excerpt": "וַיְהִי עֶרֶב וַיְהִי בֹקֶר יוֹם אֶחָד",
-     "endExcerpt": "וַיְהִי עֶרֶב וַיְהִי בֹקֶר יוֹם אֶחָד",
-     "summary": "The verse is used as an alternative proof that evening precedes morning in the order of creation, justifying why the Mishnah discusses the evening Shema first.",
-     "tokenStart": 8,
-     "tokenEnd": 13
-    }
-   },
-   {
-    "startSegIdx": 12,
-    "endSegIdx": 12,
-    "fields": {
-     "verseRef": "Leviticus 22:7",
-     "citationStyle": "explicit",
-     "excerpt": "וּבָא הַשֶּׁמֶשׁ וְטָהֵר",
-     "endExcerpt": "וּבָא הַשֶּׁמֶשׁ וְטָהֵר",
-     "summary": "The verse is cited to teach that sunset (the coming of the sun) permits a priest to eat terumah, and that atonement (bringing a sacrifice) is not a prerequisite.",
-     "tokenStart": 20,
-     "tokenEnd": 22
-    }
-   }
-  ]
- }
+  "tractate": "Berakhot",
+  "page": "2a",
+  "mark": "pesukim",
+  "cache_hit": true,
+  "raw": {
+    "instances": [
+      {
+        "startSegIdx": 7,
+        "endSegIdx": 7,
+        "fields": {
+          "verseRef": "Deuteronomy 6:7",
+          "citationStyle": "explicit",
+          "excerpt": "בְּשָׁכְבְּךָ וּבְקוּמֶךָ",
+          "endExcerpt": "בְּשָׁכְבְּךָ וּבְקוּמֶךָ",
+          "summary": "The verse is cited as the source for the obligation to recite the Shema at night (when lying down) and in the morning (when rising), establishing the order of the Mishnah."
+        }
+      },
+      {
+        "startSegIdx": 8,
+        "endSegIdx": 8,
+        "fields": {
+          "verseRef": "Genesis 1:5",
+          "citationStyle": "explicit",
+          "excerpt": "וַיְהִי עֶרֶב וַיְהִי בֹקֶר יוֹם אֶחָד",
+          "endExcerpt": "וַיְהִי עֶרֶב וַיְהִי בֹקֶר יוֹם אֶחָד",
+          "summary": "The verse is used as an alternative proof that evening precedes morning in the order of creation, justifying why the Mishnah discusses the evening Shema first."
+        }
+      },
+      {
+        "startSegIdx": 12,
+        "endSegIdx": 12,
+        "fields": {
+          "verseRef": "Leviticus 22:7",
+          "citationStyle": "explicit",
+          "excerpt": "וּבָא הַשֶּׁמֶשׁ וְטָהֵר",
+          "endExcerpt": "וּבָא הַשֶּׁמֶשׁ וְטָהֵר",
+          "summary": "The verse is cited to teach that sunset (the coming of the sun) permits a priest to eat terumah, and that atonement (bringing a sacrifice) is not a prerequisite."
+        }
+      }
+    ]
+  },
+  "expected": {
+    "instances": [
+      {
+        "startSegIdx": 7,
+        "endSegIdx": 7,
+        "fields": {
+          "verseRef": "Deuteronomy 6:7",
+          "citationStyle": "explicit",
+          "excerpt": "בְּשָׁכְבְּךָ וּבְקוּמֶךָ",
+          "endExcerpt": "בְּשָׁכְבְּךָ וּבְקוּמֶךָ",
+          "summary": "The verse is cited as the source for the obligation to recite the Shema at night (when lying down) and in the morning (when rising), establishing the order of the Mishnah.",
+          "tokenStart": 4,
+          "tokenEnd": 5
+        }
+      },
+      {
+        "startSegIdx": 8,
+        "endSegIdx": 8,
+        "fields": {
+          "verseRef": "Genesis 1:5",
+          "citationStyle": "explicit",
+          "excerpt": "וַיְהִי עֶרֶב וַיְהִי בֹקֶר יוֹם אֶחָד",
+          "endExcerpt": "וַיְהִי עֶרֶב וַיְהִי בֹקֶר יוֹם אֶחָד",
+          "summary": "The verse is used as an alternative proof that evening precedes morning in the order of creation, justifying why the Mishnah discusses the evening Shema first.",
+          "tokenStart": 8,
+          "tokenEnd": 13
+        }
+      },
+      {
+        "startSegIdx": 12,
+        "endSegIdx": 12,
+        "fields": {
+          "verseRef": "Leviticus 22:7",
+          "citationStyle": "explicit",
+          "excerpt": "וּבָא הַשֶּׁמֶשׁ וְטָהֵר",
+          "endExcerpt": "וּבָא הַשֶּׁמֶשׁ וְטָהֵר",
+          "summary": "The verse is cited to teach that sunset (the coming of the sun) permits a priest to eat terumah, and that atonement (bringing a sacrifice) is not a prerequisite.",
+          "tokenStart": 20,
+          "tokenEnd": 22
+        }
+      }
+    ]
+  }
 }
