@@ -52,7 +52,7 @@ const SETUMA = '\u0002';
 const ANCHOR_W = 140;
 // Gap from the text band to the dot (the verse tick sits close to the text); the
 // label itself is pushed further into the margin by .evt-margin padding.
-const ANCHOR_GAP = 24;
+const ANCHOR_GAP = 64;
 // Source icons (rishonim, ...) live in a thin lane right at the band edge,
 // inside the event-anchor labels.
 const ICON_SIZE = 16;
@@ -297,7 +297,9 @@ export function App(): JSX.Element {
     }
     setAnchors(out);
 
-    // Source icons (ר/ג/מ) stacked at the band edge, for verses the index flags.
+    // Source icons (ר/ג/מ) for each flagged verse, laid out as a HORIZONTAL row
+    // at the verse's line (like the Talmud gutter clusters) — one short row per
+    // verse, ~one icon tall, so consecutive verses never overlap or overflow.
     const kindsByVerse = new Map<number, SourceKind[]>();
     for (const v of sourcesIndex()?.verses ?? []) {
       const k = verseKinds(v);
@@ -311,28 +313,14 @@ export function App(): JSX.Element {
         if (!kinds) return;
         const r = vt.getBoundingClientRect();
         if (!r.height) return;
-        // icons stack vertically -> the lane stays one icon wide
+        const rowW = kinds.length * ICON_SIZE + (kinds.length - 1) * 3;
         const side: 'left' | 'right' = r.left + r.width / 2 < m.left + m.width / 2 ? 'left' : 'right';
-        const left = side === 'right' ? b.right - m.left + ICON_GAP : b.left - m.left - ICON_SIZE - ICON_GAP;
-        if (left < 2 || left + ICON_SIZE > m.width - 2) return;
+        const left = side === 'right' ? b.right - m.left + ICON_GAP : b.left - m.left - rowW - ICON_GAP;
+        if (left < 2 || left + rowW > m.width - 2) return;
         icons.push({ v: vn, top: r.top - m.top, left, side, kinds });
       });
     }
-    // Collapse the icon rail: keep each stack at its verse, but DROP a stack
-    // that would overlap the one above (Genesis 1 has sources on every verse —
-    // pushing them down would pile ~84 icons far past the text). Greedy
-    // top-to-bottom, so the rail stays aligned to verses and never overflows.
-    const stackH = (n: number) => n * (ICON_SIZE + 3) + 6;
-    const kept: typeof icons = [];
-    for (const sd of ['left', 'right'] as const) {
-      let prevBottom = -Infinity;
-      for (const a of icons.filter((x) => x.side === sd).sort((x, y) => x.top - y.top)) {
-        if (a.top < prevBottom) continue;
-        kept.push(a);
-        prevBottom = a.top + stackH(a.kinds.length) + 4;
-      }
-    }
-    setVerseIcons(kept);
+    setVerseIcons(icons);
   };
 
   onMount(() => {
