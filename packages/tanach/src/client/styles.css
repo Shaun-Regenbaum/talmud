@@ -562,3 +562,24 @@ body {
 }
 .vgutter:hover,
 .vgutter.active { background: var(--ink); transform: scale(1.12); }
+
+/* "In the Talmud" section (reverse Gemara lookup) in the verse drawer */
+.comm-gemara { padding: 14px 0 4px; border-top: 1px solid var(--line); margin-top: 6px; }
+.gem-entry { padding: 8px 0; }
+.gem-entry + .gem-entry { border-top: 1px dashed var(--line); }
+.gem-ref {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  margin-bottom: 3px;
+}
+.gem-ref:hover { text-decoration: underline; }
+.gem-text {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.gem-text[dir='rtl'] { font-family: 'Frank Ruhl Libre', serif; font-size: 15px; }

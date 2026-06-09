@@ -488,6 +488,62 @@ app.get('/api/sources-index/:book/:chapter', async (c) => {
   return c.json(payload);
 });
 
+// Reverse Gemara lookup: how a verse is used in the Talmud. Sefaria's links
+// (category "Talmud" — Bavli, Yerushalmi, minor tractates) give the passages
+// that cite the verse; we fetch a snippet of each. Cached per verse.
+app.get('/api/gemara/:book/:chapter/:verse', async (c) => {
+  const book = c.req.param('book');
+  const chapter = c.req.param('chapter');
+  const verse = c.req.param('verse');
+  if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
+  if (!/^\d+$/.test(chapter) || !/^\d+$/.test(verse)) return c.json({ error: 'Bad chapter/verse' }, 400);
+
+  const key = `gemara:v1:${book}:${chapter}:${verse}`;
+  const cached = await c.env.CACHE.get(key);
+  if (cached) return c.json(JSON.parse(cached));
+
+  type Link = { category?: string; ref?: string; sourceRef?: string; index_title?: string };
+  let links: Link[];
+  try {
+    const r = await fetch(
+      `https://www.sefaria.org/api/links/${encodeURIComponent(`${book} ${chapter}:${verse}`)}?with_text=0`,
+    );
+    links = (await r.json()) as Link[];
+  } catch (e) {
+    return c.json({ error: `Links fetch failed: ${(e as Error).message}` }, 502);
+  }
+
+  // Distinct Talmud refs, Bavli first (no "Jerusalem Talmud"/"Tractate " prefix),
+  // capped — then fetch a text snippet of each.
+  const seen = new Set<string>();
+  const picked: { ref: string; title: string }[] = [];
+  for (const l of Array.isArray(links) ? links : []) {
+    if (l.category !== 'Talmud') continue;
+    const ref = l.sourceRef || l.ref;
+    if (!ref || seen.has(ref)) continue;
+    seen.add(ref);
+    picked.push({ ref, title: l.index_title ?? '' });
+  }
+  picked.sort((a, b) => Number(/^(Jerusalem|Tractate)/.test(a.title)) - Number(/^(Jerusalem|Tractate)/.test(b.title)));
+  const top = picked.slice(0, 12);
+
+  const passages = await Promise.all(
+    top.map(async (p) => {
+      try {
+        const v3 = await sefaria.getTextV3(p.ref);
+        const he = flattenPieces(pickV3Version(v3.versions, 'he')).join(' ').replace(/<[^>]+>/g, '').trim().slice(0, 420);
+        const en = flattenPieces(pickV3Version(v3.versions, 'en')).join(' ').replace(/<[^>]+>/g, '').trim().slice(0, 420);
+        return { ref: p.ref, he, en };
+      } catch {
+        return { ref: p.ref, he: '', en: '' };
+      }
+    }),
+  );
+  const payload = { book, chapter: Number(chapter), verse: Number(verse), count: picked.length, passages };
+  c.executionCtx.waitUntil(c.env.CACHE.put(key, JSON.stringify(payload)).then(() => undefined));
+  return c.json(payload);
+});
+
 // Self-tracked LLM usage (totals + per-producer + recent calls).
 app.get('/api/usage', async (c) => c.json(await readUsage(c.env.CACHE)));
 
