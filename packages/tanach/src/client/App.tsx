@@ -178,6 +178,10 @@ interface CommentaryResponse {
 interface SourceIdx {
   verses: { verse: number; rishonim: number; rich: boolean }[];
 }
+interface GemaraResp {
+  count: number;
+  passages: { ref: string; he: string; en: string }[];
+}
 /** The event/section labels for a chapter (first producer). Best-effort: a
  *  failure just means no margin anchors — the text still renders. */
 async function fetchEvents(loc: { book: string; chapter: number }): Promise<EventSection[]> {
@@ -405,6 +409,18 @@ export function App(): JSX.Element {
       return res.ok ? ((await res.json()) as SectionNote) : null;
     },
   );
+  // Reverse Gemara: how the verse is used in the Talmud (fetched when a verse
+  // drawer opens).
+  const [gemara] = createResource(
+    () => {
+      const v = commentaryVerse();
+      return v ? { book: loc().book, chapter: loc().chapter, verse: v } : null;
+    },
+    async (k) => {
+      const res = await fetch(`/api/gemara/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`);
+      return res.ok ? ((await res.json()) as GemaraResp) : null;
+    },
+  );
   createEffect(() => {
     chapterKey();
     setCommentaryVerse(null);
@@ -622,6 +638,41 @@ export function App(): JSX.Element {
                     }}
                   </For>
                 )}
+              </Show>
+              <Show when={gemara() && gemara()!.passages.length > 0}>
+                {(_ok) => {
+                  const g = gemara() as GemaraResp;
+                  return (
+                    <section class="comm-gemara">
+                      <h4 class="comm-name">
+                        In the Talmud{g.count > g.passages.length ? ` · ${g.count}` : ''}
+                      </h4>
+                      <For each={g.passages}>
+                        {(p) => {
+                          const text = loc().lang === 'en' ? p.en || p.he : p.he || p.en;
+                          const ltr = loc().lang === 'en' && !!p.en;
+                          return (
+                            <div class="gem-entry">
+                              <a
+                                class="gem-ref"
+                                href={`https://www.sefaria.org/${p.ref.replace(/ /g, '.').replace(/:/g, '.')}`}
+                                target="_blank"
+                                rel="noopener"
+                              >
+                                {p.ref}
+                              </a>
+                              <Show when={text}>
+                                <p class="gem-text" dir={ltr ? 'ltr' : 'rtl'}>
+                                  {text}…
+                                </p>
+                              </Show>
+                            </div>
+                          );
+                        }}
+                      </For>
+                    </section>
+                  );
+                }}
               </Show>
             </div>
           </aside>
