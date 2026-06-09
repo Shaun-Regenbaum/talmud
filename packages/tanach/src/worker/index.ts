@@ -14,6 +14,7 @@ import type { LLMEnv } from '@corpus/core/llm/llm';
 import { isBook } from '../lib/books.ts';
 import { COMMENTATORS } from '../lib/commentators.ts';
 import { eventSections } from './producers/events.ts';
+import { midrashSynthesis } from './producers/midrash.ts';
 import { sectionNote } from './producers/note.ts';
 import { synthesize } from './producers/synthesis.ts';
 import { translateHebrew } from './producers/translate.ts';
@@ -444,7 +445,7 @@ app.get('/api/sources-index/:book/:chapter', async (c) => {
   if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
   if (!/^\d+$/.test(chapter)) return c.json({ error: 'Bad chapter' }, 400);
 
-  const key = `srcidx:v3:${book}:${chapter}`;
+  const key = `srcidx:v4:${book}:${chapter}`;
   const cached = await c.env.CACHE.get(key);
   if (cached) return c.json(JSON.parse(cached));
 
@@ -474,23 +475,110 @@ app.get('/api/sources-index/:book/:chapter', async (c) => {
       }
     }),
   );
+  // Talmud + Midrash citation counts per verse, from one chapter-wide links
+  // fetch (Sefaria's link graph). Heavy for the busiest chapters (~6MB) —
+  // best-effort: on failure the icons just don't show, the drawers still work.
+  const gem = new Map<number, number>();
+  const mid = new Map<number, number>();
+  try {
+    const r = await fetch(
+      `https://www.sefaria.org/api/links/${encodeURIComponent(`${book} ${chapter}`)}?with_text=0`,
+    );
+    type Link = { category?: string; anchorVerse?: number; sourceRef?: string; ref?: string };
+    const links = (await r.json()) as Link[];
+    const gemSeen = new Map<number, Set<string>>();
+    const midSeen = new Map<number, Set<string>>();
+    for (const l of Array.isArray(links) ? links : []) {
+      const v = l.anchorVerse;
+      if (!v) continue;
+      const ref = l.sourceRef || l.ref;
+      if (!ref) continue;
+      if (l.category === 'Talmud') {
+        const s = gemSeen.get(v) ?? new Set<string>();
+        s.add(ref);
+        gemSeen.set(v, s);
+      } else if (l.category === 'Midrash') {
+        const s = midSeen.get(v) ?? new Set<string>();
+        s.add(ref);
+        midSeen.set(v, s);
+      }
+    }
+    gemSeen.forEach((s, v) => gem.set(v, s.size));
+    midSeen.forEach((s, v) => mid.set(v, s.size));
+  } catch {
+    /* links too heavy / unavailable — skip gemara+midrash counts */
+  }
+
   const entries = [...acc.entries()].sort((a, b) => a[0] - b[0]);
   // "rich" = many commentators AND in the top fraction of this chapter by volume.
   const weights = entries.map(([, e]) => e.w).sort((a, b) => a - b);
   const cutoff = weights.length ? weights[Math.floor(weights.length * 0.6)] : 0;
-  const verses = entries.map(([verse, e]) => ({
-    verse,
-    rishonim: e.n,
-    rich: e.n >= 3 && e.w >= cutoff,
-  }));
+  // union of verses that have any source so gemara/midrash-only verses still appear
+  const allVerses = new Set<number>([...acc.keys(), ...gem.keys(), ...mid.keys()]);
+  const verses = [...allVerses]
+    .sort((a, b) => a - b)
+    .map((verse) => {
+      const e = acc.get(verse) ?? { n: 0, w: 0 };
+      return {
+        verse,
+        rishonim: e.n,
+        rich: e.n >= 3 && e.w >= cutoff,
+        gemara: gem.get(verse) ?? 0,
+        midrash: mid.get(verse) ?? 0,
+      };
+    });
   const payload = { book, chapter: Number(chapter), verses };
   c.executionCtx.waitUntil(c.env.CACHE.put(key, JSON.stringify(payload)).then(() => undefined));
   return c.json(payload);
 });
 
-// Reverse Gemara lookup: how a verse is used in the Talmud. Sefaria's links
-// (category "Talmud" — Bavli, Yerushalmi, minor tractates) give the passages
-// that cite the verse; we fetch a snippet of each. Cached per verse.
+interface SourcePassage {
+  ref: string;
+  he: string;
+  en: string;
+}
+
+/** Distinct citing passages of one Sefaria category for a verse (Talmud /
+ *  Midrash), capped, each with a fetched text snippet. `bavliFirst` floats the
+ *  Bavli ahead of Yerushalmi / minor tractates. */
+async function fetchPassages(
+  ref: string,
+  category: string,
+  cap: number,
+  bavliFirst = false,
+): Promise<{ count: number; passages: SourcePassage[] }> {
+  type Link = { category?: string; ref?: string; sourceRef?: string; index_title?: string };
+  const r = await fetch(`https://www.sefaria.org/api/links/${encodeURIComponent(ref)}?with_text=0`);
+  const links = (await r.json()) as Link[];
+  const seen = new Set<string>();
+  const picked: { ref: string; title: string }[] = [];
+  for (const l of Array.isArray(links) ? links : []) {
+    if (l.category !== category) continue;
+    const sref = l.sourceRef || l.ref;
+    if (!sref || seen.has(sref)) continue;
+    seen.add(sref);
+    picked.push({ ref: sref, title: l.index_title ?? '' });
+  }
+  if (bavliFirst) {
+    picked.sort((a, b) => Number(/^(Jerusalem|Tractate)/.test(a.title)) - Number(/^(Jerusalem|Tractate)/.test(b.title)));
+  }
+  const passages = await Promise.all(
+    picked.slice(0, cap).map(async (p) => {
+      try {
+        const v3 = await sefaria.getTextV3(p.ref);
+        const he = flattenPieces(pickV3Version(v3.versions, 'he')).join(' ').replace(/<[^>]+>/g, '').trim().slice(0, 420);
+        const en = flattenPieces(pickV3Version(v3.versions, 'en')).join(' ').replace(/<[^>]+>/g, '').trim().slice(0, 420);
+        return { ref: p.ref, he, en };
+      } catch {
+        return { ref: p.ref, he: '', en: '' };
+      }
+    }),
+  );
+  return { count: picked.length, passages };
+}
+
+// Reverse Gemara lookup: how a verse is used in the Talmud (Sefaria's link
+// graph, category "Talmud"). Cached per verse.
 app.get('/api/gemara/:book/:chapter/:verse', async (c) => {
   const book = c.req.param('book');
   const chapter = c.req.param('chapter');
@@ -502,45 +590,97 @@ app.get('/api/gemara/:book/:chapter/:verse', async (c) => {
   const cached = await c.env.CACHE.get(key);
   if (cached) return c.json(JSON.parse(cached));
 
-  type Link = { category?: string; ref?: string; sourceRef?: string; index_title?: string };
-  let links: Link[];
+  let res: Awaited<ReturnType<typeof fetchPassages>>;
   try {
-    const r = await fetch(
-      `https://www.sefaria.org/api/links/${encodeURIComponent(`${book} ${chapter}:${verse}`)}?with_text=0`,
-    );
-    links = (await r.json()) as Link[];
+    res = await fetchPassages(`${book} ${chapter}:${verse}`, 'Talmud', 12, true);
   } catch (e) {
     return c.json({ error: `Links fetch failed: ${(e as Error).message}` }, 502);
   }
-
-  // Distinct Talmud refs, Bavli first (no "Jerusalem Talmud"/"Tractate " prefix),
-  // capped — then fetch a text snippet of each.
-  const seen = new Set<string>();
-  const picked: { ref: string; title: string }[] = [];
-  for (const l of Array.isArray(links) ? links : []) {
-    if (l.category !== 'Talmud') continue;
-    const ref = l.sourceRef || l.ref;
-    if (!ref || seen.has(ref)) continue;
-    seen.add(ref);
-    picked.push({ ref, title: l.index_title ?? '' });
-  }
-  picked.sort((a, b) => Number(/^(Jerusalem|Tractate)/.test(a.title)) - Number(/^(Jerusalem|Tractate)/.test(b.title)));
-  const top = picked.slice(0, 12);
-
-  const passages = await Promise.all(
-    top.map(async (p) => {
-      try {
-        const v3 = await sefaria.getTextV3(p.ref);
-        const he = flattenPieces(pickV3Version(v3.versions, 'he')).join(' ').replace(/<[^>]+>/g, '').trim().slice(0, 420);
-        const en = flattenPieces(pickV3Version(v3.versions, 'en')).join(' ').replace(/<[^>]+>/g, '').trim().slice(0, 420);
-        return { ref: p.ref, he, en };
-      } catch {
-        return { ref: p.ref, he: '', en: '' };
-      }
-    }),
-  );
-  const payload = { book, chapter: Number(chapter), verse: Number(verse), count: picked.length, passages };
+  const payload = { book, chapter: Number(chapter), verse: Number(verse), count: res.count, passages: res.passages };
   c.executionCtx.waitUntil(c.env.CACHE.put(key, JSON.stringify(payload)).then(() => undefined));
+  return c.json(payload);
+});
+
+// Midrash on a verse (Sefaria's link graph, category "Midrash"). Capped list of
+// sources; the synthesis (next endpoint) distills the volume. Cached per verse.
+app.get('/api/midrash/:book/:chapter/:verse', async (c) => {
+  const book = c.req.param('book');
+  const chapter = c.req.param('chapter');
+  const verse = c.req.param('verse');
+  if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
+  if (!/^\d+$/.test(chapter) || !/^\d+$/.test(verse)) return c.json({ error: 'Bad chapter/verse' }, 400);
+
+  const key = `midrash:v1:${book}:${chapter}:${verse}`;
+  const cached = await c.env.CACHE.get(key);
+  if (cached) return c.json(JSON.parse(cached));
+
+  let res: Awaited<ReturnType<typeof fetchPassages>>;
+  try {
+    res = await fetchPassages(`${book} ${chapter}:${verse}`, 'Midrash', 14);
+  } catch (e) {
+    return c.json({ error: `Links fetch failed: ${(e as Error).message}` }, 502);
+  }
+  const payload = { book, chapter: Number(chapter), verse: Number(verse), count: res.count, passages: res.passages };
+  c.executionCtx.waitUntil(c.env.CACHE.put(key, JSON.stringify(payload)).then(() => undefined));
+  return c.json(payload);
+});
+
+// Midrash synthesis (AI): distills the verse's midrashim into a thematic
+// overview. Requested for verses with substantial midrash. Cached + tracked.
+app.get('/api/midrash-synthesis/:book/:chapter/:verse', async (c) => {
+  const book = c.req.param('book');
+  const chapter = c.req.param('chapter');
+  const verse = c.req.param('verse');
+  if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
+  if (!/^\d+$/.test(chapter) || !/^\d+$/.test(verse)) return c.json({ error: 'Bad chapter/verse' }, 400);
+
+  const key = `midrash-synth:v1:${book}:${chapter}:${verse}`;
+  const cached = await c.env.CACHE.get(key);
+  if (cached) return c.json(JSON.parse(cached));
+
+  let passages: SourcePassage[];
+  const cm = await c.env.CACHE.get(`midrash:v1:${book}:${chapter}:${verse}`);
+  if (cm) {
+    passages = JSON.parse(cm).passages as SourcePassage[];
+  } else {
+    try {
+      passages = (await fetchPassages(`${book} ${chapter}:${verse}`, 'Midrash', 14)).passages;
+    } catch (e) {
+      return c.json({ error: `Links fetch failed: ${(e as Error).message}` }, 502);
+    }
+  }
+  if (passages.length < 2) return c.json({ error: 'Not enough midrash to synthesize' }, 404);
+
+  let verseText = '';
+  try {
+    const t = await sefaria.getText(`${book} ${chapter}:${verse}`);
+    verseText = (asVerses(t.text)[0] || asVerses(t.he)[0] || '').replace(/<[^>]+>/g, '').trim();
+  } catch {
+    /* optional */
+  }
+  const mtext = passages.map((p) => p.he || p.en).filter(Boolean).join('\n\n');
+
+  let result: Awaited<ReturnType<typeof midrashSynthesis>>;
+  try {
+    result = await midrashSynthesis(c.env, `${book} ${chapter}:${verse}`, verseText, mtext);
+  } catch (e) {
+    return c.json({ error: `Producer failed: ${(e as Error).message}` }, 502);
+  }
+  const payload = { book, chapter: Number(chapter), verse: Number(verse), en: result.en, he: result.he };
+  c.executionCtx.waitUntil(
+    Promise.all([
+      c.env.CACHE.put(key, JSON.stringify(payload)),
+      recordUsage(c.env.CACHE, {
+        ts: Date.now(),
+        ref: `${book} ${chapter}:${verse}`,
+        producer: 'midrash-synthesis',
+        model: result.model,
+        in: result.inTokens,
+        out: result.outTokens,
+        cost: result.costUsd,
+      }),
+    ]).then(() => undefined),
+  );
   return c.json(payload);
 });
 
