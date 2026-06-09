@@ -67,7 +67,12 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function buildParagraphs(verses: Verse[], nikud: boolean, labels?: Map<number, string>): string[] {
+function buildParagraphs(
+  verses: Verse[],
+  nikud: boolean,
+  labels?: Map<number, string>,
+  rich?: Set<number>,
+): string[] {
   let joined = verses
     .map((v) => {
       const label = labels?.get(v.n);
@@ -75,7 +80,12 @@ function buildParagraphs(verses: Verse[], nikud: boolean, labels?: Map<number, s
       // point (.evt-pt); the label itself is positioned in the margin by App.
       const cls = label ? 'vnum evt-pt' : 'vnum';
       const attrs = label ? ` data-v="${v.n}" data-label="${escapeHtml(label)}"` : '';
-      return `<span class="vtext" data-vn="${v.n}"><span class="${cls}"${attrs}>${hebrewNumeral(v.n)}</span> ${v.he}</span>`;
+      // a "rishonim" icon on verses where many comment (the source index marks
+      // these "rich"); clicking it opens the commentary drawer.
+      const mark = rich?.has(v.n)
+        ? `<button class="vmark vmark-rishonim" data-v="${v.n}" title="Commentary">\u05e8</button>`
+        : '';
+      return `<span class="vtext" data-vn="${v.n}"><span class="${cls}"${attrs}>${hebrewNumeral(v.n)}</span>${mark} ${v.he}</span>`;
     })
     .join(' ');
   joined = joined
@@ -171,6 +181,9 @@ interface CommentaryResponse {
   verse: number;
   commentaries: CommentaryEntry[];
 }
+interface SourceIdx {
+  verses: { verse: number; rishonim: number; rich: boolean }[];
+}
 /** The event/section labels for a chapter (first producer). Best-effort: a
  *  failure just means no margin anchors — the text still renders. */
 async function fetchEvents(loc: { book: string; chapter: number }): Promise<EventSection[]> {
@@ -206,6 +219,17 @@ export function App(): JSX.Element {
   const [data] = createResource(chapterKey, fetchChapter);
   const [events] = createResource(chapterKey, fetchEvents);
   const [parsha] = createResource(fetchParsha);
+  const [sourcesIndex] = createResource(chapterKey, async (k) => {
+    try {
+      const res = await fetch(`/api/sources-index/${encodeURIComponent(k.book)}/${k.chapter}`);
+      return res.ok ? ((await res.json()) as SourceIdx) : null;
+    } catch {
+      return null;
+    }
+  });
+  const richSet = createMemo(
+    () => new Set((sourcesIndex()?.verses ?? []).filter((v) => v.rich).map((v) => v.verse)),
+  );
 
   window.addEventListener('popstate', () => setLoc(readUrl()));
 
@@ -218,7 +242,7 @@ export function App(): JSX.Element {
     const labels = new Map(
       (events() ?? []).map((s) => [s.verse, (he ? s.he : s.en) || s.en || s.he] as const),
     );
-    return buildParagraphs(ch.verses, loc().nikud, labels);
+    return buildParagraphs(ch.verses, loc().nikud, labels, richSet());
   });
 
   // Margin anchors: measure each section-start verse number (.evt-pt) and pin its
@@ -347,12 +371,24 @@ export function App(): JSX.Element {
     },
   );
   const onTextClick = (e: MouseEvent) => {
-    const num = (e.target as HTMLElement).closest('.vnum');
-    if (!num) return;
-    const vt = num.closest('.vtext') as HTMLElement | null;
+    const hit = (e.target as HTMLElement).closest('.vmark-rishonim, .vnum');
+    if (!hit) return;
+    const vt = hit.closest('.vtext') as HTMLElement | null;
     const vn = vt ? Number(vt.dataset.vn) : NaN;
     if (vn) setCommentaryVerse(vn);
   };
+  // Synthesis: only fetched for "rich" verses (where many comment), so it isn't
+  // generated for every pasuk.
+  const [synthesis] = createResource(
+    () => {
+      const v = commentaryVerse();
+      return v && richSet().has(v) ? { book: loc().book, chapter: loc().chapter, verse: v } : null;
+    },
+    async (k) => {
+      const res = await fetch(`/api/synthesis/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`);
+      return res.ok ? ((await res.json()) as SectionNote) : null;
+    },
+  );
   createEffect(() => {
     chapterKey();
     setCommentaryVerse(null);
@@ -522,6 +558,21 @@ export function App(): JSX.Element {
               </button>
             </header>
             <div class="comm-body">
+              <Show when={richSet().has(v())}>
+                <section class="comm-synth">
+                  <h4 class="comm-synth-name">Synthesis</h4>
+                  <Show when={synthesis.loading}>
+                    <p class="comm-muted">Synthesizing the commentators…</p>
+                  </Show>
+                  <Show when={synthesis()}>
+                    {(sy) => (
+                      <p class="comm-synth-text" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
+                        {loc().lang === 'he' ? sy().he || sy().en : sy().en || sy().he}
+                      </p>
+                    )}
+                  </Show>
+                </section>
+              </Show>
               <Show when={commentary.loading}>
                 <p class="comm-muted">Loading commentary…</p>
               </Show>

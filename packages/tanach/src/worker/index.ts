@@ -15,6 +15,7 @@ import { isBook } from '../lib/books.ts';
 import { COMMENTATORS } from '../lib/commentators.ts';
 import { eventSections } from './producers/events.ts';
 import { sectionNote } from './producers/note.ts';
+import { synthesize } from './producers/synthesis.ts';
 import { translateHebrew } from './producers/translate.ts';
 import { readUsage, recordUsage } from './usage.ts';
 
@@ -329,20 +330,17 @@ app.get('/api/translate', async (c) => {
   return c.json({ q, translation: result.translation });
 });
 
-// Classic commentary for a single verse: fetch each commentator's note from
-// Sefaria (Hebrew + English), skip the ones with nothing on this verse. Cached
-// per verse. No AI — raw Rishonim.
-app.get('/api/commentary/:book/:chapter/:verse', async (c) => {
-  const book = c.req.param('book');
-  const chapter = c.req.param('chapter');
-  const verse = c.req.param('verse');
-  if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
-  if (!/^\d+$/.test(chapter) || !/^\d+$/.test(verse)) return c.json({ error: 'Bad chapter/verse' }, 400);
+interface VerseCommentary {
+  key: string;
+  en: string;
+  heName: string;
+  he: string[];
+  enText: string[];
+}
 
-  const key = `commentary:v1:${book}:${chapter}:${verse}`;
-  const cached = await c.env.CACHE.get(key);
-  if (cached) return c.json(JSON.parse(cached));
-
+/** Fetch each curated commentator's note on a verse from Sefaria (he+en), drop
+ *  the empties. Shared by the commentary drawer and the synthesis producer. */
+async function fetchVerseCommentaries(book: string, chapter: string, verse: string): Promise<VerseCommentary[]> {
   const results = await Promise.all(
     COMMENTATORS.map(async (cm) => {
       const ref = `${cm.title} on ${book} ${chapter}:${verse}`;
@@ -357,8 +355,135 @@ app.get('/api/commentary/:book/:chapter/:verse', async (c) => {
       }
     }),
   );
-  const commentaries = results.filter((r): r is NonNullable<typeof r> => r !== null);
+  return results.filter((r): r is VerseCommentary => r !== null);
+}
+
+// Classic commentary for a single verse: each commentator's note from Sefaria
+// (Hebrew + English), the empties skipped. Cached per verse. No AI — raw Rishonim.
+app.get('/api/commentary/:book/:chapter/:verse', async (c) => {
+  const book = c.req.param('book');
+  const chapter = c.req.param('chapter');
+  const verse = c.req.param('verse');
+  if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
+  if (!/^\d+$/.test(chapter) || !/^\d+$/.test(verse)) return c.json({ error: 'Bad chapter/verse' }, 400);
+
+  const key = `commentary:v1:${book}:${chapter}:${verse}`;
+  const cached = await c.env.CACHE.get(key);
+  if (cached) return c.json(JSON.parse(cached));
+
+  const commentaries = await fetchVerseCommentaries(book, chapter, verse);
   const payload = { book, chapter: Number(chapter), verse: Number(verse), commentaries };
+  c.executionCtx.waitUntil(c.env.CACHE.put(key, JSON.stringify(payload)).then(() => undefined));
+  return c.json(payload);
+});
+
+// Commentary synthesis (AI): a short balanced overview of how the Rishonim read
+// the verse. The reader only requests it on "rich" verses (per the source
+// index), so it isn't generated for every pasuk. Cached + usage-tracked.
+app.get('/api/synthesis/:book/:chapter/:verse', async (c) => {
+  const book = c.req.param('book');
+  const chapter = c.req.param('chapter');
+  const verse = c.req.param('verse');
+  if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
+  if (!/^\d+$/.test(chapter) || !/^\d+$/.test(verse)) return c.json({ error: 'Bad chapter/verse' }, 400);
+
+  const key = `synthesis:v1:${book}:${chapter}:${verse}`;
+  const cached = await c.env.CACHE.get(key);
+  if (cached) return c.json(JSON.parse(cached));
+
+  // Reuse the cached commentary if the drawer already fetched it.
+  let commentaries: VerseCommentary[];
+  const cc = await c.env.CACHE.get(`commentary:v1:${book}:${chapter}:${verse}`);
+  commentaries = cc
+    ? (JSON.parse(cc).commentaries as VerseCommentary[])
+    : await fetchVerseCommentaries(book, chapter, verse);
+  if (commentaries.length < 2) return c.json({ error: 'Not enough commentary to synthesize' }, 404);
+
+  let verseText = '';
+  try {
+    const t = await sefaria.getText(`${book} ${chapter}:${verse}`);
+    verseText = (asVerses(t.text)[0] || asVerses(t.he)[0] || '').replace(/<[^>]+>/g, '').trim();
+  } catch {
+    /* verse text is optional context */
+  }
+  const ctext = commentaries
+    .map((cm) => `${cm.en}: ${cm.he.join(' ').replace(/<[^>]+>/g, '').slice(0, 600)}`)
+    .join('\n\n');
+
+  let result: Awaited<ReturnType<typeof synthesize>>;
+  try {
+    result = await synthesize(c.env, `${book} ${chapter}:${verse}`, verseText, ctext);
+  } catch (e) {
+    return c.json({ error: `Producer failed: ${(e as Error).message}` }, 502);
+  }
+
+  const payload = { book, chapter: Number(chapter), verse: Number(verse), en: result.en, he: result.he };
+  c.executionCtx.waitUntil(
+    Promise.all([
+      c.env.CACHE.put(key, JSON.stringify(payload)),
+      recordUsage(c.env.CACHE, {
+        ts: Date.now(),
+        ref: `${book} ${chapter}:${verse}`,
+        producer: 'synthesis',
+        model: result.model,
+        in: result.inTokens,
+        out: result.outTokens,
+        cost: result.costUsd,
+      }),
+    ]).then(() => undefined),
+  );
+  return c.json(payload);
+});
+
+// Per-chapter rishonim index: how many of the curated commentators comment on
+// each verse. ~8 light per-chapter fetches (matches what the drawer shows). The
+// reader uses this to show the commentary icon only where many comment.
+app.get('/api/sources-index/:book/:chapter', async (c) => {
+  const book = c.req.param('book');
+  const chapter = c.req.param('chapter');
+  if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
+  if (!/^\d+$/.test(chapter)) return c.json({ error: 'Bad chapter' }, 400);
+
+  const key = `srcidx:v3:${book}:${chapter}`;
+  const cached = await c.env.CACHE.get(key);
+  if (cached) return c.json(JSON.parse(cached));
+
+  // Per verse: how many commentators, and the total weight (chars of Hebrew
+  // commentary) — volume is a better "richness" signal than count, since in the
+  // Torah almost every verse has several commentators.
+  const acc = new Map<number, { n: number; w: number }>();
+  await Promise.all(
+    COMMENTATORS.map(async (cm) => {
+      try {
+        const v3 = await sefaria.getTextV3(`${cm.title} on ${book} ${chapter}`);
+        const heArr = (() => {
+          const he = pickV3Version(v3.versions, 'he');
+          return Array.isArray(he) ? (he as unknown[]) : [];
+        })();
+        for (let i = 0; i < heArr.length; i++) {
+          const segs = flattenPieces(heArr[i]).map((x) => x.replace(/<[^>]+>/g, '').trim());
+          const chars = segs.join('').length;
+          if (!chars) continue;
+          const e = acc.get(i + 1) ?? { n: 0, w: 0 };
+          e.n += 1;
+          e.w += chars;
+          acc.set(i + 1, e);
+        }
+      } catch {
+        /* commentator absent on this book */
+      }
+    }),
+  );
+  const entries = [...acc.entries()].sort((a, b) => a[0] - b[0]);
+  // "rich" = many commentators AND in the top fraction of this chapter by volume.
+  const weights = entries.map(([, e]) => e.w).sort((a, b) => a - b);
+  const cutoff = weights.length ? weights[Math.floor(weights.length * 0.6)] : 0;
+  const verses = entries.map(([verse, e]) => ({
+    verse,
+    rishonim: e.n,
+    rich: e.n >= 3 && e.w >= cutoff,
+  }));
+  const payload = { book, chapter: Number(chapter), verses };
   c.executionCtx.waitUntil(c.env.CACHE.put(key, JSON.stringify(payload)).then(() => undefined));
   return c.json(payload);
 });
