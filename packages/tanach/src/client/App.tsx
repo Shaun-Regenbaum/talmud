@@ -158,6 +158,19 @@ interface SectionNote {
   en: string;
   he: string;
 }
+interface CommentaryEntry {
+  key: string;
+  en: string;
+  heName: string;
+  he: string[];
+  enText: string[];
+}
+interface CommentaryResponse {
+  book: string;
+  chapter: number;
+  verse: number;
+  commentaries: CommentaryEntry[];
+}
 /** The event/section labels for a chapter (first producer). Best-effort: a
  *  failure just means no margin anchors — the text still renders. */
 async function fetchEvents(loc: { book: string; chapter: number }): Promise<EventSection[]> {
@@ -320,6 +333,31 @@ export function App(): JSX.Element {
     });
   });
 
+  // Classic commentary: click a verse number -> a drawer with the Rishonim on
+  // that verse (Sefaria, raw).
+  const [commentaryVerse, setCommentaryVerse] = createSignal<number | null>(null);
+  const [commentary] = createResource(
+    () => {
+      const v = commentaryVerse();
+      return v ? { book: loc().book, chapter: loc().chapter, verse: v } : null;
+    },
+    async (k) => {
+      const res = await fetch(`/api/commentary/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`);
+      return res.ok ? ((await res.json()) as CommentaryResponse) : null;
+    },
+  );
+  const onTextClick = (e: MouseEvent) => {
+    const num = (e.target as HTMLElement).closest('.vnum');
+    if (!num) return;
+    const vt = num.closest('.vtext') as HTMLElement | null;
+    const vn = vt ? Number(vt.dataset.vn) : NaN;
+    if (vn) setCommentaryVerse(vn);
+  };
+  createEffect(() => {
+    chapterKey();
+    setCommentaryVerse(null);
+  });
+
   return (
     <div class="app" classList={{ 'view-scroll': loc().view === 'scroll', 'view-mikraot': loc().view === 'mikraot' }}>
       <header class="topbar">
@@ -395,7 +433,13 @@ export function App(): JSX.Element {
       <Show when={loc().view === 'scroll' && data()}>
         {(ch) => (
           <main class="scroll-main" ref={(el) => (scrollMain = el)}>
-            <div class="scroll-band" dir="rtl" ref={(el) => (scrollBand = el)} onMouseUp={onTextSelect}>
+            <div
+              class="scroll-band"
+              dir="rtl"
+              ref={(el) => (scrollBand = el)}
+              onMouseUp={onTextSelect}
+              onClick={onTextClick}
+            >
               <For each={paragraphs()}>{(p) => <p class="scroll-para" innerHTML={p} />}</For>
             </div>
             <For each={anchors()}>
@@ -460,6 +504,47 @@ export function App(): JSX.Element {
               <span class="xlate-en">{translation() ?? '—'}</span>
             </Show>
           </div>
+        )}
+      </Show>
+
+      {/* Classic commentary drawer (click a verse number) */}
+      <Show when={commentaryVerse()}>
+        {(v) => (
+          <aside class="comm-drawer" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
+            <header class="comm-head">
+              <span class="comm-ref">
+                {loc().lang === 'he'
+                  ? `${heBook(loc().book)} ${hebrewNumeral(loc().chapter)}:${hebrewNumeral(v())}`
+                  : `${loc().book} ${loc().chapter}:${v()}`}
+              </span>
+              <button class="comm-close" onClick={() => setCommentaryVerse(null)} aria-label="Close">
+                ×
+              </button>
+            </header>
+            <div class="comm-body">
+              <Show when={commentary.loading}>
+                <p class="comm-muted">Loading commentary…</p>
+              </Show>
+              <Show when={commentary()}>
+                {(d) => (
+                  <For each={d().commentaries} fallback={<p class="comm-muted">No commentary on this verse.</p>}>
+                    {(cm) => {
+                      const useEn = loc().lang === 'en' && cm.enText.length > 0;
+                      const segs = useEn ? cm.enText : cm.he;
+                      return (
+                        <section class="comm-entry">
+                          <h4 class="comm-name">{loc().lang === 'he' ? cm.heName : cm.en}</h4>
+                          <For each={segs}>
+                            {(seg) => <p class="comm-text" dir={useEn ? 'ltr' : 'rtl'} innerHTML={seg} />}
+                          </For>
+                        </section>
+                      );
+                    }}
+                  </For>
+                )}
+              </Show>
+            </div>
+          </aside>
         )}
       </Show>
     </div>
