@@ -110,7 +110,8 @@ function readUrl(): Loc {
   const p = new URLSearchParams(window.location.search);
   const book = p.get('book') ?? 'Genesis';
   const chapter = Number(p.get('chapter') ?? '1') || 1;
-  const view: View = p.get('view') === 'mikraot' ? 'mikraot' : 'scroll';
+  // Mikraot Gedolot is hidden for now — force the default scroll view.
+  const view: View = 'scroll';
   const nikud = p.get('nikud') !== '0';
   const lang: 'en' | 'he' = p.get('lang') === 'he' ? 'he' : 'en';
   return { book: BOOKS.some((b) => b.name === book) ? book : 'Genesis', chapter, view, nikud, lang };
@@ -286,11 +287,11 @@ export function App(): JSX.Element {
     // De-collide labels per side: nudge a label down when it would overlap the
     // one above (height estimated from text length wrapped to ANCHOR_W), like
     // the Talmud gutter stack.
-    const estH = (label: string) => Math.max(1, Math.ceil(label.length / 20)) * 14 + 8;
+    const estH = (label: string) => Math.max(1, Math.ceil(label.length / 16)) * 15 + 12;
     for (const sd of ['left', 'right'] as const) {
       let prevBottom = -Infinity;
       for (const a of out.filter((x) => x.side === sd).sort((x, y) => x.top - y.top)) {
-        if (a.top < prevBottom + 4) a.top = prevBottom + 4;
+        if (a.top < prevBottom + 6) a.top = prevBottom + 6;
         prevBottom = a.top + estH(a.label);
       }
     }
@@ -316,6 +317,16 @@ export function App(): JSX.Element {
         if (left < 2 || left + ICON_SIZE > m.width - 2) return;
         icons.push({ v: vn, top: r.top - m.top, left, side, kinds });
       });
+    }
+    // De-collide the icon stacks per side so they form a clean rail (like the
+    // Talmud gutter) instead of overlapping when verses sit close together.
+    const stackH = (n: number) => n * (ICON_SIZE + 3) + 6;
+    for (const sd of ['left', 'right'] as const) {
+      let prevBottom = -Infinity;
+      for (const a of icons.filter((x) => x.side === sd).sort((x, y) => x.top - y.top)) {
+        if (a.top < prevBottom + 2) a.top = prevBottom + 2;
+        prevBottom = a.top + stackH(a.kinds.length);
+      }
     }
     setVerseIcons(icons);
   };
@@ -495,14 +506,7 @@ export function App(): JSX.Element {
           )}
         </Show>
 
-        <div class="view-toggle" role="group" aria-label="View">
-          <button classList={{ active: loc().view === 'scroll' }} onClick={() => update({ view: 'scroll' })}>
-            Default
-          </button>
-          <button classList={{ active: loc().view === 'mikraot' }} onClick={() => update({ view: 'mikraot' })}>
-            Mikraot Gedolot
-          </button>
-        </div>
+        {/* Mikraot Gedolot view hidden for now — Default (scroll) only. */}
 
         <Show when={loc().view === 'scroll'}>
           <button class="nikud-toggle" onClick={() => update({ nikud: !loc().nikud })}>
