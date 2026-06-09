@@ -201,6 +201,11 @@ function verseKinds(v: SourceVerse): SourceKind[] {
   return k;
 }
 const KIND_GLYPH: Record<SourceKind, string> = { rishonim: 'ר', gemara: 'ג', midrash: 'מ' };
+const SECTION_TITLE: Record<SourceKind, string> = {
+  rishonim: 'Commentary',
+  gemara: 'In the Talmud',
+  midrash: 'Midrash',
+};
 /** The event/section labels for a chapter (first producer). Best-effort: a
  *  failure just means no margin anchors — the text still renders. */
 async function fetchEvents(loc: { book: string; chapter: number }): Promise<EventSection[]> {
@@ -388,87 +393,75 @@ export function App(): JSX.Element {
     setWordSel(null);
   });
 
-  // Highlight the selected section's verses in the text (clicking an anchor).
+  // Highlight the relevant verses: a section's range (note popover) or the
+  // single verse whose source drawer is open (rishonim / gemara / midrash).
   createEffect(() => {
     const sel = selected();
+    const src = source();
     paragraphs();
     requestAnimationFrame(() => {
       if (!scrollBand) return;
       scrollBand.querySelectorAll('.vtext.hl').forEach((e) => e.classList.remove('hl'));
-      if (!sel) return;
       scrollBand.querySelectorAll<HTMLElement>('.vtext').forEach((e) => {
         const vn = Number(e.dataset.vn);
-        if (vn >= sel.start && vn <= sel.end) e.classList.add('hl');
+        const inNote = sel && vn >= sel.start && vn <= sel.end;
+        const inSource = src && vn === src.verse;
+        if (inNote || inSource) e.classList.add('hl');
       });
     });
   });
 
-  // Classic commentary: click a verse number -> a drawer with the Rishonim on
-  // that verse (Sefaria, raw).
-  const [commentaryVerse, setCommentaryVerse] = createSignal<number | null>(null);
-  const [commentary] = createResource(
-    () => {
-      const v = commentaryVerse();
-      return v ? { book: loc().book, chapter: loc().chapter, verse: v } : null;
-    },
-    async (k) => {
-      const res = await fetch(`/api/commentary/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`);
-      return res.ok ? ((await res.json()) as CommentaryResponse) : null;
-    },
-  );
+  // Verse-sources drawer: shows ONE source kind at a time (rishonim / gemara /
+  // midrash) for the selected verse. Switching verse or kind remounts the panel
+  // (it empties + repopulates rather than scrolling stale content).
+  const [source, setSource] = createSignal<{ verse: number; kind: SourceKind } | null>(null);
+  const openSource = (verse: number, kind: SourceKind) => setSource({ verse, kind });
   const onTextClick = (e: MouseEvent) => {
-    const hit = (e.target as HTMLElement).closest('.vmark-rishonim, .vnum');
-    if (!hit) return;
-    const vt = hit.closest('.vtext') as HTMLElement | null;
+    const num = (e.target as HTMLElement).closest('.vnum');
+    if (!num) return;
+    const vt = num.closest('.vtext') as HTMLElement | null;
     const vn = vt ? Number(vt.dataset.vn) : NaN;
-    if (vn) setCommentaryVerse(vn);
+    if (vn) setSource({ verse: vn, kind: 'rishonim' });
   };
-  // Synthesis: only fetched for "rich" verses (where many comment), so it isn't
-  // generated for every pasuk.
+  const idxByVerse = createMemo(() => {
+    const map = new Map<number, SourceVerse>();
+    for (const v of sourcesIndex()?.verses ?? []) map.set(v.verse, v);
+    return map;
+  });
+  // A resource source that only resolves when the drawer is showing `kind`.
+  const whenKind = (kind: SourceKind) => () => {
+    const s = source();
+    return s && s.kind === kind ? { book: loc().book, chapter: loc().chapter, verse: s.verse } : null;
+  };
+  const [commentary] = createResource(whenKind('rishonim'), async (k) => {
+    const res = await fetch(`/api/commentary/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`);
+    return res.ok ? ((await res.json()) as CommentaryResponse) : null;
+  });
   const [synthesis] = createResource(
     () => {
-      const v = commentaryVerse();
-      return v && richSet().has(v) ? { book: loc().book, chapter: loc().chapter, verse: v } : null;
+      const s = source();
+      return s && s.kind === 'rishonim' && richSet().has(s.verse)
+        ? { book: loc().book, chapter: loc().chapter, verse: s.verse }
+        : null;
     },
     async (k) => {
       const res = await fetch(`/api/synthesis/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`);
       return res.ok ? ((await res.json()) as SectionNote) : null;
     },
   );
-  // Reverse Gemara: how the verse is used in the Talmud (fetched when a verse
-  // drawer opens).
-  const [gemara] = createResource(
-    () => {
-      const v = commentaryVerse();
-      return v ? { book: loc().book, chapter: loc().chapter, verse: v } : null;
-    },
-    async (k) => {
-      const res = await fetch(`/api/gemara/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`);
-      return res.ok ? ((await res.json()) as GemaraResp) : null;
-    },
-  );
-  // Midrash: the source list + an AI synthesis (only where there's substantial
-  // midrash, since a verse can have dozens).
-  const idxByVerse = createMemo(() => {
-    const map = new Map<number, SourceVerse>();
-    for (const v of sourcesIndex()?.verses ?? []) map.set(v.verse, v);
-    return map;
+  const [gemara] = createResource(whenKind('gemara'), async (k) => {
+    const res = await fetch(`/api/gemara/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`);
+    return res.ok ? ((await res.json()) as GemaraResp) : null;
   });
-  const [midrash] = createResource(
-    () => {
-      const v = commentaryVerse();
-      return v && (idxByVerse().get(v)?.midrash ?? 1) > 0 ? { book: loc().book, chapter: loc().chapter, verse: v } : null;
-    },
-    async (k) => {
-      const res = await fetch(`/api/midrash/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`);
-      return res.ok ? ((await res.json()) as GemaraResp) : null;
-    },
-  );
+  const [midrash] = createResource(whenKind('midrash'), async (k) => {
+    const res = await fetch(`/api/midrash/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`);
+    return res.ok ? ((await res.json()) as GemaraResp) : null;
+  });
   const [midrashSynth] = createResource(
     () => {
-      const v = commentaryVerse();
-      return v && (idxByVerse().get(v)?.midrash ?? 0) >= MIDRASH_MIN
-        ? { book: loc().book, chapter: loc().chapter, verse: v }
+      const s = source();
+      return s && s.kind === 'midrash' && (idxByVerse().get(s.verse)?.midrash ?? 0) >= MIDRASH_MIN
+        ? { book: loc().book, chapter: loc().chapter, verse: s.verse }
         : null;
     },
     async (k) => {
@@ -476,28 +469,9 @@ export function App(): JSX.Element {
       return res.ok ? ((await res.json()) as SectionNote) : null;
     },
   );
-  // Scroll the drawer to the section whose icon was clicked.
-  const [focusSection, setFocusSection] = createSignal<SourceKind | null>(null);
-  const openSource = (v: number, kind: SourceKind) => {
-    setFocusSection(kind);
-    setCommentaryVerse(v);
-  };
-  createEffect(() => {
-    const fs = focusSection();
-    commentaryVerse();
-    if (fs === 'gemara') gemara();
-    if (fs === 'midrash') midrash();
-    if (!fs || fs === 'rishonim') return;
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => {
-        const sel = fs === 'gemara' ? '.comm-gemara' : '.comm-midrash';
-        document.querySelector(sel)?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-      }),
-    );
-  });
   createEffect(() => {
     chapterKey();
-    setCommentaryVerse(null);
+    setSource(null);
   });
 
   return (
@@ -530,7 +504,7 @@ export function App(): JSX.Element {
 
         <div class="view-toggle" role="group" aria-label="View">
           <button classList={{ active: loc().view === 'scroll' }} onClick={() => update({ view: 'scroll' })}>
-            Scroll
+            Default
           </button>
           <button classList={{ active: loc().view === 'mikraot' }} onClick={() => update({ view: 'mikraot' })}>
             Mikraot Gedolot
@@ -609,7 +583,7 @@ export function App(): JSX.Element {
                     {(k) => (
                       <button
                         class={`vgutter vgutter-${k}`}
-                        classList={{ active: commentaryVerse() === ic.v }}
+                        classList={{ active: source()?.verse === ic.v && source()?.kind === k }}
                         style={{ width: `${ICON_SIZE}px`, height: `${ICON_SIZE}px` }}
                         title={`${k} · verse ${ic.v}`}
                         onClick={() => openSource(ic.v, k)}
@@ -669,139 +643,128 @@ export function App(): JSX.Element {
       </Show>
 
       {/* Classic commentary drawer (click a verse number) */}
-      <Show when={commentaryVerse()}>
-        {(v) => (
+      <Show when={source()} keyed>
+        {(s) => (
           <aside class="comm-drawer" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
             <header class="comm-head">
               <span class="comm-ref">
                 {loc().lang === 'he'
-                  ? `${heBook(loc().book)} ${hebrewNumeral(loc().chapter)}:${hebrewNumeral(v())}`
-                  : `${loc().book} ${loc().chapter}:${v()}`}
+                  ? `${heBook(loc().book)} ${hebrewNumeral(loc().chapter)}:${hebrewNumeral(s.verse)}`
+                  : `${loc().book} ${loc().chapter}:${s.verse}`}
               </span>
-              <button class="comm-close" onClick={() => setCommentaryVerse(null)} aria-label="Close">
+              <span class="comm-kind">{SECTION_TITLE[s.kind]}</span>
+              <button class="comm-close" onClick={() => setSource(null)} aria-label="Close">
                 ×
               </button>
             </header>
             <div class="comm-body">
-              <Show when={richSet().has(v())}>
-                <section class="comm-synth">
-                  <h4 class="comm-synth-name">Synthesis</h4>
-                  <Show when={synthesis.loading}>
-                    <p class="comm-muted">Synthesizing the commentators…</p>
-                  </Show>
-                  <Show when={synthesis()}>
-                    {(sy) => (
-                      <p class="comm-synth-text" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
-                        {loc().lang === 'he' ? sy().he || sy().en : sy().en || sy().he}
-                      </p>
-                    )}
-                  </Show>
-                </section>
+              <Show when={s.kind === 'rishonim'}>
+                <Show when={richSet().has(s.verse)}>
+                  <section class="comm-synth">
+                    <h4 class="comm-synth-name">Synthesis</h4>
+                    <Show when={synthesis.loading}>
+                      <p class="comm-muted">Synthesizing the commentators…</p>
+                    </Show>
+                    <Show when={synthesis()}>
+                      {(sy) => (
+                        <p class="comm-synth-text" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
+                          {loc().lang === 'he' ? sy().he || sy().en : sy().en || sy().he}
+                        </p>
+                      )}
+                    </Show>
+                  </section>
+                </Show>
+                <Show when={commentary.loading}>
+                  <p class="comm-muted">Loading commentary…</p>
+                </Show>
+                <Show when={commentary()}>
+                  {(d) => (
+                    <For each={d().commentaries} fallback={<p class="comm-muted">No commentary on this verse.</p>}>
+                      {(cm) => {
+                        const useEn = loc().lang === 'en' && cm.enText.length > 0;
+                        return (
+                          <section class="comm-entry">
+                            <h4 class="comm-name">{loc().lang === 'he' ? cm.heName : cm.en}</h4>
+                            <For each={useEn ? cm.enText : cm.he}>
+                              {(seg) => <p class="comm-text" dir={useEn ? 'ltr' : 'rtl'} innerHTML={seg} />}
+                            </For>
+                          </section>
+                        );
+                      }}
+                    </For>
+                  )}
+                </Show>
               </Show>
-              <Show when={commentary.loading}>
-                <p class="comm-muted">Loading commentary…</p>
+
+              <Show when={s.kind === 'gemara'}>
+                <Show when={gemara.loading}>
+                  <p class="comm-muted">Finding Talmud passages…</p>
+                </Show>
+                <Show when={gemara()}>
+                  {(g) => <PassageList passages={g().passages} lang={loc().lang} empty="Not cited in the Talmud." />}
+                </Show>
               </Show>
-              <Show when={commentary()}>
-                {(d) => (
-                  <For each={d().commentaries} fallback={<p class="comm-muted">No commentary on this verse.</p>}>
-                    {(cm) => {
-                      const useEn = loc().lang === 'en' && cm.enText.length > 0;
-                      const segs = useEn ? cm.enText : cm.he;
-                      return (
-                        <section class="comm-entry">
-                          <h4 class="comm-name">{loc().lang === 'he' ? cm.heName : cm.en}</h4>
-                          <For each={segs}>
-                            {(seg) => <p class="comm-text" dir={useEn ? 'ltr' : 'rtl'} innerHTML={seg} />}
-                          </For>
-                        </section>
-                      );
-                    }}
-                  </For>
-                )}
-              </Show>
-              <Show when={gemara() && gemara()!.passages.length > 0}>
-                {(_ok) => {
-                  const g = gemara() as GemaraResp;
-                  return (
-                    <section class="comm-gemara">
-                      <h4 class="comm-name">
-                        In the Talmud{g.count > g.passages.length ? ` · ${g.count}` : ''}
-                      </h4>
-                      <For each={g.passages}>
-                        {(p) => {
-                          const text = loc().lang === 'en' ? p.en || p.he : p.he || p.en;
-                          const ltr = loc().lang === 'en' && !!p.en;
-                          return (
-                            <div class="gem-entry">
-                              <a
-                                class="gem-ref"
-                                href={`https://www.sefaria.org/${p.ref.replace(/ /g, '.').replace(/:/g, '.')}`}
-                                target="_blank"
-                                rel="noopener"
-                              >
-                                {p.ref}
-                              </a>
-                              <Show when={text}>
-                                <p class="gem-text" dir={ltr ? 'ltr' : 'rtl'}>
-                                  {text}…
-                                </p>
-                              </Show>
-                            </div>
-                          );
-                        }}
-                      </For>
-                    </section>
-                  );
-                }}
-              </Show>
-              <Show when={midrash() && midrash()!.passages.length > 0}>
-                {(_ok) => {
-                  const md = midrash() as GemaraResp;
-                  return (
-                    <section class="comm-midrash">
-                      <h4 class="comm-name">Midrash{md.count > md.passages.length ? ` · ${md.count}` : ''}</h4>
-                      <Show when={midrashSynth.loading}>
-                        <p class="comm-muted">Synthesizing the midrashim…</p>
-                      </Show>
-                      <Show when={midrashSynth()}>
-                        {(sy) => (
-                          <p class="comm-synth-text" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
-                            {loc().lang === 'he' ? sy().he || sy().en : sy().en || sy().he}
-                          </p>
-                        )}
-                      </Show>
-                      <For each={md.passages}>
-                        {(p) => {
-                          const text = loc().lang === 'en' ? p.en || p.he : p.he || p.en;
-                          const ltr = loc().lang === 'en' && !!p.en;
-                          return (
-                            <div class="gem-entry">
-                              <a
-                                class="gem-ref"
-                                href={`https://www.sefaria.org/${p.ref.replace(/ /g, '.').replace(/:/g, '.')}`}
-                                target="_blank"
-                                rel="noopener"
-                              >
-                                {p.ref}
-                              </a>
-                              <Show when={text}>
-                                <p class="gem-text" dir={ltr ? 'ltr' : 'rtl'}>
-                                  {text}…
-                                </p>
-                              </Show>
-                            </div>
-                          );
-                        }}
-                      </For>
-                    </section>
-                  );
-                }}
+
+              <Show when={s.kind === 'midrash'}>
+                <Show when={(idxByVerse().get(s.verse)?.midrash ?? 0) >= MIDRASH_MIN}>
+                  <section class="comm-synth">
+                    <h4 class="comm-synth-name">Synthesis</h4>
+                    <Show when={midrashSynth.loading}>
+                      <p class="comm-muted">Synthesizing the midrashim…</p>
+                    </Show>
+                    <Show when={midrashSynth()}>
+                      {(sy) => (
+                        <p class="comm-synth-text" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
+                          {loc().lang === 'he' ? sy().he || sy().en : sy().en || sy().he}
+                        </p>
+                      )}
+                    </Show>
+                  </section>
+                </Show>
+                <Show when={midrash.loading}>
+                  <p class="comm-muted">Loading midrash…</p>
+                </Show>
+                <Show when={midrash()}>
+                  {(md) => <PassageList passages={md().passages} lang={loc().lang} empty="No midrash on this verse." />}
+                </Show>
               </Show>
             </div>
           </aside>
         )}
       </Show>
     </div>
+  );
+}
+
+function PassageList(props: {
+  passages: { ref: string; he: string; en: string }[];
+  lang: 'en' | 'he';
+  empty: string;
+}): JSX.Element {
+  return (
+    <For each={props.passages} fallback={<p class="comm-muted">{props.empty}</p>}>
+      {(p) => {
+        const text = props.lang === 'en' ? p.en || p.he : p.he || p.en;
+        const ltr = props.lang === 'en' && !!p.en;
+        return (
+          <div class="gem-entry">
+            <a
+              class="gem-ref"
+              href={`https://www.sefaria.org/${p.ref.replace(/ /g, '.').replace(/:/g, '.')}`}
+              target="_blank"
+              rel="noopener"
+            >
+              {p.ref}
+            </a>
+            <Show when={text}>
+              <p class="gem-text" dir={ltr ? 'ltr' : 'rtl'}>
+                {text}…
+              </p>
+            </Show>
+          </div>
+        );
+      }}
+    </For>
   );
 }
 
