@@ -37,7 +37,7 @@ Instead, for any code change:
 2. **Run from the worktree.** `pnpm typecheck` and `pnpm test` before any PR; `pnpm lint` too — CI gates on Biome (`biome ci .`).
 3. **PR → merge.** Commit on the branch, push, open a PR (`gh pr create`), and merge it (`gh pr merge <n> --squash --admin`). GitHub blocks self-approval, so the repo owner authorizes admin-merge.
 4. **Expect master to move.** Other agents push often. If a PR won't merge, `git merge origin/master` in the worktree, resolve, push (GitHub recomputes mergeability a few seconds later).
-5. **Deploy from the worktree** with `pnpm ship` when the change should go live.
+5. **Deploys are automatic.** Merging to master triggers the CI `deploy` job, which deploys both workers after checks pass (so prod always equals master). Manual `pnpm ship` from the worktree still works as a fallback when CI deploy is broken or you can't wait — ship-guard enforces the same content==master invariant.
 6. **Clean up.** Run `scripts/worktree-done.sh <branch>` from the main checkout — it verifies the PR merged, then deletes the remote branch, removes the worktree, and deletes the local branch (the work lives on master via the squash).
 
 ## Commit / PR text
