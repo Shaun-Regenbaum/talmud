@@ -1,9 +1,4 @@
 import { continuationLink, type FlowEdge } from '@corpus/core/context/link';
-import {
-  contextForAnchor,
-  formatContextForPrompt,
-  segsFromMarkInput,
-} from '@corpus/core/context/select';
 import { gatewayActive, gatewayStatus, wrapEnv } from '@corpus/core/llm/ai-gateway';
 import {
   type BudgetScope,
@@ -32,6 +27,11 @@ import {
   reverseDependencyIndex,
   transitiveDependents,
 } from '@corpus/core/registry/depGraph';
+import {
+  type ResolvedInputs,
+  type ResolveInputsPorts,
+  resolveInputs,
+} from '@corpus/core/run/producer-run';
 import { Hono } from 'hono';
 import {
   GENERATION_IDS,
@@ -45,7 +45,7 @@ import type { MatchInput } from '../lib/context/anchor/ai-prompt';
 import { type DafLink, dafLinks } from '../lib/context/dafLinks';
 import { dafSpine } from '../lib/context/spine';
 import { spineLinks } from '../lib/context/spineLinks';
-import { buildDerivation, formatGroundedRefsForPrompt } from '../lib/halacha/codifiers';
+import { buildDerivation } from '../lib/halacha/codifiers';
 import {
   buildRabbiEnrichUserMessage,
   type LocalRabbiInput,
@@ -92,7 +92,6 @@ import {
   alignOutlineToSegments,
   flattenYerushalmiOutline,
   type YerushalmiFloorGroup,
-  yerushalmiFloorGroups,
 } from '../lib/yerushalmiAlign';
 import { type CuratedYerushalmiParallel, curatedParallelsForDaf } from '../lib/yerushalmiParallels';
 import { fetchGatewayCost } from './aigw-analytics';
@@ -173,11 +172,11 @@ import {
   resolveRabbiName,
 } from './rabbi-places';
 import { placeRevachWithAi } from './revach-ai-place';
+import { buildSourceResolvers, type CommentariesSlice, type GemaraSlice } from './run-sources';
 import {
   type CacheTrack,
   getCodeSourcesCached,
   getDafyomiContentCached,
-  getHalachaRefsCached,
   getHebrewBooksDafCached,
   getMishnaBundleCached,
   getRishonimCached,
@@ -1918,15 +1917,9 @@ app.delete('/api/enrichments/:id', async (c) => {
 // cache-keys.ts (no hand-built keys here).
 // ===========================================================================
 
-interface GemaraSlice {
-  tractate: string;
-  page: string;
-  hebrew: string;
-  english: string;
-  segments_he: string[];
-  segments_en: string[];
-}
-
+// GemaraSlice / CommentariesSlice shapes live in run-sources.ts (the source
+// resolvers consume them); the cached fetchers stay here (they serve routes +
+// other run paths too).
 const SLICE_TTL_S = 30 * 24 * 3600;
 
 async function getGemaraSlice(
@@ -1964,14 +1957,6 @@ async function getGemaraSlice(
   return slice;
 }
 
-interface CommentariesSlice {
-  tractate: string;
-  page: string;
-  /** Map of commentator name → { hebrew, english, ref }. Empty {} if Sefaria
-   *  has nothing on this daf. */
-  by_commentator: Record<string, { hebrew: string; english: string; ref: string }>;
-}
-
 async function getCommentariesSlice(
   env: Bindings,
   tractate: string,
@@ -2007,69 +1992,6 @@ async function getCommentariesSlice(
   const slice: CommentariesSlice = { tractate, page, by_commentator };
   if (cache) await cache.put(key, JSON.stringify(slice), { expirationTtl: SLICE_TTL_S });
   return slice;
-}
-
-function gemaraSliceToVars(s: GemaraSlice): Record<string, unknown> {
-  return {
-    tractate: s.tractate,
-    page: s.page,
-    hebrew: s.hebrew,
-    english: s.english,
-    gemara_he: s.hebrew,
-    gemara_en: s.english,
-    segments_he: s.segments_he,
-    segments_en: s.segments_en,
-    gemara: `${s.hebrew}\n\n---\n\n${s.english}`,
-  };
-}
-
-/**
- * Filter the daf's mishna bundle to those relevant for an enrichment with
- * the given markInput. Rule: include any mishna whose anchor START segment
- * is at-or-before the mark's END segment. This covers the "current" mishna
- * being discussed and any earlier-on-daf mishnayot that the argument may
- * still be elaborating on, while excluding mishnayot the gemara hasn't
- * reached yet. If markInput has no endSegIdx (e.g. daf-level aggregate),
- * include everything.
- */
-function selectMishnaForMark(
-  bundle: Awaited<ReturnType<typeof getMishnaBundleCached>>,
-  markInput: unknown,
-): typeof bundle {
-  if (!bundle.length) return bundle;
-  const m =
-    markInput && typeof markInput === 'object' ? (markInput as Record<string, unknown>) : null;
-  const endSeg =
-    m && typeof m.endSegIdx === 'number'
-      ? m.endSegIdx
-      : m && typeof m.startSegIdx === 'number'
-        ? m.startSegIdx
-        : null;
-  if (endSeg === null) return bundle;
-  return bundle.filter((x) => x.anchorStartSeg <= endSeg);
-}
-
-function mishnaBundleToString(bundle: Awaited<ReturnType<typeof getMishnaBundleCached>>): string {
-  if (!bundle.length) return '(no mishnah anchored to this daf)';
-  return bundle
-    .map((m) => {
-      const range =
-        m.anchorStartSeg === m.anchorEndSeg
-          ? `segment ${m.anchorStartSeg}`
-          : `segments ${m.anchorStartSeg}-${m.anchorEndSeg}`;
-      return `[${m.ref}] (anchors gemara ${range})\nHE: ${m.hebrew}\nEN: ${m.english}`.trim();
-    })
-    .join('\n\n---\n\n');
-}
-
-function commentariesSliceToString(s: CommentariesSlice): string {
-  const names = Object.keys(s.by_commentator).sort();
-  return names
-    .map((n) => {
-      const row = s.by_commentator[n];
-      return `[${n}]\n${row.hebrew}\n${row.english}`.trim();
-    })
-    .join('\n\n---\n\n');
 }
 
 /** Cap a long passage so the prompt stays bounded — a whole Yerushalmi halacha
@@ -2280,51 +2202,33 @@ interface RunCtx {
   lang: 'en' | 'he';
 }
 
-interface ResolvedInputs {
-  /** Template vars to merge into the prompt context. */
-  vars: Record<string, unknown>;
-  /** Enrichment outputs keyed by dep id (returned to the client as deps_resolved). */
-  depends: Record<string, unknown>;
-  /** Mark instance lists keyed by dep id (returned as anchors_resolved). */
-  anchors: Record<string, unknown>;
-  /** Raw source TEXTS fed into the prompt, keyed by source name (gemara,
-   *  commentaries, mishna, halacha-refs, yerushalmi-text, context). Surfaced by
-   *  the read-only /api/run-sources endpoint so the dev inspector shows not just
-   *  which enrichments/marks fed a piece but which TEXTS did — kept OFF the
-   *  cached RunResult so it never bloats the reader hot path. `chars` is the full
-   *  length; `content` is a bounded preview (the full text already went to the
-   *  LLM; only the inspector needs to eyeball it). */
-  sources: Record<string, { chars: number; content: string }>;
-}
+// The walk itself (ResolvedInputs assembly, cycle detection, fanOut, the
+// sourcesOnly transitive closure) is corpus-agnostic and lives in
+// @corpus/core/run/producer-run; the source-text resolvers ('gemara',
+// 'commentaries', 'context', …) live in ./run-sources. This file wires the
+// two together: the resolvers wrap helpers that stay index-private (they also
+// serve routes / other run paths), and the recursion ports point back at
+// runEnrichmentOnce / runMarkOnce below.
+const RUN_SOURCE_RESOLVERS = buildSourceResolvers({
+  getGemaraSlice,
+  getCommentariesSlice,
+  readMarkInstances,
+  computeDafBridge,
+  fetchCuratedYerushalmi,
+  buildYerushalmiOutline,
+  formatYerushalmiForPrompt,
+});
 
-/** Bounded preview cap for a source text returned by /api/run-sources — same
- *  posture as the 2KB resolved-prompt cap, but roomier since a dev may want to
- *  scan the actual gemara/context that grounded a generation. Keeps a single
- *  inspector response from shipping the full multi-KB context blob per source. */
-const SOURCE_PREVIEW_CAP = 8000;
-function recordSource(out: ResolvedInputs, name: string, content: unknown): void {
-  if (typeof content !== 'string' || content.length === 0) return;
-  out.sources[name] = {
-    chars: content.length,
-    content:
-      content.length > SOURCE_PREVIEW_CAP
-        ? `${content.slice(0, SOURCE_PREVIEW_CAP)}… [+${content.length - SOURCE_PREVIEW_CAP} chars]`
-        : content,
-  };
-}
-
-// 'context-light' keep-list: the accessible, idea-rich study aids only. Drops
-// the commentary + halachic-apparatus layers (sefaria-rashi/tosafot/rishonim/
-// halacha/topic, dafyomi halacha/tosfos/hebcharts/review-of-mechanics) that
-// pull a reader-facing piece toward lomdus.
-const LIGHT_CONTEXT_SOURCES = new Set<string>([
-  'sefaria-mishnah',
-  'dafyomi:insights',
-  'dafyomi:points',
-  'dafyomi:background',
-  'dafyomi:yerushalmi',
-  'dafyomi:revach',
-]);
+const RESOLVE_PORTS: ResolveInputsPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefinition> = {
+  sources: RUN_SOURCE_RESOLVERS,
+  defaultSource: 'gemara',
+  loadEnrichmentDef: (rc, id) => loadEnrichmentDef(rc.env, id),
+  loadMarkDef: (rc, id) => loadMarkDef(rc.env, id),
+  runEnrichment: (rc, def, tractate, page, markInput, bypassCache, parentChain) =>
+    runEnrichmentOnce(rc, def, tractate, page, markInput, bypassCache, undefined, parentChain),
+  runMark: (rc, def, tractate, page, bypassCache) =>
+    runMarkOnce(rc, def, tractate, page, bypassCache),
+};
 
 export async function resolveDependencies(
   rc: RunCtx,
@@ -2343,292 +2247,17 @@ export async function resolveDependencies(
    *  opening the dev inspector never re-runs a model. */
   sourcesOnly = false,
 ): Promise<ResolvedInputs> {
-  const out: ResolvedInputs = { vars: {}, depends: {}, anchors: {}, sources: {} };
-  if (!dependencies || dependencies.length === 0) {
-    // Default behavior: when no dependencies declared, hand the gemara slice
-    // through (matches pre-refactor buildDafContext behavior). Removes a
-    // foot-gun when porting old extractors that omitted the field.
-    const slice = await getGemaraSlice(rc.env, tractate, page, bypassCache);
-    Object.assign(out.vars, gemaraSliceToVars(slice));
-    recordSource(out, 'gemara', out.vars.gemara);
-    return out;
-  }
-  // Resolve all dependencies CONCURRENTLY. They're independent (each writes a
-  // distinct key in out.vars/depends/anchors), and a section synthesis can
-  // depend on several LLM enrichments (voices, background) plus sub-marks —
-  // serial resolution stacked their latencies. Promise.all overlaps them; the
-  // queue consumer's max_concurrency still caps total simultaneous LLM load.
-  await Promise.all(
-    dependencies.map(async (dep) => {
-      if (dep === 'gemara') {
-        const slice = await getGemaraSlice(rc.env, tractate, page, bypassCache);
-        Object.assign(out.vars, gemaraSliceToVars(slice));
-        recordSource(out, 'gemara', out.vars.gemara);
-        return;
-      }
-      if (dep === 'commentaries') {
-        const slice = await getCommentariesSlice(rc.env, tractate, page, bypassCache);
-        out.vars.commentaries = commentariesSliceToString(slice);
-        recordSource(out, 'commentaries', out.vars.commentaries);
-        return;
-      }
-      if (dep === 'mishna') {
-        const bundle = await getMishnaBundleCached(rc.env.CACHE, tractate, page);
-        const filtered = selectMishnaForMark(bundle, markInput);
-        out.vars.mishna = mishnaBundleToString(filtered);
-        recordSource(out, 'mishna', out.vars.mishna);
-        return;
-      }
-      if (dep === 'halacha-refs') {
-        // Grounded codifier refs (Mishneh Torah / Tur / Shulchan Aruch) that
-        // Sefaria links to this daf, with their real text — so the codification
-        // enrichment SELECTS from real refs instead of recalling citations.
-        const bundle = await getHalachaRefsCached(rc.env.CACHE, tractate, page);
-        out.vars.halacha_refs = formatGroundedRefsForPrompt(bundle);
-        recordSource(out, 'halacha-refs', out.vars.halacha_refs);
-        return;
-      }
-      if (dep === 'yerushalmi-text') {
-        // Three grounding tiers: (1) curated Bavli<->Yerushalmi parallels a human
-        // confirmed (often cross-tractate — the mishnah-mapping can't find them),
-        // (2) the Jerusalem Talmud parallel(s) on the same mishnah (real text via
-        // fetchYerushalmiForDaf), (3) the ALIGNED dafyomi "Yerushalmi to Match"
-        // outline — a structured, segment-anchored summary of exactly what the
-        // Yerushalmi says, so the producer contrasts the two PART-BY-PART rather
-        // than from memory. Each source that fails contributes nothing.
-        const [bundle, curated, outline] = await Promise.all([
-          getYerushalmiCached(rc.env.CACHE, tractate, page),
-          fetchCuratedYerushalmi(curatedParallelsForDaf(tractate, page)),
-          buildYerushalmiOutline(rc.env, tractate, page),
-        ]);
-        // Deterministic floor anchors — the verbatim-shared spans the mark MUST
-        // surface. Fed to the prompt (REQUIRED ANCHORS) so the model writes their
-        // differences, and stashed for the yerushalmi-floor pass, which backstops
-        // any the model still drops. The double-underscore key is internal (not a
-        // prompt placeholder).
-        const floor = yerushalmiFloorGroups(outline);
-        out.vars.yerushalmi = formatYerushalmiForPrompt(bundle, curated, outline, floor);
-        out.vars.__yerushalmiFloor = floor;
-        recordSource(out, 'yerushalmi-text', out.vars.yerushalmi);
-        return;
-      }
-      if (dep === 'incoming') {
-        // How this daf connects to the PREVIOUS one. Read the prev->this bridge
-        // (computeDafBridge on the previous daf judges its last argument section
-        // against this daf's first). When the sugya carries over, expose its
-        // grounded note so a whole-daf overview can open with where the page comes
-        // from — never recalled from the model's memory. Empty when the daf opens
-        // fresh, the previous daf isn't warmed, or this is the tractate's first
-        // daf. In the inspector's sourcesOnly pass, read cache-only so it never
-        // triggers the bridge model. Best-effort: any failure contributes nothing.
-        try {
-          const prevPage = adjacentAmud(tractate, page, -1);
-          if (prevPage) {
-            let bridge: DafBridge | null = null;
-            if (sourcesOnly) {
-              const c = rc.env.CACHE
-                ? await rc.env.CACHE.get(keyForBridge(tractate, prevPage))
-                : null;
-              if (c) {
-                try {
-                  bridge = JSON.parse(c) as DafBridge;
-                } catch {
-                  /* ignore */
-                }
-              }
-            } else {
-              bridge = await computeDafBridge(rc.env, tractate, prevPage);
-            }
-            if (bridge?.continues && typeof bridge.note === 'string' && bridge.note.trim()) {
-              out.vars.incoming = `Continues the discussion from the previous daf (${tractate} ${prevPage}): ${bridge.note.trim()}`;
-            }
-          }
-        } catch {
-          /* no incoming context */
-        }
-        recordSource(out, 'incoming', (out.vars.incoming as string) ?? '');
-        return;
-      }
-      if (dep === 'context' || dep === 'context-light') {
-        // Aggregated external context (dafyomi Points/Halacha/Charts + Sefaria
-        // Rishonim/halacha/topics), SCOPED to the instance's segments: a section
-        // enrichment gets the context grounded to its own lines; a whole-daf one
-        // (no segment location) gets the full pool. Each source that fails
-        // contributes nothing rather than throwing.
-        // 'context-light' drops the commentary/halachic-apparatus layers (Rashi,
-        // Tosafot, rishonim, sefaria-halacha/topic, dafyomi halacha/tosfos/charts)
-        // and keeps only the accessible, idea-rich aids — so the Tidbit isn't fed
-        // the lomdus that kept pulling it scholarly. The Bi'yun uses full 'context'.
-        // This amud's argument sections let Revach summaries be placed per-section
-        // (English↔English alignment, conservative); a cheap cached read.
-        const sections = (await readMarkInstances(rc.env, 'argument', tractate, page))
-          .filter((i) => typeof i.startSegIdx === 'number' && typeof i.endSegIdx === 'number')
-          .map((i) => ({
-            startSegIdx: i.startSegIdx as number,
-            endSegIdx: i.endSegIdx as number,
-            title: typeof i.fields?.title === 'string' ? i.fields.title : undefined,
-            summary: typeof i.fields?.summary === 'string' ? i.fields.summary : undefined,
-          }));
-        const allItems = await collectContext(rc.env, tractate, page, { sections });
-        const items =
-          dep === 'context-light'
-            ? allItems.filter((it) => LIGHT_CONTEXT_SOURCES.has(it.source))
-            : allItems;
-        // Back up the deterministic Revach placer with the cached AI matcher for
-        // any entries it left whole-daf (once per daf; LLM-free on cache hit). In
-        // the source-only inspector pass, run it cache-only so the preview still
-        // reflects already-cached placements but NEVER triggers the matcher on a
-        // cold daf.
-        await placeRevachWithAi(rc.env, tractate, page, items, sourcesOnly);
-        const scoped = contextForAnchor(items, segsFromMarkInput(markInput));
-        out.vars.context = formatContextForPrompt(scoped);
-        // Break the aggregated context into its constituent study-aids for the
-        // inspector instead of one opaque blob: group the scoped items by their
-        // `source` (sefaria-rashi / sefaria-rishonim / sefaria-topic / dafyomi:* /
-        // …) and record each part, rendered with the same formatter the prompt
-        // uses so every part is faithful to that source's contribution. Key as
-        // `context-<kind>` (provider prefix stripped) so chips read cleanly
-        // ("Context rashi", "Context points", "Context revach"). `out.vars.context`
-        // (above) stays the combined string the prompt actually consumes.
-        const byContextSource = new Map<string, typeof scoped>();
-        for (const it of scoped) {
-          const group = byContextSource.get(it.source) ?? [];
-          group.push(it);
-          byContextSource.set(it.source, group);
-        }
-        for (const [src, group] of byContextSource) {
-          const kind = src.replace(/^sefaria-/, '').replace(/^dafyomi:/, '');
-          recordSource(out, `context-${kind}`, formatContextForPrompt(group));
-        }
-        return;
-      }
-      if (typeof dep === 'object' && dep !== null) {
-        // Inspector source-only pass: don't RUN enrichment/mark deps (that's
-        // generation) — recurse to collect their TRANSITIVE source closure, since
-        // an aggregate's source texts are pulled by its children, not by itself
-        // (e.g. a synthesis whose deps are all sub-enrichments). sourcesOnly stays
-        // true at every level, so no model ever runs; parentChain guards cycles.
-        if (sourcesOnly) {
-          const childKey =
-            'enrichment' in dep ? dep.enrichment : 'mark' in dep ? `mark:${dep.mark}` : null;
-          if (!childKey || parentChain.has(childKey)) return;
-          const childDef =
-            'enrichment' in dep
-              ? await loadEnrichmentDef(rc.env, dep.enrichment)
-              : await loadMarkDef(rc.env, (dep as { mark: string }).mark);
-          if (!childDef) return;
-          const chain = new Set(parentChain);
-          chain.add(childKey);
-          // Enrichment children inherit the parent's markInput (mirrors the real
-          // run); mark children take none (extractors ignore markInput).
-          const childInput = 'enrichment' in dep ? markInput : undefined;
-          const sub = await resolveDependencies(
-            rc,
-            childDef.dependencies,
-            tractate,
-            page,
-            childInput,
-            bypassCache,
-            chain,
-            true,
-          );
-          Object.assign(out.sources, sub.sources);
-          return;
-        }
-        if ('enrichment' in dep) {
-          const depId = dep.enrichment;
-          if (parentChain.has(depId)) {
-            out.depends[depId] = {
-              error: `cycle detected (${[...parentChain].join(' → ')} → ${depId})`,
-            };
-            return;
-          }
-          const depDef = await loadEnrichmentDef(rc.env, depId);
-          if (!depDef) {
-            out.depends[depId] = { error: 'not found' };
-            return;
-          }
-          // fanOut: run this per-instance enrichment for EVERY instance of its
-          // target mark and expose the array. Lets a whole-daf consumer (the
-          // tidbit) pull in every story's / verse's / topic's analysis. Each
-          // instance run resolves its own deps + scopes its context, and is
-          // cache-keyed per instance — so on a warmed daf these are all hits.
-          if ((dep as { fanOut?: boolean }).fanOut) {
-            const markDef = await loadMarkDef(rc.env, depDef.mark);
-            if (!markDef) {
-              out.depends[depId] = { error: `mark ${depDef.mark} not found` };
-              return;
-            }
-            let instances: unknown[] = [];
-            try {
-              const markRes = await runMarkOnce(rc, markDef, tractate, page, bypassCache);
-              const parsed = markRes.parsed as { instances?: unknown[] } | null;
-              instances = Array.isArray(parsed?.instances) ? parsed.instances : [];
-            } catch (err) {
-              out.depends[depId] = { error: String((err as Error)?.message ?? err) };
-              return;
-            }
-            const results = await Promise.all(
-              instances.map(async (inst) => {
-                try {
-                  const r = await runEnrichmentOnce(
-                    rc,
-                    depDef,
-                    tractate,
-                    page,
-                    inst,
-                    bypassCache,
-                    undefined,
-                    parentChain,
-                  );
-                  return r.parsed ?? r.content;
-                } catch {
-                  return null;
-                }
-              }),
-            );
-            out.depends[depId] = results.filter((x) => x != null);
-            return;
-          }
-          try {
-            const result = await runEnrichmentOnce(
-              rc,
-              depDef,
-              tractate,
-              page,
-              markInput,
-              bypassCache,
-              undefined,
-              parentChain,
-            );
-            out.depends[depId] = result.parsed ?? result.content;
-          } catch (err) {
-            out.depends[depId] = { error: String((err as Error)?.message ?? err) };
-          }
-          return;
-        }
-        if ('mark' in dep) {
-          const markId = dep.mark;
-          const markDef = await loadMarkDef(rc.env, markId);
-          if (!markDef) {
-            out.anchors[markId] = { error: 'not found' };
-            return;
-          }
-          try {
-            const result = await runMarkOnce(rc, markDef, tractate, page, bypassCache);
-            // Surface only the parsed instances list — extractors all emit
-            // `{ instances: [...] }`. If the parse failed, expose the raw text.
-            const parsed = result.parsed as { instances?: unknown } | null;
-            out.anchors[markId] = parsed?.instances ?? result.content;
-          } catch (err) {
-            out.anchors[markId] = { error: String((err as Error)?.message ?? err) };
-          }
-          return;
-        }
-      }
-    }),
+  return resolveInputs(
+    RESOLVE_PORTS,
+    rc,
+    dependencies,
+    tractate,
+    page,
+    markInput,
+    bypassCache,
+    parentChain,
+    sourcesOnly,
   );
-  return out;
 }
 
 // ===========================================================================
