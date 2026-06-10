@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "ship": "bash ../../scripts/ship-guard.sh && vite build && wrangler deploy",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@corpus/core": "workspace:*",
