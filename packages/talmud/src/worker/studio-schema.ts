@@ -39,78 +39,68 @@
  *   - The inspect surface is a left-side drawer alongside the daf viewer.
  */
 
+import type { DafRef } from '@corpus/core/context/coord';
 import type { LLMModelId } from '@corpus/core/llm/llm';
+import type {
+  LegacyAnchorKind,
+  LegacyAnchorOutput,
+  LegacyCrossDafAnchor,
+  LegacyExternalAnchor,
+  LegacyMultiAnchor,
+  LegacyPhraseAnchor,
+  LegacySegmentAnchor,
+  LegacySegmentRangeAnchor,
+  LegacyWholeDafAnchor,
+} from '@corpus/core/model/compat';
 import type { SidebarRecipe } from '@corpus/core/sidebar/recipe';
 
 // ===========================================================================
 // Anchor — where in the daf this mark's instances live.
+//
+// The SHAPES are owned by @corpus/core/model/compat (the Legacy* structural
+// types the four-primitive bridges project from) and re-exported here under
+// their original studio names, so consumer imports are unchanged. The
+// anchor→render COMPATIBLE matrix stays in this file — render kinds are
+// app-side.
 // ===========================================================================
 
-export type AnchorKind =
-  | 'segment' // single Sefaria segment (used for per-segment classifications: era, language, speech-act)
-  | 'segment-range' // span of consecutive segments (argument, halacha topic, aggadata story)
-  | 'phrase' // word(s) within a segment (rabbi name, place name, plant)
-  | 'multi-anchor' // paired non-adjacent spans (echo, inclusio, dispute pair)
-  | 'cross-daf' // anchor here, target on another daf (parallel sugya, citation)
-  | 'external' // anchor here, target off-daf (image, audio, wiki)
-  | 'whole-daf'; // no specific anchor; whole-daf concept (theme, difficulty, prerequisites)
+/** The seven anchor kinds:
+ *    'segment'       — single Sefaria segment (per-segment classifications: era, language, speech-act)
+ *    'segment-range' — span of consecutive segments (argument, halacha topic, aggadata story)
+ *    'phrase'        — word(s) within a segment (rabbi name, place name, plant)
+ *    'multi-anchor'  — paired non-adjacent spans (echo, inclusio, dispute pair)
+ *    'cross-daf'     — anchor here, target on another daf (parallel sugya, citation)
+ *    'external'      — anchor here, target off-daf (image, audio, wiki)
+ *    'whole-daf'     — no specific anchor; whole-daf concept (theme, difficulty, prerequisites) */
+export type AnchorKind = LegacyAnchorKind;
 
 /** Output shape: a single-segment instance. */
-export interface SegmentAnchor {
-  segIdx: number;
-}
+export type SegmentAnchor = LegacySegmentAnchor;
 
 /** Output shape: a multi-segment span. */
-export interface SegmentRangeAnchor {
-  startSegIdx: number;
-  endSegIdx: number;
-}
+export type SegmentRangeAnchor = LegacySegmentRangeAnchor;
 
 /** Output shape: a word/phrase. The renderer prefers segIdx+tokenStart+tokenEnd
  *  when present and falls back to first-occurrence match of the normalized
  *  Hebrew excerpt. The LLM is encouraged to emit both. */
-export interface PhraseAnchor {
-  excerpt: string;
-  segIdx?: number;
-  tokenStart?: number;
-  tokenEnd?: number;
-}
+export type PhraseAnchor = LegacyPhraseAnchor;
 
-/** Output shape: paired non-adjacent spans (e.g. inclusio A...A). */
-export interface MultiAnchor {
-  anchors: PhraseAnchor[];
-  /** Optional human label for the kind of relation: 'echo', 'inclusio', etc. */
-  relation?: string;
-}
+/** Output shape: paired non-adjacent spans (e.g. inclusio A...A). `relation` is
+ *  an optional human label for the kind of relation: 'echo', 'inclusio', etc. */
+export type MultiAnchor = LegacyMultiAnchor;
 
 /** Output shape: anchor on this daf points to another daf. */
-export interface CrossDafAnchor {
-  source: PhraseAnchor | SegmentRangeAnchor;
-  target: { tractate: string; page: string; segIdx?: number };
-}
+export type CrossDafAnchor = LegacyCrossDafAnchor;
 
-/** Output shape: anchor on this daf points to an external resource. */
-export interface ExternalAnchor {
-  source: PhraseAnchor;
-  url: string;
-  /** 'image' | 'audio' | 'video' | 'article' | other. Used by renderer. */
-  resource_kind?: string;
-}
+/** Output shape: anchor on this daf points to an external resource.
+ *  `resource_kind` is 'image' | 'audio' | 'video' | 'article' | other —
+ *  used by the renderer. */
+export type ExternalAnchor = LegacyExternalAnchor;
 
-/** Output shape: whole-daf concept. */
-export interface WholeDafAnchor {
-  /** Empty by design — fields hold the actual data. */
-  _: 'whole-daf';
-}
+/** Output shape: whole-daf concept. Empty by design — fields hold the data. */
+export type WholeDafAnchor = LegacyWholeDafAnchor;
 
-export type AnchorOutput =
-  | SegmentAnchor
-  | SegmentRangeAnchor
-  | PhraseAnchor
-  | MultiAnchor
-  | CrossDafAnchor
-  | ExternalAnchor
-  | WholeDafAnchor;
+export type AnchorOutput = LegacyAnchorOutput;
 
 // ===========================================================================
 // Render — how a mark's instances display on the daf.
@@ -535,7 +525,7 @@ export interface RunDiagnostics {
 
 export interface MarkRunOutput {
   mark_id: string;
-  daf: { tractate: string; page: string };
+  daf: DafRef;
   def_hash: string;
   computed_at: string;
   instances: MarkInstance[];
