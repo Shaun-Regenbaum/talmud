@@ -26,7 +26,6 @@ import { BugReport } from './BugReport';
 import { type BackgroundGroup, orderBackgroundGroups } from './backgroundGroups';
 import ChecksPanel from './ChecksPanel';
 import type { CommentaryComment, CommentaryWork } from './CommentaryPicker';
-import { CommentaryStrip } from './CommentaryStrip';
 import { type CommentaryAnchorIndex, fetchCommentaryAnchorIndex } from './commentaryAnchorIndex';
 import DafLoadProgress from './DafLoadProgress';
 import { readDevMode, setDevModeActive } from './DevModeShelf';
@@ -35,7 +34,6 @@ import { ensureMasechetIncipit } from './ensureMasechetIncipit';
 import { GutterIcons, type GutterKind } from './GutterIcons';
 import { GutterOverlay } from './GutterOverlay';
 import type { GenerationId } from './generations';
-import { GENERATION_BY_ID } from './generations';
 import { buildTokenRange } from './highlightRange';
 import { lang, setLang, t } from './i18n';
 import { injectHadran } from './injectHadran';
@@ -57,10 +55,8 @@ import { buildSeedMarks } from './seed-marks';
 import type {
   AggadataResult,
   ChartResult,
-  ChartTable,
   DafAnalysis,
   HalachaResult,
-  HalachaTopic,
   PesukimResult,
   Section,
   YerushalmiResult,
@@ -347,7 +343,7 @@ function loadToggle(key: string, def: boolean): boolean {
 
 /** Pill-shaped toggle switch for the daf picker. Persistence is handled by
  *  the caller via createEffect + localStorage. */
-function ToggleSwitch(props: {
+function _ToggleSwitch(props: {
   label: string;
   value: boolean;
   onChange: (next: boolean) => void;
@@ -475,7 +471,9 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // opt into individual layers via the marks panel. Existing users keep
   // their persisted state in localStorage.
   const [showGenMarkers, setShowGenMarkers] = createSignal(loadToggle(GEN_KEY, false));
-  const [showCommentaries, setShowCommentaries] = createSignal(loadToggle(COMMENTARIES_KEY, false));
+  const [showCommentaries, _setShowCommentaries] = createSignal(
+    loadToggle(COMMENTARIES_KEY, false),
+  );
   const [showArguments, setShowArguments] = createSignal(loadToggle(ARGUMENTS_KEY, false));
   const [showHalachot, setShowHalachot] = createSignal(loadToggle(HALACHOT_KEY, false));
   const [showChart, setShowChart] = createSignal(loadToggle(CHART_KEY, false));
@@ -509,7 +507,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // per-section enrichment).
   createEffect(() => {
     const runs = markRunsByMarkId();
-    const argRun = runs['argument'];
+    const argRun = runs.argument;
     if (!argRun?.parsed) return;
     const p = argRun.parsed as {
       summary?: string;
@@ -551,7 +549,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // gutter+sidebar renderer.
   createEffect(() => {
     const runs = markRunsByMarkId();
-    const r = runs['halacha'];
+    const r = runs.halacha;
     if (!r?.parsed) return;
     const p = r.parsed as {
       instances?: Array<{
@@ -585,7 +583,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // fields ARE the comparison table.
   createEffect(() => {
     const runs = markRunsByMarkId();
-    const r = runs['chart'];
+    const r = runs.chart;
     if (!r?.parsed) return;
     type BiCell = { en: string; he: string };
     const p = r.parsed as {
@@ -633,7 +631,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // Adapter: aggadata mark instances → AggadataResult.
   createEffect(() => {
     const runs = markRunsByMarkId();
-    const r = runs['aggadata'];
+    const r = runs.aggadata;
     if (!r?.parsed) return;
     const p = r.parsed as {
       instances?: Array<{
@@ -678,7 +676,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // Adapter: pesukim mark instances → PesukimResult.
   createEffect(() => {
     const runs = markRunsByMarkId();
-    const r = runs['pesukim'];
+    const r = runs.pesukim;
     if (!r?.parsed) return;
     const p = r.parsed as {
       instances?: Array<{
@@ -722,7 +720,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // Adapter: yerushalmi mark instances → YerushalmiResult.
   createEffect(() => {
     const runs = markRunsByMarkId();
-    const r = runs['yerushalmi'];
+    const r = runs.yerushalmi;
     if (!r?.parsed) return;
     const p = r.parsed as {
       instances?: Array<{
@@ -783,7 +781,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // Replaces the heuristic injectCityMarkers placeMatches set. Returns null
   // when the mark hasn't yielded yet (so GeographyMap can show a loading state).
   const placesMatchedFromMark = (): Set<string> => {
-    const run = markRunsByMarkId()['places'];
+    const run = markRunsByMarkId().places;
     const out = new Set<string>();
     if (!run?.parsed?.instances) return out;
     for (const inst of run.parsed.instances) {
@@ -861,7 +859,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // The `rabbi` mark run (post-augmentWithKnownRabbis) is the single source of
   // identified rabbis on the daf.
   const rabbiMarkInstances = createMemo(() => {
-    const parsed = markRunsByMarkId()['rabbi']?.parsed as
+    const parsed = markRunsByMarkId().rabbi?.parsed as
       | {
           instances?: Array<{
             excerpt?: string;
@@ -985,7 +983,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // Other-commentary state (Sefaria links). Driven by the picker in the
   // right sidebar and the data-seg alignment in the daf text.
   const [commentaryWorks, setCommentaryWorks] = createSignal<CommentaryWork[] | null>(null);
-  const [commentariesLoading, setCommentariesLoading] = createSignal(false);
+  const [_commentariesLoading, setCommentariesLoading] = createSignal(false);
   const [activeCommentaryWork, setActiveCommentaryWork] = createSignal<string | null>(null);
   // Segment currently expanded inside the CommentaryPicker card (not in the
   // argument/halacha/rabbi sidebar). `null` means dropdown-only; a number
@@ -1171,7 +1169,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // Transient hover highlight — driven by hovering a row in the Migration
   // list. Additive on top of click-driven highlights so hovering doesn't
   // stomp the sidebar / active-location state the user already committed to.
-  const [hoveredRabbi, setHoveredRabbi] = createSignal<string | null>(null);
+  const [hoveredRabbi, _setHoveredRabbi] = createSignal<string | null>(null);
 
   // Place-dot highlight: clicking a city dot (not a rabbi dot) lights up
   // every `.city-marker[data-city="<name>"]` in the daf body. Mutually
@@ -1233,7 +1231,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // Returns true when it consumed the click.
   const tryOpenUserHighlight = (wordEl: HTMLElement, e: MouseEvent): boolean => {
     const mainCol = mainTextCol();
-    if (!mainCol || !mainCol.contains(wordEl)) return false;
+    if (!mainCol?.contains(wordEl)) return false;
     const wc = wordCoordFromTarget(wordEl, mainCol);
     if (!wc) return false;
     // Search newest-first so an overlap opens the highlight painted on top
@@ -1368,7 +1366,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // Generic fetcher used by both geography and generations endpoints. Probes
   // cache with ?cached_only=1 first to avoid triggering a slow AI call if the
   // daf hasn't been classified yet.
-  const runMarkerFetch = <T,>(params: {
+  const _runMarkerFetch = <T,>(params: {
     tractate: string;
     page: string;
     urlFor: (cachedOnly: boolean) => string;
@@ -1385,7 +1383,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
         if (res.status === 404) return null;
         const json = (await res.json()) as { error?: string; attempts?: string[] };
         if (!res.ok || json.error) {
-          const detail = (json.error ?? '') + ' ' + (json.attempts ?? []).join(' ');
+          const detail = `${json.error ?? ''} ${(json.attempts ?? []).join(' ')}`;
           if (/1031|UpstreamError/i.test(detail)) {
             throw new Error('Cloudflare AI temporarily unavailable (1031).');
           }
@@ -1476,7 +1474,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       if (r.name) names.add(r.name);
     }
     const runs = markRunsByMarkId();
-    const argParsed = runs['argument']?.parsed as
+    const argParsed = runs.argument?.parsed as
       | {
           instances?: Array<{ fields?: { rabbiNames?: string[] } }>;
         }
@@ -1492,7 +1490,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     for (const inst of moveParsed?.instances ?? []) {
       for (const n of inst.fields?.rabbiNames ?? []) if (n) names.add(n);
     }
-    const rabbiParsed = runs['rabbi']?.parsed as
+    const rabbiParsed = runs.rabbi?.parsed as
       | {
           instances?: Array<{ fields?: { name?: string } }>;
         }
@@ -1584,13 +1582,13 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     const dafRootDiv = root.querySelector<HTMLElement>('.daf-root') ?? root;
 
     // Clear prior rabbi-name highlights.
-    dafRootDiv
-      .querySelectorAll('.rabbi-underline.rabbi-highlighted')
-      .forEach((el) => el.classList.remove('rabbi-highlighted'));
+    dafRootDiv.querySelectorAll('.rabbi-underline.rabbi-highlighted').forEach((el) => {
+      el.classList.remove('rabbi-highlighted');
+    });
     // Clear prior city-name highlights.
-    dafRootDiv
-      .querySelectorAll('.city-marker.city-highlighted')
-      .forEach((el) => el.classList.remove('city-highlighted'));
+    dafRootDiv.querySelectorAll('.city-marker.city-highlighted').forEach((el) => {
+      el.classList.remove('city-highlighted');
+    });
 
     const sectionRanges: Range[] = [];
     const halachaRanges: Range[] = [];
@@ -1797,7 +1795,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
               (a, b) =>
                 Number(a.getAttribute('data-idx') ?? 0) - Number(b.getAttribute('data-idx') ?? 0),
             );
-            const pos = allStoryAnchors.findIndex((el) => el === anchor);
+            const pos = allStoryAnchors.indexOf(anchor);
             const next =
               pos >= 0 && pos + 1 < allStoryAnchors.length ? allStoryAnchors[pos + 1] : null;
             if (next) range.setEndBefore(next);
@@ -1886,7 +1884,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
                 (a, b) =>
                   Number(a.getAttribute('data-idx') ?? 0) - Number(b.getAttribute('data-idx') ?? 0),
               );
-              const pos = allPesukAnchors.findIndex((el) => el === anchor);
+              const pos = allPesukAnchors.indexOf(anchor);
               const next =
                 pos >= 0 && pos + 1 < allPesukAnchors.length ? allPesukAnchors[pos + 1] : null;
               if (next) range.setEndBefore(next);
@@ -1899,7 +1897,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
               (a, b) =>
                 Number(a.getAttribute('data-idx') ?? 0) - Number(b.getAttribute('data-idx') ?? 0),
             );
-            const pos = allPesukAnchors.findIndex((el) => el === anchor);
+            const pos = allPesukAnchors.indexOf(anchor);
             const next =
               pos >= 0 && pos + 1 < allPesukAnchors.length ? allPesukAnchors[pos + 1] : null;
             if (next) range.setEndBefore(next);
@@ -2074,7 +2072,9 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     // Per-rabbi name accent (yellow) — always applied on top of any tint.
     if (name) {
       const selector = `.rabbi-underline[data-rabbi="${name.replace(/"/g, '\\"')}"]`;
-      dafRootDiv.querySelectorAll(selector).forEach((el) => el.classList.add('rabbi-highlighted'));
+      dafRootDiv.querySelectorAll(selector).forEach((el) => {
+        el.classList.add('rabbi-highlighted');
+      });
     }
 
     // Geography-driven multi-rabbi highlight — light up every mention of
@@ -2083,7 +2083,9 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     if (locRabbis.length > 0) {
       for (const rn of locRabbis) {
         const sel = `.rabbi-underline[data-rabbi="${rn.replace(/"/g, '\\"')}"]`;
-        dafRootDiv.querySelectorAll(sel).forEach((el) => el.classList.add('rabbi-highlighted'));
+        dafRootDiv.querySelectorAll(sel).forEach((el) => {
+          el.classList.add('rabbi-highlighted');
+        });
       }
     }
 
@@ -2093,14 +2095,18 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     const hover = hoveredRabbi();
     if (hover) {
       const sel = `.rabbi-underline[data-rabbi="${hover.replace(/"/g, '\\"')}"]`;
-      dafRootDiv.querySelectorAll(sel).forEach((el) => el.classList.add('rabbi-highlighted'));
+      dafRootDiv.querySelectorAll(sel).forEach((el) => {
+        el.classList.add('rabbi-highlighted');
+      });
     }
 
     // Place-dot highlight — light up every mention of the selected city.
     const place = activePlace();
     if (place) {
       const sel = `.city-marker[data-city="${place.replace(/"/g, '\\"')}"]`;
-      dafRootDiv.querySelectorAll(sel).forEach((el) => el.classList.add('city-highlighted'));
+      dafRootDiv.querySelectorAll(sel).forEach((el) => {
+        el.classList.add('city-highlighted');
+      });
     }
 
     // Mobile: when the selection (a section / halacha / aggadata / pesuk, or a
@@ -2376,7 +2382,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // Cities found in the daf's Hebrew text — passed to GeographyMap so each
   // explicit mention gets a gray place-dot even when no rabbi in the list
   // is placed there.
-  const citiesInText = createMemo<Set<string> | null>(() => {
+  const _citiesInText = createMemo<Set<string> | null>(() => {
     const t = tokenized();
     return t ? t.placeMatches : null;
   });
@@ -2403,7 +2409,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
 
   const openArgument = (index: number) => {
     const a = analysis();
-    if (!a || !a.sections[index]) return;
+    if (!a?.sections[index]) return;
     clearCommentarySelection();
     setActiveRabbi(null);
     const content = { kind: 'argument', section: a.sections[index], index } as const;
@@ -2418,7 +2424,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
 
   const openHalacha = (index: number) => {
     const h = halacha();
-    if (!h || !h.topics[index]) return;
+    if (!h?.topics[index]) return;
     clearCommentarySelection();
     setActiveRabbi(null);
     setSidebar({ kind: 'halacha', topic: h.topics[index], index });
@@ -2427,7 +2433,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
 
   const openChart = (index: number) => {
     const ch = chart();
-    if (!ch || !ch.charts[index]) return;
+    if (!ch?.charts[index]) return;
     clearCommentarySelection();
     setActiveRabbi(null);
     setSidebar({ kind: 'chart', chart: ch.charts[index], index });
@@ -2436,7 +2442,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
 
   const openStory = (index: number) => {
     const ag = aggadata();
-    if (!ag || !ag.stories[index]) return;
+    if (!ag?.stories[index]) return;
     const current = sidebar();
     if (current?.kind === 'aggadata' && current.index === index) {
       setSidebar(null);
@@ -2451,7 +2457,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
 
   const openPasuk = (index: number) => {
     const list = pesukim()?.pesukim;
-    if (!list || !list[index]) return;
+    if (!list?.[index]) return;
     clearCommentarySelection();
     setActiveRabbi(null);
     setSidebar({ kind: 'pesuk', pasuk: list[index], index });
@@ -2460,7 +2466,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
 
   const openYerushalmi = (index: number) => {
     const list = yerushalmi()?.parallels;
-    if (!list || !list[index]) return;
+    if (!list?.[index]) return;
     clearCommentarySelection();
     setActiveRabbi(null);
     setSidebar({ kind: 'yerushalmi', parallel: list[index], index });
@@ -2496,7 +2502,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // the matching instance in the rishonim mark's run output, then push a
   // 'rishonim' SidebarContent so the existing right-aside renders it.
   const openRishonim = (segIdx: number) => {
-    const run = markRunsByMarkId()['rishonim'];
+    const run = markRunsByMarkId().rishonim;
     const inst = (
       run?.parsed?.instances as Array<{ segIdx: number; fields: unknown }> | undefined
     )?.find((i) => i.segIdx === segIdx);
@@ -2525,7 +2531,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     return `${s.kind}:${s.index}`;
   });
 
-  const onHighlightLocation = (cityName: string | null, rabbiNames: string[]) => {
+  const _onHighlightLocation = (cityName: string | null, rabbiNames: string[]) => {
     setActiveRabbi(null);
     setSidebar(null);
     setActivePlace(null);
@@ -2538,7 +2544,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // string with a `gen:` prefix so the map + timeline can each tell when the
   // other is driving the highlight. If the generation contains exactly one
   // rabbi, also open their bio card.
-  const onHighlightGeneration = (gen: GenerationId | null, rabbiNames: string[]) => {
+  const _onHighlightGeneration = (gen: GenerationId | null, rabbiNames: string[]) => {
     if (gen && rabbiNames.length === 1) {
       openRabbi(rabbiNames[0]);
       return;
@@ -2550,9 +2556,9 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     setActiveLocation(gen ? `gen:${gen}` : null);
     setActiveLocationRabbis(gen ? rabbiNames : []);
   };
-  const activeGenerationId = createMemo<GenerationId | null>(() => {
+  const _activeGenerationId = createMemo<GenerationId | null>(() => {
     const loc = activeLocation();
-    if (!loc || !loc.startsWith('gen:')) return null;
+    if (!loc?.startsWith('gen:')) return null;
     return loc.slice(4) as GenerationId;
   });
 
@@ -2572,17 +2578,17 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   const ARG_EDGE_X = '-10px';
   const HALACHA_EDGE_X = 'calc(100% + 10px)';
   // Aggadata icons share the right-hand gutter column with halacha gavels.
-  const AGG_X = HALACHA_X;
-  const AGG_EDGE_X = HALACHA_EDGE_X;
+  const _AGG_X = HALACHA_X;
+  const _AGG_EDGE_X = HALACHA_EDGE_X;
   // Pesuk badges sit on the left (argument) gutter — Tanach citations are
   // foundational to the gemara's argumentative weave, so they belong on the
   // same side as the argument-section icons.
-  const PESUK_X = ARG_X;
-  const PESUK_EDGE_X = ARG_EDGE_X;
+  const _PESUK_X = ARG_X;
+  const _PESUK_EDGE_X = ARG_EDGE_X;
   // Rishonim icons go on the right gutter, but inset further than halacha
   // so they don't collide with halacha gavels when both are enabled.
-  const RISHONIM_X = `calc(${100 - SIDE_PCT}% - 22px)`;
-  const RISHONIM_EDGE_X = 'calc(100% + 22px)';
+  const _RISHONIM_X = `calc(${100 - SIDE_PCT}% - 22px)`;
+  const _RISHONIM_EDGE_X = 'calc(100% + 22px)';
 
   const syncUrl = () => {
     // Embedded (tutorial) reader never touches the URL — it's pinned to a fixed
@@ -2757,14 +2763,22 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
 
   const clearActive = () => {
     const current = active();
-    if (current) current.els.forEach((el) => el.classList.remove('daf-word-active'));
+    if (current)
+      current.els.forEach((el) => {
+        el.classList.remove('daf-word-active');
+      });
     setActive(null);
   };
 
   const setActiveFromWordEls = (els: HTMLElement[], e?: MouseEvent) => {
     const prev = active();
-    if (prev) prev.els.forEach((el) => el.classList.remove('daf-word-active'));
-    els.forEach((el) => el.classList.add('daf-word-active'));
+    if (prev)
+      prev.els.forEach((el) => {
+        el.classList.remove('daf-word-active');
+      });
+    els.forEach((el) => {
+      el.classList.add('daf-word-active');
+    });
     // Snap the visible browser selection to the word boundaries so the user
     // sees exactly what will be translated.
     const sel = window.getSelection();
@@ -2802,7 +2816,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   const openRabbi = (name: string) => {
     let r: IdentifiedRabbi | null = dafRabbis().find((x) => x.name === name) ?? null;
     if (!r) {
-      const argRun = markRunsByMarkId()['rabbi'];
+      const argRun = markRunsByMarkId().rabbi;
       const inst = (
         argRun?.parsed as
           | { instances?: Array<{ excerpt?: string; fields: Record<string, unknown> }> }
@@ -2843,7 +2857,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // (still opens the card; the synthesis re-derives from the name) if the run
   // hasn't landed or the name isn't found.
   const openPlace = (name: string) => {
-    const run = markRunsByMarkId()['places'];
+    const run = markRunsByMarkId().places;
     const instances = (run?.parsed as { instances?: PlaceInstance[] } | undefined)?.instances;
     const found = instances?.find((i) => i.fields?.name === name) ?? null;
     const place: PlaceInstance = found ?? {
@@ -2902,7 +2916,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
 
     // 4. rabbi mark
     if (!r) {
-      const argRun = markRunsByMarkId()['rabbi'];
+      const argRun = markRunsByMarkId().rabbi;
       const inst = (
         argRun?.parsed as
           | { instances?: Array<{ excerpt?: string; fields: Record<string, unknown> }> }
@@ -3034,7 +3048,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
 
   // Wrapped picker-select: collapses any open segment so a new work doesn't
   // inherit a stale segment, and floats the picker card to the top.
-  const selectCommentaryWork = (title: string | null) => {
+  const _selectCommentaryWork = (title: string | null) => {
     setActiveCommentarySegIdx(null);
     setActiveCommentaryWork(title);
     if (title) {
@@ -3280,7 +3294,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
         // Extend from the first selected word to the tapped word. The range
         // spans either direction depending on which was tapped first.
         const anchorEl = cur.els[0];
-        if (anchorEl && anchorEl.isConnected) {
+        if (anchorEl?.isConnected) {
           const range = document.createRange();
           const following =
             anchorEl.compareDocumentPosition(wordEl) & Node.DOCUMENT_POSITION_FOLLOWING;
@@ -3398,6 +3412,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
             reference reads as a single unit. */}
         <div class="tb-nav" data-tour="daf-nav">
           <button
+            type="button"
             class="tb-navbtn"
             onClick={() => go(prevPage(page()))}
             title={t('header.nav.hint')}
@@ -3411,10 +3426,11 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
             value={pageNum()}
             onInput={(e) => setPageNum(Number(e.currentTarget.value))}
           />
-          <button class="tb-amud" onClick={toggleAmud} title={t('header.amud.title')}>
+          <button type="button" class="tb-amud" onClick={toggleAmud} title={t('header.amud.title')}>
             {pageAmud()}
           </button>
           <button
+            type="button"
             class="tb-navbtn"
             onClick={() => go(nextPage(page()))}
             title={t('header.nav.hint')}
@@ -3424,6 +3440,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
         </div>
 
         <button
+          type="button"
           class="tb-primary"
           classList={{ 'is-error': !!yomiError() }}
           onClick={goToYomi}
@@ -3435,6 +3452,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
 
         <div class="tb-utils">
           <button
+            type="button"
             class="tb-toggle"
             onClick={() => {
               window.location.hash = 'tutorial';
@@ -3448,6 +3466,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
               and aren't useful on a phone, so the button is hidden on mobile. */}
           <Show when={!isMobile()}>
             <button
+              type="button"
               class="tb-toggle"
               classList={{ 'is-active': devOpen() }}
               onClick={() => {
@@ -3465,6 +3484,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
               sheet with just the annotation layers. */}
           <Show when={isMobile()}>
             <button
+              type="button"
               class="tb-toggle"
               classList={{ 'is-active': layersOpen() }}
               onClick={() => setLayersOpen((v) => !v)}
@@ -3477,6 +3497,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
               floating TopBar overlay covers the other routes (see App.tsx). */}
           <div class="tb-seg" role="group" aria-label="Language" data-tour="lang">
             <button
+              type="button"
               class="tb-seg-btn"
               classList={{ 'is-active': lang() === 'en' }}
               aria-pressed={lang() === 'en'}
@@ -3485,6 +3506,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
               EN
             </button>
             <button
+              type="button"
               class="tb-seg-btn"
               classList={{ 'is-active': lang() === 'he' }}
               aria-pressed={lang() === 'he'}
@@ -3847,7 +3869,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
               </a>
               {' · '}
               <a
-                href="#"
+                href={`?tractate=${encodeURIComponent(tractate())}&page=${encodeURIComponent(page())}#align`}
                 onClick={(e) => {
                   e.preventDefault();
                   const u = new URL(window.location.href);
@@ -4071,7 +4093,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
               page={page()}
               active={(() => {
                 const h = argumentMoveHighlight();
-                return h && h.key.startsWith('typeprofile') ? { start: h.start, end: h.end } : null;
+                return h?.key.startsWith('typeprofile') ? { start: h.start, end: h.end } : null;
               })()}
               onHighlight={(r) =>
                 setArgumentMoveHighlight(

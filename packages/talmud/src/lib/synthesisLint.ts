@@ -203,7 +203,7 @@ export function lintCalques(text: string): CalqueIssue[] {
   for (const { re, hebrew, meaning } of CALQUE_RULES) {
     // Force global so matchAll walks every occurrence; keep the source rule
     // non-global so adding `g` here is the only place we juggle that flag.
-    const globalRe = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g');
+    const globalRe = new RegExp(re.source, re.flags.includes('g') ? re.flags : `${re.flags}g`);
     for (const m of text.matchAll(globalRe)) {
       out.push({
         kind: 'calque',

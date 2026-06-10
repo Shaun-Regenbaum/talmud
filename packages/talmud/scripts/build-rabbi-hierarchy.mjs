@@ -83,7 +83,7 @@ async function main() {
   }
   let slugs = json.slugs.filter((s) => {
     const entry = rabbisFile.rabbis[s];
-    return entry && entry.bio;
+    return entry?.bio;
   });
 
   if (ONLY) slugs = slugs.filter((s) => s === ONLY);
@@ -109,7 +109,7 @@ async function main() {
   }
 
   const existing = RESUME ? await loadExistingOutput() : null;
-  if (existing && existing.nodes) {
+  if (existing?.nodes) {
     // Inherit previously-computed edges so --resume can skip already-done slugs.
     for (const [slug, prev] of Object.entries(existing.nodes)) {
       if (!nodes[slug]) continue;
@@ -201,7 +201,7 @@ async function main() {
             nodesWithEdges: withEdgesSoFar,
             nodes,
           };
-          await writeFile(OUT_PATH, JSON.stringify(checkpoint, null, 2) + '\n', 'utf-8');
+          await writeFile(OUT_PATH, `${JSON.stringify(checkpoint, null, 2)}\n`, 'utf-8');
           console.log(
             `[hierarchy] checkpoint: ${processedSoFar} processed, ${withEdgesSoFar} with edges`,
           );
@@ -240,7 +240,7 @@ async function main() {
     console.log('[hierarchy] --dry-run — NOT writing file');
     return;
   }
-  await writeFile(OUT_PATH, JSON.stringify(out, null, 2) + '\n', 'utf-8');
+  await writeFile(OUT_PATH, `${JSON.stringify(out, null, 2)}\n`, 'utf-8');
   console.log(`[hierarchy] wrote ${OUT_PATH}`);
 }
 

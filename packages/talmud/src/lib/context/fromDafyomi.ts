@@ -51,22 +51,22 @@ function collectBlock(
   const b = block.body;
   switch (b.type) {
     case 'tosfos':
-      b.pieces.forEach((p, i) =>
+      b.pieces.forEach((p, i) => {
         out.push({
           ...base('tosfos-piece', `${type}:${amud}:${i}`),
           title: { he: p.dhHe, en: p.dhTranslit },
           body: p.body,
           dhNormalized: p.dhNormalized,
-        }),
-      );
+        });
+      });
       break;
     case 'background':
-      b.girsa.forEach((e, i) =>
-        out.push({ ...base('girsa', `${type}:girsa:${i}`), ...entryCard(e) }),
-      );
-      b.glossary.forEach((e, i) =>
-        out.push({ ...base('glossary', `${type}:gloss:${i}`), ...entryCard(e) }),
-      );
+      b.girsa.forEach((e, i) => {
+        out.push({ ...base('girsa', `${type}:girsa:${i}`), ...entryCard(e) });
+      });
+      b.glossary.forEach((e, i) => {
+        out.push({ ...base('glossary', `${type}:gloss:${i}`), ...entryCard(e) });
+      });
       break;
     case 'halacha': {
       const groups: [string, DafyomiEntry[]][] = [
@@ -92,9 +92,9 @@ function collectBlock(
     case 'points':
     case 'yerushalmi':
     case 'revach':
-      b.entries.forEach((e, i) =>
-        out.push({ ...base(b.type, `${type}:${amud}:${i}`), ...entryCard(e), ...entryRefs(e) }),
-      );
+      b.entries.forEach((e, i) => {
+        out.push({ ...base(b.type, `${type}:${amud}:${i}`), ...entryCard(e), ...entryRefs(e) });
+      });
       break;
     case 'hebcharts':
       b.tables.forEach((t, i) => {

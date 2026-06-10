@@ -5,8 +5,11 @@ import { type EdgeRect, orthogonalEdgePath } from '../src/client/flow/orthogonal
 function points(path: string): Array<[number, number]> {
   const out: Array<[number, number]> = [];
   const re = /[ML]\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(path)) !== null) out.push([Number(m[1]), Number(m[2])]);
+  for (;;) {
+    const m = re.exec(path);
+    if (m === null) break;
+    out.push([Number(m[1]), Number(m[2])]);
+  }
   return out;
 }
 

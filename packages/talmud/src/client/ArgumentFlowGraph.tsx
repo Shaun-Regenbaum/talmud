@@ -159,7 +159,7 @@ export function wrapTitle(s: string, maxChars: number, maxLines: number): string
   if (rest.length <= maxChars) {
     if (rest) lines.push(rest);
   } else {
-    lines.push(rest.slice(0, maxChars - 1).trimEnd() + '…');
+    lines.push(`${rest.slice(0, maxChars - 1).trimEnd()}…`);
   }
   return lines.length ? lines : [''];
 }
@@ -255,6 +255,8 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
         }}
       >
         <svg
+          role="img"
+          aria-label="Argument flow graph"
           width={width()}
           height={height()}
           viewBox={`0 0 ${width()} ${height()}`}

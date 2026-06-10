@@ -164,7 +164,7 @@ async function enqueueOne(job) {
     if (r.status === 202) return 'queued';
     return 'badStatus';
   } catch (err) {
-    if ((err && err.name) === 'AbortError') return 'timeout';
+    if (err?.name === 'AbortError') return 'timeout';
     return 'networkErr';
   } finally {
     clearTimeout(timer);

@@ -324,7 +324,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
   // lang() is in the resource source (`l`) so switching language re-fetches the
   // suggested questions under the new lang (they're LLM-generated, so they
   // differ EN↔HE) instead of leaving the old language's list shown until reload.
-  const [suggested, { mutate: setSuggested }] = createResource(
+  const [suggested] = createResource(
     () =>
       expanded()
         ? {
@@ -544,7 +544,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
                       'box-sizing': 'border-box',
                       padding: '0.4rem 0.55rem',
                       background: ans() ? '#fefce8' : '#fafaf7',
-                      border: '1px solid ' + (ans() ? '#eab308' : '#eae8e0'),
+                      border: `1px solid ${ans() ? '#eab308' : '#eae8e0'}`,
                       'border-radius': '4px',
                       'font-size': '0.84rem',
                       color: '#222',

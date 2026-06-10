@@ -140,7 +140,7 @@ async function main() {
             processedNodes: processedSoFar,
             nodes,
           };
-          await writeFile(OUT_PATH, JSON.stringify(checkpoint, null, 2) + '\n', 'utf-8');
+          await writeFile(OUT_PATH, `${JSON.stringify(checkpoint, null, 2)}\n`, 'utf-8');
           console.log(`[orientation] checkpoint: ${processedSoFar} processed`);
         }
       }
@@ -171,7 +171,7 @@ async function main() {
     console.log('[orientation] --dry-run — NOT writing file');
     return;
   }
-  await writeFile(OUT_PATH, JSON.stringify(out, null, 2) + '\n', 'utf-8');
+  await writeFile(OUT_PATH, `${JSON.stringify(out, null, 2)}\n`, 'utf-8');
   console.log(`[orientation] wrote ${OUT_PATH}`);
 }
 

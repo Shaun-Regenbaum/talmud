@@ -50,7 +50,7 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
   // Key by target language too — an English and a Hebrew gloss of the same word
   // are distinct cached answers (mirrors the server's per-lang cache key).
   const cacheKey = () =>
-    `${lang()}:${props.tractate}:${props.page}:${props.word}:${ctxHash((props.hebrewBefore ?? '') + '|' + (props.hebrewAfter ?? ''))}`;
+    `${lang()}:${props.tractate}:${props.page}:${props.word}:${ctxHash(`${props.hebrewBefore ?? ''}|${props.hebrewAfter ?? ''}`)}`;
 
   createEffect(() => {
     const key = cacheKey();
@@ -101,7 +101,7 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
   };
   const onDocClick = (e: MouseEvent) => {
     const target = e.target as HTMLElement | null;
-    if (popupRef && popupRef.contains(target)) return;
+    if (popupRef?.contains(target)) return;
     // A tap on another daf word should retarget/extend the selection (handled
     // by the viewer's mouseup), not dismiss the popup — otherwise mobile
     // tap-to-extend would clear the anchor before the second tap registers.

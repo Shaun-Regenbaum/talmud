@@ -115,7 +115,7 @@ export class SefariaClient {
       params.append('commentary', options.commentary ? '1' : '0');
     if (options?.context !== undefined) params.append('context', options.context.toString());
     const queryString = params.toString();
-    const url = `${SEFARIA_API_BASE}/texts/${ref}${queryString ? '?' + queryString : ''}`;
+    const url = `${SEFARIA_API_BASE}/texts/${ref}${queryString ? `?${queryString}` : ''}`;
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to fetch text: ${response.statusText}`);

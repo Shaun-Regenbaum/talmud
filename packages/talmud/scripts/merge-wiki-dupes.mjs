@@ -99,5 +99,5 @@ for (const { newSlug, oldSlug } of merges) {
 }
 
 data.generatedAt = new Date().toISOString();
-await writeFile(DATA_PATH, JSON.stringify(data, null, 2) + '\n', 'utf-8');
+await writeFile(DATA_PATH, `${JSON.stringify(data, null, 2)}\n`, 'utf-8');
 console.log(`[merge] wrote ${DATA_PATH} — removed ${merges.length} duplicate entries`);

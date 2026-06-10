@@ -181,7 +181,7 @@ export function prefetchDaf(
   // mode) — the chip is dev-only/experimental, so we don't pay the reasoning
   // pass on every daf load for users who can't open it. Only when the daf
   // actually has argument sections to relate.
-  const argInstances = (marks['argument']?.parsed as { instances?: MarkInstance[] } | undefined)
+  const argInstances = (marks.argument?.parsed as { instances?: MarkInstance[] } | undefined)
     ?.instances;
   if (opts?.overview && Array.isArray(argInstances) && argInstances.length > 0) {
     tasks.push({
@@ -270,7 +270,7 @@ export function prefetchDaf(
   // place tier) have landed. Correctness doesn't depend on ordering — it pulls
   // its mark deps in regardless. mark_input { id: 'daf' } shares the canonical
   // daf-level cache key with the cron path. Only when the daf has rabbis.
-  const rabbiParsed = marks['rabbi']?.parsed as { instances?: MarkInstance[] } | undefined;
+  const rabbiParsed = marks.rabbi?.parsed as { instances?: MarkInstance[] } | undefined;
   if (Array.isArray(rabbiParsed?.instances) && rabbiParsed.instances.length > 0) {
     void enqueueEnrichmentRun(
       'rabbi.observations',

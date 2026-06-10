@@ -56,7 +56,7 @@ export const TRACTATE_IDS: Record<string, number> = {
 };
 
 export function convertDafToHebrewBooksFormat(daf: string): string {
-  const pageNum = parseInt(daf.replace(/[ab]/, ''));
+  const pageNum = parseInt(daf.replace(/[ab]/, ''), 10);
   const amud = daf.includes('b') ? 'b' : 'a';
   const dafSupplierNum = amud === 'a' ? pageNum * 2 : pageNum * 2 + 1;
   return dafSupplierNum.toString();

@@ -64,7 +64,7 @@ describe(`integration: analyze Berakhot 2a (against ${BASE_URL})`, () => {
 
   it('opens the argument with the evening-Shema dispute', () => {
     const first = analysis.sections[0];
-    const titleOrSummary = (first.title + ' ' + first.summary).toLowerCase();
+    const titleOrSummary = `${first.title} ${first.summary}`.toLowerCase();
     expect(titleOrSummary).toMatch(/shema|evening|mishnah|recit/);
   });
 

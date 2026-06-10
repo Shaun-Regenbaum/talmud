@@ -49,27 +49,21 @@ describe('generation color spectrum — two tiers', () => {
 
   it('runs dark (earlier) -> light (later) within each tier', () => {
     // Pre-Geonim: Zugim darkest, Savora lightest.
-    expect(lum(GENERATION_BY_ID['zugim'].color)).toBeLessThan(
-      lum(GENERATION_BY_ID['savora'].color),
-    );
+    expect(lum(GENERATION_BY_ID.zugim.color)).toBeLessThan(lum(GENERATION_BY_ID.savora.color));
     expect(lum(GENERATION_BY_ID['tanna-1'].color)).toBeLessThan(
       lum(GENERATION_BY_ID['tanna-6'].color),
     );
     // Geonim onward: Geonim darkest, Achronim lightest.
-    expect(lum(GENERATION_BY_ID['geonim'].color)).toBeLessThan(
-      lum(GENERATION_BY_ID['rishonim'].color),
-    );
-    expect(lum(GENERATION_BY_ID['rishonim'].color)).toBeLessThan(
-      lum(GENERATION_BY_ID['achronim'].color),
-    );
+    expect(lum(GENERATION_BY_ID.geonim.color)).toBeLessThan(lum(GENERATION_BY_ID.rishonim.color));
+    expect(lum(GENERATION_BY_ID.rishonim.color)).toBeLessThan(lum(GENERATION_BY_ID.achronim.color));
   });
 
   it('tiers partition every generation (unknown is neutral)', () => {
     for (const g of GENERATIONS) {
       expect(['early', 'late', 'none']).toContain(g.tier);
     }
-    expect(GENERATION_BY_ID['unknown'].tier).toBe('none');
-    expect(colorForGeneration('unknown')).toBe(GENERATION_BY_ID['unknown'].color);
+    expect(GENERATION_BY_ID.unknown.tier).toBe('none');
+    expect(colorForGeneration('unknown')).toBe(GENERATION_BY_ID.unknown.color);
   });
 
   it('legibleTextColor flips to dark ink on the palest swatches', () => {

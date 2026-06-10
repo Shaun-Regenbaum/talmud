@@ -90,7 +90,7 @@ async function main() {
     return;
   }
   current.generatedAt = new Date().toISOString();
-  await writeFile(DATA_PATH, JSON.stringify(current, null, 2) + '\n', 'utf-8');
+  await writeFile(DATA_PATH, `${JSON.stringify(current, null, 2)}\n`, 'utf-8');
   console.log(`[provenance] wrote ${DATA_PATH}`);
 }
 

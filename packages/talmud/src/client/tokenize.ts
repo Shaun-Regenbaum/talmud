@@ -44,10 +44,11 @@ function tokenizeTextNode(text: Text, counter: { n: number }): void {
 
   const frag = doc.createDocumentFragment();
   let lastIdx = 0;
-  let match: RegExpExecArray | null;
   const re = new RegExp(WORD_RE.source, WORD_RE.flags);
 
-  while ((match = re.exec(content)) !== null) {
+  for (;;) {
+    const match = re.exec(content);
+    if (match === null) break;
     if (match.index > lastIdx) {
       frag.appendChild(doc.createTextNode(content.slice(lastIdx, match.index)));
     }

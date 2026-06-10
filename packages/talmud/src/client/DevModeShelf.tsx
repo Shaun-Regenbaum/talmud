@@ -170,6 +170,7 @@ export default function DevModeShelf(props: Props) {
           Dev
         </strong>
         <button
+          type="button"
           onClick={props.onClose}
           style={{
             'margin-left': 'auto',

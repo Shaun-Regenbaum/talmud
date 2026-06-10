@@ -67,6 +67,7 @@ export default function SettingsPage() {
   const probeBtn = (id: LLMModelId): JSX.Element => (
     <>
       <button
+        type="button"
         disabled={probing()[id] === true}
         onClick={() => onProbe(id)}
         style={{ 'margin-left': '8px', padding: '2px 8px', 'font-size': '13px' }}

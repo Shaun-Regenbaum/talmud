@@ -66,8 +66,9 @@ function urlsFromHub(hubHtml: string): Map<DafyomiContentType, string> {
   const re =
     /href="([a-z0-9]+\/(insites|backgrnd|halachah|tosfos|review|points|hebcharts|yerushalmi)\/[a-z0-9]+-[a-z]{2}-\d+\.htm)"/gi;
   const out = new Map<DafyomiContentType, string>();
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(hubHtml)) !== null) {
+  for (;;) {
+    const m = re.exec(hubHtml);
+    if (m === null) break;
     const rel = m[1];
     const type = FOLDER_TO_TYPE[m[2].toLowerCase()];
     if (type && !out.has(type)) out.set(type, `${ORIGIN}/${rel}${type === 'review' ? '?q=1' : ''}`);

@@ -216,6 +216,7 @@ export function SpineCoveragePage(): JSX.Element {
           style={{ width: '220px' }}
         />
         <button
+          type="button"
           class="tb-primary"
           style={{ 'border-radius': 'var(--tb-radius)' }}
           onClick={() => go(input())}
@@ -225,6 +226,7 @@ export function SpineCoveragePage(): JSX.Element {
         <For each={PRESETS}>
           {(p) => (
             <button
+              type="button"
               onClick={() => go(p)}
               style={{
                 'font-family': 'inherit',
@@ -306,6 +308,7 @@ export function SpineCoveragePage(): JSX.Element {
               >
                 <span style={PANEL_H}>Assembled spine &mdash; tractate link graph</span>
                 <button
+                  type="button"
                   class="tb-select"
                   disabled={graph.loading}
                   onClick={() => setGraphTrigger(tractate())}
@@ -448,6 +451,7 @@ export function SpineCoveragePage(): JSX.Element {
                   Stitched flow &mdash; the argument map down the tractate
                 </span>
                 <button
+                  type="button"
                   class="tb-select"
                   disabled={flowView.loading}
                   onClick={() => setViewTrigger(tractate())}
@@ -504,12 +508,14 @@ export function SpineCoveragePage(): JSX.Element {
                         }}
                       >
                         <button
+                          type="button"
                           style={segChip(flowMode() === 'detail')}
                           onClick={() => setFlowMode('detail')}
                         >
                           detail
                         </button>
                         <button
+                          type="button"
                           style={segChip(flowMode() === 'overview')}
                           onClick={() => setFlowMode('overview')}
                         >
@@ -562,6 +568,7 @@ export function SpineCoveragePage(): JSX.Element {
                               <span style={{ 'font-weight': 700, color: HILITE }}>{display}</span>{' '}
                               &middot; {boxes} {boxes === 1 ? 'box' : 'boxes'}{' '}
                               <button
+                                type="button"
                                 class="tb-select"
                                 style={{
                                   'margin-left': '0.5rem',

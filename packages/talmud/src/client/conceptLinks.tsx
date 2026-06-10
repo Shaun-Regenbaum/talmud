@@ -250,7 +250,7 @@ export function firstMentionGloss(text: string, matcher: ConceptMatcher | null):
     const p = parts[i];
     if (p.kind !== 'concept' || !p.term) continue;
     const next = parts[i + 1];
-    if (!next || next.kind !== 'text') continue;
+    if (next?.kind !== 'text') continue;
     next.value = peelGlosses(next.value, p.term, glossed);
   }
   return parts.map((p) => p.value).join('');

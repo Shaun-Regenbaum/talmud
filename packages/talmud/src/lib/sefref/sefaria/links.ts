@@ -36,7 +36,7 @@ const commentaryIncludes = {
 function parseLink(daf: string, linkObj: any): SefariaLink | null {
   try {
     const anchorRef = linkObj.anchorRef;
-    if (!anchorRef || !anchorRef.includes(':')) return null;
+    if (!anchorRef?.includes(':')) return null;
 
     const sentenceIndex = anchorRef.split(':')[1];
     let sentenceIndexStart: number;
@@ -44,10 +44,10 @@ function parseLink(daf: string, linkObj: any): SefariaLink | null {
 
     if (sentenceIndex.includes('-')) {
       const indices = sentenceIndex.split('-');
-      sentenceIndexStart = parseInt(indices[0]) - 1; // Convert to 0-based
-      sentenceIndexEnd = parseInt(indices[1]) - 1;
+      sentenceIndexStart = parseInt(indices[0], 10) - 1; // Convert to 0-based
+      sentenceIndexEnd = parseInt(indices[1], 10) - 1;
     } else {
-      sentenceIndexStart = parseInt(sentenceIndex) - 1; // Convert to 0-based
+      sentenceIndexStart = parseInt(sentenceIndex, 10) - 1; // Convert to 0-based
     }
 
     // Determine commentary type

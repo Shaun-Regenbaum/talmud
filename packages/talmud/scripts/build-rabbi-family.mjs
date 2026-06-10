@@ -152,7 +152,7 @@ async function main() {
             nodesWithFamily,
             nodes,
           };
-          await writeFile(OUT_PATH, JSON.stringify(checkpoint, null, 2) + '\n', 'utf-8');
+          await writeFile(OUT_PATH, `${JSON.stringify(checkpoint, null, 2)}\n`, 'utf-8');
           console.log(
             `[family] checkpoint: ${processedSoFar} processed, ${nodesWithFamily} with family`,
           );
@@ -188,7 +188,7 @@ async function main() {
     console.log('[family] --dry-run — NOT writing file');
     return;
   }
-  await writeFile(OUT_PATH, JSON.stringify(out, null, 2) + '\n', 'utf-8');
+  await writeFile(OUT_PATH, `${JSON.stringify(out, null, 2)}\n`, 'utf-8');
   console.log(`[family] wrote ${OUT_PATH}`);
 }
 

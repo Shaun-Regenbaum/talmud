@@ -216,7 +216,7 @@ async function main() {
     if (!DRY_RUN) {
       const outPath = join(OUT_DIR, TRACTATE, `${daf}.json`);
       await mkdir(dirname(outPath), { recursive: true });
-      await writeFile(outPath, JSON.stringify(dafObj, null, 2) + '\n', 'utf-8');
+      await writeFile(outPath, `${JSON.stringify(dafObj, null, 2)}\n`, 'utf-8');
       written++;
     }
   }

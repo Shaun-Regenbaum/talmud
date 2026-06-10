@@ -24,14 +24,7 @@
 
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 import { t } from './i18n';
-import type {
-  BirthPlace,
-  GeographyData,
-  GeographyEvidence,
-  Movement,
-  NotablePlace,
-  StudyPlace,
-} from './RabbiGeographyCard';
+import type { BirthPlace, GeographyData, GeographyEvidence } from './RabbiGeographyCard';
 
 export interface LocationInference {
   place: string;
@@ -379,7 +372,7 @@ export default function RabbiPlacesTimeline(props: Props): JSX.Element {
                       height: '16px',
                       'border-radius': '50%',
                       background: isHere() ? '#0066CC' : '#fafaf7',
-                      border: '2.5px solid ' + (isHere() ? '#0066CC' : color),
+                      border: `2.5px solid ${isHere() ? '#0066CC' : color}`,
                       'box-shadow': isHere() ? '0 0 0 3px rgba(0,102,204,0.18)' : 'none',
                       'z-index': 1,
                       'box-sizing': 'border-box',

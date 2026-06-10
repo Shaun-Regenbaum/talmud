@@ -123,15 +123,18 @@ async function writeUsage(cache: KVNamespace, d: UsageDelta): Promise<void> {
     if (d.cacheHit) r.cacheHits += 1;
     // Splits.
     if (d.model) {
-      const b = (r.byModel[d.model] ??= emptyBucket());
+      const b = r.byModel[d.model] ?? emptyBucket();
+      r.byModel[d.model] = b;
       applyToBucket(b, d);
     }
     if (d.markId) {
-      const b = (r.byMark[d.markId] ??= emptyBucket());
+      const b = r.byMark[d.markId] ?? emptyBucket();
+      r.byMark[d.markId] = b;
       applyToBucket(b, d);
     }
     if (d.enrichmentId) {
-      const b = (r.byEnrichment[d.enrichmentId] ??= emptyBucket());
+      const b = r.byEnrichment[d.enrichmentId] ?? emptyBucket();
+      r.byEnrichment[d.enrichmentId] = b;
       applyToBucket(b, d);
     }
     await cache.put(key, JSON.stringify(r), { expirationTtl: TTL_S });
@@ -157,7 +160,8 @@ function mergeBucketInto(
   from: Record<string, UsageBucket>,
 ): void {
   for (const [k, b] of Object.entries(from)) {
-    const t = (into[k] ??= emptyBucket());
+    const t = into[k] ?? emptyBucket();
+    into[k] = t;
     t.calls += b.calls;
     t.tokensIn += b.tokensIn;
     t.tokensOut += b.tokensOut;

@@ -333,7 +333,7 @@ class SefariaAPI {
     if (options?.context !== undefined) params.append('context', options.context.toString());
 
     const queryString = params.toString();
-    const url = `${SEFARIA_API_BASE}/texts/${ref}${queryString ? '?' + queryString : ''}`;
+    const url = `${SEFARIA_API_BASE}/texts/${ref}${queryString ? `?${queryString}` : ''}`;
 
     const response = await fetch(url);
     if (!response.ok) {

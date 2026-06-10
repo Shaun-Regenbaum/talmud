@@ -120,7 +120,7 @@ function compactName(name: string): string {
     .replace(/\s+bar\s+/g, ' b. ')
     .replace(/\s+ben\s+/g, ' b. ');
   if (compact.length <= NAME_MAX_CHARS) return compact;
-  return compact.slice(0, NAME_MAX_CHARS - 1) + '…';
+  return `${compact.slice(0, NAME_MAX_CHARS - 1)}…`;
 }
 
 interface LaidNode {
@@ -193,7 +193,9 @@ function buildLayout(data: ArgumentVoicesData): {
 
   // Y per row.
   const rowToY = new Map<number, number>();
-  rowOrders.forEach((idx, i) => rowToY.set(idx, TOP_PADDING + i * ROW_H));
+  rowOrders.forEach((idx, i) => {
+    rowToY.set(idx, TOP_PADDING + i * ROW_H);
+  });
   const height = TOP_PADDING + rowOrders.length * ROW_H + BOTTOM_PADDING;
 
   // X layout: every row starts at SUBJECT_X (immediately right of axis).
@@ -356,6 +358,8 @@ export default function ArgumentVoiceMap(props: Props): JSX.Element {
           }}
         >
           <svg
+            role="img"
+            aria-label="Map of the voices in this argument"
             width={layout().width}
             height={layout().height}
             viewBox={`0 0 ${layout().width} ${layout().height}`}

@@ -53,7 +53,7 @@ import RabbiLineageTree, {
   type RelationshipsEvidence,
 } from './RabbiLineageTree';
 import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeline';
-import { HebraizedWithRabbis, RabbiLinkProvider, RabbiText } from './rabbiLinks';
+import { HebraizedWithRabbis, RabbiLinkProvider } from './rabbiLinks';
 import type {
   AggadataStory,
   ChartTable,
@@ -282,7 +282,7 @@ export interface ArgumentSidebarProps {
 const BIO_LINK_RE = /\[([^\]]+)\]\(([^)]+)\)/g;
 const SEFARIA_TOPIC_RE = /^https?:\/\/(?:www\.)?sefaria\.org\/topics\/([^/?#]+)/i;
 
-function renderBioWithLinks(bio: string, onOpenSlug?: (slug: string) => void): JSX.Element[] {
+function _renderBioWithLinks(bio: string, onOpenSlug?: (slug: string) => void): JSX.Element[] {
   const out: JSX.Element[] = [];
   let last = 0;
   BIO_LINK_RE.lastIndex = 0;
@@ -327,7 +327,7 @@ function renderBioWithLinks(bio: string, onOpenSlug?: (slug: string) => void): J
   return out;
 }
 
-function RabbiRow(props: {
+function _RabbiRow(props: {
   rabbi: Rabbi;
   active: boolean;
   generationId?: GenerationId;
@@ -336,6 +336,7 @@ function RabbiRow(props: {
   const genInfo = () => (props.generationId ? GENERATION_BY_ID[props.generationId] : null);
   return (
     <button
+      type="button"
       onClick={props.onToggle}
       style={{
         width: '100%',
@@ -344,7 +345,7 @@ function RabbiRow(props: {
         padding: '0.55rem 0.7rem',
         margin: '0 0 0.4rem',
         background: props.active ? '#fef3c7' : '#fafaf7',
-        border: '1px solid ' + (props.active ? '#eab308' : '#eae8e0'),
+        border: `1px solid ${props.active ? '#eab308' : '#eae8e0'}`,
         'border-radius': '4px',
         cursor: 'pointer',
         'font-family': 'inherit',
@@ -467,7 +468,7 @@ function ArgumentMoveCard(props: {
   return (
     <div
       style={{
-        border: '1px solid ' + (isActive() ? '#eab308' : '#eae8e0'),
+        border: `1px solid ${isActive() ? '#eab308' : '#eae8e0'}`,
         'border-left': `3px solid ${roleColor()}`,
         'border-radius': '4px',
         padding: '0.55rem 0.7rem',
@@ -1227,7 +1228,7 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
                 <For each={grp.pages}>
                   {(p) => (
                     <a
-                      href="#"
+                      href={dafHref({ tractate: p.tractate, page: p.page })}
                       onClick={(e) => {
                         e.preventDefault();
                         goToDaf(p.tractate, p.page);
@@ -2523,12 +2524,6 @@ export const PASUK_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element>
 // Bottom: QAPanel for suggested-questions + free-form Q&A.
 // ===========================================================================
 
-interface AggadataBackgroundData {
-  background: string;
-}
-interface AggadataInterpretationData {
-  interpretation: string;
-}
 type AggadataParallelKind = 'same-story' | 'same-actors' | 'same-motif' | 'tanach-source';
 interface AggadataParallelItem {
   ref: string;
@@ -3353,6 +3348,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                     : `${props.tractate} ${props.page}`}
                 </span>
                 <button
+                  type="button"
                   onClick={props.onClose}
                   style={{
                     background: 'transparent',

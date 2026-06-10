@@ -79,7 +79,7 @@ export interface Link {
  *  nothing. Replaces the old `citesLabel` side channel: a citation is now just a
  *  Link with relation 'cites'. */
 export function citationLink(refs: AnchorCoord[] | undefined): Link | null {
-  if (!refs || !refs.length) return null;
+  if (!refs?.length) return null;
   return { relation: 'cites', targets: refs };
 }
 
@@ -99,7 +99,7 @@ export function continuationLink(to: DafRef | null | undefined): Link | null {
  *  the renderer, not baked in here, so one link can read differently in prose vs.
  *  a chip. */
 export function linkLabel(link: Link | null | undefined): string {
-  if (!link || !link.targets.length) return '';
+  if (!link?.targets.length) return '';
   return [...new Set(link.targets.map(coordLabel))].join(', ');
 }
 

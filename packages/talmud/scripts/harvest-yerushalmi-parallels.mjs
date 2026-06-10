@@ -76,7 +76,7 @@ async function main() {
     count: parallels.length,
     parallels,
   };
-  writeFileSync(OUT, JSON.stringify(out, null, 2) + '\n');
+  writeFileSync(OUT, `${JSON.stringify(out, null, 2)}\n`);
   console.log(`\nwrote ${parallels.length} parallels -> ${OUT}`);
 }
 

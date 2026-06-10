@@ -29,10 +29,11 @@
     "rules": {
       "recommended": true,
       "a11y": "warn",
+      "style": {
+        "noNonNullAssertion": "off"
+      },
       "suspicious": {
-        "noConsole": "off",
-        "useIterableCallbackReturn": "warn",
-        "noAssignInExpressions": "warn"
+        "noConsole": "off"
       }
     }
   }

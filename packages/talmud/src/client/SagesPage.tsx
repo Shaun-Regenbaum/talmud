@@ -332,6 +332,7 @@ export function SagesPage(): JSX.Element {
                             : s().globals.academyRoster;
                     return (
                       <button
+                        type="button"
                         class="compile-btn"
                         classList={{ 'compile-btn-fresh': !!ts }}
                         disabled={!!compiling()[c.id]}
@@ -370,6 +371,7 @@ export function SagesPage(): JSX.Element {
           <div class="sages-chips">
             <span class="chip-label">{t('sages.filter.region')}</span>
             <button
+              type="button"
               class="chip"
               classList={{ 'chip-active': region() === 'all' }}
               onClick={() => setRegion('all')}
@@ -377,6 +379,7 @@ export function SagesPage(): JSX.Element {
               {t('sages.filter.all')}
             </button>
             <button
+              type="button"
               class="chip"
               classList={{ 'chip-active': region() === 'israel' }}
               onClick={() => setRegion('israel')}
@@ -384,6 +387,7 @@ export function SagesPage(): JSX.Element {
               {t('sages.region.israel')}
             </button>
             <button
+              type="button"
               class="chip"
               classList={{ 'chip-active': region() === 'bavel' }}
               onClick={() => setRegion('bavel')}
@@ -418,6 +422,7 @@ export function SagesPage(): JSX.Element {
           <For each={ranked().slice(0, 300)}>
             {(row) => (
               <button
+                type="button"
                 class="sages-list-item"
                 classList={{ 'sages-list-item-active': selected() === row.slug }}
                 onClick={() => select(row.slug)}
@@ -565,7 +570,12 @@ function SageDetail(props: {
           </Show>
           <code class="sage-slug">{props.slug}</code>
         </div>
-        <button class="sage-close" onClick={props.onClose} title={t('sages.detail.clearSelection')}>
+        <button
+          type="button"
+          class="sage-close"
+          onClick={props.onClose}
+          title={t('sages.detail.clearSelection')}
+        >
           ×
         </button>
       </header>
@@ -578,6 +588,7 @@ function SageDetail(props: {
         <div class="sage-empty-state">
           <span>{t('sages.detail.noUnified')}</span>
           <button
+            type="button"
             class="stage-btn primary"
             disabled={!!stageRunning().unified}
             onClick={() => runStage('unified')}
@@ -689,6 +700,7 @@ function SageDetail(props: {
                   <div class="rel-primaries">
                     <Show when={u().primaryTeacher}>
                       <button
+                        type="button"
                         class="rel-primary-btn"
                         onClick={() => props.onSelect(u().primaryTeacher!)}
                       >
@@ -699,6 +711,7 @@ function SageDetail(props: {
                     </Show>
                     <Show when={u().primaryStudent}>
                       <button
+                        type="button"
                         class="rel-primary-btn"
                         onClick={() => props.onSelect(u().primaryStudent!)}
                       >
@@ -738,7 +751,7 @@ function SageDetail(props: {
                 <div class="slug-row">
                   <For each={contemporaries()}>
                     {(s) => (
-                      <button class="slug-tag" onClick={() => props.onSelect(s)}>
+                      <button type="button" class="slug-tag" onClick={() => props.onSelect(s)}>
                         {s}
                       </button>
                     )}
@@ -752,7 +765,7 @@ function SageDetail(props: {
                 <div class="slug-row">
                   <For each={academyMates()}>
                     {(s) => (
-                      <button class="slug-tag" onClick={() => props.onSelect(s)}>
+                      <button type="button" class="slug-tag" onClick={() => props.onSelect(s)}>
                         {s}
                       </button>
                     )}
@@ -770,7 +783,11 @@ function SageDetail(props: {
                       <div class="slug-row">
                         <For each={pm.sages}>
                           {(s) => (
-                            <button class="slug-tag" onClick={() => props.onSelect(s)}>
+                            <button
+                              type="button"
+                              class="slug-tag"
+                              onClick={() => props.onSelect(s)}
+                            >
                               {s}
                             </button>
                           )}
@@ -795,7 +812,7 @@ function SageDetail(props: {
                 <div class="slug-row">
                   <For each={u().contemporaries}>
                     {(s) => (
-                      <button class="slug-tag" onClick={() => props.onSelect(s)}>
+                      <button type="button" class="slug-tag" onClick={() => props.onSelect(s)}>
                         {s}
                       </button>
                     )}
@@ -979,6 +996,7 @@ function StageActions(props: {
     <>
       <Show when={!props.cached}>
         <button
+          type="button"
           class="stage-btn primary"
           disabled={props.running}
           onClick={() => props.onRun(props.stage)}
@@ -989,6 +1007,7 @@ function StageActions(props: {
       </Show>
       <Show when={props.cached}>
         <button
+          type="button"
           class="stage-btn"
           disabled={props.running}
           onClick={() => props.onRun(props.stage, true)}
@@ -1018,6 +1037,7 @@ function EdgeBucket(props: {
             {(e) => (
               <Show when={e.slug} fallback={<span class="rel-edge rel-edge-noslug">{e.name}</span>}>
                 <button
+                  type="button"
                   class="rel-edge"
                   classList={{ 'rel-edge-sefaria': e.source === 'sefaria' }}
                   onClick={() => props.onSelect(e.slug!)}
@@ -1062,6 +1082,7 @@ function FamilyBucket(props: { family: FamilyEdge[]; onSelect: (s: string) => vo
                 }
               >
                 <button
+                  type="button"
                   class="rel-edge"
                   classList={{ 'rel-edge-sefaria': e.source === 'sefaria' }}
                   onClick={() => props.onSelect(e.slug!)}

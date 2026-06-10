@@ -49,7 +49,8 @@ export async function recordUsage(cache: KVNamespace, e: UsageEntry): Promise<vo
   s.inTokens += e.in;
   s.outTokens += e.out;
   s.costUsd += e.cost ?? 0;
-  const p = (s.byProducer[e.producer] ??= { calls: 0, costUsd: 0 });
+  const p = s.byProducer[e.producer] ?? { calls: 0, costUsd: 0 };
+  s.byProducer[e.producer] = p;
   p.calls += 1;
   p.costUsd += e.cost ?? 0;
   s.recent.unshift(e);

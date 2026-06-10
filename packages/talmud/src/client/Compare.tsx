@@ -130,7 +130,11 @@ export default function Compare() {
           'flex-wrap': 'wrap',
         }}
       >
-        <button onClick={goPrev} style={{ padding: '0.35rem 0.6rem', cursor: 'pointer' }}>
+        <button
+          type="button"
+          onClick={goPrev}
+          style={{ padding: '0.35rem 0.6rem', cursor: 'pointer' }}
+        >
           ←
         </button>
         <label
@@ -166,7 +170,11 @@ export default function Compare() {
             {currentIdx() + 1}/{fixtures.length}
           </span>
         </label>
-        <button onClick={goNext} style={{ padding: '0.35rem 0.6rem', cursor: 'pointer' }}>
+        <button
+          type="button"
+          onClick={goNext}
+          style={{ padding: '0.35rem 0.6rem', cursor: 'pointer' }}
+        >
           →
         </button>
 

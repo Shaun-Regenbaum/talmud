@@ -53,7 +53,7 @@ export interface SeedMarkInputs {
  * Build the seed-mark list bound to the DafViewer's signals. Order here
  * dictates display order in the marks panel.
  */
-export function buildSeedMarks(io: SeedMarkInputs): SeedMark[] {
+export function buildSeedMarks(_io: SeedMarkInputs): SeedMark[] {
   return [
     // The seeds below have been ported to code-defined registry entries
     // (src/worker/code-marks.ts). They are kept here as fallbacks only —

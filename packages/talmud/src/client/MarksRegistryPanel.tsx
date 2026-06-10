@@ -706,438 +706,437 @@ export default function MarksRegistryPanel(props: Props) {
   };
 
   return (
-    <>
-      <div class="marks-registry-panel" style={{ 'margin-top': '0.5rem', 'font-size': '0.85rem' }}>
-        <div
-          style={{
-            display: 'flex',
-            'align-items': 'center',
-            'justify-content': 'space-between',
-            'margin-bottom': '0.5rem',
-          }}
-        >
-          <strong style={{ 'font-size': '0.9rem', color: '#222' }}>
-            Marks
-            <span
-              style={{
-                color: '#888',
-                'margin-left': '0.5rem',
-                'font-size': '0.8rem',
-                'font-weight': 'normal',
-              }}
-            >
-              ({rows().length}, {enabledCount()} on)
-            </span>
-          </strong>
-        </div>
+    <div class="marks-registry-panel" style={{ 'margin-top': '0.5rem', 'font-size': '0.85rem' }}>
+      <div
+        style={{
+          display: 'flex',
+          'align-items': 'center',
+          'justify-content': 'space-between',
+          'margin-bottom': '0.5rem',
+        }}
+      >
+        <strong style={{ 'font-size': '0.9rem', color: '#222' }}>
+          Marks
+          <span
+            style={{
+              color: '#888',
+              'margin-left': '0.5rem',
+              'font-size': '0.8rem',
+              'font-weight': 'normal',
+            }}
+          >
+            ({rows().length}, {enabledCount()} on)
+          </span>
+        </strong>
+      </div>
 
-        <Show when={registry.error}>
-          {(err) => (
-            <div style={{ color: '#c00', 'font-family': 'monospace', 'font-size': '12px' }}>
-              failed to load registry: {String(err())}
-            </div>
-          )}
-        </Show>
+      <Show when={registry.error}>
+        {(err) => (
+          <div style={{ color: '#c00', 'font-family': 'monospace', 'font-size': '12px' }}>
+            failed to load registry: {String(err())}
+          </div>
+        )}
+      </Show>
 
-        {/* Render a single Row (mark / seed / enrichment) with the
+      {/* Render a single Row (mark / seed / enrichment) with the
             on/off switch, status, re-run, etc. Used for both top-level marks
             and the nested enrichments. */}
-        {(() => {
-          const renderRow = (row: Row, nested: boolean): JSX.Element => {
-            const id = () => (row.source === 'seed' ? row.seed.id : row.def.id);
-            const label = () =>
-              row.source === 'seed' ? row.seed.label : row.def.label || row.def.id;
-            const anchor = () => {
-              if (row.source === 'seed') return row.seed.anchor;
-              if (row.source === 'mark') return row.def.anchor;
-              return row.def.mark ?? 'daf';
-            };
-            const render = () => {
-              if (row.source === 'seed') return row.seed.render;
-              if (row.source === 'mark') return row.def.render.kind;
-              return 'inline';
-            };
-            const isOn = () => {
-              if (row.source === 'seed') return row.seed.getValue();
-              return enabled().has(row.def.id);
-            };
-            const state = () => {
-              if (row.source === 'seed') return { kind: 'idle' } as RunState;
-              return runs()[row.def.id] ?? { kind: 'idle' as const };
-            };
-            const isFail = () => state().kind === 'error';
-            const setOn = (v: boolean) => {
-              if (row.source === 'seed') row.seed.setValue(v);
-              else toggle(row.def.id);
-            };
-            const isDraft = () =>
-              (row.source === 'mark' || row.source === 'enrichment') && row.def.status === 'draft';
-            // A dependency-fed enrichment is consumed by another producer (a
-            // synthesis) and surfaced through that consumer's card, not run
-            // standalone from this panel — so there's no independent on/off to
-            // make. We deliberately do NOT paint a run-state here: the panel's
-            // own runs() never holds these leaves (their producer is fired by
-            // the sidebar card, invisibly to this panel), so any "produced/not"
-            // light would be guessing. The marker just signals "derived, not a
-            // switch"; the tooltip names where it comes from.
-            const isDepFed = () => row.source === 'enrichment' && dependencyFed().has(row.def.id);
-            const parentLabel = () => {
-              if (row.source !== 'enrichment') return '';
-              return registry()?.marks.find((m) => m.id === row.def.mark)?.label ?? row.def.mark;
-            };
-            const childCount = () => {
-              if (row.source !== 'mark') return 0;
-              const g = grouped();
-              const enrichments = g.childrenByMark.get(row.def.id)?.length ?? 0;
-              const subs = g.subMarksByParent.get(row.def.id) ?? [];
-              let subEnrichments = 0;
-              for (const s of subs) subEnrichments += g.childrenByMark.get(s.id)?.length ?? 0;
-              return enrichments + subs.length + subEnrichments;
-            };
-            const isExpandable = () => row.source === 'mark' && childCount() > 0;
-            const isExpanded = () => row.source === 'mark' && expandedMarks().has(row.def.id);
-            const summary = () => (row.source === 'mark' ? childRunSummary(row.def.id) : null);
-            return (
-              <li
-                style={{
-                  'border-left': isFail()
-                    ? '2px solid #c00'
-                    : isDraft()
-                      ? '2px solid #fa0'
-                      : '2px solid transparent',
-                  'padding-left': nested ? '1.5rem' : '0.4rem',
-                }}
-              >
-                <div style={{ display: 'flex', 'align-items': 'center', gap: '0.4rem' }}>
-                  <Show
-                    when={isExpandable()}
-                    fallback={<span style={{ display: 'inline-block', width: '0.9rem' }} />}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => row.source === 'mark' && toggleExpanded(row.def.id)}
-                      title={isExpanded() ? 'Collapse enrichments' : 'Expand enrichments'}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: 0,
-                        width: '0.9rem',
-                        height: '0.9rem',
-                        color: '#888',
-                        'font-size': '0.7rem',
-                        display: 'inline-flex',
-                        'align-items': 'center',
-                        'justify-content': 'center',
-                      }}
-                    >
-                      {isExpanded() ? '▾' : '▸'}
-                    </button>
-                  </Show>
-                  <Show
-                    when={!isDepFed()}
-                    fallback={
-                      // Passive marker, NOT a switch: a dimmed middot signals
-                      // "derived from its mark's card" — no on/off choice here.
-                      <span
-                        aria-hidden="true"
-                        title={`derived from the "${parentLabel()}" card (a synthesis consumes it) — not an independent toggle`}
-                        style={{
-                          width: '0.9rem',
-                          'flex-shrink': 0,
-                          'text-align': 'center',
-                          color: '#cfcfcf',
-                          'font-size': '0.7rem',
-                          'line-height': 1,
-                          cursor: 'default',
-                          'user-select': 'none',
-                        }}
-                      >
-                        ·
-                      </span>
-                    }
-                  >
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={isOn()}
-                      onClick={() => setOn(!isOn())}
-                      title={isOn() ? 'turn off' : 'turn on'}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: 0,
-                        width: '0.9rem',
-                        'flex-shrink': 0,
-                        color: isOn() ? '#15803d' : '#ccc',
-                        'font-size': '0.7rem',
-                        'line-height': 1,
-                      }}
-                    >
-                      {isOn() ? '●' : '○'}
-                    </button>
-                  </Show>
-                  <span
-                    style={{
-                      'font-weight': nested ? 400 : 500,
-                      'font-size': nested ? '0.8rem' : '0.85rem',
-                      // Truncate on one line instead of wrapping: a long label that
-                      // wraps flips between 1 and 2 lines as the status badge's width
-                      // changes (spinner → "✓ 1234ms"), which reads as row jitter.
-                      flex: 1,
-                      'min-width': 0,
-                      'white-space': 'nowrap',
-                      overflow: 'hidden',
-                      'text-overflow': 'ellipsis',
-                    }}
-                    title={label()}
-                  >
-                    {label()}
-                  </span>
-                  <span
-                    title={`anchored on ${anchor()} · rendered ${render()}`}
-                    style={{
-                      color: '#aaa',
-                      'font-size': '0.7rem',
-                      'font-family': 'monospace',
-                      'flex-shrink': 0,
-                    }}
-                  >
-                    {anchor()[0]}/{String(render())[0]}
-                  </span>
-                  <Show when={row.source !== 'seed' && isOn() && !isDepFed()}>
-                    <span
-                      style={{
-                        'font-size': '0.7rem',
-                        display: 'inline-flex',
-                        'align-items': 'center',
-                        gap: '0.3rem',
-                        'flex-shrink': 0,
-                        color:
-                          state().kind === 'error'
-                            ? '#c00'
-                            : state().kind === 'loading'
-                              ? '#888'
-                              : state().kind === 'ok'
-                                ? '#15803d'
-                                : '#aaa',
-                      }}
-                    >
-                      <Show when={state().kind === 'loading'}>
-                        <span
-                          style={{
-                            display: 'inline-block',
-                            width: '0.65rem',
-                            height: '0.65rem',
-                            'border-radius': '50%',
-                            border: '2px solid #d6d3d1',
-                            'border-top-color': '#8a2a2b',
-                            animation: 'daf-spin 0.8s linear infinite',
-                            'flex-shrink': 0,
-                          }}
-                        />
-                      </Show>
-                      <Show when={state().kind === 'ok'}>
-                        {(() => {
-                          const res = () => (state() as Extract<RunState, { kind: 'ok' }>).result;
-                          return (
-                            <Show
-                              when={res().cache_hit}
-                              fallback={<span>✓ {res().elapsed_ms}ms</span>}
-                            >
-                              <span
-                                style={{
-                                  'font-size': '0.62rem',
-                                  color: '#15803d',
-                                  background: '#dcfce7',
-                                  padding: '0 0.3rem',
-                                  'border-radius': '3px',
-                                }}
-                              >
-                                cached
-                              </span>
-                              <span style={{ color: '#888' }}>{res().elapsed_ms}ms</span>
-                            </Show>
-                          );
-                        })()}
-                      </Show>
-                      <Show when={state().kind === 'error'}>
-                        <span>✗</span>
-                      </Show>
-                    </span>
-                  </Show>
-                  {/* Summary badge on collapsed mark rows showing enrichment progress */}
-                  <Show when={row.source === 'mark' && !isExpanded() && childCount() > 0}>
-                    <span
-                      style={{
-                        'font-size': '0.68rem',
-                        color: '#aaa',
-                        'margin-left': '0.1rem',
-                        'flex-shrink': 0,
-                        'white-space': 'nowrap',
-                      }}
-                    >
-                      {childCount()} enrich{childCount() === 1 ? '' : 'ments'}
-                      <Show when={summary()!.loading > 0}> · {summary()!.loading}…</Show>
-                      <Show when={summary()!.ok > 0}> · {summary()!.ok} done</Show>
-                      <Show when={summary()!.error > 0}> · {summary()!.error} err</Show>
-                    </span>
-                  </Show>
-                  <Show when={row.source !== 'seed' && isOn() && !isDepFed()}>
-                    <button
-                      onClick={() => {
-                        if (row.source === 'seed') return;
-                        const mid = row.def.id;
-                        const stamp = `${props.tractate}/${props.page}`;
-                        setRun(mid, { kind: 'loading', stamp });
-                        const fn = row.source === 'mark' ? runMark : runEnrichment;
-                        fn(mid, props.tractate, props.page, true).then(
-                          (result) => {
-                            if (currentStamp() === stamp)
-                              setRun(mid, { kind: 'ok', stamp, at: Date.now(), result });
-                          },
-                          (err) => {
-                            if (currentStamp() === stamp)
-                              setRun(mid, {
-                                kind: 'error',
-                                stamp,
-                                at: Date.now(),
-                                error: String((err as Error)?.message ?? err),
-                              });
-                          },
-                        );
-                      }}
-                      title="Re-run (skip Gateway cache)"
-                      disabled={state().kind === 'loading'}
-                      style={{
-                        'margin-left': 'auto',
-                        padding: '1px 6px',
-                        'font-size': '0.7rem',
-                        cursor: state().kind === 'loading' ? 'wait' : 'pointer',
-                        background: 'transparent',
-                        color: '#888',
-                        border: '1px solid #ddd',
-                        'border-radius': '3px',
-                      }}
-                    >
-                      ↻
-                    </button>
-                  </Show>
-                </div>
-              </li>
-            );
+      {(() => {
+        const renderRow = (row: Row, nested: boolean): JSX.Element => {
+          const _id = () => (row.source === 'seed' ? row.seed.id : row.def.id);
+          const label = () =>
+            row.source === 'seed' ? row.seed.label : row.def.label || row.def.id;
+          const anchor = () => {
+            if (row.source === 'seed') return row.seed.anchor;
+            if (row.source === 'mark') return row.def.anchor;
+            return row.def.mark ?? 'daf';
           };
-
+          const render = () => {
+            if (row.source === 'seed') return row.seed.render;
+            if (row.source === 'mark') return row.def.render.kind;
+            return 'inline';
+          };
+          const isOn = () => {
+            if (row.source === 'seed') return row.seed.getValue();
+            return enabled().has(row.def.id);
+          };
+          const state = () => {
+            if (row.source === 'seed') return { kind: 'idle' } as RunState;
+            return runs()[row.def.id] ?? { kind: 'idle' as const };
+          };
+          const isFail = () => state().kind === 'error';
+          const setOn = (v: boolean) => {
+            if (row.source === 'seed') row.seed.setValue(v);
+            else toggle(row.def.id);
+          };
+          const isDraft = () =>
+            (row.source === 'mark' || row.source === 'enrichment') && row.def.status === 'draft';
+          // A dependency-fed enrichment is consumed by another producer (a
+          // synthesis) and surfaced through that consumer's card, not run
+          // standalone from this panel — so there's no independent on/off to
+          // make. We deliberately do NOT paint a run-state here: the panel's
+          // own runs() never holds these leaves (their producer is fired by
+          // the sidebar card, invisibly to this panel), so any "produced/not"
+          // light would be guessing. The marker just signals "derived, not a
+          // switch"; the tooltip names where it comes from.
+          const isDepFed = () => row.source === 'enrichment' && dependencyFed().has(row.def.id);
+          const parentLabel = () => {
+            if (row.source !== 'enrichment') return '';
+            return registry()?.marks.find((m) => m.id === row.def.mark)?.label ?? row.def.mark;
+          };
+          const childCount = () => {
+            if (row.source !== 'mark') return 0;
+            const g = grouped();
+            const enrichments = g.childrenByMark.get(row.def.id)?.length ?? 0;
+            const subs = g.subMarksByParent.get(row.def.id) ?? [];
+            let subEnrichments = 0;
+            for (const s of subs) subEnrichments += g.childrenByMark.get(s.id)?.length ?? 0;
+            return enrichments + subs.length + subEnrichments;
+          };
+          const isExpandable = () => row.source === 'mark' && childCount() > 0;
+          const isExpanded = () => row.source === 'mark' && expandedMarks().has(row.def.id);
+          const summary = () => (row.source === 'mark' ? childRunSummary(row.def.id) : null);
           return (
-            <ul
+            <li
               style={{
-                'list-style': 'none',
-                padding: 0,
-                margin: 0,
-                display: 'flex',
-                'flex-direction': 'column',
-                gap: '0.25rem',
+                'border-left': isFail()
+                  ? '2px solid #c00'
+                  : isDraft()
+                    ? '2px solid #fa0'
+                    : '2px solid transparent',
+                'padding-left': nested ? '1.5rem' : '0.4rem',
               }}
             >
-              <For each={grouped().top}>
-                {(top) => {
-                  const topRow: Row =
-                    top.source === 'mark'
-                      ? { source: 'mark', def: top.def }
-                      : { source: 'seed', seed: top.seed };
-                  const markId = top.source === 'mark' ? top.def.id : null;
-                  const ownEnrichments = markId ? (grouped().childrenByMark.get(markId) ?? []) : [];
-                  const subMarks = markId ? (grouped().subMarksByParent.get(markId) ?? []) : [];
-                  const showKids = () => markId !== null && expandedMarks().has(markId);
-                  return (
-                    <>
-                      {renderRow(topRow, false)}
-                      <Show when={showKids()}>
-                        <For each={ownEnrichments}>
-                          {(e) => renderRow({ source: 'enrichment', def: e }, true)}
-                        </For>
-                        <For each={subMarks}>
-                          {(sub) => {
-                            const subEnrichments = grouped().childrenByMark.get(sub.id) ?? [];
-                            // Gate the sub-mark's enrichments on the sub-mark's OWN
-                            // chevron, not just the parent's. Without this the
-                            // sub-mark chevron is a no-op (its enrichments showed
-                            // unconditionally whenever the parent was expanded).
-                            const showSubKids = () => expandedMarks().has(sub.id);
-                            return (
-                              <>
-                                {renderRow({ source: 'mark', def: sub }, true)}
-                                <Show when={showSubKids()}>
-                                  <For each={subEnrichments}>
-                                    {(e) => renderRow({ source: 'enrichment', def: e }, true)}
-                                  </For>
-                                </Show>
-                              </>
-                            );
-                          }}
-                        </For>
-                      </Show>
-                    </>
-                  );
-                }}
-              </For>
-              {/* Orphan enrichments (target_mark not in registry) — rare. */}
-              <Show when={(grouped().childrenByMark.get('__orphan__') ?? []).length > 0}>
-                <li
+              <div style={{ display: 'flex', 'align-items': 'center', gap: '0.4rem' }}>
+                <Show
+                  when={isExpandable()}
+                  fallback={<span style={{ display: 'inline-block', width: '0.9rem' }} />}
+                >
+                  <button
+                    type="button"
+                    onClick={() => row.source === 'mark' && toggleExpanded(row.def.id)}
+                    title={isExpanded() ? 'Collapse enrichments' : 'Expand enrichments'}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: 0,
+                      width: '0.9rem',
+                      height: '0.9rem',
+                      color: '#888',
+                      'font-size': '0.7rem',
+                      display: 'inline-flex',
+                      'align-items': 'center',
+                      'justify-content': 'center',
+                    }}
+                  >
+                    {isExpanded() ? '▾' : '▸'}
+                  </button>
+                </Show>
+                <Show
+                  when={!isDepFed()}
+                  fallback={
+                    // Passive marker, NOT a switch: a dimmed middot signals
+                    // "derived from its mark's card" — no on/off choice here.
+                    <span
+                      aria-hidden="true"
+                      title={`derived from the "${parentLabel()}" card (a synthesis consumes it) — not an independent toggle`}
+                      style={{
+                        width: '0.9rem',
+                        'flex-shrink': 0,
+                        'text-align': 'center',
+                        color: '#cfcfcf',
+                        'font-size': '0.7rem',
+                        'line-height': 1,
+                        cursor: 'default',
+                        'user-select': 'none',
+                      }}
+                    >
+                      ·
+                    </span>
+                  }
+                >
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={isOn()}
+                    onClick={() => setOn(!isOn())}
+                    title={isOn() ? 'turn off' : 'turn on'}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: 0,
+                      width: '0.9rem',
+                      'flex-shrink': 0,
+                      color: isOn() ? '#15803d' : '#ccc',
+                      'font-size': '0.7rem',
+                      'line-height': 1,
+                    }}
+                  >
+                    {isOn() ? '●' : '○'}
+                  </button>
+                </Show>
+                <span
                   style={{
-                    'font-size': '0.7rem',
+                    'font-weight': nested ? 400 : 500,
+                    'font-size': nested ? '0.8rem' : '0.85rem',
+                    // Truncate on one line instead of wrapping: a long label that
+                    // wraps flips between 1 and 2 lines as the status badge's width
+                    // changes (spinner → "✓ 1234ms"), which reads as row jitter.
+                    flex: 1,
+                    'min-width': 0,
+                    'white-space': 'nowrap',
+                    overflow: 'hidden',
+                    'text-overflow': 'ellipsis',
+                  }}
+                  title={label()}
+                >
+                  {label()}
+                </span>
+                <span
+                  title={`anchored on ${anchor()} · rendered ${render()}`}
+                  style={{
                     color: '#aaa',
-                    'padding-left': '0.4rem',
-                    'margin-top': '0.4rem',
+                    'font-size': '0.7rem',
+                    'font-family': 'monospace',
+                    'flex-shrink': 0,
                   }}
                 >
-                  Orphan enrichments (no matching mark in registry):
-                </li>
-                <For each={grouped().childrenByMark.get('__orphan__') ?? []}>
-                  {(e) => renderRow({ source: 'enrichment', def: e }, true)}
-                </For>
-              </Show>
-            </ul>
+                  {anchor()[0]}/{String(render())[0]}
+                </span>
+                <Show when={row.source !== 'seed' && isOn() && !isDepFed()}>
+                  <span
+                    style={{
+                      'font-size': '0.7rem',
+                      display: 'inline-flex',
+                      'align-items': 'center',
+                      gap: '0.3rem',
+                      'flex-shrink': 0,
+                      color:
+                        state().kind === 'error'
+                          ? '#c00'
+                          : state().kind === 'loading'
+                            ? '#888'
+                            : state().kind === 'ok'
+                              ? '#15803d'
+                              : '#aaa',
+                    }}
+                  >
+                    <Show when={state().kind === 'loading'}>
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          width: '0.65rem',
+                          height: '0.65rem',
+                          'border-radius': '50%',
+                          border: '2px solid #d6d3d1',
+                          'border-top-color': '#8a2a2b',
+                          animation: 'daf-spin 0.8s linear infinite',
+                          'flex-shrink': 0,
+                        }}
+                      />
+                    </Show>
+                    <Show when={state().kind === 'ok'}>
+                      {(() => {
+                        const res = () => (state() as Extract<RunState, { kind: 'ok' }>).result;
+                        return (
+                          <Show
+                            when={res().cache_hit}
+                            fallback={<span>✓ {res().elapsed_ms}ms</span>}
+                          >
+                            <span
+                              style={{
+                                'font-size': '0.62rem',
+                                color: '#15803d',
+                                background: '#dcfce7',
+                                padding: '0 0.3rem',
+                                'border-radius': '3px',
+                              }}
+                            >
+                              cached
+                            </span>
+                            <span style={{ color: '#888' }}>{res().elapsed_ms}ms</span>
+                          </Show>
+                        );
+                      })()}
+                    </Show>
+                    <Show when={state().kind === 'error'}>
+                      <span>✗</span>
+                    </Show>
+                  </span>
+                </Show>
+                {/* Summary badge on collapsed mark rows showing enrichment progress */}
+                <Show when={row.source === 'mark' && !isExpanded() && childCount() > 0}>
+                  <span
+                    style={{
+                      'font-size': '0.68rem',
+                      color: '#aaa',
+                      'margin-left': '0.1rem',
+                      'flex-shrink': 0,
+                      'white-space': 'nowrap',
+                    }}
+                  >
+                    {childCount()} enrich{childCount() === 1 ? '' : 'ments'}
+                    <Show when={summary()!.loading > 0}> · {summary()!.loading}…</Show>
+                    <Show when={summary()!.ok > 0}> · {summary()!.ok} done</Show>
+                    <Show when={summary()!.error > 0}> · {summary()!.error} err</Show>
+                  </span>
+                </Show>
+                <Show when={row.source !== 'seed' && isOn() && !isDepFed()}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (row.source === 'seed') return;
+                      const mid = row.def.id;
+                      const stamp = `${props.tractate}/${props.page}`;
+                      setRun(mid, { kind: 'loading', stamp });
+                      const fn = row.source === 'mark' ? runMark : runEnrichment;
+                      fn(mid, props.tractate, props.page, true).then(
+                        (result) => {
+                          if (currentStamp() === stamp)
+                            setRun(mid, { kind: 'ok', stamp, at: Date.now(), result });
+                        },
+                        (err) => {
+                          if (currentStamp() === stamp)
+                            setRun(mid, {
+                              kind: 'error',
+                              stamp,
+                              at: Date.now(),
+                              error: String((err as Error)?.message ?? err),
+                            });
+                        },
+                      );
+                    }}
+                    title="Re-run (skip Gateway cache)"
+                    disabled={state().kind === 'loading'}
+                    style={{
+                      'margin-left': 'auto',
+                      padding: '1px 6px',
+                      'font-size': '0.7rem',
+                      cursor: state().kind === 'loading' ? 'wait' : 'pointer',
+                      background: 'transparent',
+                      color: '#888',
+                      border: '1px solid #ddd',
+                      'border-radius': '3px',
+                    }}
+                  >
+                    ↻
+                  </button>
+                </Show>
+              </div>
+            </li>
           );
-        })()}
+        };
 
-        <div
-          style={{ display: 'flex', gap: '0.4rem', 'margin-top': '0.4rem', 'flex-wrap': 'wrap' }}
+        return (
+          <ul
+            style={{
+              'list-style': 'none',
+              padding: 0,
+              margin: 0,
+              display: 'flex',
+              'flex-direction': 'column',
+              gap: '0.25rem',
+            }}
+          >
+            <For each={grouped().top}>
+              {(top) => {
+                const topRow: Row =
+                  top.source === 'mark'
+                    ? { source: 'mark', def: top.def }
+                    : { source: 'seed', seed: top.seed };
+                const markId = top.source === 'mark' ? top.def.id : null;
+                const ownEnrichments = markId ? (grouped().childrenByMark.get(markId) ?? []) : [];
+                const subMarks = markId ? (grouped().subMarksByParent.get(markId) ?? []) : [];
+                const showKids = () => markId !== null && expandedMarks().has(markId);
+                return (
+                  <>
+                    {renderRow(topRow, false)}
+                    <Show when={showKids()}>
+                      <For each={ownEnrichments}>
+                        {(e) => renderRow({ source: 'enrichment', def: e }, true)}
+                      </For>
+                      <For each={subMarks}>
+                        {(sub) => {
+                          const subEnrichments = grouped().childrenByMark.get(sub.id) ?? [];
+                          // Gate the sub-mark's enrichments on the sub-mark's OWN
+                          // chevron, not just the parent's. Without this the
+                          // sub-mark chevron is a no-op (its enrichments showed
+                          // unconditionally whenever the parent was expanded).
+                          const showSubKids = () => expandedMarks().has(sub.id);
+                          return (
+                            <>
+                              {renderRow({ source: 'mark', def: sub }, true)}
+                              <Show when={showSubKids()}>
+                                <For each={subEnrichments}>
+                                  {(e) => renderRow({ source: 'enrichment', def: e }, true)}
+                                </For>
+                              </Show>
+                            </>
+                          );
+                        }}
+                      </For>
+                    </Show>
+                  </>
+                );
+              }}
+            </For>
+            {/* Orphan enrichments (target_mark not in registry) — rare. */}
+            <Show when={(grouped().childrenByMark.get('__orphan__') ?? []).length > 0}>
+              <li
+                style={{
+                  'font-size': '0.7rem',
+                  color: '#aaa',
+                  'padding-left': '0.4rem',
+                  'margin-top': '0.4rem',
+                }}
+              >
+                Orphan enrichments (no matching mark in registry):
+              </li>
+              <For each={grouped().childrenByMark.get('__orphan__') ?? []}>
+                {(e) => renderRow({ source: 'enrichment', def: e }, true)}
+              </For>
+            </Show>
+          </ul>
+        );
+      })()}
+
+      <div style={{ display: 'flex', gap: '0.4rem', 'margin-top': '0.4rem', 'flex-wrap': 'wrap' }}>
+        <button
+          type="button"
+          onClick={() => refetchDefs()}
+          title="Re-fetch the mark/enrichment definitions from the server (use after editing a def). Does not re-run anything."
+          style={{
+            padding: '2px 8px',
+            'font-size': '0.7rem',
+            cursor: 'pointer',
+            background: 'transparent',
+            border: '1px solid #ddd',
+            'border-radius': '3px',
+            color: '#888',
+          }}
         >
-          <button
-            onClick={() => refetchDefs()}
-            title="Re-fetch the mark/enrichment definitions from the server (use after editing a def). Does not re-run anything."
-            style={{
-              padding: '2px 8px',
-              'font-size': '0.7rem',
-              cursor: 'pointer',
-              background: 'transparent',
-              border: '1px solid #ddd',
-              'border-radius': '3px',
-              color: '#888',
-            }}
-          >
-            reload defs
-          </button>
-          <button
-            onClick={() => setRuns({})}
-            title="Clear cached results so every mark re-fetches for this daf (cache-respecting). For a true bypass-cache re-run of one mark, use its ↻."
-            style={{
-              padding: '2px 8px',
-              'font-size': '0.7rem',
-              cursor: 'pointer',
-              background: 'transparent',
-              border: '1px solid #ddd',
-              'border-radius': '3px',
-              color: '#888',
-            }}
-          >
-            refresh results
-          </button>
-        </div>
+          reload defs
+        </button>
+        <button
+          type="button"
+          onClick={() => setRuns({})}
+          title="Clear cached results so every mark re-fetches for this daf (cache-respecting). For a true bypass-cache re-run of one mark, use its ↻."
+          style={{
+            padding: '2px 8px',
+            'font-size': '0.7rem',
+            cursor: 'pointer',
+            background: 'transparent',
+            border: '1px solid #ddd',
+            'border-radius': '3px',
+            color: '#888',
+          }}
+        >
+          refresh results
+        </button>
       </div>
-    </>
+    </div>
   );
 }
 

@@ -84,7 +84,7 @@ export function bodyText(el: HTMLElement, marker?: string, label?: string): stri
  *  (insights `reg`/`reg1`/`reg2`, halacha/points/review `indent1..3`). Returns
  *  0 for top-level body, N for nested, or null for non-content elements. */
 export function levelOfClass(classAttr: string): number | null {
-  const cls = ' ' + classAttr + ' ';
+  const cls = ` ${classAttr} `;
   if (/\bsubject\b/.test(classAttr)) return 0;
   if (/\b(reg3|indent3)\b/.test(classAttr)) return 3;
   if (/\b(reg2|indent2)\b/.test(classAttr)) return 2;

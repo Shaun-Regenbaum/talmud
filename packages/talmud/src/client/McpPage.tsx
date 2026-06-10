@@ -1,4 +1,4 @@
-import { createSignal, For, type JSX, Show } from 'solid-js';
+import { createSignal, For, type JSX } from 'solid-js';
 
 /**
  * Guide for connecting an MCP client (Claude Code / Desktop, etc.) to this app's

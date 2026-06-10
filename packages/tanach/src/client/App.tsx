@@ -440,7 +440,9 @@ export function App(): JSX.Element {
     paragraphs();
     requestAnimationFrame(() => {
       if (!scrollBand) return;
-      scrollBand.querySelectorAll('.vtext.hl').forEach((e) => e.classList.remove('hl'));
+      scrollBand.querySelectorAll('.vtext.hl').forEach((e) => {
+        e.classList.remove('hl');
+      });
       scrollBand.querySelectorAll<HTMLElement>('.vtext').forEach((e) => {
         const vn = Number(e.dataset.vn);
         const inNote = sel && vn >= sel.start && vn <= sel.end;
@@ -554,6 +556,7 @@ export function App(): JSX.Element {
         <Show when={parsha()}>
           {(p) => (
             <button
+              type="button"
               class="parsha-btn"
               onClick={() => goto(p().book, p().chapter)}
               title={`This week's parsha — ${p().name} (${p().ref})`}
@@ -566,19 +569,25 @@ export function App(): JSX.Element {
         {/* Mikraot Gedolot view hidden for now — Default (scroll) only. */}
 
         <Show when={loc().view === 'scroll'}>
-          <button class="nikud-toggle" onClick={() => update({ nikud: !loc().nikud })}>
+          <button
+            type="button"
+            class="nikud-toggle"
+            onClick={() => update({ nikud: !loc().nikud })}
+          >
             {loc().nikud ? 'נִקּוּד' : 'נקוד'}
           </button>
         </Show>
 
         <div class="lang-toggle" role="group" aria-label="Language">
           <button
+            type="button"
             classList={{ active: loc().lang === 'en' }}
             onClick={() => update({ lang: 'en' })}
           >
             EN
           </button>
           <button
+            type="button"
             classList={{ active: loc().lang === 'he' }}
             onClick={() => update({ lang: 'he' })}
           >
@@ -591,13 +600,19 @@ export function App(): JSX.Element {
         </a>
 
         <div class="chapter-nav">
-          <button disabled={loc().chapter <= 1} onClick={() => goto(loc().book, loc().chapter - 1)}>
+          <button
+            type="button"
+            disabled={loc().chapter <= 1}
+            onClick={() => goto(loc().book, loc().chapter - 1)}
+          >
             ‹
           </button>
           <span class="chapter-label">
             {loc().lang === 'he' ? hebrewNumeral(loc().chapter) : `ch. ${loc().chapter}`}
           </span>
-          <button onClick={() => goto(loc().book, loc().chapter + 1)}>›</button>
+          <button type="button" onClick={() => goto(loc().book, loc().chapter + 1)}>
+            ›
+          </button>
         </div>
       </header>
 
@@ -638,6 +653,7 @@ export function App(): JSX.Element {
             <For each={anchors()}>
               {(a) => (
                 <button
+                  type="button"
                   class="evt-margin"
                   classList={{
                     'evt-left': a.side === 'left',
@@ -659,6 +675,7 @@ export function App(): JSX.Element {
                   <For each={ic.kinds}>
                     {(k) => (
                       <button
+                        type="button"
                         class={`vgutter vgutter-${k}`}
                         classList={{ active: source()?.verse === ic.v && source()?.kind === k }}
                         style={{ width: `${ICON_SIZE}px`, height: `${ICON_SIZE}px` }}
@@ -682,7 +699,12 @@ export function App(): JSX.Element {
                   }}
                   style={{ top: `${sel().top}px` }}
                 >
-                  <button class="note-close" onClick={() => setSelected(null)} aria-label="Close">
+                  <button
+                    type="button"
+                    class="note-close"
+                    onClick={() => setSelected(null)}
+                    aria-label="Close"
+                  >
                     ×
                   </button>
                   <div class="note-pop-label">{sel().label}</div>
@@ -735,7 +757,12 @@ export function App(): JSX.Element {
                   : `${loc().book} ${loc().chapter}:${s.verse}`}
               </span>
               <span class="comm-kind">{SECTION_TITLE[s.kind]}</span>
-              <button class="comm-close" onClick={() => setSource(null)} aria-label="Close">
+              <button
+                type="button"
+                class="comm-close"
+                onClick={() => setSource(null)}
+                aria-label="Close"
+              >
                 ×
               </button>
             </header>
@@ -881,7 +908,7 @@ function ChapterFoot(props: {
         if (!p) return <span />;
         const txt = fmt(p.book, p.chapter);
         return (
-          <button onClick={() => props.goto(p.book, p.chapter)}>
+          <button type="button" onClick={() => props.goto(p.book, p.chapter)}>
             {dir === 'prev' ? `‹ ${txt}` : `${txt} ›`}
           </button>
         );

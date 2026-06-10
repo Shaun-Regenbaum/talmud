@@ -191,6 +191,7 @@ export type IconVariant = 'source' | 'mark' | 'enrichment';
 export function NodeIcon(props: { variant: IconVariant; color: string }): JSX.Element {
   return (
     <svg
+      aria-hidden="true"
       width="18"
       height="18"
       viewBox="-9 -9 18 18"

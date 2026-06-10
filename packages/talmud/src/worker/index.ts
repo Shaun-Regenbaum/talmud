@@ -34,19 +34,12 @@ import {
 } from '@corpus/core/registry/depGraph';
 import { Hono } from 'hono';
 import {
-  GENERATION_BY_ID,
   GENERATION_IDS,
   GENERATIONS_PROMPT_REFERENCE,
   type GenerationId,
 } from '../client/generations';
 import { stripEchoParens } from '../client/hebraize';
-import {
-  dedupeBy,
-  dedupeByRange,
-  type MoveLike,
-  partitionSections,
-  selectSectionMoves,
-} from '../lib/argumentMoves';
+import { dedupeBy, dedupeByRange, type MoveLike, selectSectionMoves } from '../lib/argumentMoves';
 import { runPasses } from '../lib/check/passes';
 import type { MatchInput } from '../lib/context/anchor/ai-prompt';
 import { type DafLink, dafLinks } from '../lib/context/dafLinks';
@@ -66,15 +59,7 @@ import {
   validateLLMRabbiOutput,
 } from '../lib/rabbi/types';
 import type { EntityPiece } from '../lib/registry/entity';
-import {
-  adjacentAmud,
-  type HalachicRefBundle,
-  type HebrewBooksDaf,
-  type RishonimBundle,
-  sefariaAPI,
-  type TalmudPageData,
-} from '../lib/sefref';
-import { extractTalmudContent } from '../lib/sefref/alignment';
+import { adjacentAmud, type RishonimBundle, sefariaAPI, type TalmudPageData } from '../lib/sefref';
 import { iterAmudim } from '../lib/sefref/amudim';
 import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
 import { fetchHebrewBooksDaf } from '../lib/sefref/hebrewbooks/client';
@@ -161,7 +146,7 @@ import { aiMatchToSegments } from './context-match';
 import { collectContext, type SourceTiming } from './context-providers';
 import { dafCostReport } from './daf-cost';
 import { getRabbiEntryOr404, readJsonBody } from './http-helpers';
-import { type LintFailuresSummary, noteLintAttempt, readLintFailures } from './lint-failures';
+import { noteLintAttempt, readLintFailures } from './lint-failures';
 import {
   ARGUMENT_BRIDGE_OUTPUT_SCHEMA,
   ARGUMENT_CROSS_FLOW_OUTPUT_SCHEMA,
@@ -190,13 +175,11 @@ import { placeRevachWithAi } from './revach-ai-place';
 import {
   type CacheTrack,
   getCodeSourcesCached,
-  getDafTopicsCached,
   getDafyomiContentCached,
   getHalachaRefsCached,
   getHebrewBooksDafCached,
   getMishnaBundleCached,
   getRishonimCached,
-  getSaCommentaryCached,
   getSefariaPageCached,
   getSefariaSegmentsCached,
   getYerushalmiCached,
@@ -207,7 +190,6 @@ import {
   deleteEnrichment,
   deleteMark,
   type EnrichmentDefinition,
-  type MarkDefinition as KvMarkDefinition,
   listEnrichments,
   listMarks,
   readEnrichment,
@@ -477,21 +459,7 @@ interface DafSkeleton {
   }>;
 }
 
-interface PesukimStoryShape {
-  verseRef?: string;
-  citationStyle?: string;
-  excerpt?: string;
-  summary?: string;
-  startSegIdx?: number;
-  endSegIdx?: number;
-  tanachContext?: unknown;
-  peshat?: unknown;
-  gemaraUsage?: unknown;
-  exegesis?: unknown;
-  synthesize?: unknown;
-}
-
-function rishonimBlock(bundle: RishonimBundle, perCommentatorCap = 2500): string {
+function _rishonimBlock(bundle: RishonimBundle, perCommentatorCap = 2500): string {
   const entries = Object.entries(bundle);
   if (entries.length === 0) return '';
   const sliceStr = (s: string | undefined | null, cap: number) => {
@@ -510,7 +478,7 @@ function rishonimBlock(bundle: RishonimBundle, perCommentatorCap = 2500): string
   return `<rishonim_commentary>\n${parts.join('\n')}\n</rishonim_commentary>`;
 }
 
-const STRATEGY_NAMES = [
+const _STRATEGY_NAMES = [
   'rabbis',
   'references',
   'parallels',
@@ -602,7 +570,7 @@ app.get('/api/admin/ai-gateway-test', async (c) => {
       ...(explicitModel ? { model: explicitModel as LLMModelId } : {}),
       messages: [
         { role: 'system', content: 'Reply with the single word OK and nothing else.' },
-        { role: 'user', content: `Ping${nonce ? ' ' + nonce : ''}.` },
+        { role: 'user', content: `Ping${nonce ? ` ${nonce}` : ''}.` },
       ],
       max_tokens: 16,
       temperature: 0,
@@ -2399,7 +2367,7 @@ function recordSource(out: ResolvedInputs, name: string, content: unknown): void
     chars: content.length,
     content:
       content.length > SOURCE_PREVIEW_CAP
-        ? content.slice(0, SOURCE_PREVIEW_CAP) + `… [+${content.length - SOURCE_PREVIEW_CAP} chars]`
+        ? `${content.slice(0, SOURCE_PREVIEW_CAP)}… [+${content.length - SOURCE_PREVIEW_CAP} chars]`
         : content,
   };
 }
@@ -3352,11 +3320,11 @@ async function runMarkOnce(
     resolved: {
       system_prompt:
         systemPrompt.length > 2000
-          ? systemPrompt.slice(0, 2000) + '… [+' + (systemPrompt.length - 2000) + ' chars]'
+          ? `${systemPrompt.slice(0, 2000)}… [+${systemPrompt.length - 2000} chars]`
           : systemPrompt,
       user_prompt:
         userPrompt.length > 2000
-          ? userPrompt.slice(0, 2000) + '… [+' + (userPrompt.length - 2000) + ' chars]'
+          ? `${userPrompt.slice(0, 2000)}… [+${userPrompt.length - 2000} chars]`
           : userPrompt,
     },
     cache_hit: false,
@@ -3392,7 +3360,7 @@ async function runMarkOnce(
  *  section-anchored (so no range guard applies). Used to reject a cache hit
  *  whose title-derived key resolved to a stale, differently-ranged entry. */
 function sectionRangeOf(def: EnrichmentDefinition | null, markInput: unknown): string | null {
-  if (!def || def.mark !== 'argument') return null;
+  if (def?.mark !== 'argument') return null;
   const mi = markInput as { startSegIdx?: number; endSegIdx?: number } | null;
   if (mi && typeof mi.startSegIdx === 'number' && typeof mi.endSegIdx === 'number') {
     return `${mi.startSegIdx}-${mi.endSegIdx}`;
@@ -3756,11 +3724,11 @@ async function runEnrichmentOnce(
     resolved: {
       system_prompt:
         systemPrompt.length > 2000
-          ? systemPrompt.slice(0, 2000) + '… [+' + (systemPrompt.length - 2000) + ' chars]'
+          ? `${systemPrompt.slice(0, 2000)}… [+${systemPrompt.length - 2000} chars]`
           : systemPrompt,
       user_prompt:
         userPrompt.length > 2000
-          ? userPrompt.slice(0, 2000) + '… [+' + (userPrompt.length - 2000) + ' chars]'
+          ? `${userPrompt.slice(0, 2000)}… [+${userPrompt.length - 2000} chars]`
           : userPrompt,
     },
     cache_hit: false,
@@ -4102,7 +4070,7 @@ export function isExperimentalLlmWarm(job: { mark_id?: string; enrichment_id?: s
   }
   if (job.enrichment_id) {
     const e = findCodeEnrichment(job.enrichment_id);
-    if (!e || e.extractor.kind !== 'llm' || !e.target_mark) return false;
+    if (e?.extractor.kind !== 'llm' || !e.target_mark) return false;
     const m = findCodeMark(e.target_mark);
     return !!m && m.experimental === true;
   }
@@ -4265,7 +4233,7 @@ app.post('/api/run', async (c) => {
   // Budget gate before enqueueing real LLM work. Cache hits already returned
   // above (free, ungated). The queue consumer re-checks at the runLLM
   // chokepoint, but failing here gives the client an immediate paused signal.
-  const customRun = !!(job.enrichment_id && job.enrichment_id.endsWith('.qa') && job.user_question);
+  const customRun = !!(job.enrichment_id?.endsWith('.qa') && job.user_question);
   const gate = await checkBudget(c.env, { custom: customRun });
   if (!gate.ok) {
     return c.json(
@@ -4640,24 +4608,30 @@ app.get('/api/admin/llm-cost', async (c) => {
     if (typeof r.completion_tokens === 'number') completionTokens += r.completion_tokens;
     if (r.ts < minTs) minTs = r.ts;
     if (r.ts > maxTs) maxTs = r.ts;
-    const m = (byModel[r.model] ??= { calls: 0, cost: 0, promptTokens: 0, completionTokens: 0 });
+    const m = byModel[r.model] ?? { calls: 0, cost: 0, promptTokens: 0, completionTokens: 0 };
+    byModel[r.model] = m;
     m.calls++;
     m.cost += r.cost ?? 0;
     m.promptTokens += r.prompt_tokens ?? 0;
     m.completionTokens += r.completion_tokens ?? 0;
-    const t = (byTag[r.tag] ??= { calls: 0, cost: 0 });
+    const t = byTag[r.tag] ?? { calls: 0, cost: 0 };
+    byTag[r.tag] = t;
     t.calls++;
     t.cost += r.cost ?? 0;
-    const k = (byKind[r.kind ?? 'untagged'] ??= { calls: 0, cost: 0 });
+    const kindKey = r.kind ?? 'untagged';
+    const k = byKind[kindKey] ?? { calls: 0, cost: 0 };
+    byKind[kindKey] = k;
     k.calls++;
     k.cost += r.cost ?? 0;
     if (r.tractate && r.page) {
-      const d = (byDaf[`${r.tractate}:${r.page}`] ??= {
+      const dafKey = `${r.tractate}:${r.page}`;
+      const d = byDaf[dafKey] ?? {
         calls: 0,
         cost: 0,
         costInEst: 0,
         costOutEst: 0,
-      });
+      };
+      byDaf[dafKey] = d;
       d.calls++;
       d.cost += r.cost ?? 0;
       d.costInEst += r.cost_in_est ?? 0;
@@ -6354,7 +6328,7 @@ app.post('/api/translate', async (c) => {
   // Context-aware cache key: identical word in two different passages now gets
   // two different cached answers (previously they collided).
   const ctxHash =
-    hebrewBefore || hebrewAfter ? `:${shortHash(hebrewBefore + '' + hebrewAfter)}` : '';
+    hebrewBefore || hebrewAfter ? `:${shortHash(`${hebrewBefore}${hebrewAfter}`)}` : '';
   // v3: DeepSeek V4 Flash primary + hardcoded dict short-circuit +
   // morphology-aware prompt. Bumped from v2 to invalidate stale Gemma-era
   // translations (Gemma 4 26B was returning e.g. שעות → "watches").
@@ -6640,7 +6614,7 @@ const KNOWN_RABBIS_HE: KnownRabbi[] = (() => {
   return out;
 })();
 
-function canonicalizeName(raw: string): string {
+function _canonicalizeName(raw: string): string {
   const hit = resolveRabbiName(raw);
   return hit?.canonical ?? raw;
 }
@@ -6893,7 +6867,7 @@ function isRabbinicEntry(r: RabbiPlacesEntry): boolean {
     .replace(/\s+/g, ' ')
     .trim();
   if (!he) return false;
-  return RABBI_HE_TITLE_RE.test(he + ' ') || RABBI_HE_STANDALONE.has(he);
+  return RABBI_HE_TITLE_RE.test(`${he} `) || RABBI_HE_STANDALONE.has(he);
 }
 
 app.get('/api/admin/rabbi-slugs', (c) => {
@@ -7886,7 +7860,7 @@ async function fetchWikidataEntity(qid: string): Promise<WikidataStageRecord | n
     >;
   };
   const entity = data.entities?.[qid];
-  if (!entity || !entity.claims) return null;
+  if (!entity?.claims) return null;
 
   const idsFor = (prop: string): string[] =>
     (entity.claims?.[prop] ?? [])
@@ -8220,7 +8194,9 @@ app.post('/api/admin/rabbi-compile/cohort', async (c) => {
   const byGeneration: Record<string, string[]> = {};
   for (const r of all) {
     if (!r.generation) continue;
-    (byGeneration[r.generation] ??= []).push(r.slug);
+    const slugs = byGeneration[r.generation] ?? [];
+    byGeneration[r.generation] = slugs;
+    slugs.push(r.slug);
   }
   const bySage: Record<string, string[]> = {};
   for (const [, slugs] of Object.entries(byGeneration)) {
@@ -8260,7 +8236,9 @@ app.post('/api/admin/rabbi-compile/places-index', async (c) => {
     for (const place of r.places ?? []) {
       const key = place.trim();
       if (!key) continue;
-      (byPlace[key] ??= []).push(r.slug);
+      const slugs = byPlace[key] ?? [];
+      byPlace[key] = slugs;
+      slugs.push(r.slug);
     }
   }
   const blob: RabbiPlacesIndexBlob = {
@@ -8289,7 +8267,9 @@ app.post('/api/admin/rabbi-compile/academy-roster', async (c) => {
   const byAcademy: Record<string, string[]> = {};
   for (const r of all) {
     if (!r.academy) continue;
-    (byAcademy[r.academy] ??= []).push(r.slug);
+    const slugs = byAcademy[r.academy] ?? [];
+    byAcademy[r.academy] = slugs;
+    slugs.push(r.slug);
   }
   const blob: RabbiAcademyRosterBlob = {
     generatedAt: new Date().toISOString(),
@@ -8785,7 +8765,7 @@ async function buildYerushalmiOutline(env: Bindings, tractate: string, page: str
     getGemaraSlice(env, tractate, page, false),
   ]);
   const block = daf?.amudim?.a?.yerushalmi?.body ?? daf?.amudim?.b?.yerushalmi?.body;
-  if (!block || block.type !== 'yerushalmi') return [];
+  if (block?.type !== 'yerushalmi') return [];
   const points = flattenYerushalmiOutline(block.entries, tractate);
   return alignOutlineToSegments(points, slice.segments_he);
 }

@@ -155,7 +155,7 @@ function compactifyHonorifics(name: string): string {
 function compactRabbiName(name: string): string {
   const compact = compactifyHonorifics(name);
   if (compact.length <= NAME_MAX_CHARS) return compact;
-  return compact.slice(0, NAME_MAX_CHARS - 1) + '…';
+  return `${compact.slice(0, NAME_MAX_CHARS - 1)}…`;
 }
 
 /** Fit the subject's display name to the node card. Prefer the full form
@@ -165,7 +165,7 @@ function fitSubjectName(name: string): string {
   if (name.length <= SUBJECT_NAME_MAX_CHARS) return name;
   const compact = compactifyHonorifics(name);
   if (compact.length <= SUBJECT_NAME_MAX_CHARS) return compact;
-  return compact.slice(0, SUBJECT_NAME_MAX_CHARS - 1) + '…';
+  return `${compact.slice(0, SUBJECT_NAME_MAX_CHARS - 1)}…`;
 }
 
 /** Map a family relation string to a coarse generation offset relative to
@@ -526,6 +526,8 @@ export default function RabbiLineageTree(props: Props): JSX.Element {
         }}
       >
         <svg
+          role="img"
+          aria-label="Rabbi lineage tree by generation"
           width={layout().width}
           height={layout().height}
           viewBox={`0 0 ${layout().width} ${layout().height}`}

@@ -451,7 +451,7 @@ export function alignTexts(sefariaText: string, hebrewBooksText: string, maxLeng
   console.log('Alignment complete:', {
     offset: alignment.offset,
     alignedLength: alignment.pairs.length,
-    score: (alignment.score * 100).toFixed(1) + '%',
+    score: `${(alignment.score * 100).toFixed(1)}%`,
     statistics,
   });
 

@@ -46,12 +46,12 @@ import { HebraizedWithRabbis as Hebraized } from './rabbiLinks';
 
 // Single global "which card has the inspector open?" signal — keyed by the
 // card's instanceKey. Only one drawer at a time across the whole page.
-const [openInspectorKey, setOpenInspectorKey] = createSignal<string | null>(null);
+const [openInspectorKey, _setOpenInspectorKey] = createSignal<string | null>(null);
 // Which leaf the open inspector is focused on (null = the synthesis aggregate).
 // Module-level so a section card rendered OUTSIDE the owning MarkEnrichmentCards
 // (e.g. a recipe's special block, like halacha's Codification) can open the
 // drawer focused on its leaf.
-const [inspectorView, setInspectorView] = createSignal<string | null>(null);
+const [inspectorView, _setInspectorView] = createSignal<string | null>(null);
 
 /** Open the build inspector focused on `leafId` — the ENRICHMENT (the
  *  generation), e.g. 'argument.voices' / 'rabbi.relationships'. Focus that, not
@@ -557,12 +557,6 @@ export default function MarkEnrichmentCards(props: Props) {
     });
   });
 
-  // Pretty-print "rabbi.bio" → "Bio", "rabbi.daf-role" → "Daf role".
-  const prettyDepLabel = (depId: string, markId: string): string => {
-    const tail = depId.startsWith(`${markId}.`) ? depId.slice(markId.length + 1) : depId;
-    return tail.replace(/[-_]/g, ' ').replace(/\b\w/, (m) => m.toUpperCase());
-  };
-
   // The synthesis/aggregate view — what the sidebar card always shows.
   const primaryView = (): EnrichmentDef | null => {
     const a = aggregates();
@@ -578,7 +572,6 @@ export default function MarkEnrichmentCards(props: Props) {
     if (sel) return allMatching().find((d) => d.id === sel) ?? null;
     return primaryView();
   };
-  const currentRun = (): RunState => runs()[currentView()?.id ?? ''] ?? { kind: 'idle' };
 
   // When a leaf is selected in the inspector, make sure we have its FULL run
   // (prompt + telemetry). Leaves fanned out from the aggregate's deps_resolved
@@ -639,7 +632,7 @@ export default function MarkEnrichmentCards(props: Props) {
   // field on the cached RunResult, since the texts are KB-scale and only the dev
   // inspector wants them (every reader's card fetch would otherwise carry them).
   // Re-fetches when the focal view changes; null while loading or closed.
-  const [inspectorSources, setInspectorSources] = createSignal<Record<
+  const [_inspectorSources, setInspectorSources] = createSignal<Record<
     string,
     { chars: number; content: string }
   > | null>(null);
@@ -685,31 +678,6 @@ export default function MarkEnrichmentCards(props: Props) {
         /* inspector just shows no sources */
       });
   });
-
-  // Dependencies that fed the current view. For a synthesis-style aggregate
-  // the deps are the leaves it consumed (taken from deps_resolved on the
-  // run); for a leaf with no upstream deps we surface its own id so the
-  // tray always shows what produced the text.
-  const currentDepBadges = (): string[] => {
-    const v = currentView();
-    if (!v) return [];
-    const r = currentRun();
-    if (r.kind === 'ok' && r.result.deps_resolved) {
-      return Object.keys(r.result.deps_resolved);
-    }
-    // Pull enrichment-typed dep IDs out of the unified dependencies array
-    // (also covers source-tag deps and mark deps, but those don't render as
-    // leaf badges).
-    const enrichmentDeps = (v.dependencies ?? [])
-      .map((d) =>
-        d && typeof d === 'object' && 'enrichment' in d
-          ? (d as { enrichment: string }).enrichment
-          : null,
-      )
-      .filter((s): s is string => !!s);
-    if (enrichmentDeps.length > 0) return enrichmentDeps;
-    return [v.id];
-  };
 
   // Loading copy: pick something evocative based on what's being worked on.
   const loadingCopy = (): string => {
@@ -825,29 +793,7 @@ export default function MarkEnrichmentCards(props: Props) {
     );
   };
   const renderCardBody = (): JSX.Element => renderRunBody(primaryRun());
-  const renderInspectorBody = (): JSX.Element => renderRunBody(currentRun());
 
-  // Human-friendly label for the instance (used in the inspector header).
-  const instanceLabel = (): string => {
-    const inst = props.instance as {
-      name?: string;
-      fields?: { title?: string; verseRef?: string; topic?: string; name?: string; id?: string };
-    } | null;
-    return (
-      inst?.fields?.title ??
-      inst?.fields?.verseRef ??
-      inst?.fields?.topic ??
-      inst?.fields?.name ??
-      inst?.name ??
-      inst?.fields?.id ??
-      props.instanceKey
-    );
-  };
-
-  const closeInspector = () => {
-    setOpenInspectorKey(null);
-    setInspectorView(null);
-  };
   const openInspector = (e?: MouseEvent) => {
     // Cards may live inside an outer click-target (e.g. ArgumentMoveCard's
     // toggleHighlight wrapper). Stop propagation so the inspector affordance
@@ -864,80 +810,79 @@ export default function MarkEnrichmentCards(props: Props) {
   // and opens the InstanceInspectorShelf bottom drawer with leaf-walk
   // controls, prompts, and telemetry.
   return (
-    <>
-      <div
-        style={{
-          position: 'relative',
-          background: '#fafafa',
-          border: '1px solid #eee',
-          'border-radius': '6px',
-          padding: '0.85rem 1rem',
-        }}
+    <div
+      style={{
+        position: 'relative',
+        background: '#fafafa',
+        border: '1px solid #eee',
+        'border-radius': '6px',
+        padding: '0.85rem 1rem',
+      }}
+    >
+      {renderCardBody()}
+      <Show
+        when={(() => {
+          const r = primaryRun();
+          return r.kind === 'ok' && r.result.refreshing;
+        })()}
       >
-        {renderCardBody()}
-        <Show
-          when={(() => {
-            const r = primaryRun();
-            return r.kind === 'ok' && r.result.refreshing;
-          })()}
+        {/* Stale-while-revalidate: the value above is the previous version,
+            served while the new one recomputes. scheduleRefresh swaps it in. */}
+        <div
+          style={{
+            display: 'flex',
+            'align-items': 'center',
+            gap: '0.4rem',
+            'margin-top': '0.5rem',
+            color: '#a16207',
+            'font-size': '0.72rem',
+            'font-style': 'italic',
+          }}
         >
-          {/* Stale-while-revalidate: the value above is the previous version,
-              served while the new one recomputes. scheduleRefresh swaps it in. */}
-          <div
+          <span
             style={{
-              display: 'flex',
-              'align-items': 'center',
-              gap: '0.4rem',
-              'margin-top': '0.5rem',
-              color: '#a16207',
-              'font-size': '0.72rem',
-              'font-style': 'italic',
-            }}
-          >
-            <span
-              style={{
-                display: 'inline-block',
-                width: '0.6rem',
-                height: '0.6rem',
-                'border-radius': '50%',
-                border: '2px solid #e7d9b0',
-                'border-top-color': '#a16207',
-                animation: 'daf-spin 0.8s linear infinite',
-                'flex-shrink': 0,
-              }}
-            />
-            {t('enrichment.updating')}
-          </div>
-        </Show>
-        <Show when={devModeActive()}>
-          <button
-            onClick={openInspector}
-            title="Inspect this synthesis"
-            aria-label="Inspect this synthesis"
-            style={{
-              position: 'absolute',
-              top: '0.35rem',
-              right: '0.35rem',
-              width: '1.4rem',
-              height: '1.4rem',
-              padding: 0,
-              cursor: 'pointer',
-              background:
-                isInspectorOpen() && inspectorSelectedId() === null ? '#000' : 'transparent',
-              color: isInspectorOpen() && inspectorSelectedId() === null ? '#fff' : '#888',
-              border: '1px solid #ddd',
+              display: 'inline-block',
+              width: '0.6rem',
+              height: '0.6rem',
               'border-radius': '50%',
-              'font-size': '0.7rem',
-              'font-family': 'ui-serif, Georgia, serif',
-              'font-style': 'italic',
-              'line-height': 1,
+              border: '2px solid #e7d9b0',
+              'border-top-color': '#a16207',
+              animation: 'daf-spin 0.8s linear infinite',
+              'flex-shrink': 0,
             }}
-          >
-            i
-          </button>
-        </Show>
-      </div>
-    </>
+          />
+          {t('enrichment.updating')}
+        </div>
+      </Show>
+      <Show when={devModeActive()}>
+        <button
+          type="button"
+          onClick={openInspector}
+          title="Inspect this synthesis"
+          aria-label="Inspect this synthesis"
+          style={{
+            position: 'absolute',
+            top: '0.35rem',
+            right: '0.35rem',
+            width: '1.4rem',
+            height: '1.4rem',
+            padding: 0,
+            cursor: 'pointer',
+            background:
+              isInspectorOpen() && inspectorSelectedId() === null ? '#000' : 'transparent',
+            color: isInspectorOpen() && inspectorSelectedId() === null ? '#fff' : '#888',
+            border: '1px solid #ddd',
+            'border-radius': '50%',
+            'font-size': '0.7rem',
+            'font-family': 'ui-serif, Georgia, serif',
+            'font-style': 'italic',
+            'line-height': 1,
+          }}
+        >
+          i
+        </button>
+      </Show>
+    </div>
   );
 }
 
@@ -1004,7 +949,7 @@ function ArrayItem(props: { item: unknown }) {
               <>
                 {i() > 0 ? ', ' : ''}
                 <span style={{ color: '#888' }}>{k}:</span>{' '}
-                <Show when={typeof val === 'string'} fallback={<>{JSON.stringify(val)}</>}>
+                <Show when={typeof val === 'string'} fallback={JSON.stringify(val)}>
                   <Hebraized text={val as string} />
                 </Show>
               </>

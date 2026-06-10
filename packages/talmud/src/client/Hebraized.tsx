@@ -58,9 +58,7 @@ export function bidiSegments(text: string): { text: string; he: boolean }[] {
  *  surrounding English punctuation doesn't get reordered into a scramble. */
 export function BidiText(props: { text: string }): JSX.Element {
   const parts = createMemo(() => bidiSegments(props.text));
-  return (
-    <For each={parts()}>{(part) => (part.he ? <bdi>{part.text}</bdi> : <>{part.text}</>)}</For>
-  );
+  return <For each={parts()}>{(part) => (part.he ? <bdi>{part.text}</bdi> : part.text)}</For>;
 }
 
 export function Hebraized(props: {
