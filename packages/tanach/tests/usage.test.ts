@@ -40,8 +40,43 @@ describe('usage ledger', () => {
     expect(s.inTokens).toBe(210);
     expect(s.outTokens).toBe(105);
     expect(s.costUsd).toBeCloseTo(0.002);
-    expect(s.byProducer.translate).toEqual({ calls: 2, costUsd: expect.closeTo(0.002) });
-    expect(s.byProducer.events).toEqual({ calls: 1, costUsd: 0 });
+    expect(s.byProducer.translate).toEqual({
+      calls: 2,
+      costUsd: expect.closeTo(0.002),
+      inTokens: 200,
+      outTokens: 100,
+    });
+    expect(s.byProducer.events).toEqual({ calls: 1, costUsd: 0, inTokens: 10, outTokens: 5 });
+  });
+
+  it('buckets per model and tolerates pre-token ledger entries', async () => {
+    // A stored summary from before token/byModel tracking: per-producer buckets
+    // without token fields and no byModel at all. Recording on top must not
+    // throw, and the old buckets keep accumulating.
+    const legacy = {
+      calls: 1,
+      inTokens: 100,
+      outTokens: 50,
+      costUsd: 0.001,
+      byProducer: { translate: { calls: 1, costUsd: 0.001 } },
+      recent: [],
+    };
+    const kv = kvStub({ 'usage:v1': JSON.stringify(legacy) });
+    await recordUsage(kv, entry({}));
+    const s = await readUsage(kv);
+    expect(s.calls).toBe(2);
+    expect(s.byProducer.translate).toEqual({
+      calls: 2,
+      costUsd: expect.closeTo(0.002),
+      inTokens: 100,
+      outTokens: 50,
+    });
+    expect(s.byModel?.[entry({}).model]).toEqual({
+      calls: 1,
+      costUsd: expect.closeTo(0.001),
+      inTokens: 100,
+      outTokens: 50,
+    });
   });
 
   it('keeps the most recent calls first, capped at 100', async () => {

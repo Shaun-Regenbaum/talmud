@@ -5070,10 +5070,18 @@ const REPORTS_DISMISSED_KEY = 'reports:v1:dismissed';
 
 async function buildBacklogSection(cache?: KVNamespace) {
   const empty = { total: 0, sightings: 0, sample: [] as never[] };
+  // Each registry scan is independently guarded: one failing list (subrequest
+  // budget, KV hiccup) degrades its own card to empty instead of 500ing the
+  // whole backlog endpoint.
+  const guarded = <T>(p: Promise<T>): Promise<T | typeof empty> =>
+    p.catch((err) => {
+      console.error('[usage/backlog] registry scan failed:', err);
+      return empty;
+    });
   const [rabbis, places, concepts, repRaw, disRaw] = await Promise.all([
-    cache ? listUnknownRabbis(cache) : empty,
-    cache ? listObservedPlaces(cache) : empty,
-    cache ? listObservedConcepts(cache) : empty,
+    cache ? guarded(listUnknownRabbis(cache)) : empty,
+    cache ? guarded(listObservedPlaces(cache)) : empty,
+    cache ? guarded(listObservedConcepts(cache)) : empty,
     cache ? cache.get('reports:v1:recent') : null,
     cache ? cache.get(REPORTS_DISMISSED_KEY) : null,
   ]);
