@@ -8,6 +8,7 @@
  * the reusable primitives.
  */
 
+import type { Provenance } from '@corpus/core/model/provenance';
 import { LruMap } from '../lib/lruMap';
 import { queueActivity } from './aiActivity';
 
@@ -43,6 +44,10 @@ export interface RunResult {
   stale?: boolean;
   refreshing?: boolean;
   cache_hit?: boolean;
+  /** Build manifest stamped (additively) by core's runProducer on every fresh
+   *  cache write — who decided (human/rule/ai), producer + recipe hash, input
+   *  refs, cost. Absent on entries written before the stamp existed. */
+  provenance?: Provenance;
 }
 
 /** True for an AbortError (DOMException or any error whose name is set). */
