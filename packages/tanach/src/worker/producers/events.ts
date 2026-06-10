@@ -10,10 +10,14 @@
  * This is a mark in the framework sense: it identifies WHERE things are. The
  * anchor is an exact verse (Sefaria gives us that), so there is no placement
  * risk — only the labelling is the model's job.
+ *
+ * This module carries the producer's RECIPE (prompts + schema); the run itself
+ * goes through the corpus-agnostic runProducer (producers/defs.ts assembles
+ * the Producer, run-ports.ts wires the ports). Output normalization (the
+ * verse-range filter, the 40-char label caps, ordering) lives in the
+ * markPostParse hook in run-ports.ts — byte-for-byte the filtering the old
+ * eventSections wrapper applied.
  */
-
-import { type LLMEnv, runLLM } from '@corpus/core/llm/llm';
-import { costUsd } from '@corpus/core/llm/pricing';
 
 export interface EventSection {
   /** 1-based verse number where this unit begins. */
@@ -24,15 +28,7 @@ export interface EventSection {
   he: string;
 }
 
-export interface EventsResult {
-  sections: EventSection[];
-  model: string;
-  costUsd: number | null;
-  inTokens: number;
-  outTokens: number;
-}
-
-const SYSTEM = [
+export const EVENTS_SYSTEM = [
   'You divide a chapter of the Hebrew Bible into its natural narrative units and',
   'give each a short label in BOTH English and Hebrew.',
   '',
@@ -51,7 +47,12 @@ const SYSTEM = [
   '- Return them in order.',
 ].join('\n');
 
-const SCHEMA = {
+/** Rendered with vars from the 'chapter-verses' source resolver. Byte-equal to
+ *  the legacy hand-built user prompt:
+ *  `Chapter: ${ref} (${maxVerse} verses)\n\n${versesForPrompt(verses)}`. */
+export const EVENTS_USER_TEMPLATE = 'Chapter: {{ref}} ({{max_verse}} verses)\n\n{{verses_text}}';
+
+export const EVENTS_SCHEMA = {
   name: 'event_sections',
   strict: true,
   schema: {
@@ -79,54 +80,4 @@ const SCHEMA = {
 /** Render the chapter's verses as a compact numbered English prompt. */
 export function versesForPrompt(verses: { n: number; en: string; he: string }[]): string {
   return verses.map((v) => `${v.n}. ${(v.en || '').replace(/<[^>]+>/g, '').trim()}`).join('\n');
-}
-
-export async function eventSections(
-  env: LLMEnv,
-  ref: string,
-  verses: { n: number; en: string; he: string }[],
-): Promise<EventsResult> {
-  const maxVerse = verses.length;
-  const res = await runLLM(env, {
-    messages: [
-      { role: 'system', content: SYSTEM },
-      {
-        role: 'user',
-        content: `Chapter: ${ref} (${maxVerse} verses)\n\n${versesForPrompt(verses)}`,
-      },
-    ],
-    max_tokens: 900,
-    temperature: 0.2,
-    response_format: { type: 'json_schema', json_schema: SCHEMA },
-    tag: 'tanach:events',
-  });
-
-  let sections: EventSection[] = [];
-  try {
-    const parsed = JSON.parse(res.content) as { sections?: EventSection[] };
-    sections = (parsed.sections ?? [])
-      .filter(
-        (s) => Number.isInteger(s.verse) && s.verse >= 1 && s.verse <= maxVerse && (s.en || s.he),
-      )
-      .map((s) => ({
-        verse: s.verse,
-        en: String(s.en ?? '')
-          .trim()
-          .slice(0, 40),
-        he: String(s.he ?? '')
-          .trim()
-          .slice(0, 40),
-      }))
-      .sort((a, b) => a.verse - b.verse);
-  } catch {
-    sections = [];
-  }
-
-  return {
-    sections,
-    model: res.model,
-    costUsd: costUsd(res.model, res.usage),
-    inTokens: res.usage?.prompt_tokens ?? 0,
-    outTokens: res.usage?.completion_tokens ?? 0,
-  };
 }

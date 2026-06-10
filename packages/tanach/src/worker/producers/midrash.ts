@@ -5,21 +5,14 @@
  * directions), bilingual, so the reader gets the gist before the source list.
  *
  * Composes on the midrash fetch (the Midrash-category links for the verse).
+ *
+ * This module carries the producer's RECIPE (prompts + schema); the run goes
+ * through the corpus-agnostic runProducer (producers/defs.ts + run-ports.ts).
+ * NOTE the id/key split: the producer id is 'midrash-synthesis' but its legacy
+ * key family is `midrash-synth:v1:*` — the key template owns those bytes.
  */
 
-import { type LLMEnv, runLLM } from '@corpus/core/llm/llm';
-import { costUsd } from '@corpus/core/llm/pricing';
-
-export interface MidrashSynthResult {
-  en: string;
-  he: string;
-  model: string;
-  costUsd: number | null;
-  inTokens: number;
-  outTokens: number;
-}
-
-const SYSTEM = [
+export const MIDRASH_SYNTH_SYSTEM = [
   'You summarize the midrashic material on a verse of the Hebrew Bible for a',
   'reader — what the midrashim draw out of it.',
   '',
@@ -35,7 +28,13 @@ const SYSTEM = [
   '- Give it in BOTH English ("en") and natural, fluent Hebrew ("he").',
 ].join('\n');
 
-const SCHEMA = {
+/** Rendered with vars from the 'verse-text' + 'midrash-passages' resolvers.
+ *  Byte-equal to the legacy hand-built user prompt:
+ *  `Verse ${ref}: ${verseText}\n\nMidrashim:\n${midrashText}`. */
+export const MIDRASH_SYNTH_USER_TEMPLATE =
+  'Verse {{ref}}: {{verse_text}}\n\nMidrashim:\n{{midrash_text}}';
+
+export const MIDRASH_SYNTH_SCHEMA = {
   name: 'midrash_synthesis',
   strict: true,
   schema: {
@@ -45,40 +44,3 @@ const SCHEMA = {
     properties: { en: { type: 'string' }, he: { type: 'string' } },
   },
 };
-
-export async function midrashSynthesis(
-  env: LLMEnv,
-  ref: string,
-  verseText: string,
-  midrashText: string,
-): Promise<MidrashSynthResult> {
-  const res = await runLLM(env, {
-    messages: [
-      { role: 'system', content: SYSTEM },
-      { role: 'user', content: `Verse ${ref}: ${verseText}\n\nMidrashim:\n${midrashText}` },
-    ],
-    max_tokens: 800,
-    temperature: 0.35,
-    response_format: { type: 'json_schema', json_schema: SCHEMA },
-    tag: 'tanach:midrash-synthesis',
-  });
-
-  let en = '';
-  let he = '';
-  try {
-    const p = JSON.parse(res.content) as { en?: string; he?: string };
-    en = String(p.en ?? '').trim();
-    he = String(p.he ?? '').trim();
-  } catch {
-    /* leave empty */
-  }
-
-  return {
-    en,
-    he,
-    model: res.model,
-    costUsd: costUsd(res.model, res.usage),
-    inTokens: res.usage?.prompt_tokens ?? 0,
-    outTokens: res.usage?.completion_tokens ?? 0,
-  };
-}

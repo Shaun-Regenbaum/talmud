@@ -1,50 +1,44 @@
 /**
  * Tanach worker — Hono on Cloudflare Workers.
  *
- * v1 surface: GET /api/chapter/:book/:chapter returns a chapter's verses
- * (Hebrew + English) plus next/prev chapter refs, fetched live from Sefaria via
- * the shared @corpus/core SefariaClient. Everything else falls through to the
- * built Solid client (the ASSETS binding, SPA fallback). No KV / LLM yet — that
- * arrives with caching + the producers.
+ * GET /api/chapter/:book/:chapter returns a chapter's verses (Hebrew +
+ * English) plus next/prev chapter refs, fetched live from Sefaria via the
+ * shared @corpus/core SefariaClient. The producer routes (events / note /
+ * synthesis / midrash-synthesis) run through the SAME corpus-agnostic
+ * runProducer the talmud worker runs — synchronously, no queue — with their
+ * app-specific wiring (key templates, source resolvers, LLM knobs, usage
+ * ledger) in run-ports.ts. translate stays on bespoke plumbing (raw-string +
+ * TTL cache; see producers/translate.ts). Everything else falls through to
+ * the built Solid client (the ASSETS binding, SPA fallback).
  */
 
-import type { LLMEnv } from '@corpus/core/llm/llm';
-import { flattenPieces, pickV3Version, SefariaClient } from '@corpus/core/sefaria/client';
+import { flattenPieces, pickV3Version } from '@corpus/core/sefaria/client';
+import type { StoredArtifact } from '@corpus/core/store/envelope';
+import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { isBook } from '../lib/books.ts';
 import { COMMENTATORS } from '../lib/commentators.ts';
-import { eventSections } from './producers/events.ts';
-import { midrashSynthesis } from './producers/midrash.ts';
-import { sectionNote } from './producers/note.ts';
-import { synthesize } from './producers/synthesis.ts';
+import type { EventSection } from './producers/events.ts';
 import { translateHebrew } from './producers/translate.ts';
+import type { TanachEnv, TanachRunCtx } from './run-ports.ts';
+import { runTanachEnrichment, runTanachEvents, TanachSourceError } from './run-ports.ts';
+import { asVerses, fetchPassages, fetchVerseCommentaries, sefaria } from './sefaria-sources.ts';
 import { readUsage, recordUsage } from './usage.ts';
 
-interface Env extends LLMEnv {
+interface Env extends TanachEnv {
   ASSETS: Fetcher;
-  CACHE: KVNamespace;
-}
-
-const sefaria = new SefariaClient();
-
-/** Strip Sefaria's inline footnote apparatus (the marker + the expanded note
- *  text), which otherwise renders mid-verse. Keeps benign inline tags like the
- *  large/small-letter <big>/<small> markup. */
-function stripFootnotes(html: string): string {
-  return html
-    .replace(/<sup class="footnote-marker">.*?<\/sup>/g, '')
-    .replace(/<i class="footnote">.*?<\/i>/g, '')
-    .trim();
-}
-
-/** Sefaria returns he/text as a per-verse string array for a chapter ref (or a
- *  bare string for a single verse). Normalize to a string[], footnotes stripped. */
-function asVerses(v: string | string[] | undefined): string[] {
-  if (Array.isArray(v)) return v.map((s) => (typeof s === 'string' ? stripFootnotes(s) : ''));
-  return typeof v === 'string' ? [stripFootnotes(v)] : [];
 }
 
 const app = new Hono<{ Bindings: Env }>();
+
+/** Map a producer-run failure to the legacy route responses: a source error
+ *  keeps its specific status + body (404 ref-not-found / not-enough-material,
+ *  502 upstream fetch failures with their original messages); anything else is
+ *  the legacy `Producer failed: …` 502. */
+function runErrorResponse(c: Context<{ Bindings: Env }>, e: unknown) {
+  if (e instanceof TanachSourceError) return c.json({ error: e.message }, e.status);
+  return c.json({ error: `Producer failed: ${(e as Error).message}` }, 502);
+}
 
 app.get('/api/chapter/:book/:chapter', async (c) => {
   const book = c.req.param('book');
@@ -57,7 +51,7 @@ app.get('/api/chapter/:book/:chapter', async (c) => {
   }
 
   const ref = `${book} ${chapter}`;
-  let data: Awaited<ReturnType<SefariaClient['getText']>>;
+  let data: Awaited<ReturnType<typeof sefaria.getText>>;
   try {
     data = await sefaria.getText(ref);
   } catch (e) {
@@ -145,58 +139,29 @@ app.get('/api/mikraot/:book/:chapter', async (c) => {
 
 // Events anchor (first producer): short margin labels for a chapter's natural
 // narrative units ("Day One", "The Burning Bush"), pinned to the verse where
-// each begins. Cached per chapter in KV; computed once via the LLM.
+// each begins. Runs through the core runProducer (cache key events:v2:* via
+// the template scheme — pre-migration raw-payload entries keep serving through
+// the legacy read adapter; fresh runs cache a StoredArtifact envelope with
+// provenance). Usage is attributed inside the run ports.
 app.get('/api/events/:book/:chapter', async (c) => {
   const book = c.req.param('book');
   const chapter = c.req.param('chapter');
   if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
   if (!/^\d+$/.test(chapter)) return c.json({ error: `Bad chapter: ${chapter}` }, 400);
 
-  const key = `events:v2:${book}:${chapter}`;
-  const cached = await c.env.CACHE.get(key);
-  if (cached) return c.json(JSON.parse(cached));
-
   const ref = `${book} ${chapter}`;
-  let text: Awaited<ReturnType<SefariaClient['getText']>>;
+  const rc: TanachRunCtx = { env: c.env, ctx: c.executionCtx, ref };
+  let artifact: StoredArtifact;
   try {
-    text = await sefaria.getText(ref);
+    artifact = await runTanachEvents(rc, book, chapter);
   } catch (e) {
-    return c.json({ error: `Sefaria fetch failed: ${(e as Error).message}` }, 502);
+    return runErrorResponse(c, e);
   }
-  if (text.error) return c.json({ error: text.error }, 404);
-
-  const he = asVerses(text.he);
-  const en = asVerses(text.text);
-  const verses = Array.from({ length: Math.max(he.length, en.length) }, (_, i) => ({
-    n: i + 1,
-    he: he[i] ?? '',
-    en: en[i] ?? '',
-  }));
-
-  let result: Awaited<ReturnType<typeof eventSections>>;
-  try {
-    result = await eventSections(c.env, ref, verses);
-  } catch (e) {
-    return c.json({ error: `Producer failed: ${(e as Error).message}` }, 502);
-  }
-
-  const payload = { book, chapter: Number(chapter), ref, sections: result.sections };
-  // Persist the result + a usage entry (best-effort; never block the response).
-  c.executionCtx.waitUntil(
-    Promise.all([
-      c.env.CACHE.put(key, JSON.stringify(payload)),
-      recordUsage(c.env.CACHE, {
-        ts: Date.now(),
-        ref,
-        producer: 'events',
-        model: result.model,
-        in: result.inTokens,
-        out: result.outTokens,
-        cost: result.costUsd,
-      }),
-    ]).then(() => undefined),
-  );
-  return c.json(payload);
+  // Project the envelope back to the legacy response JSON. `parsed` is the
+  // normalized {sections} on fresh/envelope entries and the full legacy
+  // payload (which carries the same `sections`) on pre-migration entries.
+  const parsed = artifact.parsed as { sections?: EventSection[] } | null;
+  return c.json({ book, chapter: Number(chapter), ref, sections: parsed?.sections ?? [] });
 });
 
 // This week's Torah portion (parashat hashavua), from Sefaria's calendar.
@@ -244,7 +209,9 @@ app.get('/api/parsha', async (c) => {
 
 // Section note (second producer, composes on events): a short bilingual p'shat
 // note for the verse range [start..end] of a chapter. Triggered when the reader
-// clicks a margin anchor. Cached per range.
+// clicks a margin anchor. Runs through the core runProducer; the markInput's
+// `id` (`${start}-${end}`) is the legacy key component, so note:v1:* keys stay
+// byte-identical and pre-migration entries keep serving.
 app.get('/api/note/:book/:chapter/:start', async (c) => {
   const book = c.req.param('book');
   const chapter = c.req.param('chapter');
@@ -254,54 +221,41 @@ app.get('/api/note/:book/:chapter/:start', async (c) => {
   if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
   if (!/^\d+$/.test(chapter) || !start) return c.json({ error: 'Bad chapter/verse' }, 400);
 
-  const key = `note:v1:${book}:${chapter}:${start}-${end}`;
-  const cached = await c.env.CACHE.get(key);
-  if (cached) return c.json(JSON.parse(cached));
-
-  let text: Awaited<ReturnType<SefariaClient['getText']>>;
-  try {
-    text = await sefaria.getText(`${book} ${chapter}`);
-  } catch (e) {
-    return c.json({ error: `Sefaria fetch failed: ${(e as Error).message}` }, 502);
-  }
-  if (text.error) return c.json({ error: text.error }, 404);
-
-  const en = asVerses(text.text);
-  const last = Math.min(end, en.length);
-  const slice: string[] = [];
-  for (let n = start; n <= last; n++) {
-    slice.push(`${n}. ${(en[n - 1] ?? '').replace(/<[^>]+>/g, '').trim()}`);
-  }
   const ref = end > start ? `${book} ${chapter}:${start}-${end}` : `${book} ${chapter}:${start}`;
-
-  let result: Awaited<ReturnType<typeof sectionNote>>;
+  const rc: TanachRunCtx = { env: c.env, ctx: c.executionCtx, ref };
+  let artifact: StoredArtifact;
   try {
-    result = await sectionNote(c.env, ref, label, slice.join('\n'));
+    artifact = await runTanachEnrichment(rc, 'note', book, chapter, {
+      id: `${start}-${end}`,
+      start,
+      end,
+      label,
+    });
   } catch (e) {
-    return c.json({ error: `Producer failed: ${(e as Error).message}` }, 502);
+    return runErrorResponse(c, e);
   }
-
-  const payload = { book, chapter: Number(chapter), start, end, en: result.en, he: result.he };
-  c.executionCtx.waitUntil(
-    Promise.all([
-      c.env.CACHE.put(key, JSON.stringify(payload)),
-      recordUsage(c.env.CACHE, {
-        ts: Date.now(),
-        ref,
-        producer: 'note',
-        model: result.model,
-        in: result.inTokens,
-        out: result.outTokens,
-        cost: result.costUsd,
-      }),
-    ]).then(() => undefined),
-  );
-  return c.json(payload);
+  const p = artifact.parsed as { en?: string; he?: string } | null;
+  return c.json({
+    book,
+    chapter: Number(chapter),
+    start,
+    end,
+    en: String(p?.en ?? '').trim(),
+    he: String(p?.he ?? '').trim(),
+  });
 });
 
 // Word / phrase translation: the reader selects Hebrew and gets an English
 // gloss (in the sense it carries in the given verse context). Cached per
 // normalized selection.
+//
+// DELIBERATELY NOT on runProducer/ArtifactStore (the one producer route kept
+// on bespoke plumbing): the cache stores a RAW STRING with a 30-day TTL —
+// the value isn't a StoredArtifact envelope and the TTL contradicts the
+// store's no-TTL contract. Migrating only the orchestration would change
+// either the stored bytes or the expiry semantics for zero benefit. The
+// producer is still declared in producers/defs.ts (registry completeness);
+// see producers/translate.ts for the full rationale.
 app.get('/api/translate', async (c) => {
   const q = (c.req.query('q') ?? '').trim();
   const ctx = (c.req.query('ctx') ?? '').trim().slice(0, 400);
@@ -339,38 +293,6 @@ app.get('/api/translate', async (c) => {
   return c.json({ q, translation: result.translation });
 });
 
-interface VerseCommentary {
-  key: string;
-  en: string;
-  heName: string;
-  he: string[];
-  enText: string[];
-}
-
-/** Fetch each curated commentator's note on a verse from Sefaria (he+en), drop
- *  the empties. Shared by the commentary drawer and the synthesis producer. */
-async function fetchVerseCommentaries(
-  book: string,
-  chapter: string,
-  verse: string,
-): Promise<VerseCommentary[]> {
-  const results = await Promise.all(
-    COMMENTATORS.map(async (cm) => {
-      const ref = `${cm.title} on ${book} ${chapter}:${verse}`;
-      try {
-        const v3 = await sefaria.getTextV3(ref);
-        const he = flattenPieces(pickV3Version(v3.versions, 'he')).filter((s) => s.trim());
-        const en = flattenPieces(pickV3Version(v3.versions, 'en')).filter((s) => s.trim());
-        if (!he.length && !en.length) return null;
-        return { key: cm.key, en: cm.en, heName: cm.he, he, enText: en };
-      } catch {
-        return null;
-      }
-    }),
-  );
-  return results.filter((r): r is VerseCommentary => r !== null);
-}
-
 // Classic commentary for a single verse: each commentator's note from Sefaria
 // (Hebrew + English), the empties skipped. Cached per verse. No AI — raw Rishonim.
 app.get('/api/commentary/:book/:chapter/:verse', async (c) => {
@@ -393,7 +315,9 @@ app.get('/api/commentary/:book/:chapter/:verse', async (c) => {
 
 // Commentary synthesis (AI): a short balanced overview of how the Rishonim read
 // the verse. The reader only requests it on "rich" verses (per the source
-// index), so it isn't generated for every pasuk. Cached + usage-tracked.
+// index), so it isn't generated for every pasuk. Runs through the core
+// runProducer; the 'commentaries' source resolver reuses the drawer's
+// commentary:v1 cache and raises the legacy 404 when fewer than two comment.
 app.get('/api/synthesis/:book/:chapter/:verse', async (c) => {
   const book = c.req.param('book');
   const chapter = c.req.param('chapter');
@@ -402,63 +326,26 @@ app.get('/api/synthesis/:book/:chapter/:verse', async (c) => {
   if (!/^\d+$/.test(chapter) || !/^\d+$/.test(verse))
     return c.json({ error: 'Bad chapter/verse' }, 400);
 
-  const key = `synthesis:v1:${book}:${chapter}:${verse}`;
-  const cached = await c.env.CACHE.get(key);
-  if (cached) return c.json(JSON.parse(cached));
-
-  // Reuse the cached commentary if the drawer already fetched it.
-  const cc = await c.env.CACHE.get(`commentary:v1:${book}:${chapter}:${verse}`);
-  const commentaries: VerseCommentary[] = cc
-    ? (JSON.parse(cc).commentaries as VerseCommentary[])
-    : await fetchVerseCommentaries(book, chapter, verse);
-  if (commentaries.length < 2) return c.json({ error: 'Not enough commentary to synthesize' }, 404);
-
-  let verseText = '';
+  const rc: TanachRunCtx = { env: c.env, ctx: c.executionCtx, ref: `${book} ${chapter}:${verse}` };
+  let artifact: StoredArtifact;
   try {
-    const t = await sefaria.getText(`${book} ${chapter}:${verse}`);
-    verseText = (asVerses(t.text)[0] || asVerses(t.he)[0] || '').replace(/<[^>]+>/g, '').trim();
-  } catch {
-    /* verse text is optional context */
-  }
-  const ctext = commentaries
-    .map(
-      (cm) =>
-        `${cm.en}: ${cm.he
-          .join(' ')
-          .replace(/<[^>]+>/g, '')
-          .slice(0, 600)}`,
-    )
-    .join('\n\n');
-
-  let result: Awaited<ReturnType<typeof synthesize>>;
-  try {
-    result = await synthesize(c.env, `${book} ${chapter}:${verse}`, verseText, ctext);
+    // RAW verse string throughout (legacy parity): '007' must reach the source
+    // ref, the prompt, and the output key identically.
+    artifact = await runTanachEnrichment(rc, 'synthesis', book, chapter, {
+      id: verse,
+      verse,
+    });
   } catch (e) {
-    return c.json({ error: `Producer failed: ${(e as Error).message}` }, 502);
+    return runErrorResponse(c, e);
   }
-
-  const payload = {
+  const p = artifact.parsed as { en?: string; he?: string } | null;
+  return c.json({
     book,
     chapter: Number(chapter),
     verse: Number(verse),
-    en: result.en,
-    he: result.he,
-  };
-  c.executionCtx.waitUntil(
-    Promise.all([
-      c.env.CACHE.put(key, JSON.stringify(payload)),
-      recordUsage(c.env.CACHE, {
-        ts: Date.now(),
-        ref: `${book} ${chapter}:${verse}`,
-        producer: 'synthesis',
-        model: result.model,
-        in: result.inTokens,
-        out: result.outTokens,
-        cost: result.costUsd,
-      }),
-    ]).then(() => undefined),
-  );
-  return c.json(payload);
+    en: String(p?.en ?? '').trim(),
+    he: String(p?.he ?? '').trim(),
+  });
 });
 
 // Per-chapter rishonim index: how many of the curated commentators comment on
@@ -561,63 +448,6 @@ app.get('/api/sources-index/:book/:chapter', async (c) => {
   return c.json(payload);
 });
 
-interface SourcePassage {
-  ref: string;
-  he: string;
-  en: string;
-}
-
-/** Distinct citing passages of one Sefaria category for a verse (Talmud /
- *  Midrash), capped, each with a fetched text snippet. `bavliFirst` floats the
- *  Bavli ahead of Yerushalmi / minor tractates. */
-async function fetchPassages(
-  ref: string,
-  category: string,
-  cap: number,
-  bavliFirst = false,
-): Promise<{ count: number; passages: SourcePassage[] }> {
-  type Link = { category?: string; ref?: string; sourceRef?: string; index_title?: string };
-  const r = await fetch(`https://www.sefaria.org/api/links/${encodeURIComponent(ref)}?with_text=0`);
-  const links = (await r.json()) as Link[];
-  const seen = new Set<string>();
-  const picked: { ref: string; title: string }[] = [];
-  for (const l of Array.isArray(links) ? links : []) {
-    if (l.category !== category) continue;
-    const sref = l.sourceRef || l.ref;
-    if (!sref || seen.has(sref)) continue;
-    seen.add(sref);
-    picked.push({ ref: sref, title: l.index_title ?? '' });
-  }
-  if (bavliFirst) {
-    picked.sort(
-      (a, b) =>
-        Number(/^(Jerusalem|Tractate)/.test(a.title)) -
-        Number(/^(Jerusalem|Tractate)/.test(b.title)),
-    );
-  }
-  const passages = await Promise.all(
-    picked.slice(0, cap).map(async (p) => {
-      try {
-        const v3 = await sefaria.getTextV3(p.ref);
-        const he = flattenPieces(pickV3Version(v3.versions, 'he'))
-          .join(' ')
-          .replace(/<[^>]+>/g, '')
-          .trim()
-          .slice(0, 420);
-        const en = flattenPieces(pickV3Version(v3.versions, 'en'))
-          .join(' ')
-          .replace(/<[^>]+>/g, '')
-          .trim()
-          .slice(0, 420);
-        return { ref: p.ref, he, en };
-      } catch {
-        return { ref: p.ref, he: '', en: '' };
-      }
-    }),
-  );
-  return { count: picked.length, passages };
-}
-
 // Reverse Gemara lookup: how a verse is used in the Talmud (Sefaria's link
 // graph, category "Talmud"). Cached per verse.
 app.get('/api/gemara/:book/:chapter/:verse', async (c) => {
@@ -681,7 +511,11 @@ app.get('/api/midrash/:book/:chapter/:verse', async (c) => {
 });
 
 // Midrash synthesis (AI): distills the verse's midrashim into a thematic
-// overview. Requested for verses with substantial midrash. Cached + tracked.
+// overview. Requested for verses with substantial midrash. Runs through the
+// core runProducer (producer id 'midrash-synthesis'; the key template owns the
+// legacy midrash-synth:v1:* bytes). The 'midrash-passages' source resolver
+// reuses the midrash:v1 SOURCE cache (which stays on direct KV above) and
+// raises the legacy 404/502s.
 app.get('/api/midrash-synthesis/:book/:chapter/:verse', async (c) => {
   const book = c.req.param('book');
   const chapter = c.req.param('chapter');
@@ -690,63 +524,24 @@ app.get('/api/midrash-synthesis/:book/:chapter/:verse', async (c) => {
   if (!/^\d+$/.test(chapter) || !/^\d+$/.test(verse))
     return c.json({ error: 'Bad chapter/verse' }, 400);
 
-  const key = `midrash-synth:v1:${book}:${chapter}:${verse}`;
-  const cached = await c.env.CACHE.get(key);
-  if (cached) return c.json(JSON.parse(cached));
-
-  let passages: SourcePassage[];
-  const cm = await c.env.CACHE.get(`midrash:v1:${book}:${chapter}:${verse}`);
-  if (cm) {
-    passages = JSON.parse(cm).passages as SourcePassage[];
-  } else {
-    try {
-      passages = (await fetchPassages(`${book} ${chapter}:${verse}`, 'Midrash', 14)).passages;
-    } catch (e) {
-      return c.json({ error: `Links fetch failed: ${(e as Error).message}` }, 502);
-    }
-  }
-  if (passages.length < 2) return c.json({ error: 'Not enough midrash to synthesize' }, 404);
-
-  let verseText = '';
+  const rc: TanachRunCtx = { env: c.env, ctx: c.executionCtx, ref: `${book} ${chapter}:${verse}` };
+  let artifact: StoredArtifact;
   try {
-    const t = await sefaria.getText(`${book} ${chapter}:${verse}`);
-    verseText = (asVerses(t.text)[0] || asVerses(t.he)[0] || '').replace(/<[^>]+>/g, '').trim();
-  } catch {
-    /* optional */
-  }
-  const mtext = passages
-    .map((p) => p.he || p.en)
-    .filter(Boolean)
-    .join('\n\n');
-
-  let result: Awaited<ReturnType<typeof midrashSynthesis>>;
-  try {
-    result = await midrashSynthesis(c.env, `${book} ${chapter}:${verse}`, verseText, mtext);
+    artifact = await runTanachEnrichment(rc, 'midrash-synthesis', book, chapter, {
+      id: verse,
+      verse,
+    });
   } catch (e) {
-    return c.json({ error: `Producer failed: ${(e as Error).message}` }, 502);
+    return runErrorResponse(c, e);
   }
-  const payload = {
+  const p = artifact.parsed as { en?: string; he?: string } | null;
+  return c.json({
     book,
     chapter: Number(chapter),
     verse: Number(verse),
-    en: result.en,
-    he: result.he,
-  };
-  c.executionCtx.waitUntil(
-    Promise.all([
-      c.env.CACHE.put(key, JSON.stringify(payload)),
-      recordUsage(c.env.CACHE, {
-        ts: Date.now(),
-        ref: `${book} ${chapter}:${verse}`,
-        producer: 'midrash-synthesis',
-        model: result.model,
-        in: result.inTokens,
-        out: result.outTokens,
-        cost: result.costUsd,
-      }),
-    ]).then(() => undefined),
-  );
-  return c.json(payload);
+    en: String(p?.en ?? '').trim(),
+    he: String(p?.he ?? '').trim(),
+  });
 });
 
 // Self-tracked LLM usage (totals + per-producer + recent calls).
