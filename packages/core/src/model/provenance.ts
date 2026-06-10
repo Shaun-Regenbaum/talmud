@@ -67,6 +67,13 @@ export interface LegacyRunFields {
  *  ('computed', 'graph', 'lookup', …) is a deterministic rule. */
 const AI_TRANSPORTS = new Set(['workers-ai', 'openrouter-gateway']);
 
+/** Classify a transport into the deciding authority — the ONE place the
+ *  llm-vs-rule split lives (provenanceOf and the native write path both
+ *  delegate here). */
+export function authorityForTransport(transport: string): Authority {
+  return AI_TRANSPORTS.has(transport) ? 'ai' : 'rule';
+}
+
 /** Synthesize a Provenance from a legacy stored RunResult-shaped object.
  *  Inputs are the resolved dependency + anchor keys (legacy entries don't
  *  record real artifact ids or content hashes, so each becomes a sourceKey). */
@@ -76,7 +83,7 @@ export function provenanceOf(stored: LegacyRunFields, producerId: string): Prove
     ...Object.keys(stored.anchors_resolved ?? {}),
   ].map((k) => ({ sourceKey: k }));
   return {
-    authority: AI_TRANSPORTS.has(stored.transport) ? 'ai' : 'rule',
+    authority: authorityForTransport(stored.transport),
     producerId,
     recipeHash: stored.recipe_hash,
     inputs,

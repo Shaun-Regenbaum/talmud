@@ -32,6 +32,7 @@ import {
   type ResolveInputsPorts,
   resolveInputs,
 } from '@corpus/core/run/producer-run';
+import { type RunProducerPorts, runProducer } from '@corpus/core/run/run-producer';
 import { Hono } from 'hono';
 import {
   GENERATION_IDS,
@@ -125,7 +126,6 @@ import {
   keyForRegion,
   keyForSpineLinks,
   keyForTranslate,
-  normalizeQualifier,
   prefixForRabbiObs,
   previousVersionKey,
   qualifierHash,
@@ -2680,128 +2680,88 @@ function postProcessRabbi(parsed: unknown, hebrewText: string): unknown {
   };
 }
 
-async function runMarkOnce(
-  rc: RunCtx,
-  def: SchemaMarkDefinition,
-  tractate: string,
-  page: string,
-  bypassCache: boolean,
-): Promise<RunResult> {
-  // Computed extractors — deterministic, no LLM. Same cache shape as LLM
-  // results so the rest of the pipeline (caching, dependency resolution,
-  // dev panel run-state) is uniform.
-  if (def.extractor.kind === 'computed') {
-    const fn = COMPUTED_FNS[def.extractor.fn];
-    if (!fn) throw new Error(`mark ${def.id}: no computed fn '${def.extractor.fn}' registered`);
-    // Computed marks are deterministic + language-neutral, so keep them on the
-    // English (suffix-free) key regardless of rc.lang — no point fanning the
-    // cache for identical output.
-    const cacheKey = keyForMark(def, tractate, page);
-    if (!bypassCache) {
-      const hit = await readCachedResult(rc.env, cacheKey);
-      if (hit) return { ...hit, cache_hit: true };
-    }
-    const t0 = Date.now();
-    const parsed = await fn(rc.env, tractate, page);
-    const elapsed_ms = Date.now() - t0;
-    const content = JSON.stringify(parsed);
-    const out: RunResult = {
-      content,
-      parsed,
-      parse_error: null,
-      model: `computed:${def.extractor.fn}`,
-      transport: 'computed',
-      attempts: 1,
-      usage: null,
-      elapsed_ms,
-      prompt_chars: 0,
-      resolved: {
-        system_prompt: `(computed fn: ${def.extractor.fn})`,
-        user_prompt: `(no LLM call — deterministic extraction from upstream data source)`,
-      },
-      cache_hit: false,
-    };
-    await writeCachedResult(rc.env, cacheKey, out);
-    return out;
-  }
+// ===========================================================================
+// runMarkOnce / runEnrichmentOnce — thin shims over the ONE corpus-agnostic
+// runProducer orchestration (@corpus/core/run/run-producer). Everything
+// app-specific enters through RUN_PORTS: key derivation (the same
+// keyForMark / keyForEnrichment as always), the LLM call + option
+// construction (incl. the argument-move fan-out), the check layer, and the
+// id-keyed short-circuits (rabbi graph/identity/observations, the pesukim
+// Hebrew prefetch, argument move-scoping, rabbi/places mark post-processing)
+// — all CUT from the two legacy bodies, not copied. Core owns the
+// orchestration (cache read/hit, dependency walk, he-prompt fallback, parse,
+// hard-issue gating with bounded lint retries, the per-kind envelope shape)
+// and ADDITIVELY stamps the `provenance` build manifest on every fresh write.
+// ===========================================================================
 
-  if (def.extractor.kind !== 'llm') {
-    throw new Error(`mark ${def.id} extractor.kind=${def.extractor.kind} not supported`);
-  }
-  const ext = def.extractor;
-  // Only fan the cache out by language when this mark actually has a Hebrew
-  // prompt — otherwise the :he run would produce byte-identical English
-  // structure and just waste a cache slot + an LLM call. Marks with a `_he`
-  // prompt (argument, halacha, aggadata, pesukim, argument-move) emit a
-  // Hebrew title/summary, so those get their own :he namespace.
-  const useHe = rc.lang === 'he' && !!ext.system_prompt_he;
-  const cacheKey = keyForMark(def, tractate, page, useHe ? 'he' : 'en');
-  if (!bypassCache) {
-    const hit = await readCachedResult(rc.env, cacheKey);
-    if (hit) return { ...hit, cache_hit: true };
-  }
-
-  const inputs = await resolveDependencies(
-    rc,
-    def.dependencies,
-    tractate,
-    page,
-    undefined,
-    bypassCache,
-    new Set(),
-  );
-  const vars: Record<string, unknown> = {
-    ...inputs.vars,
-    depends: inputs.depends,
-    anchors: inputs.anchors,
-  };
-  // Shared runLLM options (everything except messages + max_tokens, which the
-  // single-call and per-section-call paths set themselves).
-  const llmOptsBase = {
-    ...(ext.model ? { model: ext.model } : {}),
-    ...(ext.fallback && ext.fallback.length > 0 ? { fallback: ext.fallback } : {}),
-    temperature: 0.2,
-    response_format: ext.output_schema
-      ? { type: 'json_schema' as const, json_schema: ext.output_schema }
-      : undefined,
-    thinking: ext.thinking_off ? false : undefined,
-    bypass_cache: bypassCache,
-    // Cost-ledger attribution; the fan-out path spreads llmOptsBase, so this
-    // tags every argument-move sub-call too.
-    tag: `mark:${def.id}`,
-    attribution: {
-      kind: 'mark' as const,
-      producerId: def.id,
+const RUN_PORTS: RunProducerPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefinition> = {
+  cacheRead: (rc, key) => readCachedResult(rc.env, key),
+  cacheWrite: (rc, key, value) => writeCachedResult(rc.env, key, value as RunResult),
+  markKey: (def, tractate, page, lang) => keyForMark(def, tractate, page, lang),
+  enrichmentKey: (def, instanceId, tractate, page, qualifier, lang) =>
+    keyForEnrichment(
+      def,
+      instanceId,
+      def.scope === 'local' ? { tractate, page } : undefined,
+      qualifier,
+      lang,
+    ),
+  enrichmentRecipeHash: (def) => recipeHash(enrichmentRecipe(def)),
+  sectionRange: (def, markInput) => sectionRangeOf(def, markInput),
+  resolveInputs: (rc, dependencies, tractate, page, markInput, bypassCache, parentChain) =>
+    resolveInputs(
+      RESOLVE_PORTS,
+      rc,
+      dependencies,
       tractate,
       page,
-      lang: useHe ? ('he' as const) : ('en' as const),
-      cache_version: def.cache_version,
-    },
-  };
-
-  let result: LLMResult;
-  let systemPrompt: string;
-  let userPrompt: string;
-  // Hebrew mode selects the *_he prompt variant when the mark defines one
-  // (mirrors runEnrichmentOnce). Falls back to English when absent.
-  const sysTpl = useHe && ext.system_prompt_he ? ext.system_prompt_he : ext.system_prompt;
-  const usrTpl =
-    useHe && ext.user_prompt_template_he ? ext.user_prompt_template_he : ext.user_prompt_template;
-  if (ext.fan_out_over) {
-    const fanned = await runExtractorFannedOut(
-      rc,
-      { ...ext, system_prompt: sysTpl, user_prompt_template: usrTpl },
-      vars,
-      ext.fan_out_over,
-      llmOptsBase,
-    );
-    result = fanned.result;
-    systemPrompt = fanned.systemPromptSample;
-    userPrompt = fanned.userPromptSample;
-  } else {
-    systemPrompt = renderTemplate(sysTpl, vars);
-    userPrompt = renderTemplate(usrTpl, vars);
-    result = await runLLM(rc.env, {
+      markInput,
+      bypassCache,
+      parentChain,
+    ),
+  renderTemplate: (tpl, vars) => renderTemplate(tpl, vars),
+  markLLM: async (rc, a) => {
+    const ext = a.def.extractor as LLMExtractor;
+    // Shared runLLM options (everything except messages + max_tokens, which the
+    // single-call and per-section-call paths set themselves).
+    const llmOptsBase = {
+      ...(ext.model ? { model: ext.model } : {}),
+      ...(ext.fallback && ext.fallback.length > 0 ? { fallback: ext.fallback } : {}),
+      temperature: 0.2,
+      response_format: ext.output_schema
+        ? { type: 'json_schema' as const, json_schema: ext.output_schema }
+        : undefined,
+      thinking: ext.thinking_off ? false : undefined,
+      bypass_cache: a.bypassCache,
+      // Cost-ledger attribution; the fan-out path spreads llmOptsBase, so this
+      // tags every argument-move sub-call too.
+      tag: `mark:${a.def.id}`,
+      attribution: {
+        kind: 'mark' as const,
+        producerId: a.def.id,
+        tractate: a.tractate,
+        page: a.page,
+        lang: a.useHe ? ('he' as const) : ('en' as const),
+        cache_version: a.def.cache_version,
+      },
+    };
+    if (ext.fan_out_over) {
+      const fanned = await runExtractorFannedOut(
+        rc,
+        { ...ext, system_prompt: a.sysTpl, user_prompt_template: a.usrTpl },
+        a.vars,
+        ext.fan_out_over,
+        llmOptsBase,
+      );
+      return {
+        result: fanned.result,
+        systemPrompt: fanned.systemPromptSample,
+        userPrompt: fanned.userPromptSample,
+      };
+    }
+    const systemPrompt = renderTemplate(a.sysTpl, a.vars);
+    const userPrompt = renderTemplate(a.usrTpl, a.vars);
+    const result = await runLLM(rc.env, {
       ...llmOptsBase,
       messages: [
         { role: 'system', content: systemPrompt },
@@ -2809,120 +2769,321 @@ async function runMarkOnce(
       ],
       max_tokens: 16000,
     });
-  }
-
-  let parsed: unknown = null;
-  let parse_error: string | null = null;
-  if (ext.output_schema) {
-    try {
-      parsed = JSON.parse(result.content);
-    } catch (err) {
-      parse_error = String(err).slice(0, 200);
-    }
-  }
-  // Per-mark post-processing via the declarative check layer
-  // (src/lib/check/passes.ts). Some extractors (notably argument-move) can't
-  // reliably emit segment indices for sub-ranges, so the verbatim re-anchorers
-  // (reanchor-argument/-move/-pesukim/-aggadata) re-derive them from the Hebrew
-  // excerpt the LLM IS good at copying, and compute token (word) offsets within
-  // the matched segment so the highlight painter can paint exactly the
-  // move/citation, not the whole containing segment. A definition opts in via
-  // `passes: []` in code-marks.ts; the transforms need the segment grid, so
-  // fetch the gemara slice once when any check runs.
-  let markCheckIssues: unknown[] | undefined;
-  let markHardIssues: unknown[] | undefined;
-  if (parsed && def.passes && def.passes.length > 0) {
-    const slice = await getGemaraSlice(rc.env, tractate, page, false);
-    const checked = await runPasses(def.passes, parsed, {
-      tractate,
-      page,
-      segmentsHe: slice.segments_he,
-      defId: def.id,
-      lang: rc.lang,
-      // The yerushalmi-floor transform needs the deterministic floor anchors the
-      // resolver stashed; harmless (and absent) for every other mark.
-      yerushalmiFloor: inputs.vars.__yerushalmiFloor as YerushalmiFloorGroup[] | undefined,
+    return { result, systemPrompt, userPrompt };
+  },
+  enrichmentLLM: async (rc, a) => {
+    const def = a.def;
+    const model = (a.modelOverride as LLMModelId | undefined) ?? def.model;
+    return runLLM(rc.env, {
+      ...(model ? { model } : {}),
+      messages: [
+        { role: 'system', content: a.systemPrompt },
+        { role: 'user', content: a.userPrompt },
+      ],
+      max_tokens: 16000,
+      temperature: 0.2,
+      response_format: def.output_schema
+        ? { type: 'json_schema', json_schema: def.output_schema }
+        : undefined,
+      thinking: def.thinking_off ? false : undefined,
+      reasoning_effort: def.reasoning_effort,
+      bypass_cache: a.bypassCache,
+      tag: `enrich:${def.id}`,
+      attribution: {
+        kind: def.id.endsWith('.qa') ? ('qa' as const) : ('enrichment' as const),
+        producerId: def.id,
+        tractate: a.tractate,
+        page: a.page,
+        lang: a.useHe ? ('he' as const) : ('en' as const),
+        cache_version: def.cache_version,
+      },
+      // Custom Q&A enrichments (<mark>.qa) count against the hourly custom-question
+      // budget; everything else only against the daily total. See ./budget.
+      cost_class: def.id.endsWith('.qa') ? 'custom-question' : undefined,
     });
-    parsed = checked.parsed;
-    // Attach all issues for observation; `hard` ones (e.g. anchor-verbatim on
-    // pesukim/aggadata, where it's promoted) gate the cache write below.
-    if (checked.issues.length > 0) {
-      markCheckIssues = checked.issues;
-      const hard = checked.issues.filter((i) => i.severity === 'hard');
-      if (hard.length > 0) markHardIssues = hard;
-    }
-  }
-  // Special cases that don't fit the segments-only transform signature yet:
-  //   - rabbi:  needs the daf Hebrew text, not the segment grid (A1b will port it).
-  //   - places: a side effect (backlog logging), not a parsed-output transform.
-  if (parsed && def.id === 'rabbi') {
-    parsed = postProcessRabbi(parsed, stripHtmlServer(String(vars.hebrew ?? '')));
-    // Ground each rabbi's generation through the registry (relational homonym
-    // disambiguation off the daf's cast): authoritative era when identified,
-    // neutral 'unknown' for a homonym we can't pin — so the reader's era color
-    // is grounded, not a freeform per-daf guess.
-    parsed = groundRabbiInstances(parsed);
-  } else if (parsed && def.id === 'places') {
-    // Places have no global gazetteer — log every observed location to the
-    // "needs global enrichment" backlog so we can see what to add over time.
-    recordObservedPlacesFromMark(rc, parsed, tractate, page);
-  }
-  // Attribute this fresh LLM call's tokens + cost to the daily rollup.
-  captureLlmUsage(rc, {
-    kind: 'mark',
-    id: def.id,
-    result: { model: result.model, usage: result.usage, parse_error },
-  });
-  const out: RunResult = {
-    content: result.content,
-    reasoning: result.reasoning_content || undefined,
-    parsed,
-    parse_error,
-    model: result.model,
-    transport: result.transport,
-    attempts: result.attempts,
-    usage: result.usage,
-    elapsed_ms: result.elapsed_ms,
-    prompt_chars: result.prompt_chars,
-    // Resolved prompts are dev-only inspection; cap each at 2KB so multi-run
-    // responses don't balloon. The full prompt was already sent to the LLM —
-    // we don't need to ship it back through workerd just for the dev tray.
-    resolved: {
-      system_prompt:
-        systemPrompt.length > 2000
-          ? `${systemPrompt.slice(0, 2000)}… [+${systemPrompt.length - 2000} chars]`
-          : systemPrompt,
-      user_prompt:
-        userPrompt.length > 2000
-          ? `${userPrompt.slice(0, 2000)}… [+${userPrompt.length - 2000} chars]`
-          : userPrompt,
-    },
-    cache_hit: false,
-    cost: costStampOf(result.model, result.usage, useHe ? 'he' : 'en', def.cache_version),
-    ...(markCheckIssues ? { check_issues: markCheckIssues } : {}),
-    ...(markHardIssues ? { lint_issues: markHardIssues } : {}),
-  };
-  // Gate on hard check issues, BOUNDED — same posture as runEnrichmentOnce. A
-  // clean output (or one with only soft issues) is pinned; a hard-failing one
-  // (e.g. a hallucinated pesukim/aggadata anchor) is left uncached so the next
-  // request regenerates — until MAX_LINT_ATTEMPTS, then pinned anyway so a
-  // persistently-failing card stops re-paying. Capped failures surface on /api/usage.
-  if (!parse_error) {
-    if (!markHardIssues) {
-      await writeCachedResult(rc.env, cacheKey, out);
-    } else if (
-      await noteLintAttempt(rc.env, rc.ctx, cacheKey, {
-        enrichmentId: def.id,
-        tractate,
-        page,
+  },
+  // Post-generation processing via the standardized check layer
+  // (src/lib/check/passes.ts). A definition opts in via `passes: []` in
+  // code-marks.ts. The transforms need the segment grid, so fetch the gemara
+  // slice once when any check runs. Marks additionally hand through the
+  // deterministic yerushalmi floor anchors the resolver stashed; enrichments
+  // fetch the daf's real Rashi/Tosafot text when a check wants to verify
+  // cited quotes against it.
+  runChecks: async (rc, a) => {
+    const slice = await getGemaraSlice(rc.env, a.tractate, a.page, false);
+    if (a.kind === 'mark') {
+      return runPasses(a.def.passes ?? [], a.parsed, {
+        tractate: a.tractate,
+        page: a.page,
+        segmentsHe: slice.segments_he,
+        defId: a.def.id,
         lang: rc.lang,
-        issues: markHardIssues,
-      })
-    ) {
-      await writeCachedResult(rc.env, cacheKey, out);
+        // The yerushalmi-floor transform needs the deterministic floor anchors the
+        // resolver stashed; harmless (and absent) for every other mark.
+        yerushalmiFloor: a.inputs.vars.__yerushalmiFloor as YerushalmiFloorGroup[] | undefined,
+      });
     }
-  }
-  return out;
+    // commentary-verbatim needs the daf's real Rashi/Tosafot text to verify
+    // cited quotes against — fetch it only when a check actually wants it.
+    let commentaryHe: string[] | undefined;
+    if (a.def.passes?.includes('commentary-verbatim')) {
+      const com = await getCommentariesSlice(rc.env, a.tractate, a.page, false);
+      commentaryHe = Object.values(com.by_commentator)
+        .map((c) => stripHtmlServer(c.hebrew))
+        .filter(Boolean);
+    }
+    return runPasses(a.def.passes ?? [], a.parsed, {
+      tractate: a.tractate,
+      page: a.page,
+      segmentsHe: slice.segments_he,
+      commentaryHe,
+      defId: a.def.id,
+      lang: rc.lang,
+    });
+  },
+  lintGate: (rc, cacheKey, info) =>
+    noteLintAttempt(rc.env, rc.ctx, cacheKey, {
+      enrichmentId: info.producerId,
+      tractate: info.tractate,
+      page: info.page,
+      lang: info.lang,
+      issues: info.issues,
+    }),
+  costStamp: (model, usage, lang, cacheVersion) =>
+    costStampOf(model, usage as LLMUsage | null | undefined, lang, cacheVersion),
+  recordUsage: (rc, args) =>
+    captureLlmUsage(rc, {
+      kind: args.kind,
+      id: args.id,
+      result: args.result as {
+        model?: string;
+        usage?: LLMUsage | null;
+        parse_error?: string | null;
+      },
+    }),
+  hooks: {
+    // Computed extractors — deterministic, no LLM. Same cache shape as LLM
+    // results so the rest of the pipeline (caching, dependency resolution,
+    // dev panel run-state) is uniform.
+    computedMark: async (rc, def, tractate, page) => {
+      const extractor = def.extractor;
+      if (extractor.kind !== 'computed') {
+        throw new Error(
+          `mark ${def.id}: computedMark hook called for extractor.kind=${extractor.kind}`,
+        );
+      }
+      const fn = COMPUTED_FNS[extractor.fn];
+      if (!fn) throw new Error(`mark ${def.id}: no computed fn '${extractor.fn}' registered`);
+      const t0 = Date.now();
+      const parsed = await fn(rc.env, tractate, page);
+      const elapsed_ms = Date.now() - t0;
+      const content = JSON.stringify(parsed);
+      return {
+        content,
+        parsed,
+        parse_error: null,
+        model: `computed:${extractor.fn}`,
+        transport: 'computed',
+        attempts: 1,
+        usage: null,
+        elapsed_ms,
+        prompt_chars: 0,
+        resolved: {
+          system_prompt: `(computed fn: ${extractor.fn})`,
+          user_prompt: `(no LLM call — deterministic extraction from upstream data source)`,
+        },
+        cache_hit: false,
+      };
+    },
+    // Special cases that don't fit the segments-only transform signature yet:
+    //   - rabbi:  needs the daf Hebrew text, not the segment grid (A1b will port it).
+    //   - places: a side effect (backlog logging), not a parsed-output transform.
+    markPostParse: async (rc, a) => {
+      let parsed = a.parsed;
+      if (parsed && a.def.id === 'rabbi') {
+        parsed = postProcessRabbi(parsed, stripHtmlServer(String(a.vars.hebrew ?? '')));
+        // Ground each rabbi's generation through the registry (relational homonym
+        // disambiguation off the daf's cast): authoritative era when identified,
+        // neutral 'unknown' for a homonym we can't pin — so the reader's era color
+        // is grounded, not a freeform per-daf guess.
+        parsed = groundRabbiInstances(parsed);
+      } else if (parsed && a.def.id === 'places') {
+        // Places have no global gazetteer — log every observed location to the
+        // "needs global enrichment" backlog so we can see what to add over time.
+        recordObservedPlacesFromMark(rc, parsed, a.tractate, a.page);
+      }
+      return parsed;
+    },
+    enrichmentPreResolve: async (rc, a) => {
+      const { def, markInput, tractate, page } = a;
+      // Graph short-circuit for rabbi.relationships. Sefaria's rabbi graph
+      // (src/lib/data/rabbi-hierarchy.json) is the source of truth for who
+      // a rabbi's teachers/students/colleagues were — much more reliable than
+      // an LLM call, deterministic, free, and instant. We only fall through to
+      // the LLM when the graph misses (rabbi not found OR node has no edges).
+      if (def.id === 'rabbi.relationships') {
+        const inst = markInput as { name?: string; nameHe?: string; generation?: string } | null;
+        if (inst?.name) {
+          const hit = lookupRelationships(inst.name, inst.nameHe, inst.generation);
+          if (hit) {
+            return {
+              content: JSON.stringify(hit.data),
+              parsed: hit.data,
+              parse_error: null,
+              model: `graph:${hit.slug}`,
+              transport: 'graph',
+              attempts: 0,
+              usage: { input_tokens: 0, output_tokens: 0, total_tokens: 0 },
+              elapsed_ms: 0,
+              prompt_chars: 0,
+              resolved: {
+                system_prompt: `(graph lookup: ${hit.slug})`,
+                user_prompt: `(graph lookup for rabbi: ${inst.name})`,
+              },
+              cache_hit: false,
+              recipe_hash: a.recipeHash,
+            };
+          }
+          // Miss — fall through to the LLM path with the disambiguation prompt.
+        }
+        return null;
+      }
+      // Deterministic short-circuit for rabbi.identity. The slug / region / places
+      // / moved fields come from the precomputed rabbi-places.json join (the same
+      // enrichRabbi the legacy /api/daf-context used) — an LLM can't produce a
+      // Sefaria slug, so there's no fallback path: enrichRabbi always returns an
+      // IdentifiedRabbi (nulled fields for rabbis not in the dataset). This is the
+      // single source of canonical identity data the timeline + bio sidebar read.
+      if (def.id === 'rabbi.identity') {
+        // Always short-circuit — there is no useful LLM fallback (a model can't
+        // know a Sefaria slug), and the placeholder prompt must never run.
+        const inst = markInput as {
+          name?: string;
+          nameHe?: string;
+          generation?: GenerationId;
+        } | null;
+        const ident = enrichRabbi(
+          inst?.name ?? '',
+          inst?.nameHe ?? '',
+          inst?.generation ?? 'unknown',
+        );
+        // Rabbi not in the bundled dataset → add to the "needs global enrichment"
+        // backlog so we can track who to add a base bio for as usage grows.
+        if (!ident.slug && (inst?.name || inst?.nameHe)) {
+          recordUnknownRabbi(rc.env, rc.ctx, {
+            name: inst?.name,
+            nameHe: inst?.nameHe,
+            generation: inst?.generation,
+            tractate,
+            page,
+          });
+        }
+        return {
+          content: JSON.stringify(ident),
+          parsed: ident,
+          parse_error: null,
+          model: ident.slug ? `lookup:${ident.slug}` : 'lookup:miss',
+          transport: 'lookup',
+          attempts: 0,
+          usage: { input_tokens: 0, output_tokens: 0, total_tokens: 0 },
+          elapsed_ms: 0,
+          prompt_chars: 0,
+          resolved: {
+            system_prompt: '(deterministic lookup: rabbi-places.json)',
+            user_prompt: `(identity lookup for rabbi: ${inst?.name ?? '(unnamed)'})`,
+          },
+          cache_hit: false,
+          recipe_hash: a.recipeHash,
+        };
+      }
+      return null;
+    },
+    enrichmentPostResolve: async (rc, a) => {
+      const { def, inputs, markInput, tractate, page } = a;
+      // Deterministic accumulation step — runs LAST (its mark deps are resolved
+      // above) and writes per-rabbi observation slices to KV as a side effect.
+      // No LLM. See runRabbiObservations + src/worker/rabbi-observations.ts.
+      if (def.id === 'rabbi.observations') {
+        return { shortCircuit: await runRabbiObservations(rc, def, tractate, page, inputs) };
+      }
+      // Pre-fetch the focal pasuk's Hebrew verbatim for pesukim.* enrichments so
+      // the LLM has a verbatim source to quote from. Without this the model
+      // translates the verse to English and quotes that — the regression the
+      // synthesisLint catches.
+      let pasukHe = '';
+      let crossRefsHe = '';
+      if (def.id.startsWith('pesukim.')) {
+        const mi = markInput as { verseRef?: string; fields?: { verseRef?: string } } | null;
+        const focalRef = mi?.verseRef ?? mi?.fields?.verseRef ?? '';
+        if (focalRef) pasukHe = await fetchPasukHebrewForPrompt(rc.env, focalRef);
+        // For synthesis only: also fetch Hebrew for every OTHER pasuk cited on
+        // the daf, so the LLM can quote cross-references (e.g. Tehillim 119:148
+        // when the focal is 119:62) without reconstructing from training memory.
+        if (def.id === 'pesukim.synthesis') {
+          const pesukimAnchors = inputs.anchors.pesukim as
+            | { fields?: { verseRef?: string } }[]
+            | undefined;
+          if (Array.isArray(pesukimAnchors) && pesukimAnchors.length > 0) {
+            const seen = new Set<string>([focalRef]);
+            const lines: string[] = [];
+            for (const inst of pesukimAnchors) {
+              const ref = inst?.fields?.verseRef;
+              if (!ref || seen.has(ref)) continue;
+              seen.add(ref);
+              const he = await fetchPasukHebrewForPrompt(rc.env, ref);
+              if (he) lines.push(`- ${ref}: "${he}"`);
+            }
+            crossRefsHe = lines.join('\n');
+          }
+        }
+      }
+      // Scope the moves injected into the section-level argument enrichments
+      // (argument.synthesis, argument.voices) to THIS section. The argument-move
+      // mark emits every move on the daf; handing the LLM the whole list with only
+      // a soft "filter to this section" instruction makes synthesis summarize the
+      // entire sugya (worst for a 1-segment opening excerpt) and lets voices pull
+      // in rabbis from other sections. selectSectionMoves narrows to the section's
+      // moves and dedupes them. Move-level (argument-move.*) enrichments are NOT
+      // scoped — they deliberately get the full list to cross-reference other moves.
+      if (def.mark === 'argument') {
+        const mi = markInput as { startSegIdx?: number; endSegIdx?: number } | null;
+        const all = inputs.anchors['argument-move'];
+        if (
+          mi &&
+          typeof mi.startSegIdx === 'number' &&
+          typeof mi.endSegIdx === 'number' &&
+          Array.isArray(all)
+        ) {
+          inputs.anchors['argument-move'] = selectSectionMoves(all as MoveLike[], {
+            startSegIdx: mi.startSegIdx,
+            endSegIdx: mi.endSegIdx,
+          });
+        }
+      }
+      return { vars: { pasuk_he: pasukHe, cross_refs_he: crossRefsHe } };
+    },
+    // daf-background.concepts has no global glossary — log every term it emits to
+    // the observed-concept backlog so the canonical glossary can be grown from
+    // real usage later (same collect-now pattern as observed-place).
+    enrichmentPostParse: (rc, a) => {
+      if (a.parsed && !a.parse_error && a.def.id === 'daf-background.concepts') {
+        recordObservedConceptsFromEnrichment(rc, a.parsed, a.tractate, a.page);
+      }
+    },
+  },
+};
+
+async function runMarkOnce(
+  rc: RunCtx,
+  def: SchemaMarkDefinition,
+  tractate: string,
+  page: string,
+  bypassCache: boolean,
+): Promise<RunResult> {
+  return (await runProducer(RUN_PORTS, rc, 'mark', def, tractate, page, undefined, {
+    bypassCache,
+    lang: rc.lang,
+  })) as RunResult;
 }
 
 /** The segment range a section-level argument enrichment is being computed for,
@@ -2977,369 +3138,13 @@ async function runEnrichmentOnce(
    *  template as {{user_question}}. */
   userQuestion?: string,
 ): Promise<RunResultEnrichment> {
-  const instance_id = await instanceIdOf(markInput);
-  const qHash = userQuestion ? await qualifierHash(userQuestion) : undefined;
-  const cacheKey = modelOverride
-    ? // Per-call model overrides skip the canonical cache to avoid polluting
-      // the default-traffic key. Re-running with the same override hits the
-      // gateway prompt cache but not KV — consistent with bypass behavior.
-      null
-    : keyForEnrichment(
-        def,
-        instance_id,
-        def.scope === 'local' ? { tractate, page } : undefined,
-        qHash,
-        rc.lang,
-      );
-  // Section enrichments key by title (see instanceIdOf); guard against a
-  // drifted title serving another section's cache by validating the stamped
-  // range. Null for non-section enrichments (no guard).
-  const sectionRange = sectionRangeOf(def, markInput);
-  if (cacheKey && !bypassCache) {
-    const hit = (await readCachedResult(rc.env, cacheKey)) as RunResultEnrichment | null;
-    // Reject a hit whose stamped range doesn't match the requested section
-    // (covers both a drifted title AND legacy entries with no stamp) so it
-    // recomputes for the correct range instead of returning stale content.
-    if (hit && (!sectionRange || hit.section_range === sectionRange)) {
-      return { ...hit, cache_hit: true };
-    }
-  }
-
-  // Content hash of this producer's recipe, stamped on every fresh write below
-  // so staleness can be detected later (GET /api/stale). Computed once here,
-  // after the cache-hit early-return so hits don't pay for it. Enrichments have
-  // no `render`, so this hashes the extractor (prompt/schema/model).
-  const recipe_hash = await recipeHash(enrichmentRecipe(def));
-
-  // Graph short-circuit for rabbi.relationships. Sefaria's rabbi graph
-  // (src/lib/data/rabbi-hierarchy.json) is the source of truth for who
-  // a rabbi's teachers/students/colleagues were — much more reliable than
-  // an LLM call, deterministic, free, and instant. We only fall through to
-  // the LLM when the graph misses (rabbi not found OR node has no edges).
-  if (def.id === 'rabbi.relationships') {
-    const inst = markInput as { name?: string; nameHe?: string; generation?: string } | null;
-    if (inst?.name) {
-      const hit = lookupRelationships(inst.name, inst.nameHe, inst.generation);
-      if (hit) {
-        const out: RunResultEnrichment = {
-          content: JSON.stringify(hit.data),
-          parsed: hit.data,
-          parse_error: null,
-          model: `graph:${hit.slug}`,
-          transport: 'graph',
-          attempts: 0,
-          usage: { input_tokens: 0, output_tokens: 0, total_tokens: 0 },
-          elapsed_ms: 0,
-          prompt_chars: 0,
-          resolved: {
-            system_prompt: `(graph lookup: ${hit.slug})`,
-            user_prompt: `(graph lookup for rabbi: ${inst.name})`,
-          },
-          cache_hit: false,
-          recipe_hash,
-        };
-        if (cacheKey) await writeCachedResult(rc.env, cacheKey, out);
-        return out;
-      }
-      // Miss — fall through to the LLM path with the disambiguation prompt.
-    }
-  }
-
-  // Deterministic short-circuit for rabbi.identity. The slug / region / places
-  // / moved fields come from the precomputed rabbi-places.json join (the same
-  // enrichRabbi the legacy /api/daf-context used) — an LLM can't produce a
-  // Sefaria slug, so there's no fallback path: enrichRabbi always returns an
-  // IdentifiedRabbi (nulled fields for rabbis not in the dataset). This is the
-  // single source of canonical identity data the timeline + bio sidebar read.
-  if (def.id === 'rabbi.identity') {
-    // Always short-circuit — there is no useful LLM fallback (a model can't
-    // know a Sefaria slug), and the placeholder prompt must never run.
-    const inst = markInput as { name?: string; nameHe?: string; generation?: GenerationId } | null;
-    const ident = enrichRabbi(inst?.name ?? '', inst?.nameHe ?? '', inst?.generation ?? 'unknown');
-    // Rabbi not in the bundled dataset → add to the "needs global enrichment"
-    // backlog so we can track who to add a base bio for as usage grows.
-    if (!ident.slug && (inst?.name || inst?.nameHe)) {
-      recordUnknownRabbi(rc.env, rc.ctx, {
-        name: inst?.name,
-        nameHe: inst?.nameHe,
-        generation: inst?.generation,
-        tractate,
-        page,
-      });
-    }
-    const out: RunResultEnrichment = {
-      content: JSON.stringify(ident),
-      parsed: ident,
-      parse_error: null,
-      model: ident.slug ? `lookup:${ident.slug}` : 'lookup:miss',
-      transport: 'lookup',
-      attempts: 0,
-      usage: { input_tokens: 0, output_tokens: 0, total_tokens: 0 },
-      elapsed_ms: 0,
-      prompt_chars: 0,
-      resolved: {
-        system_prompt: '(deterministic lookup: rabbi-places.json)',
-        user_prompt: `(identity lookup for rabbi: ${inst?.name ?? '(unnamed)'})`,
-      },
-      cache_hit: false,
-      recipe_hash,
-    };
-    if (cacheKey) await writeCachedResult(rc.env, cacheKey, out);
-    return out;
-  }
-
-  const nextChain = new Set(parentChain);
-  nextChain.add(def.id);
-  const inputs = await resolveDependencies(
-    rc,
-    def.dependencies,
-    tractate,
-    page,
-    markInput,
+  return (await runProducer(RUN_PORTS, rc, 'enrich', def, tractate, page, markInput, {
     bypassCache,
-    nextChain,
-  );
-
-  // Deterministic accumulation step — runs LAST (its mark deps are resolved
-  // above) and writes per-rabbi observation slices to KV as a side effect.
-  // No LLM. See runRabbiObservations + src/worker/rabbi-observations.ts.
-  if (def.id === 'rabbi.observations') {
-    const out = await runRabbiObservations(rc, def, tractate, page, inputs);
-    if (cacheKey) await writeCachedResult(rc.env, cacheKey, out);
-    return out;
-  }
-
-  // Pre-fetch the focal pasuk's Hebrew verbatim for pesukim.* enrichments so
-  // the LLM has a verbatim source to quote from. Without this the model
-  // translates the verse to English and quotes that — the regression the
-  // synthesisLint catches.
-  let pasukHe = '';
-  let crossRefsHe = '';
-  if (def.id.startsWith('pesukim.')) {
-    const mi = markInput as { verseRef?: string; fields?: { verseRef?: string } } | null;
-    const focalRef = mi?.verseRef ?? mi?.fields?.verseRef ?? '';
-    if (focalRef) pasukHe = await fetchPasukHebrewForPrompt(rc.env, focalRef);
-    // For synthesis only: also fetch Hebrew for every OTHER pasuk cited on
-    // the daf, so the LLM can quote cross-references (e.g. Tehillim 119:148
-    // when the focal is 119:62) without reconstructing from training memory.
-    if (def.id === 'pesukim.synthesis') {
-      const pesukimAnchors = inputs.anchors.pesukim as
-        | { fields?: { verseRef?: string } }[]
-        | undefined;
-      if (Array.isArray(pesukimAnchors) && pesukimAnchors.length > 0) {
-        const seen = new Set<string>([focalRef]);
-        const lines: string[] = [];
-        for (const inst of pesukimAnchors) {
-          const ref = inst?.fields?.verseRef;
-          if (!ref || seen.has(ref)) continue;
-          seen.add(ref);
-          const he = await fetchPasukHebrewForPrompt(rc.env, ref);
-          if (he) lines.push(`- ${ref}: "${he}"`);
-        }
-        crossRefsHe = lines.join('\n');
-      }
-    }
-  }
-
-  // Scope the moves injected into the section-level argument enrichments
-  // (argument.synthesis, argument.voices) to THIS section. The argument-move
-  // mark emits every move on the daf; handing the LLM the whole list with only
-  // a soft "filter to this section" instruction makes synthesis summarize the
-  // entire sugya (worst for a 1-segment opening excerpt) and lets voices pull
-  // in rabbis from other sections. selectSectionMoves narrows to the section's
-  // moves and dedupes them. Move-level (argument-move.*) enrichments are NOT
-  // scoped — they deliberately get the full list to cross-reference other moves.
-  if (def.mark === 'argument') {
-    const mi = markInput as { startSegIdx?: number; endSegIdx?: number } | null;
-    const all = inputs.anchors['argument-move'];
-    if (
-      mi &&
-      typeof mi.startSegIdx === 'number' &&
-      typeof mi.endSegIdx === 'number' &&
-      Array.isArray(all)
-    ) {
-      inputs.anchors['argument-move'] = selectSectionMoves(all as MoveLike[], {
-        startSegIdx: mi.startSegIdx,
-        endSegIdx: mi.endSegIdx,
-      });
-    }
-  }
-
-  const vars: Record<string, unknown> = {
-    ...inputs.vars,
-    mark_input: markInput,
-    pasuk_he: pasukHe,
-    cross_refs_he: crossRefsHe,
-    depends: inputs.depends,
-    anchors: inputs.anchors,
-    // Normalized so prompts see a clean version even when the user submits
-    // sloppy whitespace/casing. Empty string when absent so {{user_question}}
-    // is safe to interpolate in any prompt.
-    user_question: userQuestion ? normalizeQualifier(userQuestion) : '',
-  };
-  // Select the Hebrew prompt variant when this run is lang='he' AND the def
-  // provides one; otherwise fall back to English. Falling back (rather than
-  // erroring) means an enrichment without a *_he prompt still works in he
-  // mode — it just produces English prose until its Hebrew prompt is authored.
-  const useHe = rc.lang === 'he';
-  const systemPromptTpl = useHe && def.system_prompt_he ? def.system_prompt_he : def.system_prompt;
-  const userPromptTpl =
-    useHe && def.user_prompt_template_he ? def.user_prompt_template_he : def.user_prompt_template;
-  const systemPrompt = renderTemplate(systemPromptTpl, vars);
-  const userPrompt = renderTemplate(userPromptTpl, vars);
-
-  const model = modelOverride ?? def.model;
-  const result = await runLLM(rc.env, {
-    ...(model ? { model } : {}),
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
-    ],
-    max_tokens: 16000,
-    temperature: 0.2,
-    response_format: def.output_schema
-      ? { type: 'json_schema', json_schema: def.output_schema }
-      : undefined,
-    thinking: def.thinking_off ? false : undefined,
-    reasoning_effort: def.reasoning_effort,
-    bypass_cache: bypassCache,
-    tag: `enrich:${def.id}`,
-    attribution: {
-      kind: def.id.endsWith('.qa') ? ('qa' as const) : ('enrichment' as const),
-      producerId: def.id,
-      tractate,
-      page,
-      lang: useHe ? ('he' as const) : ('en' as const),
-      cache_version: def.cache_version,
-    },
-    // Custom Q&A enrichments (<mark>.qa) count against the hourly custom-question
-    // budget; everything else only against the daily total. See ./budget.
-    cost_class: def.id.endsWith('.qa') ? 'custom-question' : undefined,
-  });
-
-  let parsed: unknown = null;
-  let parse_error: string | null = null;
-  if (def.output_schema) {
-    try {
-      parsed = JSON.parse(result.content);
-    } catch (err) {
-      parse_error = String(err).slice(0, 200);
-    }
-  }
-  // Post-generation processing via the standardized check layer
-  // (src/lib/check/passes.ts). An enrichment opts in through `passes: []` in
-  // code-marks.ts. Transforms run first:
-  //   - rabbi.{relationships,geography}.evidence -> 'reanchor-rabbi-evidence'
-  //     resolves each evidence excerpt to (startSegIdx, endSegIdx, tokenStart,
-  //     tokenEnd) so the sidebar can paint click-to-highlight ranges.
-  // Then validators:
-  //   - pesukim.synthesis -> 'hebrew-excerpt' (pesukim cited with English-only
-  //     quotes and no Hebrew verbatim text);
-  //   - halacha.* -> 'hebrew-gloss' (HEBREW_GLOSS_STYLE violations: bare /
-  //     parenthesized transliterations, calques, across every prose field + chip);
-  //   - argument.voices -> 'edge-integrity' (soft, observe-only).
-  // Issues are attached to the result (visible in dev tray / cache) but never
-  // reject the run; only `hard` issues gate the cache write below. The transforms
-  // need the segment grid, so fetch the gemara slice once when any check runs.
-  let lint_issues: unknown[] | undefined; // hard subset → gating + /api/usage path
-  let check_issues: unknown[] | undefined; // all severities → observation
-  let hardIssueCount = 0;
-  if (parsed && !parse_error && def.passes && def.passes.length > 0) {
-    const slice = await getGemaraSlice(rc.env, tractate, page, false);
-    // commentary-verbatim needs the daf's real Rashi/Tosafot text to verify
-    // cited quotes against — fetch it only when a check actually wants it.
-    let commentaryHe: string[] | undefined;
-    if (def.passes.includes('commentary-verbatim')) {
-      const com = await getCommentariesSlice(rc.env, tractate, page, false);
-      commentaryHe = Object.values(com.by_commentator)
-        .map((c) => stripHtmlServer(c.hebrew))
-        .filter(Boolean);
-    }
-    const checked = await runPasses(def.passes, parsed, {
-      tractate,
-      page,
-      segmentsHe: slice.segments_he,
-      commentaryHe,
-      defId: def.id,
-      lang: rc.lang,
-    });
-    parsed = checked.parsed;
-    if (checked.issues.length > 0) {
-      check_issues = checked.issues;
-      const hard = checked.issues.filter((i) => i.severity === 'hard');
-      hardIssueCount = hard.length;
-      if (hard.length > 0) lint_issues = hard;
-    }
-  }
-  // daf-background.concepts has no global glossary — log every term it emits to
-  // the observed-concept backlog so the canonical glossary can be grown from
-  // real usage later (same collect-now pattern as observed-place).
-  if (parsed && !parse_error && def.id === 'daf-background.concepts') {
-    recordObservedConceptsFromEnrichment(rc, parsed, tractate, page);
-  }
-  const out: RunResultEnrichment = {
-    content: result.content,
-    reasoning: result.reasoning_content || undefined,
-    parsed,
-    parse_error,
-    model: result.model,
-    transport: result.transport,
-    attempts: result.attempts,
-    usage: result.usage,
-    elapsed_ms: result.elapsed_ms,
-    prompt_chars: result.prompt_chars,
-    // Resolved prompts are dev-only inspection; cap each at 2KB so multi-run
-    // responses don't balloon. The full prompt was already sent to the LLM —
-    // we don't need to ship it back through workerd just for the dev tray.
-    resolved: {
-      system_prompt:
-        systemPrompt.length > 2000
-          ? `${systemPrompt.slice(0, 2000)}… [+${systemPrompt.length - 2000} chars]`
-          : systemPrompt,
-      user_prompt:
-        userPrompt.length > 2000
-          ? `${userPrompt.slice(0, 2000)}… [+${userPrompt.length - 2000} chars]`
-          : userPrompt,
-    },
-    cache_hit: false,
-    recipe_hash,
-    cost: costStampOf(result.model, result.usage, useHe ? 'he' : 'en', def.cache_version),
-    deps_resolved: Object.keys(inputs.depends).length > 0 ? inputs.depends : undefined,
-    anchors_resolved: Object.keys(inputs.anchors).length > 0 ? inputs.anchors : undefined,
-    ...(lint_issues ? { lint_issues } : {}),
-    ...(check_issues ? { check_issues } : {}),
-    ...(sectionRange ? { section_range: sectionRange } : {}),
-  };
-  // Gate cache writes on the checks passing — but BOUND the retries. An output
-  // with no `hard` issues is pinned immediately. A hard-failing output is left
-  // uncached so the next request regenerates (the model is mildly
-  // nondeterministic, so a retry may come back clean) — UNTIL it has failed
-  // MAX_LINT_ATTEMPTS times, at which point we pin the best-effort output anyway
-  // so reads become cache hits and regeneration stops. Without this cap the warm
-  // crons re-pay for a persistently-failing card forever. (Soft issues never
-  // gate.) Capped failures surface on /api/usage.
-  if (cacheKey && !parse_error) {
-    if (hardIssueCount === 0) {
-      await writeCachedResult(rc.env, cacheKey, out);
-    } else if (
-      await noteLintAttempt(rc.env, rc.ctx, cacheKey, {
-        enrichmentId: def.id,
-        tractate,
-        page,
-        lang: rc.lang,
-        issues: lint_issues ?? [],
-      })
-    ) {
-      await writeCachedResult(rc.env, cacheKey, out);
-    }
-  }
-  // Attribute this fresh LLM call's tokens + cost to the daily rollup.
-  captureLlmUsage(rc, {
-    kind: 'enrichment',
-    id: def.id,
-    result: { model: result.model, usage: result.usage, parse_error },
-  });
-  return out;
+    lang: rc.lang,
+    modelOverride,
+    parentChain,
+    userQuestion,
+  })) as RunResultEnrichment;
 }
 
 // ===========================================================================
