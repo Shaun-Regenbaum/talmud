@@ -2385,7 +2385,7 @@ const LIGHT_CONTEXT_SOURCES = new Set<string>([
   'dafyomi:revach',
 ]);
 
-async function resolveDependencies(
+export async function resolveDependencies(
   rc: RunCtx,
   dependencies: ReadonlyArray<EnrichmentDependency> | ReadonlyArray<MarkDependency> | undefined,
   tractate: string,
@@ -3952,7 +3952,7 @@ async function runRabbiObservations(
  * no id). Used both in the producer (cache check before enqueuing) and the
  * consumer (write-through after running).
  */
-async function cacheKeyForRunBody(
+export async function cacheKeyForRunBody(
   env: Bindings,
   body: JobMessage,
 ): Promise<{

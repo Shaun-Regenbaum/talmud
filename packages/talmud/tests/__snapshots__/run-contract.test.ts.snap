@@ -1,0 +1,93 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`POST /api/run — contract > a. cache hit: serves the stored envelope byte-identically + {cache_hit, total_ms} 1`] = `
+{
+  "result": {
+    "attempts": 1,
+    "cache_hit": true,
+    "content": "{"instances":[]}",
+    "elapsed_ms": 1234,
+    "model": "openrouter/test/model",
+    "parse_error": null,
+    "parsed": {
+      "instances": [],
+    },
+    "prompt_chars": 4321,
+    "resolved": {
+      "system_prompt": "sys",
+      "user_prompt": "usr",
+    },
+    "total_ms": 0,
+    "transport": "openrouter-gateway",
+    "usage": {
+      "input_tokens": 100,
+      "output_tokens": 50,
+      "total_tokens": 150,
+    },
+  },
+  "status": "ok",
+}
+`;
+
+exports[`POST /api/run — contract > b. cold miss: 202 pending + runId + cacheKey, one queue send > queued JobMessage 1`] = `
+{
+  "ad_hoc": undefined,
+  "bypass_cache": false,
+  "enrichment_id": undefined,
+  "lang": undefined,
+  "mark_id": "argument",
+  "mark_input": undefined,
+  "model_override": undefined,
+  "page": "5a",
+  "runId": "argument:Berakhot:5a:74234e98afe7:noq:en:cached:TS",
+  "tractate": "Berakhot",
+  "user_question": undefined,
+}
+`;
+
+exports[`POST /api/run — contract > b. cold miss: 202 pending + runId + cacheKey, one queue send 1`] = `
+{
+  "cacheKey": "mark:argument:4:berakhot:5a",
+  "runId": "argument:Berakhot:5a:74234e98afe7:noq:en:cached:TS",
+  "status": "pending",
+}
+`;
+
+exports[`POST /api/run — contract > c. SWR: previous-version hit serves stale:true + refreshing:true and enqueues > queued SWR recompute JobMessage 1`] = `
+{
+  "ad_hoc": undefined,
+  "bypass_cache": false,
+  "enrichment_id": "rabbi.bio",
+  "lang": undefined,
+  "mark_id": undefined,
+  "mark_input": {
+    "fields": {
+      "name": "Abaye",
+    },
+  },
+  "model_override": undefined,
+  "page": "5a",
+  "runId": "rabbi.bio:Berakhot:5a:abaye:noq:en:cached:TS",
+  "tractate": "Berakhot",
+  "user_question": undefined,
+}
+`;
+
+exports[`POST /api/run — contract > d. experimental gate: cold miss on the chart mark (untrusted) is skipped, not enqueued 1`] = `
+{
+  "experimental": true,
+  "reason": "experimental",
+  "status": "skipped",
+  "warmed": false,
+}
+`;
+
+exports[`POST /api/run — contract > e. budget paused: 429 with paused/scope/retryAfter, nothing enqueued 1`] = `
+{
+  "error": "AI generation is paused for now (daily budget reached). Please try again tomorrow.",
+  "paused": true,
+  "retryAfter": "NORMALIZED",
+  "scope": "all",
+  "status": "error",
+}
+`;
