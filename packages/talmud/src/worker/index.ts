@@ -153,6 +153,7 @@ import {
   ENRICH_JSON_SCHEMA,
   TRANSLATE_BIO_JSON_SCHEMA,
 } from './output-schemas';
+import { loadEnrichmentDef, loadMarkDef } from './producer-registry';
 import { groundRabbiInstances, groundRabbiNames, lookupRelationships } from './rabbi-graph';
 import {
   buildObservationSlices,
@@ -203,7 +204,6 @@ import type {
   EnrichmentDependency,
   LLMExtractor,
   MarkDependency,
-  EnrichmentDefinition as SchemaEnrichmentDefinition,
   MarkDefinition as SchemaMarkDefinition,
 } from './studio-schema';
 import { classifyError, recordTelemetry, runTelemetryRec, type TelemetryRecord } from './telemetry';
@@ -2255,71 +2255,12 @@ function renderTemplate(tpl: string, vars: Record<string, unknown>): string {
 }
 
 // ===========================================================================
-// Definition lookup — KV first, then code-defined fallback. Both shapes are
-// adapted to the KV-flat shape the runner expects.
+// Definition lookup — KV first, then code-defined fallback; both shapes
+// adapted to what the runner expects. The single resolution implementation
+// lives in producer-registry.ts (resolve → Producer → project back); the
+// `loadMarkDef` / `loadEnrichmentDef` imported at the top of this file are
+// thin, behavior-identical projections over it.
 // ===========================================================================
-
-function adaptCodeEnrichment(code: SchemaEnrichmentDefinition): EnrichmentDefinition | null {
-  // 'computed' enrichments carry no prompts — they're intercepted by a
-  // `def.id`-keyed short-circuit in runEnrichmentOnce (like rabbi.identity)
-  // and never hit the LLM path. Pass them through with empty prompt fields so
-  // the runner can still load + cache them; everything the short-circuit needs
-  // (scope, dependencies, cache_version) is preserved below.
-  if (code.extractor.kind !== 'llm' && code.extractor.kind !== 'computed') return null;
-  const llm = code.extractor.kind === 'llm' ? code.extractor : null;
-  return {
-    id: code.id,
-    label: code.label,
-    description: code.description,
-    mark: code.target_mark,
-    scope: code.scope,
-    dependencies: code.dependencies,
-    passes: code.passes,
-    system_prompt: llm?.system_prompt ?? '',
-    user_prompt_template: llm?.user_prompt_template ?? '',
-    system_prompt_he: llm?.system_prompt_he,
-    user_prompt_template_he: llm?.user_prompt_template_he,
-    model: llm?.model,
-    output_schema: llm?.output_schema,
-    thinking_off: llm?.thinking_off,
-    reasoning_effort: llm?.reasoning_effort,
-    cache_version: code.cache_version,
-    source: 'code',
-    updated_at: code.updated_at,
-  };
-}
-
-async function loadEnrichmentDef(env: Bindings, id: string): Promise<EnrichmentDefinition | null> {
-  const kv = await readEnrichment(env, id);
-  if (kv) return kv;
-  const code = findCodeEnrichment(id);
-  return code ? adaptCodeEnrichment(code) : null;
-}
-
-async function loadMarkDef(env: Bindings, id: string): Promise<SchemaMarkDefinition | null> {
-  const kv = await readMark(env, id);
-  if (kv) {
-    return {
-      id: kv.id,
-      label: kv.label,
-      description: kv.description,
-      anchor: 'phrase',
-      render: { kind: 'inline', style: 'underline', color: '#0066CC' },
-      extractor: {
-        kind: 'llm',
-        system_prompt: kv.system_prompt ?? '',
-        user_prompt_template: kv.user_prompt_template ?? '',
-      },
-      dependencies: kv.dependencies,
-      status: 'draft',
-      def_hash: 'kv',
-      cache_version: kv.cache_version,
-      source: 'kv',
-      updated_at: kv.updated_at,
-    };
-  }
-  return findCodeMark(id);
-}
 
 // ===========================================================================
 // Dependency resolution — walks `dependencies` and feeds the prompt template.
