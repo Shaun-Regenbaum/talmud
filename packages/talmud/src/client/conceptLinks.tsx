@@ -324,10 +324,11 @@ function ConceptMention(props: { value: string; term: Term }): JSX.Element {
   };
 
   return (
+    // biome-ignore lint/a11y/useSemanticElements: inline span inside flowing prose; a button element would break text layout and selection/copy
     <span
       ref={termRef}
       style={termStyle}
-      tabindex={0}
+      tabIndex={0}
       role="button"
       aria-label={`${termLabel(props.term)}: ${props.term.gloss}`}
       onMouseEnter={openTip}
@@ -338,6 +339,8 @@ function ConceptMention(props: { value: string; term: Term }): JSX.Element {
       {props.value}
       <Show when={open()}>
         <Portal>
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: tooltip body; onClick only stops propagation so a click on the tooltip doesn't trigger the surrounding card's click action */}
+          {/* biome-ignore lint/a11y/useKeyWithClickEvents: tooltip body; onClick only stops propagation — there is no activation behavior to mirror on the keyboard */}
           <span
             ref={place}
             style={{ ...tooltipStyle, left: `${pos().left}px`, top: `${pos().top}px` }}

@@ -614,10 +614,20 @@ export default function RabbiLineageTree(props: Props): JSX.Element {
               const labelColor = n.role === 'subject' ? PRIMARY_COLOR : '#222';
               const borderWidth = n.role === 'subject' ? 2 : n.primary ? 1.75 : 1.25;
 
+              const activate = () => hasEv && clickNode(n);
               return (
+                // biome-ignore lint/a11y/noStaticElementInteractions: role="button"/tabindex ARE set when the node has on-daf evidence; Biome cannot resolve the conditional role expression
                 <g
+                  role={hasEv ? 'button' : undefined}
+                  tabindex={hasEv ? 0 : undefined}
                   style={{ cursor: hasEv ? 'pointer' : 'default' }}
-                  onClick={() => hasEv && clickNode(n)}
+                  onClick={activate}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      activate();
+                    }
+                  }}
                 >
                   <title>
                     {ev

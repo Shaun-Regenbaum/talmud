@@ -8,8 +8,8 @@ import type { LruMap } from '../src/lib/lruMap';
 // module is imported (below, in beforeAll) — node provides EventTarget + Event
 // globally, so no jsdom dependency is needed just to exercise the wiring.
 class FakeWindow extends EventTarget {}
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(globalThis as any).window = new FakeWindow();
+const fakeWindow = new FakeWindow();
+(globalThis as unknown as { window: FakeWindow }).window = fakeWindow;
 
 let runResultCache: LruMap<string, RunResult>;
 let runCacheKey: (e: string, t: string, p: string, i: string, lang: string) => string;
@@ -91,8 +91,7 @@ describe('cache invalidation', () => {
       fakeResult('bio'),
     );
     expect(runResultCache.size).toBe(1);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis as any).window.dispatchEvent(new Event('marks-runs-invalidate'));
+    fakeWindow.dispatchEvent(new Event('marks-runs-invalidate'));
     expect(runResultCache.size).toBe(0);
   });
 });

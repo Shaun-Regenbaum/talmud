@@ -247,7 +247,8 @@ export default function AIActivityPanel(): JSX.Element {
           {(entry) => renderEntry(entry)}
         </For>
         <Show when={groups().loading.length > MAX_RUNNING}>
-          <div
+          <button
+            type="button"
             onClick={() => setShowRunning((v) => !v)}
             title={showRunning() ? 'Show fewer running' : 'Show all running'}
             style={{
@@ -257,6 +258,11 @@ export default function AIActivityPanel(): JSX.Element {
               padding: '0.15rem 0',
               cursor: 'pointer',
               color: '#8a2a2b',
+              width: '100%',
+              font: 'inherit',
+              'text-align': 'left',
+              border: 'none',
+              background: 'transparent',
             }}
           >
             <span
@@ -280,12 +286,13 @@ export default function AIActivityPanel(): JSX.Element {
                 {showRunning() ? '▾' : '▸'}
               </span>
             </span>
-          </div>
+          </button>
         </Show>
 
         {/* Queued — collapsed to a single count by default. */}
         <Show when={groups().queued.length > 0}>
-          <div
+          <button
+            type="button"
             onClick={() => setShowQueued((v) => !v)}
             title={showQueued() ? 'Hide queued' : 'Show queued'}
             style={{
@@ -295,6 +302,11 @@ export default function AIActivityPanel(): JSX.Element {
               padding: '0.15rem 0',
               cursor: 'pointer',
               color: '#9a8b6f',
+              width: '100%',
+              font: 'inherit',
+              'text-align': 'left',
+              border: 'none',
+              background: 'transparent',
             }}
           >
             <span
@@ -325,7 +337,7 @@ export default function AIActivityPanel(): JSX.Element {
             >
               {fmtMs(oldestQueuedWait())}
             </span>
-          </div>
+          </button>
           <Show when={showQueued()}>
             <For each={groups().queued}>{(entry) => renderEntry(entry)}</For>
           </Show>
@@ -333,7 +345,8 @@ export default function AIActivityPanel(): JSX.Element {
 
         {/* Recently finished — collapsed to a single count by default. */}
         <Show when={groups().terminal.length > 0}>
-          <div
+          <button
+            type="button"
             onClick={() => setShowDone((v) => !v)}
             title={showDone() ? 'Hide finished' : 'Show finished'}
             style={{
@@ -343,6 +356,11 @@ export default function AIActivityPanel(): JSX.Element {
               padding: '0.15rem 0',
               cursor: 'pointer',
               color: '#15803d',
+              width: '100%',
+              font: 'inherit',
+              'text-align': 'left',
+              border: 'none',
+              background: 'transparent',
             }}
           >
             <span style={{ 'flex-shrink': 0 }}>✓</span>
@@ -353,7 +371,7 @@ export default function AIActivityPanel(): JSX.Element {
                 {showDone() ? '▾' : '▸'}
               </span>
             </span>
-          </div>
+          </button>
           <Show when={showDone()}>
             <For each={groups().terminal}>{(entry) => renderEntry(entry)}</For>
           </Show>

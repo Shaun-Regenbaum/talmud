@@ -178,6 +178,8 @@ export function AlignPage(): JSX.Element {
   const [hlAdj, setHlAdj] = createSignal<'prev' | 'next' | null>(null);
   const [prevOpen, setPrevOpen] = createSignal(false);
   const [nextOpen, setNextOpen] = createSignal(false);
+  const togglePrevOpen = () => setPrevOpen((o) => !o);
+  const toggleNextOpen = () => setNextOpen((o) => !o);
   const [detail, setDetail] = createSignal<Detail>(null);
 
   const ref = createMemo(() => ({ t: tractate(), p: page() }));
@@ -789,10 +791,19 @@ export function AlignPage(): JSX.Element {
           </div>
           <div class="aw-spinebox" ref={spineBox}>
             <Show when={adjPreview(prevDaf(), 'last', prevOpen())}>
+              {/* biome-ignore lint/a11y/useSemanticElements: holds block-level children (.aw-adjlab/.aw-adjtext divs) styled by the .aw-adj class rules; a native button's content model and UA styles would break it */}
               <div
                 class={`aw-adj${hlAdj() === 'prev' ? ' hot' : ''}`}
                 data-adj="prev"
-                onClick={() => setPrevOpen((o) => !o)}
+                role="button"
+                tabIndex={0}
+                onClick={togglePrevOpen}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    togglePrevOpen();
+                  }
+                }}
               >
                 <div class="aw-adjlab">
                   ‹ prev · {adjPage(page(), 'prev')} ·{' '}
@@ -805,6 +816,8 @@ export function AlignPage(): JSX.Element {
                 />
               </div>
             </Show>
+            {/* biome-ignore lint/a11y/noStaticElementInteractions: hover-to-locate highlight over per-word spans in injected HTML; mouse-position-driven, not an activatable control */}
+            {/* biome-ignore lint/a11y/useKeyWithMouseEvents: focusing the whole amud container has no meaningful keyboard equivalent of per-word hover */}
             <div
               class="aw-daf"
               dir="rtl"
@@ -818,10 +831,19 @@ export function AlignPage(): JSX.Element {
               onMouseLeave={() => setHl([])}
             />
             <Show when={adjPreview(nextDaf(), 'first', nextOpen())}>
+              {/* biome-ignore lint/a11y/useSemanticElements: holds block-level children (.aw-adjlab/.aw-adjtext divs) styled by the .aw-adj class rules; a native button's content model and UA styles would break it */}
               <div
                 class={`aw-adj${hlAdj() === 'next' ? ' hot' : ''}`}
                 data-adj="next"
-                onClick={() => setNextOpen((o) => !o)}
+                role="button"
+                tabIndex={0}
+                onClick={toggleNextOpen}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleNextOpen();
+                  }
+                }}
               >
                 <div class="aw-adjlab">
                   › next · {adjPage(page(), 'next')} ·{' '}

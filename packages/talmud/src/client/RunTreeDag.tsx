@@ -239,11 +239,21 @@ export function RunTreeDag(props: {
                   const exp = () => expanded().has(id);
                   const slow = () => (n().cold_ms ?? 0) > 10_000;
                   const dim = () => !!selected() && !connected().has(id);
+                  const activate = () => {
+                    setSelected(id);
+                    if (hasKids(id)) toggleExpand(id);
+                  };
                   return (
+                    // biome-ignore lint/a11y/useSemanticElements: node card contains a nested expand <button>; a native button cannot contain another button
                     <div
-                      onClick={() => {
-                        setSelected(id);
-                        if (hasKids(id)) toggleExpand(id);
+                      role="button"
+                      tabIndex={0}
+                      onClick={activate}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          activate();
+                        }
                       }}
                       style={{
                         position: 'absolute',

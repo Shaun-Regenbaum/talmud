@@ -515,8 +515,19 @@ function Collapsible(props: {
   };
   return (
     <div style={{ 'margin-top': '0.7rem' }}>
+      {/* biome-ignore lint/a11y/useSemanticElements: collapsible section heading; converting the h3 to a button would change the heading's layout and typography */}
       <h3
         onClick={toggle}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggle();
+          }
+        }}
+        // biome-ignore lint/a11y/noNoninteractiveElementToInteractiveRole: the heading stays an h3 in the DOM for its layout/typography; restructuring to a nested button would change the click target
+        role="button"
+        tabIndex={0}
+        aria-expanded={open()}
         style={{
           'font-size': '0.8rem',
           color: '#777',

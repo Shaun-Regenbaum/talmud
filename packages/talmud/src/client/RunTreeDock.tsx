@@ -86,8 +86,17 @@ function RunRow(props: {
   const color = () => (isLLM() ? (r().model?.includes('pro') ? BADGE_PRO : BADGE_LLM) : BADGE_SRC);
   const pct = () => Math.max(2, Math.round(((r().cold_ms ?? 0) / props.maxMs) * 100));
   return (
+    // biome-ignore lint/a11y/useSemanticElements: row contains a nested inspect <button>; a native button cannot contain another button
     <div
+      role="button"
+      tabIndex={0}
       onClick={props.onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          props.onClick?.();
+        }
+      }}
       title={r().id}
       style={{
         display: 'flex',
@@ -491,6 +500,7 @@ export default function RunTreeDock(props: {
       }}
     >
       {/* resize handle (left edge) */}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: drag-to-resize handle; the interaction is pointer-position-driven (mousemove), there is no keyboard equivalent */}
       <div
         onMouseDown={onResizeStart}
         title="drag to resize"
@@ -758,11 +768,21 @@ export default function RunTreeDock(props: {
                       const exp = () => expanded().has(id);
                       const slow = () => (n().cold_ms ?? 0) > 10_000;
                       const dim = () => !!selected() && !connected().has(id);
+                      const activate = () => {
+                        setSelected(id);
+                        if (hasKids(id)) toggleExpand(id);
+                      };
                       return (
+                        // biome-ignore lint/a11y/useSemanticElements: node card contains a nested expand <button>; a native button cannot contain another button
                         <div
-                          onClick={() => {
-                            setSelected(id);
-                            if (hasKids(id)) toggleExpand(id);
+                          role="button"
+                          tabIndex={0}
+                          onClick={activate}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              activate();
+                            }
                           }}
                           style={{
                             position: 'absolute',
@@ -880,6 +900,7 @@ export default function RunTreeDock(props: {
               position: 'relative',
             }}
           >
+            {/* biome-ignore lint/a11y/noStaticElementInteractions: drag-to-resize handle; the interaction is pointer-position-driven (mousemove), there is no keyboard equivalent */}
             <div
               onMouseDown={onDetailResizeStart}
               title="drag to resize"

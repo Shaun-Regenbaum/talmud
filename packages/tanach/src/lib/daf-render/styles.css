@@ -62,6 +62,7 @@
 }
 
 /* Spacer heights driven by the layout engine */
+/* biome-ignore lint/style/noDescendingSpecificity: disjoint properties — this sets height; the earlier higher-specificity .daf-main .daf-start rule sets width/margins */
 .daf-root .daf-start {
   height: var(--daf-start);
 }
@@ -87,6 +88,7 @@
   margin-right: calc(0.5 * var(--daf-padding-horizontal));
 }
 
+/* biome-ignore lint/style/noDescendingSpecificity: disjoint properties — this sets margins; the earlier higher-specificity .daf-inner/.daf-outer .daf-end rules set height */
 .daf-root .daf-end {
   margin-left: calc(0.5 * var(--daf-padding-horizontal));
   margin-right: calc(0.5 * var(--daf-padding-horizontal));
@@ -117,11 +119,13 @@
 }
 
 /* Vertical padding */
+/* biome-ignore lint/style/noDescendingSpecificity: disjoint properties — this sets margin-top; the earlier higher-specificity .daf-inner/.daf-outer .daf-mid rule sets width/clear */
 .daf-root .daf-mid,
 .daf-root .daf-main .daf-text {
   margin-top: var(--daf-padding-vertical);
 }
 
+/* biome-ignore lint/style/noDescendingSpecificity: disjoint properties — this sets margin-bottom; the earlier higher-specificity .daf-inner/.daf-outer .daf-mid rule sets width/clear */
 .daf-root .daf-mid,
 .daf-root .daf-main .daf-inner-mid,
 .daf-root .daf-main .daf-outer-mid {
@@ -129,6 +133,7 @@
 }
 
 /* Text */
+/* biome-ignore lint/style/noDescendingSpecificity: disjoint properties — this sets direction/text-align; the earlier higher-specificity .daf-main .daf-text rule sets margin-top */
 .daf-root .daf-text {
   direction: var(--daf-direction);
   text-align: justify;
@@ -346,6 +351,7 @@
    generation spectrum (see injectRabbiUnderlines.ts); this rule only switches
    the stroke to dashed. */
 .daf-root .daf-text .rabbi-underline-anonymous {
+  /* biome-ignore lint/complexity/noImportantStyles: must beat the LATER equal-specificity .rabbi-underline rule whose border-bottom shorthand resets the style to solid */
   border-bottom-style: dashed !important;
 }
 
@@ -383,6 +389,7 @@
 }
 
 /* Per-word click target. Tokenized by src/client/tokenize.ts. */
+/* biome-ignore lint/style/noDescendingSpecificity: disjoint properties — this sets cursor/padding/radius/transition; the earlier higher-specificity .city-marker > .daf-word rule sets color */
 .daf-root .daf-text .daf-word {
   cursor: pointer;
   padding: 0 1px;

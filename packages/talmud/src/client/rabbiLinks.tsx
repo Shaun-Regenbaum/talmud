@@ -177,9 +177,10 @@ export function RabbiText(props: {
         // name in the document text flow (copyable) while staying clickable +
         // keyboard-accessible.
         return (
+          // biome-ignore lint/a11y/useSemanticElements: inline span inside flowing prose; <a>/<button> drop the name from text selection/copy (see comment above)
           <span
             role="link"
-            tabindex={0}
+            tabIndex={0}
             onClick={(e) => {
               e.stopPropagation();
               props.onPushRabbi(targetName);

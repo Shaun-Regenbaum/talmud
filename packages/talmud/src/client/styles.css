@@ -581,9 +581,13 @@ body.dev-panel-open .daf-page {
     width: 100%;
   }
   .daf-aside {
+    /* biome-ignore lint/complexity/noImportantStyles: must beat the inline position:sticky set in DafViewer.tsx JSX */
     position: static !important;
+    /* biome-ignore lint/complexity/noImportantStyles: must beat the inline width:420px set in DafViewer.tsx JSX */
     width: 100% !important;
+    /* biome-ignore lint/complexity/noImportantStyles: must beat the inline max-height:calc(100vh - 2rem) set in DafViewer.tsx JSX */
     max-height: none !important;
+    /* biome-ignore lint/complexity/noImportantStyles: must beat the inline overflow:auto set in DafViewer.tsx JSX */
     overflow: visible !important;
   }
   .daf-cluster > section {
@@ -592,11 +596,15 @@ body.dev-panel-open .daf-page {
   /* Strips stack full-width below the daf on mobile; desktop stickiness is
      irrelevant here. Override the narrow-desktop hide. */
   .daf-strip {
-    display: flex !important;
-    position: static !important;
-    width: 100% !important;
-    max-height: none !important;
-    overflow: visible !important;
+    /* No !important needed: the narrow-desktop hide (display:none @1279px) and
+       the 220px/240px base widths are equal-specificity (0,1,0) rules EARLIER
+       in this file, so this later block wins by source order; nothing else
+       (no inline styles) sets position/max-height/overflow on .daf-strip. */
+    display: flex;
+    position: static;
+    width: 100%;
+    max-height: none;
+    overflow: visible;
   }
   /* Native pan + pinch-zoom on the daf container regardless of mode. The
      traditional Tzurat HaDaf renders at full 520px width on phones (the
@@ -612,6 +620,7 @@ body.dev-panel-open .daf-page {
     /* Override the desktop inline style: when content overflows, flex
        centering hides the leading edge out of reach. Anchor to start so
        users can pan both directions. */
+    /* biome-ignore lint/complexity/noImportantStyles: must beat the inline justify-content:center set in DafViewer.tsx JSX */
     justify-content: flex-start !important;
   }
   /* The body column wraps the surface — keep its overflow visible so
@@ -789,7 +798,10 @@ body.dev-panel-open .daf-page {
   z-index: 1;
 }
 /* Single-item clusters: no stack to expand. Neutralize the negative
-   margin so the lone icon sits flush at its anchor. */
+   margin so the lone icon sits flush at its anchor. No !important needed:
+   the lone icon is always :first-child, so every equal-or-higher-specificity
+   margin-top rule above already resolves to 0, and this (0,3,0) rule is last
+   in source. GutterOverlay.tsx sets no inline margins. */
 .gutter-cluster[data-count="1"] .gutter-icon {
-  margin: 0 !important;
+  margin: 0;
 }

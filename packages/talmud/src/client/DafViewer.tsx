@@ -3495,6 +3495,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           </Show>
           {/* EN/HE language toggle, folded inline here on the daf page; the
               floating TopBar overlay covers the other routes (see App.tsx). */}
+          {/* biome-ignore lint/a11y/useSemanticElements: .tb-seg is an inline-flex pill; a fieldset cannot reliably be a flex container and carries UA border/padding/min-inline-size */}
           <div class="tb-seg" role="group" aria-label="Language" data-tour="lang">
             <button
               type="button"
@@ -3634,6 +3635,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
               </div>
             </Show>
 
+            {/* biome-ignore lint/a11y/noStaticElementInteractions: mouseup here delegates pointer text-selection + tap handling for the daf words, not a click action of its own; keyboard access lives on the focusable controls inside */}
             <div
               ref={surfaceEl}
               class="daf-surface"
@@ -3998,6 +4000,8 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           <Show>. */}
       <Show when={isMobile()}>
         <Show when={layersOpen()}>
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: backdrop click-to-close; the sheet's ✕ close button is the keyboard path */}
+          {/* biome-ignore lint/a11y/useKeyWithClickEvents: backdrop click-to-close; the sheet's ✕ close button is the keyboard path */}
           <div
             onClick={() => setLayersOpen(false)}
             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.25)', 'z-index': 200 }}

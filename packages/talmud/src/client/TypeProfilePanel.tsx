@@ -114,13 +114,22 @@ export default function TypeProfilePanel(props: {
           {(p) => {
             const isActive = () =>
               props.active?.start === p.unit.startSegIdx && props.active?.end === p.unit.endSegIdx;
+            const toggleHighlight = () =>
+              props.onHighlight?.(
+                isActive() ? null : { start: p.unit.startSegIdx, end: p.unit.endSegIdx },
+              );
             return (
+              // biome-ignore lint/a11y/useSemanticElements: a native <button> would inject UA layout/typography into this tightly inline-styled flex row; role+tabIndex+keydown give the same semantics
               <div
-                onClick={() =>
-                  props.onHighlight?.(
-                    isActive() ? null : { start: p.unit.startSegIdx, end: p.unit.endSegIdx },
-                  )
-                }
+                role="button"
+                tabIndex={0}
+                onClick={toggleHighlight}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleHighlight();
+                  }
+                }}
                 title="Click to highlight this section on the daf"
                 style={{
                   display: 'flex',

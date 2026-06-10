@@ -199,7 +199,10 @@ export function NotesPanel(props: {
       >
         <For each={props.highlights}>
           {(h) => (
+            // biome-ignore lint/a11y/useSemanticElements: the row nests a delete button; a native button cannot contain another button
             <div
+              role="button"
+              tabIndex={0}
               style={{
                 padding: '0.55rem 0.8rem',
                 'border-bottom': '1px solid #f3f3f3',
@@ -208,6 +211,15 @@ export function NotesPanel(props: {
                 gap: '0.5rem',
               }}
               onClick={() => props.onJump(h)}
+              onKeyDown={(e) => {
+                // Only the row itself jumps — a keydown bubbled up from the
+                // focused delete button must not also jump.
+                if (e.currentTarget !== e.target) return;
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  props.onJump(h);
+                }
+              }}
             >
               <span
                 style={{

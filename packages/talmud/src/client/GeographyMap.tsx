@@ -513,7 +513,12 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
             const gen = props.generationByName?.get(name);
             const genColor = gen ? GENERATION_BY_ID[gen]?.color : undefined;
             const fill = genColor ?? GEN_FALLBACK_COLOR;
+            const activate = () => {
+              if (props.onHighlightSingleRabbi) props.onHighlightSingleRabbi(name);
+              else onDotClick(d);
+            };
             return (
+              // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG map
               <circle
                 cx={off.x}
                 cy={off.y}
@@ -522,10 +527,17 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
                 stroke={activeCity() ? '#000' : 'rgba(0,0,0,0.25)'}
                 stroke-width={activeCity() ? 0.6 : 0.3}
                 style={{ cursor: 'pointer' }}
+                role="button"
+                tabindex={0}
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (props.onHighlightSingleRabbi) props.onHighlightSingleRabbi(name);
-                  else onDotClick(d);
+                  activate();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    activate();
+                  }
                 }}
               >
                 <title>{`${name} · ${d.city.name} (${d.city.nameHe})${gen ? ` · ${GENERATION_BY_ID[gen]?.label ?? ''}` : ''}`}</title>
@@ -552,7 +564,12 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
 
   const renderPlaceDot = (city: KnownCity): JSX.Element => {
     const active = () => props.activePlace === city.name;
+    const activate = () => {
+      if (!props.onHighlightPlace) return;
+      props.onHighlightPlace(active() ? null : city.name);
+    };
     return (
+      // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG map
       <circle
         cx={city.x}
         cy={city.y}
@@ -561,10 +578,17 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
         stroke={active() ? '#000' : 'rgba(0,0,0,0.25)'}
         stroke-width={active() ? 0.6 : 0.3}
         style={{ cursor: 'pointer' }}
+        role="button"
+        tabindex={0}
         onClick={(e) => {
           e.stopPropagation();
-          if (!props.onHighlightPlace) return;
-          props.onHighlightPlace(active() ? null : city.name);
+          activate();
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            activate();
+          }
         }}
       >
         <title>{`${city.name} (${city.nameHe}) · ${t('geography.mentionedInDaf')}`}</title>
@@ -663,6 +687,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
               role="img"
               aria-label={t('geography.eretzYisrael.aria')}
             >
+              {/* biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG map */}
               <path
                 d={ISRAEL_SHAPE.d}
                 fill="none"
@@ -671,7 +696,16 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
                 stroke-linejoin="round"
                 opacity="0.85"
                 style={{ cursor: 'pointer' }}
+                role="button"
+                tabindex={0}
+                aria-label={t('geography.eretzYisrael')}
                 onClick={() => onRegionClick('israel')}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onRegionClick('israel');
+                  }
+                }}
               />
               <For each={data().placeDots.filter((c) => c.region === 'israel')}>
                 {(c) => renderPlaceDot(c)}
@@ -713,6 +747,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
               aria-label={t('geography.bavel.aria')}
             >
               {/* Invisible hit-box so clicks anywhere inside the region fire onRegionClick */}
+              {/* biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG map */}
               <rect
                 x="30"
                 y="-10"
@@ -720,7 +755,16 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
                 height="195"
                 fill="transparent"
                 style={{ cursor: 'pointer' }}
+                role="button"
+                tabindex={0}
+                aria-label={t('geography.bavel')}
                 onClick={() => onRegionClick('bavel')}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onRegionClick('bavel');
+                  }
+                }}
               />
               {/* Euphrates — Pumbedita → Nehardea → Sura → Naresh */}
               <path
@@ -851,7 +895,9 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
                 const toFull = fromB ? t('geography.eretzYisrael') : t('geography.bavel');
                 const arrow = row.direction === 'both' ? '↔' : '→';
                 return (
+                  // biome-ignore lint/a11y/useSemanticElements: a native <button> would inject UA layout/typography into this tightly inline-styled row; role+tabIndex+keydown give the same semantics
                   <div
+                    role="button"
                     onMouseEnter={onEnter}
                     onMouseLeave={onLeave}
                     onFocus={onEnter}

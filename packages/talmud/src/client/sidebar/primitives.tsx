@@ -223,10 +223,11 @@ export function SectionCard(props: {
         }
       >
         {/* clickable label toggles; the inspect 'i' inside stops propagation */}
+        {/* biome-ignore lint/a11y/useSemanticElements: the label row nests the inspect 'i' button; a native button cannot contain another button */}
         <div
           onClick={() => setOpen((v) => !v)}
           role="button"
-          tabindex={0}
+          tabIndex={0}
           aria-expanded={open()}
           onKeyDown={(e) => {
             // Only the wrapper itself toggles — a keydown bubbled up from the
