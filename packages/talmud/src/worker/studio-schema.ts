@@ -371,7 +371,7 @@ export type EnrichmentDependency =
   // Like 'context' but only the accessible, idea-rich study aids (Insights /
   // Points / Background / Yerushalmi / Revach / Mishnah) — drops the commentary
   // + halachic-apparatus layers. For reader-facing pieces that should not be
-  // pulled toward lomdus (the Tidbit). See LIGHT_CONTEXT_SOURCES in index.ts.
+  // pulled toward lomdus (the Tidbit). See LIGHT_CONTEXT_SOURCES in run-sources.ts.
   | 'context-light'
   | 'halacha-refs'
   | 'yerushalmi-text'
